@@ -4,6 +4,7 @@ import type { IScenePack } from '../../common/scenePacks';
 import type { IAccountSession } from '../account/session';
 import type { IVersionPins } from '../keptVersions';
 import type { IProjectPublished } from '../memberScenes/publishedRecords';
+import type { IMemberCopyMark } from '../memberScenes/studioProjects';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 import {
   createMemberSceneStore,
@@ -101,6 +102,8 @@ export interface IMemberScenesIpcRegistration {
   restoreOwnProject(pack: IScenePack): Promise<TProjectRestore>;
   /** One of FluidEQ's own, written out as a project to look inside. */
   openInspection(pack: IScenePack): Promise<TInspection>;
+  /** Another member's published scene, written out as a copy to look inside. */
+  openMemberCopy(pack: IScenePack, mark: IMemberCopyMark): Promise<TInspection>;
   /** The Studio's list, as far as the member's AI may reach it. */
   agentProject: IStudioProjectsIpcRegistration['agentProject'];
   /** Whether a project's chat must ask before every command (`projectOrigin.ts`). */
@@ -239,6 +242,7 @@ export const registerMemberScenesIpc = ({
     mayUseActive: studio.mayUseActive,
     restoreOwnProject: studio.restoreOwnProject,
     openInspection: studio.openInspection,
+    openMemberCopy: studio.openMemberCopy,
     agentProject: studio.agentProject,
     chatMustAsk: studio.chatMustAsk,
     ownProjectFolders: studio.ownProjectFolders,

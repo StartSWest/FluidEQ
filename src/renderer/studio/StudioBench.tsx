@@ -30,6 +30,7 @@ import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
 import StudioShipInspect from './StudioShipInspect';
+import StudioShipMemberCopy from './StudioShipMemberCopy';
 import StudioDrawing from './StudioDrawing';
 import StudioFramingDialog from './StudioFramingDialog';
 import StudioListen from './StudioListen';
@@ -237,25 +238,36 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     linkStudioFolder().catch(() => undefined);
   };
 
-  // Where keeping, publishing and sending go: a FluidEQ scene opened to look
-  // inside says what it is for instead. Two of them, chosen here, rather
-  // than one with a flag; each stands at the end of the bar.
-  const shipCard = project?.official ? (
-    <StudioShipInspect />
-  ) : (
-    <StudioShipCard
-      unfit={unfit}
-      onAdd={keeping.add}
-      publishing={publishing.preparing}
-      onPublish={publishing.begin}
-      exporting={sharing.exporting}
-      onExport={sharing.startExport}
-      onSetDesktop={keeping.setDesktop}
-      settingDesktop={keeping.settingDesktop}
-      unfitReason={unfitWords}
-      onShowProblems={showProblems}
-    />
-  );
+  // Where keeping, publishing and sending go: a scene opened to look inside,
+  // FluidEQ's or another member's, says what it is for instead. Three of
+  // them, chosen here, rather than one with flags; each stands at the end of
+  // the bar.
+  let shipCard;
+  if (project?.official) {
+    shipCard = <StudioShipInspect />;
+  } else if (project?.member) {
+    shipCard = (
+      <StudioShipMemberCopy
+        maker={project.member.maker}
+        version={project.member.version}
+      />
+    );
+  } else {
+    shipCard = (
+      <StudioShipCard
+        unfit={unfit}
+        onAdd={keeping.add}
+        publishing={publishing.preparing}
+        onPublish={publishing.begin}
+        exporting={sharing.exporting}
+        onExport={sharing.startExport}
+        onSetDesktop={keeping.setDesktop}
+        settingDesktop={keeping.settingDesktop}
+        unfitReason={unfitWords}
+        onShowProblems={showProblems}
+      />
+    );
+  }
 
   let stage = (
     <div className="studio-stage__well studio-stage__well--empty">
@@ -463,7 +475,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             is sent again (`SceneReviewMark`). Here and not in the ship row,
             which is one row by design and full in German at the narrowest
             window. */}
-        {project && !project.official && (
+        {project && !project.official && !project.member && (
           <SceneReviewMark sceneId={project.sceneId} />
         )}
         {project && (

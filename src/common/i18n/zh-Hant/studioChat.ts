@@ -140,6 +140,9 @@ const studioChat = {
   'studioChat.outside.body':
     '這個資料夾不是 FluidEQ 建立的，其中的文字可能要求 AI 執行指令，所以每次都會先問你。如果這個場景是你的，或你知道是誰做的，就信任它：之後它就算是你自己的場景。',
   'studioChat.outside.trust': '我信任這個場景',
+  'studioChat.memberCopy.title': '成員的場景：AI 每個指令前都會詢問',
+  'studioChat.memberCopy.body':
+    '它檔案中的文字可能讓 AI 執行某些內容，因此每個指令前都會先詢問你。成員的場景無法標記為可信。',
   'studioChat.chatgptOn': 'ChatGPT 圖片已開啟。',
   'studioChat.chatgptTurnOff': '關閉',
   'studioChat.past.title': '過去的聊天記錄',

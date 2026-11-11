@@ -142,6 +142,10 @@ const studioChat = {
   'studioChat.outside.body':
     'このフォルダーは FluidEQ が作ったものではなく、ファイル内のテキストが AI にコマンドの実行を指示する可能性があるため、毎回確認します。自分のシーン、または作者がわかっているシーンなら信頼してください。以後は自分のシーンとして扱われます。',
   'studioChat.outside.trust': 'このシーンを信頼する',
+  'studioChat.memberCopy.title':
+    'メンバーのシーン：AI はコマンドの前に毎回確認します',
+  'studioChat.memberCopy.body':
+    'このシーンのファイル内のテキストが AI に何かを実行させようとする可能性があるため、コマンドの前に毎回確認します。メンバーのシーンを信頼済みにすることはできません。',
   'studioChat.chatgptOn': 'ChatGPT の画像はオンです。',
   'studioChat.chatgptTurnOff': 'オフにする',
   'studioChat.past.title': '過去のチャット',

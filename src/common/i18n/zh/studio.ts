@@ -65,6 +65,7 @@ const studio = {
   'studio.project.label': '项目',
   'studio.project.group': '你的项目',
   'studio.project.groupOfficial': '可查看内部的 FluidEQ 场景',
+  'studio.project.groupMember': '可查看内部的成员场景',
   'studio.project.inspect': '查看 FluidEQ 场景的内部…',
   'studio.project.none': '选择一个项目',
   'studio.project.empty': '还没有项目',
@@ -277,6 +278,10 @@ const studio = {
     '看看它是怎么做的，为你自己的场景汲取灵感。你可以在这里随意尝试修改，但它不能添加到你的外观、发布或导出。',
   'studio.inspect.locked':
     '这是为查看内部而打开的 FluidEQ 场景，不能添加到你的外观、发布或导出。',
+  'studio.memberCopy.title': '{maker} 的场景，用于查看内部',
+  'studio.memberCopy.titleNoName': '成员的场景，用于查看内部',
+  'studio.memberCopy.body':
+    '你自己的版本 {version} 副本，可阅读并尝试修改。图库中的场景永远不会被改动，此副本不能添加到你的外观、发布或导出。',
   'studio.export.banned': '此账户已无法分享场景。',
   'studio.export.outdated': '条款有更新的版本。请更新 FluidEQ 阅读后再导出。',
 

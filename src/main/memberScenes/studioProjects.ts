@@ -29,11 +29,27 @@ export interface IStoredProject {
    */
   official?: string;
   /**
+   * A member's published scene, copied here to look inside. Like `official`
+   * it is never added to looks, exported or published, and it is always
+   * `origin: 'opened'`: somebody else wrote its files, so its chat asks
+   * before every command and the scene can never be marked as trusted.
+   */
+  member?: IMemberCopyMark;
+  /**
    * A folder FluidEQ did not make, which the member opened
    * (`projectOrigin.ts`). Absent on a project made here, and on one the
    * member said they trust.
    */
   origin?: 'opened';
+}
+
+/** Which member's scene, and which version of it, a copy was made from. */
+export interface IMemberCopyMark {
+  authorId: string;
+  sceneId: string;
+  version: number;
+  /** The maker's name as the gallery showed it, for the Studio to say. */
+  maker: string;
 }
 
 export interface IProjectList {
@@ -49,9 +65,51 @@ export const MAX_STUDIO_PROJECTS = 40;
 const PROJECT_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const PACK_ID = /^[a-z][a-z0-9-]{1,47}$/;
+/** The longest maker name kept; the gallery's own names are shorter. */
+const MAX_MAKER_NAME = 80;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** A member copy's mark as written, or nothing when any part is not one. */
+export const readMemberCopyMark = (
+  value: unknown,
+): IMemberCopyMark | undefined =>
+  isRecord(value) &&
+  typeof value.authorId === 'string' &&
+  PROJECT_ID.test(value.authorId) &&
+  typeof value.sceneId === 'string' &&
+  PACK_ID.test(value.sceneId) &&
+  typeof value.version === 'number' &&
+  Number.isInteger(value.version) &&
+  value.version > 0 &&
+  typeof value.maker === 'string' &&
+  value.maker.length <= MAX_MAKER_NAME
+    ? {
+        authorId: value.authorId,
+        sceneId: value.sceneId,
+        version: value.version,
+        maker: value.maker,
+      }
+    : undefined;
+
+/**
+ * What stands for a member copy's mark that could not be read: still a
+ * mark, so the copy stays locked and careful, naming nobody.
+ */
+const UNREADABLE_MEMBER_MARK: IMemberCopyMark = {
+  authorId: '00000000-0000-4000-8000-000000000000',
+  sceneId: 'unknown',
+  version: 1,
+  maker: '',
+};
+
+/**
+ * Opened to look inside, never the member's own: one of FluidEQ's scenes or
+ * a copy of another member's. Never added, exported, published or renamed.
+ */
+export const isLookInside = (project: IStoredProject) =>
+  project.official !== undefined || project.member !== undefined;
 
 /** One folder written two ways is still one project. */
 export const sameFolder = (a: string, b: string) =>
@@ -83,12 +141,19 @@ const readEntry = (value: unknown): IStoredProject | undefined => {
       : { origin: 'opened' as const }),
   };
   // A mark that cannot be read still marks the project: dropping it would
-  // turn a FluidEQ scene into one that can be published.
+  // turn a FluidEQ scene, or a member's, into one that can be published.
+  const member =
+    value.member === undefined
+      ? undefined
+      : (readMemberCopyMark(value.member) ?? UNREADABLE_MEMBER_MARK);
+  const marked: IStoredProject = member
+    ? { ...entry, member, origin: 'opened' }
+    : entry;
   if (value.official === undefined) {
-    return entry;
+    return marked;
   }
   return {
-    ...entry,
+    ...marked,
     official:
       typeof value.official === 'string' && PACK_ID.test(value.official)
         ? value.official
@@ -179,6 +244,30 @@ export const withFolder = (
     projects: [
       ...list.projects,
       { id, folder, openedAt: now, ...(official ? { official } : {}) },
+    ],
+  }).slice(0, MAX_STUDIO_PROJECTS);
+  return { ...list, projects, active: id };
+};
+
+/**
+ * The list with a member copy's new folder in it, marked and open. Always a
+ * folder FluidEQ has just written (`openMemberCopy`), so never one already
+ * listed: a folder that is would be the member's own, and is left alone.
+ */
+export const withMemberCopy = (
+  list: IProjectList,
+  folder: string,
+  now: number,
+  member: IMemberCopyMark,
+): IProjectList => {
+  if (list.projects.some((project) => sameFolder(project.folder, folder))) {
+    return list;
+  }
+  const id = randomUUID();
+  const projects = byRecent({
+    projects: [
+      ...list.projects,
+      { id, folder, openedAt: now, member, origin: 'opened' },
     ],
   }).slice(0, MAX_STUDIO_PROJECTS);
   return { ...list, projects, active: id };

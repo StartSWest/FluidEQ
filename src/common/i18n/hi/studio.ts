@@ -67,6 +67,7 @@ const studio = {
   'studio.project.label': 'प्रोजेक्ट',
   'studio.project.group': 'आपके प्रोजेक्ट',
   'studio.project.groupOfficial': 'अंदर देखने के लिए FluidEQ सीन',
+  'studio.project.groupMember': 'अंदर देखने के लिए सदस्यों के सीन',
   'studio.project.inspect': 'किसी FluidEQ सीन के अंदर देखें…',
   'studio.project.none': 'प्रोजेक्ट चुनें',
   'studio.project.empty': 'अभी कोई प्रोजेक्ट नहीं',
@@ -312,6 +313,10 @@ const studio = {
     'देखें कि यह कैसे बना है और अपने सीन के लिए आइडिया लें। यहाँ जो चाहें बदलकर देखें; इसे आपके रूपों में जोड़ा, प्रकाशित या एक्सपोर्ट नहीं किया जा सकता।',
   'studio.inspect.locked':
     'यह अंदर देखने के लिए खोला गया FluidEQ सीन है। इसे आपके रूपों में जोड़ा, प्रकाशित या एक्सपोर्ट नहीं किया जा सकता।',
+  'studio.memberCopy.title': '{maker} का सीन, अंदर देखने के लिए',
+  'studio.memberCopy.titleNoName': 'किसी सदस्य का सीन, अंदर देखने के लिए',
+  'studio.memberCopy.body':
+    'वर्ज़न {version} की आपकी अपनी कॉपी, पढ़ने और बदलाव आज़माने के लिए। गैलरी का सीन कभी नहीं बदला जाता, और यह कॉपी आपके लुक्स में जोड़ी, प्रकाशित या एक्सपोर्ट नहीं की जा सकती।',
   'studio.export.banned': 'यह खाता अब सीन साझा नहीं कर सकता।',
   'studio.export.outdated':
     'शर्तों का एक नया संस्करण है। उसे पढ़ने और एक्सपोर्ट करने के लिए FluidEQ अपडेट करें।',

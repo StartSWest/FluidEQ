@@ -9,8 +9,10 @@ import type { TLocalizedName } from '../../common/scenePacks';
 import type { TProjectBuild } from '../memberScenes/project';
 import type { IProjectPublished } from '../memberScenes/publishedRecords';
 import type { IMemberSceneSummary } from '../memberScenes/store';
+import { originOf } from '../memberScenes/projectOrigin';
 import {
   byRecent,
+  isLookInside,
   type IProjectList,
   type IStoredProject,
 } from '../memberScenes/studioProjects';
@@ -39,9 +41,15 @@ export interface IStudioProject {
    */
   official?: true;
   /**
-   * Its files came from outside FluidEQ, or changed outside its chat
-   * (`projectOrigin.ts`): the chat asks before every command until the
-   * member says the scene is theirs.
+   * A copy of another member's published scene, to look inside: never added
+   * to looks, exported or published, and its chat always asks before a
+   * command. Who made it and which version, for the Studio to say.
+   */
+  member?: { maker: string; version: number };
+  /**
+   * Its files came from outside FluidEQ (`projectOrigin.ts`): the chat asks
+   * before every command until the member says the scene is theirs, which
+   * a member copy can never be.
    */
   outside?: true;
   /**
@@ -151,7 +159,7 @@ export const studioStateOf = (
   projects: byRecent(list).map((project) => {
     const names = seen.names.get(project.id);
     const sceneId = seen.sceneIds?.get(project.id);
-    const published = project.official
+    const published = isLookInside(project)
       ? undefined
       : seen.publishedOf?.(project.folder);
     return {
@@ -161,7 +169,15 @@ export const studioStateOf = (
       ...(names ? { names } : {}),
       ...(sceneId ? { sceneId } : {}),
       ...(project.official ? { official: true as const } : {}),
-      ...(project.origin === 'opened' ? { outside: true as const } : {}),
+      ...(project.member
+        ? {
+            member: {
+              maker: project.member.maker,
+              version: project.member.version,
+            },
+          }
+        : {}),
+      ...(originOf(project) === 'outside' ? { outside: true as const } : {}),
       ...(published ? { published } : {}),
     };
   }),

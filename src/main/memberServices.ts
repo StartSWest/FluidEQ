@@ -506,6 +506,7 @@ const registerMemberServices = ({
       reviewNews: () => plusReviewIpc.refreshNow(),
       announcements: (reason) => sceneAnnouncementsIpc.refreshIfDue(reason),
     },
+    studio: { openMemberCopy: memberScenesIpc.openMemberCopy },
     logger: log,
   });
 

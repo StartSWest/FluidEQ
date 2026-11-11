@@ -66,6 +66,7 @@ const studio = {
   'studio.project.label': '專案',
   'studio.project.group': '您的專案',
   'studio.project.groupOfficial': 'FluidEQ 場景檢視內部',
+  'studio.project.groupMember': '可查看內部的成員場景',
   'studio.project.inspect': '看看 FluidEQ 場景的內部...',
   'studio.project.none': '選擇一個專案',
   'studio.project.empty': '還沒有專案',
@@ -273,6 +274,10 @@ const studio = {
     '看看它是如何製作的，並為您自己的場景汲取靈感。在這裡嘗試任何你喜歡的改變；它無法新增到您的外觀、發布或匯出。',
   'studio.inspect.locked':
     '這是一個FluidEQ場景，開啟看裡面。它無法新增到您的外觀中、發布或匯出。',
+  'studio.memberCopy.title': '{maker} 的場景，用於查看內部',
+  'studio.memberCopy.titleNoName': '成員的場景，用於查看內部',
+  'studio.memberCopy.body':
+    '你自己的版本 {version} 副本，可閱讀並嘗試修改。圖庫中的場景永遠不會被改動，此副本不能加入你的外觀、發布或匯出。',
   'studio.export.banned': '該帳號無法再分享場景。',
   'studio.export.outdated': '這些條款有較新的版本。更新 FluidEQ 以讀取並匯出。',
   'studio.import.done': '{author} 的 {name} 盡在您的造型中。',

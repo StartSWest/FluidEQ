@@ -67,6 +67,7 @@ const studio = {
   'studio.project.label': 'プロジェクト',
   'studio.project.group': 'あなたのプロジェクト',
   'studio.project.groupOfficial': '中を見られる FluidEQ のシーン',
+  'studio.project.groupMember': '中を見られるメンバーのシーン',
   'studio.project.inspect': 'FluidEQ のシーンの中を見る…',
   'studio.project.none': 'プロジェクトを選択',
   'studio.project.empty': 'まだプロジェクトがありません',
@@ -317,6 +318,10 @@ const studio = {
     'どう作られているかを見て、自分のシーンのアイデアにしてください。ここでは自由に変更を試せますが、マイ表示への追加、公開、エクスポートはできません。',
   'studio.inspect.locked':
     '中を見るために開いた FluidEQ のシーンです。マイ表示への追加、公開、エクスポートはできません。',
+  'studio.memberCopy.title': '{maker} さんのシーン（中を見るため）',
+  'studio.memberCopy.titleNoName': '中を見るためのメンバーのシーン',
+  'studio.memberCopy.body':
+    'バージョン {version} のあなた専用のコピーです。読んだり変更を試したりできます。ギャラリーのシーンには一切手を加えず、このコピーはルックへの追加、公開、書き出しができません。',
   'studio.export.banned': 'このアカウントではシーンを共有できなくなりました。',
   'studio.export.outdated':
     '規約の新しいバージョンがあります。FluidEQ を更新して読んでからエクスポートしてください。',

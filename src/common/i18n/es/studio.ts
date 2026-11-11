@@ -68,6 +68,7 @@ const studio = {
   'studio.project.label': 'Proyecto',
   'studio.project.group': 'Tus proyectos',
   'studio.project.groupOfficial': 'Escenas de FluidEQ para ver por dentro',
+  'studio.project.groupMember': 'Escenas de miembros para ver por dentro',
   'studio.project.inspect': 'Ver por dentro una escena de FluidEQ…',
   'studio.project.none': 'Elige un proyecto',
   'studio.project.empty': 'Aún no hay proyecto',
@@ -317,6 +318,11 @@ const studio = {
     'Mira cómo está hecha y toma ideas para tus escenas. Prueba aquí los cambios que quieras; no se puede añadir a tus estilos, publicar ni exportar.',
   'studio.inspect.locked':
     'Es una escena de FluidEQ abierta para verla por dentro. No se puede añadir a tus estilos, publicar ni exportar.',
+  'studio.memberCopy.title': 'Escena de {maker}, para verla por dentro',
+  'studio.memberCopy.titleNoName':
+    'Una escena de un miembro, para verla por dentro',
+  'studio.memberCopy.body':
+    'Tu propia copia de la versión {version}, para leerla y probar cambios. La escena de la galería nunca se toca, y esta copia no se puede añadir a tus looks, publicar ni exportar.',
   'studio.export.banned': 'Esta cuenta ya no puede compartir escenas.',
   'studio.export.outdated':
     'Las condiciones tienen una versión más nueva. Actualiza FluidEQ para leerla y exportar.',

@@ -26,6 +26,7 @@ import StudioChatMenu from './StudioChatMenu';
 import StudioChatPast from './StudioChatPast';
 import StudioChatQueue from './StudioChatQueue';
 import StudioChatSetup from './StudioChatSetup';
+import StudioChatMemberCopy from './StudioChatMemberCopy';
 import StudioChatOutside from './StudioChatOutside';
 import StudioChatThread from './StudioChatThread';
 import useChatZoomWheel from './useChatZoomWheel';
@@ -350,17 +351,23 @@ export default function StudioChat({
       </header>
       {/* A new project's guide, over the conversation it leads into; its
           ideas go into the message box, where there is one. */}
-      {view === 'chat' && project && !project.official && (
+      {view === 'chat' && project && !project.official && !project.member && (
         <StudioStartHere
           projectId={project.id}
           onIdea={canChat ? setDraft : undefined}
         />
       )}
       {/* A scene from outside FluidEQ: why its chat asks, and the one
-          place the member can say it is theirs. */}
-      {view === 'chat' && canChat && !otherAi && project?.outside && (
-        <StudioChatOutside projectId={project.id} />
+          place the member can say it is theirs. A copy of another member's
+          scene says why its chat asks, and offers nothing to press. */}
+      {view === 'chat' && canChat && !otherAi && project?.member && (
+        <StudioChatMemberCopy />
       )}
+      {view === 'chat' &&
+        canChat &&
+        !otherAi &&
+        project?.outside &&
+        !project.member && <StudioChatOutside projectId={project.id} />}
       {body}
     </section>
   );

@@ -144,6 +144,9 @@ const studioChat = {
   'studioChat.outside.body':
     '이 폴더는 FluidEQ가 만든 것이 아니며, 파일 속 텍스트가 AI에게 명령 실행을 지시할 수 있으므로 매번 먼저 묻습니다. 내 장면이거나 누가 만들었는지 안다면 신뢰하세요. 이후에는 내 장면으로 취급됩니다.',
   'studioChat.outside.trust': '이 장면을 신뢰합니다',
+  'studioChat.memberCopy.title': '멤버의 장면: AI가 명령마다 먼저 묻습니다',
+  'studioChat.memberCopy.body':
+    '이 장면의 파일 속 텍스트가 AI에게 무언가를 실행하라고 할 수 있으므로, 명령마다 먼저 묻습니다. 멤버의 장면은 신뢰함으로 표시할 수 없습니다.',
   'studioChat.chatgptOn': 'ChatGPT 사진이 켜져 있습니다.',
   'studioChat.chatgptTurnOff': '끄다',
   'studioChat.past.title': '지난 채팅',

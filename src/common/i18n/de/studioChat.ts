@@ -145,6 +145,10 @@ const studioChat = {
   'studioChat.outside.body':
     'FluidEQ hat diesen Ordner nicht erstellt, und Text in seinen Dateien könnte die KI anweisen, Befehle auszuführen. Daher fragt sie Sie vor jedem. Wenn die Szene von Ihnen stammt oder Sie wissen, wer sie erstellt hat, vertrauen Sie ihr: Dann gilt sie als Ihre eigene.',
   'studioChat.outside.trust': 'Ich vertraue dieser Szene',
+  'studioChat.memberCopy.title':
+    'Szene eines Mitglieds: Die KI fragt vor jedem Befehl',
+  'studioChat.memberCopy.body':
+    'Text in ihren Dateien könnte die KI anweisen, etwas auszuführen, deshalb fragt sie Sie vor jedem Befehl. Die Szene eines Mitglieds kann nicht als vertrauenswürdig markiert werden.',
   'studioChat.chatgptOn': 'ChatGPT-Bilder sind an.',
   'studioChat.chatgptTurnOff': 'Ausschalten',
   'studioChat.past.title': 'Frühere Chats',

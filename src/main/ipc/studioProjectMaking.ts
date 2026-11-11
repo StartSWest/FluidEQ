@@ -15,6 +15,8 @@ import {
 import {
   withActive,
   withFolder,
+  withMemberCopy,
+  type IMemberCopyMark,
   type IProjectList,
 } from '../memberScenes/studioProjects';
 import type { TInspection, TProjectRestore } from './studioProjectTypes';
@@ -22,10 +24,11 @@ import type { TInspection, TProjectRestore } from './studioProjectTypes';
 /**
  * Making a project out of a scene, and asking the member for a folder.
  *
- * The three places the Studio writes to disk outside a project's own files,
- * kept together and away from the eleven handlers: a scene of the member's
- * own coming back from a file, one of FluidEQ's written out to look inside,
- * and the system folder dialog both of the "open a folder" paths use.
+ * The places the Studio writes to disk outside a project's own files, kept
+ * together and away from the eleven handlers: a scene of the member's own
+ * coming back from a file, one of FluidEQ's or another member's written out
+ * to look inside, and the system folder dialog both of the "open a folder"
+ * paths use.
  */
 
 export interface IProjectMakingDeps {
@@ -93,6 +96,38 @@ export const createProjectMaking = ({
     return 'opened';
   };
 
+  // A member's scene written out as a copy to look inside, marked as theirs
+  // (`IMemberCopyMark`), and opened. The same version asked for again opens
+  // the copy already made, with whatever was tried in it; another version is
+  // a copy of its own.
+  const openMemberCopy = async (
+    pack: IScenePack,
+    mark: IMemberCopyMark,
+  ): Promise<TInspection> => {
+    const kept = list().projects.find(
+      (project) =>
+        project.member?.authorId === mark.authorId &&
+        project.member.sceneId === mark.sceneId &&
+        project.member.version === mark.version,
+    );
+    if (kept && (await folderHoldingScene([kept.folder], pack.id))) {
+      adopt(withActive(list(), kept.id, Date.now()));
+      await refreshNames();
+      return 'present';
+    }
+    const made = await writeRestoredProject(
+      projectsRoot(),
+      `${pack.names.en} (${mark.maker ? `${mark.maker} ` : ''}v${mark.version})`,
+      pack,
+    );
+    if (!made.ok) {
+      return made.reason;
+    }
+    adopt(withMemberCopy(list(), made.folder, Date.now(), mark));
+    await refreshNames();
+    return 'opened';
+  };
+
   /**
    * The system folder dialog, opened on the projects folder: that is where
    * the member keeps their projects, so "Open a folder" and "Change" both
@@ -116,5 +151,5 @@ export const createProjectMaking = ({
     return result.canceled ? undefined : result.filePaths[0];
   };
 
-  return { restoreOwnProject, openInspection, chooseFolder };
+  return { restoreOwnProject, openInspection, openMemberCopy, chooseFolder };
 };

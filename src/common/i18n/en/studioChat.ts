@@ -143,6 +143,10 @@ const studioChat = {
   'studioChat.outside.body':
     'FluidEQ did not make this folder, and text in its files could tell the AI to run commands, so it asks you before every one. If the scene is yours, or you know who made it, trust it: it is then one of your own.',
   'studioChat.outside.trust': 'I trust this scene',
+  'studioChat.memberCopy.title':
+    'A member’s scene: the AI asks before every command',
+  'studioChat.memberCopy.body':
+    'Text in its files could tell the AI to run something, so it asks you before every command. A member’s scene can’t be marked as trusted.',
   'studioChat.chatgptOn': 'ChatGPT pictures are on.',
   'studioChat.chatgptTurnOff': 'Turn off',
   'studioChat.past.title': 'Past chats',

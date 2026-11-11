@@ -40,14 +40,22 @@ import type { IProjectList, IStoredProject } from './studioProjects';
  */
 export type TProjectOrigin = 'own' | 'outside';
 
+// A copy of another member's scene is outside whatever its stored origin
+// says: its files are that member's, and nobody here can vouch for them.
 export const originOf = (project: IStoredProject): TProjectOrigin =>
-  project.origin === 'opened' ? 'outside' : 'own';
+  project.origin === 'opened' || project.member !== undefined
+    ? 'outside'
+    : 'own';
 
-/** The list with a project the member said is theirs: their own from now on. */
+/**
+ * The list with a project the member said is theirs: their own from now on.
+ * A copy of another member's scene is not theirs to say so of, and stays
+ * as it was.
+ */
 export const withTrusted = (list: IProjectList, id: string): IProjectList => ({
   ...list,
   projects: list.projects.map((project) => {
-    if (project.id !== id) {
+    if (project.id !== id || project.member !== undefined) {
       return project;
     }
     const { origin: _was, ...own } = project;

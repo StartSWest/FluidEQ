@@ -142,6 +142,10 @@ const studioChat = {
   'studioChat.outside.body':
     'O FluidEQ não criou esta pasta, e um texto nos arquivos dela poderia mandar a IA executar comandos, por isso ela pergunta a você antes de cada um. Se a cena é sua, ou você sabe quem a fez, confie nela: ela passa a ser uma das suas.',
   'studioChat.outside.trust': 'Confio nesta cena',
+  'studioChat.memberCopy.title':
+    'Cena de um membro: a IA pergunta antes de cada comando',
+  'studioChat.memberCopy.body':
+    'O texto nos arquivos dela pode pedir à IA que execute algo, então ela pergunta a você antes de cada comando. A cena de um membro não pode ser marcada como confiável.',
   'studioChat.chatgptOn': 'As imagens do ChatGPT estão ativadas.',
   'studioChat.chatgptTurnOff': 'Desativar',
   'studioChat.past.title': 'Conversas anteriores',

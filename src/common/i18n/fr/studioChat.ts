@@ -145,6 +145,10 @@ const studioChat = {
   'studioChat.outside.body':
     'FluidEQ n’a pas créé ce dossier, et un texte dans ses fichiers pourrait dire à l’IA d’exécuter des commandes : elle vous demande donc avant chacune. Si la scène est à vous, ou si vous savez qui l’a créée, faites-lui confiance : elle devient alors l’une des vôtres.',
   'studioChat.outside.trust': 'Je fais confiance à cette scène',
+  'studioChat.memberCopy.title':
+    'Scène d’un membre : l’IA demande avant chaque commande',
+  'studioChat.memberCopy.body':
+    'Le texte de ses fichiers pourrait demander à l’IA d’exécuter quelque chose, elle vous demande donc avant chaque commande. La scène d’un membre ne peut pas être marquée comme fiable.',
   'studioChat.chatgptOn': 'Les images ChatGPT sont activées.',
   'studioChat.chatgptTurnOff': 'Désactiver',
   'studioChat.past.title': 'Discussions précédentes',

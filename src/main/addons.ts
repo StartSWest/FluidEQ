@@ -6,8 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { BrowserWindow } from 'electron';
 import type { IAccountConfig } from '../common/accountConfig';
+import type { IScenePack } from '../common/scenePacks';
 import type { TSceneStoreOutcome } from '../common/sceneStore';
 import type { IAccountSession } from './account/session';
+import type { TInspection } from './ipc/studioProjectTypes';
+import type { IMemberCopyMark } from './memberScenes/studioProjects';
 import type { IGalleryAccess } from './plus/galleryAccess';
 
 /**
@@ -41,6 +44,17 @@ export interface IMainAddonServices {
     gallery: () => Promise<void>;
     reviewNews: () => Promise<void>;
     announcements: (reason: string) => Promise<void>;
+  };
+  /** The Studio's doors an add-on may open. */
+  studio: {
+    /**
+     * A member's published scene, opened in the Studio as a copy to look
+     * inside: locked like one of FluidEQ's own, its chat always careful.
+     */
+    openMemberCopy: (
+      pack: IScenePack,
+      mark: IMemberCopyMark,
+    ) => Promise<TInspection>;
   };
   logger: {
     warn(message: string, ...details: unknown[]): void;

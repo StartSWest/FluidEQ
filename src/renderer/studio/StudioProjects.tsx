@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
-import type { IStudioState } from 'main/ipc/memberScenes';
+import type { IStudioProject, IStudioState } from 'main/ipc/memberScenes';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import Chevron from '../icons/Chevron';
 import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
@@ -18,6 +18,28 @@ import useProjectsReleased, {
 
 const GROUP_OWN = 'projects';
 const GROUP_OFFICIAL = 'official';
+const GROUP_MEMBER = 'member';
+
+/** Where a project files in the list: the member's own first. */
+const groupOf = (project: IStudioProject) => {
+  if (project.member) {
+    return GROUP_MEMBER;
+  }
+  return project.official ? GROUP_OFFICIAL : GROUP_OWN;
+};
+const GROUP_ORDER = [GROUP_OWN, GROUP_OFFICIAL, GROUP_MEMBER];
+
+const GLYPH_OF: Record<string, TCommunityGlyph> = {
+  [GROUP_OWN]: 'folder',
+  [GROUP_OFFICIAL]: 'looks',
+  [GROUP_MEMBER]: 'person',
+};
+
+const GROUP_LABELS: Record<string, TranslationKey> = {
+  [GROUP_OWN]: 'studio.project.group',
+  [GROUP_OFFICIAL]: 'studio.project.groupOfficial',
+  [GROUP_MEMBER]: 'studio.project.groupMember',
+};
 
 /** What a project's row says its chat is doing, ahead of its folder. */
 const WORK_LABEL: Record<TStudioChatWork, TranslationKey> = {
@@ -132,13 +154,14 @@ export default function StudioProjects({
   const entries = useMemo<IRichPickEntry[]>(
     // The server returns recency order after every selection. A fixed folder
     // order lets the arrows traverse every project instead of bouncing back.
-    // FluidEQ's scenes opened to look inside file after the member's own, so
-    // a project called "Aurora" of theirs is never mistaken for FluidEQ's.
+    // Scenes opened to look inside file after the member's own, FluidEQ's
+    // and then other members', so a project called "Aurora" of theirs is
+    // never mistaken for somebody else's.
     () =>
       [...state.projects]
         .sort(
           (a, b) =>
-            Number(Boolean(a.official)) - Number(Boolean(b.official)) ||
+            GROUP_ORDER.indexOf(groupOf(a)) - GROUP_ORDER.indexOf(groupOf(b)) ||
             a.path.localeCompare(b.path),
         )
         .map((project) => {
@@ -146,9 +169,10 @@ export default function StudioProjects({
           // An AI at work on it says so instead: the scene is changing.
           const release = doing ? undefined : releaseOf(project);
           // The review's word on it stands beside whatever else is said.
-          const mark = project.official ? null : (
-            <SceneReviewBadge sceneId={project.sceneId} />
-          );
+          const mark =
+            groupOf(project) !== GROUP_OWN ? null : (
+              <SceneReviewBadge sceneId={project.sceneId} />
+            );
           let trailing;
           if (doing) {
             trailing = (
@@ -172,10 +196,10 @@ export default function StudioProjects({
               ? resolveSceneName({ names: project.names }, locale)
               : project.folderName,
             hint: project.path,
-            group: project.official ? GROUP_OFFICIAL : GROUP_OWN,
+            group: groupOf(project),
             icon: (
               <Glyph
-                name={project.official ? 'looks' : 'folder'}
+                name={GLYPH_OF[groupOf(project)] ?? 'folder'}
                 className="rich-pick__glyph"
               />
             ),
@@ -228,13 +252,7 @@ export default function StudioProjects({
         menuMaxHeight={520}
         disabled={switching}
         entries={entries}
-        groupLabel={(group) =>
-          t(
-            group === GROUP_OFFICIAL
-              ? 'studio.project.groupOfficial'
-              : 'studio.project.group',
-          )
-        }
+        groupLabel={(group) => t(GROUP_LABELS[group] ?? 'studio.project.group')}
         activeId={state.activeId ?? ''}
         onPick={pick}
         placeholder={t(
@@ -300,10 +318,12 @@ export default function StudioProjects({
             />
             {active &&
               state.projects.some(
-                (project) => project.id === active.id && !project.official,
+                (project) =>
+                  project.id === active.id && groupOf(project) === GROUP_OWN,
               ) && (
-                // A FluidEQ scene opened to look inside is not renamed: it is
-                // theirs to take ideas from, not the member's to keep.
+                // A scene opened to look inside, FluidEQ's or another
+                // member's, is not renamed: it is there to take ideas from,
+                // not the member's to keep.
                 <button
                   type="button"
                   className="rich-pick__action"

@@ -68,6 +68,7 @@ const studio = {
   'studio.project.label': '프로젝트',
   'studio.project.group': '귀하의 프로젝트',
   'studio.project.groupOfficial': 'FluidEQ 내부를 들여다 볼 장면',
+  'studio.project.groupMember': '안을 볼 수 있는 멤버 장면',
   'studio.project.inspect': 'FluidEQ 장면 내부를 살펴보세요…',
   'studio.project.none': '프로젝트를 선택하세요',
   'studio.project.empty': '아직 프로젝트가 없습니다.',
@@ -305,6 +306,10 @@ const studio = {
     '어떻게 만들어지는지 확인하고 자신만의 장면에 대한 아이디어를 얻어보세요. 여기에서 원하는 대로 변경해 보세요. 스타일에 추가하거나 게시하거나 내보낼 수 없습니다.',
   'studio.inspect.locked':
     '내부를 보기 위해 열어본 FluidEQ 장면입니다. 스타일에 추가하거나 게시하거나 내보낼 수 없습니다.',
+  'studio.memberCopy.title': '{maker} 님의 장면, 안을 보기 위한',
+  'studio.memberCopy.titleNoName': '안을 보기 위한 멤버의 장면',
+  'studio.memberCopy.body':
+    '버전 {version}의 내 사본으로, 읽고 변경을 시험해 볼 수 있습니다. 갤러리의 장면은 절대 바뀌지 않으며, 이 사본은 내 룩에 추가하거나 게시하거나 내보낼 수 없습니다.',
   'studio.export.banned': '이 계정은 더 이상 장면을 공유할 수 없습니다.',
   'studio.export.outdated':
     '약관에 최신 버전이 있습니다. 읽고 내보내려면 FluidEQ를 업데이트하세요.',

@@ -23,6 +23,7 @@ import {
 } from '../studioAgent/agentProject';
 import type { IMemberSceneStore } from '../memberScenes/store';
 import {
+  isLookInside,
   readProjectList,
   withActive,
   withFolder,
@@ -31,6 +32,7 @@ import {
   without,
   withRoot,
   writeProjectList,
+  type IMemberCopyMark,
   type IProjectList,
   type IStoredProject,
 } from '../memberScenes/studioProjects';
@@ -111,6 +113,8 @@ export interface IStudioProjectsIpcRegistration {
   restoreOwnProject(pack: IScenePack): Promise<TProjectRestore>;
   /** One of FluidEQ's own, written out as a project to look inside. */
   openInspection(pack: IScenePack): Promise<TInspection>;
+  /** Another member's published scene, written out as a copy to look inside. */
+  openMemberCopy(pack: IScenePack, mark: IMemberCopyMark): Promise<TInspection>;
   /** The project the member's AI names by folder, or the open one (`agentProject.ts`). */
   agentProject(folder?: string): TAgentProject;
   /** Whether a project's chat must ask before every command (`projectOrigin.ts`). */
@@ -163,17 +167,20 @@ export const registerStudioProjectsIpc = ({
   const studioPath = path.join(userDataDir, STUDIO_FILE);
 
   let projects: IProjectList = readProjectList(studioPath);
-  // FluidEQ's own scenes opened to look inside are written by FluidEQ from
-  // its packs and hold nothing to take back.
+  // Scenes opened to look inside are written by FluidEQ from their packs
+  // and hold nothing to take back.
   projects.projects
-    .filter((project) => project.official === undefined)
+    .filter((project) => !isLookInside(project))
     .forEach((project) => tidyProject?.(project.folder));
   let studioOpen = false;
 
   const activeProject = () =>
     projects.projects.find((project) => project.id === projects.active);
   const activeFolder = () => activeProject()?.folder;
-  const activeIsInspection = () => activeProject()?.official !== undefined;
+  const activeIsInspection = () => {
+    const active = activeProject();
+    return active !== undefined && isLookInside(active);
+  };
 
   /** Who is asking, for the access rules in `projectAccess.ts`. */
   const asking = (): IStudioAccess => ({
@@ -240,7 +247,7 @@ export const registerStudioProjectsIpc = ({
         ...(adoptPublished ? { adopt: adoptPublished } : {}),
         folders: () =>
           projects.projects
-            .filter((project) => project.official === undefined)
+            .filter((project) => !isLookInside(project))
             .map((project) => project.folder),
         isOpen: () => studioOpen,
         changed: tellStudio,
@@ -294,7 +301,7 @@ export const registerStudioProjectsIpc = ({
   // Making a project out of a scene, and the folder dialog both "open a
   // folder" paths use: `studioProjectMaking.ts`, which writes to the list
   // through `adopt` like everything else here.
-  const { restoreOwnProject, openInspection, chooseFolder } =
+  const { restoreOwnProject, openInspection, openMemberCopy, chooseFolder } =
     createProjectMaking({
       getMainWindow,
       list: () => projects,
@@ -382,10 +389,10 @@ export const registerStudioProjectsIpc = ({
       id: unknown,
       name: unknown,
     ): Promise<TRenameProjectResult> => {
-      // A member's own project is theirs to rename; FluidEQ's own, opened to
-      // look inside, is nobody's to rename.
+      // A member's own project is theirs to rename; a scene opened to look
+      // inside, FluidEQ's or another member's, is nobody's to rename.
       const project = projects.projects.find((entry) => entry.id === id);
-      if (project?.official) {
+      if (project && isLookInside(project)) {
         return 'refused';
       }
       if (!project || typeof name !== 'string') {
@@ -504,6 +511,7 @@ export const registerStudioProjectsIpc = ({
     mayUseActive,
     restoreOwnProject,
     openInspection,
+    openMemberCopy,
     agentProject: (folder) => findAgentProject(projects, folder, usable),
     chatMustAsk: (id) => {
       const project = projects.projects.find((entry) => entry.id === id);
@@ -513,7 +521,7 @@ export const registerStudioProjectsIpc = ({
       projects.projects
         .filter(
           (project) =>
-            project.official === undefined &&
+            !isLookInside(project) &&
             originOf(project) === 'own' &&
             usable(project),
         )
