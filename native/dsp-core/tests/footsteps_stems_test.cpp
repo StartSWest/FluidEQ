@@ -31,6 +31,15 @@ double energy(const Signal& signal, size_t from, size_t to, bool right = false) 
   return sum;
 }
 
+// A window of silence in a stem would turn every ratio below into inf or
+// NaN, and a NaN fed to std::max is dropped without a trace; fail instead.
+// The explicit guard is also what MSVC 14.52 needs to stop reading the
+// inlined division as a possible divide by zero (C4723 under /WX).
+double energy_ratio(double numerator, double denominator) {
+  check(denominator > 0, "every measured window of a stem carries sound");
+  return denominator > 0 ? numerator / denominator : 0;
+}
+
 void measured_stems(double amount, double step_db, int music) {
   Parts parts;
   parts.bed = false;
@@ -114,12 +123,12 @@ void measured_stems(double amount, double step_db, int music) {
   double least = 1e9, most_bed = 0, pan = 0;
   for (double at : quiet_steps(scene)) {
     const size_t from = static_cast<size_t>(at * kRate), to = from + 4800;
-    const double gain = 10 * std::log10(energy(lifted_steps, from, to) / energy(steps, from, to));
+    const double gain = 10 * std::log10(energy_ratio(energy(lifted_steps, from, to), energy(steps, from, to)));
     least = std::min(least, gain);
-    most_bed = std::max(most_bed, std::fabs(10 * std::log10(energy(lifted_bed, from, to) / energy(bed, from, to))));
-    const double left = energy(lifted_steps, from, to) / energy(steps, from, to);
-    const double right = energy(lifted_steps, from, to, true) / energy(steps, from, to, true);
-    pan = std::max(pan, std::fabs(10 * std::log10(left / right)));
+    most_bed = std::max(most_bed, std::fabs(10 * std::log10(energy_ratio(energy(lifted_bed, from, to), energy(bed, from, to)))));
+    const double left = energy_ratio(energy(lifted_steps, from, to), energy(steps, from, to));
+    const double right = energy_ratio(energy(lifted_steps, from, to, true), energy(steps, from, to, true));
+    pan = std::max(pan, std::fabs(10 * std::log10(energy_ratio(left, right))));
   }
   std::printf("lift=%.2f step_scale=%.0f music=%d actual_step_min=%.3f actual_bed_max=%.3f step_pan_shift=%.3f null=%.9f\n",
               amount, step_db, music, least, most_bed, pan, reconstruction);
