@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import Chevron from '../icons/Chevron';
 import { useTranslation } from '../utils/I18nContext';
@@ -18,6 +18,16 @@ export interface IShipMoreItem {
   disabled?: boolean;
   /** Running now: pressed once already and still going. */
   busy?: boolean;
+  /**
+   * Why it is off, said under it, and the step that shows what to fix: an
+   * item that is only off reads as one that does nothing when pressed.
+   */
+  why?: {
+    reason: string;
+    step: string;
+    glyph: TCommunityGlyph;
+    onStep: () => void;
+  };
 }
 
 interface IStudioShipMoreProps {
@@ -85,23 +95,46 @@ export default function StudioShipMore({ items }: IStudioShipMoreProps) {
         className="studio-ship-more__menu"
         ariaLabel={t('studio.ship.more')}
       >
-        {items.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            role="menuitem"
-            className={`studio-ship-more__item${item.busy ? ' is-running' : ''}`}
-            aria-busy={item.busy}
-            disabled={item.disabled}
-            onClick={() => {
-              setIsOpen(false);
-              item.onSelect();
-            }}
-          >
-            <Glyph name={item.glyph} />
-            <span className="studio-ship-more__label">{item.label}</span>
-          </button>
-        ))}
+        {items.map((item) => {
+          const { why } = item;
+          const whyId = `studio-ship-more-${item.key}-why`;
+          return (
+            <Fragment key={item.key}>
+              <button
+                type="button"
+                role="menuitem"
+                className={`studio-ship-more__item${item.busy ? ' is-running' : ''}`}
+                aria-busy={item.busy}
+                aria-describedby={item.disabled && why ? whyId : undefined}
+                disabled={item.disabled}
+                onClick={() => {
+                  setIsOpen(false);
+                  item.onSelect();
+                }}
+              >
+                <Glyph name={item.glyph} />
+                <span className="studio-ship-more__label">{item.label}</span>
+              </button>
+              {item.disabled && why && (
+                <div className="studio-ship-more__note">
+                  <span id={whyId}>{why.reason}</span>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="button small subtle"
+                    onClick={() => {
+                      setIsOpen(false);
+                      why.onStep();
+                    }}
+                  >
+                    <Glyph name={why.glyph} />
+                    {why.step}
+                  </button>
+                </div>
+              )}
+            </Fragment>
+          );
+        })}
       </AnchoredMenu>
     </span>
   );

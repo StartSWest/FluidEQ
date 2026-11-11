@@ -8,7 +8,13 @@ import type { IWorldReport, TWorldNote } from 'common/worldNotes';
 import { useTranslation } from '../utils/I18nContext';
 import type { TStageTrouble } from './StudioStage';
 
-const FILE_KEYS: Record<TMemberSceneFile, TranslationKey> = {
+/**
+ * The problem list's own id: what the bar's controls that wait on a scene
+ * that does not play bring into view (`unfitReason.ts`).
+ */
+export const STUDIO_PROBLEMS_ID = 'studio-problems';
+
+export const FILE_KEYS: Record<TMemberSceneFile, TranslationKey> = {
   'pack.json': 'studio.file.pack',
   source: 'studio.file.source',
   artwork: 'studio.file.artwork',
@@ -146,7 +152,12 @@ export default function StudioProblems({
     return null;
   }
   return (
-    <div className="studio-problems" role="alert">
+    <div
+      id={STUDIO_PROBLEMS_ID}
+      className="studio-problems"
+      role="alert"
+      tabIndex={-1}
+    >
       {problems && (
         <>
           <span className="studio-problems__title">

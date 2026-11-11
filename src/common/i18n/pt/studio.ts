@@ -265,6 +265,21 @@ const studio = {
   'studio.notice.updated':
     '{name} foi atualizado nos seus visuais, em Feitos por você.',
   'studio.notice.addFailed': 'Esta versão poderá ser adicionada quando tocar.',
+  'studio.unfit.lead': 'Esta cena ainda não toca. {reason}',
+  'studio.unfit.show': 'Ver os problemas',
+  'studio.unfit.noDaylight': 'Ela não tem o controle Luz do dia.',
+  'studio.unfit.missingFile': 'Falta um arquivo de que ela precisa.',
+  'studio.unfit.badJson': 'O pack.json dela não pode ser lido.',
+  'studio.unfit.world': 'O mundo 3D dela não pode ser construído.',
+  'studio.unfit.tooLarge': 'Ela é maior do que uma cena pode ser.',
+  'studio.unfit.compile': 'O shader dela não compila.',
+  'studio.unfit.heavy': 'Ela é pesada demais para este computador.',
+  'studio.unfit.unavailable': 'Este computador não consegue desenhá-la.',
+  'studio.unfit.file': 'Precisa de correção: {file}.',
+  'studio.notice.signedOut':
+    'Entre para guardar esta cena nos seus visuais ou colocá-la na sua área de trabalho.',
+  'studio.notice.saveFailed':
+    'Não foi possível salvar esta versão nos seus visuais. Tente de novo.',
 
   'studio.notice.exported':
     '{file} está pronto. Quem o receber pode abri-lo no FluidEQ.',

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { TranslationKey } from 'common/i18n';
 import type { IMemberSceneSummary } from 'main/memberScenes/store';
 import { useCanSetDesktop } from '../wallpaper/WallpaperControls';
 import { openWallpaperDialog } from '../wallpaper/wallpaperDialogs';
@@ -30,7 +31,13 @@ export default function useStudioKeep(
 
   const keep = (kept: (scene: IMemberSceneSummary) => void) => {
     // A new object on every press, so keeping again shows the toast again.
-    const failed = () => notify({ ok: false, key: 'studio.notice.addFailed' });
+    // Each failure in its own words: one line for all of them told a member
+    // who was signed out, or whose save failed, that the scene did not play.
+    const failed = () => notify({ ok: false, key: 'studio.notice.saveFailed' });
+    const said: Partial<Record<string, TranslationKey>> = {
+      'signed-out': 'studio.notice.signedOut',
+      'no-build': 'studio.notice.addFailed',
+    };
     return addStudioSceneToLooks()
       .then((outcome) => {
         if (outcome.ok) {
@@ -47,7 +54,10 @@ export default function useStudioKeep(
         } else if (outcome.reason === 'inspect-only') {
           notify({ ok: false, key: 'studio.inspect.locked' });
         } else {
-          failed();
+          notify({
+            ok: false,
+            key: said[outcome.reason] ?? 'studio.notice.saveFailed',
+          });
         }
         return undefined;
       })

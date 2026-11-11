@@ -497,3 +497,16 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 1 1 auto;
   min-width: 0;
 }
+
+// Why the item above is off, and the step that shows what to fix: indented to
+// the item's label (its padding, icon and gap), wrapping inside the menu.
+.studio-ship-more__note {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 0 10px 8px 35px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}

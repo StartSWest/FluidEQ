@@ -274,6 +274,21 @@ const studio = {
     '{name} ist in Ihren Darstellungen aktualisiert, unter „Von Ihnen erstellt“.',
   'studio.notice.addFailed':
     'Diese Version kann hinzugefügt werden, sobald sie spielt.',
+  'studio.unfit.lead': 'Diese Szene läuft noch nicht. {reason}',
+  'studio.unfit.show': 'Probleme anzeigen',
+  'studio.unfit.noDaylight': 'Ihr fehlt der Tageslicht-Regler.',
+  'studio.unfit.missingFile': 'Eine Datei, die sie braucht, fehlt.',
+  'studio.unfit.badJson': 'Ihre pack.json lässt sich nicht lesen.',
+  'studio.unfit.world': 'Ihre 3D-Welt lässt sich nicht aufbauen.',
+  'studio.unfit.tooLarge': 'Sie ist größer, als eine Szene sein darf.',
+  'studio.unfit.compile': 'Ihr Shader lässt sich nicht kompilieren.',
+  'studio.unfit.heavy': 'Sie ist zu aufwendig für diesen Computer.',
+  'studio.unfit.unavailable': 'Dieser Computer kann sie nicht zeichnen.',
+  'studio.unfit.file': 'Zu beheben: {file}.',
+  'studio.notice.signedOut':
+    'Melden Sie sich an, um diese Szene in Ihren Darstellungen zu behalten oder auf Ihren Desktop zu bringen.',
+  'studio.notice.saveFailed':
+    'Diese Version konnte nicht in Ihren Darstellungen gespeichert werden. Versuchen Sie es erneut.',
 
   'studio.notice.exported':
     '{file} ist fertig. Wer sie von Ihnen bekommt, kann sie in FluidEQ öffnen.',

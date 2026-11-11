@@ -271,6 +271,21 @@ const studio = {
     '{name} est mis à jour dans vos styles, sous Créés par vous.',
   'studio.notice.addFailed':
     'Cette version pourra être ajoutée une fois qu’elle jouera.',
+  'studio.unfit.lead': 'Cette scène ne se lance pas encore. {reason}',
+  'studio.unfit.show': 'Voir les problèmes',
+  'studio.unfit.noDaylight': 'Elle n’a pas de réglage Lumière du jour.',
+  'studio.unfit.missingFile': 'Un fichier dont elle a besoin est manquant.',
+  'studio.unfit.badJson': 'Son pack.json est illisible.',
+  'studio.unfit.world': 'Son monde 3D ne peut pas être construit.',
+  'studio.unfit.tooLarge': 'Elle est plus grande qu’une scène ne peut l’être.',
+  'studio.unfit.compile': 'Son shader ne compile pas.',
+  'studio.unfit.heavy': 'Elle est trop lourde pour cet ordinateur.',
+  'studio.unfit.unavailable': 'Cet ordinateur ne peut pas l’afficher.',
+  'studio.unfit.file': 'À corriger : {file}.',
+  'studio.notice.signedOut':
+    'Connectez-vous pour garder cette scène dans vos styles ou la mettre sur votre bureau.',
+  'studio.notice.saveFailed':
+    'Cette version n’a pas pu être enregistrée dans vos styles. Réessayez.',
 
   'studio.notice.exported':
     '{file} est prêt. La personne à qui vous l’envoyez peut l’ouvrir dans FluidEQ.',

@@ -267,6 +267,21 @@ const studio = {
   'studio.notice.updated': '「あなたが作成」の {name} を更新しました。',
   'studio.notice.addFailed':
     'このバージョンは再生できるようになれば追加できます。',
+  'studio.unfit.lead': 'このシーンはまだ再生できません。{reason}',
+  'studio.unfit.show': '問題を表示',
+  'studio.unfit.noDaylight': '時間帯のコントロールがありません。',
+  'studio.unfit.missingFile': '必要なファイルが見つかりません。',
+  'studio.unfit.badJson': 'pack.json を読み込めません。',
+  'studio.unfit.world': '3D ワールドを構築できません。',
+  'studio.unfit.tooLarge': 'シーンの上限を超える大きさです。',
+  'studio.unfit.compile': 'シェーダーがコンパイルできません。',
+  'studio.unfit.heavy': 'このコンピューターには重すぎます。',
+  'studio.unfit.unavailable': 'このコンピューターでは描画できません。',
+  'studio.unfit.file': '修正が必要です：{file}。',
+  'studio.notice.signedOut':
+    'このシーンを保存したりデスクトップに設定したりするには、サインインしてください。',
+  'studio.notice.saveFailed':
+    'このバージョンを保存できませんでした。もう一度お試しください。',
 
   'studio.notice.exported':
     '{file} の準備ができました。受け取った人は FluidEQ で開けます。',

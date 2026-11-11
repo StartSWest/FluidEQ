@@ -265,6 +265,21 @@ const studio = {
     '{name} обновлено в ваших оформлениях, в разделе «Созданы вами».',
   'studio.notice.addFailed':
     'Эту версию можно будет добавить, когда она заиграет.',
+  'studio.unfit.lead': 'Эта сцена пока не запускается. {reason}',
+  'studio.unfit.show': 'Показать проблемы',
+  'studio.unfit.noDaylight': 'В ней нет регулятора «Время суток».',
+  'studio.unfit.missingFile': 'Нет нужного ей файла.',
+  'studio.unfit.badJson': 'Её pack.json не читается.',
+  'studio.unfit.world': 'Её 3D-мир не удаётся построить.',
+  'studio.unfit.tooLarge': 'Она больше, чем может быть сцена.',
+  'studio.unfit.compile': 'Её шейдер не компилируется.',
+  'studio.unfit.heavy': 'Она слишком тяжёлая для этого компьютера.',
+  'studio.unfit.unavailable': 'Этот компьютер не может её нарисовать.',
+  'studio.unfit.file': 'Нужно исправить: {file}.',
+  'studio.notice.signedOut':
+    'Войдите, чтобы сохранить эту сцену в своих оформлениях или поставить её на рабочий стол.',
+  'studio.notice.saveFailed':
+    'Не удалось сохранить эту версию в ваших оформлениях. Попробуйте ещё раз.',
 
   'studio.notice.exported':
     'Файл {file} готов. Тот, кому вы его отправите, сможет открыть его в FluidEQ.',

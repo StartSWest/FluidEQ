@@ -33,6 +33,8 @@ const card = (
     onExport: jest.fn(),
     onSetDesktop: jest.fn(),
     settingDesktop: false,
+    unfitReason: undefined as string | undefined,
+    onShowProblems: jest.fn(),
     ...overrides,
   };
   render(
@@ -45,6 +47,8 @@ const card = (
       onExport={props.onExport}
       onSetDesktop={props.onSetDesktop}
       settingDesktop={props.settingDesktop}
+      unfitReason={props.unfitReason}
+      onShowProblems={props.onShowProblems}
     />,
   );
   return props;
@@ -137,4 +141,57 @@ it('shows More running while the desktop is being prepared, and not otherwise', 
 it('shows More at rest with nothing running', () => {
   card();
   expect(more()).not.toHaveClass('is-running');
+});
+
+/**
+ * A scene that does not play yet — the stage keeps playing the last version
+ * that worked — has "Put on desktop" off, and says why under it with the way
+ * to its problems. Off and silent, a press on it did nothing anybody could
+ * see (Ivan, 2026-11-10: "it is there but when I try to set the desktop
+ * nothing happens").
+ */
+describe('putting a scene that does not play on the desktop', () => {
+  it('is off, says why in plain words, and shows the problems from there', async () => {
+    const props = card({ unfit: true, unfitReason: 'studio.unfit.noDaylight' });
+    await userEvent.click(more());
+    const desktop = screen.getByRole('menuitem', {
+      name: 'studio.action.desktop',
+    });
+    expect(desktop).toBeDisabled();
+    expect(desktop).toHaveAccessibleDescription('studio.unfit.lead');
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'studio.unfit.show' }),
+    );
+    expect(props.onShowProblems).toHaveBeenCalledTimes(1);
+    expect(props.onSetDesktop).not.toHaveBeenCalled();
+  });
+
+  // The control: a scene that plays — published or not — goes on.
+  it('is on for a scene that plays, with nothing said under it', async () => {
+    const props = card();
+    await userEvent.click(more());
+    expect(screen.queryByText('studio.unfit.lead')).toBeNull();
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'studio.action.desktop' }),
+    );
+    expect(props.onSetDesktop).toHaveBeenCalledTimes(1);
+  });
+
+  it('says nothing for a scene that plays, whatever reason is left over', async () => {
+    card({ unfit: false, unfitReason: 'studio.unfit.compile' });
+    await userEvent.click(more());
+    expect(
+      screen.getByRole('menuitem', { name: 'studio.action.desktop' }),
+    ).toBeEnabled();
+    expect(screen.queryByText('studio.unfit.lead')).toBeNull();
+  });
+
+  it('says nothing while the scene is only still being built', async () => {
+    card({ unfit: true, unfitReason: undefined });
+    await userEvent.click(more());
+    expect(
+      screen.getByRole('menuitem', { name: 'studio.action.desktop' }),
+    ).toBeDisabled();
+    expect(screen.queryByText('studio.unfit.lead')).toBeNull();
+  });
 });

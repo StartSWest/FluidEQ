@@ -272,6 +272,21 @@ const studio = {
   'studio.notice.updated':
     '{name} is updated in your looks, under Made by you.',
   'studio.notice.addFailed': 'This version can be added once it plays.',
+  'studio.unfit.lead': 'This scene doesn’t play yet. {reason}',
+  'studio.unfit.show': 'See the problems',
+  'studio.unfit.noDaylight': 'It has no Daylight control.',
+  'studio.unfit.missingFile': 'A file it needs is missing.',
+  'studio.unfit.badJson': 'Its pack.json can’t be read.',
+  'studio.unfit.world': 'Its 3D world can’t be built.',
+  'studio.unfit.tooLarge': 'It’s larger than a scene can be.',
+  'studio.unfit.compile': 'Its shader doesn’t compile.',
+  'studio.unfit.heavy': 'It’s too heavy for this computer.',
+  'studio.unfit.unavailable': 'This computer can’t draw it.',
+  'studio.unfit.file': '{file} needs fixing.',
+  'studio.notice.signedOut':
+    'Sign in to keep this scene in your looks or put it on your desktop.',
+  'studio.notice.saveFailed':
+    'This version couldn’t be saved to your looks. Try again.',
   'studio.notice.exported':
     '{file} is ready. Whoever you send it to can open it in FluidEQ.',
 

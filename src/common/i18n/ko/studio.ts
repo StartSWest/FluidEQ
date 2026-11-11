@@ -261,6 +261,20 @@ const studio = {
   'studio.notice.updated':
     '{name}가 Made by you 아래의 스타일에서 업데이트됩니다.',
   'studio.notice.addFailed': '이 버전은 재생 후 추가할 수 있습니다.',
+  'studio.unfit.lead': '이 장면은 아직 재생되지 않습니다. {reason}',
+  'studio.unfit.show': '문제 보기',
+  'studio.unfit.noDaylight': '일광 컨트롤이 없습니다.',
+  'studio.unfit.missingFile': '필요한 파일이 없습니다.',
+  'studio.unfit.badJson': 'pack.json을 읽을 수 없습니다.',
+  'studio.unfit.world': '3D 월드를 만들 수 없습니다.',
+  'studio.unfit.tooLarge': '장면이 가질 수 있는 크기보다 큽니다.',
+  'studio.unfit.compile': '셰이더가 컴파일되지 않습니다.',
+  'studio.unfit.heavy': '이 컴퓨터에는 너무 무겁습니다.',
+  'studio.unfit.unavailable': '이 컴퓨터에서는 그릴 수 없습니다.',
+  'studio.unfit.file': '고쳐야 할 곳: {file}.',
+  'studio.notice.signedOut':
+    '이 장면을 저장하거나 바탕 화면에 올리려면 로그인하세요.',
+  'studio.notice.saveFailed': '이 버전을 저장하지 못했습니다. 다시 시도하세요.',
   'studio.notice.exported':
     '{file}가 준비되었습니다. 누구에게 보내든 FluidEQ에서 열 수 있습니다.',
   'studio.share.title': '당신이 만든 장면을 공유하세요',

@@ -236,6 +236,8 @@ const StudioDrawing = () => {
                 onExport={nothing}
                 onSetDesktop={nothing}
                 settingDesktop={false}
+                unfitReason={undefined}
+                onShowProblems={nothing}
               />
             </div>
           </div>

@@ -13,6 +13,14 @@ interface IStudioShipCardProps {
   /** Absent on a computer that cannot put a visualizer on its desktop. */
   onSetDesktop: (() => void) | undefined;
   settingDesktop: boolean;
+  /**
+   * Why the scene does not play yet, in plain words (`unfitReason.ts`):
+   * said under "Put on desktop" while it is off, so the press is never one
+   * that does nothing. Absent while the scene is only still being built.
+   */
+  unfitReason: string | undefined;
+  /** Brings the scene's problems under the stage into view. */
+  onShowProblems: () => void;
 }
 
 /**
@@ -39,6 +47,8 @@ export default function StudioShipCard({
   onExport,
   onSetDesktop,
   settingDesktop,
+  unfitReason,
+  onShowProblems,
 }: IStudioShipCardProps) {
   const { t } = useTranslation();
   const more: IShipMoreItem[] = [
@@ -67,6 +77,17 @@ export default function StudioShipCard({
           onSetDesktop();
         }
       },
+      // Said only while the item is off: the menu shows a why for nothing else.
+      ...(unfitReason
+        ? {
+            why: {
+              reason: t('studio.unfit.lead', { reason: unfitReason }),
+              step: t('studio.unfit.show'),
+              glyph: 'alert' as const,
+              onStep: onShowProblems,
+            },
+          }
+        : {}),
     });
   }
   return (

@@ -19,7 +19,11 @@ import { useStudioChat } from './chat/studioChatStore';
 import StudioCode, { problemLinesOf } from './StudioCode';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
-import StudioProblems from './StudioProblems';
+import StudioProblems, {
+  FILE_KEYS,
+  STUDIO_PROBLEMS_ID,
+} from './StudioProblems';
+import { prefersReducedMotion } from '../utils/bandReveal';
 import StudioProjects from './StudioProjects';
 import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
@@ -64,6 +68,7 @@ import StudioStageSound from './StudioStageSound';
 import type { TStudioSignal } from './studioSignals';
 import StudioStageLoading from './StudioStageLoading';
 import troubleHoldsBack from './stageTrouble';
+import unfitReason from './unfitReason';
 import type { IStudioColours, IStudioPalettes } from './StudioSettings';
 import { linkStudioFolder, type IStudioView } from './studioStore';
 
@@ -174,6 +179,21 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   }, [lookId]);
   const publishing = useStudioPublish(view, playing, name, onPublished);
   const unfit = !pack || Boolean(problems) || troubleHoldsBack(trouble);
+  // Why, in plain words, for the controls that wait on it (`unfitReason.ts`).
+  const unfitWhy = unfitReason(problems, trouble);
+  const unfitWords =
+    unfitWhy &&
+    t(unfitWhy.key, unfitWhy.file ? { file: t(FILE_KEYS[unfitWhy.file]) } : {});
+  // The problem list under the stage, brought into view and given the
+  // keyboard, from the line that says why a control is off.
+  const showProblems = useCallback(() => {
+    const list = document.getElementById(STUDIO_PROBLEMS_ID);
+    list?.scrollIntoView({
+      block: 'nearest',
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    });
+    list?.focus({ preventScroll: true });
+  }, []);
   // The Publish dialog plays the scene itself, so the stage behind it stops:
   // two copies of one scene would halve what a slow machine can give either.
   const pausedForPublish = publishing.draft !== undefined;
@@ -231,6 +251,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       onExport={sharing.startExport}
       onSetDesktop={keeping.setDesktop}
       settingDesktop={keeping.settingDesktop}
+      unfitReason={unfitWords}
+      onShowProblems={showProblems}
     />
   );
 

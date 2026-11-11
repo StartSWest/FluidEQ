@@ -264,6 +264,21 @@ const studio = {
   'studio.notice.updated':
     '{name} आपके रूपों में, "आपके बनाए" के नीचे, अपडेट हो गया है।',
   'studio.notice.addFailed': 'यह संस्करण चलने लगे, तब इसे जोड़ा जा सकेगा।',
+  'studio.unfit.lead': 'यह सीन अभी नहीं चलता। {reason}',
+  'studio.unfit.show': 'समस्याएँ देखें',
+  'studio.unfit.noDaylight': 'इसमें दिन के उजाले का नियंत्रण नहीं है।',
+  'studio.unfit.missingFile': 'इसकी ज़रूरत की एक फ़ाइल नहीं मिली।',
+  'studio.unfit.badJson': 'इसकी pack.json पढ़ी नहीं जा सकती।',
+  'studio.unfit.world': 'इसकी 3D दुनिया नहीं बन सकती।',
+  'studio.unfit.tooLarge': 'यह किसी सीन की सीमा से बड़ा है।',
+  'studio.unfit.compile': 'इसका शेडर कंपाइल नहीं होता।',
+  'studio.unfit.heavy': 'यह इस कंप्यूटर के लिए बहुत भारी है।',
+  'studio.unfit.unavailable': 'यह कंप्यूटर इसे नहीं बना सकता।',
+  'studio.unfit.file': 'ठीक करना है: {file}।',
+  'studio.notice.signedOut':
+    'इस सीन को अपने रूपों में रखने या डेस्कटॉप पर लगाने के लिए साइन इन करें।',
+  'studio.notice.saveFailed':
+    'यह संस्करण आपके रूपों में सहेजा नहीं जा सका। फिर से कोशिश करें।',
 
   'studio.notice.exported':
     '{file} तैयार है। जिसे आप इसे भेजेंगे, वह इसे FluidEQ में खोल सकता है।',

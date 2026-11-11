@@ -269,6 +269,21 @@ const studio = {
     '{name} è aggiornato nei tuoi aspetti, in Creati da te.',
   'studio.notice.addFailed':
     'Questa versione si potrà aggiungere quando si riproduce.',
+  'studio.unfit.lead': 'Questa scena non si avvia ancora. {reason}',
+  'studio.unfit.show': 'Vedi i problemi',
+  'studio.unfit.noDaylight': 'Non ha il controllo Luce del giorno.',
+  'studio.unfit.missingFile': 'Manca un file di cui ha bisogno.',
+  'studio.unfit.badJson': 'Il suo pack.json non si può leggere.',
+  'studio.unfit.world': 'Il suo mondo 3D non si può costruire.',
+  'studio.unfit.tooLarge': 'È più grande di quanto possa essere una scena.',
+  'studio.unfit.compile': 'Il suo shader non compila.',
+  'studio.unfit.heavy': 'È troppo pesante per questo computer.',
+  'studio.unfit.unavailable': 'Questo computer non può disegnarla.',
+  'studio.unfit.file': 'Da correggere: {file}.',
+  'studio.notice.signedOut':
+    'Accedi per tenere questa scena nei tuoi aspetti o metterla sul desktop.',
+  'studio.notice.saveFailed':
+    'Non è stato possibile salvare questa versione nei tuoi aspetti. Riprova.',
 
   'studio.notice.exported':
     '{file} è pronto. Chi lo riceve può aprirlo in FluidEQ.',
