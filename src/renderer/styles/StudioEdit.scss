@@ -557,7 +557,7 @@ $edit-z: #5aa9ff;
   color: $text-muted;
   font-size: $text-micro;
   font-weight: $weight-semibold;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   text-transform: uppercase;
 }
 
