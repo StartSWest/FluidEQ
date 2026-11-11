@@ -85,16 +85,18 @@ export function VisualsNewsEntry() {
         <MenuIcon name="gift" />
       </span>
       <span className="community__channel-text">
+        {/* The mark beside the name, where the line has room: in the
+            row's end column it cut the line under it short. */}
         <span className="community__channel-name">
           {t('visuals.news.open')}
+          {unseen && (
+            <span className="visuals-news__new">{t('tour.newBadge')}</span>
+          )}
         </span>
         <span className="community__channel-blurb">
           {t('visuals.news.blurb')}
         </span>
       </span>
-      {unseen && (
-        <span className="visuals-news__new">{t('tour.newBadge')}</span>
-      )}
     </button>
   );
 }

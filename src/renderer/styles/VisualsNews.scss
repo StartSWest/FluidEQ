@@ -12,9 +12,11 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 // The rail's "What's new", marked while a release's news waits: the tour's
-// own NEW chip, in the column the rail keeps for a row's mark.
+// own NEW chip, beside the row's name.
 .visuals-news__new {
+  margin-left: 6px;
   padding: 1px 6px;
+  vertical-align: 1px;
   color: $surface-base;
   border-radius: $radius-2xs;
   background: $secondary-light;
