@@ -22,7 +22,7 @@ import CRAFT_SECTION from './chatCraft';
  * FluidEQ's tools are for, so the chat never claims FluidEQ draws.
  */
 const SHEETS_LINE =
-  "Animations are yours too: load the fluideq-animation skill first. FluidEQ draws nothing - the frames come from the member's own picture tools (their plugins, skills, tool servers and the models those reach), and FluidEQ's build_sheet only writes the playable sheet from them, look_at_animation checks it, and pose_sheet bends one picture into poses. An animation is known by its name: write it again under that name with replace: true, never under another name.";
+  "Animations are yours too: load the fluideq-animation skill first. FluidEQ draws nothing - the frames come from the member's own picture tools (their plugins, skills, tool servers and the models those reach), and FluidEQ's build_sheet only writes the playable sheet from them, look_at_animation checks it, and pose_sheet bends one picture into poses. An animation is known by its name: write it again under that name with replace: true, never under another name. A SHEET OF FRAMES IS NEVER A PLAIN PICTURE: do not save a grid of poses into art/ and pack it, whoever drew it and however it reached you. Every frame sheet goes through build_sheet (or pose_sheet), which makes the animation the member sees and tunes in their Animations tab; a scene that plays frames the member has no animation for is a fault, and pack_artwork corrects one it finds and tells you to finish the job.";
 
 const PICTURES_LINE = CHATGPT_PICTURES_OPEN
   ? `Pictures come from make_picture and pack_artwork; everything else you draw. ${SHEETS_LINE}`

@@ -10,6 +10,27 @@ they play and whether they loop. It lives in the project as
 `animations/<name>.json` beside its sheet, appears in the Studio's
 Animations tab, and the scene plays it from one region of its artwork.
 
+## The one rule that is never bent
+
+A sheet of frames is an animation, never a picture. However the frames
+were drawn - by a picture plugin, by a model, by the member, as one grid
+image or as separate files - they go through `build_sheet` (or
+`pose_sheet`, for one picture bent into poses), which writes the sheet and
+`animations/<name>.json` together. Only then is the sheet packed and
+played.
+
+Never save a grid of poses as `art/<something>.png` and pack it like a
+rock, then step through it in the shader yourself. The scene would move,
+and the member would have nothing: no animation in their Animations tab to
+watch, slow down, loop or fix. `pack_artwork` checks for this. When it
+finds a grid of frames with no animation, it makes one under the picture's
+name with guessed timing and tells you; your next step is then to write it
+again with `build_sheet` and `replace: true` with the real frame count,
+fps, loop and ground, and to check it with `look_at_animation`.
+
+If a picture tool hands you one image holding many poses, that image is
+the input to `build_sheet`, not a picture for the artwork.
+
 ## Names
 
 An animation is known by its NAME (`whale-dive`), and the name is where

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { pictureFromBytes } from '../safePicture';
+import { adoptPackedSheets } from './sheetAsPicture';
 import type { IStudioChatPackPiece } from '../../common/studioChat';
 import {
   listsOwnPieces,
@@ -172,6 +173,25 @@ const readPiece = (
 };
 
 /** pack_artwork: the scene's own pictures into its one artwork image. */
+/** A picture's pixels, alpha last, for telling a sheet of frames from a picture. */
+const pixelsOfPng = (png: Uint8Array) => {
+  const image = pictureFromBytes(png);
+  if (image.isEmpty()) {
+    return undefined;
+  }
+  const { width, height } = image.getSize();
+  const bitmap = image.toBitmap();
+  return {
+    width,
+    height,
+    data: new Uint8ClampedArray(
+      bitmap.buffer,
+      bitmap.byteOffset,
+      bitmap.byteLength,
+    ),
+  };
+};
+
 const createPackArtworkTool = ({
   project,
   packInWindow,
@@ -344,10 +364,28 @@ const createPackArtworkTool = ({
         `Where the Studio's artwork pieces came from could not be recorded: ${String(error)}`,
       );
     }
+    // A sheet of frames packed as a plain picture is made the animation it
+    // is, and the chat told so before anything else (`sheetAsPicture.ts`).
+    let adopted: string[] = [];
+    try {
+      adopted = await adoptPackedSheets(
+        open.folder,
+        pieces.flatMap(({ origin }) =>
+          'picture' in origin ? [origin.picture] : [],
+        ),
+        pixelsOfPng,
+      );
+    } catch (error) {
+      // The artwork is packed; only the correction did not happen.
+      logger?.warn(
+        `A packed picture could not be checked for animation frames: ${String(error)}`,
+      );
+    }
     return {
       content: [
         text(
           [
+            ...adopted,
             `Packed ${layout.placed.length} piece${layout.placed.length === 1 ? '' : 's'} into ${file}, ${layout.width} x ${layout.height}, and wrote artworkFile, artworkWidth, artworkHeight and artworkRegions in pack.json${places.length ? "; the member's photo places are where they were" : ''}. Leave the version as it is: FluidEQ sets it when the member publishes.`,
             'Each region, and the vec4 the shader samples it by (x, y from the bottom-left, width, height, as fractions of the image):',
             ...layout.placed.map((piece) =>
@@ -364,7 +402,7 @@ const createPackArtworkTool = ({
     name: 'pack_artwork',
     title: "Pack the scene's artwork",
     description:
-      "Lays the scene's own pictures into its one artwork image - pictures from make_picture, and pieces already in the artwork - with the gutters the brief asks for, encodes it as the WebP the build reads, and writes pack.json's artworkFile, artworkWidth, artworkHeight and artworkRegions to match. The member's photo places are kept where they are. Answers each region's place and the vec4 the shader samples it by.",
+      "Lays the scene's own pictures into its one artwork image - pictures from make_picture, and pieces already in the artwork - with the gutters the brief asks for, encodes it as the WebP the build reads, and writes pack.json's artworkFile, artworkWidth, artworkHeight and artworkRegions to match. A sheet of animation frames is never packed as a plain picture: build it with build_sheet first, so it is an animation the member has; a grid of poses found packed without one is made an animation here and you are told to set it right. The member's photo places are kept where they are. Answers each region's place and the vec4 the shader samples it by.",
     inputSchema: PACK_SCHEMA,
     annotations: {
       readOnlyHint: false,

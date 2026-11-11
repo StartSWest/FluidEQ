@@ -17,6 +17,8 @@ interface IFakeImage {
   getSize(): { width: number; height: number };
   resize(size: { width: number; height: number }): IFakeImage;
   toPNG(): Buffer;
+  /** Every pixel clear: a test that needs a drawing gives its own pixels. */
+  toBitmap(): Buffer;
 }
 
 const imageOf = (
@@ -27,6 +29,7 @@ const imageOf = (
   resize: (next) => imageOf({ width: next.width, height: next.height }),
   toPNG: () =>
     size ? Buffer.from(pngHeader(size.width, size.height)) : Buffer.alloc(0),
+  toBitmap: () => Buffer.alloc((size?.width ?? 0) * (size?.height ?? 0) * 4),
 });
 
 const sizeOf = (bytes: Buffer) =>
