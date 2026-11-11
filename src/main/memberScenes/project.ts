@@ -146,10 +146,23 @@ const declaredSize = (artwork: Record<string, unknown> | undefined) =>
     ? { width: artwork.width, height: artwork.height }
     : undefined;
 
-/** The folder as a pack, or every reason it is not one yet. Never throws. */
-export const readProject = async (folder: string): Promise<TProjectBuild> => {
+/**
+ * The folder as a pack, read at once, for a caller that is itself one of the
+ * folder's queued saves (`settingsWrites.ts`).
+ *
+ * `readProject` waits for every save queued for the folder, so that it
+ * never reads a manifest a save is about to change. A save that reads the
+ * project back to check its own work is one of those saves: waiting for
+ * the queue there is waiting for itself. Edit mode's Save did exactly that
+ * (`worldEdits.ts`), never answered, and held the folder's queue for good -
+ * no later save of the scene's sliders ran, and no read of the project came
+ * back. Inside the queue nothing else is writing, which is all the wait is
+ * for.
+ */
+export const readProjectInsideSave = async (
+  folder: string,
+): Promise<TProjectBuild> => {
   try {
-    await waitForSettingsWrites(folder);
     const { raw, artworkHash } = await buildRawPack(folder);
     const checked = checkMemberScene(raw);
     const controls = [
@@ -178,6 +191,12 @@ export const readProject = async (folder: string): Promise<TProjectBuild> => {
       problems: [{ code: 'missing-file', file: 'pack.json' }],
     };
   }
+};
+
+/** The folder as a pack, or every reason it is not one yet. Never throws. */
+export const readProject = async (folder: string): Promise<TProjectBuild> => {
+  await waitForSettingsWrites(folder);
+  return readProjectInsideSave(folder);
 };
 
 export interface IProjectSource {

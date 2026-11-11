@@ -4,7 +4,7 @@ import type {
   TWorldEditOutcome,
 } from '../../common/sceneEdit';
 import { applyWorldEdits, sameShape } from '../../common/worldEdit';
-import { readProject } from './project';
+import { readProjectInsideSave } from './project';
 import {
   isRecord,
   MANIFEST_FILE,
@@ -95,12 +95,18 @@ const put = async (
   await writeInside(folder, MANIFEST_FILE, 'pack.json', text);
 };
 
-/** Whether the project builds with every thing of `raw` in its place. */
+/**
+ * Whether the project builds with every thing of `raw` in its place.
+ *
+ * Read without waiting on the folder's queue: this runs inside it
+ * (`editProjectWorld`), and `readProject` there waited for the save it was
+ * part of.
+ */
 const builds = async (
   folder: string,
   raw: Record<string, unknown>,
 ): Promise<boolean> => {
-  const build = await readProject(folder);
+  const build = await readProjectInsideSave(folder);
   return (
     build.ok &&
     build.pack.world !== undefined &&
