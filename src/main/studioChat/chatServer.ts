@@ -33,7 +33,7 @@ import { createMcpHandler, type IMcpTool } from '../studioAgent/mcpProtocol';
  */
 
 const INSTRUCTIONS = [
-  "FluidEQ is the music app the member is building a visualizer scene for, in its Studio's chat. look_at_scene draws the scene on the member's own GPU exactly as FluidEQ plays it and returns the picture, or FluidEQ's own reasons it cannot play. hear_the_music tells you how the song the member plays moves.",
+  "FluidEQ is the music app the member is building a visualizer scene for, in its Studio's chat. look_at_scene draws the scene on the member's own GPU exactly as FluidEQ plays it and returns the picture, or FluidEQ's own reasons it cannot play. watch_scene draws a few frames a moment apart, the whole picture or a part of it cut out and enlarged, side by side with what moved between them: use it for anything about motion - a direction, a glide, a stutter, a loop - which one picture cannot show. hear_the_music tells you how the song the member plays moves.",
   CHATGPT_PICTURES_OPEN
     ? "make_picture asks ChatGPT, through the member's own Codex, for one picture the scene needs - the member is asked first, every time - and pack_artwork lays the pictures into the scene's artwork image."
     : "pack_artwork lays pictures from the project's art folder into the scene's artwork image.",

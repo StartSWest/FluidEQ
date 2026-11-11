@@ -17,6 +17,8 @@ import {
 } from '../../common/sceneArtwork';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import { LOOK_SCHEMA } from '../studioAgent/lookRequest';
+import watchPictures from '../studioAgent/watchPictures';
+import { WATCH_SCHEMA } from '../studioAgent/watchTool';
 import type { IMcpTool } from '../studioAgent/mcpProtocol';
 import {
   createStudioTools,
@@ -54,17 +56,29 @@ const LOOK_WITHOUT_FOLDER = {
   ),
 };
 
-/** The door's look and hear, bound to the project in `folder`. */
+/** The same for the frames watched: they are this project's too. */
+const WATCH_WITHOUT_FOLDER = {
+  ...WATCH_SCHEMA,
+  properties: Object.fromEntries(
+    Object.entries(WATCH_SCHEMA.properties).filter(([key]) => key !== 'folder'),
+  ),
+};
+
+/** The door's look, watch and hear, bound to the project in `folder`. */
 const ownLookTools = (door: IStudioLook, folder: string): IMcpTool[] =>
   createStudioTools({
     look: (request) => door.look({ ...request, folder }),
     hear: door.hear,
     ...(door.shapeNow ? { shapeNow: door.shapeNow } : {}),
-  }).map((tool) =>
-    tool.name === 'look_at_scene'
-      ? { ...tool, inputSchema: LOOK_WITHOUT_FOLDER }
-      : tool,
-  );
+    pictures: watchPictures,
+  }).map((tool) => {
+    if (tool.name === 'look_at_scene') {
+      return { ...tool, inputSchema: LOOK_WITHOUT_FOLDER };
+    }
+    return tool.name === 'watch_scene'
+      ? { ...tool, inputSchema: WATCH_WITHOUT_FOLDER }
+      : tool;
+  });
 
 export interface IChatPicturesDeps {
   root: string;

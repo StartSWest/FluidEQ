@@ -101,6 +101,7 @@ const ALLOWED = [
   'Glob',
   'Grep',
   `mcp__${DOOR_SERVER}__look_at_scene`,
+  `mcp__${DOOR_SERVER}__watch_scene`,
   `mcp__${DOOR_SERVER}__hear_the_music`,
   `mcp__${DOOR_SERVER}__make_picture`,
   `mcp__${DOOR_SERVER}__pack_artwork`,

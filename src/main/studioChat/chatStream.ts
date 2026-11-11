@@ -82,6 +82,8 @@ export type TChatStreamEvent =
 /** Claude Code names FluidEQ's tools by the server they came from. */
 export const DOOR_SERVER = 'fluideq';
 const LOOK_TOOL = `mcp__${DOOR_SERVER}__look_at_scene`;
+/** A few looks in a row: the member sees it as the scene being looked at. */
+const WATCH_TOOL = `mcp__${DOOR_SERVER}__watch_scene`;
 const HEAR_TOOL = `mcp__${DOOR_SERVER}__hear_the_music`;
 const PICTURE_TOOL = `mcp__${DOOR_SERVER}__make_picture`;
 const PACK_TOOL = `mcp__${DOOR_SERVER}__pack_artwork`;
@@ -114,7 +116,7 @@ export const stepOf = (
   name: string,
   input: unknown,
 ): IStudioChatStep => {
-  if (name === LOOK_TOOL) {
+  if (name === LOOK_TOOL || name === WATCH_TOOL) {
     return { id, kind: 'look', state: 'running' };
   }
   if (name === HEAR_TOOL) {

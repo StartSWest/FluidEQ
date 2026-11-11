@@ -18,6 +18,7 @@ import type { IWorldReport, TWorldNote } from '../../common/worldNotes';
 import { HEAR_SCHEMA, readHearRequest } from './hearRequest';
 import { LOOK_SCHEMA, readLookRequest, type ILookRequest } from './lookRequest';
 import type { IMcpTool, IMcpToolResult } from './mcpProtocol';
+import { createWatchTool, type IWatchPictures } from './watchTool';
 
 /**
  * The two tools the Studio's agent door offers: look at the scene, and hear
@@ -38,6 +39,12 @@ export interface IStudioLook {
    * scene in now, so a look is of what the member is looking at.
    */
   shapeNow?(): TStudioAgentShape;
+  /**
+   * Reads the pictures FluidEQ draws and writes the strip `watch_scene`
+   * answers with (`watchTool.ts`). Without it the tool is not offered: there
+   * is no decoder outside the app's own main process.
+   */
+  pictures?: IWatchPictures;
 }
 
 export type TLookOutcome =
@@ -408,7 +415,27 @@ export const createStudioTools = ({
   look,
   hear,
   shapeNow,
+  pictures,
 }: IStudioLook): IMcpTool[] => [
+  ...(pictures
+    ? [
+        createWatchTool<TLookOutcome>({
+          look,
+          ...(shapeNow ? { shapeNow } : {}),
+          pictures,
+          pictureOf: (outcome) =>
+            outcome.ok ? outcome.answer.image : undefined,
+          explain: (outcome) =>
+            outcome.ok
+              ? failure('The scene could not be watched.')
+              : explain(outcome),
+          titleOf: (outcome) =>
+            outcome.ok
+              ? `${nameOf(outcome.pack)} (id ${outcome.pack.id}, version ${outcome.pack.version})`
+              : '',
+        }),
+      ]
+    : []),
   {
     name: 'look_at_scene',
     title: 'Look at the scene',

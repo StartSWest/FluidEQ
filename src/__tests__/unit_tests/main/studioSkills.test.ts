@@ -69,6 +69,7 @@ describe('the skills FluidEQ ships', () => {
     expect(skills.map(({ name }) => name)).toEqual([
       'fluideq-3d-world',
       'fluideq-animation',
+      'fluideq-motion',
       'fluideq-photo-3d',
     ]);
     skills.forEach(({ name, files }) => {
