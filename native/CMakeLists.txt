@@ -747,6 +747,25 @@ target_link_libraries(fluideq-media-line-test PRIVATE feq_strict)
 target_include_directories(fluideq-media-line-test PRIVATE media-watch/src)
 add_test(NAME media-line COMMAND fluideq-media-line-test)
 
+# Which session the bar shows, a session that is going left out of it: plain
+# C++ like the lines.
+add_executable(fluideq-media-choice-test media-watch/tests/media_choice_test.cpp)
+target_link_libraries(fluideq-media-choice-test PRIVATE feq_strict)
+target_include_directories(fluideq-media-choice-test PRIVATE media-watch/src)
+add_test(NAME media-choice COMMAND fluideq-media-choice-test)
+
+# The guard that makes an empty WinRT answer an ordinary failure, against a
+# real C++/WinRT object.
+if(WIN32)
+  add_executable(fluideq-media-present-test
+    media-watch/tests/media_present_test.cpp)
+  target_link_libraries(fluideq-media-present-test PRIVATE feq_strict WindowsApp)
+  target_compile_options(fluideq-media-present-test PRIVATE
+    /external:anglebrackets /external:W0)
+  target_include_directories(fluideq-media-present-test PRIVATE media-watch/src)
+  add_test(NAME media-present COMMAND fluideq-media-present-test)
+endif()
+
 # The lighting helper: the app's hands on Windows Dynamic Lighting, and the one
 # executable in the tree with Windows package identity (see
 # lighting-host/src/identity.h for why it needs one and how it gets it).

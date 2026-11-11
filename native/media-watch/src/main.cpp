@@ -69,7 +69,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <utility>
 #include <vector>
 
+#include "media_choice.h"
 #include "media_line.h"
+#include "winrt_present.h"
 
 namespace {
 
@@ -84,7 +86,9 @@ using Properties =
 using PlaybackInfo = wmc::GlobalSystemMediaTransportControlsSessionPlaybackInfo;
 using PlaybackStatus =
     wmc::GlobalSystemMediaTransportControlsSessionPlaybackStatus;
+using fluideq_media::Candidate;
 using fluideq_media::Cover;
+using fluideq_media::present;
 using fluideq_media::Reading;
 
 /**
@@ -261,7 +265,7 @@ void post_cover(const std::shared_ptr<CoverMail>& mail, CoverArrival arrival) {
  */
 void open_cover(const wss::IRandomAccessStreamReference& thumbnail,
                 std::uint64_t song, const std::shared_ptr<CoverMail>& mail) {
-  thumbnail.OpenReadAsync().Completed(
+  present(thumbnail.OpenReadAsync()).Completed(
       [mail, song](
           const wf::IAsyncOperation<wss::IRandomAccessStreamWithContentType>&
               operation,
@@ -291,7 +295,7 @@ void read_cover(const wss::IRandomAccessStreamWithContentType& stream,
   const auto count = static_cast<std::uint32_t>(size);
   const wss::Buffer buffer(count);
   // The stream rides in the handler, so it lives until its bytes are in.
-  stream.ReadAsync(buffer, count, wss::InputStreamOptions::None)
+  present(stream.ReadAsync(buffer, count, wss::InputStreamOptions::None))
       .Completed([mail, song, stream](
                      const wf::IAsyncOperationWithProgress<wss::IBuffer,
                                                            std::uint32_t>&
@@ -370,7 +374,7 @@ class Watcher {
     std::vector<Tracked> next;
     bool whole = true;
     try {
-      for (const Session& session : manager_.GetSessions()) {
+      for (const Session& session : present(manager_.GetSessions())) {
         try {
           if (is_self(session.SourceAppUserModelId())) {
             continue;
@@ -419,7 +423,7 @@ class Watcher {
     const std::uint64_t number = ++entry.asked;
     const std::shared_ptr<SessionMail> mail = entry.mail;
     try {
-      entry.session.TryGetMediaPropertiesAsync().Completed(
+      present(entry.session.TryGetMediaPropertiesAsync()).Completed(
           [mail, number](const wf::IAsyncOperation<Properties>& operation,
                          wf::AsyncStatus status) {
             Properties properties{nullptr};
@@ -509,41 +513,6 @@ class Watcher {
   }
 
   /**
-   * Which session the bar shows: anything playing wins; failing that, what
-   * Windows calls the current session, as long as it is not the app's own;
-   * failing that, the first one. The same rule as `SELF_SKIP` in
-   * systemMedia.ts, which the next, previous and seek commands choose their
-   * session by — a button must act on the session the card above it names,
-   * so change the two together.
-   */
-  std::optional<std::size_t> choose(const std::vector<bool>& playing) const {
-    for (std::size_t at = 0; at < tracked_.size(); ++at) {
-      if (playing[at]) {
-        return at;
-      }
-    }
-    const Session current = manager_.GetCurrentSession();
-    if (current && !is_self(current.SourceAppUserModelId())) {
-      for (std::size_t at = 0; at < tracked_.size(); ++at) {
-        if (tracked_[at].session == current) {
-          return at;
-        }
-      }
-      // The same player, should Windows hand back another object for it.
-      const std::string app = winrt::to_string(current.SourceAppUserModelId());
-      for (std::size_t at = 0; at < tracked_.size(); ++at) {
-        if (tracked_[at].app == app) {
-          return at;
-        }
-      }
-    }
-    if (!tracked_.empty()) {
-      return std::size_t{0};
-    }
-    return std::nullopt;
-  }
-
-  /**
    * The cover follows the song it was read for. A player publishes the title
    * a moment before the picture, so a song with no picture yet is read again
    * on each properties answer until one arrives — the script tried on its
@@ -577,22 +546,71 @@ class Watcher {
     }
   }
 
+  /**
+   * What the chosen session is doing, read now. Throws, as every WinRT read
+   * here can, for a session that is going.
+   */
+  Reading read_chosen(const Tracked& entry, const PlaybackInfo& info,
+                      const std::vector<Candidate>& candidates) const {
+    Reading found;
+    found.app = entry.app;
+    found.title = entry.title;
+    found.artist = entry.artist;
+    found.is_playing = info.PlaybackStatus() == PlaybackStatus::Playing;
+    const auto timeline = present(entry.session.GetTimelineProperties());
+    found.position_ms = fluideq_media::ticks_to_ms(timeline.Position().count());
+    found.duration_ms = fluideq_media::ticks_to_ms(timeline.EndTime().count());
+    const auto controls = present(info.Controls());
+    found.can_next = controls.IsNextEnabled();
+    found.can_previous = controls.IsPreviousEnabled();
+    found.can_seek = controls.IsPlaybackPositionEnabled();
+    for (std::size_t at = 0; at < tracked_.size(); ++at) {
+      if (candidates[at].playing) {
+        found.playing.push_back(tracked_[at].app);
+      }
+    }
+    return found;
+  }
+
   void report() {
     std::optional<Reading> reading;
     try {
-      std::vector<PlaybackInfo> infos;
-      std::vector<bool> playing;
-      infos.reserve(tracked_.size());
-      playing.reserve(tracked_.size());
       // Every session's state in one pass, so the choice and the list of who
       // is playing are answers to the same moment.
-      for (const Tracked& entry : tracked_) {
-        infos.push_back(entry.session.GetPlaybackInfo());
-        playing.push_back(infos.back().PlaybackStatus() ==
-                          PlaybackStatus::Playing);
+      //
+      // ONE SESSION AT A TIME. A session whose player is closing answers with
+      // nothing or with an error until the manager's SessionsChanged for its
+      // going arrives, and that is ordinary: it is left out of this look.
+      // Read all at once, its failure used to take every other player's
+      // reading down with it — "nothing playing" for a moment, which the app
+      // reads as the next song starting out there and stops its own player
+      // for — and its empty answer, read through, ended the helper.
+      std::vector<PlaybackInfo> infos(tracked_.size(), nullptr);
+      std::vector<Candidate> candidates(tracked_.size());
+      for (std::size_t at = 0; at < tracked_.size(); ++at) {
+        try {
+          infos[at] = present(tracked_[at].session.GetPlaybackInfo());
+          candidates[at].readable = true;
+          candidates[at].playing =
+              infos[at].PlaybackStatus() == PlaybackStatus::Playing;
+        } catch (const winrt::hresult_error&) {
+          infos[at] = nullptr;
+          candidates[at] = Candidate{};
+        }
       }
-      const std::optional<std::size_t> chosen = choose(playing);
-      if (chosen) {
+      const Session current = manager_.GetCurrentSession();
+      if (current && !is_self(current.SourceAppUserModelId())) {
+        const std::string app =
+            winrt::to_string(current.SourceAppUserModelId());
+        for (std::size_t at = 0; at < tracked_.size(); ++at) {
+          candidates[at].current = tracked_[at].session == current;
+          candidates[at].current_app = tracked_[at].app == app;
+        }
+      }
+      // The chosen one can go between its first read and the rest; it is
+      // then left out like the others and the choice made again.
+      for (auto chosen = fluideq_media::choose(candidates); chosen;
+           chosen = fluideq_media::choose(candidates)) {
         const Tracked& entry = tracked_[*chosen];
         if (!entry.known) {
           // Its properties are on their way, and their answer wakes this
@@ -600,29 +618,19 @@ class Watcher {
           // playing" for the moment between two players.
           return;
         }
-        Reading found;
-        found.app = entry.app;
-        found.title = entry.title;
-        found.artist = entry.artist;
-        found.is_playing = playing[*chosen];
-        const auto timeline = entry.session.GetTimelineProperties();
-        found.position_ms = fluideq_media::ticks_to_ms(timeline.Position().count());
-        found.duration_ms = fluideq_media::ticks_to_ms(timeline.EndTime().count());
-        const auto controls = infos[*chosen].Controls();
-        found.can_next = controls.IsNextEnabled();
-        found.can_previous = controls.IsPreviousEnabled();
-        found.can_seek = controls.IsPlaybackPositionEnabled();
-        for (std::size_t at = 0; at < tracked_.size(); ++at) {
-          if (playing[at]) {
-            found.playing.push_back(tracked_[at].app);
-          }
+        try {
+          Reading found = read_chosen(entry, infos[*chosen], candidates);
+          follow_cover(entry, found);
+          reading = std::move(found);
+          break;
+        } catch (const winrt::hresult_error&) {
+          infos[*chosen] = nullptr;
+          candidates[*chosen] = Candidate{};
         }
-        follow_cover(entry, found);
-        reading = std::move(found);
       }
     } catch (const winrt::hresult_error&) {
-      // As the script's catch: a session that could not be read is nothing
-      // playing, until the next thing Windows says.
+      // The manager itself could not be asked which session is current: as
+      // the script's catch, nothing playing until the next thing Windows says.
       reading.reset();
     }
 
@@ -675,7 +683,7 @@ struct ManagerMail {
  */
 Manager request_manager() {
   const auto mail = std::make_shared<ManagerMail>();
-  Manager::RequestAsync().Completed(
+  present(Manager::RequestAsync()).Completed(
       [mail](const wf::IAsyncOperation<Manager>& operation,
              wf::AsyncStatus status) {
         Manager manager{nullptr};
