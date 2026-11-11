@@ -29,6 +29,7 @@ import {
   settlePath,
 } from './asyncWriter';
 import readTextCached from './cachedRead';
+import { profileWasRead, sayProfileUnreadable } from './unreadableProfiles';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -487,59 +488,74 @@ export const save = (state: IState, settingsDir: string): Promise<void> => {
 export const readPresetText = (presetName: string, presetsDir: string) =>
   readTextCached(presetFilePath(presetsDir, presetName));
 
-export const fetchPreset = (presetName: string, presetsDir: string) => {
-  try {
-    // Through the cache: what the writer last accepted beats the disk.
-    const content = readPresetText(presetName, presetsDir);
-    const json = JSON.parse(content);
-    if (validatePresetV1(json)) {
-      const oldFormat = json as IPresetV1;
-      const newFormat: IPresetV2 = {
-        ...readProfileOutputSound(
-          presetFilePath(presetsDir, presetName),
-          content,
-          json,
-        ),
-        preAmp: clampPreAmp(oldFormat.preAmp),
-        filters: {},
-      };
-      oldFormat.filters.forEach((filter) => {
-        // Its okay to shallow copy the filter because we won't give oldFormat to anyone else.
-        newFormat.filters[filter.id] = {
-          ...filter,
-          gain: clampGain(filter.gain),
-          quality: clampQuality(filter.quality),
-        };
-      });
-      try {
-        // Try to update our file.
-        savePreset(presetName, newFormat, presetsDir);
-      } catch {
-        // Ignore failed updates.
-      }
-      return newFormat;
-    }
-    if (!validatePresetV2(json)) {
-      throw new Error('Invalid preset file');
-    }
-    const preset = json as IPresetV2;
-    const graphicEq = normalizeGraphicEq(preset.graphicEq);
-    const bypassed = normalizeBypassed(preset.bypassed);
-    return {
-      ...preset,
+const presetFromText = (
+  presetName: string,
+  presetsDir: string,
+  content: string,
+) => {
+  const json = JSON.parse(content);
+  if (validatePresetV1(json)) {
+    const oldFormat = json as IPresetV1;
+    const newFormat: IPresetV2 = {
       ...readProfileOutputSound(
         presetFilePath(presetsDir, presetName),
         content,
-        preset,
+        json,
       ),
-      preAmp: clampPreAmp(preset.preAmp),
-      filters: normalizeFilters(preset.filters),
-      ...(graphicEq ? { graphicEq } : {}),
-      ...('bypassed' in preset ? { bypassed } : {}),
+      preAmp: clampPreAmp(oldFormat.preAmp),
+      filters: {},
     };
+    oldFormat.filters.forEach((filter) => {
+      // Its okay to shallow copy the filter because we won't give oldFormat to anyone else.
+      newFormat.filters[filter.id] = {
+        ...filter,
+        gain: clampGain(filter.gain),
+        quality: clampQuality(filter.quality),
+      };
+    });
+    try {
+      // Try to update our file.
+      savePreset(presetName, newFormat, presetsDir);
+    } catch {
+      // Ignore failed updates.
+    }
+    return newFormat;
+  }
+  if (!validatePresetV2(json)) {
+    throw new Error('Invalid preset file');
+  }
+  const preset = json as IPresetV2;
+  const graphicEq = normalizeGraphicEq(preset.graphicEq);
+  const bypassed = normalizeBypassed(preset.bypassed);
+  return {
+    ...preset,
+    ...readProfileOutputSound(
+      presetFilePath(presetsDir, presetName),
+      content,
+      preset,
+    ),
+    preAmp: clampPreAmp(preset.preAmp),
+    filters: normalizeFilters(preset.filters),
+    ...(graphicEq ? { graphicEq } : {}),
+    ...('bypassed' in preset ? { bypassed } : {}),
+  };
+};
+
+/**
+ * Throws for a profile it cannot read, every time, and says so in the log
+ * once per profile and per thing wrong with it (unreadableProfiles.ts): its
+ * callers ask again on every flush.
+ */
+export const fetchPreset = (presetName: string, presetsDir: string) => {
+  let content: string | undefined;
+  try {
+    // Through the cache: what the writer last accepted beats the disk.
+    content = readPresetText(presetName, presetsDir);
+    const preset = presetFromText(presetName, presetsDir, content);
+    profileWasRead(presetName, presetsDir);
+    return preset;
   } catch (ex) {
-    log.error('Failed to get presets!!');
-    log.error(ex);
+    sayProfileUnreadable(presetName, presetsDir, content, ex);
     throw ex;
   }
 };

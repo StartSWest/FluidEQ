@@ -797,7 +797,7 @@ export const getStateForAudioDevice = (
 
   let preset: IPresetV2 | undefined;
   // A profile that is not there is the default state, not an error to log:
-  // `fetchPreset` would say "Failed to get presets!!" with a stack each time.
+  // `fetchPreset` would log it as one, with its stack.
   if (
     assignment &&
     doesPresetExist(

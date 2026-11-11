@@ -170,7 +170,7 @@ const registerApoConfigIpc = ({
   ): IApoConfigLayer[] | undefined => {
     const dir = presetDirForDevice(assignment.deviceId);
     // Asked of every output on every refresh: a profile that is not there has
-    // no layers, and asking `fetchPreset` would log a stack trace each time.
+    // no layers, and asking `fetchPreset` would log it as a failure.
     if (!doesPresetExist(assignment.presetName, dir)) {
       return undefined;
     }
