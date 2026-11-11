@@ -45,6 +45,7 @@ import type { TPublishOutcome } from './ipc/plusPublishing';
 import type { TPlusCategory } from '../common/plusGallery';
 import type { ILikeStatus } from './memberScenes/social';
 import type { TSceneFailure } from './scenePackStore';
+import type { TSceneRecovery } from './memberScenes/sceneRecovery';
 import type { IScenePack } from '../common/scenePacks';
 
 /**
@@ -112,6 +113,13 @@ const reportMemberSceneFailure = (
     reason,
     detail,
   ) as Promise<void>;
+
+// A look that would not play, put right from a better copy (`sceneRecovery.ts`).
+const recoverMemberScene = (lookId: string) =>
+  ipcRenderer.invoke(
+    'member-scenes-recover',
+    lookId,
+  ) as Promise<TSceneRecovery>;
 
 // The last version of a look that built here (`sceneBuilds.ts`), by look id.
 const reportSceneBuilt = (lookId: string, revision: string) =>
@@ -395,6 +403,7 @@ const studioBridge = {
   loadMemberScene,
   removeMemberScene,
   reportMemberSceneFailure,
+  recoverMemberScene,
   onMemberScenesChanged,
   reportSceneBuilt,
   lastSceneBuild,

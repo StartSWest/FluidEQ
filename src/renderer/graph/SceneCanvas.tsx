@@ -34,6 +34,10 @@ import {
 import { useWatchedSceneWave } from '../utils/sceneWaveStore';
 import { lastSceneBuild, reportSceneBuilt } from '../utils/sceneBuilds';
 import { clearLookRefusal, refuseLook, type TLookRefusal } from './lookRefusal';
+import {
+  memberLookWouldNotBuild,
+  memberVersionWouldNotBuild,
+} from './lookRecovery';
 import useMovableContainer from '../utils/useMovableContainer';
 import { studioSpectrumRect } from '../studio/studioWave';
 import type { ISceneFrame } from './sceneGl';
@@ -154,8 +158,17 @@ export default function SceneCanvas({
             blockMemberScene(key);
           },
           reportFailure: (reason, log) => {
-            failed(reason);
+            // Set aside first: where the graph's choice lands is how the
+            // recovery knows the listener has not chosen something else.
             reportMemberSceneFailure(key, reason, log).catch(() => undefined);
+            if (reason !== 'compile') {
+              failed(reason);
+              return;
+            }
+            // A better copy before any word of it (`lookRecovery.ts`).
+            memberLookWouldNotBuild(lookId, names).catch(() =>
+              refused('compile'),
+            );
           },
           versionFailed: (log) => {
             noteMemberSceneFailure(
@@ -163,6 +176,7 @@ export default function SceneCanvas({
               'compile',
               `an earlier version plays on: ${log}`,
             ).catch(() => undefined);
+            memberVersionWouldNotBuild(lookId).catch(() => undefined);
           },
           lastBuilt: () => lastSceneBuild(key),
           built: () => {

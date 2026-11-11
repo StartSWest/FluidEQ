@@ -115,6 +115,8 @@ export interface IStudioProjectsIpcRegistration {
   agentProject(folder?: string): TAgentProject;
   /** Whether a project's chat must ask before every command (`projectOrigin.ts`). */
   chatMustAsk(id: string): boolean;
+  /** The folders of the member's own projects, never one only opened (`sceneRecovery.ts`). */
+  ownProjectFolders(): readonly string[];
   /**
    * The account changed, or what it owns: the bench settles on a project
    * the account may use and the Studio is told.
@@ -506,6 +508,15 @@ export const registerStudioProjectsIpc = ({
       const project = projects.projects.find((entry) => entry.id === id);
       return project === undefined || originOf(project) === 'outside';
     },
+    ownProjectFolders: () =>
+      projects.projects
+        .filter(
+          (project) =>
+            project.official === undefined &&
+            originOf(project) === 'own' &&
+            usable(project),
+        )
+        .map((project) => project.folder),
     accountChanged: () => {
       adopt(projects);
       bench.start();

@@ -44,6 +44,7 @@ import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { createEncryptedJsonStore } from './encryptedJsonStore';
 import { createGalleryAccess } from './plus/galleryAccess';
+import { registerSceneRecoveryIpc } from './ipc/sceneRecovery';
 import {
   createSceneOwnership,
   isSceneStoreRecord,
@@ -327,6 +328,15 @@ const registerMemberServices = ({
     // downloaded again (`plus/pictureDiskCache.ts`).
     pictureDir: path.join(userDataDir, 'gallery-pictures'),
   });
+  // A look that will not play is put right from its maker's project or the
+  // gallery's copy (`memberScenes/sceneRecovery.ts`).
+  const disposeSceneRecovery = registerSceneRecoveryIpc({
+    access: galleryAccess,
+    store: memberScenesIpc.store,
+    ownProjectFolders: memberScenesIpc.ownProjectFolders,
+    announce: memberScenesIpc.announce,
+    logger: log,
+  });
   // A version the server still keeps, saved by an owner among the scene's
   // kept versions here (`ipc/plusGalleryVersionSave.ts`).
   const disposeGalleryVersionSave = registerGalleryVersionSaveIpc({
@@ -503,6 +513,7 @@ const registerMemberServices = ({
     plusPublishingIpc.dispose();
     plusGalleryIpc.dispose();
     disposeGalleryVersionSave();
+    disposeSceneRecovery();
     galleryClipIpc.dispose();
     memberSharingIpc.dispose();
     memberScenesIpc.dispose();

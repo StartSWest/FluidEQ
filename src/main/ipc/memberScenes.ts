@@ -116,6 +116,8 @@ export interface IMemberScenesIpcRegistration {
   agentProject: IStudioProjectsIpcRegistration['agentProject'];
   /** Whether a project's chat must ask before every command (`projectOrigin.ts`). */
   chatMustAsk: IStudioProjectsIpcRegistration['chatMustAsk'];
+  /** The member's own project folders, for a look that will not play (`sceneRecovery.ts`). */
+  ownProjectFolders: IStudioProjectsIpcRegistration['ownProjectFolders'];
   /** The scene list changed outside this file: an import, a takedown. */
   announce(): void;
   /**
@@ -276,6 +278,7 @@ export const registerMemberScenesIpc = ({
     openInspection: studio.openInspection,
     agentProject: studio.agentProject,
     chatMustAsk: studio.chatMustAsk,
+    ownProjectFolders: studio.ownProjectFolders,
     announce: announceScenes,
     publishedMayHaveChanged: () => studio.publishedMayHaveChanged(),
     keepPublished: (author, pack) => {
