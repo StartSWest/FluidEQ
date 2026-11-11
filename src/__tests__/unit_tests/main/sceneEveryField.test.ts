@@ -26,11 +26,13 @@ import {
 import {
   normalizeScenePack,
   parseScenePackPayload,
+  premiumLookId,
   type IScenePack,
 } from '../../../common/scenePacks';
 import storedScenePack from '../../../common/sceneStoredPack';
 import { createVersionPins } from '../../../main/keptVersions';
 import { readProject } from '../../../main/memberScenes/project';
+import { writeProjectSettings } from '../../../main/memberScenes/projectSettings';
 import { writeRestoredProject } from '../../../main/memberScenes/projectRestore';
 import { createMemberSceneStore } from '../../../main/memberScenes/store';
 import { createSceneBuilds } from '../../../main/sceneBuilds';
@@ -167,6 +169,40 @@ describe('every field survives', () => {
     );
   });
 
+  it("an earlier version of one of FluidEQ's own, saved from the server and played when pinned", () => {
+    expect.hasAssertions();
+    const pack = everyFieldPack();
+    const envelopeOf = (version: number) => {
+      const bytes = Buffer.from(
+        JSON.stringify(storedScenePack({ ...pack, version })),
+      );
+      return {
+        schema: 1,
+        algorithm: 'ed25519',
+        keyId: 'every-field',
+        payload: bytes.toString('base64'),
+        signature: sign(null, bytes, official.privateKey).toString('base64'),
+      } as const;
+    };
+    const pins = createVersionPins(root);
+    const store = createScenePackStore({ userDataDir: root, pins });
+    store.adopt([
+      {
+        id: pack.id,
+        version: pack.version + 1,
+        envelope: envelopeOf(pack.version + 1),
+      },
+    ]);
+    expect(
+      store.keepSaved(envelopeOf(pack.version), pack.id, pack.version),
+    ).toBe(true);
+    pins.pin(premiumLookId(pack.id), pack.version);
+    expectSame(
+      createScenePackStore({ userDataDir: root, pins }).load(pack.id),
+      pack,
+    );
+  });
+
   it("one of FluidEQ's own, signed and adopted", () => {
     expect.hasAssertions();
     const pack = everyFieldPack();
@@ -213,6 +249,63 @@ describe('every field survives', () => {
     expect(made.ok).toBe(true);
     const build = made.ok ? await readProject(made.folder) : undefined;
     expectSame(build?.ok ? build.pack : undefined, pack);
+  });
+});
+
+// A Studio settings save rewrites the project's `pack.json` in place: it
+// must change what it was asked to and nothing else.
+describe('a Studio settings save', () => {
+  const projectOf = async (pack: IScenePack) => {
+    const made = await writeRestoredProject(
+      path.join(root, 'FluidEQ Studio'),
+      'Every Field',
+      pack,
+    );
+    if (!made.ok) {
+      throw new Error(`restoring was refused: ${made.reason}`);
+    }
+    return made.folder;
+  };
+  const built = async (folder: string) => {
+    const build = await readProject(folder);
+    return build.ok ? build.pack : undefined;
+  };
+
+  it('changes the values it was given and keeps every other field', async () => {
+    expect.hasAssertions();
+    const pack = everyFieldPack();
+    const folder = await projectOf(pack);
+    expect(
+      await writeProjectSettings(folder, {
+        params: { glow: 1.25, style: 0 },
+        palettes: { colours: { stops: ['#000000', '#ffffff'] } },
+        colours: { single: '#123456' },
+      }),
+    ).toBe('written');
+    const want: IScenePack = {
+      ...pack,
+      params: pack.params.map((param) => {
+        if (param.id === 'glow') {
+          return { ...param, value: 1.25 };
+        }
+        return param.id === 'style' ? { ...param, value: 0 } : param;
+      }),
+      palettes: pack.palettes?.map((palette) => ({
+        ...palette,
+        stops: ['#000000', '#ffffff'],
+      })),
+      colours: pack.colours?.map((colour) => ({ ...colour, value: '#123456' })),
+    };
+    expectSame(await built(folder), want);
+  });
+
+  // The control: a save that changes nothing leaves the scene as it was.
+  it('leaves the scene as it was when nothing changes', async () => {
+    expect.hasAssertions();
+    const pack = everyFieldPack();
+    const folder = await projectOf(pack);
+    await writeProjectSettings(folder, { params: { glow: 0.75 } });
+    expectSame(await built(folder), pack);
   });
 });
 
