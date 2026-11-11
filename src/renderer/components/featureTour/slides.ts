@@ -8,7 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import type { ComponentType } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
-import { featureTourKey } from '../../../common/featureTour';
+import { featureTourKey, type TTourPart } from '../../../common/featureTour';
 import ShareAudioSlide from './ShareAudioSlide';
 import {
   CustomLooksSlide,
@@ -60,6 +60,7 @@ import {
   StageSlide,
   StudioAiSlide,
 } from './release24';
+import SongLevelSlide from './release24Sound';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
 
 /**
@@ -98,6 +99,13 @@ export interface ITourSlide {
    * release's slides with its number.
    */
   release?: string;
+  /**
+   * Which What's New the slide is in. Absent is the sound's, which opens
+   * after an update; `visuals` is the Visualizers tab's own: scenes, the
+   * Gallery, the Studio, desktop backgrounds and lighting (Ivan, 2026-11-11:
+   * "nothing to do with the visualizer, never").
+   */
+  part?: TTourPart;
   Body: ComponentType<{ actions: ISlideActions }>;
 }
 
@@ -162,24 +170,28 @@ const RELEASE_17: TSlideEntry[] = [
   ROOM,
   {
     id: 'fluideq-plus',
+    part: 'visuals',
     titleKey: 'tour.plus.title',
     subtitleKey: 'tour.plus.subtitle',
     Body: PlusSlide,
   },
   {
     id: 'visualizers',
+    part: 'visuals',
     titleKey: 'tour.visualizers.title',
     subtitleKey: 'tour.visualizers.subtitle',
     Body: VisualizersSlide,
   },
   {
     id: 'desktop-visualizer',
+    part: 'visuals',
     titleKey: 'tour.desktop.title',
     subtitleKey: 'tour.desktop.subtitle',
     Body: DesktopVisualizerSlide,
   },
   {
     id: 'dynamic-lighting',
+    part: 'visuals',
     titleKey: 'tour.lighting.title',
     subtitleKey: 'tour.lighting.subtitle',
     Body: DynamicLightingSlide,
@@ -207,12 +219,14 @@ const RELEASE_20: TSlideEntry[] = [
   },
   {
     id: 'visualizer-engine',
+    part: 'visuals',
     titleKey: 'tour.gpu.title',
     subtitleKey: 'tour.gpu.subtitle',
     Body: VisualizerEngineSlide,
   },
   {
     id: 'pointer-sparks',
+    part: 'visuals',
     titleKey: 'tour.sparks.title',
     subtitleKey: 'tour.sparks.subtitle',
     Body: SparksSlide,
@@ -246,6 +260,7 @@ const RELEASE_20: TSlideEntry[] = [
   },
   {
     id: 'studio',
+    part: 'visuals',
     titleKey: 'tour.studio.title',
     subtitleKey: 'tour.studio.subtitle',
     Body: StudioSlide,
@@ -307,6 +322,7 @@ const RELEASE_21: TSlideEntry[] = [
   },
   {
     id: 'studio-chat',
+    part: 'visuals',
     titleKey: 'tour.chat.title',
     subtitleKey: 'tour.chat.subtitle',
     Body: StudioChatSlide,
@@ -326,6 +342,7 @@ const RELEASE_22: TSlideEntry[] = [
   },
   {
     id: 'karaoke-background',
+    part: 'visuals',
     titleKey: 'tour.karaokeBackground.title',
     subtitleKey: 'tour.karaokeBackground.subtitle',
     Body: KaraokeBackgroundSlide,
@@ -357,41 +374,59 @@ const RELEASE_23: TSlideEntry[] = [GAMING_LAB];
 const RELEASE_24: TSlideEntry[] = [
   {
     id: 'studio-animations',
+    part: 'visuals',
     titleKey: 'tour.animations.title',
     subtitleKey: 'tour.animations.subtitle',
     Body: AnimationsSlide,
   },
   {
     id: 'studio-pictures',
+    part: 'visuals',
     titleKey: 'tour.pictures.title',
     subtitleKey: 'tour.pictures.subtitle',
     Body: PicturesSlide,
   },
   {
     id: 'studio-stage',
+    part: 'visuals',
     titleKey: 'tour.stage.title',
     subtitleKey: 'tour.stage.subtitle',
     Body: StageSlide,
   },
   {
     id: 'studio-ai',
+    part: 'visuals',
     titleKey: 'tour.ai.title',
     subtitleKey: 'tour.ai.subtitle',
     Body: StudioAiSlide,
   },
   {
     id: 'scene-controls',
+    part: 'visuals',
     titleKey: 'tour.controls.title',
     subtitleKey: 'tour.controls.subtitle',
     Body: SceneControlsSlide,
   },
   {
     id: 'scene-camera',
+    part: 'visuals',
     titleKey: 'tour.camera.title',
     subtitleKey: 'tour.camera.subtitle',
     Body: CameraSlide,
   },
 ];
+
+/**
+ * 2.4's sound, announced from 2.5: its own tour listed it under the
+ * visualizers' camera, and from 2.5 the What's New that opens after an update
+ * is the sound's alone.
+ */
+const SONG_LEVEL: TSlideEntry = {
+  id: 'song-level',
+  titleKey: 'tour.level.title',
+  subtitleKey: 'tour.level.subtitle',
+  Body: SongLevelSlide,
+};
 
 const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
   entries.map((entry) => ({ ...entry, release }));
@@ -409,6 +444,20 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
+  // 2.5 brings the sound no feature of its own (its notes list the fixes),
+  // so the sound's What's New opens on 2.4's sound, never shown as a slide
+  // before; the Visualizers' What's New keeps 2.4 as new under its number.
+  '2.5': [
+    ...announced('2.4', [SONG_LEVEL]),
+    ...announced('2.4', RELEASE_24),
+    // Earlier features remain discoverable without being announced again.
+    ...RELEASE_23,
+    ...RELEASE_22,
+    ...RELEASE_21.filter((entry) => !RELEASE_23.includes(entry)),
+    ...RELEASE_20.filter(
+      (entry) => !RELEASE_21.includes(entry) && !RELEASE_23.includes(entry),
+    ),
+  ],
   '2.4': [
     ...announced('2.4', RELEASE_24),
     ...announced('2.3', RELEASE_23),
@@ -489,6 +538,7 @@ const ALWAYS: TSlideEntry[] = [
   },
   {
     id: 'custom-looks',
+    part: 'visuals',
     titleKey: 'tour.looks.title',
     subtitleKey: 'tour.looks.subtitle',
     Body: CustomLooksSlide,
@@ -518,3 +568,22 @@ export const featureTourFor = (version: string): ITourSlide[] => {
   const featuredIds = new Set(featured.map((entry) => entry.id));
   return [...featured, ...ALWAYS.filter((entry) => !featuredIds.has(entry.id))];
 };
+
+/** A part's slides, in the tour's order. */
+export const slidesOfPart = (
+  slides: ITourSlide[],
+  part: TTourPart,
+): ITourSlide[] => slides.filter((slide) => (slide.part ?? 'sound') === part);
+
+/**
+ * The slides a part announces as new in this version, `major.minor`:
+ * nothing when the release brought that part nothing.
+ */
+export const newInPart = (
+  slides: ITourSlide[],
+  part: TTourPart,
+  version: string,
+): ITourSlide[] =>
+  slidesOfPart(slides, part).filter(
+    (slide) => slide.release === featureTourKey(version),
+  );

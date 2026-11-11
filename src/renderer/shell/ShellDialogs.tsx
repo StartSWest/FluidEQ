@@ -102,6 +102,7 @@ const ShellDialogs = ({
     setShowTroubleshooter,
     showFeatureTour,
     setShowFeatureTour,
+    featureTourPart,
     whatsNewScope,
     setWhatsNewScope,
   } = dialogs;
@@ -266,9 +267,18 @@ const ShellDialogs = ({
       <AppNewsHost />
       {showFeatureTour && (
         <FeatureTour
+          // The other What's New starts afresh, on its first slide.
+          key={featureTourPart}
           version={PRODUCT_VERSION}
           slides={TOUR_SLIDES}
+          part={featureTourPart}
           onClose={(dontShowAgain) => {
+            // The visualizers' What's New has no tick and no say over
+            // whether the sound's opens at the next launch.
+            if (featureTourPart === 'visuals') {
+              setShowFeatureTour(false);
+              return;
+            }
             const dismissal = featureTourDismissal(
               PRODUCT_VERSION,
               dontShowAgain,
@@ -286,8 +296,11 @@ const ShellDialogs = ({
           isCovered={whatsNewScope !== null}
           onOpenTab={(tab) => {
             // Landing on the tab is not being done with the tour: the tick
-            // was not offered a chance, so it counts as left unticked.
-            localStorage.removeItem(FEATURE_TOUR_DISMISSED_KEY);
+            // was not offered a chance, so it counts as left unticked. The
+            // visualizers' What's New leaves the sound's tick alone.
+            if (featureTourPart === 'sound') {
+              localStorage.removeItem(FEATURE_TOUR_DISMISSED_KEY);
+            }
             setShowFeatureTour(false);
             selectTopWorkspaceTab(tab);
           }}

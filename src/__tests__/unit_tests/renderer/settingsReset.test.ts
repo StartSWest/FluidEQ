@@ -84,6 +84,8 @@ const KEPT = [
   // What they agreed to, saw, won or gave.
   'fluideq.disclaimerAccepted',
   'fluideq.featureTourDismissed',
+  // The Visualizers' own What's New, opened or put aside for this release.
+  'fluideq.visualsNewsSeen',
   'fluideq.seenSceneVersions',
   // When the gallery was last opened, which the look picker counts new
   // scenes from: a reset is not a reason to call the whole gallery new.

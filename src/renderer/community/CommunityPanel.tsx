@@ -26,11 +26,13 @@ import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
 import LightingPanel from '../plus/lighting/LightingPanel';
 import StudioPanel from '../studio/StudioPanel';
+import VisualsNewsNotice, { VisualsNewsEntry } from './VisualsNews';
 import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
 // The ring the scene page turns while a scene downloads, used here too.
 import '../styles/Gallery.scss';
 import '../styles/PlusRail.scss';
+import '../styles/VisualsNews.scss';
 
 interface ICommunityPanelProps {
   /** Opens the Account panel; sign-in lives there, not here. */
@@ -213,6 +215,9 @@ export default function CommunityPanel({
                     />
                   ),
               )}
+            {/* The visualizers' own What's New, apart from the sound's. */}
+            <span className="community__rail-rule" aria-hidden="true" />
+            <VisualsNewsEntry />
           </div>
 
           <div className="community__foot">
@@ -260,6 +265,7 @@ export default function CommunityPanel({
       </div>
 
       <section className="community__main">
+        <VisualsNewsNotice />
         {shown === 'visualizers' && (
           <VisualizersView onShowGraph={onShowGraph} />
         )}

@@ -117,6 +117,8 @@ describe('the Plus tab', () => {
       'plus.visualizers.titleplus.visualizers.blurb',
       'studio.titlestudio.rail.blurb',
       'lighting.titlelighting.rail.blurb',
+      // Under the places, the Visualizers' own What's New (2026-11-11).
+      'visuals.news.openvisuals.news.blurb',
     ]);
     expect(screen.getByText('visualizers view')).toBeInTheDocument();
     expect(rail).not.toHaveTextContent(/community|channel/);

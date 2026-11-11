@@ -414,7 +414,7 @@ const AppContent = () => {
   // What Help's entries open: its own menu's, and the actions menu's while
   // the titlebar has no room for Help's button.
   const helpHandlers: IHelpHandlers = {
-    onTour: () => dialogs.setShowFeatureTour(true),
+    onTour: () => dialogs.openFeatureTour('sound'),
     onReleaseNotes: () => dialogs.setWhatsNewScope('all'),
     onTroubleshoot: () => dialogs.setShowTroubleshooter(true),
     onReport: () => dialogs.setShowBugReport(true),

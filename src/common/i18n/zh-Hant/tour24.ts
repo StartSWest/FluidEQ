@@ -123,8 +123,6 @@ const tour24 = {
     '兩台螢幕，每個桌面上都有展示：第一台上場景朝指標傾斜，按住 Ctrl 時出現「重設檢視」；每台都有自己的時間；下方是鏡頭設定。',
 
   'tour.v24.also': '2.4 的其他更新',
-  'tour.v24.level':
-    '原廠 DSP 預設依歌曲本身的音量播放，使用固定增益，由響度最大化器壓住峰值；等化器前級的自動正規化在 Windows 重新開啟輸出時也會保持音量。',
   'tour.v24.heroes':
     '《暴雪英霸》有了更飽滿的專屬混音，可選廣闊的舞臺。遊戲濾鏡在凸顯提示音的同時讓音樂更平穩。',
   'tour.v24.graphSettings': '圖表為標準樣式和展示分別保存設定。',
@@ -135,6 +133,27 @@ const tour24 = {
     '可以在「關於」或支援頁面透過 GitHub Sponsors 支持 FluidEQ。',
   'tour.v24.crashes':
     '萬一 FluidEQ 當機，紀錄只會保存在這台電腦上，供你自己決定是否送出的錯誤回報使用。',
+  'tour.visualsTitle': '視覺化效果的新增功能',
+  'tour.rail.alwaysVisuals': '也在視覺化效果中',
+  'visuals.news.open': '新增功能',
+  'visuals.news.blurb': '視覺化效果、工作室和燈光',
+  'visuals.news.title': '視覺化效果 {version} 的新功能',
+  'visuals.news.see': '查看新增功能',
+  'visuals.news.later': '稍後再說',
+
+  'tour.level.kicker': 'DSP 預設',
+  'tour.level.title': '依歌曲本身音量播放的預設',
+  'tour.level.subtitle': '不再突然變大聲，音量保持穩定',
+  'tour.level.lead':
+    '原廠 DSP 預設不再於各級處理之前統一歌曲音量：每一級都依音樂進來的原樣處理，由響度最大化器加上固定增益並壓住峰值。',
+  'tour.level.point1':
+    '從播放時會調整增益的預設切換走後，這份提升不會再帶到接下來的聲音裡。',
+  'tour.level.point2': '暫停後不會突然變大聲：靜音之後，歌曲以自己的音量回來。',
+  'tour.level.point3':
+    '等化器前級的自動正規化在 Windows 重新開啟輸出時會保持音量，而不是從頭開始。',
+  'tour.level.how':
+    '已有的效果鏈會保留原本的設定，直到你在 DSP 頁面重新選擇它的原廠預設。',
+  'tour.level.open': '開啟 DSP',
 } as const;
 
 export default tour24;

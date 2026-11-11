@@ -133,8 +133,6 @@ const tour24 = {
     'Zwei Monitore mit einem Visualizer auf jedem Desktop: Auf dem ersten neigt sich die Szene dem Zeiger nach, und Ansicht zurücksetzen erscheint, solange Strg gehalten wird, jeder mit seiner eigenen Tageszeit, über den Einstellungen der Kamera.',
 
   'tour.v24.also': 'Außerdem in 2.4',
-  'tour.v24.level':
-    'Die DSP-Werkspresets spielen mit dem eigenen Pegel des Songs, mit fester Verstärkung und dem Maximizer, der die Spitzen abfängt; Automatisch normalisieren am Vorverstärker des EQ behält seinen Pegel, wenn Windows eine Ausgabe neu öffnet.',
   'tour.v24.heroes':
     'Heroes of the Storm hat eine eigene, vollere Abmischung mit optionaler Breiter Bühne, und der Filter Spiel hält Musik ruhiger, während er Hinweise hervorhebt.',
   'tour.v24.graphSettings':
@@ -147,6 +145,28 @@ const tour24 = {
     'Unterstützen Sie FluidEQ über GitHub Sponsors, unter Über oder auf der Unterstützungsseite.',
   'tour.v24.crashes':
     'Falls FluidEQ einmal abstürzt, wird ein Protokoll nur auf diesem Computer aufbewahrt – für einen Fehlerbericht, den Sie selbst senden.',
+  'tour.visualsTitle': 'Neu bei den Visualizern',
+  'tour.rail.alwaysVisuals': 'AUSSERDEM BEI DEN VISUALIZERN',
+  'visuals.news.open': 'Neuheiten',
+  'visuals.news.blurb': 'Visualizer, Studio und Beleuchtung',
+  'visuals.news.title': 'Neu bei den Visualizern {version}',
+  'visuals.news.see': 'Neuheiten ansehen',
+  'visuals.news.later': 'Nicht jetzt',
+
+  'tour.level.kicker': 'DSP-PRESETS',
+  'tour.level.title': 'Presets im eigenen Pegel Ihres Songs',
+  'tour.level.subtitle': 'Kein lauter Einstieg, ein Pegel, der bleibt',
+  'tour.level.lead':
+    'Die DSP-Werkspresets gleichen einen Song nicht mehr vor ihren Stufen an: Jede Stufe hört die Musik so, wie sie ankommt, und der Maximizer fügt eine feste Verstärkung hinzu und fängt die Spitzen ab.',
+  'tour.level.point1':
+    'Der Wechsel weg von einem Preset, das seine Verstärkung beim Abspielen anpasst, nimmt diese Anhebung nicht mehr in den nächsten Klang mit.',
+  'tour.level.point2':
+    'Kein lauter Einstieg nach einer Pause: Ein Song kommt nach der Stille mit seinem eigenen Pegel zurück.',
+  'tour.level.point3':
+    'Automatisch normalisieren am Vorverstärker des EQ behält seinen Pegel, wenn Windows eine Ausgabe neu öffnet, statt von vorn zu beginnen.',
+  'tour.level.how':
+    'Ein Rack, das Sie schon haben, behält seine Einstellungen, bis Sie sein Werkspreset auf der DSP-Seite erneut wählen.',
+  'tour.level.open': 'DSP öffnen',
 } as const;
 
 export default tour24;

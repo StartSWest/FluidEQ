@@ -20,12 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useState } from 'react';
 import { isAccountConfigured } from 'common/accountConfig';
 import { PRODUCT_VERSION } from 'common/branding';
-import { shouldShowFeatureTour } from 'common/featureTour';
+import { shouldShowFeatureTour, type TTourPart } from 'common/featureTour';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import {
   subscribeAccountPanelRequests,
   type TAccountPanelPage,
 } from '../account/accountPanel';
+import { onFeatureTourRequest } from '../components/featureTour/featureTourRequests';
 import { subscribePlusTabRequests } from '../plus/plusTabRequest';
 import type { TWorkspaceTab } from '../workspaceTabs';
 
@@ -102,6 +103,21 @@ const useShellDialogs = (
       localStorage.getItem(FEATURE_TOUR_DISMISSED_KEY),
     ),
   );
+  // Which What's New is open: the sound's at launch and from the menu, the
+  // visualizers' only when the Visualizers tab asks for it.
+  const [featureTourPart, setFeatureTourPart] = useState<TTourPart>('sound');
+  const openFeatureTour = (part: TTourPart) => {
+    setFeatureTourPart(part);
+    setShowFeatureTour(true);
+  };
+  useEffect(
+    () =>
+      onFeatureTourRequest((part) => {
+        setFeatureTourPart(part);
+        setShowFeatureTour(true);
+      }),
+    [],
+  );
   // Null when closed, otherwise how much of the changelog to show: `all`
   // from the menu and the tour's link, both requests to read the history.
   const [whatsNewScope, setWhatsNewScope] = useState<'latest' | 'all' | null>(
@@ -130,6 +146,8 @@ const useShellDialogs = (
     bumpPrereqNonce: () => setPrereqNonce((n) => n + 1),
     showFeatureTour,
     setShowFeatureTour,
+    featureTourPart,
+    openFeatureTour,
     whatsNewScope,
     setWhatsNewScope,
     hasContributed,

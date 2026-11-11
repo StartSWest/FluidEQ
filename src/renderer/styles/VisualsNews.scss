@@ -1,0 +1,106 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The rail's "What's new", marked while a release's news waits: the tour's
+// own NEW chip, in the column the rail keeps for a row's mark.
+.visuals-news__new {
+  padding: 1px 6px;
+  color: $surface-base;
+  border-radius: $radius-2xs;
+  background: $secondary-light;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.06em);
+
+  @container eq-panel (max-width: 600px) {
+    display: none;
+  }
+}
+
+// The visualizers' news, once per release that brought them something: a
+// strip at the top of the Visualizers tab, the gift mark, what is new by
+// name, and the two answers.
+.visuals-news {
+  @include animate(rise-in);
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin: 0 12px 10px 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 9%, transparent);
+}
+
+.visuals-news__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// Takes the row; narrow, the answers wrap under it, to the right.
+.visuals-news__text {
+  display: grid;
+  flex: 1 1 280px;
+  gap: 2px;
+  min-width: 0;
+}
+
+.visuals-news__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+// What is new, by the slides' own titles, as one run of text that wraps
+// like a sentence. The dot is glued to the title before it (no-break
+// spaces) and a line may break after it, so no line starts on a separator
+// and a narrow strip never stacks the titles into a column.
+.visuals-news__list {
+  margin: 0;
+  padding: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  list-style: none;
+  text-wrap: pretty;
+
+  li {
+    display: inline;
+  }
+
+  li:not(:last-child)::after {
+    margin-right: 4px;
+    color: color-mix(in srgb, $secondary-light 55%, transparent);
+    content: '\00a0\00a0· ';
+  }
+}
+
+.visuals-news__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  margin-left: auto;
+}

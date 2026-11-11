@@ -123,8 +123,6 @@ const tour24 = {
     '两台显示器，每个桌面上都有可视化：第一台上场景朝指针倾斜，按住 Ctrl 时出现“重置视角”；每台都有自己的时间；下方是镜头设置。',
 
   'tour.v24.also': '2.4 的其他更新',
-  'tour.v24.level':
-    '出厂 DSP 预设按歌曲本身的音量播放，使用固定增益，由最大化器压住峰值；均衡器前级的自动归一化在 Windows 重新打开输出时也会保持音量。',
   'tour.v24.heroes':
     'Heroes of the Storm 有了更饱满的专属混音，可选宽舞台；游戏滤镜在突出提示音的同时让音乐更平稳。',
   'tour.v24.graphSettings': '图表为标准样式和可视化分别保存设置。',
@@ -135,6 +133,27 @@ const tour24 = {
     '可以在“关于”或支持页面通过 GitHub Sponsors 支持 FluidEQ。',
   'tour.v24.crashes':
     '万一 FluidEQ 崩溃，记录只保存在这台电脑上，供你自己决定是否发送的错误报告使用。',
+  'tour.visualsTitle': '可视化新功能',
+  'tour.rail.alwaysVisuals': '可视化还有',
+  'visuals.news.open': '新功能',
+  'visuals.news.blurb': '可视化、工作室和灯光',
+  'visuals.news.title': '可视化 {version} 新功能',
+  'visuals.news.see': '查看新功能',
+  'visuals.news.later': '以后再说',
+
+  'tour.level.kicker': 'DSP 预设',
+  'tour.level.title': '按歌曲本身音量播放的预设',
+  'tour.level.subtitle': '不再突然变响，音量保持稳定',
+  'tour.level.lead':
+    '出厂 DSP 预设不再在各级处理之前统一歌曲音量：每一级都按音乐到来的原样处理，由最大化器加上固定增益并压住峰值。',
+  'tour.level.point1':
+    '从播放时会调整增益的预设切换走后，这份提升不会再带到接下来的声音里。',
+  'tour.level.point2': '暂停后不会突然变响：静音之后，歌曲以自己的音量回来。',
+  'tour.level.point3':
+    '均衡器前级的自动归一化在 Windows 重新打开输出时会保持音量，而不是从头开始。',
+  'tour.level.how':
+    '已有的效果链会保留原有设置，直到你在 DSP 页面重新选择它的出厂预设。',
+  'tour.level.open': '打开 DSP',
 } as const;
 
 export default tour24;

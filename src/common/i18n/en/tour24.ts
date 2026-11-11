@@ -131,8 +131,6 @@ const tour24 = {
     'Two monitors with a visualizer on each desktop: on the first the scene leans after the pointer and Reset view shows while Ctrl is held, each with its own time of day, above the camera’s settings.',
 
   'tour.v24.also': 'Also in 2.4',
-  'tour.v24.level':
-    'Factory DSP presets play at the song’s own level, with a fixed gain and the Maximizer catching the peaks; Auto normalize on the EQ’s preamp keeps its level when Windows reopens an output.',
   'tour.v24.heroes':
     'Heroes of the Storm has a fuller mix of its own with optional Wide Stage, and the Game filter keeps music steadier while it brings out cues.',
   'tour.v24.graphSettings':
@@ -145,6 +143,28 @@ const tour24 = {
     'Support FluidEQ through GitHub Sponsors, from About or the Support page.',
   'tour.v24.crashes':
     'If FluidEQ ever crashes, a record is kept on this computer only, for a bug report you choose to send.',
+  'tour.visualsTitle': "What's new in Visualizers",
+  'tour.rail.alwaysVisuals': 'ALSO IN VISUALIZERS',
+  'visuals.news.open': "What's new",
+  'visuals.news.blurb': 'Visualizers, Studio and lighting',
+  'visuals.news.title': 'New in Visualizers {version}',
+  'visuals.news.see': "See what's new",
+  'visuals.news.later': 'Not now',
+
+  'tour.level.kicker': 'DSP PRESETS',
+  'tour.level.title': 'Presets at your song’s own level',
+  'tour.level.subtitle': 'No loud starts, a level that stays',
+  'tour.level.lead':
+    'The factory DSP presets no longer level a song before their stages: each hears the music as it arrives, and the Maximizer adds a fixed gain and catches the peaks.',
+  'tour.level.point1':
+    'Switching away from a preset that adjusts its gain as it plays no longer carries that boost into the next sound.',
+  'tour.level.point2':
+    'No loud start after a pause: a song comes back in at its own level after silence.',
+  'tour.level.point3':
+    'Auto normalize on the EQ’s preamp keeps its level when Windows reopens an output, instead of starting over.',
+  'tour.level.how':
+    'A rack you already have keeps its settings until you pick its factory preset again on the DSP page.',
+  'tour.level.open': 'Open DSP',
 } as const;
 
 export default tour24;

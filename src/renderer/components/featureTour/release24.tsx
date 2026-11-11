@@ -78,16 +78,16 @@ export function SceneControlsSlide({ actions }: ISlideProps) {
   );
 }
 
-/** The rest of 2.4, under its last slide, as 2.3's list stood under its own. */
+/**
+ * The rest of 2.4's visualizers, under its last slide. Its sound and the
+ * app's own news stand under the sound's slide (`release24Sound.tsx`): this
+ * one is in the Visualizers' What's New, which a listener never sees.
+ */
 const ALSO: readonly TranslationKey[] = [
-  'tour.v24.level',
-  'tour.v24.heroes',
   'tour.v24.graphSettings',
   'tour.v24.colourful',
   'tour.v24.gallery',
   'tour.v24.credits',
-  'tour.v24.sponsors',
-  'tour.v24.crashes',
 ];
 
 export function CameraSlide({ actions }: ISlideProps) {

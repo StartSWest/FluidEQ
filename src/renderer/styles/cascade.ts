@@ -124,6 +124,7 @@ import './StudioChatSketch.scss';
 import './StudioChatAccounts.scss';
 import './CommunityRail.scss';
 import './Community.scss';
+import './VisualsNews.scss';
 import './PlusRail.scss';
 import './ForumLoading.scss';
 import './Forum.scss';

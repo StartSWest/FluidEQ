@@ -31,13 +31,16 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-const showTour = (version = '2.0.0') => {
+// The sound's What's New unless a test asks for the Visualizers' own, where
+// every scene, Studio and lighting slide stands from 2.5 on.
+const showTour = (version = '2.0.0', part: 'sound' | 'visuals' = 'sound') => {
   const onClose = jest.fn();
   const onOpenTab = jest.fn();
   render(
     <FeatureTour
       version={version}
       slides={featureTourFor(version)}
+      part={part}
       onClose={onClose}
       onShowReleaseNotes={jest.fn()}
       onOpenTab={onOpenTab}
@@ -56,12 +59,9 @@ describe('the 2.2 Karaoke background entry', () => {
     window.localStorage.removeItem('fluideq-karaoke-stage-background');
   });
 
-  // Second in 2.2, after the walkthrough on the first page.
-  const showKaraokeBackground = () => {
-    const shown = showTour('2.2.0');
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    return shown;
-  };
+  // First in the Visualizers' What's New of 2.2: the walkthrough before it
+  // stands in the sound's.
+  const showKaraokeBackground = () => showTour('2.2.0', 'visuals');
 
   it('shows the real lyric renderer and selected background control as an inert picture', () => {
     showKaraokeBackground();
@@ -363,7 +363,7 @@ it('draws the player from its own parts, out of reach of the keyboard and of scr
 });
 
 it('names the new looks on the visualizer engine slide as the picker does', () => {
-  const { onOpenTab } = showTour();
+  const { onOpenTab } = showTour('2.0.0', 'visuals');
   goTo('Every visualizer on your graphics card');
   expect(
     screen.getByText(
@@ -378,7 +378,7 @@ it('names the new looks on the visualizer engine slide as the picker does', () =
 });
 
 it('sends the reader to the Pointer sparks switch by its own label', () => {
-  showTour();
+  showTour('2.0.0', 'visuals');
   goTo('Visualizers that answer your mouse');
   expect(
     screen.getByText(
@@ -456,7 +456,7 @@ it('counts the graph picker’s own looks on the visualizer and Custom looks sli
   ).length;
   expect(drawn).toBeLessThan(free);
 
-  showTour();
+  showTour('2.0.0', 'visuals');
   goTo('Scenes that move with your music');
   expect(
     screen.getByText(new RegExp(`: ${free} free styles to shape and colour`)),

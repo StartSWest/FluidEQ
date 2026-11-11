@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { TTourPart } from 'common/featureTour';
 import { getSupportMethods, SUPPORT_CONFIG } from 'common/support';
 import { requestHelpGuide } from '../../help/helpGuideRequests';
 import { setWindowMode } from '../../player/windowModeStore';
@@ -22,12 +23,23 @@ import { useTranslation } from '../../utils/I18nContext';
 import { moveTabStop } from '../../utils/useModalKeys';
 import MenuIcon from '../../icons/MenuIcon';
 import DialogFrame from '../DialogFrame';
-import type { ISlideActions, ITourSlide, TTourTab } from './slides';
+import {
+  slidesOfPart,
+  type ISlideActions,
+  type ITourSlide,
+  type TTourTab,
+} from './slides';
 import '../../styles/FeatureTour.scss';
 
 interface IFeatureTourProps {
   version: string;
+  /** Every slide; the dialog shows the one What's New it is asked for. */
   slides: ITourSlide[];
+  /**
+   * The sound's What's New, which opens after an update, or the
+   * Visualizers tab's own, which opens only when it is asked for there.
+   */
+  part?: TTourPart;
   /** Whether "don't show again" was ticked when the panel was closed. */
   onClose: (dontShowAgain: boolean) => void;
   /** Opens the changelog on top of this panel. */
@@ -52,7 +64,8 @@ interface IFeatureTourProps {
  */
 export default function FeatureTour({
   version,
-  slides,
+  slides: allSlides,
+  part = 'sound',
   onClose,
   onShowReleaseNotes,
   onOpenTab,
@@ -60,6 +73,11 @@ export default function FeatureTour({
 }: IFeatureTourProps) {
   const { t } = useTranslation();
   const hasCoffee = getSupportMethods().includes('coffee');
+  const slides = useMemo(
+    () => slidesOfPart(allSlides, part),
+    [allSlides, part],
+  );
+  const isVisuals = part === 'visuals';
   const [index, setIndex] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const isLast = index === slides.length - 1;
@@ -177,7 +195,7 @@ export default function FeatureTour({
         className="feature-tour"
         icon={<MenuIcon name="gift" />}
         eyebrow={t('tour.eyebrow')}
-        title={t('tour.title')}
+        title={t(isVisuals ? 'tour.visualsTitle' : 'tour.title')}
         titleId="feature-tour-title"
         badge={<span className="dialog-frame__badge">v{version}</span>}
         closeLabel={t('tour.close')}
@@ -200,7 +218,11 @@ export default function FeatureTour({
                 if (startsGroup) {
                   heading = entry.release
                     ? t('tour.rail.newIn', { version: entry.release })
-                    : t('tour.rail.always');
+                    : t(
+                        isVisuals
+                          ? 'tour.rail.alwaysVisuals'
+                          : 'tour.rail.always',
+                      );
                 }
                 return (
                   <Fragment key={entry.id}>
@@ -256,16 +278,23 @@ export default function FeatureTour({
         footer={
           <>
             <div className="dialog-frame__note feature-tour__options">
-              <label className="feature-tour__tick" htmlFor="feature-tour-tick">
-                <input
-                  id="feature-tour-tick"
-                  type="checkbox"
-                  className="feature-tour__check"
-                  checked={dontShowAgain}
-                  onChange={(event) => setDontShowAgain(event.target.checked)}
-                />
-                <span>{t('tour.dontShowAgain')}</span>
-              </label>
+              {/* The Visualizers' What's New never opens by itself, so it
+                  has nothing to stop showing. */}
+              {!isVisuals && (
+                <label
+                  className="feature-tour__tick"
+                  htmlFor="feature-tour-tick"
+                >
+                  <input
+                    id="feature-tour-tick"
+                    type="checkbox"
+                    className="feature-tour__check"
+                    checked={dontShowAgain}
+                    onChange={(event) => setDontShowAgain(event.target.checked)}
+                  />
+                  <span>{t('tour.dontShowAgain')}</span>
+                </label>
+              )}
 
               <button
                 type="button"

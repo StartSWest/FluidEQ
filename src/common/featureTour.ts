@@ -42,3 +42,29 @@ export const featureTourDismissal = (
   version: string,
   dontShowAgain: boolean,
 ): string | null => (dontShowAgain ? featureTourKey(version) : null);
+
+/**
+ * What's New has two halves that never meet. The sound's (the EQ, the DSP
+ * rack, the engine, the outputs, the player and the Library) is what opens
+ * after an update. The visualizers' (scenes, the Gallery, the Studio, desktop
+ * backgrounds and lighting) opens only from the Visualizers tab: someone who
+ * uses FluidEQ as an equaliser is never shown it (Ivan, 2026-11-11: "anything
+ * related to visualizers and studio and keyboard lighting should be a
+ * completely separate what's new").
+ */
+export type TTourPart = 'sound' | 'visuals';
+
+/**
+ * Whether the Visualizers tab marks its What's New as new: once per feature
+ * release that brought the visualizers something, until it is opened. Its
+ * own memory, apart from the tour's tick, which says nothing about it.
+ */
+export const isVisualsNewsUnseen = (
+  version: string,
+  hasVisualsNews: boolean,
+  seenVersion: string | null,
+): boolean =>
+  version !== '' &&
+  hasVisualsNews &&
+  (seenVersion === null ||
+    featureTourKey(seenVersion) !== featureTourKey(version));

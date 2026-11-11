@@ -131,8 +131,6 @@ const tour24 = {
     'Deux écrans avec un visualiseur sur chaque bureau : sur le premier, la scène se penche vers le pointeur et Réinitialiser la vue apparaît tant que Ctrl est tenue, chacun avec son heure du jour, au-dessus des réglages de la caméra.',
 
   'tour.v24.also': 'Aussi dans la 2.4',
-  'tour.v24.level':
-    'Les préréglages DSP d’usine jouent au niveau propre de la chanson, avec un gain fixe et le Maximiseur qui rattrape les crêtes ; la Normalisation auto du préampli de l’égaliseur garde son niveau quand Windows rouvre une sortie.',
   'tour.v24.heroes':
     'Heroes of the Storm a son propre mixage plus plein avec Scène large en option, et le filtre Jeu garde la musique plus stable tout en faisant ressortir les signaux.',
   'tour.v24.graphSettings':
@@ -146,6 +144,28 @@ const tour24 = {
     'Soutenez FluidEQ via GitHub Sponsors, depuis À propos ou la page Soutien.',
   'tour.v24.crashes':
     'Si FluidEQ plante un jour, un rapport est conservé sur cet ordinateur uniquement, pour un rapport de bug que vous choisissez d’envoyer.',
+  'tour.visualsTitle': 'Nouveautés des Visualiseurs',
+  'tour.rail.alwaysVisuals': 'AUSSI DANS LES VISUALISEURS',
+  'visuals.news.open': 'Nouveautés',
+  'visuals.news.blurb': 'Visualiseurs, Studio et éclairage',
+  'visuals.news.title': 'Nouveau dans les Visualiseurs {version}',
+  'visuals.news.see': 'Voir les nouveautés',
+  'visuals.news.later': 'Pas maintenant',
+
+  'tour.level.kicker': 'PRÉRÉGLAGES DSP',
+  'tour.level.title': 'Des préréglages au niveau propre de votre chanson',
+  'tour.level.subtitle': 'Plus de départ trop fort, un niveau qui tient',
+  'tour.level.lead':
+    'Les préréglages DSP d’usine ne nivellent plus la chanson avant leurs étages : chacun entend la musique telle qu’elle arrive, et le Maximiseur ajoute un gain fixe et rattrape les crêtes.',
+  'tour.level.point1':
+    'Quitter un préréglage qui ajuste son gain pendant la lecture n’emporte plus ce gain dans le son suivant.',
+  'tour.level.point2':
+    'Plus de départ trop fort après une pause : la chanson revient à son propre niveau après le silence.',
+  'tour.level.point3':
+    'La Normalisation auto du préampli de l’égaliseur garde son niveau quand Windows rouvre une sortie, au lieu de repartir de zéro.',
+  'tour.level.how':
+    'Un rack que vous avez déjà garde ses réglages jusqu’à ce que vous choisissiez de nouveau son préréglage d’usine sur la page DSP.',
+  'tour.level.open': 'Ouvrir le DSP',
 } as const;
 
 export default tour24;

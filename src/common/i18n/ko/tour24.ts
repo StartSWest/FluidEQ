@@ -126,8 +126,6 @@ const tour24 = {
     '각 바탕 화면에 시각화가 있는 두 모니터. 첫 번째에서는 장면이 포인터 쪽으로 기울고 Ctrl을 누르는 동안 보기 재설정이 나타납니다. 각자 시간대가 있고, 아래에는 카메라 설정이 있습니다.',
 
   'tour.v24.also': '2.4의 다른 변경 사항',
-  'tour.v24.level':
-    '기본 DSP 프리셋은 곡 그대로의 음량에 고정 게인을 더하고 맥시마이저가 피크를 잡아 재생합니다. EQ 프리앰프의 자동 정규화는 Windows가 출력을 다시 열어도 음량을 유지합니다.',
   'tour.v24.heroes':
     '히어로즈 오브 더 스톰에 선택형 와이드 스테이지가 있는 더 풍성한 전용 믹스가 생겼고, 게임 필터는 신호를 살리면서 음악을 더 안정적으로 유지합니다.',
   'tour.v24.graphSettings':
@@ -139,6 +137,28 @@ const tour24 = {
     '정보 또는 지원 페이지에서 GitHub Sponsors로 FluidEQ를 후원하세요.',
   'tour.v24.crashes':
     'FluidEQ가 혹시 비정상 종료되면 기록은 이 컴퓨터에만 남으며, 보낼지 직접 정하는 버그 보고서에 쓰입니다.',
+  'tour.visualsTitle': '비주얼라이저의 새로운 기능',
+  'tour.rail.alwaysVisuals': '비주얼라이저에도 있습니다',
+  'visuals.news.open': '새로운 기능',
+  'visuals.news.blurb': '비주얼라이저, 스튜디오, 조명',
+  'visuals.news.title': '비주얼라이저 {version}의 새로운 기능',
+  'visuals.news.see': '새로운 기능 보기',
+  'visuals.news.later': '나중에',
+
+  'tour.level.kicker': 'DSP 프리셋',
+  'tour.level.title': '곡 그대로의 음량으로 재생되는 프리셋',
+  'tour.level.subtitle': '갑자기 커지지 않고, 음량이 유지됩니다',
+  'tour.level.lead':
+    '기본 DSP 프리셋은 더 이상 각 단계 앞에서 곡의 음량을 맞추지 않습니다. 각 단계는 들어오는 그대로의 음악을 듣고, 맥시마이저가 고정 게인을 더하며 피크를 잡습니다.',
+  'tour.level.point1':
+    '재생 중 게인을 조정하는 프리셋에서 다른 것으로 바꿔도 그 증폭이 다음 소리로 이어지지 않습니다.',
+  'tour.level.point2':
+    '일시정지 후에도 갑자기 커지지 않습니다. 무음 뒤에 곡이 원래 음량으로 돌아옵니다.',
+  'tour.level.point3':
+    'EQ 프리앰프의 자동 정규화는 Windows가 출력을 다시 열어도 처음부터 다시 시작하지 않고 음량을 유지합니다.',
+  'tour.level.how':
+    '이미 있는 랙은 DSP 페이지에서 해당 기본 프리셋을 다시 고를 때까지 설정을 유지합니다.',
+  'tour.level.open': 'DSP 열기',
 } as const;
 
 export default tour24;

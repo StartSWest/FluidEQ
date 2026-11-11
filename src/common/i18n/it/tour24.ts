@@ -135,8 +135,6 @@ const tour24 = {
     'Due monitor con un visualizzatore su ogni desktop: sul primo la scena si inclina dietro al puntatore e Ripristina vista compare mentre si tiene premuto Ctrl, ognuno con la sua ora del giorno, sopra le impostazioni della telecamera.',
 
   'tour.v24.also': 'Anche nella 2.4',
-  'tour.v24.level':
-    'I preset DSP di fabbrica suonano al livello del brano, con un guadagno fisso e il Maximizer che ferma i picchi; Normalizza automaticamente, sul preamplificatore dell’EQ, mantiene il suo livello quando Windows riapre un’uscita.',
   'tour.v24.heroes':
     'Heroes of the Storm ha un suo missaggio più pieno con Palco largo facoltativo, e il filtro Gioco tiene la musica più stabile mentre fa risaltare i segnali.',
   'tour.v24.graphSettings':
@@ -149,6 +147,28 @@ const tour24 = {
     'Sostieni FluidEQ con GitHub Sponsors, da Informazioni o dalla pagina Supporto.',
   'tour.v24.crashes':
     'Se FluidEQ dovesse chiudersi per un errore, un registro resta solo su questo computer, per una segnalazione che decidi tu di inviare.',
+  'tour.visualsTitle': 'Novità dei Visualizzatori',
+  'tour.rail.alwaysVisuals': 'ANCHE NEI VISUALIZZATORI',
+  'visuals.news.open': 'Novità',
+  'visuals.news.blurb': 'Visualizzatori, Studio e illuminazione',
+  'visuals.news.title': 'Novità nei Visualizzatori {version}',
+  'visuals.news.see': 'Vedi le novità',
+  'visuals.news.later': 'Non ora',
+
+  'tour.level.kicker': 'PRESET DSP',
+  'tour.level.title': 'Preset al livello del tuo brano',
+  'tour.level.subtitle': 'Niente partenze forti, un livello che resta',
+  'tour.level.lead':
+    'I preset DSP di fabbrica non livellano più il brano prima dei loro stadi: ognuno sente la musica così come arriva, e il Maximizer aggiunge un guadagno fisso e ferma i picchi.',
+  'tour.level.point1':
+    'Passare da un preset che regola il guadagno mentre suona non porta più quell’aumento nel suono successivo.',
+  'tour.level.point2':
+    'Niente partenza forte dopo una pausa: il brano torna al suo livello dopo il silenzio.',
+  'tour.level.point3':
+    'Normalizza automaticamente, sul preamplificatore dell’EQ, mantiene il suo livello quando Windows riapre un’uscita, invece di ripartire da capo.',
+  'tour.level.how':
+    'Un rack che hai già mantiene le sue impostazioni finché non scegli di nuovo il suo preset di fabbrica nella pagina DSP.',
+  'tour.level.open': 'Apri DSP',
 } as const;
 
 export default tour24;

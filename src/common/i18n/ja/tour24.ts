@@ -129,8 +129,6 @@ const tour24 = {
     'それぞれのデスクトップにビジュアライザーを映した 2 台のモニター。1 台目ではシーンがポインターの方へ傾き、Ctrl を押している間だけ視点をリセットが表示されます。どちらも独自の時刻を持ち、下にはカメラの設定。',
 
   'tour.v24.also': '2.4 のその他の更新',
-  'tour.v24.level':
-    '工場出荷の DSP プリセットは曲そのままの音量で、固定ゲインとピークを抑えるマキシマイザーで再生されます。EQ のプリアンプの自動ノーマライズは、Windows が出力を開き直しても音量を保ちます。',
   'tour.v24.heroes':
     'Heroes of the Storm に、オプションのワイドステージ付きの、より厚みのある専用ミックスが加わり、ゲームフィルターは合図を目立たせながら音楽をより安定させます。',
   'tour.v24.graphSettings':
@@ -142,6 +140,28 @@ const tour24 = {
     '「このアプリについて」やサポートページから、GitHub Sponsors で FluidEQ を支援できます。',
   'tour.v24.crashes':
     '万一 FluidEQ がクラッシュしても、記録はこのコンピューターにだけ残り、送るかどうかはあなたが決めるバグレポートに使えます。',
+  'tour.visualsTitle': 'ビジュアライザーの新機能',
+  'tour.rail.alwaysVisuals': 'ビジュアライザーのその他の機能',
+  'visuals.news.open': '新機能',
+  'visuals.news.blurb': 'ビジュアライザー、スタジオ、ライティング',
+  'visuals.news.title': 'ビジュアライザー {version} の新機能',
+  'visuals.news.see': '新機能を見る',
+  'visuals.news.later': '後で',
+
+  'tour.level.kicker': 'DSP プリセット',
+  'tour.level.title': '曲そのままの音量で鳴るプリセット',
+  'tour.level.subtitle': '急に大きくならず、音量が保たれる',
+  'tour.level.lead':
+    '工場出荷の DSP プリセットは、各ステージの前で曲の音量をそろえなくなりました。各ステージは届いたままの音楽を聴き、マキシマイザーが固定ゲインを加えてピークを抑えます。',
+  'tour.level.point1':
+    '再生中にゲインを調整するプリセットから切り替えても、その持ち上げが次の音に持ち越されなくなりました。',
+  'tour.level.point2':
+    '一時停止のあとも急に大きくなりません。無音のあと、曲はそれ自身の音量で戻ってきます。',
+  'tour.level.point3':
+    'EQ のプリアンプの自動ノーマライズは、Windows が出力を開き直しても、最初からやり直さずに音量を保ちます。',
+  'tour.level.how':
+    'すでにあるラックは、DSP ページでその工場出荷プリセットを選び直すまで設定を保ちます。',
+  'tour.level.open': 'DSP を開く',
 } as const;
 
 export default tour24;

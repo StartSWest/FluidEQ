@@ -162,8 +162,9 @@ describe('the Plus rail', () => {
     // Folded is still the whole rail: every place and the account are there
     // to open it over the place.
     expect(screen.getByTitle('account.menu')).toBeInTheDocument();
-    // Visualizers, the Studio and Dynamic lighting.
-    expect(container.querySelectorAll('.community__channel')).toHaveLength(3);
+    // Visualizers, the Studio and Dynamic lighting, and under them the
+    // Visualizers' own What's New.
+    expect(container.querySelectorAll('.community__channel')).toHaveLength(4);
   });
 });
 
