@@ -91,6 +91,39 @@ $ask-mark-gap: 10px;
   line-height: 1.45;
 }
 
+// Which of the member's two makers (`MakerCard`): each press with what it
+// runs on beside it, the presses in one column so the two lines start level.
+// Under the mark like the answers, for the width: at the chat's narrowest
+// the longer line still has room to wrap in its own column.
+.studio-chat__ask-makers {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 10px;
+  align-items: center;
+  margin-top: 2px;
+  margin-left: -($ask-mark + $ask-mark-gap);
+
+  .button {
+    justify-content: center;
+  }
+}
+
+.studio-chat__ask-remember {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: -($ask-mark + $ask-mark-gap);
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+  cursor: pointer;
+
+  input {
+    flex: none;
+    margin: 0;
+  }
+}
+
 // What ChatGPT is asked to draw, as Claude wrote it: the member sees it
 // whole before saying yes, held to a few lines with the rest a scroll away.
 .studio-chat__ask-prompt {

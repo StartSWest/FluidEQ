@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { TStudioAskedKind } from './studioMakers';
+
 /**
  * The Studio's chat with the member's own Claude Code
  * (`main/studioChat/`): what the window is told and what it may ask.
@@ -352,6 +354,19 @@ export type TStudioChatAsk =
        * no "always".
        */
       foreign?: true;
+    }
+  | {
+      id: string;
+      projectId: string;
+      /**
+       * The member's GPT plugin and Higgsfield are both there and neither is
+       * chosen: which of them makes this? (`studioMakers.ts`). Answered on
+       * its own channel, with the maker and whether to remember it.
+       */
+      kind: 'maker';
+      what: TStudioAskedKind;
+      /** Claude's own line on what it is for. */
+      why: string;
     };
 
 /**

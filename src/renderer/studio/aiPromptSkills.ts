@@ -1,5 +1,6 @@
 import animationSkill from '../../../assets/studio/fluideq/skills/fluideq-animation/SKILL.md';
 import finishSkill from '../../../assets/studio/fluideq/skills/fluideq-finish/SKILL.md';
+import higgsfieldSkill from '../../../assets/studio/fluideq/skills/fluideq-higgsfield/SKILL.md';
 import motionSkill from '../../../assets/studio/fluideq/skills/fluideq-motion/SKILL.md';
 import nightSkill from '../../../assets/studio/fluideq/skills/fluideq-night-and-day/SKILL.md';
 import viewsSkill from '../../../assets/studio/fluideq/skills/fluideq-views/SKILL.md';
@@ -30,6 +31,7 @@ export const SHIPPED_SKILL_TEXTS: readonly string[] = [
   nightSkill,
   viewsSkill,
   finishSkill,
+  higgsfieldSkill,
 ];
 
 interface ISkillText {

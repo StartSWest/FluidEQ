@@ -17,10 +17,12 @@ import {
   type TStudioChatRestore,
 } from 'common/studioChat';
 import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
+import type { TStudioMaker } from 'common/studioMakers';
 import { readStored, writeStored } from '../../utils/graphStorage';
 import chatBrief from './chatBrief';
 import { chatPicksOf } from './chatPicks';
 import packArtwork from './chatPack';
+import { sendStudioMakerAnswer } from './studioMakersStore';
 
 const ZOOM_KEY = 'fluideq.studio.chatZoom';
 
@@ -347,6 +349,19 @@ export const disconnectStudioChatCodex = async () => {
   if (codex) {
     set({ codex });
   }
+};
+
+/**
+ * The maker pressed on the card that asks which, and whether to use it from
+ * now on (`studioMakersStore.ts` keeps that). The card goes at once.
+ */
+export const answerStudioChatMaker = (
+  id: string,
+  maker: TStudioMaker,
+  remember: boolean,
+) => {
+  set({ ask: undefined });
+  return sendStudioMakerAnswer(id, maker, remember);
 };
 
 /** One size up or down the steps, held at either end; 0 is back to 1. */

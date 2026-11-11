@@ -105,6 +105,8 @@ const ALLOWED = [
   `mcp__${DOOR_SERVER}__look_at_views`,
   `mcp__${DOOR_SERVER}__hear_the_music`,
   `mcp__${DOOR_SERVER}__make_picture`,
+  // Asks which of the member's own makers to use; it runs neither.
+  `mcp__${DOOR_SERVER}__choose_maker`,
   `mcp__${DOOR_SERVER}__pack_artwork`,
   `mcp__${DOOR_SERVER}__look_at_animation`,
   `mcp__${DOOR_SERVER}__pose_sheet`,

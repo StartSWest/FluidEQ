@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, type ReactNode, type Ref } from 'react';
 import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
+import { connectedMakers, type TStudioMakerChoice } from 'common/studioMakers';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import { CODEX_APP_URL } from './StudioChatAsk';
@@ -19,6 +20,12 @@ import {
   signInToStudioChatCodex,
   useStudioChat,
 } from './studioChatStore';
+import {
+  checkStudioMakers,
+  connectHiggsfield,
+  setStudioMakerChoice,
+  useStudioMakers,
+} from './studioMakersStore';
 import '../../styles/StudioChatAccounts.scss';
 
 /**
@@ -141,6 +148,177 @@ function ChatGptAccount() {
   );
 }
 
+/** Higgsfield's own site, for a member who has not heard of it. */
+const HIGGSFIELD_URL = 'https://higgsfield.ai';
+
+/**
+ * The member's own two makers of pictures, as their Claude Code has them
+ * (Ivan, 2026-11-11: "quiero que Fluid esté preparado para usar Higgsfield.
+ * Y que pida si quiere usar GPT o Higgsfield"): their GPT plugin, Higgsfield,
+ * and which of the two is used while both are connected.
+ *
+ * Asked again when this opens and whenever the window comes back, so a
+ * plugin added in Claude Code or a sign-in finished in the browser shows
+ * without anything to press. Nothing is drawn before the first answer.
+ * Higgsfield is set up on the member's press only: FluidEQ adds it to their
+ * Claude Code and opens Claude Code's own sign-in to it, and never sees the
+ * sign-in. Which account it is cannot be read from here, so none is named.
+ */
+function MakerAccounts() {
+  const { t } = useTranslation();
+  const { makers, connecting: higgsfieldConnecting } = useStudioMakers();
+
+  useEffect(() => {
+    const check = () => {
+      checkStudioMakers().catch(() => undefined);
+    };
+    check();
+    window.addEventListener('focus', check);
+    return () => window.removeEventListener('focus', check);
+  }, []);
+
+  if (!makers) {
+    return null;
+  }
+
+  const connect = (another: boolean) => {
+    connectHiggsfield(another).catch(() => undefined);
+  };
+  const running = higgsfieldConnecting ? ' is-running' : '';
+  const { state } = makers.higgsfield;
+
+  let higgsfieldNote: string;
+  let higgsfieldActions: ReactNode;
+  if (state === 'ready') {
+    higgsfieldNote = t('studioChat.accounts.higgsfieldNote');
+    higgsfieldActions = (
+      <button
+        type="button"
+        className={`button small subtle${running}`}
+        disabled={higgsfieldConnecting}
+        onClick={() => connect(true)}
+      >
+        {t('studioChat.accounts.switch')}
+      </button>
+    );
+  } else if (state === 'unreachable') {
+    higgsfieldNote = t('studioChat.accounts.higgsfieldUnreachable');
+    higgsfieldActions = (
+      <button
+        type="button"
+        className="button small subtle"
+        onClick={() => {
+          checkStudioMakers().catch(() => undefined);
+        }}
+      >
+        {t('studioChat.accounts.checkAgain')}
+      </button>
+    );
+  } else {
+    higgsfieldNote = t(
+      state === 'missing'
+        ? 'studioChat.accounts.higgsfieldMissing'
+        : 'studioChat.accounts.higgsfieldOut',
+    );
+    higgsfieldActions = (
+      <>
+        <button
+          type="button"
+          className={`button small${running}`}
+          disabled={higgsfieldConnecting}
+          onClick={() => connect(false)}
+        >
+          {t(
+            state === 'missing'
+              ? 'studioChat.accounts.higgsfieldSetUp'
+              : 'studioChat.accounts.higgsfieldSignIn',
+          )}
+        </button>
+        {state === 'missing' && (
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => window.open(HIGGSFIELD_URL, '_blank', 'noopener')}
+          >
+            {t('studioChat.accounts.higgsfieldAbout')}
+          </button>
+        )}
+      </>
+    );
+  }
+
+  const choices: [TStudioMakerChoice, string][] = [
+    ['ask', t('studioChat.accounts.makeWithAsk')],
+    ['gpt', t('studioChat.accounts.gpt')],
+    ['higgsfield', t('studioChat.accounts.higgsfield')],
+  ];
+
+  return (
+    <>
+      <AccountCard
+        service={t('studioChat.accounts.gpt')}
+        lamp={makers.gpt.found ? 'ready' : 'off'}
+        detail={
+          makers.gpt.found
+            ? t('studioChat.accounts.gptFound', {
+                name: makers.gpt.name?.split('@')[0] ?? 'GPT',
+              })
+            : undefined
+        }
+        note={t(
+          makers.gpt.found
+            ? 'studioChat.accounts.gptNote'
+            : 'studioChat.accounts.gptMissing',
+        )}
+      />
+      <AccountCard
+        service={t('studioChat.accounts.higgsfield')}
+        lamp={state === 'ready' ? 'ready' : 'off'}
+        detail={
+          state === 'ready'
+            ? t('studioChat.accounts.higgsfieldReady')
+            : undefined
+        }
+        note={
+          higgsfieldConnecting
+            ? t('studioChat.accounts.higgsfieldConnecting')
+            : higgsfieldNote
+        }
+      >
+        {higgsfieldActions}
+      </AccountCard>
+      {connectedMakers(makers).length > 1 && (
+        <section
+          className="studio-chat-accounts__card"
+          aria-label={t('studioChat.accounts.makeWith')}
+        >
+          <p className="studio-chat-accounts__service">
+            {t('studioChat.accounts.makeWith')}
+          </p>
+          <p className="studio-chat-accounts__note">
+            {t('studioChat.accounts.makeWithNote')}
+          </p>
+          <div className="studio-chat-accounts__actions">
+            {choices.map(([choice, name]) => (
+              <button
+                key={choice}
+                type="button"
+                className={`button small${makers.choice === choice ? '' : ' subtle'}`}
+                aria-pressed={makers.choice === choice}
+                onClick={() => {
+                  setStudioMakerChoice(choice).catch(() => undefined);
+                }}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+
 /**
  * Which accounts the chat runs on (Ivan, 2026-10-13: "I need to know in
  * studio which claude account and gpt account is logged in"): the Claude
@@ -239,6 +417,10 @@ export default function StudioChatAccounts({
         {claudeAction}
       </AccountCard>
       {CHATGPT_PICTURES_OPEN && <ChatGptAccount />}
+      {/* The member's own makers live in their Claude Code: none without it. */}
+      {(claudeReady || availability.state === 'signed-out') && (
+        <MakerAccounts />
+      )}
       <p className="studio-chat-accounts__fine">
         {t('studioChat.accounts.fine')}
       </p>

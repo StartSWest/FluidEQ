@@ -252,6 +252,38 @@ const studioChat = {
     'Выбрано в сцене (меняй только это, если я не скажу иначе):',
   'studioChat.picked.label': 'Выбрано в сцене',
   'studioChat.picked.remove': 'Убрать {name}',
+  'studioChat.accounts.gpt': 'GPT',
+  'studioChat.accounts.gptFound':
+    'Ваш собственный плагин GPT в Claude Code ({name})',
+  'studioChat.accounts.gptNote': 'Создаёт изображения на вашем плане ChatGPT.',
+  'studioChat.accounts.gptMissing':
+    'В вашем Claude Code не найден плагин GPT. Добавьте его там, и он появится здесь.',
+  'studioChat.accounts.higgsfield': 'Higgsfield',
+  'studioChat.accounts.higgsfieldReady': 'Подключён через ваш Claude Code',
+  'studioChat.accounts.higgsfieldNote':
+    'Создаёт изображения, кадры анимации и 3D-модели за ваши кредиты Higgsfield.',
+  'studioChat.accounts.higgsfieldMissing':
+    'Ещё не настроен. FluidEQ может добавить инструменты Higgsfield в ваш Claude Code и открыть вход в браузере. Higgsfield требует платный план, и всё, что он создаёт, расходует его кредиты.',
+  'studioChat.accounts.higgsfieldOut':
+    'Higgsfield есть в вашем Claude Code, но вход не выполнен.',
+  'studioChat.accounts.higgsfieldUnreachable':
+    'Claude Code сейчас не смог связаться с Higgsfield.',
+  'studioChat.accounts.higgsfieldConnecting':
+    'Завершите вход на странице Higgsfield в браузере. После этого карточка обновится.',
+  'studioChat.accounts.higgsfieldSetUp': 'Настроить Higgsfield',
+  'studioChat.accounts.higgsfieldSignIn': 'Войти через Higgsfield',
+  'studioChat.accounts.higgsfieldAbout': 'Что такое Higgsfield?',
+  'studioChat.accounts.checkAgain': 'Проверить снова',
+  'studioChat.accounts.makeWith': 'Создавать через',
+  'studioChat.accounts.makeWithNote':
+    'Кто из двух создаёт изображение или кадры анимации, когда подключены оба.',
+  'studioChat.accounts.makeWithAsk': 'Спрашивать каждый раз',
+  'studioChat.ask.makerPicture': 'Создать это изображение через…',
+  'studioChat.ask.makerFrames': 'Создать эти кадры анимации через…',
+  'studioChat.ask.makerGpt': 'Ваш плагин GPT, на вашем плане ChatGPT',
+  'studioChat.ask.makerHiggsfield':
+    'Ваши кредиты Higgsfield. Claude заранее назовёт стоимость.',
+  'studioChat.ask.makerRemember': 'Запомнить выбор (меняется в «Аккаунты»)',
 } as const;
 
 export default studioChat;

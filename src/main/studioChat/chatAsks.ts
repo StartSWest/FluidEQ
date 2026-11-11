@@ -12,6 +12,7 @@ import type {
   TStudioChatAsk,
   TStudioChatCodex,
 } from '../../common/studioChat';
+import type { TStudioMaker } from '../../common/studioMakers';
 import writeFileAtomically from '../atomicWrite';
 
 /**
@@ -90,6 +91,8 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
   };
   /** Per project, the tool asks waiting for the card standing to go. */
   const waiting = new Map<string, Array<() => void>>();
+  /** By ask: the maker the member pressed on a "which makes this" card. */
+  const pressed = new Map<string, TStudioMaker>();
 
   const readConnected = () => {
     try {
@@ -113,6 +116,8 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
   const ask = (
     projectId: string,
     what: TAskWithoutId<TStudioChatAsk>,
+    /** Told the card's id as it goes up, for an answer that names it. */
+    made?: (id: string) => void,
   ): Promise<TStudioChatAnswer> => {
     // One card at a time: Claude asks for pictures one after another, and a
     // second ask while one stands is answered no rather than stacked.
@@ -127,6 +132,7 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
       what.kind === 'connect'
         ? { ...what, id, projectId }
         : { ...what, id, projectId };
+    made?.(id);
     return new Promise((resolve) => {
       pending.set(full.id, { ask: full, resolve });
       show(projectId, full);
@@ -260,6 +266,38 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
         );
       }
       return answer;
+    },
+
+    /**
+     * Which of the two makers makes this one thing, asked of the member
+     * (`common/studioMakers.ts`): the one pressed, or nothing for "not
+     * now", a card already standing, or a reply that ended first.
+     */
+    maker: async (
+      projectId: string,
+      what: Omit<
+        Extract<TStudioChatAsk, { kind: 'maker' }>,
+        'id' | 'projectId' | 'kind'
+      >,
+    ): Promise<TStudioMaker | undefined> => {
+      let id = '';
+      await ask(projectId, { kind: 'maker', ...what }, (made) => {
+        id = made;
+      });
+      // Only a press of a maker names one (`answerMaker`): any other end of
+      // the card left nothing here.
+      const maker = pressed.get(id);
+      pressed.delete(id);
+      return maker;
+    },
+
+    /** The maker the member pressed on that card, from the window. */
+    answerMaker: (id: string, maker: TStudioMaker) => {
+      if (pending.get(id)?.ask.kind !== 'maker') {
+        return;
+      }
+      pressed.set(id, maker);
+      settle(id, 'yes');
     },
 
     /** The member's answer, from the window. */

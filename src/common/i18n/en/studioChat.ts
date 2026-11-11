@@ -253,6 +253,37 @@ const studioChat = {
     'Picked in the scene (change only these unless I say otherwise):',
   'studioChat.picked.label': 'Picked in the scene',
   'studioChat.picked.remove': 'Remove {name}',
+  'studioChat.accounts.gpt': 'GPT',
+  'studioChat.accounts.gptFound': 'Your own GPT plugin in Claude Code ({name})',
+  'studioChat.accounts.gptNote': 'Makes pictures on your own ChatGPT plan.',
+  'studioChat.accounts.gptMissing':
+    'No GPT plugin found in your Claude Code. Add one there and it shows up here.',
+  'studioChat.accounts.higgsfield': 'Higgsfield',
+  'studioChat.accounts.higgsfieldReady': 'Connected through your Claude Code',
+  'studioChat.accounts.higgsfieldNote':
+    'Makes pictures, animation frames and 3D models on your own Higgsfield credits.',
+  'studioChat.accounts.higgsfieldMissing':
+    'Not set up yet. FluidEQ can add Higgsfield’s own tools to your Claude Code and open its sign-in in your browser. Higgsfield needs a paid plan, and everything it makes uses its credits.',
+  'studioChat.accounts.higgsfieldOut':
+    'Higgsfield is in your Claude Code but not signed in.',
+  'studioChat.accounts.higgsfieldUnreachable':
+    'Claude Code could not reach Higgsfield just now.',
+  'studioChat.accounts.higgsfieldConnecting':
+    'Finish signing in on Higgsfield’s page in your browser. This card updates when it is done.',
+  'studioChat.accounts.higgsfieldSetUp': 'Set up Higgsfield',
+  'studioChat.accounts.higgsfieldSignIn': 'Sign in with Higgsfield',
+  'studioChat.accounts.higgsfieldAbout': 'What is Higgsfield?',
+  'studioChat.accounts.checkAgain': 'Check again',
+  'studioChat.accounts.makeWith': 'Make with',
+  'studioChat.accounts.makeWithNote':
+    'Which of the two makes a picture or animation frames when both are connected.',
+  'studioChat.accounts.makeWithAsk': 'Ask me each time',
+  'studioChat.ask.makerPicture': 'Make this picture with…',
+  'studioChat.ask.makerFrames': 'Make these animation frames with…',
+  'studioChat.ask.makerGpt': 'Your own GPT plugin, on your ChatGPT plan',
+  'studioChat.ask.makerHiggsfield':
+    'Your Higgsfield credits. Claude tells you the cost first.',
+  'studioChat.ask.makerRemember': 'Remember my choice (change it in Accounts)',
 } as const;
 
 export default studioChat;

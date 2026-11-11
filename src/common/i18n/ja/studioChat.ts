@@ -251,6 +251,38 @@ const studioChat = {
     'シーンで選択したもの (特に指示がなければ、これだけを変更して):',
   'studioChat.picked.label': 'シーンで選択したもの',
   'studioChat.picked.remove': '{name} を外す',
+  'studioChat.accounts.gpt': 'GPT',
+  'studioChat.accounts.gptFound':
+    'Claude Code にあるあなたの GPT プラグイン（{name}）',
+  'studioChat.accounts.gptNote': 'あなたの ChatGPT プランで画像を作ります。',
+  'studioChat.accounts.gptMissing':
+    'あなたの Claude Code に GPT プラグインが見つかりません。そちらで追加すると、ここに表示されます。',
+  'studioChat.accounts.higgsfield': 'Higgsfield',
+  'studioChat.accounts.higgsfieldReady': 'あなたの Claude Code 経由で接続済み',
+  'studioChat.accounts.higgsfieldNote':
+    'あなたの Higgsfield クレジットで、画像、アニメーションのフレーム、3D モデルを作ります。',
+  'studioChat.accounts.higgsfieldMissing':
+    'まだ設定されていません。FluidEQ は Higgsfield のツールをあなたの Claude Code に追加し、ブラウザーでサインインを開けます。Higgsfield には有料プランが必要で、作るものはすべてそのクレジットを使います。',
+  'studioChat.accounts.higgsfieldOut':
+    'Higgsfield は Claude Code にありますが、サインインしていません。',
+  'studioChat.accounts.higgsfieldUnreachable':
+    'Claude Code は今 Higgsfield に接続できませんでした。',
+  'studioChat.accounts.higgsfieldConnecting':
+    'ブラウザーの Higgsfield のページでサインインを完了してください。完了するとこのカードが更新されます。',
+  'studioChat.accounts.higgsfieldSetUp': 'Higgsfield を設定',
+  'studioChat.accounts.higgsfieldSignIn': 'Higgsfield でサインイン',
+  'studioChat.accounts.higgsfieldAbout': 'Higgsfield とは？',
+  'studioChat.accounts.checkAgain': 'もう一度確認',
+  'studioChat.accounts.makeWith': '作成に使うもの',
+  'studioChat.accounts.makeWithNote':
+    '両方が接続されているとき、画像やアニメーションのフレームをどちらで作るか。',
+  'studioChat.accounts.makeWithAsk': '毎回たずねる',
+  'studioChat.ask.makerPicture': 'この画像を何で作りますか…',
+  'studioChat.ask.makerFrames': 'このアニメーションのフレームを何で作りますか…',
+  'studioChat.ask.makerGpt': 'あなたの GPT プラグイン（ChatGPT プランを使用）',
+  'studioChat.ask.makerHiggsfield':
+    'あなたの Higgsfield クレジット。Claude が先に費用を伝えます。',
+  'studioChat.ask.makerRemember': '選択を記憶する（アカウントで変更できます）',
 } as const;
 
 export default studioChat;

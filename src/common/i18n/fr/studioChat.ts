@@ -257,6 +257,41 @@ const studioChat = {
     'Choisi dans la scène (ne change que cela, sauf indication contraire) :',
   'studioChat.picked.label': 'Choisi dans la scène',
   'studioChat.picked.remove': 'Retirer {name}',
+  'studioChat.accounts.gpt': 'GPT',
+  'studioChat.accounts.gptFound':
+    'Votre propre plugin GPT dans Claude Code ({name})',
+  'studioChat.accounts.gptNote':
+    'Crée des images avec votre propre forfait ChatGPT.',
+  'studioChat.accounts.gptMissing':
+    'Aucun plugin GPT trouvé dans votre Claude Code. Ajoutez-en un là-bas et il apparaîtra ici.',
+  'studioChat.accounts.higgsfield': 'Higgsfield',
+  'studioChat.accounts.higgsfieldReady': 'Connecté via votre Claude Code',
+  'studioChat.accounts.higgsfieldNote':
+    'Crée des images, des images d’animation et des modèles 3D avec vos propres crédits Higgsfield.',
+  'studioChat.accounts.higgsfieldMissing':
+    'Pas encore configuré. FluidEQ peut ajouter les outils de Higgsfield à votre Claude Code et ouvrir sa connexion dans votre navigateur. Higgsfield demande un forfait payant, et tout ce qu’il crée consomme ses crédits.',
+  'studioChat.accounts.higgsfieldOut':
+    'Higgsfield est dans votre Claude Code, mais n’est pas connecté.',
+  'studioChat.accounts.higgsfieldUnreachable':
+    'Claude Code n’a pas pu joindre Higgsfield pour le moment.',
+  'studioChat.accounts.higgsfieldConnecting':
+    'Terminez la connexion sur la page de Higgsfield dans votre navigateur. Cette carte se met à jour ensuite.',
+  'studioChat.accounts.higgsfieldSetUp': 'Configurer Higgsfield',
+  'studioChat.accounts.higgsfieldSignIn': 'Se connecter avec Higgsfield',
+  'studioChat.accounts.higgsfieldAbout': 'Qu’est-ce que Higgsfield ?',
+  'studioChat.accounts.checkAgain': 'Vérifier à nouveau',
+  'studioChat.accounts.makeWith': 'Créer avec',
+  'studioChat.accounts.makeWithNote':
+    'Lequel des deux crée une image ou des images d’animation quand les deux sont connectés.',
+  'studioChat.accounts.makeWithAsk': 'Me demander à chaque fois',
+  'studioChat.ask.makerPicture': 'Créer cette image avec…',
+  'studioChat.ask.makerFrames': 'Créer ces images d’animation avec…',
+  'studioChat.ask.makerGpt':
+    'Votre propre plugin GPT, avec votre forfait ChatGPT',
+  'studioChat.ask.makerHiggsfield':
+    'Vos crédits Higgsfield. Claude vous indique le coût avant.',
+  'studioChat.ask.makerRemember':
+    'Mémoriser mon choix (modifiable dans Comptes)',
 } as const;
 
 export default studioChat;

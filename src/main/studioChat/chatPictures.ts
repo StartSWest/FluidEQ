@@ -26,7 +26,20 @@ import {
   type IStudioLook,
 } from '../studioAgent/studioTools';
 import { CHATGPT_PICTURES_OPEN } from '../../common/studioChatPictures';
+import {
+  isStudioMaker,
+  isStudioMakerChoice,
+  type IStudioMakers,
+} from '../../common/studioMakers';
 import { createChatAsks } from './chatAsks';
+import createChooseMakerTool from './chooseMakerTool';
+import {
+  addHiggsfield,
+  higgsfieldServer,
+  signInToHiggsfield,
+  signOutOfHiggsfield,
+} from './higgsfieldMcp';
+import { createMakerChoice, gptPlugin } from './studioMakers';
 import { createChatServer } from './chatServer';
 import { codexAccount, type ICodexAccount } from './codexAccount';
 import { codexState, signInToCodex } from './codexPictures';
@@ -111,6 +124,10 @@ const CHANNELS = [
   'studio-chat-codex-sign-in',
   'studio-chat-codex-disconnect',
   'studio-chat-packed',
+  'studio-chat-makers',
+  'studio-chat-makers-choice',
+  'studio-chat-maker-answer',
+  'studio-chat-higgsfield-connect',
 ];
 
 /** The window's packed artwork, read as nothing unless it is what was asked. */
@@ -154,6 +171,18 @@ export const createChatPictures = ({
     root,
     show: (projectId, ask) =>
       pageOf()?.send('studio-chat-ask', { projectId, ask }),
+  });
+
+  /**
+   * The member's two makers of pictures as they are in their own Claude
+   * Code now (`studioMakers.ts`), asked fresh every time: a sign-in made a
+   * moment ago in the browser has to count at once.
+   */
+  const makerChoice = createMakerChoice(root);
+  const makersNow = async (): Promise<IStudioMakers> => ({
+    gpt: gptPlugin(),
+    higgsfield: (await higgsfieldServer())?.account ?? { state: 'missing' },
+    choice: makerChoice.get(),
   });
 
   let nextPack = 0;
@@ -229,6 +258,12 @@ export const createChatPictures = ({
       tools: [
         ...ownLookTools(door, folder),
         lookAnimationTool(folder),
+        // Which of the member's own makers makes a picture; it makes none.
+        createChooseMakerTool({
+          project: () => boundProject(projectId, folder),
+          asks,
+          makers: makersNow,
+        }),
         ...createPictureTools({
           project: () => boundProject(projectId, folder),
           asks,
@@ -313,6 +348,63 @@ export const createChatPictures = ({
     asks.disconnect();
     return codexOf();
   });
+
+  ipcMain.handle('studio-chat-makers', (event) =>
+    fromWindow(event) ? makersNow() : undefined,
+  );
+
+  ipcMain.handle('studio-chat-makers-choice', (event, choice: unknown) => {
+    if (fromWindow(event) && isStudioMakerChoice(choice)) {
+      makerChoice.set(choice);
+    }
+    return makerChoice.get();
+  });
+
+  // The maker pressed on the card, and whether to use it from now on.
+  ipcMain.handle(
+    'studio-chat-maker-answer',
+    (event, id: unknown, maker: unknown, remember: unknown) => {
+      if (
+        !fromWindow(event) ||
+        typeof id !== 'string' ||
+        !isStudioMaker(maker)
+      ) {
+        return;
+      }
+      if (remember === true) {
+        makerChoice.set(maker);
+      }
+      asks.answerMaker(id, maker);
+    },
+  );
+
+  /**
+   * "Set up Higgsfield" and "Sign in with Higgsfield", one press each:
+   * added to the member's own Claude Code when it is not there, then Claude
+   * Code's own sign-in to it while nobody is signed in. Answers what there
+   * is afterwards, whatever happened: the card shows that. `another` is
+   * "Use another account": Claude Code forgets the sign-in it has first.
+   */
+  ipcMain.handle(
+    'studio-chat-higgsfield-connect',
+    async (event, another: unknown) => {
+      if (!fromWindow(event)) {
+        return undefined;
+      }
+      let server = await higgsfieldServer();
+      if (!server) {
+        await addHiggsfield();
+        server = await higgsfieldServer();
+      } else if (another === true && server.account.state === 'ready') {
+        await signOutOfHiggsfield(server.name);
+        server = await higgsfieldServer();
+      }
+      if (server?.account.state === 'signed-out') {
+        await signInToHiggsfield(server.name);
+      }
+      return makersNow();
+    },
+  );
 
   ipcMain.handle(
     'studio-chat-packed',

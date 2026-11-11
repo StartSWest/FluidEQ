@@ -25,9 +25,18 @@ import CRAFT_SECTION from './chatCraft';
 const SHEETS_LINE =
   "Animations are yours too: load the fluideq-animation skill first. FluidEQ draws nothing - the frames come from the member's own picture tools (their plugins, skills, tool servers and the models those reach), and FluidEQ's build_sheet only writes the playable sheet from them, look_at_animation checks it, and pose_sheet bends one picture into poses. An animation is known by its name: write it again under that name with replace: true, never under another name. A SHEET OF FRAMES IS NEVER A PLAIN PICTURE: do not save a grid of poses into art/ and pack it, whoever drew it and however it reached you. Every frame sheet goes through build_sheet (or pose_sheet), which makes the animation the member sees and tunes in their Animations tab; a scene that plays frames the member has no animation for is a fault, and pack_artwork corrects one it finds and tells you to finish the job.";
 
+/**
+ * Who makes what FluidEQ does not draw (Ivan, 2026-11-11: "que pida si
+ * quiere usar GPT o Higgsfield"): the member's own makers, chosen by the
+ * member through choose_maker and never by Claude, and set up by the member
+ * alone.
+ */
+const MAKER_LINE =
+  "Before you have anything made outside FluidEQ - a picture, the frames of an animation, a 3D model - call choose_maker: it says which of the member's own makers to use (their GPT plugin, or Higgsfield on their own account and credits; load the fluideq-higgsfield skill for that one), asks the member when both are connected, and says so when neither is. Never choose one yourself, and never install, add, connect or sign in to anything: setting Higgsfield up is the member's own press in this chat's Accounts.";
+
 const PICTURES_LINE = CHATGPT_PICTURES_OPEN
   ? `Pictures come from make_picture and pack_artwork; everything else you draw. ${SHEETS_LINE}`
-  : `pack_artwork lays pictures from the project's art folder - the member's, or made with a picture plugin of theirs and saved there - into the scene's artwork; what no picture covers, you draw. ${SHEETS_LINE}`;
+  : `pack_artwork lays pictures from the project's art folder - the member's, or made with a picture plugin of theirs and saved there - into the scene's artwork; what no picture covers, you draw. ${MAKER_LINE} ${SHEETS_LINE}`;
 
 const CHATGPT_SECTION = CHATGPT_PICTURES_OPEN
   ? `

@@ -239,6 +239,38 @@ const studioChat = {
   'studioChat.picked.lead': '在场景中选取（除非我另有说明，只改这些）：',
   'studioChat.picked.label': '在场景中选取',
   'studioChat.picked.remove': '移除 {name}',
+  'studioChat.accounts.gpt': 'GPT',
+  'studioChat.accounts.gptFound':
+    '你在 Claude Code 中自己的 GPT 插件（{name}）',
+  'studioChat.accounts.gptNote': '使用你自己的 ChatGPT 套餐生成图片。',
+  'studioChat.accounts.gptMissing':
+    '在你的 Claude Code 中没有找到 GPT 插件。在那里添加一个，它就会显示在这里。',
+  'studioChat.accounts.higgsfield': 'Higgsfield',
+  'studioChat.accounts.higgsfieldReady': '已通过你的 Claude Code 连接',
+  'studioChat.accounts.higgsfieldNote':
+    '使用你自己的 Higgsfield 积分生成图片、动画帧和 3D 模型。',
+  'studioChat.accounts.higgsfieldMissing':
+    '尚未设置。FluidEQ 可以把 Higgsfield 自己的工具添加到你的 Claude Code，并在浏览器中打开它的登录页面。Higgsfield 需要付费套餐，它生成的一切都会消耗其积分。',
+  'studioChat.accounts.higgsfieldOut':
+    'Higgsfield 已在你的 Claude Code 中，但尚未登录。',
+  'studioChat.accounts.higgsfieldUnreachable':
+    'Claude Code 暂时无法连接 Higgsfield。',
+  'studioChat.accounts.higgsfieldConnecting':
+    '请在浏览器中的 Higgsfield 页面完成登录。完成后此卡片会更新。',
+  'studioChat.accounts.higgsfieldSetUp': '设置 Higgsfield',
+  'studioChat.accounts.higgsfieldSignIn': '用 Higgsfield 登录',
+  'studioChat.accounts.higgsfieldAbout': '什么是 Higgsfield？',
+  'studioChat.accounts.checkAgain': '再次检查',
+  'studioChat.accounts.makeWith': '生成方式',
+  'studioChat.accounts.makeWithNote':
+    '两者都已连接时，由哪一个生成图片或动画帧。',
+  'studioChat.accounts.makeWithAsk': '每次都问我',
+  'studioChat.ask.makerPicture': '用哪一个生成这张图片…',
+  'studioChat.ask.makerFrames': '用哪一个生成这些动画帧…',
+  'studioChat.ask.makerGpt': '你自己的 GPT 插件，使用你的 ChatGPT 套餐',
+  'studioChat.ask.makerHiggsfield':
+    '你的 Higgsfield 积分。Claude 会先告诉你费用。',
+  'studioChat.ask.makerRemember': '记住我的选择（可在“账号”中更改）',
 } as const;
 
 export default studioChat;

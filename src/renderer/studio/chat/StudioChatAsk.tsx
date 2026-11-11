@@ -4,12 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect } from 'react';
+import { Fragment, useEffect, useId, useState } from 'react';
 import type { TStudioChatAsk, TStudioChatCodex } from 'common/studioChat';
+import { STUDIO_MAKERS, type TStudioMaker } from 'common/studioMakers';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import {
   answerStudioChat,
+  answerStudioChatMaker,
   checkStudioChatCodex,
   signInToStudioChatCodex,
   useStudioChat,
@@ -208,6 +210,85 @@ function ToolCard({ ask }: { ask: Extract<TStudioChatAsk, { kind: 'tool' }> }) {
 }
 
 /**
+ * Which of the member's own two makers makes this one thing (Ivan,
+ * 2026-11-11: "que pida si quiere usar GPT o Higgsfield"): put up only
+ * when both are connected and nothing is chosen. Each press stands beside
+ * what it runs on, and both wear the loud style, since neither is the
+ * suggested one. Ticked, the press is kept as the choice from then on; it is
+ * changed in Accounts, which the tick's own words say.
+ */
+function MakerCard({
+  ask,
+}: {
+  ask: Extract<TStudioChatAsk, { kind: 'maker' }>;
+}) {
+  const { t } = useTranslation();
+  const [remember, setRemember] = useState(false);
+  const id = useId();
+  const names: Record<TStudioMaker, string> = {
+    gpt: t('studioChat.accounts.gpt'),
+    higgsfield: t('studioChat.accounts.higgsfield'),
+  };
+  const runsOn: Record<TStudioMaker, string> = {
+    gpt: t('studioChat.ask.makerGpt'),
+    higgsfield: t('studioChat.ask.makerHiggsfield'),
+  };
+  return (
+    <>
+      <p className="studio-chat__ask-title">
+        {t(
+          ask.what === 'frames'
+            ? 'studioChat.ask.makerFrames'
+            : 'studioChat.ask.makerPicture',
+        )}
+      </p>
+      <p className="studio-chat__ask-why">{ask.why}</p>
+      <div className="studio-chat__ask-makers">
+        {STUDIO_MAKERS.map((maker) => (
+          <Fragment key={maker}>
+            <button
+              type="button"
+              className="button small"
+              aria-describedby={`${id}-${maker}`}
+              onClick={() => {
+                answerStudioChatMaker(ask.id, maker, remember).catch(
+                  () => undefined,
+                );
+              }}
+            >
+              {names[maker]}
+            </button>
+            <span id={`${id}-${maker}`} className="studio-chat__ask-body">
+              {runsOn[maker]}
+            </span>
+          </Fragment>
+        ))}
+      </div>
+      <label className="studio-chat__ask-remember" htmlFor={`${id}-remember`}>
+        <input
+          id={`${id}-remember`}
+          type="checkbox"
+          checked={remember}
+          onChange={(event) => setRemember(event.target.checked)}
+        />
+        {t('studioChat.ask.makerRemember')}
+      </label>
+      <div className="studio-chat__ask-actions">
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={() => {
+            answerStudioChat(ask.id, 'no').catch(() => undefined);
+          }}
+        >
+          {t('studioChat.ask.notNow')}
+        </button>
+      </div>
+    </>
+  );
+}
+
+/**
  * The card Claude's use of ChatGPT waits on (Ivan, 2026-10-09: "it needs to
  * ask the user if you connect gpt codex … and also ask when it will use
  * it"), at the foot of the conversation where the reply stands waiting.
@@ -240,6 +321,13 @@ export default function StudioChatAsk({ ask }: { ask: TStudioChatAsk }) {
   } else if (ask.kind === 'picture') {
     label = t('studioChat.ask.pictureTitle');
     card = <PictureCard ask={ask} />;
+  } else if (ask.kind === 'maker') {
+    label = t(
+      ask.what === 'frames'
+        ? 'studioChat.ask.makerFrames'
+        : 'studioChat.ask.makerPicture',
+    );
+    card = <MakerCard ask={ask} />;
   } else {
     label = t('studioChat.ask.toolTitle', { tool: ask.tool });
     card = <ToolCard ask={ask} />;

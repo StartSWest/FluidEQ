@@ -250,6 +250,38 @@ const studioChat = {
     'दृश्य में चुना गया (जब तक मैं कुछ और न कहूँ, केवल इन्हें बदलो):',
   'studioChat.picked.label': 'दृश्य में चुना गया',
   'studioChat.picked.remove': '{name} हटाएँ',
+  'studioChat.accounts.gpt': 'GPT',
+  'studioChat.accounts.gptFound':
+    'Claude Code में आपका अपना GPT प्लगइन ({name})',
+  'studioChat.accounts.gptNote': 'आपके अपने ChatGPT प्लान पर चित्र बनाता है।',
+  'studioChat.accounts.gptMissing':
+    'आपके Claude Code में कोई GPT प्लगइन नहीं मिला। वहाँ एक जोड़ें और वह यहाँ दिखेगा।',
+  'studioChat.accounts.higgsfield': 'Higgsfield',
+  'studioChat.accounts.higgsfieldReady': 'आपके Claude Code के ज़रिए जुड़ा है',
+  'studioChat.accounts.higgsfieldNote':
+    'आपके अपने Higgsfield क्रेडिट पर चित्र, एनिमेशन फ़्रेम और 3D मॉडल बनाता है।',
+  'studioChat.accounts.higgsfieldMissing':
+    'अभी सेट अप नहीं है। FluidEQ आपके Claude Code में Higgsfield के अपने टूल जोड़ सकता है और उसका साइन-इन आपके ब्राउज़र में खोल सकता है। Higgsfield के लिए सशुल्क प्लान चाहिए, और वह जो भी बनाता है उसमें उसके क्रेडिट खर्च होते हैं।',
+  'studioChat.accounts.higgsfieldOut':
+    'Higgsfield आपके Claude Code में है, पर साइन इन नहीं है।',
+  'studioChat.accounts.higgsfieldUnreachable':
+    'Claude Code अभी Higgsfield तक नहीं पहुँच सका।',
+  'studioChat.accounts.higgsfieldConnecting':
+    'अपने ब्राउज़र में Higgsfield के पेज पर साइन-इन पूरा करें। पूरा होने पर यह कार्ड अपडेट हो जाता है।',
+  'studioChat.accounts.higgsfieldSetUp': 'Higgsfield सेट अप करें',
+  'studioChat.accounts.higgsfieldSignIn': 'Higgsfield से साइन इन करें',
+  'studioChat.accounts.higgsfieldAbout': 'Higgsfield क्या है?',
+  'studioChat.accounts.checkAgain': 'फिर से जाँचें',
+  'studioChat.accounts.makeWith': 'किससे बनाएँ',
+  'studioChat.accounts.makeWithNote':
+    'दोनों जुड़े हों तो चित्र या एनिमेशन फ़्रेम कौन बनाए।',
+  'studioChat.accounts.makeWithAsk': 'हर बार मुझसे पूछें',
+  'studioChat.ask.makerPicture': 'यह चित्र किससे बनाएँ…',
+  'studioChat.ask.makerFrames': 'ये एनिमेशन फ़्रेम किससे बनाएँ…',
+  'studioChat.ask.makerGpt': 'आपका अपना GPT प्लगइन, आपके ChatGPT प्लान पर',
+  'studioChat.ask.makerHiggsfield':
+    'आपके Higgsfield क्रेडिट। Claude पहले लागत बताता है।',
+  'studioChat.ask.makerRemember': 'मेरी पसंद याद रखें (खाते में बदलें)',
 } as const;
 
 export default studioChat;

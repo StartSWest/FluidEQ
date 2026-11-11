@@ -56,6 +56,7 @@ const TOOLS = [
   'build_sheet',
   'pose_sheet',
   'look_at_animation',
+  'choose_maker',
 ];
 
 const named = (text: string, name: string) =>
