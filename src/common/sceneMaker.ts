@@ -16,8 +16,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * In `common` because main states it too. A desktop background is told by
  * main whose scene it shows, and was once told only that a member had made
  * it: the listener's own scene ran there as a stranger's, through the
- * brightness limiter, and ghosted on the desktop while the Studio showed the
- * same scene clean.
+ * brightness limiter member's scenes then had, and ghosted on the desktop
+ * while the Studio showed the same scene clean.
  */
 export type TSceneMaker = 'fluideq' | 'listener' | 'member';
 

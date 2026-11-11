@@ -88,7 +88,7 @@ it('loads in the worker and keeps one drawing in flight until it is committed', 
     kind: 'load',
     id: 1,
     pack,
-    guarded: true,
+    unwatched: true,
   });
   expect(client?.canDraw()).toBe(false);
   reply({ kind: 'loaded', id: 1, result: { kind: 'ready', rebuilt: true } });

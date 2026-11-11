@@ -40,8 +40,8 @@ import { WORLD_PASS_VERTEX } from './worldPasses';
  * never past it, so a glow over a bright sky does not burn a hole in it.
  *
  * What comes out is what the shader-only path's `main()` produces: clamped,
- * premultiplied, times the app's fade. Everything after this pass — the
- * brightness limiter, FSR, FXAA — sees a scene like any other.
+ * premultiplied, times the app's fade. Everything after this pass — FSR,
+ * FXAA — sees a scene like any other.
  */
 
 /**

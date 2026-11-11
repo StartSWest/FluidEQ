@@ -55,8 +55,8 @@ import worldSamples from './worldSamples';
  * the same target, as a shader-only scene.
  *
  * That is the whole integration. The worker binds whatever the picture is to
- * be finished in — the brightness limiter's target for a member's scene, the
- * finishing chain's for FSR, supersampling or FXAA, or the canvas itself —
+ * be finished in — the finishing chain's for FSR, supersampling or FXAA, or
+ * the canvas itself —
  * and calls `draw`. The world renders into targets of its own, then lays the
  * finished picture into the one it found bound, inside the scissor it found
  * set, and leaves the context as the worker expects to find it. Nothing

@@ -812,13 +812,13 @@ export default function useSceneRunner({
         shelvedRef.current = pack;
         setWaiting(true);
         if (rules.warmWhenUnseen) {
-          warmSceneProgram(pack, rules.limited);
+          warmSceneProgram(pack, rules.unwatched);
         }
         return;
       }
       wantedRef.current = pack;
       // A settings save comes back as a new pack. Keep the running program,
-      // textures, clock and limiter; do not even copy its artwork to a worker.
+      // textures and clock; do not even copy its artwork to a worker.
       if (
         rendererRef.current &&
         packRef.current &&
@@ -861,7 +861,7 @@ export default function useSceneRunner({
       }
       let result;
       try {
-        result = await renderer.load(pack, rules.limited);
+        result = await renderer.load(pack, rules.unwatched);
       } finally {
         if (generation === generationRef.current) {
           buildingRef.current = false;
@@ -970,8 +970,8 @@ export default function useSceneRunner({
     };
   }, [source.identity, startRenderer, dropProgram]);
 
-  // A different scene starts from the beginning: clock, fade, energy, and a
-  // limiter only if who made it calls for one. Not the music's time, which is
+  // A different scene starts from the beginning: clock, fade and energy. Not
+  // the music's time, which is
   // the music's: a new look dances from its first frame instead of listening
   // for the tempo all over again.
   useEffect(() => {

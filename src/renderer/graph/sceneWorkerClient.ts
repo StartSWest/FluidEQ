@@ -43,7 +43,7 @@ export interface ISceneDrawn {
 }
 
 export interface ISceneWorkerClient {
-  load(pack: IScenePack, guarded: boolean): Promise<TSceneBuildResult>;
+  load(pack: IScenePack, unwatched: boolean): Promise<TSceneBuildResult>;
   canDraw(): boolean;
   draw(
     frame: ISceneFrame,
@@ -116,7 +116,7 @@ const warmed = new Set<string>();
  */
 export const warmSceneProgram = (
   pack: IScenePack,
-  guarded: boolean,
+  unwatched: boolean,
 ): Promise<void> => {
   const key = sceneProgramKey(pack);
   const warmedKey = textDigest(key);
@@ -183,7 +183,7 @@ export const warmSceneProgram = (
               kind: 'load',
               id: 1,
               pack,
-              guarded,
+              unwatched,
             };
             worker.postMessage(load);
           } catch {
@@ -441,7 +441,7 @@ export const createSceneWorkerClient = (
     }
   };
   return {
-    load: (pack, guarded) => {
+    load: (pack, unwatched) => {
       if (disposed || lost) {
         return Promise.resolve({ kind: 'unavailable' });
       }
@@ -459,7 +459,7 @@ export const createSceneWorkerClient = (
               return undefined;
             }
             heldTurns.set(next, release);
-            send({ kind: 'load', id: next, pack, guarded });
+            send({ kind: 'load', id: next, pack, unwatched });
             return undefined;
           })
           .catch((error) => fail(String(error)));

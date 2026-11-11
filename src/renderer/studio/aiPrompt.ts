@@ -470,9 +470,9 @@ ${MOTION_SECTIONS}${POINTER_SECTION}RULES (FluidEQ refuses the scene otherwise)
 - Nothing flashes. No region bigger than a small detail may swing between
   bright and dark, or to and from saturated red, more than three times a
   second, and no pattern (stripes, checks, rings) may invert on the beat:
-  flashing like that can cause seizures, and FluidEQ holds any region that
-  does, which freezes and smears it on screen. Let a beat move something or
-  light a small part; let big areas follow uSpectrumSlow.
+  flashing like that can cause seizures, and a scene that does is refused
+  when it is reviewed for publishing. Let a beat move something or light a
+  small part; let big areas follow uSpectrumSlow.
 - It runs for every pixel, every frame, on ordinary laptops, and FluidEQ
   lowers its resolution when it is slow, which blurs it. AIM FOR A FEW
   MILLISECONDS A FRAME: under ${LIGHT_FRAME_MS} ms in look_at_scene's reading is a scene

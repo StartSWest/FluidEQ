@@ -11,8 +11,8 @@ import { linkProgram } from './glProgram';
  * One full-screen pass of the finishing chain: a program over the shared
  * triangle, its input texture on unit 0, and its uniform locations by name.
  *
- * Compiled synchronously, like the flash guard's programs: each is a hundred
- * lines the driver takes milliseconds over, once per worker, unlike a scene.
+ * Compiled synchronously: each is a hundred lines the driver takes
+ * milliseconds over, once per worker, unlike a scene.
  */
 export interface IPostPass {
   where: Record<string, WebGLUniformLocation | null>;

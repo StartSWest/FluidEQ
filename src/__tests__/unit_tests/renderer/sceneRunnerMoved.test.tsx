@@ -51,7 +51,7 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
 }));
 jest.mock('../../../renderer/graph/sceneRules', () => ({
   sceneRulesFor: () => ({
-    limited: false,
+    unwatched: false,
     warmWhenUnseen: false,
     createLadder: () => ({
       frame: () => 'ok' as const,

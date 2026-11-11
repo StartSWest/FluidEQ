@@ -49,7 +49,8 @@ export interface IMemberLooks {
  * answers, so a premium id never reaches the member store or the other way.
  * Each comes with who made it, as the window's own list has it: told only
  * that a member had made a scene, the desktop ran the listener's own as a
- * stranger's, through the brightness limiter, and ghosted it.
+ * stranger's, through the brightness limiter member's scenes then had, and
+ * ghosted it.
  */
 export const createWallpaperScenes = (
   official: IOfficialLooks,

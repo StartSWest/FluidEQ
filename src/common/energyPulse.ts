@@ -131,14 +131,12 @@ export const ACCENT_GAP_MS = 7_000;
 export const ACCENT_LEVEL = 0.55;
 export const ACCENT_FALL_MS = 1_500;
 /**
- * How long the moment takes to arrive. Measured against the brightness
- * limiter every member's scene is drawn through: a scene may move the average
- * brightness of a quarter of the frame by half of full scale per second, and
- * a moment that fills a third of a cell with light has to take at least a
- * fifth of a second to do it or the limiter blends the picture into the last
- * one and the scene smears. At 90 ms, Crystal's band of light across the
- * floor measured seven times over that limit and only a seventh of each new
- * frame reached the panel.
+ * How long the moment takes to arrive: a fifth of a second at least, so a
+ * moment that fills a third of the frame with light does not flash. It was
+ * measured against the brightness limiter member's scenes were once drawn
+ * through, which allowed the average brightness of a quarter of the frame to
+ * move by half of full scale per second; at 90 ms, Crystal's band of light
+ * across the floor measured seven times over that.
  */
 export const ACCENT_RISE_MS = 300;
 

@@ -46,8 +46,8 @@ export interface ISceneDrawReport {
  * the only things that differ between the places a scene plays. How it is
  * run follows from who made it, in `sceneRules.ts`, and the runner
  * (`useSceneRunner.ts`) reads it from there for every place alike: a source
- * cannot ask for a ladder, a limiter or a rest of its own, which is how the
- * desktop once drew the listener's own scene ghosted beside a clean Studio.
+ * cannot ask for a ladder or a rest of its own, which is how the desktop
+ * once drew the listener's own scene ghosted beside a clean Studio.
  */
 export interface ISceneSource {
   /** What is being drawn. A change starts the clock and the fade again. */
@@ -95,8 +95,8 @@ export interface ISceneSource {
   reportWorld?(report: IWorldReport): void;
   /**
    * Who made the scene (`sceneMaker.ts`): FluidEQ, the listener, or another
-   * member. Its size ladder, its brightness limiter and whether it is
-   * compiled ahead follow from this alone (`sceneRules.ts`).
+   * member. Its size ladder, whether it is compiled ahead and what a GPU
+   * reset costs it follow from this alone (`sceneRules.ts`).
    */
   madeBy: TSceneMaker;
 }

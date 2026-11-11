@@ -69,9 +69,11 @@ let wanted: { pack: IScenePack; guarded: boolean; id: number } | null = null;
 /** How long the last frame held the GPU, for a loss right after it. */
 let lastCostMs = 0;
 /**
- * The flash limiter a member's scene is drawn through on the graph, drawn
- * through here too. Without it the lamps showed what the window never did: a
- * scene strobing at ten flashes a second, at arm's length, across a desk.
+ * The flash limiter a member's scene is drawn through on the desk's lamps.
+ * Without it the lamps would show a scene strobing at ten flashes a second, at
+ * arm's length, across a desk. The window's own picture has no limiter (Ivan,
+ * 2026-11-11): a picture can be looked away from and was smeared by it, while
+ * lamps light the room and blur nothing on screen.
  */
 let guard: IFlashGuard | null = null;
 let pacing: ILampPacing = createLampPacing();

@@ -322,11 +322,10 @@ describe('spectrum energy', () => {
     expect(arriving.accent).toBeLessThan(0.7);
     // It has to take longer than a fifth of a second to arrive. A scene is
     // free to put this in an angle or in a light across half the picture, and
-    // the brightness limiter every member's scene is drawn through blends the
-    // frame into the one before it whenever a quarter of the frame changes
-    // faster than half of full scale a second. Crystal's band of light was
-    // measured at seven times that with the moment arriving in 90 ms, and the
-    // stone came out looking painted.
+    // a quarter of the frame changing faster than half of full scale a second
+    // reads as a flash. Crystal's band of light was measured at seven times
+    // that with the moment arriving in 90 ms, against the brightness limiter
+    // member's scenes were once drawn through.
     const partWay = run(12, flat(MAX));
     expect(partWay.accent).toBeLessThan(0.8);
     expect(partWay.accentSerial).toBe(1);

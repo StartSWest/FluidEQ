@@ -237,8 +237,8 @@ const link = (gl: WebGL2RenderingContext, fragmentSource: string) =>
 
 /**
  * `null` when the GPU cannot give it what it needs — the scene then must not
- * run. Which scenes are drawn through it is decided in `sceneRules.ts`, from
- * who made them, and nowhere else.
+ * run on the lamps. Which scenes are drawn through it is decided in
+ * `lampScene.ts`, from who made them; no picture on screen is.
  */
 export const createFlashGuard = (
   gl: WebGL2RenderingContext,

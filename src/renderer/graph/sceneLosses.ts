@@ -11,12 +11,12 @@
  *
  * A loss that is the scene's own doing is never forgotten: restored and drawn,
  * a scene that reset the driver would reset it again, so it comes back once
- * at most, as it always has. One nobody has watched (guarded) that held the
- * GPU too long does not come back at all.
+ * at most, as it always has. One nobody has watched (another member's) that
+ * held the GPU too long does not come back at all.
  */
 export interface ISceneLossLedger {
   /**
-   * The context was lost. `heavy`: a guarded scene's own frame held the GPU
+   * The context was lost. `heavy`: an unwatched scene's own frame held the GPU
    * past the blamed length. `scenesOwn`: the loss is blamed on this scene.
    * Answers whether the scene is now done for.
    */

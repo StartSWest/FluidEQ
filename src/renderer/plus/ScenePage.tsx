@@ -120,10 +120,10 @@ export default function ScenePage({
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
   // Who made it decides how it is run (`sceneRules.ts`), and FluidEQ's own
-  // collection is not a stranger's: the graph never limits it. Asked from the
-  // author's account alone, every official scene looked like a member's to
-  // anyone but its publisher, and the limiter drew ghosts through Aurora's
-  // curtain here and nowhere else in the app.
+  // collection is not a stranger's. Asked from the author's account alone,
+  // every official scene looked like a member's to anyone but its publisher,
+  // and the brightness limiter member's scenes then had drew ghosts through
+  // Aurora's curtain here and nowhere else in the app.
   const madeBy = sceneMakerOf({ member: !scene.official, own });
   const makerName = own
     ? t('plus.card.byYou')

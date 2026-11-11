@@ -272,8 +272,8 @@ export default function StudioStage({
           troubleRef.current({ kind: 'world', report });
         }
       },
-      // The author is at the machine looking at their own work, which is the
-      // watching the brightness limiter exists for (`sceneRules.ts`).
+      // The author is at the machine looking at their own work: a scene
+      // they have watched (`sceneRules.ts`).
       madeBy: 'listener',
     }),
     [identity, serial, draftVersion],

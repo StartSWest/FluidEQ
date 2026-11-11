@@ -14,13 +14,16 @@ import { createWarmupLadder } from '../../../renderer/graph/sceneWarmup';
 
 /**
  * How a scene is run, decided by who made it and the same in every place it
- * plays.
+ * plays; and how its picture reaches the screen, which is the same for every
+ * scene.
  *
- * The brightness limiter holds a flash back by blending the last picture
- * shown into the new one, and on a scene moving fast that paints the previous
+ * The brightness limiter held a flash back by blending the last picture
+ * shown into the new one, and on a scene moving fast that painted the previous
  * frame's detail over this one: a gem at full speed came out with two sets of
- * facets on it, which is what a ghost is. It was written out once per place,
- * and the places disagreed — the Studio's stage showed a scene as it is while
+ * facets on it, which is what a ghost is, and a camera turn came out as a
+ * smear. It is off every picture now (Ivan, 2026-11-11: "all scenes need to
+ * work the same way"). It was written out once per place, and the places
+ * disagreed — the Studio's stage showed a scene as it is while
  * the graph and the gallery showed the same scene ghosted — and once that was
  * put in one decision, the desktop still stated its own: told only that a
  * member had made its scene, it ran the listener's own Dancing Cat through the
@@ -69,11 +72,23 @@ describe('how a scene is run', () => {
     expect(runner).not.toContain('restsInSilence');
   });
 
-  it('limits another member’s scene and spares the two that were watched', () => {
-    expect(sceneRulesFor('member').limited).toBe(true);
+  it('draws every scene’s picture the same way, whoever made it', () => {
+    const worker = wiring('graph/sceneRenderer.worker.ts');
+    expect(worker).not.toContain('sceneFlashGuard');
+    expect(worker).not.toContain('createFlashGuard');
+    expect(wiring('graph/sceneRules.ts')).not.toContain('limited');
+    // The control: the desk's lamps still draw a member's scene through the
+    // limiter, so this is not passing on a guard that is gone altogether.
+    expect(wiring('lighting/lightingScene.worker.ts')).toContain(
+      'createFlashGuard(gl)',
+    );
+  });
+
+  it('takes another member’s scene off at once for a GPU reset of its own', () => {
+    expect(sceneRulesFor('member').unwatched).toBe(true);
     // FluidEQ's own are watched before release; the listener's own they made.
-    expect(sceneRulesFor('fluideq').limited).toBe(false);
-    expect(sceneRulesFor('listener').limited).toBe(false);
+    expect(sceneRulesFor('fluideq').unwatched).toBe(false);
+    expect(sceneRulesFor('listener').unwatched).toBe(false);
   });
 
   it('starts FluidEQ’s own at full size and warms every member’s up', () => {

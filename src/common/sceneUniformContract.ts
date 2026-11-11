@@ -117,7 +117,7 @@ uniform vec2 uMusicAccent;
 // itself: a hit in a shader is a nudge that fades, never a chorus carrying
 // the picture along. y is how fast it is going, in turns a second, so a scene
 // can answer its own speed - softening what it flashes as it runs, which is
-// what keeps a bright picture under the brightness limiter.
+// what keeps a bright picture from strobing.
 uniform vec2 uMusicRun;
 // Waveform envelope: u spans the last window end to end. Red channel, 0..1.
 uniform sampler2D uWaveform;

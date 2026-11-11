@@ -15,7 +15,7 @@ import { createWarmupLadder } from './sceneWarmup';
  * on the Studio's stage.
  *
  * Each of those places used to state these for itself, and they drifted
- * apart. The desktop ran the listener's own scene through the brightness
+ * apart. The desktop ran the listener's own scene through a brightness
  * limiter that the Studio's stage and the graph did not, and ghosted it; the
  * previews warmed FluidEQ's own scenes up from below full size where the
  * graph and the desktop drew them whole from the first frame. A place now
@@ -28,11 +28,17 @@ import { createWarmupLadder } from './sceneWarmup';
  */
 export interface ISceneRules {
   /**
-   * Drawn through the brightness limiter (`sceneFlashGuard.ts`): a scene
-   * another member made, which nobody here has watched. FluidEQ's own are
-   * watched before release; the listener built theirs and watched it.
+   * A scene another member made, which nobody here has watched: a GPU reset
+   * its own frame causes takes it off at once (`sceneLosses.ts`). FluidEQ's
+   * own are watched before release; the listener built theirs and watched it.
+   *
+   * Never how its picture is drawn. Every scene reaches the screen the same
+   * way, frame for frame (Ivan, 2026-11-11: "all scenes need to work the same
+   * way"): a member's used to go through the brightness limiter, which blended
+   * frames on any fast change of brightness over an area and smeared a camera
+   * turn into a blur. Flashing is caught before publication, in review.
    */
-  limited: boolean;
+  unwatched: boolean;
   /**
    * The size ladder the scene is drawn on. FluidEQ's own start at full size,
    * measured before release (`sceneHealth.ts`). A member's, the listener's
@@ -52,17 +58,17 @@ export interface ISceneRules {
 
 const RULES: Readonly<Record<TSceneMaker, ISceneRules>> = {
   fluideq: {
-    limited: false,
+    unwatched: false,
     createLadder: createCostLadder,
     warmWhenUnseen: true,
   },
   listener: {
-    limited: false,
+    unwatched: false,
     createLadder: createWarmupLadder,
     warmWhenUnseen: false,
   },
   member: {
-    limited: true,
+    unwatched: true,
     createLadder: createWarmupLadder,
     warmWhenUnseen: false,
   },

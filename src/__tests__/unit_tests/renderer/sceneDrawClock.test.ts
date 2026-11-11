@@ -64,26 +64,16 @@ describe('the clock a scene is drawn on', () => {
 });
 
 describe('the clock held still for Edit mode', () => {
-  it('stops the scene and still says how long each picture stood', () => {
+  it('stops the scene, and lets it step again when let go', () => {
     const clock = createSceneDrawClock();
     const before = clock.advance(1000, 16);
     clock.advance(1016, 16);
-    // Held: the scene's time and step stand still…
-    const held = clock.hold(1032, 16);
+    const held = clock.hold(1032);
     expect(held.timeSeconds).toBeCloseTo(before.timeSeconds + 0.016, 6);
     expect(held.deltaMs).toBe(0);
-    // …and the picture's does not: this is what the brightness limiter is
-    // given. At zero it let nothing it was holding catch up, and a camera
-    // turned in Edit mode smeared the old picture over the new.
-    expect(held.shownMs).toBe(16);
-    expect(clock.hold(1042, 16).shownMs).toBe(10);
-    // The control: let go, the scene steps by the same measure.
+    expect(clock.hold(1042).timeSeconds).toBe(held.timeSeconds);
+    // The control: let go, the scene steps from the last picture drawn.
     expect(clock.advance(1050, 16).deltaMs).toBe(8);
-  });
-
-  it('takes the page’s step for the first picture, like a clock running', () => {
-    expect(createSceneDrawClock().hold(500, 12).shownMs).toBe(12);
-    expect(createSceneDrawClock().advance(500, 12).deltaMs).toBe(12);
   });
 });
 

@@ -2,7 +2,6 @@ import type { IScenePack } from 'common/scenePacks';
 import { displayTickMs, isFrameDue } from '../utils/framePace';
 import type { ISceneCostReading } from './sceneHealth';
 import { decodeSceneArtwork } from './sceneArtwork';
-import { createFlashGuard, type IFlashGuard } from './sceneFlashGuardGpu';
 import { linksSettled } from './sceneCompile';
 import {
   compileScene,
@@ -56,7 +55,6 @@ type TDrawRequest = Extract<TSceneWorkerRequest, { kind: 'draw' }>;
 let canvas: OffscreenCanvas | undefined;
 let gl: WebGL2RenderingContext | null = null;
 let program: ISceneProgram | undefined;
-let guard: IFlashGuard | null = null;
 let clock: ISceneGpuClock | undefined;
 /**
  * The finishing chain (`scenePost.ts`), made the first time a frame needs
@@ -66,7 +64,14 @@ let clock: ISceneGpuClock | undefined;
  */
 let post: IScenePost | null | undefined;
 let pack: IScenePack | null = null;
-let guarded = false;
+/**
+ * Another member's scene, which nobody here has watched: only who a GPU reset
+ * is blamed on (`sceneLosses.ts`). Every scene's frame reaches the canvas
+ * the same way; a member's used to go through the brightness limiter, which
+ * blended frames on any fast change of brightness over an area and smeared a
+ * camera turn into a blur (Ivan, 2026-11-11).
+ */
+let unwatched = false;
 let generation = 0;
 /** Every context loss so far: a load tells by it that one happened under it. */
 let losses = 0;
@@ -133,7 +138,7 @@ let shownAt = 0;
 
 const load = async (
   next: IScenePack,
-  withGuard: boolean,
+  nextUnwatched: boolean,
 ): Promise<TSceneBuildResult> => {
   generation += 1;
   compilation?.abort();
@@ -144,8 +149,9 @@ const load = async (
   if (!gl || gl.isContextLost() || ledger.spent()) {
     return { kind: 'unavailable' };
   }
-  if (program && withGuard === guarded && sameSceneProgramInputs(pack, next)) {
+  if (program && sameSceneProgramInputs(pack, next)) {
     pack = next;
+    unwatched = nextUnwatched;
     return { kind: 'ready', rebuilt: false };
   }
   // The last scene's slowest frame is not this one's to answer for.
@@ -158,12 +164,6 @@ const load = async (
     }
     if (mine !== generation) {
       return { kind: 'cancelled' };
-    }
-    if (withGuard && !guard) {
-      guard = createFlashGuard(gl);
-      if (!guard) {
-        return { kind: 'unavailable' };
-      }
     }
     const result = await compileScene(gl, next, artwork, controller.signal);
     if (
@@ -192,11 +192,7 @@ const load = async (
       sceneClock.restart();
     }
     pack = next;
-    guarded = withGuard;
-    if (!withGuard) {
-      guard?.dispose();
-      guard = null;
-    }
+    unwatched = nextUnwatched;
     return {
       kind: 'ready',
       rebuilt: true,
@@ -263,8 +259,6 @@ const retire = async () => {
   await linksSettled();
   program?.dispose();
   program = undefined;
-  guard?.dispose();
-  guard = null;
   freeFrameResources();
   scope.postMessage({ kind: 'retired' });
 };
@@ -278,8 +272,7 @@ const attach = (target: OffscreenCanvas) => {
     generation += 1;
     compilation?.abort();
     program = undefined;
-    guard = null;
-    // A scene nobody has watched (guarded) that just held the GPU for half a
+    // A scene nobody has watched (another member's) that just held the GPU for half a
     // second does not get the restore: reloaded, it drew the same frame and
     // reset the driver a second time, for every program on the machine. Any
     // other loss — sleep, a driver update, another page's crash — is not the
@@ -297,7 +290,7 @@ const attach = (target: OffscreenCanvas) => {
     }
     losses += 1;
     const fatal = ledger.lost({
-      heavy: guarded && blamed,
+      heavy: unwatched && blamed,
       scenesOwn: pack !== null && blamedSource === pack.source,
     });
     scope.postMessage({
@@ -312,7 +305,7 @@ const attach = (target: OffscreenCanvas) => {
     if (!pack || ledger.spent()) {
       return;
     }
-    track(load(pack, guarded)).then((result) => {
+    track(load(pack, unwatched)).then((result) => {
       if (result.kind === 'ready') {
         ledger.restored();
         scope.postMessage({ kind: 'restored' });
@@ -361,25 +354,13 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
   }
 
   // Frozen by the Studio's Edit mode: the same moment drawn again, with
-  // whatever a hand has moved since. The scene's step is then zero, and the
-  // time the picture on screen has stood is kept apart for the limiter.
-  let frame: ISceneFrame;
-  let shownMs: number;
-  if (request.frame.edit?.frozen) {
-    const held = sceneClock.hold(now, request.frame.deltaMs);
-    shownMs = held.shownMs;
-    frame = {
-      ...request.frame,
-      timeSeconds: held.timeSeconds,
-      deltaMs: held.deltaMs,
-    };
-  } else {
-    frame = carriedOn(
-      { ...request.frame, ...sceneClock.advance(now, request.frame.deltaMs) },
-      now - latestAt,
-    );
-    shownMs = frame.deltaMs ?? 0;
-  }
+  // whatever a hand has moved since.
+  const frame: ISceneFrame = request.frame.edit?.frozen
+    ? { ...request.frame, ...sceneClock.hold(now) }
+    : carriedOn(
+        { ...request.frame, ...sceneClock.advance(now, request.frame.deltaMs) },
+        now - latestAt,
+      );
 
   // A GPU that refuses the finishing chain draws straight onto a canvas of
   // the drawn size.
@@ -399,29 +380,11 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
   clock.begin();
   gl.enable(gl.SCISSOR_TEST);
   gl.scissor(...scissorBox(clip, width, height));
-  const target = finishing && post ? post.input(width, height) : null;
-  if (guard) {
-    guard.begin(width, height);
-  } else {
-    gl.bindFramebuffer(gl.FRAMEBUFFER, target);
-  }
+  gl.bindFramebuffer(
+    gl.FRAMEBUFFER,
+    finishing && post ? post.input(width, height) : null,
+  );
   program.draw(frame, width, height);
-  // A guard that cannot limit the frame is a guard that is not there, and a
-  // member's scene is not shown without one — the same answer as a guard that
-  // could never be built. It happens when the GPU will not give it somewhere
-  // to draw, so the frame just drawn went nowhere and there is nothing to put
-  // on the canvas.
-  // By the time between pictures, never the scene's own step: see `hold`.
-  if (guard && !guard.end(shownMs, target)) {
-    gl.disable(gl.SCISSOR_TEST);
-    // Out through the same door a lost context uses, and fatally: the page
-    // reports the scene unusable and the chart draws the scene's own fallback
-    // form, which is where every other failure in this worker ends up. Not
-    // blamed on the scene — it did not hold the GPU, the GPU would not give
-    // the limiter anywhere to draw.
-    scope.postMessage({ kind: 'lost', fatal: true, blamed: false });
-    return { kind: 'drawn', accent: 0, cost: { behind: 0 }, skipped: true };
-  }
   if (finishing && post) {
     clock.mark();
     post.present({
@@ -513,7 +476,7 @@ scope.onmessage = ({ data }) => {
     return;
   }
   if (data.kind === 'load') {
-    track(load(data.pack, data.guarded)).then((result) => {
+    track(load(data.pack, data.unwatched)).then((result) => {
       scope.postMessage({ kind: 'loaded', id: data.id, result });
       return undefined;
     });

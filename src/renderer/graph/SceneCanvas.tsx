@@ -116,9 +116,10 @@ export const sceneIdentityOf = (scene: TDrawableScene): string =>
  * (`sceneBuilds.ts`) — and the driver's words go to the log. Only a scene with
  * nothing of it that builds falls back.
  *
- * How it is run — its size ladder, the brightness limiter, whether it is
- * compiled ahead — follows from who made it (`sceneRules.ts`), exactly as it
- * does on the desktop, in the Library's player and on the Studio's stage.
+ * How it is run — its size ladder, whether it is compiled ahead, what a GPU
+ * reset costs it — follows from who made it (`sceneRules.ts`), exactly as it
+ * does on the desktop, in the Library's player and on the Studio's stage. How
+ * its picture reaches the screen does not: that is the same for every scene.
  */
 export default function SceneCanvas({
   scene,

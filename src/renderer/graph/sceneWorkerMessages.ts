@@ -30,7 +30,11 @@ export interface ISceneFinish {
 export type TSceneWorkerRequest =
   /** First, and once: the page's canvas, which this worker now draws on. */
   | { kind: 'attach'; canvas: OffscreenCanvas }
-  | { kind: 'load'; id: number; pack: IScenePack; guarded: boolean }
+  /**
+   * `unwatched`: another member's scene, which a GPU reset of its own takes
+   * off at once (`sceneLosses.ts`).
+   */
+  | { kind: 'load'; id: number; pack: IScenePack; unwatched: boolean }
   /** Give up any load, free everything, then answer `retired`. */
   | { kind: 'retire' }
   | {

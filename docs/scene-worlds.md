@@ -319,8 +319,8 @@ and say which.
 
 The world renders into targets of its own — four times multisampled, in
 half-float light — then the glow, then one pass that tone maps it and lays it
-over the shader's sky into whatever the app bound: so the brightness limiter,
-FSR, supersampling and FXAA treat a world exactly as they treat a shader.
+over the shader's sky into whatever the app bound: so FSR, supersampling and
+FXAA treat a world exactly as they treat a shader.
 The engine is its own file, loaded only when a world is shown.
 
 The multisampling is for the edges of solid things. A world made only of

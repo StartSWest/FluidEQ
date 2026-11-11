@@ -35,18 +35,8 @@ export interface ISceneDrawClock {
   /**
    * A frame drawn with the clock standing still: the Studio's Edit mode
    * freezes the scene so a thing can be picked and moved where it stands.
-   *
-   * `shownMs` is the real time since the last picture, which is what the
-   * brightness limiter must be given (`sceneFlashGuardGpu.ts`). Handed the
-   * scene's own step of zero, it allowed no change at all: whatever it was
-   * holding back stayed held, and a camera turned in Edit mode dragged a
-   * smear of the old picture across the new one (Ivan, 2026-11-11: "when
-   * moving the camera it's creating the blurred foam FX").
    */
-  hold(
-    now: number,
-    pageDeltaMs: number | undefined,
-  ): { timeSeconds: number; deltaMs: number; shownMs: number };
+  hold(now: number): { timeSeconds: number; deltaMs: number };
   /** Nothing drawn until the next frame, which is drawn at once. */
   pause(): void;
   /** A different scene starts from the beginning of its clock. */
@@ -75,15 +65,9 @@ export const createSceneDrawClock = (): ISceneDrawClock => {
       drawnAt = now;
       return { timeSeconds: sceneTimeS, deltaMs: stepMs };
     },
-    hold: (now, pageDeltaMs) => {
-      // The scene's own time stands still; the time between the pictures
-      // shown does not, and is measured exactly as `advance` measures it.
-      const shownMs =
-        drawnAt === undefined
-          ? Math.min(MAX_TIME_STEP_MS, pageDeltaMs ?? 0)
-          : Math.min(MAX_TIME_STEP_MS, Math.max(0, now - drawnAt));
+    hold: (now) => {
       drawnAt = now;
-      return { timeSeconds: sceneTimeS, deltaMs: 0, shownMs };
+      return { timeSeconds: sceneTimeS, deltaMs: 0 };
     },
     pause: () => {
       drawnAt = undefined;

@@ -1,5 +1,14 @@
 /**
- * The brightness limiter every member's scene is drawn through.
+ * The brightness limiter a member's scene is drawn through on the desk's
+ * lamps (`lightingScene.worker.ts`).
+ *
+ * NOT ON ANY PICTURE. Every scene used to be drawn through it on screen too,
+ * a member's everywhere it played, and it blended frames wherever a whole
+ * area changed brightness fast: a camera turn came out as a smear (Ivan,
+ * 2026-11-11: "all scenes need to work the same way"). Every scene's picture
+ * now reaches the screen as drawn; a scene that strobes is caught before it
+ * is published, in review. Lamps light a room and blur nothing on screen, so
+ * they keep it.
  *
  * A picture that flashes more than three times a second can trigger a seizure
  * in somebody with photosensitive epilepsy, and a member's scene is shown to
@@ -50,6 +59,7 @@
  * limited.
  *
  * Official scenes do not go through this: they are watched before release.
+ * The measurements below were made when it still drew the window's pictures.
  * NOT UNIT-TESTED beyond its arithmetic, for the same reason as `sceneGl.ts` —
  * jsdom has no WebGL. Measured in Chrome at the Studio's 1460x603 against a
  * whole-frame strobe, 8-, 32- and 128-square inverting checkerboards, a
