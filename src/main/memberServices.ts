@@ -281,6 +281,10 @@ const registerMemberServices = ({
   const disposeSceneBuilds = registerSceneBuildsIpc(builds);
   const disposeSceneFailures = registerSceneFailureIpc();
 
+  // Made below, once the gallery's access exists; a desktop background
+  // asks for a repair only after a scene has run, long after that.
+  let recoverLook:
+    ((lookId: string) => Promise<{ recovered: boolean }>) | undefined;
   const wallpaperIpc = registerWallpaperIpc({
     getMainWindow,
     ownership: sceneOwnership,
@@ -289,6 +293,8 @@ const registerMemberServices = ({
     loadScene: builds.loadScene,
     sceneDrawn: builds.drawn,
     sceneWouldNotBuild: builds.wouldNotBuild,
+    recoverScene: async (lookId) =>
+      (await recoverLook?.(lookId))?.recovered === true,
     locale: getTrayLocale,
     onLocale: onTrayLocale,
   });
@@ -333,13 +339,14 @@ const registerMemberServices = ({
   });
   // A look that will not play is put right from its maker's project or the
   // gallery's copy (`memberScenes/sceneRecovery.ts`).
-  const disposeSceneRecovery = registerSceneRecoveryIpc({
+  const sceneRecoveryIpc = registerSceneRecoveryIpc({
     access: galleryAccess,
     store: memberScenesIpc.store,
     ownProjectFolders: memberScenesIpc.ownProjectFolders,
     announce: memberScenesIpc.announce,
     logger: log,
   });
+  recoverLook = sceneRecoveryIpc.recover;
   // A version the server still keeps, saved by an owner among the scene's
   // kept versions here (`ipc/plusGalleryVersionSave.ts`).
   const disposeGalleryVersionSave = registerGalleryVersionSaveIpc({
@@ -529,7 +536,7 @@ const registerMemberServices = ({
     plusPublishingIpc.dispose();
     plusGalleryIpc.dispose();
     disposeGalleryVersionSave();
-    disposeSceneRecovery();
+    sceneRecoveryIpc.dispose();
     galleryClipIpc.dispose();
     memberSharingIpc.dispose();
     memberScenesIpc.dispose();

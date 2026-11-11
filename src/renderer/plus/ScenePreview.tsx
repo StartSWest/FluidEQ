@@ -33,6 +33,11 @@ interface IScenePreviewProps {
   label: string;
   onTrouble: (trouble: TPreviewTrouble) => void;
   /**
+   * A newer version would not build and an earlier one plays on in its
+   * place (`ISceneSource.versionFailed`). Absent, nothing is told.
+   */
+  onVersionFailed?: () => void;
+  /**
    * After every frame drawn, with the frame, and what drawing it cost: the
    * admin's review page reads the scene's frame time from it.
    */
@@ -96,6 +101,7 @@ export default function ScenePreview({
   pack,
   label,
   onTrouble,
+  onVersionFailed,
   onDrawn,
   shapeFrame,
   tuning,
@@ -136,6 +142,9 @@ export default function ScenePreview({
   packRef.current = pack;
   const troubleRef = useRef(onTrouble);
   troubleRef.current = onTrouble;
+  const versionFailedRef = useRef(onVersionFailed);
+  versionFailedRef.current = onVersionFailed;
+  const tellsVersions = onVersionFailed !== undefined;
 
   const lookId = look?.lookId;
   const lookRevision = look?.revision;
@@ -154,6 +163,9 @@ export default function ScenePreview({
         troubleRef.current(reason === 'compile' ? 'compile' : 'unavailable');
       },
       tooSlow: () => troubleRef.current('heavy'),
+      ...(tellsVersions
+        ? { versionFailed: () => versionFailedRef.current?.() }
+        : {}),
       ...(lookId !== undefined
         ? {
             lastBuilt: () => lastSceneBuild(lookId),
@@ -166,7 +178,7 @@ export default function ScenePreview({
         : {}),
       madeBy,
     }),
-    [identity, madeBy, lookId, lookRevision, surface],
+    [identity, madeBy, lookId, lookRevision, surface, tellsVersions],
   );
 
   const drawnRef = useRef(onDrawn);

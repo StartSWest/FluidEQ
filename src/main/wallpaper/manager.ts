@@ -59,6 +59,12 @@ export interface IWallpaperDeps extends IWallpaperScenes {
    * is kept, which `loadScene` answers in its place from now on.
    */
   sceneWouldNotBuild(lookId: string, pack: IScenePack): boolean;
+  /**
+   * A look whose code would not build, put right from a better copy
+   * (`memberScenes/sceneRecovery.ts`): true once one is kept, which
+   * `loadScene` then answers. Absent, nothing is recovered.
+   */
+  recoverScene?(lookId: string): Promise<boolean>;
   /** The window's language as main has it, for the words a page shows. */
   locale(): LocaleCode;
   /** Told whenever the window's language changes; returns how to stop. */
@@ -660,9 +666,59 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       failed('stood-in');
       backgrounds.change(display, surface.choice(), earlier);
       publish();
+      // The version that would not build is put right behind the earlier
+      // one; a better copy reaches this monitor through the stores, as any
+      // update does (`refreshScenes`).
+      recover(surface.lookId);
       return;
     }
     surface.fail('refused');
+    if (reason === 'compile') {
+      recover(surface.lookId);
+    }
+  };
+
+  /**
+   * A look that would not build is put right from a better copy, and every
+   * monitor refused for it plays it again (Ivan, 2026-11-11: "if it fails it
+   * recovers"). A refusal is otherwise never tried again on its own
+   * (`refreshScenes`): this is the one way back, and only for a copy that
+   * is a different one, which the recovery alone keeps.
+   */
+  const recover = (lookId: string) => {
+    deps
+      .recoverScene?.(lookId)
+      .then((kept) => {
+        if (kept) {
+          retryRefused(lookId);
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+  };
+
+  const retryRefused = (lookId: string) => {
+    if (disposed || !app.isReady() || !owns(lookId)) {
+      return;
+    }
+    const connected = screen.getAllDisplays();
+    let changed = false;
+    backgrounds.failures().forEach(([displayId, failure]) => {
+      const display = connected.find((entry) => entry.id === displayId);
+      const scene =
+        display &&
+        failure.error === 'refused' &&
+        failure.choice.lookId === lookId
+          ? deps.loadScene(lookId)
+          : undefined;
+      if (display && scene) {
+        backgrounds.place(display, failure.choice, scene);
+        changed = true;
+      }
+    });
+    if (changed) {
+      publish();
+    }
   };
 
   /** A page drew the scene it was last given. */

@@ -61,13 +61,16 @@ export const registerSceneRecoveryIpc = ({
     );
   };
 
-  ipcMain.handle(
-    CHANNEL,
-    async (_event, lookId: unknown): Promise<TSceneRecovery> =>
-      typeof lookId === 'string' && mayRecover(lookId)
-        ? recovery.recover(lookId)
-        : { recovered: false },
-  );
+  /** The window's ask and main's own (a desktop background) go through here. */
+  const recover = async (lookId: unknown): Promise<TSceneRecovery> =>
+    typeof lookId === 'string' && mayRecover(lookId)
+      ? recovery.recover(lookId)
+      : { recovered: false };
 
-  return () => ipcMain.removeHandler(CHANNEL);
+  ipcMain.handle(CHANNEL, (_event, lookId: unknown) => recover(lookId));
+
+  return {
+    recover,
+    dispose: () => ipcMain.removeHandler(CHANNEL),
+  };
 };

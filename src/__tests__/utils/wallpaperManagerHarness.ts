@@ -275,6 +275,8 @@ export const setup = (stored?: IWallpaperArrangement) => {
     // No earlier build kept, unless a test keeps one.
     sceneDrawn: jest.fn(),
     sceneWouldNotBuild: jest.fn((): boolean => false),
+    // No better copy found, unless a test finds one.
+    recoverScene: jest.fn(async (_lookId: string): Promise<boolean> => false),
   };
   const deps: IWallpaperDeps = {
     getMainWindow: () =>

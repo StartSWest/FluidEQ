@@ -54,7 +54,7 @@ const setUp = ({ owned = [] as string[] } = {}) => {
   // Signed out of the gallery: an ask that gets as far as the gallery is
   // seen by its asking for the token.
   const auth = jest.fn(async () => undefined);
-  const dispose = registerSceneRecoveryIpc({
+  const { dispose, recover } = registerSceneRecoveryIpc({
     access: {
       accountId: () => ME,
       auth,
@@ -66,7 +66,7 @@ const setUp = ({ owned = [] as string[] } = {}) => {
   });
   const ask = (lookId: unknown) =>
     handlers.get('member-scenes-recover')?.({}, lookId);
-  return { store, auth, ask, dispose };
+  return { store, auth, ask, dispose, recover };
 };
 
 const MINE = memberLookId(ME, 'neon-city');
@@ -105,4 +105,18 @@ it('anything that is not a look is answered without a look', async () => {
   expect(auth).not.toHaveBeenCalled();
   dispose();
   expect(handlers.has('member-scenes-recover')).toBe(false);
+});
+
+// A desktop background asks from main, not through the window's channel
+// (`wallpaper/manager.ts`): the same gate holds it.
+it('main’s own ask is held by the same gate as the window’s', async () => {
+  const { store, auth, recover } = setUp();
+  store.setBlocked([memberSceneFingerprint(ME, 'neon-city')]);
+  await expect(recover(THEIRS)).resolves.toEqual({ recovered: false });
+  await expect(recover(MINE)).resolves.toEqual({ recovered: false });
+  expect(auth).not.toHaveBeenCalled();
+  // The control: one it may recover gets as far as the gallery.
+  store.setBlocked([]);
+  await expect(recover(MINE)).resolves.toEqual({ recovered: false });
+  expect(auth).toHaveBeenCalledTimes(1);
 });

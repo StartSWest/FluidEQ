@@ -365,3 +365,153 @@ describe('a set request main cannot read', () => {
     expect(mockSurfaces).not.toHaveLength(0);
   });
 });
+
+/**
+ * A look whose code would not build on the desktop is put right from a better
+ * copy, and plays again on every monitor refused for it (Ivan, 2026-11-11:
+ * "if it fails it recovers"). The recovery itself is main's
+ * (`sceneRecovery.test.ts`); here it is stood in for by its answer.
+ */
+describe('a desktop scene that would not build is recovered', () => {
+  it('plays again on every monitor refused for it once a better copy is kept', async () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner, { displayIds: [2, 3] });
+    const [onTwo, onThree] = mockSurfaces;
+    scenes.recoverScene.mockResolvedValue(true);
+
+    pageFails(onTwo, 'compile');
+    pageFails(onThree, 'compile');
+    expect(scenes.recoverScene).toHaveBeenCalledWith('premium:alpine');
+    expect(onTwo.fail).toHaveBeenCalledWith('refused');
+    await flush();
+    // Each monitor has a new page with the kept copy, and none is refused.
+    expect(
+      mockSurfaces
+        .slice(2)
+        .map((surface) => surface.displayId)
+        .sort(),
+    ).toEqual([2, 3]);
+    expect(
+      screensThrough(owner).filter((screen) => screen.error !== undefined),
+    ).toEqual([]);
+  });
+
+  // The control for the case above: with no better copy, the refusal stands.
+  it('stays refused when no better copy was found', async () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner);
+    pageFails(mockSurfaces[0], 'compile');
+    expect(scenes.recoverScene).toHaveBeenCalledWith('premium:alpine');
+    await flush();
+    expect(mockSurfaces).toHaveLength(1);
+    expect(screensThrough(owner)).toEqual([
+      expect.objectContaining({ displayId: 2, error: 'refused' }),
+    ]);
+  });
+
+  it('plays again only the monitors refused for the look that was put right', async () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner, { displayIds: [2] });
+    setThrough(owner, { displayIds: [3], lookId: 'premium:aurora' });
+    const [onTwo, onThree] = mockSurfaces;
+    scenes.recoverScene.mockImplementation(
+      async (lookId: string) => lookId === 'premium:alpine',
+    );
+    pageFails(onThree, 'compile');
+    pageFails(onTwo, 'compile');
+    await flush();
+    expect(mockSurfaces.slice(2).map((surface) => surface.displayId)).toEqual([
+      2,
+    ]);
+    expect(screensThrough(owner)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ displayId: 3, error: 'refused' }),
+      ]),
+    );
+  });
+
+  it('leaves a monitor of the same look that failed some other way as it was', async () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner, { displayIds: [2, 3] });
+    const [onTwo, onThree] = mockSurfaces;
+    scenes.recoverScene.mockResolvedValue(true);
+    // Its page failing on its own is the renderer's, not the scene's.
+    pageFails(onThree);
+    pageFails(onTwo, 'compile');
+    await flush();
+    expect(mockSurfaces.slice(2).map((surface) => surface.displayId)).toEqual([
+      2,
+    ]);
+    expect(screensThrough(owner)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ displayId: 3, error: 'renderer' }),
+      ]),
+    );
+  });
+
+  it('asks nothing for what another copy cannot change', async () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner, { displayIds: [2, 3] });
+    pageFails(mockSurfaces[0], 'gpu-reset');
+    pageFails(mockSurfaces[1], 'context-lost');
+    await flush();
+    expect(scenes.recoverScene).not.toHaveBeenCalled();
+  });
+
+  it('leaves a monitor alone that was set to another look meanwhile', async () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner);
+    let answer: (kept: boolean) => void = () => undefined;
+    scenes.recoverScene.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        answer = resolve;
+      }),
+    );
+    pageFails(mockSurfaces[0], 'compile');
+    setThrough(owner, { lookId: 'premium:aurora' });
+    const before = mockSurfaces.length;
+    answer(true);
+    await flush();
+    expect(mockSurfaces).toHaveLength(before);
+    expect(mockSurfaces[mockSurfaces.length - 1].lookId).toBe('premium:aurora');
+  });
+
+  it('puts right a version that would not build behind the earlier build playing', async () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner);
+    scenes.sceneWouldNotBuild.mockReturnValue(true);
+    scenes.recoverScene.mockResolvedValue(true);
+    pageFails(mockSurfaces[0], 'compile');
+    expect(scenes.recoverScene).toHaveBeenCalledWith('premium:alpine');
+    expect(mockSurfaces[0].fail).not.toHaveBeenCalled();
+    await flush();
+    // The earlier build stays where it is; the copy kept reaches the monitor
+    // through the stores, as an update does.
+    expect(mockSurfaces).toHaveLength(1);
+  });
+
+  it('plays nothing again for a look this account no longer owns', async () => {
+    const { deps, owner, scenes, setEntitled } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner);
+    let answer: (kept: boolean) => void = () => undefined;
+    scenes.recoverScene.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        answer = resolve;
+      }),
+    );
+    pageFails(mockSurfaces[0], 'compile');
+    setEntitled(false);
+    const before = mockSurfaces.length;
+    answer(true);
+    await flush();
+    expect(mockSurfaces).toHaveLength(before);
+  });
+});

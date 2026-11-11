@@ -5,6 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { isMemberLookId } from 'common/memberScenes';
+import {
+  memberVersionWouldNotBuild,
+  playerLookWouldNotBuild,
+} from '../graph/lookRecovery';
+import type { TPreviewTrouble } from '../plus/ScenePreview';
 import { useTranslation } from '../utils/I18nContext';
 import FoldStrip from './FoldStrip';
 import FoldTrace from './FoldTrace';
@@ -73,11 +79,28 @@ const PlayerAmp = ({
   const [troubled, setTroubled] = useState<string>();
   const drawn =
     scene.state === 'ready' && scene.identity !== troubled ? scene : undefined;
-  const onTrouble = useCallback(() => {
-    if (scene.state === 'ready') {
+  const onTrouble = useCallback(
+    (trouble: TPreviewTrouble) => {
+      if (scene.state !== 'ready') {
+        return;
+      }
       setTroubled(scene.identity);
+      // Never only the free look in its place: a better copy, which draws
+      // here by itself, or the graph's word on why (`lookRecovery.ts`).
+      if (trouble === 'compile') {
+        playerLookWouldNotBuild(scene.lookId, scene.pack.names).catch(
+          () => undefined,
+        );
+      }
+    },
+    [scene],
+  );
+  const lookId = scene.state === 'ready' ? scene.lookId : undefined;
+  const onVersionFailed = useCallback(() => {
+    if (lookId !== undefined && isMemberLookId(lookId)) {
+      memberVersionWouldNotBuild(lookId).catch(() => undefined);
     }
-  }, [scene]);
+  }, [lookId]);
   usePlayerHeightFloor(rootRef, isFolded, sound.face);
   const drop = useMusicDrop();
   // THE BACKDROP: the window colours that put the visualizer behind the
@@ -115,7 +138,11 @@ const PlayerAmp = ({
     >
       {isFolded ? (
         <>
-          <PlayerStage scene={drawn} onTrouble={onTrouble} />
+          <PlayerStage
+            scene={drawn}
+            onTrouble={onTrouble}
+            onVersionFailed={onVersionFailed}
+          />
           {/* A standard look behind the line, as a scene is behind it; none
               while a scene is on its way, as the top panel draws none. */}
           {drawn === undefined && scene.state !== 'loading' && <FoldTrace />}
@@ -124,13 +151,22 @@ const PlayerAmp = ({
       ) : (
         <>
           {isBackdrop && (
-            <PlayerStage scene={drawn} onTrouble={onTrouble} panel={topPanel} />
+            <PlayerStage
+              scene={drawn}
+              onTrouble={onTrouble}
+              onVersionFailed={onVersionFailed}
+              panel={topPanel}
+            />
           )}
           <PlayerTitleStrip onFold={fold} onOpenPage={onOpenPage} />
           <div className="player-body">
             <div className="player-top" ref={setTopPanel}>
               {!isBackdrop && (
-                <PlayerStage scene={drawn} onTrouble={onTrouble} />
+                <PlayerStage
+                  scene={drawn}
+                  onTrouble={onTrouble}
+                  onVersionFailed={onVersionFailed}
+                />
               )}
               <PlayerHero
                 scene={drawn}

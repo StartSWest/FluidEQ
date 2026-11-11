@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { FULL_VIEW, sceneViewOf, type TSceneView } from '../graph/sceneView';
-import ScenePreview from '../plus/ScenePreview';
+import ScenePreview, { type TPreviewTrouble } from '../plus/ScenePreview';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import type { IGraphScenePack } from './useGraphScenePack';
 import usePlayerScenePulse from './usePlayerScenePulse';
@@ -16,7 +16,9 @@ import { layoutBoxIn } from '../utils/layoutBox';
 interface IPlayerStageProps {
   /** The Plus visualizer to draw, loaded and not troubled; none otherwise. */
   scene: IGraphScenePack | undefined;
-  onTrouble: () => void;
+  onTrouble: (trouble: TPreviewTrouble) => void;
+  /** A newer version would not build and an earlier one plays on. */
+  onVersionFailed?: () => void;
   /**
    * The scene's own panel, where it is framed, on a stage larger than it:
    * the amp's top part, while the stage is the whole window (the Backdrop);
@@ -49,7 +51,12 @@ interface IPlayerStageProps {
  * stage or the panel changes size, and as the column the panel stands in
  * scrolls.
  */
-const PlayerStage = ({ scene, onTrouble, panel }: IPlayerStageProps) => {
+const PlayerStage = ({
+  scene,
+  onTrouble,
+  onVersionFailed,
+  panel,
+}: IPlayerStageProps) => {
   const layerRef = useRef<HTMLDivElement>(null);
   // The window's light beats with this picture in Ambient, as it does with
   // the graph's in the full app.
@@ -155,6 +162,7 @@ const PlayerStage = ({ scene, onTrouble, panel }: IPlayerStageProps) => {
           tuning={scene.tuning}
           wave={scene.wave}
           onTrouble={onTrouble}
+          onVersionFailed={onVersionFailed}
           onDrawn={onDrawn}
           shapeFrame={panel !== undefined ? shapeFrame : undefined}
         />

@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { isMemberLookId } from 'common/memberScenes';
 import type { IScenePack } from 'common/scenePacks';
 import { getGraphLookId, setGraphLook } from '../utils/graphStyle';
 import {
@@ -56,6 +57,25 @@ export const memberLookWouldNotBuild = async (
   }
   if (getGraphLookId() === landed) {
     setGraphLook(lookId);
+  }
+};
+
+/**
+ * The compact player's scene would not build, and the free look stands in
+ * there (`PlayerAmp`). A member's is put right from a better copy, which
+ * the player then draws by itself: a kept copy is a new revision, so a new
+ * scene to it. No copy, or one of FluidEQ's own, and the graph's notice
+ * says why (`lookRefusal.ts`), as it would have had the graph drawn it.
+ */
+export const playerLookWouldNotBuild = async (
+  lookId: string,
+  names: IScenePack['names'],
+): Promise<void> => {
+  if (
+    !isMemberLookId(lookId) ||
+    !(await recovered(lookId).catch(() => false))
+  ) {
+    refuseLook(lookId, names, 'compile');
   }
 };
 
