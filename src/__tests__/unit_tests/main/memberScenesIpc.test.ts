@@ -36,7 +36,12 @@ import {
   type TAddOutcome,
   type TNewProjectResult,
 } from '../../../main/ipc/memberScenes';
-import { writeStarterProject } from '../../../main/memberScenes/project';
+import {
+  readProject,
+  writeStarterProject,
+} from '../../../main/memberScenes/project';
+import type { IScenePack } from '../../../common/scenePacks';
+import { assembleFragmentSource } from '../../../common/sceneUniformContract';
 import { memberPack } from '../../utils/memberSceneFixtures';
 /* eslint-enable import/first */
 
@@ -696,4 +701,81 @@ it('tidies every project on the list once at start, never one opened from FluidE
   const registration = setup({ tidyProject });
   expect(tidyProject.mock.calls).toEqual([[mine]]);
   registration.dispose();
+});
+
+/**
+ * A palette scene from the Studio to the graph (2026-11-11). Ivan's palette
+ * scenes played in the Studio, which reads the folder, and failed on the
+ * graph with "'uPalette_colours' : undeclared identifier": the copy in the
+ * looks had lost its palette. The graph loads the look over
+ * 'member-scenes-load' and compiles `assembleFragmentSource(pack)`; both
+ * ways into the looks — Add to looks, and publishing's keep — are held to the
+ * shader the Studio compiles from the folder.
+ */
+describe('a palette scene from the Studio to the graph', () => {
+  const PALETTE = 'uniform sampler2D uPalette_colours;';
+  const COLOUR = 'uniform vec3 uColour_tint;';
+
+  /** A starter project given a palette and a colour, as the Studio writes them. */
+  const colouredProject = async () => {
+    const folder = await project();
+    const file = path.join(folder, 'pack.json');
+    const stored = JSON.parse(fs.readFileSync(file, 'utf8'));
+    stored.params = [
+      ...(stored.params ?? []),
+      {
+        type: 'palette',
+        id: 'colours',
+        names: { en: 'Colours' },
+        stops: ['#ff0000', '#0000ff'],
+      },
+      { type: 'colour', id: 'tint', names: { en: 'Tint' }, value: '#00ffcc' },
+    ];
+    fs.writeFileSync(file, JSON.stringify(stored, null, 2));
+    return folder;
+  };
+
+  const shaderOf = (pack: unknown) =>
+    assembleFragmentSource(pack as IScenePack).source;
+
+  it('compiles on the graph with its palette and colour after Add to looks', async () => {
+    const registration = setup();
+    chosen = await colouredProject();
+    // The control: the Studio's own build declares both.
+    const build = await readProject(chosen);
+    if (!build.ok) {
+      throw new Error(
+        `the project does not build: ${JSON.stringify(build.problems)}`,
+      );
+    }
+    expect(shaderOf(build.pack)).toContain(PALETTE);
+    expect(shaderOf(build.pack)).toContain(COLOUR);
+
+    await invoke<Promise<IStudioState>>('studio-open');
+    await link();
+    await invoke<Promise<TAddOutcome>>('studio-add-to-looks');
+    const lookId = memberLookId(ME, 'my-first-scene');
+    const onGraph = invoke('member-scenes-load', lookId);
+    expect(shaderOf(onGraph)).toContain(PALETTE);
+    expect(shaderOf(onGraph)).toContain(COLOUR);
+    registration.dispose();
+  });
+
+  it('compiles on the graph with its palette and colour after publishing keeps it', async () => {
+    const registration = setup();
+    const build = await readProject(await colouredProject());
+    if (!build.ok) {
+      throw new Error(
+        `the project does not build: ${JSON.stringify(build.problems)}`,
+      );
+    }
+    registration.keepPublished(ME, build.pack);
+    const onGraph = invoke(
+      'member-scenes-load',
+      memberLookId(ME, 'my-first-scene'),
+    );
+    expect(shaderOf(onGraph)).toContain(PALETTE);
+    expect(shaderOf(onGraph)).toContain(COLOUR);
+    registration.dispose();
+  });
 });
