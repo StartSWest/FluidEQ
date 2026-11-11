@@ -15,8 +15,10 @@ import path from 'path';
 import { safeStorage } from 'electron';
 import {
   createMemberSceneStore,
+  keptRevisionOf,
   memberSceneFingerprint,
 } from '../../../main/memberScenes/store';
+import { readSceneCache, writeSceneCache } from '../../../main/sceneCacheFile';
 import { memberLookId } from '../../../common/memberScenes';
 import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
@@ -294,5 +296,114 @@ describe('the member scene store', () => {
     const next = createMemberSceneStore({ userDataDir });
     expect(next.load(ME, 'neon-city')).toEqual(pack());
     expect(next.load(SOMEONE, 'neon-city')).toEqual(pack());
+  });
+});
+
+/**
+ * A scene's palettes, single colours and choices, kept in the looks and read
+ * back (2026-11-11, Ivan's scenes on the graph after publishing: "ERROR: 0:14:
+ * 'uPalette_colours' : undeclared identifier"). A built pack keeps palettes
+ * and colours apart from `params` and a choice as a param with options; the
+ * stored layout, which every reader parses, keeps all three among `params`
+ * with their `type`. The store checked and wrote the built layout and read
+ * the stored one, so every own copy came back with none of them, and the
+ * graph compiled its shader without the uniforms it names.
+ */
+describe('a scene with a palette, a colour and a choice, kept in the looks', () => {
+  const speed = {
+    id: 'speed',
+    names: { en: 'Speed' },
+    min: 0,
+    max: 5,
+    value: 1,
+  };
+  const mode = {
+    id: 'mode',
+    names: { en: 'Mode' },
+    min: 0,
+    max: 1,
+    value: 1,
+    options: [{ names: { en: 'Calm' } }, { names: { en: 'Storm' } }],
+  };
+  const coloured = pack({
+    id: 'waveform-3d',
+    params: [speed, mode],
+    palettes: [
+      {
+        id: 'colours',
+        names: { en: 'Colours' },
+        stops: ['#ff0000', '#0000ff'],
+      },
+    ],
+    colours: [{ id: 'glow', names: { en: 'Glow' }, value: '#00ffcc' }],
+  });
+
+  it('comes back with all three, beside its slider', () => {
+    createMemberSceneStore({ userDataDir }).save(ME, coloured);
+    const back = createMemberSceneStore({ userDataDir }).load(
+      ME,
+      'waveform-3d',
+    );
+    expect(back?.palettes).toEqual(coloured.palettes);
+    expect(back?.colours).toEqual(coloured.colours);
+    expect(back?.params).toEqual(coloured.params);
+  });
+
+  // The control: a scene with a slider alone was never touched.
+  it('keeps a slider-only scene as it was', () => {
+    const plain = pack({ params: [speed] });
+    createMemberSceneStore({ userDataDir }).save(ME, plain);
+    expect(
+      createMemberSceneStore({ userDataDir }).load(ME, 'neon-city'),
+    ).toEqual(plain);
+  });
+
+  // A copy kept by 2.4.0 is in the built layout on disk: it plays again
+  // after the update, with nothing added again.
+  it('heals a copy an older FluidEQ wrote in the built layout', () => {
+    const store = createMemberSceneStore({ userDataDir });
+    store.save(ME, pack({ id: 'waveform-3d', params: [speed] }));
+    writeSceneCache(
+      path.join(userDataDir, 'member-scenes', 'own', ME, 'waveform-3d.json'),
+      `own/${ME}/waveform-3d`,
+      {
+        schema: 1,
+        authorId: ME,
+        savedAt: '2026-11-11T00:01:39Z',
+        pack: coloured,
+      },
+    );
+    const back = createMemberSceneStore({ userDataDir }).load(
+      ME,
+      'waveform-3d',
+    );
+    expect(back?.palettes).toEqual(coloured.palettes);
+    expect(back?.colours).toEqual(coloured.colours);
+    expect(back?.params).toEqual(coloured.params);
+  });
+
+  // On disk in the layout every reader and every other copy uses, so it does
+  // not depend on the healing above to be read.
+  it('is written in the stored layout', () => {
+    createMemberSceneStore({ userDataDir }).save(ME, coloured);
+    const record = readSceneCache(
+      path.join(userDataDir, 'member-scenes', 'own', ME, 'waveform-3d.json'),
+      `own/${ME}/waveform-3d`,
+      (value) => value as { pack: Record<string, unknown> },
+    );
+    expect(record?.pack).not.toHaveProperty('palettes');
+    expect(record?.pack).not.toHaveProperty('colours');
+    expect(
+      (record?.pack.params as { type?: string }[]).map((param) => param.type),
+    ).toEqual([undefined, 'choice', 'palette', 'colour']);
+  });
+
+  // The Studio's "current" mark compares the project's build with the kept
+  // copy's revision; it is current right after keeping it.
+  it('gives the kept copy the revision the Studio works out for the build', () => {
+    const store = createMemberSceneStore({ userDataDir });
+    store.save(ME, coloured);
+    const [kept] = store.list();
+    expect(keptRevisionOf(coloured)).toBe(kept.revision);
   });
 });

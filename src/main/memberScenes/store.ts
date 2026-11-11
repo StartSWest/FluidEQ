@@ -15,6 +15,7 @@ import {
   type IScenePackEnvelope,
   type TLocalizedName,
 } from '../../common/scenePacks';
+import storedScenePack, { storedFormOf } from '../../common/sceneStoredPack';
 import type { ISceneWave } from '../../common/sceneWave';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
@@ -144,11 +145,13 @@ const revisionOf = (pack: IScenePack) =>
  * Nothing for a pack the looks would refuse.
  */
 export const keptRevisionOf = (pack: IScenePack): string | undefined => {
-  const checked = checkMemberScene(pack);
+  const checked = checkMemberScene(storedScenePack(pack));
   if (!checked.ok) {
     return undefined;
   }
-  const kept = readMemberScene(JSON.parse(JSON.stringify(checked.pack)));
+  const kept = readMemberScene(
+    JSON.parse(JSON.stringify(storedScenePack(checked.pack))),
+  );
   return kept ? revisionOf(kept) : undefined;
 };
 
@@ -203,7 +206,9 @@ export const createMemberSceneStore = ({
         // Read the way a listener's copy is read, not the way the Studio
         // reads the author's: this file was written by whatever FluidEQ the
         // member was running then, which may be newer than this one.
-        const pack = readMemberScene(record.pack);
+        // A copy written in the built layout before 2026-11-11 is healed
+        // here, so it plays again without being added again.
+        const pack = readMemberScene(storedFormOf(record.pack));
         if (!pack || pack.id !== packId) {
           logger?.warn(
             `Member scene ${packId} no longer passes the member rules and is not offered.`,
@@ -334,7 +339,13 @@ export const createMemberSceneStore = ({
       if (!validRef(authorId, pack.id)) {
         throw new Error('Not a member scene id.');
       }
-      const checked = checkMemberScene(pack);
+      // Checked, written and read in the stored layout, the one every reader
+      // parses. A built pack keeps its palettes, colours and choice options
+      // apart from `params`; checked or written that way they were dropped,
+      // and Ivan's palette scenes failed on the graph with "'uPalette_colours'
+      // : undeclared identifier" while the Studio, reading the folder, played
+      // them (2026-11-11).
+      const checked = checkMemberScene(storedScenePack(pack));
       if (!checked.ok) {
         throw new Error(
           `Member scene refused: ${checked.problems
@@ -350,7 +361,7 @@ export const createMemberSceneStore = ({
           schema: RECORD_SCHEMA,
           authorId,
           savedAt: new Date().toISOString(),
-          pack: checked.pack,
+          pack: storedScenePack(checked.pack),
         },
       );
       return summarise(authorId, checked.pack);

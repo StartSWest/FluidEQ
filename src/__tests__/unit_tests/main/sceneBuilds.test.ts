@@ -201,3 +201,28 @@ describe('the last build of a look', () => {
     expect(fs.readdirSync(dir)).toHaveLength(0);
   });
 });
+
+describe('the last build of a scene with a palette and a colour', () => {
+  // Written in the built layout and read as the stored one, a palette scene
+  // came back from disk without its palette (2026-11-11).
+  it('keeps them across a relaunch', () => {
+    const { store, open, revision } = setup();
+    const coloured = {
+      ...pack(WORKS),
+      palettes: [
+        {
+          id: 'colours',
+          names: { en: 'Colours' },
+          stops: ['#ff0000', '#0000ff'],
+        },
+      ],
+      colours: [{ id: 'glow', names: { en: 'Glow' }, value: '#00ffcc' }],
+    };
+    store.save(ME, coloured);
+    open().built(LOOK, revision());
+    store.save(ME, pack(BROKEN));
+    const last = open().lastBuilt(LOOK);
+    expect(last?.palettes).toEqual(coloured.palettes);
+    expect(last?.colours).toEqual(coloured.colours);
+  });
+});

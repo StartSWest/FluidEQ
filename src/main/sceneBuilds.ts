@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { parseMemberLookId, readMemberScene } from '../common/memberScenes';
 import type { IScenePack } from '../common/scenePacks';
+import storedScenePack, { storedFormOf } from '../common/sceneStoredPack';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
 import type { IWallpaperScene } from './wallpaper/surface';
 
@@ -106,7 +107,7 @@ export const createSceneBuilds = ({
         return undefined;
       }
       // Read as every member scene is read, by whatever FluidEQ runs now.
-      const pack = readMemberScene(record.pack);
+      const pack = readMemberScene(storedFormOf(record.pack));
       return pack && pack.id === ref.packId
         ? { revision: sceneRevisionOf(pack), pack }
         : undefined;
@@ -133,7 +134,12 @@ export const createSceneBuilds = ({
       return;
     }
     try {
-      writeSceneCache(fileOf(dir, lookId), scopeOf(lookId), { lookId, pack });
+      // In the layout the reader parses, or a palette's scene comes back
+      // without it (`storedFormOf`).
+      writeSceneCache(fileOf(dir, lookId), scopeOf(lookId), {
+        lookId,
+        pack: storedScenePack(pack),
+      });
     } catch (error) {
       // Kept for this session all the same; a relaunch on a version that
       // will not build then falls back as it did before.
