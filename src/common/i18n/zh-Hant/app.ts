@@ -206,6 +206,9 @@ const app = {
   'app.notification.updateFound.title': '找到 FluidEQ 更新',
   'app.notification.updateFound.body':
     '版本 {version} 正在下載。當它準備好安裝時，您會被告知。',
+  'app.notification.onSite.title': '網站上有新的 FluidEQ',
+  'app.notification.onSite.body':
+    '版本 {version} 已在 fluideq.com 提供。這個免費版不會自動更新。',
   'app.notification.checkFailed.title': '無法檢查更新',
   'app.notification.checkFailed.body':
     '無法存取更新伺服器。 FluidEQ 將稍後重試。',
@@ -279,6 +282,12 @@ const app = {
   'update.ready': '{version} 版本已準備就緒。重新啟動 FluidEQ 以完成。',
   'update.restart': '立即重新啟動',
   'update.restarting': '正在重新啟動...',
+  'update.onSite.title': '網站上有新版本',
+  'update.onSite.body':
+    'FluidEQ {version} 已發布。這個免費版不會自動更新：請從 fluideq.com 下載並覆蓋安裝。您的設定會保留。',
+  'update.onSite.download': '下載',
+  'update.onSite.getAuto': '取得自動更新 – {price}',
+  'update.onSite.getAutoNoPrice': '取得自動更新',
   'update.mandatory.title': '這個版本必須更新了',
   'update.mandatory.body':
     '此版本修復了一個嚴重到 FluidEQ 不應繼續執行的問題。現在正在獲取更新。',

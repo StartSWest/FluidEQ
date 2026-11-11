@@ -261,6 +261,20 @@ describe('nativeUpdatePrompt.handleStatus', () => {
     expect(harness.createNotification).not.toHaveBeenCalled();
   });
 
+  // The free edition: a manual check that finds a version says where it is.
+  it('says a new version is on the site when the window is not on screen, and stays quiet when it is', () => {
+    const hidden = makeHarness('hidden');
+    hidden.prompt.notifyManualCheckResult('on-site', '2.6.0');
+    expect(hidden.createNotification).toHaveBeenLastCalledWith({
+      title: 'app.notification.onSite.title',
+      body: expect.stringContaining('2.6.0'),
+    });
+
+    const shown = makeHarness('onScreen');
+    shown.prompt.notifyManualCheckResult('on-site', '2.6.0');
+    expect(shown.createNotification).not.toHaveBeenCalled();
+  });
+
   it('makes a failed install visible and offers a way to act on it', () => {
     const harness = makeHarness('hidden');
 

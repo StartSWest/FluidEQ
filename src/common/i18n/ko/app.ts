@@ -216,6 +216,9 @@ const app = {
   'app.notification.updateFound.title': 'FluidEQ 업데이트 발견',
   'app.notification.updateFound.body':
     '{version} 버전을 다운로드 중입니다. 설치할 준비가 되면 알려줄 것입니다.',
+  'app.notification.onSite.title': '사이트에 새 FluidEQ가 있습니다',
+  'app.notification.onSite.body':
+    '버전 {version}이(가) fluideq.com에 있습니다. 이 무료 에디션은 스스로 업데이트되지 않습니다.',
   'app.notification.checkFailed.title': '업데이트를 확인할 수 없습니다.',
   'app.notification.checkFailed.body':
     '업데이트 서버에 연결할 수 없습니다. FluidEQ는 나중에 다시 시도합니다.',
@@ -294,6 +297,12 @@ const app = {
     '버전 {version}가 준비되었습니다. 완료하려면 FluidEQ를 다시 시작하세요.',
   'update.restart': '지금 다시 시작',
   'update.restarting': '다시 시작하는 중…',
+  'update.onSite.title': '사이트에 새 버전이 있습니다',
+  'update.onSite.body':
+    'FluidEQ {version}이(가) 나왔습니다. 이 무료 에디션은 스스로 업데이트되지 않습니다. fluideq.com에서 내려받아 이 버전 위에 설치하세요. 설정은 그대로 유지됩니다.',
+  'update.onSite.download': '다운로드',
+  'update.onSite.getAuto': '자동 업데이트 받기 – {price}',
+  'update.onSite.getAutoNoPrice': '자동 업데이트 받기',
   'update.mandatory.title': '이 버전을 업데이트해야 합니다',
   'update.mandatory.body':
     '이 릴리스에서는 FluidEQ가 그대로 실행되지 않을 정도로 심각한 문제를 수정합니다. 지금 업데이트를 가져오는 중입니다.',

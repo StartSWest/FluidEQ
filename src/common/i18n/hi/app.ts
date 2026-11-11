@@ -232,6 +232,9 @@ const app: Partial<Dictionary> = {
   'app.notification.updateFound.title': 'FluidEQ अपडेट मिला',
   'app.notification.updateFound.body':
     'संस्करण {version} डाउनलोड हो रहा है। तैयार होने पर आपको बता दिया जाएगा।',
+  'app.notification.onSite.title': 'साइट पर नया FluidEQ है',
+  'app.notification.onSite.body':
+    'संस्करण {version} fluideq.com पर है। यह मुफ़्त संस्करण अपने आप अपडेट नहीं होता।',
   'app.notification.checkFailed.title': 'अपडेट की जाँच नहीं हो सकी',
   'app.notification.checkFailed.body':
     'अपडेट सर्वर तक पहुँच नहीं बनी। FluidEQ बाद में फिर कोशिश करेगा।',
@@ -308,6 +311,12 @@ const app: Partial<Dictionary> = {
     'संस्करण {version} तैयार है। पूरा करने के लिए FluidEQ फिर से चालू करें।',
   'update.restart': 'अभी फिर चालू करें',
   'update.restarting': 'फिर चालू हो रहा है…',
+  'update.onSite.title': 'साइट पर नया संस्करण है',
+  'update.onSite.body':
+    'FluidEQ {version} आ गया है। यह मुफ़्त संस्करण अपने आप अपडेट नहीं होता: इसे fluideq.com से डाउनलोड करें और इसी के ऊपर इंस्टॉल करें। आपकी सेटिंग बनी रहती हैं।',
+  'update.onSite.download': 'डाउनलोड करें',
+  'update.onSite.getAuto': 'अपने आप अपडेट पाएँ – {price}',
+  'update.onSite.getAutoNoPrice': 'अपने आप अपडेट पाएँ',
   'update.mandatory.title': 'यह संस्करण अपडेट करना ज़रूरी है',
   'update.mandatory.body':
     'यह रिलीज़ एक ऐसी गड़बड़ी ठीक करती है जो इतनी गंभीर है कि FluidEQ को इसी हाल में चलते नहीं रहना चाहिए। अपडेट अभी लिया जा रहा है।',

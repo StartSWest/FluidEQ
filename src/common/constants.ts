@@ -167,7 +167,11 @@ export const APP_UPDATE_EVENT = 'app-update';
  * leave a modal that has stopped explaining itself.
  */
 export interface IAppUpdateStatus {
-  phase: 'available' | 'downloading' | 'ready' | 'failed';
+  /**
+   * `on-site` is the free edition's one phase: a newer version exists and is
+   * on the site to download; this copy does not fetch it.
+   */
+  phase: 'available' | 'downloading' | 'ready' | 'failed' | 'on-site';
   version?: string;
   percent?: number;
   /**

@@ -229,6 +229,9 @@ const app = {
   'app.notification.updateFound.title': 'FluidEQ update found',
   'app.notification.updateFound.body':
     'Version {version} is downloading. You will be told when it is ready to install.',
+  'app.notification.onSite.title': 'A new FluidEQ is on the site',
+  'app.notification.onSite.body':
+    'Version {version} is on fluideq.com. This free edition doesn’t update itself.',
   'app.notification.checkFailed.title': 'Could not check for updates',
   'app.notification.checkFailed.body':
     'The update server could not be reached. FluidEQ will try again later.',
@@ -307,6 +310,12 @@ const app = {
   'update.ready': 'Version {version} is ready. Restart FluidEQ to finish.',
   'update.restart': 'Restart now',
   'update.restarting': 'Restarting…',
+  'update.onSite.title': 'A new version is on the site',
+  'update.onSite.body':
+    'FluidEQ {version} is out. This free edition doesn’t update itself: download it from fluideq.com and run it over this one. Your settings stay.',
+  'update.onSite.download': 'Download',
+  'update.onSite.getAuto': 'Get automatic updates – {price}',
+  'update.onSite.getAutoNoPrice': 'Get automatic updates',
   'update.mandatory.title': 'This version has to be updated',
   'update.mandatory.body':
     'This release fixes a problem serious enough that FluidEQ should not keep running as it is. The update is being fetched now.',

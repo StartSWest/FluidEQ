@@ -236,6 +236,9 @@ const app: Partial<Dictionary> = {
     'FluidEQ のアップデートが見つかりました',
   'app.notification.updateFound.body':
     'バージョン {version} をダウンロードしています。インストールできるようになったらお知らせします。',
+  'app.notification.onSite.title': 'サイトに新しい FluidEQ があります',
+  'app.notification.onSite.body':
+    'バージョン {version} が fluideq.com にあります。この無料版は自動では更新されません。',
   'app.notification.checkFailed.title': 'アップデートを確認できませんでした',
   'app.notification.checkFailed.body':
     'アップデートサーバーに接続できませんでした。FluidEQ が後でもう一度試します。',
@@ -315,6 +318,12 @@ const app: Partial<Dictionary> = {
     'バージョン {version} の準備ができました。FluidEQ を再起動すると適用されます。',
   'update.restart': '今すぐ再起動',
   'update.restarting': '再起動中…',
+  'update.onSite.title': 'サイトに新しいバージョンがあります',
+  'update.onSite.body':
+    'FluidEQ {version} が公開されました。この無料版は自動では更新されません。fluideq.com からダウンロードして、このバージョンの上にインストールしてください。設定はそのまま残ります。',
+  'update.onSite.download': 'ダウンロード',
+  'update.onSite.getAuto': '自動更新を利用する – {price}',
+  'update.onSite.getAutoNoPrice': '自動更新を利用する',
   'update.mandatory.title': 'このバージョンは更新が必要です',
   'update.mandatory.body':
     'このリリースは、FluidEQ を現状のまま使い続けるべきではないほど重大な問題を修正しています。更新を取得しています。',

@@ -180,7 +180,17 @@ export interface IAuthorizedAutoUpdater {
  * whereas somebody who clicked "Check for updates" asked a question and is
  * owed an answer even when the answer is "nothing to do".
  */
-export type ManualCheckResult = 'up-to-date' | 'downloading' | 'failed';
+export type ManualCheckResult =
+  'up-to-date' | 'downloading' | 'on-site' | 'failed';
+
+/**
+ * Whether the free edition still downloads and installs an update its feed
+ * marks as mandatory (a security fix). Off (coordinator, 2026-11-11, until
+ * Ivan says otherwise): from 2.5 the free edition never updates itself, it
+ * only says a new version is on the site. Turning this on restores the
+ * mandatory path alone; every other update stays a notice.
+ */
+export const FREE_EDITION_TAKES_REQUIRED_UPDATES = false;
 
 export const UNSIGNED_GITHUB_UPDATE_FEED = {
   provider: 'github' as const,
@@ -475,6 +485,10 @@ export const setUpReleaseAutoUpdates = async (
     updater.setFeedURL({ provider: 'generic', url: updateUrl as string });
   } else {
     updater.setFeedURL(UNSIGNED_GITHUB_UPDATE_FEED);
+    // The free edition does not update itself (Ivan, 2026-11-11): it learns
+    // that a new version exists and says so. Nothing is downloaded unless
+    // the listener below asks for it.
+    updater.autoDownload = false;
   }
 
   const verifyInstaller = (installerPath: string) =>
@@ -536,6 +550,20 @@ export const setUpReleaseAutoUpdates = async (
     installerGeneration += 1;
     hasDownloaded = false;
     isInstallerAuthorized = false;
+    if (!isSignedChannel) {
+      if (!(FREE_EDITION_TAKES_REQUIRED_UPDATES && isMandatoryUpdate(info))) {
+        // The free edition: the version is on the site, and that is all
+        // that is said. No download, no installer, nothing to authorize.
+        settleManualCheck('on-site', info.version);
+        sendStatus({ phase: 'on-site', version: info.version });
+        return;
+      }
+      // A required update the free edition still takes: fetched by hand,
+      // since nothing downloads by itself on this channel.
+      updater.downloadUpdate().catch((error) => {
+        logger.info('The required update could not be downloaded', error);
+      });
+    }
     if (isMandatoryUpdate(info)) {
       isMandatoryPending = true;
       logger.info(`Update ${info.version} is marked mandatory`);

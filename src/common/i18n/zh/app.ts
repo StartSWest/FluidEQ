@@ -224,6 +224,9 @@ const app: Partial<Dictionary> = {
   'app.notification.updateFound.title': '发现 FluidEQ 更新',
   'app.notification.updateFound.body':
     '正在下载版本 {version}。准备好安装时会通知你。',
+  'app.notification.onSite.title': '网站上有新的 FluidEQ',
+  'app.notification.onSite.body':
+    '版本 {version} 已在 fluideq.com 提供。这个免费版不会自动更新。',
   'app.notification.checkFailed.title': '无法检查更新',
   'app.notification.checkFailed.body':
     '无法连接更新服务器。FluidEQ 稍后会再试。',
@@ -297,6 +300,12 @@ const app: Partial<Dictionary> = {
   'update.ready': '版本 {version} 已就绪。重启 FluidEQ 即可完成。',
   'update.restart': '立即重启',
   'update.restarting': '正在重启…',
+  'update.onSite.title': '网站上有新版本',
+  'update.onSite.body':
+    'FluidEQ {version} 已发布。这个免费版不会自动更新：请从 fluideq.com 下载并覆盖安装。你的设置会保留。',
+  'update.onSite.download': '下载',
+  'update.onSite.getAuto': '获取自动更新 – {price}',
+  'update.onSite.getAutoNoPrice': '获取自动更新',
   'update.mandatory.title': '此版本必须更新',
   'update.mandatory.body':
     '本次发布修复的问题足够严重，FluidEQ 不应继续以当前状态运行。更新正在获取中。',

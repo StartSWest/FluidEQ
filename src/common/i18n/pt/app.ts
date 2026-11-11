@@ -236,6 +236,9 @@ const app: Partial<Dictionary> = {
   'app.notification.updateFound.title': 'Atualização do FluidEQ encontrada',
   'app.notification.updateFound.body':
     'A versão {version} está sendo baixada. Avisamos quando estiver pronta para instalar.',
+  'app.notification.onSite.title': 'Há um FluidEQ novo no site',
+  'app.notification.onSite.body':
+    'A versão {version} está em fluideq.com. Esta edição gratuita não se atualiza sozinha.',
   'app.notification.checkFailed.title':
     'Não foi possível procurar atualizações',
   'app.notification.checkFailed.body':
@@ -316,6 +319,12 @@ const app: Partial<Dictionary> = {
     'A versão {version} está pronta. Reinicie o FluidEQ para concluir.',
   'update.restart': 'Reiniciar agora',
   'update.restarting': 'Reiniciando…',
+  'update.onSite.title': 'Há uma versão nova no site',
+  'update.onSite.body':
+    'O FluidEQ {version} saiu. Esta edição gratuita não se atualiza sozinha: baixe em fluideq.com e instale por cima desta. Seus ajustes ficam.',
+  'update.onSite.download': 'Baixar',
+  'update.onSite.getAuto': 'Receber atualizações automáticas – {price}',
+  'update.onSite.getAutoNoPrice': 'Receber atualizações automáticas',
   'update.mandatory.title': 'Esta versão precisa ser atualizada',
   'update.mandatory.body':
     'Esta versão corrige um problema grave o suficiente para que o FluidEQ não deva continuar funcionando como está. A atualização está sendo baixada agora.',

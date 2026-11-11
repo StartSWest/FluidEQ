@@ -235,6 +235,9 @@ const app: Partial<Dictionary> = {
   'app.notification.updateFound.title': 'Найдено обновление FluidEQ',
   'app.notification.updateFound.body':
     'Версия {version} загружается. Мы сообщим, когда её можно будет установить.',
+  'app.notification.onSite.title': 'На сайте есть новый FluidEQ',
+  'app.notification.onSite.body':
+    'Версия {version} доступна на fluideq.com. Эта бесплатная редакция не обновляется сама.',
   'app.notification.checkFailed.title': 'Не удалось проверить обновления',
   'app.notification.checkFailed.body':
     'Сервер обновлений недоступен. FluidEQ повторит попытку позже.',
@@ -313,6 +316,12 @@ const app: Partial<Dictionary> = {
     'Версия {version} готова. Перезапустите FluidEQ, чтобы завершить.',
   'update.restart': 'Перезапустить сейчас',
   'update.restarting': 'Перезапуск…',
+  'update.onSite.title': 'На сайте есть новая версия',
+  'update.onSite.body':
+    'Вышел FluidEQ {version}. Эта бесплатная редакция не обновляется сама: скачайте её с fluideq.com и установите поверх этой. Ваши настройки сохранятся.',
+  'update.onSite.download': 'Скачать',
+  'update.onSite.getAuto': 'Получать обновления автоматически – {price}',
+  'update.onSite.getAutoNoPrice': 'Получать обновления автоматически',
   'update.mandatory.title': 'Эту версию необходимо обновить',
   'update.mandatory.body':
     'Этот выпуск исправляет проблему, достаточно серьёзную, чтобы FluidEQ не продолжал работать в нынешнем виде. Обновление уже загружается.',
