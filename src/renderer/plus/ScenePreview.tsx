@@ -4,6 +4,7 @@ import type { IScenePack } from 'common/scenePacks';
 import { DEFAULT_SCENE_WAVE, type ISceneWave } from 'common/sceneWave';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
+import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
 import { createSceneInteraction } from '../graph/sceneInteraction';
 import { readSceneCameraControl } from '../utils/sceneCameraControlStore';
 
@@ -30,8 +31,15 @@ interface IScenePreviewProps {
   pack: IScenePack;
   label: string;
   onTrouble: (trouble: TPreviewTrouble) => void;
-  /** After every frame drawn, with the frame. */
-  onDrawn?: (frame: ISceneFrame, canvas?: HTMLCanvasElement) => void;
+  /**
+   * After every frame drawn, with the frame, and what drawing it cost: the
+   * admin's review page reads the scene's frame time from it.
+   */
+  onDrawn?: (
+    frame: ISceneFrame,
+    canvas?: HTMLCanvasElement,
+    report?: ISceneDrawReport,
+  ) => void;
   /** Replaces what the scene hears — the Studio's test signals. */
   shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
   /** The member's settings over the pack's — the Studio's, in Publish. */
@@ -154,10 +162,17 @@ export default function ScenePreview({
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
   const drawn = useCallback(
-    (frame: ISceneFrame) =>
+    (
+      frame: ISceneFrame,
+      _scale: number,
+      _accent: number,
+      _heard: ISceneFrame,
+      report: ISceneDrawReport,
+    ) =>
       drawnRef.current?.(
         frame,
         frameRef.current?.querySelector('canvas') ?? undefined,
+        report,
       ),
     [],
   );
