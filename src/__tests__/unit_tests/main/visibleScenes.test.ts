@@ -96,6 +96,29 @@ describe('which member scenes an account may see', () => {
     expect(visibleScenes(store, viewerOf(ME, true))).toEqual([]);
   });
 
+  // 2026-11-11: made on one computer and installed from the gallery on the
+  // maker's second one, a scene is stored there as sent, not built - and was
+  // run there as a stranger's while it played as the maker's in their Studio.
+  it('calls a scene this account made its own, however it reached this computer', () => {
+    const { store } = storeOf([
+      scene({ packId: 'mine-installed', own: false }),
+      // The control: sent by somebody else, it stays theirs.
+      scene({ authorId: SOMEBODY, packId: 'sent', own: false }),
+    ]);
+    const seen = visibleScenes(store, viewerOf(ME, true));
+    expect(seen.map(({ packId, own }) => [packId, own])).toEqual([
+      ['mine-installed', true],
+      ['sent', false],
+    ]);
+    expect(
+      loadVisibleScene(
+        store,
+        viewerOf(ME, true),
+        memberLookId(ME, 'mine-installed'),
+      )?.own,
+    ).toBe(true);
+  });
+
   it('shows nobody anything while no account is signed in', () => {
     const { store } = storeOf([scene({}), scene({ packId: 'two' })]);
     expect(visibleScenes(store, viewerOf(undefined, true))).toEqual([]);

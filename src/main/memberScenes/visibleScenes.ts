@@ -34,6 +34,14 @@ export interface ISceneViewer {
 /**
  * This account's scenes and the ones other members sent it. Scenes another
  * account on this computer made are theirs, and not listed here.
+ *
+ * `own` is answered here for the one asking: made by this account, wherever
+ * the copy came from. The store's own word is narrower - built on this
+ * computer - and that is what a maker's scene installed from the gallery on
+ * their second computer is not: read as theirs, it ran there as a
+ * stranger's, through the rules for a scene nobody here has watched, while
+ * the same scene played as the maker's in their Studio and their gallery
+ * page (2026-11-11).
  */
 export const visibleScenes = (
   store: IMemberSceneStore,
@@ -41,7 +49,10 @@ export const visibleScenes = (
 ): IMemberSceneSummary[] => {
   const me = viewer.accountId();
   return me
-    ? store.list().filter((scene) => !scene.own || scene.authorId === me)
+    ? store
+        .list()
+        .filter((scene) => !scene.own || scene.authorId === me)
+        .map((scene) => ({ ...scene, own: scene.authorId === me }))
     : [];
 };
 

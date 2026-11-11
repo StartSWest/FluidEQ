@@ -66,7 +66,11 @@ export interface IMemberSceneSummary {
   spectrumRange?: readonly [number, number];
   /** The wave its author built it around, when the pack names one. */
   wave?: ISceneWave;
-  /** Made by the account it is stored under, rather than sent by someone. */
+  /**
+   * From the store: built on this computer by the account it is stored
+   * under, rather than installed or sent. Through `visibleScenes`: made by
+   * the account asking, wherever the copy came from.
+   */
   own: boolean;
   /** For an imported scene: the name on its author's profile, if they had one. */
   authorName?: string | null;
