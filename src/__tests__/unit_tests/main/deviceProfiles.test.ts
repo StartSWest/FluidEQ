@@ -716,6 +716,45 @@ describe('profiles scoped to one output', () => {
       reportedError.mockRestore();
     }
   });
+
+  it('says once that an output was left out, not on every flush', () => {
+    const settings = twoOutputsSharingAName();
+    settings.assignments.base = {
+      deviceId: 'base',
+      deviceName: 'Base Station',
+      deviceGuid: '{BS}',
+      presetName: 'Kraken',
+    };
+    const complaints: string[] = [];
+    const reportedError = jest
+      .spyOn(log, 'error')
+      .mockImplementation((...args: unknown[]) => {
+        if (typeof args[0] === 'string' && args[0].includes('Base Station')) {
+          complaints.push(args[0]);
+        }
+      });
+
+    try {
+      // A drag is dozens of flushes; a 2.4.0 report had 37 of these lines and
+      // 106 stack traces for one unplugged output.
+      deviceProfilesToFiles(settings, dirFor);
+      deviceProfilesToFiles(settings, dirFor);
+      deviceProfilesToFiles(settings, dirFor);
+      expect(complaints).toHaveLength(1);
+
+      // The control: once its profile is there it plays, and losing it again
+      // is news again — the silence above is not the log switched off.
+      writeProfile('base', 'Kraken', 4);
+      expect(
+        bandsFor(deviceProfilesToFiles(settings, dirFor), '{BS}'),
+      ).toContain('Gain 4 dB');
+      fs.rmSync(path.join(root, 'base', 'Kraken'));
+      deviceProfilesToFiles(settings, dirFor);
+      expect(complaints).toHaveLength(2);
+    } finally {
+      reportedError.mockRestore();
+    }
+  });
 });
 
 /*

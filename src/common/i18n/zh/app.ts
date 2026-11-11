@@ -270,6 +270,13 @@ const app: Partial<Dictionary> = {
     'Equalizer APO 已安装或重新配置。如果没有声音，请重启 Windows 音频服务，而不是重启电脑。',
   'notice.restartNow': '立即重启音频',
   'notice.importComplete': '导入完成',
+  'notice.profileRecovered.title': '一个输出丢失了它的配置文件',
+  'notice.profileRecovered.titleMany': '部分输出丢失了配置文件',
+  'notice.profileRecovered.copied':
+    '“{missing}”不见了，已从另一个输出复制回来。',
+  'notice.profileRecovered.own': '“{missing}”不见了，现在改用“{now}”。',
+  'notice.profileRecovered.new':
+    '“{missing}”不见了，现在从新的空配置文件“{now}”开始。',
   'notice.apoReconfiguredTitle': 'Equalizer APO 已更改',
   'notice.captureFailed': '实时输出无法启动',
   'notice.captureFailedBody':

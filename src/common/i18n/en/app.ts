@@ -278,6 +278,14 @@ const app = {
     'Equalizer APO was installed or reconfigured. If audio is missing, reload Windows Audio instead of rebooting the PC.',
   'notice.restartNow': 'Restart audio now',
   'notice.importComplete': 'Import complete',
+  'notice.profileRecovered.title': 'An output had lost its profile',
+  'notice.profileRecovered.titleMany': 'Some outputs had lost their profile',
+  'notice.profileRecovered.copied':
+    '“{missing}” was missing here, so a copy from another output was put back.',
+  'notice.profileRecovered.own':
+    '“{missing}” was missing, so it now plays “{now}”.',
+  'notice.profileRecovered.new':
+    '“{missing}” was missing, so it now starts on a new, empty profile: “{now}”.',
   'notice.apoReconfiguredTitle': 'Equalizer APO changed',
   'notice.captureFailed': 'Live output could not start',
   'notice.captureFailedBody':

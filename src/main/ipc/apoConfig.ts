@@ -35,7 +35,7 @@ import { readApoConfigTree } from '../apoConfigReader';
 import { scheduleWrite } from '../asyncWriter';
 import { isGeneratedConfigFile } from '../deviceProfileFlush';
 import { runEqualizerApoSetup } from '../equalizerApoSetup';
-import { fetchPreset, stateToApoFiles } from '../flush';
+import { doesPresetExist, fetchPreset, stateToApoFiles } from '../flush';
 import type { IMainSession } from '../mainSession';
 import mainText from '../mainText';
 import { getConfigPath, isEqualizerAPOInstalled } from '../registry';
@@ -168,12 +168,15 @@ const registerApoConfigIpc = ({
   const describeDeviceLayers = (
     assignment: IDeviceProfileAssignment,
   ): IApoConfigLayer[] | undefined => {
+    const dir = presetDirForDevice(assignment.deviceId);
+    // Asked of every output on every refresh: a profile that is not there has
+    // no layers, and asking `fetchPreset` would log a stack trace each time.
+    if (!doesPresetExist(assignment.presetName, dir)) {
+      return undefined;
+    }
     let preset: IPresetV2;
     try {
-      preset = fetchPreset(
-        assignment.presetName,
-        presetDirForDevice(assignment.deviceId),
-      );
+      preset = fetchPreset(assignment.presetName, dir);
     } catch {
       return undefined;
     }

@@ -130,6 +130,25 @@ export const createGameLoans = (userDataDir: string) => {
       }
       return persist();
     },
+    /**
+     * The music profile renamed while a game has the output: what is given
+     * back follows it. Kept by its old name, the loan handed back a profile
+     * that no longer existed, and when the game ended the output lost the
+     * sound it had lent — an empty profile on the output being edited, none
+     * at all on another.
+     */
+    renameMusic: (
+      deviceId: string,
+      oldName: string,
+      newName: string,
+    ): Promise<void> => {
+      const loan = loans.get(deviceId);
+      if (loan?.musicPresetName !== oldName) {
+        return Promise.resolve();
+      }
+      loans.set(deviceId, { ...loan, musicPresetName: newName });
+      return persist();
+    },
   };
 };
 

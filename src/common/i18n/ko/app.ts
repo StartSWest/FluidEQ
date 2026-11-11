@@ -263,6 +263,14 @@ const app = {
     'Equalizer APO가 설치되었거나 재구성되었습니다. 오디오가 누락된 경우 PC를 재부팅하는 대신 Windows 오디오를 다시 로드하세요.',
   'notice.restartNow': '지금 오디오 다시 시작',
   'notice.importComplete': '가져오기 완료',
+  'notice.profileRecovered.title': '출력의 프로필이 없어졌습니다',
+  'notice.profileRecovered.titleMany': '일부 출력의 프로필이 없어졌습니다',
+  'notice.profileRecovered.copied':
+    '“{missing}”이(가) 없어서 다른 출력의 사본을 다시 넣었습니다.',
+  'notice.profileRecovered.own':
+    '“{missing}”이(가) 없어서 이제 “{now}”(으)로 재생합니다.',
+  'notice.profileRecovered.new':
+    '“{missing}”이(가) 없어서 이제 새 빈 프로필 “{now}”(으)로 시작합니다.',
   'notice.apoReconfiguredTitle': 'Equalizer APO가 변경됨',
   'notice.captureFailed': '라이브 출력을 시작할 수 없습니다',
   'notice.captureFailedBody':

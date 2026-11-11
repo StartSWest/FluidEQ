@@ -34,6 +34,7 @@ import {
   TApoLayer,
 } from '../common/constants';
 import { getCurveEqMode, getEqMode } from '../common/eqMode';
+import type { IRecoveredProfile } from '../common/recoveredProfiles';
 import { compressChainToLimit } from '../common/response';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 import { ISessionHeadroom } from './deviceProfiles';
@@ -50,8 +51,10 @@ import {
   savePreset,
 } from './flush';
 import type { IMainSession } from './mainSession';
+import recoverMissingProfiles from './missingProfiles';
 import { migrateLegacyOutputDesigns } from './outputSoundMigration';
 import { defaultOutputSound } from './outputSoundPersistence';
+import freeUntitledProfileName from './untitledProfile';
 
 export const getAutomaticPresetName = (deviceId: string) =>
   `${AUTOMATIC_PRESET_PREFIX}${createHash('sha1')
@@ -119,17 +122,6 @@ const outputSlug = (deviceId: string) =>
 export const shieldReferenceBands = (filters: IFiltersMap, limit = MAX_GAIN) =>
   compressChainToLimit(filters, limit);
 
-/**
- * Give the active output an empty named profile.
- *
- * Every output keeps at least one, so there is always somewhere for an edit to
- * land and always something in the list to select. The number counts only this
- * output's own profiles, so each output starts again at "Untitled profile 1" —
- * a second output has no reason to open on "Untitled profile 4" because three
- * unrelated ones exist on the speakers.
- */
-const UNTITLED_PROFILE_PREFIX = 'Untitled profile';
-
 export interface IProfileStoreDeps {
   state: IState;
   session: IMainSession;
@@ -150,6 +142,8 @@ export const createProfileStore = ({
   const presetPath = path.join(userDataDir, PRESETS_DIR);
   const baselinePath = path.join(userDataDir, PRESET_BASELINES_DIR);
   const headroomByDevice = new Map<string, ISessionHeadroom>();
+  // What the launch's repair did, until the window has said it.
+  let recoveredProfiles: IRecoveredProfile[] = [];
   // Callers select the next endpoint before applying its state, so the old
   // state's owner cannot be recovered from session.activeAudioDeviceId then.
   let stateDeviceId = session.activeAudioDeviceId;
@@ -266,6 +260,20 @@ export const createProfileStore = ({
       baselineDirForDevice,
       'saved copy',
     );
+
+    // After the moves, which can put a profile back where it belongs, and
+    // before anything below reads an output's folder.
+    recoveredProfiles = recoverMissingProfiles(
+      deviceProfileSettings,
+      presetPath,
+      presetDirForDevice,
+    );
+    if (recoveredProfiles.length > 0) {
+      saveDeviceProfileSettings(deviceProfileSettings, userDataDir).catch(
+        (error: unknown) =>
+          log.error('Could not save the outputs’ recovered profiles', error),
+      );
+    }
 
     const repaired = Object.values(deviceProfileSettings.assignments).flatMap(
       (assignment) =>
@@ -588,6 +596,12 @@ export const createProfileStore = ({
     return true;
   };
 
+  /**
+   * Give the active output an empty named profile.
+   *
+   * Every output keeps at least one, so there is always somewhere for an edit
+   * to land and always something in the list to select.
+   */
   const createEmptyProfileForActiveDevice = () => {
     if (!session.activeAudioDeviceId) {
       return;
@@ -596,11 +610,7 @@ export const createProfileStore = ({
     // have a session snapshot, but none of that snapshot belongs to this one.
     resetStateToDefaults();
     const dir = activePresetDir();
-    let index = 1;
-    while (doesPresetExist(`${UNTITLED_PROFILE_PREFIX} ${index}`, dir)) {
-      index += 1;
-    }
-    const name = `${UNTITLED_PROFILE_PREFIX} ${index}`;
+    const name = freeUntitledProfileName(dir);
     savePreset(name, getCurrentPreset(), dir, 'profile-created');
     attachPresetToActiveDevice(name);
   };
@@ -652,6 +662,10 @@ export const createProfileStore = ({
   };
 
   return {
+    recoveredProfiles: () => recoveredProfiles,
+    forgetRecoveredProfiles: () => {
+      recoveredProfiles = [];
+    },
     hydrateActiveConvolution,
     presetDirForDevice,
     activePresetDir,

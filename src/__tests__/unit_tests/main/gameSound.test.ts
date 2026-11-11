@@ -158,6 +158,25 @@ describe('the loans kept on disk', () => {
     expect(settings.assignments[OTHER].presetName).toBe('Picked');
     expect(loans.entries()).toEqual([]);
   });
+
+  it('follow the music profile when it is renamed while the game plays', async () => {
+    const loans = createGameLoans(dir);
+    await loans.set(OUTPUT, { gameId: 'cs2', musicPresetName: 'Music' });
+    await loans.set(OTHER, { gameId: 'cs2', musicPresetName: 'Music' });
+
+    await loans.renameMusic(OUTPUT, 'Music', 'Evening');
+    // The control: another output's loan of a profile with the same name is
+    // that output's own, and a rename elsewhere is not about it.
+    expect(loans.get(OTHER)?.musicPresetName).toBe('Music');
+    await loans.renameMusic(OUTPUT, 'Unrelated', 'Something');
+    await flushPendingWrites();
+
+    // Kept on disk too: the next launch gives back the new name.
+    expect(createGameLoans(dir).get(OUTPUT)).toEqual({
+      gameId: 'cs2',
+      musicPresetName: 'Evening',
+    });
+  });
 });
 
 describe('a game’s copy as its Gaming profile makes it', () => {

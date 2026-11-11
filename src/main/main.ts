@@ -163,6 +163,7 @@ import createApoDiskSync from './apoDiskSync';
 import { createUpdatePath, handleError } from './updatePath';
 import registerDiagnosticsIpc from './ipc/diagnostics';
 import { registerPerformanceLog } from './ipc/performance';
+import registerRecoveredProfilesIpc from './ipc/recoveredProfiles';
 import registerApoConfigIpc from './ipc/apoConfig';
 import registerEngineStateIpc from './ipc/engineState';
 import registerNativeDialogsIpc from './ipc/nativeDialogs';
@@ -493,6 +494,7 @@ const profilesIpc = registerProfilesIpc({
   notifyOutputStateChanged,
   guardAgainstApo: apoGuard.check,
   onPlaybackOutputChanged: () => sourceAnalysis.reflush(),
+  onProfileRenamed: gameLoans.renameMusic,
 });
 
 registerApoConfigIpc({
@@ -883,6 +885,11 @@ const processList = registerProcessIpc({
   getLightingHelperPid: () => lighting.helperPid(),
   measureSystemEngineProcesses: measureEngineProcesses,
   meter: createProcessMeter(),
+});
+registerRecoveredProfilesIpc({
+  getMainWindow,
+  recovered: profiles.recoveredProfiles,
+  forget: profiles.forgetRecoveredProfiles,
 });
 registerPerformanceLog({
   getMainWindow,

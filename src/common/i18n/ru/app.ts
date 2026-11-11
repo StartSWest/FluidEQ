@@ -283,6 +283,14 @@ const app: Partial<Dictionary> = {
     'Equalizer APO был установлен или перенастроен. Если звук пропал, перезапустите службу звука Windows, а не весь компьютер.',
   'notice.restartNow': 'Перезапустить звук сейчас',
   'notice.importComplete': 'Импорт завершён',
+  'notice.profileRecovered.title': 'Выход потерял свой профиль',
+  'notice.profileRecovered.titleMany': 'Некоторые выходы потеряли свой профиль',
+  'notice.profileRecovered.copied':
+    'Профиль «{missing}» пропал, поэтому его копия возвращена с другого выхода.',
+  'notice.profileRecovered.own':
+    'Профиль «{missing}» пропал, поэтому теперь играет «{now}».',
+  'notice.profileRecovered.new':
+    'Профиль «{missing}» пропал, поэтому теперь используется новый пустой профиль «{now}».',
   'notice.apoReconfiguredTitle': 'Equalizer APO изменён',
   'notice.captureFailed': 'Выход в реальном времени не запустился',
   'notice.captureFailedBody':

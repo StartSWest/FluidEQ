@@ -286,6 +286,14 @@ const app: Partial<Dictionary> = {
     'O Equalizer APO foi instalado ou reconfigurado. Se ficar sem som, reinicie o serviço de áudio do Windows em vez de reiniciar o computador.',
   'notice.restartNow': 'Reiniciar o áudio agora',
   'notice.importComplete': 'Importação concluída',
+  'notice.profileRecovered.title': 'Uma saída tinha perdido o perfil',
+  'notice.profileRecovered.titleMany': 'Algumas saídas tinham perdido o perfil',
+  'notice.profileRecovered.copied':
+    '“{missing}” estava faltando, então uma cópia de outra saída foi colocada de volta.',
+  'notice.profileRecovered.own':
+    '“{missing}” estava faltando, então agora ela toca “{now}”.',
+  'notice.profileRecovered.new':
+    '“{missing}” estava faltando, então agora ela começa com um perfil novo e vazio: “{now}”.',
   'notice.apoReconfiguredTitle': 'O Equalizer APO mudou',
   'notice.captureFailed': 'A saída ao vivo não pôde iniciar',
   'notice.captureFailedBody':

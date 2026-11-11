@@ -196,6 +196,16 @@ export interface IProfilesIpcDeps {
    * Device Selector can be run long after it.
    */
   guardAgainstApo: (devices: readonly IAudioDevice[]) => Promise<void>;
+  /**
+   * One of an output's profiles was renamed. A game holding that output
+   * keeps the name of the profile to give back (`renameMusic`), and has to
+   * learn the new one.
+   */
+  onProfileRenamed?: (
+    deviceId: string,
+    oldName: string,
+    newName: string,
+  ) => Promise<void>;
 }
 
 /** Where an answer goes: a request's own event, or a push to the window. */
@@ -553,6 +563,7 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         oldName,
         newName,
       );
+      await deps.onProfileRenamed?.(owner.deviceId, oldName, newName);
       await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
       if (owner.checkCurrent()) {
         await handleUpdate(event, channel);

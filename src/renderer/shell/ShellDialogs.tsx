@@ -33,6 +33,7 @@ import FeatureTour from '../components/featureTour/FeatureTour';
 import { featureTourFor } from '../components/featureTour/slides';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import PlusTermsNotice from '../components/PlusTermsNotice';
+import ProfileRecoveredNotice from '../components/ProfileRecoveredNotice';
 import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
 import { AppNewsHost, AppNewsNotice } from '../components/AppNews';
 import ProcessesDialog from '../components/ProcessesDialog';
@@ -242,6 +243,9 @@ const ShellDialogs = ({
       <SongSoundHost />
       <SongSoundNotice />
       <SongSoundSaveNotice />
+      {/* An output whose profile was gone at launch, and what it plays now:
+          about the sound, so on whichever tab is open. */}
+      <ProfileRecoveredNotice />
       {/* Here too: the terms promise that the app tells a member when they
           change, and a member need never open the Plus tab to use Plus. */}
       <PlusTermsNotice />

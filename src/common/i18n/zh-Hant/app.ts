@@ -252,6 +252,13 @@ const app = {
     '已安裝或重新設定 Equalizer APO。如果音訊遺失，請重新載入 Windows 音訊，而不是重新啟動電腦。',
   'notice.restartNow': '立即重新啟動音訊',
   'notice.importComplete': '匯入完成',
+  'notice.profileRecovered.title': '一個輸出遺失了它的設定檔',
+  'notice.profileRecovered.titleMany': '部分輸出遺失了設定檔',
+  'notice.profileRecovered.copied':
+    '“{missing}”不見了，已從另一個輸出複製回來。',
+  'notice.profileRecovered.own': '“{missing}”不見了，現在改用“{now}”。',
+  'notice.profileRecovered.new':
+    '“{missing}”不見了，現在從新的空白設定檔“{now}”開始。',
   'notice.apoReconfiguredTitle': 'Equalizer APO 已更改',
   'notice.captureFailed': '即時輸出無法啟動',
   'notice.captureFailedBody':

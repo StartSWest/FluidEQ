@@ -278,6 +278,14 @@ const app: Partial<Dictionary> = {
     'Equalizer APO इंस्टॉल या फिर से सेट हुआ है। अगर आवाज़ न आए तो पूरा PC नहीं, सिर्फ़ Windows ऑडियो फिर से चालू करें।',
   'notice.restartNow': 'ऑडियो अभी फिर चालू करें',
   'notice.importComplete': 'आयात पूरा हुआ',
+  'notice.profileRecovered.title': 'एक आउटपुट की प्रोफ़ाइल खो गई थी',
+  'notice.profileRecovered.titleMany': 'कुछ आउटपुट की प्रोफ़ाइल खो गई थी',
+  'notice.profileRecovered.copied':
+    '“{missing}” नहीं मिली, इसलिए किसी दूसरे आउटपुट से उसकी कॉपी वापस रखी गई।',
+  'notice.profileRecovered.own':
+    '“{missing}” नहीं मिली, इसलिए अब यह “{now}” चलाता है।',
+  'notice.profileRecovered.new':
+    '“{missing}” नहीं मिली, इसलिए अब यह एक नई, खाली प्रोफ़ाइल “{now}” से शुरू होता है।',
   'notice.apoReconfiguredTitle': 'Equalizer APO बदल गया',
   'notice.captureFailed': 'लाइव आउटपुट शुरू नहीं हो सका',
   'notice.captureFailedBody':

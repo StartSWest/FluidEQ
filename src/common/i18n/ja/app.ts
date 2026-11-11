@@ -283,6 +283,15 @@ const app: Partial<Dictionary> = {
     'Equalizer APO がインストールまたは再設定されました。音が出ない場合は PC を再起動せず、Windows オーディオを再起動してください。',
   'notice.restartNow': 'いますぐオーディオを再起動',
   'notice.importComplete': '読み込みが完了しました',
+  'notice.profileRecovered.title': '出力のプロファイルが見つかりませんでした',
+  'notice.profileRecovered.titleMany':
+    'いくつかの出力のプロファイルが見つかりませんでした',
+  'notice.profileRecovered.copied':
+    '「{missing}」が見つからなかったため、別の出力からコピーを戻しました。',
+  'notice.profileRecovered.own':
+    '「{missing}」が見つからなかったため、「{now}」で再生しています。',
+  'notice.profileRecovered.new':
+    '「{missing}」が見つからなかったため、新しい空のプロファイル「{now}」から始めます。',
   'notice.apoReconfiguredTitle': 'Equalizer APO が変更されました',
   'notice.captureFailed': 'ライブ出力を開始できませんでした',
   'notice.captureFailedBody':

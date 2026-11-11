@@ -55,6 +55,7 @@ import { engineHealthBridge } from './engineHealthBridge';
 import { lightingBridge } from './lightingBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
 import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
+import { recoveredProfilesBridge } from './recoveredProfilesBridge';
 import { sceneInsightsBridge } from './sceneInsightsBridge';
 import { sceneStoreBridge } from './sceneStoreBridge';
 import { creatorBridge } from './creatorBridge';
@@ -415,6 +416,7 @@ export default {
     ...communityBridge,
     ...outputMirrorBridge,
     ...plusTermsNoticeBridge,
+    ...recoveredProfilesBridge,
     ...sceneInsightsBridge,
     ...sceneStoreBridge,
     ...creatorBridge,

@@ -30,6 +30,7 @@ import presetLayerForRack from '../common/dsp/presetLayerForRack';
 import { isCurveComparison } from '../common/curveComparison';
 import {
   addFileToPath,
+  doesPresetExist,
   FLUIDEQ_CONFIG_FILENAME,
   fetchPreset,
   IApoChainFiles,
@@ -476,6 +477,38 @@ const sameRenderInputs = (
     (key) => left[key] === right[key],
   );
 
+/**
+ * Outputs already reported as left out of the config, by output and profile.
+ *
+ * Every flush renders every attached output, and a slider drag is dozens of
+ * flushes: a 2.4.0 report carried 37 identical "left out" errors and 106
+ * stack traces for one unplugged output, burying everything else in the
+ * 2,000 lines a report keeps. Said once now, and again only after the output
+ * has rendered or been given another profile.
+ */
+const reportedLeftOut = new Set<string>();
+
+const leftOutKey = ({ deviceId, presetName }: IDeviceProfileAssignment) =>
+  `${deviceId}\u0000${presetName}`;
+
+const sayLeftOut = (
+  assignment: IDeviceProfileAssignment,
+  why: string,
+  error?: unknown,
+) => {
+  const key = leftOutKey(assignment);
+  if (reportedLeftOut.has(key)) {
+    return;
+  }
+  reportedLeftOut.add(key);
+  log.error(
+    `Output "${assignment.deviceName}" was left out of the config: its profile "${assignment.presetName}" ${why}`,
+  );
+  if (error !== undefined) {
+    log.error(error);
+  }
+};
+
 const readPresetTextIfAny = (presetName: string, dir: string) => {
   try {
     return readPresetText(presetName, dir);
@@ -578,6 +611,16 @@ export const deviceProfilesToFiles = (
             : undefined;
         const customText = readCustomText(configDirPath, assignment.deviceId);
         const presetText = readPresetTextIfAny(assignment.presetName, dir);
+        if (
+          presetText === undefined &&
+          !doesPresetExist(assignment.presetName, dir)
+        ) {
+          // Not there to read, which the launch repairs
+          // (`recoverMissingProfiles`); rendering it would only throw.
+          renderedDevices.delete(assignment.deviceId);
+          sayLeftOut(assignment, 'is not in its folder');
+          return;
+        }
         const inputs: IRenderedDeviceInputs | undefined =
           presetText === undefined
             ? undefined
@@ -599,6 +642,7 @@ export const deviceProfilesToFiles = (
           remembered &&
           sameRenderInputs(remembered.inputs, inputs)
         ) {
+          reportedLeftOut.delete(leftOutKey(assignment));
           addDeviceFiles(remembered.device);
           return;
         }
@@ -616,6 +660,7 @@ export const deviceProfilesToFiles = (
             device: rendered.device,
           });
         }
+        reportedLeftOut.delete(leftOutKey(assignment));
         addDeviceFiles(rendered.device);
       } catch (e) {
         // A profile we cannot read is one this device simply does not get —
@@ -630,10 +675,7 @@ export const deviceProfilesToFiles = (
         // file that was not in their folder, and all four vanished from the
         // chain without a word until something later tried to load one by name
         // and blamed the preset directory.
-        log.error(
-          `Output "${assignment.deviceName}" was left out of the config: its profile "${assignment.presetName}" could not be read`,
-        );
-        log.error(e);
+        sayLeftOut(assignment, 'could not be read', e);
       }
     });
 
@@ -754,7 +796,15 @@ export const getStateForAudioDevice = (
   const assignment = settings.assignments[deviceId];
 
   let preset: IPresetV2 | undefined;
-  if (assignment) {
+  // A profile that is not there is the default state, not an error to log:
+  // `fetchPreset` would say "Failed to get presets!!" with a stack each time.
+  if (
+    assignment &&
+    doesPresetExist(
+      assignment.presetName,
+      presetDirForDevice(assignment.deviceId),
+    )
+  ) {
     try {
       preset = fetchPreset(
         assignment.presetName,

@@ -283,6 +283,15 @@ const app: Partial<Dictionary> = {
     'Equalizer APO wurde installiert oder neu eingerichtet. Falls kein Ton kommt, starten Sie den Windows-Audiodienst neu, statt den PC neu zu starten.',
   'notice.restartNow': 'Audio jetzt neu starten',
   'notice.importComplete': 'Import abgeschlossen',
+  'notice.profileRecovered.title': 'Eine Ausgabe hatte ihr Profil verloren',
+  'notice.profileRecovered.titleMany':
+    'Einige Ausgaben hatten ihr Profil verloren',
+  'notice.profileRecovered.copied':
+    '„{missing}“ fehlte, deshalb wurde eine Kopie von einer anderen Ausgabe zurückgeholt.',
+  'notice.profileRecovered.own':
+    '„{missing}“ fehlte, deshalb spielt sie jetzt „{now}“.',
+  'notice.profileRecovered.new':
+    '„{missing}“ fehlte, deshalb beginnt sie jetzt mit einem neuen, leeren Profil: „{now}“.',
   'notice.apoReconfiguredTitle': 'Equalizer APO wurde geändert',
   'notice.captureFailed': 'Die Live-Ausgabe konnte nicht starten',
   'notice.captureFailedBody':

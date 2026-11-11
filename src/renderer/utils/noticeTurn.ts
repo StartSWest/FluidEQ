@@ -34,9 +34,10 @@ import { useLayoutEffect, useReducer, useSyncExternalStore } from 'react';
  *   restart and capture notices, the missing-engine banner, the two song
  *   toasts that share the corner (the Smart EQ one before the song's own
  *   sound, one card at a time), and full screen, which takes away the
- *   titlebar the corner is placed under. Then the Plus terms notice, then
- *   news of a scene reviewed, then an add-on's own corner notices in the
- *   add-on's order (`renderer/addons.ts`), then new scenes announced.
+ *   titlebar the corner is placed under. Then the outputs whose lost profile
+ *   the launch replaced, then the Plus terms notice, then news of a scene
+ *   reviewed, then an add-on's own corner notices in the add-on's order
+ *   (`renderer/addons.ts`), then new scenes announced.
  *
  * Everything not named as waiting for something above never waits.
  */
@@ -54,6 +55,8 @@ export type TNoticeClaim =
   | 'songEq'
   /** A song's own sound put back on (`SongSoundNotice`). */
   | 'songSound'
+  /** Outputs whose lost profile the launch replaced (`ProfileRecoveredNotice`). */
+  | 'profiles'
   | 'plusTerms'
   | 'sceneReview'
   /**
@@ -102,15 +105,31 @@ export const NOTICE_WAITS_FOR: Readonly<
   prereq: [],
   songEq: [],
   songSound: ['songEq'],
-  plusTerms: CORNER_WAITS_FOR,
-  sceneReview: [...CORNER_WAITS_FOR, 'plusTerms'],
-  addonA: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],
-  addonB: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'addonA'],
-  addonC: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'addonA', 'addonB'],
+  // About the sound being heard, so before anything else in the corner.
+  profiles: CORNER_WAITS_FOR,
+  plusTerms: [...CORNER_WAITS_FOR, 'profiles'],
+  sceneReview: [...CORNER_WAITS_FOR, 'profiles', 'plusTerms'],
+  addonA: [...CORNER_WAITS_FOR, 'profiles', 'plusTerms', 'sceneReview'],
+  addonB: [
+    ...CORNER_WAITS_FOR,
+    'profiles',
+    'plusTerms',
+    'sceneReview',
+    'addonA',
+  ],
+  addonC: [
+    ...CORNER_WAITS_FOR,
+    'profiles',
+    'plusTerms',
+    'sceneReview',
+    'addonA',
+    'addonB',
+  ],
   // Waits for every notice that carries something to do or to know first:
   // an announcement is news, never urgent.
   sceneAnnouncement: [
     ...CORNER_WAITS_FOR,
+    'profiles',
     'plusTerms',
     'sceneReview',
     'addonA',
@@ -120,6 +139,7 @@ export const NOTICE_WAITS_FOR: Readonly<
   appFull: [],
   appNews: [
     ...CORNER_WAITS_FOR,
+    'profiles',
     'plusTerms',
     'sceneReview',
     'addonA',
