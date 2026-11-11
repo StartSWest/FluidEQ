@@ -9,6 +9,7 @@ import type { ISceneFrame } from './sceneGl';
 import { decodeSceneArtwork } from './sceneArtwork';
 import { compileScene, createSceneContext } from './sceneGl';
 import { sceneProgramKey } from './sceneLinkTurns';
+import { measureBuiltFlashing } from './sceneStillFlash';
 import {
   capturedRun,
   handedRun,
@@ -424,6 +425,33 @@ const answer = async (request: TSceneStillRequest) => {
       },
       pixels ? [pixels.buffer] : [],
     );
+    return;
+  }
+  if (request.kind === 'flash') {
+    const built = await build(request.pack).catch((): TBuilt => ({
+      ok: false,
+    }));
+    const measured = built.ok
+      ? await measureBuiltFlashing(
+          built,
+          request,
+          refuserOf(request.pack),
+          (framesDone, framesTotal) =>
+            scope.postMessage({
+              kind: 'flash-progress',
+              id: request.id,
+              framesDone,
+              framesTotal,
+            }),
+        ).catch(() => ({}))
+      : {};
+    scope.postMessage({
+      kind: 'flash',
+      id: request.id,
+      ...measured,
+      ...(!built.ok && built.log ? { log: built.log } : {}),
+      ...refusalOf(key),
+    });
     return;
   }
   if (request.kind === 'agent') {

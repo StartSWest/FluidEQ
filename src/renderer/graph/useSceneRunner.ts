@@ -43,6 +43,7 @@ import {
   SCENE_REST_PACE_MS,
   type IRestWatch,
 } from './sceneRest';
+import { musicFrameOf } from './sceneMusicFrame';
 import { sceneRulesFor } from './sceneRules';
 import { createDaylightFollower, pageDaylight } from './sceneDaylight';
 import { createSceneTuner } from './sceneTuner';
@@ -498,11 +499,7 @@ export default function useSceneRunner({
         timeSeconds: clockRef.current,
         musicSeconds: musicClockRef.current,
         deltaMs,
-        level: energy.level,
-        beat: energy.beat,
-        bands: [energy.bass, energy.mid, energy.treble],
-        musicAccent: [energy.accent, energy.accentSerial],
-        musicRun: [runRef.current, energy.runSpeed],
+        ...musicFrameOf(energy, runRef.current),
         accent: accentRef.current,
         fade: fadeRef.current,
         playing: isPlaying && !isSilentWaveform(currentWaveform),
@@ -511,9 +508,7 @@ export default function useSceneRunner({
         ...(viewRef.current ? { view: viewRef.current } : {}),
         waveform: waveformRef.current,
         params: paramsRef.current,
-        rhythm: energy.rhythm,
         stereo,
-        voice: [energy.voice.open, energy.voice.pitch, energy.voice.sure],
         ...(handed
           ? {
               pointer: handed.pointer,

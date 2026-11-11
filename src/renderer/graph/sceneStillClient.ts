@@ -73,14 +73,14 @@ const releaseWhenIdle = () => {
   idle.port2.postMessage(undefined);
 };
 
-const started = (): Worker | undefined => {
-  if (worker) {
-    return worker;
-  }
-  if (typeof Worker === 'undefined') {
-    return undefined;
-  }
-  const next = new Worker(
+/**
+ * A scene still worker of its own, for a caller that ends it when done: the
+ * review's flash measurement (`sceneFlashMeasure.ts`) plays a minute of
+ * frames, which on the shared worker would hold every gallery picture behind
+ * it, and is cancelled by ending its worker.
+ */
+export const startSceneStillWorker = (): Worker =>
+  new Worker(
     new URL(
       process.env.NODE_ENV === 'production'
         ? './scene-still.js'
@@ -88,6 +88,15 @@ const started = (): Worker | undefined => {
       window.location.href,
     ),
   );
+
+const started = (): Worker | undefined => {
+  if (worker) {
+    return worker;
+  }
+  if (typeof Worker === 'undefined') {
+    return undefined;
+  }
+  const next = startSceneStillWorker();
   next.onmessage = ({ data }: MessageEvent<TSceneStillReply>) => {
     const resolve = waiting.get(data.id);
     waiting.delete(data.id);
@@ -111,7 +120,7 @@ const started = (): Worker | undefined => {
 };
 
 /** The theme's accent, which a worker has no styles to read. */
-const pageAccent = () =>
+export const pageAccent = () =>
   parseAccent(
     getComputedStyle(document.documentElement).getPropertyValue('--accent'),
   );
@@ -161,8 +170,9 @@ const ask = <K extends TSceneStillRequest['kind']>(
       // it in milliseconds. The worker drops those when its context is made
       // again, which is exactly when the GPU can have changed; this is the
       // page's half of the same rule.
-      if (reply?.refused && reply.refused !== 'too-heavy') {
-        refusedScenes.set(key, reply.refused);
+      const refusal = reply && 'refused' in reply ? reply.refused : undefined;
+      if (refusal && refusal !== 'too-heavy') {
+        refusedScenes.set(key, refusal);
       }
       resolve(
         reply?.kind === request.kind ? (reply as TReplyOf<K>) : undefined,

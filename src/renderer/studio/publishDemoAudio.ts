@@ -28,6 +28,32 @@ import { createAxisCells } from '../utils/autoBalanceCapture';
  * that follows the music down by a decibel a second, the long window under
  * the bass, and the sound the runner hears kicks in - a scene moves to the
  * demo as it would to the same song playing. */
+/**
+ * The demo song's reader on `input`, built as the capture builds its own: the
+ * live demo below and the review's measurement of a scene against the demo,
+ * which plays it in an offline context faster than real time
+ * (`sceneFlashMusic.ts`), both hear it through this.
+ */
+export const connectDemoReader = (
+  context: BaseAudioContext,
+  input: AudioNode,
+) => {
+  const axis = createFrequencyAxis(context.sampleRate);
+  return connectLiveFrameReader(context, input, {
+    channelAnalysers: connectMeterAnalysers(context, input, true)
+      .meterAnalysers,
+    axis,
+    cells: createAxisCells(axis, context.sampleRate, FFT_SIZE),
+    trackReference: { current: undefined },
+    // No pump runs beside this reader to let the scale fall: it does.
+    releaseReference: () => true,
+  });
+};
+
+/** The demo song's bytes, as main ships them, or undefined. */
+export const readDemoMusic = async (): Promise<Uint8Array | undefined> =>
+  window.electron?.ipcRenderer?.readStudioDemoMusic?.();
+
 export default function createPublishDemoAudio(
   paused = false,
   { audible = true }: { audible?: boolean } = {},
@@ -43,22 +69,14 @@ export default function createPublishDemoAudio(
     input.connect(mute).connect(context.destination);
   }
   const axis = createFrequencyAxis(context.sampleRate);
-  const reader = connectLiveFrameReader(context, input, {
-    channelAnalysers: connectMeterAnalysers(context, input, true)
-      .meterAnalysers,
-    axis,
-    cells: createAxisCells(axis, context.sampleRate, FFT_SIZE),
-    trackReference: { current: undefined },
-    // No pump runs beside this reader to let the scale fall: it does.
-    releaseReference: () => true,
-  });
+  const reader = connectDemoReader(context, input);
   let source: AudioBufferSourceNode | undefined;
   let stopped = false;
   // Paused or not as last asked, also while the file is still on its way.
   let wantPaused = paused;
   const settle = () => (wantPaused ? context.suspend() : context.resume());
   const ready = (async () => {
-    const bytes = await window.electron?.ipcRenderer?.readStudioDemoMusic?.();
+    const bytes = await readDemoMusic();
     if (!bytes) {
       throw new Error('The demo music could not be read');
     }

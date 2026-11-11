@@ -120,6 +120,9 @@ it("sends the page's accent, which a worker cannot read", async () => {
   client.sampleSceneInWorker(pack);
   await settle();
   const [request] = FakeWorker.made[0].sent;
+  if (request.kind !== 'sample') {
+    throw new Error('a sample was asked for');
+  }
   expect(request.accent[0]).toBeCloseTo(0x52 / 255);
   expect(request.accent[1]).toBeCloseTo(0xe9 / 255);
 });

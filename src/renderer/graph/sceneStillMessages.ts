@@ -1,6 +1,7 @@
 import type { IScenePack } from 'common/scenePacks';
 import type { IStudioAgentMoment, TStudioAgentSound } from 'common/studioAgent';
 import type { IWorldReport } from 'common/worldNotes';
+import type { IFlashSummary } from './sceneFlashMeter';
 import type { ISceneFrame } from './sceneGl';
 
 /**
@@ -63,6 +64,22 @@ export type TSceneStillRequest =
       pointer?: { x: number; y: number; pressed: boolean };
       /** A tap this many seconds before the picture. */
       tap?: { x: number; y: number; seconds: number };
+    }
+  | {
+      /**
+       * How much of the scene flashes over `frames` - the demo song as a
+       * scene hears it (`sceneFlashMusic.ts`) - drawn at `width` x `height`,
+       * for the review of a scene before it is published
+       * (`sceneFlashMeasure.ts`). Answered by progress as it goes, then once.
+       */
+      kind: 'flash';
+      id: number;
+      pack: IScenePack;
+      /** The time of day, 0 night to 100 day; the scene's own when absent. */
+      daylight?: number;
+      frames: readonly ISceneFrame[];
+      width: number;
+      height: number;
     };
 
 /**
@@ -111,5 +128,24 @@ export type TSceneStillReply =
       log?: string;
       /** It built, and its frame would take this computer far too long. */
       hopeless?: true;
+      refused?: TSceneStillRefusal;
+    }
+  | {
+      kind: 'flash-progress';
+      id: number;
+      framesDone: number;
+      framesTotal: number;
+    }
+  | {
+      kind: 'flash';
+      id: number;
+      /** Undefined when it could not be measured: `log` or `refused` say why. */
+      summary?: IFlashSummary;
+      /** PNGs of the frames around the worst moment, oldest first. */
+      filmstrip?: Blob[];
+      /** Which of them is the worst moment. */
+      worst?: number;
+      /** The shader did not compile, in the driver's words. */
+      log?: string;
       refused?: TSceneStillRefusal;
     };
