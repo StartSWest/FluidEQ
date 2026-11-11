@@ -18,7 +18,7 @@ import {
   MAX_IMPORT_CELL,
   MAX_IMPORT_COLUMNS,
   sheetLayout,
-} from '../../../renderer/studio/animations/import/importGrid';
+} from '../../../common/sheetGrid';
 
 /**
  * A `columns` by `rows` sheet of `cell` px cells on `background` (RGBA),

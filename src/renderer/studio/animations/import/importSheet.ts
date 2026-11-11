@@ -4,8 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { sheetLayout, type ISheetLayout } from 'common/sheetGrid';
 import type { IDecodedImport, IImportFrame } from './importDecode';
-import { sheetLayout, type ISheetLayout } from './importGrid';
 
 /**
  * One animation of an import laid into the scene's sheet: an even grid of

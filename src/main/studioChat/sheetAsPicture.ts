@@ -1,7 +1,4 @@
-import {
-  detectGrid,
-  type IGridPixels,
-} from '../../renderer/studio/animations/import/importGrid';
+import { detectGrid, type IGridPixels } from '../../common/sheetGrid';
 import { ART_DIR, readArt } from './artFolder';
 import { isSheetName, replaceProblem, writeSheet } from './sheetFiles';
 

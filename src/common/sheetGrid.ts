@@ -4,8 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { MAX_ANIMATION_FRAMES } from 'common/studioAnimation';
-import { SHEET_BOUNDS } from 'common/pictureBounds';
+import { MAX_ANIMATION_FRAMES } from './studioAnimation';
+import { SHEET_BOUNDS } from './pictureBounds';
 
 /**
  * A still sheet's grid, read from the gaps between its frames, and the

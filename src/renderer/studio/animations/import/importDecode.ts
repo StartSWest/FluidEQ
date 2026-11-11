@@ -11,10 +11,15 @@ import {
   SHEET_BOUNDS,
 } from 'common/pictureBounds';
 import { MAX_ANIMATION_FRAMES } from 'common/studioAnimation';
+import {
+  detectGrid,
+  guessGrid,
+  sheetLayout,
+  type IGrid,
+} from 'common/sheetGrid';
 import { readAseprite } from './importAseprite';
 import { readAtlas } from './importAtlas';
 import { gifSize, type IChosenFile, type TImportKind } from './importFiles';
-import { detectGrid, guessGrid, sheetLayout, type IGrid } from './importGrid';
 
 /**
  * The chosen files decoded into frames the window can lay into a sheet:

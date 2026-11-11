@@ -6,8 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useId, useMemo } from 'react';
 import { MAX_ANIMATION_FRAMES } from 'common/studioAnimation';
+import type { IGrid } from 'common/sheetGrid';
 import { useTranslation } from '../../../utils/I18nContext';
-import type { IGrid } from './importGrid';
 
 interface IImportGridPickerProps {
   /** The sheet as chosen, to show with the cuts over it. */

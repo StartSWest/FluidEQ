@@ -11,6 +11,7 @@ import {
   type IStudioAnimation,
   type TAnimationGround,
 } from 'common/studioAnimation';
+import type { IGrid } from 'common/sheetGrid';
 import { viewOf, type IViewedAnimation } from '../useStudioAnimations';
 import {
   decodeImport,
@@ -25,7 +26,6 @@ import {
   type TImportKind,
   type TImportRefusal,
 } from './importFiles';
-import type { IGrid } from './importGrid';
 import { composeSheet, type IComposedSheet } from './importSheet';
 import { importTiming, type IImportTiming } from './importTiming';
 
