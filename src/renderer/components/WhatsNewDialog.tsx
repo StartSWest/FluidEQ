@@ -147,11 +147,19 @@ const renderChangelog = (markdown: string) => {
         };
         sections.push(version);
         blocks = version.blocks;
-      } else {
+      } else if (level === 3) {
+        // A version's halves, `### FluidEQ` then `### Studio` from 2.4 on:
+        // what a listener reads first, apart from what a maker does.
         blocks.push(
-          <h4 key={key} className="dialog-frame__section-title">
+          <h4 key={key} className="whats-new__part">
             {content}
           </h4>,
+        );
+      } else {
+        blocks.push(
+          <h5 key={key} className="dialog-frame__section-title">
+            {content}
+          </h5>,
         );
       }
       return;

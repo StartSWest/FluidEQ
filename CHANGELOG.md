@@ -6,7 +6,20 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
-## 2.4.1
+## 2.5.0
+
+### Sound
+
+- **An output that lost its profile gets one back**, and you are told once.
+- **A damaged profile is reported once.** FluidEQ's log notes a profile it
+  cannot read once, and again only if the damage changes, instead of on every
+  change you make.
+- **Processes** shows the Windows audio service's processor use correctly.
+- The media helper no longer crashes when a player closes.
+
+### Visualizers and Studio
+
+#### Visualizers
 
 - **Your own scenes play on the graph again.** A scene with a colour palette
   or a colour control lost them when it went into your looks (Add to my
@@ -20,36 +33,116 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   Gallery's copy; if it cannot be, the graph says why and offers **Try
   again**. What went wrong is written to the log, and **Help → Report a
   problem** carries it.
+- **Desktop backgrounds and the Compact player recover the same way.** A
+  scene that will not build there is put right from your Studio project or
+  the Gallery's copy, and plays again on every monitor that refused it.
 - **Every scene is drawn the same way.** The brightness limiter no longer
   blends any scene's picture on screen.
 - **Your own scene is yours on every computer** you sign in on, not only the
   one it was built on.
-- **Studio: Edit mode.** **Edit** on the stage lets you pick the things in a
+
+#### Studio
+
+- **Edit mode.** **Edit** on the stage lets you pick the things in a
   3D scene and **Move**, **Turn** or **Resize** them by hand, look at one
   alone with **Solo**, and find any of them in the list of what is in the
   scene. Nothing is saved until you press **Save**; **Discard**, Undo and
   Redo are there, and the scene stands back on a grid while you edit.
-- **Studio: clearer answers.** **Put on desktop** says why it is off for a
+- **Edit mode's Save always finishes.** It used to hang on some scenes and
+  stop the Studio following that scene's files until FluidEQ restarted. A new
+  thing you add lands where the camera is looking, and a locked thing shows
+  no handles.
+- **The Code tab shows every file.** The scene's shader, its pack, its 3D
+  world and the materials it names, its animations and its notes, each
+  folding to its name.
+- **A published scene opens as a locked copy.** Another member's scene
+  opened in the Studio can't be added to your looks, exported, published or
+  renamed, and its chat asks before every command.
+- **Clearer answers.** **Put on desktop** says why it is off for a
   scene that does not play, and every way setting a desktop background or
   keeping a version can fail now says so on screen.
-- **Studio: tabs.** The Animations tab stays where you scroll it while an
+- **Tabs.** The Animations tab stays where you scroll it while an
   animation plays, with the way back always in reach, and the Pictures tab
   shows a scene's separate images straight away.
-- **Studio: scenes from outside FluidEQ.** A scene that came from somewhere
+- **Scenes from outside FluidEQ.** A scene that came from somewhere
   else asks before every command its chat runs until you press **I trust
   this scene**. Your own scenes never ask this.
-- **Studio: a scene that was not approved says why.** An amber mark stands
+- **A scene that was not approved says why.** An amber mark stands
   beside the scene's name, in the project list and under Your scenes. Point
   at it or press it for the reviewer's reason in full, the date and what to
   do next: fix it and publish it again. It stays until you send the scene
   again, a scene waiting for review shows a clock, and a decision shows the
   next time FluidEQ checks.
 - **No monthly limit on publishing.**
-- **An output that lost its profile gets one back**, and you are told once.
-- **Processes** shows the Windows audio service's processor use correctly.
-- The media helper no longer crashes when a player closes.
+
+#### Your AI
+
+- **Higgsfield beside GPT.** Set up Higgsfield's tools in your own Claude
+  Code and choose which one the chat uses; it asks when both are there.
+  Both are yours: FluidEQ ships neither, holds no sign-in and pays for
+  nothing.
+- **It watches the scene move.** Your AI can watch a few frames along the
+  music to see which way a thing moves and how evenly, look at the standard
+  graph, the ultra-wide graph and the Compact player's whole column at once,
+  and see the scene at six moments of the test song, from silence to the
+  drop, to check that the drop shows.
+- **Scenes that fill the Compact player.** Your AI sees the player's whole
+  column, so a scene runs on to its foot instead of leaving it black.
+- **Night is black.** New projects start from a black night at Daylight 0,
+  and your AI measures how dark its scene's night is and holds it to that.
+- **A sheet of frames becomes an animation.** If your AI packs a grid of
+  poses as a plain picture, FluidEQ makes it an animation of that name, in
+  the Animations tab, and says so.
+- **Better scenes from the start.** Your AI plans how the scene looks in
+  silence, a verse, a build and the drop before the details, and works from
+  examples of moves done right.
 
 ## 2.4.0
+
+### Sound
+
+2.3.1 was never published on its own; everything it held is here.
+
+- **Factory DSP presets play at the song's own level.** The music, voice,
+  Room and Gaming presets no longer level a song before their stages: each
+  hears it as it arrives, the Maximizer adds a fixed gain and catches the
+  peaks, and switching away from a rack that adjusts its gain as it plays no
+  longer carries that boost into the sound that follows. The Normalizer
+  stage is still on the DSP page for anyone who switches it on.
+- **A rack you already have keeps its old settings** until you pick its
+  factory preset again. A game's saved copy in the Gaming Lab goes back to
+  the new tuning with **Reset to** and its profile's name.
+- **No loud start after a pause.** The Maximizer, and the Normalizer if you
+  switch it on, no longer let a song arrive loud after silence.
+- **Auto normalize on the EQ's preamp keeps its level** when Windows
+  reopens an output, instead of starting over. It is the preamp's own guard,
+  apart from the DSP rack's Normalizer.
+
+#### Gaming Lab
+
+- Footsteps, voices and ambience add emphasis to the game mix within the
+  available headroom. Footsteps keeps sustained music steadier while
+  bringing out cues.
+- Heroes of the Storm has a dedicated mix with fuller lows, more midrange
+  contrast and optional Wide Stage on headphones.
+- Footsteps meters stay aligned when band labels wrap. Standard profiles
+  avoid automatic whole-mix compression, while Night keeps the dynamics
+  processing intended for quiet listening. Meter readings no longer shift
+  the controls as they change, and the Gaming Lab waits for an audio output
+  before comparing a game's tuning with its profile at startup.
+
+#### Support and more
+
+- **Share Audio stays linked.** A computer you linked stays linked until
+  somebody unlinks it: it reconnects by itself after sleep, a power cut or a
+  new address, with no new invitation.
+- **GitHub Sponsors.** Support FluidEQ from About or the Support page.
+- **Crash records stay on this computer.** If a FluidEQ process ever
+  crashes, a record is kept here only, for a bug report you choose to send.
+- **Account.** Startup checks account access directly and skips the retired
+  membership sync request.
+
+### Visualizers and Studio
 
 FluidEQ 2.4 is the Studio's biggest release yet. The pictures in a scene
 can move: the scene's chat makes, fixes and checks its animations, and the
@@ -57,11 +150,35 @@ Animations tab plays and imports them. Every picture in the chat can be
 zoomed, copied and drawn on, the stage tries your scene as an ultra-wide
 graph or in the Compact player, and one AI works on several of your scenes
 at once, with whatever your own Claude has. Scenes gain palettes, choices
-and kept versions, and every 3D visualizer lets you pick the key that moves
-its camera, on the graph and on your desktop. 2.3.1 was never published on
-its own; everything it held is here.
+and kept versions.
+Every 3D visualizer lets you pick the key that moves its camera, on the
+graph and on your desktop.
 
-### Studio: animations
+#### Visualizers
+
+- **Choose your camera key.** Pick the key that moves a 3D scene's camera:
+  Ctrl, Alt, Shift or any key. Choose **Hold and drag** or **Hold and
+  move**. **Follow the mouse** leans the scene after your pointer, and
+  **Circle by itself** turns a scene that goes all the way round. **Reset
+  view** shows only while the key is held.
+- **The desktop answers the mouse.** A visualizer set as your desktop
+  background responds to the mouse over the empty desktop, each monitor
+  keeps its own time of day when it does not follow the graph, and the
+  Studio puts its newest version on the desktop.
+- **Beat flashes land on the kick**, even when hats play between kicks.
+- **Gallery previews move to the demo song**, silently, while nothing plays,
+  and the Gallery opens on its newest scenes.
+- **A scene never falls back to the plain look.** If a new version will not
+  build, or the computer is slow, the last version that worked keeps
+  playing.
+- **Colourful mode takes the scene's palette**, and the graph keeps separate
+  settings for standard looks and for visualizers.
+- **The Colourful switch on the title bar's wave** now reads clearly on or
+  off in any colours.
+- **Credits arrive by themselves.** Credits paid in the browser reach the
+  app with no click, whether its window is in front or not.
+
+#### Animations
 
 - **Animations made in the chat.** Ask the scene's chat to animate a
   picture in your scene. It can bend one of the scene's own pictures into
@@ -107,7 +224,7 @@ its own; everything it held is here.
   swallow flies over it, so the Pictures and Animations tabs, and your AI,
   have something to learn from from the first minute.
 
-### Studio: pictures in the chat
+#### Pictures in the chat
 
 - **Every picture shows in the chat.** Whatever picture your AI opens or
   works with appears in the conversation. Click one to see it large and zoom
@@ -118,7 +235,7 @@ its own; everything it held is here.
   things, point arrows, write beside them or crop to the part that matters,
   then **Attach to chat** to send it with your next message.
 
-### Studio: the stage
+#### The stage
 
 - **Try it where it will play.** The stage's size menu adds **Ultra-wide
   graph**, the scene at five and a half times as wide as it is tall, and
@@ -131,7 +248,7 @@ its own; everything it held is here.
   Calm, the slow animation a desktop background plays, and back.
 - **Never still.** With nothing playing, the stage moves to the demo song.
 
-### Studio: your AI
+#### Your AI
 
 - **Several scenes at once.** Each scene has its own chat, and they work at
   the same time.
@@ -147,7 +264,7 @@ its own; everything it held is here.
   new family, appears as soon as it does there.
 - **Uses less of your plan.** The chat sends Claude less to do the same work.
 
-### Scenes
+#### Scenes
 
 - **More to tune.** A scene can offer colour palettes, choices with icons and
   chips, a single colour, and controls that show only for the options that
@@ -161,71 +278,6 @@ its own; everything it held is here.
   Its version rises only when you publish, and the Studio's status line
   shows it. The Gallery keeps the last 10 versions of each scene; save any
   of them on this computer from the scene's page.
-
-### Visualizers
-
-- **Choose your camera key.** Pick the key that moves a 3D scene's camera:
-  Ctrl, Alt, Shift or any key. Choose **Hold and drag** or **Hold and
-  move**. **Follow the mouse** leans the scene after your pointer, and
-  **Circle by itself** turns a scene that goes all the way round. **Reset
-  view** shows only while the key is held.
-- **The desktop answers the mouse.** A visualizer set as your desktop
-  background responds to the mouse over the empty desktop, each monitor
-  keeps its own time of day when it does not follow the graph, and the
-  Studio puts its newest version on the desktop.
-- **Beat flashes land on the kick**, even when hats play between kicks.
-- **Gallery previews move to the demo song**, silently, while nothing plays,
-  and the Gallery opens on its newest scenes.
-- **A scene never falls back to the plain look.** If a new version will not
-  build, or the computer is slow, the last version that worked keeps
-  playing.
-- **Colourful mode takes the scene's palette**, and the graph keeps separate
-  settings for standard looks and for visualizers.
-- **The Colourful switch on the title bar's wave** now reads clearly on or
-  off in any colours.
-
-### Sound
-
-- **Factory DSP presets play at the song's own level.** The music, voice,
-  Room and Gaming presets no longer level a song before their stages: each
-  hears it as it arrives, the Maximizer adds a fixed gain and catches the
-  peaks, and switching away from a rack that adjusts its gain as it plays no
-  longer carries that boost into the sound that follows. The Normalizer
-  stage is still on the DSP page for anyone who switches it on.
-- **A rack you already have keeps its old settings** until you pick its
-  factory preset again. A game's saved copy in the Gaming Lab goes back to
-  the new tuning with **Reset to** and its profile's name.
-- **No loud start after a pause.** The Maximizer, and the Normalizer if you
-  switch it on, no longer let a song arrive loud after silence.
-- **Auto normalize on the EQ's preamp keeps its level** when Windows
-  reopens an output, instead of starting over. It is the preamp's own guard,
-  apart from the DSP rack's Normalizer.
-
-### Gaming Lab
-
-- Footsteps, voices and ambience add emphasis to the game mix within the
-  available headroom. Footsteps keeps sustained music steadier while
-  bringing out cues.
-- Heroes of the Storm has a dedicated mix with fuller lows, more midrange
-  contrast and optional Wide Stage on headphones.
-- Footsteps meters stay aligned when band labels wrap. Standard profiles
-  avoid automatic whole-mix compression, while Night keeps the dynamics
-  processing intended for quiet listening. Meter readings no longer shift
-  the controls as they change, and the Gaming Lab waits for an audio output
-  before comparing a game's tuning with its profile at startup.
-
-### Store, support and more
-
-- **Share Audio stays linked.** A computer you linked stays linked until
-  somebody unlinks it: it reconnects by itself after sleep, a power cut or a
-  new address, with no new invitation.
-- **Credits arrive by themselves.** Credits paid in the browser reach the
-  app with no click, whether its window is in front or not.
-- **GitHub Sponsors.** Support FluidEQ from About or the Support page.
-- **Crash records stay on this computer.** If a FluidEQ process ever
-  crashes, a record is kept here only, for a bug report you choose to send.
-- **Account.** Startup checks account access directly and skips the retired
-  membership sync request.
 
 ## 2.3.0
 

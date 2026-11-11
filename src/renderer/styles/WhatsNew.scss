@@ -43,8 +43,20 @@ it under the terms of the GNU General Public License version 3 or later.
     line-height: 1.3;
   }
 
-  // New / Changed / Fixed, and the named parts of a feature release.
-  h4 {
+  // A version's halves (FluidEQ, then the Studio), and in a version written
+  // before them its New / Changed / Fixed: a step under the number, a step
+  // over the sections inside it.
+  .whats-new__part {
+    margin: 10px 0 0;
+    padding-bottom: 6px;
+    color: $secondary-light;
+    border-bottom: 1px solid $menu-rule;
+    font-size: $text-lead;
+    font-weight: $weight-semibold;
+  }
+
+  // The named sections inside a half.
+  h5 {
     margin-top: 8px;
   }
 
