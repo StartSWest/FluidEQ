@@ -73,6 +73,29 @@ describe("the Studio chat's brief", () => {
     expect(brief).toContain("YOU ARE IN FLUIDEQ STUDIO'S CHAT");
     expect(brief).toContain('HOW A SCENE BECOMES WORTH WATCHING');
   });
+
+  // Ivan, 2026-11-11: "always put update notes when finishing so when
+  // publishing the notes are there". The chat's own section said to raise
+  // the version instead, which FluidEQ does itself at publish.
+  it('makes the update note the last step of every change, and leaves the version alone', () => {
+    expect(brief).toContain('THE UPDATE NOTE IS PART OF EVERY CHANGE');
+    expect(brief).toContain('"whatsNew"');
+    expect(brief).toContain('is not finished');
+    expect(brief).not.toMatch(/raise the version/);
+    expect(brief).toContain('Leave the version in pack.json as it is');
+  });
+
+  // Ivan, 2026-11-11: "aware of the mobile UI to fill the black bottom".
+  it('says the scene runs on past its panel, and where to look at it', () => {
+    expect(brief).toContain('THE SCENE RUNS ON PAST ITS PANEL');
+    expect(brief).toContain('shape "compact-player-column"');
+    expect(brief).toContain('480 by 966');
+  });
+
+  it('says motion is watched, and a frame sheet is never a plain picture', () => {
+    expect(brief).toContain('watch_scene');
+    expect(brief).toContain('A SHEET OF FRAMES IS NEVER A PLAIN PICTURE');
+  });
 });
 
 describe('every brief', () => {

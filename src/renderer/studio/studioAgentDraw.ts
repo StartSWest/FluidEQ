@@ -1,5 +1,6 @@
 import {
   STUDIO_AGENT_SHAPES,
+  studioAgentViewOf,
   type IStudioAgentDrawAsk,
   type TStudioAgentDrawAnswer,
 } from 'common/studioAgent';
@@ -21,6 +22,9 @@ export const drawForAgent = async (
 ): Promise<TStudioAgentDrawAnswer> => {
   const { width, height } = STUDIO_AGENT_SHAPES[ask.shape];
   const spectrumRect = studioSpectrumRect(ask.pack, ask.wave);
+  // The Compact player's column: the picture is taller than the panel, and
+  // the scene runs on under it.
+  const view = studioAgentViewOf(ask.shape);
   const reply = await drawForAgentInWorker({
     pack: ask.pack,
     width,
@@ -29,6 +33,7 @@ export const drawForAgent = async (
     ...(ask.seconds === undefined ? {} : { seconds: ask.seconds }),
     ...(ask.tempo === undefined ? {} : { tempo: ask.tempo }),
     spectrumRect,
+    ...(view ? { view } : {}),
     unseen: document.visibilityState === 'hidden',
     ...(ask.camera
       ? { camera: [ask.camera.yaw, ask.camera.pitch, ask.camera.zoom] }

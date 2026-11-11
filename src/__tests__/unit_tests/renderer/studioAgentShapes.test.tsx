@@ -38,9 +38,12 @@ describe("the AI's shapes", () => {
     expect(ratio('full-screen')).toBeCloseTo(16 / 9, 5);
   });
 
-  it('are those four and nothing thinner than the ultra-wide graph', () => {
+  // Four screens, and the Compact player a second time with the whole
+  // column its picture is the top of (`studioAgentColumn.test.ts`).
+  it('are those four, the player with its column, and nothing thinner than the ultra-wide graph', () => {
     expect(Object.keys(STUDIO_AGENT_SHAPES).sort()).toEqual([
       'compact-player',
+      'compact-player-column',
       'full-screen',
       'graph',
       'ultra-wide-graph',

@@ -9,6 +9,8 @@ import type { IScenePack } from './scenePacks';
 import type { ISceneWave } from './sceneWave';
 import type { ISongMap } from './songMap';
 import {
+  COMPACT_PLAYER_COLUMN,
+  COMPACT_PLAYER_COLUMN_VIEW,
   COMPACT_PLAYER_PICTURE,
   GRAPH_STAGE_RATIO,
   ULTRA_WIDE_GRAPH,
@@ -49,11 +51,25 @@ export const STUDIO_AGENT_SHAPES = {
   'ultra-wide-graph': ULTRA_WIDE_GRAPH,
   /** The Compact player's picture, 480 by 309. */
   'compact-player': COMPACT_PLAYER_PICTURE,
+  'compact-player-column': {
+    width: COMPACT_PLAYER_COLUMN.width,
+    height: COMPACT_PLAYER_COLUMN.height,
+  },
   /** A visualizer full screen or on the desktop, 16:9. */
   'full-screen': { width: 1280, height: 720 },
 } as const;
 
 export type TStudioAgentShape = keyof typeof STUDIO_AGENT_SHAPES;
+
+/**
+ * Where the scene's panel stands on a shape's picture, when the picture is
+ * more than the panel: only the Compact player's whole column. Undefined
+ * where the panel is the picture.
+ */
+export const studioAgentViewOf = (
+  shape: TStudioAgentShape,
+): readonly [number, number, number, number] | undefined =>
+  shape === 'compact-player-column' ? COMPACT_PLAYER_COLUMN_VIEW : undefined;
 
 export const isStudioAgentShape = (
   value: unknown,

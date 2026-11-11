@@ -56,6 +56,11 @@ export type TSceneStillRequest =
       /** The test music's tempo, when not its own. */
       tempo?: number;
       spectrumRect: readonly [number, number, number, number];
+      /**
+       * Where the scene's panel stands on the picture, when the picture is
+       * more than the panel (`sceneView.ts`): the Compact player's column.
+       */
+      view?: readonly [number, number, number, number];
       /** The window cannot be seen: link without waiting on frames. */
       unseen: boolean;
       /** `uCamera` for every frame, already inside the scene's limits. */

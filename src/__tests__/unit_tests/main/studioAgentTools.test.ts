@@ -80,7 +80,7 @@ describe('the arguments', () => {
     'refuses %s, a shape FluidEQ shows nothing at',
     (shape) => {
       expect(readLookRequest({ shape })).toMatch(
-        /shape must be one of graph, ultra-wide-graph, compact-player, full-screen/,
+        /shape must be one of graph, ultra-wide-graph, compact-player, compact-player-column, full-screen/,
       );
     },
   );

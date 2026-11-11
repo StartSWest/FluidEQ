@@ -37,3 +37,39 @@ export const COMPACT_PLAYER_PICTURE = {
   width: PLAYER_WIDTH,
   height: PLAYER_PICTURE_HEIGHT,
 } as const;
+
+/**
+ * The Compact player's whole column, which a scene is drawn behind: its
+ * picture is the panel near the top, and the two thirds under it - behind
+ * the player's frosted controls - are more of the same scene, `uv` running
+ * on below 0 (`sceneView.ts`). A scene that draws nothing there shows a
+ * black slab under the player (Ivan, 2026-11-11: "aware of the mobile UI to
+ * fill the black bottom"), and the picture alone, which is all the member's
+ * AI could look at, never showed it.
+ *
+ * The column's height and where the panel ends are the player's own, kept
+ * in `playerPictureData.ts` beside the pictures they were measured for;
+ * `studioAgentColumn.test.ts` holds these to them.
+ */
+export const COMPACT_PLAYER_COLUMN = {
+  width: PLAYER_WIDTH,
+  height: 966,
+  /** Rows from the column's top to the foot of the panel. */
+  panelFoot: 346,
+} as const;
+
+/**
+ * Where the player's panel stands on its column, as a scene's view: left,
+ * bottom, width and height in shares of the column, from the bottom-left.
+ */
+export const COMPACT_PLAYER_COLUMN_VIEW: readonly [
+  number,
+  number,
+  number,
+  number,
+] = [
+  0,
+  1 - COMPACT_PLAYER_COLUMN.panelFoot / COMPACT_PLAYER_COLUMN.height,
+  1,
+  PLAYER_PICTURE_HEIGHT / COMPACT_PLAYER_COLUMN.height,
+];

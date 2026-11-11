@@ -196,6 +196,8 @@ export const silenceRun = (
  */
 export interface IPictureHands {
   spectrumRect: readonly [number, number, number, number];
+  /** Where the panel stands on a picture larger than it (`sceneView.ts`). */
+  view?: readonly [number, number, number, number];
   camera?: readonly [number, number, number];
   pointer?: { x: number; y: number; pressed: boolean };
   tap?: { x: number; y: number; seconds: number };
@@ -211,7 +213,7 @@ export interface IPictureHands {
  */
 export const handedRun = (
   make: () => TFrameRun,
-  { spectrumRect, camera, pointer, tap }: IPictureHands,
+  { spectrumRect, view, camera, pointer, tap }: IPictureHands,
 ): TFrameRun => {
   let tapAt = Number.POSITIVE_INFINITY;
   if (tap) {
@@ -224,6 +226,7 @@ export const handedRun = (
   }
   const held: Partial<ISceneFrame> = {
     spectrumRect,
+    ...(view ? { view } : {}),
     ...(camera ? { camera } : {}),
     ...(pointer
       ? { pointer: [pointer.x, pointer.y, pointer.pressed ? 1 : 0, 1] }

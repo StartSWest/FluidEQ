@@ -83,6 +83,9 @@ The whole list, for a new or rebuilt scene:
   ultra-wide monitor, about 5.5:1, nothing important lost off its ends;
 - shape "compact-player": the picture slid, not squeezed, with the focus
   whole and near the middle - what the compact player shows (see FRAMING);
+- shape "compact-player-column": the Compact player's whole column, the
+  panel near its top and your scene running on under it - nothing black,
+  nothing ending in a hard line at the panel's foot;
 - shape "full-screen": the scene at 16:9, full screen or on a desktop;
 - sound "silence": the scene at rest, and calm;
 - beats ${PLAIN_BAR}, ${PLAIN_BAR}.25, ${PLAIN_BAR}.5 and ${PLAIN_BAR}.75: one beat in quarters on a plain bar

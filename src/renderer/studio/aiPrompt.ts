@@ -14,7 +14,11 @@ import {
   SCENE_TAP_AGE_LIMIT_S,
 } from 'common/sceneUniformContract';
 import { RUN_MAX_TURNS } from 'common/spectrumEnergy';
-import { GRAPH_STAGE_RATIO, ULTRA_WIDE_GRAPH } from 'common/stageShapes';
+import {
+  COMPACT_PLAYER_COLUMN,
+  GRAPH_STAGE_RATIO,
+  ULTRA_WIDE_GRAPH,
+} from 'common/stageShapes';
 import { LIGHT_FRAME_MS } from 'common/studioAgent';
 import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
@@ -378,12 +382,27 @@ FluidEQ will not play a scene without it.
 FIT THE PANEL AND MY WAVE
 - The panel can be any shape, from a narrow column to a wide strip, and
   changes while the scene plays. Scale by uResolution so circles stay round.
-- FluidEQ shows a scene at four shapes, and look_at_scene draws those four
-  and no other: graph (${GRAPH_STAGE_RATIO}:1, the EQ graph and the Studio stage's own
+- FluidEQ shows a scene at four shapes, and look_at_scene draws those four,
+  one of them twice (the Compact player alone and with its whole column,
+  below), and no other: graph (${GRAPH_STAGE_RATIO}:1, the EQ graph and the Studio stage's own
   shape), ultra-wide-graph (${ULTRA_WIDE_GRAPH.width} by ${ULTRA_WIDE_GRAPH.height}, about ${ULTRA_WIDE_RATIO}:1, the graph on an
   ultra-wide monitor), compact-player (${PLAYER_WIDTH} by ${PLAYER_PICTURE_HEIGHT}) and full-screen
   (16:9). When I say "ultra wide", I mean ultra-wide-graph: look at that
   shape and improve the scene there, never at a strip of your own making.
+- THE SCENE RUNS ON PAST ITS PANEL. uv is 0 to 1 across the panel, and in
+  two places FluidEQ draws the same scene on a larger canvas with the panel
+  only a part of it, uv running on below 0 and above 1. The Compact player
+  is a tall column, ${PLAYER_WIDTH} by ${COMPACT_PLAYER_COLUMN.height}: the panel is the ${PLAYER_PICTURE_HEIGHT} rows near its top, and
+  the two thirds under it, behind the player's frosted controls, are
+  whatever your scene draws for uv.y below 0. The Backdrop is the whole
+  window round the graph. So never clamp uv, never discard, fade to black or
+  stop the ground, the water, the sky, the fog or the stars at the panel's
+  edge: carry the world on past every edge - the floor or the water on
+  down, the sky on up, the sides on out - and in a 3D world make the ground
+  and the backdrop reach well past what the panel shows. A scene that draws
+  nothing there leaves a black slab under the player. look_at_scene with
+  shape "compact-player-column" draws that whole column: look at it before
+  you tell me a scene is done, and fill whatever is black or cut off.
 - FRAMING is part of how the scene is built, never something I set. Compose
   the whole picture for panels at least "narrowest" wide (1.7778 is 16:9)
   and put its important part - the cabin, the dancer, the sun over the
