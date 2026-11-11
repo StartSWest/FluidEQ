@@ -132,16 +132,19 @@ void place() {
 // ---- 1. SKY: listens to the mids --------------------------------------------
 // gMids is near 0 in a quiet passage and near 1 when the song is full.
 
-const vec3 NIGHT_HIGH = vec3(0.015, 0.02, 0.07);
-const vec3 NIGHT_LOW = vec3(0.09, 0.045, 0.15);
+// Night is black: these are the whole sky at Daylight 0 in silence. Keep them
+// near zero, or the night turns into a purple wash.
+const vec3 NIGHT_HIGH = vec3(0.0, 0.004, 0.016);
+const vec3 NIGHT_LOW = vec3(0.02, 0.012, 0.045);
 const vec3 DUSK = vec3(0.45, 0.12, 0.32);
 // TRY: change DUSK to vec3(0.05, 0.38, 0.3) for a green aurora.
 
 vec3 sky(vec2 p) {
   float h = clamp((p.y - gHorizon) / (1.0 - gHorizon), 0.0, 1.0);
   vec3 c = mix(NIGHT_LOW, NIGHT_HIGH, smoothstep(0.0, 0.8, h));
-  // The mids pour warm colour up from the horizon.
-  c += DUSK * (0.15 + 0.6 * gMids) * exp(-h * 2.4);
+  // The mids pour warm colour up from the horizon: next to none in silence,
+  // so the music is what lights the night.
+  c += DUSK * (0.02 + 0.73 * gMids) * exp(-h * 2.4);
   vec3 day = mix(vec3(0.82, 0.87, 0.94), vec3(0.34, 0.55, 0.86), smoothstep(0.0, 0.9, h));
   day += vec3(0.22, 0.1, 0.04) * gMids * exp(-h * 2.6);
   return mix(c, day, gDay);
@@ -275,7 +278,7 @@ float ripple(vec2 p, float phase) {
 
 vec3 floorColour(vec2 p) {
   float depth = clamp((gHorizon - p.y) / gHorizon, 0.0, 1.0);
-  vec3 c = mix(vec3(0.03, 0.025, 0.07), vec3(0.008, 0.008, 0.02), depth);
+  vec3 c = mix(vec3(0.014, 0.012, 0.03), vec3(0.003, 0.003, 0.008), depth);
   c = mix(c, mix(vec3(0.55, 0.6, 0.68), vec3(0.4, 0.45, 0.52), depth), gDay);
   // The orb, its ring and its light, mirrored in the polished floor and
   // fading with distance from the horizon.
@@ -396,6 +399,8 @@ vec4 sceneColour(vec2 uv) {
 const EARLIER_STARTER_DIGESTS: readonly string[] = [
   // 2026-10-24 to 2026-11-09: Pulse before its picture and its swallow.
   '9g5.1vfw0ju',
+  // 2026-11-09 to 2026-11-11: before its night was made black.
+  'csi.11zar6g',
 ];
 
 /** Whether a scene's text is FluidEQ's starter, this one or an earlier one. */

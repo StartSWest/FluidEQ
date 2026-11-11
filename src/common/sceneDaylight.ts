@@ -59,14 +59,17 @@ export const SCENE_DAYLIGHT_DECLARATION = JSON.stringify(
  *
  * Ivan, 2026-11-11: "all scenes I build always make night at 0 too light; it
  * needs to be fully black look, as dark as the night". The number is read
- * off FluidEQ's own 3D scenes, each drawn at Daylight 0 in silence at the
- * graph's shape that day. The ones whose night is black, with only what
- * gives off light bright, measure 0.8 to 5.4 (Prism Bloom 0.8, Ember 1.9,
- * Laser 2.0, Eclipse 3.9, Coral 5.2, Truss 5.4). The ones that are a wash
- * of colour measure 8 and over (Hyperdrive 8.4, Reef Light 10.9, Bloom
- * 11.4, Silk 12.1, Glacier's blue 14.6, Lantern Lake's purple sky 17.0).
- * Nothing sits between 5.4 and 8.4, and 6 is the line just above the black
- * ones.
+ * off FluidEQ's own forty scenes, each drawn on the GPU that day at Daylight
+ * 0 in silence at the graph's shape. Twelve have a night that is black, with
+ * only what gives off light bright, and measure 0.8 to 5.9: Prism Bloom 0.8,
+ * Ember 1.8, Laser 2.0, Fireflies 2.9, Aurora 3.2, Eclipse 3.9, Singularity
+ * 4.0, Galaxy 4.3, Coral 5.1, Truss 5.3, Neon Horizon 5.6, Chrome 5.9. The
+ * other twenty-eight run from 6.8 to 21.8 without a gap, and the further up
+ * the plainer the wash: Storm's grey sky 7.4, Glacier's blue 14.6, Alpine's
+ * moonlit range 16.9 (his "night needs to be darker dude sea and sky"),
+ * Lantern Lake's purple sky 17.0, Dunes 21.8. 6 is the line just above the
+ * black ones. It is a judgement of where black ends, not a break in the
+ * numbers, and it is his to move.
  */
 export const NIGHT_BACKGROUND_MOST = 6;
 

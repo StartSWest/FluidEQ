@@ -36,8 +36,8 @@ answers with a line like:
 - A pixel is as bright as its brightest channel, so a deep blue or purple
   wash counts as the light it is.
 - **Night passes at 6% or under.** That line comes from FluidEQ's own
-  scenes: the ones whose night is black measure 1 to 5; the ones that are a
-  blue or purple wash measure 8 to 17.
+  scenes: the ones whose night is black measure 1 to 6; a grey storm sky
+  measures 7, a blue or purple wash 11 to 17, a moonlit mountain range 17.
 - The check is made in **silence**, where only the scene's own lights are
   on. With music the same scene measures lighter, and should.
 
