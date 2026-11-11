@@ -18,6 +18,7 @@ import type { IWorldReport, TWorldNote } from '../../common/worldNotes';
 import { HEAR_SCHEMA, readHearRequest } from './hearRequest';
 import { LOOK_SCHEMA, readLookRequest, type ILookRequest } from './lookRequest';
 import type { IMcpTool, IMcpToolResult } from './mcpProtocol';
+import { createViewsTool } from './viewsTool';
 import { createWatchTool, type IWatchPictures } from './watchTool';
 
 /**
@@ -417,25 +418,6 @@ export const createStudioTools = ({
   shapeNow,
   pictures,
 }: IStudioLook): IMcpTool[] => [
-  ...(pictures
-    ? [
-        createWatchTool<TLookOutcome>({
-          look,
-          ...(shapeNow ? { shapeNow } : {}),
-          pictures,
-          pictureOf: (outcome) =>
-            outcome.ok ? outcome.answer.image : undefined,
-          explain: (outcome) =>
-            outcome.ok
-              ? failure('The scene could not be watched.')
-              : explain(outcome),
-          titleOf: (outcome) =>
-            outcome.ok
-              ? `${nameOf(outcome.pack)} (id ${outcome.pack.id}, version ${outcome.pack.version})`
-              : '',
-        }),
-      ]
-    : []),
   {
     name: 'look_at_scene',
     title: 'Look at the scene',
@@ -477,6 +459,34 @@ export const createStudioTools = ({
       return heardResult(request.song, await hear(request.song));
     },
   },
+  // After the two every version has had: tools are found by name, and a
+  // caller that takes the first still gets the look.
+  createViewsTool<TLookOutcome>({
+    look,
+    describe: (request, outcome) =>
+      outcome.ok ? describe(request, outcome) : undefined,
+    explain: (outcome) =>
+      outcome.ok ? failure('The views could not be drawn.') : explain(outcome),
+  }),
+  ...(pictures
+    ? [
+        createWatchTool<TLookOutcome>({
+          look,
+          ...(shapeNow ? { shapeNow } : {}),
+          pictures,
+          pictureOf: (outcome) =>
+            outcome.ok ? outcome.answer.image : undefined,
+          explain: (outcome) =>
+            outcome.ok
+              ? failure('The scene could not be watched.')
+              : explain(outcome),
+          titleOf: (outcome) =>
+            outcome.ok
+              ? `${nameOf(outcome.pack)} (id ${outcome.pack.id}, version ${outcome.pack.version})`
+              : '',
+        }),
+      ]
+    : []),
 ];
 
 /** The wave a picture is drawn under: asked for, the scene's own, or the full panel. */

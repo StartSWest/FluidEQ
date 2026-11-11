@@ -17,6 +17,7 @@ import {
 } from '../../common/sceneArtwork';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import { LOOK_SCHEMA } from '../studioAgent/lookRequest';
+import { VIEWS_SCHEMA } from '../studioAgent/viewsTool';
 import watchPictures from '../studioAgent/watchPictures';
 import { WATCH_SCHEMA } from '../studioAgent/watchTool';
 import type { IMcpTool } from '../studioAgent/mcpProtocol';
@@ -56,6 +57,14 @@ const LOOK_WITHOUT_FOLDER = {
   ),
 };
 
+/** The same for the three views: they are this project's. */
+const VIEWS_WITHOUT_FOLDER = {
+  ...VIEWS_SCHEMA,
+  properties: Object.fromEntries(
+    Object.entries(VIEWS_SCHEMA.properties).filter(([key]) => key !== 'folder'),
+  ),
+};
+
 /** The same for the frames watched: they are this project's too. */
 const WATCH_WITHOUT_FOLDER = {
   ...WATCH_SCHEMA,
@@ -74,6 +83,9 @@ const ownLookTools = (door: IStudioLook, folder: string): IMcpTool[] =>
   }).map((tool) => {
     if (tool.name === 'look_at_scene') {
       return { ...tool, inputSchema: LOOK_WITHOUT_FOLDER };
+    }
+    if (tool.name === 'look_at_views') {
+      return { ...tool, inputSchema: VIEWS_WITHOUT_FOLDER };
     }
     return tool.name === 'watch_scene'
       ? { ...tool, inputSchema: WATCH_WITHOUT_FOLDER }
