@@ -309,6 +309,11 @@ const NOT_SETTING_FILES = [
   // words, which no reset may take.
   'draft.json',
   'codex.json',
+  // Which maker of pictures the member chose to keep using, GPT or
+  // Higgsfield, beside the chat's own files (`studioMakers.ts`): a reset of
+  // FluidEQ's settings is not the place to forget it, as it is not for the
+  // tools a chat was allowed.
+  'makers.json',
   'limits.json',
   'meta.json',
   'fluideq-mcp.json',
@@ -341,6 +346,9 @@ const NOT_SETTING_FILES = [
   // Another program's sign-in, read where it keeps it.
   '.credentials.json',
   'auth.json',
+  // Claude Code's own settings, read for the member's GPT plugin
+  // (`studioMakers.ts`) and never written by FluidEQ.
+  'settings.json',
   // Exports and project files the listener saves where they choose.
   'fluideq.json',
   'fluideq-dsp.json',
