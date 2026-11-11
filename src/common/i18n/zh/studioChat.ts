@@ -134,12 +134,8 @@ const studioChat = {
     '这个场景来自 FluidEQ 之外，因此 AI 在每条命令前都会询问。',
   'studioChat.outside.title': '这个场景来自 FluidEQ 之外',
   'studioChat.outside.body':
-    '它的文件不是在这里写的，或在此聊天之外被更改过。其中的文字可能要求 AI 执行命令，所以每次都会先问你。',
+    '这个文件夹不是 FluidEQ 创建的，其中的文字可能要求 AI 执行命令，所以每次都会先问你。如果这个场景是你的，或你知道是谁做的，就信任它：之后它就算是你自己的场景。',
   'studioChat.outside.trust': '我信任这个场景',
-  'studioChat.outside.confirm':
-    '只有在这个场景是你自己做的，或你知道是谁做的，才这样选。之后 AI 会在这里遵循你自己的 Claude Code 规则，并可能不经询问就执行命令。',
-  'studioChat.outside.keep': '继续询问',
-  'studioChat.outside.trustYes': '信任这个场景',
   'studioChat.chatgptOn': 'ChatGPT 图片已开启。',
   'studioChat.chatgptTurnOff': '关闭',
   'studioChat.past.title': '以前的聊天',

@@ -4,22 +4,20 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useState } from 'react';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import { trustStudioProject } from '../studioStore';
 import '../../styles/StudioChatAsk.scss';
 
 /**
- * Over the chat of a scene whose files came from outside FluidEQ, or changed
- * outside its chat: the AI asks before every command there, whatever the
- * member's own Claude Code allows, because a line in somebody else's file
- * can tell it to run one. The member can say the scene is theirs, here and
- * only here - in two presses, so it is never said by accident, and never by
- * the AI, which has no way to this.
+ * Over the chat of a scene in a folder FluidEQ did not make
+ * (`projectOrigin.ts`): the AI asks before every command there, because a
+ * line in somebody else's file can tell it to run one. One press says the
+ * scene is the member's, and it is then one of their own for good (Ivan,
+ * 2026-11-10: "make sure they can allow all"). Only here, in the Studio:
+ * the AI has no way to this.
  *
- * The quiet button, both times: keeping the questions is the safe choice,
- * and the one this notice recommends by saying nothing more.
+ * A scene the member made here never shows this.
  */
 export default function StudioChatOutside({
   projectId,
@@ -27,10 +25,6 @@ export default function StudioChatOutside({
   projectId: string;
 }) {
   const { t } = useTranslation();
-  const [confirming, setConfirming] = useState(false);
-  // Another project's notice starts from its first step.
-  useEffect(() => setConfirming(false), [projectId]);
-
   return (
     <section
       className="studio-chat__ask"
@@ -43,42 +37,17 @@ export default function StudioChatOutside({
         <p className="studio-chat__ask-title">
           {t('studioChat.outside.title')}
         </p>
-        <p className="studio-chat__ask-body">
-          {t(
-            confirming
-              ? 'studioChat.outside.confirm'
-              : 'studioChat.outside.body',
-          )}
-        </p>
+        <p className="studio-chat__ask-body">{t('studioChat.outside.body')}</p>
         <div className="studio-chat__ask-actions">
-          {confirming ? (
-            <>
-              <button
-                type="button"
-                className="button small"
-                onClick={() => setConfirming(false)}
-              >
-                {t('studioChat.outside.keep')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => {
-                  trustStudioProject(projectId).catch(() => undefined);
-                }}
-              >
-                {t('studioChat.outside.trustYes')}
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => setConfirming(true)}
-            >
-              {t('studioChat.outside.trust')}
-            </button>
-          )}
+          <button
+            type="button"
+            className="button small"
+            onClick={() => {
+              trustStudioProject(projectId).catch(() => undefined);
+            }}
+          >
+            {t('studioChat.outside.trust')}
+          </button>
         </div>
       </div>
     </section>

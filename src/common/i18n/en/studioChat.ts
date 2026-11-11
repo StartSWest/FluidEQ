@@ -141,12 +141,8 @@ const studioChat = {
     'This scene came from outside FluidEQ, so its AI asks before every command.',
   'studioChat.outside.title': 'This scene came from outside FluidEQ',
   'studioChat.outside.body':
-    'Its files were not written here, or changed outside this chat. Text in them could tell the AI to run commands, so it asks you before every one.',
+    'FluidEQ did not make this folder, and text in its files could tell the AI to run commands, so it asks you before every one. If the scene is yours, or you know who made it, trust it: it is then one of your own.',
   'studioChat.outside.trust': 'I trust this scene',
-  'studioChat.outside.confirm':
-    'Only say this if you made this scene or know who did. The AI will then follow your own Claude Code rules here, and may run commands without asking.',
-  'studioChat.outside.keep': 'Keep asking',
-  'studioChat.outside.trustYes': 'Trust this scene',
   'studioChat.chatgptOn': 'ChatGPT pictures are on.',
   'studioChat.chatgptTurnOff': 'Turn off',
   'studioChat.past.title': 'Past chats',

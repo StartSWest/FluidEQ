@@ -60,9 +60,8 @@ interface IChatSessionsDeps {
    */
   offered?: (model: TStudioChatModel) => boolean;
   /**
-   * Whether a project's chat must ask before every command, looked at
-   * afresh (`projectOrigin.ts`). Asked only between replies: a reply's own
-   * writes are not a change from outside.
+   * Whether a project's chat must ask before every command: a folder
+   * FluidEQ did not make, until the member trusts it (`projectOrigin.ts`).
    */
   mustAsk?: (projectId: string) => boolean;
   logger?: { info(message: string): void; warn(message: string): void };

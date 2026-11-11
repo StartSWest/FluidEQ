@@ -143,12 +143,8 @@ const studioChat = {
     'Diese Szene stammt von außerhalb von FluidEQ, daher fragt ihre KI vor jedem Befehl.',
   'studioChat.outside.title': 'Diese Szene stammt von außerhalb von FluidEQ',
   'studioChat.outside.body':
-    'Ihre Dateien wurden nicht hier geschrieben oder außerhalb dieses Chats geändert. Text darin könnte die KI anweisen, Befehle auszuführen, daher fragt sie Sie vor jedem einzelnen.',
+    'FluidEQ hat diesen Ordner nicht erstellt, und Text in seinen Dateien könnte die KI anweisen, Befehle auszuführen. Daher fragt sie Sie vor jedem. Wenn die Szene von Ihnen stammt oder Sie wissen, wer sie erstellt hat, vertrauen Sie ihr: Dann gilt sie als Ihre eigene.',
   'studioChat.outside.trust': 'Ich vertraue dieser Szene',
-  'studioChat.outside.confirm':
-    'Bestätigen Sie das nur, wenn Sie diese Szene selbst erstellt haben oder wissen, von wem sie stammt. Die KI folgt hier dann Ihren eigenen Claude Code-Regeln und kann Befehle ohne Nachfrage ausführen.',
-  'studioChat.outside.keep': 'Weiter fragen',
-  'studioChat.outside.trustYes': 'Dieser Szene vertrauen',
   'studioChat.chatgptOn': 'ChatGPT-Bilder sind an.',
   'studioChat.chatgptTurnOff': 'Ausschalten',
   'studioChat.past.title': 'Frühere Chats',

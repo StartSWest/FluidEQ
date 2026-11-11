@@ -155,7 +155,7 @@ export const studioStateOf = (
       path: project.folder,
       ...(names ? { names } : {}),
       ...(project.official ? { official: true as const } : {}),
-      ...(project.origin === 'outside' ? { outside: true as const } : {}),
+      ...(project.origin === 'opened' ? { outside: true as const } : {}),
       ...(published ? { published } : {}),
     };
   }),

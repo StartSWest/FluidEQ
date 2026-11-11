@@ -34,13 +34,7 @@ import {
   type IProjectList,
   type IStoredProject,
 } from '../memberScenes/studioProjects';
-import {
-  originOf,
-  sealOf,
-  withSeal,
-  withSealChecked,
-  withTrusted,
-} from '../memberScenes/projectOrigin';
+import { originOf, withTrusted } from '../memberScenes/projectOrigin';
 import {
   studioStateOf,
   type ILinkFolderResult,
@@ -119,14 +113,8 @@ export interface IStudioProjectsIpcRegistration {
   openInspection(pack: IScenePack): Promise<TInspection>;
   /** The project the member's AI names by folder, or the open one (`agentProject.ts`). */
   agentProject(folder?: string): TAgentProject;
-  /**
-   * Whether a project's chat must ask before every command
-   * (`projectOrigin.ts`), looked at afresh: files changed outside the chat
-   * since its last turn make the project one from outside.
-   */
+  /** Whether a project's chat must ask before every command (`projectOrigin.ts`). */
   chatMustAsk(id: string): boolean;
-  /** A chat turn ended: what it wrote is the project's own. */
-  chatWrote(id: string): void;
   /**
    * The account changed, or what it owns: the bench settles on a project
    * the account may use and the Studio is told.
@@ -516,25 +504,7 @@ export const registerStudioProjectsIpc = ({
     agentProject: (folder) => findAgentProject(projects, folder, usable),
     chatMustAsk: (id) => {
       const project = projects.projects.find((entry) => entry.id === id);
-      if (!project) {
-        return true;
-      }
-      const checked = withSealChecked(projects, id, sealOf(project.folder));
-      if (checked !== projects) {
-        adopt(checked);
-        tellStudio();
-      }
-      const now = checked.projects.find((entry) => entry.id === id);
-      return now === undefined || originOf(now) === 'outside';
-    },
-    chatWrote: (id) => {
-      const project = projects.projects.find((entry) => entry.id === id);
-      if (project) {
-        const sealed = withSeal(projects, id, sealOf(project.folder));
-        if (sealed !== projects) {
-          adopt(sealed);
-        }
-      }
+      return project === undefined || originOf(project) === 'outside';
     },
     accountChanged: () => {
       adopt(projects);

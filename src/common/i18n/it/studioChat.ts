@@ -142,12 +142,8 @@ const studioChat = {
     'Questa scena viene da fuori FluidEQ, quindi la sua IA chiede prima di ogni comando.',
   'studioChat.outside.title': 'Questa scena viene da fuori FluidEQ',
   'studioChat.outside.body':
-    'I suoi file non sono stati scritti qui, o sono cambiati fuori da questa chat. Un testo al loro interno potrebbe dire all’IA di eseguire comandi, quindi ti chiede prima di ognuno.',
+    'FluidEQ non ha creato questa cartella, e un testo nei suoi file potrebbe dire all’IA di eseguire comandi, quindi ti chiede prima di ognuno. Se la scena è tua, o sai chi l’ha creata, fidati: diventa una delle tue.',
   'studioChat.outside.trust': 'Mi fido di questa scena',
-  'studioChat.outside.confirm':
-    'Dillo solo se hai creato tu questa scena o sai chi l’ha creata. L’IA seguirà qui le tue regole di Claude Code e potrà eseguire comandi senza chiedere.',
-  'studioChat.outside.keep': 'Continua a chiedere',
-  'studioChat.outside.trustYes': 'Fidati di questa scena',
   'studioChat.chatgptOn': 'Le immagini di ChatGPT sono attive.',
   'studioChat.chatgptTurnOff': 'Disattiva',
   'studioChat.past.title': 'Chat precedenti',

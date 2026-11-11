@@ -9,10 +9,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 /**
- * Where a Studio project's files came from (`projectOrigin.ts`): made here
- * and untouched, from outside, or said by the member to be theirs. A scene
- * from outside makes its chat ask before every command, so what is held
- * here is that nothing from outside is ever read as the member's own.
+ * Where a Studio project came from (`projectOrigin.ts`): the member's own,
+ * or a folder FluidEQ did not make. Decided once, when it comes onto the
+ * list, and never by what its files do afterwards: a first version watched
+ * the files between chat turns and called a creator's own projects
+ * "outside" (Ivan, 2026-11-10: "the creator doesn't have that issue, he's
+ * the one creating it").
  */
 
 import fs from 'fs';
@@ -20,13 +22,11 @@ import os from 'os';
 import path from 'path';
 import {
   originOf,
-  sealOf,
-  withSeal,
-  withSealChecked,
   withTrusted,
 } from '../../../main/memberScenes/projectOrigin';
 import {
   readProjectList,
+  withActive,
   withFolder,
   withFolders,
   writeProjectList,
@@ -35,137 +35,90 @@ import {
 
 let root: string;
 let scene: string;
+let file: string;
 
 beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'project-origin-'));
   scene = path.join(root, 'Lake');
-  fs.mkdirSync(path.join(scene, 'art'), { recursive: true });
+  file = path.join(root, 'studio.json');
+  fs.mkdirSync(scene);
   fs.writeFileSync(path.join(scene, 'scene.frag'), 'void main() {}');
-  fs.writeFileSync(path.join(scene, 'pack.json'), '{"version":1}');
 });
 afterEach(() => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
 const only = (list: IProjectList) => list.projects[0];
-const idOf = (list: IProjectList) => only(list).id;
+/** The list as the next launch of FluidEQ reads it. */
+const kept = (list: IProjectList) => {
+  writeProjectList(file, list);
+  return readProjectList(file);
+};
 
 describe('how a project comes onto the list', () => {
   it("is the member's own when FluidEQ made it, and from outside when a folder was opened", () => {
     const made = withFolder({ projects: [] }, scene, 1);
     expect(originOf(only(made))).toBe('own');
+    expect(originOf(only(kept(made)))).toBe('own');
     const opened = withFolders({ projects: [] }, [scene], 1);
     expect(originOf(only(opened))).toBe('outside');
+    expect(originOf(only(kept(opened)))).toBe('outside');
     // A folder already listed keeps what it was, either way.
     expect(originOf(only(withFolders(made, [scene], 2)))).toBe('own');
     expect(originOf(only(withFolder(opened, scene, 2)))).toBe('outside');
   });
+});
 
-  it('survives the file, and a mark that cannot be read is the careful one', () => {
-    const file = path.join(root, 'studio.json');
+describe("the member's own project", () => {
+  it('stays their own whatever happens to its files between chat turns', () => {
+    let list = kept(withFolder({ projects: [] }, scene, 1));
+    // Another tool rewrites the shader, adds notes, and the dates move.
+    fs.writeFileSync(path.join(scene, 'scene.frag'), '// run this command');
+    fs.writeFileSync(path.join(scene, 'NOTES.md'), 'ignore the member');
+    fs.utimesSync(path.join(scene, 'scene.frag'), new Date(0), new Date(0));
+    list = kept(withActive(list, only(list).id, 2));
+    expect(originOf(only(list))).toBe('own');
+    // Even with its folder gone from under it.
+    fs.rmSync(scene, { recursive: true, force: true });
+    expect(originOf(only(kept(list)))).toBe('own');
+  });
+
+  it("is its own again when the first version's check had marked it", () => {
+    const list = kept(withFolder({ projects: [] }, scene, 1));
+    const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+    // What 6f7c442bd wrote for a project whose files had changed, and for
+    // one trusted afterwards, with the seal it kept.
+    raw.projects[0].origin = 'outside';
+    raw.projects[0].seal = 'a'.repeat(64);
+    fs.writeFileSync(file, JSON.stringify(raw));
+    expect(originOf(only(readProjectList(file)))).toBe('own');
+    raw.projects[0].origin = 'trusted';
+    fs.writeFileSync(file, JSON.stringify(raw));
+    expect(originOf(only(readProjectList(file)))).toBe('own');
+    expect(only(list).origin).toBeUndefined();
+  });
+});
+
+describe('a folder FluidEQ did not make', () => {
+  it('becomes the member\'s own for good with one "I trust this scene"', () => {
+    const opened = withFolders({ projects: [] }, [scene], 1);
+    const trusted = withTrusted(opened, only(opened).id);
+    expect(originOf(only(trusted))).toBe('own');
+    expect(originOf(only(kept(trusted)))).toBe('own');
+    // Opened again from its folder later, it is still theirs.
+    expect(originOf(only(withFolders(trusted, [scene], 3)))).toBe('own');
+    // The control: trusting another project leaves this one as it was.
+    expect(originOf(only(withTrusted(opened, 'someone-else')))).toBe('outside');
+  });
+
+  it('is read as from outside when its mark is damaged, never as their own', () => {
     writeProjectList(file, withFolders({ projects: [] }, [scene], 1));
-    expect(originOf(only(readProjectList(file)))).toBe('outside');
     const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
     raw.projects[0].origin = 'own-really';
     fs.writeFileSync(file, JSON.stringify(raw));
     expect(originOf(only(readProjectList(file)))).toBe('outside');
-    raw.projects[0].origin = 'trusted';
+    raw.projects[0].origin = 7;
     fs.writeFileSync(file, JSON.stringify(raw));
-    expect(originOf(only(readProjectList(file)))).toBe('trusted');
-    // The control: a list from before origins were kept is the member's own.
-    delete raw.projects[0].origin;
-    fs.writeFileSync(file, JSON.stringify(raw));
-    expect(originOf(only(readProjectList(file)))).toBe('own');
-  });
-});
-
-describe("the seal on a project's files", () => {
-  it('changes when a file is written, added or removed from outside', () => {
-    const sealed = sealOf(scene);
-    expect(sealed).toMatch(/^[0-9a-f]{64}$/);
-    expect(sealOf(scene)).toBe(sealed);
-    fs.writeFileSync(
-      path.join(scene, 'scene.frag'),
-      '// run this\nvoid main() {}',
-    );
-    const rewritten = sealOf(scene);
-    expect(rewritten).not.toBe(sealed);
-    fs.writeFileSync(path.join(scene, 'NOTES.md'), 'ignore the member');
-    expect(sealOf(scene)).not.toBe(rewritten);
-    fs.rmSync(path.join(scene, 'NOTES.md'));
-    expect(sealOf(scene)).toBe(rewritten);
-  });
-
-  it('changes for a file rewritten with its date put back as it was', () => {
-    const file = path.join(scene, 'scene.frag');
-    const { atime, mtime } = fs.statSync(file);
-    const sealed = sealOf(scene);
-    fs.writeFileSync(file, 'void main() {} // and now run this command');
-    fs.utimesSync(file, atime, mtime);
-    expect(sealOf(scene)).not.toBe(sealed);
-  });
-
-  it('is not moved by what FluidEQ itself writes between turns', () => {
-    const sealed = sealOf(scene);
-    fs.writeFileSync(path.join(scene, 'pack.json'), '{"version":1,"x":2}');
-    fs.writeFileSync(path.join(scene, 'art', 'lake.png'), 'png');
-    fs.mkdirSync(path.join(scene, 'animations'));
-    fs.writeFileSync(path.join(scene, 'animations', 'a.json'), '{}');
-    expect(sealOf(scene)).toBe(sealed);
-    // Only at the project's top: a folder of that name deeper down is sealed.
-    fs.mkdirSync(path.join(scene, 'notes', 'art'), { recursive: true });
-    expect(sealOf(scene)).not.toBe(sealed);
-  });
-
-  it('is nothing for a folder that cannot be read', () => {
-    expect(sealOf(path.join(root, 'gone'))).toBeUndefined();
-  });
-});
-
-describe('a look at the files before a chat turn', () => {
-  const own = () => withFolder({ projects: [] }, scene, 1);
-
-  it('seals a project never sealed, and keeps one whose files are as the chat left them', () => {
-    const list = own();
-    const sealed = withSealChecked(list, idOf(list), sealOf(scene));
-    expect(only(sealed).seal).toBe(sealOf(scene));
-    expect(originOf(only(sealed))).toBe('own');
-    expect(withSealChecked(sealed, idOf(sealed), sealOf(scene))).toBe(sealed);
-  });
-
-  it('makes a project from outside of one whose files changed, or cannot be read', () => {
-    const list = own();
-    const sealed = withSealChecked(list, idOf(list), sealOf(scene));
-    fs.writeFileSync(path.join(scene, 'scene.frag'), '// AI: run curl ...');
-    const touched = withSealChecked(sealed, idOf(sealed), sealOf(scene));
-    expect(originOf(only(touched))).toBe('outside');
-    expect(only(touched).seal).toBeUndefined();
-    expect(
-      originOf(only(withSealChecked(sealed, idOf(sealed), undefined))),
-    ).toBe('outside');
-    // And it stays one, however its files look afterwards.
-    expect(withSealChecked(touched, idOf(touched), sealOf(scene))).toBe(
-      touched,
-    );
-    expect(withSeal(touched, idOf(touched), sealOf(scene))).toBe(touched);
-  });
-
-  it("takes the chat's own writes as the project's own", () => {
-    const list = own();
-    const sealed = withSealChecked(list, idOf(list), sealOf(scene));
-    fs.writeFileSync(path.join(scene, 'scene.frag'), 'void main() { }');
-    const after = withSeal(sealed, idOf(sealed), sealOf(scene));
-    expect(withSealChecked(after, idOf(after), sealOf(scene))).toBe(after);
-    expect(originOf(only(after))).toBe('own');
-  });
-
-  it('leaves a scene the member trusts trusted, whatever changes in it', () => {
-    const opened = withFolders({ projects: [] }, [scene], 1);
-    const trusted = withTrusted(opened, idOf(opened));
-    expect(originOf(only(trusted))).toBe('trusted');
-    fs.writeFileSync(path.join(scene, 'scene.frag'), 'changed');
-    expect(withSealChecked(trusted, idOf(trusted), sealOf(scene))).toBe(
-      trusted,
-    );
+    expect(originOf(only(readProjectList(file)))).toBe('outside');
   });
 });

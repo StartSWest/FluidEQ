@@ -29,13 +29,11 @@ export interface IStoredProject {
    */
   official?: string;
   /**
-   * Where its files came from, when not made here and untouched since
-   * (`projectOrigin.ts`): opened from elsewhere or changed outside the chat,
-   * or said by the member to be theirs.
+   * A folder FluidEQ did not make, which the member opened
+   * (`projectOrigin.ts`). Absent on a project made here, and on one the
+   * member said they trust.
    */
-  origin?: 'outside' | 'trusted';
-  /** Its files as the chat last left them (`sealOf`), while it is the member's own. */
-  seal?: string;
+  origin?: 'opened';
 }
 
 export interface IProjectList {
@@ -75,13 +73,14 @@ const readEntry = (value: unknown): IStoredProject | undefined => {
     id: value.id,
     folder: value.folder,
     openedAt: value.openedAt,
-    // A mark that cannot be read is the careful one.
-    ...(value.origin === undefined
+    // `outside` and `trusted` are marks of the first version, whose
+    // between-turns check marked the member's own projects: both are read
+    // as their own. Any other mark that cannot be read is the careful one.
+    ...(value.origin === undefined ||
+    value.origin === 'outside' ||
+    value.origin === 'trusted'
       ? {}
-      : { origin: value.origin === 'trusted' ? 'trusted' : 'outside' }),
-    ...(typeof value.seal === 'string' && /^[0-9a-f]{64}$/.test(value.seal)
-      ? { seal: value.seal }
-      : {}),
+      : { origin: 'opened' as const }),
   };
   // A mark that cannot be read still marks the project: dropping it would
   // turn a FluidEQ scene into one that can be published.
@@ -209,7 +208,7 @@ export const withFolders = (
           project.id === known.id ? { ...project, openedAt } : project,
         )
       : // A folder the member points at was made somewhere else.
-        [...kept, { id: randomUUID(), folder, openedAt, origin: 'outside' }];
+        [...kept, { id: randomUUID(), folder, openedAt, origin: 'opened' }];
   }, list.projects);
   const opened = projects.find((project) => sameFolder(project.folder, first));
   return {

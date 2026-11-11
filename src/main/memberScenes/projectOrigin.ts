@@ -4,156 +4,53 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { createHash } from 'crypto';
-import fs from 'fs';
-import path from 'path';
 import type { IProjectList, IStoredProject } from './studioProjects';
 
 /**
- * Where a Studio project's files came from, as far as FluidEQ can tell
- * (Ivan, 2026-11-10: "we need to protect engine from allowing to run
- * malicious code", "they can build scenes with a Chinese model outside Fluid
- * and load them in Studio").
+ * Where a Studio project came from (Ivan, 2026-11-10: "we need to protect
+ * engine from allowing to run malicious code", "they can build scenes with a
+ * Chinese model outside Fluid and load them in Studio").
  *
- * The Studio's chat reads a project's files, and since 2.4 it has the
- * member's shell under the member's own rules. Text in a file nobody here
- * wrote - a shader comment, a note, a file's name - can tell the AI to run a
- * command, and a member whose own Claude Code allows the shell broadly would
- * get no card. So a project is one of:
+ * The Studio's chat reads a project's files and has the member's shell under
+ * the member's own rules. Text in a file nobody here wrote can tell the AI
+ * to run a command, and a member whose own Claude Code allows the shell
+ * broadly would get no card. So a project is one of two things, decided
+ * once, when it comes onto the list:
  *
- * - own: made here ("New project", a restore of the member's own scene) and
- *   not changed outside FluidEQ's chat since;
- * - outside: a folder opened from elsewhere, or a project whose files changed
- *   between two chat turns by anything but the chat. Its chat asks before
- *   every command, whatever the member's rules allow (`chatForeign.ts`);
- * - trusted: the member said, in the Studio, that the scene is theirs.
- *   That stands for good: they answer for what is in it from then on.
+ * - own: FluidEQ made its folder here (New project, a restore of the
+ *   member's own scene), or the member said the scene is theirs. Their own
+ *   rules apply, and nothing here asks them anything more.
+ * - outside: a folder FluidEQ did not make, which the member opened. Its
+ *   chat asks before every command (`chatForeign.ts`) until the member says,
+ *   in the Studio, that they trust the scene - which makes it their own for
+ *   good.
+ *
+ * What a project's files do afterwards never changes this. A first version
+ * (6f7c442bd) also made a project "outside" when its files changed between
+ * two chat turns, by a digest of names, sizes and dates: a creator's own
+ * projects, kept in OneDrive and edited with other tools between turns,
+ * became "outside" within the hour and were asked about everything (Ivan:
+ * "the creator doesn't have that issue, he's the one creating it"). That
+ * rule is gone, and every project it marked is the member's own again: its
+ * mark was `outside`, which is now read as own, and a folder opened from
+ * here on is marked `opened`.
  *
  * Kept in the app's own data with the project list, never in the folder,
  * where the scene itself could write it.
  */
-export type TProjectOrigin = 'own' | 'outside' | 'trusted';
+export type TProjectOrigin = 'own' | 'outside';
 
 export const originOf = (project: IStoredProject): TProjectOrigin =>
-  project.origin ?? 'own';
+  project.origin === 'opened' ? 'outside' : 'own';
 
-/** More files than a scene has; a folder past it is not read as untouched. */
-const MAX_SEALED_FILES = 4000;
-const MAX_SEAL_DEPTH = 8;
-
-/**
- * What FluidEQ itself writes between chat turns - a control's value in
- * `pack.json`, pictures, sheets and their history - and the checks they
- * pass on the way in. Left out of the seal, or every slider moved would read
- * as a change from outside. What an AI is most likely to take as words to
- * follow - the shader, the world, notes, anything else - is all sealed.
- */
-const UNSEALED = new Set([
-  'pack.json',
-  'art',
-  'animations',
-  'animation-history',
-]);
-
-/**
- * A digest of the project's files by name, size and time written, without
- * reading one: the same while nothing was added, removed or rewritten.
- * Undefined when the folder cannot be read whole, which is never "untouched".
- */
-export const sealOf = (folder: string): string | undefined => {
-  const hash = createHash('sha256');
-  let count = 0;
-  const walk = (dir: string, relative: string, depth: number): boolean => {
-    let names: string[];
-    try {
-      names = fs.readdirSync(dir).sort();
-    } catch {
-      return false;
-    }
-    return names.every((name) => {
-      if (depth === 0 && UNSEALED.has(name.toLowerCase())) {
-        return true;
-      }
-      count += 1;
-      if (count > MAX_SEALED_FILES) {
-        return false;
-      }
-      const here = `${relative}/${name}`;
-      let stats: fs.Stats;
-      try {
-        stats = fs.lstatSync(path.join(dir, name));
-      } catch {
-        return false;
-      }
-      if (stats.isDirectory() && !stats.isSymbolicLink()) {
-        hash.update(`d:${here}\n`);
-        return depth < MAX_SEAL_DEPTH
-          ? walk(path.join(dir, name), here, depth + 1)
-          : false;
-      }
-      hash.update(`f:${here}:${stats.size}:${Math.round(stats.mtimeMs)}\n`);
-      return true;
-    });
-  };
-  return walk(folder, '', 0) ? hash.digest('hex') : undefined;
-};
-
-const change = (
-  list: IProjectList,
-  id: string,
-  next: (project: IStoredProject) => IStoredProject,
-): IProjectList => ({
+/** The list with a project the member said is theirs: their own from now on. */
+export const withTrusted = (list: IProjectList, id: string): IProjectList => ({
   ...list,
-  projects: list.projects.map((project) =>
-    project.id === id ? next(project) : project,
-  ),
+  projects: list.projects.map((project) => {
+    if (project.id !== id) {
+      return project;
+    }
+    const { origin: _was, ...own } = project;
+    return own;
+  }),
 });
-
-/**
- * The list after looking at a project's files before a chat turn: a project
- * of the member's own whose files are not as the last turn left them is from
- * outside from now on. One never sealed (listed before FluidEQ kept seals)
- * is sealed as it stands.
- */
-export const withSealChecked = (
-  list: IProjectList,
-  id: string,
-  seal: string | undefined,
-): IProjectList => {
-  const project = list.projects.find((entry) => entry.id === id);
-  if (!project || originOf(project) !== 'own') {
-    return list;
-  }
-  if (project.seal === undefined && seal !== undefined) {
-    return change(list, id, (entry) => ({ ...entry, seal }));
-  }
-  if (project.seal === seal && seal !== undefined) {
-    return list;
-  }
-  return change(list, id, ({ seal: _was, ...entry }) => ({
-    ...entry,
-    origin: 'outside',
-  }));
-};
-
-/** The list after a chat turn wrote in a project: its own is sealed again. */
-export const withSeal = (
-  list: IProjectList,
-  id: string,
-  seal: string | undefined,
-): IProjectList => {
-  const project = list.projects.find((entry) => entry.id === id);
-  if (!project || originOf(project) !== 'own' || seal === undefined) {
-    return list;
-  }
-  return project.seal === seal
-    ? list
-    : change(list, id, (entry) => ({ ...entry, seal }));
-};
-
-/** The list with a project the member said is theirs. */
-export const withTrusted = (list: IProjectList, id: string): IProjectList =>
-  change(list, id, ({ seal: _was, ...entry }) => ({
-    ...entry,
-    origin: 'trusted',
-  }));

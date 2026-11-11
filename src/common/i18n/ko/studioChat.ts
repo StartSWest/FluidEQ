@@ -142,12 +142,8 @@ const studioChat = {
     '이 장면은 FluidEQ 밖에서 왔으므로 AI가 모든 명령 전에 묻습니다.',
   'studioChat.outside.title': '이 장면은 FluidEQ 밖에서 왔습니다',
   'studioChat.outside.body':
-    '파일이 여기서 작성되지 않았거나 이 채팅 밖에서 변경되었습니다. 파일 속 텍스트가 AI에게 명령 실행을 지시할 수 있으므로 매번 먼저 묻습니다.',
+    '이 폴더는 FluidEQ가 만든 것이 아니며, 파일 속 텍스트가 AI에게 명령 실행을 지시할 수 있으므로 매번 먼저 묻습니다. 내 장면이거나 누가 만들었는지 안다면 신뢰하세요. 이후에는 내 장면으로 취급됩니다.',
   'studioChat.outside.trust': '이 장면을 신뢰합니다',
-  'studioChat.outside.confirm':
-    '이 장면을 직접 만들었거나 누가 만들었는지 아는 경우에만 선택하세요. 이후 AI는 여기서 내 Claude Code 규칙을 따르며 묻지 않고 명령을 실행할 수 있습니다.',
-  'studioChat.outside.keep': '계속 묻기',
-  'studioChat.outside.trustYes': '이 장면 신뢰하기',
   'studioChat.chatgptOn': 'ChatGPT 사진이 켜져 있습니다.',
   'studioChat.chatgptTurnOff': '끄다',
   'studioChat.past.title': '지난 채팅',

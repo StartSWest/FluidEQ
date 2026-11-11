@@ -6,8 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * What the member sees of a scene from outside FluidEQ: a card that says so
- * and offers no "always", and the notice whose second press, never its
- * first, says the scene is theirs.
+ * and offers no "always", and the notice whose one press says the scene is theirs.
  */
 
 import '@testing-library/jest-dom';
@@ -53,28 +52,12 @@ it("the control: the member's own scene's card offers it, and says nothing of ou
   expect(buttons()).toContain('studioChat.ask.allowAlways');
 });
 
-it('trusts a scene on the second press only, and keeping the questions is the loud choice', () => {
+it('trusts a scene in one press, on the loud button', () => {
   render(<StudioChatOutside projectId="lake" />);
   expect(buttons()).toEqual(['studioChat.outside.trust']);
-  fireEvent.click(screen.getByRole('button'));
+  const trust = screen.getByRole('button');
+  expect(trust).not.toHaveClass('subtle');
   expect(trustStudioProject).not.toHaveBeenCalled();
-  expect(screen.getByText('studioChat.outside.confirm')).toBeInTheDocument();
-
-  const keep = screen.getByRole('button', { name: 'studioChat.outside.keep' });
-  const trust = screen.getByRole('button', {
-    name: 'studioChat.outside.trustYes',
-  });
-  expect(keep).not.toHaveClass('subtle');
-  expect(trust).toHaveClass('subtle');
-
-  // Keep asking goes back to the first step, with nothing said.
-  fireEvent.click(keep);
-  expect(trustStudioProject).not.toHaveBeenCalled();
-  expect(buttons()).toEqual(['studioChat.outside.trust']);
-
-  fireEvent.click(screen.getByRole('button'));
-  fireEvent.click(
-    screen.getByRole('button', { name: 'studioChat.outside.trustYes' }),
-  );
+  fireEvent.click(trust);
   expect(trustStudioProject).toHaveBeenCalledWith('lake');
 });
