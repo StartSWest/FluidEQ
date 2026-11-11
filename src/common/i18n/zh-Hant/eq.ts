@@ -190,6 +190,8 @@ const eq = {
   'graph.look.refused.driver':
     '繪製 {name} 時顯示卡驅動程式停止了。已改為顯示標準外觀。',
   'graph.look.retry': '重試',
+  'graph.look.reportHint':
+    '如果反覆出現，請透過「{help} → {report}」向我們傳送報告。',
   'graph.scene.loading': '正在載入視覺化工具...',
   'graph.scene.attack': '起音',
   'graph.scene.attackHint':

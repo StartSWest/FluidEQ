@@ -19,6 +19,7 @@ import {
   verifyScenePackEnvelope,
 } from '../../../main/scenePackVerify';
 import { createScenePackStore } from '../../../main/scenePackStore';
+import { resetSceneFailuresForTesting } from '../../../main/sceneFailures';
 
 jest.mock('electron', () => ({
   safeStorage: jest.requireActual('../../utils/sceneStorageCipher')
@@ -214,9 +215,14 @@ describe('the scene pack store', () => {
   });
 
   it('refuses a listing whose envelope does not verify, and does not refetch it', () => {
-    const store = build();
+    resetSceneFailuresForTesting();
+    const logger = { info: jest.fn(), warn: jest.fn() };
+    const store = createScenePackStore({ userDataDir: directory, logger });
     const bad = seal(payloadFor('aurora'), 'somebody-else');
     expect(store.adopt([{ id: 'aurora', version: 1, envelope: bad }])).toBe(0);
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Scene failure: premium:aurora v1 on looks: signature-refused. download did not verify; not stored',
+    );
     expect(store.list()).toEqual([]);
     // Same id, same version, offered again: already known bad.
     expect(store.adopt([{ id: 'aurora', version: 1, envelope: bad }])).toBe(0);
@@ -260,8 +266,15 @@ describe('the scene pack store', () => {
     ).toString('base64');
     fs.writeFileSync(file, JSON.stringify({ ...envelope, payload: forged }));
 
-    expect(build().load('aurora')).toBeUndefined();
+    resetSceneFailuresForTesting();
+    const logger = { info: jest.fn(), warn: jest.fn() };
+    expect(
+      createScenePackStore({ userDataDir: directory, logger }).load('aurora'),
+    ).toBeUndefined();
     expect(fs.existsSync(file)).toBe(false);
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Scene failure: premium:aurora on looks: signature-refused. failed verification; removed',
+    );
   });
 
   it('keeps the newer version and ignores an older listing', () => {

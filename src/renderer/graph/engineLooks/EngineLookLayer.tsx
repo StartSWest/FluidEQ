@@ -84,6 +84,7 @@ export default function EngineLookLayer({
     const fail = () => markEngineLookFailed(style);
     return {
       identity: pack.id,
+      surface: 'engine-look',
       version: String(pack.version),
       name,
       load: () => Promise.resolve(pack),

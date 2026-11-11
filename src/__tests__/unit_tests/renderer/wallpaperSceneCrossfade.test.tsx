@@ -65,6 +65,7 @@ const desktop = () => {
     bootstrap: jest.fn(async () => current),
     drawn: jest.fn(),
     failed: jest.fn(),
+    logSceneFailure: jest.fn(),
     requestAudio: jest.fn(async () => undefined),
     onState: (listener) => {
       push = listener;

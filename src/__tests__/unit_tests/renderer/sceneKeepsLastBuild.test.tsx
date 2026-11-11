@@ -80,6 +80,7 @@ const source = (
   lastBuilt: jest.Mock;
 } => ({
   identity: 'member:me:glacier',
+  surface: 'graph' as const,
   version: String(next.version),
   name: 'Glacier',
   load: () => Promise.resolve(next),

@@ -3,7 +3,7 @@ import type { IScenePack, IScenePackCatalogueEntry } from 'common/scenePacks';
 import { lockedLookId, premiumLookId } from 'common/scenePacks';
 import type { IScenePacksListing } from 'main/ipc/scenePacks';
 import type { ISceneWave } from 'common/sceneWave';
-import type { IScenePackSummary, TSceneFailure } from 'main/scenePackStore';
+import type { IScenePackSummary } from 'main/scenePackStore';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 
 /**
@@ -194,38 +194,11 @@ export const loadScenePack = async (
 ): Promise<IScenePack | undefined> => bridge()?.loadScenePack?.(packId);
 
 /**
- * This scene will not run here. Stops offering it at once, then tells the main
- * process so the answer survives a restart.
- */
-export const reportSceneFailure = async (
-  packId: string,
-  reason: TSceneFailure,
-  detail?: string,
-): Promise<void> => {
-  if (!blocked.has(packId)) {
-    blocked.add(packId);
-    publish();
-  }
-  await bridge()?.reportScenePackFailure?.(packId, reason, detail);
-};
-
-/**
- * A version of this scene failed while an earlier one plays in its place:
- * written in the log with the driver's words, and nothing stops offering it.
- */
-export const noteSceneFailure = async (
-  packId: string,
-  reason: TSceneFailure,
-  detail: string,
-): Promise<void> => {
-  await bridge()?.reportScenePackFailure?.(packId, reason, detail);
-};
-
-/**
  * This scene will not run here RIGHT NOW — the machine is too slow for it, or
  * no context could be had. Falls back for this session only; nothing is told
  * to the main process and nothing is written down, so the next launch tries
- * again. Compare `reportSceneFailure`, which is for a pack that is broken.
+ * again. Why it did not run is the scene loop's line in the log
+ * (`sceneFailureLog.ts`).
  */
 export const blockScene = (packId: string) => {
   if (!blocked.has(packId)) {

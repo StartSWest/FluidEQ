@@ -199,9 +199,7 @@ describe('premium looks in the look store', () => {
     ],
     [
       'failed to build here',
-      (packs: TScenePacksModule) => {
-        packs.reportSceneFailure('aurora', 'compile').catch(() => undefined);
-      },
+      (packs: TScenePacksModule) => packs.blockScene('aurora'),
     ],
   ])(
     'falls back for the session, and keeps the choice, when a scene %s',
@@ -242,7 +240,7 @@ describe('premium looks in the look store', () => {
     scenePacks.adoptScenePackListingForTesting(listing(true));
     expect(scenePacks.getUsableScenes()).toHaveLength(1);
 
-    await scenePacks.reportSceneFailure('aurora', 'compile');
+    scenePacks.blockScene('aurora');
     expect(scenePacks.getUsableScenes()).toHaveLength(0);
 
     scenePacks.unblockScene('aurora');

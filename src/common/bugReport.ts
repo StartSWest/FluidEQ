@@ -176,6 +176,37 @@ export const takeLogSince = (
   return redact([...note, ...lines].join('\n'), userName);
 };
 
+/** The most scene failures one report carries: far more than a session makes. */
+export const MAX_REPORT_SCENE_FAILURES = 400;
+
+/**
+ * Every line of a log since `since` that carries `mark`, redacted — the
+ * scene failures (`common/sceneFailureLog.ts`), pulled out of the app log
+ * before it is capped (Ivan, 2026-11-11: "make sure we log scene failures so
+ * users can send logs to us"). In the log they sit among everything else, and
+ * a burst of anything — a hundred profile read errors — could push the one
+ * line that explains a scene off the top of the 2000 kept.
+ */
+export const takeMarkedSince = (
+  contents: string,
+  since: string | undefined,
+  mark: string,
+  userName?: string,
+  maxLines = MAX_REPORT_SCENE_FAILURES,
+): string => {
+  const sinceMs = since === undefined ? undefined : Date.parse(since);
+  const cutoff =
+    sinceMs !== undefined && !Number.isNaN(sinceMs) ? sinceMs : undefined;
+  const marked = contents.split(/\r?\n/).filter((line) => {
+    if (!line.includes(mark)) {
+      return false;
+    }
+    const at = lineTime(line);
+    return cutoff === undefined || at === undefined || at >= cutoff;
+  });
+  return redact(marked.slice(-maxLines).join('\n'), userName);
+};
+
 /** The tail of a log, redacted. */
 export const takeLogTail = (
   contents: string,
@@ -223,6 +254,12 @@ export interface IGatheredFacts {
    */
   helperLog: string;
   /**
+   * Every way a scene ended up not playing since the previous report, one
+   * line each (`takeMarkedSince`), apart from the app log so none can be
+   * pushed out of it. Absent from a main older than this.
+   */
+  sceneFailures?: string;
+  /**
    * When these logs were gathered, ISO. The next report's logs start here,
    * once this one has been delivered — so nothing that happens between two
    * reports is ever left out of both.
@@ -263,6 +300,7 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
     engineReport,
     engineLog,
     helperLog,
+    sceneFailures,
     gatheredAt,
     since,
   } = facts;
@@ -310,6 +348,16 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
     sections.push('', '### Outputs', '', '```', engineReport.trim(), '```');
   }
   sections.push('', `_Logs below: ${window}._`);
+  if (sceneFailures?.trim()) {
+    sections.push(
+      '',
+      '### Scene failures',
+      '',
+      '```',
+      sceneFailures.trim(),
+      '```',
+    );
+  }
   if (engineLog.trim()) {
     sections.push('', '### Engine log', '', '```', engineLog.trim(), '```');
   }

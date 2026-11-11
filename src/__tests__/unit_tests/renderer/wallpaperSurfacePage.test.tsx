@@ -83,6 +83,7 @@ const pageFor = (
     })),
     drawn: jest.fn(),
     failed: jest.fn(),
+    logSceneFailure: jest.fn(),
     requestAudio: jest.fn(async () => ({ points: [], waveform: [] })),
     onState: (listener) => {
       push = listener;

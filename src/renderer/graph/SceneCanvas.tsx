@@ -20,15 +20,11 @@ import {
 import {
   blockScene,
   loadScenePack,
-  noteSceneFailure,
-  reportSceneFailure,
   type IUsableScene,
 } from '../utils/scenePacks';
 import {
   blockMemberScene,
   loadMemberScene,
-  noteMemberSceneFailure,
-  reportMemberSceneFailure,
   type IUsableMemberScene,
 } from '../utils/memberScenes';
 import { useWatchedSceneWave } from '../utils/sceneWaveStore';
@@ -150,6 +146,8 @@ export default function SceneCanvas({
     return member
       ? {
           identity: key,
+          surface: 'graph',
+          lookId,
           version: String(version),
           name,
           load: () => loadMemberScene(key),
@@ -157,10 +155,12 @@ export default function SceneCanvas({
             refused('unavailable');
             blockMemberScene(key);
           },
-          reportFailure: (reason, log) => {
+          // Why, in the driver's words, is the runner's line in the log
+          // (`common/sceneFailureLog.ts`); here it only falls back.
+          reportFailure: (reason) => {
             // Set aside first: where the graph's choice lands is how the
             // recovery knows the listener has not chosen something else.
-            reportMemberSceneFailure(key, reason, log).catch(() => undefined);
+            blockMemberScene(key);
             if (reason !== 'compile') {
               failed(reason);
               return;
@@ -170,12 +170,7 @@ export default function SceneCanvas({
               refused('compile'),
             );
           },
-          versionFailed: (log) => {
-            noteMemberSceneFailure(
-              key,
-              'compile',
-              `an earlier version plays on: ${log}`,
-            ).catch(() => undefined);
+          versionFailed: () => {
             memberVersionWouldNotBuild(lookId).catch(() => undefined);
           },
           lastBuilt: () => lastSceneBuild(key),
@@ -191,6 +186,8 @@ export default function SceneCanvas({
         }
       : {
           identity: key,
+          surface: 'graph',
+          lookId,
           version: String(version),
           name,
           load: () => loadScenePack(key),
@@ -198,16 +195,9 @@ export default function SceneCanvas({
             refused('unavailable');
             blockScene(key);
           },
-          reportFailure: (reason, log) => {
+          reportFailure: (reason) => {
             failed(reason);
-            reportSceneFailure(key, reason, log).catch(() => undefined);
-          },
-          versionFailed: (log) => {
-            noteSceneFailure(
-              key,
-              'compile',
-              `an earlier version plays on: ${log}`,
-            ).catch(() => undefined);
+            blockScene(key);
           },
           lastBuilt: () => lastSceneBuild(premiumLookId(key)),
           built: () => {

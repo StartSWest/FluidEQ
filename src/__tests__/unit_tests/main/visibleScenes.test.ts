@@ -29,6 +29,13 @@ import type {
   IMemberSceneSummary,
 } from '../../../main/memberScenes/store';
 
+const mockLog = jest.fn();
+jest.mock('../../../main/sceneFailures', () => ({
+  logSceneFailure: (entry: unknown) => mockLog(entry),
+}));
+
+beforeEach(() => mockLog.mockClear());
+
 const ME = '11111111-1111-4111-8111-111111111111';
 const SOMEBODY = '22222222-2222-4222-8222-222222222222';
 const ME_LOOK = memberLookId(ME, 'one');
@@ -54,10 +61,14 @@ interface IFakeStore {
   loads: Array<[string, string]>;
 }
 
-const storeOf = (scenes: IMemberSceneSummary[]): IFakeStore => {
+const storeOf = (
+  scenes: IMemberSceneSummary[],
+  blocked: string[] = [],
+): IFakeStore => {
   const loads: Array<[string, string]> = [];
   const store = {
     list: () => scenes,
+    isBlocked: (_authorId: string, packId: string) => blocked.includes(packId),
     load: (authorId: string, packId: string) => {
       loads.push([authorId, packId]);
       return pack(packId);
@@ -195,6 +206,32 @@ describe('loading the pack behind a look id', () => {
       loadVisibleScene(store, viewerOf(ME, true), ME_LOOK),
     ).toBeUndefined();
     expect(loads).toEqual([]);
+  });
+
+  // A look the page asked for and did not get is the log's one line for it,
+  // by why: the report is the only place a member's "it did nothing" can be
+  // read. A scene handed over writes nothing (the control).
+  it('writes down why a look asked for was not handed over', () => {
+    const { store } = storeOf([scene({})], ['two']);
+    expect(loadVisibleScene(store, viewerOf(ME, true), ME_LOOK)).toBeDefined();
+    expect(mockLog).not.toHaveBeenCalled();
+
+    loadVisibleScene(store, viewerOf(ME, false), ME_LOOK);
+    loadVisibleScene(store, viewerOf(ME, true), memberLookId(ME, 'two'));
+    loadVisibleScene(store, viewerOf(ME, true), memberLookId(ME, 'three'));
+    expect(mockLog.mock.calls.map(([entry]) => entry)).toEqual([
+      { lookId: ME_LOOK, surface: 'looks', reason: 'not-owned' },
+      {
+        lookId: memberLookId(ME, 'two'),
+        surface: 'looks',
+        reason: 'blocked',
+      },
+      {
+        lookId: memberLookId(ME, 'three'),
+        surface: 'looks',
+        reason: 'not-listed',
+      },
+    ]);
   });
 
   it('refuses anything that is not a member look id', () => {

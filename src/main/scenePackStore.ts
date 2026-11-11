@@ -10,6 +10,7 @@ import {
 } from '../common/scenePacks';
 import type { ISceneWave } from '../common/sceneWave';
 import { verifyScenePackEnvelope } from './scenePackVerify';
+import { logSceneFailure } from './sceneFailures';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
 import {
   forgetKeptVersions,
@@ -62,25 +63,6 @@ export type TSceneFailure = 'compile' | 'context-lost' | 'gpu-reset';
 
 export const isSceneFailure = (value: unknown): value is TSceneFailure =>
   value === 'compile' || value === 'context-lost' || value === 'gpu-reset';
-
-const FAILURE_DETAIL_CHARS = 400;
-
-/**
- * What the window says about a failure, made fit for one line of the log: the
- * driver's own words, which the log never had — two of Ivan's scenes failed to
- * compile on 2026-11-08 and 11-09 and the log said only "compile".
- */
-export const sceneFailureDetail = (detail: unknown): string => {
-  if (typeof detail !== 'string') {
-    return '';
-  }
-  // eslint-disable-next-line no-control-regex -- the driver's log is flattened onto one line, control characters included
-  const line = detail.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim();
-  if (line === '') {
-    return '';
-  }
-  return ` ${line.length > FAILURE_DETAIL_CHARS ? `${line.slice(0, FAILURE_DETAIL_CHARS)}…` : line}`;
-};
 
 export interface IScenePackSummary {
   id: string;
@@ -214,7 +196,15 @@ export const createScenePackStore = ({
         }
         const payload = verifyScenePackEnvelope(raw);
         if (!payload) {
-          logger?.warn(`Scene pack ${id} failed verification and was removed.`);
+          logSceneFailure(
+            {
+              lookId: premiumLookId(id),
+              surface: 'looks',
+              reason: 'signature-refused',
+              detail: 'failed verification; removed',
+            },
+            logger,
+          );
           fs.rmSync(file, { force: true });
           return undefined;
         }
@@ -372,8 +362,15 @@ export const createScenePackStore = ({
           pack.id !== listing.id ||
           pack.version !== listing.version
         ) {
-          logger?.warn(
-            `Scene pack ${listing.id} v${listing.version} did not verify; not stored.`,
+          logSceneFailure(
+            {
+              lookId: premiumLookId(listing.id),
+              version: String(listing.version),
+              surface: 'looks',
+              reason: 'signature-refused',
+              detail: 'download did not verify; not stored',
+            },
+            logger,
           );
           rejected = { ...rejected, [listing.id]: fingerprint };
           saveRejected();

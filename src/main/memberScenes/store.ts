@@ -19,6 +19,7 @@ import storedScenePack, { storedFormOf } from '../../common/sceneStoredPack';
 import type { ISceneWave } from '../../common/sceneWave';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import writeFileAtomically from '../atomicWrite';
+import { logSceneFailure } from '../sceneFailures';
 import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
 import {
   forgetKeptVersions,
@@ -209,12 +210,31 @@ export const createMemberSceneStore = ({
         // member was running then, which may be newer than this one.
         // A copy written in the built layout before 2026-11-11 is healed
         // here, so it plays again without being added again.
-        const pack = readMemberScene(storedFormOf(record.pack));
+        const stored = storedFormOf(record.pack);
+        const pack = readMemberScene(stored);
         if (!pack || pack.id !== packId) {
-          logger?.warn(
-            `Member scene ${packId} no longer passes the member rules and is not offered.`,
+          logSceneFailure(
+            {
+              lookId: memberLookId(authorId, packId),
+              surface: 'looks',
+              reason: 'read-refused',
+              detail: 'no longer passes the member rules; not offered',
+            },
+            logger,
           );
           return undefined;
+        }
+        if (stored !== record.pack) {
+          logSceneFailure(
+            {
+              lookId: memberLookId(authorId, packId),
+              version: String(pack.version),
+              surface: 'looks',
+              reason: 'healed-disk',
+              detail: 'read from the built layout',
+            },
+            logger,
+          );
         }
         return pack;
       },
@@ -245,8 +265,15 @@ export const createMemberSceneStore = ({
           parsed.pack.id !== packId ||
           (version !== undefined && parsed.pack.version !== version)
         ) {
-          logger?.warn(
-            `Imported scene ${packId} no longer verifies and is not offered.`,
+          logSceneFailure(
+            {
+              lookId: memberLookId(authorId, packId),
+              ...(version !== undefined ? { version: String(version) } : {}),
+              surface: 'looks',
+              reason: 'signature-refused',
+              detail: 'no longer verifies; not offered',
+            },
+            logger,
           );
           return undefined;
         }

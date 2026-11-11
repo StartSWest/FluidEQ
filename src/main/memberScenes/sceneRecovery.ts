@@ -11,6 +11,7 @@ import type { IScenePack, IScenePackEnvelope } from '../../common/scenePacks';
 import { readProject } from './project';
 import { openMemberEnvelope } from './sharing';
 import { keptRevisionOf, type IMemberSceneStore } from './store';
+import { logSceneFailure } from '../sceneFailures';
 
 /**
  * A look that will not play here is put right from a better copy, in order
@@ -135,8 +136,14 @@ export const createSceneRecovery = ({
         return false;
       }
       announce();
-      logger?.info(
-        `Scene ${lookId} would not play and was put right from its Studio project (v${pack.version}).`,
+      logSceneFailure(
+        {
+          lookId,
+          version: String(pack.version),
+          surface: 'looks',
+          reason: 'healed-project',
+        },
+        logger,
       );
       return true;
     };
@@ -175,8 +182,14 @@ export const createSceneRecovery = ({
           store.saveImported(envelope);
         }
         announce();
-        logger?.info(
-          `Scene ${lookId} would not play and was put right from the gallery's copy (v${payload.pack.version}).`,
+        logSceneFailure(
+          {
+            lookId,
+            version: String(payload.pack.version),
+            surface: 'looks',
+            reason: 'healed-server',
+          },
+          logger,
         );
         return { recovered: true, from: 'gallery' };
       } catch (error) {
@@ -185,8 +198,14 @@ export const createSceneRecovery = ({
         );
       }
     }
-    logger?.warn(
-      `Scene ${lookId} would not play and no better copy was found: ${tried.size} tried.`,
+    logSceneFailure(
+      {
+        lookId,
+        surface: 'looks',
+        reason: 'gave-up',
+        detail: `no better copy found; ${tried.size} tried`,
+      },
+      logger,
     );
     return { recovered: false };
   };
@@ -208,7 +227,15 @@ export const createSceneRecovery = ({
       }
       const next = run(lookId, ref.authorId, ref.packId)
         .catch((error: unknown): TSceneRecovery => {
-          logger?.warn(`Recovering scene ${lookId} failed: ${String(error)}`);
+          logSceneFailure(
+            {
+              lookId,
+              surface: 'looks',
+              reason: 'gave-up',
+              detail: String(error),
+            },
+            logger,
+          );
           return { recovered: false };
         })
         .finally(() => {

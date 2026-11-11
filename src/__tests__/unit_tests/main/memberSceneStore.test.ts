@@ -19,6 +19,7 @@ import {
   memberSceneFingerprint,
 } from '../../../main/memberScenes/store';
 import { readSceneCache, writeSceneCache } from '../../../main/sceneCacheFile';
+import { resetSceneFailuresForTesting } from '../../../main/sceneFailures';
 import { memberLookId } from '../../../common/memberScenes';
 import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
@@ -214,7 +215,9 @@ describe('the member scene store', () => {
   });
 
   it('keeps a scene another member sent, verified on every load', () => {
-    const store = createMemberSceneStore({ userDataDir });
+    resetSceneFailuresForTesting();
+    const logger = { warn: jest.fn() };
+    const store = createMemberSceneStore({ userDataDir, logger });
     const summary = store.saveImported(signedEnvelope(memberPayload()));
     expect(summary).toMatchObject({
       lookId: memberLookId(SOMEONE, 'neon-city'),
@@ -245,9 +248,16 @@ describe('the member scene store', () => {
       .encryptString(JSON.stringify(record))
       .toString('base64');
     fs.writeFileSync(file, JSON.stringify(stored));
+    // The control: a copy that verifies wrote nothing.
+    expect(logger.warn).not.toHaveBeenCalled();
     expect(store.load(SOMEONE, 'neon-city')).toBeUndefined();
     expect(store.list()).toEqual([]);
     expect(fs.existsSync(file)).toBe(true);
+    // The report's one line for it, by look id, never the path, and with no
+    // version: a copy that does not verify has none it can be trusted for.
+    expect(logger.warn).toHaveBeenCalledWith(
+      `Scene failure: ${memberLookId(SOMEONE, 'neon-city')} on looks: signature-refused. no longer verifies; not offered`,
+    );
   });
 
   it('refuses to keep a file FluidEQ never signed', () => {
@@ -373,13 +383,52 @@ describe('a scene with a palette, a colour and a choice, kept in the looks', () 
         pack: coloured,
       },
     );
-    const back = createMemberSceneStore({ userDataDir }).load(
+    resetSceneFailuresForTesting();
+    const logger = { warn: jest.fn() };
+    const back = createMemberSceneStore({ userDataDir, logger }).load(
       ME,
       'waveform-3d',
+    );
+    // Healed on its way in, and the report says so.
+    expect(logger.warn).toHaveBeenCalledWith(
+      `Scene failure: ${memberLookId(ME, 'waveform-3d')} v${coloured.version} on looks: healed-disk. read from the built layout`,
     );
     expect(back?.palettes).toEqual(coloured.palettes);
     expect(back?.colours).toEqual(coloured.colours);
     expect(back?.params).toEqual(coloured.params);
+  });
+
+  // An own copy that will not read is the report's one line for it, so "my
+  // scene shows the bars" has an answer in the log; the healed copy above
+  // (the control) wrote none.
+  it('writes an own copy that no longer reads to the log', () => {
+    resetSceneFailuresForTesting();
+    const logger = { warn: jest.fn() };
+    const file = path.join(
+      userDataDir,
+      'member-scenes',
+      'own',
+      ME,
+      'waveform-3d.json',
+    );
+    createMemberSceneStore({ userDataDir }).save(ME, coloured);
+    expect(
+      createMemberSceneStore({ userDataDir, logger }).load(ME, 'waveform-3d'),
+    ).toBeDefined();
+    expect(logger.warn).not.toHaveBeenCalled();
+
+    writeSceneCache(file, `own/${ME}/waveform-3d`, {
+      schema: 1,
+      authorId: ME,
+      savedAt: '2026-11-11T00:01:39Z',
+      pack: { ...coloured, id: 'somewhere-else' },
+    });
+    expect(
+      createMemberSceneStore({ userDataDir, logger }).load(ME, 'waveform-3d'),
+    ).toBeUndefined();
+    expect(logger.warn).toHaveBeenCalledWith(
+      `Scene failure: ${memberLookId(ME, 'waveform-3d')} on looks: read-refused. no longer passes the member rules; not offered`,
+    );
   });
 
   // On disk in the layout every reader and every other copy uses, so it does

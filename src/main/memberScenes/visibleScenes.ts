@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { memberLookId, parseMemberLookId } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
 import type { IMemberSceneStore, IMemberSceneSummary } from './store';
+import { logSceneFailure } from '../sceneFailures';
 
 /**
  * Which member scenes this account may see, and which of them it may load.
@@ -90,12 +91,28 @@ export const loadVisibleScene = (
 ): IVisibleScene | undefined => {
   const ref =
     typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-  if (!ref || !viewer.owns(memberLookId(ref.authorId, ref.packId))) {
+  if (!ref) {
     return undefined;
+  }
+  const id = memberLookId(ref.authorId, ref.packId);
+  // Why a look asked for is not handed out, in the log's one line for it
+  // (`sceneFailures.ts`); a copy that would not read says so in the store.
+  const refused = (reason: 'not-owned' | 'blocked' | 'not-listed') => {
+    logSceneFailure({ lookId: id, surface: 'looks', reason });
+    return undefined;
+  };
+  if (!viewer.owns(id)) {
+    return refused('not-owned');
+  }
+  if (store.isBlocked(ref.authorId, ref.packId)) {
+    return refused('blocked');
   }
   const seen = visibleScenes(store, viewer).find(
     (scene) => scene.authorId === ref.authorId && scene.packId === ref.packId,
   );
-  const pack = seen ? store.load(ref.authorId, ref.packId) : undefined;
-  return seen && pack ? { pack, own: seen.own } : undefined;
+  if (!seen) {
+    return refused('not-listed');
+  }
+  const pack = store.load(ref.authorId, ref.packId);
+  return pack ? { pack, own: seen.own } : undefined;
 };

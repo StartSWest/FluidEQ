@@ -20,6 +20,7 @@ import storedScenePack from '../../../common/sceneStoredPack';
 import { createSceneRecovery } from '../../../main/memberScenes/sceneRecovery';
 import { createMemberSceneStore } from '../../../main/memberScenes/store';
 import { memberLookId } from '../../../common/memberScenes';
+import { resetSceneFailuresForTesting } from '../../../main/sceneFailures';
 import { everyFieldPack } from '../../utils/everyFieldScene';
 import {
   ME,
@@ -47,6 +48,7 @@ const envelopeOf = (pack: IScenePack, author = SOMEONE) =>
 
 let root: string;
 beforeEach(() => {
+  resetSceneFailuresForTesting();
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'scene-recovery-'));
 });
 afterEach(() => {
@@ -95,7 +97,7 @@ it('the fixture: the poorer copy is a scene the looks keep, without its palette'
 it("the maker's own look is put right from its Studio project, with no word to the gallery", async () => {
   const folder = projectFolder('neon', whole().id);
   const other = projectFolder('other', 'another-scene');
-  const { store, announce, fetchGalleryCopy, readProjectPack, recovery } =
+  const { store, announce, fetchGalleryCopy, readProjectPack, recovery, warn } =
     setUp({ projects: { [other]: whole(), [folder]: whole() } });
   store.save(ME, poorer());
   await expect(recovery.recover(MINE)).resolves.toEqual({
@@ -107,6 +109,10 @@ it("the maker's own look is put right from its Studio project, with no word to t
   expect(fetchGalleryCopy).not.toHaveBeenCalled();
   // Only the folder that names this scene is read whole.
   expect(readProjectPack.mock.calls).toEqual([[folder]]);
+  // Each step of the way back is the report's one line for it.
+  expect(warn).toHaveBeenCalledWith(
+    `Scene failure: ${MINE} v${whole().version} on looks: healed-project.`,
+  );
 });
 
 it("falls to the gallery's copy when the project is the copy that failed", async () => {
@@ -126,7 +132,7 @@ it("falls to the gallery's copy when the project is the copy that failed", async
 
 it("another member's look is put right from the gallery, and no project is read", async () => {
   const folder = projectFolder('neon', whole().id);
-  const { store, recovery, readProjectPack } = setUp({
+  const { store, recovery, readProjectPack, warn } = setUp({
     projects: { [folder]: whole(9) },
     gallery: envelopeOf(whole(4)),
   });
@@ -137,6 +143,9 @@ it("another member's look is put right from the gallery, and no project is read"
   });
   expect(store.load(SOMEONE, whole().id)).toEqual(whole(4));
   expect(readProjectPack).not.toHaveBeenCalled();
+  expect(warn).toHaveBeenCalledWith(
+    `Scene failure: ${THEIRS} v4 on looks: healed-server.`,
+  );
 });
 
 it('says so when no better copy is left, keeps what was there, and never keeps a failed copy again', async () => {
@@ -151,8 +160,9 @@ it('says so when no better copy is left, keeps what was there, and never keeps a
   expect(save).not.toHaveBeenCalled();
   expect(announce).not.toHaveBeenCalled();
   expect(store.load(ME, whole().id)).toEqual(poorer());
+  // The report's one line for it (`sceneFailureLog.ts`).
   expect(warn).toHaveBeenCalledWith(
-    expect.stringContaining('no better copy was found'),
+    expect.stringMatching(/on looks: gave-up\. no better copy found; 1 tried$/),
   );
 });
 

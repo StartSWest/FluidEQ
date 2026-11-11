@@ -68,6 +68,7 @@ import registerWallpaperIpc from './wallpaper/register';
 import { createWallpaperScenes } from './wallpaper/scenes';
 import registerSceneBuildsIpc from './ipc/sceneBuilds';
 import { createSceneBuilds, type ISceneBuilds } from './sceneBuilds';
+import { registerSceneFailureIpc } from './sceneFailures';
 
 export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -277,6 +278,7 @@ const registerMemberServices = ({
   });
   sceneBuilds = builds;
   const disposeSceneBuilds = registerSceneBuildsIpc(builds);
+  const disposeSceneFailures = registerSceneFailureIpc();
 
   const wallpaperIpc = registerWallpaperIpc({
     getMainWindow,
@@ -510,6 +512,7 @@ const registerMemberServices = ({
     disposeStudioInspect();
     disposeSceneVersions();
     disposeSceneBuilds();
+    disposeSceneFailures();
     plusPublishingIpc.dispose();
     plusGalleryIpc.dispose();
     disposeGalleryVersionSave();

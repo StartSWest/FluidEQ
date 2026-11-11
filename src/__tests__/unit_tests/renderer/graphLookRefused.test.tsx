@@ -54,7 +54,6 @@ jest.mock('../../../renderer/utils/memberScenes', () => ({
   ...jest.requireActual('../../../renderer/utils/memberScenes'),
   unblockMemberScene: (id: string) => mockUnblock(id),
   blockMemberScene: jest.fn(),
-  reportMemberSceneFailure: () => Promise.resolve(),
 }));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -126,8 +125,12 @@ it('says on the graph that a look’s code would not build here, and tries it ag
   await act(async () =>
     source().reportFailure('compile', "'uPalette_colours' : undeclared"),
   );
+  // What happened, then where to send the log line that explains it.
   expect(
-    screen.getByText('graph.look.refused.compile:Waveform 3D'),
+    screen.getByText(
+      'graph.look.refused.compile:Waveform 3D ' +
+        'graph.look.reportHint:help.menu,app.menu.reportProblem',
+    ),
   ).toBeInTheDocument();
   await userEvent.click(
     screen.getByRole('button', { name: 'graph.look.retry' }),

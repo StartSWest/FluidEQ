@@ -4,7 +4,6 @@ import type { ISceneWave } from 'common/sceneWave';
 import type { IMemberScenesListing } from 'main/ipc/memberScenes';
 import type { ILikeStatus } from 'main/memberScenes/social';
 import type { IMemberSceneSummary } from 'main/memberScenes/store';
-import type { TSceneFailure } from 'main/scenePackStore';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 
 /**
@@ -198,31 +197,6 @@ export const refreshMemberScenes = async () => {
 };
 
 export const getMemberSceneListing = () => listing;
-
-/** The scene itself failed here: stop offering it now, and remember why. */
-export const reportMemberSceneFailure = async (
-  lookId: string,
-  reason: TSceneFailure,
-  detail?: string,
-): Promise<void> => {
-  if (!blocked.has(lookId)) {
-    blocked.add(lookId);
-    publish();
-  }
-  await bridge()?.reportMemberSceneFailure?.(lookId, reason, detail);
-};
-
-/**
- * A version of this scene failed while an earlier one plays in its place:
- * written in the log with the driver's words, and nothing stops offering it.
- */
-export const noteMemberSceneFailure = async (
-  lookId: string,
-  reason: TSceneFailure,
-  detail: string,
-): Promise<void> => {
-  await bridge()?.reportMemberSceneFailure?.(lookId, reason, detail);
-};
 
 /** This machine cannot run it right now. This session only. */
 export const blockMemberScene = (lookId: string) => {

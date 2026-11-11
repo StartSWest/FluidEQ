@@ -5,6 +5,8 @@ import {
   type IpcMainInvokeEvent,
 } from 'electron';
 import log from 'electron-log';
+import { readSceneFailureEntry } from '../../common/sceneFailureLog';
+import { logSceneFailure } from '../sceneFailures';
 import { isSceneCameraControl } from '../../common/sceneCameraControl';
 import { isScenePerformance } from '../../common/scenePerformance';
 import {
@@ -159,6 +161,19 @@ const registerWallpaperIpc = (
       const surface = surfaceOf(event);
       if (surface) {
         manager.surfaceFailed(surface, reason);
+      }
+    }),
+    // What the page's scene loop saw, named by the look this monitor shows:
+    // the page itself knows only the pack.
+    onWindowMessage(WALLPAPER.sceneFailure, (event, raw: unknown) => {
+      const surface = surfaceOf(event);
+      const entry = readSceneFailureEntry(raw);
+      if (surface && entry) {
+        logSceneFailure({
+          ...entry,
+          lookId: surface.lookId,
+          surface: 'desktop',
+        });
       }
     }),
     onWindowMessage(WALLPAPER.drawn, (event, generation: unknown) => {

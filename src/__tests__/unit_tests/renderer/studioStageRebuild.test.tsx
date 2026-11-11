@@ -254,6 +254,7 @@ it('records full frames while scrolled away, then retires its worker when record
   });
   const source = {
     identity: 'capture',
+    surface: 'graph' as const,
     version: '1',
     name: 'Recording fixture',
     load: async () => first,
@@ -289,6 +290,7 @@ it('records full frames while scrolled away, then retires its worker when record
 it('still stops a recording renderer when the document itself hides', async () => {
   const source = {
     identity: 'capture-hidden',
+    surface: 'graph' as const,
     version: '1',
     name: 'Recording fixture',
     load: async () => first,

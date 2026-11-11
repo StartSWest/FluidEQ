@@ -4,6 +4,7 @@ import type { IScenePack } from 'common/scenePacks';
 import type { IScenePerformance } from 'common/scenePerformance';
 import type { IWorldReport } from 'common/worldNotes';
 import type { TSceneFailure } from 'main/scenePackStore';
+import type { ISceneFailureEntry, TSceneSurface } from 'common/sceneFailureLog';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneInteraction } from './sceneInteraction';
 import type { ISceneTuning } from './sceneTuner';
@@ -52,6 +53,15 @@ export interface ISceneDrawReport {
 export interface ISceneSource {
   /** What is being drawn. A change starts the clock and the fade again. */
   identity: string;
+  /**
+   * Where it is drawn, for the one line the log gets for every way it does
+   * not play (`common/sceneFailureLog.ts`).
+   */
+  surface: TSceneSurface;
+  /** Its look id in that line, where it has one other than `identity`. */
+  lookId?: string;
+  /** How that line reaches main, where a window's bridge is not main's. */
+  logFailure?(entry: ISceneFailureEntry): void;
   /** Which version of it. A change swaps the program in place. */
   version: string;
   /** For the console, where a person can act on it. */

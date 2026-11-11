@@ -10,6 +10,11 @@ import { createWallpaperScenes } from '../../../main/wallpaper/scenes';
 
 const MEMBER = 'member:4f1c2b9e-8d3a-4e7b-9c11-2a6f0d5e7b30:neon-city';
 
+const mockLog = jest.fn();
+jest.mock('../../../main/sceneFailures', () => ({
+  logSceneFailure: (entry: unknown) => mockLog(entry),
+}));
+
 const looks = () => {
   const pack = (id: string) => ({ id, source: `// ${id}` }) as IScenePack;
   const stopOfficial = jest.fn();
@@ -17,7 +22,6 @@ const looks = () => {
   const official = {
     store: { load: jest.fn((id: string) => pack(id)) },
     subscribeScenes: jest.fn(() => stopOfficial),
-    reportFailure: jest.fn(),
   };
   const member = {
     loadVisible: jest.fn((lookId: unknown) => ({
@@ -25,7 +29,6 @@ const looks = () => {
       own: false,
     })),
     subscribeScenes: jest.fn(() => stopMember),
-    reportFailure: jest.fn(),
   };
   return { official, member, stopOfficial, stopMember };
 };
@@ -60,19 +63,22 @@ describe('the looks a desktop background shows', () => {
     );
   });
 
-  // Whichever kind of look it is, a live failure is handed to that look's
-  // own store to log — never to a disk record that would keep it from
-  // loading again (`isSceneRefused` and the stores' `isRefused` are gone).
-  it('tells the store a look belongs to about a failure, and only that one', () => {
+  // Whichever kind of look it is, a background's failure is the log's one
+  // line for it (`sceneFailures.ts`), on the desktop — never a disk record
+  // that would keep it from loading again.
+  it('writes a background that did not play to the log, as the desktop', () => {
     const { official, member } = looks();
-    const scenes = createWallpaperScenes(official, member);
-
-    scenes.reportSceneFailure('premium:aurora', 'gpu-reset');
-    scenes.reportSceneFailure(MEMBER, 'compile');
-    expect(official.reportFailure).toHaveBeenCalledWith('aurora', 'gpu-reset');
-    expect(member.reportFailure).toHaveBeenCalledWith(MEMBER, 'compile');
-    expect(official.reportFailure).toHaveBeenCalledTimes(1);
-    expect(member.reportFailure).toHaveBeenCalledTimes(1);
+    createWallpaperScenes(official, member).reportSceneFailure({
+      lookId: MEMBER,
+      version: '3',
+      reason: 'stood-in',
+    });
+    expect(mockLog).toHaveBeenCalledWith({
+      lookId: MEMBER,
+      version: '3',
+      reason: 'stood-in',
+      surface: 'desktop',
+    });
   });
 
   it('hears both stores change, and stops hearing both', () => {

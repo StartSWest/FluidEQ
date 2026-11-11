@@ -239,6 +239,8 @@ const eq = {
   'graph.look.refused.driver':
     'The graphics driver stopped while drawing {name}. A standard look is showing instead.',
   'graph.look.retry': 'Try again',
+  'graph.look.reportHint':
+    'If it keeps happening, send us a report from {help} → {report}.',
   'graph.scene.loading': 'Loading visualizer…',
   'graph.scene.attack': 'Attack',
   'graph.scene.attackHint':

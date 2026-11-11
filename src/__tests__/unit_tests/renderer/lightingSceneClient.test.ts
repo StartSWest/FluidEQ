@@ -299,3 +299,71 @@ it('draws nothing once unloaded, whatever answers are still on their way', async
   expect(framesSent(worker)).toBe(0);
   lamps.close();
 });
+
+// A scene the lamps could not play is the log's one line for it, like any
+// other surface's (`sceneFailureLog.ts`); one that played writes nothing.
+it('writes each way the lamps’ scene stopped to the log, once', async () => {
+  const sent = jest.fn();
+  Object.defineProperty(window, 'electron', {
+    value: { ipcRenderer: { logSceneFailure: sent } },
+    configurable: true,
+    writable: true,
+  });
+  const printed = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => undefined);
+  try {
+    const { createLightingScene } = load()();
+    const lamps = createLightingScene(jest.fn(), jest.fn(), jest.fn());
+    lamps.load({ ...packOf('alpine'), version: 4 } as IScenePack, false);
+    await settle();
+    const [worker] = FakeWorker.made;
+    worker.reply({ kind: 'loaded', packId: 'alpine', id: lastLoadId(worker) });
+    expect(sent).not.toHaveBeenCalled();
+
+    worker.reply({ kind: 'lost', packId: 'alpine' });
+    worker.reply({
+      kind: 'failed',
+      packId: 'alpine',
+      reason: 'too-heavy',
+      id: lastLoadId(worker),
+    });
+    worker.reply({
+      kind: 'failed',
+      packId: 'alpine',
+      reason: 'too-heavy',
+      id: lastLoadId(worker),
+    });
+    worker.onerror?.({ message: 'worker script failed' } as ErrorEvent);
+    expect(sent.mock.calls.map(([entry]) => entry)).toEqual([
+      {
+        lookId: 'alpine',
+        version: '4',
+        surface: 'lamps',
+        reason: 'context-lost',
+      },
+      {
+        lookId: 'alpine',
+        version: '4',
+        surface: 'lamps',
+        reason: 'stalled-gpu',
+        detail: 'too-heavy',
+      },
+      {
+        lookId: 'alpine',
+        version: '4',
+        surface: 'lamps',
+        reason: 'no-worker',
+        detail: 'worker script failed',
+      },
+    ]);
+    lamps.close();
+    expect(printed).toHaveBeenCalledWith(
+      'Dynamic lighting scene worker failed:',
+      'worker script failed',
+    );
+  } finally {
+    printed.mockRestore();
+    Reflect.deleteProperty(window, 'electron');
+  }
+});

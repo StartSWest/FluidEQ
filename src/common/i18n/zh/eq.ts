@@ -210,6 +210,8 @@ const eq: Partial<Dictionary> = {
   'graph.look.refused.driver':
     '绘制 {name} 时显卡驱动停止了。已改为显示标准外观。',
   'graph.look.retry': '重试',
+  'graph.look.reportHint':
+    '如果反复出现，请通过“{help} → {report}”向我们发送报告。',
   'graph.scene.loading': '正在加载可视化效果…',
   'graph.scene.attack': '起音',
   'graph.scene.attackHint':

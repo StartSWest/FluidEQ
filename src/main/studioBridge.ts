@@ -44,8 +44,11 @@ import type { TInspectOutcome } from './ipc/studioInspect';
 import type { TPublishOutcome } from './ipc/plusPublishing';
 import type { TPlusCategory } from '../common/plusGallery';
 import type { ILikeStatus } from './memberScenes/social';
-import type { TSceneFailure } from './scenePackStore';
 import type { TSceneRecovery } from './memberScenes/sceneRecovery';
+import {
+  SCENE_FAILURE_CHANNEL,
+  type ISceneFailureEntry,
+} from '../common/sceneFailureLog';
 import type { IScenePack } from '../common/scenePacks';
 
 /**
@@ -66,17 +69,10 @@ const refreshScenePacks = () =>
 const removeScenePack = (id: string) =>
   ipcRenderer.invoke('scene-packs-remove', id) as Promise<boolean>;
 
-const reportScenePackFailure = (
-  id: string,
-  reason: TSceneFailure,
-  detail?: string,
-) =>
-  ipcRenderer.invoke(
-    'scene-packs-report-failure',
-    id,
-    reason,
-    detail,
-  ) as Promise<void>;
+// Every way a scene ended up not playing, one line in the app log, written
+// by main once per scene, surface and cause (`common/sceneFailureLog.ts`).
+const logSceneFailure = (entry: ISceneFailureEntry) =>
+  ipcRenderer.send(SCENE_FAILURE_CHANNEL, entry);
 
 const onScenePacksChanged = (
   listener: (listing: IScenePacksListing) => void,
@@ -101,18 +97,6 @@ const loadMemberScene = (lookId: string) =>
 
 const removeMemberScene = (lookId: string) =>
   ipcRenderer.invoke('member-scenes-remove', lookId) as Promise<boolean>;
-
-const reportMemberSceneFailure = (
-  lookId: string,
-  reason: TSceneFailure,
-  detail?: string,
-) =>
-  ipcRenderer.invoke(
-    'member-scenes-report-failure',
-    lookId,
-    reason,
-    detail,
-  ) as Promise<void>;
 
 // A look that would not play, put right from a better copy (`sceneRecovery.ts`).
 const recoverMemberScene = (lookId: string) =>
@@ -397,12 +381,11 @@ const studioBridge = {
   loadScenePack,
   refreshScenePacks,
   removeScenePack,
-  reportScenePackFailure,
+  logSceneFailure,
   onScenePacksChanged,
   listMemberScenes,
   loadMemberScene,
   removeMemberScene,
-  reportMemberSceneFailure,
   recoverMemberScene,
   onMemberScenesChanged,
   reportSceneBuilt,

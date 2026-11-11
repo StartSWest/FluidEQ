@@ -23,6 +23,10 @@ import {
 jest.mock('electron', () => mockElectron());
 jest.mock('../../../main/wallpaper/nativeHost', () => mockNativeHost());
 jest.mock('../../../main/wallpaper/surface', () => mockSurfaceModule());
+const mockLog = jest.fn();
+jest.mock('../../../main/sceneFailures', () => ({
+  logSceneFailure: (entry: unknown) => mockLog(entry),
+}));
 
 /* eslint-disable import/first -- install the mocks first */
 import type { IWallpaperState } from '../../../common/wallpaper';
@@ -77,10 +81,9 @@ describe('a scene failing on the desktop', () => {
 
     pageFails(onTwo, 'gpu-reset');
     expect(onTwo.fail).toHaveBeenCalledWith('refused');
-    expect(scenes.reportSceneFailure).toHaveBeenCalledWith(
-      'premium:alpine',
-      'gpu-reset',
-    );
+    // The page's scene loop wrote the reset down itself, in the driver's
+    // words (`WALLPAPER.sceneFailure`); main adds no second line for it.
+    expect(scenes.reportSceneFailure).not.toHaveBeenCalled();
     expect(screensThrough(owner)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ displayId: 2, error: 'refused' }),
@@ -202,6 +205,60 @@ describe('a look that cannot be loaded at start time', () => {
   });
 });
 
+/** A desktop page's scene loop writing down a way its scene did not play. */
+const pageLogs = (surface: IFakeSurface | undefined, entry: unknown) =>
+  mockMessages.get('wallpaper-scene-failure')?.(
+    surface
+      ? { sender: surface.contents, senderFrame: surface.contents.mainFrame }
+      : { sender: {}, senderFrame: {} },
+    entry,
+  );
+
+describe('what a desktop page writes in the log', () => {
+  beforeEach(() => mockLog.mockClear());
+
+  // The page knows only its pack; the look and the surface are main's word,
+  // so a page cannot write a line about a scene some other monitor shows.
+  it('is named by the look main says the monitor shows, as the desktop', () => {
+    const { deps, owner } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner);
+
+    pageLogs(mockSurfaces[0], {
+      lookId: 'premium:somebody-else',
+      version: '1',
+      surface: 'graph',
+      reason: 'context-lost',
+      detail: 'CONTEXT_LOST_WEBGL',
+    });
+    expect(mockLog.mock.calls).toEqual([
+      [
+        {
+          lookId: 'premium:alpine',
+          version: '1',
+          surface: 'desktop',
+          reason: 'context-lost',
+          detail: 'CONTEXT_LOST_WEBGL',
+        },
+      ],
+    ]);
+  });
+
+  it('is dropped from a page that is not a desktop, or that is not a line', () => {
+    const { deps, owner } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner);
+
+    pageLogs(undefined, { lookId: 'x', surface: 'desktop', reason: 'compile' });
+    pageLogs(mockSurfaces[0], {
+      lookId: 'x',
+      surface: 'desktop',
+      reason: 'nope',
+    });
+    expect(mockLog).not.toHaveBeenCalled();
+  });
+});
+
 /** A desktop page saying it drew the scene of a generation. */
 const pageDraws = (surface: IFakeSurface) =>
   mockMessages.get('wallpaper-drawn')?.(
@@ -236,6 +293,11 @@ describe('a version of the desktop’s scene that will not compile', () => {
       pack,
     );
     expect(onThree.fail).not.toHaveBeenCalled();
+    // What main decided is the log's line: the earlier build stood in, on
+    // that monitor alone — the refused one (the control) wrote none.
+    expect(scenes.reportSceneFailure.mock.calls).toEqual([
+      [{ lookId: 'premium:alpine', version: '1', reason: 'stood-in' }],
+    ]);
     expect(onThree.changeScene).toHaveBeenCalledWith(
       expect.objectContaining({ lookId: 'premium:alpine' }),
       earlier,

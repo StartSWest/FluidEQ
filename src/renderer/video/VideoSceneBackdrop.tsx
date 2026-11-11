@@ -58,6 +58,7 @@ const VideoSceneBackdrop = () => {
         madeBy={scene.madeBy}
         pack={scene.pack}
         look={{ lookId: scene.lookId, revision: scene.revision }}
+        surface="player"
         label={scene.label}
         // A scene that cannot play here leaves the page over the plain
         // window, as it is with no visualizer at all.

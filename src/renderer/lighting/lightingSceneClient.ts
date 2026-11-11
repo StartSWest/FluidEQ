@@ -4,7 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { TSceneFailureReason } from 'common/sceneFailureLog';
 import type { IScenePack } from 'common/scenePacks';
+import { logSceneFailure } from '../utils/sceneFailureLog';
 import { createDaylightFollower } from '../graph/sceneDaylight';
 import { afterLinkTurns, sceneProgramKey } from '../graph/sceneLinkTurns';
 import type {
@@ -17,6 +19,34 @@ type TGridReply = Extract<TLightingWorkerReply, { kind: 'grid' }>;
 
 /** Why a worker gave a scene up that means the GPU itself refused it. */
 const GPU_REFUSALS = new Set(['gpu-reset', 'too-heavy']);
+
+/** The worker's words for why the lamps' scene stopped, as the log names them. */
+const LOGGED: Record<string, TSceneFailureReason> = {
+  'no-context': 'unavailable',
+  'no-guard': 'unavailable',
+  compile: 'compile',
+  artwork: 'load-failed',
+  'gpu-reset': 'gpu-reset',
+  'too-heavy': 'stalled-gpu',
+};
+
+/** One line in the app log for a way the lamps' scene did not play. */
+const logLampFailure = (
+  packId: string,
+  version: number | undefined,
+  reason: TSceneFailureReason,
+  detail?: string,
+) => {
+  if (packId) {
+    logSceneFailure({
+      lookId: packId,
+      ...(version !== undefined ? { version: String(version) } : {}),
+      surface: 'lamps',
+      reason,
+      ...(detail ? { detail } : {}),
+    });
+  }
+};
 
 /**
  * Scenes the GPU refused for the lamps this session, by program. A new player
@@ -70,6 +100,20 @@ export const createLightingScene = (
   const daylight = createDaylightFollower();
   /** The newest load posted, which is the scene the worker is to draw. */
   let sent: ILoadSent | undefined;
+  // The scene last asked for, so a worker that dies says which, and a
+  // failure names the version that failed.
+  let sentPack: Pick<IScenePack, 'id' | 'version'> | undefined;
+  const logFailure = (
+    packId: string,
+    reason: TSceneFailureReason,
+    detail?: string,
+  ) =>
+    logLampFailure(
+      packId,
+      sentPack?.id === packId ? sentPack.version : undefined,
+      reason,
+      detail,
+    );
   /** The load the worker is drawing: frames go only while there is one. */
   let drawn: ILoadSent | undefined;
   /** The last load posted has not been answered, or a lost context is being given back. */
@@ -105,12 +149,18 @@ export const createLightingScene = (
     } else if (data.kind === 'lost') {
       // Not the scene's doing: the worker loads it again when the context
       // comes back, and until then the lamps take its colours.
+      logFailure(data.packId, 'context-lost');
       drawn = undefined;
       drawing = false;
       linking = true;
       onFailed(data.packId);
     } else {
       drawing = false;
+      logFailure(
+        data.packId,
+        LOGGED[data.reason] ?? 'unavailable',
+        data.reason,
+      );
       if (data.id === undefined) {
         // The program being drawn gave up; a load in flight carries on.
         refuse(drawn, data.reason);
@@ -132,6 +182,7 @@ export const createLightingScene = (
       return;
     }
     console.error('Dynamic lighting scene worker failed:', event.message);
+    logFailure(sentPack?.id ?? '', 'no-worker', event.message);
     drawn = undefined;
     drawing = false;
     onFailed('');
@@ -165,6 +216,7 @@ export const createLightingScene = (
           if (!closed && mine === wanted) {
             loads += 1;
             sent = { id: loads, key };
+            sentPack = pack;
             linking = true;
             post({ kind: 'load', pack, guarded, id: loads });
           }

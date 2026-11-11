@@ -27,6 +27,7 @@ import { isOnBattery } from 'renderer/utils/batteryPower';
 import observeShown from 'renderer/utils/observeShown';
 import { useScenePerformance } from 'renderer/utils/scenePerformanceStore';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
+import type { TSceneFailureReason } from 'common/sceneFailureLog';
 import { useSceneMotionSpeed } from './sceneMotionSpeed';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import { createFrameCadence, judgedIntervalMs } from './frameCadence';
@@ -49,6 +50,7 @@ import { createDaylightFollower, pageDaylight } from './sceneDaylight';
 import { createSceneTuner } from './sceneTuner';
 import { sceneProgramKey } from './sceneLinkTurns';
 import sameSceneProgramInputs from './sceneProgramInputs';
+import { logSceneFailure } from '../utils/sceneFailureLog';
 import type { ISceneDrawReport, ISceneRunnerOptions } from './sceneRunnerTypes';
 import { createStereoFollower } from './stereoImage';
 import {
@@ -212,6 +214,31 @@ export default function useSceneRunner({
   // measurement without being torn down and rebuilt twenty-two times a second.
   const sourceRef = useRef(source);
   sourceRef.current = source;
+  // Every way this scene ends up not playing, one line in the app's log
+  // (`common/sceneFailureLog.ts`): what failed, where, and the driver's or
+  // reader's own words, once per cause.
+  const logFailure = useCallback(
+    (reason: TSceneFailureReason, detail?: string) => {
+      const {
+        identity,
+        lookId,
+        version,
+        surface,
+        logFailure: send,
+      } = sourceRef.current;
+      logSceneFailure(
+        {
+          lookId: lookId ?? identity,
+          version,
+          surface,
+          reason,
+          ...(detail ? { detail } : {}),
+        },
+        send,
+      );
+    },
+    [],
+  );
   const shapeRef = useRef(shapeFrame);
   shapeRef.current = shapeFrame;
   const tuningRef = useRef(tuning);
@@ -580,6 +607,7 @@ export default function useSceneRunner({
             console.error(
               `Scene "${sourceRef.current.name}" held the GPU too long even at its smallest size; it stops until the next launch.`,
             );
+            logFailure('stalled-gpu');
             dropProgram();
             setWaiting(false);
             sourceRef.current.tooSlow();
@@ -625,7 +653,7 @@ export default function useSceneRunner({
       );
       return true;
     },
-    [dropProgram, setWaiting],
+    [dropProgram, setWaiting, logFailure],
   );
 
   // Every frame the display offers, or the cap the listener chose — sixty on
@@ -765,6 +793,12 @@ export default function useSceneRunner({
           }
           dropProgram();
           setWaiting(false);
+          logFailure(
+            reason === 'context-lost' || reason === 'gpu-reset'
+              ? reason
+              : 'unavailable',
+            log,
+          );
           if (reason === 'context-lost' || reason === 'gpu-reset') {
             sourceRef.current.reportFailure(reason);
           } else {
@@ -789,6 +823,7 @@ export default function useSceneRunner({
       );
     } catch (error) {
       console.error('Scene worker could not start:', error);
+      logFailure('no-worker', String(error));
     }
     if (!rendererRef.current) {
       setWaiting(false);
@@ -796,7 +831,7 @@ export default function useSceneRunner({
     }
     rendererRef.current?.holdPicture(heldRef.current);
     return rendererRef.current;
-  }, [dropProgram, kick, setWaiting]);
+  }, [dropProgram, kick, setWaiting, logFailure]);
 
   /** A worker prepares the next scene while the interface remains available. */
   const build = useCallback(
@@ -871,6 +906,7 @@ export default function useSceneRunner({
       setUpdating(false);
       drawnAtRef.current = undefined;
       if (result.kind === 'unavailable') {
+        logFailure('unavailable');
         dropProgram();
         setWaiting(false);
         sourceRef.current.block();
@@ -885,6 +921,7 @@ export default function useSceneRunner({
         // place but the Studio then put the plain look over a scene still
         // drawing (Ivan, 2026-11-09: "I dont want fallbacks like that").
         if (packRef.current) {
+          logFailure('version-compile', result.log);
           wantedRef.current = packRef.current;
           setWaiting(false);
           sourceRef.current.versionFailed?.(result.log);
@@ -905,6 +942,8 @@ export default function useSceneRunner({
           return;
         }
         if (earlier && !sameSceneProgramInputs(earlier, pack)) {
+          logFailure('compile', result.log);
+          logFailure('stood-in', `version ${earlier.version}`);
           sourceRef.current.versionFailed?.(result.log);
           standInRef.current = earlier;
           // Should it not compile either, it is the one `lastBuilt` answers
@@ -912,6 +951,7 @@ export default function useSceneRunner({
           await buildRef.current(earlier);
           return;
         }
+        logFailure('compile', result.log);
         setWaiting(false);
         sourceRef.current.reportFailure('compile', result.log);
       } else if (result.kind === 'ready') {
@@ -933,6 +973,20 @@ export default function useSceneRunner({
           }
         }
         if (result.world) {
+          // A world drawn as its shader, or with parts left out, is a way it
+          // did not play as made: the notes' codes are the reader's words.
+          if (!result.world.drawn || result.world.notes.length > 0) {
+            logFailure(
+              'world-refused',
+              `${result.world.drawn ? 'drawn without' : 'shader instead'}: ${result.world.notes
+                .map((note) =>
+                  'detail' in note
+                    ? `${note.code} (${note.detail})`
+                    : note.code,
+                )
+                .join(', ')}`,
+            );
+          }
           sourceRef.current.reportWorld?.(result.world);
         }
         if (pack !== standInRef.current) {
@@ -943,7 +997,7 @@ export default function useSceneRunner({
         kick();
       }
     },
-    [kick, startRenderer, dropProgram, setWaiting, setUpdating],
+    [kick, startRenderer, dropProgram, setWaiting, setUpdating, logFailure],
   );
   buildRef.current = build;
 
@@ -1004,15 +1058,17 @@ export default function useSceneRunner({
         if (!pack) {
           // Entitlement lapsed between the list and the load, or the scene
           // was removed meanwhile. Session-only; nothing is written down.
+          logFailure('not-listed');
           setWaiting(false);
           sourceRef.current.block();
           return undefined;
         }
         return build(pack);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         // The bridge failed, not the shader. Session-only.
         if (!cancelled) {
+          logFailure('load-failed', String(error));
           setWaiting(false);
           sourceRef.current.block();
         }
@@ -1020,7 +1076,7 @@ export default function useSceneRunner({
     return () => {
       cancelled = true;
     };
-  }, [source.identity, source.version, build, setWaiting]);
+  }, [source.identity, source.version, build, setWaiting, logFailure]);
 
   // Audio can wake a ready scene, but cannot restart hidden rendering.
   useEffect(() => {

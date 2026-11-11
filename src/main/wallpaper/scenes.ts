@@ -5,7 +5,8 @@ import {
   type IScenePack,
 } from '../../common/scenePacks';
 import type { IVisibleScene } from '../memberScenes/visibleScenes';
-import type { TSceneFailure } from '../scenePackStore';
+import type { ISceneFailureEntry } from '../../common/sceneFailureLog';
+import { logSceneFailure } from '../sceneFailures';
 import type { IWallpaperScene } from './surface';
 
 /**
@@ -23,17 +24,16 @@ export interface IWallpaperScenes {
   loadScene(lookId: string): IWallpaperScene | undefined;
   subscribeScenes(listener: () => void): () => void;
   /**
-   * A background's scene failed on this computer's graphics, right now.
-   * Logged for operator visibility only — it does not stop a later attempt.
+   * A background's scene did not play, right now: one line in the log
+   * (`sceneFailures.ts`). It does not stop a later attempt.
    */
-  reportSceneFailure(lookId: string, reason: TSceneFailure): void;
+  reportSceneFailure(entry: Omit<ISceneFailureEntry, 'surface'>): void;
 }
 
 /** FluidEQ's own looks, by pack id (`registerScenePacksIpc`). */
 export interface IOfficialLooks {
   store: { load(id: string): IScenePack | undefined };
   subscribeScenes(listener: () => void): () => void;
-  reportFailure(id: string, reason: TSceneFailure): void;
 }
 
 /** Members' looks, by look id (`registerMemberScenesIpc`). */
@@ -41,7 +41,6 @@ export interface IMemberLooks {
   /** The pack, and whether this account made it. */
   loadVisible(lookId: unknown): IVisibleScene | undefined;
   subscribeScenes(listener: () => void): () => void;
-  reportFailure(lookId: string, reason: TSceneFailure): void;
 }
 
 /**
@@ -77,11 +76,6 @@ export const createWallpaperScenes = (
       stopMember();
     };
   },
-  reportSceneFailure: (lookId, reason) => {
-    if (isPremiumLookId(lookId)) {
-      official.reportFailure(packIdOfLook(lookId), reason);
-    } else {
-      member.reportFailure(lookId, reason);
-    }
-  },
+  reportSceneFailure: (entry) =>
+    logSceneFailure({ ...entry, surface: 'desktop' }),
 });

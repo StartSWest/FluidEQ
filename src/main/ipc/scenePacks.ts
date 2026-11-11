@@ -19,9 +19,6 @@ import {
   type IScenePackListing,
   type IScenePackStore,
   type IScenePackSummary,
-  type TSceneFailure,
-  isSceneFailure,
-  sceneFailureDetail,
 } from '../scenePackStore';
 
 /**
@@ -77,13 +74,6 @@ export interface IScenePacksIpcRegistration {
   subscribeScenes(listener: () => void): () => void;
   announce(): void;
   /**
-   * A look would not run here, right now: the graph reports through its
-   * channel, a desktop background (whose page has no such channel) through
-   * main. Logged for operator visibility only — it does not stop a later
-   * attempt at the same scene.
-   */
-  reportFailure(id: string, reason: TSceneFailure): void;
-  /**
    * Announce an event. An entitled account asks which scenes changed every
    * time; the catalogue for one that is not is fetched only when stale.
    */
@@ -105,7 +95,6 @@ const CHANNELS = [
   'scene-packs-load',
   'scene-packs-remove',
   'scene-packs-refresh',
-  'scene-packs-report-failure',
 ] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -366,26 +355,6 @@ export const registerScenePacksIpc = ({
     }
   });
 
-  const reportFailure = (
-    id: string,
-    reason: TSceneFailure,
-    detail?: unknown,
-  ) => {
-    // Diagnostic only: nothing here gates a later attempt at the same scene.
-    logger?.warn(
-      `Scene pack ${id} failed to run here: ${reason}.${sceneFailureDetail(detail)}`,
-    );
-  };
-
-  ipcMain.handle(
-    'scene-packs-report-failure',
-    (_event, id: unknown, reason: unknown, detail: unknown) => {
-      if (typeof id === 'string' && isSceneFailure(reason)) {
-        reportFailure(id, reason, detail);
-      }
-    },
-  );
-
   return {
     store,
     subscribeScenes: (listener) => {
@@ -395,7 +364,6 @@ export const registerScenePacksIpc = ({
       };
     },
     announce,
-    reportFailure,
     refreshIfDue: async () => {
       // Not logged: for an entitled account this is every focus of the
       // window. A download says so when one happens.

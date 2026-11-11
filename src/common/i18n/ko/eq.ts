@@ -205,6 +205,8 @@ const eq = {
   'graph.look.refused.driver':
     '{name}을(를) 그리는 중에 그래픽 드라이버가 멈췄습니다. 대신 기본 룩을 표시합니다.',
   'graph.look.retry': '다시 시도',
+  'graph.look.reportHint':
+    '계속 발생하면 {help} → {report}에서 보고서를 보내 주세요.',
   'graph.scene.loading': '비주얼라이저 로드 중…',
   'graph.scene.attack': '어택',
   'graph.scene.attackHint':

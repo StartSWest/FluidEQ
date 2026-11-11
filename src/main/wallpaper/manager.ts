@@ -30,6 +30,7 @@ import type { IScenePack } from '../../common/scenePacks';
 import { DEFAULT_LOCALE, type LocaleCode } from '../../common/i18n';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 import { isSceneFailure } from '../scenePackStore';
+import type { TSceneFailureReason } from '../../common/sceneFailureLog';
 import {
   EMPTY_ARRANGEMENT,
   matchSavedScreens,
@@ -629,11 +630,18 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
    * driver a few times a minute takes Windows down with it.
    */
   const surfaceFailed = (surface: IDesktopSurface, reason: unknown) => {
+    // The page's scene loop already wrote why, in the driver's words
+    // (`WALLPAPER.sceneFailure`); main writes only what it decided.
+    const failed = (cause: TSceneFailureReason) =>
+      deps.reportSceneFailure({
+        lookId: surface.lookId,
+        version: String(surface.scene.pack.version),
+        reason: cause,
+      });
     if (!isSceneFailure(reason)) {
       surface.fail('renderer');
       return;
     }
-    deps.reportSceneFailure(surface.lookId, reason);
     // A version that will not compile is not the scene: the last version of
     // it that drew here takes its place, as it does in the graph, and the
     // monitor never shows a refusal for a scene that has a build to play.
@@ -649,6 +657,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         ? deps.loadScene(surface.lookId)
         : undefined;
     if (display && earlier) {
+      failed('stood-in');
       backgrounds.change(display, surface.choice(), earlier);
       publish();
       return;

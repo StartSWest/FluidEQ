@@ -41,7 +41,9 @@ import {
   redact,
   takeLogSince,
   takeLogTail,
+  takeMarkedSince,
 } from '../common/bugReport';
+import { SCENE_FAILURE_MARK } from '../common/sceneFailureLog';
 import { readBugReportMark } from './bugReportMark';
 import { TAudioEngine, IFluidEngineStatus } from '../common/audioEngine';
 import { IEngineHealth, NO_ENGINE_HEALTH } from '../common/engineHealth';
@@ -180,6 +182,7 @@ const gatherBugReportFacts = async (
   const { engineReport, engineLog, helperLog } =
     await gatherEngineReport(audioEngine);
 
+  const appLog = readAppLog(logs);
   return {
     audioEngine,
     fluidEngineInstalled,
@@ -193,7 +196,14 @@ const gatherBugReportFacts = async (
     // machine keeps — never a tail. The install log is the exception: the
     // installer appends one short block per install, so its tail is its
     // whole recent history and it carries no timestamps to cut at.
-    appLog: takeLogSince(readAppLog(logs), since, accountName),
+    appLog: takeLogSince(appLog, since, accountName),
+    // Kept whole, apart from the app log's cap (`takeMarkedSince`).
+    sceneFailures: takeMarkedSince(
+      appLog,
+      since,
+      SCENE_FAILURE_MARK,
+      accountName,
+    ),
     installLog: takeLogTail(
       readIfPresent(path.join(logs, 'install.log')),
       accountName,

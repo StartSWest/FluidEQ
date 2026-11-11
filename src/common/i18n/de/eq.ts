@@ -229,6 +229,8 @@ const eq: Partial<Dictionary> = {
   'graph.look.refused.driver':
     'Der Grafiktreiber hat beim Zeichnen von {name} angehalten. Stattdessen wird ein Standard-Look gezeigt.',
   'graph.look.retry': 'Erneut versuchen',
+  'graph.look.reportHint':
+    'Wenn es wieder passiert, senden Sie uns einen Bericht über {help} → {report}.',
   'graph.scene.loading': 'Visualizer wird geladen…',
   'graph.scene.attack': 'Attack',
   'graph.scene.attackHint':

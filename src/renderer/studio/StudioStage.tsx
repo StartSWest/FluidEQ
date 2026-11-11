@@ -248,6 +248,7 @@ export default function StudioStage({
   const source = useMemo<ISceneSource>(
     () => ({
       identity,
+      surface: 'studio',
       version: `${String(serial)}.${String(draftVersion)}`,
       name: packRef.current.names.en,
       load: () => Promise.resolve(packRef.current),

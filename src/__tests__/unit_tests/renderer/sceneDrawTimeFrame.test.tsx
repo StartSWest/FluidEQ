@@ -102,6 +102,7 @@ const pack: IScenePack = {
 };
 const source: ISceneSource = {
   identity: 'project',
+  surface: 'graph' as const,
   version: '1',
   name: 'Test',
   load: () => Promise.resolve(pack),

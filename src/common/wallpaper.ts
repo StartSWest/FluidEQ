@@ -1,3 +1,4 @@
+import type { ISceneFailureEntry } from './sceneFailureLog';
 import type { TSceneFailure } from '../main/scenePackStore';
 import type { IScenePack } from './scenePacks';
 import type { TSceneCameraMotion } from './sceneCameraControl';
@@ -16,6 +17,7 @@ export const WALLPAPER = {
   surfaceChanged: 'wallpaper-surface-changed',
   drawn: 'wallpaper-drawn',
   failed: 'wallpaper-failed',
+  sceneFailure: 'wallpaper-scene-failure',
   requestAudio: 'wallpaper-request-audio',
   readAudio: 'wallpaper-read-audio',
   audio: 'wallpaper-audio',
@@ -336,6 +338,8 @@ export interface IWallpaperSurfaceBridge {
    * again; without one, the page or the machine did.
    */
   failed(reason?: TSceneFailure): void;
+  /** One line in the app log for a way the scene did not play. */
+  logSceneFailure(entry: ISceneFailureEntry): void;
   requestAudio(): Promise<IWallpaperAudio | undefined>;
   onState(listener: (state: IWallpaperSurfaceState) => void): () => void;
   /** The wheel over this monitor's bare desktop, while the mouse is on. */

@@ -222,6 +222,8 @@ const eq: Partial<Dictionary> = {
   'graph.look.refused.driver':
     '{name} बनाते समय ग्राफ़िक्स ड्राइवर रुक गया। इसकी जगह एक मानक लुक दिख रहा है।',
   'graph.look.retry': 'फिर से कोशिश करें',
+  'graph.look.reportHint':
+    'अगर यह बार-बार हो, तो {help} → {report} से हमें रिपोर्ट भेजें।',
   'graph.scene.loading': 'विज़ुअलाइज़र लोड हो रहा है…',
   'graph.scene.attack': 'अटैक',
   'graph.scene.attackHint':

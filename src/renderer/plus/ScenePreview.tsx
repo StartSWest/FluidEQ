@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TSceneMaker } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
 import { DEFAULT_SCENE_WAVE, type ISceneWave } from 'common/sceneWave';
+import type { TSceneSurface } from 'common/sceneFailureLog';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
@@ -69,6 +70,12 @@ interface IScenePreviewProps {
    * revision the pack is, a version that builds is kept as that last one.
    */
   look?: { lookId: string; revision?: string };
+  /**
+   * Where it plays, for the log's line when it does not
+   * (`common/sceneFailureLog.ts`): the Library's player and the stages that
+   * play the graph's look say `player`; every other preview is `preview`.
+   */
+  surface?: TSceneSurface;
 }
 
 /**
@@ -97,6 +104,7 @@ export default function ScenePreview({
   wave: listenerWave,
   daylight,
   look,
+  surface = 'preview',
 }: IScenePreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
@@ -134,6 +142,8 @@ export default function ScenePreview({
   const source = useMemo<ISceneSource>(
     () => ({
       identity,
+      surface,
+      ...(lookId !== undefined ? { lookId } : {}),
       version: String(packRef.current.version),
       name: packRef.current.names.en,
       load: () => Promise.resolve(packRef.current),
@@ -156,7 +166,7 @@ export default function ScenePreview({
         : {}),
       madeBy,
     }),
-    [identity, madeBy, lookId, lookRevision],
+    [identity, madeBy, lookId, lookRevision, surface],
   );
 
   const drawnRef = useRef(onDrawn);

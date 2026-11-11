@@ -18,11 +18,6 @@ import {
   type IVisibleScene,
 } from '../memberScenes/visibleScenes';
 import {
-  isSceneFailure,
-  sceneFailureDetail,
-  type TSceneFailure,
-} from '../scenePackStore';
-import {
   registerStudioProjectsIpc,
   type IStudioProjectsIpcRegistration,
 } from './studioProjectsIpc';
@@ -96,12 +91,6 @@ export interface IMemberScenesIpcRegistration {
    */
   heldLookIds(): readonly string[];
   subscribeScenes(listener: () => void): () => void;
-  /**
-   * A member's look would not run here, right now. The graph reports through
-   * its channel; a desktop background through main. Logged for operator
-   * visibility only — it does not stop a later attempt at the same scene.
-   */
-  reportFailure(lookId: string, reason: TSceneFailure): void;
   /** The open project's folder, for export and publish. */
   activeFolder(): string | undefined;
   /** Whether the open project is a FluidEQ scene, opened only to look inside. */
@@ -135,7 +124,6 @@ const CHANNELS = [
   'member-scenes-list',
   'member-scenes-load',
   'member-scenes-remove',
-  'member-scenes-report-failure',
 ] as const;
 
 export const registerMemberScenesIpc = ({
@@ -236,30 +224,6 @@ export const registerMemberScenesIpc = ({
     return removed;
   });
 
-  const reportFailure = (
-    lookId: string,
-    reason: TSceneFailure,
-    detail?: unknown,
-  ) => {
-    const ref = parseMemberLookId(lookId);
-    if (!ref) {
-      return;
-    }
-    // Diagnostic only: nothing here gates a later attempt at the same scene.
-    logger?.warn(
-      `Member scene ${lookId} failed to run here: ${reason}.${sceneFailureDetail(detail)}`,
-    );
-  };
-
-  ipcMain.handle(
-    'member-scenes-report-failure',
-    (_event, lookId: unknown, reason: unknown, detail: unknown) => {
-      if (typeof lookId === 'string' && isSceneFailure(reason)) {
-        reportFailure(lookId, reason, detail);
-      }
-    },
-  );
-
   return {
     store,
     loadVisible,
@@ -270,7 +234,6 @@ export const registerMemberScenesIpc = ({
         sceneListeners.delete(listener);
       };
     },
-    reportFailure,
     activeFolder: studio.activeFolder,
     activeIsInspection: studio.activeIsInspection,
     mayUseActive: studio.mayUseActive,

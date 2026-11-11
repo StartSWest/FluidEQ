@@ -89,6 +89,10 @@ export default function WallpaperSceneLayer({
   const source = useMemo<ISceneSource>(
     () => ({
       identity: bootstrap.pack.id,
+      surface: 'desktop',
+      // The desktop page has a bridge of its own to main's log, which names
+      // the look from the monitor the page is on.
+      logFailure: (entry) => bridge.logSceneFailure(entry),
       version: String(bootstrap.pack.version),
       name: bootstrap.pack.names.en,
       load: async () => bootstrap.pack,

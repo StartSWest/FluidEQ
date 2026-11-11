@@ -36,10 +36,17 @@ export default function GraphLookRefusedNotice() {
     <div className="graph-update-notice">
       <PlusToastStack<ILookRefusal>
         sources={{ refused: refusal }}
+        // What happened, then where to send it: the log already has the
+        // line that explains it (`common/sceneFailureLog.ts`), and the report
+        // carries every one of those (Ivan, 2026-11-11: "make sure we log
+        // scene failures so users can send logs to us").
         text={(entry) =>
-          t(SAID[entry.reason], {
+          `${t(SAID[entry.reason], {
             name: resolveSceneName({ names: entry.names }, locale),
-          })
+          })} ${t('graph.look.reportHint', {
+            help: t('help.menu'),
+            report: t('app.menu.reportProblem'),
+          })}`
         }
         action={(entry) => ({
           label: t('graph.look.retry'),

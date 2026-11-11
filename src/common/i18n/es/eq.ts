@@ -228,6 +228,8 @@ const eq: Partial<Dictionary> = {
   'graph.look.refused.driver':
     'El controlador gráfico se detuvo mientras dibujaba {name}. Se muestra un aspecto estándar en su lugar.',
   'graph.look.retry': 'Reintentar',
+  'graph.look.reportHint':
+    'Si vuelve a pasar, envíanos un informe desde {help} → {report}.',
   'graph.scene.loading': 'Cargando visualizador…',
   'graph.scene.attack': 'Ataque',
   'graph.scene.attackHint':

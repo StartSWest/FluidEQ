@@ -225,6 +225,8 @@ const eq: Partial<Dictionary> = {
   'graph.look.refused.driver':
     '{name} の描画中にグラフィックスドライバーが停止しました。代わりに標準のルックを表示しています。',
   'graph.look.retry': '再試行',
+  'graph.look.reportHint':
+    '繰り返し起きる場合は、{help} → {report} からレポートを送ってください。',
   'graph.scene.loading': 'ビジュアライザーを読み込み中…',
   'graph.scene.attack': 'アタック',
   'graph.scene.attackHint':
