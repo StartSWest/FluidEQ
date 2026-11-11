@@ -56,6 +56,7 @@ import StudioEditBar from './edit/StudioEditBar';
 import StudioEditOverlay from './edit/StudioEditOverlay';
 import StudioEditPanel from './edit/StudioEditPanel';
 import useStageEdit from './edit/useStageEdit';
+import { nodeAt, thingName } from './edit/editNames';
 
 export type TStudioSize = 'graph' | 'full';
 
@@ -224,15 +225,30 @@ export default function StudioStage({
     onExitFullscreen,
   );
 
-  const packRef = useRef(pack);
-  packRef.current = pack;
+  // Edit mode (`edit/stageEditStore.ts`): what is picked and moved rides the
+  // frame, and the stage's own gestures give way to it while it is on.
+  const edit = useStageEdit(identity, pack);
+  const isEditing = useSyncExternalStore(edit.subscribe, () => edit.state().on);
+  const draftVersion = useSyncExternalStore(
+    edit.subscribe,
+    () => edit.state().version,
+  );
+  // What the stage plays: the scene with Edit mode's unsaved changes made
+  // to it. The project's files hold `pack` until the member saves.
+  const shownPack = useMemo(
+    () => edit.draft(pack),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `draftVersion` counts the changes `draft` applies
+    [edit, pack, draftVersion],
+  );
+  const packRef = useRef(shownPack);
+  packRef.current = shownPack;
   const troubleRef = useRef(onTrouble);
   troubleRef.current = onTrouble;
 
   const source = useMemo<ISceneSource>(
     () => ({
       identity,
-      version: String(serial),
+      version: `${String(serial)}.${String(draftVersion)}`,
       name: packRef.current.names.en,
       load: () => Promise.resolve(packRef.current),
       block: () => troubleRef.current({ kind: 'unavailable' }),
@@ -256,7 +272,7 @@ export default function StudioStage({
       // watching the brightness limiter exists for (`sceneRules.ts`).
       madeBy: 'listener',
     }),
-    [identity, serial],
+    [identity, serial, draftVersion],
   );
 
   const buffers = useMemo(createStudioSignalBuffers, []);
@@ -275,10 +291,6 @@ export default function StudioStage({
   // Calm takes the place of whatever the stage hears — the music, the demo
   // song or a test signal — as it takes the music's place on a desktop.
   const calm = useStageCalm(motion);
-  // Edit mode (`edit/stageEditStore.ts`): what is picked and moved rides the
-  // frame, and the stage's own gestures give way to it while it is on.
-  const edit = useStageEdit(identity, pack);
-  const isEditing = useSyncExternalStore(edit.subscribe, () => edit.state().on);
   const shapeFrame = useMemo(
     () => (frame: ISceneFrame) => {
       const shaped = calm(
@@ -467,6 +479,10 @@ export default function StudioStage({
             <StudioEditOverlay
               store={edit}
               is3d={pack.world !== undefined}
+              nameOf={(path) => {
+                const node = nodeAt(shownPack.world?.nodes ?? [], path);
+                return node ? thingName(node, path, t) : '';
+              }}
               width={screen.width * view.scale}
               height={screen.height * view.scale}
               style={zoomed}
@@ -584,7 +600,7 @@ export default function StudioStage({
         {isEditing && !isWindowed && (
           <StudioEditPanel
             store={edit}
-            pack={pack}
+            pack={shownPack}
             projectId={identity}
             bar={
               <StudioEditBar

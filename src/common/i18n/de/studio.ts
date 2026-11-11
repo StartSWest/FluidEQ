@@ -910,6 +910,19 @@ const studio = {
   'studio.edit.failure.missing':
     'Dieses Ding hat sich seit der Auswahl geändert. Wählen Sie es erneut aus.',
   'studio.edit.failure.failed': 'Die Änderung konnte nicht gespeichert werden.',
+  'studio.edit.save': 'Speichern',
+  'studio.edit.saveHint':
+    'Bis zum Speichern wird nichts in Ihre Szene geschrieben',
+  'studio.edit.discard': 'Verwerfen',
+  'studio.edit.discardHint':
+    'Vergisst alle Änderungen seit dem letzten Speichern: Die Szene ist wieder genau wie zuvor',
+  'studio.edit.unsaved': '{count} nicht gespeichert',
+  'studio.edit.many': '{count} Dinge',
+  'studio.edit.show': 'Einblenden',
+  'studio.edit.lockShort': 'Sperren',
+  'studio.edit.parent': 'Ganzes',
+  'studio.edit.parentHint':
+    'Das ganze Ding auswählen, zu dem dieses Teil gehört',
 } as const;
 
 export default studio;

@@ -85,6 +85,8 @@ const createWorldEditor = (
   let moved: Object3D[] = [];
   let pickedId: number | undefined;
   let picked: ISceneEditReport['picked'];
+  let hoverAt: string | undefined;
+  let hoverPath: number[] | null = null;
 
   const raycaster = new Raycaster();
   const point = new Vector2();
@@ -276,15 +278,35 @@ const createWorldEditor = (
         pickedId = edit.pick.id;
         picked = { id: pickedId, path: pickAt(edit.pick.x, edit.pick.y) };
       }
+      // Measured first: measuring a thing borrows the vectors the camera's
+      // own place is read into below.
+      const things = edit.selected.flatMap((path) => {
+        const object = byPath.get(pathKey(path));
+        return object ? [measureThing(path, object)] : [];
+      });
+      // What a click would pick, looked for again only when the pointer has
+      // moved or the scene has: a ray through every copy of every thing is
+      // not a thing to send sixty times a second for a pointer at rest.
+      let hovered: ISceneEditThing | undefined;
+      if (edit.hover) {
+        const at = `${String(edit.hover[0])},${String(edit.hover[1])}`;
+        if (at !== hoverAt || !edit.frozen || edit.moves.length > 0) {
+          hoverAt = at;
+          hoverPath = pickAt(edit.hover[0], edit.hover[1]);
+        }
+        const object = hoverPath && byPath.get(pathKey(hoverPath));
+        hovered =
+          hoverPath && object ? measureThing(hoverPath, object) : undefined;
+      } else {
+        hoverAt = undefined;
+      }
       eye.setFromMatrixPosition(camera.matrixWorld);
       camera.getWorldDirection(look);
       answer = {
         world: key,
         ...(picked ? { picked } : {}),
-        things: edit.selected.flatMap((path) => {
-          const object = byPath.get(pathKey(path));
-          return object ? [measureThing(path, object)] : [];
-        }),
+        things,
+        ...(hovered ? { hovered } : {}),
         camera: {
           position: triple(eye),
           // A point ahead to turn about: where the Studio's camera starts.

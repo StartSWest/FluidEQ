@@ -883,6 +883,17 @@ const studio = {
   'studio.edit.failure.missing':
     'Essa coisa mudou desde que você a escolheu. Escolha-a de novo.',
   'studio.edit.failure.failed': 'Não foi possível salvar a mudança.',
+  'studio.edit.save': 'Salvar',
+  'studio.edit.saveHint': 'Nada é gravado na sua cena até você salvar',
+  'studio.edit.discard': 'Descartar',
+  'studio.edit.discardHint':
+    'Esquece todas as mudanças desde o último salvamento: a cena volta a ser exatamente como era',
+  'studio.edit.unsaved': '{count} não salvas',
+  'studio.edit.many': '{count} coisas',
+  'studio.edit.show': 'Mostrar',
+  'studio.edit.lockShort': 'Travar',
+  'studio.edit.parent': 'Conjunto',
+  'studio.edit.parentHint': 'Escolha a coisa inteira da qual esta faz parte',
 } as const;
 
 export default studio;

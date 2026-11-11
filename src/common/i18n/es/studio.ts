@@ -892,6 +892,17 @@ const studio = {
   'studio.edit.failure.missing':
     'Esa cosa cambió desde que la elegiste. Elígela otra vez.',
   'studio.edit.failure.failed': 'No se pudo guardar el cambio.',
+  'studio.edit.save': 'Guardar',
+  'studio.edit.saveHint': 'Nada se escribe en tu escena hasta que guardas',
+  'studio.edit.discard': 'Descartar',
+  'studio.edit.discardHint':
+    'Olvida todos los cambios desde el último guardado: la escena vuelve a estar exactamente como estaba',
+  'studio.edit.unsaved': '{count} sin guardar',
+  'studio.edit.many': '{count} cosas',
+  'studio.edit.show': 'Mostrar',
+  'studio.edit.lockShort': 'Bloquear',
+  'studio.edit.parent': 'Conjunto',
+  'studio.edit.parentHint': 'Elige la cosa entera de la que esto forma parte',
 } as const;
 
 export default studio;

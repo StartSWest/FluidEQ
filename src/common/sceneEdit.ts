@@ -53,6 +53,8 @@ export interface ISceneEdit {
   camera?: ISceneEditCamera;
   /** What stands under this point? Asked once per `id`. */
   pick?: { id: number; x: number; y: number };
+  /** Where the pointer rests: what would a click there pick? */
+  hover?: readonly [number, number];
 }
 
 /** One picked thing as the last frame drew it. */
@@ -91,6 +93,8 @@ export interface ISceneEditReport {
   world: string;
   picked?: { id: number; path: number[] | null };
   things: readonly ISceneEditThing[];
+  /** The thing under `hover`, when there is one. */
+  hovered?: ISceneEditThing;
   /** The camera the frame was drawn through. */
   camera: ISceneEditCamera;
 }
@@ -107,28 +111,6 @@ export const pathInWords = (path: TNodePath): string =>
       index === 0 ? `world.nodes[${step}]` : `children[${step}]`,
     )
     .join('.');
-
-/**
- * What a click picks, from the deepest thing under it. The outermost thing
- * first — the boat, not its sail — and one step further in with each click
- * on something already picked, so every part can be reached and the whole
- * comes first.
- */
-export const pickFrom = (
-  hit: TNodePath,
-  selected: readonly TNodePath[],
-): TNodePath => {
-  for (let depth = hit.length - 1; depth >= 1; depth -= 1) {
-    const outer = hit.slice(0, depth);
-    if (selected.some((path) => samePath(path, outer))) {
-      return hit.slice(0, depth + 1);
-    }
-  }
-  if (selected.some((path) => samePath(path, hit))) {
-    return hit;
-  }
-  return hit.slice(0, 1);
-};
 
 /** What the Studio writes into the scene's own world when a hand edits it. */
 export type TWorldEditOp =
@@ -181,16 +163,10 @@ export type TWorldEditFailure =
   | 'refused'
   | 'failed';
 
-export interface IWorldEditHistory {
-  canUndo: boolean;
-  canRedo: boolean;
-}
-
 export type TWorldEditOutcome =
   | {
       ok: true;
-      /** False when the edit left the world exactly as it was. */
+      /** False when the edits left the world exactly as it was. */
       changed: boolean;
-      history: IWorldEditHistory;
     }
-  | { ok: false; reason: TWorldEditFailure; history: IWorldEditHistory };
+  | { ok: false; reason: TWorldEditFailure };

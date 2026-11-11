@@ -801,6 +801,16 @@ const studio = {
   'studio.edit.failure.refused': '场景容纳不了这项更改。',
   'studio.edit.failure.missing': '该物体在你选取后发生了变化。请重新选取。',
   'studio.edit.failure.failed': '无法保存更改。',
+  'studio.edit.save': '保存',
+  'studio.edit.saveHint': '在你保存之前，不会向场景写入任何内容',
+  'studio.edit.discard': '放弃',
+  'studio.edit.discardHint': '忘掉上次保存以来的所有更改：场景恢复原样',
+  'studio.edit.unsaved': '{count} 项未保存',
+  'studio.edit.many': '{count} 个物体',
+  'studio.edit.show': '显示',
+  'studio.edit.lockShort': '锁定',
+  'studio.edit.parent': '整体',
+  'studio.edit.parentHint': '选取它所属的整个物体',
 } as const;
 
 export default studio;

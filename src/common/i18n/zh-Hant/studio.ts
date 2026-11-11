@@ -780,6 +780,16 @@ const studio = {
   'studio.edit.failure.refused': '場景容納不了這項變更。',
   'studio.edit.failure.missing': '該物件在你選取後發生了變化。請重新選取。',
   'studio.edit.failure.failed': '無法儲存變更。',
+  'studio.edit.save': '儲存',
+  'studio.edit.saveHint': '在你儲存之前，不會向場景寫入任何內容',
+  'studio.edit.discard': '放棄',
+  'studio.edit.discardHint': '忘掉上次儲存以來的所有變更：場景恢復原樣',
+  'studio.edit.unsaved': '{count} 項未儲存',
+  'studio.edit.many': '{count} 個物件',
+  'studio.edit.show': '顯示',
+  'studio.edit.lockShort': '鎖定',
+  'studio.edit.parent': '整體',
+  'studio.edit.parentHint': '選取它所屬的整個物件',
 } satisfies Partial<Dictionary>;
 
 export default studio;

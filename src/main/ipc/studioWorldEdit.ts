@@ -1,14 +1,6 @@
 import { ipcMain } from 'electron';
-import type {
-  IWorldEditHistory,
-  TWorldEditOp,
-  TWorldEditOutcome,
-} from '../../common/sceneEdit';
-import {
-  editProjectWorld,
-  projectWorldHistory,
-  stepProjectWorld,
-} from '../memberScenes/worldEdits';
+import type { TWorldEditOp, TWorldEditOutcome } from '../../common/sceneEdit';
+import { editProjectWorld } from '../memberScenes/worldEdits';
 
 /**
  * The Studio's Edit mode, as the renderer reaches the open project's world:
@@ -19,24 +11,17 @@ import {
  * page names no folder and no file.
  */
 
-const CHANNELS = [
-  'studio-world-edit',
-  'studio-world-step',
-  'studio-world-history',
-] as const;
+const CHANNELS = ['studio-world-edit'] as const;
 
 export interface IStudioWorldEditDeps {
   mayEdit: () => boolean;
   activeFolder: () => string | undefined;
 }
 
-const NONE: IWorldEditHistory = { canUndo: false, canRedo: false };
+const CLOSED: TWorldEditOutcome = { ok: false, reason: 'closed' };
 
-const CLOSED: TWorldEditOutcome = {
-  ok: false,
-  reason: 'closed',
-  history: NONE,
-};
+/** One save is every change since the last: a long sitting's worth. */
+const MAX_EDITS = 4096;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -137,33 +122,16 @@ export const registerStudioWorldEdit = ({
       if (!folder) {
         return CLOSED;
       }
-      const list = Array.isArray(raw) ? raw.slice(0, 64) : [];
+      const list = Array.isArray(raw) ? raw.slice(0, MAX_EDITS + 1) : [];
       const ops = list.map(readOp);
-      if (ops.length === 0 || ops.some((op) => op === undefined)) {
-        return {
-          ok: false,
-          reason: 'failed',
-          history: await projectWorldHistory(folder),
-        };
+      if (
+        ops.length === 0 ||
+        ops.length > MAX_EDITS ||
+        ops.some((op) => op === undefined)
+      ) {
+        return { ok: false, reason: 'failed' };
       }
       return editProjectWorld(folder, ops as TWorldEditOp[]);
-    },
-  );
-  ipcMain.handle(
-    'studio-world-step',
-    async (_event, direction: unknown): Promise<TWorldEditOutcome> => {
-      const folder = folderNow();
-      if (!folder || (direction !== 'undo' && direction !== 'redo')) {
-        return CLOSED;
-      }
-      return stepProjectWorld(folder, direction);
-    },
-  );
-  ipcMain.handle(
-    'studio-world-history',
-    async (): Promise<IWorldEditHistory> => {
-      const folder = folderNow();
-      return folder ? projectWorldHistory(folder) : NONE;
     },
   );
   return () => CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));

@@ -206,30 +206,54 @@ export default function StudioEditBar({
               t('studio.edit.undo'),
               'Ctrl+Z',
               undefined,
-              () => store.step('undo'),
+              store.undo,
               icon(
                 <path d="M5.5 3.5L2.5 6.5l3 3M2.8 6.5h6.4a3.6 3.6 0 0 1 0 7.2H6.5" />,
               ),
-              !state.history.canUndo,
+              !state.canUndo,
             )}
           {is3d &&
             press(
               t('studio.edit.redo'),
               'Ctrl+Y',
               undefined,
-              () => store.step('redo'),
+              store.redo,
               icon(
                 <path d="M10.5 3.5l3 3-3 3M13.2 6.5H6.8a3.6 3.6 0 0 0 0 7.2h2.7" />,
               ),
-              !state.history.canRedo,
+              !state.canRedo,
             )}
         </div>
       )}
-      {state.on && state.saving && (
-        <span className="studio-stage__updating" role="status">
-          <span className="studio-stage__updating-ring" aria-hidden="true" />
-          {t('studio.edit.saving')}
-        </span>
+      {/* Nothing reaches the scene's files until Save: what has changed is
+          counted here, beside the two ways out of it, whether Edit is on or
+          has been switched off with changes still unsaved. */}
+      {is3d && state.changes > 0 && (
+        <div className="studio-edit__unsaved" role="group">
+          <span role="status">
+            {state.saving
+              ? t('studio.edit.saving')
+              : t('studio.edit.unsaved', { count: state.changes })}
+          </span>
+          <button
+            type="button"
+            className="studio-edit__save"
+            title={`${t('studio.edit.saveHint')}\nCtrl+S`}
+            disabled={state.saving}
+            onClick={store.save}
+          >
+            {t('studio.edit.save')}
+          </button>
+          <button
+            type="button"
+            className="studio-edit__word"
+            title={t('studio.edit.discardHint')}
+            disabled={state.saving}
+            onClick={store.discard}
+          >
+            {t('studio.edit.discard')}
+          </button>
+        </div>
       )}
     </div>
   );

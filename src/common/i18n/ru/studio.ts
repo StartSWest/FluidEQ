@@ -884,6 +884,19 @@ const studio = {
   'studio.edit.failure.missing':
     'Этот объект изменился с тех пор, как вы его выбрали. Выберите его снова.',
   'studio.edit.failure.failed': 'Не удалось сохранить изменение.',
+  'studio.edit.save': 'Сохранить',
+  'studio.edit.saveHint':
+    'В сцену ничего не записывается, пока вы не сохраните',
+  'studio.edit.discard': 'Отменить всё',
+  'studio.edit.discardHint':
+    'Забывает все изменения с последнего сохранения: сцена снова точно такая, какой была',
+  'studio.edit.unsaved': 'Не сохранено: {count}',
+  'studio.edit.many': 'Объектов: {count}',
+  'studio.edit.show': 'Показать',
+  'studio.edit.lockShort': 'Закрепить',
+  'studio.edit.parent': 'Целое',
+  'studio.edit.parentHint':
+    'Выбрать весь объект, частью которого является этот',
 } as const;
 
 export default studio;

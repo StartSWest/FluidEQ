@@ -900,6 +900,19 @@ const studio = {
   'studio.edit.failure.missing':
     "Cet élément a changé depuis que vous l'avez choisi. Choisissez-le à nouveau.",
   'studio.edit.failure.failed': "Le changement n'a pas pu être enregistré.",
+  'studio.edit.save': 'Enregistrer',
+  'studio.edit.saveHint':
+    "Rien n'est écrit dans votre scène tant que vous n'enregistrez pas",
+  'studio.edit.discard': 'Abandonner',
+  'studio.edit.discardHint':
+    'Oublie tous les changements depuis le dernier enregistrement : la scène redevient exactement comme avant',
+  'studio.edit.unsaved': '{count} non enregistrés',
+  'studio.edit.many': '{count} éléments',
+  'studio.edit.show': 'Afficher',
+  'studio.edit.lockShort': 'Verrouiller',
+  'studio.edit.parent': 'Ensemble',
+  'studio.edit.parentHint':
+    "Choisir l'élément entier dont celui-ci fait partie",
 } as const;
 
 export default studio;

@@ -896,6 +896,18 @@ const studio = {
   'studio.edit.failure.missing':
     "Quella cosa è cambiata da quando l'hai scelta. Sceglila di nuovo.",
   'studio.edit.failure.failed': 'Non è stato possibile salvare la modifica.',
+  'studio.edit.save': 'Salva',
+  'studio.edit.saveHint':
+    'Niente viene scritto nella tua scena finché non salvi',
+  'studio.edit.discard': 'Scarta',
+  'studio.edit.discardHint':
+    "Dimentica tutte le modifiche dall'ultimo salvataggio: la scena torna esattamente com'era",
+  'studio.edit.unsaved': '{count} non salvate',
+  'studio.edit.many': '{count} cose',
+  'studio.edit.show': 'Mostra',
+  'studio.edit.lockShort': 'Blocca',
+  'studio.edit.parent': 'Insieme',
+  'studio.edit.parentHint': 'Scegli la cosa intera di cui questa fa parte',
 } as const;
 
 export default studio;

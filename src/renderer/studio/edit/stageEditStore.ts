@@ -6,21 +6,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   pathKey,
-  pickFrom,
   samePath,
   type ISceneEdit,
   type ISceneEditCamera,
   type ISceneEditMove,
   type ISceneEditReport,
   type ISceneEditThing,
-  type IWorldEditHistory,
   type TNodePath,
   type TTriple,
   type TWorldEditFailure,
   type TWorldEditOp,
   type TWorldEditOutcome,
 } from 'common/sceneEdit';
-import type { TWorldNode } from 'common/sceneWorld';
+import type { IScenePack } from 'common/scenePacks';
+import normalizeSceneWorld from 'common/sceneWorldRead';
+import { applyWorldEdits, sameShape } from 'common/worldEdit';
 import type { ISceneFrame } from '../../graph/sceneGl';
 import {
   dolly,
@@ -33,14 +33,21 @@ import {
 
 /**
  * Edit mode on the Studio's stage: what is picked, what a hand is moving,
- * what has been sent to be written and has not come back as a new world yet.
+ * and the changes made so far.
  *
- * A MOVE IS SHOWN FROM THE HAND TO THE FILE WITHOUT A GAP. While dragged, a
- * thing is moved in the picture alone. Let go, the move is written into the
- * scene's file and stays in the picture until the world built from that file
- * is the one on screen — the renderer tells them apart by the world's key —
- * so the thing never jumps back while its new world builds. Edits made in
- * that wait are held and sent once it ends, in order.
+ * NOTHING IS WRITTEN UNTIL THE MEMBER SAVES (Ivan, 2026-11-10: "cannot auto
+ * save like that", "make sure I don't shit the scene"). Every change is kept
+ * here, in order, and the stage plays the scene with them applied — a draft
+ * built in the window, the project's files untouched. Undo and redo step
+ * through that list at once, with no file and no wait in the way. Save
+ * writes the whole list into the scene in one go; Discard forgets it, and
+ * the scene is exactly what it was. The first version wrote each drag into
+ * the file as it was let go.
+ *
+ * A MOVE IS SHOWN FROM THE HAND TO THE DRAFT WITHOUT A GAP: while dragged, a
+ * thing is moved in the picture alone; let go, the move stays in the picture
+ * until the draft's world is the one on screen — the renderer tells them
+ * apart by the world's key — so nothing jumps back while it builds.
  */
 
 export type TEditTool = 'move' | 'turn' | 'size';
@@ -58,14 +65,21 @@ export interface IStageEditState {
   selected: readonly TNodePath[];
   /** Things that may not be picked on the stage or moved, by `pathKey`. */
   locked: readonly string[];
-  history: IWorldEditHistory;
+  /** Changes made and not saved yet. */
+  changes: number;
+  canUndo: boolean;
+  canRedo: boolean;
+  /** Counts every change to the draft: the stage builds it again. */
+  version: number;
   failure?: TWorldEditFailure;
   /** The picked things as the last frame drew them. */
   things: readonly ISceneEditThing[];
+  /** What a click would pick, under the pointer now. */
+  hovered?: ISceneEditThing;
   /** A painted scene's marks, numbered in order. */
   marks: readonly TEditMark[];
   markTool: 'pin' | 'box';
-  /** Something is on its way into the file. */
+  /** Save was pressed and the file is being written. */
   saving: boolean;
   /** The list of the scene's things is open down the stage's side. */
   listOpen: boolean;
@@ -130,6 +144,10 @@ const moveOp = (move: ISceneEditMove): TWorldEditOp => ({
     : {}),
 });
 
+/** Whether an edit changes which thing a path names. */
+const reshapes = (ops: readonly TWorldEditOp[]) =>
+  ops.some((op) => ['delete', 'copy', 'group', 'add'].includes(op.kind));
+
 /**
  * What the scene hears, kept as it was when the music was frozen. The two
  * arrays are copied: the runner fills the same two every frame.
@@ -149,33 +167,61 @@ const heardNow = (frame: ISceneFrame): Partial<ISceneFrame> => ({
   voice: frame.voice,
 });
 
-interface IPending {
+type TDrafted =
+  { ok: true; pack: IScenePack } | { ok: false; reason: TWorldEditFailure };
+
+/**
+ * `pack` with `ops` made to its world, read again as a pack's world is, or
+ * why not. The world as read is written the way a file writes one, so the
+ * same edits that will be saved are the ones shown.
+ */
+const drafted = (pack: IScenePack, ops: readonly TWorldEditOp[]): TDrafted => {
+  if (!pack.world) {
+    return { ok: false, reason: 'no-world' };
+  }
+  if (ops.length === 0) {
+    return { ok: true, pack };
+  }
+  const edited = applyWorldEdits(pack.world, ops);
+  if (!edited.ok) {
+    return edited;
+  }
+  const world = normalizeSceneWorld(
+    edited.world,
+    pack.params.map((param) => param.id),
+    pack.artwork,
+    (pack.palettes ?? []).map((palette) => palette.id),
+  );
+  // Read with a thing left out, the paths after it would name other things.
+  if (!world || !sameShape(edited.world.nodes, world.nodes)) {
+    return { ok: false, reason: 'refused' };
+  }
+  return { ok: true, pack: { ...pack, world } };
+};
+
+interface IShown {
   moves: ISceneEditMove[];
   /** The world the moves were made on. */
   key: string | undefined;
-  /** The file has them; the world built from it is still to come. */
-  landed: boolean;
-  /** A build ended after they landed: if this world is still up, it stays. */
+  /** A build ended since: if this world is still up, it stays. */
   settled: boolean;
-  /** Lets the moves go and sends whatever was held behind them. */
-  finish?: () => void;
 }
 
 export interface IStageEditBridge {
-  edit(ops: TWorldEditOp[]): Promise<TWorldEditOutcome>;
-  step(direction: 'undo' | 'redo'): Promise<TWorldEditOutcome>;
-  history(): Promise<IWorldEditHistory>;
+  save(ops: TWorldEditOp[]): Promise<TWorldEditOutcome>;
 }
 
 export interface IStageEditStore {
   subscribe(listener: () => void): () => void;
   state(): IStageEditState;
+  /** The pack on the bench, as the project's files have it now. */
+  setPack(pack: IScenePack): void;
+  /** The scene as the stage plays it: the pack with the unsaved changes. */
+  draft(pack: IScenePack): IScenePack;
   /** The frame as Edit mode sends it; the frame itself when Edit is off. */
   shape(frame: ISceneFrame): ISceneFrame;
   /** The renderer's answer to the last frame, if it gave one. */
   heard(report: ISceneEditReport | undefined): void;
-  /** The scene's things as the pack on the bench has them. */
-  setNodes(nodes: readonly TWorldNode[] | undefined): void;
   /** A build of the scene ended, well or badly. */
   buildEnded(): void;
   setOn(on: boolean): void;
@@ -184,21 +230,37 @@ export interface IStageEditStore {
   setFrozen(frozen: boolean): void;
   setFreeView(free: boolean): void;
   select(path: TNodePath, add: boolean): void;
+  /** The thing the last picked one stands in. */
+  selectParent(): void;
   clearSelection(): void;
   toggleLock(path: TNodePath): void;
   /** What stands at this point of the canvas? Picked when answered. */
   pickAt(x: number, y: number, add: boolean): void;
-  /** A hand moving a thing: shown at once, written when let go. */
+  /** The pointer rests here, or has left: what would a click pick? */
+  hoverAt(point: readonly [number, number] | undefined): void;
+  /** A hand moving a thing: shown at once, kept when let go. */
   drag(move: ISceneEditMove | undefined): void;
   drop(): void;
   /** One number typed in: the difference from what stood there. */
   nudge(move: ISceneEditMove): void;
+  /** These and no others picked: a run of the list. */
+  selectMany(paths: readonly TNodePath[]): void;
+  /** Every picked thing shown, or hidden. */
+  showPicked(shown: boolean): void;
+  /** Every picked thing locked, or let go. */
+  lockPicked(locked: boolean): void;
+  /** One change of the member's, made of these edits. */
   send(ops: TWorldEditOp[]): void;
   remove(): void;
   copy(): void;
   group(name: string): void;
   add(shape: 'box' | 'ball' | 'light' | 'group', name: string): void;
-  step(direction: 'undo' | 'redo'): void;
+  undo(): void;
+  redo(): void;
+  /** Every change so far written into the scene. */
+  save(): void;
+  /** Every change so far forgotten: the scene as it was. */
+  discard(): void;
   clearFailure(): void;
   /** The Studio's camera, turned, slid, brought nearer or stood somewhere. */
   turnView(yaw: number, pitch: number): void;
@@ -206,7 +268,7 @@ export interface IStageEditStore {
   zoomView(factor: number): void;
   viewFrom(side: TEditSide): void;
   viewThing(): void;
-  /** The Studio's view written as the scene's own camera. */
+  /** The Studio's view as the scene's own camera: a change like any other. */
   keepView(): void;
   addMark(mark: TEditMark): void;
   clearMarks(): void;
@@ -222,7 +284,10 @@ const START: IStageEditState = {
   freeView: false,
   selected: [],
   locked: [],
-  history: { canUndo: false, canRedo: false },
+  changes: 0,
+  canUndo: false,
+  canRedo: false,
+  version: 0,
   things: [],
   marks: [],
   markTool: 'pin',
@@ -244,95 +309,124 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
     listeners.forEach((listener) => listener());
   };
 
-  let nodes: readonly TWorldNode[] = [];
+  /** The pack on the bench, as the project's files have it. */
+  let base: IScenePack | undefined;
+  /** The member's changes in order, each one or more edits. */
+  let made: TWorldEditOp[][] = [];
+  let unmade: TWorldEditOp[][] = [];
+  let draftOf:
+    { base: IScenePack; version: number; pack: IScenePack } | undefined;
+  /**
+   * The pack a save in flight was made on. A pack that is not this one
+   * already holds the saved changes — it can arrive before the save's own
+   * answer or after it — and must not be given them again.
+   */
+  let saveBase: IScenePack | undefined;
+  /** The save's answer came, well: the list goes with the files' pack. */
+  let saveLanded = false;
   let heardFrozen: Partial<ISceneFrame> | undefined;
   let view: ISceneEditCamera | undefined;
   let sceneView: ISceneEditCamera | undefined;
   let pickId = 0;
   let pick: { id: number; x: number; y: number; add: boolean } | undefined;
+  let hover: readonly [number, number] | undefined;
   let worldKey: string | undefined;
   let thingsText = '[]';
-  let pending: IPending | undefined;
-  let held: { ops: TWorldEditOp[]; moves: ISceneEditMove[] } = {
-    ops: [],
-    moves: [],
-  };
-  let live: ISceneEditMove | undefined;
+  let hoveredText = '';
+  let shown: IShown | undefined;
+  /** What the hand is moving now: one move per thing it carries. */
+  let live: ISceneEditMove[] = [];
 
   const isLocked = (path: TNodePath) =>
     path.some((_step, depth) =>
       state.locked.includes(pathKey(path.slice(0, depth + 1))),
     );
 
-  const start = (ops: TWorldEditOp[], moves: ISceneEditMove[]) => {
-    const mine: IPending = {
-      moves,
-      key: worldKey,
-      landed: false,
+  const stacks = () => ({
+    changes: made.length,
+    canUndo: made.length > 0,
+    canRedo: unmade.length > 0,
+    version: state.version + 1,
+  });
+
+  /** One change: kept if the scene still builds with it, refused if not. */
+  const act = (ops: TWorldEditOp[], moves: ISceneEditMove[] = []): boolean => {
+    if (ops.length === 0 || !base || state.saving) {
+      return false;
+    }
+    const tried = drafted(base, [...made.flat(), ...ops]);
+    if (!tried.ok) {
+      set({ failure: tried.reason });
+      return false;
+    }
+    made = [...made, ops];
+    unmade = [];
+    // Shown by the hand's own move until the draft's world is drawn.
+    shown = {
+      moves: [...(shown?.moves ?? []), ...moves],
+      key: shown ? shown.key : worldKey,
       settled: false,
     };
-    pending = mine;
-    set({ saving: true });
-    const finish = () => {
-      if (pending !== mine) {
-        return;
-      }
-      pending = undefined;
-      if (held.ops.length > 0) {
-        const next = held;
-        held = { ops: [], moves: [] };
-        start(next.ops, next.moves);
-      } else {
-        set({ saving: false });
-      }
-    };
-    mine.finish = finish;
-    bridge
-      .edit(ops)
-      .then((outcome) => {
-        set({ history: outcome.history });
-        if (!outcome.ok) {
-          set({ failure: outcome.reason });
-          finish();
-        } else if (!outcome.changed || worldKey !== mine.key) {
-          // Nothing to wait for, or the world built from it is already up.
-          finish();
-        } else {
-          mine.landed = true;
-        }
-        return undefined;
-      })
-      .catch(() => {
-        set({ failure: 'failed' });
-        finish();
-      });
+    set({ ...stacks(), failure: undefined });
+    return true;
   };
 
-  const send = (ops: TWorldEditOp[], moves: ISceneEditMove[] = []) => {
-    if (ops.length === 0) {
+  /**
+   * The move made to every picked thing when the one it names is picked —
+   * several things carried as one — and to that thing alone otherwise. A
+   * thing inside another picked thing goes with it, and is not moved twice.
+   */
+  const carried = (move: ISceneEditMove): ISceneEditMove[] => {
+    const picked = state.selected.some((path) => samePath(path, move.path))
+      ? state.selected
+      : [move.path];
+    return picked
+      .filter(
+        (path) =>
+          !isLocked(path) &&
+          !picked.some(
+            (other) =>
+              other.length < path.length &&
+              samePath(other, path.slice(0, other.length)),
+          ),
+      )
+      .map((path) => ({ ...move, path }));
+  };
+
+  /** One change, however many things it moved. */
+  const commit = (moves: ISceneEditMove[]) => {
+    const real = moves.filter((move) => !isStill(move));
+    if (real.length > 0) {
+      act(real.map(moveOp), real);
+    }
+  };
+
+  const step = (from: 'made' | 'unmade') => {
+    const source = from === 'made' ? made : unmade;
+    const ops = source[source.length - 1];
+    if (!ops || state.saving) {
       return;
     }
-    if (pending) {
-      held = { ops: [...held.ops, ...ops], moves: [...held.moves, ...moves] };
+    if (from === 'made') {
+      made = made.slice(0, -1);
+      unmade = [...unmade, ops];
     } else {
-      start(ops, moves);
+      unmade = unmade.slice(0, -1);
+      made = [...made, ops];
     }
+    shown = undefined;
+    // Over a change of structure, the paths picked name other things.
+    set({ ...stacks(), ...(reshapes(ops) ? { selected: [] } : {}) });
   };
 
-  const commit = (move: ISceneEditMove) => {
-    if (!isStill(move)) {
-      send([moveOp(move)], [move]);
-    }
-  };
-
-  const refreshHistory = () => {
-    bridge
-      .history()
-      .then((history) => {
-        set({ history });
-        return undefined;
-      })
-      .catch(() => undefined);
+  /** Saved and in the files' own pack: nothing is left to apply. */
+  const finishSave = () => {
+    saveBase = undefined;
+    saveLanded = false;
+    made = [];
+    unmade = [];
+    shown = undefined;
+    set({ ...stacks(), saving: false });
   };
 
   const moveView = (change: (now: ISceneEditCamera) => ISceneEditCamera) => {
@@ -347,6 +441,43 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       };
     },
     state: () => state,
+    setPack: (pack) => {
+      if (base === pack) {
+        return;
+      }
+      base = pack;
+      if (saveBase) {
+        // The files' own pack with the save in it; if the save's answer is
+        // still to come, it finishes there.
+        if (saveLanded) {
+          finishSave();
+        }
+      } else if (made.length > 0 && !drafted(pack, made.flat()).ok) {
+        // The scene was written by someone else — the member's AI, an
+        // editor — and the changes no longer fit it.
+        made = [];
+        unmade = [];
+        set({ ...stacks(), selected: [], failure: 'missing' });
+      }
+    },
+    draft: (pack) => {
+      // A pack newer than the one the changes were saved from already has
+      // them: applied again they would be made twice.
+      const fresh = saveBase !== undefined && pack !== saveBase;
+      if (
+        draftOf?.base === pack &&
+        draftOf.version === state.version &&
+        !fresh
+      ) {
+        return draftOf.pack;
+      }
+      const tried = fresh ? undefined : drafted(pack, made.flat());
+      const result = tried?.ok ? tried.pack : pack;
+      if (!fresh) {
+        draftOf = { base: pack, version: state.version, pack: result };
+      }
+      return result;
+    },
     shape: (frame) => {
       if (!state.on) {
         heardFrozen = undefined;
@@ -360,14 +491,11 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       const edit: ISceneEdit = {
         frozen: state.frozen,
         selected: state.selected,
-        world: pending ? pending.key : worldKey,
-        moves: combined([
-          ...(pending?.moves ?? []),
-          ...held.moves,
-          ...(live ? [live] : []),
-        ]),
+        world: shown ? shown.key : worldKey,
+        moves: combined([...(shown?.moves ?? []), ...live]),
         ...(state.freeView && view ? { camera: view } : {}),
         ...(pick ? { pick: { id: pick.id, x: pick.x, y: pick.y } } : {}),
+        ...(hover && live.length === 0 ? { hover } : {}),
       };
       return { ...frame, ...(heardFrozen ?? {}), edit };
     },
@@ -378,12 +506,9 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       if (!state.freeView) {
         sceneView = report.camera;
       }
-      if (report.world !== worldKey) {
-        worldKey = report.world;
-        refreshHistory();
-      }
-      if (pending?.landed && (pending.key !== worldKey || pending.settled)) {
-        pending.finish?.();
+      worldKey = report.world;
+      if (shown && (shown.key !== worldKey || shown.settled)) {
+        shown = undefined;
       }
       if (pick && report.picked?.id === pick.id) {
         const { add } = pick;
@@ -393,18 +518,15 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
           if (!add) {
             set({ selected: [] });
           }
-        } else {
-          const chosen = pickFrom(hit, state.selected);
-          if (!isLocked(chosen)) {
-            const has = state.selected.some((path) => samePath(path, chosen));
-            let selected: readonly TNodePath[] = [chosen];
-            if (add) {
-              selected = has
-                ? state.selected.filter((path) => !samePath(path, chosen))
-                : [...state.selected, chosen];
-            }
-            set({ selected });
+        } else if (!isLocked(hit)) {
+          const has = state.selected.some((path) => samePath(path, hit));
+          let selected: readonly TNodePath[] = [hit];
+          if (add) {
+            selected = has
+              ? state.selected.filter((path) => !samePath(path, hit))
+              : [...state.selected, hit];
           }
+          set({ selected });
         }
       }
       const text = JSON.stringify(report.things);
@@ -412,21 +534,22 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
         thingsText = text;
         set({ things: report.things });
       }
-    },
-    setNodes: (next) => {
-      nodes = next ?? [];
+      const over = hover ? report.hovered : undefined;
+      const overText = over ? JSON.stringify(over) : '';
+      if (overText !== hoveredText) {
+        hoveredText = overText;
+        set({ hovered: over });
+      }
     },
     buildEnded: () => {
-      if (pending?.landed) {
-        pending.settled = true;
+      if (shown) {
+        shown.settled = true;
       }
     },
     setOn: (on) => {
-      live = undefined;
+      live = [];
       pick = undefined;
-      if (on) {
-        refreshHistory();
-      }
+      hover = undefined;
       set({ on, failure: undefined, ...(on ? {} : { freeView: false }) });
     },
     setTool: (tool) => set({ tool }),
@@ -450,6 +573,12 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
         });
       }
     },
+    selectParent: () => {
+      const last = state.selected[state.selected.length - 1];
+      if (last && last.length > 1) {
+        set({ selected: [last.slice(0, -1)] });
+      }
+    },
     clearSelection: () => set({ selected: [] }),
     toggleLock: (path) => {
       const key = pathKey(path);
@@ -463,84 +592,143 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       pickId += 1;
       pick = { id: pickId, x, y, add };
     },
+    hoverAt: (point) => {
+      hover = point;
+    },
     drag: (move) => {
-      live = move && !isLocked(move.path) ? move : undefined;
-      if (!state.dragging && live) {
+      live = move ? carried(move) : [];
+      if (!state.dragging && live.length > 0) {
         set({ dragging: true });
       }
     },
     drop: () => {
-      const move = live;
-      live = undefined;
+      const moves = live;
+      live = [];
       if (state.dragging) {
         set({ dragging: false });
       }
-      if (move) {
-        commit(move);
-      }
+      commit(moves);
     },
-    nudge: (move) => {
-      if (!isLocked(move.path)) {
-        commit(move);
-      }
+    nudge: (move) => commit(carried(move)),
+    selectMany: (paths) => set({ selected: paths }),
+    showPicked: (isShown) => {
+      act(
+        state.selected.map((path) => ({
+          kind: 'show',
+          path: [...path],
+          shown: isShown,
+        })),
+      );
     },
-    send: (ops) => send(ops),
+    lockPicked: (isLocking) => {
+      const keys = state.selected.map(pathKey);
+      set({
+        locked: isLocking
+          ? [...new Set([...state.locked, ...keys])]
+          : state.locked.filter((key) => !keys.includes(key)),
+      });
+    },
+    send: (ops) => {
+      act(ops);
+    },
     remove: () => {
       // Deepest and last first, so no path is moved by the one before it.
       const doomed = [...state.selected]
         .filter((path) => !isLocked(path))
         .sort((a, b) =>
-          pathKey(b).localeCompare(pathKey(a), 'en', {
-            numeric: true,
-          }),
+          pathKey(b).localeCompare(pathKey(a), 'en', { numeric: true }),
         );
-      send(doomed.map((path) => ({ kind: 'delete', path: [...path] })));
-      set({ selected: [] });
+      if (act(doomed.map((path) => ({ kind: 'delete', path: [...path] })))) {
+        set({ selected: [] });
+      }
     },
     copy: () => {
-      const [first] = state.selected;
-      if (!first) {
-        return;
+      // Last first: a copy lands after its thing and moves what follows.
+      const picked = [...state.selected].sort((a, b) =>
+        pathKey(b).localeCompare(pathKey(a), 'en', { numeric: true }),
+      );
+      const [first] = picked;
+      if (
+        first &&
+        act(picked.map((path) => ({ kind: 'copy', path: [...path] })))
+      ) {
+        // One copy is picked in its thing's place; several leave nothing
+        // picked, their places having moved each other.
+        set({
+          selected:
+            picked.length === 1
+              ? [[...first.slice(0, -1), first[first.length - 1] + 1]]
+              : [],
+        });
       }
-      send([{ kind: 'copy', path: [...first] }]);
-      set({
-        selected: [[...first.slice(0, -1), first[first.length - 1] + 1]],
-      });
     },
     group: (name) => {
       if (state.selected.length === 0) {
         return;
       }
       const paths = state.selected.map((path) => [...path]);
-      send([{ kind: 'group', paths, name }]);
       const first = paths.reduce((lowest, path) =>
         path[path.length - 1] < lowest[lowest.length - 1] ? path : lowest,
       );
-      set({ selected: [first] });
+      if (act([{ kind: 'group', paths, name }])) {
+        set({ selected: [first] });
+      }
     },
     add: (shape, name) => {
+      if (!base) {
+        return;
+      }
       // In front of the Studio's camera when it has one, or at the middle.
       const at = state.freeView && view ? view.target : NO_MOVE;
-      send([
-        { kind: 'add', shape, name, at: [...at] as [number, number, number] },
-      ]);
-      set({ selected: [[nodes.length]] });
+      const now = drafted(base, made.flat());
+      const count = (now.ok ? now.pack : base).world?.nodes.length ?? 0;
+      if (
+        act([
+          { kind: 'add', shape, name, at: [...at] as [number, number, number] },
+        ])
+      ) {
+        set({ selected: [[count]] });
+      }
     },
-    step: (direction) => {
+    undo: () => step('made'),
+    redo: () => step('unmade'),
+    save: () => {
+      if (made.length === 0 || state.saving) {
+        return;
+      }
+      const from = base;
+      saveBase = from;
+      saveLanded = false;
       set({ saving: true });
       bridge
-        .step(direction)
+        .save(made.flat())
         .then((outcome) => {
-          set({
-            history: outcome.history,
-            saving: pending !== undefined,
-            // A step over a structure change leaves paths naming other things.
-            selected: [],
-            ...(outcome.ok ? {} : { failure: outcome.reason }),
-          });
+          if (!outcome.ok) {
+            saveBase = undefined;
+            set({ saving: false, failure: outcome.reason });
+          } else if (!outcome.changed || base !== from) {
+            // Nothing to wait for, or the files' pack is here already.
+            finishSave();
+          } else {
+            // Kept in the draft until the files' pack arrives with them in,
+            // or the stage would show the old scene in between.
+            saveLanded = true;
+          }
           return undefined;
         })
-        .catch(() => set({ saving: pending !== undefined, failure: 'failed' }));
+        .catch(() => {
+          saveBase = undefined;
+          set({ saving: false, failure: 'failed' });
+        });
+    },
+    discard: () => {
+      if (state.saving) {
+        return;
+      }
+      made = [];
+      unmade = [];
+      shown = undefined;
+      set({ ...stacks(), selected: [], failure: undefined });
     },
     clearFailure: () => set({ failure: undefined }),
     turnView: (yaw, pitch) => moveView((now) => orbit(now, yaw, pitch)),
@@ -559,17 +747,18 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       }
     },
     keepView: () => {
-      if (!view) {
-        return;
+      if (
+        view &&
+        act([
+          {
+            kind: 'camera',
+            position: [...view.position] as [number, number, number],
+            target: [...view.target] as [number, number, number],
+          },
+        ])
+      ) {
+        set({ freeView: false });
       }
-      send([
-        {
-          kind: 'camera',
-          position: [...view.position] as [number, number, number],
-          target: [...view.target] as [number, number, number],
-        },
-      ]);
-      set({ freeView: false });
     },
     addMark: (mark) => set({ marks: [...state.marks, mark].slice(-9) }),
     clearMarks: () => set({ marks: [] }),

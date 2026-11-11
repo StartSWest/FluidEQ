@@ -27,6 +27,7 @@ import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import { askSceneChat, focusSceneChat } from '../chat/askSceneChat';
 import { setChatDraftStage } from '../chat/chatDraftStore';
+import { KIND_ICONS, KIND_NAMES, nodeAt, thingName } from './editNames';
 import { setEditPicks } from './editPicksStore';
 import markPicture from './markPicture';
 import { emptyMove, type IStageEditStore } from './stageEditStore';
@@ -38,16 +39,7 @@ import { useStageEditState } from './useStageEdit';
  * scene, which has no things, what marking is and the marks' own buttons.
  */
 
-const KINDS: Record<TWorldNode['type'], TranslationKey> = {
-  mesh: 'studio.edit.kind.mesh',
-  instances: 'studio.edit.kind.instances',
-  points: 'studio.edit.kind.points',
-  ribbon: 'studio.edit.kind.ribbon',
-  terrain: 'studio.edit.kind.terrain',
-  model: 'studio.edit.kind.model',
-  light: 'studio.edit.kind.light',
-  group: 'studio.edit.kind.group',
-};
+const KINDS = KIND_NAMES;
 
 const FAILURES: Record<TWorldEditFailure, TranslationKey> = {
   closed: 'studio.edit.failure.failed',
@@ -58,15 +50,6 @@ const FAILURES: Record<TWorldEditFailure, TranslationKey> = {
   refused: 'studio.edit.failure.refused',
   failed: 'studio.edit.failure.failed',
 };
-
-const nodeAt = (
-  nodes: readonly TWorldNode[],
-  path: TNodePath,
-): TWorldNode | undefined =>
-  path.reduce<TWorldNode | undefined>(
-    (found, step, depth) => (depth === 0 ? nodes[step] : found?.children[step]),
-    undefined,
-  );
 
 interface IEditNumberProps {
   /** The axis, beside the field. */
@@ -162,11 +145,7 @@ export default function StudioEditPanel({
   const nodes = pack.world?.nodes;
 
   const nameOf = (node: TWorldNode, path: TNodePath) =>
-    node.name ??
-    t('studio.edit.unnamed', {
-      kind: t(KINDS[node.type]),
-      number: path[path.length - 1] + 1,
-    });
+    thingName(node, path, t);
 
   const ask = (text?: string) => {
     if (text !== undefined) {
@@ -283,6 +262,30 @@ export default function StudioEditPanel({
   const isPicked = (path: TNodePath) =>
     state.selected.some((known) => samePath(known, path));
   const last = state.selected[state.selected.length - 1];
+  /**
+   * A press on a row, as every list of files takes one: alone it picks the
+   * row, with Ctrl it adds or drops it, with Shift it picks the run from
+   * the last one picked to it.
+   */
+  const pickRow = (
+    path: number[],
+    event: { shiftKey: boolean; ctrlKey: boolean; metaKey: boolean },
+  ) => {
+    const from = last ? rows.findIndex((row) => samePath(row.path, last)) : -1;
+    const to = rows.findIndex((row) => samePath(row.path, path));
+    if (event.shiftKey && from >= 0 && to >= 0) {
+      const run = rows
+        .slice(Math.min(from, to), Math.max(from, to) + 1)
+        .map((row) => row.path);
+      // The pressed one last: it is the one the numbers show.
+      store.selectMany([
+        ...run.filter((known) => !samePath(known, path)),
+        path,
+      ]);
+    } else {
+      store.select(path, event.ctrlKey || event.metaKey);
+    }
+  };
   const lastNode = last && nodeAt(nodes, last);
   const thing: ISceneEditThing | undefined = state.things.find(
     (known) => last !== undefined && samePath(known.path, last),
@@ -430,11 +433,17 @@ export default function StudioEditPanel({
                       className="studio-edit__name"
                       aria-pressed={isPicked(path)}
                       title={name}
-                      onClick={(event) =>
-                        store.select(path, event.shiftKey || event.ctrlKey)
-                      }
+                      onClick={(event) => pickRow(path, event)}
                       onDoubleClick={() => setRenaming(key)}
                     >
+                      <svg
+                        className="studio-edit__kind"
+                        viewBox="0 0 16 16"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d={KIND_ICONS[node.type]} />
+                      </svg>
                       <span>{name}</span>
                       {node.name !== undefined && (
                         <small>{t(KINDS[node.type])}</small>
@@ -447,7 +456,12 @@ export default function StudioEditPanel({
                     aria-pressed={locked}
                     aria-label={`${t('studio.edit.lock')}: ${name}`}
                     title={t('studio.edit.lock')}
-                    onClick={() => store.toggleLock(path)}
+                    onClick={() =>
+                      // On one of several picked things, all of them.
+                      isPicked(path) && state.selected.length > 1
+                        ? store.lockPicked(!locked)
+                        : store.toggleLock(path)
+                    }
                   >
                     <Glyph name="lock" />
                   </button>
@@ -458,7 +472,9 @@ export default function StudioEditPanel({
                     aria-label={`${t('studio.edit.hide')}: ${name}`}
                     title={t('studio.edit.hide')}
                     onClick={() =>
-                      store.send([{ kind: 'show', path, shown: hidden }])
+                      isPicked(path) && state.selected.length > 1
+                        ? store.showPicked(hidden)
+                        : store.send([{ kind: 'show', path, shown: hidden }])
                     }
                   >
                     <svg
@@ -483,7 +499,11 @@ export default function StudioEditPanel({
           className="studio-edit__thing"
           onDoubleClick={(event) => event.stopPropagation()}
         >
-          <h3 className="studio-edit__thing-name">{nameOf(lastNode, last)}</h3>
+          <h3 className="studio-edit__thing-name">
+            {state.selected.length > 1
+              ? t('studio.edit.many', { count: state.selected.length })
+              : nameOf(lastNode, last)}
+          </h3>
           <div className="studio-edit__actions">
             <button type="button" className="button small" onClick={askAbout}>
               {t('studio.edit.ask')}
@@ -507,10 +527,47 @@ export default function StudioEditPanel({
             <button
               type="button"
               className="button small subtle"
-              onClick={() => setRenaming(pathKey(last))}
+              onClick={() => store.showPicked(lastNode.visible === 0)}
             >
-              {t('studio.edit.rename')}
+              {t(
+                lastNode.visible === 0
+                  ? 'studio.edit.show'
+                  : 'studio.edit.hide',
+              )}
             </button>
+            <button
+              type="button"
+              className="button small subtle"
+              aria-pressed={state.locked.includes(pathKey(last))}
+              onClick={() =>
+                store.lockPicked(!state.locked.includes(pathKey(last)))
+              }
+            >
+              {t('studio.edit.lockShort')}
+            </button>
+            {last.length > 1 && (
+              <button
+                type="button"
+                className="button small subtle"
+                title={t('studio.edit.parentHint')}
+                onClick={store.selectParent}
+              >
+                {t('studio.edit.parent')}
+              </button>
+            )}
+            {state.selected.length === 1 && (
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() => {
+                  // The name is typed in the list, which opens for it.
+                  store.setListOpen(true);
+                  setRenaming(pathKey(last));
+                }}
+              >
+                {t('studio.edit.rename')}
+              </button>
+            )}
             <button
               type="button"
               className="button small subtle studio-edit__delete"

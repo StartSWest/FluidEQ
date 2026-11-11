@@ -879,6 +879,18 @@ const studio = {
   'studio.edit.failure.missing':
     'चुनने के बाद वह चीज़ बदल गई है। उसे फिर से चुनें।',
   'studio.edit.failure.failed': 'बदलाव सहेजा नहीं जा सका।',
+  'studio.edit.save': 'सहेजें',
+  'studio.edit.saveHint':
+    'जब तक आप सहेजते नहीं, आपके दृश्य में कुछ नहीं लिखा जाता',
+  'studio.edit.discard': 'छोड़ें',
+  'studio.edit.discardHint':
+    'पिछली बार सहेजने के बाद के सभी बदलाव भूल जाता है: दृश्य ठीक पहले जैसा हो जाता है',
+  'studio.edit.unsaved': '{count} सहेजे नहीं गए',
+  'studio.edit.many': '{count} चीज़ें',
+  'studio.edit.show': 'दिखाएँ',
+  'studio.edit.lockShort': 'लॉक',
+  'studio.edit.parent': 'पूरा',
+  'studio.edit.parentHint': 'वह पूरी चीज़ चुनें जिसका यह हिस्सा है',
 } as const;
 
 export default studio;

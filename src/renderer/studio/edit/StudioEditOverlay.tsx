@@ -10,7 +10,7 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import type { ISceneEditThing, TTriple } from 'common/sceneEdit';
+import type { ISceneEditThing, TNodePath, TTriple } from 'common/sceneEdit';
 import { useTranslation } from '../../utils/I18nContext';
 import {
   alongAxis,
@@ -37,6 +37,8 @@ interface IStudioEditOverlayProps {
   store: IStageEditStore;
   /** Whether the scene has things to pick: a 3D world. */
   is3d: boolean;
+  /** What a thing is called, for the tag over it. */
+  nameOf: (path: TNodePath) => string;
   width: number;
   height: number;
   style?: CSSProperties;
@@ -87,6 +89,7 @@ const triple = (axis: number, value: number, rest: number): TTriple =>
 export default function StudioEditOverlay({
   store,
   is3d,
+  nameOf,
   width,
   height,
   style,
@@ -125,6 +128,14 @@ export default function StudioEditOverlay({
   };
 
   const thing = state.things[state.things.length - 1];
+  // Not what is picked already: its frame is there.
+  const over =
+    state.hovered?.inView &&
+    !state.things.some(
+      (picked) => picked.path.join('.') === state.hovered?.path.join('.'),
+    )
+      ? state.hovered
+      : undefined;
   const pivot: TPoint = thing ? px(thing.pivot) : [0, 0];
   const axes = thing ? thing.axes.map(px) : [];
   const own = thing ? thing.ownAxes.map(px) : [];
@@ -259,6 +270,14 @@ export default function StudioEditOverlay({
     }
     const sweep = sweepRef.current;
     if (!sweep) {
+      // The pointer at rest over the scene: what a click here would pick.
+      if (is3d) {
+        const spot = at(event);
+        store.hoverAt([
+          spot[0] / Math.max(width, 1),
+          spot[1] / Math.max(height, 1),
+        ]);
+      }
       return;
     }
     const now = at(event);
@@ -435,6 +454,7 @@ export default function StudioEditOverlay({
       onPointerMove={onMove}
       onPointerUp={onUp}
       onPointerCancel={onUp}
+      onPointerLeave={() => store.hoverAt(undefined)}
       onContextMenu={(event) => event.preventDefault()}
       onDoubleClick={(event) => event.stopPropagation()}
     >
@@ -453,6 +473,36 @@ export default function StudioEditOverlay({
               />
             ),
         )}
+      {is3d && over && (
+        <g className="studio-edit__over">
+          <rect
+            className="studio-edit__frame is-over"
+            x={over.box[0] * width - 4}
+            y={over.box[1] * height - 4}
+            width={(over.box[2] - over.box[0]) * width + 8}
+            height={(over.box[3] - over.box[1]) * height + 8}
+            rx={3}
+          />
+          <text
+            className="studio-edit__tag"
+            x={over.box[0] * width - 2}
+            y={Math.max(12, over.box[1] * height - 10)}
+          >
+            {nameOf(over.path)}
+          </text>
+        </g>
+      )}
+      {is3d && thing?.inView && !dragRef.current && (
+        <text
+          className="studio-edit__tag is-picked"
+          x={thing.box[0] * width - 2}
+          y={Math.max(12, thing.box[1] * height - 10)}
+        >
+          {state.things.length > 1
+            ? `${nameOf(thing.path)} +${String(state.things.length - 1)}`
+            : nameOf(thing.path)}
+        </text>
+      )}
       {is3d && handles()}
       {!is3d &&
         state.marks.map((mark, index) => {

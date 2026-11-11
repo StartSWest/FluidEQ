@@ -889,6 +889,17 @@ const studio = {
   'studio.edit.failure.missing':
     '選択した後にそのものが変更されました。もう一度選択してください。',
   'studio.edit.failure.failed': '変更を保存できませんでした。',
+  'studio.edit.save': '保存',
+  'studio.edit.saveHint': '保存するまで、シーンには何も書き込まれません',
+  'studio.edit.discard': '破棄',
+  'studio.edit.discardHint':
+    '前回の保存以降の変更をすべて取り消し、シーンを元どおりに戻します',
+  'studio.edit.unsaved': '未保存 {count} 件',
+  'studio.edit.many': '{count} 個',
+  'studio.edit.show': '表示',
+  'studio.edit.lockShort': 'ロック',
+  'studio.edit.parent': '全体',
+  'studio.edit.parentHint': 'これを含む全体を選択します',
 } as const;
 
 export default studio;

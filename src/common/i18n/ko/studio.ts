@@ -858,6 +858,17 @@ const studio = {
   'studio.edit.failure.missing':
     '선택한 뒤에 그 사물이 바뀌었습니다. 다시 선택하세요.',
   'studio.edit.failure.failed': '변경 사항을 저장하지 못했습니다.',
+  'studio.edit.save': '저장',
+  'studio.edit.saveHint': '저장하기 전에는 장면에 아무것도 기록되지 않습니다',
+  'studio.edit.discard': '버리기',
+  'studio.edit.discardHint':
+    '마지막 저장 이후의 모든 변경을 잊고 장면을 원래대로 되돌립니다',
+  'studio.edit.unsaved': '저장 안 됨 {count}개',
+  'studio.edit.many': '{count}개',
+  'studio.edit.show': '보이기',
+  'studio.edit.lockShort': '잠금',
+  'studio.edit.parent': '전체',
+  'studio.edit.parentHint': '이것이 속한 전체를 선택합니다',
 } satisfies Partial<Dictionary>;
 
 export default studio;

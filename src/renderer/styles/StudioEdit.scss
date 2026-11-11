@@ -630,3 +630,82 @@ $edit-z: #5aa9ff;
     }
   }
 }
+
+// What a click would pick, shown before the click: a faint frame and the
+// thing's name over it.
+.studio-edit__frame.is-over {
+  stroke: $white;
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+  opacity: 0.85;
+}
+
+.studio-edit__over,
+.studio-edit__tag {
+  pointer-events: none;
+}
+
+// A name on the scene: dark round the letters, so it reads on any picture.
+.studio-edit__tag {
+  fill: $white;
+  stroke: rgba(0, 0, 0, 0.75);
+  stroke-width: 3px;
+  paint-order: stroke;
+  font-size: 11px;
+  font-weight: $weight-semibold;
+
+  &.is-picked {
+    fill: $secondary-light;
+  }
+}
+
+// The kind of thing, before its name in the list.
+.studio-edit__kind {
+  flex: none;
+  align-self: center;
+  width: 14px;
+  height: 14px;
+  color: $text-muted;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.3;
+
+  .studio-edit__row.is-picked & {
+    color: $secondary-light;
+  }
+}
+
+// CHANGES NOT SAVED YET: counted on the plate, with Save worn as the one
+// filled button on it and Discard as a quiet word beside it.
+.studio-edit__unsaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 6px;
+
+  > span {
+    padding: 0 4px;
+    color: $amber;
+    font-size: $text-micro;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+  }
+}
+
+.studio-stage__bar .studio-edit__save {
+  padding: 0 12px;
+  color: #03222a;
+  background: $secondary-light;
+
+  &:hover {
+    color: #03222a;
+    background: $white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}

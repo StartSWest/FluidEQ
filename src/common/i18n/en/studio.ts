@@ -901,6 +901,17 @@ const studio = {
   'studio.edit.failure.missing':
     'That thing changed since you picked it. Pick it again.',
   'studio.edit.failure.failed': "The change couldn't be saved.",
+  'studio.edit.save': 'Save',
+  'studio.edit.saveHint': 'Nothing is written to your scene until you save',
+  'studio.edit.discard': 'Discard',
+  'studio.edit.discardHint':
+    'Forget every change since the last save: the scene goes back exactly as it was',
+  'studio.edit.unsaved': '{count} not saved',
+  'studio.edit.many': '{count} things',
+  'studio.edit.show': 'Show',
+  'studio.edit.lockShort': 'Lock',
+  'studio.edit.parent': 'Whole',
+  'studio.edit.parentHint': 'Pick the whole thing this is a part of',
 } as const;
 
 export default studio;
