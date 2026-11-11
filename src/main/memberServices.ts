@@ -390,7 +390,12 @@ const registerMemberServices = ({
     launcher: chatLauncherFor(path.join(userDataDir, 'studio-chat'), log),
     // An AI may have written into a scene that is not the open one, so the
     // project list reads its publications again.
-    onReplyEnded: () => memberScenesIpc.publishedMayHaveChanged(),
+    onReplyEnded: (projectId) => {
+      // What the reply wrote is the project's own (`projectOrigin.ts`).
+      memberScenesIpc.chatWrote(projectId);
+      memberScenesIpc.publishedMayHaveChanged();
+    },
+    mustAsk: (projectId) => memberScenesIpc.chatMustAsk(projectId),
     logger: log,
   });
   const plusPublishingIpc = registerPlusPublishingIpc({

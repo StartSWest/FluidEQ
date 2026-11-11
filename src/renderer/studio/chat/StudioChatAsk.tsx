@@ -168,6 +168,9 @@ function ToolCard({ ask }: { ask: Extract<TStudioChatAsk, { kind: 'tool' }> }) {
         {t('studioChat.ask.toolTitle', { tool: ask.tool })}
       </p>
       <p className="studio-chat__ask-body">{t('studioChat.ask.toolBody')}</p>
+      {ask.foreign && (
+        <p className="studio-chat__ask-need">{t('studioChat.ask.foreign')}</p>
+      )}
       <pre className="studio-chat__ask-detail">{ask.detail}</pre>
       {/* Three answers on one row at the chat's narrowest (Ivan,
           2026-11-07: a fourth wrapped "Don't allow" onto a line of its
@@ -181,14 +184,17 @@ function ToolCard({ ask }: { ask: Extract<TStudioChatAsk, { kind: 'tool' }> }) {
         >
           {t('studioChat.ask.allow')}
         </button>
-        <button
-          type="button"
-          className="button small subtle"
-          title={t('studioChat.ask.allowAlwaysHint', { tool: ask.tool })}
-          onClick={() => answer('chat')}
-        >
-          {t('studioChat.ask.allowAlways')}
-        </button>
+        {/* Nothing is allowed for always in a scene from outside FluidEQ. */}
+        {!ask.foreign && (
+          <button
+            type="button"
+            className="button small subtle"
+            title={t('studioChat.ask.allowAlwaysHint', { tool: ask.tool })}
+            onClick={() => answer('chat')}
+          >
+            {t('studioChat.ask.allowAlways')}
+          </button>
+        )}
         <button
           type="button"
           className="button small subtle"

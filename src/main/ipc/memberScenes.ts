@@ -114,6 +114,9 @@ export interface IMemberScenesIpcRegistration {
   openInspection(pack: IScenePack): Promise<TInspection>;
   /** The Studio's list, as far as the member's AI may reach it. */
   agentProject: IStudioProjectsIpcRegistration['agentProject'];
+  /** Whether a project's chat must ask before every command (`projectOrigin.ts`). */
+  chatMustAsk: IStudioProjectsIpcRegistration['chatMustAsk'];
+  chatWrote: IStudioProjectsIpcRegistration['chatWrote'];
   /** The scene list changed outside this file: an import, a takedown. */
   announce(): void;
   /**
@@ -273,6 +276,8 @@ export const registerMemberScenesIpc = ({
     restoreOwnProject: studio.restoreOwnProject,
     openInspection: studio.openInspection,
     agentProject: studio.agentProject,
+    chatMustAsk: studio.chatMustAsk,
+    chatWrote: studio.chatWrote,
     announce: announceScenes,
     publishedMayHaveChanged: () => studio.publishedMayHaveChanged(),
     keepPublished: (author, pack) => {

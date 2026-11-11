@@ -72,6 +72,8 @@ export interface IStudioChatDeps {
   launcher: IChatLauncher;
   /** A reply finished, however it finished: its project's files may have changed. */
   onReplyEnded?: (projectId: string) => void;
+  /** Whether a project's chat must ask before every command (`projectOrigin.ts`). */
+  mustAsk?: (projectId: string) => boolean;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -83,6 +85,7 @@ export const createStudioChat = ({
   version,
   launcher,
   onReplyEnded,
+  mustAsk,
   logger,
 }: IStudioChatDeps) => {
   const root = path.join(userDataDir, 'studio-chat');
@@ -204,6 +207,7 @@ export const createStudioChat = ({
 
   const chatSessions = createChatSessions({
     root,
+    ...(mustAsk ? { mustAsk } : {}),
     offered: (model) => isStudioChatModelOffered(claudeModels.known(), model),
     sessions,
     launcher,

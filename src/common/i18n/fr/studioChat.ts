@@ -139,6 +139,16 @@ const studioChat = {
   'studioChat.ask.allowAlwaysHint':
     'Ne plus demander pour {tool} : enregistré dans vos propres réglages Claude Code',
   'studioChat.ask.deny': 'Ne pas autoriser',
+  'studioChat.ask.foreign':
+    'Cette scène vient d’ailleurs que FluidEQ : son IA demande donc avant chaque commande.',
+  'studioChat.outside.title': 'Cette scène vient d’ailleurs que FluidEQ',
+  'studioChat.outside.body':
+    'Ses fichiers n’ont pas été écrits ici, ou ont changé en dehors de ce chat. Un texte qu’ils contiennent pourrait dire à l’IA d’exécuter des commandes : elle vous demande donc avant chacune.',
+  'studioChat.outside.trust': 'Je fais confiance à cette scène',
+  'studioChat.outside.confirm':
+    'Ne le confirmez que si vous avez créé cette scène ou savez qui l’a créée. L’IA suivra alors ici vos propres règles Claude Code et pourra exécuter des commandes sans demander.',
+  'studioChat.outside.keep': 'Continuer à demander',
+  'studioChat.outside.trustYes': 'Faire confiance à cette scène',
   'studioChat.chatgptOn': 'Les images ChatGPT sont activées.',
   'studioChat.chatgptTurnOff': 'Désactiver',
   'studioChat.past.title': 'Discussions précédentes',

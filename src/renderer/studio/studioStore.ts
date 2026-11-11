@@ -172,6 +172,17 @@ export const selectStudioProject = async (id: string) => {
 };
 
 /**
+ * The member says a scene that came from outside FluidEQ is theirs: its chat
+ * then follows their own Claude Code rules, as their own scenes' do.
+ */
+export const trustStudioProject = async (id: string) => {
+  const state = await bridge()?.trustStudioProject?.(id);
+  if (state) {
+    adopt(state);
+  }
+};
+
+/**
  * Takes a project off the list. Its folder stays exactly as it is; the
  * message being written to Claude about it goes.
  */

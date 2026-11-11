@@ -224,10 +224,13 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
      */
     tool: async (
       projectId: string,
-      what: { tool: string; detail: string },
+      what: { tool: string; detail: string; foreign?: true },
       signal: AbortSignal,
     ): Promise<TStudioChatAnswer> => {
-      if (toolsOf(projectId).has(what.tool)) {
+      // In a scene from outside FluidEQ nothing is allowed for always: not
+      // what was said in this chat before, and not from this card.
+      const always = !what.foreign && toolsOf(projectId).has(what.tool);
+      if (always) {
         return 'yes';
       }
       // Looked at again after every wait, and the card put up in the same
@@ -240,10 +243,13 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
       if (signal.aborted) {
         return 'no';
       }
-      if (toolsOf(projectId).has(what.tool)) {
+      if (!what.foreign && toolsOf(projectId).has(what.tool)) {
         return 'yes';
       }
       const answer = await ask(projectId, { kind: 'tool', ...what });
+      if (what.foreign) {
+        return answer === 'no' ? 'no' : 'yes';
+      }
       if (answer === 'chat') {
         const tools = toolsOf(projectId);
         tools.add(what.tool);

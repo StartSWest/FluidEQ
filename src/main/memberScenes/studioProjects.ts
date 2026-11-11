@@ -28,6 +28,14 @@ export interface IStoredProject {
    * where anyone could delete it.
    */
   official?: string;
+  /**
+   * Where its files came from, when not made here and untouched since
+   * (`projectOrigin.ts`): opened from elsewhere or changed outside the chat,
+   * or said by the member to be theirs.
+   */
+  origin?: 'outside' | 'trusted';
+  /** Its files as the chat last left them (`sealOf`), while it is the member's own. */
+  seal?: string;
 }
 
 export interface IProjectList {
@@ -63,10 +71,17 @@ const readEntry = (value: unknown): IStoredProject | undefined => {
   ) {
     return undefined;
   }
-  const entry = {
+  const entry: IStoredProject = {
     id: value.id,
     folder: value.folder,
     openedAt: value.openedAt,
+    // A mark that cannot be read is the careful one.
+    ...(value.origin === undefined
+      ? {}
+      : { origin: value.origin === 'trusted' ? 'trusted' : 'outside' }),
+    ...(typeof value.seal === 'string' && /^[0-9a-f]{64}$/.test(value.seal)
+      ? { seal: value.seal }
+      : {}),
   };
   // A mark that cannot be read still marks the project: dropping it would
   // turn a FluidEQ scene into one that can be published.
@@ -193,7 +208,8 @@ export const withFolders = (
       ? kept.map((project) =>
           project.id === known.id ? { ...project, openedAt } : project,
         )
-      : [...kept, { id: randomUUID(), folder, openedAt }];
+      : // A folder the member points at was made somewhere else.
+        [...kept, { id: randomUUID(), folder, openedAt, origin: 'outside' }];
   }, list.projects);
   const opened = projects.find((project) => sameFolder(project.folder, first));
   return {

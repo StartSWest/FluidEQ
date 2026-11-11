@@ -53,6 +53,7 @@ describe("Claude Code's question", () => {
       {
         type: 'permission',
         requestId: 'r-1',
+        name: 'Bash',
         tool: 'Bash',
         detail: 'node make-picture.js --prompt "a lake"',
         input: { command: 'node make-picture.js --prompt "a lake"' },

@@ -134,6 +134,16 @@ const studioChat = {
   'studioChat.ask.allowAlwaysHint':
     '{tool} के बारे में फिर न पूछें: आपकी अपनी Claude Code सेटिंग्स में सहेजा जाता है',
   'studioChat.ask.deny': 'अनुमति न दें',
+  'studioChat.ask.foreign':
+    'यह दृश्य FluidEQ के बाहर से आया है, इसलिए इसका AI हर कमांड से पहले पूछता है।',
+  'studioChat.outside.title': 'यह दृश्य FluidEQ के बाहर से आया है',
+  'studioChat.outside.body':
+    'इसकी फ़ाइलें यहाँ नहीं लिखी गईं, या इस चैट के बाहर बदली गईं। उनमें लिखा पाठ AI से कमांड चलाने को कह सकता है, इसलिए वह हर कमांड से पहले आपसे पूछता है।',
+  'studioChat.outside.trust': 'मुझे इस दृश्य पर भरोसा है',
+  'studioChat.outside.confirm':
+    'ऐसा तभी कहें जब यह दृश्य आपने बनाया हो या आप जानते हों कि किसने बनाया। तब AI यहाँ आपके अपने Claude Code नियमों का पालन करेगा और बिना पूछे कमांड चला सकता है।',
+  'studioChat.outside.keep': 'पूछते रहें',
+  'studioChat.outside.trustYes': 'इस दृश्य पर भरोसा करें',
   'studioChat.chatgptOn': 'ChatGPT चित्र चालू हैं।',
   'studioChat.chatgptTurnOff': 'बंद करें',
   'studioChat.past.title': 'पिछली चैट',

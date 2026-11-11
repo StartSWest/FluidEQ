@@ -347,6 +347,11 @@ export type TStudioChatAsk =
       tool: string;
       /** What it is about to do: the command, the file, the skill. */
       detail: string;
+      /**
+       * The scene came from outside FluidEQ: the card says so, and offers
+       * no "always".
+       */
+      foreign?: true;
     };
 
 /**

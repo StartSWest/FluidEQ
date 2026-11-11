@@ -24,6 +24,7 @@ import type {
   IChatProcessEvents,
 } from './chatProcess';
 import { readUsageLine, type TChatUsage } from './chatUsage';
+import { CAREFUL_SETTINGS } from './chatForeign';
 
 /*
  * What FluidEQ does, and what it will not, follow Anthropic's conditions for
@@ -159,6 +160,12 @@ export interface IClaudeLaunch {
    * when it could be placed.
    */
   skills?: string;
+  /**
+   * The scene came from outside FluidEQ: every command, tool server and
+   * file outside its folder is asked, whatever the member's own rules
+   * allow (`chatForeign.ts`).
+   */
+  careful?: boolean;
 }
 
 /**
@@ -176,6 +183,7 @@ export const claudeCodeCommand = ({
   effort,
   sessionId,
   skills,
+  careful = false,
 }: IClaudeLaunch): IChatCommand => {
   const briefFile = path.join(own, 'brief.txt');
   writeFileAtomically(briefFile, brief, 0o600);
@@ -240,6 +248,12 @@ export const claudeCodeCommand = ({
       0o600,
     );
     args.push('--mcp-config', mcpFile);
+  }
+  if (careful) {
+    // Above the member's own settings, where an ask rule beats their allow.
+    const carefulFile = path.join(own, 'careful-settings.json');
+    writeFileAtomically(carefulFile, JSON.stringify(CAREFUL_SETTINGS), 0o600);
+    args.push('--settings', carefulFile);
   }
   if (skills) {
     // FluidEQ's own skills, from FluidEQ's own folder: the member's plugins

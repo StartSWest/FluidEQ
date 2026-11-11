@@ -26,6 +26,7 @@ import {
   type IChatSession,
 } from './chatLaunch';
 import type { IChatMessage } from './chatMessage';
+import { startedCareful, startKey } from './chatForeign';
 import { answerPermission } from './chatPermission';
 import type { TChatPictures } from './chatPictures';
 import type { IChatAdoption, IChatLauncher, IChatProcess } from './chatProcess';
@@ -58,6 +59,12 @@ interface IChatSessionsDeps {
    * a line it does not is started as `default`, as the picker says.
    */
   offered?: (model: TStudioChatModel) => boolean;
+  /**
+   * Whether a project's chat must ask before every command, looked at
+   * afresh (`projectOrigin.ts`). Asked only between replies: a reply's own
+   * writes are not a change from outside.
+   */
+  mustAsk?: (projectId: string) => boolean;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -80,6 +87,7 @@ const createChatSessions = ({
   noteUsage,
   skills,
   offered,
+  mustAsk,
   logger,
 }: IChatSessionsDeps) => {
   /**
@@ -131,6 +139,7 @@ const createChatSessions = ({
             session.process,
             event,
             session.controller?.signal ?? nothingRunning.signal,
+            startedCareful(session.brief) ? session.folder : undefined,
           ).catch(() => undefined);
           return;
         }
@@ -170,6 +179,7 @@ const createChatSessions = ({
     tools: { url: string; key: string } | undefined,
     model: TStudioChatModel,
     effort: TStudioChatEffort,
+    careful: boolean,
   ): IChatSession => {
     const shipped = skills?.();
     const command = claudeCodeCommand({
@@ -182,6 +192,7 @@ const createChatSessions = ({
       effort,
       sessionId: transcriptOf(projectId).sessionId,
       ...(shipped ? { skills: shipped.dir } : {}),
+      careful,
     });
     // Its events reach the session only once it exists: a process reports
     // nothing from inside its own start.
@@ -195,7 +206,7 @@ const createChatSessions = ({
       ...(tools ? { door: tools } : {}),
       model,
       effort,
-      brief: startedOn(brief, shipped?.digest ?? ''),
+      brief: startKey(startedOn(brief, shipped?.digest ?? ''), careful),
       stopping: false,
       sendingNow: false,
     };
@@ -313,6 +324,12 @@ const createChatSessions = ({
         return undefined;
       }
       const running = sessions.get(projectId);
+      // Whether the scene is one from outside is fixed for a process too,
+      // and looked at only between replies.
+      const careful =
+        running?.reply !== undefined
+          ? startedCareful(running.brief)
+          : (mustAsk?.(projectId) ?? false);
       // A model, an effort and a brief are fixed for a Claude Code process:
       // a new pick, or a newer brief - FluidEQ updated, or its brief changed
       // in development (Ivan, 2026-11-08: "make sure to update the latest AI
@@ -322,7 +339,7 @@ const createChatSessions = ({
         running &&
         running.model === picks.model &&
         running.effort === picks.effort &&
-        running.brief === startedOn(picks.brief)
+        running.brief === startKey(startedOn(picks.brief), careful)
       ) {
         return running;
       }
@@ -345,6 +362,7 @@ const createChatSessions = ({
         tools,
         picks.model,
         picks.effort,
+        careful,
       );
     },
 

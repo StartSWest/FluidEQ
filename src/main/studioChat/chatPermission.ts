@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { TStudioChatAnswer } from '../../common/studioChat';
 import type { TChatAsks } from './chatAsks';
+import { needsNoCard } from './chatForeign';
 import type { IChatProcess } from './chatProcess';
 import type { TChatStreamEvent } from './chatStream';
 
@@ -62,16 +63,35 @@ export const permissionAnswerLine = (
     },
   })}\n`;
 
-/** Asks the member about one tool and answers the Claude Code that asked. */
+/**
+ * Asks the member about one tool and answers the Claude Code that asked.
+ * `careful` is the folder of a scene from outside FluidEQ
+ * (`chatForeign.ts`): its own files and FluidEQ's tools need no card,
+ * everything else gets one that says where the scene came from, and none
+ * can be allowed for always.
+ */
 export const answerPermission = (
   asks: TChatAsks,
   projectId: string,
   process: IChatProcess,
   event: Extract<TChatStreamEvent, { type: 'permission' }>,
   signal: AbortSignal,
-): Promise<void> =>
-  asks
-    .tool(projectId, { tool: event.tool, detail: event.detail }, signal)
+  careful?: string,
+): Promise<void> => {
+  if (careful !== undefined && needsNoCard(careful, event.name, event.input)) {
+    process.write(permissionAnswerLine(event.requestId, event.input, true));
+    return Promise.resolve();
+  }
+  return asks
+    .tool(
+      projectId,
+      {
+        tool: event.tool,
+        detail: event.detail,
+        ...(careful === undefined ? {} : { foreign: true as const }),
+      },
+      signal,
+    )
     .catch((): TStudioChatAnswer => 'no')
     .then((answer) => {
       process.write(
@@ -79,8 +99,11 @@ export const answerPermission = (
           event.requestId,
           event.input,
           answer !== 'no',
-          answer === 'chat' ? keptRules(event.suggestions) : [],
+          answer === 'chat' && careful === undefined
+            ? keptRules(event.suggestions)
+            : [],
         ),
       );
       return undefined;
     });
+};

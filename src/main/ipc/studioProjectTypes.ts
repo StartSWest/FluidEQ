@@ -37,6 +37,12 @@ export interface IStudioProject {
    */
   official?: true;
   /**
+   * Its files came from outside FluidEQ, or changed outside its chat
+   * (`projectOrigin.ts`): the chat asks before every command until the
+   * member says the scene is theirs.
+   */
+  outside?: true;
+  /**
    * What was last published from its folder here, and whether the folder
    * still holds exactly that (`publishedRecords.ts`). The page asks the
    * gallery whether that version is live.
@@ -149,6 +155,7 @@ export const studioStateOf = (
       path: project.folder,
       ...(names ? { names } : {}),
       ...(project.official ? { official: true as const } : {}),
+      ...(project.origin === 'outside' ? { outside: true as const } : {}),
       ...(published ? { published } : {}),
     };
   }),

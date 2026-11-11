@@ -64,6 +64,9 @@ export type TChatStreamEvent =
   | {
       type: 'permission';
       requestId: string;
+      /** The tool's own name, which FluidEQ's own answers go by (`chatForeign.ts`). */
+      name: string;
+      /** The name it shows on the card. */
       tool: string;
       /** What it is about to do, in a line the member can judge. */
       detail: string;
@@ -266,6 +269,7 @@ const permissionEvents = (
     {
       type: 'permission',
       requestId: message.request_id,
+      name: request.tool_name,
       tool: shown,
       detail: detailOf(input, request.description),
       input,

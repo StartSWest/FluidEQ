@@ -144,6 +144,10 @@ const linkStudioFolder = () =>
 const selectStudioProject = (id: string) =>
   ipcRenderer.invoke('studio-select-project', id) as Promise<IStudioState>;
 
+/** The member says a scene from outside FluidEQ is theirs (`projectOrigin.ts`). */
+const trustStudioProject = (id: string) =>
+  ipcRenderer.invoke('studio-trust-project', id) as Promise<IStudioState>;
+
 const forgetStudioProject = (id: string) =>
   ipcRenderer.invoke('studio-forget-project', id) as Promise<IStudioState>;
 
@@ -393,6 +397,7 @@ const studioBridge = {
   linkStudioFolder,
   selectStudioProject,
   forgetStudioProject,
+  trustStudioProject,
   renameStudioProject,
   createStudioProject,
   chooseStudioProjectsRoot,

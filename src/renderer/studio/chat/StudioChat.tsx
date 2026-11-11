@@ -26,6 +26,7 @@ import StudioChatMenu from './StudioChatMenu';
 import StudioChatPast from './StudioChatPast';
 import StudioChatQueue from './StudioChatQueue';
 import StudioChatSetup from './StudioChatSetup';
+import StudioChatOutside from './StudioChatOutside';
 import StudioChatThread from './StudioChatThread';
 import useChatZoomWheel from './useChatZoomWheel';
 import {
@@ -354,6 +355,11 @@ export default function StudioChat({
           projectId={project.id}
           onIdea={canChat ? setDraft : undefined}
         />
+      )}
+      {/* A scene from outside FluidEQ: why its chat asks, and the one
+          place the member can say it is theirs. */}
+      {view === 'chat' && canChat && !otherAi && project?.outside && (
+        <StudioChatOutside projectId={project.id} />
       )}
       {body}
     </section>
