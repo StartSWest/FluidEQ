@@ -36,3 +36,12 @@ npm-debug.log.*
 # ours to reformat, and a prettier pass on it would make every upstream update
 # a merge conflict against our own whitespace.
 native/dsp-host/src/decoders/vendor
+
+# Parts of the Studio brief written out as skills (aiPromptReference.ts), held
+# byte for byte to the code by studioReferenceSkills.test.ts. They are plain
+# text, not Markdown: a prettier pass re-indents their examples and the test
+# then fails.
+assets/studio/fluideq/skills/fluideq-hands/SKILL.md
+assets/studio/fluideq/skills/fluideq-artwork/SKILL.md
+assets/studio/fluideq/skills/fluideq-world-format/SKILL.md
+assets/studio/fluideq/skills/fluideq-ambient/SKILL.md

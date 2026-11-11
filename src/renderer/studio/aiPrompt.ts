@@ -23,17 +23,20 @@ import {
 import { LIGHT_FRAME_MS } from 'common/studioAgent';
 import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
-import { AMBIENT_SECTION } from './aiPromptAmbient';
-import { ARTWORK_SECTION, ART_SECTION } from './aiPromptArt';
 import { CONTROLS_SECTION } from './aiPromptControls';
 import { connectSection, type IPromptConnection } from './aiPromptConnect';
 import { AIM_HIGH, HELPERS, QUICK_TO_BUILD } from './aiPromptCraft';
 import { HEAR_SECTION } from './aiPromptHear';
 import { lookSection, type TPromptReach } from './aiPromptLook';
-import { MOTION_SECTIONS } from './aiPromptMotion';
-import { POINTER_SECTION } from './aiPromptPointer';
+import { DANCING_SECTION } from './aiPromptMotion';
+import {
+  AMBIENT_REFERENCE,
+  ARTWORK_REFERENCE,
+  HANDS_REFERENCE,
+  referenceIn,
+  WORLD_REFERENCE,
+} from './aiPromptReference';
 import { skillsSection } from './aiPromptSkills';
-import { WORLD_SECTION } from './aiPromptWorld';
 
 /**
  * What "Copy AI prompt" puts on the clipboard.
@@ -490,7 +493,7 @@ ANSWERING THE MUSIC
   the picture tints FluidEQ's window around it, and my desk lights take their
   colours from the scene.
 
-${MOTION_SECTIONS}${POINTER_SECTION}RULES (FluidEQ refuses the scene otherwise)
+${DANCING_SECTION}${referenceIn(reach, HANDS_REFERENCE)}RULES (FluidEQ refuses the scene otherwise)
 - Loops: only for (int i = 0; i < N; i++) with N a number or a const int
   declared once in the file, at most ${MAX_MEMBER_LOOP_ITERATIONS} turns (counting down is fine too),
   and at most ${MAX_MEMBER_LOOPS} loops in the file. Never change i inside the loop, and never
@@ -535,9 +538,10 @@ ${MOTION_SECTIONS}${POINTER_SECTION}RULES (FluidEQ refuses the scene otherwise)
   runs are nearly free; a chain where each read waits on the last is not.
   Never feed one read's result into the next one's position inside a loop.
 
-${QUICK_TO_BUILD}${HELPERS}${ARTWORK_SECTION}${ART_SECTION}${WORLD_SECTION}${skillsSection(
+${QUICK_TO_BUILD}${HELPERS}${referenceIn(reach, ARTWORK_REFERENCE)}${referenceIn(
   reach,
-)}${AMBIENT_SECTION}
+  WORLD_REFERENCE,
+)}${skillsSection(reach)}${referenceIn(reach, AMBIENT_REFERENCE)}
 MY IDEA:`;
 
 /** One-tap starters: a label for the chip, and the idea it appends. */

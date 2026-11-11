@@ -7,6 +7,7 @@ import viewsSkill from '../../../assets/studio/fluideq/skills/fluideq-views/SKIL
 import worldSkill from '../../../assets/studio/fluideq/skills/fluideq-3d-world/SKILL.md';
 import photoSkill from '../../../assets/studio/fluideq/skills/fluideq-photo-3d/SKILL.md';
 import type { TPromptReach } from './aiPromptLook';
+import { REFERENCE_SKILLS, referenceSkillFile } from './aiPromptReference';
 
 /**
  * FluidEQ's agent skills in the brief, read from the very files FluidEQ
@@ -22,8 +23,14 @@ import type { TPromptReach } from './aiPromptLook';
  *
  * A skill added under `assets/studio/fluideq/skills` is added here too:
  * `aiPromptSkills.test.ts` fails while the two lists differ.
+ *
+ * These are the skills written as skills: craft, each measured in this
+ * engine. The reference skills (`aiPromptReference.ts`) are parts of the
+ * brief itself that the chat loads on demand; a copied prompt carries those
+ * where they stand in the brief, so they are not given to it a second time
+ * here, and the chat's brief names each where its section stood.
  */
-export const SHIPPED_SKILL_TEXTS: readonly string[] = [
+const CRAFT_SKILL_TEXTS: readonly string[] = [
   worldSkill,
   photoSkill,
   animationSkill,
@@ -32,6 +39,12 @@ export const SHIPPED_SKILL_TEXTS: readonly string[] = [
   viewsSkill,
   finishSkill,
   higgsfieldSkill,
+];
+
+/** Every SKILL.md FluidEQ ships, as it is on disk: the chat can load each. */
+export const SHIPPED_SKILL_TEXTS: readonly string[] = [
+  ...CRAFT_SKILL_TEXTS,
+  ...REFERENCE_SKILLS.map(referenceSkillFile),
 ];
 
 interface ISkillText {
@@ -58,7 +71,7 @@ export const readSkillText = (text: string): ISkillText => {
 };
 
 export const skillsSection = (reach: TPromptReach): string => {
-  const skills = SHIPPED_SKILL_TEXTS.map(readSkillText);
+  const skills = CRAFT_SKILL_TEXTS.map(readSkillText);
   if (reach === 'chat') {
     return `FLUIDEQ'S SKILLS. FluidEQ ships skills for the hard parts, loaded as your
 own skills from FluidEQ itself - they are not in the project folder:

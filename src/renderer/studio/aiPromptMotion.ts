@@ -24,7 +24,7 @@ import { SCENE_TAP_AGE_LIMIT_S } from 'common/sceneUniformContract';
 /** As a member would write it: four places, enough to go all the way round. */
 const turn = (radians: number) => Number(radians.toFixed(4));
 
-export const MOTION_SECTIONS = `DANCING TO THE MUSIC
+export const DANCING_SECTION = `DANCING TO THE MUSIC
 uBeat and uDrums say a hit happened, after it happened: a dance built on them
 lands every step late, and a dancer who steps after the beat looks drunk.
 uRhythm is a clock that knows where the next beat will fall, so a step can be
@@ -85,7 +85,14 @@ a dancer and something twitching.
   alone. A pose is a function of uRhythm and uSong; momentum that builds up
   comes from uMusicRun.
 
-THE VIEWER'S HANDS
+`;
+
+/**
+ * Apart from the dance, so the chat can load it as a skill of its own
+ * (`aiPromptReference.ts`): read one after the other, the two are the
+ * section as it was.
+ */
+export const HANDS_SECTION = `THE VIEWER'S HANDS
 The listener can reach into a scene: point at it, tap it, and turn a 3D one
 with the mouse. It is a gift, never the point. Most of the time nobody
 touches it, and nobody ever can on the desktop background or the desk

@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { NIGHT_BACKGROUND_MOST } from '../../../common/sceneDaylight';
 import { LIGHT_FRAME_MS } from '../../../common/studioAgent';
 import { promptWithIdea } from '../../../renderer/studio/aiPrompt';
+import { ARTWORK_REFERENCE } from '../../../renderer/studio/aiPromptReference';
 import chatBrief from '../../../renderer/studio/chat/chatBrief';
 
 const FOLDER = 'C:/Scenes/Aurora';
@@ -66,7 +67,11 @@ describe("the Studio chat's brief", () => {
     expect(brief).toContain(
       'FIND WHAT CAN MAKE IMAGES BEFORE YOU DECIDE NOTHING CAN',
     );
-    expect(brief).toContain('ONE PICTURE PER OBJECT');
+    // How to make and pack them is the artwork skill's, which the brief
+    // sends Claude to before any picture is made.
+    expect(brief).toContain('fluideq-artwork skill: load it BEFORE');
+    expect(brief).not.toContain('ONE PICTURE PER OBJECT');
+    expect(ARTWORK_REFERENCE.body).toContain('ONE PICTURE PER OBJECT');
   });
 
   it('ends on the chat and its craft, with no idea left open', () => {

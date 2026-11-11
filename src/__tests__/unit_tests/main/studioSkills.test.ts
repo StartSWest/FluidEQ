@@ -68,13 +68,17 @@ describe('the skills FluidEQ ships', () => {
     const skills = readShippedSkills(SHIPPED);
     expect(skills.map(({ name }) => name)).toEqual([
       'fluideq-3d-world',
+      'fluideq-ambient',
       'fluideq-animation',
+      'fluideq-artwork',
       'fluideq-finish',
+      'fluideq-hands',
       'fluideq-higgsfield',
       'fluideq-motion',
       'fluideq-night-and-day',
       'fluideq-photo-3d',
       'fluideq-views',
+      'fluideq-world-format',
     ]);
     skills.forEach(({ name, files }) => {
       const skill = files.find(({ relative }) => relative === 'SKILL.md');
