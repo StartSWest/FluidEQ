@@ -15,6 +15,7 @@ import { readSceneWave, type ISceneWave } from './sceneWave';
 import type { ISceneWorld } from './sceneWorld';
 import normalizeSceneWorld from './sceneWorldRead';
 import isBase64 from './base64';
+import { storedFormOf } from './sceneStoredPack';
 import {
   isNeutralResponse,
   readResponse,
@@ -242,7 +243,15 @@ export const isLockedLookId = (id: string): boolean =>
  * app has never heard of, which is a form a newer FluidEQ added, lands on the
  * default one.
  */
-export const normalizeScenePack = (raw: unknown): IScenePack | null => {
+export const normalizeScenePack = (given: unknown): IScenePack | null => {
+  // A pack handed over in its built layout reads as the same pack
+  // (`storedFormOf`): its palettes, colours and choices are controls here
+  // too. Healed at this one door, so no path that builds a pack, writes it
+  // down or compares it and reads it again can lose them: the looks' own
+  // copy did (`memberScenes/store.ts`), and so did the comparison of a
+  // project with its publication (`publishedAdoption.ts`), which read a
+  // changed palette as no change.
+  const raw = storedFormOf(given);
   if (!isRecord(raw)) {
     return null;
   }
