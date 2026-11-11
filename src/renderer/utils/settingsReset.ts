@@ -148,6 +148,9 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.dsp.openSection',
   'fluideq.plusPlace',
   'fluideq.studio.workTab',
+  // Which files the Code tab has open in each project: where a page was
+  // left, like the tab itself.
+  'fluideq.studio.codeOpenFiles',
   'fluideq.library.openAlbum',
   'fluideq.library.openArtist',
   'fluideq.library.openFolder',

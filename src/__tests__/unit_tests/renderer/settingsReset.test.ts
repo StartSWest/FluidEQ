@@ -146,6 +146,12 @@ const NOT_STORED = [
   'fluideq-maker',
   'fluideq-maker-editor',
   'fluideq-media',
+  // Skills the Studio ships, named where the brief points to them
+  // (`aiPromptReference.ts`).
+  'fluideq-hands',
+  'fluideq-artwork',
+  'fluideq-world-format',
+  'fluideq-ambient',
   // The feature tour's slide ids.
   'fluideq-engine',
   'fluideq-plus',
