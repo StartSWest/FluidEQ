@@ -153,6 +153,20 @@ const plus = {
   'plus.mine.unpublish': 'Unpublish',
   'plus.mine.confirm':
     'Remove it from the gallery and stop new downloads? Members who already downloaded it keep their copy.',
+  'plus.mine.confirmAsk': 'Remove it from the gallery and stop new downloads?',
+  'plus.mine.confirmChecking': 'Checking who bought it…',
+  'plus.mine.confirmUnknown':
+    'Anyone who bought it gets their credit back and loses the scene.',
+  'plus.mine.confirmBuyers.one':
+    '{count} person bought it: they get their credit back and lose the scene.',
+  'plus.mine.confirmBuyers.few':
+    '{count} people bought it: each gets their credit back and loses the scene.',
+  'plus.mine.confirmBuyers.many':
+    '{count} people bought it: each gets their credit back and loses the scene.',
+  'plus.mine.confirmBuyers.other':
+    '{count} people bought it: each gets their credit back and loses the scene.',
+  'plus.mine.confirmEarned':
+    'What it earned you comes off your balance: {credits}.',
   'plus.mine.confirmYes': 'Unpublish',
   'plus.mine.confirmNo': 'Keep it',
   'plus.mine.unpublished': '{name} is no longer in the gallery.',

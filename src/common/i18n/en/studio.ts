@@ -197,7 +197,7 @@ const studio = {
   'studio.publish.point1':
     'Anyone signed in can see it in Visualizers, watch it for a few seconds and get it with a credit. It plays free for you.',
   'studio.publish.point3':
-    'You can unpublish it so nobody new can get it. Whoever already has it keeps it.',
+    'You can unpublish it at any time. Everyone who bought it then gets their credit back, and what it earned you is taken back.',
   'studio.publish.point3Update':
     'Members who added it see Update, and keep the old version until they press it.',
   'studio.publish.read': 'Read the terms',

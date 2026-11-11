@@ -172,7 +172,7 @@ const studio = {
   'studio.publish.point1':
     '任何已登录的人都能在“可视化”中看到它，观看几秒，并用一点获取它。对你来说它免费播放。',
   'studio.publish.point3':
-    '你可以取消发布，这样就没有新的人能获取它。已经拥有的人会保留它。',
+    '你可以随时取消发布。届时购买过的人会拿回点数，它为你赚到的收益也会被扣回。',
   'studio.publish.point3Update':
     '已添加的会员会看到“更新”，在点击之前保留旧版本。',
   'studio.publish.read': '阅读条款',

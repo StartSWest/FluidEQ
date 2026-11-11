@@ -143,7 +143,19 @@
  * (`CREATOR_PAYOUTS_OPEN`, premium 0070), because Stripe Connect cannot be
  * opened yet, so the document says nothing about paying creators and a sale
  * earns the creator a credit. The payout text is kept (`termsLayout(true)`);
- * opening payouts shows it, and is revision 12.
+ * opening payouts shows it, and is the revision after 12.
+ */
+/**
+ * 12: a member's scene that leaves Visualizers — unpublished, taken down or
+ * deleted by FluidEQ's maker, or gone with its maker's account — gives every
+ * buyer their credit back, as the kind of credit it was, and stops playing
+ * for them; its maker gives back what those buys earned, never below zero,
+ * and a scene published again is got again (Ivan, 2026-11-11; premium 0103).
+ * Revision 11 promised that a scene unpublished kept playing for whoever had
+ * it, so this is a raise and edition 6. The server's `plus_terms_version()`
+ * moves to 12 in premium migration 0103, which carries the refund itself and
+ * is deployed with the release that carries this. Checkout's floor stays at
+ * 11: the change only ever gives a buyer their credit back.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
@@ -153,14 +165,14 @@
  * tells every eligible new account to update FluidEQ, on the newest build
  * there is. Raise both in the same release.
  */
-export const PLUS_TERMS_VERSION = 11;
+export const PLUS_TERMS_VERSION = 12;
 
 /** Published editions. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 5;
+export const PLUS_TERMS_EDITION = 6;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-10-21';
+export const PLUS_TERMS_EFFECTIVE = '2026-11-11';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a

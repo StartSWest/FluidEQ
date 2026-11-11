@@ -151,6 +151,20 @@ const plus = {
   'plus.mine.unpublish': 'Despublicar',
   'plus.mine.confirm':
     'Retirar da galeria e impedir novos downloads? Quem já baixou a cena mantém sua cópia.',
+  'plus.mine.confirmAsk': 'Retirar da galeria e impedir novos downloads?',
+  'plus.mine.confirmChecking': 'Verificando quem comprou…',
+  'plus.mine.confirmUnknown':
+    'Quem comprou recebe o crédito de volta e deixa de ter a cena.',
+  'plus.mine.confirmBuyers.one':
+    '{count} pessoa comprou: recebe o crédito de volta e deixa de ter a cena.',
+  'plus.mine.confirmBuyers.few':
+    '{count} pessoas compraram: cada uma recebe o crédito de volta e deixa de ter a cena.',
+  'plus.mine.confirmBuyers.many':
+    '{count} pessoas compraram: cada uma recebe o crédito de volta e deixa de ter a cena.',
+  'plus.mine.confirmBuyers.other':
+    '{count} pessoas compraram: cada uma recebe o crédito de volta e deixa de ter a cena.',
+  'plus.mine.confirmEarned':
+    'O que você ganhou com ela sai do seu saldo: {credits}.',
   'plus.mine.confirmYes': 'Despublicar',
   'plus.mine.confirmNo': 'Manter',
   'plus.mine.unpublished': '{name} não está mais na galeria.',

@@ -133,6 +133,18 @@ const plus = {
   'plus.mine.unpublish': '取消發布',
   'plus.mine.confirm':
     '將其從相簿中刪除並停止新的下載？已經下載的會員保留其副本。',
+  'plus.mine.confirmAsk': '要從相簿下架並停止新的下載嗎？',
+  'plus.mine.confirmChecking': '正在查看誰購買了它…',
+  'plus.mine.confirmUnknown': '購買過的人會拿回點數，並且不再擁有這個場景。',
+  'plus.mine.confirmBuyers.one':
+    '{count} 人購買了它：每人都會拿回點數，並且不再擁有這個場景。',
+  'plus.mine.confirmBuyers.few':
+    '{count} 人購買了它：每人都會拿回點數，並且不再擁有這個場景。',
+  'plus.mine.confirmBuyers.many':
+    '{count} 人購買了它：每人都會拿回點數，並且不再擁有這個場景。',
+  'plus.mine.confirmBuyers.other':
+    '{count} 人購買了它：每人都會拿回點數，並且不再擁有這個場景。',
+  'plus.mine.confirmEarned': '它為您賺到的點數將從您的餘額中扣除：{credits}。',
   'plus.mine.confirmYes': '取消發布',
   'plus.mine.confirmNo': '保留它',
   'plus.mine.unpublished': '{name} 已不在相簿中。',

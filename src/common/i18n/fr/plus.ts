@@ -154,6 +154,21 @@ const plus = {
   'plus.mine.unpublish': 'Dépublier',
   'plus.mine.confirm':
     'La retirer de la galerie et empêcher de nouveaux téléchargements ? Les membres qui l’ont déjà téléchargée conservent leur copie.',
+  'plus.mine.confirmAsk':
+    'La retirer de la galerie et empêcher de nouveaux téléchargements ?',
+  'plus.mine.confirmChecking': 'Vérification des achats…',
+  'plus.mine.confirmUnknown':
+    'Quiconque l’a achetée récupère son crédit et n’a plus la scène.',
+  'plus.mine.confirmBuyers.one':
+    '{count} personne l’a achetée : elle récupère son crédit et n’a plus la scène.',
+  'plus.mine.confirmBuyers.few':
+    '{count} personnes l’ont achetée : chacune récupère son crédit et n’a plus la scène.',
+  'plus.mine.confirmBuyers.many':
+    '{count} personnes l’ont achetée : chacune récupère son crédit et n’a plus la scène.',
+  'plus.mine.confirmBuyers.other':
+    '{count} personnes l’ont achetée : chacune récupère son crédit et n’a plus la scène.',
+  'plus.mine.confirmEarned':
+    'Ce qu’elle vous a rapporté est retiré de votre solde : {credits}.',
   'plus.mine.confirmYes': 'Dépublier',
   'plus.mine.confirmNo': 'La garder',
   'plus.mine.unpublished': '{name} n’est plus dans la galerie.',

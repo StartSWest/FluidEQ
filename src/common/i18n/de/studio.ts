@@ -195,7 +195,7 @@ const studio = {
   'studio.publish.point1':
     'Alle Angemeldeten können sie in „Visualizer“ sehen, einige Sekunden ansehen und mit einem Credit holen. Für Sie läuft sie kostenlos.',
   'studio.publish.point3':
-    'Sie können die Veröffentlichung zurücknehmen, damit niemand Neues sie holen kann. Wer sie schon hat, behält sie.',
+    'Sie können die Veröffentlichung jederzeit zurücknehmen. Wer sie gekauft hat, bekommt dann seinen Credit zurück, und was sie Ihnen eingebracht hat, wird abgezogen.',
   'studio.publish.point3Update':
     'Wer sie hinzugefügt hat, sieht „Aktualisieren“ und behält die alte Version, bis er darauf klickt.',
   'studio.publish.read': 'Bedingungen lesen',

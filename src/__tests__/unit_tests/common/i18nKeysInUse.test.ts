@@ -163,6 +163,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ['store.credit.{one,few,many,other}', 'store.credit.*'],
     ['store.credits.unit.{one,few,many,other}', 'store.credits.unit.*'],
   ],
+  // How many bought a scene being taken down, in each language's plural.
+  'src/renderer/plus/TakedownWarning.tsx': [
+    [
+      'plus.mine.confirmBuyers.{one,few,many,other}',
+      'plus.mine.confirmBuyers.*',
+    ],
+  ],
   'src/renderer/plus/lighting/LightingDevices.tsx': [
     'lighting.effect.*',
     'lighting.form.*',

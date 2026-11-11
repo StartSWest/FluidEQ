@@ -192,7 +192,7 @@ const studio = {
   'studio.publish.point1':
     'Chiunque abbia effettuato l’accesso può vederla in Visualizzatori, guardarla per qualche secondo e ottenerla con un credito. Per te suona gratis.',
   'studio.publish.point3':
-    'Puoi ritirarla dalla pubblicazione perché nessuno di nuovo possa ottenerla. Chi ce l’ha già la tiene.',
+    'Puoi ritirarla dalla pubblicazione quando vuoi. Chi l’ha comprata riavrà allora il suo credito, e quello che ti ha fatto guadagnare viene tolto.',
   'studio.publish.point3Update':
     'Chi l’ha aggiunta vedrà Aggiorna e terrà la versione precedente finché non lo preme.',
   'studio.publish.read': 'Leggi le condizioni',

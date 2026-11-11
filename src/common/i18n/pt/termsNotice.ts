@@ -23,6 +23,8 @@ const termsNotice = {
     'O FluidEQ também pode anunciar novas cenas no app. Novidades também pode tocar vídeos curtos do app vindos de fluideq.com, sem nada sobre você.',
   'termsNotice.change.11':
     'As cenas agora são suas para sempre: um crédito cada, de pacotes pagos uma única vez na Stripe, e uma conta confirmada recebe alguns créditos grátis para começar. Cada cena pode ser assistida por alguns segundos antes. O Estúdio e a publicação são gratuitos para todas as contas, e as suas próprias cenas tocam em todo lugar depois de publicadas. O FluidEQ também pode deixar algumas das próprias cenas gratuitas para todos. A assinatura Plus não é mais vendida: uma já ativa continua funcionando até que o FluidEQ passe os seus membros para créditos, e as cenas que um membro adicionou ficam então com ele.',
+  'termsNotice.change.12':
+    'Quando a cena de um membro sai de Visualizadores — despublicada, retirada ou excluída —, todos que a obtiveram com um crédito recebem esse crédito de volta e a cena deixa de tocar para eles, e quem a criou devolve o que essas compras renderam, sem nunca ficar abaixo de zero. Publicada de novo, ela é obtida de novo com um crédito.',
 } as const;
 
 export default termsNotice;

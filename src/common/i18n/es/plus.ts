@@ -153,6 +153,21 @@ const plus = {
   'plus.mine.unpublish': 'Retirar',
   'plus.mine.confirm':
     '¿Retirarla de la galería e impedir nuevas descargas? Quien ya la descargó conserva su copia.',
+  'plus.mine.confirmAsk':
+    '¿Retirarla de la galería e impedir nuevas descargas?',
+  'plus.mine.confirmChecking': 'Comprobando quién la compró…',
+  'plus.mine.confirmUnknown':
+    'Quien la haya comprado recupera su crédito y deja de tener la escena.',
+  'plus.mine.confirmBuyers.one':
+    '{count} persona la compró: recupera su crédito y deja de tener la escena.',
+  'plus.mine.confirmBuyers.few':
+    '{count} personas la compraron: cada una recupera su crédito y deja de tener la escena.',
+  'plus.mine.confirmBuyers.many':
+    '{count} personas la compraron: cada una recupera su crédito y deja de tener la escena.',
+  'plus.mine.confirmBuyers.other':
+    '{count} personas la compraron: cada una recupera su crédito y deja de tener la escena.',
+  'plus.mine.confirmEarned':
+    'Lo que ganaste con ella sale de tu saldo: {credits}.',
   'plus.mine.confirmYes': 'Retirar',
   'plus.mine.confirmNo': 'Dejarla',
   'plus.mine.unpublished': '{name} ya no está en la galería.',

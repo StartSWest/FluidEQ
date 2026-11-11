@@ -194,6 +194,18 @@ export interface IPublishedScene {
 }
 
 /**
+ * What taking one of the member's own scenes down would give back, asked
+ * before the member confirms (premium 0103): each buyer gets their credit
+ * back and loses the scene, and the credits those buys earned come off the
+ * member's balance. `before-refunds` is a server that does none of that yet,
+ * where every copy stays; `unknown` is a question that got no answer.
+ */
+export type TTakedownCost =
+  | { known: 'yes'; buyers: number; credits: number }
+  | { known: 'before-refunds' }
+  | { known: 'unknown' };
+
+/**
  * The highest version one of this maker's scenes was ever in the gallery at
  * (server migration 0039). Kept when the scene is unpublished: members who
  * installed it still hold that number, so a publication of it again has to go
