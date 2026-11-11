@@ -361,13 +361,25 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
   }
 
   // Frozen by the Studio's Edit mode: the same moment drawn again, with
-  // whatever a hand has moved since.
-  const frame: ISceneFrame = request.frame.edit?.frozen
-    ? { ...request.frame, ...sceneClock.hold(now) }
-    : carriedOn(
-        { ...request.frame, ...sceneClock.advance(now, request.frame.deltaMs) },
-        now - latestAt,
-      );
+  // whatever a hand has moved since. The scene's step is then zero, and the
+  // time the picture on screen has stood is kept apart for the limiter.
+  let frame: ISceneFrame;
+  let shownMs: number;
+  if (request.frame.edit?.frozen) {
+    const held = sceneClock.hold(now, request.frame.deltaMs);
+    shownMs = held.shownMs;
+    frame = {
+      ...request.frame,
+      timeSeconds: held.timeSeconds,
+      deltaMs: held.deltaMs,
+    };
+  } else {
+    frame = carriedOn(
+      { ...request.frame, ...sceneClock.advance(now, request.frame.deltaMs) },
+      now - latestAt,
+    );
+    shownMs = frame.deltaMs ?? 0;
+  }
 
   // A GPU that refuses the finishing chain draws straight onto a canvas of
   // the drawn size.
@@ -399,7 +411,8 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
   // could never be built. It happens when the GPU will not give it somewhere
   // to draw, so the frame just drawn went nowhere and there is nothing to put
   // on the canvas.
-  if (guard && !guard.end(frame.deltaMs ?? 0, target)) {
+  // By the time between pictures, never the scene's own step: see `hold`.
+  if (guard && !guard.end(shownMs, target)) {
     gl.disable(gl.SCISSOR_TEST);
     // Out through the same door a lost context uses, and fatally: the page
     // reports the scene unusable and the chart draws the scene's own fallback
