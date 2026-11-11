@@ -129,7 +129,15 @@ export default function StudioEditOverlay({
   const px = (v: TPoint): TPoint => [v[0] * width, v[1] * height];
   const at = (event: ReactPointerEvent): TPoint => {
     const box = rootRef.current?.getBoundingClientRect();
-    return box ? [event.clientX - box.left, event.clientY - box.top] : [0, 0];
+    if (!box || box.width <= 0 || box.height <= 0) {
+      return [0, 0];
+    }
+    // In the scene's own pixels: the stage stands the scene smaller than it
+    // is drawn while Edit mode's panels take room beside it.
+    return [
+      ((event.clientX - box.left) * width) / box.width,
+      ((event.clientY - box.top) * height) / box.height,
+    ];
   };
 
   const thing = state.things[state.things.length - 1];

@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   useEffect,
   useId,
+  useLayoutEffect,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -151,6 +153,41 @@ export default function StudioEditPanel({
   /** Which rows the member opened or closed, by path; the rest as they start. */
   const [open, setOpen] = useState<Readonly<Record<string, boolean>>>({});
   const shadowId = useId();
+  // How much of the stage's edges the panels take, told to the stage so it
+  // can stand the scene in the room that is left (Ivan, 2026-11-11: "the
+  // floating panes on the side and bottom don't help because the scene that
+  // part can't be seen"). Measured, never assumed: the plate wraps, the
+  // strip grows with what is picked and every language is its own width.
+  const dockRef = useRef<HTMLDivElement>(null);
+  const hasList = state.listOpen;
+  const hasPick = state.selected.length > 0;
+  useLayoutEffect(() => {
+    const dock = dockRef.current;
+    if (!dock) {
+      return undefined;
+    }
+    const measure = () => {
+      const height = (selector: string) =>
+        dock.querySelector<HTMLElement>(selector)?.offsetHeight ?? 0;
+      const panel = dock.querySelector<HTMLElement>('.studio-edit__panel');
+      const gap = 8;
+      const strip = height('.studio-edit__thing');
+      store.setInsets({
+        top: height('.studio-edit__bar') + gap,
+        left: panel ? panel.offsetWidth + gap : 0,
+        bottom: strip > 0 ? strip + gap : 0,
+      });
+    };
+    const watch = new ResizeObserver(measure);
+    watch.observe(dock);
+    Array.from(dock.children).forEach((child) => watch.observe(child));
+    measure();
+    return () => watch.disconnect();
+  }, [store, hasList, hasPick]);
+  useEffect(
+    () => () => store.setInsets({ left: 0, top: 0, bottom: 0 }),
+    [store],
+  );
   const nodes = pack.world?.nodes;
 
   const nameOf = (node: TWorldNode, path: TNodePath) =>
@@ -197,7 +234,7 @@ export default function StudioEditPanel({
       focusSceneChat();
     };
     return (
-      <div className="studio-edit__dock" style={style}>
+      <div ref={dockRef} className="studio-edit__dock" style={style}>
         {bar}
         <aside className="studio-edit__panel">
           <h3>{t('studio.edit.flat.title')}</h3>
@@ -374,6 +411,7 @@ export default function StudioEditPanel({
 
   return (
     <div
+      ref={dockRef}
       className={`studio-edit__dock${state.dragging ? ' is-dragging' : ''}`}
       style={style}
     >

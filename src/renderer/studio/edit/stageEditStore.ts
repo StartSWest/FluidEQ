@@ -88,6 +88,14 @@ export interface IStageEditState {
   dragging: boolean;
   /** Only the picked things are drawn: a look at them alone. */
   solo: boolean;
+  /** The room Edit mode's panels take along the stage's edges, in pixels. */
+  insets: IEditInsets;
+}
+
+export interface IEditInsets {
+  left: number;
+  top: number;
+  bottom: number;
 }
 
 const NO_MOVE: TTriple = [0, 0, 0];
@@ -245,6 +253,8 @@ export interface IStageEditStore {
   hoverOn(path: TNodePath | undefined): void;
   /** Only the picked things drawn, or everything again. */
   setSolo(solo: boolean): void;
+  /** How much of the stage's edges the panels cover now. */
+  setInsets(insets: IEditInsets): void;
   /** A hand moving a thing: shown at once, kept when let go. */
   drag(move: ISceneEditMove | undefined): void;
   drop(): void;
@@ -304,6 +314,7 @@ const START: IStageEditState = {
   listOpen: true,
   dragging: false,
   solo: false,
+  insets: { left: 0, top: 0, bottom: 0 },
 };
 
 const DEFAULT_VIEW: ISceneEditCamera = {
@@ -614,6 +625,16 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       hoverThing = path;
     },
     setSolo: (isSolo) => set({ solo: isSolo }),
+    setInsets: (insets) => {
+      const now = state.insets;
+      if (
+        now.left !== insets.left ||
+        now.top !== insets.top ||
+        now.bottom !== insets.bottom
+      ) {
+        set({ insets });
+      }
+    },
     drag: (move) => {
       live = move ? carried(move) : [];
       if (!state.dragging && live.length > 0) {
