@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { TranslationKey } from 'common/i18n';
-import type { TNodePath } from 'common/sceneEdit';
+import { copyOf, type TNodePath } from 'common/sceneEdit';
 import type { TWorldNode } from 'common/sceneWorld';
 
 /** What each kind of thing is called, where it has no name of its own. */
@@ -20,11 +20,12 @@ export const KIND_NAMES: Record<TWorldNode['type'], TranslationKey> = {
   group: 'studio.edit.kind.group',
 };
 
+/** The node a path names; of one copy of many, the node that makes it. */
 export const nodeAt = (
   nodes: readonly TWorldNode[],
   path: TNodePath,
 ): TWorldNode | undefined =>
-  path.reduce<TWorldNode | undefined>(
+  (copyOf(path)?.node ?? path).reduce<TWorldNode | undefined>(
     (found, step, depth) => (depth === 0 ? nodes[step] : found?.children[step]),
     undefined,
   );
@@ -34,17 +35,41 @@ type TTranslate = (
   values?: Record<string, string | number>,
 ) => string;
 
-/** A thing's name: its own, or its kind and its place among its siblings. */
+/**
+ * A thing's name: its own, or its kind and its place among its siblings;
+ * of one copy of many, its node's name and which copy: "reef fish 12".
+ */
 export const thingName = (
   node: TWorldNode,
   path: TNodePath,
   t: TTranslate,
-): string =>
-  node.name ??
-  t('studio.edit.unnamed', {
-    kind: t(KIND_NAMES[node.type]),
-    number: path[path.length - 1] + 1,
-  });
+): string => {
+  const one = copyOf(path);
+  const of = one ? one.node : path;
+  const name =
+    node.name ??
+    t('studio.edit.unnamed', {
+      kind: t(KIND_NAMES[node.type]),
+      number: of[of.length - 1] + 1,
+    });
+  return one ? `${name} ${String(one.copy + 1)}` : name;
+};
+
+/** How many copies of this are listed under it, at most. */
+export const LISTED_COPIES = 400;
+
+/**
+ * How many copies a node draws, for the list: a grid's three counts
+ * multiplied, any other layout's first. Zero for a node that draws one.
+ */
+export const copiesIn = (node: TWorldNode): number => {
+  if (node.type !== 'instances') {
+    return 0;
+  }
+  const [x, y, z] = node.layout.count;
+  const count = node.layout.kind === 'grid' ? x * y * z : x;
+  return Math.max(0, Math.min(LISTED_COPIES, Math.floor(count)));
+};
 
 /** The drawing each kind of thing wears in the list, on a 16 by 16 square. */
 export const KIND_ICONS: Record<TWorldNode['type'], string> = {

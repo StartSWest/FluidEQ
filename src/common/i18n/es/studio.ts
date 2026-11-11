@@ -903,6 +903,13 @@ const studio = {
   'studio.edit.lockShort': 'Bloquear',
   'studio.edit.parent': 'Conjunto',
   'studio.edit.parentHint': 'Elige la cosa entera de la que esto forma parte',
+  'studio.edit.solo': 'Solo',
+  'studio.edit.soloHint':
+    'Muestra solo lo elegido y oculta el resto mientras trabajas. No cambia nada en la escena.',
+  'studio.edit.copyNote':
+    'Una copia de muchas que dibuja una sola regla. Para cambiar solo esta, pídeselo a la IA; para moverlas todas, elige el conjunto.',
+  'studio.edit.expand': 'Abrir',
+  'studio.edit.collapse': 'Cerrar',
 } as const;
 
 export default studio;

@@ -894,6 +894,13 @@ const studio = {
   'studio.edit.lockShort': 'Travar',
   'studio.edit.parent': 'Conjunto',
   'studio.edit.parentHint': 'Escolha a coisa inteira da qual esta faz parte',
+  'studio.edit.solo': 'Solo',
+  'studio.edit.soloHint':
+    'Mostra só o que está escolhido e oculta o resto enquanto você trabalha. Nada na cena é alterado.',
+  'studio.edit.copyNote':
+    'Uma cópia de muitas desenhadas por uma única regra. Para mudar só esta, peça à IA; para mover todas, escolha o conjunto.',
+  'studio.edit.expand': 'Abrir',
+  'studio.edit.collapse': 'Fechar',
 } as const;
 
 export default studio;

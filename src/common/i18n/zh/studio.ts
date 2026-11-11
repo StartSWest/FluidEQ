@@ -811,6 +811,13 @@ const studio = {
   'studio.edit.lockShort': '锁定',
   'studio.edit.parent': '整体',
   'studio.edit.parentHint': '选取它所属的整个物体',
+  'studio.edit.solo': '单独显示',
+  'studio.edit.soloHint':
+    '工作时只显示选取的物体并隐藏其余部分。场景不会有任何更改。',
+  'studio.edit.copyNote':
+    '由同一条规则绘制的众多副本之一。只想改这一个，请让 AI 来改；要移动全部，请选取整体。',
+  'studio.edit.expand': '展开',
+  'studio.edit.collapse': '收起',
 } as const;
 
 export default studio;

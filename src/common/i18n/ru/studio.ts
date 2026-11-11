@@ -897,6 +897,13 @@ const studio = {
   'studio.edit.parent': 'Целое',
   'studio.edit.parentHint':
     'Выбрать весь объект, частью которого является этот',
+  'studio.edit.solo': 'Соло',
+  'studio.edit.soloHint':
+    'Показывает только выбранное и скрывает остальное, пока вы работаете. В сцене ничего не меняется.',
+  'studio.edit.copyNote':
+    'Одна из многих копий, которые рисует одно правило. Чтобы изменить только её, попросите ИИ; чтобы двигать все, выберите целое.',
+  'studio.edit.expand': 'Раскрыть',
+  'studio.edit.collapse': 'Свернуть',
 } as const;
 
 export default studio;

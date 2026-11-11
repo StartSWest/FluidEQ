@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  copyOf,
   pathKey,
   samePath,
   type ISceneEdit,
@@ -85,6 +86,8 @@ export interface IStageEditState {
   listOpen: boolean;
   /** A handle is in the hand: the panels stand back from the scene. */
   dragging: boolean;
+  /** Only the picked things are drawn: a look at them alone. */
+  solo: boolean;
 }
 
 const NO_MOVE: TTriple = [0, 0, 0];
@@ -238,6 +241,10 @@ export interface IStageEditStore {
   pickAt(x: number, y: number, add: boolean): void;
   /** The pointer rests here, or has left: what would a click pick? */
   hoverAt(point: readonly [number, number] | undefined): void;
+  /** The pointer rests on this thing in the list, or has left it. */
+  hoverOn(path: TNodePath | undefined): void;
+  /** Only the picked things drawn, or everything again. */
+  setSolo(solo: boolean): void;
   /** A hand moving a thing: shown at once, kept when let go. */
   drag(move: ISceneEditMove | undefined): void;
   drop(): void;
@@ -251,6 +258,8 @@ export interface IStageEditStore {
   lockPicked(locked: boolean): void;
   /** One change of the member's, made of these edits. */
   send(ops: TWorldEditOp[]): void;
+  /** The picked things that are in the file: not single copies. */
+  nodesPicked(): readonly TNodePath[];
   remove(): void;
   copy(): void;
   group(name: string): void;
@@ -294,6 +303,7 @@ const START: IStageEditState = {
   saving: false,
   listOpen: true,
   dragging: false,
+  solo: false,
 };
 
 const DEFAULT_VIEW: ISceneEditCamera = {
@@ -330,6 +340,7 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
   let pickId = 0;
   let pick: { id: number; x: number; y: number; add: boolean } | undefined;
   let hover: readonly [number, number] | undefined;
+  let hoverThing: TNodePath | undefined;
   let worldKey: string | undefined;
   let thingsText = '[]';
   let hoveredText = '';
@@ -383,6 +394,8 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
     return picked
       .filter(
         (path) =>
+          // One copy of many is its node's rule's to place, not a hand's.
+          !copyOf(path) &&
           !isLocked(path) &&
           !picked.some(
             (other) =>
@@ -496,6 +509,8 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
         ...(state.freeView && view ? { camera: view } : {}),
         ...(pick ? { pick: { id: pick.id, x: pick.x, y: pick.y } } : {}),
         ...(hover && live.length === 0 ? { hover } : {}),
+        ...(hoverThing ? { hoverThing } : {}),
+        ...(state.solo ? { solo: true } : {}),
       };
       return { ...frame, ...(heardFrozen ?? {}), edit };
     },
@@ -534,7 +549,7 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
         thingsText = text;
         set({ things: report.things });
       }
-      const over = hover ? report.hovered : undefined;
+      const over = hover || hoverThing ? report.hovered : undefined;
       const overText = over ? JSON.stringify(over) : '';
       if (overText !== hoveredText) {
         hoveredText = overText;
@@ -595,6 +610,10 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
     hoverAt: (point) => {
       hover = point;
     },
+    hoverOn: (path) => {
+      hoverThing = path;
+    },
+    setSolo: (isSolo) => set({ solo: isSolo }),
     drag: (move) => {
       live = move ? carried(move) : [];
       if (!state.dragging && live.length > 0) {
@@ -613,11 +632,13 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
     selectMany: (paths) => set({ selected: paths }),
     showPicked: (isShown) => {
       act(
-        state.selected.map((path) => ({
-          kind: 'show',
-          path: [...path],
-          shown: isShown,
-        })),
+        state.selected
+          .filter((path) => !copyOf(path))
+          .map((path) => ({
+            kind: 'show',
+            path: [...path],
+            shown: isShown,
+          })),
       );
     },
     lockPicked: (isLocking) => {
@@ -631,10 +652,11 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
     send: (ops) => {
       act(ops);
     },
+    nodesPicked: () => state.selected.filter((path) => !copyOf(path)),
     remove: () => {
       // Deepest and last first, so no path is moved by the one before it.
       const doomed = [...state.selected]
-        .filter((path) => !isLocked(path))
+        .filter((path) => !isLocked(path) && !copyOf(path))
         .sort((a, b) =>
           pathKey(b).localeCompare(pathKey(a), 'en', { numeric: true }),
         );
@@ -644,9 +666,11 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
     },
     copy: () => {
       // Last first: a copy lands after its thing and moves what follows.
-      const picked = [...state.selected].sort((a, b) =>
-        pathKey(b).localeCompare(pathKey(a), 'en', { numeric: true }),
-      );
+      const picked = [...state.selected]
+        .filter((path) => !copyOf(path))
+        .sort((a, b) =>
+          pathKey(b).localeCompare(pathKey(a), 'en', { numeric: true }),
+        );
       const [first] = picked;
       if (
         first &&
@@ -666,7 +690,12 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       if (state.selected.length === 0) {
         return;
       }
-      const paths = state.selected.map((path) => [...path]);
+      const paths = state.selected
+        .filter((path) => !copyOf(path))
+        .map((path) => [...path]);
+      if (paths.length === 0) {
+        return;
+      }
       const first = paths.reduce((lowest, path) =>
         path[path.length - 1] < lowest[lowest.length - 1] ? path : lowest,
       );

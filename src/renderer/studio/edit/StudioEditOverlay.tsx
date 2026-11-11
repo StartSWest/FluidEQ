@@ -10,7 +10,12 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import type { ISceneEditThing, TNodePath, TTriple } from 'common/sceneEdit';
+import {
+  copyOf,
+  type ISceneEditThing,
+  type TNodePath,
+  type TTriple,
+} from 'common/sceneEdit';
 import { useTranslation } from '../../utils/I18nContext';
 import {
   alongAxis,
@@ -358,7 +363,8 @@ export default function StudioEditOverlay({
   };
 
   const handles = () => {
-    if (!thing?.inView) {
+    // One copy of many is placed by its node's rule: nothing to pull.
+    if (!thing?.inView || copyOf(thing.path)) {
       return null;
     }
     if (state.tool === 'turn') {

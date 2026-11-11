@@ -13,6 +13,7 @@ import {
 } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
+  copyPath,
   pathInWords,
   pathKey,
   samePath,
@@ -27,7 +28,13 @@ import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import { askSceneChat, focusSceneChat } from '../chat/askSceneChat';
 import { setChatDraftStage } from '../chat/chatDraftStore';
-import { KIND_ICONS, KIND_NAMES, nodeAt, thingName } from './editNames';
+import {
+  copiesIn,
+  KIND_ICONS,
+  KIND_NAMES,
+  nodeAt,
+  thingName,
+} from './editNames';
 import { setEditPicks } from './editPicksStore';
 import markPicture from './markPicture';
 import { emptyMove, type IStageEditStore } from './stageEditStore';
@@ -141,6 +148,8 @@ export default function StudioEditPanel({
   const [find, setFind] = useState('');
   const [renaming, setRenaming] = useState<string>();
   const [adding, setAdding] = useState(false);
+  /** Which rows the member opened or closed, by path; the rest as they start. */
+  const [open, setOpen] = useState<Readonly<Record<string, boolean>>>({});
   const shadowId = useId();
   const nodes = pack.world?.nodes;
 
@@ -247,14 +256,51 @@ export default function StudioEditPanel({
   }
 
   const wanted = find.trim().toLowerCase();
-  const rows: { node: TWorldNode; path: number[] }[] = [];
+  /**
+   * The scene as a tree: a group's parts under it, and under a node that
+   * draws many copies — a shoal's fish — each copy by its number. A group
+   * starts open and a shoal closed, ninety rows being a lot to open on;
+   * a shoal opens by itself when one of its copies is picked on the stage.
+   */
+  const isOpen = (key: string, node: TWorldNode) =>
+    // Whatever holds a picked thing is open: picked on the stage, its row
+    // has to be there to be seen.
+    state.selected.some(
+      (path) => path.length > 1 && pathKey(path).startsWith(`${key}.`),
+    ) ||
+    (open[key] ?? node.type !== 'instances');
+  const rows: {
+    node: TWorldNode;
+    path: number[];
+    isCopy: boolean;
+    inside: number;
+  }[] = [];
   const walk = (list: readonly TWorldNode[], above: readonly number[]) => {
     list.forEach((node, index) => {
       const path = [...above, index];
+      const copies = copiesIn(node);
       if (!wanted || nameOf(node, path).toLowerCase().includes(wanted)) {
-        rows.push({ node, path });
+        rows.push({
+          node,
+          path,
+          isCopy: false,
+          inside: node.children.length + copies,
+        });
       }
-      walk(node.children, path);
+      // A search looks inside everything, but not through every copy.
+      if (wanted) {
+        walk(node.children, path);
+      } else if (isOpen(pathKey(path), node)) {
+        walk(node.children, path);
+        for (let copy = 0; copy < copies; copy += 1) {
+          rows.push({
+            node,
+            path: copyPath(path, copy),
+            isCopy: true,
+            inside: 0,
+          });
+        }
+      }
     });
   };
   walk(nodes, []);
@@ -287,6 +333,9 @@ export default function StudioEditPanel({
     }
   };
   const lastNode = last && nodeAt(nodes, last);
+  // Single copies of a shoal are made by its rule: there is nothing of
+  // theirs in the file to move, hide or delete.
+  const onlyCopies = store.nodesPicked().length === 0;
   const thing: ISceneEditThing | undefined = state.things.find(
     (known) => last !== undefined && samePath(known.path, last),
   );
@@ -395,7 +444,7 @@ export default function StudioEditPanel({
                 {t('studio.edit.list.empty')}
               </li>
             )}
-            {rows.map(({ node, path }) => {
+            {rows.map(({ node, path, isCopy, inside }) => {
               const key = pathKey(path);
               const hidden = node.visible === 0;
               const locked = state.locked.includes(key);
@@ -403,9 +452,28 @@ export default function StudioEditPanel({
               return (
                 <li
                   key={key}
-                  className={`studio-edit__row${isPicked(path) ? ' is-picked' : ''}${hidden ? ' is-hidden' : ''}`}
+                  className={`studio-edit__row${isPicked(path) ? ' is-picked' : ''}${hidden ? ' is-hidden' : ''}${state.hovered && pathKey(state.hovered.path) === key ? ' is-over' : ''}`}
                   style={{ paddingLeft: wanted ? 0 : (path.length - 1) * 12 }}
+                  onPointerEnter={() => store.hoverOn(path)}
+                  onPointerLeave={() => store.hoverOn(undefined)}
                 >
+                  {inside > 0 && !wanted ? (
+                    <button
+                      type="button"
+                      className="studio-edit__fold"
+                      aria-expanded={isOpen(key, node)}
+                      aria-label={`${t(isOpen(key, node) ? 'studio.edit.collapse' : 'studio.edit.expand')}: ${name}`}
+                      onClick={() =>
+                        setOpen({ ...open, [key]: !isOpen(key, node) })
+                      }
+                    >
+                      <svg viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M5.5 3.5L10.5 8l-5 4.5" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <span className="studio-edit__fold" aria-hidden="true" />
+                  )}
                   {renaming === key ? (
                     <input
                       className="studio-edit__rename"
@@ -434,7 +502,11 @@ export default function StudioEditPanel({
                       aria-pressed={isPicked(path)}
                       title={name}
                       onClick={(event) => pickRow(path, event)}
-                      onDoubleClick={() => setRenaming(key)}
+                      onDoubleClick={() => {
+                        if (!isCopy) {
+                          setRenaming(key);
+                        }
+                      }}
                     >
                       <svg
                         className="studio-edit__kind"
@@ -445,46 +517,56 @@ export default function StudioEditPanel({
                         <path d={KIND_ICONS[node.type]} />
                       </svg>
                       <span>{name}</span>
-                      {node.name !== undefined && (
-                        <small>{t(KINDS[node.type])}</small>
+                      {node.name !== undefined && !isCopy && (
+                        <small>
+                          {inside > node.children.length
+                            ? `${t(KINDS[node.type])} · ${String(inside - node.children.length)}`
+                            : t(KINDS[node.type])}
+                        </small>
                       )}
                     </button>
                   )}
-                  <button
-                    type="button"
-                    className="studio-edit__flag"
-                    aria-pressed={locked}
-                    aria-label={`${t('studio.edit.lock')}: ${name}`}
-                    title={t('studio.edit.lock')}
-                    onClick={() =>
-                      // On one of several picked things, all of them.
-                      isPicked(path) && state.selected.length > 1
-                        ? store.lockPicked(!locked)
-                        : store.toggleLock(path)
-                    }
-                  >
-                    <Glyph name="lock" />
-                  </button>
-                  <button
-                    type="button"
-                    className="studio-edit__flag"
-                    aria-pressed={hidden}
-                    aria-label={`${t('studio.edit.hide')}: ${name}`}
-                    title={t('studio.edit.hide')}
-                    onClick={() =>
-                      isPicked(path) && state.selected.length > 1
-                        ? store.showPicked(hidden)
-                        : store.send([{ kind: 'show', path, shown: hidden }])
-                    }
-                  >
-                    <svg
-                      viewBox="0 0 16 16"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <path d="M1.5 8S4 3.6 8 3.6 14.5 8 14.5 8 12 12.4 8 12.4 1.5 8 1.5 8zM2.5 13.5l11-11" />
-                    </svg>
-                  </button>
+                  {!isCopy && (
+                    <>
+                      <button
+                        type="button"
+                        className="studio-edit__flag"
+                        aria-pressed={locked}
+                        aria-label={`${t('studio.edit.lock')}: ${name}`}
+                        title={t('studio.edit.lock')}
+                        onClick={() =>
+                          // On one of several picked things, all of them.
+                          isPicked(path) && state.selected.length > 1
+                            ? store.lockPicked(!locked)
+                            : store.toggleLock(path)
+                        }
+                      >
+                        <Glyph name="lock" />
+                      </button>
+                      <button
+                        type="button"
+                        className="studio-edit__flag"
+                        aria-pressed={hidden}
+                        aria-label={`${t('studio.edit.hide')}: ${name}`}
+                        title={t('studio.edit.hide')}
+                        onClick={() =>
+                          isPicked(path) && state.selected.length > 1
+                            ? store.showPicked(hidden)
+                            : store.send([
+                                { kind: 'show', path, shown: hidden },
+                              ])
+                        }
+                      >
+                        <svg
+                          viewBox="0 0 16 16"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path d="M1.5 8S4 3.6 8 3.6 14.5 8 14.5 8 12 12.4 8 12.4 1.5 8 1.5 8zM2.5 13.5l11-11" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
                 </li>
               );
             })}
@@ -511,41 +593,13 @@ export default function StudioEditPanel({
             <button
               type="button"
               className="button small subtle"
-              onClick={store.copy}
+              aria-pressed={state.solo}
+              title={t('studio.edit.soloHint')}
+              onClick={() => store.setSolo(!state.solo)}
             >
-              {t('studio.edit.copy')}
+              {t('studio.edit.solo')}
             </button>
-            {state.selected.length > 1 && (
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => store.group(t('studio.edit.kind.group'))}
-              >
-                {t('studio.edit.group')}
-              </button>
-            )}
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => store.showPicked(lastNode.visible === 0)}
-            >
-              {t(
-                lastNode.visible === 0
-                  ? 'studio.edit.show'
-                  : 'studio.edit.hide',
-              )}
-            </button>
-            <button
-              type="button"
-              className="button small subtle"
-              aria-pressed={state.locked.includes(pathKey(last))}
-              onClick={() =>
-                store.lockPicked(!state.locked.includes(pathKey(last)))
-              }
-            >
-              {t('studio.edit.lockShort')}
-            </button>
-            {last.length > 1 && (
+            {onlyCopies ? (
               <button
                 type="button"
                 className="button small subtle"
@@ -554,29 +608,83 @@ export default function StudioEditPanel({
               >
                 {t('studio.edit.parent')}
               </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={store.copy}
+                >
+                  {t('studio.edit.copy')}
+                </button>
+                {state.selected.length > 1 && (
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    onClick={() => store.group(t('studio.edit.kind.group'))}
+                  >
+                    {t('studio.edit.group')}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => store.showPicked(lastNode.visible === 0)}
+                >
+                  {t(
+                    lastNode.visible === 0
+                      ? 'studio.edit.show'
+                      : 'studio.edit.hide',
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="button small subtle"
+                  aria-pressed={state.locked.includes(pathKey(last))}
+                  onClick={() =>
+                    store.lockPicked(!state.locked.includes(pathKey(last)))
+                  }
+                >
+                  {t('studio.edit.lockShort')}
+                </button>
+                {last.length > 1 && (
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    title={t('studio.edit.parentHint')}
+                    onClick={store.selectParent}
+                  >
+                    {t('studio.edit.parent')}
+                  </button>
+                )}
+                {state.selected.length === 1 && (
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    onClick={() => {
+                      // The name is typed in the list, which opens for it.
+                      store.setListOpen(true);
+                      setRenaming(pathKey(last));
+                    }}
+                  >
+                    {t('studio.edit.rename')}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="button small subtle studio-edit__delete"
+                  onClick={store.remove}
+                >
+                  {t('studio.edit.delete')}
+                </button>
+              </>
             )}
-            {state.selected.length === 1 && (
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => {
-                  // The name is typed in the list, which opens for it.
-                  store.setListOpen(true);
-                  setRenaming(pathKey(last));
-                }}
-              >
-                {t('studio.edit.rename')}
-              </button>
-            )}
-            <button
-              type="button"
-              className="button small subtle studio-edit__delete"
-              onClick={store.remove}
-            >
-              {t('studio.edit.delete')}
-            </button>
           </div>
+          {onlyCopies && (
+            <p className="studio-edit__aside">{t('studio.edit.copyNote')}</p>
+          )}
           {thing &&
+            !onlyCopies &&
             FIELDS.map(({ field, key }) => {
               const follows = lastNode[field].map(
                 (part) => typeof part === 'string',
@@ -623,25 +731,27 @@ export default function StudioEditPanel({
                 </div>
               );
             })}
-          {lastNode.type !== 'light' && lastNode.type !== 'group' && (
-            <label className="studio-edit__check" htmlFor={shadowId}>
-              <input
-                id={shadowId}
-                type="checkbox"
-                checked={lastNode.castShadow}
-                onChange={(event) =>
-                  store.send([
-                    {
-                      kind: 'shadow',
-                      path: [...last],
-                      cast: event.target.checked,
-                    },
-                  ])
-                }
-              />
-              {t('studio.edit.shadow')}
-            </label>
-          )}
+          {!onlyCopies &&
+            lastNode.type !== 'light' &&
+            lastNode.type !== 'group' && (
+              <label className="studio-edit__check" htmlFor={shadowId}>
+                <input
+                  id={shadowId}
+                  type="checkbox"
+                  checked={lastNode.castShadow}
+                  onChange={(event) =>
+                    store.send([
+                      {
+                        kind: 'shadow',
+                        path: [...last],
+                        cast: event.target.checked,
+                      },
+                    ])
+                  }
+                />
+                {t('studio.edit.shadow')}
+              </label>
+            )}
         </section>
       )}
     </div>

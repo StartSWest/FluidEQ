@@ -869,6 +869,13 @@ const studio = {
   'studio.edit.lockShort': '잠금',
   'studio.edit.parent': '전체',
   'studio.edit.parentHint': '이것이 속한 전체를 선택합니다',
+  'studio.edit.solo': '솔로',
+  'studio.edit.soloHint':
+    '작업하는 동안 선택한 것만 보여 주고 나머지는 숨깁니다. 장면은 아무것도 바뀌지 않습니다.',
+  'studio.edit.copyNote':
+    '하나의 규칙이 그리는 여러 복사본 중 하나입니다. 이것만 바꾸려면 AI에게 요청하고, 모두 움직이려면 전체를 선택하세요.',
+  'studio.edit.expand': '펼치기',
+  'studio.edit.collapse': '접기',
 } satisfies Partial<Dictionary>;
 
 export default studio;

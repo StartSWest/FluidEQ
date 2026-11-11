@@ -891,6 +891,13 @@ const studio = {
   'studio.edit.lockShort': 'लॉक',
   'studio.edit.parent': 'पूरा',
   'studio.edit.parentHint': 'वह पूरी चीज़ चुनें जिसका यह हिस्सा है',
+  'studio.edit.solo': 'सोलो',
+  'studio.edit.soloHint':
+    'काम करते समय केवल चुनी हुई चीज़ें दिखाता है और बाक़ी छिपा देता है। दृश्य में कुछ नहीं बदलता।',
+  'studio.edit.copyNote':
+    'एक ही नियम से बनी कई प्रतियों में से एक। केवल इसे बदलने के लिए AI से कहें; सबको हिलाने के लिए पूरा चुनें।',
+  'studio.edit.expand': 'खोलें',
+  'studio.edit.collapse': 'बंद करें',
 } as const;
 
 export default studio;

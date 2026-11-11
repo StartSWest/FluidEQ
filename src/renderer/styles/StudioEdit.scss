@@ -11,6 +11,55 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// THE TREE: a row that holds others opens and closes on its arrow, and every
+// row keeps the arrow's room so the names line up down the list.
+.studio-edit__fold {
+  display: inline-flex;
+  width: 16px;
+  height: 24px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+    transition: transform $motion-fast $ease-out;
+  }
+
+  &[aria-expanded='true'] svg {
+    transform: rotate(90deg);
+  }
+}
+
+button.studio-edit__fold {
+  cursor: pointer;
+
+  &:hover {
+    color: $white;
+    background: $hover-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// The row of what the pointer rests on in the scene, and the other way.
+.studio-edit__row.is-over:not(.is-picked) {
+  background: $hover-accent;
+}
+
 // EDIT MODE ON THE STUDIO'S STAGE (`studio/edit`).
 //
 // The three axes wear the colours every 3D editor gives them — X red, Y

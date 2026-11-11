@@ -913,6 +913,13 @@ const studio = {
   'studio.edit.parent': 'Ensemble',
   'studio.edit.parentHint':
     "Choisir l'élément entier dont celui-ci fait partie",
+  'studio.edit.solo': 'Solo',
+  'studio.edit.soloHint':
+    "Affiche seulement ce qui est choisi et masque le reste pendant que vous travaillez. Rien n'est changé dans la scène.",
+  'studio.edit.copyNote':
+    "Une copie parmi beaucoup, dessinées par une seule règle. Pour ne changer que celle-ci, demandez à l'IA ; pour les déplacer toutes, choisissez l'ensemble.",
+  'studio.edit.expand': 'Ouvrir',
+  'studio.edit.collapse': 'Fermer',
 } as const;
 
 export default studio;

@@ -55,6 +55,10 @@ export interface ISceneEdit {
   pick?: { id: number; x: number; y: number };
   /** Where the pointer rests: what would a click there pick? */
   hover?: readonly [number, number];
+  /** A thing the pointer rests on in the list: lit in the scene. */
+  hoverThing?: TNodePath;
+  /** Only the picked things are drawn, and the lights. Never saved. */
+  solo?: boolean;
 }
 
 /** One picked thing as the last frame drew it. */
@@ -104,13 +108,39 @@ export const samePath = (a: TNodePath, b: TNodePath): boolean =>
 
 export const pathKey = (path: TNodePath): string => path.join('.');
 
+/**
+ * One copy of a node that draws many — one fish of a shoal — is named by
+ * the node's path and a last step below zero: `[7, -1]` is the first copy
+ * of `world.nodes[7]`, `[7, -12]` its twelfth. A copy is not in the file:
+ * the node's rule makes it, so it can be picked, looked at alone and
+ * pointed out to the AI, and never written.
+ */
+export const copyOf = (
+  path: TNodePath,
+): { node: TNodePath; copy: number } | undefined => {
+  const last = path[path.length - 1];
+  return path.length > 1 && last < 0
+    ? { node: path.slice(0, -1), copy: -last - 1 }
+    : undefined;
+};
+
+export const copyPath = (node: TNodePath, copy: number): number[] => [
+  ...node,
+  -(copy + 1),
+];
+
 /** `world.nodes[4].children[1]`, as the member's AI is told it. */
-export const pathInWords = (path: TNodePath): string =>
-  path
+export const pathInWords = (path: TNodePath): string => {
+  const one = copyOf(path);
+  const words = (one ? one.node : path)
     .map((step, index) =>
       index === 0 ? `world.nodes[${step}]` : `children[${step}]`,
     )
     .join('.');
+  return one
+    ? `copy ${String(one.copy + 1)} of ${words}, counted from 1`
+    : words;
+};
 
 /** What the Studio writes into the scene's own world when a hand edits it. */
 export type TWorldEditOp =

@@ -912,6 +912,13 @@ const studio = {
   'studio.edit.lockShort': 'Lock',
   'studio.edit.parent': 'Whole',
   'studio.edit.parentHint': 'Pick the whole thing this is a part of',
+  'studio.edit.solo': 'Solo',
+  'studio.edit.soloHint':
+    'Show only what is picked and hide the rest while you work. Nothing in the scene is changed.',
+  'studio.edit.copyNote':
+    'One copy of many that a single rule draws. To change just this one, ask the AI; to move them all, pick the whole.',
+  'studio.edit.expand': 'Open',
+  'studio.edit.collapse': 'Close',
 } as const;
 
 export default studio;

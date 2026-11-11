@@ -900,6 +900,13 @@ const studio = {
   'studio.edit.lockShort': 'ロック',
   'studio.edit.parent': '全体',
   'studio.edit.parentHint': 'これを含む全体を選択します',
+  'studio.edit.solo': 'ソロ',
+  'studio.edit.soloHint':
+    '作業中、選択したものだけを表示し、ほかを隠します。シーンは何も変更されません。',
+  'studio.edit.copyNote':
+    '1 つのルールが描く多数のコピーの 1 つです。これだけを変えるには AI に依頼し、すべてを動かすには全体を選択してください。',
+  'studio.edit.expand': '開く',
+  'studio.edit.collapse': '閉じる',
 } as const;
 
 export default studio;

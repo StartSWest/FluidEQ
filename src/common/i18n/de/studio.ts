@@ -923,6 +923,13 @@ const studio = {
   'studio.edit.parent': 'Ganzes',
   'studio.edit.parentHint':
     'Das ganze Ding auswählen, zu dem dieses Teil gehört',
+  'studio.edit.solo': 'Solo',
+  'studio.edit.soloHint':
+    'Zeigt nur das Ausgewählte und blendet den Rest beim Arbeiten aus. An der Szene wird nichts geändert.',
+  'studio.edit.copyNote':
+    'Eine von vielen Kopien, die eine einzige Regel zeichnet. Um nur diese zu ändern, fragen Sie die KI; um alle zu bewegen, wählen Sie das Ganze.',
+  'studio.edit.expand': 'Öffnen',
+  'studio.edit.collapse': 'Schließen',
 } as const;
 
 export default studio;

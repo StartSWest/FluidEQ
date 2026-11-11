@@ -790,6 +790,13 @@ const studio = {
   'studio.edit.lockShort': '鎖定',
   'studio.edit.parent': '整體',
   'studio.edit.parentHint': '選取它所屬的整個物件',
+  'studio.edit.solo': '單獨顯示',
+  'studio.edit.soloHint':
+    '工作時只顯示選取的物件並隱藏其餘部分。場景不會有任何變更。',
+  'studio.edit.copyNote':
+    '由同一條規則繪製的眾多複本之一。只想改這一個，請讓 AI 來改；要移動全部，請選取整體。',
+  'studio.edit.expand': '展開',
+  'studio.edit.collapse': '收合',
 } satisfies Partial<Dictionary>;
 
 export default studio;
