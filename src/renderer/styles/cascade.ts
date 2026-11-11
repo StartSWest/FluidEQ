@@ -178,6 +178,7 @@ import './SpeechMemoryNotice.scss';
 import './SongEqNotice.scss';
 import './PlusTermsNotice.scss';
 import './SceneReviewNotice.scss';
+import './SceneReviewMark.scss';
 import './ProfileRecoveredNotice.scss';
 import './SceneAnnouncement.scss';
 import './MandatoryUpdate.scss';
