@@ -450,7 +450,7 @@ it('opens 2.5’s sound on its milestone page: the road, the count, the film and
   // The walkthrough plays from here, as large as the window.
   fireEvent.click(screen.getByRole('button', { name: 'Watch the video' }));
   expect(
-    screen.getByRole('dialog', { name: /^This is FluidEQ/ }),
+    screen.getByRole('dialog', { name: 'All of FluidEQ, in one video' }),
   ).toBeInTheDocument();
   // Nothing to buy and nowhere to go: no price, no account.
   expect(document.querySelector('.signed-page')?.textContent).not.toMatch(
