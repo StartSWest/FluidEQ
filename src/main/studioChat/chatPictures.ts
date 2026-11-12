@@ -8,7 +8,9 @@ import { ipcMain, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import {
   isStudioChatAnswer,
   type IStudioChatPackAsk,
+  type IStudioChatVideoAsk,
   type TStudioChatPackAnswer,
+  type TStudioChatVideoAnswer,
 } from '../../common/studioChat';
 import {
   MAX_SCENE_ARTWORK_BYTES,
@@ -38,6 +40,8 @@ import lookAnimationTool from './lookAnimationTool';
 import { createPictureTools } from './pictureTools';
 import sheetCodec from './sheetCodec';
 import { createSheetTools } from './sheetTools';
+import createVideoFramesTool from './videoFramesTool';
+import createWindowAsks from './windowAsks';
 
 /**
  * Everything the chat needs for pictures, wired to the window: the asks
@@ -123,9 +127,51 @@ export interface IChatPicturesDeps {
 const CHANNELS = [
   'studio-chat-answer',
   'studio-chat-packed',
+  'studio-chat-video-frames',
   'studio-chat-makers',
   'studio-chat-higgsfield-connect',
 ];
+
+/**
+ * The window's frames of a video, read as nothing unless they are what was
+ * asked: as many as asked, each PNG bytes, none larger than a frame can be.
+ * video_frames looks at each again before writing it.
+ */
+const readFrames = (
+  raw: unknown,
+  ask: IStudioChatVideoAsk,
+): TStudioChatVideoAnswer => {
+  if (typeof raw !== 'object' || raw === null) {
+    return { ok: false, reason: 'failed' };
+  }
+  const answer = raw as Record<string, unknown>;
+  if (answer.ok === false) {
+    return answer.reason === 'unreadable'
+      ? { ok: false, reason: 'unreadable' }
+      : { ok: false, reason: 'failed' };
+  }
+  const { frames, width, height, duration } = answer;
+  const sized = (value: unknown) =>
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= ask.edge;
+  return Array.isArray(frames) &&
+    frames.length === ask.count &&
+    frames.every((frame) => frame instanceof Uint8Array) &&
+    sized(width) &&
+    sized(height) &&
+    typeof duration === 'number' &&
+    Number.isFinite(duration)
+    ? {
+        ok: true,
+        frames: frames as Uint8Array[],
+        width: width as number,
+        height: height as number,
+        duration,
+      }
+    : { ok: false, reason: 'failed' };
+};
 
 /** The window's packed artwork, read as nothing unless it is what was asked. */
 const readPacked = (
@@ -178,43 +224,18 @@ export const createChatPictures = ({
   const higgsfieldNow = async (): Promise<THiggsfieldAccount> =>
     (await higgsfieldServer())?.account ?? { state: 'missing' };
 
-  let nextPack = 0;
-  const packing = new Map<
-    number,
-    {
-      ask: IStudioChatPackAsk;
-      resolve: (answer: TStudioChatPackAnswer | 'no-window') => void;
-    }
-  >();
-
-  const packInWindow = (
-    projectId: string,
-    what: Omit<IStudioChatPackAsk, 'id'>,
-  ): Promise<TStudioChatPackAnswer | 'no-window'> => {
-    const page = pageOf();
-    if (!page) {
-      return Promise.resolve('no-window');
-    }
-    nextPack += 1;
-    const ask: IStudioChatPackAsk = { ...what, id: nextPack };
-    const signal = signalOf(projectId);
-    return new Promise((resolve) => {
-      const settle = (answer: TStudioChatPackAnswer | 'no-window') => {
-        signal.removeEventListener('abort', gone);
-        page.removeListener('destroyed', gone);
-        packing.delete(ask.id);
-        resolve(answer);
-      };
-      // Stopped, or the page that was asked going away, answers nothing.
-      function gone() {
-        settle('no-window');
-      }
-      signal.addEventListener('abort', gone, { once: true });
-      page.once('destroyed', gone);
-      packing.set(ask.id, { ask, resolve: settle });
-      page.send('studio-chat-pack', ask);
-    });
-  };
+  const packs = createWindowAsks<IStudioChatPackAsk, TStudioChatPackAnswer>({
+    channel: 'studio-chat-pack',
+    pageOf,
+    signalOf,
+    read: readPacked,
+  });
+  const videos = createWindowAsks<IStudioChatVideoAsk, TStudioChatVideoAnswer>({
+    channel: 'studio-chat-video',
+    pageOf,
+    signalOf,
+    read: readFrames,
+  });
 
   /**
    * The project as its chat started on it, asked again on every call: a
@@ -253,7 +274,7 @@ export const createChatPictures = ({
         lookAnimationTool(folder),
         ...createPictureTools({
           project: () => boundProject(projectId, folder),
-          packInWindow: (what) => packInWindow(projectId, what),
+          packInWindow: (what) => packs.ask(projectId, what),
           ...(logger ? { logger } : {}),
         }),
         // The chat makes and mends animation sheets itself: from the
@@ -262,6 +283,12 @@ export const createChatPictures = ({
           project: () => boundProject(projectId, folder),
           signal: () => signalOf(projectId),
           codec: sheetCodec,
+        }),
+        // A video becomes an animation: the window draws its frames.
+        createVideoFramesTool({
+          project: () => boundProject(projectId, folder),
+          signal: () => signalOf(projectId),
+          framesInWindow: (what) => videos.ask(projectId, what),
         }),
       ],
       version,
@@ -320,12 +347,18 @@ export const createChatPictures = ({
   ipcMain.handle(
     'studio-chat-packed',
     (event, id: unknown, answer: unknown) => {
-      const pending = typeof id === 'number' ? packing.get(id) : undefined;
-      if (!fromWindow(event) || !pending || typeof id !== 'number') {
-        return;
+      if (fromWindow(event)) {
+        packs.answer(id, answer);
       }
-      packing.delete(id);
-      pending.resolve(readPacked(answer, pending.ask));
+    },
+  );
+
+  ipcMain.handle(
+    'studio-chat-video-frames',
+    (event, id: unknown, answer: unknown) => {
+      if (fromWindow(event)) {
+        videos.answer(id, answer);
+      }
     },
   );
 
@@ -345,8 +378,8 @@ export const createChatPictures = ({
     },
     dispose: async () => {
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
-      packing.forEach(({ resolve }) => resolve('no-window'));
-      packing.clear();
+      packs.dispose();
+      videos.dispose();
       const closing = [...servers.values()].map(({ server }) => server.close());
       servers.clear();
       await Promise.all(closing);

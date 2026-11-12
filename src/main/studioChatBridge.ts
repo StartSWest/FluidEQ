@@ -7,6 +7,7 @@ import type {
   IStudioChatModels,
   IStudioChatMessage,
   IStudioChatPackAsk,
+  IStudioChatVideoAsk,
   IStudioChatPast,
   IStudioChatQueued,
   TStudioChatAnswer,
@@ -15,6 +16,7 @@ import type {
   TStudioChatEntry,
   TStudioChatPackAnswer,
   TStudioChatRestore,
+  TStudioChatVideoAnswer,
 } from '../common/studioChat';
 import type { THiggsfieldAccount } from '../common/studioMakers';
 import type {
@@ -133,6 +135,12 @@ const studioChatBridge = {
     id: number,
     answer: TStudioChatPackAnswer,
   ): Promise<void> => ipcRenderer.invoke('studio-chat-packed', id, answer),
+  /** The frames of the video main asked for, or why there are none. */
+  studioChatVideoFrames: (
+    id: number,
+    answer: TStudioChatVideoAnswer,
+  ): Promise<void> =>
+    ipcRenderer.invoke('studio-chat-video-frames', id, answer),
   onStudioChatAsk: (
     listener: (change: { projectId: string; ask?: TStudioChatAsk }) => void,
   ) => {
@@ -143,6 +151,14 @@ const studioChatBridge = {
     ipcRenderer.on('studio-chat-ask', wrapped);
     return () => {
       ipcRenderer.removeListener('studio-chat-ask', wrapped);
+    };
+  },
+  onStudioChatVideo: (listener: (ask: IStudioChatVideoAsk) => void) => {
+    const wrapped = (_event: IpcRendererEvent, ask: IStudioChatVideoAsk) =>
+      listener(ask);
+    ipcRenderer.on('studio-chat-video', wrapped);
+    return () => {
+      ipcRenderer.removeListener('studio-chat-video', wrapped);
     };
   },
   onStudioChatPack: (listener: (ask: IStudioChatPackAsk) => void) => {

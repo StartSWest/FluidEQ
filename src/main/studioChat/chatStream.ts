@@ -98,6 +98,7 @@ const ANIMATION_TOOL = `mcp__${DOOR_SERVER}__look_at_animation`;
 const SHEET_TOOLS = new Set([
   `mcp__${DOOR_SERVER}__pose_sheet`,
   `mcp__${DOOR_SERVER}__build_sheet`,
+  `mcp__${DOOR_SERVER}__video_frames`,
 ]);
 
 const READ_TOOLS = new Set(['Read']);

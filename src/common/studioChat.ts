@@ -370,6 +370,37 @@ export type TStudioChatPackAnswer =
   | { ok: true; webp: Uint8Array }
   | { ok: false; reason: 'too-big' | 'unreadable' | 'failed' };
 
+/**
+ * The window asked for a video's frames, for video_frames: only a page
+ * decodes video, so main hands it the file and the moments to draw, and it
+ * answers each as a PNG no wider or taller than `edge`.
+ */
+export interface IStudioChatVideoAsk {
+  id: number;
+  video: Uint8Array;
+  /** The file's media type: video/mp4, video/webm or video/quicktime. */
+  type: string;
+  /** How many frames, evenly spaced over the part asked for. */
+  count: number;
+  /** The longest side of each frame, in pixels. */
+  edge: number;
+  /** The part of the video, in seconds; the whole of it when left out. */
+  from?: number;
+  to?: number;
+}
+
+/** The video's frames, in order, or why there are none. */
+export type TStudioChatVideoAnswer =
+  | {
+      ok: true;
+      frames: Uint8Array[];
+      width: number;
+      height: number;
+      /** The whole video's length, in seconds. */
+      duration: number;
+    }
+  | { ok: false; reason: 'unreadable' | 'failed' };
+
 /** An account's email as a sign-in reports it, or undefined if it is not one. */
 export const accountEmailOf = (value: unknown): string | undefined =>
   typeof value === 'string' &&

@@ -19,6 +19,7 @@ import { readStored, writeStored } from '../../utils/graphStorage';
 import chatBrief from './chatBrief';
 import { chatPicksOf } from './chatPicks';
 import packArtwork from './chatPack';
+import videoFrames from './chatVideo';
 
 const ZOOM_KEY = 'fluideq.studio.chatZoom';
 
@@ -209,6 +210,17 @@ const listen = () => {
           reason: 'failed',
         }))
         .then((answer) => api.studioChatPacked?.(ask.id, answer))
+        .catch(() => undefined);
+    }),
+    // Claude's video_frames: only a page decodes video, so the page draws
+    // the frames main asked for and hands them back as PNGs.
+    api?.onStudioChatVideo?.((ask) => {
+      videoFrames(ask)
+        .catch((): { ok: false; reason: 'failed' } => ({
+          ok: false,
+          reason: 'failed',
+        }))
+        .then((answer) => api.studioChatVideoFrames?.(ask.id, answer))
         .catch(() => undefined);
     }),
   ];

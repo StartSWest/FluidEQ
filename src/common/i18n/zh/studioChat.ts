@@ -220,7 +220,7 @@ const studioChat = {
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': '已通过你的 Claude Code 连接',
   'studioChat.accounts.higgsfieldNote':
-    '使用你自己的 Higgsfield 积分生成图片、动画帧和 3D 模型。',
+    '用你自己的 Higgsfield 点数制作图片、可变为动画的视频和 3D 模型。',
   'studioChat.accounts.higgsfieldMissing':
     '尚未设置。FluidEQ 可以把 Higgsfield 自己的工具添加到你的 Claude Code，并在浏览器中打开它的登录页面。Higgsfield 需要付费套餐，它生成的一切都会消耗其积分。',
   'studioChat.accounts.higgsfieldOut':

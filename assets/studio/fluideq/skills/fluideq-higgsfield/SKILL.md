@@ -1,6 +1,6 @@
 ---
 name: fluideq-higgsfield
-description: Make a picture, the frames of an animation or a 3D model for a FluidEQ scene with Higgsfield, on the member's own Higgsfield account and credits - how to tell whether Higgsfield is connected, what to say when it is not, how to say the cost before spending, and how to bring every result into the scene's folder. Use before anything is made outside FluidEQ, and whenever the member says "Higgsfield", "generate it", "make it with AI", "a 3D model of", or asks for a subject, material, backdrop, sprite or model that drawing in the shader will not carry.
+description: Make a picture, a video that becomes an animation, the frames of an animation or a 3D model for a FluidEQ scene with Higgsfield, on the member's own Higgsfield account and credits - how to tell whether Higgsfield is connected, what to say when it is not, how to say the cost before spending, and how to bring every result into the scene's folder. Use before anything is made outside FluidEQ, and whenever the member says "Higgsfield", "generate it", "make it with AI", "a 3D model of", "a video of", "animate it", or asks for a subject, material, backdrop, sprite, moving subject or model that drawing in the shader will not carry.
 ---
 
 # Higgsfield in a FluidEQ scene
@@ -44,13 +44,27 @@ picture tools of their own; use one only when the member names it.
   subject on a plain flat background, or transparent when the tool offers
   it. Save it in `art/`, then `pack_artwork`.
 - **The frames of an animation**: ask for still pictures of the poses, the
-  same subject at the same size and place in each. Then `build_sheet` (the
-  fluideq-animation skill) - never `pack_artwork`.
+  same subject at the same size and place in each - a character Higgsfield
+  keeps the same from picture to picture is the way to that. Then
+  `build_sheet` (the fluideq-animation skill) - never `pack_artwork`.
+- **A moving subject from a video**: a wing beat, a flag, a flame, a walk.
+  A scene never plays a video; it becomes an animation. Ask for a few
+  seconds, the camera still, the subject whole and on a plain flat
+  background, moving through one clean loop. Save the video file itself in
+  `art/`, then `video_frames` (8 to 16 frames over one loop, with `from` and
+  `to` round it), then `build_sheet`, then `look_at_animation`.
+- **A picture made better**: upscale one too small for its place (an
+  artwork piece rarely needs more than 1024 a side); take the background
+  out of a subject whose background is not flat, before `pack_artwork` or
+  `build_sheet`; expand a backdrop to the shape it fills, such as the
+  ultra-wide graph, five and a half times as wide as tall.
 - **A thing in a 3D world**: ask for a 3D model as `.glb`, when its tools
   offer one. Then the world's `models` (the fluideq-3d-world skill).
 
-A scene cannot play a video or a sound. Never ask Higgsfield for either:
-the credits would be spent on something the scene cannot use.
+A scene cannot play sound. Never ask Higgsfield for music, a voice or a
+sound effect: the credits would be spent on something the scene cannot
+use. Every other thing it makes is offered above only where the scene can
+use the result.
 
 ## The cost comes first
 
@@ -75,13 +89,14 @@ Higgsfield keeps what it makes in the member's own Assets and hands you an
 address. A scene cannot load an address: it plays only what is in its
 folder.
 
-1. Download each result into this project's folder - pictures and frames
-   into `art/`, a model beside the world's other models - under a plain
+1. Download each result into this project's folder - pictures, frames and
+   videos into `art/`, a model beside the world's other models - under a plain
    name that says what it is.
 2. Open it and look. A wrong result is said to the member before anything
    else is spent.
-3. Lay it in: `pack_artwork` for pictures, `build_sheet` for frames, the
-   world's `models` for a `.glb`. A model must pass FluidEQ's own check
+3. Lay it in: `pack_artwork` for pictures, `build_sheet` for frames,
+   `video_frames` and then `build_sheet` for a video, the world's `models`
+   for a `.glb`. A model must pass FluidEQ's own check
    (size, textures, nothing loaded from outside); when it does not, say what
    failed and do not work around it.
 4. Never write a Higgsfield address into a shader, `pack.json` or

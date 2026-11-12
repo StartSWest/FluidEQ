@@ -231,7 +231,7 @@ const studioChat = {
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': '내 Claude Code를 통해 연결됨',
   'studioChat.accounts.higgsfieldNote':
-    '내 Higgsfield 크레딧으로 이미지, 애니메이션 프레임, 3D 모델을 만듭니다.',
+    '내 Higgsfield 크레딧으로 그림, 애니메이션이 되는 동영상, 3D 모델을 만듭니다.',
   'studioChat.accounts.higgsfieldMissing':
     '아직 설정되지 않았습니다. FluidEQ가 Higgsfield의 도구를 내 Claude Code에 추가하고 브라우저에서 로그인 페이지를 열 수 있습니다. Higgsfield는 유료 요금제가 필요하며, 만드는 모든 것에 크레딧이 사용됩니다.',
   'studioChat.accounts.higgsfieldOut':

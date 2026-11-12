@@ -235,7 +235,7 @@ const studioChat = {
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': 'Über Ihr Claude Code verbunden',
   'studioChat.accounts.higgsfieldNote':
-    'Erstellt Bilder, Animationsframes und 3D-Modelle mit Ihren eigenen Higgsfield-Credits.',
+    'Erstellt Bilder, Videos, die zu Animationen werden, und 3D-Modelle mit Ihren eigenen Higgsfield-Credits.',
   'studioChat.accounts.higgsfieldMissing':
     'Noch nicht eingerichtet. FluidEQ kann die Werkzeuge von Higgsfield zu Ihrem Claude Code hinzufügen und die Anmeldung in Ihrem Browser öffnen. Higgsfield setzt einen bezahlten Plan voraus, und alles, was es erstellt, verbraucht dessen Credits.',
   'studioChat.accounts.higgsfieldOut':

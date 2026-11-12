@@ -109,6 +109,7 @@ const ALLOWED = [
   `mcp__${DOOR_SERVER}__look_at_animation`,
   `mcp__${DOOR_SERVER}__pose_sheet`,
   `mcp__${DOOR_SERVER}__build_sheet`,
+  `mcp__${DOOR_SERVER}__video_frames`,
 ];
 
 /** A brief as a running chat remembers it: short, and the same for the same text. */
