@@ -17,12 +17,13 @@ import {
   type TLocalizedName,
 } from '../../common/scenePacks';
 import {
+  boundedDraft,
   MANIFEST_FILE,
   ProjectProblem,
   readBounded,
   readManifest,
   resolveInside,
-  writeInside,
+  type TProjectDrafts,
 } from './projectFiles';
 import readProjectWorld from './projectWorld';
 import { writeStarterArt } from './starterArt';
@@ -67,13 +68,24 @@ const locateSource = async (
   return { name, real: await resolveInside(folder, name, 'source') };
 };
 
-const buildRawPack = async (folder: string) => {
+const NO_DRAFTS: TProjectDrafts = new Map();
+
+const buildRawPack = async (folder: string, drafts = NO_DRAFTS) => {
   const manifest = await readManifest(folder);
-  const { real: sourcePath } = await locateSource(folder, manifest);
-  const source = (
-    await readBounded(sourcePath, MAX_MEMBER_SOURCE_BYTES, 'source')
-  ).toString('utf8');
-  const world = await readProjectWorld(folder, manifest);
+  const { name: sourceName, real: sourcePath } = await locateSource(
+    folder,
+    manifest,
+  );
+  const drafted = drafts.get(sourceName);
+  const source =
+    drafted === undefined
+      ? (
+          await readBounded(sourcePath, MAX_MEMBER_SOURCE_BYTES, 'source')
+        ).toString('utf8')
+      : boundedDraft(drafted, MAX_MEMBER_SOURCE_BYTES, 'source').toString(
+          'utf8',
+        );
+  const world = await readProjectWorld(folder, manifest, drafts);
 
   let artwork: Record<string, unknown> | undefined;
   let artworkHash: string | undefined;
@@ -161,9 +173,10 @@ const declaredSize = (artwork: Record<string, unknown> | undefined) =>
  */
 export const readProjectInsideSave = async (
   folder: string,
+  drafts = NO_DRAFTS,
 ): Promise<TProjectBuild> => {
   try {
-    const { raw, artworkHash } = await buildRawPack(folder);
+    const { raw, artworkHash } = await buildRawPack(folder, drafts);
     const checked = checkMemberScene(raw);
     const controls = [
       ...checkProjectParams(raw.params),
@@ -193,10 +206,16 @@ export const readProjectInsideSave = async (
   }
 };
 
-/** The folder as a pack, or every reason it is not one yet. Never throws. */
-export const readProject = async (folder: string): Promise<TProjectBuild> => {
+/**
+ * The folder as a pack, or every reason it is not one yet. Never throws.
+ * With `drafts`, the folder as it would be with that unsaved text saved.
+ */
+export const readProject = async (
+  folder: string,
+  drafts = NO_DRAFTS,
+): Promise<TProjectBuild> => {
   await waitForSettingsWrites(folder);
-  return readProjectInsideSave(folder);
+  return readProjectInsideSave(folder, drafts);
 };
 
 export interface IProjectSource {
@@ -224,29 +243,6 @@ export const readProjectSource = async (
     return { file: name, text };
   } catch {
     return undefined;
-  }
-};
-
-export type TSourceWrite = 'written' | 'too-large' | 'failed';
-
-/**
- * Saves the code pane's text over the project's scene source: the same file
- * `readProjectSource` shows, never a path the page names. The watcher on the
- * folder then rebuilds the stage from it, as it does for any editor's save.
- */
-export const writeProjectSource = async (
-  folder: string,
-  text: string,
-): Promise<TSourceWrite> => {
-  if (Buffer.byteLength(text, 'utf8') > MAX_MEMBER_SOURCE_BYTES) {
-    return 'too-large';
-  }
-  try {
-    const { name } = await locateSource(folder, await readManifest(folder));
-    await writeInside(folder, name, 'source', text);
-    return 'written';
-  } catch {
-    return 'failed';
   }
 };
 

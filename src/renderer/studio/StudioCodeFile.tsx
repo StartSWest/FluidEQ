@@ -22,7 +22,8 @@ interface IStudioCodeFileProps {
 
 /**
  * A file of the scene that the Code tab shows and does not edit: `pack.json`,
- * the 3D world, a material's GLSL, an animation, the notes.
+ * a file too large to show, and every file of a scene that is not the
+ * member's - one of FluidEQ's own, or a copy of another member's.
  *
  * Shown as it is on disk, and live like the scene's own file: when the
  * member's AI or their editor saves it, the head says when, how many lines

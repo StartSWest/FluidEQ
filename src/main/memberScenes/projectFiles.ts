@@ -141,6 +141,30 @@ export const readBounded = async (
   return fs.promises.readFile(real);
 };
 
+/**
+ * Files read from the Code tab's unsaved text instead of the disk, by the
+ * name the folder knows them by (`projectCodeDraft.ts`). Each is still found
+ * and checked as a plain file inside the folder first, and held to its
+ * file's limit, so a draft builds exactly as the same text saved would.
+ */
+export type TProjectDrafts = ReadonlyMap<string, string>;
+
+/**
+ * Unsaved text standing in for a file's bytes (`TProjectDrafts`), refused
+ * past the same limit the file itself is read under.
+ */
+export const boundedDraft = (
+  text: string,
+  limit: number,
+  file: TMemberSceneFile,
+): Buffer => {
+  const bytes = Buffer.from(text, 'utf8');
+  if (bytes.byteLength > limit) {
+    throw new ProjectProblem('file-too-large', file);
+  }
+  return bytes;
+};
+
 export const readManifest = async (
   folder: string,
 ): Promise<Record<string, unknown>> => {

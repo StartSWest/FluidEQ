@@ -10,12 +10,12 @@ import type { TExportOutcome, TImportOutcome } from 'main/ipc/memberSharing';
 import type { TPublishOutcome } from 'main/ipc/plusPublishing';
 import type { TInspectOutcome } from 'main/ipc/studioInspect';
 import type { TPlusCategory } from 'common/plusGallery';
-import type {
-  IProjectSource,
-  TProjectBuild,
-  TSourceWrite,
-} from 'main/memberScenes/project';
+import type { IProjectSource, TProjectBuild } from 'main/memberScenes/project';
 import type { IProjectCodeFile } from 'main/memberScenes/projectCode';
+import type {
+  TCodeCheck,
+  TCodeWrite,
+} from 'main/memberScenes/projectCodeDraft';
 import { forgetChatDraft } from './chat/chatDraftStore';
 
 /**
@@ -131,9 +131,22 @@ export const openStudioSession = (): (() => void) => {
 export const readStudioProjectCode = async (): Promise<IProjectCodeFile[]> =>
   (await bridge()?.readStudioProjectCode?.()) ?? [];
 
-/** Saves the code pane's text into the open project's scene file. */
-export const writeStudioSource = async (text: string): Promise<TSourceWrite> =>
-  (await bridge()?.writeStudioSource?.(text)) ?? 'failed';
+/** A Code tab file's unsaved text, checked; refused where nothing answers. */
+export const checkStudioCode = async (
+  file: string,
+  text: string,
+): Promise<TCodeCheck> =>
+  (await bridge()?.checkStudioCode?.(file, text)) ?? {
+    ok: false,
+    refused: 'not-editable',
+  };
+
+/** A Code tab file written, once it passes its check. */
+export const writeStudioCode = async (
+  file: string,
+  text: string,
+): Promise<TCodeWrite> =>
+  (await bridge()?.writeStudioCode?.(file, text)) ?? 'failed';
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);

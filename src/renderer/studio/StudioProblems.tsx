@@ -22,7 +22,7 @@ export const FILE_KEYS: Record<TMemberSceneFile, TranslationKey> = {
 };
 
 /** The first driver error line, which is the one worth reading. */
-const firstError = (log: string) =>
+export const firstErrorLine = (log: string) =>
   log
     .split('\n')
     .map((line) => line.trim())
@@ -119,7 +119,9 @@ const WorldTrouble = ({ report }: { report: IWorldReport }) => {
         </ul>
       )}
       {material && (
-        <code className="studio-problems__log">{firstError(material.log)}</code>
+        <code className="studio-problems__log">
+          {firstErrorLine(material.log)}
+        </code>
       )}
       <span className="studio-problems__hint">{t('studio.compile.hint')}</span>
     </>
@@ -184,7 +186,7 @@ export default function StudioProblems({
             {t('studio.compile.heading')}
           </span>
           <code className="studio-problems__log">
-            {firstError(trouble.log)}
+            {firstErrorLine(trouble.log)}
           </code>
           <span className="studio-problems__hint">
             {t('studio.compile.hint')}

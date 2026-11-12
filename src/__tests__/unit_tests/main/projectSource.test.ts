@@ -21,11 +21,11 @@ import path from 'path';
 import { MAX_MEMBER_SOURCE_BYTES } from '../../../common/memberSceneRules';
 import {
   readProjectSource,
-  writeProjectSource,
   writeStarterProject,
   type IProjectSource,
   type TProjectBuild,
 } from '../../../main/memberScenes/project';
+import { writeCodeFile } from '../../../main/memberScenes/projectCodeDraft';
 import { createSourceFeed } from '../../../main/memberScenes/sourceFeed';
 
 let root: string;
@@ -58,29 +58,30 @@ describe("a project's scene source", () => {
     });
   });
 
+  // Saved by the Code tab (`projectCodeDraft.ts`), which finds the file
+  // among the project's own and builds the scene with the text first.
   it('is saved over that same file, and nowhere else', async () => {
     const starter = fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8');
+    const edited = `${starter}\n// edited\n`;
     // The starter folder as it stands (its picture and animation since
     // cdddc6e4e): the save may add nothing to it.
     const before = fs.readdirSync(folder).sort();
-    await expect(writeProjectSource(folder, '// edited')).resolves.toBe(
+    await expect(writeCodeFile(folder, 'scene.frag', edited)).resolves.toBe(
       'written',
     );
     expect(fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8')).toBe(
-      '// edited',
+      edited,
     );
     expect(before).toContain('scene.frag');
     expect(fs.readdirSync(folder).sort()).toEqual(before);
-    // The control: the file really held something else before.
-    expect(starter).not.toBe('// edited');
   });
 
   it('refuses a manifest that names a file outside the folder', async () => {
     fs.writeFileSync(path.join(root, 'outside.frag'), '// not the scene');
     writeManifest({ ...manifestOf(), sourceFile: '../outside.frag' });
-    await expect(writeProjectSource(folder, '// edited')).resolves.toBe(
-      'failed',
-    );
+    await expect(
+      writeCodeFile(folder, '../outside.frag', '// edited'),
+    ).resolves.toBe('not-editable');
     expect(fs.readFileSync(path.join(root, 'outside.frag'), 'utf8')).toBe(
       '// not the scene',
     );
@@ -90,8 +91,12 @@ describe("a project's scene source", () => {
   it('refuses text larger than a scene may be, without touching the file', async () => {
     const before = fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8');
     await expect(
-      writeProjectSource(folder, 'x'.repeat(MAX_MEMBER_SOURCE_BYTES + 1)),
-    ).resolves.toBe('too-large');
+      writeCodeFile(
+        folder,
+        'scene.frag',
+        'x'.repeat(MAX_MEMBER_SOURCE_BYTES + 1),
+      ),
+    ).resolves.toEqual({ problems: [{ code: 'file-too-large' }] });
     expect(fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8')).toBe(
       before,
     );
@@ -100,9 +105,9 @@ describe("a project's scene source", () => {
   it('is nothing to show, and nothing to save into, when the file is not there', async () => {
     fs.rmSync(path.join(folder, 'scene.frag'));
     await expect(readProjectSource(folder)).resolves.toBeUndefined();
-    await expect(writeProjectSource(folder, '// edited')).resolves.toBe(
-      'failed',
-    );
+    await expect(
+      writeCodeFile(folder, 'scene.frag', '// edited'),
+    ).resolves.toBe('not-editable');
     expect(fs.existsSync(path.join(folder, 'scene.frag'))).toBe(false);
   });
 });

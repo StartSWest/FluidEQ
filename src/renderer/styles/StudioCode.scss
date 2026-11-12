@@ -244,6 +244,20 @@ $code-bar: 10px;
   &.is-dirty {
     color: $amber;
   }
+
+  // A draft the scene does not build with: nothing is saved until it is fixed.
+  &.is-wrong {
+    color: $red;
+  }
+}
+
+// A file being edited: Undo and Redo quiet, Save the loud one, Discard
+// quiet beside it, held together so a narrow head wraps them as one.
+.studio-code__edit-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
 }
 
 .studio-code__dot {
@@ -256,6 +270,11 @@ $code-bar: 10px;
   .is-dirty & {
     background: $amber;
     box-shadow: none;
+  }
+
+  .is-wrong & {
+    background: $red;
+    box-shadow: 0 0 8px color-mix(in srgb, $red 55%, transparent);
   }
 
   // Written by somebody else a moment ago: the diff's own green.
@@ -324,6 +343,74 @@ $code-bar: 10px;
 
 .studio-code__trouble {
   color: $amber;
+}
+
+// Why a draft cannot be saved, in words, each with the line it is on: the
+// line itself is red in the file, and pressing its number brings it into
+// view. Above the file, never between its lines, which the editor draws as
+// one textarea over its painted copy and cannot open a gap in.
+.studio-code__why {
+  display: grid;
+  // A row of its own under the head's name and buttons, inside the head.
+  flex: 1 0 100%;
+  gap: 4px;
+  margin: 2px 0 3px 4px;
+  padding: 8px 10px 8px 12px;
+  list-style: none;
+  border: 1px solid color-mix(in srgb, $red 38%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $red 9%, transparent);
+  font-size: $text-small;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+    min-width: 0;
+    color: $text-primary;
+  }
+
+  span {
+    flex: 1 1 240px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.studio-code__why-line {
+  flex: 0 0 auto;
+  padding: 0;
+  color: $red;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, $red 40%, transparent);
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Under a draft: what Save waits for and what the stage is playing.
+.studio-code__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin: 0;
+  padding: 7px 12px 9px;
+  color: $text-faint;
+  border-top: 1px solid $border-subtle;
+  font-size: $text-micro;
 }
 
 .studio-code__missing {

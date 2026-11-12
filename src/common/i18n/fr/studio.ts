@@ -791,12 +791,30 @@ const studio = {
   'studio.code.title': 'Code',
   'studio.code.label': 'Code de {file}',
   'studio.code.watching': 'Se met à jour à chaque enregistrement',
-  'studio.code.unsaved': 'Non enregistré',
   'studio.code.save': 'Enregistrer',
   'studio.code.saving': 'Enregistrement…',
+  'studio.code.undo': 'Annuler',
+  'studio.code.redo': 'Rétablir',
+  'studio.code.discard': 'Abandonner',
+  'studio.code.checking': 'Vérification…',
+  'studio.code.ready': 'Prêt à enregistrer',
+  'studio.code.problemOne': '1 problème',
+  'studio.code.problems': '{count} problèmes',
+  'studio.code.noCompile': 'Ne compile pas',
+  'studio.code.saveBlocked': 'Corrigez d’abord ce qui est en rouge',
+  'studio.code.atLine': 'Ligne {line}',
+  'studio.code.badJson':
+    'À partir d’ici, ce n’est pas du JSON valide : une virgule, un guillemet ou un crochet manque ou est en trop.',
+  'studio.code.badAnimation':
+    'Ce n’est pas une animation que FluidEQ peut lire. Sa planche reste art/<name>.png, count et columns sont des nombres entiers, fps va de 1 à 60 et loop vaut true ou false.',
+  'studio.code.compileError': 'Le shader ne compile pas : {detail}',
+  'studio.code.checkedBy':
+    'Vérifié selon les mêmes règles que les enregistrements de votre IA',
+  'studio.code.playsDraft':
+    'La scène joue votre brouillon dès qu’il se construit',
+  'studio.code.notEditable':
+    'Ce fichier ne peut pas être modifié ici. Utilisez votre propre éditeur ou demandez à l’IA.',
   'studio.code.failed': 'L’enregistrement a échoué. Réessayez.',
-  'studio.code.tooLarge':
-    'Une scène ne peut pas dépasser 64 Ko. Elle n’a pas été enregistrée.',
   'studio.code.changed':
     'Le fichier a changé hors du Studio pendant que vous tapiez ici.',
   'studio.code.load': 'Charger la nouvelle version',

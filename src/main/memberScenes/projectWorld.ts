@@ -1,10 +1,12 @@
 import { WORLD_LIMITS } from '../../common/sceneWorld';
 import { readModelCost } from '../../common/worldModelCheck';
 import {
+  boundedDraft,
   isRecord,
   ProjectProblem,
   readBounded,
   resolveInside,
+  type TProjectDrafts,
 } from './projectFiles';
 
 /**
@@ -45,6 +47,7 @@ export const MAX_WORLD_FILE_BYTES =
 const readWorldFiles = async (
   folder: string,
   world: unknown,
+  drafts: TProjectDrafts,
 ): Promise<unknown> => {
   if (!isRecord(world)) {
     return world;
@@ -56,7 +59,10 @@ const readWorldFiles = async (
       throw new ProjectProblem('unsafe-path', 'world');
     }
     const real = await resolveInside(folder, name, 'world');
-    return readBounded(real, limit, 'world');
+    const drafted = drafts.get(name);
+    return drafted === undefined
+      ? readBounded(real, limit, 'world')
+      : boundedDraft(drafted, limit, 'world');
   };
   let hookBytes: number = WORLD_LIMITS.hookTotalBytes;
   const readHook = async (name: unknown) => {
@@ -125,14 +131,20 @@ const readWorldFiles = async (
   return { ...world, materials, models };
 };
 
-/** The world `manifest` gives, its files read in; undefined when it has none. */
+/**
+ * The world `manifest` gives, its files read in; undefined when it has none.
+ * A file named in `drafts` is read from that unsaved text instead.
+ */
 const readProjectWorld = async (
   folder: string,
   manifest: Record<string, unknown>,
+  drafts: TProjectDrafts = new Map(),
 ): Promise<unknown> => {
   const { world, worldFile } = manifest;
   if (worldFile === undefined) {
-    return world === undefined ? undefined : readWorldFiles(folder, world);
+    return world === undefined
+      ? undefined
+      : readWorldFiles(folder, world, drafts);
   }
   if (world !== undefined) {
     throw new ProjectProblem('bad-world', 'world');
@@ -141,14 +153,18 @@ const readProjectWorld = async (
     throw new ProjectProblem('unsafe-path', 'world');
   }
   const real = await resolveInside(folder, worldFile, 'world');
-  const bytes = await readBounded(real, MAX_WORLD_FILE_BYTES, 'world');
+  const drafted = drafts.get(worldFile);
+  const bytes =
+    drafted === undefined
+      ? await readBounded(real, MAX_WORLD_FILE_BYTES, 'world')
+      : boundedDraft(drafted, MAX_WORLD_FILE_BYTES, 'world');
   let parsed: unknown;
   try {
     parsed = JSON.parse(bytes.toString('utf8'));
   } catch {
     throw new ProjectProblem('bad-world', 'world');
   }
-  return readWorldFiles(folder, parsed);
+  return readWorldFiles(folder, parsed, drafts);
 };
 
 export default readProjectWorld;

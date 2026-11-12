@@ -785,12 +785,30 @@ const studio = {
   'studio.code.title': 'Código',
   'studio.code.label': 'Código de {file}',
   'studio.code.watching': 'Se actualiza al guardar',
-  'studio.code.unsaved': 'Sin guardar',
   'studio.code.save': 'Guardar',
   'studio.code.saving': 'Guardando…',
+  'studio.code.undo': 'Deshacer',
+  'studio.code.redo': 'Rehacer',
+  'studio.code.discard': 'Descartar',
+  'studio.code.checking': 'Comprobando…',
+  'studio.code.ready': 'Listo para guardar',
+  'studio.code.problemOne': '1 problema',
+  'studio.code.problems': '{count} problemas',
+  'studio.code.noCompile': 'No compila',
+  'studio.code.saveBlocked': 'Arregla primero lo marcado en rojo',
+  'studio.code.atLine': 'Línea {line}',
+  'studio.code.badJson':
+    'A partir de aquí no es un JSON válido: falta o sobra una coma, unas comillas o un corchete.',
+  'studio.code.badAnimation':
+    'Esta no es una animación que FluidEQ pueda reproducir. Su hoja sigue siendo art/<name>.png, count y columns son números enteros, fps va de 1 a 60 y loop es true o false.',
+  'studio.code.compileError': 'El shader no compila: {detail}',
+  'studio.code.checkedBy':
+    'Comprobado con las mismas reglas que lo que guarda tu IA',
+  'studio.code.playsDraft':
+    'El escenario reproduce tu borrador en cuanto se construye',
+  'studio.code.notEditable':
+    'Este archivo no se puede cambiar aquí. Usa tu propio editor o pídeselo a la IA.',
   'studio.code.failed': 'No se pudo guardar. Vuelve a intentarlo.',
-  'studio.code.tooLarge':
-    'Una escena puede ocupar como máximo 64 KB. No se guardó.',
   'studio.code.changed':
     'El archivo cambió fuera del Estudio mientras escribías aquí.',
   'studio.code.load': 'Cargar la versión nueva',

@@ -13,7 +13,6 @@ import os from 'os';
 import path from 'path';
 import {
   readProject,
-  writeProjectSource,
   writeStarterProject,
 } from '../../../main/memberScenes/project';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
@@ -25,6 +24,7 @@ import {
   SHEET_BOUNDS,
 } from '../../../common/pictureBounds';
 import { readProjectAnimations } from '../../../main/memberScenes/projectAnimations';
+import { writeCodeFile } from '../../../main/memberScenes/projectCodeDraft';
 import {
   readPictureAtlas,
   readPictureImage,
@@ -324,9 +324,9 @@ describe('reading a project folder', () => {
   it('writes the shader over itself, and never through a second name', async () => {
     write('pack.json', JSON.stringify(manifest()));
     write('scene.frag', SOURCE);
-    expect(await writeProjectSource(project, `${SOURCE}// edited\n`)).toBe(
-      'written',
-    );
+    expect(
+      await writeCodeFile(project, 'scene.frag', `${SOURCE}// edited\n`),
+    ).toBe('written');
     expect(fs.readFileSync(path.join(project, 'scene.frag'), 'utf8')).toContain(
       '// edited',
     );
@@ -336,7 +336,7 @@ describe('reading a project folder', () => {
     fs.writeFileSync(outside, 'theirs');
     fs.rmSync(path.join(project, 'scene.frag'));
     fs.linkSync(outside, path.join(project, 'scene.frag'));
-    expect(await writeProjectSource(project, SOURCE)).toBe('failed');
+    expect(await writeCodeFile(project, 'scene.frag', SOURCE)).toBe('failed');
     expect(fs.readFileSync(outside, 'utf8')).toBe('theirs');
   });
 

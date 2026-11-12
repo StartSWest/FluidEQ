@@ -48,7 +48,8 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
   }),
 }));
 
-const writeStudioSource = jest.fn();
+const writeStudioCode = jest.fn();
+const checkStudioCode = jest.fn();
 const readStudioProjectCode = jest.fn();
 
 const source = (text: string): IProjectSource => ({ file: 'scene.frag', text });
@@ -94,6 +95,12 @@ const openFiles = () =>
     .getAllByRole('button', { expanded: true })
     .map((button) => button.textContent);
 
+/** Typed into the scene's code, and its check answered. */
+const type = async (value: string) => {
+  fireEvent.change(editor(), { target: { value } });
+  await act(async () => {});
+};
+
 /** The tab draws nothing until its first read of the files has answered. */
 const show = async (ui: ReactElement) => {
   const view = render(ui);
@@ -105,11 +112,14 @@ beforeEach(() => {
   jest.clearAllMocks();
   window.localStorage.clear();
   resetStudioStore();
-  writeStudioSource.mockResolvedValue('written');
+  writeStudioCode.mockResolvedValue('written');
+  checkStudioCode.mockResolvedValue({ ok: true });
   readStudioProjectCode.mockResolvedValue([]);
   Object.defineProperty(window, 'electron', {
     configurable: true,
-    value: { ipcRenderer: { writeStudioSource, readStudioProjectCode } },
+    value: {
+      ipcRenderer: { writeStudioCode, checkStudioCode, readStudioProjectCode },
+    },
   });
 });
 
@@ -132,7 +142,12 @@ describe('the lines the pane marks as wrong', () => {
 describe("the scene's own code", () => {
   it('shows the file as it is, which is not a change to it', async () => {
     await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     expect(editor()).toHaveValue(BEFORE);
     expect(status()).toHaveTextContent('studio.code.watching');
@@ -143,9 +158,21 @@ describe("the scene's own code", () => {
 
   it('takes an outside save, and marks and shows what it changed', async () => {
     const { container, rerender } = await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
-    rerender(<StudioCode source={source(AFTER)} problemLines={[]} editable />);
+    rerender(
+      <StudioCode
+        projectId="one"
+        source={source(AFTER)}
+        problemLines={[]}
+        editable
+      />,
+    );
     expect(editor()).toHaveValue(AFTER);
     expect(status()).toHaveTextContent('studio.code.updatedAt:');
     expect(container.querySelector('.studio-code__delta')).toHaveTextContent(
@@ -167,43 +194,76 @@ describe("the scene's own code", () => {
 
   it("saves the member's typing, and takes that save coming back as their own", async () => {
     const { rerender } = await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     const save = screen.getByRole('button', { name: 'studio.code.save' });
     expect(save).toBeDisabled();
 
     fireEvent.change(editor(), { target: { value: AFTER } });
-    expect(status()).toHaveTextContent('studio.code.unsaved');
+    expect(status()).toHaveTextContent('studio.code.checking');
+    expect(save).toBeDisabled();
+    await act(async () => {});
+    expect(checkStudioCode).toHaveBeenCalledWith('scene.frag', AFTER);
+    expect(status()).toHaveTextContent('studio.code.ready');
     await act(async () => {
       fireEvent.click(save);
     });
-    expect(writeStudioSource).toHaveBeenCalledWith(AFTER);
+    expect(writeStudioCode).toHaveBeenCalledWith('scene.frag', AFTER);
     expect(status()).toHaveTextContent('studio.code.watching');
 
     // The watcher reads the pane's own save back: nothing to offer or mark.
-    rerender(<StudioCode source={source(AFTER)} problemLines={[]} editable />);
+    rerender(
+      <StudioCode
+        projectId="one"
+        source={source(AFTER)}
+        problemLines={[]}
+        editable
+      />,
+    );
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(status()).toHaveTextContent('studio.code.watching');
   });
 
   it('saves on Ctrl+S from the code', async () => {
     await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
-    fireEvent.change(editor(), { target: { value: AFTER } });
+    await type(AFTER);
     await act(async () => {
       fireEvent.keyDown(editor(), { key: 's', ctrlKey: true });
     });
-    expect(writeStudioSource).toHaveBeenCalledWith(AFTER);
+    expect(writeStudioCode).toHaveBeenCalledWith('scene.frag', AFTER);
   });
 
   it('offers an outside save instead of writing it over typing, and loads it on request', async () => {
     const { rerender } = await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     const typed = `${BEFORE}\n// mine`;
-    fireEvent.change(editor(), { target: { value: typed } });
-    rerender(<StudioCode source={source(AFTER)} problemLines={[]} editable />);
+    await type(typed);
+    rerender(
+      <StudioCode
+        projectId="one"
+        source={source(AFTER)}
+        problemLines={[]}
+        editable
+      />,
+    );
 
     expect(screen.getByRole('alert')).toHaveTextContent('studio.code.changed');
     expect(editor()).toHaveValue(typed);
@@ -215,29 +275,48 @@ describe("the scene's own code", () => {
 
   it('keeps the typing on request, still unsaved', async () => {
     const { rerender } = await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     const typed = `${BEFORE}\n// mine`;
-    fireEvent.change(editor(), { target: { value: typed } });
-    rerender(<StudioCode source={source(AFTER)} problemLines={[]} editable />);
+    await type(typed);
+    rerender(
+      <StudioCode
+        projectId="one"
+        source={source(AFTER)}
+        problemLines={[]}
+        editable
+      />,
+    );
 
-    fireEvent.click(screen.getByRole('button', { name: 'studio.code.keep' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'studio.code.keep' }));
+    });
     expect(editor()).toHaveValue(typed);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(status()).toHaveTextContent('studio.code.unsaved');
+    expect(status()).toHaveTextContent('studio.code.ready');
   });
 
-  it('says a save too large for a scene was not saved', async () => {
-    writeStudioSource.mockResolvedValue('too-large');
+  it('says a save main refused was not saved, and keeps the draft', async () => {
+    writeStudioCode.mockResolvedValue('failed');
     await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
-    fireEvent.change(editor(), { target: { value: AFTER } });
+    await type(AFTER);
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'studio.code.save' }));
     });
-    expect(screen.getByRole('alert')).toHaveTextContent('studio.code.tooLarge');
-    expect(status()).toHaveTextContent('studio.code.unsaved');
+    expect(screen.getByRole('alert')).toHaveTextContent('studio.code.failed');
+    expect(editor()).toHaveValue(AFTER);
   });
 
   it('says so when the project has no scene file to show', async () => {
@@ -272,7 +351,12 @@ describe("the scene's own code", () => {
   it('is still shown when the other files could not be read', async () => {
     readStudioProjectCode.mockRejectedValue(new Error('gone'));
     await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     expect(editor()).toHaveValue(BEFORE);
   });
@@ -430,15 +514,15 @@ describe("every file of the scene, in the Code tab's list", () => {
       />,
     );
     fireEvent.click(fold('scene.frag'));
-    fireEvent.change(editor(), { target: { value: AFTER } });
+    await type(AFTER);
     fireEvent.click(fold('scene.frag'));
 
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-    expect(status()).toHaveTextContent('studio.code.unsaved');
+    expect(status()).toHaveTextContent('studio.code.ready');
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'studio.code.save' }));
     });
-    expect(writeStudioSource).toHaveBeenCalledWith(AFTER);
+    expect(writeStudioCode).toHaveBeenCalledWith('scene.frag', AFTER);
 
     fireEvent.click(fold('scene.frag'));
     expect(editor()).toHaveValue(AFTER);

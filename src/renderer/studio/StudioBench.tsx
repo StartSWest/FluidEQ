@@ -18,10 +18,12 @@ import StudioChatColumn from './chat/StudioChatColumn';
 import useStageCapture from './chat/useStageCapture';
 import { useStudioChat } from './chat/studioChatStore';
 import StudioCode, { problemLinesOf } from './StudioCode';
+import { useCodeDraft } from './codeDraftStore';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
 import StudioProblems, {
   FILE_KEYS,
+  firstErrorLine,
   STUDIO_PROBLEMS_ID,
 } from './StudioProblems';
 import { prefersReducedMotion } from '../utils/bandReveal';
@@ -107,19 +109,29 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   useStageViewForAgent(preview);
   const { motion, toggleMotion } = useStageMotion();
   const isGridShown = useStudioGridShown();
+  // A Code tab file's unsaved draft, once main has built it, plays in place
+  // of what is saved (`codeDraftStore.ts`). Each draft is a version of its
+  // own to the stage, numbered below zero so it never meets a saved one.
+  const codeDraft = useCodeDraft(state.activeId);
+  const stageSerial = codeDraft ? -codeDraft.serial : serial;
   const [stageProblem, setStageProblem] = useState<{
     identity?: string;
     serial: number;
     value: TStageTrouble;
   }>();
   const trouble =
-    stageProblem?.identity === state.activeId && stageProblem?.serial === serial
+    stageProblem?.identity === state.activeId &&
+    stageProblem?.serial === stageSerial
       ? stageProblem.value
       : undefined;
   const setTrouble = useCallback(
     (value: TStageTrouble) =>
-      setStageProblem({ identity: state.activeId, serial, value }),
-    [state.activeId, serial],
+      setStageProblem({
+        identity: state.activeId,
+        serial: stageSerial,
+        value,
+      }),
+    [state.activeId, stageSerial],
   );
   const [scale, setScale] = useState(1);
   const [notice, setNotice] = useState<ISharingNotice>();
@@ -163,7 +175,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   useEffect(() => {
     setStageProblem(undefined);
     setNotice(undefined);
-  }, [serial, state.activeId]);
+  }, [stageSerial, state.activeId]);
 
   const project = state.projects.find((entry) => entry.id === state.activeId);
   const folderName = project?.folderName;
@@ -306,8 +318,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       <StudioStageSound
         key={`stage:${state.activeId}`}
         identity={state.activeId ?? ''}
-        pack={pack}
-        serial={serial}
+        pack={codeDraft?.pack ?? pack}
+        serial={stageSerial}
         signal={signal}
         size={size}
         preview={preview}
@@ -431,10 +443,21 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         projectId={project.id}
         source={view.source}
         editable={!project.official && !project.member}
+        // A compile failure is of whatever the stage was handed: the draft
+        // while one plays, which the file being edited answers for, else
+        // what is saved.
         problemLines={problemLinesOf(
           problems,
-          trouble?.kind === 'compile' ? trouble.log : undefined,
+          trouble?.kind === 'compile' && !codeDraft ? trouble.log : undefined,
         )}
+        compile={
+          trouble?.kind === 'compile' && codeDraft
+            ? {
+                lines: problemLinesOf(undefined, trouble.log),
+                message: firstErrorLine(trouble.log),
+              }
+            : undefined
+        }
       />
     );
   }

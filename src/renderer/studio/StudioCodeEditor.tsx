@@ -14,6 +14,13 @@ interface IStudioCodeEditorProps {
   /** Absent for a file that is only shown: nothing typed reaches it. */
   onText?: (text: string) => void;
   onSave?: () => void;
+  /**
+   * The draft's own Undo and Redo (`codeHistory.ts`), on Ctrl+Z and Ctrl+Y
+   * or Ctrl+Shift+Z: the textarea's own history does not survive its value
+   * being set from the draft.
+   */
+  onUndo?: () => void;
+  onRedo?: () => void;
   /** How a line is coloured; the shader's way unless the file is another kind. */
   pieces?: (line: string) => IGlslPiece[];
   /** Lines something is wrong on, in red. */
@@ -56,6 +63,8 @@ export default function StudioCodeEditor({
   label,
   onText,
   onSave,
+  onUndo,
+  onRedo,
   pieces = glslPieces,
   wrong,
   added,
@@ -111,9 +120,20 @@ export default function StudioCodeEditor({
   }, [revealId, revealLine]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+    const held = event.ctrlKey || event.metaKey;
+    const key = event.key.toLowerCase();
+    if (held && key === 's') {
       event.preventDefault();
       onSave?.();
+      return;
+    }
+    if (held && onUndo && onRedo && (key === 'z' || key === 'y')) {
+      event.preventDefault();
+      if (key === 'y' || event.shiftKey) {
+        onRedo();
+      } else {
+        onUndo();
+      }
       return;
     }
     // Tab indents, as in any code editor; Escape gives the key back to the

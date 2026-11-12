@@ -771,12 +771,29 @@ const studio = {
   'studio.code.title': 'कोड',
   'studio.code.label': '{file} का कोड',
   'studio.code.watching': 'सहेजते ही अपडेट होता है',
-  'studio.code.unsaved': 'सहेजा नहीं गया',
   'studio.code.save': 'सहेजें',
   'studio.code.saving': 'सहेजा जा रहा है…',
+  'studio.code.undo': 'पहले जैसा करें',
+  'studio.code.redo': 'फिर से करें',
+  'studio.code.discard': 'छोड़ें',
+  'studio.code.checking': 'जाँच हो रही है…',
+  'studio.code.ready': 'सहेजने के लिए तैयार',
+  'studio.code.problemOne': '1 समस्या',
+  'studio.code.problems': '{count} समस्याएँ',
+  'studio.code.noCompile': 'कंपाइल नहीं होता',
+  'studio.code.saveBlocked': 'पहले लाल में दिखाई गई चीज़ ठीक करें',
+  'studio.code.atLine': 'पंक्ति {line}',
+  'studio.code.badJson':
+    'यहाँ से यह मान्य JSON नहीं है: कोई कॉमा, उद्धरण चिह्न या कोष्ठक छूटा है या ज़्यादा है।',
+  'studio.code.badAnimation':
+    'यह ऐसा एनिमेशन नहीं है जिसे FluidEQ चला सके। इसकी शीट art/<name>.png ही रहती है, count और columns पूर्ण संख्याएँ हैं, fps 1 से 60 तक है और loop true या false है।',
+  'studio.code.compileError': 'शेडर कंपाइल नहीं होता: {detail}',
+  'studio.code.checkedBy':
+    'उन्हीं नियमों से जाँचा गया जिनसे आपके AI की सहेजी फ़ाइलें जाँची जाती हैं',
+  'studio.code.playsDraft': 'बनते ही स्टेज आपका ड्राफ़्ट चलाता है',
+  'studio.code.notEditable':
+    'इस फ़ाइल को यहाँ बदला नहीं जा सकता। अपना एडिटर इस्तेमाल करें या AI से कहें।',
   'studio.code.failed': 'सहेजा नहीं जा सका। फिर कोशिश करें।',
-  'studio.code.tooLarge':
-    'एक सीन अधिकतम 64 KB का हो सकता है। इसे सहेजा नहीं गया।',
   'studio.code.changed':
     'जब आप यहाँ लिख रहे थे, स्टूडियो के बाहर फ़ाइल बदल गई।',
   'studio.code.load': 'नया संस्करण लोड करें',

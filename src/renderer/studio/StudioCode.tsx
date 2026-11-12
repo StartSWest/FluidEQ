@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { IMemberSceneProblem } from 'common/memberScenes';
 import type { IProjectSource } from 'main/memberScenes/project';
-import type { IProjectCodeFile } from 'main/memberScenes/projectCode';
+import type {
+  IProjectCodeFile,
+  TProjectCodeRole,
+} from 'main/memberScenes/projectCode';
 import { useTranslation } from '../utils/I18nContext';
+import { bytesOf } from './codeFileMeta';
 import { openFilesOf, rememberOpenFiles } from './codeOpenFiles';
+import StudioCodeEditable, {
+  type ICodeCompileFailure,
+} from './StudioCodeEditable';
 import StudioCodeFile from './StudioCodeFile';
 import StudioCodeNotes from './StudioCodeNotes';
-import StudioCodeScene from './StudioCodeScene';
 import { readStudioProjectCode, useStudio } from './studioStore';
 import '../styles/StudioCode.scss';
 
@@ -37,13 +43,19 @@ interface IStudioCodeProps {
   projectId?: string;
   /** The open project's scene source as it is on disk now. */
   source: IProjectSource | undefined;
+  /** The scene file's lines the last build of what is saved found wrong. */
   problemLines: readonly number[];
+  /** The stage could not compile the draft it was handed (`codeDraftStore`). */
+  compile?: ICodeCompileFailure;
   /**
    * Whether the scene is the member's to change: not one of FluidEQ's own
    * or a copy of another member's, opened to look inside.
    */
   editable: boolean;
 }
+
+/** The kinds of file the tab edits; the rest it shows as they are. */
+const EDITED: readonly TProjectCodeRole[] = ['world', 'material', 'animation'];
 
 /**
  * The open project's code, beside the stage it becomes: every file of it,
@@ -53,8 +65,11 @@ interface IStudioCodeProps {
  * only show scene frag, it needs to show the full code, all files, and
  * expand collapse on each"). A scene with a 3D world keeps most of itself
  * in `world.json` and its materials' files, and all of it is here now: the
- * shader first and open, edited as before (`StudioCodeScene`), the rest
- * shown as they are on disk (`StudioCodeFile`).
+ * shader first, then the rest. The scene's code - the shader, the world, its
+ * materials, the animations - is edited here, each checked before it is
+ * saved (`StudioCodeEditable`); `pack.json`, a file too large to show and
+ * every file of a scene that is not the member's are shown as they are on
+ * disk (`StudioCodeFile`), and the notes have their own fields.
  *
  * A scene with several files opens as the list of them, every one folded.
  * Its shader runs to a thousand lines and more, and open it stood between
@@ -73,6 +88,7 @@ export default function StudioCode({
   projectId,
   source,
   problemLines,
+  compile,
   editable,
 }: IStudioCodeProps) {
   const { t } = useTranslation();
@@ -175,36 +191,75 @@ export default function StudioCode({
       </div>
 
       <div className="studio-code__files">
-        {source && files !== undefined && (
-          <StudioCodeScene
-            source={source}
-            problemLines={problemLines}
-            open={isOpen(source.file)}
-            onToggle={() => toggle(source.file)}
-          />
-        )}
-        {others.map((file) =>
-          file.role === 'notes' && projectId ? (
-            <StudioCodeNotes
-              key={file.file}
+        {source &&
+          files !== undefined &&
+          (editable && projectId ? (
+            <StudioCodeEditable
               projectId={projectId}
-              file={file}
-              open={isOpen(file.file)}
-              onToggle={() => toggle(file.file)}
-              editable={editable}
-              // Written by the notes' own writer, which the Studio does not
-              // hear of: the tab reads its files again at once.
-              onSaved={() => setFocused((count) => count + 1)}
+              file={source.file}
+              kind="scene"
+              diskText={source.text}
+              open={isOpen(source.file)}
+              onToggle={() => toggle(source.file)}
+              savedWrong={problemLines}
+              compile={compile}
             />
           ) : (
+            <StudioCodeFile
+              file={{
+                file: source.file,
+                role: 'scene',
+                bytes: bytesOf(source.text),
+                text: source.text,
+              }}
+              open={isOpen(source.file)}
+              onToggle={() => toggle(source.file)}
+            />
+          ))}
+        {others.map((file) => {
+          if (file.role === 'notes' && projectId) {
+            return (
+              <StudioCodeNotes
+                key={file.file}
+                projectId={projectId}
+                file={file}
+                open={isOpen(file.file)}
+                onToggle={() => toggle(file.file)}
+                editable={editable}
+                // Written by the notes' own writer, which the Studio does not
+                // hear of: the tab reads its files again at once.
+                onSaved={() => setFocused((count) => count + 1)}
+              />
+            );
+          }
+          // A file too large to show is not edited here: nobody can read it.
+          if (
+            editable &&
+            projectId &&
+            file.text !== undefined &&
+            EDITED.includes(file.role)
+          ) {
+            return (
+              <StudioCodeEditable
+                key={file.file}
+                projectId={projectId}
+                file={file.file}
+                kind={file.role}
+                diskText={file.text}
+                open={isOpen(file.file)}
+                onToggle={() => toggle(file.file)}
+              />
+            );
+          }
+          return (
             <StudioCodeFile
               key={file.file}
               file={file}
               open={isOpen(file.file)}
               onToggle={() => toggle(file.file)}
             />
-          ),
-        )}
+          );
+        })}
         {names.length === 0 && files !== undefined && (
           <p className="studio-code__missing">{t('studio.code.missing')}</p>
         )}

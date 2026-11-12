@@ -1,7 +1,6 @@
 import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import path from 'path';
 import type { IScenePack } from '../../common/scenePacks';
-import { writeProjectSource, type TSourceWrite } from '../memberScenes/project';
 import { createPublishedMarks } from '../memberScenes/publishedMarks';
 import type { IProjectPublished } from '../memberScenes/publishedRecords';
 import {
@@ -145,7 +144,6 @@ const CHANNELS = [
   'studio-create-project',
   'studio-add-to-looks',
   'studio-show-folder',
-  'studio-write-source',
 ] as const;
 
 const STUDIO_FILE = path.join('member-scenes', 'studio.json');
@@ -473,19 +471,6 @@ export const registerStudioProjectsIpc = ({
       await openPath(folder);
     }
   });
-
-  // The code pane's save: text only, into the open project's own source
-  // file. The watcher rebuilds the stage from it like any other save.
-  ipcMain.handle(
-    'studio-write-source',
-    async (_event, text: unknown): Promise<TSourceWrite> => {
-      const folder = activeFolder();
-      if (!mayUseActive() || !folder || typeof text !== 'string') {
-        return 'failed';
-      }
-      return writeProjectSource(folder, text);
-    },
-  );
 
   // The notes, the Pictures card, the picture for the member's AI and the
   // scene's settings: `studioProjectPanes.ts`.

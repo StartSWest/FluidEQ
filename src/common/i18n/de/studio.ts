@@ -800,12 +800,31 @@ const studio = {
   'studio.code.title': 'Code',
   'studio.code.label': 'Code von {file}',
   'studio.code.watching': 'Aktualisiert sich beim Speichern',
-  'studio.code.unsaved': 'Nicht gespeichert',
   'studio.code.save': 'Speichern',
   'studio.code.saving': 'Wird gespeichert…',
+  'studio.code.undo': 'Rückgängig',
+  'studio.code.redo': 'Wiederholen',
+  'studio.code.discard': 'Verwerfen',
+  'studio.code.checking': 'Wird geprüft…',
+  'studio.code.ready': 'Bereit zum Speichern',
+  'studio.code.problemOne': '1 Problem',
+  'studio.code.problems': '{count} Probleme',
+  'studio.code.noCompile': 'Lässt sich nicht kompilieren',
+  'studio.code.saveBlocked': 'Beheben Sie zuerst, was rot markiert ist',
+  'studio.code.atLine': 'Zeile {line}',
+  'studio.code.badJson':
+    'Ab hier ist das kein gültiges JSON: Ein Komma, Anführungszeichen oder eine Klammer fehlt oder ist zu viel.',
+  'studio.code.badAnimation':
+    'Das ist keine Animation, die FluidEQ abspielen kann. Ihr Sheet bleibt art/<name>.png, count und columns sind ganze Zahlen, fps liegt zwischen 1 und 60 und loop ist true oder false.',
+  'studio.code.compileError':
+    'Der Shader lässt sich nicht kompilieren: {detail}',
+  'studio.code.checkedBy':
+    'Nach denselben Regeln geprüft wie die Speicherungen Ihrer KI',
+  'studio.code.playsDraft':
+    'Die Bühne spielt Ihren Entwurf, sobald er sich aufbauen lässt',
+  'studio.code.notEditable':
+    'Diese Datei lässt sich hier nicht ändern. Nutzen Sie Ihren eigenen Editor oder fragen Sie die KI.',
   'studio.code.failed': 'Speichern fehlgeschlagen. Versuchen Sie es erneut.',
-  'studio.code.tooLarge':
-    'Eine Szene darf höchstens 64 KB groß sein. Sie wurde nicht gespeichert.',
   'studio.code.changed':
     'Die Datei wurde außerhalb des Studios geändert, während Sie hier getippt haben.',
   'studio.code.load': 'Neue Version laden',

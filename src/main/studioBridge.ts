@@ -39,7 +39,7 @@ import type { ISceneResponse } from '../common/sceneResponse';
 import type { IScenePaletteValue } from '../common/scenePalette';
 import type { ISceneWave } from '../common/sceneWave';
 import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
-import type { IProjectSource, TSourceWrite } from './memberScenes/project';
+import type { IProjectSource } from './memberScenes/project';
 import type { TInspectOutcome } from './ipc/studioInspect';
 import type { TPublishOutcome } from './ipc/plusPublishing';
 import type { TPlusCategory } from '../common/plusGallery';
@@ -212,6 +212,21 @@ const readStudioProjectCode = () =>
     import('./memberScenes/projectCode').IProjectCodeFile[]
   >;
 
+/**
+ * A file of the Code tab, unsaved, checked by the rules every save of the
+ * folder goes through; the scene it would play as when it passes.
+ */
+const checkStudioCode = (file: string, text: string) =>
+  ipcRenderer.invoke('studio-check-code', file, text) as Promise<
+    import('./memberScenes/projectCodeDraft').TCodeCheck
+  >;
+
+/** The same file written, only once it passes that check. */
+const writeStudioCode = (file: string, text: string) =>
+  ipcRenderer.invoke('studio-write-code', file, text) as Promise<
+    import('./memberScenes/projectCodeDraft').TCodeWrite
+  >;
+
 /** Edit mode's Save: every change since the last, into the scene's world. */
 const editStudioWorld = (ops: import('../common/sceneEdit').TWorldEditOp[]) =>
   ipcRenderer.invoke('studio-world-edit', ops) as Promise<
@@ -330,10 +345,6 @@ const onStudioSourceChanged = (
   };
 };
 
-/** Text only: the main process writes it into the open project's own file. */
-const writeStudioSource = (text: string) =>
-  ipcRenderer.invoke('studio-write-source', text) as Promise<TSourceWrite>;
-
 /**
  * One of FluidEQ's own scenes, opened in the Studio to look inside. Only the
  * scene's id crosses; the main process finds the scene and checks it is
@@ -415,6 +426,8 @@ const studioBridge = {
   readStudioArtworkSources,
   editStudioWorld,
   readStudioProjectCode,
+  checkStudioCode,
+  writeStudioCode,
   showStudioAnimation,
   onStudioAnimationsChanged,
   chooseStudioPicture,
@@ -432,7 +445,6 @@ const studioBridge = {
   likeMemberScene,
   onStudioChanged,
   onStudioSourceChanged,
-  writeStudioSource,
   inspectOfficialScene,
   publishStudioScene,
   cancelStudioPublish,

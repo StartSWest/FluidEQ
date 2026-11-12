@@ -126,10 +126,12 @@ export const registerStudioProjectPanes = ({
     mayEdit: mayUseActive,
     activeFolder,
   });
-  // The Code tab's files: read, never written, and only of a project the
-  // member may use.
+  // The Code tab's files: read of a project the member may use, and checked
+  // and written only where that project is their own to change - never a
+  // scene opened to look inside (`mayUpdateLook` is that test).
   const disposeCode = registerStudioProjectCode({
     mayRead: mayUseActive,
+    mayWrite: () => mayUseActive() && mayUpdateLook(),
     activeFolder,
   });
   return () => {

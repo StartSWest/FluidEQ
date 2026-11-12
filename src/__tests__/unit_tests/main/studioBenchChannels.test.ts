@@ -78,7 +78,11 @@ beforeEach(async () => {
     activeFolder: () => (open ? folder : undefined),
   };
   const stopEdit = registerStudioWorldEdit({ ...deps, mayEdit: () => may });
-  const stopCode = registerStudioProjectCode({ ...deps, mayRead: () => may });
+  const stopCode = registerStudioProjectCode({
+    ...deps,
+    mayRead: () => may,
+    mayWrite: () => may,
+  });
   dispose = () => {
     stopEdit();
     stopCode();
@@ -192,8 +196,10 @@ describe('both channels', () => {
   it('are taken away again', () => {
     dispose();
     expect(mockRemoved.sort()).toEqual([
+      'studio-check-code',
       'studio-project-code',
       'studio-world-edit',
+      'studio-write-code',
     ]);
   });
 });

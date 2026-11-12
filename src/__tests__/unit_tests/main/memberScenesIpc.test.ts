@@ -430,23 +430,31 @@ describe('member scenes over IPC', () => {
       text: fs.readFileSync(file, 'utf8'),
     });
 
-    expect(await invoke('studio-write-source', '// from the pane')).toBe(
+    // Saved through the Code tab's checked save (`projectCodeDraft.ts`):
+    // the scene builds with the text before it is written.
+    const original = fs.readFileSync(file, 'utf8');
+    const fromPane = `${original}\n// from the pane\n`;
+    expect(await invoke('studio-write-code', 'scene.frag', fromPane)).toBe(
       'written',
     );
-    expect(fs.readFileSync(file, 'utf8')).toBe('// from the pane');
+    expect(fs.readFileSync(file, 'utf8')).toBe(fromPane);
 
-    // Text only: never a path or anything else the page might send.
-    expect(await invoke('studio-write-source', { file: '../x' })).toBe(
-      'failed',
+    // A name the tab does not list, or anything but text, is refused.
+    expect(await invoke('studio-write-code', { file: '../x' }, fromPane)).toBe(
+      'not-editable',
+    );
+    expect(await invoke('studio-write-code', '../x.frag', fromPane)).toBe(
+      'not-editable',
     );
 
     // Their own project is theirs to work on whatever they own.
     owned = false;
     ownershipChanged();
-    expect(await invoke('studio-write-source', '// owning nothing')).toBe(
+    const owningNothing = `${original}\n// owning nothing\n`;
+    expect(await invoke('studio-write-code', 'scene.frag', owningNothing)).toBe(
       'written',
     );
-    expect(fs.readFileSync(file, 'utf8')).toBe('// owning nothing');
+    expect(fs.readFileSync(file, 'utf8')).toBe(owningNothing);
     registration.dispose();
   });
 
@@ -457,7 +465,12 @@ describe('member scenes over IPC', () => {
     expect(opened).toMatchObject({ mayAddProject: true });
 
     expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
-    expect(await invoke('studio-write-source', '// mine')).toBe('written');
+    const [scene] = await invoke<Promise<{ file: string; text: string }[]>>(
+      'studio-project-code',
+    );
+    expect(
+      await invoke('studio-write-code', scene.file, `${scene.text}// mine\n`),
+    ).toBe('written');
     expect(await invoke('studio-create-project', 'Deep Sea')).toBe('written');
     chosen = await project();
     const linked = await link();
@@ -643,7 +656,9 @@ describe('member scenes over IPC', () => {
   it('has nowhere to save the code pane into before a project is open', async () => {
     const registration = setup();
     await invoke<Promise<IStudioState>>('studio-open');
-    expect(await invoke('studio-write-source', '// nowhere')).toBe('failed');
+    expect(await invoke('studio-write-code', 'scene.frag', '// nowhere')).toBe(
+      'not-editable',
+    );
     registration.dispose();
   });
 });

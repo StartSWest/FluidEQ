@@ -777,12 +777,30 @@ const studio = {
   'studio.code.title': 'Код',
   'studio.code.label': 'Код {file}',
   'studio.code.watching': 'Обновляется при сохранении',
-  'studio.code.unsaved': 'Не сохранено',
   'studio.code.save': 'Сохранить',
   'studio.code.saving': 'Сохранение…',
+  'studio.code.undo': 'Отменить',
+  'studio.code.redo': 'Повторить',
+  'studio.code.discard': 'Отбросить',
+  'studio.code.checking': 'Проверка…',
+  'studio.code.ready': 'Можно сохранить',
+  'studio.code.problemOne': '1 проблема',
+  'studio.code.problems': 'Проблем: {count}',
+  'studio.code.noCompile': 'Не компилируется',
+  'studio.code.saveBlocked': 'Сначала исправьте то, что отмечено красным',
+  'studio.code.atLine': 'Строка {line}',
+  'studio.code.badJson':
+    'Отсюда это уже не корректный JSON: не хватает запятой, кавычки или скобки, либо одна лишняя.',
+  'studio.code.badAnimation':
+    'Это не анимация, которую FluidEQ может воспроизвести. Её лист остаётся art/<name>.png, count и columns — целые числа, fps от 1 до 60, а loop — true или false.',
+  'studio.code.compileError': 'Шейдер не компилируется: {detail}',
+  'studio.code.checkedBy':
+    'Проверено по тем же правилам, что и сохранения вашего ИИ',
+  'studio.code.playsDraft':
+    'Сцена показывает ваш черновик, как только он собирается',
+  'studio.code.notEditable':
+    'Этот файл нельзя изменить здесь. Используйте свой редактор или попросите ИИ.',
   'studio.code.failed': 'Не удалось сохранить. Попробуйте ещё раз.',
-  'studio.code.tooLarge':
-    'Сцена может занимать не больше 64 КБ. Она не сохранена.',
   'studio.code.changed': 'Файл изменился вне Студии, пока вы печатали здесь.',
   'studio.code.load': 'Загрузить новую версию',
   'studio.code.keep': 'Оставить мои правки',

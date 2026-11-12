@@ -788,12 +788,30 @@ const studio = {
   'studio.code.title': 'Codice',
   'studio.code.label': 'Codice di {file}',
   'studio.code.watching': 'Si aggiorna a ogni salvataggio',
-  'studio.code.unsaved': 'Non salvato',
   'studio.code.save': 'Salva',
   'studio.code.saving': 'Salvataggio…',
+  'studio.code.undo': 'Annulla',
+  'studio.code.redo': 'Ripeti',
+  'studio.code.discard': 'Scarta',
+  'studio.code.checking': 'Controllo…',
+  'studio.code.ready': 'Pronto da salvare',
+  'studio.code.problemOne': '1 problema',
+  'studio.code.problems': '{count} problemi',
+  'studio.code.noCompile': 'Non si compila',
+  'studio.code.saveBlocked': 'Prima sistema ciò che è in rosso',
+  'studio.code.atLine': 'Riga {line}',
+  'studio.code.badJson':
+    'Da qui non è JSON valido: manca o è di troppo una virgola, una virgoletta o una parentesi.',
+  'studio.code.badAnimation':
+    'Questa non è un’animazione che FluidEQ può riprodurre. Il suo foglio resta art/<name>.png, count e columns sono numeri interi, fps va da 1 a 60 e loop è true o false.',
+  'studio.code.compileError': 'Lo shader non si compila: {detail}',
+  'studio.code.checkedBy':
+    'Controllato con le stesse regole dei salvataggi della tua IA',
+  'studio.code.playsDraft':
+    'Il palco riproduce la tua bozza appena si costruisce',
+  'studio.code.notEditable':
+    'Questo file non si può modificare qui. Usa il tuo editor o chiedi all’IA.',
   'studio.code.failed': 'Non è stato possibile salvare. Riprova.',
-  'studio.code.tooLarge':
-    'Una scena può pesare al massimo 64 KB. Non è stata salvata.',
   'studio.code.changed':
     'Il file è cambiato fuori dallo Studio mentre scrivevi qui.',
   'studio.code.load': 'Carica la nuova versione',
