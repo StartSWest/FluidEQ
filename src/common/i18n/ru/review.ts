@@ -10,6 +10,7 @@ const review = {
   'review.reason.rights': 'Чужая работа',
   'review.reason.offensive': 'Оскорбительная',
   'review.reason.broken': 'Не работает или слишком тяжёлая',
+  'review.reason.quality': 'Пока не дотягивает до уровня галереи',
   'review.reason.other': 'Другое',
   'review.state.pending': 'На проверке',
   'review.state.pendingUpdate': 'Версия {version} на проверке',

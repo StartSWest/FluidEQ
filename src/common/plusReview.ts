@@ -34,6 +34,11 @@ export const REJECT_REASONS = [
   'rights',
   'offensive',
   'broken',
+  // Not finished enough for the gallery: a starter or template reskin, one
+  // shape pulsing, nothing that holds up beside the gallery's other scenes
+  // (2026-11-12). Made scenes earn credits that buy others, so a weak one is
+  // a real cost to every member who buys it.
+  'quality',
   'other',
 ] as const;
 

@@ -7,5 +7,6 @@ export const REJECT_REASON_LABELS: Record<TRejectReason, TranslationKey> = {
   rights: 'review.reason.rights',
   offensive: 'review.reason.offensive',
   broken: 'review.reason.broken',
+  quality: 'review.reason.quality',
   other: 'review.reason.other',
 };

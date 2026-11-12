@@ -10,6 +10,7 @@ const review = {
   'review.reason.rights': '他人の作品',
   'review.reason.offensive': '不快な内容',
   'review.reason.broken': '動かない、または重すぎる',
+  'review.reason.quality': 'まだギャラリーの水準に届いていません',
   'review.reason.other': 'その他',
   'review.state.pending': '審査中',
   'review.state.pendingUpdate': 'バージョン {version} を審査中',

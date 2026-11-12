@@ -10,6 +10,7 @@ const review = {
   'review.reason.rights': 'Obra de otra persona',
   'review.reason.offensive': 'Ofensiva',
   'review.reason.broken': 'Rota o demasiado pesada',
+  'review.reason.quality': 'Aún no alcanza el nivel de la galería',
   'review.reason.other': 'Otra cosa',
   'review.state.pending': 'En revisión',
   'review.state.pendingUpdate': 'Versión {version} en revisión',

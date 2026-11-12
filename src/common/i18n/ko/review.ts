@@ -8,6 +8,7 @@ const review = {
   'review.reason.rights': '다른 사람의 일',
   'review.reason.offensive': '공격적',
   'review.reason.broken': '깨지거나 너무 무거워서 놀 수 없음',
+  'review.reason.quality': '아직 갤러리 수준에 미치지 못함',
   'review.reason.other': '다른 것',
   'review.state.pending': '검토중',
   'review.state.pendingUpdate': '버전 {version} 검토 중',

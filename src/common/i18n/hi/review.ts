@@ -10,6 +10,7 @@ const review = {
   'review.reason.rights': 'किसी और का काम',
   'review.reason.offensive': 'आपत्तिजनक',
   'review.reason.broken': 'चलता नहीं या बहुत भारी है',
+  'review.reason.quality': 'अभी गैलरी के स्तर की नहीं',
   'review.reason.other': 'कुछ और',
   'review.state.pending': 'समीक्षा में',
   'review.state.pendingUpdate': 'संस्करण {version} समीक्षा में',

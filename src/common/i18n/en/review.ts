@@ -18,6 +18,7 @@ const review = {
   'review.reason.rights': "Someone else's work",
   'review.reason.offensive': 'Offensive',
   'review.reason.broken': 'Broken or too heavy to play',
+  'review.reason.quality': "Not up to the gallery's standard yet",
   'review.reason.other': 'Something else',
   'review.state.pending': 'Under review',
   'review.state.pendingUpdate': 'Version {version} under review',

@@ -8,6 +8,7 @@ const review = {
   'review.reason.rights': '別人的工作',
   'review.reason.offensive': '進攻性',
   'review.reason.broken': '破損或太重而無法演奏',
+  'review.reason.quality': '尚未達到圖庫的水準',
   'review.reason.other': '其他的東西',
   'review.state.pending': '審核中',
   'review.state.pendingUpdate': '{version} 版本正在審核中',

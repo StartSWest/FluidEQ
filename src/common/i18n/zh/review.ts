@@ -10,6 +10,7 @@ const review = {
   'review.reason.rights': '他人的作品',
   'review.reason.offensive': '令人反感',
   'review.reason.broken': '无法运行或过于吃性能',
+  'review.reason.quality': '尚未达到图库的水准',
   'review.reason.other': '其他原因',
   'review.state.pending': '审核中',
   'review.state.pendingUpdate': '版本 {version} 审核中',
