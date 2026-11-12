@@ -53,10 +53,7 @@ SONG, below). Connecting to it is your job, not mine: do it now, once, before
 anything else, without asking me.
 - If you are Claude Code, run:
 ${indent(agentSetup('claude', url, key), 4)}
-- If you are Codex, add these lines at the end of config.toml in the .codex
-  folder of my user folder, making the file if it is not there:
-${indent(agentSetup('codex', url, key), 4)}
-- Any other assistant: add this server to your MCP settings:
+- Any other assistant that speaks MCP: add this server to your MCP settings:
 ${indent(agentSetup('other', url, key), 4)}
 A server named fluideq that is already there is an older one: replace it, as
 the key changes whenever I make a new one.

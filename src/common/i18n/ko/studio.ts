@@ -45,7 +45,7 @@ const studio = {
   'studio.maker.examples': '또는 다음 중 하나부터 시작하세요.',
   'studio.maker.openTitle': 'AI 도우미에서 프로젝트 폴더를 엽니다.',
   'studio.maker.openBody':
-    '파일 작업을 수행하는 모든 도우미: Claude, Cursor, Codex, Copilot. 대신 채팅을 통해 제공되는 파일을 이 폴더에 저장하세요.',
+    '파일 작업을 수행하는 모든 도우미: Claude, Cursor, Copilot. 대신 채팅을 통해 제공되는 파일을 이 폴더에 저장하세요.',
   'studio.maker.openNoProject':
     '먼저 프로젝트를 시작하세요. 해당 폴더는 AI가 작동하는 곳입니다.',
   'studio.maker.copyPath': '경로 복사',
@@ -817,12 +817,9 @@ const studio = {
   'studio.agent.byHand': 'AI를 직접 연결하세요',
   'studio.agent.assistant': '당신의 AI 비서',
   'studio.agent.claude': 'Claude Code',
-  'studio.agent.codex': '코덱스',
   'studio.agent.other': '기타',
   'studio.agent.claudeHint':
     '터미널에서 이것을 실행한 다음 새로운 Claude Code 세션을 시작하세요.',
-  'studio.agent.codexHint':
-    '사용자 폴더의 .codex/config.toml 끝에 이를 추가한 다음 새 Codex 세션을 시작하세요.',
   'studio.agent.otherHint':
     '대부분의 AI 도구는 MCP 서버 설정에서 이를 사용합니다. 추가한 후 새 세션을 시작하세요.',
   'studio.agent.copy': '설정 복사',

@@ -565,7 +565,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.tip':
     'Fai doppio clic sul palco per lo schermo intero. Guarda dentro una scena di FluidEQ… apre una delle scene di FluidEQ da cui imparare; non si può pubblicare. Le scene che lampeggiano troppo o sono troppo pesanti vengono bloccate. Una scena che pubblichi viene prima letta dal creatore di FluidEQ, e una volta approvata suona gratis per te ovunque.',
   'help.studio.keywords':
-    'creare visualizzatore, shader, GLSL, intelligenza artificiale, ChatGPT, Claude, programmare, editor, chat, chat dello studio, chiedere una modifica, claude code, ripristina, versioni',
+    'creare visualizzatore, shader, GLSL, intelligenza artificiale, Claude, programmare, editor, chat, chat dello studio, chiedere una modifica, claude code, ripristina, versioni',
   'help.studio.project':
     'I tuoi progetti e le scene di FluidEQ da guardare dentro.',
   'help.studio.stageName': 'Palco',

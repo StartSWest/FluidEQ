@@ -511,7 +511,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.tip':
     '双击舞台可全屏。“查看 FluidEQ 场景的内部…”会打开 FluidEQ 自己的某个场景供你学习；它不能被发布。闪烁过于强烈或运行过重的场景会被拦下。你发布的场景会先由 FluidEQ 作者阅读，获批后它会在任何地方为你免费播放。',
   'help.studio.keywords':
-    '着色器, shader, GLSL, 编程, ChatGPT, Claude, DeepSeek, prompt, 制作场景, 制作可视化, 场景编辑器, 创作者, 投稿, 聊天, 工作室聊天, 提出修改, claude code, 恢复, 版本',
+    '着色器, shader, GLSL, 编程, Claude, DeepSeek, prompt, 制作场景, 制作可视化, 场景编辑器, 创作者, 投稿, 聊天, 工作室聊天, 提出修改, claude code, 恢复, 版本',
   'help.studio.project': '你的项目，以及可查看内部的 FluidEQ 场景。',
   'help.studio.stageName': '舞台',
   'help.studio.stage': '随你的音乐播放的场景。双击可全屏。',

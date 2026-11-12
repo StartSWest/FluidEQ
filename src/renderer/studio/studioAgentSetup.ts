@@ -5,17 +5,18 @@
  *
  * Commands and configuration, never translated: they are typed into a
  * terminal or a settings file, and a translated word there is a broken line.
- * The server is named `fluideq` in all three, so the assistant's tool reads as
+ * The server is named `fluideq` in both, so the assistant's tool reads as
  * FluidEQ's wherever it lists it.
+ *
+ * Claude Code, and any other assistant that speaks MCP through the standard
+ * `mcpServers` settings. A named choice for OpenAI's Codex was taken out with
+ * every other OpenAI name in the app (Ivan, 2026-11-12); its users connect
+ * through the general one.
  */
 
-export type TAgentAssistant = 'claude' | 'codex' | 'other';
+export type TAgentAssistant = 'claude' | 'other';
 
-export const AGENT_ASSISTANTS: readonly TAgentAssistant[] = [
-  'claude',
-  'codex',
-  'other',
-];
+export const AGENT_ASSISTANTS: readonly TAgentAssistant[] = ['claude', 'other'];
 
 /** The setup, whole: what the Copy button puts on the clipboard. */
 export const agentSetup = (
@@ -26,10 +27,6 @@ export const agentSetup = (
   switch (assistant) {
     case 'claude':
       return `claude mcp add --transport http --scope user fluideq ${url} --header "Authorization: Bearer ${key}"`;
-    case 'codex':
-      return `[mcp_servers.fluideq]
-url = "${url}"
-http_headers = { "Authorization" = "Bearer ${key}" }`;
     case 'other':
     default:
       return `{

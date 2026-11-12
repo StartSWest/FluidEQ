@@ -43,7 +43,7 @@ const studio = {
   'studio.maker.openTitle':
     'Öffnen Sie den Projektordner in Ihrem KI-Assistenten',
   'studio.maker.openBody':
-    'Jeder Assistent, der mit Dateien arbeitet: Claude, Cursor, Codex, Copilot. Mit einem Chat speichern Sie die Dateien, die er Ihnen gibt, in diesem Ordner.',
+    'Jeder Assistent, der mit Dateien arbeitet: Claude, Cursor, Copilot. Mit einem Chat speichern Sie die Dateien, die er Ihnen gibt, in diesem Ordner.',
   'studio.maker.openNoProject':
     'Legen Sie zuerst ein Projekt an: In seinem Ordner arbeitet Ihre KI.',
   'studio.maker.copyPath': 'Pfad kopieren',
@@ -868,12 +868,9 @@ const studio = {
   'studio.agent.byHand': 'Eine KI von Hand verbinden',
   'studio.agent.assistant': 'Ihr KI-Assistent',
   'studio.agent.claude': 'Claude Code',
-  'studio.agent.codex': 'Codex',
   'studio.agent.other': 'Andere',
   'studio.agent.claudeHint':
     'Führen Sie dies in einem Terminal aus und starten Sie dann eine neue Claude-Code-Sitzung.',
-  'studio.agent.codexHint':
-    'Fügen Sie dies am Ende von .codex/config.toml in Ihrem Benutzerordner ein und starten Sie dann eine neue Codex-Sitzung.',
   'studio.agent.otherHint':
     'Die meisten KI-Werkzeuge nehmen dies in ihren MCP-Server-Einstellungen an. Starten Sie danach eine neue Sitzung.',
   'studio.agent.copy': 'Einrichtung kopieren',

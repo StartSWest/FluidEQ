@@ -567,7 +567,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.tip':
     'Double-cliquez sur l’aperçu pour le plein écran. Explorer une scène FluidEQ… ouvre l’une des scènes de FluidEQ pour apprendre en l’étudiant ; elle ne peut pas être publiée. Les scènes qui clignotent trop fort ou sont trop lourdes sont retenues. Une scène que vous publiez est d’abord lue par le créateur de FluidEQ, et une fois approuvée, elle joue gratuitement pour vous partout.',
   'help.studio.keywords':
-    'intelligence artificielle, éditeur de scènes, shader, GLSL, ChatGPT, Claude, discussion, chat, demander un changement, claude code, rétablir, versions',
+    'intelligence artificielle, éditeur de scènes, shader, GLSL, Claude, discussion, chat, demander un changement, claude code, rétablir, versions',
   'help.studio.project': 'Vos projets, et des scènes FluidEQ à explorer.',
   'help.studio.stageName': 'Aperçu',
   'help.studio.stage':

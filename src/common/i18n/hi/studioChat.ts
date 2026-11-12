@@ -27,7 +27,7 @@ const studioChat = {
   'studioChat.plans':
     'Claude Code के लिए Claude Pro, Max, Team या Enterprise प्लान चाहिए।',
   'studioChat.otherAiNote':
-    '“कोई दूसरा AI इस्तेमाल करें” इसकी जगह ChatGPT, Codex या किसी और असिस्टेंट के लिए एक प्रॉम्प्ट कॉपी करता है।',
+    '“कोई दूसरा AI इस्तेमाल करें” इसकी जगह किसी और असिस्टेंट के लिए एक प्रॉम्प्ट कॉपी करता है।',
   'studioChat.welcomeTitle': 'यह सीन कैसा होना चाहिए?',
   'studioChat.welcomeBody':
     'इसे एक वाक्य में बताइए। Claude इसे लिखता है, इसे देखता है, इसके साथ आपका संगीत सुनता है और हर वर्ज़न स्टेज पर चलाता है।',

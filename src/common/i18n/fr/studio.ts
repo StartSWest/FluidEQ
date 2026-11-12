@@ -44,7 +44,7 @@ const studio = {
   'studio.maker.openTitle':
     'Ouvrez le dossier du projet dans votre assistant IA',
   'studio.maker.openBody':
-    'Tout assistant qui travaille sur des fichiers : Claude, Cursor, Codex, Copilot. Avec un chat, enregistrez dans ce dossier les fichiers qu’il vous donne.',
+    'Tout assistant qui travaille sur des fichiers : Claude, Cursor, Copilot. Avec un chat, enregistrez dans ce dossier les fichiers qu’il vous donne.',
   'studio.maker.openNoProject':
     'Créez d’abord un projet : son dossier est l’endroit où travaille votre IA.',
   'studio.maker.copyPath': 'Copier le chemin',
@@ -859,12 +859,9 @@ const studio = {
   'studio.agent.byHand': 'Connecter une IA à la main',
   'studio.agent.assistant': 'Votre assistant IA',
   'studio.agent.claude': 'Claude Code',
-  'studio.agent.codex': 'Codex',
   'studio.agent.other': 'Autre',
   'studio.agent.claudeHint':
     'Exécutez ceci dans un terminal, puis ouvrez une nouvelle session Claude Code.',
-  'studio.agent.codexHint':
-    'Ajoutez ceci à la fin de .codex/config.toml dans votre dossier utilisateur, puis ouvrez une nouvelle session Codex.',
   'studio.agent.otherHint':
     'La plupart des outils d’IA acceptent ceci dans leurs réglages de serveurs MCP. Ouvrez une nouvelle session après l’avoir ajouté.',
   'studio.agent.copy': 'Copier la configuration',

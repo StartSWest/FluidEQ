@@ -175,12 +175,26 @@ test('opened, the setup shows the key cut short and copies it whole', async () =
 
 test('each assistant gets its own setup, and the choice is kept', async () => {
   await opened();
-  fireEvent.click(screen.getByRole('button', { name: 'studio.agent.codex' }));
+  fireEvent.click(screen.getByRole('button', { name: 'studio.agent.other' }));
   expect(
     screen.getByRole('region', { name: 'studio.agent.setupTitle' }).textContent,
-  ).toContain('[mcp_servers.fluideq]');
-  expect(screen.getByText('studio.agent.codexHint')).toBeInTheDocument();
-  expect(localStorage.getItem('fluideq.studio.agentAssistant')).toBe('codex');
+  ).toContain('"mcpServers"');
+  expect(screen.getByText('studio.agent.otherHint')).toBeInTheDocument();
+  expect(localStorage.getItem('fluideq.studio.agentAssistant')).toBe('other');
+  // Claude Code and any other assistant that speaks MCP: no named choice
+  // for OpenAI's Codex (2026-11-12).
+  expect(
+    screen.queryByRole('button', { name: 'studio.agent.codex' }),
+  ).toBeNull();
+});
+
+test('a Codex chosen before it left the list opens on the general setup', async () => {
+  localStorage.setItem('fluideq.studio.agentAssistant', 'codex');
+  await opened();
+  expect(
+    screen.getByRole('region', { name: 'studio.agent.setupTitle' }).textContent,
+  ).toContain('"mcpServers"');
+  expect(screen.getByText('studio.agent.otherHint')).toBeInTheDocument();
 });
 
 test('a new key replaces the one in the setup', async () => {

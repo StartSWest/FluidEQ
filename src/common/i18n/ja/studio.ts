@@ -42,7 +42,7 @@ const studio = {
   'studio.maker.examples': 'または例から始める：',
   'studio.maker.openTitle': 'プロジェクトのフォルダーを AI アシスタントで開く',
   'studio.maker.openBody':
-    'ファイルを扱えるアシスタントなら何でも使えます：Claude、Cursor、Codex、Copilot。チャットの場合は、もらったファイルをこのフォルダーに保存してください。',
+    'ファイルを扱えるアシスタントなら何でも使えます：Claude、Cursor、Copilot。チャットの場合は、もらったファイルをこのフォルダーに保存してください。',
   'studio.maker.openNoProject':
     'まずプロジェクトを作りましょう。そのフォルダーで AI が作業します。',
   'studio.maker.copyPath': 'パスをコピー',
@@ -849,12 +849,9 @@ const studio = {
   'studio.agent.byHand': 'AI を手動で接続',
   'studio.agent.assistant': 'AI アシスタント',
   'studio.agent.claude': 'Claude Code',
-  'studio.agent.codex': 'Codex',
   'studio.agent.other': 'その他',
   'studio.agent.claudeHint':
     'ターミナルで実行してから、Claude Code の新しいセッションを始めてください。',
-  'studio.agent.codexHint':
-    'ユーザーフォルダーの .codex/config.toml の末尾に追加してから、Codex の新しいセッションを始めてください。',
   'studio.agent.otherHint':
     'ほとんどの AI ツールは MCP サーバーの設定でこれを受け付けます。追加したら新しいセッションを始めてください。',
   'studio.agent.copy': '設定をコピー',
