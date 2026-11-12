@@ -14,15 +14,25 @@ import {
   type ISceneEditReport,
   type ISceneEditThing,
   type TNodePath,
-  type TTriple,
   type TWorldEditFailure,
   type TWorldEditOp,
   type TWorldEditOutcome,
 } from 'common/sceneEdit';
 import type { IScenePack } from 'common/scenePacks';
-import normalizeSceneWorld from 'common/sceneWorldRead';
-import { applyWorldEdits, sameShape } from 'common/worldEdit';
 import type { ISceneFrame } from '../../graph/sceneGl';
+import {
+  combined,
+  drafted,
+  emptyMove,
+  heardNow,
+  isStill,
+  moveOp,
+  NO_MOVE,
+  reshapes,
+} from './editDraft';
+import { idAt, idTree, replayIds, type IIdNode } from './editIds';
+import { createMarkBook } from './editMarkBook';
+import { lockedIn, type IEditMarkView } from './editMarks';
 import {
   dolly,
   lookAt,
@@ -51,21 +61,25 @@ import {
  * apart by the world's key — so nothing jumps back while it builds.
  */
 
+export { emptyMove };
+
 export type TEditTool = 'move' | 'turn' | 'size';
 
 export type TEditMark =
   | { kind: 'pin'; x: number; y: number }
   | { kind: 'box'; x0: number; y0: number; x1: number; y1: number };
 
-export interface IStageEditState {
+/**
+ * Which things may be moved and which are hidden while editing, by path
+ * (`editMarks.ts`): everything not unlocked is locked.
+ */
+export interface IStageEditState extends IEditMarkView {
   on: boolean;
   tool: TEditTool;
   snap: boolean;
   frozen: boolean;
   freeView: boolean;
   selected: readonly TNodePath[];
-  /** Things that may not be picked on the stage or moved, by `pathKey`. */
-  locked: readonly string[];
   /** Changes made and not saved yet. */
   changes: number;
   canUndo: boolean;
@@ -90,124 +104,18 @@ export interface IStageEditState {
   solo: boolean;
 }
 
-const NO_MOVE: TTriple = [0, 0, 0];
-const NO_SCALE: TTriple = [1, 1, 1];
-
-export const emptyMove = (path: TNodePath): ISceneEditMove => ({
-  path,
-  position: NO_MOVE,
-  rotation: NO_MOVE,
-  scale: NO_SCALE,
-});
-
-const isStill = (move: ISceneEditMove) =>
-  move.position.every((part) => Math.abs(part) < 1e-5) &&
-  move.rotation.every((part) => Math.abs(part) < 1e-5) &&
-  move.scale.every((part) => Math.abs(part - 1) < 1e-5);
-
-/** Every move of one thing as one: places and turns summed, sizes multiplied. */
-const combined = (moves: readonly ISceneEditMove[]): ISceneEditMove[] => {
-  const byThing = new Map<string, ISceneEditMove>();
-  moves.forEach((move) => {
-    const key = pathKey(move.path);
-    const known = byThing.get(key);
-    byThing.set(
-      key,
-      known
-        ? {
-            path: move.path,
-            position: known.position.map(
-              (part, axis) => part + move.position[axis],
-            ) as unknown as TTriple,
-            rotation: known.rotation.map(
-              (part, axis) => part + move.rotation[axis],
-            ) as unknown as TTriple,
-            scale: known.scale.map(
-              (part, axis) => part * move.scale[axis],
-            ) as unknown as TTriple,
-          }
-        : move,
-    );
-  });
-  return [...byThing.values()];
-};
-
-/** The move as an edit, saying only what changed. */
-const moveOp = (move: ISceneEditMove): TWorldEditOp => ({
-  kind: 'move',
-  path: [...move.path],
-  ...(move.position.some((part) => part !== 0)
-    ? { position: [...move.position] as [number, number, number] }
-    : {}),
-  ...(move.rotation.some((part) => part !== 0)
-    ? { rotation: [...move.rotation] as [number, number, number] }
-    : {}),
-  ...(move.scale.some((part) => part !== 1)
-    ? { scale: [...move.scale] as [number, number, number] }
-    : {}),
-});
-
-/** Whether an edit changes which thing a path names. */
-const reshapes = (ops: readonly TWorldEditOp[]) =>
-  ops.some((op) => ['delete', 'copy', 'group', 'add'].includes(op.kind));
-
-/**
- * What the scene hears, kept as it was when the music was frozen. The two
- * arrays are copied: the runner fills the same two every frame.
- */
-const heardNow = (frame: ISceneFrame): Partial<ISceneFrame> => ({
-  level: frame.level,
-  beat: frame.beat,
-  bands: frame.bands,
-  musicAccent: frame.musicAccent,
-  musicRun: frame.musicRun,
-  accent: frame.accent,
-  playing: frame.playing,
-  spectrum: frame.spectrum.slice(),
-  waveform: frame.waveform.slice(),
-  rhythm: frame.rhythm,
-  stereo: frame.stereo,
-  voice: frame.voice,
-});
-
-type TDrafted =
-  { ok: true; pack: IScenePack } | { ok: false; reason: TWorldEditFailure };
-
-/**
- * `pack` with `ops` made to its world, read again as a pack's world is, or
- * why not. The world as read is written the way a file writes one, so the
- * same edits that will be saved are the ones shown.
- */
-const drafted = (pack: IScenePack, ops: readonly TWorldEditOp[]): TDrafted => {
-  if (!pack.world) {
-    return { ok: false, reason: 'no-world' };
-  }
-  if (ops.length === 0) {
-    return { ok: true, pack };
-  }
-  const edited = applyWorldEdits(pack.world, ops);
-  if (!edited.ok) {
-    return edited;
-  }
-  const world = normalizeSceneWorld(
-    edited.world,
-    pack.params.map((param) => param.id),
-    pack.artwork,
-    (pack.palettes ?? []).map((palette) => palette.id),
-  );
-  // Read with a thing left out, the paths after it would name other things.
-  if (!world || !sameShape(edited.world.nodes, world.nodes)) {
-    return { ok: false, reason: 'refused' };
-  }
-  return { ok: true, pack: { ...pack, world } };
-};
-
 interface IShown {
   moves: ISceneEditMove[];
   /** The world the moves were made on. */
   key: string | undefined;
   /** A build ended since: if this world is still up, it stays. */
   settled: boolean;
+}
+
+/** One change of the member's, and its number for the things it makes. */
+interface IChange {
+  ops: TWorldEditOp[];
+  serial: number;
 }
 
 export interface IStageEditBridge {
@@ -236,7 +144,10 @@ export interface IStageEditStore {
   /** The thing the last picked one stands in. */
   selectParent(): void;
   clearSelection(): void;
+  /** Locked if it may be moved, unlocked if not, with all that is in it. */
   toggleLock(path: TNodePath): void;
+  /** Hidden while editing, or shown again: never written by Save. */
+  toggleHidden(path: TNodePath): void;
   /** What stands at this point of the canvas? Picked when answered. */
   pickAt(x: number, y: number, add: boolean): void;
   /** The pointer rests here, or has left: what would a click pick? */
@@ -252,8 +163,13 @@ export interface IStageEditStore {
   nudge(move: ISceneEditMove): void;
   /** These and no others picked: a run of the list. */
   selectMany(paths: readonly TNodePath[]): void;
-  /** Every picked thing shown, or hidden. */
+  /**
+   * Every picked thing switched on, or off, in the scene itself: a change
+   * like any other, which Save writes.
+   */
   showPicked(shown: boolean): void;
+  /** Every picked thing hidden while editing, or shown again. */
+  hidePicked(hidden: boolean): void;
   /** Every picked thing locked, or let go. */
   lockPicked(locked: boolean): void;
   /** One change of the member's, made of these edits. */
@@ -285,12 +201,6 @@ export interface IStageEditStore {
   setListOpen(open: boolean): void;
 }
 
-/** Whether `path`, or anything it is a part of, is locked. */
-export const lockedIn = (locked: readonly string[], path: TNodePath) =>
-  path.some((_step, depth) =>
-    locked.includes(pathKey(path.slice(0, depth + 1))),
-  );
-
 /**
  * The things the stage frames and gives handles to: what the scene last
  * measured, of what is picked now.
@@ -316,7 +226,9 @@ const START: IStageEditState = {
   frozen: true,
   freeView: false,
   selected: [],
-  locked: [],
+  unlocked: [],
+  ownLock: [],
+  hidden: [],
   changes: 0,
   canUndo: false,
   canRedo: false,
@@ -346,8 +258,20 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
   /** The pack on the bench, as the project's files have it. */
   let base: IScenePack | undefined;
   /** The member's changes in order, each one or more edits. */
-  let made: TWorldEditOp[][] = [];
-  let unmade: TWorldEditOp[][] = [];
+  let made: IChange[] = [];
+  let unmade: IChange[] = [];
+  /** Numbers each change, for the names of the things it makes. */
+  let serial = 0;
+  /** The files' things by name (`editIds.ts`). */
+  let baseTree: IIdNode[] = [];
+  /** The draft's things by name, the last time it was asked. */
+  let treeOf: { made: IChange[]; base: IIdNode[]; tree: IIdNode[] } | undefined;
+  /** The locks and the working Hide (`editMarkBook.ts`). */
+  const book = createMarkBook();
+  /** What is hidden, as the renderer is told it every frame. */
+  let hiddenPaths: TNodePath[] = [];
+  /** The draft's things when Save was pressed: where the marks go after it. */
+  let savedTree: IIdNode[] | undefined;
   let draftOf:
     { base: IScenePack; version: number; pack: IScenePack } | undefined;
   /**
@@ -372,26 +296,57 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
   /** What the hand is moving now: one move per thing it carries. */
   let live: ISceneEditMove[] = [];
 
-  const isLocked = (path: TNodePath) => lockedIn(state.locked, path);
+  const isLocked = (path: TNodePath) => lockedIn(state.unlocked, path);
+  const opsOf = (changes: readonly IChange[]) =>
+    changes.flatMap((change) => change.ops);
+
+  const treeNow = (): IIdNode[] => {
+    if (treeOf?.made !== made || treeOf.base !== baseTree) {
+      treeOf = {
+        made,
+        base: baseTree,
+        tree: made.reduce(
+          (tree, change) => replayIds(tree, change.ops, change.serial),
+          baseTree,
+        ),
+      };
+    }
+    return treeOf.tree;
+  };
+
+  /** The marks as paths, for the panel, the handles and the renderer. */
+  const marked = (): IEditMarkView => {
+    const view = book.view(treeNow());
+    hiddenPaths = view.hidden.map((key) => key.split('.').map(Number));
+    return view;
+  };
 
   const stacks = () => ({
     changes: made.length,
     canUndo: made.length > 0,
     canRedo: unmade.length > 0,
     version: state.version + 1,
+    ...marked(),
   });
 
   /** One change: kept if the scene still builds with it, refused if not. */
-  const act = (ops: TWorldEditOp[], moves: ISceneEditMove[] = []): boolean => {
+  const act = (
+    ops: TWorldEditOp[],
+    moves: ISceneEditMove[] = [],
+    /** What the change's own new things start as: told the change's number. */
+    madeThings: (number: number) => void = () => undefined,
+  ): boolean => {
     if (ops.length === 0 || !base || state.saving) {
       return false;
     }
-    const tried = drafted(base, [...made.flat(), ...ops]);
+    const tried = drafted(base, [...opsOf(made), ...ops]);
     if (!tried.ok) {
       set({ failure: tried.reason });
       return false;
     }
-    made = [...made, ops];
+    serial += 1;
+    madeThings(serial);
+    made = [...made, { ops, serial }];
     unmade = [];
     // Shown by the hand's own move until the draft's world is drawn.
     shown = {
@@ -437,28 +392,33 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
 
   const step = (from: 'made' | 'unmade') => {
     const source = from === 'made' ? made : unmade;
-    const ops = source[source.length - 1];
-    if (!ops || state.saving) {
+    const change = source[source.length - 1];
+    if (!change || state.saving) {
       return;
     }
     if (from === 'made') {
       made = made.slice(0, -1);
-      unmade = [...unmade, ops];
+      unmade = [...unmade, change];
     } else {
       unmade = unmade.slice(0, -1);
-      made = [...made, ops];
+      made = [...made, change];
     }
     shown = undefined;
     // Over a change of structure, the paths picked name other things.
-    set({ ...stacks(), ...(reshapes(ops) ? { selected: [] } : {}) });
+    set({ ...stacks(), ...(reshapes(change.ops) ? { selected: [] } : {}) });
   };
 
   /** Saved and in the files' own pack: nothing is left to apply. */
   const finishSave = () => {
+    if (savedTree) {
+      book.afterSave(savedTree);
+      savedTree = undefined;
+    }
     saveBase = undefined;
     saveLanded = false;
     made = [];
     unmade = [];
+    baseTree = idTree(base?.world?.nodes);
     shown = undefined;
     set({ ...stacks(), saving: false });
   };
@@ -482,16 +442,23 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       base = pack;
       if (saveBase) {
         // The files' own pack with the save in it; if the save's answer is
-        // still to come, it finishes there.
+        // still to come, it finishes there. Its things are named then too:
+        // named now, the changes still in the draft would be made to them
+        // a second time.
         if (saveLanded) {
           finishSave();
         }
-      } else if (made.length > 0 && !drafted(pack, made.flat()).ok) {
+        return;
+      }
+      baseTree = idTree(pack.world?.nodes);
+      if (made.length > 0 && !drafted(pack, opsOf(made)).ok) {
         // The scene was written by someone else — the member's AI, an
         // editor — and the changes no longer fit it.
         made = [];
         unmade = [];
         set({ ...stacks(), selected: [], failure: 'missing' });
+      } else {
+        set(marked());
       }
     },
     draft: (pack) => {
@@ -505,7 +472,7 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       ) {
         return draftOf.pack;
       }
-      const tried = fresh ? undefined : drafted(pack, made.flat());
+      const tried = fresh ? undefined : drafted(pack, opsOf(made));
       const result = tried?.ok ? tried.pack : pack;
       if (!fresh) {
         draftOf = { base: pack, version: state.version, pack: result };
@@ -532,6 +499,7 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
         ...(hover && live.length === 0 ? { hover } : {}),
         ...(hoverThing ? { hoverThing } : {}),
         ...(state.solo ? { solo: true } : {}),
+        ...(hiddenPaths.length > 0 ? { hidden: hiddenPaths } : {}),
       };
       return { ...frame, ...(heardFrozen ?? {}), edit };
     },
@@ -554,7 +522,9 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
           if (!add) {
             set({ selected: [] });
           }
-        } else if (!isLocked(hit)) {
+        } else {
+          // A locked thing is picked like any other: looked at, framed and
+          // asked about. Its lock keeps the hand off it, not the eye.
           const has = state.selected.some((path) => samePath(path, hit));
           let selected: readonly TNodePath[] = [hit];
           if (add) {
@@ -586,7 +556,16 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       live = [];
       pick = undefined;
       hover = undefined;
-      set({ on, failure: undefined, ...(on ? {} : { freeView: false }) });
+      if (!on) {
+        // Hide and Solo are for working: leaving Edit mode, the scene is
+        // seen whole again, as listeners see it.
+        book.clearHidden();
+      }
+      set({
+        on,
+        failure: undefined,
+        ...(on ? {} : { freeView: false, solo: false, ...marked() }),
+      });
     },
     setTool: (tool) => set({ tool }),
     setSnap: (snap) => set({ snap }),
@@ -617,12 +596,12 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
     },
     clearSelection: () => set({ selected: [] }),
     toggleLock: (path) => {
-      const key = pathKey(path);
-      set({
-        locked: state.locked.includes(key)
-          ? state.locked.filter((known) => known !== key)
-          : [...state.locked, key],
-      });
+      book.setLock(treeNow(), path, isLocked(path));
+      set(marked());
+    },
+    toggleHidden: (path) => {
+      book.toggleHidden(treeNow(), path);
+      set(marked());
     },
     pickAt: (x, y, add) => {
       pickId += 1;
@@ -662,13 +641,16 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
           })),
       );
     },
+    hidePicked: (isHiding) => {
+      book.setHidden(treeNow(), state.selected, isHiding);
+      set(marked());
+    },
     lockPicked: (isLocking) => {
-      const keys = state.selected.map(pathKey);
-      set({
-        locked: isLocking
-          ? [...new Set([...state.locked, ...keys])]
-          : state.locked.filter((key) => !keys.includes(key)),
-      });
+      // The outermost first: a thing set after what holds it keeps its own.
+      [...state.selected]
+        .sort((a, b) => a.length - b.length)
+        .forEach((path) => book.setLock(treeNow(), path, !isLocking));
+      set(marked());
     },
     send: (ops) => {
       act(ops);
@@ -695,7 +677,15 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       const [first] = picked;
       if (
         first &&
-        act(picked.map((path) => ({ kind: 'copy', path: [...path] })))
+        act(
+          picked.map((path) => ({ kind: 'copy', path: [...path] })),
+          [],
+          // A copy the member made is theirs to place: it starts unlocked.
+          (number) =>
+            picked.forEach((_path, index) =>
+              book.setOwn(`n${String(number)}.${String(index)}`, true),
+            ),
+        )
       ) {
         // One copy is picked in its thing's place; several leave nothing
         // picked, their places having moved each other.
@@ -720,7 +710,26 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       const first = paths.reduce((lowest, path) =>
         path[path.length - 1] < lowest[lowest.length - 1] ? path : lowest,
       );
-      if (act([{ kind: 'group', paths, name }])) {
+      // The new group may be moved only if all it gathers could be; each
+      // part keeps what it was, whatever the group says round it.
+      const free = paths.map((path) => !isLocked(path));
+      const all = free.every(Boolean);
+      const tree = treeNow();
+      const ids = paths.map((path) => idAt(tree, path));
+      if (
+        act([{ kind: 'group', paths, name }], [], (number) => {
+          if (all) {
+            book.setOwn(`n${String(number)}.0`, true);
+          }
+          ids.forEach((id, index) => {
+            if (id && free[index] !== all) {
+              book.setOwn(id, free[index]);
+            } else if (id && book.own(id) === all) {
+              book.setOwn(id, undefined);
+            }
+          });
+        })
+      ) {
         set({ selected: [first] });
       }
     },
@@ -728,7 +737,7 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       if (!base) {
         return;
       }
-      const now = drafted(base, made.flat());
+      const now = drafted(base, opsOf(made));
       const { world } = now.ok ? now.pack : base;
       const count = world?.nodes.length ?? 0;
       // Where the camera on screen is looking, so the new thing is seen. At
@@ -750,9 +759,19 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
         (state.freeView ? view?.target : (subject ?? sceneView?.target)) ??
         NO_MOVE;
       if (
-        act([
-          { kind: 'add', shape, name, at: [...at] as [number, number, number] },
-        ])
+        act(
+          [
+            {
+              kind: 'add',
+              shape,
+              name,
+              at: [...at] as [number, number, number],
+            },
+          ],
+          [],
+          // A thing the member just added is there to be placed: unlocked.
+          (number) => book.setOwn(`n${String(number)}.0`, true),
+        )
       ) {
         set({ selected: [[count]] });
       }
@@ -766,13 +785,20 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       const from = base;
       saveBase = from;
       saveLanded = false;
+      savedTree = treeNow();
       set({ saving: true });
+      const failed = (reason: TWorldEditFailure) => {
+        saveBase = undefined;
+        savedTree = undefined;
+        // A pack that came in meanwhile is the one the draft now stands on.
+        baseTree = idTree(base?.world?.nodes);
+        set({ ...marked(), saving: false, failure: reason });
+      };
       bridge
-        .save(made.flat())
+        .save(opsOf(made))
         .then((outcome) => {
           if (!outcome.ok) {
-            saveBase = undefined;
-            set({ saving: false, failure: outcome.reason });
+            failed(outcome.reason);
           } else if (!outcome.changed || base !== from) {
             // Nothing to wait for, or the files' pack is here already.
             finishSave();
@@ -783,10 +809,7 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
           }
           return undefined;
         })
-        .catch(() => {
-          saveBase = undefined;
-          set({ saving: false, failure: 'failed' });
-        });
+        .catch(() => failed('failed'));
     },
     discard: () => {
       if (state.saving) {

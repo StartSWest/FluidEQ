@@ -13,7 +13,6 @@ import { applyWorldEdits } from '../../../common/worldEdit';
 import {
   createStageEdit,
   emptyMove,
-  lockedIn,
   thingsPicked,
 } from '../../../renderer/studio/edit/stageEditStore';
 
@@ -61,8 +60,12 @@ const packOf = (raw: unknown): IScenePack =>
 const placeOf = (pack: IScenePack, index: number) =>
   pack.world?.nodes[index].position;
 
-/** A store on `RAW`, with a save that waits to be answered. */
-const setUp = () => {
+/**
+ * A store on `RAW`, with a save that waits to be answered. Everything starts
+ * locked; the tests of what a change does unlock the three things first, and
+ * the tests of locking ask for them as they start.
+ */
+const setUp = ({ unlocked = true } = {}) => {
   const saves: TWorldEditOp[][] = [];
   let answer: (outcome: TWorldEditOutcome) => void = () => undefined;
   const store = createStageEdit({
@@ -76,6 +79,9 @@ const setUp = () => {
   const pack = packOf(RAW);
   store.setPack(pack);
   store.setOn(true);
+  if (unlocked) {
+    [[0], [1], [2]].forEach((path) => store.toggleLock(path));
+  }
   return {
     store,
     pack,
@@ -356,29 +362,5 @@ describe('what the stage frames', () => {
     expect(thingsPicked(store.state()).map((thing) => thing.path)).toEqual([
       [3],
     ]);
-  });
-});
-
-describe('a locked thing', () => {
-  it('is locked with everything that is a part of it, and nothing beside it', () => {
-    expect(lockedIn(['1'], [1])).toBe(true);
-    expect(lockedIn(['1'], [1, 0])).toBe(true);
-    expect(lockedIn(['1.0'], [1])).toBe(false);
-    expect(lockedIn(['1'], [0])).toBe(false);
-    expect(lockedIn(['1'], [10])).toBe(false);
-    expect(lockedIn([], [1, 0])).toBe(false);
-  });
-
-  it('is not carried by a move, alone or picked with others', () => {
-    const { store, pack } = setUp();
-    store.select([0], false);
-    store.lockPicked(true);
-    store.nudge(moved([0], 2));
-    expect(store.state().changes).toBe(0);
-    expect(placeOf(store.draft(pack), 0)).toEqual([1, 2, 3]);
-    // The control: let go, the same move carries it.
-    store.lockPicked(false);
-    store.nudge(moved([0], 2));
-    expect(placeOf(store.draft(pack), 0)).toEqual([3, 2, 3]);
   });
 });

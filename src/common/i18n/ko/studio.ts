@@ -850,7 +850,6 @@ const studio = {
   'studio.edit.kind.light': '조명',
   'studio.edit.kind.group': '그룹',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': '움직이지 않게 잠그기',
   'studio.edit.hide': '숨기기',
   'studio.edit.rename': '이름 바꾸기',
   'studio.edit.copy': '복사본 만들기',
@@ -912,6 +911,22 @@ const studio = {
     '하나의 규칙이 그리는 여러 복사본 중 하나입니다. 이것만 바꾸려면 AI에게 요청하고, 모두 움직이려면 전체를 선택하세요.',
   'studio.edit.expand': '펼치기',
   'studio.edit.collapse': '접기',
+  'studio.edit.unlock': '잠금 해제',
+  'studio.edit.lockedHint':
+    '잠김: 고르고 AI에게 물어볼 수는 있지만 움직일 수는 없습니다. 누르면 잠금이 풀립니다.',
+  'studio.edit.unlockedHint':
+    '잠금 해제됨: 움직일 수 있습니다. 누르면 다시 잠급니다.',
+  'studio.edit.lockedWhy':
+    '잠겨 있습니다. 움직이거나 삭제하려면 잠금을 해제하세요.',
+  'studio.edit.hideHint':
+    '편집하는 동안만 숨깁니다. 장면 자체는 바뀌지 않습니다.',
+  'studio.edit.soloOn': '단독으로 표시 중입니다. 누르면 모두 다시 보입니다.',
+  'studio.edit.soloInside': '안에 있는 것이 단독으로 표시됩니다',
+  'studio.edit.offInScene': '장면에서 꺼짐',
+  'studio.edit.turnOn': '켜기',
+  'studio.edit.turnOnHint':
+    '장면 자체에서 꺼져 있습니다. 다시 켜면 저장할 때 유지됩니다.',
+  'studio.edit.panHint': 'Space를 누른 채 끌면 보기를 옮길 수 있습니다.',
 } satisfies Partial<Dictionary>;
 
 export default studio;

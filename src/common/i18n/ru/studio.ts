@@ -877,7 +877,6 @@ const studio = {
   'studio.edit.kind.light': 'Свет',
   'studio.edit.kind.group': 'Группа',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': 'Закрепить, чтобы не двигался',
   'studio.edit.hide': 'Скрыть',
   'studio.edit.rename': 'Переименовать',
   'studio.edit.copy': 'Сделать копию',
@@ -941,6 +940,22 @@ const studio = {
     'Одна из многих копий, которые рисует одно правило. Чтобы изменить только её, попросите ИИ; чтобы двигать все, выберите целое.',
   'studio.edit.expand': 'Раскрыть',
   'studio.edit.collapse': 'Свернуть',
+  'studio.edit.unlock': 'Разблокировать',
+  'studio.edit.lockedHint':
+    'Заблокировано: можно выбрать и спросить о нём, но не двигать. Нажмите, чтобы разблокировать.',
+  'studio.edit.unlockedHint':
+    'Разблокировано: можно двигать. Нажмите, чтобы снова заблокировать.',
+  'studio.edit.lockedWhy':
+    'Заблокировано. Разблокируйте, чтобы двигать или удалить.',
+  'studio.edit.hideHint': 'Скрыть на время правки. Сама сцена не меняется.',
+  'studio.edit.soloOn': 'Показано отдельно. Нажмите, чтобы снова показать всё.',
+  'studio.edit.soloInside': 'Что-то внутри показано отдельно',
+  'studio.edit.offInScene': 'Выключено в сцене',
+  'studio.edit.turnOn': 'Включить',
+  'studio.edit.turnOnHint':
+    'Выключено в самой сцене. Включите снова; «Сохранить» это сохранит.',
+  'studio.edit.panHint':
+    'Удерживайте пробел и перетаскивайте, чтобы сдвинуть вид.',
 } as const;
 
 export default studio;

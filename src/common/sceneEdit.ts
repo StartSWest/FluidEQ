@@ -59,6 +59,8 @@ export interface ISceneEdit {
   hoverThing?: TNodePath;
   /** Only the picked things are drawn, and the lights. Never saved. */
   solo?: boolean;
+  /** Things hidden while editing, with all that is in them. Never saved. */
+  hidden?: readonly TNodePath[];
 }
 
 /** One picked thing as the last frame drew it. */

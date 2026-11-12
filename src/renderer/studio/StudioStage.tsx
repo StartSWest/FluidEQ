@@ -590,9 +590,12 @@ export default function StudioStage({
           )}
         </div>
         {/* Edit mode: its switch in the top left corner and, while it is on,
-            the scene's things down the left side. Not on a preview's window,
-            which shows the scene as a listener's player or graph frames it. */}
-        {!isWindowed && !isEditing && (
+            the scene's things down the left side. On a preview's window too:
+            Edit mode, its panes, its picks and its draft stay through every
+            change of view (Ivan, 2026-11-11: "if I select ultra-wide it hides
+            the editor panes"), and the picks land right in each, the scene
+            measuring and picking through the camera that framed it. */}
+        {!isEditing && (
           <StudioEditBar
             store={edit}
             is3d={pack.world !== undefined}
@@ -607,7 +610,7 @@ export default function StudioStage({
             }
           />
         )}
-        {isEditing && !isWindowed && (
+        {isEditing && (
           <StudioEditPanel
             store={edit}
             pack={shownPack}

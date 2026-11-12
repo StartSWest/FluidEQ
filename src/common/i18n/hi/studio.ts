@@ -872,7 +872,6 @@ const studio = {
   'studio.edit.kind.light': 'रोशनी',
   'studio.edit.kind.group': 'समूह',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': 'लॉक करें ताकि यह न हिले',
   'studio.edit.hide': 'छिपाएँ',
   'studio.edit.rename': 'नाम बदलें',
   'studio.edit.copy': 'प्रति बनाएँ',
@@ -935,6 +934,21 @@ const studio = {
     'एक ही नियम से बनी कई प्रतियों में से एक। केवल इसे बदलने के लिए AI से कहें; सबको हिलाने के लिए पूरा चुनें।',
   'studio.edit.expand': 'खोलें',
   'studio.edit.collapse': 'बंद करें',
+  'studio.edit.unlock': 'अनलॉक करें',
+  'studio.edit.lockedHint':
+    'लॉक है: आप इसे चुन सकते हैं और इसके बारे में पूछ सकते हैं, पर हिला नहीं सकते। अनलॉक करने के लिए दबाएँ।',
+  'studio.edit.unlockedHint':
+    'अनलॉक है: इसे हिलाया जा सकता है। फिर से लॉक करने के लिए दबाएँ।',
+  'studio.edit.lockedWhy': 'लॉक है। हिलाने या मिटाने के लिए इसे अनलॉक करें।',
+  'studio.edit.hideHint': 'संपादन के दौरान छिपाएँ। दृश्य ख़ुद नहीं बदलता।',
+  'studio.edit.soloOn':
+    'अकेला दिखाया गया है। सब कुछ फिर से दिखाने के लिए दबाएँ।',
+  'studio.edit.soloInside': 'इसके अंदर की कोई चीज़ अकेली दिखाई गई है',
+  'studio.edit.offInScene': 'दृश्य में बंद',
+  'studio.edit.turnOn': 'चालू करें',
+  'studio.edit.turnOnHint':
+    'यह दृश्य में ही बंद है। इसे फिर से चालू करें; सहेजने पर यह बना रहता है।',
+  'studio.edit.panHint': 'दृश्य खिसकाने के लिए Space दबाए रखें और खींचें।',
 } as const;
 
 export default studio;

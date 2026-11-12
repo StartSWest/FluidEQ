@@ -48,7 +48,20 @@ const FITTED: IStageView = { scale: 1, x: 0, y: 0 };
 const clamp = (value: number, low: number, high: number) =>
   Math.min(high, Math.max(low, value));
 
-/** A view that keeps the screen covered by the picture. */
+/**
+ * How much of the picture stays on screen however far Edit mode's canvas is
+ * moved: enough to be grabbed again and brought back.
+ */
+const KEPT_IN_VIEW = 0.2;
+
+/**
+ * A view that keeps the screen covered by the picture — or, on Edit mode's
+ * canvas (`least` under 1), keeps a fifth of the picture on it. There the
+ * member moves the scene out from under the panels that float over it, as
+ * on any editor's canvas, at whatever size it is (Ivan, 2026-11-11: "if the
+ * user hits space while in the editor, show the hand cursor so they can move
+ * the scene"); held to the screen, a scene at its own size could not move.
+ */
 const held = (
   view: IStageView,
   width: number,
@@ -56,6 +69,15 @@ const held = (
   least: number,
 ) => {
   const scale = clamp(view.scale, least, MOST_STAGE_ZOOM);
+  if (least < 1) {
+    const keptX = width * scale * KEPT_IN_VIEW;
+    const keptY = height * scale * KEPT_IN_VIEW;
+    return {
+      scale,
+      x: clamp(view.x, keptX - width * scale, width - keptX),
+      y: clamp(view.y, keptY - height * scale, height - keptY),
+    };
+  }
   // Closer than whole, the picture covers the screen and is moved inside
   // it; stood back, it is smaller than the screen and stays inside it.
   const spareX = width - width * scale;
@@ -101,14 +123,20 @@ export default function useStageZoom(
 ) {
   const [stored, setStored] = useState<IStageView>(FITTED);
   const view = held(stored, width, height, least);
-  // Closer than the whole picture, or stood back from it.
-  const zoomed = Math.abs(view.scale - 1) > 0.001;
+  // Closer than the whole picture, stood back from it, or moved off it:
+  // anything but the picture laid exactly on the screen.
+  const zoomed =
+    Math.abs(view.scale - 1) > 0.001 ||
+    Math.abs(view.x) > 0.5 ||
+    Math.abs(view.y) > 0.5;
   // Space is the view's only while there is a view to move: unzoomed, a
-  // stage takes nothing from the keyboard.
-  const spaceHeld = useSpaceHeld(zoomed);
+  // stage takes nothing from the keyboard — except Edit mode's canvas,
+  // where the scene can always be moved.
+  const movable = zoomed || least < 1;
+  const spaceHeld = useSpaceHeld(movable);
   const [dragging, setDragging] = useState(false);
-  const live = useRef({ view, width, height, spaceHeld, zoomed, least });
-  live.current = { view, width, height, spaceHeld, zoomed, least };
+  const live = useRef({ view, width, height, spaceHeld, movable, least });
+  live.current = { view, width, height, spaceHeld, movable, least };
 
   useEffect(() => {
     const well = wellRef.current;
@@ -147,7 +175,7 @@ export default function useStageZoom(
       { pointer: number; x: number; y: number; from: IStageView } | undefined;
     const onDown = (event: PointerEvent) => {
       const now = live.current;
-      if (!now.spaceHeld || !now.zoomed || event.button !== 0) {
+      if (!now.spaceHeld || !now.movable || event.button !== 0) {
         return;
       }
       // The scene's hands never hear a press that moves the view.
@@ -232,8 +260,8 @@ export default function useStageZoom(
   return {
     view,
     zoomed,
-    /** Space is held over a zoomed stage: the hand moves the view. */
-    panning: spaceHeld && zoomed,
+    /** Space is held where the view can move: the hand moves it. */
+    panning: spaceHeld && movable,
     dragging,
     percent: Math.round(view.scale * 100),
     canZoomIn: view.scale < MOST_STAGE_ZOOM - 0.01,

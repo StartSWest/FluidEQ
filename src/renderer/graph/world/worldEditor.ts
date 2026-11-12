@@ -101,6 +101,12 @@ const createWorldEditor = (
   let touched: Object3D[] = [];
   /** Copies Solo put out of sight last frame, with where they stood. */
   let shrunk: { mesh: InstancedMesh; kept: Float32Array }[] = [];
+  /**
+   * What the member hid while editing, and whether each was shown before:
+   * put back by hand, because a light's own placing never touches its
+   * visibility (it goes dark instead), so `place` would leave it hidden.
+   */
+  let hid: { object: Object3D; visible: boolean }[] = [];
   let pickedId: number | undefined;
   let picked: ISceneEditReport['picked'];
   let hoverAt: string | undefined;
@@ -369,6 +375,13 @@ const createWorldEditor = (
     place: () => {
       // What last frame moved or hid is put back first. A fixed thing is
       // placed once, at the build, and a live one has just been placed.
+      // What the member hid goes back before that, so a thing placed below
+      // takes the visibility its placing gives it. Last hidden first, so a
+      // thing hidden twice ends as it began.
+      [...hid].reverse().forEach(({ object, visible }) => {
+        Object.assign(object, { visible });
+      });
+      hid = [];
       touched.forEach((object) => {
         const tag = tagOf(object);
         if (tag && !tag.live) {
@@ -408,6 +421,15 @@ const createWorldEditor = (
       if (edit.solo && edit.selected.length > 0) {
         solo(edit.selected);
       }
+      // Hidden while the member works: out of this frame only, put back by
+      // the next frame's first step.
+      edit.hidden?.forEach((path) => {
+        const object = byPath.get(pathKey(path));
+        if (object) {
+          hid.push({ object, visible: object.visible });
+          Object.assign(object, { visible: false });
+        }
+      });
     },
     measure: () => {
       if (!edit) {

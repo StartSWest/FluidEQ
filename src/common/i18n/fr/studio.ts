@@ -893,7 +893,6 @@ const studio = {
   'studio.edit.kind.light': 'Lumière',
   'studio.edit.kind.group': 'Groupe',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': "Verrouiller pour l'empêcher de bouger",
   'studio.edit.hide': 'Masquer',
   'studio.edit.rename': 'Renommer',
   'studio.edit.copy': 'Faire une copie',
@@ -957,6 +956,23 @@ const studio = {
     "Une copie parmi beaucoup, dessinées par une seule règle. Pour ne changer que celle-ci, demandez à l'IA ; pour les déplacer toutes, choisissez l'ensemble.",
   'studio.edit.expand': 'Ouvrir',
   'studio.edit.collapse': 'Fermer',
+  'studio.edit.unlock': 'Déverrouiller',
+  'studio.edit.lockedHint':
+    'Verrouillé : vous pouvez le choisir et poser une question à son sujet, mais pas le déplacer. Appuyez pour déverrouiller.',
+  'studio.edit.unlockedHint':
+    'Déverrouillé : il peut être déplacé. Appuyez pour le verrouiller à nouveau.',
+  'studio.edit.lockedWhy':
+    'Verrouillé. Déverrouillez-le pour le déplacer ou le supprimer.',
+  'studio.edit.hideHint':
+    "Masquer pendant l'édition. La scène elle-même ne change pas.",
+  'studio.edit.soloOn': 'Affiché seul. Appuyez pour tout afficher à nouveau.',
+  'studio.edit.soloInside': "Quelque chose à l'intérieur est affiché seul",
+  'studio.edit.offInScene': 'Éteint dans la scène',
+  'studio.edit.turnOn': 'Allumer',
+  'studio.edit.turnOnHint':
+    'Éteint dans la scène elle-même. Rallumez-le ; Enregistrer le conserve.',
+  'studio.edit.panHint':
+    'Maintenez Espace et faites glisser pour déplacer la vue.',
 } as const;
 
 export default studio;

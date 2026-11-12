@@ -773,7 +773,6 @@ const studio = {
   'studio.edit.kind.light': '燈光',
   'studio.edit.kind.group': '群組',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': '鎖定，使其無法移動',
   'studio.edit.hide': '隱藏',
   'studio.edit.rename': '重新命名',
   'studio.edit.copy': '製作複本',
@@ -831,6 +830,18 @@ const studio = {
     '由同一條規則繪製的眾多複本之一。只想改這一個，請讓 AI 來改；要移動全部，請選取整體。',
   'studio.edit.expand': '展開',
   'studio.edit.collapse': '收合',
+  'studio.edit.unlock': '解鎖',
+  'studio.edit.lockedHint':
+    '已鎖定：可以選取它並向 AI 詢問，但不能移動。按下即可解鎖。',
+  'studio.edit.unlockedHint': '已解鎖：可以移動。按下可再次鎖定。',
+  'studio.edit.lockedWhy': '已鎖定。解鎖後才能移動或刪除。',
+  'studio.edit.hideHint': '僅在編輯時隱藏。場景本身不會改變。',
+  'studio.edit.soloOn': '正在單獨顯示。按下可重新顯示全部。',
+  'studio.edit.soloInside': '其中有物件正在單獨顯示',
+  'studio.edit.offInScene': '在場景中已關閉',
+  'studio.edit.turnOn': '開啟',
+  'studio.edit.turnOnHint': '它在場景本身中已關閉。重新開啟後，儲存即可保留。',
+  'studio.edit.panHint': '按住空白鍵並拖曳即可移動檢視。',
 } satisfies Partial<Dictionary>;
 
 export default studio;

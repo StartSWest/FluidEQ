@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../../utils/I18nContext';
+import EditGlyph, { type TEditGlyph } from './EditGlyph';
 import type { TEditSide } from './editMath';
 import type { IStageEditStore, TEditTool } from './stageEditStore';
 import { useStageEditState } from './useStageEdit';
@@ -49,10 +50,14 @@ const TOOLS: readonly {
   },
 ];
 
-const SIDES: readonly { side: TEditSide; key: TranslationKey }[] = [
-  { side: 'top', key: 'studio.edit.view.top' },
-  { side: 'front', key: 'studio.edit.view.front' },
-  { side: 'side', key: 'studio.edit.view.side' },
+const SIDES: readonly {
+  side: TEditSide;
+  key: TranslationKey;
+  glyph: TEditGlyph;
+}[] = [
+  { side: 'top', key: 'studio.edit.view.top', glyph: 'view-top' },
+  { side: 'front', key: 'studio.edit.view.front', glyph: 'view-front' },
+  { side: 'side', key: 'studio.edit.view.side', glyph: 'view-side' },
 ];
 
 interface IStudioEditBarProps {
@@ -169,13 +174,14 @@ export default function StudioEditBar({
               ),
             )}
             {state.freeView &&
-              SIDES.map(({ side, key }) => (
+              SIDES.map(({ side, key, glyph }) => (
                 <button
                   key={side}
                   type="button"
                   className="studio-edit__word"
                   onClick={() => store.viewFrom(side)}
                 >
+                  <EditGlyph name={glyph} />
                   {t(key)}
                 </button>
               ))}
@@ -186,6 +192,7 @@ export default function StudioEditBar({
                 title={t('studio.edit.view.keepHint')}
                 onClick={store.keepView}
               >
+                <EditGlyph name="keep-view" />
                 {t('studio.edit.view.keep')}
               </button>
             )}
@@ -242,6 +249,7 @@ export default function StudioEditBar({
             disabled={state.saving}
             onClick={store.save}
           >
+            <EditGlyph name="save" />
             {t('studio.edit.save')}
           </button>
           <button
@@ -251,6 +259,7 @@ export default function StudioEditBar({
             disabled={state.saving}
             onClick={store.discard}
           >
+            <EditGlyph name="discard" />
             {t('studio.edit.discard')}
           </button>
         </div>

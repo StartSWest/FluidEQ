@@ -894,7 +894,6 @@ const studio = {
   'studio.edit.kind.light': 'Light',
   'studio.edit.kind.group': 'Group',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': "Lock so it can't be moved",
   'studio.edit.hide': 'Hide',
   'studio.edit.rename': 'Rename',
   'studio.edit.copy': 'Make a copy',
@@ -955,6 +954,21 @@ const studio = {
     'One copy of many that a single rule draws. To change just this one, ask the AI; to move them all, pick the whole.',
   'studio.edit.expand': 'Open',
   'studio.edit.collapse': 'Close',
+  'studio.edit.unlock': 'Unlock',
+  'studio.edit.lockedHint':
+    'Locked: you can pick it and ask about it, but not move it. Press to unlock.',
+  'studio.edit.unlockedHint':
+    'Unlocked: it can be moved. Press to lock it again.',
+  'studio.edit.lockedWhy': 'Locked. Unlock it to move or delete it.',
+  'studio.edit.hideHint':
+    "Hide while editing. The scene itself doesn't change.",
+  'studio.edit.soloOn': 'Shown alone. Press to show everything again.',
+  'studio.edit.soloInside': 'Something inside is shown alone',
+  'studio.edit.offInScene': 'Off in the scene',
+  'studio.edit.turnOn': 'Turn on',
+  'studio.edit.turnOnHint':
+    'Switched off in the scene itself. Turn it back on; Save keeps it.',
+  'studio.edit.panHint': 'Hold Space and drag to move the view.',
 } as const;
 
 export default studio;

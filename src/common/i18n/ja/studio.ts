@@ -882,7 +882,6 @@ const studio = {
   'studio.edit.kind.light': 'ライト',
   'studio.edit.kind.group': 'グループ',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': '動かせないようにロック',
   'studio.edit.hide': '隠す',
   'studio.edit.rename': '名前を変更',
   'studio.edit.copy': 'コピーを作成',
@@ -944,6 +943,21 @@ const studio = {
     '1 つのルールが描く多数のコピーの 1 つです。これだけを変えるには AI に依頼し、すべてを動かすには全体を選択してください。',
   'studio.edit.expand': '開く',
   'studio.edit.collapse': '閉じる',
+  'studio.edit.unlock': 'ロック解除',
+  'studio.edit.lockedHint':
+    'ロック中: 選んだり AI に尋ねたりはできますが、動かせません。押すとロックを解除します。',
+  'studio.edit.unlockedHint':
+    'ロック解除中: 動かせます。押すと再びロックします。',
+  'studio.edit.lockedWhy':
+    'ロック中です。動かしたり削除したりするにはロックを解除してください。',
+  'studio.edit.hideHint': '編集中だけ隠します。シーン自体は変わりません。',
+  'studio.edit.soloOn': '単独で表示中。押すとすべてを再び表示します。',
+  'studio.edit.soloInside': '中のものが単独で表示されています',
+  'studio.edit.offInScene': 'シーンでオフ',
+  'studio.edit.turnOn': 'オンにする',
+  'studio.edit.turnOnHint':
+    'シーン自体でオフになっています。オンに戻すと、保存で残ります。',
+  'studio.edit.panHint': 'Space を押したままドラッグすると表示を動かせます。',
 } as const;
 
 export default studio;

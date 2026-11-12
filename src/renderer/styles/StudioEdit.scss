@@ -119,8 +119,16 @@ $edit-z: #5aa9ff;
   }
 }
 
-.studio-stage__bar .studio-edit__word {
+.studio-stage__bar .studio-edit__word,
+.studio-stage__bar .studio-edit__save {
+  gap: 4px;
   padding: 0 6px;
+
+  svg {
+    flex: none;
+    width: 14px;
+    height: 14px;
+  }
 }
 
 // Exactly over the scene's canvas. A press on it is Edit mode's, so the
@@ -302,7 +310,7 @@ $edit-z: #5aa9ff;
   @extend %edit-glass;
 
   display: flex;
-  width: min(248px, 40vw);
+  width: min(264px, 40vw);
   min-height: 0;
   flex-direction: column;
   grid-column: 1;
@@ -366,7 +374,10 @@ $edit-z: #5aa9ff;
   background: $surface-well;
 
   button {
+    display: flex;
     height: 26px;
+    align-items: center;
+    gap: 8px;
     padding: 0 8px;
     color: $text-primary;
     border: 0;
@@ -458,10 +469,11 @@ $edit-z: #5aa9ff;
   }
 }
 
-// Lock and hide: faint until the row is under the hand, lit while they hold.
+// A row's flags — Solo, Hide, the lock: faint until the row is under the
+// hand, lit while they hold.
 .studio-edit__flag {
   display: inline-flex;
-  width: 24px;
+  width: 22px;
   height: 24px;
   flex: none;
   align-items: center;
@@ -490,10 +502,6 @@ $edit-z: #5aa9ff;
     opacity: 1;
   }
 
-  &[aria-pressed='true'] {
-    color: $amber;
-  }
-
   &:hover {
     color: $white;
     background: $hover-accent;
@@ -502,6 +510,66 @@ $edit-z: #5aa9ff;
   &:focus-visible {
     @include focus-ring;
   }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 1.5;
+  }
+}
+
+// Hidden while editing: amber, as every "careful, not as listeners see it"
+// here is.
+.studio-edit__flag--hide[aria-pressed='true'] {
+  color: $amber;
+}
+
+// Solo: lit on the rows it shows, and dimmer but always there on every row
+// that holds one, so a closed group still says something in it is alone.
+.studio-edit__flag--solo {
+  &[aria-pressed='true'] {
+    color: $secondary-light;
+  }
+
+  &.is-inside {
+    color: $secondary-light;
+    opacity: 0.55;
+  }
+}
+
+// EVERYTHING STARTS LOCKED, so a closed lock on every row is the quiet
+// normal and an open one the exception, worn in the accent: a lock shown in
+// amber on every row would shout the one state nothing needs said about.
+// A thing free only because its group is free wears the accent fainter
+// than one unlocked on its own.
+// Doubled, to outrank the pressed flag's full strength above: pressed is
+// what locked is, and locked is every row.
+.studio-edit__flag.studio-edit__flag--lock {
+  opacity: 0.4;
+
+  &.is-free {
+    color: $secondary-light;
+    opacity: 1;
+
+    &.is-inherited {
+      opacity: 0.6;
+    }
+  }
+
+  .studio-edit__row:hover & {
+    opacity: 1;
+  }
+}
+
+// A thing the scene's own file switches off: always there, the one press
+// that turns it back on, as a change.
+.studio-edit__flag--on {
+  color: $amber;
+  opacity: 1;
+}
+
+.studio-edit__name small.is-off {
+  color: $amber;
 }
 
 .studio-edit__thing {
@@ -517,6 +585,7 @@ $edit-z: #5aa9ff;
   gap: 6px 14px;
   padding: 6px 10px;
   overflow: hidden auto;
+  container: edit-thing / inline-size;
 
   // The name and what can be done to the thing, a row of their own.
   > .studio-edit__actions {
@@ -525,10 +594,27 @@ $edit-z: #5aa9ff;
 }
 
 .studio-edit__thing-name {
+  display: flex;
   max-width: 14em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  align-items: center;
+  gap: 6px;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.studio-edit__thing-lock {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: $text-muted;
+
+  &.is-free {
+    color: $secondary-light;
+  }
 }
 
 .studio-edit__actions {
@@ -542,8 +628,111 @@ $edit-z: #5aa9ff;
   }
 }
 
-.studio-edit__delete {
+// Every action wears its picture beside its word.
+.button.small.studio-edit__action,
+.button.small.studio-edit__add {
+  gap: 6px;
+  padding-inline: 9px 11px;
+
+  svg {
+    flex: none;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.button.small.studio-edit__add {
+  min-height: 26px;
+  padding-block: 2px;
+}
+
+// Too narrow for every word on one row, the pictures stay, each named by
+// its tooltip and its accessible name — all but the suggested action and,
+// on a locked thing, Unlock, which keep theirs: with every word the strip
+// wrapped onto a second row over a stage of ordinary height (measured at
+// 1000px wide, 2026-11-11). Narrower still, those two give theirs up too.
+@container edit-thing (max-width: 1080px) {
+  .button.small.studio-edit__action:not(.is-keep-word) {
+    padding-inline: 7px;
+
+    .studio-edit__action-word {
+      display: none;
+    }
+  }
+}
+
+@container edit-thing (max-width: 560px) {
+  .button.small.studio-edit__action.is-keep-word {
+    padding-inline: 7px;
+
+    .studio-edit__action-word {
+      display: none;
+    }
+  }
+}
+
+// Unlocking is what a locked thing asks of the hand first.
+.button.small.subtle.studio-edit__unlock {
+  border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+}
+
+.button.small.subtle.studio-edit__delete {
   color: $red;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.studio-edit__field.is-locked input {
+  color: $text-muted;
+  cursor: default;
+}
+
+// The picked thing's lock at its frame's corner, on the scene itself: a
+// round plate that reads on a white sky and a night one.
+.studio-edit__badge {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: $white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.62);
+  cursor: pointer;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &.is-free {
+    color: #03222a;
+    border-color: transparent;
+    background: $secondary-light;
+  }
+
+  &:hover {
+    border-color: $white;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Space held over Edit mode's canvas: the hand that moves the view, over the
+// arrow the overlay keeps for picking.
+.studio-stage__well.is-panning .studio-edit__overlay {
+  cursor: grab;
+}
+
+.studio-stage__well.is-panning.is-dragging .studio-edit__overlay {
+  cursor: grabbing;
 }
 
 .studio-edit__field {
@@ -763,7 +952,7 @@ $edit-z: #5aa9ff;
 }
 
 .studio-stage__bar .studio-edit__save {
-  padding: 0 12px;
+  padding: 0 12px 0 9px;
   color: #03222a;
   background: $secondary-light;
 

@@ -903,7 +903,6 @@ const studio = {
   'studio.edit.kind.light': 'Licht',
   'studio.edit.kind.group': 'Gruppe',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': 'Sperren, damit es nicht bewegt wird',
   'studio.edit.hide': 'Ausblenden',
   'studio.edit.rename': 'Umbenennen',
   'studio.edit.copy': 'Kopie erstellen',
@@ -968,6 +967,23 @@ const studio = {
     'Eine von vielen Kopien, die eine einzige Regel zeichnet. Um nur diese zu ändern, fragen Sie die KI; um alle zu bewegen, wählen Sie das Ganze.',
   'studio.edit.expand': 'Öffnen',
   'studio.edit.collapse': 'Schließen',
+  'studio.edit.unlock': 'Entsperren',
+  'studio.edit.lockedHint':
+    'Gesperrt: Sie können es auswählen und danach fragen, aber nicht bewegen. Zum Entsperren drücken.',
+  'studio.edit.unlockedHint':
+    'Entsperrt: Es lässt sich bewegen. Zum erneuten Sperren drücken.',
+  'studio.edit.lockedWhy':
+    'Gesperrt. Entsperren Sie es, um es zu bewegen oder zu löschen.',
+  'studio.edit.hideHint':
+    'Beim Bearbeiten ausblenden. Die Szene selbst ändert sich nicht.',
+  'studio.edit.soloOn': 'Allein angezeigt. Drücken, um wieder alles zu zeigen.',
+  'studio.edit.soloInside': 'Etwas darin wird allein angezeigt',
+  'studio.edit.offInScene': 'In der Szene aus',
+  'studio.edit.turnOn': 'Einschalten',
+  'studio.edit.turnOnHint':
+    'In der Szene selbst ausgeschaltet. Schalten Sie es wieder ein; Speichern behält es.',
+  'studio.edit.panHint':
+    'Halten Sie die Leertaste und ziehen Sie, um die Ansicht zu verschieben.',
 } as const;
 
 export default studio;

@@ -25,9 +25,10 @@ import {
   turnBetween,
   type TPoint,
 } from './editMath';
+import EditLockBadge from './EditLockBadge';
+import { lockedIn } from './editMarks';
 import {
   emptyMove,
-  lockedIn,
   thingsPicked,
   type IStageEditStore,
 } from './stageEditStore';
@@ -156,6 +157,7 @@ export default function StudioEditOverlay({
     )
       ? state.hovered
       : undefined;
+  const locked = thing ? lockedIn(state.unlocked, thing.path) : true;
   const pivot: TPoint = thing ? px(thing.pivot) : [0, 0];
   const axes = thing ? thing.axes.map(px) : [];
   const own = thing ? thing.ownAxes.map(px) : [];
@@ -380,11 +382,7 @@ export default function StudioEditOverlay({
   const handles = () => {
     // One copy of many is placed by its node's rule: nothing to pull. Nor
     // on a locked thing: a handle that can be pulled and moves nothing.
-    if (
-      !thing?.inView ||
-      copyOf(thing.path) ||
-      lockedIn(state.locked, thing.path)
-    ) {
+    if (!thing?.inView || copyOf(thing.path) || locked) {
       return null;
     }
     if (state.tool === 'turn') {
@@ -530,6 +528,20 @@ export default function StudioEditOverlay({
         </text>
       )}
       {is3d && handles()}
+      {is3d && thing?.inView && !copyOf(thing.path) && !dragRef.current && (
+        <EditLockBadge
+          thing={thing}
+          locked={locked}
+          name={nameOf(thing.path)}
+          width={width}
+          height={height}
+          onToggle={() =>
+            things.length > 1
+              ? store.lockPicked(!locked)
+              : store.toggleLock(thing.path)
+          }
+        />
+      )}
       {!is3d &&
         state.marks.map((mark, index) => {
           const number = String(index + 1);

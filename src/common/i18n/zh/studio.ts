@@ -794,7 +794,6 @@ const studio = {
   'studio.edit.kind.light': '灯光',
   'studio.edit.kind.group': '组',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': '锁定，使其无法移动',
   'studio.edit.hide': '隐藏',
   'studio.edit.rename': '重命名',
   'studio.edit.copy': '制作副本',
@@ -852,6 +851,18 @@ const studio = {
     '由同一条规则绘制的众多副本之一。只想改这一个，请让 AI 来改；要移动全部，请选取整体。',
   'studio.edit.expand': '展开',
   'studio.edit.collapse': '收起',
+  'studio.edit.unlock': '解锁',
+  'studio.edit.lockedHint':
+    '已锁定：可以选取它并向 AI 询问，但不能移动。按下即可解锁。',
+  'studio.edit.unlockedHint': '已解锁：可以移动。按下可再次锁定。',
+  'studio.edit.lockedWhy': '已锁定。解锁后才能移动或删除。',
+  'studio.edit.hideHint': '仅在编辑时隐藏。场景本身不会改变。',
+  'studio.edit.soloOn': '正在单独显示。按下可重新显示全部。',
+  'studio.edit.soloInside': '其中有物体正在单独显示',
+  'studio.edit.offInScene': '在场景中已关闭',
+  'studio.edit.turnOn': '打开',
+  'studio.edit.turnOnHint': '它在场景本身中已关闭。重新打开后，保存即可保留。',
+  'studio.edit.panHint': '按住空格键并拖动即可移动视图。',
 } as const;
 
 export default studio;

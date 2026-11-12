@@ -44,11 +44,14 @@ beforeAll(() => {
 /** What the scene's own hands heard: a press on the stage inside. */
 const heard = jest.fn();
 
-/** A stage of 800 by 450, the way `StudioStage` lays its parts. */
-function Stage() {
+/**
+ * A stage of 800 by 450, the way `StudioStage` lays its parts; `least` under
+ * 1 is Edit mode's canvas, as the stage asks for it while Edit is on.
+ */
+function Stage({ least = 1 }: { least?: number }) {
   const well = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
-  const zoom = useStageZoom(well, screenRef, 800, 450);
+  const zoom = useStageZoom(well, screenRef, 800, 450, least);
   return (
     <div ref={well} data-testid="well">
       <div
@@ -59,7 +62,7 @@ function Stage() {
         }}
       >
         <div ref={screenRef} data-testid="screen">
-          <span data-testid="view">
+          <span data-testid="view" data-panning={zoom.panning}>
             {zoom.view.scale.toFixed(2)} {Math.round(zoom.view.x)}{' '}
             {Math.round(zoom.view.y)}
           </span>
@@ -165,4 +168,57 @@ it('takes no Space while the stage is not zoomed', () => {
     screen.getByRole('button', { name: 'studio.picture.zoomIn' }),
   );
   expect(fireEvent.keyDown(document, { code: 'Space', key: ' ' })).toBe(false);
+});
+
+// Ivan, 2026-11-11: "if the user hits space while in the editor, show the
+// hand cursor so they can move the scene".
+it("moves the scene on Edit mode's canvas with Space held, at its own size", () => {
+  render(<Stage least={0.25} />);
+  const stage = screen.getByTestId('stage');
+  act(() => {
+    // Taken from the page: no button pressed, no music started or stopped.
+    expect(fireEvent.keyDown(document, { code: 'Space', key: ' ' })).toBe(
+      false,
+    );
+  });
+  // The stage says the hand is the view's, which the cursor follows.
+  expect(screen.getByTestId('view')).toHaveAttribute('data-panning', 'true');
+  fireEvent.pointerDown(stage, { button: 0, clientX: 400, clientY: 200 });
+  fireEvent.pointerMove(stage, { clientX: 300, clientY: 260 });
+  fireEvent.pointerUp(stage, { clientX: 300, clientY: 260 });
+  expect(view()).toBe('1.00 -100 60');
+  // Nothing under the hand was picked or moved.
+  expect(heard).not.toHaveBeenCalled();
+  // However far it goes, a fifth of the scene stays on screen to grab.
+  fireEvent.pointerDown(stage, { button: 0, clientX: 400, clientY: 200 });
+  fireEvent.pointerMove(stage, { clientX: 4000, clientY: 200 });
+  fireEvent.pointerUp(stage, { clientX: 4000, clientY: 200 });
+  expect(view()).toBe('1.00 640 60');
+  act(() => {
+    fireEvent.keyUp(document, { code: 'Space', key: ' ' });
+  });
+  expect(screen.getByTestId('view')).toHaveAttribute('data-panning', 'false');
+  // A space typed into a field is a space.
+  const field = document.createElement('input');
+  document.body.append(field);
+  expect(fireEvent.keyDown(field, { code: 'Space', key: ' ' })).toBe(true);
+  expect(screen.getByTestId('view')).toHaveAttribute('data-panning', 'false');
+  field.remove();
+});
+
+it('lays the scene back on the screen when Edit mode ends', () => {
+  const { rerender } = render(<Stage least={0.25} />);
+  const stage = screen.getByTestId('stage');
+  act(() => {
+    fireEvent.keyDown(document, { code: 'Space', key: ' ' });
+  });
+  fireEvent.pointerDown(stage, { button: 0, clientX: 400, clientY: 200 });
+  fireEvent.pointerMove(stage, { clientX: 300, clientY: 260 });
+  fireEvent.pointerUp(stage, { clientX: 300, clientY: 260 });
+  act(() => {
+    fireEvent.keyUp(document, { code: 'Space', key: ' ' });
+  });
+  expect(view()).toBe('1.00 -100 60');
+  rerender(<Stage />);
+  expect(view()).toBe('1.00 0 0');
 });

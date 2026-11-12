@@ -889,7 +889,6 @@ const studio = {
   'studio.edit.kind.light': 'Luce',
   'studio.edit.kind.group': 'Gruppo',
   'studio.edit.unnamed': '{kind} {number}',
-  'studio.edit.lock': 'Blocca perché non si sposti',
   'studio.edit.hide': 'Nascondi',
   'studio.edit.rename': 'Rinomina',
   'studio.edit.copy': 'Fai una copia',
@@ -952,6 +951,22 @@ const studio = {
     "Una copia di tante disegnate da un'unica regola. Per cambiare solo questa, chiedi all'IA; per spostarle tutte, scegli l'insieme.",
   'studio.edit.expand': 'Apri',
   'studio.edit.collapse': 'Chiudi',
+  'studio.edit.unlock': 'Sblocca',
+  'studio.edit.lockedHint':
+    'Bloccato: puoi sceglierlo e chiedere su di esso, ma non spostarlo. Premi per sbloccare.',
+  'studio.edit.unlockedHint':
+    'Sbloccato: si può spostare. Premi per bloccarlo di nuovo.',
+  'studio.edit.lockedWhy': 'Bloccato. Sbloccalo per spostarlo o eliminarlo.',
+  'studio.edit.hideHint':
+    'Nascondi mentre modifichi. La scena in sé non cambia.',
+  'studio.edit.soloOn': 'Mostrato da solo. Premi per mostrare di nuovo tutto.',
+  'studio.edit.soloInside': 'Qualcosa al suo interno è mostrato da solo',
+  'studio.edit.offInScene': 'Spento nella scena',
+  'studio.edit.turnOn': 'Accendi',
+  'studio.edit.turnOnHint':
+    'È spento nella scena stessa. Riaccendilo; Salva lo mantiene.',
+  'studio.edit.panHint':
+    'Tieni premuto Spazio e trascina per spostare la vista.',
 } as const;
 
 export default studio;
