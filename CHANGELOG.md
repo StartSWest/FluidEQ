@@ -19,7 +19,7 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   tells you when one is ready, and **Restart now** finishes it. Your
   settings stay.
 - **Free for everyone.** One FluidEQ, the same for everybody. The app costs
-  nothing and needs no activation.
+  nothing, and there is nothing to unlock.
 
 #### Sound and the app
 

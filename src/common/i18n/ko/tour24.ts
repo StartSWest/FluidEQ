@@ -263,7 +263,7 @@ const tour24 = {
     '새 버전은 저절로 도착하고, 준비되면 FluidEQ가 알려 줍니다. 설정은 그대로 유지됩니다.',
   'tour.signed.freeTitle': '모두에게 무료',
   'tour.signed.freeBody':
-    'FluidEQ는 하나뿐이고 모두에게 같습니다. 앱은 무료이며 활성화할 필요가 없습니다.',
+    'FluidEQ는 하나뿐이고 모두에게 같습니다. 앱은 무료이며 잠금 해제할 것도 없습니다.',
   'tour.signed.unit.day.one': '일',
   'tour.signed.unit.day.few': '일',
   'tour.signed.unit.day.many': '일',

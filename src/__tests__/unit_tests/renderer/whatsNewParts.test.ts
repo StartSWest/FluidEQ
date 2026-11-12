@@ -253,6 +253,24 @@ describe('2.5 says nothing of a paid edition or GPT', () => {
     expect('I bought it with another email').toMatch(OLD_DIRECTION);
   });
 
+  // The site's licence guard refuses a licence-key vocabulary (GPL section
+  // 10's "activation" among it), and 2.5's notes reach the site's changelog.
+  const LICENCE_WORDS = /activation|licen[cs]e key|per-seat/i;
+
+  it.each(LOCALES)('nor in a licence-key word, in %s', (locale) => {
+    expect(
+      tourLines(locale, SLIDES_25).filter((line) => LICENCE_WORDS.test(line)),
+    ).toEqual([]);
+  });
+
+  it('nor in a licence-key word in its release notes', () => {
+    expect(release('2.5.0')).not.toMatch(LICENCE_WORDS);
+    expect('The app costs nothing and needs no activation.').toMatch(
+      LICENCE_WORDS,
+    );
+    expect('a per-seat licence key').toMatch(LICENCE_WORDS);
+  });
+
   it('nor any release’s notes, of FluidEQ’s own features', () => {
     expect(notes).not.toMatch(/\bGPT\b|ChatGPT|Codex/);
   });

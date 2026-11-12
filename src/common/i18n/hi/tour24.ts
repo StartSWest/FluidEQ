@@ -265,7 +265,7 @@ const tour24 = {
     'हर नया संस्करण अपने आप आता है, और तैयार होने पर FluidEQ आपको बताता है। आपकी सेटिंग्स बनी रहती हैं।',
   'tour.signed.freeTitle': 'सबके लिए मुफ़्त',
   'tour.signed.freeBody':
-    'एक ही FluidEQ, सबके लिए एक जैसा। ऐप की कोई क़ीमत नहीं है और इसे सक्रिय करने की ज़रूरत नहीं।',
+    'एक ही FluidEQ, सबके लिए एक जैसा। ऐप की कोई क़ीमत नहीं है, और कुछ भी अनलॉक नहीं करना पड़ता।',
   'tour.signed.unit.day.one': 'दिन',
   'tour.signed.unit.day.few': 'दिन',
   'tour.signed.unit.day.many': 'दिन',

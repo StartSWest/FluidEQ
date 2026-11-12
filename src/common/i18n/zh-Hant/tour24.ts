@@ -250,7 +250,7 @@ const tour24 = {
     '每個新版本都會自動送達，準備好後 FluidEQ 會通知您。您的設定會保留。',
   'tour.signed.freeTitle': '人人免費',
   'tour.signed.freeBody':
-    '只有一個 FluidEQ，人人相同。應用程式本身免費，也不必啟用。',
+    '只有一個 FluidEQ，人人相同。應用程式本身免費，也沒有任何需要解鎖的內容。',
   'tour.signed.unit.day.one': '天',
   'tour.signed.unit.day.few': '天',
   'tour.signed.unit.day.many': '天',
