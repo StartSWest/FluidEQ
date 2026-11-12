@@ -13,6 +13,7 @@ import {
   readSwatch,
   type TPlusCategory,
 } from './plusGallery';
+import { readBlockChoice, type IPublishingBlockChoice } from './memberNotices';
 import type { TLocalizedName } from './scenePacks';
 import { readVersionNote } from './sceneVersionNote';
 
@@ -60,6 +61,11 @@ export interface ISceneSubmission {
   reason?: TRejectReason;
   /** The admin's own line to the maker, if they wrote one. */
   reasonNote?: string;
+  /**
+   * The block the admin chose with the refusal (premium 0105): this scene,
+   * or every scene of the maker, kept from review for so many days.
+   */
+  block?: IPublishingBlockChoice;
   submittedAt: string;
   decidedAt?: string;
   /** The version members have in the gallery now; absent for a first. */
@@ -120,6 +126,10 @@ export const parseSubmissionRow = (
   const firstVersion = readCount(value.first_version);
   const reasonNote =
     value.state === 'rejected' ? readNote(value.reason_note) : undefined;
+  const block =
+    value.state === 'rejected'
+      ? readBlockChoice(value.block_days, value.block_scope)
+      : undefined;
   return {
     sceneId,
     version,
@@ -132,6 +142,7 @@ export const parseSubmissionRow = (
       ? { reason: value.reason }
       : {}),
     ...(reasonNote ? { reasonNote } : {}),
+    ...(block ? { block } : {}),
     submittedAt,
     ...(decidedAt ? { decidedAt } : {}),
     ...(liveVersion ? { liveVersion } : {}),

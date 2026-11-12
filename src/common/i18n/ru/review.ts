@@ -29,6 +29,10 @@ const review = {
   'review.notice.rejected': '{name} не одобрена',
   'review.notice.rejectedUpdate': 'Версия {version} сцены {name} не одобрена',
   'review.notice.keepsLive': 'У кого она есть, остаётся версия {version}.',
+  'review.notice.blockAccount':
+    'Вы не сможете отправлять сцены на проверку в течение {count} дней.',
+  'review.notice.blockScene':
+    'Вы не сможете снова отправить её на проверку в течение {count} дней.',
   'review.notice.gotIt': 'Понятно',
   'review.notice.openStudio': 'Открыть Студию',
   'review.notice.openMine': 'Ваши сцены',

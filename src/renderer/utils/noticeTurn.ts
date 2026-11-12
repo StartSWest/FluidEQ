@@ -59,6 +59,8 @@ export type TNoticeClaim =
   | 'profiles'
   | 'plusTerms'
   | 'sceneReview'
+  /** What the server tells an account about its scenes (`MemberNotice`). */
+  | 'memberNotice'
   /**
    * An add-on's corner notices, first to last (`renderer/addons.ts`). Three
    * places in the order rather than a name each: the app knows no add-on.
@@ -109,12 +111,20 @@ export const NOTICE_WAITS_FOR: Readonly<
   profiles: CORNER_WAITS_FOR,
   plusTerms: [...CORNER_WAITS_FOR, 'profiles'],
   sceneReview: [...CORNER_WAITS_FOR, 'profiles', 'plusTerms'],
-  addonA: [...CORNER_WAITS_FOR, 'profiles', 'plusTerms', 'sceneReview'],
+  memberNotice: [...CORNER_WAITS_FOR, 'profiles', 'plusTerms', 'sceneReview'],
+  addonA: [
+    ...CORNER_WAITS_FOR,
+    'profiles',
+    'plusTerms',
+    'sceneReview',
+    'memberNotice',
+  ],
   addonB: [
     ...CORNER_WAITS_FOR,
     'profiles',
     'plusTerms',
     'sceneReview',
+    'memberNotice',
     'addonA',
   ],
   addonC: [
@@ -122,6 +132,7 @@ export const NOTICE_WAITS_FOR: Readonly<
     'profiles',
     'plusTerms',
     'sceneReview',
+    'memberNotice',
     'addonA',
     'addonB',
   ],
@@ -132,6 +143,7 @@ export const NOTICE_WAITS_FOR: Readonly<
     'profiles',
     'plusTerms',
     'sceneReview',
+    'memberNotice',
     'addonA',
     'addonB',
     'addonC',
@@ -142,6 +154,7 @@ export const NOTICE_WAITS_FOR: Readonly<
     'profiles',
     'plusTerms',
     'sceneReview',
+    'memberNotice',
     'addonA',
     'addonB',
     'addonC',

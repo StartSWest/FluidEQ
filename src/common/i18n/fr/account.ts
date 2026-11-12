@@ -23,6 +23,27 @@ const account = {
   'account.signOut': 'Se déconnecter',
   'account.signOut.confirm': 'Se déconnecter de ce compte ?',
   'account.signOut.detail': 'Vous pouvez vous reconnecter quand vous voulez.',
+  'account.suspended.failed':
+    'Le remboursement n’a pas pu être demandé. Réessayez.',
+  'account.suspended.until': 'jusqu’au {date}',
+  'account.suspended.daysLeft.other': 'Encore {count} jours',
+  'account.suspended.daysLeft.many': 'Encore {count} jours',
+  'account.suspended.daysLeft.few': 'Encore {count} jours',
+  'account.suspended.daysLeft.one': 'Encore {count} jour',
+  'account.suspended.asked':
+    'Remboursement demandé : {amount}. Vous le recevrez le {date}, lors de la suppression du compte.',
+  'account.suspended.ask': 'Demander le remboursement',
+  'account.suspended.maker':
+    'Vos scènes ne sont plus dans la galerie, et ce qui vous restait à percevoir a été annulé.',
+  'account.suspended.paid': 'Payé pendant ces jours',
+  'account.suspended.bodyAsked':
+    'Votre compte est suspendu pour avoir enfreint les règles. Vous ne pouvez plus l’utiliser ni acheter.',
+  'account.suspended.bodyNothing':
+    'Votre compte est suspendu pour avoir enfreint les règles. Vous ne pouvez plus l’utiliser ni acheter. Le {until}, votre compte sera supprimé.',
+  'account.suspended.body':
+    'Votre compte est suspendu pour avoir enfreint les règles. Vous ne pouvez plus l’utiliser ni acheter. Vous pouvez demander le remboursement de ce que vous avez payé entre le {from} et le {to} jusqu’au {until}. Ce jour-là, votre compte sera supprimé.',
+  'account.suspended.title': 'Compte suspendu',
+  'account.suspended.eyebrow': 'Compte',
   'account.signOut.detailPlus':
     'Vos scènes restent verrouillées ici jusqu’à ce que vous vous reconnectiez.',
   'account.signOut.kept': 'Rien n’est supprimé sur cet ordinateur.',

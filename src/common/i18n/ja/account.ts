@@ -23,6 +23,27 @@ const account = {
   'account.signOut': 'サインアウト',
   'account.signOut.confirm': 'このアカウントからサインアウトしますか？',
   'account.signOut.detail': 'いつでもサインインし直せます。',
+  'account.suspended.failed':
+    '返金を申請できませんでした。もう一度お試しください。',
+  'account.suspended.until': '{date}まで',
+  'account.suspended.daysLeft.other': 'あと {count} 日',
+  'account.suspended.daysLeft.many': 'あと {count} 日',
+  'account.suspended.daysLeft.few': 'あと {count} 日',
+  'account.suspended.daysLeft.one': 'あと {count} 日',
+  'account.suspended.asked':
+    '返金を申請しました：{amount}。アカウントが削除される{date}に返金されます。',
+  'account.suspended.ask': '返金を申請',
+  'account.suspended.maker':
+    'あなたのシーンはギャラリーから外れ、受け取り待ちだった分は取り消されました。',
+  'account.suspended.paid': 'この期間の支払い',
+  'account.suspended.bodyAsked':
+    '規則に違反したため、あなたのアカウントは停止されました。今後は利用も購入もできません。',
+  'account.suspended.bodyNothing':
+    '規則に違反したため、あなたのアカウントは停止されました。今後は利用も購入もできません。{until}にアカウントは削除されます。',
+  'account.suspended.body':
+    '規則に違反したため、あなたのアカウントは停止されました。今後は利用も購入もできません。{from}から{to}までに支払った分の返金を{until}まで申請できます。その日にアカウントは削除されます。',
+  'account.suspended.title': 'アカウントは停止されています',
+  'account.suspended.eyebrow': 'アカウント',
   'account.signOut.detailPlus':
     '再びサインインするまで、ここではあなたのシーンはロックされたままです。',
   'account.signOut.kept': 'このパソコンのものは何も削除されません。',

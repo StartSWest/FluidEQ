@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { IPublishingBlockChoice } from './memberNotices';
 import type { ISceneSubmission, TRejectReason } from './plusReview';
 import type { TLocalizedName } from './scenePacks';
 
@@ -39,6 +40,8 @@ export type TSceneReviewNotice =
       swatch: string[];
       reason: TRejectReason;
       reasonNote?: string;
+      /** The block that came with the refusal, when the admin chose one. */
+      block?: IPublishingBlockChoice;
       /** The version members still have, which a refused update leaves out. */
       liveVersion?: number;
       keys: string[];
@@ -113,6 +116,7 @@ export const sceneReviewNotice = ({
     swatch: latest.swatch,
     reason: latest.reason,
     ...(latest.reasonNote ? { reasonNote: latest.reasonNote } : {}),
+    ...(latest.block ? { block: latest.block } : {}),
     ...(latest.liveVersion ? { liveVersion: latest.liveVersion } : {}),
     keys,
   };

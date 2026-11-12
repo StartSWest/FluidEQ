@@ -23,6 +23,27 @@ const account = {
   'account.signOut': 'Esci',
   'account.signOut.confirm': 'Uscire da questo account?',
   'account.signOut.detail': 'Puoi accedere di nuovo quando vuoi.',
+  'account.suspended.failed':
+    'Non è stato possibile chiedere il rimborso. Riprova.',
+  'account.suspended.until': 'fino al {date}',
+  'account.suspended.daysLeft.other': 'Mancano {count} giorni',
+  'account.suspended.daysLeft.many': 'Mancano {count} giorni',
+  'account.suspended.daysLeft.few': 'Mancano {count} giorni',
+  'account.suspended.daysLeft.one': 'Manca {count} giorno',
+  'account.suspended.asked':
+    'Rimborso richiesto: {amount}. Ti arriverà il {date}, quando l’account verrà eliminato.',
+  'account.suspended.ask': 'Chiedi il rimborso',
+  'account.suspended.maker':
+    'Le tue scene non sono più nella galleria, e ciò che dovevi ancora ricevere è stato annullato.',
+  'account.suspended.paid': 'Hai pagato in quei giorni',
+  'account.suspended.bodyAsked':
+    'Il tuo account è sospeso per aver violato le regole. Non puoi più usarlo né acquistare.',
+  'account.suspended.bodyNothing':
+    'Il tuo account è sospeso per aver violato le regole. Non puoi più usarlo né acquistare. Il {until} il tuo account verrà eliminato.',
+  'account.suspended.body':
+    'Il tuo account è sospeso per aver violato le regole. Non puoi più usarlo né acquistare. Puoi chiedere il rimborso di quanto hai pagato tra il {from} e il {to} entro il {until}. Quel giorno il tuo account verrà eliminato.',
+  'account.suspended.title': 'Account sospeso',
+  'account.suspended.eyebrow': 'Account',
   'account.signOut.detailPlus':
     'Le tue scene restano bloccate qui finché non accedi di nuovo.',
   'account.signOut.kept': 'Su questo computer non viene eliminato nulla.',

@@ -235,6 +235,10 @@ const studio = {
     'FluidEQ がこのシーンをギャラリーから取り下げたため、新しいバージョンは送れません。FluidEQ が復元した場合にのみ、元のまま戻ります。',
   'studio.publish.deleted':
     'FluidEQ がこのシーンをギャラリーから完全に削除したため、再び公開することはできません。',
+  'studio.publish.blockedAccount':
+    '{date}まで、シーンを公開もエクスポートもできません。',
+  'studio.publish.blockedScene':
+    '{date}まで、このシーンを公開もエクスポートもできません。',
 
   'studio.picture.files': '画像',
   'studio.picture.missing':
@@ -336,7 +340,7 @@ const studio = {
   'studio.new.signedOut': 'プロジェクトを始めるにはサインインしてください。',
   'studio.import.changed':
     'このファイルはエクスポート後に変更されているため、FluidEQ では再生しません。',
-  'studio.import.blocked': 'このシーンは公開停止になっています。',
+  'studio.import.blocked': 'そのシーンは利用できなくなりました。',
 
   'studio.idea.pet.label': 'うちのペットを動かす',
   'studio.idea.pet.text':

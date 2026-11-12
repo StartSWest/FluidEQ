@@ -795,7 +795,8 @@ describe('the member’s own published scenes', () => {
         await screen.findByRole('button', { name: 'plus.mine.unpublish' }),
       );
       expect(bridge.unpublishScene).not.toHaveBeenCalled();
-      expect(screen.getByText('plus.mine.confirm')).toBeInTheDocument();
+      // The question names the scene it is about.
+      expect(screen.getByText(/^plus\.mine\.confirm:/)).toBeInTheDocument();
       expect(screen.queryAllByText('plus.official.author')).toHaveLength(
         official ? 1 : 0,
       );

@@ -24,6 +24,27 @@ const account = {
   'account.signOut': 'Abmelden',
   'account.signOut.confirm': 'Von diesem Konto abmelden?',
   'account.signOut.detail': 'Sie können sich jederzeit wieder anmelden.',
+  'account.suspended.failed':
+    'Die Erstattung konnte nicht beantragt werden. Versuchen Sie es erneut.',
+  'account.suspended.until': 'bis zum {date}',
+  'account.suspended.daysLeft.other': 'Noch {count} Tage',
+  'account.suspended.daysLeft.many': 'Noch {count} Tage',
+  'account.suspended.daysLeft.few': 'Noch {count} Tage',
+  'account.suspended.daysLeft.one': 'Noch {count} Tag',
+  'account.suspended.asked':
+    'Erstattung beantragt: {amount}. Sie erhalten sie am {date}, wenn das Konto gelöscht wird.',
+  'account.suspended.ask': 'Erstattung beantragen',
+  'account.suspended.maker':
+    'Ihre Szenen sind nicht mehr in der Galerie, und was noch auf Auszahlung wartete, wurde storniert.',
+  'account.suspended.paid': 'In diesen Tagen bezahlt',
+  'account.suspended.bodyAsked':
+    'Ihr Konto ist wegen eines Verstoßes gegen die Regeln gesperrt. Sie können es nicht mehr nutzen und nichts mehr kaufen.',
+  'account.suspended.bodyNothing':
+    'Ihr Konto ist wegen eines Verstoßes gegen die Regeln gesperrt. Sie können es nicht mehr nutzen und nichts mehr kaufen. Am {until} wird Ihr Konto gelöscht.',
+  'account.suspended.body':
+    'Ihr Konto ist wegen eines Verstoßes gegen die Regeln gesperrt. Sie können es nicht mehr nutzen und nichts mehr kaufen. Bis zum {until} können Sie die Erstattung dessen beantragen, was Sie zwischen dem {from} und dem {to} bezahlt haben. An diesem Tag wird Ihr Konto gelöscht.',
+  'account.suspended.title': 'Konto gesperrt',
+  'account.suspended.eyebrow': 'Konto',
   'account.signOut.detailPlus':
     'Ihre Szenen bleiben hier gesperrt, bis Sie sich wieder anmelden.',
   'account.signOut.kept': 'Auf diesem Computer wird nichts gelöscht.',

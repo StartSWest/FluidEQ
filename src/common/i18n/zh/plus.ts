@@ -87,7 +87,7 @@ const plus = {
 
   'plus.add.done': '{name} 已添加到你的外观。',
   'plus.add.unavailable': '暂时无法下载 {name}。请重试。',
-  'plus.add.blocked': '{name} 已被下架。',
+  'plus.add.blocked': '{name} 已不再可用。',
   'plus.add.changed': '{name} 未通过 FluidEQ 的检查，因此没有添加。',
   'plus.add.failed': '无法添加 {name}。请重试。',
 
@@ -99,7 +99,7 @@ const plus = {
   'plus.scene.demoSong': '正随演示歌曲播放',
   'plus.scene.taste': '预览 · {seconds} 秒',
   'plus.scene.unavailable': '暂时无法下载这个场景。',
-  'plus.scene.blocked': '这个场景已被下架。',
+  'plus.scene.blocked': '此场景已不再可用。',
   'plus.scene.changed': '这个场景未通过 FluidEQ 的检查，因此不会播放。',
   'plus.scene.heavy': '这个场景对这台电脑来说太吃力了。',
   'plus.scene.broken': '这个场景无法在这台电脑上播放。',
@@ -137,7 +137,7 @@ const plus = {
   'plus.mine.blocked': '已被 FluidEQ 下架',
   'plus.mine.unpublish': '取消发布',
   'plus.mine.confirm':
-    '要从图库下架并停止新下载吗？已下载的用户会保留自己的副本。',
+    '要将 {name} 移出图库吗？之后没有新的人能获取它。已经拥有它的人会继续保留。',
   'plus.mine.confirmYes': '取消发布',
   'plus.mine.confirmNo': '保留',
   'plus.mine.unpublished': '{name} 已不在图库中。',

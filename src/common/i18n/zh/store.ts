@@ -35,6 +35,17 @@ const store: Partial<Dictionary> = {
   'store.error.gone': '这个场景已不在画廊中。',
   'store.error.negative': '一笔退款让你的余额低于零。购买点数包即可恢复。',
   'store.error.banned': '此账户无法获取场景。',
+  'store.notice.refundedBody':
+    '{name} 的一笔购买已退款；你从中获得的收益已被扣回。',
+  'store.notice.refunded': '一笔购买已退款',
+  'store.notice.restored': '{name} 已重新回到图库。',
+  'store.notice.blockScene': '{count} 天内你不能再次发布它。',
+  'store.notice.blockAccount': '{count} 天内你不能发布。',
+  'store.notice.takenDownBody':
+    '{name} 违反了规则，我们已将它移出图库。购买过它的人已拿回点数，你从这些购买中获得的收益已被扣回。',
+  'store.notice.takenDown': '{name} 已移出图库',
+  'store.notice.returnedBody': '你为它花的点数已退还。',
+  'store.notice.returned': '此场景已不再可用。',
   'store.pack.each': '每个场景 {price}',
   'store.pack.best': '最优价格',
   'store.buy.title': '永久保留「{name}」？',

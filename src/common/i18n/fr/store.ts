@@ -42,6 +42,20 @@ const store: Partial<Dictionary> = {
   'store.error.negative':
     'Un remboursement a fait passer votre solde sous zéro. Un pack le rétablit.',
   'store.error.banned': 'Ce compte ne peut pas obtenir de scènes.',
+  'store.notice.refundedBody':
+    'Un achat de {name} a été remboursé ; ce que vous aviez gagné avec lui vous a été retiré.',
+  'store.notice.refunded': 'Un achat a été remboursé',
+  'store.notice.restored': '{name} est de retour dans la galerie.',
+  'store.notice.blockScene':
+    'Vous ne pourrez pas la republier pendant {count} jours.',
+  'store.notice.blockAccount':
+    'Vous ne pourrez rien publier pendant {count} jours.',
+  'store.notice.takenDownBody':
+    'Nous avons retiré {name} de la galerie parce qu’elle enfreint les règles. Les personnes qui l’ont achetée ont récupéré leur crédit, et ce que vous avez gagné avec ces achats vous a été retiré.',
+  'store.notice.takenDown': '{name} a quitté la galerie',
+  'store.notice.returnedBody':
+    'Votre crédit pour cette scène vous a été rendu.',
+  'store.notice.returned': 'Cette scène n’est plus disponible.',
   'store.pack.each': '{price} la scène',
   'store.pack.best': 'Meilleur prix',
   'store.buy.title': 'Garder {name} pour toujours ?',

@@ -96,7 +96,7 @@ const plus = {
   'plus.add.done': '{name} está nos seus visuais.',
   'plus.add.unavailable':
     'Não foi possível baixar {name} agora. Tente de novo.',
-  'plus.add.blocked': '{name} foi removida.',
+  'plus.add.blocked': '{name} não está mais disponível.',
   'plus.add.changed':
     '{name} não passou na verificação do FluidEQ, por isso não foi adicionada.',
   'plus.add.failed': 'Não foi possível adicionar {name}. Tente de novo.',
@@ -109,7 +109,7 @@ const plus = {
   'plus.scene.demoSong': 'No ritmo da música da demo',
   'plus.scene.taste': 'Prévia · {seconds} s',
   'plus.scene.unavailable': 'Esta cena não pode ser baixada agora.',
-  'plus.scene.blocked': 'Esta cena foi removida.',
+  'plus.scene.blocked': 'Esta cena não está mais disponível.',
   'plus.scene.changed':
     'Esta cena não passou na verificação do FluidEQ, por isso não será reproduzida.',
   'plus.scene.heavy': 'Esta cena é pesada demais para este computador.',
@@ -150,7 +150,7 @@ const plus = {
   'plus.mine.blocked': 'Removida pelo FluidEQ',
   'plus.mine.unpublish': 'Despublicar',
   'plus.mine.confirm':
-    'Retirar da galeria e impedir novos downloads? Quem já baixou a cena mantém sua cópia.',
+    'Tirar {name} da galeria? Ninguém novo poderá obtê-la. Quem já a tem fica com ela.',
   'plus.mine.confirmYes': 'Despublicar',
   'plus.mine.confirmNo': 'Manter',
   'plus.mine.unpublished': '{name} não está mais na galeria.',

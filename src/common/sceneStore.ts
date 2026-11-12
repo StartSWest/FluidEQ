@@ -4,6 +4,16 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import {
+  isAccountSuspension,
+  parseAccountSuspension,
+  type IAccountSuspension,
+} from './accountSuspension';
+import {
+  isMemberNoticeList,
+  parseMemberNotices,
+  type IMemberNotice,
+} from './memberNotices';
 import { memberLookId, parseMemberLookId } from './memberScenes';
 import { FLUIDEQ_CREATOR_ID } from './plusGallery';
 import { PACK_ID } from './scenePackFields';
@@ -58,6 +68,13 @@ export interface ISceneStore {
    * from a server before 0103.
    */
   unpublished?: IUnpublishedScene[];
+  /**
+   * This account is suspended (premium 0105): it owns, plays and buys
+   * nothing, and the window says so. Absent for every other account.
+   */
+  suspension?: IAccountSuspension;
+  /** What the server has to tell this account, unseen yet (0105). */
+  notices?: IMemberNotice[];
 }
 
 /** A scene kept for its owners after its maker unpublished it (0103). */
@@ -226,7 +243,10 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
         return scene ? [scene] : [];
       })
     : undefined;
+  const suspension = parseAccountSuspension(value.suspension);
+  const notices = parseMemberNotices(value.notices);
   if (
+    suspension === false ||
     owned.length !== value.owned.length ||
     packs.length !== value.packs.length ||
     (published !== undefined && !isSceneIdList(published)) ||
@@ -249,6 +269,8 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     ...(everything === true ? { everything } : {}),
     ...(halfCredit === true ? { halfCredit } : {}),
     ...(unpublished && unpublished.length > 0 ? { unpublished } : {}),
+    ...(suspension ? { suspension } : {}),
+    ...(notices.length > 0 ? { notices } : {}),
   };
 };
 
@@ -269,6 +291,8 @@ export const isSceneStore = (value: unknown): value is ISceneStore =>
   (value.unpublished === undefined ||
     (Array.isArray(value.unpublished) &&
       value.unpublished.every(isUnpublishedScene))) &&
+  (value.suspension === undefined || isAccountSuspension(value.suspension)) &&
+  (value.notices === undefined || isMemberNoticeList(value.notices)) &&
   Array.isArray(value.packs) &&
   value.packs.every((row: unknown) => readPack(row) !== undefined);
 
@@ -302,6 +326,18 @@ export type TBuyOutcome =
   { ok: true; store: ISceneStore } | { ok: false; reason: TBuyFailure };
 export type TStarterOutcome =
   { ok: true; store: ISceneStore } | { ok: false; reason: TStarterFailure };
+/** Why a suspended account's refund was not asked for (premium 0105). */
+export type TSuspensionRefundFailure =
+  | TStoreFailure
+  /** The account is deleted, or being deleted: there is no asking now. */
+  | 'too-late'
+  /** Nothing was paid in the days a suspension refunds. */
+  | 'nothing-to-refund'
+  /** The account is not suspended, or no longer is. */
+  | 'not-suspended';
+export type TSuspensionRefundOutcome =
+  | { ok: true; store: ISceneStore }
+  | { ok: false; reason: TSuspensionRefundFailure };
 /** The checkout page is opened in the browser by main; the window hears only that it was. */
 export type TCheckoutOutcome =
   { ok: true } | { ok: false; reason: TCheckoutFailure };
@@ -351,7 +387,10 @@ export const mayPlayLook = ({
   plus: boolean;
   store: ISceneStore | undefined;
 }): boolean => {
-  if (!accountId) {
+  // A suspended account plays nothing, its own scenes and a Plus membership
+  // still running included: the server reads it none, and the window must
+  // not play from a copy on disk what the server would refuse (0105).
+  if (!accountId || store?.suspension) {
     return false;
   }
   if (store?.everything) {
@@ -389,6 +428,7 @@ export const mayPlayAnything = ({
   held: readonly string[];
 }): boolean =>
   accountId !== undefined &&
+  store?.suspension === undefined &&
   (plus ||
     store?.everything === true ||
     (store?.owned.length ?? 0) > 0 ||

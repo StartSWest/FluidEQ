@@ -24,7 +24,7 @@ const termsNotice = {
   'termsNotice.change.11':
     'Les scènes sont désormais à vous pour de bon : un crédit chacune, en packs payés une seule fois sur Stripe, et un compte confirmé reçoit quelques crédits gratuits pour commencer. Chaque scène peut être regardée quelques secondes avant. Le Studio et la publication sont gratuits pour tous les comptes, et vos propres scènes jouent partout une fois publiées. FluidEQ peut aussi rendre certaines de ses propres scènes gratuites pour tous. L’abonnement Plus n’est plus vendu : un abonnement déjà en cours continue de fonctionner jusqu’à ce que FluidEQ passe ses membres aux crédits, et les scènes qu’un membre a ajoutées lui restent alors.',
   'termsNotice.change.12':
-    'Une scène que son auteur dépublie reste désormais à tous ceux qui l’ont obtenue, sur chaque ordinateur, marquée comme dépubliée. Une scène retirée ou supprimée pour avoir enfreint les conditions rend son crédit à chaque personne qui l’a obtenue avec un crédit, et son auteur rend ce que ces achats lui ont rapporté, jamais en dessous de zéro.',
+    'Une scène que son auteur dépublie reste désormais à toutes les personnes qui l’ont obtenue. Une scène retirée ou supprimée pour avoir enfreint les conditions rend leur crédit à ses acheteurs, et son auteur rend ce que ces achats lui ont rapporté. Les bannissements sont remplacés par la suspension : un compte suspendu peut demander le remboursement de ce qu’il a payé peu avant, et il est supprimé peu après. En refusant ou en retirant une scène, le créateur de FluidEQ peut aussi empêcher un temps la publication de cette scène, ou de toutes les scènes d’un auteur.',
 } as const;
 
 export default termsNotice;

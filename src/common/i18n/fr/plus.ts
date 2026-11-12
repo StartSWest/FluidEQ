@@ -97,7 +97,7 @@ const plus = {
   'plus.add.done': '{name} est dans vos styles.',
   'plus.add.unavailable':
     '{name} n’a pas pu être téléchargée pour l’instant. Réessayez.',
-  'plus.add.blocked': '{name} a été retirée.',
+  'plus.add.blocked': '{name} n’est plus disponible.',
   'plus.add.changed':
     '{name} n’a pas passé la vérification de FluidEQ et n’a pas été ajoutée.',
   'plus.add.failed': '{name} n’a pas pu être ajoutée. Réessayez.',
@@ -111,7 +111,7 @@ const plus = {
   'plus.scene.taste': 'Aperçu · {seconds} s',
   'plus.scene.unavailable':
     'Cette scène ne peut pas être téléchargée pour l’instant.',
-  'plus.scene.blocked': 'Cette scène a été retirée.',
+  'plus.scene.blocked': 'Cette scène n’est plus disponible.',
   'plus.scene.changed':
     'Cette scène n’a pas passé la vérification de FluidEQ et ne sera pas lancée.',
   'plus.scene.heavy': 'Cette scène est trop lourde pour cet ordinateur.',
@@ -153,7 +153,7 @@ const plus = {
   'plus.mine.blocked': 'Retirée par FluidEQ',
   'plus.mine.unpublish': 'Dépublier',
   'plus.mine.confirm':
-    'La retirer de la galerie et empêcher de nouveaux téléchargements ? Les membres qui l’ont déjà téléchargée conservent leur copie.',
+    'Retirer {name} de la galerie ? Personne de nouveau ne pourra l’obtenir. Les personnes qui l’ont déjà la gardent.',
   'plus.mine.confirmYes': 'Dépublier',
   'plus.mine.confirmNo': 'La garder',
   'plus.mine.unpublished': '{name} n’est plus dans la galerie.',

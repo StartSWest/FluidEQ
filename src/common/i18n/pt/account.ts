@@ -23,6 +23,27 @@ const account = {
   'account.signOut': 'Sair',
   'account.signOut.confirm': 'Sair desta conta?',
   'account.signOut.detail': 'Você pode entrar de novo quando quiser.',
+  'account.suspended.failed':
+    'Não foi possível pedir o reembolso. Tente de novo.',
+  'account.suspended.until': 'até {date}',
+  'account.suspended.daysLeft.other': 'Faltam {count} dias',
+  'account.suspended.daysLeft.many': 'Faltam {count} dias',
+  'account.suspended.daysLeft.few': 'Faltam {count} dias',
+  'account.suspended.daysLeft.one': 'Falta {count} dia',
+  'account.suspended.asked':
+    'Reembolso pedido: {amount}. Ele chegará em {date}, quando a conta for apagada.',
+  'account.suspended.ask': 'Pedir reembolso',
+  'account.suspended.maker':
+    'Suas cenas não estão mais na galeria, e o que você tinha a receber foi cancelado.',
+  'account.suspended.paid': 'Você pagou nesses dias',
+  'account.suspended.bodyAsked':
+    'Sua conta está suspensa por violar as regras. Você não pode mais usá-la nem comprar.',
+  'account.suspended.bodyNothing':
+    'Sua conta está suspensa por violar as regras. Você não pode mais usá-la nem comprar. Em {until}, sua conta será apagada.',
+  'account.suspended.body':
+    'Sua conta está suspensa por violar as regras. Você não pode mais usá-la nem comprar. Você pode pedir o reembolso do que pagou entre {from} e {to} até {until}. Nesse dia, sua conta será apagada.',
+  'account.suspended.title': 'Conta suspensa',
+  'account.suspended.eyebrow': 'Conta',
   'account.signOut.detailPlus':
     'Suas cenas ficam bloqueadas aqui até você entrar de novo.',
   'account.signOut.kept': 'Nada é apagado deste computador.',

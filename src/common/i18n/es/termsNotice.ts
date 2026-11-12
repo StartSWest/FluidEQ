@@ -24,7 +24,7 @@ const termsNotice = {
   'termsNotice.change.11':
     'Las escenas ahora son tuyas para siempre: un crédito cada una, de paquetes que se pagan una sola vez en Stripe, y una cuenta confirmada recibe algunos créditos gratis para empezar. Cada escena se puede ver unos segundos antes. El Estudio y publicar son gratis para todas las cuentas, y tus propias escenas suenan en todas partes una vez publicadas. FluidEQ también puede hacer gratis para todos algunas de sus propias escenas. La membresía Plus ya no se vende: una ya activa sigue funcionando hasta que FluidEQ pase a sus miembros a créditos, y las escenas que un miembro añadió se quedan entonces con él.',
   'termsNotice.change.12':
-    'Una escena que quien la hizo retira ahora se queda con todos los que la obtuvieron, en cada computadora, marcada como despublicada. Una escena retirada o borrada por incumplir las condiciones devuelve el crédito a quienes la obtuvieron con uno, y quien la hizo devuelve lo que esas compras le hicieron ganar, nunca por debajo de cero.',
+    'Una escena que su autor retira ahora sigue siendo de todos los que la obtuvieron. Una escena retirada o borrada por incumplir las condiciones devuelve el crédito a quienes la compraron, y su autor devuelve lo que esas compras le hicieron ganar. La suspensión sustituye al bloqueo de cuentas: una cuenta suspendida puede pedir el reembolso de lo que pagó poco antes, y se borra poco después. Al rechazar o retirar una escena, el creador de FluidEQ también puede impedir durante un tiempo que esa escena, o todas las de un autor, se publiquen.',
 } as const;
 
 export default termsNotice;

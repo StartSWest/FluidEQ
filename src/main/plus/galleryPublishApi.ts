@@ -71,7 +71,20 @@ export type TPublishFailure =
   | 'taken-down'
   /** The admin deleted this scene for good; it is never published again. */
   | 'deleted'
+  /**
+   * A block the admin chose with a decline or a takedown keeps this scene
+   * (`blocked-scene`) or every scene of the maker (`blocked-account`) from
+   * review until `blockedUntil` (server migration 0105).
+   */
+  | 'blocked-scene'
+  | 'blocked-account'
   | 'server';
+
+/** A refusal, and when a block that caused it ends. */
+export interface IPublishRefusal {
+  reason: TPublishFailure;
+  blockedUntil?: string;
+}
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -83,13 +96,25 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
  */
 const refusalOf = async (
   response: Response,
-): Promise<{ word: string; reason: string }> => {
+): Promise<{
+  word: string;
+  reason: string;
+  blockedUntil?: string;
+  blockScope?: string;
+}> => {
   try {
     const body: unknown = await response.json();
     return isRecord(body)
       ? {
           word: typeof body.error === 'string' ? body.error : '',
           reason: typeof body.reason === 'string' ? body.reason : '',
+          ...(typeof body.blockedUntil === 'string' &&
+          Number.isFinite(Date.parse(body.blockedUntil))
+            ? { blockedUntil: body.blockedUntil }
+            : {}),
+          ...(typeof body.blockScope === 'string'
+            ? { blockScope: body.blockScope }
+            : {}),
         }
       : { word: '', reason: '' };
   } catch {
@@ -97,47 +122,65 @@ const refusalOf = async (
   }
 };
 
-const publishFailure = async (response: Response): Promise<TPublishFailure> => {
+const publishFailure = async (response: Response): Promise<IPublishRefusal> => {
   if (response.status === 401) {
-    return 'signed-out';
+    return { reason: 'signed-out' };
   }
-  const { word, reason } = await refusalOf(response);
-  if (response.status === 409 && word === 'terms_outdated') {
+  const refusal = await refusalOf(response);
+  if (
+    response.status === 403 &&
+    refusal.word === 'banned' &&
+    refusal.blockedUntil
+  ) {
+    return {
+      reason:
+        refusal.blockScope === 'scene' ? 'blocked-scene' : 'blocked-account',
+      blockedUntil: refusal.blockedUntil,
+    };
+  }
+  return { reason: publishReason(response.status, refusal) };
+};
+
+const publishReason = (
+  status: number,
+  { word, reason }: { word: string; reason: string },
+): TPublishFailure => {
+  if (status === 409 && word === 'terms_outdated') {
     return 'terms';
   }
-  if (response.status === 409 && word === 'version_not_raised') {
+  if (status === 409 && word === 'version_not_raised') {
     return 'version-not-raised';
   }
-  if (response.status === 409 && word === 'scene_taken_down') {
+  if (status === 409 && word === 'scene_taken_down') {
     return 'taken-down';
   }
-  if (response.status === 409 && word === 'scene_deleted') {
+  if (status === 409 && word === 'scene_deleted') {
     return 'deleted';
   }
-  if (response.status === 403) {
+  if (status === 403) {
     if (word === 'banned' || word === 'unconfirmed') {
       return word;
     }
     return 'not-entitled';
   }
-  if (response.status === 429) {
+  if (status === 429) {
     return word === 'too_many_this_month'
       ? 'too-many-this-month'
       : 'rate-limited';
   }
-  if (response.status === 422 && word === 'official_copy') {
+  if (status === 422 && word === 'official_copy') {
     return 'official-copy';
   }
-  if (response.status === 422 && reason === 'too_many_scenes') {
+  if (status === 422 && reason === 'too_many_scenes') {
     return 'too-many-scenes';
   }
-  if (response.status === 422 && reason === 'pack_differs') {
+  if (status === 422 && reason === 'pack_differs') {
     return 'pack-differs';
   }
-  if (response.status === 422 && reason === 'preview') {
+  if (status === 422 && reason === 'preview') {
     return 'preview-invalid';
   }
-  if (response.status === 422 || response.status === 413) {
+  if (status === 422 || status === 413) {
     return 'refused';
   }
   return 'server';
@@ -210,7 +253,7 @@ export const publishScene = async (
   },
 ): Promise<
   | { ok: true; review?: 'pending'; kept: TKeptCopy }
-  | { ok: false; reason: TPublishFailure }
+  | ({ ok: false } & IPublishRefusal)
 > => {
   // What this publication is meant to be, as the service will work it out
   // from the scene it reads: it refuses when the two differ, before it signs
@@ -232,7 +275,7 @@ export const publishScene = async (
     return { ok: false, reason: 'offline' };
   }
   if (!response.ok) {
-    return { ok: false, reason: await publishFailure(response) };
+    return { ok: false, ...(await publishFailure(response)) };
   }
   // A member's publication waits for the admin (fluideq-premium 0037), and
   // the answer says so; the admin's own goes straight out and says nothing of
@@ -260,12 +303,12 @@ export const publishScene = async (
 export const unpublishScene = async (
   auth: IAuthorised,
   sceneId: string,
-): Promise<{ ok: true } | { ok: false; reason: TPublishFailure }> => {
+): Promise<{ ok: true } | ({ ok: false } & IPublishRefusal)> => {
   const response = await callPublish(auth, { action: 'unpublish', sceneId });
   if (!response) {
     return { ok: false, reason: 'offline' };
   }
   return response.ok
     ? { ok: true }
-    : { ok: false, reason: await publishFailure(response) };
+    : { ok: false, ...(await publishFailure(response)) };
 };

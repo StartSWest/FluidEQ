@@ -231,6 +231,10 @@ const studio = {
     'FluidEQ снял эту сцену из галереи, поэтому новую версию отправить нельзя. Она может вернуться только в прежнем виде, если FluidEQ её восстановит.',
   'studio.publish.deleted':
     'FluidEQ удалил эту сцену из галереи насовсем, поэтому опубликовать её снова нельзя.',
+  'studio.publish.blockedAccount':
+    'Вы не сможете публиковать и экспортировать сцены до {date}.',
+  'studio.publish.blockedScene':
+    'Вы не сможете публиковать и экспортировать эту сцену до {date}.',
 
   'studio.picture.files': 'Изображения',
   'studio.picture.missing':
@@ -333,7 +337,7 @@ const studio = {
   'studio.new.signedOut': 'Войдите, чтобы начать проект.',
   'studio.import.changed':
     'Этот файл изменили после экспорта, поэтому FluidEQ не будет его воспроизводить.',
-  'studio.import.blocked': 'Эта сцена удалена.',
+  'studio.import.blocked': 'Эта сцена больше недоступна.',
 
   'studio.idea.pet.label': 'Мой питомец, живой',
   'studio.idea.pet.text':

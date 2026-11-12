@@ -68,6 +68,8 @@ export type TPublishOutcome =
         | 'no-picture'
         | 'inspect-only'
         | 'too-large';
+      /** When a block the admin chose ends (`blocked-scene`, `blocked-account`). */
+      blockedUntil?: string;
     };
 
 export type TUnpublishOutcome =

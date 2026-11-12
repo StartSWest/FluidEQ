@@ -32,6 +32,9 @@ const review = {
     '{name} のバージョン {version} は承認されませんでした',
   'review.notice.keepsLive':
     'すでに持っている人はバージョン {version} のままです。',
+  'review.notice.blockAccount': '{count} 日間はシーンを審査に送れません。',
+  'review.notice.blockScene':
+    '{count} 日間はこのシーンを再び審査に送れません。',
   'review.notice.gotIt': 'OK',
   'review.notice.openStudio': 'スタジオを開く',
   'review.notice.openMine': 'あなたのシーン',

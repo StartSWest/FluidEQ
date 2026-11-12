@@ -47,6 +47,8 @@ export type TExportOutcome =
   | {
       ok: false;
       reason: TExportFailure | 'no-build' | 'cancelled' | 'inspect-only';
+      /** When a block the admin chose ends. */
+      blockedUntil?: string;
     };
 
 export type TImportOutcome =

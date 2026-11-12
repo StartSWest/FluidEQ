@@ -32,6 +32,26 @@ const account = {
   'account.signOut': 'Sign out',
   'account.signOut.confirm': 'Sign out of this account?',
   'account.signOut.detail': 'You can sign back in whenever you like.',
+  'account.suspended.failed': 'The refund couldn’t be requested. Try again.',
+  'account.suspended.until': 'until {date}',
+  'account.suspended.daysLeft.other': '{count} days left',
+  'account.suspended.daysLeft.many': '{count} days left',
+  'account.suspended.daysLeft.few': '{count} days left',
+  'account.suspended.daysLeft.one': '{count} day left',
+  'account.suspended.asked':
+    'Refund requested: {amount}. It will reach you on {date}, when the account is deleted.',
+  'account.suspended.ask': 'Ask for a refund',
+  'account.suspended.maker':
+    'Your scenes are no longer in the gallery, and what you had waiting to be paid was cancelled.',
+  'account.suspended.paid': 'You paid in those days',
+  'account.suspended.bodyAsked':
+    'Your account is suspended for breaking the rules. You can no longer use it or buy anything.',
+  'account.suspended.bodyNothing':
+    'Your account is suspended for breaking the rules. You can no longer use it or buy anything. On {until} your account will be deleted.',
+  'account.suspended.body':
+    'Your account is suspended for breaking the rules. You can no longer use it or buy anything. You can ask for a refund of what you paid between {from} and {to} until {until}. On that day your account will be deleted.',
+  'account.suspended.title': 'Account suspended',
+  'account.suspended.eyebrow': 'Account',
   'account.signOut.detailPlus':
     'Your scenes stay locked here until you sign back in.',
   'account.signOut.kept': 'Nothing on this computer is deleted.',

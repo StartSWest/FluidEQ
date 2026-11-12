@@ -96,7 +96,7 @@ const plus = {
 
   'plus.add.done': '«{name}» теперь в ваших оформлениях.',
   'plus.add.unavailable': 'Не удалось скачать «{name}». Попробуйте ещё раз.',
-  'plus.add.blocked': '«{name}» удалена.',
+  'plus.add.blocked': '«{name}» больше недоступна.',
   'plus.add.changed':
     '«{name}» не прошла проверку FluidEQ и не была добавлена.',
   'plus.add.failed': 'Не удалось добавить «{name}». Попробуйте ещё раз.',
@@ -109,7 +109,7 @@ const plus = {
   'plus.scene.demoSong': 'Играет под демо-песню',
   'plus.scene.taste': 'Превью · {seconds} с',
   'plus.scene.unavailable': 'Эту сцену сейчас нельзя скачать.',
-  'plus.scene.blocked': 'Эта сцена удалена.',
+  'plus.scene.blocked': 'Эта сцена больше недоступна.',
   'plus.scene.changed':
     'Эта сцена не прошла проверку FluidEQ и не будет запущена.',
   'plus.scene.heavy': 'Эта сцена слишком тяжела для этого компьютера.',
@@ -150,7 +150,7 @@ const plus = {
   'plus.mine.blocked': 'Удалена FluidEQ',
   'plus.mine.unpublish': 'Снять с публикации',
   'plus.mine.confirm':
-    'Убрать сцену из галереи и прекратить новые загрузки? Те, кто уже скачал сцену, сохранят свою копию.',
+    'Убрать «{name}» из галереи? Новые пользователи не смогут её получить. У тех, у кого она уже есть, она останется.',
   'plus.mine.confirmYes': 'Снять',
   'plus.mine.confirmNo': 'Оставить',
   'plus.mine.unpublished': '«{name}» больше нет в галерее.',

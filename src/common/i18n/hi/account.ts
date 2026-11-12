@@ -23,6 +23,26 @@ const account = {
   'account.signOut': 'साइन आउट',
   'account.signOut.confirm': 'इस खाते से साइन आउट करें?',
   'account.signOut.detail': 'आप कभी भी फिर से साइन इन कर सकते हैं।',
+  'account.suspended.failed': 'रिफ़ंड नहीं माँगा जा सका। फिर कोशिश करें।',
+  'account.suspended.until': '{date} तक',
+  'account.suspended.daysLeft.other': '{count} दिन बाकी',
+  'account.suspended.daysLeft.many': '{count} दिन बाकी',
+  'account.suspended.daysLeft.few': '{count} दिन बाकी',
+  'account.suspended.daysLeft.one': '{count} दिन बाकी',
+  'account.suspended.asked':
+    'रिफ़ंड माँगा गया: {amount}। यह {date} को, खाता हटने पर, आपको मिलेगा।',
+  'account.suspended.ask': 'रिफ़ंड माँगें',
+  'account.suspended.maker':
+    'आपके सीन अब गैलरी में नहीं हैं, और जो भुगतान आपको मिलना बाकी था वह रद्द कर दिया गया।',
+  'account.suspended.paid': 'उन दिनों में आपका भुगतान',
+  'account.suspended.bodyAsked':
+    'नियम तोड़ने के कारण आपका खाता निलंबित है। अब आप इसका उपयोग नहीं कर सकते और न ही कुछ खरीद सकते हैं।',
+  'account.suspended.bodyNothing':
+    'नियम तोड़ने के कारण आपका खाता निलंबित है। अब आप इसका उपयोग नहीं कर सकते और न ही कुछ खरीद सकते हैं। {until} को आपका खाता हटा दिया जाएगा।',
+  'account.suspended.body':
+    'नियम तोड़ने के कारण आपका खाता निलंबित है। अब आप इसका उपयोग नहीं कर सकते और न ही कुछ खरीद सकते हैं। {from} से {to} के बीच आपने जो भुगतान किया, उसका रिफ़ंड आप {until} तक माँग सकते हैं। उसी दिन आपका खाता हटा दिया जाएगा।',
+  'account.suspended.title': 'खाता निलंबित',
+  'account.suspended.eyebrow': 'खाता',
   'account.signOut.detailPlus':
     'जब तक आप फिर से साइन इन नहीं करते, आपके सीन यहाँ लॉक रहते हैं।',
   'account.signOut.kept': 'इस कंप्यूटर से कुछ भी नहीं हटाया जाता।',

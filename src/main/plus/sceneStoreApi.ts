@@ -14,6 +14,7 @@ import {
   type TCheckoutFailure,
   type TStarterFailure,
   type TStoreFailure,
+  type TSuspensionRefundFailure,
 } from '../../common/sceneStore';
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import type { IGalleryAuth } from './galleryAccess';
@@ -189,5 +190,41 @@ export const startCreditCheckout = async (
       : { ok: false, reason: 'server' };
   } catch {
     return { ok: false, reason: 'server' };
+  }
+};
+
+const SUSPENSION_REFUSALS = new Map<unknown, TSuspensionRefundFailure>([
+  ['too_late', 'too-late'],
+  ['nothing_to_refund', 'nothing-to-refund'],
+  ['not_suspended', 'not-suspended'],
+]);
+
+/** The one ask a suspended account has: its refund, paid at the deletion. */
+export const requestSuspensionRefund = async (
+  auth: IGalleryAuth,
+): Promise<{ ok: true } | { ok: false; reason: TSuspensionRefundFailure }> => {
+  let response: Response;
+  try {
+    response = await rpc(auth, 'request_suspension_refund', {});
+  } catch {
+    return { ok: false, reason: 'offline' };
+  }
+  if (response.ok) {
+    return { ok: true };
+  }
+  const refusal = SUSPENSION_REFUSALS.get(await refusalOf(response));
+  return { ok: false, reason: refusal ?? storeFailureOf(response.status) };
+};
+
+/** Notices read: never shown again, on this computer or any other. */
+export const dismissNotices = async (
+  auth: IGalleryAuth,
+  ids: readonly number[],
+): Promise<boolean> => {
+  try {
+    const response = await rpc(auth, 'dismiss_notices', { p_ids: ids });
+    return response.ok;
+  } catch {
+    return false;
   }
 };

@@ -24,6 +24,25 @@ const account = {
   'account.signOut': '退出',
   'account.signOut.confirm': '登出該帳戶？',
   'account.signOut.detail': '您可以隨時重新登入。',
+  'account.suspended.failed': '無法申請退款。請再試一次。',
+  'account.suspended.until': '至 {date}',
+  'account.suspended.daysLeft.other': '還剩 {count} 天',
+  'account.suspended.daysLeft.many': '還剩 {count} 天',
+  'account.suspended.daysLeft.few': '還剩 {count} 天',
+  'account.suspended.daysLeft.one': '還剩 {count} 天',
+  'account.suspended.asked':
+    '已申請退款：{amount}。將在 {date} 帳戶刪除時退還給您。',
+  'account.suspended.ask': '申請退款',
+  'account.suspended.maker': '您的場景已不在藝廊中，待支付給您的款項已取消。',
+  'account.suspended.paid': '這段時間的付款',
+  'account.suspended.bodyAsked':
+    '您的帳戶因違反規則已被暫停。您不能再使用它或購買任何東西。',
+  'account.suspended.bodyNothing':
+    '您的帳戶因違反規則已被暫停。您不能再使用它或購買任何東西。您的帳戶將在 {until} 被刪除。',
+  'account.suspended.body':
+    '您的帳戶因違反規則已被暫停。您不能再使用它或購買任何東西。在 {until} 之前，您可以申請退還 {from} 至 {to} 期間支付的款項。到那天，您的帳戶將被刪除。',
+  'account.suspended.title': '帳戶已被暫停',
+  'account.suspended.eyebrow': '帳戶',
   'account.signOut.detailPlus': '您的場景將一直鎖定在此處，直到您重新登入。',
   'account.signOut.kept': '此電腦上的任何內容都不會被刪除。',
   'account.cover.onGraph': '圖表上的 {name}',

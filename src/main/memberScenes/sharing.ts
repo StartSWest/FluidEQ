@@ -31,6 +31,12 @@ export type TExportFailure =
   /** The address is not confirmed yet, which sharing needs. */
   | 'unconfirmed'
   | 'banned'
+  /**
+   * A block the admin chose keeps this scene, or every scene of its maker,
+   * from being signed until `blockedUntil` (server migration 0105).
+   */
+  | 'blocked-scene'
+  | 'blocked-account'
   | 'terms'
   | 'rate-limited'
   | 'refused'
@@ -40,17 +46,29 @@ export type TExportFailure =
 
 export type TSignOutcome =
   | { ok: true; envelope: IScenePackEnvelope }
-  | { ok: false; reason: TExportFailure };
+  | { ok: false; reason: TExportFailure; blockedUntil?: string };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const errorWord = async (response: Response): Promise<string> => {
+/** The refusal's word, and a block's end and scope when it carries one. */
+const refusalOf = async (
+  response: Response,
+): Promise<{ word: string; blockedUntil?: string; blockScope?: unknown }> => {
   try {
     const body: unknown = await response.json();
-    return isRecord(body) && typeof body.error === 'string' ? body.error : '';
+    if (!isRecord(body)) {
+      return { word: '' };
+    }
+    return {
+      word: typeof body.error === 'string' ? body.error : '',
+      ...(typeof body.blockedUntil === 'string' &&
+      Number.isFinite(Date.parse(body.blockedUntil))
+        ? { blockedUntil: body.blockedUntil, blockScope: body.blockScope }
+        : {}),
+    };
   } catch {
-    return '';
+    return { word: '' };
   }
 };
 
@@ -86,7 +104,14 @@ export const signMemberScene = async ({
     return { ok: false, reason: 'signed-out' };
   }
   if (!response.ok) {
-    const word = await errorWord(response);
+    const { word, blockedUntil, blockScope } = await refusalOf(response);
+    if (response.status === 403 && word === 'banned' && blockedUntil) {
+      return {
+        ok: false,
+        reason: blockScope === 'scene' ? 'blocked-scene' : 'blocked-account',
+        blockedUntil,
+      };
+    }
     if (response.status === 409 && word === 'terms_outdated') {
       return { ok: false, reason: 'terms' };
     }

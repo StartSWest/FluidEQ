@@ -24,7 +24,7 @@ const termsNotice = {
   'termsNotice.change.11':
     'As cenas agora são suas para sempre: um crédito cada, de pacotes pagos uma única vez na Stripe, e uma conta confirmada recebe alguns créditos grátis para começar. Cada cena pode ser assistida por alguns segundos antes. O Estúdio e a publicação são gratuitos para todas as contas, e as suas próprias cenas tocam em todo lugar depois de publicadas. O FluidEQ também pode deixar algumas das próprias cenas gratuitas para todos. A assinatura Plus não é mais vendida: uma já ativa continua funcionando até que o FluidEQ passe os seus membros para créditos, e as cenas que um membro adicionou ficam então com ele.',
   'termsNotice.change.12':
-    'Uma cena que quem a criou despublica agora fica com todos que a obtiveram, em todo computador, marcada como despublicada. Uma cena retirada ou apagada por violar os termos devolve o crédito a quem a obteve com um, e quem a criou devolve o que essas compras renderam, nunca abaixo de zero.',
+    'Uma cena que quem a criou despublica agora continua com todos que a obtiveram. Uma cena retirada ou apagada por violar os termos devolve o crédito a quem a comprou, e quem a criou devolve o que essas compras renderam. O banimento de contas é substituído pela suspensão: uma conta suspensa pode pedir o reembolso do que pagou pouco antes, e é apagada pouco depois. Ao recusar ou retirar uma cena, o criador do FluidEQ também pode impedir por um tempo que essa cena, ou todas as de um criador, sejam publicadas.',
 } as const;
 
 export default termsNotice;

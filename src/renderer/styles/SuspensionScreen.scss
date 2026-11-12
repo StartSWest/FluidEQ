@@ -1,0 +1,146 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'theme' as *;
+
+// A suspended account's screen (`SuspensionScreen`): a gate with no way out
+// but signing out. Above everything opened on purpose and above the
+// mandatory-update notice (5000), which can be closed; under the first-run
+// gate (5100), which nobody signed in has left open.
+.suspension-backdrop {
+  @include dialog.backdrop(5050);
+}
+
+.dialog-frame.suspension-screen {
+  @include dialog.size(760px, 620px);
+
+  // Focused so the screen announces itself; not in the tab order, so there
+  // is no ring to draw.
+  &:focus {
+    outline: none;
+  }
+
+  // The rail's tile in the danger tone: the account is what is at stake.
+  .dialog-frame__tile {
+    color: $red;
+    border-color: color-mix(in srgb, $red 34%, transparent);
+    background: color-mix(in srgb, $red 13%, transparent);
+  }
+}
+
+// The days to the deletion, under the identity: the number large, a track
+// that fills as the days run, and the date it ends.
+.suspension-screen__countdown {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-base 70%, transparent);
+}
+
+.suspension-screen__days {
+  color: $text-primary;
+  font-size: 1.3rem;
+  font-weight: $weight-bold;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+// A width, and nothing that moves on its own: the days are what moves it.
+.suspension-screen__track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-light 14%, transparent);
+}
+
+.suspension-screen__run {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: $red;
+}
+
+.suspension-screen__until {
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.suspension-screen__body {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.suspension-screen__lead {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  line-height: 1.55;
+}
+
+// What a refund pays back: the one number on the screen, set apart as the
+// sum a statement ends with.
+.suspension-screen__amount {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-light 5%, transparent);
+
+  span {
+    color: $text-muted;
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: $text-title;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// The ask made: the one line that answers it, in the "done" green.
+.suspension-screen__asked {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin: 0;
+  padding: 12px 14px;
+  color: $text-primary;
+  border: 1px solid color-mix(in srgb, $neon-lime 40%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $neon-lime 9%, transparent);
+
+  svg {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    color: $neon-lime;
+  }
+}
+
+.suspension-screen__maker {
+  margin: 0;
+  padding-left: 12px;
+  color: $text-muted;
+  border-left: 2px solid color-mix(in srgb, $red 55%, transparent);
+}
+
+.suspension-screen__failed {
+  margin: 0;
+  color: $amber;
+}

@@ -211,6 +211,8 @@ const studio = {
     'FluidEQ 從相簿中刪除了該場景，因此無法採用新版本。只有 FluidEQ 恢復它，它才能恢復原樣。',
   'studio.publish.deleted':
     'FluidEQ 已從相簿中永久刪除了該場景，因此無法再次發布。',
+  'studio.publish.blockedAccount': '在 {date} 之前，您不能發布或匯出場景。',
+  'studio.publish.blockedScene': '在 {date} 之前，您不能發布或匯出這個場景。',
   'studio.picture.files': '圖片',
   'studio.picture.missing': '該場景使用您的圖片，而資料夾中還沒有。',
   'studio.picture.hint': '在下面場景中的圖片中選擇它們。任何照片都可以。',
@@ -289,7 +291,7 @@ const studio = {
   'studio.import.signedOut': '登入以開啟場景檔案。',
   'studio.new.signedOut': '登入以啟動專案。',
   'studio.import.changed': '該檔案在匯出後已更改，因此 FluidEQ 將無法播放它。',
-  'studio.import.blocked': '該場景已被撤下。',
+  'studio.import.blocked': '那個場景已不再可用。',
   'studio.idea.pet.label': '我的寵物還活著',
   'studio.idea.pet.text':
     '我的寵物的照片隨著音樂而生動。它隨著低音輕柔地呼吸，柔和的光邊在每一個節拍上描繪出它的輪廓，它的色彩隨著中音而溫暖，隨著高音，它周圍升起微小的火花。在每一個重要時刻，背後都會綻放出新顏色的五彩紙屑。在寂靜中，它只有緩慢的呼吸。用於控制發光、閃光和移動程度的滑桿。環境模式下的應用程式周圍：小爪印和心形飄過。',

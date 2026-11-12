@@ -15,6 +15,7 @@ import {
   type TCheckoutLocale,
   type TSceneStoreOutcome,
   type TStarterOutcome,
+  type TSuspensionRefundOutcome,
 } from '../../common/sceneStore';
 import type { IAccountConfig } from '../../common/accountConfig';
 import type { IEntitlement } from '../account/entitlement';
@@ -25,7 +26,9 @@ import type { IGalleryAuth } from './galleryAccess';
 import {
   buyScene,
   claimStarterCredits,
+  dismissNotices,
   fetchSceneStore,
+  requestSuspensionRefund,
   startCreditCheckout,
 } from './sceneStoreApi';
 
@@ -88,6 +91,10 @@ export interface ISceneOwnership {
   ): Promise<
     { ok: true; url: string } | { ok: false; reason: TCheckoutFailure }
   >;
+  /** A suspended account's refund asked for; the store read again after. */
+  requestSuspensionRefund(): Promise<TSuspensionRefundOutcome>;
+  /** Notices read, taken out of the store here and on the server. */
+  dismissNotices(ids: readonly number[]): Promise<void>;
   dispose(): void;
 }
 
@@ -355,6 +362,41 @@ export const createSceneOwnership = ({
         owe({ userId, balance: known()?.balance ?? 0 });
       }
       return page;
+    },
+    requestSuspensionRefund: async () => {
+      const userId = accountId();
+      const auth = userId ? await authFor(userId) : undefined;
+      if (!userId || !auth) {
+        return { ok: false, reason: 'signed-out' };
+      }
+      const asked = await requestSuspensionRefund(auth);
+      if (!asked.ok) {
+        return asked;
+      }
+      const refreshed = await refreshNow();
+      return refreshed.ok
+        ? { ok: true, store: refreshed.store }
+        : { ok: false, reason: refreshed.reason };
+    },
+    dismissNotices: async (ids) => {
+      const userId = accountId();
+      const auth = userId ? await authFor(userId) : undefined;
+      if (!userId || !auth || ids.length === 0) {
+        return;
+      }
+      // Taken out here at once, so the window does not show them again
+      // while the server is asked; a server that did not hear it gives them
+      // back with the next store, and they are shown once more then.
+      const last = known();
+      if (last?.notices) {
+        const left = last.notices.filter((notice) => !ids.includes(notice.id));
+        const next: ISceneStore = { ...last, notices: left };
+        if (left.length === 0) {
+          delete next.notices;
+        }
+        adopt(userId, next);
+      }
+      await dismissNotices(auth, ids);
     },
     dispose: () => {
       push?.stop();

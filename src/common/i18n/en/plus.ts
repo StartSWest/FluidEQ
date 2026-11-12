@@ -98,7 +98,7 @@ const plus = {
   'plus.add.done': '{name} is in your looks.',
   'plus.add.unavailable':
     '{name} could not be downloaded right now. Try again.',
-  'plus.add.blocked': '{name} has been taken down.',
+  'plus.add.blocked': '{name} is no longer available.',
   'plus.add.changed':
     '{name} did not pass FluidEQ’s check, so it was not added.',
   'plus.add.failed': '{name} could not be added. Try again.',
@@ -111,7 +111,7 @@ const plus = {
   'plus.scene.demoSong': 'Playing to the demo song',
   'plus.scene.taste': 'Preview · {seconds} s',
   'plus.scene.unavailable': 'This scene cannot be downloaded right now.',
-  'plus.scene.blocked': 'This scene has been taken down.',
+  'plus.scene.blocked': 'This scene is no longer available.',
   'plus.scene.changed':
     'This scene did not pass FluidEQ’s check, so it will not play.',
   'plus.scene.heavy': 'This scene is too heavy for this computer.',
@@ -152,7 +152,7 @@ const plus = {
   'plus.mine.blocked': 'Taken down by FluidEQ',
   'plus.mine.unpublish': 'Unpublish',
   'plus.mine.confirm':
-    'Remove it from the gallery and stop new downloads? Members who already downloaded it keep their copy.',
+    'Take {name} out of the gallery? Nobody new will be able to get it. Whoever already has it keeps it.',
   'plus.mine.confirmYes': 'Unpublish',
   'plus.mine.confirmNo': 'Keep it',
   'plus.mine.unpublished': '{name} is no longer in the gallery.',

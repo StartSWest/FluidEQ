@@ -23,6 +23,27 @@ const account = {
   'account.signOut': 'Выйти',
   'account.signOut.confirm': 'Выйти из этого аккаунта?',
   'account.signOut.detail': 'Войти снова можно в любой момент.',
+  'account.suspended.failed':
+    'Не удалось запросить возврат. Попробуйте ещё раз.',
+  'account.suspended.until': 'до {date}',
+  'account.suspended.daysLeft.other': 'Осталось {count} дня',
+  'account.suspended.daysLeft.many': 'Осталось {count} дней',
+  'account.suspended.daysLeft.few': 'Осталось {count} дня',
+  'account.suspended.daysLeft.one': 'Остался {count} день',
+  'account.suspended.asked':
+    'Возврат запрошен: {amount}. Он поступит {date}, когда аккаунт будет удалён.',
+  'account.suspended.ask': 'Запросить возврат',
+  'account.suspended.maker':
+    'Ваших сцен больше нет в галерее, а ожидавшие выплаты средства отменены.',
+  'account.suspended.paid': 'Оплачено в эти дни',
+  'account.suspended.bodyAsked':
+    'Ваш аккаунт приостановлен за нарушение правил. Вы больше не можете им пользоваться и совершать покупки.',
+  'account.suspended.bodyNothing':
+    'Ваш аккаунт приостановлен за нарушение правил. Вы больше не можете им пользоваться и совершать покупки. {until} ваш аккаунт будет удалён.',
+  'account.suspended.body':
+    'Ваш аккаунт приостановлен за нарушение правил. Вы больше не можете им пользоваться и совершать покупки. До {until} вы можете запросить возврат оплаченного с {from} по {to}. В этот день ваш аккаунт будет удалён.',
+  'account.suspended.title': 'Аккаунт приостановлен',
+  'account.suspended.eyebrow': 'Аккаунт',
   'account.signOut.detailPlus':
     'Ваши сцены останутся здесь заблокированными, пока вы снова не войдёте.',
   'account.signOut.kept': 'На этом компьютере ничего не удалится.',

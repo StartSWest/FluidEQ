@@ -230,6 +230,10 @@ const studio = {
     'FluidEQ가 이 장면을 갤러리에서 내려왔으므로 새 버전을 사용할 수 없습니다. FluidEQ가 복원하는 경우에만 원래대로 돌아올 수 있습니다.',
   'studio.publish.deleted':
     'FluidEQ가 이 장면을 갤러리에서 완전히 삭제했으므로 다시 게시할 수 없습니다.',
+  'studio.publish.blockedAccount':
+    '{date}까지 장면을 게시하거나 내보낼 수 없습니다.',
+  'studio.publish.blockedScene':
+    '{date}까지 이 장면을 게시하거나 내보낼 수 없습니다.',
   'studio.picture.files': '사진',
   'studio.picture.missing':
     '장면은 귀하의 사진을 사용하며 폴더에는 아직 사진이 없습니다.',
@@ -324,7 +328,7 @@ const studio = {
   'studio.new.signedOut': '프로젝트를 시작하려면 로그인하세요.',
   'studio.import.changed':
     '해당 파일은 내보낸 후 변경되었으므로 FluidEQ는 해당 파일을 재생하지 않습니다.',
-  'studio.import.blocked': '해당 장면은 삭제되었습니다.',
+  'studio.import.blocked': '그 장면은 더 이상 사용할 수 없습니다.',
   'studio.idea.pet.label': '내 애완동물, 살아있어요',
   'studio.idea.pet.text':
     '음악과 함께 살아있는 내 애완동물의 사진. 베이스와 함께 부드럽게 호흡하고, 부드러운 빛의 테두리가 모든 비트의 윤곽을 추적하고, 색상이 중음과 함께 따뜻하며, 고음과 함께 주변에서 작은 반짝임이 솟아납니다. 중요한 순간마다 그 뒤에는 색종이 조각이 새로운 색상으로 피어납니다. 침묵 속에서 그것은 천천히 숨을 쉴 뿐이다. 빛, 반짝임 및 움직이는 정도에 대한 슬라이더입니다. 대기 모드의 앱 주변에는 작은 발자국과 하트가 떠다닙니다.',

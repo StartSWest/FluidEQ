@@ -27,6 +27,8 @@ const review = {
   'review.notice.rejected': '{name} 未獲批准',
   'review.notice.rejectedUpdate': '{name} 版本 {version} 未獲批准',
   'review.notice.keepsLive': '每個擁有它的人都會保留版本 {version}。',
+  'review.notice.blockAccount': '{count} 天內您不能將場景送審。',
+  'review.notice.blockScene': '{count} 天內您不能再次將它送審。',
   'review.notice.gotIt': '明白了',
   'review.notice.openStudio': '開啟工作室',
   'review.notice.openMine': '你的場景',

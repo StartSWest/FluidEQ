@@ -23,6 +23,8 @@ const EXPORT_FAILURES: Record<string, TranslationKey> = {
   terms: 'studio.export.outdated',
   offline: 'studio.export.offline',
   banned: 'studio.export.banned',
+  'blocked-scene': 'studio.publish.blockedScene',
+  'blocked-account': 'studio.publish.blockedAccount',
   'rate-limited': 'studio.export.rateLimited',
   refused: 'studio.export.refused',
   'signed-out': 'studio.export.signedOut',
@@ -80,8 +82,19 @@ export default function useStudioSharing() {
     setNotice({
       ok: false,
       key: EXPORT_FAILURES[outcome.reason] ?? 'studio.export.failed',
+      // A block the admin chose says the day it ends, in this language.
+      ...(outcome.blockedUntil
+        ? {
+            vars: {
+              date: new Intl.DateTimeFormat(locale, {
+                month: 'long',
+                day: 'numeric',
+              }).format(new Date(outcome.blockedUntil)),
+            },
+          }
+        : {}),
     });
-  }, []);
+  }, [locale]);
 
   const startExport = useCallback(async () => {
     if ((await studioTermsAgreed()) >= PLUS_TERMS_VERSION) {

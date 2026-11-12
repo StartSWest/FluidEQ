@@ -98,7 +98,7 @@ const plus = {
   'plus.add.done': '{name} está en tus estilos.',
   'plus.add.unavailable':
     'No se pudo descargar {name} ahora. Vuelve a intentarlo.',
-  'plus.add.blocked': '{name} fue retirada.',
+  'plus.add.blocked': '«{name}» ya no está disponible.',
   'plus.add.changed':
     '{name} no pasó la comprobación de FluidEQ, así que no se añadió.',
   'plus.add.failed': 'No se pudo añadir {name}. Vuelve a intentarlo.',
@@ -111,7 +111,7 @@ const plus = {
   'plus.scene.demoSong': 'Al ritmo de la canción de la demo',
   'plus.scene.taste': 'Vista previa · {seconds} s',
   'plus.scene.unavailable': 'Esta escena no se puede descargar ahora.',
-  'plus.scene.blocked': 'Esta escena fue retirada.',
+  'plus.scene.blocked': 'Esta escena ya no está disponible.',
   'plus.scene.changed':
     'Esta escena no pasó la comprobación de FluidEQ, así que no se reproducirá.',
   'plus.scene.heavy': 'Esta escena es demasiado pesada para este equipo.',
@@ -152,10 +152,10 @@ const plus = {
   'plus.mine.blocked': 'Retirada por FluidEQ',
   'plus.mine.unpublish': 'Retirar',
   'plus.mine.confirm':
-    '¿Retirarla de la galería e impedir nuevas descargas? Quien ya la descargó conserva su copia.',
+    '¿Quitar «{name}» de la galería? Nadie nuevo podrá conseguirla. Quien ya la tiene se la queda.',
   'plus.mine.confirmYes': 'Retirar',
   'plus.mine.confirmNo': 'Dejarla',
-  'plus.mine.unpublished': '{name} ya no está en la galería.',
+  'plus.mine.unpublished': '«{name}» ya no está en la galería.',
   'plus.mine.failed': 'No se pudo retirar. Vuelve a intentarlo.',
 
   'plus.report.title': 'Denunciar {name}',

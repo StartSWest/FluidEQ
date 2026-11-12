@@ -42,6 +42,17 @@ const store = {
   'store.error.negative':
     'A refund left your balance below zero. A pack brings it back.',
   'store.error.banned': "This account can't get scenes.",
+  'store.notice.refundedBody':
+    'A purchase of {name} was refunded; what you earned from it was taken off.',
+  'store.notice.refunded': 'A purchase was refunded',
+  'store.notice.restored': '{name} is back in the gallery.',
+  'store.notice.blockScene': 'You can’t publish it again for {count} days.',
+  'store.notice.blockAccount': 'You can’t publish for {count} days.',
+  'store.notice.takenDownBody':
+    'We took {name} out of the gallery because it breaks the rules. Whoever bought it got their credit back, and what you earned from those buys was taken off.',
+  'store.notice.takenDown': '{name} left the gallery',
+  'store.notice.returnedBody': 'Your credit for it has been returned.',
+  'store.notice.returned': 'This scene is no longer available.',
   'store.pack.each': '{price} a scene',
   'store.pack.best': 'Best price',
   'store.buy.title': 'Keep {name} for good?',

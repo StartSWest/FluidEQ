@@ -233,6 +233,10 @@ const studio = {
     'FluidEQ ने यह सीन गैलरी से हटा दिया है, इसलिए इसका नया संस्करण नहीं भेजा जा सकता। यह सिर्फ़ तभी, जैसा था वैसा ही, वापस आ सकता है जब FluidEQ इसे बहाल करे।',
   'studio.publish.deleted':
     'FluidEQ ने यह सीन गैलरी से हमेशा के लिए मिटा दिया है, इसलिए इसे दोबारा प्रकाशित नहीं किया जा सकता।',
+  'studio.publish.blockedAccount':
+    '{date} तक आप सीन न प्रकाशित कर सकेंगे, न एक्सपोर्ट।',
+  'studio.publish.blockedScene':
+    '{date} तक आप इस सीन को न प्रकाशित कर सकेंगे, न एक्सपोर्ट।',
 
   'studio.picture.files': 'चित्र',
   'studio.picture.missing':
@@ -331,7 +335,7 @@ const studio = {
   'studio.new.signedOut': 'प्रोजेक्ट शुरू करने के लिए साइन इन करें।',
   'studio.import.changed':
     'यह फ़ाइल एक्सपोर्ट के बाद बदली गई है, इसलिए FluidEQ इसे नहीं चलाएगा।',
-  'studio.import.blocked': 'यह सीन हटा दिया गया है।',
+  'studio.import.blocked': 'वह सीन अब उपलब्ध नहीं है।',
 
   'studio.idea.pet.label': 'मेरा पालतू, जीवंत',
   'studio.idea.pet.text':

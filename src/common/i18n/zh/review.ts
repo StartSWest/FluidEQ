@@ -29,6 +29,8 @@ const review = {
   'review.notice.rejected': '{name} 未通过审核',
   'review.notice.rejectedUpdate': '{name} 的版本 {version} 未通过审核',
   'review.notice.keepsLive': '已拥有它的人保留版本 {version}。',
+  'review.notice.blockAccount': '{count} 天内你不能将场景送审。',
+  'review.notice.blockScene': '{count} 天内你不能再次将它送审。',
   'review.notice.gotIt': '知道了',
   'review.notice.openStudio': '打开工作室',
   'review.notice.openMine': '你的场景',

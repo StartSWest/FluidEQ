@@ -38,6 +38,18 @@ const store = {
   'store.error.negative':
     '환불로 인해 잔액이 0 미만이 되었습니다. 팩이 다시 가져옵니다.',
   'store.error.banned': '이 계정은 장면을 가져올 수 없습니다.',
+  'store.notice.refundedBody':
+    '{name} 구매가 환불되어 그로 얻은 수익이 차감되었습니다.',
+  'store.notice.refunded': '구매가 환불되었습니다',
+  'store.notice.restored': '{name}이(가) 갤러리에 다시 올라왔습니다.',
+  'store.notice.blockScene':
+    '{count}일 동안 이 장면을 다시 게시할 수 없습니다.',
+  'store.notice.blockAccount': '{count}일 동안 게시할 수 없습니다.',
+  'store.notice.takenDownBody':
+    '{name}이(가) 규칙을 위반하여 갤러리에서 내렸습니다. 구매한 사람들은 크레딧을 돌려받았고, 그 구매로 얻은 수익은 차감되었습니다.',
+  'store.notice.takenDown': '{name}이(가) 갤러리에서 내려갔습니다',
+  'store.notice.returnedBody': '이 장면에 쓴 크레딧을 돌려드렸습니다.',
+  'store.notice.returned': '이 장면은 더 이상 사용할 수 없습니다.',
   'store.pack.each': '{price} 장면',
   'store.pack.best': '최고의 가격',
   'store.buy.title': '{name}를 영원히 유지하시겠습니까?',

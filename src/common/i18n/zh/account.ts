@@ -22,6 +22,25 @@ const account = {
   'account.signOut': '退出登录',
   'account.signOut.confirm': '要退出这个账户吗？',
   'account.signOut.detail': '你可以随时重新登录。',
+  'account.suspended.failed': '无法申请退款。请重试。',
+  'account.suspended.until': '至 {date}',
+  'account.suspended.daysLeft.other': '还剩 {count} 天',
+  'account.suspended.daysLeft.many': '还剩 {count} 天',
+  'account.suspended.daysLeft.few': '还剩 {count} 天',
+  'account.suspended.daysLeft.one': '还剩 {count} 天',
+  'account.suspended.asked':
+    '已申请退款：{amount}。将在 {date} 账户删除时退还给你。',
+  'account.suspended.ask': '申请退款',
+  'account.suspended.maker': '你的场景已不在图库中，待支付给你的款项已取消。',
+  'account.suspended.paid': '这段时间的付款',
+  'account.suspended.bodyAsked':
+    '你的账户因违反规则已被暂停。你不能再使用它或购买任何东西。',
+  'account.suspended.bodyNothing':
+    '你的账户因违反规则已被暂停。你不能再使用它或购买任何东西。你的账户将在 {until} 被删除。',
+  'account.suspended.body':
+    '你的账户因违反规则已被暂停。你不能再使用它或购买任何东西。在 {until} 之前，你可以申请退还 {from} 至 {to} 期间支付的款项。到那天，你的账户将被删除。',
+  'account.suspended.title': '账户已被暂停',
+  'account.suspended.eyebrow': '账户',
   'account.signOut.detailPlus': '在你重新登录之前，你的场景在这里会保持锁定。',
   'account.signOut.kept': '这台电脑上的任何内容都不会被删除。',
   'account.cover.onGraph': '图表上：{name}',

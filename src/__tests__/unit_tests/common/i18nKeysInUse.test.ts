@@ -159,6 +159,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/renderer/karaoke/KaraokeMakerSpeechMemoryPanel.tsx': [
     'karaoke.maker.memoryPolicy.*',
   ],
+  // The days a suspended account has left, in the language's plural forms.
+  'src/renderer/account/SuspensionScreen.tsx': [
+    [
+      'account.suspended.daysLeft.{one,few,many,other}',
+      'account.suspended.daysLeft.*',
+    ],
+  ],
   // A creator's sales, in the language's own plural forms.
   'src/renderer/account/CreatorPayoutsCard.tsx': [
     ['creator.sales.{one,few,many,other}', 'creator.sales.*'],

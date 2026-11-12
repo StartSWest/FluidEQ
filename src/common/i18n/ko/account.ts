@@ -25,6 +25,26 @@ const account = {
   'account.signOut': '로그아웃',
   'account.signOut.confirm': '이 계정에서 로그아웃하시겠습니까?',
   'account.signOut.detail': '언제든지 다시 로그인할 수 있습니다.',
+  'account.suspended.failed': '환불을 요청하지 못했습니다. 다시 시도하세요.',
+  'account.suspended.until': '{date}까지',
+  'account.suspended.daysLeft.other': '{count}일 남음',
+  'account.suspended.daysLeft.many': '{count}일 남음',
+  'account.suspended.daysLeft.few': '{count}일 남음',
+  'account.suspended.daysLeft.one': '{count}일 남음',
+  'account.suspended.asked':
+    '환불 요청됨: {amount}. 계정이 삭제되는 {date}에 환불됩니다.',
+  'account.suspended.ask': '환불 요청',
+  'account.suspended.maker':
+    '내 장면은 더 이상 갤러리에 없으며, 지급 대기 중이던 금액은 취소되었습니다.',
+  'account.suspended.paid': '이 기간에 결제한 금액',
+  'account.suspended.bodyAsked':
+    '규칙을 위반하여 계정이 정지되었습니다. 더 이상 계정을 사용하거나 구매할 수 없습니다.',
+  'account.suspended.bodyNothing':
+    '규칙을 위반하여 계정이 정지되었습니다. 더 이상 계정을 사용하거나 구매할 수 없습니다. {until}에 계정이 삭제됩니다.',
+  'account.suspended.body':
+    '규칙을 위반하여 계정이 정지되었습니다. 더 이상 계정을 사용하거나 구매할 수 없습니다. {from}부터 {to}까지 결제한 금액의 환불을 {until}까지 요청할 수 있습니다. 그날 계정이 삭제됩니다.',
+  'account.suspended.title': '계정 정지됨',
+  'account.suspended.eyebrow': '계정',
   'account.signOut.detailPlus':
     '다시 로그인할 때까지 장면은 여기에 잠겨 있습니다.',
   'account.signOut.kept': '이 컴퓨터의 어떤 항목도 삭제되지 않습니다.',

@@ -210,6 +210,8 @@ const studio = {
     'FluidEQ 已将此场景从图库下架，因此不能提交新版本。只有 FluidEQ 恢复它时，它才能以原样回来。',
   'studio.publish.deleted':
     'FluidEQ 已将此场景从图库永久删除，因此不能再次发布。',
+  'studio.publish.blockedAccount': '在 {date} 之前，你不能发布或导出场景。',
+  'studio.publish.blockedScene': '在 {date} 之前，你不能发布或导出这个场景。',
 
   'studio.picture.files': '图片',
   'studio.picture.missing': '这个场景要用你的图片，但文件夹里还没有。',
@@ -294,7 +296,7 @@ const studio = {
   'studio.import.signedOut': '请登录后打开场景文件。',
   'studio.new.signedOut': '登录以开始一个项目。',
   'studio.import.changed': '这个文件在导出后被修改过，FluidEQ 不会播放它。',
-  'studio.import.blocked': '这个场景已被下架。',
+  'studio.import.blocked': '那个场景已不再可用。',
 
   'studio.idea.pet.label': '我的宠物，活起来',
   'studio.idea.pet.text':

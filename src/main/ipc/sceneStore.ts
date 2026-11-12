@@ -14,6 +14,7 @@ import type {
   TCheckoutOutcome,
   TSceneStoreOutcome,
   TStarterOutcome,
+  TSuspensionRefundOutcome,
 } from '../../common/sceneStore';
 import { isCheckoutLocale } from '../../common/sceneStore';
 import { onAppLink } from '../appLinks';
@@ -32,7 +33,20 @@ const CHANNELS = [
   'scene-store-claim',
   'scene-store-buy',
   'scene-store-checkout',
+  'scene-store-suspension-refund',
+  'scene-store-dismiss-notices',
 ] as const;
+
+/** Notice ids as the window sent them: whole positive numbers, a handful. */
+const noticeIdsOf = (value: unknown): number[] =>
+  Array.isArray(value)
+    ? value
+        .filter(
+          (id: unknown): id is number =>
+            typeof id === 'number' && Number.isSafeInteger(id) && id > 0,
+        )
+        .slice(0, 50)
+    : [];
 
 export const registerSceneStoreIpc = ({
   getMainWindow,
@@ -124,6 +138,23 @@ export const registerSceneStoreIpc = ({
       return openExternal(page.url)
         ? { ok: true }
         : { ok: false, reason: 'server' };
+    },
+  );
+
+  ipcMain.handle(
+    'scene-store-suspension-refund',
+    (): Promise<TSuspensionRefundOutcome> =>
+      isAccountConfigured(config)
+        ? ownership.requestSuspensionRefund()
+        : Promise.resolve(unavailable),
+  );
+
+  ipcMain.handle(
+    'scene-store-dismiss-notices',
+    async (_event, ids: unknown): Promise<void> => {
+      if (isAccountConfigured(config)) {
+        await ownership.dismissNotices(noticeIdsOf(ids));
+      }
     },
   );
 

@@ -240,6 +240,10 @@ const studio = {
     'FluidEQ hat diese Szene aus der Galerie entfernt, daher nimmt sie keine neue Version an. Sie kann nur unverändert zurückkehren, wenn FluidEQ sie wiederherstellt.',
   'studio.publish.deleted':
     'FluidEQ hat diese Szene endgültig aus der Galerie gelöscht, daher kann sie nicht erneut veröffentlicht werden.',
+  'studio.publish.blockedAccount':
+    'Sie können bis zum {date} keine Szenen veröffentlichen oder exportieren.',
+  'studio.publish.blockedScene':
+    'Sie können diese Szene bis zum {date} weder veröffentlichen noch exportieren.',
 
   'studio.picture.files': 'Bilder',
   'studio.picture.missing':
@@ -346,7 +350,7 @@ const studio = {
   'studio.new.signedOut': 'Melden Sie sich an, um ein Projekt zu beginnen.',
   'studio.import.changed':
     'Diese Datei wurde nach dem Export verändert, daher spielt FluidEQ sie nicht ab.',
-  'studio.import.blocked': 'Diese Szene wurde entfernt.',
+  'studio.import.blocked': 'Diese Szene ist nicht mehr verfügbar.',
 
   'studio.idea.pet.label': 'Mein Haustier, lebendig',
   'studio.idea.pet.text':

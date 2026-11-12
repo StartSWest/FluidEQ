@@ -30,6 +30,10 @@ const review = {
   'review.notice.rejectedUpdate': '{name} का संस्करण {version} मंज़ूर नहीं हुआ',
   'review.notice.keepsLive':
     'जिनके पास यह है, उनके पास संस्करण {version} ही रहेगा।',
+  'review.notice.blockAccount':
+    'आप {count} दिनों तक समीक्षा के लिए सीन नहीं भेज सकेंगे।',
+  'review.notice.blockScene':
+    'आप इसे {count} दिनों तक फिर से समीक्षा के लिए नहीं भेज सकेंगे।',
   'review.notice.gotIt': 'ठीक है',
   'review.notice.openStudio': 'स्टूडियो खोलें',
   'review.notice.openMine': 'आपके सीन',

@@ -309,7 +309,7 @@ function YourScenesList({ me }: IYourScenesProps) {
                     {confirming === publicationId(scene) ? (
                       <>
                         <span className="gallery-row__confirm">
-                          {t('plus.mine.confirm')}
+                          {t('plus.mine.confirm', { name })}
                         </span>
                         <button
                           type="button"

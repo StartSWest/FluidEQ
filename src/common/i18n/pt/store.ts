@@ -41,6 +41,18 @@ const store: Partial<Dictionary> = {
   'store.error.negative':
     'Um reembolso deixou seu saldo abaixo de zero. Um pacote o recupera.',
   'store.error.banned': 'Esta conta não pode obter cenas.',
+  'store.notice.refundedBody':
+    'Uma compra de {name} foi reembolsada; o que você ganhou com ela foi descontado.',
+  'store.notice.refunded': 'Uma compra foi reembolsada',
+  'store.notice.restored': '{name} voltou à galeria.',
+  'store.notice.blockScene':
+    'Você não poderá publicá-la de novo durante {count} dias.',
+  'store.notice.blockAccount': 'Você não poderá publicar durante {count} dias.',
+  'store.notice.takenDownBody':
+    'Retiramos {name} da galeria porque ela viola as regras. Quem a comprou recebeu o crédito de volta, e o que você ganhou com essas compras foi descontado.',
+  'store.notice.takenDown': '{name} saiu da galeria',
+  'store.notice.returnedBody': 'Seu crédito por ela foi devolvido.',
+  'store.notice.returned': 'Esta cena não está mais disponível.',
   'store.pack.each': '{price} por cena',
   'store.pack.best': 'Melhor preço',
   'store.buy.title': 'Guardar {name} para sempre?',

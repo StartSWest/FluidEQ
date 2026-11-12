@@ -239,6 +239,10 @@ const studio = {
     "FluidEQ took this scene down from the gallery, so it can't take a new version. It can only come back as it was, if FluidEQ restores it.",
   'studio.publish.deleted':
     "FluidEQ deleted this scene from the gallery for good, so it can't be published again.",
+  'studio.publish.blockedAccount':
+    'You can’t publish or export scenes until {date}.',
+  'studio.publish.blockedScene':
+    'You can’t publish or export this scene until {date}.',
 
   // The pictures a scene asks for: any photo for each, fitted by FluidEQ.
   'studio.picture.files': 'Pictures',
@@ -339,7 +343,7 @@ const studio = {
   'studio.new.signedOut': 'Sign in to start a project.',
   'studio.import.changed':
     'That file was changed after it was exported, so FluidEQ will not play it.',
-  'studio.import.blocked': 'That scene has been taken down.',
+  'studio.import.blocked': 'That scene is no longer available.',
 
   'studio.idea.pet.label': 'My pet, alive',
   'studio.idea.pet.text':

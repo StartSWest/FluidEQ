@@ -6,6 +6,7 @@ import type {
   TCheckoutOutcome,
   TSceneStoreOutcome,
   TStarterOutcome,
+  TSuspensionRefundOutcome,
 } from '../common/sceneStore';
 
 // The scene store (premium 0055 and 0057): credits, owned scenes, a buy, a
@@ -22,6 +23,11 @@ export const sceneStoreBridge = {
     locale: string,
   ): Promise<TCheckoutOutcome> =>
     ipcRenderer.invoke('scene-store-checkout', packId, locale),
+  // A suspended account's one ask (premium 0105), and notices read once.
+  requestSuspensionRefund: (): Promise<TSuspensionRefundOutcome> =>
+    ipcRenderer.invoke('scene-store-suspension-refund'),
+  dismissMemberNotices: (ids: number[]): Promise<void> =>
+    ipcRenderer.invoke('scene-store-dismiss-notices', ids),
   // How a pack's payment ended, told when its return page opens FluidEQ
   // (`appLinks.ts`).
   onCheckoutReturned: (listener: (ended: 'paid' | 'cancelled') => void) => {

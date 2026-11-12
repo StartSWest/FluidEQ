@@ -114,7 +114,20 @@ export default function SceneReviewNotice() {
             })}
           </p>
         )}
-        <p className="scene-review-notice__line">{t('review.next')}</p>
+        {/* A block chosen with the refusal replaces "fix it and send it
+            again" for as long as it runs (premium 0105). */}
+        {notice.block ? (
+          <p className="scene-review-notice__line">
+            {t(
+              notice.block.scope === 'scene'
+                ? 'review.notice.blockScene'
+                : 'review.notice.blockAccount',
+              { count: String(notice.block.days) },
+            )}
+          </p>
+        ) : (
+          <p className="scene-review-notice__line">{t('review.next')}</p>
+        )}
       </>
     );
     action = {

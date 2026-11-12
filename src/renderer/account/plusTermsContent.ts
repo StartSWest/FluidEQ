@@ -93,6 +93,15 @@ const sentRows = (payoutsOpen: boolean): readonly ITermsSentRow[] => [
     when: 'terms.sent.credits.when',
     who: 'terms.sent.credits.who',
   },
+  {
+    // Notices about an account's scenes, read with the store and marked seen
+    // on the server, and a suspended account's refund (premium 0105).
+    id: 'notices',
+    glyph: 'mail',
+    what: 'terms.sent.notices.what',
+    when: 'terms.sent.notices.when',
+    who: 'terms.sent.notices.who',
+  },
   ...(payoutsOpen
     ? [
         {
@@ -296,6 +305,7 @@ const sections = (payoutsOpen: boolean): readonly ITermsSection[] => [
       'terms.rules.p2',
       'terms.rules.p3',
       'terms.rules.p4',
+      payoutsOpen ? 'terms.rules.p5Payouts' : 'terms.rules.p5',
     ],
   },
   {
@@ -311,6 +321,7 @@ const sections = (payoutsOpen: boolean): readonly ITermsSection[] => [
       'terms.keep.p7',
       // What payouts keep: said only while creators can be paid.
       ...(payoutsOpen ? ['terms.keep.p8' as const] : []),
+      'terms.keep.p9',
       'terms.keep.p6',
     ],
   },

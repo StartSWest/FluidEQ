@@ -101,7 +101,7 @@ const plus = {
   'plus.add.done': '{name} をマイ表示に追加しました。',
   'plus.add.unavailable':
     '{name} を今はダウンロードできませんでした。もう一度お試しください。',
-  'plus.add.blocked': '{name} は削除されました。',
+  'plus.add.blocked': '{name} は利用できなくなりました。',
   'plus.add.changed':
     '{name} は FluidEQ のチェックを通らなかったため、追加されませんでした。',
   'plus.add.failed': '{name} を追加できませんでした。もう一度お試しください。',
@@ -114,7 +114,7 @@ const plus = {
   'plus.scene.demoSong': 'デモ曲に合わせて再生中',
   'plus.scene.taste': 'プレビュー · {seconds} 秒',
   'plus.scene.unavailable': 'このシーンは今はダウンロードできません。',
-  'plus.scene.blocked': 'このシーンは削除されました。',
+  'plus.scene.blocked': 'このシーンは利用できなくなりました。',
   'plus.scene.changed':
     'このシーンは FluidEQ のチェックを通らなかったため、再生されません。',
   'plus.scene.heavy': 'このシーンはこのコンピューターには重すぎます。',
@@ -155,7 +155,7 @@ const plus = {
   'plus.mine.blocked': 'FluidEQ により取り下げ済み',
   'plus.mine.unpublish': '公開を停止',
   'plus.mine.confirm':
-    'ギャラリーから非公開にして、新しいダウンロードを停止しますか？ダウンロード済みのメンバーはコピーを保持します。',
+    '{name} をギャラリーから外しますか？新しく手に入れることはできなくなります。すでに持っている人はそのまま使えます。',
   'plus.mine.confirmYes': '公開を停止',
   'plus.mine.confirmNo': 'そのままにする',
   'plus.mine.unpublished': '{name} はギャラリーから外れました。',

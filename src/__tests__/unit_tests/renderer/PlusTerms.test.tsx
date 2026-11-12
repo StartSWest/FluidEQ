@@ -300,7 +300,8 @@ describe('the Plus terms', () => {
       ).length,
     ).toBeGreaterThan(0);
     const twins = opened.filter((key) => key.endsWith('Payouts'));
-    expect(twins).toHaveLength(5);
+    // The sixth is a suspension's (premium 0105): its held creator money.
+    expect(twins).toHaveLength(6);
     const same = LOCALES.flatMap(({ code }) =>
       twins
         .filter(

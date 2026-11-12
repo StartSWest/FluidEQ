@@ -43,6 +43,19 @@ const store: Partial<Dictionary> = {
   'store.error.negative':
     'Eine Erstattung hat Ihr Guthaben unter null gebracht. Ein Paket gleicht es aus.',
   'store.error.banned': 'Dieses Konto kann keine Szenen erhalten.',
+  'store.notice.refundedBody':
+    'Ein Kauf von {name} wurde erstattet; was Sie damit verdient haben, wurde abgezogen.',
+  'store.notice.refunded': 'Ein Kauf wurde erstattet',
+  'store.notice.restored': '{name} ist wieder in der Galerie.',
+  'store.notice.blockScene':
+    'Sie können sie {count} Tage lang nicht erneut veröffentlichen.',
+  'store.notice.blockAccount':
+    'Sie können {count} Tage lang nichts veröffentlichen.',
+  'store.notice.takenDownBody':
+    'Wir haben {name} aus der Galerie genommen, weil die Szene gegen die Regeln verstößt. Wer sie gekauft hat, hat seinen Credit zurückerhalten, und was Sie mit diesen Käufen verdient haben, wurde abgezogen.',
+  'store.notice.takenDown': '{name} ist nicht mehr in der Galerie',
+  'store.notice.returnedBody': 'Ihr Credit dafür wurde Ihnen zurückgegeben.',
+  'store.notice.returned': 'Diese Szene ist nicht mehr verfügbar.',
   'store.pack.each': '{price} pro Szene',
   'store.pack.best': 'Bester Preis',
   'store.buy.title': '{name} für immer behalten?',

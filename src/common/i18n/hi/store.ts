@@ -41,6 +41,18 @@ const store: Partial<Dictionary> = {
   'store.error.negative':
     'रिफ़ंड से आपका बैलेंस शून्य से नीचे चला गया। एक पैक इसे वापस ले आता है।',
   'store.error.banned': 'यह अकाउंट सीन नहीं पा सकता।',
+  'store.notice.refundedBody':
+    '{name} की एक खरीद का रिफ़ंड हुआ; उससे आपकी कमाई काट ली गई।',
+  'store.notice.refunded': 'एक खरीद का रिफ़ंड हुआ',
+  'store.notice.restored': '{name} गैलरी में वापस आ गया है।',
+  'store.notice.blockScene':
+    'आप इसे {count} दिनों तक फिर से प्रकाशित नहीं कर सकेंगे।',
+  'store.notice.blockAccount': 'आप {count} दिनों तक प्रकाशित नहीं कर सकेंगे।',
+  'store.notice.takenDownBody':
+    '{name} नियम तोड़ता है, इसलिए हमने इसे गैलरी से हटा दिया। जिन्होंने इसे खरीदा था उन्हें क्रेडिट वापस मिल गया, और उन खरीदों से आपकी कमाई काट ली गई।',
+  'store.notice.takenDown': '{name} गैलरी से हट गया',
+  'store.notice.returnedBody': 'इसके लिए आपका क्रेडिट लौटा दिया गया है।',
+  'store.notice.returned': 'यह सीन अब उपलब्ध नहीं है।',
   'store.pack.each': '{price} प्रति सीन',
   'store.pack.best': 'सबसे अच्छी कीमत',
   'store.buy.title': '{name} हमेशा के लिए रखें?',

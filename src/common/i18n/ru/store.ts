@@ -40,6 +40,19 @@ const store: Partial<Dictionary> = {
   'store.error.negative':
     'Из-за возврата баланс ушёл ниже нуля. Пакет восстановит его.',
   'store.error.banned': 'Этот аккаунт не может получать сцены.',
+  'store.notice.refundedBody':
+    'Покупку «{name}» вернули; заработанное вами на ней списано.',
+  'store.notice.refunded': 'Покупку вернули',
+  'store.notice.restored': '«{name}» снова в галерее.',
+  'store.notice.blockScene':
+    'Вы не сможете опубликовать её снова в течение {count} дней.',
+  'store.notice.blockAccount':
+    'Вы не сможете публиковать в течение {count} дней.',
+  'store.notice.takenDownBody':
+    'Мы убрали «{name}» из галереи, потому что она нарушает правила. Те, кто её купил, получили кредит обратно, а заработанное вами на этих покупках списано.',
+  'store.notice.takenDown': '«{name}» убрана из галереи',
+  'store.notice.returnedBody': 'Кредит за неё вам вернули.',
+  'store.notice.returned': 'Эта сцена больше недоступна.',
   'store.pack.each': '{price} за сцену',
   'store.pack.best': 'Лучшая цена',
   'store.buy.title': 'Оставить «{name}» себе навсегда?',

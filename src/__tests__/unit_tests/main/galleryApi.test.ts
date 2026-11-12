@@ -469,3 +469,48 @@ describe('publishing', () => {
     });
   });
 });
+
+// Premium 0105: a block the admin chose answers `banned` with when it ends and
+// what it covers; this app tells it apart from a ban, by the day it ends. The
+// control is the same refusal from a server that names no end: a ban.
+describe('a publishing block', () => {
+  it('is told apart from a ban, with the day it ends and what it covers', async () => {
+    const until = '2026-12-12T10:00:00+00:00';
+    const outcomes = await Promise.all(
+      (['scene', 'account'] as const).map((scope) =>
+        unpublishScene(
+          authWith(
+            answering(
+              fakeResponse(403, {
+                error: 'banned',
+                blockedUntil: until,
+                blockScope: scope,
+              }),
+            ),
+          ),
+          'neon-city',
+        ),
+      ),
+    );
+    expect(outcomes).toEqual([
+      { ok: false, reason: 'blocked-scene', blockedUntil: until },
+      { ok: false, reason: 'blocked-account', blockedUntil: until },
+    ]);
+    const banned = answering(fakeResponse(403, { error: 'banned' }));
+    expect(await unpublishScene(authWith(banned), 'neon-city')).toEqual({
+      ok: false,
+      reason: 'banned',
+    });
+    const nonsense = answering(
+      fakeResponse(403, {
+        error: 'banned',
+        blockedUntil: 'soon',
+        blockScope: 'scene',
+      }),
+    );
+    expect(await unpublishScene(authWith(nonsense), 'neon-city')).toEqual({
+      ok: false,
+      reason: 'banned',
+    });
+  });
+});

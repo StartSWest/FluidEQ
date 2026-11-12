@@ -102,7 +102,7 @@ const plus = {
   'plus.add.done': '{name} ist in Ihren Darstellungen.',
   'plus.add.unavailable':
     '{name} konnte gerade nicht heruntergeladen werden. Versuchen Sie es erneut.',
-  'plus.add.blocked': '{name} wurde entfernt.',
+  'plus.add.blocked': '{name} ist nicht mehr verfügbar.',
   'plus.add.changed':
     '{name} hat die Prüfung von FluidEQ nicht bestanden und wurde nicht hinzugefügt.',
   'plus.add.failed':
@@ -117,7 +117,7 @@ const plus = {
   'plus.scene.taste': 'Vorschau · {seconds} s',
   'plus.scene.unavailable':
     'Diese Szene kann gerade nicht heruntergeladen werden.',
-  'plus.scene.blocked': 'Diese Szene wurde entfernt.',
+  'plus.scene.blocked': 'Diese Szene ist nicht mehr verfügbar.',
   'plus.scene.changed':
     'Diese Szene hat die Prüfung von FluidEQ nicht bestanden und wird nicht abgespielt.',
   'plus.scene.heavy': 'Diese Szene ist für diesen Computer zu aufwendig.',
@@ -160,7 +160,7 @@ const plus = {
   'plus.mine.blocked': 'Von FluidEQ entfernt',
   'plus.mine.unpublish': 'Zurückziehen',
   'plus.mine.confirm':
-    'Aus der Galerie entfernen und neue Downloads verhindern? Mitglieder behalten bereits heruntergeladene Kopien.',
+    '{name} aus der Galerie nehmen? Niemand Neues kann sie dann holen. Wer sie schon hat, behält sie.',
   'plus.mine.confirmYes': 'Zurückziehen',
   'plus.mine.confirmNo': 'Behalten',
   'plus.mine.unpublished': '{name} ist nicht mehr in der Galerie.',

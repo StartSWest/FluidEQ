@@ -261,3 +261,37 @@ describe('the block list and likes', () => {
     expect(body).toEqual({ p_author: SOMEONE, p_scene: 'neon-city' });
   });
 });
+
+// Premium 0105: signing a scene a block covers says so with its end, so the
+// Studio can say the day; without an end it stays the ban it always was.
+describe('signing a scene a block covers', () => {
+  it('says what the block covers and when it ends', async () => {
+    const until = '2026-12-01T10:00:00+00:00';
+    await expect(
+      sign(
+        answer(403, {
+          error: 'banned',
+          blockedUntil: until,
+          blockScope: 'scene',
+        }) as unknown as typeof fetch,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      reason: 'blocked-scene',
+      blockedUntil: until,
+    });
+    await expect(
+      sign(
+        answer(403, {
+          error: 'banned',
+          blockedUntil: until,
+          blockScope: 'account',
+        }) as unknown as typeof fetch,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      reason: 'blocked-account',
+      blockedUntil: until,
+    });
+  });
+});

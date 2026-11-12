@@ -32,6 +32,17 @@ const store = {
   'store.error.gone': '這個場景已經不在畫廊了。',
   'store.error.negative': '退款使您的餘額低於零。一個包包就能把它帶回來。',
   'store.error.banned': '該帳戶無法取得場景。',
+  'store.notice.refundedBody':
+    '{name} 的一筆購買已退款；您從中獲得的收益已被扣回。',
+  'store.notice.refunded': '一筆購買已退款',
+  'store.notice.restored': '{name} 已重新回到藝廊。',
+  'store.notice.blockScene': '{count} 天內您不能再次發布它。',
+  'store.notice.blockAccount': '{count} 天內您不能發布。',
+  'store.notice.takenDownBody':
+    '{name} 違反了規則，我們已將它移出藝廊。購買過它的人已拿回點數，您從這些購買中獲得的收益已被扣回。',
+  'store.notice.takenDown': '{name} 已移出藝廊',
+  'store.notice.returnedBody': '您為它花的點數已退還。',
+  'store.notice.returned': '此場景已不再可用。',
   'store.pack.each': '{price} 場景',
   'store.pack.best': '最優惠的價格',
   'store.buy.title': '永久保留 {name} 嗎？',

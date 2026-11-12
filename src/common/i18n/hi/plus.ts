@@ -93,7 +93,7 @@ const plus = {
 
   'plus.add.done': '{name} आपके रूपों में है।',
   'plus.add.unavailable': '{name} अभी डाउनलोड नहीं हो सका। फिर कोशिश करें।',
-  'plus.add.blocked': '{name} हटा दिया गया है।',
+  'plus.add.blocked': '{name} अब उपलब्ध नहीं है।',
   'plus.add.changed':
     '{name} FluidEQ की जाँच में पास नहीं हुआ, इसलिए जोड़ा नहीं गया।',
   'plus.add.failed': '{name} जोड़ा नहीं जा सका। फिर कोशिश करें।',
@@ -106,7 +106,7 @@ const plus = {
   'plus.scene.demoSong': 'डेमो गाने पर चल रहा है',
   'plus.scene.taste': 'प्रीव्यू · {seconds} सेकंड',
   'plus.scene.unavailable': 'यह सीन अभी डाउनलोड नहीं हो सकता।',
-  'plus.scene.blocked': 'यह सीन हटा दिया गया है।',
+  'plus.scene.blocked': 'यह सीन अब उपलब्ध नहीं है।',
   'plus.scene.changed':
     'यह सीन FluidEQ की जाँच में पास नहीं हुआ, इसलिए नहीं चलेगा।',
   'plus.scene.heavy': 'यह सीन इस कंप्यूटर के लिए बहुत भारी है।',
@@ -147,7 +147,7 @@ const plus = {
   'plus.mine.blocked': 'FluidEQ ने हटाया',
   'plus.mine.unpublish': 'प्रकाशन हटाएँ',
   'plus.mine.confirm':
-    'गैलरी से हटाकर नए डाउनलोड रोकें? जो सदस्य इसे डाउनलोड कर चुके हैं, उनकी प्रति बनी रहेगी।',
+    '{name} को गैलरी से हटाएँ? कोई नया व्यक्ति इसे नहीं पा सकेगा। जिनके पास यह पहले से है, उनके पास रहेगा।',
   'plus.mine.confirmYes': 'प्रकाशन हटाएँ',
   'plus.mine.confirmNo': 'रहने दें',
   'plus.mine.unpublished': '{name} अब गैलरी में नहीं है।',

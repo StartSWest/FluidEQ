@@ -43,6 +43,17 @@ const store: Partial<Dictionary> = {
   'store.error.negative':
     '返金により残高がマイナスになりました。パックで元に戻せます。',
   'store.error.banned': 'このアカウントではシーンを入手できません。',
+  'store.notice.refundedBody':
+    '{name} の購入が返金されたため、それで得た分は差し引かれました。',
+  'store.notice.refunded': '購入が返金されました',
+  'store.notice.restored': '{name} がギャラリーに戻りました。',
+  'store.notice.blockScene': '{count} 日間はこのシーンを再公開できません。',
+  'store.notice.blockAccount': '{count} 日間は公開できません。',
+  'store.notice.takenDownBody':
+    '{name} は規則に違反しているため、ギャラリーから外しました。購入した人にはクレジットが返却され、それらの購入であなたが得た分は差し引かれました。',
+  'store.notice.takenDown': '{name} はギャラリーから外れました',
+  'store.notice.returnedBody': 'このシーンのクレジットは返却されました。',
+  'store.notice.returned': 'このシーンは利用できなくなりました。',
   'store.pack.each': '1 シーンあたり {price}',
   'store.pack.best': '最安値',
   'store.buy.title': '「{name}」をずっと持ちますか？',

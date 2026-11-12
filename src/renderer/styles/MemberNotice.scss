@@ -1,0 +1,54 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// The corner and layer every notice that arrives on its own shares
+// (`PlusTermsNotice.scss` says why that corner and why the lowest layer). It
+// never stands there with another: it waits its turn (`noticeTurn.ts`).
+//
+// Against the frame's own class as well, so the corner wins over the frame's
+// `position: relative` whichever of the two sheets the cascade reads last.
+.compact-frame.member-notice {
+  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
+  position: fixed;
+  z-index: 990;
+  top: calc($title-bar-height + 16px);
+  right: 18px;
+  width: min(400px, calc(100vw - 36px));
+  max-height: calc(
+    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
+  );
+  grid-template-rows: minmax(0, 1fr);
+
+  .compact-frame__main {
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .compact-frame__message {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+    @include slim-scrollbar;
+  }
+}
+
+.member-notice__line {
+  margin: 0;
+}
+
+// The block a takedown came with: what the maker has to plan around, set
+// apart from the account of what happened.
+.member-notice__block {
+  margin: 0;
+  padding-left: 10px;
+  color: $text-primary;
+  border-left: 2px solid color-mix(in srgb, $amber 60%, transparent);
+}

@@ -217,10 +217,13 @@ export const PLUS_SHARES_PER_HOUR = 30;
 export const PLUS_MAX_PUBLISHED_SCENES = 200;
 
 /**
- * Days an account cannot export or publish after one of its scenes is taken
- * down, enforced by the server's `member_share_refusal`.
+ * A suspension's days (premium 0105): the account can ask for a refund of the
+ * packs it paid for in this many days before it, until this many days after
+ * it, and is deleted on that day by the server's own schedule. The server
+ * holds the same number (`suspension_refundable`, `admin_suspend_account`).
+ * A takedown's pause is no longer a fixed number: the admin chooses it.
  */
-export const PLUS_TAKEDOWN_PAUSE_DAYS = 30;
+export const PLUS_SUSPENSION_DAYS = 15;
 
 /**
  * Days after buying a pack in which its unspent credits are refunded on

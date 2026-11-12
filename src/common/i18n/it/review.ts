@@ -31,6 +31,10 @@ const review = {
   'review.notice.rejectedUpdate':
     'La versione {version} di {name} non è stata approvata',
   'review.notice.keepsLive': 'Chi ce l’ha mantiene la versione {version}.',
+  'review.notice.blockAccount':
+    'Non potrai inviare scene in revisione per {count} giorni.',
+  'review.notice.blockScene':
+    'Non potrai inviarla di nuovo in revisione per {count} giorni.',
   'review.notice.gotIt': 'Ho capito',
   'review.notice.openStudio': 'Apri lo Studio',
   'review.notice.openMine': 'Le tue scene',

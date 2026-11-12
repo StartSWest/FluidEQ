@@ -13,6 +13,7 @@ import {
   type TCheckoutOutcome,
   type TStarterOutcome,
   type TStoreFailure,
+  type TSuspensionRefundOutcome,
 } from 'common/sceneStore';
 import { getAccountSnapshot, subscribeAccount } from '../account/accountStore';
 import {
@@ -141,6 +142,33 @@ export const claimStarterCredits = async (): Promise<TStarterOutcome> => {
     adoptStore(owner, outcome.store);
   }
   return outcome;
+};
+
+/** A suspended account's refund asked for; the store comes back with the ask in it. */
+export const requestSuspensionRefund =
+  async (): Promise<TSuspensionRefundOutcome> => {
+    bindAccount();
+    const { owner } = state;
+    const outcome: TSuspensionRefundOutcome = (await bridge()
+      ?.requestSuspensionRefund?.()
+      .catch(() => undefined)) ?? { ok: false, reason: 'offline' };
+    if (outcome.ok) {
+      adoptStore(owner, outcome.store);
+    }
+    return outcome;
+  };
+
+/**
+ * Notices read: gone from this window at once, and from every computer once
+ * the server hears it (main tells the window the store without them).
+ */
+export const dismissMemberNotices = async (ids: number[]): Promise<void> => {
+  if (ids.length === 0) {
+    return;
+  }
+  await bridge()
+    ?.dismissMemberNotices?.(ids)
+    .catch(() => undefined);
 };
 
 /**

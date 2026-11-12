@@ -35,6 +35,8 @@ import EngineUpdateNotice from '../components/EngineUpdateNotice';
 import FeatureTour from '../components/featureTour/FeatureTour';
 import { featureTourFor } from '../components/featureTour/slides';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
+import MemberNotice from '../components/MemberNotice';
+import SuspensionScreen from '../account/SuspensionScreen';
 import PlusTermsNotice from '../components/PlusTermsNotice';
 import ProfileRecoveredNotice from '../components/ProfileRecoveredNotice';
 import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
@@ -260,6 +262,9 @@ const ShellDialogs = ({
       {/* Here for the same reason: a maker's scene approved or not is news
           on whichever tab is open. */}
       <SceneReviewNotice />
+      {/* What the server tells an account about its scenes: a scene gone
+          and its credit back, a takedown, a restore, a refunded buy. */}
+      <MemberNotice />
       {/* An add-on's own corner notices (`renderer/addons.ts`). */}
       {rendererAddons().map(
         ({ name, Notices }) => Notices && <Notices key={name} />,
@@ -372,6 +377,8 @@ const ShellDialogs = ({
           update notice, and its Escape handler would eat the key that
           notice closes on. Front-most is the only place a lock belongs. */}
       <MandatoryUpdateModal />
+      {/* A suspended account, while it is signed in (premium 0105). */}
+      <SuspensionScreen />
       <DisclaimerGate onAccepted={closeGate} />
     </>
   );

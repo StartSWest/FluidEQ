@@ -30,6 +30,10 @@ const review = {
     '{name}의 {version} 버전이 승인되지 않았습니다.',
   'review.notice.keepsLive':
     '이를 가지고 있는 모든 사람은 {version} 버전을 유지합니다.',
+  'review.notice.blockAccount':
+    '{count}일 동안 장면을 검토에 보낼 수 없습니다.',
+  'review.notice.blockScene':
+    '{count}일 동안 이 장면을 다시 검토에 보낼 수 없습니다.',
   'review.notice.gotIt': '알았어요',
   'review.notice.openStudio': '스튜디오 열기',
   'review.notice.openMine': '당신의 장면',

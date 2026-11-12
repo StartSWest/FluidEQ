@@ -18,6 +18,7 @@ import {
 } from 'common/plusTerms';
 import { requestAccountPanel } from '../account/accountPanel';
 import { getAccountSnapshot, useAccount } from '../account/accountStore';
+import { useTranslation } from '../utils/I18nContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import {
   blobAsDataUrl,
@@ -63,6 +64,8 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   deleted: 'studio.publish.deleted',
   'inspect-only': 'studio.inspect.locked',
   'too-large': 'studio.publish.tooLarge',
+  'blocked-scene': 'studio.publish.blockedScene',
+  'blocked-account': 'studio.publish.blockedAccount',
   server: 'studio.publish.failed',
 };
 
@@ -172,6 +175,7 @@ export default function useStudioPublish(
   const generation = useRef(0);
   const lastChoice = useRef(0);
   const accountId = useAccount().identity?.id;
+  const { locale } = useTranslation();
   const { pack } = view;
   // What a running publication and a shown notice belong to: this project,
   // for this account. Kept in a ref by the layout effect below, so an answer
@@ -536,9 +540,16 @@ export default function useStudioPublish(
             requestAccountPanel('home');
             return undefined;
           }
+          // A block the admin chose says the day it ends, in this language.
+          const until = outcome.blockedUntil
+            ? new Intl.DateTimeFormat(locale, {
+                month: 'long',
+                day: 'numeric',
+              }).format(new Date(outcome.blockedUntil))
+            : undefined;
           failed(
             PUBLISH_FAILURES[outcome.reason] ?? 'studio.publish.failed',
-            PUBLISH_FAILURE_VARS[outcome.reason],
+            until ? { date: until } : PUBLISH_FAILURE_VARS[outcome.reason],
           );
           return undefined;
         })
@@ -556,6 +567,7 @@ export default function useStudioPublish(
       onPublished,
       beginProgress,
       showNotice,
+      locale,
     ],
   );
 
