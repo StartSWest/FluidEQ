@@ -53,15 +53,25 @@ function Stage({
   shape = 'stage',
   width = 800,
   height = 450,
+  canvas = least < 1,
 }: {
   least?: number;
   shape?: string;
   width?: number;
   height?: number;
+  canvas?: boolean;
 }) {
   const well = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
-  const zoom = useStageZoom(well, screenRef, width, height, least, shape);
+  const zoom = useStageZoom(
+    well,
+    screenRef,
+    width,
+    height,
+    least,
+    shape,
+    canvas,
+  );
   return (
     <div ref={well} data-testid="well">
       <div
@@ -246,6 +256,50 @@ it('keeps a closer look while the view stays the same, its size changing', () =>
   // The stage resized under it, the same view: the look stays, held to it.
   rerender(<Stage shape="stage" width={900} height={500} />);
   expect(view()?.startsWith('1.50')).toBe(true);
+});
+
+it('moves a zoomed view with the middle button alone, which an untouched stage leaves to the scene', () => {
+  render(<Stage />);
+  const stage = screen.getByTestId('stage');
+  // The control: at the whole picture there is no view to move.
+  fireEvent.pointerDown(stage, { button: 1, clientX: 400, clientY: 200 });
+  expect(heard).toHaveBeenCalledTimes(1);
+  fireEvent.pointerUp(stage, { button: 1, clientX: 400, clientY: 200 });
+  fireEvent.click(
+    screen.getByRole('button', { name: 'studio.picture.zoomIn' }),
+  );
+  fireEvent.click(
+    screen.getByRole('button', { name: 'studio.picture.zoomIn' }),
+  );
+  fireEvent.pointerDown(stage, { button: 1, clientX: 400, clientY: 200 });
+  fireEvent.pointerMove(stage, { clientX: 500, clientY: 260 });
+  fireEvent.pointerUp(stage, { clientX: 500, clientY: 260 });
+  expect(view()).toBe('2.00 -300 -165');
+  expect(heard).toHaveBeenCalledTimes(1);
+});
+
+// Ivan, 2026-11-12: full screen "parecido a lo que hacemos en edit": the
+// stage stands back as far as Edit's, but an untouched one keeps Space for
+// play and pause.
+it('stands back past the whole picture outside Edit mode, and only then takes Space', () => {
+  render(<Stage least={0.25} canvas={false} />);
+  expect(fireEvent.keyDown(document, { code: 'Space', key: ' ' })).toBe(true);
+  fireEvent.keyUp(document, { code: 'Space', key: ' ' });
+  fireEvent.click(
+    screen.getByRole('button', { name: 'studio.picture.zoomOut' }),
+  );
+  expect(view()).toBe('0.70 120 68');
+  act(() => {
+    expect(fireEvent.keyDown(document, { code: 'Space', key: ' ' })).toBe(
+      false,
+    );
+  });
+  const stage = screen.getByTestId('stage');
+  fireEvent.pointerDown(stage, { button: 0, clientX: 400, clientY: 200 });
+  fireEvent.pointerMove(stage, { clientX: 300, clientY: 200 });
+  fireEvent.pointerUp(stage, { clientX: 300, clientY: 200 });
+  expect(view()).toBe('0.70 20 68');
+  expect(heard).not.toHaveBeenCalled();
 });
 
 it('lays the scene back on the screen when Edit mode ends', () => {

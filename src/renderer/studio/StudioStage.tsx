@@ -353,12 +353,15 @@ export default function StudioStage({
     screenRef,
     screen.width,
     screen.height,
-    // In Edit mode the member may stand back from the scene, to see all of
-    // it clear of the panels floating over it; the scene itself stays put
-    // until they do.
-    isEditing && !isWindowed ? LEAST_EDIT_ZOOM : 1,
+    // The member may stand back from the scene and move it, in every view,
+    // as Edit mode always let them (Ivan, 2026-11-12: "I need to be able to
+    // pan it and zoom so I can see all of it", "parecido a lo que hacemos
+    // en edit"); the scene itself stays put until they do.
+    LEAST_EDIT_ZOOM,
     // A closer look belongs to the view it was taken in, full screen apart.
     `${preview}:${size}:${isFullscreen ? 'full' : 'window'}`,
+    // Only Edit mode's canvas moves before it has been zoomed.
+    isEditing && !isWindowed,
   );
   const { view } = zoom;
   const { spectrumRange } = pack;
@@ -449,7 +452,7 @@ export default function StudioStage({
     >
       <div
         ref={frameRef}
-        className={`studio-stage studio-stage--${size}${isWindowed ? ' studio-stage--windowed' : ''}${isEditing && !isWindowed ? ' is-editing' : ''}`}
+        className={`studio-stage studio-stage--${size}${isWindowed ? ' studio-stage--windowed' : ''}${isEditing && !isWindowed ? ' is-editing' : ''}${zoom.zoomed && !isWindowed ? ' is-moved' : ''}`}
         data-testid="studio-stage"
         aria-busy={waiting}
         // The graph's gesture for the same thing, and the same full screen as

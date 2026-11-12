@@ -48,13 +48,29 @@ $full-chat-most-unset: 440px;
     container: none;
   }
 
+  // The stage is the part of the screen the panels leave: the scene fits
+  // there and follows them as they slide, hide or are dragged (Ivan,
+  // 2026-11-12: "when I go full screen the image gets cut by the panels").
+  // It ran under both, and the scene's foot and right side could not be
+  // seen or reached.
   .studio-bench__stage {
     position: absolute;
     inset: 0;
+    transition:
+      right $motion-slow $ease-out,
+      bottom $motion-slow $ease-out;
 
     > .pane-resizer {
       display: none;
     }
+  }
+
+  &.is-chat-out .studio-bench__stage {
+    right: var(--studio-chat-width-now, 0px);
+  }
+
+  &.is-pane-out .studio-bench__stage {
+    bottom: var(--studio-full-pane, 40%);
   }
 
   .studio-stage__well {
@@ -132,9 +148,10 @@ $full-chat-most-unset: 440px;
 
   // Held while the divider is: the pane's edge and the plate follow the
   // pointer, never ease after it.
-  &:has(> .studio-bench__chat > .column-resizer.is-dragging) {
+  &:has(> .studio-bench__chat > .column-resizer.is-dragging),
+  &:has(.studio-fullscreen__grip:active) {
     .studio-work,
-    .studio-stage__bar:not(.studio-edit__bar) {
+    .studio-bench__stage {
       transition: none;
     }
   }
@@ -143,21 +160,10 @@ $full-chat-most-unset: 440px;
     transform: none;
   }
 
-  // Never under a pane: the pane stops at the chat's edge, and the stage's
-  // plate - its full-screen controls - moves left of the chat.
+  // Never under a pane: the pane stops at the chat's edge. The stage's
+  // plate stands in the stage, which already stops there.
   &.is-chat-out .studio-work {
     right: var(--studio-chat-width-now, 0px);
-  }
-
-  // The stage's own plate, never Edit mode's, which shares its class and
-  // stands at the left.
-  &.is-chat-out .studio-stage__bar:not(.studio-edit__bar) {
-    right: calc(var(--studio-chat-width-now, 0px) + 16px);
-    transition: right $motion-slow $ease-out;
-  }
-
-  .studio-stage__bar:not(.studio-edit__bar) {
-    transition: right $motion-slow $ease-out;
   }
 }
 
@@ -205,7 +211,7 @@ $full-chat-most-unset: 440px;
   .studio-bench__grid.is-full {
     .studio-work,
     > .studio-bench__chat,
-    .studio-stage__bar:not(.studio-edit__bar) {
+    .studio-bench__stage {
       transition: none;
     }
   }

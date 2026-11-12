@@ -136,6 +136,13 @@ export default function useStageZoom(
    * the other one it must resize properly").
    */
   shape = '',
+  /**
+   * Whether the view can be moved at its own size: Edit mode's canvas. Out
+   * of it a view moves once it has been zoomed or stood back from, so an
+   * untouched stage takes nothing from the keyboard (Space plays and
+   * pauses).
+   */
+  canvas = least < 1,
 ) {
   const [kept, keep] = useState<{ shape: string; view: IStageView }>({
     shape,
@@ -165,7 +172,7 @@ export default function useStageZoom(
   // Space is the view's only while there is a view to move: unzoomed, a
   // stage takes nothing from the keyboard — except Edit mode's canvas,
   // where the scene can always be moved.
-  const movable = zoomed || least < 1;
+  const movable = zoomed || canvas;
   const spaceHeld = useSpaceHeld(movable);
   const [dragging, setDragging] = useState(false);
   const live = useRef({ view, width, height, spaceHeld, movable, least });
@@ -208,7 +215,11 @@ export default function useStageZoom(
       { pointer: number; x: number; y: number; from: IStageView } | undefined;
     const onDown = (event: PointerEvent) => {
       const now = live.current;
-      if (!now.spaceHeld || !now.movable || event.button !== 0) {
+      // Space and the left button, as in Edit mode, or the middle button
+      // alone, which the scene's own hands never take.
+      const panning =
+        (now.spaceHeld && event.button === 0) || event.button === 1;
+      if (!now.movable || !panning) {
         return;
       }
       // The scene's hands never hear a press that moves the view.

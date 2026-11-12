@@ -66,8 +66,12 @@ button.studio-edit__fold {
 // 2026-11-11: "it is the user who decides to zoom out to see more, not you
 // auto"). What is then left of the stage round the scene is a ruled grid, as
 // an editor's empty canvas is, with the scene's own edge drawn. The first
-// version shrank the scene by itself to fit beside the panels.
-.studio-stage.is-editing {
+// version shrank the scene by itself to fit beside the panels. The same
+// floor stands behind a stage moved or stood back from out of Edit mode
+// (Ivan, 2026-11-12: "now we could show the grid").
+.studio-stage.is-editing,
+.studio-stage.is-moved,
+.studio-stage__screen--window.is-zoomed {
   background-color: $surface-well;
   background-image:
     linear-gradient($border-subtle 1px, transparent 1px),
