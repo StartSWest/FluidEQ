@@ -932,6 +932,7 @@ const studio = {
   'studio.edit.flat.pin': 'Segna un punto',
   'studio.edit.flat.box': "Riquadra un'area",
   'studio.edit.flat.clear': 'Cancella i segni',
+  'studio.edit.flat.removeMark': 'Togli il segno {number}',
   'studio.edit.flat.send': "Invia i segni all'IA",
   'studio.edit.flat.rebuild': "Chiedi all'IA di rifarla in 3D",
   'studio.edit.flat.rebuildWhy':

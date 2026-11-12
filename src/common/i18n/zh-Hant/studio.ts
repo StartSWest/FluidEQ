@@ -814,6 +814,7 @@ const studio = {
   'studio.edit.flat.pin': '標記一個點',
   'studio.edit.flat.box': '框選一個區域',
   'studio.edit.flat.clear': '清除標記',
+  'studio.edit.flat.removeMark': '移除標記 {number}',
   'studio.edit.flat.send': '把標記傳送給 AI',
   'studio.edit.flat.rebuild': '請 AI 用 3D 重建它',
   'studio.edit.flat.rebuildWhy': '手動拖曳物件需要 3D 場景。',

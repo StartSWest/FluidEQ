@@ -937,6 +937,7 @@ const studio = {
   'studio.edit.flat.pin': 'Pin a spot',
   'studio.edit.flat.box': 'Box an area',
   'studio.edit.flat.clear': 'Clear marks',
+  'studio.edit.flat.removeMark': 'Remove mark {number}',
   'studio.edit.flat.send': 'Send the marks to the AI',
   'studio.edit.flat.rebuild': 'Ask the AI to rebuild it in 3D',
   'studio.edit.flat.rebuildWhy': 'Dragging things by hand needs a 3D scene.',

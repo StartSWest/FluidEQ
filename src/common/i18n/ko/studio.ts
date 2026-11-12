@@ -893,6 +893,7 @@ const studio = {
   'studio.edit.flat.pin': '지점 표시',
   'studio.edit.flat.box': '영역 표시',
   'studio.edit.flat.clear': '표시 지우기',
+  'studio.edit.flat.removeMark': '표시 {number} 지우기',
   'studio.edit.flat.send': '표시를 AI에게 보내기',
   'studio.edit.flat.rebuild': 'AI에게 3D로 다시 만들어 달라고 하기',
   'studio.edit.flat.rebuildWhy':

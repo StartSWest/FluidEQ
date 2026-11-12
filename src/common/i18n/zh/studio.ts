@@ -835,6 +835,7 @@ const studio = {
   'studio.edit.flat.pin': '标记一个点',
   'studio.edit.flat.box': '框选一个区域',
   'studio.edit.flat.clear': '清除标记',
+  'studio.edit.flat.removeMark': '移除标记 {number}',
   'studio.edit.flat.send': '把标记发送给 AI',
   'studio.edit.flat.rebuild': '让 AI 用 3D 重建它',
   'studio.edit.flat.rebuildWhy': '手动拖动物体需要 3D 场景。',

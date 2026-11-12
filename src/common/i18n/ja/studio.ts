@@ -926,6 +926,7 @@ const studio = {
   'studio.edit.flat.pin': '点に印を付ける',
   'studio.edit.flat.box': '範囲を囲む',
   'studio.edit.flat.clear': '印を消す',
+  'studio.edit.flat.removeMark': 'マーク {number} を削除',
   'studio.edit.flat.send': '印を AI に送る',
   'studio.edit.flat.rebuild': 'AI に 3D で作り直してもらう',
   'studio.edit.flat.rebuildWhy':

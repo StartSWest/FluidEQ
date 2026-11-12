@@ -196,6 +196,8 @@ export interface IStageEditStore {
   /** The Studio's view as the scene's own camera: a change like any other. */
   keepView(): void;
   addMark(mark: TEditMark): void;
+  /** The marks as the hand left them: moved, resized or one taken away. */
+  setMarks(marks: readonly TEditMark[]): void;
   clearMarks(): void;
   setMarkTool(tool: 'pin' | 'box'): void;
   setListOpen(open: boolean): void;
@@ -851,6 +853,7 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       }
     },
     addMark: (mark) => set({ marks: [...state.marks, mark].slice(-9) }),
+    setMarks: (marks) => set({ marks }),
     clearMarks: () => set({ marks: [] }),
     setMarkTool: (markTool) => set({ markTool }),
     setListOpen: (listOpen) => set({ listOpen }),

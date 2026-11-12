@@ -921,6 +921,7 @@ const studio = {
   'studio.edit.flat.pin': 'Отметить точку',
   'studio.edit.flat.box': 'Обвести область',
   'studio.edit.flat.clear': 'Убрать метки',
+  'studio.edit.flat.removeMark': 'Убрать отметку {number}',
   'studio.edit.flat.send': 'Отправить метки ИИ',
   'studio.edit.flat.rebuild': 'Попросить ИИ пересобрать её в 3D',
   'studio.edit.flat.rebuildWhy':

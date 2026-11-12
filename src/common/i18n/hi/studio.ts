@@ -915,6 +915,7 @@ const studio = {
   'studio.edit.flat.pin': 'एक जगह पिन करें',
   'studio.edit.flat.box': 'एक क्षेत्र घेरें',
   'studio.edit.flat.clear': 'चिह्न हटाएँ',
+  'studio.edit.flat.removeMark': 'निशान {number} हटाएँ',
   'studio.edit.flat.send': 'चिह्न AI को भेजें',
   'studio.edit.flat.rebuild': 'AI से इसे 3D में दोबारा बनाने को कहें',
   'studio.edit.flat.rebuildWhy':

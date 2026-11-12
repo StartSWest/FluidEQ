@@ -920,6 +920,7 @@ const studio = {
   'studio.edit.flat.pin': 'Marcar um ponto',
   'studio.edit.flat.box': 'Enquadrar uma área',
   'studio.edit.flat.clear': 'Limpar marcas',
+  'studio.edit.flat.removeMark': 'Remover a marca {number}',
   'studio.edit.flat.send': 'Enviar as marcas à IA',
   'studio.edit.flat.rebuild': 'Pedir à IA para refazê-la em 3D',
   'studio.edit.flat.rebuildWhy': 'Arrastar coisas à mão exige uma cena 3D.',

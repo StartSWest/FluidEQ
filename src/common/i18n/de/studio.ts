@@ -947,6 +947,7 @@ const studio = {
   'studio.edit.flat.pin': 'Punkt markieren',
   'studio.edit.flat.box': 'Bereich einrahmen',
   'studio.edit.flat.clear': 'Markierungen löschen',
+  'studio.edit.flat.removeMark': 'Markierung {number} entfernen',
   'studio.edit.flat.send': 'Markierungen an die KI senden',
   'studio.edit.flat.rebuild': 'Die KI bitten, sie in 3D neu zu bauen',
   'studio.edit.flat.rebuildWhy':

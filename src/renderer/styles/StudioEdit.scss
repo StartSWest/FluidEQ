@@ -219,6 +219,11 @@ $edit-z: #5aa9ff;
   cursor: move;
 }
 
+// A PAINTED SCENE'S MARKS (`StudioEditMarks.tsx`): each taken by the hand -
+// a pin or a box dragged by itself or its number, a box pulled by an edge or
+// a corner once it is taken. The parts that take the hand say so with the
+// cursor; everything else lets a press through to the scene, which makes a
+// new mark.
 .studio-edit__mark {
   pointer-events: none;
 }
@@ -228,13 +233,133 @@ $edit-z: #5aa9ff;
   stroke: $secondary-light;
   stroke-width: 1.5;
   stroke-dasharray: 7 5;
-  pointer-events: none;
+  pointer-events: all;
+  cursor: move;
+  transition:
+    fill $motion-fast $ease-out,
+    stroke-width $motion-fast $ease-out;
+
+  &:hover {
+    fill: color-mix(in srgb, $secondary-light 14%, transparent);
+  }
+
+  // The box still being drawn takes nothing: the press is the scene's.
+  &.is-drawing {
+    pointer-events: none;
+  }
+
+  .is-picked > & {
+    fill: color-mix(in srgb, $secondary-light 12%, transparent);
+    stroke-width: 2;
+    stroke-dasharray: none;
+    filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.9));
+  }
+}
+
+.studio-edit__mark-handle {
+  pointer-events: all;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:hover .studio-edit__mark-badge {
+    fill: $white;
+  }
+}
+
+// What the hand catches round a pin's spot and a box's grip: far wider than
+// what is drawn, as the 3D handles' reach.
+.studio-edit__mark-reach {
+  fill: transparent;
+}
+
+.studio-edit__mark-stem {
+  stroke: $secondary-light;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.8));
 }
 
 .studio-edit__mark-dot,
 .studio-edit__mark-badge {
   fill: $secondary-light;
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+  transition: fill $motion-fast $ease-out;
+}
+
+.is-picked .studio-edit__mark-badge {
+  stroke: $white;
+  stroke-width: 2;
+}
+
+.studio-edit__mark-grip {
+  pointer-events: all;
+
+  &.is-n,
+  &.is-s {
+    cursor: ns-resize;
+  }
+
+  &.is-e,
+  &.is-w {
+    cursor: ew-resize;
+  }
+
+  &.is-nw,
+  &.is-se {
+    cursor: nwse-resize;
+  }
+
+  &.is-ne,
+  &.is-sw {
+    cursor: nesw-resize;
+  }
+
+  &:hover .studio-edit__mark-corner {
+    fill: $secondary-light;
+  }
+}
+
+.studio-edit__mark-corner {
+  fill: $white;
+  stroke: color-mix(in srgb, $secondary-light 80%, #000);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.85));
+  transition: fill $motion-fast $ease-out;
+}
+
+.studio-edit__mark-remove {
+  pointer-events: all;
+  cursor: pointer;
+
+  circle {
+    fill: rgba(8, 14, 20, 0.88);
+    stroke: color-mix(in srgb, $white 55%, transparent);
+    stroke-width: 1;
+    transition: fill $motion-fast $ease-out;
+  }
+
+  path {
+    fill: none;
+    stroke: $white;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+
+  &:hover circle {
+    fill: $red;
+    stroke: $red;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-edit__mark-box,
+  .studio-edit__mark-badge,
+  .studio-edit__mark-corner,
+  .studio-edit__mark-remove circle {
+    transition: none;
+  }
 }
 
 .studio-edit__mark-number {

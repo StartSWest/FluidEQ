@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   useEffect,
   useRef,
+  useState,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
@@ -26,6 +27,7 @@ import {
   type TPoint,
 } from './editMath';
 import EditLockBadge from './EditLockBadge';
+import StudioEditMarks from './StudioEditMarks';
 import { lockedIn } from './editMarks';
 import {
   emptyMove,
@@ -111,6 +113,8 @@ export default function StudioEditOverlay({
   const dragRef = useRef<IDrag | undefined>(undefined);
   const sweepRef = useRef<ISweep | undefined>(undefined);
   const boxRef = useRef<SVGRectElement>(null);
+  /** On a painted scene, the mark the hand took last (`StudioEditMarks`). */
+  const [pickedMark, setPickedMark] = useState<number | undefined>(undefined);
 
   // The wheel brings the Studio's camera nearer. Taken here, before the
   // stage's own listeners, and only while that camera is the one in use.
@@ -347,6 +351,8 @@ export default function StudioEditOverlay({
     const end = share(at(event));
     const start = share(sweep.from);
     if (!is3d) {
+      // A press on the scene beside the marks lets the one taken go.
+      setPickedMark(undefined);
       if (sweep.moved && state.markTool === 'box') {
         store.addMark({
           kind: 'box',
@@ -542,52 +548,20 @@ export default function StudioEditOverlay({
           }
         />
       )}
-      {!is3d &&
-        state.marks.map((mark, index) => {
-          const number = String(index + 1);
-          const spot: TPoint =
-            mark.kind === 'pin'
-              ? [mark.x * width, mark.y * height]
-              : [mark.x0 * width, mark.y0 * height];
-          return (
-            // eslint-disable-next-line react/no-array-index-key -- a mark is its number
-            <g key={index} className="studio-edit__mark">
-              {mark.kind === 'box' && (
-                <rect
-                  className="studio-edit__mark-box"
-                  x={mark.x0 * width}
-                  y={mark.y0 * height}
-                  width={(mark.x1 - mark.x0) * width}
-                  height={(mark.y1 - mark.y0) * height}
-                />
-              )}
-              {mark.kind === 'pin' && (
-                <circle
-                  className="studio-edit__mark-dot"
-                  cx={spot[0]}
-                  cy={spot[1]}
-                  r={4}
-                />
-              )}
-              <circle
-                className="studio-edit__mark-badge"
-                cx={spot[0]}
-                cy={spot[1] - (mark.kind === 'pin' ? 20 : 0)}
-                r={11}
-              />
-              <text
-                className="studio-edit__mark-number"
-                x={spot[0]}
-                y={spot[1] - (mark.kind === 'pin' ? 20 : 0)}
-              >
-                {number}
-              </text>
-            </g>
-          );
-        })}
+      {!is3d && (
+        <StudioEditMarks
+          marks={state.marks}
+          width={width}
+          height={height}
+          at={at}
+          onMarks={store.setMarks}
+          picked={pickedMark}
+          onPick={setPickedMark}
+        />
+      )}
       <rect
         ref={boxRef}
-        className="studio-edit__mark-box"
+        className="studio-edit__mark-box is-drawing"
         visibility="hidden"
       />
     </svg>
