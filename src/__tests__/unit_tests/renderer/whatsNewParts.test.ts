@@ -329,6 +329,44 @@ describe('2.5 says nothing of a paid edition or GPT', () => {
   });
 });
 
+/**
+ * What only the admin add-on reaches (Ivan, 2026-11-12: "make sure you
+ * don't put admin things on release notes"): a member's scene opened by
+ * somebody else (nothing in the shipped app opens one, e9a4396f5), the
+ * review queue and Inspect, suspensions and publishing blocks. A maker's
+ * own view of a decision ("a scene that was not approved says why") and a
+ * buyer's credit after a takedown are members' and stay.
+ */
+const ADMIN_ONLY =
+  /another member['’]s scene|locked copy|review queue|\binspect\b|suspen|blocked from publishing|\badmin/i;
+
+describe('2.5 tells members only what members can reach', () => {
+  it('in its release notes', () => {
+    const notes25 = release('2.5.0');
+    expect(notes25).not.toMatch(ADMIN_ONLY);
+    // The controls: the maker's and the buyer's lines are still there, and
+    // the pattern knows the line that came out.
+    expect(notes25).toContain('A scene that was not approved says why');
+    expect(notes25).toContain('their credit back');
+    expect(
+      'Another member’s scene opened in the Studio is a locked copy',
+    ).toMatch(ADMIN_ONLY);
+    expect('An account suspended from publishing').toMatch(ADMIN_ONLY);
+  });
+
+  it('in its slides', () => {
+    const lines = tourLines('en', SLIDES_25);
+    expect(lines.length).toBeGreaterThan(40);
+    expect(lines.filter((line) => ADMIN_ONLY.test(line))).toEqual([]);
+  });
+
+  it.each(LOCALES)('with no locked-copy line left, in %s', (locale) => {
+    expect(tourLines(locale, /^\s*'tour\.v25\.copy'/)).toEqual([]);
+    // The control: the same reader finds its neighbour.
+    expect(tourLines(locale, /^\s*'tour\.v25\.review'/)).toHaveLength(1);
+  });
+});
+
 describe('Higgsfield, the Studio’s one maker', () => {
   // GPT left the Studio (2026-11-11): no slide or note may still offer it.
   it.each(LOCALES)('leaves GPT out of the makers slide, in %s', (locale) => {

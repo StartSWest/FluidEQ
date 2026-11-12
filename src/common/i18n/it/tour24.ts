@@ -271,8 +271,6 @@ const tour24 = {
     'Una scena che non parte non viene mai sostituita con un altro look: il grafico dice perché e offre Riprova.',
   'tour.v25.painted':
     'In una scena dipinta, gli spilli e i riquadri che mostrano all’IA cosa intendi si muovono a mano: trascinali dove vuoi, allarga un riquadro dagli angoli e dai bordi, e togline uno con il suo pulsante o con Canc.',
-  'tour.v25.copy':
-    'La scena di un altro membro aperta nello Studio è una copia bloccata, e la sua chat chiede prima di ogni comando.',
   'tour.v25.review':
     'Una scena non approvata mostra il motivo del revisore accanto al suo nome.',
   'tour.v25.publish': 'Nessun limite mensile per pubblicare.',

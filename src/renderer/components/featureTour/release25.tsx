@@ -71,7 +71,6 @@ const ALSO: readonly TranslationKey[] = [
   'tour.v25.recover',
   'tour.v25.never',
   'tour.v25.painted',
-  'tour.v25.copy',
   'tour.v25.review',
   'tour.v25.publish',
 ];

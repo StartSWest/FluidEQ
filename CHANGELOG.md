@@ -90,9 +90,6 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   stays off until it is fixed. An edit that passes plays on the stage
   before you save it, with **Undo**, **Redo** and **Discard**. The pack and
   FluidEQ's own scenes are not edited here.
-- **A published scene opens as a locked copy.** Another member's scene
-  opened in the Studio can't be added to your looks, exported, published or
-  renamed, and its chat asks before every command.
 - **Clearer answers.** **Put on desktop** says why it is off for a
   scene that does not play, and every way setting a desktop background or
   keeping a version can fail now says so on screen.

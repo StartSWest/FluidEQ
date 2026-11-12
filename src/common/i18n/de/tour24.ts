@@ -270,8 +270,6 @@ const tour24 = {
     'Eine Szene, die nicht spielt, wird nie gegen einen anderen Look getauscht: Die Grafik sagt, warum, und bietet Erneut versuchen an.',
   'tour.v25.painted':
     'In einer gemalten Szene lassen sich die Pins und Rahmen, die der KI zeigen, was Sie meinen, von Hand bewegen: Ziehen Sie sie beliebig, ziehen Sie einen Rahmen an Ecken und Kanten auf, und entfernen Sie einen mit seinem Knopf oder Entf.',
-  'tour.v25.copy':
-    'Die Szene eines anderen Mitglieds, im Studio geöffnet, ist eine gesperrte Kopie, und ihr Chat fragt vor jedem Befehl.',
   'tour.v25.review':
     'Eine nicht freigegebene Szene zeigt die Begründung der Prüfung neben ihrem Namen.',
   'tour.v25.publish': 'Kein monatliches Limit beim Veröffentlichen.',

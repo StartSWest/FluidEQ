@@ -265,8 +265,6 @@ const tour24 = {
     'A scene that will not play is never swapped for another look: the graph says why and offers Try again.',
   'tour.v25.painted':
     'In a painted scene, the pins and boxes that show the AI what you mean move by hand: drag either anywhere, pull a box by its corners and edges, and remove one with its button or Delete.',
-  'tour.v25.copy':
-    'Another member’s scene opened in the Studio is a locked copy, and its chat asks before every command.',
   'tour.v25.review':
     'A scene that was not approved shows the reviewer’s reason beside its name.',
   'tour.v25.publish': 'No monthly limit on publishing.',

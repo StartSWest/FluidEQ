@@ -277,8 +277,6 @@ const tour24 = {
     'Una escena que no se reproduce nunca se cambia por otro aspecto: el gráfico dice por qué y ofrece Reintentar.',
   'tour.v25.painted':
     'En una escena pintada, los alfileres y recuadros que señalan a la IA lo que quieres se mueven a mano: arrastra cualquiera adonde quieras, estira un recuadro por sus esquinas y bordes, y quita uno con su botón o con Supr.',
-  'tour.v25.copy':
-    'La escena de otro miembro abierta en el Estudio es una copia bloqueada, y su chat pregunta antes de cada comando.',
   'tour.v25.review':
     'Una escena que no fue aprobada muestra el motivo del revisor junto a su nombre.',
   'tour.v25.publish': 'Sin límite mensual para publicar.',

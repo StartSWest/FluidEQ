@@ -271,8 +271,6 @@ const tour24 = {
     'Une scène qui ne joue pas n’est jamais remplacée par un autre style : le graphique dit pourquoi et propose Réessayer.',
   'tour.v25.painted':
     'Dans une scène peinte, les épingles et les cadres qui montrent à l’IA ce que vous voulez se déplacent à la main : faites-les glisser où vous voulez, étirez un cadre par ses coins et ses bords, et retirez-en un avec son bouton ou Suppr.',
-  'tour.v25.copy':
-    'La scène d’un autre membre ouverte dans le Studio est une copie verrouillée, et son chat demande avant chaque commande.',
   'tour.v25.review':
     'Une scène non approuvée montre la raison de la modération à côté de son nom.',
   'tour.v25.publish': 'Plus de limite mensuelle pour publier.',

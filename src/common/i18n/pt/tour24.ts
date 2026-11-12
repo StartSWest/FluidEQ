@@ -264,8 +264,6 @@ const tour24 = {
     'Uma cena que não toca nunca é trocada por outro visual: o gráfico diz por quê e oferece Tentar de novo.',
   'tour.v25.painted':
     'Numa cena pintada, os alfinetes e caixas que mostram à IA o que você quer se movem à mão: arraste qualquer um para onde quiser, estique uma caixa pelos cantos e bordas, e remova um com o botão dele ou com Delete.',
-  'tour.v25.copy':
-    'A cena de outro membro aberta no Estúdio é uma cópia travada, e o chat dela pergunta antes de cada comando.',
   'tour.v25.review':
     'Uma cena que não foi aprovada mostra o motivo da revisão ao lado do nome.',
   'tour.v25.publish': 'Sem limite mensal para publicar.',
