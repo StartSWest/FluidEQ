@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import useSpaceHeld from './useSpaceHeld';
 
 /**
@@ -120,8 +126,35 @@ export default function useStageZoom(
   height: number,
   /** How far the stage may be stood back from: 1, or less in Edit mode. */
   least = 1,
+  /**
+   * Which view the stage shows the scene in (its preview and its size): a
+   * closer look belongs to the view it was taken in. Kept across a change of
+   * view, its scale and its offsets - in that view's pixels - were laid on
+   * the next one: a look at the Amp's narrow column came back to the wide
+   * stage at 200% and moved by the column's offsets, which read as the scene
+   * not resizing (Ivan, 2026-11-12: "when I come back from the Amp view to
+   * the other one it must resize properly").
+   */
+  shape = '',
 ) {
-  const [stored, setStored] = useState<IStageView>(FITTED);
+  const [kept, keep] = useState<{ shape: string; view: IStageView }>({
+    shape,
+    view: FITTED,
+  });
+  // Another view starts fitted, and the look kept goes with the view it was
+  // taken in: coming back to that view starts it fitted too. Set while
+  // rendering, as React resets state from a prop.
+  if (kept.shape !== shape) {
+    keep({ shape, view: FITTED });
+  }
+  const stored = kept.view;
+  const shapeRef = useRef(shape);
+  shapeRef.current = shape;
+  // Stable: the gestures' listeners are put on once and keep this one.
+  const setStored = useCallback(
+    (next: IStageView) => keep({ shape: shapeRef.current, view: next }),
+    [],
+  );
   const view = held(stored, width, height, least);
   // Closer than the whole picture, stood back from it, or moved off it:
   // anything but the picture laid exactly on the screen.
@@ -234,7 +267,7 @@ export default function useStageZoom(
       well.removeEventListener('pointerup', onUp, { capture: true });
       well.removeEventListener('pointercancel', onUp, { capture: true });
     };
-  }, [wellRef, screenRef]);
+  }, [wellRef, screenRef, setStored]);
 
   /** The next stop in `direction`, about the middle of the screen. */
   const step = (direction: 1 | -1) => {

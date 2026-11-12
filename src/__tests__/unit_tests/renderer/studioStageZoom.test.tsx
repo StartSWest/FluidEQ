@@ -48,10 +48,20 @@ const heard = jest.fn();
  * A stage of 800 by 450, the way `StudioStage` lays its parts; `least` under
  * 1 is Edit mode's canvas, as the stage asks for it while Edit is on.
  */
-function Stage({ least = 1 }: { least?: number }) {
+function Stage({
+  least = 1,
+  shape = 'stage',
+  width = 800,
+  height = 450,
+}: {
+  least?: number;
+  shape?: string;
+  width?: number;
+  height?: number;
+}) {
   const well = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
-  const zoom = useStageZoom(well, screenRef, 800, 450, least);
+  const zoom = useStageZoom(well, screenRef, width, height, least, shape);
   return (
     <div ref={well} data-testid="well">
       <div
@@ -204,6 +214,38 @@ it("moves the scene on Edit mode's canvas with Space held, at its own size", () 
   expect(fireEvent.keyDown(field, { code: 'Space', key: ' ' })).toBe(true);
   expect(screen.getByTestId('view')).toHaveAttribute('data-panning', 'false');
   field.remove();
+});
+
+// Ivan, 2026-11-12: "when I come back from the Amp view to the other one it
+// must resize properly". A look taken on the Amp's narrow column, its scale
+// and its offsets in the column's pixels, was laid on the wide stage.
+it('starts every view fitted: a closer look belongs to the view it was taken in', () => {
+  const { rerender } = render(
+    <Stage shape="player" width={196} height={396} />,
+  );
+  fireEvent.click(
+    screen.getByRole('button', { name: 'studio.picture.zoomIn' }),
+  );
+  fireEvent.click(
+    screen.getByRole('button', { name: 'studio.picture.zoomIn' }),
+  );
+  expect(view()).toBe('2.00 -98 -198');
+  rerender(<Stage shape="stage" />);
+  expect(view()).toBe('1.00 0 0');
+  // And the Amp's own look is not brought back either: the view is new.
+  rerender(<Stage shape="player" width={196} height={396} />);
+  expect(view()).toBe('1.00 0 0');
+});
+
+it('keeps a closer look while the view stays the same, its size changing', () => {
+  const { rerender } = render(<Stage shape="stage" />);
+  fireEvent.click(
+    screen.getByRole('button', { name: 'studio.picture.zoomIn' }),
+  );
+  expect(view()).toBe('1.50 -200 -112');
+  // The stage resized under it, the same view: the look stays, held to it.
+  rerender(<Stage shape="stage" width={900} height={500} />);
+  expect(view()?.startsWith('1.50')).toBe(true);
 });
 
 it('lays the scene back on the screen when Edit mode ends', () => {

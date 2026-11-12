@@ -357,6 +357,8 @@ export default function StudioStage({
     // it clear of the panels floating over it; the scene itself stays put
     // until they do.
     isEditing && !isWindowed ? LEAST_EDIT_ZOOM : 1,
+    // A closer look belongs to the view it was taken in, full screen apart.
+    `${preview}:${size}:${isFullscreen ? 'full' : 'window'}`,
   );
   const { view } = zoom;
   const { spectrumRange } = pack;
