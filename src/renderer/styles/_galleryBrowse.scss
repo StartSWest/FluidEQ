@@ -172,6 +172,24 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 1 auto;
 }
 
+// A segment that opens a family of orders (`GallerySortMenu`): the chevron
+// beside its name says a press opens rather than picks.
+.gallery-sorts__menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+// What a menu choice counts, after its name in the quiet text.
+.gallery-sorts__hint {
+  margin-inline-start: auto;
+  padding-inline-start: 12px;
+  color: $text-dim;
+  font-size: $text-micro;
+  white-space: nowrap;
+}
+
 // The member's own pages at the toolbar's end. One group, so a wrap takes
 // them to the next line together instead of splitting them.
 .gallery-toolbar__own {
@@ -217,6 +235,25 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+// "Not mine yet": a switch, not a category, so it is drawn dashed while
+// off and wears a tick while on, beside the categories it narrows. Both
+// classes, so it wins over the chip's own border wherever the sheet puts it.
+.gallery-chip.gallery-chip--switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-style: dashed;
+
+  &[aria-pressed='true'] {
+    border-style: solid;
+  }
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
 }
 
 .gallery-chip {

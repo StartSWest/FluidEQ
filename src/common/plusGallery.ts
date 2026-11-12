@@ -63,10 +63,28 @@ export const isPlusCategory = (value: unknown): value is TPlusCategory =>
   typeof value === 'string' &&
   (PLUS_CATEGORIES as readonly string[]).includes(value);
 
-export type TGallerySort = 'liked' | 'week' | 'new';
+/**
+ * How the gallery is ordered. The last three need a server that knows when a
+ * scene was first published (`firstPublishedAt`): `week-new` is the scenes
+ * first published in the last seven days, `week-updated` the older scenes
+ * with a new version in them, `added` the scenes the most members added
+ * (Ivan, 2026-11-12: "This week: new" and "This week: updates", and "Most
+ * used").
+ */
+export const GALLERY_SORTS = [
+  'liked',
+  'week',
+  'new',
+  'week-new',
+  'week-updated',
+  'added',
+] as const;
+
+export type TGallerySort = (typeof GALLERY_SORTS)[number];
 
 export const isGallerySort = (value: unknown): value is TGallerySort =>
-  value === 'liked' || value === 'week' || value === 'new';
+  typeof value === 'string' &&
+  (GALLERY_SORTS as readonly string[]).includes(value);
 
 /** Rows asked for at a time; the server answers at most a hundred. */
 export const GALLERY_PAGE_SIZE = 60;
@@ -80,6 +98,11 @@ export interface IGalleryQuery {
   authorId?: string;
   query?: string;
   sort: TGallerySort;
+  /**
+   * Leave out what this member can already play — owned, their own, or free
+   * ("Not mine yet", Ivan 2026-11-12: free scenes count as yours too).
+   */
+  notMine?: boolean;
   offset?: number;
 }
 
@@ -118,6 +141,13 @@ export interface IGalleryScene {
    * update rather than the scene arriving; absent from a server before 0026.
    */
   firstVersion?: number;
+  /**
+   * When the scene first went out, as the server wrote it. Null where the
+   * server keeps no such time for a scene; absent altogether from a server
+   * that does not know it, which is how the app tells it may not ask for
+   * the week's new and updated scenes.
+   */
+  firstPublishedAt?: string | null;
 }
 
 /** One earlier version of a scene, as `scene_version_history` lists it. */
@@ -374,7 +404,18 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
     liked: value.liked === true,
     added: value.added === true,
     ...readVersionFields(value, version),
+    ...readFirstPublished(value),
   };
+};
+
+/** `first_published_at`: a time, null, or absent from an older server. */
+const readFirstPublished = (
+  value: Record<string, unknown>,
+): Pick<IGalleryScene, 'firstPublishedAt'> => {
+  if (!('first_published_at' in value)) {
+    return {};
+  }
+  return { firstPublishedAt: readDate(value.first_published_at) ?? null };
 };
 
 /** The version columns 0026 adds, kept only when they make sense together. */

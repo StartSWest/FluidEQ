@@ -137,6 +137,25 @@ export const readVersionNote = (value: unknown): string | null | undefined => {
  * now: it is not the first version the scene was published at, and it was
  * published within `NEW_VERSION_DAYS`.
  */
+/**
+ * Whether the scene itself first went out within the last week: the "New"
+ * the gallery's card wears, ahead of "New version", and what the week's new
+ * scenes are made of on the server. Only from the server's own first-publish
+ * time; a scene it keeps none for is never called new.
+ */
+export const isNewScene = (
+  scene: { firstPublishedAt?: string | null },
+  now: number,
+): boolean => {
+  const first = scene.firstPublishedAt
+    ? Date.parse(scene.firstPublishedAt)
+    : NaN;
+  return (
+    Number.isFinite(first) &&
+    now - first <= NEW_VERSION_DAYS * 24 * 60 * 60 * 1000
+  );
+};
+
 export const isNewSceneVersion = (
   scene: { version: number; firstVersion?: number; updatedAt: string },
   now: number,

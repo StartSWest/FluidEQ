@@ -144,6 +144,19 @@ describe('listing the gallery', () => {
     });
   });
 
+  // "Not mine yet" goes to the server only when asked for: a server from
+  // before the week's views refuses a parameter it does not know.
+  it('sends the not-mine switch only when it is on', async () => {
+    const fetchImpl = jest.fn(async () => fakeResponse(200, []));
+    await listGallery(authWith(fetchImpl), { sort: 'week-new', notMine: true });
+    await listGallery(authWith(fetchImpl), { sort: 'new' });
+    const bodies = fetchImpl.mock.calls.map((call) =>
+      JSON.parse(String((call as unknown as [string, RequestInit])[1].body)),
+    );
+    expect(bodies[0]).toMatchObject({ p_sort: 'week-new', p_not_mine: true });
+    expect(bodies[1]).not.toHaveProperty('p_not_mine');
+  });
+
   it('says there is more when a whole page came back', async () => {
     const page = Array.from({ length: 60 }, (_, index) => ({
       ...row,

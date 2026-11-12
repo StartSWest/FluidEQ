@@ -100,6 +100,10 @@ const listOnce = async (
       p_author: query.authorId ?? null,
       p_query: query.query ?? null,
       p_sort: query.sort,
+      // Only when asked: a server from before the week's views
+      // refuses a parameter it does not have, and the window asks for this
+      // only once the rows have shown the server knows it.
+      ...(query.notMine ? { p_not_mine: true } : {}),
       p_limit: GALLERY_PAGE_SIZE,
       p_offset: Math.max(0, Math.floor(query.offset ?? 0)),
     });

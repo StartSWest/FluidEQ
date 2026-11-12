@@ -85,6 +85,8 @@ export interface IBrowseFilters {
   sort: TGallerySort;
   category?: TPlusCategory;
   text: string;
+  /** "Not mine yet": only the scenes this member cannot play yet. */
+  notMine?: boolean;
 }
 
 interface IPlusNavigation {

@@ -3,6 +3,7 @@ import type { IGalleryQuery, IGalleryScene } from 'common/plusGallery';
 import type { TGalleryListOutcome } from 'main/ipc/plusGallery';
 import { recallRecent, rememberRecent } from '../utils/recentMap';
 import { getAccountSnapshot, subscribeAccount } from '../account/accountStore';
+import type { IBrowseFilters } from './plusNavigation';
 
 /**
  * The gallery's lists, as the renderer holds them: one per question asked —
@@ -100,7 +101,37 @@ export const galleryListKey = (query: TListQuery) =>
     query.category ?? '',
     query.authorId ?? '',
     query.query ?? '',
+    query.notMine === true,
   ]);
+
+/**
+ * What the gallery asks the server for, from what its toolbar holds and the
+ * search it settled on. "Not mine yet" means nothing signed out — there is
+ * nothing of the member's to compare with — so it is asked only for somebody
+ * signed in.
+ */
+export const browseQuery = (
+  filters: IBrowseFilters,
+  asked: string,
+  signedIn: boolean,
+): TListQuery => ({
+  sort: filters.sort,
+  ...(filters.category ? { category: filters.category } : {}),
+  ...(asked ? { query: asked } : {}),
+  ...(filters.notMine && signedIn ? { notMine: true } : {}),
+});
+
+/**
+ * Whether the server has shown it knows when each scene first went out
+ * (`firstPublishedAt` on its rows), and so answers the week's new and
+ * updated scenes, Most used and "Not mine yet". Learned from the first
+ * rows it sends and kept for the session: asked before, an older server
+ * would answer a new order with its default one, silently, and refuse the
+ * new parameter outright.
+ */
+let serverViews = false;
+
+export const galleryServerViews = (): boolean => serverViews;
 
 const notify = () => listeners.forEach((listener) => listener());
 
@@ -164,6 +195,12 @@ const load = async (query: TListQuery, offset: number) => {
       },
     });
     return;
+  }
+  if (
+    !serverViews &&
+    outcome.scenes.some((scene) => scene.firstPublishedAt !== undefined)
+  ) {
+    serverViews = true;
   }
   const kept = offset === 0 ? [] : latest.list.scenes;
   // A scene can move between pages while they are fetched; it is shown once.
@@ -306,6 +343,9 @@ export const findGalleryScene = (lookId: string): IGalleryScene | undefined =>
     .flatMap((entry) => entry.list.scenes)
     .find((scene) => scene.lookId === lookId);
 
+export const useGalleryServerViews = (): boolean =>
+  useSyncExternalStore(subscribe, galleryServerViews, galleryServerViews);
+
 export const useGalleryScene = (scene: IGalleryScene): IGalleryScene =>
   useSyncExternalStore(
     subscribe,
@@ -320,4 +360,5 @@ export const resetGalleryStore = () => {
   lists.clear();
   listeners.clear();
   owner = ownerNow();
+  serverViews = false;
 };

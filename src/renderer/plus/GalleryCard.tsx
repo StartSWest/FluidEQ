@@ -1,6 +1,6 @@
 import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
-import { isNewSceneVersion } from 'common/sceneVersionNote';
+import { isNewScene, isNewSceneVersion } from 'common/sceneVersionNote';
 import { absoluteTime, relativeTime } from '../forum/forumTime';
 import { useTranslation } from '../utils/I18nContext';
 import type { IUsableMemberScene } from '../utils/memberScenes';
@@ -69,7 +69,11 @@ export default function GalleryCard({
   } else if (local) {
     addLabel = t('plus.card.updateTo', { version: String(scene.version) });
   }
-  const isNewVersion = isNewSceneVersion(scene, Date.now());
+  const now = Date.now();
+  // A scene that is itself new this week says so rather than "New version":
+  // it is the arrival that is news, not which version it arrived at.
+  const isNew = isNewScene(scene, now);
+  const isNewVersion = !isNew && isNewSceneVersion(scene, now);
 
   return (
     <article className="gallery-card">
@@ -83,6 +87,9 @@ export default function GalleryCard({
         <span className="gallery-card__tag">
           {t(categoryKey(scene.category))}
         </span>
+        {isNew && (
+          <span className="gallery-card__new">{t('plus.card.newScene')}</span>
+        )}
         {isNewVersion && (
           <span className="gallery-card__new">{t('plus.version.new')}</span>
         )}

@@ -179,6 +179,7 @@ const readQuery = (value: unknown): IGalleryQuery => {
   const query = cleanGalleryQuery(raw.query);
   return {
     sort: isGallerySort(raw.sort) ? raw.sort : 'liked',
+    ...(raw.notMine === true ? { notMine: true } : {}),
     offset,
     ...(isPlusCategory(raw.category) ? { category: raw.category } : {}),
     ...(author ? { authorId: author } : {}),

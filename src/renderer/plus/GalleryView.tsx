@@ -6,7 +6,7 @@ import useGalleryLocalScenes from './useGalleryLocalScenes';
 import GalleryCard from './GalleryCard';
 import GalleryList from './GalleryList';
 import GalleryToolbar from './GalleryToolbar';
-import { useGalleryList } from './galleryStore';
+import { browseQuery, useGalleryList } from './galleryStore';
 import { markGallerySeen } from './gallerySeen';
 import {
   openGalleryPage,
@@ -36,11 +36,7 @@ export default function GalleryView({ me }: IGalleryViewProps) {
   const [asked, setAsked] = useState(filters.text.trim());
   const localById = useGalleryLocalScenes();
 
-  const query = {
-    sort: filters.sort,
-    ...(filters.category ? { category: filters.category } : {}),
-    ...(asked ? { query: asked } : {}),
-  };
+  const query = browseQuery(filters, asked, me !== undefined);
   const { list, loadMore, reload } = useGalleryList(query);
 
   // What the look picker counts as new is what went up since this page.
@@ -64,6 +60,12 @@ export default function GalleryView({ me }: IGalleryViewProps) {
     empty = { title: 'plus.gallery.empty.search' };
   } else if (filters.category) {
     empty = { title: 'plus.gallery.empty.category' };
+  } else if (filters.notMine && me) {
+    empty = { title: 'plus.gallery.empty.allMine' };
+  } else if (filters.sort === 'week-new') {
+    empty = { title: 'plus.gallery.empty.weekNew' };
+  } else if (filters.sort === 'week-updated') {
+    empty = { title: 'plus.gallery.empty.weekUpdated' };
   }
 
   return (
@@ -72,6 +74,7 @@ export default function GalleryView({ me }: IGalleryViewProps) {
         filters={filters}
         onFilters={setBrowseFilters}
         onMine={() => openGalleryPage({ kind: 'mine' })}
+        signedIn={me !== undefined}
       />
 
       <GalleryList
