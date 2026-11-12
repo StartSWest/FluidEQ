@@ -61,6 +61,7 @@
 
 import { spawn } from 'child_process';
 import fs from 'fs';
+import path from 'path';
 
 import { fetchEqualizerApoSource } from './fetch-equalizer-apo';
 import { SUBJECT_VARIABLE } from './lighting-identity';
@@ -179,6 +180,31 @@ export const toBuilderArgs = (settings: IReleaseSettings): string[] => [
   '--config.publish.provider=generic',
   `--config.publish.url=${settings.updateUrl}`,
 ];
+
+/**
+ * How to start the pnpm that started this build again, without a shell.
+ *
+ * pnpm up to 10 is a JavaScript file run by Node. pnpm 11 ships as a native
+ * program (`@pnpm/exe`), and `npm_execpath` names its `pnpm.exe`; accepting
+ * only a script refused every signed build on it. A `.cmd` or `.ps1` shim is
+ * still refused: Node will not start one without a command shell, and a shell
+ * would re-parse every argument passed through it.
+ */
+export const pnpmLauncher = (
+  execPath: string | undefined,
+  nodePath: string,
+): { command: string; prefix: string[] } | undefined => {
+  if (!execPath) return undefined;
+  const extension = path.extname(execPath).toLowerCase();
+  if (['.js', '.cjs', '.mjs'].includes(extension)) {
+    return { command: nodePath, prefix: [execPath] };
+  }
+  // A native binary: pnpm.exe on Windows, an extensionless file elsewhere.
+  if (extension === '.exe' || extension === '') {
+    return { command: execPath, prefix: [] };
+  }
+  return undefined;
+};
 
 /** Where electron-builder leaves the updater's configuration. */
 export const APP_UPDATE_YML =
@@ -309,10 +335,10 @@ if (require.main === module) {
       );
     }
 
-    const pnpmScript = process.env.npm_execpath;
-    if (!pnpmScript || !/\.[cm]?js$/i.test(pnpmScript)) {
+    const pnpm = pnpmLauncher(process.env.npm_execpath, process.execPath);
+    if (!pnpm) {
       console.error(
-        'Cannot locate the pnpm script that started this build. Run it as ' +
+        'Cannot locate the pnpm that started this build. Run it as ' +
           '"pnpm package:signed" so the signed packaging command can be ' +
           'launched without an unsafe command shell.',
       );
@@ -320,8 +346,13 @@ if (require.main === module) {
       return;
     }
     const child = spawn(
-      process.execPath,
-      [pnpmScript, 'package', ...toBuilderArgs(release), ...mandatoryArgs],
+      pnpm.command,
+      [
+        ...pnpm.prefix,
+        'package',
+        ...toBuilderArgs(release),
+        ...mandatoryArgs,
+      ],
       { stdio: 'inherit' },
     );
     child.on('exit', (code) => {

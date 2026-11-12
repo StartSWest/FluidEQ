@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  pnpmLauncher,
   readSigningSettings,
   toBuilderArgs,
   verifyUpdateConfig,
@@ -190,6 +191,32 @@ describe('checking what the built app will do when it updates', () => {
     expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
       expect.stringContaining('somewhere-else.example.com'),
     ]);
+  });
+});
+
+describe('starting pnpm again for the build', () => {
+  const NODE = 'C:\\node\\node.exe';
+
+  it('runs a pnpm script under Node, as pnpm 10 and older are', () => {
+    expect(pnpmLauncher('C:\\pnpm\\bin\\pnpm.cjs', NODE)).toEqual({
+      command: NODE,
+      prefix: ['C:\\pnpm\\bin\\pnpm.cjs'],
+    });
+  });
+
+  it("runs pnpm 11's native program directly", () => {
+    const exe = 'C:\\pnpm\\node_modules\\@pnpm\\exe\\pnpm.exe';
+    expect(pnpmLauncher(exe, NODE)).toEqual({ command: exe, prefix: [] });
+    expect(pnpmLauncher('/usr/local/bin/pnpm', NODE)).toEqual({
+      command: '/usr/local/bin/pnpm',
+      prefix: [],
+    });
+  });
+
+  it('refuses a shim that would need a command shell, or nothing at all', () => {
+    expect(pnpmLauncher('C:\\pnpm\\bin\\pnpm.CMD', NODE)).toBeUndefined();
+    expect(pnpmLauncher('C:\\pnpm\\bin\\pnpm.ps1', NODE)).toBeUndefined();
+    expect(pnpmLauncher(undefined, NODE)).toBeUndefined();
   });
 });
 
