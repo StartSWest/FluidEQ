@@ -6,14 +6,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import neonCity from '../../../../assets/tour/scene-neon-city.jpg';
 import type { TranslationKey } from '../../../common/i18n';
+import EditGlyph from '../../studio/edit/EditGlyph';
 import { useTranslation } from '../../utils/I18nContext';
 
 /**
- * The Studio's Edit mode on a scene the app draws: one shape picked on the
- * stage, its frame and its two move arrows carrying it along and back, the
- * Move, Turn and Resize tools and Snap over it, Discard and Save at the other
- * end; beside it the list of what is in the scene, the picked one marked
- * Solo. Every word is the Edit mode's own label.
+ * The Studio's Edit mode as it is from 2.5 (1ab18f597): one shape picked on
+ * the stage, unlocked by the badge at its frame's corner, its two move arrows
+ * carrying it along and back; the Move, Turn and Resize tools and Snap over
+ * it, Discard and Save with their pictures at the other end. Beside it the
+ * list, where everything starts locked: the picked one free and shown alone,
+ * its group marked dimmer for holding it, and a light the scene's own file
+ * switches off. Every word and picture is Edit mode's own.
  *
  * One loop of CSS (`_tour-release25.scss`).
  */
@@ -24,16 +27,21 @@ interface IThing {
   /** Inside the group above it. */
   inner?: boolean;
   picked?: boolean;
+  /** Holds the picked one: its solo mark shows, dimmer. */
+  holds?: boolean;
+  /** Switched off by the scene's own file. */
+  off?: boolean;
 }
 
 const THINGS: readonly IThing[] = [
   { kind: 'studio.edit.kind.terrain', number: 1 },
-  { kind: 'studio.edit.kind.group', number: 1 },
+  { kind: 'studio.edit.kind.group', number: 1, holds: true },
   { kind: 'studio.edit.kind.mesh', number: 3, inner: true, picked: true },
   { kind: 'studio.edit.kind.mesh', number: 4, inner: true },
   { kind: 'studio.edit.kind.instances', number: 2 },
   { kind: 'studio.edit.kind.model', number: 1 },
   { kind: 'studio.edit.kind.light', number: 1 },
+  { kind: 'studio.edit.kind.light', number: 2, off: true },
 ];
 
 const TOOLS: readonly TranslationKey[] = [
@@ -41,6 +49,16 @@ const TOOLS: readonly TranslationKey[] = [
   'studio.edit.tool.turn',
   'studio.edit.tool.size',
 ];
+
+const rowClass = (thing: IThing) =>
+  [
+    'edit-visual__row',
+    thing.inner && 'is-inner',
+    thing.picked && 'is-picked',
+    thing.off && 'is-off',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
 export default function StudioEditVisual() {
   const { t } = useTranslation();
@@ -71,9 +89,13 @@ export default function StudioEditVisual() {
           </span>
           <span className="edit-visual__keep">
             <span className="edit-visual__discard">
+              <EditGlyph name="discard" />
               {t('studio.edit.discard')}
             </span>
-            <span className="edit-visual__save">{t('studio.edit.save')}</span>
+            <span className="edit-visual__save">
+              <EditGlyph name="save" />
+              {t('studio.edit.save')}
+            </span>
           </span>
         </span>
         <span className="edit-visual__pick">
@@ -82,6 +104,9 @@ export default function StudioEditVisual() {
             <i />
             <i />
             <i />
+          </span>
+          <span className="edit-visual__badge">
+            <EditGlyph name="unlock" />
           </span>
           <svg
             className="edit-visual__arrows"
@@ -109,15 +134,29 @@ export default function StudioEditVisual() {
         {THINGS.map((thing) => (
           <span
             key={`${thing.kind}-${thing.number}`}
-            className={`edit-visual__row${thing.inner ? ' is-inner' : ''}${
-              thing.picked ? ' is-picked' : ''
-            }`}
+            className={rowClass(thing)}
           >
             <i className="edit-visual__dot" />
-            <span className="edit-visual__row-name">{name(thing)}</span>
-            {thing.picked && (
-              <span className="edit-visual__solo">{t('studio.edit.solo')}</span>
-            )}
+            <span className="edit-visual__row-name">
+              {name(thing)}
+              {thing.off && <small>{t('studio.edit.offInScene')}</small>}
+            </span>
+            <span className="edit-visual__flags">
+              {(thing.picked || thing.holds) && (
+                <span
+                  className={`edit-visual__flag is-solo${
+                    thing.holds ? ' is-inside' : ''
+                  }`}
+                >
+                  <EditGlyph name="solo" />
+                </span>
+              )}
+              <span
+                className={`edit-visual__flag${thing.picked ? ' is-free' : ''}`}
+              >
+                <EditGlyph name={thing.picked ? 'unlock' : 'lock'} />
+              </span>
+            </span>
           </span>
         ))}
       </div>

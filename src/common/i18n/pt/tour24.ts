@@ -168,20 +168,20 @@ const tour24 = {
 
   'tour.edit.kicker': 'ESTÚDIO · MODO EDIÇÃO',
   'tour.edit.title': 'Mova as coisas da sua cena à mão',
-  'tour.edit.subtitle': 'Mover, girar e redimensionar, depois Salvar',
+  'tour.edit.subtitle': 'Tudo travado até você liberar, nada fica até Salvar',
   'tour.edit.lead':
-    'Pressione Editar no palco e escolha qualquer coisa numa cena 3D: uma forma, uma luz, um modelo 3D ou um grupo deles.',
+    'Pressione Editar no palco e escolha qualquer coisa numa cena 3D: uma forma, uma luz, um modelo 3D ou um grupo. Tudo começa travado, então nada se move por acidente; um toque no cadeado libera.',
   'tour.edit.point1':
-    'Mova, gire ou redimensione com as alças, com Encaixar para passos de um quarto e giros de 15°. Solo mostra só aquela coisa.',
+    'Mova, gire ou redimensione com as alças, com Encaixar para passos de um quarto e giros de 15°. Segure Espaço para mover a tela; o modo Editar continua aberto em todas as vistas do palco, inclusive no Gráfico ultrawide e no Player compacto.',
   'tour.edit.point2':
-    'Tudo o que está na cena fica numa lista onde você pode buscar, ocultar, travar, renomear e agrupar.',
+    'Tudo fica numa lista onde você pode buscar, renomear, agrupar, travar, pôr em Solo e ocultar. Solo e Ocultar servem só para trabalhar e nunca mudam a cena para quem ouve, e o Solo aparece marcado mesmo dentro de um grupo.',
   'tour.edit.point3':
     'Nada muda na sua cena até você pressionar Salvar. Descartar joga as mudanças fora, e Desfazer e Refazer passam por elas.',
   'tour.edit.how':
     'Abra uma cena 3D no Estúdio e pressione Editar no palco dela.',
   'tour.edit.open': 'Abrir Visualizadores',
   'tour.edit.imageAlt':
-    'Uma cena no palco do Estúdio com uma forma escolhida e suas alças, as ferramentas Mover, Girar e Redimensionar acima, e ao lado a lista do que há na cena.',
+    'Uma cena no palco do Estúdio com uma forma escolhida, o cadeado aberto e as alças à mostra, as ferramentas Mover, Girar e Tamanho em cima, e ao lado a lista com todo o resto travado e a forma escolhida mostrada sozinha.',
   'tour.watch.kicker': 'ESTÚDIO · SUA IA',
   'tour.watch.title': 'Uma IA que vê sua cena se mover',
   'tour.watch.subtitle': 'Quadros ao longo da música, três vistas, a música',
@@ -225,9 +225,10 @@ const tour24 = {
   'tour.makers.request': 'Faça o koi nadar numa animação',
   'tour.code.kicker': 'ESTÚDIO · CÓDIGO',
   'tour.code.title': 'Todos os arquivos da sua cena na aba Código',
-  'tour.code.subtitle': 'Shader, mundo, materiais, animações, notas',
+  'tour.code.subtitle':
+    'Shader, mundo, materiais, animações e notas que você pode editar',
   'tour.code.lead':
-    'A aba Código mostra a cena inteira, não só o shader: o pacote, o mundo 3D e os materiais que ele cita, as animações e as notas.',
+    'A aba Código mostra a cena inteira, não só o shader: o pacote, o mundo 3D e os materiais que ele cita, as animações e as notas, que você edita em dois campos simples e guarda com Salvar.',
   'tour.code.point1':
     'Cada arquivo se recolhe no nome e no número de linhas, e Expandir tudo abre todos juntos.',
   'tour.code.point2':

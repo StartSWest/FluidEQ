@@ -168,19 +168,20 @@ const tour24 = {
 
   'tour.edit.kicker': 'STUDIO · EDIT MODE',
   'tour.edit.title': 'Move things in your scene by hand',
-  'tour.edit.subtitle': 'Move, turn and resize, then Save',
+  'tour.edit.subtitle':
+    'Everything locked until you free it, nothing kept until Save',
   'tour.edit.lead':
-    'Press Edit on the stage and pick anything in a 3D scene: a shape, a light, a 3D model or a group of them.',
+    'Press Edit on the stage and pick anything in a 3D scene: a shape, a light, a 3D model or a group. Everything starts locked, so nothing moves by accident; one press on its lock frees it.',
   'tour.edit.point1':
-    'Move, turn or resize it with its handles, with Snap for quarter steps and 15° turns. Solo shows one thing alone.',
+    'Move, turn or resize it with its handles, with Snap for quarter steps and 15° turns. Hold Space to move the canvas, and Edit mode stays open in every view of the stage, the Ultra-wide graph and the Compact player included.',
   'tour.edit.point2':
-    'Every thing in the scene is in one list you can search, hide, lock, rename and group.',
+    'Everything is in one list to search, rename, group, lock, solo and hide. Solo and Hide are for working only and never change the scene for listeners, and Solo is marked even inside a group.',
   'tour.edit.point3':
     'Nothing touches your scene until you press Save. Discard throws the changes away, and Undo and Redo step through them.',
   'tour.edit.how': 'Open a 3D scene in the Studio and press Edit on its stage.',
   'tour.edit.open': 'Open Visualizers',
   'tour.edit.imageAlt':
-    'A scene on the Studio’s stage with one shape picked and its handles, the Move, Turn and Resize tools above it, and the list of what is in the scene beside it.',
+    'A scene on the Studio’s stage with one shape picked, its lock open and its handles out, the Move, Turn and Resize tools above it, and the list beside it with everything else locked and the picked shape shown alone.',
   'tour.watch.kicker': 'STUDIO · YOUR AI',
   'tour.watch.title': 'An AI that watches your scene move',
   'tour.watch.subtitle': 'Frames along the music, three views, the song',
@@ -224,9 +225,10 @@ const tour24 = {
   'tour.makers.request': 'Make the koi a swimming animation',
   'tour.code.kicker': 'STUDIO · CODE',
   'tour.code.title': 'Every file of your scene in the Code tab',
-  'tour.code.subtitle': 'Shader, world, materials, animations, notes',
+  'tour.code.subtitle':
+    'Shader, world, materials, animations, and notes you can edit',
   'tour.code.lead':
-    'The Code tab shows the whole scene, not only its shader: its pack, its 3D world and the materials it names, its animations and its notes.',
+    'The Code tab shows the whole scene, not only its shader: its pack, its 3D world and the materials it names, its animations, and its notes, which you edit as two plain fields and keep with Save.',
   'tour.code.point1':
     'Each file folds to its name and its count of lines, and Expand all opens them together.',
   'tour.code.point2':

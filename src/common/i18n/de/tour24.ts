@@ -170,20 +170,21 @@ const tour24 = {
 
   'tour.edit.kicker': 'STUDIO · BEARBEITEN',
   'tour.edit.title': 'Dinge in Ihrer Szene von Hand bewegen',
-  'tour.edit.subtitle': 'Bewegen, drehen, Größe ändern, dann Speichern',
+  'tour.edit.subtitle':
+    'Alles gesperrt, bis Sie es freigeben, nichts bleibt vor dem Speichern',
   'tour.edit.lead':
-    'Drücken Sie auf der Bühne Bearbeiten und wählen Sie etwas in einer 3D-Szene: eine Form, ein Licht, ein 3D-Modell oder eine Gruppe davon.',
+    'Drücken Sie auf der Bühne Bearbeiten und wählen Sie etwas in einer 3D-Szene: eine Form, ein Licht, ein 3D-Modell oder eine Gruppe. Alles ist zuerst gesperrt, damit sich nichts versehentlich bewegt; ein Druck auf sein Schloss gibt es frei.',
   'tour.edit.point1':
-    'Bewegen, drehen oder skalieren Sie es mit seinen Griffen, mit Einrasten für Viertelschritte und 15°-Drehungen. Solo zeigt eines allein.',
+    'Bewegen, drehen oder skalieren Sie es mit seinen Griffen, mit Einrasten für Viertelschritte und 15°-Drehungen. Halten Sie die Leertaste, um die Fläche zu verschieben; der Bearbeitungsmodus bleibt in jeder Ansicht der Bühne offen, auch im Ultrabreiten Diagramm und im Kompakten Player.',
   'tour.edit.point2':
-    'Alles in der Szene steht in einer Liste, in der Sie suchen, ausblenden, sperren, umbenennen und gruppieren können.',
+    'Alles steht in einer Liste, in der Sie suchen, umbenennen, gruppieren, sperren, solo schalten und ausblenden können. Solo und Ausblenden sind nur zum Arbeiten da und ändern die Szene für Zuhörer nie, und Solo ist auch innerhalb einer Gruppe markiert.',
   'tour.edit.point3':
     'Nichts ändert Ihre Szene, bis Sie Speichern drücken. Verwerfen wirft die Änderungen weg, Rückgängig und Wiederholen gehen sie durch.',
   'tour.edit.how':
     'Öffnen Sie eine 3D-Szene im Studio und drücken Sie auf ihrer Bühne Bearbeiten.',
   'tour.edit.open': 'Visualizer öffnen',
   'tour.edit.imageAlt':
-    'Eine Szene auf der Bühne des Studios mit einer gewählten Form und ihren Griffen, darüber die Werkzeuge Bewegen, Drehen und Größe ändern, daneben die Liste dessen, was in der Szene ist.',
+    'Eine Szene auf der Bühne des Studios mit einer gewählten Form, ihr Schloss offen und ihre Griffe zu sehen, darüber die Werkzeuge Bewegen, Drehen und Größe, daneben die Liste mit allem anderen gesperrt und der gewählten Form allein gezeigt.',
   'tour.watch.kicker': 'STUDIO · IHRE KI',
   'tour.watch.title': 'Eine KI, die Ihrer Szene beim Bewegen zusieht',
   'tour.watch.subtitle': 'Bilder entlang der Musik, drei Ansichten, der Song',
@@ -229,9 +230,10 @@ const tour24 = {
   'tour.makers.request': 'Lass den Koi in einer Animation schwimmen',
   'tour.code.kicker': 'STUDIO · CODE',
   'tour.code.title': 'Jede Datei Ihrer Szene im Code-Tab',
-  'tour.code.subtitle': 'Shader, Welt, Materialien, Animationen, Notizen',
+  'tour.code.subtitle':
+    'Shader, Welt, Materialien, Animationen und Notizen zum Bearbeiten',
   'tour.code.lead':
-    'Der Code-Tab zeigt die ganze Szene, nicht nur ihren Shader: ihr Paket, ihre 3D-Welt und die Materialien, die sie nennt, ihre Animationen und ihre Notizen.',
+    'Der Code-Tab zeigt die ganze Szene, nicht nur ihren Shader: ihr Paket, ihre 3D-Welt und die Materialien, die sie nennt, ihre Animationen und ihre Notizen, die Sie in zwei einfachen Feldern bearbeiten und mit Speichern behalten.',
   'tour.code.point1':
     'Jede Datei klappt sich auf ihren Namen und ihre Zeilenzahl zusammen, und Alle aufklappen öffnet sie zusammen.',
   'tour.code.point2':

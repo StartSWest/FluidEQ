@@ -169,20 +169,21 @@ const tour24 = {
 
   'tour.edit.kicker': 'STUDIO · MODE MODIFICATION',
   'tour.edit.title': 'Déplacez les choses de votre scène à la main',
-  'tour.edit.subtitle': 'Déplacer, tourner, redimensionner, puis Enregistrer',
+  'tour.edit.subtitle':
+    'Tout est verrouillé jusqu’à ce que vous le libériez, rien n’est gardé avant Enregistrer',
   'tour.edit.lead':
-    'Appuyez sur Modifier sur la scène et choisissez n’importe quoi dans une scène 3D : une forme, une lumière, un modèle 3D ou un groupe.',
+    'Appuyez sur Modifier sur la scène et choisissez n’importe quoi dans une scène 3D : une forme, une lumière, un modèle 3D ou un groupe. Tout commence verrouillé, donc rien ne bouge par accident ; un appui sur son cadenas le libère.',
   'tour.edit.point1':
-    'Déplacez-le, tournez-le ou redimensionnez-le avec ses poignées, avec Aimanter pour des pas d’un quart et des rotations de 15°. Solo le montre seul.',
+    'Déplacez-le, tournez-le ou redimensionnez-le avec ses poignées, avec Aimanter pour des pas d’un quart et des rotations de 15°. Maintenez Espace pour déplacer le canevas ; le mode Modifier reste ouvert dans toutes les vues de la scène, Graphique ultra-large et Lecteur compact compris.',
   'tour.edit.point2':
-    'Tout ce qui est dans la scène est dans une liste où vous pouvez chercher, masquer, verrouiller, renommer et grouper.',
+    'Tout est dans une liste où chercher, renommer, grouper, verrouiller, mettre en Solo et masquer. Solo et Masquer servent seulement au travail et ne changent jamais la scène pour ceux qui écoutent, et Solo est marqué même dans un groupe.',
   'tour.edit.point3':
     'Rien ne touche votre scène tant que vous n’appuyez pas sur Enregistrer. Abandonner jette les changements, Annuler et Rétablir les parcourent.',
   'tour.edit.how':
     'Ouvrez une scène 3D dans le Studio et appuyez sur Modifier sur sa scène.',
   'tour.edit.open': 'Ouvrir Visualiseurs',
   'tour.edit.imageAlt':
-    'Une scène sur la scène du Studio avec une forme choisie et ses poignées, les outils Déplacer, Tourner et Redimensionner au-dessus, et à côté la liste de ce qu’elle contient.',
+    'Une scène sur la scène du Studio avec une forme choisie, son cadenas ouvert et ses poignées visibles, les outils Déplacer, Tourner et Taille au-dessus, et à côté la liste avec tout le reste verrouillé et la forme choisie montrée seule.',
   'tour.watch.kicker': 'STUDIO · VOTRE IA',
   'tour.watch.title': 'Une IA qui regarde votre scène bouger',
   'tour.watch.subtitle':
@@ -229,9 +230,10 @@ const tour24 = {
   'tour.makers.request': 'Fais nager le koï dans une animation',
   'tour.code.kicker': 'STUDIO · CODE',
   'tour.code.title': 'Chaque fichier de votre scène dans l’onglet Code',
-  'tour.code.subtitle': 'Shader, monde, matériaux, animations, notes',
+  'tour.code.subtitle':
+    'Shader, monde, matériaux, animations, et notes que vous pouvez modifier',
   'tour.code.lead':
-    'L’onglet Code montre toute la scène, pas seulement son shader : son paquet, son monde 3D et les matériaux qu’il nomme, ses animations et ses notes.',
+    'L’onglet Code montre toute la scène, pas seulement son shader : son paquet, son monde 3D et les matériaux qu’il nomme, ses animations, et ses notes, que vous modifiez dans deux champs simples et gardez avec Enregistrer.',
   'tour.code.point1':
     'Chaque fichier se replie sur son nom et son nombre de lignes, et Tout déplier les ouvre ensemble.',
   'tour.code.point2':

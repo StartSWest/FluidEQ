@@ -245,7 +245,11 @@ $loop: 10s;
   @include panel;
 
   display: grid;
+  // Down each column, as the list reads: across, the group's own shapes
+  // landed in the other column from their group.
+  grid-auto-flow: column;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto repeat(4, auto);
   padding: calc(#{$u} * 0.55);
   gap: calc(#{$u} * 0.12) calc(#{$u} * 0.5);
 }
@@ -253,6 +257,7 @@ $loop: 10s;
 .edit-visual__list-title {
   @include heading;
 
+  grid-row: 1;
   grid-column: 1 / -1;
   margin-bottom: calc(#{$u} * 0.2);
 }
@@ -299,14 +304,80 @@ $loop: 10s;
   white-space: nowrap;
 }
 
-.edit-visual__solo {
-  @include pill;
+// A thing the scene's own file switches off: dimmed, and said under its name
+// as the list says it.
+.edit-visual__row.is-off {
+  opacity: 0.62;
 
+  small {
+    display: block;
+    color: $text-faint;
+    font-size: calc(#{$u} * 0.52);
+  }
+}
+
+// The row's marks at its end, as the list has them: Solo (dimmer on the row
+// holding the soloed one), then the lock, closed on everything until a press
+// frees it.
+.edit-visual__flags {
+  display: inline-flex;
+  flex: none;
   margin-left: auto;
-  padding-block: 0;
-  border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+  gap: calc(#{$u} * 0.2);
+}
+
+.edit-visual__flag {
+  display: grid;
+  width: calc(#{$u} * 0.9);
+  height: calc(#{$u} * 0.9);
+  color: $text-faint;
+  place-items: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  &.is-free,
+  &.is-solo {
+    color: $secondary-light;
+  }
+
+  &.is-inside {
+    opacity: 0.5;
+  }
+}
+
+// The picked thing's lock at its frame's top right, open: one press on the
+// stage freed it.
+.edit-visual__badge {
+  position: absolute;
+  top: calc(#{$u} * -0.75);
+  right: calc(#{$u} * -0.75);
+  display: grid;
+  width: calc(#{$u} * 1.3);
+  height: calc(#{$u} * 1.3);
+  border: 1px solid color-mix(in srgb, $secondary-light 60%, transparent);
+  border-radius: 50%;
+  background: $surface-menu;
+  box-shadow: 0 4px 12px rgba($black, 0.45);
   color: $secondary-light;
-  font-size: calc(#{$u} * 0.56);
+  place-items: center;
+
+  svg {
+    width: 62%;
+    height: 62%;
+  }
+}
+
+.edit-visual__discard,
+.edit-visual__save {
+  gap: calc(#{$u} * 0.25);
+
+  svg {
+    width: calc(#{$u} * 0.75);
+    height: calc(#{$u} * 0.75);
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -172,20 +172,21 @@ const tour24 = {
 
   'tour.edit.kicker': 'STUDIO · MODALITÀ MODIFICA',
   'tour.edit.title': 'Sposta a mano le cose della tua scena',
-  'tour.edit.subtitle': 'Sposta, ruota e ridimensiona, poi Salva',
+  'tour.edit.subtitle':
+    'Tutto bloccato finché non lo liberi, niente resta finché non salvi',
   'tour.edit.lead':
-    'Premi Modifica sul palco e scegli qualsiasi cosa in una scena 3D: una forma, una luce, un modello 3D o un loro gruppo.',
+    'Premi Modifica sul palco e scegli qualsiasi cosa in una scena 3D: una forma, una luce, un modello 3D o un gruppo. Tutto parte bloccato, così niente si sposta per sbaglio; una pressione sul suo lucchetto lo libera.',
   'tour.edit.point1':
-    'Spostala, ruotala o ridimensionala con le sue maniglie, con Aggancia per passi di un quarto e rotazioni di 15°. Solo la mostra da sola.',
+    'Spostala, ruotala o ridimensionala con le sue maniglie, con Aggancia per passi di un quarto e rotazioni di 15°. Tieni premuto Spazio per spostare la tela; la modalità Modifica resta aperta in ogni vista del palco, compresi il Grafico ultrapanoramico e il Lettore compatto.',
   'tour.edit.point2':
-    'Tutto ciò che è nella scena sta in un elenco dove puoi cercare, nascondere, bloccare, rinominare e raggruppare.',
+    'Tutto sta in un elenco dove cercare, rinominare, raggruppare, bloccare, mettere in Solo e nascondere. Solo e Nascondi servono solo per lavorare e non cambiano mai la scena per chi ascolta, e Solo è segnato anche dentro un gruppo.',
   'tour.edit.point3':
     'Niente tocca la tua scena finché non premi Salva. Scarta butta via le modifiche, Annulla e Ripeti le ripercorrono.',
   'tour.edit.how':
     'Apri una scena 3D nello Studio e premi Modifica sul suo palco.',
   'tour.edit.open': 'Apri Visualizzatori',
   'tour.edit.imageAlt':
-    'Una scena sul palco dello Studio con una forma scelta e le sue maniglie, gli strumenti Sposta, Ruota e Ridimensiona sopra, e accanto l’elenco di ciò che contiene.',
+    'Una scena sul palco dello Studio con una forma scelta, il lucchetto aperto e le maniglie visibili, gli strumenti Sposta, Ruota e Dimensione sopra, e accanto l’elenco con tutto il resto bloccato e la forma scelta mostrata da sola.',
   'tour.watch.kicker': 'STUDIO · LA TUA IA',
   'tour.watch.title': 'Un’IA che guarda la tua scena muoversi',
   'tour.watch.subtitle': 'Fotogrammi lungo la musica, tre viste, il brano',
@@ -230,9 +231,10 @@ const tour24 = {
   'tour.makers.request': 'Fai nuotare il koi in un’animazione',
   'tour.code.kicker': 'STUDIO · CODICE',
   'tour.code.title': 'Ogni file della tua scena nella scheda Codice',
-  'tour.code.subtitle': 'Shader, mondo, materiali, animazioni, note',
+  'tour.code.subtitle':
+    'Shader, mondo, materiali, animazioni e note che puoi modificare',
   'tour.code.lead':
-    'La scheda Codice mostra tutta la scena, non solo il suo shader: il pacchetto, il mondo 3D e i materiali che nomina, le animazioni e le note.',
+    'La scheda Codice mostra tutta la scena, non solo il suo shader: il pacchetto, il mondo 3D e i materiali che nomina, le animazioni e le note, che modifichi in due campi semplici e tieni con Salva.',
   'tour.code.point1':
     'Ogni file si chiude sul suo nome e sul numero di righe, ed Espandi tutto li apre insieme.',
   'tour.code.point2':

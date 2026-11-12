@@ -176,20 +176,21 @@ const tour24 = {
 
   'tour.edit.kicker': 'ESTUDIO · MODO EDICIÓN',
   'tour.edit.title': 'Mueve las cosas de tu escena a mano',
-  'tour.edit.subtitle': 'Mover, girar y cambiar tamaño, luego Guardar',
+  'tour.edit.subtitle':
+    'Todo bloqueado hasta que lo liberes, nada se guarda hasta Guardar',
   'tour.edit.lead':
-    'Pulsa Editar en el escenario y elige cualquier cosa de una escena 3D: una forma, una luz, un modelo 3D o un grupo de ellas.',
+    'Pulsa Editar en el escenario y elige cualquier cosa de una escena 3D: una forma, una luz, un modelo 3D o un grupo. Todo empieza bloqueado, así que nada se mueve por accidente; una pulsación en su candado lo libera.',
   'tour.edit.point1':
-    'Muévela, gírala o cámbiale el tamaño con sus controles, con Ajustar para pasos de un cuarto y giros de 15°. Solo la muestra sola.',
+    'Muévela, gírala o cámbiale el tamaño con sus controles, con Ajustar para pasos de un cuarto y giros de 15°. Mantén Espacio para mover el lienzo; el modo Editar sigue abierto en todas las vistas del escenario, incluidas la Gráfica ultrapanorámica y el Reproductor compacto.',
   'tour.edit.point2':
-    'Todo lo que hay en la escena está en una lista donde puedes buscar, ocultar, bloquear, renombrar y agrupar.',
+    'Todo está en una lista donde puedes buscar, renombrar, agrupar, bloquear, poner en Solo y ocultar. Solo y Ocultar son solo para trabajar y nunca cambian la escena para quien escucha, y Solo se marca incluso dentro de un grupo.',
   'tour.edit.point3':
     'Nada toca tu escena hasta que pulsas Guardar. Descartar tira los cambios, y Deshacer y Rehacer los recorren.',
   'tour.edit.how':
     'Abre una escena 3D en el Estudio y pulsa Editar en su escenario.',
   'tour.edit.open': 'Abrir Visualizadores',
   'tour.edit.imageAlt':
-    'Una escena en el escenario del Estudio con una forma elegida y sus controles, las herramientas Mover, Girar y Cambiar tamaño encima, y al lado la lista de lo que hay en la escena.',
+    'Una escena en el escenario del Estudio con una forma elegida, su candado abierto y sus controles a la vista, las herramientas Mover, Girar y Tamaño encima, y al lado la lista con todo lo demás bloqueado y la forma elegida mostrada sola.',
   'tour.watch.kicker': 'ESTUDIO · TU IA',
   'tour.watch.title': 'Una IA que mira cómo se mueve tu escena',
   'tour.watch.subtitle': 'Fotogramas con la música, tres vistas, la canción',
@@ -235,9 +236,10 @@ const tour24 = {
   'tour.makers.request': 'Haz que el koi nade en una animación',
   'tour.code.kicker': 'ESTUDIO · CÓDIGO',
   'tour.code.title': 'Todos los archivos de tu escena en la pestaña Código',
-  'tour.code.subtitle': 'Shader, mundo, materiales, animaciones, notas',
+  'tour.code.subtitle':
+    'Shader, mundo, materiales, animaciones y notas que puedes editar',
   'tour.code.lead':
-    'La pestaña Código muestra la escena entera, no solo su shader: su paquete, su mundo 3D y los materiales que nombra, sus animaciones y sus notas.',
+    'La pestaña Código muestra la escena entera, no solo su shader: su paquete, su mundo 3D y los materiales que nombra, sus animaciones y sus notas, que editas en dos campos sencillos y conservas con Guardar.',
   'tour.code.point1':
     'Cada archivo se pliega a su nombre y su número de líneas, y Desplegar todo los abre a la vez.',
   'tour.code.point2':
