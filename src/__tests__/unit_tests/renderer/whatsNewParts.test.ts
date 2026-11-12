@@ -207,6 +207,12 @@ describe('the release notes and the version', () => {
       '### Sound',
       '### Visualizers and Studio',
     ]);
+    // The signed edition comes with no credits (Ivan, 2026-11-11); the
+    // refund line under Visualizers and Studio still speaks of credits.
+    const editions = release('2.5.0').split(/^### /m)[1] ?? '';
+    expect(editions).toMatch(/^Two editions/);
+    expect(editions).not.toMatch(/credit/i);
+    expect(release('2.5.0')).toMatch(/credit back/);
     // The control: 2.4 has no such heading.
     expect(partsOf(release('2.4.0'))).toEqual([
       '### Sound',

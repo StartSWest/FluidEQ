@@ -19,9 +19,8 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   time, that it is the last version to reach the free edition by itself.
 - **The signed edition updates itself.** The same FluidEQ, paid once ($19 at
   launch) through Paddle, signed by Ivan Carmenates Garcia, so Windows shows
-  a verified publisher. It comes with 12 credits and stays on your FluidEQ
-  account for good: pay with that account's email and it is linked by
-  itself. The account panel offers it, and once it is yours gives you the
+  a verified publisher. It stays on your FluidEQ account for good: pay with
+  that account's email and it is linked by itself. The account panel offers it, and once it is yours gives you the
   download of the signed installer and where to go for a receipt, a refund
   or anything else.
 - **Bought it with another email?** **I bought it with another email** in
