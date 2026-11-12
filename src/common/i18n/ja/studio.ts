@@ -666,6 +666,7 @@ const studio = {
   'studio.size.workPane': '作業パネル',
   'studio.size.workPaneHint': '調整、コードなどをシーンの上に',
   'studio.size.workPaneHeight': '作業パネルの高さ',
+  'studio.size.hidePane': '作業パネルを隠す',
   'studio.size.chat': 'チャット',
   'studio.size.chatHint': 'AI とのチャットをシーンの横に',
   'studio.size.exit': '全画面を終了',

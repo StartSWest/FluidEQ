@@ -230,9 +230,9 @@ const tour24 = {
   'tour.fullscreen.point1':
     '工作面板裡有所有分頁，調音、程式碼等等。拖曳它的上緣即可調高或調低。',
   'tour.fullscreen.point2':
-    '兩者都可以用全螢幕控制項上各自的按鈕開啟或收起，也可以用 Ctrl+J 切換工作面板、Ctrl+L 切換聊天。',
+    '兩者都可以用全螢幕控制項上或各自右上角的按鈕開啟或收起，也可以用 Ctrl+J 切換工作面板、Ctrl+L 切換聊天。',
   'tour.fullscreen.point3':
-    '收起的聊天會在螢幕邊緣留下一個分頁，下次全螢幕會依您離開時的樣子開啟。',
+    '拖曳聊天的邊緣可以把它調寬或調窄，下次全螢幕會依您離開時的樣子開啟。',
   'tour.fullscreen.how': '在工作室中開啟一個場景，在舞台上按「全螢幕」。',
   'tour.fullscreen.open': '開啟展示臺',
   'tour.fullscreen.imageAlt':

@@ -248,9 +248,9 @@ const tour24 = {
   'tour.fullscreen.point1':
     'O painel de trabalho tem todas as abas, Ajustar, Código e as outras. Arraste a borda de cima para deixá-lo mais alto ou mais baixo.',
   'tour.fullscreen.point2':
-    'Cada um aparece e some com o próprio botão nos controles de tela cheia, ou com Ctrl+J para o painel de trabalho e Ctrl+L para o chat.',
+    'Cada um aparece e some com o próprio botão, nos controles de tela cheia ou no seu canto superior direito, ou com Ctrl+J para o painel de trabalho e Ctrl+L para o chat.',
   'tour.fullscreen.point3':
-    'Um chat recolhido deixa uma aba na borda da tela, e a próxima tela cheia abre do jeito que você deixou.',
+    'Arraste a borda do chat para deixá-lo mais largo ou mais estreito, e a próxima tela cheia abre do jeito que você deixou.',
   'tour.fullscreen.how':
     'Abra uma cena no Estúdio e pressione Tela cheia no palco.',
   'tour.fullscreen.open': 'Abrir Visualizadores',

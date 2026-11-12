@@ -15,15 +15,23 @@ it under the terms of the GNU General Public License version 3 or later.
 // animate as the other side menus"). The grid fills the screen, not the
 // stage alone: the scene covers all of it and keeps playing, and the
 // Studio's own work pane and chat stand over it, each slid away or back on
-// its button, with the side panes' own slide (`$sound-pane-ease` in
-// `App.scss`: 300 ms on the app's ease-out). The chat's width is the one the
-// member gave it in the window; the pane's height is theirs too.
+// its button (the plate's, or its own at its top right), with the side
+// panes' own slide (`$sound-pane-ease` in `App.scss`: 300 ms on the app's
+// ease-out). The pane's height and the chat's width here are the member's,
+// each dragged and kept.
 //
 // Keyed on the Studio's own full-screen state (`is-full`, from its size)
 // rather than the browser's `:fullscreen`: the grid is the element that
 // fills the screen, and the size goes back to windowed the moment the
 // screen refuses or leaves (`useStageFullscreen.ts`), so the two agree.
 $full-slide: transform $motion-slow $ease-out;
+// What the scene keeps beside the chat: the stage's plate and the Edit
+// button in one row (the plate measured 817px at 1920 in the harness, its
+// widest reading in it). `FULL_SCENE_LEAST` in `useChatWidth.ts`.
+$full-scene-least: 960px;
+// `$studio-chat-min` and `$studio-chat-max` in `Studio.scss`.
+$full-chat-least: 320px;
+$full-chat-most-unset: 440px;
 
 .studio-bench__grid.is-full {
   position: relative;
@@ -87,9 +95,22 @@ $full-slide: transform $motion-slow $ease-out;
     transform: none;
   }
 
-  // The chat, docked right at its own width.
+  // The chat, docked right at the width the member gave it here, or the
+  // window's until they do (`useChatWidth.ts`), never so wide the scene
+  // keeps less than its least (the chat's own least wins on a small screen).
   > .studio-bench__chat {
     position: absolute;
+    width: clamp(
+      #{$full-chat-least},
+      var(
+        --studio-full-chat-width,
+        var(
+          --studio-chat-width,
+          clamp(#{$full-chat-least}, 30cqw, #{$full-chat-most-unset})
+        )
+      ),
+      max(#{$full-chat-least}, 100cqw - #{$full-scene-least})
+    );
     top: 0;
     right: 0;
     bottom: 0;
@@ -100,10 +121,21 @@ $full-slide: transform $motion-slow $ease-out;
     transform: translateX(102%);
     transition: $full-slide;
 
-    // Its divider sizes the column in the window; here nothing beside it
-    // moves, so it is left to the window.
+    // Its divider, the window's own (Ivan, 2026-11-12: "el chat debe ser
+    // resizable en fullscreen también"), setting the full screen's width:
+    // astride the chat's edge, since there is no gap here for it to stand
+    // in.
     > .column-resizer {
-      display: none;
+      left: -6px;
+    }
+  }
+
+  // Held while the divider is: the pane's edge and the plate follow the
+  // pointer, never ease after it.
+  &:has(> .studio-bench__chat > .column-resizer.is-dragging) {
+    .studio-work,
+    .studio-stage__bar:not(.studio-edit__bar) {
+      transition: none;
     }
   }
 
@@ -169,66 +201,11 @@ $full-slide: transform $motion-slow $ease-out;
   right: var(--studio-chat-width-now, 0px);
 }
 
-// The chat's edge tab: on the chat's left edge while it is out, folding it
-// away; at the screen's edge while it is folded, bringing it back.
-.studio-fullscreen__chat-tab {
-  display: none;
-}
-
-.studio-bench__grid.is-full .studio-fullscreen__chat-tab {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 8px;
-  color: $text-primary;
-  border: 1px solid $card-edge;
-  border-right: 0;
-  border-radius: $radius-s 0 0 $radius-s;
-  background: color-mix(in srgb, $surface-menu 88%, transparent);
-  backdrop-filter: blur(14px);
-  font: inherit;
-  font-weight: $weight-semibold;
-  writing-mode: vertical-rl;
-  cursor: pointer;
-  transform: translateY(-50%);
-  transition:
-    right $motion-slow $ease-out,
-    background $motion-fast $ease-out;
-
-  svg {
-    width: 14px;
-    height: 14px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-  }
-
-  &:hover {
-    background: $hover-accent;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &.is-open {
-    right: var(--studio-chat-width-now, 0px);
-    padding: 14px 4px;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .studio-bench__grid.is-full {
     .studio-work,
     > .studio-bench__chat,
-    .studio-stage__bar:not(.studio-edit__bar),
-    .studio-fullscreen__chat-tab {
+    .studio-stage__bar:not(.studio-edit__bar) {
       transition: none;
     }
   }

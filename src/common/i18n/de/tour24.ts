@@ -254,9 +254,9 @@ const tour24 = {
   'tour.fullscreen.point1':
     'Der Arbeitsbereich hat alle Tabs, Abstimmen, Code und die übrigen. Ziehen Sie an seinem oberen Rand, um ihn höher oder niedriger zu machen.',
   'tour.fullscreen.point2':
-    'Beides kommt und geht über einen eigenen Knopf in der Vollbild-Steuerung, oder mit Strg+J für den Arbeitsbereich und Strg+L für den Chat.',
+    'Beides blendet sich über einen eigenen Knopf ein und aus, in der Vollbild-Steuerung oder oben rechts im Bereich selbst, oder mit Strg+J für den Arbeitsbereich und Strg+L für den Chat.',
   'tour.fullscreen.point3':
-    'Ein eingeklappter Chat lässt einen Reiter am Bildschirmrand, und das nächste Vollbild öffnet sich so, wie Sie es verlassen haben.',
+    'Ziehen Sie den Rand des Chats, um ihn breiter oder schmaler zu machen, und das nächste Vollbild öffnet sich so, wie Sie es verlassen haben.',
   'tour.fullscreen.how':
     'Öffnen Sie eine Szene im Studio und drücken Sie auf ihrer Bühne Vollbild.',
   'tour.fullscreen.open': 'Visualizer öffnen',

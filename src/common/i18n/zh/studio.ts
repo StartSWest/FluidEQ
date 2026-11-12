@@ -597,6 +597,7 @@ const studio = {
   'studio.size.workPane': '工作面板',
   'studio.size.workPaneHint': '调整、代码等，叠在场景上方',
   'studio.size.workPaneHeight': '工作面板高度',
+  'studio.size.hidePane': '隐藏工作面板',
   'studio.size.chat': '聊天',
   'studio.size.chatHint': '与 AI 的聊天，在场景旁边',
   'studio.size.exit': '退出全屏',

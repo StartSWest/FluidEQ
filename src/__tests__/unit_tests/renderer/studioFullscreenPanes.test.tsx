@@ -8,8 +8,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The Studio's full screen with its work in it (Ivan, 2026-11-11: "a toggle
  * bottom pane for tune, code etc", "the chat with a collapsible"): the two
  * buttons on the full-screen plate, Ctrl+J and Ctrl+L heard only while the
- * screen is full, what is kept for the next full screen, and the pane's
- * edge and the chat's tab.
+ * screen is full, what is kept for the next full screen, the pane's edge,
+ * and each pane's own button that puts it away (Ivan, 2026-11-12).
  */
 
 import '@testing-library/jest-dom';
@@ -20,8 +20,11 @@ import {
   renderHook,
   screen,
 } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import StudioChatColumn from '../../../renderer/studio/chat/StudioChatColumn';
 import StudioFullscreenPanes from '../../../renderer/studio/StudioFullscreenPanes';
 import StudioStageControls from '../../../renderer/studio/StudioStageControls';
+import StudioWorkTabs from '../../../renderer/studio/StudioWorkTabs';
 import useFullscreenPanes, {
   PANE_DEFAULT,
   PANE_LEAST,
@@ -31,6 +34,17 @@ import useFullscreenPanes, {
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+// The chat itself stands in as its fold button alone: what the column does
+// with that button is what is tested here.
+jest.mock('../../../renderer/studio/chat/StudioChat', () => ({
+  __esModule: true,
+  default: ({ onFold }: { onFold?: () => void }) => (
+    <button type="button" onClick={onFold}>
+      fold
+    </button>
+  ),
 }));
 
 beforeEach(() => {
@@ -146,31 +160,26 @@ describe('the full-screen plate', () => {
   });
 });
 
-describe("the pane's edge and the chat's tab", () => {
+describe("the pane's edge", () => {
   const panes = ({
     pane = true,
-    chat = true,
     hasChatColumn = true,
   }: {
     pane?: boolean;
-    chat?: boolean;
     hasChatColumn?: boolean;
   }) => {
     const grid = document.createElement('div');
     const onHeight = jest.fn();
-    const onChat = jest.fn();
     render(
       <StudioFullscreenPanes
         gridRef={{ current: grid }}
         pane={pane}
-        chat={chat}
         hasChatColumn={hasChatColumn}
         height={0.4}
         onHeight={onHeight}
-        onChat={onChat}
       />,
     );
-    return { onHeight, onChat };
+    return { onHeight };
   };
 
   it('moves the pane a step with the arrow keys', () => {
@@ -191,19 +200,120 @@ describe("the pane's edge and the chat's tab", () => {
     expect(screen.queryByRole('separator')).toBeNull();
   });
 
-  it('folds the chat and brings it back from its tab', () => {
-    const { onChat } = panes({ chat: false });
-    const tab = screen.getByRole('button', { name: 'studio.size.chat' });
-    expect(tab).toHaveAttribute('aria-expanded', 'false');
-    expect(tab).toHaveTextContent('studio.size.chat');
-    fireEvent.click(tab);
-    expect(onChat).toHaveBeenCalled();
+  // Ivan, 2026-11-12: "quita la cosa fea que pusiste en el centro para
+  // colapsar el chat en full screen".
+  it('lays no tab of its own on the chat’s edge', () => {
+    panes({});
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+describe("the pane's own hide button", () => {
+  const tabs = (end?: ReactNode) =>
+    render(
+      <StudioWorkTabs
+        label="work"
+        tabs={[
+          { id: 'tune', label: 'Tune' },
+          { id: 'pictures', label: 'Pictures', pinned: true },
+        ]}
+        selected="tune"
+        onSelect={jest.fn()}
+        end={end}
+      >
+        <p>panel</p>
+      </StudioWorkTabs>,
+    );
+
+  it('stands at the row’s end, after every tab, outside the tablist', () => {
+    const onHide = jest.fn();
+    tabs(
+      <button type="button" onClick={onHide}>
+        hide
+      </button>,
+    );
+    const hide = screen.getByRole('button', { name: 'hide' });
+    const row = hide.closest('.studio-work__tab-row');
+    expect(row?.lastElementChild).toContainElement(hide);
+    expect(screen.getByRole('tablist')).not.toContainElement(hide);
+    fireEvent.click(hide);
+    expect(onHide).toHaveBeenCalledTimes(1);
   });
 
-  it('has no chat tab where the chat is one of the work pane’s tabs', () => {
-    panes({ hasChatColumn: false });
+  it('leaves the row as it was where there is none', () => {
+    const { container } = tabs();
+    expect(container.querySelector('.studio-work__end')).toBeNull();
+  });
+});
+
+describe("the chat's own fold button", () => {
+  const column = (onHide?: () => void) =>
+    render(<StudioChatColumn fullScreen={onHide ? { onHide } : undefined} />);
+
+  // In full screen it hides the chat as the plate's button does; a rail
+  // there would be a second way of being away.
+  it('hides the chat in full screen, never folding it to its rail', () => {
+    const onHide = jest.fn();
+    const { container } = column(onHide);
+    fireEvent.click(screen.getByRole('button', { name: 'fold' }));
+    expect(onHide).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('.is-folded')).toBeNull();
+    expect(screen.getByRole('separator')).toBeInTheDocument();
+  });
+
+  it('folds it to its rail in the window', () => {
+    const { container } = column();
+    fireEvent.click(screen.getByRole('button', { name: 'fold' }));
+    expect(container.querySelector('.studio-bench__chat.is-folded')).not.toBe(
+      null,
+    );
+  });
+});
+
+describe("the chat's width in full screen", () => {
+  const nudge = () =>
+    fireEvent.keyDown(screen.getByRole('separator'), { key: 'ArrowLeft' });
+
+  // A chat widened over the scene would otherwise come back to the window
+  // as wide.
+  it('is its own, the window’s width left as it was', () => {
+    window.localStorage.setItem('fluideq.studio.chatWidth', '400');
+    render(<StudioChatColumn fullScreen={{ onHide: jest.fn() }} />);
+    nudge();
     expect(
-      screen.queryByRole('button', { name: 'studio.size.chat' }),
+      window.localStorage.getItem('fluideq.studio.fullscreenChatWidth'),
+    ).not.toBeNull();
+    expect(window.localStorage.getItem('fluideq.studio.chatWidth')).toBe('400');
+  });
+
+  it('sets the window’s own in the window', () => {
+    render(<StudioChatColumn />);
+    nudge();
+    expect(
+      window.localStorage.getItem('fluideq.studio.chatWidth'),
+    ).not.toBeNull();
+    expect(
+      window.localStorage.getItem('fluideq.studio.fullscreenChatWidth'),
     ).toBeNull();
+  });
+
+  it('stands open over the scene though it was folded in the window', () => {
+    window.localStorage.setItem('fluideq.studio.chatFolded', 'true');
+    const { container } = render(
+      <StudioChatColumn fullScreen={{ onHide: jest.fn() }} />,
+    );
+    expect(container.querySelector('.is-folded')).toBeNull();
+    expect(screen.getByRole('button', { name: 'fold' })).toBeInTheDocument();
+  });
+
+  it('carries both widths on the column, each for the sheet to read', () => {
+    window.localStorage.setItem('fluideq.studio.chatWidth', '400');
+    window.localStorage.setItem('fluideq.studio.fullscreenChatWidth', '700');
+    const { container } = render(<StudioChatColumn />);
+    const aside = container.querySelector<HTMLElement>('.studio-bench__chat');
+    expect(aside?.style.getPropertyValue('--studio-chat-width')).toBe('400px');
+    expect(aside?.style.getPropertyValue('--studio-full-chat-width')).toBe(
+      '700px',
+    );
   });
 });

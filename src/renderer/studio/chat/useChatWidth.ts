@@ -14,6 +14,11 @@ import useColumnWidth from '../useColumnWidth';
 const CHAT_MIN = 320;
 const STAGE_MIN = 480;
 const GRID_GAP = 16;
+/**
+ * `$full-scene-least` in `StudioFullscreen.scss`: in full screen the scene
+ * keeps the stage's plate and the Edit button beside it in one row.
+ */
+const FULL_SCENE_LEAST = 960;
 
 /**
  * The chat column's width, as the member dragged it (Ivan, 2026-10-09: "I
@@ -26,5 +31,21 @@ export default function useChatWidth(column: RefObject<HTMLElement | null>) {
     property: '--studio-chat-width',
     least: CHAT_MIN,
     besideLeast: STAGE_MIN + GRID_GAP,
+  });
+}
+
+/**
+ * The chat's width in the Studio's full screen, a width of its own (Ivan,
+ * 2026-11-12: "el chat debe ser resizable en fullscreen también"): the
+ * screen has room the window has not, and a chat widened over the scene
+ * would otherwise come back to the window as wide. Unset, the window's
+ * width stands (`StudioFullscreen.scss`).
+ */
+export function useFullscreenChatWidth(column: RefObject<HTMLElement | null>) {
+  return useColumnWidth(column, {
+    storageKey: 'fluideq.studio.fullscreenChatWidth',
+    property: '--studio-full-chat-width',
+    least: CHAT_MIN,
+    besideLeast: FULL_SCENE_LEAST,
   });
 }

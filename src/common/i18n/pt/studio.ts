@@ -661,6 +661,7 @@ const studio = {
   'studio.size.workPane': 'Painel de trabalho',
   'studio.size.workPaneHint': 'Ajustar, Código e o resto, sobre a cena',
   'studio.size.workPaneHeight': 'Altura do painel de trabalho',
+  'studio.size.hidePane': 'Ocultar o painel de trabalho',
   'studio.size.chat': 'Chat',
   'studio.size.chatHint': 'O chat da sua IA, ao lado da cena',
   'studio.size.exit': 'Sair da tela cheia',

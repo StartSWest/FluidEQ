@@ -680,6 +680,7 @@ const studio = {
   'studio.size.workPane': 'Arbeitsbereich',
   'studio.size.workPaneHint': 'Abstimmen, Code und mehr, über der Szene',
   'studio.size.workPaneHeight': 'Höhe des Arbeitsbereichs',
+  'studio.size.hidePane': 'Arbeitsbereich ausblenden',
   'studio.size.chat': 'Chat',
   'studio.size.chatHint': 'Der Chat Ihrer KI, neben der Szene',
   'studio.size.exit': 'Vollbild beenden',

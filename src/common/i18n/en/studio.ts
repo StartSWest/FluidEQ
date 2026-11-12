@@ -673,6 +673,7 @@ const studio = {
   'studio.size.workPane': 'Work pane',
   'studio.size.workPaneHint': 'Tune, Code and the rest, over the scene',
   'studio.size.workPaneHeight': 'Work pane height',
+  'studio.size.hidePane': 'Hide the work pane',
   'studio.size.chat': 'Chat',
   'studio.size.chatHint': "Your AI's chat, beside the scene",
   'studio.size.exit': 'Exit fullscreen',

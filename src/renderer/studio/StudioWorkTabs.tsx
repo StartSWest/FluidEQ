@@ -38,6 +38,11 @@ interface IStudioWorkTabsProps<TId extends string> {
   tabs: readonly IStudioWorkTab<TId>[];
   selected: TId;
   onSelect: (id: TId) => void;
+  /**
+   * At the row's far end, after every tab: the full screen's button that
+   * hides the pane (`StudioBench`). Not a tab, so outside the tablist.
+   */
+  end?: ReactNode;
   /** The selected tab's panel. */
   children: ReactNode;
 }
@@ -65,6 +70,7 @@ export default function StudioWorkTabs<TId extends string>({
   tabs,
   selected,
   onSelect,
+  end,
   children,
 }: IStudioWorkTabsProps<TId>) {
   const id = useId();
@@ -197,6 +203,7 @@ export default function StudioWorkTabs<TId extends string>({
         {pinned.length > 0 && (
           <div className="studio-work__pinned">{pinned.map(renderTab)}</div>
         )}
+        {end !== undefined && <div className="studio-work__end">{end}</div>}
       </div>
       <div
         id={panelId}

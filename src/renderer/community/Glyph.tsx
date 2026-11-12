@@ -47,6 +47,7 @@ export type TCommunityGlyph =
   | 'fit'
   | 'pin'
   | 'rail-collapse'
+  | 'pane-collapse'
   | 'lighting'
   | 'gift'
   | 'music'
@@ -378,6 +379,14 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <rect x="3" y="3.5" width="14" height="13" rx="2.5" />
             <path d="M8 3.5v13M13.4 8 11.4 10l2 2" />
+          </>
+        );
+      case 'pane-collapse':
+        // The same panel with its lower band, and a chevron folding it down.
+        return (
+          <>
+            <rect x="3" y="3.5" width="14" height="13" rx="2.5" />
+            <path d="M3 12h14M8 6.6l2 2 2-2" />
           </>
         );
       case 'lighting':

@@ -255,9 +255,9 @@ const tour24 = {
   'tour.fullscreen.point1':
     'Le panneau de travail a tous les onglets, Réglages, Code et les autres. Faites glisser son bord supérieur pour l’agrandir ou le réduire.',
   'tour.fullscreen.point2':
-    'Chacun apparaît et disparaît avec son propre bouton dans les commandes du plein écran, ou avec Ctrl+J pour le panneau de travail et Ctrl+L pour le chat.',
+    'Chacun apparaît et disparaît avec son propre bouton, dans les commandes du plein écran ou en haut à droite de lui-même, ou avec Ctrl+J pour le panneau de travail et Ctrl+L pour le chat.',
   'tour.fullscreen.point3':
-    'Un chat replié laisse un onglet au bord de l’écran, et le plein écran suivant s’ouvre comme vous l’avez laissé.',
+    'Faites glisser le bord du chat pour l’élargir ou le rétrécir, et le plein écran suivant s’ouvre comme vous l’avez laissé.',
   'tour.fullscreen.how':
     'Ouvrez une scène dans le Studio et appuyez sur Plein écran sur sa scène.',
   'tour.fullscreen.open': 'Ouvrir Visualiseurs',

@@ -642,6 +642,7 @@ const studio = {
   'studio.size.workPane': '작업 패널',
   'studio.size.workPaneHint': '조정, 코드 등을 장면 위에',
   'studio.size.workPaneHeight': '작업 패널 높이',
+  'studio.size.hidePane': '작업 패널 숨기기',
   'studio.size.chat': '채팅',
   'studio.size.chatHint': 'AI와의 채팅을 장면 옆에',
   'studio.size.exit': '전체 화면 종료',

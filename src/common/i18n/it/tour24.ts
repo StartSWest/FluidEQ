@@ -255,9 +255,9 @@ const tour24 = {
   'tour.fullscreen.point1':
     'Il pannello di lavoro ha tutte le schede, Regola, Codice e le altre. Trascina il suo bordo superiore per farlo più alto o più basso.',
   'tour.fullscreen.point2':
-    'Ognuno compare e sparisce con il suo pulsante nei controlli dello schermo intero, o con Ctrl+J per il pannello di lavoro e Ctrl+L per la chat.',
+    'Ognuno compare e sparisce con il suo pulsante, nei controlli dello schermo intero o in alto a destra su sé stesso, o con Ctrl+J per il pannello di lavoro e Ctrl+L per la chat.',
   'tour.fullscreen.point3':
-    'Una chat chiusa lascia una linguetta sul bordo dello schermo, e lo schermo intero successivo si apre come l’hai lasciato.',
+    'Trascina il bordo della chat per allargarla o restringerla, e lo schermo intero successivo si apre come l’hai lasciato.',
   'tour.fullscreen.how':
     'Apri una scena nello Studio e premi Schermo intero sul suo palco.',
   'tour.fullscreen.open': 'Apri Visualizzatori',

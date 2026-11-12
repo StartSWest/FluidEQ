@@ -109,6 +109,7 @@ export const SETTING_STEMS: readonly string[] = [
   // and each chat's own model and effort (`chatPicks.ts`).
   'fluideq.studio.chatFolded',
   'fluideq.studio.chatWidth',
+  'fluideq.studio.fullscreenChatWidth',
   'fluideq.studio.chatZoom',
   'fluideq.studio.chatModel',
   'fluideq.studio.chatEffort',

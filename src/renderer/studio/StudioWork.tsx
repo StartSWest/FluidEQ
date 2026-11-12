@@ -63,6 +63,8 @@ interface IStudioWorkProps {
   badges?: Partial<
     Record<TStudioWorkTab, Pick<IStudioWorkTab<string>, 'badge' | 'isAlert'>>
   >;
+  /** At the tab row's far end: the full screen's button that hides the pane. */
+  end?: ReactNode;
 }
 
 /**
@@ -71,7 +73,7 @@ interface IStudioWorkProps {
  * hears" in a wide window — is kept, not
  * overwritten, and the first tab stands in for it until it is offered again.
  */
-export default function StudioWork({ panels, badges }: IStudioWorkProps) {
+export default function StudioWork({ panels, badges, end }: IStudioWorkProps) {
   const { t } = useTranslation();
   const [chosen, setChosen] = useState<TStudioWorkTab>(readTab);
   const offered = ORDER.filter((tab) => panels[tab] !== undefined);
@@ -102,6 +104,7 @@ export default function StudioWork({ panels, badges }: IStudioWorkProps) {
         setChosen(id);
         writeStored(STORAGE_KEY, id);
       }}
+      end={end}
     >
       {panels[selected]}
     </StudioWorkTabs>

@@ -656,6 +656,7 @@ const studio = {
   'studio.size.workPane': 'कार्य पैनल',
   'studio.size.workPaneHint': 'ट्यून, कोड और बाक़ी, दृश्य के ऊपर',
   'studio.size.workPaneHeight': 'कार्य पैनल की ऊँचाई',
+  'studio.size.hidePane': 'कार्य पैनल छिपाएँ',
   'studio.size.chat': 'चैट',
   'studio.size.chatHint': 'आपके AI की चैट, दृश्य के बगल में',
   'studio.size.exit': 'पूर्ण स्क्रीन से बाहर',

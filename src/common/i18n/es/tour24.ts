@@ -261,9 +261,9 @@ const tour24 = {
   'tour.fullscreen.point1':
     'El panel de trabajo tiene todas las pestañas, Ajustar, Código y las demás. Arrastra su borde superior para hacerlo más alto o más bajo.',
   'tour.fullscreen.point2':
-    'Cada uno aparece y se va con su propio botón en los controles de pantalla completa, o con Ctrl+J para el panel de trabajo y Ctrl+L para el chat.',
+    'Cada uno aparece y se va con su propio botón, en los controles de pantalla completa o arriba a la derecha de sí mismo, o con Ctrl+J para el panel de trabajo y Ctrl+L para el chat.',
   'tour.fullscreen.point3':
-    'Un chat plegado deja una pestaña en el borde de la pantalla, y la siguiente pantalla completa se abre como la dejaste.',
+    'Arrastra el borde del chat para hacerlo más ancho o más estrecho, y la siguiente pantalla completa se abre como la dejaste.',
   'tour.fullscreen.how':
     'Abre una escena en el Estudio y pulsa Pantalla completa en su escenario.',
   'tour.fullscreen.open': 'Abrir Visualizadores',

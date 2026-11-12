@@ -87,6 +87,15 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 4px;
 }
 
+// After every tab, at the row's far end: the full screen's button that hides
+// the pane (`StudioWorkTabs`' `end`).
+.studio-work__end {
+  display: flex;
+  flex: none;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
 .studio-work__tab {
   position: relative;
   display: inline-flex;

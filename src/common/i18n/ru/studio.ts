@@ -663,6 +663,7 @@ const studio = {
   'studio.size.workPane': 'Рабочая панель',
   'studio.size.workPaneHint': 'Настройка, код и остальное поверх сцены',
   'studio.size.workPaneHeight': 'Высота рабочей панели',
+  'studio.size.hidePane': 'Скрыть рабочую панель',
   'studio.size.chat': 'Чат',
   'studio.size.chatHint': 'Чат с вашим ИИ рядом со сценой',
   'studio.size.exit': 'Выйти из полноэкранного режима',

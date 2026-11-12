@@ -11,7 +11,7 @@ import { useTranslation } from '../../utils/I18nContext';
 import { readStored, writeStored } from '../../utils/graphStorage';
 import { useSceneChatAsked } from './askSceneChat';
 import StudioChat from './StudioChat';
-import useChatWidth from './useChatWidth';
+import useChatWidth, { useFullscreenChatWidth } from './useChatWidth';
 
 const FOLDED_KEY = 'fluideq.studio.chatFolded';
 
@@ -20,16 +20,27 @@ const FOLDED_KEY = 'fluideq.studio.chatFolded';
  * stage can have the width (the mockup's "Chat folded away"). Open, its
  * left edge drags to make it wider or narrower (`useChatWidth.ts`). Folded or
  * not, and the width, are remembered for the next visit.
+ *
+ * In the Studio's full screen it is over the scene, and away is slid off the
+ * screen (`useFullscreenPanes.ts`), never the rail: its fold button slides it
+ * away as the plate's Chat button and Ctrl+L do, a rail folded in the window
+ * stands open there, and its divider sets the full screen's own width.
  */
 export default function StudioChatColumn({
   project,
   version,
   captureStage,
-}: Omit<ComponentProps<typeof StudioChat>, 'onFold'>) {
+  fullScreen,
+}: Omit<ComponentProps<typeof StudioChat>, 'onFold'> & {
+  /** Present while the Studio fills the screen. */
+  fullScreen?: { onHide: () => void } | undefined;
+}) {
   const { t } = useTranslation();
   const [folded, setFolded] = useState(() => readStored(FOLDED_KEY) === 'true');
   const column = useRef<HTMLElement>(null);
-  const width = useChatWidth(column);
+  const windowWidth = useChatWidth(column);
+  const fullWidth = useFullscreenChatWidth(column);
+  const { resizer } = fullScreen ? fullWidth : windowWidth;
   const fold = (next: boolean) => {
     setFolded(next);
     writeStored(FOLDED_KEY, String(next));
@@ -38,7 +49,7 @@ export default function StudioChatColumn({
   // written into it (`askSceneChat`).
   useSceneChatAsked(() => fold(false));
 
-  if (folded) {
+  if (folded && !fullScreen) {
     return (
       <aside className="studio-bench__chat is-folded">
         <button
@@ -53,20 +64,26 @@ export default function StudioChatColumn({
     );
   }
   return (
-    <aside ref={column} className="studio-bench__chat" style={width.style}>
+    <aside
+      ref={column}
+      className="studio-bench__chat"
+      // Both widths stand on the column, each read by the sheet where it
+      // applies: leaving full screen shows the window's at once.
+      style={{ ...windowWidth.style, ...fullWidth.style }}
+    >
       <ColumnResizer
         ariaLabel={t('studioChat.resize')}
-        valuePercent={width.resizer.valuePercent}
-        onStart={width.resizer.onStart}
-        onDrag={width.resizer.onDrag}
-        onEnd={width.resizer.onEnd}
-        onReset={width.resizer.onReset}
+        valuePercent={resizer.valuePercent}
+        onStart={resizer.onStart}
+        onDrag={resizer.onDrag}
+        onEnd={resizer.onEnd}
+        onReset={resizer.onReset}
       />
       <StudioChat
         project={project}
         version={version}
         captureStage={captureStage}
-        onFold={() => fold(true)}
+        onFold={fullScreen?.onHide ?? (() => fold(true))}
       />
     </aside>
   );

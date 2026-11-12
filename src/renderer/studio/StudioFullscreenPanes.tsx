@@ -13,29 +13,29 @@ interface IStudioFullscreenPanesProps {
   /** The grid that fills the screen, which the pane's height is a share of. */
   gridRef: RefObject<HTMLElement | null>;
   pane: boolean;
-  chat: boolean;
   /** Whether the chat is the column beside the work, not one of its tabs. */
   hasChatColumn: boolean;
   height: number;
   onHeight: (share: number) => void;
-  onChat: () => void;
 }
 
 /**
- * The two handles the Studio's full screen adds over the scene: the work
- * pane's top edge, dragged from a fifth of the screen to seven tenths, and
- * the chat's edge tab, which folds it away and brings it back. The pane and
+ * The handle the Studio's full screen adds over the scene: the work pane's
+ * top edge, dragged from a fifth of the screen to seven tenths. The pane and
  * the chat themselves are the Studio's own, laid over the scene by the
- * grid's full-screen rules (`Studio.scss`), never copies.
+ * grid's full-screen rules (`StudioFullscreen.scss`), never copies; the chat
+ * keeps its own divider, which sizes it here as in the window.
+ *
+ * The chat's edge tab that stood here went (Ivan, 2026-11-12: "quita la cosa
+ * fea que pusiste en el centro para colapsar el chat"): the chat comes and
+ * goes on the plate's button, Ctrl+L, or its own fold button.
  */
 export default function StudioFullscreenPanes({
   gridRef,
   pane,
-  chat,
   hasChatColumn,
   height,
   onHeight,
-  onChat,
 }: IStudioFullscreenPanesProps) {
   const { t } = useTranslation();
   const drag = useRef<number | undefined>(undefined);
@@ -72,72 +72,56 @@ export default function StudioFullscreenPanes({
 
   const step = (by: number) => onHeight(height + by);
 
+  if (!pane) {
+    return null;
+  }
   return (
-    <>
-      {pane && (
-        // A focusable separator with a value is the ARIA window splitter, an
-        // interactive widget; the lint rules know only the bare role (the
-        // same reading `PaneResizer.tsx` turns off for the same reason).
-        /* eslint-disable jsx-a11y/no-noninteractive-element-interactions,
-           jsx-a11y/no-noninteractive-tabindex */
-        <div
-          className="studio-fullscreen__grip"
-          role="separator"
-          aria-orientation="horizontal"
-          aria-label={t('studio.size.workPaneHeight')}
-          aria-valuemin={Math.round(PANE_LEAST * 100)}
-          aria-valuemax={Math.round(PANE_MOST * 100)}
-          aria-valuenow={Math.round(height * 100)}
-          tabIndex={0}
-          onPointerDown={(event) => {
-            if (event.button !== 0) {
-              return;
-            }
-            event.currentTarget.setPointerCapture(event.pointerId);
-            drag.current = event.pointerId;
-          }}
-          onPointerMove={(event) => {
-            if (drag.current === event.pointerId) {
-              onHeight(shareAt(event.clientY));
-            }
-          }}
-          onPointerUp={() => {
-            drag.current = undefined;
-          }}
-          onPointerCancel={() => {
-            drag.current = undefined;
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'ArrowUp') {
-              step(0.05);
-            } else if (event.key === 'ArrowDown') {
-              step(-0.05);
-            } else {
-              return;
-            }
-            event.preventDefault();
-          }}
-        >
-          <span aria-hidden="true" />
-        </div>
-        /* eslint-enable jsx-a11y/no-noninteractive-element-interactions,
-           jsx-a11y/no-noninteractive-tabindex */
-      )}
-      {hasChatColumn && (
-        <button
-          type="button"
-          className={`studio-fullscreen__chat-tab${chat ? ' is-open' : ''}`}
-          aria-expanded={chat}
-          aria-label={t('studio.size.chat')}
-          title={`${t('studio.size.chat')} (Ctrl+L)`}
-          onClick={onChat}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path d={chat ? 'M6 3.5 10.5 8 6 12.5' : 'M10 3.5 5.5 8l4.5 4.5'} />
-          </svg>
-          {!chat && <span>{t('studio.size.chat')}</span>}
-        </button>
-      )}
-    </>
+    // A focusable separator with a value is the ARIA window splitter, an
+    // interactive widget; the lint rules know only the bare role (the
+    // same reading `PaneResizer.tsx` turns off for the same reason).
+    /* eslint-disable jsx-a11y/no-noninteractive-element-interactions,
+       jsx-a11y/no-noninteractive-tabindex */
+    <div
+      className="studio-fullscreen__grip"
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label={t('studio.size.workPaneHeight')}
+      aria-valuemin={Math.round(PANE_LEAST * 100)}
+      aria-valuemax={Math.round(PANE_MOST * 100)}
+      aria-valuenow={Math.round(height * 100)}
+      tabIndex={0}
+      onPointerDown={(event) => {
+        if (event.button !== 0) {
+          return;
+        }
+        event.currentTarget.setPointerCapture(event.pointerId);
+        drag.current = event.pointerId;
+      }}
+      onPointerMove={(event) => {
+        if (drag.current === event.pointerId) {
+          onHeight(shareAt(event.clientY));
+        }
+      }}
+      onPointerUp={() => {
+        drag.current = undefined;
+      }}
+      onPointerCancel={() => {
+        drag.current = undefined;
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'ArrowUp') {
+          step(0.05);
+        } else if (event.key === 'ArrowDown') {
+          step(-0.05);
+        } else {
+          return;
+        }
+        event.preventDefault();
+      }}
+    >
+      <span aria-hidden="true" />
+    </div>
+    /* eslint-enable jsx-a11y/no-noninteractive-element-interactions,
+       jsx-a11y/no-noninteractive-tabindex */
   );
 }

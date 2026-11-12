@@ -249,9 +249,9 @@ const tour24 = {
   'tour.fullscreen.point1':
     'The work pane has every tab, Tune, Code and the rest. Drag its top edge to make it taller or shorter.',
   'tour.fullscreen.point2':
-    'Each comes and goes on its own button on the full-screen controls, or with Ctrl+J for the work pane and Ctrl+L for the chat.',
+    'Each comes and goes on its own button, on the full-screen controls or at its own top right, or with Ctrl+J for the work pane and Ctrl+L for the chat.',
   'tour.fullscreen.point3':
-    'A folded chat leaves a tab at the edge of the screen, and the next full screen opens the way you left it.',
+    'Drag the chat’s edge to make it wider or narrower, and the next full screen opens the way you left it.',
   'tour.fullscreen.how':
     'Open a scene in the Studio and press Fullscreen on its stage.',
   'tour.fullscreen.open': 'Open Visualizers',

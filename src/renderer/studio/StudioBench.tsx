@@ -36,6 +36,7 @@ import StudioShipInspect from './StudioShipInspect';
 import StudioShipMemberCopy from './StudioShipMemberCopy';
 import StudioDrawing from './StudioDrawing';
 import StudioFramingDialog from './StudioFramingDialog';
+import Glyph from '../community/Glyph';
 import StudioFullscreenPanes from './StudioFullscreenPanes';
 import StudioListen from './StudioListen';
 import StudioAnimations from './animations/StudioAnimations';
@@ -575,6 +576,21 @@ export default function StudioBench({ view }: IStudioBenchProps) {
               },
               animations: { badge: animations?.length || undefined },
             }}
+            end={
+              size === 'full' ? (
+                // The pane folds from its own row, as the chat does from its
+                // head (Ivan, 2026-11-12: "un collapse al bottom pane too").
+                <button
+                  type="button"
+                  className="studio-chat__icon"
+                  aria-label={t('studio.size.hidePane')}
+                  title={`${t('studio.size.hidePane')} (Ctrl+J)`}
+                  onClick={fullPanes.togglePane}
+                >
+                  <Glyph name="pane-collapse" />
+                </button>
+              ) : undefined
+            }
           />
         </div>
 
@@ -582,11 +598,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           <StudioFullscreenPanes
             gridRef={gridRef}
             pane={fullPanes.pane}
-            chat={fullPanes.chat}
             hasChatColumn={isWide}
             height={fullPanes.height}
             onHeight={fullPanes.setHeight}
-            onChat={fullPanes.toggleChat}
           />
         )}
         {isWide && (
@@ -594,6 +608,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             project={project}
             version={version}
             captureStage={stageCapture.capture}
+            fullScreen={
+              size === 'full' ? { onHide: fullPanes.toggleChat } : undefined
+            }
           />
         )}
       </div>

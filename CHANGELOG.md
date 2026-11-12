@@ -73,8 +73,9 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 - **Full screen with the work pane and the chat.** In full screen the
   scene keeps playing across the whole screen while the work pane slides
   up over its lower part and the chat docks at the side. Each comes and
-  goes on its own button, or with Ctrl+J and Ctrl+L; drag the pane's top
-  edge to size it, and the next full screen opens the way you left it.
+  goes on its own button, on the full-screen controls or at its own top
+  right, or with Ctrl+J and Ctrl+L; drag the pane's top edge or the chat's
+  side to size them, and the next full screen opens the way you left it.
 - **Edit mode's Save always finishes.** It used to hang on some scenes and
   stop the Studio following that scene's files until FluidEQ restarted. A new
   thing you add lands where the camera is looking, and a locked thing shows
