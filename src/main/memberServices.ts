@@ -337,6 +337,7 @@ const registerMemberServices = ({
     signedCopy: Boolean(
       process.env.FLUIDEQ_SIGN_PUBLISHER && process.env.FLUIDEQ_UPDATE_URL,
     ),
+    publisher: process.env.FLUIDEQ_SIGN_PUBLISHER || undefined,
     openExternal: (url) => shell.openExternal(url),
   });
   const plusGalleryIpc = registerPlusGalleryIpc({

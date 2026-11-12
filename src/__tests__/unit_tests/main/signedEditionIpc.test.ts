@@ -78,13 +78,14 @@ const invoke = <T>(channel: string, ...args: unknown[]): Promise<T> => {
   return handler({}, ...args) as Promise<T>;
 };
 
-const setup = (signedCopy = true) =>
+const setup = (signedCopy = true, publisher = '') =>
   registerSignedEditionIpc({
     access: access(),
     config,
     identity: () =>
       signedIn ? { id: signedInAs, email: 'me@example.com' } : undefined,
     signedCopy,
+    ...(publisher ? { publisher } : {}),
     openExternal: async (url) => {
       opened.push(url);
     },
@@ -123,6 +124,20 @@ describe('what the window is told', () => {
     );
     expect(calls.find((call) => call.path === PRICE)?.authorization).toBe(
       'Bearer anon',
+    );
+  });
+
+  // The name on the certificate is the developer's own, read from the build.
+  it('names the publisher of a signed copy, and never one for the free copy', async () => {
+    setup(true, 'Ivan Carmenates Garcia');
+    expect(await invoke('signed-edition-status')).toMatchObject({
+      signedCopy: true,
+      publisher: 'Ivan Carmenates Garcia',
+    });
+    handlers.clear();
+    setup(false, 'Ivan Carmenates Garcia');
+    expect(await invoke('signed-edition-status')).not.toHaveProperty(
+      'publisher',
     );
   });
 

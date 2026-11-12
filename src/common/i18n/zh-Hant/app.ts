@@ -282,6 +282,19 @@ const app = {
   'update.ready': '{version} 版本已準備就緒。重新啟動 FluidEQ 以完成。',
   'update.restart': '立即重新啟動',
   'update.restarting': '正在重新啟動...',
+  'edition.free': '免費版 · 新版本在 fluideq.com',
+  'edition.freeHint': '此副本不會自動更新。',
+  'edition.signed': '簽署版',
+  'edition.signedBy': '簽署版 · {publisher}',
+  'edition.updates': '{edition} · 自動更新',
+  'edition.signedInAs': '已登入：{email}',
+  'edition.signIn': '登入以繼續取得更新',
+  'edition.signInHint': 'FluidEQ 會照常運作。只有更新需要您的帳戶。',
+  'edition.notActivated': '此副本尚未啟用',
+  'edition.notActivatedHint':
+    'FluidEQ 會照常運作。這個帳戶沒有簽署版，所以此副本不會收到更新。',
+  'edition.notActivatedSignIn':
+    'FluidEQ 會照常運作。請用擁有簽署版的帳戶登入，或取得簽署版，以繼續取得更新。',
   'update.onSite.title': '網站上有新版本',
   'update.onSite.body':
     'FluidEQ {version} 已發布。這個免費版不會自動更新：請從 fluideq.com 下載並覆蓋安裝。您的設定會保留。',

@@ -316,6 +316,20 @@ const app: Partial<Dictionary> = {
     'Версия {version} готова. Перезапустите FluidEQ, чтобы завершить.',
   'update.restart': 'Перезапустить сейчас',
   'update.restarting': 'Перезапуск…',
+  'edition.free': 'Бесплатная редакция · новые версии на fluideq.com',
+  'edition.freeHint': 'Эта копия не обновляется сама.',
+  'edition.signed': 'Подписанная редакция',
+  'edition.signedBy': 'Подписанная редакция · {publisher}',
+  'edition.updates': '{edition} · обновляется сама',
+  'edition.signedInAs': 'Вы вошли как {email}',
+  'edition.signIn': 'Войдите, чтобы и дальше получать обновления',
+  'edition.signInHint':
+    'FluidEQ продолжает работать как есть. Ваш аккаунт нужен только для обновлений.',
+  'edition.notActivated': 'Эта копия не активирована',
+  'edition.notActivatedHint':
+    'FluidEQ продолжает работать как есть. У этого аккаунта нет подписанной редакции, поэтому эта копия не получает обновлений.',
+  'edition.notActivatedSignIn':
+    'FluidEQ продолжает работать как есть. Войдите в аккаунт, у которого есть подписанная редакция, или приобретите её, чтобы и дальше получать обновления.',
   'update.onSite.title': 'На сайте есть новая версия',
   'update.onSite.body':
     'Вышел FluidEQ {version}. Эта бесплатная редакция не обновляется сама: скачайте её с fluideq.com и установите поверх этой. Ваши настройки сохранятся.',

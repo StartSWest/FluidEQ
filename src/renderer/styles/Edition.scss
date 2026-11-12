@@ -1,0 +1,90 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Which edition this copy is, in About: one line of standing, a line of
+// what follows from it, and at most one answer beside them. The answer
+// drops under the words where the dialog is narrow rather than squeezing
+// them.
+.edition-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  padding: 12px 14px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: $block-lift;
+
+  // The answer never grows past the card: a long language wraps inside it.
+  .button {
+    flex: 0 1 auto;
+    box-sizing: border-box;
+    // `.button` asks for its text on one line (min-width: max-content,
+    // read in the running page); here a long language has to wrap.
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    text-align: start;
+  }
+}
+
+.edition-line__text {
+  display: grid;
+  flex: 1 1 220px;
+  gap: 2px;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-small;
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+  }
+
+  svg {
+    flex: none;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// A signed copy that updates itself: the standing line in the "all is
+// well" green the engine's own status uses.
+.edition-line.is-active strong {
+  color: $neon-lime;
+}
+
+// A signed copy waiting for its account: amber, as a thing to do, never
+// red; nothing is wrong with the app.
+.edition-line.is-waiting {
+  border-color: color-mix(in srgb, $amber 34%, transparent);
+
+  strong {
+    color: $amber;
+  }
+}
+
+// The un-activated notice sits where the update notice does: the two never
+// show together (a copy that is not activated is offered no update).
+.compact-frame.edition-notice {
+  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
+  position: fixed;
+  z-index: 1250;
+  bottom: 18px;
+  left: 18px;
+  width: min(420px, calc(100vw - 36px));
+}

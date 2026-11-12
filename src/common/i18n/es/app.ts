@@ -318,6 +318,20 @@ const app: Partial<Dictionary> = {
     'La versión {version} está lista. Reinicia FluidEQ para terminar.',
   'update.restart': 'Reiniciar ahora',
   'update.restarting': 'Reiniciando…',
+  'edition.free': 'Edición gratuita · versiones nuevas en fluideq.com',
+  'edition.freeHint': 'Esta copia no se actualiza sola.',
+  'edition.signed': 'Edición firmada',
+  'edition.signedBy': 'Edición firmada · {publisher}',
+  'edition.updates': '{edition} · se actualiza sola',
+  'edition.signedInAs': 'Sesión iniciada como {email}',
+  'edition.signIn': 'Inicia sesión para seguir recibiendo actualizaciones',
+  'edition.signInHint':
+    'FluidEQ sigue funcionando igual. Solo las actualizaciones necesitan tu cuenta.',
+  'edition.notActivated': 'Esta copia no está activada',
+  'edition.notActivatedHint':
+    'FluidEQ sigue funcionando igual. Esta cuenta no tiene la edición firmada, así que esta copia no recibe actualizaciones.',
+  'edition.notActivatedSignIn':
+    'FluidEQ sigue funcionando igual. Inicia sesión con la cuenta que tiene la edición firmada, o consíguela, para seguir recibiendo actualizaciones.',
   'update.onSite.title': 'Hay una versión nueva en el sitio',
   'update.onSite.body':
     'Ya salió FluidEQ {version}. Esta edición gratuita no se actualiza sola: descárgala de fluideq.com e instálala sobre esta. Tus ajustes se conservan.',

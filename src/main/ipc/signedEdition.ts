@@ -55,6 +55,8 @@ export interface ISignedEditionIpcDeps {
   identity: () => { id: string; email?: string } | undefined;
   /** Whether this build is the signed one (`signedAutoUpdates.ts`'s pins). */
   signedCopy: boolean;
+  /** The signed copy's publisher, as its certificate names it. */
+  publisher?: string;
   openExternal: (url: string) => Promise<void>;
   fetchImpl?: typeof fetch;
 }
@@ -72,9 +74,15 @@ export const registerSignedEditionIpc = ({
   config,
   identity,
   signedCopy,
+  publisher,
   openExternal,
   fetchImpl,
 }: ISignedEditionIpcDeps) => {
+  // Which copy this is, said with every answer.
+  const copy = {
+    signedCopy,
+    ...(signedCopy && publisher ? { publisher } : {}),
+  };
   ipcMain.handle(
     'signed-edition-status',
     async (): Promise<ISignedEditionStatus> => {
@@ -86,7 +94,7 @@ export const registerSignedEditionIpc = ({
       const shown = price ? { price } : {};
       if (!me || !auth) {
         return {
-          signedCopy,
+          ...copy,
           account: me ? 'unknown' : 'signed-out',
           ...shown,
         };
@@ -94,17 +102,17 @@ export const registerSignedEditionIpc = ({
       const owning = await editionOwning(auth);
       // Somebody else signed in while the question was out: not theirs.
       if (access.accountId() !== me) {
-        return { signedCopy, account: 'unknown', ...shown };
+        return { ...copy, account: 'unknown', ...shown };
       }
       if (!owning.known) {
         return {
-          signedCopy,
+          ...copy,
           account: owning.signedOut ? 'signed-out' : 'unknown',
           ...shown,
         };
       }
       return {
-        signedCopy,
+        ...copy,
         account: owning.owned ? 'owned' : 'not-owned',
         ...(owning.order ? { order: owning.order } : {}),
         ...shown,

@@ -40,6 +40,7 @@ import useModalKeys from '../utils/useModalKeys';
 import BrandMark from '../icons/BrandMark';
 import DialogFrame from './DialogFrame';
 import AboutBrand from './AboutBrand';
+import EditionLine from '../edition/EditionLine';
 import '../styles/About.scss';
 
 interface IAboutDialogProps {
@@ -119,6 +120,7 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
         ref={surfaceRef}
       >
         <div className="about__body">
+          <EditionLine />
           {/* Where each part is, at the top of a page of notices: one press
               takes the reader to the part they came for, and nothing of what
               the law asks to be said is folded away to get there. The names

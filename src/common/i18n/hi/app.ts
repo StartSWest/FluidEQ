@@ -311,6 +311,20 @@ const app: Partial<Dictionary> = {
     'संस्करण {version} तैयार है। पूरा करने के लिए FluidEQ फिर से चालू करें।',
   'update.restart': 'अभी फिर चालू करें',
   'update.restarting': 'फिर चालू हो रहा है…',
+  'edition.free': 'मुफ़्त संस्करण · नए संस्करण fluideq.com पर',
+  'edition.freeHint': 'यह प्रति अपने आप अपडेट नहीं होती।',
+  'edition.signed': 'हस्ताक्षरित संस्करण',
+  'edition.signedBy': 'हस्ताक्षरित संस्करण · {publisher}',
+  'edition.updates': '{edition} · अपने आप अपडेट होता है',
+  'edition.signedInAs': '{email} के रूप में साइन इन',
+  'edition.signIn': 'अपडेट पाते रहने के लिए साइन इन करें',
+  'edition.signInHint':
+    'FluidEQ जैसा है वैसा चलता रहता है। केवल अपडेट के लिए आपका खाता चाहिए।',
+  'edition.notActivated': 'यह प्रति सक्रिय नहीं है',
+  'edition.notActivatedHint':
+    'FluidEQ जैसा है वैसा चलता रहता है। इस खाते में हस्ताक्षरित संस्करण नहीं है, इसलिए इस प्रति को अपडेट नहीं मिलते।',
+  'edition.notActivatedSignIn':
+    'FluidEQ जैसा है वैसा चलता रहता है। अपडेट पाते रहने के लिए उस खाते से साइन इन करें जिसमें हस्ताक्षरित संस्करण है, या उसे प्राप्त करें।',
   'update.onSite.title': 'साइट पर नया संस्करण है',
   'update.onSite.body':
     'FluidEQ {version} आ गया है। यह मुफ़्त संस्करण अपने आप अपडेट नहीं होता: इसे fluideq.com से डाउनलोड करें और इसी के ऊपर इंस्टॉल करें। आपकी सेटिंग बनी रहती हैं।',

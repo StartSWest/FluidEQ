@@ -17,6 +17,12 @@ export type TEditionAccount = 'owned' | 'not-owned' | 'signed-out' | 'unknown';
 export interface ISignedEditionStatus {
   /** This build was signed and updates from the edition's own feed. */
   signedCopy: boolean;
+  /**
+   * The name on a signed copy's certificate, which is what Windows shows as
+   * its verified publisher. Read from the build, never typed: the seller of
+   * the edition is a different name.
+   */
+  publisher?: string;
   account: TEditionAccount;
   /** Paddle's reference for the account's purchase, for the support line. */
   order?: string;

@@ -318,6 +318,20 @@ const app: Partial<Dictionary> = {
     'バージョン {version} の準備ができました。FluidEQ を再起動すると適用されます。',
   'update.restart': '今すぐ再起動',
   'update.restarting': '再起動中…',
+  'edition.free': '無料版 · 新しいバージョンは fluideq.com に',
+  'edition.freeHint': 'このコピーは自動では更新されません。',
+  'edition.signed': '署名版',
+  'edition.signedBy': '署名版 · {publisher}',
+  'edition.updates': '{edition} · 自動で更新されます',
+  'edition.signedInAs': '{email} でサインイン中',
+  'edition.signIn': '更新を受け取り続けるにはサインインしてください',
+  'edition.signInHint':
+    'FluidEQ はそのまま使い続けられます。アカウントが必要なのは更新だけです。',
+  'edition.notActivated': 'このコピーは有効化されていません',
+  'edition.notActivatedHint':
+    'FluidEQ はそのまま使い続けられます。このアカウントには署名版がないため、このコピーは更新を受け取りません。',
+  'edition.notActivatedSignIn':
+    'FluidEQ はそのまま使い続けられます。更新を受け取り続けるには、署名版を持つアカウントでサインインするか、署名版を入手してください。',
   'update.onSite.title': 'サイトに新しいバージョンがあります',
   'update.onSite.body':
     'FluidEQ {version} が公開されました。この無料版は自動では更新されません。fluideq.com からダウンロードして、このバージョンの上にインストールしてください。設定はそのまま残ります。',
