@@ -151,6 +151,9 @@ export const SETTING_STEMS: readonly string[] = [
   // Which files the Code tab has open in each project: where a page was
   // left, like the tab itself.
   'fluideq.studio.codeOpenFiles',
+  // Whether full screen shows the work pane and the chat, and the pane's
+  // height: where full screen was left.
+  'fluideq.studio.fullscreenPanes',
   'fluideq.library.openAlbum',
   'fluideq.library.openArtist',
   'fluideq.library.openFolder',
