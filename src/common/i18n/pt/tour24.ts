@@ -270,7 +270,7 @@ const tour24 = {
     'Uma cena que não foi aprovada mostra o motivo da revisão ao lado do nome.',
   'tour.v25.publish': 'Sem limite mensal para publicar.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
-  'tour.signed.title': 'Agora assinado, de graça!',
+  'tour.signed.title': 'Agora assinado, e continua grátis!',
   'tour.signed.subtitle': 'O caminho até aqui e um FluidEQ assinado para todos',
   'tour.signed.today':
     'Hoje ele é um equalizador para tudo o que toca no seu computador, um player para a sua música e visualizadores que se movem com ela.',

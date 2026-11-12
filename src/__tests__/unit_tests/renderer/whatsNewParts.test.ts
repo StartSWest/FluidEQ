@@ -195,7 +195,7 @@ describe('2.5’s opening page', () => {
 
   it('says it is signed and free, and promises nothing of Windows warnings', () => {
     const english = tourLines('en', /^\s*'tour\.signed\./).join(' ');
-    expect(english).toContain('Now signed, for free!');
+    expect(english).toContain('Now signed, and still free!');
     expect(english).toContain('Thank you');
     expect(english).not.toMatch(/edition|account|paddle|credit/i);
     expect(english).not.toMatch(/warning|smartscreen/i);
@@ -240,6 +240,30 @@ describe('2.5’s opening page', () => {
 
   // What is free is FluidEQ itself; the gallery's scenes are sold, and the
   // page says so beside the word "free".
+  // Ivan, 2026-11-12: "now signed for free is not right, they will think it
+  // cost me nothing". The app stays free; the signing was never free. Each
+  // locale's first headline is named, so none of them can come back.
+  const SIGNED_FOR_FREE =
+    /signed,? for free|firmado, gratis|assinado, de graça|signé, et gratuit|signiert – kostenlos!|firmato, gratis!|с подписью — бесплатно|हस्ताक्षरित, मुफ़्त में|しかも無料|서명까지, 무료로|签名，免费|簽署，免費/i;
+
+  it.each(LOCALES)('never says the signing was free, in %s', (locale) => {
+    expect(tourLines(locale, /^\s*'tour\.signed\./).join(' ')).not.toMatch(
+      SIGNED_FOR_FREE,
+    );
+  });
+
+  it('nor do the notes, and the pattern knows the old headline', () => {
+    expect(release('2.5.0')).not.toMatch(SIGNED_FOR_FREE);
+    expect('Now signed, for free!').toMatch(SIGNED_FOR_FREE);
+    expect('signed for free').toMatch(SIGNED_FOR_FREE);
+    expect('Jetzt signiert – kostenlos!').toMatch(SIGNED_FOR_FREE);
+    expect('現已簽署，免費！').toMatch(SIGNED_FOR_FREE);
+    expect('Now signed, and still free!').not.toMatch(SIGNED_FOR_FREE);
+    expect('Jetzt signiert – und weiterhin kostenlos!').not.toMatch(
+      SIGNED_FOR_FREE,
+    );
+  });
+
   it('says what is free and that the gallery’s scenes are sold', () => {
     const page = tourLines('en', /^\s*'tour\.signed\./).join(' ');
     expect(page).toContain('FluidEQ itself costs nothing');
@@ -373,7 +397,7 @@ describe('the release notes and the version', () => {
 
   it('opens 2.5 on its signing, at the top of the app’s part', () => {
     const app = release('2.5.0').split(/^### /m)[1] ?? '';
-    expect(app).toMatch(/^FluidEQ\s+\*\*Now signed, for free!\*\*/);
+    expect(app).toMatch(/^FluidEQ\s+\*\*Now signed, and still free!\*\*/);
     expect(app).toContain('Ivan Carmenates');
     // Free for everyone, no paid edition: the app's part names no price,
     // edition, seller or account. The refund line under the visualizers

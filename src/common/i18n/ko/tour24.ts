@@ -263,7 +263,7 @@ const tour24 = {
     '승인되지 않은 장면은 이름 옆에 검토자의 이유를 보여 줍니다.',
   'tour.v25.publish': '게시에 월간 한도가 없습니다.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
-  'tour.signed.title': '이제 서명까지, 무료로!',
+  'tour.signed.title': '이제 서명까지, 그리고 여전히 무료!',
   'tour.signed.subtitle': '지금까지의 여정, 그리고 모두를 위한 서명된 FluidEQ',
   'tour.signed.today':
     '오늘의 FluidEQ는 컴퓨터에서 재생되는 모든 소리를 위한 이퀄라이저이자, 내 음악을 위한 플레이어이며, 음악에 맞춰 움직이는 비주얼라이저입니다.',

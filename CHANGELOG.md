@@ -10,7 +10,7 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ### FluidEQ
 
-**Now signed, for free!**
+**Now signed, and still free!**
 
 - **Signed by its developer.** FluidEQ's installer and app are signed, and
   when you run the installer Windows names the publisher: Ivan Carmenates

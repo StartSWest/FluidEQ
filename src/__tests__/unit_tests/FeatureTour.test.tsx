@@ -432,7 +432,7 @@ it('opens the guide from the Help slide', () => {
 it('opens 2.5’s sound on its milestone page: the road, the count, the film and the signing', () => {
   showTour('2.5.0');
   expect(
-    screen.getByRole('heading', { name: 'Now signed, for free!' }),
+    screen.getByRole('heading', { name: 'Now signed, and still free!' }),
   ).toBeInTheDocument();
   // The publisher is the developer's own name, the one on the certificate.
   expect(

@@ -248,7 +248,7 @@ const tour24 = {
   'tour.v25.review': '未通过审核的场景会在名称旁显示审核者的理由。',
   'tour.v25.publish': '发布不再有每月上限。',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
-  'tour.signed.title': '现已签名，免费！',
+  'tour.signed.title': '现已签名，依然免费！',
   'tour.signed.subtitle': '一路走来，以及为所有人签名的 FluidEQ',
   'tour.signed.today':
     '如今，它是电脑上一切声音的均衡器，是你的音乐播放器，也是随音乐律动的可视化效果。',

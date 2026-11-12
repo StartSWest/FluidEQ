@@ -276,7 +276,7 @@ const tour24 = {
     'Eine nicht freigegebene Szene zeigt die Begründung der Prüfung neben ihrem Namen.',
   'tour.v25.publish': 'Kein monatliches Limit beim Veröffentlichen.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
-  'tour.signed.title': 'Jetzt signiert – kostenlos!',
+  'tour.signed.title': 'Jetzt signiert – und weiterhin kostenlos!',
   'tour.signed.subtitle':
     'Der Weg bis hierher und ein signiertes FluidEQ für alle',
   'tour.signed.today':

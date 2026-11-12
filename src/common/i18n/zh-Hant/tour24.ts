@@ -249,7 +249,7 @@ const tour24 = {
   'tour.v25.review': '未通過審核的場景會在名稱旁顯示審核者的理由。',
   'tour.v25.publish': '發布不再有每月上限。',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
-  'tour.signed.title': '現已簽署，免費！',
+  'tour.signed.title': '現已簽署，依然免費！',
   'tour.signed.subtitle': '一路走來，以及為所有人簽署的 FluidEQ',
   'tour.signed.today':
     '如今，它是電腦上所有聲音的等化器，是您的音樂播放器，也是隨音樂律動的視覺化效果。',

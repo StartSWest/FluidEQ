@@ -269,7 +269,7 @@ const tour24 = {
     '承認されなかったシーンには、名前の横に審査の理由が表示されます。',
   'tour.v25.publish': '公開に月ごとの上限はありません。',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
-  'tour.signed.title': '署名付きに。しかも無料！',
+  'tour.signed.title': '署名付きに。そして今も無料！',
   'tour.signed.subtitle': 'ここまでの歩みと、誰でも使える署名付きの FluidEQ',
   'tour.signed.today':
     '今の FluidEQ は、パソコンで鳴るすべての音のためのイコライザーであり、あなたの音楽のためのプレーヤーであり、音楽に合わせて動くビジュアライザーです。',
