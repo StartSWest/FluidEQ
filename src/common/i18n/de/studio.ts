@@ -191,6 +191,7 @@ const studio = {
   'studio.publish.categoryHint': 'Bis zu zwei. Die Karte zeigt die erste.',
   'studio.publish.pickCategory': 'Wählen Sie zuerst eine Kategorie',
   'studio.publish.needNote': 'Sagen Sie zuerst, was in dieser Version neu ist',
+  'studio.publish.noteWriting': 'Der Chat Ihrer Szene schreibt, was neu ist…',
   'studio.publish.noteNeeded': 'Erforderlich',
   'studio.publish.point1':
     'Alle Angemeldeten können sie in „Visualizer“ sehen, einige Sekunden ansehen und mit einem Credit holen. Für Sie läuft sie kostenlos.',

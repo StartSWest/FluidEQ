@@ -24,6 +24,7 @@ import type {
   IChatProcessEvents,
 } from './chatProcess';
 import { readUsageLine, type TChatUsage } from './chatUsage';
+import type { INoteMark } from './noteDue';
 import { CAREFUL_SETTINGS } from './chatForeign';
 import { readServersSeen, type TServersSeen } from './studioMakers';
 
@@ -144,6 +145,13 @@ export interface IChatSession {
   stopping: boolean;
   /** Send now was pressed: the turn Claude Code ends for it ends well. */
   sendingNow: boolean;
+  /**
+   * The scene and its update note as the first turn since the note was
+   * last settled began (`noteDue.ts`): what a turn's end is judged against.
+   */
+  noteMark?: INoteMark;
+  /** The turn running is FluidEQ asking for the update note, not the member. */
+  askingNote?: boolean;
 }
 
 export interface IClaudeLaunch {

@@ -67,6 +67,13 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   inside a group. Hold Space to move the canvas, and Edit mode stays open
   in every view of the stage, the Ultra-wide graph and the Compact player
   included. Every button has its picture.
+- **An update says what is new without you typing it.** When the chat
+  changes a scene that is already in the Gallery, it writes the "What's
+  new" line too, and FluidEQ asks it for the line if it forgets. Publish
+  opens with the line filled in, takes a newer one the chat writes while
+  the dialog is open, and asks the chat for one when there is none, never
+  writing over what you typed. Each publication starts the next version's
+  line afresh.
 - **A painted scene's marks move by hand.** The pins and boxes that show
   the AI what you mean are dragged anywhere, a box pulled by its corners
   and edges, and one removed with its button or Delete.

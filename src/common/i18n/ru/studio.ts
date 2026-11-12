@@ -184,6 +184,7 @@ const studio = {
   'studio.publish.categoryHint': 'Не больше двух. На карточке видна первая.',
   'studio.publish.pickCategory': 'Сначала выберите категорию',
   'studio.publish.needNote': 'Сначала напишите, что нового в этой версии',
+  'studio.publish.noteWriting': 'Чат вашей сцены пишет, что нового…',
   'studio.publish.noteNeeded': 'Обязательно',
   'studio.publish.point1':
     'Любой, кто вошёл, может увидеть её в «Визуализаторах», посмотреть несколько секунд и получить за кредит. У вас она играет бесплатно.',

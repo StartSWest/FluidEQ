@@ -1,19 +1,13 @@
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
 import { formatPackBytes, scenePackSize } from 'common/scenePackSize';
-import { MAX_VERSION_NOTE, versionToPublish } from 'common/sceneVersionNote';
+import { versionToPublish } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
 import DialogFrame from '../components/DialogFrame';
+import StudioPublishNote, { useOfferedNote } from './StudioPublishNote';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneTuning } from '../graph/useSceneRunner';
 import MenuIcon from '../icons/MenuIcon';
@@ -160,12 +154,7 @@ export default function StudioPublishDialog({
     ),
   );
   const [category, category2] = categories;
-  // Opens on the line the member's AI wrote about its own change, when there
-  // is one: the assistant that made the change remembers it and the member,
-  // three days later, does not. Theirs to edit or replace.
-  const [note, setNote] = useState(draft.suggestedNote ?? '');
-  const noteId = useId();
-  const noteWrongId = useId();
+  const [note, setNote] = useOfferedNote(draft.suggestedNote);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   // Said only once the press has been made, never on opening: a dialog that
   // is already red before anything has been done is shouting at somebody who
@@ -415,67 +404,15 @@ export default function StudioPublishDialog({
           <StudioPublishSize size={size} />
 
           {update && (
-            <div className="studio-publish__note">
-              <span className="studio-publish__note-head">
-                <label className="gallery-dialog__label" htmlFor={noteId}>
-                  {t('studio.publish.note')}
-                </label>
-                {/* Said before the press as well as after it: the quiet word
-                    is what stops the red one ever being needed. Outside the
-                    label on purpose — the field is already announced as
-                    required, and the marker would otherwise become part of
-                    its name. */}
-                <span
-                  className="studio-publish__note-needed"
-                  aria-hidden="true"
-                >
-                  {t('studio.publish.noteNeeded')}
-                </span>
-                {/* Marked at the limit: the field stops taking letters
-                    silently, and a note that ends mid-sentence is one the
-                    author believed they had finished. */}
-                <span
-                  className={`studio-publish__note-count${
-                    note.length >= MAX_VERSION_NOTE
-                      ? ' studio-publish__note-count--full'
-                      : ''
-                  }`}
-                  aria-hidden="true"
-                >
-                  {note.length} / {MAX_VERSION_NOTE}
-                </span>
-              </span>
-              <textarea
-                ref={noteRef}
-                id={noteId}
-                value={note}
-                rows={2}
-                maxLength={MAX_VERSION_NOTE}
-                disabled={running}
-                required
-                aria-required="true"
-                aria-invalid={noteMissing}
-                aria-describedby={noteMissing ? noteWrongId : undefined}
-                placeholder={t('studio.publish.notePlaceholder')}
-                onChange={(event) => {
-                  // One line: what a card and a notice have room for.
-                  const line = event.target.value.replace(/\s*\n\s*/g, ' ');
-                  setNote(line);
-                  if (line.trim()) {
-                    setNoteMissing(false);
-                  }
-                }}
-              />
-              {noteMissing && (
-                <p
-                  id={noteWrongId}
-                  className="studio-publish__note-wrong"
-                  role="alert"
-                >
-                  {t('studio.publish.needNote')}
-                </p>
-              )}
-            </div>
+            <StudioPublishNote
+              note={note}
+              setNote={setNote}
+              running={running}
+              missing={noteMissing}
+              onFilled={() => setNoteMissing(false)}
+              writing={draft.noteWriting === true}
+              noteRef={noteRef}
+            />
           )}
         </div>
       </DialogFrame>

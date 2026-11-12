@@ -347,6 +347,16 @@ export const compactStudioChat = () =>
     ...scenePicks(),
   }) ?? Promise.resolve();
 
+/**
+ * The open project's chat asked to write the update note, for the publish
+ * dialog; true when the ask went (`chatTurns.ts`).
+ */
+export const askStudioChatForNote = (): Promise<boolean> =>
+  bridge()?.studioChatAskNote?.({
+    brief: chatBrief(),
+    ...scenePicks(),
+  }) ?? Promise.resolve(false);
+
 /** A queued message taken back before it went. */
 /** What waits in the queue, read by Claude now, on the member's picks. */
 export const sendNowStudioChat = () =>

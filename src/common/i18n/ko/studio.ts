@@ -183,6 +183,7 @@ const studio = {
   'studio.publish.categoryHint': '최대 2개. 카드에 첫 번째가 표시됩니다.',
   'studio.publish.pickCategory': '먼저 카테고리를 선택하세요',
   'studio.publish.needNote': '먼저 이 버전의 새로운 기능을 말해보세요.',
+  'studio.publish.noteWriting': '장면의 채팅이 새로운 점을 쓰고 있습니다…',
   'studio.publish.noteNeeded': '필요',
   'studio.publish.point1':
     '로그인한 사람은 누구나 Visualizer에서 볼 수 있으며 몇 초 동안 시청하면 크레딧을 받을 수 있습니다. 그것은 당신을 위해 무료로 재생됩니다.',

@@ -25,6 +25,8 @@ interface IChatHandlersDeps {
   activeChat(): IStudioChat | undefined;
   send(raw: unknown): Promise<void>;
   compact(raw: unknown): Promise<void>;
+  /** The update note asked of the chat, for the publish dialog. */
+  askForNote(raw: unknown): Promise<boolean>;
   /** The failed reply at the end of the chat, answered again in its place. */
   retry(raw: unknown): Promise<void>;
   /** A queued message taken back. */
@@ -48,6 +50,7 @@ const registerChatHandlers = ({
   activeChat,
   send,
   compact,
+  askForNote,
   retry,
   unqueue,
   stop,
@@ -68,6 +71,7 @@ const registerChatHandlers = ({
   handle('studio-chat-models', Promise.resolve(NO_STUDIO_CHAT_MODELS), models);
   handle('studio-chat-send', undefined, send);
   handle('studio-chat-compact', undefined, compact);
+  handle('studio-chat-ask-note', Promise.resolve(false), askForNote);
   handle('studio-chat-retry', undefined, retry);
   handle('studio-chat-limits', undefined, limits);
   handle('studio-chat-unqueue', undefined, (id) => {

@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import type {
@@ -33,6 +34,8 @@ const SKIPPED_FOLDERS = new Set(['.git', 'node_modules']);
 interface IProjectFile {
   relative: string;
   size: number;
+  /** When it was last written, to the millisecond. */
+  written: number;
 }
 
 /** The scene's files under `folder`, or undefined when there are too many bytes. */
@@ -54,13 +57,33 @@ const filesOf = (folder: string): IProjectFile[] | undefined => {
       if (!entry.isFile() || (!prefix && LEFT_OUT.has(entry.name))) {
         return true;
       }
-      const { size } = fs.lstatSync(path.join(dir, entry.name));
+      const { size, mtimeMs } = fs.lstatSync(path.join(dir, entry.name));
       total += size;
-      found.push({ relative, size });
+      found.push({ relative, size, written: Math.round(mtimeMs) });
       return total <= MAX_SNAPSHOT_BYTES;
     });
   };
   return walk(folder, '') ? found : undefined;
+};
+
+/**
+ * The scene's own files as one hash of each one's path, size and time
+ * written - the files a version keeps, so neither the preview the Studio
+ * redraws nor the notes count - or undefined when it cannot be read.
+ */
+export const sceneFingerprint = (folder: string): string | undefined => {
+  try {
+    const files = filesOf(folder);
+    if (!files) {
+      return undefined;
+    }
+    const lines = files
+      .map(({ relative, size, written }) => `${relative}|${size}|${written}`)
+      .sort();
+    return createHash('sha256').update(lines.join('\n')).digest('hex');
+  } catch {
+    return undefined;
+  }
 };
 
 /** Keeps the project as it is now under `target`; false when it could not. */

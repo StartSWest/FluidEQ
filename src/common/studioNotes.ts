@@ -55,10 +55,19 @@ export const parseStudioNotes = (raw: unknown): IStudioNotes | undefined => {
   if (!raw || typeof raw !== 'object') {
     return undefined;
   }
-  const { description, prompt, whatsNew, earlierIdea } = raw as Record<
-    string,
-    unknown
-  >;
+  const {
+    description: written,
+    prompt,
+    whatsNew,
+    earlierIdea,
+  } = raw as Record<string, unknown>;
+  // Beside an update note, no description is an empty one. The member's AI
+  // is told to make the file with the note alone when there is none, and a
+  // file of {"whatsNew": ...} was refused whole for lacking the description:
+  // the line was written, read as no notes, and the publish box stayed
+  // empty. Anything else without one is still no notes.
+  const description =
+    written === undefined && typeof whatsNew === 'string' ? '' : written;
   if (
     typeof description !== 'string' ||
     description.length > MAX_STUDIO_DESCRIPTION

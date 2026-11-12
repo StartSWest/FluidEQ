@@ -184,6 +184,9 @@ export const createPublishedRecords = (
       }
     },
 
+    /** Whether a version of the scene in this folder went out, as known here. */
+    has: (folder: string): boolean => records[folderKey(folder)] !== undefined,
+
     /**
      * What was last published from this folder and whether it is still what
      * the folder holds; nothing for a folder never published from here.

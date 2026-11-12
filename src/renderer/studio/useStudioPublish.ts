@@ -37,6 +37,7 @@ import preparePublishPreview, {
   type IPreparedPublishPreview,
 } from './preparePublishPreview';
 import useStudioPublishProgress from './useStudioPublishProgress';
+import usePublishNote from './usePublishNote';
 
 export type { IPreparedPublishPreview } from './preparePublishPreview';
 
@@ -115,6 +116,11 @@ export interface IPublishDraft {
    * over in the field from the last publication.
    */
   suggestedNote?: string;
+  /**
+   * The scene's chat was asked for the line because the notes had none, and
+   * has not answered yet (`usePublishNote.ts`).
+   */
+  noteWriting?: boolean;
   /** Whether the Plus terms this app carries were agreed on this computer. */
   agreed: boolean;
   /** The last capture could not be drawn. */
@@ -202,6 +208,7 @@ export default function useStudioPublish(
     currentDraft.current = next;
     showDraft(next);
   }, []);
+  usePublishNote(draft, currentDraft, setDraft, view.state.activeId);
 
   const cancel = useCallback(() => {
     abandon();

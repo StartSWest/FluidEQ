@@ -20,6 +20,7 @@ import {
   withMadePictures,
   type TPictureSnapshot,
 } from './madePictures';
+import { noteDue, noteMarkOf, VERSION_NOTE_ASK } from './noteDue';
 import withEvent from './replyEvents';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
@@ -39,6 +40,11 @@ interface IChatTurnsDeps {
   entriesOf(projectId: string): readonly TStudioChatEntry[];
   /** A card waiting on the member, or a picture being made, ends. */
   dropAsks(projectId: string): void;
+  /**
+   * Whether the scene in this folder has a version in the gallery; without
+   * it no turn is followed by a request for the update note.
+   */
+  isPublished?: (folder: string) => boolean;
 }
 
 /** One of Claude Code's own control requests, as a line of its input. */
@@ -68,6 +74,7 @@ const createChatTurns = ({
   versionsOf,
   entriesOf,
   dropAsks,
+  isPublished = () => false,
 }: IChatTurnsDeps) => {
   const write = (session: IChatSession, line: string) => {
     session.process.write(line);
@@ -144,6 +151,32 @@ const createChatTurns = ({
     return line;
   };
 
+  /** FluidEQ asks for the update note: a reply of its own, nothing shown as the member's. */
+  const askNote = (projectId: string, session: IChatSession) => {
+    session.askingNote = true;
+    open(projectId, session);
+    write(session, userLine(randomUUID(), { words: VERSION_NOTE_ASK }));
+  };
+
+  /**
+   * A turn ended well with nothing waiting after it: the scene's note is
+   * settled now. Asked for when the turn changed a scene in the gallery and
+   * left its note as it was (`noteDue.ts`); never after FluidEQ's own ask,
+   * which would ask for ever if the AI did not write it.
+   */
+  const settleNote = (projectId: string, session: IChatSession) => {
+    const mark = session.noteMark;
+    const asked = session.askingNote;
+    session.noteMark = undefined;
+    session.askingNote = false;
+    if (asked || !mark) {
+      return;
+    }
+    if (noteDue(mark, noteMarkOf(session.folder))) {
+      askNote(projectId, session);
+    }
+  };
+
   /** Claude Code read a line: when it was queued, it joins the chat there. */
   const read = (
     projectId: string,
@@ -178,6 +211,12 @@ const createChatTurns = ({
       /** The failed reply this one takes the place of, by its id. */
       replacing?: string,
     ) => {
+      // Taken once until the note is settled: turns that end with more
+      // waiting, or stopped, are judged together at the next good end. Only
+      // for a scene in the gallery: a first version owes no note.
+      if (!session.noteMark && isPublished(session.folder)) {
+        session.noteMark = noteMarkOf(session.folder);
+      }
       open(projectId, session, replacing);
       write(session, userLine(randomUUID(), ...messages));
     },
@@ -201,6 +240,18 @@ const createChatTurns = ({
         text: messages.map(({ words }) => words).join('\n\n'),
         ...(shown ? { picture: shown } : {}),
       });
+    },
+
+    /**
+     * The publish dialog found an update with no note: the chat asked for
+     * it now. False when a reply is running, whose end asks by itself.
+     */
+    askForNote: (projectId: string, session: IChatSession) => {
+      if (session.reply || queue.hasSent(projectId)) {
+        return false;
+      }
+      askNote(projectId, session);
+      return true;
     },
 
     /** Whether Claude is answering, or about to answer what it was handed. */
@@ -291,7 +342,10 @@ const createChatTurns = ({
         // those until user stop them"). A failure keeps it waiting: the
         // plan's limit or a sign-in would refuse it the same way.
         if (state !== 'failed') {
-          hand(projectId, session);
+          const handed = hand(projectId, session);
+          if (state === 'done' && handed === undefined) {
+            settleNote(projectId, session);
+          }
         }
         return;
       }
@@ -370,6 +424,7 @@ const createChatTurns = ({
       const stopped = session.stopping;
       session.stopping = false;
       session.sendingNow = false;
+      session.askingNote = false;
       close(
         projectId,
         session,

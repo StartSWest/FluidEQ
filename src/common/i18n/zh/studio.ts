@@ -168,6 +168,7 @@ const studio = {
   'studio.publish.categoryHint': '最多两个。卡片上显示第一个。',
   'studio.publish.pickCategory': '请先选择一个分类',
   'studio.publish.needNote': '请先写下这一版有什么新变化',
+  'studio.publish.noteWriting': '场景的聊天正在写这次的新内容…',
   'studio.publish.noteNeeded': '必填',
   'studio.publish.point1':
     '任何已登录的人都能在“可视化”中看到它，观看几秒，并用一点获取它。对你来说它免费播放。',

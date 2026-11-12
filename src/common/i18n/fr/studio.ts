@@ -191,6 +191,7 @@ const studio = {
   'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
   'studio.publish.needNote':
     'Dites d’abord ce qui est nouveau dans cette version',
+  'studio.publish.noteWriting': 'Le chat de votre scène écrit ce qui est nouveau…',
   'studio.publish.noteNeeded': 'Obligatoire',
   'studio.publish.point1':
     'Toute personne connectée peut la voir dans Visualiseurs, la regarder quelques secondes et l’obtenir avec un crédit. Pour vous, elle joue gratuitement.',

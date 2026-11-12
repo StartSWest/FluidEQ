@@ -60,7 +60,7 @@ import {
   removePlacedSkills,
   type IStudioSkill,
 } from './studioChat/studioSkills';
-import { stripStoredBrief } from './ipc/studioNotes';
+import { clearVersionNote, stripStoredBrief } from './ipc/studioNotes';
 import { createPublishedAdoption } from './memberScenes/publishedAdoption';
 import { createPublishedRecords } from './memberScenes/publishedRecords';
 import { chatLauncherFor } from './studioChat/chatRelayClient';
@@ -438,6 +438,7 @@ const registerMemberServices = ({
     // project list reads its publications again.
     onReplyEnded: () => memberScenesIpc.publishedMayHaveChanged(),
     mustAsk: (projectId) => memberScenesIpc.chatMustAsk(projectId),
+    isPublished: publishedRecords.has,
     logger: log,
   });
   const plusPublishingIpc = registerPlusPublishingIpc({
@@ -447,7 +448,12 @@ const registerMemberServices = ({
     activeIsInspection: memberScenesIpc.activeIsInspection,
     mayPublishActive: memberScenesIpc.mayUseActive,
     onTermsAgreed: plusTermsNoticeIpc.agreed,
-    recordPublished: publishedRecords.record,
+    // The update note went out with this version: taken from the notes
+    // first, so the folder recorded is the folder without it.
+    recordPublished: (folder, sceneId, version) => {
+      clearVersionNote(folder);
+      publishedRecords.record(folder, sceneId, version);
+    },
     // One of FluidEQ's own, just published: its maker's copy fetched now.
     refreshOwnCopy: (sceneId, version) =>
       scenePacksIpc.refreshFor(sceneId, version),

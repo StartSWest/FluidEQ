@@ -187,6 +187,7 @@ const studio = {
   'studio.publish.categoryHint': '2つまで。カードには1つ目が表示されます。',
   'studio.publish.pickCategory': '先にカテゴリを選んでください',
   'studio.publish.needNote': '先にこのバージョンの新しい点を書いてください',
+  'studio.publish.noteWriting': 'シーンのチャットが新しい内容を書いています…',
   'studio.publish.noteNeeded': '必須',
   'studio.publish.point1':
     'サインインしている人なら誰でもビジュアライザーで見て、数秒間再生し、1クレジットで入手できます。あなたには無料で再生されます。',

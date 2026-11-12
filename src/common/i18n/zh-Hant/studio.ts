@@ -168,6 +168,7 @@ const studio = {
   'studio.publish.categoryHint': '最多兩個。它的卡片顯示第一個。',
   'studio.publish.pickCategory': '首先選擇一個類別',
   'studio.publish.needNote': '先說一下這個版本有什麼新內容',
+  'studio.publish.noteWriting': '場景的聊天正在寫這次的新內容…',
   'studio.publish.noteNeeded': '需要',
   'studio.publish.point1':
     '任何登入的人都可以在視覺化工具中看到它，觀看幾秒鐘並獲得點數。它免費為您播放。',

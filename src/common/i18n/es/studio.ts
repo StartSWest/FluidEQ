@@ -188,6 +188,7 @@ const studio = {
   'studio.publish.categoryHint': 'Hasta dos. Su tarjeta muestra la primera.',
   'studio.publish.pickCategory': 'Elige primero una categoría',
   'studio.publish.needNote': 'Di primero qué hay de nuevo en esta versión',
+  'studio.publish.noteWriting': 'El chat de tu escena está escribiendo qué hay de nuevo…',
   'studio.publish.noteNeeded': 'Obligatorio',
   'studio.publish.point1':
     'Cualquiera con la sesión iniciada puede verla en Visualizadores, mirarla unos segundos y conseguirla con un crédito. Para ti suena gratis.',

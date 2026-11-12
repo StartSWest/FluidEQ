@@ -74,6 +74,11 @@ export interface IStudioChatDeps {
   onReplyEnded?: (projectId: string) => void;
   /** Whether a project's chat must ask before every command (`projectOrigin.ts`). */
   mustAsk?: (projectId: string) => boolean;
+  /**
+   * Whether the scene in a folder has a version in the gallery: only then
+   * does a turn that changed it owe an update note (`noteDue.ts`).
+   */
+  isPublished?: (folder: string) => boolean;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -86,6 +91,7 @@ export const createStudioChat = ({
   launcher,
   onReplyEnded,
   mustAsk,
+  isPublished = () => false,
   logger,
 }: IStudioChatDeps) => {
   const root = path.join(userDataDir, 'studio-chat');
@@ -180,6 +186,7 @@ export const createStudioChat = ({
     versionsOf: transcripts.versionsOf,
     entriesOf: (projectId) => transcriptOf(projectId).entries,
     dropAsks: pictures.asks.drop,
+    isPublished,
   });
 
   // The copy of the skills the first version kept here: the chat loads
@@ -279,6 +286,28 @@ export const createStudioChat = ({
     if (session) {
       turns.begin(chat.key, session, [{ words: '/compact' }]);
     }
+  };
+
+  /**
+   * The publish dialog met an update with no note: the scene's chat asked
+   * to write it, on the member's picks, as FluidEQ and not in their name.
+   * True when the ask went; false with nothing to ask (no conversation yet,
+   * Claude Code missing) or a reply running, whose end asks by itself.
+   */
+  const askForNote = async (
+    chat: IChatTarget | undefined,
+    raw: unknown,
+  ): Promise<boolean> => {
+    await chatSessions.ready;
+    const picks = readChatPicks(raw);
+    if (!chat || !picks || isBusy(chat.key)) {
+      return false;
+    }
+    if (transcriptOf(chat.key).entries.length === 0) {
+      return false;
+    }
+    const session = await sessionFor(chat.key, chat.folder, picks);
+    return session ? turns.askForNote(chat.key, session) : false;
   };
 
   /**
@@ -419,6 +448,7 @@ export const createStudioChat = ({
     activeChat,
     send: (raw) => send(sceneChat(), raw),
     compact: (raw) => compact(sceneChat(), raw),
+    askForNote: (raw) => askForNote(sceneChat(), raw),
     retry: (raw) => retry(sceneChat(), raw),
     unqueue: (projectId, id) =>
       turns.unqueue(projectId, sessions.get(projectId), id),

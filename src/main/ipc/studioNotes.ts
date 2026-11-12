@@ -63,6 +63,28 @@ export const stripStoredBrief = (folder: string): boolean => {
   return notes ? writeStudioNotes(folder, notes) : false;
 };
 
+/** The update note the folder's notes carry now, if any. */
+export const versionNoteOf = (folder: string): string | undefined =>
+  readStudioNotes(folder)?.whatsNew;
+
+/**
+ * The update note taken out once the version it describes has gone out: it
+ * is about everything since the gallery's version, so after a publication it
+ * describes nothing still to come. Kept, it was offered again for the next
+ * version and the member's AI folded its next change into a line about the
+ * last one. The rest of the notes stay as they are. True when it was taken.
+ */
+export const clearVersionNote = (folder: string): boolean => {
+  const notes = readStudioNotes(folder);
+  if (!notes?.whatsNew) {
+    return false;
+  }
+  return writeStudioNotes(folder, {
+    description: notes.description,
+    ...(notes.earlierIdea ? { earlierIdea: notes.earlierIdea } : {}),
+  });
+};
+
 export const registerStudioNotesIpc = ({
   folderFor,
   writableFolderFor,

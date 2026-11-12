@@ -193,6 +193,7 @@ const studio = {
   'studio.publish.categoryHint': 'Up to two. Its card shows the first.',
   'studio.publish.pickCategory': 'Choose a category first',
   'studio.publish.needNote': 'Say what is new in this version first',
+  'studio.publish.noteWriting': 'Your scene’s chat is writing what is new…',
   'studio.publish.noteNeeded': 'Needed',
   'studio.publish.point1':
     'Anyone signed in can see it in Visualizers, watch it for a few seconds and get it with a credit. It plays free for you.',
