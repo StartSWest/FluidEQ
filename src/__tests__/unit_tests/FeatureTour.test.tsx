@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react';
 import { ANALYSIS_STYLES, isAnalysisStyle } from 'common/graphAnalysis';
 import { SELECTABLE_GRAPH_STYLES } from 'common/graphStyles';
+import { subscribeAccountPanelRequests } from 'renderer/account/accountPanel';
 import FeatureTour from 'renderer/components/featureTour/FeatureTour';
 import { featureTourFor } from 'renderer/components/featureTour/slides';
 import { requestHelpGuide } from 'renderer/help/helpGuideRequests';
@@ -427,6 +428,26 @@ it('opens the guide from the Help slide', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Open Help' }));
   expect(onClose).toHaveBeenCalledWith(false);
   expect(requestHelpGuide).toHaveBeenCalledTimes(1);
+});
+
+it('opens 2.5’s sound on the two editions, and the account from it', () => {
+  const panel = jest.fn();
+  const stop = subscribeAccountPanelRequests(panel);
+  const { onClose } = showTour('2.5.0');
+  expect(
+    screen.getByRole('heading', { name: 'FluidEQ in two editions' }),
+  ).toBeInTheDocument();
+  // The publisher is the developer's own name; no price is drawn anywhere.
+  expect(screen.getByText(/signed by Ivan Carmenates Garcia/)).toBeVisible();
+  const picture = screen.getByRole('img', {
+    name: /^The free edition’s line/,
+  });
+  expect(within(picture).getByText('Get automatic updates')).toBeVisible();
+  expect(picture.textContent).not.toMatch(/\$|€/);
+  fireEvent.click(screen.getByRole('button', { name: 'Open account' }));
+  expect(onClose).toHaveBeenCalledWith(false);
+  expect(panel).toHaveBeenCalledWith('home');
+  stop();
 });
 
 it('lands on the Gaming Lab from its slide', () => {

@@ -249,6 +249,22 @@ const tour24 = {
   'tour.v25.review':
     'A scene that was not approved shows the reviewer’s reason beside its name.',
   'tour.v25.publish': 'No monthly limit on publishing.',
+  'tour.editions.kicker': 'FLUIDEQ 2.5 · EDITIONS',
+  'tour.editions.title': 'FluidEQ in two editions',
+  'tour.editions.subtitle': 'Free stays free; the signed one updates itself',
+  'tour.editions.lead':
+    'FluidEQ stays free and complete. From 2.5 the free edition no longer updates itself, and the signed edition, the same FluidEQ paid once, is the one that does.',
+  'tour.editions.point1':
+    'Free edition: when a new version is out, FluidEQ says so once and the download is on fluideq.com. Run it over this one and your settings stay.',
+  'tour.editions.point2':
+    'Signed edition: signed by {publisher}, a verified publisher in Windows, and new versions install themselves. It stays on your FluidEQ account for good.',
+  'tour.editions.point3':
+    'Paid with another email? “I bought it with another email” in Account sends a six-digit code to that address and moves the purchase to this account.',
+  'tour.editions.how':
+    'About says which edition this copy is. Open your account to get the signed edition or, if it is yours, to download its installer.',
+  'tour.editions.open': 'Open account',
+  'tour.editions.imageAlt':
+    'The free edition’s line with its new-version notice, over the signed edition’s line and its download.',
 } as const;
 
 export default tour24;

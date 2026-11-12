@@ -77,11 +77,15 @@ describe("What's New: the sound's and the visualizers'", () => {
     expect([...parts].sort()).toEqual(all.map((slide) => slide.id).sort());
   });
 
-  it('opens 2.5 on the sound of 2.4, then the standing sound slides', () => {
+  it('opens 2.5 on the two editions, then 2.4’s sound, then the standing slides', () => {
     const sound = slidesOfPart(featureTourFor('2.5.0'), 'sound');
-    expect(sound[0].id).toBe('song-level');
-    expect(sound[0].release).toBe('2.4');
-    expect(sound.slice(1).every((slide) => slide.release === undefined)).toBe(
+    expect(sound.slice(0, 2).map((slide) => [slide.id, slide.release])).toEqual(
+      [
+        ['editions', '2.5'],
+        ['song-level', '2.4'],
+      ],
+    );
+    expect(sound.slice(2).every((slide) => slide.release === undefined)).toBe(
       true,
     );
     expect(featureTourFor('2.5.3')).toEqual(featureTourFor('2.5.0'));
@@ -116,12 +120,50 @@ describe("What's New: the sound's and the visualizers'", () => {
     expect(
       newInPart(featureTourFor('2.5.0'), 'visuals', '2.5.0').map((s) => s.id),
     ).toEqual(['studio-edit', 'studio-watch', 'studio-makers', 'studio-code']);
-    // The sound's 2.5 brings no feature slide: nothing new there.
-    expect(newInPart(featureTourFor('2.5.0'), 'sound', '2.5.0')).toEqual([]);
+    // The sound's 2.5 brings the two editions, and nothing about scenes.
+    expect(
+      newInPart(featureTourFor('2.5.0'), 'sound', '2.5.0').map((s) => s.id),
+    ).toEqual(['editions']);
     expect(isVisualsNewsUnseen('2.4.0', true, null)).toBe(true);
     expect(isVisualsNewsUnseen('2.4.2', true, '2.4')).toBe(false);
     expect(isVisualsNewsUnseen('2.5.0', true, '2.4')).toBe(true);
     expect(isVisualsNewsUnseen('2.5.0', false, null)).toBe(false);
+  });
+});
+
+describe('the two editions’ slide', () => {
+  const root = path.join(__dirname, '../../../..');
+  const LOCALES = fs
+    .readdirSync(path.join(root, 'src/common/i18n'), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+  const editionLines = (locale: string): string[] =>
+    fs
+      .readFileSync(
+        path.join(root, 'src/common/i18n', locale, 'tour24.ts'),
+        'utf8',
+      )
+      .split(/\r?\n/)
+      .map((line, index, lines) =>
+        /^\s*'tour\.editions\./.test(line)
+          ? `${line} ${lines[index + 1] ?? ''}`
+          : '',
+      )
+      .filter(Boolean);
+
+  it.each(LOCALES)('names no price, in %s', (locale) => {
+    const lines = editionLines(locale);
+    expect(lines).toHaveLength(10);
+    // A launch price the server words; a number here would outlive it.
+    lines.forEach((line) => {
+      expect(line).not.toMatch(/[$€£¥]|\{price\}|\b19\b|\b29\b/);
+    });
+  });
+
+  it('says nothing of scenes or credits in the sound’s What’s New', () => {
+    const english = editionLines('en').join(' ');
+    expect(english).toContain('{publisher}');
+    expect(english).not.toMatch(/scene|credit|visuali[sz]er|studio/i);
   });
 });
 
@@ -141,15 +183,34 @@ describe('the release notes and the version', () => {
     expect(version('package.json')).toBe(version('release/app/package.json'));
   });
 
+  const sections = notes.split(/^## /m).slice(1);
+  const partsOf = (section: string): string[] =>
+    section.split(/\r?\n/).filter((line) => /^### /.test(line));
+  const release = (version: string): string =>
+    sections.find((section) => section.split(/\r?\n/)[0] === version) ?? '';
+
   it('puts the sound first and the visualizers apart, from 2.4 on', () => {
-    const sections = notes.split(/^## /m).slice(1);
-    sections
-      .filter((section) => /^2\.(4|[5-9])\./.test(section))
-      .forEach((section) => {
-        const parts = section
-          .split(/\r?\n/)
-          .filter((line) => /^### /.test(line));
-        expect(parts).toEqual(['### Sound', '### Visualizers and Studio']);
-      });
+    const later = sections.filter((section) => /^2\.(4|[5-9])\./.test(section));
+    expect(later.length).toBeGreaterThan(1);
+    later.forEach((section) => {
+      // The app as a whole may stand ahead of both (2.5's two editions).
+      const parts = partsOf(section).filter(
+        (line) => line !== '### Two editions',
+      );
+      expect(parts).toEqual(['### Sound', '### Visualizers and Studio']);
+    });
+  });
+
+  it('opens 2.5 on its two editions, ahead of the sound', () => {
+    expect(partsOf(release('2.5.0'))).toEqual([
+      '### Two editions',
+      '### Sound',
+      '### Visualizers and Studio',
+    ]);
+    // The control: 2.4 has no such heading.
+    expect(partsOf(release('2.4.0'))).toEqual([
+      '### Sound',
+      '### Visualizers and Studio',
+    ]);
   });
 });

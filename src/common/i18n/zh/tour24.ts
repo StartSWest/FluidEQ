@@ -232,6 +232,22 @@ const tour24 = {
     '在工作室打开的其他成员的场景是锁定的副本，它的聊天会在每条命令前询问。',
   'tour.v25.review': '未通过审核的场景会在名称旁显示审核者的理由。',
   'tour.v25.publish': '发布不再有每月上限。',
+  'tour.editions.kicker': 'FLUIDEQ 2.5 · 版本',
+  'tour.editions.title': 'FluidEQ 现分两个版本',
+  'tour.editions.subtitle': '免费版依然免费，签名版自动更新',
+  'tour.editions.lead':
+    'FluidEQ 依然免费、功能完整。从 2.5 起，免费版不再自动更新；自动更新的是签名版，即一次付费的同一个 FluidEQ。',
+  'tour.editions.point1':
+    '免费版：有新版本时，FluidEQ 会提示一次，下载在 fluideq.com。直接覆盖安装到当前版本上，设置都会保留。',
+  'tour.editions.point2':
+    '签名版：由 Windows 认证的发布者 {publisher} 签名，新版本会自动安装。它永久保留在你的 FluidEQ 账户中。',
+  'tour.editions.point3':
+    '用其他邮箱付的款？在账户中点“我是用其他邮箱购买的”，会向该邮箱发送六位数验证码，并把这次购买转到当前账户。',
+  'tour.editions.how':
+    '“关于”会显示这份副本是哪个版本。打开账户即可获取签名版；如果已经拥有，可以下载它的安装程序。',
+  'tour.editions.open': '打开账户',
+  'tour.editions.imageAlt':
+    '免费版的状态行和新版本提示，下方是签名版的状态行和下载按钮。',
 } as const;
 
 export default tour24;

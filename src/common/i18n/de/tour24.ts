@@ -253,6 +253,23 @@ const tour24 = {
   'tour.v25.review':
     'Eine nicht freigegebene Szene zeigt die Begründung der Prüfung neben ihrem Namen.',
   'tour.v25.publish': 'Kein monatliches Limit beim Veröffentlichen.',
+  'tour.editions.kicker': 'FLUIDEQ 2.5 · EDITIONEN',
+  'tour.editions.title': 'FluidEQ in zwei Editionen',
+  'tour.editions.subtitle':
+    'Die kostenlose bleibt kostenlos, die signierte aktualisiert sich selbst',
+  'tour.editions.lead':
+    'FluidEQ bleibt kostenlos und vollständig. Ab 2.5 aktualisiert sich die kostenlose Edition nicht mehr selbst; das tut die signierte Edition, dasselbe FluidEQ, einmal bezahlt.',
+  'tour.editions.point1':
+    'Kostenlose Edition: Wenn eine neue Version erscheint, sagt FluidEQ es einmal, und der Download liegt auf fluideq.com. Installieren Sie ihn über diese Version, Ihre Einstellungen bleiben.',
+  'tour.editions.point2':
+    'Signierte Edition: signiert von {publisher}, einem verifizierten Herausgeber in Windows, und neue Versionen installieren sich selbst. Sie bleibt dauerhaft in Ihrem FluidEQ-Konto.',
+  'tour.editions.point3':
+    'Mit einer anderen E-Mail bezahlt? „Ich habe mit einer anderen E-Mail gekauft“ unter Konto schickt einen sechsstelligen Code an diese Adresse und verschiebt den Kauf in dieses Konto.',
+  'tour.editions.how':
+    'Unter „Über“ steht, welche Edition diese Kopie ist. Öffnen Sie Ihr Konto, um die signierte Edition zu erhalten oder, wenn sie Ihnen gehört, ihr Installationsprogramm herunterzuladen.',
+  'tour.editions.open': 'Konto öffnen',
+  'tour.editions.imageAlt':
+    'Die Zeile der kostenlosen Edition mit ihrem Hinweis auf eine neue Version, über der Zeile der signierten Edition und ihrem Download.',
 } as const;
 
 export default tour24;
