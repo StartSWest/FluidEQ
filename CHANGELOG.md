@@ -53,6 +53,10 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   blends any scene's picture on screen.
 - **Your own scene is yours on every computer** you sign in on, not only the
   one it was built on.
+- **New ways to browse the Gallery.** **This week** opens a menu: most liked,
+  **new this week** or **updated this week**; **Most liked** also offers
+  **Most used**, and **Not mine yet** shows only the scenes you don't have.
+  Scenes that came out this week say **New** on their card.
 
 #### Studio
 
