@@ -16,7 +16,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // (`StudioFullscreenVisual`): the scene across the screen, the work pane
 // rising over its lower part and the chat docking at the right, on the side
 // panes' own ease. Its own sheet because `_tour-release25.scss` was past 900
-// lines already; the same miniature language and loop.
+// lines already; the same miniature language and loop. The Code tab's draft
+// bar (`StudioCodeVisual`) is here for the same reason.
 
 $loop: 10s;
 
@@ -251,4 +252,55 @@ $chat: 30%;
     background: $text-faint;
     box-shadow: none;
   }
+}
+
+// ---------------------------------------------------------------------------
+// The Code tab's draft bar, under an open file's head: the editor's own
+// Undo, Redo and Discard, the check that passed, and Save, loud because a
+// passing draft is what Save is for.
+
+.code-visual__draft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: calc(#{$u} * 0.22) calc(#{$u} * 0.45);
+  border-top: 1px solid rgba($edge-tint, 0.08);
+  gap: calc(#{$u} * 0.25);
+}
+
+.code-visual__step {
+  @include pill;
+
+  padding-block: calc(#{$u} * 0.08);
+  border-color: rgba($edge-tint, 0.16);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.54);
+}
+
+.code-visual__ready {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  color: $neon-lime;
+  font-size: calc(#{$u} * 0.56);
+  font-weight: $weight-semibold;
+  gap: calc(#{$u} * 0.25);
+
+  i {
+    width: calc(#{$u} * 0.38);
+    height: calc(#{$u} * 0.38);
+    border-radius: 50%;
+    background: $neon-lime;
+    box-shadow: 0 0 8px color-mix(in srgb, $neon-lime 55%, transparent);
+  }
+}
+
+.code-visual__save {
+  @include pill;
+
+  padding-block: calc(#{$u} * 0.08);
+  border-color: transparent;
+  color: $surface-base;
+  background: $secondary-light;
+  font-size: calc(#{$u} * 0.56);
 }

@@ -235,22 +235,23 @@ const tour24 = {
     'El chat de una escena pidiéndote permitir Higgsfield antes de crear una animación, junto a la lista de Cuentas con Claude y Higgsfield.',
   'tour.makers.request': 'Haz que el koi nade en una animación',
   'tour.code.kicker': 'ESTUDIO · CÓDIGO',
-  'tour.code.title': 'Todos los archivos de tu escena en la pestaña Código',
+  'tour.code.title':
+    'Edita todos los archivos de tu escena en la pestaña Código',
   'tour.code.subtitle':
-    'Shader, mundo, materiales, animaciones y notas que puedes editar',
+    'Shader, mundo, materiales y animaciones, comprobados antes de cada guardado',
   'tour.code.lead':
-    'La pestaña Código muestra la escena entera, no solo su shader: su paquete, su mundo 3D y los materiales que nombra, sus animaciones y sus notas, que editas en dos campos sencillos y conservas con Guardar.',
+    'La pestaña Código muestra la escena entera y te deja editarla: el shader, el mundo 3D y sus materiales, y las animaciones, cada uno como un borrador que nunca se guarda solo. Las notas son dos campos sencillos.',
   'tour.code.point1':
-    'Cada archivo se pliega a su nombre y su número de líneas, y Desplegar todo los abre a la vez.',
+    'Cada cambio se comprueba mientras escribes, con las mismas reglas que los guardados de tu IA. Un problema se indica junto a su línea, y Guardar sigue desactivado hasta que lo arregles.',
   'tour.code.point2':
-    'Sigue los archivos a medida que tu IA los guarda, y Ver cambios marca lo que cambió.',
+    'Un cambio que pasa la comprobación se ve en el escenario antes de guardarlo, y Deshacer, Rehacer y Descartar recorren tus cambios.',
   'tour.code.point3':
-    'Una hoja de fotogramas que tu IA empaquetó como imagen simple se convierte en una animación de verdad, en la pestaña Animaciones.',
+    'Sigue los archivos a medida que tu IA los guarda, y una hoja de fotogramas que tu IA empaquetó como imagen normal se convierte en una animación de verdad.',
   'tour.code.how':
     'Abre una escena en el Estudio y elige Código bajo el escenario.',
   'tour.code.open': 'Abrir Visualizadores',
   'tour.code.imageAlt':
-    'La pestaña Código con los archivos de la escena plegados a sus nombres y un material de su mundo 3D abierto.',
+    'La pestaña Código con los archivos de la escena plegados en sus nombres y un material de su mundo 3D abierto y editado, con la línea cambiada marcada y Listo para guardar y Guardar encima.',
   'tour.fullscreen.kicker': 'ESTUDIO · PANTALLA COMPLETA',
   'tour.fullscreen.title': 'Trabaja en una escena a pantalla completa',
   'tour.fullscreen.subtitle':

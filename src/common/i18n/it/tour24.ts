@@ -230,22 +230,22 @@ const tour24 = {
     'La chat di una scena ti chiede di consentire Higgsfield prima di creare un’animazione, accanto all’elenco Account con Claude e Higgsfield.',
   'tour.makers.request': 'Fai nuotare il koi in un’animazione',
   'tour.code.kicker': 'STUDIO · CODICE',
-  'tour.code.title': 'Ogni file della tua scena nella scheda Codice',
+  'tour.code.title': 'Modifica ogni file della tua scena nella scheda Codice',
   'tour.code.subtitle':
-    'Shader, mondo, materiali, animazioni e note che puoi modificare',
+    'Shader, mondo, materiali e animazioni, controllati prima di ogni salvataggio',
   'tour.code.lead':
-    'La scheda Codice mostra tutta la scena, non solo il suo shader: il pacchetto, il mondo 3D e i materiali che nomina, le animazioni e le note, che modifichi in due campi semplici e tieni con Salva.',
+    'La scheda Codice mostra tutta la scena e ti permette di modificarla: lo shader, il mondo 3D e i suoi materiali, e le animazioni, ognuno una bozza che non si salva mai da sola. Le note sono due campi semplici.',
   'tour.code.point1':
-    'Ogni file si chiude sul suo nome e sul numero di righe, ed Espandi tutto li apre insieme.',
+    'Ogni modifica è controllata mentre scrivi, con le stesse regole dei salvataggi della tua IA. Un problema è indicato dopo la sua riga, e Salva resta spento finché non lo correggi.',
   'tour.code.point2':
-    'Segue i file mentre la tua IA li salva, e Mostra modifiche segna cosa è cambiato.',
+    'Una modifica che passa suona sul palco prima che tu la salvi, e Annulla, Ripeti e Scarta scorrono le tue modifiche.',
   'tour.code.point3':
-    'Un foglio di fotogrammi che la tua IA ha impacchettato come immagine semplice diventa una vera animazione, nella scheda Animazioni.',
+    'Segue i file mentre la tua IA li salva, e un foglio di fotogrammi che la tua IA ha impacchettato come semplice immagine diventa una vera animazione.',
   'tour.code.how':
     'Apri una scena nello Studio e scegli Codice sotto il palco.',
   'tour.code.open': 'Apri Visualizzatori',
   'tour.code.imageAlt':
-    'La scheda Codice con i file della scena chiusi sui loro nomi e un materiale del suo mondo 3D aperto.',
+    'La scheda Codice con i file della scena chiusi sui loro nomi e un materiale del suo mondo 3D aperto e modificato, la riga cambiata segnata e sopra Pronto da salvare e Salva.',
   'tour.fullscreen.kicker': 'STUDIO · SCHERMO INTERO',
   'tour.fullscreen.title': 'Lavora su una scena a schermo intero',
   'tour.fullscreen.subtitle':

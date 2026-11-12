@@ -83,6 +83,13 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   world and the materials it names, its animations and its notes, each
   folding to its name. The notes are edited as two plain fields and kept
   with **Save**.
+- **Edit the scene's code in the Code tab.** The shader, the 3D world, its
+  materials and the animations open as drafts that are never saved by
+  themselves. Every edit is checked as you type by the same rules as your
+  AI's saves: a problem is said after its line, marked red, and **Save**
+  stays off until it is fixed. An edit that passes plays on the stage
+  before you save it, with **Undo**, **Redo** and **Discard**. The pack and
+  FluidEQ's own scenes are not edited here.
 - **A published scene opens as a locked copy.** Another member's scene
   opened in the Studio can't be added to your looks, exported, published or
   renamed, and its chat asks before every command.

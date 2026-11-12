@@ -224,22 +224,22 @@ const tour24 = {
     'A scene’s chat asking you to allow Higgsfield before it makes an animation, beside the Accounts list with Claude and Higgsfield.',
   'tour.makers.request': 'Make the koi a swimming animation',
   'tour.code.kicker': 'STUDIO · CODE',
-  'tour.code.title': 'Every file of your scene in the Code tab',
+  'tour.code.title': 'Edit every file of your scene in the Code tab',
   'tour.code.subtitle':
-    'Shader, world, materials, animations, and notes you can edit',
+    'Shader, world, materials and animations, checked before every save',
   'tour.code.lead':
-    'The Code tab shows the whole scene, not only its shader: its pack, its 3D world and the materials it names, its animations, and its notes, which you edit as two plain fields and keep with Save.',
+    'The Code tab shows the whole scene and lets you edit it: the shader, the 3D world and its materials, and the animations, each a draft that is never saved by itself. The notes are two plain fields.',
   'tour.code.point1':
-    'Each file folds to its name and its count of lines, and Expand all opens them together.',
+    'Every edit is checked as you type, by the same rules as your AI’s saves. A problem is said after the line it is on, and Save stays off until it is fixed.',
   'tour.code.point2':
-    'It follows the files as your AI saves them, and Show changes marks what changed.',
+    'An edit that passes plays on the stage before you save it, and Undo, Redo and Discard step through your changes.',
   'tour.code.point3':
-    'A sheet of frames your AI packed as a plain picture becomes a real animation, in the Animations tab.',
+    'It follows the files as your AI saves them, and a sheet of frames your AI packed as a plain picture becomes a real animation.',
   'tour.code.how':
     'Open a scene in the Studio and choose Code under the stage.',
   'tour.code.open': 'Open Visualizers',
   'tour.code.imageAlt':
-    'The Code tab with the scene’s files folded to their names and one material of its 3D world open.',
+    'The Code tab with the scene’s files folded to their names and one material of its 3D world open and edited, its changed line marked, Ready to save and Save above it.',
   'tour.fullscreen.kicker': 'STUDIO · FULL SCREEN',
   'tour.fullscreen.title': 'Work on a scene in full screen',
   'tour.fullscreen.subtitle':

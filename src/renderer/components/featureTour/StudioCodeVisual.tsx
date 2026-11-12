@@ -9,11 +9,13 @@ import { useTranslation } from '../../utils/I18nContext';
 /**
  * The Studio's Code tab on a scene with a 3D world: every file the scene is
  * made of, each folded to its name and its count of lines, and one of the
- * world's materials open with the line the AI just changed marked as Show
- * changes marks it. The words around the code are the tab's own labels; the
- * code is code, and stays as written.
+ * world's materials open and being edited (8e1e480d2): the changed line
+ * marked, and the draft's bar with Undo, Redo and Discard, its check passed
+ * (Ready to save) and Save. The words around the code are the tab's own
+ * labels; the code is code, and stays as written.
  *
- * One loop of CSS (`_tour-release25.scss`).
+ * One loop of CSS (`_tour-release25.scss`; the draft's bar in
+ * `_tour-release25b.scss`).
  */
 
 const FILES: readonly { name: string; lines: number; open?: boolean }[] = [
@@ -116,6 +118,26 @@ export default function StudioCodeVisual() {
               <span className="code-visual__file-name">{file.name}</span>
               <small>{t('studio.code.lines', { count: file.lines })}</small>
             </span>
+            {file.open && (
+              <span className="code-visual__draft">
+                <span className="code-visual__step">
+                  {t('studio.code.undo')}
+                </span>
+                <span className="code-visual__step">
+                  {t('studio.code.redo')}
+                </span>
+                <span className="code-visual__step">
+                  {t('studio.code.discard')}
+                </span>
+                <span className="code-visual__ready">
+                  <i />
+                  {t('studio.code.ready')}
+                </span>
+                <span className="code-visual__save">
+                  {t('studio.code.save')}
+                </span>
+              </span>
+            )}
             {file.open && (
               <span className="code-visual__code">
                 {CODE.map((line, index) => (

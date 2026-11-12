@@ -224,21 +224,21 @@ const tour24 = {
     'O chat de uma cena pedindo que você permita o Higgsfield antes de criar uma animação, ao lado da lista de Contas com Claude e Higgsfield.',
   'tour.makers.request': 'Faça o koi nadar numa animação',
   'tour.code.kicker': 'ESTÚDIO · CÓDIGO',
-  'tour.code.title': 'Todos os arquivos da sua cena na aba Código',
+  'tour.code.title': 'Edite todos os arquivos da sua cena na aba Código',
   'tour.code.subtitle':
-    'Shader, mundo, materiais, animações e notas que você pode editar',
+    'Shader, mundo, materiais e animações, verificados antes de cada salvamento',
   'tour.code.lead':
-    'A aba Código mostra a cena inteira, não só o shader: o pacote, o mundo 3D e os materiais que ele cita, as animações e as notas, que você edita em dois campos simples e guarda com Salvar.',
+    'A aba Código mostra a cena inteira e deixa você editá-la: o shader, o mundo 3D e seus materiais, e as animações, cada um como um rascunho que nunca é salvo sozinho. As notas são dois campos simples.',
   'tour.code.point1':
-    'Cada arquivo se recolhe no nome e no número de linhas, e Expandir tudo abre todos juntos.',
+    'Cada edição é verificada enquanto você digita, pelas mesmas regras dos salvamentos da sua IA. Um problema aparece ao lado da linha dele, e Salvar fica desligado até ser corrigido.',
   'tour.code.point2':
-    'Ela acompanha os arquivos conforme sua IA os salva, e Ver alterações marca o que mudou.',
+    'Uma edição que passa aparece no palco antes de você salvar, e Desfazer, Refazer e Descartar percorrem suas mudanças.',
   'tour.code.point3':
-    'Uma folha de quadros que sua IA empacotou como imagem simples vira uma animação de verdade, na aba Animações.',
+    'Ela acompanha os arquivos conforme sua IA os salva, e uma folha de quadros que sua IA empacotou como imagem comum vira uma animação de verdade.',
   'tour.code.how': 'Abra uma cena no Estúdio e escolha Código abaixo do palco.',
   'tour.code.open': 'Abrir Visualizadores',
   'tour.code.imageAlt':
-    'A aba Código com os arquivos da cena recolhidos nos nomes e um material do mundo 3D aberto.',
+    'A aba Código com os arquivos da cena recolhidos nos nomes e um material do mundo 3D aberto e editado, com a linha alterada marcada e Pronto para salvar e Salvar acima.',
   'tour.fullscreen.kicker': 'ESTÚDIO · TELA CHEIA',
   'tour.fullscreen.title': 'Trabalhe numa cena em tela cheia',
   'tour.fullscreen.subtitle':

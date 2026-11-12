@@ -229,22 +229,22 @@ const tour24 = {
     'Der Chat einer Szene bittet Sie, Higgsfield zu erlauben, bevor es eine Animation erstellt, neben der Kontenliste mit Claude und Higgsfield.',
   'tour.makers.request': 'Lass den Koi in einer Animation schwimmen',
   'tour.code.kicker': 'STUDIO · CODE',
-  'tour.code.title': 'Jede Datei Ihrer Szene im Code-Tab',
+  'tour.code.title': 'Jede Datei Ihrer Szene im Code-Tab bearbeiten',
   'tour.code.subtitle':
-    'Shader, Welt, Materialien, Animationen und Notizen zum Bearbeiten',
+    'Shader, Welt, Materialien und Animationen, vor jedem Speichern geprüft',
   'tour.code.lead':
-    'Der Code-Tab zeigt die ganze Szene, nicht nur ihren Shader: ihr Paket, ihre 3D-Welt und die Materialien, die sie nennt, ihre Animationen und ihre Notizen, die Sie in zwei einfachen Feldern bearbeiten und mit Speichern behalten.',
+    'Der Code-Tab zeigt die ganze Szene und lässt Sie sie bearbeiten: den Shader, die 3D-Welt und ihre Materialien und die Animationen, jeweils als Entwurf, der nie von selbst gespeichert wird. Die Notizen sind zwei einfache Felder.',
   'tour.code.point1':
-    'Jede Datei klappt sich auf ihren Namen und ihre Zeilenzahl zusammen, und Alle aufklappen öffnet sie zusammen.',
+    'Jede Änderung wird beim Tippen geprüft, nach denselben Regeln wie das Speichern Ihrer KI. Ein Problem steht hinter seiner Zeile, und Speichern bleibt aus, bis es behoben ist.',
   'tour.code.point2':
-    'Er folgt den Dateien, wie Ihre KI sie speichert, und Änderungen zeigen markiert, was sich geändert hat.',
+    'Eine Änderung, die besteht, läuft vor dem Speichern auf der Bühne, und Rückgängig, Wiederholen und Verwerfen gehen Ihre Änderungen durch.',
   'tour.code.point3':
-    'Ein Blatt mit Einzelbildern, das Ihre KI als einfaches Bild gepackt hat, wird zu einer echten Animation im Tab Animationen.',
+    'Er folgt den Dateien, wie Ihre KI sie speichert, und ein Bogen aus Einzelbildern, den Ihre KI als einfaches Bild gepackt hat, wird zu einer echten Animation.',
   'tour.code.how':
     'Öffnen Sie eine Szene im Studio und wählen Sie Code unter der Bühne.',
   'tour.code.open': 'Visualizer öffnen',
   'tour.code.imageAlt':
-    'Der Code-Tab mit den Dateien der Szene, auf ihre Namen zusammengeklappt, und einem offenen Material ihrer 3D-Welt.',
+    'Der Code-Tab mit den Dateien der Szene auf ihre Namen eingeklappt und einem Material ihrer 3D-Welt offen und bearbeitet, die geänderte Zeile markiert, darüber Bereit zum Speichern und Speichern.',
   'tour.fullscreen.kicker': 'STUDIO · VOLLBILD',
   'tour.fullscreen.title': 'An einer Szene im Vollbild arbeiten',
   'tour.fullscreen.subtitle':

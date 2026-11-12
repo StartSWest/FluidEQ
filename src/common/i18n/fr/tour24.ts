@@ -229,22 +229,23 @@ const tour24 = {
     'Le chat d’une scène vous demande d’autoriser Higgsfield avant de créer une animation, à côté de la liste Comptes avec Claude et Higgsfield.',
   'tour.makers.request': 'Fais nager le koï dans une animation',
   'tour.code.kicker': 'STUDIO · CODE',
-  'tour.code.title': 'Chaque fichier de votre scène dans l’onglet Code',
+  'tour.code.title':
+    'Modifiez chaque fichier de votre scène dans l’onglet Code',
   'tour.code.subtitle':
-    'Shader, monde, matériaux, animations, et notes que vous pouvez modifier',
+    'Shader, monde, matériaux et animations, vérifiés avant chaque enregistrement',
   'tour.code.lead':
-    'L’onglet Code montre toute la scène, pas seulement son shader : son paquet, son monde 3D et les matériaux qu’il nomme, ses animations, et ses notes, que vous modifiez dans deux champs simples et gardez avec Enregistrer.',
+    'L’onglet Code montre toute la scène et vous laisse la modifier : le shader, le monde 3D et ses matériaux, et les animations, chacun un brouillon jamais enregistré tout seul. Les notes sont deux champs simples.',
   'tour.code.point1':
-    'Chaque fichier se replie sur son nom et son nombre de lignes, et Tout déplier les ouvre ensemble.',
+    'Chaque modification est vérifiée pendant la frappe, par les mêmes règles que les enregistrements de votre IA. Un problème est indiqué après sa ligne, et Enregistrer reste désactivé tant qu’il n’est pas corrigé.',
   'tour.code.point2':
-    'Il suit les fichiers à mesure que votre IA les enregistre, et Voir les changements marque ce qui a changé.',
+    'Une modification qui passe joue sur la scène avant que vous l’enregistriez, et Annuler, Rétablir et Abandonner parcourent vos changements.',
   'tour.code.point3':
-    'Une planche d’images que votre IA a empaquetée comme simple image devient une vraie animation, dans l’onglet Animations.',
+    'Il suit les fichiers à mesure que votre IA les enregistre, et une planche d’images que votre IA a emballée comme une simple image devient une vraie animation.',
   'tour.code.how':
     'Ouvrez une scène dans le Studio et choisissez Code sous la scène.',
   'tour.code.open': 'Ouvrir Visualiseurs',
   'tour.code.imageAlt':
-    'L’onglet Code avec les fichiers de la scène repliés sur leurs noms et un matériau de son monde 3D ouvert.',
+    'L’onglet Code avec les fichiers de la scène repliés sur leur nom et un matériau de son monde 3D ouvert et modifié, sa ligne changée marquée, Prêt à enregistrer et Enregistrer au-dessus.',
   'tour.fullscreen.kicker': 'STUDIO · PLEIN ÉCRAN',
   'tour.fullscreen.title': 'Travaillez sur une scène en plein écran',
   'tour.fullscreen.subtitle':
