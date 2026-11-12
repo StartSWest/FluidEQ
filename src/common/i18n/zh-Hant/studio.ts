@@ -697,6 +697,17 @@ const studio = {
   'studio.code.viewOnly': '僅供檢視',
   'studio.code.viewOnlyHint':
     '依磁碟上的內容顯示。若要修改，請使用您自己的編輯器，或請 AI 來改。',
+  'studio.notes.description': '描述',
+  'studio.notes.descriptionHint':
+    '用你自己的話描述場景。你的 AI 會最先讀到它。',
+  'studio.notes.whatsNew': '新內容',
+  'studio.notes.whatsNewHint': '關於此版本的一句話。發布時會作為說明提供。',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': '未儲存',
+  'studio.notes.showFile': '顯示檔案',
+  'studio.notes.saveFailed': '無法儲存說明。請重試。',
+  'studio.notes.changedOutside':
+    '你輸入時磁碟上的說明已變更。儲存會用你的內容覆寫；捨棄則保留新的內容。',
   'studio.code.tooLargeToShow': '此檔案太大，無法在這裡顯示（{size}）。',
   'studio.code.role.scene': '場景',
   'studio.code.role.pack': '詳細資料',

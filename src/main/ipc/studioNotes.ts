@@ -65,6 +65,7 @@ export const stripStoredBrief = (folder: string): boolean => {
 
 export const registerStudioNotesIpc = ({
   folderFor,
+  writableFolderFor,
 }: {
   /**
    * The folder of the project the page names, or nothing when there is no
@@ -73,6 +74,12 @@ export const registerStudioNotesIpc = ({
    * — the open one — answered for the wrong folder.
    */
   folderFor: (id: string) => string | undefined;
+  /**
+   * The same, for a write: never a scene opened only to look inside - one
+   * of FluidEQ's own, or a copy of another member's - whose notes are read
+   * and never changed.
+   */
+  writableFolderFor: (id: string) => string | undefined;
 }) => {
   ipcMain.handle('studio-notes-read', (_event, id: unknown) => {
     const folder = typeof id === 'string' ? folderFor(id) : undefined;
@@ -83,7 +90,7 @@ export const registerStudioNotesIpc = ({
     return readStudioNotes(folder);
   });
   ipcMain.handle('studio-notes-save', (_event, id: unknown, raw: unknown) => {
-    const folder = typeof id === 'string' ? folderFor(id) : undefined;
+    const folder = typeof id === 'string' ? writableFolderFor(id) : undefined;
     const notes = parseStudioNotes(raw);
     if (!folder || !notes) {
       return false;

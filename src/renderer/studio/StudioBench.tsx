@@ -412,6 +412,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         key={project.id}
         projectId={project.id}
         source={view.source}
+        editable={!project.official && !project.member}
         problemLines={problemLinesOf(
           problems,
           trouble?.kind === 'compile' ? trouble.log : undefined,

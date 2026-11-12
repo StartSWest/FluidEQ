@@ -819,6 +819,19 @@ const studio = {
   'studio.code.viewOnly': 'Nur Ansicht',
   'studio.code.viewOnlyHint':
     'So angezeigt, wie die Datei gespeichert ist. Ändern Sie sie in Ihrem eigenen Editor oder bitten Sie die KI darum.',
+  'studio.notes.description': 'Beschreibung',
+  'studio.notes.descriptionHint':
+    'Ihre Szene in Ihren eigenen Worten. Ihre KI liest das zuerst.',
+  'studio.notes.whatsNew': 'Was ist neu',
+  'studio.notes.whatsNewHint':
+    'Eine Zeile zu dieser Version. Beim Veröffentlichen wird sie als Hinweis angeboten.',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': 'Nicht gespeichert',
+  'studio.notes.showFile': 'Datei anzeigen',
+  'studio.notes.saveFailed':
+    'Die Notizen konnten nicht gespeichert werden. Versuchen Sie es erneut.',
+  'studio.notes.changedOutside':
+    'Die Notizen haben sich auf dem Datenträger geändert, während Sie getippt haben. Speichern schreibt Ihre darüber; Verwerfen behält die neuen.',
   'studio.code.tooLargeToShow':
     'Diese Datei ist zu groß, um sie hier anzuzeigen ({size}).',
   'studio.code.role.scene': 'Szene',

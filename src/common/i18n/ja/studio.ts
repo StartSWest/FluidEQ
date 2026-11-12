@@ -800,6 +800,19 @@ const studio = {
   'studio.code.viewOnly': '表示のみ',
   'studio.code.viewOnlyHint':
     'ディスク上の内容をそのまま表示しています。変更するには、お使いのエディターを使うか、AI に頼んでください。',
+  'studio.notes.description': '説明',
+  'studio.notes.descriptionHint':
+    'あなた自身の言葉でのシーン。AI が最初に読みます。',
+  'studio.notes.whatsNew': '新着情報',
+  'studio.notes.whatsNewHint':
+    'このバージョンについての 1 行。公開時にメモとして提示されます。',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': '未保存',
+  'studio.notes.showFile': 'ファイルを表示',
+  'studio.notes.saveFailed':
+    'メモを保存できませんでした。もう一度お試しください。',
+  'studio.notes.changedOutside':
+    '入力中にディスク上のメモが変更されました。保存するとあなたの内容で上書きし、破棄すると新しい内容を残します。',
   'studio.code.tooLargeToShow':
     'このファイルは大きすぎるため、ここには表示できません（{size}）。',
   'studio.code.role.scene': 'シーン',

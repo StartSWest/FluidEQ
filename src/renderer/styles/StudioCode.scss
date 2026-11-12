@@ -587,3 +587,76 @@ $code-bar: 10px;
 .studio-code__glsl--call {
   color: $text-primary;
 }
+
+// THE NOTES AS FIELDS (`StudioCodeNotes.tsx`): the description and the line
+// about what is new, in plain text with their real line breaks, in the body
+// face the member writes them in, not the code face.
+.studio-notes {
+  display: grid;
+  gap: 16px;
+  padding: 12px;
+}
+
+.studio-notes__field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.studio-notes__name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.studio-notes__count {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-weight: $weight-regular;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.studio-notes__hint {
+  color: $text-muted;
+  font-size: $text-micro;
+}
+
+.studio-notes__text {
+  width: 100%;
+  min-width: 0;
+  margin-top: 4px;
+  padding: 8px 10px;
+  color: $text-primary;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: $surface-well;
+  font: inherit;
+  font-size: $text-small;
+  line-height: 1.5;
+  resize: vertical;
+
+  &.is-line {
+    height: 34px;
+    resize: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &[readonly] {
+    color: $text-muted;
+  }
+}
+
+.studio-notes__problem {
+  margin: 0;
+  padding: 8px 12px 0;
+  color: $amber;
+  font-size: $text-small;
+}

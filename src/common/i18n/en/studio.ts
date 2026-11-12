@@ -813,6 +813,18 @@ const studio = {
   'studio.code.viewOnly': 'View only',
   'studio.code.viewOnlyHint':
     'Shown as it is on disk. To change it, use your own editor or ask the AI.',
+  'studio.notes.description': 'Description',
+  'studio.notes.descriptionHint':
+    'Your scene in your own words. Your AI reads this first.',
+  'studio.notes.whatsNew': "What's new",
+  'studio.notes.whatsNewHint':
+    'One line about this version. Publish offers it as the note.',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': 'Not saved',
+  'studio.notes.showFile': 'Show the file',
+  'studio.notes.saveFailed': "The notes couldn't be saved. Try again.",
+  'studio.notes.changedOutside':
+    'The notes changed on disk while you were typing. Save writes yours over them; Discard keeps the new ones.',
   'studio.code.tooLargeToShow': 'This file is too large to show here ({size}).',
   'studio.code.role.scene': 'Scene',
   'studio.code.role.pack': 'Details',

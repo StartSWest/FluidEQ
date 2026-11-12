@@ -131,7 +131,9 @@ describe('the lines the pane marks as wrong', () => {
 
 describe("the scene's own code", () => {
   it('shows the file as it is, which is not a change to it', async () => {
-    await show(<StudioCode source={source(BEFORE)} problemLines={[]} />);
+    await show(
+      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+    );
     expect(editor()).toHaveValue(BEFORE);
     expect(status()).toHaveTextContent('studio.code.watching');
     expect(
@@ -141,9 +143,9 @@ describe("the scene's own code", () => {
 
   it('takes an outside save, and marks and shows what it changed', async () => {
     const { container, rerender } = await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
     );
-    rerender(<StudioCode source={source(AFTER)} problemLines={[]} />);
+    rerender(<StudioCode source={source(AFTER)} problemLines={[]} editable />);
     expect(editor()).toHaveValue(AFTER);
     expect(status()).toHaveTextContent('studio.code.updatedAt:');
     expect(container.querySelector('.studio-code__delta')).toHaveTextContent(
@@ -165,7 +167,7 @@ describe("the scene's own code", () => {
 
   it("saves the member's typing, and takes that save coming back as their own", async () => {
     const { rerender } = await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
     );
     const save = screen.getByRole('button', { name: 'studio.code.save' });
     expect(save).toBeDisabled();
@@ -179,13 +181,15 @@ describe("the scene's own code", () => {
     expect(status()).toHaveTextContent('studio.code.watching');
 
     // The watcher reads the pane's own save back: nothing to offer or mark.
-    rerender(<StudioCode source={source(AFTER)} problemLines={[]} />);
+    rerender(<StudioCode source={source(AFTER)} problemLines={[]} editable />);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(status()).toHaveTextContent('studio.code.watching');
   });
 
   it('saves on Ctrl+S from the code', async () => {
-    await show(<StudioCode source={source(BEFORE)} problemLines={[]} />);
+    await show(
+      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+    );
     fireEvent.change(editor(), { target: { value: AFTER } });
     await act(async () => {
       fireEvent.keyDown(editor(), { key: 's', ctrlKey: true });
@@ -195,11 +199,11 @@ describe("the scene's own code", () => {
 
   it('offers an outside save instead of writing it over typing, and loads it on request', async () => {
     const { rerender } = await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
     );
     const typed = `${BEFORE}\n// mine`;
     fireEvent.change(editor(), { target: { value: typed } });
-    rerender(<StudioCode source={source(AFTER)} problemLines={[]} />);
+    rerender(<StudioCode source={source(AFTER)} problemLines={[]} editable />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('studio.code.changed');
     expect(editor()).toHaveValue(typed);
@@ -211,11 +215,11 @@ describe("the scene's own code", () => {
 
   it('keeps the typing on request, still unsaved', async () => {
     const { rerender } = await show(
-      <StudioCode source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
     );
     const typed = `${BEFORE}\n// mine`;
     fireEvent.change(editor(), { target: { value: typed } });
-    rerender(<StudioCode source={source(AFTER)} problemLines={[]} />);
+    rerender(<StudioCode source={source(AFTER)} problemLines={[]} editable />);
 
     fireEvent.click(screen.getByRole('button', { name: 'studio.code.keep' }));
     expect(editor()).toHaveValue(typed);
@@ -225,7 +229,9 @@ describe("the scene's own code", () => {
 
   it('says a save too large for a scene was not saved', async () => {
     writeStudioSource.mockResolvedValue('too-large');
-    await show(<StudioCode source={source(BEFORE)} problemLines={[]} />);
+    await show(
+      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+    );
     fireEvent.change(editor(), { target: { value: AFTER } });
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'studio.code.save' }));
@@ -235,7 +241,7 @@ describe("the scene's own code", () => {
   });
 
   it('says so when the project has no scene file to show', async () => {
-    await show(<StudioCode source={undefined} problemLines={[]} />);
+    await show(<StudioCode source={undefined} problemLines={[]} editable />);
     expect(screen.getByText('studio.code.missing')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'studio.code.save' }),
@@ -246,7 +252,12 @@ describe("the scene's own code", () => {
     // The pane once had one fold of its own, kept under this key.
     window.localStorage.setItem('fluideq.studio.codeOpen', 'false');
     await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     expect(editor()).toBeInTheDocument();
     expect(
@@ -260,13 +271,20 @@ describe("the scene's own code", () => {
 
   it('is still shown when the other files could not be read', async () => {
     readStudioProjectCode.mockRejectedValue(new Error('gone'));
-    await show(<StudioCode source={source(BEFORE)} problemLines={[]} />);
+    await show(
+      <StudioCode source={source(BEFORE)} problemLines={[]} editable />,
+    );
     expect(editor()).toHaveValue(BEFORE);
   });
 
   it('stays open when the scene gains more files while it is being read', async () => {
     await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     // The member's AI writes the scene a world; the Studio reads again.
     readStudioProjectCode.mockResolvedValue(files());
@@ -287,7 +305,12 @@ describe("every file of the scene, in the Code tab's list", () => {
 
   it('opens as the list of them, every one folded and saying what it is', async () => {
     await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     expect(
       screen
@@ -313,7 +336,12 @@ describe("every file of the scene, in the Code tab's list", () => {
 
   it('opens and folds each by its name, and all of them at once', async () => {
     await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     const expand = screen.getByRole('button', {
       name: 'studio.code.expandAll',
@@ -359,27 +387,47 @@ describe("every file of the scene, in the Code tab's list", () => {
 
   it('keeps what was open for the project, and only for it', async () => {
     const first = await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     fireEvent.click(fold('world.json'));
     first.unmount();
 
     const again = await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     expect(openFiles()).toEqual(['world.jsonstudio.code.role.world']);
     again.unmount();
 
     // The control: another project starts as a first visit does.
     await show(
-      <StudioCode projectId="two" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="two"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     expect(screen.queryAllByRole('button', { expanded: true })).toEqual([]);
   });
 
   it('keeps typing through a fold, and offers its Save on the folded row', async () => {
     await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     fireEvent.click(fold('scene.frag'));
     fireEvent.change(editor(), { target: { value: AFTER } });
@@ -398,7 +446,12 @@ describe("every file of the scene, in the Code tab's list", () => {
 
   it('marks a file saved from outside on its row, and opens the change when asked', async () => {
     const { container } = await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     // The first read is the files as they are: nothing is marked.
     expect(container.querySelector('.studio-code__delta')).toBeNull();
@@ -444,7 +497,12 @@ describe("every file of the scene, in the Code tab's list", () => {
 
   it('reads the files again whenever the Studio hears of the project', async () => {
     await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     expect(readStudioProjectCode).toHaveBeenCalledTimes(1);
     await act(async () => {
@@ -466,7 +524,12 @@ describe("every file of the scene, in the Code tab's list", () => {
       }),
     );
     await show(
-      <StudioCode projectId="one" source={source(BEFORE)} problemLines={[]} />,
+      <StudioCode
+        projectId="one"
+        source={source(BEFORE)}
+        problemLines={[]}
+        editable
+      />,
     );
     // A second read, asked while the first is still out, answers at once.
     readStudioProjectCode.mockResolvedValue(files(WORLD_AFTER));

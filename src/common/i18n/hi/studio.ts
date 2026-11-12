@@ -790,6 +790,18 @@ const studio = {
   'studio.code.viewOnly': 'केवल देखने के लिए',
   'studio.code.viewOnlyHint':
     'जैसी डिस्क पर है वैसी दिखाई गई है। इसे बदलने के लिए अपना एडिटर इस्तेमाल करें या AI से कहें।',
+  'studio.notes.description': 'विवरण',
+  'studio.notes.descriptionHint':
+    'आपका दृश्य, आपके अपने शब्दों में। आपका AI इसे सबसे पहले पढ़ता है।',
+  'studio.notes.whatsNew': 'नया क्या है',
+  'studio.notes.whatsNewHint':
+    'इस संस्करण के बारे में एक पंक्ति। प्रकाशित करते समय यही नोट के रूप में दी जाती है।',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': 'सहेजा नहीं गया',
+  'studio.notes.showFile': 'फ़ाइल दिखाएँ',
+  'studio.notes.saveFailed': 'नोट्स सहेजे नहीं जा सके। फिर से कोशिश करें।',
+  'studio.notes.changedOutside':
+    'आपके लिखते समय नोट्स डिस्क पर बदल गए। सहेजें आपके नोट्स उनके ऊपर लिख देता है; छोड़ें नए वाले रखता है।',
   'studio.code.tooLargeToShow':
     'यह फ़ाइल यहाँ दिखाने के लिए बहुत बड़ी है ({size})।',
   'studio.code.role.scene': 'दृश्य',

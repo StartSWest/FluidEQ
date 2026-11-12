@@ -771,6 +771,18 @@ const studio = {
   'studio.code.viewOnly': '보기 전용',
   'studio.code.viewOnlyHint':
     '디스크에 있는 그대로 표시됩니다. 변경하려면 사용하시는 편집기를 쓰거나 AI에게 요청하세요.',
+  'studio.notes.description': '설명',
+  'studio.notes.descriptionHint':
+    '내 말로 쓴 장면 설명입니다. AI가 가장 먼저 읽습니다.',
+  'studio.notes.whatsNew': '새로운 점',
+  'studio.notes.whatsNewHint':
+    '이 버전에 대한 한 줄입니다. 게시할 때 메모로 제안됩니다.',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': '저장 안 됨',
+  'studio.notes.showFile': '파일 보기',
+  'studio.notes.saveFailed': '메모를 저장할 수 없습니다. 다시 시도하세요.',
+  'studio.notes.changedOutside':
+    '입력하는 동안 디스크의 메모가 바뀌었습니다. 저장하면 내 내용으로 덮어쓰고, 취소하면 새 내용을 유지합니다.',
   'studio.code.tooLargeToShow':
     '이 파일은 너무 커서 여기에 표시할 수 없습니다({size}).',
   'studio.code.role.scene': '장면',

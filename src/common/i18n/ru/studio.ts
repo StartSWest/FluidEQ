@@ -795,6 +795,19 @@ const studio = {
   'studio.code.viewOnly': 'Только просмотр',
   'studio.code.viewOnlyHint':
     'Показан так, как он записан на диске. Чтобы изменить его, откройте свой редактор или попросите ИИ.',
+  'studio.notes.description': 'Описание',
+  'studio.notes.descriptionHint':
+    'Ваша сцена вашими словами. ИИ читает это первым.',
+  'studio.notes.whatsNew': 'Что нового',
+  'studio.notes.whatsNewHint':
+    'Одна строка об этой версии. При публикации она предлагается как заметка.',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': 'Не сохранено',
+  'studio.notes.showFile': 'Показать файл',
+  'studio.notes.saveFailed':
+    'Не удалось сохранить заметки. Попробуйте ещё раз.',
+  'studio.notes.changedOutside':
+    'Пока вы печатали, заметки на диске изменились. «Сохранить» запишет ваши поверх; «Отменить» оставит новые.',
   'studio.code.tooLargeToShow':
     'Этот файл слишком велик, чтобы показать его здесь ({size}).',
   'studio.code.role.scene': 'Сцена',

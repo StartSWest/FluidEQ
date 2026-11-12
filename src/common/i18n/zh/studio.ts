@@ -715,6 +715,17 @@ const studio = {
   'studio.code.viewOnly': '仅供查看',
   'studio.code.viewOnlyHint':
     '按磁盘上的内容显示。要修改它，请使用你自己的编辑器，或让 AI 来改。',
+  'studio.notes.description': '描述',
+  'studio.notes.descriptionHint':
+    '用你自己的话描述场景。你的 AI 会最先读到它。',
+  'studio.notes.whatsNew': '新内容',
+  'studio.notes.whatsNewHint': '关于此版本的一句话。发布时会作为说明提供。',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': '未保存',
+  'studio.notes.showFile': '显示文件',
+  'studio.notes.saveFailed': '无法保存说明。请重试。',
+  'studio.notes.changedOutside':
+    '你输入时磁盘上的说明已更改。保存会用你的内容覆盖；放弃则保留新的内容。',
   'studio.code.tooLargeToShow': '此文件太大，无法在这里显示（{size}）。',
   'studio.code.role.scene': '场景',
   'studio.code.role.pack': '详情',

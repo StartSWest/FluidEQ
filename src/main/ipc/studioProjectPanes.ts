@@ -6,7 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { BrowserWindow, dialog } from 'electron';
 import type { IMemberSceneStore } from '../memberScenes/store';
-import type { IStoredProject } from '../memberScenes/studioProjects';
+import {
+  isLookInside,
+  type IStoredProject,
+} from '../memberScenes/studioProjects';
 import { registerStudioAnimationHistory } from './studioAnimationHistory';
 import { registerStudioAnimationImport } from './studioAnimationImport';
 import { registerStudioAnimationShow } from './studioAnimationShow';
@@ -63,6 +66,10 @@ export const registerStudioProjectPanes = ({
     // The folder of the project named, when that project may be used: the
     // notes are about one project, whichever is on the bench.
     folderFor: (id) => usableProject(id)?.folder,
+    writableFolderFor: (id) => {
+      const project = usableProject(id);
+      return project && !isLookInside(project) ? project.folder : undefined;
+    },
   });
   const disposePictures = registerStudioPicturesIpc({
     getMainWindow,

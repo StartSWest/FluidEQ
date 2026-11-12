@@ -41,6 +41,8 @@ it('keeps notes with the correct project and refuses unknown paths, invalid data
   const dispose = registerStudioNotesIpc({
     folderFor: (id) =>
       usable ? folders[id as keyof typeof folders] : undefined,
+    writableFolderFor: (id) =>
+      usable ? folders[id as keyof typeof folders] : undefined,
   });
   const notes = { description: 'A musical lake', source: 'ignored' };
   try {
@@ -67,7 +69,10 @@ it('keeps notes with the correct project and refuses unknown paths, invalid data
 it('never writes a brief into a project, and takes back one an earlier FluidEQ wrote', () => {
   const folder = path.join(root, 'ridgeline');
   fs.mkdirSync(folder);
-  const dispose = registerStudioNotesIpc({ folderFor: () => folder });
+  const dispose = registerStudioNotesIpc({
+    folderFor: () => folder,
+    writableFolderFor: () => folder,
+  });
   try {
     // A save from a page that still sends one keeps none of it.
     expect(
@@ -128,4 +133,29 @@ it('leaves notes alone that hold no brief, or cannot be read as notes', () => {
   fs.writeFileSync(fileOf(folder), odd);
   expect(stripStoredBrief(folder)).toBe(false);
   expect(fs.readFileSync(fileOf(folder), 'utf8')).toBe(odd);
+});
+
+// Ivan, 2026-11-11: notes are editable in the Code tab, but never those of a
+// scene opened only to look inside - one of FluidEQ's own, or another
+// member's copy.
+it("reads a look-inside scene's notes and never writes them", () => {
+  const folder = path.join(root, 'official');
+  fs.mkdirSync(folder);
+  const kept = JSON.stringify({ schema: 1, description: 'FluidEQ’s own' });
+  fs.writeFileSync(fileOf(folder), kept);
+  const dispose = registerStudioNotesIpc({
+    folderFor: () => folder,
+    writableFolderFor: () => undefined,
+  });
+  try {
+    expect(call('studio-notes-read', 'official')).toEqual({
+      description: 'FluidEQ’s own',
+    });
+    expect(
+      call('studio-notes-save', 'official', { description: 'changed' }),
+    ).toBe(false);
+    expect(fs.readFileSync(fileOf(folder), 'utf8')).toBe(kept);
+  } finally {
+    dispose();
+  }
 });

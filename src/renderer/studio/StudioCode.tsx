@@ -5,6 +5,7 @@ import type { IProjectCodeFile } from 'main/memberScenes/projectCode';
 import { useTranslation } from '../utils/I18nContext';
 import { openFilesOf, rememberOpenFiles } from './codeOpenFiles';
 import StudioCodeFile from './StudioCodeFile';
+import StudioCodeNotes from './StudioCodeNotes';
 import StudioCodeScene from './StudioCodeScene';
 import { readStudioProjectCode, useStudio } from './studioStore';
 import '../styles/StudioCode.scss';
@@ -37,6 +38,11 @@ interface IStudioCodeProps {
   /** The open project's scene source as it is on disk now. */
   source: IProjectSource | undefined;
   problemLines: readonly number[];
+  /**
+   * Whether the scene is the member's to change: not one of FluidEQ's own
+   * or a copy of another member's, opened to look inside.
+   */
+  editable: boolean;
 }
 
 /**
@@ -67,6 +73,7 @@ export default function StudioCode({
   projectId,
   source,
   problemLines,
+  editable,
 }: IStudioCodeProps) {
   const { t } = useTranslation();
   const view = useStudio();
@@ -176,14 +183,28 @@ export default function StudioCode({
             onToggle={() => toggle(source.file)}
           />
         )}
-        {others.map((file) => (
-          <StudioCodeFile
-            key={file.file}
-            file={file}
-            open={isOpen(file.file)}
-            onToggle={() => toggle(file.file)}
-          />
-        ))}
+        {others.map((file) =>
+          file.role === 'notes' && projectId ? (
+            <StudioCodeNotes
+              key={file.file}
+              projectId={projectId}
+              file={file}
+              open={isOpen(file.file)}
+              onToggle={() => toggle(file.file)}
+              editable={editable}
+              // Written by the notes' own writer, which the Studio does not
+              // hear of: the tab reads its files again at once.
+              onSaved={() => setFocused((count) => count + 1)}
+            />
+          ) : (
+            <StudioCodeFile
+              key={file.file}
+              file={file}
+              open={isOpen(file.file)}
+              onToggle={() => toggle(file.file)}
+            />
+          ),
+        )}
         {names.length === 0 && files !== undefined && (
           <p className="studio-code__missing">{t('studio.code.missing')}</p>
         )}

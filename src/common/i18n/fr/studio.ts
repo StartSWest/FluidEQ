@@ -810,6 +810,19 @@ const studio = {
   'studio.code.viewOnly': 'Lecture seule',
   'studio.code.viewOnlyHint':
     "Affiché tel qu'il est sur le disque. Pour le modifier, utilisez votre propre éditeur ou demandez à l'IA.",
+  'studio.notes.description': 'Description',
+  'studio.notes.descriptionHint':
+    'Votre scène avec vos propres mots. Votre IA lit ceci en premier.',
+  'studio.notes.whatsNew': 'Nouveautés',
+  'studio.notes.whatsNewHint':
+    'Une ligne sur cette version. Publier la propose comme note.',
+  'studio.notes.count': '{count} / {max}',
+  'studio.notes.unsaved': 'Non enregistré',
+  'studio.notes.showFile': 'Voir le fichier',
+  'studio.notes.saveFailed':
+    "Les notes n'ont pas pu être enregistrées. Réessayez.",
+  'studio.notes.changedOutside':
+    'Les notes ont changé sur le disque pendant que vous tapiez. Enregistrer écrit les vôtres par-dessus ; Annuler garde les nouvelles.',
   'studio.code.tooLargeToShow':
     'Ce fichier est trop volumineux pour être affiché ici ({size}).',
   'studio.code.role.scene': 'Scène',
