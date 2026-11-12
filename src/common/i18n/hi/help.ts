@@ -550,7 +550,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.tip':
     'पूर्ण स्क्रीन के लिए स्टेज पर डबल-क्लिक करें। “किसी FluidEQ सीन के अंदर देखें…” सीखने के लिए FluidEQ का अपना कोई सीन खोलता है; उसे प्रकाशित नहीं किया जा सकता। बहुत तेज़ चमकने वाले या बहुत भारी चलने वाले सीन रोक दिए जाते हैं। आपकी प्रकाशित की हुई सीन पहले FluidEQ के निर्माता पढ़ते हैं, और मंज़ूर होने के बाद वह आपके लिए हर जगह मुफ़्त चलती है।',
   'help.studio.keywords':
-    'studio, create visualizer, make visualizer, शेडर, shader, glsl, कोडिंग, code, claude, prompt, पब्लिश, publish, export scene, सीन एडिटर, scene editor, क्रिएटर, creator, चैट, स्टूडियो चैट, बदलाव माँगें, claude code, वापस लाएँ, वर्ज़न',
+    'studio, create visualizer, make visualizer, शेडर, shader, glsl, कोडिंग, code, chatgpt, claude, prompt, पब्लिश, publish, export scene, सीन एडिटर, scene editor, क्रिएटर, creator, चैट, स्टूडियो चैट, बदलाव माँगें, claude code, वापस लाएँ, वर्ज़न',
   'help.studio.project': 'आपके प्रोजेक्ट, और अंदर देखने के लिए FluidEQ सीन।',
   'help.studio.stageName': 'स्टेज',
   'help.studio.stage':

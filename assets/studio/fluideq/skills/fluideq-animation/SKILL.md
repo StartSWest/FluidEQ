@@ -48,8 +48,8 @@ FluidEQ draws nothing. The Animations tab is a viewer that plays a sheet,
 and FluidEQ's tools only write a playable sheet and check it. The pictures -
 new poses, a cleaner background, more resolution, a fixed frame - come from
 what the member has: their Claude Code plugins and skills, their tool
-servers, and through those any external image model they use, online or
-running on their own computer. Look first at what
+servers, and through those any external model they use (OpenAI, Gemini,
+Replicate, a local Stable Diffusion server, and so on). Look first at what
 tools you actually have in this chat - the PLUGINS section of your brief
 lists the member's - and pick the best one for the job. Never say FluidEQ
 or this chat draws by itself.

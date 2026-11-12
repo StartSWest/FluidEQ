@@ -41,7 +41,7 @@ const studio = {
   'studio.maker.examples': '或者从一个开始：',
   'studio.maker.openTitle': '在你的 AI 助手中打开项目文件夹',
   'studio.maker.openBody':
-    '任何能处理文件的助手都可以：Claude、Cursor、Copilot。如果用的是聊天，就把它给你的文件保存到这个文件夹。',
+    '任何能处理文件的助手都可以：Claude、Cursor、Codex、Copilot。如果用的是聊天，就把它给你的文件保存到这个文件夹。',
   'studio.maker.openNoProject':
     '先新建一个项目：你的 AI 就在它的文件夹里工作。',
   'studio.maker.copyPath': '复制路径',
@@ -760,9 +760,12 @@ const studio = {
   'studio.agent.byHand': '手动连接 AI',
   'studio.agent.assistant': '你的 AI 助手',
   'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
   'studio.agent.other': '其他',
   'studio.agent.claudeHint':
     '在终端中运行这条命令，然后开启一个新的 Claude Code 会话。',
+  'studio.agent.codexHint':
+    '把这段加到用户文件夹里 .codex/config.toml 的末尾，然后开启一个新的 Codex 会话。',
   'studio.agent.otherHint':
     '大多数 AI 工具都可以在 MCP 服务器设置中添加它。添加后开启一个新会话。',
   'studio.agent.copy': '复制配置',

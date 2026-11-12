@@ -42,7 +42,7 @@ const studio = {
   'studio.maker.examples': 'या किसी एक से शुरू करें:',
   'studio.maker.openTitle': 'प्रोजेक्ट फ़ोल्डर अपने AI असिस्टेंट में खोलें',
   'studio.maker.openBody':
-    'फ़ाइलों पर काम करने वाला कोई भी असिस्टेंट: Claude, Cursor, Copilot। चैट इस्तेमाल कर रहे हैं तो वह जो फ़ाइलें दे, उन्हें इस फ़ोल्डर में सेव करें।',
+    'फ़ाइलों पर काम करने वाला कोई भी असिस्टेंट: Claude, Cursor, Codex, Copilot। चैट इस्तेमाल कर रहे हैं तो वह जो फ़ाइलें दे, उन्हें इस फ़ोल्डर में सेव करें।',
   'studio.maker.openNoProject':
     'पहले एक प्रोजेक्ट बनाइए: आपका AI उसी के फ़ोल्डर में काम करता है।',
   'studio.maker.copyPath': 'पाथ कॉपी करें',
@@ -838,9 +838,12 @@ const studio = {
   'studio.agent.byHand': 'किसी AI को मैन्युअल रूप से जोड़ें',
   'studio.agent.assistant': 'आपका AI असिस्टेंट',
   'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
   'studio.agent.other': 'अन्य',
   'studio.agent.claudeHint':
     'इसे टर्मिनल में चलाएँ, फिर Claude Code का नया सेशन शुरू करें।',
+  'studio.agent.codexHint':
+    'इसे अपने यूज़र फ़ोल्डर में .codex/config.toml के अंत में जोड़ें, फिर Codex का नया सेशन शुरू करें।',
   'studio.agent.otherHint':
     'ज़्यादातर AI टूल इसे अपनी MCP सर्वर सेटिंग्स में लेते हैं। जोड़ने के बाद नया सेशन शुरू करें।',
   'studio.agent.copy': 'सेटअप कॉपी करें',

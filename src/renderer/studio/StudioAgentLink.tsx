@@ -43,11 +43,6 @@ const ASSISTANT_KEY = 'fluideq.studio.agentAssistant';
 const readAssistant = (): TAgentAssistant => {
   try {
     const stored = localStorage.getItem(ASSISTANT_KEY);
-    // Somebody who chose Codex, before it was taken out of the list, uses an
-    // assistant other than Claude Code: the general setup is theirs.
-    if (stored === 'codex') {
-      return 'other';
-    }
     return AGENT_ASSISTANTS.find((name) => name === stored) ?? 'claude';
   } catch {
     // Storage off: the first assistant, as for somebody new.
@@ -65,11 +60,13 @@ const rememberAssistant = (assistant: TAgentAssistant) => {
 
 const NAMES = {
   claude: 'studio.agent.claude',
+  codex: 'studio.agent.codex',
   other: 'studio.agent.other',
 } as const;
 
 const HINTS = {
   claude: 'studio.agent.claudeHint',
+  codex: 'studio.agent.codexHint',
   other: 'studio.agent.otherHint',
 } as const;
 

@@ -26,7 +26,7 @@ const studioChat = {
   'studioChat.plans':
     'Claude Code 需要 Claude Pro、Max、Team 或 Enterprise 套餐。',
   'studioChat.otherAiNote':
-    '“使用其他 AI”会改为复制一段提示词，供其他助手使用。',
+    '“使用其他 AI”会改为复制一段提示词，供 ChatGPT、Codex 或其他助手使用。',
   'studioChat.welcomeTitle': '这个场景应该是什么样的？',
   'studioChat.welcomeBody':
     '用一句话描述它。Claude 会写出它、查看它、配合你的音乐聆听它，并在舞台上播放每个版本。',

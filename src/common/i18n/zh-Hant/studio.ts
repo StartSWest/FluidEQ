@@ -44,7 +44,7 @@ const studio = {
   'studio.maker.examples': '或從一開始：',
   'studio.maker.openTitle': '開啟AI助理中的專案資料夾',
   'studio.maker.openBody':
-    '任何處理檔案的助手：Claude、Cursor、Copilot。透過聊天，將其提供的檔案儲存在此資料夾中。',
+    '任何處理檔案的助手：Claude、Cursor、Codex、Copilot。透過聊天，將其提供的檔案儲存在此資料夾中。',
   'studio.maker.openNoProject':
     '首先啟動一個專案：它的資料夾是你的 AI 工作的地方。',
   'studio.maker.copyPath': '複製路徑',
@@ -740,9 +740,12 @@ const studio = {
   'studio.agent.byHand': '手動連線AI',
   'studio.agent.assistant': '您的人工智慧助手',
   'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': '法典',
   'studio.agent.other': '其他',
   'studio.agent.claudeHint':
     '在終端機中執行它，然後啟動一個新的 Claude Code 會話。',
+  'studio.agent.codexHint':
+    '將其新增至使用者資料夾中 .codex/config.toml 的末尾，然後啟動新的 Codex 會話。',
   'studio.agent.otherHint':
     '大多數 AI 工具都會在其 MCP 伺服器設定中採用此設定。新增後啟動新會話。',
   'studio.agent.copy': '複製設定',

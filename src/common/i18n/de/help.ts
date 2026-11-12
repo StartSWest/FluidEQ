@@ -571,7 +571,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.tip':
     'Doppelklicken Sie auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die Sie veröffentlichen, liest zuerst der Macher von FluidEQ, und sobald sie freigegeben ist, läuft sie für Sie überall kostenlos.',
   'help.studio.keywords':
-    'visualizer erstellen, szeneneditor, shader, GLSL, programmieren, Claude, creator, hochladen, Chat, Studio-Chat, Änderung erbitten, Claude Code, Zurückholen, Versionen',
+    'visualizer erstellen, szeneneditor, shader, GLSL, programmieren, ChatGPT, Claude, creator, hochladen, Chat, Studio-Chat, Änderung erbitten, Claude Code, Zurückholen, Versionen',
   'help.studio.project': 'Ihre Projekte und FluidEQ-Szenen zum Hineinschauen.',
   'help.studio.stageName': 'Bühne',
   'help.studio.stage':

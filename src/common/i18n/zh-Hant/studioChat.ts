@@ -29,7 +29,8 @@ const studioChat = {
   'studioChat.checkAgain': '再次檢查',
   'studioChat.plans':
     'Claude Code 需要 Claude Pro、Max、Team 或 Enterprise 計劃。',
-  'studioChat.otherAiNote': '使用另一個 AI 複製給其他任何助手的提示。',
+  'studioChat.otherAiNote':
+    '使用另一個 AI 複製 ChatGPT、Codex 或任何其他助手的提示。',
   'studioChat.welcomeTitle': '這個場景應該是什麼樣的呢？',
   'studioChat.welcomeBody':
     '用一句話描述一下。克勞德寫它，看它，用它聽你的音樂，並在舞臺上演奏每個版本。',

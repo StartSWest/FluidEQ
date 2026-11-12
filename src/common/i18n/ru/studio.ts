@@ -42,7 +42,7 @@ const studio = {
   'studio.maker.examples': 'Или начните с готовой:',
   'studio.maker.openTitle': 'Откройте папку проекта в вашем ИИ-ассистенте',
   'studio.maker.openBody':
-    'Подойдёт любой ассистент, который работает с файлами: Claude, Cursor, Copilot. Если это чат, сохраните в эту папку файлы, которые он даст.',
+    'Подойдёт любой ассистент, который работает с файлами: Claude, Cursor, Codex, Copilot. Если это чат, сохраните в эту папку файлы, которые он даст.',
   'studio.maker.openNoProject':
     'Сначала создайте проект: в его папке и работает ваш ИИ.',
   'studio.maker.copyPath': 'Скопировать путь',
@@ -844,9 +844,12 @@ const studio = {
   'studio.agent.byHand': 'Подключить ИИ вручную',
   'studio.agent.assistant': 'Ваш ИИ-ассистент',
   'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
   'studio.agent.other': 'Другой',
   'studio.agent.claudeHint':
     'Выполните это в терминале, затем начните новый сеанс Claude Code.',
+  'studio.agent.codexHint':
+    'Добавьте это в конец .codex/config.toml в папке пользователя, затем начните новый сеанс Codex.',
   'studio.agent.otherHint':
     'Большинство ИИ-инструментов принимают это в настройках MCP-серверов. После добавления начните новый сеанс.',
   'studio.agent.copy': 'Скопировать настройку',

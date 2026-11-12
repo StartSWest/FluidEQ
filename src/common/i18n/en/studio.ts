@@ -50,7 +50,7 @@ const studio = {
   'studio.maker.examples': 'Or start from one:',
   'studio.maker.openTitle': 'Open the project folder in your AI assistant',
   'studio.maker.openBody':
-    'Any assistant that works on files: Claude, Cursor, Copilot. With a chat instead, save the files it gives you in this folder.',
+    'Any assistant that works on files: Claude, Cursor, Codex, Copilot. With a chat instead, save the files it gives you in this folder.',
   'studio.maker.openNoProject':
     'Start a project first: its folder is what your AI works in.',
   'studio.maker.copyPath': 'Copy path',
@@ -860,9 +860,12 @@ const studio = {
   'studio.agent.byHand': 'Connect an AI by hand',
   'studio.agent.assistant': 'Your AI assistant',
   'studio.agent.claude': 'Claude Code',
+  'studio.agent.codex': 'Codex',
   'studio.agent.other': 'Other',
   'studio.agent.claudeHint':
     'Run this in a terminal, then start a new Claude Code session.',
+  'studio.agent.codexHint':
+    'Add this at the end of .codex/config.toml in your user folder, then start a new Codex session.',
   'studio.agent.otherHint':
     'Most AI tools take this in their MCP server settings. Start a new session after adding it.',
   'studio.agent.copy': 'Copy setup',

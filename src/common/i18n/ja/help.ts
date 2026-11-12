@@ -547,7 +547,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.tip':
     'ステージをダブルクリックすると全画面になります。「FluidEQ のシーンの中を見る…」では、参考になるよう FluidEQ 自身のシーンを開けますが、公開はできません。激しく点滅するシーンや重すぎるシーンは、FluidEQ が止めます。公開したシーンはまず FluidEQ の制作者が読み、承認されたシーンはどこでも無料であなたのために再生されます。',
   'help.studio.keywords':
-    '作り方, 自作, ビジュアライザー作成, シェーダー, GLSL, 生成AI, Claude, シーンエディター, クリエイター, アップロード, チャット, スタジオ チャット, 変更を頼む, claude code, 元に戻す, バージョン',
+    '作り方, 自作, ビジュアライザー作成, シェーダー, GLSL, 生成AI, ChatGPT, Claude, シーンエディター, クリエイター, アップロード, チャット, スタジオ チャット, 変更を頼む, claude code, 元に戻す, バージョン',
   'help.studio.project':
     'あなたのプロジェクトと、中を見られる FluidEQ のシーン。',
   'help.studio.stageName': 'ステージ',
