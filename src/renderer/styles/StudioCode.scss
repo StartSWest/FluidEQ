@@ -277,10 +277,13 @@ $code-bar: 10px;
     box-shadow: 0 0 8px color-mix(in srgb, $red 55%, transparent);
   }
 
-  // Written by somebody else a moment ago: the diff's own green.
+  // Written by somebody else a moment ago: a ring in the diff's own green,
+  // never a filled dot. Filled, it was the "on" lime itself (`$analogous-2`
+  // compiles to the same colour), and an "on" that follows the scene's tint
+  // would then disagree with a fixed lime beside it (`activeColourToken`).
   .is-changed & {
-    background: $analogous-2;
-    box-shadow: 0 0 8px color-mix(in srgb, $analogous-2 60%, transparent);
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px $analogous-2;
   }
 }
 

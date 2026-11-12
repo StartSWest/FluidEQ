@@ -16,7 +16,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * other tests hold sentences, not the list.
  */
 
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import type { IScenePack } from '../../../common/scenePacks';
+import { claudeCodeCommand } from '../../../main/studioChat/chatLaunch';
+import { DOOR_SERVER } from '../../../main/studioChat/chatStream';
 import { assembleSceneDeclarations } from '../../../common/sceneUniformContract';
 import { WORLD_SIGNALS } from '../../../common/sceneWorld';
 import { SHIPPED_SKILL_TEXTS } from '../../../renderer/studio/aiPromptSkills';
@@ -56,9 +61,37 @@ const TOOLS = [
   'build_sheet',
   'pose_sheet',
   'look_at_animation',
-  'choose_maker',
+  'video_frames',
   'watch_the_song',
 ];
+
+/**
+ * The tools of FluidEQ's own door the chat's Claude Code is started with
+ * (`claudeCodeCommand`'s allow list), so the list above cannot drift from
+ * what the chat is really given: it named `choose_maker` for a day after
+ * that tool went (ac74f5ddc), and missed `video_frames` once it came.
+ */
+const startedWith = () => {
+  const own = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-brief-tools-'));
+  try {
+    const { args } = claudeCodeCommand({
+      own,
+      folder: own,
+      executable: 'claude',
+      brief: 'brief',
+      tools: undefined,
+      model: 'default',
+      effort: 'default',
+      sessionId: undefined,
+    });
+    const door = `mcp__${DOOR_SERVER}__`;
+    return args
+      .filter((arg) => arg.startsWith(door))
+      .map((arg) => arg.slice(door.length));
+  } finally {
+    fs.rmSync(own, { recursive: true, force: true });
+  }
+};
 
 const named = (text: string, name: string) =>
   new RegExp(`(?<![A-Za-z0-9_])${name}(?![A-Za-z0-9_])`).test(text);
@@ -89,6 +122,10 @@ describe('what the Studio tells its AI of', () => {
 
   it('names every tool the chat is given', () => {
     expect(TOOLS.filter((name) => !named(chatBrief(), name))).toEqual([]);
+  });
+
+  it('keeps its list of tools to the ones the chat is started with', () => {
+    expect([...startedWith()].sort()).toEqual([...TOOLS].sort());
   });
 
   // The control: the check does fail for a name nobody wrote.
