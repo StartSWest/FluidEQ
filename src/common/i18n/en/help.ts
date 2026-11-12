@@ -553,7 +553,7 @@ const help = {
   'help.studio.tip':
     'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and once it is approved it plays free for you everywhere.',
   'help.studio.keywords':
-    'create visualizer, make visualizer, make a scene, shader, glsl, code, ai, chatgpt, claude, prompt, publish, export scene, scene editor, creator, chat, studio chat, ask for a change, claude code, bring back, versions',
+    'create visualizer, make visualizer, make a scene, shader, glsl, code, ai, claude, prompt, publish, export scene, scene editor, creator, chat, studio chat, ask for a change, claude code, bring back, versions',
   'help.studio.project': 'Your projects, and FluidEQ scenes to look inside.',
   'help.studio.stageName': 'Stage',
   'help.studio.stage':

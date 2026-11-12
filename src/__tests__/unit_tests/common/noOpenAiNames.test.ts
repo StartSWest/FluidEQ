@@ -17,7 +17,11 @@ import path from 'path';
 
 const root = path.join(__dirname, '../../../..');
 
-const NAMES = /\bGPT\b|ChatGPT|Codex|OpenAI/;
+// Whole words in any case: Help's search words carried a lowercase
+// "chatgpt" past a case-sensitive pattern. "gpt" stands alone or before a
+// hyphen ("GPT-4o"), and a whole word keeps "openAir", a Room preset's key,
+// from reading as the company.
+const NAMES = /\bchatgpt\b|\bgpt\b|\bcodex\b|\bopenai\b/i;
 
 const RECORDS = [
   'assets/studio/starter/LICENSES.md',
@@ -55,7 +59,17 @@ it('reads what it says it reads, and the pattern finds what it looks for', () =>
   // The starter's licence is read and does carry the names: the allowlist is
   // what lets it through, not a scan that never reached it.
   expect(withNames(READ)).toContain('assets/studio/starter/LICENSES.md');
-  ['ChatGPT, Codex or any other assistant', 'OpenAI, Gemini', 'GPT'].forEach(
-    (text) => expect(text).toMatch(NAMES),
+  [
+    'ChatGPT, Codex or any other assistant',
+    'OpenAI, Gemini',
+    'GPT',
+    'shader, glsl, code, ai, chatgpt, claude',
+    '、chatgpt、',
+    'made with gpt-image',
+    'ask gpt to draw',
+  ].forEach((text) => expect(text).toMatch(NAMES));
+  // Words that only hold the letters are not names.
+  ['openAir', 'Open air', 'decodexed', 'gptq'].forEach((text) =>
+    expect(text).not.toMatch(NAMES),
   );
 });
