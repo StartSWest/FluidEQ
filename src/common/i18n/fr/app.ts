@@ -335,6 +335,16 @@ const app: Partial<Dictionary> = {
     'FluidEQ continue de fonctionner tel quel. Ce compte n’a pas l’édition signée : cette copie ne reçoit donc pas de mises à jour.',
   'edition.notActivatedSignIn':
     'FluidEQ continue de fonctionner tel quel. Connectez-vous avec le compte qui a l’édition signée, ou obtenez-la, pour continuer à recevoir les mises à jour.',
+  'edition.changing.title': 'Les mises à jour changent',
+  'edition.changing.free':
+    'C’est la dernière version qui arrive toute seule dans l’édition gratuite. FluidEQ reste gratuit : chaque nouvelle version sera sur fluideq.com, prête à être téléchargée et installée par-dessus celle-ci.',
+  'edition.changing.signed':
+    'Si vous préférez que les nouvelles versions continuent d’arriver toutes seules, l’édition signée le fait pour {price}, une seule fois. Elle est signée par {publisher}, un éditeur vérifié, et reste sur votre compte FluidEQ pour de bon.',
+  'edition.changing.signedNoPrice':
+    'Si vous préférez que les nouvelles versions continuent d’arriver toutes seules, l’édition signée le fait, en un seul paiement. Elle est signée par {publisher}, un éditeur vérifié, et reste sur votre compte FluidEQ pour de bon.',
+  'edition.changing.see': 'Voir l’édition signée – {price}',
+  'edition.changing.seeNoPrice': 'Voir l’édition signée',
+  'edition.changing.gotIt': 'Compris',
   'update.onSite.title': 'Une nouvelle version est sur le site',
   'update.onSite.body':
     'FluidEQ {version} est sorti. Cette édition gratuite ne se met pas à jour toute seule : téléchargez-la sur fluideq.com et installez-la par-dessus celle-ci. Vos réglages restent.',

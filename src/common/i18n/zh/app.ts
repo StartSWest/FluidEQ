@@ -313,6 +313,16 @@ const app: Partial<Dictionary> = {
     'FluidEQ 会照常运行。这个账户没有签名版，所以此副本不会收到更新。',
   'edition.notActivatedSignIn':
     'FluidEQ 会照常运行。请用拥有签名版的账户登录，或获取签名版，以继续获取更新。',
+  'edition.changing.title': '更新方式有变化',
+  'edition.changing.free':
+    '这是免费版最后一个会自动送达的版本。FluidEQ 仍然免费：每个新版本都会放在 fluideq.com，可以下载并覆盖安装。',
+  'edition.changing.signed':
+    '如果你希望新版本继续自动送达，签名版可以做到，一次性支付 {price}。它由经过验证的发布者 {publisher} 签名，并永久留在你的 FluidEQ 账户中。',
+  'edition.changing.signedNoPrice':
+    '如果你希望新版本继续自动送达，签名版可以做到，只需一次性付款。它由经过验证的发布者 {publisher} 签名，并永久留在你的 FluidEQ 账户中。',
+  'edition.changing.see': '查看签名版 – {price}',
+  'edition.changing.seeNoPrice': '查看签名版',
+  'edition.changing.gotIt': '知道了',
   'update.onSite.title': '网站上有新版本',
   'update.onSite.body':
     'FluidEQ {version} 已发布。这个免费版不会自动更新：请从 fluideq.com 下载并覆盖安装。你的设置会保留。',

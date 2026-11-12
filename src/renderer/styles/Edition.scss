@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -87,4 +88,18 @@ it under the terms of the GNU General Public License version 3 or later.
   bottom: 18px;
   left: 18px;
   width: min(420px, calc(100vw - 36px));
+}
+
+// The one-time word about updates: a small question over the window, the
+// same card every confirmation uses, wide enough for its two paragraphs.
+.edition-changing-backdrop {
+  @include dialog.backdrop(4100);
+}
+
+.compact-frame.edition-changing {
+  width: min(480px, calc(100vw - 36px));
+
+  p + p {
+    margin-top: $spacing-s;
+  }
 }

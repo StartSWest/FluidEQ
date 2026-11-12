@@ -324,6 +324,16 @@ const app = {
     'FluidEQ keeps working as it is. This account doesn’t have the signed edition, so this copy gets no updates.',
   'edition.notActivatedSignIn':
     'FluidEQ keeps working as it is. Sign in with the account that has the signed edition, or get it, to keep getting updates.',
+  'edition.changing.title': 'Updates are changing',
+  'edition.changing.free':
+    'This is the last version that reaches the free edition by itself. FluidEQ stays free: every new version will be on fluideq.com, ready to download and install over this one.',
+  'edition.changing.signed':
+    'If you’d rather new versions keep arriving on their own, the signed edition does that for {price}, once. It’s signed by {publisher}, a verified publisher, and stays on your FluidEQ account for good.',
+  'edition.changing.signedNoPrice':
+    'If you’d rather new versions keep arriving on their own, the signed edition does that, paid once. It’s signed by {publisher}, a verified publisher, and stays on your FluidEQ account for good.',
+  'edition.changing.see': 'See the signed edition – {price}',
+  'edition.changing.seeNoPrice': 'See the signed edition',
+  'edition.changing.gotIt': 'Got it',
   'update.onSite.title': 'A new version is on the site',
   'update.onSite.body':
     'FluidEQ {version} is out. This free edition doesn’t update itself: download it from fluideq.com and run it over this one. Your settings stay.',

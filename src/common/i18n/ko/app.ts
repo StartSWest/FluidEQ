@@ -311,6 +311,16 @@ const app = {
     'FluidEQ는 그대로 계속 작동합니다. 이 계정에는 서명 에디션이 없어서 이 사본은 업데이트를 받지 않습니다.',
   'edition.notActivatedSignIn':
     'FluidEQ는 그대로 계속 작동합니다. 업데이트를 계속 받으려면 서명 에디션이 있는 계정으로 로그인하거나 서명 에디션을 구입하세요.',
+  'edition.changing.title': '업데이트 방식이 바뀝니다',
+  'edition.changing.free':
+    '무료 에디션에 스스로 도착하는 버전은 이번이 마지막입니다. FluidEQ는 계속 무료입니다. 새 버전은 모두 fluideq.com에 올라오며, 내려받아 이 버전 위에 설치하면 됩니다.',
+  'edition.changing.signed':
+    '새 버전이 계속 저절로 도착하기를 원한다면 서명 에디션이 {price}, 한 번 결제로 그렇게 해 줍니다. 검증된 게시자 {publisher}이(가) 서명했으며 FluidEQ 계정에 계속 남습니다.',
+  'edition.changing.signedNoPrice':
+    '새 버전이 계속 저절로 도착하기를 원한다면 서명 에디션이 한 번 결제로 그렇게 해 줍니다. 검증된 게시자 {publisher}이(가) 서명했으며 FluidEQ 계정에 계속 남습니다.',
+  'edition.changing.see': '서명 에디션 보기 – {price}',
+  'edition.changing.seeNoPrice': '서명 에디션 보기',
+  'edition.changing.gotIt': '확인',
   'update.onSite.title': '사이트에 새 버전이 있습니다',
   'update.onSite.body':
     'FluidEQ {version}이(가) 나왔습니다. 이 무료 에디션은 스스로 업데이트되지 않습니다. fluideq.com에서 내려받아 이 버전 위에 설치하세요. 설정은 그대로 유지됩니다.',

@@ -295,6 +295,16 @@ const app = {
     'FluidEQ 會照常運作。這個帳戶沒有簽署版，所以此副本不會收到更新。',
   'edition.notActivatedSignIn':
     'FluidEQ 會照常運作。請用擁有簽署版的帳戶登入，或取得簽署版，以繼續取得更新。',
+  'edition.changing.title': '更新方式有變化',
+  'edition.changing.free':
+    '這是免費版最後一個會自動送達的版本。FluidEQ 仍然免費：每個新版本都會放在 fluideq.com，可以下載並覆蓋安裝。',
+  'edition.changing.signed':
+    '如果您希望新版本繼續自動送達，簽署版可以做到，一次性支付 {price}。它由經過驗證的發行者 {publisher} 簽署，並永久留在您的 FluidEQ 帳戶中。',
+  'edition.changing.signedNoPrice':
+    '如果您希望新版本繼續自動送達，簽署版可以做到，只需一次性付款。它由經過驗證的發行者 {publisher} 簽署，並永久留在您的 FluidEQ 帳戶中。',
+  'edition.changing.see': '查看簽署版 – {price}',
+  'edition.changing.seeNoPrice': '查看簽署版',
+  'edition.changing.gotIt': '知道了',
   'update.onSite.title': '網站上有新版本',
   'update.onSite.body':
     'FluidEQ {version} 已發布。這個免費版不會自動更新：請從 fluideq.com 下載並覆蓋安裝。您的設定會保留。',

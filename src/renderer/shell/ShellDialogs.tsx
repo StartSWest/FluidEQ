@@ -46,6 +46,7 @@ import SongSoundHost from '../audio/SongSoundHost';
 import SpeechMemoryNotice from '../components/SpeechMemoryNotice';
 import UpdateNotice from '../components/UpdateNotice';
 import UnactivatedNotice from '../edition/UnactivatedNotice';
+import UpdatesChangingNotice from '../edition/UpdatesChangingNotice';
 import WhatsNewDialog from '../components/WhatsNewDialog';
 import SceneReportHost from '../plus/SceneReportHost';
 import PrereqMissingModal from '../PrereqMissingModal';
@@ -231,6 +232,7 @@ const ShellDialogs = ({
           at once do not land on top of each other. */}
       <UpdateNotice />
       <UnactivatedNotice />
+      <UpdatesChangingNotice />
       {/* Here rather than in the Karaoke tab that owns the model: the idle
           timer that raises it runs for as long as the model is loaded, and
           asking inside a tab nobody is looking at held the RAM until the
