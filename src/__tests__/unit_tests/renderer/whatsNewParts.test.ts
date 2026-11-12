@@ -204,11 +204,12 @@ describe('2.5’s opening page', () => {
   // Ivan, 2026-11-11: "not true and fixed month on text dont put that on
   // text". A length of time goes stale the day after the release (the live
   // count says how long), and the gallery's scenes are bought, so nothing may
-  // claim there is nothing to buy.
+  // claim there is nothing to buy. Ivan, 2026-11-12: "keep saying nothing to
+  // unlock when the viz are for sell": nothing to unlock is the same claim.
   const STALE =
     /\bmonths?\b|\bweeks?\b|\bmeses\b|\bsemanas?\b|\bmois\b|\bsemaines?\b|\bMonate?n?\b|\bWochen?\b|\bmesi\b|\bsettimane?\b|месяц|недел|महीन|हफ़्त|か月|週間|개월|석 달|个月|個月/i;
   const NOTHING_TO_BUY =
-    /nothing to buy|nothing to activate|nada que comprar|nada para comprar|rien à acheter|nichts zu kaufen|niente da comprare|ничего не нужно покупать|न कुछ ख़रीदना|購入も|구매할 것도|无需购买|不必購買/i;
+    /nothing to buy|nothing to activate|no purchase|unlock|nada que comprar|nada para comprar|desbloquear|rien à acheter|débloquer|nichts zu kaufen|freizuschalten|freischalten|niente da comprare|sbloccare|ничего не нужно покупать|разблокир|न कुछ ख़रीदना|अनलॉक|購入も|解除する|구매할 것도|잠금 해제|无需购买|解锁|不必購買|解鎖/i;
 
   it.each(LOCALES)(
     'names no length of time and no "nothing to buy", in %s',
@@ -226,16 +227,31 @@ describe('2.5’s opening page', () => {
     expect('with nothing to buy and nothing to activate').toMatch(
       NOTHING_TO_BUY,
     );
+    expect('The app costs nothing, and there is nothing to unlock.').toMatch(
+      NOTHING_TO_BUY,
+    );
+    expect('Die App kostet nichts, und es gibt nichts freizuschalten.').toMatch(
+      NOTHING_TO_BUY,
+    );
     expect('The app costs nothing and needs no activation.').not.toMatch(
       NOTHING_TO_BUY,
     );
+  });
+
+  // What is free is FluidEQ itself; the gallery's scenes are sold, and the
+  // page says so beside the word "free".
+  it('says what is free and that the gallery’s scenes are sold', () => {
+    const page = tourLines('en', /^\s*'tour\.signed\./).join(' ');
+    expect(page).toContain('FluidEQ itself costs nothing');
+    expect(page).toContain('sold by their makers');
   });
 
   it('keeps the notes’ opening to what is true of the app', () => {
     const app = release('2.5.0').split(/^### /m)[1] ?? '';
     expect(app).not.toMatch(STALE);
     expect(app).not.toMatch(NOTHING_TO_BUY);
-    expect(app).toContain('The app costs');
+    expect(app).toContain('FluidEQ itself costs nothing');
+    expect(app).toContain('sold by their makers');
   });
 });
 

@@ -296,7 +296,7 @@ const tour24 = {
     'Ogni nuova versione arriva da sola, e FluidEQ ti avvisa quando è pronta. Le tue impostazioni restano.',
   'tour.signed.freeTitle': 'Gratis per tutti',
   'tour.signed.freeBody':
-    'Un solo FluidEQ, uguale per tutti. L’app non costa nulla e non c’è niente da sbloccare.',
+    'FluidEQ in sé non costa nulla, la stessa app per tutti. Le scene della Galleria dei Visualizzatori sono vendute da chi le crea.',
   'tour.signed.unit.day.one': 'giorno',
   'tour.signed.unit.day.few': 'giorni',
   'tour.signed.unit.day.many': 'giorni',

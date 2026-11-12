@@ -18,8 +18,8 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 - **It keeps updating itself.** New versions arrive by themselves; FluidEQ
   tells you when one is ready, and **Restart now** finishes it. Your
   settings stay.
-- **Free for everyone.** One FluidEQ, the same for everybody. The app costs
-  nothing, and there is nothing to unlock.
+- **Free for everyone.** FluidEQ itself costs nothing, the same app for
+  everybody. Scenes in the Visualizers gallery are sold by their makers.
 
 #### Sound and the app
 

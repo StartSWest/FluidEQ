@@ -288,7 +288,7 @@ const tour24 = {
     '新しいバージョンは自動で届き、準備ができると FluidEQ がお知らせします。設定はそのまま残ります。',
   'tour.signed.freeTitle': '誰でも無料',
   'tour.signed.freeBody':
-    'FluidEQ はひとつだけ、誰にとっても同じです。アプリは無料で、解除するものも何もありません。',
+    'FluidEQ そのものは無料で、誰にとっても同じアプリです。ビジュアライザーのギャラリーのシーンは、作った人が販売しています。',
   'tour.signed.unit.day.one': '日',
   'tour.signed.unit.day.few': '日',
   'tour.signed.unit.day.many': '日',

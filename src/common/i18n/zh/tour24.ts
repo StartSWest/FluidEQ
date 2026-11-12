@@ -267,7 +267,7 @@ const tour24 = {
     '每个新版本都会自动送达，准备好后 FluidEQ 会告诉你。你的设置会保留。',
   'tour.signed.freeTitle': '人人免费',
   'tour.signed.freeBody':
-    '只有一个 FluidEQ，人人相同。应用本身免费，也没有任何需要解锁的内容。',
+    'FluidEQ 本身免费，人人都是同一个应用。“可视化”图库里的场景由它们的作者出售。',
   'tour.signed.unit.day.one': '天',
   'tour.signed.unit.day.few': '天',
   'tour.signed.unit.day.many': '天',
