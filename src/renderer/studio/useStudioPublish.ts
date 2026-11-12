@@ -37,7 +37,7 @@ import preparePublishPreview, {
   type IPreparedPublishPreview,
 } from './preparePublishPreview';
 import useStudioPublishProgress from './useStudioPublishProgress';
-import usePublishNote from './usePublishNote';
+import usePublishNote, { lineToOffer } from './usePublishNote';
 
 export type { IPreparedPublishPreview } from './preparePublishPreview';
 
@@ -308,12 +308,12 @@ export default function useStudioPublish(
     const suggested = projectId
       ? (window.electron?.ipcRenderer
           ?.readStudioNotes?.(projectId)
-          .then((notes) => notes?.whatsNew)
           .catch(() => undefined) ?? Promise.resolve(undefined))
       : Promise.resolve(undefined);
     const opened = performance.now();
     Promise.all([still, published, studioTermsAgreed(), suggested])
-      .then(([picture, alreadyPublished, agreed, suggestedNote]) => {
+      .then(([picture, alreadyPublished, agreed, notes]) => {
+        const suggestedNote = lineToOffer(notes, alreadyPublished?.scene);
         // What the press of Publish waits on before the dialog shows: the
         // cover drawn, the gallery and the terms asked, the notes read.
         reportInfo(

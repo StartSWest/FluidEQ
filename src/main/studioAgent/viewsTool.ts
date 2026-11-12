@@ -40,6 +40,44 @@ export const VIEW_SHAPES: readonly {
   },
 ];
 
+/**
+ * The three views led by the one the member has on the stage (Ivan,
+ * 2026-11-12: "it must always look first at the image the user is
+ * viewing"), said to be theirs; in their own order when the stage shows
+ * none of them.
+ */
+export const viewsInOrder = (
+  now: TStudioAgentShape | undefined,
+): typeof VIEW_SHAPES => {
+  const theirs = VIEW_SHAPES.find(({ shape }) => shape === now);
+  if (!theirs) {
+    return VIEW_SHAPES;
+  }
+  return [
+    { ...theirs, words: `${MEMBERS_VIEW} ${theirs.words}` },
+    ...VIEW_SHAPES.filter((view) => view !== theirs),
+  ];
+};
+
+const MEMBERS_VIEW = 'THE VIEW THE MEMBER HAS ON THEIR STAGE NOW, first:';
+
+/** How a turn names the view on the member's stage, for "look at this". */
+const STAGE_NAMES: Record<TStudioAgentShape, string> = {
+  graph: 'STANDARD (the EQ graph)',
+  'ultra-wide-graph': 'ULTRA WIDE (the graph on an ultra-wide monitor)',
+  'compact-player': "the Compact player's picture",
+  'compact-player-column': "MOBILE (the Compact player's whole column)",
+  'full-screen': 'FULL SCREEN',
+};
+
+/**
+ * Said to the chat with each of the member's messages, after their words:
+ * which view their stage shows, so "look, I'm looking at this" names one
+ * without the AI having to ask. English: it is read by a model.
+ */
+export const stageViewLine = (shape: TStudioAgentShape): string =>
+  `(FluidEQ, not the member: their stage shows the scene as ${STAGE_NAMES[shape]} now. "This", "here" and "what I see" mean that view; look at it first.)`;
+
 export const VIEWS_SCHEMA = {
   ...LOOK_SCHEMA,
   properties: Object.fromEntries(
@@ -56,6 +94,8 @@ export interface IViewsToolDeps<TOutcome> {
   ): IMcpToolResult | undefined;
   /** A look that failed, in the same words. */
   explain(outcome: TOutcome): IMcpToolResult;
+  /** The view on the member's stage, drawn first. */
+  shapeNow?: () => TStudioAgentShape;
 }
 
 const failure = (words: string): IMcpToolResult => ({
@@ -67,11 +107,12 @@ export const createViewsTool = <TOutcome>({
   look,
   describe,
   explain,
+  shapeNow,
 }: IViewsToolDeps<TOutcome>): IMcpTool => ({
   name: 'look_at_views',
   title: 'Look at all three views',
   description:
-    "Draws the member's scene at the three places a listener meets it and returns the three pictures in one answer: STANDARD (the EQ graph), ULTRA WIDE (the graph on an ultra-wide monitor) and MOBILE (the Compact player's whole column, the scene running on under its panel). Call it after every change that can be seen, before you tell the member anything is done: a scene is finished only when all three are right. It takes every argument look_at_scene takes except shape - the same moment, sliders, camera and sound in each view - and changes nothing. For one view alone, or full screen, use look_at_scene.",
+    "Draws the member's scene at the three places a listener meets it and returns the three pictures in one answer: STANDARD (the EQ graph), ULTRA WIDE (the graph on an ultra-wide monitor) and MOBILE (the Compact player's whole column, the scene running on under its panel), the view the member has on their stage first. Call it after every change that can be seen, before you tell the member anything is done: a scene is finished only when all three are right. It takes every argument look_at_scene takes except shape - the same moment, sliders, camera and sound in each view - and changes nothing. For one view alone, or full screen, use look_at_scene.",
   inputSchema: VIEWS_SCHEMA,
   annotations: {
     readOnlyHint: true,
@@ -93,20 +134,23 @@ export const createViewsTool = <TOutcome>({
     // and a scene that cannot be drawn at all is said once.
     const content: IMcpToolResult['content'] = [];
     let refused: IMcpToolResult | undefined;
-    await VIEW_SHAPES.reduce(async (before, { shape, words }) => {
-      await before;
-      if (refused) {
-        return;
-      }
-      const asked = { ...request, shape };
-      const outcome = await look(asked);
-      const drawn = describe(asked, outcome);
-      if (!drawn) {
-        refused = explain(outcome);
-        return;
-      }
-      content.push({ type: 'text', text: words }, ...drawn.content);
-    }, Promise.resolve());
+    await viewsInOrder(shapeNow?.()).reduce(
+      async (before, { shape, words }) => {
+        await before;
+        if (refused) {
+          return;
+        }
+        const asked = { ...request, shape };
+        const outcome = await look(asked);
+        const drawn = describe(asked, outcome);
+        if (!drawn) {
+          refused = explain(outcome);
+          return;
+        }
+        content.push({ type: 'text', text: words }, ...drawn.content);
+      },
+      Promise.resolve(),
+    );
     return (
       refused ?? {
         content: [

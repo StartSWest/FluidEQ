@@ -111,6 +111,8 @@ export interface IPlusPublishingIpcDeps {
    * (`publishedRecords.ts`), for the project list's Published mark.
    */
   recordPublished?: (folder: string, sceneId: string, version: number) => void;
+  /** The member's scenes in the gallery, as the gallery just said. */
+  onMine?: (scenes: readonly IPublishedScene[]) => void;
   /** This computer's copies fetched now (`studioPublish.ts`). */
   refreshOwnCopy?: (sceneId: string, version: number) => Promise<boolean>;
   logger?: { info(message: string): void; warn(message: string): void };
@@ -132,6 +134,7 @@ export const registerPlusPublishingIpc = ({
   onTermsAgreed,
   onPublished,
   recordPublished,
+  onMine,
   refreshOwnCopy,
   logger,
 }: IPlusPublishingIpcDeps) => {
@@ -155,6 +158,9 @@ export const registerPlusPublishingIpc = ({
       return authorization;
     }
     const outcome = await mineOf(authorization.auth);
+    if (outcome.ok && access.accountId() === me) {
+      onMine?.(outcome.scenes);
+    }
     return access.accountId() === me
       ? outcome
       : { ok: false, reason: 'signed-out' };

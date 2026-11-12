@@ -59,7 +59,8 @@ describe("the AI's shapes", () => {
     expect(AGENT_SHAPE_OF_PREVIEW).toEqual({
       stage: 'graph',
       ultraWide: 'ultra-wide-graph',
-      player: 'compact-player',
+      // The whole column the stage shows, never the panel alone.
+      player: 'compact-player-column',
     });
   });
 });
@@ -83,7 +84,7 @@ describe('the stage telling main its view', () => {
     rerender({ preview: 'ultraWide' });
     expect(told).toHaveBeenLastCalledWith('ultra-wide-graph');
     rerender({ preview: 'player' });
-    expect(told).toHaveBeenLastCalledWith('compact-player');
+    expect(told).toHaveBeenLastCalledWith('compact-player-column');
     unmount();
     expect(told).toHaveBeenLastCalledWith(null);
   });

@@ -3,6 +3,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { ipcMain } from 'electron';
 import {
+  isOldNote,
   notesHoldBrief,
   parseStudioNotes,
   type IStudioNotes,
@@ -82,8 +83,54 @@ export const clearVersionNote = (folder: string): boolean => {
   return writeStudioNotes(folder, {
     description: notes.description,
     ...(notes.earlierIdea ? { earlierIdea: notes.earlierIdea } : {}),
+    ...(notes.published === undefined ? {} : { published: notes.published }),
   });
 };
+
+/**
+ * A version went out from this folder: its line taken out, and the notes
+ * stamped with the moment, so a line found in them later is known to be
+ * newer than every version gone out (`isOldNote`). Notes that do not exist
+ * are left so: there is no line in them to mistake.
+ */
+export const markNotesPublished = (folder: string, at: number): boolean => {
+  const notes = readStudioNotes(folder);
+  if (!notes) {
+    return false;
+  }
+  return writeStudioNotes(folder, {
+    description: notes.description,
+    ...(notes.earlierIdea ? { earlierIdea: notes.earlierIdea } : {}),
+    published: at,
+  });
+};
+
+/** When the folder's notes were last written, in ms, or undefined. */
+export const notesWrittenAt = (folder: string): number | undefined => {
+  try {
+    return fs.statSync(path.join(folder, FILE)).mtimeMs;
+  } catch {
+    return undefined;
+  }
+};
+
+/** The notes as the page reads them: with when the file was last written. */
+export const readNotesWithTime = (folder: string): IStudioNotes | undefined => {
+  const notes = readStudioNotes(folder);
+  const writtenAt = notesWrittenAt(folder);
+  return notes && writtenAt !== undefined ? { ...notes, writtenAt } : notes;
+};
+
+/**
+ * The update note taken out when it is older than the gallery's version
+ * (`isOldNote`, `time` when that version went out): it is about that
+ * version or an earlier one, never about what is still to go out. Notes
+ * kept their line through every publication until 2026-11-12 (all 40 of
+ * Ivan's local scenes held one), and an AI told to fold its change into the
+ * line there folded it into last version's. True when it was taken.
+ */
+export const clearNoteOlderThan = (folder: string, time: number): boolean =>
+  isOldNote(readNotesWithTime(folder), time) && clearVersionNote(folder);
 
 export const registerStudioNotesIpc = ({
   folderFor,
@@ -109,7 +156,7 @@ export const registerStudioNotesIpc = ({
       return undefined;
     }
     stripStoredBrief(folder);
-    return readStudioNotes(folder);
+    return readNotesWithTime(folder);
   });
   ipcMain.handle('studio-notes-save', (_event, id: unknown, raw: unknown) => {
     const folder = typeof id === 'string' ? writableFolderFor(id) : undefined;
@@ -119,11 +166,15 @@ export const registerStudioNotesIpc = ({
     }
     // The earlier idea is the folder's, never the page's to drop: a save
     // that does not name it keeps the one the file holds.
-    const earlierIdea =
-      notes.earlierIdea ?? readStudioNotes(folder)?.earlierIdea;
+    const held = readStudioNotes(folder);
+    const earlierIdea = notes.earlierIdea ?? held?.earlierIdea;
+    // When a version last went out is FluidEQ's to stamp at publishing,
+    // never the page's to set or drop: the file's is kept.
     return writeStudioNotes(folder, {
-      ...notes,
+      description: notes.description,
+      ...(notes.whatsNew ? { whatsNew: notes.whatsNew } : {}),
       ...(earlierIdea ? { earlierIdea } : {}),
+      ...(held?.published === undefined ? {} : { published: held.published }),
     });
   });
   return () => {

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, type MutableRefObject } from 'react';
+import { isOldNote, type IStudioNotes } from 'common/studioNotes';
 import { askStudioChatForNote } from './chat/studioChatStore';
 import type { IPublishDraft } from './useStudioPublish';
 
@@ -22,6 +23,21 @@ import type { IPublishDraft } from './useStudioPublish';
  * no line asks the scene's chat to write one, shown as being written until
  * that reply ends.
  */
+/**
+ * The line the notes offer for this publication: none when it is older than
+ * the gallery's version (`isOldNote`), which is the last version's line and
+ * would go out again as this one's unread.
+ */
+export const lineToOffer = (
+  notes: IStudioNotes | undefined,
+  published: IPublishDraft['published'],
+): string | undefined => {
+  const galleryAt = published ? Date.parse(published.updatedAt) : Number.NaN;
+  return isOldNote(notes, Number.isFinite(galleryAt) ? galleryAt : undefined)
+    ? undefined
+    : notes?.whatsNew;
+};
+
 export default function usePublishNote(
   draft: IPublishDraft | undefined,
   currentDraft: MutableRefObject<IPublishDraft | undefined>,
@@ -67,7 +83,7 @@ export default function usePublishNote(
           if (!now) {
             return undefined;
           }
-          const line = notes?.whatsNew;
+          const line = lineToOffer(notes, now.published);
           setDraft({
             ...now,
             ...(line ? { suggestedNote: line } : {}),

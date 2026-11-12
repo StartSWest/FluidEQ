@@ -60,9 +60,10 @@ import {
   removePlacedSkills,
   type IStudioSkill,
 } from './studioChat/studioSkills';
-import { clearVersionNote, stripStoredBrief } from './ipc/studioNotes';
+import { markNotesPublished, stripStoredBrief } from './ipc/studioNotes';
 import { createPublishedAdoption } from './memberScenes/publishedAdoption';
 import { createPublishedRecords } from './memberScenes/publishedRecords';
+import { sceneIdOf } from './studioChat/noteDue';
 import { chatLauncherFor } from './studioChat/chatRelayClient';
 import { getTrayLocale, onTrayLocale } from './tray';
 import { createArrangementStore } from './wallpaper/arrangement';
@@ -190,6 +191,10 @@ const registerMemberServices = ({
   // Which version went out from each project's folder, and what the folder
   // held then: the project list's Published mark.
   const publishedRecords = createPublishedRecords(userDataDir, log);
+  // When each of the member's scenes went out at the version the gallery
+  // has, by scene id, as the gallery last said (the Studio asks when it
+  // opens): an update note written before that is that version's.
+  const galleryTimes = new Map<string, number>();
   // A scene published before records were kept is recognised by the copy
   // of it that came back here: FluidEQ's own in the scene store, a member's
   // in the looks. Read only once the Studio asks, after both exist.
@@ -438,7 +443,9 @@ const registerMemberServices = ({
     // project list reads its publications again.
     onReplyEnded: () => memberScenesIpc.publishedMayHaveChanged(),
     mustAsk: (projectId) => memberScenesIpc.chatMustAsk(projectId),
-    isPublished: publishedRecords.has,
+    isPublished: (folder) =>
+      publishedRecords.has(folder) || galleryTimes.has(sceneIdOf(folder) ?? ''),
+    galleryAt: (sceneId) => galleryTimes.get(sceneId),
     logger: log,
   });
   const plusPublishingIpc = registerPlusPublishingIpc({
@@ -448,11 +455,20 @@ const registerMemberServices = ({
     activeIsInspection: memberScenesIpc.activeIsInspection,
     mayPublishActive: memberScenesIpc.mayUseActive,
     onTermsAgreed: plusTermsNoticeIpc.agreed,
-    // The update note went out with this version: taken from the notes
-    // first, so the folder recorded is the folder without it.
+    // The update note went out with this version: taken from the notes, and
+    // the notes stamped with the moment, first, so the folder recorded is
+    // the folder as it now stays.
     recordPublished: (folder, sceneId, version) => {
-      clearVersionNote(folder);
+      markNotesPublished(folder, Date.now());
       publishedRecords.record(folder, sceneId, version);
+    },
+    onMine: (scenes) => {
+      scenes.forEach(({ sceneId, updatedAt }) => {
+        const at = Date.parse(updatedAt);
+        if (Number.isFinite(at)) {
+          galleryTimes.set(sceneId, at);
+        }
+      });
     },
     // One of FluidEQ's own, just published: its maker's copy fetched now.
     refreshOwnCopy: (sceneId, version) =>

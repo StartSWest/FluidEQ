@@ -31,7 +31,9 @@ import type { IStudioNotes } from '../../../common/studioNotes';
 import StudioPublishNote, {
   useOfferedNote,
 } from '../../../renderer/studio/StudioPublishNote';
-import usePublishNote from '../../../renderer/studio/usePublishNote';
+import usePublishNote, {
+  lineToOffer,
+} from '../../../renderer/studio/usePublishNote';
 import type { IPublishDraft } from '../../../renderer/studio/useStudioPublish';
 /* eslint-enable import/first */
 
@@ -199,5 +201,53 @@ describe('the dialog’s line, from the chat and the notes', () => {
     expect(now()?.suggestedNote).toBeUndefined();
     await replyEnds();
     expect(now()?.suggestedNote).toBe('The balloons glow.');
+  });
+});
+
+describe('a line older than the gallery’s version', () => {
+  // The gallery's version went out at 2026-11-01T00:00:00Z.
+  const GALLERY = Date.parse(PUBLISHED.updatedAt);
+  const line = 'Last version’s line.';
+  beforeEach(() => askStudioChatForNote.mockClear());
+
+  it('is not offered', () => {
+    expect(
+      lineToOffer(
+        { description: 'x', whatsNew: line, writtenAt: GALLERY - 1 },
+        PUBLISHED,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('is offered when written after it, or in notes stamped at publishing', () => {
+    expect(
+      lineToOffer(
+        { description: 'x', whatsNew: line, writtenAt: GALLERY + 1 },
+        PUBLISHED,
+      ),
+    ).toBe(line);
+    expect(
+      lineToOffer(
+        {
+          description: 'x',
+          whatsNew: line,
+          writtenAt: GALLERY - 1,
+          published: GALLERY - 2,
+        },
+        PUBLISHED,
+      ),
+    ).toBe(line);
+  });
+
+  it('opens the update as having no line, and asks the chat for one', async () => {
+    const { now, replyEnds } = setUp(opened({ published: PUBLISHED }), {
+      description: 'x',
+      whatsNew: line,
+      writtenAt: GALLERY - 1,
+    });
+    await act(async () => undefined);
+    expect(askStudioChatForNote).toHaveBeenCalledTimes(1);
+    await replyEnds();
+    expect(now()?.suggestedNote).toBeUndefined();
   });
 });

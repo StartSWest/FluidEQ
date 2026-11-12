@@ -48,6 +48,7 @@ it('keeps notes with the correct project and refuses unknown paths, invalid data
   try {
     expect(call('studio-notes-save', 'first', notes)).toBe(true);
     expect(call('studio-notes-read', 'first')).toEqual({
+      writtenAt: expect.any(Number),
       description: notes.description,
     });
     expect(call('studio-notes-read', 'second')).toBeUndefined();
@@ -96,6 +97,7 @@ it('never writes a brief into a project, and takes back one an earlier FluidEQ w
       }),
     );
     expect(call('studio-notes-read', 'p')).toEqual({
+      writtenAt: expect.any(Number),
       description: 'A pro 3D spectrum analyser.',
       whatsNew: 'Taller peaks.',
       earlierIdea: 'Ridgeline, the last eight seconds as ridges.',
@@ -112,6 +114,7 @@ it('never writes a brief into a project, and takes back one an earlier FluidEQ w
     // A later save from the page, which never names it, keeps it.
     call('studio-notes-save', 'p', { description: 'A pro analyser, 3D.' });
     expect(call('studio-notes-read', 'p')).toEqual({
+      writtenAt: expect.any(Number),
       description: 'A pro analyser, 3D.',
       earlierIdea: 'Ridgeline, the last eight seconds as ridges.',
     });
@@ -149,12 +152,50 @@ it("reads a look-inside scene's notes and never writes them", () => {
   });
   try {
     expect(call('studio-notes-read', 'official')).toEqual({
+      writtenAt: expect.any(Number),
       description: 'FluidEQ’s own',
     });
     expect(
       call('studio-notes-save', 'official', { description: 'changed' }),
     ).toBe(false);
     expect(fs.readFileSync(fileOf(folder), 'utf8')).toBe(kept);
+  } finally {
+    dispose();
+  }
+});
+
+it('keeps the publication stamp through a save, and never takes one from the page', () => {
+  const folder = path.join(root, 'stamped');
+  fs.mkdirSync(folder);
+  fs.writeFileSync(
+    fileOf(folder),
+    JSON.stringify({ description: 'Balloons', published: 1700 }),
+  );
+  const dispose = registerStudioNotesIpc({
+    folderFor: () => folder,
+    writableFolderFor: () => folder,
+  });
+  try {
+    expect(
+      call('studio-notes-save', 'stamped', {
+        description: 'Balloons at dawn',
+        whatsNew: 'They rise.',
+        published: 99,
+      }),
+    ).toBe(true);
+    expect(JSON.parse(fs.readFileSync(fileOf(folder), 'utf8'))).toEqual({
+      schema: 1,
+      description: 'Balloons at dawn',
+      whatsNew: 'They rise.',
+      published: 1700,
+    });
+    // Control: notes never published from here gain no stamp from the page.
+    fs.writeFileSync(fileOf(folder), JSON.stringify({ description: 'x' }));
+    call('studio-notes-save', 'stamped', { description: 'y', published: 99 });
+    expect(JSON.parse(fs.readFileSync(fileOf(folder), 'utf8'))).toEqual({
+      schema: 1,
+      description: 'y',
+    });
   } finally {
     dispose();
   }

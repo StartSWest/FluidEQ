@@ -104,6 +104,7 @@ it("writes the member's own scene's notes", () => {
 it('reads and never writes the notes of a scene opened to look inside', () => {
   ['official', 'copy'].forEach((id) => {
     expect(call('studio-notes-read', id)).toEqual({
+      writtenAt: expect.any(Number),
       description: `${id} as it was`,
     });
     expect(call('studio-notes-save', id, { description: 'changed' })).toBe(

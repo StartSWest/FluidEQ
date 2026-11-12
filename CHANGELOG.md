@@ -73,7 +73,12 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   opens with the line filled in, takes a newer one the chat writes while
   the dialog is open, and asks the chat for one when there is none, never
   writing over what you typed. Each publication starts the next version's
-  line afresh.
+  line afresh, and a line left over from a version already in the Gallery
+  is never offered again.
+- **The chat sees what you see.** Whether the stage shows the Standard
+  graph, Ultra wide or the Compact player, the chat is told with every
+  message and looks at that view first, the scene alone, so "look at this"
+  needs no explaining.
 - **A painted scene's marks move by hand.** The pins and boxes that show
   the AI what you mean are dragged anywhere, a box pulled by its corners
   and edges, and one removed with its button or Delete.

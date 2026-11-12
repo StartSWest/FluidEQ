@@ -511,6 +511,7 @@ export const createStudioTools = ({
         outcome.ok
           ? failure('The views could not be drawn.')
           : explain(outcome),
+      ...(shapeNow ? { shapeNow } : {}),
     }),
     ...(pictures
       ? [

@@ -29,6 +29,8 @@ import createChatTurns from '../../../main/studioChat/chatTurns';
 import { noteDue, VERSION_NOTE_ASK } from '../../../main/studioChat/noteDue';
 import {
   clearVersionNote,
+  markNotesPublished,
+  readNotesWithTime,
   readStudioNotes,
 } from '../../../main/ipc/studioNotes';
 /* eslint-enable import/first */
@@ -52,7 +54,10 @@ const put = (folder: string, name: string, text: string) =>
   fs.writeFileSync(path.join(folder, name), text);
 
 /** A scene folder with its notes, and a chat on a fake Claude Code. */
-const setUp = ({ published = true }: { published?: boolean } = {}) => {
+const setUp = ({
+  published = true,
+  galleryAt,
+}: { published?: boolean; galleryAt?: number } = {}) => {
   const folder = path.join(root, 'scene');
   fs.mkdirSync(folder);
   put(folder, 'pack.json', '{"id":"balloon-dawn"}');
@@ -78,6 +83,8 @@ const setUp = ({ published = true }: { published?: boolean } = {}) => {
     entriesOf: () => entries,
     dropAsks: () => undefined,
     isPublished: (asked) => published && asked === folder,
+    galleryAt: (sceneId) =>
+      sceneId === 'balloon-dawn' ? galleryAt : undefined,
   });
   const session: IChatSession = {
     process: {
@@ -249,5 +256,70 @@ describe('the note once its version went out', () => {
       '{"description":7,"whatsNew":"The balloons rise."}',
     );
     expect(readStudioNotes(folder)).toBeUndefined();
+  });
+
+  it('a publication stamps the notes and takes the line', () => {
+    const { folder } = setUp();
+    put(
+      folder,
+      'studio-notes.json',
+      '{"description":"Balloons","whatsNew":"The balloons rise."}',
+    );
+    expect(markNotesPublished(folder, 1700)).toBe(true);
+    expect(readStudioNotes(folder)).toEqual({
+      description: 'Balloons',
+      published: 1700,
+    });
+  });
+});
+
+/** Notes written at `seconds` past the epoch, as a file's own time. */
+const notesAt = (folder: string, text: string, seconds: number) => {
+  put(folder, 'studio-notes.json', text);
+  fs.utimesSync(path.join(folder, 'studio-notes.json'), seconds, seconds);
+};
+
+describe('a line left from a version already in the gallery', () => {
+  const OLD = '{"description":"Balloons","whatsNew":"Last version’s line."}';
+
+  it('is taken out before a turn can fold into it', () => {
+    const { folder, turns, session } = setUp({ galleryAt: 2_000_000 });
+    notesAt(folder, OLD, 1000);
+    turns.begin(PROJECT, session, [{ words: 'make the balloons rise' }]);
+    expect(readStudioNotes(folder)?.whatsNew).toBeUndefined();
+  });
+
+  it('is kept when written after the gallery’s version went out', () => {
+    const { folder, turns, session } = setUp({ galleryAt: 500_000 });
+    notesAt(folder, OLD, 1000);
+    turns.begin(PROJECT, session, [{ words: 'make the balloons rise' }]);
+    expect(readStudioNotes(folder)?.whatsNew).toBe('Last version’s line.');
+  });
+
+  it('is kept in notes FluidEQ stamped at publishing, however old the file', () => {
+    const { folder, turns, session } = setUp({ galleryAt: 2_000_000 });
+    notesAt(
+      folder,
+      '{"description":"Balloons","whatsNew":"Written since.","published":900000}',
+      1000,
+    );
+    turns.begin(PROJECT, session, [{ words: 'make the balloons rise' }]);
+    expect(readStudioNotes(folder)?.whatsNew).toBe('Written since.');
+  });
+
+  it('is taken out before the publish dialog’s ask, too', () => {
+    const { folder, turns, session } = setUp({
+      published: false,
+      galleryAt: 2_000_000,
+    });
+    notesAt(folder, OLD, 1000);
+    turns.askForNote(PROJECT, session);
+    expect(readStudioNotes(folder)?.whatsNew).toBeUndefined();
+  });
+
+  it('is read with the time its file was written', () => {
+    const { folder } = setUp();
+    notesAt(folder, OLD, 1000);
+    expect(readNotesWithTime(folder)?.writtenAt).toBe(1_000_000);
   });
 });

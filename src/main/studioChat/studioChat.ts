@@ -35,6 +35,7 @@ import registerChatHandlers from './chatHandlers';
 import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
 import createTranscriptCache from './transcriptCache';
+import { stageViewLine } from '../studioAgent/viewsTool';
 import { findClaudeCode, startClaudeCode, systemEnv } from './claudeCode';
 import { createClaudeModels } from './claudeModels';
 import {
@@ -79,6 +80,8 @@ export interface IStudioChatDeps {
    * does a turn that changed it owe an update note (`noteDue.ts`).
    */
   isPublished?: (folder: string) => boolean;
+  /** When a scene's gallery version went out, as last heard (`chatTurns.ts`). */
+  galleryAt?: (sceneId: string) => number | undefined;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -92,6 +95,7 @@ export const createStudioChat = ({
   onReplyEnded,
   mustAsk,
   isPublished = () => false,
+  galleryAt = () => undefined,
   logger,
 }: IStudioChatDeps) => {
   const root = path.join(userDataDir, 'studio-chat');
@@ -187,6 +191,7 @@ export const createStudioChat = ({
     entriesOf: (projectId) => transcriptOf(projectId).entries,
     dropAsks: pictures.asks.drop,
     isPublished,
+    galleryAt,
   });
 
   // The copy of the skills the first version kept here: the chat loads
@@ -246,6 +251,14 @@ export const createStudioChat = ({
   const { sceneChat } = createChatTargets(agentProject);
 
   /**
+   * Which view the member's stage shows, written to Claude after their words
+   * and never shown as theirs (`stageViewLine`): "look at this" then names a
+   * view without the AI having to ask (Ivan, 2026-11-12).
+   */
+  const stageView = () =>
+    door.shapeNow ? [{ words: stageViewLine(door.shapeNow()) }] : [];
+
+  /**
    * Messages to Claude, now, as one turn: each shown as the member wrote it,
    * then all written to Claude Code together, on the latest one's picks.
    */
@@ -261,7 +274,7 @@ export const createStudioChat = ({
     turns.show(projectId, messages);
     const session = await sessionFor(projectId, folder, latest);
     if (session) {
-      turns.begin(projectId, session, messages);
+      turns.begin(projectId, session, [...messages, ...stageView()]);
     }
   };
 
@@ -365,7 +378,12 @@ export const createStudioChat = ({
     if (at !== -1) {
       transcript.entries.splice(at, 1);
     }
-    turns.begin(chat.key, session, again.messages, again.replyId);
+    turns.begin(
+      chat.key,
+      session,
+      [...again.messages, ...stageView()],
+      again.replyId,
+    );
   };
 
   /**

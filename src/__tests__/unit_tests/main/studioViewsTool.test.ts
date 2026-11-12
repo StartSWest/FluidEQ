@@ -2,7 +2,13 @@
  * @jest-environment node
  */
 import type { ILookRequest } from '../../../main/studioAgent/lookRequest';
-import { createViewsTool } from '../../../main/studioAgent/viewsTool';
+import type { TStudioAgentShape } from '../../../common/studioAgent';
+import {
+  createViewsTool,
+  stageViewLine,
+  viewsInOrder,
+  VIEW_SHAPES,
+} from '../../../main/studioAgent/viewsTool';
 
 /**
  * look_at_views (Ivan, 2026-11-11: "the agent needs to be able to look at
@@ -88,5 +94,68 @@ describe('look_at_views', () => {
     ).toEqual(
       expect.arrayContaining(['seconds', 'sliders', 'camera', 'sound']),
     );
+  });
+});
+
+/**
+ * The view on the member's stage comes first (Ivan, 2026-11-12: "it must
+ * always look first at the image the user is viewing"), and every turn
+ * names it, so "look, I'm looking at this" needs no question back.
+ */
+describe('the view the member is looking at', () => {
+  const lookIn = async (now: TStudioAgentShape | undefined) => {
+    const asked: string[] = [];
+    const words: string[] = [];
+    const tool = createViewsTool<{ shape: string }>({
+      look: async (request) => {
+        asked.push(request.shape);
+        return { shape: request.shape };
+      },
+      describe: (_request, outcome) => ({
+        content: [
+          { type: 'image', data: outcome.shape, mimeType: 'image/jpeg' },
+        ],
+      }),
+      explain: () => ({ content: [] }),
+      ...(now ? { shapeNow: () => now } : {}),
+    });
+    const result = await tool.call({});
+    result.content.forEach((part) => {
+      if (part.type === 'text') {
+        words.push(part.text);
+      }
+    });
+    return { asked, words };
+  };
+
+  it('leads look_at_views, said to be theirs', async () => {
+    const { asked, words } = await lookIn('ultra-wide-graph');
+    expect(asked).toEqual([
+      'ultra-wide-graph',
+      'graph',
+      'compact-player-column',
+    ]);
+    expect(words[0]).toMatch(/^THE VIEW THE MEMBER HAS ON THEIR STAGE NOW/);
+    expect(words[0]).toContain('ULTRA WIDE');
+    const mobile = await lookIn('compact-player-column');
+    expect(mobile.asked[0]).toBe('compact-player-column');
+  });
+
+  it('leaves the usual order, and claims no view, when the stage shows none of the three', async () => {
+    const { asked, words } = await lookIn(undefined);
+    expect(asked).toEqual([
+      'graph',
+      'ultra-wide-graph',
+      'compact-player-column',
+    ]);
+    expect(words.join('\n')).not.toContain('THE VIEW THE MEMBER HAS');
+    expect(viewsInOrder('full-screen')).toBe(VIEW_SHAPES);
+  });
+
+  it('is named to the chat with the member’s words', () => {
+    expect(stageViewLine('ultra-wide-graph')).toContain('ULTRA WIDE');
+    expect(stageViewLine('compact-player-column')).toContain('MOBILE');
+    expect(stageViewLine('graph')).toContain('STANDARD');
+    expect(stageViewLine('graph')).toMatch(/not the member/);
   });
 });

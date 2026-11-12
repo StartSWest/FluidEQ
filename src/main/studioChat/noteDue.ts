@@ -4,8 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import fs from 'fs';
+import path from 'path';
 import { MAX_VERSION_NOTE } from '../../common/sceneVersionNote';
-import { versionNoteOf } from '../ipc/studioNotes';
+import { clearNoteOlderThan, versionNoteOf } from '../ipc/studioNotes';
 import { sceneFingerprint } from './chatVersions';
 
 /**
@@ -27,6 +29,32 @@ export interface INoteMark {
   /** The update note then. */
   line: string | undefined;
 }
+
+/** The scene id the folder's pack.json gives, or undefined. */
+export const sceneIdOf = (folder: string): string | undefined => {
+  try {
+    const { id } = JSON.parse(
+      fs.readFileSync(path.join(folder, 'pack.json'), 'utf8'),
+    ) as { id?: unknown };
+    return typeof id === 'string' ? id : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * An update note older than the gallery's version taken out before anything
+ * reads or folds into it (`clearNoteOlderThan`). `galleryAt` is when the
+ * scene's version in the gallery went out, as the gallery last said.
+ */
+export const clearOldNote = (
+  folder: string,
+  galleryAt: (sceneId: string) => number | undefined,
+): boolean => {
+  const sceneId = sceneIdOf(folder);
+  const at = sceneId === undefined ? undefined : galleryAt(sceneId);
+  return at !== undefined && clearNoteOlderThan(folder, at);
+};
 
 export const noteMarkOf = (folder: string): INoteMark => ({
   scene: sceneFingerprint(folder),

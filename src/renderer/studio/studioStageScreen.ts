@@ -26,13 +26,16 @@ export type TStagePreview = 'stage' | 'ultraWide' | 'player';
 /**
  * Each view as the member's AI names its shape (`STUDIO_AGENT_SHAPES`), so a
  * look that names none is of the view on the stage: the stage itself is the
- * graph's shape until its divider is dragged.
+ * graph's shape until its divider is dragged. The player view is the whole
+ * column the stage shows, not the panel alone: the AI looked at the panel
+ * while the member saw the scene run on under it (Ivan, 2026-11-12: "if they
+ * are on the phone mode, the AMP UI, it takes that one").
  */
 export const AGENT_SHAPE_OF_PREVIEW: Record<TStagePreview, TStudioAgentShape> =
   {
     stage: 'graph',
     ultraWide: 'ultra-wide-graph',
-    player: 'compact-player',
+    player: 'compact-player-column',
   };
 
 /** The ultra-wide graph's shape, width over height (`ULTRA_WIDE_GRAPH`). */

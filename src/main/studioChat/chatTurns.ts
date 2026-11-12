@@ -20,7 +20,7 @@ import {
   withMadePictures,
   type TPictureSnapshot,
 } from './madePictures';
-import { noteDue, noteMarkOf, VERSION_NOTE_ASK } from './noteDue';
+import { clearOldNote, noteDue, noteMarkOf, VERSION_NOTE_ASK } from './noteDue';
 import withEvent from './replyEvents';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
@@ -45,6 +45,12 @@ interface IChatTurnsDeps {
    * it no turn is followed by a request for the update note.
    */
   isPublished?: (folder: string) => boolean;
+  /**
+   * When a scene's version in the gallery went out, as the gallery last
+   * said: an update note written before it is that version's, taken out
+   * before a turn can fold into it (`clearOldNote`).
+   */
+  galleryAt?: (sceneId: string) => number | undefined;
 }
 
 /** One of Claude Code's own control requests, as a line of its input. */
@@ -75,6 +81,7 @@ const createChatTurns = ({
   entriesOf,
   dropAsks,
   isPublished = () => false,
+  galleryAt = () => undefined,
 }: IChatTurnsDeps) => {
   const write = (session: IChatSession, line: string) => {
     session.process.write(line);
@@ -153,6 +160,7 @@ const createChatTurns = ({
 
   /** FluidEQ asks for the update note: a reply of its own, nothing shown as the member's. */
   const askNote = (projectId: string, session: IChatSession) => {
+    clearOldNote(session.folder, galleryAt);
     session.askingNote = true;
     open(projectId, session);
     write(session, userLine(randomUUID(), { words: VERSION_NOTE_ASK }));
@@ -215,6 +223,7 @@ const createChatTurns = ({
       // waiting, or stopped, are judged together at the next good end. Only
       // for a scene in the gallery: a first version owes no note.
       if (!session.noteMark && isPublished(session.folder)) {
+        clearOldNote(session.folder, galleryAt);
         session.noteMark = noteMarkOf(session.folder);
       }
       open(projectId, session, replacing);
