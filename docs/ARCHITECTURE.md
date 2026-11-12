@@ -130,14 +130,19 @@ split across `src/main/ipc/` (one file per surface: `dspHost`, `filters`,
   `src/common/remoteAudio*.ts`, `src/renderer/remoteAudio/` (PCM worklets,
   mixer, resampler, sender), `ws`, and the LAN capture binary above.
 - **Updates.** `src/main/signedAutoUpdates.ts` checks on machine wake, unlock,
-  window focus and tray click, never on a timer; the private feed token
-  provider has no unauthenticated fallback. `unattendedUpdate.ts`,
+  window focus and tray click, never on a timer. Only a release updates: the
+  signed build from `signed.yml` in the public GitHub releases, and the
+  unsigned bridge (`pnpm package:bridge`) that 2.4.x copies take from
+  `latest.yml` and that hands over to the signed line; every installer must be
+  signed by the pinned publisher and match a feed signed with the feed key
+  (`src/common/updateChannel.ts`). `unattendedUpdate.ts`,
   `nativeUpdatePrompt.ts`. Mandatory updates: `.erb/scripts/mandatory-update.ts`
   turns `FLUIDEQ_MANDATORY_UPDATE` into `releaseInfo.vendor` fields in
   `latest.yml`; `src/common/mandatoryUpdate.ts` reads them and fails open.
   `.erb/scripts/package-signed.ts` refuses to run unless every
-  `FLUIDEQ_SIGN_*`, `FLUIDEQ_UPDATE_URL` and `AZURE_*` variable is set, so an
-  unsigned build cannot be produced by accident.
+  `FLUIDEQ_SIGN_*` and `AZURE_*` variable is set, so an unsigned build cannot
+  be produced by accident; `FLUIDEQ_UPDATE_URL`, set only to test the crossing,
+  points a build at a test repository instead of the public releases.
 - **Branding.** `src/common/branding.ts` documents what is not renameable: the
   literal `fluideq` in file names, localStorage keys, DOM events and APO include
   lines is an on-disk contract.
@@ -229,7 +234,8 @@ pnpm test:unit
 pnpm test:cucumber       # not part of `pnpm test`
 pnpm test:native-dsp     # CTest + the ten smoke scripts
 pnpm package             # unsigned installer; fetches APO first
-pnpm package:signed      # needs the signing and update env vars
+pnpm package:signed      # the release; needs the signing env vars
+pnpm package:bridge      # the unsigned 2.5 that carries 2.4.x over
 pnpm docs:guide          # regenerates docs/USER-GUIDE.md and user-guide.html
 ```
 

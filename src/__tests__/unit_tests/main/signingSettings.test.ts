@@ -23,6 +23,7 @@ import {
   verifyUpdateConfig,
 } from '../../../../.erb/scripts/package-signed';
 import manifest from '../../../../package.json';
+import { SIGNED_UPDATE_FEED_URL } from '../../../common/updateChannel';
 
 const COMPLETE = {
   FLUIDEQ_SIGN_ENDPOINT: 'https://eus.codesigning.azure.net',
@@ -31,7 +32,6 @@ const COMPLETE = {
   FLUIDEQ_SIGN_PUBLISHER: 'Ivan Carmenates Garcia',
   FLUIDEQ_SIGN_SUBJECT:
     'CN=Ivan Carmenates Garcia, O=Ivan Carmenates Garcia, L=Miami, S=Florida, C=US',
-  FLUIDEQ_UPDATE_URL: 'https://updates.example.com/fluideq/',
   AZURE_TENANT_ID: 'tenant',
   AZURE_CLIENT_ID: 'client',
   AZURE_CLIENT_SECRET: 'secret',
@@ -54,8 +54,23 @@ describe('reading the signing configuration', () => {
         certificateProfileName: 'fluideq-profile',
         publisherName: 'Ivan Carmenates Garcia',
       },
-      updateUrl: 'https://updates.example.com/fluideq/',
+      updateUrl: SIGNED_UPDATE_FEED_URL,
     });
+  });
+
+  it('takes a test feed in place of the public one', () => {
+    expect(
+      readSigningSettings({
+        ...COMPLETE,
+        FLUIDEQ_UPDATE_URL: 'https://updates.example.com/fluideq/',
+      })?.updateUrl,
+    ).toBe('https://updates.example.com/fluideq/');
+  });
+
+  it('refuses to build a signed release with the bridge pin set', () => {
+    expect(() =>
+      readSigningSettings({ ...COMPLETE, FLUIDEQ_UPDATE_BRIDGE: '1' }),
+    ).toThrow(/bridge/);
   });
 
   it.each(Object.keys(COMPLETE))('refuses when %s is missing', (name) => {
@@ -128,16 +143,17 @@ describe('reading the signing configuration', () => {
     // any update capability.
     const args = toBuilderArgs(SETTINGS);
     expect(args).toContain('--config.publish.provider=generic');
-    expect(args).toContain(
-      '--config.publish.url=https://updates.example.com/fluideq/',
-    );
+    expect(args).toContain(`--config.publish.url=${SIGNED_UPDATE_FEED_URL}`);
+    // signed.yml: latest.yml carries the bridge for 2.4.x copies.
+    expect(args).toContain('--config.publish.channel=signed');
   });
 });
 
 describe('checking what the built app will do when it updates', () => {
   const good = [
     'provider: generic',
-    'url: https://updates.example.com/fluideq/',
+    `url: ${SIGNED_UPDATE_FEED_URL}`,
+    'channel: signed',
     'publisherName: Ivan Carmenates Garcia',
     'updaterCacheDirName: fluideq-app-updater',
   ].join('\n');
@@ -183,9 +199,16 @@ describe('checking what the built app will do when it updates', () => {
     expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([]);
   });
 
+  it('fails a build that would read latest.yml', () => {
+    const yaml = good.replace(/^channel: signed$/m, '');
+    expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
+      expect.stringContaining('latest.yml belongs to the bridge'),
+    ]);
+  });
+
   it('fails a build pointed at a different generic feed', () => {
     const yaml = good.replace(
-      'url: https://updates.example.com/fluideq/',
+      `url: ${SIGNED_UPDATE_FEED_URL}`,
       'url: https://somewhere-else.example.com/',
     );
     expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([

@@ -190,6 +190,7 @@ const createAppUpdates = ({
       isPackaged: app.isPackaged,
       platform: process.platform,
       publisherName: process.env.FLUIDEQ_SIGN_PUBLISHER || '',
+      isBridge: process.env.FLUIDEQ_UPDATE_BRIDGE === '1',
       updateUrl: process.env.FLUIDEQ_UPDATE_URL || '',
       logger: log,
       beforeQuit: beginQuit,

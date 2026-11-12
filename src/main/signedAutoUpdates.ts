@@ -21,6 +21,10 @@ import path from 'path';
 import type { NsisUpdater } from 'electron-updater';
 import type { IAppUpdateStatus } from '../common/constants';
 import { isMandatoryUpdate } from '../common/mandatoryUpdate';
+import {
+  SIGNED_UPDATE_CHANNEL,
+  SIGNED_UPDATE_FEED_URL,
+} from '../common/updateChannel';
 import { POWERSHELL_PATH, utf8Command } from './powershell';
 import { verifyDownloadedUpdateFeed } from './updateFeedSignature';
 
@@ -75,25 +79,31 @@ interface IUpdateLogger {
   warn(message: string, ...args: unknown[]): void;
 }
 
-/**
- * Optional boundary for a private feed.
- *
- * The implementation belongs to the website/API integration: it must exchange
- * an app/device credential for a short-lived, read-only token. It must never
- * return a Vercel Blob read-write token or another server credential. When a
- * provider is supplied, failure to mint a token cancels that update check;
- * there is deliberately no unauthenticated fallback.
- */
-export type UpdateBearerTokenProvider = () => Promise<string>;
-
 export interface IReleaseAutoUpdateOptions {
   executablePath: string;
   isPackaged: boolean;
   loadUpdater: () => NsisUpdater;
   logger: IUpdateLogger;
   platform: NodeJS.Platform;
+  /**
+   * The publisher every update must be signed by, compiled in by the release
+   * build. Empty — a build from source, the weekly cold build — means no
+   * updater at all.
+   */
   publisherName: string;
+  /**
+   * This build is the bridge: the one unsigned 2.5 that 2.4.x copies take
+   * from `latest.yml`, because their updater accepts only an unsigned
+   * installer. It runs unsigned itself and moves the install onto the signed
+   * line. Compiled in by `pnpm package:bridge`.
+   */
+  isBridge: boolean;
   sendStatus: (status: IAppUpdateStatus) => void;
+  /**
+   * Where the signed feed is read from. Empty means the public one
+   * (`SIGNED_UPDATE_FEED_URL`); a build made to test the crossing names a
+   * test repository's instead, at build time.
+   */
   updateUrl: string;
   /**
    * Arm the "a real quit is happening" flag before app.quit() runs.
@@ -117,7 +127,6 @@ export interface IReleaseAutoUpdateOptions {
    * this is the only channel that carries one.
    */
   onManualCheckResult?: (result: ManualCheckResult, version?: string) => void;
-  getBearerToken?: UpdateBearerTokenProvider;
   /**
    * The clock `checkIfDue` reads. Injectable so a test can age a check
    * without waiting four hours, and so nothing here owns a timer.
@@ -181,12 +190,6 @@ export interface IAuthorizedAutoUpdater {
  * owed an answer even when the answer is "nothing to do".
  */
 export type ManualCheckResult = 'up-to-date' | 'downloading' | 'failed';
-
-export const UNSIGNED_GITHUB_UPDATE_FEED = {
-  provider: 'github' as const,
-  owner: 'StartSWest',
-  repo: 'FluidEQ',
-};
 
 const buildPowershellScript = (executablePath: string) => {
   // A single-quoted PowerShell literal escapes an apostrophe by doubling it.
@@ -385,19 +388,14 @@ const readHttpsUpdateUrl = (raw: string): string | undefined => {
   }
 };
 
-const readBearerToken = async (provider: UpdateBearerTokenProvider) => {
-  const token = (await provider()).trim();
-  if (!token || /[\r\n]/.test(token)) {
-    throw new Error('The update token endpoint returned an invalid token');
-  }
-  return token;
-};
-
 /**
- * Select exactly one release channel from OS-verified executable state and
- * compile-time pins. An explicitly unsigned package uses GitHub; an official
- * signed package uses only its generic HTTPS feed. Any ambiguous combination
- * returns before the updater, listeners, timers, or network are initialized.
+ * Decide from compile-time pins and Windows' own word about this executable
+ * whether this copy updates, and from where. Every update, on every build
+ * that has an updater, must be signed by the pinned publisher and match a
+ * feed signed with the feed key. A release checks that it is itself signed by
+ * that publisher; the bridge checks that it is itself unsigned, which is what
+ * it is. A build with no publisher pinned has no updater. Anything ambiguous
+ * returns before the updater, its listeners or the network are touched.
  */
 export const setUpReleaseAutoUpdates = async (
   options: IReleaseAutoUpdateOptions,
@@ -405,7 +403,7 @@ export const setUpReleaseAutoUpdates = async (
   const {
     beforeQuit,
     executablePath,
-    getBearerToken,
+    isBridge,
     isPackaged,
     loadUpdater,
     logger,
@@ -429,28 +427,30 @@ export const setUpReleaseAutoUpdates = async (
   }
 
   const expectedPublisher = publisherName.trim();
-  const rawFeedPin = rawUpdateUrl.trim();
-  const hasPublisherPin = expectedPublisher.length > 0;
-  const hasFeedPin = rawFeedPin.length > 0;
-  if (hasPublisherPin !== hasFeedPin) {
-    logger.warn(
-      'Updates disabled: signed release configuration is incomplete.',
-    );
+  if (!expectedPublisher) {
+    if (isBridge) {
+      logger.warn(
+        'Updates disabled: a bridge build with no publisher to hand over to.',
+      );
+    } else {
+      logger.info(
+        'Updates disabled: this is not an official release (no publisher is pinned).',
+      );
+    }
     return undefined;
   }
 
-  const isSignedChannel = hasPublisherPin && hasFeedPin;
-  const updateUrl = isSignedChannel
-    ? readHttpsUpdateUrl(rawFeedPin)
-    : undefined;
-  if (isSignedChannel && !updateUrl) {
-    logger.warn('Updates disabled: the signed build has no valid HTTPS feed.');
+  const updateUrl = readHttpsUpdateUrl(
+    rawUpdateUrl.trim() || SIGNED_UPDATE_FEED_URL,
+  );
+  if (!updateUrl) {
+    logger.warn('Updates disabled: the update feed is not an HTTPS address.');
     return undefined;
   }
 
-  const currentSignature = isSignedChannel
-    ? await verifyPublisher(executablePath, expectedPublisher)
-    : await verifyUnsigned(executablePath);
+  const currentSignature = isBridge
+    ? await verifyUnsigned(executablePath)
+    : await verifyPublisher(executablePath, expectedPublisher);
   if (!currentSignature.valid) {
     logger.warn(
       `Updates disabled: current executable does not match its release channel (${currentSignature.reason || 'signature verification failed'}).`,
@@ -464,28 +464,30 @@ export const setUpReleaseAutoUpdates = async (
   updater.logger = logger;
   // Stays off, and not because updates should be reluctant. electron-updater's
   // own quit handler calls `install()` straight on its singleton, which walks
-  // past the verification below — for the unsigned GitHub channel the
-  // `update-downloaded` listener here is the ONLY Authenticode check there is.
-  // Installing on quit would therefore run an installer nothing had vouched
-  // for. The unattended path in main goes through `quitAndInstall`, which is
-  // gated on `isInstallerAuthorized`, and gets the same "no clicks" outcome
-  // without the hole.
+  // past the verification below — and on the bridge, whose own
+  // app-update.yml names no publisher, the `update-downloaded` listener here
+  // is the only Authenticode check there is. Installing on quit would
+  // therefore run an installer nothing had vouched for. The unattended path in
+  // main goes through `quitAndInstall`, which is gated on
+  // `isInstallerAuthorized`, and gets the same "no clicks" outcome without the
+  // hole.
   updater.autoInstallOnAppQuit = false;
-  if (isSignedChannel) {
-    updater.setFeedURL({ provider: 'generic', url: updateUrl as string });
-  } else {
-    updater.setFeedURL(UNSIGNED_GITHUB_UPDATE_FEED);
-  }
+  // The channel through the feed's own configuration, not `updater.channel`:
+  // that setter also switches downgrades on, and the signed line never moves
+  // backwards.
+  updater.setFeedURL({
+    provider: 'generic',
+    url: updateUrl,
+    channel: SIGNED_UPDATE_CHANNEL,
+  });
 
   const verifyInstaller = (installerPath: string) =>
-    isSignedChannel
-      ? verifyPublisher(installerPath, expectedPublisher)
-      : verifyUnsigned(installerPath);
+    verifyPublisher(installerPath, expectedPublisher);
 
   // electron-updater calls this in its NSIS download path when app-update.yml
-  // contains publisherName. Unsigned builds do not have that field, so the
-  // update-downloaded listener below repeats the check unconditionally and the
-  // returned controller gates the only installation path.
+  // contains publisherName. The bridge's does not, so the update-downloaded
+  // listener below repeats the check unconditionally and the returned
+  // controller gates the only installation path.
   updater.verifyUpdateCodeSignature = async (
     _publisherNames,
     installerPath,
@@ -640,11 +642,6 @@ export const setUpReleaseAutoUpdates = async (
   });
 
   const checkForUpdates = async () => {
-    if (isSignedChannel && getBearerToken) {
-      // Refreshed before every check. electron-updater reuses requestHeaders
-      // for latest.yml, blockmaps, and the installer download.
-      updater.addAuthHeader(`Bearer ${await readBearerToken(getBearerToken)}`);
-    }
     await updater.checkForUpdates();
   };
 
@@ -652,8 +649,8 @@ export const setUpReleaseAutoUpdates = async (
    * A check the user asked for, which owes them an answer.
    *
    * The flag is armed before the request and disarmed by whichever event
-   * answers it. A throw here — minting a token failed, the feed is
-   * unreachable in a way that rejects rather than emitting 'error' — is
+   * answers it. A throw here — the feed is unreachable in a way that
+   * rejects rather than emitting 'error' — is
    * itself an answer, so it settles the check before propagating.
    */
   const checkNow = async () => {
@@ -698,9 +695,9 @@ export const setUpReleaseAutoUpdates = async (
   };
 
   logger.info(
-    isSignedChannel
-      ? `Signed updates enabled from the official HTTPS feed: ${updateUrl}`
-      : `Unsigned updates enabled from GitHub Releases: ${UNSIGNED_GITHUB_UPDATE_FEED.owner}/${UNSIGNED_GITHUB_UPDATE_FEED.repo}`,
+    isBridge
+      ? `Bridge build: moving onto the signed line from ${updateUrl}${SIGNED_UPDATE_CHANNEL}.yml, signed by "${expectedPublisher}"`
+      : `Signed updates enabled from ${updateUrl}${SIGNED_UPDATE_CHANNEL}.yml`,
   );
 
   return {

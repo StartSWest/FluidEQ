@@ -30,15 +30,15 @@
  *
  * ## Configuration
  *
- * Nine environment variables: four that name the signing account, one that
- * repeats its certificate's full subject, one that says where the signed build
- * fetches its updates from, and three that are credentials. Their names are in
- * SETTINGS, SUBJECT_VARIABLE, UPDATE_URL and CREDENTIALS below, which is the
- * only place this file needs them written down.
+ * Eight environment variables: four that name the signing account, one that
+ * repeats its certificate's full subject, and three that are credentials.
+ * Their names are in SETTINGS, SUBJECT_VARIABLE and CREDENTIALS below, which
+ * is the only place this file needs them written down. All eight or none.
  *
- * All nine or none. There is no useful half of this: a signed build without a
- * feed cannot update, and a feed without signing is deliberately not an
- * updater-capable build at all.
+ * Where the build updates from is not one of them: the public feed
+ * (`SIGNED_UPDATE_FEED_URL`, `signed.yml` in the GitHub releases) is in the
+ * code. `FLUIDEQ_UPDATE_URL`, when set, replaces it — only for a build made
+ * to test the crossing against a test repository, and said out loud.
  *
  * The full subject (`CN=…, O=…, L=…, S=…, C=…`, exactly as Windows shows it
  * for the certificate) is separate from the publisher name because Windows
@@ -67,6 +67,10 @@ import { fetchEqualizerApoSource } from './fetch-equalizer-apo';
 import { SUBJECT_VARIABLE } from './lighting-identity';
 import { readMandatoryUpdateArgs } from './mandatory-update';
 import { signReleaseFeed } from './sign-update-feed';
+import {
+  SIGNED_UPDATE_CHANNEL,
+  SIGNED_UPDATE_FEED_URL,
+} from '../../src/common/updateChannel';
 
 interface ISigningSettings {
   endpoint: string;
@@ -83,25 +87,25 @@ const SETTINGS: Record<keyof ISigningSettings, string> = {
 };
 
 /**
- * Where signed builds look for their updates.
- *
- * The base manifest has no publish provider at all, so an unsigned build cannot
- * inherit an update source. This signed-only script is the one place that adds
- * a provider, and it always adds the generic HTTPS feed. Signing also writes
- * `publisherName` into `app-update.yml`, so electron-updater rejects any
- * downloaded installer whose Authenticode publisher does not match.
- *
- * The URL lives in the environment beside the credentials, because it names
- * where the paid build is sold from and this repository is public.
+ * A test feed in place of the public one, for a build made to test the
+ * crossing. Empty for a release. Compiled into main as well (webpack's
+ * EnvironmentPlugin reads the same variable), so the app and its
+ * `app-update.yml` agree.
  */
 const UPDATE_URL = 'FLUIDEQ_UPDATE_URL';
+
+/** Set only by `pnpm package:bridge`; a signed build is never the bridge. */
+const BRIDGE_PIN = 'FLUIDEQ_UPDATE_BRIDGE';
+
+/** Where electron-builder leaves the signed line's feed. */
+export const SIGNED_FEED_YML = `release/build/${SIGNED_UPDATE_CHANNEL}.yml`;
 
 export interface IReleaseSettings {
   signing: ISigningSettings;
   updateUrl: string;
 }
 
-const REQUIRED = [...Object.values(SETTINGS), SUBJECT_VARIABLE, UPDATE_URL];
+const REQUIRED = [...Object.values(SETTINGS), SUBJECT_VARIABLE];
 
 const CREDENTIALS = [
   'AZURE_TENANT_ID',
@@ -127,9 +131,16 @@ export const readSigningSettings = (
     );
   }
 
+  if (env[BRIDGE_PIN]) {
+    throw new Error(
+      `${BRIDGE_PIN} is set: that builds the unsigned bridge (pnpm package:bridge), ` +
+        'never a signed release. Unset it.',
+    );
+  }
+
   let updateUrl: URL;
   try {
-    updateUrl = new URL(env[UPDATE_URL] as string);
+    updateUrl = new URL(env[UPDATE_URL] || SIGNED_UPDATE_FEED_URL);
   } catch {
     throw new Error(`${UPDATE_URL} must be an absolute HTTPS URL.`);
   }
@@ -179,6 +190,8 @@ export const toBuilderArgs = (settings: IReleaseSettings): string[] => [
   // path adds one, and it can add only this generic HTTPS feed.
   '--config.publish.provider=generic',
   `--config.publish.url=${settings.updateUrl}`,
+  // signed.yml, never latest.yml: that name carries the bridge for 2.4.x.
+  `--config.publish.channel=${SIGNED_UPDATE_CHANNEL}`,
 ];
 
 /**
@@ -268,6 +281,15 @@ export const verifyUpdateConfig = (
     );
   }
 
+  const channel = unquote(value('channel'));
+  if (channel !== SIGNED_UPDATE_CHANNEL) {
+    problems.push(
+      `app-update.yml names the "${channel || 'latest'}" channel. The signed ` +
+        `line reads ${SIGNED_UPDATE_CHANNEL}.yml; latest.yml belongs to the ` +
+        'bridge that 2.4.x copies take.',
+    );
+  }
+
   return problems;
 };
 
@@ -324,7 +346,15 @@ if (require.main === module) {
     console.log(
       `Dynamic Lighting identity publisher: ${process.env[SUBJECT_VARIABLE]}`,
     );
-    console.log(`Updates will be fetched from: ${release.updateUrl}`);
+    console.log(
+      `Updates will be fetched from: ${release.updateUrl}${SIGNED_UPDATE_CHANNEL}.yml`,
+    );
+    if (release.updateUrl !== SIGNED_UPDATE_FEED_URL) {
+      // A test feed. Never a release: installed copies would follow it.
+      console.log(
+        'TEST FEED: this build updates from a test repository, not the public releases. Do not publish it.',
+      );
+    }
     console.log(`Publish this alongside the installer: ${apoSource}`);
     if (mandatoryArgs.length > 0) {
       // Said out loud. This is the one build setting whose effect lands on
@@ -347,12 +377,7 @@ if (require.main === module) {
     }
     const child = spawn(
       pnpm.command,
-      [
-        ...pnpm.prefix,
-        'package',
-        ...toBuilderArgs(release),
-        ...mandatoryArgs,
-      ],
+      [...pnpm.prefix, 'package', ...toBuilderArgs(release), ...mandatoryArgs],
       { stdio: 'inherit' },
     );
     child.on('exit', (code) => {
@@ -392,7 +417,7 @@ if (require.main === module) {
         `Verified: updates come from ${release.updateUrl} and must be signed ` +
           `by "${release.signing.publisherName}".`,
       );
-      process.exit(signReleaseFeed() ? 0 : 1);
+      process.exit(signReleaseFeed({ feedPath: SIGNED_FEED_YML }) ? 0 : 1);
     });
   })();
 }

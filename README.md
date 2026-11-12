@@ -762,16 +762,20 @@ Jest refuses to start without a build, so `pnpm build` always comes before
 `pnpm test`.
 
 `pnpm package` builds an installer into `release/build`, which is what you want
-for checking a change end to end on a real machine.
+for checking a change end to end on a real machine. It is unsigned and has no
+updater: only a release build updates itself.
 
-`pnpm package:signed` builds the signed installer instead. It refuses to run
-unless its whole configuration is present, so it cannot quietly produce an
-unsigned one.
+`pnpm package:signed` builds the release: the signed installer and
+`release/build/signed.yml`, the feed signed copies read from the public GitHub
+releases (`src/common/updateChannel.ts`). It refuses to run unless its whole
+configuration is present, so it cannot quietly produce an unsigned one.
 
-`pnpm package:release` is `pnpm package` for a release: it also signs
-`release/build/latest.yml` with the update feed key, and every installed copy
-refuses an update whose feed is not signed with a key it trusts
-(`src/main/updateFeedSignature.ts`). `pnpm package:signed` signs the feed too.
+`pnpm package:bridge` builds the one unsigned `<version>-bridge` that carries
+copies of 2.4.x — which accept only an unsigned installer, from `latest.yml` —
+onto the signed line; it needs only `FLUIDEQ_SIGN_PUBLISHER`, the publisher it
+hands over to. Both scripts sign their feed with the update feed key, and every
+installed copy refuses an update whose feed is not signed with a key it trusts
+(`src/main/updateFeedSignature.ts`).
 The key pair is made once with `pnpm update-feed-keys`, which writes the public
 half into the source and keeps the private half encrypted for your Windows
 account, outside the project (`%APPDATA%/FluidEQ Release`) — never in `.env`,

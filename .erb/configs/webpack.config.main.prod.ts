@@ -111,11 +111,16 @@ const configuration: webpack.Configuration = {
       NODE_ENV: 'production',
       DEBUG_PROD: false,
       START_MINIMIZED: false,
-      // Public trust pins, set only by `pnpm package:signed`. They are compiled
-      // into main so a third-party package cannot enable updates merely by
-      // replacing app-update.yml. Azure credentials remain packaging-process
-      // variables and must never be added here.
+      // Public trust pins, set only by `pnpm package:signed` and
+      // `pnpm package:bridge`. They are compiled into main so a third-party
+      // package cannot enable updates merely by replacing app-update.yml.
+      // Empty publisher = no updater (builds from source, the weekly build).
+      // FLUIDEQ_UPDATE_URL is empty for a release (the public feed) and names
+      // a test repository's only in a build made to test the crossing.
+      // Azure credentials remain packaging-process variables and must never
+      // be added here.
       FLUIDEQ_SIGN_PUBLISHER: '',
+      FLUIDEQ_UPDATE_BRIDGE: '',
       FLUIDEQ_UPDATE_URL: '',
       // The GitHub App the forum signs in through: its id only. Main only, and
       // deliberately not in `public-env`: nothing in the window needs it.

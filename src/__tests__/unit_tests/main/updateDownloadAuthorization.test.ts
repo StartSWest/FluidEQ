@@ -8,7 +8,7 @@ import type { NsisUpdater } from 'electron-updater';
 import { setUpReleaseAutoUpdates } from '../../../main/signedAutoUpdates';
 import * as updateFeed from '../../../main/updateFeedSignature';
 
-const harnessFor = async (channel: 'signed' | 'unsigned') => {
+const harnessFor = async (channel: 'signed' | 'bridge') => {
   const listeners = new Map<
     string,
     (info: Record<string, unknown>) => unknown
@@ -33,8 +33,9 @@ const harnessFor = async (channel: 'signed' | 'unsigned') => {
     loadUpdater: () => updater,
     logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
     platform: 'win32',
-    publisherName: channel === 'signed' ? 'Ivan Carmenates Garcia' : '',
-    updateUrl: channel === 'signed' ? 'https://updates.example.com/' : '',
+    publisherName: 'Ivan Carmenates Garcia',
+    isBridge: channel === 'bridge',
+    updateUrl: '',
     verifyPublisher,
     verifyUnsigned,
     sendStatus,
@@ -60,7 +61,7 @@ const downloaded = {
 describe('download authorization and ordinary installation', () => {
   afterEach(() => jest.restoreAllMocks());
 
-  it.each(['signed', 'unsigned'] as const)(
+  it.each(['signed', 'bridge'] as const)(
     'keeps the %s channel and unattended installation working for verified downloads',
     async (channel) => {
       const verifyFeed = jest
@@ -81,11 +82,14 @@ describe('download authorization and ordinary installation', () => {
         phase: 'ready',
         version: '2.4.0',
       });
-      const verifyInstaller =
-        channel === 'signed' ? harness.verifyPublisher : harness.verifyUnsigned;
-      expect(verifyInstaller).toHaveBeenLastCalledWith(
+      // On both, the installer is held to the pinned publisher: the bridge is
+      // unsigned itself and installs only a signed copy.
+      expect(harness.verifyPublisher).toHaveBeenLastCalledWith(
         downloaded.downloadedFile,
-        ...(channel === 'signed' ? ['Ivan Carmenates Garcia'] : []),
+        'Ivan Carmenates Garcia',
+      );
+      expect(harness.verifyUnsigned).not.toHaveBeenCalledWith(
+        downloaded.downloadedFile,
       );
     },
   );
@@ -95,7 +99,7 @@ describe('download authorization and ordinary installation', () => {
       .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
       .mockResolvedValueOnce({ valid: true })
       .mockResolvedValue({ valid: false, reason: 'installer bytes changed' });
-    const harness = await harnessFor('unsigned');
+    const harness = await harnessFor('bridge');
     await harness.listeners.get('update-downloaded')?.(downloaded);
     expect(harness.controller.isReadyToInstall()).toBe(true);
 
@@ -131,7 +135,7 @@ describe('download authorization and ordinary installation', () => {
           return olderHash;
         })
         .mockResolvedValue({ valid: false, reason: 'new candidate rejected' });
-      const harness = await harnessFor('unsigned');
+      const harness = await harnessFor('bridge');
       const older = harness.listeners.get('update-downloaded')?.(downloaded);
       await started;
       await harness.listeners.get(newEvent)?.({

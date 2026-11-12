@@ -23,6 +23,10 @@ import {
   verifyAuthenticodePublisher,
 } from '../../../main/signedAutoUpdates';
 import * as updateFeed from '../../../main/updateFeedSignature';
+import {
+  SIGNED_UPDATE_FEED_URL,
+  bridgeVersionOf,
+} from '../../../common/updateChannel';
 
 const CURRENT_EXE = 'C:\\Program Files\\FluidEQ\\FluidEQ.exe';
 const OFFICIAL_PUBLISHER = 'Ivan Carmenates Garcia';
@@ -52,6 +56,7 @@ const makeHarness = () => {
     clock += ms;
   };
   const verifyPublisher = jest.fn().mockResolvedValue({ valid: true });
+  const verifyUnsigned = jest.fn().mockResolvedValue({ valid: true });
 
   const options: IReleaseAutoUpdateOptions = {
     executablePath: CURRENT_EXE,
@@ -60,10 +65,12 @@ const makeHarness = () => {
     logger,
     platform: 'win32',
     publisherName: OFFICIAL_PUBLISHER,
+    isBridge: false,
     now,
     sendStatus: jest.fn(),
     updateUrl: UPDATE_URL,
     verifyPublisher,
+    verifyUnsigned,
   };
 
   return {
@@ -75,6 +82,7 @@ const makeHarness = () => {
     now,
     updater,
     verifyPublisher,
+    verifyUnsigned,
   };
 };
 
@@ -82,8 +90,9 @@ describe('current executable update authorization', () => {
   it.each([
     ['development', { isPackaged: false }],
     ['non-Windows', { platform: 'linux' as NodeJS.Platform }],
+    // A build from source or the weekly cold build: nothing pinned.
     ['missing publisher', { publisherName: '' }],
-    ['missing feed', { updateUrl: '' }],
+    ['bridge with no publisher', { publisherName: '', isBridge: true }],
     ['non-HTTPS feed', { updateUrl: 'http://updates.example.com/' }],
   ])(
     'does not initialize or check the updater for a %s build',
@@ -136,8 +145,26 @@ describe('current executable update authorization', () => {
     expect(harness.updater.setFeedURL).toHaveBeenCalledWith({
       provider: 'generic',
       url: UPDATE_URL,
+      channel: 'signed',
     });
+    expect(harness.verifyUnsigned).not.toHaveBeenCalled();
     expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads the public feed when no test feed is compiled in', async () => {
+    const harness = makeHarness();
+
+    await setUpReleaseAutoUpdates({ ...harness.options, updateUrl: '' });
+
+    expect(harness.updater.setFeedURL).toHaveBeenCalledWith({
+      provider: 'generic',
+      url: SIGNED_UPDATE_FEED_URL,
+      channel: 'signed',
+    });
+    // Never latest.yml: that name carries the bridge for 2.4.x copies.
+    expect(SIGNED_UPDATE_FEED_URL).toBe(
+      'https://github.com/StartSWest/FluidEQ/releases/latest/download/',
+    );
   });
 });
 
@@ -437,36 +464,92 @@ describe('downloaded installer verification', () => {
   });
 });
 
-describe('private feed authentication boundary', () => {
-  it('adds a short-lived bearer token before checking the feed', async () => {
+describe('the bridge from unsigned 2.4.x onto the signed line', () => {
+  const bridge = () => {
     const harness = makeHarness();
-    const getBearerToken = jest.fn().mockResolvedValue('short-lived-token');
-
-    await setUpReleaseAutoUpdates({
-      ...harness.options,
-      getBearerToken,
-    });
-    await Promise.resolve();
-
-    expect(getBearerToken).toHaveBeenCalledTimes(1);
-    expect(harness.updater.addAuthHeader).toHaveBeenCalledWith(
-      'Bearer short-lived-token',
+    // The bridge's own executable is unsigned; only a signed installer moves on.
+    harness.verifyPublisher.mockImplementation(async (executablePath) =>
+      executablePath === CURRENT_EXE
+        ? {
+            valid: false,
+            reason: 'Windows reported signature status NotSigned',
+          }
+        : { valid: true },
     );
+    return { harness, options: { ...harness.options, isBridge: true } };
+  };
+
+  it('runs unsigned and reads the signed feed', async () => {
+    const { harness, options } = bridge();
+
+    const controller = await setUpReleaseAutoUpdates(options);
+
+    expect(controller).toBeDefined();
+    expect(harness.verifyUnsigned).toHaveBeenCalledWith(CURRENT_EXE);
+    expect(harness.verifyPublisher).not.toHaveBeenCalledWith(
+      CURRENT_EXE,
+      expect.anything(),
+    );
+    expect(harness.updater.setFeedURL).toHaveBeenCalledWith({
+      provider: 'generic',
+      url: UPDATE_URL,
+      channel: 'signed',
+    });
     expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(1);
   });
 
-  it('does not fall back to an unauthenticated check when minting fails', async () => {
-    const harness = makeHarness();
-
-    await setUpReleaseAutoUpdates({
-      ...harness.options,
-      getBearerToken: jest.fn().mockRejectedValue(new Error('not entitled')),
+  it('turns itself off when it is not the unsigned build it says it is', async () => {
+    const { harness, options } = bridge();
+    harness.verifyUnsigned.mockResolvedValue({
+      valid: false,
+      reason: 'executable is signed by "Somebody Else"',
     });
-    await Promise.resolve();
-    await Promise.resolve();
 
-    expect(harness.updater.addAuthHeader).not.toHaveBeenCalled();
-    expect(harness.updater.checkForUpdates).not.toHaveBeenCalled();
+    expect(await setUpReleaseAutoUpdates(options)).toBeUndefined();
+    expect(harness.loadUpdater).not.toHaveBeenCalled();
+  });
+
+  it('accepts an installer only when the pinned publisher verifies it', async () => {
+    const { harness, options } = bridge();
+    await setUpReleaseAutoUpdates(options);
+
+    await expect(
+      harness.updater.verifyUpdateCodeSignature(
+        [],
+        'C:/Temp/FluidEQ-Setup-2.5.0.exe',
+      ),
+    ).resolves.toBeNull();
+    expect(harness.verifyPublisher).toHaveBeenLastCalledWith(
+      'C:/Temp/FluidEQ-Setup-2.5.0.exe',
+      OFFICIAL_PUBLISHER,
+    );
+  });
+
+  it.each([
+    ['unsigned', 'Windows reported signature status NotSigned'],
+    ['signed by somebody else', 'executable publisher is "Somebody Else"'],
+  ])('never installs an installer that is %s', async (_, reason) => {
+    const { harness, options } = bridge();
+    harness.verifyPublisher.mockResolvedValue({ valid: false, reason });
+    harness.verifyUnsigned.mockResolvedValue({ valid: true });
+    const controller = await setUpReleaseAutoUpdates(options);
+    if (!controller) {
+      throw new Error('setUpReleaseAutoUpdates returned no controller');
+    }
+
+    await expect(
+      harness.updater.verifyUpdateCodeSignature([], 'C:/Temp/x.exe'),
+    ).resolves.toBe(reason);
+    await harness.listeners.get('update-downloaded')?.({
+      downloadedFile: 'C:/Temp/x.exe',
+      version: '2.5.0',
+    });
+
+    expect(controller.isReadyToInstall()).toBe(false);
+    expect(() => controller.quitAndInstall(true, true)).toThrow(
+      /release-channel verification/,
+    );
+    expect(harness.updater.quitAndInstall).not.toHaveBeenCalled();
   });
 });
 
@@ -579,5 +662,31 @@ describe('an installer that does not start', () => {
     expect(harness.options.sendStatus).not.toHaveBeenCalledWith(
       expect.objectContaining({ phase: 'failed' }),
     );
+  });
+});
+
+describe('the bridge version', () => {
+  // The semver copy electron-updater itself compares with, so this holds the
+  // rule the updater applies, not a look-alike.
+  // eslint-disable-next-line global-require, import/no-dynamic-require -- resolved through electron-updater on purpose
+  const semver = require(
+    require.resolve('semver', { paths: [require.resolve('electron-updater')] }),
+  ) as {
+    gt: (a: string, b: string) => boolean;
+    lt: (a: string, b: string) => boolean;
+  };
+
+  it('sits above every 2.4.x and below the signed 2.5.0', () => {
+    const bridge = bridgeVersionOf('2.5.0');
+    expect(bridge).toBe('2.5.0-bridge');
+    ['2.4.0', '2.4.1', '2.4.99'].forEach((old) => {
+      expect(semver.gt(bridge, old)).toBe(true);
+    });
+    expect(semver.lt(bridge, '2.5.0')).toBe(true);
+  });
+
+  it('is built only from a plain release version', () => {
+    expect(() => bridgeVersionOf('2.5.0-beta.1')).toThrow(/plain release/);
+    expect(() => bridgeVersionOf('2.5')).toThrow(/plain release/);
   });
 });
