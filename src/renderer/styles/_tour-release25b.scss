@@ -304,3 +304,71 @@ $chat: 30%;
   background: $secondary-light;
   font-size: calc(#{$u} * 0.56);
 }
+
+// ---------------------------------------------------------------------------
+// The Visualizers' film, under 2.5's first slide (`VisualsFilmSection`): a
+// lit play mark, what the film shows, and the Watch key at the far end, in
+// the how box's own frame. One row while it fits; the key drops under the
+// words when it does not, never squeezing them.
+
+.tour-slide__how.tour-release25__film {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(#{$u} * 0.6) calc(#{$u} * 0.9);
+}
+
+.tour-release25__film-mark {
+  display: grid;
+  flex: 0 0 auto;
+  width: calc(#{$u} * 2.4);
+  height: calc(#{$u} * 2.4);
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 50%;
+  color: $secondary-light;
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, $secondary-default 45%, transparent),
+    color-mix(in srgb, $secondary-default 12%, transparent) 70%
+  );
+  box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 35%, transparent);
+  place-items: center;
+
+  svg {
+    width: calc(#{$u} * 1);
+    height: calc(#{$u} * 1);
+    // The triangle's weight sits left of its box; this centres it by eye.
+    margin-left: calc(#{$u} * 0.12);
+  }
+}
+
+.tour-release25__film-words {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 calc(#{$u} * 16);
+  gap: calc(#{$u} * 0.25);
+
+  .tour-slide__how-title {
+    margin: 0;
+  }
+}
+
+// The shared button holds itself to its label's whole width
+// (`min-width: max-content`); "Watch the video · English audio" in German
+// would push past a narrow dialog, so this one lets go of it.
+.button.tour-release25__film-watch {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  margin-left: auto;
+  text-align: left;
+  white-space: normal;
+  gap: calc(#{$u} * 0.45);
+
+  svg {
+    width: calc(#{$u} * 0.85);
+    height: calc(#{$u} * 0.85);
+    flex: 0 0 auto;
+  }
+}

@@ -4,14 +4,19 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useRef, useState } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
+import PlayerIcon from '../../player/PlayerIcon';
 import { useTranslation } from '../../utils/I18nContext';
+import FeatureFilmLarge from './FeatureFilmLarge';
+import FilmOnSite from './FilmOnSite';
 import ShowcaseSlide from './ShowcaseSlide';
 import StudioCodeVisual from './StudioCodeVisual';
 import StudioEditVisual from './StudioEditVisual';
 import StudioFullscreenVisual from './StudioFullscreenVisual';
 import StudioMakersVisual from './StudioMakersVisual';
 import StudioWatchVisual from './StudioWatchVisual';
+import { FEATURE_FILMS, featureFilmLocale, VISUALS_FILM } from './featureFilms';
 import type { ISlideActions } from './slides';
 
 /**
@@ -26,13 +31,75 @@ interface ISlideProps {
   actions: ISlideActions;
 }
 
+/**
+ * Everything visual in FluidEQ in one film (Ivan, 2026-11-12), under the
+ * first of these slides as the walkthrough is behind the sound's first page:
+ * a Watch key that plays it as large as the window allows. Recorded after
+ * this build, so it is drawn only once the site has it (`FilmOnSite`).
+ */
+function VisualsFilmSection() {
+  const { t, locale } = useTranslation();
+  const film = FEATURE_FILMS[VISUALS_FILM];
+  const opener = useRef<HTMLButtonElement>(null);
+  const [isOpen, setOpen] = useState(false);
+  const watch = `${t('tour.film.watch')}${
+    featureFilmLocale(locale, film) === locale
+      ? ''
+      : ` · ${t('tour.film.englishAudio')}`
+  }`;
+
+  return (
+    <section
+      className="tour-slide__how dialog-frame__group tour-release25__film"
+      aria-labelledby="tour-release25-film"
+    >
+      <span className="tour-release25__film-mark" aria-hidden="true">
+        <PlayerIcon name="play" />
+      </span>
+      <span className="tour-release25__film-words">
+        <h4 className="tour-slide__how-title" id="tour-release25-film">
+          {t('tour.v25.film.title')}
+        </h4>
+        <p>{t('tour.v25.film.body')}</p>
+      </span>
+      <button
+        ref={opener}
+        type="button"
+        className="button small tour-release25__film-watch"
+        onClick={() => setOpen(true)}
+      >
+        <PlayerIcon name="play" />
+        {watch}
+      </button>
+      {isOpen && (
+        <FeatureFilmLarge
+          id={VISUALS_FILM}
+          film={film}
+          startAt={0}
+          onClose={() => {
+            setOpen(false);
+            opener.current?.focus();
+          }}
+        />
+      )}
+    </section>
+  );
+}
+
 export function EditSlide({ actions }: ISlideProps) {
   return (
-    <ShowcaseSlide
-      prefix="tour.edit"
-      onOpen={() => actions.openTab('community')}
-      visual={<StudioEditVisual />}
-    />
+    // 2.4's slide-and-section column (`_tour-release24b.scss`), as under the
+    // last slide.
+    <div className="tour-release24">
+      <ShowcaseSlide
+        prefix="tour.edit"
+        onOpen={() => actions.openTab('community')}
+        visual={<StudioEditVisual />}
+      />
+      <FilmOnSite id={VISUALS_FILM}>
+        <VisualsFilmSection />
+      </FilmOnSite>
+    </div>
   );
 }
 

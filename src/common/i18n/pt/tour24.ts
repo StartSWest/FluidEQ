@@ -267,6 +267,9 @@ const tour24 = {
   'tour.v25.review':
     'Uma cena que não foi aprovada mostra o motivo da revisão ao lado do nome.',
   'tour.v25.publish': 'Sem limite mensal para publicar.',
+  'tour.v25.film.title': 'Tudo o que é visual, em um filme',
+  'tour.v25.film.body':
+    'A Biblioteca e o Karaokê, os visualizadores, a Galeria e seus créditos, o fundo da área de trabalho, a iluminação dos seus dispositivos e o Estúdio, mostrados e explicados.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': 'Agora assinado, e continua grátis!',
   'tour.signed.subtitle': 'O caminho até aqui e um FluidEQ assinado para todos',

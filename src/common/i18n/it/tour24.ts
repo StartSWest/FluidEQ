@@ -274,6 +274,9 @@ const tour24 = {
   'tour.v25.review':
     'Una scena non approvata mostra il motivo del revisore accanto al suo nome.',
   'tour.v25.publish': 'Nessun limite mensile per pubblicare.',
+  'tour.v25.film.title': 'Tutta la parte visiva, in un solo film',
+  'tour.v25.film.body':
+    'La Libreria e il Karaoke, i visualizzatori, la Galleria e i suoi crediti, lo sfondo del desktop, l’illuminazione dei tuoi dispositivi e lo Studio, mostrati e spiegati.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': 'Ora firmato, e sempre gratis!',
   'tour.signed.subtitle': 'La strada fatta e un FluidEQ firmato per tutti',

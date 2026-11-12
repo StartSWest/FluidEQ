@@ -247,6 +247,9 @@ const tour24 = {
     '在绘制的场景里，用来向 AI 指出位置的图钉和方框可以手动移动：随意拖动，拉动方框的角和边来调整大小，用它的按钮或 Delete 键删除。',
   'tour.v25.review': '未通过审核的场景会在名称旁显示审核者的理由。',
   'tour.v25.publish': '发布不再有每月上限。',
+  'tour.v25.film.title': '所有视觉功能，一部影片看完',
+  'tour.v25.film.body':
+    '音乐库与卡拉 OK、可视化效果、图库与点数、桌面背景、设备灯光和工作室，逐一演示并讲解。',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': '现已签名，依然免费！',
   'tour.signed.subtitle': '一路走来，以及为所有人签名的 FluidEQ',

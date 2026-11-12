@@ -20,6 +20,7 @@ import {
   featureFilmCaptionUrl,
   featureFilmLocale,
   featureFilmUrl,
+  VISUALS_FILM,
 } from 'renderer/components/featureTour/featureFilms';
 import { HELP_CHAPTERS } from 'common/helpGuide';
 import en from 'common/i18n/en';
@@ -111,7 +112,9 @@ it('places only films that exist, under topics the guide has', () => {
       placed.has(id) ||
         FILMS_AWAY.includes(id) ||
         onSlides.has(id) ||
-        id === WALKTHROUGH_FILM,
+        // The two films opened by a Watch key rather than a slide's frame.
+        id === WALKTHROUGH_FILM ||
+        id === VISUALS_FILM,
     ).toBe(true),
   );
 });

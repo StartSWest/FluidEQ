@@ -273,6 +273,9 @@ const tour24 = {
   'tour.v25.review':
     'Eine nicht freigegebene Szene zeigt die Begründung der Prüfung neben ihrem Namen.',
   'tour.v25.publish': 'Kein monatliches Limit beim Veröffentlichen.',
+  'tour.v25.film.title': 'Alles Visuelle in einem Film',
+  'tour.v25.film.body':
+    'Die Bibliothek und Karaoke, die Visualizer, die Galerie und ihre Credits, der Desktop-Hintergrund, die Beleuchtung Ihrer Geräte und das Studio, gezeigt und erklärt.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': 'Jetzt signiert – und weiterhin kostenlos!',
   'tour.signed.subtitle':

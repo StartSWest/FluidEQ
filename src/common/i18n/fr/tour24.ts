@@ -274,6 +274,9 @@ const tour24 = {
   'tour.v25.review':
     'Une scène non approuvée montre la raison de la modération à côté de son nom.',
   'tour.v25.publish': 'Plus de limite mensuelle pour publier.',
+  'tour.v25.film.title': 'Tout le visuel, en un seul film',
+  'tour.v25.film.body':
+    'La Bibliothèque et le Karaoké, les visualiseurs, la Galerie et ses crédits, le fond du Bureau, l’éclairage de vos appareils et le Studio, montrés et expliqués.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': 'Désormais signé, et toujours gratuit !',
   'tour.signed.subtitle': 'Le chemin parcouru, et un FluidEQ signé pour tous',

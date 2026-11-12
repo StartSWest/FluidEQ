@@ -70,6 +70,9 @@ export interface IFeatureFilm {
  * Traditional Chinese films are supplied, use the existing English film
  * with translated on-screen captions; its opener states the audio language.
  */
+/** The Visualizers' own What's New film: Library to Studio, in one take. */
+export const VISUALS_FILM = 'visuals';
+
 const FILM_LOCALES: readonly LocaleCode[] = [
   'en',
   'es',
@@ -306,6 +309,20 @@ export const FEATURE_FILMS: Readonly<Record<string, IFeatureFilm>> = {
       { key: 'tour.film.walkthrough.outro', from: 557.1, to: 564.5 },
     ],
   },
+  // Everything visual in one film, behind the Watch key of the Visualizers'
+  // own What's New (`VisualsFilmSection`; Ivan, 2026-11-12: "we will put in
+  // the whats new"). Recorded after 2.5 was built, so nothing about it is in
+  // the app but its name: its subtitles are the site's, word for word
+  // (`featureFilmCaptionUrls`), and its key is drawn only once the site has
+  // the film (`FilmOnSite`). Its one cue names the larger view for a screen
+  // reader; no line of it is drawn from the app.
+  [VISUALS_FILM]: {
+    width: 1920,
+    height: 1080,
+    locales: ['en'],
+    spokenCaptions: true,
+    cues: [{ key: 'tour.v25.film.title', from: 0, to: 0 }],
+  },
 };
 
 /** The language a film's voice is heard in: the reader's, or English. */
@@ -339,6 +356,26 @@ export const featureFilmCaptionUrl = (id: string, locale: LocaleCode) => {
     FEATURE_FILMS[id]?.bundled?.[voice]?.captions ??
     `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${voice}.vtt`
   );
+};
+
+/**
+ * Where a film's verbatim subtitles may be, in the order to try them. A film
+ * streamed from the site asks first for the reader's own language, which can
+ * be put up beside the film at any time without a release, and then for its
+ * voice's; a bundled film keeps to its bundled captions, so Help's offline
+ * films never reach for the site.
+ */
+export const featureFilmCaptionUrls = (
+  id: string,
+  locale: LocaleCode,
+): readonly string[] => {
+  const film = FEATURE_FILMS[id];
+  const voiced = featureFilmCaptionUrl(id, locale);
+  if (film?.bundled?.[featureFilmLocale(locale, film)]) {
+    return [voiced];
+  }
+  const own = `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${locale}.vtt`;
+  return own === voiced ? [voiced] : [own, voiced];
 };
 
 /** What a timing track's cue offers, as the browser's `TextTrackCue` does. */
