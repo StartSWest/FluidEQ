@@ -15,9 +15,14 @@ import {
   NEW_VERSION_DAYS,
   isLaterSceneVersion,
   isNewSceneVersion,
+  noteIn,
+  notesAsWritten,
   readVersionNote,
+  readVersionNotes,
   versionToPublish,
+  VERSION_NOTE_LOCALES,
 } from '../../../common/sceneVersionNote';
+import { LOCALES } from '../../../common/i18n';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -141,5 +146,57 @@ describe('the version a publication goes out under', () => {
     [undefined, 0, 1, 7, 98, Number.NaN, 2.5].forEach((held) => {
       expect(isLaterSceneVersion(versionToPublish(held), held)).toBe(true);
     });
+  });
+});
+
+// Ivan, 2026-11-12: the line in all twelve languages, a listener reading
+// their own. The server keeps exactly what this reader lets through.
+describe('the note in every language', () => {
+  it('names exactly the languages FluidEQ speaks', () => {
+    expect([...VERSION_NOTE_LOCALES].sort()).toEqual(
+      LOCALES.map((locale) => locale.code).sort(),
+    );
+  });
+
+  it('keeps each language’s line, cleaned as one line is', () => {
+    expect(
+      readVersionNotes({ en: ' The fish\nswim ', es: 'Los peces nadan' }),
+    ).toEqual({ en: 'The fish swim', es: 'Los peces nadan' });
+  });
+
+  it('is no note without an English line, and drops a line left empty', () => {
+    expect(readVersionNotes(undefined)).toBeNull();
+    expect(readVersionNotes(null)).toBeNull();
+    expect(readVersionNotes({ es: 'Los peces nadan' })).toBeNull();
+    expect(readVersionNotes({ en: 'Fish', de: '   ' })).toEqual({
+      en: 'Fish',
+    });
+  });
+
+  it('refuses the whole of anything it cannot keep', () => {
+    expect(readVersionNotes('Fish')).toBeUndefined();
+    expect(readVersionNotes(['Fish'])).toBeUndefined();
+    expect(readVersionNotes({ en: 'Fish', xx: 'Fisch' })).toBeUndefined();
+    expect(readVersionNotes({ en: 'Fish', de: 7 })).toBeUndefined();
+    expect(
+      readVersionNotes({ en: 'Fish', de: 'x'.repeat(MAX_VERSION_NOTE + 1) }),
+    ).toBeUndefined();
+    // The control: the longest line there is passes.
+    expect(
+      readVersionNotes({ en: 'Fish', de: 'x'.repeat(MAX_VERSION_NOTE) }),
+    ).toEqual({ en: 'Fish', de: 'x'.repeat(MAX_VERSION_NOTE) });
+  });
+
+  it('gives every language the line as written when nothing translated it', () => {
+    const notes = notesAsWritten('Los peces nadan');
+    expect(Object.keys(notes).sort()).toEqual([...VERSION_NOTE_LOCALES].sort());
+    expect(new Set(Object.values(notes))).toEqual(new Set(['Los peces nadan']));
+  });
+
+  it('shows a reader their language, and English where there is none', () => {
+    const notes = { en: 'Fish swim', ja: '魚が泳ぐ' };
+    expect(noteIn(notes, 'ja')).toBe('魚が泳ぐ');
+    expect(noteIn(notes, 'de')).toBe('Fish swim');
+    expect(noteIn(notes, 'tlh')).toBe('Fish swim');
   });
 });

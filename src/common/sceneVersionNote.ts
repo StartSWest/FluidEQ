@@ -133,6 +133,83 @@ export const readVersionNote = (value: unknown): string | null | undefined => {
 };
 
 /**
+ * Every language the note is written in, FluidEQ's own (`LocaleCode`; this
+ * file imports nothing, so `sceneVersionNote.test.ts` holds the two lists
+ * together). English is the one every reader falls back to.
+ */
+export const VERSION_NOTE_LOCALES = [
+  'en',
+  'de',
+  'es',
+  'fr',
+  'hi',
+  'it',
+  'ja',
+  'ko',
+  'pt',
+  'ru',
+  'zh',
+  'zh-Hant',
+] as const;
+
+export type TVersionNoteLocale = (typeof VERSION_NOTE_LOCALES)[number];
+
+/** A version's note in each language it was written in, English always. */
+export type TVersionNotes = Partial<Record<TVersionNoteLocale, string>> & {
+  en: string;
+};
+
+const isNoteLocale = (key: string): key is TVersionNoteLocale =>
+  (VERSION_NOTE_LOCALES as readonly string[]).includes(key);
+
+/**
+ * The note in every language, each line cleaned as `readVersionNote` cleans
+ * one (Ivan, 2026-11-12: the line in all twelve languages, a listener
+ * reading their own). Null for no note: nothing sent, or no English line
+ * left once cleaned, since English is what every reader falls back to. A
+ * line that cleans to nothing is dropped. Undefined for notes that cannot
+ * be kept: not a plain object, a key that names no language, or any line
+ * that is not text or is too long - refused whole, never half kept.
+ */
+export const readVersionNotes = (
+  value: unknown,
+): TVersionNotes | null | undefined => {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+  const lines = Object.entries(value).map(
+    ([key, line]) => [key, readVersionNote(line)] as const,
+  );
+  if (lines.some(([key, line]) => !isNoteLocale(key) || line === undefined)) {
+    return undefined;
+  }
+  const kept: Partial<Record<TVersionNoteLocale, string>> = {};
+  lines.forEach(([key, line]) => {
+    if (isNoteLocale(key) && typeof line === 'string') {
+      kept[key] = line;
+    }
+  });
+  const { en } = kept;
+  return en === undefined ? null : { ...kept, en };
+};
+
+/** The same line in every language: what goes out when nothing translated it. */
+export const notesAsWritten = (line: string): TVersionNotes => {
+  const all: Partial<Record<TVersionNoteLocale, string>> = {};
+  VERSION_NOTE_LOCALES.forEach((locale) => {
+    all[locale] = line;
+  });
+  return { ...all, en: line };
+};
+
+/** The note a reader sees: their language's line, or English. */
+export const noteIn = (notes: TVersionNotes, locale: string): string =>
+  (isNoteLocale(locale) ? notes[locale] : undefined) ?? notes.en;
+
+/**
  * Whether a scene's current version is new to somebody opening the gallery
  * now: it is not the first version the scene was published at, and it was
  * published within `NEW_VERSION_DAYS`.
