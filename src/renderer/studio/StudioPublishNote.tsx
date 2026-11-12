@@ -66,6 +66,7 @@ export default function StudioPublishNote({
   const { t } = useTranslation();
   const noteId = useId();
   const noteWrongId = useId();
+  const noteHintId = useId();
   return (
     <div className="studio-publish__note">
       <span className="studio-publish__note-head">
@@ -103,7 +104,7 @@ export default function StudioPublishNote({
         required
         aria-required="true"
         aria-invalid={missing}
-        aria-describedby={missing ? noteWrongId : undefined}
+        aria-describedby={missing ? `${noteWrongId} ${noteHintId}` : noteHintId}
         placeholder={t('studio.publish.notePlaceholder')}
         onChange={(event) => {
           // One line: what a card and a notice have room for.
@@ -114,6 +115,12 @@ export default function StudioPublishNote({
           }
         }}
       />
+      {/* The gallery is one for every language, so its notes are in
+          English (Ivan, 2026-11-12: "the whats new always in English for
+          publish"); the member's chat is told so too (`noteDue.ts`). */}
+      <span id={noteHintId} className="studio-publish__category-hint">
+        {t('studio.publish.noteEnglish')}
+      </span>
       {/* The chat's own working mark: it is the chat writing it. */}
       {writing && !note.trim() && (
         <p className="studio-chat__thinking" role="status">

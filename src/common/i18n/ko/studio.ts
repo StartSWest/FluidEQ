@@ -183,6 +183,8 @@ const studio = {
   'studio.publish.categoryHint': '최대 2개. 카드에 첫 번째가 표시됩니다.',
   'studio.publish.pickCategory': '먼저 카테고리를 선택하세요',
   'studio.publish.needNote': '먼저 이 버전의 새로운 기능을 말해보세요.',
+  'studio.publish.noteEnglish':
+    '영어로 작성하세요. 갤러리의 모든 사람이 읽습니다.',
   'studio.publish.noteWriting': '장면의 채팅이 새로운 점을 쓰고 있습니다…',
   'studio.publish.noteNeeded': '필요',
   'studio.publish.point1':

@@ -193,6 +193,8 @@ const studio = {
   'studio.publish.categoryHint': 'Up to two. Its card shows the first.',
   'studio.publish.pickCategory': 'Choose a category first',
   'studio.publish.needNote': 'Say what is new in this version first',
+  'studio.publish.noteEnglish':
+    'Write it in English: everyone in the gallery reads it.',
   'studio.publish.noteWriting': 'Your scene’s chat is writing what is new…',
   'studio.publish.noteNeeded': 'Needed',
   'studio.publish.point1':

@@ -186,6 +186,7 @@ const studio = {
   'studio.publish.categoryHint': 'Até duas. O cartão mostra a primeira.',
   'studio.publish.pickCategory': 'Escolha uma categoria primeiro',
   'studio.publish.needNote': 'Diga primeiro o que há de novo nesta versão',
+  'studio.publish.noteEnglish': 'Escreva em inglês: todo mundo na galeria lê.',
   'studio.publish.noteWriting':
     'O chat da sua cena está escrevendo o que há de novo…',
   'studio.publish.noteNeeded': 'Obrigatório',

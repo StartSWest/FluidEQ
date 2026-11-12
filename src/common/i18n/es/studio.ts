@@ -188,6 +188,8 @@ const studio = {
   'studio.publish.categoryHint': 'Hasta dos. Su tarjeta muestra la primera.',
   'studio.publish.pickCategory': 'Elige primero una categoría',
   'studio.publish.needNote': 'Di primero qué hay de nuevo en esta versión',
+  'studio.publish.noteEnglish':
+    'Escríbela en inglés: todos en la galería la leen.',
   'studio.publish.noteWriting':
     'El chat de tu escena está escribiendo qué hay de nuevo…',
   'studio.publish.noteNeeded': 'Obligatorio',

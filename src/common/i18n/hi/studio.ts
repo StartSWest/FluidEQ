@@ -186,6 +186,8 @@ const studio = {
   'studio.publish.categoryHint': 'अधिकतम दो। इसके कार्ड पर पहली दिखती है।',
   'studio.publish.pickCategory': 'पहले एक श्रेणी चुनें',
   'studio.publish.needNote': 'पहले बताएँ कि इस संस्करण में नया क्या है',
+  'studio.publish.noteEnglish':
+    'इसे अंग्रेज़ी में लिखिए: गैलरी में हर कोई इसे पढ़ता है।',
   'studio.publish.noteWriting': 'आपके सीन की चैट लिख रही है कि नया क्या है…',
   'studio.publish.noteNeeded': 'ज़रूरी',
   'studio.publish.point1':

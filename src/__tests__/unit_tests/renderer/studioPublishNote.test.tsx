@@ -82,6 +82,12 @@ describe('the note box', () => {
     expect(field()).toHaveValue('My own words');
   });
 
+  it('says the line is written in English, and the field is described by it', () => {
+    render(<Box />);
+    const hint = screen.getByText('studio.publish.noteEnglish');
+    expect(field().getAttribute('aria-describedby')).toContain(hint.id);
+  });
+
   it('says nothing is being written when nothing was asked', () => {
     render(<Box />);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();

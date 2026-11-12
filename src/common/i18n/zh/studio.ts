@@ -168,6 +168,7 @@ const studio = {
   'studio.publish.categoryHint': '最多两个。卡片上显示第一个。',
   'studio.publish.pickCategory': '请先选择一个分类',
   'studio.publish.needNote': '请先写下这一版有什么新变化',
+  'studio.publish.noteEnglish': '请用英文填写：画廊里的每个人都会读到。',
   'studio.publish.noteWriting': '场景的聊天正在写这次的新内容…',
   'studio.publish.noteNeeded': '必填',
   'studio.publish.point1':

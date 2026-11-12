@@ -168,6 +168,7 @@ const studio = {
   'studio.publish.categoryHint': '最多兩個。它的卡片顯示第一個。',
   'studio.publish.pickCategory': '首先選擇一個類別',
   'studio.publish.needNote': '先說一下這個版本有什麼新內容',
+  'studio.publish.noteEnglish': '請用英文填寫：畫廊裡的每個人都會讀到。',
   'studio.publish.noteWriting': '場景的聊天正在寫這次的新內容…',
   'studio.publish.noteNeeded': '需要',
   'studio.publish.point1':

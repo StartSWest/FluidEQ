@@ -187,6 +187,8 @@ const studio = {
   'studio.publish.categoryHint': '2つまで。カードには1つ目が表示されます。',
   'studio.publish.pickCategory': '先にカテゴリを選んでください',
   'studio.publish.needNote': '先にこのバージョンの新しい点を書いてください',
+  'studio.publish.noteEnglish':
+    '英語で書いてください。ギャラリーの全員が読みます。',
   'studio.publish.noteWriting': 'シーンのチャットが新しい内容を書いています…',
   'studio.publish.noteNeeded': '必須',
   'studio.publish.point1':

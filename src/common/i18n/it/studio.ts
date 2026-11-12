@@ -188,6 +188,8 @@ const studio = {
   'studio.publish.categoryHint': 'Fino a due. La scheda mostra la prima.',
   'studio.publish.pickCategory': 'Scegli prima una categoria',
   'studio.publish.needNote': 'Dì prima cosa c’è di nuovo in questa versione',
+  'studio.publish.noteEnglish':
+    'Scrivila in inglese: la leggono tutti nella galleria.',
   'studio.publish.noteWriting':
     'La chat della tua scena sta scrivendo cosa c’è di nuovo…',
   'studio.publish.noteNeeded': 'Obbligatorio',

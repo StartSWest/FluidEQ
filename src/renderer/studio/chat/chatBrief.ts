@@ -49,7 +49,7 @@ first one usually describes it, and stands where MY IDEA would.
   you answer. Whenever a reply changed anything a listener could notice -
   the picture, the motion, how it answers the music, a control, a fix -
   write the line that says so into studio-notes.json beside the scene, as
-  "whatsNew": one line of at most ${MAX_VERSION_NOTE} characters, as a listener would put it ("the fish now swim
+  "whatsNew": one line of at most ${MAX_VERSION_NOTE} characters, in English, as a listener would put it ("the fish now swim
   left and their tails beat with the hats"), never the code's words. It
   covers everything since the version the Gallery has, so when a line is
   already there, fold this change into it and keep it one line. Change

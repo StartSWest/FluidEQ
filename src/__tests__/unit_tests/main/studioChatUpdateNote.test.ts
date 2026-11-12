@@ -323,3 +323,23 @@ describe('a line left from a version already in the gallery', () => {
     expect(readNotesWithTime(folder)?.writtenAt).toBe(1_000_000);
   });
 });
+
+// Ivan, 2026-11-12: "the whats new always in English for publish". The
+// gallery is one for every language, whatever the member chats in.
+describe('the update line the chat is asked for', () => {
+  it('is asked for in English, whatever language the chat is in', () => {
+    const { said, turns, session } = setUp();
+    // A member chatting in Spanish.
+    turns.begin(PROJECT, session, [{ words: 'haz que los globos suban' }]);
+    turns.onEvent(PROJECT, session, { type: 'end' });
+    turns.askForNote(PROJECT, session);
+    const ask = said().find((words) =>
+      words.startsWith('FLUIDEQ, NOT THE MEMBER'),
+    );
+    expect(ask).toMatch(
+      /in English whatever language you speak with the member/,
+    );
+    // Control: never left to the chat's own language.
+    expect(ask).not.toMatch(/in the language you speak with the member/);
+  });
+});

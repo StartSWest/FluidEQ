@@ -191,6 +191,8 @@ const studio = {
   'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
   'studio.publish.needNote':
     'Dites d’abord ce qui est nouveau dans cette version',
+  'studio.publish.noteEnglish':
+    'Écrivez-la en anglais : tout le monde la lit dans la galerie.',
   'studio.publish.noteWriting':
     'Le chat de votre scène écrit ce qui est nouveau…',
   'studio.publish.noteNeeded': 'Obligatoire',

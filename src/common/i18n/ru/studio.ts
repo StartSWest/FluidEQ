@@ -184,6 +184,8 @@ const studio = {
   'studio.publish.categoryHint': 'Не больше двух. На карточке видна первая.',
   'studio.publish.pickCategory': 'Сначала выберите категорию',
   'studio.publish.needNote': 'Сначала напишите, что нового в этой версии',
+  'studio.publish.noteEnglish':
+    'Пишите по-английски: это читают все в галерее.',
   'studio.publish.noteWriting': 'Чат вашей сцены пишет, что нового…',
   'studio.publish.noteNeeded': 'Обязательно',
   'studio.publish.point1':
