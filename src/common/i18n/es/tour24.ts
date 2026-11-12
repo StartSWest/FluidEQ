@@ -217,21 +217,21 @@ const tour24 = {
   'tour.watch.dropShows': 'El drop se nota',
   'tour.watch.night': 'Noche: {value} % iluminada',
   'tour.makers.kicker': 'ESTUDIO · IMÁGENES',
-  'tour.makers.title': 'Higgsfield junto a GPT',
-  'tour.makers.subtitle': 'Tus propios creadores, y el chat pregunta cuál',
+  'tour.makers.title': 'Ahora integrado con Higgsfield',
+  'tour.makers.subtitle': 'Imágenes y animaciones para tus escenas',
   'tour.makers.lead':
-    'Cuando una escena necesita una imagen nueva o fotogramas de animación, tu IA puede usar tu propio plugin de GPT o Higgsfield, los dos en tu propio Claude Code.',
+    'La IA del Estudio crea imágenes y animaciones para tus escenas con Higgsfield.',
   'tour.makers.point1':
-    'Configura Higgsfield desde Cuentas en el chat: FluidEQ añade sus herramientas a tu Claude Code y abre su inicio de sesión en tu navegador.',
+    'Usa tu propia cuenta de Higgsfield, que configuras una vez en Cuentas, en el chat.',
   'tour.makers.point2':
-    'Con los dos disponibles, el chat pregunta cuál hace cada imagen y puede recordar tu elección.',
+    'Antes de crear nada, te dice cuánto cuesta y te pregunta primero.',
   'tour.makers.point3':
-    'Los dos son tuyos: FluidEQ no incluye ninguno, no guarda ningún inicio de sesión y no paga nada.',
+    'Un video que crea se convierte en una animación de tu escena.',
   'tour.makers.how':
     'Abre el chat de una escena en el Estudio y pulsa Cuentas.',
   'tour.makers.open': 'Abrir Visualizadores',
   'tour.makers.imageAlt':
-    'El chat de una escena preguntando si tu propio plugin de GPT o Higgsfield debe hacer los fotogramas de animación, junto a la lista de Cuentas con Claude, GPT y Higgsfield.',
+    'El chat de una escena pidiéndote permitir Higgsfield antes de crear una animación, junto a la lista de Cuentas con Claude y Higgsfield.',
   'tour.makers.request': 'Haz que el koi nade en una animación',
   'tour.code.kicker': 'ESTUDIO · CÓDIGO',
   'tour.code.title': 'Todos los archivos de tu escena en la pestaña Código',
@@ -259,6 +259,44 @@ const tour24 = {
   'tour.v25.review':
     'Una escena que no fue aprobada muestra el motivo del revisor junto a su nombre.',
   'tour.v25.publish': 'Sin límite mensual para publicar.',
+  'tour.signed.kicker': 'FLUIDEQ 2.5',
+  'tour.signed.title': '¡Ahora firmado, gratis!',
+  'tour.signed.subtitle':
+    'El camino hasta aquí y un FluidEQ firmado para todos',
+  'tour.signed.today':
+    'Hoy es un ecualizador para todo lo que suena en tu ordenador, un reproductor para tu música y visualizadores que se mueven con ella.',
+  'tour.signed.liveFor': 'FluidEQ lleva en marcha',
+  'tour.signed.since': 'Empezó el {date}',
+  'tour.signed.roadTitle': 'El camino hasta aquí',
+  'tour.signed.intro':
+    'FluidEQ empezó el 2 de agosto de 2026, y su primera versión, la 0.4.0, salió dos días después. Algo más de tres meses más tarde tiene su propio motor de audio dentro de Windows, un rack DSP para todo lo que oyes, una Biblioteca y un reproductor para tu música, visualizadores con una galería, un Estudio para crear tus propias escenas y doce idiomas. Una versión firmada por su desarrollador es un hito en ese camino.',
+  'tour.signed.thanks':
+    'Gracias a cada persona que usa FluidEQ, avisa de lo que falla, publica escenas y escribe en el foro: cada una lo ha hecho mejor.',
+  'tour.signed.signedTitle': 'Firmado por su desarrollador',
+  'tour.signed.signedBody':
+    'Al ejecutar su instalador, Windows indica el editor: {publisher}.',
+  'tour.signed.updatesTitle': 'Se sigue actualizando solo',
+  'tour.signed.updatesBody':
+    'Cada versión nueva llega sola y FluidEQ te avisa cuando está lista. Tus ajustes se conservan.',
+  'tour.signed.freeTitle': 'Gratis para todos',
+  'tour.signed.freeBody':
+    'Un solo FluidEQ, el mismo para todos, sin nada que comprar ni activar.',
+  'tour.signed.unit.day.one': 'día',
+  'tour.signed.unit.day.few': 'días',
+  'tour.signed.unit.day.many': 'días',
+  'tour.signed.unit.day.other': 'días',
+  'tour.signed.unit.hour.one': 'hora',
+  'tour.signed.unit.hour.few': 'horas',
+  'tour.signed.unit.hour.many': 'horas',
+  'tour.signed.unit.hour.other': 'horas',
+  'tour.signed.unit.minute.one': 'minuto',
+  'tour.signed.unit.minute.few': 'minutos',
+  'tour.signed.unit.minute.many': 'minutos',
+  'tour.signed.unit.minute.other': 'minutos',
+  'tour.signed.unit.second.one': 'segundo',
+  'tour.signed.unit.second.few': 'segundos',
+  'tour.signed.unit.second.many': 'segundos',
+  'tour.signed.unit.second.other': 'segundos',
 } as const;
 
 export default tour24;

@@ -16,9 +16,9 @@ import type { ISlideActions } from './slides';
 /**
  * What 2.5 brings the visualizers, all of it in the Visualizers' own What's
  * New (Ivan, 2026-11-11: yes to 2.5's Studio news as slides there): Edit
- * mode, the AI that watches a scene move, Higgsfield beside GPT, and the Code
- * tab's every file, with the rest of the release for makers and listeners
- * listed under that last one.
+ * mode, the AI that watches a scene move, Higgsfield as the Studio's maker,
+ * and the Code tab's every file, with the rest of the release for makers and
+ * listeners listed under that last one.
  */
 interface ISlideProps {
   actions: ISlideActions;

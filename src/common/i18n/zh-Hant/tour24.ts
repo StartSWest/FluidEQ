@@ -195,20 +195,17 @@ const tour24 = {
   'tour.watch.dropShows': '高潮看得出來',
   'tour.watch.night': '夜晚：亮度 {value}%',
   'tour.makers.kicker': '工作室 · 圖片',
-  'tour.makers.title': 'GPT 旁邊的 Higgsfield',
-  'tour.makers.subtitle': '用你自己的工具，聊天會問用哪個',
-  'tour.makers.lead':
-    '當場景需要新圖片或動畫格時，你的 AI 可以用你自己的 GPT 外掛或 Higgsfield，兩者都在你自己的 Claude Code 裡。',
+  'tour.makers.title': '現已整合 Higgsfield',
+  'tour.makers.subtitle': '為您的場景製作圖片和動畫',
+  'tour.makers.lead': '工作室的 AI 透過 Higgsfield 為您的場景製作圖片和動畫。',
   'tour.makers.point1':
-    '在聊天的「帳戶」裡設定 Higgsfield：FluidEQ 會把它的工具加入你的 Claude Code，並在瀏覽器中開啟它的登入。',
-  'tour.makers.point2':
-    '兩者都在時，聊天會問每張圖用哪個來做，並可以記住你的選擇。',
-  'tour.makers.point3':
-    '兩者都是你的：FluidEQ 不內附任何一個，不保存任何登入，也不付任何費用。',
+    '它使用您自己的 Higgsfield 帳戶，只需在聊天的「帳戶」中設定一次。',
+  'tour.makers.point2': '製作任何內容之前，它會告訴您費用，並先徵求您的同意。',
+  'tour.makers.point3': '它製作的影片會成為場景中的動畫。',
   'tour.makers.how': '在工作室開啟一個場景的聊天，按「帳戶」。',
   'tour.makers.open': '開啟展示臺',
   'tour.makers.imageAlt':
-    '場景的聊天在問動畫格由你自己的 GPT 外掛還是 Higgsfield 來做，旁邊是列有 Claude、GPT 和 Higgsfield 的帳戶清單。',
+    '場景聊天在產生動畫之前請你允許 Higgsfield，旁邊是列有 Claude 和 Higgsfield 的帳戶清單。',
   'tour.makers.request': '把錦鯉做成游動的動畫',
   'tour.code.kicker': '工作室 · 程式碼',
   'tour.code.title': '在「程式碼」分頁查看場景的每個檔案',
@@ -233,6 +230,42 @@ const tour24 = {
     '在工作室開啟的其他成員的場景是鎖定的副本，它的聊天會在每個指令前詢問。',
   'tour.v25.review': '未通過審核的場景會在名稱旁顯示審核者的理由。',
   'tour.v25.publish': '發布不再有每月上限。',
+  'tour.signed.kicker': 'FLUIDEQ 2.5',
+  'tour.signed.title': '現已簽署，免費！',
+  'tour.signed.subtitle': '一路走來，以及為所有人簽署的 FluidEQ',
+  'tour.signed.today':
+    '如今，它是電腦上所有聲音的等化器，是您的音樂播放器，也是隨音樂律動的視覺化效果。',
+  'tour.signed.liveFor': 'FluidEQ 已經運作',
+  'tour.signed.since': '始於 {date}',
+  'tour.signed.roadTitle': '一路走來',
+  'tour.signed.intro':
+    'FluidEQ 始於 2026年8月2日，兩天後推出了第一個版本 0.4.0。三個多月後，它有了在 Windows 內運作、屬於它自己的音訊引擎，處理您聽到的一切聲音的 DSP 機架，用於您的音樂的媒體庫和播放器，附畫廊的視覺化效果，用來製作自己場景的工作室，以及十二種語言。由開發者簽署的版本，是這段路上的一個里程碑。',
+  'tour.signed.thanks':
+    '感謝每一位使用 FluidEQ、回報問題、發布場景和在論壇發言的人：是您們每一位讓它變得更好。',
+  'tour.signed.signedTitle': '由開發者簽署',
+  'tour.signed.signedBody':
+    '執行安裝程式時，Windows 會顯示發行者：{publisher}。',
+  'tour.signed.updatesTitle': '持續自動更新',
+  'tour.signed.updatesBody':
+    '每個新版本都會自動送達，準備好後 FluidEQ 會通知您。您的設定會保留。',
+  'tour.signed.freeTitle': '人人免費',
+  'tour.signed.freeBody': '只有一個 FluidEQ，人人相同，不必購買，也不必啟用。',
+  'tour.signed.unit.day.one': '天',
+  'tour.signed.unit.day.few': '天',
+  'tour.signed.unit.day.many': '天',
+  'tour.signed.unit.day.other': '天',
+  'tour.signed.unit.hour.one': '小時',
+  'tour.signed.unit.hour.few': '小時',
+  'tour.signed.unit.hour.many': '小時',
+  'tour.signed.unit.hour.other': '小時',
+  'tour.signed.unit.minute.one': '分鐘',
+  'tour.signed.unit.minute.few': '分鐘',
+  'tour.signed.unit.minute.many': '分鐘',
+  'tour.signed.unit.minute.other': '分鐘',
+  'tour.signed.unit.second.one': '秒',
+  'tour.signed.unit.second.few': '秒',
+  'tour.signed.unit.second.many': '秒',
+  'tour.signed.unit.second.other': '秒',
 } as const;
 
 export default tour24;

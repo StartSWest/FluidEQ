@@ -148,7 +148,7 @@ const renderChangelog = (markdown: string) => {
         sections.push(version);
         blocks = version.blocks;
       } else if (level === 3) {
-        // A version's halves, `### FluidEQ` then `### Studio` from 2.4 on:
+        // A version's halves, `### FluidEQ` then `### Visualizers` from 2.4 on:
         // what a listener reads first, apart from what a maker does.
         blocks.push(
           <h4 key={key} className="whats-new__part">

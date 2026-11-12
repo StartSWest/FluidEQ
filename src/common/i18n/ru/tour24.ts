@@ -206,21 +206,20 @@ const tour24 = {
   'tour.watch.dropShows': 'Дроп виден',
   'tour.watch.night': 'Ночь: светло {value} %',
   'tour.makers.kicker': 'СТУДИЯ · КАРТИНКИ',
-  'tour.makers.title': 'Higgsfield рядом с GPT',
-  'tour.makers.subtitle':
-    'Ваши собственные инструменты, и чат спрашивает какой',
+  'tour.makers.title': 'Теперь с интеграцией Higgsfield',
+  'tour.makers.subtitle': 'Изображения и анимации для ваших сцен',
   'tour.makers.lead':
-    'Когда сцене нужна новая картинка или кадры анимации, ваш ИИ может взять ваш собственный плагин GPT или Higgsfield — оба в вашем собственном Claude Code.',
+    'ИИ Студии создаёт изображения и анимации для ваших сцен с помощью Higgsfield.',
   'tour.makers.point1':
-    'Подключите Higgsfield в «Аккаунтах» чата: FluidEQ добавит его инструменты в ваш Claude Code и откроет его вход в браузере.',
+    'Он использует ваш собственный аккаунт Higgsfield, который настраивается один раз в разделе «Аккаунты» в чате.',
   'tour.makers.point2':
-    'Когда есть оба, чат спрашивает, кто делает каждую картинку, и может запомнить ваш выбор.',
+    'Прежде чем что-то создать, он называет стоимость и сначала спрашивает вас.',
   'tour.makers.point3':
-    'Оба ваши: FluidEQ не поставляет ни один, не хранит входов и ни за что не платит.',
+    'Созданное им видео становится анимацией в вашей сцене.',
   'tour.makers.how': 'Откройте чат сцены в Студии и нажмите «Аккаунты».',
   'tour.makers.open': 'Открыть «Визуализаторы»',
   'tour.makers.imageAlt':
-    'Чат сцены спрашивает, кто сделает кадры анимации — ваш собственный плагин GPT или Higgsfield, рядом список аккаунтов с Claude, GPT и Higgsfield.',
+    'Чат сцены просит разрешить Higgsfield перед созданием анимации, рядом со списком «Аккаунты» с Claude и Higgsfield.',
   'tour.makers.request': 'Сделай анимацию, где карп кои плывёт',
   'tour.code.kicker': 'СТУДИЯ · КОД',
   'tour.code.title': 'Все файлы сцены во вкладке «Код»',
@@ -247,6 +246,43 @@ const tour24 = {
   'tour.v25.review':
     'Неодобренная сцена показывает причину проверяющего рядом с названием.',
   'tour.v25.publish': 'Без месячного лимита на публикации.',
+  'tour.signed.kicker': 'FLUIDEQ 2.5',
+  'tour.signed.title': 'Теперь с подписью — бесплатно!',
+  'tour.signed.subtitle': 'Пройденный путь и подписанный FluidEQ для всех',
+  'tour.signed.today':
+    'Сегодня это эквалайзер для всего, что играет на вашем компьютере, плеер для вашей музыки и визуализаторы, которые движутся вместе с ней.',
+  'tour.signed.liveFor': 'FluidEQ работает уже',
+  'tour.signed.since': 'С {date}',
+  'tour.signed.roadTitle': 'Пройденный путь',
+  'tour.signed.intro':
+    'FluidEQ появился 2 августа 2026 года, а его первая версия, 0.4.0, вышла через два дня. Чуть больше трёх месяцев спустя у него есть собственный аудиодвижок внутри Windows, DSP-рэк для всего, что вы слышите, Библиотека и плеер для вашей музыки, визуализаторы с галереей, Студия для создания своих сцен и двенадцать языков. Сборка, подписанная разработчиком, — важная веха на этом пути.',
+  'tour.signed.thanks':
+    'Спасибо всем, кто пользуется FluidEQ, сообщает о проблемах, публикует сцены и пишет на форуме: каждый из вас сделал его лучше.',
+  'tour.signed.signedTitle': 'Подписан разработчиком',
+  'tour.signed.signedBody':
+    'Когда вы запускаете установщик, Windows называет издателя: {publisher}.',
+  'tour.signed.updatesTitle': 'Обновляется сам',
+  'tour.signed.updatesBody':
+    'Каждая новая версия приходит сама, и FluidEQ сообщает, когда она готова. Ваши настройки сохраняются.',
+  'tour.signed.freeTitle': 'Бесплатно для всех',
+  'tour.signed.freeBody':
+    'Один FluidEQ, одинаковый для всех: ничего не нужно покупать или активировать.',
+  'tour.signed.unit.day.one': 'день',
+  'tour.signed.unit.day.few': 'дня',
+  'tour.signed.unit.day.many': 'дней',
+  'tour.signed.unit.day.other': 'дня',
+  'tour.signed.unit.hour.one': 'час',
+  'tour.signed.unit.hour.few': 'часа',
+  'tour.signed.unit.hour.many': 'часов',
+  'tour.signed.unit.hour.other': 'часа',
+  'tour.signed.unit.minute.one': 'минута',
+  'tour.signed.unit.minute.few': 'минуты',
+  'tour.signed.unit.minute.many': 'минут',
+  'tour.signed.unit.minute.other': 'минуты',
+  'tour.signed.unit.second.one': 'секунда',
+  'tour.signed.unit.second.few': 'секунды',
+  'tour.signed.unit.second.many': 'секунд',
+  'tour.signed.unit.second.other': 'секунды',
 } as const;
 
 export default tour24;

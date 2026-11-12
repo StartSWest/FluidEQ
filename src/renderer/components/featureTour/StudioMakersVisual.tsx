@@ -4,26 +4,20 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { TranslationKey } from '../../../common/i18n';
 import { useTranslation } from '../../utils/I18nContext';
 
 /**
- * The scene's chat asking which of the member's own makers should make the
- * animation frames it was asked for, as the chat asks it (`StudioChatAsk`:
- * the two makers with what each runs on, and Remember my choice), beside the
- * chat's Accounts with Claude, the member's GPT plugin and Higgsfield, each
- * found in their own Claude Code. Every word is the chat's own label.
+ * Higgsfield making what a scene's chat was asked for, as the chat shows it:
+ * the request, the card asking to allow the member's own tool before any of
+ * their credits are spent (`StudioChatAsk`, Allow loud), the step that says
+ * it is making it, and the chat's Accounts with Claude and Higgsfield, both
+ * found in the member's own Claude Code. Every word is the chat's own label;
+ * Higgsfield is the Studio's one maker since GPT was taken out (2026-11-11).
  *
  * One loop of CSS (`_tour-release25.scss`).
  */
 
-const MAKERS: readonly { name: TranslationKey; runsOn: TranslationKey }[] = [
-  { name: 'studioChat.accounts.gpt', runsOn: 'studioChat.ask.makerGpt' },
-  {
-    name: 'studioChat.accounts.higgsfield',
-    runsOn: 'studioChat.ask.makerHiggsfield',
-  },
-];
+const MAKER = 'Higgsfield';
 
 export default function StudioMakersVisual() {
   const { t } = useTranslation();
@@ -31,10 +25,6 @@ export default function StudioMakersVisual() {
     {
       name: t('studioChat.accounts.claude'),
       state: t('studioChat.accounts.unknown'),
-    },
-    {
-      name: t('studioChat.accounts.gpt'),
-      state: t('studioChat.accounts.gptFound', { name: 'gpt-image' }),
     },
     {
       name: t('studioChat.accounts.higgsfield'),
@@ -51,21 +41,23 @@ export default function StudioMakersVisual() {
         <span className="makers-visual__mine">{t('tour.makers.request')}</span>
         <span className="makers-visual__ask">
           <span className="makers-visual__ask-title">
-            {t('studioChat.ask.makerFrames')}
+            {t('studioChat.ask.toolTitle', { tool: MAKER })}
           </span>
-          {MAKERS.map((maker, index) => (
-            <span
-              key={maker.name}
-              className={`makers-visual__maker${index === 1 ? ' is-chosen' : ''}`}
-            >
-              <span className="makers-visual__maker-name">{t(maker.name)}</span>
-              <small>{t(maker.runsOn)}</small>
+          <small className="makers-visual__ask-body">
+            {t('studioChat.ask.toolBody')}
+          </small>
+          <span className="makers-visual__answers">
+            <span className="button small makers-visual__allow">
+              {t('studioChat.ask.allow')}
             </span>
-          ))}
-          <span className="makers-visual__remember">
-            <i />
-            {t('studioChat.ask.makerRemember')}
+            <span className="button small subtle">
+              {t('studioChat.ask.deny')}
+            </span>
           </span>
+        </span>
+        <span className="makers-visual__step">
+          <i />
+          {t('studioChat.step.makeNow')}
         </span>
       </section>
 

@@ -13,9 +13,10 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'tour-miniature' as *;
 
 // 2.5's pictures in the Visualizers' own What's New: Edit mode, the AI that
-// watches a scene, Higgsfield beside GPT and the Code tab (`StudioEditVisual`,
-// `StudioWatchVisual`, `StudioMakersVisual`, `StudioCodeVisual`). The same
-// miniature language as 2.4's: framed panels, pills, the tour's own unit.
+// watches a scene, Higgsfield as the Studio's maker and the Code tab
+// (`StudioEditVisual`, `StudioWatchVisual`, `StudioMakersVisual`,
+// `StudioCodeVisual`). The same miniature language as 2.4's: framed panels,
+// pills, the tour's own unit.
 
 // The pictures' loop, 2.4's ten seconds, so the pages keep one pace.
 $loop: 10s;
@@ -531,7 +532,7 @@ $loop: 10s;
 }
 
 // ---------------------------------------------------------------------------
-// Higgsfield beside GPT: the chat's ask, and its Accounts.
+// Higgsfield making it: the chat's ask to allow it, and its Accounts.
 
 // The chat over its Accounts, as the frame is taller than it is wide.
 .makers-visual {
@@ -573,65 +574,60 @@ $loop: 10s;
   font-weight: $weight-semibold;
 }
 
-.makers-visual__maker {
-  display: grid;
-  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.45);
-  border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: $radius-s;
-  background: $surface-control;
-  gap: calc(#{$u} * 0.1);
+.makers-visual__ask-body {
+  color: $text-faint;
+  font-size: calc(#{$u} * 0.6);
+  line-height: 1.35;
+}
 
-  small {
-    color: $text-faint;
-    font-size: calc(#{$u} * 0.6);
-    line-height: 1.35;
-  }
+.makers-visual__answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(#{$u} * 0.35);
 
-  // The one the member reaches for, lit as the pointer reaches it.
-  &.is-chosen {
-    animation: makers-visual-choose $loop ease-in-out infinite;
-    @include still;
+  .button {
+    min-height: calc(#{$u} * 1.6);
+    padding: calc(#{$u} * 0.2) calc(#{$u} * 0.6);
+    font-size: calc(#{$u} * 0.62);
+    cursor: default;
   }
 }
 
-@keyframes makers-visual-choose {
+// Allow, lit as the pointer reaches it: the member says yes before any of
+// their credits are spent.
+.makers-visual__allow {
+  animation: makers-visual-allow $loop ease-in-out infinite;
+  @include still;
+}
+
+@keyframes makers-visual-allow {
   0%,
-  30% {
-    border-color: rgba($edge-tint, 0.14);
+  30%,
+  100% {
     box-shadow: none;
   }
 
   45%,
   85% {
-    border-color: $secondary-light;
-    box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 40%, transparent);
-  }
-
-  100% {
-    border-color: rgba($edge-tint, 0.14);
-    box-shadow: none;
+    box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 55%, transparent);
   }
 }
 
-.makers-visual__maker-name {
-  color: $text-primary;
-  font-size: calc(#{$u} * 0.7);
-  font-weight: $weight-bold;
-}
-
-.makers-visual__remember {
+// The step the reply shows while Higgsfield makes it.
+.makers-visual__step {
   display: flex;
   align-items: center;
   color: $text-muted;
-  font-size: calc(#{$u} * 0.62);
-  gap: calc(#{$u} * 0.3);
+  font-size: calc(#{$u} * 0.64);
+  gap: calc(#{$u} * 0.35);
 
   i {
     flex: 0 0 auto;
-    width: calc(#{$u} * 0.55);
-    height: calc(#{$u} * 0.55);
-    border: 1.5px solid rgba($edge-tint, 0.35);
-    border-radius: 3px;
+    width: calc(#{$u} * 0.45);
+    height: calc(#{$u} * 0.45);
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 60%, transparent);
   }
 }
 

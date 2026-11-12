@@ -230,9 +230,6 @@ const studioChat = {
     'Choisi dans la scène (ne change que cela, sauf indication contraire) :',
   'studioChat.picked.label': 'Choisi dans la scène',
   'studioChat.picked.remove': 'Retirer {name}',
-  'studioChat.accounts.gpt': 'GPT',
-  'studioChat.accounts.gptFound':
-    'Votre propre plugin GPT dans Claude Code ({name})',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': 'Connecté via votre Claude Code',
   'studioChat.accounts.higgsfieldNote':
@@ -249,13 +246,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': 'Se connecter avec Higgsfield',
   'studioChat.accounts.higgsfieldAbout': 'Qu’est-ce que Higgsfield ?',
   'studioChat.accounts.checkAgain': 'Vérifier à nouveau',
-  'studioChat.ask.makerFrames': 'Créer ces images d’animation avec…',
-  'studioChat.ask.makerGpt':
-    'Votre propre plugin GPT, avec votre forfait ChatGPT',
-  'studioChat.ask.makerHiggsfield':
-    'Vos crédits Higgsfield. Claude vous indique le coût avant.',
-  'studioChat.ask.makerRemember':
-    'Mémoriser mon choix (modifiable dans Comptes)',
 } as const;
 
 export default studioChat;

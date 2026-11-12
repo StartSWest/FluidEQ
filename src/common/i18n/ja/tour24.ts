@@ -206,21 +206,20 @@ const tour24 = {
   'tour.watch.dropShows': 'ドロップが見える',
   'tour.watch.night': '夜: 明るさ {value}%',
   'tour.makers.kicker': 'スタジオ · 画像',
-  'tour.makers.title': 'GPT の隣に Higgsfield',
-  'tour.makers.subtitle': '自分のツールを使い、チャットがどちらか尋ねる',
+  'tour.makers.title': 'Higgsfield と連携',
+  'tour.makers.subtitle': 'シーンのための画像とアニメーション',
   'tour.makers.lead':
-    'シーンに新しい画像やアニメーションのフレームが必要なとき、AI はあなた自身の GPT プラグインか Higgsfield を使えます。どちらもあなた自身の Claude Code の中です。',
+    'スタジオの AI が Higgsfield で、シーンのための画像とアニメーションを作ります。',
   'tour.makers.point1':
-    'チャットの「アカウント」から Higgsfield を設定できます。FluidEQ がそのツールを Claude Code に追加し、ブラウザでサインインを開きます。',
+    'あなた自身の Higgsfield アカウントを使います。チャットのアカウントで一度設定するだけです。',
   'tour.makers.point2':
-    '両方あるとき、チャットはどちらで各画像を作るか尋ね、選択を覚えておけます。',
-  'tour.makers.point3':
-    'どちらもあなたのものです。FluidEQ はどちらも同梱せず、サインイン情報も持たず、何も支払いません。',
+    '何かを作る前に、費用を伝えて、まずあなたに確認します。',
+  'tour.makers.point3': '作った動画は、シーンのアニメーションになります。',
   'tour.makers.how':
     'スタジオでシーンのチャットを開き、「アカウント」を押します。',
   'tour.makers.open': 'ビジュアライザーを開く',
   'tour.makers.imageAlt':
-    'シーンのチャットが、アニメーションのフレームを自分の GPT プラグインと Higgsfield のどちらで作るか尋ねている画面と、Claude・GPT・Higgsfield が並ぶアカウント一覧。',
+    'アニメーションを作る前に Higgsfield の許可を求めるシーンのチャットと、Claude と Higgsfield が並ぶアカウント一覧。',
   'tour.makers.request': '鯉が泳ぐアニメーションにして',
   'tour.code.kicker': 'スタジオ · コード',
   'tour.code.title': 'シーンのすべてのファイルを「コード」タブで',
@@ -249,6 +248,43 @@ const tour24 = {
   'tour.v25.review':
     '承認されなかったシーンには、名前の横に審査の理由が表示されます。',
   'tour.v25.publish': '公開に月ごとの上限はありません。',
+  'tour.signed.kicker': 'FLUIDEQ 2.5',
+  'tour.signed.title': '署名付きに。しかも無料！',
+  'tour.signed.subtitle': 'ここまでの歩みと、誰でも使える署名付きの FluidEQ',
+  'tour.signed.today':
+    '今の FluidEQ は、パソコンで鳴るすべての音のためのイコライザーであり、あなたの音楽のためのプレーヤーであり、音楽に合わせて動くビジュアライザーです。',
+  'tour.signed.liveFor': 'FluidEQ が動き出してから',
+  'tour.signed.since': '{date}に開始',
+  'tour.signed.roadTitle': 'ここまでの歩み',
+  'tour.signed.intro':
+    'FluidEQ は 2026年8月2日に始まり、最初のリリース 0.4.0 はその2日後に出ました。それから3か月あまりで、Windows の中で動く独自のオーディオエンジン、聞こえるすべての音のための DSP ラック、音楽のためのライブラリとプレーヤー、ギャラリー付きのビジュアライザー、自分のシーンを作るスタジオ、そして12の言語がそろいました。開発者による署名付きのビルドは、その歩みの大きな節目です。',
+  'tour.signed.thanks':
+    'FluidEQ を使い、不具合を知らせ、シーンを公開し、フォーラムに書き込んでくださる皆さん、ありがとうございます。皆さん一人ひとりのおかげで、より良いものになりました。',
+  'tour.signed.signedTitle': '開発者が署名',
+  'tour.signed.signedBody':
+    'インストーラーを実行すると、Windows に発行元として {publisher} と表示されます。',
+  'tour.signed.updatesTitle': '自動でアップデート',
+  'tour.signed.updatesBody':
+    '新しいバージョンは自動で届き、準備ができると FluidEQ がお知らせします。設定はそのまま残ります。',
+  'tour.signed.freeTitle': '誰でも無料',
+  'tour.signed.freeBody':
+    'FluidEQ はひとつだけ。誰にとっても同じで、購入も有効化も必要ありません。',
+  'tour.signed.unit.day.one': '日',
+  'tour.signed.unit.day.few': '日',
+  'tour.signed.unit.day.many': '日',
+  'tour.signed.unit.day.other': '日',
+  'tour.signed.unit.hour.one': '時間',
+  'tour.signed.unit.hour.few': '時間',
+  'tour.signed.unit.hour.many': '時間',
+  'tour.signed.unit.hour.other': '時間',
+  'tour.signed.unit.minute.one': '分',
+  'tour.signed.unit.minute.few': '分',
+  'tour.signed.unit.minute.many': '分',
+  'tour.signed.unit.minute.other': '分',
+  'tour.signed.unit.second.one': '秒',
+  'tour.signed.unit.second.few': '秒',
+  'tour.signed.unit.second.many': '秒',
+  'tour.signed.unit.second.other': '秒',
 } as const;
 
 export default tour24;

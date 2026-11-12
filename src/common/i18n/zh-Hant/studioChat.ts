@@ -218,9 +218,6 @@ const studioChat = {
   'studioChat.picked.lead': '在場景中選取（除非我另有說明，只改這些）：',
   'studioChat.picked.label': '在場景中選取',
   'studioChat.picked.remove': '移除 {name}',
-  'studioChat.accounts.gpt': 'GPT',
-  'studioChat.accounts.gptFound':
-    '您在 Claude Code 中自己的 GPT 外掛程式（{name}）',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': '已透過您的 Claude Code 連線',
   'studioChat.accounts.higgsfieldNote':
@@ -237,11 +234,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': '使用 Higgsfield 登入',
   'studioChat.accounts.higgsfieldAbout': '什麼是 Higgsfield？',
   'studioChat.accounts.checkAgain': '再次檢查',
-  'studioChat.ask.makerFrames': '用哪一個製作這些動畫影格…',
-  'studioChat.ask.makerGpt': '您自己的 GPT 外掛程式，使用您的 ChatGPT 方案',
-  'studioChat.ask.makerHiggsfield':
-    '您的 Higgsfield 點數。Claude 會先告訴您費用。',
-  'studioChat.ask.makerRemember': '記住我的選擇（可在「帳戶」中變更）',
 } satisfies Partial<Dictionary>;
 
 export default studioChat;

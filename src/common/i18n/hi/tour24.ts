@@ -204,20 +204,19 @@ const tour24 = {
   'tour.watch.dropShows': 'ड्रॉप दिखता है',
   'tour.watch.night': 'रात: {value}% रोशन',
   'tour.makers.kicker': 'स्टूडियो · तस्वीरें',
-  'tour.makers.title': 'GPT के साथ Higgsfield',
-  'tour.makers.subtitle': 'आपके अपने औज़ार, और चैट पूछती है कौन सा',
+  'tour.makers.title': 'अब Higgsfield के साथ जुड़ा हुआ',
+  'tour.makers.subtitle': 'आपके सीन के लिए तस्वीरें और एनिमेशन',
   'tour.makers.lead':
-    'जब किसी दृश्य को नई तस्वीर या एनिमेशन फ़्रेम चाहिए, आपका AI आपका अपना GPT प्लगइन या Higgsfield इस्तेमाल कर सकता है, दोनों आपके अपने Claude Code में।',
+    'स्टूडियो का AI Higgsfield से आपके सीन के लिए तस्वीरें और एनिमेशन बनाता है।',
   'tour.makers.point1':
-    'चैट के खाते से Higgsfield सेट करें: FluidEQ उसके औज़ार आपके Claude Code में जोड़ता है और आपके ब्राउज़र में उसका साइन-इन खोलता है।',
+    'यह आपका अपना Higgsfield खाता इस्तेमाल करता है, जिसे चैट के खाते में एक बार सेट किया जाता है।',
   'tour.makers.point2':
-    'दोनों होने पर चैट पूछती है कि हर तस्वीर कौन बनाए, और आपकी पसंद याद रख सकती है।',
-  'tour.makers.point3':
-    'दोनों आपके हैं: FluidEQ इनमें से कोई साथ नहीं देता, कोई साइन-इन नहीं रखता और कुछ नहीं चुकाता।',
+    'कुछ भी बनाने से पहले यह बताता है कि उसकी लागत क्या है और पहले आपसे पूछता है।',
+  'tour.makers.point3': 'इसका बनाया वीडियो आपके सीन में एनिमेशन बन जाता है।',
   'tour.makers.how': 'स्टूडियो में किसी दृश्य की चैट खोलें और खाते दबाएँ।',
   'tour.makers.open': 'विज़ुअलाइज़र खोलें',
   'tour.makers.imageAlt':
-    'एक दृश्य की चैट पूछ रही है कि एनिमेशन फ़्रेम आपका अपना GPT प्लगइन बनाए या Higgsfield, बगल में Claude, GPT और Higgsfield वाली खातों की सूची।',
+    'किसी दृश्य की चैट एनिमेशन बनाने से पहले Higgsfield की अनुमति माँगते हुए, Claude और Higgsfield वाली “खाते” सूची के बगल में।',
   'tour.makers.request': 'कोइ मछली को तैरती हुई एनिमेशन बना दो',
   'tour.code.kicker': 'स्टूडियो · कोड',
   'tour.code.title': 'कोड टैब में आपके दृश्य की हर फ़ाइल',
@@ -244,6 +243,43 @@ const tour24 = {
   'tour.v25.review':
     'जो दृश्य स्वीकृत नहीं हुआ, उसके नाम के पास समीक्षक का कारण दिखता है।',
   'tour.v25.publish': 'प्रकाशित करने की कोई मासिक सीमा नहीं।',
+  'tour.signed.kicker': 'FLUIDEQ 2.5',
+  'tour.signed.title': 'अब हस्ताक्षरित, मुफ़्त में!',
+  'tour.signed.subtitle': 'अब तक का सफ़र, और सबके लिए हस्ताक्षरित FluidEQ',
+  'tour.signed.today':
+    'आज यह आपके कंप्यूटर पर बजने वाली हर चीज़ के लिए एक इक्वलाइज़र है, आपके संगीत के लिए एक प्लेयर, और उसके साथ चलने वाले विज़ुअलाइज़र।',
+  'tour.signed.liveFor': 'FluidEQ को चलते हुए',
+  'tour.signed.since': '{date} से',
+  'tour.signed.roadTitle': 'अब तक का सफ़र',
+  'tour.signed.intro':
+    'FluidEQ की शुरुआत 2 अगस्त 2026 को हुई, और उसकी पहली रिलीज़, 0.4.0, दो दिन बाद आई। तीन महीने से कुछ ज़्यादा समय बाद उसके पास Windows के भीतर अपना ऑडियो इंजन, आपकी सुनी हर चीज़ के लिए DSP रैक, आपके संगीत के लिए लाइब्रेरी और प्लेयर, गैलरी के साथ विज़ुअलाइज़र, अपने सीन बनाने के लिए स्टूडियो, और बारह भाषाएँ हैं। डेवलपर द्वारा हस्ताक्षरित बिल्ड इस सफ़र का एक अहम पड़ाव है।',
+  'tour.signed.thanks':
+    'FluidEQ इस्तेमाल करने वाले, गड़बड़ियाँ बताने वाले, सीन प्रकाशित करने वाले और फ़ोरम में लिखने वाले हर व्यक्ति का धन्यवाद: आप में से हर एक ने इसे बेहतर बनाया है।',
+  'tour.signed.signedTitle': 'डेवलपर द्वारा हस्ताक्षरित',
+  'tour.signed.signedBody':
+    'इंस्टॉलर चलाने पर Windows प्रकाशक का नाम दिखाता है: {publisher}।',
+  'tour.signed.updatesTitle': 'यह खुद अपडेट होता रहता है',
+  'tour.signed.updatesBody':
+    'हर नया संस्करण अपने आप आता है, और तैयार होने पर FluidEQ आपको बताता है। आपकी सेटिंग्स बनी रहती हैं।',
+  'tour.signed.freeTitle': 'सबके लिए मुफ़्त',
+  'tour.signed.freeBody':
+    'एक ही FluidEQ, सबके लिए एक जैसा: न कुछ ख़रीदना, न कुछ सक्रिय करना।',
+  'tour.signed.unit.day.one': 'दिन',
+  'tour.signed.unit.day.few': 'दिन',
+  'tour.signed.unit.day.many': 'दिन',
+  'tour.signed.unit.day.other': 'दिन',
+  'tour.signed.unit.hour.one': 'घंटा',
+  'tour.signed.unit.hour.few': 'घंटे',
+  'tour.signed.unit.hour.many': 'घंटे',
+  'tour.signed.unit.hour.other': 'घंटे',
+  'tour.signed.unit.minute.one': 'मिनट',
+  'tour.signed.unit.minute.few': 'मिनट',
+  'tour.signed.unit.minute.many': 'मिनट',
+  'tour.signed.unit.minute.other': 'मिनट',
+  'tour.signed.unit.second.one': 'सेकंड',
+  'tour.signed.unit.second.few': 'सेकंड',
+  'tour.signed.unit.second.many': 'सेकंड',
+  'tour.signed.unit.second.other': 'सेकंड',
 } as const;
 
 export default tour24;

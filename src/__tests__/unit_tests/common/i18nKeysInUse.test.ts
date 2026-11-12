@@ -101,6 +101,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
       '*.*',
     ],
   ],
+  // 2.5's live count names each unit with the plural its number takes.
+  'src/renderer/components/featureTour/SignedCounter.tsx': [
+    [
+      'tour.signed.unit.{day,hour,minute,second}.{one,few,many,other}',
+      'tour.signed.unit.*.*',
+    ],
+  ],
   'src/renderer/components/featureTour/ShowcaseSlide.tsx': [
     [
       'tour.{engine,room,plus,visualizers,desktop,lighting,look,gpu,sparks,sound,graph,player,games,presets,tone,studio,help,outputs,bands,ears,myCurves,songs,deesser,chat,animations,pictures,stage,ai,controls,camera,level,edit,watch,makers,code}.{kicker,title,lead,how,open,point1,point2,point3}',

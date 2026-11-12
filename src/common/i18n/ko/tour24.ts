@@ -202,20 +202,19 @@ const tour24 = {
   'tour.watch.dropShows': '드롭이 보임',
   'tour.watch.night': '밤: 밝기 {value}%',
   'tour.makers.kicker': '스튜디오 · 그림',
-  'tour.makers.title': 'GPT 옆의 Higgsfield',
-  'tour.makers.subtitle': '나만의 도구, 그리고 채팅이 어느 쪽인지 묻습니다',
+  'tour.makers.title': '이제 Higgsfield와 연동',
+  'tour.makers.subtitle': '장면을 위한 그림과 애니메이션',
   'tour.makers.lead':
-    '장면에 새 그림이나 애니메이션 프레임이 필요하면, AI는 내 GPT 플러그인이나 Higgsfield를 쓸 수 있습니다. 둘 다 내 Claude Code 안에 있습니다.',
+    '스튜디오의 AI가 Higgsfield로 장면을 위한 그림과 애니메이션을 만듭니다.',
   'tour.makers.point1':
-    '채팅의 계정에서 Higgsfield를 설정하세요. FluidEQ가 그 도구를 Claude Code에 추가하고 브라우저에서 로그인을 엽니다.',
+    '내 Higgsfield 계정을 사용하며, 채팅의 계정에서 한 번만 설정하면 됩니다.',
   'tour.makers.point2':
-    '둘 다 있으면 채팅이 그림마다 어느 쪽으로 만들지 묻고, 선택을 기억할 수 있습니다.',
-  'tour.makers.point3':
-    '둘 다 내 것입니다. FluidEQ는 어느 것도 포함하지 않고, 로그인 정보도 갖지 않으며, 아무것도 결제하지 않습니다.',
+    '무엇이든 만들기 전에 비용을 알려 주고 먼저 물어봅니다.',
+  'tour.makers.point3': 'AI가 만든 동영상은 장면의 애니메이션이 됩니다.',
   'tour.makers.how': '스튜디오에서 장면의 채팅을 열고 계정을 누르세요.',
   'tour.makers.open': '시각화 도우미 열기',
   'tour.makers.imageAlt':
-    '장면의 채팅이 애니메이션 프레임을 내 GPT 플러그인과 Higgsfield 중 어느 쪽으로 만들지 묻는 화면과, Claude·GPT·Higgsfield가 있는 계정 목록.',
+    '애니메이션을 만들기 전에 Higgsfield 허용을 요청하는 장면 채팅과, Claude와 Higgsfield가 있는 계정 목록.',
   'tour.makers.request': '잉어가 헤엄치는 애니메이션으로 만들어 줘',
   'tour.code.kicker': '스튜디오 · 코드',
   'tour.code.title': '코드 탭에서 장면의 모든 파일을',
@@ -242,6 +241,43 @@ const tour24 = {
   'tour.v25.review':
     '승인되지 않은 장면은 이름 옆에 검토자의 이유를 보여 줍니다.',
   'tour.v25.publish': '게시에 월간 한도가 없습니다.',
+  'tour.signed.kicker': 'FLUIDEQ 2.5',
+  'tour.signed.title': '이제 서명까지, 무료로!',
+  'tour.signed.subtitle': '지금까지의 여정, 그리고 모두를 위한 서명된 FluidEQ',
+  'tour.signed.today':
+    '오늘의 FluidEQ는 컴퓨터에서 재생되는 모든 소리를 위한 이퀄라이저이자, 내 음악을 위한 플레이어이며, 음악에 맞춰 움직이는 비주얼라이저입니다.',
+  'tour.signed.liveFor': 'FluidEQ가 함께한 시간',
+  'tour.signed.since': '{date} 시작',
+  'tour.signed.roadTitle': '지금까지의 여정',
+  'tour.signed.intro':
+    'FluidEQ는 2026년 8월 2일에 시작했고, 첫 릴리스인 0.4.0은 이틀 뒤에 나왔습니다. 그로부터 석 달 남짓 만에 Windows 안에서 도는 자체 오디오 엔진, 들리는 모든 소리를 위한 DSP 랙, 음악을 위한 라이브러리와 플레이어, 갤러리가 있는 비주얼라이저, 나만의 장면을 만드는 스튜디오, 그리고 12개 언어를 갖추었습니다. 개발자가 서명한 빌드는 이 여정의 중요한 이정표입니다.',
+  'tour.signed.thanks':
+    'FluidEQ를 쓰고, 문제를 알려 주고, 장면을 게시하고, 포럼에 글을 남겨 주신 모든 분께 감사드립니다. 여러분 한 분 한 분 덕분에 더 좋아졌습니다.',
+  'tour.signed.signedTitle': '개발자 서명',
+  'tour.signed.signedBody':
+    '설치 프로그램을 실행하면 Windows가 게시자 이름을 보여 줍니다: {publisher}.',
+  'tour.signed.updatesTitle': '스스로 계속 업데이트',
+  'tour.signed.updatesBody':
+    '새 버전은 저절로 도착하고, 준비되면 FluidEQ가 알려 줍니다. 설정은 그대로 유지됩니다.',
+  'tour.signed.freeTitle': '모두에게 무료',
+  'tour.signed.freeBody':
+    'FluidEQ는 하나뿐이고 모두에게 같습니다. 구매할 것도, 활성화할 것도 없습니다.',
+  'tour.signed.unit.day.one': '일',
+  'tour.signed.unit.day.few': '일',
+  'tour.signed.unit.day.many': '일',
+  'tour.signed.unit.day.other': '일',
+  'tour.signed.unit.hour.one': '시간',
+  'tour.signed.unit.hour.few': '시간',
+  'tour.signed.unit.hour.many': '시간',
+  'tour.signed.unit.hour.other': '시간',
+  'tour.signed.unit.minute.one': '분',
+  'tour.signed.unit.minute.few': '분',
+  'tour.signed.unit.minute.many': '분',
+  'tour.signed.unit.minute.other': '분',
+  'tour.signed.unit.second.one': '초',
+  'tour.signed.unit.second.few': '초',
+  'tour.signed.unit.second.many': '초',
+  'tour.signed.unit.second.other': '초',
 } as const;
 
 export default tour24;

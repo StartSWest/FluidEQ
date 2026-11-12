@@ -223,9 +223,6 @@ const studioChat = {
     'दृश्य में चुना गया (जब तक मैं कुछ और न कहूँ, केवल इन्हें बदलो):',
   'studioChat.picked.label': 'दृश्य में चुना गया',
   'studioChat.picked.remove': '{name} हटाएँ',
-  'studioChat.accounts.gpt': 'GPT',
-  'studioChat.accounts.gptFound':
-    'Claude Code में आपका अपना GPT प्लगइन ({name})',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': 'आपके Claude Code के ज़रिए जुड़ा है',
   'studioChat.accounts.higgsfieldNote':
@@ -242,11 +239,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': 'Higgsfield से साइन इन करें',
   'studioChat.accounts.higgsfieldAbout': 'Higgsfield क्या है?',
   'studioChat.accounts.checkAgain': 'फिर से जाँचें',
-  'studioChat.ask.makerFrames': 'ये एनिमेशन फ़्रेम किससे बनाएँ…',
-  'studioChat.ask.makerGpt': 'आपका अपना GPT प्लगइन, आपके ChatGPT प्लान पर',
-  'studioChat.ask.makerHiggsfield':
-    'आपके Higgsfield क्रेडिट। Claude पहले लागत बताता है।',
-  'studioChat.ask.makerRemember': 'मेरी पसंद याद रखें (खाते में बदलें)',
 } as const;
 
 export default studioChat;

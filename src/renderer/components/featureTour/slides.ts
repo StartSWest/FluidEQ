@@ -60,6 +60,7 @@ import {
   StageSlide,
   StudioAiSlide,
 } from './release24';
+import SignedSlide from './release25Sound';
 import SongLevelSlide from './release24Sound';
 import { CodeSlide, EditSlide, MakersSlide, WatchSlide } from './release25';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
@@ -431,7 +432,7 @@ const SONG_LEVEL: TSlideEntry = {
 
 /**
  * 2.5's visualizers, all of them in the Visualizers' own What's New: Edit
- * mode, the AI that watches a scene, Higgsfield beside GPT and the Code tab,
+ * mode, the AI that watches a scene, Higgsfield and the Code tab,
  * with the rest of the release listed under the last.
  */
 const RELEASE_25: TSlideEntry[] = [
@@ -465,6 +466,20 @@ const RELEASE_25: TSlideEntry[] = [
   },
 ];
 
+/**
+ * 2.5's news for everybody, at the head of the sound's What's New: the road
+ * so far, how long FluidEQ has been alive, the walkthrough film, and that it
+ * is now signed by its developer and keeps updating itself, free for everyone
+ * (Ivan, 2026-11-11: no paid edition). Not visualizer news, so it is the
+ * sound's.
+ */
+const SIGNED: TSlideEntry = {
+  id: 'signed',
+  titleKey: 'tour.signed.title',
+  subtitleKey: 'tour.signed.subtitle',
+  Body: SignedSlide,
+};
+
 const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
   entries.map((entry) => ({ ...entry, release }));
 
@@ -481,17 +496,18 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
-  // 2.5 brings the sound no feature of its own (its notes list the fixes),
-  // so the sound's What's New opens on 2.4's sound, never shown as a slide
-  // before; the Visualizers' opens on 2.5's own and keeps 2.4 as new under
-  // its number.
+  // The sound's What's New opens on 2.5's signing, then 2.4's sound,
+  // never shown as a slide before; the Visualizers' opens on 2.5's own and
+  // keeps 2.4 as new under its number.
   '2.5': [
+    ...announced('2.5', [SIGNED]),
     ...announced('2.5', RELEASE_25),
     ...announced('2.4', [SONG_LEVEL]),
     ...announced('2.4', RELEASE_24),
     // Earlier features remain discoverable without being announced again.
     ...RELEASE_23,
-    ...RELEASE_22,
+    // The walkthrough film opens from 2.5's first page, so it is not shown twice.
+    ...RELEASE_22.filter((entry) => entry.id !== WALKTHROUGH_FILM),
     ...RELEASE_21.filter((entry) => !RELEASE_23.includes(entry)),
     ...RELEASE_20.filter(
       (entry) => !RELEASE_21.includes(entry) && !RELEASE_23.includes(entry),

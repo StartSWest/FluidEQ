@@ -195,20 +195,17 @@ const tour24 = {
   'tour.watch.dropShows': '高潮看得出来',
   'tour.watch.night': '夜晚：亮度 {value}%',
   'tour.makers.kicker': '工作室 · 图片',
-  'tour.makers.title': 'GPT 旁边的 Higgsfield',
-  'tour.makers.subtitle': '用你自己的工具，聊天会问用哪个',
-  'tour.makers.lead':
-    '当场景需要新图片或动画帧时，你的 AI 可以用你自己的 GPT 插件或 Higgsfield，两者都在你自己的 Claude Code 里。',
+  'tour.makers.title': '现已集成 Higgsfield',
+  'tour.makers.subtitle': '为你的场景生成图片和动画',
+  'tour.makers.lead': '工作室的 AI 通过 Higgsfield 为你的场景生成图片和动画。',
   'tour.makers.point1':
-    '在聊天的“账号”里设置 Higgsfield：FluidEQ 会把它的工具加入你的 Claude Code，并在浏览器中打开它的登录。',
-  'tour.makers.point2':
-    '两者都在时，聊天会问每张图用哪个来做，并可以记住你的选择。',
-  'tour.makers.point3':
-    '两者都是你的：FluidEQ 不自带任何一个，不保存任何登录，也不付任何费用。',
+    '它使用你自己的 Higgsfield 账号，只需在聊天的“账号”中设置一次。',
+  'tour.makers.point2': '生成任何内容之前，它会告诉你费用，并先征求你的同意。',
+  'tour.makers.point3': '它生成的视频会成为场景中的动画。',
   'tour.makers.how': '在工作室打开一个场景的聊天，按“账号”。',
   'tour.makers.open': '打开“可视化”',
   'tour.makers.imageAlt':
-    '场景的聊天在问动画帧由你自己的 GPT 插件还是 Higgsfield 来做，旁边是列有 Claude、GPT 和 Higgsfield 的账号列表。',
+    '场景聊天在生成动画之前请你允许 Higgsfield，旁边是列有 Claude 和 Higgsfield 的账号列表。',
   'tour.makers.request': '把锦鲤做成游动的动画',
   'tour.code.kicker': '工作室 · 代码',
   'tour.code.title': '在“代码”标签页查看场景的每个文件',
@@ -232,6 +229,42 @@ const tour24 = {
     '在工作室打开的其他成员的场景是锁定的副本，它的聊天会在每条命令前询问。',
   'tour.v25.review': '未通过审核的场景会在名称旁显示审核者的理由。',
   'tour.v25.publish': '发布不再有每月上限。',
+  'tour.signed.kicker': 'FLUIDEQ 2.5',
+  'tour.signed.title': '现已签名，免费！',
+  'tour.signed.subtitle': '一路走来，以及为所有人签名的 FluidEQ',
+  'tour.signed.today':
+    '如今，它是电脑上一切声音的均衡器，是你的音乐播放器，也是随音乐律动的可视化效果。',
+  'tour.signed.liveFor': 'FluidEQ 已经运行',
+  'tour.signed.since': '始于 {date}',
+  'tour.signed.roadTitle': '一路走来',
+  'tour.signed.intro':
+    'FluidEQ 始于 2026年8月2日，两天后发布了第一个版本 0.4.0。三个多月后，它有了在 Windows 内运行、属于它自己的音频引擎，处理你听到的一切声音的 DSP 机架，用于你的音乐的媒体库和播放器，带图库的可视化效果，用来制作自己场景的工作室，以及十二种语言。由开发者签名的版本，是这段路上的一个里程碑。',
+  'tour.signed.thanks':
+    '感谢每一位使用 FluidEQ、反馈问题、发布场景和在论坛发言的人：是你们每一个人让它变得更好。',
+  'tour.signed.signedTitle': '由开发者签名',
+  'tour.signed.signedBody':
+    '运行安装程序时，Windows 会显示发布者：{publisher}。',
+  'tour.signed.updatesTitle': '持续自动更新',
+  'tour.signed.updatesBody':
+    '每个新版本都会自动送达，准备好后 FluidEQ 会告诉你。你的设置会保留。',
+  'tour.signed.freeTitle': '人人免费',
+  'tour.signed.freeBody': '只有一个 FluidEQ，人人相同，无需购买，也无需激活。',
+  'tour.signed.unit.day.one': '天',
+  'tour.signed.unit.day.few': '天',
+  'tour.signed.unit.day.many': '天',
+  'tour.signed.unit.day.other': '天',
+  'tour.signed.unit.hour.one': '小时',
+  'tour.signed.unit.hour.few': '小时',
+  'tour.signed.unit.hour.many': '小时',
+  'tour.signed.unit.hour.other': '小时',
+  'tour.signed.unit.minute.one': '分钟',
+  'tour.signed.unit.minute.few': '分钟',
+  'tour.signed.unit.minute.many': '分钟',
+  'tour.signed.unit.minute.other': '分钟',
+  'tour.signed.unit.second.one': '秒',
+  'tour.signed.unit.second.few': '秒',
+  'tour.signed.unit.second.many': '秒',
+  'tour.signed.unit.second.other': '秒',
 } as const;
 
 export default tour24;

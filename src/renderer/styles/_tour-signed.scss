@@ -1,0 +1,370 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// 2.5's opening page (`release25Sound.tsx`): a hero of three of FluidEQ's
+// own scenes crossing under the headline and the live count, then the road
+// so far beside what the signing means.
+//
+// The hero is dark in both themes: it is a picture, and its words sit on the
+// picture, so they are white on a veil rather than the theme's ink.
+
+// One scene's turn in a 27 s loop of three: in over 1.5 s, held, out over
+// 1.5 s while the next comes in, drifting a little the whole time.
+$scene-loop: 27s;
+
+@keyframes signed-scene {
+  0% {
+    opacity: 0;
+    scale: 1.1;
+    translate: -1.5% 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  33.3% {
+    opacity: 1;
+  }
+  39% {
+    opacity: 0;
+    scale: 1.02;
+    translate: 1.5% -1%;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes signed-glow {
+  50% {
+    text-shadow:
+      0 0 calc(#{$u} * 0.9) color-mix(in srgb, $secondary-light 70%, transparent),
+      0 0 calc(#{$u} * 2.4) color-mix(in srgb, $secondary-light 35%, transparent);
+  }
+}
+
+// As tall as it says, the stage scrolling past that: held to the stage's
+// height, the grid squeezed the hero (which clips) below its own words and
+// the count went out of sight at 800 wide.
+.tour-slide.signed-page {
+  display: grid;
+  height: auto;
+  align-content: start;
+  gap: calc(#{$u} * 1.4);
+  text-align: left;
+}
+
+// *** The hero ****************************************************************
+
+.signed-page__hero {
+  @include framed;
+
+  position: relative;
+  display: flex;
+  min-height: calc(#{$u} * 17);
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: calc(#{$u} * 2) calc(#{$u} * 2.2);
+  overflow: hidden;
+  border-radius: $radius-xl;
+  background: #050b14;
+  color: $white;
+  gap: calc(#{$u} * 1.4) calc(#{$u} * 2.4);
+  isolation: isolate;
+  @include animate(rise-in, $motion-slow);
+
+  // The veil: dark where the words stand (left and foot), clear where the
+  // scene shows best (top right).
+  &::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    content: '';
+    background:
+      linear-gradient(
+        100deg,
+        rgba(4, 9, 16, 0.9) 0%,
+        rgba(4, 9, 16, 0.62) 42%,
+        rgba(4, 9, 16, 0.12) 78%
+      ),
+      linear-gradient(0deg, rgba(4, 9, 16, 0.78), transparent 58%);
+    pointer-events: none;
+  }
+}
+
+.signed-page__scenes {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    animation: signed-scene $scene-loop linear infinite;
+
+    &:nth-child(2) {
+      animation-delay: calc(#{$scene-loop} / 3);
+    }
+
+    &:nth-child(3) {
+      animation-delay: calc(#{$scene-loop} * 2 / 3);
+    }
+  }
+
+  // Still, the first scene stands alone.
+  @media (prefers-reduced-motion: reduce) {
+    img {
+      animation: none;
+    }
+
+    img:first-child {
+      opacity: 1;
+    }
+  }
+}
+
+.signed-page__headline {
+  display: grid;
+  min-width: 0;
+  max-width: calc(#{$u} * 34);
+  flex: 1 1 calc(#{$u} * 22);
+  gap: calc(#{$u} * 0.7);
+  justify-items: start;
+}
+
+.signed-page__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.3) calc(#{$u} * 0.75) calc(#{$u} * 0.3)
+    calc(#{$u} * 0.35);
+  border: 1px solid rgba($white, 0.18);
+  border-radius: 999px;
+  background: rgba($white, 0.08);
+  backdrop-filter: blur(10px);
+  font-size: calc(#{$u} * 0.72);
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  gap: calc(#{$u} * 0.5);
+
+  img {
+    width: calc(#{$u} * 1.5);
+    height: calc(#{$u} * 1.5);
+  }
+}
+
+.signed-page__title {
+  margin: 0;
+  font-size: clamp(26px, calc(#{$u} * 3), 56px);
+  font-weight: $weight-display;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  text-shadow: 0 2px 24px rgba($black, 0.5);
+  text-wrap: balance;
+}
+
+.signed-page__today {
+  max-width: 52ch;
+  margin: 0;
+  color: rgba($white, 0.86);
+  font-size: calc(#{$u} * 1);
+  line-height: 1.5;
+}
+
+// *** The live count ************************************************************
+
+.signed-counter {
+  display: grid;
+  flex: none;
+  padding: calc(#{$u} * 1) calc(#{$u} * 1.2);
+  border: 1px solid color-mix(in srgb, $secondary-light 34%, transparent);
+  border-radius: $radius-l;
+  background: rgba(5, 11, 20, 0.58);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 18px 44px rgba($black, 0.45),
+    inset 0 1px 0 rgba($white, 0.06);
+  gap: calc(#{$u} * 0.55);
+  justify-items: center;
+}
+
+.signed-counter__label,
+.signed-counter__since {
+  color: rgba($white, 0.72);
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-semibold;
+  @include tracking(0.1em);
+  text-transform: uppercase;
+}
+
+.signed-counter__since {
+  color: rgba($white, 0.55);
+  font-weight: $weight-medium;
+  @include tracking(0.04em);
+  text-transform: none;
+}
+
+.signed-counter__units {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(#{$u} * 0.4);
+}
+
+.signed-counter__unit {
+  display: grid;
+  min-width: calc(#{$u} * 3.4);
+  justify-items: center;
+  gap: calc(#{$u} * 0.2);
+
+  strong {
+    color: $secondary-light;
+    font-size: clamp(24px, calc(#{$u} * 2.6), 48px);
+    font-variant-numeric: tabular-nums;
+    font-weight: $weight-display;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    text-shadow: 0 0 calc(#{$u} * 1.2)
+      color-mix(in srgb, $secondary-light 45%, transparent);
+  }
+
+  small {
+    color: rgba($white, 0.62);
+    font-size: calc(#{$u} * 0.66);
+    font-weight: $weight-semibold;
+    @include tracking(0.06em);
+    text-transform: uppercase;
+  }
+
+  // The days lead: a touch more glow, breathing slowly.
+  &.is-day strong {
+    animation: signed-glow 4s ease-in-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+// *** The road so far, and what the signing means *******************************
+
+.signed-page__body {
+  display: grid;
+  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(#{$u} * 24)), 1fr));
+  gap: calc(#{$u} * 1.4) calc(#{$u} * 2.2);
+  @include animate(rise-in, $motion-slow, $ease-out, 80ms);
+}
+
+.signed-page__road {
+  display: grid;
+  min-width: 0;
+  // One track, never wider than the column: an auto track grew to the
+  // Watch key's whole Russian label (408px in a 356px column) and pushed the
+  // words under the facts beside them.
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(#{$u} * 0.7);
+  justify-items: start;
+
+  .tour-slide__how-title {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.92);
+    line-height: 1.6;
+  }
+
+  // The thank-you, in the reader's own ink with the accent beside it.
+  .signed-page__thanks {
+    padding-left: calc(#{$u} * 0.9);
+    border-left: 2px solid $secondary-light;
+    color: $text-primary;
+  }
+}
+
+// The label can carry "English audio, translated subtitles" in a long
+// language; it wraps inside the column rather than widening it under the
+// facts beside it. The shared button holds itself to its label's whole width
+// (`min-width: max-content`), so this one lets go of that.
+.button.signed-page__watch {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  margin-top: calc(#{$u} * 0.2);
+  text-align: left;
+  white-space: normal;
+  gap: calc(#{$u} * 0.45);
+
+  svg {
+    width: calc(#{$u} * 0.85);
+    height: calc(#{$u} * 0.85);
+  }
+}
+
+.signed-page__facts {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.7);
+  list-style: none;
+
+  li {
+    display: grid;
+    align-items: start;
+    padding: calc(#{$u} * 0.85) calc(#{$u} * 1);
+    border: 1px solid rgba($edge-tint, 0.1);
+    border-radius: $radius-l;
+    background: $surface-panel;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: calc(#{$u} * 0.85);
+
+    > span:last-child {
+      display: grid;
+      gap: calc(#{$u} * 0.2);
+    }
+
+    strong {
+      color: $text-primary;
+      font-size: calc(#{$u} * 0.95);
+      font-weight: $weight-bold;
+    }
+
+    span span {
+      color: $text-muted;
+      font-size: calc(#{$u} * 0.85);
+      line-height: 1.5;
+    }
+  }
+}
+
+.signed-page__fact-icon {
+  display: grid;
+  width: calc(#{$u} * 2.2);
+  height: calc(#{$u} * 2.2);
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-light 14%, transparent);
+  color: $secondary-light;
+  place-items: center;
+
+  svg {
+    width: 55%;
+    height: 55%;
+  }
+}

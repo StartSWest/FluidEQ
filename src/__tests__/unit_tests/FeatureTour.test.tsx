@@ -429,6 +429,36 @@ it('opens the guide from the Help slide', () => {
   expect(requestHelpGuide).toHaveBeenCalledTimes(1);
 });
 
+it('opens 2.5’s sound on its milestone page: the road, the count, the film and the signing', () => {
+  showTour('2.5.0');
+  expect(
+    screen.getByRole('heading', { name: 'Now signed, for free!' }),
+  ).toBeInTheDocument();
+  // The publisher is the developer's own name, the one on the certificate.
+  expect(
+    screen.getByText(/Windows names the publisher: Ivan Carmenates Garcia/),
+  ).toBeVisible();
+  expect(screen.getByText(/^FluidEQ began on 2 August 2026/)).toBeVisible();
+  expect(screen.getByText(/^Thank you to everyone/)).toBeVisible();
+  // The live count, every unit named.
+  const count = screen.getByRole('group', {
+    name: 'FluidEQ has been live for',
+  });
+  ['days', 'hours', 'minutes', 'seconds'].forEach((unit) => {
+    expect(within(count).getByText(new RegExp(`^${unit}?$`))).toBeVisible();
+  });
+  // The walkthrough plays from here, as large as the window.
+  fireEvent.click(screen.getByRole('button', { name: 'Watch the video' }));
+  expect(
+    screen.getByRole('dialog', { name: /^This is FluidEQ/ }),
+  ).toBeInTheDocument();
+  // Nothing to buy and nowhere to go: no price, no account.
+  expect(document.querySelector('.signed-page')?.textContent).not.toMatch(
+    /\$|€/,
+  );
+  expect(screen.queryByRole('button', { name: 'Open account' })).toBeNull();
+});
+
 it('lands on the Gaming Lab from its slide', () => {
   const { onOpenTab } = showTour();
   goTo('Every game, its own sound');

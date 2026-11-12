@@ -226,8 +226,6 @@ const studioChat = {
     '장면에서 선택함 (따로 말하지 않으면 이것만 바꿔 줘):',
   'studioChat.picked.label': '장면에서 선택함',
   'studioChat.picked.remove': '{name} 제거',
-  'studioChat.accounts.gpt': 'GPT',
-  'studioChat.accounts.gptFound': 'Claude Code에 있는 내 GPT 플러그인({name})',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': '내 Claude Code를 통해 연결됨',
   'studioChat.accounts.higgsfieldNote':
@@ -244,11 +242,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': 'Higgsfield로 로그인',
   'studioChat.accounts.higgsfieldAbout': 'Higgsfield란?',
   'studioChat.accounts.checkAgain': '다시 확인',
-  'studioChat.ask.makerFrames': '이 애니메이션 프레임을 무엇으로 만들까요…',
-  'studioChat.ask.makerGpt': '내 GPT 플러그인, ChatGPT 요금제 사용',
-  'studioChat.ask.makerHiggsfield':
-    '내 Higgsfield 크레딧. Claude가 먼저 비용을 알려 줍니다.',
-  'studioChat.ask.makerRemember': '선택 기억하기(계정에서 변경)',
 } satisfies Partial<Dictionary>;
 
 export default studioChat;

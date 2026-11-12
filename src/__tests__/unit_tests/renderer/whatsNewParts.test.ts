@@ -77,11 +77,15 @@ describe("What's New: the sound's and the visualizers'", () => {
     expect([...parts].sort()).toEqual(all.map((slide) => slide.id).sort());
   });
 
-  it('opens 2.5 on the sound of 2.4, then the standing sound slides', () => {
+  it('opens 2.5 on its signing, then 2.4’s sound, then the standing slides', () => {
     const sound = slidesOfPart(featureTourFor('2.5.0'), 'sound');
-    expect(sound[0].id).toBe('song-level');
-    expect(sound[0].release).toBe('2.4');
-    expect(sound.slice(1).every((slide) => slide.release === undefined)).toBe(
+    expect(sound.slice(0, 2).map((slide) => [slide.id, slide.release])).toEqual(
+      [
+        ['signed', '2.5'],
+        ['song-level', '2.4'],
+      ],
+    );
+    expect(sound.slice(2).every((slide) => slide.release === undefined)).toBe(
       true,
     );
     expect(featureTourFor('2.5.3')).toEqual(featureTourFor('2.5.0'));
@@ -116,8 +120,10 @@ describe("What's New: the sound's and the visualizers'", () => {
     expect(
       newInPart(featureTourFor('2.5.0'), 'visuals', '2.5.0').map((s) => s.id),
     ).toEqual(['studio-edit', 'studio-watch', 'studio-makers', 'studio-code']);
-    // The sound's 2.5 brings no feature slide: nothing new there.
-    expect(newInPart(featureTourFor('2.5.0'), 'sound', '2.5.0')).toEqual([]);
+    // The sound's 2.5 brings the signing, and nothing about scenes.
+    expect(
+      newInPart(featureTourFor('2.5.0'), 'sound', '2.5.0').map((s) => s.id),
+    ).toEqual(['signed']);
     expect(isVisualsNewsUnseen('2.4.0', true, null)).toBe(true);
     expect(isVisualsNewsUnseen('2.4.2', true, '2.4')).toBe(false);
     expect(isVisualsNewsUnseen('2.5.0', true, '2.4')).toBe(true);
@@ -125,9 +131,109 @@ describe("What's New: the sound's and the visualizers'", () => {
   });
 });
 
+const root = path.join(__dirname, '../../../..');
+const LOCALES = fs
+  .readdirSync(path.join(root, 'src/common/i18n'), { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
+const notes = fs.readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8');
+const sections = notes.split(/^## /m).slice(1);
+const release = (version: string): string =>
+  sections.find((section) => section.split(/\r?\n/)[0] === version) ?? '';
+
+/** Each `prefix` key of a locale's 2.4/2.5 tour file, with the line after it. */
+const tourLines = (locale: string, prefix: RegExp): string[] =>
+  fs
+    .readFileSync(
+      path.join(root, 'src/common/i18n', locale, 'tour24.ts'),
+      'utf8',
+    )
+    .split(/\r?\n/)
+    .map((line, index, lines) =>
+      prefix.test(line) ? `${line} ${lines[index + 1] ?? ''}` : '',
+    )
+    .filter(Boolean);
+
+describe('2.5’s opening page', () => {
+  it('folds the walkthrough into it, so the film is not shown twice', () => {
+    const ids = featureTourFor('2.5.0').map((slide) => slide.id);
+    expect(ids).not.toContain('walkthrough');
+    // The control: 2.4's tour still lists the walkthrough on its own.
+    expect(featureTourFor('2.4.0').map((slide) => slide.id)).toContain(
+      'walkthrough',
+    );
+  });
+
+  it.each(LOCALES)('names its publisher and no price, in %s', (locale) => {
+    const lines = tourLines(locale, /^\s*'tour\.signed\./);
+    // Fifteen sentences and labels, and four plural forms of four units.
+    expect(lines).toHaveLength(31);
+    // FluidEQ is free for everyone (Ivan, 2026-11-11): nothing to buy.
+    lines.forEach((line) => {
+      expect(line).not.toMatch(/[$€£¥]|\{price\}|\b19\b|\b29\b/);
+    });
+    expect(lines.join(' ')).toContain('{publisher}');
+    expect(lines.join(' ')).toContain('{date}');
+    // Where FluidEQ came from is the licence's and About's to say, never
+    // this page's (Ivan, 2026-11-11), and nothing false stands in for it.
+    expect(lines.join(' ')).not.toMatch(/aqua|fork|from scratch|from nothing/i);
+  });
+
+  it('says it is signed and free, and promises nothing of Windows warnings', () => {
+    const english = tourLines('en', /^\s*'tour\.signed\./).join(' ');
+    expect(english).toContain('Now signed, for free!');
+    expect(english).toContain('Thank you');
+    expect(english).not.toMatch(/edition|account|paddle|credit/i);
+    expect(english).not.toMatch(/warning|smartscreen/i);
+  });
+});
+
+/**
+ * Words of the paid edition and of GPT, which 2.5 no longer has (Ivan,
+ * 2026-11-11: "make sure you update all, release notes and What's New"),
+ * in English and as the locales spelled the editions (Spanish, Portuguese and
+ * French say "editing" with the same word, so only the editions' names count).
+ */
+const OLD_DIRECTION =
+  /edition|édition (gratuite|signée)|edición (gratuita|firmada)|edizione|edição (gratuita|assinada)|издани|エディション|에디션|paddle|\$\s?19|19\s?\$|another email|gpt|codex/i;
+
+/** Every key 2.5's slides read, in both What's News. */
+const SLIDES_25 = /^\s*'tour\.(signed|edit|watch|makers|code|v25)\./;
+
+describe('2.5 says nothing of a paid edition or GPT', () => {
+  it.each(LOCALES)('in its slides, in %s', (locale) => {
+    const lines = tourLines(locale, SLIDES_25);
+    // The control: the pattern reads the slides, all of them.
+    expect(lines.length).toBeGreaterThan(40);
+    expect(lines.filter((line) => OLD_DIRECTION.test(line))).toEqual([]);
+  });
+
+  it('in its release notes', () => {
+    expect(release('2.5.0')).not.toMatch(OLD_DIRECTION);
+    // The control: the pattern finds what it looks for.
+    expect('the Signed Edition – $19').toMatch(OLD_DIRECTION);
+    expect('I bought it with another email').toMatch(OLD_DIRECTION);
+  });
+
+  it('nor any release’s notes, of FluidEQ’s own features', () => {
+    expect(notes).not.toMatch(/\bGPT\b|ChatGPT|Codex/);
+  });
+});
+
+describe('Higgsfield, the Studio’s one maker', () => {
+  // GPT left the Studio (2026-11-11): no slide or note may still offer it.
+  it.each(LOCALES)('leaves GPT out of the makers slide, in %s', (locale) => {
+    const makers = tourLines(locale, /^\s*'tour\.makers\./).join('\n');
+    expect(makers).toContain('Higgsfield');
+    expect(makers).not.toMatch(/GPT/);
+  });
+
+  it('is in 2.5’s notes in Ivan’s words', () => {
+    expect(release('2.5.0')).toContain('Now integrated with Higgsfield');
+  });
+});
+
 describe('the release notes and the version', () => {
-  const root = path.join(__dirname, '../../../..');
-  const notes = fs.readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8');
   const version = (file: string): string =>
     (
       JSON.parse(fs.readFileSync(path.join(root, file), 'utf8')) as {
@@ -141,15 +247,28 @@ describe('the release notes and the version', () => {
     expect(version('package.json')).toBe(version('release/app/package.json'));
   });
 
-  it('puts the sound first and the visualizers apart, from 2.4 on', () => {
-    const sections = notes.split(/^## /m).slice(1);
-    sections
-      .filter((section) => /^2\.(4|[5-9])\./.test(section))
-      .forEach((section) => {
-        const parts = section
-          .split(/\r?\n/)
-          .filter((line) => /^### /.test(line));
-        expect(parts).toEqual(['### Sound', '### Visualizers and Studio']);
-      });
+  const partsOf = (section: string): string[] =>
+    section.split(/\r?\n/).filter((line) => /^### /.test(line));
+
+  // Two parts and only two (Ivan, 2026-11-11: "one for the FluidEQ app, for
+  // all related to sound etc., and the other section only for the
+  // visualizers").
+  it('has the app and the visualizers apart, from 2.4 on', () => {
+    const later = sections.filter((section) => /^2\.(4|[5-9])\./.test(section));
+    expect(later.length).toBeGreaterThan(1);
+    later.forEach((section) => {
+      expect(partsOf(section)).toEqual(['### FluidEQ', '### Visualizers']);
+    });
+  });
+
+  it('opens 2.5 on its signing, at the top of the app’s part', () => {
+    const app = release('2.5.0').split(/^### /m)[1] ?? '';
+    expect(app).toMatch(/^FluidEQ\s+\*\*Now signed, for free!\*\*/);
+    expect(app).toContain('Ivan Carmenates');
+    // Free for everyone, no paid edition: the app's part names no price,
+    // edition, seller or account. The refund line under the visualizers
+    // still speaks of credits, as its control.
+    expect(app).not.toMatch(/credit|edition|paddle|account|\$/i);
+    expect(release('2.5.0').split(/^### /m)[2]).toMatch(/credit back/);
   });
 });

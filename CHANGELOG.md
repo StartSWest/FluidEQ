@@ -8,7 +8,20 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ## 2.5.0
 
-### Sound
+### FluidEQ
+
+**Now signed, for free!**
+
+- **Signed by its developer.** FluidEQ's installer and app are signed, and
+  when you run the installer Windows names the publisher: Ivan Carmenates
+  Garcia.
+- **It keeps updating itself.** New versions arrive by themselves; FluidEQ
+  tells you when one is ready, and **Restart now** finishes it. Your
+  settings stay.
+- **Free for everyone.** One FluidEQ, the same for everybody, with nothing
+  to buy and nothing to activate.
+
+#### Sound and the app
 
 - **An output that lost its profile gets one back**, and you are told once.
 - **A damaged profile is reported once.** FluidEQ's log notes a profile it
@@ -17,9 +30,9 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 - **Processes** shows the Windows audio service's processor use correctly.
 - The media helper no longer crashes when a player closes.
 
-### Visualizers and Studio
+### Visualizers
 
-#### Visualizers
+#### Scenes, the gallery and the desktop
 
 - **Your own scenes play on the graph again.** A scene with a colour palette
   or a colour control lost them when it went into your looks (Add to my
@@ -74,13 +87,19 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   again, a scene waiting for review shows a clock, and a decision shows the
   next time FluidEQ checks.
 - **No monthly limit on publishing.**
+- **Taking down a scene people bought gives them their credit back.**
+  **Unpublish** on one of your scenes now says, before you confirm, how many
+  people bought it and what comes off your balance: each buyer gets their
+  credit back and the scene leaves their looks, and what those buys earned
+  you is given back, never below zero. The Visualizers terms are now
+  revision 12.
 
 #### Your AI
 
-- **Higgsfield beside GPT.** Set up Higgsfield's tools in your own Claude
-  Code and choose which one the chat uses; it asks when both are there.
-  Both are yours: FluidEQ ships neither, holds no sign-in and pays for
-  nothing.
+- **Now integrated with Higgsfield.** The Studio's AI creates pictures and
+  animations for your scenes with Higgsfield. It uses your own Higgsfield
+  account, set up once in the chat's **Accounts**, and before anything is
+  made it tells you what it costs and asks you first.
 - **It watches the scene move.** Your AI can watch a few frames along the
   music to see which way a thing moves and how evenly, look at the standard
   graph, the ultra-wide graph and the Compact player's whole column at once,
@@ -99,7 +118,7 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ## 2.4.0
 
-### Sound
+### FluidEQ
 
 2.3.1 was never published on its own; everything it held is here.
 
@@ -142,11 +161,11 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 - **Account.** Startup checks account access directly and skips the retired
   membership sync request.
 
-### Visualizers and Studio
+### Visualizers
 
 FluidEQ 2.4 is the Studio's biggest release yet. The pictures in a scene
 can move: the scene's chat makes, fixes and checks its animations, and the
-Animations tab plays and imports them. Every picture in the chat can be
+#### The graph, the desktop and the gallery
 zoomed, copied and drawn on, the stage tries your scene as an ultra-wide
 graph or in the Compact player, and one AI works on several of your scenes
 at once, with whatever your own Claude has. Scenes gain palettes, choices
@@ -154,7 +173,7 @@ and kept versions.
 Every 3D visualizer lets you pick the key that moves its camera, on the
 graph and on your desktop.
 
-#### Visualizers
+#### Scenes, the gallery and the desktop
 
 - **Choose your camera key.** Pick the key that moves a 3D scene's camera:
   Ctrl, Alt, Shift or any key. Choose **Hold and drag** or **Hold and
@@ -1519,7 +1538,7 @@ and Help answers questions in your own words.
   at, so a number can never come back around. A scene you find wrong can be
   reported from the looks menu.
 - **Your AI can see your scene, and hear the song.** Copy the AI prompt in
-  the Studio and your AI assistant — Claude Code, Codex or another that
+  the Studio and your AI assistant — Claude Code or another that
   speaks MCP — connects to FluidEQ on this computer by itself. It can draw
   your scene at any shape and moment, with music or in silence, read why a
   scene cannot play, and hear how the song you are playing moves — its
