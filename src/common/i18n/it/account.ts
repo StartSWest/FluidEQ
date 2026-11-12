@@ -34,6 +34,9 @@ const account = {
   'account.scenes.empty':
     'Le scene che ottieni restano tue e partono sul grafico da qui.',
   'account.scenes.playing': 'In riproduzione',
+  'account.scenes.unpublished': 'Ritirata',
+  'account.scenes.unpublishedHint':
+    'Chi l’ha creata l’ha tolta dalla galleria. Resta tua.',
   'account.scenes.play': 'Avvia {name} sul grafico',
   'account.published.title': 'Pubblicate',
   'account.published.live': 'Nella galleria',

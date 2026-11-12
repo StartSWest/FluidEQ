@@ -190,7 +190,7 @@ const studio = {
   'studio.publish.point1':
     'Qualquer pessoa conectada pode vê-la em Visualizadores, assistir por alguns segundos e obtê-la com um crédito. Para você ela toca de graça.',
   'studio.publish.point3':
-    'Você pode despublicá-la quando quiser. Quem a comprou recebe então o crédito de volta, e o que ela lhe rendeu é descontado.',
+    'Você pode despublicá-la para que ninguém novo possa obtê-la. Quem já a tem fica com ela.',
   'studio.publish.point3Update':
     'Quem adicionou verá Atualizar e mantém a versão antiga até clicar.',
   'studio.publish.read': 'Ler os termos',

@@ -151,20 +151,6 @@ const plus = {
   'plus.mine.unpublish': 'Ritira',
   'plus.mine.confirm':
     'Ritirarla dalla galleria e impedire nuovi download? Chi l’ha già scaricata conserva la propria copia.',
-  'plus.mine.confirmAsk': 'Ritirarla dalla galleria e impedire nuovi download?',
-  'plus.mine.confirmChecking': 'Controllo di chi l’ha comprata…',
-  'plus.mine.confirmUnknown':
-    'Chi l’ha comprata riavrà il suo credito e non avrà più la scena.',
-  'plus.mine.confirmBuyers.one':
-    '{count} persona l’ha comprata: riavrà il suo credito e non avrà più la scena.',
-  'plus.mine.confirmBuyers.few':
-    '{count} persone l’hanno comprata: ognuna riavrà il suo credito e non avrà più la scena.',
-  'plus.mine.confirmBuyers.many':
-    '{count} persone l’hanno comprata: ognuna riavrà il suo credito e non avrà più la scena.',
-  'plus.mine.confirmBuyers.other':
-    '{count} persone l’hanno comprata: ognuna riavrà il suo credito e non avrà più la scena.',
-  'plus.mine.confirmEarned':
-    'Quello che ti ha fatto guadagnare viene tolto dal tuo saldo: {credits}.',
   'plus.mine.confirmYes': 'Ritira',
   'plus.mine.confirmNo': 'Tienila',
   'plus.mine.unpublished': '{name} non è più nella galleria.',

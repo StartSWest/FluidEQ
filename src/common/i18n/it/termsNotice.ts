@@ -24,7 +24,7 @@ const termsNotice = {
   'termsNotice.change.11':
     'Le scene ora sono tue per sempre: un credito ciascuna, da pacchetti pagati una sola volta su Stripe, e un account confermato riceve alcuni crediti gratis per iniziare. Ogni scena si può guardare per qualche secondo prima. Lo Studio e la pubblicazione sono gratuiti per tutti gli account, e le tue scene suonano ovunque una volta pubblicate. FluidEQ può anche rendere gratuite per tutti alcune delle sue scene. L’abbonamento Plus non è più in vendita: uno già attivo continua a funzionare finché FluidEQ non passa i suoi membri ai crediti, e le scene che un membro ha aggiunto restano allora sue.',
   'termsNotice.change.12':
-    'Quando la scena di un membro lascia Visualizzatori — ritirata, rimossa o eliminata —, tutti quelli che l’hanno ottenuta con un credito lo riavranno e la scena smette di riprodursi per loro, e il suo autore restituisce quello che quegli acquisti gli hanno fatto guadagnare, mai sotto zero. Pubblicata di nuovo, si ottiene di nuovo con un credito.',
+    'Una scena che il suo autore ritira ora resta a tutti quelli che l’hanno ottenuta, su ogni computer, segnata come non più pubblicata. Una scena rimossa o eliminata per aver violato le condizioni restituisce il credito a chi l’ha ottenuta con un credito, e il suo autore restituisce ciò che quegli acquisti gli hanno fatto guadagnare, mai sotto zero.',
 } as const;
 
 export default termsNotice;

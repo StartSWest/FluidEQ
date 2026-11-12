@@ -86,6 +86,64 @@ describe('the store as the server answers it', () => {
     expect(parseSceneStore(answer())).not.toHaveProperty('halfCredit');
   });
 
+  // Premium 0103: an owned scene its maker unpublished, kept for its owners.
+  it('reads the scenes kept for this account after their makers unpublished them', () => {
+    const kept = {
+      authorId: ADA,
+      sceneId: 'neon-city',
+      version: 3,
+      names: { en: 'Neon City' },
+    };
+    expect(
+      parseSceneStore(answer({ unpublished: [kept] }))?.unpublished,
+    ).toEqual([{ lookId: memberLookId(ADA, 'neon-city'), version: 3 }]);
+    // None kept, or a server before 0103, says nothing.
+    expect(parseSceneStore(answer({ unpublished: [] }))).not.toHaveProperty(
+      'unpublished',
+    );
+    expect(parseSceneStore(answer())).not.toHaveProperty('unpublished');
+  });
+
+  it.each([
+    ['not a list', { authorId: ADA }],
+    ['a row without a version', [{ authorId: ADA, sceneId: 'neon-city' }]],
+    [
+      'a version below one',
+      [{ authorId: ADA, sceneId: 'neon-city', version: 0 }],
+    ],
+    [
+      'a FluidEQ scene, which is never unpublished',
+      [{ authorId: FLUIDEQ_CREATOR_ID, sceneId: 'alpine', version: 2 }],
+    ],
+    [
+      'an author that is no account',
+      [{ authorId: 'ada', sceneId: 'neon-city', version: 2 }],
+    ],
+  ])(
+    'refuses the whole store when the kept list holds %s',
+    (_, unpublished) => {
+      expect(parseSceneStore(answer({ unpublished }))).toBeUndefined();
+    },
+  );
+
+  it('checks a kept list handed across the window the same way', () => {
+    const store = parseSceneStore(answer()) as ISceneStore;
+    const look = memberLookId(ADA, 'neon-city');
+    expect(
+      isSceneStore({ ...store, unpublished: [{ lookId: look, version: 3 }] }),
+    ).toBe(true);
+    expect(
+      isSceneStore({ ...store, unpublished: [{ lookId: look, version: 0 }] }),
+    ).toBe(false);
+    expect(
+      isSceneStore({
+        ...store,
+        unpublished: [{ lookId: premiumLookId('alpine'), version: 3 }],
+      }),
+    ).toBe(false);
+    expect(isSceneStore({ ...store, unpublished: look })).toBe(false);
+  });
+
   it('checks a store handed across the window the same way', () => {
     const store = parseSceneStore(answer()) as ISceneStore;
     expect(isSceneStore(store)).toBe(true);

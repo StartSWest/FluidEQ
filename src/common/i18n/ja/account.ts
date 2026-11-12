@@ -34,6 +34,9 @@ const account = {
   'account.scenes.empty':
     '手に入れたシーンはずっとあなたのもので、ここからグラフで再生できます。',
   'account.scenes.playing': '再生中',
+  'account.scenes.unpublished': '公開終了',
+  'account.scenes.unpublishedHint':
+    '作者がギャラリーから取り下げました。引き続きあなたのものです。',
   'account.scenes.play': '{name} をグラフで再生',
   'account.published.title': '公開済み',
   'account.published.live': 'ギャラリーに掲載中',

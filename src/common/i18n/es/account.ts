@@ -34,6 +34,9 @@ const account = {
   'account.scenes.empty':
     'Las escenas que consigas son tuyas para siempre y se ponen en la gráfica desde aquí.',
   'account.scenes.playing': 'Sonando',
+  'account.scenes.unpublished': 'Despublicada',
+  'account.scenes.unpublishedHint':
+    'Su creador la quitó de la galería. Sigue siendo tuya.',
   'account.scenes.play': 'Poner {name} en la gráfica',
   'account.published.title': 'Publicadas',
   'account.published.live': 'En la galería',

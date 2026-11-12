@@ -31,6 +31,8 @@ const account = {
   'account.scenes.openGallery': '打开画廊',
   'account.scenes.empty': '你获取的场景永久归你，可以从这里在图表上播放。',
   'account.scenes.playing': '播放中',
+  'account.scenes.unpublished': '已取消发布',
+  'account.scenes.unpublishedHint': '作者已将其从展廊中移除。它仍然属于你。',
   'account.scenes.play': '在图表上播放 {name}',
   'account.published.title': '已发布',
   'account.published.live': '在画廊中',

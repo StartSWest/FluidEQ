@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ipcMain } from 'electron';
-import { parseMemberLookId } from '../../common/memberScenes';
+import { memberLookId, parseMemberLookId } from '../../common/memberScenes';
 import {
   createSceneRecovery,
   type ISceneRecoveryDeps,
@@ -14,6 +14,7 @@ import {
 import type { IMemberSceneStore } from '../memberScenes/store';
 import { fetchEnvelope } from '../plus/galleryApi';
 import type { IGalleryAccess } from '../plus/galleryAccess';
+import { fetchKeptEnvelope } from '../plus/keptScene';
 
 /**
  * The window's request to put right a look that would not play
@@ -28,6 +29,12 @@ export interface ISceneRecoveryIpcDeps {
   store: IMemberSceneStore;
   ownProjectFolders: ISceneRecoveryDeps['ownProjectFolders'];
   announce: () => void;
+  /**
+   * The version kept for this look's owners after its maker unpublished it
+   * (premium 0103), or undefined while it is in the gallery: a scene out of
+   * the gallery is put right from that copy instead.
+   */
+  keptVersionOf?: (lookId: string) => number | undefined;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -38,6 +45,7 @@ export const registerSceneRecoveryIpc = ({
   store,
   ownProjectFolders,
   announce,
+  keptVersionOf,
   logger,
 }: ISceneRecoveryIpcDeps) => {
   const recovery = createSceneRecovery({
@@ -47,7 +55,17 @@ export const registerSceneRecoveryIpc = ({
     announce,
     fetchGalleryCopy: async (authorId, sceneId) => {
       const auth = await access.auth();
-      return auth ? fetchEnvelope(auth, authorId, sceneId) : undefined;
+      if (!auth) {
+        return undefined;
+      }
+      const published = await fetchEnvelope(auth, authorId, sceneId);
+      if (published) {
+        return published;
+      }
+      const kept = keptVersionOf?.(memberLookId(authorId, sceneId));
+      return kept === undefined
+        ? undefined
+        : fetchKeptEnvelope(auth, authorId, sceneId, kept);
     },
     ...(logger ? { logger } : {}),
   });

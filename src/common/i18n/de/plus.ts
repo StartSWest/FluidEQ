@@ -161,21 +161,6 @@ const plus = {
   'plus.mine.unpublish': 'Zurückziehen',
   'plus.mine.confirm':
     'Aus der Galerie entfernen und neue Downloads verhindern? Mitglieder behalten bereits heruntergeladene Kopien.',
-  'plus.mine.confirmAsk':
-    'Aus der Galerie entfernen und neue Downloads verhindern?',
-  'plus.mine.confirmChecking': 'Käufe werden geprüft …',
-  'plus.mine.confirmUnknown':
-    'Wer sie gekauft hat, bekommt den Credit zurück und verliert die Szene.',
-  'plus.mine.confirmBuyers.one':
-    '{count} Person hat sie gekauft: Sie bekommt ihren Credit zurück und verliert die Szene.',
-  'plus.mine.confirmBuyers.few':
-    '{count} Personen haben sie gekauft: Jede bekommt ihren Credit zurück und verliert die Szene.',
-  'plus.mine.confirmBuyers.many':
-    '{count} Personen haben sie gekauft: Jede bekommt ihren Credit zurück und verliert die Szene.',
-  'plus.mine.confirmBuyers.other':
-    '{count} Personen haben sie gekauft: Jede bekommt ihren Credit zurück und verliert die Szene.',
-  'plus.mine.confirmEarned':
-    'Was sie Ihnen eingebracht hat, wird von Ihrem Guthaben abgezogen: {credits}.',
   'plus.mine.confirmYes': 'Zurückziehen',
   'plus.mine.confirmNo': 'Behalten',
   'plus.mine.unpublished': '{name} ist nicht mehr in der Galerie.',

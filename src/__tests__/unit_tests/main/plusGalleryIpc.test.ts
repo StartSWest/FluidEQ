@@ -98,11 +98,18 @@ let calls: Array<{ url: string; search: string; body?: unknown }>;
 let bucket: Map<string, unknown>;
 let rows: unknown[];
 
+/**
+ * What `published_scene_file` answers: 404 is a server before it (the fixed
+ * paths), null a scene with no file in the gallery any more.
+ */
+let publishedFile: 'old-server' | 'none' = 'old-server';
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   const parsed = new URL(String(input));
   const url = `${parsed.origin}${parsed.pathname}`;
   if (url.endsWith('/rpc/published_scene_file')) {
-    return fakeResponse(404, {});
+    return publishedFile === 'none'
+      ? fakeResponse(200, null)
+      : fakeResponse(404, {});
   }
   calls.push({
     url,
@@ -173,6 +180,7 @@ beforeEach(() => {
   currentAccount = ME;
   beforeObjectRead = undefined;
   listAuthorization = undefined;
+  publishedFile = 'old-server';
   announced = 0;
   refreshed = 0;
   calls = [];
@@ -516,6 +524,31 @@ describe('pictures', () => {
     expect(
       calls.filter((call) => call.url.endsWith('picture.webp')),
     ).toHaveLength(1);
+  });
+
+  // Premium 0103: out of the gallery, an owned scene's picture is the copy
+  // kept for its owners.
+  it('shows an owned scene its maker unpublished from the picture kept for its owners', async () => {
+    setup();
+    publishedFile = 'none';
+    bucket.set(`${SOMEONE}/neon-city/unpublished/picture.webp`, webpBytes());
+    expect(
+      await invoke('plus-gallery-picture', SOMEONE, 'neon-city', 3),
+    ).toMatch(/^data:image\/webp;base64,/);
+    expect(calls.map((call) => call.url)).toEqual([
+      expect.stringMatching(/neon-city\/unpublished\/picture\.webp$/),
+    ]);
+  });
+
+  it('asks for no kept picture of a scene the account does not own', async () => {
+    setup();
+    entitled = false;
+    publishedFile = 'none';
+    bucket.set(`${SOMEONE}/neon-city/unpublished/picture.webp`, webpBytes());
+    expect(
+      await invoke('plus-gallery-picture', SOMEONE, 'neon-city', 3),
+    ).toBeUndefined();
+    expect(calls).toEqual([]);
   });
 
   it('shows nothing that is not a WebP', async () => {

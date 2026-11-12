@@ -138,18 +138,6 @@ const plus = {
   'plus.mine.unpublish': '取消发布',
   'plus.mine.confirm':
     '要从图库下架并停止新下载吗？已下载的用户会保留自己的副本。',
-  'plus.mine.confirmAsk': '要从图库下架并停止新下载吗？',
-  'plus.mine.confirmChecking': '正在查看谁购买了它…',
-  'plus.mine.confirmUnknown': '购买过的人会拿回点数，并且不再拥有这个场景。',
-  'plus.mine.confirmBuyers.one':
-    '{count} 人购买了它：每人都会拿回点数，并且不再拥有这个场景。',
-  'plus.mine.confirmBuyers.few':
-    '{count} 人购买了它：每人都会拿回点数，并且不再拥有这个场景。',
-  'plus.mine.confirmBuyers.many':
-    '{count} 人购买了它：每人都会拿回点数，并且不再拥有这个场景。',
-  'plus.mine.confirmBuyers.other':
-    '{count} 人购买了它：每人都会拿回点数，并且不再拥有这个场景。',
-  'plus.mine.confirmEarned': '它为你赚到的点数将从你的余额中扣除：{credits}。',
   'plus.mine.confirmYes': '取消发布',
   'plus.mine.confirmNo': '保留',
   'plus.mine.unpublished': '{name} 已不在图库中。',

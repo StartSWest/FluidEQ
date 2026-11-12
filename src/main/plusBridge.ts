@@ -33,7 +33,6 @@ import type {
   IGalleryQuery,
   TReportReason,
   TSaveGalleryVersion,
-  TTakedownCost,
 } from '../common/plusGallery';
 import type { IGalleryClip } from './plus/galleryClip';
 import type { TPlusProfileResult } from './ipc/plusProfile';
@@ -172,13 +171,6 @@ const unpublishScene = (sceneId: string) =>
     sceneId,
   ) as Promise<TUnpublishOutcome>;
 
-/** What taking one of the member's own scenes down would give back. */
-const sceneTakedownCost = (sceneId: string) =>
-  ipcRenderer.invoke(
-    'plus-gallery-takedown-cost',
-    sceneId,
-  ) as Promise<TTakedownCost>;
-
 // The member's name on the board and in the gallery: read it, choose it, or
 // change it. A result rather than a throw, so "that handle is taken" survives
 // the bridge.
@@ -208,7 +200,6 @@ const plusBridge = {
   myPublishedScenes,
   publishedStudioSettings,
   unpublishScene,
-  sceneTakedownCost,
   plusProfile,
   plusCreateProfile,
   plusUpdateProfile,

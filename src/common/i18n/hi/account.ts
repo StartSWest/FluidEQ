@@ -34,6 +34,9 @@ const account = {
   'account.scenes.empty':
     'आपके पाए सीन हमेशा आपके रहते हैं, और यहीं से ग्राफ़ पर चलते हैं।',
   'account.scenes.playing': 'चल रहा है',
+  'account.scenes.unpublished': 'अप्रकाशित',
+  'account.scenes.unpublishedHint':
+    'इसके निर्माता ने इसे गैलरी से हटा दिया है। यह आपकी ही रहेगी।',
   'account.scenes.play': '{name} को ग्राफ़ पर चलाएँ',
   'account.published.title': 'प्रकाशित',
   'account.published.live': 'गैलरी में',

@@ -156,21 +156,6 @@ const plus = {
   'plus.mine.unpublish': '公開を停止',
   'plus.mine.confirm':
     'ギャラリーから非公開にして、新しいダウンロードを停止しますか？ダウンロード済みのメンバーはコピーを保持します。',
-  'plus.mine.confirmAsk':
-    'ギャラリーから非公開にして、新しいダウンロードを停止しますか？',
-  'plus.mine.confirmChecking': '購入した人を確認しています…',
-  'plus.mine.confirmUnknown':
-    '購入した人にはクレジットが戻り、そのシーンは使えなくなります。',
-  'plus.mine.confirmBuyers.one':
-    '{count} 人が購入しました。クレジットが戻り、そのシーンは使えなくなります。',
-  'plus.mine.confirmBuyers.few':
-    '{count} 人が購入しました。それぞれにクレジットが戻り、そのシーンは使えなくなります。',
-  'plus.mine.confirmBuyers.many':
-    '{count} 人が購入しました。それぞれにクレジットが戻り、そのシーンは使えなくなります。',
-  'plus.mine.confirmBuyers.other':
-    '{count} 人が購入しました。それぞれにクレジットが戻り、そのシーンは使えなくなります。',
-  'plus.mine.confirmEarned':
-    'このシーンで得た分は残高から差し引かれます：{credits}。',
   'plus.mine.confirmYes': '公開を停止',
   'plus.mine.confirmNo': 'そのままにする',
   'plus.mine.unpublished': '{name} はギャラリーから外れました。',

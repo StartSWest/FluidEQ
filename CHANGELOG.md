@@ -109,12 +109,11 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   again, a scene waiting for review shows a clock, and a decision shows the
   next time FluidEQ checks.
 - **No monthly limit on publishing.**
-- **Taking down a scene people bought gives them their credit back.**
-  **Unpublish** on one of your scenes now says, before you confirm, how many
-  people bought it and what comes off your balance: each buyer gets their
-  credit back and the scene leaves their looks, and what those buys earned
-  you is given back, never below zero. The Visualizers terms are now
-  revision 12.
+- **A scene you bought stays yours when its maker unpublishes it.** It
+  leaves the gallery, nobody new can get it, and it stays in your looks on
+  every computer you sign in to, marked **Unpublished** in your collection.
+  A scene taken down for breaking the rules gives everyone who bought it
+  their credit back instead. The Visualizers terms are now revision 12.
 
 #### Your AI
 

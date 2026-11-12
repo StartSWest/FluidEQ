@@ -192,7 +192,7 @@ const studio = {
   'studio.publish.point1':
     'Cualquiera con la sesión iniciada puede verla en Visualizadores, mirarla unos segundos y conseguirla con un crédito. Para ti suena gratis.',
   'studio.publish.point3':
-    'Puedes dejar de publicarla cuando quieras. Quien la compró recupera entonces su crédito, y lo que te hizo ganar se descuenta.',
+    'Puedes dejar de publicarla para que nadie nuevo pueda conseguirla. Quien ya la tiene se la queda.',
   'studio.publish.point3Update':
     'Quien la añadió verá Actualizar y conserva la versión anterior hasta que lo pulse.',
   'studio.publish.read': 'Leer las condiciones',

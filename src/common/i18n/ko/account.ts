@@ -36,6 +36,9 @@ const account = {
   'account.scenes.empty':
     '얻은 장면은 그대로 유지되며 여기에서 그래프로 재생됩니다.',
   'account.scenes.playing': '재생',
+  'account.scenes.unpublished': '게시 중단됨',
+  'account.scenes.unpublishedHint':
+    '제작자가 갤러리에서 내렸습니다. 계속 내 것으로 남습니다.',
   'account.scenes.play': '그래프에서 {name}를 플레이하세요',
   'account.published.title': '게시됨',
   'account.published.live': '갤러리에서',

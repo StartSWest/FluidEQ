@@ -13,7 +13,6 @@ import { categoriesLabel, ScenePicture } from './GalleryParts';
 import { loadMyScenes, publicationId, sentOnly, type TMine } from './myScenes';
 import { openPlusPlace } from './plusNavigation';
 import SubmittedSceneRow, { ReviewState } from './SubmittedSceneRow';
-import TakedownWarning, { type TTakedownAsk } from './TakedownWarning';
 import '../styles/Review.scss';
 
 interface IYourScenesProps {
@@ -33,8 +32,6 @@ function YourScenesList({ me }: IYourScenesProps) {
   const [mine, setMine] = useState<TMine>({ state: 'loading' });
   const [confirming, setConfirming] = useState<string>();
   const [working, setWorking] = useState<string>();
-  // What taking the scene being confirmed down gives back, for that scene.
-  const [cost, setCost] = useState<{ id: string; cost: TTakedownAsk }>();
   const generation = useRef(0);
   const dates = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
   const numbers = new Intl.NumberFormat(locale);
@@ -67,29 +64,6 @@ function YourScenesList({ me }: IYourScenesProps) {
       generation.current += 1;
     };
   }, [load]);
-
-  // A member's scene asks the server what its takedown gives back before
-  // the press that does it: each buyer's credit, and the member's own
-  // (premium 0103). FluidEQ's own scenes are never refunded.
-  const confirmTakedown = (scene: IPublishedScene) => {
-    const id = publicationId(scene);
-    setConfirming(id);
-    if (scene.official) {
-      setCost(undefined);
-      return;
-    }
-    setCost({ id, cost: 'asking' });
-    const answered = (next: TTakedownAsk) =>
-      setCost((current) => (current?.id === id ? { id, cost: next } : current));
-    const asked = window.electron?.ipcRenderer?.sceneTakedownCost?.(
-      scene.sceneId,
-    );
-    if (!asked) {
-      answered({ known: 'unknown' });
-      return;
-    }
-    asked.then(answered).catch(() => answered({ known: 'unknown' }));
-  };
 
   // Said through the gallery's own line, which is shown under the gallery's
   // head: a scene taken down from far down this list answered at the top of
@@ -334,13 +308,9 @@ function YourScenesList({ me }: IYourScenesProps) {
                   <span className="gallery-row__actions">
                     {confirming === publicationId(scene) ? (
                       <>
-                        <TakedownWarning
-                          cost={
-                            cost?.id === publicationId(scene)
-                              ? cost.cost
-                              : undefined
-                          }
-                        />
+                        <span className="gallery-row__confirm">
+                          {t('plus.mine.confirm')}
+                        </span>
                         <button
                           type="button"
                           className="button small subtle"
@@ -353,11 +323,6 @@ function YourScenesList({ me }: IYourScenesProps) {
                           type="button"
                           className={`button small danger${busy ? ' is-running' : ''}`}
                           aria-busy={busy}
-                          // Not before the member has been told what it gives back.
-                          disabled={
-                            cost?.id === publicationId(scene) &&
-                            cost.cost === 'asking'
-                          }
                           onClick={() => {
                             if (!busy) {
                               unpublish(scene, name);
@@ -371,7 +336,7 @@ function YourScenesList({ me }: IYourScenesProps) {
                       <button
                         type="button"
                         className="button small subtle"
-                        onClick={() => confirmTakedown(scene)}
+                        onClick={() => setConfirming(publicationId(scene))}
                       >
                         {t('plus.mine.unpublish')}
                       </button>

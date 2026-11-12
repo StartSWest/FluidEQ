@@ -146,16 +146,17 @@
  * opening payouts shows it, and is the revision after 12.
  */
 /**
- * 12: a member's scene that leaves Visualizers — unpublished, taken down or
- * deleted by FluidEQ's maker, or gone with its maker's account — gives every
- * buyer their credit back, as the kind of credit it was, and stops playing
- * for them; its maker gives back what those buys earned, never below zero,
- * and a scene published again is got again (Ivan, 2026-11-11; premium 0103).
- * Revision 11 promised that a scene unpublished kept playing for whoever had
- * it, so this is a raise and edition 6. The server's `plus_terms_version()`
- * moves to 12 in premium migration 0103, which carries the refund itself and
- * is deployed with the release that carries this. Checkout's floor stays at
- * 11: the change only ever gives a buyer their credit back.
+ * 12: a scene its maker unpublishes stays with everyone who got it, marked
+ * unpublished, on every computer, from a copy FluidEQ keeps for them (Ivan,
+ * 2026-11-12; premium 0103, live before this release because it only keeps
+ * what revision 11 already promised). A scene FluidEQ's maker takes down or
+ * deletes for breaking the terms, or one whose maker's account is deleted,
+ * stops playing for everyone and gives every buyer their credit back, as the
+ * kind of credit it was; its maker gives back what those buys earned, never
+ * below zero (premium 0104, which moves the server's plus_terms_version() to
+ * 12 and is deployed with the release that carries this). Revision 11 said a
+ * takedown only stopped the scene opening, so this is a raise and edition 6.
+ * Checkout's floor stays at 11: the change only ever gives a buyer back.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
@@ -172,7 +173,7 @@ export const PLUS_TERMS_EDITION = 6;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-11-11';
+export const PLUS_TERMS_EFFECTIVE = '2026-11-12';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a

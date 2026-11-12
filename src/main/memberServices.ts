@@ -45,6 +45,7 @@ import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { createEncryptedJsonStore } from './encryptedJsonStore';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { registerSceneRecoveryIpc } from './ipc/sceneRecovery';
+import { createKeptSceneSync } from './plus/syncKeptScenes';
 import {
   createSceneOwnership,
   isSceneStoreRecord,
@@ -344,9 +345,23 @@ const registerMemberServices = ({
     store: memberScenesIpc.store,
     ownProjectFolders: memberScenesIpc.ownProjectFolders,
     announce: memberScenesIpc.announce,
+    keptVersionOf: (lookId) =>
+      sceneOwnership
+        .known()
+        ?.unpublished?.find((scene) => scene.lookId === lookId)?.version,
     logger: log,
   });
   recoverLook = sceneRecoveryIpc.recover;
+  // Scenes this account owns that their makers unpublished, brought onto
+  // this computer from the copy kept for their owners (premium 0103).
+  const keptSceneSync = createKeptSceneSync({
+    access: galleryAccess,
+    ownership: sceneOwnership,
+    store: memberScenesIpc.store,
+    announce: memberScenesIpc.announce,
+    logger: log,
+  });
+  keptSceneSync.run().catch(() => undefined);
   // A version the server still keeps, saved by an owner among the scene's
   // kept versions here (`ipc/plusGalleryVersionSave.ts`).
   const disposeGalleryVersionSave = registerGalleryVersionSaveIpc({
@@ -537,6 +552,7 @@ const registerMemberServices = ({
     plusGalleryIpc.dispose();
     disposeGalleryVersionSave();
     sceneRecoveryIpc.dispose();
+    keptSceneSync.dispose();
     galleryClipIpc.dispose();
     memberSharingIpc.dispose();
     memberScenesIpc.dispose();

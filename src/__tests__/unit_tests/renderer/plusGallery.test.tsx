@@ -144,7 +144,6 @@ const bridge = {
   myPublishedScenes: jest.fn(),
   mySceneSubmissions: jest.fn(),
   unpublishScene: jest.fn(),
-  sceneTakedownCost: jest.fn(),
   listMemberScenes: jest.fn(),
   removeMemberScene: jest.fn(),
   removeScenePack: jest.fn(),
@@ -165,12 +164,6 @@ beforeEach(() => {
     locked: [],
   });
   bridge.mySceneSubmissions.mockResolvedValue({ ok: true, submissions: [] });
-  // Nobody bought it, unless a test says otherwise (premium 0103).
-  bridge.sceneTakedownCost.mockResolvedValue({
-    known: 'yes',
-    buyers: 0,
-    credits: 0,
-  });
   resetScenePictures();
   mockRenderSceneStill.mockResolvedValue(undefined);
   bridge.listGallery.mockResolvedValue({
@@ -818,141 +811,6 @@ describe('the member’s own published scenes', () => {
       expect(screen.getByText('plus.mine.empty')).toBeInTheDocument();
     },
   );
-});
-
-// Premium 0103: taking a member's scene down gives every buyer their credit
-// back and takes back what it earned. The confirmation says so, with the
-// numbers, before the press that does it.
-describe('taking a published scene down tells what it gives back', () => {
-  const published = (sceneId: string, name: string, official = false) => ({
-    sceneId,
-    official,
-    version: 2,
-    category: 'cities',
-    names: { en: name },
-    swatch: ['#050a1a', '#00e5cf'],
-    likes: 7,
-    adds: 3,
-    publishedAt: '2026-09-01T00:00:00Z',
-    updatedAt: '2026-09-10T00:00:00Z',
-    blocked: false,
-  });
-  const openMine = async (scenes = [published('neon-city', 'Neon City')]) => {
-    bridge.myPublishedScenes.mockResolvedValue({ ok: true, scenes });
-    bridge.unpublishScene.mockResolvedValue({ ok: true });
-    renderGallery();
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'plus.gallery.mine' }),
-    );
-    return screen.findAllByRole('button', { name: 'plus.mine.unpublish' });
-  };
-  const confirmButton = () =>
-    screen.getByRole('button', { name: 'plus.mine.confirmYes' });
-
-  it('says how many get their credit back and what comes off the balance', async () => {
-    bridge.sceneTakedownCost.mockResolvedValue({
-      known: 'yes',
-      buyers: 2,
-      credits: 1,
-    });
-    const [unpublish] = await openMine();
-    await userEvent.click(unpublish);
-    expect(bridge.sceneTakedownCost).toHaveBeenCalledWith('neon-city');
-    expect(
-      await screen.findByText('plus.mine.confirmBuyers.other:2'),
-    ).toBeInTheDocument();
-    expect(screen.getByText('plus.mine.confirmAsk')).toBeInTheDocument();
-    expect(
-      screen.getByText('plus.mine.confirmEarned:store.credit.one:1'),
-    ).toBeInTheDocument();
-    expect(screen.queryByText('plus.mine.confirm')).toBeNull();
-    await userEvent.click(confirmButton());
-    expect(bridge.unpublishScene).toHaveBeenCalledWith('neon-city');
-  });
-
-  it('cannot be confirmed until the answer is in, and says nothing of the balance when nothing comes off it', async () => {
-    let answer: (cost: unknown) => void = () => undefined;
-    bridge.sceneTakedownCost.mockReturnValue(
-      new Promise((resolve) => {
-        answer = resolve;
-      }),
-    );
-    const [unpublish] = await openMine();
-    await userEvent.click(unpublish);
-    expect(screen.getByText('plus.mine.confirmChecking')).toBeInTheDocument();
-    expect(confirmButton()).toBeDisabled();
-    await act(async () => {
-      answer({ known: 'yes', buyers: 1, credits: 0 });
-    });
-    expect(
-      screen.getByText('plus.mine.confirmBuyers.one:1'),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/^plus\.mine\.confirmEarned/)).toBeNull();
-    expect(confirmButton()).toBeEnabled();
-  });
-
-  it.each([
-    ['nobody bought it', { known: 'yes', buyers: 0, credits: 0 }],
-    ['the server refunds nothing yet', { known: 'before-refunds' }],
-  ])('asks as it always did when %s', async (_label, cost) => {
-    bridge.sceneTakedownCost.mockResolvedValue(cost);
-    const [unpublish] = await openMine();
-    await userEvent.click(unpublish);
-    expect(await screen.findByText('plus.mine.confirm')).toBeInTheDocument();
-    expect(screen.queryByText('plus.mine.confirmAsk')).toBeNull();
-  });
-
-  it('still warns, without numbers, when the question got no answer', async () => {
-    bridge.sceneTakedownCost.mockRejectedValue(new Error('offline'));
-    const [unpublish] = await openMine();
-    await userEvent.click(unpublish);
-    expect(
-      await screen.findByText('plus.mine.confirmUnknown'),
-    ).toBeInTheDocument();
-    expect(confirmButton()).toBeEnabled();
-  });
-
-  it('asks nothing for one of FluidEQ’s own scenes, which nobody is refunded for', async () => {
-    const [unpublish] = await openMine([published('alpine', 'Alpine', true)]);
-    await userEvent.click(unpublish);
-    expect(bridge.sceneTakedownCost).not.toHaveBeenCalled();
-    expect(screen.getByText('plus.mine.confirm')).toBeInTheDocument();
-  });
-
-  // The answer about one scene must never be told on another's row.
-  it('lets a late answer about another scene change nothing', async () => {
-    let late: (cost: unknown) => void = () => undefined;
-    bridge.sceneTakedownCost.mockImplementation((sceneId: string) =>
-      sceneId === 'neon-city'
-        ? new Promise((resolve) => {
-            late = resolve;
-          })
-        : Promise.resolve({ known: 'yes', buyers: 2, credits: 0 }),
-    );
-    const [first] = await openMine([
-      published('neon-city', 'Neon City'),
-      published('deep-sea', 'Deep Sea'),
-    ]);
-    await userEvent.click(first);
-    await userEvent.click(
-      screen.getByRole('button', { name: 'plus.mine.confirmNo' }),
-    );
-    const [, second] = screen.getAllByRole('button', {
-      name: 'plus.mine.unpublish',
-    });
-    await userEvent.click(second);
-    expect(
-      await screen.findByText('plus.mine.confirmBuyers.other:2'),
-    ).toBeInTheDocument();
-    await act(async () => {
-      late({ known: 'yes', buyers: 5, credits: 2 });
-    });
-    // The row keeps its own answer: neither the other scene's, nor none.
-    expect(
-      screen.getByText('plus.mine.confirmBuyers.other:2'),
-    ).toBeInTheDocument();
-    expect(screen.queryByText('plus.mine.confirmBuyers.other:5')).toBeNull();
-  });
 });
 
 describe('a card’s version', () => {

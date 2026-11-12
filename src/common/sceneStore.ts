@@ -51,6 +51,21 @@ export interface ISceneStore {
    * Absent from a server before 0072, and while nothing waits.
    */
   halfCredit?: boolean;
+  /**
+   * This account's member scenes that their makers unpublished and FluidEQ
+   * keeps for whoever got them (premium 0103): out of the gallery, still
+   * theirs, downloaded from the kept copy and marked unpublished. Absent
+   * from a server before 0103.
+   */
+  unpublished?: IUnpublishedScene[];
+}
+
+/** A scene kept for its owners after its maker unpublished it (0103). */
+export interface IUnpublishedScene {
+  /** `member:<author>:<id>`. */
+  lookId: string;
+  /** The version kept: the one the gallery last served. */
+  version: number;
 }
 
 /** Every pack id the server sells, as the checkout takes it. */
@@ -140,6 +155,31 @@ const isSceneIdList = (value: unknown): value is string[] =>
   Array.isArray(value) &&
   value.every((id: unknown) => typeof id === 'string' && PACK_ID.test(id));
 
+const isUnpublishedScene = (value: unknown): value is IUnpublishedScene =>
+  isRecord(value) &&
+  typeof value.lookId === 'string' &&
+  parseMemberLookId(value.lookId) !== undefined &&
+  isWhole(value.version) &&
+  value.version > 0;
+
+/** One row of the server's `unpublished`, as the look it plays under. */
+const readUnpublished = (row: unknown): IUnpublishedScene | undefined => {
+  if (
+    !isRecord(row) ||
+    typeof row.authorId !== 'string' ||
+    typeof row.sceneId !== 'string' ||
+    !isWhole(row.version) ||
+    row.version <= 0
+  ) {
+    return undefined;
+  }
+  const lookId = lookIdOfOwned(row.authorId, row.sceneId);
+  // Only a member's scene is ever kept: FluidEQ's own are never unpublished.
+  return lookId && parseMemberLookId(lookId)
+    ? { lookId, version: row.version }
+    : undefined;
+};
+
 const readPack = (row: unknown): ICreditPack | undefined =>
   isRecord(row) &&
   typeof row.id === 'string' &&
@@ -180,13 +220,22 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     return pack ? [pack] : [];
   });
   const { published, free, everything, halfCredit } = value;
+  const unpublished = Array.isArray(value.unpublished)
+    ? value.unpublished.flatMap((row: unknown): IUnpublishedScene[] => {
+        const scene = readUnpublished(row);
+        return scene ? [scene] : [];
+      })
+    : undefined;
   if (
     owned.length !== value.owned.length ||
     packs.length !== value.packs.length ||
     (published !== undefined && !isSceneIdList(published)) ||
     (free !== undefined && !isSceneIdList(free)) ||
     (everything !== undefined && typeof everything !== 'boolean') ||
-    (halfCredit !== undefined && typeof halfCredit !== 'boolean')
+    (halfCredit !== undefined && typeof halfCredit !== 'boolean') ||
+    (value.unpublished !== undefined &&
+      (!Array.isArray(value.unpublished) ||
+        unpublished?.length !== value.unpublished.length))
   ) {
     return undefined;
   }
@@ -199,6 +248,7 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     ...(free === undefined ? {} : { free }),
     ...(everything === true ? { everything } : {}),
     ...(halfCredit === true ? { halfCredit } : {}),
+    ...(unpublished && unpublished.length > 0 ? { unpublished } : {}),
   };
 };
 
@@ -216,6 +266,9 @@ export const isSceneStore = (value: unknown): value is ISceneStore =>
   (value.free === undefined || isSceneIdList(value.free)) &&
   (value.everything === undefined || value.everything === true) &&
   (value.halfCredit === undefined || value.halfCredit === true) &&
+  (value.unpublished === undefined ||
+    (Array.isArray(value.unpublished) &&
+      value.unpublished.every(isUnpublishedScene))) &&
   Array.isArray(value.packs) &&
   value.packs.every((row: unknown) => readPack(row) !== undefined);
 

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
+import type { IUnpublishedScene } from 'common/sceneStore';
 import { resolveSceneName } from 'common/scenePacks';
 import { ScenePicture } from '../plus/GalleryParts';
 import { openGalleryPage, openPlusPlace } from '../plus/plusNavigation';
@@ -23,6 +24,8 @@ interface IOwnedTile {
   lookId: string;
   name: string;
   official: boolean;
+  /** Its maker took it out of the gallery; kept for this account (0103). */
+  unpublished: boolean;
   ref: {
     lookId: string;
     authorId: string;
@@ -34,6 +37,8 @@ interface IOwnedTile {
 interface IAccountScenesProps {
   /** The account's scenes as look ids, oldest got first (`my_store`). */
   owned: readonly string[];
+  /** The account's scenes their makers unpublished (`my_store`, 0103). */
+  unpublished?: readonly IUnpublishedScene[];
   /** Leaving the panel for the gallery. */
   onLeave: () => void;
 }
@@ -44,7 +49,11 @@ interface IAccountScenesProps {
  * computer are drawn: one still arriving has nothing to play yet, and shows
  * up here the next time the panel opens.
  */
-export default function AccountScenes({ owned, onLeave }: IAccountScenesProps) {
+export default function AccountScenes({
+  owned,
+  unpublished = [],
+  onLeave,
+}: IAccountScenesProps) {
   const { t, locale } = useTranslation();
   const selected = useSelectedLookId();
   const official = useUsableScenes();
@@ -58,6 +67,7 @@ export default function AccountScenes({ owned, onLeave }: IAccountScenesProps) {
           lookId,
           name: resolveSceneName(own, locale),
           official: true,
+          unpublished: false,
           ref: {
             lookId,
             authorId: FLUIDEQ_CREATOR_ID,
@@ -74,6 +84,7 @@ export default function AccountScenes({ owned, onLeave }: IAccountScenesProps) {
             lookId,
             name: resolveSceneName(member, locale),
             official: false,
+            unpublished: unpublished.some((scene) => scene.lookId === lookId),
             ref: {
               lookId,
               authorId: member.authorId,
@@ -135,6 +146,14 @@ export default function AccountScenes({ owned, onLeave }: IAccountScenesProps) {
                   {tile.official && (
                     <span className="account-tile__by">
                       {t('plus.official.author')}
+                    </span>
+                  )}
+                  {tile.unpublished && (
+                    <span
+                      className="account-tile__by"
+                      title={t('account.scenes.unpublishedHint')}
+                    >
+                      {t('account.scenes.unpublished')}
                     </span>
                   )}
                 </button>

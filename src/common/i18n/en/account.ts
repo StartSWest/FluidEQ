@@ -43,6 +43,9 @@ const account = {
   'account.scenes.empty':
     'The scenes you get stay yours, and play on the graph from here.',
   'account.scenes.playing': 'Playing',
+  'account.scenes.unpublished': 'Unpublished',
+  'account.scenes.unpublishedHint':
+    'Its maker took it out of the gallery. It stays yours.',
   'account.scenes.play': 'Play {name} on the graph',
   'account.published.title': 'Published',
   'account.published.live': 'In the gallery',

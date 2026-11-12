@@ -33,6 +33,8 @@ const account = {
   'account.scenes.openGallery': '開啟畫廊',
   'account.scenes.empty': '您獲得的場景仍屬於您自己，並從此處在圖表上播放。',
   'account.scenes.playing': '演奏',
+  'account.scenes.unpublished': '已取消發佈',
+  'account.scenes.unpublishedHint': '作者已將它從展廊中移除。它仍然屬於你。',
   'account.scenes.play': '在圖表上播放 {name}',
   'account.published.title': '已發表',
   'account.published.live': '在畫廊裡',

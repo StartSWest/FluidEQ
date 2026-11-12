@@ -1,9 +1,5 @@
 import { ipcMain } from 'electron';
-import type {
-  IPublishedScene,
-  IVersionFloor,
-  TTakedownCost,
-} from '../../common/plusGallery';
+import type { IPublishedScene, IVersionFloor } from '../../common/plusGallery';
 import {
   settingsOfPack,
   type ISceneSettings,
@@ -25,7 +21,6 @@ import {
   unpublishScene,
   type TPublishFailure,
 } from '../plus/galleryPublishApi';
-import takedownCost from '../plus/takedownCost';
 import {
   mineOf,
   registerStudioPublish,
@@ -122,7 +117,6 @@ export interface IPlusPublishingIpcDeps {
 const CHANNELS = [
   'plus-gallery-mine',
   'plus-gallery-unpublish',
-  'plus-gallery-takedown-cost',
   'studio-published-settings',
   ...STUDIO_PUBLISH_CHANNELS,
 ] as const;
@@ -244,25 +238,6 @@ export const registerPlusPublishingIpc = ({
         auth,
         official ? `premium:${ref.packId}` : ref.packId,
       );
-    },
-  );
-
-  /**
-   * What taking one of the member's own scenes down would give back, for its
-   * confirmation. Only a member's scene: a FluidEQ scene is never refunded.
-   * The server answers for the caller's own scene of that id alone.
-   */
-  ipcMain.handle(
-    'plus-gallery-takedown-cost',
-    async (_event, sceneId: unknown): Promise<TTakedownCost> => {
-      const me = access.accountId();
-      const ref = me ? sceneRefOf(me, sceneId) : undefined;
-      const auth = ref ? await access.auth() : undefined;
-      if (!ref || !auth || access.accountId() !== me) {
-        return { known: 'unknown' };
-      }
-      const cost = await takedownCost(auth, ref.packId);
-      return access.accountId() === me ? cost : { known: 'unknown' };
     },
   );
 

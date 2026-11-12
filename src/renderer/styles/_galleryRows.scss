@@ -225,19 +225,10 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .gallery-row__confirm {
-  display: grid;
   flex: 1 1 240px;
-  gap: 2px;
   color: $text-muted;
   font-size: $text-small;
   text-align: start;
-}
-
-// A takedown that gives buyers back: the question reads first, and what it
-// does to them and to the member's balance under it.
-.gallery-row__confirm.is-refunding .gallery-row__confirm-line:first-child {
-  color: $text-primary;
-  font-weight: $weight-semibold;
 }
 
 .gallery-row.is-confirming .gallery-row__actions {

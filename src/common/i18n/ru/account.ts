@@ -34,6 +34,9 @@ const account = {
   'account.scenes.empty':
     'Полученные сцены остаются вашими, и отсюда их можно включить на графике.',
   'account.scenes.playing': 'Играет',
+  'account.scenes.unpublished': 'Не в галерее',
+  'account.scenes.unpublishedHint':
+    'Автор убрал её из галереи. Она остаётся вашей.',
   'account.scenes.play': 'Включить {name} на графике',
   'account.published.title': 'Публикации',
   'account.published.live': 'В галерее',

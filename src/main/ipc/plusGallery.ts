@@ -44,6 +44,7 @@ import { fetchOfficialScene } from '../plus/officialGallery';
 import type { IScenePackStore } from '../scenePackStore';
 import { createGallerySceneSync } from '../plus/syncGalleryScenes';
 import { createGalleryRefresh } from '../plus/galleryRefresh';
+import { keptScenePath } from '../plus/keptScene';
 
 /**
  * The Plus gallery, over IPC: listing it, its pictures, a scene's page, Add
@@ -255,8 +256,14 @@ export const registerPlusGalleryIpc = ({
     let bytes = revision && !blocked ? await kept?.read(key) : undefined;
     if (!bytes) {
       const auth = await access.auth();
+      // Out of the gallery, an owned scene's picture is the copy kept for its
+      // owners (premium 0103); the bucket lets nobody else read it.
       const file = auth
-        ? await publishedPictureFile(auth, authorId, sceneId)
+        ? ((await publishedPictureFile(auth, authorId, sceneId)) ??
+          (authorId !== FLUIDEQ_CREATOR_ID &&
+          access.owns(memberLookId(authorId, sceneId))
+            ? keptScenePath(authorId, sceneId, 'picture.webp')
+            : undefined))
         : undefined;
       if (!auth || !file) {
         // A failure is not remembered: the next time the card is on screen

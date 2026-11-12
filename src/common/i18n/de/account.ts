@@ -35,6 +35,9 @@ const account = {
   'account.scenes.empty':
     'Szenen, die Sie holen, bleiben Ihre und laufen von hier aus im Diagramm.',
   'account.scenes.playing': 'Läuft',
+  'account.scenes.unpublished': 'Zurückgezogen',
+  'account.scenes.unpublishedHint':
+    'Die Person, die sie erstellt hat, hat sie aus der Galerie genommen. Sie bleibt Ihre.',
   'account.scenes.play': '{name} im Diagramm abspielen',
   'account.published.title': 'Veröffentlicht',
   'account.published.live': 'In der Galerie',

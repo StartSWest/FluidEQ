@@ -148,20 +148,6 @@ const plus = {
   'plus.mine.unpublish': 'प्रकाशन हटाएँ',
   'plus.mine.confirm':
     'गैलरी से हटाकर नए डाउनलोड रोकें? जो सदस्य इसे डाउनलोड कर चुके हैं, उनकी प्रति बनी रहेगी।',
-  'plus.mine.confirmAsk': 'गैलरी से हटाकर नए डाउनलोड रोकें?',
-  'plus.mine.confirmChecking': 'देख रहे हैं कि इसे किसने खरीदा…',
-  'plus.mine.confirmUnknown':
-    'जिसने भी इसे खरीदा है, उसे उसका क्रेडिट वापस मिलेगा और सीन उसके पास नहीं रहेगा।',
-  'plus.mine.confirmBuyers.one':
-    '{count} व्यक्ति ने इसे खरीदा: उसे उसका क्रेडिट वापस मिलेगा और सीन उसके पास नहीं रहेगा।',
-  'plus.mine.confirmBuyers.few':
-    '{count} लोगों ने इसे खरीदा: हर एक को उसका क्रेडिट वापस मिलेगा और सीन उसके पास नहीं रहेगा।',
-  'plus.mine.confirmBuyers.many':
-    '{count} लोगों ने इसे खरीदा: हर एक को उसका क्रेडिट वापस मिलेगा और सीन उसके पास नहीं रहेगा।',
-  'plus.mine.confirmBuyers.other':
-    '{count} लोगों ने इसे खरीदा: हर एक को उसका क्रेडिट वापस मिलेगा और सीन उसके पास नहीं रहेगा।',
-  'plus.mine.confirmEarned':
-    'इससे आपने जो कमाया, वह आपके बैलेंस से घटेगा: {credits}।',
   'plus.mine.confirmYes': 'प्रकाशन हटाएँ',
   'plus.mine.confirmNo': 'रहने दें',
   'plus.mine.unpublished': '{name} अब गैलरी में नहीं है।',

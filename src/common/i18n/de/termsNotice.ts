@@ -24,7 +24,7 @@ const termsNotice = {
   'termsNotice.change.11':
     'Szenen gehören Ihnen jetzt für immer: ein Credit pro Szene, aus Paketen, die einmalig über Stripe bezahlt werden, und ein bestätigtes Konto erhält zum Start einige Credits gratis. Jede Szene lässt sich vorher einige Sekunden ansehen. Das Studio und das Veröffentlichen sind für jedes Konto kostenlos, und Ihre eigenen Szenen laufen überall, sobald sie veröffentlicht sind. FluidEQ kann außerdem einige seiner eigenen Szenen für alle kostenlos machen. Die Plus-Mitgliedschaft wird nicht mehr verkauft: Eine laufende funktioniert weiter, bis FluidEQ seine Mitglieder auf Credits umstellt, und die Szenen, die ein Mitglied hinzugefügt hat, bleiben dann ihm.',
   'termsNotice.change.12':
-    'Verlässt die Szene eines Mitglieds „Visualizer“ — zurückgezogen, entfernt oder gelöscht —, bekommt jeder, der sie mit einem Credit geholt hat, diesen zurück, und die Szene läuft für ihn nicht mehr; ihr Ersteller gibt zurück, was diese Käufe eingebracht haben, nie unter null. Erneut veröffentlicht, wird sie erneut mit einem Credit geholt.',
+    'Eine Szene, die ihr Ersteller zurückzieht, bleibt jetzt bei allen, die sie geholt haben, auf jedem Computer, als zurückgezogen gekennzeichnet. Eine Szene, die wegen eines Verstoßes gegen die Bedingungen entfernt oder gelöscht wird, gibt allen, die sie mit einem Credit geholt haben, diesen Credit zurück, und ihr Ersteller gibt zurück, was diese Käufe eingebracht haben, nie unter null.',
 } as const;
 
 export default termsNotice;

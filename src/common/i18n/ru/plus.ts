@@ -151,21 +151,6 @@ const plus = {
   'plus.mine.unpublish': 'Снять с публикации',
   'plus.mine.confirm':
     'Убрать сцену из галереи и прекратить новые загрузки? Те, кто уже скачал сцену, сохранят свою копию.',
-  'plus.mine.confirmAsk':
-    'Убрать сцену из галереи и прекратить новые загрузки?',
-  'plus.mine.confirmChecking': 'Проверяем, кто её купил…',
-  'plus.mine.confirmUnknown':
-    'Каждый, кто её купил, получит кредит обратно, а сцена у него пропадёт.',
-  'plus.mine.confirmBuyers.one':
-    '{count} человек купил её: он получит кредит обратно, а сцена у него пропадёт.',
-  'plus.mine.confirmBuyers.few':
-    '{count} человека купили её: каждый получит кредит обратно, а сцена у него пропадёт.',
-  'plus.mine.confirmBuyers.many':
-    '{count} человек купили её: каждый получит кредит обратно, а сцена у него пропадёт.',
-  'plus.mine.confirmBuyers.other':
-    '{count} человека купили её: каждый получит кредит обратно, а сцена у него пропадёт.',
-  'plus.mine.confirmEarned':
-    'То, что она вам принесла, спишется с вашего баланса: {credits}.',
   'plus.mine.confirmYes': 'Снять',
   'plus.mine.confirmNo': 'Оставить',
   'plus.mine.unpublished': '«{name}» больше нет в галерее.',

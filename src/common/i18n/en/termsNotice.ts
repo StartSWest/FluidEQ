@@ -34,7 +34,7 @@ const termsNotice = {
   'termsNotice.change.11':
     'Scenes are now yours for good: one credit each, from packs paid once on Stripe, and a confirmed account gets some credits free to start. Every scene can be watched for a few seconds first. The Studio and publishing are free for every account, and your own scenes play everywhere once they are published. FluidEQ can also make some of its own scenes free for everyone. The Plus membership is no longer sold: one already running keeps working until FluidEQ moves its members to credits, and the scenes a member added then stay theirs.',
   'termsNotice.change.12':
-    'When a member’s scene leaves Visualizers — unpublished, taken down or deleted — everyone who got it with a credit gets that credit back and the scene stops playing for them, and its maker gives back what those buys earned, never below zero. Published again, it is got again with a credit.',
+    'A scene its maker unpublishes now stays with everyone who got it, on every computer, marked unpublished. A scene taken down or deleted for breaking the terms gives everyone who got it with a credit that credit back, and its maker gives back what those buys earned, never below zero.',
 } as const;
 
 export default termsNotice;

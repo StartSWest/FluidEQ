@@ -34,6 +34,9 @@ const account = {
   'account.scenes.empty':
     'As cenas que você obtiver ficam suas para sempre e tocam no gráfico a partir daqui.',
   'account.scenes.playing': 'Tocando',
+  'account.scenes.unpublished': 'Despublicada',
+  'account.scenes.unpublishedHint':
+    'Quem a criou tirou-a da galeria. Continua sendo sua.',
   'account.scenes.play': 'Tocar {name} no gráfico',
   'account.published.title': 'Publicadas',
   'account.published.live': 'Na galeria',

@@ -145,20 +145,6 @@ const plus = {
   'plus.mine.unpublish': '게시 취소',
   'plus.mine.confirm':
     '갤러리에서 삭제하고 새로운 다운로드를 중단하시겠습니까? 이미 다운로드한 회원은 사본을 유지합니다.',
-  'plus.mine.confirmAsk': '갤러리에서 내리고 새 다운로드를 중단하시겠습니까?',
-  'plus.mine.confirmChecking': '구매한 사람을 확인하는 중…',
-  'plus.mine.confirmUnknown':
-    '구매한 사람은 크레딧을 돌려받고 이 장면을 더 이상 갖지 않게 됩니다.',
-  'plus.mine.confirmBuyers.one':
-    '{count}명이 구매했습니다. 크레딧을 돌려받고 이 장면을 더 이상 갖지 않게 됩니다.',
-  'plus.mine.confirmBuyers.few':
-    '{count}명이 구매했습니다. 모두 크레딧을 돌려받고 이 장면을 더 이상 갖지 않게 됩니다.',
-  'plus.mine.confirmBuyers.many':
-    '{count}명이 구매했습니다. 모두 크레딧을 돌려받고 이 장면을 더 이상 갖지 않게 됩니다.',
-  'plus.mine.confirmBuyers.other':
-    '{count}명이 구매했습니다. 모두 크레딧을 돌려받고 이 장면을 더 이상 갖지 않게 됩니다.',
-  'plus.mine.confirmEarned':
-    '이 장면으로 얻은 만큼 잔액에서 차감됩니다: {credits}.',
   'plus.mine.confirmYes': '게시 취소',
   'plus.mine.confirmNo': '유지',
   'plus.mine.unpublished': '{name}는 더 이상 갤러리에 없습니다.',

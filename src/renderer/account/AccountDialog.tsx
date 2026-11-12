@@ -456,7 +456,13 @@ export default function AccountDialog({
               {/* What gets scenes: credits. Plus is not sold any more, and
                   nothing about a subscription is shown (Ivan, 2026-10-21). */}
               <CreditsCard />
-              {store && <AccountScenes owned={store.owned} onLeave={onClose} />}
+              {store && (
+                <AccountScenes
+                  owned={store.owned}
+                  unpublished={store.unpublished}
+                  onLeave={onClose}
+                />
+              )}
               {accountId && (
                 <AccountPublished
                   me={accountId}
