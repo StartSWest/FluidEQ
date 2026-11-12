@@ -236,6 +236,27 @@ const terms = {
   'terms.short.credits.title': 'Eine Szene gehört Ihnen für immer',
   'terms.short.credits.body':
     'Ein Credit pro Szene, aus Paketen, die Sie einmal bei Stripe bezahlen. Nichts verlängert sich, und FluidEQ sieht Ihre Karte nie.',
+  'terms.edition.title': 'Die signierte Edition',
+  'terms.edition.p1':
+    'Die signierte Edition ist dasselbe FluidEQ mit einem Installationsprogramm, das von seinem Entwickler {publisher} signiert ist, den Windows als verifizierten Herausgeber anzeigt, und sie aktualisiert sich selbst. Sie wird einmal gekauft, zum beim Kauf angezeigten Preis, und bleibt dauerhaft in Ihrem FluidEQ-Konto; nichts verlängert sich. Die kostenlose Edition bleibt vollständig: Ab Version 2.5 aktualisiert sie sich nicht mehr selbst, und jede neue Version steht auf fluideq.com zum Herunterladen bereit.',
+  'terms.edition.p2':
+    'Verkauft wird sie von Paddle, dem Merchant of Record, für {seller}: Paddle nimmt die Zahlung entgegen, berechnet Steuern und sendet den Beleg, nach seinen eigenen Bedingungen, und FluidEQ sieht Ihre Karte nie. Ein Kauf gehört dem Konto, mit dessen bestätigter E-Mail Sie bezahlt haben, oder dem Konto, das angemeldet war, als die App die Kasse geöffnet hat.',
+  'terms.edition.p3':
+    'Sie enthält {editionCredits} Credits, die einmalig dem Konto gegeben werden, bei dem der Kauf zuerst ankommt.',
+  'terms.edition.p4':
+    'Sie können innerhalb von {editionRefundDays} Tagen nach dem Kauf ohne Angabe von Gründen eine vollständige Erstattung verlangen, über den Link in Ihrem Paddle-Beleg. Eine Erstattung oder eine Rückbuchung beendet die Edition für dieses Konto und nimmt ihre {editionCredits} Credits zurück, auch bereits ausgegebene, sodass Ihr Guthaben unter null fallen kann; bereits geholte Szenen bleiben Ihre, und die installierte Kopie funktioniert ohne Updates weiter.',
+  'terms.edition.p5':
+    'Eine signierte Kopie funktioniert weiter, wer auch immer angemeldet ist. Updates erhält sie nur, solange ein Konto angemeldet ist, dem die Edition gehört, auf bis zu {computers} Computern gleichzeitig; andernfalls meldet sie, dass sie nicht aktiviert ist, und sonst ändert sich nichts.',
+  'terms.edition.p6':
+    'Wenn Sie mit einer anderen E-Mail bezahlt haben, können Sie den Kauf im Kontobereich mit Ihrem Konto verknüpfen: Ein Code wird an die E-Mail gesendet, mit der Sie bezahlt haben, und seine Eingabe in der App verschiebt den Kauf. Ein Kauf liegt immer nur in einem Konto, wechselt höchstens einmal alle {editionMoveMonths} Monate, und seine Credits bleiben bei dem Konto, das sie zuerst erhalten hat. Auf anderem Weg verschiebt FluidEQ einen Kauf nie.',
+  'terms.keep.p9':
+    'Signierte Edition: die E-Mail, mit der Sie bezahlt haben, Paddles Referenz der Bestellung und ihr Datum, ob sie erstattet oder angefochten wurde und wann, und das Konto, mit dem sie verknüpft ist. Der Nachweis des Kaufs bleibt nach dem Löschen des Kontos erhalten, damit der Kauf durch erneutes Anmelden mit dieser E-Mail wiederhergestellt werden kann. FluidEQ speichert weder Betrag noch Karte, Adresse oder Land.',
+  'terms.sent.edition.what':
+    'Ihr Anmeldetoken, um zu fragen, ob Ihrem Konto die signierte Edition gehört, und um ihren Download und ihre Updates abzurufen; beim Verknüpfen eines Kaufs die E-Mail und den Code, die Sie eingeben; und von Paddle die E-Mail, mit der Sie bezahlt haben, und die Referenz der Bestellung',
+  'terms.sent.edition.when':
+    'Wenn der Kontobereich oder „Über“ geöffnet wird, wenn eine signierte Kopie nach Updates sucht, wenn Sie einen Kauf verknüpfen, und wenn Paddle eine Zahlung bestätigt, erstattet oder anficht. „Kaufen“ öffnet fluideq.com mit der ID und der E-Mail Ihres Kontos, damit die Kasse ausgefüllt ist',
+  'terms.sent.edition.who':
+    'Der Macher, um Ihrem Konto die Edition und ihre Credits zu geben und sie nach einer Erstattung oder Anfechtung zurückzunehmen. Ihre Karte geht nur an Paddle.',
   'terms.credits.title': 'Credits und Ihre Szenen',
   'terms.credits.p1':
     'Ein Credit bringt Ihnen eine Szene aus „Visualizer“ — eine von FluidEQ oder eine, die ein Mitglied veröffentlicht hat —, und die Szene gehört Ihnen dann für immer: im Diagramm, auf Ihrem Desktop und an Ihren Lichtern, auf jedem Computer, an dem Sie sich anmelden, mit jeder neuen Version, die ihr Ersteller veröffentlicht. Die einzige Ausnahme ist die Szene eines Mitglieds, die „Visualizer“ verlässt: Dann bekommen Sie stattdessen Ihren Credit zurück. Bevor Sie sie holen, läuft jede Szene auf ihrer Seite {tasteSeconds} Sekunden lang. FluidEQ fragt nach, bevor es einen Credit ausgibt, und ein ausgegebener Credit lässt sich nicht zurücknehmen.',

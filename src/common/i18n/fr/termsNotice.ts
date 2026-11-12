@@ -24,7 +24,7 @@ const termsNotice = {
   'termsNotice.change.11':
     'Les scènes sont désormais à vous pour de bon : un crédit chacune, en packs payés une seule fois sur Stripe, et un compte confirmé reçoit quelques crédits gratuits pour commencer. Chaque scène peut être regardée quelques secondes avant. Le Studio et la publication sont gratuits pour tous les comptes, et vos propres scènes jouent partout une fois publiées. FluidEQ peut aussi rendre certaines de ses propres scènes gratuites pour tous. L’abonnement Plus n’est plus vendu : un abonnement déjà en cours continue de fonctionner jusqu’à ce que FluidEQ passe ses membres aux crédits, et les scènes qu’un membre a ajoutées lui restent alors.',
   'termsNotice.change.12':
-    'Quand la scène d’un membre quitte Visualiseurs — dépubliée, retirée ou supprimée —, tous ceux qui l’ont obtenue avec un crédit le récupèrent et la scène ne se lance plus pour eux, et son auteur rend ce que ces achats lui ont rapporté, sans jamais passer sous zéro. Publiée à nouveau, elle s’obtient à nouveau avec un crédit.',
+    'Quand la scène d’un membre quitte Visualiseurs — dépubliée, retirée ou supprimée —, tous ceux qui l’ont obtenue avec un crédit le récupèrent et la scène ne se lance plus pour eux, et son auteur rend ce que ces achats lui ont rapporté, sans jamais passer sous zéro. Publiée à nouveau, elle s’obtient à nouveau avec un crédit. Et la nouvelle édition signée : le même FluidEQ avec un installateur signé qui se met à jour tout seul, achetée une fois via Paddle. À partir de la 2.5, l’édition gratuite reste complète et reçoit ses nouvelles versions sur fluideq.com.',
 } as const;
 
 export default termsNotice;

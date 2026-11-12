@@ -240,6 +240,27 @@ const terms = {
   'terms.short.credits.title': 'Une scène est à vous pour toujours',
   'terms.short.credits.body':
     'Un crédit chacune, à partir de packs payés une seule fois sur Stripe. Rien ne se renouvelle, et FluidEQ ne voit jamais votre carte.',
+  'terms.edition.title': 'L’édition signée',
+  'terms.edition.p1':
+    'L’édition signée est le même FluidEQ avec un installateur signé par son développeur, {publisher}, que Windows affiche comme éditeur vérifié, et elle se met à jour toute seule. Elle s’achète une fois, au prix affiché lors de l’achat, et reste sur votre compte FluidEQ pour de bon ; rien ne se renouvelle. L’édition gratuite reste complète : à partir de la version 2.5 elle ne se met plus à jour toute seule, et chaque nouvelle version est à télécharger sur fluideq.com.',
+  'terms.edition.p2':
+    'Elle est vendue par Paddle, le marchand officiel, pour {seller} : Paddle encaisse le paiement, ajoute les taxes et envoie le reçu, selon ses propres conditions, et FluidEQ ne voit jamais votre carte. Un achat appartient au compte dont vous avez utilisé l’e-mail confirmé pour payer, ou au compte connecté quand l’application a ouvert le paiement.',
+  'terms.edition.p3':
+    'Elle inclut {editionCredits} crédits, donnés une seule fois au compte sur lequel l’achat arrive en premier.',
+  'terms.edition.p4':
+    'Vous pouvez demander un remboursement intégral dans les {editionRefundDays} jours suivant l’achat, sans motif, par le lien de votre reçu Paddle. Un remboursement ou une contestation met fin à l’édition pour ce compte et reprend ses {editionCredits} crédits, y compris ceux déjà dépensés : votre solde peut donc passer sous zéro ; les scènes déjà obtenues restent à vous, et la copie installée continue de fonctionner sans mises à jour.',
+  'terms.edition.p5':
+    'Une copie signée continue de fonctionner quel que soit le compte connecté. Elle ne reçoit les mises à jour que tant qu’un compte qui possède l’édition est connecté, sur {computers} ordinateurs au plus à la fois ; sinon, elle indique qu’elle n’est pas activée, et rien d’autre ne change.',
+  'terms.edition.p6':
+    'Si vous avez payé avec un autre e-mail, vous pouvez rattacher l’achat à votre compte depuis le panneau Compte : un code est envoyé à l’e-mail utilisé pour payer, et le saisir dans l’application déplace l’achat. Un achat est sur un seul compte à la fois, se déplace au plus une fois tous les {editionMoveMonths} mois, et ses crédits restent sur le compte qui les a reçus en premier. FluidEQ ne déplace jamais un achat autrement.',
+  'terms.keep.p9':
+    'Édition signée : l’e-mail utilisé pour payer, la référence Paddle de la commande et sa date, si elle a été remboursée ou contestée et quand, et le compte auquel elle est rattachée. La trace de l’achat est conservée après la suppression du compte, afin que l’achat puisse être récupéré en se reconnectant avec cet e-mail. FluidEQ ne conserve ni montant, ni carte, ni adresse, ni pays.',
+  'terms.sent.edition.what':
+    'Votre jeton de connexion, pour demander si votre compte possède l’édition signée et obtenir son téléchargement et ses mises à jour ; lors du rattachement d’un achat, l’e-mail et le code que vous saisissez ; et, de Paddle, l’e-mail utilisé pour payer et la référence de la commande',
+  'terms.sent.edition.when':
+    'À l’ouverture du panneau Compte ou de À propos, quand une copie signée cherche des mises à jour, quand vous rattachez un achat, et quand Paddle confirme, rembourse ou conteste un paiement. Acheter ouvre fluideq.com avec l’identifiant et l’e-mail de votre compte, pour préremplir le paiement',
+  'terms.sent.edition.who':
+    'Le créateur, pour donner l’édition et ses crédits à votre compte et les reprendre après un remboursement ou une contestation. Votre carte ne va qu’à Paddle.',
   'terms.credits.title': 'Les crédits et vos scènes',
   'terms.credits.p1':
     'Un crédit vous donne une scène de Visualiseurs — une de FluidEQ ou une qu’un membre a publiée —, et la scène est alors à vous pour toujours : sur le graphique, sur votre Bureau et sur vos lumières, sur chaque ordinateur où vous vous connectez, avec chaque nouvelle version que publie son auteur. Seule exception : la scène d’un membre qui quitte Visualiseurs, qui vous rend alors votre crédit. Avant de l’obtenir, toute scène se lance sur sa page pendant {tasteSeconds} secondes. FluidEQ vous demande avant de dépenser un crédit, et un crédit dépensé ne peut pas être repris.',

@@ -236,6 +236,27 @@ const terms = {
   'terms.short.credits.title': 'Uma cena é sua para sempre',
   'terms.short.credits.body':
     'Um crédito cada uma, de pacotes que você paga uma única vez na Stripe. Nada é renovado, e o FluidEQ nunca vê seu cartão.',
+  'terms.edition.title': 'A edição assinada',
+  'terms.edition.p1':
+    'A edição assinada é o mesmo FluidEQ com um instalador assinado pelo seu desenvolvedor, {publisher}, que o Windows mostra como editor verificado, e ela se atualiza sozinha. É comprada uma vez, pelo preço mostrado na compra, e fica na sua conta do FluidEQ para sempre; nada é renovado. A edição gratuita continua completa: a partir da versão 2.5 ela não se atualiza mais sozinha, e cada versão nova está em fluideq.com para baixar.',
+  'terms.edition.p2':
+    'Ela é vendida pela Paddle, a comerciante registrada, para {seller}: a Paddle recebe o pagamento, acrescenta os impostos e envia o recibo, conforme os próprios termos, e o FluidEQ nunca vê o seu cartão. Uma compra pertence à conta cujo e-mail confirmado você usou para pagar, ou à conta conectada quando o app abriu o pagamento.',
+  'terms.edition.p3':
+    'Ela vem com {editionCredits} créditos, dados uma única vez à conta em que a compra chega primeiro.',
+  'terms.edition.p4':
+    'Você pode pedir o reembolso integral em até {editionRefundDays} dias após a compra, por qualquer motivo, pelo link do seu recibo da Paddle. Um reembolso ou uma contestação encerra a edição para essa conta e retira os seus {editionCredits} créditos, inclusive os já gastos, de modo que o seu saldo pode ficar abaixo de zero; as cenas que você já obteve continuam suas, e a cópia instalada continua funcionando sem atualizações.',
+  'terms.edition.p5':
+    'Uma cópia assinada continua funcionando seja quem for que esteja conectado. Ela recebe atualizações somente enquanto uma conta que possui a edição estiver conectada, em até {computers} computadores ao mesmo tempo; caso contrário, ela diz que não está ativada, e nada mais muda.',
+  'terms.edition.p6':
+    'Se você pagou com outro e-mail, pode vincular a compra à sua conta pelo painel Conta: um código é enviado ao e-mail com que você pagou, e digitá-lo no app move a compra. Uma compra fica em uma conta de cada vez, é movida no máximo uma vez a cada {editionMoveMonths} meses, e os créditos dela ficam na conta que os recebeu primeiro. O FluidEQ nunca move uma compra de outra forma.',
+  'terms.keep.p9':
+    'Edição assinada: o e-mail com que você pagou, a referência da Paddle para o pedido e a data dele, se foi reembolsado ou contestado e quando, e a conta a que está vinculada. O registro da compra é mantido depois que a conta é excluída, para que a compra possa ser recuperada entrando de novo com esse e-mail. O FluidEQ não guarda valor, cartão, endereço nem país.',
+  'terms.sent.edition.what':
+    'O seu token de acesso, para perguntar se a sua conta tem a edição assinada e buscar o download e as atualizações dela; ao vincular uma compra, o e-mail e o código que você digita; e, da Paddle, o e-mail com que você pagou e a referência do pedido',
+  'terms.sent.edition.when':
+    'Quando o painel Conta ou o Sobre é aberto, quando uma cópia assinada procura atualizações, quando você vincula uma compra, e quando a Paddle confirma, reembolsa ou contesta um pagamento. Comprar abre fluideq.com com o id e o e-mail da sua conta, para preencher o pagamento',
+  'terms.sent.edition.who':
+    'O criador, para dar a edição e os créditos dela à sua conta e retirá-los após um reembolso ou uma contestação. O seu cartão vai somente para a Paddle.',
   'terms.credits.title': 'Os créditos e suas cenas',
   'terms.credits.p1':
     'Um crédito lhe dá uma cena de Visualizadores — uma do FluidEQ ou uma que um membro publicou —, e a cena passa a ser sua para sempre: no gráfico, na sua área de trabalho e nas suas luzes, em todo computador em que você entrar, com cada nova versão que quem a criou publicar. A única exceção é a cena de um membro que sai de Visualizadores, que em vez disso devolve o seu crédito. Antes de obtê-la, qualquer cena toca na página dela durante {tasteSeconds} segundos. O FluidEQ pergunta antes de gastar um crédito, e um crédito gasto não pode ser devolvido.',

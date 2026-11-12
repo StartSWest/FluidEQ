@@ -93,6 +93,16 @@ const sentRows = (payoutsOpen: boolean): readonly ITermsSentRow[] => [
     when: 'terms.sent.credits.when',
     who: 'terms.sent.credits.who',
   },
+  {
+    // The Signed Edition (premium 0104): the status the app asks for, the
+    // feed a signed copy updates from, linking a purchase, and what Paddle
+    // tells the server about a payment.
+    id: 'edition',
+    glyph: 'check',
+    what: 'terms.sent.edition.what',
+    when: 'terms.sent.edition.when',
+    who: 'terms.sent.edition.who',
+  },
   ...(payoutsOpen
     ? [
         {
@@ -223,6 +233,22 @@ const sections = (payoutsOpen: boolean): readonly ITermsSection[] => [
     ],
   },
   {
+    // The other thing an account can buy (revision 12): the edition that
+    // updates itself, and what the free one does from 2.5.
+    id: 'edition',
+    glyph: 'check',
+    title: 'terms.edition.title',
+    body: 'paragraphs',
+    lines: [
+      'terms.edition.p1',
+      'terms.edition.p2',
+      'terms.edition.p3',
+      'terms.edition.p4',
+      'terms.edition.p5',
+      'terms.edition.p6',
+    ],
+  },
+  {
     id: 'membership',
     glyph: 'card',
     title: 'terms.membership.title',
@@ -309,6 +335,8 @@ const sections = (payoutsOpen: boolean): readonly ITermsSection[] => [
       'terms.keep.p4',
       'terms.keep.p5',
       'terms.keep.p7',
+      // What is kept about a Signed Edition purchase, and after deletion.
+      'terms.keep.p9',
       // What payouts keep: said only while creators can be paid.
       ...(payoutsOpen ? ['terms.keep.p8' as const] : []),
       'terms.keep.p6',
