@@ -268,9 +268,11 @@ const tour24 = {
   'tour.v25.review':
     'A scene that was not approved shows the reviewer’s reason beside its name.',
   'tour.v25.publish': 'No monthly limit on publishing.',
-  'tour.v25.film.title': 'Everything visual, in one film',
+  'tour.film.visuals.intro': 'Everything visual, in one film',
   'tour.v25.film.body':
     'The Library and Karaoke, the visualizers, the gallery and its credits, the desktop background, your devices’ lighting and the Studio, shown and explained.',
+  'tour.v25.film.soon':
+    'This film is coming soon. It will play here as soon as it is ready.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': 'Now signed, and still free!',
   'tour.signed.subtitle': 'The road so far, and a signed FluidEQ for everyone',

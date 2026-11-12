@@ -9,7 +9,6 @@ import type { TranslationKey } from '../../../common/i18n';
 import PlayerIcon from '../../player/PlayerIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import FeatureFilmLarge from './FeatureFilmLarge';
-import FilmOnSite from './FilmOnSite';
 import ShowcaseSlide from './ShowcaseSlide';
 import StudioCodeVisual from './StudioCodeVisual';
 import StudioEditVisual from './StudioEditVisual';
@@ -34,8 +33,11 @@ interface ISlideProps {
 /**
  * Everything visual in FluidEQ in one film (Ivan, 2026-11-12), under the
  * first of these slides as the walkthrough is behind the sound's first page:
- * a Watch key that plays it as large as the window allows. Recorded after
- * this build, so it is drawn only once the site has it (`FilmOnSite`).
+ * a Watch key that plays it as large as the window allows. Nothing is asked
+ * of the site before that press, as the terms promise ("nothing is fetched
+ * until you press Play or Watch"); the film is recorded after this build, so
+ * until it is uploaded the press opens the player on "coming soon" rather
+ * than an error.
  */
 function VisualsFilmSection() {
   const { t, locale } = useTranslation();
@@ -58,7 +60,7 @@ function VisualsFilmSection() {
       </span>
       <span className="tour-release25__film-words">
         <h4 className="tour-slide__how-title" id="tour-release25-film">
-          {t('tour.v25.film.title')}
+          {t('tour.film.visuals.intro')}
         </h4>
         <p>{t('tour.v25.film.body')}</p>
       </span>
@@ -76,6 +78,7 @@ function VisualsFilmSection() {
           id={VISUALS_FILM}
           film={film}
           startAt={0}
+          unavailable="tour.v25.film.soon"
           onClose={() => {
             setOpen(false);
             opener.current?.focus();
@@ -96,9 +99,7 @@ export function EditSlide({ actions }: ISlideProps) {
         onOpen={() => actions.openTab('community')}
         visual={<StudioEditVisual />}
       />
-      <FilmOnSite id={VISUALS_FILM}>
-        <VisualsFilmSection />
-      </FilmOnSite>
+      <VisualsFilmSection />
     </div>
   );
 }

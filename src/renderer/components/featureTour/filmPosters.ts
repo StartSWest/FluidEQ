@@ -16,6 +16,11 @@ import karaoke from './filmPosters/karaoke.jpg';
 import karaokeMaker from './filmPosters/karaoke-maker.jpg';
 import library from './filmPosters/library.jpg';
 import walkthrough from './filmPosters/walkthrough.jpg';
+// Not a frame of its film, which is recorded after the build: one of
+// FluidEQ's own scenes as the graph drew it (the tour's capture), so the
+// frame shows the visualizers before the film arrives and behind "coming
+// soon" until it is uploaded. Swap for a real frame when there is one.
+import visuals from '../../../../assets/tour/scene-neon-city.jpg';
 
 /**
  * A frame of each film, bundled with the app, by film id: what a film's
@@ -38,6 +43,7 @@ const FILM_POSTERS: Readonly<Record<string, string>> = {
   karaoke,
   'karaoke-maker': karaokeMaker,
   library,
+  visuals,
   walkthrough,
 };
 

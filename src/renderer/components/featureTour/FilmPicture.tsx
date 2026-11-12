@@ -105,6 +105,17 @@ export default function FilmPicture({
         >
           {playback.tracks}
         </video>
+        {/* Why there is no film, in the middle of the frame it would fill: on
+            the line under it alone, an empty frame the size of the window
+            read as broken rather than as a film not there yet. */}
+        {notice !== undefined && (
+          <div className="feature-film__notice">
+            <span className="feature-film__notice-mark" aria-hidden="true">
+              <PlayerIcon name="play" />
+            </span>
+            <p role="status">{notice}</p>
+          </div>
+        )}
         {isShown && (
           <div className="feature-film__controls">
             {children}
@@ -131,7 +142,6 @@ export default function FilmPicture({
       </div>
       {/* Always there, so a line arriving never moves the picture above. */}
       <p className="feature-film__subtitle">
-        {notice !== undefined && <span role="status">{notice}</span>}
         {notice === undefined && playback.subtitle && (
           <span key={playback.subtitle}>{playback.subtitle}</span>
         )}

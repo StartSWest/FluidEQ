@@ -96,6 +96,57 @@ $film-subtitle-room: calc(
 
 // The film's keys — larger, and its sound, off until pressed — in the
 // frame's lower corner over a dimmed backing, so they read on any picture.
+// Why there is no film, in the middle of the frame: a dimmed play mark and
+// the line, over a soft light so the empty frame reads as waiting, not dead.
+.feature-film__notice {
+  position: absolute;
+  display: grid;
+  align-content: center;
+  padding: calc(#{$u} * 1.5);
+  // Over the film's bundled frame, dimmed so the line reads on any picture.
+  background:
+    radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, $secondary-default 14%, transparent),
+      transparent 65%
+    ),
+    color-mix(in srgb, $surface-well 78%, transparent);
+  backdrop-filter: blur(6px);
+  inset: 0;
+  justify-items: center;
+  gap: calc(#{$u} * 0.9);
+  text-align: center;
+  @include animate(rise-in, $motion-slow);
+
+  p {
+    max-width: calc(#{$u} * 26);
+    margin: 0;
+    color: $text-primary;
+    font-size: calc(#{$u} * 1.3);
+    font-weight: $weight-semibold;
+    line-height: 1.4;
+    text-wrap: balance;
+  }
+}
+
+.feature-film__notice-mark {
+  display: grid;
+  width: calc(#{$u} * 3.4);
+  height: calc(#{$u} * 3.4);
+  border: 1px solid color-mix(in srgb, $secondary-light 35%, transparent);
+  border-radius: 50%;
+  color: color-mix(in srgb, $secondary-light 70%, transparent);
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  place-items: center;
+
+  svg {
+    width: calc(#{$u} * 1.4);
+    height: calc(#{$u} * 1.4);
+    // The triangle's weight sits left of its box; this centres it by eye.
+    margin-left: calc(#{$u} * 0.18);
+  }
+}
+
 .feature-film__controls {
   position: absolute;
   right: calc(#{$u} * 0.6);

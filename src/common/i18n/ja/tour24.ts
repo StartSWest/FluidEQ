@@ -266,9 +266,11 @@ const tour24 = {
   'tour.v25.review':
     '承認されなかったシーンには、名前の横に審査の理由が表示されます。',
   'tour.v25.publish': '公開に月ごとの上限はありません。',
-  'tour.v25.film.title': 'ビジュアルのすべてを、1本の映像で',
+  'tour.film.visuals.intro': 'ビジュアルのすべてを、1本の映像で',
   'tour.v25.film.body':
     'ライブラリーとカラオケ、ビジュアライザー、ギャラリーとクレジット、デスクトップの背景、デバイスのライティング、スタジオを、実際の画面で紹介します。',
+  'tour.v25.film.soon':
+    'この映像はまもなく公開されます。準備ができしだい、ここで再生できます。',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': '署名付きに。そして今も無料！',
   'tour.signed.subtitle': 'ここまでの歩みと、誰でも使える署名付きの FluidEQ',

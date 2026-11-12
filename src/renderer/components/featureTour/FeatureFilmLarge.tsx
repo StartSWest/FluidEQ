@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom';
 import PlayerIcon from '../../player/PlayerIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import FilmPicture from './FilmPicture';
+import type { TranslationKey } from '../../../common/i18n';
 import type { IFeatureFilm } from './featureFilms';
 
 /**
@@ -29,11 +30,17 @@ export default function FeatureFilmLarge({
   film,
   startAt,
   onClose,
+  unavailable = 'tour.film.unavailable',
 }: {
   id: string;
   film: IFeatureFilm;
   startAt: number;
   onClose: () => void;
+  /**
+   * What it says when the site sends no film. A film announced before it was
+   * uploaded says it is coming, not that something went wrong.
+   */
+  unavailable?: TranslationKey;
 }) {
   const { t } = useTranslation();
   const video = useRef<HTMLVideoElement>(null);
@@ -88,7 +95,7 @@ export default function FeatureFilmLarge({
         startAt={startAt}
         onPlaying={() => setShown(true)}
         onFailed={() => setFailed(true)}
-        notice={isFailed ? t('tour.film.unavailable') : undefined}
+        notice={isFailed ? t(unavailable) : undefined}
       >
         <button
           ref={close}

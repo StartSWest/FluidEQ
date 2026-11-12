@@ -19,13 +19,20 @@ import {
 import type { ISlideActions } from 'renderer/components/featureTour/slides';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 import { OFFICIAL_SITE_URL } from 'common/branding';
-import { translate } from 'common/i18n';
+import { loadLocale, translate } from 'common/i18n';
 
 /**
- * The Visualizers' own film (2.5): recorded after the build, so its key
- * waits for the site to have it, and its subtitles are the site's, the
- * reader's language first and the voice's after.
+ * The Visualizers' own film (2.5): recorded after the build, so nothing is
+ * asked of the site before Watch and a film not yet uploaded is "coming
+ * soon"; its subtitles are the site's, the reader's language first and the
+ * voice's after.
  */
+
+/** Everything on the page that would make the browser ask the site. */
+const fromTheSite = () =>
+  Array.from(document.querySelectorAll('[src]'), (element) =>
+    element.getAttribute('src'),
+  ).filter((src) => src?.startsWith(OFFICIAL_SITE_URL));
 
 const actions = { openTab: jest.fn() } as unknown as ISlideActions;
 
@@ -43,6 +50,10 @@ const renderSlide = async (locale: 'en' | 'de') => {
   });
   return view;
 };
+
+// German is loaded on demand; without this, `translate('de', …)` answers in
+// English and a German case passes on English text.
+beforeAll(() => loadLocale('de'));
 
 afterEach(() => {
   cleanup();
@@ -63,53 +74,52 @@ describe("the Visualizers' film", () => {
     expect(FEATURE_FILMS[VISUALS_FILM].spokenCaptions).toBe(true);
   });
 
-  it('shows no key, player or error while the site is asked, nor after a no', async () => {
-    const { container } = await renderSlide('en');
-    const probe = container.querySelector('video');
-    expect(probe).toHaveAttribute('src', featureFilmUrl(VISUALS_FILM, 'en'));
-    expect(probe).toHaveAttribute('preload', 'metadata');
-    expect(probe).not.toBeVisible();
-    expect(
-      screen.queryByRole('button', { name: watchName('en') }),
-    ).not.toBeInTheDocument();
-
-    fireEvent.error(probe as HTMLVideoElement);
-    expect(container.querySelector('video')).toBeNull();
-    expect(
-      screen.queryByRole('button', { name: watchName('en') }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    // The slide itself is all there.
-    expect(
-      screen.getByRole('heading', { name: translate('en', 'tour.edit.title') }),
-    ).toBeInTheDocument();
-  });
-
   it.each(['en', 'de'] as const)(
-    'shows the key once the site has the film, in %s',
+    'shows its key and asks the site for nothing until Watch is pressed, in %s',
     async (locale) => {
-      const { container } = await renderSlide(locale);
-      fireEvent.loadedMetadata(container.querySelector('video') as Element);
-      // The probe is gone, so nothing more of the film is fetched.
-      expect(container.querySelector('video')).toBeNull();
+      await renderSlide(locale);
       expect(
         screen.getByRole('heading', {
-          name: translate(locale, 'tour.v25.film.title'),
+          name: translate(locale, 'tour.film.visuals.intro'),
         }),
       ).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: watchName(locale) }),
-      ).toBeInTheDocument();
+      const watch = screen.getByRole('button', { name: watchName(locale) });
+      // The terms: "nothing is fetched until you press Play or Watch".
+      expect(fromTheSite()).toEqual([]);
+
+      // The control: the press is what asks for the film.
+      fireEvent.click(watch);
+      expect(fromTheSite()).toContain(featureFilmUrl(VISUALS_FILM, locale));
     },
   );
 
+  it('says the film is coming, calmly, while the site does not have it', async () => {
+    await renderSlide('de');
+    fireEvent.click(screen.getByRole('button', { name: watchName('de') }));
+    const dialog = screen.getByRole('dialog', {
+      name: translate('de', 'tour.film.visuals.intro'),
+    });
+    fireEvent.error(dialog.querySelector('video') as HTMLVideoElement);
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      translate('de', 'tour.v25.film.soon'),
+    );
+    expect(dialog).not.toHaveTextContent(
+      translate('de', 'tour.film.unavailable'),
+    );
+    // And it closes as any film does.
+    fireEvent.click(
+      screen.getByRole('button', { name: translate('de', 'tour.film.close') }),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it("opens large, with the reader's subtitles, then the voice's when the site has none", async () => {
     await renderSlide('de');
-    fireEvent.loadedMetadata(document.querySelector('video') as Element);
     fireEvent.click(screen.getByRole('button', { name: watchName('de') }));
 
     const dialog = screen.getByRole('dialog', {
-      name: translate('de', 'tour.v25.film.title'),
+      name: translate('de', 'tour.film.visuals.intro'),
     });
     const track = () => dialog.querySelector('track') as HTMLTrackElement;
     expect(dialog.querySelector('video')).toHaveAttribute(

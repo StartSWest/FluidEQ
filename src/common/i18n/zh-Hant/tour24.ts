@@ -247,9 +247,10 @@ const tour24 = {
     '在繪製的場景裡，用來向 AI 指出位置的圖釘和方框可以手動移動：隨意拖曳，拉動方框的角和邊來調整大小，用它的按鈕或 Delete 鍵刪除。',
   'tour.v25.review': '未通過審核的場景會在名稱旁顯示審核者的理由。',
   'tour.v25.publish': '發布不再有每月上限。',
-  'tour.v25.film.title': '所有視覺功能，一部影片看完',
+  'tour.film.visuals.intro': '所有視覺功能，一部影片看完',
   'tour.v25.film.body':
     '音樂庫與卡拉 OK、視覺化效果、畫廊與點數、桌面背景、裝置燈光和工作室，逐一示範並講解。',
+  'tour.v25.film.soon': '這部影片即將推出。準備好後會在這裡播放。',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': '現已簽署，依然免費！',
   'tour.signed.subtitle': '一路走來，以及為所有人簽署的 FluidEQ',

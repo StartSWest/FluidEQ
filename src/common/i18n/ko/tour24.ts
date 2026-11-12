@@ -260,9 +260,11 @@ const tour24 = {
   'tour.v25.review':
     '승인되지 않은 장면은 이름 옆에 검토자의 이유를 보여 줍니다.',
   'tour.v25.publish': '게시에 월간 한도가 없습니다.',
-  'tour.v25.film.title': '비주얼의 모든 것, 영상 한 편으로',
+  'tour.film.visuals.intro': '비주얼의 모든 것, 영상 한 편으로',
   'tour.v25.film.body':
     '라이브러리와 노래방, 비주얼라이저, 갤러리와 크레딧, 바탕 화면 배경, 장치 조명, 스튜디오를 직접 보여 주고 설명합니다.',
+  'tour.v25.film.soon':
+    '이 영상은 곧 공개됩니다. 준비되는 대로 여기에서 재생됩니다.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': '이제 서명까지, 그리고 여전히 무료!',
   'tour.signed.subtitle': '지금까지의 여정, 그리고 모두를 위한 서명된 FluidEQ',

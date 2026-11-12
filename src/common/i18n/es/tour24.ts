@@ -280,9 +280,11 @@ const tour24 = {
   'tour.v25.review':
     'Una escena que no fue aprobada muestra el motivo del revisor junto a su nombre.',
   'tour.v25.publish': 'Sin límite mensual para publicar.',
-  'tour.v25.film.title': 'Todo lo visual, en una película',
+  'tour.film.visuals.intro': 'Todo lo visual, en una película',
   'tour.v25.film.body':
     'La Biblioteca y el Karaoke, los visualizadores, la Galería y sus créditos, el fondo del escritorio, la iluminación de tus dispositivos y el Estudio, mostrados y explicados.',
+  'tour.v25.film.soon':
+    'Esta película llega pronto. Se reproducirá aquí en cuanto esté lista.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': '¡Ahora firmado, y sigue siendo gratis!',
   'tour.signed.subtitle':

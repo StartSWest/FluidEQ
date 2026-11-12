@@ -313,15 +313,17 @@ export const FEATURE_FILMS: Readonly<Record<string, IFeatureFilm>> = {
   // own What's New (`VisualsFilmSection`; Ivan, 2026-11-12: "we will put in
   // the whats new"). Recorded after 2.5 was built, so nothing about it is in
   // the app but its name: its subtitles are the site's, word for word
-  // (`featureFilmCaptionUrls`), and its key is drawn only once the site has
-  // the film (`FilmOnSite`). Its one cue names the larger view for a screen
-  // reader; no line of it is drawn from the app.
+  // (`featureFilmCaptionUrls`), and until it is uploaded a press on Watch
+  // says it is coming (`tour.v25.film.soon`). Its one cue names the larger
+  // view for a screen reader; no line of it is drawn from the app.
   [VISUALS_FILM]: {
     width: 1920,
     height: 1080,
     locales: ['en'],
     spokenCaptions: true,
-    cues: [{ key: 'tour.v25.film.title', from: 0, to: 0 }],
+    // Never drawn (its subtitles are the site's); it names the film for the
+    // catalogue and a screen reader, so it spans the film's first second.
+    cues: [{ key: 'tour.film.visuals.intro', from: 0, to: 1 }],
   },
 };
 
