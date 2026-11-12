@@ -188,7 +188,8 @@ const studio = {
   'studio.publish.categoryHint': 'Fino a due. La scheda mostra la prima.',
   'studio.publish.pickCategory': 'Scegli prima una categoria',
   'studio.publish.needNote': 'Dì prima cosa c’è di nuovo in questa versione',
-  'studio.publish.noteWriting': 'La chat della tua scena sta scrivendo cosa c’è di nuovo…',
+  'studio.publish.noteWriting':
+    'La chat della tua scena sta scrivendo cosa c’è di nuovo…',
   'studio.publish.noteNeeded': 'Obbligatorio',
   'studio.publish.point1':
     'Chiunque abbia effettuato l’accesso può vederla in Visualizzatori, guardarla per qualche secondo e ottenerla con un credito. Per te suona gratis.',
@@ -862,6 +863,8 @@ const studio = {
     'FluidEQ esamina ogni scena prima che compaia nella galleria. Ti avviseremo quando sarà approvata.',
   'studio.publish.pointReviewUpdate':
     'FluidEQ esamina anche ogni nuova versione. Chi ha la scena mantiene la versione attuale finché questa non viene approvata.',
+  'studio.publish.pointQuality':
+    'Una scena deve raggiungere il livello di qualità della galleria per essere approvata. Se la tua non viene approvata, resta tua da riprodurre sul tuo computer, ma non entra nella galleria e non ti fa guadagnare nulla.',
   'studio.publish.goReview': 'Invia per la revisione',
   'studio.publish.goReviewUpdate': 'Invia l’aggiornamento per la revisione',
   'studio.publish.agreeReview': 'Accetta e invia per la revisione',

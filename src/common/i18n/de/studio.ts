@@ -876,6 +876,8 @@ const studio = {
     'FluidEQ prüft jede Szene, bevor sie in der Galerie erscheint. Sie erfahren es, sobald sie genehmigt ist.',
   'studio.publish.pointReviewUpdate':
     'FluidEQ prüft auch jede neue Version. Alle, die die Szene haben, behalten die aktuelle Version, bis diese genehmigt ist.',
+  'studio.publish.pointQuality':
+    'Eine Szene muss den Qualitätsansprüchen der Galerie genügen, um freigegeben zu werden. Wird Ihre nicht freigegeben, können Sie sie weiter auf Ihrem eigenen Computer abspielen, aber sie kommt nicht in die Galerie und bringt Ihnen nichts ein.',
   'studio.publish.goReview': 'Zur Prüfung senden',
   'studio.publish.goReviewUpdate': 'Update zur Prüfung senden',
   'studio.publish.agreeReview': 'Zustimmen und zur Prüfung senden',

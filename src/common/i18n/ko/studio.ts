@@ -825,6 +825,8 @@ const studio = {
     'FluidEQ는 갤러리에 표시되기 전에 모든 장면을 검토합니다. 승인되면 알려드리겠습니다.',
   'studio.publish.pointReviewUpdate':
     'FluidEQ는 모든 새 버전도 검토합니다. 장면이 있는 모든 사람은 이 장면이 승인될 때까지 현재 버전을 유지합니다.',
+  'studio.publish.pointQuality':
+    '장면이 승인되려면 갤러리의 품질 기준을 충족해야 합니다. 승인되지 않아도 내 컴퓨터에서는 계속 재생할 수 있지만, 갤러리에 올라가지 않으며 수익도 생기지 않습니다.',
   'studio.publish.goReview': '검토를 위해 보내기',
   'studio.publish.goReviewUpdate': '검토를 위해 업데이트 보내기',
   'studio.publish.agreeReview': '동의하고 검토를 위해 보냅니다.',

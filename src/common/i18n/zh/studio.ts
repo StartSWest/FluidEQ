@@ -765,6 +765,8 @@ const studio = {
     'FluidEQ 会在每个场景出现在图库前进行审核。审核通过时会通知你。',
   'studio.publish.pointReviewUpdate':
     'FluidEQ 也会审核每个新版本。在它通过审核前，拥有这个场景的人保留当前版本。',
+  'studio.publish.pointQuality':
+    '场景需要达到画廊的质量标准才能获批。如果你的场景未获批，你仍可以在自己的电脑上播放，但它不会进入画廊，也不会给你带来收益。',
   'studio.publish.goReview': '提交审核',
   'studio.publish.goReviewUpdate': '提交更新审核',
   'studio.publish.agreeReview': '同意并提交审核',

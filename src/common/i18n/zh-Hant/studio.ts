@@ -747,6 +747,8 @@ const studio = {
     'FluidEQ 在每個場景出現在相簿中之前都會對其進行審查。批准後我們會通知您。',
   'studio.publish.pointReviewUpdate':
     'FluidEQ 也會檢視每個新版本。每個擁有該場景的人都會保留當前版本，直到該版本獲得批准。',
+  'studio.publish.pointQuality':
+    '場景需要達到畫廊的品質標準才能獲准。如果你的場景未獲准，你仍可以在自己的電腦上播放，但它不會進入畫廊，也不會為你帶來收益。',
   'studio.publish.goReview': '傳送以供審核',
   'studio.publish.goReviewUpdate': '傳送更新以供審核',
   'studio.publish.agreeReview': '同意並傳送以供審核',

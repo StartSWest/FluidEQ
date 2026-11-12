@@ -855,6 +855,8 @@ const studio = {
     'FluidEQ はすべてのシーンをギャラリーに出る前に審査します。承認されたらお知らせします。',
   'studio.publish.pointReviewUpdate':
     '新しいバージョンもすべて審査します。承認されるまで、シーンを持っている人は今のバージョンのままです。',
+  'studio.publish.pointQuality':
+    'シーンが承認されるには、ギャラリーの品質基準を満たす必要があります。承認されなかった場合も自分のパソコンで再生できますが、ギャラリーには載らず、収益にもなりません。',
   'studio.publish.goReview': '審査に送る',
   'studio.publish.goReviewUpdate': '更新を審査に送る',
   'studio.publish.agreeReview': '同意して審査に送る',

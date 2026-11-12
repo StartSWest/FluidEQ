@@ -866,6 +866,8 @@ const studio = {
     'FluidEQ reviews every scene before it appears in the gallery. You will be told when it is approved.',
   'studio.publish.pointReviewUpdate':
     'FluidEQ reviews every new version too. Everyone who has the scene keeps the current version until this one is approved.',
+  'studio.publish.pointQuality':
+    'A scene has to meet the gallery’s quality standard to be approved. If yours isn’t approved, it stays yours to play on your own computer, but it doesn’t go into the gallery and earns you nothing.',
   'studio.publish.goReview': 'Send for review',
   'studio.publish.goReviewUpdate': 'Send update for review',
   'studio.publish.agreeReview': 'Agree and send for review',

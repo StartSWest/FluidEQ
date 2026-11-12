@@ -298,6 +298,8 @@ describe('the publish dialog', () => {
     // A member's scene waits for review first, and the dialog says so
     // before the press, not after it.
     expect(screen.getByText('studio.publish.pointReview')).toBeInTheDocument();
+    // And that the review can say no, and what is left of the scene then.
+    expect(screen.getByText('studio.publish.pointQuality')).toBeInTheDocument();
     const go = screen.getByRole('button', { name: 'studio.publish.goReview' });
     expect(go).toBeDisabled();
     await userEvent.click(
@@ -359,6 +361,10 @@ describe('the publish dialog', () => {
     expect(
       screen.queryByText('studio.publish.pointReview'),
     ).not.toBeInTheDocument();
+    // Nothing reviews it, so nothing can turn it down.
+    expect(
+      screen.queryByText('studio.publish.pointQuality'),
+    ).not.toBeInTheDocument();
     await userEvent.click(
       screen.getByRole('button', { name: 'plus.category.space' }),
     );
@@ -398,6 +404,7 @@ describe('the publish dialog', () => {
     expect(
       screen.getByText('studio.publish.pointReviewUpdate'),
     ).toBeInTheDocument();
+    expect(screen.getByText('studio.publish.pointQuality')).toBeInTheDocument();
     await userEvent.type(note, 'The peaks stay whole');
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' }),
