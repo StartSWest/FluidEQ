@@ -248,9 +248,9 @@ const tour24 = {
   'tour.fullscreen.kicker': 'STUDIO · VOLLBILD',
   'tour.fullscreen.title': 'An einer Szene im Vollbild arbeiten',
   'tour.fullscreen.subtitle':
-    'Arbeitsbereich und Chat über der laufenden Szene',
+    'Arbeitsbereich und Chat neben der laufenden Szene',
   'tour.fullscreen.lead':
-    'Im Vollbild füllt die Szene den ganzen Bildschirm und spielt weiter, und das Studio kommt mit: Der Arbeitsbereich gleitet über ihren unteren Teil, und der Chat dockt an der Seite an.',
+    'Im Vollbild läuft die Szene in dem Teil des Bildschirms weiter, den Arbeitsbereich und Chat frei lassen, und passt sich neu ein, wenn sie hereingleiten, verschwinden oder in der Größe geändert werden. Zoomen und verschieben Sie sie wie im Bearbeitungsmodus; Einpassen holt sie zurück.',
   'tour.fullscreen.point1':
     'Der Arbeitsbereich hat alle Tabs, Abstimmen, Code und die übrigen. Ziehen Sie an seinem oberen Rand, um ihn höher oder niedriger zu machen.',
   'tour.fullscreen.point2':
@@ -261,7 +261,7 @@ const tour24 = {
     'Öffnen Sie eine Szene im Studio und drücken Sie auf ihrer Bühne Vollbild.',
   'tour.fullscreen.open': 'Visualizer öffnen',
   'tour.fullscreen.imageAlt':
-    'Eine Szene über den ganzen Bildschirm, mit dem Arbeitsbereich offen über ihrem unteren Teil auf dem Tab Abstimmen und dem Chat der Szene rechts angedockt.',
+    'Vollbild mit der Szene im frei gebliebenen Teil des Bildschirms, darunter der geöffnete Arbeitsbereich auf dem Tab Abstimmen und rechts der angedockte Chat der Szene.',
   'tour.fullscreen.request': 'Mach das Polarlicht beim Drop heller',
   'tour.v25.also': 'Außerdem in 2.5',
   'tour.v25.recover':
@@ -270,6 +270,8 @@ const tour24 = {
     'Eine Szene, die nicht spielt, wird nie gegen einen anderen Look getauscht: Die Grafik sagt, warum, und bietet Erneut versuchen an.',
   'tour.v25.painted':
     'In einer gemalten Szene lassen sich die Pins und Rahmen, die der KI zeigen, was Sie meinen, von Hand bewegen: Ziehen Sie sie beliebig, ziehen Sie einen Rahmen an Ecken und Kanten auf, und entfernen Sie einen mit seinem Knopf oder Entf.',
+  'tour.v25.views':
+    'Veröffentlichen spielt die Szene vor dem Senden als Normal, Ultrabreit oder im Kompakt-Player ab, und Im Diagramm abspielen probiert sie mit einem Klick im Diagramm aus.',
   'tour.v25.review':
     'Eine nicht freigegebene Szene zeigt die Begründung der Prüfung neben ihrem Namen.',
   'tour.v25.publish': 'Kein monatliches Limit beim Veröffentlichen.',

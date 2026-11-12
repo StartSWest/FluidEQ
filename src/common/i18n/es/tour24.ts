@@ -255,9 +255,9 @@ const tour24 = {
   'tour.fullscreen.kicker': 'ESTUDIO · PANTALLA COMPLETA',
   'tour.fullscreen.title': 'Trabaja en una escena a pantalla completa',
   'tour.fullscreen.subtitle':
-    'El panel de trabajo y el chat sobre la escena en marcha',
+    'El panel de trabajo y el chat junto a la escena en marcha',
   'tour.fullscreen.lead':
-    'A pantalla completa la escena llena toda la pantalla y sigue sonando, y el Estudio va con ella: el panel de trabajo sube sobre su parte de abajo y el chat se acopla al lado.',
+    'En pantalla completa la escena sigue sonando en la parte de la pantalla que dejan libre el panel de trabajo y el chat, y se vuelve a ajustar cuando entran, se ocultan o cambian de tamaño. Acércala y muévela como en el modo edición; Ajustar la devuelve a su sitio.',
   'tour.fullscreen.point1':
     'El panel de trabajo tiene todas las pestañas, Ajustar, Código y las demás. Arrastra su borde superior para hacerlo más alto o más bajo.',
   'tour.fullscreen.point2':
@@ -268,7 +268,7 @@ const tour24 = {
     'Abre una escena en el Estudio y pulsa Pantalla completa en su escenario.',
   'tour.fullscreen.open': 'Abrir Visualizadores',
   'tour.fullscreen.imageAlt':
-    'Una escena que ocupa toda la pantalla, con el panel de trabajo abierto sobre su parte de abajo en la pestaña Ajustar y el chat de la escena acoplado a la derecha.',
+    'Pantalla completa con la escena en la parte libre de la pantalla, el panel de trabajo abierto debajo en la pestaña Ajustar y el chat de la escena acoplado a la derecha.',
   'tour.fullscreen.request': 'Haz la aurora más brillante en el drop',
   'tour.v25.also': 'También en 2.5',
   'tour.v25.recover':
@@ -277,6 +277,8 @@ const tour24 = {
     'Una escena que no se reproduce nunca se cambia por otro aspecto: el gráfico dice por qué y ofrece Reintentar.',
   'tour.v25.painted':
     'En una escena pintada, los alfileres y recuadros que señalan a la IA lo que quieres se mueven a mano: arrastra cualquiera adonde quieras, estira un recuadro por sus esquinas y bordes, y quita uno con su botón o con Supr.',
+  'tour.v25.views':
+    'Publicar reproduce la escena en Normal, Ultrapanorámica o el reproductor compacto antes de enviarla, y Poner en la gráfica la prueba en la gráfica con un solo clic.',
   'tour.v25.review':
     'Una escena que no fue aprobada muestra el motivo del revisor junto a su nombre.',
   'tour.v25.publish': 'Sin límite mensual para publicar.',

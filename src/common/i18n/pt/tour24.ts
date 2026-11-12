@@ -242,9 +242,9 @@ const tour24 = {
   'tour.fullscreen.kicker': 'ESTÚDIO · TELA CHEIA',
   'tour.fullscreen.title': 'Trabalhe numa cena em tela cheia',
   'tour.fullscreen.subtitle':
-    'O painel de trabalho e o chat sobre a cena tocando',
+    'O painel de trabalho e o chat ao lado da cena tocando',
   'tour.fullscreen.lead':
-    'Em tela cheia a cena ocupa a tela toda e continua tocando, e o Estúdio vai junto: o painel de trabalho sobe sobre a parte de baixo e o chat se encaixa ao lado.',
+    'Em tela cheia, a cena continua tocando na parte da tela que o painel de trabalho e o chat deixam livre, e se ajusta de novo quando eles entram, se escondem ou mudam de tamanho. Aproxime e mova a cena como no modo edição; Ajustar a traz de volta.',
   'tour.fullscreen.point1':
     'O painel de trabalho tem todas as abas, Ajustar, Código e as outras. Arraste a borda de cima para deixá-lo mais alto ou mais baixo.',
   'tour.fullscreen.point2':
@@ -255,7 +255,7 @@ const tour24 = {
     'Abra uma cena no Estúdio e pressione Tela cheia no palco.',
   'tour.fullscreen.open': 'Abrir Visualizadores',
   'tour.fullscreen.imageAlt':
-    'Uma cena ocupando a tela toda, com o painel de trabalho aberto sobre a parte de baixo na aba Ajustar e o chat da cena encaixado à direita.',
+    'Tela cheia com a cena na parte livre da tela, o painel de trabalho aberto embaixo na aba Ajustar e o chat da cena encaixado à direita.',
   'tour.fullscreen.request': 'Deixe a aurora mais brilhante no drop',
   'tour.v25.also': 'Também na 2.5',
   'tour.v25.recover':
@@ -264,6 +264,8 @@ const tour24 = {
     'Uma cena que não toca nunca é trocada por outro visual: o gráfico diz por quê e oferece Tentar de novo.',
   'tour.v25.painted':
     'Numa cena pintada, os alfinetes e caixas que mostram à IA o que você quer se movem à mão: arraste qualquer um para onde quiser, estique uma caixa pelos cantos e bordas, e remova um com o botão dele ou com Delete.',
+  'tour.v25.views':
+    'Publicar reproduz a cena em Normal, Ultrawide ou no player compacto antes de você enviar, e Reproduzir no gráfico a testa no gráfico com um clique.',
   'tour.v25.review':
     'Uma cena que não foi aprovada mostra o motivo da revisão ao lado do nome.',
   'tour.v25.publish': 'Sem limite mensal para publicar.',

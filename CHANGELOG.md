@@ -83,12 +83,26 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   graph, Ultra wide or the Compact player, the chat is told with every
   message and looks at that view first, the scene alone, so "look at this"
   needs no explaining.
+- **Ultra wide shows the window round the graph.** The Studio's Ultra wide
+  view draws the scene across the ultra-wide window it covers behind the
+  app, to a graph's height above and below the graph, with the graph framed
+  where it really stands and the rest veiled, so a picture that stops short
+  under the graph is seen stopping. The chat looks at it the same way.
+- **Check every view before you publish.** The Publish dialog is larger and
+  plays the scene as Normal, Ultra wide or the Compact player with the
+  player over it; the covers and the preview video stay the Normal view. On
+  a narrow window its intro folds into a heading line, and an account
+  without a gallery name and @handle chooses them there before sending.
+- **Play on the graph.** One press beside **Add to my looks** keeps the
+  version on the stage in your looks, chooses it on the graph and takes you
+  to the EQ page to see it there.
 - **A painted scene's marks move by hand.** The pins and boxes that show
   the AI what you mean are dragged anywhere, a box pulled by its corners
   and edges, and one removed with its button or Delete.
 - **Full screen with the work pane and the chat.** In full screen the
-  scene keeps playing across the whole screen while the work pane slides
-  up over its lower part and the chat docks at the side. Each comes and
+  scene keeps playing in the part of the screen the work pane and the chat
+  leave, and fits it again as they slide, hide or are resized; zoom and pan
+  it as in Edit mode, with **Fit** to bring it back. Each comes and
   goes on its own button, on the full-screen controls or at its own top
   right, or with Ctrl+J and Ctrl+L; drag the pane's top edge or the chat's
   side to size them, and the next full screen opens the way you left it.

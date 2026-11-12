@@ -249,9 +249,9 @@ const tour24 = {
   'tour.fullscreen.kicker': 'STUDIO · PLEIN ÉCRAN',
   'tour.fullscreen.title': 'Travaillez sur une scène en plein écran',
   'tour.fullscreen.subtitle':
-    'Le panneau de travail et le chat sur la scène qui joue',
+    'Le panneau de travail et le chat à côté de la scène qui joue',
   'tour.fullscreen.lead':
-    'En plein écran, la scène remplit tout l’écran et continue de jouer, et le Studio vient avec elle : le panneau de travail monte sur sa partie basse et le chat s’ancre sur le côté.',
+    'En plein écran, la scène continue de jouer dans la partie de l’écran que laissent le panneau de travail et le chat, et s’y ajuste de nouveau quand ils glissent, se masquent ou changent de taille. Zoomez et déplacez-la comme en mode modification ; Ajuster la remet en place.',
   'tour.fullscreen.point1':
     'Le panneau de travail a tous les onglets, Réglages, Code et les autres. Faites glisser son bord supérieur pour l’agrandir ou le réduire.',
   'tour.fullscreen.point2':
@@ -262,7 +262,7 @@ const tour24 = {
     'Ouvrez une scène dans le Studio et appuyez sur Plein écran sur sa scène.',
   'tour.fullscreen.open': 'Ouvrir Visualiseurs',
   'tour.fullscreen.imageAlt':
-    'Une scène qui occupe tout l’écran, avec le panneau de travail ouvert sur sa partie basse à l’onglet Réglages et le chat de la scène ancré à droite.',
+    'Plein écran avec la scène dans la partie libre de l’écran, le panneau de travail ouvert en dessous sur l’onglet Réglages et le chat de la scène ancré à droite.',
   'tour.fullscreen.request': 'Rends l’aurore plus lumineuse sur le drop',
   'tour.v25.also': 'Aussi dans la 2.5',
   'tour.v25.recover':
@@ -271,6 +271,8 @@ const tour24 = {
     'Une scène qui ne joue pas n’est jamais remplacée par un autre style : le graphique dit pourquoi et propose Réessayer.',
   'tour.v25.painted':
     'Dans une scène peinte, les épingles et les cadres qui montrent à l’IA ce que vous voulez se déplacent à la main : faites-les glisser où vous voulez, étirez un cadre par ses coins et ses bords, et retirez-en un avec son bouton ou Suppr.',
+  'tour.v25.views':
+    'Publier joue la scène en Normale, Ultra-large ou dans le lecteur compact avant l’envoi, et Lancer sur le graphique l’essaie sur le graphique en un clic.',
   'tour.v25.review':
     'Une scène non approuvée montre la raison de la modération à côté de son nom.',
   'tour.v25.publish': 'Plus de limite mensuelle pour publier.',

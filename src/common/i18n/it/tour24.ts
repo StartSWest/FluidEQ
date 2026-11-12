@@ -249,9 +249,9 @@ const tour24 = {
   'tour.fullscreen.kicker': 'STUDIO · SCHERMO INTERO',
   'tour.fullscreen.title': 'Lavora su una scena a schermo intero',
   'tour.fullscreen.subtitle':
-    'Il pannello di lavoro e la chat sulla scena che suona',
+    'Il pannello di lavoro e la chat accanto alla scena che suona',
   'tour.fullscreen.lead':
-    'A schermo intero la scena riempie tutto lo schermo e continua a suonare, e lo Studio va con lei: il pannello di lavoro sale sulla sua parte bassa e la chat si aggancia al lato.',
+    'A schermo intero la scena continua a suonare nella parte dello schermo lasciata libera dal pannello di lavoro e dalla chat, e si adatta di nuovo quando entrano, si nascondono o cambiano dimensione. Ingrandiscila e spostala come in modalità modifica; Adatta la riporta a posto.',
   'tour.fullscreen.point1':
     'Il pannello di lavoro ha tutte le schede, Regola, Codice e le altre. Trascina il suo bordo superiore per farlo più alto o più basso.',
   'tour.fullscreen.point2':
@@ -262,7 +262,7 @@ const tour24 = {
     'Apri una scena nello Studio e premi Schermo intero sul suo palco.',
   'tour.fullscreen.open': 'Apri Visualizzatori',
   'tour.fullscreen.imageAlt':
-    'Una scena che occupa tutto lo schermo, con il pannello di lavoro aperto sulla sua parte bassa nella scheda Regola e la chat della scena agganciata a destra.',
+    'Schermo intero con la scena nella parte libera dello schermo, il pannello di lavoro aperto sotto sulla scheda Regola e la chat della scena agganciata a destra.',
   'tour.fullscreen.request': 'Rendi l’aurora più luminosa sul drop',
   'tour.v25.also': 'Anche nella 2.5',
   'tour.v25.recover':
@@ -271,6 +271,8 @@ const tour24 = {
     'Una scena che non parte non viene mai sostituita con un altro look: il grafico dice perché e offre Riprova.',
   'tour.v25.painted':
     'In una scena dipinta, gli spilli e i riquadri che mostrano all’IA cosa intendi si muovono a mano: trascinali dove vuoi, allarga un riquadro dagli angoli e dai bordi, e togline uno con il suo pulsante o con Canc.',
+  'tour.v25.views':
+    'Pubblica riproduce la scena in Normale, Ultra wide o nel lettore compatto prima di inviarla, e Riproduci sul grafico la prova sul grafico con un clic.',
   'tour.v25.review':
     'Una scena non approvata mostra il motivo del revisore accanto al suo nome.',
   'tour.v25.publish': 'Nessun limite mensile per pubblicare.',

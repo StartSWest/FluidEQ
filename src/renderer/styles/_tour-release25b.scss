@@ -13,8 +13,8 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'tour-miniature' as *;
 
 // The Studio's full screen in the Visualizers' What's New for 2.5
-// (`StudioFullscreenVisual`): the scene across the screen, the work pane
-// rising over its lower part and the chat docking at the right, on the side
+// (`StudioFullscreenVisual`): the scene in what the panels leave, the work pane
+// rising under it and the chat docking at the right, on the side
 // panes' own ease. Its own sheet because `_tour-release25.scss` was past 900
 // lines already; the same miniature language and loop. The Code tab's draft
 // bar (`StudioCodeVisual`) is here for the same reason.
@@ -42,12 +42,48 @@ $chat: 30%;
   background: $black;
 }
 
+// The scene in the part of the screen the work pane and the chat leave, as
+// the real full screen fits it (2026-11-12), never under them: the whole
+// screen while both are away, giving way to each as it slides in, in step
+// with their loops below. Still, it rests where both are out.
 .fullscreen-visual__scene {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  left: 0;
+  width: calc(100% - #{$chat});
+  height: 60%;
   object-fit: cover;
+  animation: fullscreen-visual-scene $loop $ease-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes fullscreen-visual-scene {
+  0%,
+  6% {
+    width: 100%;
+    height: 100%;
+  }
+
+  16%,
+  22% {
+    width: 100%;
+    height: 60%;
+  }
+
+  32%,
+  86% {
+    width: calc(100% - #{$chat});
+    height: 60%;
+  }
+
+  96%,
+  100% {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 // The full-screen plate, left of the chat as the real one moves when the
