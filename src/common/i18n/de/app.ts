@@ -341,6 +341,41 @@ const app: Partial<Dictionary> = {
   'edition.changing.see': 'Signierte Edition ansehen – {price}',
   'edition.changing.seeNoPrice': 'Signierte Edition ansehen',
   'edition.changing.gotIt': 'Verstanden',
+  'edition.card.yours':
+    'Dauerhaft Ihre. Auf der signierten Kopie kommen Updates von selbst.',
+  'edition.card.download': 'Signiertes Installationsprogramm herunterladen',
+  'edition.card.downloadFailed':
+    'Der Download konnte nicht gestartet werden. Versuchen Sie es erneut.',
+  'edition.card.noRelease':
+    'Das signierte Installationsprogramm ist noch nicht bereit. Versuchen Sie es bald erneut.',
+  'edition.card.offer':
+    'Dasselbe FluidEQ mit einem signierten Installationsprogramm, das sich selbst aktualisiert, inklusive Credits für Szenen. Einmalig bezahlt.',
+  'edition.card.payHint':
+    'Bezahlen Sie mit der E-Mail dieses Kontos, dann wird der Kauf von selbst verknüpft.',
+  'edition.card.buy': 'Signierte Edition holen – {price}',
+  'edition.card.buyNoPrice': 'Signierte Edition holen',
+  'edition.card.other': 'Ich habe mit einer anderen E-Mail gekauft',
+  'edition.card.otherHint':
+    'Geben Sie die E-Mail ein, mit der Sie bezahlt haben. Dorthin wird ein Code gesendet; geben Sie ihn hier ein, und der Kauf wechselt zu diesem Konto.',
+  'edition.card.email': 'E-Mail, mit der Sie bezahlt haben',
+  'edition.card.send': 'Code senden',
+  'edition.card.sent':
+    'Wenn es zu dieser E-Mail einen Kauf gibt, ist ein sechsstelliger Code unterwegs. Er gilt eine Stunde.',
+  'edition.card.limited':
+    'Im Moment zu viele Versuche. Versuchen Sie es in einer Stunde erneut.',
+  'edition.card.code': 'Code',
+  'edition.card.link': 'Kauf verknüpfen',
+  'edition.card.linked':
+    'Verknüpft. Die signierte Edition ist in diesem Konto.',
+  'edition.card.wrong':
+    'Dieser Code hat keinen Kauf verknüpft. Prüfen Sie E-Mail und Code.',
+  'edition.card.tooSoon':
+    'Dieser Kauf ist vor weniger als sechs Monaten zu einem anderen Konto gewechselt und kann noch nicht erneut wechseln.',
+  'edition.card.failed': 'Das ging gerade nicht. Versuchen Sie es erneut.',
+  'edition.card.receipt':
+    'Zahlung, Beleg oder Erstattung: Nutzen Sie den Link in Ihrem Paddle-Beleg.',
+  'edition.card.support': 'Alles andere: {email}',
+  'edition.card.order': 'Bestellung {order}',
   'update.onSite.title': 'Eine neue Version ist auf der Website',
   'update.onSite.body':
     'FluidEQ {version} ist da. Diese kostenlose Edition aktualisiert sich nicht selbst: Laden Sie sie von fluideq.com herunter und installieren Sie sie über diese. Ihre Einstellungen bleiben.',

@@ -323,6 +323,33 @@ const app: Partial<Dictionary> = {
   'edition.changing.see': '查看签名版 – {price}',
   'edition.changing.seeNoPrice': '查看签名版',
   'edition.changing.gotIt': '知道了',
+  'edition.card.yours': '永久归你所有。在签名版副本上，更新会自动送达。',
+  'edition.card.download': '下载签名版安装程序',
+  'edition.card.downloadFailed': '无法开始下载。请重试。',
+  'edition.card.noRelease': '签名版安装程序尚未上线。请稍后再试。',
+  'edition.card.offer':
+    '同样的 FluidEQ，带有会自动更新的签名安装程序，并附送场景点数。一次性付款。',
+  'edition.card.payHint': '用这个账户的邮箱付款，购买会自动关联。',
+  'edition.card.buy': '获取签名版 – {price}',
+  'edition.card.buyNoPrice': '获取签名版',
+  'edition.card.other': '我是用其他邮箱购买的',
+  'edition.card.otherHint':
+    '输入你付款时使用的邮箱。我们会向它发送一个验证码；在这里输入验证码，购买就会转到这个账户。',
+  'edition.card.email': '付款时使用的邮箱',
+  'edition.card.send': '发送验证码',
+  'edition.card.sent':
+    '如果该邮箱有购买记录，六位验证码已在发送途中。一小时内有效。',
+  'edition.card.limited': '尝试次数过多。请一小时后再试。',
+  'edition.card.code': '验证码',
+  'edition.card.link': '关联购买',
+  'edition.card.linked': '已关联。签名版已在这个账户中。',
+  'edition.card.wrong': '这个验证码没有关联到任何购买。请检查邮箱和验证码。',
+  'edition.card.tooSoon':
+    '这笔购买在不到六个月前转到了另一个账户，暂时不能再次转移。',
+  'edition.card.failed': '暂时无法完成。请重试。',
+  'edition.card.receipt': '付款、收据或退款：请使用 Paddle 收据中的链接。',
+  'edition.card.support': '其他问题：{email}',
+  'edition.card.order': '订单 {order}',
   'update.onSite.title': '网站上有新版本',
   'update.onSite.body':
     'FluidEQ {version} 已发布。这个免费版不会自动更新：请从 fluideq.com 下载并覆盖安装。你的设置会保留。',

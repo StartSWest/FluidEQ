@@ -334,6 +334,39 @@ const app = {
   'edition.changing.see': 'See the signed edition – {price}',
   'edition.changing.seeNoPrice': 'See the signed edition',
   'edition.changing.gotIt': 'Got it',
+  'edition.card.yours':
+    'Yours for good. On the signed copy, updates arrive by themselves.',
+  'edition.card.download': 'Download the signed installer',
+  'edition.card.downloadFailed':
+    'The download could not be started. Try again.',
+  'edition.card.noRelease':
+    'The signed installer is not up yet. Try again soon.',
+  'edition.card.offer':
+    'The same FluidEQ with a signed installer that updates itself, and credits for scenes included. Paid once.',
+  'edition.card.payHint':
+    'Pay with this account’s email and it’s linked by itself.',
+  'edition.card.buy': 'Get the signed edition – {price}',
+  'edition.card.buyNoPrice': 'Get the signed edition',
+  'edition.card.other': 'I bought it with another email',
+  'edition.card.otherHint':
+    'Type the email you paid with. A code is sent to it; type the code here and the purchase moves to this account.',
+  'edition.card.email': 'Email you paid with',
+  'edition.card.send': 'Send code',
+  'edition.card.sent':
+    'If that email has a purchase, a six-digit code is on its way to it. It works for one hour.',
+  'edition.card.limited': 'Too many tries for now. Try again in an hour.',
+  'edition.card.code': 'Code',
+  'edition.card.link': 'Link purchase',
+  'edition.card.linked': 'Linked. The signed edition is on this account.',
+  'edition.card.wrong':
+    'That code didn’t link a purchase. Check the email and the code.',
+  'edition.card.tooSoon':
+    'This purchase moved to another account less than six months ago, so it can’t move again yet.',
+  'edition.card.failed': 'It could not be done right now. Try again.',
+  'edition.card.receipt':
+    'Payment, receipt or refund: use the link in your Paddle receipt.',
+  'edition.card.support': 'Anything else: {email}',
+  'edition.card.order': 'Order {order}',
   'update.onSite.title': 'A new version is on the site',
   'update.onSite.body':
     'FluidEQ {version} is out. This free edition doesn’t update itself: download it from fluideq.com and run it over this one. Your settings stay.',

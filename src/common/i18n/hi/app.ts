@@ -335,6 +335,38 @@ const app: Partial<Dictionary> = {
   'edition.changing.see': 'हस्ताक्षरित संस्करण देखें – {price}',
   'edition.changing.seeNoPrice': 'हस्ताक्षरित संस्करण देखें',
   'edition.changing.gotIt': 'समझ गया',
+  'edition.card.yours':
+    'हमेशा के लिए आपका। हस्ताक्षरित प्रति पर अपडेट अपने आप आते हैं।',
+  'edition.card.download': 'हस्ताक्षरित इंस्टॉलर डाउनलोड करें',
+  'edition.card.downloadFailed': 'डाउनलोड शुरू नहीं हो सका। फिर कोशिश करें।',
+  'edition.card.noRelease':
+    'हस्ताक्षरित इंस्टॉलर अभी उपलब्ध नहीं है। थोड़ी देर में फिर कोशिश करें।',
+  'edition.card.offer':
+    'वही FluidEQ, अपने आप अपडेट होने वाले हस्ताक्षरित इंस्टॉलर के साथ, और सीन के लिए क्रेडिट शामिल। एक बार का भुगतान।',
+  'edition.card.payHint':
+    'इस खाते के ईमेल से भुगतान करें और यह अपने आप जुड़ जाता है।',
+  'edition.card.buy': 'हस्ताक्षरित संस्करण पाएँ – {price}',
+  'edition.card.buyNoPrice': 'हस्ताक्षरित संस्करण पाएँ',
+  'edition.card.other': 'मैंने इसे किसी और ईमेल से खरीदा',
+  'edition.card.otherHint':
+    'वह ईमेल लिखें जिससे आपने भुगतान किया। उस पर एक कोड भेजा जाता है; कोड यहाँ लिखें और खरीद इस खाते में आ जाती है।',
+  'edition.card.email': 'जिस ईमेल से भुगतान किया',
+  'edition.card.send': 'कोड भेजें',
+  'edition.card.sent':
+    'अगर उस ईमेल पर कोई खरीद है, तो छह अंकों का कोड भेजा जा रहा है। यह एक घंटे तक चलता है।',
+  'edition.card.limited':
+    'अभी बहुत कोशिशें हो चुकी हैं। एक घंटे में फिर कोशिश करें।',
+  'edition.card.code': 'कोड',
+  'edition.card.link': 'खरीद जोड़ें',
+  'edition.card.linked': 'जुड़ गया। हस्ताक्षरित संस्करण इस खाते में है।',
+  'edition.card.wrong': 'उस कोड से कोई खरीद नहीं जुड़ी। ईमेल और कोड जाँचें।',
+  'edition.card.tooSoon':
+    'यह खरीद छह महीने से कम समय पहले किसी और खाते में गई थी, इसलिए अभी दोबारा नहीं जा सकती।',
+  'edition.card.failed': 'अभी यह नहीं हो सका। फिर कोशिश करें।',
+  'edition.card.receipt':
+    'भुगतान, रसीद या रिफ़ंड: अपनी Paddle रसीद का लिंक इस्तेमाल करें।',
+  'edition.card.support': 'और कुछ भी: {email}',
+  'edition.card.order': 'ऑर्डर {order}',
   'update.onSite.title': 'साइट पर नया संस्करण है',
   'update.onSite.body':
     'FluidEQ {version} आ गया है। यह मुफ़्त संस्करण अपने आप अपडेट नहीं होता: इसे fluideq.com से डाउनलोड करें और इसी के ऊपर इंस्टॉल करें। आपकी सेटिंग बनी रहती हैं।',

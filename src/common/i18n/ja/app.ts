@@ -342,6 +342,40 @@ const app: Partial<Dictionary> = {
   'edition.changing.see': '署名版を見る – {price}',
   'edition.changing.seeNoPrice': '署名版を見る',
   'edition.changing.gotIt': 'わかりました',
+  'edition.card.yours':
+    'ずっとあなたのものです。署名版のコピーでは、更新が自動で届きます。',
+  'edition.card.download': '署名版インストーラーをダウンロード',
+  'edition.card.downloadFailed':
+    'ダウンロードを開始できませんでした。もう一度お試しください。',
+  'edition.card.noRelease':
+    '署名版インストーラーはまだ公開されていません。しばらくしてからお試しください。',
+  'edition.card.offer':
+    '同じ FluidEQ に、自動で更新される署名付きインストーラーと、シーン用のクレジットが付きます。お支払いは一度きりです。',
+  'edition.card.payHint':
+    'このアカウントのメールアドレスで支払うと、自動で紐づきます。',
+  'edition.card.buy': '署名版を入手 – {price}',
+  'edition.card.buyNoPrice': '署名版を入手',
+  'edition.card.other': '別のメールアドレスで購入しました',
+  'edition.card.otherHint':
+    '支払いに使ったメールアドレスを入力してください。そこにコードを送ります。ここにコードを入力すると、購入がこのアカウントに移ります。',
+  'edition.card.email': '支払いに使ったメールアドレス',
+  'edition.card.send': 'コードを送信',
+  'edition.card.sent':
+    'そのメールアドレスに購入があれば、6 桁のコードを送信しています。1 時間有効です。',
+  'edition.card.limited':
+    '試行回数が多すぎます。1 時間後にもう一度お試しください。',
+  'edition.card.code': 'コード',
+  'edition.card.link': '購入を紐づける',
+  'edition.card.linked': '紐づけました。署名版はこのアカウントにあります。',
+  'edition.card.wrong':
+    'そのコードでは購入を紐づけられませんでした。メールアドレスとコードを確認してください。',
+  'edition.card.tooSoon':
+    'この購入は 6 か月以内に別のアカウントへ移されたため、まだ移せません。',
+  'edition.card.failed': '今は完了できませんでした。もう一度お試しください。',
+  'edition.card.receipt':
+    '支払い、領収書、返金：Paddle の領収書にあるリンクをご利用ください。',
+  'edition.card.support': 'そのほか：{email}',
+  'edition.card.order': '注文 {order}',
   'update.onSite.title': 'サイトに新しいバージョンがあります',
   'update.onSite.body':
     'FluidEQ {version} が公開されました。この無料版は自動では更新されません。fluideq.com からダウンロードして、このバージョンの上にインストールしてください。設定はそのまま残ります。',

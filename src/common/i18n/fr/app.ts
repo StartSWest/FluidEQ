@@ -345,6 +345,40 @@ const app: Partial<Dictionary> = {
   'edition.changing.see': 'Voir l’édition signée – {price}',
   'edition.changing.seeNoPrice': 'Voir l’édition signée',
   'edition.changing.gotIt': 'Compris',
+  'edition.card.yours':
+    'À vous pour de bon. Sur la copie signée, les mises à jour arrivent toutes seules.',
+  'edition.card.download': 'Télécharger l’installateur signé',
+  'edition.card.downloadFailed':
+    'Le téléchargement n’a pas pu démarrer. Réessayez.',
+  'edition.card.noRelease':
+    'L’installateur signé n’est pas encore en ligne. Réessayez bientôt.',
+  'edition.card.offer':
+    'Le même FluidEQ avec un installateur signé qui se met à jour tout seul, et des crédits pour les scènes inclus. Un seul paiement.',
+  'edition.card.payHint':
+    'Payez avec l’e-mail de ce compte et l’achat s’y rattache tout seul.',
+  'edition.card.buy': 'Obtenir l’édition signée – {price}',
+  'edition.card.buyNoPrice': 'Obtenir l’édition signée',
+  'edition.card.other': 'Je l’ai achetée avec un autre e-mail',
+  'edition.card.otherHint':
+    'Saisissez l’e-mail avec lequel vous avez payé. Un code lui est envoyé ; saisissez-le ici et l’achat passe sur ce compte.',
+  'edition.card.email': 'E-mail utilisé pour payer',
+  'edition.card.send': 'Envoyer le code',
+  'edition.card.sent':
+    'Si cet e-mail a un achat, un code à six chiffres est en route. Il est valable une heure.',
+  'edition.card.limited':
+    'Trop d’essais pour le moment. Réessayez dans une heure.',
+  'edition.card.code': 'Code',
+  'edition.card.link': 'Rattacher l’achat',
+  'edition.card.linked': 'Rattaché. L’édition signée est sur ce compte.',
+  'edition.card.wrong':
+    'Ce code n’a rattaché aucun achat. Vérifiez l’e-mail et le code.',
+  'edition.card.tooSoon':
+    'Cet achat est passé sur un autre compte il y a moins de six mois : il ne peut pas encore être déplacé.',
+  'edition.card.failed': 'Impossible pour le moment. Réessayez.',
+  'edition.card.receipt':
+    'Paiement, reçu ou remboursement : utilisez le lien de votre reçu Paddle.',
+  'edition.card.support': 'Pour tout le reste : {email}',
+  'edition.card.order': 'Commande {order}',
   'update.onSite.title': 'Une nouvelle version est sur le site',
   'update.onSite.body':
     'FluidEQ {version} est sorti. Cette édition gratuite ne se met pas à jour toute seule : téléchargez-la sur fluideq.com et installez-la par-dessus celle-ci. Vos réglages restent.',

@@ -305,6 +305,34 @@ const app = {
   'edition.changing.see': '查看簽署版 – {price}',
   'edition.changing.seeNoPrice': '查看簽署版',
   'edition.changing.gotIt': '知道了',
+  'edition.card.yours': '永久歸您所有。在簽署版副本上，更新會自動送達。',
+  'edition.card.download': '下載簽署版安裝程式',
+  'edition.card.downloadFailed': '無法開始下載。請再試一次。',
+  'edition.card.noRelease': '簽署版安裝程式尚未上線。請稍後再試。',
+  'edition.card.offer':
+    '同樣的 FluidEQ，帶有會自動更新的簽署安裝程式，並附送場景點數。一次性付款。',
+  'edition.card.payHint': '用這個帳戶的電子郵件付款，購買會自動連結。',
+  'edition.card.buy': '取得簽署版 – {price}',
+  'edition.card.buyNoPrice': '取得簽署版',
+  'edition.card.other': '我是用其他電子郵件購買的',
+  'edition.card.otherHint':
+    '輸入您付款時使用的電子郵件。我們會向它傳送一組驗證碼；在這裡輸入驗證碼，購買就會轉到這個帳戶。',
+  'edition.card.email': '付款時使用的電子郵件',
+  'edition.card.send': '傳送驗證碼',
+  'edition.card.sent':
+    '如果該電子郵件有購買記錄，六位數驗證碼已在傳送途中。一小時內有效。',
+  'edition.card.limited': '嘗試次數過多。請一小時後再試。',
+  'edition.card.code': '驗證碼',
+  'edition.card.link': '連結購買',
+  'edition.card.linked': '已連結。簽署版已在這個帳戶中。',
+  'edition.card.wrong':
+    '這組驗證碼沒有連結到任何購買。請檢查電子郵件和驗證碼。',
+  'edition.card.tooSoon':
+    '這筆購買在不到六個月前轉到了另一個帳戶，暫時不能再次轉移。',
+  'edition.card.failed': '暫時無法完成。請再試一次。',
+  'edition.card.receipt': '付款、收據或退款：請使用 Paddle 收據中的連結。',
+  'edition.card.support': '其他問題：{email}',
+  'edition.card.order': '訂單 {order}',
   'update.onSite.title': '網站上有新版本',
   'update.onSite.body':
     'FluidEQ {version} 已發布。這個免費版不會自動更新：請從 fluideq.com 下載並覆蓋安裝。您的設定會保留。',

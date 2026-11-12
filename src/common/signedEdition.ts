@@ -50,6 +50,13 @@ export type TEditionDownload =
   | { ok: true; version: string; url: string }
   | { ok: false; reason: 'signed-out' | 'not-owned' | 'no-release' | 'failed' };
 
+/**
+ * Where everything that is not payment goes (Ivan, 2026-11-11: support as
+ * simple as possible, no ticket system). Payment, receipts and refunds are
+ * Paddle's, through the link in its receipt.
+ */
+export const EDITION_SUPPORT_EMAIL = 'support@fluideq.com';
+
 const ORDER = /^txn_[0-9a-z]{10,60}$/;
 
 /** An order reference as the server sends it, or nothing. */

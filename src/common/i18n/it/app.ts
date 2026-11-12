@@ -344,6 +344,39 @@ const app: Partial<Dictionary> = {
   'edition.changing.see': 'Vedi l’edizione firmata – {price}',
   'edition.changing.seeNoPrice': 'Vedi l’edizione firmata',
   'edition.changing.gotIt': 'Ho capito',
+  'edition.card.yours':
+    'Tua per sempre. Sulla copia firmata gli aggiornamenti arrivano da soli.',
+  'edition.card.download': 'Scarica l’installer firmato',
+  'edition.card.downloadFailed':
+    'Non è stato possibile avviare il download. Riprova.',
+  'edition.card.noRelease':
+    'L’installer firmato non è ancora disponibile. Riprova tra poco.',
+  'edition.card.offer':
+    'Lo stesso FluidEQ con un installer firmato che si aggiorna da solo, e crediti per le scene inclusi. Un solo pagamento.',
+  'edition.card.payHint':
+    'Paga con l’email di questo account e l’acquisto si collega da solo.',
+  'edition.card.buy': 'Ottieni l’edizione firmata – {price}',
+  'edition.card.buyNoPrice': 'Ottieni l’edizione firmata',
+  'edition.card.other': 'L’ho comprata con un’altra email',
+  'edition.card.otherHint':
+    'Scrivi l’email con cui hai pagato. Le viene inviato un codice; scrivilo qui e l’acquisto passa a questo account.',
+  'edition.card.email': 'Email con cui hai pagato',
+  'edition.card.send': 'Invia codice',
+  'edition.card.sent':
+    'Se quell’email ha un acquisto, un codice di sei cifre è in arrivo. Vale per un’ora.',
+  'edition.card.limited': 'Troppi tentativi per ora. Riprova tra un’ora.',
+  'edition.card.code': 'Codice',
+  'edition.card.link': 'Collega acquisto',
+  'edition.card.linked': 'Collegato. L’edizione firmata è su questo account.',
+  'edition.card.wrong':
+    'Quel codice non ha collegato nessun acquisto. Controlla l’email e il codice.',
+  'edition.card.tooSoon':
+    'Questo acquisto è passato a un altro account meno di sei mesi fa, quindi non può ancora spostarsi di nuovo.',
+  'edition.card.failed': 'Non è stato possibile farlo ora. Riprova.',
+  'edition.card.receipt':
+    'Pagamento, ricevuta o rimborso: usa il link nella tua ricevuta Paddle.',
+  'edition.card.support': 'Per tutto il resto: {email}',
+  'edition.card.order': 'Ordine {order}',
   'update.onSite.title': 'C’è una nuova versione sul sito',
   'update.onSite.body':
     'È uscito FluidEQ {version}. Questa edizione gratuita non si aggiorna da sola: scaricala da fluideq.com e installala sopra questa. Le tue impostazioni restano.',

@@ -321,6 +321,39 @@ const app = {
   'edition.changing.see': '서명 에디션 보기 – {price}',
   'edition.changing.seeNoPrice': '서명 에디션 보기',
   'edition.changing.gotIt': '확인',
+  'edition.card.yours':
+    '영구히 귀하의 것입니다. 서명된 사본에서는 업데이트가 저절로 도착합니다.',
+  'edition.card.download': '서명된 설치 프로그램 다운로드',
+  'edition.card.downloadFailed':
+    '다운로드를 시작할 수 없습니다. 다시 시도해 보세요.',
+  'edition.card.noRelease':
+    '서명된 설치 프로그램이 아직 올라오지 않았습니다. 잠시 후 다시 시도해 보세요.',
+  'edition.card.offer':
+    '같은 FluidEQ에 스스로 업데이트되는 서명된 설치 프로그램과 장면용 크레딧이 포함됩니다. 한 번만 결제합니다.',
+  'edition.card.payHint': '이 계정의 이메일로 결제하면 저절로 연결됩니다.',
+  'edition.card.buy': '서명 에디션 받기 – {price}',
+  'edition.card.buyNoPrice': '서명 에디션 받기',
+  'edition.card.other': '다른 이메일로 구입했습니다',
+  'edition.card.otherHint':
+    '결제에 사용한 이메일을 입력하세요. 그 주소로 코드가 전송됩니다. 여기에 코드를 입력하면 구매가 이 계정으로 옮겨집니다.',
+  'edition.card.email': '결제에 사용한 이메일',
+  'edition.card.send': '코드 보내기',
+  'edition.card.sent':
+    '그 이메일에 구매 내역이 있으면 6자리 코드가 전송되는 중입니다. 한 시간 동안 유효합니다.',
+  'edition.card.limited':
+    '지금은 시도가 너무 많습니다. 한 시간 뒤에 다시 시도해 보세요.',
+  'edition.card.code': '코드',
+  'edition.card.link': '구매 연결',
+  'edition.card.linked': '연결되었습니다. 서명 에디션이 이 계정에 있습니다.',
+  'edition.card.wrong':
+    '그 코드로는 구매가 연결되지 않았습니다. 이메일과 코드를 확인하세요.',
+  'edition.card.tooSoon':
+    '이 구매는 6개월 이내에 다른 계정으로 옮겨져 아직 다시 옮길 수 없습니다.',
+  'edition.card.failed': '지금은 할 수 없습니다. 다시 시도해 보세요.',
+  'edition.card.receipt':
+    '결제, 영수증 또는 환불: Paddle 영수증의 링크를 이용하세요.',
+  'edition.card.support': '그 밖의 문의: {email}',
+  'edition.card.order': '주문 {order}',
   'update.onSite.title': '사이트에 새 버전이 있습니다',
   'update.onSite.body':
     'FluidEQ {version}이(가) 나왔습니다. 이 무료 에디션은 스스로 업데이트되지 않습니다. fluideq.com에서 내려받아 이 버전 위에 설치하세요. 설정은 그대로 유지됩니다.',
