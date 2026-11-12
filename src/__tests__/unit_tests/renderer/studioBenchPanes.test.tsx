@@ -102,7 +102,9 @@ const panesOf = (container: HTMLElement) => {
 
 describe("the Studio's panes", () => {
   it('keeps the stage and the work on it, what it hears included, in one pane, the chat in the other, and the ways out in the bar', async () => {
-    const { container } = render(<StudioBench view={view} />);
+    const { container } = render(
+      <StudioBench view={view} onShowGraph={jest.fn()} />,
+    );
     // The chat asks for Claude Code and the project's conversation on
     // arrival; settled first.
     const composer = await screen.findByRole('textbox', {
@@ -136,7 +138,9 @@ describe("the Studio's panes", () => {
   });
 
   it('keeps the two panes apart, under the project bar', async () => {
-    const { container } = render(<StudioBench view={view} />);
+    const { container } = render(
+      <StudioBench view={view} onShowGraph={jest.fn()} />,
+    );
     // The chat asks for Claude Code and the project's conversation on
     // arrival; settled first.
     await screen.findByRole('textbox', { name: 'studioChat.label' });
@@ -150,7 +154,9 @@ describe("the Studio's panes", () => {
   });
 
   it('puts the graph’s divider under the stage', async () => {
-    const { container } = render(<StudioBench view={view} />);
+    const { container } = render(
+      <StudioBench view={view} onShowGraph={jest.fn()} />,
+    );
     await screen.findByRole('textbox', { name: 'studioChat.label' });
     const divider = screen.getByRole('separator', {
       name: 'studio.stage.resize',
@@ -168,6 +174,7 @@ describe("the Studio's panes", () => {
           pack: undefined,
           state: { ...view.state, projects: [], activeId: undefined },
         }}
+        onShowGraph={jest.fn()}
       />,
     );
     // With no project the chat says where the first one starts.

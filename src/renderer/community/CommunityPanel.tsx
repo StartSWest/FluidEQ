@@ -269,7 +269,7 @@ export default function CommunityPanel({
         {shown === 'visualizers' && (
           <VisualizersView onShowGraph={onShowGraph} />
         )}
-        {shown === 'studio' && <StudioPanel />}
+        {shown === 'studio' && <StudioPanel onShowGraph={onShowGraph} />}
         {shown === 'lighting' && <LightingPanel onShowGraph={onShowGraph} />}
         {isAddonPlace(shown) && addon?.Place && accountId && (
           <addon.Place place={shown} accountId={accountId} />

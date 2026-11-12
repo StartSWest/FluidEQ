@@ -57,6 +57,7 @@ const studio = {
   'studio.action.copyPrompt': '复制 AI 提示词',
   'studio.action.showFolder': '打开文件夹',
   'studio.action.addToLooks': '添加到我的外观',
+  'studio.action.playOnGraph': '在图表上播放',
   'studio.action.export': '导出…',
   'studio.action.desktop': '设为桌面背景…',
   'studio.action.import': '打开场景文件…',

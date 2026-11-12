@@ -230,6 +230,7 @@ const StudioDrawing = () => {
               <StudioShipCard
                 unfit={false}
                 onAdd={nothing}
+                onPlay={nothing}
                 publishing={false}
                 onPublish={nothing}
                 exporting={false}

@@ -124,7 +124,7 @@ const openMenu = async () => {
 };
 
 it('gives the whole editor to a signed-in account, with no Plus anywhere', async () => {
-  render(<StudioBench view={view()} />);
+  render(<StudioBench view={view()} onShowGraph={jest.fn()} />);
   expect(screen.getByTestId('studio-stage')).toBeInTheDocument();
   expect(
     await screen.findByRole('textbox', { name: 'studioChat.label' }),
@@ -146,7 +146,7 @@ it('gives the whole editor to a signed-in account, with no Plus anywhere', async
 
 it('wears no draft mark and makes Add to looks the loud way out, published or not', async () => {
   // Never published: the store says the look is not owned.
-  render(<StudioBench view={view()} />);
+  render(<StudioBench view={view()} onShowGraph={jest.fn()} />);
   await screen.findByRole('textbox', { name: 'studioChat.label' });
   expect(screen.getByTestId('studio-stage')).toHaveAttribute(
     'data-draft',
@@ -161,7 +161,7 @@ it('wears no draft mark and makes Add to looks the loud way out, published or no
 });
 
 it('offers every way out under More with no lock, and no desktop where there can be none', async () => {
-  render(<StudioBench view={view()} />);
+  render(<StudioBench view={view()} onShowGraph={jest.fn()} />);
   await screen.findByRole('textbox', { name: 'studioChat.label' });
   await userEvent.click(
     screen.getByRole('button', { name: 'studio.ship.more' }),
@@ -174,7 +174,7 @@ it('offers every way out under More with no lock, and no desktop where there can
   );
 
   jest.mocked(useCanSetDesktop).mockReturnValue(false);
-  render(<StudioBench view={view()} />);
+  render(<StudioBench view={view()} onShowGraph={jest.fn()} />);
   const [, more] = screen.getAllByRole('button', { name: 'studio.ship.more' });
   await userEvent.click(more);
   expect(
@@ -184,7 +184,10 @@ it('offers every way out under More with no lock, and no desktop where there can
 
 it('says what a FluidEQ scene opened to look inside is for, with nothing to keep', async () => {
   render(
-    <StudioBench view={view({ projects: [{ ...project, official: true }] })} />,
+    <StudioBench
+      view={view({ projects: [{ ...project, official: true }] })}
+      onShowGraph={jest.fn()}
+    />,
   );
   await screen.findByText('studioChat.inspect');
   expect(screen.getByText('studio.inspect.title')).toBeInTheDocument();

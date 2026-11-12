@@ -155,7 +155,7 @@ describe('a member’s copy on the bench', () => {
   });
 
   it('says whose scene it is in place of keeping and sending it, and its chat stays open', async () => {
-    render(<StudioBench view={view(COPY)} />);
+    render(<StudioBench view={view(COPY)} onShowGraph={jest.fn()} />);
     expect(
       await screen.findByRole('textbox', { name: 'studioChat.label' }),
     ).toBeInTheDocument();
@@ -171,7 +171,7 @@ describe('a member’s copy on the bench', () => {
   });
 
   it('says its chat asks before every command, and offers nothing to trust', async () => {
-    render(<StudioBench view={view(COPY)} />);
+    render(<StudioBench view={view(COPY)} onShowGraph={jest.fn()} />);
     const card = await screen.findByRole('region', {
       name: 'studioChat.memberCopy.title',
     });
@@ -183,7 +183,7 @@ describe('a member’s copy on the bench', () => {
   });
 
   it('the control: a folder from outside offers the trust press, and no copy card', async () => {
-    render(<StudioBench view={view(OPENED)} />);
+    render(<StudioBench view={view(OPENED)} onShowGraph={jest.fn()} />);
     expect(
       await screen.findByRole('button', { name: 'studioChat.outside.trust' }),
     ).toBeInTheDocument();

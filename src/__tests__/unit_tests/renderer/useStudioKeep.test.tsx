@@ -14,11 +14,15 @@ import type { TAddOutcome } from '../../../main/ipc/memberScenes';
 import type { IMemberSceneSummary } from '../../../main/memberScenes/store';
 import { addStudioSceneToLooks } from '../../../renderer/studio/studioStore';
 import useStudioKeep from '../../../renderer/studio/useStudioKeep';
+import { setGraphLook } from '../../../renderer/utils/graphStyle';
 import { useCanSetDesktop } from '../../../renderer/wallpaper/WallpaperControls';
 import { openWallpaperDialog } from '../../../renderer/wallpaper/wallpaperDialogs';
 
 jest.mock('../../../renderer/studio/studioStore', () => ({
   addStudioSceneToLooks: jest.fn(),
+}));
+jest.mock('../../../renderer/utils/graphStyle', () => ({
+  setGraphLook: jest.fn(),
 }));
 jest.mock('../../../renderer/wallpaper/WallpaperControls', () => ({
   useCanSetDesktop: jest.fn(),
@@ -34,8 +38,11 @@ const kept = {
 
 const keeping = () => {
   const notify = jest.fn();
-  const hook = renderHook(() => useStudioKeep('Aurora', WAVE, notify));
-  return { notify, hook };
+  const showGraph = jest.fn();
+  const hook = renderHook(() =>
+    useStudioKeep('Aurora', WAVE, notify, showGraph),
+  );
+  return { notify, showGraph, hook };
 };
 
 /** Lets the keep's promise chain finish inside React's act. */
@@ -123,6 +130,38 @@ it('opens no desktop for a scene that could not be kept, and says why', async ()
     'studio.notice.saveFailed',
   ]);
   expect(hook.result.current.settingDesktop).toBe(false);
+});
+
+// The gallery's Play on the graph, from the Studio: keep the version on the
+// stage, choose it on the graph, show the graph.
+it('plays the kept look on the graph and shows the graph', async () => {
+  const { notify, showGraph, hook } = keeping();
+  act(() => hook.result.current.play());
+  // Nothing is chosen before the look is in the looks.
+  expect(setGraphLook).not.toHaveBeenCalled();
+  expect(showGraph).not.toHaveBeenCalled();
+  await settle();
+  expect(addStudioSceneToLooks).toHaveBeenCalledTimes(1);
+  expect(setGraphLook).toHaveBeenCalledWith('member:me:aurora');
+  expect(showGraph).toHaveBeenCalledTimes(1);
+  expect(notify).toHaveBeenCalledWith(
+    expect.objectContaining({ ok: true, key: 'studio.notice.added' }),
+  );
+});
+
+it('leaves the graph as it was when the scene could not be kept', async () => {
+  jest
+    .mocked(addStudioSceneToLooks)
+    .mockResolvedValueOnce({ ok: false, reason: 'no-build' });
+  const { notify, showGraph, hook } = keeping();
+  act(() => hook.result.current.play());
+  await settle();
+  expect(setGraphLook).not.toHaveBeenCalled();
+  expect(showGraph).not.toHaveBeenCalled();
+  expect(notify).toHaveBeenCalledWith({
+    ok: false,
+    key: 'studio.notice.addFailed',
+  });
 });
 
 it('offers no desktop on a computer that cannot put a visualizer there', () => {

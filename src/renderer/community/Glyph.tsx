@@ -52,6 +52,7 @@ export type TCommunityGlyph =
   | 'gift'
   | 'music'
   | 'calm'
+  | 'graph-play'
   | 'link'
   | 'sign-out';
 
@@ -440,6 +441,14 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path d="M8.3 11.7l3.4-3.4" />
             <path d="M9.6 6.1l1.2-1.2a3.3 3.3 0 0 1 4.6 4.6l-1.2 1.2" />
             <path d="M10.4 13.9l-1.2 1.2a3.3 3.3 0 0 1-4.6-4.6l1.2-1.2" />
+          </>
+        );
+      case 'graph-play':
+        // A play triangle over the graph's curve: this scene, on the graph.
+        return (
+          <>
+            <path d="M2 15.5c3-3.6 5.4-3.6 8-1.6s5 1.8 8-2" opacity="0.6" />
+            <path d="M7 3.8v7.4l6-3.7Z" fill="currentColor" />
           </>
         );
       case 'sign-out':

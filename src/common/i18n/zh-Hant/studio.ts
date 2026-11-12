@@ -59,6 +59,7 @@ const studio = {
   'studio.action.copyPrompt': '複製AI提示',
   'studio.action.showFolder': '顯示資料夾',
   'studio.action.addToLooks': '新增到我的外觀',
+  'studio.action.playOnGraph': '在圖表上播放',
   'studio.action.export': '出口…',
   'studio.action.desktop': '放到桌面上...',
   'studio.action.publish': '發布...',

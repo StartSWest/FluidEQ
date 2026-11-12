@@ -67,6 +67,7 @@ const studio = {
   'studio.action.copyPrompt': 'Copy AI prompt',
   'studio.action.showFolder': 'Show folder',
   'studio.action.addToLooks': 'Add to my looks',
+  'studio.action.playOnGraph': 'Play on the graph',
   'studio.action.export': 'Export…',
   'studio.action.desktop': 'Put on desktop…',
   'studio.action.publish': 'Publish…',

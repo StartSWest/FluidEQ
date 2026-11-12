@@ -59,6 +59,7 @@ const studio = {
   'studio.action.copyPrompt': 'AI プロンプトをコピー',
   'studio.action.showFolder': 'フォルダーを開く',
   'studio.action.addToLooks': 'マイ表示に追加',
+  'studio.action.playOnGraph': 'グラフで再生',
   'studio.action.export': 'エクスポート…',
   'studio.action.desktop': 'デスクトップに設定…',
   'studio.action.import': 'シーンファイルを開く…',

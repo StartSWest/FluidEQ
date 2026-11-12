@@ -210,7 +210,9 @@ describe('making a scene with your AI', () => {
       },
     };
     const errors = jest.spyOn(console, 'error');
-    const { rerender, unmount } = render(<StudioBench view={view} />);
+    const { rerender, unmount } = render(
+      <StudioBench view={view} onShowGraph={jest.fn()} />,
+    );
     [other.id, project.id, other.id, project.id].forEach((activeId, index) => {
       rerender(
         <StudioBench
@@ -219,6 +221,7 @@ describe('making a scene with your AI', () => {
             serial: index + 2,
             state: { ...view.state, activeId },
           }}
+          onShowGraph={jest.fn()}
         />,
       );
       expect(screen.getAllByTestId('active-studio-stage')).toHaveLength(1);
@@ -441,7 +444,7 @@ describe('opening the Studio', () => {
       projects: [project],
       activeId: project.id,
     });
-    render(<StudioPanel />);
+    render(<StudioPanel onShowGraph={jest.fn()} />);
     expect(await screen.findByText('studio.stage.loading')).toBeInTheDocument();
     expect(
       screen.queryByText('studio.stage.startTitle'),
@@ -455,7 +458,7 @@ describe('opening the Studio', () => {
         answer = resolve;
       }),
     );
-    render(<StudioPanel />);
+    render(<StudioPanel onShowGraph={jest.fn()} />);
     expect(
       screen.queryByText('studio.stage.startTitle'),
     ).not.toBeInTheDocument();

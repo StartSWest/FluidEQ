@@ -59,6 +59,7 @@ const studio = {
   'studio.action.copyPrompt': 'Copiar prompt para IA',
   'studio.action.showFolder': 'Mostrar pasta',
   'studio.action.addToLooks': 'Adicionar aos meus visuais',
+  'studio.action.playOnGraph': 'Reproduzir no gráfico',
   'studio.action.export': 'Exportar…',
   'studio.action.desktop': 'Pôr na área de trabalho…',
   'studio.action.import': 'Abrir um arquivo de cena…',

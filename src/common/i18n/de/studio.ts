@@ -60,6 +60,7 @@ const studio = {
   'studio.action.copyPrompt': 'KI-Prompt kopieren',
   'studio.action.showFolder': 'Ordner anzeigen',
   'studio.action.addToLooks': 'Zu meinen Darstellungen',
+  'studio.action.playOnGraph': 'Im Diagramm abspielen',
   'studio.action.export': 'Exportieren…',
   'studio.action.desktop': 'Auf den Desktop…',
   'studio.action.import': 'Szenendatei öffnen…',

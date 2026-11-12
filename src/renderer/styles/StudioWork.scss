@@ -415,16 +415,22 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- the bar's ways out
 
-// At the end of the bar, one row: More, Publish, and the loud Add to my
-// looks last, where the eye ends the bar.
+// At the end of the bar: More, Publish, Play on the graph, and the loud Add
+// to my looks last, where the eye ends the bar. One row where the bench has
+// the width; where it has not, the buttons wrap onto a second row from the
+// right, Add still last. Held to one row, Russian at a 1024 window ran 34px
+// past the bench and the Studio's edge cut Add in half.
 .studio-bench__ship {
   display: flex;
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
   margin-inline-start: auto;
 
   .studio-ship {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     align-items: center;
     gap: 8px;
   }

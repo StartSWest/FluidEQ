@@ -23,7 +23,12 @@ import '../styles/StudioWork.scss';
  * and is published to be shared and earn. What each member may do is the
  * main process's answer, never this page's.
  */
-export default function StudioPanel() {
+export default function StudioPanel({
+  onShowGraph,
+}: {
+  /** Brings the EQ page and its graph forward, for Play on the graph. */
+  onShowGraph: () => void;
+}) {
   const { t } = useTranslation();
   const view = useStudio();
 
@@ -33,7 +38,9 @@ export default function StudioPanel() {
   useEffect(() => holdDaylightToBrightness(), []);
 
   // A moment, the first time only: the store keeps what it last heard.
-  const body = view.loaded ? <StudioBench view={view} /> : null;
+  const body = view.loaded ? (
+    <StudioBench view={view} onShowGraph={onShowGraph} />
+  ) : null;
 
   return (
     <>

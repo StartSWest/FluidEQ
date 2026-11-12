@@ -6,6 +6,8 @@ interface IStudioShipCardProps {
   /** No scene that plays and passes, so nothing can be kept or sent yet. */
   unfit: boolean;
   onAdd: () => void;
+  /** Keeps it in the looks, chooses it on the graph and shows the graph. */
+  onPlay: () => void;
   publishing: boolean;
   onPublish: () => void;
   exporting: boolean;
@@ -41,6 +43,7 @@ interface IStudioShipCardProps {
 export default function StudioShipCard({
   unfit,
   onAdd,
+  onPlay,
   publishing,
   onPublish,
   exporting,
@@ -106,6 +109,17 @@ export default function StudioShipCard({
       >
         <Glyph name="upload" />
         {t('studio.action.publish')}
+      </button>
+      {/* Quiet beside Add: it adds too, and then leaves the Studio for the
+          graph, which is a step taken now and then, not at every save. */}
+      <button
+        type="button"
+        className="button small subtle"
+        onClick={onPlay}
+        disabled={unfit}
+      >
+        <Glyph name="graph-play" />
+        {t('studio.action.playOnGraph')}
       </button>
       <button
         type="button"

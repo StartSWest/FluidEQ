@@ -60,6 +60,7 @@ const studio = {
   'studio.action.copyPrompt': 'Copia prompt per IA',
   'studio.action.showFolder': 'Mostra cartella',
   'studio.action.addToLooks': 'Aggiungi ai miei aspetti',
+  'studio.action.playOnGraph': 'Riproduci sul grafico',
   'studio.action.export': 'Esporta…',
   'studio.action.desktop': 'Metti sul desktop…',
   'studio.action.import': 'Apri un file di scena…',

@@ -61,6 +61,7 @@ const studio = {
   'studio.action.copyPrompt': 'Copier le prompt IA',
   'studio.action.showFolder': 'Afficher le dossier',
   'studio.action.addToLooks': 'Ajouter à mes styles',
+  'studio.action.playOnGraph': 'Lancer sur le graphique',
   'studio.action.export': 'Exporter…',
   'studio.action.desktop': 'Mettre sur le bureau…',
   'studio.action.import': 'Ouvrir un fichier de scène…',

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IMemberSceneSummary } from 'main/memberScenes/store';
+import { setGraphLook } from '../utils/graphStyle';
 import { useCanSetDesktop } from '../wallpaper/WallpaperControls';
 import { openWallpaperDialog } from '../wallpaper/wallpaperDialogs';
 import { addStudioSceneToLooks } from './studioStore';
@@ -25,6 +26,8 @@ export default function useStudioKeep(
   name: string,
   wave: IStudioWave,
   notify: (notice: ISharingNotice) => void,
+  /** Brings the EQ page and its graph forward (`CommunityPanel`). */
+  showGraph: () => void,
 ) {
   const canSetDesktop = useCanSetDesktop();
   const [settingDesktop, setSettingDesktop] = useState(false);
@@ -68,6 +71,17 @@ export default function useStudioKeep(
     keep(() => undefined);
   };
 
+  // The version on the stage, kept or brought up to date in the looks, then
+  // chosen on the graph and the graph shown: the gallery's own Play on the
+  // graph (`ScenePage`), so trying a scene where it will be seen is one
+  // press instead of three. A keep that fails leaves the graph as it was.
+  const play = () => {
+    keep((scene) => {
+      setGraphLook(scene.lookId);
+      showGraph();
+    });
+  };
+
   const setDesktop = () => {
     if (settingDesktop) {
       return;
@@ -83,6 +97,7 @@ export default function useStudioKeep(
 
   return {
     add,
+    play,
     /** Absent on a computer that cannot put a visualizer on its desktop. */
     setDesktop: canSetDesktop ? setDesktop : undefined,
     settingDesktop,

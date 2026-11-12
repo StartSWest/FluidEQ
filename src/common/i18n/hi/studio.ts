@@ -59,6 +59,7 @@ const studio = {
   'studio.action.copyPrompt': 'AI प्रॉम्प्ट कॉपी करें',
   'studio.action.showFolder': 'फ़ोल्डर दिखाएँ',
   'studio.action.addToLooks': 'मेरे रूपों में जोड़ें',
+  'studio.action.playOnGraph': 'ग्राफ़ पर चलाएँ',
   'studio.action.export': 'एक्सपोर्ट करें…',
   'studio.action.desktop': 'डेस्कटॉप पर लगाएँ…',
   'studio.action.import': 'सीन फ़ाइल खोलें…',

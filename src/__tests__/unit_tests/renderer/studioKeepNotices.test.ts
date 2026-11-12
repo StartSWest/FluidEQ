@@ -32,7 +32,9 @@ const LOOK = 'member:faaed582-d6f4-4e70-999b-86e8518a7dc4:alpine';
 const press = async (outcome: unknown) => {
   jest.mocked(addStudioSceneToLooks).mockResolvedValue(outcome as never);
   const notify = jest.fn();
-  const { result } = renderHook(() => useStudioKeep('Alpine', WAVE, notify));
+  const { result } = renderHook(() =>
+    useStudioKeep('Alpine', WAVE, notify, jest.fn()),
+  );
   await act(async () => {
     result.current.setDesktop?.();
   });
@@ -78,7 +80,9 @@ it('says each failure in its own words, and opens nothing', async () => {
 it('says the save failed when main could not be asked at all', async () => {
   jest.mocked(addStudioSceneToLooks).mockRejectedValue(new Error('gone'));
   const notify = jest.fn();
-  const { result } = renderHook(() => useStudioKeep('Alpine', WAVE, notify));
+  const { result } = renderHook(() =>
+    useStudioKeep('Alpine', WAVE, notify, jest.fn()),
+  );
   await act(async () => {
     result.current.setDesktop?.();
   });

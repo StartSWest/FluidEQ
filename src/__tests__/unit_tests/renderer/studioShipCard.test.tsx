@@ -27,6 +27,7 @@ const card = (
   const props = {
     unfit: false,
     onAdd: jest.fn(),
+    onPlay: jest.fn(),
     publishing: false,
     onPublish: jest.fn(),
     exporting: false,
@@ -41,6 +42,7 @@ const card = (
     <StudioShipCard
       unfit={props.unfit}
       onAdd={props.onAdd}
+      onPlay={props.onPlay}
       publishing={props.publishing}
       onPublish={props.onPublish}
       exporting={props.exporting}
@@ -88,6 +90,24 @@ it('keeps the scene with the loud button, publishes with a quiet one, and sends 
   expect(props.onSetDesktop).toHaveBeenCalledTimes(1);
 });
 
+it('plays the scene on the graph with a quiet button beside the loud Add', async () => {
+  const props = card();
+  const bar = screen.getByRole('group', { name: 'studio.ship.title' });
+  const play = within(bar).getByRole('button', {
+    name: 'studio.action.playOnGraph',
+  });
+  expect(play).toHaveClass('button', 'small', 'subtle');
+  // Next to Add, before it: the loud one stays the last in the bar.
+  const add = within(bar).getByRole('button', {
+    name: 'studio.action.addToLooks',
+  });
+  expect(play.nextElementSibling).toBe(add);
+  await userEvent.click(play);
+  expect(props.onPlay).toHaveBeenCalledTimes(1);
+  // The control: the press is Play's alone.
+  expect(props.onAdd).not.toHaveBeenCalled();
+});
+
 it('offers no desktop on a computer that cannot put a visualizer there', async () => {
   card({ onSetDesktop: undefined });
   await userEvent.click(more());
@@ -106,6 +126,9 @@ it('waits for a scene that plays before any of it', async () => {
   ).toBeDisabled();
   expect(
     screen.getByRole('button', { name: 'studio.action.publish' }),
+  ).toBeDisabled();
+  expect(
+    screen.getByRole('button', { name: 'studio.action.playOnGraph' }),
   ).toBeDisabled();
   await userEvent.click(more());
   screen

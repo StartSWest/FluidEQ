@@ -61,6 +61,7 @@ const studio = {
   'studio.action.copyPrompt': 'AI 프롬프트 복사',
   'studio.action.showFolder': '폴더 표시',
   'studio.action.addToLooks': '내 외모에 추가',
+  'studio.action.playOnGraph': '그래프에서 재생',
   'studio.action.export': '내보내기…',
   'studio.action.desktop': '데스크탑에 올려보세요...',
   'studio.action.publish': '게시…',

@@ -201,7 +201,9 @@ describe('the share card', () => {
   });
 
   it('says what a FluidEQ scene opened to look inside is, in place of keeping and sending it', async () => {
-    const { rerender } = render(<StudioBench view={view(FLUIDEQS)} />);
+    const { rerender } = render(
+      <StudioBench view={view(FLUIDEQS)} onShowGraph={jest.fn()} />,
+    );
     // The chat, settled: it says such a scene is there to look inside, and
     // offers no box to change it with.
     await screen.findByText('studioChat.inspect');
@@ -221,7 +223,7 @@ describe('the share card', () => {
     // The control: the member's own project offers them, sending the scene
     // as a file behind More.
     await act(async () => {
-      rerender(<StudioBench view={view(MINE)} />);
+      rerender(<StudioBench view={view(MINE)} onShowGraph={jest.fn()} />);
     });
     expect(
       await screen.findByRole('textbox', { name: 'studioChat.label' }),

@@ -59,6 +59,7 @@ const studio = {
   'studio.action.copyPrompt': 'Скопировать промпт для ИИ',
   'studio.action.showFolder': 'Показать папку',
   'studio.action.addToLooks': 'Добавить в мои оформления',
+  'studio.action.playOnGraph': 'Запустить на графике',
   'studio.action.export': 'Экспортировать…',
   'studio.action.desktop': 'На рабочий стол…',
   'studio.action.import': 'Открыть файл сцены…',

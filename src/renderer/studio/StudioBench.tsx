@@ -82,6 +82,8 @@ import { linkStudioFolder, type IStudioView } from './studioStore';
 
 interface IStudioBenchProps {
   view: IStudioView;
+  /** Brings the EQ page and its graph forward, for Play on the graph. */
+  onShowGraph: () => void;
 }
 
 /**
@@ -93,7 +95,7 @@ interface IStudioBenchProps {
  * first one starts and everything that needs a scene waits, unlit, where it
  * will be.
  */
-export default function StudioBench({ view }: IStudioBenchProps) {
+export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
   const { t, locale } = useTranslation();
   const { state, pack, serial, problems } = view;
   const [signal, setSignal] = useState<TStudioSignal>('live');
@@ -251,7 +253,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const newProject = () => setNaming(true);
   const closeNaming = useCallback(() => setNaming(false), []);
 
-  const keeping = useStudioKeep(name, tuner.wave, setNotice);
+  const keeping = useStudioKeep(name, tuner.wave, setNotice, onShowGraph);
 
   // "Open a folder…" from the bar and from the empty stage.
   const linkFolder = () => {
@@ -277,6 +279,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       <StudioShipCard
         unfit={unfit}
         onAdd={keeping.add}
+        onPlay={keeping.play}
         publishing={publishing.preparing}
         onPublish={publishing.begin}
         exporting={sharing.exporting}

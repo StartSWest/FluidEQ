@@ -189,7 +189,7 @@ const openFirstMenu = async () => {
   const { container } = render(
     <>
       <SoundPane />
-      <StudioBench view={view} />
+      <StudioBench view={view} onShowGraph={jest.fn()} />
     </>,
   );
   await screen.findByRole('textbox', { name: 'studioChat.label' });
