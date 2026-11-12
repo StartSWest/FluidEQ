@@ -578,6 +578,11 @@ const studio = {
   'studio.size.playerParts': '疊加播放器',
   'studio.size.playerPartsHint':
     '像播放器本身那樣，把輕巧播放器的歌曲資訊、控制按鈕和霧面面板疊在場景上。關閉時，只在播放器框架中顯示場景。',
+  'studio.size.workPane': '工作面板',
+  'studio.size.workPaneHint': '調整、程式碼等，疊在場景上方',
+  'studio.size.workPaneHeight': '工作面板高度',
+  'studio.size.chat': '聊天',
+  'studio.size.chatHint': '與 AI 的聊天，在場景旁邊',
   'studio.size.exit': '退出全螢幕',
   'studio.wave.title': '圖表上的波浪',
   'studio.wave.hint':

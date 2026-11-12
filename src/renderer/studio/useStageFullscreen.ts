@@ -37,13 +37,19 @@ export default function useStageFullscreen(
   frameRef: RefObject<HTMLDivElement | null>,
   size: TStudioSize,
   onExitFullscreen: () => void,
+  /**
+   * What fills the screen, when it is more than the stage: the Studio's
+   * grid, so its work pane and chat can stand over the scene in full screen
+   * (`useFullscreenPanes.ts`). The stage itself otherwise.
+   */
+  targetRef?: RefObject<HTMLElement | null>,
 ) {
   const [isFullscreen, setIsFullscreen] = useState(
     () =>
       typeof document !== 'undefined' && document.fullscreenElement !== null,
   );
   useEffect(() => {
-    const frame = frameRef.current;
+    const frame = targetRef?.current ?? frameRef.current;
     if (!frame) {
       return undefined;
     }
@@ -67,7 +73,7 @@ export default function useStageFullscreen(
     };
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
-  }, [frameRef, size, onExitFullscreen]);
+  }, [frameRef, targetRef, size, onExitFullscreen]);
   // A stage taken away while full gives the window back.
   useEffect(() => () => holdWindowFullScreen(false), []);
 
@@ -79,10 +85,12 @@ export default function useStageFullscreen(
    */
   const leaveFullscreen = useCallback(() => {
     onExitFullscreen();
-    if (document.fullscreenElement === frameRef.current) {
+    if (
+      document.fullscreenElement === (targetRef?.current ?? frameRef.current)
+    ) {
       document.exitFullscreen().catch(() => undefined);
     }
-  }, [frameRef, onExitFullscreen]);
+  }, [frameRef, targetRef, onExitFullscreen]);
 
   return { isFullscreen, leaveFullscreen };
 }

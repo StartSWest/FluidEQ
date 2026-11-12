@@ -653,6 +653,11 @@ const studio = {
   'studio.size.playerParts': 'ऊपर प्लेयर',
   'studio.size.playerPartsHint':
     'कॉम्पैक्ट प्लेयर का गाना, कंट्रोल और धुंधले पैनल सीन के ऊपर रखता है, जैसे प्लेयर उन्हें दिखाता है। बंद होने पर, प्लेयर के फ़्रेम में सिर्फ़ सीन।',
+  'studio.size.workPane': 'कार्य पैनल',
+  'studio.size.workPaneHint': 'ट्यून, कोड और बाक़ी, दृश्य के ऊपर',
+  'studio.size.workPaneHeight': 'कार्य पैनल की ऊँचाई',
+  'studio.size.chat': 'चैट',
+  'studio.size.chatHint': 'आपके AI की चैट, दृश्य के बगल में',
   'studio.size.exit': 'पूर्ण स्क्रीन से बाहर',
   'studio.wave.title': 'ग्राफ़ पर तरंग',
   'studio.wave.hint':

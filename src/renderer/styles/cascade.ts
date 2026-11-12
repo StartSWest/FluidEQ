@@ -122,6 +122,9 @@ import './StudioChatAsk.scss';
 import './StudioChatPast.scss';
 import './StudioChatSketch.scss';
 import './StudioChatAccounts.scss';
+// The Studio's full screen: the stage, the work and the chat it lays over
+// one another, after every sheet whose rules it answers.
+import './StudioFullscreen.scss';
 import './CommunityRail.scss';
 import './Community.scss';
 import './VisualsNews.scss';

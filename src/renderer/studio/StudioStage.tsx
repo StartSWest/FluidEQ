@@ -159,6 +159,12 @@ interface IStudioStageProps {
    * and turned as it is — for the chat's "Attach the stage"; emptied when the
    * stage goes.
    */
+  /**
+   * What full screen fills: the Studio's grid, so its work pane and chat
+   * stand over the scene there (`useFullscreenPanes.ts`); the stage alone
+   * when left out.
+   */
+  fullscreenRef?: RefObject<HTMLElement | null>;
   captureRef?: MutableRefObject<
     (() => Promise<Uint8Array | undefined>) | undefined
   >;
@@ -199,6 +205,7 @@ export default function StudioStage({
   onToggleFullscreen,
   controls,
   labels,
+  fullscreenRef,
   captureRef,
 }: IStudioStageProps) {
   const { t } = useTranslation();
@@ -223,6 +230,7 @@ export default function StudioStage({
     frameRef,
     size,
     onExitFullscreen,
+    fullscreenRef,
   );
 
   // Edit mode (`edit/stageEditStore.ts`): what is picked and moved rides the

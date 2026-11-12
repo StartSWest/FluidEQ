@@ -666,6 +666,11 @@ const studio = {
   'studio.size.playerParts': 'Lettore sopra',
   'studio.size.playerPartsHint':
     'Mette il brano, i comandi e i pannelli smerigliati del lettore compatto sopra la scena, come li mostra il lettore. Disattivato: solo la scena nella cornice del lettore.',
+  'studio.size.workPane': 'Pannello di lavoro',
+  'studio.size.workPaneHint': 'Regola, Codice e il resto, sopra la scena',
+  'studio.size.workPaneHeight': 'Altezza del pannello di lavoro',
+  'studio.size.chat': 'Chat',
+  'studio.size.chatHint': 'La chat della tua IA, accanto alla scena',
   'studio.size.exit': 'Esci da schermo intero',
   'studio.wave.title': 'Onda sul grafico',
   'studio.wave.hint':

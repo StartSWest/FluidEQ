@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from 'react';
 import { memberLookId } from 'common/memberScenes';
@@ -33,6 +34,7 @@ import StudioShipInspect from './StudioShipInspect';
 import StudioShipMemberCopy from './StudioShipMemberCopy';
 import StudioDrawing from './StudioDrawing';
 import StudioFramingDialog from './StudioFramingDialog';
+import StudioFullscreenPanes from './StudioFullscreenPanes';
 import StudioListen from './StudioListen';
 import StudioAnimations from './animations/StudioAnimations';
 import useStudioAnimations from './animations/useStudioAnimations';
@@ -63,6 +65,7 @@ import useStudioAppColours from './useStudioAppColours';
 import useStudioTint from './useStudioTint';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
+import useFullscreenPanes from './useFullscreenPanes';
 import useStageViewForAgent from './useStageViewForAgent';
 import { useStageMotion } from './stageMotion';
 import type { TStageHeard, TStageTrouble } from './StudioStage';
@@ -100,6 +103,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     togglePreview,
     togglePlayerParts,
   } = useStudioSize();
+  const fullPanes = useFullscreenPanes(size === 'full');
   useStageViewForAgent(preview);
   const { motion, toggleMotion } = useStageMotion();
   const isGridShown = useStudioGridShown();
@@ -125,6 +129,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // the sound panel folded while it is.
   const benchRef = useRef<HTMLDivElement>(null);
   const { isWide } = useStudioBenchLayout(benchRef);
+  // Full screen fills the screen with the grid, not the stage alone, so the
+  // work pane and the chat can stand over the scene (Ivan, 2026-11-11).
+  const gridRef = useRef<HTMLDivElement>(null);
   const sharing = useStudioSharing();
   const picture = useScenePictures(t('studio.picture.files'), view);
   const animations = useStudioAnimations(view);
@@ -318,6 +325,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         onDrawn={onDrawn}
         onExitFullscreen={exitFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        fullscreenRef={gridRef}
         captureRef={stageCapture.live}
         controls={
           <>
@@ -328,6 +336,16 @@ export default function StudioBench({ view }: IStudioBenchProps) {
               onPreview={togglePreview}
               hasPlayerParts={hasPlayerParts}
               onPlayerParts={togglePlayerParts}
+              panes={
+                size === 'full'
+                  ? {
+                      pane: fullPanes.pane,
+                      chat: fullPanes.chat,
+                      onPane: fullPanes.togglePane,
+                      onChat: fullPanes.toggleChat,
+                    }
+                  : undefined
+              }
             />
             {starter.untouched && <StudioStarterLabelsToggle />}
           </>
@@ -502,7 +520,15 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       </div>
 
       <div
-        className={`studio-bench__grid studio-bench__grid--${size}${isWide ? '' : ' is-single'}`}
+        ref={gridRef}
+        className={`studio-bench__grid studio-bench__grid--${size}${isWide ? '' : ' is-single'}${size === 'full' ? ` is-full${fullPanes.pane ? ' is-pane-out' : ''}${fullPanes.chat && isWide ? ' is-chat-out' : ''}` : ''}`}
+        style={
+          size === 'full'
+            ? ({
+                '--studio-full-pane': `${fullPanes.height * 100}%`,
+              } as CSSProperties)
+            : undefined
+        }
       >
         {/* The stage stays put and the work changes under it (layout A, Ivan
             2026-09-27): one long page under the stage took the scene off the
@@ -529,6 +555,17 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           />
         </div>
 
+        {size === 'full' && (
+          <StudioFullscreenPanes
+            gridRef={gridRef}
+            pane={fullPanes.pane}
+            chat={fullPanes.chat}
+            hasChatColumn={isWide}
+            height={fullPanes.height}
+            onHeight={fullPanes.setHeight}
+            onChat={fullPanes.toggleChat}
+          />
+        )}
         {isWide && (
           <StudioChatColumn
             project={project}

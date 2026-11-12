@@ -677,6 +677,11 @@ const studio = {
   'studio.size.playerParts': 'Player darüber',
   'studio.size.playerPartsHint':
     'Legt Titel, Bedienelemente und mattierte Flächen des kompakten Players über die Szene, so wie der Player sie zeigt. Aus: nur die Szene im Rahmen des Players.',
+  'studio.size.workPane': 'Arbeitsbereich',
+  'studio.size.workPaneHint': 'Abstimmen, Code und mehr, über der Szene',
+  'studio.size.workPaneHeight': 'Höhe des Arbeitsbereichs',
+  'studio.size.chat': 'Chat',
+  'studio.size.chatHint': 'Der Chat Ihrer KI, neben der Szene',
   'studio.size.exit': 'Vollbild beenden',
   'studio.wave.title': 'Welle im Diagramm',
   'studio.wave.hint':

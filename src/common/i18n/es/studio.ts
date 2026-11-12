@@ -667,6 +667,11 @@ const studio = {
   'studio.size.playerParts': 'Reproductor encima',
   'studio.size.playerPartsHint':
     'Pone la canción, los controles y los paneles esmerilados del reproductor compacto sobre la escena, como los muestra el reproductor. Desactivado: solo la escena en el marco del reproductor.',
+  'studio.size.workPane': 'Panel de trabajo',
+  'studio.size.workPaneHint': 'Ajustar, Código y lo demás, sobre la escena',
+  'studio.size.workPaneHeight': 'Altura del panel de trabajo',
+  'studio.size.chat': 'Chat',
+  'studio.size.chatHint': 'El chat de tu IA, junto a la escena',
   'studio.size.exit': 'Salir de pantalla completa',
   'studio.wave.title': 'Onda en la gráfica',
   'studio.wave.hint':

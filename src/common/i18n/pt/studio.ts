@@ -658,6 +658,11 @@ const studio = {
   'studio.size.playerParts': 'Player por cima',
   'studio.size.playerPartsHint':
     'Coloca a música, os controles e os painéis foscos do player compacto sobre a cena, como o player os mostra. Desligado: só a cena na moldura do player.',
+  'studio.size.workPane': 'Painel de trabalho',
+  'studio.size.workPaneHint': 'Ajustar, Código e o resto, sobre a cena',
+  'studio.size.workPaneHeight': 'Altura do painel de trabalho',
+  'studio.size.chat': 'Chat',
+  'studio.size.chatHint': 'O chat da sua IA, ao lado da cena',
   'studio.size.exit': 'Sair da tela cheia',
   'studio.wave.title': 'Onda no gráfico',
   'studio.wave.hint':

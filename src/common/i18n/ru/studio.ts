@@ -660,6 +660,11 @@ const studio = {
   'studio.size.playerParts': 'Плеер поверх',
   'studio.size.playerPartsHint':
     'Накладывает на сцену песню, кнопки управления и матовые панели компактного плеера так, как их показывает плеер. Если выключено — только сцена в рамке плеера.',
+  'studio.size.workPane': 'Рабочая панель',
+  'studio.size.workPaneHint': 'Настройка, код и остальное поверх сцены',
+  'studio.size.workPaneHeight': 'Высота рабочей панели',
+  'studio.size.chat': 'Чат',
+  'studio.size.chatHint': 'Чат с вашим ИИ рядом со сценой',
   'studio.size.exit': 'Выйти из полноэкранного режима',
   'studio.wave.title': 'Волна на графике',
   'studio.wave.hint':

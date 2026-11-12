@@ -153,3 +153,33 @@ it('puts the size back when the browser leaves fullscreen by itself', async () =
   });
   expect(onExit).toHaveBeenCalled();
 });
+
+// Ivan, 2026-11-11: the work pane and the chat in full screen. The Studio's
+// grid fills the screen, so they can stand over the scene.
+it('fills the screen with the element it is handed, not the stage alone', () => {
+  const grid = document.createElement('div');
+  document.body.append(grid);
+  render(
+    <StudioStage
+      identity="one"
+      pack={pack}
+      serial={1}
+      signal="live"
+      demo={false}
+      size="full"
+      preview="stage"
+      motion="music"
+      onToggleMotion={jest.fn()}
+      wave={{ height: 1, position: 0 }}
+      isGridShown={false}
+      readingRef={{ current: null }}
+      onTrouble={jest.fn()}
+      onDrawn={jest.fn()}
+      onExitFullscreen={jest.fn()}
+      onToggleFullscreen={jest.fn()}
+      fullscreenRef={{ current: grid }}
+    />,
+  );
+  expect(full).toBe(grid);
+  grid.remove();
+});

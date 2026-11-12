@@ -639,6 +639,11 @@ const studio = {
   'studio.size.playerParts': '플레이어 겹치기',
   'studio.size.playerPartsHint':
     '컴팩트 플레이어의 곡 정보, 컨트롤, 반투명 패널을 플레이어와 똑같이 장면 위에 겹칩니다. 끄면 플레이어의 틀에 장면만 표시됩니다.',
+  'studio.size.workPane': '작업 패널',
+  'studio.size.workPaneHint': '조정, 코드 등을 장면 위에',
+  'studio.size.workPaneHeight': '작업 패널 높이',
+  'studio.size.chat': '채팅',
+  'studio.size.chatHint': 'AI와의 채팅을 장면 옆에',
   'studio.size.exit': '전체 화면 종료',
   'studio.wave.title': '그래프의 파동',
   'studio.wave.hint':

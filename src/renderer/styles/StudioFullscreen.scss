@@ -1,0 +1,235 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// THE STUDIO'S FULL SCREEN (`useFullscreenPanes.ts`; Ivan, 2026-11-11: "a
+// toggle bottom pane for tune, code etc", "the chat with a collapsible ...
+// animate as the other side menus"). The grid fills the screen, not the
+// stage alone: the scene covers all of it and keeps playing, and the
+// Studio's own work pane and chat stand over it, each slid away or back on
+// its button, with the side panes' own slide (`$sound-pane-ease` in
+// `App.scss`: 300 ms on the app's ease-out). The chat's width is the one the
+// member gave it in the window; the pane's height is theirs too.
+//
+// Keyed on the Studio's own full-screen state (`is-full`, from its size)
+// rather than the browser's `:fullscreen`: the grid is the element that
+// fills the screen, and the size goes back to windowed the moment the
+// screen refuses or leaves (`useStageFullscreen.ts`), so the two agree.
+$full-slide: transform $motion-slow $ease-out;
+
+.studio-bench__grid.is-full {
+  position: relative;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+
+  > .studio-bench__main {
+    position: absolute;
+    inset: 0;
+    display: block;
+    container: none;
+  }
+
+  .studio-bench__stage {
+    position: absolute;
+    inset: 0;
+
+    > .pane-resizer {
+      display: none;
+    }
+  }
+
+  .studio-stage__well {
+    width: 100%;
+    height: 100%;
+  }
+
+  .studio-stage {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+    aspect-ratio: auto;
+    box-shadow: none;
+  }
+
+  // The work pane: the Studio's own tabs, over the lower part of the scene,
+  // frosted so the scene still reads behind it.
+  .studio-work {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 4;
+    height: var(--studio-full-pane, 40%);
+    padding: 6px 14px 0;
+    border-top: 1px solid $card-edge;
+    background: color-mix(in srgb, $surface-menu 88%, transparent);
+    backdrop-filter: blur(18px);
+    transform: translateY(102%);
+    transition:
+      $full-slide,
+      right $motion-slow $ease-out;
+  }
+
+  &.is-pane-out .studio-work {
+    transform: none;
+  }
+
+  // The chat, docked right at its own width.
+  > .studio-bench__chat {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    border-left: 1px solid $card-edge;
+    background: color-mix(in srgb, $surface-menu 92%, transparent);
+    backdrop-filter: blur(18px);
+    transform: translateX(102%);
+    transition: $full-slide;
+
+    // Its divider sizes the column in the window; here nothing beside it
+    // moves, so it is left to the window.
+    > .column-resizer {
+      display: none;
+    }
+  }
+
+  &.is-chat-out > .studio-bench__chat {
+    transform: none;
+  }
+
+  // Never under a pane: the pane stops at the chat's edge, and the stage's
+  // plate - its full-screen controls - moves left of the chat.
+  &.is-chat-out .studio-work {
+    right: var(--studio-chat-width-now, 0px);
+  }
+
+  // The stage's own plate, never Edit mode's, which shares its class and
+  // stands at the left.
+  &.is-chat-out .studio-stage__bar:not(.studio-edit__bar) {
+    right: calc(var(--studio-chat-width-now, 0px) + 16px);
+    transition: right $motion-slow $ease-out;
+  }
+
+  .studio-stage__bar:not(.studio-edit__bar) {
+    transition: right $motion-slow $ease-out;
+  }
+}
+
+// The pane's top edge, dragged to set its height.
+.studio-fullscreen__grip {
+  display: none;
+}
+
+.studio-bench__grid.is-full .studio-fullscreen__grip {
+  position: absolute;
+  right: 0;
+  bottom: var(--studio-full-pane, 40%);
+  left: 0;
+  z-index: 6;
+  display: grid;
+  height: 14px;
+  margin-bottom: -7px;
+  place-items: center;
+  cursor: ns-resize;
+  touch-action: none;
+
+  span {
+    width: 64px;
+    height: 4px;
+    border-radius: 2px;
+    background: color-mix(in srgb, $text-primary 30%, transparent);
+    transition: background $motion-fast $ease-out;
+  }
+
+  &:hover span,
+  &:focus-visible span {
+    background: $text-accent;
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.studio-bench__grid.is-full.is-chat-out .studio-fullscreen__grip {
+  right: var(--studio-chat-width-now, 0px);
+}
+
+// The chat's edge tab: on the chat's left edge while it is out, folding it
+// away; at the screen's edge while it is folded, bringing it back.
+.studio-fullscreen__chat-tab {
+  display: none;
+}
+
+.studio-bench__grid.is-full .studio-fullscreen__chat-tab {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px;
+  color: $text-primary;
+  border: 1px solid $card-edge;
+  border-right: 0;
+  border-radius: $radius-s 0 0 $radius-s;
+  background: color-mix(in srgb, $surface-menu 88%, transparent);
+  backdrop-filter: blur(14px);
+  font: inherit;
+  font-weight: $weight-semibold;
+  writing-mode: vertical-rl;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition:
+    right $motion-slow $ease-out,
+    background $motion-fast $ease-out;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover {
+    background: $hover-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-open {
+    right: var(--studio-chat-width-now, 0px);
+    padding: 14px 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-bench__grid.is-full {
+    .studio-work,
+    > .studio-bench__chat,
+    .studio-stage__bar:not(.studio-edit__bar),
+    .studio-fullscreen__chat-tab {
+      transition: none;
+    }
+  }
+}

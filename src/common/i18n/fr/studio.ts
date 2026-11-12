@@ -667,6 +667,11 @@ const studio = {
   'studio.size.playerParts': 'Lecteur par-dessus',
   'studio.size.playerPartsHint':
     'Pose le morceau, les commandes et les panneaux dépolis du lecteur compact sur la scène, tels que le lecteur les montre. Désactivé : la scène seule dans le cadre du lecteur.',
+  'studio.size.workPane': 'Panneau de travail',
+  'studio.size.workPaneHint': 'Réglages, Code et le reste, par-dessus la scène',
+  'studio.size.workPaneHeight': 'Hauteur du panneau de travail',
+  'studio.size.chat': 'Chat',
+  'studio.size.chatHint': 'Le chat de votre IA, à côté de la scène',
   'studio.size.exit': 'Quitter le plein écran',
   'studio.wave.title': 'Onde sur le graphique',
   'studio.wave.hint':

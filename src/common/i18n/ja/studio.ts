@@ -663,6 +663,11 @@ const studio = {
   'studio.size.playerParts': 'プレーヤーを重ねる',
   'studio.size.playerPartsHint':
     'コンパクトプレーヤーの曲名、操作ボタン、すりガラスのパネルを、プレーヤーと同じようにシーンの上に重ねます。オフのときは、プレーヤーの枠にシーンだけを表示します。',
+  'studio.size.workPane': '作業パネル',
+  'studio.size.workPaneHint': '調整、コードなどをシーンの上に',
+  'studio.size.workPaneHeight': '作業パネルの高さ',
+  'studio.size.chat': 'チャット',
+  'studio.size.chatHint': 'AI とのチャットをシーンの横に',
   'studio.size.exit': '全画面を終了',
   'studio.wave.title': 'グラフ上の波形',
   'studio.wave.hint':

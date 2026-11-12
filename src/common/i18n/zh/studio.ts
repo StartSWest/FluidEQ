@@ -594,6 +594,11 @@ const studio = {
   'studio.size.playerParts': '叠加播放器',
   'studio.size.playerPartsHint':
     '像播放器本身那样，把迷你播放器的歌曲信息、控制按钮和磨砂面板叠在场景上。关闭时，只在播放器框架中显示场景。',
+  'studio.size.workPane': '工作面板',
+  'studio.size.workPaneHint': '调整、代码等，叠在场景上方',
+  'studio.size.workPaneHeight': '工作面板高度',
+  'studio.size.chat': '聊天',
+  'studio.size.chatHint': '与 AI 的聊天，在场景旁边',
   'studio.size.exit': '退出全屏',
   'studio.wave.title': '图表上的波形',
   'studio.wave.hint':

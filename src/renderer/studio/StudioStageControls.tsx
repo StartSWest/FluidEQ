@@ -19,6 +19,19 @@ interface IStudioStageControlsProps {
   /** The player's own parts over the scene, while the player is shown. */
   hasPlayerParts: boolean;
   onPlayerParts: () => void;
+  /**
+   * In full screen, the work pane and the chat over the scene, each out or
+   * in (`useFullscreenPanes.ts`). Absent in the window, where both have
+   * their own place.
+   */
+  panes?:
+    | {
+        pane: boolean;
+        chat: boolean;
+        onPane: () => void;
+        onChat: () => void;
+      }
+    | undefined;
 }
 
 /**
@@ -50,6 +63,7 @@ export default function StudioStageControls({
   onPreview,
   hasPlayerParts,
   onPlayerParts,
+  panes,
 }: IStudioStageControlsProps) {
   const { t } = useTranslation();
   const isGridShown = useStudioGridShown();
@@ -58,8 +72,42 @@ export default function StudioStageControls({
   const playerName = t('studio.size.player');
   const partsName = t('studio.size.playerParts');
   const gridName = t('studio.grid.label');
+  const paneName = t('studio.size.workPane');
+  const chatName = t('studio.size.chat');
   return (
     <div className="studio-stage-controls">
+      {panes && (
+        <>
+          <button
+            type="button"
+            className="studio-stage-controls__button"
+            aria-pressed={panes.pane}
+            aria-label={paneName}
+            title={`${paneName} (Ctrl+J)\n${t('studio.size.workPaneHint')}`}
+            onClick={panes.onPane}
+          >
+            {/* A screen with its lower band: the pane under the scene. */}
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <rect x="1.8" y="2.8" width="12.4" height="10.4" rx="1.6" />
+              <path d="M1.8 9.2h12.4" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="studio-stage-controls__button studio-stage-controls__last-pane"
+            aria-pressed={panes.chat}
+            aria-label={chatName}
+            title={`${chatName} (Ctrl+L)\n${t('studio.size.chatHint')}`}
+            onClick={panes.onChat}
+          >
+            {/* A screen with its right band: the chat beside the scene. */}
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <rect x="1.8" y="2.8" width="12.4" height="10.4" rx="1.6" />
+              <path d="M10 2.8v10.4" />
+            </svg>
+          </button>
+        </>
+      )}
       <button
         type="button"
         className="studio-stage-controls__button"

@@ -670,6 +670,11 @@ const studio = {
   'studio.size.playerParts': 'Player on top',
   'studio.size.playerPartsHint':
     "Lays the Compact player's song, controls and frosted panels over the scene, as the player shows them. Off, the scene alone in the player's frame.",
+  'studio.size.workPane': 'Work pane',
+  'studio.size.workPaneHint': 'Tune, Code and the rest, over the scene',
+  'studio.size.workPaneHeight': 'Work pane height',
+  'studio.size.chat': 'Chat',
+  'studio.size.chatHint': "Your AI's chat, beside the scene",
   'studio.size.exit': 'Exit fullscreen',
   'studio.wave.title': 'Wave on the graph',
   'studio.wave.hint':
