@@ -66,6 +66,7 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   'too-large': 'studio.publish.tooLarge',
   'blocked-scene': 'studio.publish.blockedScene',
   'blocked-account': 'studio.publish.blockedAccount',
+  'identity-required': 'studio.publish.identityRequired',
   server: 'studio.publish.failed',
 };
 

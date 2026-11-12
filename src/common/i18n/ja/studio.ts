@@ -237,6 +237,8 @@ const studio = {
     'FluidEQ がこのシーンをギャラリーから完全に削除したため、再び公開することはできません。',
   'studio.publish.blockedAccount':
     '{date}まで、シーンを公開もエクスポートもできません。',
+  'studio.publish.identityRequired':
+    '先に表示名とハンドルを決めてください。ギャラリーではその名前でシーンが表示されます。',
   'studio.publish.blockedScene':
     '{date}まで、このシーンを公開もエクスポートもできません。',
 

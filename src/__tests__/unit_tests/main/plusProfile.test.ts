@@ -254,3 +254,54 @@ describe('the member’s name, in the main process', () => {
     });
   });
 });
+
+// Premium 0106: whether a handle can be had, asked while it is typed in the
+// publish dialog. A handle off the pattern is answered without asking.
+describe('whether a handle can be had', () => {
+  const session = {
+    accessToken: () => Promise.resolve(token),
+  } as unknown as IAccountSession;
+  let fetchImpl: jest.Mock;
+  let dispose: () => void = () => {};
+  const ask = (handle: unknown) => {
+    const handler = handlers.get('plus-handle-availability');
+    if (!handler) {
+      throw new Error('no handler');
+    }
+    return handler({}, handle);
+  };
+
+  beforeEach(() => {
+    fetchImpl = jest.fn();
+    ({ dispose } = registerPlusProfileIpc({ config, session, fetchImpl }));
+  });
+  afterEach(() => dispose());
+
+  it('asks the server its answer for a handle of the right shape', async () => {
+    fetchImpl.mockResolvedValue(json('taken'));
+    await expect(ask('river')).resolves.toEqual({ ok: true, value: 'taken' });
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(
+      'https://project.supabase.co/rest/v1/rpc/handle_availability',
+    );
+    expect(JSON.parse(String(init.body))).toEqual({ p_handle: 'river' });
+  });
+
+  it('answers invalid for a handle off the pattern without asking anybody', async () => {
+    const answers = await Promise.all(
+      ['ab', 'UPPER', 'with-dash', 42].map((handle) => ask(handle)),
+    );
+    expect(answers).toEqual(
+      answers.map(() => ({ ok: true, value: 'invalid' })),
+    );
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('refuses an answer that is not one of the five', async () => {
+    fetchImpl.mockResolvedValue(json('maybe'));
+    await expect(ask('river')).resolves.toEqual({
+      ok: false,
+      failure: 'rejected',
+    });
+  });
+});

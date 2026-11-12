@@ -232,6 +232,8 @@ const studio = {
     'FluidEQ가 이 장면을 갤러리에서 완전히 삭제했으므로 다시 게시할 수 없습니다.',
   'studio.publish.blockedAccount':
     '{date}까지 장면을 게시하거나 내보낼 수 없습니다.',
+  'studio.publish.identityRequired':
+    '먼저 표시 이름과 핸들을 정하세요. 갤러리는 그 이름으로 장면을 보여줍니다.',
   'studio.publish.blockedScene':
     '{date}까지 이 장면을 게시하거나 내보낼 수 없습니다.',
   'studio.picture.files': '사진',

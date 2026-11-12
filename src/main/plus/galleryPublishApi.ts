@@ -78,6 +78,11 @@ export type TPublishFailure =
    */
   | 'blocked-scene'
   | 'blocked-account'
+  /**
+   * The account has no display name or no @handle, which a scene in the
+   * gallery is shown under (server: `identity_required`, Ivan 2026-11-12).
+   */
+  | 'identity-required'
   | 'server';
 
 /** A refusal, and when a block that caused it ends. */
@@ -156,6 +161,9 @@ const publishReason = (
   }
   if (status === 409 && word === 'scene_deleted') {
     return 'deleted';
+  }
+  if (status === 409 && word === 'identity_required') {
+    return 'identity-required';
   }
   if (status === 403) {
     if (word === 'banned' || word === 'unconfirmed') {

@@ -36,7 +36,7 @@ import type {
 } from '../common/plusGallery';
 import type { IGalleryClip } from './plus/galleryClip';
 import type { TPlusProfileResult } from './ipc/plusProfile';
-import type { IPlusProfile } from '../common/plusProfile';
+import type { IPlusProfile, THandleAvailability } from '../common/plusProfile';
 
 /**
  * The Plus gallery and a member's profile. The server decides who may do
@@ -186,6 +186,10 @@ const plusUpdateProfile = (handle: string, displayName: string) =>
   ipcRenderer.invoke('plus-update-profile', handle, displayName) as Promise<
     TPlusProfileResult<IPlusProfile>
   >;
+const plusHandleAvailability = (handle: string) =>
+  ipcRenderer.invoke('plus-handle-availability', handle) as Promise<
+    TPlusProfileResult<THandleAvailability>
+  >;
 
 const plusBridge = {
   listGallery,
@@ -203,6 +207,7 @@ const plusBridge = {
   plusProfile,
   plusCreateProfile,
   plusUpdateProfile,
+  plusHandleAvailability,
 };
 
 export default plusBridge;

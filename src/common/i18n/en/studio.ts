@@ -241,6 +241,8 @@ const studio = {
     "FluidEQ deleted this scene from the gallery for good, so it can't be published again.",
   'studio.publish.blockedAccount':
     'You can’t publish or export scenes until {date}.',
+  'studio.publish.identityRequired':
+    'Choose a display name and a handle first: the gallery shows your scenes under them.',
   'studio.publish.blockedScene':
     'You can’t publish or export this scene until {date}.',
 

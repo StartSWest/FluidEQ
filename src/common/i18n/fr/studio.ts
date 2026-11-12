@@ -240,6 +240,8 @@ const studio = {
     'FluidEQ a supprimé définitivement cette scène de la galerie : elle ne peut plus être publiée.',
   'studio.publish.blockedAccount':
     'Vous ne pourrez ni publier ni exporter de scènes avant le {date}.',
+  'studio.publish.identityRequired':
+    'Choisissez d’abord un nom affiché et un pseudo : la galerie présente vos scènes sous ces noms.',
   'studio.publish.blockedScene':
     'Vous ne pourrez ni publier ni exporter cette scène avant le {date}.',
 

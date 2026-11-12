@@ -1,8 +1,10 @@
 import type { IAccountConfig } from 'common/accountConfig';
 import {
+  isHandleAvailability,
   MAX_DISPLAY_NAME,
   MAX_HANDLE,
   type IPlusProfile,
+  type THandleAvailability,
   type TProfileFailure,
 } from '../../common/plusProfile';
 import jwtSubject from '../account/jwtSubject';
@@ -89,6 +91,8 @@ export interface IProfileApi {
    * is everywhere at once; the same rules and refusals as choosing it.
    */
   update(handle: string, displayName: string): Promise<IPlusProfile>;
+  /** Whether a handle can be had, as the save would answer (premium 0106). */
+  handleAvailability(handle: string): Promise<THandleAvailability>;
 }
 
 export const createProfileApi = ({
@@ -203,6 +207,16 @@ export const createProfileApi = ({
         throw new ProfileError('rejected', 'The profile did not come back.');
       }
       return changed;
+    },
+
+    handleAvailability: async (handle) => {
+      const answer = await request('POST', 'rpc/handle_availability', {
+        p_handle: handle,
+      });
+      if (!isHandleAvailability(answer)) {
+        throw new ProfileError('rejected', 'The availability did not read.');
+      }
+      return answer;
     },
   };
 };

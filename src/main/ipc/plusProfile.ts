@@ -5,6 +5,7 @@ import {
   HANDLE_PATTERN,
   MAX_DISPLAY_NAME,
   type IPlusProfile,
+  type THandleAvailability,
   type TProfileFailure,
 } from '../../common/plusProfile';
 import type { IAccountSession } from '../account/session';
@@ -31,6 +32,7 @@ const CHANNELS = [
   'plus-profile',
   'plus-create-profile',
   'plus-update-profile',
+  'plus-handle-availability',
 ] as const;
 
 /**
@@ -104,6 +106,19 @@ export const registerPlusProfileIpc = ({
         const wanted = wantedName(handle, displayName);
         return api.update(wanted.handle, wanted.displayName);
       }),
+  );
+
+  ipcMain.handle(
+    'plus-handle-availability',
+    (
+      _event,
+      handle: unknown,
+    ): Promise<TPlusProfileResult<THandleAvailability>> =>
+      // A handle off the pattern is answered here, without asking anybody:
+      // the server would say the same.
+      typeof handle === 'string' && HANDLE_PATTERN.test(handle)
+        ? guard(() => api.handleAvailability(handle))
+        : Promise.resolve({ ok: true, value: 'invalid' }),
   );
 
   return {

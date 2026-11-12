@@ -238,6 +238,8 @@ const studio = {
     'FluidEQ eliminó esta escena de la galería para siempre, así que no puede volver a publicarse.',
   'studio.publish.blockedAccount':
     'No podrás publicar ni exportar escenas hasta el {date}.',
+  'studio.publish.identityRequired':
+    'Primero elige un nombre visible y un alias: la galería muestra tus escenas con ellos.',
   'studio.publish.blockedScene':
     'No podrás publicar ni exportar esta escena hasta el {date}.',
 

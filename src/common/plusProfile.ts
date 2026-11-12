@@ -31,6 +31,26 @@ export type TProfileFailure =
 /** Letters, numbers and underscores, 3 to 20. */
 export const HANDLE_PATTERN = /^[a-z0-9_]{3,20}$/;
 
+/**
+ * Whether a handle can be had, asked while it is typed (premium 0106): the
+ * save's own answer ahead of the save. `yours` is this account's handle now.
+ */
+export type THandleAvailability =
+  'available' | 'taken' | 'yours' | 'reserved' | 'invalid';
+
+const AVAILABILITY: ReadonlySet<string> = new Set<THandleAvailability>([
+  'available',
+  'taken',
+  'yours',
+  'reserved',
+  'invalid',
+]);
+
+export const isHandleAvailability = (
+  value: unknown,
+): value is THandleAvailability =>
+  typeof value === 'string' && AVAILABILITY.has(value);
+
 export const MAX_HANDLE = 20;
 
 export const MAX_DISPLAY_NAME = 40;

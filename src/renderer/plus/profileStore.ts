@@ -1,5 +1,10 @@
-import { useSyncExternalStore } from 'react';
-import type { IPlusProfile, TProfileFailure } from 'common/plusProfile';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
+import {
+  HANDLE_PATTERN,
+  type IPlusProfile,
+  type THandleAvailability,
+  type TProfileFailure,
+} from 'common/plusProfile';
 import type { TPlusProfileResult } from 'main/ipc/plusProfile';
 
 /**
@@ -129,6 +134,56 @@ export const updateProfile = (
     handle,
     displayName,
   );
+
+/**
+ * Whether a handle can be had, as the save would answer (premium 0106);
+ * undefined when the server could not be asked. A handle off the pattern is
+ * `invalid` without asking anybody.
+ */
+export const checkHandleAvailability = async (
+  handle: string,
+): Promise<THandleAvailability | undefined> => {
+  if (!HANDLE_PATTERN.test(handle)) {
+    return 'invalid';
+  }
+  const result = await bridge()
+    ?.plusHandleAvailability?.(handle)
+    .catch(() => undefined);
+  return result?.ok ? result.value : undefined;
+};
+
+/**
+ * What a publication needs of this account (Ivan, 2026-11-12: a scene is
+ * published under a name and an @handle): `missing` once the server has
+ * said this account has chosen neither, and never before it has answered —
+ * a dialog must not ask for a name the account may already have. Asks the
+ * server for this account when nothing is known of it yet.
+ */
+export const usePublicIdentity = (
+  accountId: string | undefined,
+): { loaded: boolean; missing: boolean; profile?: IPlusProfile } => {
+  const current = useProfile();
+  const known = accountId !== undefined && current.accountId === accountId;
+  // Asked once per account per mount: the load itself makes `known` true
+  // before it answers, and asking again then would be the same question.
+  const asked = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (
+      accountId &&
+      !(known && current.loaded) &&
+      asked.current !== accountId
+    ) {
+      asked.current = accountId;
+      loadProfile(accountId).catch(() => undefined);
+    }
+  }, [accountId, known, current.loaded]);
+  const loaded = known && current.loaded;
+  return {
+    loaded,
+    missing: loaded && current.profile === undefined,
+    ...(known && current.profile ? { profile: current.profile } : {}),
+  };
+};
 
 export const clearProfileError = () => {
   if (state.error) {

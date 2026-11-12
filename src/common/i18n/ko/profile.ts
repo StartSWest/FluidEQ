@@ -6,14 +6,14 @@ const profile = {
   'profile.name.title': '갤러리에 표시되는 방식을 선택하세요.',
   'profile.name.body':
     '핸들과 이름. Visualizers 갤러리는 장면에 이를 표시합니다. 로그인한 모든 사람이 볼 수 있습니다. 아무도 당신의 이메일을 볼 수 없습니다.',
-  'profile.name.handle': '손잡이',
+  'profile.name.handle': '핸들',
   'profile.name.handleHint': '영문, 숫자, _ 3~20자',
   'profile.name.name': '표시 이름',
   'profile.name.previewName': '당신의 이름',
   'profile.name.save': '저장',
   'profile.name.choose': '당신의 이름을 선택하세요',
   'profile.name.error.handleTaken':
-    '그 손잡이가 잡혔습니다. 다른 것을 시도해 보세요.',
+    '그 핸들은 이미 사용 중입니다. 다른 핸들을 입력해 보세요.',
   'profile.name.error.reserved':
     '해당 이름은 FluidEQ용으로 예약되어 있습니다. 다른 것을 선택하세요.',
   'profile.name.error.unreadable':

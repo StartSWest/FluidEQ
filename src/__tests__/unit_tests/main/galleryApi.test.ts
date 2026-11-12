@@ -514,3 +514,22 @@ describe('a publishing block', () => {
     });
   });
 });
+
+// Ivan, 2026-11-12: a scene is published under a name and an @handle; the
+// server's refusal for an account with neither reads as its own failure.
+describe('a publication from an account with no name or handle', () => {
+  it('is told apart from every other conflict', async () => {
+    const outcomes = await Promise.all(
+      [{ error: 'identity_required' }, { error: 'scene_deleted' }].map((body) =>
+        unpublishScene(
+          authWith(answering(fakeResponse(409, body))),
+          'neon-city',
+        ),
+      ),
+    );
+    expect(outcomes).toEqual([
+      { ok: false, reason: 'identity-required' },
+      { ok: false, reason: 'deleted' },
+    ]);
+  });
+});
