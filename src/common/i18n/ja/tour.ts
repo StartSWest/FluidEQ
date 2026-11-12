@@ -612,70 +612,7 @@ const tour: Partial<Dictionary> = {
   'tour.walkthrough.subtitle': '最初から最後まで見る',
   'tour.walkthrough.lead':
     '最初にドラッグするバンドからビジュアライザーまで、FluidEQ でできることをすべて案内します。各部分の使い方は音声で説明します。',
-  'tour.film.walkthrough.intro':
-    'これが FluidEQ 2.2 です。パソコンで流れるすべての音のためのイコライザーです。さっそく見ていきましょう。',
-  'tour.film.walkthrough.graph':
-    'グラフ上の点をドラッグして、音を形づくります。各バンドの周波数とゲインは、カーブの上に直接表示されます。',
-  'tour.film.walkthrough.sliders':
-    'スライダーでも同じバンドを動かせて、カーブはすぐについてきます。触れたバンドの設定が、下に開きます。',
-  'tour.film.walkthrough.tone':
-    '外側をクリックすると、トーンが戻ってきます。低音、中音、高音に、両側のローカットとハイカットです。',
-  'tour.film.walkthrough.ears':
-    'バンドを右クリックして「左 + 右」を選ぶと、左右の耳を別々に調整できます。実線が左耳、破線が右耳です。',
-  'tour.film.walkthrough.eqmode':
-    'EQモードはグラフの横にあります。カーブの効き具合を決め、「精密」では高音を描いたとおりに鳴らします。',
-  'tour.film.walkthrough.headphones':
-    '「EQ プリセット」では、測定された数千のモデルからお使いのヘッドホンを探し、ワンクリックで補正を適用できます。',
-  'tour.film.walkthrough.mycurves':
-    '「マイカーブ」に保存しておけば、OPRA のリストの横にあるあなた専用のリストから、いつでも使えます。',
-  'tour.film.walkthrough.outputs':
-    '出力ごとに、それぞれのサウンドが保存されます。ヘッドホンに切り替えれば、前に設定したとおりの音で戻ってきます。2 つ目の出力を使えば、同じ音楽を別のデバイスでも再生できます。',
-  'tour.film.walkthrough.songs':
-    '「曲ごとのサウンドを記憶」をオンにすると、どの曲も、あなたが設定したサウンドで戻ってきます。',
-  'tour.film.walkthrough.games':
-    'ゲームプリセットは、ゲームが前面に来た瞬間にサウンドを切り替え、閉じると元に戻します。',
-  'tour.film.walkthrough.dsp':
-    'DSP ラックは、聞こえるすべての音にかかるスタジオエフェクトのチェーンです。音楽ジャンルから映画やゲームまで、ラック全体のプリセットを選べます。',
-  'tour.film.walkthrough.deesser':
-    '新しいディエッサーは、声の刺さる「サ行」だけを抑え、シンバルには手を触れません。',
-  'tour.film.walkthrough.character':
-    'エキサイターはきらめきを、ベースフォージは重みを加え、ディメンションはステレオを広げます。',
-  'tour.film.walkthrough.room':
-    'ルームは、ヘッドホンでも、本物の空間でスピーカーに囲まれているような音にします。',
-  'tour.film.walkthrough.maximizer':
-    'そしてマキシマイザーが、音割れさせることなく、すべてを大きくクリアに保ちます。',
-  'tour.film.walkthrough.footsteps':
-    'ラックの新機能「足音」は、足音やリロードのようなゲームの小さな音を、鳴ったその瞬間に引き立てます。',
-  'tour.film.walkthrough.library':
-    'ライブラリでは、手持ちの音楽を同じサウンドで再生できます。アルバム、プレイリスト、「次に再生」もそろっています。',
-  'tour.film.walkthrough.compact':
-    'コンパクトプレーヤーなら、曲も操作も EQ も、小さなウィンドウひとつにまとまります。',
-  'tour.film.walkthrough.desktop':
-    'その後ろでは、どのビジュアライザーもデスクトップで再生でき、音楽に合わせて動きます。',
-  'tour.film.walkthrough.oneline':
-    '1 行にたたむと邪魔にならず、曲の後ろではビジュアライザーが静かに動き続けます。',
-  'tour.film.walkthrough.looks':
-    'グラフそのものをビジュアライザーにできます。ルックやシーンを選ぶと、ウィンドウもその色に染まります。',
-  'tour.film.walkthrough.gallery':
-    'ビジュアライザーのギャラリーには、FluidEQ とコミュニティが作ったシーンが並んでいます。どれも 1 クレジットで、ずっとあなたのものです。',
-  'tour.film.walkthrough.studio':
-    'スタジオでは、変えたいことを自分の言葉で伝えると、その変化がステージ上で形になっていきます。',
-  'tour.film.walkthrough.karaoke':
-    'カラオケでは、手持ちの曲で歌えます。タイミングの合った歌詞と、あなたの音程が画面に表示されます。',
-  'tour.film.walkthrough.karaokeplay':
-    '曲を歌詞と一緒に開いて再生を押すと、歌われている言葉が順に光り、下のピッチガイドには出すべき音がすべて表示されます。',
-  'tour.film.walkthrough.karaokestage':
-    '歌詞の後ろのステージには、曲に合わせて動くどのビジュアライザーでも映せます。',
-  'tour.film.walkthrough.share':
-    '「音声を共有」を使えば、家のネットワーク上のパソコン同士がつながり、音楽が双方向に行き来します。',
-  'tour.film.walkthrough.sharelink':
-    '各コンピューターは自分で再生している音だけを送るので、音がこだまして戻ることはなく、聴いている側のコンピューターが自分の EQ をかけます。',
-  'tour.film.walkthrough.sharemix':
-    'リンクごとに音量を調整でき、音はロスレスで、ずれも途切れもなく届きます。',
-  'tour.film.walkthrough.help':
-    'そして、ここで紹介したすべてがユーザーガイドにまとまっています。図はアプリそのものから描かれています。',
-  'tour.film.walkthrough.outro':
-    'これが FluidEQ です。あなたらしい音と見た目に仕上げてください。',
+  'tour.film.walkthrough.intro': 'FluidEQ のすべてを1本の動画で',
   'tour.film.engine.intro':
     'FluidEQ には独自のオーディオエンジンがあります。EQ と DSP ラックを、パソコンで鳴るすべての音に届けます。',
   'tour.film.engine.choose':

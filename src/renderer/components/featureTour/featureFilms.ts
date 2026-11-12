@@ -41,15 +41,13 @@ export interface IFeatureFilm {
    */
   locales?: readonly LocaleCode[];
   /**
-   * Its lines' timings come from the site, beside the film
-   * (`featureFilmTimingUrl`), and `cues` are what plays until they arrive or
-   * if they never do. For a film recorded after the build that shows it: the
-   * walkthrough shipped before its recording was finished (Ivan, 2026-10-29:
-   * "upload the video later and the app should be able to pick up"), and two
-   * recordings of the same tour timed its lines up to a second apart.
+   * Its subtitles are the site's, word for word (`featureFilmCaptionUrls`),
+   * and `cues` names the film and is never drawn. For a film that can be
+   * recorded again after the build that shows it: a new take put up at the
+   * same link brings its own words with it, where lines kept in the app
+   * would name what the old take said (2.5, Ivan: the published versions
+   * must "carguen el nuevo video ... el mismo enlace").
    */
-  timedOnSite?: boolean;
-  /** A separately narrated recording carries its verbatim captions on the site. */
   spokenCaptions?: boolean;
   /** Offline Help recordings are shipped with the renderer, one per voice. */
   bundled?: Partial<Record<LocaleCode, { src: string; captions: string }>>;
@@ -263,51 +261,21 @@ export const FEATURE_FILMS: Readonly<Record<string, IFeatureFilm>> = {
       { key: 'tour.film.library.play', from: 17.93, to: 26.63 },
     ],
   },
-  // The whole app, on What's New's first page (`WalkthroughSlide`), voiced in
-  // English alone so far; every language reads its lines as subtitles.
+  // The whole app, on What's New's first page (`WalkthroughSlide`) and Help's
+  // first chapter, voiced in English alone so far. Recorded again for every
+  // release at the same link, so its subtitles are the site's: the reader's
+  // language when the site has it (`walkthrough.<locale>.vtt`), else the
+  // English. Its one cue is its name, Help's title and the player's label.
   walkthrough: {
     width: 1920,
     height: 1080,
     locales: ['en'],
-    timedOnSite: true,
+    spokenCaptions: true,
     standIn: {
       src: `${OFFICIAL_SITE_URL}/video/first-steps.mp4`,
       captions: `${OFFICIAL_SITE_URL}/video/first-steps.en.vtt`,
     },
-    cues: [
-      { key: 'tour.film.walkthrough.intro', from: 0.5, to: 8.7 },
-      { key: 'tour.film.walkthrough.graph', from: 8.7, to: 42.33 },
-      { key: 'tour.film.walkthrough.sliders', from: 42.33, to: 59.23 },
-      { key: 'tour.film.walkthrough.tone', from: 59.23, to: 77.23 },
-      { key: 'tour.film.walkthrough.ears', from: 77.23, to: 100.3 },
-      { key: 'tour.film.walkthrough.eqmode', from: 100.3, to: 123.5 },
-      { key: 'tour.film.walkthrough.headphones', from: 123.5, to: 158.03 },
-      { key: 'tour.film.walkthrough.mycurves', from: 158.03, to: 168.4 },
-      { key: 'tour.film.walkthrough.outputs', from: 168.4, to: 197.37 },
-      { key: 'tour.film.walkthrough.songs', from: 197.37, to: 205.23 },
-      { key: 'tour.film.walkthrough.games', from: 205.23, to: 230.77 },
-      { key: 'tour.film.walkthrough.dsp', from: 230.77, to: 260.1 },
-      { key: 'tour.film.walkthrough.deesser', from: 260.1, to: 282.1 },
-      { key: 'tour.film.walkthrough.character', from: 282.1, to: 333.87 },
-      { key: 'tour.film.walkthrough.room', from: 333.87, to: 340.3 },
-      { key: 'tour.film.walkthrough.maximizer', from: 340.3, to: 361.83 },
-      { key: 'tour.film.walkthrough.footsteps', from: 361.83, to: 374.73 },
-      { key: 'tour.film.walkthrough.library', from: 374.73, to: 385.37 },
-      { key: 'tour.film.walkthrough.compact', from: 385.37, to: 393.37 },
-      { key: 'tour.film.walkthrough.desktop', from: 393.37, to: 402.67 },
-      { key: 'tour.film.walkthrough.oneline', from: 402.67, to: 420.3 },
-      { key: 'tour.film.walkthrough.looks', from: 420.3, to: 442.43 },
-      { key: 'tour.film.walkthrough.gallery', from: 442.43, to: 456.4 },
-      { key: 'tour.film.walkthrough.studio', from: 456.4, to: 478.9 },
-      { key: 'tour.film.walkthrough.karaoke', from: 478.9, to: 489.9 },
-      { key: 'tour.film.walkthrough.karaokeplay', from: 489.9, to: 500.4 },
-      { key: 'tour.film.walkthrough.karaokestage', from: 500.4, to: 520.93 },
-      { key: 'tour.film.walkthrough.share', from: 520.93, to: 526.97 },
-      { key: 'tour.film.walkthrough.sharelink', from: 526.97, to: 534.33 },
-      { key: 'tour.film.walkthrough.sharemix', from: 534.33, to: 547.33 },
-      { key: 'tour.film.walkthrough.help', from: 547.33, to: 557.1 },
-      { key: 'tour.film.walkthrough.outro', from: 557.1, to: 564.5 },
-    ],
+    cues: [{ key: 'tour.film.walkthrough.intro', from: 0, to: 1 }],
   },
   // Everything visual in one film, behind the Watch key of the Visualizers'
   // own What's New (`VisualsFilmSection`; Ivan, 2026-11-12: "we will put in
@@ -342,15 +310,6 @@ export const featureFilmUrl = (id: string, locale: LocaleCode) => {
   );
 };
 
-/**
- * Where a film timed on the site keeps its timings: WebVTT beside the film,
- * one cue per line, each cue's id the line's key. Served from the same
- * folder, so the same cross-origin grant that lets the window read the film
- * lets it read these.
- */
-export const featureFilmTimingUrl = (id: string, locale: LocaleCode) =>
-  `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${featureFilmLocale(locale, FEATURE_FILMS[id])}.cues.vtt`;
-
 /** Verbatim subtitles follow the selected voice, including its English fallback. */
 export const featureFilmCaptionUrl = (id: string, locale: LocaleCode) => {
   const voice = featureFilmLocale(locale, FEATURE_FILMS[id]);
@@ -378,36 +337,6 @@ export const featureFilmCaptionUrls = (
   }
   const own = `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${locale}.vtt`;
   return own === voiced ? [voiced] : [own, voiced];
-};
-
-/** What a timing track's cue offers, as the browser's `TextTrackCue` does. */
-interface ITimedCue {
-  id: string;
-  startTime: number;
-  endTime: number;
-}
-
-/**
- * The lines a film's timing track times, in the order they are said. Only
- * lines the film already has: the site can move a line, never put up one the
- * app does not know. Nothing usable, and the film keeps its own timings.
- */
-export const siteCues = (
-  film: IFeatureFilm,
-  track: ArrayLike<ITimedCue> | null | undefined,
-): readonly IFilmCue[] | undefined => {
-  const lines = new Map<string, TranslationKey>(
-    film.cues.map((cue) => [cue.key, cue.key]),
-  );
-  const timed = Array.from(track ?? []).flatMap((cue) => {
-    const key = lines.get(cue.id);
-    return key && cue.endTime > cue.startTime
-      ? [{ key, from: cue.startTime, to: cue.endTime }]
-      : [];
-  });
-  return timed.length > 0
-    ? timed.sort((one, other) => one.from - other.from)
-    : undefined;
 };
 
 /** The line being said at `seconds` into a film, if any. */

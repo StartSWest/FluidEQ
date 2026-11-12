@@ -5,17 +5,15 @@ import { useTranslation } from '../../utils/I18nContext';
 import {
   featureFilmCaptionUrls,
   featureFilmLocale,
-  featureFilmTimingUrl,
   featureFilmUrl,
   type IFeatureFilm,
   type IFilmCue,
-  siteCues,
 } from './featureFilms';
 import useFilmLine from './useFilmLine';
 
 const NO_LINES: readonly IFilmCue[] = [];
 
-/** Shared by Help and What's New: site timings and a stand-in must never drift between readers. Mount only once the reader asks to play. */
+/** Shared by Help and What's New: site subtitles and a stand-in must never drift between readers. Mount only once the reader asks to play. */
 export default function useFilmPlayback(
   id: string,
   film: IFeatureFilm,
@@ -51,13 +49,9 @@ export default function useFilmPlayback(
       : featureFilmLocale(locale, film);
   const isBundled =
     !standIn && !!film.bundled?.[featureFilmLocale(locale, film)];
-  const timing =
-    film.timedOnSite && !standIn ? featureFilmTimingUrl(id, locale) : undefined;
-  const track = useRef<HTMLTrackElement>(null);
-  const [timed, setTimed] = useState<readonly IFilmCue[] | undefined>();
   const cue = useFilmLine(
     video,
-    standIn || film.spokenCaptions ? NO_LINES : (timed ?? film.cues),
+    standIn || film.spokenCaptions ? NO_LINES : film.cues,
     isShown,
   );
   const standInTrack = useRef<HTMLTrackElement>(null);
@@ -95,21 +89,9 @@ export default function useFilmPlayback(
     };
   }, [captionSrc, hasNextCaption, captionScope, captionTry]);
 
-  // Metadata timings can be updated beside the recording without an app release.
-  useEffect(() => {
-    const element = track.current;
-    if (!element) {
-      return undefined;
-    }
-    const read = () => setTimed(siteCues(film, element.track.cues));
-    element.addEventListener('load', read);
-    return () => element.removeEventListener('load', read);
-  }, [film, timing]);
-
   return {
     src: standIn?.src ?? featureFilmUrl(id, locale),
-    crossOrigin:
-      !isBundled && (timing || captionSrc) ? ('anonymous' as const) : undefined,
+    crossOrigin: !isBundled && captionSrc ? ('anonymous' as const) : undefined,
     subtitle: captionSrc ? standInLine : cue && t(cue.key),
     onError: () => {
       if (film.standIn && !isStandIn) {
@@ -129,8 +111,6 @@ export default function useFilmPlayback(
         srcLang={standIn ? 'en' : captionLanguage}
         default
       />
-    ) : (
-      timing && <track ref={track} kind="metadata" src={timing} default />
-    ),
+    ) : undefined,
   };
 }

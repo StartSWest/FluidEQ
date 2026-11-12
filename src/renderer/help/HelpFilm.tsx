@@ -87,7 +87,7 @@ function HelpFilmPlayback({
   );
 }
 
-/** A bundled poster until Play; Help and What's New share timings, subtitles and fallback. */
+/** A bundled poster until Play; Help and What's New share subtitles and fallback. */
 export default function HelpFilm({ id }: { id: string }) {
   const { t, locale } = useTranslation();
   const [pressed, setPressed] = useState(false);

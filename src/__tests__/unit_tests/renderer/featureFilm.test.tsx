@@ -11,12 +11,12 @@ import {
 import FeatureFilm from 'renderer/components/featureTour/FeatureFilm';
 import {
   FEATURE_FILMS,
-  featureFilmTimingUrl,
+  featureFilmCaptionUrls,
   featureFilmUrl,
   filmCueAt,
-  siteCues,
 } from 'renderer/components/featureTour/featureFilms';
 import FILM_POSTERS from 'renderer/components/featureTour/filmPosters';
+import { LOCALES, loadLocale, translate } from 'common/i18n';
 import en from 'common/i18n/en';
 
 /** The video's clock, which jsdom does not run. */
@@ -180,76 +180,70 @@ it('says so when the site cannot send the film, and its key puts the slide back 
   expect(watchKey()).toHaveFocus();
 });
 
-describe('a film timed on the site', () => {
+describe('the walkthrough, whose subtitles are the site’s', () => {
   const { walkthrough } = FEATURE_FILMS;
-  const timingTrack = (video: HTMLVideoElement) =>
+  const captionTrack = (video: HTMLVideoElement) =>
     video.querySelector('track') as HTMLTrackElement;
-  /** The track as the browser hands it over once loaded. */
-  const loadTrack = (
-    track: HTMLTrackElement,
-    cues: { id: string; startTime: number; endTime: number }[],
-  ) => {
-    Object.defineProperty(track, 'track', { value: { cues } });
-    fireEvent.load(track);
-  };
 
-  it('asks the site for its timings beside the film, across origins', () => {
+  it('plays from the same link as ever and asks for its words beside it, across origins', () => {
     render(<FeatureFilm id="walkthrough">{drawing}</FeatureFilm>);
     const { video } = openFilm();
-    const track = timingTrack(video);
-    expect(track).toHaveAttribute('kind', 'metadata');
-    expect(track).toHaveAttribute(
-      'src',
-      featureFilmTimingUrl('walkthrough', 'en'),
+    // The link every published version plays: a new take replaces the file.
+    expect(video.getAttribute('src')).toBe(
+      'https://fluideq.com/video/whatsnew/walkthrough.en.mp4',
     );
+    const track = captionTrack(video);
+    expect(track).toHaveAttribute('kind', 'captions');
     expect(track.getAttribute('src')).toBe(
-      'https://fluideq.com/video/whatsnew/walkthrough.en.cues.vtt',
+      'https://fluideq.com/video/whatsnew/walkthrough.en.vtt',
     );
     expect(track).toHaveAttribute('default');
     // Without it the browser refuses a track from another origin.
     expect(video).toHaveAttribute('crossorigin', 'anonymous');
+    // Nothing asks for the keyed timings a 2.4 build reads.
+    expect(video.querySelectorAll('track')).toHaveLength(1);
   });
 
-  it('says its lines on the site’s timings once they arrive, and on its own until then', () => {
+  it('draws none of the app’s words over it, and says the site’s line as it starts', () => {
     render(<FeatureFilm id="walkthrough">{drawing}</FeatureFilm>);
     const { dialog, video } = openFilm();
     fireEvent.playing(video);
     const subtitle = () => dialog.querySelector('.feature-film__subtitle');
-    const [intro] = walkthrough.cues;
-    const late = intro.to + 40;
-    const bundled = filmCueAt(walkthrough.cues, late);
-    if (!bundled) {
-      throw new Error('the walkthrough says nothing at that moment');
-    }
-
-    playTo(video, late);
+    const [name] = walkthrough.cues;
+    playTo(video, (name.from + name.to) / 2);
     paint();
-    expect(subtitle()).toHaveTextContent(en[bundled.key]);
+    // Its one cue is its name, never a line: the take's words are its own.
+    expect(subtitle()).toBeEmptyDOMElement();
 
-    // The recording put the opening line later than the build knew.
-    loadTrack(timingTrack(video), [
-      { id: intro.key, startTime: late - 1, endTime: late + 1 },
-    ]);
-    paint();
-    expect(subtitle()).toHaveTextContent(en[intro.key]);
+    const track = captionTrack(video);
+    Object.defineProperty(track, 'track', {
+      value: {
+        mode: 'hidden',
+        activeCues: [{ text: 'A line the new take says' }],
+      },
+    });
+    act(() => {
+      track.dispatchEvent(new Event('cuechange'));
+    });
+    expect(subtitle()).toHaveTextContent('A line the new take says');
   });
 
-  it('keeps its own timings when the track has nothing it knows', () => {
-    render(<FeatureFilm id="walkthrough">{drawing}</FeatureFilm>);
-    const { dialog, video } = openFilm();
-    fireEvent.playing(video);
-    const [intro] = walkthrough.cues;
-    loadTrack(timingTrack(video), [
-      { id: 'tour.film.walkthrough.secret', startTime: 0, endTime: 300 },
+  it('asks for the reader’s language first and falls back to the English the voice speaks', () => {
+    expect(featureFilmCaptionUrls('walkthrough', 'de')).toEqual([
+      'https://fluideq.com/video/whatsnew/walkthrough.de.vtt',
+      'https://fluideq.com/video/whatsnew/walkthrough.en.vtt',
     ]);
-    playTo(video, (intro.from + intro.to) / 2);
-    paint();
-    expect(dialog.querySelector('.feature-film__subtitle')).toHaveTextContent(
-      en[intro.key],
+    // The film is voiced in English alone, so German never asks for a
+    // German film; English readers ask once.
+    expect(featureFilmUrl('walkthrough', 'de')).toBe(
+      'https://fluideq.com/video/whatsnew/walkthrough.en.mp4',
     );
+    expect(featureFilmCaptionUrls('walkthrough', 'en')).toEqual([
+      'https://fluideq.com/video/whatsnew/walkthrough.en.vtt',
+    ]);
   });
 
-  it('is the only kind that asks: a film timed in the build fetches no track', () => {
+  it('is the film’s kind that asks: a film timed in the build fetches no track', () => {
     render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
     const { video } = openFilm();
     expect(video.querySelector('track')).toBeNull();
@@ -310,34 +304,6 @@ describe('a film with a stand-in, while it is not on the site', () => {
   });
 });
 
-describe('the timings a site track gives', () => {
-  const { walkthrough } = FEATURE_FILMS;
-  const [intro, graph] = walkthrough.cues;
-
-  it('times only lines the film has, in the order they are said', () => {
-    expect(
-      siteCues(walkthrough, [
-        { id: graph.key, startTime: 9, endTime: 19 },
-        { id: 'tour.film.walkthrough.secret', startTime: 1, endTime: 2 },
-        { id: intro.key, startTime: 0.4, endTime: 9 },
-        // A cue with no length is no line.
-        { id: intro.key, startTime: 30, endTime: 30 },
-      ]),
-    ).toEqual([
-      { key: intro.key, from: 0.4, to: 9 },
-      { key: graph.key, from: 9, to: 19 },
-    ]);
-  });
-
-  it('gives nothing for a track that is missing or says nothing usable', () => {
-    expect(siteCues(walkthrough, null)).toBeUndefined();
-    expect(siteCues(walkthrough, [])).toBeUndefined();
-    expect(
-      siteCues(walkthrough, [{ id: 'not.a.line', startTime: 0, endTime: 5 }]),
-    ).toBeUndefined();
-  });
-});
-
 describe('every film in the catalogue', () => {
   it.each(Object.entries(FEATURE_FILMS))(
     '%s has a bundled frame, opens on what it is, then says only what the dictionary has, in order',
@@ -359,11 +325,21 @@ describe('every film in the catalogue', () => {
   );
 });
 
-it('bundles all 32 lines of the approved nine-minute walkthrough, including the late subtitles', () => {
-  const { cues } = FEATURE_FILMS.walkthrough;
-  expect(cues).toHaveLength(32);
-  expect(cues[cues.length - 1].to).toBe(564.5);
-  expect(filmCueAt(cues, 362)?.key).toBe('tour.film.walkthrough.footsteps');
-  expect(filmCueAt(cues, 527)?.key).toBe('tour.film.walkthrough.sharelink');
-  expect(filmCueAt(cues, 560)?.key).toBe('tour.film.walkthrough.outro');
+describe('the walkthrough’s name', () => {
+  beforeAll(() =>
+    Promise.all(LOCALES.map((locale) => loadLocale(locale.code))),
+  );
+
+  it.each(LOCALES.map((locale) => locale.code))(
+    'names no version in %s, so a new take at the same link never contradicts it',
+    (locale) => {
+      const { cues, spokenCaptions } = FEATURE_FILMS.walkthrough;
+      expect(spokenCaptions).toBe(true);
+      expect(cues).toHaveLength(1);
+      const name = translate(locale, cues[0].key);
+      // Help's title and the player's label: the film's own name.
+      expect(name).toBe(translate(locale, 'tour.walkthrough.title'));
+      expect(name).not.toMatch(/\d\.\d/);
+    },
+  );
 });

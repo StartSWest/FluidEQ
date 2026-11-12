@@ -630,70 +630,7 @@ const tour = {
   'tour.walkthrough.subtitle': 'Watch it from start to finish',
   'tour.walkthrough.lead':
     'A guided tour of everything FluidEQ does, from the first band you drag to the visualizers, with a voice that says how to use each part.',
-  'tour.film.walkthrough.intro':
-    "This is FluidEQ 2.2: one equaliser for everything your computer plays. Let's take a tour.",
-  'tour.film.walkthrough.graph':
-    'Drag any point on the graph to shape the sound. Each band shows its frequency and gain right on the curve.',
-  'tour.film.walkthrough.sliders':
-    'The sliders move the same bands, and the curve follows them at once. The band you touch opens its own controls below.',
-  'tour.film.walkthrough.tone':
-    'Click away, and the Tone comes back: Bass, Mid and Treble, with a low and a high cut on either side.',
-  'tour.film.walkthrough.ears':
-    'Right-click a band and choose Left + right to tune each ear on its own. The solid line is your left ear, the dashed one your right.',
-  'tour.film.walkthrough.eqmode':
-    'EQ mode sits beside the graph. It sets how strongly your curves play, and Precise plays the treble exactly as drawn.',
-  'tour.film.walkthrough.headphones':
-    'In EQ Presets, find your headphones among thousands of measured models, and apply their correction in one press.',
-  'tour.film.walkthrough.mycurves':
-    "Save it to My curves, your own list beside OPRA's, ready whenever you need it.",
-  'tour.film.walkthrough.outputs':
-    'Every output keeps its own sound. Switch to your headphones, and they come back exactly as you left them. A second output can play the same music on another device.',
-  'tour.film.walkthrough.songs':
-    "Turn on Remember each song's sound, and every song comes back with the sound you gave it.",
-  'tour.film.walkthrough.games':
-    'Game presets switch the sound the moment a game comes to the front, and switch back when you close it.',
-  'tour.film.walkthrough.dsp':
-    'The DSP rack is a chain of studio effects for everything you hear. Pick a preset for the whole rack, from music styles to films and games.',
-  'tour.film.walkthrough.deesser':
-    'The new De-esser turns down only the sharp S in a voice, and leaves the cymbals alone.',
-  'tour.film.walkthrough.character':
-    'The Exciter adds sparkle, Bass Forge adds weight, and Dimension makes the stereo wider.',
-  'tour.film.walkthrough.room':
-    'The Room puts you among speakers in a real space, even on headphones.',
-  'tour.film.walkthrough.maximizer':
-    'And the Maximizer keeps it all loud and clean, without ever clipping.',
-  'tour.film.walkthrough.footsteps':
-    'New in the rack, Footsteps brings up the quiet sounds of a game, like steps and reloads, as they happen.',
-  'tour.film.walkthrough.library':
-    'The Library plays your own music through the same sound, with albums, playlists and Up next.',
-  'tour.film.walkthrough.compact':
-    'The Compact player puts all of it in one small window: the song, the controls and your EQ.',
-  'tour.film.walkthrough.desktop':
-    'Behind it, any visualizer can play on your desktop, moving with your music.',
-  'tour.film.walkthrough.oneline':
-    'Fold it to one line, and it stays out of your way, with a visualizer playing softly behind the song.',
-  'tour.film.walkthrough.looks':
-    'The graph can become a visualizer of its own. Pick a look, or a whole scene, and the window takes on its colours.',
-  'tour.film.walkthrough.gallery':
-    'In Visualizers, the gallery holds scenes made by FluidEQ and its community. Each one is yours for good, for one credit.',
-  'tour.film.walkthrough.studio':
-    'In the Studio, describe a change in your own words, and watch it happen on the stage.',
-  'tour.film.walkthrough.karaoke':
-    'Karaoke turns your songs into a sing-along, with timed lyrics and your pitch on screen.',
-  'tour.film.walkthrough.karaokeplay':
-    'Open a song with its lyrics and press Play. Each word lights up as it is sung, and the pitch guide below shows every note to hit.',
-  'tour.film.walkthrough.karaokestage':
-    'And behind the words, the stage can play any visualizer, moving with the song.',
-  'tour.film.walkthrough.share':
-    'Share Audio links the computers on your home network, so music flows between them, both ways.',
-  'tour.film.walkthrough.sharelink':
-    'Each computer sends only what it plays itself, so nothing echoes back, and the one you listen on applies its own EQ.',
-  'tour.film.walkthrough.sharemix':
-    'Each link has its own volume, and the sound arrives lossless and in step, with no dropouts.',
-  'tour.film.walkthrough.help':
-    'And everything here is in the User guide, drawn from the app itself.',
-  'tour.film.walkthrough.outro':
-    "That's FluidEQ. Make it sound, and look, like yours.",
+  'tour.film.walkthrough.intro': 'All of FluidEQ, in one video',
   'tour.film.engine.intro':
     'FluidEQ has an audio engine of its own. It brings your EQ and the DSP rack to everything the computer plays.',
   'tour.film.engine.choose':

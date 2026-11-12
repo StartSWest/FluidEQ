@@ -16,7 +16,6 @@ import HELP_FILMS from 'renderer/help/helpFilms';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 import {
   FEATURE_FILMS,
-  featureFilmTimingUrl,
   featureFilmUrl,
   filmCueAt,
 } from 'renderer/components/featureTour/featureFilms';
@@ -110,41 +109,38 @@ it('keeps a bundled poster and fetches neither film nor track before Play', () =
   expect(video).toHaveAttribute('crossorigin', 'anonymous');
   expect(video?.querySelector('track')).toHaveAttribute(
     'src',
-    featureFilmTimingUrl('walkthrough', 'en'),
+    'https://fluideq.com/video/whatsnew/walkthrough.en.vtt',
   );
 });
 
-it('uses the recording’s site timings after they load, and bundled timings when they fail', () => {
+/** The caption track saying `text`, as the browser does when a cue starts. */
+const say = (track: HTMLTrackElement, text: string) => {
+  Object.defineProperty(track, 'track', {
+    configurable: true,
+    value: { activeCues: [{ text }] },
+  });
+  fireEvent(track, new Event('cuechange'));
+};
+
+it('says the site’s words under the walkthrough, never a line of its own', () => {
   const { video, subtitle } = openFilm();
   fireEvent.playing(video);
-  const bundled = filmCueAt(FEATURE_FILMS.walkthrough.cues, 50);
-  if (!bundled) {
-    throw new Error('The recording has no bundled line at 50 seconds');
-  }
-  playTo(video, 50);
-  expect(subtitle()).toHaveTextContent(en[bundled.key]);
-  const track = trackOf(video);
-  fireEvent.error(track);
-  playTo(video, 50);
-  expect(subtitle()).toHaveTextContent(en[bundled.key]);
-  Object.defineProperty(track, 'track', {
-    value: {
-      cues: [
-        { id: 'tour.film.walkthrough.footsteps', startTime: 49, endTime: 51 },
-      ],
-    },
-  });
-  fireEvent.load(track);
-  paint();
-  expect(subtitle()).toHaveTextContent(en['tour.film.walkthrough.footsteps']);
-  expect(subtitle()).not.toHaveTextContent(en[bundled.key]);
+  const [name] = FEATURE_FILMS.walkthrough.cues;
+  expect(filmCueAt(FEATURE_FILMS.walkthrough.cues, name.from)).toBe(name);
+  playTo(video, (name.from + name.to) / 2);
+  // Until the site says something the line holds the film's name, as it did
+  // before Play: its one cue is never said as a line.
+  expect(subtitle()).toHaveTextContent(en['tour.walkthrough.title']);
+  say(trackOf(video), 'Whatever the take on the site says');
+  expect(subtitle()).toHaveTextContent('Whatever the take on the site says');
+  expect(subtitle()).not.toHaveTextContent(en['tour.walkthrough.title']);
 });
 
 it('plays the old tutorial with its own captions if the walkthrough is unavailable, then offers a fresh retry if both fail', () => {
   const { video, subtitle, container } = openFilm();
   fireEvent.playing(video);
-  playTo(video, 362);
-  expect(subtitle()).toHaveTextContent(en['tour.film.walkthrough.footsteps']);
+  say(trackOf(video), 'The walkthrough’s own line');
+  expect(subtitle()).toHaveTextContent('The walkthrough’s own line');
   fireEvent.error(video);
   expect(video).toHaveAttribute(
     'src',
@@ -156,14 +152,9 @@ it('plays the old tutorial with its own captions if the walkthrough is unavailab
     'src',
     'https://fluideq.com/video/first-steps.en.vtt',
   );
-  Object.defineProperty(track, 'track', {
-    value: { activeCues: [{ text: 'The tutorial’s own line' }] },
-  });
-  fireEvent(track, new Event('cuechange'));
+  say(track, 'The tutorial’s own line');
   expect(subtitle()).toHaveTextContent('The tutorial’s own line');
-  expect(subtitle()).not.toHaveTextContent(
-    en['tour.film.walkthrough.footsteps'],
-  );
+  expect(subtitle()).not.toHaveTextContent('The walkthrough’s own line');
   fireEvent.error(video);
   expect(screen.getByRole('status')).toHaveTextContent(en['help.video.failed']);
   fireEvent.click(screen.getByRole('button', { name: en['help.video.retry'] }));
@@ -172,7 +163,10 @@ it('plays the old tutorial with its own captions if the walkthrough is unavailab
     'src',
     featureFilmUrl('walkthrough', 'en'),
   );
-  expect(container.querySelector('track')).toHaveAttribute('kind', 'metadata');
+  expect(container.querySelector('track')).toHaveAttribute(
+    'src',
+    'https://fluideq.com/video/whatsnew/walkthrough.en.vtt',
+  );
 });
 
 it.each(['es', 'ja'] as const)(
