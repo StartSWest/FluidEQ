@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useCallback, useState } from 'react';
 import { PRODUCT_VERSION } from 'common/branding';
 import { errorText } from 'common/errors';
 import { featureTourDismissal } from 'common/featureTour';
@@ -26,7 +27,9 @@ import AboutDialog from '../components/AboutDialog';
 import AudioEngineDialog from '../components/AudioEngineDialog';
 import AudioTroubleshooter from '../components/AudioTroubleshooter';
 import BugReportDialog from '../components/BugReportDialog';
-import DisclaimerGate from '../components/DisclaimerGate';
+import DisclaimerGate, {
+  isDisclaimerAccepted,
+} from '../components/DisclaimerGate';
 import EngineTroubleNotice from '../components/EngineTroubleNotice';
 import EngineUpdateNotice from '../components/EngineUpdateNotice';
 import FeatureTour from '../components/featureTour/FeatureTour';
@@ -46,6 +49,7 @@ import SongSoundHost from '../audio/SongSoundHost';
 import SpeechMemoryNotice from '../components/SpeechMemoryNotice';
 import UpdateNotice from '../components/UpdateNotice';
 import UnactivatedNotice from '../edition/UnactivatedNotice';
+import { launchTurn } from './launchDialogs';
 import UpdatesChangingNotice from '../edition/UpdatesChangingNotice';
 import WhatsNewDialog from '../components/WhatsNewDialog';
 import SceneReportHost from '../plus/SceneReportHost';
@@ -94,6 +98,10 @@ const ShellDialogs = ({
   const { globalError, isBlockingError, isLoading, setGlobalError } =
     useFluidEqShell();
   const { t } = useTranslation();
+  // The licence gate is in front of everything at a first launch: What's New
+  // and the notices that open by themselves take their turn once it closes.
+  const [gateOpen, setGateOpen] = useState(() => !isDisclaimerAccepted());
+  const closeGate = useCallback(() => setGateOpen(false), []);
   const { engineStatus } = engine;
   const {
     showBugReport,
@@ -232,7 +240,14 @@ const ShellDialogs = ({
           at once do not land on top of each other. */}
       <UpdateNotice />
       <UnactivatedNotice />
-      <UpdatesChangingNotice />
+      {/* One dialog at a time at launch, in this order: the licence gate,
+          What's New and its tour, then this. It waits on the state that says
+          the others are closed, never on a clock. */}
+      {launchTurn({
+        gate: gateOpen,
+        tour: showFeatureTour,
+        whatsNew: whatsNewScope !== null,
+      }) === 'notices' && <UpdatesChangingNotice />}
       {/* Here rather than in the Karaoke tab that owns the model: the idle
           timer that raises it runs for as long as the model is loaded, and
           asking inside a tab nobody is looking at held the RAM until the
@@ -269,7 +284,7 @@ const ShellDialogs = ({
       <SceneAnnouncementDialog />
       <AppNewsNotice obscured={isNewsObscured} />
       <AppNewsHost />
-      {showFeatureTour && (
+      {showFeatureTour && !gateOpen && (
         <FeatureTour
           // The other What's New starts afresh, on its first slide.
           key={featureTourPart}
@@ -310,7 +325,7 @@ const ShellDialogs = ({
           }}
         />
       )}
-      {whatsNewScope && (
+      {whatsNewScope && !gateOpen && (
         <WhatsNewDialog
           scope={whatsNewScope}
           onClose={() => setWhatsNewScope(null)}
@@ -369,7 +384,7 @@ const ShellDialogs = ({
           update notice, and its Escape handler would eat the key that
           notice closes on. Front-most is the only place a lock belongs. */}
       <MandatoryUpdateModal />
-      <DisclaimerGate />
+      <DisclaimerGate onAccepted={closeGate} />
     </>
   );
 };

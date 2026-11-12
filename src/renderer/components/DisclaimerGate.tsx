@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   DISCLAIMER_ACCEPTED_KEY,
   DISCLAIMER_ACCEPT_KEY,
@@ -97,21 +97,42 @@ import '../styles/DisclaimerGate.scss';
  * notice nobody was shown. It is shown once per wording, so the cost of the
  * lock is paid once.
  */
-const DisclaimerGate = () => {
+/**
+ * Whether the notice has been accepted on this computer, as the gate itself
+ * reads it. For whoever has to wait for the gate before showing a dialog of
+ * its own, from the first render and not one after it.
+ */
+export const isDisclaimerAccepted = (): boolean => {
+  try {
+    return (
+      readAcceptance(window.localStorage.getItem(DISCLAIMER_ACCEPTED_KEY)) !==
+      undefined
+    );
+  } catch {
+    // Private mode, a locked-down profile, a test environment without
+    // storage. Showing the notice is the right answer for all of them.
+    return false;
+  }
+};
+
+interface IDisclaimerGateProps {
+  /**
+   * Told when the gate closes, so the dialogs that open at launch can take
+   * their turn after it rather than under it.
+   */
+  onAccepted?: () => void;
+}
+
+const DisclaimerGate = ({ onAccepted }: IDisclaimerGateProps) => {
   const { t, locale } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [isAccepted, setIsAccepted] = useState(() => {
-    try {
-      return (
-        readAcceptance(window.localStorage.getItem(DISCLAIMER_ACCEPTED_KEY)) !==
-        undefined
-      );
-    } catch {
-      // Private mode, a locked-down profile, a test environment without
-      // storage. Showing the notice is the right answer for all of them.
-      return false;
+  const [isAccepted, setIsAccepted] = useState(isDisclaimerAccepted);
+
+  useEffect(() => {
+    if (isAccepted) {
+      onAccepted?.();
     }
-  });
+  }, [isAccepted, onAccepted]);
 
   useFocusLock(dialogRef, !isAccepted);
 

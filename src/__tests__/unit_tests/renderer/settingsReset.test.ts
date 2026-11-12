@@ -84,6 +84,9 @@ const KEPT = [
   // What they agreed to, saw, won or gave.
   'fluideq.disclaimerAccepted',
   'fluideq.featureTourDismissed',
+  // The one-time word that 2.5 is the last version the free edition gets by
+  // itself: told once, and a reset is not a reason to tell it again.
+  'fluideq.updatesChanging.told',
   // The Visualizers' own What's New, opened or put aside for this release.
   'fluideq.visualsNewsSeen',
   'fluideq.seenSceneVersions',
