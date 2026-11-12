@@ -18,8 +18,8 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 - **It keeps updating itself.** New versions arrive by themselves; FluidEQ
   tells you when one is ready, and **Restart now** finishes it. Your
   settings stay.
-- **Free for everyone.** One FluidEQ, the same for everybody, with nothing
-  to buy and nothing to activate.
+- **Free for everyone.** One FluidEQ, the same for everybody. The app costs
+  nothing and needs no activation.
 
 #### Sound and the app
 
@@ -165,7 +165,7 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 FluidEQ 2.4 is the Studio's biggest release yet. The pictures in a scene
 can move: the scene's chat makes, fixes and checks its animations, and the
-#### The graph, the desktop and the gallery
+Animations tab plays and imports them. Every picture in the chat can be
 zoomed, copied and drawn on, the stage tries your scene as an ultra-wide
 graph or in the Compact player, and one AI works on several of your scenes
 at once, with whatever your own Claude has. Scenes gain palettes, choices
@@ -173,7 +173,7 @@ and kept versions.
 Every 3D visualizer lets you pick the key that moves its camera, on the
 graph and on your desktop.
 
-#### Scenes, the gallery and the desktop
+#### The graph, the desktop and the gallery
 
 - **Choose your camera key.** Pick the key that moves a 3D scene's camera:
   Ctrl, Alt, Shift or any key. Choose **Hold and drag** or **Hold and

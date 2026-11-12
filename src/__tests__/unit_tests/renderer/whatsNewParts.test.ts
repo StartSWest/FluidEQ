@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
+import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { isVisualsNewsUnseen } from 'common/featureTour';
@@ -186,6 +187,43 @@ describe('2.5’s opening page', () => {
     expect(english).not.toMatch(/edition|account|paddle|credit/i);
     expect(english).not.toMatch(/warning|smartscreen/i);
   });
+
+  // Ivan, 2026-11-11: "not true and fixed month on text dont put that on
+  // text". A length of time goes stale the day after the release (the live
+  // count says how long), and the gallery's scenes are bought, so nothing may
+  // claim there is nothing to buy.
+  const STALE =
+    /\bmonths?\b|\bweeks?\b|\bmeses\b|\bsemanas?\b|\bmois\b|\bsemaines?\b|\bMonate?n?\b|\bWochen?\b|\bmesi\b|\bsettimane?\b|месяц|недел|महीन|हफ़्त|か月|週間|개월|석 달|个月|個月/i;
+  const NOTHING_TO_BUY =
+    /nothing to buy|nothing to activate|nada que comprar|nada para comprar|rien à acheter|nichts zu kaufen|niente da comprare|ничего не нужно покупать|न कुछ ख़रीदना|購入も|구매할 것도|无需购买|不必購買/i;
+
+  it.each(LOCALES)(
+    'names no length of time and no "nothing to buy", in %s',
+    (locale) => {
+      const page = tourLines(locale, /^\s*'tour\.signed\./).join(' ');
+      expect(page).not.toMatch(STALE);
+      expect(page).not.toMatch(NOTHING_TO_BUY);
+    },
+  );
+
+  it('catches what it is there to catch', () => {
+    expect('A little over three months on, it has').toMatch(STALE);
+    expect('Pouco mais de três meses depois').toMatch(STALE);
+    expect('Чуть больше трёх месяцев спустя').toMatch(STALE);
+    expect('with nothing to buy and nothing to activate').toMatch(
+      NOTHING_TO_BUY,
+    );
+    expect('The app costs nothing and needs no activation.').not.toMatch(
+      NOTHING_TO_BUY,
+    );
+  });
+
+  it('keeps the notes’ opening to what is true of the app', () => {
+    const app = release('2.5.0').split(/^### /m)[1] ?? '';
+    expect(app).not.toMatch(STALE);
+    expect(app).not.toMatch(NOTHING_TO_BUY);
+    expect(app).toContain('The app costs');
+  });
 });
 
 /**
@@ -259,6 +297,31 @@ describe('the release notes and the version', () => {
     later.forEach((section) => {
       expect(partsOf(section)).toEqual(['### FluidEQ', '### Visualizers']);
     });
+  });
+
+  // Regrouping 2.4.0 into two parts once replaced a line of its prose with a
+  // heading, cutting the Visualizers' introduction off mid-sentence. The
+  // text under the headings is pinned: retitling stays free, losing a word
+  // does not. A real change to 2.4.0's words moves the pin in its commit.
+  it('keeps 2.4.0’s words whatever its headings are called', () => {
+    const words = release('2.4.0')
+      .split(/\r?\n/)
+      .filter((line) => !/^#{2,4} /.test(line))
+      .join('\n');
+    expect(createHash('sha256').update(words).digest('hex')).toBe(
+      '84dd062d7e1cd1ff13397691bd2d3d32c6a580e48bc7d80d15303d2b12311986',
+    );
+  });
+
+  it('names no heading twice within a release, from 2.4 on', () => {
+    sections
+      .filter((section) => /^2\.(4|[5-9])\./.test(section))
+      .forEach((section) => {
+        const headings = section
+          .split(/\r?\n/)
+          .filter((line) => /^#{3,4} /.test(line));
+        expect(new Set(headings).size).toBe(headings.length);
+      });
   });
 
   it('opens 2.5 on its signing, at the top of the app’s part', () => {

@@ -239,7 +239,7 @@ const tour24 = {
   'tour.signed.since': '始於 {date}',
   'tour.signed.roadTitle': '一路走來',
   'tour.signed.intro':
-    'FluidEQ 始於 2026年8月2日，兩天後推出了第一個版本 0.4.0。三個多月後，它有了在 Windows 內運作、屬於它自己的音訊引擎，處理您聽到的一切聲音的 DSP 機架，用於您的音樂的媒體庫和播放器，附畫廊的視覺化效果，用來製作自己場景的工作室，以及十二種語言。由開發者簽署的版本，是這段路上的一個里程碑。',
+    'FluidEQ 始於 2026年8月2日，兩天後推出了第一個版本 0.4.0。從那以後，它有了在 Windows 內運作、屬於它自己的音訊引擎，處理您聽到的一切聲音的 DSP 機架，用於您的音樂的媒體庫和播放器，附畫廊的視覺化效果，用來製作自己場景的工作室，以及十二種語言。由開發者簽署的版本，是這段路上的一個里程碑。',
   'tour.signed.thanks':
     '感謝每一位使用 FluidEQ、回報問題、發布場景和在論壇發言的人：是您們每一位讓它變得更好。',
   'tour.signed.signedTitle': '由開發者簽署',
@@ -249,7 +249,8 @@ const tour24 = {
   'tour.signed.updatesBody':
     '每個新版本都會自動送達，準備好後 FluidEQ 會通知您。您的設定會保留。',
   'tour.signed.freeTitle': '人人免費',
-  'tour.signed.freeBody': '只有一個 FluidEQ，人人相同，不必購買，也不必啟用。',
+  'tour.signed.freeBody':
+    '只有一個 FluidEQ，人人相同。應用程式本身免費，也不必啟用。',
   'tour.signed.unit.day.one': '天',
   'tour.signed.unit.day.few': '天',
   'tour.signed.unit.day.many': '天',

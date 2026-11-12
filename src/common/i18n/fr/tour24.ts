@@ -262,7 +262,7 @@ const tour24 = {
   'tour.signed.since': 'Lancé le {date}',
   'tour.signed.roadTitle': 'Le chemin parcouru',
   'tour.signed.intro':
-    'FluidEQ a commencé le 2 août 2026, et sa première version, la 0.4.0, est sortie deux jours plus tard. Un peu plus de trois mois après, il a son propre moteur audio dans Windows, un rack DSP pour tout ce que vous entendez, une Bibliothèque et un lecteur pour votre musique, des visualiseurs avec une galerie, un Studio pour créer vos propres scènes, et douze langues. Une version signée par son développeur est une étape importante sur ce chemin.',
+    'FluidEQ a commencé le 2 août 2026, et sa première version, la 0.4.0, est sortie deux jours plus tard. Depuis, il s’est doté de son propre moteur audio dans Windows, d’un rack DSP pour tout ce que vous entendez, d’une Bibliothèque et d’un lecteur pour votre musique, de visualiseurs avec une galerie, d’un Studio pour créer vos propres scènes, et de douze langues. Une version signée par son développeur est une étape importante sur ce chemin.',
   'tour.signed.thanks':
     'Merci à toutes celles et ceux qui utilisent FluidEQ, signalent ce qui ne va pas, publient des scènes et écrivent sur le forum : chacun d’entre vous l’a rendu meilleur.',
   'tour.signed.signedTitle': 'Signé par son développeur',
@@ -273,7 +273,7 @@ const tour24 = {
     'Chaque nouvelle version arrive d’elle-même, et FluidEQ vous prévient quand elle est prête. Vos réglages restent.',
   'tour.signed.freeTitle': 'Gratuit pour tous',
   'tour.signed.freeBody':
-    'Un seul FluidEQ, le même pour tout le monde, rien à acheter ni à activer.',
+    'Un seul FluidEQ, le même pour tout le monde. L’application ne coûte rien et ne demande aucune activation.',
   'tour.signed.unit.day.one': 'jour',
   'tour.signed.unit.day.few': 'jours',
   'tour.signed.unit.day.many': 'jours',
