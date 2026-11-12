@@ -251,11 +251,31 @@ const tour24 = {
   'tour.code.open': 'Abrir Visualizadores',
   'tour.code.imageAlt':
     'La pestaña Código con los archivos de la escena plegados a sus nombres y un material de su mundo 3D abierto.',
+  'tour.fullscreen.kicker': 'ESTUDIO · PANTALLA COMPLETA',
+  'tour.fullscreen.title': 'Trabaja en una escena a pantalla completa',
+  'tour.fullscreen.subtitle':
+    'El panel de trabajo y el chat sobre la escena en marcha',
+  'tour.fullscreen.lead':
+    'A pantalla completa la escena llena toda la pantalla y sigue sonando, y el Estudio va con ella: el panel de trabajo sube sobre su parte de abajo y el chat se acopla al lado.',
+  'tour.fullscreen.point1':
+    'El panel de trabajo tiene todas las pestañas, Ajustar, Código y las demás. Arrastra su borde superior para hacerlo más alto o más bajo.',
+  'tour.fullscreen.point2':
+    'Cada uno aparece y se va con su propio botón en los controles de pantalla completa, o con Ctrl+J para el panel de trabajo y Ctrl+L para el chat.',
+  'tour.fullscreen.point3':
+    'Un chat plegado deja una pestaña en el borde de la pantalla, y la siguiente pantalla completa se abre como la dejaste.',
+  'tour.fullscreen.how':
+    'Abre una escena en el Estudio y pulsa Pantalla completa en su escenario.',
+  'tour.fullscreen.open': 'Abrir Visualizadores',
+  'tour.fullscreen.imageAlt':
+    'Una escena que ocupa toda la pantalla, con el panel de trabajo abierto sobre su parte de abajo en la pestaña Ajustar y el chat de la escena acoplado a la derecha.',
+  'tour.fullscreen.request': 'Haz la aurora más brillante en el drop',
   'tour.v25.also': 'También en 2.5',
   'tour.v25.recover':
     'Un fondo de escritorio o el reproductor compacto arregla una escena que no compila desde tu proyecto del Estudio o la copia de la Galería.',
   'tour.v25.never':
     'Una escena que no se reproduce nunca se cambia por otro aspecto: el gráfico dice por qué y ofrece Reintentar.',
+  'tour.v25.painted':
+    'En una escena pintada, los alfileres y recuadros que señalan a la IA lo que quieres se mueven a mano: arrastra cualquiera adonde quieras, estira un recuadro por sus esquinas y bordes, y quita uno con su botón o con Supr.',
   'tour.v25.copy':
     'La escena de otro miembro abierta en el Estudio es una copia bloqueada, y su chat pregunta antes de cada comando.',
   'tour.v25.review':

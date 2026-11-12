@@ -62,7 +62,13 @@ import {
 } from './release24';
 import SignedSlide from './release25Sound';
 import SongLevelSlide from './release24Sound';
-import { CodeSlide, EditSlide, MakersSlide, WatchSlide } from './release25';
+import {
+  CodeSlide,
+  EditSlide,
+  FullscreenSlide,
+  MakersSlide,
+  WatchSlide,
+} from './release25';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
 
 /**
@@ -432,7 +438,7 @@ const SONG_LEVEL: TSlideEntry = {
 
 /**
  * 2.5's visualizers, all of them in the Visualizers' own What's New: Edit
- * mode, the AI that watches a scene, Higgsfield and the Code tab,
+ * mode, full screen, the AI that watches a scene, Higgsfield and the Code tab,
  * with the rest of the release listed under the last.
  */
 const RELEASE_25: TSlideEntry[] = [
@@ -442,6 +448,13 @@ const RELEASE_25: TSlideEntry[] = [
     titleKey: 'tour.edit.title',
     subtitleKey: 'tour.edit.subtitle',
     Body: EditSlide,
+  },
+  {
+    id: 'studio-fullscreen',
+    part: 'visuals',
+    titleKey: 'tour.fullscreen.title',
+    subtitleKey: 'tour.fullscreen.subtitle',
+    Body: FullscreenSlide,
   },
   {
     id: 'studio-watch',

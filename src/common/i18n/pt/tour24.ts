@@ -239,11 +239,31 @@ const tour24 = {
   'tour.code.open': 'Abrir Visualizadores',
   'tour.code.imageAlt':
     'A aba Código com os arquivos da cena recolhidos nos nomes e um material do mundo 3D aberto.',
+  'tour.fullscreen.kicker': 'ESTÚDIO · TELA CHEIA',
+  'tour.fullscreen.title': 'Trabalhe numa cena em tela cheia',
+  'tour.fullscreen.subtitle':
+    'O painel de trabalho e o chat sobre a cena tocando',
+  'tour.fullscreen.lead':
+    'Em tela cheia a cena ocupa a tela toda e continua tocando, e o Estúdio vai junto: o painel de trabalho sobe sobre a parte de baixo e o chat se encaixa ao lado.',
+  'tour.fullscreen.point1':
+    'O painel de trabalho tem todas as abas, Ajustar, Código e as outras. Arraste a borda de cima para deixá-lo mais alto ou mais baixo.',
+  'tour.fullscreen.point2':
+    'Cada um aparece e some com o próprio botão nos controles de tela cheia, ou com Ctrl+J para o painel de trabalho e Ctrl+L para o chat.',
+  'tour.fullscreen.point3':
+    'Um chat recolhido deixa uma aba na borda da tela, e a próxima tela cheia abre do jeito que você deixou.',
+  'tour.fullscreen.how':
+    'Abra uma cena no Estúdio e pressione Tela cheia no palco.',
+  'tour.fullscreen.open': 'Abrir Visualizadores',
+  'tour.fullscreen.imageAlt':
+    'Uma cena ocupando a tela toda, com o painel de trabalho aberto sobre a parte de baixo na aba Ajustar e o chat da cena encaixado à direita.',
+  'tour.fullscreen.request': 'Deixe a aurora mais brilhante no drop',
   'tour.v25.also': 'Também na 2.5',
   'tour.v25.recover':
     'Um fundo de tela ou o player compacto conserta uma cena que não compila a partir do seu projeto do Estúdio ou da cópia da Galeria.',
   'tour.v25.never':
     'Uma cena que não toca nunca é trocada por outro visual: o gráfico diz por quê e oferece Tentar de novo.',
+  'tour.v25.painted':
+    'Numa cena pintada, os alfinetes e caixas que mostram à IA o que você quer se movem à mão: arraste qualquer um para onde quiser, estique uma caixa pelos cantos e bordas, e remova um com o botão dele ou com Delete.',
   'tour.v25.copy':
     'A cena de outro membro aberta no Estúdio é uma cópia travada, e o chat dela pergunta antes de cada comando.',
   'tour.v25.review':

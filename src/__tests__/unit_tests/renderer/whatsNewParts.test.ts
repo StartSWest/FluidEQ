@@ -36,6 +36,7 @@ const VISUALS = [
   'scene-controls',
   'scene-camera',
   'studio-edit',
+  'studio-fullscreen',
   'studio-watch',
   'studio-makers',
   'studio-code',
@@ -96,7 +97,13 @@ describe("What's New: the sound's and the visualizers'", () => {
     const visuals = slidesOfPart(featureTourFor('2.5.0'), 'visuals');
     expect(
       visuals.filter((slide) => slide.release === '2.5').map((s) => s.id),
-    ).toEqual(['studio-edit', 'studio-watch', 'studio-makers', 'studio-code']);
+    ).toEqual([
+      'studio-edit',
+      'studio-fullscreen',
+      'studio-watch',
+      'studio-makers',
+      'studio-code',
+    ]);
     expect(visuals[0].id).toBe('studio-edit');
   });
 
@@ -120,7 +127,13 @@ describe("What's New: the sound's and the visualizers'", () => {
     );
     expect(
       newInPart(featureTourFor('2.5.0'), 'visuals', '2.5.0').map((s) => s.id),
-    ).toEqual(['studio-edit', 'studio-watch', 'studio-makers', 'studio-code']);
+    ).toEqual([
+      'studio-edit',
+      'studio-fullscreen',
+      'studio-watch',
+      'studio-makers',
+      'studio-code',
+    ]);
     // The sound's 2.5 brings the signing, and nothing about scenes.
     expect(
       newInPart(featureTourFor('2.5.0'), 'sound', '2.5.0').map((s) => s.id),
@@ -236,7 +249,7 @@ const OLD_DIRECTION =
   /edition|édition (gratuite|signée)|edición (gratuita|firmada)|edizione|edição (gratuita|assinada)|издани|エディション|에디션|paddle|\$\s?19|19\s?\$|another email|gpt|codex/i;
 
 /** Every key 2.5's slides read, in both What's News. */
-const SLIDES_25 = /^\s*'tour\.(signed|edit|watch|makers|code|v25)\./;
+const SLIDES_25 = /^\s*'tour\.(signed|edit|fullscreen|watch|makers|code|v25)\./;
 
 describe('2.5 says nothing of a paid edition or GPT', () => {
   it.each(LOCALES)('in its slides, in %s', (locale) => {

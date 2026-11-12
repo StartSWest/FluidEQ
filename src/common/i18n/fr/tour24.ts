@@ -245,11 +245,31 @@ const tour24 = {
   'tour.code.open': 'Ouvrir Visualiseurs',
   'tour.code.imageAlt':
     'L’onglet Code avec les fichiers de la scène repliés sur leurs noms et un matériau de son monde 3D ouvert.',
+  'tour.fullscreen.kicker': 'STUDIO · PLEIN ÉCRAN',
+  'tour.fullscreen.title': 'Travaillez sur une scène en plein écran',
+  'tour.fullscreen.subtitle':
+    'Le panneau de travail et le chat sur la scène qui joue',
+  'tour.fullscreen.lead':
+    'En plein écran, la scène remplit tout l’écran et continue de jouer, et le Studio vient avec elle : le panneau de travail monte sur sa partie basse et le chat s’ancre sur le côté.',
+  'tour.fullscreen.point1':
+    'Le panneau de travail a tous les onglets, Réglages, Code et les autres. Faites glisser son bord supérieur pour l’agrandir ou le réduire.',
+  'tour.fullscreen.point2':
+    'Chacun apparaît et disparaît avec son propre bouton dans les commandes du plein écran, ou avec Ctrl+J pour le panneau de travail et Ctrl+L pour le chat.',
+  'tour.fullscreen.point3':
+    'Un chat replié laisse un onglet au bord de l’écran, et le plein écran suivant s’ouvre comme vous l’avez laissé.',
+  'tour.fullscreen.how':
+    'Ouvrez une scène dans le Studio et appuyez sur Plein écran sur sa scène.',
+  'tour.fullscreen.open': 'Ouvrir Visualiseurs',
+  'tour.fullscreen.imageAlt':
+    'Une scène qui occupe tout l’écran, avec le panneau de travail ouvert sur sa partie basse à l’onglet Réglages et le chat de la scène ancré à droite.',
+  'tour.fullscreen.request': 'Rends l’aurore plus lumineuse sur le drop',
   'tour.v25.also': 'Aussi dans la 2.5',
   'tour.v25.recover':
     'Un fond d’écran ou le lecteur compact répare une scène qui ne se construit pas depuis votre projet du Studio ou la copie de la Galerie.',
   'tour.v25.never':
     'Une scène qui ne joue pas n’est jamais remplacée par un autre style : le graphique dit pourquoi et propose Réessayer.',
+  'tour.v25.painted':
+    'Dans une scène peinte, les épingles et les cadres qui montrent à l’IA ce que vous voulez se déplacent à la main : faites-les glisser où vous voulez, étirez un cadre par ses coins et ses bords, et retirez-en un avec son bouton ou Suppr.',
   'tour.v25.copy':
     'La scène d’un autre membre ouverte dans le Studio est une copie verrouillée, et son chat demande avant chaque commande.',
   'tour.v25.review':

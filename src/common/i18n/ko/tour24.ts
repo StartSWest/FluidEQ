@@ -233,11 +233,30 @@ const tour24 = {
   'tour.code.open': '시각화 도우미 열기',
   'tour.code.imageAlt':
     '장면의 파일이 이름으로 접혀 있고 3D 월드의 재질 하나가 열린 코드 탭.',
+  'tour.fullscreen.kicker': '스튜디오 · 전체 화면',
+  'tour.fullscreen.title': '전체 화면에서 장면 작업하기',
+  'tour.fullscreen.subtitle': '재생 중인 장면 위의 작업 패널과 채팅',
+  'tour.fullscreen.lead':
+    '전체 화면에서는 장면이 화면 전체를 채우고 계속 재생되며, 스튜디오도 함께합니다. 작업 패널이 아래쪽 위로 올라오고 채팅은 옆에 붙습니다.',
+  'tour.fullscreen.point1':
+    '작업 패널에는 튜닝, 코드 등 모든 탭이 있습니다. 위쪽 가장자리를 끌어 높이를 바꿀 수 있습니다.',
+  'tour.fullscreen.point2':
+    '각각 전체 화면 컨트롤의 자기 버튼으로 열고 닫으며, 작업 패널은 Ctrl+J, 채팅은 Ctrl+L로도 됩니다.',
+  'tour.fullscreen.point3':
+    '접은 채팅은 화면 가장자리에 탭을 남기고, 다음 전체 화면은 마지막 상태 그대로 열립니다.',
+  'tour.fullscreen.how':
+    '스튜디오에서 장면을 열고 무대에서 전체 화면을 누르세요.',
+  'tour.fullscreen.open': '시각화 도우미 열기',
+  'tour.fullscreen.imageAlt':
+    '화면 전체에서 재생되는 장면. 아래쪽에 튜닝 탭의 작업 패널이 열려 있고 오른쪽에 장면의 채팅이 붙어 있습니다.',
+  'tour.fullscreen.request': '드롭에서 오로라를 더 밝게 해 줘',
   'tour.v25.also': '2.5의 다른 변경 사항',
   'tour.v25.recover':
     '바탕 화면 배경이나 컴팩트 플레이어는 빌드되지 않는 장면을 스튜디오 프로젝트나 갤러리 사본으로 고칩니다.',
   'tour.v25.never':
     '재생되지 않는 장면을 다른 모양으로 바꾸지 않습니다. 그래프가 이유를 알려 주고 다시 시도를 제안합니다.',
+  'tour.v25.painted':
+    '그려진 장면에서는 AI에게 원하는 곳을 알려 주는 핀과 상자를 손으로 움직일 수 있습니다. 어디로든 끌고, 상자는 모서리와 가장자리를 당겨 크기를 바꾸며, 버튼이나 Delete로 지웁니다.',
   'tour.v25.copy':
     '스튜디오에서 연 다른 멤버의 장면은 잠긴 사본이며, 그 채팅은 명령마다 먼저 묻습니다.',
   'tour.v25.review':

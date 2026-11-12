@@ -246,11 +246,31 @@ const tour24 = {
   'tour.code.open': 'Apri Visualizzatori',
   'tour.code.imageAlt':
     'La scheda Codice con i file della scena chiusi sui loro nomi e un materiale del suo mondo 3D aperto.',
+  'tour.fullscreen.kicker': 'STUDIO · SCHERMO INTERO',
+  'tour.fullscreen.title': 'Lavora su una scena a schermo intero',
+  'tour.fullscreen.subtitle':
+    'Il pannello di lavoro e la chat sulla scena che suona',
+  'tour.fullscreen.lead':
+    'A schermo intero la scena riempie tutto lo schermo e continua a suonare, e lo Studio va con lei: il pannello di lavoro sale sulla sua parte bassa e la chat si aggancia al lato.',
+  'tour.fullscreen.point1':
+    'Il pannello di lavoro ha tutte le schede, Regola, Codice e le altre. Trascina il suo bordo superiore per farlo più alto o più basso.',
+  'tour.fullscreen.point2':
+    'Ognuno compare e sparisce con il suo pulsante nei controlli dello schermo intero, o con Ctrl+J per il pannello di lavoro e Ctrl+L per la chat.',
+  'tour.fullscreen.point3':
+    'Una chat chiusa lascia una linguetta sul bordo dello schermo, e lo schermo intero successivo si apre come l’hai lasciato.',
+  'tour.fullscreen.how':
+    'Apri una scena nello Studio e premi Schermo intero sul suo palco.',
+  'tour.fullscreen.open': 'Apri Visualizzatori',
+  'tour.fullscreen.imageAlt':
+    'Una scena che occupa tutto lo schermo, con il pannello di lavoro aperto sulla sua parte bassa nella scheda Regola e la chat della scena agganciata a destra.',
+  'tour.fullscreen.request': 'Rendi l’aurora più luminosa sul drop',
   'tour.v25.also': 'Anche nella 2.5',
   'tour.v25.recover':
     'Uno sfondo del desktop o il player compatto sistema una scena che non si compila dal tuo progetto dello Studio o dalla copia della Galleria.',
   'tour.v25.never':
     'Una scena che non parte non viene mai sostituita con un altro look: il grafico dice perché e offre Riprova.',
+  'tour.v25.painted':
+    'In una scena dipinta, gli spilli e i riquadri che mostrano all’IA cosa intendi si muovono a mano: trascinali dove vuoi, allarga un riquadro dagli angoli e dai bordi, e togline uno con il suo pulsante o con Canc.',
   'tour.v25.copy':
     'La scena di un altro membro aperta nello Studio è una copia bloccata, e la sua chat chiede prima di ogni comando.',
   'tour.v25.review':

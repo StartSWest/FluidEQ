@@ -240,11 +240,31 @@ const tour24 = {
   'tour.code.open': 'Open Visualizers',
   'tour.code.imageAlt':
     'The Code tab with the scene’s files folded to their names and one material of its 3D world open.',
+  'tour.fullscreen.kicker': 'STUDIO · FULL SCREEN',
+  'tour.fullscreen.title': 'Work on a scene in full screen',
+  'tour.fullscreen.subtitle':
+    'The work pane and the chat over the playing scene',
+  'tour.fullscreen.lead':
+    'In full screen the scene fills the whole screen and keeps playing, and the Studio comes with it: the work pane slides up over its lower part, and the chat docks at the side.',
+  'tour.fullscreen.point1':
+    'The work pane has every tab, Tune, Code and the rest. Drag its top edge to make it taller or shorter.',
+  'tour.fullscreen.point2':
+    'Each comes and goes on its own button on the full-screen controls, or with Ctrl+J for the work pane and Ctrl+L for the chat.',
+  'tour.fullscreen.point3':
+    'A folded chat leaves a tab at the edge of the screen, and the next full screen opens the way you left it.',
+  'tour.fullscreen.how':
+    'Open a scene in the Studio and press Fullscreen on its stage.',
+  'tour.fullscreen.open': 'Open Visualizers',
+  'tour.fullscreen.imageAlt':
+    'A scene playing across the whole screen, with the work pane open over its lower part on the Tune tab and the scene’s chat docked at the right.',
+  'tour.fullscreen.request': 'Make the aurora brighter on the drop',
   'tour.v25.also': 'Also in 2.5',
   'tour.v25.recover':
     'A desktop background or the Compact player puts a scene that will not build right from your Studio project or the Gallery’s copy.',
   'tour.v25.never':
     'A scene that will not play is never swapped for another look: the graph says why and offers Try again.',
+  'tour.v25.painted':
+    'In a painted scene, the pins and boxes that show the AI what you mean move by hand: drag either anywhere, pull a box by its corners and edges, and remove one with its button or Delete.',
   'tour.v25.copy':
     'Another member’s scene opened in the Studio is a locked copy, and its chat asks before every command.',
   'tour.v25.review':

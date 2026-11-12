@@ -220,11 +220,29 @@ const tour24 = {
   'tour.code.open': '打开“可视化”',
   'tour.code.imageAlt':
     '“代码”标签页，场景的文件折叠成名称，其 3D 世界的一个材质处于展开状态。',
+  'tour.fullscreen.kicker': '工作室 · 全屏',
+  'tour.fullscreen.title': '在全屏下制作场景',
+  'tour.fullscreen.subtitle': '工作面板和聊天，叠在正在播放的场景上',
+  'tour.fullscreen.lead':
+    '全屏时场景铺满整个屏幕并继续播放，工作室也随之而来：工作面板从下方升起，聊天停靠在一侧。',
+  'tour.fullscreen.point1':
+    '工作面板里有所有标签页，调整、代码等等。拖动它的上边缘即可调高或调低。',
+  'tour.fullscreen.point2':
+    '两者都可以用全屏控件上各自的按钮打开或收起，也可以用 Ctrl+J 切换工作面板、Ctrl+L 切换聊天。',
+  'tour.fullscreen.point3':
+    '收起的聊天会在屏幕边缘留下一个标签，下次全屏会按你离开时的样子打开。',
+  'tour.fullscreen.how': '在工作室中打开一个场景，在舞台上按“全屏”。',
+  'tour.fullscreen.open': '打开“可视化”',
+  'tour.fullscreen.imageAlt':
+    '一个铺满全屏播放的场景，下方打开着停在“调整”标签页的工作面板，右侧停靠着场景的聊天。',
+  'tour.fullscreen.request': '让极光在 drop 时更亮',
   'tour.v25.also': '2.5 的其他更新',
   'tour.v25.recover':
     '桌面背景或紧凑播放器会用你的工作室项目或图库的副本修好无法构建的场景。',
   'tour.v25.never':
     '无法播放的场景绝不会被换成别的外观：图表会说明原因并提供“重试”。',
+  'tour.v25.painted':
+    '在绘制的场景里，用来向 AI 指出位置的图钉和方框可以手动移动：随意拖动，拉动方框的角和边来调整大小，用它的按钮或 Delete 键删除。',
   'tour.v25.copy':
     '在工作室打开的其他成员的场景是锁定的副本，它的聊天会在每条命令前询问。',
   'tour.v25.review': '未通过审核的场景会在名称旁显示审核者的理由。',

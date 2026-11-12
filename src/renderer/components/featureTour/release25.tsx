@@ -9,6 +9,7 @@ import { useTranslation } from '../../utils/I18nContext';
 import ShowcaseSlide from './ShowcaseSlide';
 import StudioCodeVisual from './StudioCodeVisual';
 import StudioEditVisual from './StudioEditVisual';
+import StudioFullscreenVisual from './StudioFullscreenVisual';
 import StudioMakersVisual from './StudioMakersVisual';
 import StudioWatchVisual from './StudioWatchVisual';
 import type { ISlideActions } from './slides';
@@ -16,7 +17,8 @@ import type { ISlideActions } from './slides';
 /**
  * What 2.5 brings the visualizers, all of it in the Visualizers' own What's
  * New (Ivan, 2026-11-11: yes to 2.5's Studio news as slides there): Edit
- * mode, the AI that watches a scene move, Higgsfield as the Studio's maker,
+ * mode, full screen with the work pane and the chat, the AI that watches a
+ * scene move, Higgsfield as the Studio's maker,
  * and the Code tab's every file, with the rest of the release for makers and
  * listeners listed under that last one.
  */
@@ -30,6 +32,16 @@ export function EditSlide({ actions }: ISlideProps) {
       prefix="tour.edit"
       onOpen={() => actions.openTab('community')}
       visual={<StudioEditVisual />}
+    />
+  );
+}
+
+export function FullscreenSlide({ actions }: ISlideProps) {
+  return (
+    <ShowcaseSlide
+      prefix="tour.fullscreen"
+      onOpen={() => actions.openTab('community')}
+      visual={<StudioFullscreenVisual />}
     />
   );
 }
@@ -58,6 +70,7 @@ export function MakersSlide({ actions }: ISlideProps) {
 const ALSO: readonly TranslationKey[] = [
   'tour.v25.recover',
   'tour.v25.never',
+  'tour.v25.painted',
   'tour.v25.copy',
   'tour.v25.review',
   'tour.v25.publish',

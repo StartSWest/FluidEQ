@@ -245,11 +245,31 @@ const tour24 = {
   'tour.code.open': 'Visualizer öffnen',
   'tour.code.imageAlt':
     'Der Code-Tab mit den Dateien der Szene, auf ihre Namen zusammengeklappt, und einem offenen Material ihrer 3D-Welt.',
+  'tour.fullscreen.kicker': 'STUDIO · VOLLBILD',
+  'tour.fullscreen.title': 'An einer Szene im Vollbild arbeiten',
+  'tour.fullscreen.subtitle':
+    'Arbeitsbereich und Chat über der laufenden Szene',
+  'tour.fullscreen.lead':
+    'Im Vollbild füllt die Szene den ganzen Bildschirm und spielt weiter, und das Studio kommt mit: Der Arbeitsbereich gleitet über ihren unteren Teil, und der Chat dockt an der Seite an.',
+  'tour.fullscreen.point1':
+    'Der Arbeitsbereich hat alle Tabs, Abstimmen, Code und die übrigen. Ziehen Sie an seinem oberen Rand, um ihn höher oder niedriger zu machen.',
+  'tour.fullscreen.point2':
+    'Beides kommt und geht über einen eigenen Knopf in der Vollbild-Steuerung, oder mit Strg+J für den Arbeitsbereich und Strg+L für den Chat.',
+  'tour.fullscreen.point3':
+    'Ein eingeklappter Chat lässt einen Reiter am Bildschirmrand, und das nächste Vollbild öffnet sich so, wie Sie es verlassen haben.',
+  'tour.fullscreen.how':
+    'Öffnen Sie eine Szene im Studio und drücken Sie auf ihrer Bühne Vollbild.',
+  'tour.fullscreen.open': 'Visualizer öffnen',
+  'tour.fullscreen.imageAlt':
+    'Eine Szene über den ganzen Bildschirm, mit dem Arbeitsbereich offen über ihrem unteren Teil auf dem Tab Abstimmen und dem Chat der Szene rechts angedockt.',
+  'tour.fullscreen.request': 'Mach das Polarlicht beim Drop heller',
   'tour.v25.also': 'Außerdem in 2.5',
   'tour.v25.recover':
     'Ein Desktop-Hintergrund oder der Kompaktplayer setzt eine Szene, die sich nicht bauen lässt, aus Ihrem Studio-Projekt oder der Kopie der Galerie wieder instand.',
   'tour.v25.never':
     'Eine Szene, die nicht spielt, wird nie gegen einen anderen Look getauscht: Die Grafik sagt, warum, und bietet Erneut versuchen an.',
+  'tour.v25.painted':
+    'In einer gemalten Szene lassen sich die Pins und Rahmen, die der KI zeigen, was Sie meinen, von Hand bewegen: Ziehen Sie sie beliebig, ziehen Sie einen Rahmen an Ecken und Kanten auf, und entfernen Sie einen mit seinem Knopf oder Entf.',
   'tour.v25.copy':
     'Die Szene eines anderen Mitglieds, im Studio geöffnet, ist eine gesperrte Kopie, und ihr Chat fragt vor jedem Befehl.',
   'tour.v25.review':

@@ -1,0 +1,254 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// The Studio's full screen in the Visualizers' What's New for 2.5
+// (`StudioFullscreenVisual`): the scene across the screen, the work pane
+// rising over its lower part and the chat docking at the right, on the side
+// panes' own ease. Its own sheet because `_tour-release25.scss` was past 900
+// lines already; the same miniature language and loop.
+
+$loop: 10s;
+
+// The chat's share of the screen, and so where the work pane stops.
+$chat: 30%;
+
+.fullscreen-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 32);
+  text-align: left;
+  @include animate(rise-in, $motion-slow);
+}
+
+.fullscreen-visual__screen {
+  @include framed;
+
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: $radius-l;
+  background: $black;
+}
+
+.fullscreen-visual__scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// The full-screen plate, left of the chat as the real one moves when the
+// chat is out.
+.fullscreen-visual__plate {
+  position: absolute;
+  z-index: 2;
+  top: calc(#{$u} * 0.5);
+  right: calc(#{$chat} + #{$u} * 0.5);
+  display: inline-flex;
+  padding: calc(#{$u} * 0.2);
+  border: 1px solid rgba($edge-tint, 0.16);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 80%, transparent);
+  backdrop-filter: blur(8px);
+  gap: calc(#{$u} * 0.2);
+}
+
+.fullscreen-visual__button {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.18) calc(#{$u} * 0.3);
+  border-radius: $radius-xs;
+  color: $secondary-light;
+  background: color-mix(in srgb, $secondary-default 22%, transparent);
+  gap: calc(#{$u} * 0.3);
+
+  svg {
+    width: calc(#{$u} * 0.85);
+    height: calc(#{$u} * 0.85);
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.4;
+  }
+
+  kbd {
+    color: $text-muted;
+    font-family: $font-mono;
+    font-size: calc(#{$u} * 0.5);
+  }
+}
+
+// The work pane: from the left edge to the chat's, two fifths of the
+// screen tall, as it first opens.
+.fullscreen-visual__pane {
+  position: absolute;
+  z-index: 1;
+  right: $chat;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  height: 40%;
+  align-content: start;
+  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.6) calc(#{$u} * 0.5);
+  border-top: 1px solid rgba($edge-tint, 0.16);
+  border-radius: $radius-m $radius-m 0 0;
+  background: color-mix(in srgb, $surface-panel 92%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -10px 30px rgba($black, 0.4);
+  gap: calc(#{$u} * 0.32);
+  animation: fullscreen-visual-pane $loop $ease-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes fullscreen-visual-pane {
+  0%,
+  6% {
+    transform: translateY(105%);
+  }
+
+  16%,
+  86% {
+    transform: none;
+  }
+
+  96%,
+  100% {
+    transform: translateY(105%);
+  }
+}
+
+// The top edge it is dragged by.
+.fullscreen-visual__grip {
+  justify-self: center;
+  width: calc(#{$u} * 2);
+  height: 3px;
+  border-radius: 2px;
+  background: rgba($edge-tint, 0.3);
+}
+
+.fullscreen-visual__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(#{$u} * 0.2);
+}
+
+.fullscreen-visual__tab {
+  @include pill;
+
+  padding-block: calc(#{$u} * 0.12);
+  border-color: transparent;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.58);
+
+  &.is-on {
+    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+    color: $text-primary;
+    background: color-mix(in srgb, $secondary-default 22%, transparent);
+  }
+}
+
+// A Tune row: its track, filled to where the dial stands.
+.fullscreen-visual__row {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba($edge-tint, 0.12);
+
+  i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: $secondary-light;
+  }
+}
+
+// The chat, docked at the right across the screen's height.
+.fullscreen-visual__chat {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  width: $chat;
+  align-content: start;
+  padding: calc(#{$u} * 0.55);
+  border-left: 1px solid rgba($edge-tint, 0.14);
+  background: color-mix(in srgb, $surface-panel 94%, transparent);
+  backdrop-filter: blur(10px);
+  gap: calc(#{$u} * 0.45);
+  animation: fullscreen-visual-chat $loop $ease-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.66);
+    font-weight: $weight-semibold;
+  }
+}
+
+@keyframes fullscreen-visual-chat {
+  0%,
+  22% {
+    transform: translateX(105%);
+  }
+
+  32%,
+  86% {
+    transform: none;
+  }
+
+  96%,
+  100% {
+    transform: translateX(105%);
+  }
+}
+
+.fullscreen-visual__mine {
+  justify-self: end;
+  padding: calc(#{$u} * 0.3) calc(#{$u} * 0.45);
+  border-radius: $radius-m $radius-m $radius-xs $radius-m;
+  color: $text-primary;
+  background: color-mix(in srgb, $secondary-default 22%, $surface-control);
+  font-size: calc(#{$u} * 0.58);
+  line-height: 1.35;
+}
+
+.fullscreen-visual__step {
+  display: flex;
+  align-items: center;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.56);
+  gap: calc(#{$u} * 0.3);
+
+  i {
+    flex: 0 0 auto;
+    width: calc(#{$u} * 0.4);
+    height: calc(#{$u} * 0.4);
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 60%, transparent);
+  }
+
+  // A step already taken: its dot spent, as the chat greys a finished one.
+  &.is-done i {
+    background: $text-faint;
+    box-shadow: none;
+  }
+}

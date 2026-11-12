@@ -61,13 +61,28 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   alone with **Solo**, and find any of them in the list of what is in the
   scene. Nothing is saved until you press **Save**; **Discard**, Undo and
   Redo are there, and the scene stands back on a grid while you edit.
+- **Everything starts locked.** Nothing in a scene moves by accident: one
+  press on a thing's lock frees it. **Solo** and **Hide** are for working
+  only and never change the scene for listeners, and Solo is marked even
+  inside a group. Hold Space to move the canvas, and Edit mode stays open
+  in every view of the stage, the Ultra-wide graph and the Compact player
+  included. Every button has its picture.
+- **A painted scene's marks move by hand.** The pins and boxes that show
+  the AI what you mean are dragged anywhere, a box pulled by its corners
+  and edges, and one removed with its button or Delete.
+- **Full screen with the work pane and the chat.** In full screen the
+  scene keeps playing across the whole screen while the work pane slides
+  up over its lower part and the chat docks at the side. Each comes and
+  goes on its own button, or with Ctrl+J and Ctrl+L; drag the pane's top
+  edge to size it, and the next full screen opens the way you left it.
 - **Edit mode's Save always finishes.** It used to hang on some scenes and
   stop the Studio following that scene's files until FluidEQ restarted. A new
   thing you add lands where the camera is looking, and a locked thing shows
   no handles.
 - **The Code tab shows every file.** The scene's shader, its pack, its 3D
   world and the materials it names, its animations and its notes, each
-  folding to its name.
+  folding to its name. The notes are edited as two plain fields and kept
+  with **Save**.
 - **A published scene opens as a locked copy.** Another member's scene
   opened in the Studio can't be added to your looks, exported, published or
   renamed, and its chat asks before every command.

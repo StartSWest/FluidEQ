@@ -53,7 +53,8 @@ interface IShowcaseSlideProps {
     | 'tour.edit'
     | 'tour.watch'
     | 'tour.makers'
-    | 'tour.code';
+    | 'tour.code'
+    | 'tour.fullscreen';
   /** What the slide's button does: land somewhere, and close the tour. */
   onOpen: () => void;
   visual: ReactNode;

@@ -221,11 +221,29 @@ const tour24 = {
   'tour.code.open': '開啟展示臺',
   'tour.code.imageAlt':
     '「程式碼」分頁，場景的檔案摺疊成名稱，其 3D 世界的一個材質處於展開狀態。',
+  'tour.fullscreen.kicker': '工作室 · 全螢幕',
+  'tour.fullscreen.title': '在全螢幕下製作場景',
+  'tour.fullscreen.subtitle': '工作面板和聊天，疊在正在播放的場景上',
+  'tour.fullscreen.lead':
+    '全螢幕時場景鋪滿整個螢幕並繼續播放，工作室也隨之而來：工作面板從下方升起，聊天停靠在一側。',
+  'tour.fullscreen.point1':
+    '工作面板裡有所有分頁，調音、程式碼等等。拖曳它的上緣即可調高或調低。',
+  'tour.fullscreen.point2':
+    '兩者都可以用全螢幕控制項上各自的按鈕開啟或收起，也可以用 Ctrl+J 切換工作面板、Ctrl+L 切換聊天。',
+  'tour.fullscreen.point3':
+    '收起的聊天會在螢幕邊緣留下一個分頁，下次全螢幕會依您離開時的樣子開啟。',
+  'tour.fullscreen.how': '在工作室中開啟一個場景，在舞台上按「全螢幕」。',
+  'tour.fullscreen.open': '開啟展示臺',
+  'tour.fullscreen.imageAlt':
+    '一個鋪滿全螢幕播放的場景，下方開著停在「調音」分頁的工作面板，右側停靠著場景的聊天。',
+  'tour.fullscreen.request': '讓極光在 drop 時更亮',
   'tour.v25.also': '2.5 的其他更新',
   'tour.v25.recover':
     '桌面背景或精簡播放器會用你的工作室專案或圖庫的副本修好無法建置的場景。',
   'tour.v25.never':
     '無法播放的場景絕不會被換成別的外觀：圖表會說明原因並提供「重試」。',
+  'tour.v25.painted':
+    '在繪製的場景裡，用來向 AI 指出位置的圖釘和方框可以手動移動：隨意拖曳，拉動方框的角和邊來調整大小，用它的按鈕或 Delete 鍵刪除。',
   'tour.v25.copy':
     '在工作室開啟的其他成員的場景是鎖定的副本，它的聊天會在每個指令前詢問。',
   'tour.v25.review': '未通過審核的場景會在名稱旁顯示審核者的理由。',
