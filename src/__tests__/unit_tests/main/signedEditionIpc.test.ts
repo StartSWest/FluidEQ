@@ -34,8 +34,8 @@ const config = {
   apiUrl: 'https://project.supabase.co/functions/v1',
 } as IAccountConfig;
 const ORDER = 'txn_01hv8wptq8987qeep44cyrewp9';
-const LINK =
-  'https://project.supabase.co/storage/v1/object/sign/signed-edition/FluidEQ-Signed-Setup-2.5.0.exe?token=t';
+const R2 = 'https://0123456789abcdef0123456789abcdef.r2.cloudflarestorage.com';
+const LINK = `${R2}/installers/FluidEQ-Signed-Setup-2.5.0.exe?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=ab`;
 
 let signedIn: boolean;
 let signedInAs: string;
@@ -237,13 +237,47 @@ describe('the download', () => {
     expect(opened).toEqual([]);
   });
 
-  it('opens only a link on the account’s own server', async () => {
+  it('opens a link in an R2 bucket of a jurisdiction too', async () => {
     setup();
-    answers[FN] = fakeResponse(200, {
-      owned: true,
+    const url =
+      'https://0123456789abcdef0123456789abcdef.eu.r2.cloudflarestorage.com/installers/x.exe';
+    answers[FN] = fakeResponse(200, { owned: true, version: '2.5.0', url });
+    expect(await invoke('signed-edition-download')).toEqual({
+      ok: true,
       version: '2.5.0',
-      url: 'https://evil.example/FluidEQ-Setup.exe',
+      url,
     });
+    expect(opened).toEqual([url]);
+  });
+
+  it.each([
+    ['another host', 'https://evil.example/FluidEQ-Setup.exe'],
+    [
+      'a look-alike host',
+      'https://0123456789abcdef0123456789abcdef.r2.cloudflarestorage.com.evil.example/x.exe',
+    ],
+    [
+      'a host that is not an account',
+      'https://pub.r2.cloudflarestorage.com/x.exe',
+    ],
+    ['plain http', `${R2.replace('https:', 'http:')}/installers/x.exe`],
+    ['another port', `${R2}:8443/installers/x.exe`],
+    [
+      'credentials in the link',
+      `${R2.replace('https://', 'https://me:pw@')}/installers/x.exe`,
+    ],
+    [
+      'a name in the link',
+      `${R2.replace('https://', 'https://me@')}/installers/x.exe`,
+    ],
+    [
+      'the account’s own server',
+      'https://project.supabase.co/storage/v1/object/sign/signed-edition/x.exe?token=t',
+    ],
+    ['no link at all', 'not a link'],
+  ])('opens nothing for %s', async (_what, url) => {
+    setup();
+    answers[FN] = fakeResponse(200, { owned: true, version: '2.5.0', url });
     expect(await invoke('signed-edition-download')).toEqual({
       ok: false,
       reason: 'failed',

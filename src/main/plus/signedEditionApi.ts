@@ -104,6 +104,32 @@ const callEdition = (
     body: JSON.stringify(body),
   });
 
+/**
+ * The installer lives in Cloudflare R2, not the account's own server: a file
+ * stored there is capped at 50 MB and the installer is about 210 MB. Whatever
+ * the server answers is opened in the browser, so only an https link to an R2
+ * bucket endpoint (`<32-hex account>.r2.cloudflarestorage.com`, or a
+ * jurisdiction's `<account>.<eu>.r2…`) on the default port, with no
+ * credentials in it, is ever opened.
+ */
+const R2_HOST = /^[0-9a-f]{32}\.(?:[a-z]+\.)?r2\.cloudflarestorage\.com$/;
+
+const isInstallerLink = (text: string): boolean => {
+  let url: URL;
+  try {
+    url = new URL(text);
+  } catch {
+    return false;
+  }
+  return (
+    url.protocol === 'https:' &&
+    url.port === '' &&
+    url.username === '' &&
+    url.password === '' &&
+    R2_HOST.test(url.hostname)
+  );
+};
+
 export const editionDownload = async (
   auth: IAuthorised,
 ): Promise<TEditionDownload> => {
@@ -128,9 +154,7 @@ export const editionDownload = async (
     !isRecord(body) ||
     typeof body.version !== 'string' ||
     typeof body.url !== 'string' ||
-    // Only ever opened in the browser: an https link on the account's own
-    // server, or nothing.
-    !body.url.startsWith(`${auth.config.supabaseUrl}/storage/v1/object/sign/`)
+    !isInstallerLink(body.url)
   ) {
     return { ok: false, reason: 'failed' };
   }
