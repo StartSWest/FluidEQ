@@ -214,7 +214,7 @@ const studio = {
     'FluidEQ 已從相簿中永久刪除了該場景，因此無法再次發布。',
   'studio.publish.blockedAccount': '在 {date} 之前，您不能發布或匯出場景。',
   'studio.publish.identityRequired':
-    '請先選擇顯示名稱和使用者名稱：藝廊會以它們展示您的場景。',
+    '請先選擇顯示名稱和使用者名稱：藝廊會以它們展示您的場景。在右上角選單的「帳戶」中設定後，再發布一次。',
   'studio.publish.blockedScene': '在 {date} 之前，您不能發布或匯出這個場景。',
   'studio.picture.files': '圖片',
   'studio.picture.missing': '該場景使用您的圖片，而資料夾中還沒有。',

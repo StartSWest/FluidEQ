@@ -168,6 +168,15 @@ export default function AccountDialog({
       forgetCreator();
     }
   }, [accountId]);
+  // Opened for the name form (a publication refused for want of a name):
+  // the form is open from the start. Declared after the effect above, which
+  // puts the form away on every account it runs for, mount included, so
+  // this one runs after it and the request stands.
+  useEffect(() => {
+    if (initialPage === 'name') {
+      setEditingName(true);
+    }
+  }, [initialPage]);
 
   // What the account published and sent for review: the rail counts it, the
   // page lists it. Read once per account the panel opens on.
@@ -426,7 +435,9 @@ export default function AccountDialog({
                   name form used to appear at the foot, below both sections,
                   where pressing "Change name" looked like it had done
                   nothing (Ivan, 2026-09-16). */}
-              {editingName && (
+              {/* Only once the server has said whether there is a name: the
+                  form starts from it, and saves a new one or a change. */}
+              {editingName && profileLoaded && (
                 <div className="account__name-form">
                   <ProfileNameForm
                     initial={

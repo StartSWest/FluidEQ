@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IAccountState } from '../../../main/account/session';
 import AccountDialog from '../../../renderer/account/AccountDialog';
@@ -509,6 +509,45 @@ describe('the name on the board, from the account panel', () => {
     await userEvent.click(button('profile.name.save'));
     expect(bridge.plusCreateProfile).toHaveBeenCalledWith('ivan_c', 'Ivan C');
     expect(await screen.findByText('@ivan_c')).toBeInTheDocument();
+  });
+
+  // A publication refused for want of a name opens the panel on its form.
+  it('opens on the name form when asked to, once the server has answered', async () => {
+    let answer: (value: unknown) => void = () => undefined;
+    bridge.plusProfile.mockReturnValue(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
+    bridge.plusCreateProfile.mockResolvedValue({ ok: true, value: NAMED });
+    mockAccountState = {
+      status: 'signed-in',
+      identity: { id: 'u-1', name: 'Ada Lovelace', email: 'ada@example.com' },
+    };
+    render(<AccountDialog onClose={jest.fn()} initialPage="name" />);
+    // Not before the answer: the form starts from the name there may be.
+    expect(screen.queryByLabelText('profile.name.name')).toBeNull();
+    await act(async () => {
+      answer({ ok: true, value: null });
+    });
+    expect(screen.getByText('profile.name.title')).toBeInTheDocument();
+    await userEvent.type(
+      screen.getByLabelText(/profile\.name\.handle/),
+      'ivan_c',
+    );
+    await userEvent.type(screen.getByLabelText('profile.name.name'), 'Ivan C');
+    await userEvent.click(button('profile.name.save'));
+    expect(bridge.plusCreateProfile).toHaveBeenCalledWith('ivan_c', 'Ivan C');
+    expect(screen.queryByLabelText('profile.name.name')).toBeNull();
+  });
+
+  it('opens with the name form put away when not asked for it', async () => {
+    bridge.plusProfile.mockResolvedValue({ ok: true, value: null });
+    signedIn();
+    expect(
+      await screen.findByRole('button', { name: 'profile.name.choose' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('profile.name.name')).toBeNull();
   });
 
   it('offers neither until the server has said whether there is a name', () => {

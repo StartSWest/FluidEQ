@@ -243,7 +243,7 @@ const studio = {
   'studio.publish.blockedAccount':
     'Vous ne pourrez ni publier ni exporter de scènes avant le {date}.',
   'studio.publish.identityRequired':
-    'Choisissez d’abord un nom affiché et un pseudo : la galerie présente vos scènes sous ces noms.',
+    'Choisissez d’abord un nom affiché et un pseudo : la galerie présente vos scènes sous ces noms. Définissez-les dans « Compte », dans le menu en haut à droite, puis publiez à nouveau.',
   'studio.publish.blockedScene':
     'Vous ne pourrez ni publier ni exporter cette scène avant le {date}.',
 

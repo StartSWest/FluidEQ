@@ -193,6 +193,58 @@ it('opens the account panel on an old server’s entitlement refusal without rep
   expect(markGalleryStale).not.toHaveBeenCalled();
 });
 
+/**
+ * 2.5 asks for no name in the publish dialog itself, so a member with none
+ * is refused by the server; the sentence says where they are set, the
+ * account panel opens on that form, and the covers wait for the next press.
+ */
+it('opens the name form on a refusal for want of a name, and keeps the covers', async () => {
+  bridge.publishStudioScene.mockResolvedValueOnce({
+    ok: false,
+    reason: 'identity-required',
+  });
+  const { result } = setup();
+  await act(async () => {
+    result.current.begin();
+  });
+  const covers = result.current.draft?.shots.map((shot) => shot.id);
+  expect(covers?.length).toBeGreaterThan(0);
+  await act(async () => {
+    result.current.publish('space');
+  });
+  expect(requestAccountPanel).toHaveBeenCalledWith('name');
+  expect(result.current.notice).toEqual({
+    ok: false,
+    key: 'studio.publish.identityRequired',
+  });
+  expect(result.current.draft).toBeUndefined();
+  expect(markGalleryStale).not.toHaveBeenCalled();
+  await act(async () => {
+    result.current.begin();
+  });
+  // The same covers, not a fresh one drawn again.
+  expect(result.current.draft?.shots.map((shot) => shot.id)).toEqual(covers);
+});
+
+it('opens no panel on a refusal a name would not answer', async () => {
+  bridge.publishStudioScene.mockResolvedValueOnce({
+    ok: false,
+    reason: 'rate-limited',
+  });
+  const { result } = setup();
+  await act(async () => {
+    result.current.begin();
+  });
+  await act(async () => {
+    result.current.publish('space');
+  });
+  expect(requestAccountPanel).not.toHaveBeenCalled();
+  expect(result.current.notice).toEqual({
+    ok: false,
+    key: 'studio.publish.rateLimited',
+  });
+});
+
 it('recovers from a missing initial picture and a failed capture without losing its usable cover', async () => {
   jest.mocked(renderSceneStill).mockResolvedValueOnce(undefined);
   const { result } = setup();

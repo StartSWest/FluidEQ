@@ -244,7 +244,7 @@ const studio = {
   'studio.publish.blockedAccount':
     'Sie können bis zum {date} keine Szenen veröffentlichen oder exportieren.',
   'studio.publish.identityRequired':
-    'Wählen Sie zuerst einen Anzeigenamen und ein Kürzel: Unter ihnen zeigt die Galerie Ihre Szenen.',
+    'Wählen Sie zuerst einen Anzeigenamen und ein Kürzel: Unter ihnen zeigt die Galerie Ihre Szenen. Legen Sie beides unter „Konto“ im Menü oben rechts fest und veröffentlichen Sie dann erneut.',
   'studio.publish.blockedScene':
     'Sie können diese Szene bis zum {date} weder veröffentlichen noch exportieren.',
 

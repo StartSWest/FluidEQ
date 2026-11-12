@@ -67,7 +67,6 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   'too-large': 'studio.publish.tooLarge',
   'blocked-scene': 'studio.publish.blockedScene',
   'blocked-account': 'studio.publish.blockedAccount',
-  'identity-required': 'studio.publish.identityRequired',
   server: 'studio.publish.failed',
 };
 
@@ -546,6 +545,14 @@ export default function useStudioPublish(
           if (outcome.reason === 'not-entitled') {
             setDraft(undefined);
             requestAccountPanel('home');
+            return undefined;
+          }
+          // No name and @handle yet (premium 7d5b76c): the sentence says where
+          // they are set, and the account panel opens on that form. The
+          // covers wait for the next press, as after any refusal.
+          if (outcome.reason === 'identity-required') {
+            failed('studio.publish.identityRequired');
+            requestAccountPanel('name');
             return undefined;
           }
           // A block the admin chose says the day it ends, in this language.

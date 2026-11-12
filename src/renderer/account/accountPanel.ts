@@ -17,7 +17,12 @@
  * build with no account backend.
  */
 
-export type TAccountPanelPage = 'home' | 'signUp' | 'terms';
+/**
+ * `name` is the front page with the name form already open: a publication
+ * the server refused for want of a name and @handle leads straight to the
+ * form that sets them, rather than to a page with the form one link away.
+ */
+export type TAccountPanelPage = 'home' | 'signUp' | 'terms' | 'name';
 
 type TAccountPanelListener = (page: TAccountPanelPage) => void;
 

@@ -238,7 +238,7 @@ const studio = {
   'studio.publish.blockedAccount':
     'Você não poderá publicar nem exportar cenas até {date}.',
   'studio.publish.identityRequired':
-    'Primeiro escolha um nome visível e um nome de usuário: a galeria mostra suas cenas com eles.',
+    'Primeiro escolha um nome visível e um nome de usuário: a galeria mostra suas cenas com eles. Defina-os em Conta, no menu do canto superior direito, e publique de novo.',
   'studio.publish.blockedScene':
     'Você não poderá publicar nem exportar esta cena até {date}.',
 
