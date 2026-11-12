@@ -14,16 +14,25 @@ and pays for nothing. You reach it only through the tools it gives you.
 
 Look at your own tools. Higgsfield's are the ones whose name carries
 `higgsfield` - `mcp__higgsfield__...`, or `mcp__claude_ai_Higgsfield__...`
-when the member has it as a claude.ai connector.
+when the member has it as a claude.ai connector. Their schemas may wait
+behind ToolSearch: search it for `higgsfield` before you decide they are
+not there.
 
 - **They are there**: it is connected. Read each tool's own description
   before you use it; this skill names none of them, because Higgsfield
-  changes them and the newest are always the ones you are given.
-- **They are not there**: it is not connected. Say so in one line and point
-  the member to this chat's **Accounts**, under **Set up Higgsfield**: one
-  press adds Higgsfield to their Claude Code and opens its sign-in in their
-  browser. Its tools are yours from their next message. Until then draw the
-  thing in the shader, or build it from the world's own shapes.
+  changes them and the newest are always the ones you are given. If
+  Claude Code also says a claude.ai Higgsfield needs authorizing, that is
+  the connector this chat cannot reach; the tools you have are the ones
+  that count, and nothing needs saying about it.
+- **They are not there**: say in one line that this chat cannot reach
+  Higgsfield yet, and point the member to this chat's **Accounts**, under
+  **Set up Higgsfield**: one press adds Higgsfield to their Claude Code in
+  the way this chat can use, and opens its sign-in in their browser. This
+  holds even when their own Claude Code shows Higgsfield as connected: a
+  connection made on claude.ai reaches their own Claude Code but not this
+  chat, so never tell them to sign in on claude.ai or that it is merely not
+  signed in. Its tools are yours from their next message. Until then draw
+  the thing in the shader, or build it from the world's own shapes.
 - **A tool answers that nobody is signed in, or that the plan does not allow
   it**: tell the member exactly that, in their words, and stop. Higgsfield
   needs a paid plan for its tools.

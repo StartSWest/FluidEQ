@@ -31,10 +31,15 @@ import type { THiggsfieldAccount } from '../../common/studioMakers';
 import { createChatAsks } from './chatAsks';
 import {
   addHiggsfield,
-  higgsfieldServer,
+  higgsfieldServers,
   signInToHiggsfield,
   signOutOfHiggsfield,
 } from './higgsfieldMcp';
+import {
+  chooseHiggsfield,
+  isConnector,
+  type TServersSeen,
+} from './studioMakers';
 import { createChatServer } from './chatServer';
 import lookAnimationTool from './lookAnimationTool';
 import { createPictureTools } from './pictureTools';
@@ -217,12 +222,26 @@ export const createChatPictures = ({
   });
 
   /**
-   * Higgsfield as it is in the member's own Claude Code now
-   * (`studioMakers.ts`), asked fresh every time: a sign-in made a moment
-   * ago in the browser has to count at once.
+   * The servers the latest chat's Claude Code reported at the start of its
+   * latest turn, which is what a chat really has (`chooseHiggsfield`).
+   */
+  let seen: TServersSeen | undefined;
+  /**
+   * Counted up whenever the member's servers were changed here: a Claude
+   * Code reads its servers once, at its start, so a chat started before
+   * starts again at its next message (`chatSessions.ts`).
+   */
+  let serversChanged = 0;
+
+  /**
+   * Higgsfield as the chat can use it now (`studioMakers.ts`), asked fresh
+   * every time: a sign-in made a moment ago in the browser has to count at
+   * once.
    */
   const higgsfieldNow = async (): Promise<THiggsfieldAccount> =>
-    (await higgsfieldServer())?.account ?? { state: 'missing' };
+    chooseHiggsfield(await higgsfieldServers(), seen)?.account ?? {
+      state: 'missing',
+    };
 
   const packs = createWindowAsks<IStudioChatPackAsk, TStudioChatPackAnswer>({
     channel: 'studio-chat-pack',
@@ -318,10 +337,12 @@ export const createChatPictures = ({
 
   /**
    * "Set up Higgsfield" and "Sign in with Higgsfield", one press each:
-   * added to the member's own Claude Code when it is not there, then Claude
-   * Code's own sign-in to it while nobody is signed in. Answers what there
-   * is afterwards, whatever happened: the card shows that. `another` is
-   * "Use another account": Claude Code forgets the sign-in it has first.
+   * added to the member's own Claude Code when the chat has none it can
+   * use - not there at all, or only a claude.ai connector, which a headless
+   * Claude Code does not reach - then Claude Code's own sign-in to it while
+   * nobody is signed in. Answers what there is afterwards, whatever
+   * happened: the card shows that. `another` is "Use another account":
+   * Claude Code forgets the sign-in it has first.
    */
   ipcMain.handle(
     'studio-chat-higgsfield-connect',
@@ -329,16 +350,24 @@ export const createChatPictures = ({
       if (!fromWindow(event)) {
         return undefined;
       }
-      let server = await higgsfieldServer();
-      if (!server) {
-        await addHiggsfield();
-        server = await higgsfieldServer();
+      let listed = await higgsfieldServers();
+      let server = chooseHiggsfield(listed, seen);
+      if (!server || server.account.state === 'connector') {
+        if (!listed.some(({ name }) => !isConnector(name))) {
+          await addHiggsfield();
+          serversChanged += 1;
+          listed = await higgsfieldServers();
+        }
+        // The member's own server now outranks the connector beside it.
+        server = chooseHiggsfield(listed, seen);
       } else if (another === true && server.account.state === 'ready') {
         await signOutOfHiggsfield(server.name);
-        server = await higgsfieldServer();
+        serversChanged += 1;
+        server = chooseHiggsfield(await higgsfieldServers(), seen);
       }
       if (server?.account.state === 'signed-out') {
         await signInToHiggsfield(server.name);
+        serversChanged += 1;
       }
       return higgsfieldNow();
     },
@@ -364,6 +393,12 @@ export const createChatPictures = ({
 
   return {
     asks,
+    /** A chat's Claude Code reported its servers at the start of a turn. */
+    noteServers: (servers: TServersSeen) => {
+      seen = servers;
+    },
+    /** How many times the member's servers were changed here (`serversChanged`). */
+    serversChanged: () => serversChanged,
     /** Where the project's Claude Code reaches its tools. */
     address: (
       projectId: string,

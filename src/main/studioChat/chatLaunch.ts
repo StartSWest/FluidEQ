@@ -25,6 +25,7 @@ import type {
 } from './chatProcess';
 import { readUsageLine, type TChatUsage } from './chatUsage';
 import { CAREFUL_SETTINGS } from './chatForeign';
+import { readServersSeen, type TServersSeen } from './studioMakers';
 
 /*
  * What FluidEQ does, and what it will not, follow Anthropic's conditions for
@@ -278,6 +279,7 @@ export const claudeCodeEvents = (
   onEvent: (event: TChatStreamEvent) => void,
   onUsage: (usage: TChatUsage) => void,
   onEnded: (failure: TStudioChatFailure, errors: string) => void,
+  onServers?: (servers: TServersSeen) => void,
 ): IChatProcessEvents => {
   let errors = '';
   return {
@@ -285,6 +287,12 @@ export const claudeCodeEvents = (
     // reply it ends is saved.
     line: (line) => {
       readUsageLine(line).forEach(onUsage);
+      // What tool servers this Claude Code really has, as each turn starts:
+      // the Accounts card goes by it (`chooseHiggsfield`).
+      const servers = readServersSeen(line);
+      if (servers) {
+        onServers?.(servers);
+      }
       readStreamLine(line).forEach(onEvent);
     },
     errors: (chunk) => {

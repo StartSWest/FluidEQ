@@ -99,6 +99,13 @@ const createChatSessions = ({
    */
   const startedOn = (brief: string, digest = skills?.()?.digest ?? '') =>
     briefKey(`${brief}\u0000${digest}`);
+  /**
+   * Which change of the member's servers each Claude Code started after
+   * (`pictures.serversChanged`): it reads its servers once, at its start, so
+   * one started before Higgsfield was set up never has its tools. One taken
+   * up across a restart counts as current.
+   */
+  const serversAt = new WeakMap<IChatSession, number>();
   const keptFile = path.join(root, 'relay-sessions.json');
   const queueFile = path.join(root, 'queued.json');
   // What the member queued before FluidEQ last closed waits again now.
@@ -168,6 +175,7 @@ const createChatSessions = ({
         }
         turns.ended(projectId, session, failure);
       },
+      (servers) => pictures.noteServers(servers),
     );
 
   const start = (
@@ -210,6 +218,7 @@ const createChatSessions = ({
       sendingNow: false,
     };
     sessions.set(projectId, session);
+    serversAt.set(session, pictures.serversChanged());
     askUsage(session.process);
     return session;
   };
@@ -334,8 +343,15 @@ const createChatSessions = ({
       // in development (Ivan, 2026-11-08: "make sure to update the latest AI
       // system prompt on all studio scenes") - ends the one running and
       // starts another on the same conversation, which loses nothing of it.
+      // So does a change to the member's servers made here, between replies.
+      const startedAfter = running ? serversAt.get(running) : undefined;
+      const serversCurrent =
+        running?.reply !== undefined ||
+        startedAfter === undefined ||
+        startedAfter === pictures.serversChanged();
       if (
         running &&
+        serversCurrent &&
         running.model === picks.model &&
         running.effort === picks.effort &&
         running.brief === startKey(startedOn(picks.brief), careful)

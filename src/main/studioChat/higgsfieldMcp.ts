@@ -13,9 +13,10 @@ import {
   type IClaudeCodeEnv,
 } from './claudeCode';
 import {
+  chooseHiggsfield,
   HIGGSFIELD_MCP_URL,
   HIGGSFIELD_SERVER,
-  readHiggsfieldServer,
+  readHiggsfieldServers,
   type IHiggsfieldServer,
 } from './studioMakers';
 
@@ -24,7 +25,10 @@ import {
  * `mcp` commands (Ivan, 2026-11-11: "que Fluid sea capaz de que la gente
  * pueda instalar el último MCP de Higgsfield"):
  *
- * - whether it is there and signed in (`claude mcp list`);
+ * - whether it is there and signed in (`claude mcp list`), which the chat
+ *   then corrects by what its own Claude Code reports (`chooseHiggsfield`):
+ *   the list connects afresh, and a claude.ai connector it calls Connected
+ *   reaches no headless Claude Code;
  * - adding it for the member (`claude mcp add --transport http --scope user
  *   higgsfield https://mcp.higgsfield.ai/mcp`), on their press. It is hosted
  *   by Higgsfield, so it is always their newest and nothing is installed;
@@ -57,15 +61,15 @@ const outputOf = (child: ChildProcess): Promise<string> =>
     child.on('close', () => resolve(out));
   });
 
-/** Higgsfield among the member's servers, or undefined when it is not there. */
-export const higgsfieldServer = async (
+/** Every Higgsfield among the member's servers, as `claude mcp list` has them. */
+export const higgsfieldServers = async (
   where: IClaudeCodeEnv = systemEnv(),
-): Promise<IHiggsfieldServer | undefined> => {
+): Promise<IHiggsfieldServer[]> => {
   const executable = findClaudeCode(where);
   if (!executable) {
-    return undefined;
+    return [];
   }
-  return readHiggsfieldServer(
+  return readHiggsfieldServers(
     await outputOf(
       startClaudeCode(executable, ['mcp', 'list'], {
         stdio: ['ignore', 'pipe', 'ignore'],
@@ -74,6 +78,15 @@ export const higgsfieldServer = async (
     ),
   );
 };
+
+/**
+ * Higgsfield among the member's servers as a chat no turn has reported
+ * on yet can use it (`chooseHiggsfield`), or undefined when it is not there.
+ */
+export const higgsfieldServer = async (
+  where: IClaudeCodeEnv = systemEnv(),
+): Promise<IHiggsfieldServer | undefined> =>
+  chooseHiggsfield(await higgsfieldServers(where));
 
 export const higgsfieldAccount = async (
   where: IClaudeCodeEnv = systemEnv(),

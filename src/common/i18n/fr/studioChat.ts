@@ -238,6 +238,8 @@ const studioChat = {
     'Pas encore configuré. FluidEQ peut ajouter les outils de Higgsfield à votre Claude Code et ouvrir sa connexion dans votre navigateur. Higgsfield demande un forfait payant, et tout ce qu’il crée consomme ses crédits.',
   'studioChat.accounts.higgsfieldOut':
     'Higgsfield est dans votre Claude Code, mais n’est pas connecté.',
+  'studioChat.accounts.higgsfieldConnector':
+    'Higgsfield est connecté à votre Claude Code via claude.ai, et ce chat ne peut pas utiliser une connexion claude.ai. Configurez-le ici une fois et connectez-vous : le chat pourra alors l’utiliser.',
   'studioChat.accounts.higgsfieldUnreachable':
     'Claude Code n’a pas pu joindre Higgsfield pour le moment.',
   'studioChat.accounts.higgsfieldConnecting':

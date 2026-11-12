@@ -40,6 +40,7 @@ import type {
   IChatAdoption,
   IChatLauncher,
   IChatProcess,
+  IChatProcessEvents,
 } from '../../../main/studioChat/chatProcess';
 import createChatQueue from '../../../main/studioChat/chatQueue';
 import createChatSessions from '../../../main/studioChat/chatSessions';
@@ -112,9 +113,11 @@ const setUp = (
   });
   const started: (IChatProcess & { end: jest.Mock })[] = [];
   const commands: { args: string[] }[] = [];
+  const attached: { events: IChatProcessEvents }[] = [];
   const launcher: IChatLauncher & { close: jest.Mock } = {
-    start: (_projectId, command) => {
+    start: (_projectId, command, events) => {
       commands.push(command);
+      attached.push({ events });
       const process = fakeProcess();
       started.push(process);
       return process;
@@ -131,9 +134,14 @@ const setUp = (
     url: 'http://127.0.0.1:5000/mcp',
     key: 'new',
   }));
+  /** How many times the member's servers were changed from FluidEQ. */
+  const servers = { changed: 0 };
+  const noteServers = jest.fn();
   const pictures = {
     asks: { tool: jest.fn(async () => true) },
     address,
+    serversChanged: () => servers.changed,
+    noteServers,
   } as unknown as TChatPictures;
   const sessions = new Map<string, IChatSession>();
   const chat = createChatSessions({
@@ -158,8 +166,11 @@ const setUp = (
     launcher,
     started,
     commands,
+    attached,
     address,
     transcriptOf,
+    servers,
+    noteServers,
   };
 };
 
@@ -280,6 +291,78 @@ describe("a project's Claude Code across FluidEQ closing", () => {
       expect(newer).not.toBe(first);
       expect(first?.process.end).toHaveBeenCalled();
       expect(startedWith(fluid.commands[1]).resume).toBe('conversation-1');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  // Ivan, 2026-11-11: a new chat said it could not reach Higgsfield. A
+  // Claude Code reads its tool servers once, at its start, so one started
+  // before Higgsfield was set up never has its tools.
+  it('starts a chat again on the same conversation once its servers were changed, between replies', async () => {
+    const root = tmp();
+    try {
+      const fluid = setUp(root);
+      fluid.transcriptOf('lake').sessionId = 'conversation-1';
+      const first = await fluid.chat.sessionFor('lake', 'C:/Lake', message(''));
+      // The control: nothing changed, the running process answers.
+      expect(await fluid.chat.sessionFor('lake', 'C:/Lake', message(''))).toBe(
+        first,
+      );
+      fluid.servers.changed += 1;
+      const after = await fluid.chat.sessionFor('lake', 'C:/Lake', message(''));
+      expect(after).not.toBe(first);
+      expect(first?.process.end).toHaveBeenCalled();
+      expect(startedWith(fluid.commands[1]).resume).toBe('conversation-1');
+      // Started on the change, it is current from then on.
+      expect(await fluid.chat.sessionFor('lake', 'C:/Lake', message(''))).toBe(
+        after,
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('never ends a reply being written for a change to its servers', async () => {
+    const root = tmp();
+    try {
+      const fluid = setUp(root);
+      const first = await fluid.chat.sessionFor('lake', 'C:/Lake', message(''));
+      if (!first) {
+        throw new Error('no session');
+      }
+      fluid.turns.begin('lake', first, [message('make it rain')]);
+      fluid.servers.changed += 1;
+      // Compared as a yes or no: a session printed whole on a failure is a
+      // cycle that takes Jest down with it.
+      const same =
+        (await fluid.chat.sessionFor('lake', 'C:/Lake', message(''))) === first;
+      expect(same).toBe(true);
+      expect(first.process.end).not.toHaveBeenCalled();
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('tells the Accounts card what servers its Claude Code really has, as each turn starts', async () => {
+    const root = tmp();
+    try {
+      const fluid = setUp(root);
+      await fluid.chat.sessionFor('lake', 'C:/Lake', message(''));
+      const [{ events }] = fluid.attached;
+      events.line(
+        say({
+          type: 'system',
+          subtype: 'init',
+          session_id: 's',
+          mcp_servers: [{ name: 'claude.ai Higgsfield', status: 'needs-auth' }],
+        }),
+      );
+      events.line(words('Rain.'));
+      expect(fluid.noteServers).toHaveBeenCalledTimes(1);
+      expect(fluid.noteServers).toHaveBeenCalledWith(
+        new Map([['claude.ai Higgsfield', 'needs-auth']]),
+      );
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

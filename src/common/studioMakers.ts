@@ -35,4 +35,13 @@ export type THiggsfieldAccount =
   | { state: 'signed-out' }
   /** Added, and Claude Code could not reach it just now. */
   | { state: 'unreachable' }
+  /**
+   * A claude.ai connector, connected in the member's own Claude Code and
+   * out of the chat's reach: a Claude Code run headless, as the chat runs
+   * it, comes up with such a connector as needing sign-in and none of its
+   * tools (Claude Code 2.1.321, measured 2026-11-11, while `claude mcp
+   * list` said Connected). Setting it up here adds Higgsfield as a server of
+   * the member's own, which a headless Claude Code reads its sign-in for.
+   */
+  | { state: 'connector' }
   | { state: 'ready' };

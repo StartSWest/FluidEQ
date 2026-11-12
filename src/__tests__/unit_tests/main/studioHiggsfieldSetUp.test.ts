@@ -77,15 +77,15 @@ jest.mock('../../../main/studioChat/claudeCode', () => ({
 
 // The commands are asked through these in the channel tests further down,
 // and run for real (against the stand-in processes above) before them.
-const mockServer = jest.fn<Promise<IHiggsfieldServer | undefined>, []>();
+const mockServers = jest.fn<Promise<IHiggsfieldServer[]>, []>();
 const mockRan: string[] = [];
 let mockCommands = false;
 jest.mock('../../../main/studioChat/higgsfieldMcp', () => {
   const real = jest.requireActual('../../../main/studioChat/higgsfieldMcp');
   return {
     ...real,
-    higgsfieldServer: (...args: unknown[]) =>
-      mockCommands ? mockServer() : real.higgsfieldServer(...args),
+    higgsfieldServers: (...args: unknown[]) =>
+      mockCommands ? mockServers() : real.higgsfieldServers(...args),
     addHiggsfield: async (...args: unknown[]) => {
       if (!mockCommands) {
         return real.addHiggsfield(...args);
@@ -128,7 +128,7 @@ beforeEach(() => {
   mockRan.length = 0;
   mockListed = '';
   mockCommands = false;
-  mockServer.mockReset();
+  mockServers.mockReset();
   mockHandlers.clear();
 });
 
@@ -229,6 +229,8 @@ describe("what FluidEQ runs in the member's Claude Code", () => {
 
 const door: IStudioLook = { look: jest.fn(), hear: jest.fn() };
 const noProject = (): TAgentProject => ({ ok: false, reason: 'none-open' });
+/** What Claude Code calls Higgsfield connected on claude.ai, as Ivan's is. */
+const CONNECTOR = 'claude.ai Higgsfield';
 
 describe("the window's presses", () => {
   let root: string;
@@ -267,13 +269,29 @@ describe("the window's presses", () => {
   });
 
   it('are told how Higgsfield is, and nothing else', async () => {
-    mockServer.mockResolvedValue(server('ready'));
+    mockServers.mockResolvedValue([server('ready')]);
     await expect(press('studio-chat-makers')).resolves.toEqual({
       state: 'ready',
     });
-    mockServer.mockResolvedValue(undefined);
+    mockServers.mockResolvedValue([]);
     await expect(press('studio-chat-makers')).resolves.toEqual({
       state: 'missing',
+    });
+  });
+
+  it('are told a claude.ai connector is out of the chat’s reach until a chat has it', async () => {
+    mockServers.mockResolvedValue([server('ready', CONNECTOR)]);
+    await expect(press('studio-chat-makers')).resolves.toEqual({
+      state: 'connector',
+    });
+    pictures.noteServers(new Map([[CONNECTOR, 'needs-auth']]));
+    await expect(press('studio-chat-makers')).resolves.toEqual({
+      state: 'connector',
+    });
+    // The control: a chat that reports it connected has it.
+    pictures.noteServers(new Map([[CONNECTOR, 'connected']]));
+    await expect(press('studio-chat-makers')).resolves.toEqual({
+      state: 'ready',
     });
   });
 
@@ -286,32 +304,58 @@ describe("the window's presses", () => {
   });
 
   it('add Higgsfield where it is missing, then open its sign-in', async () => {
-    mockServer
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce(server('signed-out'))
-      .mockResolvedValue(server('ready'));
+    mockServers
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([server('signed-out')])
+      .mockResolvedValue([server('ready')]);
     await expect(
       press('studio-chat-higgsfield-connect', false),
     ).resolves.toEqual({ state: 'ready' });
     expect(mockRan).toEqual(['add', 'sign in to higgsfield']);
   });
 
-  it('only sign in where it is already there, under the name it has', async () => {
-    mockServer.mockResolvedValue(server('signed-out', 'claude.ai Higgsfield'));
+  it('add the member’s own server beside a claude.ai connector, and sign in to that', async () => {
+    mockServers
+      .mockResolvedValueOnce([server('ready', CONNECTOR)])
+      .mockResolvedValueOnce([server('ready', CONNECTOR), server('signed-out')])
+      .mockResolvedValue([server('ready', CONNECTOR), server('ready')]);
+    pictures.noteServers(new Map([[CONNECTOR, 'needs-auth']]));
+    const before = pictures.serversChanged();
+    await expect(
+      press('studio-chat-higgsfield-connect', false),
+    ).resolves.toEqual({ state: 'ready' });
+    expect(mockRan).toEqual(['add', 'sign in to higgsfield']);
+    // Every chat's Claude Code starts again, on the server it can now reach.
+    expect(pictures.serversChanged()).toBeGreaterThan(before);
+  });
+
+  it('never sign in to the claude.ai connector itself', async () => {
+    mockServers.mockResolvedValue([
+      server('signed-out', CONNECTOR),
+      server('signed-out'),
+    ]);
     await press('studio-chat-higgsfield-connect', false);
-    expect(mockRan).toEqual(['sign in to claude.ai Higgsfield']);
+    expect(mockRan).toEqual(['sign in to higgsfield']);
+  });
+
+  it('only sign in where it is already there, under the name it has', async () => {
+    mockServers.mockResolvedValue([server('signed-out', 'my higgs')]);
+    await press('studio-chat-higgsfield-connect', false);
+    expect(mockRan).toEqual(['sign in to my higgs']);
   });
 
   it('do nothing to an account that is signed in', async () => {
-    mockServer.mockResolvedValue(server('ready'));
+    mockServers.mockResolvedValue([server('ready')]);
+    const before = pictures.serversChanged();
     await press('studio-chat-higgsfield-connect', false);
     expect(mockRan).toEqual([]);
+    expect(pictures.serversChanged()).toBe(before);
   });
 
   it('sign out first for "Use another account", then sign in', async () => {
-    mockServer
-      .mockResolvedValueOnce(server('ready'))
-      .mockResolvedValue(server('signed-out'));
+    mockServers
+      .mockResolvedValueOnce([server('ready')])
+      .mockResolvedValue([server('signed-out')]);
     await press('studio-chat-higgsfield-connect', true);
     expect(mockRan).toEqual([
       'sign out of higgsfield',
@@ -320,22 +364,25 @@ describe("the window's presses", () => {
   });
 
   it('never sign in to a server that was added and still cannot be reached', async () => {
-    mockServer
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValue(server('unreachable'));
+    mockServers
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([server('unreachable')]);
+    const before = pictures.serversChanged();
     await press('studio-chat-higgsfield-connect', false);
     expect(mockRan).toEqual(['add']);
+    // Added all the same: a chat starts again to look for it.
+    expect(pictures.serversChanged()).toBe(before + 1);
   });
 
   it('do nothing at all from anywhere but FluidEQ’s own window', async () => {
     fromWindow = false;
-    mockServer.mockResolvedValue(undefined);
+    mockServers.mockResolvedValue([]);
     expect(await press('studio-chat-makers')).toBeUndefined();
     expect(
       await press('studio-chat-higgsfield-connect', false),
     ).toBeUndefined();
     expect(mockRan).toEqual([]);
-    expect(mockServer).not.toHaveBeenCalled();
+    expect(mockServers).not.toHaveBeenCalled();
     fromWindow = true;
     await expect(press('studio-chat-makers')).resolves.toEqual({
       state: 'missing',

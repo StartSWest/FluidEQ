@@ -135,11 +135,16 @@ function HiggsfieldAccount() {
       </button>
     );
   } else {
-    note = t(
-      state === 'missing'
-        ? 'studioChat.accounts.higgsfieldMissing'
-        : 'studioChat.accounts.higgsfieldOut',
-    );
+    // A connector from claude.ai is set up as a server of the member's own,
+    // the one thing the chat's Claude Code can reach (`common/studioMakers`).
+    const setUp = state === 'missing' || state === 'connector';
+    if (state === 'missing') {
+      note = t('studioChat.accounts.higgsfieldMissing');
+    } else if (state === 'connector') {
+      note = t('studioChat.accounts.higgsfieldConnector');
+    } else {
+      note = t('studioChat.accounts.higgsfieldOut');
+    }
     actions = (
       <>
         <button
@@ -149,7 +154,7 @@ function HiggsfieldAccount() {
           onClick={() => connect(false)}
         >
           {t(
-            state === 'missing'
+            setUp
               ? 'studioChat.accounts.higgsfieldSetUp'
               : 'studioChat.accounts.higgsfieldSignIn',
           )}

@@ -18,7 +18,10 @@ import os from 'os';
 import path from 'path';
 import { createChatAsks } from '../../../main/studioChat/chatAsks';
 import { stepOf } from '../../../main/studioChat/chatStream';
-import { readHiggsfieldServer } from '../../../main/studioChat/studioMakers';
+import {
+  readHiggsfieldServer,
+  readServersSeen,
+} from '../../../main/studioChat/studioMakers';
 
 /** What `claude mcp list` prints, as Claude Code 2.1 printed it. */
 const listed = (...lines: string[]) =>
@@ -60,13 +63,10 @@ describe('Higgsfield among the servers Claude Code lists', () => {
     expect(
       readHiggsfieldServer(
         listed(
-          'claude.ai Higgsfield: https://mcp.higgsfield.ai/mcp - ! Needs authentication',
+          'my higgs: https://mcp.higgsfield.ai/mcp (HTTP) - ! Needs authentication',
         ),
       ),
-    ).toEqual({
-      name: 'claude.ai Higgsfield',
-      account: { state: 'signed-out' },
-    });
+    ).toEqual({ name: 'my higgs', account: { state: 'signed-out' } });
   });
 
   it('prefers the one that is connected when it is there twice', () => {
@@ -100,19 +100,130 @@ describe('Higgsfield among the servers Claude Code lists', () => {
 
 // Read-only, from Ivan's own `claude mcp list` on 2026-11-11, addresses and
 // all; only the order of the other connectors is his.
+const IVANS_LIST = listed(
+  'claude.ai Claude Docs: https://api.anthropic.com/v1/pages/mcp - ✔ Connected',
+  'claude.ai Higgsfield: https://mcp.higgsfield.ai/mcp - ✔ Connected',
+  'claude.ai Google Drive: https://drivemcp.googleapis.com/mcp/v1 - ✔ Connected',
+  'claude.ai Slack: https://mcp.slack.com/mcp - ! Needs authentication',
+  'plugin:playwright:playwright: npx @playwright/mcp@latest - ✘ Failed to connect — CONNECTION_CLOSED: Connection closed',
+);
+
+/**
+ * The first line of a headless Claude Code's turn, as 2.1.321 wrote it on
+ * Ivan's machine on 2026-11-11 (fields it carries beside these left out):
+ * the connector `claude mcp list` called Connected, needing sign-in.
+ */
+const IVANS_INIT = JSON.stringify({
+  type: 'system',
+  subtype: 'init',
+  session_id: 's',
+  tools: ['Read', 'ToolSearch'],
+  mcp_servers: [
+    { name: 'plugin:playwright:playwright', status: 'failed' },
+    { name: 'claude.ai Claude Docs', status: 'connected' },
+    { name: 'claude.ai Higgsfield', status: 'needs-auth' },
+    { name: 'claude.ai Slack', status: 'needs-auth' },
+  ],
+});
+
 describe('a Higgsfield connected as a claude.ai connector', () => {
-  it('is ready, under the name Claude Code gives it', () => {
+  it('is out of the chat’s reach, whatever the list says, until a chat has it', () => {
+    expect(readHiggsfieldServer(IVANS_LIST)).toEqual({
+      name: 'claude.ai Higgsfield',
+      account: { state: 'connector' },
+    });
+    expect(
+      readHiggsfieldServer(IVANS_LIST, readServersSeen(IVANS_INIT)),
+    ).toEqual({
+      name: 'claude.ai Higgsfield',
+      account: { state: 'connector' },
+    });
+  });
+
+  it('is ready once a chat’s own Claude Code reports it connected', () => {
+    const seen = new Map([['claude.ai Higgsfield', 'connected']]);
+    expect(readHiggsfieldServer(IVANS_LIST, seen)).toEqual({
+      name: 'claude.ai Higgsfield',
+      account: { state: 'ready' },
+    });
+  });
+
+  it('gives way to the member’s own server, the one a set-up signs in to', () => {
+    const both = listed(
+      'claude.ai Higgsfield: https://mcp.higgsfield.ai/mcp - ✔ Connected',
+      'higgsfield: https://mcp.higgsfield.ai/mcp (HTTP) - ! Needs authentication',
+    );
+    expect(readHiggsfieldServer(both, readServersSeen(IVANS_INIT))).toEqual({
+      name: 'higgsfield',
+      account: { state: 'signed-out' },
+    });
+    // Signed in, it is the one the card and the chat go by, though the
+    // chat that reported the connector started before it was there.
     expect(
       readHiggsfieldServer(
         listed(
-          'claude.ai Claude Docs: https://api.anthropic.com/v1/pages/mcp - ✔ Connected',
           'claude.ai Higgsfield: https://mcp.higgsfield.ai/mcp - ✔ Connected',
-          'claude.ai Google Drive: https://drivemcp.googleapis.com/mcp/v1 - ✔ Connected',
-          'claude.ai Slack: https://mcp.slack.com/mcp - ! Needs authentication',
-          'plugin:playwright:playwright: npx @playwright/mcp@latest - ✘ Failed to connect — CONNECTION_CLOSED: Connection closed',
+          'higgsfield: https://mcp.higgsfield.ai/mcp (HTTP) - ✔ Connected',
         ),
+        readServersSeen(IVANS_INIT),
       ),
-    ).toEqual({ name: 'claude.ai Higgsfield', account: { state: 'ready' } });
+    ).toEqual({ name: 'higgsfield', account: { state: 'ready' } });
+  });
+});
+
+describe('the member’s own server as the chat reports it', () => {
+  const own = listed(
+    'higgsfield: https://mcp.higgsfield.ai/mcp (HTTP) - ✔ Connected',
+  );
+  const seenAs = (status: string) =>
+    readServersSeen(
+      JSON.stringify({
+        type: 'system',
+        subtype: 'init',
+        mcp_servers: [{ name: 'higgsfield', status }],
+      }),
+    );
+
+  it('takes the chat’s word over the list’s', () => {
+    expect(readHiggsfieldServer(own, seenAs('needs-auth'))?.account).toEqual({
+      state: 'signed-out',
+    });
+    expect(readHiggsfieldServer(own, seenAs('failed'))?.account).toEqual({
+      state: 'unreachable',
+    });
+    expect(readHiggsfieldServer(own, seenAs('disabled'))?.account).toEqual({
+      state: 'unreachable',
+    });
+  });
+
+  it('keeps the list’s word while the chat is still connecting to it', () => {
+    expect(readHiggsfieldServer(own, seenAs('pending'))?.account).toEqual({
+      state: 'ready',
+    });
+    expect(readHiggsfieldServer(own, seenAs('connected'))?.account).toEqual({
+      state: 'ready',
+    });
+  });
+});
+
+describe('what a chat’s Claude Code reports at the start of a turn', () => {
+  it('is read from its init line alone', () => {
+    expect(readServersSeen(IVANS_INIT)?.get('claude.ai Higgsfield')).toBe(
+      'needs-auth',
+    );
+    expect(
+      readServersSeen(JSON.stringify({ type: 'system', subtype: 'status' })),
+    ).toBeUndefined();
+    expect(readServersSeen('{ not json')).toBeUndefined();
+    expect(
+      readServersSeen(
+        JSON.stringify({
+          type: 'system',
+          subtype: 'init',
+          mcp_servers: [{ name: 7 }, { name: 'higgsfield', status: 'pending' }],
+        }),
+      ),
+    ).toEqual(new Map([['higgsfield', 'pending']]));
   });
 });
 

@@ -222,6 +222,8 @@ const studioChat = {
     '尚未设置。FluidEQ 可以把 Higgsfield 自己的工具添加到你的 Claude Code，并在浏览器中打开它的登录页面。Higgsfield 需要付费套餐，它生成的一切都会消耗其积分。',
   'studioChat.accounts.higgsfieldOut':
     'Higgsfield 已在你的 Claude Code 中，但尚未登录。',
+  'studioChat.accounts.higgsfieldConnector':
+    'Higgsfield 通过 claude.ai 连接到你的 Claude Code，而这个聊天无法使用 claude.ai 的连接。在这里设置一次并登录，聊天就能使用它。',
   'studioChat.accounts.higgsfieldUnreachable':
     'Claude Code 暂时无法连接 Higgsfield。',
   'studioChat.accounts.higgsfieldConnecting':

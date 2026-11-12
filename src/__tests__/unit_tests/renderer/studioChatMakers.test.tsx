@@ -174,6 +174,21 @@ describe('Higgsfield in Accounts', () => {
     expect(studioChatHiggsfieldConnect).toHaveBeenCalledWith(false);
   });
 
+  // Ivan, 2026-11-11: the card said connected over a chat that could not
+  // reach Higgsfield, which was a claude.ai connector.
+  it('never calls a claude.ai connector connected, and offers the set-up the chat can use', async () => {
+    now = makers('connector');
+    accounts();
+    const card = await higgsfield();
+    expect(card).toHaveTextContent('studioChat.accounts.higgsfieldConnector');
+    expect(card).not.toHaveTextContent('studioChat.accounts.higgsfieldReady');
+    expect(buttonsOf(card)).toEqual(['studioChat.accounts.higgsfieldSetUp']);
+    const [setUp] = within(card).getAllByRole('button');
+    expect(setUp).not.toHaveClass('subtle');
+    await pressAndSettle(setUp);
+    expect(studioChatHiggsfieldConnect).toHaveBeenCalledWith(false);
+  });
+
   it('signs out first for another account', async () => {
     now = makers('ready');
     accounts();
