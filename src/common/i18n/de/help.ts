@@ -35,7 +35,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'Ihre ersten fünf Minuten',
   'help.start.intro':
-    'Beginnen Sie mit einem vertrauten Lied bei angenehmer Lautstärke. Die linke Leiste schaltet FluidEQ ein und enthält die Vorverstärkung; die Mitte ist Ihr Arbeitsbereich; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen. Die Leiste am unteren Fensterrand steuert, was gerade läuft. Der aufgezeichnete Rundgang durch 2.2 dauert etwa neuneinhalb Minuten und wird erst nach Wiedergabe gestreamt. Die neue Spieleseite von 2.3 finden Sie unter Gaming-Labor.',
+    'Beginnen Sie mit einem vertrauten Lied bei angenehmer Lautstärke. Die linke Leiste schaltet FluidEQ ein und enthält die Vorverstärkung; die Mitte ist Ihr Arbeitsbereich; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen. Die Leiste am unteren Fensterrand steuert, was gerade läuft. Der Rundgang unten wird erst nach Wiedergabe gestreamt. Die Spieleseite finden Sie unter Gaming-Labor.',
   'help.start.steps':
     'Installieren Sie FluidEQ und lassen Sie die FluidEQ-Engine ausgewählt, wenn die Installation fragt, wie FluidEQ Ihren Ton verarbeiten soll. Windows fragt einmal um Erlaubnis, ohne Neustart.\nWählen Sie unter Ausgabegerät das Gerät, über das Sie hören. Aktivieren Sie System-EQ und lassen Sie Automatisch normalisieren eingeschaltet.\nSpielen Sie ein Lied, öffnen Sie EQ → Bänder, ändern Sie etwas leicht und vergleichen Sie mit ein- und ausgeschaltetem System-EQ.',
   'help.start.tip':

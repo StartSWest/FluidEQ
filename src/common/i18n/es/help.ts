@@ -35,7 +35,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'Tus primeros cinco minutos',
   'help.start.intro':
-    'Empieza con una canción conocida a un volumen cómodo. El panel izquierdo tiene el interruptor de FluidEQ y la preamplificación; el centro es tu espacio de trabajo; el panel derecho sigue a tu salida y sus perfiles. La barra de la parte inferior de la ventana controla lo que esté sonando. El recorrido grabado de la versión 2.2 dura unos nueve minutos y medio y solo se descarga al pulsar Reproducir. Para la nueva página de juegos de la 2.3, consulta Laboratorio gaming.',
+    'Empieza con una canción conocida a un volumen cómodo. El panel izquierdo tiene el interruptor de FluidEQ y la preamplificación; el centro es tu espacio de trabajo; el panel derecho sigue a tu salida y sus perfiles. La barra de la parte inferior de la ventana controla lo que esté sonando. El recorrido de abajo solo se descarga al pulsar Reproducir. Para la página de juegos, consulta Laboratorio gaming.',
   'help.start.steps':
     'Instala FluidEQ y deja seleccionado el Motor FluidEQ cuando el instalador pregunte cómo procesar tu sonido. Windows pide permiso una sola vez, sin reiniciar.\nElige tu dispositivo de escucha en Dispositivo de salida. Activa EQ del sistema y deja Normalizar automáticamente activado.\nReproduce una canción, abre EQ → Bandas, cambia algo ligeramente y compara activando y desactivando EQ del sistema.',
   'help.start.tip':

@@ -35,7 +35,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'Vos cinq premières minutes',
   'help.start.intro':
-    'Commencez avec un morceau familier à un volume confortable. La colonne de gauche active FluidEQ et contient le préampli ; le centre est votre espace de travail ; la colonne de droite suit votre sortie et ses profils. La barre en bas de la fenêtre contrôle tout ce qui est en lecture. La visite enregistrée de la version 2.2 dure environ neuf minutes et demie et ne se charge qu’après Lecture. Pour la nouvelle page de jeu de la 2.3, consultez le Labo gaming.',
+    'Commencez avec un morceau familier à un volume confortable. La colonne de gauche active FluidEQ et contient le préampli ; le centre est votre espace de travail ; la colonne de droite suit votre sortie et ses profils. La barre en bas de la fenêtre contrôle tout ce qui est en lecture. La visite ci-dessous ne se charge qu’après Lecture. Pour la page de jeu, consultez le Labo gaming.',
   'help.start.steps':
     'Installez FluidEQ et gardez le moteur FluidEQ sélectionné quand l’installation demande comment traiter votre son. Windows demande une autorisation une seule fois, sans redémarrage.\nChoisissez votre appareil d’écoute sous Périphérique de sortie. Activez l’Égaliseur système et laissez la Normalisation auto activée.\nLancez un morceau, ouvrez Égaliseur → Bandes, faites une petite modification et comparez en désactivant puis en réactivant l’Égaliseur système.',
   'help.start.tip':
