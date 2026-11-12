@@ -190,6 +190,13 @@ const studio = {
   'studio.publish.needNote': 'Di primero qué hay de nuevo en esta versión',
   'studio.publish.noteEnglish':
     'Escríbela en inglés: todos en la galería la leen.',
+  'studio.publish.shapeChoice': 'Vista para revisar',
+  'studio.publish.shapeNormal': 'Normal',
+  'studio.publish.shapeUltra': 'Ultrapanorámica',
+  'studio.publish.shapeAmp': 'Amp',
+  'studio.publish.shapeHint':
+    'Revísala en cada vista antes de enviarla. Las portadas y el video de vista previa son la vista Normal.',
+  'studio.publish.coversNormal': 'Las portadas se capturan en la vista Normal',
   'studio.publish.noteWriting':
     'El chat de tu escena está escribiendo qué hay de nuevo…',
   'studio.publish.noteNeeded': 'Obligatorio',
@@ -413,6 +420,8 @@ const studio = {
     'La gente tiene la versión {version}. Has cambiado la escena desde entonces; al publicarla, se compartirá como versión {next}.',
   'studio.empty': 'Aún no hay nada que mostrar',
   'studio.stage.label': '{name}, en vivo',
+  'studio.stage.ultraBand': 'Gráfica ultrapanorámica',
+  'studio.stage.ultraRest': 'El resto de la ventana, detrás de la app',
   'studio.stage.resize': 'Arrastra para cambiar el tamaño de la vista previa',
   'studio.stage.zoomHint':
     'Ctrl + rueda para acercar; mantén la barra espaciadora y arrastra para moverte',

@@ -188,6 +188,13 @@ const studio = {
   'studio.publish.needNote': 'पहले बताएँ कि इस संस्करण में नया क्या है',
   'studio.publish.noteEnglish':
     'इसे अंग्रेज़ी में लिखिए: गैलरी में हर कोई इसे पढ़ता है।',
+  'studio.publish.shapeChoice': 'जाँचने के लिए व्यू',
+  'studio.publish.shapeNormal': 'सामान्य',
+  'studio.publish.shapeUltra': 'अल्ट्रा वाइड',
+  'studio.publish.shapeAmp': 'एम्प',
+  'studio.publish.shapeHint':
+    'भेजने से पहले इसे हर व्यू में जाँचिए। कवर और प्रीव्यू वीडियो सामान्य व्यू के हैं।',
+  'studio.publish.coversNormal': 'कवर सामान्य व्यू में लिए जाते हैं',
   'studio.publish.noteWriting': 'आपके सीन की चैट लिख रही है कि नया क्या है…',
   'studio.publish.noteNeeded': 'ज़रूरी',
   'studio.publish.point1':
@@ -403,6 +410,8 @@ const studio = {
     'लोगों के पास संस्करण {version} है। उसके बाद आपने सीन बदला है; प्रकाशित करने पर यह संस्करण {next} के रूप में साझा होगा।',
   'studio.empty': 'अभी दिखाने को कुछ नहीं',
   'studio.stage.label': '{name}, लाइव चल रहा है',
+  'studio.stage.ultraBand': 'अल्ट्रा-वाइड ग्राफ़',
+  'studio.stage.ultraRest': 'बाक़ी विंडो, ऐप के पीछे',
   'studio.stage.resize': 'प्रीव्यू का आकार बदलने के लिए खींचें',
   'studio.stage.zoomHint':
     'Ctrl + व्हील से ज़ूम करें; घुमाने के लिए Space दबाए रखें और खींचें',

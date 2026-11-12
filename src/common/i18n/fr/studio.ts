@@ -193,6 +193,14 @@ const studio = {
     'Dites d’abord ce qui est nouveau dans cette version',
   'studio.publish.noteEnglish':
     'Écrivez-la en anglais : tout le monde la lit dans la galerie.',
+  'studio.publish.shapeChoice': 'Vue à vérifier',
+  'studio.publish.shapeNormal': 'Normale',
+  'studio.publish.shapeUltra': 'Ultra-large',
+  'studio.publish.shapeAmp': 'Ampli',
+  'studio.publish.shapeHint':
+    'Vérifiez-la dans chaque vue avant de l’envoyer. Les couvertures et la vidéo d’aperçu sont la vue normale.',
+  'studio.publish.coversNormal':
+    'Les couvertures se prennent dans la vue normale',
   'studio.publish.noteWriting':
     'Le chat de votre scène écrit ce qui est nouveau…',
   'studio.publish.noteNeeded': 'Obligatoire',
@@ -413,6 +421,8 @@ const studio = {
     'Les autres ont la version {version}. Vous avez modifié la scène depuis ; publiée, elle sortira en version {next}.',
   'studio.empty': 'Rien à montrer pour l’instant',
   'studio.stage.label': '{name}, en direct',
+  'studio.stage.ultraBand': 'Graphique ultra-large',
+  'studio.stage.ultraRest': 'Le reste de la fenêtre, derrière l’app',
   'studio.stage.resize': 'Faites glisser pour redimensionner l’aperçu',
   'studio.stage.zoomHint':
     'Ctrl + molette pour zoomer ; maintenez la barre d’espace et faites glisser pour vous déplacer',

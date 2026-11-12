@@ -193,6 +193,14 @@ const studio = {
   'studio.publish.needNote': 'Sagen Sie zuerst, was in dieser Version neu ist',
   'studio.publish.noteEnglish':
     'Schreiben Sie ihn auf Englisch: Alle in der Galerie lesen ihn.',
+  'studio.publish.shapeChoice': 'Ansicht zum Prüfen',
+  'studio.publish.shapeNormal': 'Normal',
+  'studio.publish.shapeUltra': 'Ultrabreit',
+  'studio.publish.shapeAmp': 'Amp',
+  'studio.publish.shapeHint':
+    'Prüfen Sie sie in jeder Ansicht, bevor Sie sie senden. Titelbilder und Vorschauvideo zeigen die normale Ansicht.',
+  'studio.publish.coversNormal':
+    'Titelbilder werden in der normalen Ansicht aufgenommen',
   'studio.publish.noteWriting': 'Der Chat Ihrer Szene schreibt, was neu ist…',
   'studio.publish.noteNeeded': 'Erforderlich',
   'studio.publish.point1':
@@ -420,6 +428,8 @@ const studio = {
     'Andere haben Version {version}. Sie haben die Szene seitdem geändert; veröffentlicht erscheint sie als Version {next}.',
   'studio.empty': 'Noch nichts zu zeigen',
   'studio.stage.label': '{name}, live',
+  'studio.stage.ultraBand': 'Ultrabreiter Graph',
+  'studio.stage.ultraRest': 'Der Rest des Fensters, hinter der App',
   'studio.stage.resize': 'Ziehen, um die Größe der Vorschau zu ändern',
   'studio.stage.zoomHint':
     'Strg + Mausrad zoomt; Leertaste halten und ziehen, um das Bild zu verschieben',

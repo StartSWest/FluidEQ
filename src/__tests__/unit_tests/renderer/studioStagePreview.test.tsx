@@ -29,6 +29,8 @@ import StudioStage from '../../../renderer/studio/StudioStage';
 import {
   PLAYER_PANEL_VIEW,
   stageScreen,
+  ULTRA_WIDE_BAND,
+  ULTRA_WIDE_PANEL_VIEW,
   type TStagePreview,
 } from '../../../renderer/studio/studioStageScreen';
 
@@ -232,8 +234,10 @@ describe('the Compact player on the Studio stage', () => {
 });
 
 describe('the ultra-wide graph on the Studio stage', () => {
-  it('stands as a window of its shape, with the grid and the labels on it', () => {
-    const { container, getByTestId } = render(
+  // The whole window the scene covers, the graph framed where it stands
+  // (Ivan, 2026-11-12: "the scene must be seen complete").
+  it('stands as the whole window, the scene framed to the graph with its grid on the band', () => {
+    const { container, queryByTestId } = render(
       stage('ultraWide', { isGridShown: true }),
     );
     measured();
@@ -246,10 +250,25 @@ describe('the ultra-wide graph on the Studio stage', () => {
     expect(screen).toHaveClass('studio-stage__screen--window');
     expect(screen.style.width).toBe(`${expected.width}px`);
     expect(screen.style.height).toBe(`${expected.height}px`);
-    expect(container.querySelector('.studio-paper')).not.toBeNull();
-    expect(getByTestId('labels')).toBeInTheDocument();
-    // Framed whole, as the graph frames a scene.
+    // The scene's panel is the band, the window round it more scene.
+    expect(shaped().view).toEqual(ULTRA_WIDE_PANEL_VIEW);
+    // The band framed over it, and the graph's grid on the band alone.
+    expect(container.querySelector('.studio-ultra-frame__band')).not.toBeNull();
+    const band = container.querySelector<HTMLElement>('.studio-stage__band');
+    expect(band?.querySelector('.studio-paper')).not.toBeNull();
+    expect(band?.style.width).toBe(
+      `${Math.round(expected.width * ULTRA_WIDE_BAND.width)}px`,
+    );
+    // The starter's labels name the whole picture, which the band is not.
+    expect(queryByTestId('labels')).toBeNull();
+  });
+
+  it('control: the stage itself is framed whole, with no band', () => {
+    const { container } = render(stage('stage', { isGridShown: true }));
+    measured();
     expect(shaped().view).toBeUndefined();
+    expect(container.querySelector('.studio-ultra-frame')).toBeNull();
+    expect(container.querySelector('.studio-stage__band')).toBeNull();
   });
 
   it('control: the stage itself is no window', () => {

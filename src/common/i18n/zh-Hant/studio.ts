@@ -169,6 +169,13 @@ const studio = {
   'studio.publish.pickCategory': '首先選擇一個類別',
   'studio.publish.needNote': '先說一下這個版本有什麼新內容',
   'studio.publish.noteEnglish': '請用英文填寫：畫廊裡的每個人都會讀到。',
+  'studio.publish.shapeChoice': '要檢查的檢視',
+  'studio.publish.shapeNormal': '一般',
+  'studio.publish.shapeUltra': '超寬螢幕',
+  'studio.publish.shapeAmp': '播放器',
+  'studio.publish.shapeHint':
+    '傳送前請在每個檢視中檢查。封面和預覽影片都是一般檢視。',
+  'studio.publish.coversNormal': '封面在一般檢視中擷取',
   'studio.publish.noteWriting': '場景的聊天正在寫這次的新內容…',
   'studio.publish.noteNeeded': '需要',
   'studio.publish.point1':
@@ -349,6 +356,8 @@ const studio = {
     '大家拿到的是第 {version} 版。你之後改過這個場景，發布後會作為第 {next} 版分享。',
   'studio.empty': '尚未顯示任何內容',
   'studio.stage.label': '{name}，現場演奏',
+  'studio.stage.ultraBand': '超寬螢幕圖表',
+  'studio.stage.ultraRest': '視窗其餘部分，在應用程式後面',
   'studio.stage.resize': '拖曳以調整預覽大小',
   'studio.stage.zoomHint': 'Ctrl + 滾輪縮放；按住空白鍵拖曳即可移動',
   'studio.stage.startTitle': '您的場景在這裡播放',

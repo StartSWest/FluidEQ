@@ -44,10 +44,13 @@ import {
 import {
   PLAYER_PANEL_VIEW,
   stageScreen,
+  ULTRA_WIDE_BAND,
+  ULTRA_WIDE_PANEL_VIEW,
   type TStagePreview,
 } from './studioStageScreen';
 import captureVisibleStage from './stageVisibleCapture';
 import StudioStagePlayer from './StudioStagePlayer';
+import StudioUltraWideFrame from './StudioUltraWideFrame';
 import StudioStageZoom from './StudioStageZoom';
 import useStageBox from './useStageBox';
 import useStageFullscreen from './useStageFullscreen';
@@ -215,6 +218,7 @@ export default function StudioStage({
   const barRef = useRef<HTMLDivElement>(null);
   const { box, plate } = useStageBox(frameRef, barRef);
   const isPlayer = preview === 'player';
+  const isUltra = preview === 'ultraWide';
   // A preview stands as a window on the stage, which becomes its desk.
   const isWindowed = preview !== 'stage';
   // Answered by the runner, which alone knows when the picture went: a first
@@ -297,6 +301,10 @@ export default function StudioStage({
   // of the column (`PLAYER_PANEL_VIEW`).
   const isPlayerRef = useRef(isPlayer);
   isPlayerRef.current = isPlayer;
+  // And in Ultra wide it is drawn on the whole ultra-wide window, framed to
+  // the graph's band where the graph stands (`ULTRA_WIDE_PANEL_VIEW`).
+  const isUltraRef = useRef(isUltra);
+  isUltraRef.current = isUltra;
   // Calm takes the place of whatever the stage hears — the music, the demo
   // song or a test signal — as it takes the music's place on a desktop.
   const calm = useStageCalm(motion);
@@ -307,9 +315,13 @@ export default function StudioStage({
           sound: readFrameRef.current()?.sound,
         }),
       );
-      return edit.shape(
-        isPlayerRef.current ? { ...shaped, view: PLAYER_PANEL_VIEW } : shaped,
-      );
+      let view;
+      if (isPlayerRef.current) {
+        view = PLAYER_PANEL_VIEW;
+      } else if (isUltraRef.current) {
+        view = ULTRA_WIDE_PANEL_VIEW;
+      }
+      return edit.shape(view ? { ...shaped, view } : shaped);
     },
     [buffers, calm, edit],
   );
@@ -368,12 +380,20 @@ export default function StudioStage({
   // The graph's grid on the stage and on the ultra-wide graph; the Compact
   // player draws none behind a scene (`PlayerHero`), so none is laid over it.
   const isPapered = isGridShown && !isPlayer;
+  // In Ultra wide the graph is the band on its window, so its grid - and the
+  // wave's place, which the grid's plot decides - is the band's.
+  const paperWidth = isUltra
+    ? Math.round(screen.width * ULTRA_WIDE_BAND.width)
+    : screen.width;
+  const paperHeight = isUltra
+    ? Math.round(screen.height * ULTRA_WIDE_BAND.height)
+    : screen.height;
   const paper = useMemo(
     () =>
       isPapered
-        ? studioPaper(screen.width, screen.height, { spectrumRange }, wave)
+        ? studioPaper(paperWidth, paperHeight, { spectrumRange }, wave)
         : undefined,
-    [isPapered, screen.width, screen.height, spectrumRange, wave],
+    [isPapered, paperWidth, paperHeight, spectrumRange, wave],
   );
   // The plate and the reset stand inside the grid's ruled plot when the grid
   // covers the stage; round a preview's window they stand at the stage's own
@@ -493,9 +513,24 @@ export default function StudioStage({
           />
           {/* The grid and the starter's labels are drawn for the whole
               picture: on a closer look they would stand on the wrong part. */}
-          {paper && screen.width > 0 && !zoom.zoomed && (
-            <StudioGraphPaper paper={paper} />
-          )}
+          {paper &&
+            screen.width > 0 &&
+            !zoom.zoomed &&
+            (isUltra ? (
+              <div
+                className="studio-stage__band"
+                style={{
+                  left: `${ULTRA_WIDE_BAND.left * 100}%`,
+                  top: `${ULTRA_WIDE_BAND.top * 100}%`,
+                  width: paperWidth,
+                  height: paperHeight,
+                }}
+              >
+                <StudioGraphPaper paper={paper} />
+              </div>
+            ) : (
+              <StudioGraphPaper paper={paper} />
+            ))}
           {/* What the scene throws from the hand, over it: never gated here,
               where trying the hands is the point. */}
           {isEditing ? (
@@ -531,9 +566,24 @@ export default function StudioStage({
               }
             />
           )}
+          {/* The graph framed on the ultra-wide window, moved and magnified
+              by a closer look as the scene under it is. */}
+          {isUltra && screen.height > 0 && (
+            <StudioUltraWideFrame
+              style={{
+                width: screen.width * view.scale,
+                height: screen.height * view.scale,
+                right: 'auto',
+                bottom: 'auto',
+                ...(zoom.zoomed
+                  ? { transform: `translate(${view.x}px, ${view.y}px)` }
+                  : {}),
+              }}
+            />
+          )}
           {/* The starter's labels name parts of the whole picture, which the
-              player's panel shows only a slice of. */}
-          {!zoom.zoomed && !isPlayer && labels}
+              player's panel and the ultra-wide band show only a slice of. */}
+          {!zoom.zoomed && !isPlayer && !isUltra && labels}
         </div>
         {/* One plate in the top right corner (Ivan, 2026-09-27: "join all
             into one with runs smoothly and put it on the right top"): how the

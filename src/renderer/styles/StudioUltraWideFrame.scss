@@ -1,0 +1,53 @@
+@use 'color' as *;
+@use 'theme' as *;
+
+// The ultra-wide graph framed on its window (`StudioUltraWideFrame`): the
+// band at full strength under an outline in the accent, the window round it
+// veiled to a little under half, so the picture outside still reads - its
+// foot, its fade or its black - and plainly is not the graph.
+.studio-ultra-frame {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+// The graph's grid, on the band in Ultra wide: the band is the graph.
+.studio-stage__band {
+  position: absolute;
+  pointer-events: none;
+}
+
+.studio-ultra-frame__band {
+  position: absolute;
+  border-radius: 2px;
+  // The veil is the band's own shadow, spread past every edge of the
+  // window, so the band is the one clear rectangle with nothing to line up.
+  box-shadow:
+    0 0 0 1.5px $text-accent,
+    0 0 0 100vmax rgba($black, 0.58);
+}
+
+.studio-ultra-frame__tag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  max-width: calc(100% - 12px);
+  overflow: hidden;
+  padding: 2px 7px;
+  border-radius: $radius-s;
+  background: rgba($black, 0.62);
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Under the band, on the veil: what the rest of the picture is.
+.studio-ultra-frame__tag--rest {
+  margin-top: 6px;
+  color: rgba($white, 0.78);
+  font-weight: $weight-regular;
+}

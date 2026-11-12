@@ -14,6 +14,8 @@ import {
   COMPACT_PLAYER_PICTURE,
   GRAPH_STAGE_RATIO,
   ULTRA_WIDE_GRAPH,
+  ULTRA_WIDE_SHOWN,
+  ULTRA_WIDE_WINDOW_VIEW,
 } from './stageShapes';
 import type { IWorldReport } from './worldNotes';
 
@@ -49,6 +51,16 @@ export const STUDIO_AGENT_SHAPES = {
   },
   /** The graph on an ultra-wide monitor, 2956 by 534: "ultra wide". */
   'ultra-wide-graph': ULTRA_WIDE_GRAPH,
+  /**
+   * The window that graph stands in, to a band's height round it, at half
+   * size, the scene running on round the graph as it does behind the app:
+   * whether the picture carries on past the graph or stops short. The same
+   * part of the window the Studio shows (`ULTRA_WIDE_SHOWN`).
+   */
+  'ultra-wide-window': {
+    width: ULTRA_WIDE_SHOWN.width / 2,
+    height: ULTRA_WIDE_SHOWN.height / 2,
+  },
   /** The Compact player's picture, 480 by 309. */
   'compact-player': COMPACT_PLAYER_PICTURE,
   'compact-player-column': {
@@ -63,13 +75,17 @@ export type TStudioAgentShape = keyof typeof STUDIO_AGENT_SHAPES;
 
 /**
  * Where the scene's panel stands on a shape's picture, when the picture is
- * more than the panel: only the Compact player's whole column. Undefined
- * where the panel is the picture.
+ * more than the panel: the Compact player's whole column, and the window
+ * round the ultra-wide graph. Undefined where the panel is the picture.
  */
 export const studioAgentViewOf = (
   shape: TStudioAgentShape,
-): readonly [number, number, number, number] | undefined =>
-  shape === 'compact-player-column' ? COMPACT_PLAYER_COLUMN_VIEW : undefined;
+): readonly [number, number, number, number] | undefined => {
+  if (shape === 'compact-player-column') {
+    return COMPACT_PLAYER_COLUMN_VIEW;
+  }
+  return shape === 'ultra-wide-window' ? ULTRA_WIDE_WINDOW_VIEW : undefined;
+};
 
 export const isStudioAgentShape = (
   value: unknown,

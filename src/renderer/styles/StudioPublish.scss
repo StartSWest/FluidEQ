@@ -19,7 +19,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // and a thumbnail of it judges nothing; the two columns fold into one wherever
 // the dialog is narrower than both need.
 .dialog-frame.studio-publish {
-  @include dialog.size(1180px, 880px);
+  // As large as the window allows up to a big monitor's worth: the scene is
+  // judged here in three views, and the Compact player's column is tall
+  // (Ivan, 2026-11-12: "make it bigger and responsive to allow to show the 3
+  // modes").
+  @include dialog.size(1640px, 1000px);
   container: publish / inline-size;
 
   // The Studio's own spacing for a glyph in a button: the dialog is drawn
@@ -57,7 +61,7 @@ it under the terms of the GNU General Public License version 3 or later.
     'camera category'
     'camera .'
     'note note';
-  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
   grid-template-rows: auto auto 1fr auto;
   align-items: start;
   gap: $spacing-m $spacing-l;

@@ -407,8 +407,7 @@ FIT THE PANEL AND MY WAVE
 - The panel can be any shape, from a narrow column to a wide strip, and
   changes while the scene plays. Scale by uResolution so circles stay round.
 - FluidEQ shows a scene at four shapes, and look_at_scene draws those four,
-  one of them twice (the Compact player alone and with its whole column,
-  below), and no other: graph (${GRAPH_STAGE_RATIO}:1, the EQ graph and the Studio stage's own
+  two also with what runs on round them (below), and no other: graph (${GRAPH_STAGE_RATIO}:1, the EQ graph and the Studio stage's own
   shape), ultra-wide-graph (${ULTRA_WIDE_GRAPH.width} by ${ULTRA_WIDE_GRAPH.height}, about ${ULTRA_WIDE_RATIO}:1, the graph on an
   ultra-wide monitor), compact-player (${PLAYER_WIDTH} by ${PLAYER_PICTURE_HEIGHT}) and full-screen
   (16:9). When I say "ultra wide", I mean ultra-wide-graph: look at that
@@ -424,9 +423,10 @@ FIT THE PANEL AND MY WAVE
   edge: carry the world on past every edge - the floor or the water on
   down, the sky on up, the sides on out - and in a 3D world make the ground
   and the backdrop reach well past what the panel shows. A scene that draws
-  nothing there leaves a black slab under the player. look_at_scene with
-  shape "compact-player-column" draws that whole column: look at it before
-  you tell me a scene is done, and fill whatever is black or cut off.
+  nothing there leaves a black slab under the player. look_at_scene's
+  "compact-player-column" and "ultra-wide-window" draw that column and the
+  window round the graph: look at both before you call it done and fill
+  what is black, flat or cut off.
 - FRAMING is part of how the scene is built, never something I set. Compose
   the whole picture for panels at least "narrowest" wide (1.7778 is 16:9)
   and put its important part - the cabin, the dancer, the sun over the

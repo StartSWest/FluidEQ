@@ -186,6 +186,13 @@ const studio = {
   'studio.publish.needNote': 'Сначала напишите, что нового в этой версии',
   'studio.publish.noteEnglish':
     'Пишите по-английски: это читают все в галерее.',
+  'studio.publish.shapeChoice': 'Вид для проверки',
+  'studio.publish.shapeNormal': 'Обычный',
+  'studio.publish.shapeUltra': 'Сверхширокий',
+  'studio.publish.shapeAmp': 'Плеер',
+  'studio.publish.shapeHint':
+    'Проверьте её в каждом виде перед отправкой. Обложки и видео-превью — это обычный вид.',
+  'studio.publish.coversNormal': 'Обложки снимаются в обычном виде',
   'studio.publish.noteWriting': 'Чат вашей сцены пишет, что нового…',
   'studio.publish.noteNeeded': 'Обязательно',
   'studio.publish.point1':
@@ -406,6 +413,8 @@ const studio = {
     'У людей версия {version}. С тех пор вы изменили сцену; после публикации она выйдет как версия {next}.',
   'studio.empty': 'Пока нечего показать',
   'studio.stage.label': '{name}, вживую',
+  'studio.stage.ultraBand': 'Сверхширокий график',
+  'studio.stage.ultraRest': 'Остальная часть окна, за приложением',
   'studio.stage.resize': 'Потяните, чтобы изменить размер предпросмотра',
   'studio.stage.zoomHint':
     'Ctrl + колесо — масштаб; зажмите пробел и перетаскивайте, чтобы двигать',

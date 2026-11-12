@@ -189,6 +189,13 @@ const studio = {
   'studio.publish.needNote': '先にこのバージョンの新しい点を書いてください',
   'studio.publish.noteEnglish':
     '英語で書いてください。ギャラリーの全員が読みます。',
+  'studio.publish.shapeChoice': '確認する表示',
+  'studio.publish.shapeNormal': '通常',
+  'studio.publish.shapeUltra': 'ウルトラワイド',
+  'studio.publish.shapeAmp': 'アンプ',
+  'studio.publish.shapeHint':
+    '送る前にすべての表示で確認してください。カバーとプレビュー動画は通常表示のものです。',
+  'studio.publish.coversNormal': 'カバーは通常表示で撮ります',
   'studio.publish.noteWriting': 'シーンのチャットが新しい内容を書いています…',
   'studio.publish.noteNeeded': '必須',
   'studio.publish.point1':
@@ -411,6 +418,8 @@ const studio = {
     'みんなが持っているのはバージョン {version} です。その後シーンを変更しました。公開するとバージョン {next} として共有されます。',
   'studio.empty': 'まだ表示するものがありません',
   'studio.stage.label': '{name}、ライブ再生中',
+  'studio.stage.ultraBand': 'ウルトラワイドのグラフ',
+  'studio.stage.ultraRest': 'アプリの後ろにあるウィンドウの残り',
   'studio.stage.resize': 'ドラッグしてプレビューの大きさを変更',
   'studio.stage.zoomHint':
     'Ctrl + ホイールで拡大縮小、Space を押しながらドラッグで移動',

@@ -1,0 +1,111 @@
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'theme' as *;
+
+// The publish dialog's three views (`StudioPublishShapes`) and the name the
+// gallery needs (`StudioPublishName`), and the dialog's narrow head.
+
+// The switch above the scene, its note beside it while there is room.
+.studio-publish__shapes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+}
+
+.studio-publish__shapes-hint {
+  min-width: 0;
+  color: $text-dim;
+  font-size: $text-small;
+  line-height: 1.35;
+}
+
+// Each view's own shape. Normal is the 16:9 the covers and the clip are
+// taken from (the frame's own rule); Ultra wide the ultra-wide window to a
+// band's height round the graph, as the stage shows it (`ULTRA_WIDE_SHOWN`:
+// 3440 by 1234), as wide as the column.
+.studio-publish__viewfinder--ultra {
+  aspect-ratio: 3440 / 1234;
+}
+
+// The Compact player's whole column, 480 by 966, upright in the middle of
+// the column: as tall as the dialog leaves room for, up to its real height,
+// and never so short that the player cannot be judged.
+.studio-publish__viewfinder--amp {
+  justify-self: center;
+  width: auto;
+  height: clamp(440px, calc(100vh - 360px), 966px);
+  aspect-ratio: 480 / 966;
+}
+
+// The name across the top while the account has none: the gallery credits
+// a scene with it, and nothing is sent without one.
+.studio-publish__body--named {
+  grid-template-areas:
+    'name name'
+    'camera covers'
+    'camera category'
+    'camera .'
+    'note note';
+  grid-template-rows: auto auto auto 1fr auto;
+
+  // Its own row: the size is placed by number, not by area.
+  .studio-publish-size {
+    grid-row: 4;
+  }
+
+  @container publish (max-width: 1000px) {
+    grid-template-areas:
+      'name'
+      'camera'
+      'covers'
+      'category'
+      'note';
+    grid-template-rows: none;
+
+    .studio-publish-size {
+      grid-row: auto;
+    }
+  }
+}
+
+.studio-publish__name {
+  grid-area: name;
+  min-width: 0;
+}
+
+// A window too narrow for the rail beside a scene worth judging: the rail
+// becomes the head, its tile beside the title, and the three points about
+// review leave for the space they took (the button says the same).
+@media (max-width: $bp-lg) {
+  .dialog-frame.studio-publish {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'rail'
+      'body'
+      'foot';
+
+    .dialog-frame__rail {
+      gap: 8px;
+      padding: 16px 52px 12px 18px;
+      border-right: 0;
+      border-bottom: dialog.$seam;
+    }
+
+    .dialog-frame__identity {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .dialog-frame__tile {
+      width: 40px;
+      height: 40px;
+    }
+
+    .studio-ticks {
+      display: none;
+    }
+  }
+}

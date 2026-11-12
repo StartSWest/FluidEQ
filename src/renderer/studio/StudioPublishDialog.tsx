@@ -6,6 +6,8 @@ import { formatPackBytes, scenePackSize } from 'common/scenePackSize';
 import { versionToPublish } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
+import ProfileNameForm from '../account/ProfileNameForm';
+import { createProfile, usePublicIdentity } from '../plus/profileStore';
 import DialogFrame from '../components/DialogFrame';
 import StudioPublishNote, { useOfferedNote } from './StudioPublishNote';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -26,6 +28,12 @@ import type { IPublishPreview } from './usePublishVideo';
 import '../styles/Gallery.scss';
 import '../styles/StudioDialogs.scss';
 import '../styles/StudioPublish.scss';
+
+/**
+ * A saved name needs nothing more from the dialog: the store answers that
+ * the account has one, and the form goes.
+ */
+const noop = () => undefined;
 
 interface IStudioPublishDialogProps {
   /** The project, so the dialog's stage is its own. */
@@ -91,6 +99,7 @@ export default function StudioPublishDialog({
   const size = useMemo(() => scenePackSize(pack), [pack]);
   const tooLarge = size.total > size.limit;
   const me = useAccount().identity?.id;
+  const publicName = usePublicIdentity(me);
   // The scene the clip is stamped with, built exactly as main rebuilds it to
   // check the stamp (`previewMatchesSource`): the project as built, at the
   // version it goes out under. The Studio's settings are already in `pack`
@@ -324,15 +333,24 @@ export default function StudioPublishDialog({
                 type="button"
                 className={`button small${running ? ' is-running' : ''}`}
                 aria-busy={running}
-                disabled={!category || !previewReady || running || tooLarge}
-                title={publishHint}
+                disabled={
+                  !category ||
+                  !previewReady ||
+                  running ||
+                  tooLarge ||
+                  publicName.missing
+                }
+                title={
+                  publicName.missing ? t('profile.name.choose') : publishHint
+                }
                 onClick={() => {
                   if (
                     !category ||
                     running ||
                     !preview ||
                     !previewReady ||
-                    tooLarge
+                    tooLarge ||
+                    publicName.missing
                   ) {
                     return;
                   }
@@ -354,7 +372,19 @@ export default function StudioPublishDialog({
           </>
         }
       >
-        <div className="studio-publish__body">
+        <div
+          className={`studio-publish__body${publicName.missing ? ' studio-publish__body--named' : ''}`}
+        >
+          {/* The gallery credits a scene with a name and an @handle, and the
+              server takes no publication without them (Ivan, 2026-11-12: "we
+              need to force users to have a name and @username to publish",
+              "once they provide it we dont ask more"): asked here, while the
+              account has neither, and gone for good once it is saved. */}
+          {publicName.missing && (
+            <div className="studio-publish__name">
+              <ProfileNameForm save={createProfile} onSaved={noop} />
+            </div>
+          )}
           <StudioPublishCamera
             initialFocusRef={firstRef}
             key={source}

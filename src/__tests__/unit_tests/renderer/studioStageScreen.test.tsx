@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { PLAYER_PICTURE_HEIGHT } from 'common/constants';
+import { ULTRA_WIDE_SHOWN } from 'common/stageShapes';
+import { studioAgentViewOf } from 'common/studioAgent';
 import {
   PICTURE_HEIGHT,
   PICTURE_PANEL_FOOT,
@@ -17,7 +19,10 @@ import {
   PLATE_GAP,
   PLAYER_PANEL_VIEW,
   PREVIEW_INSET,
+  ULTRA_WIDE_BAND,
   ULTRA_WIDE_GRAPH_SHAPE,
+  ULTRA_WIDE_PANEL_VIEW,
+  ULTRA_WIDE_WINDOW_SHAPE,
   stageScreen,
   type TStagePreview,
 } from 'renderer/studio/studioStageScreen';
@@ -119,18 +124,65 @@ describe('the ultra-wide graph on the stage', () => {
     expect(ULTRA_WIDE_GRAPH_SHAPE).toBeCloseTo(5.54, 2);
   });
 
+  // The window the scene covers, the graph framed in it where it stands
+  // (Ivan, 2026-11-12: "the scene must be seen complete"), as far as a
+  // band's height round the graph: the overflow "at a maximum size".
+  it('shows the 3440-wide window from its top to a band’s height under the graph', () => {
+    // 166 above the band (all the window has), 534 of band, 534 under it.
+    expect(ULTRA_WIDE_SHOWN).toEqual({
+      left: 0,
+      top: 0,
+      width: 3440,
+      height: 1234,
+    });
+    expect(ULTRA_WIDE_WINDOW_SHAPE).toBeCloseTo(3440 / 1234, 6);
+    // The control: still far more than the band alone.
+    expect(ULTRA_WIDE_WINDOW_SHAPE).toBeLessThan(ULTRA_WIDE_GRAPH_SHAPE / 1.9);
+  });
+
+  it('frames the scene to the graph where it stands on the window, 143,166', () => {
+    const [left, bottom, width, height] = ULTRA_WIDE_PANEL_VIEW;
+    expect(left).toBeCloseTo(143 / 3440, 10);
+    expect(width).toBeCloseTo(2956 / 3440, 10);
+    expect(height).toBeCloseTo(534 / 1234, 10);
+    // From the bottom, as GL counts: the band's foot at row 700 of the
+    // 1234 shown, a band's height above the foot of what is shown.
+    expect(bottom).toBeCloseTo(534 / 1234, 10);
+    // The frame the page lays over it is the same rectangle from the top.
+    expect(ULTRA_WIDE_BAND.top).toBeCloseTo(166 / 1234, 10);
+    expect(ULTRA_WIDE_BAND.top + ULTRA_WIDE_BAND.height).toBeCloseTo(
+      1 - bottom,
+      10,
+    );
+    expect(ULTRA_WIDE_BAND.left).toBeCloseTo(left, 10);
+    // In pixels it is the graph's own shape.
+    expect(
+      (ULTRA_WIDE_BAND.width * 3440) / (ULTRA_WIDE_BAND.height * 1234),
+    ).toBeCloseTo(ULTRA_WIDE_GRAPH_SHAPE, 6);
+  });
+
+  // The member's AI looks at what the member sees (Ivan, 2026-11-09: "make
+  // sure when I ask the agent it knows is that aspect ratio").
+  it('gives the AI’s look the same cut of the window', () => {
+    expect(studioAgentViewOf('ultra-wide-window')).toEqual(
+      ULTRA_WIDE_PANEL_VIEW,
+    );
+  });
+
   it('spans the stage between its insets, in its middle', () => {
     const box = { width: 1280, height: 720 };
     const drawn = stageScreen(box, 'ultraWide', undefined);
     expect(drawn.width).toBe(1280 - 2 * PREVIEW_INSET);
-    expect(drawn.height).toBe(Math.floor(drawn.width / ULTRA_WIDE_GRAPH_SHAPE));
+    expect(drawn.height).toBe(
+      Math.floor(drawn.width / ULTRA_WIDE_WINDOW_SHAPE),
+    );
     expect(drawn.left).toBe(PREVIEW_INSET);
     expect(drawn.top).toBe(Math.round((720 - drawn.height) / 2));
   });
 
   it('goes under the plate where the plate would cover its top', () => {
-    // Centred, the strip's top would sit under a plate grown to two rows.
-    const box = { width: 1280, height: 450 };
+    // Centred, the window's top would sit under a plate grown to two rows.
+    const box = { width: 1280, height: 720 };
     const centred = stageScreen(box, 'ultraWide', undefined);
     const plate = { left: 900, bottom: 140 };
     expect(centred.top ?? 0).toBeLessThan(plate.bottom + PLATE_GAP);
@@ -152,7 +204,7 @@ describe('the ultra-wide graph on the stage', () => {
     const box = { width: 2000, height: 200 };
     const drawn = stageScreen(box, 'ultraWide', undefined);
     expect(drawn.width).toBe(
-      Math.floor((200 - 2 * PREVIEW_INSET) * ULTRA_WIDE_GRAPH_SHAPE),
+      Math.floor((200 - 2 * PREVIEW_INSET) * ULTRA_WIDE_WINDOW_SHAPE),
     );
     expect(drawn.width).toBeLessThan(2000 - 2 * PREVIEW_INSET);
   });

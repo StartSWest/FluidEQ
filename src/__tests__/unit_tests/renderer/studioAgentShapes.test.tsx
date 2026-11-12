@@ -11,11 +11,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * stage shows.
  */
 import { renderHook } from '@testing-library/react';
-import { STUDIO_AGENT_SHAPES } from 'common/studioAgent';
+import { STUDIO_AGENT_SHAPES, studioAgentViewOf } from 'common/studioAgent';
 import { GRAPH_STAGE_RATIO } from 'renderer/studio/useStudioStageRatio';
 import {
   AGENT_SHAPE_OF_PREVIEW,
   ULTRA_WIDE_GRAPH_SHAPE,
+  ULTRA_WIDE_PANEL_VIEW,
+  ULTRA_WIDE_WINDOW_SHAPE,
   type TStagePreview,
 } from 'renderer/studio/studioStageScreen';
 import useStageViewForAgent from 'renderer/studio/useStageViewForAgent';
@@ -38,15 +40,17 @@ describe("the AI's shapes", () => {
     expect(ratio('full-screen')).toBeCloseTo(16 / 9, 5);
   });
 
-  // Four screens, and the Compact player a second time with the whole
-  // column its picture is the top of (`studioAgentColumn.test.ts`).
-  it('are those four, the player with its column, and nothing thinner than the ultra-wide graph', () => {
+  // Four screens, and two a second time with what they stand in: the
+  // Compact player with the whole column its picture is the top of
+  // (`studioAgentColumn.test.ts`), the ultra-wide graph with its window.
+  it('are those four, the player with its column, the graph with its window, and nothing thinner than the ultra-wide graph', () => {
     expect(Object.keys(STUDIO_AGENT_SHAPES).sort()).toEqual([
       'compact-player',
       'compact-player-column',
       'full-screen',
       'graph',
       'ultra-wide-graph',
+      'ultra-wide-window',
     ]);
     (Object.keys(STUDIO_AGENT_SHAPES) as (keyof typeof STUDIO_AGENT_SHAPES)[])
       .map(ratio)
@@ -55,10 +59,23 @@ describe("the AI's shapes", () => {
       );
   });
 
+  // The AI's Ultra wide is the window the scene covers to a band's height
+  // round the graph, the graph its panel where the graph stands - the
+  // stage's own view of it, shape and all.
+  it('draw the ultra-wide window round its graph, and the graph alone flat', () => {
+    expect(ratio('ultra-wide-window')).toBeCloseTo(3440 / 1234, 6);
+    expect(ratio('ultra-wide-window')).toBeCloseTo(ULTRA_WIDE_WINDOW_SHAPE, 6);
+    expect(studioAgentViewOf('ultra-wide-window')).toEqual(
+      ULTRA_WIDE_PANEL_VIEW,
+    );
+    // Control: the graph alone is its own panel.
+    expect(studioAgentViewOf('ultra-wide-graph')).toBeUndefined();
+  });
+
   it('name every view the stage has', () => {
     expect(AGENT_SHAPE_OF_PREVIEW).toEqual({
       stage: 'graph',
-      ultraWide: 'ultra-wide-graph',
+      ultraWide: 'ultra-wide-window',
       // The whole column the stage shows, never the panel alone.
       player: 'compact-player-column',
     });
@@ -82,7 +99,7 @@ describe('the stage telling main its view', () => {
     );
     expect(told).toHaveBeenLastCalledWith('graph');
     rerender({ preview: 'ultraWide' });
-    expect(told).toHaveBeenLastCalledWith('ultra-wide-graph');
+    expect(told).toHaveBeenLastCalledWith('ultra-wide-window');
     rerender({ preview: 'player' });
     expect(told).toHaveBeenLastCalledWith('compact-player-column');
     unmount();

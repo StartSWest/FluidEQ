@@ -29,9 +29,9 @@ export const VIEW_SHAPES: readonly {
       "STANDARD - the EQ graph, the Studio stage's own shape. The subject whole, the picture composed.",
   },
   {
-    shape: 'ultra-wide-graph',
+    shape: 'ultra-wide-window',
     words:
-      'ULTRA WIDE - the graph on an ultra-wide monitor, about 5.5:1. Nothing important lost off the ends, nothing stretched, no empty band.',
+      "ULTRA WIDE - the whole window of an ultra-wide monitor, as the scene covers it behind the app. The graph, about 5.5:1, is the band from 4% to 90% across and 12% to 50% down: inside it nothing important lost off the ends, nothing stretched. Round it, to the window's foot, the scene carries on: no picture that just stops, nothing black or flat where the faders stand.",
   },
   {
     shape: 'compact-player-column',
@@ -65,6 +65,8 @@ const MEMBERS_VIEW = 'THE VIEW THE MEMBER HAS ON THEIR STAGE NOW, first:';
 const STAGE_NAMES: Record<TStudioAgentShape, string> = {
   graph: 'STANDARD (the EQ graph)',
   'ultra-wide-graph': 'ULTRA WIDE (the graph on an ultra-wide monitor)',
+  'ultra-wide-window':
+    'ULTRA WIDE (the whole ultra-wide window, the graph framed in it)',
   'compact-player': "the Compact player's picture",
   'compact-player-column': "MOBILE (the Compact player's whole column)",
   'full-screen': 'FULL SCREEN',

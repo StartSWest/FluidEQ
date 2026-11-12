@@ -185,6 +185,13 @@ const studio = {
   'studio.publish.needNote': '먼저 이 버전의 새로운 기능을 말해보세요.',
   'studio.publish.noteEnglish':
     '영어로 작성하세요. 갤러리의 모든 사람이 읽습니다.',
+  'studio.publish.shapeChoice': '확인할 보기',
+  'studio.publish.shapeNormal': '일반',
+  'studio.publish.shapeUltra': '울트라와이드',
+  'studio.publish.shapeAmp': '앰프',
+  'studio.publish.shapeHint':
+    '보내기 전에 모든 보기에서 확인하세요. 커버와 미리보기 영상은 일반 보기입니다.',
+  'studio.publish.coversNormal': '커버는 일반 보기에서 찍습니다',
   'studio.publish.noteWriting': '장면의 채팅이 새로운 점을 쓰고 있습니다…',
   'studio.publish.noteNeeded': '필요',
   'studio.publish.point1':
@@ -392,6 +399,8 @@ const studio = {
     '사람들이 가진 버전은 {version}입니다. 그 뒤로 장면을 바꿨습니다. 게시하면 버전 {next}(으)로 공유됩니다.',
   'studio.empty': '아직 표시할 항목이 없습니다.',
   'studio.stage.label': '{name}, 라이브로 재생 중',
+  'studio.stage.ultraBand': '울트라와이드 그래프',
+  'studio.stage.ultraRest': '앱 뒤의 나머지 창',
   'studio.stage.resize': '미리보기 크기를 조정하려면 드래그하세요.',
   'studio.stage.zoomHint':
     'Ctrl + 휠로 확대/축소, Space를 누른 채 드래그해 이동',

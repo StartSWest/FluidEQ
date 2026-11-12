@@ -5,7 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PLAYER_PICTURE_HEIGHT } from 'common/constants';
-import { ULTRA_WIDE_GRAPH } from 'common/stageShapes';
+import {
+  ULTRA_WIDE_GRAPH,
+  ULTRA_WIDE_SHOWN,
+  ULTRA_WIDE_WINDOW,
+  ULTRA_WIDE_WINDOW_VIEW,
+} from 'common/stageShapes';
 import type { TStudioAgentShape } from 'common/studioAgent';
 import {
   PICTURE_HEIGHT,
@@ -34,7 +39,7 @@ export type TStagePreview = 'stage' | 'ultraWide' | 'player';
 export const AGENT_SHAPE_OF_PREVIEW: Record<TStagePreview, TStudioAgentShape> =
   {
     stage: 'graph',
-    ultraWide: 'ultra-wide-graph',
+    ultraWide: 'ultra-wide-window',
     player: 'compact-player-column',
   };
 
@@ -69,6 +74,29 @@ export const PLAYER_PANEL_VIEW: TSceneView = sceneViewOf(
   },
   { left: 0, top: 0, width: PICTURE_WIDTH, height: PICTURE_HEIGHT },
 );
+
+/**
+ * Where the graph's band stands on the part of the ultra-wide window shown
+ * (`ULTRA_WIDE_SHOWN`: a band's height round it), as the scene's view: the
+ * band is the panel, the window round it more of the same scene. The AI's
+ * look at `ultra-wide-window` takes the same view.
+ */
+export const ULTRA_WIDE_PANEL_VIEW: TSceneView = ULTRA_WIDE_WINDOW_VIEW;
+
+/**
+ * The band's rectangle on the part of the window shown, in shares of it,
+ * from the top-left, as the page lays the frame over the scene.
+ */
+export const ULTRA_WIDE_BAND = {
+  left:
+    (ULTRA_WIDE_WINDOW.graphLeft - ULTRA_WIDE_SHOWN.left) /
+    ULTRA_WIDE_SHOWN.width,
+  top:
+    (ULTRA_WIDE_WINDOW.graphTop - ULTRA_WIDE_SHOWN.top) /
+    ULTRA_WIDE_SHOWN.height,
+  width: ULTRA_WIDE_GRAPH.width / ULTRA_WIDE_SHOWN.width,
+  height: ULTRA_WIDE_GRAPH.height / ULTRA_WIDE_SHOWN.height,
+} as const;
 
 /** Room round a preview's window, for its edge and shadow. */
 export const PREVIEW_INSET = 16;
@@ -124,8 +152,19 @@ const playerScreen = (
 };
 
 /**
- * The ultra-wide graph across the stage, as wide as it allows, in its
- * middle — or below the plate, where the plate would cover the graph's top
+ * The ultra-wide window's shape as the stage shows it: the window the scene
+ * covers behind the app, a band's height round the graph
+ * (`ULTRA_WIDE_SHOWN`), the graph framed in it where it really stands (Ivan,
+ * 2026-11-12: "the scene must be seen complete"). It showed the graph's
+ * band alone, black above and below, and a picture that stopped short of
+ * the window's foot looked whole there.
+ */
+export const ULTRA_WIDE_WINDOW_SHAPE =
+  ULTRA_WIDE_SHOWN.width / ULTRA_WIDE_SHOWN.height;
+
+/**
+ * The ultra-wide window across the stage, as large as it allows, in its
+ * middle — or below the plate, where the plate would cover the window's top
  * and the stage has the room under it.
  */
 const ultraWideScreen = (
@@ -137,11 +176,11 @@ const ultraWideScreen = (
       0,
       Math.min(
         box.width - 2 * PREVIEW_INSET,
-        (box.height - 2 * PREVIEW_INSET) * ULTRA_WIDE_GRAPH_SHAPE,
+        (box.height - 2 * PREVIEW_INSET) * ULTRA_WIDE_WINDOW_SHAPE,
       ),
     ),
   );
-  const height = Math.floor(width / ULTRA_WIDE_GRAPH_SHAPE);
+  const height = Math.floor(width / ULTRA_WIDE_WINDOW_SHAPE);
   const centred = Math.round((box.height - height) / 2);
   const lowest = Math.max(PREVIEW_INSET, box.height - PREVIEW_INSET - height);
   const top =

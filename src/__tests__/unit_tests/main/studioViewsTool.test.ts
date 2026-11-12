@@ -47,7 +47,7 @@ describe('look_at_views', () => {
     const result = await tool.call({ seconds: 3, sliders: { daylight: 0 } });
     expect(asked.map((request) => request.shape)).toEqual([
       'graph',
-      'ultra-wide-graph',
+      'ultra-wide-window',
       'compact-player-column',
     ]);
     expect(asked.every((request) => request.seconds === 3)).toBe(true);
@@ -58,7 +58,7 @@ describe('look_at_views', () => {
     );
     expect(pictures).toEqual([
       'graph',
-      'ultra-wide-graph',
+      'ultra-wide-window',
       'compact-player-column',
     ]);
     const words = result.content
@@ -129,9 +129,9 @@ describe('the view the member is looking at', () => {
   };
 
   it('leads look_at_views, said to be theirs', async () => {
-    const { asked, words } = await lookIn('ultra-wide-graph');
+    const { asked, words } = await lookIn('ultra-wide-window');
     expect(asked).toEqual([
-      'ultra-wide-graph',
+      'ultra-wide-window',
       'graph',
       'compact-player-column',
     ]);
@@ -145,7 +145,7 @@ describe('the view the member is looking at', () => {
     const { asked, words } = await lookIn(undefined);
     expect(asked).toEqual([
       'graph',
-      'ultra-wide-graph',
+      'ultra-wide-window',
       'compact-player-column',
     ]);
     expect(words.join('\n')).not.toContain('THE VIEW THE MEMBER HAS');
@@ -153,7 +153,7 @@ describe('the view the member is looking at', () => {
   });
 
   it('is named to the chat with the member’s words', () => {
-    expect(stageViewLine('ultra-wide-graph')).toContain('ULTRA WIDE');
+    expect(stageViewLine('ultra-wide-window')).toContain('ULTRA WIDE');
     expect(stageViewLine('compact-player-column')).toContain('MOBILE');
     expect(stageViewLine('graph')).toContain('STANDARD');
     expect(stageViewLine('graph')).toMatch(/not the member/);

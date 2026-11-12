@@ -195,6 +195,13 @@ const studio = {
   'studio.publish.needNote': 'Say what is new in this version first',
   'studio.publish.noteEnglish':
     'Write it in English: everyone in the gallery reads it.',
+  'studio.publish.shapeChoice': 'View to check',
+  'studio.publish.shapeNormal': 'Normal',
+  'studio.publish.shapeUltra': 'Ultra wide',
+  'studio.publish.shapeAmp': 'Amp',
+  'studio.publish.shapeHint':
+    'Check it in every view before you send it. The covers and the preview video are the Normal view.',
+  'studio.publish.coversNormal': 'Covers are caught in the Normal view',
   'studio.publish.noteWriting': 'Your scene’s chat is writing what is new…',
   'studio.publish.noteNeeded': 'Needed',
   'studio.publish.point1':
@@ -416,6 +423,8 @@ const studio = {
     'Version {version} is the one people have. You have changed the scene since; publishing shares it as version {next}.',
   'studio.empty': 'Nothing to show yet',
   'studio.stage.label': '{name}, playing live',
+  'studio.stage.ultraBand': 'Ultra-wide graph',
+  'studio.stage.ultraRest': 'The rest of the window, behind the app',
   'studio.stage.resize': 'Drag to resize the preview',
   'studio.stage.zoomHint':
     'Ctrl + wheel zooms; hold Space and drag to move round',

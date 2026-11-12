@@ -169,6 +169,13 @@ const studio = {
   'studio.publish.pickCategory': '请先选择一个分类',
   'studio.publish.needNote': '请先写下这一版有什么新变化',
   'studio.publish.noteEnglish': '请用英文填写：画廊里的每个人都会读到。',
+  'studio.publish.shapeChoice': '要检查的视图',
+  'studio.publish.shapeNormal': '普通',
+  'studio.publish.shapeUltra': '超宽屏',
+  'studio.publish.shapeAmp': '播放器',
+  'studio.publish.shapeHint':
+    '发送前请在每个视图中检查。封面和预览视频都是普通视图。',
+  'studio.publish.coversNormal': '封面在普通视图中截取',
   'studio.publish.noteWriting': '场景的聊天正在写这次的新内容…',
   'studio.publish.noteNeeded': '必填',
   'studio.publish.point1':
@@ -361,6 +368,8 @@ const studio = {
     '大家拿到的是第 {version} 版。你之后改过这个场景，发布后会作为第 {next} 版分享。',
   'studio.empty': '暂时没有可显示的内容',
   'studio.stage.label': '{name}，实时播放中',
+  'studio.stage.ultraBand': '超宽屏图表',
+  'studio.stage.ultraRest': '窗口其余部分，在应用后面',
   'studio.stage.resize': '拖动可调整预览大小',
   'studio.stage.zoomHint': 'Ctrl + 滚轮缩放；按住空格键拖动即可移动',
   'studio.stage.startTitle': '你的场景在这里播放',
