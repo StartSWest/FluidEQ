@@ -241,6 +241,34 @@ export const APP_UPDATE_YML =
  * discovered by a user months later who cannot update. So the build fails here
  * instead.
  */
+/**
+ * The publisher names app-update.yml carries.
+ *
+ * electron-builder writes the key as a block list, `publisherName:` and then
+ * `  - Ivan Carmenates Garcia` on the next line, which is what the updater
+ * reads. Reading only `key: value` took the list's dash for part of the name
+ * and refused the first real signed build. A single value on the key's own
+ * line is read too; a flow list (`[a, b]`) is read as one odd name, so it is
+ * refused rather than half-understood.
+ */
+const publishersIn = (
+  yaml: string,
+  unquote: (raw: string | undefined) => string | undefined,
+): string[] => {
+  const lines = yaml.split(/\r?\n/);
+  const at = lines.findIndex((line) => /^publisherName:/.test(line));
+  if (at < 0) return [];
+  const inline = lines[at].slice('publisherName:'.length).trim();
+  if (inline) return [unquote(inline) ?? inline];
+  const names: string[] = [];
+  for (const line of lines.slice(at + 1)) {
+    const item = line.match(/^[ \t]+-[ \t]+(.+?)[ \t]*$/);
+    if (!item) break;
+    names.push(unquote(item[1]) ?? item[1]);
+  }
+  return names;
+};
+
 export const verifyUpdateConfig = (
   yaml: string,
   settings: IReleaseSettings,
@@ -251,16 +279,21 @@ export const verifyUpdateConfig = (
   const unquote = (raw: string | undefined) =>
     raw?.replace(/^(["'])(.*)\1$/, '$2');
 
-  const publisher = unquote(value('publisherName'));
-  if (!publisher) {
+  const publishers = publishersIn(yaml, unquote);
+  const expected = settings.signing.publisherName;
+  if (publishers.length === 0) {
     problems.push(
       'app-update.yml has no publisherName, so the updater will not verify ' +
         'signatures at all and would accept an unsigned installer.',
     );
-  } else if (publisher !== settings.signing.publisherName) {
+  } else if (publishers.length !== 1 || publishers[0] !== expected) {
+    // More than one name is refused as well: the updater accepts an installer
+    // signed by ANY name on the list, so a second one widens who can ship.
     problems.push(
-      `app-update.yml says publisherName ${publisher}, but this build signed ` +
-        `as "${settings.signing.publisherName}". Updates would be rejected.`,
+      `app-update.yml says publisherName ${publishers
+        .map((name) => `"${name}"`)
+        .join(', ')}, but this build signed as "${expected}" alone. ` +
+        'Updates would be rejected, or accepted from someone else.',
     );
   }
 

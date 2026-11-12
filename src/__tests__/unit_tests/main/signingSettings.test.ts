@@ -199,6 +199,42 @@ describe('checking what the built app will do when it updates', () => {
     expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([]);
   });
 
+  it('reads the publisher list electron-builder actually writes', () => {
+    // Copied from the first signed build's app-update.yml (2026-11-11), which
+    // the old `key: value` reading refused as "- Ivan Carmenates Garcia".
+    const written = [
+      'provider: generic',
+      `url: ${SIGNED_UPDATE_FEED_URL}`,
+      'channel: signed',
+      'updaterCacheDirName: fluideq-app-updater',
+      'publisherName:',
+      '  - Ivan Carmenates Garcia',
+    ].join('\r\n');
+    expect(verifyUpdateConfig(written, SETTINGS)).toEqual([]);
+  });
+
+  it('fails a publisher list that names somebody else too', () => {
+    // The updater accepts an installer signed by any name on the list.
+    const yaml = good.replace(
+      'publisherName: Ivan Carmenates Garcia',
+      'publisherName:\n  - Ivan Carmenates Garcia\n  - Someone Else',
+    );
+    expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
+      expect.stringContaining('"Someone Else"'),
+    ]);
+  });
+
+  it('fails a publisher key with nothing under it', () => {
+    // Without the line-bound reading, the next key became the "name".
+    const yaml = good.replace(
+      'publisherName: Ivan Carmenates Garcia',
+      'publisherName:',
+    );
+    expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
+      expect.stringContaining('no publisherName'),
+    ]);
+  });
+
   it('fails a build that would read latest.yml', () => {
     const yaml = good.replace(/^channel: signed$/m, '');
     expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
