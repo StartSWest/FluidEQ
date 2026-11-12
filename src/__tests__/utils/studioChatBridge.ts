@@ -19,7 +19,6 @@ const studioChatBridge = (projectId = '') => ({
     entries: [],
     busy: false,
   })),
-  studioChatCodex: jest.fn(async () => undefined),
 });
 
 export default studioChatBridge;

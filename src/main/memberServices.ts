@@ -421,8 +421,8 @@ const registerMemberServices = ({
     logger: log,
   });
   // The Studio's chat: the member's own Claude Code, working in the open
-  // project, looking and hearing as the door above does, and making
-  // pictures with the member's ChatGPT when they say so.
+  // project, looking and hearing as the door above does, and having
+  // pictures, videos and models made with the member's own Higgsfield.
   const studioChat = createStudioChat({
     userDataDir,
     getMainWindow,

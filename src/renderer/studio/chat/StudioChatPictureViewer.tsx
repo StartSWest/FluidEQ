@@ -38,7 +38,7 @@ interface ISize {
  * "click on image in the chat to zoom should open a modal to open them
  * bigger than in the chat"): the Pictures card's own viewer, its head, zoom
  * bar, pan and arrows, over every picture in the conversation, so the looks
- * Claude took and the pictures ChatGPT made can be stepped through side by
+ * Claude took and the pictures made for the scene can be stepped through side by
  * side. Esc, a click beside the picture and the close button all close it.
  *
  * Where there is a chat to send it to (`onDraw`), Draw opens the chat's own

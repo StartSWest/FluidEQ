@@ -109,20 +109,6 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
-.studio-chat-pop__on {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-
-  svg {
-    flex: none;
-    width: 13px;
-    height: 13px;
-    color: $text-accent;
-  }
-}
-
 .studio-chat-pop__item {
   display: flex;
   align-items: center;
@@ -276,17 +262,4 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-chat__context-fill {
   stroke: var(--context);
   stroke-linecap: round;
-}
-
-// ChatGPT's pictures on: a glyph beside the plan's name in the head.
-.studio-chat__gpt-on {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  color: $text-accent;
-
-  svg {
-    width: 12px;
-    height: 12px;
-  }
 }

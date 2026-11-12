@@ -110,26 +110,11 @@ const studioChat = {
   'studioChat.effortWarning':
     '더 많은 노력을 기울일수록 Claude는 더 오랫동안 생각하게 됩니다. 답변에 더 많은 시간이 걸리고 Claude 계획의 한도를 더 빨리 사용하게 됩니다.',
   'studioChat.step.picture': '{file} 사진을 만들었습니다.',
-  'studioChat.step.pictureNow': 'ChatGPT로 {file} 사진을 만드는 중…',
   'studioChat.step.pack': '사진을 현장에 넣어보세요',
   'studioChat.step.packNow': '사진을 현장에 넣는 중...',
-  'studioChat.ask.connectTitle': 'ChatGPT로 사진을 만드시겠습니까?',
-  'studioChat.ask.connectBody':
-    'Claude는 ChatGPT가 Codex 앱을 통해 ChatGPT 계획에 텍스처 및 컷아웃과 같은 이 장면의 그림을 그리길 원합니다. 모든 사진을 찍기 전에 질문을 받습니다.',
-  'studioChat.ask.needsCodex':
-    '이를 위해서는 ChatGPT 계정으로 로그인된 OpenAI의 Codex 앱이 필요합니다. 설치한 다음 여기로 돌아오세요.',
-  'studioChat.ask.codexSignedOut':
-    'Codex가 설치되었지만 ChatGPT로 로그인되지 않았습니다.',
-  'studioChat.ask.connect': 'ChatGPT 연결',
-  'studioChat.ask.getCodex': '코덱스 받기',
-  'studioChat.ask.signIn': 'ChatGPT로 로그인',
-  'studioChat.ask.notNow': '지금은 아님',
-  'studioChat.ask.pictureTitle': 'ChatGPT로 이 사진을 만드시겠어요?',
-  'studioChat.ask.pictureSize': '{width} × {height}',
-  'studioChat.ask.transparent': '투명한 배경에서 잘라내기',
-  'studioChat.ask.makeIt': '만들기',
-  'studioChat.ask.allowChat': '이 채팅을 허용합니다',
-  'studioChat.ask.cost': 'ChatGPT 계획을 사용합니다. 약 1분 정도.',
+  'studioChat.step.pictureNow': '그림 {file} 만드는 중…',
+  'studioChat.step.make': 'Higgsfield로 만들었습니다',
+  'studioChat.step.makeNow': 'Higgsfield로 만드는 중…',
   'studioChat.ask.toolTitle': 'Claude가 {tool}을(를) 사용하도록 허용할까요?',
   'studioChat.ask.toolBody':
     '내 Claude Code 도구 또는 플러그인입니다. 허용한 경우에만 이 컴퓨터에서 내 계정으로 실행됩니다.',
@@ -147,8 +132,6 @@ const studioChat = {
   'studioChat.memberCopy.title': '멤버의 장면: AI가 명령마다 먼저 묻습니다',
   'studioChat.memberCopy.body':
     '이 장면의 파일 속 텍스트가 AI에게 무언가를 실행하라고 할 수 있으므로, 명령마다 먼저 묻습니다. 멤버의 장면은 신뢰함으로 표시할 수 없습니다.',
-  'studioChat.chatgptOn': 'ChatGPT 사진이 켜져 있습니다.',
-  'studioChat.chatgptTurnOff': '끄다',
   'studioChat.past.title': '지난 채팅',
   'studioChat.past.empty':
     '아직 이전 채팅이 없습니다. 새 채팅을 시작하면 이 채팅이 여기에 유지됩니다.',
@@ -200,21 +183,11 @@ const studioChat = {
   'studioChat.accounts.title': '계정',
   'studioChat.accounts.open': '채팅에서 사용하는 계정 확인',
   'studioChat.accounts.claude': '클로드',
-  'studioChat.accounts.chatgpt': '채팅GPT',
   'studioChat.accounts.unknown': '로그인됨',
   'studioChat.accounts.switch': '다른 계정 사용',
   'studioChat.accounts.claudeMissing':
     'Claude Code가 이 컴퓨터에 설치되어 있지 않습니다.',
   'studioChat.accounts.claudeOut': 'Claude Code가 로그인되어 있지 않습니다.',
-  'studioChat.accounts.codexMissing':
-    'Codex 앱이 설치되어 있지 않아 ChatGPT가 사진을 만들 수 없습니다.',
-  'studioChat.accounts.codexOut': 'Codex는 ChatGPT로 로그인되어 있지 않습니다.',
-  'studioChat.accounts.picturesOn':
-    "이 채팅에서 각 질문에 '예'라고 대답하면 사진이 만들어집니다.",
-  'studioChat.accounts.picturesOff':
-    '아직 사진을 찍지 않았습니다. Claude가 처음으로 사진을 원할 때 묻습니다.',
-  'studioChat.accounts.picturesOffButton': '사진 끄기',
-  'studioChat.accounts.codexPlan': 'ChatGPT {plan} 계획 · Codex를 통해',
   'studioChat.accounts.fine':
     'FluidEQ는 해당 계정이 어떤 계정인지 표시하며 해당 계정의 로그인은 볼 수 없습니다.',
   'studioChat.welcomeSceneTitle': '{name}에서 무엇을 변경해야 합니까?',
@@ -255,9 +228,6 @@ const studioChat = {
   'studioChat.picked.remove': '{name} 제거',
   'studioChat.accounts.gpt': 'GPT',
   'studioChat.accounts.gptFound': 'Claude Code에 있는 내 GPT 플러그인({name})',
-  'studioChat.accounts.gptNote': '내 ChatGPT 요금제로 이미지를 만듭니다.',
-  'studioChat.accounts.gptMissing':
-    'Claude Code에서 GPT 플러그인을 찾지 못했습니다. 거기에 추가하면 여기에 표시됩니다.',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': '내 Claude Code를 통해 연결됨',
   'studioChat.accounts.higgsfieldNote':
@@ -274,11 +244,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': 'Higgsfield로 로그인',
   'studioChat.accounts.higgsfieldAbout': 'Higgsfield란?',
   'studioChat.accounts.checkAgain': '다시 확인',
-  'studioChat.accounts.makeWith': '만들 때 사용',
-  'studioChat.accounts.makeWithNote':
-    '둘 다 연결되어 있을 때 이미지나 애니메이션 프레임을 어느 쪽으로 만들지 정합니다.',
-  'studioChat.accounts.makeWithAsk': '매번 물어보기',
-  'studioChat.ask.makerPicture': '이 이미지를 무엇으로 만들까요…',
   'studioChat.ask.makerFrames': '이 애니메이션 프레임을 무엇으로 만들까요…',
   'studioChat.ask.makerGpt': '내 GPT 플러그인, ChatGPT 요금제 사용',
   'studioChat.ask.makerHiggsfield':

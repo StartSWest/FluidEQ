@@ -1,6 +1,6 @@
 ---
 name: fluideq-higgsfield
-description: Make a picture, the frames of an animation or a 3D model for a FluidEQ scene with Higgsfield, on the member's own Higgsfield account and credits - how to tell whether Higgsfield is connected, what to say when it is not, how to say the cost before spending, and how to bring every result into the scene's folder. Use whenever choose_maker answers "Use Higgsfield", and whenever the member says "Higgsfield", "generate it", "make it with AI", "a 3D model of", or asks for a subject, material, backdrop, sprite or model that drawing in the shader will not carry.
+description: Make a picture, the frames of an animation or a 3D model for a FluidEQ scene with Higgsfield, on the member's own Higgsfield account and credits - how to tell whether Higgsfield is connected, what to say when it is not, how to say the cost before spending, and how to bring every result into the scene's folder. Use before anything is made outside FluidEQ, and whenever the member says "Higgsfield", "generate it", "make it with AI", "a 3D model of", or asks for a subject, material, backdrop, sprite or model that drawing in the shader will not carry.
 ---
 
 # Higgsfield in a FluidEQ scene
@@ -32,14 +32,11 @@ Never install, add, connect or sign in to anything yourself: not with a
 command, not by editing a settings file, not by another tool. Setting it up
 is the member's own press.
 
-## Ask who makes it first
+## The Studio's one maker
 
-In FluidEQ Studio's chat, call `choose_maker` before each thing you have
-made, with what it is (`picture`, `frames` or `model`) and one sentence of
-why. It answers "Use Higgsfield" or "Use the member's own GPT plugin", or
-that neither is connected. Use the one it names. Never pick for the member.
-Where you have no `choose_maker` tool, ask the member which of their own
-picture tools to use before you spend anything.
+In FluidEQ Studio's chat, Higgsfield is what makes pictures, frames and
+models: there is nothing to choose between. The member may have other
+picture tools of their own; use one only when the member names it.
 
 ## What a scene can take
 

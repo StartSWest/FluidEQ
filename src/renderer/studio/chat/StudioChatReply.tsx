@@ -100,9 +100,9 @@ function Step({
           })}
         </span>
       )}
-      {/* What the look is drawing, or ChatGPT is painting, held open while
+      {/* What the look is drawing, or Higgsfield is making, held open while
           it works, then the picture itself, the moment it comes back. */}
-      {(step.kind === 'look' || step.kind === 'picture') && running && (
+      {(step.kind === 'look' || step.kind === 'make') && running && (
         <span className="studio-chat__seen is-drawing" aria-hidden="true" />
       )}
       {step.picture && (

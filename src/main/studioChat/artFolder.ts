@@ -9,7 +9,7 @@ import path from 'path';
 import type { IMcpToolResult } from '../studioAgent/mcpProtocol';
 
 /**
- * Where ChatGPT's pictures are kept, inside the project: `art/`, which the
+ * Where the scene's own pictures are kept, inside the project: `art/`, which the
  * build never reads, so a picture made and not used costs the published
  * scene nothing. Read and written only as plain files in a plain folder.
  */

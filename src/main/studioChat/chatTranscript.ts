@@ -58,6 +58,7 @@ const STEP_KINDS = new Set<IStudioChatStep['kind']>([
   'write',
   'search',
   'picture',
+  'make',
   'pack',
   'animation',
   'sheet',

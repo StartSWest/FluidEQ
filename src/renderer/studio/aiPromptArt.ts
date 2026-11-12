@@ -79,10 +79,10 @@ export const ART_SECTION = `YOUR OWN ART: MADE IMAGES, LIBRARY TEXTURES AND MODE
 Photo-real pictures lift a scene from drawn to real: FluidEQ's own aquarium
 swims photo-real fish over sand, its concert crowd is eight real-looking
 people, its hanami a garden of cherry trees. So:
-- FIND WHAT CAN MAKE IMAGES BEFORE YOU DECIDE NOTHING CAN: a tool of your
-  own (ChatGPT's or Codex's image generation, Gemini's, any other), an
-  image-generation skill or plugin in your skills, an MCP image tool, or one
-  I connected you to. Look at the start, and try one - most have a check
+- FIND WHAT CAN MAKE IMAGES BEFORE YOU DECIDE NOTHING CAN: Higgsfield's
+  tools if I connected it, an image generator of your own, an
+  image-generation skill or plugin in your skills, or another MCP image
+  tool. Look at the start, and try one - most have a check
   command - before you tell me pictures cannot be made; only when none works,
   write me the prompt and the file name to save the picture as in the folder.
 - USE IT for what should look real: a building, rocks, trees, mountains, a

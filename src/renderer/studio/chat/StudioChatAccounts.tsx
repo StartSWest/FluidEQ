@@ -5,32 +5,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, type ReactNode, type Ref } from 'react';
-import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
-import { connectedMakers, type TStudioMakerChoice } from 'common/studioMakers';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
-import { CODEX_APP_URL } from './StudioChatAsk';
 import StudioChatLimits from './StudioChatLimits';
 import { CLAUDE_CODE_INSTALL_URL } from './StudioChatSetup';
 import {
   checkStudioChat,
-  checkStudioChatCodex,
-  disconnectStudioChatCodex,
   signInToStudioChat,
-  signInToStudioChatCodex,
   useStudioChat,
 } from './studioChatStore';
 import {
   checkStudioMakers,
   connectHiggsfield,
-  setStudioMakerChoice,
   useStudioMakers,
 } from './studioMakersStore';
 import '../../styles/StudioChatAccounts.scss';
 
 /**
- * Plans by the names their makers sell them under. Claude Code and Codex
- * report a plan as one lower-case word ("max", "prolite"); a plan this does
+ * Plans by the names their makers sell them under. Claude Code reports a
+ * plan as one lower-case word ("max", "prolite"); a plan this does
  * not know is shown with a capital, which is right for most of them.
  */
 const PLAN_NAMES: Record<string, string> = {
@@ -75,98 +68,25 @@ function AccountCard({
   );
 }
 
-/** The ChatGPT account the member's Codex is signed in to, for pictures. */
-function ChatGptAccount() {
-  const { t } = useTranslation();
-  const { codex, codexSigningIn } = useStudioChat();
-
-  useEffect(() => {
-    checkStudioChatCodex().catch(() => undefined);
-  }, []);
-
-  const gptReady = codex?.codex === 'ready';
-  let gptNote: string | undefined;
-  if (codex?.codex === 'missing') {
-    gptNote = t('studioChat.accounts.codexMissing');
-  } else if (codex?.codex === 'signed-out') {
-    gptNote = t('studioChat.accounts.codexOut');
-  } else if (gptReady) {
-    gptNote = t(
-      codex.connected
-        ? 'studioChat.accounts.picturesOn'
-        : 'studioChat.accounts.picturesOff',
-    );
-  }
-
-  return (
-    <AccountCard
-      service={t('studioChat.accounts.chatgpt')}
-      lamp={gptReady ? 'ready' : 'off'}
-      email={
-        gptReady ? (codex.email ?? t('studioChat.accounts.unknown')) : undefined
-      }
-      detail={
-        gptReady && codex.plan
-          ? t('studioChat.accounts.codexPlan', { plan: planName(codex.plan) })
-          : undefined
-      }
-      note={gptNote}
-    >
-      {codex?.codex === 'missing' ? (
-        <button
-          type="button"
-          className="button small"
-          onClick={() => window.open(CODEX_APP_URL, '_blank', 'noopener')}
-        >
-          {t('studioChat.ask.getCodex')}
-        </button>
-      ) : (
-        <button
-          type="button"
-          className={`button small${gptReady ? ' subtle' : ''}${codexSigningIn ? ' is-running' : ''}`}
-          disabled={codexSigningIn || !codex}
-          onClick={() => {
-            signInToStudioChatCodex().catch(() => undefined);
-          }}
-        >
-          {t(gptReady ? 'studioChat.accounts.switch' : 'studioChat.ask.signIn')}
-        </button>
-      )}
-      {gptReady && codex.connected && (
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => {
-            disconnectStudioChatCodex().catch(() => undefined);
-          }}
-        >
-          <Glyph name="image" />
-          {t('studioChat.accounts.picturesOffButton')}
-        </button>
-      )}
-    </AccountCard>
-  );
-}
-
 /** Higgsfield's own site, for a member who has not heard of it. */
 const HIGGSFIELD_URL = 'https://higgsfield.ai';
 
 /**
- * The member's own two makers of pictures, as their Claude Code has them
- * (Ivan, 2026-11-11: "quiero que Fluid esté preparado para usar Higgsfield.
- * Y que pida si quiere usar GPT o Higgsfield"): their GPT plugin, Higgsfield,
- * and which of the two is used while both are connected.
+ * Higgsfield, the Studio's one maker of pictures, videos and 3D models, as
+ * the member's own Claude Code has it (Ivan, 2026-11-11: "let's only use
+ * Higgsfield for image gen, videos and everything Higgsfield can do").
  *
  * Asked again when this opens and whenever the window comes back, so a
- * plugin added in Claude Code or a sign-in finished in the browser shows
- * without anything to press. Nothing is drawn before the first answer.
- * Higgsfield is set up on the member's press only: FluidEQ adds it to their
- * Claude Code and opens Claude Code's own sign-in to it, and never sees the
- * sign-in. Which account it is cannot be read from here, so none is named.
+ * sign-in finished in the browser shows without anything to press. Nothing
+ * is drawn before the first answer. It is set up on the member's press
+ * only: FluidEQ adds it to their Claude Code and opens Claude Code's own
+ * sign-in to it, and never sees the sign-in. Which account it is cannot be
+ * read from here, so none is named. One the member connected themselves as a
+ * claude.ai connector counts the same.
  */
-function MakerAccounts() {
+function HiggsfieldAccount() {
   const { t } = useTranslation();
-  const { makers, connecting: higgsfieldConnecting } = useStudioMakers();
+  const { higgsfield, connecting } = useStudioMakers();
 
   useEffect(() => {
     const check = () => {
@@ -177,33 +97,33 @@ function MakerAccounts() {
     return () => window.removeEventListener('focus', check);
   }, []);
 
-  if (!makers) {
+  if (!higgsfield) {
     return null;
   }
 
   const connect = (another: boolean) => {
     connectHiggsfield(another).catch(() => undefined);
   };
-  const running = higgsfieldConnecting ? ' is-running' : '';
-  const { state } = makers.higgsfield;
+  const running = connecting ? ' is-running' : '';
+  const { state } = higgsfield;
 
-  let higgsfieldNote: string;
-  let higgsfieldActions: ReactNode;
+  let note: string;
+  let actions: ReactNode;
   if (state === 'ready') {
-    higgsfieldNote = t('studioChat.accounts.higgsfieldNote');
-    higgsfieldActions = (
+    note = t('studioChat.accounts.higgsfieldNote');
+    actions = (
       <button
         type="button"
         className={`button small subtle${running}`}
-        disabled={higgsfieldConnecting}
+        disabled={connecting}
         onClick={() => connect(true)}
       >
         {t('studioChat.accounts.switch')}
       </button>
     );
   } else if (state === 'unreachable') {
-    higgsfieldNote = t('studioChat.accounts.higgsfieldUnreachable');
-    higgsfieldActions = (
+    note = t('studioChat.accounts.higgsfieldUnreachable');
+    actions = (
       <button
         type="button"
         className="button small subtle"
@@ -215,17 +135,17 @@ function MakerAccounts() {
       </button>
     );
   } else {
-    higgsfieldNote = t(
+    note = t(
       state === 'missing'
         ? 'studioChat.accounts.higgsfieldMissing'
         : 'studioChat.accounts.higgsfieldOut',
     );
-    higgsfieldActions = (
+    actions = (
       <>
         <button
           type="button"
           className={`button small${running}`}
-          disabled={higgsfieldConnecting}
+          disabled={connecting}
           onClick={() => connect(false)}
         >
           {t(
@@ -247,86 +167,26 @@ function MakerAccounts() {
     );
   }
 
-  const choices: [TStudioMakerChoice, string][] = [
-    ['ask', t('studioChat.accounts.makeWithAsk')],
-    ['gpt', t('studioChat.accounts.gpt')],
-    ['higgsfield', t('studioChat.accounts.higgsfield')],
-  ];
-
   return (
-    <>
-      <AccountCard
-        service={t('studioChat.accounts.gpt')}
-        lamp={makers.gpt.found ? 'ready' : 'off'}
-        detail={
-          makers.gpt.found
-            ? t('studioChat.accounts.gptFound', {
-                name: makers.gpt.name?.split('@')[0] ?? 'GPT',
-              })
-            : undefined
-        }
-        note={t(
-          makers.gpt.found
-            ? 'studioChat.accounts.gptNote'
-            : 'studioChat.accounts.gptMissing',
-        )}
-      />
-      <AccountCard
-        service={t('studioChat.accounts.higgsfield')}
-        lamp={state === 'ready' ? 'ready' : 'off'}
-        detail={
-          state === 'ready'
-            ? t('studioChat.accounts.higgsfieldReady')
-            : undefined
-        }
-        note={
-          higgsfieldConnecting
-            ? t('studioChat.accounts.higgsfieldConnecting')
-            : higgsfieldNote
-        }
-      >
-        {higgsfieldActions}
-      </AccountCard>
-      {connectedMakers(makers).length > 1 && (
-        <section
-          className="studio-chat-accounts__card"
-          aria-label={t('studioChat.accounts.makeWith')}
-        >
-          <p className="studio-chat-accounts__service">
-            {t('studioChat.accounts.makeWith')}
-          </p>
-          <p className="studio-chat-accounts__note">
-            {t('studioChat.accounts.makeWithNote')}
-          </p>
-          <div className="studio-chat-accounts__actions">
-            {choices.map(([choice, name]) => (
-              <button
-                key={choice}
-                type="button"
-                className={`button small${makers.choice === choice ? '' : ' subtle'}`}
-                aria-pressed={makers.choice === choice}
-                onClick={() => {
-                  setStudioMakerChoice(choice).catch(() => undefined);
-                }}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-    </>
+    <AccountCard
+      service={t('studioChat.accounts.higgsfield')}
+      lamp={state === 'ready' ? 'ready' : 'off'}
+      detail={
+        state === 'ready' ? t('studioChat.accounts.higgsfieldReady') : undefined
+      }
+      note={connecting ? t('studioChat.accounts.higgsfieldConnecting') : note}
+    >
+      {actions}
+    </AccountCard>
   );
 }
 
 /**
  * Which accounts the chat runs on (Ivan, 2026-10-13: "I need to know in
- * studio which claude account and gpt account is logged in"): the Claude
- * account Claude Code is signed in to, and the ChatGPT account the member's
- * Codex is, with their plans, and the way to sign in with another. Both are
- * asked again whenever this opens, so it is never yesterday's answer. The
- * ChatGPT row only while ChatGPT pictures are open (`studioChatPictures.ts`):
- * closed, nothing here asks Codex anything.
+ * studio which claude account … is logged in"): the Claude account Claude
+ * Code is signed in to, with its plan and the way to sign in with another,
+ * and Higgsfield, which makes the scene's pictures, videos and models. Both
+ * are asked again whenever this opens, so it is never yesterday's answer.
  */
 export default function StudioChatAccounts({
   closeRef,
@@ -416,10 +276,9 @@ export default function StudioChatAccounts({
       >
         {claudeAction}
       </AccountCard>
-      {CHATGPT_PICTURES_OPEN && <ChatGptAccount />}
-      {/* The member's own makers live in their Claude Code: none without it. */}
+      {/* Higgsfield lives in the member's Claude Code: none without it. */}
       {(claudeReady || availability.state === 'signed-out') && (
-        <MakerAccounts />
+        <HiggsfieldAccount />
       )}
       <p className="studio-chat-accounts__fine">
         {t('studioChat.accounts.fine')}

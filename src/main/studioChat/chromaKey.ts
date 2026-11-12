@@ -5,11 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * A subject cut out of the flat colour ChatGPT was asked to stand it on.
+ * A subject cut out of the flat colour it was drawn on.
  *
- * Codex's image tool has no transparency of its own, so a subject is drawn on
- * one flat key colour and the colour is taken out here (gpt-studio's
- * approach, without its FFmpeg). Two things make the difference between a
+ * A picture made with no transparency of its own stands its subject on one
+ * flat key colour, and the colour is taken out here. Two things make the difference between a
  * cut-out and a sticker with a halo:
  *
  * - The key is read from the picture's own border, not assumed: the model

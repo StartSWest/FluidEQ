@@ -16,7 +16,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import type { TChatAsks } from '../../../main/studioChat/chatAsks';
 import { pngHeader, webpHeader } from '../../utils/pictureHeaders';
 
 jest.mock('electron', () => ({
@@ -81,8 +80,6 @@ const writeRecord = (folder: string, record: unknown) => {
 const pack = (folder: string, pieces: unknown[]) =>
   createPackArtworkTool({
     project: () => ({ ok: true, id: 'alpine', folder }),
-    asks: {} as TChatAsks,
-    signalOf: () => new AbortController().signal,
     packInWindow: async () => ({ ok: true, webp: webpHeader(1, 1) }),
   }).call({ pieces });
 

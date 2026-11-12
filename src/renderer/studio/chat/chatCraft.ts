@@ -4,8 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
-
 /**
  * How a scene becomes worth watching, for Claude in the Studio's chat (Ivan,
  * 2026-10-09: "we also want to teach claude how to do nice vizualiers not
@@ -20,18 +18,6 @@ import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
  * is built, light from one place, depth, and more than one way of moving
  * with the music. English, like the brief: it is read by a model.
  */
-/**
- * Only while ChatGPT pictures are open (`studioChatPictures.ts`): closed,
- * make_picture is not offered, and the bullet would point at nothing.
- */
-const PICTURES_BULLET = CHATGPT_PICTURES_OPEN
-  ? `- PICTURES WHEN DRAWING CANNOT GET THERE. Fur, faces, bark, foam, a
-  photo-real creature: if make_picture is available, a painted texture or a
-  cut-out lifts the scene from drawn to real. Anything the shader can draw
-  as well, it draws: it stays sharp at every size and costs no artwork.
-`
-  : '';
-
 const CRAFT_SECTION = `HOW A SCENE BECOMES WORTH WATCHING
 Valid is not the bar; the member should want to leave it running. Work the
 way a demanding art director would check you:
@@ -71,7 +57,11 @@ way a demanding art director would check you:
   again at the pictures those fixes touch. Only then tell the member it is
   done. A small change gets no such round: it is checked by the one picture
   that shows it.
-${PICTURES_BULLET}- CHEAP FIRST. A beautiful scene that stutters is a broken scene: spend the
+- PICTURES WHEN DRAWING CANNOT GET THERE. Fur, faces, bark, foam, a
+  photo-real creature: a picture or a cut-out from Higgsfield lifts the
+  scene from drawn to real. Anything the shader can draw as well, it draws:
+  it stays sharp at every size and costs no artwork and no credits.
+- CHEAP FIRST. A beautiful scene that stutters is a broken scene: spend the
   budget on what the eye looks at, and keep loops short and few.`;
 
 export default CRAFT_SECTION;

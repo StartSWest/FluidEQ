@@ -37,7 +37,6 @@ import {
 } from './chatDraftStore';
 import {
   checkStudioChat,
-  checkStudioChatCodex,
   loadStudioChat,
   newStudioChat,
   restoreStudioChatVersion,
@@ -76,7 +75,7 @@ export default function StudioChat({
   onFold,
 }: IStudioChatProps) {
   const { t, locale } = useTranslation();
-  const { availability, chat, ask, codex, zoom } = useStudioChat();
+  const { availability, chat, ask, zoom } = useStudioChat();
   const pane = useRef<HTMLElement>(null);
   useChatZoomWheel(pane);
   // Asked from another tab (`askSceneChat`): the caret in the box, after
@@ -148,12 +147,10 @@ export default function StudioChat({
 
   useEffect(() => {
     checkStudioChat().catch(() => undefined);
-    checkStudioChatCodex().catch(() => undefined);
     // Back in the window after installing or signing in elsewhere: asked
     // again, so the pane does not go on saying it is missing.
     const onFocus = () => {
       checkStudioChat().catch(() => undefined);
-      checkStudioChatCodex().catch(() => undefined);
     };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
@@ -272,17 +269,6 @@ export default function StudioChat({
             }}
           >
             {plan ? t('studioChat.wherePlan', { plan }) : t('studioChat.where')}
-            {/* ChatGPT's pictures on: a glyph beside the plan, never words,
-                which broke the head into three lines in a pane 320px wide.
-                The words and the way to turn them off are behind ⋯. */}
-            {codex?.connected && (
-              <span
-                className="studio-chat__gpt-on"
-                title={t('studioChat.chatgptOn')}
-              >
-                <Glyph name="image" />
-              </span>
-            )}
           </button>
         </span>
         {canChat && !otherAi && (

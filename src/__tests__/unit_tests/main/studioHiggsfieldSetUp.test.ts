@@ -110,11 +110,6 @@ jest.mock('../../../main/studioChat/higgsfieldMcp', () => {
   };
 });
 
-jest.mock('../../../main/studioChat/studioMakers', () => ({
-  ...jest.requireActual('../../../main/studioChat/studioMakers'),
-  gptPlugin: () => ({ found: true, name: 'gpt-studio@a-market' }),
-}));
-
 const CLAUDE = path.resolve('no-such-tools', 'claude.exe');
 
 /** A computer with Claude Code on its PATH, or without it. */
@@ -271,17 +266,23 @@ describe("the window's presses", () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  it('are told what the member has of the two, and their choice', async () => {
+  it('are told how Higgsfield is, and nothing else', async () => {
     mockServer.mockResolvedValue(server('ready'));
     await expect(press('studio-chat-makers')).resolves.toEqual({
-      gpt: { found: true, name: 'gpt-studio@a-market' },
-      higgsfield: { state: 'ready' },
-      choice: 'ask',
+      state: 'ready',
     });
     mockServer.mockResolvedValue(undefined);
-    await expect(press('studio-chat-makers')).resolves.toMatchObject({
-      higgsfield: { state: 'missing' },
+    await expect(press('studio-chat-makers')).resolves.toEqual({
+      state: 'missing',
     });
+  });
+
+  it('hear nothing of a choice of maker any more', () => {
+    expect(mockHandlers.has('studio-chat-makers-choice')).toBe(false);
+    expect(mockHandlers.has('studio-chat-maker-answer')).toBe(false);
+    expect(mockHandlers.has('studio-chat-codex')).toBe(false);
+    // The control: the presses that are still there are handled.
+    expect(mockHandlers.has('studio-chat-higgsfield-connect')).toBe(true);
   });
 
   it('add Higgsfield where it is missing, then open its sign-in', async () => {
@@ -291,7 +292,7 @@ describe("the window's presses", () => {
       .mockResolvedValue(server('ready'));
     await expect(
       press('studio-chat-higgsfield-connect', false),
-    ).resolves.toMatchObject({ higgsfield: { state: 'ready' } });
+    ).resolves.toEqual({ state: 'ready' });
     expect(mockRan).toEqual(['add', 'sign in to higgsfield']);
   });
 
@@ -326,33 +327,6 @@ describe("the window's presses", () => {
     expect(mockRan).toEqual(['add']);
   });
 
-  it('keep the choice of maker, and only a real one', async () => {
-    mockServer.mockResolvedValue(server('ready'));
-    await expect(press('studio-chat-makers-choice', 'higgsfield')).toBe(
-      'higgsfield',
-    );
-    expect(press('studio-chat-makers-choice', 'midjourney')).toBe('higgsfield');
-    await expect(press('studio-chat-makers')).resolves.toMatchObject({
-      choice: 'higgsfield',
-    });
-  });
-
-  it('keep the maker pressed on the card only when told to remember it', async () => {
-    mockServer.mockResolvedValue(server('ready'));
-    press('studio-chat-maker-answer', 'no-such-card', 'gpt', false);
-    await expect(press('studio-chat-makers')).resolves.toMatchObject({
-      choice: 'ask',
-    });
-    press('studio-chat-maker-answer', 'no-such-card', 'gpt', true);
-    await expect(press('studio-chat-makers')).resolves.toMatchObject({
-      choice: 'gpt',
-    });
-    press('studio-chat-maker-answer', 'no-such-card', 'sora', true);
-    await expect(press('studio-chat-makers')).resolves.toMatchObject({
-      choice: 'gpt',
-    });
-  });
-
   it('do nothing at all from anywhere but FluidEQ’s own window', async () => {
     fromWindow = false;
     mockServer.mockResolvedValue(undefined);
@@ -360,13 +334,11 @@ describe("the window's presses", () => {
     expect(
       await press('studio-chat-higgsfield-connect', false),
     ).toBeUndefined();
-    expect(press('studio-chat-makers-choice', 'gpt')).toBe('ask');
-    press('studio-chat-maker-answer', 'no-such-card', 'gpt', true);
     expect(mockRan).toEqual([]);
     expect(mockServer).not.toHaveBeenCalled();
     fromWindow = true;
-    await expect(press('studio-chat-makers')).resolves.toMatchObject({
-      choice: 'ask',
+    await expect(press('studio-chat-makers')).resolves.toEqual({
+      state: 'missing',
     });
   });
 });

@@ -7,7 +7,6 @@ import type {
   IStudioChatModels,
   IStudioChatMessage,
   IStudioChatPackAsk,
-  IStudioChatCodexState,
   IStudioChatPast,
   IStudioChatQueued,
   TStudioChatAnswer,
@@ -17,11 +16,7 @@ import type {
   TStudioChatPackAnswer,
   TStudioChatRestore,
 } from '../common/studioChat';
-import type {
-  IStudioMakers,
-  TStudioMaker,
-  TStudioMakerChoice,
-} from '../common/studioMakers';
+import type { THiggsfieldAccount } from '../common/studioMakers';
 import type {
   IStudioChatDraft,
   IStudioChatDraftChange,
@@ -121,28 +116,9 @@ const studioChatBridge = {
   /** The member's answer to a card the chat put up. */
   studioChatAnswer: (id: string, answer: TStudioChatAnswer): Promise<void> =>
     ipcRenderer.invoke('studio-chat-answer', id, answer),
-  studioChatCodex: (): Promise<IStudioChatCodexState | undefined> =>
-    ipcRenderer.invoke('studio-chat-codex'),
-  /** Codex's own sign-in; settles when it has ended. */
-  studioChatCodexSignIn: (): Promise<IStudioChatCodexState | undefined> =>
-    ipcRenderer.invoke('studio-chat-codex-sign-in'),
-  studioChatCodexDisconnect: (): Promise<IStudioChatCodexState | undefined> =>
-    ipcRenderer.invoke('studio-chat-codex-disconnect'),
-  /** The member's GPT plugin and Higgsfield, as their Claude Code has them. */
-  studioChatMakers: (): Promise<IStudioMakers | undefined> =>
+  /** Higgsfield, as the member's own Claude Code has it. */
+  studioChatMakers: (): Promise<THiggsfieldAccount | undefined> =>
     ipcRenderer.invoke('studio-chat-makers'),
-  /** Which of the two to use, or to be asked each time. */
-  studioChatMakersChoice: (
-    choice: TStudioMakerChoice,
-  ): Promise<TStudioMakerChoice> =>
-    ipcRenderer.invoke('studio-chat-makers-choice', choice),
-  /** The maker pressed on the card that asks which, and whether to keep it. */
-  studioChatMakerAnswer: (
-    id: string,
-    maker: TStudioMaker,
-    remember: boolean,
-  ): Promise<void> =>
-    ipcRenderer.invoke('studio-chat-maker-answer', id, maker, remember),
   /**
    * Adds Higgsfield to the member's Claude Code, and its sign-in; with
    * `another`, signs the present account out first. Settles when all of it
@@ -150,7 +126,7 @@ const studioChatBridge = {
    */
   studioChatHiggsfieldConnect: (
     another: boolean,
-  ): Promise<IStudioMakers | undefined> =>
+  ): Promise<THiggsfieldAccount | undefined> =>
     ipcRenderer.invoke('studio-chat-higgsfield-connect', another),
   /** The artwork main asked for, as WebP, or why there is none. */
   studioChatPacked: (

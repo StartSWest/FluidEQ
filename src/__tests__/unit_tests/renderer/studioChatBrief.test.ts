@@ -54,15 +54,19 @@ describe("the Studio chat's brief", () => {
     expect(brief).toContain('pack_artwork');
   });
 
-  // ChatGPT pictures are closed for 2.1 (`studioChatPictures.ts`): Claude is
-  // never told of a tool it is not given, nor that FluidEQ reaches the
-  // member's ChatGPT. A picture plugin of the member's own Claude Code is
-  // theirs to use, and its pictures go in the art folder.
-  it('says nothing of make_picture or of ChatGPT through Codex while pictures are closed', () => {
+  // Ivan, 2026-11-11: "let's remove GPT then and let's only use Higgsfield
+  // for image gen, videos and everything Higgsfield can do". Claude is never
+  // told of a tool it is not given, nor steered to GPT; Higgsfield is the
+  // one maker, set up by the member's own press.
+  it('sends picture work to Higgsfield alone, and names no GPT', () => {
     expect(brief).not.toContain('make_picture');
-    expect(brief).not.toContain('PICTURES FROM CHATGPT');
-    expect(brief).not.toContain("the member's own\n  Codex");
-    expect(brief).toContain('made with a picture plugin of theirs');
+    expect(brief).not.toContain('choose_maker');
+    expect(brief).not.toMatch(/ChatGPT|Codex|GPT plugin/);
+    expect(brief).toContain('made with Higgsfield and saved there');
+    expect(brief).not.toContain('picture plugin');
+    expect(brief).toContain('load the fluideq-higgsfield skill');
+    expect(brief).toContain('Set up Higgsfield');
+    expect(brief).toContain('what it costs before you spend credits');
     // The same lessons as every brief: look for a picture skill first.
     expect(brief).toContain(
       'FIND WHAT CAN MAKE IMAGES BEFORE YOU DECIDE NOTHING CAN',
@@ -145,8 +149,9 @@ describe('every brief', () => {
     expect(copied).toContain('BEAUTIFUL AND LIGHT, BOTH');
   });
 
-  it('names the image tools an assistant may have', () => {
-    expect(copied).toContain("ChatGPT's or Codex's image");
+  it('names the image tools an assistant may have, and no GPT among them', () => {
+    expect(copied).toContain("Higgsfield's\n  tools if I connected it");
+    expect(copied).not.toMatch(/ChatGPT|Codex's image/);
   });
 
   // Ivan, 2026-11-09, of a tube painted on flat cards over a photograph:

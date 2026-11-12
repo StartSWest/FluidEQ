@@ -108,26 +108,11 @@ const studioChat = {
   'studioChat.effortWarning':
     'Más esfuerzo hace que Claude piense más: las respuestas tardan más y gastan antes los límites de tu plan de Claude.',
   'studioChat.step.picture': 'Imagen {file} creada',
-  'studioChat.step.pictureNow': 'Creando la imagen {file} con ChatGPT…',
   'studioChat.step.pack': 'Imágenes añadidas a la escena',
   'studioChat.step.packNow': 'Añadiendo las imágenes a la escena…',
-  'studioChat.ask.connectTitle': '¿Crear imágenes con ChatGPT?',
-  'studioChat.ask.connectBody':
-    'Claude quiere que ChatGPT pinte imágenes para esta escena, como texturas y recortes, con tu plan de ChatGPT a través de tu app Codex. Se te pregunta antes de cada imagen.',
-  'studioChat.ask.needsCodex':
-    'Hace falta la app Codex de OpenAI, con tu cuenta de ChatGPT iniciada. Instálala y vuelve aquí.',
-  'studioChat.ask.codexSignedOut':
-    'Codex está instalado pero no ha iniciado sesión con ChatGPT.',
-  'studioChat.ask.connect': 'Conectar ChatGPT',
-  'studioChat.ask.getCodex': 'Obtener Codex',
-  'studioChat.ask.signIn': 'Iniciar sesión con ChatGPT',
-  'studioChat.ask.notNow': 'Ahora no',
-  'studioChat.ask.pictureTitle': '¿Crear esta imagen con ChatGPT?',
-  'studioChat.ask.pictureSize': '{width} × {height}',
-  'studioChat.ask.transparent': 'Recortada sobre fondo transparente',
-  'studioChat.ask.makeIt': 'Crearla',
-  'studioChat.ask.allowChat': 'Permitir en este chat',
-  'studioChat.ask.cost': 'Usa tu plan de ChatGPT; un minuto más o menos.',
+  'studioChat.step.pictureNow': 'Haciendo la imagen {file}…',
+  'studioChat.step.make': 'Hecho con Higgsfield',
+  'studioChat.step.makeNow': 'Haciéndolo con Higgsfield…',
   'studioChat.ask.toolTitle': '¿Permitir que Claude use {tool}?',
   'studioChat.ask.toolBody':
     'Una de tus propias herramientas o plugins de Claude Code. Se ejecuta en este equipo, con tus cuentas, solo si lo permites.',
@@ -146,8 +131,6 @@ const studioChat = {
     'Escena de un miembro: la IA pregunta antes de cada comando',
   'studioChat.memberCopy.body':
     'El texto de sus archivos podría pedirle a la IA que ejecute algo, así que te pregunta antes de cada comando. Una escena de un miembro no se puede marcar como de confianza.',
-  'studioChat.chatgptOn': 'Las imágenes de ChatGPT están activadas.',
-  'studioChat.chatgptTurnOff': 'Desactivar',
   'studioChat.past.title': 'Chats anteriores',
   'studioChat.past.empty':
     'Aún no hay chats anteriores. Al empezar un chat nuevo, este se guarda aquí.',
@@ -200,21 +183,11 @@ const studioChat = {
   'studioChat.accounts.title': 'Cuentas',
   'studioChat.accounts.open': 'Ver qué cuentas usa el chat',
   'studioChat.accounts.claude': 'Claude',
-  'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': 'Sesión iniciada',
   'studioChat.accounts.switch': 'Usar otra cuenta',
   'studioChat.accounts.claudeMissing':
     'Claude Code no está instalado en este ordenador.',
   'studioChat.accounts.claudeOut': 'Claude Code no ha iniciado sesión.',
-  'studioChat.accounts.codexMissing':
-    'La app Codex no está instalada, así que ChatGPT no puede crear imágenes.',
-  'studioChat.accounts.codexOut': 'Codex no ha iniciado sesión con ChatGPT.',
-  'studioChat.accounts.picturesOn':
-    'Crea imágenes en este chat cuando aceptas cada una.',
-  'studioChat.accounts.picturesOff':
-    'Aún no crea imágenes: la primera vez que Claude quiera una, te preguntará.',
-  'studioChat.accounts.picturesOffButton': 'Desactivar imágenes',
-  'studioChat.accounts.codexPlan': 'Plan {plan} de ChatGPT · a través de Codex',
   'studioChat.accounts.fine':
     'FluidEQ muestra qué cuentas son y nunca ve sus inicios de sesión.',
   'studioChat.welcomeSceneTitle': '¿Qué quieres cambiar en {name}?',
@@ -257,9 +230,6 @@ const studioChat = {
   'studioChat.accounts.gpt': 'GPT',
   'studioChat.accounts.gptFound':
     'Tu propio plugin de GPT en Claude Code ({name})',
-  'studioChat.accounts.gptNote': 'Crea imágenes con tu propio plan de ChatGPT.',
-  'studioChat.accounts.gptMissing':
-    'No se encontró ningún plugin de GPT en tu Claude Code. Añade uno allí y aparecerá aquí.',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': 'Conectado a través de tu Claude Code',
   'studioChat.accounts.higgsfieldNote':
@@ -276,11 +246,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': 'Iniciar sesión con Higgsfield',
   'studioChat.accounts.higgsfieldAbout': '¿Qué es Higgsfield?',
   'studioChat.accounts.checkAgain': 'Comprobar de nuevo',
-  'studioChat.accounts.makeWith': 'Crear con',
-  'studioChat.accounts.makeWithNote':
-    'Cuál de los dos crea una imagen o los fotogramas de una animación cuando ambos están conectados.',
-  'studioChat.accounts.makeWithAsk': 'Preguntarme cada vez',
-  'studioChat.ask.makerPicture': 'Crear esta imagen con…',
   'studioChat.ask.makerFrames': 'Crear estos fotogramas de animación con…',
   'studioChat.ask.makerGpt': 'Tu propio plugin de GPT, con tu plan de ChatGPT',
   'studioChat.ask.makerHiggsfield':

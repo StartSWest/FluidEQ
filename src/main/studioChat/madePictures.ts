@@ -19,8 +19,8 @@ import {
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
 
 /**
- * Pictures Claude made some other way than FluidEQ's own `make_picture` — a
- * script, the member's own image skill or plugin — shown in the chat the
+ * Pictures Claude made — with Higgsfield, a script, the member's own image
+ * skill or plugin — shown in the chat the
  * moment the step that wrote them ends (Ivan, 2026-11-09: "shows generated
  * images right there in the chat", "click them and zoom them like the other
  * I attach"). One was made and saved into `art/` and the member never saw
@@ -114,7 +114,7 @@ export const madePictureSteps = (
       } catch {
         return [];
       }
-      // A PNG keeps its transparency, as ChatGPT's cut-outs do.
+      // A PNG keeps its transparency, as a cut-out needs.
       const picture = /\.png$/i.test(name)
         ? chatPictureKeepingAlphaBytes(bytes)
         : chatPictureFromBytes(bytes);
@@ -133,8 +133,8 @@ export const madePictureSteps = (
 
 /**
  * The reply with the pictures a finished step wrote shown right after it.
- * A step that brought a picture back itself (a look, a read of a picture,
- * `make_picture`) already shows it.
+ * A step that brought a picture back itself (a look, a read of a picture)
+ * already shows it.
  */
 export const withMadePictures = (
   reply: TReply,

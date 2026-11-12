@@ -17,8 +17,8 @@ import type { ISheetToolsDeps } from './sheetShared';
  * the project into poses, `build_sheet` lays frames the member brought, or
  * cells of a sheet, into one grid. Both read only inside the project, write
  * only `art/<name>.png` and `animations/<name>.json`, and decode in main
- * within the sheet's bounds (`sheetFiles.ts`). ChatGPT pictures stay closed
- * (`studioChatPictures.ts`): neither tool starts anything outside FluidEQ.
+ * within the sheet's bounds (`sheetFiles.ts`). Neither tool starts anything
+ * outside FluidEQ.
  */
 export const createSheetTools = (deps: ISheetToolsDeps): IMcpTool[] => [
   createPoseSheetTool(deps),

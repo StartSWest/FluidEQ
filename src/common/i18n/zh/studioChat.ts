@@ -103,25 +103,11 @@ const studioChat = {
   'studioChat.effortWarning':
     '更高的力度会让 Claude 思考更久：回复更慢，也会更快用完你的 Claude 套餐额度。',
   'studioChat.step.picture': '已生成图片 {file}',
-  'studioChat.step.pictureNow': '正在用 ChatGPT 生成图片 {file}…',
   'studioChat.step.pack': '已把图片放进场景',
   'studioChat.step.packNow': '正在把图片放进场景…',
-  'studioChat.ask.connectTitle': '用 ChatGPT 生成图片？',
-  'studioChat.ask.connectBody':
-    'Claude 想让 ChatGPT 为这个场景绘制图片，比如纹理和抠图，通过你的 Codex 应用使用你的 ChatGPT 套餐。每张图片生成前都会先问你。',
-  'studioChat.ask.needsCodex':
-    '这需要 OpenAI 的 Codex 应用，并用你的 ChatGPT 账号登录。安装后再回到这里。',
-  'studioChat.ask.codexSignedOut': 'Codex 已安装，但尚未用 ChatGPT 登录。',
-  'studioChat.ask.connect': '连接 ChatGPT',
-  'studioChat.ask.getCodex': '获取 Codex',
-  'studioChat.ask.signIn': '用 ChatGPT 登录',
-  'studioChat.ask.notNow': '暂不',
-  'studioChat.ask.pictureTitle': '用 ChatGPT 生成这张图片？',
-  'studioChat.ask.pictureSize': '{width} × {height}',
-  'studioChat.ask.transparent': '透明背景上的抠图',
-  'studioChat.ask.makeIt': '生成',
-  'studioChat.ask.allowChat': '本次聊天都允许',
-  'studioChat.ask.cost': '使用你的 ChatGPT 套餐；大约一分钟。',
+  'studioChat.step.pictureNow': '正在制作图片 {file}…',
+  'studioChat.step.make': '已用 Higgsfield 制作',
+  'studioChat.step.makeNow': '正在用 Higgsfield 制作…',
   'studioChat.ask.toolTitle': '允许 Claude 使用 {tool}？',
   'studioChat.ask.toolBody':
     '这是你自己的 Claude Code 工具或插件。只有在你允许时，它才会在这台电脑上用你的账户运行。',
@@ -139,8 +125,6 @@ const studioChat = {
   'studioChat.memberCopy.title': '成员的场景：AI 每条命令前都会询问',
   'studioChat.memberCopy.body':
     '它文件中的文字可能让 AI 运行某些内容，因此每条命令前都会先询问你。成员的场景无法标记为可信。',
-  'studioChat.chatgptOn': 'ChatGPT 图片已开启。',
-  'studioChat.chatgptTurnOff': '关闭',
   'studioChat.past.title': '以前的聊天',
   'studioChat.past.empty':
     '还没有以前的聊天。开始新聊天时，这次聊天会保存在这里。',
@@ -191,19 +175,10 @@ const studioChat = {
   'studioChat.accounts.title': '账号',
   'studioChat.accounts.open': '查看聊天使用的账号',
   'studioChat.accounts.claude': 'Claude',
-  'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': '已登录',
   'studioChat.accounts.switch': '使用其他账号',
   'studioChat.accounts.claudeMissing': '这台电脑上没有安装 Claude Code。',
   'studioChat.accounts.claudeOut': 'Claude Code 尚未登录。',
-  'studioChat.accounts.codexMissing':
-    '没有安装 Codex 应用，所以 ChatGPT 无法生成图片。',
-  'studioChat.accounts.codexOut': 'Codex 尚未用 ChatGPT 登录。',
-  'studioChat.accounts.picturesOn': '每张图片经你同意后，在此聊天中生成。',
-  'studioChat.accounts.picturesOff':
-    '还没有生成图片：Claude 第一次需要图片时会先问你。',
-  'studioChat.accounts.picturesOffButton': '关闭图片',
-  'studioChat.accounts.codexPlan': 'ChatGPT {plan} 套餐 · 通过 Codex',
   'studioChat.accounts.fine':
     'FluidEQ 只显示是哪些账号，从不查看它们的登录信息。',
   'studioChat.welcomeSceneTitle': '{name} 要改哪里？',
@@ -242,9 +217,6 @@ const studioChat = {
   'studioChat.accounts.gpt': 'GPT',
   'studioChat.accounts.gptFound':
     '你在 Claude Code 中自己的 GPT 插件（{name}）',
-  'studioChat.accounts.gptNote': '使用你自己的 ChatGPT 套餐生成图片。',
-  'studioChat.accounts.gptMissing':
-    '在你的 Claude Code 中没有找到 GPT 插件。在那里添加一个，它就会显示在这里。',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': '已通过你的 Claude Code 连接',
   'studioChat.accounts.higgsfieldNote':
@@ -261,11 +233,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': '用 Higgsfield 登录',
   'studioChat.accounts.higgsfieldAbout': '什么是 Higgsfield？',
   'studioChat.accounts.checkAgain': '再次检查',
-  'studioChat.accounts.makeWith': '生成方式',
-  'studioChat.accounts.makeWithNote':
-    '两者都已连接时，由哪一个生成图片或动画帧。',
-  'studioChat.accounts.makeWithAsk': '每次都问我',
-  'studioChat.ask.makerPicture': '用哪一个生成这张图片…',
   'studioChat.ask.makerFrames': '用哪一个生成这些动画帧…',
   'studioChat.ask.makerGpt': '你自己的 GPT 插件，使用你的 ChatGPT 套餐',
   'studioChat.ask.makerHiggsfield':

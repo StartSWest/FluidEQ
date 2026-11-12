@@ -19,7 +19,6 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import type { IStudioChatPackAsk } from '../../../common/studioChat';
-import type { TChatAsks } from '../../../main/studioChat/chatAsks';
 import { pngHeader, webpHeader } from '../../utils/pictureHeaders';
 
 jest.mock('electron', () => ({
@@ -61,9 +60,6 @@ const pack = async (folder: string, pieces: unknown[]) => {
   const asks: Omit<IStudioChatPackAsk, 'id'>[] = [];
   const tool = createPackArtworkTool({
     project: () => ({ ok: true, id: 'alpine', folder }),
-    // pack_artwork asks the member nothing.
-    asks: {} as TChatAsks,
-    signalOf: () => new AbortController().signal,
     packInWindow: async (ask) => {
       asks.push(ask);
       return { ok: true, webp: webpHeader(1, 1) };

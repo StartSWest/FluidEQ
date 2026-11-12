@@ -5,11 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Higgsfield beside GPT in the Studio's chat, as the member sees it (Ivan,
- * 2026-11-11: "quiero que Fluid esté preparado para usar Higgsfield. Y que
- * pida si quiere usar GPT o Higgsfield"): the two cards in Accounts, the
- * press that sets Higgsfield up, the choice of which is used, and the card
- * that asks when both are connected.
+ * Higgsfield, the Studio's one maker, as the member sees it in the chat's
+ * Accounts (Ivan, 2026-11-11: "let's remove GPT then and let's only use
+ * Higgsfield"): its card and the press that sets it up, with no GPT card,
+ * no ChatGPT card and no choice of maker beside it.
  */
 
 import '@testing-library/jest-dom';
@@ -21,10 +20,8 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import type { TStudioChatAsk } from '../../../common/studioChat';
-import type { IStudioMakers } from '../../../common/studioMakers';
+import type { THiggsfieldAccount } from '../../../common/studioMakers';
 import StudioChatAccounts from '../../../renderer/studio/chat/StudioChatAccounts';
-import StudioChatAsk from '../../../renderer/studio/chat/StudioChatAsk';
 import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
 import { resetStudioMakersStore } from '../../../renderer/studio/chat/studioMakersStore';
 import studioChatBridge from '../../utils/studioChatBridge';
@@ -37,25 +34,15 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
   }),
 }));
 
-const makers = (
-  gpt: boolean,
-  higgsfield: IStudioMakers['higgsfield']['state'],
-  choice: IStudioMakers['choice'] = 'ask',
-): IStudioMakers => ({
-  gpt: gpt ? { found: true, name: 'gpt-studio@a-market' } : { found: false },
-  higgsfield: { state: higgsfield },
-  choice,
+/** Higgsfield as main answers it. */
+const makers = (state: THiggsfieldAccount['state']): THiggsfieldAccount => ({
+  state,
 });
 
-let now: IStudioMakers;
+let now: THiggsfieldAccount;
 const studioChatMakers = jest.fn(async () => now);
-const studioChatMakersChoice = jest.fn(
-  async (choice: IStudioMakers['choice']) => choice,
-);
-const studioChatMakerAnswer = jest.fn(async () => undefined);
-const studioChatAnswer = jest.fn(async () => undefined);
 const studioChatHiggsfieldConnect = jest.fn(
-  async (): Promise<IStudioMakers | undefined> => now,
+  async (): Promise<THiggsfieldAccount | undefined> => now,
 );
 const studioChatLimits = jest.fn(async () => undefined);
 let studioChatAvailability: jest.Mock;
@@ -64,7 +51,7 @@ beforeEach(() => {
   resetStudioChatStore();
   resetStudioMakersStore();
   jest.clearAllMocks();
-  now = makers(false, 'missing');
+  now = makers('missing');
   studioChatAvailability = jest.fn(async () => ({ state: 'ready' as const }));
   Object.defineProperty(window, 'electron', {
     configurable: true,
@@ -74,9 +61,6 @@ beforeEach(() => {
         studioChatAvailability,
         studioChatLimits,
         studioChatMakers,
-        studioChatMakersChoice,
-        studioChatMakerAnswer,
-        studioChatAnswer,
         studioChatHiggsfieldConnect,
       },
     },
@@ -93,7 +77,6 @@ const accounts = () =>
 
 const higgsfield = () =>
   screen.findByLabelText('studioChat.accounts.higgsfield');
-const gpt = () => screen.findByLabelText('studioChat.accounts.gpt');
 /** A press, and everything main's answer to it changes on the page. */
 const pressAndSettle = (button: HTMLElement) =>
   act(async () => {
@@ -104,7 +87,25 @@ const buttonsOf = (card: HTMLElement) =>
     .queryAllByRole('button')
     .map((button) => button.textContent);
 
-describe('the makers in Accounts', () => {
+describe('Higgsfield in Accounts', () => {
+  it('is the one maker there: no GPT, no ChatGPT, no choice of maker', async () => {
+    now = makers('ready');
+    accounts();
+    await higgsfield();
+    // The control: the Claude account is drawn beside it.
+    expect(
+      screen.getByLabelText('studioChat.accounts.claude'),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('studioChat.accounts.gpt')).toBeNull();
+    expect(screen.queryByLabelText('studioChat.accounts.chatgpt')).toBeNull();
+    expect(screen.queryByLabelText('studioChat.accounts.makeWith')).toBeNull();
+    expect(
+      screen
+        .getAllByRole('region')
+        .map((card) => card.getAttribute('aria-label')),
+    ).toEqual(['studioChat.accounts.claude', 'studioChat.accounts.higgsfield']);
+  });
+
   it('offers to set Higgsfield up where it is missing, and says what that does', async () => {
     accounts();
     const card = await higgsfield();
@@ -124,7 +125,7 @@ describe('the makers in Accounts', () => {
     accounts();
     const card = await higgsfield();
     studioChatHiggsfieldConnect.mockImplementationOnce(async () =>
-      makers(false, 'ready'),
+      makers('ready'),
     );
     fireEvent.click(
       within(card).getByRole('button', {
@@ -141,10 +142,10 @@ describe('the makers in Accounts', () => {
   it('says to finish in the browser while the sign-in is open, and takes no second press', async () => {
     accounts();
     const card = await higgsfield();
-    let finish: (value: IStudioMakers) => void = () => undefined;
+    let finish: (value: THiggsfieldAccount) => void = () => undefined;
     studioChatHiggsfieldConnect.mockImplementationOnce(
       () =>
-        new Promise<IStudioMakers>((resolve) => {
+        new Promise<THiggsfieldAccount>((resolve) => {
           finish = resolve;
         }),
     );
@@ -158,14 +159,14 @@ describe('the makers in Accounts', () => {
     fireEvent.click(setUp);
     expect(studioChatHiggsfieldConnect).toHaveBeenCalledTimes(1);
     await act(async () => {
-      finish(makers(false, 'signed-out'));
+      finish(makers('signed-out'));
     });
     expect(card).toHaveTextContent('studioChat.accounts.higgsfieldOut');
     expect(buttonsOf(card)).toEqual(['studioChat.accounts.higgsfieldSignIn']);
   });
 
   it('offers only the sign-in where Higgsfield is there and signed out', async () => {
-    now = makers(false, 'signed-out');
+    now = makers('signed-out');
     accounts();
     const card = await higgsfield();
     expect(buttonsOf(card)).toEqual(['studioChat.accounts.higgsfieldSignIn']);
@@ -174,7 +175,7 @@ describe('the makers in Accounts', () => {
   });
 
   it('signs out first for another account', async () => {
-    now = makers(false, 'ready');
+    now = makers('ready');
     accounts();
     const card = await higgsfield();
     await pressAndSettle(
@@ -184,7 +185,7 @@ describe('the makers in Accounts', () => {
   });
 
   it('asks again, and runs nothing, where Higgsfield could not be reached', async () => {
-    now = makers(false, 'unreachable');
+    now = makers('unreachable');
     accounts();
     const card = await higgsfield();
     expect(card).toHaveTextContent('studioChat.accounts.higgsfieldUnreachable');
@@ -198,73 +199,18 @@ describe('the makers in Accounts', () => {
     expect(studioChatHiggsfieldConnect).not.toHaveBeenCalled();
   });
 
-  it('shows the GPT plugin by its own name, or says there is none', async () => {
-    now = makers(true, 'missing');
-    const { unmount } = accounts();
-    expect(await gpt()).toHaveTextContent(
-      'studioChat.accounts.gptFound {"name":"gpt-studio"}',
-    );
-    unmount();
-    resetStudioChatStore();
-    resetStudioMakersStore();
-    now = makers(false, 'missing');
-    accounts();
-    const none = await gpt();
-    expect(none).toHaveTextContent('studioChat.accounts.gptMissing');
-    expect(buttonsOf(none)).toEqual([]);
-  });
-
   it('asks again when the window comes back, for a sign-in finished in the browser', async () => {
-    now = makers(false, 'signed-out');
+    now = makers('signed-out');
     accounts();
     const card = await higgsfield();
-    now = makers(false, 'ready');
+    now = makers('ready');
     fireEvent.focus(window);
     await waitFor(() =>
       expect(card).toHaveTextContent('studioChat.accounts.higgsfieldReady'),
     );
   });
 
-  it('lets the member choose between them only while both are connected', async () => {
-    now = makers(true, 'signed-out');
-    const { unmount } = accounts();
-    await higgsfield();
-    expect(screen.queryByLabelText('studioChat.accounts.makeWith')).toBeNull();
-    unmount();
-    resetStudioChatStore();
-    resetStudioMakersStore();
-
-    now = makers(true, 'ready');
-    accounts();
-    const choice = await screen.findByLabelText('studioChat.accounts.makeWith');
-    const pressedOf = () =>
-      within(choice)
-        .getAllByRole('button')
-        .map((button) => [
-          button.textContent,
-          button.getAttribute('aria-pressed'),
-        ]);
-    expect(pressedOf()).toEqual([
-      ['studioChat.accounts.makeWithAsk', 'true'],
-      ['studioChat.accounts.gpt', 'false'],
-      ['studioChat.accounts.higgsfield', 'false'],
-    ]);
-    fireEvent.click(
-      within(choice).getByRole('button', {
-        name: 'studioChat.accounts.higgsfield',
-      }),
-    );
-    expect(studioChatMakersChoice).toHaveBeenCalledWith('higgsfield');
-    await waitFor(() =>
-      expect(pressedOf()).toEqual([
-        ['studioChat.accounts.makeWithAsk', 'false'],
-        ['studioChat.accounts.gpt', 'false'],
-        ['studioChat.accounts.higgsfield', 'true'],
-      ]),
-    );
-  });
-
-  it('shows neither, and asks nothing, on a computer without Claude Code', async () => {
+  it('is not shown, and nothing is asked, on a computer without Claude Code', async () => {
     studioChatAvailability.mockImplementation(async () => ({
       state: 'missing' as const,
     }));
@@ -273,90 +219,6 @@ describe('the makers in Accounts', () => {
     expect(
       screen.queryByLabelText('studioChat.accounts.higgsfield'),
     ).toBeNull();
-    expect(screen.queryByLabelText('studioChat.accounts.gpt')).toBeNull();
     expect(studioChatMakers).not.toHaveBeenCalled();
-  });
-});
-
-describe('the card that asks which maker', () => {
-  const card = (what: 'picture' | 'frames' = 'picture'): TStudioChatAsk => ({
-    id: 'm-1',
-    projectId: 'lake',
-    kind: 'maker',
-    what,
-    why: 'A heron for the shore.',
-  });
-
-  it('names what is made, says why, and offers both makers, each with what it runs on', () => {
-    render(<StudioChatAsk ask={card()} />);
-    expect(
-      screen.getByRole('region', { name: 'studioChat.ask.makerPicture' }),
-    ).toHaveTextContent('A heron for the shore.');
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.map((button) => button.textContent)).toEqual([
-      'studioChat.accounts.gpt',
-      'studioChat.accounts.higgsfield',
-      'studioChat.ask.notNow',
-    ]);
-    expect(buttons[0]).toHaveAccessibleDescription('studioChat.ask.makerGpt');
-    expect(buttons[1]).toHaveAccessibleDescription(
-      'studioChat.ask.makerHiggsfield',
-    );
-    // Neither maker is the suggested one: both loud, the decline quiet.
-    expect(buttons[0]).not.toHaveClass('subtle');
-    expect(buttons[1]).not.toHaveClass('subtle');
-    expect(buttons[2]).toHaveClass('subtle');
-  });
-
-  it('titles a set of frames as frames', () => {
-    render(<StudioChatAsk ask={card('frames')} />);
-    expect(
-      screen.getByRole('region', { name: 'studioChat.ask.makerFrames' }),
-    ).toBeInTheDocument();
-  });
-
-  it('answers the maker pressed, for this once', () => {
-    render(<StudioChatAsk ask={card()} />);
-    fireEvent.click(
-      screen.getByRole('button', { name: 'studioChat.accounts.gpt' }),
-    );
-    expect(studioChatMakerAnswer).toHaveBeenCalledWith('m-1', 'gpt', false);
-    expect(studioChatAnswer).not.toHaveBeenCalled();
-  });
-
-  it('keeps the maker pressed when "remember" is ticked', async () => {
-    now = makers(true, 'ready');
-    accounts();
-    await higgsfield();
-    render(<StudioChatAsk ask={card()} />);
-    fireEvent.click(
-      screen.getByRole('checkbox', { name: 'studioChat.ask.makerRemember' }),
-    );
-    fireEvent.click(
-      within(
-        screen.getByRole('region', { name: 'studioChat.ask.makerPicture' }),
-      ).getByRole('button', { name: 'studioChat.accounts.higgsfield' }),
-    );
-    expect(studioChatMakerAnswer).toHaveBeenCalledWith(
-      'm-1',
-      'higgsfield',
-      true,
-    );
-    // Accounts shows the choice at once, before main answers.
-    expect(
-      within(screen.getByLabelText('studioChat.accounts.makeWith')).getByRole(
-        'button',
-        { name: 'studioChat.accounts.higgsfield' },
-      ),
-    ).toHaveAttribute('aria-pressed', 'true');
-  });
-
-  it('answers no for "Not now", and names no maker', () => {
-    render(<StudioChatAsk ask={card()} />);
-    fireEvent.click(
-      screen.getByRole('button', { name: 'studioChat.ask.notNow' }),
-    );
-    expect(studioChatAnswer).toHaveBeenCalledWith('m-1', 'no');
-    expect(studioChatMakerAnswer).not.toHaveBeenCalled();
   });
 });

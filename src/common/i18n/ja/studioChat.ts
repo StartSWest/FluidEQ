@@ -108,26 +108,11 @@ const studioChat = {
   'studioChat.effortWarning':
     '思考を深くすると Claude は長く考えます。返答に時間がかかり、Claude プランの上限を早く使い切ります。',
   'studioChat.step.picture': '画像 {file} を作成しました',
-  'studioChat.step.pictureNow': 'ChatGPT で画像 {file} を作成中…',
   'studioChat.step.pack': '画像をシーンに組み込みました',
   'studioChat.step.packNow': '画像をシーンに組み込み中…',
-  'studioChat.ask.connectTitle': 'ChatGPT で画像を作りますか？',
-  'studioChat.ask.connectBody':
-    'Claude は、このシーン用の画像（テクスチャや切り抜きなど）を ChatGPT に描かせたいと考えています。Codex アプリ経由で、あなたの ChatGPT プランを使います。画像を作るたびに確認されます。',
-  'studioChat.ask.needsCodex':
-    'OpenAI の Codex アプリが必要です。ChatGPT アカウントでサインインしてください。インストールしたら、ここに戻ってきてください。',
-  'studioChat.ask.codexSignedOut':
-    'Codex はインストールされていますが、ChatGPT でサインインしていません。',
-  'studioChat.ask.connect': 'ChatGPT を接続',
-  'studioChat.ask.getCodex': 'Codex を入手',
-  'studioChat.ask.signIn': 'ChatGPT でサインイン',
-  'studioChat.ask.notNow': '今はしない',
-  'studioChat.ask.pictureTitle': 'この画像を ChatGPT で作りますか？',
-  'studioChat.ask.pictureSize': '{width} × {height}',
-  'studioChat.ask.transparent': '透明な背景に切り抜き',
-  'studioChat.ask.makeIt': '作成する',
-  'studioChat.ask.allowChat': 'このチャットでは許可',
-  'studioChat.ask.cost': 'ChatGPT プランを使います。1 分ほどかかります。',
+  'studioChat.step.pictureNow': '画像 {file} を作成中…',
+  'studioChat.step.make': 'Higgsfield で作成しました',
+  'studioChat.step.makeNow': 'Higgsfield で作成中…',
   'studioChat.ask.toolTitle': 'Claude に {tool} の使用を許可しますか？',
   'studioChat.ask.toolBody':
     'あなた自身の Claude Code のツールまたはプラグインです。許可した場合にのみ、このコンピューター上であなたのアカウントで実行されます。',
@@ -146,8 +131,6 @@ const studioChat = {
     'メンバーのシーン：AI はコマンドの前に毎回確認します',
   'studioChat.memberCopy.body':
     'このシーンのファイル内のテキストが AI に何かを実行させようとする可能性があるため、コマンドの前に毎回確認します。メンバーのシーンを信頼済みにすることはできません。',
-  'studioChat.chatgptOn': 'ChatGPT の画像はオンです。',
-  'studioChat.chatgptTurnOff': 'オフにする',
   'studioChat.past.title': '過去のチャット',
   'studioChat.past.empty':
     'まだ過去のチャットはありません。新しいチャットを始めると、このチャットはここに残ります。',
@@ -199,21 +182,11 @@ const studioChat = {
   'studioChat.accounts.title': 'アカウント',
   'studioChat.accounts.open': 'チャットが使うアカウントを見る',
   'studioChat.accounts.claude': 'Claude',
-  'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': 'サインイン済み',
   'studioChat.accounts.switch': '別のアカウントを使う',
   'studioChat.accounts.claudeMissing':
     'このコンピューターに Claude Code がインストールされていません。',
   'studioChat.accounts.claudeOut': 'Claude Code にサインインしていません。',
-  'studioChat.accounts.codexMissing':
-    'Codex アプリがインストールされていないため、ChatGPT は画像を作れません。',
-  'studioChat.accounts.codexOut': 'Codex が ChatGPT でサインインしていません。',
-  'studioChat.accounts.picturesOn':
-    '画像ごとにあなたが許可すると、このチャットで画像を作ります。',
-  'studioChat.accounts.picturesOff':
-    'まだ画像は作っていません。Claude が初めて画像を作るときに確認します。',
-  'studioChat.accounts.picturesOffButton': '画像をオフにする',
-  'studioChat.accounts.codexPlan': 'ChatGPT {plan} プラン · Codex 経由',
   'studioChat.accounts.fine':
     'FluidEQ はどのアカウントかを表示するだけで、サインイン情報は見ません。',
   'studioChat.welcomeSceneTitle': '{name} のどこを変えますか？',
@@ -254,9 +227,6 @@ const studioChat = {
   'studioChat.accounts.gpt': 'GPT',
   'studioChat.accounts.gptFound':
     'Claude Code にあるあなたの GPT プラグイン（{name}）',
-  'studioChat.accounts.gptNote': 'あなたの ChatGPT プランで画像を作ります。',
-  'studioChat.accounts.gptMissing':
-    'あなたの Claude Code に GPT プラグインが見つかりません。そちらで追加すると、ここに表示されます。',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': 'あなたの Claude Code 経由で接続済み',
   'studioChat.accounts.higgsfieldNote':
@@ -273,11 +243,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': 'Higgsfield でサインイン',
   'studioChat.accounts.higgsfieldAbout': 'Higgsfield とは？',
   'studioChat.accounts.checkAgain': 'もう一度確認',
-  'studioChat.accounts.makeWith': '作成に使うもの',
-  'studioChat.accounts.makeWithNote':
-    '両方が接続されているとき、画像やアニメーションのフレームをどちらで作るか。',
-  'studioChat.accounts.makeWithAsk': '毎回たずねる',
-  'studioChat.ask.makerPicture': 'この画像を何で作りますか…',
   'studioChat.ask.makerFrames': 'このアニメーションのフレームを何で作りますか…',
   'studioChat.ask.makerGpt': 'あなたの GPT プラグイン（ChatGPT プランを使用）',
   'studioChat.ask.makerHiggsfield':

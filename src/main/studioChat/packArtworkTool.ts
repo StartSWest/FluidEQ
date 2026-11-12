@@ -55,7 +55,7 @@ const PACK_SCHEMA = {
           from: {
             type: 'string',
             description:
-              'Where it comes from: "art/<name>.png" for a picture make_picture made, or "artwork:<id>" for a piece already in the artwork, kept.',
+              'Where it comes from: "art/<name>.png" for a picture saved in the project\'s art folder (made with Higgsfield, or the member\'s own), or "artwork:<id>" for a piece already in the artwork, kept.',
           },
           kind: {
             type: 'string',
@@ -402,7 +402,7 @@ const createPackArtworkTool = ({
     name: 'pack_artwork',
     title: "Pack the scene's artwork",
     description:
-      "Lays the scene's own pictures into its one artwork image - pictures from make_picture, and pieces already in the artwork - with the gutters the brief asks for, encodes it as the WebP the build reads, and writes pack.json's artworkFile, artworkWidth, artworkHeight and artworkRegions to match. A sheet of animation frames is never packed as a plain picture: build it with build_sheet first, so it is an animation the member has; a grid of poses found packed without one is made an animation here and you are told to set it right. The member's photo places are kept where they are. Answers each region's place and the vec4 the shader samples it by.",
+      "Lays the scene's own pictures into its one artwork image - pictures saved in the project's art folder, and pieces already in the artwork - with the gutters the brief asks for, encodes it as the WebP the build reads, and writes pack.json's artworkFile, artworkWidth, artworkHeight and artworkRegions to match. A sheet of animation frames is never packed as a plain picture: build it with build_sheet first, so it is an animation the member has; a grid of poses found packed without one is made an animation here and you are told to set it right. The member's photo places are kept where they are. Answers each region's place and the vec4 the shader samples it by.",
     inputSchema: PACK_SCHEMA,
     annotations: {
       readOnlyHint: false,

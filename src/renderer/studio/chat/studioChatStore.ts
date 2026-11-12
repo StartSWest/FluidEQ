@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from 'react';
 import {
   type IStudioChat,
-  type IStudioChatCodexState,
   type IStudioChatLimits,
   type IStudioChatPast,
   type TStudioChatAnswer,
@@ -16,13 +15,10 @@ import {
   type TStudioChatEntry,
   type TStudioChatRestore,
 } from 'common/studioChat';
-import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
-import type { TStudioMaker } from 'common/studioMakers';
 import { readStored, writeStored } from '../../utils/graphStorage';
 import chatBrief from './chatBrief';
 import { chatPicksOf } from './chatPicks';
 import packArtwork from './chatPack';
-import { sendStudioMakerAnswer } from './studioMakersStore';
 
 const ZOOM_KEY = 'fluideq.studio.chatZoom';
 
@@ -50,12 +46,8 @@ interface IChatState {
   chat?: IStudioChat;
   /** Claude Code's sign-in window is open. */
   signingIn: boolean;
-  /** A card the chat put up for the member: connect ChatGPT, or a picture. */
+  /** A card the chat put up for the member: may Claude use this tool? */
   ask?: TStudioChatAsk;
-  /** ChatGPT's pictures here: Codex's state, and whether it is connected. */
-  codex?: IStudioChatCodexState;
-  /** Codex's sign-in window is open. */
-  codexSigningIn: boolean;
   /** The open project's earlier chats, once asked for. */
   past?: IStudioChatPast[];
   /** How large the conversation is drawn, one of STUDIO_CHAT_ZOOMS. */
@@ -131,7 +123,6 @@ const initialState = (): IChatState => ({
   zoom: storedZoom(),
   availability: { state: 'checking' },
   signingIn: false,
-  codexSigningIn: false,
   work: {},
 });
 
@@ -307,61 +298,6 @@ export const checkStudioChatLimits = async () => {
 export const answerStudioChat = (id: string, answer: TStudioChatAnswer) => {
   set({ ask: undefined });
   return bridge()?.studioChatAnswer?.(id, answer) ?? Promise.resolve();
-};
-
-/**
- * Asks Codex again whether it is here and signed in with ChatGPT. Nothing is
- * asked while ChatGPT pictures are closed (`studioChatPictures.ts`): the
- * chat then never knows Codex, so nothing it draws offers it.
- */
-export const checkStudioChatCodex = async () => {
-  if (!CHATGPT_PICTURES_OPEN) {
-    return;
-  }
-  const codex = await bridge()?.studioChatCodex?.();
-  if (codex) {
-    set({ codex });
-  }
-};
-
-/** Codex's own sign-in, in a window of its own. */
-export const signInToStudioChatCodex = async () => {
-  if (!CHATGPT_PICTURES_OPEN) {
-    return;
-  }
-  set({ codexSigningIn: true });
-  try {
-    const codex = await bridge()?.studioChatCodexSignIn?.();
-    if (codex) {
-      set({ codex });
-    }
-  } finally {
-    set({ codexSigningIn: false });
-  }
-};
-
-/** ChatGPT's pictures off: the next picture asks to connect again. */
-export const disconnectStudioChatCodex = async () => {
-  if (!CHATGPT_PICTURES_OPEN) {
-    return;
-  }
-  const codex = await bridge()?.studioChatCodexDisconnect?.();
-  if (codex) {
-    set({ codex });
-  }
-};
-
-/**
- * The maker pressed on the card that asks which, and whether to use it from
- * now on (`studioMakersStore.ts` keeps that). The card goes at once.
- */
-export const answerStudioChatMaker = (
-  id: string,
-  maker: TStudioMaker,
-  remember: boolean,
-) => {
-  set({ ask: undefined });
-  return sendStudioMakerAnswer(id, maker, remember);
 };
 
 /** One size up or down the steps, held at either end; 0 is back to 1. */

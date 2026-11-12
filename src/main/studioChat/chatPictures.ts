@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { ipcMain, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import {
   isStudioChatAnswer,
-  type IStudioChatCodexState,
   type IStudioChatPackAsk,
   type TStudioChatPackAnswer,
 } from '../../common/studioChat';
@@ -26,32 +25,23 @@ import {
   createStudioTools,
   type IStudioLook,
 } from '../studioAgent/studioTools';
-import { CHATGPT_PICTURES_OPEN } from '../../common/studioChatPictures';
-import {
-  isStudioMaker,
-  isStudioMakerChoice,
-  type IStudioMakers,
-} from '../../common/studioMakers';
+import type { THiggsfieldAccount } from '../../common/studioMakers';
 import { createChatAsks } from './chatAsks';
-import createChooseMakerTool from './chooseMakerTool';
 import {
   addHiggsfield,
   higgsfieldServer,
   signInToHiggsfield,
   signOutOfHiggsfield,
 } from './higgsfieldMcp';
-import { createMakerChoice, gptPlugin } from './studioMakers';
 import { createChatServer } from './chatServer';
-import { codexAccount, type ICodexAccount } from './codexAccount';
-import { codexState, signInToCodex } from './codexPictures';
 import lookAnimationTool from './lookAnimationTool';
 import { createPictureTools } from './pictureTools';
 import sheetCodec from './sheetCodec';
 import { createSheetTools } from './sheetTools';
 
 /**
- * Everything the chat needs for ChatGPT's pictures, wired to the window:
- * the asks and their cards, the packing the window does, Codex's state and
+ * Everything the chat needs for pictures, wired to the window: the asks
+ * and their cards, the packing the window does, Higgsfield's state and
  * sign-in, and the chat's tool servers (`chatServer.ts`) that carry them to
  * Claude beside the door's look and hear.
  *
@@ -132,13 +122,8 @@ export interface IChatPicturesDeps {
 
 const CHANNELS = [
   'studio-chat-answer',
-  'studio-chat-codex',
-  'studio-chat-codex-sign-in',
-  'studio-chat-codex-disconnect',
   'studio-chat-packed',
   'studio-chat-makers',
-  'studio-chat-makers-choice',
-  'studio-chat-maker-answer',
   'studio-chat-higgsfield-connect',
 ];
 
@@ -186,16 +171,12 @@ export const createChatPictures = ({
   });
 
   /**
-   * The member's two makers of pictures as they are in their own Claude
-   * Code now (`studioMakers.ts`), asked fresh every time: a sign-in made a
-   * moment ago in the browser has to count at once.
+   * Higgsfield as it is in the member's own Claude Code now
+   * (`studioMakers.ts`), asked fresh every time: a sign-in made a moment
+   * ago in the browser has to count at once.
    */
-  const makerChoice = createMakerChoice(root);
-  const makersNow = async (): Promise<IStudioMakers> => ({
-    gpt: gptPlugin(),
-    higgsfield: (await higgsfieldServer())?.account ?? { state: 'missing' },
-    choice: makerChoice.get(),
-  });
+  const higgsfieldNow = async (): Promise<THiggsfieldAccount> =>
+    (await higgsfieldServer())?.account ?? { state: 'missing' };
 
   let nextPack = 0;
   const packing = new Map<
@@ -270,16 +251,8 @@ export const createChatPictures = ({
       tools: [
         ...ownLookTools(door, folder),
         lookAnimationTool(folder),
-        // Which of the member's own makers makes a picture; it makes none.
-        createChooseMakerTool({
-          project: () => boundProject(projectId, folder),
-          asks,
-          makers: makersNow,
-        }),
         ...createPictureTools({
           project: () => boundProject(projectId, folder),
-          asks,
-          signalOf,
           packInWindow: (what) => packInWindow(projectId, what),
           ...(logger ? { logger } : {}),
         }),
@@ -299,27 +272,6 @@ export const createChatPictures = ({
     return server;
   };
 
-  /**
-   * Whose ChatGPT the signed-in Codex is, asked once per Codex and kept until
-   * a sign-in through the chat could have changed it: an app-server started
-   * for every look at the head would be a second or so each time.
-   */
-  let account: { executable: string; account: ICodexAccount } | undefined;
-  const accountOf = async (executable: string) => {
-    if (account?.executable !== executable) {
-      account = { executable, account: await codexAccount(executable) };
-    }
-    return account.account;
-  };
-
-  /** What the chat's head shows: Codex here, whose it is, and if connected. */
-  const codexOf = async (): Promise<IStudioChatCodexState> => {
-    const { state, executable } = await codexState();
-    const known =
-      state === 'ready' && executable ? await accountOf(executable) : {};
-    return { codex: state, connected: asks.isConnected(), ...known };
-  };
-
   ipcMain.handle(
     'studio-chat-answer',
     (event, id: unknown, answer: unknown) => {
@@ -333,61 +285,8 @@ export const createChatPictures = ({
     },
   );
 
-  // Closed (`studioChatPictures.ts`), each answers nothing and starts no
-  // Codex: `codexState` runs `codex login status`, and the account is read
-  // from `codex app-server`.
-  ipcMain.handle('studio-chat-codex', (event) =>
-    CHATGPT_PICTURES_OPEN && fromWindow(event) ? codexOf() : undefined,
-  );
-
-  ipcMain.handle('studio-chat-codex-sign-in', async (event) => {
-    if (!CHATGPT_PICTURES_OPEN || !fromWindow(event)) {
-      return undefined;
-    }
-    const { executable } = await codexState();
-    if (executable) {
-      await signInToCodex(executable);
-    }
-    // Possibly someone else now: asked again.
-    account = undefined;
-    return codexOf();
-  });
-
-  ipcMain.handle('studio-chat-codex-disconnect', (event) => {
-    if (!CHATGPT_PICTURES_OPEN || !fromWindow(event)) {
-      return undefined;
-    }
-    asks.disconnect();
-    return codexOf();
-  });
-
   ipcMain.handle('studio-chat-makers', (event) =>
-    fromWindow(event) ? makersNow() : undefined,
-  );
-
-  ipcMain.handle('studio-chat-makers-choice', (event, choice: unknown) => {
-    if (fromWindow(event) && isStudioMakerChoice(choice)) {
-      makerChoice.set(choice);
-    }
-    return makerChoice.get();
-  });
-
-  // The maker pressed on the card, and whether to use it from now on.
-  ipcMain.handle(
-    'studio-chat-maker-answer',
-    (event, id: unknown, maker: unknown, remember: unknown) => {
-      if (
-        !fromWindow(event) ||
-        typeof id !== 'string' ||
-        !isStudioMaker(maker)
-      ) {
-        return;
-      }
-      if (remember === true) {
-        makerChoice.set(maker);
-      }
-      asks.answerMaker(id, maker);
-    },
+    fromWindow(event) ? higgsfieldNow() : undefined,
   );
 
   /**
@@ -414,7 +313,7 @@ export const createChatPictures = ({
       if (server?.account.state === 'signed-out') {
         await signInToHiggsfield(server.name);
       }
-      return makersNow();
+      return higgsfieldNow();
     },
   );
 

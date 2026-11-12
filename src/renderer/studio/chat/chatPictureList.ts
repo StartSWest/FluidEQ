@@ -21,6 +21,7 @@ export const STEP_WORDS: Record<
     done: 'studioChat.step.picture',
     now: 'studioChat.step.pictureNow',
   },
+  make: { done: 'studioChat.step.make', now: 'studioChat.step.makeNow' },
   pack: { done: 'studioChat.step.pack', now: 'studioChat.step.packNow' },
   animation: {
     done: 'studioChat.step.animation',
@@ -52,13 +53,13 @@ export interface IChatPicture {
   key: string;
   src: string;
   name: string;
-  /** Made by ChatGPT on transparency: shown on the checks. */
+  /** May carry transparency: shown on the checks. */
   cutOut: boolean;
 }
 
 /**
  * A picture that may carry transparency, shown on the checks: any picture
- * but a look kept as PNG — ChatGPT's, and any Claude opened or wrote.
+ * but a look kept as PNG — any Claude opened or wrote.
  */
 export const isCutOut = (step: IStudioChatStep) =>
   step.kind === 'picture' ||
@@ -70,7 +71,7 @@ export const pictureKey = (entryId: string, stepId?: string) =>
 
 /**
  * Every picture in the conversation, in the order they appear: the stage as
- * the member attached it, each look Claude took, each picture ChatGPT made.
+ * the member attached it, each look Claude took, each picture made for it.
  * The viewer steps through them all.
  */
 export const chatPicturesOf = (

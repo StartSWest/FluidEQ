@@ -34,7 +34,7 @@ export type TChatStreamEvent =
       type: 'step-end';
       id: string;
       failed: boolean;
-      /** The picture a look or make_picture returned, as a data URL. */
+      /** The picture a look returned, as a data URL. */
       picture?: string;
     }
   /** Claude Code began shrinking the conversation into a summary. */
@@ -87,7 +87,12 @@ const WATCH_TOOL = `mcp__${DOOR_SERVER}__watch_scene`;
 const VIEWS_TOOL = `mcp__${DOOR_SERVER}__look_at_views`;
 const SONG_TOOL = `mcp__${DOOR_SERVER}__watch_the_song`;
 const HEAR_TOOL = `mcp__${DOOR_SERVER}__hear_the_music`;
-const PICTURE_TOOL = `mcp__${DOOR_SERVER}__make_picture`;
+/**
+ * Higgsfield's tools, under whatever name the member's Claude Code has its
+ * server: `higgsfield` as FluidEQ adds it, or `claude_ai_Higgsfield` for a
+ * claude.ai connector.
+ */
+const HIGGSFIELD_TOOL = /^mcp__(?:\w*_)?higgsfield__/i;
 const PACK_TOOL = `mcp__${DOOR_SERVER}__pack_artwork`;
 const ANIMATION_TOOL = `mcp__${DOOR_SERVER}__look_at_animation`;
 const SHEET_TOOLS = new Set([
@@ -129,15 +134,8 @@ export const stepOf = (
   if (name === HEAR_TOOL) {
     return { id, kind: 'hear', state: 'running' };
   }
-  if (name === PICTURE_TOOL) {
-    // Shown by the name Claude gave it, which is all it is called in art/.
-    const named =
-      isRecord(input) &&
-      typeof input.name === 'string' &&
-      /^[a-z][a-z0-9-]{0,39}$/.test(input.name)
-        ? { file: input.name }
-        : {};
-    return { id, kind: 'picture', ...named, state: 'running' };
+  if (HIGGSFIELD_TOOL.test(name)) {
+    return { id, kind: 'make', state: 'running' };
   }
   if (name === PACK_TOOL) {
     return { id, kind: 'pack', state: 'running' };

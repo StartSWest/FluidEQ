@@ -74,72 +74,16 @@ $ask-mark-gap: 10px;
   font-weight: $weight-semibold;
 }
 
-.studio-chat__ask-body,
-.studio-chat__ask-why {
+.studio-chat__ask-body {
   color: $text-muted;
   font-size: $text-small;
   line-height: 1.45;
-}
-
-.studio-chat__ask-why {
-  color: $text-primary;
 }
 
 .studio-chat__ask-need {
   color: $amber;
   font-size: $text-small;
   line-height: 1.45;
-}
-
-// Which of the member's two makers (`MakerCard`): each press with what it
-// runs on beside it, the presses in one column so the two lines start level.
-// Under the mark like the answers, for the width: at the chat's narrowest
-// the longer line still has room to wrap in its own column.
-.studio-chat__ask-makers {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 6px 10px;
-  align-items: center;
-  margin-top: 2px;
-  margin-left: -($ask-mark + $ask-mark-gap);
-
-  .button {
-    justify-content: center;
-  }
-}
-
-.studio-chat__ask-remember {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: -($ask-mark + $ask-mark-gap);
-  color: $text-muted;
-  font-size: $text-small;
-  line-height: 1.45;
-  cursor: pointer;
-
-  input {
-    flex: none;
-    margin: 0;
-  }
-}
-
-// What ChatGPT is asked to draw, as Claude wrote it: the member sees it
-// whole before saying yes, held to a few lines with the rest a scroll away.
-.studio-chat__ask-prompt {
-  max-height: 6.2em;
-  margin: 0;
-  padding: 6px 9px;
-  overflow-y: auto;
-  color: $text-muted;
-  border-left: 2px solid color-mix(in srgb, $text-accent 40%, transparent);
-  border-radius: 0 $radius-xs $radius-xs 0;
-  background: color-mix(in srgb, $white 3%, transparent);
-  font-size: $text-small;
-  font-style: italic;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-  @include slim-scrollbar;
 }
 
 // What a tool of the member's is about to do — a command, a file, a skill —
@@ -159,19 +103,6 @@ $ask-mark-gap: 10px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   @include slim-scrollbar;
-}
-
-.studio-chat__ask-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 10px;
-  color: $text-faint;
-  font-size: $text-micro;
-
-  span + span::before {
-    margin-right: 10px;
-    content: '·';
-  }
 }
 
 // Under the mark as well as the words (Ivan, 2026-11-07: "make sure to do

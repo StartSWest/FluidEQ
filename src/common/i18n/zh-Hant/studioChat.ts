@@ -107,25 +107,11 @@ const studioChat = {
   'studioChat.effortWarning':
     '更高的努力讓克勞德思考得更久：回覆需要更多的時間，並且更快地使用你的克勞德計劃的限制。',
   'studioChat.step.picture': '製作了圖片 {file}',
-  'studioChat.step.pictureNow': '使用 ChatGPT 製作圖片 {file}...',
   'studioChat.step.pack': '將圖片放入場景中',
   'studioChat.step.packNow': '將圖片放入場景中...',
-  'studioChat.ask.connectTitle': '用 ChatGPT 製作圖片？',
-  'studioChat.ask.connectBody':
-    'Claude 希望 ChatGPT 透過 Codex 應用程式在您的 ChatGPT 計劃上為此場景繪製圖片，例如紋理和切口。每張照片之前都會詢問您。',
-  'studioChat.ask.needsCodex':
-    '這需要 OpenAI 的 Codex 應用程式，並使用您的 ChatGPT 帳戶登入。安裝它，然後回到這裡。',
-  'studioChat.ask.codexSignedOut': 'Codex 已安裝，但未使用 ChatGPT 登入。',
-  'studioChat.ask.connect': '連線聊天GPT',
-  'studioChat.ask.getCodex': '取得法典',
-  'studioChat.ask.signIn': '使用 ChatGPT 登入',
-  'studioChat.ask.notNow': '現在不行',
-  'studioChat.ask.pictureTitle': '用 ChatGPT 製作這張圖片？',
-  'studioChat.ask.pictureSize': '{width} × {height}',
-  'studioChat.ask.transparent': '在透明背景上剪出',
-  'studioChat.ask.makeIt': '做到這一點',
-  'studioChat.ask.allowChat': '允許此聊天',
-  'studioChat.ask.cost': '使用您的 ChatGPT 計劃；大約一分鐘。',
+  'studioChat.step.pictureNow': '正在製作圖片 {file}…',
+  'studioChat.step.make': '已用 Higgsfield 製作',
+  'studioChat.step.makeNow': '正在用 Higgsfield 製作…',
   'studioChat.ask.toolTitle': '允許 Claude 使用 {tool}？',
   'studioChat.ask.toolBody':
     '這是你自己的 Claude Code 工具或外掛程式。只有在你允許時，它才會在這台電腦上用你的帳戶執行。',
@@ -143,8 +129,6 @@ const studioChat = {
   'studioChat.memberCopy.title': '成員的場景：AI 每個指令前都會詢問',
   'studioChat.memberCopy.body':
     '它檔案中的文字可能讓 AI 執行某些內容，因此每個指令前都會先詢問你。成員的場景無法標記為可信。',
-  'studioChat.chatgptOn': 'ChatGPT 圖片已開啟。',
-  'studioChat.chatgptTurnOff': '關閉',
   'studioChat.past.title': '過去的聊天記錄',
   'studioChat.past.empty':
     '還沒有更早的聊天記錄。開始新的聊天會將這個聊天保留在這裡。',
@@ -195,20 +179,10 @@ const studioChat = {
   'studioChat.accounts.title': '帳戶',
   'studioChat.accounts.open': '檢視聊天使用哪些帳戶',
   'studioChat.accounts.claude': '克洛德',
-  'studioChat.accounts.chatgpt': '聊天GPT',
   'studioChat.accounts.unknown': '已登入',
   'studioChat.accounts.switch': '使用另一個帳戶',
   'studioChat.accounts.claudeMissing': '此電腦上未安裝 Claude Code。',
   'studioChat.accounts.claudeOut': 'Claude Code未登入。',
-  'studioChat.accounts.codexMissing':
-    '未安裝 Codex 應用程式，因此 ChatGPT 無法製作圖片。',
-  'studioChat.accounts.codexOut': 'Codex 未使用 ChatGPT 登入。',
-  'studioChat.accounts.picturesOn':
-    '當您對每個人都說“是”時，就會在此聊天中拍照。',
-  'studioChat.accounts.picturesOff':
-    '還沒拍照：克勞德第一次想要照片時，它會問你。',
-  'studioChat.accounts.picturesOffButton': '關閉圖片',
-  'studioChat.accounts.codexPlan': 'ChatGPT {plan} 計劃·通過 Codex',
   'studioChat.accounts.fine':
     'FluidEQ 顯示了這些帳戶，但從未看到他們的登入情況。',
   'studioChat.welcomeSceneTitle': '{name} 應更改哪些內容？',
@@ -247,9 +221,6 @@ const studioChat = {
   'studioChat.accounts.gpt': 'GPT',
   'studioChat.accounts.gptFound':
     '您在 Claude Code 中自己的 GPT 外掛程式（{name}）',
-  'studioChat.accounts.gptNote': '使用您自己的 ChatGPT 方案製作圖片。',
-  'studioChat.accounts.gptMissing':
-    '在您的 Claude Code 中找不到 GPT 外掛程式。在那裡新增一個，它就會顯示在這裡。',
   'studioChat.accounts.higgsfield': 'Higgsfield',
   'studioChat.accounts.higgsfieldReady': '已透過您的 Claude Code 連線',
   'studioChat.accounts.higgsfieldNote':
@@ -266,11 +237,6 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': '使用 Higgsfield 登入',
   'studioChat.accounts.higgsfieldAbout': '什麼是 Higgsfield？',
   'studioChat.accounts.checkAgain': '再次檢查',
-  'studioChat.accounts.makeWith': '製作方式',
-  'studioChat.accounts.makeWithNote':
-    '兩者都已連線時，由哪一個製作圖片或動畫影格。',
-  'studioChat.accounts.makeWithAsk': '每次都問我',
-  'studioChat.ask.makerPicture': '用哪一個製作這張圖片…',
   'studioChat.ask.makerFrames': '用哪一個製作這些動畫影格…',
   'studioChat.ask.makerGpt': '您自己的 GPT 外掛程式，使用您的 ChatGPT 方案',
   'studioChat.ask.makerHiggsfield':

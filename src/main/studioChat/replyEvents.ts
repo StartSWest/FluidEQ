@@ -70,8 +70,8 @@ const withEvent = (
   // chat shows what Claude is looking at as it looks. So does any other
   // step's — a picture file Claude opened, one the member's own image tool
   // brought back (Ivan, 2026-11-09: "shows generated images right there in
-  // the chat"): it used to be dropped unless the step was a look or
-  // `make_picture`. A PNG keeps its transparency.
+  // the chat"): it used to be dropped unless the step was a look. A PNG
+  // keeps its transparency.
   const kind = reply.steps.find((step) => step.id === event.id)?.kind;
   let picture: string | undefined;
   if (event.picture) {

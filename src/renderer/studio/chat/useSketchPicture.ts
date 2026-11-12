@@ -31,7 +31,7 @@ export default function useSketchPicture(
     let live = true;
     // Through the header check every decode of a chat's picture asks first
     // (`decodePicture`): the sketch also opens on pictures Claude's looks and
-    // ChatGPT brought in, from the chat's picture viewer.
+    // tools brought in, from the chat's picture viewer.
     decodePicture(image)
       .then((bitmap) => {
         if (!bitmap) {

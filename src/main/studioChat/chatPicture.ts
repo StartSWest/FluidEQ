@@ -43,7 +43,7 @@ export const chatPictureFromBytes = (bytes: Uint8Array) =>
   toChat(pictureFromBytes(bytes));
 
 /**
- * A picture ChatGPT made, as the chat keeps it: a PNG, because a cut-out's
+ * A picture made for the scene, as the chat keeps it: a PNG, because a cut-out's
  * transparency is half of what the member is shown, and smaller than a look
  * — it sits in a step's row at the pane's width, not as the stage.
  */

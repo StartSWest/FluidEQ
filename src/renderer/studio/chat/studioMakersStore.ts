@@ -5,26 +5,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useSyncExternalStore } from 'react';
-import type {
-  IStudioMakers,
-  TStudioMaker,
-  TStudioMakerChoice,
-} from 'common/studioMakers';
+import type { THiggsfieldAccount } from 'common/studioMakers';
 
 /**
- * The member's own makers of pictures as the window last heard of them from
- * main (`main/studioChat/studioMakers.ts`): a GPT plugin and Higgsfield in
- * their Claude Code, and which of the two they said to use. One copy for the
- * Accounts pane and the card that asks which, so a choice remembered on the
- * card is the one Accounts shows.
+ * Higgsfield as the window last heard of it from main
+ * (`main/studioChat/studioMakers.ts`): there in the member's own Claude
+ * Code, signed in, or not. The Studio's one maker of pictures, videos and 3D
+ * models (Ivan, 2026-11-11: "let's only use Higgsfield").
  *
- * Apart from the chat's own store: these belong to the member's Claude Code,
- * not to a project's conversation, and are the same whichever scene is open.
+ * Apart from the chat's own store: it belongs to the member's Claude Code,
+ * not to a project's conversation, and is the same whichever scene is open.
  */
 
 interface IMakersState {
   /** Undefined until main has answered once. */
-  makers?: IStudioMakers;
+  higgsfield?: THiggsfieldAccount;
   /** Higgsfield is being added, or its sign-in is open. */
   connecting: boolean;
 }
@@ -51,42 +46,12 @@ const subscribe = (listener: () => void) => {
 export const useStudioMakers = (): IMakersState =>
   useSyncExternalStore(subscribe, () => state);
 
-/** Asks again what the member's Claude Code has of GPT and Higgsfield. */
+/** Asks again what the member's Claude Code has of Higgsfield. */
 export const checkStudioMakers = async () => {
-  const makers = await bridge()?.studioChatMakers?.();
-  if (makers) {
-    set({ makers });
+  const higgsfield = await bridge()?.studioChatMakers?.();
+  if (higgsfield) {
+    set({ higgsfield });
   }
-};
-
-/** The choice as the member just made it, shown before main has kept it. */
-export const showStudioMakerChoice = (choice: TStudioMakerChoice) => {
-  if (state.makers) {
-    set({ makers: { ...state.makers, choice } });
-  }
-};
-
-/** Which of the two makes things from now on, or to be asked each time. */
-export const setStudioMakerChoice = async (choice: TStudioMakerChoice) => {
-  showStudioMakerChoice(choice);
-  const kept = await bridge()?.studioChatMakersChoice?.(choice);
-  if (kept) {
-    showStudioMakerChoice(kept);
-  }
-};
-
-/** The maker pressed on the card that asks which, kept when told to be. */
-export const sendStudioMakerAnswer = (
-  id: string,
-  maker: TStudioMaker,
-  remember: boolean,
-) => {
-  if (remember) {
-    showStudioMakerChoice(maker);
-  }
-  return (
-    bridge()?.studioChatMakerAnswer?.(id, maker, remember) ?? Promise.resolve()
-  );
 };
 
 /**
@@ -100,9 +65,9 @@ export const connectHiggsfield = async (another = false) => {
   }
   set({ connecting: true });
   try {
-    const makers = await bridge()?.studioChatHiggsfieldConnect?.(another);
-    if (makers) {
-      set({ makers });
+    const higgsfield = await bridge()?.studioChatHiggsfieldConnect?.(another);
+    if (higgsfield) {
+      set({ higgsfield });
     }
   } finally {
     set({ connecting: false });

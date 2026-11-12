@@ -4,8 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { TStudioAskedKind } from './studioMakers';
-
 /**
  * The Studio's chat with the member's own Claude Code
  * (`main/studioChat/`): what the window is told and what it may ask.
@@ -45,7 +43,10 @@ export interface IStudioChatStep {
     | 'read'
     | 'write'
     | 'search'
+    /** A picture that appeared in the project's art folder. */
     | 'picture'
+    /** One of Higgsfield's tools is making something. */
+    | 'make'
     | 'pack'
     | 'animation'
     /** `pose_sheet` or `build_sheet` made an animation's frames. */
@@ -57,8 +58,7 @@ export interface IStudioChatStep {
   state: 'running' | 'done' | 'failed';
   /**
    * What a look saw, a JPEG data URL small enough to keep with the chat
-   * (Ivan, 2026-10-09: "so I can see all the time what is looking at"), or
-   * the picture ChatGPT made, a PNG that keeps its transparency.
+   * (Ivan, 2026-10-09: "so I can see all the time what is looking at").
    */
   picture?: string;
   /**
@@ -297,81 +297,31 @@ export type TStudioChatRestore =
   | { ok: false; reason: 'busy' | 'gone' | 'no-project' | 'failed' };
 
 /**
- * Whether ChatGPT can make pictures here: the member's own Codex, installed
- * and signed in with ChatGPT (`main/studioChat/codexPictures.ts`).
+ * What the chat asks the member: whether Claude may use one of their own
+ * Claude Code tools that their settings do not already allow.
  */
-export type TStudioChatCodex = 'missing' | 'signed-out' | 'ready';
-
-/** ChatGPT's pictures as the chat shows them: Codex here, and whose. */
-export interface IStudioChatCodexState {
-  codex: TStudioChatCodex;
-  /** The member let ChatGPT make pictures in the chat. */
-  connected: boolean;
-  /** The ChatGPT account Codex is signed in to, and its plan, when it says. */
-  email?: string;
-  plan?: string;
-}
+export type TStudioChatAsk = {
+  id: string;
+  projectId: string;
+  /**
+   * Claude wants one of the member's own Claude Code tools — a plugin's
+   * skill, a command, a tool server — that their own settings do not
+   * already allow.
+   */
+  kind: 'tool';
+  /** The tool's name as Claude Code shows it. */
+  tool: string;
+  /** What it is about to do: the command, the file, the skill. */
+  detail: string;
+  /**
+   * The scene came from outside FluidEQ: the card says so, and offers no
+   * "always".
+   */
+  foreign?: true;
+};
 
 /**
- * What the chat asks the member before Claude uses ChatGPT (Ivan,
- * 2026-10-09: "it needs to ask the user if you connect gpt codex … and also
- * ask when it will use it"): once, to connect it, and before every picture.
- */
-export type TStudioChatAsk =
-  | {
-      id: string;
-      projectId: string;
-      kind: 'connect';
-      codex: TStudioChatCodex;
-    }
-  | {
-      id: string;
-      projectId: string;
-      kind: 'picture';
-      /** Claude's own line on what the picture is for. */
-      why: string;
-      /** What ChatGPT is asked to draw. */
-      prompt: string;
-      width: number;
-      height: number;
-      transparent: boolean;
-    }
-  | {
-      id: string;
-      projectId: string;
-      /**
-       * Claude wants one of the member's own Claude Code tools — a plugin's
-       * skill, a command, a tool server — that their own settings do not
-       * already allow.
-       */
-      kind: 'tool';
-      /** The tool's name as Claude Code shows it. */
-      tool: string;
-      /** What it is about to do: the command, the file, the skill. */
-      detail: string;
-      /**
-       * The scene came from outside FluidEQ: the card says so, and offers
-       * no "always".
-       */
-      foreign?: true;
-    }
-  | {
-      id: string;
-      projectId: string;
-      /**
-       * The member's GPT plugin and Higgsfield are both there and neither is
-       * chosen: which of them makes this? (`studioMakers.ts`). Answered on
-       * its own channel, with the maker and whether to remember it.
-       */
-      kind: 'maker';
-      what: TStudioAskedKind;
-      /** Claude's own line on what it is for. */
-      why: string;
-    };
-
-/**
- * The member's answer: yes this once, yes for the rest of this chat (a
- * picture, or that tool), or no.
+ * The member's answer: yes this once, always in this chat, or no.
  */
 export type TStudioChatAnswer = 'yes' | 'chat' | 'no';
 

@@ -76,8 +76,8 @@ import { CAREFUL_SETTINGS } from './chatForeign';
  * wrote a fresh cache instead of reading it; this set, with no tool server
  * of the member's, comes to about 29,400, every message after the first read
  * from Claude Code's own prompt cache (the old five file tools: 13,000).
- * The plugins' skills and commands all stay: a picture plugin such as
- * gpt-studio is a skill that runs `node`. PowerShell is Claude Code's on
+ * The plugins' skills and commands all stay: a member's plugin is often a
+ * skill that runs `node`. PowerShell is Claude Code's on
  * Windows alone, so it is named there alone.
  *
  * ToolSearch is what lets the member's tool servers load when used rather
@@ -105,9 +105,6 @@ const ALLOWED = [
   `mcp__${DOOR_SERVER}__watch_the_song`,
   `mcp__${DOOR_SERVER}__look_at_views`,
   `mcp__${DOOR_SERVER}__hear_the_music`,
-  `mcp__${DOOR_SERVER}__make_picture`,
-  // Asks which of the member's own makers to use; it runs neither.
-  `mcp__${DOOR_SERVER}__choose_maker`,
   `mcp__${DOOR_SERVER}__pack_artwork`,
   `mcp__${DOOR_SERVER}__look_at_animation`,
   `mcp__${DOOR_SERVER}__pose_sheet`,
