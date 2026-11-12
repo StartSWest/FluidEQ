@@ -66,10 +66,10 @@ const plus = {
   'plus.version.short': 'v{version}',
   'plus.version.noNote': '메모 없음',
   'plus.version.play': '재생',
-  'plus.version.playLabel': '플레이 버전 {version}',
-  'plus.version.playing': '재생',
+  'plus.version.playLabel': '{version} 버전 재생',
+  'plus.version.playing': '재생 중',
   'plus.version.playingLine':
-    '이 컴퓨터에 보관된 {version} 버전을 플레이하고 있습니다.',
+    '이 컴퓨터에 보관된 {version} 버전을 재생하고 있습니다.',
   'plus.version.backToNewest': '최신으로 돌아가기',
   'plus.version.keptHere': '이 컴퓨터에 보관됨',
   'plus.version.current': '현재',
@@ -122,7 +122,7 @@ const plus = {
   'plus.inspect.unavailable':
     '다운로드할 수 없습니다. 연결을 확인하고 다시 시도하세요.',
   'plus.inspect.failed': '스튜디오에서 열 수 없습니다. 다시 시도해 보세요.',
-  'plus.scene.play': '그래프에서 플레이',
+  'plus.scene.play': '그래프에서 재생',
   'plus.scene.inLooks': '당신의 외모 속 Made by member 아래',
   'plus.scene.inLooksOwn': '너의 외모 속 Made by you 아래',
   'plus.scene.inLooksPlus': '네 외모엔 FluidEQ 아래',
