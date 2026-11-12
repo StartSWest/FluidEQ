@@ -354,6 +354,8 @@ const app: Partial<Dictionary> = {
     'L’installateur signé n’est pas encore en ligne. Réessayez bientôt.',
   'edition.card.offer':
     'Le même FluidEQ avec un installateur signé qui se met à jour tout seul, et des crédits pour les scènes inclus. Un seul paiement.',
+  'edition.card.offerCredits':
+    'Le même FluidEQ avec un installateur signé qui se met à jour tout seul, et {credits} pour les scènes inclus. Un seul paiement.',
   'edition.card.payHint':
     'Payez avec l’e-mail de ce compte et l’achat s’y rattache tout seul.',
   'edition.card.buy': 'Obtenir l’édition signée – {price}',

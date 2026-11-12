@@ -329,6 +329,8 @@ const app: Partial<Dictionary> = {
   'edition.card.noRelease': '签名版安装程序尚未上线。请稍后再试。',
   'edition.card.offer':
     '同样的 FluidEQ，带有会自动更新的签名安装程序，并附送场景点数。一次性付款。',
+  'edition.card.offerCredits':
+    '同样的 FluidEQ，带有会自动更新的签名安装程序，并附送 {credits}用于获取场景。一次性付款。',
   'edition.card.payHint': '用这个账户的邮箱付款，购买会自动关联。',
   'edition.card.buy': '获取签名版 – {price}',
   'edition.card.buyNoPrice': '获取签名版',

@@ -350,6 +350,8 @@ const app: Partial<Dictionary> = {
     'Das signierte Installationsprogramm ist noch nicht bereit. Versuchen Sie es bald erneut.',
   'edition.card.offer':
     'Dasselbe FluidEQ mit einem signierten Installationsprogramm, das sich selbst aktualisiert, inklusive Credits für Szenen. Einmalig bezahlt.',
+  'edition.card.offerCredits':
+    'Dasselbe FluidEQ mit einem signierten Installationsprogramm, das sich selbst aktualisiert, inklusive {credits} für Szenen. Einmalig bezahlt.',
   'edition.card.payHint':
     'Bezahlen Sie mit der E-Mail dieses Kontos, dann wird der Kauf von selbst verknüpft.',
   'edition.card.buy': 'Signierte Edition holen – {price}',

@@ -115,6 +115,7 @@ export const registerSignedEditionIpc = ({
         ...copy,
         account: owning.owned ? 'owned' : 'not-owned',
         ...(owning.order ? { order: owning.order } : {}),
+        ...(owning.credits ? { credits: owning.credits } : {}),
         ...shown,
       };
     },

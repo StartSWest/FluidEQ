@@ -343,3 +343,31 @@ describe('a purchase paid with another address', () => {
     expect(calls).toEqual([]);
   });
 });
+
+// The offer says how many credits the edition comes with from the server's
+// own count, the one that grants them.
+describe('the credits it comes with', () => {
+  it('passes the server’s count on, owned or not', async () => {
+    setup();
+    answers[CLAIM] = fakeResponse(200, {
+      signed: false,
+      order: null,
+      credits: 12,
+    });
+    expect(await invoke('signed-edition-status')).toMatchObject({
+      account: 'not-owned',
+      credits: 12,
+    });
+  });
+
+  it.each([0, -3, 1.5, '12', 5000, null])(
+    'says no count for %p',
+    async (credits) => {
+      setup();
+      answers[CLAIM] = fakeResponse(200, { signed: false, credits });
+      expect(await invoke('signed-edition-status')).not.toHaveProperty(
+        'credits',
+      );
+    },
+  );
+});

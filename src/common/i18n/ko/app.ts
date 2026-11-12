@@ -330,6 +330,8 @@ const app = {
     '서명된 설치 프로그램이 아직 올라오지 않았습니다. 잠시 후 다시 시도해 보세요.',
   'edition.card.offer':
     '같은 FluidEQ에 스스로 업데이트되는 서명된 설치 프로그램과 장면용 크레딧이 포함됩니다. 한 번만 결제합니다.',
+  'edition.card.offerCredits':
+    '같은 FluidEQ에 스스로 업데이트되는 서명된 설치 프로그램과 장면용 {credits}이(가) 포함됩니다. 한 번만 결제합니다.',
   'edition.card.payHint': '이 계정의 이메일로 결제하면 저절로 연결됩니다.',
   'edition.card.buy': '서명 에디션 받기 – {price}',
   'edition.card.buyNoPrice': '서명 에디션 받기',

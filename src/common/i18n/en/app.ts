@@ -343,6 +343,8 @@ const app = {
     'The signed installer is not up yet. Try again soon.',
   'edition.card.offer':
     'The same FluidEQ with a signed installer that updates itself, and credits for scenes included. Paid once.',
+  'edition.card.offerCredits':
+    'The same FluidEQ with a signed installer that updates itself, and {credits} for scenes included. Paid once.',
   'edition.card.payHint':
     'Pay with this account’s email and it’s linked by itself.',
   'edition.card.buy': 'Get the signed edition – {price}',

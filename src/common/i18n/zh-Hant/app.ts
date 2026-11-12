@@ -311,6 +311,8 @@ const app = {
   'edition.card.noRelease': '簽署版安裝程式尚未上線。請稍後再試。',
   'edition.card.offer':
     '同樣的 FluidEQ，帶有會自動更新的簽署安裝程式，並附送場景點數。一次性付款。',
+  'edition.card.offerCredits':
+    '同樣的 FluidEQ，帶有會自動更新的簽署安裝程式，並附送 {credits}用於取得場景。一次性付款。',
   'edition.card.payHint': '用這個帳戶的電子郵件付款，購買會自動連結。',
   'edition.card.buy': '取得簽署版 – {price}',
   'edition.card.buyNoPrice': '取得簽署版',

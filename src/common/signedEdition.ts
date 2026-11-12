@@ -32,6 +32,11 @@ export interface ISignedEditionStatus {
    * when the server could not be asked, and then no price is shown.
    */
   price?: string;
+  /**
+   * How many credits the edition comes with, as the server grants them: the
+   * offer says this number, never one of the app's own.
+   */
+  credits?: number;
 }
 
 /** Asking for a code to be sent to the address paid with. */
@@ -58,6 +63,15 @@ export type TEditionDownload =
 export const EDITION_SUPPORT_EMAIL = 'support@fluideq.com';
 
 const ORDER = /^txn_[0-9a-z]{10,60}$/;
+
+/** A count of included credits as the server sends it, or nothing. */
+export const editionCreditsOf = (value: unknown): number | undefined =>
+  typeof value === 'number' &&
+  Number.isInteger(value) &&
+  value > 0 &&
+  value <= 1000
+    ? value
+    : undefined;
 
 /** An order reference as the server sends it, or nothing. */
 export const editionOrderOf = (value: unknown): string | undefined =>

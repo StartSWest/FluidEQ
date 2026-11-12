@@ -2,6 +2,7 @@
 
 import type { IAccountConfig } from '../../common/accountConfig';
 import {
+  editionCreditsOf,
   editionOrderOf,
   editionPriceOf,
   type TEditionDownload,
@@ -30,7 +31,7 @@ const bodyOf = async (response: Response): Promise<unknown> => {
 };
 
 export type TEditionOwning =
-  | { known: true; owned: boolean; order?: string }
+  | { known: true; owned: boolean; order?: string; credits?: number }
   | { known: false; signedOut: boolean };
 
 /**
@@ -56,7 +57,13 @@ export const editionOwning = async (
     return { known: false, signedOut: false };
   }
   const order = editionOrderOf(body.order);
-  return { known: true, owned: body.signed, ...(order ? { order } : {}) };
+  const credits = editionCreditsOf(body.credits);
+  return {
+    known: true,
+    owned: body.signed,
+    ...(order ? { order } : {}),
+    ...(credits ? { credits } : {}),
+  };
 };
 
 /** The price to show, asked with the public key: anybody may know it. */

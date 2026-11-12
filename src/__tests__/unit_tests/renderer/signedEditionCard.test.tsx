@@ -216,3 +216,24 @@ describe('a purchase paid with another email', () => {
     expect(screen.queryByLabelText('edition.card.code')).toBeNull();
   });
 });
+
+describe('the credits in the offer', () => {
+  it('says the number the server gave, in the reader’s plural', async () => {
+    bridge.signedEditionStatus.mockResolvedValue({ ...NOT_OWNED, credits: 12 });
+    render(<SignedEditionCard />);
+    expect(
+      await screen.findByText(
+        /edition\.card\.offerCredits:store\.credit\.other:12/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('names no number the server did not give', async () => {
+    render(<SignedEditionCard />);
+    expect(
+      await screen.findByText(/edition\.card\.offer /),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/offerCredits/)).toBeNull();
+    expect(screen.queryByText(/\b12\b/)).toBeNull();
+  });
+});

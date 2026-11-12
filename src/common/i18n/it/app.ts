@@ -353,6 +353,8 @@ const app: Partial<Dictionary> = {
     'L’installer firmato non è ancora disponibile. Riprova tra poco.',
   'edition.card.offer':
     'Lo stesso FluidEQ con un installer firmato che si aggiorna da solo, e crediti per le scene inclusi. Un solo pagamento.',
+  'edition.card.offerCredits':
+    'Lo stesso FluidEQ con un installer firmato che si aggiorna da solo, e {credits} per le scene inclusi. Un solo pagamento.',
   'edition.card.payHint':
     'Paga con l’email di questo account e l’acquisto si collega da solo.',
   'edition.card.buy': 'Ottieni l’edizione firmata – {price}',

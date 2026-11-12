@@ -351,6 +351,8 @@ const app: Partial<Dictionary> = {
     '署名版インストーラーはまだ公開されていません。しばらくしてからお試しください。',
   'edition.card.offer':
     '同じ FluidEQ に、自動で更新される署名付きインストーラーと、シーン用のクレジットが付きます。お支払いは一度きりです。',
+  'edition.card.offerCredits':
+    '同じ FluidEQ に、自動で更新される署名付きインストーラーと、シーン用の {credits} が付きます。お支払いは一度きりです。',
   'edition.card.payHint':
     'このアカウントのメールアドレスで支払うと、自動で紐づきます。',
   'edition.card.buy': '署名版を入手 – {price}',

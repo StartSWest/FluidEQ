@@ -6,6 +6,7 @@ import {
   type TEditionLinkFinish,
 } from 'common/signedEdition';
 import type { TranslationKey } from 'common/i18n';
+import { creditsText } from '../plus/credits';
 import { useTranslation } from '../utils/I18nContext';
 import { useSignedEdition } from './useSignedEdition';
 import '../styles/Account.scss';
@@ -54,7 +55,7 @@ const bridge = () => window.electron?.ipcRenderer;
  * to exactly the people who bought it.
  */
 export default function SignedEditionCard() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const ids = useId();
   const [asked, setAsked] = useState(0);
   const status = useSignedEdition(asked);
@@ -141,7 +142,12 @@ export default function SignedEditionCard() {
       </span>
       <div className="edition-card__row">
         <p className="plus-card__line">
-          {t('edition.card.offer')} {t('edition.card.payHint')}
+          {status.credits
+            ? t('edition.card.offerCredits', {
+                credits: creditsText(t, locale, status.credits),
+              })
+            : t('edition.card.offer')}{' '}
+          {t('edition.card.payHint')}
         </p>
         <button
           type="button"
