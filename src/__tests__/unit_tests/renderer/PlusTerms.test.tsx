@@ -15,12 +15,7 @@ import {
   PLUS_MINIMUM_AGE,
   PLUS_TERMS_EDITION,
   PLUS_TERMS_VERSION,
-  SIGNED_EDITION_CREDITS,
-  SIGNED_EDITION_MOVE_MONTHS,
-  SIGNED_EDITION_REFUND_DAYS,
-  SIGNED_EDITION_SELLER,
 } from '../../../common/plusTerms';
-import { AUTHOR_NAME } from '../../../common/branding';
 import { LOCALES, loadLocale, translate } from '../../../common/i18n';
 import { PLUS_MOVE_CREDITS } from '../../../common/sceneStore';
 import { CREATOR_PAYOUTS_OPEN } from '../../../common/creatorPayouts';
@@ -442,60 +437,5 @@ describe('the Plus terms', () => {
       screen.getByRole('heading', { name: 'account.title' }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).toBeNull();
-  });
-});
-
-// Revision 12 also covers the Signed Edition (premium 0104): the terms say
-// it in a section of their own, with every figure from the code that keeps
-// it and the two names that must not be confused.
-describe('the Signed Edition in the terms', () => {
-  const edition = SHOWN.sections.find((section) => section.id === 'edition');
-
-  it('has a section, a row in what is sent and a line in what is kept', () => {
-    expect(edition?.lines).toHaveLength(6);
-    expect(SHOWN.sentRows.map((row) => row.id)).toContain('edition');
-    expect(keysOf(SHOWN)).toContain('terms.keep.p9');
-    expect(keysOf(SHOWN)).toContain('terms.sent.edition.who');
-  });
-
-  it('quotes its figures from the code that keeps them, in every language', () => {
-    const values = termsValues();
-    expect(values).toMatchObject({
-      editionCredits: SIGNED_EDITION_CREDITS,
-      editionRefundDays: SIGNED_EDITION_REFUND_DAYS,
-      editionMoveMonths: SIGNED_EDITION_MOVE_MONTHS,
-    });
-    LOCALES.forEach(({ code }) => {
-      const said = (key: Parameters<typeof translate>[1]) =>
-        translate(code, key, values);
-      // The developer signs it; the business sells it, with Paddle.
-      expect(said('terms.edition.p1')).toContain(AUTHOR_NAME);
-      expect(said('terms.edition.p1')).not.toContain(SIGNED_EDITION_SELLER);
-      expect(said('terms.edition.p2')).toContain(SIGNED_EDITION_SELLER);
-      expect(said('terms.edition.p2')).toContain('Paddle');
-      expect(said('terms.edition.p3')).toContain(
-        String(SIGNED_EDITION_CREDITS),
-      );
-      expect(said('terms.edition.p4')).toContain(
-        String(SIGNED_EDITION_REFUND_DAYS),
-      );
-      expect(said('terms.edition.p6')).toContain(
-        String(SIGNED_EDITION_MOVE_MONTHS),
-      );
-      // No price is written into the terms: it is a launch price.
-      expect(
-        [1, 2, 3, 4, 5, 6]
-          .map((n) =>
-            said(`terms.edition.p${n}` as Parameters<typeof translate>[1]),
-          )
-          .join(' '),
-      ).not.toMatch(/\$\s?\d/);
-    });
-  });
-
-  it('is told in the notice for revision 12, beside the refund on unpublishing', () => {
-    LOCALES.forEach(({ code }) => {
-      expect(translate(code, 'termsNotice.change.12')).toContain('Paddle');
-    });
   });
 });

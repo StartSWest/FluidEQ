@@ -156,14 +156,6 @@
  * moves to 12 in premium migration 0103, which carries the refund itself and
  * is deployed with the release that carries this. Checkout's floor stays at
  * 11: the change only ever gives a buyer their credit back.
- *
- * Amended before its first release (2026-11-11), still revision 12, because
- * both changes ship in 2.5 and one revision covers them: the Signed Edition
- * (premium 0104) - what it is and that the free edition stops updating
- * itself from 2.5, Paddle as its seller, its included credits, the refund,
- * the un-activated copy, linking a purchase by a code and moving it at most
- * once in six months, what the app sends for it and what is kept about a
- * purchase, including after the account is deleted.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
@@ -235,20 +227,6 @@ export const PLUS_TAKEDOWN_PAUSE_DAYS = 30;
  * the credits a partial refund pays for (premium 0065).
  */
 export const CREDIT_REFUND_DAYS = 14;
-
-/**
- * The Signed Edition as the terms page states it (Ivan, 2026-11-11). What
- * decides each is the server (premium 0104: `edition_credits()`, the
- * six-month rule in `finish_edition_link`) and Paddle's own refund window;
- * keep these in step with them, or the page promises what nobody does.
- */
-export const SIGNED_EDITION_CREDITS = 12;
-/** Days after buying in which the edition is refunded on request, no reason asked. */
-export const SIGNED_EDITION_REFUND_DAYS = 14;
-/** A purchase moves between accounts at most once in this many months. */
-export const SIGNED_EDITION_MOVE_MONTHS = 6;
-/** The business the edition is sold through, with Paddle as the merchant of record. */
-export const SIGNED_EDITION_SELLER = 'Ivanco Software';
 
 /**
  * The creator terms as the terms page quotes them. What pays is the server's

@@ -224,17 +224,6 @@ export const createNativeUpdatePrompt = (
         );
         return;
       }
-      // The free edition: a newer version exists and is on the site. Like
-      // 'downloading', the window's own notice says it when it is on screen.
-      if (result === 'on-site') {
-        if (!isWindowOnScreen(getMainWindow()) && version) {
-          raise(
-            'app.notification.onSite.title',
-            translate('app.notification.onSite.body', { version }),
-          );
-        }
-        return;
-      }
       // 'downloading'. The only outcome with an in-window equivalent: the
       // update banner already says a version is on its way, so a toast on top
       // of a visible window would be the same sentence twice. The other two

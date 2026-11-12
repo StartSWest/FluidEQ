@@ -21,8 +21,3 @@ it under the terms of the GNU General Public License version 3 or later.
   left: 18px;
   width: min(420px, calc(100vw - 36px));
 }
-
-// Download is a link out, drawn as the notice's loud button: no underline.
-.compact-frame.update-notice a.button {
-  text-decoration: none;
-}

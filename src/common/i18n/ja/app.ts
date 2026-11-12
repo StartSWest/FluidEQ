@@ -236,9 +236,6 @@ const app: Partial<Dictionary> = {
     'FluidEQ のアップデートが見つかりました',
   'app.notification.updateFound.body':
     'バージョン {version} をダウンロードしています。インストールできるようになったらお知らせします。',
-  'app.notification.onSite.title': 'サイトに新しい FluidEQ があります',
-  'app.notification.onSite.body':
-    'バージョン {version} が fluideq.com にあります。この無料版は自動では更新されません。',
   'app.notification.checkFailed.title': 'アップデートを確認できませんでした',
   'app.notification.checkFailed.body':
     'アップデートサーバーに接続できませんでした。FluidEQ が後でもう一度試します。',
@@ -318,72 +315,6 @@ const app: Partial<Dictionary> = {
     'バージョン {version} の準備ができました。FluidEQ を再起動すると適用されます。',
   'update.restart': '今すぐ再起動',
   'update.restarting': '再起動中…',
-  'edition.free': '無料版 · 新しいバージョンは fluideq.com に',
-  'edition.freeHint': 'このコピーは自動では更新されません。',
-  'edition.signed': '署名版',
-  'edition.signedBy': '署名版 · {publisher}',
-  'edition.updates': '{edition} · 自動で更新されます',
-  'edition.signedInAs': '{email} でサインイン中',
-  'edition.signIn': '更新を受け取り続けるにはサインインしてください',
-  'edition.signInHint':
-    'FluidEQ はそのまま使い続けられます。アカウントが必要なのは更新だけです。',
-  'edition.notActivated': 'このコピーは有効化されていません',
-  'edition.notActivatedHint':
-    'FluidEQ はそのまま使い続けられます。このアカウントには署名版がないため、このコピーは更新を受け取りません。',
-  'edition.notActivatedSignIn':
-    'FluidEQ はそのまま使い続けられます。更新を受け取り続けるには、署名版を持つアカウントでサインインするか、署名版を入手してください。',
-  'edition.changing.title': '更新の仕組みが変わります',
-  'edition.changing.free':
-    '無料版に自動で届くバージョンは、これが最後です。FluidEQ は無料のままです。新しいバージョンはすべて fluideq.com に用意され、ダウンロードしてこのバージョンの上にインストールできます。',
-  'edition.changing.signed':
-    '新しいバージョンがこれからも自動で届くほうがよい場合は、署名版が {price}（一度きり）で対応します。確認済みの発行元 {publisher} が署名しており、FluidEQ アカウントにずっと残ります。',
-  'edition.changing.signedNoPrice':
-    '新しいバージョンがこれからも自動で届くほうがよい場合は、署名版が一度きりの支払いで対応します。確認済みの発行元 {publisher} が署名しており、FluidEQ アカウントにずっと残ります。',
-  'edition.changing.see': '署名版を見る – {price}',
-  'edition.changing.seeNoPrice': '署名版を見る',
-  'edition.changing.gotIt': 'わかりました',
-  'edition.card.yours':
-    'ずっとあなたのものです。署名版のコピーでは、更新が自動で届きます。',
-  'edition.card.download': '署名版インストーラーをダウンロード',
-  'edition.card.downloadFailed':
-    'ダウンロードを開始できませんでした。もう一度お試しください。',
-  'edition.card.noRelease':
-    '署名版インストーラーはまだ公開されていません。しばらくしてからお試しください。',
-  'edition.card.offer':
-    '同じ FluidEQ に、自動で更新される署名付きインストーラーと、シーン用のクレジットが付きます。お支払いは一度きりです。',
-  'edition.card.offerCredits':
-    '同じ FluidEQ に、自動で更新される署名付きインストーラーと、シーン用の {credits} が付きます。お支払いは一度きりです。',
-  'edition.card.payHint':
-    'このアカウントのメールアドレスで支払うと、自動で紐づきます。',
-  'edition.card.buy': '署名版を入手 – {price}',
-  'edition.card.buyNoPrice': '署名版を入手',
-  'edition.card.other': '別のメールアドレスで購入しました',
-  'edition.card.otherHint':
-    '支払いに使ったメールアドレスを入力してください。そこにコードを送ります。ここにコードを入力すると、購入がこのアカウントに移ります。',
-  'edition.card.email': '支払いに使ったメールアドレス',
-  'edition.card.send': 'コードを送信',
-  'edition.card.sent':
-    'そのメールアドレスに購入があれば、6 桁のコードを送信しています。1 時間有効です。',
-  'edition.card.limited':
-    '試行回数が多すぎます。1 時間後にもう一度お試しください。',
-  'edition.card.code': 'コード',
-  'edition.card.link': '購入を紐づける',
-  'edition.card.linked': '紐づけました。署名版はこのアカウントにあります。',
-  'edition.card.wrong':
-    'そのコードでは購入を紐づけられませんでした。メールアドレスとコードを確認してください。',
-  'edition.card.tooSoon':
-    'この購入は 6 か月以内に別のアカウントへ移されたため、まだ移せません。',
-  'edition.card.failed': '今は完了できませんでした。もう一度お試しください。',
-  'edition.card.receipt':
-    '支払い、領収書、返金：Paddle の領収書にあるリンクをご利用ください。',
-  'edition.card.support': 'そのほか：{email}',
-  'edition.card.order': '注文 {order}',
-  'update.onSite.title': 'サイトに新しいバージョンがあります',
-  'update.onSite.body':
-    'FluidEQ {version} が公開されました。この無料版は自動では更新されません。fluideq.com からダウンロードして、このバージョンの上にインストールしてください。設定はそのまま残ります。',
-  'update.onSite.download': 'ダウンロード',
-  'update.onSite.getAuto': '自動更新を利用する – {price}',
-  'update.onSite.getAutoNoPrice': '自動更新を利用する',
   'update.mandatory.title': 'このバージョンは更新が必要です',
   'update.mandatory.body':
     'このリリースは、FluidEQ を現状のまま使い続けるべきではないほど重大な問題を修正しています。更新を取得しています。',

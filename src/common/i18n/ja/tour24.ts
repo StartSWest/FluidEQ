@@ -249,22 +249,6 @@ const tour24 = {
   'tour.v25.review':
     '承認されなかったシーンには、名前の横に審査の理由が表示されます。',
   'tour.v25.publish': '公開に月ごとの上限はありません。',
-  'tour.editions.kicker': 'FLUIDEQ 2.5 · エディション',
-  'tour.editions.title': 'FluidEQ は 2 つのエディションに',
-  'tour.editions.subtitle': '無料版は無料のまま、署名版は自動で更新',
-  'tour.editions.lead':
-    'FluidEQ は無料で、機能もすべてそのままです。2.5 から無料版は自動では更新されなくなり、自動で更新されるのは署名版になります。署名版は同じ FluidEQ を一度の支払いで使えるものです。',
-  'tour.editions.point1':
-    '無料版：新しいバージョンが出ると FluidEQ が一度だけお知らせし、ダウンロードは fluideq.com にあります。今のバージョンに上書きでインストールすれば、設定はそのまま残ります。',
-  'tour.editions.point2':
-    '署名版：Windows で確認済みの発行元 {publisher} が署名し、新しいバージョンは自動でインストールされます。FluidEQ アカウントにずっと残ります。',
-  'tour.editions.point3':
-    '別のメールアドレスで支払いましたか？ アカウントの「別のメールアドレスで購入しました」から、そのアドレスに 6 桁のコードが届き、購入をこのアカウントに移せます。',
-  'tour.editions.how':
-    'このコピーがどちらのエディションかは「このアプリについて」に表示されます。アカウントを開くと署名版を入手でき、お持ちの場合はインストーラーをダウンロードできます。',
-  'tour.editions.open': 'アカウントを開く',
-  'tour.editions.imageAlt':
-    '無料版の行と新しいバージョンのお知らせ、その下に署名版の行とダウンロード。',
 } as const;
 
 export default tour24;

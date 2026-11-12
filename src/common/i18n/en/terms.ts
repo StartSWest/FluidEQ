@@ -246,27 +246,6 @@ const terms = {
   'terms.short.credits.title': 'A scene is yours for good',
   'terms.short.credits.body':
     'One credit each, from packs you pay for once on Stripe. Nothing renews, and FluidEQ never sees your card.',
-  'terms.edition.title': 'The Signed Edition',
-  'terms.edition.p1':
-    'The Signed Edition is the same FluidEQ with an installer signed by its developer, {publisher}, whom Windows shows as the verified publisher, and it updates itself. It is bought once, at the price shown when you buy, and stays on your FluidEQ account for good; nothing renews. The free edition stays complete: from version 2.5 it no longer updates itself, and each new version is on fluideq.com to download.',
-  'terms.edition.p2':
-    'It is sold by Paddle, the merchant of record, for {seller}: Paddle takes the payment, adds any tax and sends the receipt, under its own terms, and FluidEQ never sees your card. A purchase belongs to the account whose confirmed email you paid with, or to the account signed in when the app opened the checkout.',
-  'terms.edition.p3':
-    'It comes with {editionCredits} credits, given once to the account the purchase first lands on.',
-  'terms.edition.p4':
-    'You can ask for a full refund within {editionRefundDays} days of buying, for any reason, through the link in your Paddle receipt. A refund or a chargeback ends the edition for that account and takes its {editionCredits} credits back, spent ones included, so your balance can go below zero; scenes you already got stay yours, and the copy you installed keeps working without updates.',
-  'terms.edition.p5':
-    'A signed copy keeps working whoever is signed in. It gets updates only while an account that owns the edition is signed in, on up to {computers} computers at a time; otherwise it says it is not activated, and nothing else changes.',
-  'terms.edition.p6':
-    'If you paid with another email, you can link the purchase to your account from the Account panel: a code is sent to the email you paid with, and typing it into the app moves the purchase. A purchase is on one account at a time, moves at most once every {editionMoveMonths} months, and its credits stay with the account that first got them. FluidEQ never moves a purchase any other way.',
-  'terms.keep.p9':
-    'Signed Edition: the email you paid with, Paddle’s reference for the order and its date, whether it was refunded or disputed and when, and the account it is linked to. The record of the purchase is kept after the account is deleted, so the purchase can be restored by signing in again with that email. FluidEQ keeps no amount, card, address or country.',
-  'terms.sent.edition.what':
-    'Your sign-in token, to ask whether your account owns the Signed Edition and to fetch its download and updates; when you link a purchase, the email and the code you type; and, from Paddle, the email you paid with and the order’s reference',
-  'terms.sent.edition.when':
-    'When the Account panel or About opens, when a signed copy checks for updates, when you link a purchase, and when Paddle confirms, refunds or disputes a payment. Buy opens fluideq.com with your account id and email, so the checkout is filled in',
-  'terms.sent.edition.who':
-    'The maker, to give the edition and its credits to your account and to take them back after a refund or dispute. Your card goes only to Paddle.',
   'terms.credits.title': 'Credits and your scenes',
   'terms.credits.p1':
     'A credit gets you one scene from Visualizers — one of FluidEQ’s or one a member published — and the scene is then yours for good: on the graph, your desktop and your lights, on every computer you sign in to, with every new version its maker publishes. The one exception is a member’s scene that leaves Visualizers, which gives you your credit back instead. Before you get one, any scene plays on its page for {tasteSeconds} seconds. FluidEQ asks before it spends a credit, and a credit spent cannot be taken back.',

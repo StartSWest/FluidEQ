@@ -60,7 +60,6 @@ import {
   StageSlide,
   StudioAiSlide,
 } from './release24';
-import EditionsSlide from './release25Sound';
 import SongLevelSlide from './release24Sound';
 import { CodeSlide, EditSlide, MakersSlide, WatchSlide } from './release25';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
@@ -88,8 +87,6 @@ export interface ISlideActions {
   openPlayer: () => void;
   /** Close the tour and open the user guide. */
   openGuide: () => void;
-  /** Close the tour and open the Account panel. */
-  openAccount: () => void;
 }
 
 export interface ITourSlide {
@@ -468,18 +465,6 @@ const RELEASE_25: TSlideEntry[] = [
   },
 ];
 
-/**
- * 2.5's news for everybody, at the head of the sound's What's New: the two
- * editions. Not visualizer news, so it is the sound's (coordinator,
- * 2026-11-11), and the slide says nothing of scenes or credits.
- */
-const EDITIONS: TSlideEntry = {
-  id: 'editions',
-  titleKey: 'tour.editions.title',
-  subtitleKey: 'tour.editions.subtitle',
-  Body: EditionsSlide,
-};
-
 const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
   entries.map((entry) => ({ ...entry, release }));
 
@@ -496,11 +481,11 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
-  // The sound's What's New opens on 2.5's two editions, then 2.4's sound,
-  // never shown as a slide before; the Visualizers' opens on 2.5's own and
-  // keeps 2.4 as new under its number.
+  // 2.5 brings the sound no feature of its own (its notes list the fixes),
+  // so the sound's What's New opens on 2.4's sound, never shown as a slide
+  // before; the Visualizers' opens on 2.5's own and keeps 2.4 as new under
+  // its number.
   '2.5': [
-    ...announced('2.5', [EDITIONS]),
     ...announced('2.5', RELEASE_25),
     ...announced('2.4', [SONG_LEVEL]),
     ...announced('2.4', RELEASE_24),

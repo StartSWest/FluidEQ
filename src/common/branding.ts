@@ -91,8 +91,6 @@ export const REPOSITORY_URL = 'https://github.com/StartSWest/FluidEQ';
 export const ISSUES_URL = `${REPOSITORY_URL}/issues`;
 export const LATEST_RELEASE_URL = `${REPOSITORY_URL}/releases/latest`;
 export const OFFICIAL_SITE_URL = 'https://fluideq.com';
-/** Where every edition's installer is: the free edition is sent here for a new version. */
-export const SITE_DOWNLOAD_URL = `${OFFICIAL_SITE_URL}/download`;
 
 /**
  * The brand mark, as geometry rather than as a component.

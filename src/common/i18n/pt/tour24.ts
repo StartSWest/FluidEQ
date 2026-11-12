@@ -249,23 +249,6 @@ const tour24 = {
   'tour.v25.review':
     'Uma cena que não foi aprovada mostra o motivo da revisão ao lado do nome.',
   'tour.v25.publish': 'Sem limite mensal para publicar.',
-  'tour.editions.kicker': 'FLUIDEQ 2.5 · EDIÇÕES',
-  'tour.editions.title': 'FluidEQ em duas edições',
-  'tour.editions.subtitle':
-    'A gratuita continua gratuita; a assinada se atualiza sozinha',
-  'tour.editions.lead':
-    'O FluidEQ continua gratuito e completo. A partir da 2.5 a edição gratuita não se atualiza mais sozinha; quem faz isso é a edição assinada, o mesmo FluidEQ pago uma vez.',
-  'tour.editions.point1':
-    'Edição gratuita: quando sai uma versão nova, o FluidEQ avisa uma vez e o download está em fluideq.com. Instale por cima desta e suas configurações ficam.',
-  'tour.editions.point2':
-    'Edição assinada: assinada por {publisher}, editor verificado no Windows, e as versões novas se instalam sozinhas. Ela fica na sua conta FluidEQ para sempre.',
-  'tour.editions.point3':
-    'Pagou com outro e-mail? “Comprei com outro e-mail”, em Conta, envia um código de seis dígitos para esse endereço e passa a compra para esta conta.',
-  'tour.editions.how':
-    'Sobre diz qual edição é esta cópia. Abra sua conta para obter a edição assinada ou, se ela já for sua, baixar o instalador.',
-  'tour.editions.open': 'Abrir conta',
-  'tour.editions.imageAlt':
-    'A linha da edição gratuita com o aviso de versão nova, sobre a linha da edição assinada e o download dela.',
 } as const;
 
 export default tour24;

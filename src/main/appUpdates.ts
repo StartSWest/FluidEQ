@@ -51,13 +51,6 @@ export interface IAppUpdatesDeps {
   getMainWindow: () => BrowserWindow | null;
   /** Where the "I restarted myself" note lives; see unattendedUpdate.ts. */
   unattendedRestartMarkerPath: string;
-  /**
-   * The signed-in account's token, which the Signed Edition's feed asks for
-   * on every request (premium 0104). Empty while nobody is signed in: the
-   * check then does not start. Read late, because the account is set up
-   * after this is built.
-   */
-  getUpdateToken: () => Promise<string>;
 }
 
 export interface IAppUpdates {
@@ -81,7 +74,6 @@ export interface IAppUpdates {
 const createAppUpdates = ({
   getMainWindow,
   unattendedRestartMarkerPath,
-  getUpdateToken,
 }: IAppUpdatesDeps): IAppUpdates => {
   /**
    * The updater exists only after Windows verifies which release channel this
@@ -199,7 +191,6 @@ const createAppUpdates = ({
       platform: process.platform,
       publisherName: process.env.FLUIDEQ_SIGN_PUBLISHER || '',
       updateUrl: process.env.FLUIDEQ_UPDATE_URL || '',
-      getBearerToken: getUpdateToken,
       logger: log,
       beforeQuit: beginQuit,
       // Only fires for checks started from the tray. The periodic ones stay

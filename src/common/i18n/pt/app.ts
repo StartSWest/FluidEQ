@@ -236,9 +236,6 @@ const app: Partial<Dictionary> = {
   'app.notification.updateFound.title': 'Atualização do FluidEQ encontrada',
   'app.notification.updateFound.body':
     'A versão {version} está sendo baixada. Avisamos quando estiver pronta para instalar.',
-  'app.notification.onSite.title': 'Há um FluidEQ novo no site',
-  'app.notification.onSite.body':
-    'A versão {version} está em fluideq.com. Esta edição gratuita não se atualiza sozinha.',
   'app.notification.checkFailed.title':
     'Não foi possível procurar atualizações',
   'app.notification.checkFailed.body':
@@ -319,72 +316,6 @@ const app: Partial<Dictionary> = {
     'A versão {version} está pronta. Reinicie o FluidEQ para concluir.',
   'update.restart': 'Reiniciar agora',
   'update.restarting': 'Reiniciando…',
-  'edition.free': 'Edição gratuita · versões novas em fluideq.com',
-  'edition.freeHint': 'Esta cópia não se atualiza sozinha.',
-  'edition.signed': 'Edição assinada',
-  'edition.signedBy': 'Edição assinada · {publisher}',
-  'edition.updates': '{edition} · atualiza-se sozinha',
-  'edition.signedInAs': 'Conectado como {email}',
-  'edition.signIn': 'Entre para continuar recebendo atualizações',
-  'edition.signInHint':
-    'O FluidEQ continua funcionando como está. Só as atualizações precisam da sua conta.',
-  'edition.notActivated': 'Esta cópia não está ativada',
-  'edition.notActivatedHint':
-    'O FluidEQ continua funcionando como está. Esta conta não tem a edição assinada, então esta cópia não recebe atualizações.',
-  'edition.notActivatedSignIn':
-    'O FluidEQ continua funcionando como está. Entre com a conta que tem a edição assinada, ou adquira-a, para continuar recebendo atualizações.',
-  'edition.changing.title': 'As atualizações estão mudando',
-  'edition.changing.free':
-    'Esta é a última versão que chega sozinha à edição gratuita. O FluidEQ continua gratuito: cada versão nova estará em fluideq.com, pronta para baixar e instalar por cima desta.',
-  'edition.changing.signed':
-    'Se você prefere que as versões novas continuem chegando sozinhas, a edição assinada faz isso por {price}, uma única vez. Ela é assinada por {publisher}, um editor verificado, e fica na sua conta do FluidEQ para sempre.',
-  'edition.changing.signedNoPrice':
-    'Se você prefere que as versões novas continuem chegando sozinhas, a edição assinada faz isso, com um único pagamento. Ela é assinada por {publisher}, um editor verificado, e fica na sua conta do FluidEQ para sempre.',
-  'edition.changing.see': 'Ver a edição assinada – {price}',
-  'edition.changing.seeNoPrice': 'Ver a edição assinada',
-  'edition.changing.gotIt': 'Entendi',
-  'edition.card.yours':
-    'Sua para sempre. Na cópia assinada, as atualizações chegam sozinhas.',
-  'edition.card.download': 'Baixar o instalador assinado',
-  'edition.card.downloadFailed':
-    'Não foi possível iniciar o download. Tente de novo.',
-  'edition.card.noRelease':
-    'O instalador assinado ainda não está disponível. Tente de novo em breve.',
-  'edition.card.offer':
-    'O mesmo FluidEQ com um instalador assinado que se atualiza sozinho, e créditos para cenas incluídos. Pagamento único.',
-  'edition.card.offerCredits':
-    'O mesmo FluidEQ com um instalador assinado que se atualiza sozinho, e {credits} para cenas incluídos. Pagamento único.',
-  'edition.card.payHint':
-    'Pague com o e-mail desta conta e ela é vinculada sozinha.',
-  'edition.card.buy': 'Obter a edição assinada – {price}',
-  'edition.card.buyNoPrice': 'Obter a edição assinada',
-  'edition.card.other': 'Comprei com outro e-mail',
-  'edition.card.otherHint':
-    'Digite o e-mail com que você pagou. Um código é enviado para ele; digite o código aqui e a compra passa para esta conta.',
-  'edition.card.email': 'E-mail com que você pagou',
-  'edition.card.send': 'Enviar código',
-  'edition.card.sent':
-    'Se esse e-mail tiver uma compra, um código de seis dígitos está a caminho. Ele vale por uma hora.',
-  'edition.card.limited':
-    'Tentativas demais por enquanto. Tente de novo em uma hora.',
-  'edition.card.code': 'Código',
-  'edition.card.link': 'Vincular compra',
-  'edition.card.linked': 'Vinculada. A edição assinada está nesta conta.',
-  'edition.card.wrong':
-    'Esse código não vinculou nenhuma compra. Confira o e-mail e o código.',
-  'edition.card.tooSoon':
-    'Esta compra passou para outra conta há menos de seis meses, então ainda não pode ser movida de novo.',
-  'edition.card.failed': 'Não foi possível fazer isso agora. Tente de novo.',
-  'edition.card.receipt':
-    'Pagamento, recibo ou reembolso: use o link do seu recibo da Paddle.',
-  'edition.card.support': 'Qualquer outra coisa: {email}',
-  'edition.card.order': 'Pedido {order}',
-  'update.onSite.title': 'Há uma versão nova no site',
-  'update.onSite.body':
-    'O FluidEQ {version} saiu. Esta edição gratuita não se atualiza sozinha: baixe em fluideq.com e instale por cima desta. Seus ajustes ficam.',
-  'update.onSite.download': 'Baixar',
-  'update.onSite.getAuto': 'Receber atualizações automáticas – {price}',
-  'update.onSite.getAutoNoPrice': 'Receber atualizações automáticas',
   'update.mandatory.title': 'Esta versão precisa ser atualizada',
   'update.mandatory.body':
     'Esta versão corrige um problema grave o suficiente para que o FluidEQ não deva continuar funcionando como está. A atualização está sendo baixada agora.',

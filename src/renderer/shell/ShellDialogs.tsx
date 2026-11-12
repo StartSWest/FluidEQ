@@ -48,9 +48,6 @@ import SongSoundSaveNotice from '../components/SongSoundSaveNotice';
 import SongSoundHost from '../audio/SongSoundHost';
 import SpeechMemoryNotice from '../components/SpeechMemoryNotice';
 import UpdateNotice from '../components/UpdateNotice';
-import UnactivatedNotice from '../edition/UnactivatedNotice';
-import { launchTurn } from './launchDialogs';
-import UpdatesChangingNotice from '../edition/UpdatesChangingNotice';
 import WhatsNewDialog from '../components/WhatsNewDialog';
 import SceneReportHost from '../plus/SceneReportHost';
 import PrereqMissingModal from '../PrereqMissingModal';
@@ -239,15 +236,6 @@ const ShellDialogs = ({
       {/* Bottom left, opposite the failure notices, so two things arriving
           at once do not land on top of each other. */}
       <UpdateNotice />
-      <UnactivatedNotice />
-      {/* One dialog at a time at launch, in this order: the licence gate,
-          What's New and its tour, then this. It waits on the state that says
-          the others are closed, never on a clock. */}
-      {launchTurn({
-        gate: gateOpen,
-        tour: showFeatureTour,
-        whatsNew: whatsNewScope !== null,
-      }) === 'notices' && <UpdatesChangingNotice />}
       {/* Here rather than in the Karaoke tab that owns the model: the idle
           timer that raises it runs for as long as the model is loaded, and
           asking inside a tab nobody is looking at held the RAM until the

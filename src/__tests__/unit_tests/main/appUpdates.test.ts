@@ -52,7 +52,6 @@ const startUpdates = async () => {
   const updates = createAppUpdates({
     getMainWindow: () => null,
     unattendedRestartMarkerPath: path.join(directory, 'restart.json'),
-    getUpdateToken: async () => 'account-token',
   });
   await updates.setUpAutoUpdates();
   return updates;
@@ -94,12 +93,4 @@ it('still allows a deliberate restart while Share Audio is active', async () => 
   const updates = await startUpdates();
   updates.installActiveUpdate();
   expect(installer.quitAndInstall).toHaveBeenCalledWith(true, true);
-});
-
-// The Signed Edition's feed answers an owning account alone (premium 0104):
-// the updater is handed the way to the account's token, read at each check.
-test('gives the updater the account token to send with every check', async () => {
-  await startUpdates();
-  const options = jest.mocked(setUpReleaseAutoUpdates).mock.calls[0]?.[0];
-  await expect(options?.getBearerToken?.()).resolves.toBe('account-token');
 });

@@ -242,22 +242,6 @@ const tour24 = {
   'tour.v25.review':
     '승인되지 않은 장면은 이름 옆에 검토자의 이유를 보여 줍니다.',
   'tour.v25.publish': '게시에 월간 한도가 없습니다.',
-  'tour.editions.kicker': 'FLUIDEQ 2.5 · 에디션',
-  'tour.editions.title': '두 가지 에디션의 FluidEQ',
-  'tour.editions.subtitle': '무료는 계속 무료, 서명 에디션은 스스로 업데이트',
-  'tour.editions.lead':
-    'FluidEQ는 계속 무료이며 모든 기능을 그대로 제공합니다. 2.5부터 무료 에디션은 더 이상 스스로 업데이트되지 않으며, 스스로 업데이트되는 것은 서명 에디션입니다. 한 번 결제하는 같은 FluidEQ입니다.',
-  'tour.editions.point1':
-    '무료 에디션: 새 버전이 나오면 FluidEQ가 한 번 알려 주고, 다운로드는 fluideq.com에 있습니다. 지금 버전 위에 설치하면 설정은 그대로 유지됩니다.',
-  'tour.editions.point2':
-    '서명 에디션: Windows에서 확인된 게시자 {publisher}의 서명이 있고, 새 버전이 스스로 설치됩니다. FluidEQ 계정에 영구히 남습니다.',
-  'tour.editions.point3':
-    '다른 이메일로 결제했나요? 계정의 “다른 이메일로 구입했습니다”가 그 주소로 6자리 코드를 보내고 구매를 이 계정으로 옮깁니다.',
-  'tour.editions.how':
-    '이 사본이 어떤 에디션인지는 소개 창에 표시됩니다. 계정을 열어 서명 에디션을 받거나, 이미 갖고 있다면 설치 프로그램을 다운로드하세요.',
-  'tour.editions.open': '계정 열기',
-  'tour.editions.imageAlt':
-    '무료 에디션 줄과 새 버전 알림, 그 아래 서명 에디션 줄과 다운로드.',
 } as const;
 
 export default tour24;

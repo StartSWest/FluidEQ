@@ -224,9 +224,6 @@ const app: Partial<Dictionary> = {
   'app.notification.updateFound.title': '发现 FluidEQ 更新',
   'app.notification.updateFound.body':
     '正在下载版本 {version}。准备好安装时会通知你。',
-  'app.notification.onSite.title': '网站上有新的 FluidEQ',
-  'app.notification.onSite.body':
-    '版本 {version} 已在 fluideq.com 提供。这个免费版不会自动更新。',
   'app.notification.checkFailed.title': '无法检查更新',
   'app.notification.checkFailed.body':
     '无法连接更新服务器。FluidEQ 稍后会再试。',
@@ -300,64 +297,6 @@ const app: Partial<Dictionary> = {
   'update.ready': '版本 {version} 已就绪。重启 FluidEQ 即可完成。',
   'update.restart': '立即重启',
   'update.restarting': '正在重启…',
-  'edition.free': '免费版 · 新版本在 fluideq.com',
-  'edition.freeHint': '此副本不会自动更新。',
-  'edition.signed': '签名版',
-  'edition.signedBy': '签名版 · {publisher}',
-  'edition.updates': '{edition} · 自动更新',
-  'edition.signedInAs': '已登录：{email}',
-  'edition.signIn': '登录以继续获取更新',
-  'edition.signInHint': 'FluidEQ 会照常运行。只有更新需要你的账户。',
-  'edition.notActivated': '此副本尚未激活',
-  'edition.notActivatedHint':
-    'FluidEQ 会照常运行。这个账户没有签名版，所以此副本不会收到更新。',
-  'edition.notActivatedSignIn':
-    'FluidEQ 会照常运行。请用拥有签名版的账户登录，或获取签名版，以继续获取更新。',
-  'edition.changing.title': '更新方式有变化',
-  'edition.changing.free':
-    '这是免费版最后一个会自动送达的版本。FluidEQ 仍然免费：每个新版本都会放在 fluideq.com，可以下载并覆盖安装。',
-  'edition.changing.signed':
-    '如果你希望新版本继续自动送达，签名版可以做到，一次性支付 {price}。它由经过验证的发布者 {publisher} 签名，并永久留在你的 FluidEQ 账户中。',
-  'edition.changing.signedNoPrice':
-    '如果你希望新版本继续自动送达，签名版可以做到，只需一次性付款。它由经过验证的发布者 {publisher} 签名，并永久留在你的 FluidEQ 账户中。',
-  'edition.changing.see': '查看签名版 – {price}',
-  'edition.changing.seeNoPrice': '查看签名版',
-  'edition.changing.gotIt': '知道了',
-  'edition.card.yours': '永久归你所有。在签名版副本上，更新会自动送达。',
-  'edition.card.download': '下载签名版安装程序',
-  'edition.card.downloadFailed': '无法开始下载。请重试。',
-  'edition.card.noRelease': '签名版安装程序尚未上线。请稍后再试。',
-  'edition.card.offer':
-    '同样的 FluidEQ，带有会自动更新的签名安装程序，并附送场景点数。一次性付款。',
-  'edition.card.offerCredits':
-    '同样的 FluidEQ，带有会自动更新的签名安装程序，并附送 {credits}用于获取场景。一次性付款。',
-  'edition.card.payHint': '用这个账户的邮箱付款，购买会自动关联。',
-  'edition.card.buy': '获取签名版 – {price}',
-  'edition.card.buyNoPrice': '获取签名版',
-  'edition.card.other': '我是用其他邮箱购买的',
-  'edition.card.otherHint':
-    '输入你付款时使用的邮箱。我们会向它发送一个验证码；在这里输入验证码，购买就会转到这个账户。',
-  'edition.card.email': '付款时使用的邮箱',
-  'edition.card.send': '发送验证码',
-  'edition.card.sent':
-    '如果该邮箱有购买记录，六位验证码已在发送途中。一小时内有效。',
-  'edition.card.limited': '尝试次数过多。请一小时后再试。',
-  'edition.card.code': '验证码',
-  'edition.card.link': '关联购买',
-  'edition.card.linked': '已关联。签名版已在这个账户中。',
-  'edition.card.wrong': '这个验证码没有关联到任何购买。请检查邮箱和验证码。',
-  'edition.card.tooSoon':
-    '这笔购买在不到六个月前转到了另一个账户，暂时不能再次转移。',
-  'edition.card.failed': '暂时无法完成。请重试。',
-  'edition.card.receipt': '付款、收据或退款：请使用 Paddle 收据中的链接。',
-  'edition.card.support': '其他问题：{email}',
-  'edition.card.order': '订单 {order}',
-  'update.onSite.title': '网站上有新版本',
-  'update.onSite.body':
-    'FluidEQ {version} 已发布。这个免费版不会自动更新：请从 fluideq.com 下载并覆盖安装。你的设置会保留。',
-  'update.onSite.download': '下载',
-  'update.onSite.getAuto': '获取自动更新 – {price}',
-  'update.onSite.getAutoNoPrice': '获取自动更新',
   'update.mandatory.title': '此版本必须更新',
   'update.mandatory.body':
     '本次发布修复的问题足够严重，FluidEQ 不应继续以当前状态运行。更新正在获取中。',

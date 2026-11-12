@@ -16,7 +16,6 @@ import {
 } from 'react';
 import type { TTourPart } from 'common/featureTour';
 import { getSupportMethods, SUPPORT_CONFIG } from 'common/support';
-import { requestAccountPanel } from '../../account/accountPanel';
 import { requestHelpGuide } from '../../help/helpGuideRequests';
 import { setWindowMode } from '../../player/windowModeStore';
 import holdFocusReturn from '../../utils/focusReturn';
@@ -173,10 +172,6 @@ export default function FeatureTour({
       openGuide: () => {
         onClose(false);
         requestHelpGuide();
-      },
-      openAccount: () => {
-        onClose(false);
-        requestAccountPanel();
       },
     }),
     [onOpenTab, onClose],

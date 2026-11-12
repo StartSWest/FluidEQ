@@ -29,7 +29,6 @@ import AccountPublished from './AccountPublished';
 import AccountScenes from './AccountScenes';
 import AccountStats from './AccountStats';
 import CreditsCard from './CreditsCard';
-import SignedEditionCard from '../edition/SignedEditionCard';
 import ProfileNameForm from './ProfileNameForm';
 import PlusTermsDocument from './PlusTermsDocument';
 import { useSceneStore } from '../plus/sceneStore';
@@ -457,7 +456,6 @@ export default function AccountDialog({
               {/* What gets scenes: credits. Plus is not sold any more, and
                   nothing about a subscription is shown (Ivan, 2026-10-21). */}
               <CreditsCard />
-              <SignedEditionCard />
               {store && <AccountScenes owned={store.owned} onLeave={onClose} />}
               {accountId && (
                 <AccountPublished

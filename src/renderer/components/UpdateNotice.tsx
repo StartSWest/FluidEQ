@@ -21,7 +21,6 @@ import { APP_UPDATE_EVENT, IAppUpdateStatus } from 'common/constants';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import CompactFrame from './CompactFrame';
-import OnSiteUpdateNotice from './OnSiteUpdateNotice';
 import '../styles/UpdateNotice.scss';
 
 /**
@@ -84,16 +83,6 @@ const UpdateNotice = () => {
   // wording for can never be drawn as "Version undefined is available".
   if (status.phase === 'failed') {
     return null;
-  }
-
-  // The free edition: a new version is on the site, and nothing downloads.
-  if (status.phase === 'on-site') {
-    return (
-      <OnSiteUpdateNotice
-        version={status.version ?? ''}
-        onClose={() => setIsDismissed(true)}
-      />
-    );
   }
 
   const isReady = status.phase === 'ready';

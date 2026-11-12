@@ -8,28 +8,6 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ## 2.5.0
 
-### Two editions
-
-- **FluidEQ stays free and complete.** From 2.5 the free edition no longer
-  updates itself. When a new version is out it says so once, **A new
-  version is on the site**, and the download is on fluideq.com: run it over
-  the copy you have and your settings stay. A check from the tray says the
-  same in a notification.
-- **Updates are changing, said once.** The free copy of 2.5 tells you, one
-  time, that it is the last version to reach the free edition by itself.
-- **The signed edition updates itself.** The same FluidEQ, paid once ($19 at
-  launch) through Paddle, signed by Ivan Carmenates Garcia, so Windows shows
-  a verified publisher. It stays on your FluidEQ account for good: pay with
-  that account's email and it is linked by itself. The account panel offers it, and once it is yours gives you the
-  download of the signed installer and where to go for a receipt, a refund
-  or anything else.
-- **Bought it with another email?** **I bought it with another email** in
-  the account panel sends a six-digit code to that address, and the code
-  moves the purchase to the account you are signed in to.
-- **About says which edition this copy is**, and a signed copy with no
-  owning account signed in says it is not activated. It keeps working fully
-  either way; only its updates need the account.
-
 ### Sound
 
 - **An output that lost its profile gets one back**, and you are told once.
@@ -96,12 +74,6 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   again, a scene waiting for review shows a clock, and a decision shows the
   next time FluidEQ checks.
 - **No monthly limit on publishing.**
-- **Taking down a scene people bought gives them their credit back.**
-  **Unpublish** on one of your scenes now says, before you confirm, how many
-  people bought it and what comes off your balance: each buyer gets their
-  credit back and the scene leaves their looks, and what those buys earned
-  you is given back, never below zero. The Visualizers terms are now
-  revision 12, which also covers the signed edition.
 
 #### Your AI
 

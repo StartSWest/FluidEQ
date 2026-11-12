@@ -17,12 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import type { IScenePack } from '../common/scenePacks';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
-import { registerSignedEditionIpc } from './ipc/signedEdition';
 import { startMainAddons } from './addons';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
@@ -326,20 +325,6 @@ const registerMemberServices = ({
     entitlement: accountIpc.entitlement,
     ownership: sceneOwnership,
   });
-  // The Signed Edition: whether the account owns it, its download, its
-  // checkout and linking a purchase paid with another address. A build is
-  // the signed copy when it was given both of the signed channel's pins
-  // (`signedAutoUpdates.ts`).
-  const signedEditionIpc = registerSignedEditionIpc({
-    access: galleryAccess,
-    config: ACCOUNT_CONFIG,
-    identity: () => accountIpc.session.state().identity,
-    signedCopy: Boolean(
-      process.env.FLUIDEQ_SIGN_PUBLISHER && process.env.FLUIDEQ_UPDATE_URL,
-    ),
-    publisher: process.env.FLUIDEQ_SIGN_PUBLISHER || undefined,
-    openExternal: (url) => shell.openExternal(url),
-  });
   const plusGalleryIpc = registerPlusGalleryIpc({
     access: galleryAccess,
     store: memberScenesIpc.store,
@@ -538,7 +523,6 @@ const registerMemberServices = ({
     // loopback socket outlives the quit, and the next launch cannot bind while
     // the old listener is still holding a port nobody is going to answer on.
     accountIpc.dispose();
-    signedEditionIpc.dispose();
     plusTermsNoticeIpc.dispose();
     sceneStoreIpc.dispose();
     creatorIpc.dispose();
@@ -568,12 +552,6 @@ const registerMemberServices = ({
 
   return {
     accountIpc,
-    /**
-     * The account's token for the signed copy's update feed, or nothing
-     * while nobody is signed in: the check then does not start, and the
-     * copy keeps working without updates.
-     */
-    updateToken: async () => (await galleryAccess.auth())?.accessToken ?? '',
     sceneOwnership,
     // What the lamps ask: the account's own scenes in its looks count, as
     // they play on the graph, approved or not.

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
-import { AUTHOR_NAME, OFFICIAL_SITE_URL } from 'common/branding';
+import { OFFICIAL_SITE_URL } from 'common/branding';
 import { REPORT_EMAIL } from 'common/bugReport';
 import { CREATOR_PAYOUTS_OPEN, formatDollars } from 'common/creatorPayouts';
 import {
@@ -18,10 +18,6 @@ import {
   PLUS_TAKEDOWN_PAUSE_DAYS,
   PLUS_TASTE_SECONDS,
   PLUS_TERMS_EDITION,
-  SIGNED_EDITION_CREDITS,
-  SIGNED_EDITION_MOVE_MONTHS,
-  SIGNED_EDITION_REFUND_DAYS,
-  SIGNED_EDITION_SELLER,
   termsEffectiveDate,
 } from 'common/plusTerms';
 import { PLUS_MOVE_CREDITS, STARTER_CREDITS } from 'common/sceneStore';
@@ -56,12 +52,6 @@ export const termsValues = (
   days: CREATOR_HOLD_DAYS,
   amount: formatDollars(CREATOR_MINIMUM_CENTS, locale),
   every: CREATOR_PAYOUT_EVERY_DAYS,
-  // The Signed Edition: the name on its certificate is the developer's own.
-  publisher: AUTHOR_NAME,
-  seller: SIGNED_EDITION_SELLER,
-  editionCredits: SIGNED_EDITION_CREDITS,
-  editionRefundDays: SIGNED_EDITION_REFUND_DAYS,
-  editionMoveMonths: SIGNED_EDITION_MOVE_MONTHS,
 });
 
 /** The document this build carries: payouts in it only while creators can be paid. */

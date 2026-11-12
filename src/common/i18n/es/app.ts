@@ -235,9 +235,6 @@ const app: Partial<Dictionary> = {
   'app.notification.updateFound.title': 'Actualización de FluidEQ encontrada',
   'app.notification.updateFound.body':
     'Se está descargando la versión {version}. Le avisaremos cuando esté lista para instalar.',
-  'app.notification.onSite.title': 'Hay un FluidEQ nuevo en el sitio',
-  'app.notification.onSite.body':
-    'La versión {version} está en fluideq.com. Esta edición gratuita no se actualiza sola.',
   'app.notification.checkFailed.title': 'No se pudo buscar actualizaciones',
   'app.notification.checkFailed.body':
     'No se pudo contactar con el servidor de actualizaciones. FluidEQ lo intentará de nuevo más tarde.',
@@ -318,72 +315,6 @@ const app: Partial<Dictionary> = {
     'La versión {version} está lista. Reinicia FluidEQ para terminar.',
   'update.restart': 'Reiniciar ahora',
   'update.restarting': 'Reiniciando…',
-  'edition.free': 'Edición gratuita · versiones nuevas en fluideq.com',
-  'edition.freeHint': 'Esta copia no se actualiza sola.',
-  'edition.signed': 'Edición firmada',
-  'edition.signedBy': 'Edición firmada · {publisher}',
-  'edition.updates': '{edition} · se actualiza sola',
-  'edition.signedInAs': 'Sesión iniciada como {email}',
-  'edition.signIn': 'Inicia sesión para seguir recibiendo actualizaciones',
-  'edition.signInHint':
-    'FluidEQ sigue funcionando igual. Solo las actualizaciones necesitan tu cuenta.',
-  'edition.notActivated': 'Esta copia no está activada',
-  'edition.notActivatedHint':
-    'FluidEQ sigue funcionando igual. Esta cuenta no tiene la edición firmada, así que esta copia no recibe actualizaciones.',
-  'edition.notActivatedSignIn':
-    'FluidEQ sigue funcionando igual. Inicia sesión con la cuenta que tiene la edición firmada, o consíguela, para seguir recibiendo actualizaciones.',
-  'edition.changing.title': 'Las actualizaciones cambian',
-  'edition.changing.free':
-    'Esta es la última versión que llega sola a la edición gratuita. FluidEQ sigue siendo gratis: cada versión nueva estará en fluideq.com, lista para descargar e instalar sobre esta.',
-  'edition.changing.signed':
-    'Si prefieres que las versiones nuevas sigan llegando solas, la edición firmada lo hace por {price}, una sola vez. Está firmada por {publisher}, un editor verificado, y se queda en tu cuenta de FluidEQ para siempre.',
-  'edition.changing.signedNoPrice':
-    'Si prefieres que las versiones nuevas sigan llegando solas, la edición firmada lo hace, con un solo pago. Está firmada por {publisher}, un editor verificado, y se queda en tu cuenta de FluidEQ para siempre.',
-  'edition.changing.see': 'Ver la edición firmada – {price}',
-  'edition.changing.seeNoPrice': 'Ver la edición firmada',
-  'edition.changing.gotIt': 'Entendido',
-  'edition.card.yours':
-    'Tuya para siempre. En la copia firmada, las actualizaciones llegan solas.',
-  'edition.card.download': 'Descargar el instalador firmado',
-  'edition.card.downloadFailed':
-    'No se pudo iniciar la descarga. Vuelve a intentarlo.',
-  'edition.card.noRelease':
-    'El instalador firmado aún no está disponible. Vuelve a intentarlo pronto.',
-  'edition.card.offer':
-    'El mismo FluidEQ con un instalador firmado que se actualiza solo, y créditos para escenas incluidos. Un solo pago.',
-  'edition.card.offerCredits':
-    'El mismo FluidEQ con un instalador firmado que se actualiza solo, y {credits} para escenas incluidos. Un solo pago.',
-  'edition.card.payHint':
-    'Paga con el correo de esta cuenta y se vincula sola.',
-  'edition.card.buy': 'Conseguir la edición firmada – {price}',
-  'edition.card.buyNoPrice': 'Conseguir la edición firmada',
-  'edition.card.other': 'La compré con otro correo',
-  'edition.card.otherHint':
-    'Escribe el correo con el que pagaste. Se le envía un código; escríbelo aquí y la compra pasa a esta cuenta.',
-  'edition.card.email': 'Correo con el que pagaste',
-  'edition.card.send': 'Enviar código',
-  'edition.card.sent':
-    'Si ese correo tiene una compra, va en camino un código de seis dígitos. Sirve durante una hora.',
-  'edition.card.limited':
-    'Demasiados intentos por ahora. Vuelve a intentarlo en una hora.',
-  'edition.card.code': 'Código',
-  'edition.card.link': 'Vincular compra',
-  'edition.card.linked': 'Vinculada. La edición firmada está en esta cuenta.',
-  'edition.card.wrong':
-    'Ese código no vinculó ninguna compra. Revisa el correo y el código.',
-  'edition.card.tooSoon':
-    'Esta compra pasó a otra cuenta hace menos de seis meses, así que todavía no puede moverse de nuevo.',
-  'edition.card.failed': 'No se pudo hacer ahora. Vuelve a intentarlo.',
-  'edition.card.receipt':
-    'Pago, recibo o reembolso: usa el enlace de tu recibo de Paddle.',
-  'edition.card.support': 'Cualquier otra cosa: {email}',
-  'edition.card.order': 'Pedido {order}',
-  'update.onSite.title': 'Hay una versión nueva en el sitio',
-  'update.onSite.body':
-    'Ya salió FluidEQ {version}. Esta edición gratuita no se actualiza sola: descárgala de fluideq.com e instálala sobre esta. Tus ajustes se conservan.',
-  'update.onSite.download': 'Descargar',
-  'update.onSite.getAuto': 'Recibir actualizaciones automáticas – {price}',
-  'update.onSite.getAutoNoPrice': 'Recibir actualizaciones automáticas',
   'update.mandatory.title': 'Esta versión debe actualizarse',
   'update.mandatory.body':
     'Esta versión corrige un problema lo bastante grave como para que FluidEQ no deba seguir funcionando tal cual. La actualización se está descargando ahora.',
