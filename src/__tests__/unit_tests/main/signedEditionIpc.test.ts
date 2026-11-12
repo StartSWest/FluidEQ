@@ -267,17 +267,17 @@ describe('the checkout', () => {
     setup();
     await invoke('signed-edition-buy');
     const url = new URL(opened[0] ?? '');
-    expect(url.origin + url.pathname).toBe('https://fluideq.com/pricing');
+    expect(url.origin + url.pathname).toBe('https://fluideq.com/download');
     expect(url.search).toBe('');
     expect(url.hash).toBe(`#signed?account=${ME}&email=me%40example.com`);
   });
 
   it('opens the plain page for nobody signed in, and leaves out an address that is not one', () => {
     expect(signedEditionCheckoutUrl()).toBe(
-      'https://fluideq.com/pricing#signed',
+      'https://fluideq.com/download#signed',
     );
     expect(signedEditionCheckoutUrl({ id: ME, email: 'not an address' })).toBe(
-      `https://fluideq.com/pricing#signed?account=${ME}`,
+      `https://fluideq.com/download#signed?account=${ME}`,
     );
   });
 });

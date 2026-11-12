@@ -29,7 +29,7 @@ import {
  */
 
 /** Where the edition is sold. The site reads the fragment and clears it. */
-export const SIGNED_EDITION_PAGE = 'https://fluideq.com/pricing';
+export const SIGNED_EDITION_PAGE = 'https://fluideq.com/download';
 
 const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,255}$/;
 const CODE = /^[0-9]{6}$/;
