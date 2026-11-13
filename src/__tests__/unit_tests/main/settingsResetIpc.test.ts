@@ -289,6 +289,9 @@ const KEPT_FILES = [
   'bug-report-mark.json',
   'unattended-update.json',
   'computer-id.json',
+  // The day the engine was last counted (`engineCount.ts`): reset away, the
+  // same computer would be counted twice that day, and the totals are daily.
+  'engine-count.json',
   'listening-ledger.json',
   'usage-ledger.json',
   'scene-plays.json',
