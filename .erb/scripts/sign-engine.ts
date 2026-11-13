@@ -9,12 +9,19 @@
  * electron-builder signs while it packages, long after the helper was built.
  * Signed then, the engine would be refused by its own helper.
  *
- * So the native build signs it right after linking it, and builds again: the
- * digest step reads the signed file and the helper is recompiled with that
- * file's digest (`build-native-dsp.ts`, when `pnpm package:signed` sets
- * SIGN_ENGINE_VARIABLE). The engine itself is not linked again, since none of
- * its inputs changed; a file already signed by this publisher is kept as it
- * is, so a tree that has not changed reuses its signed engine.
+ * So `pnpm package:signed` builds the native tree, signs the engine where the
+ * build left it (`signEngineBeforePackaging`), and only then runs the
+ * packaging, whose own native build re-takes the digests: the digest step
+ * reads the signed file and the helper is recompiled with that file's
+ * digest. Measured on a Ninja tree, that second build runs the digest step,
+ * the helper and the digest test, and never relinks the engine, since none
+ * of its inputs changed. A file already signed by this publisher is kept as
+ * it is, so a tree that has not changed reuses its signed engine.
+ *
+ * Not inside `build-native-dsp.ts`: that script is one of the files the DSP
+ * evidence fingerprints (`musicProcessingSources`), because it decides how
+ * the sound is built. Signing changes no sound, and a fingerprint that moved
+ * for it would ask for the whole catalogue to be measured again.
  *
  * Only our own DLL. The C++ runtime and ONNX Runtime beside it are signed by
  * Microsoft, and putting another name on somebody else's file is not ours to
@@ -33,8 +40,8 @@
 import { createHash } from 'crypto';
 import { spawnSync } from 'child_process';
 
-/** Set by `pnpm package:signed` for the build it starts, and only there. */
-export const SIGN_ENGINE_VARIABLE = 'FLUIDEQ_SIGN_ENGINE';
+/** Where the native build leaves the engine, from the repository root. */
+export const ENGINE_BUILD_DLL = 'native/.build/bin/FluidEQ-Engine.dll';
 
 export interface IEngineSigning {
   endpoint: string;
@@ -152,6 +159,25 @@ export const signEngineDll = (
     );
   }
   return 'signed';
+};
+
+/**
+ * The first half of a signed release: build the native tree, then sign the
+ * engine it linked. Throws, and signs nothing, when the build fails — an
+ * engine left from an older build would otherwise be signed and shipped.
+ * The packaging that follows builds again, and that build is what gives the
+ * helper the signed engine's digest; the release gate checks it did.
+ */
+export const signEngineBeforePackaging = (
+  buildNative: () => boolean,
+  sign: (dll: string) => 'kept' | 'signed',
+): 'kept' | 'signed' => {
+  if (!buildNative()) {
+    throw new Error(
+      'The native build failed, so there is no engine of this tree to sign.',
+    );
+  }
+  return sign(ENGINE_BUILD_DLL);
 };
 
 export const sha256Hex = (bytes: Buffer) =>

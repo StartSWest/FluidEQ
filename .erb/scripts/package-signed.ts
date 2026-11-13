@@ -59,7 +59,7 @@
  * broken updater rather than a typo.
  */
 
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
@@ -74,7 +74,8 @@ import {
   IPackagedEngine,
   packagedEngineProblems,
   readAuthenticode,
-  SIGN_ENGINE_VARIABLE,
+  signEngineBeforePackaging,
+  signEngineDll,
 } from './sign-engine';
 import { signReleaseFeed } from './sign-update-feed';
 import {
@@ -456,15 +457,31 @@ if (require.main === module) {
       process.exit(1);
       return;
     }
+    // The engine is signed before the packaging's own native build, which
+    // then gives the helper the signed file's digest (sign-engine.ts).
+    try {
+      const how = signEngineBeforePackaging(
+        () =>
+          spawnSync(pnpm.command, [...pnpm.prefix, 'build:native-dsp'], {
+            stdio: 'inherit',
+          }).status === 0,
+        (dll) => signEngineDll(path.resolve(dll), release.signing),
+      );
+      console.log(
+        how === 'kept'
+          ? `The engine is already signed by "${release.signing.publisherName}"; kept as it is.`
+          : `Signed the engine as "${release.signing.publisherName}".`,
+      );
+    } catch (error) {
+      console.error((error as Error).message);
+      process.exit(1);
+      return;
+    }
+
     const child = spawn(
       pnpm.command,
       [...pnpm.prefix, 'package', ...toBuilderArgs(release), ...mandatoryArgs],
-      // The native build signs the engine before the helper takes its
-      // digest (sign-engine.ts); only this build, never `pnpm package`.
-      {
-        stdio: 'inherit',
-        env: { ...process.env, [SIGN_ENGINE_VARIABLE]: '1' },
-      },
+      { stdio: 'inherit' },
     );
     child.on('exit', (code) => {
       if (code !== 0) {

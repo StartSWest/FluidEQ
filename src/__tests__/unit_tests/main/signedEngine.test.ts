@@ -17,14 +17,52 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   commonNameOf,
+  ENGINE_BUILD_DLL,
   IPackagedEngine,
   isSignedBy,
   packagedEngineProblems,
   sha256Hex,
+  signEngineBeforePackaging,
   TIMESTAMP_URL,
   trustedSigningCommand,
 } from '../../../../.erb/scripts/sign-engine';
+import { musicProcessingSources } from '../../../../.erb/scripts/music-dsp-evidence';
 import manifest from '../../../../package.json';
+
+describe('when the engine is signed', () => {
+  it('signs the engine the native build just linked, after that build', () => {
+    const steps: string[] = [];
+    const how = signEngineBeforePackaging(
+      () => {
+        steps.push('build');
+        return true;
+      },
+      (dll) => {
+        steps.push(`sign ${dll}`);
+        return 'signed';
+      },
+    );
+    expect(how).toBe('signed');
+    expect(steps).toEqual(['build', `sign ${ENGINE_BUILD_DLL}`]);
+  });
+
+  it('signs nothing when the native build failed', () => {
+    const sign = jest.fn(() => 'signed' as const);
+    expect(() => signEngineBeforePackaging(() => false, sign)).toThrow(
+      /native build failed/,
+    );
+    expect(sign).not.toHaveBeenCalled();
+  });
+
+  // Signing changes no sound: it must not move the fingerprint the DSP
+  // evidence pins (2.5.1's suite failed three audits when it did).
+  it('happens in no file the DSP evidence fingerprints', () => {
+    const { files } = musicProcessingSources(process.cwd());
+    expect(files).toContain('.erb/scripts/build-native-dsp.ts');
+    expect(files).not.toContain('.erb/scripts/sign-engine.ts');
+    expect(files).not.toContain('.erb/scripts/package-signed.ts');
+  });
+});
 
 const PUBLISHER = 'Ivan Carmenates Garcia';
 const SIGNING = {
