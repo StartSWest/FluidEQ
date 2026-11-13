@@ -23,7 +23,7 @@ const tour = {
   'tour.player.title': '整個應用程式集中在一列中',
   'tour.player.subtitle': '一名播放器，每個視窗顏色都相同',
   'tour.player.lead':
-    '標題列中的一個開關將 FluidEQ 折疊成一欄：頂部的視覺化工具，上面有歌曲、控制、聲音以及接下來播放的內容。在 {backdrop} 上，每個視窗顏色都是相同的播放器，並且您選擇的場景在所有播放器後面播放。',
+    '標題列中的一個開關將 FluidEQ 折疊成一欄：頂部的場景，上面有歌曲、控制、聲音以及接下來播放的內容。在 {backdrop} 上，每個視窗顏色都是相同的播放器，並且您選擇的場景在所有播放器後面播放。',
   'tour.player.point1':
     '{sound} 擁有低音、中音和高音旋鈕或 EQ 自己的頻段，旁邊還有預設、Smart EQ 和 EQ 模式。',
   'tour.player.point2':
@@ -34,12 +34,12 @@ const tour = {
     '按標題列中「幫助」旁的「緊湊型播放器」開關。在播放器上，相同的開關可以恢復完整的應用程式。',
   'tour.player.open': '嘗試緊湊型播放器',
   'tour.player.imageAlt':
-    '標題欄的一角，{player} 開關響起，緊湊型播放器兩次：在 {backdrop} 上的場景上，其 EQ 頻段開啟，歌曲後面的標準視覺化器和音調旋鈕開啟。',
+    '標題欄的一角，{player} 開關響起，緊湊型播放器兩次：在 {backdrop} 上的場景上，其 EQ 頻段開啟，歌曲後面的標準樣式和音調旋鈕開啟。',
   'tour.player.scene': '有一個場景，在{backdrop}上',
-  'tour.player.standard': '配備標準視覺化儀',
+  'tour.player.standard': '使用標準樣式',
   'tour.look.kicker': '新面貌',
   'tour.look.title': '新視窗，新色',
-  'tour.look.subtitle': '一個主題滑塊，以及背後的視覺化工具',
+  'tour.look.subtitle': '一個主題滑塊，以及背後的場景',
   'tour.look.lead':
     '這些窗格以新圖示的顏色矗立在一個開放的地板上，一個滑桿 {brightness} 將整個視窗從近乎黑色變為淺海藍色。透過圖表上的場景，視窗可以取得其顏色，或讓它在所有內容後面播放。',
   'tour.look.point1':
@@ -47,14 +47,14 @@ const tour = {
   'tour.look.point2':
     '{windowColours} 提供 {original}、{colours}、{ambient} 和 {backdrop}，每個都有一行說明其對視窗的作用。',
   'tour.look.point3':
-    '對話方塊和選單共享一種材質，{rainbow} 貫穿圖示的顏色或視覺化工具自己的顏色。',
+    '對話方塊和選單共享一種材質，{rainbow} 貫穿圖示的顏色或場景自己的顏色。',
   'tour.look.how':
     '將選單中的 {brightness} 移至右上角脈衝圖示後面。對於圖形上的場景，從圖形欄中開啟 {windowColours} 並選擇 {backdrop}。',
   'tour.look.open': '開啟等化器',
   'tour.look.imageAlt':
     'FluidEQ 在 EQ 頁面上有自己的顏色，分析器在曲線下繪製一首歌曲，脈衝圖示後面的選單在其一角開啟，亮度為一半，彩色模式開啟。',
-  'tour.gpu.kicker': '新的視覺化引擎',
-  'tour.gpu.title': '顯示卡上的每個視覺化工具',
+  'tour.gpu.kicker': '新的場景引擎',
+  'tour.gpu.title': '顯示卡上的每個場景',
   'tour.gpu.subtitle': '四十看看你的螢幕本身的速度和 3D 世界',
   'tour.gpu.lead':
     '這張圖表的四十種外觀現在在場景執行的引擎上繪製：在圖形卡上，以螢幕自己的重新整理率，因此條形、粒子和峰值會在它們以前移動的地方滑動。現在場景可以是真正的 3D 世界。',
@@ -70,21 +70,21 @@ const tour = {
     '夜晚的 3D 城市場景，以及圖表上拍攝的四個新外觀 - {synthwave}、{horizon}、{towers} 和 {ledwall} - 外觀選擇器在第一個上響起。',
   'tour.gpu.world': '3D世界',
   'tour.sparks.kicker': '指標火花',
-  'tour.sparks.title': '響應滑鼠的視覺化工具',
+  'tour.sparks.title': '響應滑鼠的場景',
   'tour.sparks.subtitle': '指標產生火花、花瓣或雪',
   'tour.sparks.lead':
     '將滑鼠移過場景，它會在指標後面的軌跡中丟擲它的組成部分（火花、花瓣、雪、餘燼），並在您單擊的任何地方爆發。在 {ambient} 和 {backdrop} 中，鳥兒、花瓣和燈光也在整個視窗上飄蕩。',
   'tour.sparks.point1':
-    '每個視覺化者都會拋出自己的東西：冬天場景中的雪、篝火中的餘燼、花園中的花瓣。',
+    '每個場景都會拋出自己的東西：冬天場景中的雪、篝火中的餘燼、花園中的花瓣。',
   'tour.sparks.point2':
     '工作室的舞臺總是展示它們，因此場景製作者可以塑造它所拋出的內容。',
   'tour.sparks.point3':
-    '每個視覺化儀都有一個開關：{sparks}，位於 {windowColours} 下的 {rainbow} 中。',
+    '每個場景都有一個開關：{sparks}，位於 {windowColours} 下的 {rainbow} 中。',
   'tour.sparks.how':
     '對於圖表上的場景，將滑鼠移到其上並單擊。 {sparks} 位於 {windowColours} 中的 {rainbow} 下。',
   'tour.sparks.open': '開啟等化器',
   'tour.sparks.imageAlt':
-    '極光視覺化儀的指標後面有一串發光的火花，點選時會發出一聲爆裂聲，{windowColours} 的 {sparks} 開關會響起。',
+    '極光場景的指標後面有一串發光的火花，點選時會發出一聲爆裂聲，{windowColours} 的 {sparks} 開關會響起。',
   'tour.sound.kicker': 'Fluideq 引擎',
   'tour.sound.title': '聽起來跟你畫的一模一樣',
   'tour.sound.subtitle': '高音如畫般，靜音開關，一步到位',
@@ -166,7 +166,7 @@ const tour = {
   'tour.tone.imageAlt':
     '等化器的低音、中音和高音三度曲線、移動它們的三個旋鈕以及從六到三十一個頻段的快速佈局。',
   'tour.studio.kicker': 'FLUIDEQ PLUS',
-  'tour.studio.title': '製作自己的視覺化工具',
+  'tour.studio.title': '製作自己的場景',
   'tour.studio.subtitle': '每個帳戶免費',
   'tour.studio.lead':
     '工作室將想法轉化為隨音樂而動的場景。每個帳戶都是免費的：製作、匯出和發布任意數量的場景。',
@@ -176,8 +176,8 @@ const tour = {
     '場景可以是真實的 3D 世界，可以踩著踢腿並在下降時跳躍。',
   'tour.studio.point3':
     '複製 AI 提示，您的 AI 助理可以看到您的場景並聽到歌曲的動態。',
-  'tour.studio.how': '開啟 Visualizers 並在其軌道中選擇 Studio。',
-  'tour.studio.open': '開啟展示臺',
+  'tour.studio.how': '開啟「場景」並在其軌道中選擇 Studio。',
+  'tour.studio.open': '開啟場景',
   'tour.studio.imageAlt':
     '工作室在舞臺上扮演阿爾卑斯山、雪峰下的湖泊和極光，用三個步驟製作一個帶有人工智慧的場景，還有兩個注意事項：每個帳戶免費，發布的場景對其製作者免費播放。',
   'tour.studio.earned': '已發布：免費為您播放',
@@ -235,27 +235,26 @@ const tour = {
   'tour.room.open': '開啟房間',
   'tour.room.imageAlt':
     '從上方看到的房間：七個喇叭和一個重低音喇叭站在中間的一個頭部周圍，每個喇叭都有通往耳朵的路徑。',
-  'tour.plus.kicker': '視覺化工具',
+  'tour.plus.kicker': '場景',
   'tour.plus.title': '永遠屬於你的場景',
-  'tour.plus.subtitle': '展示臺、工作室、燈光等',
+  'tour.plus.subtitle': '場景、工作室、燈光等',
   'tour.plus.lead':
     '讓 FluidEQ 不斷發展的一整套附加功能：在顯示卡上繪製的場景、自己製作的工作室、桌面背景和動態照明。一個場景需要花費一個點數，並且仍然屬於您，並且等化器、架子和球員保持免費，一如既往。',
-  'tour.plus.point1':
-    '在「視覺化效果」標籤登入：確認的帳戶可免費獲得起步點數。',
+  'tour.plus.point1': '在「場景」標籤登入：確認的帳戶可免費獲得起步點數。',
   'tour.plus.point2':
     '點數包只需支付一次，付款前會以簡單明瞭的方式提供條款。沒有任何更新，應用程式永遠不會看到您的卡。',
   'tour.plus.point3':
     '每個場景都可以首先觀看，並且您登入的每臺電腦上都可以播放這些場景。',
-  'tour.plus.how': '開啟「視覺化工具」標籤：畫廊、工作室和動態照明位於其左側。',
-  'tour.plus.open': '開啟展示臺',
+  'tour.plus.how': '開啟「場景」標籤：畫廊、工作室和動態照明位於其左側。',
+  'tour.plus.open': '開啟場景',
   'tour.plus.imageAlt':
-    '「視覺化工具」標籤：側面的相簿、工作室和動態照明，以及帶有 Chrome、Bloom、Aurora、Alpine 和 Neon City 的相簿。',
+    '「場景」標籤：側面的相簿、工作室和動態照明，以及帶有 Chrome、Bloom、Aurora、Alpine 和 Neon City 的相簿。',
   'tour.scene.alpine': '阿爾卑斯山',
   'tour.scene.aurora': '極光',
   'tour.scene.bloom': '布魯姆',
   'tour.scene.chrome': '鍍鉻',
   'tour.scene.neonCity': '霓虹城',
-  'tour.visualizers.kicker': '視覺化工具',
+  'tour.visualizers.kicker': '場景',
   'tour.visualizers.title': '隨音樂移動的場景',
   'tour.visualizers.subtitle': '畫在你的顯示卡上',
   'tour.visualizers.lead':
@@ -267,17 +266,16 @@ const tour = {
   'tour.visualizers.point3':
     '自動切換外觀、全螢幕顯示並在檢視中設定場景的啟動和釋放。',
   'tour.visualizers.how':
-    '按一下圖表上的外觀名稱，然後在「展示臺」下方選擇外觀，或在「展示臺」→「相簿」中瀏覽所有外觀。',
+    '按一下圖表上的外觀名稱，然後在「場景」下方選擇外觀，或在「場景」→「相簿」中瀏覽所有外觀。',
   'tour.visualizers.open': '開啟等化器',
   'tour.visualizers.imageAlt':
     'Alpine，夜間湖邊山脈的場景，在 EQ 曲線下的圖表上播放，下面還有四個場景。',
-  'tour.desktop.kicker': '桌面視覺化工具',
+  'tour.desktop.kicker': '桌面背景',
   'tour.desktop.title': '桌面背後的音樂',
   'tour.desktop.subtitle': '每個監視器上都有一個場景',
   'tour.desktop.lead':
     '將場景放在桌面圖示後面。它會隨著您正在聆聽的內容而移動，或安靜地自行移動，並且每個監視器都可以顯示自己的場景。',
-  'tour.desktop.point1':
-    '在辦公桌地圖上選擇顯示器，每個顯示器都有自己的視覺化工具。',
+  'tour.desktop.point1': '在辦公桌地圖上選擇顯示器，每個顯示器都有自己的場景。',
   'tour.desktop.point2': '當視窗覆蓋顯示器、電腦鎖定且使用電池時，它會暫停。',
   'tour.desktop.point3': '下次 FluidEQ 啟動時它會自行回傳。',
   'tour.desktop.how':
@@ -287,17 +285,16 @@ const tour = {
     '三臺顯示器，每臺顯示器的桌面圖示和工作列後面都顯示一個場景－極光、高山和霓虹城。',
   'tour.lighting.kicker': '動態燈光',
   'tour.lighting.title': '你的辦公桌隨著場景亮起',
-  'tour.lighting.subtitle': 'Beta · 您的 RGB 裝置跟隨視覺化工具',
+  'tour.lighting.subtitle': 'Beta · 您的 RGB 裝置跟隨場景',
   'tour.lighting.lead':
     '您的鍵盤、滑鼠、滑鼠墊、耳機和支架透過 Windows 動態照明和 Razer Chroma 呈現圖表上場景的色彩和節奏。',
   'tour.lighting.point1':
-    '每個視覺化工具有四種樣式：場景、彩色波浪、頻譜和節拍波紋。',
+    '每個場景有四種樣式：場景、彩色波浪、頻譜和節拍波紋。',
   'tour.lighting.point2': '單獨調整每個裝置，並選擇音樂停止時發生的情況。',
   'tour.lighting.point3':
     '即時預覽會在燈光亮起時繪製您自己的辦公桌。它處於測試階段：請告訴我們您的裝置的行為。',
-  'tour.lighting.how':
-    '開啟 Visualizers → 動態照明並將其開啟，然後將場景放在圖表上。',
-  'tour.lighting.open': '開啟展示臺',
+  'tour.lighting.how': '開啟場景 → 動態照明並將其開啟，然後將場景放在圖表上。',
+  'tour.lighting.open': '開啟場景',
   'tour.lighting.imageAlt':
     '鍵盤、滑鼠和滑鼠墊被霓虹城的粉紅色、紫色和青色點亮。',
   'tour.share.kicker': '每臺電腦，雙向',
@@ -515,7 +512,7 @@ const tour = {
   'tour.walkthrough.title': '一部影片看完 FluidEQ',
   'tour.walkthrough.subtitle': '從頭到尾看一遍',
   'tour.walkthrough.lead':
-    '從你拖曳的第一個頻段到視覺化工具，帶你看完 FluidEQ 的全部功能，並有語音講解每個部分怎麼用。',
+    '從你拖曳的第一個頻段到場景，帶你看完 FluidEQ 的全部功能，並有語音講解每個部分怎麼用。',
   'tour.film.walkthrough.intro': '一部影片看完 FluidEQ',
   'tour.film.engine.intro':
     'FluidEQ 擁有自己的音訊引擎，讓電腦播放的所有聲音都能使用 EQ 與 DSP 效果器機架。',
@@ -562,7 +559,7 @@ const tour = {
     '它按照您自己的計劃在安裝在這臺電腦上的 Claude Code 上執行，並顯示您還剩下多少限制。',
   'tour.chat.how':
     '開啟 {plus}，在其軌道中選擇 {studio}，選擇一個場景或啟動一個場景，然後在舞臺旁的方塊中鍵入。',
-  'tour.chat.open': '開啟展示臺',
+  'tour.chat.open': '開啟場景',
   'tour.chat.imageAlt':
     '工作室聊天旁邊的舞臺：請求讓舞檯燈光在軍鼓上閃爍，回覆的步驟滴答作響，版本 2 與「Bring back」保持一致，隨著版本 2 的播放，舞檯燈光開始閃爍。',
   'tour.chat.ask': '讓舞台燈光隨小鼓閃爍。',
@@ -598,7 +595,7 @@ const tour = {
   'tour.songs.open': '開啟等化器',
   'tour.songs.imageAlt':
     '依序播放四首歌曲的佇列，其中三首帶有預設和曲線，每首都留下了一首從未調整過的歌曲，在其上方會彈出一首記住的歌曲的通知，並帶有“撤消”和“忘記這首歌曲”。',
-  'tour.looks.kicker': '您自己的視覺化工具',
+  'tour.looks.kicker': '您自己的場景',
   'tour.looks.title': '自訂圖表外觀',
   'tour.looks.subtitle': '你的形式、你的顏色、你的動作',
   'tour.looks.lead':
@@ -664,9 +661,9 @@ const tour = {
   'tour.media.open': '開放線上媒體',
   'tour.studio.free': '每個帳戶免費',
   'tour.film.englishAudio': '英語語音 · 翻譯字幕',
-  'tour.karaokeBackground.title': '以視覺化效果襯托歌詞',
+  'tour.karaokeBackground.title': '以場景襯托歌詞',
   'tour.karaokeBackground.subtitle': '將選擇的樣式呈現在卡拉 OK 舞臺',
-  'tour.karaokeBackground.lead': '選擇視覺化效果或場景，作為卡拉 OK 的背景。',
+  'tour.karaokeBackground.lead': '選擇場景或標準樣式，作為卡拉 OK 的背景。',
   'tour.karaokeBackground.how':
     '在 EQ 的 {looks} 中選擇樣式，再到卡拉 OK 按下 {showGraph}。',
   'tour.karaokeBackground.open': '開啟卡拉 OK',
@@ -712,7 +709,7 @@ const tour = {
   'tour.v23.forum':
     '論壇各看板顯示未讀動態數量，「問題」計算仍未關閉的問題，未寫完的主題與回覆也會儲存。',
   'tour.v23.layout':
-    '視覺化效果現在位於頂列最前，線上媒體位於最後。精簡播放器的遊戲名稱保持簡短，音量讀數穩定，新增遊戲的按鈕一直可見，捲軸緊貼頁面邊緣。',
+    '場景現在位於頂列最前，線上媒體位於最後。精簡播放器的遊戲名稱保持簡短，音量讀數穩定，新增遊戲的按鈕一直可見，捲軸緊貼頁面邊緣。',
 } satisfies Partial<Dictionary>;
 
 export default tour;

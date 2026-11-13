@@ -69,7 +69,7 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'Redefinir todas as configurações…',
   'settingsReset.title': 'Redefinir todas as configurações?',
   'settingsReset.body':
-    'O gráfico e os visualizadores, Cores da janela, o player, a Biblioteca, onde cada página ficou, Animações, Iniciar com o Windows, o fundo da área de trabalho e a Iluminação dinâmica voltam a ser como em uma nova instalação do FluidEQ.',
+    'O gráfico e suas cenas, Cores da janela, o player, a Biblioteca, onde cada página ficou, Animações, Iniciar com o Windows, o fundo da área de trabalho e a Iluminação dinâmica voltam a ser como em uma nova instalação do FluidEQ.',
   'settingsReset.kept':
     'Seu EQ, seus presets, curvas e DSP continuam como estão, assim como suas saídas, o mecanismo de áudio, o idioma e tudo o que você salvou.',
   'settingsReset.action': 'Redefinir configurações',
@@ -91,7 +91,7 @@ const app: Partial<Dictionary> = {
     '{place}: {name}, {ms} ms por quadro a {fps} fps, desenhado em {drawn} para {shown}',
   'app.processes.sceneRate':
     '{place}: {name} a {fps} fps, desenhado em {drawn} para {shown}',
-  'app.processes.place.graph': 'Visualizador do gráfico',
+  'app.processes.place.graph': 'Cena do gráfico',
   'app.processes.place.studio': 'Palco do Estúdio',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
@@ -105,13 +105,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': 'Gráficos',
   'app.processes.what.graphics':
     'Desenha tudo o que está na tela na placa de vídeo: o espectro, a curva, cada animação e as cenas. Trabalha sempre que algo se move; nenhum modelo roda aqui.',
-  'app.processes.name.desktop': 'Visualizador da área de trabalho',
+  'app.processes.name.desktop': 'Cena da área de trabalho',
   'app.processes.what.desktop':
     'Uma cena desenhada como fundo da área de trabalho de um monitor, à parte desta janela: uma para cada monitor que a mostra. Pausa enquanto as janelas cobrem esse monitor ou o PC está bloqueado.',
-  'app.processes.name.desktopHost':
-    'Ajudante do visualizador da área de trabalho',
+  'app.processes.name.desktopHost': 'Ajudante da cena da área de trabalho',
   'app.processes.what.desktopHost':
-    'Coloca o visualizador da área de trabalho desse monitor atrás dos ícones e o avisa quando as janelas cobrem a tela. Um para cada monitor que o mostra.',
+    'Coloca a cena da área de trabalho desse monitor atrás dos ícones e a avisa quando as janelas cobrem a tela. Um para cada monitor que a mostra.',
   'app.processes.name.shareCapture': 'Captura de áudio',
   'app.processes.what.shareCapture':
     'Captura o que este PC toca, antes do equalizador, para a aba Compartilhar áudio, uma segunda saída e o EQ inteligente. Só roda enquanto um deles está em uso.',
@@ -279,7 +278,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Mídia online',
   'tabs.mediaShort': 'Mídia',
   'tabs.karaoke': 'Karaokê',
-  'tabs.plus': 'Visualizadores',
+  'tabs.plus': 'Cenas',
   'tabs.scrollBack': 'Rolar abas para trás',
   'tabs.scrollForward': 'Rolar abas para a frente',
   'notice.apoReconfigured':
@@ -427,7 +426,7 @@ const app: Partial<Dictionary> = {
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'A imagem',
-  'settings.group.visualizer': 'O visualizador',
+  'settings.group.visualizer': 'A cena',
   'settings.group.drawing': 'Como é desenhado',
   'settings.group.thisView': 'Esta visualização',
   'settings.group.studioOnly': 'Só aqui no Estúdio',

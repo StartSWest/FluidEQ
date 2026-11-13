@@ -187,10 +187,10 @@ const plus = {
     '创建免费账户并领取起步点数。每个点数可换一个永久归你的场景。',
   'plus.signedOut.free.title': '免费，无需账户',
   'plus.signedOut.free.body':
-    'FluidEQ 的均衡器、音频效果、音乐播放和免费可视化效果。无需注册即可使用。',
+    'FluidEQ 的均衡器、音频效果、音乐播放和图表的标准样式。无需注册即可使用。',
   'plus.signedOut.account.title': '有了免费账户',
   'plus.signedOut.account.body':
-    '为“可视化”获取场景（最初几个免费），浏览图库，并在“工作室”中制作自己的场景。',
+    '从图库获取场景（最初几个免费），并在“工作室”中制作自己的场景。',
   'plus.signedOut.create': '创建免费账户',
   'plus.signedOut.createSub.one': '并获得 {count} 个场景',
   'plus.signedOut.createSub.few': '并获得 {count} 个场景',

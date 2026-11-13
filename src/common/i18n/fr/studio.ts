@@ -228,7 +228,7 @@ const studio = {
     'Le chat de votre scène écrit ce qui est nouveau…',
   'studio.publish.noteNeeded': 'Obligatoire',
   'studio.publish.point1':
-    'Toute personne connectée peut la voir dans Visualiseurs, la regarder quelques secondes et l’obtenir avec un crédit. Pour vous, elle joue gratuitement.',
+    'Toute personne connectée peut la voir dans la galerie de scènes, la regarder quelques secondes et l’obtenir avec un crédit. Pour vous, elle joue gratuitement.',
   'studio.publish.point3':
     'Vous pouvez la dépublier pour que personne de nouveau ne puisse l’obtenir. Ceux qui l’ont déjà la gardent.',
   'studio.publish.point3Update':

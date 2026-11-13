@@ -139,13 +139,13 @@ const eq: Partial<Dictionary> = {
   'graph.orientation.mirror': 'Отразить волну',
   'graph.orientation.centre': 'Отразить от центра',
   'graph.orientation.up': 'Поднять волну',
-  'graph.autoSwitch.label': 'Автосмена визуализаторов',
+  'graph.autoSwitch.label': 'Автосмена сцен',
   'graph.autoSwitch.off': 'Авто: Выкл.',
   'graph.autoSwitch.every': 'Авто: {seconds}с',
   'graph.sceneTint.mode.off': 'тема приложения',
-  'graph.sceneTint.mode.tint': 'цвета визуализатора',
-  'graph.sceneTint.mode.pulse': 'цвета визуализатора и его свет вокруг',
-  'graph.sceneTint.mode.cover': 'визуализатор за всем окном и его свет вокруг',
+  'graph.sceneTint.mode.tint': 'цвета сцены',
+  'graph.sceneTint.mode.pulse': 'цвета сцены и её свет вокруг',
+  'graph.sceneTint.mode.cover': 'сцена за всем окном и её свет вокруг',
   'graph.sceneTint.short.off': 'Оригинал',
   'graph.sceneTint.short.tint': 'Цвета',
   // A soft hyphen: the Studio's tiles, four to a 248px card, leave the name
@@ -155,17 +155,16 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.short.cover': 'Фон',
   'graph.sceneTint.label': 'Цвета окна',
   'graph.sceneTint.about.off': 'Окно в вашей теме.',
-  'graph.sceneTint.about.tint': 'Окно в цветах визуализатора.',
+  'graph.sceneTint.about.tint': 'Окно в цветах сцены.',
   'graph.sceneTint.about.pulse': 'Его цвета, и окно светится в такт музыке.',
-  'graph.sceneTint.about.cover':
-    'Всё из «Атмосферы», и визуализатор за всем окном.',
+  'graph.sceneTint.about.cover': 'Всё из «Атмосферы», и сцена за всем окном.',
   'graph.editHint':
     'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q · Ctrl+перетаскивание: колокол',
   'graph.windowTint': 'Оттенок',
   'graph.windowTintHint':
     'Цвет окна при стандартном виде. Двойной щелчок возвращает исходный цвет.',
   'graph.backdropVeil': 'Прозрачность',
-  'graph.backdropVeilHint': 'Насколько визуализатор виден сквозь панели',
+  'graph.backdropVeilHint': 'Насколько сцена видна сквозь панели',
   'graph.sceneTint.brightness': 'Яркость',
   'graph.sceneTint.rainbow': 'Цветной режим',
   'graph.sceneTint.rainbowHint':
@@ -175,28 +174,27 @@ const eq: Partial<Dictionary> = {
     'Кнопка на панели задач и значок в области уведомлений в цветах окна. Если выключено, остаётся значок FluidEQ.',
   'graph.sceneTint.sparks': 'Искры от указателя',
   'graph.sceneTint.sparksHint':
-    'То, что визуализатор бросает от мыши: след, когда она проходит над картинкой, и всплеск там, где вы щёлкнете, — искры, лепестки, снег, из чего сделана сцена.',
+    'То, что сцена бросает от мыши: след, когда она проходит над картинкой, и всплеск там, где вы щёлкнете, — искры, лепестки, снег, из чего сделана сцена.',
   'graph.sceneTint.daylight': 'Время суток',
-  'graph.sceneTint.daylightHint':
-    'Время суток визуализатора — от ночи до яркого дня',
+  'graph.sceneTint.daylightHint': 'Время суток сцены — от ночи до яркого дня',
   'graph.sceneTint.daylightFollowingHint':
-    'Следует яркости. Выберите «Ничему» ниже, чтобы задать время суток визуализатора здесь',
+    'Следует яркости. Выберите «Ничему» ниже, чтобы задать время суток сцены здесь',
   'graph.sceneTint.daylightSource': 'Следует',
   'graph.sceneTint.daylightSourceOwn': 'Ничему',
   'graph.sceneTint.daylightSourceBrightness': 'Яркости',
   'graph.sceneTint.daylightSourceClock': 'Часам',
   'graph.sceneTint.daylightOwnHint':
-    'Визуализатор сохраняет дневной свет, заданный выше.',
+    'Сцена сохраняет дневной свет, заданный выше.',
   'graph.sceneTint.daylightFollowsHint':
-    'Визуализатор переходит от ночи к дню вместе с яркостью.',
+    'Сцена переходит от ночи к дню вместе с яркостью.',
   'graph.sceneTint.daylightClockHint':
-    'Визуализатор показывает ночь ночью и день днём — по часам этого компьютера.',
+    'Сцена показывает ночь ночью и день днём — по часам этого компьютера.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Следует часам. Выберите «Ничему» ниже, чтобы задать время суток визуализатора здесь',
+    'Следует часам. Выберите «Ничему» ниже, чтобы задать время суток сцены здесь',
   'graph.sceneTint.daylightStudioHint':
-    'Пока открыта Студия, время суток визуализатора задаёт Яркость, чтобы проверить сцену от ночи до дня. Этот выбор вернётся, когда вы выйдете из Студии',
+    'Пока открыта Студия, время суток сцены задаёт Яркость, чтобы проверить сцену от ночи до дня. Этот выбор вернётся, когда вы выйдете из Студии',
   'graph.sceneTint.brightnessHint':
-    'Насколько светлым или тёмным будет окно — в вашей теме или в цветах визуализатора',
+    'Насколько светлым или тёмным будет окно — в вашей теме или в цветах сцены',
   'graph.member.mine': 'Созданы вами',
   'graph.member.theirs': 'Созданы участниками',
   'graph.member.by': 'автор: {name}',
@@ -229,26 +227,25 @@ const eq: Partial<Dictionary> = {
   'graph.look.retry': 'Повторить',
   'graph.look.reportHint':
     'Если это повторится, отправьте нам отчёт: {help} → {report}.',
-  'graph.scene.loading': 'Загрузка визуализатора…',
+  'graph.scene.loading': 'Загрузка сцены…',
   'graph.scene.attack': 'Атака',
   'graph.scene.attackHint':
-    'Как быстро этот визуализатор поднимается под музыку. Коротко — резко, долго — нарастает.',
+    'Как быстро эта сцена поднимается под музыку. Коротко — резко, долго — нарастает.',
   'graph.scene.release': 'Спад',
   'graph.scene.releaseHint':
     'Как медленно он опускается после каждого удара. Долго оставляет свечение.',
   'graph.scene.ms': '{ms} мс',
   'graph.scene.percent': '{percent} %',
   'graph.scene.controlHint':
-    'Собственный регулятор визуализатора — таким его задал автор',
+    'Собственный регулятор сцены — таким его задал автор',
   'graph.scene.ownWave': 'Вернуть её собственную волну',
   'graph.scene.ownWaveHint':
     'Возвращает волну туда, где её оставил автор сцены. Ваши высота и положение сохраняются для каждой сцены, пока вы этого не сделаете.',
   'graph.scene.ownControls': 'Его собственные настройки',
-  'graph.scene.ownControlsHint':
-    'Вернуть настройки, с которыми пришёл визуализатор',
+  'graph.scene.ownControlsHint': 'Вернуть настройки, с которыми пришла сцена',
   'graph.scene.ownTiming': 'Вернуть его собственный ритм',
   'graph.scene.ownTimingHint':
-    'Вернуться к атаке и спаду, с которыми пришёл этот визуализатор',
+    'Вернуться к атаке и спаду, с которыми пришла эта сцена',
   'graph.scene.frameRate': 'Частота кадров',
   'graph.scene.camera.key': 'Вращать вид с',
   'graph.scene.camera.keyHint':
@@ -280,7 +277,7 @@ const eq: Partial<Dictionary> = {
   'graph.scene.camera.orbit.normal': 'Обычно',
   'graph.scene.camera.calmNote': 'Выключено, пока движение уменьшено',
   'graph.scene.frameRateHint':
-    'Как часто рисуются визуализаторы: в каждом кадре экрана или с ограничением, чтобы разгрузить GPU',
+    'Как часто рисуются сцены: в каждом кадре экрана или с ограничением, чтобы разгрузить GPU',
   'graph.scene.frameRate.display': 'Как у экрана',
   'graph.scene.frameRate.sixty': '60 в секунду',
   'graph.scene.frameRate.thirty': '30 в секунду',
@@ -322,10 +319,10 @@ const eq: Partial<Dictionary> = {
     'Пока не ваша. Выберите, чтобы узнать, как её получить.',
   'graph.style.next': 'Следующий стиль',
   'graph.style.previous': 'Предыдущий стиль',
-  'graph.picker.label': 'Стили и визуализаторы',
-  'graph.picker.search': 'Поиск стилей и визуализаторов',
+  'graph.picker.label': 'Стили и сцены',
+  'graph.picker.search': 'Поиск стилей и сцен',
   'graph.picker.styles': 'Стили',
-  'graph.picker.plus': 'Визуализаторы',
+  'graph.picker.plus': 'Сцены',
   'graph.picker.discover.title': 'Оживите свою музыку',
   'graph.picker.discover.body':
     'Покупайте анимированные сцены навсегда или бесплатно создавайте свои в Studio.',
@@ -338,7 +335,7 @@ const eq: Partial<Dictionary> = {
   'graph.picker.all': 'Все',
   'graph.picker.yours': 'Ваши',
   'graph.picker.filterStyles': 'Фильтр стилей',
-  'graph.picker.filterPlus': 'Фильтр визуализаторов',
+  'graph.picker.filterPlus': 'Фильтр сцен',
   'graph.channel.left': 'Л',
   'graph.channel.right': 'П',
   'graph.legend.live': 'Сейчас',

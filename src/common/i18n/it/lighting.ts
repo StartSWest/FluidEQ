@@ -12,7 +12,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': 'Luminosità dello sfondo',
   'lighting.status.ambient': 'Movimento delicato · {scene}',
   'lighting.scene.title': 'Illuminazione per {scene}',
-  'lighting.scene.saved': 'Salvato per questo visualizzatore',
+  'lighting.scene.saved': 'Salvato per questa scena',
   'lighting.device.edit': 'Regola {name}',
   'lighting.target.all': 'Tutti i dispositivi',
   'lighting.target.shared': 'Illuminazione condivisa: {devices}',
@@ -48,7 +48,7 @@ const lighting = {
 
   'lighting.gate.title': 'Illumina tastiera, mouse e cuffie con le tue scene',
   'lighting.gate.body':
-    'Ottieni una scena qualsiasi in Visualizzatori e l’illuminazione dinamica è tua: i tuoi dispositivi prendono i colori della scena sul grafico e pulsano al suo ritmo.',
+    'Ottieni una scena qualsiasi nella galleria e l’illuminazione dinamica è tua: i tuoi dispositivi prendono i colori della scena sul grafico e pulsano al suo ritmo.',
   'lighting.gate.cta': 'Trova una scena',
 
   'lighting.preview.status':
@@ -74,7 +74,7 @@ const lighting = {
   'lighting.status.off':
     'Spenta: i tuoi dispositivi mantengono la loro illuminazione',
   'lighting.status.noScene': 'Scegli una scena e i tuoi dispositivi la seguono',
-  'lighting.pickScene': 'Sfoglia i visualizzatori',
+  'lighting.pickScene': 'Sfoglia le scene',
   'lighting.showGraph': 'Mostra il grafico',
 
   'lighting.brightness': 'Luminosità',

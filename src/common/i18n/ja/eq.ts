@@ -140,32 +140,31 @@ const eq: Partial<Dictionary> = {
   'graph.orientation.mirror': '波形を反転',
   'graph.orientation.centre': '中央から反転',
   'graph.orientation.up': '波形を上向きにする',
-  'graph.autoSwitch.label': 'ビジュアライザーの自動切り替え',
+  'graph.autoSwitch.label': 'シーンの自動切り替え',
   'graph.autoSwitch.off': '自動: オフ',
   'graph.autoSwitch.every': '自動: {seconds}秒',
   'graph.sceneTint.mode.off': 'アプリのテーマ',
-  'graph.sceneTint.mode.tint': 'ビジュアライザーの色',
-  'graph.sceneTint.mode.pulse': 'ビジュアライザーの色と、周りに広がる光',
-  'graph.sceneTint.mode.cover':
-    'ウィンドウ全体の背後にビジュアライザー、周りに広がる光',
+  'graph.sceneTint.mode.tint': 'シーンの色',
+  'graph.sceneTint.mode.pulse': 'シーンの色と、周りに広がる光',
+  'graph.sceneTint.mode.cover': 'ウィンドウ全体の背後にシーン、周りに広がる光',
   'graph.sceneTint.short.off': 'オリジナル',
   'graph.sceneTint.short.tint': '色',
   'graph.sceneTint.short.pulse': '環境光',
   'graph.sceneTint.short.cover': '背景',
   'graph.sceneTint.label': 'ウィンドウの色',
   'graph.sceneTint.about.off': 'ウィンドウはテーマのまま。',
-  'graph.sceneTint.about.tint': 'ウィンドウをビジュアライザーの色に。',
+  'graph.sceneTint.about.tint': 'ウィンドウをシーンの色に。',
   'graph.sceneTint.about.pulse':
     'その色で、ウィンドウが音楽に合わせて光ります。',
   'graph.sceneTint.about.cover':
-    '環境光に加えて、ウィンドウ全体の背後にビジュアライザー。',
+    '環境光に加えて、ウィンドウ全体の背後にシーン。',
   'graph.editHint':
     'ポイントをドラッグ · Ctrl/Shiftで選択 · Ctrl+ホイール: Q · Ctrl+ドラッグ: ベル',
   'graph.windowTint': '色合い',
   'graph.windowTintHint':
     '標準のルックでのウィンドウの色。ダブルクリックで元の色に戻ります。',
   'graph.backdropVeil': '透明度',
-  'graph.backdropVeilHint': 'パネル越しにビジュアライザーがどれだけ見えるか',
+  'graph.backdropVeilHint': 'パネル越しにシーンがどれだけ見えるか',
   'graph.sceneTint.brightness': '明るさ',
   'graph.sceneTint.rainbow': 'カラフルモード',
   'graph.sceneTint.rainbowHint':
@@ -175,27 +174,27 @@ const eq: Partial<Dictionary> = {
     'タスクバーのボタンと通知領域のアイコンをウィンドウの色にします。オフにすると FluidEQ 本来のアイコンのままです。',
   'graph.sceneTint.sparks': 'ポインターの火花',
   'graph.sceneTint.sparksHint':
-    'ビジュアライザーがマウスから放つもの。画面の上を動かすと軌跡が残り、クリックした場所ではじけます。火花、花びら、雪など、シーンに合わせて。',
+    'シーンがマウスから放つもの。画面の上を動かすと軌跡が残り、クリックした場所ではじけます。火花、花びら、雪など、シーンに合わせて。',
   'graph.sceneTint.daylight': '時間帯',
-  'graph.sceneTint.daylightHint': 'ビジュアライザーの時間帯。夜から真昼まで',
+  'graph.sceneTint.daylightHint': 'シーンの時間帯。夜から真昼まで',
   'graph.sceneTint.daylightFollowingHint':
-    '明るさに連動中。ここでビジュアライザーの時間帯を設定するには、下で「なし」を選びます',
+    '明るさに連動中。ここでシーンの時間帯を設定するには、下で「なし」を選びます',
   'graph.sceneTint.daylightSource': '連動',
   'graph.sceneTint.daylightSourceOwn': 'なし',
   'graph.sceneTint.daylightSourceBrightness': '明るさ',
   'graph.sceneTint.daylightSourceClock': '時計',
   'graph.sceneTint.daylightOwnHint':
-    'ビジュアライザーは上で設定した昼の明るさを保ちます。',
+    'シーンは上で設定した昼の明るさを保ちます。',
   'graph.sceneTint.daylightFollowsHint':
-    'ビジュアライザーは明るさに合わせて夜から昼へ変わります。',
+    'シーンは明るさに合わせて夜から昼へ変わります。',
   'graph.sceneTint.daylightClockHint':
-    'ビジュアライザーはこのコンピューターの時計に合わせて、夜は夜、昼は昼になります。',
+    'シーンはこのコンピューターの時計に合わせて、夜は夜、昼は昼になります。',
   'graph.sceneTint.daylightFollowingClockHint':
-    '時計に連動中。ここでビジュアライザーの時間帯を設定するには、下で「なし」を選びます',
+    '時計に連動中。ここでシーンの時間帯を設定するには、下で「なし」を選びます',
   'graph.sceneTint.daylightStudioHint':
-    'スタジオを開いている間は、明るさがビジュアライザーの時間帯を決めるので、シーンを夜から昼まで試せます。スタジオを離れると、ここでの選択に戻ります',
+    'スタジオを開いている間は、明るさがシーンの時間帯を決めるので、シーンを夜から昼まで試せます。スタジオを離れると、ここでの選択に戻ります',
   'graph.sceneTint.brightnessHint':
-    'テーマやビジュアライザーの色で表示されるウィンドウの明るさ',
+    'テーマやシーンの色で表示されるウィンドウの明るさ',
   'graph.member.mine': 'あなたが作成',
   'graph.member.theirs': 'メンバーが作成',
   'graph.member.by': '作者: {name}',
@@ -229,26 +228,24 @@ const eq: Partial<Dictionary> = {
   'graph.look.retry': '再試行',
   'graph.look.reportHint':
     '繰り返し起きる場合は、{help} → {report} からレポートを送ってください。',
-  'graph.scene.loading': 'ビジュアライザーを読み込み中…',
+  'graph.scene.loading': 'シーンを読み込み中…',
   'graph.scene.attack': 'アタック',
   'graph.scene.attackHint':
-    'このビジュアライザーが音楽にどれだけ速く反応して上がるか。短いと鋭く、長いとふくらみます。',
+    'このシーンが音楽にどれだけ速く反応して上がるか。短いと鋭く、長いとふくらみます。',
   'graph.scene.release': 'リリース',
   'graph.scene.releaseHint':
     '打つたびにどれだけゆっくり戻るか。長いと余韻の光が残ります。',
   'graph.scene.ms': '{ms} ms',
   'graph.scene.percent': '{percent}%',
-  'graph.scene.controlHint':
-    'このビジュアライザー自身のコントロール。作者が決めた値です',
+  'graph.scene.controlHint': 'このシーン自身のコントロール。作者が決めた値です',
   'graph.scene.ownWave': 'このシーン本来の波形にする',
   'graph.scene.ownWaveHint':
     'シーンの作者が決めた位置に波形を戻します。それまで、あなたの高さと位置はシーンごとに保存されます。',
   'graph.scene.ownControls': '元の設定に戻す',
-  'graph.scene.ownControlsHint':
-    'このビジュアライザーに付属していた設定に戻します',
+  'graph.scene.ownControlsHint': 'このシーンに付属していた設定に戻します',
   'graph.scene.ownTiming': '元のタイミングを使う',
   'graph.scene.ownTimingHint':
-    'このビジュアライザーに元々設定されたアタックとリリースに戻します',
+    'このシーンに元々設定されたアタックとリリースに戻します',
   'graph.scene.frameRate': 'フレームレート',
   'graph.scene.camera.key': '視点を動かすキー',
   'graph.scene.camera.keyHint':
@@ -281,7 +278,7 @@ const eq: Partial<Dictionary> = {
   'graph.scene.camera.orbit.normal': '標準',
   'graph.scene.camera.calmNote': '動きを減らす設定中はオフ',
   'graph.scene.frameRateHint':
-    'ビジュアライザーを描く頻度：ディスプレイの全フレーム、または GPU を休ませるための上限付き',
+    'シーンを描く頻度：ディスプレイの全フレーム、または GPU を休ませるための上限付き',
   'graph.scene.frameRate.display': 'ディスプレイと同じ',
   'graph.scene.frameRate.sixty': '毎秒 60',
   'graph.scene.frameRate.thirty': '毎秒 30',
@@ -324,10 +321,10 @@ const eq: Partial<Dictionary> = {
     'まだあなたのものではありません。選ぶと入手方法が表示されます。',
   'graph.style.next': '次のスタイル',
   'graph.style.previous': '前のスタイル',
-  'graph.picker.label': 'スタイルとビジュアライザー',
-  'graph.picker.search': 'スタイルとビジュアライザーを検索',
+  'graph.picker.label': 'スタイルとシーン',
+  'graph.picker.search': 'スタイルとシーンを検索',
   'graph.picker.styles': 'スタイル',
-  'graph.picker.plus': 'ビジュアライザー',
+  'graph.picker.plus': 'シーン',
   'graph.picker.discover.title': '音楽に彩りを',
   'graph.picker.discover.body':
     'アニメーションシーンを購入してずっと楽しむことも、Studio で自分のシーンを無料で作ることもできます。',
@@ -340,7 +337,7 @@ const eq: Partial<Dictionary> = {
   'graph.picker.all': 'すべて',
   'graph.picker.yours': 'あなたの',
   'graph.picker.filterStyles': 'スタイルを絞り込む',
-  'graph.picker.filterPlus': 'ビジュアライザーを絞り込む',
+  'graph.picker.filterPlus': 'シーンを絞り込む',
   'graph.channel.left': 'L',
   'graph.channel.right': 'R',
   'graph.legend.live': 'ライブ',

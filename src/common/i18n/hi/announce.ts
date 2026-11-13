@@ -12,7 +12,7 @@ const announce = {
     'आप ऑफ़लाइन हैं। सहेजी गई वे खबरें दिखाई जा रही हैं जो अभी मान्य हैं।',
   'announce.news.empty': 'अभी कोई घोषणा नहीं है।',
 
-  'announce.eyebrow': 'विज़ुअलाइज़र में नया · {count} सीन',
+  'announce.eyebrow': 'सीन में नया · {count} सीन',
   'announce.try': 'अभी आज़माएँ',
   'announce.later': 'बाद में',
   'announce.previewNote': 'पूर्वावलोकन। न कुछ भेजा गया, न कुछ दर्ज किया गया।',

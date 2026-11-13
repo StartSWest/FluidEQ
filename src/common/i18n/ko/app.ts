@@ -53,7 +53,7 @@ const app = {
   'app.menu.resetSettings': '모든 설정 재설정…',
   'settingsReset.title': '모든 설정을 재설정하시겠습니까?',
   'settingsReset.body':
-    '그래프 및 비주얼라이저, 창 색상, 플레이어, 각 페이지가 남아 있는 라이브러리, 애니메이션, Windows 시작, 바탕 화면 배경 및 동적 조명은 FluidEQ의 새로운 설치가 시작되는 방식으로 돌아갑니다.',
+    '그래프 및 장면, 창 색상, 플레이어, 각 페이지가 남아 있는 라이브러리, 애니메이션, Windows 시작, 바탕 화면 배경 및 동적 조명은 FluidEQ의 새로운 설치가 시작되는 방식으로 돌아갑니다.',
   'settingsReset.kept':
     'EQ, 프리셋, 곡선 및 DSP는 그대로 유지되며 출력, 오디오 엔진, 언어 및 저장한 모든 것도 그대로 유지됩니다.',
   'settingsReset.action': '설정 재설정',
@@ -74,7 +74,7 @@ const app = {
     '{place}: {name}, {ms} ms {fps} fps의 프레임, {shown}에 대해 {drawn}에서 그려짐',
   'app.processes.sceneRate':
     '{place}: {fps} fps의 {name}, {shown}의 경우 {drawn}에서 그려짐',
-  'app.processes.place.graph': '그래프 비주얼라이저',
+  'app.processes.place.graph': '그래프 장면',
   'app.processes.place.studio': '스튜디오 스테이지',
   'app.processes.name.window': '인터페이스',
   'app.processes.what.window':
@@ -88,12 +88,12 @@ const app = {
   'app.processes.name.graphics': '그래픽',
   'app.processes.what.graphics':
     '스펙트럼, 곡선, 모든 애니메이션 및 장면 등 그래픽 카드의 화면에 모든 것을 그립니다. 무엇이든 움직일 때마다 바쁘다. 모델을 실행하지 않습니다.',
-  'app.processes.name.desktop': '데스크탑 비주얼라이저',
+  'app.processes.name.desktop': '데스크탑 장면',
   'app.processes.what.desktop':
     '이 창을 제외하고 모니터의 바탕 화면 배경으로 그려진 장면: 각 모니터마다 하나씩 표시됩니다. 모니터가 창을 가리거나 PC가 잠겨 있는 동안에는 일시 정지됩니다.',
-  'app.processes.name.desktopHost': '데스크탑 시각화 도우미',
+  'app.processes.name.desktopHost': '데스크탑 장면',
   'app.processes.what.desktopHost':
-    '해당 모니터의 데스크탑 시각화 도우미를 아이콘 뒤에 배치하고 창이 화면을 덮을 때 이를 알려줍니다. 각 모니터마다 하나씩 표시됩니다.',
+    '해당 모니터의 데스크탑 장면을 아이콘 뒤에 배치하고 창이 화면을 덮을 때 이를 알려줍니다. 각 모니터마다 하나씩 표시됩니다.',
   'app.processes.name.shareCapture': '오디오 캡처',
   'app.processes.what.shareCapture':
     '오디오 공유 탭, 두 번째 출력 및 Smart EQ를 위해 이퀄라이저 이전에 이 PC가 재생하는 내용을 캡처합니다. 둘 중 하나가 사용 중인 동안에만 실행됩니다.',
@@ -256,7 +256,7 @@ const app = {
   'tabs.media': '온라인 미디어',
   'tabs.mediaShort': '미디어',
   'tabs.karaoke': '노래방',
-  'tabs.plus': '비주얼라이저',
+  'tabs.plus': '장면',
   'tabs.scrollBack': '탭을 뒤로 스크롤',
   'tabs.scrollForward': '탭을 앞으로 스크롤',
   'notice.apoReconfigured':
@@ -402,7 +402,7 @@ const app = {
   'startup.blocked': 'Windows의 시작 앱에서 이 기능이 꺼져 있습니다.',
   'startup.failed': 'Windows에서 설정을 변경하지 못했습니다.',
   'settings.group.picture': '화면',
-  'settings.group.visualizer': '비주얼라이저',
+  'settings.group.visualizer': '장면',
   'settings.group.drawing': '렌더링 방식',
   'settings.group.thisView': '이 보기',
   'settings.group.studioOnly': 'Studio에서만 적용',

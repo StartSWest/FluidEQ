@@ -15,7 +15,7 @@ describe('Auto selector', () => {
       />,
     );
     const trigger = screen.getByRole('menu', {
-      name: 'Automatic visualizer switching',
+      name: 'Automatic scene switching',
     });
     // A fresh install starts on the two-minute cycle.
     expect(trigger).toHaveTextContent('Auto: 120s');
@@ -38,7 +38,7 @@ describe('Auto selector', () => {
       />,
     );
     const trigger = screen.getByRole('menu', {
-      name: 'Automatic visualizer switching',
+      name: 'Automatic scene switching',
     });
     expect(trigger).toHaveAttribute('aria-disabled', 'true');
     fireEvent.click(trigger);

@@ -2,9 +2,9 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
-  'tour.karaokeBackground.title': '让可视化效果衬托歌词',
+  'tour.karaokeBackground.title': '让场景衬托歌词',
   'tour.karaokeBackground.subtitle': '将所选样式带到卡拉 OK 舞台',
-  'tour.karaokeBackground.lead': '选择可视化效果或场景，作为卡拉 OK 的背景。',
+  'tour.karaokeBackground.lead': '选择场景或标准样式，作为卡拉 OK 的背景。',
   'tour.karaokeBackground.how':
     '在 EQ 的 {looks} 中选择样式，然后在卡拉 OK 中点击 {showGraph}。',
   'tour.karaokeBackground.open': '打开卡拉 OK',
@@ -57,7 +57,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.title': '整个应用收进一列',
   'tour.player.subtitle': '一个播放器，任何窗口配色都一样',
   'tour.player.lead':
-    '标题栏上的一个开关把 FluidEQ 收成一列：最上面是可视化效果，歌曲信息叠在上面，下面是控制按钮、你的声音和接下来播放的内容。无论哪种窗口配色，都是同一个播放器；选择场景时，场景会在整个播放器后面播放，即“{backdrop}”。',
+    '标题栏上的一个开关把 FluidEQ 收成一列：最上面是场景，歌曲信息叠在上面，下面是控制按钮、你的声音和接下来播放的内容。无论哪种窗口配色，都是同一个播放器；选择场景时，场景会在整个播放器后面播放，即“{backdrop}”。',
   'tour.player.point1':
     '“{sound}”里有低音、中音、高音旋钮，或者你自己的 EQ 频段，旁边是预设、智能均衡和 EQ 模式。',
   'tour.player.point2':
@@ -68,12 +68,12 @@ const tour: Partial<Dictionary> = {
     '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。',
   'tour.player.open': '试试迷你播放器',
   'tour.player.imageAlt':
-    '标题栏一角，圈出了{player}开关；下面是两个迷你播放器：一个在“{backdrop}”下叠在场景上，打开了 EQ 频段；另一个在歌曲后面显示标准可视化效果，打开了音色旋钮。',
+    '标题栏一角，圈出了{player}开关；下面是两个迷你播放器：一个在“{backdrop}”下叠在场景上，打开了 EQ 频段；另一个在歌曲后面显示标准样式，打开了音色旋钮。',
   'tour.player.scene': '场景，“{backdrop}”',
-  'tour.player.standard': '标准可视化效果',
+  'tour.player.standard': '标准样式',
   'tour.look.kicker': '全新外观',
   'tour.look.title': '全新的窗口，全新的颜色',
-  'tour.look.subtitle': '一个主题滑块，所有内容背后都能有可视化效果',
+  'tour.look.subtitle': '一个主题滑块，所有内容背后都能有场景',
   'tour.look.lead':
     '各个面板立在同一块开放的底面上，用的是新图标的配色；一个滑块“{brightness}”就能让整个窗口从近乎黑色过渡到明亮的海洋蓝。图表上有场景时，窗口可以采用它的颜色，也可以让它在所有内容背后播放。',
   'tour.look.point1':
@@ -81,14 +81,14 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '“{windowColours}”提供“{original}”“{colours}”“{ambient}”和“{backdrop}”，每一项都有一行说明它对窗口的作用。',
   'tour.look.point3':
-    '对话框和菜单使用同一种材质，“{rainbow}”会贯穿图标的颜色，或可视化效果自己的颜色。',
+    '对话框和菜单使用同一种材质，“{rainbow}”会贯穿图标的颜色，或场景自己的颜色。',
   'tour.look.how':
     '在右上角脉冲图标后的操作菜单中拖动“{brightness}”。图表上有场景时，从图表的工具栏打开“{windowColours}”并选择“{backdrop}”。',
   'tour.look.open': '打开均衡器',
   'tour.look.imageAlt':
     '在“均衡器”页面上以自身配色显示的 FluidEQ：“频谱分析仪”在曲线下方描绘一首歌，角落上方打开了脉冲图标后的菜单，“亮度”在一半，“多彩模式”已开启。',
-  'tour.gpu.kicker': '全新可视化引擎',
-  'tour.gpu.title': '所有可视化效果都在你的显卡上运行',
+  'tour.gpu.kicker': '全新场景引擎',
+  'tour.gpu.title': '所有场景都在你的显卡上运行',
   'tour.gpu.subtitle': '四十种样式跟上屏幕刷新率，还有 3D 世界',
   'tour.gpu.lead':
     '图表的四十种样式现在都由场景所用的引擎绘制：在你的显卡上、以你屏幕自己的刷新率运行，频柱、粒子和峰值从过去的跳动变成流畅滑动。场景现在还可以是真正的 3D 世界。',
@@ -104,21 +104,21 @@ const tour: Partial<Dictionary> = {
     '一个呈现夜晚 3D 城市的场景，以及在图表上实拍的四种新样式：“{synthwave}”“{horizon}”“{towers}”和“{ledwall}”，第一张中的样式选择器被圈出。',
   'tour.gpu.world': '3D 世界',
   'tour.sparks.kicker': '指针火花',
-  'tour.sparks.title': '会回应鼠标的可视化效果',
+  'tour.sparks.title': '会回应鼠标的场景',
   'tour.sparks.subtitle': '从指针洒出火花、花瓣或雪花',
   'tour.sparks.lead':
     '把鼠标移过场景，它会在指针后面拖出一道由自身元素组成的轨迹——火花、花瓣、雪花、余烬——并在你点击的地方迸发。在“{ambient}”和“{backdrop}”模式下，它的飞鸟、花瓣和光点还会飘过整个窗口。',
   'tour.sparks.point1':
-    '每个可视化效果洒出的都不一样：冬景下雪，篝火飞出余烬，花园飘落花瓣。',
+    '每个场景洒出的都不一样：冬景下雪，篝火飞出余烬，花园飘落花瓣。',
   'tour.sparks.point2':
     'Studio 的舞台总会显示它们，方便场景作者调整洒出的效果。',
   'tour.sparks.point3':
-    '一个开关管所有可视化效果：“{windowColours}”中“{rainbow}”下方的“{sparks}”。',
+    '一个开关管所有场景：“{windowColours}”中“{rainbow}”下方的“{sparks}”。',
   'tour.sparks.how':
     '图表上有场景时，把鼠标移到上面并点击。“{sparks}”在“{windowColours}”中，位于“{rainbow}”下方。',
   'tour.sparks.open': '打开均衡器',
   'tour.sparks.imageAlt':
-    '一个极光可视化效果，指针后拖着一道发光的火花轨迹，点击处迸出火花；以及“{windowColours}”，其中的“{sparks}”开关被圈出。',
+    '一个极光场景，指针后拖着一道发光的火花轨迹，点击处迸出火花；以及“{windowColours}”，其中的“{sparks}”开关被圈出。',
   'tour.sound.kicker': 'FLUIDEQ 引擎',
   'tour.sound.title': '声音完全如你所画',
   'tour.sound.subtitle': '高音如画、切换无声、电平一步到位',
@@ -201,7 +201,7 @@ const tour: Partial<Dictionary> = {
   'tour.tone.imageAlt':
     '均衡器曲线的低音、中音和高音三段，移动它们的三个旋钮，以及从六段到三十一段的快速布局。',
   'tour.studio.kicker': 'FluidEQ Plus',
-  'tour.studio.title': '打造你自己的可视化效果',
+  'tour.studio.title': '打造你自己的场景',
   'tour.studio.subtitle': '所有账户免费',
   'tour.studio.lead':
     '工作室把一个想法变成随音乐律动的场景。它对所有账户免费：想创作、导出和发布多少场景都可以。',
@@ -211,8 +211,8 @@ const tour: Partial<Dictionary> = {
     '场景可以是真正的 3D 世界，踩着底鼓的节拍，在 drop 时一跃而起。',
   'tour.studio.point3':
     '复制 AI 提示词，你的 AI 助手就能看到你的场景，并听出歌曲如何起伏。',
-  'tour.studio.how': '打开“可视化”，在侧栏中选择“工作室”。',
-  'tour.studio.open': '打开“可视化”',
+  'tour.studio.how': '打开“场景”，在侧栏中选择“工作室”。',
+  'tour.studio.open': '打开“场景”',
   'tour.studio.imageAlt':
     '工作室的舞台上正播放 Alpine：雪峰下的湖泊和极光，下方是用你的 AI 创作场景的三个步骤，以及两条说明：所有账户免费，发布的场景对其作者免费播放。',
   'tour.studio.earned': '已发布：为你免费播放',
@@ -275,28 +275,27 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     '俯视的房间：七只音箱和一只低音炮围绕中央的头部，每只都有通往双耳的路径。',
 
-  'tour.plus.kicker': '可视化',
+  'tour.plus.kicker': '场景',
   'tour.plus.title': '永久归你的场景',
-  'tour.plus.subtitle': '可视化、工作室、灯效，还有更多',
+  'tour.plus.subtitle': '场景、工作室、灯效，还有更多',
   'tour.plus.lead':
     '一整个让 FluidEQ 不断成长的扩展标签页：在显卡上绘制的场景、创作自己场景的工作室、桌面背景和动态灯光。每个场景一点并永久归你，而均衡器、效果架和播放器一如既往保持免费。',
-  'tour.plus.point1': '在“可视化”标签页登录：已确认的账户可免费获得起步点数。',
+  'tour.plus.point1': '在“场景”标签页登录：已确认的账户可免费获得起步点数。',
   'tour.plus.point2':
     '点数包只需付款一次，付款前有用平实语言写成的条款。不会自动续费，应用也从不接触你的银行卡。',
   'tour.plus.point3':
     '每个场景都可以先观看，你获取的场景会在你登录的每台电脑上播放。',
-  'tour.plus.how':
-    '打开“可视化”标签页：“图库”“工作室”和“动态灯效”都在它的左侧。',
-  'tour.plus.open': '打开“可视化”',
+  'tour.plus.how': '打开“场景”标签页：“图库”“工作室”和“动态灯效”都在它的左侧。',
+  'tour.plus.open': '打开“场景”',
   'tour.plus.imageAlt':
-    '“可视化”标签页：侧边是图库、工作室和动态灯效，另有展示铬光、绽放、极光、阿尔卑斯和霓虹之城的图库。',
+    '“场景”标签页：侧边是图库、工作室和动态灯效，另有展示铬光、绽放、极光、阿尔卑斯和霓虹之城的图库。',
   'tour.scene.alpine': '阿尔卑斯',
   'tour.scene.aurora': '极光',
   'tour.scene.bloom': '绽放',
   'tour.scene.chrome': '铬光',
   'tour.scene.neonCity': '霓虹之城',
 
-  'tour.visualizers.kicker': '可视化效果',
+  'tour.visualizers.kicker': '场景',
   'tour.visualizers.title': '随音乐而动的场景',
   'tour.visualizers.subtitle': '由你的显卡绘制',
   'tour.visualizers.lead':
@@ -308,18 +307,17 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.point3':
     '自动切换外观、全屏显示，还能在“视图”中设置场景的起音和释放。',
   'tour.visualizers.how':
-    '点击图表上的外观名称，在“可视化”下选择一个场景，或在“可视化 → 图库”中浏览全部场景。',
+    '点击图表上的外观名称，在“场景”下选择一个场景，或在“场景 → 图库”中浏览全部场景。',
   'tour.visualizers.open': '打开均衡器',
   'tour.visualizers.imageAlt':
     '阿尔卑斯：一个描绘夜晚湖上群山的场景，正在图表上的 EQ 曲线下方播放，下面还有另外四个场景。',
 
-  'tour.desktop.kicker': '桌面可视化效果',
+  'tour.desktop.kicker': '桌面背景',
   'tour.desktop.title': '让音乐在你的桌面背后律动',
   'tour.desktop.subtitle': '每台显示器一个场景',
   'tour.desktop.lead':
     '把场景放到桌面图标后面。它会随你正在听的内容而动，也可以独自平静地播放，而且每台显示器都能显示自己的场景。',
-  'tour.desktop.point1':
-    '在显示器排布图上挑选显示器，每台都能显示自己的可视化效果。',
+  'tour.desktop.point1': '在显示器排布图上挑选显示器，每台都能显示自己的场景。',
   'tour.desktop.point2': '窗口盖住显示器、电脑锁定或使用电池供电时，它会暂停。',
   'tour.desktop.point3': '下次启动 FluidEQ 时，它会自动恢复。',
   'tour.desktop.how':
@@ -330,17 +328,17 @@ const tour: Partial<Dictionary> = {
 
   'tour.lighting.kicker': '动态灯效',
   'tour.lighting.title': '你的桌面随场景亮起',
-  'tour.lighting.subtitle': 'Beta · 你的 RGB 设备跟随可视化效果',
+  'tour.lighting.subtitle': 'Beta · 你的 RGB 设备跟随场景',
   'tour.lighting.lead':
     '通过 Windows Dynamic Lighting 和 Razer Chroma，你的键盘、鼠标、鼠标垫、耳机和支架会呈现图表上场景的色彩与节奏。',
   'tour.lighting.point1':
-    '每个可视化效果有四种风格：“场景”“色彩波浪”“频谱”和“节拍涟漪”。',
+    '每个场景有四种风格：“场景”“色彩波浪”“频谱”和“节拍涟漪”。',
   'tour.lighting.point2': '每台设备都能单独调整，还可以选择音乐停止时的效果。',
   'tour.lighting.point3':
     '实时预览会画出你自己的桌面，以及它亮起的样子。它仍处于 Beta 阶段：请告诉我们你的设备表现如何。',
   'tour.lighting.how':
-    '打开“可视化 → 动态灯效”并开启它，然后在图表上显示一个场景。',
-  'tour.lighting.open': '打开“可视化”',
+    '打开“场景 → 动态灯效”并开启它，然后在图表上显示一个场景。',
+  'tour.lighting.open': '打开“场景”',
   'tour.lighting.imageAlt':
     '键盘、鼠标和鼠标垫亮起霓虹之城的粉色、紫色和青色。',
 
@@ -561,7 +559,7 @@ const tour: Partial<Dictionary> = {
   'tour.walkthrough.title': '一个视频看完 FluidEQ',
   'tour.walkthrough.subtitle': '从头到尾看一遍',
   'tour.walkthrough.lead':
-    '从你拖动的第一个频段到可视化效果，带你看完 FluidEQ 的全部功能，并有语音讲解每个部分怎么用。',
+    '从你拖动的第一个频段到场景，带你看完 FluidEQ 的全部功能，并有语音讲解每个部分怎么用。',
   'tour.film.walkthrough.intro': '一个视频看完 FluidEQ',
   'tour.film.engine.intro':
     'FluidEQ 有自己的音频引擎，它把你的 EQ 和 DSP 机架用到电脑播放的一切声音上。',
@@ -645,13 +643,13 @@ const tour: Partial<Dictionary> = {
     '它运行在这台电脑上安装的 Claude Code 上，用你自己的方案，并显示你的额度还剩多少。',
   'tour.chat.how':
     '打开“{plus}”，在侧栏选择“{studio}”，选择一个场景或新建一个，然后在舞台旁的输入框里输入。',
-  'tour.chat.open': '打开“可视化”',
+  'tour.chat.open': '打开“场景”',
   'tour.chat.imageAlt':
     '工作室的舞台和旁边的聊天：一条让舞台灯随军鼓闪烁的请求，回复的步骤逐一打勾，带“恢复”的版本 2 被保留，版本 2 播放时舞台灯开始闪烁。',
   'tour.chat.ask': '让舞台灯随军鼓闪烁。',
   'tour.chat.reply': '完成：两盏聚光灯在每一下军鼓时闪白光，再渐渐回到粉色。',
 
-  'tour.looks.kicker': '你自己的可视化效果',
+  'tour.looks.kicker': '你自己的场景',
   'tour.looks.title': '自定义图表外观',
   'tour.looks.subtitle': '你的形态，你的颜色，你的律动',
   'tour.looks.lead':
@@ -732,7 +730,7 @@ const tour: Partial<Dictionary> = {
   'tour.v23.forum':
     '论坛各板块显示未读动态数量，“问题”统计仍未关闭的问题，没写完的话题和回复也会保存。',
   'tour.v23.layout':
-    '可视化现在位于顶栏最前，在线媒体位于最后。紧凑播放器的游戏名称保持简短，音量读数稳定，添加游戏的按钮始终可见，滚动条紧贴页面边缘。',
+    '场景现在位于顶栏最前，在线媒体位于最后。紧凑播放器的游戏名称保持简短，音量读数稳定，添加游戏的按钮始终可见，滚动条紧贴页面边缘。',
 };
 
 export default tour;

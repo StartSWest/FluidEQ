@@ -217,7 +217,7 @@ const studio = {
   'studio.publish.noteWriting': '장면의 채팅이 새로운 점을 쓰고 있습니다…',
   'studio.publish.noteNeeded': '필요',
   'studio.publish.point1':
-    '로그인한 사람은 누구나 Visualizer에서 볼 수 있으며 몇 초 동안 시청하면 크레딧을 받을 수 있습니다. 그것은 당신을 위해 무료로 재생됩니다.',
+    '로그인한 사람은 누구나 장면 갤러리에서 볼 수 있으며 몇 초 동안 시청하면 크레딧을 받을 수 있습니다. 그것은 당신을 위해 무료로 재생됩니다.',
   'studio.publish.point3':
     '새로운 사람이 얻을 수 없도록 게시를 취소할 수 있습니다. 이미 가지고 있는 사람은 그것을 유지합니다.',
   'studio.publish.point3Update':

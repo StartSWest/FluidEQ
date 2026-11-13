@@ -103,7 +103,7 @@ const account = {
   'account.error.alreadyRegistered': '已經有一個使用該地址的帳戶。請登入。',
   'account.plus.eyebrow': 'FluidEQ',
   'account.perk.looks': '永遠屬於您的場景，每個場景一分。',
-  'account.perk.visualizers': '展示臺：成員製作的場景，對每個帳號開放。',
+  'account.perk.visualizers': '「場景」：成員製作的場景畫廊，對每個帳號開放。',
   'account.google': '繼續使用谷歌',
   'account.or': '或',
   'account.google.waiting': '在瀏覽器中完成 Google 登入。',

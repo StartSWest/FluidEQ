@@ -105,12 +105,12 @@ const store: Partial<Dictionary> = {
   'store.welcome.cardClaimedTitle.other': '{count} crediti pronti da usare',
   'store.welcome.eyebrow': 'Benvenuto in FluidEQ',
   'store.welcome.body':
-    'Ogni credito ti dà una scena di {visualizers} da tenere per sempre. Riscattali ora e scegli le tue prime scene.',
+    'Ogni credito ti dà una scena della scheda {visualizers} da tenere per sempre. Riscattali ora e scegli le tue prime scene.',
   'store.welcome.fine':
     'Una volta per account. Puoi guardare ogni scena per qualche secondo prima di spendere un credito.',
   'store.welcome.later': 'Più tardi',
   'store.welcome.claimedBody':
-    'Scegli le tue prime scene. “{notMine}” è attivo, quindi {visualizers} mostra solo le scene che non hai.',
+    'Scegli le tue prime scene. “{notMine}” è attivo, quindi la scheda {visualizers} mostra solo le scene che non hai.',
   'store.welcome.pick': 'Scegli le mie prime scene',
   'store.welcome.cardBody': 'Riscattali e scegli le tue prime scene da tenere.',
   'store.welcome.cardClaimedBody':

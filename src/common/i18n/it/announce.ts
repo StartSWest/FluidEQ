@@ -12,7 +12,7 @@ const announce = {
     'Sei offline. Sono mostrate le notizie salvate ancora valide.',
   'announce.news.empty': 'Nessun annuncio attuale.',
 
-  'announce.eyebrow': 'Novità in Visualizzatori · {count} scene',
+  'announce.eyebrow': 'Novità in Scene · {count} scene',
   'announce.try': 'Provale ora',
   'announce.later': 'Più tardi',
   'announce.previewNote': 'Anteprima. Non è stato inviato né registrato nulla.',

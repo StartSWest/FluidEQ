@@ -195,10 +195,10 @@ const plus = {
     '무료 계정을 만들고 시작 크레딧을 받으세요. 크레딧 하나로 영원히 간직할 장면 하나를 받을 수 있습니다.',
   'plus.signedOut.free.title': '무료, 계정 없이',
   'plus.signedOut.free.body':
-    'FluidEQ의 이퀄라이저, 오디오 효과, 음악 재생, 무료 비주얼라이저. 가입하지 않아도 쓸 수 있습니다.',
+    'FluidEQ의 이퀄라이저, 오디오 효과, 음악 재생, 그래프의 기본 스타일. 가입하지 않아도 쓸 수 있습니다.',
   'plus.signedOut.account.title': '무료 계정이 있으면',
   'plus.signedOut.account.body':
-    '비주얼라이저용 장면을 받고(처음 몇 개는 무료), 갤러리를 둘러보고, 스튜디오에서 나만의 장면을 만들 수 있습니다.',
+    '갤러리에서 장면을 받고(처음 몇 개는 무료), 스튜디오에서 나만의 장면을 만들 수 있습니다.',
   'plus.signedOut.create': '무료 계정 만들기',
   'plus.signedOut.createSub.one': '장면 {count}개 받기',
   'plus.signedOut.createSub.few': '장면 {count}개 받기',

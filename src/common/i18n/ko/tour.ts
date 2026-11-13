@@ -23,7 +23,7 @@ const tour = {
   'tour.player.title': '하나의 열에 전체 앱',
   'tour.player.subtitle': '모든 창 색상에서 동일한 플레이어 1명',
   'tour.player.lead':
-    '제목 표시줄에 있는 스위치 중 하나는 FluidEQ를 하나의 열로 접습니다. 상단의 시각화 도우미에는 노래, 컨트롤, 사운드 및 다음에 재생할 내용이 표시됩니다. 모든 창 색상의 동일한 플레이어이며 {backdrop}에서 선택한 장면이 모든 창 뒤에서 재생됩니다.',
+    '제목 표시줄에 있는 스위치 중 하나는 FluidEQ를 하나의 열로 접습니다. 상단의 장면에는 노래, 컨트롤, 사운드 및 다음에 재생할 내용이 표시됩니다. 모든 창 색상의 동일한 플레이어이며 {backdrop}에서 선택한 장면이 모든 창 뒤에서 재생됩니다.',
   'tour.player.point1':
     '{sound}는 저음, 중음, 고음 노브 또는 EQ 자체 밴드를 보유하고 있으며 그 옆에는 프리셋 Smart EQ 및 EQ 모드가 있습니다.',
   'tour.player.point2':
@@ -34,12 +34,12 @@ const tour = {
     '도움말 옆의 제목 표시줄에서 컴팩트 플레이어 스위치를 누릅니다. 플레이어에서 동일한 스위치를 누르면 전체 앱이 다시 표시됩니다.',
   'tour.player.open': '컴팩트 플레이어를 사용해 보세요',
   'tour.player.imageAlt':
-    '{player} 스위치가 울리고 컴팩트 플레이어가 두 번 울리는 제목 표시줄 모서리: EQ 밴드가 열려 있고 노래 뒤의 표준 비주얼라이저와 톤 노브가 열려 있는 {backdrop}의 장면 위에 있습니다.',
+    '{player} 스위치가 울리고 컴팩트 플레이어가 두 번 울리는 제목 표시줄 모서리: EQ 밴드가 열려 있고 노래 뒤의 기본 스타일과 톤 노브가 열려 있는 {backdrop}의 장면 위에 있습니다.',
   'tour.player.scene': '{backdrop}의 장면 포함',
-  'tour.player.standard': '표준 비주얼라이저 사용',
+  'tour.player.standard': '기본 스타일 사용',
   'tour.look.kicker': '새로운 모습',
   'tour.look.title': '새로운 색상의 새 창',
-  'tour.look.subtitle': '하나의 테마 슬라이더와 그 뒤에 있는 시각화 도우미',
+  'tour.look.subtitle': '하나의 테마 슬라이더와 그 뒤에 있는 장면',
   'tour.look.lead':
     '유리창은 새 아이콘의 색상으로 열린 바닥에 서 있으며, 하나의 슬라이더 {brightness}는 전체 창을 거의 검은색에서 연한 바다색으로 바꿉니다. 그래프의 장면을 통해 창은 색상을 취하거나 모든 것 뒤에서 재생되도록 할 수 있습니다.',
   'tour.look.point1':
@@ -47,14 +47,14 @@ const tour = {
   'tour.look.point2':
     '{windowColours}는 {original}, {colours}, {ambient} 및 {backdrop}를 제공하며 각각 창에 수행되는 작업에 대한 줄이 있습니다.',
   'tour.look.point3':
-    '대화 상자와 메뉴는 하나의 자료를 공유하며 {rainbow}는 아이콘의 색상이나 시각화 도우미의 색상을 통해 실행됩니다.',
+    '대화 상자와 메뉴는 하나의 자료를 공유하며 {rainbow}는 아이콘의 색상이나 장면의 색상을 통해 실행됩니다.',
   'tour.look.how':
     '오른쪽 상단 펄스 아이콘 뒤의 메뉴에서 {brightness}를 이동하세요. 그래프에 장면이 있는 경우 그래프 막대에서 {windowColours}를 열고 {backdrop}를 선택합니다.',
   'tour.look.open': '오픈 EQ',
   'tour.look.imageAlt':
     'EQ 페이지에 자체 색상으로 표시된 FluidEQ, 곡선 아래에 노래를 그리는 분석기, 모서리 위에 열리는 펄스 아이콘 뒤의 메뉴, 밝기가 절반이고 컬러풀 모드가 켜져 있습니다.',
-  'tour.gpu.kicker': '새로운 비주얼라이저 엔진',
-  'tour.gpu.title': '그래픽 카드의 모든 비주얼라이저',
+  'tour.gpu.kicker': '새로운 장면 엔진',
+  'tour.gpu.title': '그래픽 카드의 모든 장면',
   'tour.gpu.subtitle': '마흔은 화면 자체의 속도와 3D 세계를 살펴봅니다.',
   'tour.gpu.lead':
     '이제 그래프의 40가지 모양은 장면이 실행되는 엔진에서 그려집니다. 즉, 그래픽 카드에서 화면 자체의 새로 고침 빈도로 막대, 입자 및 피크가 밟았던 위치로 미끄러집니다. 이제 장면은 실제 3D 세계가 될 수 있습니다.',
@@ -71,21 +71,21 @@ const tour = {
     '밤의 3D 도시 장면과 그래프에 촬영된 4개의 새로운 모습({synthwave}, {horizon}, {towers} 및 {ledwall})과 첫 번째에 모양 선택기가 울립니다.',
   'tour.gpu.world': '3D 세계',
   'tour.sparks.kicker': '포인터 불꽃',
-  'tour.sparks.title': '마우스에 응답하는 비주얼라이저',
+  'tour.sparks.title': '마우스에 응답하는 장면',
   'tour.sparks.subtitle': '포인터에서 나오는 불꽃, 꽃잎 또는 눈',
   'tour.sparks.lead':
     '장면 위로 마우스를 이동하면 포인터 뒤의 흔적에 불꽃, 꽃잎, 눈, 불씨 등 구성 요소가 던져지고 클릭할 때마다 터집니다. {ambient}와 {backdrop}에서는 새, 꽃잎, 빛이 전체 창 위로 떠다닙니다.',
   'tour.sparks.point1':
-    '각 비주얼라이저는 겨울 장면의 눈, 캠프파이어의 불씨, 정원의 꽃잎 등 고유한 이미지를 제공합니다.',
+    '각 장면은 겨울 장면의 눈, 캠프파이어의 불씨, 정원의 꽃잎 등 고유한 이미지를 제공합니다.',
   'tour.sparks.point2':
     '스튜디오의 무대에서는 항상 장면을 보여주므로 장면 제작자가 장면의 모양을 만들 수 있습니다.',
   'tour.sparks.point3':
-    '모든 비주얼라이저에 대한 하나의 스위치: {sparks}, {rainbow} 아래의 {windowColours}.',
+    '모든 장면에 대한 하나의 스위치: {sparks}, {rainbow} 아래의 {windowColours}.',
   'tour.sparks.how':
     '그래프의 장면에서 마우스를 해당 장면 위로 이동하고 클릭합니다. {sparks}는 {rainbow} 아래의 {windowColours}에 있습니다.',
   'tour.sparks.open': '오픈 EQ',
   'tour.sparks.imageAlt':
-    '포인터 뒤에 빛나는 불꽃의 흔적이 있고 클릭할 때 폭발하는 오로라 비주얼라이저와 {sparks} 스위치가 울리는 {windowColours}.',
+    '포인터 뒤에 빛나는 불꽃의 흔적이 있고 클릭할 때 폭발하는 오로라 장면과 {sparks} 스위치가 울리는 {windowColours}.',
   'tour.sound.kicker': 'FLUIDEQ 엔진',
   'tour.sound.title': '당신이 그린 그대로 소리가 나요',
   'tour.sound.subtitle': '그려진 대로 고음, 자동 스위치, 한 단계의 레벨',
@@ -169,7 +169,7 @@ const tour = {
   'tour.tone.imageAlt':
     '저음, 중음, 고음 3분의 1의 이퀄라이저 곡선, 이를 움직이는 3개의 손잡이, 6개에서 31개 밴드까지의 빠른 레이아웃.',
   'tour.studio.kicker': '플루이드큐 플러스',
-  'tour.studio.title': '나만의 비주얼라이저 만들기',
+  'tour.studio.title': '나만의 장면 만들기',
   'tour.studio.subtitle': '모든 계정에 무료',
   'tour.studio.lead':
     'Studio는 아이디어를 음악과 함께 움직이는 장면으로 바꿔줍니다. 모든 계정에 무료입니다. 원하는 만큼 장면을 만들고, 내보내고, 게시할 수 있습니다.',
@@ -179,8 +179,8 @@ const tour = {
     '장면은 발을 디디고 떨어지면 도약하는 실제 3D 세계가 될 수 있습니다.',
   'tour.studio.point3':
     'AI 프롬프트를 복사하면 AI 도우미가 장면을 보고 노래가 어떻게 움직이는지 들을 수 있습니다.',
-  'tour.studio.how': 'Visualizers를 열고 레일에서 Studio를 선택합니다.',
-  'tour.studio.open': '시각화 도우미 열기',
+  'tour.studio.how': '장면을 열고 레일에서 Studio를 선택합니다.',
+  'tour.studio.open': '장면 열기',
   'tour.studio.imageAlt':
     '무대에서 알파인, 눈 덮인 산봉우리와 오로라 아래의 호수를 재생하는 스튜디오에서는 AI가 있는 장면을 만드는 3단계와 두 개의 메모가 포함되어 있습니다. 모든 계정에 무료이며 게시된 장면은 제작자에게 무료로 재생됩니다.',
   'tour.studio.earned': '게시됨: 무료로 재생됩니다',
@@ -242,28 +242,28 @@ const tour = {
   'tour.room.open': '방을 열어라',
   'tour.room.imageAlt':
     '위에서 본 방: 7개의 스피커와 중앙의 머리 주위에 서브가 서 있으며 각각 귀로 향하는 경로가 있습니다.',
-  'tour.plus.kicker': '비주얼라이저',
+  'tour.plus.kicker': '장면',
   'tour.plus.title': '영원히 너의 것인 장면들',
-  'tour.plus.subtitle': '비주얼라이저, 스튜디오, 조명 등',
+  'tour.plus.subtitle': '장면, 스튜디오, 조명 등',
   'tour.plus.lead':
     'FluidEQ의 성장을 유지하는 추가 기능의 전체 탭: 그래픽 카드에 그린 장면, 직접 만들 수 있는 스튜디오, 데스크탑 배경 및 동적 조명. 한 장면의 비용은 1크레디트이며 귀하의 것으로 유지되며, 이퀄라이저, 랙 및 플레이어는 항상 그래왔듯이 무료입니다.',
   'tour.plus.point1':
-    '비주얼라이저 탭에서 로그인하세요. 확인된 계정은 시작할 수 있는 무료 크레딧을 받습니다.',
+    '장면 탭에서 로그인하세요. 확인된 계정은 시작할 수 있는 무료 크레딧을 받습니다.',
   'tour.plus.point2':
     '크레딧 팩은 한 번만 지불되며 지불하기 전에 일반 용어로 용어가 표시됩니다. 아무것도 갱신되지 않으며 앱에서 카드를 볼 수 없습니다.',
   'tour.plus.point3':
     '모든 장면을 먼저 볼 수 있으며, 로그인한 모든 컴퓨터에서 재생되는 장면을 볼 수 있습니다.',
   'tour.plus.how':
-    'Visualizers 탭을 엽니다. 갤러리, 스튜디오 및 동적 조명이 왼쪽 아래에 있습니다.',
-  'tour.plus.open': '시각화 도우미 열기',
+    '장면 탭을 엽니다. 갤러리, 스튜디오 및 동적 조명이 왼쪽 아래에 있습니다.',
+  'tour.plus.open': '장면 열기',
   'tour.plus.imageAlt':
-    '비주얼라이저 탭: 측면 아래에는 갤러리, 스튜디오 및 동적 조명이 있고 Chrome, Bloom, Aurora, Alpine 및 Neon City가 포함된 갤러리가 있습니다.',
+    '장면 탭: 측면 아래에는 갤러리, 스튜디오 및 동적 조명이 있고 Chrome, Bloom, Aurora, Alpine 및 Neon City가 포함된 갤러리가 있습니다.',
   'tour.scene.alpine': '알파인',
   'tour.scene.aurora': '오로라',
   'tour.scene.bloom': '블룸',
   'tour.scene.chrome': '크롬',
   'tour.scene.neonCity': '네온 시티',
-  'tour.visualizers.kicker': '비주얼라이저',
+  'tour.visualizers.kicker': '장면',
   'tour.visualizers.title': '음악과 함께 움직이는 장면',
   'tour.visualizers.subtitle': '그래픽 카드에 그려진',
   'tour.visualizers.lead':
@@ -275,17 +275,17 @@ const tour = {
   'tour.visualizers.point3':
     '보기를 자동으로 전환하고, 전체 화면으로 전환하고, 보기에서 장면의 어택과 릴리스를 설정하세요.',
   'tour.visualizers.how':
-    '그래프에서 Look의 이름을 클릭하고 Visualizers에서 하나를 선택하거나 Visualizers → Gallery에서 모두 찾아보세요.',
+    '그래프에서 Look의 이름을 클릭하고 장면에서 하나를 선택하거나 장면 → Gallery에서 모두 찾아보세요.',
   'tour.visualizers.open': '오픈 EQ',
   'tour.visualizers.imageAlt':
     '밤에 호수 위에 산이 있는 장면을 EQ 곡선 아래 그래프에서 재생하는 알파인(Alpine)과 그 아래에 4개의 장면이 더 있습니다.',
-  'tour.desktop.kicker': '데스크탑 비주얼라이저',
+  'tour.desktop.kicker': '바탕 화면 배경',
   'tour.desktop.title': '데스크탑 뒤에 있는 음악',
   'tour.desktop.subtitle': '모든 모니터의 장면',
   'tour.desktop.lead':
     '데스크탑 아이콘 뒤에 장면을 추가하세요. 여러분이 듣고 있는 음악과 함께 움직이거나 조용히 저절로 움직이며, 모든 모니터가 그 자체의 장면을 보여줄 수 있습니다.',
   'tour.desktop.point1':
-    '책상 지도에서 모니터를 선택하세요. 각 모니터에는 자체 시각화 기능이 있습니다.',
+    '책상 지도에서 모니터를 선택하세요. 각 모니터에는 자체 장면이 있습니다.',
   'tour.desktop.point2':
     'Windows가 모니터를 덮고 있는 동안, PC가 잠겨 있고 배터리가 켜져 있는 동안에는 일시 중지됩니다.',
   'tour.desktop.point3': '다음에 FluidEQ가 시작되면 자동으로 다시 나타납니다.',
@@ -296,18 +296,18 @@ const tour = {
     '데스크탑 아이콘과 작업 표시줄 뒤에 각각 Aurora, Alpine, Neon City 장면을 표시하는 3개의 모니터가 있습니다.',
   'tour.lighting.kicker': '동적 조명',
   'tour.lighting.title': '장면에 따라 책상이 밝아집니다',
-  'tour.lighting.subtitle': '베타 · RGB 장치는 비주얼라이저를 따릅니다.',
+  'tour.lighting.subtitle': '베타 · RGB 장치는 장면을 따릅니다.',
   'tour.lighting.lead':
     '키보드, 마우스, 마우스패드, 헤드셋 및 스탠드는 Windows Dynamic Lighting 및 Razer Chroma를 통해 그래프에 표시된 장면의 색상과 리듬을 구현합니다.',
   'tour.lighting.point1':
-    '각 시각화 도우미에 대한 4가지 스타일: 장면, 색상 웨이브, 스펙트럼 및 비트 리플.',
+    '각 장면에 대한 4가지 스타일: 장면, 색상 웨이브, 스펙트럼 및 비트 리플.',
   'tour.lighting.point2':
     '모든 장치를 자체적으로 조정하고 음악이 멈출 때 어떤 일이 일어날지 선택하세요.',
   'tour.lighting.point3':
     '실시간 미리보기를 통해 책상이 켜지는 대로 자신만의 책상이 그려집니다. 베타 버전입니다. 장치가 어떻게 작동하는지 알려주세요.',
   'tour.lighting.how':
-    'Visualizers → 동적 조명을 열고 스위치를 켠 다음 그래프에 장면을 배치합니다.',
-  'tour.lighting.open': '시각화 도우미 열기',
+    '장면 → 동적 조명을 열고 스위치를 켠 다음 그래프에 장면을 배치합니다.',
+  'tour.lighting.open': '장면 열기',
   'tour.lighting.imageAlt':
     '키보드, 마우스, 마우스 패드가 네온 시티의 핑크색, 보라색, 청록색으로 빛났습니다.',
   'tour.share.kicker': '모든 PC에서 양방향으로',
@@ -558,7 +558,7 @@ const tour = {
   'tour.walkthrough.title': '비디오 하나로 보는 FluidEQ의 모든 것',
   'tour.walkthrough.subtitle': '처음부터 끝까지 보기',
   'tour.walkthrough.lead':
-    '처음 끌어 보는 밴드부터 비주얼라이저까지, FluidEQ가 하는 모든 것을 안내합니다. 각 부분을 쓰는 방법은 음성으로 설명합니다.',
+    '처음 끌어 보는 밴드부터 장면까지, FluidEQ가 하는 모든 것을 안내합니다. 각 부분을 쓰는 방법은 음성으로 설명합니다.',
   'tour.film.walkthrough.intro': '비디오 하나로 보는 FluidEQ의 모든 것',
   'tour.film.engine.intro':
     'FluidEQ에는 자체 오디오 엔진이 있습니다. 컴퓨터에서 재생되는 모든 소리에 EQ와 DSP 랙을 적용합니다.',
@@ -608,7 +608,7 @@ const tour = {
     '이 컴퓨터에 설치된 Claude Code에서 귀하의 계획에 따라 실행되며 한계가 얼마나 남아 있는지 보여줍니다.',
   'tour.chat.how':
     '{plus}를 열고 레일에서 {studio}를 선택한 다음 장면을 선택하거나 시작하고 무대 옆 상자에 입력하세요.',
-  'tour.chat.open': '시각화 도우미 열기',
+  'tour.chat.open': '장면 열기',
   'tour.chat.imageAlt':
     '채팅 옆에 있는 스튜디오 무대: 스네어에서 무대 조명을 깜박이게 해 달라는 요청, 응답 단계가 똑딱거리고, 버전 2는 Bring back으로 유지되며, 버전 2가 재생될 때 무대 조명이 깜박이기 시작합니다.',
   'tour.chat.ask': '스네어에서 무대 조명이 깜박이도록 하세요.',
@@ -647,7 +647,7 @@ const tour = {
   'tour.songs.open': '오픈 EQ',
   'tour.songs.imageAlt':
     '차례로 재생되는 4곡의 대기열(각각 프리셋 및 곡선이 있는 3곡은 남아 있고 한 곡은 조정되지 않았으며 그 위에는 실행 취소 및 이 노래 잊어버리기)와 함께 기억된 노래가 표시됩니다.',
-  'tour.looks.kicker': '나만의 비주얼라이저',
+  'tour.looks.kicker': '나만의 장면',
   'tour.looks.title': '그래프에 대한 사용자 정의 모양',
   'tour.looks.subtitle': '나만의 형태, 색상, 모션',
   'tour.looks.lead':
@@ -713,10 +713,10 @@ const tour = {
   'tour.media.open': '온라인 미디어 열기',
   'tour.studio.free': '모든 계정에 무료',
   'tour.film.englishAudio': '영어 음성 · 번역 자막',
-  'tour.karaokeBackground.title': '가사 뒤에 펼쳐지는 비주얼라이저',
+  'tour.karaokeBackground.title': '가사 뒤에 펼쳐지는 장면',
   'tour.karaokeBackground.subtitle': '선택한 스타일을 노래방 무대에',
   'tour.karaokeBackground.lead':
-    '노래방 배경으로 비주얼라이저나 장면을 선택하세요.',
+    '노래방 배경으로 장면이나 기본 스타일을 선택하세요.',
   'tour.karaokeBackground.how':
     'EQ의 {looks}에서 원하는 스타일이나 장면을 선택한 다음, 노래방에서 {showGraph} 버튼을 누르세요.',
   'tour.karaokeBackground.open': '노래방 열기',
@@ -763,7 +763,7 @@ const tour = {
   'tour.v23.forum':
     '포럼의 각 게시판은 보지 않은 활동을 세고 문제는 열린 문제만 셉니다. 미완성 주제와 답글도 저장됩니다.',
   'tour.v23.layout':
-    '헤더의 맨 앞은 비주얼라이저, 마지막은 온라인 미디어로 바뀌었습니다. 컴팩트 플레이어의 게임 이름은 짧게 표시되고, 볼륨 수치는 안정적이며, 게임 추가 버튼은 항상 보이고 스크롤바는 가장자리에 붙습니다.',
+    '헤더의 맨 앞은 장면, 마지막은 온라인 미디어로 바뀌었습니다. 컴팩트 플레이어의 게임 이름은 짧게 표시되고, 볼륨 수치는 안정적이며, 게임 추가 버튼은 항상 보이고 스크롤바는 가장자리에 붙습니다.',
 } satisfies Partial<Dictionary>;
 
 export default tour;

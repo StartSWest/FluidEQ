@@ -2,21 +2,21 @@ const wallpaper = {
   'wallpaper.action': 'Definir como fundo da área de trabalho',
   'wallpaper.title': 'Fundo da área de trabalho',
   'wallpaper.description':
-    'Mantenha este visualizador atrás dos ícones da área de trabalho, movendo-se com a sua música ou calmamente por si só.',
+    'Mantenha esta cena atrás dos ícones da área de trabalho, movendo-se com a sua música ou calmamente por si só.',
   'wallpaper.manage.description':
     'O que cada monitor mostra atrás dos ícones da área de trabalho.',
   'wallpaper.manage.empty':
     'Todos os monitores mostram o fundo normal do Windows.',
   'wallpaper.monitors': 'Monitores',
   'wallpaper.monitors.hint':
-    'Escolha onde toca. Cada monitor pode mostrar o seu próprio visualizador.',
+    'Escolha onde toca. Cada monitor pode mostrar a sua própria cena.',
   'wallpaper.monitors.all': 'Todos os monitores',
   'wallpaper.monitor.name': 'Monitor {number}',
   'wallpaper.monitor.primary': 'Principal',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Fundo do Windows',
   'wallpaper.monitor.disconnected': 'Monitor desconectado',
-  'wallpaper.visualizer.unknown': 'Visualizador',
+  'wallpaper.visualizer.unknown': 'Cena',
   'wallpaper.pauseOnBattery': 'Pausar ao usar a bateria',
   'wallpaper.pauseOnBattery.hint':
     'Economiza energia quando o computador está fora da tomada.',
@@ -70,17 +70,17 @@ const wallpaper = {
   'wallpaper.error.notEntitled':
     'Esta cena ainda não é sua. Obtenha-a na Galeria para colocá-la na sua área de trabalho.',
   'wallpaper.error.missingScene':
-    'Este visualizador não está mais instalado. Adicione-o novamente e tente de novo.',
+    'Esta cena não está mais instalada. Adicione-a novamente e tente de novo.',
   'wallpaper.error.refused':
-    'Este visualizador falhou com os gráficos deste computador. Defina-o novamente para tentar outra vez.',
+    'Esta cena falhou com os gráficos deste computador. Defina-a novamente para tentar outra vez.',
   'wallpaper.error.missingDisplay':
     'Esse monitor está desconectado. O fundo volta quando ele for conectado de novo.',
   'wallpaper.error.host':
-    'O Windows não conseguiu colocar o visualizador na área de trabalho. Tente novamente.',
+    'O Windows não conseguiu colocar a cena na área de trabalho. Tente novamente.',
   'wallpaper.error.renderer':
-    'O visualizador não conseguiu desenhar na área de trabalho. Tente novamente.',
+    'A cena não conseguiu desenhar na área de trabalho. Tente novamente.',
   'wallpaper.error.audio':
-    'O visualizador da área de trabalho perdeu o sinal de música. Tente novamente.',
+    'A cena da área de trabalho perdeu o sinal de música. Tente novamente.',
 } as const;
 
 export default wallpaper;

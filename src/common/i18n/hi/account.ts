@@ -123,7 +123,7 @@ const account = {
 
   'account.perk.looks': 'हमेशा के लिए आपके सीन, हर एक एक क्रेडिट का।',
   'account.perk.visualizers':
-    'विज़ुअलाइज़र: सदस्यों के बनाए सीन, हर खाते के लिए खुले।',
+    'सीन: सदस्यों के बनाए सीन की गैलरी, हर खाते के लिए खुली।',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Google के साथ जारी रखें',
   'account.or': 'या',

@@ -2,21 +2,21 @@ const wallpaper = {
   'wallpaper.action': 'Définir comme arrière-plan du Bureau',
   'wallpaper.title': 'Arrière-plan du Bureau',
   'wallpaper.description':
-    'Gardez ce visualiseur derrière les icônes du Bureau, animé par votre musique ou calmement de lui-même.',
+    'Gardez cette scène derrière les icônes du Bureau, animée par votre musique ou calmement d’elle-même.',
   'wallpaper.manage.description':
     'Ce que chaque écran affiche derrière les icônes du Bureau.',
   'wallpaper.manage.empty':
     'Tous les écrans affichent leur arrière-plan Windows habituel.',
   'wallpaper.monitors': 'Écrans',
   'wallpaper.monitors.hint':
-    'Choisissez où il est lu. Chaque écran peut afficher son propre visualiseur.',
+    'Choisissez où elle est lue. Chaque écran peut afficher sa propre scène.',
   'wallpaper.monitors.all': 'Tous les écrans',
   'wallpaper.monitor.name': 'Écran {number}',
   'wallpaper.monitor.primary': 'Principal',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Arrière-plan Windows',
   'wallpaper.monitor.disconnected': 'Écran déconnecté',
-  'wallpaper.visualizer.unknown': 'Visualiseur',
+  'wallpaper.visualizer.unknown': 'Scène',
   'wallpaper.pauseOnBattery': 'Mettre en pause sur batterie',
   'wallpaper.pauseOnBattery.hint':
     "Économise l'énergie lorsque l'ordinateur est débranché.",
@@ -71,17 +71,17 @@ const wallpaper = {
   'wallpaper.error.notEntitled':
     'Cette scène n’est pas encore à vous. Obtenez-la dans la Galerie pour la mettre sur votre Bureau.',
   'wallpaper.error.missingScene':
-    "Ce visualiseur n'est plus installé. Ajoutez-le à nouveau et réessayez.",
+    "Cette scène n'est plus installée. Ajoutez-la à nouveau et réessayez.",
   'wallpaper.error.refused':
-    'Ce visualiseur a échoué avec les graphismes de cet ordinateur. Remettez-le pour réessayer.',
+    'Cette scène a échoué avec les graphismes de cet ordinateur. Remettez-la pour réessayer.',
   'wallpaper.error.missingDisplay':
     'Cet écran est déconnecté. Son arrière-plan revient dès que vous le rebranchez.',
   'wallpaper.error.host':
-    "Windows n'a pas pu placer le visualiseur sur le Bureau. Réessayez.",
+    "Windows n'a pas pu placer la scène sur le Bureau. Réessayez.",
   'wallpaper.error.renderer':
-    "Le visualiseur n'a pas pu s'afficher sur le Bureau. Réessayez.",
+    "La scène n'a pas pu s'afficher sur le Bureau. Réessayez.",
   'wallpaper.error.audio':
-    'Le visualiseur de Bureau a perdu le signal musical. Réessayez.',
+    'La scène du Bureau a perdu le signal musical. Réessayez.',
 } as const;
 
 export default wallpaper;

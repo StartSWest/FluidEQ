@@ -2,21 +2,21 @@ const wallpaper = {
   'wallpaper.action': 'Als Desktophintergrund festlegen',
   'wallpaper.title': 'Desktophintergrund',
   'wallpaper.description':
-    'Dieser Visualizer bleibt hinter den Desktopsymbolen und bewegt sich zu Ihrer Musik oder ruhig für sich.',
+    'Diese Szene bleibt hinter den Desktopsymbolen und bewegt sich zu Ihrer Musik oder ruhig für sich.',
   'wallpaper.manage.description':
     'Was jeder Monitor hinter den Desktopsymbolen zeigt.',
   'wallpaper.manage.empty':
     'Alle Monitore zeigen ihren gewohnten Windows-Hintergrund.',
   'wallpaper.monitors': 'Monitore',
   'wallpaper.monitors.hint':
-    'Wählen Sie, wo er läuft. Jeder Monitor kann einen eigenen Visualizer zeigen.',
+    'Wählen Sie, wo sie läuft. Jeder Monitor kann eine eigene Szene zeigen.',
   'wallpaper.monitors.all': 'Alle Monitore',
   'wallpaper.monitor.name': 'Monitor {number}',
   'wallpaper.monitor.primary': 'Primär',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Windows-Hintergrund',
   'wallpaper.monitor.disconnected': 'Getrennter Monitor',
-  'wallpaper.visualizer.unknown': 'Visualizer',
+  'wallpaper.visualizer.unknown': 'Szene',
   'wallpaper.pauseOnBattery': 'Im Akkubetrieb pausieren',
   'wallpaper.pauseOnBattery.hint':
     'Spart Energie, wenn der Computer nicht am Stromnetz ist.',
@@ -72,17 +72,17 @@ const wallpaper = {
   'wallpaper.error.notEntitled':
     'Diese Szene gehört Ihnen noch nicht. Holen Sie sie in der Galerie, um sie auf Ihren Desktop zu legen.',
   'wallpaper.error.missingScene':
-    'Dieser Visualizer ist nicht mehr installiert. Fügen Sie ihn erneut hinzu und versuchen Sie es wieder.',
+    'Diese Szene ist nicht mehr installiert. Fügen Sie sie erneut hinzu und versuchen Sie es wieder.',
   'wallpaper.error.refused':
-    'Dieser Visualizer ist mit der Grafik dieses Computers gescheitert. Legen Sie ihn erneut fest, um es noch einmal zu versuchen.',
+    'Diese Szene ist mit der Grafik dieses Computers gescheitert. Legen Sie sie erneut fest, um es noch einmal zu versuchen.',
   'wallpaper.error.missingDisplay':
     'Dieser Monitor ist getrennt. Sein Hintergrund kehrt zurück, sobald er wieder angeschlossen ist.',
   'wallpaper.error.host':
-    'Windows konnte den Visualizer nicht auf dem Desktop platzieren. Versuchen Sie es erneut.',
+    'Windows konnte die Szene nicht auf dem Desktop platzieren. Versuchen Sie es erneut.',
   'wallpaper.error.renderer':
-    'Der Visualizer konnte auf dem Desktop nicht dargestellt werden. Versuchen Sie es erneut.',
+    'Die Szene konnte auf dem Desktop nicht dargestellt werden. Versuchen Sie es erneut.',
   'wallpaper.error.audio':
-    'Der Desktop-Visualizer hat das Musiksignal verloren. Versuchen Sie es erneut.',
+    'Die Desktop-Szene hat das Musiksignal verloren. Versuchen Sie es erneut.',
 } as const;
 
 export default wallpaper;

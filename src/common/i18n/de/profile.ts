@@ -1,7 +1,7 @@
 const profile = {
   'profile.name.title': 'Wählen Sie, wie die Galerie Sie zeigt',
   'profile.name.body':
-    'Ein Kürzel und ein Name. Die Galerie „Visualizer“ nennt sie bei Ihren Szenen. Alle Angemeldeten sehen sie; Ihre E-Mail sieht niemand.',
+    'Ein Kürzel und ein Name. Die Szenen-Galerie nennt sie bei Ihren Szenen. Alle Angemeldeten sehen sie; Ihre E-Mail sieht niemand.',
   'profile.name.handle': 'Kürzel',
   'profile.name.handleHint': '3 bis 20 Buchstaben, Ziffern oder _',
   'profile.name.name': 'Anzeigename',

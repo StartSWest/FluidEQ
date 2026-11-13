@@ -62,7 +62,7 @@ test('an empty picker invites guests into both existing destinations and auth', 
   const view = renderPicker();
   expect(screen.getByText('Bring your music to life')).toBeVisible();
   expect(
-    within(screen.getByRole('region', { name: 'Visualizers' })).queryByText(
+    within(screen.getByRole('region', { name: 'Scenes' })).queryByText(
       'No matches',
     ),
   ).not.toBeInTheDocument();
@@ -83,7 +83,7 @@ test('search misses keep a real clear-search action instead of a sales message',
   expect(
     screen.queryByText('Bring your music to life'),
   ).not.toBeInTheDocument();
-  const visualizers = screen.getByRole('region', { name: 'Visualizers' });
+  const visualizers = screen.getByRole('region', { name: 'Scenes' });
   expect(within(visualizers).getByText('No matches')).toBeVisible();
   fireEvent.click(
     within(visualizers).getByRole('button', { name: 'Clear search' }),
@@ -138,7 +138,7 @@ test('owned scene selection and a search miss never become the discovery offer',
     screen.queryByText('Bring your music to life'),
   ).not.toBeInTheDocument();
   expect(
-    within(screen.getByRole('region', { name: 'Visualizers' })).getByText(
+    within(screen.getByRole('region', { name: 'Scenes' })).getByText(
       'No matches',
     ),
   ).toBeVisible();

@@ -106,12 +106,12 @@ const store: Partial<Dictionary> = {
   'store.welcome.cardClaimedTitle.other': '{count} クレジットを使えます',
   'store.welcome.eyebrow': 'FluidEQ へようこそ',
   'store.welcome.body':
-    '1 クレジットで「{visualizers}」のシーンを 1 つ、ずっと自分のものにできます。今すぐ受け取って、最初のシーンを選びましょう。',
+    '1 クレジットで「{visualizers}」タブのシーンを 1 つ、ずっと自分のものにできます。今すぐ受け取って、最初のシーンを選びましょう。',
   'store.welcome.fine':
     '1 アカウントにつき 1 回。クレジットを使う前に、どのシーンも数秒間見られます。',
   'store.welcome.later': '後で',
   'store.welcome.claimedBody':
-    '最初のシーンを選びましょう。「{notMine}」がオンなので、「{visualizers}」にはまだ持っていないシーンだけが表示されます。',
+    '最初のシーンを選びましょう。「{notMine}」がオンなので、「{visualizers}」タブにはまだ持っていないシーンだけが表示されます。',
   'store.welcome.pick': '最初のシーンを選ぶ',
   'store.welcome.cardBody':
     '受け取って、ずっと使える最初のシーンを選びましょう。',

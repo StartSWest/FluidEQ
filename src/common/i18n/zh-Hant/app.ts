@@ -51,7 +51,7 @@ const app = {
   'app.menu.resetSettings': '重設所有設定...',
   'settingsReset.title': '重設所有設定？',
   'settingsReset.body':
-    '圖形和視覺化工具、視窗顏色、播放器、庫、每個頁面所在的位置、動畫、從 Windows 開始、桌面背景和動態照明都可以追溯到 FluidEQ 新安裝的啟動方式。',
+    '圖形和場景、視窗顏色、播放器、庫、每個頁面所在的位置、動畫、從 Windows 開始、桌面背景和動態照明都可以追溯到 FluidEQ 新安裝的啟動方式。',
   'settingsReset.kept':
     '您的 EQ、預設、曲線和 DSP 保持原樣，您的輸出、音訊引擎、語言和您儲存的所有內容也保持原樣。',
   'settingsReset.action': '重設設定',
@@ -72,7 +72,7 @@ const app = {
     '{place}：{name}、{ms} ms 以 {fps} fps 的幀，在 {drawn} 處為 {shown} 繪製',
   'app.processes.sceneRate':
     '{place}：{name} 在 {fps} fps 處，在 {drawn} 處為 {shown} 繪製',
-  'app.processes.place.graph': '圖形視覺化工具',
+  'app.processes.place.graph': '圖形場景',
   'app.processes.place.studio': '工作室舞臺',
   'app.processes.name.window': '介面',
   'app.processes.what.window':
@@ -86,12 +86,12 @@ const app = {
   'app.processes.name.graphics': '圖形',
   'app.processes.what.graphics':
     '在顯示卡畫面上繪製所有內容：光譜、曲線、每個動畫和場景。有事一動就忙；它不執行任何模型。',
-  'app.processes.name.desktop': '桌面視覺化工具',
+  'app.processes.name.desktop': '桌面場景',
   'app.processes.what.desktop':
     '除此視窗外，繪製為顯示器桌面背景的場景：每個顯示器顯示一個場景。當視窗覆蓋顯示器或 PC 被鎖定時，它會暫停。',
-  'app.processes.name.desktopHost': '桌面視覺化助手',
+  'app.processes.name.desktopHost': '桌面場景助手',
   'app.processes.what.desktopHost':
-    '將顯示器的桌面視覺化工具放在圖示後面，並在視窗覆蓋螢幕時通知它。每臺顯示器顯示一個。',
+    '將顯示器的桌面場景放在圖示後面，並在視窗覆蓋螢幕時通知它。每臺顯示器顯示一個。',
   'app.processes.name.shareCapture': '音訊捕捉',
   'app.processes.what.shareCapture':
     '擷取該電腦在等化器之前播放的內容，用於「共享音訊」標籤、第二個輸出和 Smart EQ。僅當其中之一正在使用時執行。',
@@ -245,7 +245,7 @@ const app = {
   'tabs.media': '線上媒體',
   'tabs.mediaShort': '媒體',
   'tabs.karaoke': '卡拉 OK',
-  'tabs.plus': '視覺化效果',
+  'tabs.plus': '場景',
   'tabs.scrollBack': '向後捲動分頁',
   'tabs.scrollForward': '向前捲動分頁',
   'notice.apoReconfigured':
@@ -382,7 +382,7 @@ const app = {
   'startup.blocked': 'Windows 已在啟動應用程式中關閉此功能',
   'startup.failed': 'Windows 未能變更這項設定。',
   'settings.group.picture': '畫面',
-  'settings.group.visualizer': '視覺化工具',
+  'settings.group.visualizer': '場景',
   'settings.group.drawing': '繪製方式',
   'settings.group.thisView': '目前檢視',
   'settings.group.studioOnly': '僅限工作室這裡',

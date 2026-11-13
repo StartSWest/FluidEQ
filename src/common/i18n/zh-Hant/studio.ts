@@ -200,7 +200,7 @@ const studio = {
   'studio.publish.noteWriting': '場景的聊天正在寫這次的新內容…',
   'studio.publish.noteNeeded': '需要',
   'studio.publish.point1':
-    '任何登入的人都可以在視覺化工具中看到它，觀看幾秒鐘並獲得點數。它免費為您播放。',
+    '任何登入的人都可以在場景畫廊中看到它，觀看幾秒鐘並獲得點數。它免費為您播放。',
   'studio.publish.point3':
     '您可以取消發布它，這樣任何新人都無法獲取它。誰已經擁有它，就保留它。',
   'studio.publish.point3Update':

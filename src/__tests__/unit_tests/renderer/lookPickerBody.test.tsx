@@ -71,20 +71,18 @@ it('lists every style and every visualizer it is handed', () => {
   expect(
     within(column('Styles')).getByText(String(STYLES.length)),
   ).toBeInTheDocument();
-  expect(within(column('Visualizers')).getByText('Alpine')).toBeInTheDocument();
-  expect(
-    within(column('Visualizers')).getByText('Reef Light'),
-  ).toBeInTheDocument();
+  expect(within(column('Scenes')).getByText('Alpine')).toBeInTheDocument();
+  expect(within(column('Scenes')).getByText('Reef Light')).toBeInTheDocument();
 });
 
 it('narrows both columns to what the search names, and Enter picks a lone match', () => {
   const onChoose = open('reef');
-  expect(within(column('Visualizers')).queryByText('Alpine')).toBeNull();
+  expect(within(column('Scenes')).queryByText('Alpine')).toBeNull();
   expect(
     within(column('Styles')).getByText(translate('en', 'common.noMatches')),
   ).toBeInTheDocument();
   fireEvent.keyDown(
-    screen.getByRole('textbox', { name: 'Search styles and visualizers' }),
+    screen.getByRole('textbox', { name: 'Search styles and scenes' }),
     { key: 'Enter' },
   );
   expect(onChoose).toHaveBeenCalledWith('scene-reef');

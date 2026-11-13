@@ -9,7 +9,7 @@ const help: Record<keyof typeof en, string> = {
     'Una guida pratica a FluidEQ, illustrata con i comandi dell’app e vere catture della finestra. Parti dal tuo primo ascolto, poi esplora al tuo ritmo.',
   'help.offline': 'Disponibile offline',
   'help.search': 'Cerca nella guida',
-  'help.searchHint': 'Prova motore, bassi, visualizzatore…',
+  'help.searchHint': 'Prova motore, bassi, scena…',
   'help.contents': 'In questa guida',
   'help.results': '{count} capitoli',
   'help.resultsOne': '{count} capitolo',
@@ -29,7 +29,7 @@ const help: Record<keyof typeof en, string> = {
   'help.group.start': 'Per iniziare',
   'help.group.sound': 'Modella il tuo suono',
   'help.group.visuals': 'Guarda la tua musica',
-  'help.group.plus': 'Visualizzatori e il tuo account',
+  'help.group.plus': 'Scene e il tuo account',
   'help.group.listen': 'Ascolta, canta e condividi',
   'help.group.help': 'Quando ti serve aiuto',
 
@@ -52,7 +52,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'L’intestazione ti porta da una pagina all’altra di FluidEQ e mostra il suono in tempo reale. La colonna di sinistra ospita l’interruttore generale dell’EQ, la preamplificazione e il misuratore di livello; la colonna di destra segue l’uscita e i suoi profili.',
   'help.window.steps':
-    'Apri una pagina dall’intestazione: Visualizzatori, Condividi audio, Laboratorio gaming, EQ, DSP, Libreria, Karaoke, Media online.\nAttiva EQ di sistema nella colonna di sinistra e lascia attivo Normalizza automaticamente, così nessun rinforzo va in saturazione.\nPremi il misuratore di livello per cambiare come viene disegnato, e Colorata, sul segnale, per vedere le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore.\nPer attivare o disattivare da un’altra app, apri ≡ → Tasto acceso/spento e scegli una combinazione. All’inizio non ne è assegnata nessuna; l’avviso sopra le finestre conferma lo stato di FluidEQ.\nIn Preset EQ, nella Libreria di convoluzione e nella Libreria, la ricerca ignora maiuscole, accenti, spazi e punteggiatura: kpop trova K-pop.',
+    'Apri una pagina dall’intestazione: Scene, Condividi audio, Laboratorio gaming, EQ, DSP, Libreria, Karaoke, Media online.\nAttiva EQ di sistema nella colonna di sinistra e lascia attivo Normalizza automaticamente, così nessun rinforzo va in saturazione.\nPremi il misuratore di livello per cambiare come viene disegnato, e Colorata, sul segnale, per vedere le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore.\nPer attivare o disattivare da un’altra app, apri ≡ → Tasto acceso/spento e scegli una combinazione. All’inizio non ne è assegnata nessuna; l’avviso sopra le finestre conferma lo stato di FluidEQ.\nIn Preset EQ, nella Libreria di convoluzione e nella Libreria, la ricerca ignora maiuscole, accenti, spazi e punteggiatura: kpop trova K-pop.',
   'help.window.tip':
     'Il menu Aiuto apre questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema. Il pulsante del menu a tre linee accanto ad Aiuto contiene la scheda del motore, l’importazione di impostazioni EQ o di una risposta all’impulso, il riavvio dell’audio di Windows, Processi, che mostra cosa sta usando ogni parte di FluidEQ, e Ripristina tutte le impostazioni; in fondo al menu ci sono Luminosità, Tinta, Modalità colorata, Colora l’icona (spenta all’inizio; dà all’icona della barra delle applicazioni, a quella dell’area di notifica e a quella del suo menu i colori della finestra), i cursori dell’EQ, le animazioni, Avvia con Windows (FluidEQ parte allora nell’area di notifica e modella il tuo suono senza aprire finestre) e la lingua. L’interruttore dopo questi due pulsanti trasforma la finestra nel Lettore compatto.',
   'help.window.keywords':
@@ -78,7 +78,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.karaoke':
     'Canta insieme alla musica e trasforma i tuoi brani in karaoke.',
   'help.window.plus':
-    'Visualizzatori, la galleria, lo Studio e l’Illuminazione dinamica.',
+    'Scene: la galleria, lo Studio e l’Illuminazione dinamica.',
   'help.window.support': 'Modi per sostenere il lavoro su FluidEQ.',
   'help.window.help':
     'Questa guida, Novità, Note di rilascio complete, Forum, la risoluzione dei problemi audio, Segnala un problema e Informazioni su FluidEQ. Le note complete si aprono direttamente. Informazioni include collegamenti alle sezioni e, se il link di supporto è disponibile, una scheda Buy Me a Coffee con codice QR.',
@@ -96,9 +96,9 @@ const help: Record<keyof typeof en, string> = {
     'Il livello di uscita, sinistro e destro, in decibel reali. Premilo per cambiarne lo stile.',
   'help.player.title': 'Il Lettore compatto',
   'help.player.intro':
-    'Un interruttore trasforma la finestra di FluidEQ nel Lettore compatto, una sola colonna stretta: in alto un visualizzatore con il brano sopra e i comandi di riproduzione sotto; poi Suono, il tuo equalizzatore; poi In coda e le tue playlist. Ciò che è in riproduzione continua a suonare, e lo stesso interruttore riporta l’app completa sulla pagina che avevi lasciato.',
+    'Un interruttore trasforma la finestra di FluidEQ nel Lettore compatto, una sola colonna stretta: in alto una scena o uno stile con il brano sopra e i comandi di riproduzione sotto; poi Suono, il tuo equalizzatore; poi In coda e le tue playlist. Ciò che è in riproduzione continua a suonare, e lo stesso interruttore riporta l’app completa sulla pagina che avevi lasciato.',
   'help.player.steps':
-    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nComprimi Suono, oppure In coda e Playlist, fino all’intestazione, e il visualizzatore prende lo spazio; fai clic sull’intestazione per riaprirli. Trascina il bordo superiore o inferiore del lettore per renderlo più alto o più basso.\nFai doppio clic sul visualizzatore perché riempia lo schermo; Esc lo riporta al suo posto. Premi il nome dello stile, accanto a riproduzione casuale e ripetizione, per scegliere tra tutti gli stili e le scene.\nPer ridurre il lettore a una riga, scegli Riduci a una riga nel menu del logo di FluidEQ; il logo lo espande di nuovo.\nNello stesso menu regola la Luminosità del lettore, la Trasparenza su una scena o la Tinta della finestra su uno stile standard, e la Luce del giorno di una scena. Sempre in primo piano, lì o nell’intestazione, lo tiene sopra le altre finestre.\nTrascina file musicali in qualunque punto del lettore: entrano nella Libreria e in fondo a In coda o, sopra l’elenco, nel punto in cui li rilasci.\nIn Suono, Tone offre bassi, medi e alti e Bande l’EQ completo. Preset e modalità EQ cambiano la stessa uscita dell’app completa. Esplora scene apre la galleria; anche il cambio automatico funziona nel lettore compatto.',
+    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nComprimi Suono, oppure In coda e Playlist, fino all’intestazione, e l’immagine prende lo spazio; fai clic sull’intestazione per riaprirli. Trascina il bordo superiore o inferiore del lettore per renderlo più alto o più basso.\nFai doppio clic sull’immagine perché riempia lo schermo; Esc lo riporta al suo posto. Premi il nome dello stile, accanto a riproduzione casuale e ripetizione, per scegliere tra tutti gli stili e le scene.\nPer ridurre il lettore a una riga, scegli Riduci a una riga nel menu del logo di FluidEQ; il logo lo espande di nuovo.\nNello stesso menu regola la Luminosità del lettore, la Trasparenza su una scena o la Tinta della finestra su uno stile standard, e la Luce del giorno di una scena. Sempre in primo piano, lì o nell’intestazione, lo tiene sopra le altre finestre.\nTrascina file musicali in qualunque punto del lettore: entrano nella Libreria e in fondo a In coda o, sopra l’elenco, nel punto in cui li rilasci.\nIn Suono, Tone offre bassi, medi e alti e Bande l’EQ completo. Preset e modalità EQ cambiano la stessa uscita dell’app completa. Esplora scene apre la galleria; anche il cambio automatico funziona nel lettore compatto.',
   'help.player.tip':
     'Il volume del lettore è quello del tuo computer, lo stesso di Windows, quindi regola il livello di tutto ciò che il computer riproduce. Se il lettore finisce fuori dallo schermo, fai clic destro su FluidEQ nell’area di notifica della barra delle applicazioni e scegli Ripristina la finestra. Quando il suono di un gioco è attivo, il suo pulsante mostra solo il nome per stare nel lettore compatto.',
   'help.player.keywords':
@@ -127,7 +127,7 @@ const help: Record<keyof typeof en, string> = {
     'Mescola In coda, e non ripete nulla, ripete tutto o solo questo brano.',
   'help.player.lookName': 'Stile',
   'help.player.look':
-    'Lo stile o la scena che il visualizzatore sta disegnando. Premilo per scegliere tra tutti.',
+    'Lo stile o la scena del lettore. Premilo per scegliere tra tutti.',
   'help.player.bands':
     'Trascina una banda in su o in giù per rinforzarla o tagliarla. La sua frequenza è scritta sotto.',
   'help.player.tone':
@@ -145,7 +145,7 @@ const help: Record<keyof typeof en, string> = {
     'Espande il lettore. Lo fa anche la freccia all’altra estremità.',
   'help.player.foldedPlaying': 'Riproduci o pausa.',
   'help.player.fullScreen':
-    'Riempie lo schermo con il visualizzatore. Il doppio clic sull’immagine fa lo stesso, ed Esc restituisce lo schermo.',
+    'Riempie lo schermo con la scena o lo stile. Il doppio clic sull’immagine fa lo stesso, ed Esc restituisce lo schermo.',
   'help.player.sourceName': 'Sorgente',
   'help.player.source':
     'Da dove arriva il brano: la Libreria, Media online, Karaoke, un altro computer o un altro programma di questo PC. Premerlo apre quella pagina nell’app completa.',
@@ -157,7 +157,7 @@ const help: Record<keyof typeof en, string> = {
     'Apre la Modalità EQ: quanto forte agiscono il tuo EQ e le curve, il loro Q di banda, la fase e gli alti.',
   'help.player.save': 'Tiene In coda come una playlist a sé.',
   'help.player.queueFold':
-    'Comprime In coda e Playlist fino alle loro schede, e il visualizzatore prende lo spazio.',
+    'Comprime In coda e Playlist fino alle loro schede, e l’immagine prende lo spazio.',
   'help.player.remove':
     'Toglie da In coda un brano che non è ancora stato riprodotto.',
   'help.player.output': 'Dove va il suono: l’uscita da cui riproduce Windows.',
@@ -171,7 +171,7 @@ const help: Record<keyof typeof en, string> = {
   'help.requirements.intro':
     'FluidEQ gira su qualsiasi PC Windows degli ultimi dieci anni. Due parti chiedono più delle altre: le scene disegnano sulla scheda grafica e il karaoke con IA scarica i suoi modelli la prima volta che lo usi.',
   'help.requirements.steps':
-    'Controlla il tuo Windows: Windows 10 versione 1803 o successiva, oppure Windows 11, a 64 bit, 4 GB di memoria e circa 600 MB di disco. Per elaborare tutto ciò che il PC riproduce serve il motore FluidEQ o Equalizer APO, e Windows chiede il permesso una volta durante l’installazione.\nApri un visualizzatore: qualsiasi scheda grafica o grafica integrata dal 2013 in poi. A 1080p la grafica integrata basta; per il 4K, o uno sfondo del desktop su più schermi insieme, è meglio una scheda dedicata. Se la scheda è occupata, FluidEQ disegna la scena più piccola e lascia andare quelle che non stai guardando.\nProva il karaoke con IA: separare la voce scarica un modello da 713 MB la prima volta, quello dell’intonazione aggiunge circa 360 MB e la rimozione del rumore 11 MB. Con una scheda grafica con DirectX 12 un brano di quattro minuti si separa in circa mezzo minuto; con il solo processore servono circa quattro minuti. Tieni liberi 2 GB di memoria mentre lavora.\nPunta a questo se puoi: Windows 11, 8 GB di memoria, grafica dal 2018 in poi e 3 GB di disco liberi se usi le funzioni con IA.',
+    'Controlla il tuo Windows: Windows 10 versione 1803 o successiva, oppure Windows 11, a 64 bit, 4 GB di memoria e circa 600 MB di disco. Per elaborare tutto ciò che il PC riproduce serve il motore FluidEQ o Equalizer APO, e Windows chiede il permesso una volta durante l’installazione.\nPer riprodurre le scene: qualsiasi scheda grafica o grafica integrata dal 2013 in poi. A 1080p la grafica integrata basta; per il 4K, o uno sfondo del desktop su più schermi insieme, è meglio una scheda dedicata. Se la scheda è occupata, FluidEQ disegna la scena più piccola e lascia andare quelle che non stai guardando.\nProva il karaoke con IA: separare la voce scarica un modello da 713 MB la prima volta, quello dell’intonazione aggiunge circa 360 MB e la rimozione del rumore 11 MB. Con una scheda grafica con DirectX 12 un brano di quattro minuti si separa in circa mezzo minuto; con il solo processore servono circa quattro minuti. Tieni liberi 2 GB di memoria mentre lavora.\nPunta a questo se puoi: Windows 11, 8 GB di memoria, grafica dal 2018 in poi e 3 GB di disco liberi se usi le funzioni con IA.',
   'help.requirements.tip':
     'Tutto tranne i modelli di IA è nell’installatore, e quelli si scaricano solo al primo uso della funzione. Processi, nel menu delle azioni, mostra che cosa sta usando ogni parte di FluidEQ sulla tua macchina in questo momento.',
   'help.requirements.keywords':
@@ -447,7 +447,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.stripCaption': 'Con uno stile standard',
   'help.graph.live': 'Mostra o nasconde l’onda in tempo reale.',
   'help.graph.previous': 'Torna all’aspetto precedente.',
-  'help.graph.picker': 'Apre tutti gli stili e i visualizzatori.',
+  'help.graph.picker': 'Apre tutti gli stili e le scene.',
   'help.graph.next': 'Passa all’aspetto successivo.',
   'help.graph.autoName': 'Auto',
   'help.graph.auto': 'Cambia aspetto a intervalli da 10 secondi a 2 minuti.',
@@ -465,13 +465,12 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Con una scena',
   'help.graph.tintName': 'Colori della finestra',
   'help.graph.tint':
-    'Il tema dell’app, i colori del visualizzatore, i suoi colori con la luce (Ambiente) o il visualizzatore dietro tutta la finestra (Fondale).',
+    'Il tema dell’app, i colori della scena, i suoi colori con la luce (Ambiente) o la scena dietro tutta la finestra (Fondale).',
   'help.graph.likeName': 'Mi piace',
   'help.graph.like':
     'Mette mi piace alla scena in riproduzione e dà punti a chi l’ha creata. Su una scena tua mostra quanti mi piace ha.',
   'help.graph.lighting': 'Illumina i tuoi dispositivi RGB con questa scena.',
-  'help.graph.desktop':
-    'Mette questo visualizzatore dietro le icone del desktop.',
+  'help.graph.desktop': 'Mette questa scena dietro le icone del desktop.',
   'help.graph.viewCaption': 'Il menu Vista',
   'help.graph.expand': 'Il grafico si ingrandisce sopra l’editor.',
   'help.graph.fullscreen': 'Il grafico riempie lo schermo.',
@@ -498,10 +497,9 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.tip':
     'Una scena porta i suoi colori: regolane attacco e rilascio in Vista. Gli stili standard hanno in Vista impostazioni grafiche proprie, separate dalle scene: per cominciare, risoluzione Piena e scaler Semplice. Se una scena non può girare su questo computer, il grafico disegna uno stile gratuito invece di restare vuoto.',
   'help.looks.keywords':
-    'visualizer, visualizzatore musicale, skin, temi, look, animazioni, barre animate, stili, aspetto, colori, personalizzare, grafica, impostazioni grafiche, risoluzione, qualità',
+    'scena, scene, visualizer, visualizzatore musicale, skin, temi, look, animazioni, barre animate, stili, aspetto, colori, personalizzare, grafica, impostazioni grafiche, risoluzione, qualità',
   'help.looks.searchName': 'Cerca',
-  'help.looks.search':
-    'Trova stili e visualizzatori per nome, autore o categoria.',
+  'help.looks.search': 'Trova stili e scene per nome, autore o categoria.',
   'help.looks.styles':
     'Stili gratuiti disegnati da FluidEQ e gli aspetti che hai salvato.',
   'help.looks.familiesName': 'Filtri degli stili',
@@ -512,11 +510,11 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'Categorie',
   'help.looks.categories': 'Natura, Città, Astratto e altro.',
 
-  'help.plus.title': 'Il tuo account, i crediti e la scheda Visualizzatori',
+  'help.plus.title': 'Il tuo account, i crediti e la scheda Scene',
   'help.plus.intro':
-    'L’account è facoltativo: tutto ciò che era gratuito funziona su questo computer anche senza. Con l’accesso, la scheda Visualizzatori raccoglie la Galleria, lo Studio, l’Illuminazione dinamica e il visualizzatore sul desktop. Una scena della Galleria costa un credito ed è tua per sempre; un account confermato riceve alcuni crediti gratis, e i pacchetti di crediti si pagano una sola volta.',
+    'L’account è facoltativo: tutto ciò che era gratuito funziona su questo computer anche senza. Con l’accesso, la scheda Scene raccoglie la Galleria, lo Studio, l’Illuminazione dinamica e lo sfondo del desktop. Una scena della Galleria costa un credito ed è tua per sempre; un account confermato riceve alcuni crediti gratis, e i pacchetti di crediti si pagano una sola volta.',
   'help.plus.steps':
-    'Apri la scheda Visualizzatori e premi Accedi, oppure Crea il tuo account gratuito e inserisci il codice di sei cifre inviato alla tua email. Dopo l’accesso, il tuo account è il riquadro in fondo alla colonna di sinistra.\nScegli Galleria. Apri una scena, guardala e premi Ottieni per spenderci un credito.\nPer avere altri crediti, apri il tuo account da quel riquadro e scegli un pacchetto. Si paga una sola volta su Stripe, nel browser.',
+    'Apri la scheda Scene e premi Accedi, oppure Crea il tuo account gratuito e inserisci il codice di sei cifre inviato alla tua email. Dopo l’accesso, il tuo account è il riquadro in fondo alla colonna di sinistra.\nScegli Galleria. Apri una scena, guardala e premi Ottieni per spenderci un credito.\nPer avere altri crediti, apri il tuo account da quel riquadro e scegli un pacchetto. Si paga una sola volta su Stripe, nel browser.',
   'help.plus.tip':
     'L’app non vede mai la tua carta, e nulla si rinnova. Un account resta connesso su un massimo di cinque computer.',
   'help.plus.keywords':
@@ -528,15 +526,15 @@ const help: Record<keyof typeof en, string> = {
   'help.plus.fold':
     'Riduce la barra laterale alle sole immagini; si riapre passandoci sopra con il mouse.',
 
-  'help.gallery.title': 'La galleria Visualizzatori',
+  'help.gallery.title': 'La galleria delle scene',
   'help.gallery.intro':
-    'Visualizzatori raccoglie le scene di FluidEQ e quelle pubblicate dai membri. Chiunque abbia un account può sfogliare la galleria. Se una scena ha un’anteprima pubblicata, il video di dieci secondi senza audio si ripete finché non passi a un’altra scena. Le scene senza video mostrano la copertina. Una scena ottenuta con un credito si anima con la tua musica e resta nei tuoi aspetti.',
+    'La galleria raccoglie le scene di FluidEQ e quelle pubblicate dai membri. Chiunque abbia un account può sfogliare la galleria. Se una scena ha un’anteprima pubblicata, il video di dieci secondi senza audio si ripete finché non passi a un’altra scena. Le scene senza video mostrano la copertina. Una scena ottenuta con un credito si anima con la tua musica e resta nei tuoi aspetti.',
   'help.gallery.steps':
-    'Apri Visualizzatori → Galleria. Cerca, ordina per Più apprezzate, Questa settimana o Più recenti, oppure scegli una categoria.\nApri una scena e premi Ottieni per tenerla con un credito, poi Riproduci sul grafico. Le frecce, o ← e →, passano da una scena all’altra.\nMetti mi piace con il cuore alle scene che hai, e segnala quella che non dovrebbe esserci.',
+    'Apri Scene → Galleria. Cerca, ordina per Più apprezzate, Questa settimana o Più recenti, oppure scegli una categoria.\nApri una scena e premi Ottieni per tenerla con un credito, poi Riproduci sul grafico. Le frecce, o ← e →, passano da una scena all’altra.\nMetti mi piace con il cuore alle scene che hai, e segnala quella che non dovrebbe esserci.',
   'help.gallery.tip':
     'Le scene nei tuoi aspetti si aggiornano da sole, e la pagina di una scena dice cosa è cambiato in ogni versione. Una scena che pubblichi compare quando il creatore di FluidEQ l’ha approvata. Apri nello Studio mostra come sono fatte le scene di FluidEQ.',
   'help.gallery.keywords':
-    'scaricare visualizer, download, scene della community, scene degli utenti, like, segnalare, popolari',
+    'scaricare scene, galleria di scene, scaricare visualizer, download, scene della community, scene degli utenti, like, segnalare, popolari',
   'help.gallery.search': 'Trova scene e autori.',
   'help.gallery.sortName': 'Ordina',
   'help.gallery.sort':
@@ -559,13 +557,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.studio.title': 'Crea scene nello Studio',
   'help.studio.intro':
-    'Lo Studio trasforma una descrizione in un visualizzatore. Il tuo assistente IA scrive la scena in una cartella di progetto, e FluidEQ riproduce ogni versione con la tua musica non appena viene salvata. Lo Studio è gratuito per ogni account.',
+    'Lo Studio trasforma una descrizione in una scena. Il tuo assistente IA scrive la scena in una cartella di progetto, e FluidEQ riproduce ogni versione con la tua musica non appena viene salvata. Lo Studio è gratuito per ogni account.',
   'help.studio.steps':
-    'Apri Visualizzatori → Studio e premi Nuovo progetto…. Dagli un nome: FluidEQ crea la sua cartella con una scena che si muove già.\nDescrivi la tua idea, apri la cartella nel tuo assistente IA e incolla il prompt di Copia prompt per IA.\nOppure scrivi cosa deve cambiare nella chat accanto al palco: Claude Code su questo computer, con il tuo piano, modifica la scena e suona ogni versione. Ogni risposta tiene la sua versione, con Ripristina.\nGuarda il palco mentre i file vengono salvati e usa i segnali di prova. Poi Aggiungi ai miei aspetti, Pubblica… o Esporta….\nIn Pubblica…, riproduci musica o avvia la demo per registrare l’anteprima di dieci secondi senza audio per la Galleria.',
+    'Apri Scene → Studio e premi Nuovo progetto…. Dagli un nome: FluidEQ crea la sua cartella con una scena che si muove già.\nDescrivi la tua idea, apri la cartella nel tuo assistente IA e incolla il prompt di Copia prompt per IA.\nOppure scrivi cosa deve cambiare nella chat accanto al palco: Claude Code su questo computer, con il tuo piano, modifica la scena e suona ogni versione. Ogni risposta tiene la sua versione, con Ripristina.\nGuarda il palco mentre i file vengono salvati e usa i segnali di prova. Poi Aggiungi ai miei aspetti, Pubblica… o Esporta….\nIn Pubblica…, riproduci musica o avvia la demo per registrare l’anteprima di dieci secondi senza audio per la Galleria.',
   'help.studio.tip':
     'Fai doppio clic sul palco per lo schermo intero. Guarda dentro una scena di FluidEQ… apre una delle scene di FluidEQ da cui imparare; non si può pubblicare. Le scene che lampeggiano troppo o sono troppo pesanti vengono bloccate. Una scena che pubblichi viene prima letta dal creatore di FluidEQ, e una volta approvata suona gratis per te ovunque.',
   'help.studio.keywords':
-    'creare visualizzatore, shader, GLSL, intelligenza artificiale, ChatGPT, Claude, programmare, editor, chat, chat dello studio, chiedere una modifica, claude code, ripristina, versioni',
+    'creare una scena, creare visualizzatore, shader, GLSL, intelligenza artificiale, ChatGPT, Claude, programmare, editor, chat, chat dello studio, chiedere una modifica, claude code, ripristina, versioni',
   'help.studio.project':
     'I tuoi progetti e le scene di FluidEQ da guardare dentro.',
   'help.studio.stageName': 'Palco',
@@ -580,11 +578,11 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.signals': 'Segnali di prova che animano solo questa anteprima.',
   'help.studio.size': 'Prova la scena a schermo intero.',
 
-  'help.desktop.title': 'Il visualizzatore del desktop',
+  'help.desktop.title': 'Lo sfondo del desktop',
   'help.desktop.intro':
-    'Il visualizzatore del desktop mette una scena dietro le icone del desktop, su un monitor o su ciascuno di essi, finché FluidEQ è in esecuzione.',
+    'Lo sfondo del desktop mette una scena dietro le icone del desktop, su un monitor o su ciascuno di essi, finché FluidEQ è in esecuzione.',
   'help.desktop.steps':
-    'Metti una scena sul grafico e premi il pulsante del monitor accanto al suo nome, oppure scegli Vista → Imposta come sfondo del desktop.\nPremi i monitor sulla mappa, scegli Con la musica o Calmo e premi Imposta sfondo.\nPer cambiarlo o fermarlo, apri Visualizzatori → Galleria e usa Gestisci o Interrompi in alto.',
+    'Metti una scena sul grafico e premi il pulsante del monitor accanto al suo nome, oppure scegli Vista → Imposta come sfondo del desktop.\nPremi i monitor sulla mappa, scegli Con la musica o Calmo e premi Imposta sfondo.\nPer cambiarlo o fermarlo, apri Scene → Galleria e usa Gestisci o Interrompi in alto.',
   'help.desktop.tip':
     'Si mette in pausa mentre le finestre coprono il monitor, con il PC bloccato e, se vuoi, a batteria, e torna all’avvio di FluidEQ. Uscire da FluidEQ lo ferma. Solo su Windows.',
   'help.desktop.keywords':
@@ -602,20 +600,20 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.intro':
     'L’illuminazione dinamica accende tastiera, mouse, tappetino, cuffie e supporto con la scena sul grafico, tramite Windows Dynamic Lighting e Razer Chroma. È in beta, quindi raccontaci come si comportano i tuoi dispositivi.',
   'help.lighting.steps':
-    'Apri Visualizzatori → Illuminazione dinamica e attivala, oppure premi il pulsante dell’illuminazione accanto a una scena sul grafico.\nScegli lo stile luminoso di questa scena (Scena, Onda di colore, Spettro o Onda ritmica) e regola la luminosità e ciò a cui reagisce.\nFai clic su un dispositivo in I tuoi dispositivi per regolarlo da solo; Tutti i dispositivi torna a regolarli insieme.',
+    'Apri Scene → Illuminazione dinamica e attivala, oppure premi il pulsante dell’illuminazione accanto a una scena sul grafico.\nScegli lo stile luminoso di questa scena (Scena, Onda di colore, Spettro o Onda ritmica) e regola la luminosità e ciò a cui reagisce.\nFai clic su un dispositivo in I tuoi dispositivi per regolarlo da solo; Tutti i dispositivi torna a regolarli insieme.',
   'help.lighting.tip':
     'Se Windows riserva un dispositivo a un’altra app, la pagina indica l’impostazione da cambiare e la apre per te. I dispositivi Razer richiedono Razer Synapse in esecuzione, con Chroma Apps consentito.',
   'help.lighting.keywords':
     'RGB, luci LED, retroilluminazione, illuminazione ambientale, periferiche, mousepad, luci a ritmo di musica',
   'help.lighting.switch': 'Illumina i tuoi dispositivi mentre suona una scena.',
-  'help.lighting.browse': 'Apre la galleria per scegliere un visualizzatore.',
+  'help.lighting.browse': 'Apre la galleria per scegliere una scena.',
   'help.lighting.previewName': 'Anteprima della scrivania',
   'help.lighting.preview':
     'La tua scrivania, illuminata con i colori che le vengono inviati.',
   'help.lighting.devices':
     'Tutti i dispositivi trovati. Fai clic su uno per regolarlo da solo; il pulsante Tutti i dispositivi, sopra l’elenco, torna a regolarli tutti insieme.',
   'help.lighting.style':
-    'Scena, Onda di colore, Spettro o Onda ritmica, salvato per ogni visualizzatore.',
+    'Scena, Onda di colore, Spettro o Onda ritmica, salvato per ogni scena.',
 
   'help.online.title': 'Ascolta con Media online',
   'help.online.intro':
@@ -651,7 +649,7 @@ const help: Record<keyof typeof en, string> = {
   'help.karaoke.intro':
     'Karaoke abbina audio e testi locali. I testi temporizzati seguono la riproduzione; gli obiettivi d’intonazione richiedono note. Un microfono configurato aggiunge la tua intonazione dal vivo.',
   'help.karaoke.steps':
-    'Apri Karaoke e aggiungi file o cartella con audio e testi corrispondenti.\nScegli un brano, avvialo e controlla l’abbinamento.\nConfigura il microfono, regola la dimensione dei testi e usa lo schermo intero del palco.\nScegli lo sfondo con i pulsanti copertina e visualizzatore del palco. Trasparenza e sfocatura sono indipendenti dal grafico principale. Raggruppa la playlist per cartella e premi un’intestazione per ripiegarla.',
+    'Apri Karaoke e aggiungi file o cartella con audio e testi corrispondenti.\nScegli un brano, avvialo e controlla l’abbinamento.\nConfigura il microfono, regola la dimensione dei testi e usa lo schermo intero del palco.\nScegli lo sfondo con i pulsanti copertina e scena del palco. Trasparenza e sfocatura sono indipendenti dal grafico principale. Raggruppa la playlist per cartella e premi un’intestazione per ripiegarla.',
   'help.karaoke.tip':
     'Un file con soli testi non contiene note obiettivo. Karaoke suona al volume del tuo computer; i livelli di melodia, base e voce guida sono in Impostazioni mix. Il microfono viene analizzato localmente per livello e intonazione: FluidEQ non lo riproduce dagli altoparlanti e non lo registra.',
   'help.karaoke.keywords':

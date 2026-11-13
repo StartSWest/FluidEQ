@@ -2,10 +2,10 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
-  'tour.karaokeBackground.title': '歌詞の背景にビジュアライザーを',
+  'tour.karaokeBackground.title': '歌詞の背景にシーンを',
   'tour.karaokeBackground.subtitle': '選んだスタイルをカラオケのステージに',
   'tour.karaokeBackground.lead':
-    'ビジュアライザーやシーンをカラオケの背景に選べます。',
+    'シーンや標準の見た目をカラオケの背景に選べます。',
   'tour.karaokeBackground.how':
     'EQ の {looks} でスタイルを選び、カラオケで {showGraph} を押します。',
   'tour.karaokeBackground.open': 'カラオケを開く',
@@ -63,7 +63,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.title': 'アプリ全体を 1 列に',
   'tour.player.subtitle': 'どのウィンドウカラーでも同じ、ひとつのプレーヤー',
   'tour.player.lead':
-    'タイトルバーのスイッチひとつで、FluidEQ が 1 列にまとまります。いちばん上にビジュアライザーと再生中の曲、その下に操作ボタン、サウンド、次に再生する曲。どのウィンドウカラーでも同じプレーヤーで、シーンを選ぶと、プレーヤー全体の後ろでシーンが流れる「{backdrop}」になります。',
+    'タイトルバーのスイッチひとつで、FluidEQ が 1 列にまとまります。いちばん上にシーンと再生中の曲、その下に操作ボタン、サウンド、次に再生する曲。どのウィンドウカラーでも同じプレーヤーで、シーンを選ぶと、プレーヤー全体の後ろでシーンが流れる「{backdrop}」になります。',
   'tour.player.point1':
     '「{sound}」には低音・中音・高音のノブ、または EQ のバンドがあり、横にプリセット、スマート EQ、EQ モードが並びます。',
   'tour.player.point2':
@@ -74,13 +74,12 @@ const tour: Partial<Dictionary> = {
     'タイトルバーの「ヘルプ」の横にある「コンパクトプレーヤー」のスイッチを押します。プレーヤーでは、同じスイッチでフル表示に戻ります。',
   'tour.player.open': 'コンパクトプレーヤーを試す',
   'tour.player.imageAlt':
-    'タイトルバーの角で {player} のスイッチを囲んだ図と、コンパクトプレーヤー 2 つ。ひとつは「{backdrop}」でシーンの上に EQ のバンドを開いたもの、もうひとつは標準のビジュアライザーを曲の後ろに置き、トーンのノブを開いたもの。',
+    'タイトルバーの角で {player} のスイッチを囲んだ図と、コンパクトプレーヤー 2 つ。ひとつは「{backdrop}」でシーンの上に EQ のバンドを開いたもの、もうひとつは標準の見た目を曲の後ろに置き、トーンのノブを開いたもの。',
   'tour.player.scene': 'シーンあり、「{backdrop}」',
-  'tour.player.standard': '標準のビジュアライザー',
+  'tour.player.standard': '標準の見た目',
   'tour.look.kicker': '新しい見た目',
   'tour.look.title': '新しいウィンドウ、新しい色',
-  'tour.look.subtitle':
-    'テーマはスライダー 1 本、すべての背後にビジュアライザー',
+  'tour.look.subtitle': 'テーマはスライダー 1 本、すべての背後にシーン',
   'tour.look.lead':
     'パネルは新しいアイコンの色で、ひとつながりの広いフロアに並びます。「{brightness}」スライダー 1 本で、ウィンドウ全体がほぼ黒から明るいオーシャンブルーまで変わります。グラフにシーンがあれば、ウィンドウはその色をまとうことも、すべての背後でそれを再生することもできます。',
   'tour.look.point1':
@@ -88,14 +87,14 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '「{windowColours}」には「{original}」「{colours}」「{ambient}」「{backdrop}」があり、それぞれウィンドウへの効果が一行で書かれています。',
   'tour.look.point3':
-    'ダイアログとメニューは同じ素材になり、「{rainbow}」はアイコンの色、またはビジュアライザー自身の色で流れます。',
+    'ダイアログとメニューは同じ素材になり、「{rainbow}」はアイコンの色、またはシーン自身の色で流れます。',
   'tour.look.how':
     '右上のパルスアイコンの「オーディオ操作」メニューで「{brightness}」を動かします。グラフにシーンがあるときは、グラフのバーから「{windowColours}」を開き、「{backdrop}」を選びます。',
   'tour.look.open': 'EQ を開く',
   'tour.look.imageAlt':
     'EQ ページで自分の色の FluidEQ。カーブの下に曲を描く「アナライザー」と、角の上に開いたパルスアイコンのメニュー。「明るさ」は半分、「カラフルモード」はオンです。',
-  'tour.gpu.kicker': '新しいビジュアライザーエンジン',
-  'tour.gpu.title': 'すべてのビジュアライザーをグラフィックカードで',
+  'tour.gpu.kicker': '新しいシーンエンジン',
+  'tour.gpu.title': 'すべてのシーンをグラフィックカードで',
   'tour.gpu.subtitle': '40 の表示を画面の速さで、そして 3D の世界',
   'tour.gpu.lead':
     'グラフの 40 の表示は、シーンと同じエンジンで描かれるようになりました。グラフィックカード上で、画面そのもののリフレッシュレートで動くので、バーや粒子やピークがカクつかずに滑らかに動きます。さらにシーンは本物の 3D の世界にもなれます。',
@@ -111,21 +110,21 @@ const tour: Partial<Dictionary> = {
     '夜の 3D 都市のシーンと、グラフ上で撮影した 4 つの新しい表示（「{synthwave}」「{horizon}」「{towers}」「{ledwall}」）。最初の画像では表示の選択を丸で囲んでいます。',
   'tour.gpu.world': '3D の世界',
   'tour.sparks.kicker': 'ポインターの火花',
-  'tour.sparks.title': 'マウスに応えるビジュアライザー',
+  'tour.sparks.title': 'マウスに応えるシーン',
   'tour.sparks.subtitle': 'ポインターから火花、花びら、雪',
   'tour.sparks.lead':
     'シーンの上でマウスを動かすと、火花、花びら、雪、残り火など、そのシーンを形づくるものがポインターの後に軌跡を描き、クリックした場所ではじけます。「{ambient}」と「{backdrop}」では、鳥や花びらや光がウィンドウ全体にも漂います。',
   'tour.sparks.point1':
-    'ビジュアライザーごとに飛ぶものが違います。冬のシーンなら雪、たき火なら火の粉、庭なら花びら。',
+    'シーンごとに飛ぶものが違います。冬のシーンなら雪、たき火なら火の粉、庭なら花びら。',
   'tour.sparks.point2':
     'Studio のステージでは常に表示されるので、シーンの作者は飛ばすものを作り込めます。',
   'tour.sparks.point3':
-    'すべてのビジュアライザーに共通のスイッチ一つ：「{windowColours}」の「{rainbow}」の下にある「{sparks}」。',
+    'すべてのシーンに共通のスイッチ一つ：「{windowColours}」の「{rainbow}」の下にある「{sparks}」。',
   'tour.sparks.how':
     'グラフにシーンがあるときに、その上でマウスを動かしてクリックします。「{sparks}」は「{windowColours}」の「{rainbow}」の下にあります。',
   'tour.sparks.open': 'EQ を開く',
   'tour.sparks.imageAlt':
-    'オーロラのビジュアライザー。ポインターの後に光る火花の軌跡があり、クリックした場所で火花がはじけています。また、「{sparks}」スイッチを丸で囲んだ「{windowColours}」。',
+    'オーロラのシーン。ポインターの後に光る火花の軌跡があり、クリックした場所で火花がはじけています。また、「{sparks}」スイッチを丸で囲んだ「{windowColours}」。',
   'tour.sound.kicker': 'FluidEQ エンジン',
   'tour.sound.title': '描いたとおりのサウンド',
   'tour.sound.subtitle': '描いたままの高音、無音の切り替え、一度で決まるレベル',
@@ -212,7 +211,7 @@ const tour: Partial<Dictionary> = {
   'tour.tone.imageAlt':
     '低域・中域・高域の 3 つに分かれたイコライザーのカーブ、それを動かす 3 つのノブ、そして 6 から 31 バンドまでのクイックレイアウト。',
   'tour.studio.kicker': 'FLUIDEQ PLUS',
-  'tour.studio.title': 'ビジュアライザーを自分で作る',
+  'tour.studio.title': 'シーンを自分で作る',
   'tour.studio.subtitle': 'すべてのアカウントで無料',
   'tour.studio.lead':
     'スタジオは、アイデアを音楽に合わせて動くシーンに変えます。すべてのアカウントで無料です。好きなだけシーンを作成・エクスポート・公開できます。',
@@ -222,9 +221,8 @@ const tour: Partial<Dictionary> = {
     'シーンは本物の 3D ワールドにでき、キックに合わせて踏み込み、ドロップで跳ね上がります。',
   'tour.studio.point3':
     'AI 用のプロンプトをコピーすると、AI アシスタントがシーンを見て、曲の動きを聴き取れます。',
-  'tour.studio.how':
-    'ビジュアライザーを開き、サイドバーで「スタジオ」を選びます。',
-  'tour.studio.open': 'ビジュアライザーを開く',
+  'tour.studio.how': 'シーンを開き、サイドバーで「スタジオ」を選びます。',
+  'tour.studio.open': 'シーンを開く',
   'tour.studio.imageAlt':
     'ステージで Alpine を再生しているスタジオ。雪山の下の湖とオーロラ、その下に AI でシーンを作る3つの手順と、2つの注記（すべてのアカウントで無料、公開したシーンは制作者には無料で再生）。',
   'tour.studio.earned': '公開済み：あなたには無料で再生',
@@ -288,29 +286,29 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     '上から見た部屋：中央の頭の周りに 7 本のスピーカーとサブが立ち、それぞれから耳への経路が伸びています。',
 
-  'tour.plus.kicker': 'ビジュアライザー',
+  'tour.plus.kicker': 'シーン',
   'tour.plus.title': '永久にあなたのものになるシーン',
-  'tour.plus.subtitle': 'ビジュアライザー、スタジオ、ライティングなど',
+  'tour.plus.subtitle': 'シーン、スタジオ、ライティングなど',
   'tour.plus.lead':
     'FluidEQ を成長させる追加機能のタブ。グラフィックカードで描かれるシーン、自分のシーンを作るスタジオ、デスクトップ背景、ダイナミックライティング。シーンは1クレジットでずっとあなたのもの。イコライザー、ラック、プレーヤーはこれまでどおり無料です。',
   'tour.plus.point1':
-    'ビジュアライザータブからサインインします。確認済みのアカウントには最初に無料のクレジットが付きます。',
+    'シーンタブからサインインします。確認済みのアカウントには最初に無料のクレジットが付きます。',
   'tour.plus.point2':
     'クレジットのパックは一度払うだけで、支払いの前にわかりやすい言葉の規約を読めます。自動更新はなく、アプリがカード情報を見ることもありません。',
   'tour.plus.point3':
     'どのシーンも先に見られ、入手したシーンはサインインしたどのコンピューターでも再生されます。',
   'tour.plus.how':
-    '「ビジュアライザー」タブを開きます。左側に「ギャラリー」「スタジオ」「ダイナミック ライティング」が並んでいます。',
-  'tour.plus.open': 'ビジュアライザーを開く',
+    '「シーン」タブを開きます。左側に「ギャラリー」「スタジオ」「ダイナミック ライティング」が並んでいます。',
+  'tour.plus.open': 'シーンを開く',
   'tour.plus.imageAlt':
-    'ビジュアライザータブ。横にギャラリー、スタジオ、ダイナミック ライティングが並び、ギャラリーにクローム、ブルーム、オーロラ、アルプス、ネオンシティが表示されています。',
+    'シーンタブ。横にギャラリー、スタジオ、ダイナミック ライティングが並び、ギャラリーにクローム、ブルーム、オーロラ、アルプス、ネオンシティが表示されています。',
   'tour.scene.alpine': 'アルプス',
   'tour.scene.aurora': 'オーロラ',
   'tour.scene.bloom': 'ブルーム',
   'tour.scene.chrome': 'クローム',
   'tour.scene.neonCity': 'ネオンシティ',
 
-  'tour.visualizers.kicker': 'ビジュアライザー',
+  'tour.visualizers.kicker': 'シーン',
   'tour.visualizers.title': '音楽に合わせて動くシーン',
   'tour.visualizers.subtitle': 'グラフィックスカードで描画',
   'tour.visualizers.lead':
@@ -320,20 +318,20 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.point2':
     'ギャラリーを見て回り、FluidEQ のサンプルを 10 秒間試して、気に入ったシーンを追加できます。',
   'tour.visualizers.point3':
-    'ビジュアライザーの自動切り替えや全画面表示ができ、シーンのアタックとリリースは「表示」メニューで設定できます。',
+    'シーンの自動切り替えや全画面表示ができ、シーンのアタックとリリースは「表示」メニューで設定できます。',
   'tour.visualizers.how':
-    'グラフ上の表示の名前をクリックして「ビジュアライザー」からシーンを選ぶか、「ビジュアライザー → ギャラリー」ですべてを見て回ります。',
+    'グラフ上の表示の名前をクリックして「シーン」からシーンを選ぶか、「シーン → ギャラリー」ですべてを見て回ります。',
   'tour.visualizers.open': 'EQ を開く',
   'tour.visualizers.imageAlt':
     '夜の湖の向こうにそびえる山々を描いたシーン「アルプス」が、グラフの EQ カーブの下で再生され、その下にさらに 4 つのシーンが並んでいます。',
 
-  'tour.desktop.kicker': 'デスクトップ ビジュアライザー',
+  'tour.desktop.kicker': 'デスクトップの背景',
   'tour.desktop.title': 'デスクトップの背景に、あなたの音楽を',
   'tour.desktop.subtitle': 'モニターごとにシーンを',
   'tour.desktop.lead':
     'シーンをデスクトップアイコンの背面に置けます。聴いている音楽に合わせて、または穏やかに単独で動き、モニターごとに別のシーンを映せます。',
   'tour.desktop.point1':
-    'デスクの配置図でモニターを選び、それぞれに別のビジュアライザーを設定できます。',
+    'デスクの配置図でモニターを選び、それぞれに別のシーンを設定できます。',
   'tour.desktop.point2':
     'ウィンドウがモニターを覆っている間、PC のロック中、バッテリー駆動中は一時停止します。',
   'tour.desktop.point3': '次に FluidEQ を起動すると、自動で再開します。',
@@ -345,18 +343,18 @@ const tour: Partial<Dictionary> = {
 
   'tour.lighting.kicker': 'ダイナミック ライティング',
   'tour.lighting.title': 'シーンに合わせてデスクが光る',
-  'tour.lighting.subtitle': 'ベータ · RGB デバイスがビジュアライザーに連動',
+  'tour.lighting.subtitle': 'ベータ · RGB デバイスがシーンに連動',
   'tour.lighting.lead':
     'Windows Dynamic Lighting と Razer Chroma を通して、キーボード、マウス、マウスパッド、ヘッドセット、スタンドが、グラフ上のシーンの色をまとい、そのリズムに合わせて光ります。',
   'tour.lighting.point1':
-    'ビジュアライザーごとに 4 つのスタイル: シーン、カラーウェーブ、スペクトル、ビートの波紋。',
+    'シーンごとに 4 つのスタイル: シーン、カラーウェーブ、スペクトル、ビートの波紋。',
   'tour.lighting.point2':
     'デバイスを 1 台ずつ調整でき、音楽が止まったときの動作も選べます。',
   'tour.lighting.point3':
     'ライブプレビューには、光っているあなたのデスクがそのまま描かれます。ベータ版なので、お使いのデバイスでの動作をぜひお知らせください。',
   'tour.lighting.how':
-    '「ビジュアライザー → ダイナミック ライティング」を開いてオンにし、グラフにシーンを表示します。',
-  'tour.lighting.open': 'ビジュアライザーを開く',
+    '「シーン → ダイナミック ライティング」を開いてオンにし、グラフにシーンを表示します。',
+  'tour.lighting.open': 'シーンを開く',
   'tour.lighting.imageAlt':
     'ネオンシティのピンク、バイオレット、シアンに光るキーボード、マウス、マウスパッド。',
 
@@ -611,7 +609,7 @@ const tour: Partial<Dictionary> = {
   'tour.walkthrough.title': 'FluidEQ のすべてを1本の動画で',
   'tour.walkthrough.subtitle': '最初から最後まで見る',
   'tour.walkthrough.lead':
-    '最初にドラッグするバンドからビジュアライザーまで、FluidEQ でできることをすべて案内します。各部分の使い方は音声で説明します。',
+    '最初にドラッグするバンドからシーンまで、FluidEQ でできることをすべて案内します。各部分の使い方は音声で説明します。',
   'tour.film.walkthrough.intro': 'FluidEQ のすべてを1本の動画で',
   'tour.film.engine.intro':
     'FluidEQ には独自のオーディオエンジンがあります。EQ と DSP ラックを、パソコンで鳴るすべての音に届けます。',
@@ -699,14 +697,14 @@ const tour: Partial<Dictionary> = {
     'このコンピューターにインストールされた Claude Code で、あなた自身のプランを使って動き、利用上限の残りも表示します。',
   'tour.chat.how':
     '「{plus}」を開いて一覧から「{studio}」を選び、シーンを選ぶか新しく始めて、ステージの横の入力欄に書き込みます。',
-  'tour.chat.open': 'ビジュアライザーを開く',
+  'tour.chat.open': 'シーンを開く',
   'tour.chat.imageAlt':
     'スタジオのステージとその横のチャット。スネアでステージのライトを光らせてという依頼、返信の手順がひとつずつチェックされ、「元に戻す」付きでバージョン 2 が残り、バージョン 2 の再生とともにステージのライトが光り始める。',
   'tour.chat.ask': 'スネアに合わせてステージのライトを光らせて。',
   'tour.chat.reply':
     'できました。スネアごとに両方のスポットライトが白く光り、ピンクに戻ります。',
 
-  'tour.looks.kicker': '自分だけのビジュアライザー',
+  'tour.looks.kicker': '自分だけのシーン',
   'tour.looks.title': 'グラフの表示を自分で作る',
   'tour.looks.subtitle': 'あなたの形、あなたの色、あなたの動き',
   'tour.looks.lead':
@@ -787,7 +785,7 @@ const tour: Partial<Dictionary> = {
   'tour.v23.forum':
     'フォーラムの各ボードが未読の動きを数え、「問題」は未解決の問題を数えます。書きかけのトピックや返信も残ります。',
   'tour.v23.layout':
-    'ヘッダーの先頭はビジュアライザー、最後はオンラインメディアになりました。コンパクトプレーヤーのゲーム名は短く、音量表示は安定し、ゲーム追加のボタンは常に見え、スクロールバーは端に揃います。',
+    'ヘッダーの先頭はシーン、最後はオンラインメディアになりました。コンパクトプレーヤーのゲーム名は短く、音量表示は安定し、ゲーム追加のボタンは常に見え、スクロールバーは端に揃います。',
 };
 
 export default tour;

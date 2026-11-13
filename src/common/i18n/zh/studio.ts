@@ -200,7 +200,7 @@ const studio = {
   'studio.publish.noteWriting': '场景的聊天正在写这次的新内容…',
   'studio.publish.noteNeeded': '必填',
   'studio.publish.point1':
-    '任何已登录的人都能在“可视化”中看到它，观看几秒，并用一点获取它。对你来说它免费播放。',
+    '任何已登录的人都能在场景图库中看到它，观看几秒，并用一点获取它。对你来说它免费播放。',
   'studio.publish.point3':
     '你可以取消发布，这样就没有新的人能获取它。已经拥有的人会保留它。',
   'studio.publish.point3Update':

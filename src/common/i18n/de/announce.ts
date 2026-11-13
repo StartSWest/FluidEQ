@@ -13,7 +13,7 @@ const announce = {
     'Offline. Gespeicherte, noch gültige Neuigkeiten werden angezeigt.',
   'announce.news.empty': 'Keine aktuellen Mitteilungen.',
 
-  'announce.eyebrow': 'Neu in „Visualizer“ · {count} Szenen',
+  'announce.eyebrow': 'Neu in „Szenen“ · {count} Szenen',
   'announce.try': 'Jetzt ausprobieren',
   'announce.later': 'Später',
   'announce.previewNote':

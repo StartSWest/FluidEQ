@@ -400,12 +400,24 @@ describe('the release notes and the version', () => {
   // Two parts and only two (Ivan, 2026-11-11: "one for the FluidEQ app, for
   // all related to sound etc., and the other section only for the
   // visualizers").
+  // The second part is named as the tab was when the release went out:
+  // Visualizers until 2.5.1, Scenes from 2.5.2 (Ivan, 2026-11-13: "we use
+  // visualizers and scenes terms, it gets users confused"). Past releases
+  // keep their own words.
+  const scenesFrom = (section: string) =>
+    /^2\.(5\.([2-9]|\d{2,})|[6-9]\.)/.test(section);
   it('has the app and the visualizers apart, from 2.4 on', () => {
     const later = sections.filter((section) => /^2\.(4|[5-9])\./.test(section));
     expect(later.length).toBeGreaterThan(1);
     later.forEach((section) => {
-      expect(partsOf(section)).toEqual(['### FluidEQ', '### Visualizers']);
+      expect(partsOf(section)).toEqual([
+        '### FluidEQ',
+        scenesFrom(section) ? '### Scenes' : '### Visualizers',
+      ]);
     });
+    // Both names are in the notes: the rename did not rewrite history.
+    expect(later.some(scenesFrom)).toBe(true);
+    expect(later.some((section) => !scenesFrom(section))).toBe(true);
   });
 
   // Regrouping 2.4.0 into two parts once replaced a line of its prose with a

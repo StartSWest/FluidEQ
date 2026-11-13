@@ -1,7 +1,7 @@
 const profile = {
   'profile.name.title': 'Scegli come comparire nella galleria',
   'profile.name.body':
-    'Un nickname e un nome. Nella galleria Visualizzatori firmano le tue scene. Li vede chiunque abbia effettuato l’accesso; nessuno vede la tua email.',
+    'Un nickname e un nome. Nella galleria delle scene firmano le tue scene. Li vede chiunque abbia effettuato l’accesso; nessuno vede la tua email.',
   'profile.name.handle': 'Nickname',
   'profile.name.handleHint': 'Da 3 a 20 lettere, numeri o _',
   'profile.name.name': 'Nome visualizzato',

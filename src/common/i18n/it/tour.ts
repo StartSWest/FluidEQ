@@ -2,10 +2,10 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
-  'tour.karaokeBackground.title': 'Visualizzazioni dietro le parole',
+  'tour.karaokeBackground.title': 'Scene dietro le parole',
   'tour.karaokeBackground.subtitle': 'Lo stile scelto, sul palco del Karaoke',
   'tour.karaokeBackground.lead':
-    'Scegli una visualizzazione o una scena come sfondo del Karaoke.',
+    'Scegli una scena o uno stile standard come sfondo del Karaoke.',
   'tour.karaokeBackground.how':
     'Scegli uno stile in {looks} su EQ, poi premi {showGraph} nel Karaoke.',
   'tour.karaokeBackground.open': 'Apri Karaoke',
@@ -62,7 +62,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.title': 'Tutta l’app in una colonna',
   'tour.player.subtitle': 'Un lettore, uguale in ogni colore della finestra',
   'tour.player.lead':
-    'Un interruttore nella barra del titolo racchiude FluidEQ in una colonna: in alto il visualizzatore con il brano sopra, poi i comandi, il tuo suono e cosa viene dopo. È lo stesso lettore in ogni colore della finestra, e la scena che scegli scorre dietro a tutto, in {backdrop}.',
+    'Un interruttore nella barra del titolo racchiude FluidEQ in una colonna: in alto la scena con il brano sopra, poi i comandi, il tuo suono e cosa viene dopo. È lo stesso lettore in ogni colore della finestra, e la scena che scegli scorre dietro a tutto, in {backdrop}.',
   'tour.player.point1':
     '{sound} contiene le manopole di Bassi, Medi e Alti o le bande del tuo EQ, con il preset, l’EQ intelligente e la modalità EQ accanto.',
   'tour.player.point2':
@@ -73,13 +73,12 @@ const tour: Partial<Dictionary> = {
     'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.',
   'tour.player.open': 'Prova il Lettore compatto',
   'tour.player.imageAlt':
-    'L’angolo della barra del titolo con l’interruttore {player} evidenziato, e il Lettore compatto due volte: su una scena in {backdrop} con le bande dell’EQ aperte, e con un visualizzatore standard dietro al brano e le manopole del Tono aperte.',
+    'L’angolo della barra del titolo con l’interruttore {player} evidenziato, e il Lettore compatto due volte: su una scena in {backdrop} con le bande dell’EQ aperte, e con uno stile standard dietro al brano e le manopole del Tono aperte.',
   'tour.player.scene': 'Con una scena, in {backdrop}',
-  'tour.player.standard': 'Con un visualizzatore standard',
+  'tour.player.standard': 'Con uno stile standard',
   'tour.look.kicker': 'UN NUOVO ASPETTO',
   'tour.look.title': 'Una finestra nuova, con colori nuovi',
-  'tour.look.subtitle':
-    'Un solo cursore del tema e un visualizzatore dietro a tutto',
+  'tour.look.subtitle': 'Un solo cursore del tema e una scena dietro a tutto',
   'tour.look.lead':
     'I pannelli poggiano su un unico piano aperto, nei colori della nuova icona, e un solo cursore, {brightness}, porta tutta la finestra dal quasi nero a un azzurro oceano chiaro. Con una scena sul grafico, la finestra può prendere i suoi colori o mostrarla dietro a tutto.',
   'tour.look.point1':
@@ -87,14 +86,14 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '{windowColours} offre {original}, {colours}, {ambient} e {backdrop}, ognuno con una riga su cosa fa alla finestra.',
   'tour.look.point3':
-    'Finestre di dialogo e menu condividono un unico materiale, e la {rainbow} percorre i colori dell’icona, o quelli di un visualizzatore.',
+    'Finestre di dialogo e menu condividono un unico materiale, e la {rainbow} percorre i colori dell’icona, o quelli di una scena.',
   'tour.look.how':
     'Sposta {brightness} nel menu delle azioni dietro l’icona a impulso in alto a destra. Con una scena sul grafico, apri {windowColours} dalla barra del grafico e scegli {backdrop}.',
   'tour.look.open': 'Apri l’EQ',
   'tour.look.imageAlt':
     'FluidEQ nei suoi colori nella pagina EQ, l’Analizzatore che disegna un brano sotto le curve, e il menu dietro l’icona a impulso aperto sul suo angolo, con la Luminosità a metà e la Modalità colorata attiva.',
-  'tour.gpu.kicker': 'UN NUOVO MOTORE PER I VISUALIZZATORI',
-  'tour.gpu.title': 'Ogni visualizzatore sulla tua scheda grafica',
+  'tour.gpu.kicker': 'UN NUOVO MOTORE PER LE SCENE',
+  'tour.gpu.title': 'Ogni scena sulla tua scheda grafica',
   'tour.gpu.subtitle': 'Quaranta stili al ritmo del tuo schermo, e mondi 3D',
   'tour.gpu.lead':
     'I quaranta stili del grafico ora si disegnano con il motore delle scene: sulla tua scheda grafica, alla frequenza di aggiornamento del tuo schermo, così barre, particelle e picchi scorrono fluidi dove prima scattavano. E una scena ora può essere un vero mondo 3D.',
@@ -111,21 +110,21 @@ const tour: Partial<Dictionary> = {
     'Una scena che è una città 3D di notte, e quattro nuovi stili fotografati sul grafico — {synthwave}, {horizon}, {towers} e {ledwall} — con il selettore degli stili cerchiato sul primo.',
   'tour.gpu.world': 'Mondo 3D',
   'tour.sparks.kicker': 'SCINTILLE DEL PUNTATORE',
-  'tour.sparks.title': 'Visualizzatori che rispondono al tuo mouse',
+  'tour.sparks.title': 'Scene che rispondono al tuo mouse',
   'tour.sparks.subtitle': 'Scintille, petali o neve dal puntatore',
   'tour.sparks.lead':
     'Passa il mouse su una scena e lancia ciò di cui è fatta — scintille, petali, neve, braci — in una scia dietro il puntatore, ed esplode dove fai clic. Con {ambient} e con {backdrop}, i suoi uccelli, petali e luci fluttuano anche su tutta la finestra.',
   'tour.sparks.point1':
-    'Ogni visualizzatore lancia i suoi: neve da una scena invernale, braci da un falò, petali da un giardino.',
+    'Ogni scena lancia i suoi: neve da una scena invernale, braci da un falò, petali da un giardino.',
   'tour.sparks.point2':
     'Il palco dello Studio le mostra sempre, così chi crea una scena può dare forma a ciò che lancia.',
   'tour.sparks.point3':
-    'Un solo interruttore per tutti i visualizzatori: {sparks}, in {windowColours} sotto {rainbow}.',
+    'Un solo interruttore per tutte le scene: {sparks}, in {windowColours} sotto {rainbow}.',
   'tour.sparks.how':
     'Con una scena sul grafico, passa il mouse sopra e fai clic. {sparks} è in {windowColours}, sotto {rainbow}.',
   'tour.sparks.open': 'Apri l’EQ',
   'tour.sparks.imageAlt':
-    'Un visualizzatore con un’aurora, una scia di scintille luminose dietro il puntatore e un’esplosione dove ha fatto clic, e {windowColours} con l’interruttore {sparks} cerchiato.',
+    'Una scena con un’aurora, una scia di scintille luminose dietro il puntatore e un’esplosione dove ha fatto clic, e {windowColours} con l’interruttore {sparks} cerchiato.',
   'tour.sound.kicker': 'IL MOTORE FLUIDEQ',
   'tour.sound.title': 'Il suono esattamente come l’hai disegnato',
   'tour.sound.subtitle': 'Alti fedeli, cambi senza clic, livello in un passo',
@@ -212,7 +211,7 @@ const tour: Partial<Dictionary> = {
   'tour.tone.imageAlt':
     'La curva dell’equalizzatore divisa nei terzi dei bassi, dei medi e degli alti, le tre manopole che li muovono e le disposizioni rapide da sei a trentuno bande.',
   'tour.studio.kicker': 'FLUIDEQ PLUS',
-  'tour.studio.title': 'Crea il tuo visualizzatore',
+  'tour.studio.title': 'Crea la tua scena',
   'tour.studio.subtitle': 'Gratis per ogni account',
   'tour.studio.lead':
     'Lo Studio trasforma un’idea in una scena che si muove con la tua musica. È gratuito per ogni account: crea, esporta e pubblica tutte le scene che vuoi.',
@@ -222,9 +221,8 @@ const tour: Partial<Dictionary> = {
     'Le scene possono essere veri mondi 3D che pestano sulla cassa e scattano sul drop.',
   'tour.studio.point3':
     'Copia il prompt per l’IA e il tuo assistente IA potrà vedere la tua scena e sentire come si muove il brano.',
-  'tour.studio.how':
-    'Apri Visualizzatori e scegli Studio nella barra laterale.',
-  'tour.studio.open': 'Apri Visualizzatori',
+  'tour.studio.how': 'Apri Scene e scegli Studio nella barra laterale.',
+  'tour.studio.open': 'Apri Scene',
   'tour.studio.imageAlt':
     'Lo Studio con Alpine sul palco, un lago sotto vette innevate e un’aurora, con sotto i tre passaggi per creare una scena con la tua IA, e due note: gratis per ogni account, e una scena pubblicata suona gratis per chi l’ha creata.',
   'tour.studio.earned': 'Pubblicata: suona gratis per te',
@@ -289,29 +287,29 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Una stanza vista dall’alto: sette diffusori e un sub intorno a una testa al centro, ognuno con il suo percorso verso le orecchie.',
 
-  'tour.plus.kicker': 'VISUALIZZATORI',
+  'tour.plus.kicker': 'SCENE',
   'tour.plus.title': 'Scene che sono tue per sempre',
-  'tour.plus.subtitle': 'Visualizzatori, Studio, illuminazione e altro',
+  'tour.plus.subtitle': 'Scene, Studio, illuminazione e altro',
   'tour.plus.lead':
     'Un’intera scheda di extra che fa crescere FluidEQ: scene disegnate sulla tua scheda grafica, uno Studio per creare le tue, sfondi del desktop e l’Illuminazione dinamica. Una scena costa un credito e resta tua, e l’equalizzatore, il rack e i player restano gratuiti, come sempre.',
   'tour.plus.point1':
-    'Accedi dalla scheda Visualizzatori: un account confermato riceve crediti gratis per iniziare.',
+    'Accedi dalla scheda Scene: un account confermato riceve crediti gratis per iniziare.',
   'tour.plus.point2':
     'I pacchetti di crediti si pagano una sola volta, con condizioni in parole semplici prima di pagare. Nulla si rinnova, e l’app non vede mai la tua carta.',
   'tour.plus.point3':
     'Ogni scena si può guardare prima, e quelle che ottieni suonano su ogni computer in cui accedi.',
   'tour.plus.how':
-    'Apri la scheda Visualizzatori: Galleria, Studio e Illuminazione dinamica sono sul lato sinistro.',
-  'tour.plus.open': 'Apri Visualizzatori',
+    'Apri la scheda Scene: Galleria, Studio e Illuminazione dinamica sono sul lato sinistro.',
+  'tour.plus.open': 'Apri Scene',
   'tour.plus.imageAlt':
-    'La scheda Visualizzatori: Galleria, Studio e Illuminazione dinamica sul lato, e la Galleria con Cromo, Fioritura, Aurora, Alpino e Città al neon.',
+    'La scheda Scene: Galleria, Studio e Illuminazione dinamica sul lato, e la Galleria con Cromo, Fioritura, Aurora, Alpino e Città al neon.',
   'tour.scene.alpine': 'Alpino',
   'tour.scene.aurora': 'Aurora',
   'tour.scene.bloom': 'Fioritura',
   'tour.scene.chrome': 'Cromo',
   'tour.scene.neonCity': 'Città al neon',
 
-  'tour.visualizers.kicker': 'VISUALIZZATORI',
+  'tour.visualizers.kicker': 'SCENE',
   'tour.visualizers.title': 'Scene che si muovono con la tua musica',
   'tour.visualizers.subtitle': 'Disegnate dalla tua scheda grafica',
   'tour.visualizers.lead':
@@ -323,18 +321,18 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.point3':
     'Cambia aspetto in automatico, passa a schermo intero e regola attacco e rilascio di una scena in Vista.',
   'tour.visualizers.how':
-    'Fai clic sul nome dell’aspetto sul grafico e scegline una in Visualizzatori, oppure sfogliale tutte in Visualizzatori → Galleria.',
+    'Fai clic sul nome dell’aspetto sul grafico e scegline una in Scene, oppure sfogliale tutte in Scene → Galleria.',
   'tour.visualizers.open': 'Apri l’EQ',
   'tour.visualizers.imageAlt':
     'Alpino, una scena con montagne su un lago di notte, in riproduzione sul grafico sotto le curve dell’EQ, con altre quattro scene più in basso.',
 
-  'tour.desktop.kicker': 'VISUALIZZATORE DEL DESKTOP',
+  'tour.desktop.kicker': 'SFONDO DEL DESKTOP',
   'tour.desktop.title': 'La tua musica dietro il desktop',
   'tour.desktop.subtitle': 'Una scena su ogni monitor',
   'tour.desktop.lead':
     'Metti una scena dietro le icone del desktop. Si muove con ciò che stai ascoltando, o con calma per conto suo, e ogni monitor può mostrare una propria scena.',
   'tour.desktop.point1':
-    'Scegli i monitor su una mappa della tua scrivania, ognuno con il suo visualizzatore.',
+    'Scegli i monitor su una mappa della tua scrivania, ognuno con la sua scena.',
   'tour.desktop.point2':
     'Si mette in pausa mentre le finestre coprono il monitor, con il PC bloccato e quando va a batteria.',
   'tour.desktop.point3': 'Riparte da solo al prossimo avvio di FluidEQ.',
@@ -346,19 +344,18 @@ const tour: Partial<Dictionary> = {
 
   'tour.lighting.kicker': 'ILLUMINAZIONE DINAMICA',
   'tour.lighting.title': 'La tua scrivania si accende con la scena',
-  'tour.lighting.subtitle':
-    'Beta · i tuoi dispositivi RGB seguono il visualizzatore',
+  'tour.lighting.subtitle': 'Beta · i tuoi dispositivi RGB seguono la scena',
   'tour.lighting.lead':
     'Tastiera, mouse, tappetino, cuffie e supporto prendono i colori e il ritmo della scena sul grafico, tramite Windows Dynamic Lighting e Razer Chroma.',
   'tour.lighting.point1':
-    'Quattro stili per ogni visualizzatore: Scena, Onda di colore, Spettro e Onda ritmica.',
+    'Quattro stili per ogni scena: Scena, Onda di colore, Spettro e Onda ritmica.',
   'tour.lighting.point2':
     'Regola ogni dispositivo singolarmente e scegli cosa succede quando la musica si ferma.',
   'tour.lighting.point3':
     'Un’anteprima dal vivo disegna proprio la tua scrivania mentre si illumina. È in beta: facci sapere come si comportano i tuoi dispositivi.',
   'tour.lighting.how':
-    'Apri Visualizzatori → Illuminazione dinamica e attivala, poi metti una scena sul grafico.',
-  'tour.lighting.open': 'Apri Visualizzatori',
+    'Apri Scene → Illuminazione dinamica e attivala, poi metti una scena sul grafico.',
+  'tour.lighting.open': 'Apri Scene',
   'tour.lighting.imageAlt':
     'Una tastiera, un mouse e un tappetino illuminati con il rosa, il viola e il ciano di Città al neon.',
 
@@ -619,7 +616,7 @@ const tour: Partial<Dictionary> = {
   'tour.walkthrough.title': 'Tutto FluidEQ in un solo video',
   'tour.walkthrough.subtitle': 'Guardalo dall’inizio alla fine',
   'tour.walkthrough.lead':
-    'Una visita guidata a tutto ciò che fa FluidEQ, dalla prima banda che trascini fino ai visualizzatori, con una voce che ti dice come usare ogni parte.',
+    'Una visita guidata a tutto ciò che fa FluidEQ, dalla prima banda che trascini fino alle scene, con una voce che ti dice come usare ogni parte.',
   'tour.film.walkthrough.intro': 'Tutto FluidEQ in un solo video',
   'tour.film.engine.intro':
     'FluidEQ ha un motore audio tutto suo. Porta il tuo EQ e il rack DSP a tutto ciò che suona sul computer.',
@@ -707,14 +704,14 @@ const tour: Partial<Dictionary> = {
     'Funziona con Claude Code installato su questo computer, con il tuo piano, e mostra quanto resta dei tuoi limiti.',
   'tour.chat.how':
     'Apri {plus}, scegli {studio} nella sua barra, scegli una scena o iniziane una e scrivi nella casella accanto al palco.',
-  'tour.chat.open': 'Apri Visualizzatori',
+  'tour.chat.open': 'Apri Scene',
   'tour.chat.imageAlt':
     'Il palco dello Studio accanto alla sua chat: la richiesta di far lampeggiare le luci del palco sul rullante, i passi della risposta spuntati uno a uno, la versione 2 tenuta con Ripristina, e le luci del palco che iniziano a lampeggiare quando suona la versione 2.',
   'tour.chat.ask': 'Fai lampeggiare le luci del palco sul rullante.',
   'tour.chat.reply':
     'Fatto: i due fari lampeggiano bianchi a ogni rullante e tornano al rosa.',
 
-  'tour.looks.kicker': 'IL TUO VISUALIZZATORE',
+  'tour.looks.kicker': 'LA TUA SCENA',
   'tour.looks.title': 'Aspetti personalizzati per il grafico',
   'tour.looks.subtitle': 'Le tue forme, i tuoi colori, il tuo movimento',
   'tour.looks.lead':
@@ -795,7 +792,7 @@ const tour: Partial<Dictionary> = {
   'tour.v23.forum':
     'Ogni sezione del Forum conta l’attività non vista, Problemi conta quelli aperti e discussioni e risposte incomplete restano salvate.',
   'tour.v23.layout':
-    'Visualizzatori apre l’intestazione e Media online la chiude. Il lettore compatto abbrevia i nomi dei giochi, la lettura del volume resta stabile, Aggiungi gioco mantiene i pulsanti visibili e le barre arrivano al bordo.',
+    'Scene apre l’intestazione e Media online la chiude. Il lettore compatto abbrevia i nomi dei giochi, la lettura del volume resta stabile, Aggiungi gioco mantiene i pulsanti visibili e le barre arrivano al bordo.',
 };
 
 export default tour;

@@ -13,7 +13,7 @@ const announce = {
     'Нет подключения. Показаны сохранённые новости, которые ещё актуальны.',
   'announce.news.empty': 'Актуальных объявлений нет.',
 
-  'announce.eyebrow': 'Новое в «Визуализаторах» · сцен: {count}',
+  'announce.eyebrow': 'Новое в «Сценах» · сцен: {count}',
   'announce.try': 'Попробовать сейчас',
   'announce.later': 'Позже',
   'announce.previewNote':

@@ -24,7 +24,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': 'Background brightness',
   'lighting.status.ambient': 'Flowing quietly · {scene}',
   'lighting.scene.title': 'Lighting for {scene}',
-  'lighting.scene.saved': 'Saved for this visualizer',
+  'lighting.scene.saved': 'Saved for this scene',
   'lighting.device.edit': 'Tune {name}',
   'lighting.target.all': 'All devices',
   'lighting.target.shared': 'Shared lighting: {devices}',
@@ -61,7 +61,7 @@ const lighting = {
   'lighting.gate.title':
     'Light your keyboard, mouse and headset with your scenes',
   'lighting.gate.body':
-    'Get any scene in Visualizers and dynamic lighting is yours: your devices take the colours of the scene on the graph and pulse with its beat.',
+    'Get any scene in the gallery and dynamic lighting is yours: your devices take the colours of the scene on the graph and pulse with its beat.',
   'lighting.gate.cta': 'Find a scene',
 
   'lighting.preview.status':
@@ -85,7 +85,7 @@ const lighting = {
   'lighting.status.nothingLit': 'The scene is playing, but no device is lit',
   'lighting.status.off': 'Off — your devices keep their own lighting',
   'lighting.status.noScene': 'Pick a scene and your devices follow it',
-  'lighting.pickScene': 'Browse visualizers',
+  'lighting.pickScene': 'Browse scenes',
   'lighting.showGraph': 'Show the graph',
 
   'lighting.brightness': 'Brightness',

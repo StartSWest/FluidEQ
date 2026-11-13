@@ -222,7 +222,7 @@ const studio = {
     'O chat da sua cena está escrevendo o que há de novo…',
   'studio.publish.noteNeeded': 'Obrigatório',
   'studio.publish.point1':
-    'Qualquer pessoa conectada pode vê-la em Visualizadores, assistir por alguns segundos e obtê-la com um crédito. Para você ela toca de graça.',
+    'Qualquer pessoa conectada pode vê-la na galeria de cenas, assistir por alguns segundos e obtê-la com um crédito. Para você ela toca de graça.',
   'studio.publish.point3':
     'Você pode despublicá-la para que ninguém novo possa obtê-la. Quem já a tem fica com ela.',
   'studio.publish.point3Update':

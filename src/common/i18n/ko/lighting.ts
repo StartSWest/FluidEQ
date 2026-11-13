@@ -16,7 +16,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': '배경 밝기',
   'lighting.status.ambient': '조용히 흐르는 · {scene}',
   'lighting.scene.title': '{scene}용 조명',
-  'lighting.scene.saved': '이 시각화 도우미용으로 저장됨',
+  'lighting.scene.saved': '이 장면용으로 저장됨',
   'lighting.device.edit': '{name} 조정',
   'lighting.target.all': '모든 기기',
   'lighting.target.shared': '공유 조명: {devices}',
@@ -51,7 +51,7 @@ const lighting = {
     '키보드, 마우스, 마우스패드, 헤드셋, 스탠드가 장면에 맞춰 빛납니다.',
   'lighting.gate.title': '장면에 맞춰 키보드, 마우스, 헤드셋에 조명을 켜세요',
   'lighting.gate.body':
-    'Visualizer에서 장면을 가져오면 동적 조명이 귀하의 것입니다. 장치는 그래프에서 장면의 색상을 취하고 비트에 따라 펄스를 보냅니다.',
+    '갤러리에서 장면을 가져오면 동적 조명이 귀하의 것입니다. 장치는 그래프에서 장면의 색상을 취하고 비트에 따라 펄스를 보냅니다.',
   'lighting.gate.cta': '장면 찾기',
   'lighting.preview.status':
     '미리보기 - 이 페이지가 열려 있는 동안 장치가 켜집니다.',
@@ -72,7 +72,7 @@ const lighting = {
     '장면이 재생 중이지만 장치에 불이 들어오지 않습니다',
   'lighting.status.off': '꺼짐 — 장치가 자체 조명을 유지합니다',
   'lighting.status.noScene': '장면을 선택하면 장치가 따라갑니다.',
-  'lighting.pickScene': '비주얼라이저 찾아보기',
+  'lighting.pickScene': '장면 찾아보기',
   'lighting.showGraph': '그래프 표시',
   'lighting.brightness': '밝기',
   'lighting.pulse': '비트에 맞춰 뛰다',

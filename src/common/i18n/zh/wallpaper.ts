@@ -2,19 +2,18 @@ const wallpaper = {
   'wallpaper.action': '设为桌面背景',
   'wallpaper.title': '桌面背景',
   'wallpaper.description':
-    '让此可视化效果显示在桌面图标后方，随音乐而动，或独自平静地播放。',
+    '让此场景显示在桌面图标后方，随音乐而动，或独自平静地播放。',
   'wallpaper.manage.description': '每台显示器在桌面图标后方显示的内容。',
   'wallpaper.manage.empty': '所有显示器都在显示普通的 Windows 背景。',
   'wallpaper.monitors': '显示器',
-  'wallpaper.monitors.hint':
-    '选择在哪里播放。每台显示器都可以显示自己的可视化效果。',
+  'wallpaper.monitors.hint': '选择在哪里播放。每台显示器都可以显示自己的场景。',
   'wallpaper.monitors.all': '所有显示器',
   'wallpaper.monitor.name': '显示器 {number}',
   'wallpaper.monitor.primary': '主显示器',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Windows 背景',
   'wallpaper.monitor.disconnected': '已断开的显示器',
-  'wallpaper.visualizer.unknown': '可视化效果',
+  'wallpaper.visualizer.unknown': '场景',
   'wallpaper.pauseOnBattery': '使用电池时暂停',
   'wallpaper.pauseOnBattery.hint': '电脑未接通电源时可节省电量。',
   'wallpaper.motion': '动态',
@@ -61,14 +60,14 @@ const wallpaper = {
   'wallpaper.error.unavailable': '无法连接桌面背景。请重试。',
   'wallpaper.error.notEntitled':
     '这个场景还不属于你。在图库中获取后即可设为桌面背景。',
-  'wallpaper.error.missingScene': '此可视化效果已不再安装。请重新添加后再试。',
+  'wallpaper.error.missingScene': '此场景已不再安装。请重新添加后再试。',
   'wallpaper.error.refused':
-    '此可视化效果在这台电脑的图形上出错。重新设置即可再试一次。',
+    '此场景在这台电脑的图形上出错。重新设置即可再试一次。',
   'wallpaper.error.missingDisplay':
     '该显示器已断开连接。重新连接后，它的背景会自动恢复。',
-  'wallpaper.error.host': 'Windows 无法将可视化效果放到桌面上。请重试。',
-  'wallpaper.error.renderer': '无法在桌面上绘制可视化效果。请重试。',
-  'wallpaper.error.audio': '桌面可视化效果已失去音乐信号。请重试。',
+  'wallpaper.error.host': 'Windows 无法将场景放到桌面上。请重试。',
+  'wallpaper.error.renderer': '无法在桌面上绘制场景。请重试。',
+  'wallpaper.error.audio': '桌面场景已失去音乐信号。请重试。',
 } as const;
 
 export default wallpaper;

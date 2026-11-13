@@ -12,8 +12,8 @@ const tour24 = {
   'tour.animations.point3':
     '每個新專案都從球體裡的月亮和飛過上方的燕子開始，第一天就能學會圖片和動畫的用法。',
   'tour.animations.how':
-    '開啟展示臺，進入工作室，在舞臺下方選擇動畫。在聊天裡請它讓場景中的一張圖片動起來。',
-  'tour.animations.open': '開啟展示臺',
+    '開啟場景，進入工作室，在舞臺下方選擇動畫。在聊天裡請它讓場景中的一張圖片動起來。',
+  'tour.animations.open': '開啟場景',
   'tour.animations.imageAlt':
     '工作室的動畫分頁：燕子在天空背景上拍動翅膀，八個畫格排成一列；下方是場景的聊天，正在找出跳動的那一格。',
   'tour.animations.task': '逐格檢查燕子的飛行。',
@@ -33,7 +33,7 @@ const tour24 = {
   'tour.pictures.point3': '你的標記會跟著圖片一起送出，AI 能準確明白你的意思。',
   'tour.pictures.how':
     '在工作室的聊天裡點一下圖片開啟它。按「畫畫」來標記，再按「附加到聊天」。',
-  'tour.pictures.open': '開啟展示臺',
+  'tour.pictures.open': '開啟場景',
   'tour.pictures.imageAlt':
     '一張放大開啟的月亮圖片：隕石坑周圍畫了一個圈，還有箭頭和文字，裁切框正在收攏，旁邊是「複製影像」和「附加到聊天」按鈕；下方是圖片所在的聊天。',
   'tour.pictures.ask': '把這個月亮放進球體，邊緣發光。',
@@ -54,7 +54,7 @@ const tour24 = {
     '沒有播放任何內容時，場景會隨示範歌曲動起來，工作時它從不會停住。',
   'tour.stage.how':
     '在工作室裡，從舞臺的尺寸選單選一個形狀。音樂和冷靜按鈕就在舞臺上。',
-  'tour.stage.open': '開啟展示臺',
+  'tour.stage.open': '開啟場景',
   'tour.stage.imageAlt':
     '工作室舞臺上的 Alpine 場景，正在放大，一個框標出 AI 看到的範圍，還有音樂和冷靜按鈕；旁邊是同一場景的超寬圖表，以及疊著控制按鈕的輕巧播放器。',
   'tour.stage.agentSees': 'AI 看到的範圍',
@@ -72,7 +72,7 @@ const tour24 = {
     '為每個聊天選擇模型和投入程度。清單跟隨 Claude Code，新模型一推出就會出現。',
   'tour.ai.how':
     '在工作室開啟一個場景，在它的聊天裡輸入。模型和投入程度就在輸入框下方。',
-  'tour.ai.open': '開啟展示臺',
+  'tour.ai.open': '開啟場景',
   'tour.ai.imageAlt':
     '同時進行的三個場景，兩個仍在處理，一個已保存為版本 7，下方是 FluidEQ 的技能；旁邊是 AI 使用的東西，以及模型和投入程度選單。',
   'tour.ai.skills': 'FluidEQ 的技能',
@@ -96,7 +96,7 @@ const tour24 = {
     '畫廊為每個場景保留最近 10 個版本，你可以在場景頁面把其中任何一個儲存到這台電腦。',
   'tour.controls.how':
     '在工作室開啟場景的「調音」分頁。場景的各個版本在畫廊中它的頁面上。',
-  'tour.controls.open': '開啟展示臺',
+  'tour.controls.open': '開啟場景',
   'tour.controls.imageAlt':
     '「調音」分頁：兩個調色盤，以及在晴、雨、雪之間切換的天氣選項，選雪時才出現降雪滑桿；旁邊是場景頁面，顯示大小、版本和保留的版本。',
   'tour.controls.weather': '天氣',
@@ -106,7 +106,7 @@ const tour24 = {
   'tour.controls.glow': '月光',
   'tour.controls.snowfall': '降雪',
 
-  'tour.camera.kicker': '展示臺',
+  'tour.camera.kicker': '場景',
   'tour.camera.title': '在場景中穿梭，在圖表上，也在桌面上',
   'tour.camera.subtitle': '你自己的鏡頭鍵，以及回應滑鼠的桌面',
   'tour.camera.lead':
@@ -114,18 +114,18 @@ const tour24 = {
   'tour.camera.point1':
     '開啟「跟隨滑鼠」，場景會朝指標傾斜；也可以讓它「自動環繞」。「重設檢視」只在按住按鍵時出現。',
   'tour.camera.point2':
-    '桌面上的展示會回應空白桌面上的滑鼠，每台螢幕都有自己的時間，工作室會把你最新的版本放到桌面上。',
+    '桌面上的場景會回應空白桌面上的滑鼠，每台螢幕都有自己的時間，工作室會把你最新的版本放到桌面上。',
   'tour.camera.point3':
     '節拍閃光落在大鼓上，沒有播放時畫廊預覽會隨示範歌曲動起來，出錯的場景會播放最後一個能用的版本，而不是素色外觀。',
   'tour.camera.how': '鏡頭設定在圖表的「檢視」選單中，場景下方。',
   'tour.camera.open': '開啟等化器',
   'tour.camera.imageAlt':
-    '兩台螢幕，每個桌面上都有展示：第一台上場景朝指標傾斜，按住 Ctrl 時出現「重設檢視」；每台都有自己的時間；下方是鏡頭設定。',
+    '兩台螢幕，每個桌面上都有場景：第一台上場景朝指標傾斜，按住 Ctrl 時出現「重設檢視」；每台都有自己的時間；下方是鏡頭設定。',
 
   'tour.v24.also': '2.4 的其他更新',
   'tour.v24.heroes':
     '《暴雪英霸》有了更飽滿的專屬混音，可選廣闊的舞臺。遊戲濾鏡在凸顯提示音的同時讓音樂更平穩。',
-  'tour.v24.graphSettings': '圖表為標準樣式和展示分別保存設定。',
+  'tour.v24.graphSettings': '圖表為標準樣式和場景分別保存設定。',
   'tour.v24.colourful': '多彩模式採用圖表上場景的顏色。',
   'tour.v24.gallery': '畫廊開啟時顯示最新的場景。',
   'tour.v24.credits': '在瀏覽器購買的點數會自動入帳。',
@@ -133,11 +133,11 @@ const tour24 = {
     '可以在「關於」或支援頁面透過 GitHub Sponsors 支持 FluidEQ。',
   'tour.v24.crashes':
     '萬一 FluidEQ 當機，紀錄只會保存在這台電腦上，供你自己決定是否送出的錯誤回報使用。',
-  'tour.visualsTitle': '視覺化效果的新增功能',
-  'tour.rail.alwaysVisuals': '也在視覺化效果中',
+  'tour.visualsTitle': '場景的新增功能',
+  'tour.rail.alwaysVisuals': '也在場景中',
   'visuals.news.open': '新增功能',
-  'visuals.news.blurb': '視覺化效果、工作室和燈光',
-  'visuals.news.title': '視覺化效果 {version} 的新功能',
+  'visuals.news.blurb': '場景、工作室和燈光',
+  'visuals.news.title': '場景 {version} 的新功能',
   'visuals.news.see': '查看新增功能',
   'visuals.news.later': '稍後再說',
 
@@ -167,7 +167,7 @@ const tour24 = {
   'tour.edit.point3':
     '按「儲存」之前，場景不會有任何改變。「放棄」丟掉更改，復原和重做可以來回查看。',
   'tour.edit.how': '在工作室開啟一個 3D 場景，在它的舞台上按「編輯」。',
-  'tour.edit.open': '開啟展示臺',
+  'tour.edit.open': '開啟場景',
   'tour.edit.imageAlt':
     '工作室舞台上的一個場景：選取了一個形狀，它的鎖已開啟、控制點露出，上方是移動、旋轉和大小工具，旁邊的清單裡其他東西都已鎖定，只顯示選取的形狀。',
   'tour.watch.kicker': '工作室 · 你的 AI',
@@ -181,7 +181,7 @@ const tour24 = {
   'tour.watch.point3':
     '測試歌曲的六個時刻，從靜音到高潮，檢查高潮是否看得出來，以及日光為 0 時夜晚有多暗。',
   'tour.watch.how': '在場景的聊天裡提出修改。它每次都這樣檢查自己的成果。',
-  'tour.watch.open': '開啟展示臺',
+  'tour.watch.open': '開啟場景',
   'tour.watch.imageAlt':
     '一個場景隨音樂的五格畫面及其移動方式，場景在一般、超寬和精簡播放器檢視中的樣子，以及測試歌曲從靜音到高潮的六個時刻。',
   'tour.watch.frames': '隨音樂的畫面',
@@ -203,7 +203,7 @@ const tour24 = {
   'tour.makers.point2': '製作任何內容之前，它會告訴您費用，並先徵求您的同意。',
   'tour.makers.point3': '它製作的影片會成為場景中的動畫。',
   'tour.makers.how': '在工作室開啟一個場景的聊天，按「帳戶」。',
-  'tour.makers.open': '開啟展示臺',
+  'tour.makers.open': '開啟場景',
   'tour.makers.imageAlt':
     '場景聊天在產生動畫之前請你允許 Higgsfield，旁邊是列有 Claude 和 Higgsfield 的帳戶清單。',
   'tour.makers.request': '把錦鯉做成游動的動畫',
@@ -219,7 +219,7 @@ const tour24 = {
   'tour.code.point3':
     '它會跟著 AI 儲存的檔案更新，AI 當作一般圖片打包的影格圖表會變成真正的動畫。',
   'tour.code.how': '在工作室開啟一個場景，在舞台下方選擇「程式碼」。',
-  'tour.code.open': '開啟展示臺',
+  'tour.code.open': '開啟場景',
   'tour.code.imageAlt':
     '「程式碼」分頁：場景的檔案摺疊為名稱，3D 世界的一個材質已開啟並被編輯，修改的行已標出，上方是「可以儲存」和「儲存」。',
   'tour.fullscreen.kicker': '工作室 · 全螢幕',
@@ -234,7 +234,7 @@ const tour24 = {
   'tour.fullscreen.point3':
     '拖曳聊天的邊緣可以把它調寬或調窄，下次全螢幕會依您離開時的樣子開啟。',
   'tour.fullscreen.how': '在工作室中開啟一個場景，在舞台上按「全螢幕」。',
-  'tour.fullscreen.open': '開啟展示臺',
+  'tour.fullscreen.open': '開啟場景',
   'tour.fullscreen.imageAlt':
     '全螢幕：場景在螢幕空出的區域播放，下方開著「調音」分頁的工作面板，右側停靠著場景的聊天。',
   'tour.fullscreen.request': '讓極光在 drop 時更亮',
@@ -251,18 +251,18 @@ const tour24 = {
   'tour.v25.publish': '發布不再有每月上限。',
   'tour.film.visuals.intro': '所有視覺功能，一部影片看完',
   'tour.v25.film.body':
-    '音樂庫與卡拉 OK、視覺化效果、畫廊與點數、桌面背景、裝置燈光和工作室，逐一示範並講解。',
+    '音樂庫與卡拉 OK、場景、畫廊與點數、桌面背景、裝置燈光和工作室，逐一示範並講解。',
   'tour.v25.film.soon': '這部影片即將推出。準備好後會在這裡播放。',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': '現已簽署，依然免費！',
   'tour.signed.subtitle': '一路走來，以及為所有人簽署的 FluidEQ',
   'tour.signed.today':
-    '如今，它是電腦上所有聲音的等化器，是您的音樂播放器，也是隨音樂律動的視覺化效果。',
+    '如今，它是電腦上所有聲音的等化器，是您的音樂播放器，也是隨音樂律動的場景。',
   'tour.signed.liveFor': 'FluidEQ 已經運作',
   'tour.signed.since': '始於 {date}',
   'tour.signed.roadTitle': '一路走來',
   'tour.signed.intro':
-    'FluidEQ 始於 2026年8月2日，兩天後推出了第一個版本 0.4.0。從那以後，它有了在 Windows 內運作、屬於它自己的音訊引擎，處理您聽到的一切聲音的 DSP 機架，用於您的音樂的媒體庫和播放器，附畫廊的視覺化效果，用來製作自己場景的工作室，以及十二種語言。由開發者簽署的版本，是這段路上的一個里程碑。',
+    'FluidEQ 始於 2026年8月2日，兩天後推出了第一個版本 0.4.0。從那以後，它有了在 Windows 內運作、屬於它自己的音訊引擎，處理您聽到的一切聲音的 DSP 機架，用於您的音樂的媒體庫和播放器，附畫廊的場景，用來製作自己場景的工作室，以及十二種語言。由開發者簽署的版本，是這段路上的一個里程碑。',
   'tour.signed.thanks':
     '感謝每一位使用 FluidEQ、回報問題、發布場景和在論壇發言的人：是您們每一位讓它變得更好。',
   'tour.signed.signedTitle': '由開發者簽署',
@@ -273,7 +273,7 @@ const tour24 = {
     '每個新版本都會自動送達，準備好後 FluidEQ 會通知您。您的設定會保留。',
   'tour.signed.freeTitle': '人人免費',
   'tour.signed.freeBody':
-    'FluidEQ 本身免費，人人都是同一個應用程式。視覺化效果畫廊裡的場景由它們的作者販售。',
+    'FluidEQ 本身免費，人人都是同一個應用程式。畫廊裡的場景由它們的作者販售。',
   'tour.signed.unit.day.one': '天',
   'tour.signed.unit.day.few': '天',
   'tour.signed.unit.day.many': '天',

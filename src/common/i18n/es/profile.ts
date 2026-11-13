@@ -1,7 +1,7 @@
 const profile = {
   'profile.name.title': 'Elige cómo te muestra la galería',
   'profile.name.body':
-    'Un alias y un nombre. La galería de Visualizadores los muestra como autor de tus escenas. Los ve cualquiera con sesión iniciada; nadie ve tu correo.',
+    'Un alias y un nombre. La galería de escenas los muestra como autor de tus escenas. Los ve cualquiera con sesión iniciada; nadie ve tu correo.',
   'profile.name.handle': 'Alias',
   'profile.name.handleHint': 'De 3 a 20 letras, números o _',
   'profile.name.name': 'Nombre visible',

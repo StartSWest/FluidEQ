@@ -2,21 +2,21 @@ const wallpaper = {
   'wallpaper.action': 'デスクトップの背景に設定',
   'wallpaper.title': 'デスクトップの背景',
   'wallpaper.description':
-    'このビジュアライザーをデスクトップアイコンの背面に表示し、音楽に合わせて、または穏やかに単独で動かします。',
+    'このシーンをデスクトップアイコンの背面に表示し、音楽に合わせて、または穏やかに単独で動かします。',
   'wallpaper.manage.description':
     '各モニターがデスクトップアイコンの背面に表示している内容です。',
   'wallpaper.manage.empty':
     'すべてのモニターに通常の Windows の背景が表示されています。',
   'wallpaper.monitors': 'モニター',
   'wallpaper.monitors.hint':
-    '再生するモニターを選びます。モニターごとに別のビジュアライザーを表示できます。',
+    '再生するモニターを選びます。モニターごとに別のシーンを表示できます。',
   'wallpaper.monitors.all': 'すべてのモニター',
   'wallpaper.monitor.name': 'モニター {number}',
   'wallpaper.monitor.primary': 'メイン',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Windows の背景',
   'wallpaper.monitor.disconnected': '切断されたモニター',
-  'wallpaper.visualizer.unknown': 'ビジュアライザー',
+  'wallpaper.visualizer.unknown': 'シーン',
   'wallpaper.pauseOnBattery': 'バッテリー使用時に一時停止',
   'wallpaper.pauseOnBattery.hint':
     'コンピューターが電源に接続されていないときに電力を節約します。',
@@ -71,17 +71,17 @@ const wallpaper = {
   'wallpaper.error.notEntitled':
     'このシーンはまだあなたのものではありません。ギャラリーで入手すると、デスクトップに表示できます。',
   'wallpaper.error.missingScene':
-    'このビジュアライザーはインストールされていません。もう一度追加してお試しください。',
+    'このシーンはインストールされていません。もう一度追加してお試しください。',
   'wallpaper.error.refused':
-    'このビジュアライザーはこのコンピューターのグラフィックスで問題を起こしました。もう一度設定すると再試行できます。',
+    'このシーンはこのコンピューターのグラフィックスで問題を起こしました。もう一度設定すると再試行できます。',
   'wallpaper.error.missingDisplay':
     'そのモニターは切断されています。再接続すると背景が戻ります。',
   'wallpaper.error.host':
-    'Windows がビジュアライザーをデスクトップに配置できませんでした。もう一度お試しください。',
+    'Windows がシーンをデスクトップに配置できませんでした。もう一度お試しください。',
   'wallpaper.error.renderer':
-    'ビジュアライザーをデスクトップに描画できませんでした。もう一度お試しください。',
+    'シーンをデスクトップに描画できませんでした。もう一度お試しください。',
   'wallpaper.error.audio':
-    'デスクトップ ビジュアライザーが音楽信号を受信できなくなりました。もう一度お試しください。',
+    'デスクトップ シーンが音楽信号を受信できなくなりました。もう一度お試しください。',
 } as const;
 
 export default wallpaper;

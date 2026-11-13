@@ -138,32 +138,31 @@ const eq: Partial<Dictionary> = {
   'graph.orientation.mirror': 'तरंग पलटें',
   'graph.orientation.centre': 'केंद्र से पलटें',
   'graph.orientation.up': 'तरंग को ऊपर करें',
-  'graph.autoSwitch.label': 'विज़ुअलाइज़र अपने आप बदलें',
+  'graph.autoSwitch.label': 'सीन अपने आप बदलें',
   'graph.autoSwitch.off': 'ऑटो: बंद',
   'graph.autoSwitch.every': 'ऑटो: {seconds}से',
   'graph.sceneTint.mode.off': 'ऐप की थीम',
-  'graph.sceneTint.mode.tint': 'विज़ुअलाइज़र के रंग',
-  'graph.sceneTint.mode.pulse':
-    'विज़ुअलाइज़र के रंग, उसके आसपास उसकी रोशनी के साथ',
+  'graph.sceneTint.mode.tint': 'सीन के रंग',
+  'graph.sceneTint.mode.pulse': 'सीन के रंग, उसके आसपास उसकी रोशनी के साथ',
   'graph.sceneTint.mode.cover':
-    'पूरी विंडो के पीछे विज़ुअलाइज़र, उसके आसपास उसकी रोशनी के साथ',
+    'पूरी विंडो के पीछे सीन, उसके आसपास उसकी रोशनी के साथ',
   'graph.sceneTint.short.off': 'मूल',
   'graph.sceneTint.short.tint': 'रंग',
   'graph.sceneTint.short.pulse': 'माहौल',
   'graph.sceneTint.short.cover': 'पृष्ठभूमि',
   'graph.sceneTint.label': 'विंडो के रंग',
   'graph.sceneTint.about.off': 'आपकी थीम में विंडो।',
-  'graph.sceneTint.about.tint': 'विज़ुअलाइज़र के रंगों में विंडो।',
+  'graph.sceneTint.about.tint': 'सीन के रंगों में विंडो।',
   'graph.sceneTint.about.pulse': 'उसके रंग, और संगीत के साथ चमकती विंडो।',
   'graph.sceneTint.about.cover':
-    'माहौल का सब कुछ, पूरी विंडो के पीछे विज़ुअलाइज़र के साथ।',
+    'माहौल का सब कुछ, पूरी विंडो के पीछे सीन के साथ।',
   'graph.editHint':
     'पॉइंट खींचें · Ctrl/Shift से चुनें · Ctrl+स्क्रॉल: Q · Ctrl+खींचें: बेल',
   'graph.windowTint': 'रंगत',
   'graph.windowTintHint':
     'स्टैंडर्ड लुक में विंडो का रंग। मूल रंग पर लौटने के लिए डबल-क्लिक करें।',
   'graph.backdropVeil': 'पारदर्शिता',
-  'graph.backdropVeilHint': 'पैनलों के पार विज़ुअलाइज़र कितना दिखे',
+  'graph.backdropVeilHint': 'पैनलों के पार सीन कितना दिखे',
   'graph.sceneTint.brightness': 'चमक',
   'graph.sceneTint.rainbow': 'रंगीन मोड',
   'graph.sceneTint.rainbowHint':
@@ -173,27 +172,27 @@ const eq: Partial<Dictionary> = {
     'टास्कबार बटन और ट्रे आइकन विंडो के रंगों में। बंद होने पर FluidEQ का अपना आइकन रहता है।',
   'graph.sceneTint.sparks': 'पॉइंटर की चिंगारियाँ',
   'graph.sceneTint.sparksHint':
-    'विज़ुअलाइज़र माउस से जो उछालता है: तस्वीर पर से गुज़रते हुए एक लकीर, और जहाँ आप क्लिक करें वहाँ एक फुहार — चिंगारियाँ, पंखुड़ियाँ, बर्फ़, जो भी सीन में हो।',
+    'सीन माउस से जो उछालता है: तस्वीर पर से गुज़रते हुए एक लकीर, और जहाँ आप क्लिक करें वहाँ एक फुहार — चिंगारियाँ, पंखुड़ियाँ, बर्फ़, जो भी सीन में हो।',
   'graph.sceneTint.daylight': 'दिन का उजाला',
-  'graph.sceneTint.daylightHint': 'विज़ुअलाइज़र का समय, रात से पूरे दिन तक',
+  'graph.sceneTint.daylightHint': 'सीन का समय, रात से पूरे दिन तक',
   'graph.sceneTint.daylightFollowingHint':
-    'चमक का अनुसरण कर रहा है। यहाँ विज़ुअलाइज़र का समय सेट करने के लिए नीचे “कुछ नहीं” चुनें',
+    'चमक का अनुसरण कर रहा है। यहाँ सीन का समय सेट करने के लिए नीचे “कुछ नहीं” चुनें',
   'graph.sceneTint.daylightSource': 'अनुसरण',
   'graph.sceneTint.daylightSourceOwn': 'कुछ नहीं',
   'graph.sceneTint.daylightSourceBrightness': 'चमक',
   'graph.sceneTint.daylightSourceClock': 'घड़ी',
   'graph.sceneTint.daylightOwnHint':
-    'विज़ुअलाइज़र ऊपर सेट की गई दिन की रोशनी बनाए रखता है।',
+    'सीन ऊपर सेट की गई दिन की रोशनी बनाए रखता है।',
   'graph.sceneTint.daylightFollowsHint':
-    'विज़ुअलाइज़र चमक के साथ रात से दिन में बदलता है।',
+    'सीन चमक के साथ रात से दिन में बदलता है।',
   'graph.sceneTint.daylightClockHint':
-    'विज़ुअलाइज़र इस कंप्यूटर की घड़ी के अनुसार रात में रात और दिन में दिन रहता है।',
+    'सीन इस कंप्यूटर की घड़ी के अनुसार रात में रात और दिन में दिन रहता है।',
   'graph.sceneTint.daylightFollowingClockHint':
-    'घड़ी का अनुसरण कर रहा है। यहाँ विज़ुअलाइज़र का समय सेट करने के लिए नीचे “कुछ नहीं” चुनें',
+    'घड़ी का अनुसरण कर रहा है। यहाँ सीन का समय सेट करने के लिए नीचे “कुछ नहीं” चुनें',
   'graph.sceneTint.daylightStudioHint':
-    'स्टूडियो खुला होने पर चमक ही विज़ुअलाइज़र का समय तय करती है, ताकि सीन को रात से दिन तक परखा जा सके। स्टूडियो से निकलते ही यह चुनाव फिर लागू होता है',
+    'स्टूडियो खुला होने पर चमक ही सीन का समय तय करती है, ताकि सीन को रात से दिन तक परखा जा सके। स्टूडियो से निकलते ही यह चुनाव फिर लागू होता है',
   'graph.sceneTint.brightnessHint':
-    'आपकी थीम में या विज़ुअलाइज़र के रंगों में विंडो कितनी हल्की या गहरी दिखे',
+    'आपकी थीम में या सीन के रंगों में विंडो कितनी हल्की या गहरी दिखे',
   'graph.member.mine': 'आपके बनाए',
   'graph.member.theirs': 'सदस्यों के बनाए',
   'graph.member.by': '{name} द्वारा',
@@ -226,26 +225,24 @@ const eq: Partial<Dictionary> = {
   'graph.look.retry': 'फिर से कोशिश करें',
   'graph.look.reportHint':
     'अगर यह बार-बार हो, तो {help} → {report} से हमें रिपोर्ट भेजें।',
-  'graph.scene.loading': 'विज़ुअलाइज़र लोड हो रहा है…',
+  'graph.scene.loading': 'सीन लोड हो रहा है…',
   'graph.scene.attack': 'अटैक',
   'graph.scene.attackHint':
-    'यह विज़ुअलाइज़र संगीत के साथ कितनी तेज़ी से उठता है। छोटा हो तो तीखा, लंबा हो तो धीरे-धीरे बढ़ता है।',
+    'यह सीन संगीत के साथ कितनी तेज़ी से उठता है। छोटा हो तो तीखा, लंबा हो तो धीरे-धीरे बढ़ता है।',
   'graph.scene.release': 'रिलीज़',
   'graph.scene.releaseHint':
     'हर चोट के बाद यह कितनी धीरे वापस गिरता है। लंबा हो तो चमक रह जाती है।',
   'graph.scene.ms': '{ms} ms',
   'graph.scene.percent': '{percent}%',
-  'graph.scene.controlHint':
-    'इस विज़ुअलाइज़र का अपना नियंत्रण, जैसा इसके लेखक ने रखा',
+  'graph.scene.controlHint': 'इस सीन का अपना नियंत्रण, जैसा इसके लेखक ने रखा',
   'graph.scene.ownWave': 'इसकी अपनी तरंग इस्तेमाल करें',
   'graph.scene.ownWaveHint':
     'तरंग को वहीं लौटाएँ जहाँ सीन बनाने वाले ने रखा था। तब तक आपकी ऊँचाई और स्थिति हर सीन के लिए सहेजी रहती है।',
   'graph.scene.ownControls': 'इसकी अपनी सेटिंग्स',
-  'graph.scene.ownControlsHint':
-    'उन सेटिंग्स पर लौटें जिनके साथ यह विज़ुअलाइज़र आया था',
+  'graph.scene.ownControlsHint': 'उन सेटिंग्स पर लौटें जिनके साथ यह सीन आया था',
   'graph.scene.ownTiming': 'इसकी अपनी टाइमिंग इस्तेमाल करें',
   'graph.scene.ownTimingHint':
-    'उसी अटैक और रिलीज़ पर लौटें जिनके साथ यह विज़ुअलाइज़र आया था',
+    'उसी अटैक और रिलीज़ पर लौटें जिनके साथ यह सीन आया था',
   'graph.scene.frameRate': 'फ़्रेम दर',
   'graph.scene.camera.key': 'दृश्य घुमाने की कुंजी',
   'graph.scene.camera.keyHint':
@@ -278,7 +275,7 @@ const eq: Partial<Dictionary> = {
   'graph.scene.camera.orbit.normal': 'सामान्य',
   'graph.scene.camera.calmNote': 'गति कम होने पर बंद',
   'graph.scene.frameRateHint':
-    'विज़ुअलाइज़र कितनी बार बनाए जाएँ: डिस्प्ले के हर फ़्रेम पर, या GPU को राहत देने के लिए सीमित',
+    'सीन कितनी बार बनाए जाएँ: डिस्प्ले के हर फ़्रेम पर, या GPU को राहत देने के लिए सीमित',
   'graph.scene.frameRate.display': 'डिस्प्ले जितनी',
   'graph.scene.frameRate.sixty': '60 प्रति सेकंड',
   'graph.scene.frameRate.thirty': '30 प्रति सेकंड',
@@ -319,10 +316,10 @@ const eq: Partial<Dictionary> = {
   'graph.scene.locked': 'अभी आपका नहीं है। इसे चुनकर देखें कि इसे कैसे पाएँ।',
   'graph.style.next': 'अगली शैली',
   'graph.style.previous': 'पिछली शैली',
-  'graph.picker.label': 'शैलियाँ और विज़ुअलाइज़र',
-  'graph.picker.search': 'शैलियाँ और विज़ुअलाइज़र खोजें',
+  'graph.picker.label': 'शैलियाँ और सीन',
+  'graph.picker.search': 'शैलियाँ और सीन खोजें',
   'graph.picker.styles': 'शैलियाँ',
-  'graph.picker.plus': 'विज़ुअलाइज़र',
+  'graph.picker.plus': 'सीन',
   'graph.picker.discover.title': 'अपने संगीत को जीवंत बनाएँ',
   'graph.picker.discover.body':
     'एनिमेटेड सीन खरीदें और हमेशा अपने पास रखें, या Studio में अपने सीन मुफ़्त बनाएँ।',
@@ -334,7 +331,7 @@ const eq: Partial<Dictionary> = {
   'graph.picker.all': 'सभी',
   'graph.picker.yours': 'आपके',
   'graph.picker.filterStyles': 'शैलियाँ फ़िल्टर करें',
-  'graph.picker.filterPlus': 'विज़ुअलाइज़र फ़िल्टर करें',
+  'graph.picker.filterPlus': 'सीन फ़िल्टर करें',
   'graph.channel.left': 'बाएँ',
   'graph.channel.right': 'दाएँ',
   'graph.legend.live': 'लाइव',

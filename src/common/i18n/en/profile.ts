@@ -5,7 +5,7 @@
 const profile = {
   'profile.name.title': 'Choose how the gallery shows you',
   'profile.name.body':
-    'A handle and a name. The Visualizers gallery credits your scenes with them. Everyone signed in sees them; nobody sees your email.',
+    'A handle and a name. The Scenes gallery credits your scenes with them. Everyone signed in sees them; nobody sees your email.',
   'profile.name.handle': 'Handle',
   'profile.name.handleHint': '3 to 20 letters, numbers or _',
   'profile.name.name': 'Display name',

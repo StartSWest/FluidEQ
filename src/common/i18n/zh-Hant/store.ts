@@ -91,11 +91,11 @@ const store = {
   'store.welcome.cardClaimedTitle.other': '{count} 個點數可以使用',
   'store.welcome.eyebrow': '歡迎使用 FluidEQ',
   'store.welcome.body':
-    '每個點數可以從「{visualizers}」永久取得一個場景。現在領取，挑選您的第一批場景。',
+    '每個點數可以從「{visualizers}」標籤永久取得一個場景。現在領取，挑選您的第一批場景。',
   'store.welcome.fine': '每個帳戶一次。花點數之前，每個場景都可以先看幾秒。',
   'store.welcome.later': '稍後',
   'store.welcome.claimedBody':
-    '挑選您的第一批場景。「{notMine}」已開啟，所以「{visualizers}」只顯示您還沒有的場景。',
+    '挑選您的第一批場景。「{notMine}」已開啟，所以「{visualizers}」標籤只顯示您還沒有的場景。',
   'store.welcome.pick': '挑選我的第一批場景',
   'store.welcome.cardBody': '領取後，挑選您要永久保留的第一批場景。',
   'store.welcome.cardClaimedBody':

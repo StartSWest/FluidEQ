@@ -2,21 +2,21 @@ const wallpaper = {
   'wallpaper.action': 'Set as desktop background',
   'wallpaper.title': 'Desktop background',
   'wallpaper.description':
-    'Keep this visualizer behind your desktop icons, moving with your music or calmly on its own.',
+    'Keep this scene behind your desktop icons, moving with your music or calmly on its own.',
   'wallpaper.manage.description':
     'What each monitor shows behind your desktop icons.',
   'wallpaper.manage.empty':
     'Every monitor is showing its ordinary Windows background.',
   'wallpaper.monitors': 'Monitors',
   'wallpaper.monitors.hint':
-    'Pick where it plays. Each monitor can show a visualizer of its own.',
+    'Pick where it plays. Each monitor can show a scene of its own.',
   'wallpaper.monitors.all': 'All monitors',
   'wallpaper.monitor.name': 'Monitor {number}',
   'wallpaper.monitor.primary': 'Primary',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Windows background',
   'wallpaper.monitor.disconnected': 'Disconnected monitor',
-  'wallpaper.visualizer.unknown': 'Visualizer',
+  'wallpaper.visualizer.unknown': 'Scene',
   'wallpaper.pauseOnBattery': 'Pause on battery power',
   'wallpaper.pauseOnBattery.hint':
     'Saves power when this computer is unplugged.',
@@ -70,17 +70,17 @@ const wallpaper = {
   'wallpaper.error.notEntitled':
     'This scene isn’t yours yet. Get it in the Gallery to put it on your desktop.',
   'wallpaper.error.missingScene':
-    'This visualizer is no longer installed. Add it again and retry.',
+    'This scene is no longer installed. Add it again and retry.',
   'wallpaper.error.refused':
-    "This visualizer failed on this computer's graphics. Set it again to try it once more.",
+    "This scene failed on this computer's graphics. Set it again to try it once more.",
   'wallpaper.error.missingDisplay':
     'That monitor is disconnected. Its background returns when it is plugged back in.',
   'wallpaper.error.host':
-    'Windows could not place the visualizer on the desktop. Try again.',
+    'Windows could not place the scene on the desktop. Try again.',
   'wallpaper.error.renderer':
-    'The visualizer could not draw on the desktop. Try again.',
+    'The scene could not draw on the desktop. Try again.',
   'wallpaper.error.audio':
-    'The desktop visualizer lost its music signal. Try again.',
+    'The desktop scene lost its music signal. Try again.',
 } as const;
 
 export default wallpaper;

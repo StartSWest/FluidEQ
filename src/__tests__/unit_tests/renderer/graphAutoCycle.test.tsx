@@ -153,7 +153,7 @@ describe('automatic visualizer switching', () => {
       />,
     );
     const trigger = screen.getByRole('menu', {
-      name: 'Automatic visualizer switching',
+      name: 'Automatic scene switching',
     });
     fireEvent.click(trigger);
     expect(screen.getAllByRole('menuitem')).toHaveLength(6);
@@ -177,11 +177,11 @@ describe('automatic visualizer switching', () => {
       />,
     );
     const trigger = screen.getByRole('button', {
-      name: 'Styles and visualizers',
+      name: 'Styles and scenes',
     });
     fireEvent.click(trigger);
     expect(
-      screen.getByRole('dialog', { name: 'Styles and visualizers' }),
+      screen.getByRole('dialog', { name: 'Styles and scenes' }),
     ).toBeTruthy();
     paintAt(30000);
     expect(cycleGraphLookUnattended).not.toHaveBeenCalled();

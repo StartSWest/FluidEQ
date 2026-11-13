@@ -180,10 +180,10 @@ const plus = {
     '建立免費帳戶並領取起步點數。每個點數可換一個永久屬於您的場景。',
   'plus.signedOut.free.title': '免費，無需帳戶',
   'plus.signedOut.free.body':
-    'FluidEQ 的等化器、音訊效果、音樂播放和免費視覺化效果。無需註冊即可使用。',
+    'FluidEQ 的等化器、音訊效果、音樂播放和圖表的標準樣式。無需註冊即可使用。',
   'plus.signedOut.account.title': '有了免費帳戶',
   'plus.signedOut.account.body':
-    '為「視覺化效果」取得場景（最初幾個免費）、瀏覽畫廊，並在「工作室」中製作自己的場景。',
+    '從畫廊取得場景（最初幾個免費），並在「工作室」中製作自己的場景。',
   'plus.signedOut.create': '建立免費帳戶',
   'plus.signedOut.createSub.one': '並取得 {count} 個場景',
   'plus.signedOut.createSub.few': '並取得 {count} 個場景',

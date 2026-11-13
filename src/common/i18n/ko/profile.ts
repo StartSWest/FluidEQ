@@ -5,7 +5,7 @@ import type { Dictionary } from '../en';
 const profile = {
   'profile.name.title': '갤러리에 표시되는 방식을 선택하세요.',
   'profile.name.body':
-    '핸들과 이름. Visualizers 갤러리는 장면에 이를 표시합니다. 로그인한 모든 사람이 볼 수 있습니다. 아무도 당신의 이메일을 볼 수 없습니다.',
+    '핸들과 이름. 장면 갤러리는 장면에 이를 표시합니다. 로그인한 모든 사람이 볼 수 있습니다. 아무도 당신의 이메일을 볼 수 없습니다.',
   'profile.name.handle': '핸들',
   'profile.name.handleHint': '영문, 숫자, _ 3~20자',
   'profile.name.name': '표시 이름',

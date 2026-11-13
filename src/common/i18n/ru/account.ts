@@ -122,7 +122,7 @@ const account = {
 
   'account.perk.looks': 'Сцены, которые ваши навсегда, по кредиту за каждую.',
   'account.perk.visualizers':
-    '«Визуализаторы»: сцены, которые создают участники, открыты для любого аккаунта.',
+    '«Сцены»: галерея сцен, которые создают участники, открыта для любого аккаунта.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Продолжить с Google',
   'account.or': 'или',

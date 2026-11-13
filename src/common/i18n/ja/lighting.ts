@@ -12,7 +12,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': '背景の明るさ',
   'lighting.status.ambient': '穏やかに流れる · {scene}',
   'lighting.scene.title': '{scene} のライティング',
-  'lighting.scene.saved': 'このビジュアライザーに保存',
+  'lighting.scene.saved': 'このシーンに保存',
   'lighting.device.edit': '{name} を調整',
   'lighting.target.all': 'すべてのデバイス',
   'lighting.target.shared': '共有ライティング：{devices}',
@@ -49,7 +49,7 @@ const lighting = {
   'lighting.gate.title':
     'あなたのシーンでキーボード、マウス、ヘッドセットを照らす',
   'lighting.gate.body':
-    'ビジュアライザーでシーンをひとつ手に入れれば、ダイナミックライティングはあなたのものです。デバイスがグラフ上のシーンの色をまとい、ビートに合わせて脈打ちます。',
+    'ギャラリーでシーンをひとつ手に入れれば、ダイナミックライティングはあなたのものです。デバイスがグラフ上のシーンの色をまとい、ビートに合わせて脈打ちます。',
   'lighting.gate.cta': 'シーンを探す',
 
   'lighting.preview.status':
@@ -75,7 +75,7 @@ const lighting = {
     'シーンは再生中ですが、光っているデバイスはありません',
   'lighting.status.off': 'オフ：デバイスは自分のライティングのままです',
   'lighting.status.noScene': 'シーンを選ぶとデバイスが追従します',
-  'lighting.pickScene': 'ビジュアライザーを見る',
+  'lighting.pickScene': 'シーンを見る',
   'lighting.showGraph': 'グラフを表示',
 
   'lighting.brightness': '明るさ',

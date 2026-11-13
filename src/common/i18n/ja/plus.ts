@@ -206,10 +206,10 @@ const plus = {
     '無料アカウントを作成して、スタート用のクレジットを受け取りましょう。1クレジットで、ずっと使えるシーンを1つ入手できます。',
   'plus.signedOut.free.title': '無料・アカウント不要',
   'plus.signedOut.free.body':
-    'FluidEQ のイコライザー、オーディオエフェクト、音楽再生、無料のビジュアライザー。登録しなくても使えます。',
+    'FluidEQ のイコライザー、オーディオエフェクト、音楽再生、グラフの標準の見た目。登録しなくても使えます。',
   'plus.signedOut.account.title': '無料アカウントがあれば',
   'plus.signedOut.account.body':
-    'ビジュアライザーのシーンを入手（最初の分は無料）、ギャラリーを閲覧、スタジオで自分のシーンを作成できます。',
+    'ギャラリーでシーンを入手（最初の分は無料）、スタジオで自分のシーンを作成できます。',
   'plus.signedOut.create': '無料アカウントを作成',
   'plus.signedOut.createSub.one': 'シーンを{count}つ入手',
   'plus.signedOut.createSub.few': 'シーンを{count}つ入手',

@@ -12,7 +12,7 @@ it('keeps the actual background switch label, pressed state and action together'
     <KaraokeGraphBackgroundButton isSelected={false} onClick={onClick} />,
   );
   const enable = screen.getByRole('button', {
-    name: 'Use current visualizer as background',
+    name: "Use the graph's scene or style as background",
   });
   expect(enable).toHaveAttribute('aria-pressed', 'false');
   fireEvent.click(enable);
@@ -20,10 +20,10 @@ it('keeps the actual background switch label, pressed state and action together'
 
   rerender(<KaraokeGraphBackgroundButton isSelected onClick={onClick} />);
   const disable = screen.getByRole('button', {
-    name: 'Turn off visualizer background',
+    name: 'Turn off the scene background',
   });
   expect(disable).toHaveAttribute('aria-pressed', 'true');
-  expect(disable).toHaveAttribute('title', 'Turn off visualizer background');
+  expect(disable).toHaveAttribute('title', 'Turn off the scene background');
   fireEvent.click(disable);
   expect(onClick).toHaveBeenCalledTimes(2);
 });

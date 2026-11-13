@@ -205,10 +205,10 @@ const plus = {
     'Crea un account gratuito e riscatta i tuoi crediti iniziali. Ogni credito ti dà una scena da tenere per sempre.',
   'plus.signedOut.free.title': 'Gratis, senza account',
   'plus.signedOut.free.body':
-    'L’equalizzatore, gli effetti audio, la riproduzione musicale e i visualizzatori gratuiti di FluidEQ. Usali senza mai registrarti.',
+    'L’equalizzatore, gli effetti audio, la riproduzione musicale e gli stili standard del grafico di FluidEQ. Usali senza mai registrarti.',
   'plus.signedOut.account.title': 'Con un account gratuito',
   'plus.signedOut.account.body':
-    'Ottieni scene per Visualizzatori, le prime gratis, esplora la galleria e crea le tue scene nello Studio.',
+    'Ottieni scene dalla galleria, le prime gratis, e crea le tue scene nello Studio.',
   'plus.signedOut.create': 'Crea il tuo account gratuito',
   'plus.signedOut.createSub.one': 'e ottieni {count} scena',
   'plus.signedOut.createSub.few': 'e ottieni {count} scene',

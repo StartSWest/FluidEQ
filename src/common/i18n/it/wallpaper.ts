@@ -2,21 +2,21 @@ const wallpaper = {
   'wallpaper.action': 'Imposta come sfondo del desktop',
   'wallpaper.title': 'Sfondo del desktop',
   'wallpaper.description':
-    'Mantieni questo visualizzatore dietro le icone del desktop, in movimento con la tua musica o con calma per conto suo.',
+    'Mantieni questa scena dietro le icone del desktop, in movimento con la tua musica o con calma per conto suo.',
   'wallpaper.manage.description':
     'Cosa mostra ogni monitor dietro le icone del desktop.',
   'wallpaper.manage.empty':
     'Tutti i monitor mostrano il normale sfondo di Windows.',
   'wallpaper.monitors': 'Monitor',
   'wallpaper.monitors.hint':
-    'Scegli dove viene riprodotto. Ogni monitor può mostrare un proprio visualizzatore.',
+    'Scegli dove viene riprodotta. Ogni monitor può mostrare una propria scena.',
   'wallpaper.monitors.all': 'Tutti i monitor',
   'wallpaper.monitor.name': 'Monitor {number}',
   'wallpaper.monitor.primary': 'Principale',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Sfondo di Windows',
   'wallpaper.monitor.disconnected': 'Monitor scollegato',
-  'wallpaper.visualizer.unknown': 'Visualizzatore',
+  'wallpaper.visualizer.unknown': 'Scena',
   'wallpaper.pauseOnBattery': 'Metti in pausa con la batteria',
   'wallpaper.pauseOnBattery.hint':
     'Risparmia energia quando il computer è scollegato.',
@@ -71,17 +71,17 @@ const wallpaper = {
   'wallpaper.error.notEntitled':
     'Questa scena non è ancora tua. Ottienila nella Galleria per metterla sul desktop.',
   'wallpaper.error.missingScene':
-    'Questo visualizzatore non è più installato. Aggiungilo di nuovo e riprova.',
+    'Questa scena non è più installata. Aggiungila di nuovo e riprova.',
   'wallpaper.error.refused':
-    'Questo visualizzatore ha avuto problemi con la grafica di questo computer. Impostalo di nuovo per riprovare.',
+    'Questa scena ha avuto problemi con la grafica di questo computer. Impostala di nuovo per riprovare.',
   'wallpaper.error.missingDisplay':
     'Questo monitor è scollegato. Il suo sfondo torna quando lo ricolleghi.',
   'wallpaper.error.host':
-    'Windows non è riuscito a posizionare il visualizzatore sul desktop. Riprova.',
+    'Windows non è riuscito a posizionare la scena sul desktop. Riprova.',
   'wallpaper.error.renderer':
-    'Il visualizzatore non è riuscito a comparire sul desktop. Riprova.',
+    'La scena non è riuscita a comparire sul desktop. Riprova.',
   'wallpaper.error.audio':
-    'Il visualizzatore del desktop ha perso il segnale musicale. Riprova.',
+    'La scena del desktop ha perso il segnale musicale. Riprova.',
 } as const;
 
 export default wallpaper;

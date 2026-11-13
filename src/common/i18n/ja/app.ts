@@ -70,7 +70,7 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'すべての設定をリセット…',
   'settingsReset.title': 'すべての設定をリセットしますか？',
   'settingsReset.body':
-    'グラフとビジュアライザー、ウィンドウの色、プレーヤー、ライブラリ、各ページで開いていた場所、アニメーション、Windows と一緒に起動、デスクトップの背景、ダイナミック ライティングが、FluidEQ を新しくインストールしたときの状態に戻ります。',
+    'グラフとシーン、ウィンドウの色、プレーヤー、ライブラリ、各ページで開いていた場所、アニメーション、Windows と一緒に起動、デスクトップの背景、ダイナミック ライティングが、FluidEQ を新しくインストールしたときの状態に戻ります。',
   'settingsReset.kept':
     'EQ、プリセット、カーブ、DSP はそのまま残ります。出力、オーディオ エンジン、言語、保存したものもすべてそのままです。',
   'settingsReset.action': '設定をリセット',
@@ -92,7 +92,7 @@ const app: Partial<Dictionary> = {
     '{place}：{name}、1 フレーム {ms} ms・{fps} fps、{drawn} で描いて {shown} に表示',
   'app.processes.sceneRate':
     '{place}：{name}、{fps} fps、{drawn} で描いて {shown} に表示',
-  'app.processes.place.graph': 'グラフのビジュアライザー',
+  'app.processes.place.graph': 'グラフのシーン',
   'app.processes.place.studio': 'スタジオのステージ',
   'app.processes.name.window': '画面',
   'app.processes.what.window':
@@ -106,12 +106,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': 'グラフィックス',
   'app.processes.what.graphics':
     '画面上のすべてをグラフィックスカードで描きます。スペクトラム、カーブ、あらゆるアニメーション、そしてシーン。何かが動いていれば動作します。ここではモデルは動きません。',
-  'app.processes.name.desktop': 'デスクトップ ビジュアライザー',
+  'app.processes.name.desktop': 'デスクトップ シーン',
   'app.processes.what.desktop':
     'モニターのデスクトップの背景として描かれるシーンで、このウィンドウとは別に動きます。表示しているモニターごとに 1 つです。ウィンドウがそのモニターを覆っている間や PC がロックされている間は一時停止します。',
-  'app.processes.name.desktopHost': 'デスクトップ ビジュアライザーの補助',
+  'app.processes.name.desktopHost': 'デスクトップ シーンの補助',
   'app.processes.what.desktopHost':
-    'そのモニターのデスクトップ ビジュアライザーをアイコンの後ろに置き、ウィンドウが画面を覆ったことを知らせます。表示しているモニターごとに 1 つです。',
+    'そのモニターのデスクトップ シーンをアイコンの後ろに置き、ウィンドウが画面を覆ったことを知らせます。表示しているモニターごとに 1 つです。',
   'app.processes.name.shareCapture': '音声のキャプチャ',
   'app.processes.what.shareCapture':
     'この PC で鳴っている音をイコライザーの前でキャプチャし、「音声を共有」タブ、2 つめの出力、スマート EQ に渡します。これらのどれかを使っている間だけ動作します。',
@@ -276,7 +276,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'オンラインメディア',
   'tabs.mediaShort': 'メディア',
   'tabs.karaoke': 'カラオケ',
-  'tabs.plus': 'ビジュアライザー',
+  'tabs.plus': 'シーン',
   'tabs.scrollBack': 'タブを前へスクロール',
   'tabs.scrollForward': 'タブを後へスクロール',
   'notice.apoReconfigured':
@@ -428,7 +428,7 @@ const app: Partial<Dictionary> = {
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': '画面',
-  'settings.group.visualizer': 'ビジュアライザー',
+  'settings.group.visualizer': 'シーン',
   'settings.group.drawing': '描き方',
   'settings.group.thisView': 'この表示',
   'settings.group.studioOnly': 'スタジオだけ',

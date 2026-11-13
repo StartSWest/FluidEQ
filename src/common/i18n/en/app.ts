@@ -68,7 +68,7 @@ const app = {
   'app.menu.resetSettings': 'Reset all settings…',
   'settingsReset.title': 'Reset all settings?',
   'settingsReset.body':
-    'The graph and visualizers, Window colours, the player, the Library, where each page was left, Animations, Start with Windows, the desktop background and Dynamic lighting go back to how a new install of FluidEQ starts.',
+    'The graph and its scenes, Window colours, the player, the Library, where each page was left, Animations, Start with Windows, the desktop background and Dynamic lighting go back to how a new install of FluidEQ starts.',
   'settingsReset.kept':
     'Your EQ, presets, curves and DSP stay as they are, and so do your outputs, the audio engine, the language and everything you saved.',
   'settingsReset.action': 'Reset settings',
@@ -89,7 +89,7 @@ const app = {
     '{place}: {name}, {ms} ms a frame at {fps} fps, drawn at {drawn} for {shown}',
   'app.processes.sceneRate':
     '{place}: {name} at {fps} fps, drawn at {drawn} for {shown}',
-  'app.processes.place.graph': 'Graph visualizer',
+  'app.processes.place.graph': 'Graph scene',
   'app.processes.place.studio': 'Studio stage',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
@@ -103,12 +103,12 @@ const app = {
   'app.processes.name.graphics': 'Graphics',
   'app.processes.what.graphics':
     'Draws everything on screen on the graphics card: the spectrum, the curve, every animation and the scenes. Busy whenever anything moves; it runs no models.',
-  'app.processes.name.desktop': 'Desktop visualizer',
+  'app.processes.name.desktop': 'Desktop scene',
   'app.processes.what.desktop':
     'A scene drawn as a monitor’s desktop background, apart from this window: one for each monitor showing one. It pauses while windows cover that monitor or the PC is locked.',
-  'app.processes.name.desktopHost': 'Desktop visualizer helper',
+  'app.processes.name.desktopHost': 'Desktop scene helper',
   'app.processes.what.desktopHost':
-    'Puts that monitor’s desktop visualizer behind the icons and tells it when windows cover the screen. One for each monitor showing one.',
+    'Puts that monitor’s desktop scene behind the icons and tells it when windows cover the screen. One for each monitor showing one.',
   'app.processes.name.shareCapture': 'Audio capture',
   'app.processes.what.shareCapture':
     'Captures what this PC plays, before the equalizer, for the Share Audio tab, a second output and Smart EQ. Runs only while one of them is in use.',
@@ -271,7 +271,7 @@ const app = {
   // qualifies, so a narrow window says less rather than saying it badly.
   'tabs.mediaShort': 'Media',
   'tabs.karaoke': 'Karaoke',
-  'tabs.plus': 'Visualizers',
+  'tabs.plus': 'Scenes',
   'tabs.scrollBack': 'Scroll tabs back',
   'tabs.scrollForward': 'Scroll tabs forward',
   'notice.apoReconfigured':
@@ -415,7 +415,7 @@ const app = {
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'The picture',
-  'settings.group.visualizer': 'The visualizer',
+  'settings.group.visualizer': 'The scene',
   'settings.group.drawing': 'How it is drawn',
   'settings.group.thisView': 'This view',
   'settings.group.studioOnly': 'Only here in the Studio',

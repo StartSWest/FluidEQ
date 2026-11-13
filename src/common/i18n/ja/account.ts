@@ -124,7 +124,7 @@ const account = {
 
   'account.perk.looks': '永久にあなたのものになるシーン。1シーン1クレジット。',
   'account.perk.visualizers':
-    'ビジュアライザー：メンバーが作ったシーンを、すべてのアカウントに公開。',
+    'シーン：メンバーが作ったシーンのギャラリーを、すべてのアカウントに公開。',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Googleで続行',
   'account.or': 'または',

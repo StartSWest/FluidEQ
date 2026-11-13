@@ -17,7 +17,7 @@ const announce = {
     'You are offline. Showing saved news that is still current.',
   'announce.news.empty': 'No current announcements.',
 
-  'announce.eyebrow': 'New in Visualizers · {count} scenes',
+  'announce.eyebrow': 'New in Scenes · {count} scenes',
   'announce.try': 'Try them now',
   'announce.later': 'Later',
   'announce.previewNote': 'Preview. Nothing was sent and nothing was recorded.',

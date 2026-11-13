@@ -12,8 +12,8 @@ const tour24 = {
   'tour.animations.point3':
     'Todo projeto novo começa com uma lua no orbe e uma andorinha voando por cima, para você aprender imagens e animações desde o primeiro dia.',
   'tour.animations.how':
-    'Abra Visualizadores, depois o Estúdio, e escolha Animações embaixo do palco. Peça ao chat para animar uma imagem da sua cena.',
-  'tour.animations.open': 'Abrir Visualizadores',
+    'Abra Cenas, depois o Estúdio, e escolha Animações embaixo do palco. Peça ao chat para animar uma imagem da sua cena.',
+  'tour.animations.open': 'Abrir Cenas',
   'tour.animations.imageAlt':
     'A aba Animações do Estúdio com uma andorinha batendo as asas no fundo Céu e seus oito quadros numa faixa, acima do chat da cena, que acha o quadro que pula.',
   'tour.animations.task': 'Confira o voo da andorinha quadro a quadro.',
@@ -36,7 +36,7 @@ const tour24 = {
     'As suas marcas vão junto com a imagem, então a IA vê exatamente o que você quer dizer.',
   'tour.pictures.how':
     'No chat do Estúdio, clique numa imagem para abrir. Pressione Desenhar para marcar e depois Anexar ao chat.',
-  'tour.pictures.open': 'Abrir Visualizadores',
+  'tour.pictures.open': 'Abrir Cenas',
   'tour.pictures.imageAlt':
     'Uma imagem da lua aberta grande e ampliada, com um círculo em volta de uma cratera, uma seta e uma palavra, o recorte se fechando e os botões Copiar imagem e Anexar ao chat, ao lado do chat de onde ela veio.',
   'tour.pictures.ask': 'Coloque esta lua no orbe, brilhando na borda.',
@@ -58,7 +58,7 @@ const tour24 = {
     'Sem nada tocando, a cena se move com a música da demo, então ela nunca fica parada enquanto você trabalha.',
   'tour.stage.how':
     'No Estúdio, escolha uma forma no menu de tamanho do palco. O botão de música e Calmo fica no próprio palco.',
-  'tour.stage.open': 'Abrir Visualizadores',
+  'tour.stage.open': 'Abrir Cenas',
   'tour.stage.imageAlt':
     'A cena Alpine no palco do Estúdio, ampliando com um quadro que marca o que a IA vê e o botão de música e Calmo, ao lado da mesma cena como gráfico ultrawide e no Player compacto com os controles por cima.',
   'tour.stage.agentSees': 'O que a IA vê',
@@ -77,7 +77,7 @@ const tour24 = {
     'Escolha o modelo e o esforço de cada chat. A lista segue o Claude Code, então modelos novos aparecem assim que chegam.',
   'tour.ai.how':
     'Abra uma cena no Estúdio e escreva no chat dela. O modelo e o esforço ficam embaixo da caixa onde você escreve.',
-  'tour.ai.open': 'Abrir Visualizadores',
+  'tour.ai.open': 'Abrir Cenas',
   'tour.ai.imageAlt':
     'Três cenas sendo trabalhadas ao mesmo tempo, duas ainda em andamento e uma guardada como versão 7, sobre as habilidades do FluidEQ, ao lado do que a IA usa e do menu de modelo e esforço.',
   'tour.ai.skills': 'Habilidades do FluidEQ',
@@ -101,7 +101,7 @@ const tour24 = {
     'A Galeria guarda as últimas 10 versões de cada cena, e você pode salvar qualquer uma neste computador pela página da cena.',
   'tour.controls.how':
     'Abra a aba Ajustar de uma cena no Estúdio. As versões de uma cena ficam na página dela na Galeria.',
-  'tour.controls.open': 'Abrir Visualizadores',
+  'tour.controls.open': 'Abrir Cenas',
   'tour.controls.imageAlt':
     'A aba Ajustar com duas paletas de cores e uma escolha de clima que passa por Limpo, Chuva e Neve, com um controle de nevasca que aparece em Neve, ao lado da página de uma cena com o tamanho, a versão e as versões guardadas.',
   'tour.controls.weather': 'Clima',
@@ -111,7 +111,7 @@ const tour24 = {
   'tour.controls.glow': 'Brilho da lua',
   'tour.controls.snowfall': 'Nevasca',
 
-  'tour.camera.kicker': 'VISUALIZADORES',
+  'tour.camera.kicker': 'CENAS',
   'tour.camera.title': 'Ande por uma cena, no gráfico e na área de trabalho',
   'tour.camera.subtitle':
     'Sua tecla de câmera e uma área de trabalho que responde ao mouse',
@@ -120,20 +120,20 @@ const tour24 = {
   'tour.camera.point1':
     'Ative Seguir o mouse e a cena se inclina atrás do ponteiro, ou deixe girar sozinha. Redefinir visualização só aparece enquanto você segura a tecla.',
   'tour.camera.point2':
-    'Um visualizador na área de trabalho responde ao mouse sobre a área de trabalho vazia, cada monitor tem a sua hora do dia, e o Estúdio coloca a sua versão mais nova na área de trabalho.',
+    'Uma cena na área de trabalho responde ao mouse sobre a área de trabalho vazia, cada monitor tem a sua hora do dia, e o Estúdio coloca a sua versão mais nova na área de trabalho.',
   'tour.camera.point3':
     'Os flashes de batida caem no bumbo, as prévias da Galeria se movem com a música da demo quando nada toca, e uma cena que quebra toca a última versão que funcionava em vez do visual simples.',
   'tour.camera.how':
     'As configurações da câmera ficam no menu Visualização do gráfico, embaixo da cena.',
   'tour.camera.open': 'Abrir EQ',
   'tour.camera.imageAlt':
-    'Dois monitores com um visualizador em cada área de trabalho: no primeiro a cena se inclina atrás do ponteiro e Redefinir visualização aparece enquanto Ctrl é segurado, cada um com a sua hora do dia, sobre as configurações da câmera.',
+    'Dois monitores com uma cena em cada área de trabalho: no primeiro a cena se inclina atrás do ponteiro e Redefinir visualização aparece enquanto Ctrl é segurado, cada um com a sua hora do dia, sobre as configurações da câmera.',
 
   'tour.v24.also': 'Também na 2.4',
   'tour.v24.heroes':
     'Heroes of the Storm tem uma mixagem própria mais cheia com Palco largo opcional, e o filtro Jogo deixa a música mais estável enquanto destaca os sinais.',
   'tour.v24.graphSettings':
-    'O gráfico guarda configurações separadas para os estilos padrão e para os visualizadores.',
+    'O gráfico guarda configurações separadas para os estilos padrão e para as cenas.',
   'tour.v24.colourful':
     'O Modo colorido usa as cores da cena que está no gráfico.',
   'tour.v24.gallery': 'A Galeria abre nas cenas mais novas.',
@@ -143,11 +143,11 @@ const tour24 = {
     'Apoie o FluidEQ pelo GitHub Sponsors, em Sobre ou na página de Apoio.',
   'tour.v24.crashes':
     'Se o FluidEQ travar e fechar, um registro fica guardado só neste computador, para um relatório de erro que você decide enviar.',
-  'tour.visualsTitle': 'Novidades dos Visualizadores',
-  'tour.rail.alwaysVisuals': 'TAMBÉM NOS VISUALIZADORES',
+  'tour.visualsTitle': 'Novidades das Cenas',
+  'tour.rail.alwaysVisuals': 'TAMBÉM NAS CENAS',
   'visuals.news.open': 'Novidades',
-  'visuals.news.blurb': 'Visualizadores, Estúdio e iluminação',
-  'visuals.news.title': 'Novo nos Visualizadores {version}',
+  'visuals.news.blurb': 'Cenas, Estúdio e iluminação',
+  'visuals.news.title': 'Novo nas Cenas {version}',
   'visuals.news.see': 'Ver novidades',
   'visuals.news.later': 'Agora não',
 
@@ -179,7 +179,7 @@ const tour24 = {
     'Nada muda na sua cena até você pressionar Salvar. Descartar joga as mudanças fora, e Desfazer e Refazer passam por elas.',
   'tour.edit.how':
     'Abra uma cena 3D no Estúdio e pressione Editar no palco dela.',
-  'tour.edit.open': 'Abrir Visualizadores',
+  'tour.edit.open': 'Abrir Cenas',
   'tour.edit.imageAlt':
     'Uma cena no palco do Estúdio com uma forma escolhida, o cadeado aberto e as alças à mostra, as ferramentas Mover, Girar e Tamanho em cima, e ao lado a lista com todo o resto travado e a forma escolhida mostrada sozinha.',
   'tour.watch.kicker': 'ESTÚDIO · SUA IA',
@@ -195,7 +195,7 @@ const tour24 = {
     'Seis momentos da música de teste, do silêncio ao drop, para conferir que o drop aparece, e o quanto a noite é escura com Luz do dia em 0.',
   'tour.watch.how':
     'Peça uma mudança no chat da cena. Ele confere o próprio trabalho assim toda vez.',
-  'tour.watch.open': 'Abrir Visualizadores',
+  'tour.watch.open': 'Abrir Cenas',
   'tour.watch.imageAlt':
     'Cinco quadros de uma cena ao longo da música e como ela se move, a cena nas vistas normal, ultralarga e do player compacto, e seis momentos da música de teste do silêncio ao drop.',
   'tour.watch.frames': 'Quadros ao longo da música',
@@ -219,7 +219,7 @@ const tour24 = {
     'Antes de criar qualquer coisa, ela diz quanto custa e pergunta a você primeiro.',
   'tour.makers.point3': 'Um vídeo que ela cria vira uma animação na sua cena.',
   'tour.makers.how': 'Abra o chat de uma cena no Estúdio e pressione Contas.',
-  'tour.makers.open': 'Abrir Visualizadores',
+  'tour.makers.open': 'Abrir Cenas',
   'tour.makers.imageAlt':
     'O chat de uma cena pedindo que você permita o Higgsfield antes de criar uma animação, ao lado da lista de Contas com Claude e Higgsfield.',
   'tour.makers.request': 'Faça o koi nadar numa animação',
@@ -236,7 +236,7 @@ const tour24 = {
   'tour.code.point3':
     'Ela acompanha os arquivos conforme sua IA os salva, e uma folha de quadros que sua IA empacotou como imagem comum vira uma animação de verdade.',
   'tour.code.how': 'Abra uma cena no Estúdio e escolha Código abaixo do palco.',
-  'tour.code.open': 'Abrir Visualizadores',
+  'tour.code.open': 'Abrir Cenas',
   'tour.code.imageAlt':
     'A aba Código com os arquivos da cena recolhidos nos nomes e um material do mundo 3D aberto e editado, com a linha alterada marcada e Pronto para salvar e Salvar acima.',
   'tour.fullscreen.kicker': 'ESTÚDIO · TELA CHEIA',
@@ -253,7 +253,7 @@ const tour24 = {
     'Arraste a borda do chat para deixá-lo mais largo ou mais estreito, e a próxima tela cheia abre do jeito que você deixou.',
   'tour.fullscreen.how':
     'Abra uma cena no Estúdio e pressione Tela cheia no palco.',
-  'tour.fullscreen.open': 'Abrir Visualizadores',
+  'tour.fullscreen.open': 'Abrir Cenas',
   'tour.fullscreen.imageAlt':
     'Tela cheia com a cena na parte livre da tela, o painel de trabalho aberto embaixo na aba Ajustar e o chat da cena encaixado à direita.',
   'tour.fullscreen.request': 'Deixe a aurora mais brilhante no drop',
@@ -271,19 +271,19 @@ const tour24 = {
   'tour.v25.publish': 'Sem limite mensal para publicar.',
   'tour.film.visuals.intro': 'Tudo o que é visual, em um filme',
   'tour.v25.film.body':
-    'A Biblioteca e o Karaokê, os visualizadores, a Galeria e seus créditos, o fundo da área de trabalho, a iluminação dos seus dispositivos e o Estúdio, mostrados e explicados.',
+    'A Biblioteca e o Karaokê, as cenas, a Galeria e seus créditos, o fundo da área de trabalho, a iluminação dos seus dispositivos e o Estúdio, mostrados e explicados.',
   'tour.v25.film.soon':
     'Este filme chega em breve. Ele vai tocar aqui assim que estiver pronto.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': 'Agora assinado, e continua grátis!',
   'tour.signed.subtitle': 'O caminho até aqui e um FluidEQ assinado para todos',
   'tour.signed.today':
-    'Hoje ele é um equalizador para tudo o que toca no seu computador, um player para a sua música e visualizadores que se movem com ela.',
+    'Hoje ele é um equalizador para tudo o que toca no seu computador, um player para a sua música e cenas que se movem com ela.',
   'tour.signed.liveFor': 'O FluidEQ está no ar há',
   'tour.signed.since': 'Começou em {date}',
   'tour.signed.roadTitle': 'O caminho até aqui',
   'tour.signed.intro':
-    'O FluidEQ começou em 2 de agosto de 2026, e sua primeira versão, a 0.4.0, saiu dois dias depois. Desde então, ganhou seu próprio motor de áudio dentro do Windows, um rack DSP para tudo o que você ouve, uma Biblioteca e um player para a sua música, visualizadores com uma galeria, um Estúdio para criar suas próprias cenas e doze idiomas. Uma versão assinada pelo desenvolvedor é um marco nesse caminho.',
+    'O FluidEQ começou em 2 de agosto de 2026, e sua primeira versão, a 0.4.0, saiu dois dias depois. Desde então, ganhou seu próprio motor de áudio dentro do Windows, um rack DSP para tudo o que você ouve, uma Biblioteca e um player para a sua música, cenas com uma galeria, um Estúdio para criar suas próprias cenas e doze idiomas. Uma versão assinada pelo desenvolvedor é um marco nesse caminho.',
   'tour.signed.thanks':
     'Obrigado a cada pessoa que usa o FluidEQ, avisa o que dá errado, publica cenas e escreve no fórum: cada uma o deixou melhor.',
   'tour.signed.signedTitle': 'Assinado pelo desenvolvedor',
@@ -294,7 +294,7 @@ const tour24 = {
     'Cada nova versão chega sozinha, e o FluidEQ avisa quando ela estiver pronta. Suas configurações ficam.',
   'tour.signed.freeTitle': 'Grátis para todos',
   'tour.signed.freeBody':
-    'O FluidEQ em si não custa nada, o mesmo aplicativo para todos. As cenas da Galeria de Visualizadores são vendidas por quem as cria.',
+    'O FluidEQ em si não custa nada, o mesmo aplicativo para todos. As cenas da Galeria são vendidas por quem as cria.',
   'tour.signed.unit.day.one': 'dia',
   'tour.signed.unit.day.few': 'dias',
   'tour.signed.unit.day.many': 'dias',

@@ -12,8 +12,8 @@ const tour24 = {
   'tour.animations.point3':
     'Jedes neue Projekt beginnt mit einem Mond in seiner Kugel und einer Schwalbe, die darüber fliegt – so lernen Sie Bilder und Animationen vom ersten Tag an kennen.',
   'tour.animations.how':
-    'Öffnen Sie Visualizer, dann das Studio, und wählen Sie Animationen unter der Bühne. Bitten Sie den Chat, ein Bild Ihrer Szene zu animieren.',
-  'tour.animations.open': 'Visualizer öffnen',
+    'Öffnen Sie Szenen, dann das Studio, und wählen Sie Animationen unter der Bühne. Bitten Sie den Chat, ein Bild Ihrer Szene zu animieren.',
+  'tour.animations.open': 'Szenen öffnen',
   'tour.animations.imageAlt':
     'Der Tab Animationen des Studios mit einer Schwalbe, die auf dem Hintergrund Himmel mit den Flügeln schlägt, und ihren acht Bildern in einem Streifen, über dem Chat der Szene, der das springende Bild findet.',
   'tour.animations.task': 'Prüfe den Flug der Schwalbe Bild für Bild.',
@@ -36,7 +36,7 @@ const tour24 = {
     'Ihre Markierungen reisen mit dem Bild, sodass die KI genau sieht, was Sie meinen.',
   'tour.pictures.how':
     'Klicken Sie im Chat des Studios auf ein Bild, um es zu öffnen. Drücken Sie Zeichnen, um es zu markieren, dann An den Chat anhängen.',
-  'tour.pictures.open': 'Visualizer öffnen',
+  'tour.pictures.open': 'Szenen öffnen',
   'tour.pictures.imageAlt':
     'Ein Mondbild, groß geöffnet und hineingezoomt, mit einem Kreis um einen Krater, einem Pfeil und einem Wort, dem Zuschnittrahmen, der sich schließt, und den Schaltflächen Bild kopieren und An den Chat anhängen, neben dem Chat, aus dem es kam.',
   'tour.pictures.ask': 'Setz diesen Mond in die Kugel, am Rand leuchtend.',
@@ -59,7 +59,7 @@ const tour24 = {
     'Läuft nichts, bewegt sich die Szene zum Demosong – sie steht also nie still, während Sie arbeiten.',
   'tour.stage.how':
     'Wählen Sie im Studio eine Form im Größenmenü der Bühne. Die Schaltfläche für Musik und Ruhig sitzt auf der Bühne selbst.',
-  'tour.stage.open': 'Visualizer öffnen',
+  'tour.stage.open': 'Szenen öffnen',
   'tour.stage.imageAlt':
     'Die Szene Alpine auf der Bühne des Studios, die hineinzoomt, mit einem Rahmen für das, was die KI sieht, und der Schaltfläche für Musik und Ruhig, neben derselben Szene als ultrabreites Diagramm und im Kompakten Player mit seinen Bedienelementen darüber.',
   'tour.stage.agentSees': 'Was die KI sieht',
@@ -78,7 +78,7 @@ const tour24 = {
     'Wählen Sie Modell und Aufwand für jeden Chat. Die Liste folgt Claude Code, neue Modelle erscheinen also, sobald es sie gibt.',
   'tour.ai.how':
     'Öffnen Sie eine Szene im Studio und schreiben Sie in ihren Chat. Modell und Aufwand finden Sie unter dem Eingabefeld.',
-  'tour.ai.open': 'Visualizer öffnen',
+  'tour.ai.open': 'Szenen öffnen',
   'tour.ai.imageAlt':
     'Drei Szenen, an denen gleichzeitig gearbeitet wird, zwei noch in Arbeit und eine als Version 7 behalten, über den Fähigkeiten von FluidEQ, neben dem, womit die KI arbeitet, und dem Menü für Modell und Aufwand.',
   'tour.ai.skills': 'Fähigkeiten von FluidEQ',
@@ -103,7 +103,7 @@ const tour24 = {
     'Die Galerie behält die letzten 10 Versionen jeder Szene, und Sie können jede davon auf der Seite der Szene auf diesem Computer speichern.',
   'tour.controls.how':
     'Öffnen Sie im Studio den Tab Abstimmen einer Szene. Die Versionen einer Szene stehen auf ihrer Seite in der Galerie.',
-  'tour.controls.open': 'Visualizer öffnen',
+  'tour.controls.open': 'Szenen öffnen',
   'tour.controls.imageAlt':
     'Der Tab Abstimmen mit zwei Farbpaletten und einer Wetterauswahl, die Klar, Regen und Schnee durchläuft, mit einem Schneefall-Regler, der bei Schnee erscheint, neben der Seite einer Szene mit ihrer Paketgröße, ihrer Version und den behaltenen Versionen.',
   'tour.controls.weather': 'Wetter',
@@ -113,7 +113,7 @@ const tour24 = {
   'tour.controls.glow': 'Mondschein',
   'tour.controls.snowfall': 'Schneefall',
 
-  'tour.camera.kicker': 'VISUALIZER',
+  'tour.camera.kicker': 'SZENEN',
   'tour.camera.title':
     'Bewegen Sie sich durch eine Szene, im Diagramm und auf dem Desktop',
   'tour.camera.subtitle':
@@ -123,20 +123,20 @@ const tour24 = {
   'tour.camera.point1':
     'Schalten Sie Der Maus folgen ein, und die Szene neigt sich Ihrem Zeiger nach – oder lassen Sie sie selbst kreisen. Ansicht zurücksetzen erscheint nur, solange Sie die Taste halten.',
   'tour.camera.point2':
-    'Ein Visualizer auf Ihrem Desktop antwortet auf die Maus über dem leeren Desktop, jeder Monitor behält seine eigene Tageszeit, und das Studio legt Ihre neueste Version auf den Desktop.',
+    'Eine Szene auf Ihrem Desktop antwortet auf die Maus über dem leeren Desktop, jeder Monitor behält seine eigene Tageszeit, und das Studio legt Ihre neueste Version auf den Desktop.',
   'tour.camera.point3':
     'Beat-Blitze landen auf der Bassdrum, Vorschauen in der Galerie bewegen sich zum Demosong, solange nichts läuft, und eine Szene, die kaputtgeht, spielt ihre letzte funktionierende Version statt des schlichten Aussehens.',
   'tour.camera.how':
     'Die Einstellungen der Kamera finden Sie im Menü Ansicht des Diagramms, unter der Szene.',
   'tour.camera.open': 'EQ öffnen',
   'tour.camera.imageAlt':
-    'Zwei Monitore mit einem Visualizer auf jedem Desktop: Auf dem ersten neigt sich die Szene dem Zeiger nach, und Ansicht zurücksetzen erscheint, solange Strg gehalten wird, jeder mit seiner eigenen Tageszeit, über den Einstellungen der Kamera.',
+    'Zwei Monitore mit einer Szene auf jedem Desktop: Auf dem ersten neigt sich die Szene dem Zeiger nach, und Ansicht zurücksetzen erscheint, solange Strg gehalten wird, jeder mit seiner eigenen Tageszeit, über den Einstellungen der Kamera.',
 
   'tour.v24.also': 'Außerdem in 2.4',
   'tour.v24.heroes':
     'Heroes of the Storm hat eine eigene, vollere Abmischung mit optionaler Breiter Bühne, und der Filter Spiel hält Musik ruhiger, während er Hinweise hervorhebt.',
   'tour.v24.graphSettings':
-    'Das Diagramm behält getrennte Einstellungen für Standardstile und für Visualizer.',
+    'Das Diagramm behält getrennte Einstellungen für Standardstile und für Szenen.',
   'tour.v24.colourful':
     'Der Bunte Modus übernimmt die Farben der Szene im Diagramm.',
   'tour.v24.gallery': 'Die Galerie öffnet sich mit ihren neuesten Szenen.',
@@ -145,11 +145,11 @@ const tour24 = {
     'Unterstützen Sie FluidEQ über GitHub Sponsors, unter Über oder auf der Unterstützungsseite.',
   'tour.v24.crashes':
     'Falls FluidEQ einmal abstürzt, wird ein Protokoll nur auf diesem Computer aufbewahrt – für einen Fehlerbericht, den Sie selbst senden.',
-  'tour.visualsTitle': 'Neu bei den Visualizern',
-  'tour.rail.alwaysVisuals': 'AUSSERDEM BEI DEN VISUALIZERN',
+  'tour.visualsTitle': 'Neu bei den Szenen',
+  'tour.rail.alwaysVisuals': 'AUSSERDEM BEI DEN SZENEN',
   'visuals.news.open': 'Neuheiten',
-  'visuals.news.blurb': 'Visualizer, Studio und Beleuchtung',
-  'visuals.news.title': 'Neu bei den Visualizern {version}',
+  'visuals.news.blurb': 'Szenen, Studio und Beleuchtung',
+  'visuals.news.title': 'Neu bei den Szenen {version}',
   'visuals.news.see': 'Neuheiten ansehen',
   'visuals.news.later': 'Nicht jetzt',
 
@@ -182,7 +182,7 @@ const tour24 = {
     'Nichts ändert Ihre Szene, bis Sie Speichern drücken. Verwerfen wirft die Änderungen weg, Rückgängig und Wiederholen gehen sie durch.',
   'tour.edit.how':
     'Öffnen Sie eine 3D-Szene im Studio und drücken Sie auf ihrer Bühne Bearbeiten.',
-  'tour.edit.open': 'Visualizer öffnen',
+  'tour.edit.open': 'Szenen öffnen',
   'tour.edit.imageAlt':
     'Eine Szene auf der Bühne des Studios mit einer gewählten Form, ihr Schloss offen und ihre Griffe zu sehen, darüber die Werkzeuge Bewegen, Drehen und Größe, daneben die Liste mit allem anderen gesperrt und der gewählten Form allein gezeigt.',
   'tour.watch.kicker': 'STUDIO · IHRE KI',
@@ -198,7 +198,7 @@ const tour24 = {
     'Sechs Momente des Testsongs, von der Stille bis zum Drop, um zu prüfen, dass der Drop sichtbar ist, und wie dunkel die Nacht bei Tageslicht 0 ist.',
   'tour.watch.how':
     'Bitten Sie den Chat der Szene um eine Änderung. Er prüft seine Arbeit jedes Mal so.',
-  'tour.watch.open': 'Visualizer öffnen',
+  'tour.watch.open': 'Szenen öffnen',
   'tour.watch.imageAlt':
     'Fünf Bilder einer Szene entlang der Musik und wie sie sich bewegt, die Szene in der normalen, der Ultra-Wide- und der Kompaktplayer-Ansicht, und sechs Momente des Testsongs von der Stille bis zum Drop.',
   'tour.watch.frames': 'Bilder entlang der Musik',
@@ -224,7 +224,7 @@ const tour24 = {
     'Ein Video, das sie erstellt, wird zu einer Animation in Ihrer Szene.',
   'tour.makers.how':
     'Öffnen Sie den Chat einer Szene im Studio und drücken Sie Konten.',
-  'tour.makers.open': 'Visualizer öffnen',
+  'tour.makers.open': 'Szenen öffnen',
   'tour.makers.imageAlt':
     'Der Chat einer Szene bittet Sie, Higgsfield zu erlauben, bevor es eine Animation erstellt, neben der Kontenliste mit Claude und Higgsfield.',
   'tour.makers.request': 'Lass den Koi in einer Animation schwimmen',
@@ -242,7 +242,7 @@ const tour24 = {
     'Er folgt den Dateien, wie Ihre KI sie speichert, und ein Bogen aus Einzelbildern, den Ihre KI als einfaches Bild gepackt hat, wird zu einer echten Animation.',
   'tour.code.how':
     'Öffnen Sie eine Szene im Studio und wählen Sie Code unter der Bühne.',
-  'tour.code.open': 'Visualizer öffnen',
+  'tour.code.open': 'Szenen öffnen',
   'tour.code.imageAlt':
     'Der Code-Tab mit den Dateien der Szene auf ihre Namen eingeklappt und einem Material ihrer 3D-Welt offen und bearbeitet, die geänderte Zeile markiert, darüber Bereit zum Speichern und Speichern.',
   'tour.fullscreen.kicker': 'STUDIO · VOLLBILD',
@@ -259,7 +259,7 @@ const tour24 = {
     'Ziehen Sie den Rand des Chats, um ihn breiter oder schmaler zu machen, und das nächste Vollbild öffnet sich so, wie Sie es verlassen haben.',
   'tour.fullscreen.how':
     'Öffnen Sie eine Szene im Studio und drücken Sie auf ihrer Bühne Vollbild.',
-  'tour.fullscreen.open': 'Visualizer öffnen',
+  'tour.fullscreen.open': 'Szenen öffnen',
   'tour.fullscreen.imageAlt':
     'Vollbild mit der Szene im frei gebliebenen Teil des Bildschirms, darunter der geöffnete Arbeitsbereich auf dem Tab Abstimmen und rechts der angedockte Chat der Szene.',
   'tour.fullscreen.request': 'Mach das Polarlicht beim Drop heller',
@@ -277,7 +277,7 @@ const tour24 = {
   'tour.v25.publish': 'Kein monatliches Limit beim Veröffentlichen.',
   'tour.film.visuals.intro': 'Alles Visuelle in einem Film',
   'tour.v25.film.body':
-    'Die Bibliothek und Karaoke, die Visualizer, die Galerie und ihre Credits, der Desktop-Hintergrund, die Beleuchtung Ihrer Geräte und das Studio, gezeigt und erklärt.',
+    'Die Bibliothek und Karaoke, die Szenen, die Galerie und ihre Credits, der Desktop-Hintergrund, die Beleuchtung Ihrer Geräte und das Studio, gezeigt und erklärt.',
   'tour.v25.film.soon':
     'Dieser Film kommt bald. Er wird hier abgespielt, sobald er fertig ist.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
@@ -285,12 +285,12 @@ const tour24 = {
   'tour.signed.subtitle':
     'Der Weg bis hierher und ein signiertes FluidEQ für alle',
   'tour.signed.today':
-    'Heute ist es ein Equalizer für alles, was Ihr Computer abspielt, ein Player für Ihre Musik und Visualizer, die sich mit ihr bewegen.',
+    'Heute ist es ein Equalizer für alles, was Ihr Computer abspielt, ein Player für Ihre Musik und Szenen, die sich mit ihr bewegen.',
   'tour.signed.liveFor': 'So lange gibt es FluidEQ schon',
   'tour.signed.since': 'Gestartet am {date}',
   'tour.signed.roadTitle': 'Der Weg bis hierher',
   'tour.signed.intro':
-    'FluidEQ begann am 2. August 2026, und die erste Version, 0.4.0, erschien zwei Tage später. Seitdem sind eine eigene Audio-Engine in Windows, ein DSP-Rack für alles, was Sie hören, eine Bibliothek und ein Player für Ihre Musik, Visualizer mit einer Galerie, ein Studio für eigene Szenen und zwölf Sprachen dazugekommen. Ein vom Entwickler signierter Build ist ein Meilenstein auf diesem Weg.',
+    'FluidEQ begann am 2. August 2026, und die erste Version, 0.4.0, erschien zwei Tage später. Seitdem sind eine eigene Audio-Engine in Windows, ein DSP-Rack für alles, was Sie hören, eine Bibliothek und ein Player für Ihre Musik, Szenen mit einer Galerie, ein Studio für eigene Szenen und zwölf Sprachen dazugekommen. Ein vom Entwickler signierter Build ist ein Meilenstein auf diesem Weg.',
   'tour.signed.thanks':
     'Danke an alle, die FluidEQ nutzen, Probleme melden, Szenen veröffentlichen und im Forum schreiben: Jede und jeder von Ihnen hat es besser gemacht.',
   'tour.signed.signedTitle': 'Vom Entwickler signiert',
@@ -301,7 +301,7 @@ const tour24 = {
     'Jede neue Version kommt von allein, und FluidEQ sagt Ihnen, wenn sie bereit ist. Ihre Einstellungen bleiben.',
   'tour.signed.freeTitle': 'Kostenlos für alle',
   'tour.signed.freeBody':
-    'FluidEQ selbst kostet nichts, dieselbe App für alle. Die Szenen in der Visualizer-Galerie werden von denen verkauft, die sie gemacht haben.',
+    'FluidEQ selbst kostet nichts, dieselbe App für alle. Die Szenen in der Galerie werden von denen verkauft, die sie gemacht haben.',
   'tour.signed.unit.day.one': 'Tag',
   'tour.signed.unit.day.few': 'Tage',
   'tour.signed.unit.day.many': 'Tage',

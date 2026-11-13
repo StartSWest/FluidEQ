@@ -1,7 +1,7 @@
 const profile = {
   'profile.name.title': 'Escolha como a galeria mostra você',
   'profile.name.body':
-    'Um nome de usuário e um nome visível. A galeria de Visualizadores os mostra como autor das suas cenas. Ficam visíveis para quem está conectado; ninguém vê seu email.',
+    'Um nome de usuário e um nome visível. A galeria de cenas os mostra como autor das suas cenas. Ficam visíveis para quem está conectado; ninguém vê seu email.',
   'profile.name.handle': 'Nome de usuário',
   'profile.name.handleHint': 'De 3 a 20 letras, números ou _',
   'profile.name.name': 'Nome visível',

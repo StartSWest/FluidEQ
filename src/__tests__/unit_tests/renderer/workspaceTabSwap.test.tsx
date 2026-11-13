@@ -54,12 +54,12 @@ it('places Visualizers on the left and Online Media on the right with their orig
   );
   expect(
     screen.getAllByRole('tab').map((tab) => tab.getAttribute('aria-label')),
-  ).toEqual(['Visualizers', 'Share Audio', 'Gaming Lab', 'EQ']);
-  fireEvent.click(screen.getByRole('tab', { name: 'Visualizers' }));
-  fireEvent.pointerEnter(screen.getByRole('tab', { name: 'Visualizers' }));
+  ).toEqual(['Scenes', 'Share Audio', 'Gaming Lab', 'EQ']);
+  fireEvent.click(screen.getByRole('tab', { name: 'Scenes' }));
+  fireEvent.pointerEnter(screen.getByRole('tab', { name: 'Scenes' }));
   expect(select).toHaveBeenCalledWith('community');
   expect(approach).toHaveBeenCalledWith('community');
-  expect(screen.getByRole('tab', { name: 'Visualizers' })).toHaveAttribute(
+  expect(screen.getByRole('tab', { name: 'Scenes' })).toHaveAttribute(
     'aria-selected',
     'true',
   );
@@ -97,7 +97,7 @@ it('keeps Online Media available in builds without the Visualizers backend', () 
       />
     </I18nProvider>,
   );
-  expect(screen.queryByRole('tab', { name: 'Visualizers' })).toBeNull();
+  expect(screen.queryByRole('tab', { name: 'Scenes' })).toBeNull();
   expect(screen.getByRole('tab', { name: 'Online Media' })).toHaveAttribute(
     'aria-selected',
     'true',

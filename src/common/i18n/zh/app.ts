@@ -68,7 +68,7 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': '重置所有设置…',
   'settingsReset.title': '重置所有设置？',
   'settingsReset.body':
-    '图表和可视化效果、窗口颜色、播放器、媒体库、各页面上次停留的位置、动画、随 Windows 启动、桌面背景和动态灯效都会恢复为 FluidEQ 全新安装时的状态。',
+    '图表和场景、窗口颜色、播放器、媒体库、各页面上次停留的位置、动画、随 Windows 启动、桌面背景和动态灯效都会恢复为 FluidEQ 全新安装时的状态。',
   'settingsReset.kept':
     '你的 EQ、预设、曲线和 DSP 保持不变，你的输出设备、音频引擎、语言和你保存的所有内容也都保留。',
   'settingsReset.action': '重置设置',
@@ -89,7 +89,7 @@ const app: Partial<Dictionary> = {
     '{place}：{name}，每帧 {ms} ms，{fps} fps，以 {drawn} 绘制、按 {shown} 显示',
   'app.processes.sceneRate':
     '{place}：{name}，{fps} fps，以 {drawn} 绘制、按 {shown} 显示',
-  'app.processes.place.graph': '图表可视化效果',
+  'app.processes.place.graph': '图表场景',
   'app.processes.place.studio': '工作室舞台',
   'app.processes.name.window': '界面',
   'app.processes.what.window':
@@ -103,12 +103,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': '图形',
   'app.processes.what.graphics':
     '在显卡上绘制屏幕上的一切：频谱、曲线、每一个动画，以及场景。只要有东西在动它就忙碌；这里不运行任何模型。',
-  'app.processes.name.desktop': '桌面可视化效果',
+  'app.processes.name.desktop': '桌面场景',
   'app.processes.what.desktop':
     '作为某个显示器桌面背景绘制的场景，与此窗口分开运行：每个显示它的显示器各一个。当窗口盖住该显示器或电脑锁定时会暂停。',
-  'app.processes.name.desktopHost': '桌面可视化效果助手',
+  'app.processes.name.desktopHost': '桌面场景助手',
   'app.processes.what.desktopHost':
-    '把该显示器的桌面可视化效果放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',
+    '把该显示器的桌面场景放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',
   'app.processes.name.shareCapture': '音频采集',
   'app.processes.what.shareCapture':
     '在均衡器之前采集这台电脑播放的声音，供“共享音频”标签页、第二路输出和智能均衡使用。只在其中之一使用时运行。',
@@ -263,7 +263,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': '在线媒体',
   'tabs.mediaShort': '媒体',
   'tabs.karaoke': '卡拉OK',
-  'tabs.plus': '可视化',
+  'tabs.plus': '场景',
   'tabs.scrollBack': '向前滚动标签',
   'tabs.scrollForward': '向后滚动标签',
   'notice.apoReconfigured':
@@ -400,7 +400,7 @@ const app: Partial<Dictionary> = {
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': '画面',
-  'settings.group.visualizer': '可视化',
+  'settings.group.visualizer': '场景',
   'settings.group.drawing': '如何绘制',
   'settings.group.thisView': '此视图',
   'settings.group.studioOnly': '仅在工作室中',

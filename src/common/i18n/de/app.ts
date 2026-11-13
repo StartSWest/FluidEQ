@@ -70,7 +70,7 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'Alle Einstellungen zurücksetzen…',
   'settingsReset.title': 'Alle Einstellungen zurücksetzen?',
   'settingsReset.body':
-    'Diagramm und Visualizer, Fensterfarben, Player, Bibliothek, die zuletzt geöffneten Stellen jeder Seite, Animationen, „Mit Windows starten“, Desktophintergrund und Dynamische Beleuchtung werden so eingestellt wie bei einer neuen Installation von FluidEQ.',
+    'Diagramm und seine Szenen, Fensterfarben, Player, Bibliothek, die zuletzt geöffneten Stellen jeder Seite, Animationen, „Mit Windows starten“, Desktophintergrund und Dynamische Beleuchtung werden so eingestellt wie bei einer neuen Installation von FluidEQ.',
   'settingsReset.kept':
     'Ihr EQ, Ihre Presets, Kurven und DSP bleiben unverändert, ebenso Ihre Ausgänge, die Audio-Engine, die Sprache und alles, was Sie gespeichert haben.',
   'settingsReset.action': 'Einstellungen zurücksetzen',
@@ -92,7 +92,7 @@ const app: Partial<Dictionary> = {
     '{place}: {name}, {ms} ms pro Bild bei {fps} fps, gezeichnet in {drawn} für {shown}',
   'app.processes.sceneRate':
     '{place}: {name} bei {fps} fps, gezeichnet in {drawn} für {shown}',
-  'app.processes.place.graph': 'Visualizer im Diagramm',
+  'app.processes.place.graph': 'Szene im Diagramm',
   'app.processes.place.studio': 'Studio-Bühne',
   'app.processes.name.window': 'Oberfläche',
   'app.processes.what.window':
@@ -106,12 +106,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': 'Grafik',
   'app.processes.what.graphics':
     'Zeichnet alles auf dem Bildschirm auf der Grafikkarte: Spektrum, Kurve, jede Animation und die Szenen. Beschäftigt, sobald sich etwas bewegt; hier laufen keine Modelle.',
-  'app.processes.name.desktop': 'Desktop-Visualizer',
+  'app.processes.name.desktop': 'Desktop-Szene',
   'app.processes.what.desktop':
     'Eine Szene als Desktophintergrund eines Monitors, getrennt von diesem Fenster: eine für jeden Monitor, der eine zeigt. Sie pausiert, solange Fenster diesen Monitor verdecken oder der PC gesperrt ist.',
-  'app.processes.name.desktopHost': 'Desktop-Visualizer-Helfer',
+  'app.processes.name.desktopHost': 'Desktop-Szenen-Helfer',
   'app.processes.what.desktopHost':
-    'Legt den Desktop-Visualizer dieses Monitors hinter die Symbole und meldet ihm, wenn Fenster den Bildschirm verdecken. Einer für jeden Monitor, der einen zeigt.',
+    'Legt die Desktop-Szene dieses Monitors hinter die Symbole und meldet ihr, wenn Fenster den Bildschirm verdecken. Einer für jeden Monitor, der eine zeigt.',
   'app.processes.name.shareCapture': 'Audioaufnahme',
   'app.processes.what.shareCapture':
     'Nimmt auf, was dieser PC abspielt, vor dem Equalizer – für den Tab „Audio teilen“, eine zweite Ausgabe und Smart-EQ. Läuft nur, solange eines davon genutzt wird.',
@@ -276,7 +276,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Online-Medien',
   'tabs.mediaShort': 'Medien',
   'tabs.karaoke': 'Karaoke',
-  'tabs.plus': 'Visualizer',
+  'tabs.plus': 'Szenen',
   'tabs.scrollBack': 'Tabs zurück scrollen',
   'tabs.scrollForward': 'Tabs weiter scrollen',
   'notice.apoReconfigured':
@@ -430,7 +430,7 @@ const app: Partial<Dictionary> = {
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'Das Bild',
-  'settings.group.visualizer': 'Der Visualizer',
+  'settings.group.visualizer': 'Die Szene',
   'settings.group.drawing': 'Wie es gezeichnet wird',
   'settings.group.thisView': 'Diese Ansicht',
   'settings.group.studioOnly': 'Nur hier im Studio',

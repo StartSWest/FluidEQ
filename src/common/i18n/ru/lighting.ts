@@ -12,7 +12,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': 'Яркость фона',
   'lighting.status.ambient': 'Плавное движение · {scene}',
   'lighting.scene.title': 'Подсветка для {scene}',
-  'lighting.scene.saved': 'Сохранено для этого визуализатора',
+  'lighting.scene.saved': 'Сохранено для этой сцены',
   'lighting.device.edit': 'Настроить {name}',
   'lighting.target.all': 'Все устройства',
   'lighting.target.shared': 'Общая подсветка: {devices}',
@@ -49,7 +49,7 @@ const lighting = {
   'lighting.gate.title':
     'Подсветка клавиатуры, мыши и гарнитуры вашими сценами',
   'lighting.gate.body':
-    'Получите любую сцену в «Визуализаторах», и динамическая подсветка ваша: устройства берут цвета сцены на графике и пульсируют в её ритме.',
+    'Получите любую сцену в галерее, и динамическая подсветка ваша: устройства берут цвета сцены на графике и пульсируют в её ритме.',
   'lighting.gate.cta': 'Найти сцену',
 
   'lighting.preview.status':
@@ -74,7 +74,7 @@ const lighting = {
     'Сцена играет, но ни одно устройство не светится',
   'lighting.status.off': 'Выключено: устройства сохраняют свою подсветку',
   'lighting.status.noScene': 'Выберите сцену, и устройства последуют за ней',
-  'lighting.pickScene': 'Открыть визуализаторы',
+  'lighting.pickScene': 'Открыть сцены',
   'lighting.showGraph': 'Показать график',
 
   'lighting.brightness': 'Яркость',

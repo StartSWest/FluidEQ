@@ -135,7 +135,7 @@ const account = {
 
   'account.perk.looks': 'Scenes that are yours for good, one credit each.',
   'account.perk.visualizers':
-    'Visualizers: the scenes members make, open to every account.',
+    'Scenes: the gallery of scenes members make, open to every account.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continue with Google',
   'account.or': 'or',

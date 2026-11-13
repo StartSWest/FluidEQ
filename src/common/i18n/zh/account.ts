@@ -107,7 +107,7 @@ const account = {
   'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': '永久归你的场景，每个一点。',
-  'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',
+  'account.perk.visualizers': '“场景”：会员创作的场景图库，向所有账户开放。',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': '使用 Google 继续',
   'account.or': '或',

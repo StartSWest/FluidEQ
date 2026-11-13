@@ -12,8 +12,8 @@ const tour24 = {
   'tour.animations.point3':
     '每个新项目都从球体里的月亮和飞过上方的燕子开始，第一天就能学会图片和动画的用法。',
   'tour.animations.how':
-    '打开“可视化”，进入工作室，在舞台下方选择动画。在聊天里让它把场景中的一张图片动起来。',
-  'tour.animations.open': '打开“可视化”',
+    '打开“场景”，进入工作室，在舞台下方选择动画。在聊天里让它把场景中的一张图片动起来。',
+  'tour.animations.open': '打开“场景”',
   'tour.animations.imageAlt':
     '工作室的动画标签页：燕子在天空背景上扇动翅膀，它的八帧排成一条；下方是场景的聊天，正在找出跳动的那一帧。',
   'tour.animations.task': '逐帧检查燕子的飞行。',
@@ -33,7 +33,7 @@ const tour24 = {
   'tour.pictures.point3': '你的标记会随图片一起发送，AI 能准确看懂你的意思。',
   'tour.pictures.how':
     '在工作室的聊天里点击图片打开它。按“画”来标记，再按“附加到聊天”。',
-  'tour.pictures.open': '打开“可视化”',
+  'tour.pictures.open': '打开“场景”',
   'tour.pictures.imageAlt':
     '一张放大打开的月亮图片：环形山周围画了一个圈，还有箭头和文字，裁剪框正在收拢，旁边是“复制图片”和“附加到聊天”按钮；下方是图片所在的聊天。',
   'tour.pictures.ask': '把这个月亮放进球体，边缘发光。',
@@ -54,7 +54,7 @@ const tour24 = {
     '没有播放任何内容时，场景会随演示歌曲动起来，工作时它从不会停住。',
   'tour.stage.how':
     '在工作室里，从舞台的尺寸菜单选一个形状。音乐和平静按钮就在舞台上。',
-  'tour.stage.open': '打开“可视化”',
+  'tour.stage.open': '打开“场景”',
   'tour.stage.imageAlt':
     '工作室舞台上的 Alpine 场景，正在放大，一个框标出 AI 看到的范围，还有音乐和平静按钮；旁边是同一场景的超宽图表，以及叠着控制按钮的迷你播放器。',
   'tour.stage.agentSees': 'AI 看到的范围',
@@ -72,7 +72,7 @@ const tour24 = {
     '为每个聊天选择模型和投入程度。列表跟随 Claude Code，新模型一发布就会出现。',
   'tour.ai.how':
     '在工作室打开一个场景，在它的聊天里输入。模型和投入程度就在输入框下方。',
-  'tour.ai.open': '打开“可视化”',
+  'tour.ai.open': '打开“场景”',
   'tour.ai.imageAlt':
     '同时进行的三个场景，两个仍在处理，一个已保存为版本 7，下方是 FluidEQ 的技能；旁边是 AI 使用的东西，以及模型和投入程度菜单。',
   'tour.ai.skills': 'FluidEQ 的技能',
@@ -96,7 +96,7 @@ const tour24 = {
     '图库为每个场景保留最近 10 个版本，你可以在场景页面把其中任何一个保存到这台电脑。',
   'tour.controls.how':
     '在工作室打开场景的“调整”标签页。场景的各个版本在图库中它的页面上。',
-  'tour.controls.open': '打开“可视化”',
+  'tour.controls.open': '打开“场景”',
   'tour.controls.imageAlt':
     '“调整”标签页：两个调色板，以及在晴、雨、雪之间切换的天气选项，选雪时才出现降雪滑块；旁边是场景页面，显示大小、版本和保留的版本。',
   'tour.controls.weather': '天气',
@@ -106,7 +106,7 @@ const tour24 = {
   'tour.controls.glow': '月光',
   'tour.controls.snowfall': '降雪',
 
-  'tour.camera.kicker': '可视化',
+  'tour.camera.kicker': '场景',
   'tour.camera.title': '在场景中穿梭，在图表上，也在桌面上',
   'tour.camera.subtitle': '你自己的镜头键，以及响应鼠标的桌面',
   'tour.camera.lead':
@@ -114,18 +114,18 @@ const tour24 = {
   'tour.camera.point1':
     '打开“跟随鼠标”，场景会朝指针倾斜；也可以让它“自动环绕”。“重置视角”只在按住按键时出现。',
   'tour.camera.point2':
-    '桌面上的可视化会响应空白桌面上的鼠标，每台显示器有自己的时间，工作室会把你最新的版本放到桌面上。',
+    '桌面上的场景会响应空白桌面上的鼠标，每台显示器有自己的时间，工作室会把你最新的版本放到桌面上。',
   'tour.camera.point3':
     '节拍闪光落在底鼓上，没有播放时图库预览会随演示歌曲动起来，出错的场景会播放最后一个能用的版本，而不是素色外观。',
   'tour.camera.how': '镜头设置在图表的“视图”菜单中，场景下方。',
   'tour.camera.open': '打开均衡器',
   'tour.camera.imageAlt':
-    '两台显示器，每个桌面上都有可视化：第一台上场景朝指针倾斜，按住 Ctrl 时出现“重置视角”；每台都有自己的时间；下方是镜头设置。',
+    '两台显示器，每个桌面上都有场景：第一台上场景朝指针倾斜，按住 Ctrl 时出现“重置视角”；每台都有自己的时间；下方是镜头设置。',
 
   'tour.v24.also': '2.4 的其他更新',
   'tour.v24.heroes':
     'Heroes of the Storm 有了更饱满的专属混音，可选宽舞台；游戏滤镜在突出提示音的同时让音乐更平稳。',
-  'tour.v24.graphSettings': '图表为标准样式和可视化分别保存设置。',
+  'tour.v24.graphSettings': '图表为标准样式和场景分别保存设置。',
   'tour.v24.colourful': '多彩模式采用图表上场景的颜色。',
   'tour.v24.gallery': '图库打开时显示最新的场景。',
   'tour.v24.credits': '在浏览器里购买的积分会自动到账。',
@@ -133,11 +133,11 @@ const tour24 = {
     '可以在“关于”或支持页面通过 GitHub Sponsors 支持 FluidEQ。',
   'tour.v24.crashes':
     '万一 FluidEQ 崩溃，记录只保存在这台电脑上，供你自己决定是否发送的错误报告使用。',
-  'tour.visualsTitle': '可视化新功能',
-  'tour.rail.alwaysVisuals': '可视化还有',
+  'tour.visualsTitle': '场景新功能',
+  'tour.rail.alwaysVisuals': '场景还有',
   'visuals.news.open': '新功能',
-  'visuals.news.blurb': '可视化、工作室和灯光',
-  'visuals.news.title': '可视化 {version} 新功能',
+  'visuals.news.blurb': '场景、工作室和灯光',
+  'visuals.news.title': '场景 {version} 新功能',
   'visuals.news.see': '查看新功能',
   'visuals.news.later': '以后再说',
 
@@ -167,7 +167,7 @@ const tour24 = {
   'tour.edit.point3':
     '按“保存”之前，场景不会有任何改变。“放弃”丢掉改动，撤销和重做可以来回查看。',
   'tour.edit.how': '在工作室打开一个 3D 场景，在它的舞台上按“编辑”。',
-  'tour.edit.open': '打开“可视化”',
+  'tour.edit.open': '打开“场景”',
   'tour.edit.imageAlt':
     '工作室舞台上的一个场景：选中了一个形状，它的锁已打开、控制柄露出，上方是移动、旋转和大小工具，旁边的列表里其他东西都已锁定，只显示选中的形状。',
   'tour.watch.kicker': '工作室 · 你的 AI',
@@ -181,7 +181,7 @@ const tour24 = {
   'tour.watch.point3':
     '测试歌曲的六个时刻，从静音到高潮，检查高潮是否看得出来，以及日光为 0 时夜晚有多暗。',
   'tour.watch.how': '在场景的聊天里提出修改。它每次都这样检查自己的成果。',
-  'tour.watch.open': '打开“可视化”',
+  'tour.watch.open': '打开“场景”',
   'tour.watch.imageAlt':
     '一个场景随音乐的五帧画面及其运动方式，场景在普通、超宽和紧凑播放器视图中的样子，以及测试歌曲从静音到高潮的六个时刻。',
   'tour.watch.frames': '随音乐的画面',
@@ -203,7 +203,7 @@ const tour24 = {
   'tour.makers.point2': '生成任何内容之前，它会告诉你费用，并先征求你的同意。',
   'tour.makers.point3': '它生成的视频会成为场景中的动画。',
   'tour.makers.how': '在工作室打开一个场景的聊天，按“账号”。',
-  'tour.makers.open': '打开“可视化”',
+  'tour.makers.open': '打开“场景”',
   'tour.makers.imageAlt':
     '场景聊天在生成动画之前请你允许 Higgsfield，旁边是列有 Claude 和 Higgsfield 的账号列表。',
   'tour.makers.request': '把锦鲤做成游动的动画',
@@ -219,7 +219,7 @@ const tour24 = {
   'tour.code.point3':
     '它会跟着 AI 保存的文件更新，AI 当作普通图片打包的帧图表会变成真正的动画。',
   'tour.code.how': '在工作室打开一个场景，在舞台下方选择“代码”。',
-  'tour.code.open': '打开“可视化”',
+  'tour.code.open': '打开“场景”',
   'tour.code.imageAlt':
     '“代码”标签页：场景的文件折叠为名称，3D 世界的一个材质已打开并被编辑，修改的行已标出，上方是“可以保存”和“保存”。',
   'tour.fullscreen.kicker': '工作室 · 全屏',
@@ -234,7 +234,7 @@ const tour24 = {
   'tour.fullscreen.point3':
     '拖动聊天的边缘可以把它调宽或调窄，下次全屏会按你离开时的样子打开。',
   'tour.fullscreen.how': '在工作室中打开一个场景，在舞台上按“全屏”。',
-  'tour.fullscreen.open': '打开“可视化”',
+  'tour.fullscreen.open': '打开“场景”',
   'tour.fullscreen.imageAlt':
     '全屏：场景在屏幕空出的区域播放，下方打开着“调整”标签页的工作面板，右侧停靠着场景的聊天。',
   'tour.fullscreen.request': '让极光在 drop 时更亮',
@@ -251,18 +251,18 @@ const tour24 = {
   'tour.v25.publish': '发布不再有每月上限。',
   'tour.film.visuals.intro': '所有视觉功能，一部影片看完',
   'tour.v25.film.body':
-    '音乐库与卡拉 OK、可视化效果、图库与点数、桌面背景、设备灯光和工作室，逐一演示并讲解。',
+    '音乐库与卡拉 OK、场景、图库与点数、桌面背景、设备灯光和工作室，逐一演示并讲解。',
   'tour.v25.film.soon': '这部影片即将推出。准备好后会在这里播放。',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': '现已签名，依然免费！',
   'tour.signed.subtitle': '一路走来，以及为所有人签名的 FluidEQ',
   'tour.signed.today':
-    '如今，它是电脑上一切声音的均衡器，是你的音乐播放器，也是随音乐律动的可视化效果。',
+    '如今，它是电脑上一切声音的均衡器，是你的音乐播放器，也是随音乐律动的场景。',
   'tour.signed.liveFor': 'FluidEQ 已经运行',
   'tour.signed.since': '始于 {date}',
   'tour.signed.roadTitle': '一路走来',
   'tour.signed.intro':
-    'FluidEQ 始于 2026年8月2日，两天后发布了第一个版本 0.4.0。从那以后，它有了在 Windows 内运行、属于它自己的音频引擎，处理你听到的一切声音的 DSP 机架，用于你的音乐的媒体库和播放器，带图库的可视化效果，用来制作自己场景的工作室，以及十二种语言。由开发者签名的版本，是这段路上的一个里程碑。',
+    'FluidEQ 始于 2026年8月2日，两天后发布了第一个版本 0.4.0。从那以后，它有了在 Windows 内运行、属于它自己的音频引擎，处理你听到的一切声音的 DSP 机架，用于你的音乐的媒体库和播放器，带图库的场景，用来制作自己场景的工作室，以及十二种语言。由开发者签名的版本，是这段路上的一个里程碑。',
   'tour.signed.thanks':
     '感谢每一位使用 FluidEQ、反馈问题、发布场景和在论坛发言的人：是你们每一个人让它变得更好。',
   'tour.signed.signedTitle': '由开发者签名',
@@ -273,7 +273,7 @@ const tour24 = {
     '每个新版本都会自动送达，准备好后 FluidEQ 会告诉你。你的设置会保留。',
   'tour.signed.freeTitle': '人人免费',
   'tour.signed.freeBody':
-    'FluidEQ 本身免费，人人都是同一个应用。“可视化”图库里的场景由它们的作者出售。',
+    'FluidEQ 本身免费，人人都是同一个应用。图库里的场景由它们的作者出售。',
   'tour.signed.unit.day.one': '天',
   'tour.signed.unit.day.few': '天',
   'tour.signed.unit.day.many': '天',

@@ -70,7 +70,7 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'Сбросить все настройки…',
   'settingsReset.title': 'Сбросить все настройки?',
   'settingsReset.body':
-    'График и визуализаторы, «Цвета окна», плеер, библиотека, место, где осталась каждая страница, анимация, «Запускать вместе с Windows», фон рабочего стола и динамическая подсветка вернутся к тому, как их задаёт новая установка FluidEQ.',
+    'График и его сцены, «Цвета окна», плеер, библиотека, место, где осталась каждая страница, анимация, «Запускать вместе с Windows», фон рабочего стола и динамическая подсветка вернутся к тому, как их задаёт новая установка FluidEQ.',
   'settingsReset.kept':
     'Ваш эквалайзер, пресеты, кривые и DSP останутся как есть, как и ваши выходы, аудиодвижок, язык и всё, что вы сохранили.',
   'settingsReset.action': 'Сбросить настройки',
@@ -92,7 +92,7 @@ const app: Partial<Dictionary> = {
     '{place}: {name}, {ms} мс на кадр при {fps} fps, рисуется в {drawn} для {shown}',
   'app.processes.sceneRate':
     '{place}: {name} при {fps} fps, рисуется в {drawn} для {shown}',
-  'app.processes.place.graph': 'Визуализатор на графике',
+  'app.processes.place.graph': 'Сцена на графике',
   'app.processes.place.studio': 'Сцена Студии',
   'app.processes.name.window': 'Интерфейс',
   'app.processes.what.window':
@@ -106,12 +106,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': 'Графика',
   'app.processes.what.graphics':
     'Рисует всё на экране на видеокарте: спектр, кривую, каждую анимацию и сцены. Занята всякий раз, когда что-то движется; никаких моделей здесь не работает.',
-  'app.processes.name.desktop': 'Визуализатор рабочего стола',
+  'app.processes.name.desktop': 'Сцена рабочего стола',
   'app.processes.what.desktop':
     'Сцена в роли фона рабочего стола монитора, отдельно от этого окна: по одной на каждый монитор, где она показана. Встаёт на паузу, пока окна закрывают этот монитор или ПК заблокирован.',
-  'app.processes.name.desktopHost': 'Помощник визуализатора рабочего стола',
+  'app.processes.name.desktopHost': 'Помощник сцены рабочего стола',
   'app.processes.what.desktopHost':
-    'Помещает визуализатор рабочего стола этого монитора за значки и сообщает ему, когда окна закрывают экран. По одному на каждый монитор, где он показан.',
+    'Помещает сцену рабочего стола этого монитора за значки и сообщает ей, когда окна закрывают экран. По одному на каждый монитор, где она показана.',
   'app.processes.name.shareCapture': 'Захват аудио',
   'app.processes.what.shareCapture':
     'Захватывает то, что играет этот ПК, до эквалайзера — для вкладки «Поделиться аудио», второго выхода и функции «Умный EQ». Работает, только пока что-то из этого используется.',
@@ -276,7 +276,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Онлайн-медиа',
   'tabs.mediaShort': 'Медиа',
   'tabs.karaoke': 'Караоке',
-  'tabs.plus': 'Визуализаторы',
+  'tabs.plus': 'Сцены',
   'tabs.scrollBack': 'Прокрутить вкладки назад',
   'tabs.scrollForward': 'Прокрутить вкладки вперёд',
   'notice.apoReconfigured':
@@ -424,7 +424,7 @@ const app: Partial<Dictionary> = {
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'Картинка',
-  'settings.group.visualizer': 'Визуализатор',
+  'settings.group.visualizer': 'Сцена',
   'settings.group.drawing': 'Как это рисуется',
   'settings.group.thisView': 'Этот вид',
   'settings.group.studioOnly': 'Только здесь, в Студии',

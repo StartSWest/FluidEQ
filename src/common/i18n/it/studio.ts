@@ -225,7 +225,7 @@ const studio = {
     'La chat della tua scena sta scrivendo cosa c’è di nuovo…',
   'studio.publish.noteNeeded': 'Obbligatorio',
   'studio.publish.point1':
-    'Chiunque abbia effettuato l’accesso può vederla in Visualizzatori, guardarla per qualche secondo e ottenerla con un credito. Per te suona gratis.',
+    'Chiunque abbia effettuato l’accesso può vederla nella galleria delle scene, guardarla per qualche secondo e ottenerla con un credito. Per te suona gratis.',
   'studio.publish.point3':
     'Puoi ritirarla dalla pubblicazione perché nessuno di nuovo possa ottenerla. Chi ce l’ha già la tiene.',
   'studio.publish.point3Update':

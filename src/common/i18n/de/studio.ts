@@ -228,7 +228,7 @@ const studio = {
   'studio.publish.noteWriting': 'Der Chat Ihrer Szene schreibt, was neu ist…',
   'studio.publish.noteNeeded': 'Erforderlich',
   'studio.publish.point1':
-    'Alle Angemeldeten können sie in „Visualizer“ sehen, einige Sekunden ansehen und mit einem Credit holen. Für Sie läuft sie kostenlos.',
+    'Alle Angemeldeten können sie in der Szenen-Galerie sehen, einige Sekunden ansehen und mit einem Credit holen. Für Sie läuft sie kostenlos.',
   'studio.publish.point3':
     'Sie können die Veröffentlichung zurücknehmen, damit niemand Neues sie holen kann. Wer sie schon hat, behält sie.',
   'studio.publish.point3Update':

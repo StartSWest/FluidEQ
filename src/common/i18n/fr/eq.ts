@@ -142,26 +142,26 @@ const eq: Partial<Dictionary> = {
   'graph.orientation.mirror': 'Refléter l’onde',
   'graph.orientation.centre': 'Refléter depuis le centre',
   'graph.orientation.up': 'Redresser l’onde',
-  'graph.autoSwitch.label': 'Défilement automatique des visualiseurs',
+  'graph.autoSwitch.label': 'Défilement automatique des scènes',
   'graph.autoSwitch.off': 'Auto : Non',
   'graph.autoSwitch.every': 'Auto : {seconds}s',
   'graph.sceneTint.mode.off': 'le thème de l’application',
-  'graph.sceneTint.mode.tint': 'les couleurs du visualiseur',
+  'graph.sceneTint.mode.tint': 'les couleurs de la scène',
   'graph.sceneTint.mode.pulse':
-    'les couleurs du visualiseur, avec sa lumière autour',
+    'les couleurs de la scène, avec sa lumière autour',
   'graph.sceneTint.mode.cover':
-    'le visualiseur derrière toute la fenêtre, avec sa lumière autour',
+    'la scène derrière toute la fenêtre, avec sa lumière autour',
   'graph.sceneTint.short.off': 'Original',
   'graph.sceneTint.short.tint': 'Couleurs',
   'graph.sceneTint.short.pulse': 'Ambiance',
   'graph.sceneTint.short.cover': 'Toile de fond',
   'graph.sceneTint.label': 'Couleurs de la fenêtre',
   'graph.sceneTint.about.off': 'La fenêtre dans votre thème.',
-  'graph.sceneTint.about.tint': 'La fenêtre aux couleurs du visualiseur.',
+  'graph.sceneTint.about.tint': 'La fenêtre aux couleurs de la scène.',
   'graph.sceneTint.about.pulse':
     'Ses couleurs, et la fenêtre qui s’illumine avec la musique.',
   'graph.sceneTint.about.cover':
-    'Tout Ambiance, avec le visualiseur derrière toute la fenêtre.',
+    'Tout Ambiance, avec la scène derrière toute la fenêtre.',
   'graph.editHint':
     'Faites glisser les points · Ctrl/Maj pour sélectionner · Ctrl+molette : Q · Ctrl+glisser : cloche',
   'graph.windowTint': 'Teinte',
@@ -169,7 +169,7 @@ const eq: Partial<Dictionary> = {
     'La couleur de la fenêtre avec un aspect standard. Double-cliquez pour revenir à la couleur d’origine.',
   'graph.backdropVeil': 'Transparence',
   'graph.backdropVeilHint':
-    'Quelle part du visualiseur transparaît à travers les panneaux',
+    'Quelle part de la scène transparaît à travers les panneaux',
   'graph.sceneTint.brightness': 'Luminosité',
   'graph.sceneTint.rainbow': 'Mode coloré',
   'graph.sceneTint.rainbowHint':
@@ -179,28 +179,28 @@ const eq: Partial<Dictionary> = {
     'Le bouton de la barre des tâches et l’icône de la zone de notification aux couleurs de la fenêtre. Désactivé, l’icône de FluidEQ reste.',
   'graph.sceneTint.sparks': 'Étincelles du pointeur',
   'graph.sceneTint.sparksHint':
-    'Ce que le visualiseur lance depuis la souris : une traînée quand elle traverse l’image et une gerbe là où vous cliquez - étincelles, pétales, neige, ce dont la scène est faite.',
+    'Ce que la scène lance depuis la souris : une traînée quand elle traverse l’image et une gerbe là où vous cliquez - étincelles, pétales, neige, ce dont la scène est faite.',
   'graph.sceneTint.daylight': 'Lumière du jour',
   'graph.sceneTint.daylightHint':
-    'L’heure du jour du visualiseur, de la nuit au plein jour',
+    'L’heure du jour de la scène, de la nuit au plein jour',
   'graph.sceneTint.daylightFollowingHint':
-    'Suit la luminosité. Choisissez Rien en dessous pour régler ici l’heure du visualiseur',
+    'Suit la luminosité. Choisissez Rien en dessous pour régler ici l’heure de la scène',
   'graph.sceneTint.daylightSource': 'Suit',
   'graph.sceneTint.daylightSourceOwn': 'Rien',
   'graph.sceneTint.daylightSourceBrightness': 'Luminosité',
   'graph.sceneTint.daylightSourceClock': 'Horloge',
   'graph.sceneTint.daylightOwnHint':
-    'Le visualiseur garde la lumière du jour réglée au-dessus.',
+    'La scène garde la lumière du jour réglée au-dessus.',
   'graph.sceneTint.daylightFollowsHint':
-    'Le visualiseur passe de la nuit au jour avec la luminosité.',
+    'La scène passe de la nuit au jour avec la luminosité.',
   'graph.sceneTint.daylightClockHint':
-    'Le visualiseur est de nuit la nuit et de jour le jour, selon l’horloge de cet ordinateur.',
+    'La scène est de nuit la nuit et de jour le jour, selon l’horloge de cet ordinateur.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Suit l’horloge. Choisissez Rien en dessous pour régler ici l’heure du visualiseur',
+    'Suit l’horloge. Choisissez Rien en dessous pour régler ici l’heure de la scène',
   'graph.sceneTint.daylightStudioHint':
-    'Tant que le Studio est ouvert, la Luminosité règle l’heure du jour du visualiseur, pour essayer une scène de la nuit au jour. Ce choix revient quand vous quittez le Studio',
+    'Tant que le Studio est ouvert, la Luminosité règle l’heure du jour de la scène, pour essayer une scène de la nuit au jour. Ce choix revient quand vous quittez le Studio',
   'graph.sceneTint.brightnessHint':
-    'La clarté de la fenêtre, dans votre thème ou dans les couleurs du visualiseur',
+    'La clarté de la fenêtre, dans votre thème ou dans les couleurs de la scène',
   'graph.member.mine': 'Créés par vous',
   'graph.member.theirs': 'Créés par des membres',
   'graph.member.by': 'par {name}',
@@ -233,26 +233,26 @@ const eq: Partial<Dictionary> = {
   'graph.look.retry': 'Réessayer',
   'graph.look.reportHint':
     'Si cela se reproduit, envoyez-nous un rapport depuis {help} → {report}.',
-  'graph.scene.loading': 'Chargement du visualiseur…',
+  'graph.scene.loading': 'Chargement de la scène…',
   'graph.scene.attack': 'Attaque',
   'graph.scene.attackHint':
-    'La vitesse à laquelle ce visualiseur monte avec la musique. Courte, c’est percutant ; longue, ça enfle.',
+    'La vitesse à laquelle cette scène monte avec la musique. Courte, c’est percutant ; longue, ça enfle.',
   'graph.scene.release': 'Relâchement',
   'graph.scene.releaseHint':
     'La lenteur avec laquelle il redescend après chaque coup. Long laisse une lueur.',
   'graph.scene.ms': '{ms} ms',
   'graph.scene.percent': '{percent} %',
   'graph.scene.controlHint':
-    'Un réglage propre à ce visualiseur, tel que son auteur l’a laissé',
+    'Un réglage propre à cette scène, tel que son auteur l’a laissé',
   'graph.scene.ownWave': 'Utiliser son onde d’origine',
   'graph.scene.ownWaveHint':
     'Remet l’onde là où l’auteur de la scène l’avait placée. Votre hauteur et votre position sont gardées par scène jusque-là.',
   'graph.scene.ownControls': 'Utiliser ses propres réglages',
   'graph.scene.ownControlsHint':
-    'Revenir aux réglages d’origine de ce visualiseur',
+    'Revenir aux réglages d’origine de cette scène',
   'graph.scene.ownTiming': 'Utiliser son propre rythme',
   'graph.scene.ownTimingHint':
-    'Revenir à l’attaque et au relâchement fournis avec ce visualiseur',
+    'Revenir à l’attaque et au relâchement fournis avec cette scène',
   'graph.scene.frameRate': 'Cadence',
   'graph.scene.camera.key': 'Déplacer la vue avec',
   'graph.scene.camera.keyHint':
@@ -286,7 +286,7 @@ const eq: Partial<Dictionary> = {
   'graph.scene.camera.calmNote':
     'Désactivé tant que les animations sont réduites',
   'graph.scene.frameRateHint':
-    'À quelle fréquence les visualiseurs sont dessinés : à chaque image de l’écran, ou plafonnée pour ménager le GPU',
+    'À quelle fréquence les scènes sont dessinées : à chaque image de l’écran, ou plafonnée pour ménager le GPU',
   'graph.scene.frameRate.display': 'Celle de l’écran',
   'graph.scene.frameRate.sixty': '60 par seconde',
   'graph.scene.frameRate.thirty': '30 par seconde',
@@ -328,10 +328,10 @@ const eq: Partial<Dictionary> = {
     'Pas encore à vous. Choisissez-la pour voir comment l’obtenir.',
   'graph.style.next': 'Style suivant',
   'graph.style.previous': 'Style précédent',
-  'graph.picker.label': 'Styles et visualiseurs',
-  'graph.picker.search': 'Rechercher des styles et des visualiseurs',
+  'graph.picker.label': 'Styles et scènes',
+  'graph.picker.search': 'Rechercher des styles et des scènes',
   'graph.picker.styles': 'Styles',
-  'graph.picker.plus': 'Visualiseurs',
+  'graph.picker.plus': 'Scènes',
   'graph.picker.discover.title': 'Donnez vie à votre musique',
   'graph.picker.discover.body':
     'Découvrez des scènes animées à acheter et à garder, ou créez les vôtres gratuitement dans le Studio.',
@@ -343,7 +343,7 @@ const eq: Partial<Dictionary> = {
   'graph.picker.all': 'Tous',
   'graph.picker.yours': 'Les vôtres',
   'graph.picker.filterStyles': 'Filtrer les styles',
-  'graph.picker.filterPlus': 'Filtrer les visualiseurs',
+  'graph.picker.filterPlus': 'Filtrer les scènes',
   'graph.channel.left': 'G',
   'graph.channel.right': 'D',
   'graph.legend.live': 'Direct',

@@ -15,8 +15,8 @@ const tour24 = {
   'tour.animations.point3':
     'Every new project starts with a moon in its orb and a swallow flying over it, so pictures and animations are there to learn from on day one.',
   'tour.animations.how':
-    'Open Visualizers, then the Studio, and choose Animations under the stage. Ask the chat to animate a picture in your scene.',
-  'tour.animations.open': 'Open Visualizers',
+    'Open Scenes, then the Studio, and choose Animations under the stage. Ask the chat to animate a picture in your scene.',
+  'tour.animations.open': 'Open Scenes',
   'tour.animations.imageAlt':
     'The Studio’s Animations tab with a swallow beating its wings on the Sky background and its eight frames in a strip, above the scene’s chat finding the frame that jumps.',
   'tour.animations.task': 'Check the swallow’s flight frame by frame.',
@@ -38,7 +38,7 @@ const tour24 = {
     'Your marks go with the picture, so the AI sees exactly what you mean.',
   'tour.pictures.how':
     'In the Studio’s chat, click a picture to open it. Press Draw to mark it, then Attach to chat.',
-  'tour.pictures.open': 'Open Visualizers',
+  'tour.pictures.open': 'Open Scenes',
   'tour.pictures.imageAlt':
     'A moon picture opened large and zoomed in, a ring drawn round a crater with an arrow and a word, the crop box closing in, and the Copy image and Attach to chat buttons, beside the chat it came from.',
   'tour.pictures.ask': 'Put this moon in the orb, glowing at the edge.',
@@ -60,7 +60,7 @@ const tour24 = {
     'With nothing playing, the scene moves to the demo song, so it is never standing still while you work.',
   'tour.stage.how':
     'In the Studio, pick a shape in the stage’s size menu. The Music and Calm button is on the stage itself.',
-  'tour.stage.open': 'Open Visualizers',
+  'tour.stage.open': 'Open Scenes',
   'tour.stage.imageAlt':
     'The Alpine scene on the Studio stage, zooming in with a frame marking what the AI sees and the Music and Calm button on it, beside the same scene as an ultra-wide graph and in the Compact player with its controls on top.',
   'tour.stage.agentSees': 'What the AI sees',
@@ -78,7 +78,7 @@ const tour24 = {
     'Choose the model and the effort for each chat. The list follows Claude Code, so new models appear as soon as they arrive.',
   'tour.ai.how':
     'Open a scene in the Studio and write in its chat. The model and the effort are under the box you write in.',
-  'tour.ai.open': 'Open Visualizers',
+  'tour.ai.open': 'Open Scenes',
   'tour.ai.imageAlt':
     'Three scenes being worked on at once, two still in progress and one kept as version 7, above FluidEQ’s skills, beside what the AI works with and the menu for model and effort.',
   'tour.ai.skills': 'FluidEQ’s skills',
@@ -102,7 +102,7 @@ const tour24 = {
     'The Gallery keeps the last 10 versions of each scene, and you can save any of them on this computer from the scene’s page.',
   'tour.controls.how':
     'Open a scene’s Tune tab in the Studio. A scene’s versions are on its page in the Gallery.',
-  'tour.controls.open': 'Open Visualizers',
+  'tour.controls.open': 'Open Scenes',
   'tour.controls.imageAlt':
     'The Tune tab with two colour palettes and a weather choice moving through Clear, Rain and Snow, with a snowfall slider that appears for Snow, beside a scene’s page with its package size, its version and the versions kept.',
   'tour.controls.weather': 'Weather',
@@ -112,7 +112,7 @@ const tour24 = {
   'tour.controls.glow': 'Moon glow',
   'tour.controls.snowfall': 'Snowfall',
 
-  'tour.camera.kicker': 'VISUALIZERS',
+  'tour.camera.kicker': 'SCENES',
   'tour.camera.title': 'Move around a scene, on the graph and the desktop',
   'tour.camera.subtitle':
     'Your camera key, and a desktop that answers the mouse',
@@ -121,20 +121,20 @@ const tour24 = {
   'tour.camera.point1':
     'Turn on Follow the mouse and the scene leans after your pointer, or let it Circle by itself. Reset view shows only while you hold the key.',
   'tour.camera.point2':
-    'A visualizer on your desktop answers the mouse over the empty desktop, each monitor keeps its own time of day, and Set on desktop puts your newest Studio version there.',
+    'A scene on your desktop answers the mouse over the empty desktop, each monitor keeps its own time of day, and Set on desktop puts your newest Studio version there.',
   'tour.camera.point3':
     'Beat flashes land on the kick, Gallery previews move to the demo song while nothing plays, and a scene that breaks plays its last working version instead of the plain look.',
   'tour.camera.how':
     'The camera’s settings are in the graph’s View menu, under the scene.',
   'tour.camera.open': 'Open EQ',
   'tour.camera.imageAlt':
-    'Two monitors with a visualizer on each desktop: on the first the scene leans after the pointer and Reset view shows while Ctrl is held, each with its own time of day, above the camera’s settings.',
+    'Two monitors with a scene on each desktop: on the first the scene leans after the pointer and Reset view shows while Ctrl is held, each with its own time of day, above the camera’s settings.',
 
   'tour.v24.also': 'Also in 2.4',
   'tour.v24.heroes':
     'Heroes of the Storm has a fuller mix of its own with optional Wide Stage, and the Game filter keeps music steadier while it brings out cues.',
   'tour.v24.graphSettings':
-    'The graph keeps separate settings for standard looks and for visualizers.',
+    'The graph keeps separate settings for standard looks and for scenes.',
   'tour.v24.colourful':
     'Colourful mode takes the colours of the scene on the graph.',
   'tour.v24.gallery': 'The Gallery opens on its newest scenes.',
@@ -143,11 +143,11 @@ const tour24 = {
     'Support FluidEQ through GitHub Sponsors, from About or the Support page.',
   'tour.v24.crashes':
     'If FluidEQ ever crashes, a record is kept on this computer only, for a bug report you choose to send.',
-  'tour.visualsTitle': "What's new in Visualizers",
-  'tour.rail.alwaysVisuals': 'ALSO IN VISUALIZERS',
+  'tour.visualsTitle': "What's new in Scenes",
+  'tour.rail.alwaysVisuals': 'ALSO IN SCENES',
   'visuals.news.open': "What's new",
-  'visuals.news.blurb': 'Visualizers, Studio and lighting',
-  'visuals.news.title': 'New in Visualizers {version}',
+  'visuals.news.blurb': 'Scenes, Studio and lighting',
+  'visuals.news.title': 'New in Scenes {version}',
   'visuals.news.see': "See what's new",
   'visuals.news.later': 'Not now',
 
@@ -179,7 +179,7 @@ const tour24 = {
   'tour.edit.point3':
     'Nothing touches your scene until you press Save. Discard throws the changes away, and Undo and Redo step through them.',
   'tour.edit.how': 'Open a 3D scene in the Studio and press Edit on its stage.',
-  'tour.edit.open': 'Open Visualizers',
+  'tour.edit.open': 'Open Scenes',
   'tour.edit.imageAlt':
     'A scene on the Studio’s stage with one shape picked, its lock open and its handles out, the Move, Turn and Resize tools above it, and the list beside it with everything else locked and the picked shape shown alone.',
   'tour.watch.kicker': 'STUDIO · YOUR AI',
@@ -195,7 +195,7 @@ const tour24 = {
     'Six moments of the test song, from silence to the drop, to check that the drop shows, and how dark the night is at Daylight 0.',
   'tour.watch.how':
     'Ask the scene’s chat for a change. It looks at its work this way every time.',
-  'tour.watch.open': 'Open Visualizers',
+  'tour.watch.open': 'Open Scenes',
   'tour.watch.imageAlt':
     'Five frames of a scene along the music with how it moves, the scene in the standard, ultra-wide and Compact player views, and six moments of the test song from silence to the drop.',
   'tour.watch.frames': 'Frames along the music',
@@ -219,7 +219,7 @@ const tour24 = {
     'Before anything is made, it tells you what it costs and asks you first.',
   'tour.makers.point3': 'A video it makes becomes an animation in your scene.',
   'tour.makers.how': 'Open a scene’s chat in the Studio and press Accounts.',
-  'tour.makers.open': 'Open Visualizers',
+  'tour.makers.open': 'Open Scenes',
   'tour.makers.imageAlt':
     'A scene’s chat asking you to allow Higgsfield before it makes an animation, beside the Accounts list with Claude and Higgsfield.',
   'tour.makers.request': 'Make the koi a swimming animation',
@@ -237,7 +237,7 @@ const tour24 = {
     'It follows the files as your AI saves them, and a sheet of frames your AI packed as a plain picture becomes a real animation.',
   'tour.code.how':
     'Open a scene in the Studio and choose Code under the stage.',
-  'tour.code.open': 'Open Visualizers',
+  'tour.code.open': 'Open Scenes',
   'tour.code.imageAlt':
     'The Code tab with the scene’s files folded to their names and one material of its 3D world open and edited, its changed line marked, Ready to save and Save above it.',
   'tour.fullscreen.kicker': 'STUDIO · FULL SCREEN',
@@ -254,7 +254,7 @@ const tour24 = {
     'Drag the chat’s edge to make it wider or narrower, and the next full screen opens the way you left it.',
   'tour.fullscreen.how':
     'Open a scene in the Studio and press Fullscreen on its stage.',
-  'tour.fullscreen.open': 'Open Visualizers',
+  'tour.fullscreen.open': 'Open Scenes',
   'tour.fullscreen.imageAlt':
     'Full screen with the scene playing in the part of the screen left free, the work pane open under it on the Tune tab and the scene’s chat docked at the right.',
   'tour.fullscreen.request': 'Make the aurora brighter on the drop',
@@ -272,19 +272,19 @@ const tour24 = {
   'tour.v25.publish': 'No monthly limit on publishing.',
   'tour.film.visuals.intro': 'Everything visual, in one film',
   'tour.v25.film.body':
-    'The Library and Karaoke, the visualizers, the gallery and its credits, the desktop background, your devices’ lighting and the Studio, shown and explained.',
+    'The Library and Karaoke, the scenes, the gallery and its credits, the desktop background, your devices’ lighting and the Studio, shown and explained.',
   'tour.v25.film.soon':
     'This film is coming soon. It will play here as soon as it is ready.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': 'Now signed, and still free!',
   'tour.signed.subtitle': 'The road so far, and a signed FluidEQ for everyone',
   'tour.signed.today':
-    'Today it is one equaliser for everything your computer plays, a player for your own music, and visualizers that move with it.',
+    'Today it is one equaliser for everything your computer plays, a player for your own music, and scenes that move with it.',
   'tour.signed.liveFor': 'FluidEQ has been live for',
   'tour.signed.since': 'Began on {date}',
   'tour.signed.roadTitle': 'The road so far',
   'tour.signed.intro':
-    'FluidEQ began on 2 August 2026, and its first release, 0.4.0, came two days later. Since then it has grown its own audio engine inside Windows, a DSP rack for everything you hear, a Library and player for your music, visualizers with a gallery, a Studio for making scenes of your own, and twelve languages. A build signed by its developer is a milestone on that road.',
+    'FluidEQ began on 2 August 2026, and its first release, 0.4.0, came two days later. Since then it has grown its own audio engine inside Windows, a DSP rack for everything you hear, a Library and player for your music, scenes with a gallery, a Studio for making scenes of your own, and twelve languages. A build signed by its developer is a milestone on that road.',
   'tour.signed.thanks':
     'Thank you to everyone who uses FluidEQ, reports what goes wrong, publishes scenes and writes in the forum. It is better for every one of you.',
   'tour.signed.signedTitle': 'Signed by its developer',
@@ -295,7 +295,7 @@ const tour24 = {
     'Each new version arrives by itself, and FluidEQ tells you when it is ready. Your settings stay.',
   'tour.signed.freeTitle': 'Free for everyone',
   'tour.signed.freeBody':
-    'FluidEQ itself costs nothing, the same app for everybody. Scenes in the Visualizers gallery are sold by their makers.',
+    'FluidEQ itself costs nothing, the same app for everybody. Scenes in the gallery are sold by their makers.',
   'tour.signed.unit.day.one': 'day',
   'tour.signed.unit.day.few': 'days',
   'tour.signed.unit.day.many': 'days',

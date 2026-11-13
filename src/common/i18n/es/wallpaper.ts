@@ -2,21 +2,21 @@ const wallpaper = {
   'wallpaper.action': 'Usar como fondo de escritorio',
   'wallpaper.title': 'Fondo de escritorio',
   'wallpaper.description':
-    'Mantén este visualizador detrás de los iconos del escritorio, moviéndose con tu música o con calma por su cuenta.',
+    'Mantén esta escena detrás de los iconos del escritorio, moviéndose con tu música o con calma por su cuenta.',
   'wallpaper.manage.description':
     'Lo que muestra cada monitor detrás de los iconos del escritorio.',
   'wallpaper.manage.empty':
     'Todos los monitores muestran su fondo normal de Windows.',
   'wallpaper.monitors': 'Monitores',
   'wallpaper.monitors.hint':
-    'Elige dónde se reproduce. Cada monitor puede mostrar su propio visualizador.',
+    'Elige dónde se reproduce. Cada monitor puede mostrar su propia escena.',
   'wallpaper.monitors.all': 'Todos los monitores',
   'wallpaper.monitor.name': 'Monitor {number}',
   'wallpaper.monitor.primary': 'Principal',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Fondo de Windows',
   'wallpaper.monitor.disconnected': 'Monitor desconectado',
-  'wallpaper.visualizer.unknown': 'Visualizador',
+  'wallpaper.visualizer.unknown': 'Escena',
   'wallpaper.pauseOnBattery': 'Pausar al usar la batería',
   'wallpaper.pauseOnBattery.hint':
     'Ahorra energía cuando el equipo está desconectado.',
@@ -71,17 +71,17 @@ const wallpaper = {
   'wallpaper.error.notEntitled':
     'Esta escena todavía no es tuya. Consíguela en la Galería para ponerla en tu escritorio.',
   'wallpaper.error.missingScene':
-    'Este visualizador ya no está instalado. Añádelo de nuevo y vuelve a intentarlo.',
+    'Esta escena ya no está instalada. Añádela de nuevo y vuelve a intentarlo.',
   'wallpaper.error.refused':
-    'Este visualizador falló con los gráficos de este equipo. Vuelve a ponerlo para intentarlo otra vez.',
+    'Esta escena falló con los gráficos de este equipo. Vuelve a ponerla para intentarlo otra vez.',
   'wallpaper.error.missingDisplay':
     'Ese monitor está desconectado. Su fondo vuelve cuando lo conectes de nuevo.',
   'wallpaper.error.host':
-    'Windows no pudo colocar el visualizador en el escritorio. Inténtalo de nuevo.',
+    'Windows no pudo colocar la escena en el escritorio. Inténtalo de nuevo.',
   'wallpaper.error.renderer':
-    'El visualizador no pudo dibujarse en el escritorio. Inténtalo de nuevo.',
+    'La escena no pudo dibujarse en el escritorio. Inténtalo de nuevo.',
   'wallpaper.error.audio':
-    'El visualizador de escritorio perdió la señal de música. Inténtalo de nuevo.',
+    'La escena de escritorio perdió la señal de música. Inténtalo de nuevo.',
 } as const;
 
 export default wallpaper;

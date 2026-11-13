@@ -66,7 +66,7 @@ describe('the 2.2 Karaoke background entry', () => {
   it('shows the real lyric renderer and selected background control as an inert picture', () => {
     showKaraokeBackground();
     expect(
-      screen.getByRole('heading', { name: 'Visualizers behind your lyrics' }),
+      screen.getByRole('heading', { name: 'Scenes behind your lyrics' }),
     ).toBeInTheDocument();
     const picture = screen.getByRole('img', {
       name: 'The Karaoke background control with a scene behind the lyrics.',
@@ -82,7 +82,7 @@ describe('the 2.2 Karaoke background entry', () => {
       picture.querySelector('.karaoke-workspace__graph-background-toggle'),
     ).toHaveAttribute('aria-pressed', 'true');
     expect(
-      screen.queryByRole('button', { name: 'Turn off visualizer background' }),
+      screen.queryByRole('button', { name: 'Turn off the scene background' }),
     ).not.toBeInTheDocument();
   });
 
@@ -91,7 +91,7 @@ describe('the 2.2 Karaoke background entry', () => {
     const { onOpenTab } = showKaraokeBackground();
     expect(
       screen.getByText(
-        'Choose a look in Styles and visualizers on EQ, then press Use current visualizer as background in Karaoke.',
+        "Choose a look in Styles and scenes on EQ, then press Use the graph's scene or style as background in Karaoke.",
       ),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Open Karaoke' }));
@@ -311,7 +311,7 @@ it('shows the one player the switch opens, over a scene and over a standard visu
   goTo('The whole app in one column');
   // The Backdrop is named as Window colours names it.
   expect(screen.getByText('With a scene, on Backdrop')).toBeInTheDocument();
-  expect(screen.getByText('With a standard visualizer')).toBeInTheDocument();
+  expect(screen.getByText('With a standard look')).toBeInTheDocument();
   expect(
     screen.getByRole('img', { name: /and the Compact player twice:/ }),
   ).toBeInTheDocument();
@@ -364,7 +364,7 @@ it('draws the player from its own parts, out of reach of the keyboard and of scr
 
 it('names the new looks on the visualizer engine slide as the picker does', () => {
   const { onOpenTab } = showTour('2.0.0', 'visuals');
-  goTo('Every visualizer on your graphics card');
+  goTo('Every scene on your graphics card');
   expect(
     screen.getByText(
       /^Eighteen new looks under Scenes, among them Synthwave, Horizon, Glass towers and LED wall;/,
@@ -379,10 +379,10 @@ it('names the new looks on the visualizer engine slide as the picker does', () =
 
 it('sends the reader to the Pointer sparks switch by its own label', () => {
   showTour('2.0.0', 'visuals');
-  goTo('Visualizers that answer your mouse');
+  goTo('Scenes that answer your mouse');
   expect(
     screen.getByText(
-      'One switch for every visualizer: Pointer sparks, in Window colours under Colourful mode.',
+      'One switch for every scene: Pointer sparks, in Window colours under Colourful mode.',
     ),
   ).toBeInTheDocument();
   expect(

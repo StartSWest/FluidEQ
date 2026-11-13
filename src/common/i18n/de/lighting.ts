@@ -12,7 +12,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': 'Hintergrundhelligkeit',
   'lighting.status.ambient': 'Sanfter Fluss · {scene}',
   'lighting.scene.title': 'Beleuchtung für {scene}',
-  'lighting.scene.saved': 'Für diesen Visualizer gespeichert',
+  'lighting.scene.saved': 'Für diese Szene gespeichert',
   'lighting.device.edit': '{name} anpassen',
   'lighting.target.all': 'Alle Geräte',
   'lighting.target.shared': 'Gemeinsame Beleuchtung: {devices}',
@@ -48,7 +48,7 @@ const lighting = {
 
   'lighting.gate.title': 'Tastatur, Maus und Headset im Licht Ihrer Szenen',
   'lighting.gate.body':
-    'Holen Sie sich eine beliebige Szene in „Visualizer“, und die dynamische Beleuchtung gehört Ihnen: Ihre Geräte übernehmen die Farben der Szene im Diagramm und pulsieren im Takt.',
+    'Holen Sie sich eine beliebige Szene in der Galerie, und die dynamische Beleuchtung gehört Ihnen: Ihre Geräte übernehmen die Farben der Szene im Diagramm und pulsieren im Takt.',
   'lighting.gate.cta': 'Szene finden',
 
   'lighting.preview.status':
@@ -73,7 +73,7 @@ const lighting = {
   'lighting.status.off': 'Aus – Ihre Geräte behalten ihre eigene Beleuchtung',
   'lighting.status.noScene':
     'Wählen Sie eine Szene, und Ihre Geräte folgen ihr',
-  'lighting.pickScene': 'Visualizer durchsuchen',
+  'lighting.pickScene': 'Szenen durchsuchen',
   'lighting.showGraph': 'Diagramm anzeigen',
 
   'lighting.brightness': 'Helligkeit',

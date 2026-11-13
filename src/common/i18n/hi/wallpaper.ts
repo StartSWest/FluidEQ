@@ -2,21 +2,21 @@ const wallpaper = {
   'wallpaper.action': 'डेस्कटॉप बैकग्राउंड के रूप में सेट करें',
   'wallpaper.title': 'डेस्कटॉप बैकग्राउंड',
   'wallpaper.description':
-    'इस विज़ुअलाइज़र को डेस्कटॉप आइकन के पीछे रखें — आपके संगीत के साथ या अपने आप शांति से चलता हुआ।',
+    'इस सीन को डेस्कटॉप आइकन के पीछे रखें — आपके संगीत के साथ या अपने आप शांति से चलता हुआ।',
   'wallpaper.manage.description':
     'डेस्कटॉप आइकन के पीछे हर मॉनिटर क्या दिखा रहा है।',
   'wallpaper.manage.empty':
     'सभी मॉनिटर अपना सामान्य Windows बैकग्राउंड दिखा रहे हैं।',
   'wallpaper.monitors': 'मॉनिटर',
   'wallpaper.monitors.hint':
-    'चुनें कि यह कहाँ चले। हर मॉनिटर अपना अलग विज़ुअलाइज़र दिखा सकता है।',
+    'चुनें कि यह कहाँ चले। हर मॉनिटर अपना अलग सीन दिखा सकता है।',
   'wallpaper.monitors.all': 'सभी मॉनिटर',
   'wallpaper.monitor.name': 'मॉनिटर {number}',
   'wallpaper.monitor.primary': 'मुख्य',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': 'Windows बैकग्राउंड',
   'wallpaper.monitor.disconnected': 'डिस्कनेक्ट किया गया मॉनिटर',
-  'wallpaper.visualizer.unknown': 'विज़ुअलाइज़र',
+  'wallpaper.visualizer.unknown': 'सीन',
   'wallpaper.pauseOnBattery': 'बैटरी पर होने पर रोकें',
   'wallpaper.pauseOnBattery.hint':
     'कंप्यूटर का प्लग निकला होने पर बिजली बचाता है।',
@@ -70,17 +70,17 @@ const wallpaper = {
   'wallpaper.error.notEntitled':
     'यह सीन अभी आपका नहीं है। इसे अपने डेस्कटॉप पर लगाने के लिए गैलरी में पाएँ।',
   'wallpaper.error.missingScene':
-    'यह विज़ुअलाइज़र अब इंस्टॉल नहीं है। इसे फिर जोड़ें और दोबारा कोशिश करें।',
+    'यह सीन अब इंस्टॉल नहीं है। इसे फिर जोड़ें और दोबारा कोशिश करें।',
   'wallpaper.error.refused':
-    'यह विज़ुअलाइज़र इस कंप्यूटर के ग्राफ़िक्स पर विफल हो गया। फिर से आज़माने के लिए इसे दोबारा सेट करें।',
+    'यह सीन इस कंप्यूटर के ग्राफ़िक्स पर विफल हो गया। फिर से आज़माने के लिए इसे दोबारा सेट करें।',
   'wallpaper.error.missingDisplay':
     'वह मॉनिटर डिस्कनेक्ट है। उसे फिर से जोड़ने पर उसका बैकग्राउंड लौट आएगा।',
   'wallpaper.error.host':
-    'Windows विज़ुअलाइज़र को डेस्कटॉप पर नहीं रख सका। फिर कोशिश करें।',
+    'Windows सीन को डेस्कटॉप पर नहीं रख सका। फिर कोशिश करें।',
   'wallpaper.error.renderer':
-    'विज़ुअलाइज़र डेस्कटॉप पर दिखाई नहीं दे सका। फिर कोशिश करें।',
+    'सीन डेस्कटॉप पर दिखाई नहीं दे सका। फिर कोशिश करें।',
   'wallpaper.error.audio':
-    'डेस्कटॉप विज़ुअलाइज़र का संगीत सिग्नल खो गया। फिर कोशिश करें।',
+    'डेस्कटॉप सीन का संगीत सिग्नल खो गया। फिर कोशिश करें।',
 } as const;
 
 export default wallpaper;

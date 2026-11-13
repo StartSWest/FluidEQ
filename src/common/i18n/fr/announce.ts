@@ -13,7 +13,7 @@ const announce = {
     'Hors connexion. Les actualités enregistrées encore valides sont affichées.',
   'announce.news.empty': 'Aucune annonce en cours.',
 
-  'announce.eyebrow': 'Nouveau dans Visualiseurs · {count} scènes',
+  'announce.eyebrow': 'Nouveau dans Scènes · {count} scènes',
   'announce.try': 'Les essayer maintenant',
   'announce.later': 'Plus tard',
   'announce.previewNote':

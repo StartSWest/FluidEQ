@@ -479,7 +479,7 @@ describe('App', () => {
     setGraphContents('curves');
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    await pressTab('Visualizers', 'community');
+    await pressTab('Scenes', 'community');
     expect(container.querySelector('.graph-wrapper')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Play gallery scene' }));
     expect(screen.getByRole('tab', { name: 'EQ' })).toHaveAttribute(
@@ -508,7 +508,7 @@ describe('App', () => {
   it.each([
     ['karaoke', 'Karaoke'],
     ['library', 'Library'],
-    ['community', 'Visualizers'],
+    ['community', 'Scenes'],
   ] as const)(
     'keeps the hidden %s graph closed on Ctrl+S and Ctrl+F',
     async (page, label) => {
@@ -601,7 +601,7 @@ describe('App', () => {
     );
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    await pressTab('Visualizers', 'community');
+    await pressTab('Scenes', 'community');
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
     fireEvent.keyDown(window, { key: 's', ctrlKey: true });
     expect(container.querySelector('.center-workspace')).toHaveClass(

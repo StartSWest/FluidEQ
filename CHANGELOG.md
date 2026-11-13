@@ -17,10 +17,15 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   computer. There is still no tracking. The terms are now revision 13, and
   **What the app sends** lists it.
 
-### Visualizers
+### Scenes
 
 #### Scenes and the gallery
 
+- **Visualizers is now Scenes.** What plays on the graph, behind your
+  desktop and on your lights was called two things; it is a scene
+  everywhere now, and the tab that holds the gallery, the Studio and
+  Dynamic lighting is **Scenes**. The graph's free looks are its standard
+  looks.
 - **Hover a card to see the scene move.** In the gallery, a scene's card
   plays its preview video while the pointer is over it, silent and looping,
   and goes back to its cover when it leaves. The scene itself is never

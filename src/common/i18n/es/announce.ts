@@ -13,7 +13,7 @@ const announce = {
     'Sin conexión. Se muestran las noticias guardadas que siguen vigentes.',
   'announce.news.empty': 'No hay anuncios vigentes.',
 
-  'announce.eyebrow': 'Novedades en Visualizadores · {count} escenas',
+  'announce.eyebrow': 'Novedades en Escenas · {count} escenas',
   'announce.try': 'Probarlas ahora',
   'announce.later': 'Más tarde',
   'announce.previewNote': 'Vista previa. No se ha enviado ni registrado nada.',

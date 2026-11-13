@@ -12,7 +12,7 @@ const announce = {
     'Sem conexão. Mostrando notícias salvas ainda válidas.',
   'announce.news.empty': 'Nenhum anúncio em vigor.',
 
-  'announce.eyebrow': 'Novo em Visualizadores · {count} cenas',
+  'announce.eyebrow': 'Novo em Cenas · {count} cenas',
   'announce.try': 'Experimentar agora',
   'announce.later': 'Mais tarde',
   'announce.previewNote': 'Prévia. Nada foi enviado e nada foi registrado.',

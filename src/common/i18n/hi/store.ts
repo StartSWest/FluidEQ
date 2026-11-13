@@ -111,12 +111,12 @@ const store: Partial<Dictionary> = {
     '{count} क्रेडिट ख़र्च करने के लिए तैयार',
   'store.welcome.eyebrow': 'FluidEQ में आपका स्वागत है',
   'store.welcome.body':
-    'हर क्रेडिट से आपको {visualizers} का एक सीन हमेशा के लिए मिलता है। अभी इन्हें लें और अपने पहले सीन चुनें।',
+    'हर क्रेडिट से आपको {visualizers} टैब का एक सीन हमेशा के लिए मिलता है। अभी इन्हें लें और अपने पहले सीन चुनें।',
   'store.welcome.fine':
     'हर खाते के लिए एक बार। क्रेडिट ख़र्च करने से पहले आप हर सीन को कुछ सेकंड देख सकते हैं।',
   'store.welcome.later': 'बाद में',
   'store.welcome.claimedBody':
-    'अपने पहले सीन चुनें। ‘{notMine}’ चालू है, इसलिए {visualizers} में सिर्फ़ वे सीन दिखते हैं जो आपके पास नहीं हैं।',
+    'अपने पहले सीन चुनें। ‘{notMine}’ चालू है, इसलिए {visualizers} टैब में सिर्फ़ वे सीन दिखते हैं जो आपके पास नहीं हैं।',
   'store.welcome.pick': 'मेरे पहले सीन चुनें',
   'store.welcome.cardBody': 'इन्हें लें और रखने के लिए अपने पहले सीन चुनें।',
   'store.welcome.cardClaimedBody':

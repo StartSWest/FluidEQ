@@ -221,7 +221,7 @@ const studio = {
   'studio.publish.noteWriting': 'シーンのチャットが新しい内容を書いています…',
   'studio.publish.noteNeeded': '必須',
   'studio.publish.point1':
-    'サインインしている人なら誰でもビジュアライザーで見て、数秒間再生し、1クレジットで入手できます。あなたには無料で再生されます。',
+    'サインインしている人なら誰でもシーンのギャラリーで見て、数秒間再生し、1クレジットで入手できます。あなたには無料で再生されます。',
   'studio.publish.point3':
     '公開を取り下げると、新しく入手できる人はいなくなります。すでに持っている人はそのまま持ち続けます。',
   'studio.publish.point3Update':

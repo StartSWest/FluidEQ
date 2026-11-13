@@ -117,7 +117,7 @@ const account = {
   'account.plus.eyebrow': 'FluidEQ',
   'account.perk.looks': '영원히 당신의 것인 장면은 각각 1크레딧입니다.',
   'account.perk.visualizers':
-    '비주얼라이저: 회원이 만드는 장면은 모든 계정에 공개됩니다.',
+    '장면: 회원이 만드는 장면 갤러리, 모든 계정에 공개됩니다.',
   'account.google': 'Google로 계속하기',
   'account.or': '또는',
   'account.google.waiting': '브라우저에서 Google로 로그인을 완료하세요.',

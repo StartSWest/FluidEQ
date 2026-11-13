@@ -5,20 +5,19 @@ import type { Dictionary } from '../en';
 const wallpaper = {
   'wallpaper.action': '設定為桌面背景',
   'wallpaper.title': '桌面背景',
-  'wallpaper.description':
-    '將此視覺化工具放在桌面圖示後面，隨音樂移動或獨自平靜。',
+  'wallpaper.description': '將此場景放在桌面圖示後面，隨音樂移動或獨自平靜。',
   'wallpaper.manage.description': '每個顯示器在桌面圖示後面顯示的內容。',
   'wallpaper.manage.empty': '每臺顯示器都顯示其普通的 Windows 背景。',
   'wallpaper.monitors': '顯示器',
   'wallpaper.monitors.hint':
-    '選擇它播放的地方。每個監視器都可以顯示自己的視覺化工具。',
+    '選擇它播放的地方。每個監視器都可以顯示自己的場景。',
   'wallpaper.monitors.all': '所有顯示器',
   'wallpaper.monitor.name': '監視器 {number}',
   'wallpaper.monitor.primary': '小學',
   'wallpaper.monitor.size': '{width} × {height}',
   'wallpaper.monitor.ordinary': '視窗背景',
   'wallpaper.monitor.disconnected': '顯示器斷開連線',
-  'wallpaper.visualizer.unknown': '視覺化效果',
+  'wallpaper.visualizer.unknown': '場景',
   'wallpaper.pauseOnBattery': '暫停電池電量',
   'wallpaper.pauseOnBattery.hint': '當電腦拔掉電源插頭時可節省電力。',
   'wallpaper.motion': '運動',
@@ -65,14 +64,13 @@ const wallpaper = {
   'wallpaper.error.unavailable': '無法訪問桌面背景。再試一次。',
   'wallpaper.error.notEntitled':
     '這個場景還不是你的。將其放在相簿中並將其放在桌面上。',
-  'wallpaper.error.missingScene': '不再安裝此視覺化工具。再次新增並重試。',
-  'wallpaper.error.refused':
-    '此視覺化工具在該電腦的圖形上失敗。再次設定以再次嘗試。',
+  'wallpaper.error.missingScene': '不再安裝此場景。再次新增並重試。',
+  'wallpaper.error.refused': '此場景在該電腦的圖形上失敗。再次設定以再次嘗試。',
   'wallpaper.error.missingDisplay':
     '該監視器已斷開連線。當它重新插入時，它的背景就會恢復。',
-  'wallpaper.error.host': 'Windows 無法將視覺化工具放置在桌面上。再試一次。',
-  'wallpaper.error.renderer': '視覺化工具無法在桌面上繪圖。再試一次。',
-  'wallpaper.error.audio': '桌面視覺化工具失去了音樂訊號。再試一次。',
+  'wallpaper.error.host': 'Windows 無法將場景放置在桌面上。再試一次。',
+  'wallpaper.error.renderer': '場景無法在桌面上繪圖。再試一次。',
+  'wallpaper.error.audio': '桌面場景失去了音樂訊號。再試一次。',
 } satisfies Partial<Dictionary>;
 
 export default wallpaper;

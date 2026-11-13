@@ -2,10 +2,10 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
-  'tour.karaokeBackground.title': 'Des visualisations derrière vos paroles',
+  'tour.karaokeBackground.title': 'Des scènes derrière vos paroles',
   'tour.karaokeBackground.subtitle': 'Le style choisi, sur la scène du karaoké',
   'tour.karaokeBackground.lead':
-    'Choisissez une visualisation ou une scène en arrière-plan du karaoké.',
+    'Choisissez une scène ou un style standard en arrière-plan du karaoké.',
   'tour.karaokeBackground.how':
     'Choisissez un style dans {looks} sur EQ, puis appuyez sur {showGraph} dans le karaoké.',
   'tour.karaokeBackground.open': 'Ouvrir le karaoké',
@@ -63,7 +63,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.subtitle':
     'Un lecteur, le même dans toutes les couleurs de fenêtre',
   'tour.player.lead':
-    'Un interrupteur dans la barre de titre replie FluidEQ en une colonne : le visualiseur en haut avec le morceau, les commandes, votre son et ce qui suit. Le même lecteur dans toutes les couleurs de fenêtre, et la scène choisie défile derrière tout, en {backdrop}.',
+    'Un interrupteur dans la barre de titre replie FluidEQ en une colonne : la scène en haut avec le morceau, les commandes, votre son et ce qui suit. Le même lecteur dans toutes les couleurs de fenêtre, et la scène choisie défile derrière tout, en {backdrop}.',
   'tour.player.point1':
     '{sound} réunit les boutons Graves, Médiums et Aigus ou les bandes de votre EQ, avec le préréglage, l’égalisation auto et le mode EQ à côté.',
   'tour.player.point2':
@@ -74,13 +74,12 @@ const tour: Partial<Dictionary> = {
     'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.',
   'tour.player.open': 'Essayer le Lecteur compact',
   'tour.player.imageAlt':
-    'Le coin de la barre de titre avec l’interrupteur {player} entouré, et le Lecteur compact deux fois : sur une scène en {backdrop} avec les bandes de l’EQ ouvertes, et avec un visualiseur standard derrière le morceau et les boutons de tonalité ouverts.',
+    'Le coin de la barre de titre avec l’interrupteur {player} entouré, et le Lecteur compact deux fois : sur une scène en {backdrop} avec les bandes de l’EQ ouvertes, et avec un style standard derrière le morceau et les boutons de tonalité ouverts.',
   'tour.player.scene': 'Avec une scène, en {backdrop}',
-  'tour.player.standard': 'Avec un visualiseur standard',
+  'tour.player.standard': 'Avec un style standard',
   'tour.look.kicker': 'UNE NOUVELLE APPARENCE',
   'tour.look.title': 'Une nouvelle fenêtre, de nouvelles couleurs',
-  'tour.look.subtitle':
-    'Un seul curseur de thème, et un visualiseur derrière tout',
+  'tour.look.subtitle': 'Un seul curseur de thème, et une scène derrière tout',
   'tour.look.lead':
     'Les panneaux reposent sur un seul plan ouvert, aux couleurs de la nouvelle icône, et un seul curseur, {brightness}, fait passer toute la fenêtre du presque noir à un bleu océan clair. Avec une scène sur le graphique, la fenêtre peut prendre ses couleurs, ou la laisser jouer derrière tout.',
   'tour.look.point1':
@@ -88,14 +87,14 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '{windowColours} propose {original}, {colours}, {ambient} et {backdrop}, chacun avec une ligne sur ce qu’il fait à la fenêtre.',
   'tour.look.point3':
-    'Les boîtes de dialogue et les menus partagent une même matière, et le {rainbow} parcourt les couleurs de l’icône, ou celles d’un visualiseur.',
+    'Les boîtes de dialogue et les menus partagent une même matière, et le {rainbow} parcourt les couleurs de l’icône, ou celles d’une scène.',
   'tour.look.how':
     'Déplacez {brightness} dans le menu des actions derrière l’icône d’impulsion en haut à droite. Avec une scène sur le graphique, ouvrez {windowColours} depuis la barre du graphique et choisissez {backdrop}.',
   'tour.look.open': 'Ouvrir l’Égaliseur',
   'tour.look.imageAlt':
     'FluidEQ dans ses propres couleurs sur la page Égaliseur, l’Analyseur dessinant un morceau sous les courbes, et le menu derrière l’icône d’impulsion ouvert au-dessus de son coin, avec la Luminosité à moitié et le Mode coloré activé.',
-  'tour.gpu.kicker': 'UN NOUVEAU MOTEUR DE VISUALISEURS',
-  'tour.gpu.title': 'Tous les visualiseurs sur votre carte graphique',
+  'tour.gpu.kicker': 'UN NOUVEAU MOTEUR DE SCÈNES',
+  'tour.gpu.title': 'Toutes les scènes sur votre carte graphique',
   'tour.gpu.subtitle':
     'Quarante styles au rythme de votre écran, et des mondes 3D',
   'tour.gpu.lead':
@@ -113,21 +112,21 @@ const tour: Partial<Dictionary> = {
     'Une scène qui est une ville 3D de nuit, et quatre nouveaux styles photographiés sur le graphique — {synthwave}, {horizon}, {towers} et {ledwall} — avec le sélecteur de styles entouré sur le premier.',
   'tour.gpu.world': 'Monde 3D',
   'tour.sparks.kicker': 'ÉTINCELLES DU POINTEUR',
-  'tour.sparks.title': 'Des visualiseurs qui répondent à votre souris',
+  'tour.sparks.title': 'Des scènes qui répondent à votre souris',
   'tour.sparks.subtitle': 'Étincelles, pétales ou neige au bout du pointeur',
   'tour.sparks.lead':
     'Passez la souris sur une scène et elle lance ce dont elle est faite — étincelles, pétales, neige, braises — en traînée derrière le pointeur, et éclate là où vous cliquez. En modes {ambient} et {backdrop}, ses oiseaux, pétales et lumières flottent aussi sur toute la fenêtre.',
   'tour.sparks.point1':
-    'Chaque visualiseur lance les siens : de la neige pour une scène d’hiver, des braises pour un feu de camp, des pétales pour un jardin.',
+    'Chaque scène lance les siens : de la neige pour une scène d’hiver, des braises pour un feu de camp, des pétales pour un jardin.',
   'tour.sparks.point2':
     'La scène du Studio les montre toujours, pour que le créateur d’une scène façonne ce qu’elle lance.',
   'tour.sparks.point3':
-    'Un seul interrupteur pour tous les visualiseurs : {sparks}, dans {windowColours} sous {rainbow}.',
+    'Un seul interrupteur pour toutes les scènes : {sparks}, dans {windowColours} sous {rainbow}.',
   'tour.sparks.how':
     'Avec une scène sur le graphique, passez la souris dessus et cliquez. {sparks} se trouve dans {windowColours}, sous {rainbow}.',
   'tour.sparks.open': 'Ouvrir l’Égaliseur',
   'tour.sparks.imageAlt':
-    'Un visualiseur d’aurore avec une traînée d’étincelles lumineuses derrière le pointeur et une gerbe là où il a cliqué, et {windowColours} avec son interrupteur {sparks} entouré.',
+    'Une scène d’aurore avec une traînée d’étincelles lumineuses derrière le pointeur et une gerbe là où il a cliqué, et {windowColours} avec son interrupteur {sparks} entouré.',
   'tour.sound.kicker': 'LE MOTEUR FLUIDEQ',
   'tour.sound.title': 'Le son exactement tel que vous l’avez dessiné',
   'tour.sound.subtitle':
@@ -215,7 +214,7 @@ const tour: Partial<Dictionary> = {
   'tour.tone.imageAlt':
     'La courbe de l’égaliseur en ses trois tiers (graves, médiums et aigus), les trois boutons qui les déplacent, et les dispositions rapides de six à trente et une bandes.',
   'tour.studio.kicker': 'FLUIDEQ PLUS',
-  'tour.studio.title': 'Créez votre propre visualiseur',
+  'tour.studio.title': 'Créez votre propre scène',
   'tour.studio.subtitle': 'Gratuit pour tous les comptes',
   'tour.studio.lead':
     'Le Studio transforme une idée en une scène qui bouge avec votre musique. Il est gratuit pour tous les comptes : créez, exportez et publiez autant de scènes que vous voulez.',
@@ -226,8 +225,8 @@ const tour: Partial<Dictionary> = {
   'tour.studio.point3':
     'Copiez le prompt pour l’IA, et votre assistant IA peut voir votre scène et entendre comment le morceau évolue.',
   'tour.studio.how':
-    'Ouvrez Visualiseurs et choisissez Studio dans sa barre latérale.',
-  'tour.studio.open': 'Ouvrir Visualiseurs',
+    'Ouvrez Scènes et choisissez Studio dans sa barre latérale.',
+  'tour.studio.open': 'Ouvrir Scènes',
   'tour.studio.imageAlt':
     'Le Studio avec Alpine sur sa scène, un lac sous des sommets enneigés et une aurore, les trois étapes pour créer une scène avec votre IA en dessous, et deux notes : gratuit pour tous les comptes, et une scène publiée joue gratuitement pour son créateur.',
   'tour.studio.earned': 'Publiée : joue gratuitement pour vous',
@@ -292,29 +291,29 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Une salle vue de dessus : sept enceintes et un sub autour d’une tête au centre, chacune avec son chemin vers les oreilles.',
 
-  'tour.plus.kicker': 'VISUALISEURS',
+  'tour.plus.kicker': 'SCÈNES',
   'tour.plus.title': 'Des scènes à vous pour de bon',
-  'tour.plus.subtitle': 'Visualiseurs, Studio, éclairage et plus encore',
+  'tour.plus.subtitle': 'Scènes, Studio, éclairage et plus encore',
   'tour.plus.lead':
     'Un onglet entier d’extras qui fait grandir FluidEQ : des scènes dessinées sur votre carte graphique, un Studio pour créer les vôtres, des fonds de Bureau et l’Éclairage dynamique. Une scène coûte un crédit et vous reste, et l’égaliseur, le rack et les lecteurs restent gratuits, comme toujours.',
   'tour.plus.point1':
-    'Connectez-vous dans l’onglet Visualiseurs : un compte confirmé reçoit des crédits gratuits pour commencer.',
+    'Connectez-vous dans l’onglet Scènes : un compte confirmé reçoit des crédits gratuits pour commencer.',
   'tour.plus.point2':
     'Les packs de crédits se paient une seule fois, avec des conditions en mots simples avant de payer. Rien ne se renouvelle, et l’application ne voit jamais votre carte.',
   'tour.plus.point3':
     'Chaque scène peut être regardée d’abord, et celles que vous obtenez jouent sur chaque ordinateur où vous vous connectez.',
   'tour.plus.how':
-    'Ouvrez l’onglet Visualiseurs : la Galerie, le Studio et l’Éclairage dynamique se trouvent sur sa gauche.',
-  'tour.plus.open': 'Ouvrir Visualiseurs',
+    'Ouvrez l’onglet Scènes : la Galerie, le Studio et l’Éclairage dynamique se trouvent sur sa gauche.',
+  'tour.plus.open': 'Ouvrir Scènes',
   'tour.plus.imageAlt':
-    'L’onglet Visualiseurs : Galerie, Studio et Éclairage dynamique sur le côté, et la Galerie avec Chrome, Floraison, Aurore, Alpin et Ville néon.',
+    'L’onglet Scènes : Galerie, Studio et Éclairage dynamique sur le côté, et la Galerie avec Chrome, Floraison, Aurore, Alpin et Ville néon.',
   'tour.scene.alpine': 'Alpin',
   'tour.scene.aurora': 'Aurore',
   'tour.scene.bloom': 'Floraison',
   'tour.scene.chrome': 'Chrome',
   'tour.scene.neonCity': 'Ville néon',
 
-  'tour.visualizers.kicker': 'VISUALISEURS',
+  'tour.visualizers.kicker': 'SCÈNES',
   'tour.visualizers.title': 'Des scènes qui bougent avec votre musique',
   'tour.visualizers.subtitle': 'Dessinées par votre carte graphique',
   'tour.visualizers.lead':
@@ -326,18 +325,18 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.point3':
     'Changez de style automatiquement, passez en plein écran, et réglez l’attaque et le relâchement d’une scène dans Affichage.',
   'tour.visualizers.how':
-    'Sur le graphique, cliquez sur le nom du style et choisissez-en une sous Visualiseurs, ou parcourez-les toutes dans Visualiseurs → Galerie.',
+    'Sur le graphique, cliquez sur le nom du style et choisissez-en une sous Scènes, ou parcourez-les toutes dans Scènes → Galerie.',
   'tour.visualizers.open': 'Ouvrir l’Égaliseur',
   'tour.visualizers.imageAlt':
     'Alpin, une scène montrant des montagnes au-dessus d’un lac de nuit, en lecture sur le graphique sous les courbes d’EQ, avec quatre autres scènes en dessous.',
 
-  'tour.desktop.kicker': 'VISUALISEUR DU BUREAU',
+  'tour.desktop.kicker': 'FOND DU BUREAU',
   'tour.desktop.title': 'Votre musique derrière votre Bureau',
   'tour.desktop.subtitle': 'Une scène sur chaque écran',
   'tour.desktop.lead':
     'Placez une scène derrière les icônes du Bureau. Elle bouge avec ce que vous écoutez, ou calmement d’elle-même, et chaque écran peut afficher sa propre scène.',
   'tour.desktop.point1':
-    'Choisissez les écrans sur une carte de votre bureau, chacun avec son propre visualiseur.',
+    'Choisissez les écrans sur une carte de votre bureau, chacun avec sa propre scène.',
   'tour.desktop.point2':
     'Il se met en pause tant que des fenêtres couvrent l’écran, quand le PC est verrouillé et sur batterie.',
   'tour.desktop.point3':
@@ -350,18 +349,18 @@ const tour: Partial<Dictionary> = {
 
   'tour.lighting.kicker': 'ÉCLAIRAGE DYNAMIQUE',
   'tour.lighting.title': 'Votre bureau s’illumine avec la scène',
-  'tour.lighting.subtitle': 'Bêta · vos appareils RVB suivent le visualiseur',
+  'tour.lighting.subtitle': 'Bêta · vos appareils RVB suivent la scène',
   'tour.lighting.lead':
     'Votre clavier, votre souris, votre tapis de souris, votre casque et votre support prennent les couleurs et le rythme de la scène affichée sur le graphique, via Windows Dynamic Lighting et Razer Chroma.',
   'tour.lighting.point1':
-    'Quatre styles pour chaque visualiseur : Scène, Vague de couleur, Spectre et Onde rythmique.',
+    'Quatre styles pour chaque scène : Scène, Vague de couleur, Spectre et Onde rythmique.',
   'tour.lighting.point2':
     'Réglez chaque appareil séparément, et choisissez ce qui se passe quand la musique s’arrête.',
   'tour.lighting.point3':
     'Un aperçu en direct dessine votre propre bureau pendant qu’il s’illumine. C’est une bêta : dites-nous comment se comportent vos appareils.',
   'tour.lighting.how':
-    'Ouvrez Visualiseurs → Éclairage dynamique et activez-le, puis mettez une scène sur le graphique.',
-  'tour.lighting.open': 'Ouvrir Visualiseurs',
+    'Ouvrez Scènes → Éclairage dynamique et activez-le, puis mettez une scène sur le graphique.',
+  'tour.lighting.open': 'Ouvrir Scènes',
   'tour.lighting.imageAlt':
     'Un clavier, une souris et un tapis de souris éclairés aux tons rose, violet et cyan de Ville néon.',
 
@@ -624,7 +623,7 @@ const tour: Partial<Dictionary> = {
   'tour.walkthrough.title': 'Tout FluidEQ en une seule vidéo',
   'tour.walkthrough.subtitle': 'À regarder du début à la fin',
   'tour.walkthrough.lead':
-    'Une visite guidée de tout ce que fait FluidEQ, de la première bande que vous faites glisser jusqu’aux visualiseurs, avec une voix qui explique comment utiliser chaque partie.',
+    'Une visite guidée de tout ce que fait FluidEQ, de la première bande que vous faites glisser jusqu’aux scènes, avec une voix qui explique comment utiliser chaque partie.',
   'tour.film.walkthrough.intro': 'Tout FluidEQ en une seule vidéo',
   'tour.film.engine.intro':
     'FluidEQ a son propre moteur audio. Il applique votre EQ et le rack DSP à tout ce que joue l’ordinateur.',
@@ -714,7 +713,7 @@ const tour: Partial<Dictionary> = {
     'Elle fonctionne avec Claude Code sur cet ordinateur, avec votre propre abonnement, et montre ce qu’il reste de vos limites.',
   'tour.chat.how':
     'Ouvrez {plus}, choisissez {studio} dans son rail, choisissez une scène ou commencez-en une, et écrivez dans la zone à côté de la scène.',
-  'tour.chat.open': 'Ouvrir Visualiseurs',
+  'tour.chat.open': 'Ouvrir Scènes',
   'tour.chat.imageAlt':
     'La scène du Studio à côté de sa discussion : une demande pour que les lumières de la scène flashent sur la caisse claire, les étapes de la réponse cochées une à une, la version 2 gardée avec Rétablir, et les lumières de la scène qui se mettent à flasher quand la version 2 joue.',
   'tour.chat.ask':
@@ -722,7 +721,7 @@ const tour: Partial<Dictionary> = {
   'tour.chat.reply':
     'C’est fait : les deux projecteurs flashent en blanc sur chaque caisse claire et reviennent au rose.',
 
-  'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
+  'tour.looks.kicker': 'VOTRE PROPRE SCÈNE',
   'tour.looks.title': 'Des styles à vous pour le graphique',
   'tour.looks.subtitle': 'Vos formes, vos couleurs, votre mouvement',
   'tour.looks.lead':
@@ -803,7 +802,7 @@ const tour: Partial<Dictionary> = {
   'tour.v23.forum':
     'Chaque rubrique du Forum compte l’activité non vue, Problèmes compte les problèmes ouverts, et vos sujets et réponses inachevés restent enregistrés.',
   'tour.v23.layout':
-    'Visualiseurs ouvre l’en-tête et Médias en ligne le termine. Le lecteur compact garde les noms de jeu courts, l’affichage du volume reste stable, Ajouter un jeu garde ses boutons visibles et les barres atteignent le bord.',
+    'Scènes ouvre l’en-tête et Médias en ligne le termine. Le lecteur compact garde les noms de jeu courts, l’affichage du volume reste stable, Ajouter un jeu garde ses boutons visibles et les barres atteignent le bord.',
 };
 
 export default tour;

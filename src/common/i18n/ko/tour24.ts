@@ -12,8 +12,8 @@ const tour24 = {
   'tour.animations.point3':
     '새 프로젝트는 구체 안의 달과 그 위를 나는 제비로 시작하므로, 사진과 애니메이션을 첫날부터 익힐 수 있습니다.',
   'tour.animations.how':
-    '시각화 도우미를 열고 스튜디오로 간 다음, 무대 아래에서 애니메이션을 선택하세요. 채팅에 장면의 사진을 움직여 달라고 부탁하세요.',
-  'tour.animations.open': '시각화 도우미 열기',
+    '장면을 열고 스튜디오로 간 다음, 무대 아래에서 애니메이션을 선택하세요. 채팅에 장면의 사진을 움직여 달라고 부탁하세요.',
+  'tour.animations.open': '장면 열기',
   'tour.animations.imageAlt':
     '스튜디오의 애니메이션 탭. 하늘 배경 위에서 날갯짓하는 제비와 띠에 놓인 여덟 프레임, 아래에는 튀는 프레임을 찾아내는 장면의 채팅이 있습니다.',
   'tour.animations.task': '제비의 비행을 한 프레임씩 확인해 줘.',
@@ -35,7 +35,7 @@ const tour24 = {
     '표시한 내용이 사진과 함께 전달되므로 AI는 의도를 정확히 이해합니다.',
   'tour.pictures.how':
     '스튜디오 채팅에서 사진을 클릭해 여세요. 그리기를 눌러 표시한 다음 채팅에 첨부를 누르세요.',
-  'tour.pictures.open': '시각화 도우미 열기',
+  'tour.pictures.open': '장면 열기',
   'tour.pictures.imageAlt':
     '크게 열어 확대한 달 사진. 분화구 둘레의 동그라미, 화살표와 글자, 좁혀지는 자르기 상자, 이미지 복사와 채팅에 첨부 버튼이 있고, 아래에는 사진이 도착한 채팅이 있습니다.',
   'tour.pictures.ask': '이 달을 구체에 넣고 가장자리가 빛나게 해 줘.',
@@ -56,7 +56,7 @@ const tour24 = {
     '아무것도 재생하지 않을 때는 장면이 데모 곡에 맞춰 움직이므로, 작업하는 동안 멈춰 있는 일이 없습니다.',
   'tour.stage.how':
     '스튜디오에서 무대의 크기 메뉴로 모양을 고르세요. 음악과 진정 버튼은 무대 위에 있습니다.',
-  'tour.stage.open': '시각화 도우미 열기',
+  'tour.stage.open': '장면 열기',
   'tour.stage.imageAlt':
     '스튜디오 무대 위의 Alpine 장면. AI가 보는 범위를 표시한 틀과 음악·진정 버튼이 있고, 옆에는 같은 장면의 울트라와이드 그래프와 조작 버튼이 위에 놓인 컴팩트 플레이어가 있습니다.',
   'tour.stage.agentSees': 'AI가 보는 범위',
@@ -74,7 +74,7 @@ const tour24 = {
     '채팅마다 모델과 노력 수준을 고르세요. 목록이 Claude Code를 따르므로 새 모델이 나오면 바로 표시됩니다.',
   'tour.ai.how':
     '스튜디오에서 장면을 열고 그 채팅에 쓰세요. 모델과 노력 수준은 입력 상자 아래에 있습니다.',
-  'tour.ai.open': '시각화 도우미 열기',
+  'tour.ai.open': '장면 열기',
   'tour.ai.imageAlt':
     '동시에 작업 중인 세 장면. 둘은 진행 중, 하나는 버전 7로 저장됨. 그 아래 FluidEQ의 스킬, 옆에는 AI가 쓰는 것과 모델·노력 수준 메뉴가 있습니다.',
   'tour.ai.skills': 'FluidEQ의 스킬',
@@ -98,7 +98,7 @@ const tour24 = {
     '갤러리는 장면마다 최근 10개 버전을 보관하며, 장면 페이지에서 원하는 버전을 이 컴퓨터에 저장할 수 있습니다.',
   'tour.controls.how':
     '스튜디오에서 장면의 튜닝 탭을 여세요. 장면의 버전은 갤러리의 해당 페이지에 있습니다.',
-  'tour.controls.open': '시각화 도우미 열기',
+  'tour.controls.open': '장면 열기',
   'tour.controls.imageAlt':
     '두 색상 팔레트와 맑음·비·눈으로 바뀌는 날씨 선택지가 있는 튜닝 탭. 눈일 때만 강설량 슬라이더가 나타나고, 옆에는 장면 페이지와 크기, 버전, 보관된 버전이 있습니다.',
   'tour.controls.weather': '날씨',
@@ -108,7 +108,7 @@ const tour24 = {
   'tour.controls.glow': '달빛',
   'tour.controls.snowfall': '강설량',
 
-  'tour.camera.kicker': '시각화 도우미',
+  'tour.camera.kicker': '장면',
   'tour.camera.title': '그래프와 바탕 화면에서 장면 속을 움직이세요',
   'tour.camera.subtitle': '나만의 카메라 키, 마우스에 반응하는 바탕 화면',
   'tour.camera.lead':
@@ -116,20 +116,20 @@ const tour24 = {
   'tour.camera.point1':
     '마우스 따라가기를 켜면 장면이 포인터 쪽으로 기울고, 저절로 돌기에 맡길 수도 있습니다. 보기 재설정은 키를 누르는 동안에만 나타납니다.',
   'tour.camera.point2':
-    '바탕 화면의 시각화는 빈 바탕 화면 위의 마우스에 반응하고, 모니터마다 시간대가 따로 있으며, 스튜디오가 최신 버전을 바탕 화면에 놓아 줍니다.',
+    '바탕 화면의 장면은 빈 바탕 화면 위의 마우스에 반응하고, 모니터마다 시간대가 따로 있으며, 스튜디오가 최신 버전을 바탕 화면에 놓아 줍니다.',
   'tour.camera.point3':
     '비트 플래시는 킥에 맞춰 터지고, 아무것도 재생하지 않을 때 갤러리 미리보기는 데모 곡에 맞춰 움직이며, 고장 난 장면은 단순한 모습 대신 마지막으로 작동하던 버전을 재생합니다.',
   'tour.camera.how':
     '카메라 설정은 그래프의 보기 메뉴에서 장면 아래에 있습니다.',
   'tour.camera.open': '오픈 EQ',
   'tour.camera.imageAlt':
-    '각 바탕 화면에 시각화가 있는 두 모니터. 첫 번째에서는 장면이 포인터 쪽으로 기울고 Ctrl을 누르는 동안 보기 재설정이 나타납니다. 각자 시간대가 있고, 아래에는 카메라 설정이 있습니다.',
+    '각 바탕 화면에 장면이 있는 두 모니터. 첫 번째에서는 장면이 포인터 쪽으로 기울고 Ctrl을 누르는 동안 보기 재설정이 나타납니다. 각자 시간대가 있고, 아래에는 카메라 설정이 있습니다.',
 
   'tour.v24.also': '2.4의 다른 변경 사항',
   'tour.v24.heroes':
     '히어로즈 오브 더 스톰에 선택형 와이드 스테이지가 있는 더 풍성한 전용 믹스가 생겼고, 게임 필터는 신호를 살리면서 음악을 더 안정적으로 유지합니다.',
   'tour.v24.graphSettings':
-    '그래프는 기본 스타일과 시각화에 대해 설정을 따로 보관합니다.',
+    '그래프는 기본 스타일과 장면에 대해 설정을 따로 보관합니다.',
   'tour.v24.colourful': '컬러풀 모드는 그래프에 있는 장면의 색을 씁니다.',
   'tour.v24.gallery': '갤러리가 최신 장면부터 열립니다.',
   'tour.v24.credits': '브라우저에서 산 크레딧이 저절로 도착합니다.',
@@ -137,11 +137,11 @@ const tour24 = {
     '정보 또는 지원 페이지에서 GitHub Sponsors로 FluidEQ를 후원하세요.',
   'tour.v24.crashes':
     'FluidEQ가 혹시 비정상 종료되면 기록은 이 컴퓨터에만 남으며, 보낼지 직접 정하는 버그 보고서에 쓰입니다.',
-  'tour.visualsTitle': '비주얼라이저의 새로운 기능',
-  'tour.rail.alwaysVisuals': '비주얼라이저에도 있습니다',
+  'tour.visualsTitle': '장면의 새로운 기능',
+  'tour.rail.alwaysVisuals': '장면에도 있습니다',
   'visuals.news.open': '새로운 기능',
-  'visuals.news.blurb': '비주얼라이저, 스튜디오, 조명',
-  'visuals.news.title': '비주얼라이저 {version}의 새로운 기능',
+  'visuals.news.blurb': '장면, 스튜디오, 조명',
+  'visuals.news.title': '장면 {version}의 새로운 기능',
   'visuals.news.see': '새로운 기능 보기',
   'visuals.news.later': '나중에',
 
@@ -173,7 +173,7 @@ const tour24 = {
   'tour.edit.point3':
     '저장을 누르기 전에는 장면이 바뀌지 않습니다. 버리기는 변경을 버리고, 실행 취소와 다시 실행으로 오갈 수 있습니다.',
   'tour.edit.how': '스튜디오에서 3D 장면을 열고 무대에서 편집을 누르세요.',
-  'tour.edit.open': '시각화 도우미 열기',
+  'tour.edit.open': '장면 열기',
   'tour.edit.imageAlt':
     '스튜디오 무대 위의 장면. 도형 하나가 선택되어 자물쇠가 열리고 핸들이 나와 있으며, 위에는 이동, 회전, 크기 도구가, 옆에는 나머지가 모두 잠긴 목록이 있고 선택한 도형만 보입니다.',
   'tour.watch.kicker': '스튜디오 · 나의 AI',
@@ -189,7 +189,7 @@ const tour24 = {
     '테스트 곡의 여섯 순간을 무음부터 드롭까지 보며 드롭이 보이는지, 주광 0에서 밤이 얼마나 어두운지 확인합니다.',
   'tour.watch.how':
     '장면의 채팅에 변경을 요청하세요. 매번 이렇게 작업을 확인합니다.',
-  'tour.watch.open': '시각화 도우미 열기',
+  'tour.watch.open': '장면 열기',
   'tour.watch.imageAlt':
     '음악을 따라가는 장면의 다섯 프레임과 움직임, 일반·울트라와이드·컴팩트 플레이어 보기의 장면, 무음부터 드롭까지 테스트 곡의 여섯 순간.',
   'tour.watch.frames': '음악을 따라가는 프레임',
@@ -213,7 +213,7 @@ const tour24 = {
     '무엇이든 만들기 전에 비용을 알려 주고 먼저 물어봅니다.',
   'tour.makers.point3': 'AI가 만든 동영상은 장면의 애니메이션이 됩니다.',
   'tour.makers.how': '스튜디오에서 장면의 채팅을 열고 계정을 누르세요.',
-  'tour.makers.open': '시각화 도우미 열기',
+  'tour.makers.open': '장면 열기',
   'tour.makers.imageAlt':
     '애니메이션을 만들기 전에 Higgsfield 허용을 요청하는 장면 채팅과, Claude와 Higgsfield가 있는 계정 목록.',
   'tour.makers.request': '잉어가 헤엄치는 애니메이션으로 만들어 줘',
@@ -230,7 +230,7 @@ const tour24 = {
   'tour.code.point3':
     'AI가 파일을 저장할 때마다 따라가며, AI가 일반 그림처럼 묶은 프레임 시트는 진짜 애니메이션이 됩니다.',
   'tour.code.how': '스튜디오에서 장면을 열고 무대 아래에서 코드를 고르세요.',
-  'tour.code.open': '시각화 도우미 열기',
+  'tour.code.open': '장면 열기',
   'tour.code.imageAlt':
     '장면의 파일이 이름까지 접혀 있고 3D 월드의 재질 하나가 열려 편집된 코드 탭. 바뀐 줄이 표시되어 있고 위에 저장할 수 있음과 저장이 있습니다.',
   'tour.fullscreen.kicker': '스튜디오 · 전체 화면',
@@ -246,7 +246,7 @@ const tour24 = {
     '채팅 가장자리를 끌어 넓히거나 좁힐 수 있고, 다음 전체 화면은 마지막 상태 그대로 열립니다.',
   'tour.fullscreen.how':
     '스튜디오에서 장면을 열고 무대에서 전체 화면을 누르세요.',
-  'tour.fullscreen.open': '시각화 도우미 열기',
+  'tour.fullscreen.open': '장면 열기',
   'tour.fullscreen.imageAlt':
     '빈 영역에서 장면이 재생되고, 그 아래 튜닝 탭의 작업 패널이 열려 있으며 오른쪽에 장면의 채팅이 붙어 있는 전체 화면.',
   'tour.fullscreen.request': '드롭에서 오로라를 더 밝게 해 줘',
@@ -264,19 +264,19 @@ const tour24 = {
   'tour.v25.publish': '게시에 월간 한도가 없습니다.',
   'tour.film.visuals.intro': '비주얼의 모든 것, 영상 한 편으로',
   'tour.v25.film.body':
-    '라이브러리와 노래방, 비주얼라이저, 갤러리와 크레딧, 바탕 화면 배경, 장치 조명, 스튜디오를 직접 보여 주고 설명합니다.',
+    '라이브러리와 노래방, 장면, 갤러리와 크레딧, 바탕 화면 배경, 장치 조명, 스튜디오를 직접 보여 주고 설명합니다.',
   'tour.v25.film.soon':
     '이 영상은 곧 공개됩니다. 준비되는 대로 여기에서 재생됩니다.',
   'tour.signed.kicker': 'FLUIDEQ 2.5',
   'tour.signed.title': '이제 서명까지, 그리고 여전히 무료!',
   'tour.signed.subtitle': '지금까지의 여정, 그리고 모두를 위한 서명된 FluidEQ',
   'tour.signed.today':
-    '오늘의 FluidEQ는 컴퓨터에서 재생되는 모든 소리를 위한 이퀄라이저이자, 내 음악을 위한 플레이어이며, 음악에 맞춰 움직이는 비주얼라이저입니다.',
+    '오늘의 FluidEQ는 컴퓨터에서 재생되는 모든 소리를 위한 이퀄라이저이자, 내 음악을 위한 플레이어이며, 음악에 맞춰 움직이는 장면입니다.',
   'tour.signed.liveFor': 'FluidEQ가 함께한 시간',
   'tour.signed.since': '{date} 시작',
   'tour.signed.roadTitle': '지금까지의 여정',
   'tour.signed.intro':
-    'FluidEQ는 2026년 8월 2일에 시작했고, 첫 릴리스인 0.4.0은 이틀 뒤에 나왔습니다. 그 뒤로 Windows 안에서 도는 자체 오디오 엔진, 들리는 모든 소리를 위한 DSP 랙, 음악을 위한 라이브러리와 플레이어, 갤러리가 있는 비주얼라이저, 나만의 장면을 만드는 스튜디오, 그리고 12개 언어를 갖추었습니다. 개발자가 서명한 빌드는 이 여정의 중요한 이정표입니다.',
+    'FluidEQ는 2026년 8월 2일에 시작했고, 첫 릴리스인 0.4.0은 이틀 뒤에 나왔습니다. 그 뒤로 Windows 안에서 도는 자체 오디오 엔진, 들리는 모든 소리를 위한 DSP 랙, 음악을 위한 라이브러리와 플레이어, 갤러리가 있는 장면, 나만의 장면을 만드는 스튜디오, 그리고 12개 언어를 갖추었습니다. 개발자가 서명한 빌드는 이 여정의 중요한 이정표입니다.',
   'tour.signed.thanks':
     'FluidEQ를 쓰고, 문제를 알려 주고, 장면을 게시하고, 포럼에 글을 남겨 주신 모든 분께 감사드립니다. 여러분 한 분 한 분 덕분에 더 좋아졌습니다.',
   'tour.signed.signedTitle': '개발자 서명',
@@ -287,7 +287,7 @@ const tour24 = {
     '새 버전은 저절로 도착하고, 준비되면 FluidEQ가 알려 줍니다. 설정은 그대로 유지됩니다.',
   'tour.signed.freeTitle': '모두에게 무료',
   'tour.signed.freeBody':
-    'FluidEQ 자체는 무료이며 모두에게 같은 앱입니다. 비주얼라이저 갤러리의 장면은 만든 사람이 판매합니다.',
+    'FluidEQ 자체는 무료이며 모두에게 같은 앱입니다. 갤러리의 장면은 만든 사람이 판매합니다.',
   'tour.signed.unit.day.one': '일',
   'tour.signed.unit.day.few': '일',
   'tour.signed.unit.day.many': '일',

@@ -12,7 +12,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': 'Brillo del fondo',
   'lighting.status.ambient': 'Flujo suave · {scene}',
   'lighting.scene.title': 'Iluminación para {scene}',
-  'lighting.scene.saved': 'Guardado para este visualizador',
+  'lighting.scene.saved': 'Guardado para esta escena',
   'lighting.device.edit': 'Ajustar {name}',
   'lighting.target.all': 'Todos los dispositivos',
   'lighting.target.shared': 'Iluminación compartida: {devices}',
@@ -49,7 +49,7 @@ const lighting = {
   'lighting.gate.title':
     'Ilumina tu teclado, ratón y auriculares con tus escenas',
   'lighting.gate.body':
-    'Consigue cualquier escena en Visualizadores y la iluminación dinámica es tuya: tus dispositivos toman los colores de la escena de la gráfica y laten con su ritmo.',
+    'Consigue cualquier escena en la galería y la iluminación dinámica es tuya: tus dispositivos toman los colores de la escena de la gráfica y laten con su ritmo.',
   'lighting.gate.cta': 'Buscar una escena',
 
   'lighting.preview.status':
@@ -74,7 +74,7 @@ const lighting = {
     'La escena está sonando, pero ningún dispositivo se ilumina',
   'lighting.status.off': 'Apagada: tus dispositivos mantienen su propia luz',
   'lighting.status.noScene': 'Elige una escena y tus dispositivos la seguirán',
-  'lighting.pickScene': 'Ver visualizadores',
+  'lighting.pickScene': 'Ver escenas',
   'lighting.showGraph': 'Mostrar la gráfica',
 
   'lighting.brightness': 'Brillo',

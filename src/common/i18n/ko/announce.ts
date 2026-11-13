@@ -11,7 +11,7 @@ const announce = {
     '오프라인입니다. 저장된 소식 중 아직 유효한 내용을 표시합니다.',
   'announce.news.empty': '현재 공지 사항이 없습니다.',
 
-  'announce.eyebrow': '비주얼라이저 새 소식 · 장면 {count}개',
+  'announce.eyebrow': '장면 새 소식 · 장면 {count}개',
   'announce.try': '지금 사용해 보기',
   'announce.later': '나중에',
   'announce.previewNote':

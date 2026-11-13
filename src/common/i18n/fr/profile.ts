@@ -1,7 +1,7 @@
 const profile = {
   'profile.name.title': 'Choisissez comment la galerie vous affiche',
   'profile.name.body':
-    'Un pseudo et un nom. La galerie Visualiseurs les indique comme auteur de vos scènes. Toute personne connectée les voit ; personne ne voit votre e-mail.',
+    'Un pseudo et un nom. La galerie de scènes les indique comme auteur de vos scènes. Toute personne connectée les voit ; personne ne voit votre e-mail.',
   'profile.name.handle': 'Pseudo',
   'profile.name.handleHint': 'De 3 à 20 lettres, chiffres ou _',
   'profile.name.name': 'Nom affiché',

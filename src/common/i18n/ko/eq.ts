@@ -122,32 +122,30 @@ const eq = {
   'graph.orientation.mirror': '파형 대칭',
   'graph.orientation.centre': '중앙에서 거울',
   'graph.orientation.up': '파도를 일어서라',
-  'graph.autoSwitch.label': '자동 비주얼라이저 전환',
+  'graph.autoSwitch.label': '자동 장면 전환',
   'graph.autoSwitch.off': '자동: 꺼짐',
   'graph.autoSwitch.every': '자동: {seconds}초',
   'graph.sceneTint.mode.off': '앱 테마',
-  'graph.sceneTint.mode.tint': '비주얼라이저의 색상',
-  'graph.sceneTint.mode.pulse': '주변에서 빛이 빛나는 비주얼라이저의 색상',
-  'graph.sceneTint.mode.cover':
-    '전체 창 뒤에 있는 비주얼라이저(주변에 빛 포함)',
+  'graph.sceneTint.mode.tint': '장면의 색상',
+  'graph.sceneTint.mode.pulse': '주변에서 빛이 빛나는 장면의 색상',
+  'graph.sceneTint.mode.cover': '전체 창 뒤에 있는 장면(주변에 빛 포함)',
   'graph.sceneTint.short.off': '원본',
   'graph.sceneTint.short.tint': '색상',
   'graph.sceneTint.short.pulse': '앰비언트',
   'graph.sceneTint.short.cover': '배경화면',
   'graph.sceneTint.label': '창 색상',
   'graph.sceneTint.about.off': '테마의 창.',
-  'graph.sceneTint.about.tint': '비주얼라이저의 색상으로 표시된 창입니다.',
+  'graph.sceneTint.about.tint': '장면의 색상으로 표시된 창입니다.',
   'graph.sceneTint.about.pulse':
     '그 색상과 음악에 맞춰 빛나는 창문이 있습니다.',
-  'graph.sceneTint.about.cover':
-    '전체 창 뒤에 비주얼라이저가 있는 모든 주변 환경.',
+  'graph.sceneTint.about.cover': '전체 창 뒤에 장면이 있는 모든 주변 환경.',
   'graph.editHint':
     '점 드래그 · Ctrl/Shift 선택 · Ctrl+스크롤: Q · Ctrl+드래그: 종',
   'graph.windowTint': '색조',
   'graph.windowTintHint':
     '표준 모양이 켜져 있는 동안의 창 색상입니다. 원래 색상을 보려면 두 번 클릭하세요.',
   'graph.backdropVeil': '투명성',
-  'graph.backdropVeilHint': '패널을 통해 표시되는 시각화 도우미의 양',
+  'graph.backdropVeilHint': '패널을 통해 표시되는 장면의 양',
   'graph.sceneTint.brightness': '밝기',
   'graph.sceneTint.rainbow': '컬러풀 모드',
   'graph.sceneTint.rainbowHint':
@@ -157,27 +155,26 @@ const eq = {
     '창 색상의 작업 표시줄 버튼과 트레이 아이콘. Off는 FluidEQ의 자체 아이콘을 유지합니다.',
   'graph.sceneTint.sparks': '포인터 스파크',
   'graph.sceneTint.sparksHint':
-    '비주얼라이저가 마우스에서 던지는 것: 그림을 가로지르는 흔적과 클릭할 때의 폭발(불꽃, 꽃잎, 눈 등 장면이 무엇이든 상관없음).',
+    '장면이 마우스에서 던지는 것: 그림을 가로지르는 흔적과 클릭할 때의 폭발(불꽃, 꽃잎, 눈 등 장면이 무엇이든 상관없음).',
   'graph.sceneTint.daylight': '일광',
-  'graph.sceneTint.daylightHint': '시각화 도우미의 시간(밤부터 하루 종일)',
+  'graph.sceneTint.daylightHint': '장면의 시간(밤부터 하루 종일)',
   'graph.sceneTint.daylightFollowingHint':
-    '밝기를 따릅니다. 여기에서 시각화 도우미의 시간을 설정하려면 아래에서 끄기를 선택하세요.',
+    '밝기를 따릅니다. 여기에서 장면의 시간을 설정하려면 아래에서 끄기를 선택하세요.',
   'graph.sceneTint.daylightSource': '기준',
   'graph.sceneTint.daylightSourceOwn': '끔',
   'graph.sceneTint.daylightSourceBrightness': '밝기',
   'graph.sceneTint.daylightSourceClock': '시계',
-  'graph.sceneTint.daylightOwnHint':
-    '비주얼라이저는 위에 설정된 일광을 유지합니다.',
+  'graph.sceneTint.daylightOwnHint': '장면은 위에 설정된 일광을 유지합니다.',
   'graph.sceneTint.daylightFollowsHint':
-    '비주얼라이저는 밝기를 사용하여 밤부터 낮까지 변합니다.',
+    '장면은 밝기를 사용하여 밤부터 낮까지 변합니다.',
   'graph.sceneTint.daylightClockHint':
-    '비주얼라이저는 이 컴퓨터의 시계를 기준으로 밤낮으로 표시됩니다.',
+    '장면은 이 컴퓨터의 시계를 기준으로 밤낮으로 표시됩니다.',
   'graph.sceneTint.daylightFollowingClockHint':
-    '시계를 따라. 여기에서 시각화 도우미의 시간을 설정하려면 아래에서 끄기를 선택하세요.',
+    '시계를 따라. 여기에서 장면의 시간을 설정하려면 아래에서 끄기를 선택하세요.',
   'graph.sceneTint.daylightStudioHint':
-    '스튜디오가 열려 있는 동안 밝기는 시각화 도우미의 시간을 설정하므로 밤낮으로 장면을 시험해 볼 수 있습니다. Studio를 나가면 이 선택 항목이 다시 나타납니다.',
+    '스튜디오가 열려 있는 동안 밝기는 장면의 시간을 설정하므로 밤낮으로 장면을 시험해 볼 수 있습니다. Studio를 나가면 이 선택 항목이 다시 나타납니다.',
   'graph.sceneTint.brightnessHint':
-    '테마 또는 비주얼라이저의 색상에 따라 창이 얼마나 밝거나 어둡습니까?',
+    '테마 또는 장면의 색상에 따라 창이 얼마나 밝거나 어둡습니까?',
   'graph.member.mine': '내가 만든',
   'graph.member.theirs': '회원이 만든',
   'graph.member.by': '작성자: {name}',
@@ -209,26 +206,23 @@ const eq = {
   'graph.look.retry': '다시 시도',
   'graph.look.reportHint':
     '계속 발생하면 {help} → {report}에서 보고서를 보내 주세요.',
-  'graph.scene.loading': '비주얼라이저 로드 중…',
+  'graph.scene.loading': '장면 로드 중…',
   'graph.scene.attack': '어택',
   'graph.scene.attackHint':
-    '음악이 커질 때 비주얼라이저가 반응하는 속도입니다. 짧으면 즉각 반응하고, 길면 서서히 커집니다.',
+    '음악이 커질 때 장면이 반응하는 속도입니다. 짧으면 즉각 반응하고, 길면 서서히 커집니다.',
   'graph.scene.release': '릴리스',
   'graph.scene.releaseHint':
     '강한 소리가 지난 뒤 가라앉는 속도입니다. 길수록 잔광이 오래 남습니다.',
   'graph.scene.ms': '{ms}ms',
   'graph.scene.percent': '{percent}%',
-  'graph.scene.controlHint':
-    '작성자가 설정한 이 시각화 도우미의 자체 컨트롤 중 하나',
+  'graph.scene.controlHint': '작성자가 설정한 이 장면의 자체 컨트롤 중 하나',
   'graph.scene.ownWave': '자체 웨이브 사용',
   'graph.scene.ownWaveHint':
     '장면 작성자가 설정한 위치에 웨이브를 다시 배치합니다. 당신이 그렇게 할 때까지 당신의 키와 위치는 장면별로 유지됩니다.',
   'graph.scene.ownControls': '자체 설정 사용',
-  'graph.scene.ownControlsHint':
-    '이 비주얼라이저와 함께 제공된 설정으로 돌아가기',
+  'graph.scene.ownControlsHint': '이 장면과 함께 제공된 설정으로 돌아가기',
   'graph.scene.ownTiming': '자신만의 타이밍을 사용하라',
-  'graph.scene.ownTimingHint':
-    '이 비주얼라이저의 원래 어택과 릴리스로 되돌리기',
+  'graph.scene.ownTimingHint': '이 장면의 원래 어택과 릴리스로 되돌리기',
   'graph.scene.frameRate': '프레임 속도',
   'graph.scene.camera.key': '시점 이동 키',
   'graph.scene.camera.keyHint':
@@ -260,7 +254,7 @@ const eq = {
   'graph.scene.camera.orbit.normal': '보통',
   'graph.scene.camera.calmNote': '동작 줄이기 중에는 꺼짐',
   'graph.scene.frameRateHint':
-    '시각화 도우미가 그려지는 빈도: 디스플레이에 표시되는 모든 프레임 또는 GPU를 절약하기 위해 제한됩니다.',
+    '장면이 그려지는 빈도: 디스플레이에 표시되는 모든 프레임 또는 GPU를 절약하기 위해 제한됩니다.',
   'graph.scene.frameRate.display': '표시율',
   'graph.scene.frameRate.sixty': '초당 60',
   'graph.scene.frameRate.thirty': '초당 30',
@@ -302,14 +296,14 @@ const eq = {
     '아직 당신의 것이 아닙니다. 선택하여 얻는 방법을 확인하세요.',
   'graph.style.next': '다음 스타일',
   'graph.style.previous': '이전 스타일',
-  'graph.picker.label': '스타일 및 비주얼라이저',
-  'graph.picker.search': '검색 스타일 및 시각화 도우미',
+  'graph.picker.label': '스타일 및 장면',
+  'graph.picker.search': '검색 스타일 및 장면',
   'graph.picker.styles': '스타일',
-  'graph.picker.plus': '비주얼라이저',
+  'graph.picker.plus': '장면',
   'graph.picker.all': '모두',
   'graph.picker.yours': '너의 것',
   'graph.picker.filterStyles': '스타일 필터링',
-  'graph.picker.filterPlus': '시각화 도우미 필터링',
+  'graph.picker.filterPlus': '장면 필터링',
   'graph.channel.left': 'L',
   'graph.channel.right': 'R',
   'graph.legend.live': '라이브',

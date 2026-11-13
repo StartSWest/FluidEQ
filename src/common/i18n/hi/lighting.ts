@@ -12,7 +12,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': 'पृष्ठभूमि की चमक',
   'lighting.status.ambient': 'हल्का प्रवाह · {scene}',
   'lighting.scene.title': '{scene} की लाइटिंग',
-  'lighting.scene.saved': 'इस विज़ुअलाइज़र के लिए सहेजा गया',
+  'lighting.scene.saved': 'इस सीन के लिए सहेजा गया',
   'lighting.device.edit': '{name} समायोजित करें',
   'lighting.target.all': 'सभी डिवाइस',
   'lighting.target.shared': 'साझा लाइटिंग: {devices}',
@@ -48,7 +48,7 @@ const lighting = {
 
   'lighting.gate.title': 'अपने सीन से कीबोर्ड, माउस और हेडसेट रोशन करें',
   'lighting.gate.body':
-    'विज़ुअलाइज़र में कोई भी सीन लें और डायनेमिक लाइटिंग आपकी है: आपके डिवाइस ग्राफ़ पर चल रहे सीन के रंग लेते हैं और उसकी बीट पर धड़कते हैं।',
+    'गैलरी से कोई भी सीन लें और डायनेमिक लाइटिंग आपकी है: आपके डिवाइस ग्राफ़ पर चल रहे सीन के रंग लेते हैं और उसकी बीट पर धड़कते हैं।',
   'lighting.gate.cta': 'सीन खोजें',
 
   'lighting.preview.status':
@@ -70,7 +70,7 @@ const lighting = {
   'lighting.status.nothingLit': 'सीन चल रहा है, पर कोई डिवाइस नहीं जगमगा रहा',
   'lighting.status.off': 'बंद: आपके डिवाइस अपनी लाइटिंग रखते हैं',
   'lighting.status.noScene': 'एक सीन चुनें और आपके डिवाइस उसके साथ चलेंगे',
-  'lighting.pickScene': 'विज़ुअलाइज़र देखें',
+  'lighting.pickScene': 'सीन देखें',
   'lighting.showGraph': 'ग्राफ़ दिखाएँ',
 
   'lighting.brightness': 'चमक',

@@ -206,10 +206,10 @@ const plus = {
     'Crie uma conta grátis e resgate seus créditos iniciais. Cada crédito vale uma cena para você guardar para sempre.',
   'plus.signedOut.free.title': 'Grátis, sem conta',
   'plus.signedOut.free.body':
-    'O equalizador, os efeitos de áudio, a reprodução de música e os visualizadores gratuitos do FluidEQ. Use sem nunca se cadastrar.',
+    'O equalizador, os efeitos de áudio, a reprodução de música e os estilos padrão do gráfico do FluidEQ. Use sem nunca se cadastrar.',
   'plus.signedOut.account.title': 'Com uma conta grátis',
   'plus.signedOut.account.body':
-    'Obtenha cenas para Visualizadores, as primeiras de graça, explore a galeria e crie suas próprias cenas no Estúdio.',
+    'Obtenha cenas da galeria, as primeiras de graça, e crie suas próprias cenas no Estúdio.',
   'plus.signedOut.create': 'Criar sua conta grátis',
   'plus.signedOut.createSub.one': 'e ganhar {count} cena',
   'plus.signedOut.createSub.few': 'e ganhar {count} cenas',

@@ -100,12 +100,12 @@ const store = {
   'store.welcome.cardClaimedTitle.other': '사용할 수 있는 크레딧 {count}개',
   'store.welcome.eyebrow': 'FluidEQ에 오신 것을 환영합니다',
   'store.welcome.body':
-    '크레딧 1개로 {visualizers}의 장면 하나를 영구히 가질 수 있습니다. 지금 받고 첫 장면을 고르세요.',
+    '크레딧 1개로 {visualizers} 탭의 장면 하나를 영구히 가질 수 있습니다. 지금 받고 첫 장면을 고르세요.',
   'store.welcome.fine':
     '계정당 한 번. 크레딧을 쓰기 전에 모든 장면을 몇 초 동안 볼 수 있습니다.',
   'store.welcome.later': '나중에',
   'store.welcome.claimedBody':
-    '첫 장면을 고르세요. ‘{notMine}’이 켜져 있어 {visualizers}에는 아직 없는 장면만 표시됩니다.',
+    '첫 장면을 고르세요. ‘{notMine}’이 켜져 있어 {visualizers} 탭에는 아직 없는 장면만 표시됩니다.',
   'store.welcome.pick': '첫 장면 고르기',
   'store.welcome.cardBody': '받고 나서 간직할 첫 장면을 고르세요.',
   'store.welcome.cardClaimedBody':

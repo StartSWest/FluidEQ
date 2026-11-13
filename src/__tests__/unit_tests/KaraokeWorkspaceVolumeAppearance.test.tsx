@@ -151,7 +151,7 @@ describe('Karaoke workspace volume and scenery boundaries', () => {
     ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Use current visualizer as background',
+        name: "Use the graph's scene or style as background",
       }),
     );
     expect(

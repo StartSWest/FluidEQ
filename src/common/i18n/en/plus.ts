@@ -205,10 +205,10 @@ const plus = {
     'Create a free account and claim your starting credits. Each credit gets you a scene to keep for good.',
   'plus.signedOut.free.title': 'Free, no account needed',
   'plus.signedOut.free.body':
-    'FluidEQ’s equaliser, audio effects, music playback and free visualizers. Use them without ever signing up.',
+    'FluidEQ’s equaliser, audio effects, music playback and the graph’s standard looks. Use them without ever signing up.',
   'plus.signedOut.account.title': 'With a free account',
   'plus.signedOut.account.body':
-    'Get scenes for Visualizers, your first ones free, browse the gallery, and make your own scenes in the Studio.',
+    'Get scenes from the gallery, your first ones free, and make your own scenes in the Studio.',
   'plus.signedOut.create': 'Create your free account',
   'plus.signedOut.createSub.one': 'and get {count} scene',
   'plus.signedOut.createSub.few': 'and get {count} scenes',

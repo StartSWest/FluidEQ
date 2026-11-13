@@ -1,7 +1,7 @@
 const profile = {
   'profile.name.title': '选择你在图库中的显示方式',
   'profile.name.body':
-    '一个用户名和一个名字。“可视化”图库用它们为你的场景署名。所有已登录的人都能看到它们；没有人能看到你的邮箱。',
+    '一个用户名和一个名字。场景图库用它们为你的场景署名。所有已登录的人都能看到它们；没有人能看到你的邮箱。',
   'profile.name.handle': '用户名',
   'profile.name.handleHint': '3 到 20 个英文字母、数字或 _',
   'profile.name.name': '显示名',

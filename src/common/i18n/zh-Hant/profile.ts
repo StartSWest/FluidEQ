@@ -5,7 +5,7 @@ import type { Dictionary } from '../en';
 const profile = {
   'profile.name.title': '選擇相簿向您展示的方式',
   'profile.name.body':
-    '一個控制程式碼和一個名稱。 Visualizers 畫廊將它們歸功於您的場景。每個登入的人都可以看到它們；沒有人看到你的電子郵件。',
+    '一個控制程式碼和一個名稱。 場景畫廊將它們歸功於您的場景。每個登入的人都可以看到它們；沒有人看到你的電子郵件。',
   'profile.name.handle': '使用者名稱',
   'profile.name.handleHint': '3 至 20 個字母、數字或 _',
   'profile.name.name': '顯示名稱',

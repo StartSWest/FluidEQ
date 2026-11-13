@@ -12,7 +12,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': '背景亮度',
   'lighting.status.ambient': '轻柔流动 · {scene}',
   'lighting.scene.title': '{scene} 的灯光',
-  'lighting.scene.saved': '已为此可视化效果保存',
+  'lighting.scene.saved': '已为此场景保存',
   'lighting.device.edit': '调整 {name}',
   'lighting.target.all': '所有设备',
   'lighting.target.shared': '共享灯光：{devices}',
@@ -47,7 +47,7 @@ const lighting = {
 
   'lighting.gate.title': '用你的场景点亮键盘、鼠标和耳机',
   'lighting.gate.body':
-    '在“可视化”中获取任意一个场景，动态灯光就归你了：你的设备会采用图表上场景的颜色，并随节拍跳动。',
+    '在图库中获取任意一个场景，动态灯光就归你了：你的设备会采用图表上场景的颜色，并随节拍跳动。',
   'lighting.gate.cta': '找一个场景',
 
   'lighting.preview.status': '预览：打开此页面期间，你的设备会亮起',
@@ -68,7 +68,7 @@ const lighting = {
   'lighting.status.nothingLit': '场景正在播放，但没有设备亮起',
   'lighting.status.off': '已关闭：你的设备保持自己的灯效',
   'lighting.status.noScene': '选一个场景，你的设备就会跟随它',
-  'lighting.pickScene': '浏览可视化',
+  'lighting.pickScene': '浏览场景',
   'lighting.showGraph': '显示图表',
 
   'lighting.brightness': '亮度',

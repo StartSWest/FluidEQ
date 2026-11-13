@@ -12,7 +12,7 @@ const lighting = {
   'lighting.tuning.backgroundBrightness': 'Brilho do fundo',
   'lighting.status.ambient': 'Movimento suave · {scene}',
   'lighting.scene.title': 'Iluminação para {scene}',
-  'lighting.scene.saved': 'Salvo para este visualizador',
+  'lighting.scene.saved': 'Salvo para esta cena',
   'lighting.device.edit': 'Ajustar {name}',
   'lighting.target.all': 'Todos os dispositivos',
   'lighting.target.shared': 'Iluminação compartilhada: {devices}',
@@ -49,7 +49,7 @@ const lighting = {
   'lighting.gate.title':
     'Ilumine seu teclado, mouse e headset com as suas cenas',
   'lighting.gate.body':
-    'Obtenha qualquer cena em Visualizadores e a iluminação dinâmica é sua: seus dispositivos assumem as cores da cena no gráfico e pulsam com a batida.',
+    'Obtenha qualquer cena na galeria e a iluminação dinâmica é sua: seus dispositivos assumem as cores da cena no gráfico e pulsam com a batida.',
   'lighting.gate.cta': 'Encontrar uma cena',
 
   'lighting.preview.status':
@@ -75,7 +75,7 @@ const lighting = {
   'lighting.status.off':
     'Desligada: seus dispositivos mantêm a própria iluminação',
   'lighting.status.noScene': 'Escolha uma cena e seus dispositivos a seguem',
-  'lighting.pickScene': 'Ver visualizadores',
+  'lighting.pickScene': 'Ver cenas',
   'lighting.showGraph': 'Mostrar o gráfico',
 
   'lighting.brightness': 'Brilho',

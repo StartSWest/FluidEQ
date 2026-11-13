@@ -70,7 +70,7 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'सभी सेटिंग रीसेट करें…',
   'settingsReset.title': 'सभी सेटिंग रीसेट करें?',
   'settingsReset.body':
-    'ग्राफ़ और विज़ुअलाइज़र, विंडो के रंग, प्लेयर, लाइब्रेरी, हर पेज पर आख़िरी बार खुली जगह, एनिमेशन, Windows के साथ शुरू करें, डेस्कटॉप बैकग्राउंड और डायनेमिक लाइटिंग वैसे हो जाएँगे जैसे FluidEQ की नई इंस्टॉलेशन में होते हैं।',
+    'ग्राफ़ और सीन, विंडो के रंग, प्लेयर, लाइब्रेरी, हर पेज पर आख़िरी बार खुली जगह, एनिमेशन, Windows के साथ शुरू करें, डेस्कटॉप बैकग्राउंड और डायनेमिक लाइटिंग वैसे हो जाएँगे जैसे FluidEQ की नई इंस्टॉलेशन में होते हैं।',
   'settingsReset.kept':
     'आपका EQ, प्रीसेट, कर्व और DSP जैसे हैं वैसे ही रहेंगे, और आपके आउटपुट, ऑडियो इंजन, भाषा और आपकी सहेजी हुई हर चीज़ भी।',
   'settingsReset.action': 'सेटिंग रीसेट करें',
@@ -91,7 +91,7 @@ const app: Partial<Dictionary> = {
     '{place}: {name}, प्रति फ़्रेम {ms} ms, {fps} fps, {drawn} पर बनाकर {shown} पर दिखाया',
   'app.processes.sceneRate':
     '{place}: {name}, {fps} fps, {drawn} पर बनाकर {shown} पर दिखाया',
-  'app.processes.place.graph': 'ग्राफ़ का विज़ुअलाइज़र',
+  'app.processes.place.graph': 'ग्राफ़ का सीन',
   'app.processes.place.studio': 'स्टूडियो का स्टेज',
   'app.processes.name.window': 'इंटरफ़ेस',
   'app.processes.what.window':
@@ -105,12 +105,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': 'ग्राफ़िक्स',
   'app.processes.what.graphics':
     'स्क्रीन पर सब कुछ ग्राफ़िक्स कार्ड पर बनाता है: स्पेक्ट्रम, कर्व, हर एनिमेशन और सीन। कुछ भी हिलते ही यह व्यस्त हो जाता है; यहाँ कोई मॉडल नहीं चलता।',
-  'app.processes.name.desktop': 'डेस्कटॉप विज़ुअलाइज़र',
+  'app.processes.name.desktop': 'डेस्कटॉप सीन',
   'app.processes.what.desktop':
     'किसी मॉनिटर के डेस्कटॉप बैकग्राउंड के रूप में बनाया गया सीन, इस विंडो से अलग: हर उस मॉनिटर के लिए एक जो इसे दिखाता है। जब विंडो उस मॉनिटर को ढक लें या PC लॉक हो, तब यह रुक जाता है।',
-  'app.processes.name.desktopHost': 'डेस्कटॉप विज़ुअलाइज़र सहायक',
+  'app.processes.name.desktopHost': 'डेस्कटॉप सीन सहायक',
   'app.processes.what.desktopHost':
-    'उस मॉनिटर के डेस्कटॉप विज़ुअलाइज़र को आइकन के पीछे रखता है और बताता है कि कब विंडो स्क्रीन को ढक रही हैं। हर उस मॉनिटर के लिए एक जो इसे दिखाता है।',
+    'उस मॉनिटर के डेस्कटॉप सीन को आइकन के पीछे रखता है और बताता है कि कब विंडो स्क्रीन को ढक रही हैं। हर उस मॉनिटर के लिए एक जो इसे दिखाता है।',
   'app.processes.name.shareCapture': 'ऑडियो कैप्चर',
   'app.processes.what.shareCapture':
     'यह PC जो बजाता है उसे इक्वलाइज़र से पहले कैप्चर करता है — “ऑडियो साझा करें” टैब, दूसरे आउटपुट और स्मार्ट EQ के लिए। सिर्फ़ तभी चलता है जब इनमें से कोई इस्तेमाल में हो।',
@@ -271,7 +271,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'ऑनलाइन मीडिया',
   'tabs.mediaShort': 'मीडिया',
   'tabs.karaoke': 'कराओके',
-  'tabs.plus': 'विज़ुअलाइज़र',
+  'tabs.plus': 'सीन',
   'tabs.scrollBack': 'टैब पीछे स्क्रॉल करें',
   'tabs.scrollForward': 'टैब आगे स्क्रॉल करें',
   'notice.apoReconfigured':
@@ -420,7 +420,7 @@ const app: Partial<Dictionary> = {
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'तस्वीर',
-  'settings.group.visualizer': 'विज़ुअलाइज़र',
+  'settings.group.visualizer': 'सीन',
   'settings.group.drawing': 'यह कैसे बनता है',
   'settings.group.thisView': 'यह दृश्य',
   'settings.group.studioOnly': 'सिर्फ़ यहाँ स्टूडियो में',

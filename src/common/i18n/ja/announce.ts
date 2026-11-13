@@ -13,7 +13,7 @@ const announce = {
     'オフラインです。有効期限内の保存済みのお知らせを表示しています。',
   'announce.news.empty': '現在のお知らせはありません。',
 
-  'announce.eyebrow': 'ビジュアライザーの新着 · {count} シーン',
+  'announce.eyebrow': 'シーンの新着 · {count} シーン',
   'announce.try': '今すぐ試す',
   'announce.later': 'あとで',
   'announce.previewNote':

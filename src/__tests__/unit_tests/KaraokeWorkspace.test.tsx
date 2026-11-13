@@ -363,7 +363,7 @@ describe('KaraokeWorkspace', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Use current visualizer as background',
+        name: "Use the graph's scene or style as background",
       }),
     );
     expect(
@@ -388,12 +388,12 @@ describe('KaraokeWorkspace', () => {
     ).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Use current visualizer as background',
+        name: "Use the graph's scene or style as background",
       }),
     );
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Turn off visualizer background',
+        name: 'Turn off the scene background',
       }),
     );
     expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
@@ -404,7 +404,7 @@ describe('KaraokeWorkspace', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Use current visualizer as background',
+        name: "Use the graph's scene or style as background",
       }),
     );
     rerender(<KaraokeWorkspace isHidden={false} isFullScreen />);

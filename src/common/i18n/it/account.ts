@@ -123,7 +123,7 @@ const account = {
 
   'account.perk.looks': 'Scene che sono tue per sempre, un credito ciascuna.',
   'account.perk.visualizers':
-    'Visualizzatori: le scene create dai membri, aperte a ogni account.',
+    'Scene: la galleria delle scene create dai membri, aperta a ogni account.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continua con Google',
   'account.or': 'oppure',

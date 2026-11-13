@@ -137,17 +137,17 @@ const eq = {
   'graph.orientation.mirror': 'Mirror the wave',
   'graph.orientation.centre': 'Mirror from the centre',
   'graph.orientation.up': 'Stand the wave up',
-  'graph.autoSwitch.label': 'Automatic visualizer switching',
+  'graph.autoSwitch.label': 'Automatic scene switching',
   'graph.autoSwitch.off': 'Auto: Off',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
   // The switch beside a Plus visualizer that puts the whole window in the
   // colour of its sky. Named for what pressing it will do, like Show/Hide.
   'graph.sceneTint.mode.off': 'the app theme',
-  'graph.sceneTint.mode.tint': "the visualizer's colours",
+  'graph.sceneTint.mode.tint': "the scene's colours",
   'graph.sceneTint.mode.pulse':
-    "the visualizer's colours, with its light glowing around it",
+    "the scene's colours, with its light glowing around it",
   'graph.sceneTint.mode.cover':
-    'the visualizer behind the whole window, with its light around it',
+    'the scene behind the whole window, with its light around it',
   'graph.sceneTint.short.off': 'Original',
   'graph.sceneTint.short.tint': 'Colours',
   'graph.sceneTint.short.pulse': 'Ambient',
@@ -156,11 +156,11 @@ const eq = {
   // under each mode saying what it does to the window.
   'graph.sceneTint.label': 'Window colours',
   'graph.sceneTint.about.off': 'The window in your theme.',
-  'graph.sceneTint.about.tint': "The window in the visualizer's colours.",
+  'graph.sceneTint.about.tint': "The window in the scene's colours.",
   'graph.sceneTint.about.pulse':
     'Its colours, with the window glowing to the music.',
   'graph.sceneTint.about.cover':
-    'All of Ambient, with the visualizer behind the whole window.',
+    'All of Ambient, with the scene behind the whole window.',
   // Over the plot while there are band points to drag.
   'graph.editHint':
     'Drag points · Ctrl/Shift select · Ctrl+scroll: Q · Ctrl+drag: bell',
@@ -170,8 +170,7 @@ const eq = {
   'graph.windowTintHint':
     "The window's colour while a standard look is on. Double-click for the original colour.",
   'graph.backdropVeil': 'Transparency',
-  'graph.backdropVeilHint':
-    'How much of the visualizer shows through the panels',
+  'graph.backdropVeilHint': 'How much of the scene shows through the panels',
   // The window-colours menu's Brightness: the theme's own slider, which also
   // sets how light a visualizer's colours stand.
   'graph.sceneTint.brightness': 'Brightness',
@@ -183,28 +182,27 @@ const eq = {
     'The taskbar button and the tray icon in the window’s colours. Off keeps FluidEQ’s own icon.',
   'graph.sceneTint.sparks': 'Pointer sparks',
   'graph.sceneTint.sparksHint':
-    'What the visualizer throws from the mouse: a trail as it crosses the picture and a burst where you click - sparks, petals, snow, whatever the scene is made of.',
+    'What the scene throws from the mouse: a trail as it crosses the picture and a burst where you click - sparks, petals, snow, whatever the scene is made of.',
   'graph.sceneTint.daylight': 'Daylight',
   'graph.sceneTint.daylightHint':
-    "The visualizer's time of day, from night to full day",
+    "The scene's time of day, from night to full day",
   'graph.sceneTint.daylightFollowingHint':
-    "Following Brightness. Choose Off below to set the visualizer's time of day here",
+    "Following Brightness. Choose Off below to set the scene's time of day here",
   'graph.sceneTint.daylightSource': 'Follows',
   'graph.sceneTint.daylightSourceOwn': 'Off',
   'graph.sceneTint.daylightSourceBrightness': 'Brightness',
   'graph.sceneTint.daylightSourceClock': 'Clock',
-  'graph.sceneTint.daylightOwnHint':
-    'The visualizer keeps the Daylight set above.',
+  'graph.sceneTint.daylightOwnHint': 'The scene keeps the Daylight set above.',
   'graph.sceneTint.daylightFollowsHint':
-    'The visualizer turns from night to day with Brightness.',
+    'The scene turns from night to day with Brightness.',
   'graph.sceneTint.daylightClockHint':
-    "The visualizer is night at night and day by day, by this computer's clock.",
+    "The scene is night at night and day by day, by this computer's clock.",
   'graph.sceneTint.daylightFollowingClockHint':
-    "Following the clock. Choose Off below to set the visualizer's time of day here",
+    "Following the clock. Choose Off below to set the scene's time of day here",
   'graph.sceneTint.daylightStudioHint':
-    "While the Studio is open, Brightness sets the visualizer's time of day, so a scene can be tried from night to day. This choice comes back when you leave the Studio",
+    "While the Studio is open, Brightness sets the scene's time of day, so a scene can be tried from night to day. This choice comes back when you leave the Studio",
   'graph.sceneTint.brightnessHint':
-    "How light or dark the window stands, in your theme or in the visualizer's colours",
+    "How light or dark the window stands, in your theme or in the scene's colours",
   // The picker's headings over the scenes members made in the Studio: this
   // member's own, and the ones other members sent them.
   'graph.member.mine': 'Made by you',
@@ -243,26 +241,25 @@ const eq = {
   'graph.look.retry': 'Try again',
   'graph.look.reportHint':
     'If it keeps happening, send us a report from {help} → {report}.',
-  'graph.scene.loading': 'Loading visualizer…',
+  'graph.scene.loading': 'Loading scene…',
   'graph.scene.attack': 'Attack',
   'graph.scene.attackHint':
-    'How fast this visualizer rises to the music. Short is punchy, long swells.',
+    'How fast this scene rises to the music. Short is punchy, long swells.',
   'graph.scene.release': 'Release',
   'graph.scene.releaseHint':
     'How slowly it falls back after each hit. Long leaves a glow.',
   'graph.scene.ms': '{ms} ms',
   'graph.scene.percent': '{percent}%',
   'graph.scene.controlHint':
-    "One of this visualizer's own controls, as its author set it",
+    "One of this scene's own controls, as its author set it",
   'graph.scene.ownWave': 'Use its own wave',
   'graph.scene.ownWaveHint':
     'Put the wave back where the scene’s author set it. Your own height and position are kept per scene until you do.',
   'graph.scene.ownControls': 'Use its own settings',
-  'graph.scene.ownControlsHint':
-    'Back to the settings this visualizer came with',
+  'graph.scene.ownControlsHint': 'Back to the settings this scene came with',
   'graph.scene.ownTiming': 'Use its own timing',
   'graph.scene.ownTimingHint':
-    'Back to the attack and release this visualizer came with',
+    'Back to the attack and release this scene came with',
   'graph.scene.frameRate': 'Frame rate',
   'graph.scene.camera.key': 'Move the view with',
   'graph.scene.camera.keyHint':
@@ -294,7 +291,7 @@ const eq = {
   'graph.scene.camera.orbit.normal': 'Normal',
   'graph.scene.camera.calmNote': 'Off while motion is reduced',
   'graph.scene.frameRateHint':
-    'How often visualizers are drawn: every frame your display shows, or capped to spare the GPU',
+    'How often scenes are drawn: every frame your display shows, or capped to spare the GPU',
   'graph.scene.frameRate.display': 'Display rate',
   'graph.scene.frameRate.sixty': '60 a second',
   'graph.scene.frameRate.thirty': '30 a second',
@@ -335,10 +332,10 @@ const eq = {
   'graph.scene.locked': 'Not yours yet. Choose it to see how to get it.',
   'graph.style.next': 'Next style',
   'graph.style.previous': 'Previous style',
-  'graph.picker.label': 'Styles and visualizers',
-  'graph.picker.search': 'Search styles and visualizers',
+  'graph.picker.label': 'Styles and scenes',
+  'graph.picker.search': 'Search styles and scenes',
   'graph.picker.styles': 'Styles',
-  'graph.picker.plus': 'Visualizers',
+  'graph.picker.plus': 'Scenes',
   'graph.picker.discover.title': 'Bring your music to life',
   'graph.picker.discover.body':
     'Discover animated scenes to buy and keep, or create your own for free in the Studio.',
@@ -350,7 +347,7 @@ const eq = {
   'graph.picker.all': 'All',
   'graph.picker.yours': 'Yours',
   'graph.picker.filterStyles': 'Filter styles',
-  'graph.picker.filterPlus': 'Filter visualizers',
+  'graph.picker.filterPlus': 'Filter scenes',
   'graph.channel.left': 'L',
   'graph.channel.right': 'R',
   'graph.legend.live': 'Live',

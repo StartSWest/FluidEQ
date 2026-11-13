@@ -102,12 +102,12 @@ const store = {
   'store.welcome.cardClaimedTitle.other': '{count} credits ready to spend',
   'store.welcome.eyebrow': 'Welcome to FluidEQ',
   'store.welcome.body':
-    'Each credit gets you one scene from {visualizers} to keep for good. Claim them now and pick your first scenes.',
+    'Each credit gets you one scene to keep for good, from the {visualizers} tab. Claim them now and pick your first scenes.',
   'store.welcome.fine':
     'Once per account. You can watch every scene for a few seconds before you spend a credit.',
   'store.welcome.later': 'Later',
   'store.welcome.claimedBody':
-    'Pick your first scenes. {notMine} is on, so {visualizers} shows only scenes you don’t have.',
+    'Pick your first scenes. {notMine} is on, so the {visualizers} tab shows only scenes you don’t have.',
   'store.welcome.pick': 'Pick my first scenes',
   'store.welcome.cardBody': 'Claim them and pick your first scenes to keep.',
   'store.welcome.cardClaimedBody':
