@@ -153,3 +153,46 @@ it('says Published in the list, and its AI working instead the moment it starts'
   });
   expect(rowState()).toBe('studio.project.aiWorking');
 });
+
+// Ivan, 2026-11-12: "in the studio list it shows 'in review' in the second
+// line, very ugly. Just keep the icon at the end, and the hover says it".
+// The control is the test above: a published version still says so in words.
+it('marks a version in review with its icon alone, its words on a hover', async () => {
+  Object.defineProperty(window, 'electron', {
+    configurable: true,
+    value: {
+      ipcRenderer: {
+        onStudioChatEntry: () => () => undefined,
+        myPublishedScenes: async () => ({
+          ok: true,
+          scenes: [live('lake', 2)],
+        }),
+        mySceneSubmissions: async () => ({
+          ok: true,
+          submissions: [sent('lake', 3, 'pending')],
+        }),
+      },
+    },
+  });
+  await act(async () => {
+    render(
+      <StudioProjects
+        state={studio()}
+        onNewProject={() => undefined}
+        onLinkFolder={() => undefined}
+        onOpenFile={() => undefined}
+      />,
+    );
+  });
+  fireEvent.click(
+    screen.getByRole('button', { name: /studio\.project\.label/ }),
+  );
+  const row = screen.getAllByRole('menuitemradio')[0];
+  const mark = screen.getByRole('img', { name: 'studio.project.inReview' });
+  expect(row).toContainElement(mark);
+  expect(mark).toHaveAttribute('title', 'studio.project.inReviewHint');
+  // No word on the row, and one mark, not the review's own beside it.
+  expect(rowState()).toBe('');
+  expect(row).not.toHaveTextContent('studio.project.inReview');
+  expect(row.querySelectorAll('.scene-review-mark')).toHaveLength(1);
+});

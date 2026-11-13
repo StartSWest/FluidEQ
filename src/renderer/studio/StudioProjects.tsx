@@ -5,6 +5,7 @@ import { resolveSceneName } from 'common/scenePacks';
 import type { IStudioProject, IStudioState } from 'main/ipc/memberScenes';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import Chevron from '../icons/Chevron';
+import MenuIcon from '../icons/MenuIcon';
 import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { type IRichPickEntry } from '../widgets/RichPick';
@@ -168,9 +169,11 @@ export default function StudioProjects({
           const doing = work[project.id];
           // An AI at work on it says so instead: the scene is changing.
           const release = doing ? undefined : releaseOf(project);
-          // The review's word on it stands beside whatever else is said.
+          // The review's word on it stands beside whatever else is said. A
+          // version in review says so by its icon alone (below), so the
+          // review's own pending icon would only say it twice.
           const mark =
-            groupOf(project) !== GROUP_OWN ? null : (
+            groupOf(project) !== GROUP_OWN || release === 'review' ? null : (
               <SceneReviewBadge sceneId={project.sceneId} />
             );
           let trailing;
@@ -178,6 +181,21 @@ export default function StudioProjects({
             trailing = (
               <span className={`studio-projects__state is-${doing}`}>
                 {t(WORK_LABEL[doing])}
+              </span>
+            );
+          } else if (release === 'review') {
+            // The icon alone at the row's end, its words on a hover and to a
+            // screen reader (Ivan, 2026-11-12: "just keep the icon at the end,
+            // and the hover says it"). As a word it wrapped onto a second
+            // line on a narrow picker and made the row taller than the rest.
+            trailing = (
+              <span
+                className="scene-review-mark scene-review-mark--pending"
+                role="img"
+                aria-label={t(RELEASE_LABEL.review)}
+                title={t(RELEASE_HINT.review)}
+              >
+                <MenuIcon name="pending" />
               </span>
             );
           } else if (release) {
