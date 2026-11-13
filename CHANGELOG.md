@@ -6,6 +6,50 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
+## 2.5.2
+
+### FluidEQ
+
+- **A count of which audio engine is used, and nothing more.** Once a day,
+  for a signed-in account that has seen the new terms, FluidEQ sends one
+  word, the FluidEQ Engine, Equalizer APO or none yet, and only the day's
+  anonymous totals are kept: nothing ties it to you, your account or your
+  computer. There is still no tracking. The terms are now revision 13, and
+  **What the app sends** lists it.
+
+### Visualizers
+
+#### Scenes and the gallery
+
+- **Hover a card to see the scene move.** In the gallery, a scene's card
+  plays its preview video while the pointer is over it, silent and looping,
+  and goes back to its cover when it leaves. The scene itself is never
+  started for it.
+- **A scene's versions fold away.** **All versions** on a scene's page is
+  closed each time the page opens, with the newest version's note above it;
+  one press opens the list.
+
+#### Studio
+
+- **Pin projects and chats to the top.** Every project in the picker, and
+  every earlier chat of a project, has a pin. Pinned ones stand first, the
+  newest pin at the top, kept on this computer for your account.
+- **Every publication says what it is.** Publish asks for a line on a
+  first version too: what the scene is, as a listener sees and hears it.
+  The chat writes it, in every language, and nothing is sent until you
+  press **Send for review**.
+- **Publish says what it is waiting for.** While **Send for review** cannot
+  be pressed, the dialog says why, beside the button: a category, the
+  preview video, your gallery name, or the line.
+- **Fable's limit, and Opus when it is reached.** The chat's account menu
+  shows Fable's own weekly limit beside the others. A reply stopped by it
+  says when Fable is back and, when Opus still has room, offers **Switch to
+  Opus**, which sends your message again; nothing switches by itself.
+- **A scene that was not approved says why in your language,** the
+  reviewer's reason in full, never cut short.
+
+---
+
 ## 2.5.1
 
 ### FluidEQ
