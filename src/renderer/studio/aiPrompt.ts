@@ -30,6 +30,7 @@ import { AIM_HIGH, HELPERS, QUICK_TO_BUILD } from './aiPromptCraft';
 import { HEAR_SECTION } from './aiPromptHear';
 import { lookSection, type TPromptReach } from './aiPromptLook';
 import { DANCING_SECTION } from './aiPromptMotion';
+import SIGNALS_SECTION from './aiPromptSignals';
 import {
   AMBIENT_REFERENCE,
   ARTWORK_REFERENCE,
@@ -288,9 +289,10 @@ WHAT THE SCENE RECEIVES (already declared; just use them)
                      for one-pixel line widths.
   float uLevel       overall loudness, 0..1, eased.
   float uBeat        1.0 at a detected beat, falling to 0 over 200 ms.
-  vec3  uBands       x = bass (20-160 Hz), y = mids (160 Hz-2 kHz), z = treble
-                     (2-16 kHz), each 0..1 and each already read against its
-                     own recent range.
+  vec3  uBands       x = bass (the kick and the bass line), y = mids (what
+                     lasts from 200 Hz to 4.5 kHz), z = treble (hats and
+                     cymbals, from 5 kHz), each 0..1 against how it has
+                     lately been playing (see WHAT EACH SIGNAL IS).
   sampler2D uSpectrum      frequency energy: texture(uSpectrum, vec2(f, 0.5)).r,
                            f = 0 is 20 Hz, f = 1 is 20 kHz, log-spaced; 0..1
                            spans the 40 dB under the song's own peak. Fast.
@@ -337,10 +339,11 @@ WHAT THE SCENE RECEIVES (already declared; just use them)
                      every 0.7 s, at least 8 s apart; w = how many so far.
   vec2  uStereo      x = where the music leans, -1 left to 1 right; y = how
                      wide it is, 0 for mono to 1.
-  vec3  uVoice       the singer (see DANCING TO THE MUSIC): x = how open a
-                     mouth is now, 0..1, syllable by syllable; y = the note,
-                     0 at 80 Hz to 1 at 1 kHz, held between notes; z = how
-                     sure it is that somebody is singing, 0..1.
+  vec3  uVoice       a voice singing or speaking, ONLY for a character who
+                     does (see WHAT EACH SIGNAL IS): x = how open a mouth is
+                     now, 0..1, syllable by syllable; y = the note, 0 at
+                     80 Hz to 1 at 1 kHz, held between notes; z = how sure
+                     it is that a voice is there, 0..1.
   vec4  uPointer     the viewer's pointer (see THE VIEWER'S HANDS): xy where,
                      in uv; z held down, 0..1; w over the panel, 0..1.
   vec4  uTap         the last tap: xy where, in uv; z seconds since it, up to
@@ -477,20 +480,17 @@ ANSWERING THE MUSIC
 - Answer it in more than one way: let bass, mids and treble each move or
   light a different part, and let separate elements follow their own place
   in the spectrum.
-- Real music is not flat. In uSpectrum the bass reads high nearly all the
-  time and the top octaves stay low, so read each region against its own
-  usual range (subtract its floor, rescale) or bass parts never rest and
-  treble parts never move. uBands has done this already.
+- Read each region of uSpectrum against its own usual range (subtract its
+  floor, rescale): uBands has done this already.
 - Big areas, and anything that changes brightness, follow uSpectrumSlow or
-  uBands, never uSpectrum or uBeat directly, or they blink. Keep uBeat for
-  small, quick accents and uMusicAccent.x for the rare big moment.
+  uBands, or they blink.
 - Light that comes up with the music eases back down; nothing snaps from
   bright to dark in one frame.
 - Give the scene a clear main colour, not grey: the colour covering most of
   the picture tints FluidEQ's window around it, and my desk lights take their
   colours from the scene.
 
-${DANCING_SECTION}${referenceIn(reach, HANDS_REFERENCE)}RULES (FluidEQ refuses the scene otherwise)
+${SIGNALS_SECTION}${DANCING_SECTION}${referenceIn(reach, HANDS_REFERENCE)}RULES (FluidEQ refuses the scene otherwise)
 - Loops: only for (int i = 0; i < N; i++) with N a number or a const int
   declared once in the file, at most ${MAX_MEMBER_LOOP_ITERATIONS} turns (counting down is fine too),
   and at most ${MAX_MEMBER_LOOPS} loops in the file. Never change i inside the loop, and never

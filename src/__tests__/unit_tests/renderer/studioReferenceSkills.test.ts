@@ -128,7 +128,10 @@ it('halves nothing by accident: the chat reads a third less at its start', () =>
     0,
   );
   expect(moved).toBeGreaterThan(30000);
-  expect(CHAT.length).toBeLessThan(75000);
+  // 75,000 until 2026-11-13, when what each signal must never drive
+  // (`aiPromptSignals.ts`) joined the brief every chat reads: 5,000 more,
+  // and for every scene, so never a skill.
+  expect(CHAT.length).toBeLessThan(80000);
   // The control: everything else the chat is told is still there.
   [
     'WHAT THE SCENE RECEIVES',

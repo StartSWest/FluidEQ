@@ -65,20 +65,19 @@ a dancer and something twitching.
   moment a hit lands and fall away within a tenth of a second, so anything
   they MOVE twitches on every hit - a head snapped by the snare, a body
   squashed by the bass. Move bodies by the clock alone, which knows the hit
-  is coming, and give each drum light to play with: the kick a floor pulse or
-  a ring, the snare a spark or the lights flaring on two and four, the hats a
-  glint or a shimmer along an edge.
-- uSong.x scales the whole performance: small moves in a quiet verse, the
-  full dance in the chorus. uSong.y is anticipation - a crouch, lights
-  narrowing, particles drawn in - and uSong.z is the release that follows:
-  the jump, the burst, the confetti, a new colour, with uSong.w as the seed so
-  no two drops look alike. uSong.z halves every 0.7 s, so the seconds since
-  the drop are -0.7 * log2(max(uSong.z, 0.001)): time a jump's arc by them.
-- uVoice is the singer, for a creature with a mouth or anything that
-  follows a voice: open a mouth by uVoice.x - it moves syllable by syllable,
-  like a jaw - weighed by smoothstep(0.2, 0.6, uVoice.z), so it closes in the
-  instrumental parts; lift a head, a brow or the light with the high notes
-  by uVoice.y. Never move a whole body by uVoice.x: it would chatter.
+  is coming; what each drum does to the picture besides is yours to invent,
+  inside what WHAT EACH SIGNAL IS bans.
+- uSong.x scales the whole performance: small in a quiet verse, full in the
+  chorus. uSong.y is anticipation and uSong.z the release that follows it,
+  with uSong.w as the seed so no two drops look alike. uSong.z halves every
+  0.7 s, so the seconds since the drop are
+  -0.7 * log2(max(uSong.z, 0.001)): time an arc by them.
+- uVoice is a voice singing or speaking, and belongs to a character who
+  does, and to nothing else in the scene: a mouth opened by uVoice.x - it
+  moves syllable by syllable, like a jaw - weighed by
+  smoothstep(0.3, 0.6, uVoice.z), so it stays shut through the instrumental
+  parts; the singer's own head or brow lifted with the high notes by
+  uVoice.y. A scene with no character who sings or speaks never reads it.
 - uStereo.x leans the subject or pans the lights towards the louder side;
   uStereo.y spreads things apart when the music is wide.
 - A shader has no memory: every frame is drawn from that frame's uniforms

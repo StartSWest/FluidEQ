@@ -57,8 +57,7 @@ float barSway() {
 ```
 
 - Bodies move by `uRhythm` only. `uDrums` and `uBeat` arrive after the hit:
-  give them light - a floor pulse on the kick, a glint on the hats - never a
-  limb.
+  whatever you give them, never a limb.
 - Every curve is the same at phase 0 and at 1, or the body pops as the
   phase wraps.
 - Above about 140 BPM use `fract(uRhythm.y * 2.0)` as the phase (half time);
