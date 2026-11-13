@@ -101,6 +101,26 @@ export const usePackCheckout = (balance: number) => {
   return { opening, waiting, arrived, failure, pay };
 };
 
+/**
+ * A pack as a pile of the 3D coin: one coin for the smallest pack, two for
+ * the next, three for the biggest (Ivan, 2026-11-13: "show the 3d coins also
+ * on each thing to buy so is more attractive to buy a nice coin").
+ */
+function CoinPile({ coins }: { coins: number }) {
+  return (
+    <span
+      className={`store-pack__pile store-pack__pile--${coins}`}
+      aria-hidden="true"
+    >
+      {Array.from({ length: coins }, (_, index) => (
+        // A coin's place in the pile is what it is: the pile never reorders.
+        // eslint-disable-next-line react/no-array-index-key -- see above
+        <Glyph key={index} name="credit" className="store-pack__coin" />
+      ))}
+    </span>
+  );
+}
+
 interface ICreditPacksProps {
   packs: readonly ICreditPack[];
   selected: string | undefined;
@@ -125,6 +145,11 @@ export default function CreditPacks({
   const cheapest = Math.min(
     ...packs.map((pack) => pack.priceCents / pack.credits),
   );
+  // Each pack's rank by size: the pile grows with it, three coins at most.
+  const sizes = [...new Set(packs.map((pack) => pack.credits))].sort(
+    (a, b) => a - b,
+  );
+  const coinsFor = (credits: number) => Math.min(3, sizes.indexOf(credits) + 1);
   return (
     <div
       className="dialog-frame__group gallery-report-dialog__reasons store-packs"
@@ -150,9 +175,9 @@ export default function CreditPacks({
               onChange={() => onSelect(pack.id)}
             />
             <span className="gallery-report-dialog__radio" aria-hidden="true" />
+            <CoinPile coins={coinsFor(pack.credits)} />
             <span className="store-pack__what">
               <span className="store-pack__credits">
-                <Glyph name="credit" />
                 {creditsText(t, locale, pack.credits)}
               </span>
               <span className="store-pack__each">

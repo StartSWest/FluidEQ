@@ -446,8 +446,9 @@ describe('the Plus terms', () => {
   it('ask for an account before showing the terms page', () => {
     mockAccountState = { status: 'signed-out' };
     render(<AccountDialog onClose={jest.fn()} />);
+    // Signed out, the panel is the sign-in (`AccountWelcome`), not the terms.
     expect(
-      screen.getByRole('heading', { name: 'account.title' }),
+      screen.getByRole('heading', { name: 'account.welcome.backTitle' }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).toBeNull();
   });

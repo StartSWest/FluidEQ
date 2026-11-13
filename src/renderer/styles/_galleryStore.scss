@@ -149,6 +149,47 @@ it under the terms of the GNU General Public License version 3 or later.
   padding-block: 13px;
 }
 
+// The pack as a pile of 3D coins (`CreditPacks`' CoinPile): one, two or
+// three, each a little higher and further right, the front one last.
+.store-pack__pile {
+  --coin-size: 40px;
+  --coin-step: 15px;
+  position: relative;
+  flex: 0 0 auto;
+  width: calc(var(--coin-size) + var(--coin-step) * 2);
+  height: calc(var(--coin-size) + 6px);
+}
+
+.store-pack__coin {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--coin-size);
+  height: var(--coin-size);
+  filter: drop-shadow(0 3px 5px rgba($black, 0.45));
+
+  @for $i from 2 through 3 {
+    &:nth-child(#{$i}) {
+      bottom: calc(#{$i - 1} * 3px);
+      left: calc(var(--coin-step) * #{$i - 1});
+    }
+  }
+}
+
+// The chosen pack's coins catch the light.
+.store-pack:has(input:checked) .store-pack__coin {
+  filter: drop-shadow(0 3px 5px rgba($black, 0.45))
+    drop-shadow(0 0 8px color-mix(in srgb, $secondary-default 55%, transparent));
+}
+
+// The rail's credit, large, in the room under the dialog's title.
+.store-dialog__coin {
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  padding-block: 8px;
+}
+
 .store-pack__what {
   display: grid;
   flex: 1 1 auto;

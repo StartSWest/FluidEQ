@@ -11,7 +11,6 @@ import type { IGalleryScene } from 'common/plusGallery';
 import { SCENE_PRICE_CREDITS } from 'common/sceneStore';
 import DialogFrame from '../components/DialogFrame';
 import Glyph from '../community/Glyph';
-import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import { storeFailureKey } from './CreditPacks';
@@ -151,7 +150,7 @@ export default function BuySceneDialog({
       <DialogFrame
         ref={surfaceRef}
         className="gallery-report-dialog store-dialog"
-        icon={<MenuIcon name="credit" />}
+        icon={<Glyph name="credit" />}
         title={title}
         titleId={titleId}
         description={<span id={`${ids}-lead`}>{lead}</span>}

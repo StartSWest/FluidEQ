@@ -8,8 +8,8 @@ import { useCallback, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import DialogFrame from '../components/DialogFrame';
 import Glyph from '../community/Glyph';
-import MenuIcon from '../icons/MenuIcon';
 import { creditsUnit } from '../plus/credits';
+import CreditCoin from '../plus/CreditCoin';
 import PackPurchase from '../plus/PackPurchase';
 import { useSceneStore } from '../plus/sceneStore';
 import { useTranslation } from '../utils/I18nContext';
@@ -38,10 +38,17 @@ function CreditsDialog({ onClose }: { onClose: () => void }) {
       <DialogFrame
         ref={surfaceRef}
         className="gallery-report-dialog store-dialog"
-        icon={<MenuIcon name="credit" />}
+        icon={<Glyph name="credit" />}
         title={t('store.credits.buyTitle')}
         titleId={`${ids}-title`}
         description={<span id={`${ids}-lead`}>{t('store.credits.lead')}</span>}
+        // The credit itself, large, in the rail's room under the title,
+        // carrying how many the account has.
+        rail={
+          <div className="store-dialog__coin">
+            <CreditCoin size="l" badge={store?.balance ?? 0} />
+          </div>
+        }
         aria-describedby={`${ids}-lead`}
         closeLabel={t('support.close')}
         onClose={close}
