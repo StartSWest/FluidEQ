@@ -309,7 +309,7 @@ const tour = {
   'tour.plus.lead':
     'A whole tab of extras that keeps FluidEQ growing: scenes drawn on your graphics card, a Studio to make your own, desktop backgrounds and Dynamic lighting. A scene costs one credit and stays yours, and the equaliser, the rack and the players stay free, as they always have been.',
   'tour.plus.point1':
-    'Sign in from Account in the actions menu: a confirmed account gets free credits to start.',
+    'Sign in on the Visualizers tab: a confirmed account gets free credits to start.',
   'tour.plus.point2':
     'Packs of credits are paid once, with terms in plain words before you pay. Nothing renews, and the app never sees your card.',
   'tour.plus.point3':

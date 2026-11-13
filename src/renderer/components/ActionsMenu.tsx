@@ -89,12 +89,6 @@ interface IActionsMenuProps {
   onProcesses: () => void;
   onSupport: () => void;
   /**
-   * Absent from a build with no backend configured, which is every fork and
-   * every checkout without a .env: a row opening a sign-in that cannot
-   * complete is worse than no row.
-   */
-  onAccount?: () => void;
-  /**
    * Help's own entries, taken in while the titlebar has no room for Help's
    * button (`useTitlebarToolsShed`), with the compact-player switch beside it.
    */
@@ -163,7 +157,6 @@ const ActionsMenu = ({
   onImportImpulse,
   onProcesses,
   onSupport,
-  onAccount,
   help,
 }: IActionsMenuProps) => {
   const { t, locale } = useTranslation();
@@ -417,11 +410,10 @@ const ActionsMenu = ({
             {t('app.menu.reinstallApp', { product: PRODUCT_NAME })}
           </Item>
           <hr className="actions-menu__rule" />
-          {onAccount && (
-            <Item icon="artist" onSelect={run(onAccount)}>
-              {t('account.menu')}
-            </Item>
-          )}
+          {/* No Account row (Ivan, 2026-11-13): the sound needs no account,
+              and an account is for the Visualizers, so it lives on that tab
+              alone — Sign in signed out, the card at the foot of its rail
+              signed in. */}
           <Item icon="support" onSelect={run(onSupport)}>
             {t('app.menu.support')}
           </Item>

@@ -58,9 +58,9 @@ const help = {
   'help.window.steps':
     'Open a page from the header: Visualizers, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, Online Media.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.\nTo switch processing from another app, open the ≡ menu → On/off key and choose your own key combination. No key is assigned at first; the confirmation above other windows says whether FluidEQ is on or off.\nIn EQ Presets, Convolution library and Library, searches ignore case, accents, spaces and punctuation: typing kpop matches K-pop.',
   'help.window.tip':
-    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint, Colourful mode, Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. The switch after them turns the window into the Compact player.',
+    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint, Colourful mode, Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
-    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, colourful mode, colorful mode, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account, search, find names, accents, spaces, punctuation, case insensitive',
+    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, colourful mode, colorful mode, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, search, find names, accents, spaces, punctuation, case insensitive',
   'help.window.headerLeftCaption': 'The header, up to the signal',
   'help.window.headerRightCaption': 'The header, after the signal',
   'help.window.railCaption': 'The left rail',
@@ -85,7 +85,7 @@ const help = {
   'help.window.help':
     'This guide, What’s new, Full release notes, Forum, the audio troubleshooter, Report a problem and About FluidEQ. Full release notes opens all the notes directly. About has links to its sections and, where the support link is available, a Buy Me a Coffee card with a QR code.',
   'help.window.actions':
-    'The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.',
+    'The engine, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':
@@ -506,7 +506,7 @@ const help = {
   'help.plus.intro':
     'An account is optional: everything that was free runs on this computer without one. Signed in, the Visualizers tab holds the Gallery, the Studio, Dynamic lighting and the desktop visualizer. A scene from the Gallery costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
   'help.plus.steps':
-    'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nOpen the Visualizers tab and choose Gallery. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.',
+    'Open the Visualizers tab and press Sign in, or Create an account and type the six-digit code sent to your email. Once you are in, your account is the card at the foot of the tab’s left rail.\nChoose Gallery. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open your account from that card and choose a pack. It is paid once on Stripe, in your browser.',
   'help.plus.tip':
     'The app never sees your card, and nothing renews. An account stays signed in on up to five computers.',
   'help.plus.keywords':

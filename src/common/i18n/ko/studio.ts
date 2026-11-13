@@ -263,7 +263,7 @@ const studio = {
   'studio.publish.blockedAccount':
     '{date}까지 장면을 게시하거나 내보낼 수 없습니다.',
   'studio.publish.identityRequired':
-    '먼저 표시 이름과 핸들을 정하세요. 갤러리는 그 이름으로 장면을 보여줍니다. 오른쪽 위 메뉴의 ‘계정’에서 정한 다음 다시 게시하세요.',
+    '먼저 표시 이름과 핸들을 정하세요. 갤러리는 그 이름으로 장면을 보여줍니다. 방금 열린 ‘계정’ 패널에서 정한 다음 다시 게시하세요.',
   'studio.publish.blockedScene':
     '{date}까지 이 장면을 게시하거나 내보낼 수 없습니다.',
   'studio.picture.files': '사진',

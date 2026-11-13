@@ -272,7 +272,7 @@ const studio = {
   'studio.publish.blockedAccount':
     'No podrás publicar ni exportar escenas hasta el {date}.',
   'studio.publish.identityRequired':
-    'Primero elige un nombre visible y un alias: la galería muestra tus escenas con ellos. Ponlos en Cuenta, en el menú de arriba a la derecha, y vuelve a publicar.',
+    'Primero elige un nombre visible y un alias: la galería muestra tus escenas con ellos. Ponlos en el panel Cuenta que se acaba de abrir y vuelve a publicar.',
   'studio.publish.blockedScene':
     'No podrás publicar ni exportar esta escena hasta el {date}.',
 

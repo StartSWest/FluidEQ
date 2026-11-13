@@ -272,7 +272,7 @@ const studio = {
   'studio.publish.blockedAccount':
     'You can’t publish or export scenes until {date}.',
   'studio.publish.identityRequired':
-    'Choose a display name and a handle first: the gallery shows your scenes under them. Set them in Account, in the menu at the top right, then publish again.',
+    'Choose a display name and a handle first: the gallery shows your scenes under them. Set them in the Account panel that has just opened, then publish again.',
   'studio.publish.blockedScene':
     'You can’t publish or export this scene until {date}.',
 

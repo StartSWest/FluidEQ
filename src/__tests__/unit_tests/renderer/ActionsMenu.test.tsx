@@ -55,7 +55,6 @@ const handlers = () => ({
   onImportImpulse: jest.fn(),
   onProcesses: jest.fn(),
   onSupport: jest.fn(),
-  onAccount: jest.fn(),
 });
 
 const show = (
@@ -63,17 +62,11 @@ const show = (
   options: {
     engineName?: string;
     engineVersion?: string;
-    hasAccount?: boolean;
     help?: IHelpHandlers;
   } = {},
 ) => {
   const actions = handlers();
-  const {
-    hasAccount = true,
-    engineName = 'FluidEQ Engine',
-    engineVersion,
-    help,
-  } = options;
+  const { engineName = 'FluidEQ Engine', engineVersion, help } = options;
   const view = render(
     <ActionsMenu
       engineState={engineState}
@@ -87,7 +80,6 @@ const show = (
       onImportImpulse={actions.onImportImpulse}
       onProcesses={actions.onProcesses}
       onSupport={actions.onSupport}
-      onAccount={hasAccount ? actions.onAccount : undefined}
       help={help}
     />,
   );
@@ -226,7 +218,6 @@ describe('the commands of the actions menu', () => {
     ['Import EQ settings…', 'onImportEq'],
     ['Import impulse response…', 'onImportImpulse'],
     ['Processes…', 'onProcesses'],
-    ['Account', 'onAccount'],
     ['Support the work', 'onSupport'],
   ] as const)('%s closes the menu and runs', (label, handler) => {
     const { actions, trigger } = show('ready');
@@ -256,12 +247,17 @@ describe('the commands of the actions menu', () => {
     );
   });
 
-  it('leaves Account out of a build with no backend to sign in to', () => {
-    const { trigger } = show('ready', { hasAccount: false });
-    open(trigger);
+  // Ivan, 2026-11-13: the sound needs no account, so the account lives on
+  // the Visualizers tab alone and the menu has no row for it.
+  it('has no Account row', () => {
+    const { trigger } = show('ready');
+    const menu = open(trigger);
 
     expect(
-      screen.queryByRole('menuitem', { name: 'Account' }),
+      within(menu).getByRole('menuitem', { name: 'Support the work' }),
+    ).toBeInTheDocument();
+    expect(
+      within(menu).queryByRole('menuitem', { name: /account/i }),
     ).not.toBeInTheDocument();
   });
 

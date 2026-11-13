@@ -257,7 +257,6 @@ const AppTitlebar = ({
             onImportImpulse={actions.onImportImpulse}
             onProcesses={actions.onProcesses}
             onSupport={actions.onSupport}
-            onAccount={actions.onAccount}
             help={help}
           />
           {/* Help, as one more glyph in the capsule beside the engine's

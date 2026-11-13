@@ -298,7 +298,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.lead':
     'Un onglet entier d’extras qui fait grandir FluidEQ : des scènes dessinées sur votre carte graphique, un Studio pour créer les vôtres, des fonds de Bureau et l’Éclairage dynamique. Une scène coûte un crédit et vous reste, et l’égaliseur, le rack et les lecteurs restent gratuits, comme toujours.',
   'tour.plus.point1':
-    'Connectez-vous depuis Compte dans le menu des actions : un compte confirmé reçoit des crédits gratuits pour commencer.',
+    'Connectez-vous dans l’onglet Visualiseurs : un compte confirmé reçoit des crédits gratuits pour commencer.',
   'tour.plus.point2':
     'Les packs de crédits se paient une seule fois, avec des conditions en mots simples avant de payer. Rien ne se renouvelle, et l’application ne voit jamais votre carte.',
   'tour.plus.point3':

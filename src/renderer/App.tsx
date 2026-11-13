@@ -26,7 +26,6 @@ import {
   useState,
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
-import { isAccountConfigured } from 'common/accountConfig';
 import { useKaraokeBackgroundChoice } from './karaoke/karaokeWorkspacePrefs';
 import usePerformanceContext from './utils/performanceContext';
 import KaraokeSceneAppearanceControls from './karaoke/KaraokeSceneAppearanceControls';
@@ -603,9 +602,6 @@ const AppContent = () => {
           onImportImpulse: () => runImport(importConvolutionFile),
           onProcesses: () => dialogs.setShowProcessesDialog(true),
           onSupport: () => dialogs.setShowSupportDialog(true),
-          onAccount: isAccountConfigured()
-            ? () => dialogs.setAccountDialogPage('home')
-            : undefined,
         }}
         help={helpHandlers}
         isForumOpen={activeWorkspaceTab === 'forum'}

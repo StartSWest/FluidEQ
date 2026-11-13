@@ -272,7 +272,7 @@ const studio = {
   'studio.publish.blockedAccount':
     'Non potrai pubblicare né esportare scene fino al {date}.',
   'studio.publish.identityRequired':
-    'Prima scegli un nome visualizzato e un nickname: la galleria mostra le tue scene con questi. Impostali in Account, nel menu in alto a destra, poi pubblica di nuovo.',
+    'Prima scegli un nome visualizzato e un nickname: la galleria mostra le tue scene con questi. Impostali nel pannello Account appena aperto, poi pubblica di nuovo.',
   'studio.publish.blockedScene':
     'Non potrai pubblicare né esportare questa scena fino al {date}.',
 

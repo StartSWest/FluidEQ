@@ -240,7 +240,7 @@ const studio = {
     'FluidEQ 已将此场景从图库永久删除，因此不能再次发布。',
   'studio.publish.blockedAccount': '在 {date} 之前，你不能发布或导出场景。',
   'studio.publish.identityRequired':
-    '请先选择显示名和用户名：图库会以它们展示你的场景。在右上角菜单的“账户”中设置后，再发布一次。',
+    '请先选择显示名和用户名：图库会以它们展示你的场景。在刚刚打开的“账户”面板中设置后，再发布一次。',
   'studio.publish.blockedScene': '在 {date} 之前，你不能发布或导出这个场景。',
 
   'studio.picture.files': '图片',

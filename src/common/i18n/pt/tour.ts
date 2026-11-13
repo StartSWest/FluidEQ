@@ -296,7 +296,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.lead':
     'Uma aba inteira de extras que faz o FluidEQ crescer: cenas desenhadas na sua placa de vídeo, um Estúdio para criar as suas, fundos de área de trabalho e a Iluminação dinâmica. Uma cena custa um crédito e fica com você, e o equalizador, o rack e os players continuam gratuitos, como sempre.',
   'tour.plus.point1':
-    'Entre por Conta no menu de ações: uma conta confirmada recebe créditos grátis para começar.',
+    'Entre na aba Visualizadores: uma conta confirmada recebe créditos grátis para começar.',
   'tour.plus.point2':
     'Os pacotes de créditos são pagos uma única vez, com termos em palavras simples antes de pagar. Nada é renovado, e o app nunca vê seu cartão.',
   'tour.plus.point3':
