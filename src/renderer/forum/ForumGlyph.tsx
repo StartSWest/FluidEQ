@@ -117,7 +117,10 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
           <>
             <path d="M3 17.2 10.6 9.6" />
             <path d="M13.6 2.2q.7 3 3.7 3.7-3 .7-3.7 3.7-.7-3-3.7-3.7 3-.7 3.7-3.7Z" />
-            <path d="M5.6 3v3.2M4 4.6h3.2M16.4 12.4v3.2M14.8 14h3.2" opacity="0.65" />
+            <path
+              d="M5.6 3v3.2M4 4.6h3.2M16.4 12.4v3.2M14.8 14h3.2"
+              opacity="0.65"
+            />
           </>
         );
       case 'issue':

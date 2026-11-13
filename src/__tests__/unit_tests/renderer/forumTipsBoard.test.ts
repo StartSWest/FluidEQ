@@ -1,5 +1,5 @@
 import type { IForumBoard } from '../../../common/forum/forumTypes';
-import { translate, type Translate } from '../../../common/i18n';
+import { loadLocale, translate, type Translate } from '../../../common/i18n';
 import { boardGlyph } from '../../../renderer/forum/ForumGlyph';
 import {
   boardDescription,
@@ -29,6 +29,11 @@ const fromGithub = (slug: string): IForumBoard[] => [
 ];
 
 describe('the Tips & tricks board', () => {
+  // Only English is loaded until asked; without this German reads English.
+  beforeAll(async () => {
+    await loadLocale('de');
+  });
+
   it.each(['tips-tricks', 'tips-and-tricks'])(
     '%s is named, described and guided in the reader’s language',
     (slug) => {
