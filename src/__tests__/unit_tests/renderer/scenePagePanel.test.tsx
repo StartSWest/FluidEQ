@@ -454,6 +454,12 @@ describe('the versions on a scene’s page', () => {
   };
   const saves = (panel: ReturnType<typeof within>) =>
     panel.queryAllByRole('button', { name: /^plus\.version\.saveLabel/ });
+  // All versions is shut whenever a page opens (9fba3fa66), so a Save is
+  // looked for with the list open: shut, every "no Save" would hold trivially.
+  const openVersions = async (scope: Pick<typeof screen, 'findByRole'>) =>
+    userEvent.click(
+      await scope.findByRole('button', { name: /^plus\.version\.all/ }),
+    );
 
   it('offers Save on an earlier version of a scene the member owns', async () => {
     withSavableVersions();
@@ -464,6 +470,7 @@ describe('the versions on a scene’s page', () => {
       more: false,
     });
     const { panel } = await openScene(updated);
+    await openVersions(panel);
     expect(
       await panel.findByRole('button', { name: 'plus.version.saveLabel:2' }),
     ).toBeInTheDocument();
@@ -487,6 +494,7 @@ describe('the versions on a scene’s page', () => {
       expect(
         await screen.findByText('plus.version.current'),
       ).toBeInTheDocument();
+      await openVersions(screen);
       expect(
         screen.queryAllByRole('button', {
           name: /^plus\.version\.saveLabel/,
@@ -512,6 +520,7 @@ describe('the versions on a scene’s page', () => {
     });
     const { panel } = await openScene(mine);
     expect(await panel.findByText('plus.version.current')).toBeInTheDocument();
+    await openVersions(panel);
     expect(saves(panel)).toHaveLength(0);
   });
 });
