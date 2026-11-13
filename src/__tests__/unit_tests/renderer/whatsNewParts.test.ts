@@ -253,7 +253,7 @@ describe('2.5’s opening page', () => {
   });
 
   it('nor do the notes, and the pattern knows the old headline', () => {
-    expect(release('2.5.0')).not.toMatch(SIGNED_FOR_FREE);
+    expect(release('2.5.1')).not.toMatch(SIGNED_FOR_FREE);
     expect('Now signed, for free!').toMatch(SIGNED_FOR_FREE);
     expect('signed for free').toMatch(SIGNED_FOR_FREE);
     expect('Jetzt signiert – kostenlos!').toMatch(SIGNED_FOR_FREE);
@@ -271,7 +271,7 @@ describe('2.5’s opening page', () => {
   });
 
   it('keeps the notes’ opening to what is true of the app', () => {
-    const app = release('2.5.0').split(/^### /m)[1] ?? '';
+    const app = release('2.5.1').split(/^### /m)[1] ?? '';
     expect(app).not.toMatch(STALE);
     expect(app).not.toMatch(NOTHING_TO_BUY);
     expect(app).toContain('FluidEQ itself costs nothing');
@@ -300,7 +300,7 @@ describe('2.5 says nothing of a paid edition or GPT', () => {
   });
 
   it('in its release notes', () => {
-    expect(release('2.5.0')).not.toMatch(OLD_DIRECTION);
+    expect(release('2.5.1')).not.toMatch(OLD_DIRECTION);
     // The control: the pattern finds what it looks for.
     expect('the Signed Edition – $19').toMatch(OLD_DIRECTION);
     expect('I bought it with another email').toMatch(OLD_DIRECTION);
@@ -317,7 +317,7 @@ describe('2.5 says nothing of a paid edition or GPT', () => {
   });
 
   it('nor in a licence-key word in its release notes', () => {
-    expect(release('2.5.0')).not.toMatch(LICENCE_WORDS);
+    expect(release('2.5.1')).not.toMatch(LICENCE_WORDS);
     expect('The app costs nothing and needs no activation.').toMatch(
       LICENCE_WORDS,
     );
@@ -342,7 +342,7 @@ const ADMIN_ONLY =
 
 describe('2.5 tells members only what members can reach', () => {
   it('in its release notes', () => {
-    const notes25 = release('2.5.0');
+    const notes25 = release('2.5.1');
     expect(notes25).not.toMatch(ADMIN_ONLY);
     // The controls: the maker's and the buyer's lines are still there, and
     // the pattern knows the line that came out.
@@ -376,7 +376,7 @@ describe('Higgsfield, the Studio’s one maker', () => {
   });
 
   it('is in 2.5’s notes in Ivan’s words', () => {
-    expect(release('2.5.0')).toContain('Now integrated with Higgsfield');
+    expect(release('2.5.1')).toContain('Now integrated with Higgsfield');
   });
 });
 
@@ -434,13 +434,13 @@ describe('the release notes and the version', () => {
   });
 
   it('opens 2.5 on its signing, at the top of the app’s part', () => {
-    const app = release('2.5.0').split(/^### /m)[1] ?? '';
+    const app = release('2.5.1').split(/^### /m)[1] ?? '';
     expect(app).toMatch(/^FluidEQ\s+\*\*Now signed, and still free!\*\*/);
     expect(app).toContain('Ivan Carmenates');
     // Free for everyone, no paid edition: the app's part names no price,
     // edition, seller or account. The refund line under the visualizers
     // still speaks of credits, as its control.
     expect(app).not.toMatch(/credit|edition|paddle|account|\$/i);
-    expect(release('2.5.0').split(/^### /m)[2]).toMatch(/credit back/);
+    expect(release('2.5.1').split(/^### /m)[2]).toMatch(/credit back/);
   });
 });

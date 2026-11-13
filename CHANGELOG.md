@@ -6,7 +6,7 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
-## 2.5.0
+## 2.5.1
 
 ### FluidEQ
 
