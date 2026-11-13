@@ -102,9 +102,12 @@ export default function GoogleSignIn({
   }
   return (
     <div className="account-google">
+      {/* The easy way in, so the loud one: Google's own white button, as its
+          branding asks (Ivan approved the screens on 2026-11-13). Email is
+          the quiet way under it. */}
       <button
         type="button"
-        className="button small subtle account-google__button"
+        className="button account-google__button"
         disabled={busy}
         onClick={() => {
           signInWithGoogle(locale).catch(() => undefined);
@@ -113,7 +116,8 @@ export default function GoogleSignIn({
         <GoogleMark />
         {t('account.google')}
       </button>
-      <span className="account-google__or">{t('account.or')}</span>
+      <p className="account-google__note">{t('account.google.note')}</p>
+      <span className="account-google__or">{t('account.or.email')}</span>
     </div>
   );
 }

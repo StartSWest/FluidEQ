@@ -15,10 +15,6 @@ const account = {
 
   'account.signIn': 'साइन इन',
   'account.signUp': 'खाता बनाएँ',
-  'account.signInHint':
-    'आपका पासवर्ड सीधे खाता सेवा को जाता है और ऐप में कहीं भी सहेजा नहीं जाता।',
-  'account.signUpHint':
-    'उस पते पर छह अंकों का कोड जाएगा। पूरा करने के लिए उसे यहाँ लिखें।',
   'account.working': 'एक क्षण…',
   'account.signOut': 'साइन आउट',
   'account.signOut.confirm': 'इस खाते से साइन आउट करें?',
@@ -72,12 +68,9 @@ const account = {
     'किसी को नहीं दिखाया जाता — केवल साइन इन और कोड के लिए',
   'account.field.password': 'पासवर्ड',
   'account.field.passwordHint': 'कम से कम {count} वर्ण',
-  'account.field.name': 'नाम',
-  'account.field.optional': 'वैकल्पिक',
   'account.field.code': 'ईमेल वाला कोड',
 
   'account.code.sent': 'हमने {email} पर छह अंकों का कोड भेजा है।',
-  'account.code.confirm': 'पुष्टि करें',
   'account.code.sendAgain': 'कोड फिर से भेजें',
   'account.code.sentAgain': 'फिर से भेज दिया',
   'account.code.otherEmail': 'दूसरा ईमेल इस्तेमाल करें',
@@ -121,14 +114,47 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks': 'हमेशा के लिए आपके सीन, हर एक एक क्रेडिट का।',
-  'account.perk.visualizers':
-    'सीन: सदस्यों के बनाए सीन की गैलरी, हर खाते के लिए खुली।',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Google के साथ जारी रखें',
-  'account.or': 'या',
   'account.google.waiting': 'अपने ब्राउज़र में Google से साइन इन पूरा करें।',
   'account.google.cancel': 'रद्द करें',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': 'आपका {count} सीन इंतज़ार कर रहा है',
+  'account.welcome.createTitle.few': 'आपके {count} सीन इंतज़ार कर रहे हैं',
+  'account.welcome.createTitle.many': 'आपके {count} सीन इंतज़ार कर रहे हैं',
+  'account.welcome.createTitle.other': 'आपके {count} सीन इंतज़ार कर रहे हैं',
+  'account.welcome.createLine.one':
+    'मुफ़्त खाता {count} क्रेडिट से शुरू होता है। उससे आपको एक सीन मिलता है, जो हमेशा आपका रहता है।',
+  'account.welcome.createLine.few':
+    'मुफ़्त खाता {count} क्रेडिट से शुरू होता है। हर क्रेडिट से आपको एक सीन मिलता है, जो हमेशा आपका रहता है।',
+  'account.welcome.createLine.many':
+    'मुफ़्त खाता {count} क्रेडिट से शुरू होता है। हर क्रेडिट से आपको एक सीन मिलता है, जो हमेशा आपका रहता है।',
+  'account.welcome.createLine.other':
+    'मुफ़्त खाता {count} क्रेडिट से शुरू होता है। हर क्रेडिट से आपको एक सीन मिलता है, जो हमेशा आपका रहता है।',
+  'account.welcome.step.create': 'अपना खाता बनाएँ',
+  'account.welcome.step.confirm': 'अपना ईमेल पक्का करें',
+  'account.welcome.step.pick.one': 'अपने {count} सीन चुनें',
+  'account.welcome.step.pick.few': 'अपने {count} सीन चुनें',
+  'account.welcome.step.pick.many': 'अपने {count} सीन चुनें',
+  'account.welcome.step.pick.other': 'अपने {count} सीन चुनें',
+  'account.welcome.backTitle': 'फिर से स्वागत है',
+  'account.welcome.backLine':
+    'आपके सीन, क्रेडिट और स्टूडियो प्रोजेक्ट वहीं हैं जहाँ आपने छोड़े थे।',
+  'account.welcome.back.scenes':
+    'आपके सीन हर उस कंप्यूटर पर चलते हैं जहाँ आप साइन इन करते हैं',
+  'account.welcome.back.credits': 'आपके क्रेडिट, ख़र्च करने के लिए तैयार',
+  'account.welcome.back.studio': 'आपके स्टूडियो सीन और गैलरी',
+  'account.welcome.free':
+    'खाते के साथ या उसके बिना, FluidEQ का इक्वलाइज़र और ऑडियो मुफ़्त रहता है।',
+  'account.google.note': 'सबसे तेज़: एक क्लिक, कोई पासवर्ड याद नहीं रखना।',
+  'account.or.email': 'या अपने ईमेल से',
+  'account.signUp.withEmail': 'ईमेल से खाता बनाएँ',
+  'account.signIn.withEmail': 'ईमेल से साइन इन करें',
+  'account.signUp.terms':
+    'खाता बनाकर आप शर्तें और गोपनीयता नीति स्वीकार करते हैं।',
+  'account.code.step': 'चरण 2/3',
+  'account.code.title': 'अपना ईमेल देखें',
+  'account.code.confirmEmail': 'मेरा ईमेल पक्का करें',
   'account.error.googleUnfinished':
     'Google से साइन इन पूरा नहीं हुआ। फिर से कोशिश करें या अपने ईमेल से साइन इन करें।',
   'account.google.doneTitle': 'आप साइन इन हो गए हैं',

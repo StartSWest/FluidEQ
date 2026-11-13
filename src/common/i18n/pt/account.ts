@@ -15,10 +15,6 @@ const account = {
 
   'account.signIn': 'Entrar',
   'account.signUp': 'Criar conta',
-  'account.signInHint':
-    'Sua senha vai diretamente para o serviço de contas e não fica salva em nenhum lugar do app.',
-  'account.signUpHint':
-    'Um código de seis dígitos segue para esse endereço. Digite-o aqui para terminar.',
   'account.working': 'Um momento…',
   'account.signOut': 'Sair',
   'account.signOut.confirm': 'Sair desta conta?',
@@ -73,12 +69,9 @@ const account = {
     'nunca é mostrado a ninguém — só para entrar e para os códigos',
   'account.field.password': 'Senha',
   'account.field.passwordHint': 'pelo menos {count} caracteres',
-  'account.field.name': 'Nome',
-  'account.field.optional': 'opcional',
   'account.field.code': 'Código do email',
 
   'account.code.sent': 'Enviamos um código de seis dígitos para {email}.',
-  'account.code.confirm': 'Confirmar',
   'account.code.sendAgain': 'Enviar o código de novo',
   'account.code.sentAgain': 'Enviado de novo',
   'account.code.otherEmail': 'Usar outro email',
@@ -120,14 +113,48 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks': 'Cenas que são suas para sempre, um crédito cada.',
-  'account.perk.visualizers':
-    'Cenas: a galeria das cenas que os membros criam, aberta a todas as contas.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continuar com o Google',
-  'account.or': 'ou',
   'account.google.waiting': 'Termine de entrar com o Google no seu navegador.',
   'account.google.cancel': 'Cancelar',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': 'Sua {count} cena está esperando',
+  'account.welcome.createTitle.few': 'Suas {count} cenas estão esperando',
+  'account.welcome.createTitle.many': 'Suas {count} cenas estão esperando',
+  'account.welcome.createTitle.other': 'Suas {count} cenas estão esperando',
+  'account.welcome.createLine.one':
+    'Uma conta grátis começa com {count} crédito. Ele vale uma cena para você guardar para sempre.',
+  'account.welcome.createLine.few':
+    'Uma conta grátis começa com {count} créditos. Cada um vale uma cena para você guardar para sempre.',
+  'account.welcome.createLine.many':
+    'Uma conta grátis começa com {count} créditos. Cada um vale uma cena para você guardar para sempre.',
+  'account.welcome.createLine.other':
+    'Uma conta grátis começa com {count} créditos. Cada um vale uma cena para você guardar para sempre.',
+  'account.welcome.step.create': 'Crie sua conta',
+  'account.welcome.step.confirm': 'Confirme seu email',
+  'account.welcome.step.pick.one': 'Escolha sua {count} cena',
+  'account.welcome.step.pick.few': 'Escolha suas {count} cenas',
+  'account.welcome.step.pick.many': 'Escolha suas {count} cenas',
+  'account.welcome.step.pick.other': 'Escolha suas {count} cenas',
+  'account.welcome.backTitle': 'Que bom ver você de novo',
+  'account.welcome.backLine':
+    'Suas cenas, seus créditos e seus projetos do Estúdio estão onde você deixou.',
+  'account.welcome.back.scenes':
+    'Suas cenas tocam em todo computador em que você entrar',
+  'account.welcome.back.credits': 'Seus créditos, prontos para usar',
+  'account.welcome.back.studio': 'Suas cenas do Estúdio e a galeria',
+  'account.welcome.free':
+    'O equalizador e o áudio do FluidEQ continuam grátis, com ou sem conta.',
+  'account.google.note':
+    'O mais rápido: um clique, nenhuma senha para lembrar.',
+  'account.or.email': 'ou com seu email',
+  'account.signUp.withEmail': 'Criar conta com email',
+  'account.signIn.withEmail': 'Entrar com email',
+  'account.signUp.terms':
+    'Ao criar uma conta, você aceita os Termos e a Política de privacidade.',
+  'account.code.step': 'Passo 2 de 3',
+  'account.code.title': 'Veja seu email',
+  'account.code.confirmEmail': 'Confirmar meu email',
   'account.error.googleUnfinished':
     'A entrada com o Google não foi concluída. Tente de novo ou use seu e-mail.',
   'account.google.doneTitle': 'Você entrou',

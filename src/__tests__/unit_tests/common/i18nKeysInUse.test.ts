@@ -178,6 +178,21 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ['creator.sales.{one,few,many,other}', 'creator.sales.*'],
   ],
   'src/renderer/plus/GalleryParts.tsx': ['plus.category.*'],
+  // The sign-in rail's counts, in each language's own plural forms.
+  'src/renderer/account/AccountWelcome.tsx': [
+    [
+      'account.welcome.createTitle.{one,few,many,other}',
+      'account.welcome.createTitle.*',
+    ],
+    [
+      'account.welcome.createLine.{one,few,many,other}',
+      'account.welcome.createLine.*',
+    ],
+    [
+      'account.welcome.step.pick.{one,few,many,other}',
+      'account.welcome.step.pick.*',
+    ],
+  ],
   'src/renderer/plus/VisualizersSignedOut.tsx': [
     ['plus.signedOut.title.{one,few,many,other}', 'plus.signedOut.title.*'],
     [

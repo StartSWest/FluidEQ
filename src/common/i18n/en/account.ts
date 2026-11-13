@@ -24,10 +24,6 @@ const account = {
 
   'account.signIn': 'Sign in',
   'account.signUp': 'Create account',
-  'account.signInHint':
-    'Your password goes straight to the account service and is not kept anywhere in the app.',
-  'account.signUpHint':
-    'A six-digit code goes to that address. Type it here to finish.',
   'account.working': 'One moment…',
   'account.signOut': 'Sign out',
   'account.signOut.confirm': 'Sign out of this account?',
@@ -83,12 +79,9 @@ const account = {
     'never shown to anyone — only for signing in and codes',
   'account.field.password': 'Password',
   'account.field.passwordHint': 'at least {count} characters',
-  'account.field.name': 'Name',
-  'account.field.optional': 'optional',
   'account.field.code': 'Code from the email',
 
   'account.code.sent': 'We sent a six-digit code to {email}.',
-  'account.code.confirm': 'Confirm',
   'account.code.sendAgain': 'Send the code again',
   'account.code.sentAgain': 'Sent again',
   'account.code.otherEmail': 'Use a different email',
@@ -133,14 +126,47 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks': 'Scenes that are yours for good, one credit each.',
-  'account.perk.visualizers':
-    'Scenes: the gallery of scenes members make, open to every account.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continue with Google',
-  'account.or': 'or',
   'account.google.waiting': 'Finish signing in with Google in your browser.',
   'account.google.cancel': 'Cancel',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': 'Your {count} scene is waiting',
+  'account.welcome.createTitle.few': 'Your {count} scenes are waiting',
+  'account.welcome.createTitle.many': 'Your {count} scenes are waiting',
+  'account.welcome.createTitle.other': 'Your {count} scenes are waiting',
+  'account.welcome.createLine.one':
+    'A free account starts with {count} credit. It gets you a scene to keep for good.',
+  'account.welcome.createLine.few':
+    'A free account starts with {count} credits. Each one gets you a scene to keep for good.',
+  'account.welcome.createLine.many':
+    'A free account starts with {count} credits. Each one gets you a scene to keep for good.',
+  'account.welcome.createLine.other':
+    'A free account starts with {count} credits. Each one gets you a scene to keep for good.',
+  'account.welcome.step.create': 'Create your account',
+  'account.welcome.step.confirm': 'Confirm your email',
+  'account.welcome.step.pick.one': 'Pick your {count} scene',
+  'account.welcome.step.pick.few': 'Pick your {count} scenes',
+  'account.welcome.step.pick.many': 'Pick your {count} scenes',
+  'account.welcome.step.pick.other': 'Pick your {count} scenes',
+  'account.welcome.backTitle': 'Welcome back',
+  'account.welcome.backLine':
+    'Your scenes, your credits and your Studio projects are where you left them.',
+  'account.welcome.back.scenes':
+    'Your scenes play on every computer you sign in to',
+  'account.welcome.back.credits': 'Your credits, ready to spend',
+  'account.welcome.back.studio': 'Your Studio scenes and the gallery',
+  'account.welcome.free':
+    'FluidEQ’s equaliser and audio stay free, with or without an account.',
+  'account.google.note': 'Fastest: one click, no password to remember.',
+  'account.or.email': 'or with your email',
+  'account.signUp.withEmail': 'Create account with email',
+  'account.signIn.withEmail': 'Sign in with email',
+  'account.signUp.terms':
+    'By creating an account you agree to the Terms and the Privacy policy.',
+  'account.code.step': 'Step 2 of 3',
+  'account.code.title': 'Check your email',
+  'account.code.confirmEmail': 'Confirm my email',
   'account.error.googleUnfinished':
     'Signing in with Google did not finish. Try again, or use your email.',
   'account.google.doneTitle': 'You are signed in',

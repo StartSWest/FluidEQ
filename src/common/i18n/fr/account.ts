@@ -15,10 +15,6 @@ const account = {
 
   'account.signIn': 'Se connecter',
   'account.signUp': 'Créer un compte',
-  'account.signInHint':
-    'Votre mot de passe part directement au service de comptes et n’est conservé nulle part dans l’application.',
-  'account.signUpHint':
-    'Un code à six chiffres est envoyé à cette adresse. Saisissez-le ici pour terminer.',
   'account.working': 'Un instant…',
   'account.signOut': 'Se déconnecter',
   'account.signOut.confirm': 'Se déconnecter de ce compte ?',
@@ -73,12 +69,9 @@ const account = {
     'jamais affiché à personne — uniquement pour la connexion et les codes',
   'account.field.password': 'Mot de passe',
   'account.field.passwordHint': 'au moins {count} caractères',
-  'account.field.name': 'Nom',
-  'account.field.optional': 'facultatif',
   'account.field.code': 'Code reçu par e-mail',
 
   'account.code.sent': 'Nous avons envoyé un code à six chiffres à {email}.',
-  'account.code.confirm': 'Confirmer',
   'account.code.sendAgain': 'Renvoyer le code',
   'account.code.sentAgain': 'Renvoyé',
   'account.code.otherEmail': 'Utiliser une autre adresse',
@@ -122,15 +115,49 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks': 'Des scènes à vous pour de bon, un crédit chacune.',
-  'account.perk.visualizers':
-    'Scènes : la galerie des scènes créées par les membres, ouverte à tous les comptes.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continuer avec Google',
-  'account.or': 'ou',
   'account.google.waiting':
     'Terminez la connexion avec Google dans votre navigateur.',
   'account.google.cancel': 'Annuler',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': 'Votre {count} scène vous attend',
+  'account.welcome.createTitle.few': 'Vos {count} scènes vous attendent',
+  'account.welcome.createTitle.many': 'Vos {count} scènes vous attendent',
+  'account.welcome.createTitle.other': 'Vos {count} scènes vous attendent',
+  'account.welcome.createLine.one':
+    'Un compte gratuit commence avec {count} crédit. Il vous donne une scène à garder pour toujours.',
+  'account.welcome.createLine.few':
+    'Un compte gratuit commence avec {count} crédits. Chacun vous donne une scène à garder pour toujours.',
+  'account.welcome.createLine.many':
+    'Un compte gratuit commence avec {count} crédits. Chacun vous donne une scène à garder pour toujours.',
+  'account.welcome.createLine.other':
+    'Un compte gratuit commence avec {count} crédits. Chacun vous donne une scène à garder pour toujours.',
+  'account.welcome.step.create': 'Créez votre compte',
+  'account.welcome.step.confirm': 'Confirmez votre e-mail',
+  'account.welcome.step.pick.one': 'Choisissez votre {count} scène',
+  'account.welcome.step.pick.few': 'Choisissez vos {count} scènes',
+  'account.welcome.step.pick.many': 'Choisissez vos {count} scènes',
+  'account.welcome.step.pick.other': 'Choisissez vos {count} scènes',
+  'account.welcome.backTitle': 'Content de vous revoir',
+  'account.welcome.backLine':
+    'Vos scènes, vos crédits et vos projets du Studio sont là où vous les avez laissés.',
+  'account.welcome.back.scenes':
+    'Vos scènes jouent sur chaque ordinateur où vous vous connectez',
+  'account.welcome.back.credits': 'Vos crédits, prêts à être dépensés',
+  'account.welcome.back.studio': 'Vos scènes du Studio et la galerie',
+  'account.welcome.free':
+    'L’égaliseur et l’audio de FluidEQ restent gratuits, avec ou sans compte.',
+  'account.google.note':
+    'Le plus rapide : un clic, aucun mot de passe à retenir.',
+  'account.or.email': 'ou avec votre e-mail',
+  'account.signUp.withEmail': 'Créer un compte avec l’e-mail',
+  'account.signIn.withEmail': 'Se connecter avec l’e-mail',
+  'account.signUp.terms':
+    'En créant un compte, vous acceptez les Conditions et la Politique de confidentialité.',
+  'account.code.step': 'Étape 2 sur 3',
+  'account.code.title': 'Consultez vos e-mails',
+  'account.code.confirmEmail': 'Confirmer mon e-mail',
   'account.error.googleUnfinished':
     'La connexion avec Google n’a pas abouti. Réessayez ou utilisez votre e-mail.',
   'account.google.doneTitle': 'Vous êtes connecté',

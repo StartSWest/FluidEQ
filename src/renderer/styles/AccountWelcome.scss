@@ -1,0 +1,327 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The account panel before anybody is signed in, as Ivan approved it on
+// 2026-11-13 ("I love that login"): the rail is FluidEQ's logo, the credit
+// coin and the steps (`AccountWelcome`), the form on the right has Google as
+// the big button and email as the quiet way, and the emailed code is six
+// boxes (`CodeBoxes`).
+
+// ---------------------------------------------------------------- the rail
+
+// The two halves nearly even, as approved: the rail carries the coin and the
+// steps, not a glyph and a line. Wide only; the window's narrow layout stacks
+// the frame (`DialogFrame.scss`) and must keep doing so.
+@media (min-width: #{$bp-md + 1px}) {
+  .dialog-frame.account.account--welcome {
+    @include dialog.size(860px, 720px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+  }
+}
+
+.account--welcome {
+  // No glyph tile: the logo stands at the top of the rail instead.
+  .dialog-frame__tile {
+    display: none;
+  }
+
+  .dialog-frame__rail {
+    background:
+      radial-gradient(
+        110% 60% at 0% 0%,
+        color-mix(in srgb, $secondary-default 20%, transparent),
+        transparent 70%
+      ),
+      color-mix(in srgb, $surface-base 24%, transparent);
+  }
+
+  .dialog-frame__rail--covered {
+    padding-top: 26px;
+  }
+
+  // The cover here is the logo and the coin, not a picture: in the flow of
+  // the rail, never laid edge to edge under a mask.
+  .dialog-frame__cover {
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    mask-image: none;
+  }
+
+  .dialog-frame__title {
+    font-size: 1.25rem;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+}
+
+.account-welcome__cover {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+
+  .credit-coin {
+    margin: 0 0 -6px -18px;
+  }
+}
+
+.account-welcome__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-welcome__mark.brand-mark {
+  width: 36px;
+  height: 36px;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.account-welcome__word {
+  color: $text-primary;
+  font-size: 1.15rem;
+  font-weight: $weight-bold;
+}
+
+.account-welcome__eq {
+  color: transparent;
+  background: linear-gradient(90deg, #00e5cf, #27b8ff 60%, #7a95ff);
+  background-clip: text;
+}
+
+.account-welcome__rail {
+  display: grid;
+  flex: 1 1 auto;
+  align-content: space-between;
+  gap: 18px;
+}
+
+.account-welcome__list {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.35;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    color: $text-accent;
+  }
+}
+
+.account-welcome__steps {
+  li.is-now {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  li.is-done {
+    color: $text-faint;
+  }
+}
+
+.account-welcome__n {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 50%;
+
+  .is-now & {
+    color: $surface-base;
+    background: $secondary-light;
+    border-color: $secondary-light;
+  }
+
+  .is-done & {
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+}
+
+.account-welcome__foot {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid $border-subtle;
+}
+
+.account-welcome__free {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// ---------------------------------------------------------------- the form
+
+.account-form__step {
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+}
+
+.account-form__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: 1.15rem;
+  font-weight: $weight-bold;
+}
+
+// The code step's one loud button.
+.button.account-form__loud {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+  box-shadow: 0 10px 28px
+    color-mix(in srgb, $secondary-default 40%, transparent);
+}
+
+// Email's way in, under Google's: quiet, the form's full width.
+.button.account-form__quiet {
+  width: 100%;
+  min-height: 34px;
+  justify-content: center;
+}
+
+.account-form__forgot {
+  justify-self: start;
+}
+
+.account-form__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+// ---------------------------------------------------------------- the code
+
+.code-boxes {
+  position: relative;
+  display: block;
+  margin: 4px 0;
+}
+
+// Read by screen readers, not drawn: the heading above already says it.
+.code-boxes__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// The real field, over the boxes: it takes the typing, the paste and the
+// system's code fill; only its drawing is hidden.
+.code-boxes__input {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  color: transparent;
+  caret-color: transparent;
+  background: transparent;
+  border: 0;
+  outline: none;
+  cursor: text;
+
+  &::selection {
+    background: transparent;
+  }
+}
+
+.code-boxes__row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.code-boxes__box {
+  display: grid;
+  place-items: center;
+  height: 52px;
+  color: $text-primary;
+  font-size: 1.3rem;
+  font-weight: $weight-bold;
+  background: $surface-field;
+  border: 1px solid $border-field;
+  border-radius: $radius-m;
+  transition:
+    border-color 120ms,
+    box-shadow 120ms;
+
+  .code-boxes:focus-within &.is-next {
+    border-color: $secondary-light;
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, $secondary-default 22%, transparent);
+  }
+
+  .code-boxes__input[aria-invalid='true'] + .code-boxes__row & {
+    border-color: color-mix(in srgb, $amber 70%, transparent);
+  }
+}
+
+@media (max-width: $bp-md) {
+  .account--welcome {
+    .dialog-frame__cover {
+      display: block;
+    }
+
+    .dialog-frame__rail {
+      max-height: none;
+    }
+
+    .account-welcome__cover {
+      grid-template-columns: auto auto;
+      align-items: center;
+      justify-content: space-between;
+
+      .credit-coin {
+        --coin: 56px;
+        margin: 0;
+      }
+    }
+
+    .account-welcome__rail {
+      display: none;
+    }
+  }
+}

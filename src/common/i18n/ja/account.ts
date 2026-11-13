@@ -15,10 +15,6 @@ const account = {
 
   'account.signIn': 'サインイン',
   'account.signUp': 'アカウントを作成',
-  'account.signInHint':
-    'パスワードはアカウントサービスに直接送られ、アプリ内には一切保存されません。',
-  'account.signUpHint':
-    'そのアドレスに6桁のコードを送ります。ここに入力して完了してください。',
   'account.working': 'しばらくお待ちください…',
   'account.signOut': 'サインアウト',
   'account.signOut.confirm': 'このアカウントからサインアウトしますか？',
@@ -73,12 +69,9 @@ const account = {
     '誰にも表示されません。サインインとコードの受け取りにのみ使います',
   'account.field.password': 'パスワード',
   'account.field.passwordHint': '{count} 文字以上',
-  'account.field.name': '名前',
-  'account.field.optional': '任意',
   'account.field.code': 'メールのコード',
 
   'account.code.sent': '{email} に6桁のコードを送りました。',
-  'account.code.confirm': '確認',
   'account.code.sendAgain': 'コードを再送する',
   'account.code.sentAgain': '再送しました',
   'account.code.otherEmail': '別のメールアドレスを使う',
@@ -122,14 +115,49 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks': '永久にあなたのものになるシーン。1シーン1クレジット。',
-  'account.perk.visualizers':
-    'シーン：メンバーが作ったシーンのギャラリーを、すべてのアカウントに公開。',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Googleで続行',
-  'account.or': 'または',
   'account.google.waiting': 'ブラウザでGoogleのサインインを完了してください。',
   'account.google.cancel': 'キャンセル',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': '{count}つのシーンがあなたを待っています',
+  'account.welcome.createTitle.few': '{count}つのシーンがあなたを待っています',
+  'account.welcome.createTitle.many': '{count}つのシーンがあなたを待っています',
+  'account.welcome.createTitle.other':
+    '{count}つのシーンがあなたを待っています',
+  'account.welcome.createLine.one':
+    '無料アカウントには最初に{count}クレジットが付きます。1クレジットで、ずっと使えるシーンを1つ入手できます。',
+  'account.welcome.createLine.few':
+    '無料アカウントには最初に{count}クレジットが付きます。1クレジットで、ずっと使えるシーンを1つ入手できます。',
+  'account.welcome.createLine.many':
+    '無料アカウントには最初に{count}クレジットが付きます。1クレジットで、ずっと使えるシーンを1つ入手できます。',
+  'account.welcome.createLine.other':
+    '無料アカウントには最初に{count}クレジットが付きます。1クレジットで、ずっと使えるシーンを1つ入手できます。',
+  'account.welcome.step.create': 'アカウントを作成',
+  'account.welcome.step.confirm': 'メールを確認',
+  'account.welcome.step.pick.one': 'シーンを{count}つ選ぶ',
+  'account.welcome.step.pick.few': 'シーンを{count}つ選ぶ',
+  'account.welcome.step.pick.many': 'シーンを{count}つ選ぶ',
+  'account.welcome.step.pick.other': 'シーンを{count}つ選ぶ',
+  'account.welcome.backTitle': 'おかえりなさい',
+  'account.welcome.backLine':
+    'シーン、クレジット、スタジオのプロジェクトは、そのまま残っています。',
+  'account.welcome.back.scenes':
+    'サインインしたどのコンピューターでもシーンが使えます',
+  'account.welcome.back.credits': 'すぐ使えるクレジット',
+  'account.welcome.back.studio': 'スタジオのシーンとギャラリー',
+  'account.welcome.free':
+    'FluidEQ のイコライザーと音の処理は、アカウントがなくても無料のままです。',
+  'account.google.note':
+    'いちばん早い方法：ワンクリック、覚えるパスワードはありません。',
+  'account.or.email': 'またはメールアドレスで',
+  'account.signUp.withEmail': 'メールでアカウントを作成',
+  'account.signIn.withEmail': 'メールでサインイン',
+  'account.signUp.terms':
+    'アカウントを作成すると、規約とプライバシーポリシーに同意したことになります。',
+  'account.code.step': 'ステップ 2/3',
+  'account.code.title': 'メールを確認してください',
+  'account.code.confirmEmail': 'メールアドレスを確認',
   'account.error.googleUnfinished':
     'Googleでのサインインが完了しませんでした。もう一度試すか、メールアドレスでサインインしてください。',
   'account.google.doneTitle': 'サインインしました',

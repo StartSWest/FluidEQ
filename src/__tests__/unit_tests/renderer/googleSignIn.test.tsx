@@ -34,7 +34,11 @@ it('offers Google above the email form once the service has it switched on', asy
   const button = await screen.findByRole('button', {
     name: en['account.google'],
   });
-  expect(screen.getByText(en['account.or'])).toBeInTheDocument();
+  expect(screen.getByText(en['account.or.email'])).toBeInTheDocument();
+  expect(screen.getByText(en['account.google.note'])).toBeInTheDocument();
+  // The easy way in is the loud one (Ivan approved the screens 2026-11-13).
+  expect(button).toHaveClass('button', 'account-google__button');
+  expect(button).not.toHaveClass('subtle');
   fireEvent.click(button);
   // The browser tab's last page is in the window's language.
   expect(signInWithGoogle).toHaveBeenCalledWith('en');

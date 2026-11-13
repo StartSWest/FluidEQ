@@ -17,10 +17,6 @@ const account = {
     '로그인은 선택 사항입니다. FluidEQ는 계정 없이 항상 그랬던 것처럼 정확하게 작동합니다. 모든 것이 이 시스템에서 실행되며 아무것도 추적되지 않습니다. 계정은 정말로 필요한 부분에 대해서만 존재합니다.',
   'account.signIn': '로그인',
   'account.signUp': '계정 만들기',
-  'account.signInHint':
-    '귀하의 비밀번호는 계정 서비스로 바로 전달되며 앱 어디에도 보관되지 않습니다.',
-  'account.signUpHint':
-    '6자리 코드가 해당 주소로 이동합니다. 완료하려면 여기에 입력하세요.',
   'account.working': '잠시만…',
   'account.signOut': '로그아웃',
   'account.signOut.confirm': '이 계정에서 로그아웃하시겠습니까?',
@@ -73,11 +69,8 @@ const account = {
     '아무에게도 표시되지 않음 - 로그인 및 코드에만 표시됨',
   'account.field.password': '비밀번호',
   'account.field.passwordHint': '{count}자 이상',
-  'account.field.name': '이름',
-  'account.field.optional': '선택사항',
   'account.field.code': '이메일의 코드',
   'account.code.sent': '{email}로 6자리 코드를 보냈습니다.',
-  'account.code.confirm': '확인',
   'account.code.sendAgain': '코드를 다시 보내세요',
   'account.code.sentAgain': '다시 보냈습니다',
   'account.code.otherEmail': '다른 이메일을 사용하세요',
@@ -115,13 +108,46 @@ const account = {
   'account.error.alreadyRegistered':
     '해당 주소를 사용하는 계정이 이미 있습니다. 대신 로그인하세요.',
   'account.plus.eyebrow': 'FluidEQ',
-  'account.perk.looks': '영원히 당신의 것인 장면은 각각 1크레딧입니다.',
-  'account.perk.visualizers':
-    '장면: 회원이 만드는 장면 갤러리, 모든 계정에 공개됩니다.',
   'account.google': 'Google로 계속하기',
-  'account.or': '또는',
   'account.google.waiting': '브라우저에서 Google로 로그인을 완료하세요.',
   'account.google.cancel': '취소',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': '장면 {count}개가 기다리고 있습니다',
+  'account.welcome.createTitle.few': '장면 {count}개가 기다리고 있습니다',
+  'account.welcome.createTitle.many': '장면 {count}개가 기다리고 있습니다',
+  'account.welcome.createTitle.other': '장면 {count}개가 기다리고 있습니다',
+  'account.welcome.createLine.one':
+    '무료 계정은 크레딧 {count}개로 시작합니다. 크레딧 하나로 영원히 간직할 장면 하나를 받을 수 있습니다.',
+  'account.welcome.createLine.few':
+    '무료 계정은 크레딧 {count}개로 시작합니다. 크레딧 하나로 영원히 간직할 장면 하나를 받을 수 있습니다.',
+  'account.welcome.createLine.many':
+    '무료 계정은 크레딧 {count}개로 시작합니다. 크레딧 하나로 영원히 간직할 장면 하나를 받을 수 있습니다.',
+  'account.welcome.createLine.other':
+    '무료 계정은 크레딧 {count}개로 시작합니다. 크레딧 하나로 영원히 간직할 장면 하나를 받을 수 있습니다.',
+  'account.welcome.step.create': '계정 만들기',
+  'account.welcome.step.confirm': '이메일 확인',
+  'account.welcome.step.pick.one': '장면 {count}개 고르기',
+  'account.welcome.step.pick.few': '장면 {count}개 고르기',
+  'account.welcome.step.pick.many': '장면 {count}개 고르기',
+  'account.welcome.step.pick.other': '장면 {count}개 고르기',
+  'account.welcome.backTitle': '다시 오신 것을 환영합니다',
+  'account.welcome.backLine':
+    '장면, 크레딧, 스튜디오 프로젝트가 그대로 남아 있습니다.',
+  'account.welcome.back.scenes': '로그인하는 모든 컴퓨터에서 장면이 재생됩니다',
+  'account.welcome.back.credits': '바로 쓸 수 있는 크레딧',
+  'account.welcome.back.studio': '스튜디오 장면과 갤러리',
+  'account.welcome.free':
+    'FluidEQ의 이퀄라이저와 오디오는 계정이 있든 없든 무료입니다.',
+  'account.google.note':
+    '가장 빠른 방법: 클릭 한 번, 기억할 비밀번호가 없습니다.',
+  'account.or.email': '또는 이메일로',
+  'account.signUp.withEmail': '이메일로 계정 만들기',
+  'account.signIn.withEmail': '이메일로 로그인',
+  'account.signUp.terms':
+    '계정을 만들면 약관 및 개인정보 처리방침에 동의하게 됩니다.',
+  'account.code.step': '3단계 중 2단계',
+  'account.code.title': '이메일을 확인하세요',
+  'account.code.confirmEmail': '이메일 확인',
   'account.error.googleUnfinished':
     'Google로 로그인이 완료되지 않았습니다. 다시 시도하거나 이메일을 사용하세요.',
   'account.google.doneTitle': '로그인되었습니다',

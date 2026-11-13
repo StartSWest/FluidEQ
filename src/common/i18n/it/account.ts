@@ -15,10 +15,6 @@ const account = {
 
   'account.signIn': 'Accedi',
   'account.signUp': 'Crea account',
-  'account.signInHint':
-    'La tua password va direttamente al servizio account e non viene conservata da nessuna parte nell’app.',
-  'account.signUpHint':
-    'A quell’indirizzo arriva un codice di sei cifre. Inseriscilo qui per completare.',
   'account.working': 'Un momento…',
   'account.signOut': 'Esci',
   'account.signOut.confirm': 'Uscire da questo account?',
@@ -73,12 +69,9 @@ const account = {
     'mai mostrata a nessuno — solo per accedere e per i codici',
   'account.field.password': 'Password',
   'account.field.passwordHint': 'almeno {count} caratteri',
-  'account.field.name': 'Nome',
-  'account.field.optional': 'facoltativo',
   'account.field.code': 'Codice ricevuto via email',
 
   'account.code.sent': 'Abbiamo inviato un codice di sei cifre a {email}.',
-  'account.code.confirm': 'Conferma',
   'account.code.sendAgain': 'Invia di nuovo il codice',
   'account.code.sentAgain': 'Inviato di nuovo',
   'account.code.otherEmail': 'Usa un’altra email',
@@ -121,14 +114,48 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks': 'Scene che sono tue per sempre, un credito ciascuna.',
-  'account.perk.visualizers':
-    'Scene: la galleria delle scene create dai membri, aperta a ogni account.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continua con Google',
-  'account.or': 'oppure',
   'account.google.waiting': 'Completa l’accesso con Google nel browser.',
   'account.google.cancel': 'Annulla',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': 'La tua {count} scena ti aspetta',
+  'account.welcome.createTitle.few': 'Le tue {count} scene ti aspettano',
+  'account.welcome.createTitle.many': 'Le tue {count} scene ti aspettano',
+  'account.welcome.createTitle.other': 'Le tue {count} scene ti aspettano',
+  'account.welcome.createLine.one':
+    'Un account gratuito parte con {count} credito. Ti dà una scena da tenere per sempre.',
+  'account.welcome.createLine.few':
+    'Un account gratuito parte con {count} crediti. Ognuno ti dà una scena da tenere per sempre.',
+  'account.welcome.createLine.many':
+    'Un account gratuito parte con {count} crediti. Ognuno ti dà una scena da tenere per sempre.',
+  'account.welcome.createLine.other':
+    'Un account gratuito parte con {count} crediti. Ognuno ti dà una scena da tenere per sempre.',
+  'account.welcome.step.create': 'Crea il tuo account',
+  'account.welcome.step.confirm': 'Conferma la tua email',
+  'account.welcome.step.pick.one': 'Scegli la tua {count} scena',
+  'account.welcome.step.pick.few': 'Scegli le tue {count} scene',
+  'account.welcome.step.pick.many': 'Scegli le tue {count} scene',
+  'account.welcome.step.pick.other': 'Scegli le tue {count} scene',
+  'account.welcome.backTitle': 'Eccoti di nuovo',
+  'account.welcome.backLine':
+    'Le tue scene, i tuoi crediti e i tuoi progetti dello Studio sono dove li hai lasciati.',
+  'account.welcome.back.scenes':
+    'Le tue scene funzionano su ogni computer in cui accedi',
+  'account.welcome.back.credits': 'I tuoi crediti, pronti da spendere',
+  'account.welcome.back.studio': 'Le tue scene dello Studio e la galleria',
+  'account.welcome.free':
+    'L’equalizzatore e l’audio di FluidEQ restano gratuiti, con o senza account.',
+  'account.google.note':
+    'Il modo più veloce: un clic, nessuna password da ricordare.',
+  'account.or.email': 'oppure con la tua email',
+  'account.signUp.withEmail': 'Crea account con email',
+  'account.signIn.withEmail': 'Accedi con email',
+  'account.signUp.terms':
+    'Creando un account accetti le Condizioni e l’Informativa sulla privacy.',
+  'account.code.step': 'Passo 2 di 3',
+  'account.code.title': 'Controlla la tua email',
+  'account.code.confirmEmail': 'Conferma la mia email',
   'account.error.googleUnfinished':
     'L’accesso con Google non è stato completato. Riprova o usa la tua email.',
   'account.google.doneTitle': 'Hai effettuato l’accesso',

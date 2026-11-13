@@ -15,10 +15,6 @@ const account = {
 
   'account.signIn': 'Войти',
   'account.signUp': 'Создать аккаунт',
-  'account.signInHint':
-    'Пароль уходит напрямую в сервис аккаунтов и нигде в приложении не хранится.',
-  'account.signUpHint':
-    'На этот адрес придёт шестизначный код. Введите его здесь, чтобы завершить.',
   'account.working': 'Секунду…',
   'account.signOut': 'Выйти',
   'account.signOut.confirm': 'Выйти из этого аккаунта?',
@@ -73,12 +69,9 @@ const account = {
     'никому не показывается — только для входа и кодов',
   'account.field.password': 'Пароль',
   'account.field.passwordHint': 'не меньше {count} символов',
-  'account.field.name': 'Имя',
-  'account.field.optional': 'необязательно',
   'account.field.code': 'Код из письма',
 
   'account.code.sent': 'Мы отправили шестизначный код на {email}.',
-  'account.code.confirm': 'Подтвердить',
   'account.code.sendAgain': 'Отправить код ещё раз',
   'account.code.sentAgain': 'Отправлено снова',
   'account.code.otherEmail': 'Другой адрес',
@@ -120,14 +113,47 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks': 'Сцены, которые ваши навсегда, по кредиту за каждую.',
-  'account.perk.visualizers':
-    '«Сцены»: галерея сцен, которые создают участники, открыта для любого аккаунта.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Продолжить с Google',
-  'account.or': 'или',
   'account.google.waiting': 'Завершите вход через Google в браузере.',
   'account.google.cancel': 'Отмена',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': 'Ваша {count} сцена ждёт',
+  'account.welcome.createTitle.few': 'Ваши {count} сцены ждут',
+  'account.welcome.createTitle.many': 'Ваши {count} сцен ждут',
+  'account.welcome.createTitle.other': 'Ваши {count} сцены ждут',
+  'account.welcome.createLine.one':
+    'Бесплатный аккаунт начинается с {count} кредита. Он даёт сцену, которая останется у вас навсегда.',
+  'account.welcome.createLine.few':
+    'Бесплатный аккаунт начинается с {count} кредитов. Каждый даёт сцену, которая останется у вас навсегда.',
+  'account.welcome.createLine.many':
+    'Бесплатный аккаунт начинается с {count} кредитов. Каждый даёт сцену, которая останется у вас навсегда.',
+  'account.welcome.createLine.other':
+    'Бесплатный аккаунт начинается с {count} кредитов. Каждый даёт сцену, которая останется у вас навсегда.',
+  'account.welcome.step.create': 'Создайте аккаунт',
+  'account.welcome.step.confirm': 'Подтвердите почту',
+  'account.welcome.step.pick.one': 'Выберите {count} сцену',
+  'account.welcome.step.pick.few': 'Выберите {count} сцены',
+  'account.welcome.step.pick.many': 'Выберите {count} сцен',
+  'account.welcome.step.pick.other': 'Выберите {count} сцены',
+  'account.welcome.backTitle': 'С возвращением',
+  'account.welcome.backLine':
+    'Ваши сцены, кредиты и проекты «Студии» там, где вы их оставили.',
+  'account.welcome.back.scenes':
+    'Ваши сцены работают на любом компьютере, где вы входите',
+  'account.welcome.back.credits': 'Ваши кредиты, готовые к тратам',
+  'account.welcome.back.studio': 'Ваши сцены из «Студии» и галерея',
+  'account.welcome.free':
+    'Эквалайзер и звук FluidEQ остаются бесплатными — с аккаунтом или без.',
+  'account.google.note': 'Быстрее всего: один клик, никаких паролей.',
+  'account.or.email': 'или по электронной почте',
+  'account.signUp.withEmail': 'Создать аккаунт по почте',
+  'account.signIn.withEmail': 'Войти по почте',
+  'account.signUp.terms':
+    'Создавая аккаунт, вы принимаете Условия и Политику конфиденциальности.',
+  'account.code.step': 'Шаг 2 из 3',
+  'account.code.title': 'Проверьте почту',
+  'account.code.confirmEmail': 'Подтвердить почту',
   'account.error.googleUnfinished':
     'Вход через Google не завершён. Попробуйте ещё раз или войдите по электронной почте.',
   'account.google.doneTitle': 'Вы вошли',

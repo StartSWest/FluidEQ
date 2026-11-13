@@ -36,7 +36,7 @@ import CreatorPayoutsCard from './CreatorPayoutsCard';
 import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
 import SignOutConfirm from './SignOutConfirm';
-import AccountPitch from './AccountPitch';
+import { WelcomeCover, WelcomeRail, useWelcome } from './AccountWelcome';
 import initialsOf from './initials';
 // The panel sits on the About panel's backdrop, so it asks for the sheet that
 // defines it: a component that draws with a class it only gets because
@@ -47,7 +47,7 @@ import '../styles/Account.scss';
 /** What the frame's rail and foot say on one page of the panel. */
 interface IAccountFramePage {
   icon: ReactNode;
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   badge?: ReactNode;
   description?: ReactNode;
@@ -138,6 +138,8 @@ export default function AccountDialog({
   }, [onClose]);
 
   const { identity, status } = account;
+  const welcome = useWelcome(page, account);
+  const welcomeKind = welcome.kind;
   const signedIn = status === 'signed-in' && identity !== undefined;
   const termsOffered = isAccountConfigured();
   // Somebody with scenes of their own: signing out locks them, and their
@@ -371,16 +373,22 @@ export default function AccountDialog({
         cover: <AccountCover ownsScenes={ownsScenes} />,
       };
     }
-    return {
-      icon: <MenuIcon name="artist" />,
-      eyebrow: t('account.eyebrow'),
-      title: t('account.title'),
-      rail:
-        status === 'unavailable' ? (
+    if (status === 'unavailable') {
+      return {
+        icon: <MenuIcon name="artist" />,
+        eyebrow: t('account.eyebrow'),
+        title: t('account.title'),
+        rail: (
           <p className="dialog-frame__rail-text">{t('account.optional')}</p>
-        ) : (
-          <AccountPitch termsLink={termsLink} />
         ),
+      };
+    }
+    return {
+      icon: null,
+      title: welcome.title,
+      description: welcome.description,
+      cover: <WelcomeCover kind={welcomeKind} />,
+      rail: <WelcomeRail kind={welcomeKind} termsLink={termsLink} />,
     };
   })();
 
@@ -398,7 +406,7 @@ export default function AccountDialog({
         ref={frameRef}
         className={`account${onProfile ? ' account--profile' : ''}${
           onDocument ? ' account--document' : ''
-        }`}
+        }${!signedIn && status !== 'unavailable' ? ' account--welcome' : ''}`}
         icon={frame.icon}
         eyebrow={frame.eyebrow}
         title={frame.title}
@@ -509,7 +517,8 @@ export default function AccountDialog({
             <div className="account__form-column">
               <SignInForms
                 account={account}
-                initialMode={page === 'signUp' ? 'signUp' : 'signIn'}
+                initialMode={welcome.formMode}
+                onModeChange={welcome.setFormMode}
               />
               {errorLine}
             </div>

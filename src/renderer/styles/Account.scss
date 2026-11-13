@@ -678,46 +678,6 @@ it under the terms of the GNU General Public License version 3 or later.
   container: profile-name / inline-size;
 }
 
-// Signed out, the rail: why to sign in, beside the form that does it.
-.account__pitch {
-  display: grid;
-  align-content: start;
-  gap: $spacing-m;
-}
-
-.account__perks {
-  display: grid;
-  gap: $spacing-s;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.45;
-  }
-}
-
-.account__perk-mark {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  color: $secondary-light;
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
-
-  svg {
-    width: 17px;
-    height: 17px;
-  }
-}
-
 .account__form-column {
   display: grid;
   align-content: start;

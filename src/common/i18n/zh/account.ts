@@ -15,9 +15,6 @@ const account = {
 
   'account.signIn': '登录',
   'account.signUp': '创建账户',
-  'account.signInHint':
-    '你的密码直接发送到账户服务，不会保存在应用的任何地方。',
-  'account.signUpHint': '一个六位数验证码将发送到该地址。在此输入即可完成。',
   'account.working': '请稍候…',
   'account.signOut': '退出登录',
   'account.signOut.confirm': '要退出这个账户吗？',
@@ -66,12 +63,9 @@ const account = {
   'account.field.emailHint': '不会向任何人显示——仅用于登录和验证码',
   'account.field.password': '密码',
   'account.field.passwordHint': '至少 {count} 个字符',
-  'account.field.name': '名字',
-  'account.field.optional': '可选',
   'account.field.code': '邮件中的验证码',
 
   'account.code.sent': '我们已向 {email} 发送了一个六位数验证码。',
-  'account.code.confirm': '确认',
   'account.code.sendAgain': '重新发送验证码',
   'account.code.sentAgain': '已重新发送',
   'account.code.otherEmail': '使用其他邮箱',
@@ -106,13 +100,44 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks': '永久归你的场景，每个一点。',
-  'account.perk.visualizers': '“场景”：会员创作的场景图库，向所有账户开放。',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': '使用 Google 继续',
-  'account.or': '或',
   'account.google.waiting': '请在浏览器中完成 Google 登录。',
   'account.google.cancel': '取消',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': '你的 {count} 个场景正在等你',
+  'account.welcome.createTitle.few': '你的 {count} 个场景正在等你',
+  'account.welcome.createTitle.many': '你的 {count} 个场景正在等你',
+  'account.welcome.createTitle.other': '你的 {count} 个场景正在等你',
+  'account.welcome.createLine.one':
+    '免费账户一开始就有 {count} 点数。每个点数可换一个永久归你的场景。',
+  'account.welcome.createLine.few':
+    '免费账户一开始就有 {count} 点数。每个点数可换一个永久归你的场景。',
+  'account.welcome.createLine.many':
+    '免费账户一开始就有 {count} 点数。每个点数可换一个永久归你的场景。',
+  'account.welcome.createLine.other':
+    '免费账户一开始就有 {count} 点数。每个点数可换一个永久归你的场景。',
+  'account.welcome.step.create': '创建账户',
+  'account.welcome.step.confirm': '确认邮箱',
+  'account.welcome.step.pick.one': '挑选你的 {count} 个场景',
+  'account.welcome.step.pick.few': '挑选你的 {count} 个场景',
+  'account.welcome.step.pick.many': '挑选你的 {count} 个场景',
+  'account.welcome.step.pick.other': '挑选你的 {count} 个场景',
+  'account.welcome.backTitle': '欢迎回来',
+  'account.welcome.backLine': '你的场景、点数和工作室项目都还在原处。',
+  'account.welcome.back.scenes': '你的场景在你登录的每台电脑上都能播放',
+  'account.welcome.back.credits': '你的点数，随时可用',
+  'account.welcome.back.studio': '你的工作室场景和图库',
+  'account.welcome.free':
+    '无论有没有账户，FluidEQ 的均衡器和音频处理都保持免费。',
+  'account.google.note': '最快：一键完成，无需记住密码。',
+  'account.or.email': '或使用邮箱',
+  'account.signUp.withEmail': '用邮箱创建账户',
+  'account.signIn.withEmail': '用邮箱登录',
+  'account.signUp.terms': '创建账户即表示你同意条款和隐私政策。',
+  'account.code.step': '第 2 步，共 3 步',
+  'account.code.title': '查看你的邮箱',
+  'account.code.confirmEmail': '确认我的邮箱',
   'account.error.googleUnfinished':
     'Google 登录未完成。请重试，或使用电子邮件登录。',
   'account.google.doneTitle': '你已登录',

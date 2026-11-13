@@ -89,6 +89,7 @@ import './Review.scss';
 import './Gallery.scss';
 import './PlusWelcome.scss';
 import './CreditCoin.scss';
+import './AccountWelcome.scss';
 import './VisualizersSignedOutOffer.scss';
 import './VisualizersSignedOut.scss';
 import './WallpaperMonitors.scss';

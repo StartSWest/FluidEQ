@@ -15,10 +15,6 @@ const account = {
 
   'account.signIn': 'Iniciar sesión',
   'account.signUp': 'Crear cuenta',
-  'account.signInHint':
-    'Tu contraseña va directa al servicio de cuentas y no se guarda en ningún lugar de la aplicación.',
-  'account.signUpHint':
-    'Enviaremos un código de seis dígitos a esa dirección. Escríbelo aquí para terminar.',
   'account.working': 'Un momento…',
   'account.signOut': 'Cerrar sesión',
   'account.signOut.confirm': '¿Cerrar la sesión de esta cuenta?',
@@ -73,12 +69,9 @@ const account = {
     'nunca se muestra a nadie; solo para iniciar sesión y los códigos',
   'account.field.password': 'Contraseña',
   'account.field.passwordHint': 'al menos {count} caracteres',
-  'account.field.name': 'Nombre',
-  'account.field.optional': 'opcional',
   'account.field.code': 'Código del correo',
 
   'account.code.sent': 'Enviamos un código de seis dígitos a {email}.',
-  'account.code.confirm': 'Confirmar',
   'account.code.sendAgain': 'Enviar el código de nuevo',
   'account.code.sentAgain': 'Enviado de nuevo',
   'account.code.otherEmail': 'Usar otro correo',
@@ -122,16 +115,48 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks':
-    'Escenas que son tuyas para siempre, un crédito cada una.',
-  'account.perk.visualizers':
-    'Escenas: la galería de escenas que crean los miembros, abierta a todas las cuentas.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continuar con Google',
-  'account.or': 'o',
   'account.google.waiting':
     'Termina de iniciar sesión con Google en tu navegador.',
   'account.google.cancel': 'Cancelar',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': 'Tu {count} escena te espera',
+  'account.welcome.createTitle.few': 'Tus {count} escenas te esperan',
+  'account.welcome.createTitle.many': 'Tus {count} escenas te esperan',
+  'account.welcome.createTitle.other': 'Tus {count} escenas te esperan',
+  'account.welcome.createLine.one':
+    'Una cuenta gratis empieza con {count} crédito. Te da una escena para quedártela para siempre.',
+  'account.welcome.createLine.few':
+    'Una cuenta gratis empieza con {count} créditos. Cada uno te da una escena para quedártela para siempre.',
+  'account.welcome.createLine.many':
+    'Una cuenta gratis empieza con {count} créditos. Cada uno te da una escena para quedártela para siempre.',
+  'account.welcome.createLine.other':
+    'Una cuenta gratis empieza con {count} créditos. Cada uno te da una escena para quedártela para siempre.',
+  'account.welcome.step.create': 'Crea tu cuenta',
+  'account.welcome.step.confirm': 'Confirma tu correo',
+  'account.welcome.step.pick.one': 'Elige tu {count} escena',
+  'account.welcome.step.pick.few': 'Elige tus {count} escenas',
+  'account.welcome.step.pick.many': 'Elige tus {count} escenas',
+  'account.welcome.step.pick.other': 'Elige tus {count} escenas',
+  'account.welcome.backTitle': 'Hola de nuevo',
+  'account.welcome.backLine':
+    'Tus escenas, tus créditos y tus proyectos del Estudio están donde los dejaste.',
+  'account.welcome.back.scenes':
+    'Tus escenas se reproducen en cada equipo donde inicies sesión',
+  'account.welcome.back.credits': 'Tus créditos, listos para gastar',
+  'account.welcome.back.studio': 'Tus escenas del Estudio y la galería',
+  'account.welcome.free':
+    'El ecualizador y el audio de FluidEQ siguen gratis, con o sin cuenta.',
+  'account.google.note': 'Lo más rápido: un clic, sin contraseña que recordar.',
+  'account.or.email': 'o con tu correo',
+  'account.signUp.withEmail': 'Crear cuenta con correo',
+  'account.signIn.withEmail': 'Iniciar sesión con correo',
+  'account.signUp.terms':
+    'Al crear una cuenta aceptas las Condiciones y la Política de privacidad.',
+  'account.code.step': 'Paso 2 de 3',
+  'account.code.title': 'Revisa tu correo',
+  'account.code.confirmEmail': 'Confirmar mi correo',
   'account.error.googleUnfinished':
     'El inicio de sesión con Google no terminó. Inténtalo de nuevo o usa tu correo.',
   'account.google.doneTitle': 'Has iniciado sesión',

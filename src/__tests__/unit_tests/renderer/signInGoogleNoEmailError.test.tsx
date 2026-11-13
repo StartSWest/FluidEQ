@@ -53,7 +53,9 @@ it('pressing Google leaves the untouched email box without an error', async () =
   expect(screen.queryByText(invalidEmail)).toBeNull();
   expect(email).toHaveAttribute('aria-invalid', 'false');
   // The email form waits, quietly: held, not "One moment…".
-  const signIn = screen.getByRole('button', { name: en['account.signIn'] });
+  const signIn = screen.getByRole('button', {
+    name: en['account.signIn.withEmail'],
+  });
   expect(signIn).toBeDisabled();
   expect(screen.queryByText(en['account.working'])).toBeNull();
   expect(signInAccount).not.toHaveBeenCalled();
@@ -62,7 +64,9 @@ it('pressing Google leaves the untouched email box without an error', async () =
 it('still names an empty email on a real submit', async () => {
   const user = userEvent.setup();
   render(<SignInForms account={{ status: 'signed-out' }} />);
-  await user.click(screen.getByRole('button', { name: en['account.signIn'] }));
+  await user.click(
+    screen.getByRole('button', { name: en['account.signIn.withEmail'] }),
+  );
 
   expect(screen.getByText(invalidEmail)).toBeInTheDocument();
   expect(

@@ -107,7 +107,13 @@ describe('the account panel', () => {
       'true',
     );
     expect(
-      screen.getByRole('button', { name: 'account.signUp' }),
+      screen.getByRole('button', { name: 'account.signUp.withEmail' }),
+    ).toBeInTheDocument();
+    // The rail says what creating one gets (Ivan approved it 2026-11-13).
+    expect(
+      screen.getByRole('heading', {
+        name: 'account.welcome.createTitle.other:3',
+      }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'terms.title' })).toBeNull();
   });
@@ -115,7 +121,7 @@ describe('the account panel', () => {
   it('says signing in is optional before it offers to do it', () => {
     renderDialog({ status: 'signed-out' });
     const dialog = screen.getByRole('dialog');
-    const optional = within(dialog).getByText('account.optional');
+    const optional = within(dialog).getByText('account.welcome.free');
     // Ahead of the form in the document, not merely present somewhere on it.
     // This app has promised since its first release that it is account-free,
     // and the panel has to lead with that still being true.
@@ -131,7 +137,9 @@ describe('the account panel', () => {
 
   it('signs in with what was typed, trimmed, and not before it could work', async () => {
     renderDialog({ status: 'signed-out' });
-    const submit = screen.getByRole('button', { name: 'account.signIn' });
+    const submit = screen.getByRole('button', {
+      name: 'account.signIn.withEmail',
+    });
     await userEvent.click(submit);
     expect(mockSignIn).not.toHaveBeenCalled();
     expect(
@@ -155,17 +163,25 @@ describe('the account panel', () => {
   });
 
   /**
-   * Emphasis follows recommendation. `button small` is the filled accent and
-   * `button small subtle` the quiet outline, and this is the assertion that
-   * would have caught the loud style landing on a decline button — which is a
-   * defect no test querying by role can otherwise see.
+   * Emphasis follows recommendation. Signed out, Google is the loud way in
+   * (`googleSignIn.test.tsx`) and email the quiet one, its submit the
+   * outline; the emailed code's confirm is loud. This is the assertion that
+   * would have caught the loud style on the wrong button, which no test
+   * querying by role can otherwise see.
    */
   it('gives the loud style to the one action each form recommends', async () => {
     const { unmount } = renderDialog({ status: 'signed-out' });
-    expect(button('account.signIn')).toHaveClass('button', 'small');
-    expect(button('account.signIn')).not.toHaveClass('subtle');
+    expect(button('account.signIn.withEmail')).toHaveClass('button', 'subtle');
     expect(button('account.forgot.link')).toHaveClass('account-link');
     unmount();
+
+    const code = renderDialog({
+      status: 'signed-out',
+      pending: { email: 'ada@example.com', purpose: 'signup' },
+    });
+    expect(button('account.code.confirmEmail')).toHaveClass('button');
+    expect(button('account.code.confirmEmail')).not.toHaveClass('subtle');
+    code.unmount();
 
     // Signed in, neither of the account's own two actions is recommended —
     // they are links beside the name, not buttons under it.
@@ -177,9 +193,11 @@ describe('the account panel', () => {
   it('creates an account with a short enough password refused before it is sent', async () => {
     renderDialog({ status: 'signed-out' });
     await userEvent.click(screen.getByRole('tab', { name: 'account.signUp' }));
-    const submit = screen.getByRole('button', { name: 'account.signUp' });
-
-    await userEvent.type(screen.getByLabelText(/account\.field\.name/), 'Ada');
+    const submit = screen.getByRole('button', {
+      name: 'account.signUp.withEmail',
+    });
+    // No name here: the gallery's name is chosen in the account, later.
+    expect(screen.queryByLabelText(/account\.field\.name/)).toBeNull();
     await userEvent.type(
       screen.getByLabelText(/^account.field.email/),
       'ada@example.com',
@@ -203,7 +221,6 @@ describe('the account panel', () => {
     expect(mockSignUp).toHaveBeenCalledWith({
       email: 'ada@example.com',
       password: 'shortenough',
-      name: 'Ada',
     });
   });
 
@@ -215,7 +232,7 @@ describe('the account panel', () => {
     expect(
       screen.getByText('account.code.sent:ada@example.com'),
     ).toBeInTheDocument();
-    const confirm = button('account.code.confirm');
+    const confirm = button('account.code.confirmEmail');
     await userEvent.click(confirm);
     expect(mockConfirm).not.toHaveBeenCalled();
 
@@ -266,7 +283,7 @@ describe('the account panel', () => {
     expect(mockForgot).toHaveBeenCalledWith('ada@example.com');
 
     await userEvent.click(button('account.backToSignIn'));
-    expect(button('account.signIn')).toBeInTheDocument();
+    expect(button('account.signIn.withEmail')).toBeInTheDocument();
   });
 
   it('disables the form and relabels the button while a request is out', () => {
@@ -281,7 +298,7 @@ describe('the account panel', () => {
     const password = screen.getByLabelText('account.field.password');
     fireEvent.change(email, { target: { value: 'invalid address' } });
     fireEvent.change(password, { target: { value: 'x'.repeat(129) } });
-    await userEvent.click(button('account.signIn'));
+    await userEvent.click(button('account.signIn.withEmail'));
     expect(email).toHaveAttribute('aria-invalid', 'true');
     expect(password).toHaveAccessibleDescription(
       'account.validation.passwordLong:8',
@@ -291,7 +308,7 @@ describe('the account panel', () => {
       target: { value: `${'a'.repeat(250)}@example.com` },
     });
     fireEvent.change(password, { target: { value: 'valid password' } });
-    await userEvent.click(button('account.signIn'));
+    await userEvent.click(button('account.signIn.withEmail'));
     expect(mockSignIn).not.toHaveBeenCalled();
   });
 
@@ -304,11 +321,11 @@ describe('the account panel', () => {
     fireEvent.change(screen.getByLabelText('account.field.password'), {
       target: { value: 'valid password' },
     });
-    await userEvent.click(button('account.signIn'));
+    await userEvent.click(button('account.signIn.withEmail'));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'account.error.network',
     );
-    expect(button('account.signIn')).toBeEnabled();
+    expect(button('account.signIn.withEmail')).toBeEnabled();
   });
 
   it('names who is signed in, and offers to sign out', async () => {

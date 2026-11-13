@@ -16,10 +16,6 @@ const account = {
 
   'account.signIn': 'Anmelden',
   'account.signUp': 'Konto erstellen',
-  'account.signInHint':
-    'Ihr Passwort geht direkt an den Kontodienst und wird nirgends in der App gespeichert.',
-  'account.signUpHint':
-    'An diese Adresse geht ein sechsstelliger Code. Geben Sie ihn hier ein, um abzuschließen.',
   'account.working': 'Einen Moment…',
   'account.signOut': 'Abmelden',
   'account.signOut.confirm': 'Von diesem Konto abmelden?',
@@ -74,13 +70,10 @@ const account = {
     'wird niemandem gezeigt – nur zum Anmelden und für Codes',
   'account.field.password': 'Passwort',
   'account.field.passwordHint': 'mindestens {count} Zeichen',
-  'account.field.name': 'Name',
-  'account.field.optional': 'optional',
   'account.field.code': 'Code aus der E-Mail',
 
   'account.code.sent':
     'Wir haben einen sechsstelligen Code an {email} gesendet.',
-  'account.code.confirm': 'Bestätigen',
   'account.code.sendAgain': 'Code erneut senden',
   'account.code.sentAgain': 'Erneut gesendet',
   'account.code.otherEmail': 'Andere E-Mail verwenden',
@@ -124,16 +117,48 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ',
 
-  'account.perk.looks':
-    'Szenen, die Ihnen für immer gehören, ein Credit pro Szene.',
-  'account.perk.visualizers':
-    'Szenen: die Galerie der Szenen, die Mitglieder erstellen, offen für jedes Konto.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Mit Google fortfahren',
-  'account.or': 'oder',
   'account.google.waiting':
     'Schließen Sie die Anmeldung mit Google in Ihrem Browser ab.',
   'account.google.cancel': 'Abbrechen',
+  // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
+  'account.welcome.createTitle.one': 'Ihre {count} Szene wartet',
+  'account.welcome.createTitle.few': 'Ihre {count} Szenen warten',
+  'account.welcome.createTitle.many': 'Ihre {count} Szenen warten',
+  'account.welcome.createTitle.other': 'Ihre {count} Szenen warten',
+  'account.welcome.createLine.one':
+    'Ein kostenloses Konto startet mit {count} Credit. Er bringt Ihnen eine Szene, die Sie für immer behalten.',
+  'account.welcome.createLine.few':
+    'Ein kostenloses Konto startet mit {count} Credits. Jeder bringt Ihnen eine Szene, die Sie für immer behalten.',
+  'account.welcome.createLine.many':
+    'Ein kostenloses Konto startet mit {count} Credits. Jeder bringt Ihnen eine Szene, die Sie für immer behalten.',
+  'account.welcome.createLine.other':
+    'Ein kostenloses Konto startet mit {count} Credits. Jeder bringt Ihnen eine Szene, die Sie für immer behalten.',
+  'account.welcome.step.create': 'Konto erstellen',
+  'account.welcome.step.confirm': 'E-Mail bestätigen',
+  'account.welcome.step.pick.one': 'Ihre {count} Szene wählen',
+  'account.welcome.step.pick.few': 'Ihre {count} Szenen wählen',
+  'account.welcome.step.pick.many': 'Ihre {count} Szenen wählen',
+  'account.welcome.step.pick.other': 'Ihre {count} Szenen wählen',
+  'account.welcome.backTitle': 'Willkommen zurück',
+  'account.welcome.backLine':
+    'Ihre Szenen, Ihre Credits und Ihre Studio-Projekte sind da, wo Sie sie gelassen haben.',
+  'account.welcome.back.scenes':
+    'Ihre Szenen laufen auf jedem Computer, an dem Sie sich anmelden',
+  'account.welcome.back.credits': 'Ihre Credits, bereit zum Ausgeben',
+  'account.welcome.back.studio': 'Ihre Studio-Szenen und die Galerie',
+  'account.welcome.free':
+    'Der Equalizer und der Klang von FluidEQ bleiben kostenlos, mit oder ohne Konto.',
+  'account.google.note': 'Am schnellsten: ein Klick, kein Passwort zum Merken.',
+  'account.or.email': 'oder mit Ihrer E-Mail',
+  'account.signUp.withEmail': 'Konto mit E-Mail erstellen',
+  'account.signIn.withEmail': 'Mit E-Mail anmelden',
+  'account.signUp.terms':
+    'Mit dem Erstellen eines Kontos stimmen Sie den Bedingungen und der Datenschutzerklärung zu.',
+  'account.code.step': 'Schritt 2 von 3',
+  'account.code.title': 'Sehen Sie in Ihre E-Mails',
+  'account.code.confirmEmail': 'E-Mail bestätigen',
   'account.error.googleUnfinished':
     'Die Anmeldung mit Google wurde nicht abgeschlossen. Versuchen Sie es erneut oder verwenden Sie Ihre E-Mail-Adresse.',
   'account.google.doneTitle': 'Sie sind angemeldet',

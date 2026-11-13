@@ -1,9 +1,10 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import type { IAccountState } from 'main/account/session';
-import { CODE_LENGTH, MIN_PASSWORD_LENGTH } from 'common/accountRules';
+import { MIN_PASSWORD_LENGTH } from 'common/accountRules';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/AccountForms.scss';
 import useAccountValidation from './useAccountValidation';
+import CodeBoxes from './CodeBoxes';
 import GoogleSignIn from './GoogleSignIn';
 import {
   abandonAccountPending,
@@ -18,6 +19,8 @@ import {
 interface ISignInFormsProps {
   account: IAccountState;
   initialMode?: 'signIn' | 'signUp';
+  /** Told when a tab is pressed, so the rail beside the form follows it. */
+  onModeChange?: (mode: 'signIn' | 'signUp') => void;
 }
 
 /**
@@ -46,6 +49,7 @@ type TFormMode = 'signIn' | 'signUp' | 'forgot';
 export default function SignInForms({
   account,
   initialMode = 'signIn',
+  onModeChange,
 }: ISignInFormsProps) {
   const { t } = useTranslation();
   const ids = useId();
@@ -53,7 +57,6 @@ export default function SignInForms({
   useEffect(() => setMode(initialMode), [initialMode]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const firstField = useRef<HTMLInputElement>(null);
@@ -70,7 +73,7 @@ export default function SignInForms({
   const validation = useAccountValidation(ids, step, {
     email,
     password,
-    name,
+    name: '',
     code,
   });
 
@@ -171,32 +174,21 @@ export default function SignInForms({
   );
 
   const codeField = (
-    <label className="account-field" htmlFor={`${ids}-code`}>
-      <span className="account-field__label" id={`${ids}-code-label`}>
-        {t('account.field.code')}
-      </span>
-      <input
-        ref={firstField}
+    <>
+      <CodeBoxes
         id={`${ids}-code`}
-        aria-labelledby={validation.field('code')['aria-labelledby']}
-        aria-invalid={validation.field('code')['aria-invalid']}
-        aria-describedby={validation.field('code')['aria-describedby']}
-        onBlur={validation.field('code').onBlur}
-        className="account-field__code"
-        type="text"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        pattern="[0-9]*"
-        maxLength={CODE_LENGTH}
-        spellCheck={false}
+        labelId={`${ids}-code-label`}
+        label={t('account.field.code')}
         value={code}
         disabled={busy}
-        onChange={(event) =>
-          setCode(event.target.value.replace(/\D/g, '').slice(0, CODE_LENGTH))
-        }
+        inputRef={firstField}
+        invalid={validation.field('code')['aria-invalid']}
+        describedBy={validation.field('code')['aria-describedby']}
+        onBlur={validation.field('code').onBlur}
+        onChange={setCode}
       />
       {validation.message('code')}
-    </label>
+    </>
   );
 
   const abandon = (
@@ -240,18 +232,24 @@ export default function SignInForms({
             {t('account.error.network')}
           </p>
         )}
+        <span className="account-form__step">{t('account.code.step')}</span>
+        <h3 className="account-form__title">{t('account.code.title')}</h3>
         <p className="account-form__lead">
           {t('account.code.sent', { email: pending.email })}
         </p>
         {codeField}
-        <div className="account__actions">
-          <button type="submit" className="button small" disabled={busy}>
-            {working ? t('account.working') : t('account.code.confirm')}
-          </button>
+        <button
+          type="submit"
+          className="button account-form__loud"
+          disabled={busy}
+        >
+          {working ? t('account.working') : t('account.code.confirmEmail')}
+        </button>
+        <p className="account__hint">{t('account.code.hint')}</p>
+        <div className="account-form__links">
           {resend}
           {abandon}
         </div>
-        <p className="account__hint">{t('account.code.hint')}</p>
       </form>
     );
   }
@@ -323,7 +321,7 @@ export default function SignInForms({
 
   const tabs = (
     <div className="account-form__tabs" role="tablist">
-      {(['signIn', 'signUp'] as const).map((option) => (
+      {(['signUp', 'signIn'] as const).map((option) => (
         <button
           key={option}
           type="button"
@@ -334,6 +332,7 @@ export default function SignInForms({
           onClick={() => {
             validation.reset();
             setMode(option);
+            onModeChange?.(option);
           }}
         >
           {option === 'signIn' ? t('account.signIn') : t('account.signUp')}
@@ -352,7 +351,6 @@ export default function SignInForms({
             signUpAccount({
               email: email.trim(),
               password,
-              name: name.trim() || undefined,
             }),
           )
         }
@@ -364,37 +362,16 @@ export default function SignInForms({
         )}
         {tabs}
         <GoogleSignIn account={account} busy={busy} />
-        <label className="account-field" htmlFor={`${ids}-name`}>
-          <span className="account-field__label" id={`${ids}-name-label`}>
-            {t('account.field.name')}
-            <span className="account-field__hint">
-              {t('account.field.optional')}
-            </span>
-          </span>
-          <input
-            ref={firstField}
-            id={`${ids}-name`}
-            aria-labelledby={validation.field('name')['aria-labelledby']}
-            aria-invalid={validation.field('name')['aria-invalid']}
-            aria-describedby={validation.field('name')['aria-describedby']}
-            onBlur={validation.field('name').onBlur}
-            type="text"
-            autoComplete="nickname"
-            maxLength={80}
-            value={name}
-            disabled={busy}
-            onChange={(event) => setName(event.target.value)}
-          />
-          {validation.message('name')}
-        </label>
-        {emailField({ first: false, note: true })}
+        {emailField({ note: true })}
         {passwordField('new-password')}
-        <div className="account__actions">
-          <button type="submit" className="button small" disabled={busy}>
-            {working ? t('account.working') : t('account.signUp')}
-          </button>
-        </div>
-        <p className="account__hint">{t('account.signUpHint')}</p>
+        <button
+          type="submit"
+          className="button subtle account-form__quiet"
+          disabled={busy}
+        >
+          {working ? t('account.working') : t('account.signUp.withEmail')}
+        </button>
+        <p className="account__hint">{t('account.signUp.terms')}</p>
       </form>
     );
   }
@@ -416,20 +393,21 @@ export default function SignInForms({
       <GoogleSignIn account={account} busy={busy} />
       {emailField()}
       {passwordField('current-password')}
-      <div className="account__actions">
-        <button type="submit" className="button small" disabled={busy}>
-          {working ? t('account.working') : t('account.signIn')}
-        </button>
-        <button
-          type="button"
-          className="account-link"
-          disabled={busy}
-          onClick={() => setMode('forgot')}
-        >
-          {t('account.forgot.link')}
-        </button>
-      </div>
-      <p className="account__hint">{t('account.signInHint')}</p>
+      <button
+        type="submit"
+        className="button subtle account-form__quiet"
+        disabled={busy}
+      >
+        {working ? t('account.working') : t('account.signIn.withEmail')}
+      </button>
+      <button
+        type="button"
+        className="account-link account-form__forgot"
+        disabled={busy}
+        onClick={() => setMode('forgot')}
+      >
+        {t('account.forgot.link')}
+      </button>
     </form>
   );
 }
