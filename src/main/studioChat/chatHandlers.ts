@@ -23,6 +23,8 @@ interface IChatHandlersDeps {
   agentProject(): TAgentProject;
   isBusy(projectId: string): boolean;
   activeChat(): IStudioChat | undefined;
+  /** The member's model and effort for the open chat (`chatShown.ts`). */
+  setPicks(raw: unknown): void;
   send(raw: unknown): Promise<void>;
   compact(raw: unknown): Promise<void>;
   /** The update note asked of the chat, for the publish dialog. */
@@ -48,6 +50,7 @@ const registerChatHandlers = ({
   agentProject,
   isBusy,
   activeChat,
+  setPicks,
   send,
   compact,
   askForNote,
@@ -68,6 +71,7 @@ const registerChatHandlers = ({
     signInToClaudeCode().then(() => claudeCodeAvailability()),
   );
   handle('studio-chat-load', undefined, activeChat);
+  handle('studio-chat-picks', undefined, setPicks);
   handle('studio-chat-models', Promise.resolve(NO_STUDIO_CHAT_MODELS), models);
   handle('studio-chat-send', undefined, send);
   handle('studio-chat-compact', undefined, compact);

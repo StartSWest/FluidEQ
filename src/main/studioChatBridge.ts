@@ -7,6 +7,7 @@ import type {
   IStudioChatModels,
   IStudioChatMessage,
   IStudioChatPackAsk,
+  IStudioChatPicked,
   IStudioChatVideoAsk,
   IStudioChatPast,
   IStudioChatQueued,
@@ -40,6 +41,9 @@ const studioChatBridge = {
     ipcRenderer.invoke('studio-chat-models'),
   studioChatLoad: (): Promise<IStudioChat | undefined> =>
     ipcRenderer.invoke('studio-chat-load'),
+  /** The member's model and effort for a project's open chat, kept in it. */
+  studioChatPicks: (picked: IStudioChatPicked): Promise<void> =>
+    ipcRenderer.invoke('studio-chat-picks', picked),
   studioChatSend: (message: IStudioChatMessage): Promise<void> =>
     ipcRenderer.invoke('studio-chat-send', message),
   /** Claude Code's /compact, on the member's picks. */

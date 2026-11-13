@@ -8,7 +8,6 @@ import path from 'path';
 import type { BrowserWindow } from 'electron';
 import {
   isStudioChatModelOffered,
-  type IStudioChat,
   type TStudioChatEntry,
 } from '../../common/studioChat';
 import { createChatTargets, type IChatTarget } from './chatTargets';
@@ -27,6 +26,7 @@ import { createChatPictures } from './chatPictures';
 import type { IChatLauncher } from './chatProcess';
 import createChatQueue from './chatQueue';
 import createChatSessions from './chatSessions';
+import createChatShown from './chatShown';
 import createChatTurns from './chatTurns';
 import { readNoteFirst, readNoteTranslation } from './noteDue';
 import createChatUsage from './chatUsage';
@@ -417,25 +417,15 @@ export const createStudioChat = ({
     }
   };
 
-  /** A chat as the window shows it; its `projectId` is the chat's key. */
-  const chatOf = (chat: IChatTarget | undefined): IStudioChat | undefined => {
-    if (!chat) {
-      return undefined;
-    }
-    const { entries, context } = transcriptOf(chat.key);
-    // The reply being written joins the transcript only when it ends.
-    const reply = sessions.get(chat.key)?.reply;
-    const ask = pictures.asks.standing(chat.key);
-    const queued = queue.list(chat.key);
-    return {
-      projectId: chat.key,
-      entries: reply ? [...entries, { ...reply }] : entries,
-      busy: isBusy(chat.key),
-      ...(ask ? { ask } : {}),
-      ...(queued.length ? { queued } : {}),
-      ...(context ? { context } : {}),
-    };
-  };
+  const { chatOf, setPicks } = createChatShown({
+    transcriptOf,
+    save,
+    saveWith,
+    replyOf: (projectId) => sessions.get(projectId)?.reply,
+    isBusy,
+    standingAsk: pictures.asks.standing,
+    queuedOf: queue.list,
+  });
   const activeChat = () => chatOf(sceneChat());
 
   /**
@@ -468,6 +458,7 @@ export const createStudioChat = ({
     agentProject,
     isBusy,
     activeChat,
+    setPicks: (raw) => setPicks(sceneChat(), raw),
     send: (raw) => send(sceneChat(), raw),
     compact: (raw) => compact(sceneChat(), raw),
     askForNote: (raw) => askForNote(sceneChat(), raw),

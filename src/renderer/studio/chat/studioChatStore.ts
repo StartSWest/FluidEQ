@@ -18,7 +18,7 @@ import {
 } from 'common/studioChat';
 import { readStored, writeStored } from '../../utils/graphStorage';
 import chatBrief from './chatBrief';
-import { chatPicksOf, setChatModel } from './chatPicks';
+import { chatPicksOf, noteChatPicks, setChatModel } from './chatPicks';
 import packArtwork from './chatPack';
 import videoFrames from './chatVideo';
 
@@ -131,10 +131,22 @@ const initialState = (): IChatState => ({
 let state: IChatState = initialState();
 
 /**
- * The open scene's chat's own model and effort (`chatPicks.ts`): its key is
- * its project's id. Before its chat has loaded, the last pick made anywhere.
+ * The open chat's own model and effort (`chatPicks.ts`), which every chat
+ * main hands over is noted for (`taken`). Before a chat has loaded, the
+ * default a new chat starts on.
  */
 const scenePicks = () => chatPicksOf(state.chat?.projectId);
+
+/**
+ * A chat as main handed it over, its picks noted on the way in. `fresh`: it
+ * began a moment ago and never stood on any picks (`noteChatPicks`).
+ */
+const taken = (chat: IStudioChat | undefined, fresh = false) => {
+  if (chat) {
+    noteChatPicks(chat, fresh);
+  }
+  return chat ?? undefined;
+};
 const listeners = new Set<() => void>();
 let unlisten: (() => void) | undefined;
 
@@ -306,7 +318,7 @@ export const loadStudioChat = async () => {
         chat.ask !== undefined,
       )
     : state.work;
-  set({ chat: chat ?? undefined, ask: chat?.ask, work });
+  set({ chat: taken(chat), ask: chat?.ask, work });
 };
 
 /** The Claude plan's limits as last reported, kept from earlier sittings too. */
@@ -403,9 +415,14 @@ export const unqueueStudioChat = (id: string) =>
 export const stopStudioChat = () =>
   bridge()?.studioChatStop?.() ?? Promise.resolve();
 
+/**
+ * A new chat in place of the open one, on the default model and effort
+ * whatever the chat before it was on. Where main kept the open one (a reply
+ * is running) it comes back with its own picks, and those stay.
+ */
 export const newStudioChat = async () => {
   const chat = await bridge()?.studioChatNew?.();
-  set({ chat: chat ?? undefined, ask: chat?.ask });
+  set({ chat: taken(chat, true), ask: chat?.ask });
 };
 
 /** The open project's earlier chats, asked again each time they are shown. */
@@ -417,8 +434,13 @@ export const loadPastStudioChats = async () => {
 
 /** An earlier chat in place of the open one, which joins the list. */
 export const openPastStudioChat = async (id: string) => {
+  // One Claude Code kept on its own was never a chat here: it starts on the
+  // default, where one of FluidEQ's from before the chats kept their picks
+  // takes what it stood on.
+  const fresh =
+    state.past?.find((past) => past.id === id)?.source === 'claude-code';
   const chat = await bridge()?.studioChatOpenPast?.(id);
-  set({ chat: chat ?? undefined, ask: chat?.ask });
+  set({ chat: taken(chat, fresh), ask: chat?.ask });
 };
 
 export const deletePastStudioChat = async (id: string) => {

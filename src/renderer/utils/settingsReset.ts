@@ -105,8 +105,10 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.studio.stageRatio',
   // Whether a new project's starter has its parts labelled on the stage.
   'fluideq.studio.starterLabels',
-  // Its chat: folded or not, its width and zoom, the model and effort asked,
-  // and each chat's own model and effort (`chatPicks.ts`).
+  // Its chat: folded or not, its width and zoom, and the model and effort
+  // older chats stood on before each chat kept its own (`chatPicks.ts`,
+  // only read now). A chat's own model and effort are in the chat, with its
+  // messages, and are no setting.
   'fluideq.studio.chatFolded',
   'fluideq.studio.chatWidth',
   'fluideq.studio.fullscreenChatWidth',

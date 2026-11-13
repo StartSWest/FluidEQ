@@ -111,6 +111,8 @@ export interface IStudioChat {
   queued?: IStudioChatQueued[];
   /** How full Claude's context window is, as of the last reply. */
   context?: IStudioChatContext;
+  /** This chat's own model and effort; none until it has been given any. */
+  picks?: IStudioChatPicks;
 }
 
 /**
@@ -300,6 +302,39 @@ export const isStudioChatEffort = (
 ): value is TStudioChatEffort =>
   typeof value === 'string' &&
   (STUDIO_CHAT_EFFORTS as readonly string[]).includes(value);
+
+/**
+ * A chat's own model and effort, kept in the chat itself (Ivan, 2026-11-13:
+ * "when I change the model it changes in all the chats, not good"; "solo es
+ * por chat"). They were kept by project in the window, and a chat nobody had
+ * picked for read the last pick made anywhere each time it was shown: one
+ * pick moved every such chat, and a project's new chat and its earlier ones
+ * shared one pick. In the chat's own file they go aside with it and come
+ * back with it, and no pick is kept anywhere another chat reads.
+ */
+export interface IStudioChatPicks {
+  model: TStudioChatModel;
+  effort: TStudioChatEffort;
+}
+
+/** Picks as a file or the window gave them, or undefined when they are not. */
+export const readStudioChatPicks = (
+  raw: unknown,
+): IStudioChatPicks | undefined => {
+  if (typeof raw !== 'object' || raw === null) {
+    return undefined;
+  }
+  const { model, effort } = raw as Partial<IStudioChatPicks>;
+  return isStudioChatModel(model) && isStudioChatEffort(effort)
+    ? { model, effort }
+    : undefined;
+};
+
+/** What the window sends when the member picks for a project's open chat. */
+export interface IStudioChatPicked extends IStudioChatPicks {
+  /** The project the pick was made on: main takes it for that one only. */
+  projectId: string;
+}
 
 /**
  * An earlier chat on the open project: one FluidEQ moved aside when a new

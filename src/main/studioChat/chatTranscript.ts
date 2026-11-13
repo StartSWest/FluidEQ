@@ -6,11 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
-import type {
-  IStudioChatContext,
-  IStudioChatStep,
-  TStudioChatEntry,
-  TStudioChatFailure,
+import {
+  readStudioChatPicks,
+  type IStudioChatContext,
+  type IStudioChatPicks,
+  type IStudioChatStep,
+  type TStudioChatEntry,
+  type TStudioChatFailure,
 } from '../../common/studioChat';
 import writeFileAtomically from '../atomicWrite';
 import { readChatContext } from './chatUsage';
@@ -29,6 +31,11 @@ export interface IChatTranscript {
   entries: TStudioChatEntry[];
   /** How full the session's context window was at its last message. */
   context?: IStudioChatContext;
+  /**
+   * The chat's own model and effort (`IStudioChatPicks`): in its file, so
+   * they go aside with it and come back with it (`pastChats.ts`).
+   */
+  picks?: IStudioChatPicks;
 }
 
 /** A long chat keeps its latest entries; the session itself keeps the rest. */
@@ -182,8 +189,10 @@ export const createTranscripts = (root: string) => {
         return { entries: [] };
       }
       const context = readChatContext(raw.context);
+      const picks = readStudioChatPicks(raw.picks);
       return {
         ...(context ? { context } : {}),
+        ...(picks ? { picks } : {}),
         ...(typeof raw.sessionId === 'string' &&
         /^[A-Za-z0-9-]{8,64}$/.test(raw.sessionId)
           ? { sessionId: raw.sessionId }
