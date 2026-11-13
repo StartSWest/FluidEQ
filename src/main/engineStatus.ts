@@ -538,12 +538,19 @@ const probeApoInstalled = async (): Promise<boolean> => {
  *
  * Anything that cannot be read is "no": the notice this feeds asks for a
  * Windows prompt, and has to be sure there is something to install first.
+ *
+ * Never from the bridge (`pnpm package:bridge`), the unsigned build that
+ * 2.4 copies cross through to the signed line. Its helper is unsigned, so
+ * the prompt it would put up says "Unknown publisher" — what got 2.5.0 taken
+ * back — over an engine that is not even the signed one. The bridge updates
+ * itself to the signed release, and that release offers its signed engine.
  */
 export const readFluidEngineUpdateReady = async (
   fluid: IFluidEngineStatus,
   bundleDir: string = path.dirname(getEngineSetupPath()),
+  isBridge: boolean = process.env.FLUIDEQ_UPDATE_BRIDGE === '1',
 ): Promise<boolean> => {
-  if (!fluid.installed || !fluid.dllPath) {
+  if (isBridge || !fluid.installed || !fluid.dllPath) {
     return false;
   }
   try {

@@ -221,6 +221,21 @@ describe('readFluidEngineUpdateReady', () => {
     );
   });
 
+  // The bridge's helper is unsigned: its prompt says "Unknown publisher",
+  // which is what had 2.5.0 taken back. The signed release it crosses to
+  // offers the engine instead.
+  it('offers nothing from the bridge, however the engines differ', async () => {
+    put(installed, ENGINE, 'engine v1');
+    put(installed, RUNTIME, 'runtime');
+    await expect(
+      readFluidEngineUpdateReady(status(), bundle, true),
+    ).resolves.toBe(false);
+    // The control: the same folders from a release build are a yes.
+    await expect(
+      readFluidEngineUpdateReady(status(), bundle, false),
+    ).resolves.toBe(true);
+  });
+
   it('offers nothing when the helper says no engine is installed', async () => {
     put(installed, ENGINE, 'engine v1');
     await expect(
