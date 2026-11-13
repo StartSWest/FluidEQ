@@ -28,7 +28,7 @@ import type { IChatLauncher } from './chatProcess';
 import createChatQueue from './chatQueue';
 import createChatSessions from './chatSessions';
 import createChatTurns from './chatTurns';
-import { readNoteTranslation } from './noteDue';
+import { readNoteFirst, readNoteTranslation } from './noteDue';
 import createChatUsage from './chatUsage';
 import createUsageRead from './chatUsageRead';
 import createChatWindow from './chatWindow';
@@ -303,8 +303,8 @@ export const createStudioChat = ({
   };
 
   /**
-   * The publish dialog met an update with no note: the scene's chat asked
-   * to write it, on the member's picks, as FluidEQ and not in their name.
+   * The publish dialog met a publication with no note, a first version as
+   * much as an update: the scene's chat asked to write it, on the member's picks, as FluidEQ and not in their name.
    * True when the ask went; false with nothing to ask (no conversation yet,
    * Claude Code missing) or a reply running, whose end asks by itself.
    */
@@ -322,7 +322,9 @@ export const createStudioChat = ({
     }
     const session = await sessionFor(chat.key, chat.folder, picks);
     const translation = readNoteTranslation(raw);
-    return session ? turns.askForNote(chat.key, session, translation) : false;
+    return session
+      ? turns.askForNote(chat.key, session, translation, readNoteFirst(raw))
+      : false;
   };
 
   /**

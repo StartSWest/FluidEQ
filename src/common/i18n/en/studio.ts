@@ -194,6 +194,12 @@ const studio = {
   'studio.publish.categoryHint': 'Up to two. Its card shows the first.',
   'studio.publish.pickCategory': 'Choose a category first',
   'studio.publish.needNote': 'Say what is new in this version first',
+  'studio.publish.noteFirst': 'About this scene',
+  'studio.publish.notePlaceholderFirst':
+    'One line listeners will see, like: a lighthouse whose beam sweeps with the bass',
+  'studio.publish.noteWritingFirst':
+    'Your scene’s chat is writing what the scene is…',
+  'studio.publish.needNoteFirst': 'Say what the scene is first',
   'studio.publish.noteYours': 'yours',
   'studio.publish.noteFallback': 'for any language left out',
   'studio.publish.noteFollows': 'follows your line when you send',

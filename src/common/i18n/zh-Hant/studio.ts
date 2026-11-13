@@ -169,6 +169,11 @@ const studio = {
   'studio.publish.categoryHint': '最多兩個。它的卡片顯示第一個。',
   'studio.publish.pickCategory': '首先選擇一個類別',
   'studio.publish.needNote': '先說一下這個版本有什麼新內容',
+  'studio.publish.noteFirst': '關於這個場景',
+  'studio.publish.notePlaceholderFirst':
+    '聽眾會看到的一行字，例如：一座燈塔，光束隨低音掃過',
+  'studio.publish.noteWritingFirst': '你的場景聊天正在寫這個場景是什麼…',
+  'studio.publish.needNoteFirst': '請先說明這個場景是什麼',
   'studio.publish.noteYours': '你的語言',
   'studio.publish.noteFallback': '用於缺少的任何語言',
   'studio.publish.noteFollows': '傳送時會按你的這句重寫',

@@ -18,6 +18,7 @@ import {
   type TVersionNoteLocale,
   type TVersionNotes,
 } from 'common/sceneVersionNote';
+import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import {
   languageName,
@@ -54,7 +55,33 @@ export const useOfferedLines = (
   return [state, setState];
 };
 
+/**
+ * What the box says, for the publication it is in: a first version says
+ * what the scene is, an update what changed (`StudioPublishDialog`).
+ */
+export interface INoteWords {
+  label: TranslationKey;
+  placeholder: TranslationKey;
+  writing: TranslationKey;
+  missing: TranslationKey;
+}
+
+export const UPDATE_NOTE_WORDS: INoteWords = {
+  label: 'studio.publish.note',
+  placeholder: 'studio.publish.notePlaceholder',
+  writing: 'studio.publish.noteWriting',
+  missing: 'studio.publish.needNote',
+};
+
+export const FIRST_NOTE_WORDS: INoteWords = {
+  label: 'studio.publish.noteFirst',
+  placeholder: 'studio.publish.notePlaceholderFirst',
+  writing: 'studio.publish.noteWritingFirst',
+  missing: 'studio.publish.needNoteFirst',
+};
+
 interface IStudioPublishNoteProps {
+  words: INoteWords;
   state: INoteLines;
   setState: Dispatch<SetStateAction<INoteLines>>;
   /** The language the member reads FluidEQ in, as a note's language. */
@@ -80,6 +107,7 @@ interface IStudioPublishNoteProps {
  * left out reads.
  */
 export default function StudioPublishNote({
+  words,
   state,
   setState,
   mine,
@@ -116,7 +144,7 @@ export default function StudioPublishNote({
     <div className="studio-publish__note">
       <span className="studio-publish__note-head">
         <span className="gallery-dialog__label" id={`${mineId}-label`}>
-          {t('studio.publish.note')}
+          {t(words.label)}
         </span>
         {/* Said before the press as well as after it: the quiet word is
             what stops the red one ever being needed. */}
@@ -169,9 +197,7 @@ export default function StudioPublishNote({
               aria-required={isMine}
               aria-invalid={isMine && missing}
               aria-describedby={isMine && missing ? noteWrongId : undefined}
-              placeholder={
-                isMine ? t('studio.publish.notePlaceholder') : undefined
-              }
+              placeholder={isMine ? t(words.placeholder) : undefined}
               onChange={(event) => type(locale, event.target.value)}
             />
           </div>
@@ -212,12 +238,12 @@ export default function StudioPublishNote({
             <i />
             <i />
           </span>
-          {t('studio.publish.noteWriting')}
+          {t(words.writing)}
         </p>
       )}
       {missing && (
         <p id={noteWrongId} className="studio-publish__note-wrong" role="alert">
-          {t('studio.publish.needNote')}
+          {t(words.missing)}
         </p>
       )}
     </div>

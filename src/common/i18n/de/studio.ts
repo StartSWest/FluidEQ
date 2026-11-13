@@ -192,6 +192,12 @@ const studio = {
   'studio.publish.categoryHint': 'Bis zu zwei. Die Karte zeigt die erste.',
   'studio.publish.pickCategory': 'Wählen Sie zuerst eine Kategorie',
   'studio.publish.needNote': 'Sagen Sie zuerst, was in dieser Version neu ist',
+  'studio.publish.noteFirst': 'Über diese Szene',
+  'studio.publish.notePlaceholderFirst':
+    'Eine Zeile, die Hörer sehen, etwa: ein Leuchtturm, dessen Strahl mit dem Bass schwenkt',
+  'studio.publish.noteWritingFirst':
+    'Der Chat Ihrer Szene schreibt, was die Szene ist…',
+  'studio.publish.needNoteFirst': 'Sagen Sie zuerst, was die Szene ist',
   'studio.publish.noteYours': 'Ihre',
   'studio.publish.noteFallback': 'für jede nicht enthaltene Sprache',
   'studio.publish.noteFollows': 'folgt beim Senden Ihrer Zeile',

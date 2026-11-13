@@ -184,6 +184,12 @@ const studio = {
   'studio.publish.categoryHint': '최대 2개. 카드에 첫 번째가 표시됩니다.',
   'studio.publish.pickCategory': '먼저 카테고리를 선택하세요',
   'studio.publish.needNote': '먼저 이 버전의 새로운 기능을 말해보세요.',
+  'studio.publish.noteFirst': '이 장면에 대해',
+  'studio.publish.notePlaceholderFirst':
+    '청취자가 보게 될 한 줄, 예: 베이스에 맞춰 빛이 휩쓰는 등대',
+  'studio.publish.noteWritingFirst':
+    '장면의 채팅이 이 장면이 무엇인지 쓰는 중입니다…',
+  'studio.publish.needNoteFirst': '먼저 이 장면이 무엇인지 적어 주세요',
   'studio.publish.noteYours': '내 언어',
   'studio.publish.noteFallback': '빠진 언어에 대신 표시',
   'studio.publish.noteFollows': '보낼 때 내 문장에 맞춰 다시 쓰입니다',

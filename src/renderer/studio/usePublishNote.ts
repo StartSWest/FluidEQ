@@ -24,8 +24,9 @@ import type { IPublishDraft } from './useStudioPublish';
  *
  * While the dialog is open, every reply the project's chat finishes has the
  * notes read again, and the lines they carry are offered (the dialog keeps
- * what the member typed: `publishNoteLines.ts`). An update that opens with
- * no line asks the scene's chat to write one, shown as being written until
+ * what the member typed: `publishNoteLines.ts`). A publication that opens
+ * with no line, a first version as much as an update, asks the scene's chat
+ * to write one, shown as being written until
  * that reply ends. A line the member changed is handed to the chat to write
  * in every language at Send (`translate`), and the reply's end is the
  * signal the dialog sends on: never a wait of its own.
@@ -70,8 +71,9 @@ export default function usePublishNote(
     const still = () =>
       opening.current === mine ? currentDraft.current : undefined;
     const opened = currentDraft.current;
-    if (opened?.published && !opened.suggestedNotes) {
-      askStudioChatForNote()
+    // Every publication: a first version's line says what the scene is.
+    if (opened && !opened.suggestedNotes) {
+      askStudioChatForNote({ first: !opened.published })
         .then((asked) => {
           const now = still();
           if (asked && now && !now.suggestedNotes) {

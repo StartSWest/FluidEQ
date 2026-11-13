@@ -53,6 +53,8 @@ const studioChatBridge = {
   studioChatAskNote: (
     picks: IStudioChatCompact & {
       translate?: { line: string; from: string };
+      /** A first publication: what the scene is, not what changed. */
+      first?: true;
     },
   ): Promise<boolean> => ipcRenderer.invoke('studio-chat-ask-note', picks),
   /** The failed reply at the end of the chat, answered again in its place. */

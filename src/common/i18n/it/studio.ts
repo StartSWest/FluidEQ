@@ -189,6 +189,12 @@ const studio = {
   'studio.publish.categoryHint': 'Fino a due. La scheda mostra la prima.',
   'studio.publish.pickCategory': 'Scegli prima una categoria',
   'studio.publish.needNote': 'Dì prima cosa c’è di nuovo in questa versione',
+  'studio.publish.noteFirst': 'Su questa scena',
+  'studio.publish.notePlaceholderFirst':
+    'Una riga che vedranno gli ascoltatori, ad esempio: un faro il cui fascio ruota con i bassi',
+  'studio.publish.noteWritingFirst':
+    'La chat della tua scena sta scrivendo cos’è la scena…',
+  'studio.publish.needNoteFirst': 'Prima di’ cos’è la scena',
   'studio.publish.noteYours': 'la tua',
   'studio.publish.noteFallback': 'per ogni lingua mancante',
   'studio.publish.noteFollows': 'seguirà la tua riga all’invio',

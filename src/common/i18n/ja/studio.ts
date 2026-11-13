@@ -188,6 +188,12 @@ const studio = {
   'studio.publish.categoryHint': '2つまで。カードには1つ目が表示されます。',
   'studio.publish.pickCategory': '先にカテゴリを選んでください',
   'studio.publish.needNote': '先にこのバージョンの新しい点を書いてください',
+  'studio.publish.noteFirst': 'このシーンについて',
+  'studio.publish.notePlaceholderFirst':
+    'リスナーが目にする1行。例：ベースに合わせて光が回る灯台',
+  'studio.publish.noteWritingFirst':
+    'シーンのチャットが、このシーンが何かを書いています…',
+  'studio.publish.needNoteFirst': 'まず、このシーンが何かを書いてください',
   'studio.publish.noteYours': 'あなたの言語',
   'studio.publish.noteFallback': 'ほかの言語がないときに表示',
   'studio.publish.noteFollows': '送信時にあなたの文に合わせて書き直されます',

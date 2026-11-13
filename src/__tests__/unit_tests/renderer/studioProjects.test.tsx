@@ -265,6 +265,9 @@ describe('the publish dialog', () => {
     params: [],
   };
 
+  // A first publication's line in every language, as the chat writes it
+  // (Ivan, 2026-11-13: required "even on first version").
+  const FIRST_LINE = notesAsWritten('Neon rain over the signs');
   const draft = (over: Partial<IPublishDraft> = {}): IPublishDraft => ({
     shots: [
       {
@@ -292,7 +295,7 @@ describe('the publish dialog', () => {
         tuning={{}}
         onCapture={jest.fn()}
         onChoose={jest.fn()}
-        draft={draft()}
+        draft={draft({ suggestedNotes: FIRST_LINE })}
         running={false}
         onPublish={onPublish}
         onTranslateNote={jest.fn().mockResolvedValue(false)}
@@ -314,7 +317,7 @@ describe('the publish dialog', () => {
     expect(onPublish).toHaveBeenCalledWith(
       'space',
       undefined,
-      undefined,
+      FIRST_LINE,
       expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
   });
@@ -352,7 +355,7 @@ describe('the publish dialog', () => {
         tuning={{}}
         onCapture={jest.fn()}
         onChoose={jest.fn()}
-        draft={draft()}
+        draft={draft({ suggestedNotes: FIRST_LINE })}
         running={false}
         onPublish={onPublish}
         onTranslateNote={jest.fn().mockResolvedValue(false)}
@@ -377,12 +380,12 @@ describe('the publish dialog', () => {
     expect(onPublish).toHaveBeenCalledWith(
       'space',
       undefined,
-      undefined,
+      FIRST_LINE,
       expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
   });
 
-  it('asks what is new only of an update, and sends it with the publication', async () => {
+  it('asks an update what is new, and sends it with the publication', async () => {
     const onPublish = jest.fn();
     const onTranslateNote = jest.fn().mockResolvedValue(false);
     const published = {
@@ -446,7 +449,7 @@ describe('the publish dialog', () => {
         tuning={{}}
         onCapture={jest.fn()}
         onChoose={jest.fn()}
-        draft={draft()}
+        draft={draft({ suggestedNotes: FIRST_LINE })}
         running={false}
         onPublish={onPublish}
         onTranslateNote={jest.fn().mockResolvedValue(false)}
@@ -471,7 +474,7 @@ describe('the publish dialog', () => {
     expect(onPublish).toHaveBeenLastCalledWith(
       'cities',
       'space',
-      undefined,
+      FIRST_LINE,
       expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
     // Unpicking the first moves the second up.
@@ -482,7 +485,7 @@ describe('the publish dialog', () => {
     expect(onPublish).toHaveBeenLastCalledWith(
       'space',
       undefined,
-      undefined,
+      FIRST_LINE,
       expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
   });

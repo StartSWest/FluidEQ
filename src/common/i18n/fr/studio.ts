@@ -192,6 +192,12 @@ const studio = {
   'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
   'studio.publish.needNote':
     'Dites d’abord ce qui est nouveau dans cette version',
+  'studio.publish.noteFirst': 'À propos de cette scène',
+  'studio.publish.notePlaceholderFirst':
+    'Une ligne que les auditeurs verront, par exemple : un phare dont le faisceau balaie au rythme des basses',
+  'studio.publish.noteWritingFirst':
+    'Le chat de votre scène écrit ce qu’est la scène…',
+  'studio.publish.needNoteFirst': 'Dites d’abord ce qu’est la scène',
   'studio.publish.noteYours': 'la vôtre',
   'studio.publish.noteFallback': 'pour toute langue absente',
   'studio.publish.noteFollows': 'suivra votre ligne à l’envoi',

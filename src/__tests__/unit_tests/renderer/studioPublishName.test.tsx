@@ -117,7 +117,11 @@ describe('the gallery name in the publish dialog', () => {
       document.querySelector('.studio-publish__body--named'),
     ).not.toBeNull();
     expect(send()).toBeDisabled();
-    expect(send()).toHaveAttribute('title', 'profile.name.choose');
+    // Said in the footer, where it is seen: nobody hovers a disabled button.
+    expect(document.querySelector('.studio-publish__held')).toHaveTextContent(
+      'profile.name.choose',
+    );
+    expect(send()).not.toHaveAttribute('title');
   });
 
   it('is never asked of an account that has one, whose send is ready', async () => {

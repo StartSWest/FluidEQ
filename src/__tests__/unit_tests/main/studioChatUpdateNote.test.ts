@@ -27,7 +27,9 @@ import type { IChatSession } from '../../../main/studioChat/chatLaunch';
 import createChatQueue from '../../../main/studioChat/chatQueue';
 import createChatTurns from '../../../main/studioChat/chatTurns';
 import {
+  FIRST_VERSION_NOTE_ASK,
   noteDue,
+  readNoteFirst,
   readNoteTranslation,
   VERSION_NOTE_ASK,
 } from '../../../main/studioChat/noteDue';
@@ -190,6 +192,23 @@ describe('the publish dialog asking the chat for the note', () => {
     const { said, turns, session } = setUp();
     expect(turns.askForNote(PROJECT, session)).toBe(true);
     expect(said()).toEqual([VERSION_NOTE_ASK]);
+  });
+
+  // Ivan, 2026-11-13: required "even on first version". There is nothing to
+  // be new against, so the chat is asked what the scene is.
+  it('asks a first publication for what the scene is, never what changed', () => {
+    const { said, turns, session } = setUp();
+    expect(turns.askForNote(PROJECT, session, undefined, true)).toBe(true);
+    expect(said()).toEqual([FIRST_VERSION_NOTE_ASK]);
+    expect(FIRST_VERSION_NOTE_ASK).toContain('first time');
+    expect(FIRST_VERSION_NOTE_ASK).not.toContain('has changed');
+  });
+
+  it('reads a first publication from the window’s ask, and nothing else as one', () => {
+    expect(readNoteFirst({ first: true })).toBe(true);
+    expect(readNoteFirst({ first: 'yes' })).toBe(false);
+    expect(readNoteFirst({})).toBe(false);
+    expect(readNoteFirst(undefined)).toBe(false);
   });
 
   it('asks once, even over a turn still owing its note', () => {

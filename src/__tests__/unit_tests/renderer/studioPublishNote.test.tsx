@@ -16,12 +16,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * must not.
  */
 
-const askStudioChatForNote = jest.fn(() => Promise.resolve(true));
+const askStudioChatForNote = jest.fn((_ask: { first: boolean }) =>
+  Promise.resolve(true),
+);
 const askStudioChatToTranslateNote = jest.fn((_line: string, _from: string) =>
   Promise.resolve(true),
 );
 jest.mock('../../../renderer/studio/chat/studioChatStore', () => ({
-  askStudioChatForNote: () => askStudioChatForNote(),
+  askStudioChatForNote: (ask: { first: boolean }) => askStudioChatForNote(ask),
   askStudioChatToTranslateNote: (line: string, from: string) =>
     askStudioChatToTranslateNote(line, from),
 }));
@@ -44,6 +46,7 @@ import type {
 } from '../../../common/sceneVersionNote';
 import type { IStudioNotes } from '../../../common/studioNotes';
 import StudioPublishNote, {
+  UPDATE_NOTE_WORDS,
   useOfferedLines,
 } from '../../../renderer/studio/StudioPublishNote';
 import usePublishNote, {
@@ -69,6 +72,7 @@ function Box({
   const noteRef = useRef<HTMLTextAreaElement>(null);
   return (
     <StudioPublishNote
+      words={UPDATE_NOTE_WORDS}
       state={state}
       setState={setState}
       mine={mine}
@@ -280,6 +284,7 @@ describe('the dialog’s line, from the chat and the notes', () => {
     });
     await act(async () => undefined);
     expect(askStudioChatForNote).toHaveBeenCalledTimes(1);
+    expect(askStudioChatForNote).toHaveBeenCalledWith({ first: false });
     expect(now()?.noteWriting).toBe(true);
     await replyEnds();
     expect(now()?.suggestedNotes).toEqual(
@@ -294,10 +299,13 @@ describe('the dialog’s line, from the chat and the notes', () => {
     expect(askStudioChatForNote).not.toHaveBeenCalled();
   });
 
-  it('asks nothing of a first publication', async () => {
-    setUp(opened());
+  // Ivan, 2026-11-13: the line is required "even on first version", and it
+  // arrives written there too — what the scene is, not what changed.
+  it('asks the chat for a first publication’s line too, as a first version', async () => {
+    const { now } = setUp(opened());
     await act(async () => undefined);
-    expect(askStudioChatForNote).not.toHaveBeenCalled();
+    expect(askStudioChatForNote).toHaveBeenCalledWith({ first: true });
+    expect(now()?.noteWriting).toBe(true);
   });
 
   it('reads the notes again when any reply of the project ends, and only then', async () => {

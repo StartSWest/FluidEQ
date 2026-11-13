@@ -185,6 +185,11 @@ const studio = {
   'studio.publish.categoryHint': 'Не больше двух. На карточке видна первая.',
   'studio.publish.pickCategory': 'Сначала выберите категорию',
   'studio.publish.needNote': 'Сначала напишите, что нового в этой версии',
+  'studio.publish.noteFirst': 'Об этой сцене',
+  'studio.publish.notePlaceholderFirst':
+    'Одна строка, которую увидят слушатели, например: маяк, чей луч движется в такт басу',
+  'studio.publish.noteWritingFirst': 'Чат вашей сцены пишет, что это за сцена…',
+  'studio.publish.needNoteFirst': 'Сначала скажите, что это за сцена',
   'studio.publish.noteYours': 'ваш язык',
   'studio.publish.noteFallback': 'для любого языка, которого нет',
   'studio.publish.noteFollows': 'при отправке будет по вашей строке',

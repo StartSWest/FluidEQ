@@ -187,6 +187,12 @@ const studio = {
   'studio.publish.categoryHint': 'अधिकतम दो। इसके कार्ड पर पहली दिखती है।',
   'studio.publish.pickCategory': 'पहले एक श्रेणी चुनें',
   'studio.publish.needNote': 'पहले बताएँ कि इस संस्करण में नया क्या है',
+  'studio.publish.noteFirst': 'इस सीन के बारे में',
+  'studio.publish.notePlaceholderFirst':
+    'एक पंक्ति जो सुनने वाले देखेंगे, जैसे: एक लाइटहाउस जिसकी रोशनी बेस के साथ घूमती है',
+  'studio.publish.noteWritingFirst':
+    'आपके सीन की चैट लिख रही है कि यह सीन क्या है…',
+  'studio.publish.needNoteFirst': 'पहले बताएँ कि यह सीन क्या है',
   'studio.publish.noteYours': 'आपकी',
   'studio.publish.noteFallback': 'छूटी हुई किसी भी भाषा के लिए',
   'studio.publish.noteFollows': 'भेजते समय आपकी पंक्ति के अनुसार बनेगी',

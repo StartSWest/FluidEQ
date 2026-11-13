@@ -9,7 +9,11 @@ import { useAccount } from '../account/accountStore';
 import ProfileNameForm from '../account/ProfileNameForm';
 import { createProfile, usePublicIdentity } from '../plus/profileStore';
 import DialogFrame from '../components/DialogFrame';
-import StudioPublishNote, { useOfferedLines } from './StudioPublishNote';
+import StudioPublishNote, {
+  FIRST_NOTE_WORDS,
+  UPDATE_NOTE_WORDS,
+  useOfferedLines,
+} from './StudioPublishNote';
 import { noteLocaleOf, sourceOf } from './publishNoteLines';
 import usePublishNoteSend from './usePublishNoteSend';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -79,9 +83,12 @@ interface IStudioPublishDialogProps {
  * A third pick takes the second's place, so the first stays put. Publish is
  * disabled until one is picked; an update starts on the ones the scene has.
  *
- * An update also says which version is in the gallery now, and takes one line
- * about what changed — what listeners read on the scene's page and on the
- * notice when the look they use updates.
+ * Every publication takes one line, a first version included (Ivan,
+ * 2026-11-13: "notes needs to be exiged always", "even on first version"):
+ * for a first version what the scene is, the first entry on its versions
+ * page; for an update what changed, read on the scene's page and on the
+ * notice when the look a listener uses updates. An update also says which
+ * version is in the gallery now.
  */
 export default function StudioPublishDialog({
   identity,
@@ -197,8 +204,7 @@ export default function StudioPublishDialog({
 
   const update = draft.published !== undefined;
   // The scene's chat writing or translating the line: Send waits for it.
-  const waiting =
-    update && (noteSend.translating !== undefined || noteSend.writing);
+  const waiting = noteSend.translating !== undefined || noteSend.writing;
   // What holds the press back, said on the button rather than after it.
   const pressHeld =
     !category ||
@@ -207,12 +213,10 @@ export default function StudioPublishDialog({
     running ||
     tooLarge ||
     publicName.missing;
-  // A new version people already have goes out with a line saying what
-  // changed, always: the update notice and the versions page are built around
-  // it, and without one a listener is asked to take a new version on trust.
-  // A first publication has nothing to be new against, so it is not asked.
-  const needsNote =
-    update && !noteLines.lines[sourceOf(noteLines, mine)].trim();
+  // Every publication goes out with its line: what changed for an update,
+  // which the update notice and the versions page are built around, and
+  // what the scene is for a first version, the first entry on that page.
+  const needsNote = !noteLines.lines[sourceOf(noteLines, mine)].trim();
   // A member's publication waits for the admin before anybody sees it
   // (server migration 0037), and the dialog says so before the press rather
   // than after it: the button sends it for review, and the first point says
@@ -228,6 +232,21 @@ export default function StudioPublishDialog({
     publishHint = t('studio.publish.videoRequired');
   } else if (!category) {
     publishHint = t('studio.publish.pickCategory');
+  }
+  // What still holds Send, said in the footer in its quiet voice: the
+  // reason used to live in the button's tooltip alone, and nobody hovers a
+  // disabled button — Ivan read the button as dead (2026-11-13). The line's
+  // own red word still waits for the press (`noteMissing`), and while the
+  // chat writes it the box says so itself, with its working dots.
+  let stillNeeded: string | undefined;
+  if (publicName.missing) {
+    stillNeeded = t('profile.name.choose');
+  } else if (publishHint) {
+    stillNeeded = publishHint;
+  } else if (needsNote && !noteMissing && !waiting) {
+    stillNeeded = t(
+      update ? 'studio.publish.needNote' : 'studio.publish.needNoteFirst',
+    );
   }
   let go: string;
   if (!draft.agreed) {
@@ -346,6 +365,11 @@ export default function StudioPublishDialog({
               {t('studio.publish.read')}
             </button>
             <div className="dialog-frame__actions">
+              {stillNeeded && !running && (
+                <p className="studio-publish__held" role="status">
+                  {stillNeeded}
+                </p>
+              )}
               <button
                 type="button"
                 className="button small subtle"
@@ -370,9 +394,6 @@ export default function StudioPublishDialog({
                 className={`button small${running ? ' is-running' : ''}`}
                 aria-busy={running}
                 disabled={pressHeld || waiting}
-                title={
-                  publicName.missing ? t('profile.name.choose') : publishHint
-                }
                 onClick={() => {
                   if (pressHeld || !category || !preview) {
                     return;
@@ -387,10 +408,6 @@ export default function StudioPublishDialog({
                     pack: publicationPack,
                     sourceVersion: pack.version,
                   };
-                  if (!update) {
-                    onPublish(category, category2, undefined, prepared);
-                    return;
-                  }
                   noteSend.press((notes) =>
                     onPublish(category, category2, notes, prepared),
                   );
@@ -473,20 +490,19 @@ export default function StudioPublishDialog({
 
           <StudioPublishSize size={size} />
 
-          {update && (
-            <StudioPublishNote
-              state={noteLines}
-              setState={setNoteLines}
-              mine={mine}
-              running={running}
-              missing={noteMissing}
-              onFilled={() => setNoteMissing(false)}
-              writing={noteSend.writing}
-              translating={noteSend.translating}
-              asWritten={noteSend.asWritten}
-              noteRef={noteRef}
-            />
-          )}
+          <StudioPublishNote
+            words={update ? UPDATE_NOTE_WORDS : FIRST_NOTE_WORDS}
+            state={noteLines}
+            setState={setNoteLines}
+            mine={mine}
+            running={running}
+            missing={noteMissing}
+            onFilled={() => setNoteMissing(false)}
+            writing={noteSend.writing}
+            translating={noteSend.translating}
+            asWritten={noteSend.asWritten}
+            noteRef={noteRef}
+          />
         </div>
       </DialogFrame>
     </div>,

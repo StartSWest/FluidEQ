@@ -25,10 +25,23 @@ import {
   noteDue,
   noteMarkOf,
   noteTranslationAsk,
+  FIRST_VERSION_NOTE_ASK,
   VERSION_NOTE_ASK,
   type INoteTranslation,
 } from './noteDue';
 import withEvent from './replyEvents';
+
+/** What the chat is asked: the member's line in every language, a first
+ * publication's line (what the scene is), or an update's (what changed). */
+const noteAskWords = (
+  translation: INoteTranslation | undefined,
+  first: boolean,
+) => {
+  if (translation) {
+    return noteTranslationAsk(translation);
+  }
+  return first ? FIRST_VERSION_NOTE_ASK : VERSION_NOTE_ASK;
+};
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
 type TWords = Pick<IChatMessage, 'words' | 'picture'>;
@@ -174,6 +187,7 @@ const createChatTurns = ({
     projectId: string,
     session: IChatSession,
     translation?: INoteTranslation,
+    first = false,
   ) => {
     clearOldNote(session.folder, galleryAt);
     session.askingNote = true;
@@ -181,7 +195,7 @@ const createChatTurns = ({
     write(
       session,
       userLine(randomUUID(), {
-        words: translation ? noteTranslationAsk(translation) : VERSION_NOTE_ASK,
+        words: noteAskWords(translation, first),
       }),
     );
   };
@@ -241,7 +255,8 @@ const createChatTurns = ({
     ) => {
       // Taken once until the note is settled: turns that end with more
       // waiting, or stopped, are judged together at the next good end. Only
-      // for a scene in the gallery: a first version owes no note.
+      // for a scene in the gallery, which has a version to be new against: a
+      // first version's line is asked for by the publish dialog.
       if (!session.noteMark && isPublished(session.folder)) {
         clearOldNote(session.folder, galleryAt);
         session.noteMark = noteMarkOf(session.folder);
@@ -279,11 +294,12 @@ const createChatTurns = ({
       projectId: string,
       session: IChatSession,
       translation?: INoteTranslation,
+      first = false,
     ) => {
       if (session.reply || queue.hasSent(projectId)) {
         return false;
       }
-      askNote(projectId, session, translation);
+      askNote(projectId, session, translation, first);
       return true;
     },
 

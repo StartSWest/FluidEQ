@@ -229,6 +229,22 @@ it under the terms of the GNU General Public License version 3 or later.
   @include tracking(0.1em);
 }
 
+// What still holds Send, beside the buttons in the footer's quiet voice:
+// the reason used to be the button's tooltip alone, and nobody hovers a
+// disabled button. Never red: it is said from the first second, before the
+// member has done anything wrong. Wraps onto its own line before it squeezes
+// the buttons.
+.studio-publish__held {
+  flex: 1 1 14rem;
+  align-self: center;
+  min-width: 0;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.35;
+  text-align: end;
+}
+
 .studio-publish__note-wrong {
   margin: 0;
   color: $red;

@@ -351,10 +351,16 @@ export const compactStudioChat = () =>
  * The open project's chat asked to write the update note, for the publish
  * dialog; true when the ask went (`chatTurns.ts`).
  */
-export const askStudioChatForNote = (): Promise<boolean> =>
+export const askStudioChatForNote = ({
+  first,
+}: {
+  /** A first publication: the line says what the scene is, not what changed. */
+  first: boolean;
+}): Promise<boolean> =>
   bridge()?.studioChatAskNote?.({
     brief: chatBrief(),
     ...scenePicks(),
+    ...(first ? { first: true } : {}),
   }) ?? Promise.resolve(false);
 
 /**

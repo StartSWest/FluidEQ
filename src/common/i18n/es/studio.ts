@@ -189,6 +189,12 @@ const studio = {
   'studio.publish.categoryHint': 'Hasta dos. Su tarjeta muestra la primera.',
   'studio.publish.pickCategory': 'Elige primero una categoría',
   'studio.publish.needNote': 'Di primero qué hay de nuevo en esta versión',
+  'studio.publish.noteFirst': 'Sobre esta escena',
+  'studio.publish.notePlaceholderFirst':
+    'Una línea que verán quienes escuchen, por ejemplo: un faro cuyo haz barre con el bajo',
+  'studio.publish.noteWritingFirst':
+    'El chat de tu escena está escribiendo qué es la escena…',
+  'studio.publish.needNoteFirst': 'Primero di qué es la escena',
   'studio.publish.noteYours': 'la tuya',
   'studio.publish.noteFallback': 'para cualquier idioma que falte',
   'studio.publish.noteFollows': 'seguirá tu línea al enviar',

@@ -26,7 +26,9 @@ import { sceneFingerprint } from './chatVersions';
  * The mark is taken when the first turn since the note was last settled
  * begins; at a turn's end the scene's own files are compared with it. A
  * scene that changed while its note did not owes one - but only a scene in
- * the gallery: a first version needs no line.
+ * the gallery, which has a version to be new against. A first version's
+ * line, what the scene is, is asked for by the publish dialog
+ * (`FIRST_VERSION_NOTE_ASK`).
  */
 export interface INoteMark {
   /** The scene's own files (`sceneFingerprint`), undefined when unread. */
@@ -85,6 +87,18 @@ export const noteDue = (before: INoteMark, after: INoteMark): boolean =>
  * reply. English, like the brief: it is read by a model.
  */
 export const VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene has changed since the version the Gallery has, and the "whatsNew" line in studio-notes.json does not say so yet. Write it now, as THE UPDATE NOTE in your brief says: one line of at most ${MAX_VERSION_NOTE} characters saying what changed as a listener would notice it, covering everything since the Gallery's version - fold in any line already there - as an object of that line in ${VERSION_NOTE_LOCALES.join(', ')} (every listener reads their own). Change nothing else in that file or in the scene. Then answer with the English line alone.`;
+
+/**
+ * The same ask for a scene's FIRST publication (Ivan, 2026-11-13: notes are
+ * required "even on first version"): there is no earlier version to be new
+ * against, so the line says what the scene is, as a listener would see and
+ * hear it — the first entry on its versions page.
+ */
+export const FIRST_VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene is about to be published to the Gallery for the first time, and the "whatsNew" line in studio-notes.json is empty. Write it now: one line of at most ${MAX_VERSION_NOTE} characters saying what the scene is, as a listener would see and hear it - not how it was made - as an object of that line in ${VERSION_NOTE_LOCALES.join(', ')} (every listener reads their own). Change nothing else in that file or in the scene. Then answer with the English line alone.`;
+
+/** Whether the window's ask is for a first publication's line. */
+export const readNoteFirst = (raw: unknown): boolean =>
+  isRecord(raw) && raw.first === true;
 
 /**
  * A line the member changed in the publish dialog, to be written in every

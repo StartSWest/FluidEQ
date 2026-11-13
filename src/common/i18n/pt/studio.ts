@@ -187,6 +187,12 @@ const studio = {
   'studio.publish.categoryHint': 'Até duas. O cartão mostra a primeira.',
   'studio.publish.pickCategory': 'Escolha uma categoria primeiro',
   'studio.publish.needNote': 'Diga primeiro o que há de novo nesta versão',
+  'studio.publish.noteFirst': 'Sobre esta cena',
+  'studio.publish.notePlaceholderFirst':
+    'Uma linha que os ouvintes vão ver, como: um farol cujo facho varre com o grave',
+  'studio.publish.noteWritingFirst':
+    'O chat da sua cena está escrevendo o que é a cena…',
+  'studio.publish.needNoteFirst': 'Diga primeiro o que é a cena',
   'studio.publish.noteYours': 'o seu',
   'studio.publish.noteFallback': 'para qualquer idioma que falte',
   'studio.publish.noteFollows': 'seguirá a sua linha ao enviar',
