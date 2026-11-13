@@ -5,14 +5,10 @@ import type { IGalleryScene, TPlusCategory } from 'common/plusGallery';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import GalleryCard from 'renderer/plus/GalleryCard';
 import GalleryList from 'renderer/plus/GalleryList';
-import GalleryToolbar from 'renderer/plus/GalleryToolbar';
 import { SceneStillsContext } from 'renderer/plus/scenePictures';
-import Glyph from 'renderer/community/Glyph';
-import { PlusTab } from 'renderer/help/live/plusFigures';
-import { I18nProvider, useTranslation } from 'renderer/utils/I18nContext';
+import { I18nProvider } from 'renderer/utils/I18nContext';
 import 'renderer/styles/cascade';
 import 'renderer/styles/App.scss';
-import 'renderer/styles/Community.scss';
 import 'renderer/styles/Gallery.scss';
 import hyperdrive from '../../../assets/plus/hyperdrive.jpg';
 import lanternLake from '../../../assets/plus/lantern-lake.jpg';
@@ -29,11 +25,12 @@ import neonCity from '../../../assets/tour/scene-neon-city.jpg';
 
 /**
  * The gallery as the signed-out Visualizers page shows it behind its glass
- * (`VisualizersSignedOut`): the gallery's own head, toolbar and cards, handed
- * FluidEQ's own scenes, each pictured by a still the app already ships
- * (`SceneStillsContext`), the way Help draws the gallery
- * (`help/live/plusFigures.tsx`), in Help's own frame of the tab with its
- * rail (`PlusTab`, its made-up member at the foot). Every scene is FluidEQ's.
+ * (`VisualizersSignedOut`): the gallery's own cards and nothing else, edge to
+ * edge, handed FluidEQ's own scenes, each pictured by a still the app already
+ * ships (`SceneStillsContext`), the way Help draws the gallery
+ * (`help/live/plusFigures.tsx`). No rail, head, search or filters: behind the
+ * page they read as a second copy of the app's navigation beside the real
+ * side panel (Ivan, 2026-11-13). Every scene is FluidEQ's.
  */
 
 const nothing = () => undefined;
@@ -54,8 +51,12 @@ const SCENES: readonly [string, TPlusCategory, string, number][] = [
   ['Lantern Night', 'water', lanternNight, 2],
 ];
 
-// Two walls of the twelve, so the grid reaches the bottom of a tall window.
-const WALL = [...SCENES, ...SCENES.slice(6), ...SCENES.slice(0, 6)];
+// Four walls of the twelve, each shifted, so no scene sits beside itself and
+// the grid reaches past the foot of the capture.
+const WALL = [0, 5, 2, 7].flatMap((shift) => [
+  ...SCENES.slice(shift),
+  ...SCENES.slice(0, shift),
+]);
 const now = Date.now();
 const scenes: IGalleryScene[] = WALL.map(
   ([name, category, , daysAgo], index) => ({
@@ -83,51 +84,38 @@ const STILLS: ReadonlyMap<string, string> = new Map(
 );
 
 function Gallery() {
-  const { t } = useTranslation();
   return (
     <SceneStillsContext.Provider value={STILLS}>
-      <div style={{ padding: '8px 0 0' }}>
-        <PlusTab shown="visualizers" height={1070}>
-          <header className="community__head gallery-head">
-            <span className="community__head-mark" aria-hidden="true">
-              <Glyph name="looks" />
-            </span>
-            <span className="community__head-text">
-              <span className="community__head-name">
-                {t('plus.visualizers.title')}
-              </span>
-              <span className="community__head-description">
-                {t('plus.visualizers.description')}
-              </span>
-            </span>
-          </header>
-          <div className="gallery-visualizers">
-            <div className="gallery-page gallery-gallery">
-              <GalleryToolbar
-                filters={{ sort: 'liked', text: '' }}
-                onFilters={nothing}
-                onMine={nothing}
-              />
-              <GalleryList
-                list={{ scenes, more: false, loading: false, loaded: true }}
-                onMore={nothing}
-                onRetry={nothing}
-                empty={null}
-              >
-                {scenes.map((scene) => (
-                  <GalleryCard
-                    key={scene.lookId}
-                    scene={scene}
-                    me={undefined}
-                    local={undefined}
-                    onOpen={nothing}
-                    onMaker={nothing}
-                  />
-                ))}
-              </GalleryList>
-            </div>
-          </div>
-        </PlusTab>
+      <div
+        className="gallery-page gallery-gallery"
+        // Pinned to the page's top edge: the app's stylesheets leave room for
+        // a title bar above the content, and that band became an empty strip
+        // across the top of the picture.
+        style={{
+          position: 'absolute',
+          inset: '0 0 auto 0',
+          minHeight: '100vh',
+          padding: 10,
+          background: 'var(--surface-base)',
+        }}
+      >
+        <GalleryList
+          list={{ scenes, more: false, loading: false, loaded: true }}
+          onMore={nothing}
+          onRetry={nothing}
+          empty={null}
+        >
+          {scenes.map((scene) => (
+            <GalleryCard
+              key={scene.lookId}
+              scene={scene}
+              me={undefined}
+              local={undefined}
+              onOpen={nothing}
+              onMaker={nothing}
+            />
+          ))}
+        </GalleryList>
       </div>
     </SceneStillsContext.Provider>
   );

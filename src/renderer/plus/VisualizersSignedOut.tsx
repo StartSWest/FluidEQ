@@ -12,6 +12,7 @@ import neonHorizon from '../../../assets/plus/neon-horizon.jpg';
 import prismBloom from '../../../assets/plus/prism-bloom.jpg';
 import reefLight from '../../../assets/plus/reef-light.jpg';
 import { landInGalleryOnSignIn } from './signedOutLanding';
+import '../styles/VisualizersSignedOutOffer.scss';
 import '../styles/VisualizersSignedOut.scss';
 
 /**

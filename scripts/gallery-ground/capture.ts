@@ -24,7 +24,7 @@ import BUILT from './built';
 const ROOT = path.resolve(__dirname, '../..');
 const OUT = path.join(ROOT, 'assets', 'plus', 'gallery-ground.jpg');
 const WINDOW = { width: 1920, height: 1080 };
-const MAX_BYTES = 160 * 1024;
+const MAX_BYTES = 180 * 1024;
 const QUALITIES = [72, 64, 56, 48, 40];
 
 const say = (line: string) => process.stdout.write(`${line}\n`);

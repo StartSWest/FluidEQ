@@ -12,15 +12,14 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 // The Visualizers tab before signing in (`VisualizersSignedOut`), as Ivan
-// approved it on 2026-11-13: the gallery itself covering the whole tab at any
-// size (`assets/plus/gallery-ground.jpg`, remade each release by
-// `pnpm docs:gallery-ground`), veiled, and two panes of the window's own glass
-// over it.
+// approved it on 2026-11-13: the gallery's own cards behind
+// (`assets/plus/gallery-ground.jpg`, remade each release by
+// `pnpm docs:gallery-ground`), darkened to a texture, and two panes of the
+// window's glass centred over it. The offer pane's rules are
+// `VisualizersSignedOutOffer.scss`.
 
-// The page itself never scrolls: the gallery behind is larger than the page
-// by a few percent (its blur would show a hard edge otherwise), and in a
-// scrolling box that overhang became scrollable width, so the panes slid
-// sideways. Only `__scroll` scrolls, and the gallery stays still behind it.
+// The page itself never scrolls: only `__scroll` does, and the gallery stays
+// still behind it.
 .signed-out {
   position: relative;
   display: flex;
@@ -33,8 +32,13 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $card-radius;
 }
 
+// A column, so the panes' auto margins centre them when there is room and
+// fall to nothing when there is not: they then start at the top and scroll,
+// where centring would cut off their top.
 .signed-out__scroll {
+  display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
   min-width: 0;
   min-height: 0;
   overflow: hidden auto;
@@ -42,36 +46,34 @@ it under the terms of the GNU General Public License version 3 or later.
   @include slim-scrollbar;
 }
 
+// From the top edge, the tab's full width, never stretched or cropped at the
+// top (Ivan, 2026-11-13: "it needs to start on top and be screen width,
+// leaving room on the bottom if necessary"). Its foot fades into the tab's
+// own floor, so a window taller than the picture ends in the floor colour.
 .signed-out__ground {
   position: absolute;
   z-index: -2;
-  inset: 0;
+  inset: 0 0 auto;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  filter: blur(1px) saturate(1.15);
-  transform: scale(1.03);
+  height: auto;
+  mask-image: linear-gradient(180deg, #000 60%, transparent);
   pointer-events: none;
 }
 
-// Darker at the edges and toward the foot than over the middle of the wall,
-// so the gallery still reads as what is waiting and the words read first.
+// The gallery is texture, the panes are what is read (Ivan, 2026-11-13:
+// "more separated from the bg ... perhaps darken the bg more"): an even veil,
+// deeper still around the middle where the panes stand.
 .signed-out__veil {
   position: absolute;
   z-index: -1;
   inset: 0;
   background:
     radial-gradient(
-      120% 90% at 50% 35%,
-      color-mix(in srgb, $surface-base 18%, transparent),
-      color-mix(in srgb, $surface-base 62%, transparent)
+      70% 65% at 50% 45%,
+      color-mix(in srgb, $surface-base 55%, transparent),
+      transparent 75%
     ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, $surface-base 14%, transparent),
-      color-mix(in srgb, $surface-base 52%, transparent)
-    );
+    color-mix(in srgb, $surface-base 70%, transparent);
   pointer-events: none;
 }
 
@@ -80,16 +82,22 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
   gap: 18px;
   align-items: stretch;
+  width: 100%;
   max-width: 1120px;
-  margin: 0 auto;
+  margin: auto;
   padding: 28px;
 }
 
+// The window's glass made nearly opaque, with a deep shadow, so the panes
+// stand off the gallery in both themes.
 .signed-out__glass {
   @include window-glass;
+  background: color-mix(in srgb, $surface-panel 88%, transparent);
+  border: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
   box-shadow:
     $glass-bevel,
-    0 24px 60px rgba($black, 0.35);
+    0 30px 90px rgba($black, 0.55),
+    0 2px 10px rgba($black, 0.3);
 }
 
 // ---------------------------------------------------------------- the story
@@ -335,161 +343,6 @@ it under the terms of the GNU General Public License version 3 or later.
     font-size: $text-body;
     font-weight: $weight-semibold;
   }
-}
-
-// ---------------------------------------------------------------- the offer
-
-.signed-out__offer {
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding: 26px 24px 20px;
-  text-align: center;
-  background:
-    radial-gradient(
-      90% 60% at 50% 0%,
-      color-mix(in srgb, $secondary-default 22%, transparent),
-      transparent 70%
-    ),
-    $glass-fill;
-}
-
-.signed-out__coin {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  color: $secondary-light;
-  background:
-    radial-gradient(
-      circle at 35% 30%,
-      color-mix(in srgb, $secondary-light 42%, transparent),
-      transparent 60%
-    ),
-    color-mix(in srgb, $secondary-default 22%, $surface-panel);
-  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 6px color-mix(in srgb, $secondary-default 12%, transparent),
-    0 0 36px color-mix(in srgb, $secondary-default 35%, transparent);
-
-  svg {
-    width: 28px;
-    height: 28px;
-  }
-
-  > span {
-    position: absolute;
-    right: -6px;
-    bottom: -4px;
-    display: grid;
-    place-items: center;
-    min-width: 24px;
-    height: 24px;
-    color: $text-primary;
-    font-size: $text-body;
-    font-weight: $weight-bold;
-    background: $secondary-default;
-    border: 2px solid $surface-panel;
-    border-radius: $radius-pill;
-  }
-}
-
-.signed-out__offer-title {
-  margin: 0;
-  color: $text-primary;
-  font-size: 1.2rem;
-  font-weight: $weight-bold;
-  text-wrap: balance;
-}
-
-.signed-out__offer-body {
-  max-width: 32ch;
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.5;
-  text-wrap: pretty;
-}
-
-// THE way in: the loudest thing on the page, the reward in the button.
-.button.signed-out__create {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  width: 100%;
-  height: auto;
-  white-space: normal;
-  box-shadow: 0 10px 28px
-    color-mix(in srgb, $secondary-default 45%, transparent);
-}
-
-.signed-out__create--l {
-  padding: 14px 18px;
-}
-
-.signed-out__create--m {
-  padding: 10px 16px;
-}
-
-.signed-out__create-main {
-  font-size: $text-lead;
-  font-weight: $weight-bold;
-}
-
-.signed-out__create-sub {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: $text-small;
-  font-weight: $weight-medium;
-  opacity: 0.85;
-
-  svg {
-    width: 12px;
-    height: 12px;
-  }
-}
-
-.signed-out__steps {
-  display: grid;
-  gap: 8px;
-  width: 100%;
-  margin: 4px 0 0;
-  padding: 12px 0 0;
-  text-align: start;
-  list-style: none;
-  border-top: 1px solid $border-subtle;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: $text-muted;
-    font-size: $text-small;
-  }
-}
-
-.signed-out__step-n {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  color: $text-accent;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
-  border-radius: 50%;
-}
-
-.signed-out__sign-in {
-  margin: 2px 0 0;
-  color: $text-faint;
-  font-size: $text-small;
 }
 
 // Narrow: one column, the way in under the headline, the offer at the end.

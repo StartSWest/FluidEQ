@@ -15,8 +15,8 @@ pnpm docs:gallery-ground
 
 It builds the drawing, opens it in a headless Chrome or Edge at 1920 × 1080,
 waits for every card's picture and the fonts to paint, and writes the JPEG,
-stepping the quality down until the file is at most 160 KB (about 160 KB at
-quality 56 today). Pass `--chrome <path>` if neither browser is where the
+stepping the quality down until the file is at most 180 KB (about 176 KB at
+quality 40 today, the floor). Pass `--chrome <path>` if neither browser is where the
 Help captures look for it, and `--skip-build` to reuse the last build.
 
 To show other scenes, change `SCENES` in `harness/index.tsx`; a new still has

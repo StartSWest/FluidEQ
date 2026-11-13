@@ -1,0 +1,170 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The offer pane of the Visualizers tab before signing in
+// (`VisualizersSignedOut`): the credit coin, the one loud way in, the steps
+// and the quiet Sign in. Apart from the reading pane's sheet
+// (`VisualizersSignedOut.scss`) so neither passes the size rule; that sheet
+// comes after this one in `cascade.ts`, so its narrow layout wins.
+
+.signed-out__offer {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 26px 24px 20px;
+  text-align: center;
+  background:
+    radial-gradient(
+      90% 60% at 50% 0%,
+      color-mix(in srgb, $secondary-default 22%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, $surface-panel 88%, transparent);
+}
+
+.signed-out__coin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  color: $secondary-light;
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      color-mix(in srgb, $secondary-light 42%, transparent),
+      transparent 60%
+    ),
+    color-mix(in srgb, $secondary-default 22%, $surface-panel);
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, $secondary-default 12%, transparent),
+    0 0 36px color-mix(in srgb, $secondary-default 35%, transparent);
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  > span {
+    position: absolute;
+    right: -6px;
+    bottom: -4px;
+    display: grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    background: $secondary-default;
+    border: 2px solid $surface-panel;
+    border-radius: $radius-pill;
+  }
+}
+
+.signed-out__offer-title {
+  margin: 0;
+  color: $text-primary;
+  font-size: 1.2rem;
+  font-weight: $weight-bold;
+  text-wrap: balance;
+}
+
+.signed-out__offer-body {
+  max-width: 32ch;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+// THE way in: the loudest thing on the page, the reward in the button.
+.button.signed-out__create {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 100%;
+  height: auto;
+  white-space: normal;
+  box-shadow: 0 10px 28px
+    color-mix(in srgb, $secondary-default 45%, transparent);
+}
+
+.signed-out__create--l {
+  padding: 14px 18px;
+}
+
+.signed-out__create--m {
+  padding: 10px 16px;
+}
+
+.signed-out__create-main {
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+}
+
+.signed-out__create-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  opacity: 0.85;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.signed-out__steps {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 12px 0 0;
+  text-align: start;
+  list-style: none;
+  border-top: 1px solid $border-subtle;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: $text-muted;
+    font-size: $text-small;
+  }
+}
+
+.signed-out__step-n {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 50%;
+}
+
+.signed-out__sign-in {
+  margin: 2px 0 0;
+  color: $text-faint;
+  font-size: $text-small;
+}

@@ -88,6 +88,7 @@ import './PlusToastStack.scss';
 import './Review.scss';
 import './Gallery.scss';
 import './PlusWelcome.scss';
+import './VisualizersSignedOutOffer.scss';
 import './VisualizersSignedOut.scss';
 import './WallpaperMonitors.scss';
 import './WallpaperControls.scss';
