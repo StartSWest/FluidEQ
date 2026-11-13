@@ -228,11 +228,36 @@ export const pnpmLauncher = (
 /** Where electron-builder leaves the packaged app's resources. */
 export const PACKAGED_RESOURCES = 'release/build/win-unpacked/resources';
 
-/** The packaged engine, its helper and the APO installer, as shipped. */
-const readPackagedEngine = (resources: string): IPackagedEngine => {
-  const engine = path.join(resources, 'native', 'FluidEQ-Engine.dll');
+/**
+ * The packaged engine, its helper, the APO installer, every FluidEQ program
+ * and the runtimes beside the engine, as shipped.
+ */
+export const readPackagedEngine = (resources: string): IPackagedEngine => {
+  const native = path.join(resources, 'native');
+  const engine = path.join(native, 'FluidEQ-Engine.dll');
   const apo = path.join(resources, 'equalizer-apo', 'equalizer-apo-setup.exe');
+  const entries = fs.readdirSync(native, { withFileTypes: true });
+  const signatureOf = (file: string) => ({
+    name: path.relative(path.dirname(resources), file),
+    signature: readAuthenticode(file),
+  });
   return {
+    programs: [
+      path.join(path.dirname(resources), 'FluidEQ.exe'),
+      ...entries
+        .filter(
+          (entry) => entry.isFile() && /^FluidEQ-.*\.exe$/i.test(entry.name),
+        )
+        .map((entry) => path.join(native, entry.name)),
+    ].map(signatureOf),
+    runtimes: entries
+      .filter(
+        (entry) =>
+          entry.isFile() &&
+          /\.dll$/i.test(entry.name) &&
+          entry.name.toLowerCase() !== 'fluideq-engine.dll',
+      )
+      .map((entry) => signatureOf(path.join(native, entry.name))),
     engine: fs.readFileSync(engine),
     engineSignature: readAuthenticode(engine),
     helper: fs.readFileSync(

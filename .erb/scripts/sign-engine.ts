@@ -164,9 +164,16 @@ export interface IPackagedEngine {
   engineSignature: IAuthenticode;
   /** The packaged FluidEQ-Engine-Setup.exe. */
   helper: Buffer;
-  /** The packaged Equalizer APO installer, when there is one. */
+  /** The packaged Equalizer APO installer; missing is a broken release. */
   apoInstaller: Buffer | undefined;
+  /** FluidEQ.exe and every FluidEQ-*.exe, which all carry our name. */
+  programs: { name: string; signature: IAuthenticode }[];
+  /** The other DLLs beside the engine: Microsoft's, never ours to sign. */
+  runtimes: { name: string; signature: IAuthenticode }[];
 }
+
+const describeSignature = ({ status, subject }: IAuthenticode) =>
+  `${status}${subject ? `, by "${subject}"` : ''}`;
 
 /**
  * Why the packaged engine is not a signed release's, or nothing.
@@ -175,7 +182,10 @@ export interface IPackagedEngine {
  * linked again after it was signed (so unsigned), a helper built before the
  * signing (so it refuses its own engine, and every install and update fails
  * on users' machines), and somebody else's installer carrying this
- * publisher's name.
+ * publisher's name. Ivan's rule (2026-11-12): "we don't ship APO signed. We
+ * ship the Fluid app and the Fluid engine signed" — so every FluidEQ program
+ * must carry the name, and the APO installer and the Microsoft runtimes must
+ * not.
  */
 export const packagedEngineProblems = (
   packaged: IPackagedEngine,
@@ -185,9 +195,7 @@ export const packagedEngineProblems = (
   const problems: string[] = [];
   if (!isSignedBy(packaged.engineSignature, publisher)) {
     problems.push(
-      `The packaged FluidEQ-Engine.dll reads as ${packaged.engineSignature.status}` +
-        `${packaged.engineSignature.subject ? `, by "${packaged.engineSignature.subject}"` : ''}` +
-        `, not as signed by "${publisher}".`,
+      `The packaged FluidEQ-Engine.dll reads as ${describeSignature(packaged.engineSignature)}, not as signed by "${publisher}".`,
     );
   }
   // The helper carries each DLL's digest as text (`shipped_dlls.h`).
@@ -198,14 +206,36 @@ export const packagedEngineProblems = (
         `engine (sha256 ${digest}): it would refuse to install it.`,
     );
   }
-  if (
-    packaged.apoInstaller &&
-    sha256Hex(packaged.apoInstaller) !== apoInstallerSha256
-  ) {
+  if (!packaged.apoInstaller) {
+    problems.push(
+      'The packaged app carries no Equalizer APO installer: setup offers it.',
+    );
+  } else if (sha256Hex(packaged.apoInstaller) !== apoInstallerSha256) {
     problems.push(
       'The packaged Equalizer APO installer is not the upstream file byte for ' +
         'byte: something signed it, and it is not ours to sign.',
     );
   }
+  if (packaged.programs.length === 0) {
+    problems.push('The packaged app has no FluidEQ programs to check.');
+  }
+  packaged.programs
+    .filter(({ signature }) => !isSignedBy(signature, publisher))
+    .forEach(({ name, signature }) =>
+      problems.push(
+        `The packaged ${name} reads as ${describeSignature(signature)}, not as signed by "${publisher}".`,
+      ),
+    );
+  packaged.runtimes
+    .filter(
+      ({ signature }) =>
+        signature.status !== 'Valid' ||
+        commonNameOf(signature.subject) === publisher,
+    )
+    .forEach(({ name, signature }) =>
+      problems.push(
+        `The packaged ${name} reads as ${describeSignature(signature)}: it must keep its own publisher's signature, never "${publisher}".`,
+      ),
+    );
   return problems;
 };

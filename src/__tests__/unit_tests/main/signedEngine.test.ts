@@ -98,6 +98,25 @@ describe('the release gate', () => {
     },
     helper: helperFor(engine),
     apoInstaller: APO,
+    programs: ['FluidEQ.exe', 'resources\\native\\FluidEQ-Media.exe'].map(
+      (name) => ({
+        name,
+        signature: {
+          status: 'Valid',
+          subject: `CN=${PUBLISHER}, O=${PUBLISHER}, C=US`,
+        },
+      }),
+    ),
+    runtimes: [
+      {
+        name: 'resources\\native\\msvcp140.dll',
+        signature: {
+          status: 'Valid',
+          subject:
+            'CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, C=US',
+        },
+      },
+    ],
   };
   const problems = (packaged: IPackagedEngine) =>
     packagedEngineProblems(packaged, PUBLISHER, sha256Hex(APO));
@@ -130,6 +149,46 @@ describe('the release gate', () => {
         apoInstaller: Buffer.concat([APO, Buffer.from('a signature')]),
       }),
     ).toHaveLength(1);
+    expect(problems({ ...good, apoInstaller: undefined })).toHaveLength(1);
+  });
+
+  // "We ship the Fluid app and the Fluid engine signed" (Ivan, 2026-11-12).
+  it('refuses a FluidEQ program that is not signed by the publisher', () => {
+    expect(
+      problems({
+        ...good,
+        programs: [
+          ...good.programs,
+          {
+            name: 'resources\\native\\FluidEQ-Volume.exe',
+            signature: { status: 'NotSigned', subject: '' },
+          },
+        ],
+      }),
+    ).toHaveLength(1);
+    expect(problems({ ...good, programs: [] })).toHaveLength(1);
+  });
+
+  it('refuses a runtime that lost its own signature or carries ours', () => {
+    const runtime = (status: string, subject: string) => ({
+      ...good,
+      runtimes: [
+        {
+          name: 'resources\\native\\vcruntime140.dll',
+          signature: { status, subject },
+        },
+      ],
+    });
+    expect(
+      problems(runtime('Valid', `CN=${PUBLISHER}, O=${PUBLISHER}, C=US`)),
+    ).toHaveLength(1);
+    expect(problems(runtime('NotSigned', ''))).toHaveLength(1);
+    // The control: Microsoft's own signature passes.
+    expect(
+      problems(
+        runtime('Valid', 'CN=Microsoft Corporation, O=Microsoft Corporation'),
+      ),
+    ).toEqual([]);
   });
 });
 
