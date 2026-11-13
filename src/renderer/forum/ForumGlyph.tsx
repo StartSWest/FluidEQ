@@ -11,6 +11,7 @@ export type TForumGlyph =
   | 'poll'
   | 'question'
   | 'showcase'
+  | 'tips'
   | 'issue'
   | 'issueClosed'
   | 'vote'
@@ -106,6 +107,17 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
             <rect x="2.5" y="5" width="11" height="10" rx="1.6" />
             <path d="m4.8 12.6 2.6-2.8 2 2 1.3-1.3 1.8 2.1" opacity="0.7" />
             <path d="M16.5 2.5v4M14.5 4.5h4M16.8 10.5v2.6M15.5 11.8h2.6" />
+          </>
+        );
+      case 'tips':
+        // A wand and its sparkle: a small thing that does more than it
+        // looks. A key cap was tried first and read as a "remove" button
+        // beside Show and tell's framed spark.
+        return (
+          <>
+            <path d="M3 17.2 10.6 9.6" />
+            <path d="M13.6 2.2q.7 3 3.7 3.7-3 .7-3.7 3.7-.7-3-3.7-3.7 3-.7 3.7-3.7Z" />
+            <path d="M5.6 3v3.2M4 4.6h3.2M16.4 12.4v3.2M14.8 14h3.2" opacity="0.65" />
           </>
         );
       case 'issue':
@@ -254,6 +266,9 @@ export const boardGlyph = (slug: string): TForumGlyph => {
       return 'question';
     case 'show-and-tell':
       return 'showcase';
+    case 'tips-tricks':
+    case 'tips-and-tricks':
+      return 'tips';
     case FORUM_ISSUES_BOARD:
       return 'issue';
     default:

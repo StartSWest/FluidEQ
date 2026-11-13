@@ -24,12 +24,14 @@ const forum = {
   'forum.board.polls': '民調',
   'forum.board.qa': '問答',
   'forum.board.showAndTell': '展示並講述',
+  'forum.board.tips': '技巧與竅門',
   'forum.boardDescription.announcements': '來自廠商的訊息',
   'forum.boardDescription.general': '任何 FluidEQ',
   'forum.boardDescription.ideas': '接下來該做什麼',
   'forum.boardDescription.polls': '投票決定接下來的事情',
   'forum.boardDescription.qa': '詢問並標記有效的答案',
   'forum.boardDescription.showAndTell': '您引以為傲的調音',
+  'forum.boardDescription.tips': '螢幕上看不到的功能',
   'forum.board.issues': '問題',
   'forum.boardDescription.issues': 'GitHub 上報告的問題以及每個問題的情況',
   'forum.issue.open': '開啟',
@@ -140,6 +142,8 @@ const forum = {
     '請說明您原本想做什麼。這比點子本身更能幫助我們判斷該如何實作。',
   'forum.compose.guidance.showAndTell':
     '在 GitHub 上加入您的 .fluideq 匯出，以便其他人可以準確地聽到您聽到的內容。',
+  'forum.compose.guidance.tips':
+    '每個主題一個技巧。寫明它在哪裡、按什麼鍵，如有幫助可在 GitHub 上附圖。',
   'forum.error.network': '無法連線至論壇。請檢查網路連線後再試一次。',
   'forum.error.signed_out': '您的 GitHub 登入已失效，請重新登入以繼續發文。',
   'forum.error.rate_limited':

@@ -21,12 +21,14 @@ const forum = {
   'forum.board.polls': '投票',
   'forum.board.qa': 'Q&A',
   'forum.board.showAndTell': 'ショーケース',
+  'forum.board.tips': 'ヒントと小技',
   'forum.boardDescription.announcements': '作者からのお知らせ',
   'forum.boardDescription.general': 'FluidEQ についてなんでも',
   'forum.boardDescription.ideas': '次に欲しい機能',
   'forum.boardDescription.polls': '次に何を作るか投票',
   'forum.boardDescription.qa': '質問して、役立った回答をマーク',
   'forum.boardDescription.showAndTell': '自慢のチューニング',
+  'forum.boardDescription.tips': '画面には出ていない機能',
   'forum.board.issues': 'Issue',
   'forum.boardDescription.issues': 'GitHub で報告された問題と、それぞれの状況',
   'forum.issue.open': 'オープン',
@@ -150,6 +152,8 @@ const forum = {
     '何をしようとしていたのかを書いてください。実装されるかどうかは、アイデアそのものよりもそこで決まります。',
   'forum.compose.guidance.showAndTell':
     'GitHub に .fluideq のエクスポートを添付すると、あなたが聴いている音をほかの人もそのまま聴けます。',
+  'forum.compose.guidance.tips':
+    '1 つのトピックに 1 つの小技を。場所と押すキーを書き、必要なら GitHub で画像を添付してください。',
 
   'forum.error.network':
     'フォーラムに接続できません。接続を確認して、もう一度お試しください。',

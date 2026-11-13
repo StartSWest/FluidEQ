@@ -23,6 +23,11 @@ const KEYS: Record<string, [TranslationKey, TranslationKey]> = {
     'forum.board.showAndTell',
     'forum.boardDescription.showAndTell',
   ],
+  // Created by hand on GitHub for features that work but are not on
+  // screen. GitHub drops the ampersand of "Tips & tricks" from the slug;
+  // the spelled-out name is answered too, in case it is created that way.
+  'tips-tricks': ['forum.board.tips', 'forum.boardDescription.tips'],
+  'tips-and-tricks': ['forum.board.tips', 'forum.boardDescription.tips'],
   [FORUM_ISSUES_BOARD]: ['forum.board.issues', 'forum.boardDescription.issues'],
 };
 
@@ -62,6 +67,9 @@ export const boardGuidance = (
       return t('forum.compose.guidance.ideas');
     case 'show-and-tell':
       return t('forum.compose.guidance.showAndTell');
+    case 'tips-tricks':
+    case 'tips-and-tricks':
+      return t('forum.compose.guidance.tips');
     default:
       return undefined;
   }

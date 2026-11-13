@@ -22,12 +22,14 @@ const forum = {
   'forum.board.polls': 'Votações',
   'forum.board.qa': 'Q&A',
   'forum.board.showAndTell': 'Mostre o seu som',
+  'forum.board.tips': 'Dicas e truques',
   'forum.boardDescription.announcements': 'Novidades do criador',
   'forum.boardDescription.general': 'Tudo sobre o FluidEQ',
   'forum.boardDescription.ideas': 'O que deve fazer a seguir',
   'forum.boardDescription.polls': 'Vote no que vem a seguir',
   'forum.boardDescription.qa': 'Pergunte e marque a resposta que funcionou',
   'forum.boardDescription.showAndTell': 'Um ajuste de que você se orgulha',
+  'forum.boardDescription.tips': 'Recursos que não aparecem na tela',
   'forum.board.issues': 'Problemas',
   'forum.boardDescription.issues':
     'Problemas relatados no GitHub e em que pé está cada um',
@@ -152,6 +154,8 @@ const forum = {
     'Diga o que você estava tentando fazer. Isso, mais do que a ideia em si, decide se ela chega a ser feita.',
   'forum.compose.guidance.showAndTell':
     'Anexe sua exportação .fluideq no GitHub para que os outros ouçam exatamente o que você ouve.',
+  'forum.compose.guidance.tips':
+    'Um truque por tópico. Diga onde fica e o que apertar, e anexe uma imagem no GitHub se ajudar.',
 
   'forum.error.network':
     'Não foi possível contatar o fórum. Verifique a conexão e tente de novo.',

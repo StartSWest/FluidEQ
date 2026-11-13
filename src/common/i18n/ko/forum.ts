@@ -24,12 +24,14 @@ const forum = {
   'forum.board.polls': '여론조사',
   'forum.board.qa': 'Q&A',
   'forum.board.showAndTell': '보여주고 말하라',
+  'forum.board.tips': '팁과 요령',
   'forum.boardDescription.announcements': '메이커로부터의 소식',
   'forum.boardDescription.general': 'FluidEQ 무엇이든',
   'forum.boardDescription.ideas': '다음에 해야 할 일',
   'forum.boardDescription.polls': '다음에 나올 내용에 투표하세요',
   'forum.boardDescription.qa': '질문하고 효과가 있었던 답변을 표시하세요.',
   'forum.boardDescription.showAndTell': '당신이 자랑스러워하는 튜닝',
+  'forum.boardDescription.tips': '화면에 보이지 않는 기능',
   'forum.board.issues': '문제',
   'forum.boardDescription.issues': 'GitHub에 보고된 문제 및 각 문제의 위치',
   'forum.issue.open': '열기',
@@ -144,6 +146,8 @@ const forum = {
     '무엇을 하려고 했는지 말해보세요. 아이디어 자체보다 그것이 구현될지 여부가 결정됩니다.',
   'forum.compose.guidance.showAndTell':
     '다른 사람들이 귀하가 듣는 내용을 정확하게 들을 수 있도록 GitHub에 .fluideq 내보내기를 추가하세요.',
+  'forum.compose.guidance.tips':
+    '주제 하나에 요령 하나. 어디에 있고 무엇을 누르는지 적고, 도움이 되면 GitHub에서 이미지를 추가하세요.',
   'forum.error.network':
     '포럼에 접속할 수 없습니다. 연결을 확인하고 다시 시도해 보세요.',
   'forum.error.signed_out':

@@ -22,12 +22,14 @@ const forum = {
   'forum.board.polls': 'पोल',
   'forum.board.qa': 'Q&A',
   'forum.board.showAndTell': 'शोकेस',
+  'forum.board.tips': 'टिप्स और ट्रिक्स',
   'forum.boardDescription.announcements': 'निर्माता की ओर से ख़बरें',
   'forum.boardDescription.general': 'FluidEQ से जुड़ी कोई भी बात',
   'forum.boardDescription.ideas': 'इसे आगे क्या करना चाहिए',
   'forum.boardDescription.polls': 'आगे क्या आए, इस पर वोट करें',
   'forum.boardDescription.qa': 'पूछें, और काम आए जवाब को चिह्नित करें',
   'forum.boardDescription.showAndTell': 'ऐसी ट्यूनिंग जिस पर आपको गर्व है',
+  'forum.boardDescription.tips': 'ऐसी सुविधाएँ जो स्क्रीन पर नहीं दिखतीं',
   'forum.board.issues': 'इश्यू',
   'forum.boardDescription.issues':
     'GitHub पर बताई गई समस्याएँ, और हर एक की स्थिति',
@@ -151,6 +153,8 @@ const forum = {
     'बताएँ कि आप क्या करना चाह रहे थे। विचार से ज़्यादा यही तय करता है कि वह बनेगा या नहीं।',
   'forum.compose.guidance.showAndTell':
     'GitHub पर अपना .fluideq एक्सपोर्ट जोड़ें, ताकि दूसरे ठीक वही सुन सकें जो आप सुनते हैं।',
+  'forum.compose.guidance.tips':
+    'हर विषय में एक ट्रिक। बताएँ कि वह कहाँ है और क्या दबाना है, और ज़रूरत हो तो GitHub पर एक तस्वीर जोड़ें।',
 
   'forum.error.network':
     'फ़ोरम तक नहीं पहुँच सके। कनेक्शन जाँचें और फिर कोशिश करें।',
