@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IPublishingBlockChoice } from './memberNotices';
 import type { ISceneSubmission, TRejectReason } from './plusReview';
+import type { TVersionNotes } from './sceneVersionNote';
 import type { TLocalizedName } from './scenePacks';
 
 /**
@@ -39,7 +40,7 @@ export type TSceneReviewNotice =
       names: TLocalizedName;
       swatch: string[];
       reason: TRejectReason;
-      reasonNote?: string;
+      reasonNotes?: TVersionNotes;
       /** The block that came with the refusal, when the admin chose one. */
       block?: IPublishingBlockChoice;
       /** The version members still have, which a refused update leaves out. */
@@ -115,7 +116,7 @@ export const sceneReviewNotice = ({
     names: latest.names,
     swatch: latest.swatch,
     reason: latest.reason,
-    ...(latest.reasonNote ? { reasonNote: latest.reasonNote } : {}),
+    ...(latest.reasonNotes ? { reasonNotes: latest.reasonNotes } : {}),
     ...(latest.block ? { block: latest.block } : {}),
     ...(latest.liveVersion ? { liveVersion: latest.liveVersion } : {}),
     keys,

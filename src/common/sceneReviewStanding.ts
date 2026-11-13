@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { ISceneSubmission, TRejectReason } from './plusReview';
+import type { TVersionNotes } from './sceneVersionNote';
 
 /**
  * Where each of a maker's scenes stands with the review, from the server's
@@ -24,7 +25,7 @@ export type TSceneStanding =
       kind: 'rejected';
       version: number;
       reason: TRejectReason;
-      reasonNote?: string;
+      reasonNotes?: TVersionNotes;
       decidedAt: string;
     }
   | { kind: 'pending'; version: number; submittedAt: string };
@@ -60,7 +61,7 @@ export const sceneStandings = (
         kind: 'rejected',
         version: entry.version,
         reason: entry.reason,
-        ...(entry.reasonNote ? { reasonNote: entry.reasonNote } : {}),
+        ...(entry.reasonNotes ? { reasonNotes: entry.reasonNotes } : {}),
         decidedAt: entry.decidedAt,
       };
     }

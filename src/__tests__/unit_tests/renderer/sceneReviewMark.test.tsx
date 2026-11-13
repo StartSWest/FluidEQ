@@ -20,12 +20,13 @@ import SceneReviewBadge from '../../../renderer/plus/SceneReviewBadge';
 import SceneReviewMark from '../../../renderer/plus/SceneReviewMark';
 
 let mockStandings: TSceneStandings | undefined;
+let mockLocale = 'en';
 jest.mock('../../../renderer/plus/sceneReviewStore', () => ({
   useSceneReview: () => ({ notice: null, standings: mockStandings }),
 }));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
-    locale: 'en',
+    locale: mockLocale,
     t: (key: string, vars?: Record<string, string>) =>
       vars ? `${key}:${Object.values(vars).join(',')}` : key,
   }),
@@ -35,12 +36,13 @@ const NOTE =
   'The white flash on every kick covers more than a quarter of the screen. Slow it to twice a second, then send it again.';
 
 beforeEach(() => {
+  mockLocale = 'en';
   mockStandings = {
     lake: {
       kind: 'rejected',
       version: 3,
       reason: 'flashing',
-      reasonNote: NOTE,
+      reasonNotes: { en: NOTE },
       decidedAt: '2026-11-11T09:00:00Z',
     },
     ember: { kind: 'pending', version: 2, submittedAt: '2026-11-10T18:00:00Z' },
@@ -50,6 +52,27 @@ beforeEach(() => {
 const panelText = () => screen.getByRole('dialog').textContent ?? '';
 
 describe('a refused scene', () => {
+  it('says the admin’s line in the maker’s own language', () => {
+    const german =
+      'Der weiße Blitz bei jedem Kick bedeckt mehr als ein Viertel des Bildes.';
+    mockLocale = 'de';
+    mockStandings = {
+      lake: {
+        kind: 'rejected',
+        version: 3,
+        reason: 'flashing',
+        reasonNotes: { en: NOTE, de: german },
+        decidedAt: '2026-11-11T09:00:00Z',
+      },
+    };
+    render(<SceneReviewMark sceneId="lake" />);
+    fireEvent.pointerEnter(
+      screen.getByRole('button', { name: 'review.mark.show' }),
+    );
+    expect(panelText()).toContain(german);
+    expect(panelText()).not.toContain(NOTE);
+  });
+
   it('opens the reason in full, the date and the next step on a hover', () => {
     render(<SceneReviewMark sceneId="lake" />);
     const mark = screen.getByRole('button', { name: 'review.mark.show' });

@@ -31,7 +31,7 @@ const sent = (over: Partial<ISceneSubmission>): ISceneSubmission => ({
 const refused = sent({
   state: 'rejected',
   reason: 'flashing',
-  reasonNote: 'Slow the white flash down.',
+  reasonNotes: { en: 'Slow the white flash down.' },
   decidedAt: '2026-11-11T09:00:00Z',
 });
 
@@ -42,7 +42,7 @@ describe('where each scene stands', () => {
         kind: 'rejected',
         version: 3,
         reason: 'flashing',
-        reasonNote: 'Slow the white flash down.',
+        reasonNotes: { en: 'Slow the white flash down.' },
         decidedAt: '2026-11-11T09:00:00Z',
       },
     });

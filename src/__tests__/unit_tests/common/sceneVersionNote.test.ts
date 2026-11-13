@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import {
+  MAX_REVIEW_NOTE,
   MAX_VERSION_NOTE,
   NEW_VERSION_DAYS,
   isLaterSceneVersion,
@@ -18,8 +19,10 @@ import {
   noteIn,
   notesAsWritten,
   readVersionNote,
+  readReviewNotes,
   readVersionNotes,
   versionToPublish,
+  wholeSentencesUpTo,
   VERSION_NOTE_LOCALES,
 } from '../../../common/sceneVersionNote';
 import { LOCALES } from '../../../common/i18n';
@@ -198,5 +201,65 @@ describe('the note in every language', () => {
     expect(noteIn(notes, 'ja')).toBe('魚が泳ぐ');
     expect(noteIn(notes, 'de')).toBe('Fish swim');
     expect(noteIn(notes, 'tlh')).toBe('Fish swim');
+  });
+});
+
+describe('a declined scene’s line to its maker', () => {
+  const long = 'a'.repeat(MAX_VERSION_NOTE + 1);
+
+  it('is kept whole in every language up to its own, longer limit', () => {
+    const line = 'b'.repeat(MAX_REVIEW_NOTE);
+    expect(readReviewNotes({ en: line, de: long })).toEqual({
+      en: line,
+      de: long,
+    });
+    // The same lines are too long for a version's note.
+    expect(readVersionNotes({ en: long })).toBeUndefined();
+  });
+
+  it('holds the same 1000 characters a line as the server’s check (0111)', () => {
+    // review_notes_valid refuses a line past 1000; a longer limit here would
+    // let the admin send a line the server then refuses after the press.
+    expect(MAX_REVIEW_NOTE).toBe(1000);
+  });
+
+  it('is refused whole, never cut, past that limit', () => {
+    expect(
+      readReviewNotes({ en: 'Fine.', ru: 'c'.repeat(MAX_REVIEW_NOTE + 1) }),
+    ).toBeUndefined();
+  });
+
+  it('gives an older app the leading whole sentences that fit its line', () => {
+    const first = `The flash at 0:13 covers 25% of the view and breaks the flash rule, at 1.5 times a second. `;
+    const second = `${'Soften it or make it smaller, and keep the rain as it is. '.repeat(4)}`;
+    const line = `${first}${second}`.trim();
+    expect(line.length).toBeGreaterThan(MAX_VERSION_NOTE);
+    const kept = wholeSentencesUpTo(line);
+    expect(kept).not.toBeNull();
+    expect((kept ?? '').length).toBeLessThanOrEqual(MAX_VERSION_NOTE);
+    expect(line.startsWith(kept ?? '-')).toBe(true);
+    expect(kept?.endsWith('.')).toBe(true);
+    // Never between "1." and "5", nor after "0:13".
+    expect(kept).toContain('1.5 times a second.');
+  });
+
+  it('cuts after a CJK sentence end, which takes no space', () => {
+    const sentence = '画面の四分の一以上が白く光ります。';
+    const line = sentence.repeat(30);
+    const kept = wholeSentencesUpTo(line) ?? '';
+    expect(kept.length).toBeLessThanOrEqual(MAX_VERSION_NOTE);
+    expect(kept.length % sentence.length).toBe(0);
+    expect(kept.length).toBeGreaterThan(0);
+  });
+
+  it('never takes a decimal point or a clock for the end of a sentence', () => {
+    const line = `Short one. ${'a'.repeat(255)} at 1.5 dB over and again at 0:13.5 of the song, then more after it.`;
+    expect(line.indexOf('1.') + 2).toBeLessThanOrEqual(MAX_VERSION_NOTE);
+    expect(wholeSentencesUpTo(line)).toBe('Short one.');
+  });
+
+  it('gives an older app nothing rather than half a first sentence', () => {
+    expect(wholeSentencesUpTo(`${long} and more.`)).toBeNull();
+    expect(wholeSentencesUpTo('Short and whole.')).toBe('Short and whole.');
   });
 });

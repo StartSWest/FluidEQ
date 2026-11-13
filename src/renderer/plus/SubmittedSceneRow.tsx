@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { noteIn } from 'common/sceneVersionNote';
 import type { ISceneSubmission } from 'common/plusReview';
 import { resolveSceneName } from 'common/scenePacks';
 import MenuIcon from '../icons/MenuIcon';
@@ -25,7 +26,7 @@ interface IReviewStateProps {
  * it is simply the version in the gallery.
  */
 export function ReviewState({ submission, liveVersion }: IReviewStateProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { standings } = useSceneReview();
   // What to do next only while this refusal is still the newest word on the
   // scene: one already sent again, or approved since, has nothing to fix.
@@ -62,9 +63,9 @@ export function ReviewState({ submission, liveVersion }: IReviewStateProps) {
           {t(REJECT_REASON_LABELS[submission.reason])}
         </span>
       </span>
-      {submission.reasonNote && (
+      {submission.reasonNotes && (
         <span className="review-row__note review-row__note--whole">
-          {submission.reasonNote}
+          {noteIn(submission.reasonNotes, locale)}
         </span>
       )}
       {stillRefused && (

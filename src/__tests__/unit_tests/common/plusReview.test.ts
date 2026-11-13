@@ -42,6 +42,38 @@ describe('what a maker sent for review', () => {
     });
   });
 
+  it('reads the admin’s line in every language it was written in', () => {
+    const notes = {
+      en: 'The white flash at the drop covers a quarter of the view.',
+      de: 'Der weiße Blitz beim Drop bedeckt ein Viertel des Bildes.',
+    };
+    expect(
+      parseSubmissionRow(
+        submission({
+          state: 'rejected',
+          reason: 'flashing',
+          reason_note: 'The white flash at the drop.',
+          reason_notes: notes,
+          decided_at: '2026-09-19T08:00:00.000Z',
+        }),
+      ),
+    ).toMatchObject({ reasonNotes: notes });
+  });
+
+  it('falls back to the single line when the lines cannot be read', () => {
+    expect(
+      parseSubmissionRow(
+        submission({
+          state: 'rejected',
+          reason: 'flashing',
+          reason_note: 'The white flash at the drop.',
+          reason_notes: { en: 'x'.repeat(1001) },
+          decided_at: '2026-09-19T08:00:00.000Z',
+        }),
+      ),
+    ).toMatchObject({ reasonNotes: { en: 'The white flash at the drop.' } });
+  });
+
   it('reads a refusal with its reason and the admin’s line', () => {
     expect(
       parseSubmissionRow(
@@ -55,7 +87,7 @@ describe('what a maker sent for review', () => {
     ).toMatchObject({
       state: 'rejected',
       reason: 'flashing',
-      reasonNote: 'The white flash at the drop',
+      reasonNotes: { en: 'The white flash at the drop' },
       decidedAt: '2026-09-19T08:00:00.000Z',
     });
   });
@@ -82,7 +114,7 @@ describe('what a maker sent for review', () => {
       }),
     );
     expect(approved).not.toHaveProperty('reason');
-    expect(approved).not.toHaveProperty('reasonNote');
+    expect(approved).not.toHaveProperty('reasonNotes');
   });
 
   it.each([

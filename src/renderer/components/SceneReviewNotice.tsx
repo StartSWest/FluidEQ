@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { noteIn } from 'common/sceneVersionNote';
 import type { CSSProperties, ReactNode } from 'react';
 import { resolveSceneName } from 'common/scenePacks';
 import type { TSceneReviewNotice } from 'common/sceneReviewNotice';
@@ -104,8 +105,11 @@ export default function SceneReviewNotice() {
         <span className="scene-review-notice__reason">
           {t(REJECT_REASON_LABELS[notice.reason])}
         </span>
-        {notice.reasonNote && (
-          <p className="scene-review-notice__quote">{notice.reasonNote}</p>
+        {/* The admin's line in this app's language (server 0111). */}
+        {notice.reasonNotes && (
+          <p className="scene-review-notice__quote">
+            {noteIn(notice.reasonNotes, locale)}
+          </p>
         )}
         {notice.liveVersion && (
           <p className="scene-review-notice__line">

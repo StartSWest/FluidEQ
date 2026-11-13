@@ -15,7 +15,11 @@ import {
 } from './plusGallery';
 import { readBlockChoice, type IPublishingBlockChoice } from './memberNotices';
 import type { TLocalizedName } from './scenePacks';
-import { readVersionNote } from './sceneVersionNote';
+import {
+  readReviewNotes,
+  readVersionNote,
+  type TVersionNotes,
+} from './sceneVersionNote';
 
 /**
  * A member's scene waits for the admin before anybody else sees it, and so
@@ -64,8 +68,12 @@ export interface ISceneSubmission {
   state: TSubmissionState;
   /** Why it was not approved, while it stands refused. */
   reason?: TRejectReason;
-  /** The admin's own line to the maker, if they wrote one. */
-  reasonNote?: string;
+  /**
+   * The admin's own line to the maker, if they wrote one, in each language
+   * it was written in (server 0111's `reason_notes`); from a server before
+   * it, or a refusal sent before it, the one line it kept, as English.
+   */
+  reasonNotes?: TVersionNotes;
   /**
    * The block the admin chose with the refusal (premium 0105): this scene,
    * or every scene of the maker, kept from review for so many days.
@@ -98,6 +106,22 @@ export const SHA256 = /^[0-9a-f]{64}$/;
 export const readNote = (value: unknown): string | undefined =>
   readVersionNote(value) ?? undefined;
 
+/**
+ * A refusal's line in every language, or the single line every server kept
+ * before 0111 as English. Lines that cannot be read are left out rather
+ * than cut, and the single line answers then: it is always complete.
+ */
+const readReasonNotes = (
+  value: Record<string, unknown>,
+): TVersionNotes | undefined => {
+  const notes = readReviewNotes(value.reason_notes);
+  if (notes) {
+    return notes;
+  }
+  const line = readNote(value.reason_note);
+  return line ? { en: line } : undefined;
+};
+
 /** One row of `my_scene_submissions`, or nothing when any part is not right. */
 export const parseSubmissionRow = (
   value: unknown,
@@ -129,8 +153,8 @@ export const parseSubmissionRow = (
   const decidedAt = readDate(value.decided_at);
   const liveVersion = readCount(value.live_version);
   const firstVersion = readCount(value.first_version);
-  const reasonNote =
-    value.state === 'rejected' ? readNote(value.reason_note) : undefined;
+  const reasonNotes =
+    value.state === 'rejected' ? readReasonNotes(value) : undefined;
   const block =
     value.state === 'rejected'
       ? readBlockChoice(value.block_days, value.block_scope)
@@ -146,7 +170,7 @@ export const parseSubmissionRow = (
     ...(value.state === 'rejected' && isRejectReason(value.reason)
       ? { reason: value.reason }
       : {}),
-    ...(reasonNote ? { reasonNote } : {}),
+    ...(reasonNotes ? { reasonNotes } : {}),
     ...(block ? { block } : {}),
     submittedAt,
     ...(decidedAt ? { decidedAt } : {}),

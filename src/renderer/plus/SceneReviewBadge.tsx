@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { noteIn } from 'common/sceneVersionNote';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { REJECT_REASON_LABELS } from './rejectReasons';
@@ -48,7 +49,7 @@ export default function SceneReviewBadge({ sceneId }: ISceneReviewBadgeProps) {
   const said = [
     t('review.mark.rejectedOn', { date }),
     t(REJECT_REASON_LABELS[standing.reason]),
-    ...(standing.reasonNote ? [standing.reasonNote] : []),
+    ...(standing.reasonNotes ? [noteIn(standing.reasonNotes, locale)] : []),
     t('review.next'),
   ].join('\n');
   return (

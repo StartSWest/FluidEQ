@@ -254,7 +254,7 @@ describe('a decision heard the moment it is made', () => {
       kind: 'rejected',
       sceneId: 'lake',
       reason: 'flashing',
-      reasonNote: 'Slow the white flash down.',
+      reasonNotes: { en: 'Slow the white flash down.' },
     });
     expect(push.stop).toHaveBeenCalled();
   });

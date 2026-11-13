@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { noteIn } from 'common/sceneVersionNote';
 import { useId, useState } from 'react';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -92,8 +93,10 @@ export default function SceneReviewMark({ sceneId }: ISceneReviewMarkProps) {
           <p className="scene-review-mark__reason">
             {t(REJECT_REASON_LABELS[standing.reason])}
           </p>
-          {standing.reasonNote && (
-            <p className="scene-review-mark__note">{standing.reasonNote}</p>
+          {standing.reasonNotes && (
+            <p className="scene-review-mark__note">
+              {noteIn(standing.reasonNotes, locale)}
+            </p>
           )}
           <p className="scene-review-mark__next">{t('review.next')}</p>
         </div>

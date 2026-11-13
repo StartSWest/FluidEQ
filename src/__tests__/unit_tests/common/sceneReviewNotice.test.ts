@@ -59,7 +59,7 @@ describe('a maker told what became of their scene', () => {
             state: 'rejected',
             version: 4,
             reason: 'flashing',
-            reasonNote: 'The white flash at the drop is too strong',
+            reasonNotes: { en: 'The white flash at the drop is too strong' },
             liveVersion: 3,
           }),
         ],
@@ -70,7 +70,7 @@ describe('a maker told what became of their scene', () => {
       kind: 'rejected',
       version: 4,
       reason: 'flashing',
-      reasonNote: 'The white flash at the drop is too strong',
+      reasonNotes: { en: 'The white flash at the drop is too strong' },
       liveVersion: 3,
     });
   });

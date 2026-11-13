@@ -106,11 +106,12 @@ const NOTE_INVISIBLE = new RegExp(
 );
 
 /**
- * The note as it is kept and shown: one line, invisible characters gone,
- * spaces collapsed. Null for no note — nothing sent, or nothing left once
- * cleaned. Undefined for one that cannot be kept: not text, or too long.
+ * A line as it is kept and shown: one line, invisible characters gone,
+ * spaces collapsed. Null for no line — nothing sent, or nothing left once
+ * cleaned. Undefined for one that cannot be kept: not text, or longer than
+ * `max`, which is refused whole and never cut.
  */
-export const readVersionNote = (value: unknown): string | null | undefined => {
+function readLineUpTo(value: unknown, max: number): string | null | undefined {
   if (value === undefined || value === null) {
     return null;
   }
@@ -129,8 +130,12 @@ export const readVersionNote = (value: unknown): string | null | undefined => {
   if (cleaned.length === 0) {
     return null;
   }
-  return cleaned.length <= MAX_VERSION_NOTE ? cleaned : undefined;
-};
+  return cleaned.length <= max ? cleaned : undefined;
+}
+
+/** A version's note as it is kept and shown (`readLineUpTo`). */
+export const readVersionNote = (value: unknown): string | null | undefined =>
+  readLineUpTo(value, MAX_VERSION_NOTE);
 
 /**
  * Every language the note is written in, FluidEQ's own (`LocaleCode`; this
@@ -171,9 +176,10 @@ const isNoteLocale = (key: string): key is TVersionNoteLocale =>
  * be kept: not a plain object, a key that names no language, or any line
  * that is not text or is too long - refused whole, never half kept.
  */
-export const readVersionNotes = (
+function readLinesUpTo(
   value: unknown,
-): TVersionNotes | null | undefined => {
+  max: number,
+): TVersionNotes | null | undefined {
   if (value === undefined || value === null) {
     return null;
   }
@@ -181,7 +187,7 @@ export const readVersionNotes = (
     return undefined;
   }
   const lines = Object.entries(value).map(
-    ([key, line]) => [key, readVersionNote(line)] as const,
+    ([key, line]) => [key, readLineUpTo(line, max)] as const,
   );
   if (lines.some(([key, line]) => !isNoteLocale(key) || line === undefined)) {
     return undefined;
@@ -194,7 +200,12 @@ export const readVersionNotes = (
   });
   const { en } = kept;
   return en === undefined ? null : { ...kept, en };
-};
+}
+
+/** A version's note in every language (`readLinesUpTo`). */
+export const readVersionNotes = (
+  value: unknown,
+): TVersionNotes | null | undefined => readLinesUpTo(value, MAX_VERSION_NOTE);
 
 /** The same line in every language: what goes out when nothing translated it. */
 export const notesAsWritten = (line: string): TVersionNotes => {
@@ -208,6 +219,48 @@ export const notesAsWritten = (line: string): TVersionNotes => {
 /** The note a reader sees: their language's line, or English. */
 export const noteIn = (notes: TVersionNotes, locale: string): string =>
   (isNoteLocale(locale) ? notes[locale] : undefined) ?? notes.en;
+
+/**
+ * The admin's line to a maker whose scene was declined, in each language
+ * (Ivan, 2026-11-13: "rejection notes need to be written completely ... and
+ * be written in all languages so when they see them they will see them in
+ * their app language"). Longer than a version's note: it names every
+ * problem the review found, with what to change, and a version note's 280
+ * cut the reviewer's line in half. Never cut: a longer line is refused, and
+ * whoever writes one is told this limit.
+ */
+export const MAX_REVIEW_NOTE = 1000;
+
+/** The declined scene's line in every language (`readLinesUpTo`). */
+export const readReviewNotes = (
+  value: unknown,
+): TVersionNotes | null | undefined => readLinesUpTo(value, MAX_REVIEW_NOTE);
+
+/**
+ * The line an app before 2.5.2 is told, which shows the one line it reads
+ * only when it fits a version's note: the leading whole sentences of
+ * `line` that fit, never a sentence cut in two. Null when even the first
+ * does not fit; the maker then reads the reason alone, as with no line.
+ */
+export const wholeSentencesUpTo = (
+  line: string,
+  max: number = MAX_VERSION_NOTE,
+): string | null => {
+  if (line.length <= max) {
+    return line;
+  }
+  // A sentence ends at a full stop, a question or an exclamation followed by
+  // a space (so "1.5 dB" and "0:13." in a time are not ends), or at a CJK
+  // one, which takes no space after it.
+  let end = 0;
+  Array.from(line.matchAll(/[.!?]+(?=\s)|[。！？]+/gu)).forEach((match) => {
+    const after = (match.index ?? 0) + match[0].length;
+    if (after <= max) {
+      end = after;
+    }
+  });
+  return end > 0 ? line.slice(0, end) : null;
+};
 
 /**
  * Whether a scene's current version is new to somebody opening the gallery
