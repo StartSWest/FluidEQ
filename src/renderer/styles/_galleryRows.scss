@@ -508,8 +508,10 @@ it under the terms of the GNU General Public License version 3 or later.
   text-transform: uppercase;
 }
 
-// Every version, open under the scene's name: they used to fold away behind
-// a summary, and Ivan read that as the versions not being shown at all.
+// Every version, folded under its heading until asked for. A faint summary
+// once hid them and read as the versions not being there at all, so the
+// heading is a real button: brighter than the label it was, a count, and the
+// app's chevron, which turns over while the list is open (`App.scss`).
 .gallery-versions__history {
   display: grid;
   gap: 6px;
@@ -520,6 +522,30 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: $text-small;
   font-weight: $weight-medium;
+}
+
+.gallery-versions__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 4px 0;
+  color: $text-muted;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    border-radius: $radius-s;
+    @include focus-ring;
+  }
 }
 
 // An owner on an older copy: which they have, and that a newer one is out.
@@ -542,6 +568,11 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 0;
   padding: 0;
   list-style: none;
+
+  // `display: grid` outranks the browser's own rule for `hidden`.
+  &[hidden] {
+    display: none;
+  }
 
   li {
     display: grid;

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   versionLineIn,
   type IGalleryScene,
@@ -13,6 +13,7 @@ import {
 import type { IKeptSceneVersions } from 'common/sceneStore';
 import { isNewSceneVersion } from 'common/sceneVersionNote';
 import { absoluteTime } from '../forum/forumTime';
+import Chevron from '../icons/Chevron';
 import { useTranslation } from '../utils/I18nContext';
 import {
   SceneVersionSaveButton,
@@ -70,12 +71,18 @@ const NOTHING_KEPT: IKeptSceneVersions = { versions: [] };
  * Which version of a scene this is, what its maker wrote about it, and the
  * versions before it — on the scene's page, under its name.
  *
- * Every version is listed open under it, up to the last 10, each with its
- * date and its "What's new" in the reader's language, and the one in the
- * member's looks marked; a scene with one version says so (Ivan, 2026-11-12:
- * "we are not showing all versions, all last 10 versions"). The list used to
- * fold away behind a summary, and to show nothing at all for a first
- * version.
+ * Every version is listed under it, up to the last 10, each with its date
+ * and its "What's new" in the reader's language, and the one in the member's
+ * looks marked (Ivan, 2026-11-12: "we are not showing all versions, all last
+ * 10 versions"). The list folds under its "All versions (N)" heading, shut
+ * every time the page opens and remembered nowhere (Ivan, 2026-11-13: "this
+ * needs a collapsible", "be always collapsed by default"): seven versions
+ * pushed everything under them off the page. The heading is a button with a
+ * count and the app's chevron, not the faint summary the list once folded
+ * behind, which read as the versions not being there at all. The current
+ * version's "What's new" stays above it, open. A scene with one version has
+ * nothing to fold: its one row and "the only version so far" stay as they
+ * were.
  *
  * An owner can play again any earlier version this computer kept — every
  * version it had, from its own copies, so going back downloads nothing. While
@@ -111,6 +118,13 @@ export default function SceneVersions({
   const [current, setCurrent] = useState<IGalleryVersion>();
   const newerRef = useRef(onNewerVersion);
   newerRef.current = onNewerVersion;
+  const [open, setOpen] = useState(false);
+  const listId = useId();
+
+  // Another scene's page shuts the list again: open is never carried over.
+  useEffect(() => {
+    setOpen(false);
+  }, [authorId, sceneId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -211,6 +225,12 @@ export default function SceneVersions({
 
   const isNew = isNewSceneVersion(scene, Date.now());
   const { playing } = kept;
+  // The current version heads the list, so it is counted.
+  const allVersions = t('plus.version.all', {
+    count: String(rows.length + 1),
+  });
+  const folds = rows.length > 0;
+  const shown = !folds || open;
 
   return (
     <section className="gallery-versions" aria-label={t('plus.version.title')}>
@@ -259,10 +279,22 @@ export default function SceneVersions({
       )}
       <div className="gallery-versions__history">
         <h3 className="gallery-versions__heading">
-          {/* The current version heads the list, so it is counted. */}
-          {t('plus.version.all', { count: String(rows.length + 1) })}
+          {folds ? (
+            <button
+              type="button"
+              className="gallery-versions__toggle"
+              aria-expanded={open}
+              aria-controls={listId}
+              onClick={() => setOpen((was) => !was)}
+            >
+              {allVersions}
+              <Chevron />
+            </button>
+          ) : (
+            allVersions
+          )}
         </h3>
-        <ol className="gallery-versions__list">
+        <ol className="gallery-versions__list" id={listId} hidden={!shown}>
           <li className="is-current">
             <span className="gallery-versions__number">
               {t('plus.version.short', { version: String(version) })}

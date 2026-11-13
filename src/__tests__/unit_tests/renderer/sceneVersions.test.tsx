@@ -72,6 +72,12 @@ beforeEach(() => {
 const playButtons = () =>
   screen.queryAllByRole('button', { name: /^plus\.version\.playLabel/ });
 
+const versionsToggle = () =>
+  screen.findByRole('button', { name: /^plus\.version\.all/ });
+
+/** The list folds shut on every page; what is in it is read once opened. */
+const openVersions = async () => userEvent.click(await versionsToggle());
+
 it('shows the history alone to somebody with nothing kept', async () => {
   render(
     <SceneVersions
@@ -96,6 +102,7 @@ it('offers Play only on the versions this computer kept', async () => {
       inLooks={undefined}
     />,
   );
+  await openVersions();
   await waitFor(() => expect(playButtons()).toHaveLength(2));
   expect(
     playButtons().map((button) => button.getAttribute('aria-label')),
@@ -114,6 +121,7 @@ it('plays a kept version, says so, and goes back to the newest', async () => {
       inLooks={undefined}
     />,
   );
+  await openVersions();
   await waitFor(() => expect(playButtons()).toHaveLength(2));
   await userEvent.click(playButtons()[1]);
   expect(play).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
@@ -148,7 +156,8 @@ it('lists a kept version the server history no longer names', async () => {
       inLooks={undefined}
     />,
   );
-  expect(await screen.findByText('plus.version.keptHere')).toBeInTheDocument();
+  await openVersions();
+  expect(await screen.findByText('plus.version.keptHere')).toBeVisible();
   expect(playButtons()).toHaveLength(1);
 });
 
@@ -203,6 +212,7 @@ describe('saving a version the server still holds', () => {
         inLooks={undefined}
       />,
     );
+    await openVersions();
     await waitFor(() => expect(saveButtons()).toHaveLength(2));
     expect(
       saveButtons().map((button) => button.getAttribute('aria-label')),
@@ -223,6 +233,7 @@ describe('saving a version the server still holds', () => {
         inLooks={undefined}
       />,
     );
+    await openVersions();
     expect(await screen.findByText('plus.version.current')).toBeInTheDocument();
     expect(saveButtons()).toHaveLength(0);
     expect(screen.queryByText('plus.version.gone')).toBeNull();
@@ -238,6 +249,7 @@ describe('saving a version the server still holds', () => {
         inLooks={undefined}
       />,
     );
+    await openVersions();
     await waitFor(() => expect(saveButtons()).toHaveLength(2));
     await userEvent.click(saveButtons()[1]);
     expect(saveCalls).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
@@ -279,6 +291,7 @@ describe('saving a version the server still holds', () => {
         inLooks={undefined}
       />,
     );
+    await openVersions();
     await waitFor(() => expect(saveButtons()).toHaveLength(1));
     await userEvent.click(saveButtons()[0]);
     await act(async () => answer({ ok: false, reason: 'gone' }));
@@ -304,6 +317,7 @@ describe('saving a version the server still holds', () => {
         inLooks={undefined}
       />,
     );
+    await openVersions();
     await waitFor(() => expect(saveButtons()).toHaveLength(1));
     await userEvent.click(saveButtons()[0]);
     await act(async () => answer({ saved: 'yes' }));
@@ -324,14 +338,16 @@ describe('saving a version the server still holds', () => {
         inLooks={undefined}
       />,
     );
+    await openVersions();
     expect(await screen.findByText('plus.version.current')).toBeInTheDocument();
     expect(saveButtons()).toHaveLength(0);
   });
 });
 
 // Ivan, 2026-11-12: "we are not showing all versions, all last 10 versions".
-// The list folded away behind a summary, and a first version showed none.
-describe('every version, open on the page', () => {
+// Then 2026-11-13, at seven of them: "this needs a collapsible", "be always
+// collapsed by default". Folded under a real button, shut on every page.
+describe('every version, folded under its heading', () => {
   const answer = (
     versions: Array<{ version: number; publishedAt: string }>,
   ) => {
@@ -356,9 +372,32 @@ describe('every version, open on the page', () => {
     expect(await screen.findByText('plus.version.onlyOne')).toBeVisible();
     expect(screen.getByText('plus.version.all:1')).toBeVisible();
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    // One row has nothing to fold: no toggle, the row in view.
+    expect(
+      screen.queryByRole('button', { name: /^plus\.version\.all/ }),
+    ).toBeNull();
   });
 
-  it('shows the earlier versions without opening anything', async () => {
+  it('opens shut, with what is new in this version still in view', async () => {
+    render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={{ ...scene, versionNote: 'Lanterns drift.' }}
+        mayKeep={false}
+        inLooks={undefined}
+      />,
+    );
+    const toggle = await versionsToggle();
+    expect(toggle).toHaveAccessibleName('plus.version.all:4');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText('Brighter lake.')).not.toBeVisible();
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    expect(screen.getByText('Lanterns drift.')).toBeVisible();
+    // With earlier versions there, it is not the only one.
+    expect(screen.queryByText('plus.version.onlyOne')).toBeNull();
+  });
+
+  it('opens and shuts on a press, and from the keyboard', async () => {
     render(
       <SceneVersions
         onNewerVersion={jest.fn()}
@@ -367,10 +406,46 @@ describe('every version, open on the page', () => {
         inLooks={undefined}
       />,
     );
-    expect(await screen.findByText('Brighter lake.')).toBeVisible();
+    const toggle = await versionsToggle();
+    const list = screen.getByRole('list', { hidden: true });
+    expect(toggle).toHaveAttribute('aria-controls', list.id);
+
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('Brighter lake.')).toBeVisible();
     expect(screen.getAllByRole('listitem')).toHaveLength(4);
-    // The control: with earlier versions there, it is not the only one.
-    expect(screen.queryByText('plus.version.onlyOne')).toBeNull();
+
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText('Brighter lake.')).not.toBeVisible();
+
+    toggle.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.keyboard(' ');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('is shut again on another scene’s page', async () => {
+    const { rerender } = render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep={false}
+        inLooks={undefined}
+      />,
+    );
+    await openVersions();
+    expect(await versionsToggle()).toHaveAttribute('aria-expanded', 'true');
+    rerender(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={{ ...scene, sceneId: 'harbour' }}
+        mayKeep={false}
+        inLooks={undefined}
+      />,
+    );
+    expect(await versionsToggle()).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('lists the last ten, and a version kept here however old', async () => {
@@ -389,6 +464,7 @@ describe('every version, open on the page', () => {
         inLooks={undefined}
       />,
     );
+    await openVersions();
     await waitFor(() => expect(playButtons()).toHaveLength(1));
     const numbers = screen
       .getAllByRole('listitem')
@@ -419,6 +495,7 @@ describe('every version, open on the page', () => {
         inLooks={3}
       />,
     );
+    await openVersions();
     await screen.findByText('Brighter lake.');
     const marked = () =>
       screen
