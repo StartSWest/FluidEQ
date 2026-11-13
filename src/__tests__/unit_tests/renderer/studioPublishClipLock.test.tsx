@@ -108,6 +108,7 @@ const dialog = (pack: IScenePack, running: boolean) => (
     draft={draft}
     running={running}
     onPublish={jest.fn()}
+    onTranslateNote={jest.fn().mockResolvedValue(false)}
     onCancel={jest.fn()}
   />
 );

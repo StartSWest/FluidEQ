@@ -20,7 +20,10 @@ import StudioProjects from '../../../renderer/studio/StudioProjects';
 import StudioPublishDialog from '../../../renderer/studio/StudioPublishDialog';
 import type { IPublishDraft } from '../../../renderer/studio/useStudioPublish';
 import type { IScenePack } from '../../../common/scenePacks';
-import { MAX_VERSION_NOTE } from '../../../common/sceneVersionNote';
+import {
+  MAX_VERSION_NOTE,
+  notesAsWritten,
+} from '../../../common/sceneVersionNote';
 
 // The recorder's own tests cover media/lifecycle. Dialog cases receive a
 // completed camera result while exercising the real category/note/cover gates.
@@ -292,6 +295,7 @@ describe('the publish dialog', () => {
         draft={draft()}
         running={false}
         onPublish={onPublish}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
@@ -351,6 +355,7 @@ describe('the publish dialog', () => {
         draft={draft()}
         running={false}
         onPublish={onPublish}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
@@ -379,12 +384,13 @@ describe('the publish dialog', () => {
 
   it('asks what is new only of an update, and sends it with the publication', async () => {
     const onPublish = jest.fn();
+    const onTranslateNote = jest.fn().mockResolvedValue(false);
     const published = {
       sceneId: 'neon-city',
       version: 3,
       category: 'cities',
     } as IPublishDraft['published'];
-    render(
+    const dialog = (extra: Partial<IPublishDraft> = {}) => (
       <StudioPublishDialog
         name="Neon City"
         identity={CITY}
@@ -392,13 +398,15 @@ describe('the publish dialog', () => {
         tuning={{}}
         onCapture={jest.fn()}
         onChoose={jest.fn()}
-        draft={draft({ published })}
+        draft={draft({ published, ...extra })}
         running={false}
         onPublish={onPublish}
+        onTranslateNote={onTranslateNote}
         onCancel={jest.fn()}
-      />,
+      />
     );
-    const note = screen.getByLabelText('studio.publish.note');
+    const { rerender } = render(dialog());
+    const note = screen.getByLabelText(/studio.publish.note /);
     expect(note).toHaveAttribute('maxLength', String(MAX_VERSION_NOTE));
     // An update waits too, while everybody keeps the version they have.
     expect(
@@ -409,10 +417,21 @@ describe('the publish dialog', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' }),
     );
+    // The other eleven languages are asked of the scene's chat first.
+    expect(onTranslateNote).toHaveBeenCalledWith('The peaks stay whole', 'en');
+    expect(onPublish).not.toHaveBeenCalled();
+    // No chat could take it: the line goes in every language as written.
+    rerender(dialog({ noteAsWritten: true }));
+    expect(
+      screen.getByText('studio.publish.noteNotTranslated'),
+    ).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' }),
+    );
     expect(onPublish).toHaveBeenLastCalledWith(
       'cities',
       undefined,
-      'The peaks stay whole',
+      notesAsWritten('The peaks stay whole'),
       expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
   });
@@ -430,6 +449,7 @@ describe('the publish dialog', () => {
         draft={draft()}
         running={false}
         onPublish={onPublish}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
@@ -483,6 +503,7 @@ describe('the publish dialog', () => {
         draft={draft({ held: 7 })}
         running={false}
         onPublish={jest.fn()}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
@@ -498,6 +519,7 @@ describe('the publish dialog', () => {
         draft={draft()}
         running={false}
         onPublish={jest.fn()}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
@@ -518,6 +540,7 @@ describe('the publish dialog', () => {
         draft={draft()}
         running={false}
         onPublish={jest.fn()}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
@@ -538,6 +561,7 @@ describe('the publish dialog', () => {
         })}
         running={false}
         onPublish={jest.fn()}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
@@ -578,6 +602,7 @@ describe('the publish dialog', () => {
         })}
         running={false}
         onPublish={onPublish}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
@@ -600,7 +625,7 @@ describe('the publish dialog', () => {
     const go = screen.getByRole('button', {
       name: 'studio.publish.agreeReview',
     });
-    const field = screen.getByLabelText('studio.publish.note');
+    const field = screen.getByLabelText(/studio.publish.note /);
     expect(go).toBeEnabled();
     expect(field).not.toHaveAttribute('aria-invalid', 'true');
     fireEvent.click(go);
@@ -617,12 +642,164 @@ describe('the publish dialog', () => {
     expect(field).not.toHaveAttribute('aria-invalid', 'true');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     fireEvent.click(go);
-    expect(onPublish).toHaveBeenCalledWith(
-      'water',
-      'cities',
-      'the peaks no longer get cut on wide panels',
-      expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
+    // Handed to the chat for the other languages before anything goes.
+    expect(onPublish).not.toHaveBeenCalled();
+  });
+
+  it('sends the chat’s lines once its translation has ended, the member’s words kept', async () => {
+    const onPublish = jest.fn();
+    const published = {
+      sceneId: 'neon-city',
+      version: 3,
+      category: 'cities',
+    } as IPublishDraft['published'];
+    const dialog = (extra: Partial<IPublishDraft> = {}) => (
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft({ published, ...extra })}
+        running={false}
+        onPublish={onPublish}
+        onTranslateNote={jest.fn().mockResolvedValue(true)}
+        onCancel={jest.fn()}
+      />
     );
+    const { rerender } = render(dialog());
+    await userEvent.type(
+      screen.getByLabelText(/studio.publish.note /),
+      'The peaks stay whole',
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' }),
+    );
+    rerender(dialog({ noteTranslating: true }));
+    // Shown from the press, with a way out that does not wait.
+    expect(
+      screen.getByText('studio.publish.noteTranslating:11'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'studio.publish.sendAsWritten' }),
+    ).toBeInTheDocument();
+    expect(onPublish).not.toHaveBeenCalled();
+    // The reply ends with every language written for the member's line.
+    const written = {
+      ...notesAsWritten('The peaks stay whole'),
+      es: 'Los picos quedan enteros',
+      de: 'Die Gipfel bleiben ganz',
+    };
+    rerender(
+      dialog({
+        suggestedNotes: written,
+        noteTranslating: false,
+        noteTranslated: true,
+      }),
+    );
+    expect(onPublish).toHaveBeenCalledTimes(1);
+    expect(onPublish).toHaveBeenCalledWith(
+      'cities',
+      undefined,
+      written,
+      expect.objectContaining({ durationMs: 10000 }),
+    );
+  });
+
+  it('sends the member’s line as written when the chat ends without it', async () => {
+    const onPublish = jest.fn();
+    const published = {
+      sceneId: 'neon-city',
+      version: 3,
+      category: 'cities',
+    } as IPublishDraft['published'];
+    const dialog = (extra: Partial<IPublishDraft> = {}) => (
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft({ published, ...extra })}
+        running={false}
+        onPublish={onPublish}
+        onTranslateNote={jest.fn().mockResolvedValue(true)}
+        onCancel={jest.fn()}
+      />
+    );
+    const { rerender } = render(dialog());
+    await userEvent.type(
+      screen.getByLabelText(/studio.publish.note /),
+      'The peaks stay whole',
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' }),
+    );
+    // A reply that wrote lines for some other line is not this one's.
+    rerender(
+      dialog({
+        suggestedNotes: notesAsWritten('An older line'),
+        noteTranslated: true,
+      }),
+    );
+    expect(onPublish).toHaveBeenCalledWith(
+      'cities',
+      undefined,
+      notesAsWritten('The peaks stay whole'),
+      expect.objectContaining({ durationMs: 10000 }),
+    );
+  });
+
+  it('sends at once, as written, on Send as written while the chat translates', async () => {
+    const onPublish = jest.fn();
+    const published = {
+      sceneId: 'neon-city',
+      version: 3,
+      category: 'cities',
+    } as IPublishDraft['published'];
+    const dialog = (extra: Partial<IPublishDraft> = {}) => (
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft({ published, ...extra })}
+        running={false}
+        onPublish={onPublish}
+        onTranslateNote={jest.fn().mockResolvedValue(true)}
+        onCancel={jest.fn()}
+      />
+    );
+    const { rerender } = render(dialog());
+    await userEvent.type(
+      screen.getByLabelText(/studio.publish.note /),
+      'The peaks stay whole',
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' }),
+    );
+    rerender(dialog({ noteTranslating: true }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.sendAsWritten' }),
+    );
+    expect(onPublish).toHaveBeenCalledWith(
+      'cities',
+      undefined,
+      notesAsWritten('The peaks stay whole'),
+      expect.objectContaining({ durationMs: 10000 }),
+    );
+    // The control: the reply ending afterwards sends nothing more.
+    rerender(
+      dialog({
+        suggestedNotes: notesAsWritten('The peaks stay whole'),
+        noteTranslated: true,
+      }),
+    );
+    expect(onPublish).toHaveBeenCalledTimes(1);
   });
 
   // The line the member's AI wrote about its own change, offered as the note.
@@ -640,7 +817,8 @@ describe('the publish dialog', () => {
         onCapture={jest.fn()}
         onChoose={jest.fn()}
         draft={draft({
-          suggestedNote: 'the rain falls behind the signs now',
+          // Written by the chat in every language, as it is asked to.
+          suggestedNotes: notesAsWritten('the rain falls behind the signs now'),
           published: {
             sceneId: 'neon-city',
             version: 2,
@@ -656,10 +834,11 @@ describe('the publish dialog', () => {
         })}
         running={false}
         onPublish={onPublish}
+        onTranslateNote={jest.fn().mockResolvedValue(false)}
         onCancel={jest.fn()}
       />,
     );
-    expect(screen.getByLabelText('studio.publish.note')).toHaveValue(
+    expect(screen.getByLabelText(/studio.publish.note /)).toHaveValue(
       'the rain falls behind the signs now',
     );
     fireEvent.click(
@@ -668,7 +847,7 @@ describe('the publish dialog', () => {
     expect(onPublish).toHaveBeenCalledWith(
       'cities',
       undefined,
-      'the rain falls behind the signs now',
+      notesAsWritten('the rain falls behind the signs now'),
       expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
   });

@@ -27,6 +27,8 @@ export interface ISceneUpdateNotice {
   names: TLocalizedName;
   version: number;
   note?: string;
+  /** `note` in every language it was written in; the toast picks the reader's. */
+  notes?: import('common/sceneVersionNote').TVersionNotes;
   scene?: IGalleryScene;
 }
 
@@ -91,6 +93,7 @@ export const reportScenePlayed = async (played: IPlayedScene) => {
     names: scene?.names ?? played.names,
     version: played.version,
     ...(scene?.versionNote ? { note: scene.versionNote } : {}),
+    ...(scene?.versionNotes ? { notes: scene.versionNotes } : {}),
     ...(scene ? { scene } : {}),
   });
 };

@@ -224,7 +224,7 @@ export const publishStudioScene = async (
   category: TPlusCategory,
   picture: Uint8Array,
   category2?: TPlusCategory,
-  note?: string,
+  note?: import('common/sceneVersionNote').TVersionNotes,
   preview?: import('common/scenePreviewMedia').IScenePreviewUpload,
 ): Promise<TPublishOutcome> =>
   // The second category and the note only when there are some, so a publish
@@ -233,8 +233,8 @@ export const publishStudioScene = async (
     termsVersion,
     category,
     picture,
-    ...(category2 || note?.trim() || preview ? [category2] : []),
-    ...(note?.trim() || preview ? [note] : []),
+    ...(category2 || note || preview ? [category2] : []),
+    ...(note || preview ? [note] : []),
     ...(preview ? [preview] : []),
   )) ?? {
     ok: false,

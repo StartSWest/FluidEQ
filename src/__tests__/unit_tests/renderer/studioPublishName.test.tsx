@@ -90,6 +90,7 @@ const open = () =>
       draft={draft}
       running={false}
       onPublish={jest.fn()}
+      onTranslateNote={jest.fn().mockResolvedValue(false)}
       onCancel={jest.fn()}
     />,
   );

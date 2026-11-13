@@ -1,0 +1,175 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The publish dialog's "What's new" line in every language (Ivan,
+// 2026-11-12, approved picture): the member's own language and English on
+// show, each under its own name, the other languages folded away, and what
+// the scene's chat is doing with them said in words beside a moving bar.
+// The box itself and its count are `StudioPublish.scss`'s.
+
+.studio-publish__note-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+// The language's own name, and what that box is for, quieter after it.
+.studio-publish__note-language {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 $spacing-xs;
+  color: $text-dim;
+  font-size: $text-small;
+
+  span {
+    color: $text-faint;
+    font-size: $text-micro;
+
+    &::before {
+      content: '· ';
+    }
+  }
+}
+
+// English while it follows the member's changed line: still editable, but
+// read as a line that will be written again, not as one that goes out.
+.studio-publish__note textarea.is-following {
+  color: $text-faint;
+}
+
+// The other languages: a quiet line until opened, then one row each.
+.studio-publish__note-more {
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+
+  > summary {
+    padding: $spacing-xs $spacing-s;
+    color: $text-dim;
+    font-size: $text-small;
+    cursor: pointer;
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+.studio-publish__note-rows {
+  display: grid;
+  gap: $spacing-xs;
+  padding: 0 $spacing-s $spacing-s;
+}
+
+// The language's name in a column of its own beside its line, stacked on a
+// narrow dialog where the column would squeeze the line to a few words.
+.studio-publish__note-row {
+  display: grid;
+  grid-template-columns: minmax(84px, max-content) minmax(0, 1fr);
+  align-items: start;
+  gap: $spacing-s;
+
+  label {
+    padding-top: 6px;
+    color: $text-faint;
+    font-size: $text-small;
+  }
+
+  // One line tall: the row is read, and corrected only now and then. The
+  // dialog's own two-line height is for the line the member writes.
+  .studio-publish__note & textarea {
+    min-height: 34px;
+    font-size: $text-small;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+
+    label {
+      padding-top: 0;
+    }
+  }
+}
+
+// The chat writing the other languages: in words, with a bar that moves
+// from the first moment, so the wait never looks like nothing happening.
+.studio-publish__note-working {
+  display: grid;
+  gap: 6px;
+  padding: $spacing-s;
+  border: 1px solid color-mix(in srgb, $text-accent 28%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $text-accent 8%, transparent);
+  color: $text-dim;
+  font-size: $text-small;
+
+  strong {
+    color: $text-accent;
+    font-weight: $weight-semibold;
+  }
+}
+
+.studio-publish__note-bar {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: $track-well;
+
+  > i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 40%;
+    border-radius: inherit;
+    background: $text-accent;
+    animation: studio-publish-note-sweep 1.4s ease-in-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      width: 100%;
+      animation: none;
+      opacity: 0.5;
+    }
+  }
+}
+
+@keyframes studio-publish-note-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+// Nothing could translate the line: said quietly, as a fact, never as an
+// error, because the scene goes out all the same.
+.studio-publish__note-quiet {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-xs;
+  margin: 0;
+  color: $text-dim;
+  font-size: $text-small;
+
+  &::before {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $text-faint;
+    content: '';
+    transform: translateY(-1px);
+  }
+}

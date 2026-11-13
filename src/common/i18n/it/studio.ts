@@ -189,8 +189,20 @@ const studio = {
   'studio.publish.categoryHint': 'Fino a due. La scheda mostra la prima.',
   'studio.publish.pickCategory': 'Scegli prima una categoria',
   'studio.publish.needNote': 'Dì prima cosa c’è di nuovo in questa versione',
-  'studio.publish.noteEnglish':
-    'Scrivila in inglese: la leggono tutti nella galleria.',
+  'studio.publish.noteYours': 'la tua',
+  'studio.publish.noteFallback': 'per ogni lingua mancante',
+  'studio.publish.noteFollows': 'seguirà la tua riga all’invio',
+  'studio.publish.noteMore': 'Altre {count} lingue',
+  'studio.publish.noteMoreWritten': 'Altre {count} lingue, tutte scritte',
+  'studio.publish.noteMoreAsWritten': 'Altre {count} lingue, come scritto',
+  'studio.publish.noteRowEmpty': 'Esce come scritto',
+  'studio.publish.noteTranslating': 'Traduzione in {count} lingue…',
+  'studio.publish.noteTranslatingHint':
+    'La chat della tua scena le sta scrivendo.',
+  'studio.publish.noteNotTranslated':
+    'Non tradotta: mostrata come scritta in ogni lingua.',
+  'studio.publish.sendAsWritten': 'Invia come scritto',
+  'studio.publish.translatingButton': 'Traduzione…',
   'studio.publish.shapeChoice': 'Vista da controllare',
   'studio.publish.shapeNormal': 'Normale',
   'studio.publish.shapeUltra': 'Ultra wide',

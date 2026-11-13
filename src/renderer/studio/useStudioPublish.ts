@@ -7,6 +7,7 @@ import {
 } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { formatPackBytes, MAX_PUBLISH_BYTES } from 'common/scenePackSize';
+import type { TVersionNotes } from 'common/sceneVersionNote';
 import {
   heldVersionOf,
   type IPublishedScene,
@@ -37,7 +38,7 @@ import preparePublishPreview, {
   type IPreparedPublishPreview,
 } from './preparePublishPreview';
 import useStudioPublishProgress from './useStudioPublishProgress';
-import usePublishNote, { lineToOffer } from './usePublishNote';
+import usePublishNote, { notesToOffer } from './usePublishNote';
 
 export type { IPreparedPublishPreview } from './preparePublishPreview';
 
@@ -114,12 +115,23 @@ export interface IPublishDraft {
    * the dialog opens so it is the line for THIS version rather than one left
    * over in the field from the last publication.
    */
-  suggestedNote?: string;
+  suggestedNotes?: TVersionNotes;
   /**
    * The scene's chat was asked for the line because the notes had none, and
    * has not answered yet (`usePublishNote.ts`).
    */
   noteWriting?: boolean;
+  /**
+   * The member changed the line, and the scene's chat is writing it in every
+   * language now; `noteTranslated` once that reply has ended.
+   */
+  noteTranslating?: boolean;
+  noteTranslated?: boolean;
+  /**
+   * No chat could take the translation: the line goes in every language as
+   * written, and the dialog says so quietly.
+   */
+  noteAsWritten?: boolean;
   /** Whether the Plus terms this app carries were agreed on this computer. */
   agreed: boolean;
   /** The last capture could not be drawn. */
@@ -207,7 +219,12 @@ export default function useStudioPublish(
     currentDraft.current = next;
     showDraft(next);
   }, []);
-  usePublishNote(draft, currentDraft, setDraft, view.state.activeId);
+  const { translate: translateNote } = usePublishNote(
+    draft,
+    currentDraft,
+    setDraft,
+    view.state.activeId,
+  );
 
   const cancel = useCallback(() => {
     abandon();
@@ -312,7 +329,7 @@ export default function useStudioPublish(
     const opened = performance.now();
     Promise.all([still, published, studioTermsAgreed(), suggested])
       .then(([picture, alreadyPublished, agreed, notes]) => {
-        const suggestedNote = lineToOffer(notes, alreadyPublished?.scene);
+        const suggestedNotes = notesToOffer(notes, alreadyPublished?.scene);
         // What the press of Publish waits on before the dialog shows: the
         // cover drawn, the gallery and the terms asked, the notes read.
         reportInfo(
@@ -340,7 +357,7 @@ export default function useStudioPublish(
           ...(alreadyPublished?.held !== undefined
             ? { held: alreadyPublished.held }
             : {}),
-          ...(suggestedNote ? { suggestedNote } : {}),
+          ...(suggestedNotes ? { suggestedNotes } : {}),
         });
         return undefined;
       })
@@ -456,7 +473,7 @@ export default function useStudioPublish(
     (
       category: TPlusCategory,
       category2?: TPlusCategory,
-      note?: string,
+      note?: TVersionNotes,
       preview?: IPreparedPublishPreview,
     ) => {
       const mine = currentDraft.current;
@@ -595,6 +612,7 @@ export default function useStudioPublish(
     capture,
     choose,
     publish,
+    translateNote,
     cancel,
     requestCancel,
     phase,

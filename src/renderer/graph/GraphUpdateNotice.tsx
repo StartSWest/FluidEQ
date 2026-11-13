@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useState } from 'react';
+import { versionLineIn } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import PlusToastStack from '../plus/PlusToastStack';
 import { openGalleryPage } from '../plus/plusNavigation';
@@ -43,8 +44,9 @@ export default function GraphUpdateNotice() {
             name: resolveSceneName({ names: entry.names }, locale),
             version: String(entry.version),
           };
-          return entry.note
-            ? t('graph.version.updatedNote', { ...vars, note: entry.note })
+          const note = versionLineIn(entry.note, entry.notes, locale);
+          return note
+            ? t('graph.version.updatedNote', { ...vars, note })
             : t('graph.version.updated', vars);
         }}
         action={(entry) => {

@@ -357,6 +357,21 @@ export const askStudioChatForNote = (): Promise<boolean> =>
     ...scenePicks(),
   }) ?? Promise.resolve(false);
 
+/**
+ * The open project's chat asked to write the line the member set in the
+ * publish dialog in every language; true when the ask went, false when there
+ * is no chat to ask or a reply is running.
+ */
+export const askStudioChatToTranslateNote = (
+  line: string,
+  from: string,
+): Promise<boolean> =>
+  bridge()?.studioChatAskNote?.({
+    brief: chatBrief(),
+    ...scenePicks(),
+    translate: { line, from },
+  }) ?? Promise.resolve(false);
+
 /** A queued message taken back before it went. */
 /** What waits in the queue, read by Claude now, on the member's picks. */
 export const sendNowStudioChat = () =>

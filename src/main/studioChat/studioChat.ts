@@ -28,6 +28,7 @@ import type { IChatLauncher } from './chatProcess';
 import createChatQueue from './chatQueue';
 import createChatSessions from './chatSessions';
 import createChatTurns from './chatTurns';
+import { readNoteTranslation } from './noteDue';
 import createChatUsage from './chatUsage';
 import createUsageRead from './chatUsageRead';
 import createChatWindow from './chatWindow';
@@ -320,7 +321,8 @@ export const createStudioChat = ({
       return false;
     }
     const session = await sessionFor(chat.key, chat.folder, picks);
-    return session ? turns.askForNote(chat.key, session) : false;
+    const translation = readNoteTranslation(raw);
+    return session ? turns.askForNote(chat.key, session, translation) : false;
   };
 
   /**

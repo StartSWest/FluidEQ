@@ -4,7 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
+import {
+  MAX_VERSION_NOTE,
+  VERSION_NOTE_LOCALES,
+} from 'common/sceneVersionNote';
 import { chatPrompt } from '../aiPrompt';
 import CRAFT_SECTION from './chatCraft';
 
@@ -49,8 +52,9 @@ first one usually describes it, and stands where MY IDEA would.
   you answer. Whenever a reply changed anything a listener could notice -
   the picture, the motion, how it answers the music, a control, a fix -
   write the line that says so into studio-notes.json beside the scene, as
-  "whatsNew": one line of at most ${MAX_VERSION_NOTE} characters, in English, as a listener would put it ("the fish now swim
-  left and their tails beat with the hats"), never the code's words. It
+  "whatsNew": one line of at most ${MAX_VERSION_NOTE} characters as a listener would put it ("the fish now swim
+  left and their tails beat with the hats"), never the code's words, as an
+  object of that line in ${VERSION_NOTE_LOCALES.join(', ')}. It
   covers everything since the version the Gallery has, so when a line is
   already there, fold this change into it and keep it one line. Change
   nothing else in that file; make it with that one key when it is not

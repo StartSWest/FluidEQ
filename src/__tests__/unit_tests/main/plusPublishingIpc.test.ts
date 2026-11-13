@@ -723,6 +723,31 @@ describe('publishing from the Studio', () => {
     );
   });
 
+  // Ivan, 2026-11-12: the line in every listener's language.
+  it('sends the line in every language, its English as the note', async () => {
+    setup();
+    const lines = { en: ' The peaks stay whole ', es: 'Los picos quedan' };
+    expect(
+      await invoke('studio-publish', 4, 'space', webpBytes(), undefined, lines),
+    ).toEqual({ ok: true });
+    expect(publishRequest()?.body.note).toBe('The peaks stay whole');
+    expect(publishRequest()?.body.versionNotes).toEqual({
+      en: 'The peaks stay whole',
+      es: 'Los picos quedan',
+    });
+  });
+
+  it('refuses lines it could not keep, before sending anything', async () => {
+    setup();
+    expect(
+      await invoke('studio-publish', 4, 'space', webpBytes(), undefined, {
+        en: 'Peaks',
+        xx: 'Gipfel',
+      }),
+    ).toEqual({ ok: false, reason: 'refused' });
+    expect(calls).toEqual([]);
+  });
+
   it('refuses a note it could not keep, before sending anything', async () => {
     setup();
     expect(
@@ -741,6 +766,7 @@ describe('publishing from the Studio', () => {
       ok: true,
     });
     expect(publishRequest()?.body).not.toHaveProperty('note');
+    expect(publishRequest()?.body).not.toHaveProperty('versionNotes');
   });
 
   // The server would record the agreement for whoever the token belongs to;

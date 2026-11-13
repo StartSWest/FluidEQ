@@ -102,6 +102,7 @@ import './StudioDialogs.scss';
 import './StudioStage.scss';
 import './StudioUltraWideFrame.scss';
 import './StudioPublish.scss';
+import './StudioPublishNote.scss';
 import './StudioPublishSize.scss';
 import './StudioPublishShapes.scss';
 import './StudioPictures.scss';

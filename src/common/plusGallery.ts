@@ -11,7 +11,12 @@ import {
   premiumLookId,
   type TLocalizedName,
 } from './scenePacks';
-import { readVersionNote } from './sceneVersionNote';
+import {
+  noteIn,
+  readVersionNote,
+  readVersionNotes,
+  type TVersionNotes,
+} from './sceneVersionNote';
 
 /** Reserved catalogue identity, never a member account. */
 export const FLUIDEQ_CREATOR_ID = '00000000-0000-4000-8000-000000000001';
@@ -137,6 +142,11 @@ export interface IGalleryScene {
   /** What its maker wrote about the current version (fluideq-premium 0026). */
   versionNote?: string;
   /**
+   * The same in every language it was written in, `versionNote` its English
+   * (fluideq-premium 0108); absent for a version published before.
+   */
+  versionNotes?: TVersionNotes;
+  /**
    * The first version it was published at. A current version past it is an
    * update rather than the scene arriving; absent from a server before 0026.
    */
@@ -154,6 +164,8 @@ export interface IGalleryScene {
 export interface IGalleryVersion {
   version: number;
   note?: string;
+  /** `note` in every language it was written in (fluideq-premium 0108). */
+  notes?: TVersionNotes;
   publishedAt: string;
   /**
    * Whether the server still holds this version's files, so a member who
@@ -422,11 +434,13 @@ const readFirstPublished = (
 const readVersionFields = (
   value: Record<string, unknown>,
   version: number,
-): Pick<IGalleryScene, 'versionNote' | 'firstVersion'> => {
+): Pick<IGalleryScene, 'versionNote' | 'versionNotes' | 'firstVersion'> => {
   const note = readVersionNote(value.version_note);
+  const notes = note ? readVersionNotes(value.version_notes) : undefined;
   const first = readCount(value.first_version);
   return {
     ...(note ? { versionNote: note } : {}),
+    ...(notes ? { versionNotes: notes } : {}),
     ...(first && first <= version ? { firstVersion: first } : {}),
   };
 };
@@ -444,10 +458,12 @@ export const parseVersionRow = (
   if (!version || !publishedAt || note === undefined) {
     return undefined;
   }
+  const notes = note ? readVersionNotes(value.notes) : undefined;
   return {
     version,
     publishedAt,
     ...(note ? { note } : {}),
+    ...(notes ? { notes } : {}),
     ...(typeof value.available === 'boolean'
       ? { available: value.available }
       : {}),
@@ -516,4 +532,19 @@ export const parsePublishedRow = (
 export const cleanGalleryQuery = (value: unknown): string | undefined => {
   const text = sanitizeDisplayText(value);
   return text ? text.slice(0, MAX_GALLERY_QUERY) : undefined;
+};
+
+/**
+ * A version's line as a reader sees it: their language's, or English, the
+ * one every line has (Ivan, 2026-11-12). Undefined for no line.
+ */
+export const versionLineIn = (
+  line: string | undefined,
+  lines: TVersionNotes | undefined,
+  locale: string,
+): string | undefined => {
+  if (lines) {
+    return noteIn(lines, locale);
+  }
+  return line;
 };

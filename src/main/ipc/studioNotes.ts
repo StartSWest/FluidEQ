@@ -6,6 +6,7 @@ import {
   isOldNote,
   notesHoldBrief,
   parseStudioNotes,
+  storedStudioNotes,
   type IStudioNotes,
 } from '../../common/studioNotes';
 
@@ -36,7 +37,7 @@ const writeStudioNotes = (folder: string, notes: IStudioNotes): boolean => {
   try {
     fs.writeFileSync(
       temporary,
-      JSON.stringify({ schema: 1, ...notes }, null, 2),
+      JSON.stringify({ schema: 1, ...storedStudioNotes(notes) }, null, 2),
       { encoding: 'utf8', flag: 'wx' },
     );
     fs.renameSync(temporary, path.join(folder, FILE));
@@ -168,11 +169,18 @@ export const registerStudioNotesIpc = ({
     // that does not name it keeps the one the file holds.
     const held = readStudioNotes(folder);
     const earlierIdea = notes.earlierIdea ?? held?.earlierIdea;
+    // The page edits the English line alone. Left as it was, the line in
+    // every language stays; changed, the others are about the old line and
+    // go, to be written again before the next publication.
+    const whatsNewLines =
+      notes.whatsNewLines ??
+      (held?.whatsNew === notes.whatsNew ? held?.whatsNewLines : undefined);
     // When a version last went out is FluidEQ's to stamp at publishing,
     // never the page's to set or drop: the file's is kept.
     return writeStudioNotes(folder, {
       description: notes.description,
       ...(notes.whatsNew ? { whatsNew: notes.whatsNew } : {}),
+      ...(notes.whatsNew && whatsNewLines ? { whatsNewLines } : {}),
       ...(earlierIdea ? { earlierIdea } : {}),
       ...(held?.published === undefined ? {} : { published: held.published }),
     });

@@ -20,7 +20,14 @@ import {
   withMadePictures,
   type TPictureSnapshot,
 } from './madePictures';
-import { clearOldNote, noteDue, noteMarkOf, VERSION_NOTE_ASK } from './noteDue';
+import {
+  clearOldNote,
+  noteDue,
+  noteMarkOf,
+  noteTranslationAsk,
+  VERSION_NOTE_ASK,
+  type INoteTranslation,
+} from './noteDue';
 import withEvent from './replyEvents';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
@@ -158,12 +165,25 @@ const createChatTurns = ({
     return line;
   };
 
-  /** FluidEQ asks for the update note: a reply of its own, nothing shown as the member's. */
-  const askNote = (projectId: string, session: IChatSession) => {
+  /**
+   * FluidEQ asks for the update note, or for the line the member set to be
+   * written in every language: a reply of its own, nothing shown as the
+   * member's.
+   */
+  const askNote = (
+    projectId: string,
+    session: IChatSession,
+    translation?: INoteTranslation,
+  ) => {
     clearOldNote(session.folder, galleryAt);
     session.askingNote = true;
     open(projectId, session);
-    write(session, userLine(randomUUID(), { words: VERSION_NOTE_ASK }));
+    write(
+      session,
+      userLine(randomUUID(), {
+        words: translation ? noteTranslationAsk(translation) : VERSION_NOTE_ASK,
+      }),
+    );
   };
 
   /**
@@ -255,11 +275,15 @@ const createChatTurns = ({
      * The publish dialog found an update with no note: the chat asked for
      * it now. False when a reply is running, whose end asks by itself.
      */
-    askForNote: (projectId: string, session: IChatSession) => {
+    askForNote: (
+      projectId: string,
+      session: IChatSession,
+      translation?: INoteTranslation,
+    ) => {
       if (session.reply || queue.hasSent(projectId)) {
         return false;
       }
-      askNote(projectId, session);
+      askNote(projectId, session, translation);
       return true;
     },
 

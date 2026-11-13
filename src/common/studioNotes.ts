@@ -1,4 +1,8 @@
-import { readVersionNote } from './sceneVersionNote';
+import {
+  readVersionNote,
+  readVersionNotes,
+  type TVersionNotes,
+} from './sceneVersionNote';
 
 /**
  * Editing context only. Never included in executable or signed scene packs.
@@ -25,6 +29,13 @@ export interface IStudioNotes {
    * always something that can be sent.
    */
   whatsNew?: string;
+  /**
+   * The same line in every language the AI wrote it in (Ivan, 2026-11-12:
+   * each listener reads it in their own), `whatsNew` being its English. The
+   * file holds `"whatsNew"` as that object, or as the English line alone as
+   * every version before 2.5.1 wrote it; absent for the latter.
+   */
+  whatsNewLines?: TVersionNotes;
   /**
    * When the file was last written, in ms: told by the read, never stored
    * (a save is parsed, which drops it). A line older than the gallery's
@@ -81,7 +92,7 @@ export const parseStudioNotes = (raw: unknown): IStudioNotes | undefined => {
   // the line was written, read as no notes, and the publish box stayed
   // empty. Anything else without one is still no notes.
   const description =
-    written === undefined && typeof whatsNew === 'string' ? '' : written;
+    written === undefined && whatsNew !== undefined ? '' : written;
   if (
     typeof description !== 'string' ||
     description.length > MAX_STUDIO_DESCRIPTION
@@ -91,7 +102,11 @@ export const parseStudioNotes = (raw: unknown): IStudioNotes | undefined => {
   // Dropped rather than refused: a line too long or full of invisible
   // characters is a suggestion this version cannot offer, never a reason to
   // lose the description beside it.
-  const line = whatsNew === undefined ? null : readVersionNote(whatsNew);
+  const lines =
+    whatsNew !== null && typeof whatsNew === 'object'
+      ? readVersionNotes(whatsNew)
+      : undefined;
+  const line = lines ? lines.en : readVersionNote(whatsNew);
   const fromBrief = ideaOfStoredBrief(prompt);
   let earlier: string | undefined;
   if (typeof earlierIdea === 'string' && earlierIdea.trim()) {
@@ -102,6 +117,7 @@ export const parseStudioNotes = (raw: unknown): IStudioNotes | undefined => {
   return {
     description,
     ...(line ? { whatsNew: line } : {}),
+    ...(lines ? { whatsNewLines: lines } : {}),
     ...(earlier && earlier.length <= MAX_EARLIER_IDEA
       ? { earlierIdea: earlier }
       : {}),
@@ -109,6 +125,18 @@ export const parseStudioNotes = (raw: unknown): IStudioNotes | undefined => {
       ? { published }
       : {}),
   };
+};
+
+/**
+ * The notes as the file holds them: the line in every language, when there
+ * is one, under `whatsNew` itself, the key the member's AI writes and every
+ * FluidEQ reads, never beside it under a name of the app's own.
+ */
+export const storedStudioNotes = (
+  notes: IStudioNotes,
+): Record<string, unknown> => {
+  const { whatsNewLines, writtenAt, ...rest } = notes;
+  return whatsNewLines ? { ...rest, whatsNew: whatsNewLines } : rest;
 };
 
 /**

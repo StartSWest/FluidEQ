@@ -16,6 +16,7 @@ import officialSceneCategory from 'common/officialSceneCategories';
 import {
   FLUIDEQ_CREATOR_ID,
   PLUS_CATEGORIES,
+  versionLineIn,
   type IGalleryScene,
   type TPlusCategory,
 } from 'common/plusGallery';
@@ -191,10 +192,13 @@ export const buildPlusRows = ({
   const noteFor = (
     gallery: ReturnType<IPlusSources['findInGallery']>,
     version: number,
-  ) =>
-    gallery?.version === version && gallery.versionNote
-      ? { versionNote: gallery.versionNote }
-      : {};
+  ) => {
+    const line =
+      gallery?.version === version
+        ? versionLineIn(gallery.versionNote, gallery.versionNotes, locale)
+        : undefined;
+    return line ? { versionNote: line } : {};
+  };
 
   const official = usable.map((scene) => {
     const gallery = findInGallery(scene.lookId);

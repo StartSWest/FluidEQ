@@ -47,10 +47,14 @@ const studioChatBridge = {
     ipcRenderer.invoke('studio-chat-compact', picks),
   /**
    * The publish dialog met an update with no note: the scene's chat asked
-   * to write it. True when the ask went.
+   * to write it, or, with `translate`, to write the line the member set in
+   * every language. True when the ask went.
    */
-  studioChatAskNote: (picks: IStudioChatCompact): Promise<boolean> =>
-    ipcRenderer.invoke('studio-chat-ask-note', picks),
+  studioChatAskNote: (
+    picks: IStudioChatCompact & {
+      translate?: { line: string; from: string };
+    },
+  ): Promise<boolean> => ipcRenderer.invoke('studio-chat-ask-note', picks),
   /** The failed reply at the end of the chat, answered again in its place. */
   studioChatRetry: (picks: IStudioChatCompact): Promise<void> =>
     ipcRenderer.invoke('studio-chat-retry', picks),

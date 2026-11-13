@@ -3,13 +3,15 @@ import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
 import { formatPackBytes, scenePackSize } from 'common/scenePackSize';
-import { versionToPublish } from 'common/sceneVersionNote';
+import { versionToPublish, type TVersionNotes } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
 import ProfileNameForm from '../account/ProfileNameForm';
 import { createProfile, usePublicIdentity } from '../plus/profileStore';
 import DialogFrame from '../components/DialogFrame';
-import StudioPublishNote, { useOfferedNote } from './StudioPublishNote';
+import StudioPublishNote, { useOfferedLines } from './StudioPublishNote';
+import { noteLocaleOf, sourceOf } from './publishNoteLines';
+import usePublishNoteSend from './usePublishNoteSend';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneTuning } from '../graph/useSceneRunner';
 import MenuIcon from '../icons/MenuIcon';
@@ -50,14 +52,16 @@ interface IStudioPublishDialogProps {
   onChoose: (id: number) => void;
   /**
    * The first category, the one a card names, an optional second, and what
-   * changed in this version, as typed.
+   * changed in this version, in every language it goes out in.
    */
   onPublish: (
     category: TPlusCategory,
     category2: TPlusCategory | undefined,
-    note: string | undefined,
+    note: TVersionNotes | undefined,
     preview: IPreparedPublishPreview,
   ) => void;
+  /** The member's changed line handed to the chat to write in every language. */
+  onTranslateNote: (line: string, from: string) => Promise<boolean>;
   onCancel: () => void;
 }
 
@@ -90,6 +94,7 @@ export default function StudioPublishDialog({
   onCapture,
   onChoose,
   onPublish,
+  onTranslateNote,
   onCancel,
 }: IStudioPublishDialogProps) {
   const { t, locale } = useTranslation();
@@ -163,7 +168,15 @@ export default function StudioPublishDialog({
     ),
   );
   const [category, category2] = categories;
-  const [note, setNote] = useOfferedNote(draft.suggestedNote);
+  const [noteLines, setNoteLines] = useOfferedLines(draft.suggestedNotes);
+  const mine = noteLocaleOf(locale);
+  const noteSend = usePublishNoteSend({
+    draft,
+    state: noteLines,
+    setState: setNoteLines,
+    mine,
+    onTranslate: onTranslateNote,
+  });
   const noteRef = useRef<HTMLTextAreaElement>(null);
   // Said only once the press has been made, never on opening: a dialog that
   // is already red before anything has been done is shouting at somebody who
@@ -183,11 +196,21 @@ export default function StudioPublishDialog({
   useModalKeys(surfaceRef, firstRef, { busy: !canCancel, onCancel: cancel });
 
   const update = draft.published !== undefined;
+  const translating = noteSend.translating !== undefined;
+  // What holds the press back, said on the button rather than after it.
+  const pressHeld =
+    !category ||
+    !preview ||
+    !previewReady ||
+    running ||
+    tooLarge ||
+    publicName.missing;
   // A new version people already have goes out with a line saying what
   // changed, always: the update notice and the versions page are built around
   // it, and without one a listener is asked to take a new version on trust.
   // A first publication has nothing to be new against, so it is not asked.
-  const needsNote = update && note.trim().length === 0;
+  const needsNote =
+    update && !noteLines.lines[sourceOf(noteLines, mine)].trim();
   // A member's publication waits for the admin before anybody sees it
   // (server migration 0037), and the dialog says so before the press rather
   // than after it: the button sends it for review, and the first point says
@@ -329,29 +352,29 @@ export default function StudioPublishDialog({
               >
                 {t('studio.publish.cancel')}
               </button>
+              {/* Waiting on the chat is the member's choice, never forced:
+                  the line can go out as written now. */}
+              {translating && (
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={noteSend.sendAsWritten}
+                >
+                  {t('studio.publish.sendAsWritten')}
+                </button>
+              )}
               <button
                 type="button"
-                className={`button small${running ? ' is-running' : ''}`}
-                aria-busy={running}
-                disabled={
-                  !category ||
-                  !previewReady ||
-                  running ||
-                  tooLarge ||
-                  publicName.missing
-                }
+                className={`button small${
+                  running || translating ? ' is-running' : ''
+                }`}
+                aria-busy={running || translating}
+                disabled={pressHeld || translating}
                 title={
                   publicName.missing ? t('profile.name.choose') : publishHint
                 }
                 onClick={() => {
-                  if (
-                    !category ||
-                    running ||
-                    !preview ||
-                    !previewReady ||
-                    tooLarge ||
-                    publicName.missing
-                  ) {
+                  if (pressHeld || !category || !preview) {
                     return;
                   }
                   if (needsNote) {
@@ -359,14 +382,23 @@ export default function StudioPublishDialog({
                     noteRef.current?.focus();
                     return;
                   }
-                  onPublish(category, category2, update ? note : undefined, {
+                  const prepared = {
                     ...preview,
                     pack: publicationPack,
                     sourceVersion: pack.version,
-                  });
+                  };
+                  if (!update) {
+                    onPublish(category, category2, undefined, prepared);
+                    return;
+                  }
+                  noteSend.press((notes) =>
+                    onPublish(category, category2, notes, prepared),
+                  );
                 }}
               >
-                {buttonLabel}
+                {translating
+                  ? t('studio.publish.translatingButton')
+                  : buttonLabel}
               </button>
             </div>
           </>
@@ -445,12 +477,15 @@ export default function StudioPublishDialog({
 
           {update && (
             <StudioPublishNote
-              note={note}
-              setNote={setNote}
+              state={noteLines}
+              setState={setNoteLines}
+              mine={mine}
               running={running}
               missing={noteMissing}
               onFilled={() => setNoteMissing(false)}
               writing={draft.noteWriting === true}
+              translating={noteSend.translating}
+              asWritten={draft.noteAsWritten === true}
               noteRef={noteRef}
             />
           )}

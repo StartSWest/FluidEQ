@@ -189,8 +189,21 @@ const studio = {
   'studio.publish.categoryHint': 'Hasta dos. Su tarjeta muestra la primera.',
   'studio.publish.pickCategory': 'Elige primero una categoría',
   'studio.publish.needNote': 'Di primero qué hay de nuevo en esta versión',
-  'studio.publish.noteEnglish':
-    'Escríbela en inglés: todos en la galería la leen.',
+  'studio.publish.noteYours': 'la tuya',
+  'studio.publish.noteFallback': 'para cualquier idioma que falte',
+  'studio.publish.noteFollows': 'seguirá tu línea al enviar',
+  'studio.publish.noteMore': '{count} idiomas más',
+  'studio.publish.noteMoreWritten': '{count} idiomas más, todos escritos',
+  'studio.publish.noteMoreAsWritten':
+    '{count} idiomas más, tal como está escrito',
+  'studio.publish.noteRowEmpty': 'Sale tal como está escrito',
+  'studio.publish.noteTranslating': 'Traduciendo a {count} idiomas…',
+  'studio.publish.noteTranslatingHint':
+    'El chat de tu escena los está escribiendo.',
+  'studio.publish.noteNotTranslated':
+    'Sin traducir: se muestra tal como está escrito en todos los idiomas.',
+  'studio.publish.sendAsWritten': 'Enviar tal como está',
+  'studio.publish.translatingButton': 'Traduciendo…',
   'studio.publish.shapeChoice': 'Vista para revisar',
   'studio.publish.shapeNormal': 'Normal',
   'studio.publish.shapeUltra': 'Ultrapanorámica',

@@ -200,3 +200,53 @@ it('keeps the publication stamp through a save, and never takes one from the pag
     dispose();
   }
 });
+
+// Ivan, 2026-11-12: the What's new line in every listener's language.
+it('keeps the line in every language under whatsNew, and drops it with a changed English line', () => {
+  const folder = path.join(root, 'balloons');
+  fs.mkdirSync(folder);
+  const dispose = registerStudioNotesIpc({
+    folderFor: () => folder,
+    writableFolderFor: () => folder,
+  });
+  const lines = { en: 'The balloons rise.', es: 'Los globos suben.' };
+  try {
+    fs.writeFileSync(
+      fileOf(folder),
+      JSON.stringify({ schema: 1, description: 'Balloons', whatsNew: lines }),
+    );
+    expect(call('studio-notes-read', 'p')).toEqual({
+      writtenAt: expect.any(Number),
+      description: 'Balloons',
+      whatsNew: lines.en,
+      whatsNewLines: lines,
+    });
+    // The Code tab saves the English line alone; left as it was, every
+    // language stays, written back under the key the AI writes.
+    expect(
+      call('studio-notes-save', 'p', {
+        description: 'Balloons at dawn',
+        whatsNew: lines.en,
+      }),
+    ).toBe(true);
+    const kept = JSON.parse(fs.readFileSync(fileOf(folder), 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    expect(kept.whatsNew).toEqual(lines);
+    expect(kept).not.toHaveProperty('whatsNewLines');
+    // Changed, the other languages are about the old line and go.
+    expect(
+      call('studio-notes-save', 'p', {
+        description: 'Balloons at dawn',
+        whatsNew: 'The balloons glow.',
+      }),
+    ).toBe(true);
+    const changed = JSON.parse(
+      fs.readFileSync(fileOf(folder), 'utf8'),
+    ) as Record<string, unknown>;
+    expect(changed.whatsNew).toBe('The balloons glow.');
+  } finally {
+    dispose();
+  }
+});

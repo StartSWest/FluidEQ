@@ -365,7 +365,8 @@ const publishStudioScene = (
   category: TPlusCategory,
   picture: Uint8Array,
   category2?: TPlusCategory,
-  note?: string,
+  /** What is new in this version, in every language it was written in. */
+  note?: import('../common/sceneVersionNote').TVersionNotes,
   preview?: import('../common/scenePreviewMedia').IScenePreviewUpload,
 ) =>
   ipcRenderer.invoke(

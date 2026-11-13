@@ -15,7 +15,9 @@ import {
 } from '../../common/scenePackSize';
 import {
   readVersionNote,
+  readVersionNotes,
   versionToPublish,
+  type TVersionNotes,
 } from '../../common/sceneVersionNote';
 import {
   discardScenePreview,
@@ -92,6 +94,22 @@ export const mineOf = async (auth: IAuthorised): Promise<TMineOutcome> => {
     return floors;
   }
   return { ok: true, scenes: listed.scenes, floors: floors.floors };
+};
+
+/**
+ * The window's note, cleaned as the server cleans it: the line in every
+ * language (2.5's dialog), or the English line alone, as a window that sends
+ * one line means it. Null for no note, undefined for one the server would
+ * refuse.
+ */
+export const readPublishedNotes = (
+  raw: unknown,
+): TVersionNotes | null | undefined => {
+  if (typeof raw === 'object' && raw !== null) {
+    return readVersionNotes(raw);
+  }
+  const line = readVersionNote(raw);
+  return typeof line === 'string' ? { en: line } : line;
 };
 
 /** The page's picture as bytes, whether it arrived as a view or a buffer. */
@@ -230,8 +248,8 @@ export const registerStudioPublish = ({
       }
       // Cleaned here as the server cleans it; one it would refuse is refused
       // before a picture or a pack is sent.
-      const note = readVersionNote(rawNote);
-      if (note === undefined) {
+      const notes = readPublishedNotes(rawNote);
+      if (notes === undefined) {
         return { ok: false, reason: 'refused' };
       }
       // Capture the author before any await: switching accounts during the
@@ -380,7 +398,7 @@ export const registerStudioPublish = ({
         ...(category2 !== undefined ? { category2 } : {}),
         pack: raised.pack,
         picture: Buffer.from(picture).toString('base64'),
-        ...(note ? { note } : {}),
+        ...(notes ? { note: notes.en, versionNotes: notes } : {}),
         ...(staged ? { previewUploadId: staged.uploadId } : {}),
       });
       timeline.phase('publish');

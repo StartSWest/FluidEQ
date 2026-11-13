@@ -8,6 +8,7 @@ import {
   MAX_STUDIO_DESCRIPTION,
   notesHoldBrief,
   parseStudioNotes,
+  storedStudioNotes,
 } from '../../../common/studioNotes';
 
 /**
@@ -81,5 +82,48 @@ describe('studio notes', () => {
       parseStudioNotes({ description: 'x'.repeat(MAX_STUDIO_DESCRIPTION + 1) }),
     ).toBeUndefined();
     expect(parseStudioNotes(null)).toBeUndefined();
+  });
+});
+
+describe('the What’s new line in every language', () => {
+  it('is read as its English line and every language beside it', () => {
+    const lines = { en: 'Peaks stay whole.', ja: '山が欠けなくなりました。' };
+    expect(parseStudioNotes({ description: 'Peaks', whatsNew: lines })).toEqual(
+      {
+        description: 'Peaks',
+        whatsNew: lines.en,
+        whatsNewLines: lines,
+      },
+    );
+  });
+
+  it('is read alone, with no description, as the line alone always was', () => {
+    expect(parseStudioNotes({ whatsNew: { en: 'Peaks.' } })).toEqual({
+      description: '',
+      whatsNew: 'Peaks.',
+      whatsNewLines: { en: 'Peaks.' },
+    });
+  });
+
+  it('is dropped, never the description, when it cannot be kept', () => {
+    expect(
+      parseStudioNotes({ description: 'Peaks', whatsNew: { xx: 'Gipfel' } }),
+    ).toEqual({ description: 'Peaks' });
+  });
+
+  it('is written back under whatsNew itself', () => {
+    const lines = { en: 'Peaks.', de: 'Gipfel.' };
+    expect(
+      storedStudioNotes({
+        description: 'Peaks',
+        whatsNew: 'Peaks.',
+        whatsNewLines: lines,
+        writtenAt: 5,
+      }),
+    ).toEqual({ description: 'Peaks', whatsNew: lines });
+    // The control: notes with the English line alone keep it as it is.
+    expect(
+      storedStudioNotes({ description: 'Peaks', whatsNew: 'Peaks.' }),
+    ).toEqual({ description: 'Peaks', whatsNew: 'Peaks.' });
   });
 });

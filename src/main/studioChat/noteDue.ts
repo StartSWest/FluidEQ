@@ -6,7 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
-import { MAX_VERSION_NOTE } from '../../common/sceneVersionNote';
+import {
+  MAX_VERSION_NOTE,
+  readVersionNote,
+  VERSION_NOTE_LOCALES,
+  type TVersionNoteLocale,
+} from '../../common/sceneVersionNote';
 import { clearNoteOlderThan, versionNoteOf } from '../ipc/studioNotes';
 import { sceneFingerprint } from './chatVersions';
 
@@ -79,4 +84,44 @@ export const noteDue = (before: INoteMark, after: INoteMark): boolean =>
  * member's name: the chat shows no message of theirs for it, only the short
  * reply. English, like the brief: it is read by a model.
  */
-export const VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene has changed since the version the Gallery has, and the "whatsNew" line in studio-notes.json does not say so yet. Write it now, as THE UPDATE NOTE in your brief says: one line of at most ${MAX_VERSION_NOTE} characters, in English whatever language you speak with the member (the Gallery is shared by every language), saying what changed as a listener would notice it, covering everything since the Gallery's version - fold in any line already there. Change nothing else in that file or in the scene. Then answer with that line alone.`;
+export const VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene has changed since the version the Gallery has, and the "whatsNew" line in studio-notes.json does not say so yet. Write it now, as THE UPDATE NOTE in your brief says: one line of at most ${MAX_VERSION_NOTE} characters saying what changed as a listener would notice it, covering everything since the Gallery's version - fold in any line already there - as an object of that line in ${VERSION_NOTE_LOCALES.join(', ')} (every listener reads their own). Change nothing else in that file or in the scene. Then answer with the English line alone.`;
+
+/**
+ * A line the member changed in the publish dialog, to be written in every
+ * language before it goes out (Ivan, 2026-11-12): the words as the member
+ * left them and the language they are in.
+ */
+export interface INoteTranslation {
+  line: string;
+  from: TVersionNoteLocale;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+/**
+ * The translation the window's ask carries (its `translate`), or undefined
+ * when it carries none or not one that can be asked for.
+ */
+export const readNoteTranslation = (
+  raw: unknown,
+): INoteTranslation | undefined => {
+  const asked = isRecord(raw) ? raw.translate : undefined;
+  if (!isRecord(asked)) {
+    return undefined;
+  }
+  const { line, from } = asked;
+  const cleaned = readVersionNote(line);
+  const locale = VERSION_NOTE_LOCALES.find((known) => known === from);
+  return typeof cleaned === 'string' && locale
+    ? { line: cleaned, from: locale }
+    : undefined;
+};
+
+/**
+ * What FluidEQ hands the chat to write that line in every language, the
+ * member's own words kept exactly in theirs. The line is quoted as JSON, so
+ * nothing in it can end the ask early.
+ */
+export const noteTranslationAsk = ({ line, from }: INoteTranslation): string =>
+  `FLUIDEQ, NOT THE MEMBER: the member set this version's "What's new" line, in ${from}: ${JSON.stringify(line)}. Write "whatsNew" in studio-notes.json as that line in every language: an object with ${VERSION_NOTE_LOCALES.join(', ')}, each one line of at most ${MAX_VERSION_NOTE} characters saying the same as a listener would, and "${from}" exactly the member's words. Change nothing else in that file or in the scene. Then answer with the English line alone.`;

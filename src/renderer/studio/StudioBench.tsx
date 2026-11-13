@@ -663,6 +663,7 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
           onCapture={publishing.capture}
           onChoose={publishing.choose}
           onPublish={publishing.publish}
+          onTranslateNote={publishing.translateNote}
           onCancel={publishing.requestCancel}
         />
       )}

@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useMemo, useState } from 'react';
-import type { IGalleryScene, IGalleryVersion } from 'common/plusGallery';
+import {
+  versionLineIn,
+  type IGalleryScene,
+  type IGalleryVersion,
+} from 'common/plusGallery';
 import type { IKeptSceneVersions } from 'common/sceneStore';
 import { isNewSceneVersion } from 'common/sceneVersionNote';
 import { absoluteTime } from '../forum/forumTime';
@@ -30,6 +34,7 @@ interface ISceneVersionsProps {
 interface IVersionRow {
   version: number;
   note?: string;
+  notes?: import('common/sceneVersionNote').TVersionNotes;
   publishedAt?: string;
   kept: boolean;
   /** The server still holds it, so an owner may save it here. */
@@ -66,6 +71,12 @@ const NOTHING_KEPT: IKeptSceneVersions = { versions: [] };
  */
 export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
   const { t, locale } = useTranslation();
+  // What is new in this version, in the reader's language or English.
+  const currentLine = versionLineIn(
+    scene.versionNote,
+    scene.versionNotes,
+    locale,
+  );
   const [earlier, setEarlier] = useState<IGalleryVersion[]>([]);
   const [kept, setKept] = useState<IKeptSceneVersions>(NOTHING_KEPT);
   // Bumped to ask again: a buy makes a scene owned, a play changes which
@@ -196,12 +207,12 @@ export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
           </button>
         </div>
       )}
-      {scene.versionNote && (
+      {currentLine && (
         <div className={`gallery-versions__note${isNew ? ' is-new' : ''}`}>
           <span className="gallery-versions__note-title">
             {t('plus.version.whatsNew', { version: String(version) })}
           </span>
-          <p>{scene.versionNote}</p>
+          <p>{currentLine}</p>
         </div>
       )}
       {rows.length > 0 && (
@@ -220,8 +231,8 @@ export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
               </span>
               <span className="gallery-versions__text">
                 {/* Its note is "What's new" just above: not said twice. */}
-                {!scene.versionNote &&
-                  (current?.note ?? (
+                {!currentLine &&
+                  (versionLineIn(current?.note, current?.notes, locale) ?? (
                     <span className="gallery-versions__quiet">
                       {t('plus.version.noNote')}
                     </span>
@@ -243,7 +254,7 @@ export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
                   {t('plus.version.short', { version: String(entry.version) })}
                 </span>
                 <span className="gallery-versions__text">
-                  {entry.note ?? (
+                  {versionLineIn(entry.note, entry.notes, locale) ?? (
                     <span className="gallery-versions__quiet">
                       {entry.publishedAt
                         ? t('plus.version.noNote')

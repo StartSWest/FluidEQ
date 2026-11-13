@@ -9,6 +9,7 @@ import {
   FLUIDEQ_CREATOR_ID,
   MAX_GALLERY_QUERY,
   parseGalleryRow,
+  versionLineIn,
   parseVersionRow,
   readSaveGalleryVersion,
   parsePublishedRow,
@@ -169,6 +170,38 @@ describe('the versions a row carries', () => {
     expect(scene).toBeDefined();
     expect(scene).not.toHaveProperty('versionNote');
     expect(scene).not.toHaveProperty('firstVersion');
+  });
+
+  // Ivan, 2026-11-12: each listener reads the line in their own language.
+  it('keeps the note in every language beside its English line', () => {
+    const lines = { en: 'Peaks stay whole', ja: '山が欠けない' };
+    const scene = parseGalleryRow(
+      row({ version: 4, version_note: lines.en, version_notes: lines }),
+    );
+    expect(scene).toMatchObject({ versionNote: lines.en, versionNotes: lines });
+    // A reader in Japanese reads Japanese; one in German, English.
+    expect(versionLineIn(scene?.versionNote, scene?.versionNotes, 'ja')).toBe(
+      lines.ja,
+    );
+    expect(versionLineIn(scene?.versionNote, scene?.versionNotes, 'de')).toBe(
+      lines.en,
+    );
+  });
+
+  it('reads the English line alone where the server keeps no other languages', () => {
+    const scene = parseGalleryRow(
+      row({ version: 4, version_note: 'Peaks', version_notes: null }),
+    );
+    expect(scene).not.toHaveProperty('versionNotes');
+    expect(versionLineIn(scene?.versionNote, scene?.versionNotes, 'ja')).toBe(
+      'Peaks',
+    );
+    // The control: lines it cannot keep are dropped, the line kept.
+    const odd = parseGalleryRow(
+      row({ version: 4, version_note: 'Peaks', version_notes: { xx: 'y' } }),
+    );
+    expect(odd).toMatchObject({ versionNote: 'Peaks' });
+    expect(odd).not.toHaveProperty('versionNotes');
   });
 
   it('reads a server from before notes as a row without them', () => {

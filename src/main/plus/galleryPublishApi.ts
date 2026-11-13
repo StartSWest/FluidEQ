@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { TPlusCategory } from '../../common/plusGallery';
 import type { IScenePack } from '../../common/scenePacks';
+import type { TVersionNotes } from '../../common/sceneVersionNote';
 import storedScenePack from '../../common/sceneStoredPack';
 import { headers, type IAuthorised } from './galleryApi';
 import { previewPackSha256 } from './scenePreviewApi';
@@ -246,6 +247,7 @@ export const publishScene = async (
     pack,
     picture,
     note,
+    versionNotes,
     previewUploadId,
   }: {
     termsVersion: number;
@@ -257,6 +259,11 @@ export const publishScene = async (
     picture: string;
     /** What changed in this version, already cleaned (fluideq-premium 0026). */
     note?: string;
+    /**
+     * The note in every language, its English the `note` beside it, which
+     * a server before fluideq-premium 0108 reads alone.
+     */
+    versionNotes?: TVersionNotes;
     previewUploadId?: string;
   },
 ): Promise<
@@ -277,6 +284,7 @@ export const publishScene = async (
     packSha256: meant,
     picture,
     ...(note ? { note } : {}),
+    ...(versionNotes ? { versionNotes } : {}),
     ...(previewUploadId ? { previewUploadId } : {}),
   });
   if (!response) {

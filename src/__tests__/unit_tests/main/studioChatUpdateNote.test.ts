@@ -26,7 +26,11 @@ import type { TStudioChatEntry } from '../../../common/studioChat';
 import type { IChatSession } from '../../../main/studioChat/chatLaunch';
 import createChatQueue from '../../../main/studioChat/chatQueue';
 import createChatTurns from '../../../main/studioChat/chatTurns';
-import { noteDue, VERSION_NOTE_ASK } from '../../../main/studioChat/noteDue';
+import {
+  noteDue,
+  readNoteTranslation,
+  VERSION_NOTE_ASK,
+} from '../../../main/studioChat/noteDue';
 import {
   clearVersionNote,
   markNotesPublished,
@@ -324,10 +328,10 @@ describe('a line left from a version already in the gallery', () => {
   });
 });
 
-// Ivan, 2026-11-12: "the whats new always in English for publish". The
-// gallery is one for every language, whatever the member chats in.
+// Ivan, 2026-11-12: the line in every listener's language, whatever the
+// member chats in; the English one is what a language left out reads.
 describe('the update line the chat is asked for', () => {
-  it('is asked for in English, whatever language the chat is in', () => {
+  it('is asked for in all twelve languages, whatever language the chat is in', () => {
     const { said, turns, session } = setUp();
     // A member chatting in Spanish.
     turns.begin(PROJECT, session, [{ words: 'haz que los globos suban' }]);
@@ -337,9 +341,46 @@ describe('the update line the chat is asked for', () => {
       words.startsWith('FLUIDEQ, NOT THE MEMBER'),
     );
     expect(ask).toMatch(
-      /in English whatever language you speak with the member/,
+      /an object of that line in en, de, es, fr, hi, it, ja, ko, pt, ru, zh, zh-Hant/,
     );
-    // Control: never left to the chat's own language.
+    // Control: never left to the chat's own language alone.
     expect(ask).not.toMatch(/in the language you speak with the member/);
+  });
+
+  it('hands the chat the member’s own line to write in every language', () => {
+    const { said, turns, session } = setUp();
+    turns.askForNote(PROJECT, session, {
+      line: 'Los globos "suben" con el bajo',
+      from: 'es',
+    });
+    const ask = said().find((words) =>
+      words.startsWith('FLUIDEQ, NOT THE MEMBER'),
+    );
+    // Quoted as JSON, so the member's quotes cannot end the ask early.
+    expect(ask).toContain('in es: "Los globos \\"suben\\" con el bajo"');
+    expect(ask).toMatch(/"es" exactly the member's words/);
+  });
+
+  it('control: the plain ask carries no line of the member’s', () => {
+    const { said, turns, session } = setUp();
+    turns.askForNote(PROJECT, session);
+    expect(
+      said().find((words) => words.startsWith('FLUIDEQ, NOT THE MEMBER')),
+    ).toBe(VERSION_NOTE_ASK);
+  });
+});
+
+describe('the translation the window asks for', () => {
+  it('is read only with a line that can be sent and a language FluidEQ speaks', () => {
+    expect(
+      readNoteTranslation({ translate: { line: ' Peaks\nstay ', from: 'de' } }),
+    ).toEqual({ line: 'Peaks stay', from: 'de' });
+    expect(readNoteTranslation({})).toBeUndefined();
+    expect(
+      readNoteTranslation({ translate: { line: 'Peaks', from: 'tlh' } }),
+    ).toBeUndefined();
+    expect(
+      readNoteTranslation({ translate: { line: '   ', from: 'de' } }),
+    ).toBeUndefined();
   });
 });

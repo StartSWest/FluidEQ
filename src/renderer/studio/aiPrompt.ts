@@ -21,7 +21,10 @@ import {
   ULTRA_WIDE_GRAPH,
 } from 'common/stageShapes';
 import { LIGHT_FRAME_MS } from 'common/studioAgent';
-import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
+import {
+  MAX_VERSION_NOTE,
+  VERSION_NOTE_LOCALES,
+} from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
 import { CONTROLS_SECTION } from './aiPromptControls';
 import { connectSection, type IPromptConnection } from './aiPromptConnect';
@@ -198,21 +201,17 @@ pack.json:
   uCamera; 9: palettes and choices in params). It
   refuses nothing: a scene written for an older one plays as it always did.
 - version: never change it. FluidEQ sets it when I publish - one above the
-  version the Gallery has - so it counts the versions people see there; the
-  Studio keeps every change in between in its own history. Every time you
-  change a scene that already existed, WRITE ME THE LINE THAT GOES WITH IT.
-  One line, at most ${MAX_VERSION_NOTE} characters, saying what changed as a listener
-  would notice it - "the peaks no longer get cut on wide panels", not "fixed
-  the uv clamp". It is about everything since the version the Gallery has:
-  when a line is already there from an earlier request, fold this change
-  into it rather than replacing it, still one line. FluidEQ asks me for
-  that line before it will publish an update, and by then I have forgotten
-  what you changed; you have not.
-  Put it in studio-notes.json beside the scene, as "whatsNew", and change
-  NOTHING else in that file - it also holds my description and the prompt,
-  and rewriting the whole file loses them. If the file is not there yet,
-  make it with just that one key. FluidEQ fills the "What's new" box with
-  it, for me to edit or replace. If you reply with the files instead of
+  version the Gallery has - so it counts the versions people see there.
+  Every time you change a scene that already existed, WRITE ME THE LINE
+  THAT GOES WITH IT: one line, at most ${MAX_VERSION_NOTE} characters, saying what changed as
+  a listener would notice it - "the peaks no longer get cut on wide panels",
+  not "fixed the uv clamp" - about everything since the Gallery's version,
+  folding this change into a line already there. FluidEQ asks me for it
+  before it publishes an update, and by then I have forgotten what you
+  changed. Put it in studio-notes.json beside the scene, as "whatsNew", an
+  object of that line in ${VERSION_NOTE_LOCALES.join(', ')}, and change NOTHING else in that
+  file - rewriting it loses my description. If the file is not there yet,
+  make it with just that one key. If you reply with the files instead of
   writing them, put the line after them.
 - names: English required; add es, pt, fr, de, it, ru, zh, zh-Hant, ja, ko, hi if you can.
   At most 40 characters each.

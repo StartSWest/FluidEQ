@@ -192,8 +192,21 @@ const studio = {
   'studio.publish.categoryHint': 'Bis zu zwei. Die Karte zeigt die erste.',
   'studio.publish.pickCategory': 'Wählen Sie zuerst eine Kategorie',
   'studio.publish.needNote': 'Sagen Sie zuerst, was in dieser Version neu ist',
-  'studio.publish.noteEnglish':
-    'Schreiben Sie ihn auf Englisch: Alle in der Galerie lesen ihn.',
+  'studio.publish.noteYours': 'Ihre',
+  'studio.publish.noteFallback': 'für jede nicht enthaltene Sprache',
+  'studio.publish.noteFollows': 'folgt beim Senden Ihrer Zeile',
+  'studio.publish.noteMore': '{count} weitere Sprachen',
+  'studio.publish.noteMoreWritten':
+    '{count} weitere Sprachen, alle geschrieben',
+  'studio.publish.noteMoreAsWritten':
+    '{count} weitere Sprachen, wie geschrieben',
+  'studio.publish.noteRowEmpty': 'Geht so hinaus, wie geschrieben',
+  'studio.publish.noteTranslating': 'Wird in {count} Sprachen übersetzt …',
+  'studio.publish.noteTranslatingHint': 'Der Chat Ihrer Szene schreibt sie.',
+  'studio.publish.noteNotTranslated':
+    'Nicht übersetzt: in jeder Sprache so gezeigt, wie geschrieben.',
+  'studio.publish.sendAsWritten': 'So senden, wie geschrieben',
+  'studio.publish.translatingButton': 'Wird übersetzt …',
   'studio.publish.shapeChoice': 'Ansicht zum Prüfen',
   'studio.publish.shapeNormal': 'Normal',
   'studio.publish.shapeUltra': 'Ultrabreit',

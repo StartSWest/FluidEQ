@@ -192,8 +192,20 @@ const studio = {
   'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
   'studio.publish.needNote':
     'Dites d’abord ce qui est nouveau dans cette version',
-  'studio.publish.noteEnglish':
-    'Écrivez-la en anglais : tout le monde la lit dans la galerie.',
+  'studio.publish.noteYours': 'la vôtre',
+  'studio.publish.noteFallback': 'pour toute langue absente',
+  'studio.publish.noteFollows': 'suivra votre ligne à l’envoi',
+  'studio.publish.noteMore': '{count} autres langues',
+  'studio.publish.noteMoreWritten': '{count} autres langues, toutes écrites',
+  'studio.publish.noteMoreAsWritten':
+    '{count} autres langues, telles qu’écrites',
+  'studio.publish.noteRowEmpty': 'Part tel qu’écrit',
+  'studio.publish.noteTranslating': 'Traduction en {count} langues…',
+  'studio.publish.noteTranslatingHint': 'Le chat de votre scène les écrit.',
+  'studio.publish.noteNotTranslated':
+    'Non traduit : affiché tel qu’écrit dans toutes les langues.',
+  'studio.publish.sendAsWritten': 'Envoyer tel quel',
+  'studio.publish.translatingButton': 'Traduction…',
   'studio.publish.shapeChoice': 'Vue à vérifier',
   'studio.publish.shapeNormal': 'Normale',
   'studio.publish.shapeUltra': 'Ultra-large',

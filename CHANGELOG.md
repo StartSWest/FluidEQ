@@ -79,6 +79,14 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   writing over what you typed. Each publication starts the next version's
   line afresh, and a line left over from a version already in the Gallery
   is never offered again.
+- **"What's new" in every listener's language.** The chat writes the line
+  in all twelve of FluidEQ's languages. Publish shows yours and English,
+  with the others a fold-out away to read or correct; change your line and
+  the chat writes the others again when you send, with **Send as written**
+  if you would rather not wait. With no chat to ask, your line goes out in
+  every language as you wrote it. The Gallery, the look picker and the
+  update notice show each listener their own language, and English where a
+  version has no line in theirs.
 - **The chat sees what you see.** Whether the stage shows the Standard
   graph, Ultra wide or the Compact player, the chat is told with every
   message and looks at that view first, the scene alone, so "look at this"
