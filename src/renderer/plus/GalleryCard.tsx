@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import { isNewScene, isNewSceneVersion } from 'common/sceneVersionNote';
@@ -15,6 +16,8 @@ import {
   SceneHeart,
   ScenePicture,
 } from './GalleryParts';
+import { claimCardClip, releaseCardClip, useCardClip } from './cardClip';
+import GalleryCardClip from './GalleryCardClip';
 import type { IMakerRef } from './plusNavigation';
 import SceneGet, { officialLine } from './SceneGet';
 import { useOwnsLook, useSceneStore } from './sceneStore';
@@ -34,8 +37,10 @@ interface IGalleryCardProps {
  * One scene in the gallery: its picture, what it is called and who made it,
  * how many members added it, the heart, and Add.
  *
- * The picture and the name both open the scene's page, where it plays; the
- * card itself plays nothing, so browsing downloads pictures and nothing else.
+ * The picture and the name both open the scene's page, where it plays. The
+ * card itself never runs the scene: hovered or focused, its picture plays the
+ * scene's published clip instead, fetched only then (`cardClip.ts`), so
+ * browsing downloads pictures and the one clip being looked at.
  * Add — or Get, for a scene this account does not own yet — is the quiet
  * style here, since a grid of sixty loud buttons says nothing, and the loud
  * one on the scene's page.
@@ -60,6 +65,22 @@ export default function GalleryCard({
   const adds = new Intl.NumberFormat(locale, { notation: 'compact' }).format(
     scene.adds,
   );
+  // This card's token for the one playing slot, and whether the pointer or
+  // the keyboard is on its picture.
+  const [card] = useState(() => Symbol(scene.lookId));
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const wanted = hovered || focused;
+  const clip = useCardClip(scene, me, card, wanted);
+
+  useEffect(() => {
+    if (wanted) {
+      claimCardClip(card);
+    } else {
+      releaseCardClip(card);
+    }
+  }, [wanted, card]);
+  useEffect(() => () => releaseCardClip(card), [card]);
 
   let addLabel = t('plus.card.add');
   let addState = '';
@@ -76,7 +97,21 @@ export default function GalleryCard({
   const isNewVersion = !isNew && isNewSceneVersion(scene, now);
 
   return (
-    <article className="gallery-card">
+    // The whole card answers the pointer and the keyboard, not the picture
+    // alone: a hand resting on the name or the heart is still on the card.
+    // Focus moving between the card's own controls is not leaving it.
+    <article
+      className="gallery-card"
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(event) => {
+        const next = event.relatedTarget;
+        if (!(next instanceof Node && event.currentTarget.contains(next))) {
+          setFocused(false);
+        }
+      }}
+    >
       <button
         type="button"
         className="gallery-card__thumb"
@@ -84,6 +119,7 @@ export default function GalleryCard({
         onClick={() => onOpen(scene)}
       >
         <ScenePicture scene={scene} />
+        {clip && <GalleryCardClip url={clip} />}
         <span className="gallery-card__tag">
           {t(categoryKey(scene.category))}
         </span>

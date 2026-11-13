@@ -371,6 +371,26 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The scene's clip over its cover while the card is hovered or focused
+// (`GalleryCardClip`). Laid over the picture, so the card keeps its height and
+// the tags stay on top; transparent until its first frame plays, so the cover
+// never gives way to a black box while the file is read.
+.gallery-card__clip {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity $motion-fast $ease-out;
+
+  &.is-playing {
+    opacity: 1;
+  }
+}
+
 .gallery-card__tag {
   position: absolute;
   top: 7px;
