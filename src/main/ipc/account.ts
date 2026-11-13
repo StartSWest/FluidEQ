@@ -18,7 +18,8 @@ import {
   type IAccountSession,
   type IAccountState,
 } from '../account/session';
-import { oauthPage, type IOAuthPages } from '../account/oauthLoopback';
+import type { IOAuthPages } from '../account/oauthLoopback';
+import { oauthPage } from '../account/oauthPage';
 import {
   createEntitlement,
   isEntitlementRecord,
@@ -281,11 +282,13 @@ export const registerAccountIpc = ({
     return {
       done: oauthPage(
         locale,
+        'done',
         say('account.google.doneTitle'),
         say('account.google.doneBody'),
       ),
       failed: oauthPage(
         locale,
+        'failed',
         say('account.google.failedTitle'),
         say('account.google.failedBody'),
       ),

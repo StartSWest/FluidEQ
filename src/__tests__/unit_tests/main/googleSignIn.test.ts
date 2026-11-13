@@ -17,10 +17,11 @@ import {
 import { runGoogleSignIn } from '../../../main/account/googleSignIn';
 import {
   OAUTH_CALLBACK_PATH,
-  oauthPage,
   startOAuthLoopback,
   type TOAuthAnswer,
 } from '../../../main/account/oauthLoopback';
+import { oauthPage } from '../../../main/account/oauthPage';
+import { BRAND_MARK } from '../../../common/branding';
 import { challengeOf, createPkcePair } from '../../../main/account/pkce';
 import {
   createAccountSession,
@@ -182,10 +183,38 @@ describe('the answer coming back to this computer', () => {
   });
 
   it('writes its page as text, never as markup', () => {
-    const page = oauthPage('en', '<b>title</b>', 'body & "quotes"');
+    const page = oauthPage('en', 'done', '<b>title</b>', 'body & "quotes"');
     expect(page).toContain('&lt;b&gt;title&lt;/b&gt;');
     expect(page).toContain('body &amp; &quot;quotes&quot;');
     expect(page).not.toContain('<b>title');
+  });
+
+  // Ivan, 2026-11-13: the page read as a stub; it carries FluidEQ's own logo,
+  // drawn in the page itself so it is sharp at any zoom and fetches nothing.
+  it('carries the FluidEQ logo and loads nothing from anywhere', () => {
+    const page = oauthPage(
+      'en',
+      'done',
+      'You are signed in',
+      'Close this tab.',
+    );
+    expect(page).toContain(`d="${BRAND_MARK.path}"`);
+    expect(page).toMatch(/<span class="word">Fluid<span class="eq">EQ<\/span>/);
+    // The policy the loopback sends refuses every load: nothing to load.
+    expect(page).not.toMatch(
+      /\b(src|href)=|@import|url\(\s*['"]?(https?:|\/\/)/i,
+    );
+  });
+
+  it('marks done and failed apart', () => {
+    const done = oauthPage('en', 'done', 'Signed in', 'Close this tab.');
+    const failed = oauthPage('en', 'failed', 'Did not finish', 'Try again.');
+    expect(done).toContain('<main class="done">');
+    expect(failed).toContain('<main class="failed">');
+    expect(done).toContain('M8 12.4');
+    expect(done).not.toContain('M12 7.6');
+    expect(failed).toContain('M12 7.6');
+    expect(failed).not.toContain('M8 12.4');
   });
 });
 

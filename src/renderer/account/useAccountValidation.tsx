@@ -55,7 +55,16 @@ export default function useAccountValidation(
     'aria-invalid': Boolean(touched[name] && errors[name]),
     'aria-describedby':
       touched[name] && errors[name] ? `${ids}-${name}-error` : undefined,
-    onBlur: () => setTouched((previous) => ({ ...previous, [name]: true })),
+    // Leaving a box nobody typed in is not a mistake to point at: the email
+    // box has the caret when a form opens, so pressing Google, or anything
+    // else, blurred it and said "That does not look like an email address"
+    // under an address nobody had tried to give (Ivan, 2026-11-13). An empty
+    // field is still named on submit, by `validate`.
+    onBlur: () => {
+      if (values[name].length > 0) {
+        setTouched((previous) => ({ ...previous, [name]: true }));
+      }
+    },
   });
   const message = (name: TField) => {
     const error = errors[name];

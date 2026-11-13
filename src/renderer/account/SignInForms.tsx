@@ -61,6 +61,10 @@ export default function SignInForms({
   const [sending, setSending] = useState(false);
   const [sendFailed, setSendFailed] = useState(false);
   const busy = account.status === 'busy' || sending;
+  // While Google's page is open in the browser the form waits, disabled, but
+  // its button is not what is working: "One moment…" under "Finish signing in
+  // with Google in your browser" read as the email form sending something.
+  const working = busy && account.waiting !== 'google';
   const { pending } = account;
   const step = pending?.purpose ?? mode;
   const validation = useAccountValidation(ids, step, {
@@ -242,7 +246,7 @@ export default function SignInForms({
         {codeField}
         <div className="account__actions">
           <button type="submit" className="button small" disabled={busy}>
-            {busy ? t('account.working') : t('account.code.confirm')}
+            {working ? t('account.working') : t('account.code.confirm')}
           </button>
           {resend}
           {abandon}
@@ -275,7 +279,7 @@ export default function SignInForms({
         {passwordField('new-password')}
         <div className="account__actions">
           <button type="submit" className="button small" disabled={busy}>
-            {busy ? t('account.working') : t('account.reset.submit')}
+            {working ? t('account.working') : t('account.reset.submit')}
           </button>
           {resend}
           {abandon}
@@ -302,7 +306,7 @@ export default function SignInForms({
         {emailField()}
         <div className="account__actions">
           <button type="submit" className="button small" disabled={busy}>
-            {busy ? t('account.working') : t('account.forgot.submit')}
+            {working ? t('account.working') : t('account.forgot.submit')}
           </button>
           <button
             type="button"
@@ -387,7 +391,7 @@ export default function SignInForms({
         {passwordField('new-password')}
         <div className="account__actions">
           <button type="submit" className="button small" disabled={busy}>
-            {busy ? t('account.working') : t('account.signUp')}
+            {working ? t('account.working') : t('account.signUp')}
           </button>
         </div>
         <p className="account__hint">{t('account.signUpHint')}</p>
@@ -414,7 +418,7 @@ export default function SignInForms({
       {passwordField('current-password')}
       <div className="account__actions">
         <button type="submit" className="button small" disabled={busy}>
-          {busy ? t('account.working') : t('account.signIn')}
+          {working ? t('account.working') : t('account.signIn')}
         </button>
         <button
           type="button"
