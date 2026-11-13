@@ -63,9 +63,19 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-import { fetchEqualizerApoSource } from './fetch-equalizer-apo';
+import {
+  APO_INSTALLER_SHA256,
+  fetchEqualizerApoSource,
+} from './fetch-equalizer-apo';
 import { SUBJECT_VARIABLE } from './lighting-identity';
 import { readMandatoryUpdateArgs } from './mandatory-update';
+import {
+  commonNameOf,
+  IPackagedEngine,
+  packagedEngineProblems,
+  readAuthenticode,
+  SIGN_ENGINE_VARIABLE,
+} from './sign-engine';
 import { signReleaseFeed } from './sign-update-feed';
 import {
   SIGNED_UPDATE_CHANNEL,
@@ -159,11 +169,7 @@ export const readSigningSettings = (
   // rather than by the identity check at the end of it.
   const subject = env[SUBJECT_VARIABLE] as string;
   const publisher = env[SETTINGS.publisherName] as string;
-  const commonName = subject.match(/^CN=("(?:[^"]|"")*"|[^,]*)(?:,|$)/)?.[1];
-  const unquoted = commonName?.startsWith('"')
-    ? commonName.slice(1, -1).replace(/""/g, '"')
-    : commonName?.trim();
-  if (unquoted !== publisher) {
+  if (commonNameOf(subject) !== publisher) {
     throw new Error(
       `${SUBJECT_VARIABLE} must be the certificate's full subject, starting ` +
         `with CN=${publisher} (from ${SETTINGS.publisherName}), for example ` +
@@ -217,6 +223,23 @@ export const pnpmLauncher = (
     return { command: execPath, prefix: [] };
   }
   return undefined;
+};
+
+/** Where electron-builder leaves the packaged app's resources. */
+export const PACKAGED_RESOURCES = 'release/build/win-unpacked/resources';
+
+/** The packaged engine, its helper and the APO installer, as shipped. */
+const readPackagedEngine = (resources: string): IPackagedEngine => {
+  const engine = path.join(resources, 'native', 'FluidEQ-Engine.dll');
+  const apo = path.join(resources, 'equalizer-apo', 'equalizer-apo-setup.exe');
+  return {
+    engine: fs.readFileSync(engine),
+    engineSignature: readAuthenticode(engine),
+    helper: fs.readFileSync(
+      path.join(resources, 'native', 'FluidEQ-Engine-Setup.exe'),
+    ),
+    apoInstaller: fs.existsSync(apo) ? fs.readFileSync(apo) : undefined,
+  };
 };
 
 /** Where electron-builder leaves the updater's configuration. */
@@ -411,7 +434,12 @@ if (require.main === module) {
     const child = spawn(
       pnpm.command,
       [...pnpm.prefix, 'package', ...toBuilderArgs(release), ...mandatoryArgs],
-      { stdio: 'inherit' },
+      // The native build signs the engine before the helper takes its
+      // digest (sign-engine.ts); only this build, never `pnpm package`.
+      {
+        stdio: 'inherit',
+        env: { ...process.env, [SIGN_ENGINE_VARIABLE]: '1' },
+      },
     );
     child.on('exit', (code) => {
       if (code !== 0) {
@@ -449,6 +477,31 @@ if (require.main === module) {
       console.log(
         `Verified: updates come from ${release.updateUrl} and must be signed ` +
           `by "${release.signing.publisherName}".`,
+      );
+
+      let engineProblems: string[];
+      try {
+        engineProblems = packagedEngineProblems(
+          readPackagedEngine(PACKAGED_RESOURCES),
+          release.signing.publisherName,
+          APO_INSTALLER_SHA256,
+        );
+      } catch (error) {
+        engineProblems = [(error as Error).message];
+      }
+      if (engineProblems.length > 0) {
+        console.error(
+          `\nThe installer is signed, but its engine is not ready to ship:\n\n` +
+            engineProblems.map((line) => `  - ${line}`).join('\n\n') +
+            '\n\nDo not ship this build.',
+        );
+        process.exit(1);
+        return;
+      }
+      console.log(
+        `Verified: the engine is signed by "${release.signing.publisherName}", ` +
+          'its helper was built for it, and the Equalizer APO installer is ' +
+          'the upstream file.',
       );
       process.exit(signReleaseFeed({ feedPath: SIGNED_FEED_YML }) ? 0 : 1);
     });

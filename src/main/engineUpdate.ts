@@ -30,10 +30,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * No Electron here, and nothing that spawns: the dev script imports this from
  * plain Node, and the unit suite runs it against two scratch folders.
  */
-import { createHash } from 'crypto';
 import { existsSync } from 'fs';
 import { readdir, readFile } from 'fs/promises';
 import path from 'path';
+import { isDifferentFile } from './engineContent';
 
 export const ENGINE_DLL = 'FluidEQ-Engine.dll';
 
@@ -44,16 +44,14 @@ export type TEngineUpdatePlan =
   | { kind: 'current' }
   | { kind: 'stale'; files: string[] };
 
-const sha256 = async (file: string): Promise<string> =>
-  createHash('sha256')
-    .update(await readFile(file))
-    .digest('hex');
-
 /**
  * Every DLL the helper's `install` would copy — all of them beside it, the
  * runtime included, because an engine linked against a newer toolset than the
  * installed `msvcp140.dll` fails to load inside audiodg.exe with nothing to
- * say why — whose installed copy is missing or holds other bytes.
+ * say why — whose installed copy is missing or is another file: other code,
+ * or this code signed over a copy that is not (`isDifferentFile`). A file
+ * signed again with nothing else changed is the same file, or every release
+ * would put the Windows prompt up for an engine that had not moved.
  *
  * Files only, as the helper's own `files_matching` lists them, and never the
  * helper or the other programs beside it, which `install` does not copy.
@@ -73,10 +71,10 @@ export const differingFiles = async (
         return true;
       }
       const [was, is] = await Promise.all([
-        sha256(installed),
-        sha256(path.join(bundleDir, name)),
+        readFile(installed),
+        readFile(path.join(bundleDir, name)),
       ]);
-      return was !== is;
+      return isDifferentFile(was, is);
     }),
   );
   return names.filter((_, at) => differs[at]).sort();

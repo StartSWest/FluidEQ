@@ -55,7 +55,7 @@ const BUNDLED_NAME = 'equalizer-apo-setup.exe';
 /** What the release must also carry, for the source obligation. */
 export const APO_SOURCE_ARCHIVE = `EqualizerAPO-src-${APO_VERSION}.zip`;
 
-const APO_INSTALLER_SHA256 =
+export const APO_INSTALLER_SHA256 =
   '7403be7427bbe1936a40dded082829b6e217fc4f5990fee5cba501f0ae055afa';
 
 const APO_INSTALLER_BYTES = 11980366;

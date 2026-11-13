@@ -32,6 +32,14 @@ import {
 import path from 'path';
 import { brotliDecompressSync } from 'zlib';
 import { writeDevelopmentIdentity } from './lighting-identity';
+import { readSigningSettings } from './package-signed';
+import {
+  IEngineSigning,
+  isSignedBy,
+  readAuthenticode,
+  SIGN_ENGINE_VARIABLE,
+  signEngineDll,
+} from './sign-engine';
 import { newestVersionDir } from './versionDirs';
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -438,6 +446,47 @@ if (isWindows) {
 }
 
 run(tools, ['--build', BUILD_DIR, '--config', 'Release']);
+
+// A signed release signs the engine here, between its link and the helper's
+// digest of it, then builds again so the helper is compiled with the signed
+// file's digest and installs it (sign-engine.ts). Before the tests, which
+// check the helper's digests against the engine beside it.
+const engineSigning = (): IEngineSigning => {
+  let release: ReturnType<typeof readSigningSettings>;
+  try {
+    release = readSigningSettings();
+  } catch (error) {
+    return fail((error as Error).message);
+  }
+  return (
+    release?.signing ??
+    fail(
+      `${SIGN_ENGINE_VARIABLE} is set but no signing is configured: the engine of a signed release cannot ship unsigned.`,
+    )
+  );
+};
+
+if (isWindows && process.env[SIGN_ENGINE_VARIABLE] === '1') {
+  const signing = engineSigning();
+  const { publisherName } = signing;
+  const engine = path.join(BUILD_DIR, 'bin', 'FluidEQ-Engine.dll');
+  try {
+    const how = signEngineDll(engine, signing);
+    console.log(
+      how === 'kept'
+        ? `native: the engine is already signed by "${publisherName}"; kept as it is`
+        : `native: signed the engine as "${publisherName}"`,
+    );
+  } catch (error) {
+    fail((error as Error).message);
+  }
+  run(tools, ['--build', BUILD_DIR, '--config', 'Release']);
+  if (!isSignedBy(readAuthenticode(engine), publisherName)) {
+    fail(
+      'the engine was linked again after it was signed, so the helper now carries an unsigned digest; build again',
+    );
+  }
+}
 
 if (shouldTest || shouldMusicTest) {
   // After the build, not before: nothing but the tests reads the corpus, so an

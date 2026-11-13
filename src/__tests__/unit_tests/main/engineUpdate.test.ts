@@ -26,6 +26,12 @@ import {
 import os from 'os';
 import path from 'path';
 import type { IFluidEngineStatus } from '../../../common/audioEngine';
+import {
+  CHANGED_CODE,
+  ENGINE_CODE,
+  linkedPe,
+  signedPe,
+} from '../../utils/peFiles';
 
 // `engineStatus` reaches the registry module, and through it Electron, whose
 // package fetches its whole binary when it is imported outside Electron with
@@ -133,6 +139,45 @@ describe('planEngineUpdate', () => {
     mkdirSync(path.join(bundle, 'symbols.dll'));
     await expect(planEngineUpdate(bundle, installed)).resolves.toEqual({
       kind: 'current',
+    });
+  });
+
+  // 2.5.1 signs the engine. Every machine that took it unsigned is owed one
+  // update to the signed copy, and none after it while the engine does not
+  // change, though each release's signing gives the file other bytes.
+  it('offers the signed engine once over the unsigned one, and never for a re-signing', async () => {
+    writeFileSync(path.join(installed, ENGINE), linkedPe(ENGINE_CODE));
+    put(installed, RUNTIME, 'runtime');
+    writeFileSync(
+      path.join(bundle, ENGINE),
+      signedPe(linkedPe(ENGINE_CODE), 1, 0),
+    );
+    await expect(planEngineUpdate(bundle, installed)).resolves.toEqual({
+      kind: 'stale',
+      files: [ENGINE],
+    });
+
+    // Taken: the installed copy is that signing; the next release signs anew.
+    writeFileSync(
+      path.join(installed, ENGINE),
+      signedPe(linkedPe(ENGINE_CODE), 1, 0),
+    );
+    writeFileSync(
+      path.join(bundle, ENGINE),
+      signedPe(linkedPe(ENGINE_CODE), 2, 7),
+    );
+    await expect(planEngineUpdate(bundle, installed)).resolves.toEqual({
+      kind: 'current',
+    });
+
+    // The control: a re-signed engine that also changed is an update.
+    writeFileSync(
+      path.join(bundle, ENGINE),
+      signedPe(linkedPe(CHANGED_CODE), 2, 7),
+    );
+    await expect(planEngineUpdate(bundle, installed)).resolves.toEqual({
+      kind: 'stale',
+      files: [ENGINE],
     });
   });
 

@@ -28,7 +28,10 @@
     "name": "Ivan Carmenates Garcia",
     "url": "https://github.com/StartSWest"
   },
-  "contributors": ["AQUA Dev Team", "Ivan Carmenates Garcia"],
+  "contributors": [
+    "AQUA Dev Team",
+    "Ivan Carmenates Garcia"
+  ],
   "main": "./src/main/main.ts",
   "scripts": {
     "docs:guide": "ts-node ./.erb/scripts/export-user-guide.ts",
@@ -75,7 +78,9 @@
     "package:signed": "ts-node ./.erb/scripts/package-signed.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["cross-env NODE_ENV=development eslint --cache"],
+    "*.{js,jsx,ts,tsx}": [
+      "cross-env NODE_ENV=development eslint --cache"
+    ],
     "{*.json,.eslintrc,.prettierrc}": [
       "prettier --ignore-path .eslintignore --parser json --write"
     ],
@@ -91,7 +96,10 @@
     "singleQuote": true,
     "overrides": [
       {
-        "files": [".prettierrc", ".eslintrc"],
+        "files": [
+          ".prettierrc",
+          ".eslintrc"
+        ],
         "options": {
           "parser": "json"
         }
@@ -202,7 +210,9 @@
     "protocols": [
       {
         "name": "FluidEQ",
-        "schemes": ["fluideq"]
+        "schemes": [
+          "fluideq"
+        ]
       }
     ],
     "asar": true,
@@ -212,14 +222,24 @@
       "enableNodeCliInspectArguments": false,
       "onlyLoadAppFromAsar": true
     },
-    "asarUnpack": ["**/*.{node,dll,dylib}", "**/*.so*"],
-    "files": ["dist", "node_modules", "package.json"],
+    "asarUnpack": [
+      "**/*.{node,dll,dylib}",
+      "**/*.so*"
+    ],
+    "files": [
+      "dist",
+      "node_modules",
+      "package.json"
+    ],
     "beforePack": ".erb/scripts/nsis-archive-filter.cjs",
     "afterSign": ".erb/scripts/after-sign.cjs",
     "mac": {
       "target": {
         "target": "default",
-        "arch": ["arm64", "x64"]
+        "arch": [
+          "arm64",
+          "x64"
+        ]
       },
       "type": "distribution",
       "hardenedRuntime": true,
@@ -245,10 +265,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "signExts": [
+        "!equalizer-apo-setup.exe"
+      ]
     },
     "nsis": {
       "runAfterFinish": true,
@@ -273,7 +298,9 @@
       "include": "assets/nsis/installer.nsh"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "AudioVideo"
     },
     "directories": {
@@ -309,12 +336,18 @@
       {
         "from": "assets/icons",
         "to": "native/lighting-assets",
-        "filter": ["48x48.png", "64x64.png", "256x256.png"]
+        "filter": [
+          "48x48.png",
+          "64x64.png",
+          "256x256.png"
+        ]
       },
       {
         "from": "node_modules/regedit/vbs",
         "to": "vbs",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       "./opra/**",
       "./CHANGELOG.md",
@@ -323,7 +356,10 @@
       {
         "from": "vendor/equalizer-apo",
         "to": "equalizer-apo",
-        "filter": ["equalizer-apo-setup.exe", "version.txt"]
+        "filter": [
+          "equalizer-apo-setup.exe",
+          "version.txt"
+        ]
       }
     ]
   },
@@ -332,7 +368,12 @@
     "npm": ">=7.x"
   },
   "electronmon": {
-    "patterns": ["!**/**", "src/main/**", "src/common/**", "addons/*/main/**"],
+    "patterns": [
+      "!**/**",
+      "src/main/**",
+      "src/common/**",
+      "addons/*/main/**"
+    ],
     "logLevel": "quiet"
   }
 }
