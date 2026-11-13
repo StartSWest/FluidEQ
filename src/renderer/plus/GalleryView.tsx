@@ -14,6 +14,7 @@ import {
   setBrowseFilters,
   usePlusNavigation,
 } from './plusNavigation';
+import StarterCard from './StarterCard';
 
 interface IGalleryViewProps {
   me: string | undefined;
@@ -76,6 +77,9 @@ export default function GalleryView({ me }: IGalleryViewProps) {
         onMine={() => openGalleryPage({ kind: 'mine' })}
         signedIn={me !== undefined}
       />
+      {/* The starter credits, while they wait to be claimed: where they
+          are spent (`StarterCard`). */}
+      {me !== undefined && <StarterCard accountId={me} />}
 
       <GalleryList
         list={list}

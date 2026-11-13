@@ -85,6 +85,43 @@ const store: Partial<Dictionary> = {
   'store.starter.body':
     'हर अकाउंट के लिए एक बार, पुष्टि किए गए ईमेल पते के साथ।',
   'store.starter.claim': '{credits} लें',
+  'store.welcome.title.one': 'आपके पास {count} मुफ़्त क्रेडिट है',
+  'store.welcome.title.few': 'आपके पास {count} मुफ़्त क्रेडिट हैं',
+  'store.welcome.title.many': 'आपके पास {count} मुफ़्त क्रेडिट हैं',
+  'store.welcome.title.other': 'आपके पास {count} मुफ़्त क्रेडिट हैं',
+  'store.welcome.claimedTitle.one': '{count} क्रेडिट आपका है',
+  'store.welcome.claimedTitle.few': '{count} क्रेडिट आपके हैं',
+  'store.welcome.claimedTitle.many': '{count} क्रेडिट आपके हैं',
+  'store.welcome.claimedTitle.other': '{count} क्रेडिट आपके हैं',
+  'store.welcome.cardTitle.one':
+    '{count} मुफ़्त क्रेडिट आपका इंतज़ार कर रहा है',
+  'store.welcome.cardTitle.few':
+    '{count} मुफ़्त क्रेडिट आपका इंतज़ार कर रहे हैं',
+  'store.welcome.cardTitle.many':
+    '{count} मुफ़्त क्रेडिट आपका इंतज़ार कर रहे हैं',
+  'store.welcome.cardTitle.other':
+    '{count} मुफ़्त क्रेडिट आपका इंतज़ार कर रहे हैं',
+  'store.welcome.cardClaimedTitle.one':
+    '{count} क्रेडिट ख़र्च करने के लिए तैयार',
+  'store.welcome.cardClaimedTitle.few':
+    '{count} क्रेडिट ख़र्च करने के लिए तैयार',
+  'store.welcome.cardClaimedTitle.many':
+    '{count} क्रेडिट ख़र्च करने के लिए तैयार',
+  'store.welcome.cardClaimedTitle.other':
+    '{count} क्रेडिट ख़र्च करने के लिए तैयार',
+  'store.welcome.eyebrow': 'FluidEQ में आपका स्वागत है',
+  'store.welcome.body':
+    'हर क्रेडिट से आपको {visualizers} का एक सीन हमेशा के लिए मिलता है। अभी इन्हें लें और अपने पहले सीन चुनें।',
+  'store.welcome.fine':
+    'हर खाते के लिए एक बार। क्रेडिट ख़र्च करने से पहले आप हर सीन को कुछ सेकंड देख सकते हैं।',
+  'store.welcome.later': 'बाद में',
+  'store.welcome.claimedBody':
+    'अपने पहले सीन चुनें। ‘{notMine}’ चालू है, इसलिए {visualizers} में सिर्फ़ वे सीन दिखते हैं जो आपके पास नहीं हैं।',
+  'store.welcome.pick': 'मेरे पहले सीन चुनें',
+  'store.welcome.cardBody': 'इन्हें लें और रखने के लिए अपने पहले सीन चुनें।',
+  'store.welcome.cardClaimedBody':
+    'वे सीन दिख रहे हैं जो अभी आपके पास नहीं हैं। किसी को भी कुछ सेकंड देखें, फिर एक क्रेडिट में ले लें।',
+  'store.welcome.gotIt': 'ठीक है',
   'store.get': 'पाएँ · {credits}',
   'store.scene.tasted':
     'यह {seconds} सेकंड की झलक थी। इसे हमेशा देखते रहने के लिए पाएँ।',

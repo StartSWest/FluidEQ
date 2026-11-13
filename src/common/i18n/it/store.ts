@@ -87,6 +87,35 @@ const store: Partial<Dictionary> = {
   'store.starter.body':
     'Una volta per account, con un indirizzo email confermato.',
   'store.starter.claim': 'Ricevi {credits}',
+  'store.welcome.title.one': 'Hai {count} credito gratuito',
+  'store.welcome.title.few': 'Hai {count} crediti gratuiti',
+  'store.welcome.title.many': 'Hai {count} crediti gratuiti',
+  'store.welcome.title.other': 'Hai {count} crediti gratuiti',
+  'store.welcome.claimedTitle.one': '{count} credito è tuo',
+  'store.welcome.claimedTitle.few': '{count} crediti sono tuoi',
+  'store.welcome.claimedTitle.many': '{count} crediti sono tuoi',
+  'store.welcome.claimedTitle.other': '{count} crediti sono tuoi',
+  'store.welcome.cardTitle.one': '{count} credito gratuito ti aspetta',
+  'store.welcome.cardTitle.few': '{count} crediti gratuiti ti aspettano',
+  'store.welcome.cardTitle.many': '{count} crediti gratuiti ti aspettano',
+  'store.welcome.cardTitle.other': '{count} crediti gratuiti ti aspettano',
+  'store.welcome.cardClaimedTitle.one': '{count} credito pronto da usare',
+  'store.welcome.cardClaimedTitle.few': '{count} crediti pronti da usare',
+  'store.welcome.cardClaimedTitle.many': '{count} crediti pronti da usare',
+  'store.welcome.cardClaimedTitle.other': '{count} crediti pronti da usare',
+  'store.welcome.eyebrow': 'Benvenuto in FluidEQ',
+  'store.welcome.body':
+    'Ogni credito ti dà una scena di {visualizers} da tenere per sempre. Riscattali ora e scegli le tue prime scene.',
+  'store.welcome.fine':
+    'Una volta per account. Puoi guardare ogni scena per qualche secondo prima di spendere un credito.',
+  'store.welcome.later': 'Più tardi',
+  'store.welcome.claimedBody':
+    'Scegli le tue prime scene. “{notMine}” è attivo, quindi {visualizers} mostra solo le scene che non hai.',
+  'store.welcome.pick': 'Scegli le mie prime scene',
+  'store.welcome.cardBody': 'Riscattali e scegli le tue prime scene da tenere.',
+  'store.welcome.cardClaimedBody':
+    'Ecco le scene che non hai ancora. Guardane una per qualche secondo, poi prendila per un credito.',
+  'store.welcome.gotIt': 'Capito',
   'store.get': 'Ottieni · {credits}',
   'store.scene.tasted':
     'Era un assaggio di {seconds} secondi. Ottienila per continuare a guardarla, per sempre.',

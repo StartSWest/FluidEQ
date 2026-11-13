@@ -88,6 +88,36 @@ const store: Partial<Dictionary> = {
   'store.starter.body':
     '1 アカウントにつき 1 回、確認済みのメールアドレスが必要です。',
   'store.starter.claim': '{credits}を受け取る',
+  'store.welcome.title.one': '無料クレジットが {count} あります',
+  'store.welcome.title.few': '無料クレジットが {count} あります',
+  'store.welcome.title.many': '無料クレジットが {count} あります',
+  'store.welcome.title.other': '無料クレジットが {count} あります',
+  'store.welcome.claimedTitle.one': '{count} クレジットがあなたのものに',
+  'store.welcome.claimedTitle.few': '{count} クレジットがあなたのものに',
+  'store.welcome.claimedTitle.many': '{count} クレジットがあなたのものに',
+  'store.welcome.claimedTitle.other': '{count} クレジットがあなたのものに',
+  'store.welcome.cardTitle.one': '無料クレジット {count} が待っています',
+  'store.welcome.cardTitle.few': '無料クレジット {count} が待っています',
+  'store.welcome.cardTitle.many': '無料クレジット {count} が待っています',
+  'store.welcome.cardTitle.other': '無料クレジット {count} が待っています',
+  'store.welcome.cardClaimedTitle.one': '{count} クレジットを使えます',
+  'store.welcome.cardClaimedTitle.few': '{count} クレジットを使えます',
+  'store.welcome.cardClaimedTitle.many': '{count} クレジットを使えます',
+  'store.welcome.cardClaimedTitle.other': '{count} クレジットを使えます',
+  'store.welcome.eyebrow': 'FluidEQ へようこそ',
+  'store.welcome.body':
+    '1 クレジットで「{visualizers}」のシーンを 1 つ、ずっと自分のものにできます。今すぐ受け取って、最初のシーンを選びましょう。',
+  'store.welcome.fine':
+    '1 アカウントにつき 1 回。クレジットを使う前に、どのシーンも数秒間見られます。',
+  'store.welcome.later': '後で',
+  'store.welcome.claimedBody':
+    '最初のシーンを選びましょう。「{notMine}」がオンなので、「{visualizers}」にはまだ持っていないシーンだけが表示されます。',
+  'store.welcome.pick': '最初のシーンを選ぶ',
+  'store.welcome.cardBody':
+    '受け取って、ずっと使える最初のシーンを選びましょう。',
+  'store.welcome.cardClaimedBody':
+    'まだ持っていないシーンを表示しています。数秒間見てから、1 クレジットで手に入れられます。',
+  'store.welcome.gotIt': 'OK',
   'store.get': '入手 · {credits}',
   'store.scene.tasted':
     '{seconds} 秒のお試しでした。入手すれば、ずっと見続けられます。',

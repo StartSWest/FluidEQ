@@ -89,6 +89,36 @@ const store: Partial<Dictionary> = {
   'store.starter.title': '{credits} gratis zum Start',
   'store.starter.body': 'Einmal pro Konto, für eine bestätigte E-Mail-Adresse.',
   'store.starter.claim': '{credits} holen',
+  'store.welcome.title.one': 'Sie haben {count} Gratis-Credit',
+  'store.welcome.title.few': 'Sie haben {count} Gratis-Credits',
+  'store.welcome.title.many': 'Sie haben {count} Gratis-Credits',
+  'store.welcome.title.other': 'Sie haben {count} Gratis-Credits',
+  'store.welcome.claimedTitle.one': '{count} Credit gehört Ihnen',
+  'store.welcome.claimedTitle.few': '{count} Credits gehören Ihnen',
+  'store.welcome.claimedTitle.many': '{count} Credits gehören Ihnen',
+  'store.welcome.claimedTitle.other': '{count} Credits gehören Ihnen',
+  'store.welcome.cardTitle.one': '{count} Gratis-Credit wartet auf Sie',
+  'store.welcome.cardTitle.few': '{count} Gratis-Credits warten auf Sie',
+  'store.welcome.cardTitle.many': '{count} Gratis-Credits warten auf Sie',
+  'store.welcome.cardTitle.other': '{count} Gratis-Credits warten auf Sie',
+  'store.welcome.cardClaimedTitle.one': '{count} Credit bereit zum Ausgeben',
+  'store.welcome.cardClaimedTitle.few': '{count} Credits bereit zum Ausgeben',
+  'store.welcome.cardClaimedTitle.many': '{count} Credits bereit zum Ausgeben',
+  'store.welcome.cardClaimedTitle.other': '{count} Credits bereit zum Ausgeben',
+  'store.welcome.eyebrow': 'Willkommen bei FluidEQ',
+  'store.welcome.body':
+    'Jeder Credit bringt Ihnen eine Szene aus „{visualizers}“, die Sie für immer behalten. Holen Sie sie jetzt ab und wählen Sie Ihre ersten Szenen.',
+  'store.welcome.fine':
+    'Einmal pro Konto. Jede Szene können Sie ein paar Sekunden ansehen, bevor Sie einen Credit ausgeben.',
+  'store.welcome.later': 'Später',
+  'store.welcome.claimedBody':
+    'Wählen Sie Ihre ersten Szenen. „{notMine}“ ist an, also zeigt „{visualizers}“ nur Szenen, die Sie noch nicht haben.',
+  'store.welcome.pick': 'Meine ersten Szenen wählen',
+  'store.welcome.cardBody':
+    'Holen Sie sie ab und wählen Sie Ihre ersten Szenen zum Behalten.',
+  'store.welcome.cardClaimedBody':
+    'Hier sehen Sie Szenen, die Sie noch nicht haben. Sehen Sie sich jede ein paar Sekunden an und holen Sie sie dann für einen Credit.',
+  'store.welcome.gotIt': 'Verstanden',
   'store.get': 'Holen · {credits}',
   'store.scene.tasted':
     'Das war eine Kostprobe von {seconds} Sekunden. Holen Sie sie, um weiterzuschauen – für immer.',

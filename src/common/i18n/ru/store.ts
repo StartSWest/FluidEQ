@@ -86,6 +86,36 @@ const store: Partial<Dictionary> = {
   'store.starter.body':
     'Один раз на аккаунт, для подтверждённого адреса почты.',
   'store.starter.claim': 'Получить {credits}',
+  'store.welcome.title.one': 'У вас {count} бесплатный кредит',
+  'store.welcome.title.few': 'У вас {count} бесплатных кредита',
+  'store.welcome.title.many': 'У вас {count} бесплатных кредитов',
+  'store.welcome.title.other': 'У вас {count} бесплатных кредита',
+  'store.welcome.claimedTitle.one': '{count} кредит ваш',
+  'store.welcome.claimedTitle.few': '{count} кредита ваши',
+  'store.welcome.claimedTitle.many': '{count} кредитов ваши',
+  'store.welcome.claimedTitle.other': '{count} кредита ваши',
+  'store.welcome.cardTitle.one': 'Вас ждёт {count} бесплатный кредит',
+  'store.welcome.cardTitle.few': 'Вас ждут {count} бесплатных кредита',
+  'store.welcome.cardTitle.many': 'Вас ждут {count} бесплатных кредитов',
+  'store.welcome.cardTitle.other': 'Вас ждут {count} бесплатных кредита',
+  'store.welcome.cardClaimedTitle.one': '{count} кредит готов к трате',
+  'store.welcome.cardClaimedTitle.few': '{count} кредита готовы к трате',
+  'store.welcome.cardClaimedTitle.many': '{count} кредитов готовы к трате',
+  'store.welcome.cardClaimedTitle.other': '{count} кредита готовы к трате',
+  'store.welcome.eyebrow': 'Добро пожаловать в FluidEQ',
+  'store.welcome.body':
+    'Каждый кредит даёт одну сцену из раздела «{visualizers}» навсегда. Получите их сейчас и выберите свои первые сцены.',
+  'store.welcome.fine':
+    'Один раз на аккаунт. Любую сцену можно посмотреть несколько секунд, прежде чем тратить кредит.',
+  'store.welcome.later': 'Позже',
+  'store.welcome.claimedBody':
+    'Выберите свои первые сцены. Включено «{notMine}», поэтому «{visualizers}» показывает только сцены, которых у вас ещё нет.',
+  'store.welcome.pick': 'Выбрать первые сцены',
+  'store.welcome.cardBody':
+    'Получите их и выберите свои первые сцены навсегда.',
+  'store.welcome.cardClaimedBody':
+    'Здесь сцены, которых у вас ещё нет. Посмотрите любую несколько секунд, затем получите её за один кредит.',
+  'store.welcome.gotIt': 'Понятно',
   'store.get': 'Получить · {credits}',
   'store.scene.tasted':
     'Это был предпросмотр на {seconds} с. Получите сцену, чтобы смотреть дальше — навсегда.',

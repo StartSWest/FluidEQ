@@ -85,6 +85,36 @@ const store: Partial<Dictionary> = {
   'store.starter.title': '{credits} gratis para empezar',
   'store.starter.body': 'Una vez por cuenta, con un correo confirmado.',
   'store.starter.claim': 'Obtener {credits}',
+  'store.welcome.title.one': 'Tienes {count} crédito gratis',
+  'store.welcome.title.few': 'Tienes {count} créditos gratis',
+  'store.welcome.title.many': 'Tienes {count} créditos gratis',
+  'store.welcome.title.other': 'Tienes {count} créditos gratis',
+  'store.welcome.claimedTitle.one': '{count} crédito es tuyo',
+  'store.welcome.claimedTitle.few': '{count} créditos son tuyos',
+  'store.welcome.claimedTitle.many': '{count} créditos son tuyos',
+  'store.welcome.claimedTitle.other': '{count} créditos son tuyos',
+  'store.welcome.cardTitle.one': '{count} crédito gratis te espera',
+  'store.welcome.cardTitle.few': '{count} créditos gratis te esperan',
+  'store.welcome.cardTitle.many': '{count} créditos gratis te esperan',
+  'store.welcome.cardTitle.other': '{count} créditos gratis te esperan',
+  'store.welcome.cardClaimedTitle.one': '{count} crédito listo para gastar',
+  'store.welcome.cardClaimedTitle.few': '{count} créditos listos para gastar',
+  'store.welcome.cardClaimedTitle.many': '{count} créditos listos para gastar',
+  'store.welcome.cardClaimedTitle.other': '{count} créditos listos para gastar',
+  'store.welcome.eyebrow': 'Te damos la bienvenida a FluidEQ',
+  'store.welcome.body':
+    'Cada crédito te da una escena de {visualizers} para siempre. Reclámalos ahora y elige tus primeras escenas.',
+  'store.welcome.fine':
+    'Una vez por cuenta. Puedes ver cada escena unos segundos antes de gastar un crédito.',
+  'store.welcome.later': 'Más tarde',
+  'store.welcome.claimedBody':
+    'Elige tus primeras escenas. “{notMine}” está activado, así que {visualizers} solo muestra escenas que aún no tienes.',
+  'store.welcome.pick': 'Elegir mis primeras escenas',
+  'store.welcome.cardBody':
+    'Reclámalos y elige tus primeras escenas para quedártelas.',
+  'store.welcome.cardClaimedBody':
+    'Ves escenas que aún no tienes. Mira cualquiera unos segundos y consíguela por un crédito.',
+  'store.welcome.gotIt': 'Entendido',
   'store.get': 'Conseguir · {credits}',
   'store.scene.tasted':
     'Eso fue una muestra de {seconds} segundos. Consíguela para seguir viéndola, para siempre.',

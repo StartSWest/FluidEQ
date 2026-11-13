@@ -61,6 +61,8 @@ export type TNoticeClaim =
   | 'sceneReview'
   /** What the server tells an account about its scenes (`MemberNotice`). */
   | 'memberNotice'
+  /** The starter credits offered to a new member (`StarterWelcome`). */
+  | 'starterWelcome'
   /**
    * An add-on's corner notices, first to last (`renderer/addons.ts`). Three
    * places in the order rather than a name each: the app knows no add-on.
@@ -112,6 +114,15 @@ export const NOTICE_WAITS_FOR: Readonly<
   plusTerms: [...CORNER_WAITS_FOR, 'profiles'],
   sceneReview: [...CORNER_WAITS_FOR, 'profiles', 'plusTerms'],
   memberNotice: [...CORNER_WAITS_FOR, 'profiles', 'plusTerms', 'sceneReview'],
+  // After everything about the account that is owed an answer; ahead of
+  // the news, which a new member has no stake in yet.
+  starterWelcome: [
+    ...CORNER_WAITS_FOR,
+    'profiles',
+    'plusTerms',
+    'sceneReview',
+    'memberNotice',
+  ],
   addonA: [
     ...CORNER_WAITS_FOR,
     'profiles',
@@ -147,6 +158,7 @@ export const NOTICE_WAITS_FOR: Readonly<
     'addonA',
     'addonB',
     'addonC',
+    'starterWelcome',
   ],
   appFull: [],
   appNews: [
@@ -158,6 +170,7 @@ export const NOTICE_WAITS_FOR: Readonly<
     'addonA',
     'addonB',
     'addonC',
+    'starterWelcome',
     'sceneAnnouncement',
   ],
   modal: [],

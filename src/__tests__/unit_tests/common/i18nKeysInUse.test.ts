@@ -83,6 +83,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ],
   ],
   'src/renderer/components/ProcessesDialog.tsx': ['app.processes.place.*'],
+  // The starter credits' titles, in the language's own plural forms.
+  'src/renderer/components/StarterWelcome.tsx': [
+    [
+      'store.welcome.{title,claimedTitle}.{one,few,many,other}',
+      'store.welcome.*.*',
+    ],
+  ],
   'src/renderer/components/RhythmGame.tsx': [
     ['support.game.{perfect,great,good,miss}', 'support.game.*'],
   ],
@@ -171,6 +178,12 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ['creator.sales.{one,few,many,other}', 'creator.sales.*'],
   ],
   'src/renderer/plus/GalleryParts.tsx': ['plus.category.*'],
+  'src/renderer/plus/StarterCard.tsx': [
+    [
+      'store.welcome.{cardTitle,cardClaimedTitle}.{one,few,many,other}',
+      'store.welcome.*.*',
+    ],
+  ],
   // A count of credits in each language's own plural forms, picked at run
   // time through Intl.PluralRules.
   'src/renderer/plus/credits.ts': [

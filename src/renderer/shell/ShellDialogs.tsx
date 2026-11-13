@@ -36,6 +36,7 @@ import FeatureTour from '../components/featureTour/FeatureTour';
 import { featureTourFor } from '../components/featureTour/slides';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import MemberNotice from '../components/MemberNotice';
+import StarterWelcome from '../components/StarterWelcome';
 import SuspensionScreen from '../account/SuspensionScreen';
 import PlusTermsNotice from '../components/PlusTermsNotice';
 import ProfileRecoveredNotice from '../components/ProfileRecoveredNotice';
@@ -265,6 +266,9 @@ const ShellDialogs = ({
       {/* What the server tells an account about its scenes: a scene gone
           and its credit back, a takedown, a restore, a refunded buy. */}
       <MemberNotice />
+      {/* The starter credits, offered once a new member is in, then once
+          more if put away (`StarterWelcome`). */}
+      <StarterWelcome />
       {/* An add-on's own corner notices (`renderer/addons.ts`). */}
       {rendererAddons().map(
         ({ name, Notices }) => Notices && <Notices key={name} />,

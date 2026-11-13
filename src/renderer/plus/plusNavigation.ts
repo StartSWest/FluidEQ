@@ -208,6 +208,21 @@ export const openGalleryPage = (page: TGalleryPage) => {
 };
 
 /**
+ * The gallery's front page showing only the scenes this member cannot play
+ * yet, every scene of them: no category, no search. Where the starter
+ * credits, once claimed, are spent (Ivan, 2026-11-13).
+ */
+export const openNotMineYet = () => {
+  bindAccount();
+  publish({
+    ...navigation,
+    place: 'visualizers',
+    page: { kind: 'browse' },
+    filters: { sort: navigation.filters.sort, text: '', notMine: true },
+  });
+};
+
+/**
  * How far down each page was scrolled, by page, so Back lands where the
  * member left the gallery rather than at its top.
  */

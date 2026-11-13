@@ -186,6 +186,7 @@ import './SongEqNotice.scss';
 import './PlusTermsNotice.scss';
 import './SceneReviewNotice.scss';
 import './MemberNotice.scss';
+import './StarterWelcome.scss';
 import './SceneReviewMark.scss';
 import './ProfileRecoveredNotice.scss';
 import './SceneAnnouncement.scss';

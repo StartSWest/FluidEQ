@@ -1,0 +1,359 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The starter credits (`StarterWelcome`, `StarterCard`), as Ivan approved
+// them on 2026-11-13: the credit coin in front of three of FluidEQ's own
+// scenes, a frame for each first scene, the claim loud and Later quiet.
+
+// ---------------------------------------------------------------- the coin
+
+.starter-coin {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: $secondary-light;
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      color-mix(in srgb, $secondary-light 42%, transparent),
+      transparent 60%
+    ),
+    color-mix(in srgb, $secondary-default 22%, $surface-panel);
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, $secondary-default 12%, transparent),
+    0 14px 30px rgba($black, 0.45),
+    0 0 36px color-mix(in srgb, $secondary-default 35%, transparent);
+
+  svg {
+    width: 46%;
+    height: 46%;
+  }
+}
+
+.starter-coin--l {
+  width: 72px;
+  height: 72px;
+}
+
+.starter-coin--m {
+  width: 48px;
+  height: 48px;
+}
+
+.starter-coin__count {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  background: $secondary-default;
+  border: 2px solid $surface-panel;
+  border-radius: $radius-pill;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .starter-coin--m & {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    font-size: $text-small;
+  }
+}
+
+// ---------------------------------------------------------------- the dialog
+
+.starter-welcome-backdrop {
+  @include dialog.backdrop(1500);
+}
+
+.starter-welcome {
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 100%);
+  max-height: 100%;
+  overflow: hidden auto;
+  // Every dialog's glass and arrival (`_dialog.scss`): no shadow under it.
+  @include surface-motion($dialog-arrival);
+  @include dialog.surface-look;
+}
+
+.starter-welcome__hero {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  height: 168px;
+  isolation: isolate;
+  border-bottom: 1px solid $border-subtle;
+
+  .starter-coin {
+    position: absolute;
+    bottom: -36px;
+    z-index: 2;
+  }
+}
+
+// Three of FluidEQ's scenes fanned behind the coin, their light thrown on
+// the wall: the picture of what the credits are for.
+.starter-fan {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.starter-fan__glow {
+  position: absolute;
+  z-index: -1;
+  inset: -30% -10%;
+  width: 120%;
+  height: 160%;
+  object-fit: cover;
+  filter: blur(46px) saturate(1.5);
+  opacity: 0.55;
+}
+
+.starter-fan__card {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  width: 46%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 1px solid rgba($white, 0.12);
+  border-radius: $radius-m;
+  box-shadow: 0 16px 34px rgba($black, 0.5);
+  filter: brightness(0.82);
+
+  &.is-lead {
+    z-index: 1;
+    top: 18px;
+    width: 54%;
+    filter: none;
+    transform: translateX(-50%);
+  }
+
+  &.is-left {
+    transform: translateX(-102%) rotate(-9deg);
+  }
+
+  &.is-right {
+    transform: translateX(2%) rotate(9deg);
+  }
+
+  // Claimed: the scenes come up to full light.
+  .is-claimed & {
+    filter: none;
+  }
+}
+
+.is-claimed .starter-fan__glow {
+  opacity: 0.75;
+}
+
+.starter-welcome__body {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 48px $spacing-l $spacing-m;
+  text-align: center;
+}
+
+.starter-welcome__eyebrow {
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+}
+
+.starter-welcome__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  text-wrap: balance;
+}
+
+.starter-welcome__text {
+  max-width: 34ch;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.starter-welcome__fine {
+  margin: 4px 0 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.starter-welcome__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: $spacing-m $spacing-l;
+  background: color-mix(in srgb, $surface-base 35%, transparent);
+  border-top: 1px solid $border-subtle;
+
+  .button svg {
+    width: 14px;
+    height: 14px;
+    margin-left: 6px;
+  }
+}
+
+// A frame for each first scene, lit once the credits are in.
+.starter-slots {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.starter-slot {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  aspect-ratio: 16 / 9;
+  color: color-mix(in srgb, $secondary-light 60%, transparent);
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  border: 1px dashed color-mix(in srgb, $secondary-light 40%, transparent);
+  border-radius: $radius-s;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &.is-lit {
+    color: $text-primary;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, $secondary-default 70%, $surface-panel),
+      color-mix(in srgb, $secondary-light 45%, $surface-panel)
+    );
+    border: 1px solid $secondary-light;
+    box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 55%, transparent);
+  }
+}
+
+.starter-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  color: $text-accent;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  border: 1px solid color-mix(in srgb, $secondary-light 32%, transparent);
+  border-radius: $radius-pill;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+// ---------------------------------------------------------------- the card
+
+.starter-card {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+  padding: 16px 18px;
+  overflow: hidden;
+  isolation: isolate;
+  background: color-mix(in srgb, $secondary-default 10%, $surface-panel);
+  border: 1px solid color-mix(in srgb, $secondary-light 34%, transparent);
+  border-radius: $radius-l;
+}
+
+.starter-card__glow {
+  position: absolute;
+  z-index: -1;
+  top: -60%;
+  right: -10%;
+  width: 60%;
+  height: 220%;
+  object-fit: cover;
+  filter: blur(50px) saturate(1.4);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.starter-card__text {
+  display: grid;
+  flex: 1 1 240px;
+  gap: 3px;
+  min-width: 0;
+}
+
+.starter-card__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+  text-wrap: balance;
+}
+
+.starter-card__body {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.45;
+}
+
+.starter-card__stack {
+  display: flex;
+  flex: 0 0 auto;
+
+  img {
+    width: 64px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 2px solid $surface-panel;
+    border-radius: $radius-s;
+    box-shadow: 0 6px 14px rgba($black, 0.4);
+
+    & + img {
+      margin-left: -18px;
+    }
+  }
+}
+
+.starter-card__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
