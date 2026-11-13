@@ -207,6 +207,16 @@ const studioChat = {
   'studioChat.context.detail':
     '{used} de {window} tokens na janela de contexto do Claude. Compactar abre espaço.',
   'studioChat.context.tokens': '{used} tokens de contexto',
+  'studioChat.failed.fableLimit': 'O limite semanal do Fable foi atingido.',
+  'studioChat.fable.back': 'O Fable volta {time}.',
+  'studioChat.fable.checking': 'Verificando se o Opus ainda tem margem…',
+  'studioChat.fable.opusRoom':
+    'O Opus ainda tem margem no seu plano. Mudar este chat para o Opus e enviar sua mensagem de novo?',
+  'studioChat.fable.switch': 'Mudar para o Opus',
+  'studioChat.fable.notNow': 'Agora não',
+  'studioChat.fable.opusFull': 'O Opus também está no limite:',
+  'studioChat.limits.fable': 'Fable · esta semana',
+  'studioChat.limits.opus': 'Opus · esta semana',
   'studioChat.limits.fiveHour': 'Sessão atual (5 horas)',
   'studioChat.limits.week': 'Esta semana',
   'studioChat.limits.used': '{percent}% usado',

@@ -197,6 +197,16 @@ const studioChat = {
   'studioChat.context.detail':
     'Claude 上下文窗口 {window} 个 token 中已用 {used}。压缩可腾出空间。',
   'studioChat.context.tokens': '上下文 {used} 个 token',
+  'studioChat.failed.fableLimit': 'Fable 的每周额度已用完。',
+  'studioChat.fable.back': 'Fable 将于 {time} 恢复。',
+  'studioChat.fable.checking': '正在检查 Opus 是否还有余量…',
+  'studioChat.fable.opusRoom':
+    '你的套餐中 Opus 仍有余量。要把这个聊天切换到 Opus 并重新发送消息吗？',
+  'studioChat.fable.switch': '切换到 Opus',
+  'studioChat.fable.notNow': '暂不',
+  'studioChat.fable.opusFull': 'Opus 也已达到额度上限：',
+  'studioChat.limits.fable': 'Fable · 本周',
+  'studioChat.limits.opus': 'Opus · 本周',
   'studioChat.limits.fiveHour': '当前会话（5 小时）',
   'studioChat.limits.week': '本周',
   'studioChat.limits.used': '已用 {percent}%',

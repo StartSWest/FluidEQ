@@ -91,6 +91,7 @@ const FAILURES: ReadonlySet<string> = new Set<TStudioChatFailure>([
   'missing',
   'signed-out',
   'limit',
+  'fable-limit',
   'crashed',
 ]);
 const isFailure = (value: unknown): value is TStudioChatFailure =>

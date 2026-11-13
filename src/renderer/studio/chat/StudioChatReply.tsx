@@ -15,6 +15,7 @@ import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import ChatText from './ChatText';
 import StudioChatCopy from './StudioChatCopy';
+import StudioChatFableLimit from './StudioChatFableLimit';
 import { isCutOut, pictureKey, stepLabel } from './chatPictureList';
 import { CLAUDE_CODE_INSTALL_URL } from './StudioChatSetup';
 import { signInToStudioChat, useStudioChat } from './studioChatStore';
@@ -26,6 +27,7 @@ const FAILURE_WORDS: Record<NonNullable<TReply['failure']>, TranslationKey> = {
   missing: 'studioChat.failed.missing',
   'signed-out': 'studioChat.failed.signedOut',
   limit: 'studioChat.failed.limit',
+  'fable-limit': 'studioChat.failed.fableLimit',
   crashed: 'studioChat.failed.crashed',
 };
 
@@ -232,43 +234,48 @@ export default function StudioChatReply({
       {reply.state === 'stopped' && (
         <p className="studio-chat__ended">{t('studioChat.stopped')}</p>
       )}
-      {reply.state === 'failed' && reply.failure && (
-        <div className="studio-chat__failure" role="alert">
-          <Glyph name="alert" />
-          <span>{t(FAILURE_WORDS[reply.failure])}</span>
-          {reply.failure === 'signed-out' && (
-            <button
-              type="button"
-              className={`button small${signingIn ? ' is-running' : ''}`}
-              aria-busy={signingIn}
-              disabled={signingIn}
-              onClick={() => {
-                signInToStudioChat()
-                  .then((answer) => {
-                    if (answer?.state === 'ready') {
-                      onRetry?.();
-                    }
-                    return undefined;
-                  })
-                  .catch(() => undefined);
-              }}
-            >
-              {t('studioChat.signIn')}
-            </button>
-          )}
-          {reply.failure === 'missing' && (
-            <button
-              type="button"
-              className="button small"
-              onClick={() =>
-                window.open(CLAUDE_CODE_INSTALL_URL, '_blank', 'noopener')
-              }
-            >
-              {t('studioChat.install')}
-            </button>
-          )}
-        </div>
+      {reply.state === 'failed' && reply.failure === 'fable-limit' && (
+        <StudioChatFableLimit canRetry={onRetry !== undefined} />
       )}
+      {reply.state === 'failed' &&
+        reply.failure &&
+        reply.failure !== 'fable-limit' && (
+          <div className="studio-chat__failure" role="alert">
+            <Glyph name="alert" />
+            <span>{t(FAILURE_WORDS[reply.failure])}</span>
+            {reply.failure === 'signed-out' && (
+              <button
+                type="button"
+                className={`button small${signingIn ? ' is-running' : ''}`}
+                aria-busy={signingIn}
+                disabled={signingIn}
+                onClick={() => {
+                  signInToStudioChat()
+                    .then((answer) => {
+                      if (answer?.state === 'ready') {
+                        onRetry?.();
+                      }
+                      return undefined;
+                    })
+                    .catch(() => undefined);
+                }}
+              >
+                {t('studioChat.signIn')}
+              </button>
+            )}
+            {reply.failure === 'missing' && (
+              <button
+                type="button"
+                className="button small"
+                onClick={() =>
+                  window.open(CLAUDE_CODE_INSTALL_URL, '_blank', 'noopener')
+                }
+              >
+                {t('studioChat.install')}
+              </button>
+            )}
+          </div>
+        )}
       {/* The reply's words, to copy, once it has ended. */}
       {reply.text && !working && (
         <div className="studio-chat__turn-actions">

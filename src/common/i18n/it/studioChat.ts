@@ -210,6 +210,17 @@ const studioChat = {
   'studioChat.context.detail':
     '{used} di {window} token nella finestra di contesto di Claude. Compattare fa spazio.',
   'studioChat.context.tokens': '{used} token di contesto',
+  'studioChat.failed.fableLimit':
+    'Il limite settimanale di Fable è stato raggiunto.',
+  'studioChat.fable.back': 'Fable torna disponibile {time}.',
+  'studioChat.fable.checking': 'Verifica del margine di Opus in corso…',
+  'studioChat.fable.opusRoom':
+    'Opus ha ancora margine nel tuo piano. Passare questa chat a Opus e inviare di nuovo il messaggio?',
+  'studioChat.fable.switch': 'Passa a Opus',
+  'studioChat.fable.notNow': 'Non ora',
+  'studioChat.fable.opusFull': 'Anche Opus ha raggiunto il suo limite:',
+  'studioChat.limits.fable': 'Fable · questa settimana',
+  'studioChat.limits.opus': 'Opus · questa settimana',
   'studioChat.limits.fiveHour': 'Sessione attuale (5 ore)',
   'studioChat.limits.week': 'Questa settimana',
   'studioChat.limits.used': '{percent}% usato',

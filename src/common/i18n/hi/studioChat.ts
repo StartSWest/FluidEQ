@@ -205,6 +205,17 @@ const studioChat = {
   'studioChat.context.detail':
     'Claude की संदर्भ विंडो में {window} में से {used} टोकन। संक्षिप्त करने से जगह बनती है।',
   'studioChat.context.tokens': '{used} टोकन संदर्भ',
+  'studioChat.failed.fableLimit': 'Fable की साप्ताहिक सीमा पूरी हो गई है।',
+  'studioChat.fable.back': 'Fable {time} पर फिर उपलब्ध होगा।',
+  'studioChat.fable.checking':
+    'देखा जा रहा है कि Opus में अभी गुंजाइश है या नहीं…',
+  'studioChat.fable.opusRoom':
+    'आपके प्लान में Opus की अभी गुंजाइश है। इस चैट को Opus पर बदलकर अपना संदेश फिर से भेजें?',
+  'studioChat.fable.switch': 'Opus पर बदलें',
+  'studioChat.fable.notNow': 'अभी नहीं',
+  'studioChat.fable.opusFull': 'Opus भी अपनी सीमा पर है:',
+  'studioChat.limits.fable': 'Fable · इस हफ़्ते',
+  'studioChat.limits.opus': 'Opus · इस हफ़्ते',
   'studioChat.limits.fiveHour': 'मौजूदा सत्र (5 घंटे)',
   'studioChat.limits.week': 'इस सप्ताह',
   'studioChat.limits.used': '{percent}% उपयोग हुआ',

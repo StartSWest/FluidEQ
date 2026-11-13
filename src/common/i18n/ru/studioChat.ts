@@ -207,6 +207,16 @@ const studioChat = {
   'studioChat.context.detail':
     '{used} из {window} токенов в контекстном окне Claude. Сжатие освобождает место.',
   'studioChat.context.tokens': '{used} токенов контекста',
+  'studioChat.failed.fableLimit': 'Недельный лимит Fable исчерпан.',
+  'studioChat.fable.back': 'Fable снова будет доступен {time}.',
+  'studioChat.fable.checking': 'Проверяем, остался ли запас у Opus…',
+  'studioChat.fable.opusRoom':
+    'У Opus в вашем тарифе ещё есть запас. Переключить этот чат на Opus и отправить сообщение снова?',
+  'studioChat.fable.switch': 'Переключить на Opus',
+  'studioChat.fable.notNow': 'Не сейчас',
+  'studioChat.fable.opusFull': 'Opus тоже достиг своего лимита:',
+  'studioChat.limits.fable': 'Fable · эта неделя',
+  'studioChat.limits.opus': 'Opus · эта неделя',
   'studioChat.limits.fiveHour': 'Текущий сеанс (5 часов)',
   'studioChat.limits.week': 'Эта неделя',
   'studioChat.limits.used': 'Использовано {percent}%',

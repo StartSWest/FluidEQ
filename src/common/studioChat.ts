@@ -70,7 +70,13 @@ export interface IStudioChatStep {
 }
 
 /** Why a reply stopped short. */
-export type TStudioChatFailure = 'missing' | 'signed-out' | 'limit' | 'crashed';
+export type TStudioChatFailure =
+  | 'missing'
+  | 'signed-out'
+  | 'limit'
+  /** Fable's own weekly limit, which another model is not held to. */
+  | 'fable-limit'
+  | 'crashed';
 
 export type TStudioChatEntry =
   | {
@@ -133,9 +139,27 @@ export interface IStudioChatLimit {
 export interface IStudioChatLimits {
   fiveHour?: IStudioChatLimit;
   week?: IStudioChatLimit;
+  /**
+   * Fable's own window (Ivan, 2026-11-13: "show fable session limit too").
+   * Claude Code keeps no five-hour window per model: Fable's is a week long,
+   * its /usage screen's "Current week (Fable)", and it counts beside the
+   * plan's two, which every model shares.
+   */
+  fable?: IStudioChatLimit;
+  /** Opus's own weekly window, where the plan still has one. */
+  opus?: IStudioChatLimit;
   /** When Claude Code reported them, in milliseconds since the epoch. */
   at: number;
 }
+
+/** The windows a limits reading may carry, each kept on its own. */
+export const STUDIO_CHAT_LIMIT_WINDOWS = [
+  'fiveHour',
+  'week',
+  'fable',
+  'opus',
+] as const;
+export type TStudioChatLimitWindow = (typeof STUDIO_CHAT_LIMIT_WINDOWS)[number];
 
 /**
  * A message the member sent while Claude was still answering (Ivan,

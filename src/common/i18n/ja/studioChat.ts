@@ -206,6 +206,16 @@ const studioChat = {
   'studioChat.context.detail':
     'Claude のコンテキストウィンドウ {window} トークン中 {used}。圧縮すると空きができます。',
   'studioChat.context.tokens': 'コンテキスト {used} トークン',
+  'studioChat.failed.fableLimit': 'Fable の週間上限に達しました。',
+  'studioChat.fable.back': 'Fable は {time} に再び使えます。',
+  'studioChat.fable.checking': 'Opus にまだ余裕があるか確認しています…',
+  'studioChat.fable.opusRoom':
+    'プランの Opus にはまだ余裕があります。このチャットを Opus に切り替えて、メッセージをもう一度送りますか？',
+  'studioChat.fable.switch': 'Opus に切り替える',
+  'studioChat.fable.notNow': '今はしない',
+  'studioChat.fable.opusFull': 'Opus も上限に達しています：',
+  'studioChat.limits.fable': 'Fable · 今週',
+  'studioChat.limits.opus': 'Opus · 今週',
   'studioChat.limits.fiveHour': '現在のセッション（5 時間）',
   'studioChat.limits.week': '今週',
   'studioChat.limits.used': '{percent}% 使用',

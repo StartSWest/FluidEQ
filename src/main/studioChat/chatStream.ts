@@ -192,6 +192,13 @@ const pictureOf = (content: unknown): string | undefined => {
  */
 export const failureOf = (text: unknown): TStudioChatFailure => {
   const words = typeof text === 'string' ? text : '';
+  // Claude Code's words when Fable's own weekly window is spent: "You've
+  // reached your Fable limit. … switch models" (2.1.321). Another model is
+  // not held to it, which is why it is told apart from the plan's limit;
+  // read as the plan's, it fell through to "stopped before it finished".
+  if (/\bFable limit\b/i.test(words)) {
+    return 'fable-limit';
+  }
   if (
     /usage limit|rate limit|limit reached|out of (extra )?usage/i.test(words)
   ) {

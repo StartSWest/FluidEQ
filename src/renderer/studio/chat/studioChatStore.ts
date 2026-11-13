@@ -13,11 +13,12 @@ import {
   type TStudioChatAsk,
   type TStudioChatAvailability,
   type TStudioChatEntry,
+  type TStudioChatModel,
   type TStudioChatRestore,
 } from 'common/studioChat';
 import { readStored, writeStored } from '../../utils/graphStorage';
 import chatBrief from './chatBrief';
-import { chatPicksOf } from './chatPicks';
+import { chatPicksOf, setChatModel } from './chatPicks';
 import packArtwork from './chatPack';
 import videoFrames from './chatVideo';
 
@@ -282,6 +283,16 @@ export const retryStudioChat = () =>
     brief: chatBrief(),
     ...scenePicks(),
   }) ?? Promise.resolve();
+
+/**
+ * The failed reply answered again on another model, which becomes this
+ * chat's own pick from here on, as a pick from the model list would: what
+ * "Switch to Opus" does when Fable's own limit stopped a reply.
+ */
+export const retryStudioChatOn = (model: TStudioChatModel) => {
+  setChatModel(state.chat?.projectId, model);
+  return retryStudioChat();
+};
 
 /** The open project's conversation, as main keeps it. */
 export const loadStudioChat = async () => {

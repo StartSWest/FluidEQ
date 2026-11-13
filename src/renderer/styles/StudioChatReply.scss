@@ -347,6 +347,42 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Fable's own limit: the card's line, then what Opus can do on a row of
+// its own, set in under the words so the icon keeps its column.
+.studio-chat__fable {
+  > .studio-chat__fable-note,
+  > .studio-chat__fable-actions {
+    flex: 1 1 100%;
+    min-width: 0;
+    margin: 0;
+    padding-left: 22px;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.studio-chat__fable-note {
+  color: $text-muted;
+  line-height: 1.45;
+}
+
+.studio-chat__fable-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.studio-chat__fable-resets {
+  display: grid;
+  gap: 2px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+
 // The reply's copy button, at its foot.
 .studio-chat__turn-actions {
   display: flex;

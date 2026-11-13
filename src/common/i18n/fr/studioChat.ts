@@ -212,6 +212,17 @@ const studioChat = {
   'studioChat.context.detail':
     '{used} sur {window} jetons dans la fenêtre de contexte de Claude. Compacter libère de la place.',
   'studioChat.context.tokens': '{used} jetons de contexte',
+  'studioChat.failed.fableLimit':
+    'La limite hebdomadaire de Fable est atteinte.',
+  'studioChat.fable.back': 'Fable revient {time}.',
+  'studioChat.fable.checking': 'Vérification de la marge restante d’Opus…',
+  'studioChat.fable.opusRoom':
+    'Opus a encore de la marge dans votre forfait. Passer ce chat sur Opus et renvoyer votre message ?',
+  'studioChat.fable.switch': 'Passer à Opus',
+  'studioChat.fable.notNow': 'Pas maintenant',
+  'studioChat.fable.opusFull': 'Opus a lui aussi atteint sa limite :',
+  'studioChat.limits.fable': 'Fable · cette semaine',
+  'studioChat.limits.opus': 'Opus · cette semaine',
   'studioChat.limits.fiveHour': 'Session en cours (5 heures)',
   'studioChat.limits.week': 'Cette semaine',
   'studioChat.limits.used': '{percent} % utilisés',

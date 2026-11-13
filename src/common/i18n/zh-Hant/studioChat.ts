@@ -201,6 +201,16 @@ const studioChat = {
   'studioChat.context.detail':
     'Claude 上下文視窗中的 {used} 或 {window} 令牌。緊湊，騰出空間。',
   'studioChat.context.tokens': '{used} 上下文標記',
+  'studioChat.failed.fableLimit': 'Fable 的每週額度已用完。',
+  'studioChat.fable.back': 'Fable 將於 {time} 恢復。',
+  'studioChat.fable.checking': '正在檢查 Opus 是否還有餘量…',
+  'studioChat.fable.opusRoom':
+    '你的方案中 Opus 仍有餘量。要將這個聊天切換到 Opus 並重新傳送訊息嗎？',
+  'studioChat.fable.switch': '切換到 Opus',
+  'studioChat.fable.notNow': '暫不',
+  'studioChat.fable.opusFull': 'Opus 也已達到額度上限：',
+  'studioChat.limits.fable': 'Fable · 本週',
+  'studioChat.limits.opus': 'Opus · 本週',
   'studioChat.limits.fiveHour': '當前課程（5 小時）',
   'studioChat.limits.week': '本週',
   'studioChat.limits.used': '{percent}% 已使用',

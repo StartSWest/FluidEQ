@@ -7,10 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import type {
-  IStudioChatContext,
-  IStudioChatLimit,
-  IStudioChatLimits,
+import {
+  STUDIO_CHAT_LIMIT_WINDOWS,
+  type IStudioChatContext,
+  type IStudioChatLimit,
+  type IStudioChatLimits,
+  type TStudioChatLimitWindow,
 } from '../../common/studioChat';
 import writeFileAtomically from '../atomicWrite';
 
@@ -113,21 +115,43 @@ const answeredLimitOf = (raw: unknown): IStudioChatLimit | undefined => {
     : undefined;
 };
 
-const limitsUsage = (
-  fiveHour: IStudioChatLimit | undefined,
-  week: IStudioChatLimit | undefined,
-): TChatUsage[] =>
-  fiveHour || week
-    ? [
-        {
-          type: 'limits',
-          limits: {
-            ...(fiveHour ? { fiveHour } : {}),
-            ...(week ? { week } : {}),
-          },
-        },
-      ]
-    : [];
+type TWindows = Partial<Record<TStudioChatLimitWindow, IStudioChatLimit>>;
+
+/** The windows read, without the ones the line did not carry. */
+const known = (
+  windows: Record<TStudioChatLimitWindow, IStudioChatLimit | undefined>,
+): TWindows => {
+  const kept: TWindows = {};
+  STUDIO_CHAT_LIMIT_WINDOWS.forEach((name) => {
+    const limit = windows[name];
+    if (limit) {
+      kept[name] = limit;
+    }
+  });
+  return kept;
+};
+
+const limitsUsage = (windows: TWindows): TChatUsage[] =>
+  Object.keys(windows).length > 0 ? [{ type: 'limits', limits: windows }] : [];
+
+/**
+ * Fable's window in a `get_usage` answer: one of `model_scoped`, the
+ * per-model weekly windows, by the label the server gives its bucket
+ * ("Fable"; Claude Code's own /usage shows it as "Current week (Fable)").
+ * 0-100 used and an ISO reset time, like the plan's own windows.
+ */
+const answeredFableOf = (scoped: unknown): IStudioChatLimit | undefined => {
+  if (!Array.isArray(scoped)) {
+    return undefined;
+  }
+  const fable = scoped.find(
+    (bucket: unknown) =>
+      isRecord(bucket) &&
+      typeof bucket.display_name === 'string' &&
+      /^fable\b/i.test(bucket.display_name.trim()),
+  );
+  return answeredLimitOf(fable);
+};
 
 const usageOfMessage = (message: Record<string, unknown>): TChatUsage[] => {
   if (message.type === 'control_response' && isRecord(message.response)) {
@@ -143,8 +167,12 @@ const usageOfMessage = (message: Record<string, unknown>): TChatUsage[] => {
     }
     const windows = response.response.rate_limits;
     return limitsUsage(
-      answeredLimitOf(windows.five_hour),
-      answeredLimitOf(windows.seven_day),
+      known({
+        fiveHour: answeredLimitOf(windows.five_hour),
+        week: answeredLimitOf(windows.seven_day),
+        fable: answeredFableOf(windows.model_scoped),
+        opus: answeredLimitOf(windows.seven_day_opus),
+      }),
     );
   }
   if (
@@ -194,7 +222,16 @@ const usageOfMessage = (message: Record<string, unknown>): TChatUsage[] => {
     if (!isRecord(windows)) {
       return [];
     }
-    return limitsUsage(limitOf(windows.five_hour), limitOf(windows.seven_day));
+    // `seven_day_overage_included` is the per-model weekly bucket, which
+    // Claude Code names "Fable limit" wherever it speaks of it.
+    return limitsUsage(
+      known({
+        fiveHour: limitOf(windows.five_hour),
+        week: limitOf(windows.seven_day),
+        fable: limitOf(windows.seven_day_overage_included),
+        opus: undefined,
+      }),
+    );
   }
   return [];
 };
@@ -242,12 +279,14 @@ const readLimits = (raw: unknown): IStudioChatLimits | undefined => {
     const resetsAt = count(limit.resetsAt);
     return used <= 1 && resetsAt > 0 ? { used, resetsAt } : undefined;
   };
-  const fiveHour = keep(raw.fiveHour);
-  const week = keep(raw.week);
   return {
     at: count(raw.at),
-    ...(fiveHour ? { fiveHour } : {}),
-    ...(week ? { week } : {}),
+    ...known({
+      fiveHour: keep(raw.fiveHour),
+      week: keep(raw.week),
+      fable: keep(raw.fable),
+      opus: keep(raw.opus),
+    }),
   };
 };
 
@@ -301,17 +340,21 @@ const createChatUsage = ({
     /** A report from a project's chat, or from no chat (`projectId` none). */
     note: (projectId: string | undefined, usage: TChatUsage) => {
       if (usage.type === 'limits') {
-        // A report with one window leaves the other as it was read, until
-        // that one's own reset makes the old figure wrong.
+        // A report with some windows leaves the others as they were read,
+        // each until its own reset makes the old figure wrong.
         const now = Date.now();
         const still = (limit: IStudioChatLimit | undefined) =>
           limit && limit.resetsAt > now ? limit : undefined;
         const before = currentLimits();
-        const fiveHour = usage.limits.fiveHour ?? still(before?.fiveHour);
-        const week = usage.limits.week ?? still(before?.week);
+        const latest = (name: TStudioChatLimitWindow) =>
+          usage.limits[name] ?? still(before?.[name]);
         limits = {
-          ...(fiveHour ? { fiveHour } : {}),
-          ...(week ? { week } : {}),
+          ...known({
+            fiveHour: latest('fiveHour'),
+            week: latest('week'),
+            fable: latest('fable'),
+            opus: latest('opus'),
+          }),
           at: now,
         };
         limitsRead = true;

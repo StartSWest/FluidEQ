@@ -208,6 +208,16 @@ const studioChat = {
   'studioChat.context.detail':
     '{used} of {window} tokens in Claude’s context window. Compact makes room.',
   'studioChat.context.tokens': '{used} tokens of context',
+  'studioChat.failed.fableLimit': 'Fable’s weekly limit is reached.',
+  'studioChat.fable.back': 'Fable is back {time}.',
+  'studioChat.fable.checking': 'Checking whether Opus has room…',
+  'studioChat.fable.opusRoom':
+    'Opus still has room in your plan. Switch this chat to Opus and send your message again?',
+  'studioChat.fable.switch': 'Switch to Opus',
+  'studioChat.fable.notNow': 'Not now',
+  'studioChat.fable.opusFull': 'Opus is at its limit too:',
+  'studioChat.limits.fable': 'Fable · this week',
+  'studioChat.limits.opus': 'Opus · this week',
   'studioChat.limits.fiveHour': 'Current session (5 hours)',
   'studioChat.limits.week': 'This week',
   'studioChat.limits.used': '{percent}% used',

@@ -208,6 +208,16 @@ const studioChat = {
   'studioChat.context.detail':
     'Claude의 컨텍스트 창에 있는 {window} 토큰의 {used}. 컴팩트하게 공간을 확보하세요.',
   'studioChat.context.tokens': '{used} 컨텍스트 토큰',
+  'studioChat.failed.fableLimit': 'Fable의 주간 한도에 도달했습니다.',
+  'studioChat.fable.back': 'Fable은 {time}에 다시 사용할 수 있습니다.',
+  'studioChat.fable.checking': 'Opus에 여유가 있는지 확인하는 중…',
+  'studioChat.fable.opusRoom':
+    '요금제에 Opus 여유가 아직 있습니다. 이 채팅을 Opus로 바꾸고 메시지를 다시 보낼까요?',
+  'studioChat.fable.switch': 'Opus로 전환',
+  'studioChat.fable.notNow': '나중에',
+  'studioChat.fable.opusFull': 'Opus도 한도에 도달했습니다:',
+  'studioChat.limits.fable': 'Fable · 이번 주',
+  'studioChat.limits.opus': 'Opus · 이번 주',
   'studioChat.limits.fiveHour': '현재 세션(5시간)',
   'studioChat.limits.week': '이번주',
   'studioChat.limits.used': '{percent}% 사용됨',
