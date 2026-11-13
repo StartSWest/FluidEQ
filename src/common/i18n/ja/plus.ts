@@ -92,6 +92,7 @@ const plus = {
   'plus.version.current': '現在',
   'plus.version.inLooks': 'マイ表示にあり',
   'plus.version.onlyOne': '今のところ、このバージョンだけです。',
+  'plus.version.youHaveOut': 'お持ちは v{have} · v{version} が公開されました',
   'plus.version.saveShort': '保存',
   'plus.version.saveLabel': 'バージョン {version} をこのコンピューターに保存',
   'plus.version.saving': '保存中…',

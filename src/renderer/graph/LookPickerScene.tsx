@@ -40,6 +40,18 @@ export default function LookPickerScene({
   let caption = row.author
     ? t('graph.member.by', { name: row.author })
     : row.categories.map((category) => categoryName(t, category)).join(' · ');
+  // Which version is here, beside the maker (Ivan, 2026-11-13: "let's show
+  // the version there too"), and quietly a newer one the gallery has. Its
+  // own span, so a long maker's name is what shortens and never the number.
+  let version: string | undefined;
+  if (row.latest !== undefined && row.version !== undefined) {
+    version = t('graph.version.haveNewer', {
+      have: String(row.version),
+      version: String(row.latest),
+    });
+  } else if (row.version !== undefined) {
+    version = t('graph.version.short', { version: String(row.version) });
+  }
   if (fresh && row.version !== undefined) {
     caption = row.versionNote
       ? t('graph.version.caption', {
@@ -69,7 +81,22 @@ export default function LookPickerScene({
           <SceneThumbnail row={row} />
           <span className="look-picker__scene-text">
             <span className="look-picker__name">{row.name}</span>
-            {caption && <span className="look-picker__caption">{caption}</span>}
+            {(caption || version) && (
+              <span className="look-picker__caption">
+                {caption && (
+                  <span className="look-picker__caption-text">{caption}</span>
+                )}
+                {version && !fresh && (
+                  <span
+                    className={`look-picker__version${
+                      row.latest !== undefined ? ' has-newer' : ''
+                    }`}
+                  >
+                    {version}
+                  </span>
+                )}
+              </span>
+            )}
           </span>
           {fresh && (
             <span className="look-picker__new">{t('graph.version.new')}</span>

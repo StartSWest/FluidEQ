@@ -395,10 +395,34 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // Muted, as the line under every menu row's name is.
+// One line at any width: the maker's name or the categories shorten, the
+// version beside them never does (Ivan, 2026-11-13).
 .look-picker__caption {
-  @include truncate;
+  display: flex;
+  min-width: 0;
+  gap: 0.4em;
   color: $text-muted;
   font-size: $text-micro;
+}
+
+.look-picker__caption-text {
+  @include truncate;
+  min-width: 0;
+}
+
+.look-picker__version {
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  .look-picker__caption-text + &::before {
+    margin-inline-end: 0.4em;
+    content: '·';
+  }
+
+  // A newer version is out: said, in the accent, never louder than that.
+  &.has-newer {
+    color: $text-accent;
+  }
 }
 
 .look-picker__scene.is-locked {

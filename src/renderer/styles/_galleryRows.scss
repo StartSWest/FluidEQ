@@ -522,6 +522,14 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-medium;
 }
 
+// An owner on an older copy: which they have, and that a newer one is out.
+// Members keep their version until they update it, by design.
+.gallery-versions__yours {
+  margin: 0;
+  color: $text-accent;
+  font-size: $text-small;
+}
+
 // A first version says it is the only one so far, rather than nothing.
 .gallery-versions__only {
   margin: 0;

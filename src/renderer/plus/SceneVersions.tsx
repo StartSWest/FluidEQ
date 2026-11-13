@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   versionLineIn,
   type IGalleryScene,
@@ -30,6 +30,12 @@ interface ISceneVersionsProps {
   mayKeep: boolean;
   /** The version of it in this member's looks; undefined while it is not. */
   inLooks: number | undefined;
+  /**
+   * The server's history holds a version past the one this page was handed:
+   * every list that had the scene is older than an approval, and the page
+   * asks again rather than show the old version until something refreshes.
+   */
+  onNewerVersion: () => void;
 }
 
 /**
@@ -85,6 +91,7 @@ export default function SceneVersions({
   scene,
   mayKeep,
   inLooks,
+  onNewerVersion,
 }: ISceneVersionsProps) {
   const { t, locale } = useTranslation();
   // What is new in this version, in the reader's language or English.
@@ -102,6 +109,8 @@ export default function SceneVersions({
   const { authorId, sceneId, version, updatedAt } = scene;
   const saving = useSceneVersionSave(authorId, sceneId);
   const [current, setCurrent] = useState<IGalleryVersion>();
+  const newerRef = useRef(onNewerVersion);
+  newerRef.current = onNewerVersion;
 
   useEffect(() => {
     let cancelled = false;
@@ -117,6 +126,9 @@ export default function SceneVersions({
           setCurrent(
             outcome.versions.find((entry) => entry.version === version),
           );
+          if (outcome.versions.some((entry) => entry.version > version)) {
+            newerRef.current();
+          }
         }
         return undefined;
       })
@@ -214,6 +226,16 @@ export default function SceneVersions({
           <span className="gallery-versions__new">{t('plus.version.new')}</span>
         )}
       </p>
+      {/* An owner keeps the version they have until they update it, by
+          design; the page says which that is, and that a newer one is out. */}
+      {inLooks !== undefined && inLooks < version && (
+        <p className="gallery-versions__yours">
+          {t('plus.version.youHaveOut', {
+            have: String(inLooks),
+            version: String(version),
+          })}
+        </p>
+      )}
       {playing !== undefined && (
         <div className="gallery-versions__pinned" role="status">
           <p>{t('plus.version.playingLine', { version: String(playing) })}</p>

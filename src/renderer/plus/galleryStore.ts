@@ -338,10 +338,34 @@ export const patchGalleryScene = (
 };
 
 /** The freshest copy of a scene any list holds, for a page opened on an older one. */
+/** The later of two copies of one scene: its version, then when it went out. */
+export const newerScene = (
+  a: IGalleryScene,
+  b: IGalleryScene | undefined,
+): IGalleryScene => {
+  if (!b) {
+    return a;
+  }
+  if (a.version !== b.version) {
+    return a.version > b.version ? a : b;
+  }
+  return Date.parse(b.updatedAt) > Date.parse(a.updatedAt) ? b : a;
+};
+
+/**
+ * The freshest copy of a scene any list holds. It took the FIRST copy found,
+ * and lists are kept oldest first, so a list loaded before a new version was
+ * approved kept answering with the old one: Balloon Dawn's page said v1 while
+ * the list it was opened from already said v2 (Ivan, 2026-11-13).
+ */
 export const findGalleryScene = (lookId: string): IGalleryScene | undefined =>
   Array.from(lists.values())
     .flatMap((entry) => entry.list.scenes)
-    .find((scene) => scene.lookId === lookId);
+    .filter((scene) => scene.lookId === lookId)
+    .reduce<IGalleryScene | undefined>(
+      (best, scene) => newerScene(scene, best),
+      undefined,
+    );
 
 export const useGalleryServerViews = (): boolean =>
   useSyncExternalStore(subscribe, galleryServerViews, galleryServerViews);
@@ -349,7 +373,7 @@ export const useGalleryServerViews = (): boolean =>
 export const useGalleryScene = (scene: IGalleryScene): IGalleryScene =>
   useSyncExternalStore(
     subscribe,
-    () => findGalleryScene(scene.lookId) ?? scene,
+    () => newerScene(scene, findGalleryScene(scene.lookId)),
     () => scene,
   );
 

@@ -214,6 +214,8 @@ const eq: Partial<Dictionary> = {
   'graph.scene.badge': 'Szene',
   'graph.scene.report': '{name} melden',
   'graph.version.new': 'Neu',
+  'graph.version.short': 'v{version}',
+  'graph.version.haveNewer': 'v{have} · v{version} verfügbar',
   'graph.version.caption': 'v{version} · {note}',
   'graph.version.captionBare': 'Auf v{version} aktualisiert',
   'graph.version.dot': 'Eine neue Version seit Sie es zuletzt gespielt haben',

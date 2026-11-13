@@ -93,6 +93,7 @@ const plus = {
   'plus.version.current': 'Current',
   'plus.version.inLooks': 'In your looks',
   'plus.version.onlyOne': 'This is the only version so far.',
+  'plus.version.youHaveOut': 'You have v{have} · v{version} is out',
   'plus.version.saveShort': 'Save',
   'plus.version.saveLabel': 'Save version {version} on this computer',
   'plus.version.saving': 'Saving…',

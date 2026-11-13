@@ -465,6 +465,7 @@ export default function ScenePage({
           scene={scene}
           mayKeep={owned && !own}
           inLooks={local?.version}
+          onNewerVersion={moreBy.reload}
         />
 
         {/* FluidEQ's own scenes are liked like any other (server 0048), but

@@ -224,6 +224,8 @@ const eq = {
   'graph.scene.badge': 'Scene',
   'graph.scene.report': 'Report {name}',
   'graph.version.new': 'New',
+  'graph.version.short': 'v{version}',
+  'graph.version.haveNewer': 'v{have} · v{version} available',
   'graph.version.caption': 'v{version} · {note}',
   'graph.version.captionBare': 'Updated to v{version}',
   'graph.version.dot': 'A new version since you last played it',

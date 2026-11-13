@@ -83,6 +83,7 @@ const plus = {
   'plus.version.current': '目前',
   'plus.version.inLooks': '在你的外觀中',
   'plus.version.onlyOne': '目前只有這一個版本。',
+  'plus.version.youHaveOut': '你有 v{have} · v{version} 已發布',
   'plus.version.saveShort': '儲存',
   'plus.version.saveLabel': '將版本 {version} 儲存到這台電腦',
   'plus.version.saving': '正在儲存…',

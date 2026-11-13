@@ -90,6 +90,7 @@ const plus = {
   'plus.version.current': 'Текущая',
   'plus.version.inLooks': 'В ваших оформлениях',
   'plus.version.onlyOne': 'Пока это единственная версия.',
+  'plus.version.youHaveOut': 'У вас v{have} · вышла v{version}',
   'plus.version.saveShort': 'Сохранить',
   'plus.version.saveLabel': 'Сохранить версию {version} на этом компьютере',
   'plus.version.saving': 'Сохранение…',

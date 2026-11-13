@@ -195,6 +195,8 @@ const eq: Partial<Dictionary> = {
   'graph.scene.badge': '场景',
   'graph.scene.report': '举报 {name}',
   'graph.version.new': '新',
+  'graph.version.short': 'v{version}',
+  'graph.version.haveNewer': 'v{have} · 可用 v{version}',
   'graph.version.caption': 'v{version} · {note}',
   'graph.version.captionBare': '已更新到 v{version}',
   'graph.version.dot': '自你上次播放后有了新版本',

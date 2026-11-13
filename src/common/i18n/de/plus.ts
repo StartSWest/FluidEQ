@@ -94,6 +94,7 @@ const plus = {
   'plus.version.current': 'Aktuell',
   'plus.version.inLooks': 'In Ihren Darstellungen',
   'plus.version.onlyOne': 'Bisher gibt es nur diese Version.',
+  'plus.version.youHaveOut': 'Sie haben v{have} · v{version} ist erschienen',
   'plus.version.saveShort': 'Sichern',
   'plus.version.saveLabel': 'Version {version} auf diesem Computer sichern',
   'plus.version.saving': 'Wird gesichert…',

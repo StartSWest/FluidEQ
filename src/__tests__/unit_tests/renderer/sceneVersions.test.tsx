@@ -73,7 +73,14 @@ const playButtons = () =>
   screen.queryAllByRole('button', { name: /^plus\.version\.playLabel/ });
 
 it('shows the history alone to somebody with nothing kept', async () => {
-  render(<SceneVersions scene={scene} mayKeep={false} inLooks={undefined} />);
+  render(
+    <SceneVersions
+      onNewerVersion={jest.fn()}
+      scene={scene}
+      mayKeep={false}
+      inLooks={undefined}
+    />,
+  );
   expect(await screen.findByText('plus.version.all:4')).toBeInTheDocument();
   expect(playButtons()).toHaveLength(0);
   expect(screen.queryByRole('status')).toBeNull();
@@ -81,7 +88,14 @@ it('shows the history alone to somebody with nothing kept', async () => {
 
 it('offers Play only on the versions this computer kept', async () => {
   kept = { versions: [3, 2] };
-  render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
+  render(
+    <SceneVersions
+      onNewerVersion={jest.fn()}
+      scene={scene}
+      mayKeep
+      inLooks={undefined}
+    />,
+  );
   await waitFor(() => expect(playButtons()).toHaveLength(2));
   expect(
     playButtons().map((button) => button.getAttribute('aria-label')),
@@ -92,7 +106,14 @@ it('offers Play only on the versions this computer kept', async () => {
 
 it('plays a kept version, says so, and goes back to the newest', async () => {
   kept = { versions: [3, 2] };
-  render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
+  render(
+    <SceneVersions
+      onNewerVersion={jest.fn()}
+      scene={scene}
+      mayKeep
+      inLooks={undefined}
+    />,
+  );
   await waitFor(() => expect(playButtons()).toHaveLength(2));
   await userEvent.click(playButtons()[1]);
   expect(play).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
@@ -119,7 +140,14 @@ it('lists a kept version the server history no longer names', async () => {
     },
   } as unknown as typeof window.electron;
   kept = { versions: [2] };
-  render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
+  render(
+    <SceneVersions
+      onNewerVersion={jest.fn()}
+      scene={scene}
+      mayKeep
+      inLooks={undefined}
+    />,
+  );
   expect(await screen.findByText('plus.version.keptHere')).toBeInTheDocument();
   expect(playButtons()).toHaveLength(1);
 });
@@ -167,7 +195,14 @@ describe('saving a version the server still holds', () => {
 
   it('marks the current version, offers Save on the ones the server holds, and says which it let go', async () => {
     withSaving({ 4: true, 3: true, 2: true });
-    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
+    render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep
+        inLooks={undefined}
+      />,
+    );
     await waitFor(() => expect(saveButtons()).toHaveLength(2));
     expect(
       saveButtons().map((button) => button.getAttribute('aria-label')),
@@ -180,7 +215,14 @@ describe('saving a version the server still holds', () => {
 
   it('offers nothing to save to somebody who does not own the scene', async () => {
     withSaving({ 4: true, 3: true, 2: true });
-    render(<SceneVersions scene={scene} mayKeep={false} inLooks={undefined} />);
+    render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep={false}
+        inLooks={undefined}
+      />,
+    );
     expect(await screen.findByText('plus.version.current')).toBeInTheDocument();
     expect(saveButtons()).toHaveLength(0);
     expect(screen.queryByText('plus.version.gone')).toBeNull();
@@ -188,7 +230,14 @@ describe('saving a version the server still holds', () => {
 
   it('runs from the press, can be cancelled, and once saved is a kept version with its Play', async () => {
     withSaving({ 4: true, 3: true, 2: true });
-    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
+    render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep
+        inLooks={undefined}
+      />,
+    );
     await waitFor(() => expect(saveButtons()).toHaveLength(2));
     await userEvent.click(saveButtons()[1]);
     expect(saveCalls).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
@@ -222,7 +271,14 @@ describe('saving a version the server still holds', () => {
 
   it('says why a version could not be saved, and says nothing of a cancel', async () => {
     withSaving({ 4: true, 3: true });
-    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
+    render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep
+        inLooks={undefined}
+      />,
+    );
     await waitFor(() => expect(saveButtons()).toHaveLength(1));
     await userEvent.click(saveButtons()[0]);
     await act(async () => answer({ ok: false, reason: 'gone' }));
@@ -240,7 +296,14 @@ describe('saving a version the server still holds', () => {
 
   it('reads an answer it does not understand as a failure', async () => {
     withSaving({ 4: true, 3: true });
-    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
+    render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep
+        inLooks={undefined}
+      />,
+    );
     await waitFor(() => expect(saveButtons()).toHaveLength(1));
     await userEvent.click(saveButtons()[0]);
     await act(async () => answer({ saved: 'yes' }));
@@ -253,7 +316,14 @@ describe('saving a version the server still holds', () => {
     withSaving({ 4: true, 3: true });
     const bridge = window.electron?.ipcRenderer as Record<string, unknown>;
     delete bridge.saveGalleryVersion;
-    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
+    render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep
+        inLooks={undefined}
+      />,
+    );
     expect(await screen.findByText('plus.version.current')).toBeInTheDocument();
     expect(saveButtons()).toHaveLength(0);
   });
@@ -277,6 +347,7 @@ describe('every version, open on the page', () => {
     answer([{ version: 1, publishedAt: '2026-11-11T10:00:00Z' }]);
     render(
       <SceneVersions
+        onNewerVersion={jest.fn()}
         scene={{ ...scene, version: 1 }}
         mayKeep={false}
         inLooks={undefined}
@@ -288,7 +359,14 @@ describe('every version, open on the page', () => {
   });
 
   it('shows the earlier versions without opening anything', async () => {
-    render(<SceneVersions scene={scene} mayKeep={false} inLooks={undefined} />);
+    render(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep={false}
+        inLooks={undefined}
+      />,
+    );
     expect(await screen.findByText('Brighter lake.')).toBeVisible();
     expect(screen.getAllByRole('listitem')).toHaveLength(4);
     // The control: with earlier versions there, it is not the only one.
@@ -305,6 +383,7 @@ describe('every version, open on the page', () => {
     kept = { versions: [2] };
     render(
       <SceneVersions
+        onNewerVersion={jest.fn()}
         scene={{ ...scene, version: 14 }}
         mayKeep
         inLooks={undefined}
@@ -333,7 +412,12 @@ describe('every version, open on the page', () => {
 
   it('marks the version in the member’s looks, and only that one', async () => {
     const { rerender } = render(
-      <SceneVersions scene={scene} mayKeep={false} inLooks={3} />,
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep={false}
+        inLooks={3}
+      />,
     );
     await screen.findByText('Brighter lake.');
     const marked = () =>
@@ -345,12 +429,80 @@ describe('every version, open on the page', () => {
             item.querySelector('.gallery-versions__number')?.textContent,
         );
     expect(marked()).toEqual(['plus.version.short:3']);
-    rerender(<SceneVersions scene={scene} mayKeep={false} inLooks={4} />);
+    rerender(
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep={false}
+        inLooks={4}
+      />,
+    );
     expect(marked()).toEqual(['plus.version.short:4']);
     // The control: a scene not in the looks marks nothing.
     rerender(
-      <SceneVersions scene={scene} mayKeep={false} inLooks={undefined} />,
+      <SceneVersions
+        onNewerVersion={jest.fn()}
+        scene={scene}
+        mayKeep={false}
+        inLooks={undefined}
+      />,
     );
     expect(marked()).toEqual([]);
+  });
+});
+
+// Balloon Dawn, 2026-11-13: the page was handed v1 while the server had
+// approved v2. The history it asks for on opening says so, and the page asks
+// again; an owner on the older copy is told which they have.
+describe('a page handed an older version than the server’s', () => {
+  it('asks again when the history holds a newer version, and not otherwise', async () => {
+    const newer = jest.fn();
+    render(
+      <SceneVersions
+        scene={{ ...scene, version: 2 }}
+        mayKeep={false}
+        inLooks={undefined}
+        onNewerVersion={newer}
+      />,
+    );
+    await waitFor(() => expect(newer).toHaveBeenCalledTimes(1));
+  });
+
+  it('does not ask again when it already has the newest', async () => {
+    const newer = jest.fn();
+    render(
+      <SceneVersions
+        scene={scene}
+        mayKeep={false}
+        inLooks={undefined}
+        onNewerVersion={newer}
+      />,
+    );
+    await screen.findByText('Brighter lake.');
+    expect(newer).not.toHaveBeenCalled();
+  });
+
+  it('tells an owner on an older copy which they have and that a newer is out', async () => {
+    const { rerender } = render(
+      <SceneVersions
+        scene={scene}
+        mayKeep
+        inLooks={3}
+        onNewerVersion={jest.fn()}
+      />,
+    );
+    expect(
+      await screen.findByText('plus.version.youHaveOut:3,4'),
+    ).toBeInTheDocument();
+    // The control: an owner on the newest is told nothing.
+    rerender(
+      <SceneVersions
+        scene={scene}
+        mayKeep
+        inLooks={4}
+        onNewerVersion={jest.fn()}
+      />,
+    );
+    expect(screen.queryByText(/plus\.version\.youHaveOut/)).toBeNull();
   });
 });

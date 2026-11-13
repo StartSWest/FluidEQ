@@ -209,6 +209,8 @@ const eq: Partial<Dictionary> = {
   'graph.scene.badge': 'シーン',
   'graph.scene.report': '{name} を報告',
   'graph.version.new': '新着',
+  'graph.version.short': 'v{version}',
+  'graph.version.haveNewer': 'v{have} · v{version} あり',
   'graph.version.caption': 'v{version} · {note}',
   'graph.version.captionBare': 'v{version} に更新',
   'graph.version.dot': '前回の再生以降に新しいバージョンがあります',

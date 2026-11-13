@@ -91,6 +91,7 @@ const plus = {
   'plus.version.current': '현재',
   'plus.version.inLooks': '내 외모에 있음',
   'plus.version.onlyOne': '지금은 이 버전뿐입니다.',
+  'plus.version.youHaveOut': '가진 버전 v{have} · v{version} 출시됨',
   'plus.version.saveShort': '저장',
   'plus.version.saveLabel': '버전 {version}을(를) 이 컴퓨터에 저장',
   'plus.version.saving': '저장하는 중…',

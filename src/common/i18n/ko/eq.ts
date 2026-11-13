@@ -189,6 +189,8 @@ const eq = {
   'graph.scene.badge': '장면',
   'graph.scene.report': '{name} 신고',
   'graph.version.new': '신규',
+  'graph.version.short': 'v{version}',
+  'graph.version.haveNewer': 'v{have} · v{version} 사용 가능',
   'graph.version.caption': 'v{version} · {note}',
   'graph.version.captionBare': 'v{version}로 업데이트됨',
   'graph.version.dot': '마지막 재생 이후 새 버전이 나왔습니다',

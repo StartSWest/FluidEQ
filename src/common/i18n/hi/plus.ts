@@ -89,6 +89,7 @@ const plus = {
   'plus.version.current': 'मौजूदा',
   'plus.version.inLooks': 'आपके रूपों में',
   'plus.version.onlyOne': 'अभी तक यही एकमात्र संस्करण है।',
+  'plus.version.youHaveOut': 'आपके पास v{have} है · v{version} आ गया है',
   'plus.version.saveShort': 'सहेजें',
   'plus.version.saveLabel': 'संस्करण {version} इस कंप्यूटर पर सहेजें',
   'plus.version.saving': 'सहेजा जा रहा है…',

@@ -91,6 +91,7 @@ const plus = {
   'plus.version.current': 'Atual',
   'plus.version.inLooks': 'Nos seus visuais',
   'plus.version.onlyOne': 'Por enquanto é a única versão.',
+  'plus.version.youHaveOut': 'Você tem a v{have} · a v{version} já saiu',
   'plus.version.saveShort': 'Salvar',
   'plus.version.saveLabel': 'Salvar a versão {version} neste computador',
   'plus.version.saving': 'Salvando…',

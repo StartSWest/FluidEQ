@@ -88,6 +88,8 @@ export interface IPlusRow {
   version?: number;
   /** What its maker wrote about that version, once the gallery has said. */
   versionNote?: string;
+  /** A newer approved version the gallery has, past the one on this computer. */
+  latest?: number;
   search: string;
 }
 
@@ -188,6 +190,14 @@ export const buildPlusRows = ({
   const author = (scene: { own: boolean; authorName?: string | null }) =>
     scene.own ? undefined : scene.authorName || t('graph.member.anonymous');
 
+  // A newer version than the one here, when a gallery list has seen it: the
+  // member keeps theirs until they update it, by design.
+  const latestFor = (
+    gallery: ReturnType<IPlusSources['findInGallery']>,
+    version: number,
+  ) =>
+    gallery && gallery.version > version ? { latest: gallery.version } : {};
+
   // The maker's note belongs to one version: shown only beside that one.
   const noteFor = (
     gallery: ReturnType<IPlusSources['findInGallery']>,
@@ -213,6 +223,7 @@ export const buildPlusRows = ({
       locked: false,
       version: scene.version,
       ...noteFor(gallery, scene.version),
+      ...latestFor(gallery, scene.version),
       thumbnail: {
         lookId: scene.lookId,
         version: scene.revision ?? String(scene.version),
@@ -271,6 +282,7 @@ export const buildPlusRows = ({
       locked: false,
       version: scene.version,
       ...noteFor(gallery, scene.version),
+      ...latestFor(gallery, scene.version),
       thumbnail: {
         lookId: scene.lookId,
         version: scene.revision ?? String(scene.version),

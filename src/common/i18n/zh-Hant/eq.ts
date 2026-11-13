@@ -175,6 +175,8 @@ const eq = {
   'graph.scene.badge': '場景',
   'graph.scene.report': '檢舉 {name}',
   'graph.version.new': '新',
+  'graph.version.short': 'v{version}',
+  'graph.version.haveNewer': 'v{have} · 可用 v{version}',
   'graph.version.caption': 'v{version} · {note}',
   'graph.version.captionBare': '更新為 v{version}',
   'graph.version.dot': '上次播放後推出的新版本',
