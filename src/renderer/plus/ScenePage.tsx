@@ -461,7 +461,11 @@ export default function ScenePage({
             ),
         )}
 
-        <SceneVersions scene={scene} mayKeep={owned && !own} />
+        <SceneVersions
+          scene={scene}
+          mayKeep={owned && !own}
+          inLooks={local?.version}
+        />
 
         {/* FluidEQ's own scenes are liked like any other (server 0048), but
             what adds them is the pack store, which counts nobody: their adds

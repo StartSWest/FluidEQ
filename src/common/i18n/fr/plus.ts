@@ -89,6 +89,8 @@ const plus = {
   'plus.version.backToNewest': 'Revenir à la plus récente',
   'plus.version.keptHere': 'Conservée sur cet ordinateur',
   'plus.version.current': 'Actuelle',
+  'plus.version.inLooks': 'Dans vos styles',
+  'plus.version.onlyOne': 'C’est la seule version pour l’instant.',
   'plus.version.saveShort': 'Enregistrer',
   'plus.version.saveLabel':
     'Enregistrer la version {version} sur cet ordinateur',

@@ -91,6 +91,8 @@ const plus = {
   'plus.version.backToNewest': 'Back to the newest',
   'plus.version.keptHere': 'Kept on this computer',
   'plus.version.current': 'Current',
+  'plus.version.inLooks': 'In your looks',
+  'plus.version.onlyOne': 'This is the only version so far.',
   'plus.version.saveShort': 'Save',
   'plus.version.saveLabel': 'Save version {version} on this computer',
   'plus.version.saving': 'Saving…',

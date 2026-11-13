@@ -508,22 +508,30 @@ it under the terms of the GNU General Public License version 3 or later.
   text-transform: uppercase;
 }
 
+// Every version, open under the scene's name: they used to fold away behind
+// a summary, and Ivan read that as the versions not being shown at all.
 .gallery-versions__history {
-  summary {
-    color: $text-faint;
-    font-size: $text-small;
-    cursor: pointer;
-  }
+  display: grid;
+  gap: 6px;
+}
 
-  summary:hover {
-    color: $text-primary;
-  }
+.gallery-versions__heading {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+}
+
+// A first version says it is the only one so far, rather than nothing.
+.gallery-versions__only {
+  margin: 0;
+  font-size: $text-small;
 }
 
 .gallery-versions__list {
   display: grid;
   gap: 10px;
-  margin: 10px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 
@@ -576,6 +584,29 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-accent;
   font-size: $text-micro;
   font-weight: $weight-semibold;
+  white-space: nowrap;
+}
+
+// A row's tags and its action, in the list's third column, together: a
+// version can be current and in your looks at once.
+.gallery-versions__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-self: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+// The version in the member's looks: the same pill as "Current", quieter.
+.gallery-versions__mine {
+  align-self: center;
+  padding: 1px 8px;
+  border: 1px solid $border-field;
+  border-radius: $radius-2xs;
+  color: $text-muted;
+  font-size: $text-micro;
+  font-weight: $weight-medium;
   white-space: nowrap;
 }
 

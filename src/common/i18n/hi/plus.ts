@@ -87,6 +87,8 @@ const plus = {
   'plus.version.backToNewest': 'सबसे नए पर लौटें',
   'plus.version.keptHere': 'इस कंप्यूटर पर रखा है',
   'plus.version.current': 'मौजूदा',
+  'plus.version.inLooks': 'आपके रूपों में',
+  'plus.version.onlyOne': 'अभी तक यही एकमात्र संस्करण है।',
   'plus.version.saveShort': 'सहेजें',
   'plus.version.saveLabel': 'संस्करण {version} इस कंप्यूटर पर सहेजें',
   'plus.version.saving': 'सहेजा जा रहा है…',

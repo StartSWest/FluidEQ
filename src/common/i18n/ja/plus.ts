@@ -90,6 +90,8 @@ const plus = {
   'plus.version.backToNewest': '最新版に戻す',
   'plus.version.keptHere': 'このコンピューターに保存',
   'plus.version.current': '現在',
+  'plus.version.inLooks': 'マイ表示にあり',
+  'plus.version.onlyOne': '今のところ、このバージョンだけです。',
   'plus.version.saveShort': '保存',
   'plus.version.saveLabel': 'バージョン {version} をこのコンピューターに保存',
   'plus.version.saving': '保存中…',

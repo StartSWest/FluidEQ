@@ -412,10 +412,13 @@ describe('the versions on a scene’s page', () => {
     expect(galleryVersions).toHaveBeenCalledWith(FLUIDEQ_CREATOR_ID, 'aurora');
   });
 
-  it('marks nothing new on a scene’s first version', async () => {
+  // A first version is listed, and says it is the only one so far (Ivan,
+  // 2026-11-12: the page used to show no versions at all for one), with
+  // nothing marked new.
+  it('lists a scene’s first version as the only one, marked nothing new', async () => {
     const { panel } = await openScene({ ...official, firstVersion: 2 });
     expect(panel.queryByText('plus.version.new')).toBeNull();
-    expect(panel.queryByText(/plus\.version\.all/)).toBeNull();
+    expect(await panel.findByText('plus.version.onlyOne')).toBeInTheDocument();
   });
 
   // Saving one of the server's versions here is for a scene this account

@@ -81,6 +81,8 @@ const plus = {
   'plus.version.backToNewest': '返回最新',
   'plus.version.keptHere': '保留在這臺電腦上',
   'plus.version.current': '目前',
+  'plus.version.inLooks': '在你的外觀中',
+  'plus.version.onlyOne': '目前只有這一個版本。',
   'plus.version.saveShort': '儲存',
   'plus.version.saveLabel': '將版本 {version} 儲存到這台電腦',
   'plus.version.saving': '正在儲存…',

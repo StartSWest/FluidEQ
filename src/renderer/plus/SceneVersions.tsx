@@ -28,7 +28,17 @@ interface ISceneVersionsProps {
    * project, and their own scene plays no kept version (main refuses it).
    */
   mayKeep: boolean;
+  /** The version of it in this member's looks; undefined while it is not. */
+  inLooks: number | undefined;
 }
+
+/**
+ * Versions listed at most: the server keeps the files of a scene's last 10
+ * (Ivan, 2026-11-09), so older ones could be read about and never had. The
+ * current version is one of them; one this computer kept is listed however
+ * old, because it plays here.
+ */
+const LISTED_VERSIONS = 10;
 
 /** One earlier version as the list shows it: the server's, this computer's, or both. */
 interface IVersionRow {
@@ -54,14 +64,16 @@ const NOTHING_KEPT: IKeptSceneVersions = { versions: [] };
  * Which version of a scene this is, what its maker wrote about it, and the
  * versions before it — on the scene's page, under its name.
  *
- * The earlier versions are asked for when the page opens and fold away until
- * wanted: most visits are to play the scene, not to read its history, and a
- * server from before version notes answers with none, which shows nothing.
+ * Every version is listed open under it, up to the last 10, each with its
+ * date and its "What's new" in the reader's language, and the one in the
+ * member's looks marked; a scene with one version says so (Ivan, 2026-11-12:
+ * "we are not showing all versions, all last 10 versions"). The list used to
+ * fold away behind a summary, and to show nothing at all for a first
+ * version.
  *
  * An owner can play again any earlier version this computer kept — every
- * version it had, from its own copies, so going back downloads nothing. The
- * list opens by itself while one plays, and says so above it with the way
- * back to the newest.
+ * version it had, from its own copies, so going back downloads nothing. While
+ * one plays the list says so above it, with the way back to the newest.
  *
  * And an owner can save any version the server still holds — its last 10
  * (Ivan, 2026-11-09) — onto this computer, where it stays theirs after the
@@ -69,7 +81,11 @@ const NOTHING_KEPT: IKeptSceneVersions = { versions: [] };
  * from this same list. The version the scene is at now heads the list,
  * marked, with nothing to save.
  */
-export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
+export default function SceneVersions({
+  scene,
+  mayKeep,
+  inLooks,
+}: ISceneVersionsProps) {
   const { t, locale } = useTranslation();
   // What is new in this version, in the reader's language or English.
   const currentLine = versionLineIn(
@@ -158,7 +174,11 @@ export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
           entry < version && !earlier.some((row) => row.version === entry),
       )
       .map((entry) => ({ version: entry, kept: true, available: false }));
-    return [...listed, ...onlyHere].sort((a, b) => b.version - a.version);
+    // The newest, the current version counted among the ten; a version kept
+    // here stays listed however old, or its Play would vanish.
+    return [...listed, ...onlyHere]
+      .sort((a, b) => b.version - a.version)
+      .filter((entry, at) => at < LISTED_VERSIONS - 1 || entry.kept);
   }, [earlier, kept, version]);
 
   const play = (next: number | null) => {
@@ -215,70 +235,79 @@ export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
           <p>{currentLine}</p>
         </div>
       )}
-      {rows.length > 0 && (
-        <details
-          className="gallery-versions__history"
-          open={playing !== undefined || undefined}
-        >
-          <summary>
-            {/* The current version heads the list, so it is counted. */}
-            {t('plus.version.all', { count: String(rows.length + 1) })}
-          </summary>
-          <ol className="gallery-versions__list">
-            <li className="is-current">
-              <span className="gallery-versions__number">
-                {t('plus.version.short', { version: String(version) })}
-              </span>
-              <span className="gallery-versions__text">
-                {/* Its note is "What's new" just above: not said twice. */}
-                {!currentLine &&
-                  (versionLineIn(current?.note, current?.notes, locale) ?? (
-                    <span className="gallery-versions__quiet">
-                      {t('plus.version.noNote')}
-                    </span>
-                  ))}
-                <time dateTime={current?.publishedAt ?? updatedAt}>
-                  {dateOf(current?.publishedAt ?? updatedAt, locale)}
-                </time>
-              </span>
+      <div className="gallery-versions__history">
+        <h3 className="gallery-versions__heading">
+          {/* The current version heads the list, so it is counted. */}
+          {t('plus.version.all', { count: String(rows.length + 1) })}
+        </h3>
+        <ol className="gallery-versions__list">
+          <li className="is-current">
+            <span className="gallery-versions__number">
+              {t('plus.version.short', { version: String(version) })}
+            </span>
+            <span className="gallery-versions__text">
+              {/* Its note is "What's new" just above: not said twice. */}
+              {!currentLine &&
+                (versionLineIn(current?.note, current?.notes, locale) ?? (
+                  <span className="gallery-versions__quiet">
+                    {t('plus.version.noNote')}
+                  </span>
+                ))}
+              <time dateTime={current?.publishedAt ?? updatedAt}>
+                {dateOf(current?.publishedAt ?? updatedAt, locale)}
+              </time>
+            </span>
+            <span className="gallery-versions__tags">
               <span className="gallery-versions__playing gallery-versions__current">
                 {t('plus.version.current')}
               </span>
-            </li>
-            {rows.map((entry) => (
-              <li
-                key={entry.version}
-                className={entry.version === playing ? 'is-playing' : undefined}
-              >
-                <span className="gallery-versions__number">
-                  {t('plus.version.short', { version: String(entry.version) })}
+              {inLooks === version && (
+                <span className="gallery-versions__mine">
+                  {t('plus.version.inLooks')}
                 </span>
-                <span className="gallery-versions__text">
-                  {versionLineIn(entry.note, entry.notes, locale) ?? (
-                    <span className="gallery-versions__quiet">
-                      {entry.publishedAt
-                        ? t('plus.version.noNote')
-                        : t('plus.version.keptHere')}
-                    </span>
-                  )}
-                  {entry.publishedAt && (
-                    <time dateTime={entry.publishedAt}>
-                      {dateOf(entry.publishedAt, locale)}
-                    </time>
-                  )}
-                  {mayKeep && (
-                    <SceneVersionSaveNote
-                      version={entry.version}
-                      kept={entry.kept}
-                      available={entry.available}
-                      listed={entry.publishedAt !== undefined}
-                      saving={saving}
-                    />
-                  )}
-                </span>
+              )}
+            </span>
+          </li>
+          {rows.map((entry) => (
+            <li
+              key={entry.version}
+              className={entry.version === playing ? 'is-playing' : undefined}
+            >
+              <span className="gallery-versions__number">
+                {t('plus.version.short', { version: String(entry.version) })}
+              </span>
+              <span className="gallery-versions__text">
+                {versionLineIn(entry.note, entry.notes, locale) ?? (
+                  <span className="gallery-versions__quiet">
+                    {entry.publishedAt
+                      ? t('plus.version.noNote')
+                      : t('plus.version.keptHere')}
+                  </span>
+                )}
+                {entry.publishedAt && (
+                  <time dateTime={entry.publishedAt}>
+                    {dateOf(entry.publishedAt, locale)}
+                  </time>
+                )}
+                {mayKeep && (
+                  <SceneVersionSaveNote
+                    version={entry.version}
+                    kept={entry.kept}
+                    available={entry.available}
+                    listed={entry.publishedAt !== undefined}
+                    saving={saving}
+                  />
+                )}
+              </span>
+              <span className="gallery-versions__tags">
                 {entry.version === playing && (
                   <span className="gallery-versions__playing">
                     {t('plus.version.playing')}
+                  </span>
+                )}
+                {entry.version === inLooks && (
+                  <span className="gallery-versions__mine">
+                    {t('plus.version.inLooks')}
                   </span>
                 )}
                 {entry.kept && entry.version !== playing && (
@@ -303,11 +332,16 @@ export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
                       saving={saving}
                     />
                   )}
-              </li>
-            ))}
-          </ol>
-        </details>
-      )}
+              </span>
+            </li>
+          ))}
+        </ol>
+        {rows.length === 0 && (
+          <p className="gallery-versions__quiet gallery-versions__only">
+            {t('plus.version.onlyOne')}
+          </p>
+        )}
+      </div>
     </section>
   );
 }

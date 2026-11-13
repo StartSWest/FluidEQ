@@ -88,6 +88,8 @@ const plus = {
   'plus.version.backToNewest': 'Вернуться к новейшей',
   'plus.version.keptHere': 'Сохранена на этом компьютере',
   'plus.version.current': 'Текущая',
+  'plus.version.inLooks': 'В ваших оформлениях',
+  'plus.version.onlyOne': 'Пока это единственная версия.',
   'plus.version.saveShort': 'Сохранить',
   'plus.version.saveLabel': 'Сохранить версию {version} на этом компьютере',
   'plus.version.saving': 'Сохранение…',

@@ -73,7 +73,7 @@ const playButtons = () =>
   screen.queryAllByRole('button', { name: /^plus\.version\.playLabel/ });
 
 it('shows the history alone to somebody with nothing kept', async () => {
-  render(<SceneVersions scene={scene} mayKeep={false} />);
+  render(<SceneVersions scene={scene} mayKeep={false} inLooks={undefined} />);
   expect(await screen.findByText('plus.version.all:4')).toBeInTheDocument();
   expect(playButtons()).toHaveLength(0);
   expect(screen.queryByRole('status')).toBeNull();
@@ -81,7 +81,7 @@ it('shows the history alone to somebody with nothing kept', async () => {
 
 it('offers Play only on the versions this computer kept', async () => {
   kept = { versions: [3, 2] };
-  render(<SceneVersions scene={scene} mayKeep />);
+  render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
   await waitFor(() => expect(playButtons()).toHaveLength(2));
   expect(
     playButtons().map((button) => button.getAttribute('aria-label')),
@@ -92,7 +92,7 @@ it('offers Play only on the versions this computer kept', async () => {
 
 it('plays a kept version, says so, and goes back to the newest', async () => {
   kept = { versions: [3, 2] };
-  render(<SceneVersions scene={scene} mayKeep />);
+  render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
   await waitFor(() => expect(playButtons()).toHaveLength(2));
   await userEvent.click(playButtons()[1]);
   expect(play).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
@@ -119,7 +119,7 @@ it('lists a kept version the server history no longer names', async () => {
     },
   } as unknown as typeof window.electron;
   kept = { versions: [2] };
-  render(<SceneVersions scene={scene} mayKeep />);
+  render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
   expect(await screen.findByText('plus.version.keptHere')).toBeInTheDocument();
   expect(playButtons()).toHaveLength(1);
 });
@@ -167,7 +167,7 @@ describe('saving a version the server still holds', () => {
 
   it('marks the current version, offers Save on the ones the server holds, and says which it let go', async () => {
     withSaving({ 4: true, 3: true, 2: true });
-    render(<SceneVersions scene={scene} mayKeep />);
+    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
     await waitFor(() => expect(saveButtons()).toHaveLength(2));
     expect(
       saveButtons().map((button) => button.getAttribute('aria-label')),
@@ -180,7 +180,7 @@ describe('saving a version the server still holds', () => {
 
   it('offers nothing to save to somebody who does not own the scene', async () => {
     withSaving({ 4: true, 3: true, 2: true });
-    render(<SceneVersions scene={scene} mayKeep={false} />);
+    render(<SceneVersions scene={scene} mayKeep={false} inLooks={undefined} />);
     expect(await screen.findByText('plus.version.current')).toBeInTheDocument();
     expect(saveButtons()).toHaveLength(0);
     expect(screen.queryByText('plus.version.gone')).toBeNull();
@@ -188,7 +188,7 @@ describe('saving a version the server still holds', () => {
 
   it('runs from the press, can be cancelled, and once saved is a kept version with its Play', async () => {
     withSaving({ 4: true, 3: true, 2: true });
-    render(<SceneVersions scene={scene} mayKeep />);
+    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
     await waitFor(() => expect(saveButtons()).toHaveLength(2));
     await userEvent.click(saveButtons()[1]);
     expect(saveCalls).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
@@ -222,7 +222,7 @@ describe('saving a version the server still holds', () => {
 
   it('says why a version could not be saved, and says nothing of a cancel', async () => {
     withSaving({ 4: true, 3: true });
-    render(<SceneVersions scene={scene} mayKeep />);
+    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
     await waitFor(() => expect(saveButtons()).toHaveLength(1));
     await userEvent.click(saveButtons()[0]);
     await act(async () => answer({ ok: false, reason: 'gone' }));
@@ -240,7 +240,7 @@ describe('saving a version the server still holds', () => {
 
   it('reads an answer it does not understand as a failure', async () => {
     withSaving({ 4: true, 3: true });
-    render(<SceneVersions scene={scene} mayKeep />);
+    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
     await waitFor(() => expect(saveButtons()).toHaveLength(1));
     await userEvent.click(saveButtons()[0]);
     await act(async () => answer({ saved: 'yes' }));
@@ -253,8 +253,104 @@ describe('saving a version the server still holds', () => {
     withSaving({ 4: true, 3: true });
     const bridge = window.electron?.ipcRenderer as Record<string, unknown>;
     delete bridge.saveGalleryVersion;
-    render(<SceneVersions scene={scene} mayKeep />);
+    render(<SceneVersions scene={scene} mayKeep inLooks={undefined} />);
     expect(await screen.findByText('plus.version.current')).toBeInTheDocument();
     expect(saveButtons()).toHaveLength(0);
+  });
+});
+
+// Ivan, 2026-11-12: "we are not showing all versions, all last 10 versions".
+// The list folded away behind a summary, and a first version showed none.
+describe('every version, open on the page', () => {
+  const answer = (
+    versions: Array<{ version: number; publishedAt: string }>,
+  ) => {
+    window.electron = {
+      ipcRenderer: {
+        ...window.electron?.ipcRenderer,
+        galleryVersions: async () => ({ ok: true, versions }),
+      },
+    } as unknown as typeof window.electron;
+  };
+
+  it('lists a first version, and says it is the only one so far', async () => {
+    answer([{ version: 1, publishedAt: '2026-11-11T10:00:00Z' }]);
+    render(
+      <SceneVersions
+        scene={{ ...scene, version: 1 }}
+        mayKeep={false}
+        inLooks={undefined}
+      />,
+    );
+    expect(await screen.findByText('plus.version.onlyOne')).toBeVisible();
+    expect(screen.getByText('plus.version.all:1')).toBeVisible();
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+  });
+
+  it('shows the earlier versions without opening anything', async () => {
+    render(<SceneVersions scene={scene} mayKeep={false} inLooks={undefined} />);
+    expect(await screen.findByText('Brighter lake.')).toBeVisible();
+    expect(screen.getAllByRole('listitem')).toHaveLength(4);
+    // The control: with earlier versions there, it is not the only one.
+    expect(screen.queryByText('plus.version.onlyOne')).toBeNull();
+  });
+
+  it('lists the last ten, and a version kept here however old', async () => {
+    answer(
+      Array.from({ length: 14 }, (_, at) => ({
+        version: 14 - at,
+        publishedAt: '2026-10-01T10:00:00Z',
+      })),
+    );
+    kept = { versions: [2] };
+    render(
+      <SceneVersions
+        scene={{ ...scene, version: 14 }}
+        mayKeep
+        inLooks={undefined}
+      />,
+    );
+    await waitFor(() => expect(playButtons()).toHaveLength(1));
+    const numbers = screen
+      .getAllByRole('listitem')
+      .map(
+        (item) => item.querySelector('.gallery-versions__number')?.textContent,
+      );
+    expect(numbers).toEqual([
+      'plus.version.short:14',
+      'plus.version.short:13',
+      'plus.version.short:12',
+      'plus.version.short:11',
+      'plus.version.short:10',
+      'plus.version.short:9',
+      'plus.version.short:8',
+      'plus.version.short:7',
+      'plus.version.short:6',
+      'plus.version.short:5',
+      'plus.version.short:2',
+    ]);
+  });
+
+  it('marks the version in the member’s looks, and only that one', async () => {
+    const { rerender } = render(
+      <SceneVersions scene={scene} mayKeep={false} inLooks={3} />,
+    );
+    await screen.findByText('Brighter lake.');
+    const marked = () =>
+      screen
+        .getAllByRole('listitem')
+        .filter((item) => item.textContent?.includes('plus.version.inLooks'))
+        .map(
+          (item) =>
+            item.querySelector('.gallery-versions__number')?.textContent,
+        );
+    expect(marked()).toEqual(['plus.version.short:3']);
+    rerender(<SceneVersions scene={scene} mayKeep={false} inLooks={4} />);
+    expect(marked()).toEqual(['plus.version.short:4']);
+    // The control: a scene not in the looks marks nothing.
+    rerender(
+      <SceneVersions scene={scene} mayKeep={false} inLooks={undefined} />,
+    );
+    expect(marked()).toEqual([]);
   });
 });
