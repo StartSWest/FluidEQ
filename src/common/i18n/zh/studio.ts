@@ -177,6 +177,8 @@ const studio = {
     '听众会看到的一行字，例如：一座灯塔，光束随低音扫过',
   'studio.publish.noteWritingFirst': '你的场景聊天正在写这个场景是什么…',
   'studio.publish.needNoteFirst': '请先说明这个场景是什么',
+  'studio.publish.noteUnreadable':
+    '你的场景聊天留下了一行 FluidEQ 无法读取的文字。请在这里输入，或让聊天重新写一遍。',
   'studio.publish.noteYours': '你的语言',
   'studio.publish.noteFallback': '用于缺少的任何语言',
   'studio.publish.noteFollows': '发送时会按你的这句重写',

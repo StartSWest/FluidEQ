@@ -46,6 +46,7 @@ import { createPictureTools } from './pictureTools';
 import sheetCodec from './sheetCodec';
 import { createSheetTools } from './sheetTools';
 import createVideoFramesTool from './videoFramesTool';
+import createWhatsNewTool from './whatsNewTool';
 import createWindowAsks from './windowAsks';
 
 /**
@@ -308,6 +309,10 @@ export const createChatPictures = ({
           project: () => boundProject(projectId, folder),
           signal: () => signalOf(projectId),
           framesInWindow: (what) => videos.ask(projectId, what),
+        }),
+        // The publish line, in the one shape the Publish dialog reads.
+        createWhatsNewTool({
+          project: () => boundProject(projectId, folder),
         }),
       ],
       version,

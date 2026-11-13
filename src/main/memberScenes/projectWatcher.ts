@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
 import { PREVIEW_FILE } from '../../common/memberScenes';
+import { STUDIO_NOTES_FILE } from '../../common/studioNotes';
 import { readProject, type TProjectBuild } from './project';
 
 /**
@@ -33,6 +34,13 @@ interface IFolderWatcher {
 export interface IProjectWatcherDeps {
   watch?: (folder: string) => IFolderWatcher;
   read?: (folder: string) => Promise<TProjectBuild>;
+  /**
+   * The notes beside the scene were written. They are not part of the
+   * build, so a build alone never says so; an open Publish dialog reads its
+   * line from them (`usePublishNote`), and a line written by any AI, by
+   * hand or by the chat's tool reaches its box without a reopen.
+   */
+  onNotes?: () => void;
 }
 
 const watchFolder = (folder: string): IFolderWatcher =>
@@ -70,7 +78,11 @@ const FOLDER_GONE: TProjectBuild = {
 export const watchProject = (
   folder: string,
   onBuild: (build: TProjectBuild) => void,
-  { watch = watchFolder, read = readProject }: IProjectWatcherDeps = {},
+  {
+    watch = watchFolder,
+    read = readProject,
+    onNotes,
+  }: IProjectWatcherDeps = {},
 ): IProjectWatcher => {
   let closed = false;
   let running = false;
@@ -132,6 +144,9 @@ export const watchProject = (
   try {
     watcher = watch(folder);
     watcher.on('change', (_type, file) => {
+      if (file === STUDIO_NOTES_FILE) {
+        onNotes?.();
+      }
       // What FluidEQ itself writes into this folder cannot mean the scene
       // changed: the picture it leaves for the member's AI after every build,
       // and the dot-prefixed temporary each of its own writes goes through

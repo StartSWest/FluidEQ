@@ -106,7 +106,11 @@ export const createProjectBench = ({
         }
         announce();
       },
-      { read: sourceFeed.reader() },
+      {
+        read: sourceFeed.reader(),
+        onNotes: () =>
+          getMainWindow()?.webContents.send('studio-notes-changed', active),
+      },
     );
   };
 

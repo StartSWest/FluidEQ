@@ -82,6 +82,7 @@ function Box({
       writing={writing}
       translating={translating}
       asWritten={asWritten}
+      unreadable={false}
       noteRef={noteRef}
     />
   );

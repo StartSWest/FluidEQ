@@ -196,6 +196,8 @@ const studio = {
   'studio.publish.noteWritingFirst':
     'आपके सीन की चैट लिख रही है कि यह सीन क्या है…',
   'studio.publish.needNoteFirst': 'पहले बताएँ कि यह सीन क्या है',
+  'studio.publish.noteUnreadable':
+    'आपके सीन की चैट ने ऐसी पंक्ति छोड़ी है जिसे FluidEQ पढ़ नहीं सकता। पंक्ति यहाँ लिखें, या चैट से उसे दोबारा लिखने को कहें।',
   'studio.publish.noteYours': 'आपकी',
   'studio.publish.noteFallback': 'छूटी हुई किसी भी भाषा के लिए',
   'studio.publish.noteFollows': 'भेजते समय आपकी पंक्ति के अनुसार बनेगी',

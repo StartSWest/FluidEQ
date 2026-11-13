@@ -360,7 +360,7 @@ describe('the update line the chat is asked for', () => {
       words.startsWith('FLUIDEQ, NOT THE MEMBER'),
     );
     expect(ask).toMatch(
-      /an object of that line in en, de, es, fr, hi, it, ja, ko, pt, ru, zh, zh-Hant/,
+      /in en, de, es, fr, hi, it, ja, ko, pt, ru, zh, zh-Hant/,
     );
     // Control: never left to the chat's own language alone.
     expect(ask).not.toMatch(/in the language you speak with the member/);

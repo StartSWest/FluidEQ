@@ -97,6 +97,11 @@ interface IStudioPublishNoteProps {
   translating: number | undefined;
   /** Nothing could translate it: it goes out as written. */
   asWritten: boolean;
+  /**
+   * The scene's notes hold a line FluidEQ cannot use: said, so the box is
+   * never empty with nothing to explain it, and the member types one.
+   */
+  unreadable: boolean;
   noteRef: RefObject<HTMLTextAreaElement | null>;
 }
 
@@ -117,6 +122,7 @@ export default function StudioPublishNote({
   writing,
   translating,
   asWritten,
+  unreadable,
   noteRef,
 }: IStudioPublishNoteProps) {
   const { t } = useTranslation();
@@ -227,6 +233,11 @@ export default function StudioPublishNote({
       {asWritten && (
         <p className="studio-publish__note-quiet">
           {t('studio.publish.noteNotTranslated')}
+        </p>
+      )}
+      {unreadable && !writing && (
+        <p className="studio-publish__note-quiet" role="status">
+          {t('studio.publish.noteUnreadable')}
         </p>
       )}
       {/* The chat's own working mark, for as long as it writes: Send waits

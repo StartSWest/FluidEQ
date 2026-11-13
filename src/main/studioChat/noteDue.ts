@@ -12,6 +12,7 @@ import {
   VERSION_NOTE_LOCALES,
   type TVersionNoteLocale,
 } from '../../common/sceneVersionNote';
+import { STUDIO_NOTES_CONTRACT } from '../../common/studioNotes';
 import { clearNoteOlderThan, versionNoteOf } from '../ipc/studioNotes';
 import { sceneFingerprint } from './chatVersions';
 
@@ -86,7 +87,7 @@ export const noteDue = (before: INoteMark, after: INoteMark): boolean =>
  * member's name: the chat shows no message of theirs for it, only the short
  * reply. English, like the brief: it is read by a model.
  */
-export const VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene has changed since the version the Gallery has, and the "whatsNew" line in studio-notes.json does not say so yet. Write it now, as THE UPDATE NOTE in your brief says: one line of at most ${MAX_VERSION_NOTE} characters saying what changed as a listener would notice it, covering everything since the Gallery's version - fold in any line already there - as an object of that line in ${VERSION_NOTE_LOCALES.join(', ')} (every listener reads their own). Change nothing else in that file or in the scene. Then answer with the English line alone.`;
+export const VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene has changed since the version the Gallery has, and its publish line does not say so yet. Write it now with write_whats_new: one line of at most ${MAX_VERSION_NOTE} characters saying what changed as a listener would notice it, covering everything since the Gallery's version - fold in any line already there - in ${VERSION_NOTE_LOCALES.join(', ')} (every listener reads their own). Change nothing in the scene. ${STUDIO_NOTES_CONTRACT} Then answer with the English line alone.`;
 
 /**
  * The same ask for a scene's FIRST publication (Ivan, 2026-11-13: notes are
@@ -94,7 +95,7 @@ export const VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene has changed 
  * against, so the line says what the scene is, as a listener would see and
  * hear it — the first entry on its versions page.
  */
-export const FIRST_VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene is about to be published to the Gallery for the first time, and the "whatsNew" line in studio-notes.json is empty. Write it now: one line of at most ${MAX_VERSION_NOTE} characters saying what the scene is, as a listener would see and hear it - not how it was made - as an object of that line in ${VERSION_NOTE_LOCALES.join(', ')} (every listener reads their own). Change nothing else in that file or in the scene. Then answer with the English line alone.`;
+export const FIRST_VERSION_NOTE_ASK = `FLUIDEQ, NOT THE MEMBER: the scene is about to be published to the Gallery for the first time, and its publish line is empty. A first version needs one too. Write it now with write_whats_new: one line of at most ${MAX_VERSION_NOTE} characters saying what the scene is, as a listener would see and hear it - not how it was made - in ${VERSION_NOTE_LOCALES.join(', ')} (every listener reads their own). Change nothing in the scene. ${STUDIO_NOTES_CONTRACT} Then answer with the English line alone.`;
 
 /** Whether the window's ask is for a first publication's line. */
 export const readNoteFirst = (raw: unknown): boolean =>
@@ -138,4 +139,4 @@ export const readNoteTranslation = (
  * nothing in it can end the ask early.
  */
 export const noteTranslationAsk = ({ line, from }: INoteTranslation): string =>
-  `FLUIDEQ, NOT THE MEMBER: the member set this version's "What's new" line, in ${from}: ${JSON.stringify(line)}. Write "whatsNew" in studio-notes.json as that line in every language: an object with ${VERSION_NOTE_LOCALES.join(', ')}, each one line of at most ${MAX_VERSION_NOTE} characters saying the same as a listener would, and "${from}" exactly the member's words. Change nothing else in that file or in the scene. Then answer with the English line alone.`;
+  `FLUIDEQ, NOT THE MEMBER: the member set this version's "What's new" line, in ${from}: ${JSON.stringify(line)}. Write it with write_whats_new in every language: ${VERSION_NOTE_LOCALES.join(', ')}, each one line of at most ${MAX_VERSION_NOTE} characters saying the same as a listener would, and "${from}" exactly the member's words. Change nothing in the scene. ${STUDIO_NOTES_CONTRACT} Then answer with the English line alone.`;

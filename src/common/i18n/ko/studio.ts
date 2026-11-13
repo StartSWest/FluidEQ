@@ -193,6 +193,8 @@ const studio = {
   'studio.publish.noteWritingFirst':
     '장면의 채팅이 이 장면이 무엇인지 쓰는 중입니다…',
   'studio.publish.needNoteFirst': '먼저 이 장면이 무엇인지 적어 주세요',
+  'studio.publish.noteUnreadable':
+    '장면의 채팅이 남긴 한 줄을 FluidEQ가 읽을 수 없습니다. 여기에 직접 입력하거나 채팅에 다시 써 달라고 하세요.',
   'studio.publish.noteYours': '내 언어',
   'studio.publish.noteFallback': '빠진 언어에 대신 표시',
   'studio.publish.noteFollows': '보낼 때 내 문장에 맞춰 다시 쓰입니다',

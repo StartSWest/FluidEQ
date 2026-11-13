@@ -2,28 +2,44 @@ import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { ipcMain } from 'electron';
+import type { TVersionNotes } from '../../common/sceneVersionNote';
 import {
+  isNoteKey,
   isOldNote,
+  notesFromPlainText,
   notesHoldBrief,
   parseStudioNotes,
   storedStudioNotes,
+  STUDIO_NOTES_FILE,
   type IStudioNotes,
 } from '../../common/studioNotes';
 
-const FILE = 'studio-notes.json';
+const FILE = STUDIO_NOTES_FILE;
 const MAX_BYTES = 280000;
 
-/** The notes as written, or nothing for a file that is not a plain one. */
+/**
+ * The notes as written, or nothing for a file that is not a plain one. A
+ * file that is not JSON is read as the line in words (`notesFromPlainText`):
+ * an AI told to write "release notes" wrote a Markdown heading over a line,
+ * and the publish box stayed empty for a file that said exactly what it
+ * should.
+ */
 const readRawNotes = (folder: string): unknown => {
+  let text: string;
   try {
     const file = path.join(folder, FILE);
     const stat = fs.lstatSync(file);
     if (!stat.isFile() || stat.isSymbolicLink() || stat.size > MAX_BYTES) {
       return undefined;
     }
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
+    text = fs.readFileSync(file, 'utf8');
   } catch {
     return undefined;
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return notesFromPlainText(text);
   }
 };
 
@@ -63,6 +79,42 @@ export const stripStoredBrief = (folder: string): boolean => {
   }
   const notes = parseStudioNotes(raw);
   return notes ? writeStudioNotes(folder, notes) : false;
+};
+
+/**
+ * The publish line set to `lines`, every other key of the file kept exactly
+ * as it was - the member's description above all, whatever its length - and
+ * a line an AI left under another name taken out, so the file holds one.
+ * Written beside and renamed over. True when written.
+ */
+export const writeNoteLines = (
+  folder: string,
+  lines: TVersionNotes,
+): boolean => {
+  const raw = readRawNotes(folder);
+  const held =
+    raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? { ...(raw as Record<string, unknown>) }
+      : {};
+  Object.keys(held)
+    .filter(isNoteKey)
+    .forEach((key) => {
+      delete held[key];
+    });
+  const temporary = path.join(folder, `.studio-notes-${randomUUID()}.tmp`);
+  try {
+    fs.writeFileSync(
+      temporary,
+      JSON.stringify({ ...held, whatsNew: lines }, null, 2),
+      { encoding: 'utf8', flag: 'wx' },
+    );
+    fs.renameSync(temporary, path.join(folder, FILE));
+    return true;
+  } catch {
+    return false;
+  } finally {
+    fs.rmSync(temporary, { force: true });
+  }
 };
 
 /** The update note the folder's notes carry now, if any. */

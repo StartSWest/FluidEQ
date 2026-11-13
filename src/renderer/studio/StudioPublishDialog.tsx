@@ -503,6 +503,7 @@ export default function StudioPublishDialog({
             writing={noteSend.writing}
             translating={noteSend.translating}
             asWritten={noteSend.asWritten}
+            unreadable={draft.noteUnreadable === true}
             noteRef={noteRef}
           />
         </div>

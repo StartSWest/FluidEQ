@@ -201,6 +201,8 @@ const studio = {
   'studio.publish.noteWritingFirst':
     'Le chat de votre scène écrit ce qu’est la scène…',
   'studio.publish.needNoteFirst': 'Dites d’abord ce qu’est la scène',
+  'studio.publish.noteUnreadable':
+    'Le chat de votre scène a laissé une ligne que FluidEQ ne peut pas lire. Saisissez-la ici, ou demandez au chat de la réécrire.',
   'studio.publish.noteYours': 'la vôtre',
   'studio.publish.noteFallback': 'pour toute langue absente',
   'studio.publish.noteFollows': 'suivra votre ligne à l’envoi',

@@ -38,7 +38,7 @@ import preparePublishPreview, {
   type IPreparedPublishPreview,
 } from './preparePublishPreview';
 import useStudioPublishProgress from './useStudioPublishProgress';
-import usePublishNote, { notesToOffer } from './usePublishNote';
+import usePublishNote, { noteFieldsOf } from './usePublishNote';
 
 export type { IPreparedPublishPreview } from './preparePublishPreview';
 
@@ -121,6 +121,11 @@ export interface IPublishDraft {
    * has not answered yet (`usePublishNote.ts`).
    */
   noteWriting?: boolean;
+  /**
+   * The notes hold a line FluidEQ cannot use (`whatsNewUnreadable`): the
+   * dialog says so plainly instead of showing an empty box.
+   */
+  noteUnreadable?: boolean;
   /**
    * The member changed the line, and the scene's chat is writing it in every
    * language now; `noteTranslated` once that reply has ended.
@@ -329,7 +334,7 @@ export default function useStudioPublish(
     const opened = performance.now();
     Promise.all([still, published, studioTermsAgreed(), suggested])
       .then(([picture, alreadyPublished, agreed, notes]) => {
-        const suggestedNotes = notesToOffer(notes, alreadyPublished?.scene);
+        const noteFields = noteFieldsOf(notes, alreadyPublished?.scene);
         // What the press of Publish waits on before the dialog shows: the
         // cover drawn, the gallery and the terms asked, the notes read.
         reportInfo(
@@ -357,7 +362,7 @@ export default function useStudioPublish(
           ...(alreadyPublished?.held !== undefined
             ? { held: alreadyPublished.held }
             : {}),
-          ...(suggestedNotes ? { suggestedNotes } : {}),
+          ...noteFields,
         });
         return undefined;
       })

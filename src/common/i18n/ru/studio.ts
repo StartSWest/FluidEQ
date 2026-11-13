@@ -193,6 +193,8 @@ const studio = {
     'Одна строка, которую увидят слушатели, например: маяк, чей луч движется в такт басу',
   'studio.publish.noteWritingFirst': 'Чат вашей сцены пишет, что это за сцена…',
   'studio.publish.needNoteFirst': 'Сначала скажите, что это за сцена',
+  'studio.publish.noteUnreadable':
+    'Чат вашей сцены оставил строку, которую FluidEQ не может прочитать. Введите строку здесь или попросите чат написать её снова.',
   'studio.publish.noteYours': 'ваш язык',
   'studio.publish.noteFallback': 'для любого языка, которого нет',
   'studio.publish.noteFollows': 'при отправке будет по вашей строке',

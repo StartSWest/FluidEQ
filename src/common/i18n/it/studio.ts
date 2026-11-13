@@ -198,6 +198,8 @@ const studio = {
   'studio.publish.noteWritingFirst':
     'La chat della tua scena sta scrivendo cos’è la scena…',
   'studio.publish.needNoteFirst': 'Prima di’ cos’è la scena',
+  'studio.publish.noteUnreadable':
+    'La chat della tua scena ha lasciato una riga che FluidEQ non riesce a leggere. Scrivila qui, o chiedi alla chat di riscriverla.',
   'studio.publish.noteYours': 'la tua',
   'studio.publish.noteFallback': 'per ogni lingua mancante',
   'studio.publish.noteFollows': 'seguirà la tua riga all’invio',

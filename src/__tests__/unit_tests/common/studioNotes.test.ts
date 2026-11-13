@@ -105,10 +105,10 @@ describe('the What’s new line in every language', () => {
     });
   });
 
-  it('is dropped, never the description, when it cannot be kept', () => {
+  it('is dropped, never the description, when it cannot be kept, and says so', () => {
     expect(
       parseStudioNotes({ description: 'Peaks', whatsNew: { xx: 'Gipfel' } }),
-    ).toEqual({ description: 'Peaks' });
+    ).toEqual({ description: 'Peaks', whatsNewUnreadable: true });
   });
 
   it('is written back under whatsNew itself', () => {

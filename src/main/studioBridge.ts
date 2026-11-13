@@ -346,6 +346,22 @@ const onStudioSourceChanged = (
 };
 
 /**
+ * The open project's notes were written, by anyone: its id. An open Publish
+ * dialog reads its line from them again (`usePublishNote`).
+ */
+const onStudioNotesChanged = (listener: (projectId: string) => void) => {
+  const wrapped = (_event: IpcRendererEvent, projectId: unknown) => {
+    if (typeof projectId === 'string') {
+      listener(projectId);
+    }
+  };
+  ipcRenderer.on('studio-notes-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('studio-notes-changed', wrapped);
+  };
+};
+
+/**
  * One of FluidEQ's own scenes, opened in the Studio to look inside. Only the
  * scene's id crosses; the main process finds the scene and checks it is
  * FluidEQ's.
@@ -446,6 +462,7 @@ const studioBridge = {
   likeMemberScene,
   onStudioChanged,
   onStudioSourceChanged,
+  onStudioNotesChanged,
   inspectOfficialScene,
   publishStudioScene,
   cancelStudioPublish,

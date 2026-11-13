@@ -198,3 +198,29 @@ describe('watching a project folder', () => {
     expect(reads.pending).toHaveLength(0);
   });
 });
+
+// The notes are no part of the build, so a build never says they changed;
+// an open Publish dialog reads its line from them (2026-11-13: the line was
+// written and the box stayed empty until the dialog was closed and opened).
+describe('the notes beside the scene', () => {
+  it('says when they are written, and only they', async () => {
+    const fake = new FakeWatcher();
+    const reads = deferredReads();
+    const onNotes = jest.fn();
+    const watcher = watchProject('C:\project', () => undefined, {
+      watch: () => fake,
+      read: reads.read,
+      onNotes,
+    });
+    reads.finish({ ok: true, pack: pack(1) });
+    await watcher.settled();
+    fake.emit('change', 'rename', 'studio-notes.json');
+    expect(onNotes).toHaveBeenCalledTimes(1);
+    // The controls: the scene's own files, and FluidEQ's temporary on its
+    // way to the notes, are not the notes.
+    fake.emit('change', 'change', 'scene.frag');
+    fake.emit('change', 'rename', '.studio-notes-1234.tmp');
+    expect(onNotes).toHaveBeenCalledTimes(1);
+    watcher.close();
+  });
+});

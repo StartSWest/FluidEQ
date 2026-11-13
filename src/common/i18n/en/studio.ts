@@ -203,6 +203,8 @@ const studio = {
   'studio.publish.noteWritingFirst':
     'Your scene’s chat is writing what the scene is…',
   'studio.publish.needNoteFirst': 'Say what the scene is first',
+  'studio.publish.noteUnreadable':
+    'Your scene’s chat left a line FluidEQ can’t read. Type the line here, or ask the chat to write it again.',
   'studio.publish.noteYours': 'yours',
   'studio.publish.noteFallback': 'for any language left out',
   'studio.publish.noteFollows': 'follows your line when you send',

@@ -21,10 +21,8 @@ import {
   ULTRA_WIDE_GRAPH,
 } from 'common/stageShapes';
 import { LIGHT_FRAME_MS } from 'common/studioAgent';
-import {
-  MAX_VERSION_NOTE,
-  VERSION_NOTE_LOCALES,
-} from 'common/sceneVersionNote';
+import { STUDIO_NOTES_CONTRACT } from 'common/studioNotes';
+import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
 import { CONTROLS_SECTION } from './aiPromptControls';
 import { connectSection, type IPromptConnection } from './aiPromptConnect';
@@ -131,7 +129,8 @@ already holds a working pack.json and scene.frag; read both first.`
 } If
 scene.frag starts with "// My first FluidEQ scene", it is only FluidEQ's
 starter: rewrite both for my idea, as a new scene - an id and names of its
-own, version 1, and no whatsNew line. The starter comes with one picture and
+own, version 1, and a publish line saying what the new scene is (THE
+PUBLISH LINE, below), never the starter's. The starter comes with one picture and
 one animation, as working examples of both: the orb's face is the picture
 place "orb" (pack.json "pictures", a moon until I choose a photo of my own in
 the Studio's Pictures tab), and the swallow flying over it is an animation
@@ -206,13 +205,12 @@ pack.json:
   THAT GOES WITH IT: one line, at most ${MAX_VERSION_NOTE} characters, saying what changed as
   a listener would notice it - "the peaks no longer get cut on wide panels",
   not "fixed the uv clamp" - about everything since the Gallery's version,
-  folding this change into a line already there. FluidEQ asks me for it
-  before it publishes an update, and by then I have forgotten what you
-  changed. Put it in studio-notes.json beside the scene, as "whatsNew", an
-  object of that line in ${VERSION_NOTE_LOCALES.join(', ')}, and change NOTHING else in that
-  file - rewriting it loses my description. If the file is not there yet,
-  make it with just that one key. If you reply with the files instead of
-  writing them, put the line after them.
+  folding this change into a line already there. A new scene gets one too,
+  saying what it is. FluidEQ will not publish without it, and by then I
+  have forgotten what you changed. Change NOTHING else in that file -
+  rewriting it loses my description. If you reply with the files instead
+  of writing them, put the line after them.
+- ${STUDIO_NOTES_CONTRACT}
 - names: English required; add es, pt, fr, de, it, ru, zh, zh-Hant, ja, ko, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.

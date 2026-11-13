@@ -201,6 +201,8 @@ const studio = {
   'studio.publish.noteWritingFirst':
     'Der Chat Ihrer Szene schreibt, was die Szene ist…',
   'studio.publish.needNoteFirst': 'Sagen Sie zuerst, was die Szene ist',
+  'studio.publish.noteUnreadable':
+    'Der Chat Ihrer Szene hat eine Zeile hinterlassen, die FluidEQ nicht lesen kann. Geben Sie die Zeile hier ein oder bitten Sie den Chat, sie neu zu schreiben.',
   'studio.publish.noteYours': 'Ihre',
   'studio.publish.noteFallback': 'für jede nicht enthaltene Sprache',
   'studio.publish.noteFollows': 'folgt beim Senden Ihrer Zeile',

@@ -197,6 +197,8 @@ const studio = {
   'studio.publish.noteWritingFirst':
     'シーンのチャットが、このシーンが何かを書いています…',
   'studio.publish.needNoteFirst': 'まず、このシーンが何かを書いてください',
+  'studio.publish.noteUnreadable':
+    'シーンのチャットが残した一行を FluidEQ が読み取れません。ここに入力するか、チャットにもう一度書くよう頼んでください。',
   'studio.publish.noteYours': 'あなたの言語',
   'studio.publish.noteFallback': 'ほかの言語がないときに表示',
   'studio.publish.noteFollows': '送信時にあなたの文に合わせて書き直されます',
