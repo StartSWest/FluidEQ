@@ -196,7 +196,9 @@ export default function StudioPublishDialog({
   useModalKeys(surfaceRef, firstRef, { busy: !canCancel, onCancel: cancel });
 
   const update = draft.published !== undefined;
-  const translating = noteSend.translating !== undefined;
+  // The scene's chat writing or translating the line: Send waits for it.
+  const waiting =
+    update && (noteSend.translating !== undefined || noteSend.writing);
   // What holds the press back, said on the button rather than after it.
   const pressHeld =
     !category ||
@@ -352,24 +354,22 @@ export default function StudioPublishDialog({
               >
                 {t('studio.publish.cancel')}
               </button>
-              {/* Waiting on the chat is the member's choice, never forced:
-                  the line can go out as written now. */}
-              {translating && (
+              {/* The wait is the member's to end, never forced; ending it
+                  sends nothing. */}
+              {waiting && (
                 <button
                   type="button"
                   className="button small subtle"
-                  onClick={noteSend.sendAsWritten}
+                  onClick={noteSend.stopWaiting}
                 >
-                  {t('studio.publish.sendAsWritten')}
+                  {t('studio.publish.noteStopWaiting')}
                 </button>
               )}
               <button
                 type="button"
-                className={`button small${
-                  running || translating ? ' is-running' : ''
-                }`}
-                aria-busy={running || translating}
-                disabled={pressHeld || translating}
+                className={`button small${running ? ' is-running' : ''}`}
+                aria-busy={running}
+                disabled={pressHeld || waiting}
                 title={
                   publicName.missing ? t('profile.name.choose') : publishHint
                 }
@@ -396,9 +396,7 @@ export default function StudioPublishDialog({
                   );
                 }}
               >
-                {translating
-                  ? t('studio.publish.translatingButton')
-                  : buttonLabel}
+                {buttonLabel}
               </button>
             </div>
           </>
@@ -483,9 +481,9 @@ export default function StudioPublishDialog({
               running={running}
               missing={noteMissing}
               onFilled={() => setNoteMissing(false)}
-              writing={draft.noteWriting === true}
+              writing={noteSend.writing}
               translating={noteSend.translating}
-              asWritten={draft.noteAsWritten === true}
+              asWritten={noteSend.asWritten}
               noteRef={noteRef}
             />
           )}

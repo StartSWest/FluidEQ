@@ -195,8 +195,7 @@ const studio = {
   'studio.publish.noteTranslatingHint': '장면의 채팅이 작성하고 있습니다.',
   'studio.publish.noteNotTranslated':
     '번역되지 않음: 모든 언어에 쓴 그대로 표시됩니다.',
-  'studio.publish.sendAsWritten': '쓴 그대로 보내기',
-  'studio.publish.translatingButton': '번역하는 중…',
+  'studio.publish.noteStopWaiting': '기다리지 않기',
   'studio.publish.shapeChoice': '확인할 보기',
   'studio.publish.shapeNormal': '일반',
   'studio.publish.shapeUltra': '울트라와이드',

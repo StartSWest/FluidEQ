@@ -202,8 +202,7 @@ const studio = {
     'El chat de tu escena los está escribiendo.',
   'studio.publish.noteNotTranslated':
     'Sin traducir: se muestra tal como está escrito en todos los idiomas.',
-  'studio.publish.sendAsWritten': 'Enviar tal como está',
-  'studio.publish.translatingButton': 'Traduciendo…',
+  'studio.publish.noteStopWaiting': 'Dejar de esperar',
   'studio.publish.shapeChoice': 'Vista para revisar',
   'studio.publish.shapeNormal': 'Normal',
   'studio.publish.shapeUltra': 'Ultrapanorámica',

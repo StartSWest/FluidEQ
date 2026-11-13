@@ -196,8 +196,7 @@ const studio = {
   'studio.publish.noteTranslatingHint': 'Чат вашей сцены пишет их.',
   'studio.publish.noteNotTranslated':
     'Без перевода: на всех языках показано как написано.',
-  'studio.publish.sendAsWritten': 'Отправить как написано',
-  'studio.publish.translatingButton': 'Перевод…',
+  'studio.publish.noteStopWaiting': 'Не ждать',
   'studio.publish.shapeChoice': 'Вид для проверки',
   'studio.publish.shapeNormal': 'Обычный',
   'studio.publish.shapeUltra': 'Сверхширокий',

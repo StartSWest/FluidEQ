@@ -179,12 +179,18 @@ describe('the note box', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('says the chat is writing it while the box is empty', () => {
+  // Send waits on the chat for as long as it writes, so the wait is said
+  // that long too, a line in the box or not.
+  it('says the chat is writing it for as long as it writes', () => {
     const { rerender } = render(<Box writing />);
     expect(screen.getByRole('status')).toHaveTextContent(
       'studio.publish.noteWriting',
     );
     rerender(<Box writing suggested={en('The balloons rise.')} />);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'studio.publish.noteWriting',
+    );
+    rerender(<Box suggested={en('The balloons rise.')} />);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });

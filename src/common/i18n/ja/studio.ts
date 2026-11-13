@@ -199,8 +199,7 @@ const studio = {
   'studio.publish.noteTranslatingHint': 'シーンのチャットが書いています。',
   'studio.publish.noteNotTranslated':
     '翻訳されていません。すべての言語で書いたまま表示されます。',
-  'studio.publish.sendAsWritten': '書いたまま送信',
-  'studio.publish.translatingButton': '翻訳中…',
+  'studio.publish.noteStopWaiting': '待つのをやめる',
   'studio.publish.shapeChoice': '確認する表示',
   'studio.publish.shapeNormal': '通常',
   'studio.publish.shapeUltra': 'ウルトラワイド',

@@ -204,8 +204,7 @@ const studio = {
   'studio.publish.noteTranslatingHint': 'Le chat de votre scène les écrit.',
   'studio.publish.noteNotTranslated':
     'Non traduit : affiché tel qu’écrit dans toutes les langues.',
-  'studio.publish.sendAsWritten': 'Envoyer tel quel',
-  'studio.publish.translatingButton': 'Traduction…',
+  'studio.publish.noteStopWaiting': 'Ne plus attendre',
   'studio.publish.shapeChoice': 'Vue à vérifier',
   'studio.publish.shapeNormal': 'Normale',
   'studio.publish.shapeUltra': 'Ultra-large',

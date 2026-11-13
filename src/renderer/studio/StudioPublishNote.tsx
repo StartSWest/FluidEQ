@@ -203,8 +203,9 @@ export default function StudioPublishNote({
           {t('studio.publish.noteNotTranslated')}
         </p>
       )}
-      {/* The chat's own working mark: it is the chat writing it. */}
-      {writing && !mineLine.trim() && !state.lines.en.trim() && (
+      {/* The chat's own working mark, for as long as it writes: Send waits
+          on it, so the wait is always said. */}
+      {writing && (
         <p className="studio-chat__thinking" role="status">
           <span className="studio-chat__dots" aria-hidden="true">
             <i />

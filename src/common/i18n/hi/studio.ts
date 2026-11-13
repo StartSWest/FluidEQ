@@ -198,8 +198,7 @@ const studio = {
   'studio.publish.noteTranslatingHint': 'आपके सीन की चैट इन्हें लिख रही है।',
   'studio.publish.noteNotTranslated':
     'अनुवाद नहीं हुआ: हर भाषा में जैसा लिखा है वैसा दिखेगा।',
-  'studio.publish.sendAsWritten': 'जैसा लिखा है वैसा भेजें',
-  'studio.publish.translatingButton': 'अनुवाद हो रहा है…',
+  'studio.publish.noteStopWaiting': 'इंतज़ार बंद करें',
   'studio.publish.shapeChoice': 'जाँचने के लिए व्यू',
   'studio.publish.shapeNormal': 'सामान्य',
   'studio.publish.shapeUltra': 'अल्ट्रा वाइड',

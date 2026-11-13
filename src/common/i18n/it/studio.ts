@@ -201,8 +201,7 @@ const studio = {
     'La chat della tua scena le sta scrivendo.',
   'studio.publish.noteNotTranslated':
     'Non tradotta: mostrata come scritta in ogni lingua.',
-  'studio.publish.sendAsWritten': 'Invia come scritto',
-  'studio.publish.translatingButton': 'Traduzione…',
+  'studio.publish.noteStopWaiting': 'Smetti di aspettare',
   'studio.publish.shapeChoice': 'Vista da controllare',
   'studio.publish.shapeNormal': 'Normale',
   'studio.publish.shapeUltra': 'Ultra wide',

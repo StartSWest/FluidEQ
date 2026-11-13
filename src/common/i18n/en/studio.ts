@@ -205,8 +205,7 @@ const studio = {
   'studio.publish.noteTranslatingHint': 'Your scene’s chat is writing them.',
   'studio.publish.noteNotTranslated':
     'Not translated: shown as written in every language.',
-  'studio.publish.sendAsWritten': 'Send as written',
-  'studio.publish.translatingButton': 'Translating…',
+  'studio.publish.noteStopWaiting': 'Stop waiting',
   'studio.publish.shapeChoice': 'View to check',
   'studio.publish.shapeNormal': 'Normal',
   'studio.publish.shapeUltra': 'Ultra wide',

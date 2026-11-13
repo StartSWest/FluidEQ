@@ -198,8 +198,7 @@ const studio = {
   'studio.publish.noteTranslatingHint': 'O chat da sua cena está escrevendo.',
   'studio.publish.noteNotTranslated':
     'Não traduzido: mostrado como escrito em todos os idiomas.',
-  'studio.publish.sendAsWritten': 'Enviar como escrito',
-  'studio.publish.translatingButton': 'Traduzindo…',
+  'studio.publish.noteStopWaiting': 'Parar de esperar',
   'studio.publish.shapeChoice': 'Visualização para conferir',
   'studio.publish.shapeNormal': 'Normal',
   'studio.publish.shapeUltra': 'Ultrawide',
