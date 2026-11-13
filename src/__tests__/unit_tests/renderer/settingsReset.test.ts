@@ -62,6 +62,10 @@ const KEPT = [
   // A new project's guide: the steps done, and closed for good once
   // published or closed - a reset must not hand a member step one again.
   'fluideq.studio.starterGuide',
+  // When the starter-credits welcome was shown and put off, one name per
+  // account (`starterWelcome.ts`): reset away, a member who pressed Later
+  // would be offered the dialog again as if it were their first sign-in.
+  'fluideq.starterWelcome.',
   'fluideq-rhythm-best-multiplier',
   'fluideq-rhythm-high-score',
   // What is playing and where in it, and where Online Media was left — not
