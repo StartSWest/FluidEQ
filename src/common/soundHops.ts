@@ -89,6 +89,15 @@ export interface IVoiceSpectrum {
   mid: Float32Array;
   side: Float32Array;
   binHz: number;
+  /**
+   * The mid's phase, a bin each, in radians, and how long after the window
+   * before it this one stands, in ms to the sample (0 when that is not
+   * known: the first hop, or time lost between the two): together they say
+   * what frequency each partial really has, far finer than a bin
+   * (`voiceReading.ts`). Absent where the sound never had samples.
+   */
+  phase?: Float32Array;
+  advanceMs?: number;
 }
 
 export interface ISoundHop {
@@ -181,7 +190,8 @@ const transformInto = (
   right: Float32Array,
   end: number,
   out: Float32Array,
-  side = false,
+  side: boolean,
+  phase?: Float32Array,
 ) => {
   const { size, window, real, imaginary } = transform;
   const from = end - size + 1;
@@ -197,6 +207,11 @@ const transformInto = (
       magnitude > 0
         ? Math.max(NOTHING_DB, 20 * Math.log10(magnitude))
         : NOTHING_DB;
+  }
+  if (phase) {
+    for (let bin = 0; bin < phase.length; bin += 1) {
+      phase[bin] = Math.atan2(imaginary[bin], real[bin]);
+    }
   }
 };
 
@@ -282,10 +297,14 @@ export const createSoundHops = (rate: number): ISoundHops => {
       mid: new Float32Array(voiceCount),
       side: new Float32Array(voiceCount),
       binHz: lowBinHz,
+      phase: new Float32Array(voiceCount),
+      advanceMs: 0,
     },
   }));
   let lastSeq = -1;
   let lastAtMs: number | undefined;
+  // Where the last hop's window ended, in samples on the audio clock.
+  let lastEndedAt: number | undefined;
   // Samples arrived and not yet read into a hop, and time lost with them.
   let pending = 0;
   let lostMs = 0;
@@ -299,6 +318,7 @@ export const createSoundHops = (rate: number): ISoundHops => {
         // samples are known to be new yet.
         lastAtMs = atMs;
         pending = 0;
+        lastEndedAt = undefined;
         return;
       }
       pending += ((atMs - lastAtMs) * rate) / 1_000;
@@ -315,14 +335,31 @@ export const createSoundHops = (rate: number): ISoundHops => {
         const hop = ring[lastSeq % RING_SIZE];
         hop.seq = lastSeq;
         hop.atMs = atMs - ((left.length - 1 - end) * 1_000) / rate;
+        // Counted in whole samples from the clock itself, never taken to be
+        // a hop: one sample out moves every partial's phase alike, which
+        // reads as all of them bending together - as a voice does.
+        const endedAt = (atMs * rate) / 1_000 - (left.length - 1 - end);
+        hop.voice.advanceMs =
+          lastEndedAt === undefined || lostMs > 0
+            ? 0
+            : (Math.round(endedAt - lastEndedAt) * 1_000) / rate;
+        lastEndedAt = endedAt;
         hop.stepMs = HOP_MS + lostMs;
         lostMs = 0;
-        transformInto(low, left, right, end, lowBandBins);
+        transformInto(
+          low,
+          left,
+          right,
+          end,
+          lowBandBins,
+          false,
+          hop.voice.phase,
+        );
         hop.spectrum.low.set(lowBandBins.subarray(0, lowCount));
         hop.voice.mid.set(lowBandBins.subarray(0, voiceCount));
         bandsInto(hop.bands, lowBandBins, lowBinHz, 0, LOW_BANDS_END);
         transformInto(low, left, right, end, hop.voice.side, true);
-        transformInto(high, left, right, end, hop.spectrum.high);
+        transformInto(high, left, right, end, hop.spectrum.high, false);
         bandsInto(
           hop.bands,
           hop.spectrum.high,
