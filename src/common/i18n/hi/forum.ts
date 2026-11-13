@@ -23,6 +23,7 @@ const forum = {
   'forum.board.qa': 'Q&A',
   'forum.board.showAndTell': 'शोकेस',
   'forum.board.tips': 'टिप्स और ट्रिक्स',
+  'forum.board.support': 'FluidEQ का साथ दें',
   'forum.boardDescription.announcements': 'निर्माता की ओर से ख़बरें',
   'forum.boardDescription.general': 'FluidEQ से जुड़ी कोई भी बात',
   'forum.boardDescription.ideas': 'इसे आगे क्या करना चाहिए',
@@ -30,6 +31,7 @@ const forum = {
   'forum.boardDescription.qa': 'पूछें, और काम आए जवाब को चिह्नित करें',
   'forum.boardDescription.showAndTell': 'ऐसी ट्यूनिंग जिस पर आपको गर्व है',
   'forum.boardDescription.tips': 'ऐसी सुविधाएँ जो स्क्रीन पर नहीं दिखतीं',
+  'forum.boardDescription.support': 'FluidEQ को आगे बढ़ाने में मदद करें',
   'forum.board.issues': 'इश्यू',
   'forum.boardDescription.issues':
     'GitHub पर बताई गई समस्याएँ, और हर एक की स्थिति',

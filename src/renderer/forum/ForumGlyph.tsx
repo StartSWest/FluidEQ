@@ -12,6 +12,7 @@ export type TForumGlyph =
   | 'question'
   | 'showcase'
   | 'tips'
+  | 'support'
   | 'issue'
   | 'issueClosed'
   | 'vote'
@@ -108,6 +109,11 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
             <path d="m4.8 12.6 2.6-2.8 2 2 1.3-1.3 1.8 2.1" opacity="0.7" />
             <path d="M16.5 2.5v4M14.5 4.5h4M16.8 10.5v2.6M15.5 11.8h2.6" />
           </>
+        );
+      case 'support':
+        // A heart: what the board is for, and the shape every tip jar uses.
+        return (
+          <path d="M10 16.6 4.2 11a3.6 3.6 0 0 1 0-5.2 3.7 3.7 0 0 1 5.2 0l.6.6.6-.6a3.7 3.7 0 0 1 5.2 0 3.6 3.6 0 0 1 0 5.2Z" />
         );
       case 'tips':
         // A wand and its sparkle: a small thing that does more than it
@@ -272,6 +278,8 @@ export const boardGlyph = (slug: string): TForumGlyph => {
     case 'tips-tricks':
     case 'tips-and-tricks':
       return 'tips';
+    case 'support-fluideq':
+      return 'support';
     case FORUM_ISSUES_BOARD:
       return 'issue';
     default:

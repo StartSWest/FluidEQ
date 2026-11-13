@@ -23,13 +23,16 @@ const forum = {
   'forum.board.qa': 'Q&A',
   'forum.board.showAndTell': 'Schaufenster',
   'forum.board.tips': 'Tipps & Tricks',
+  'forum.board.support': 'FluidEQ unterstützen',
   'forum.boardDescription.announcements': 'Neues vom Macher',
   'forum.boardDescription.general': 'Alles rund um FluidEQ',
   'forum.boardDescription.ideas': 'Was es als Nächstes können soll',
   'forum.boardDescription.polls': 'Abstimmen, was als Nächstes kommt',
   'forum.boardDescription.qa': 'Fragen – und die hilfreiche Antwort markieren',
   'forum.boardDescription.showAndTell': 'Ein Klang, auf den Sie stolz sind',
-  'forum.boardDescription.tips': 'Funktionen, die nicht auf dem Bildschirm stehen',
+  'forum.boardDescription.tips':
+    'Funktionen, die nicht auf dem Bildschirm stehen',
+  'forum.boardDescription.support': 'Helfen Sie, FluidEQ weiterzuführen',
   'forum.board.issues': 'Issues',
   'forum.boardDescription.issues':
     'Auf GitHub gemeldete Probleme und wie es um jedes steht',

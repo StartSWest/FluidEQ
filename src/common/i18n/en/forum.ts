@@ -33,6 +33,7 @@ const forum = {
   'forum.board.qa': 'Q&A',
   'forum.board.showAndTell': 'Show and tell',
   'forum.board.tips': 'Tips & tricks',
+  'forum.board.support': 'Support FluidEQ',
   'forum.boardDescription.announcements': 'News from the maker',
   'forum.boardDescription.general': 'Anything FluidEQ',
   'forum.boardDescription.ideas': 'What it should do next',
@@ -40,6 +41,7 @@ const forum = {
   'forum.boardDescription.qa': 'Ask, and mark the answer that worked',
   'forum.boardDescription.showAndTell': 'A tuning you are proud of',
   'forum.boardDescription.tips': 'Features that work but aren’t on screen',
+  'forum.boardDescription.support': 'Help keep FluidEQ going',
   'forum.board.issues': 'Issues',
   'forum.boardDescription.issues':
     'Problems reported on GitHub, and where each one stands',

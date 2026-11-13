@@ -56,3 +56,29 @@ describe('the Tips & tricks board', () => {
     expect(boardGlyph('tips')).toBe('threads');
   });
 });
+
+/**
+ * The Support FluidEQ board is made by hand on GitHub too, in the
+ * announcement format, so nobody but the maintainer starts a topic there and
+ * it offers no posting hint.
+ */
+describe('the Support FluidEQ board', () => {
+  beforeAll(async () => {
+    await loadLocale('de');
+  });
+
+  it('is named and described in the reader’s language, with a heart', () => {
+    const boards = fromGithub('support-fluideq');
+    expect(boardName('support-fluideq', boards, german)).toBe(
+      'FluidEQ unterstützen',
+    );
+    expect(boardName('support-fluideq', boards, english)).toBe(
+      'Support FluidEQ',
+    );
+    expect(boardDescription('support-fluideq', boards, english)).toBe(
+      'Help keep FluidEQ going',
+    );
+    expect(boardGuidance('support-fluideq', english)).toBeUndefined();
+    expect(boardGlyph('support-fluideq')).toBe('support');
+  });
+});

@@ -28,6 +28,9 @@ const KEYS: Record<string, [TranslationKey, TranslationKey]> = {
   // the spelled-out name is answered too, in case it is created that way.
   'tips-tricks': ['forum.board.tips', 'forum.boardDescription.tips'],
   'tips-and-tricks': ['forum.board.tips', 'forum.boardDescription.tips'],
+  // Created by hand on GitHub, in the announcement format: it holds the two
+  // ways to support FluidEQ, and only the maintainer starts topics there.
+  'support-fluideq': ['forum.board.support', 'forum.boardDescription.support'],
   [FORUM_ISSUES_BOARD]: ['forum.board.issues', 'forum.boardDescription.issues'],
 };
 

@@ -23,6 +23,7 @@ const forum = {
   'forum.board.qa': 'Q&A',
   'forum.board.showAndTell': 'Muestra lo tuyo',
   'forum.board.tips': 'Trucos y consejos',
+  'forum.board.support': 'Apoya FluidEQ',
   'forum.boardDescription.announcements': 'Novedades del creador',
   'forum.boardDescription.general': 'Todo sobre FluidEQ',
   'forum.boardDescription.ideas': 'Lo próximo que debería hacer',
@@ -30,6 +31,7 @@ const forum = {
   'forum.boardDescription.qa': 'Pregunta y marca la respuesta que funcionó',
   'forum.boardDescription.showAndTell': 'Un ajuste del que estés orgulloso',
   'forum.boardDescription.tips': 'Funciones que no se ven en pantalla',
+  'forum.boardDescription.support': 'Ayuda a que FluidEQ siga adelante',
   'forum.board.issues': 'Incidencias',
   'forum.boardDescription.issues':
     'Problemas reportados en GitHub y en qué punto está cada uno',
