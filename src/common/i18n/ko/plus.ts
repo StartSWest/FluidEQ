@@ -179,13 +179,54 @@ const plus = {
   'plus.report.sending': '보내는 중…',
   'plus.report.cancel': '취소',
   'plus.report.failed': '보고서를 보낼 수 없습니다. 다시 시도해 보세요.',
-  'plus.welcome.fine': '계정 만들기',
   'plus.welcome.scene.neonHorizon': '네온 호라이즌',
   'plus.welcome.scene.nebulaHeart': '성운 심장',
   'plus.welcome.scene.hyperdrive': '하이퍼드라이브',
   'plus.welcome.scene.reefLight': '리프 라이트',
   'plus.welcome.scene.lanternLake': '랜턴 레이크',
   'plus.welcome.scene.prismBloom': '프리즘 블룸',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': '첫 {count}개 장면은 무료로 드립니다.',
+  'plus.signedOut.title.few': '첫 {count}개 장면은 무료로 드립니다.',
+  'plus.signedOut.title.many': '첫 {count}개 장면은 무료로 드립니다.',
+  'plus.signedOut.title.other': '첫 {count}개 장면은 무료로 드립니다.',
+  'plus.signedOut.line':
+    '무료 계정을 만들고 시작 크레딧을 받으세요. 크레딧 하나로 영원히 간직할 장면 하나를 받을 수 있습니다.',
+  'plus.signedOut.free.title': '무료, 계정 없이',
+  'plus.signedOut.free.body':
+    'FluidEQ의 이퀄라이저, 오디오 효과, 음악 재생, 무료 비주얼라이저. 가입하지 않아도 쓸 수 있습니다.',
+  'plus.signedOut.account.title': '무료 계정이 있으면',
+  'plus.signedOut.account.body':
+    '비주얼라이저용 장면을 받고(처음 몇 개는 무료), 갤러리를 둘러보고, 스튜디오에서 나만의 장면을 만들 수 있습니다.',
+  'plus.signedOut.create': '무료 계정 만들기',
+  'plus.signedOut.createSub.one': '장면 {count}개 받기',
+  'plus.signedOut.createSub.few': '장면 {count}개 받기',
+  'plus.signedOut.createSub.many': '장면 {count}개 받기',
+  'plus.signedOut.createSub.other': '장면 {count}개 받기',
+  'plus.signedOut.haveAccount': '이미 계정이 있나요?',
+  'plus.signedOut.places': '장면은 음악에 맞춰 움직입니다',
+  'plus.signedOut.place.graph': 'EQ 그래프 위에서',
+  'plus.signedOut.place.desktop': '바탕 화면으로',
+  'plus.signedOut.place.lights': 'RGB 조명에서',
+  'plus.signedOut.gallery.title': 'FluidEQ와 제작자들이 만든 장면',
+  'plus.signedOut.gallery.body':
+    '매주 새로운 장면. 받기 전에 어떤 장면이든 몇 초 동안 볼 수 있습니다.',
+  'plus.signedOut.studio.title': '스튜디오에서 직접 만들기',
+  'plus.signedOut.studio.body':
+    '게시하면 누군가 유료 크레딧으로 받을 때마다 크레딧 반 개를 받습니다.',
+  'plus.signedOut.forum.title': '포럼에 참여하기',
+  'plus.signedOut.forum.body':
+    '아이디어, 도움, 새로운 장면을 다른 회원 및 FluidEQ 제작자와 함께.',
+  'plus.signedOut.offerTitle.one': '장면 {count}개 무료',
+  'plus.signedOut.offerTitle.few': '장면 {count}개 무료',
+  'plus.signedOut.offerTitle.many': '장면 {count}개 무료',
+  'plus.signedOut.offerTitle.other': '장면 {count}개 무료',
+  'plus.signedOut.offerBody':
+    '무료 계정은 장면마다 크레딧 하나로 시작하며, 받은 장면은 영원히 내 것입니다.',
+  'plus.signedOut.step.create': '계정 만들기',
+  'plus.signedOut.step.confirm': '이메일 확인',
+  'plus.signedOut.step.pick': '간직할 장면 고르기',
   'plus.add.notOwned':
     '먼저 {name}를 구입하세요. 1크레딧이 소요되고 그 다음에는 여러분의 모습에 적용됩니다.',
   'plus.gallery.error.forbidden':

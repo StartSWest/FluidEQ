@@ -188,13 +188,57 @@ const plus = {
   'plus.report.cancel': 'Cancelar',
   'plus.report.failed': 'No se pudo enviar la denuncia. Vuelve a intentarlo.',
 
-  'plus.welcome.fine': 'Crear una cuenta',
   'plus.welcome.scene.neonHorizon': 'Horizonte de neón',
   'plus.welcome.scene.nebulaHeart': 'Corazón de nebulosa',
   'plus.welcome.scene.hyperdrive': 'Hipervelocidad',
   'plus.welcome.scene.reefLight': 'Luz de arrecife',
   'plus.welcome.scene.lanternLake': 'Lago de farolillos',
   'plus.welcome.scene.prismBloom': 'Flor de prisma',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': '{count} escena va por nuestra cuenta.',
+  'plus.signedOut.title.few':
+    'Tus primeras {count} escenas van por nuestra cuenta.',
+  'plus.signedOut.title.many':
+    'Tus primeras {count} escenas van por nuestra cuenta.',
+  'plus.signedOut.title.other':
+    'Tus primeras {count} escenas van por nuestra cuenta.',
+  'plus.signedOut.line':
+    'Crea una cuenta gratis y reclama tus créditos iniciales. Cada crédito te da una escena para quedártela para siempre.',
+  'plus.signedOut.free.title': 'Gratis, sin cuenta',
+  'plus.signedOut.free.body':
+    'El ecualizador, los efectos de audio, la reproducción de música y los visualizadores gratuitos de FluidEQ. Úsalos sin registrarte nunca.',
+  'plus.signedOut.account.title': 'Con una cuenta gratis',
+  'plus.signedOut.account.body':
+    'Consigue escenas para Visualizadores, las primeras gratis, explora la galería y crea tus propias escenas en el Estudio.',
+  'plus.signedOut.create': 'Crea tu cuenta gratis',
+  'plus.signedOut.createSub.one': 'y consigue {count} escena',
+  'plus.signedOut.createSub.few': 'y consigue {count} escenas',
+  'plus.signedOut.createSub.many': 'y consigue {count} escenas',
+  'plus.signedOut.createSub.other': 'y consigue {count} escenas',
+  'plus.signedOut.haveAccount': '¿Ya tienes una cuenta?',
+  'plus.signedOut.places': 'Una escena se mueve con tu música',
+  'plus.signedOut.place.graph': 'En la gráfica del EQ',
+  'plus.signedOut.place.desktop': 'Como tu escritorio',
+  'plus.signedOut.place.lights': 'En tus luces RGB',
+  'plus.signedOut.gallery.title': 'Hechas por FluidEQ y sus creadores',
+  'plus.signedOut.gallery.body':
+    'Escenas nuevas cada semana. Mira cualquiera unos segundos antes de conseguirla.',
+  'plus.signedOut.studio.title': 'Crea la tuya en el Estudio',
+  'plus.signedOut.studio.body':
+    'Publícala y gana medio crédito cada vez que alguien la consiga con un crédito pagado.',
+  'plus.signedOut.forum.title': 'Únete al Foro',
+  'plus.signedOut.forum.body':
+    'Ideas, ayuda y escenas nuevas, con otros miembros y el creador de FluidEQ.',
+  'plus.signedOut.offerTitle.one': '{count} escena gratis',
+  'plus.signedOut.offerTitle.few': '{count} escenas gratis',
+  'plus.signedOut.offerTitle.many': '{count} escenas gratis',
+  'plus.signedOut.offerTitle.other': '{count} escenas gratis',
+  'plus.signedOut.offerBody':
+    'Una cuenta gratis empieza con un crédito para cada una, y cada escena que consigas es tuya para siempre.',
+  'plus.signedOut.step.create': 'Crea tu cuenta',
+  'plus.signedOut.step.confirm': 'Confirma tu correo',
+  'plus.signedOut.step.pick': 'Elige las escenas que te quedas',
   'plus.add.notOwned':
     'Consigue {name} primero: cuesta un crédito, y luego va a tus estilos.',
 } as const;

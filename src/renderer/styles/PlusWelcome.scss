@@ -11,64 +11,10 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The Plus tab before signing in: the scenes on one side, what signing in
-// opens and the way in on the other; stacked when the pane is narrow. The
-// page scrolls when the pane is too short for it and is centred when not.
-.plus-welcome {
-  display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
-  padding: $spacing-l $spacing-m;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  container: plus-welcome / inline-size;
-  @include slim-scrollbar;
-}
-
-// What the free app is and how scenes are got: a heading and a line across
-// the top of the page, over the scenes and the way in.
-.plus-free-intro {
-  grid-column: 1 / -1;
-  min-width: 0;
-  position: relative;
-  z-index: 1;
-
-  h2 {
-    margin: 0 0 $spacing-xs;
-    color: $text-primary;
-    font-size: clamp(1.25rem, 3cqi, 1.9rem);
-    font-weight: $weight-bold;
-    line-height: 1.25;
-    text-wrap: balance;
-  }
-
-  p {
-    max-width: 75ch;
-    margin: 0;
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.65;
-  }
-}
-
-// `margin: auto` rather than centring the content: it centres while the page
-// fits and never pushes its top out of reach when it does not.
-.plus-welcome__inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
-  align-items: center;
-  gap: $spacing-xl;
-  width: 100%;
-  max-width: 1360px;
-  margin: auto;
-
-  @container plus-welcome (max-width: 820px) {
-    grid-template-columns: minmax(0, 1fr);
-    gap: $spacing-l;
-    max-width: 640px;
-  }
-}
+// The wall of scenes the look picker's Discover page shows
+// (`LookPickerDiscover`): the first large, the rest around it. It was the
+// signed-out Visualizers page's too, until that page became
+// `VisualizersSignedOut` (2026-11-13).
 
 // A wall of scenes: the first large, the rest around it, every one 16:9.
 .plus-welcome__scenes {
@@ -158,44 +104,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Positioned so it paints over the glow, which spills past the pictures and
-// would otherwise, as part of a positioned box, be drawn over plain text.
-.plus-welcome__text {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  justify-items: start;
-  gap: $spacing-s;
-  min-width: 0;
-}
-
-// Whose page this is: the Plus mark in the theme's accent and the name.
-.plus-welcome__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: $spacing-xs;
-  color: $secondary-light;
-  font-size: $text-small;
-  font-weight: $weight-semibold;
-}
-
-.plus-welcome__brand-mark {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  color: $surface-base;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $secondary-light, $secondary-default);
-  box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 40%, transparent);
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
-}
-
 .plus-welcome__title {
   margin: 0;
   color: $white;
@@ -203,65 +111,4 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-bold;
   line-height: 1.2;
   text-wrap: balance;
-}
-
-.plus-welcome__perks {
-  display: grid;
-  gap: 8px;
-  width: 100%;
-  margin: $spacing-xs 0 $spacing-s;
-  padding: 0;
-  list-style: none;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: $text-primary;
-    font-size: $text-body;
-  }
-}
-
-.plus-welcome__perk-mark {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  color: $secondary-light;
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
-
-  svg {
-    width: 17px;
-    height: 17px;
-  }
-}
-
-.plus-welcome__button {
-  min-width: 180px;
-}
-
-.plus-welcome__access {
-  display: grid;
-  gap: $spacing-s;
-  box-sizing: border-box;
-  width: 100%;
-  margin: 0 0 $spacing-xs;
-  padding: $spacing-s;
-  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 8%, transparent);
-  font-size: $text-body;
-  line-height: 1.5;
-
-  dt {
-    color: $secondary-light;
-    font-weight: $weight-semibold;
-  }
-
-  dd {
-    margin: 0;
-    color: $text-primary;
-  }
 }

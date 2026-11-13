@@ -184,13 +184,54 @@ const plus = {
   'plus.report.cancel': 'रद्द करें',
   'plus.report.failed': 'रिपोर्ट भेजी नहीं जा सकी। फिर कोशिश करें।',
 
-  'plus.welcome.fine': 'खाता बनाएँ',
   'plus.welcome.scene.neonHorizon': 'नियॉन क्षितिज',
   'plus.welcome.scene.nebulaHeart': 'नीहारिका का हृदय',
   'plus.welcome.scene.hyperdrive': 'हाइपरड्राइव',
   'plus.welcome.scene.reefLight': 'रीफ़ की रोशनी',
   'plus.welcome.scene.lanternLake': 'लालटेनों की झील',
   'plus.welcome.scene.prismBloom': 'प्रिज़्म का फूल',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': 'आपका पहला {count} सीन हमारी ओर से।',
+  'plus.signedOut.title.few': 'आपके पहले {count} सीन हमारी ओर से।',
+  'plus.signedOut.title.many': 'आपके पहले {count} सीन हमारी ओर से।',
+  'plus.signedOut.title.other': 'आपके पहले {count} सीन हमारी ओर से।',
+  'plus.signedOut.line':
+    'मुफ़्त खाता बनाएँ और अपने शुरुआती क्रेडिट लें। हर क्रेडिट से आपको एक सीन मिलता है, जो हमेशा आपका रहता है।',
+  'plus.signedOut.free.title': 'मुफ़्त, खाते की ज़रूरत नहीं',
+  'plus.signedOut.free.body':
+    'FluidEQ का इक्वलाइज़र, ऑडियो इफ़ेक्ट, संगीत चलाना और मुफ़्त विज़ुअलाइज़र। बिना साइन अप किए इस्तेमाल करें।',
+  'plus.signedOut.account.title': 'मुफ़्त खाते के साथ',
+  'plus.signedOut.account.body':
+    'विज़ुअलाइज़र के लिए सीन पाएँ (पहले वाले मुफ़्त), गैलरी देखें, और स्टूडियो में अपने सीन बनाएँ।',
+  'plus.signedOut.create': 'अपना मुफ़्त खाता बनाएँ',
+  'plus.signedOut.createSub.one': 'और {count} सीन पाएँ',
+  'plus.signedOut.createSub.few': 'और {count} सीन पाएँ',
+  'plus.signedOut.createSub.many': 'और {count} सीन पाएँ',
+  'plus.signedOut.createSub.other': 'और {count} सीन पाएँ',
+  'plus.signedOut.haveAccount': 'पहले से खाता है?',
+  'plus.signedOut.places': 'सीन आपके संगीत के साथ चलता है',
+  'plus.signedOut.place.graph': 'EQ ग्राफ़ पर',
+  'plus.signedOut.place.desktop': 'आपके डेस्कटॉप के रूप में',
+  'plus.signedOut.place.lights': 'आपकी RGB लाइटों पर',
+  'plus.signedOut.gallery.title': 'FluidEQ और उसके रचनाकारों के बनाए',
+  'plus.signedOut.gallery.body':
+    'हर हफ़्ते नए सीन। पाने से पहले किसी भी सीन को कुछ सेकंड देख सकते हैं।',
+  'plus.signedOut.studio.title': 'स्टूडियो में अपना बनाएँ',
+  'plus.signedOut.studio.body':
+    'उसे प्रकाशित करें, और जब भी कोई उसे भुगतान वाले क्रेडिट से पाए, आपको आधा क्रेडिट मिलेगा।',
+  'plus.signedOut.forum.title': 'फ़ोरम से जुड़ें',
+  'plus.signedOut.forum.body':
+    'दूसरे सदस्यों और FluidEQ के निर्माता के साथ विचार, मदद और नए सीन।',
+  'plus.signedOut.offerTitle.one': '{count} सीन मुफ़्त',
+  'plus.signedOut.offerTitle.few': '{count} सीन मुफ़्त',
+  'plus.signedOut.offerTitle.many': '{count} सीन मुफ़्त',
+  'plus.signedOut.offerTitle.other': '{count} सीन मुफ़्त',
+  'plus.signedOut.offerBody':
+    'मुफ़्त खाता हर सीन के लिए एक क्रेडिट से शुरू होता है, और आप जो भी सीन पाते हैं वह हमेशा आपका रहता है।',
+  'plus.signedOut.step.create': 'अपना खाता बनाएँ',
+  'plus.signedOut.step.confirm': 'अपना ईमेल पक्का करें',
+  'plus.signedOut.step.pick': 'रखने के लिए सीन चुनें',
   'plus.add.notOwned':
     'पहले {name} लें: इसमें एक क्रेडिट लगता है, फिर यह आपके रूपों में आ जाता है।',
 } as const;

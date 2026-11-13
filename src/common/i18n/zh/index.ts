@@ -47,7 +47,6 @@ import studioChat from './studioChat';
 import studioPalette from './studioPalette';
 import studioStarter from './studioStarter';
 import plus from './plus';
-import trial from './trial';
 import store from './store';
 import creator from './creator';
 import termsNotice from './termsNotice';
@@ -103,7 +102,6 @@ const zh: Partial<Dictionary> = {
   ...studioPalette,
   ...studioStarter,
   ...plus,
-  ...trial,
   ...store,
   ...creator,
   ...termsNotice,

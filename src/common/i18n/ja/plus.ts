@@ -190,13 +190,54 @@ const plus = {
   'plus.report.cancel': 'キャンセル',
   'plus.report.failed': '報告を送信できませんでした。もう一度お試しください。',
 
-  'plus.welcome.fine': 'アカウントを作成',
   'plus.welcome.scene.neonHorizon': 'ネオンの地平線',
   'plus.welcome.scene.nebulaHeart': '星雲の心臓',
   'plus.welcome.scene.hyperdrive': 'ハイパードライブ',
   'plus.welcome.scene.reefLight': 'リーフの光',
   'plus.welcome.scene.lanternLake': 'ランタンの湖',
   'plus.welcome.scene.prismBloom': 'プリズムの花',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': '最初の{count}つのシーンは無料です。',
+  'plus.signedOut.title.few': '最初の{count}つのシーンは無料です。',
+  'plus.signedOut.title.many': '最初の{count}つのシーンは無料です。',
+  'plus.signedOut.title.other': '最初の{count}つのシーンは無料です。',
+  'plus.signedOut.line':
+    '無料アカウントを作成して、スタート用のクレジットを受け取りましょう。1クレジットで、ずっと使えるシーンを1つ入手できます。',
+  'plus.signedOut.free.title': '無料・アカウント不要',
+  'plus.signedOut.free.body':
+    'FluidEQ のイコライザー、オーディオエフェクト、音楽再生、無料のビジュアライザー。登録しなくても使えます。',
+  'plus.signedOut.account.title': '無料アカウントがあれば',
+  'plus.signedOut.account.body':
+    'ビジュアライザーのシーンを入手（最初の分は無料）、ギャラリーを閲覧、スタジオで自分のシーンを作成できます。',
+  'plus.signedOut.create': '無料アカウントを作成',
+  'plus.signedOut.createSub.one': 'シーンを{count}つ入手',
+  'plus.signedOut.createSub.few': 'シーンを{count}つ入手',
+  'plus.signedOut.createSub.many': 'シーンを{count}つ入手',
+  'plus.signedOut.createSub.other': 'シーンを{count}つ入手',
+  'plus.signedOut.haveAccount': 'アカウントをお持ちですか？',
+  'plus.signedOut.places': 'シーンは音楽に合わせて動きます',
+  'plus.signedOut.place.graph': 'EQ グラフの上で',
+  'plus.signedOut.place.desktop': 'デスクトップとして',
+  'plus.signedOut.place.lights': 'RGB ライトで',
+  'plus.signedOut.gallery.title': 'FluidEQ とクリエイターによるシーン',
+  'plus.signedOut.gallery.body':
+    '毎週新しいシーンが登場。入手する前に、どれでも数秒間見られます。',
+  'plus.signedOut.studio.title': 'スタジオで自分のシーンを',
+  'plus.signedOut.studio.body':
+    '公開すると、誰かが有料クレジットで入手するたびに 0.5 クレジットを受け取れます。',
+  'plus.signedOut.forum.title': 'フォーラムに参加',
+  'plus.signedOut.forum.body':
+    'アイデア、ヘルプ、新しいシーンを、ほかのメンバーや FluidEQ の作者と。',
+  'plus.signedOut.offerTitle.one': 'シーン{count}つが無料',
+  'plus.signedOut.offerTitle.few': 'シーン{count}つが無料',
+  'plus.signedOut.offerTitle.many': 'シーン{count}つが無料',
+  'plus.signedOut.offerTitle.other': 'シーン{count}つが無料',
+  'plus.signedOut.offerBody':
+    '無料アカウントにはシーンごとに1クレジットが付いていて、入手したシーンはずっとあなたのものです。',
+  'plus.signedOut.step.create': 'アカウントを作成',
+  'plus.signedOut.step.confirm': 'メールを確認',
+  'plus.signedOut.step.pick': '残しておくシーンを選ぶ',
   'plus.add.notOwned':
     'まず「{name}」を入手してください。1クレジットで入手でき、その後マイ表示に入ります。',
 } as const;

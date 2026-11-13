@@ -199,13 +199,54 @@ const plus = {
   'plus.report.failed':
     'Die Meldung konnte nicht gesendet werden. Versuchen Sie es erneut.',
 
-  'plus.welcome.fine': 'Konto erstellen',
   'plus.welcome.scene.neonHorizon': 'Neon-Horizont',
   'plus.welcome.scene.nebulaHeart': 'Nebelherz',
   'plus.welcome.scene.hyperdrive': 'Hyperantrieb',
   'plus.welcome.scene.reefLight': 'Rifflicht',
   'plus.welcome.scene.lanternLake': 'Laternensee',
   'plus.welcome.scene.prismBloom': 'Prismenblüte',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': '{count} Szene geht auf uns.',
+  'plus.signedOut.title.few': 'Ihre ersten {count} Szenen gehen auf uns.',
+  'plus.signedOut.title.many': 'Ihre ersten {count} Szenen gehen auf uns.',
+  'plus.signedOut.title.other': 'Ihre ersten {count} Szenen gehen auf uns.',
+  'plus.signedOut.line':
+    'Erstellen Sie ein kostenloses Konto und holen Sie sich Ihre Start-Credits. Jeder Credit bringt Ihnen eine Szene, die Sie für immer behalten.',
+  'plus.signedOut.free.title': 'Kostenlos, ohne Konto',
+  'plus.signedOut.free.body':
+    'Der Equalizer, die Audioeffekte, die Musikwiedergabe und die kostenlosen Visualizer von FluidEQ. Ganz ohne Anmeldung.',
+  'plus.signedOut.account.title': 'Mit einem kostenlosen Konto',
+  'plus.signedOut.account.body':
+    'Szenen für Visualizer holen, die ersten gratis, die Galerie durchsuchen und im Studio eigene Szenen bauen.',
+  'plus.signedOut.create': 'Kostenloses Konto erstellen',
+  'plus.signedOut.createSub.one': 'und {count} Szene holen',
+  'plus.signedOut.createSub.few': 'und {count} Szenen holen',
+  'plus.signedOut.createSub.many': 'und {count} Szenen holen',
+  'plus.signedOut.createSub.other': 'und {count} Szenen holen',
+  'plus.signedOut.haveAccount': 'Sie haben schon ein Konto?',
+  'plus.signedOut.places': 'Eine Szene bewegt sich mit Ihrer Musik',
+  'plus.signedOut.place.graph': 'Auf dem EQ-Graphen',
+  'plus.signedOut.place.desktop': 'Als Ihr Desktop',
+  'plus.signedOut.place.lights': 'Auf Ihren RGB-Lichtern',
+  'plus.signedOut.gallery.title': 'Von FluidEQ und seinen Machern',
+  'plus.signedOut.gallery.body':
+    'Jede Woche neue Szenen. Jede können Sie ein paar Sekunden ansehen, bevor Sie sie holen.',
+  'plus.signedOut.studio.title': 'Bauen Sie Ihre eigene im Studio',
+  'plus.signedOut.studio.body':
+    'Veröffentlichen Sie sie und erhalten Sie einen halben Credit, wann immer jemand sie mit einem bezahlten Credit holt.',
+  'plus.signedOut.forum.title': 'Machen Sie im Forum mit',
+  'plus.signedOut.forum.body':
+    'Ideen, Hilfe und neue Szenen, mit anderen Mitgliedern und dem Macher von FluidEQ.',
+  'plus.signedOut.offerTitle.one': '{count} Szene gratis',
+  'plus.signedOut.offerTitle.few': '{count} Szenen gratis',
+  'plus.signedOut.offerTitle.many': '{count} Szenen gratis',
+  'plus.signedOut.offerTitle.other': '{count} Szenen gratis',
+  'plus.signedOut.offerBody':
+    'Ein kostenloses Konto startet mit einem Credit für jede, und jede Szene, die Sie holen, gehört für immer Ihnen.',
+  'plus.signedOut.step.create': 'Konto erstellen',
+  'plus.signedOut.step.confirm': 'E-Mail bestätigen',
+  'plus.signedOut.step.pick': 'Szenen zum Behalten wählen',
   'plus.add.notOwned':
     'Holen Sie sich {name} zuerst: Das kostet einen Credit, danach kommt sie zu Ihren Darstellungen.',
 } as const;

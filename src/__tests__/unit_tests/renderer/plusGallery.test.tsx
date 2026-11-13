@@ -242,7 +242,7 @@ describe('Visualizers', () => {
     ).toBeInTheDocument();
     // No banner over the gallery: what the free app is was said before
     // signing in (Ivan, 2026-10-21).
-    expect(screen.queryByText('trial.free.title')).not.toBeInTheDocument();
+    expect(screen.queryByText('plus.signedOut.line')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'plus.card.add' }),
     ).not.toBeInTheDocument();
@@ -275,7 +275,7 @@ describe('Visualizers', () => {
     expect(screen.queryByTestId('scene-preview')).not.toBeInTheDocument();
     expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
     expect(await pageGet()).toHaveLength(1);
-    expect(screen.queryByText('trial.free.title')).not.toBeInTheDocument();
+    expect(screen.queryByText('plus.signedOut.line')).not.toBeInTheDocument();
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
 

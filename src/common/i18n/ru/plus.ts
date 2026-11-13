@@ -186,13 +186,54 @@ const plus = {
   'plus.report.cancel': 'Отмена',
   'plus.report.failed': 'Не удалось отправить жалобу. Попробуйте ещё раз.',
 
-  'plus.welcome.fine': 'Создать аккаунт',
   'plus.welcome.scene.neonHorizon': 'Неоновый горизонт',
   'plus.welcome.scene.nebulaHeart': 'Сердце туманности',
   'plus.welcome.scene.hyperdrive': 'Гипердрайв',
   'plus.welcome.scene.reefLight': 'Свет рифа',
   'plus.welcome.scene.lanternLake': 'Озеро фонариков',
   'plus.welcome.scene.prismBloom': 'Цветок-призма',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': '{count} сцена — за наш счёт.',
+  'plus.signedOut.title.few': 'Ваши первые {count} сцены — за наш счёт.',
+  'plus.signedOut.title.many': 'Ваши первые {count} сцен — за наш счёт.',
+  'plus.signedOut.title.other': 'Ваши первые {count} сцены — за наш счёт.',
+  'plus.signedOut.line':
+    'Создайте бесплатный аккаунт и получите стартовые кредиты. Каждый кредит — это сцена, которая останется у вас навсегда.',
+  'plus.signedOut.free.title': 'Бесплатно, без аккаунта',
+  'plus.signedOut.free.body':
+    'Эквалайзер, аудиоэффекты, воспроизведение музыки и бесплатные визуализаторы FluidEQ. Пользуйтесь ими, вообще не регистрируясь.',
+  'plus.signedOut.account.title': 'С бесплатным аккаунтом',
+  'plus.signedOut.account.body':
+    'Получайте сцены для «Визуализаторов» (первые — бесплатно), смотрите галерею и создавайте свои сцены в «Студии».',
+  'plus.signedOut.create': 'Создать бесплатный аккаунт',
+  'plus.signedOut.createSub.one': 'и получить {count} сцену',
+  'plus.signedOut.createSub.few': 'и получить {count} сцены',
+  'plus.signedOut.createSub.many': 'и получить {count} сцен',
+  'plus.signedOut.createSub.other': 'и получить {count} сцены',
+  'plus.signedOut.haveAccount': 'Уже есть аккаунт?',
+  'plus.signedOut.places': 'Сцена движется под вашу музыку',
+  'plus.signedOut.place.graph': 'На графике эквалайзера',
+  'plus.signedOut.place.desktop': 'Как рабочий стол',
+  'plus.signedOut.place.lights': 'На вашей RGB-подсветке',
+  'plus.signedOut.gallery.title': 'От FluidEQ и его авторов',
+  'plus.signedOut.gallery.body':
+    'Новые сцены каждую неделю. Любую можно посмотреть несколько секунд, прежде чем получить.',
+  'plus.signedOut.studio.title': 'Создайте свою в «Студии»',
+  'plus.signedOut.studio.body':
+    'Опубликуйте её и получайте полкредита каждый раз, когда кто-то получает её за платный кредит.',
+  'plus.signedOut.forum.title': 'Присоединяйтесь к «Форуму»',
+  'plus.signedOut.forum.body':
+    'Идеи, помощь и новые сцены — вместе с другими участниками и автором FluidEQ.',
+  'plus.signedOut.offerTitle.one': '{count} сцена бесплатно',
+  'plus.signedOut.offerTitle.few': '{count} сцены бесплатно',
+  'plus.signedOut.offerTitle.many': '{count} сцен бесплатно',
+  'plus.signedOut.offerTitle.other': '{count} сцены бесплатно',
+  'plus.signedOut.offerBody':
+    'Бесплатный аккаунт начинается с кредита на каждую, и каждая полученная сцена остаётся вашей навсегда.',
+  'plus.signedOut.step.create': 'Создайте аккаунт',
+  'plus.signedOut.step.confirm': 'Подтвердите почту',
+  'plus.signedOut.step.pick': 'Выберите сцены, которые оставите себе',
   'plus.add.notOwned':
     'Сначала получите «{name}»: это стоит один кредит, и после этого она попадёт в ваши оформления.',
 } as const;

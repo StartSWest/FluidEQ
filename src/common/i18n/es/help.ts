@@ -516,7 +516,7 @@ const help: Record<keyof typeof en, string> = {
   'help.plus.intro':
     'La cuenta es opcional: todo lo que era gratis funciona en este equipo sin ella. Con la sesión iniciada, la pestaña Visualizadores reúne la Galería, el Estudio, la Iluminación dinámica y el visualizador de escritorio. Una escena de la Galería cuesta un crédito y es tuya para siempre; una cuenta confirmada recibe algunos créditos gratis, y los paquetes de créditos se pagan una sola vez.',
   'help.plus.steps':
-    'Abre la pestaña Visualizadores y pulsa Iniciar sesión, o Crear una cuenta y escribe el código de seis dígitos que llega a tu correo. Una vez dentro, tu cuenta es la tarjeta al pie de la columna izquierda de la pestaña.\nElige Galería. Abre una escena, mírala y pulsa Conseguir para gastar un crédito en ella.\nPara tener más créditos, abre tu cuenta desde esa tarjeta y elige un paquete. Se paga una sola vez en Stripe, en tu navegador.',
+    'Abre la pestaña Visualizadores y pulsa Iniciar sesión, o Crea tu cuenta gratis y escribe el código de seis dígitos que llega a tu correo. Una vez dentro, tu cuenta es la tarjeta al pie de la columna izquierda de la pestaña.\nElige Galería. Abre una escena, mírala y pulsa Conseguir para gastar un crédito en ella.\nPara tener más créditos, abre tu cuenta desde esa tarjeta y elige un paquete. Se paga una sola vez en Stripe, en tu navegador.',
   'help.plus.tip':
     'La app nunca ve tu tarjeta y nada se renueva. Una cuenta puede tener la sesión abierta en hasta cinco equipos.',
   'help.plus.keywords':

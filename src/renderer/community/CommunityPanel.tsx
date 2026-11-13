@@ -21,7 +21,7 @@ import {
   type TPlusPlace,
 } from '../plus/plusNavigation';
 import { setPlusRailPinned, usePlusRailPinned } from '../plus/plusRail';
-import PlusWelcome from '../plus/PlusWelcome';
+import VisualizersSignedOut from '../plus/VisualizersSignedOut';
 import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
 import LightingPanel from '../plus/lighting/LightingPanel';
@@ -137,7 +137,7 @@ export default function CommunityPanel({
   }
 
   if (!signedIn) {
-    return <PlusWelcome onSignIn={onSignIn} />;
+    return <VisualizersSignedOut onSignIn={onSignIn} />;
   }
 
   const ownName = profile?.displayName || account.identity?.name || '';

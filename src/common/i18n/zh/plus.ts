@@ -171,13 +171,54 @@ const plus = {
   'plus.report.cancel': '取消',
   'plus.report.failed': '无法发送举报。请重试。',
 
-  'plus.welcome.fine': '创建账户',
   'plus.welcome.scene.neonHorizon': '霓虹地平线',
   'plus.welcome.scene.nebulaHeart': '星云之心',
   'plus.welcome.scene.hyperdrive': '超空间跃迁',
   'plus.welcome.scene.reefLight': '珊瑚礁之光',
   'plus.welcome.scene.lanternLake': '天灯湖',
   'plus.welcome.scene.prismBloom': '棱镜之花',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': '你的前 {count} 个场景由我们买单。',
+  'plus.signedOut.title.few': '你的前 {count} 个场景由我们买单。',
+  'plus.signedOut.title.many': '你的前 {count} 个场景由我们买单。',
+  'plus.signedOut.title.other': '你的前 {count} 个场景由我们买单。',
+  'plus.signedOut.line':
+    '创建免费账户并领取起步点数。每个点数可换一个永久归你的场景。',
+  'plus.signedOut.free.title': '免费，无需账户',
+  'plus.signedOut.free.body':
+    'FluidEQ 的均衡器、音频效果、音乐播放和免费可视化效果。无需注册即可使用。',
+  'plus.signedOut.account.title': '有了免费账户',
+  'plus.signedOut.account.body':
+    '为“可视化”获取场景（最初几个免费），浏览图库，并在“工作室”中制作自己的场景。',
+  'plus.signedOut.create': '创建免费账户',
+  'plus.signedOut.createSub.one': '并获得 {count} 个场景',
+  'plus.signedOut.createSub.few': '并获得 {count} 个场景',
+  'plus.signedOut.createSub.many': '并获得 {count} 个场景',
+  'plus.signedOut.createSub.other': '并获得 {count} 个场景',
+  'plus.signedOut.haveAccount': '已有账户？',
+  'plus.signedOut.places': '场景随你的音乐而动',
+  'plus.signedOut.place.graph': '在 EQ 曲线图上',
+  'plus.signedOut.place.desktop': '作为桌面',
+  'plus.signedOut.place.lights': '在你的 RGB 灯光上',
+  'plus.signedOut.gallery.title': '由 FluidEQ 及其创作者制作',
+  'plus.signedOut.gallery.body':
+    '每周都有新场景。获取之前，任何场景都可以先看几秒。',
+  'plus.signedOut.studio.title': '在工作室制作你自己的',
+  'plus.signedOut.studio.body':
+    '发布后，每当有人用付费点数获取它，你就能赚到半个点数。',
+  'plus.signedOut.forum.title': '加入论坛',
+  'plus.signedOut.forum.body':
+    '与其他成员和 FluidEQ 的作者交流想法、获取帮助、发现新场景。',
+  'plus.signedOut.offerTitle.one': '{count} 个场景，免费',
+  'plus.signedOut.offerTitle.few': '{count} 个场景，免费',
+  'plus.signedOut.offerTitle.many': '{count} 个场景，免费',
+  'plus.signedOut.offerTitle.other': '{count} 个场景，免费',
+  'plus.signedOut.offerBody':
+    '免费账户为每个场景各备好一点，你获取的每个场景都永久归你。',
+  'plus.signedOut.step.create': '创建账户',
+  'plus.signedOut.step.confirm': '确认邮箱',
+  'plus.signedOut.step.pick': '挑选要保留的场景',
   'plus.add.notOwned': '先获取“{name}”：需要一点，之后它会进入你的外观。',
 } as const;
 

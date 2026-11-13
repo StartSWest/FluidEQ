@@ -517,7 +517,7 @@ const help: Record<keyof typeof en, string> = {
   'help.plus.intro':
     'Le compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte. Une fois connecté, l’onglet Visualiseurs réunit la Galerie, le Studio, l’Éclairage dynamique et le visualiseur de Bureau. Une scène de la Galerie coûte un crédit et vous appartient pour de bon ; un compte confirmé reçoit quelques crédits gratuits, et les packs de crédits se paient une seule fois.',
   'help.plus.steps':
-    'Ouvrez l’onglet Visualiseurs et appuyez sur Se connecter ou sur Créer un compte, puis saisissez le code à six chiffres envoyé à votre adresse e-mail. Une fois la connexion faite, votre compte est la carte au bas de la colonne de gauche de l’onglet.\nChoisissez Galerie. Ouvrez une scène, regardez-la, et appuyez sur Obtenir pour y dépenser un crédit.\nPour plus de crédits, ouvrez votre compte depuis cette carte et choisissez un pack. Il se paie une seule fois sur Stripe, dans votre navigateur.',
+    'Ouvrez l’onglet Visualiseurs et appuyez sur Se connecter ou sur Créer votre compte gratuit, puis saisissez le code à six chiffres envoyé à votre adresse e-mail. Une fois la connexion faite, votre compte est la carte au bas de la colonne de gauche de l’onglet.\nChoisissez Galerie. Ouvrez une scène, regardez-la, et appuyez sur Obtenir pour y dépenser un crédit.\nPour plus de crédits, ouvrez votre compte depuis cette carte et choisissez un pack. Il se paie une seule fois sur Stripe, dans votre navigateur.',
   'help.plus.tip':
     'L’application ne voit jamais votre carte, et rien ne se renouvelle. Un compte reste connecté sur cinq ordinateurs au plus.',
   'help.plus.keywords':

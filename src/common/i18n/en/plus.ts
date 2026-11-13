@@ -189,13 +189,54 @@ const plus = {
   'plus.report.failed': 'The report could not be sent. Try again.',
 
   // The tab before signing in.
-  'plus.welcome.fine': 'Create an account',
   'plus.welcome.scene.neonHorizon': 'Neon Horizon',
   'plus.welcome.scene.nebulaHeart': 'Nebula Heart',
   'plus.welcome.scene.hyperdrive': 'Hyperdrive',
   'plus.welcome.scene.reefLight': 'Reef Light',
   'plus.welcome.scene.lanternLake': 'Lantern Lake',
   'plus.welcome.scene.prismBloom': 'Prism Bloom',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': 'Your first {count} scene is on us.',
+  'plus.signedOut.title.few': 'Your first {count} scenes are on us.',
+  'plus.signedOut.title.many': 'Your first {count} scenes are on us.',
+  'plus.signedOut.title.other': 'Your first {count} scenes are on us.',
+  'plus.signedOut.line':
+    'Create a free account and claim your starting credits. Each credit gets you a scene to keep for good.',
+  'plus.signedOut.free.title': 'Free, no account needed',
+  'plus.signedOut.free.body':
+    'FluidEQ’s equaliser, audio effects, music playback and free visualizers. Use them without ever signing up.',
+  'plus.signedOut.account.title': 'With a free account',
+  'plus.signedOut.account.body':
+    'Get scenes for Visualizers, your first ones free, browse the gallery, and make your own scenes in the Studio.',
+  'plus.signedOut.create': 'Create your free account',
+  'plus.signedOut.createSub.one': 'and get {count} scene',
+  'plus.signedOut.createSub.few': 'and get {count} scenes',
+  'plus.signedOut.createSub.many': 'and get {count} scenes',
+  'plus.signedOut.createSub.other': 'and get {count} scenes',
+  'plus.signedOut.haveAccount': 'Already have an account?',
+  'plus.signedOut.places': 'A scene moves with your music',
+  'plus.signedOut.place.graph': 'On the EQ graph',
+  'plus.signedOut.place.desktop': 'As your desktop',
+  'plus.signedOut.place.lights': 'On your RGB lights',
+  'plus.signedOut.gallery.title': 'Made by FluidEQ and its makers',
+  'plus.signedOut.gallery.body':
+    'New scenes every week. Watch any of them for a few seconds before you get it.',
+  'plus.signedOut.studio.title': 'Make your own in the Studio',
+  'plus.signedOut.studio.body':
+    'Publish it, and earn half a credit each time someone gets it with a paid credit.',
+  'plus.signedOut.forum.title': 'Join the Forum',
+  'plus.signedOut.forum.body':
+    'Ideas, help and new scenes, with other members and FluidEQ’s maker.',
+  'plus.signedOut.offerTitle.one': '{count} scene, free',
+  'plus.signedOut.offerTitle.few': '{count} scenes, free',
+  'plus.signedOut.offerTitle.many': '{count} scenes, free',
+  'plus.signedOut.offerTitle.other': '{count} scenes, free',
+  'plus.signedOut.offerBody':
+    'A free account starts with one credit for each, and every scene you get stays yours for good.',
+  'plus.signedOut.step.create': 'Create your account',
+  'plus.signedOut.step.confirm': 'Confirm your email',
+  'plus.signedOut.step.pick': 'Pick your scenes to keep',
   'plus.add.notOwned':
     'Get {name} first: it takes one credit, and then it goes in your looks.',
 } as const;

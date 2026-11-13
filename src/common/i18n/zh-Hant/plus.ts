@@ -164,13 +164,54 @@ const plus = {
   'plus.report.sending': '正在傳送...',
   'plus.report.cancel': '取消',
   'plus.report.failed': '無法傳送報告。再試一次。',
-  'plus.welcome.fine': '建立帳戶',
   'plus.welcome.scene.neonHorizon': '霓虹地平線',
   'plus.welcome.scene.nebulaHeart': '星雲之心',
   'plus.welcome.scene.hyperdrive': '超光速引擎',
   'plus.welcome.scene.reefLight': '礁石燈',
   'plus.welcome.scene.lanternLake': '燈籠湖',
   'plus.welcome.scene.prismBloom': '稜鏡綻放',
+
+  // The tab before signing in (`VisualizersSignedOut`).
+  'plus.signedOut.title.one': '您的前 {count} 個場景由我們買單。',
+  'plus.signedOut.title.few': '您的前 {count} 個場景由我們買單。',
+  'plus.signedOut.title.many': '您的前 {count} 個場景由我們買單。',
+  'plus.signedOut.title.other': '您的前 {count} 個場景由我們買單。',
+  'plus.signedOut.line':
+    '建立免費帳戶並領取起步點數。每個點數可換一個永久屬於您的場景。',
+  'plus.signedOut.free.title': '免費，無需帳戶',
+  'plus.signedOut.free.body':
+    'FluidEQ 的等化器、音訊效果、音樂播放和免費視覺化效果。無需註冊即可使用。',
+  'plus.signedOut.account.title': '有了免費帳戶',
+  'plus.signedOut.account.body':
+    '為「視覺化效果」取得場景（最初幾個免費）、瀏覽畫廊，並在「工作室」中製作自己的場景。',
+  'plus.signedOut.create': '建立免費帳戶',
+  'plus.signedOut.createSub.one': '並取得 {count} 個場景',
+  'plus.signedOut.createSub.few': '並取得 {count} 個場景',
+  'plus.signedOut.createSub.many': '並取得 {count} 個場景',
+  'plus.signedOut.createSub.other': '並取得 {count} 個場景',
+  'plus.signedOut.haveAccount': '已經有帳戶？',
+  'plus.signedOut.places': '場景隨您的音樂而動',
+  'plus.signedOut.place.graph': '在 EQ 曲線圖上',
+  'plus.signedOut.place.desktop': '作為桌面',
+  'plus.signedOut.place.lights': '在您的 RGB 燈光上',
+  'plus.signedOut.gallery.title': '由 FluidEQ 及其創作者製作',
+  'plus.signedOut.gallery.body':
+    '每週都有新場景。取得之前，任何場景都可以先看幾秒。',
+  'plus.signedOut.studio.title': '在工作室製作您自己的',
+  'plus.signedOut.studio.body':
+    '發布後，每當有人用付費點數取得它，您就能賺到半個點數。',
+  'plus.signedOut.forum.title': '加入論壇',
+  'plus.signedOut.forum.body':
+    '與其他成員和 FluidEQ 的作者交流想法、取得幫助、發現新場景。',
+  'plus.signedOut.offerTitle.one': '{count} 個場景，免費',
+  'plus.signedOut.offerTitle.few': '{count} 個場景，免費',
+  'plus.signedOut.offerTitle.many': '{count} 個場景，免費',
+  'plus.signedOut.offerTitle.other': '{count} 個場景，免費',
+  'plus.signedOut.offerBody':
+    '免費帳戶為每個場景各備好一點，您取得的每個場景都永久屬於您。',
+  'plus.signedOut.step.create': '建立帳戶',
+  'plus.signedOut.step.confirm': '確認電子郵件',
+  'plus.signedOut.step.pick': '挑選要保留的場景',
   'plus.add.notOwned':
     '首先取得 {name}：它需要一個點數，然後它會出現在您的外觀中。',
   'plus.gallery.error.forbidden': '此帳號沒有載入這些場景的權限。',

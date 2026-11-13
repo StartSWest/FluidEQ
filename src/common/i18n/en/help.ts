@@ -506,7 +506,7 @@ const help = {
   'help.plus.intro':
     'An account is optional: everything that was free runs on this computer without one. Signed in, the Visualizers tab holds the Gallery, the Studio, Dynamic lighting and the desktop visualizer. A scene from the Gallery costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
   'help.plus.steps':
-    'Open the Visualizers tab and press Sign in, or Create an account and type the six-digit code sent to your email. Once you are in, your account is the card at the foot of the tab’s left rail.\nChoose Gallery. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open your account from that card and choose a pack. It is paid once on Stripe, in your browser.',
+    'Open the Visualizers tab and press Sign in, or Create your free account and type the six-digit code sent to your email. Once you are in, your account is the card at the foot of the tab’s left rail.\nChoose Gallery. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open your account from that card and choose a pack. It is paid once on Stripe, in your browser.',
   'help.plus.tip':
     'The app never sees your card, and nothing renews. An account stays signed in on up to five computers.',
   'help.plus.keywords':

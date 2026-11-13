@@ -520,7 +520,7 @@ const help: Record<keyof typeof en, string> = {
   'help.plus.intro':
     'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Tab Visualizer die Galerie, das Studio, die dynamische Beleuchtung und den Desktop-Visualizer. Eine Szene aus der Galerie kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält einige Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
   'help.plus.steps':
-    'Öffnen Sie den Tab Visualizer und drücken Sie Anmelden oder Konto erstellen, und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde. Danach ist Ihr Konto die Karte unten in der linken Leiste des Tabs.\nWählen Sie Galerie. Öffnen Sie eine Szene, sehen Sie sie an, und drücken Sie Holen, um einen Credit dafür einzusetzen.\nFür weitere Credits öffnen Sie Ihr Konto über diese Karte und wählen ein Paket. Es wird einmalig über Stripe in Ihrem Browser bezahlt.',
+    'Öffnen Sie den Tab Visualizer und drücken Sie Anmelden oder Kostenloses Konto erstellen, und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde. Danach ist Ihr Konto die Karte unten in der linken Leiste des Tabs.\nWählen Sie Galerie. Öffnen Sie eine Szene, sehen Sie sie an, und drücken Sie Holen, um einen Credit dafür einzusetzen.\nFür weitere Credits öffnen Sie Ihr Konto über diese Karte und wählen ein Paket. Es wird einmalig über Stripe in Ihrem Browser bezahlt.',
   'help.plus.tip':
     'Die App sieht Ihre Karte nie, und nichts verlängert sich. Ein Konto bleibt auf bis zu fünf Computern angemeldet.',
   'help.plus.keywords':

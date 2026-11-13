@@ -247,27 +247,38 @@ describe('the Plus tab', () => {
     ).toBeInTheDocument();
   });
 
-  it('asks a visitor to sign in, naming what an account opens and what takes Plus', async () => {
+  // Ivan, 2026-11-13 (headline 1 of the approved page): what needs no
+  // account beside what one is for, and creating one as the loud way in.
+  it('offers a visitor a free account first, and says what needs none', async () => {
     bridge.getAccountState.mockResolvedValue({ status: 'signed-out' });
+    const requests = jest.fn();
+    const unsubscribe = subscribeAccountPanelRequests(requests);
     await renderPanel();
-    // The free app comes first; sign-in is a quiet independent choice.
-    const signIn = screen.getByRole('button', { name: 'account.signIn' });
-    expect(signIn).toHaveClass('button', 'plus-welcome__button');
-    expect(signIn).toHaveClass('subtle');
+
     expect(
-      screen.getByRole('heading', { name: 'trial.free.title' }),
+      screen.getByRole('heading', { name: 'plus.signedOut.title.other' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('trial.free.body')).toBeInTheDocument();
-    expect(screen.getByText('trial.browse')).toBeInTheDocument();
+    expect(screen.getByText('plus.signedOut.free.title')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'trial.extras.title' }),
+      screen.getByText('plus.signedOut.account.title'),
     ).toBeInTheDocument();
-    const perks = within(screen.getByRole('list')).getAllByRole('listitem');
-    expect(perks.map((perk) => perk.textContent)).toEqual([
-      'trial.extras.scenes',
-      'trial.extras.studio',
-      'trial.extras.desktop',
-    ]);
+    // The way in twice: under the headline (shown narrow) and on the offer.
+    const creates = screen.getAllByRole('button', {
+      name: /plus.signedOut.create plus.signedOut.createSub.other/,
+    });
+    expect(creates).toHaveLength(2);
+    creates.forEach((create) => {
+      expect(create).toHaveClass('button');
+      expect(create).not.toHaveClass('subtle');
+    });
+    // Signing in is the quiet choice beside it.
+    const signIns = screen.getAllByRole('button', { name: 'account.signIn' });
+    expect(signIns).toHaveLength(2);
+    signIns.forEach((signIn) => expect(signIn).toHaveClass('account-link'));
+
+    await userEvent.click(creates[1]);
+    expect(requests).toHaveBeenCalledWith('signUp');
+    unsubscribe();
     expect(bridge.plusProfile).not.toHaveBeenCalled();
   });
 });

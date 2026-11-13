@@ -178,6 +178,17 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ['creator.sales.{one,few,many,other}', 'creator.sales.*'],
   ],
   'src/renderer/plus/GalleryParts.tsx': ['plus.category.*'],
+  'src/renderer/plus/VisualizersSignedOut.tsx': [
+    ['plus.signedOut.title.{one,few,many,other}', 'plus.signedOut.title.*'],
+    [
+      'plus.signedOut.createSub.{one,few,many,other}',
+      'plus.signedOut.createSub.*',
+    ],
+    [
+      'plus.signedOut.offerTitle.{one,few,many,other}',
+      'plus.signedOut.offerTitle.*',
+    ],
+  ],
   'src/renderer/plus/StarterCard.tsx': [
     [
       'store.welcome.{cardTitle,cardClaimedTitle}.{one,few,many,other}',

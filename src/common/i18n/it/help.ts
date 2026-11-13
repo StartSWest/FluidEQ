@@ -516,7 +516,7 @@ const help: Record<keyof typeof en, string> = {
   'help.plus.intro':
     'L’account è facoltativo: tutto ciò che era gratuito funziona su questo computer anche senza. Con l’accesso, la scheda Visualizzatori raccoglie la Galleria, lo Studio, l’Illuminazione dinamica e il visualizzatore sul desktop. Una scena della Galleria costa un credito ed è tua per sempre; un account confermato riceve alcuni crediti gratis, e i pacchetti di crediti si pagano una sola volta.',
   'help.plus.steps':
-    'Apri la scheda Visualizzatori e premi Accedi, oppure Crea un account e inserisci il codice di sei cifre inviato alla tua email. Dopo l’accesso, il tuo account è il riquadro in fondo alla colonna di sinistra.\nScegli Galleria. Apri una scena, guardala e premi Ottieni per spenderci un credito.\nPer avere altri crediti, apri il tuo account da quel riquadro e scegli un pacchetto. Si paga una sola volta su Stripe, nel browser.',
+    'Apri la scheda Visualizzatori e premi Accedi, oppure Crea il tuo account gratuito e inserisci il codice di sei cifre inviato alla tua email. Dopo l’accesso, il tuo account è il riquadro in fondo alla colonna di sinistra.\nScegli Galleria. Apri una scena, guardala e premi Ottieni per spenderci un credito.\nPer avere altri crediti, apri il tuo account da quel riquadro e scegli un pacchetto. Si paga una sola volta su Stripe, nel browser.',
   'help.plus.tip':
     'L’app non vede mai la tua carta, e nulla si rinnova. Un account resta connesso su un massimo di cinque computer.',
   'help.plus.keywords':
