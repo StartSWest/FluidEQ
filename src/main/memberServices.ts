@@ -22,6 +22,8 @@ import log from 'electron-log';
 import path from 'path';
 import type { IScenePack } from '../common/scenePacks';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
+import type { TAudioEngine } from '../common/audioEngine';
+import { createEngineCount } from './account/engineCount';
 import { startMainAddons } from './addons';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
@@ -76,6 +78,8 @@ import { registerSceneFailureIpc } from './sceneFailures';
 export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
+  /** The audio engine chosen on this computer, for its anonymous daily count. */
+  getEngine: () => TAudioEngine | null;
 }
 
 /**
@@ -91,6 +95,7 @@ export interface IMemberServicesDeps {
 const registerMemberServices = ({
   getMainWindow,
   userDataDir,
+  getEngine,
 }: IMemberServicesDeps) => {
   // DEVELOPMENT ONLY, and compiled to nothing in a packaged build:
   // `isPackaged` is decided by the binary's name, which nothing here can
@@ -123,6 +128,18 @@ const registerMemberServices = ({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
     entitlement: accountIpc.entitlement,
+    logger: log,
+  });
+
+  // How many computers run each engine, as anonymous daily totals (premium
+  // 0110): once a day, for an account shown the terms that say so.
+  const engineCount = createEngineCount({
+    config: ACCOUNT_CONFIG,
+    userDataDir,
+    getEngine,
+    accountId: () => accountIpc.session.state().identity?.id,
+    accessToken: () => accountIpc.session.accessToken(),
+    toldOf: plusTermsNoticeIpc.toldOf,
     logger: log,
   });
 
@@ -596,6 +613,7 @@ const registerMemberServices = ({
     ownsAnyScene: () =>
       sceneOwnership.ownsAnything(memberScenesIpc.heldLookIds()),
     plusTermsNoticeIpc,
+    engineCount,
     scenePacksIpc,
     memberSharingIpc,
     plusGalleryIpc,

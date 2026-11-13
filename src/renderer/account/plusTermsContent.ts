@@ -175,6 +175,15 @@ const sentRows = (payoutsOpen: boolean): readonly ITermsSentRow[] => [
     when: 'terms.sent.announcements.when',
     who: 'terms.sent.announcements.who',
   },
+  // Revision 13 (premium 0110): the one anonymous count, beside the other
+  // thing the app sends on its own while signed in.
+  {
+    id: 'engine-count',
+    glyph: 'server',
+    what: 'terms.sent.engine.what',
+    when: 'terms.sent.engine.when',
+    who: 'terms.sent.engine.who',
+  },
   {
     id: 'scene-publish',
     glyph: 'upload',

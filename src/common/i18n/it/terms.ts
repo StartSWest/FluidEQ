@@ -100,6 +100,12 @@ const terms = {
     'All’avvio di FluidEQ, quando accedi e quando torni al computer',
   'terms.sent.announcements.who':
     'Non viene conservato nulla. Quali annunci hai già visto resta sul tuo computer.',
+  'terms.sent.engine.what':
+    'Quale motore audio hai scelto — il Motore FluidEQ, Equalizer APO o nessuno per ora — come una sola parola, senza nulla su di te o su questo computer',
+  'terms.sent.engine.when':
+    'Al massimo una volta al giorno mentre hai effettuato l’accesso, dopo che ti sono stati mostrati questi termini',
+  'terms.sent.engine.who':
+    'Si conservano solo totali giornalieri: un numero per motore al giorno. Niente li collega a te, al tuo account o al tuo computer, e il creatore di FluidEQ vede solo quanti.',
   'terms.sent.scenePublish.what':
     'Una scena che pubblichi, come per un’esportazione, con un’immagine di copertina, fino a due categorie e una nota sulle novità, se ne scrivi una',
   'terms.sent.scenePublish.when': 'Quando premi Pubblica nello Studio',
@@ -136,7 +142,7 @@ const terms = {
   'terms.protect.p3':
     'Visualizzatori mostra nickname e nomi visualizzati, mai indirizzi email. Gli id degli account non vengono mai mostrati, ma si trovano nei file delle scene e in ciò che Visualizzatori invia all’app.',
   'terms.protect.p4':
-    'Il creatore gestisce il servizio e può vedere ciò che conserva, per tenerlo in funzione, collegare i pagamenti e moderare ciò che i membri pubblicano. Nulla viene venduto o usato per pubblicità, e non c’è tracciamento né analisi.',
+    'Il creatore gestisce il servizio e può vedere ciò che conserva, per tenerlo in funzione, collegare i pagamenti e moderare ciò che i membri pubblicano. Nulla viene venduto o usato per pubblicità, e non c’è tracciamento. L’unico conteggio è quanti computer hanno usato ciascun motore audio ogni giorno, conservato solo come totali anonimi (vedi Cosa invia l’app, e quando).',
   'terms.protect.p5':
     'Il servizio funziona su Supabase (accesso, database e file) e invia email tramite Resend; i crediti si pagano tramite Stripe, il vecchio abbonamento tramite Buy Me a Coffee, e il Forum passa da GitHub. Ognuno riceve solo ciò che serve alla sua parte.',
   'terms.protect.p5Payouts':

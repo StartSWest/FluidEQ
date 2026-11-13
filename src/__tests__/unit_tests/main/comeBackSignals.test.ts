@@ -205,6 +205,7 @@ describe('accountComeBackSteps', () => {
       plusGallery: { refreshIfDue: jest.fn(record('gallery scenes')) },
       sceneReviews: { refreshIfDue: jest.fn(record('scene reviews')) },
       plusTermsNotice: { checkIfDue: jest.fn(record('Plus terms notice')) },
+      engineCount: { countIfDue: jest.fn(record('engine count')) },
       sceneAnnouncements: {
         refreshIfDue: jest.fn(record('scene announcements')),
       },
@@ -250,6 +251,7 @@ describe('accountComeBackSteps', () => {
       'gallery scenes',
       'scene reviews',
       'Plus terms notice',
+      'engine count',
       'scene announcements',
       'add-ons',
     ]);
@@ -301,6 +303,7 @@ describe('accountComeBackSteps', () => {
       'block list',
       'scene reviews',
       'Plus terms notice',
+      'engine count',
       'scene announcements',
       'add-ons',
     ]);

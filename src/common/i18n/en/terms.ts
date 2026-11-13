@@ -110,6 +110,12 @@ const terms = {
     'When FluidEQ starts, when you sign in and when you come back to the computer',
   'terms.sent.announcements.who':
     'Nothing is kept. Which announcements you have already seen stays on your computer.',
+  'terms.sent.engine.what':
+    'Which audio engine you chose — the FluidEQ Engine, Equalizer APO or none yet — as one word, with nothing about you or this computer',
+  'terms.sent.engine.when':
+    'At most once a day while you are signed in, once you have been shown these terms',
+  'terms.sent.engine.who':
+    'Only daily totals are kept: one number per engine per day. Nothing ties it to you, your account or your computer, and FluidEQ’s maker sees only how many.',
   'terms.sent.scenePublish.what':
     'A scene you publish, as for an export, with one cover picture, up to two categories and a note about what is new, if you write one',
   'terms.sent.scenePublish.when': 'When you press Publish in the Studio',
@@ -146,7 +152,7 @@ const terms = {
   'terms.protect.p3':
     'Visualizers shows handles and display names, never email addresses. Account ids are never shown, but they are inside scene files and in what Visualizers sends to the app.',
   'terms.protect.p4':
-    'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising, and there is no tracking or analytics.',
+    'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising, and there is no tracking. The one count is how many computers ran each audio engine each day, kept only as anonymous totals (see What the app sends, and when).',
   'terms.protect.p5':
     'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, the old membership through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
   'terms.protect.p5Payouts':

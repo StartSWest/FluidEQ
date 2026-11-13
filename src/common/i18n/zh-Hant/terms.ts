@@ -91,6 +91,11 @@ const terms = {
   'terms.sent.announcements.when': 'FluidEQ 啟動時、登入時以及返回電腦時',
   'terms.sent.announcements.who':
     '什麼都沒有保留。您已經看過的公告會保留在您的電腦上。',
+  'terms.sent.engine.what':
+    '您選擇的音訊引擎（FluidEQ 引擎、Equalizer APO 或尚未選擇），只傳送一個詞，不含任何關於您或這台電腦的資訊',
+  'terms.sent.engine.when': '登入期間、在向您顯示本條款之後，每天最多一次',
+  'terms.sent.engine.who':
+    '只保存每日總數：每個引擎每天一個數字。沒有任何內容將它與您、您的帳戶或您的電腦連結起來，FluidEQ 的作者只看得到數量。',
   'terms.sent.scenePublish.what':
     '您發布的場景（如匯出）包含一張封面圖片、最多兩個類別以及有關新增內容的註釋（如果您編寫了一個）',
   'terms.sent.scenePublish.when': '當您在 Studio 中按「發布」時',
@@ -125,7 +130,7 @@ const terms = {
   'terms.protect.p3':
     '視覺化工具顯示控制程式碼和顯示名稱，而不是電子郵件地址。帳戶 ID 永遠不會顯示，但它們位於場景檔案內以及 Visualizers 傳送到應用程式的內容中。',
   'terms.protect.p4':
-    '製造商執行該服務，可以檢視其儲存的內容，以保持其正常執行，匹配付款並審查會員發布的內容。沒有任何東西被出售或用於廣告，也沒有追蹤或分析。',
+    '製造商執行該服務，可以檢視其儲存的內容，以保持其正常執行，匹配付款並審查會員發布的內容。沒有任何東西被出售或用於廣告，也沒有追蹤。唯一的統計是每天有多少台電腦使用了各個音訊引擎，而且只以匿名總數保存（見「應用程式傳送的內容以及傳送時間」）。',
   'terms.protect.p5':
     '該服務在 Supabase 上執行（登入、資料庫和檔案）並透過 Resend 傳送電子郵件；點數透過 Stripe 支付，舊會員透過 Buy Me a Coffee 支付，論壇則透過 GitHub 支付。每個人只收到其部分所需的東西。',
   'terms.protect.p5Payouts':

@@ -100,6 +100,12 @@ const terms = {
     'Quando o FluidEQ inicia, quando você entra e quando você volta ao computador',
   'terms.sent.announcements.who':
     'Nada é guardado. Quais anúncios você já viu fica no seu computador.',
+  'terms.sent.engine.what':
+    'Qual motor de áudio você escolheu — o Motor FluidEQ, o Equalizer APO ou nenhum ainda — como uma palavra, sem nada sobre você ou este computador',
+  'terms.sent.engine.when':
+    'No máximo uma vez por dia enquanto você está conectado, depois que estes termos forem mostrados a você',
+  'terms.sent.engine.who':
+    'Só são guardados totais diários: um número por motor por dia. Nada o liga a você, à sua conta ou ao seu computador, e o criador do FluidEQ vê apenas quantos.',
   'terms.sent.scenePublish.what':
     'Uma cena que você publica, como numa exportação, com uma imagem de capa, até duas categorias e uma nota sobre o que há de novo, se você escrever uma',
   'terms.sent.scenePublish.when': 'Quando você clica em Publicar no Estúdio',
@@ -136,7 +142,7 @@ const terms = {
   'terms.protect.p3':
     'Visualizadores mostra nomes de usuário e nomes visíveis, nunca endereços de email. Os ids de conta nunca são mostrados, mas estão dentro dos arquivos de cenas e no que Visualizadores envia ao app.',
   'terms.protect.p4':
-    'O criador administra o serviço e pode ver o que ele armazena, para mantê-lo funcionando, associar pagamentos e moderar o que os membros publicam. Nada é vendido ou usado para publicidade, e não há rastreamento nem análises.',
+    'O criador administra o serviço e pode ver o que ele armazena, para mantê-lo funcionando, associar pagamentos e moderar o que os membros publicam. Nada é vendido ou usado para publicidade, e não há rastreamento. A única contagem é quantos computadores usaram cada motor de áudio a cada dia, guardada apenas como totais anônimos (veja O que o app envia, e quando).',
   'terms.protect.p5':
     'O serviço roda no Supabase (login, banco de dados e arquivos) e envia e-mails pelo Resend; os créditos são pagos pela Stripe, a antiga assinatura pelo Buy Me a Coffee, e o Fórum passa pelo GitHub. Cada um recebe apenas o que a sua parte precisa.',
   'terms.protect.p5Payouts':

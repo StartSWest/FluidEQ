@@ -246,21 +246,33 @@ describe('the Plus terms', () => {
    * that came back would contradict "no tracking or analytics" on the same
    * page.
    */
-  it('list nothing sent about how FluidEQ is used, and say there is no tracking', () => {
-    const rows = [...OPEN.sentRows, ...CLOSED.sentRows];
-    expect(
-      rows.filter((row) => /listening|scene-time|engine/.test(row.id)),
-    ).toEqual([]);
-    const told = rows.map((row) => translate('en', row.what));
-    expect(
-      told.filter((what) =>
-        /on your screen|audio engine|how long music/i.test(what),
-      ),
-    ).toEqual([]);
-    // The positive control: the sentence is there to be contradicted.
-    expect(translate('en', 'terms.protect.p4')).toMatch(
-      /no tracking or analytics/,
-    );
+  // Revision 13 (Ivan, 2026-11-13: "solo totales"): nothing about listening
+  // or what is on screen, and the engine only as the one anonymous daily
+  // count, said as exactly that.
+  it('list nothing sent about how FluidEQ is used but the one anonymous engine count', () => {
+    [OPEN, CLOSED].forEach((layout) => {
+      const rows = layout.sentRows;
+      expect(rows.filter((row) => /listening|scene-time/.test(row.id))).toEqual(
+        [],
+      );
+      const told = rows.map((row) => translate('en', row.what));
+      expect(
+        told.filter((what) => /on your screen|how long music/i.test(what)),
+      ).toEqual([]);
+      // The engine: one row, and it promises totals and nothing tied to you.
+      const engine = rows.filter((row) => /engine/.test(row.id));
+      expect(engine.map((row) => row.id)).toEqual(['engine-count']);
+      expect(translate('en', engine[0].who)).toMatch(/only daily totals/i);
+      expect(translate('en', engine[0].who)).toMatch(
+        /nothing ties it to you, your account or your computer/i,
+      );
+    });
+    // The privacy paragraph still says there is no tracking, and names the
+    // one count rather than promising there is none.
+    const p4 = translate('en', 'terms.protect.p4');
+    expect(p4).toMatch(/there is no tracking\./);
+    expect(p4).toMatch(/anonymous totals/);
+    expect(p4).not.toMatch(/no tracking or analytics/);
   });
 
   /**

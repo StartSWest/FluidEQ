@@ -25,6 +25,8 @@ const termsNotice = {
     'Szenen gehören Ihnen jetzt für immer: ein Credit pro Szene, aus Paketen, die einmalig über Stripe bezahlt werden, und ein bestätigtes Konto erhält zum Start einige Credits gratis. Jede Szene lässt sich vorher einige Sekunden ansehen. Das Studio und das Veröffentlichen sind für jedes Konto kostenlos, und Ihre eigenen Szenen laufen überall, sobald sie veröffentlicht sind. FluidEQ kann außerdem einige seiner eigenen Szenen für alle kostenlos machen. Die Plus-Mitgliedschaft wird nicht mehr verkauft: Eine laufende funktioniert weiter, bis FluidEQ seine Mitglieder auf Credits umstellt, und die Szenen, die ein Mitglied hinzugefügt hat, bleiben dann ihm.',
   'termsNotice.change.12':
     'Eine Szene, die ihr Ersteller zurückzieht, bleibt jetzt bei allen, die sie geholt haben. Eine wegen eines Verstoßes entfernte oder gelöschte Szene gibt ihren Käufern den Credit zurück, und ihr Ersteller gibt zurück, was diese Käufe eingebracht haben. Kontosperren für immer werden durch vorübergehende Sperren ersetzt: Ein gesperrtes Konto kann die Erstattung dessen beantragen, was es kurz zuvor bezahlt hat, und wird bald danach gelöscht. Beim Ablehnen oder Entfernen einer Szene kann der Macher von FluidEQ außerdem für eine Weile verhindern, dass diese Szene oder alle Szenen eines Erstellers veröffentlicht werden.',
+  'termsNotice.change.13':
+    'FluidEQ zählt jetzt einmal am Tag als anonyme Summe, wie viele Computer welche Audio-Engine nutzen: Gesendet wird nur der Name der Engine, ohne etwas, das ihn mit Ihnen, Ihrem Konto oder Ihrem Computer verbindet.',
 } as const;
 
 export default termsNotice;

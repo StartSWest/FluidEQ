@@ -103,6 +103,12 @@ const terms = {
     'Au démarrage de FluidEQ, quand vous vous connectez et quand vous revenez à l’ordinateur',
   'terms.sent.announcements.who':
     'Rien n’est conservé. Les annonces que vous avez déjà vues restent mémorisées sur votre ordinateur.',
+  'terms.sent.engine.what':
+    'Le moteur audio que vous avez choisi — le moteur FluidEQ, Equalizer APO ou aucun pour l’instant — en un seul mot, sans rien sur vous ni sur cet ordinateur',
+  'terms.sent.engine.when':
+    'Au plus une fois par jour pendant que vous êtes connecté, une fois que ces conditions vous ont été présentées',
+  'terms.sent.engine.who':
+    'Seuls des totaux quotidiens sont conservés : un nombre par moteur et par jour. Rien ne les relie à vous, à votre compte ou à votre ordinateur, et le créateur de FluidEQ ne voit que combien.',
   'terms.sent.scenePublish.what':
     'Une scène que vous publiez, comme pour un export, avec une image de couverture, jusqu’à deux catégories et une note sur les nouveautés, si vous en écrivez une',
   'terms.sent.scenePublish.when':
@@ -140,7 +146,7 @@ const terms = {
   'terms.protect.p3':
     'Visualiseurs affiche des identifiants et des noms d’affichage, jamais d’adresses e-mail. Les identifiants de compte ne sont jamais affichés, mais ils figurent dans les fichiers de scène et dans ce que Visualiseurs envoie à l’application.',
   'terms.protect.p4':
-    'Le créateur administre le service et peut voir ce qu’il conserve, pour le faire fonctionner, relier les paiements aux comptes et modérer ce que publient les membres. Rien n’est vendu ni utilisé pour la publicité, et il n’y a ni pistage ni statistiques d’usage.',
+    'Le créateur administre le service et peut voir ce qu’il conserve, pour le faire fonctionner, relier les paiements aux comptes et modérer ce que publient les membres. Rien n’est vendu ni utilisé pour la publicité, et il n’y a aucun pistage. Le seul comptage est le nombre d’ordinateurs ayant utilisé chaque moteur audio chaque jour, conservé uniquement sous forme de totaux anonymes (voir Ce que l’application envoie, et quand).',
   'terms.protect.p5':
     'Le service fonctionne sur Supabase (connexion, base de données et fichiers) et envoie les e-mails via Resend ; les crédits sont payés via Stripe, l’ancien abonnement via Buy Me a Coffee, et le Forum passe par GitHub. Chacun ne reçoit que ce dont sa partie a besoin.',
   'terms.protect.p5Payouts':

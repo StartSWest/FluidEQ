@@ -99,6 +99,12 @@ const terms = {
     'Al abrir FluidEQ, al iniciar sesión y al volver al ordenador',
   'terms.sent.announcements.who':
     'No se guarda nada. Qué anuncios ya has visto queda en tu ordenador.',
+  'terms.sent.engine.what':
+    'Qué motor de audio elegiste —el Motor FluidEQ, Equalizer APO o ninguno todavía— como una sola palabra, sin nada sobre ti ni sobre este ordenador',
+  'terms.sent.engine.when':
+    'Como mucho una vez al día mientras tienes la sesión iniciada, después de que se te hayan mostrado estos términos',
+  'terms.sent.engine.who':
+    'Solo se guardan totales diarios: un número por motor y por día. Nada lo vincula contigo, con tu cuenta ni con tu ordenador, y el creador de FluidEQ solo ve cuántos.',
   'terms.sent.scenePublish.what':
     'Una escena que publicas, igual que en una exportación, con una imagen de portada, hasta dos categorías y una nota sobre lo que hay de nuevo, si la escribes',
   'terms.sent.scenePublish.when': 'Cuando pulsas Publicar en el Estudio',
@@ -135,7 +141,7 @@ const terms = {
   'terms.protect.p3':
     'Visualizadores muestra alias y nombres visibles, nunca direcciones de correo. Los identificadores de cuenta nunca se muestran, pero están dentro de los archivos de escena y en lo que Visualizadores envía a la aplicación.',
   'terms.protect.p4':
-    'El creador administra el servicio y puede ver lo que guarda, para mantenerlo en marcha, asociar los pagos y moderar lo que publican los miembros. Nada se vende ni se usa para publicidad, y no hay rastreo ni analíticas.',
+    'El creador administra el servicio y puede ver lo que guarda, para mantenerlo en marcha, asociar los pagos y moderar lo que publican los miembros. Nada se vende ni se usa para publicidad, y no hay rastreo. El único recuento es cuántos ordenadores usaron cada motor de audio cada día, guardado solo como totales anónimos (consulta Qué envía la aplicación, y cuándo).',
   'terms.protect.p5':
     'El servicio funciona sobre Supabase (inicio de sesión, base de datos y archivos) y envía correos a través de Resend; los créditos se pagan con Stripe, la antigua membresía con Buy Me a Coffee, y el Foro va por GitHub. Cada uno recibe solo lo que su parte necesita.',
   'terms.protect.p5Payouts':

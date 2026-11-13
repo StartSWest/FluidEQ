@@ -66,6 +66,8 @@ export interface IAccountRefreshers {
   plusGallery: { refreshIfDue(): Promise<void> };
   sceneReviews: { refreshIfDue(reason: string): Promise<void> };
   plusTermsNotice: { checkIfDue(reason: string): Promise<void> };
+  /** The anonymous daily engine count (premium 0110), after the notice it waits on. */
+  engineCount: { countIfDue(reason: string): Promise<void> };
   sceneAnnouncements: { refreshIfDue(reason: string): Promise<void> };
   /** Add-ons from this checkout's own `addons/` folder (`addons.ts`). */
   addons: { refreshIfDue(reason: string): Promise<void> };
@@ -86,6 +88,7 @@ export const accountComeBackSteps = ({
   memberSharing,
   plusGallery,
   plusTermsNotice,
+  engineCount,
   sceneAnnouncements,
   sceneReviews,
   scenePacks,
@@ -106,6 +109,8 @@ export const accountComeBackSteps = ({
     name: 'Plus terms notice',
     run: (reason) => plusTermsNotice.checkIfDue(reason),
   },
+  // Right after: it counts only an account shown the terms that say so.
+  { name: 'engine count', run: (reason) => engineCount.countIfDue(reason) },
   {
     name: 'scene announcements',
     run: (reason) => sceneAnnouncements.refreshIfDue(reason),

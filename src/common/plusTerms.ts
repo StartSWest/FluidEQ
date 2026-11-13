@@ -158,6 +158,18 @@
  * takedown only stopped the scene opening, so this is a raise and edition 6.
  * Checkout's floor stays at 11: the change only ever gives a buyer back.
  */
+/**
+ * 13: how many computers run each audio engine, counted once a day as
+ * anonymous totals (Ivan, 2026-11-13: "solo totales"; premium 0110). The app
+ * sends one word — fluid, apo or none — at most once a day per computer, for
+ * a signed-in account shown this text (`account/engineCount.ts` asks
+ * `toldOf(13)`), and the server keeps one number per engine per day and
+ * nothing that ties it to anybody. Revision 12 said "there is no tracking or
+ * analytics", so this is a raise and edition 7; the sentence now names the
+ * one count. The server's `plus_terms_version()` moves to 13 in premium 0110,
+ * deployed with the release that carries this. Publishing's and checkout's
+ * floors do not move: the change gives nobody anything to agree to again.
+ */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  *
@@ -166,14 +178,14 @@
  * tells every eligible new account to update FluidEQ, on the newest build
  * there is. Raise both in the same release.
  */
-export const PLUS_TERMS_VERSION = 12;
+export const PLUS_TERMS_VERSION = 13;
 
 /** Published editions. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 6;
+export const PLUS_TERMS_EDITION = 7;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-11-12';
+export const PLUS_TERMS_EFFECTIVE = '2026-11-13';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a

@@ -99,6 +99,12 @@ const terms = {
     'Beim Start von FluidEQ, wenn Sie sich anmelden, und wenn Sie an den Computer zurückkehren',
   'terms.sent.announcements.who':
     'Nichts wird gespeichert. Welche Ankündigungen Sie schon gesehen haben, bleibt auf Ihrem Computer.',
+  'terms.sent.engine.what':
+    'Welche Audio-Engine Sie gewählt haben – die FluidEQ-Engine, Equalizer APO oder noch keine – als ein Wort, ohne etwas über Sie oder diesen Computer',
+  'terms.sent.engine.when':
+    'Höchstens einmal am Tag, während Sie angemeldet sind, nachdem Ihnen diese Bedingungen gezeigt wurden',
+  'terms.sent.engine.who':
+    'Gespeichert werden nur Tagessummen: eine Zahl pro Engine und Tag. Nichts verbindet sie mit Ihnen, Ihrem Konto oder Ihrem Computer, und der Macher von FluidEQ sieht nur, wie viele.',
   'terms.sent.scenePublish.what':
     'Eine Szene, die Sie veröffentlichen, wie bei einem Export, mit einem Titelbild, bis zu zwei Kategorien und einer Notiz dazu, was neu ist, falls Sie eine schreiben',
   'terms.sent.scenePublish.when':
@@ -136,7 +142,7 @@ const terms = {
   'terms.protect.p3':
     '„Visualizer“ zeigt Kürzel und Anzeigenamen, niemals E-Mail-Adressen. Konto-IDs werden nie angezeigt, stehen aber in Szenendateien und in dem, was „Visualizer“ an die App sendet.',
   'terms.protect.p4':
-    'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt, und es gibt kein Tracking und keine Analysen.',
+    'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt, und es gibt kein Tracking. Die einzige Zählung ist, wie viele Computer an jedem Tag welche Audio-Engine nutzten, und sie wird nur als anonyme Summe gespeichert (siehe Was die App sendet, und wann).',
   'terms.protect.p5':
     'Der Dienst läuft auf Supabase (Anmeldung, Datenbank und Dateien) und versendet E-Mails über Resend; Credits werden über Stripe bezahlt, die frühere Mitgliedschaft über Buy Me a Coffee, und das Forum läuft über GitHub. Jeder erhält nur, was sein Teil braucht.',
   'terms.protect.p5Payouts':

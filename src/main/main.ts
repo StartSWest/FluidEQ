@@ -735,6 +735,7 @@ registerSystemVolumeIpc(getMainWindow);
 const members = registerMemberServices({
   getMainWindow,
   userDataDir,
+  getEngine: () => session.audioEngine,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -958,6 +959,7 @@ const comeBack = createComeBackWatch({
     plusGallery: members.plusGalleryIpc,
     sceneReviews: members.plusReviewIpc,
     plusTermsNotice: members.plusTermsNoticeIpc,
+    engineCount: members.engineCount,
     sceneAnnouncements: members.sceneAnnouncementsIpc,
     addons: members.addons,
   }),
