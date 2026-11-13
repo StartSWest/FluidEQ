@@ -5,6 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  createDrumNetState,
+  hearDrumNet,
+  restartDrumNet,
+  type IDrumNetState,
+  type IDrumsHeard,
+} from './drumNet';
+import {
   createRhythmClock,
   followClock,
   holdOnset,
@@ -29,6 +36,7 @@ import {
   followHitHeight,
   HAT_HALF_LIFE_MS,
   hearKit,
+  hearKitNet,
   KICK_HALF_LIFE_MS,
   quietKit,
   restartKit,
@@ -178,6 +186,9 @@ export interface IRhythmState extends IRhythmClock {
   section: ISectionState;
   /** The last frames of the two windows' bins, for the drums' rises. */
   spectrumDrums: ISpectrumDrumState;
+  /** The net that hears the kit in the sound's own bins, and its last word. */
+  drumNet: IDrumNetState;
+  drumsHeard: IDrumsHeard;
   /** What the last step heard. */
   step: IRhythmStep;
 }
@@ -232,6 +243,8 @@ export const createRhythmState = (): IRhythmState => ({
   gridHeights: { kick: 0, snare: 0 },
   section: createSectionState(),
   spectrumDrums: createSpectrumDrumState(),
+  drumNet: createDrumNetState(),
+  drumsHeard: { kick: 0, snare: 0, hat: 0, top: 1 },
   step: { kick: false, snare: false, drumsSinceMs: 60_000, broad: 0 },
 });
 
@@ -263,6 +276,7 @@ const startSong = (state: IRhythmState) => {
   state.frames.length = 0;
   state.bandTops.fill(0);
   state.spectrumDrums = createSpectrumDrumState();
+  restartDrumNet(state.drumNet);
   restartKit(state.kit);
   state.section = {
     ...createSectionState(),
@@ -280,9 +294,14 @@ const listenToDrums = (
   features: { kick: number; snare: number; hat: number },
   bands: readonly number[],
   step: number,
+  /** The sound's own bins, where it has them: the net hears the kit there. */
+  spectrum: IRhythmSpectrum | undefined,
+  elapsedMs: number,
 ) => {
   const sure = state.tempo > 0 && state.confidence >= PATTERN_SURE;
-  const shown = hearKit(
+  // The detectors always listen: the beat's grid is weighed by their hits.
+  // They show the drums too only where there is no net to (`hearKit`).
+  let shown = hearKit(
     state.kit,
     features,
     bands,
@@ -295,7 +314,12 @@ const listenToDrums = (
         }
       : undefined,
     step,
+    !spectrum,
   );
+  if (spectrum) {
+    hearDrumNet(state.drumNet, spectrum, elapsedMs, state.drumsHeard);
+    shown = hearKitNet(state.kit, state.drumsHeard, state.clockMs, step);
+  }
   state.step.kick = shown.kick;
   state.step.snare = shown.snare;
   state.step.drumsSinceMs = Math.min(
@@ -322,6 +346,7 @@ const holdQuiet = (state: IRhythmState, quietMs: number): ISceneRhythm => {
   }
   state.frames.length = 0;
   state.spectrumDrums.frames.length = 0;
+  restartDrumNet(state.drumNet);
   return read(state, false);
 };
 
@@ -389,7 +414,14 @@ export const advanceRhythm = (
   keepBandFrame(state.frames, state.clockMs, bands);
   const drums = drumFeatures(rises);
   state.step.broad = drums.broad;
-  listenToDrums(state, spectrumDrums ?? drums, bands, step);
+  listenToDrums(
+    state,
+    spectrumDrums ?? drums,
+    bands,
+    step,
+    heard.spectrum,
+    elapsedMs,
+  );
   // The grid counts the bands' rises, so each drum is weighed against how
   // tall its hits stand on the bands - never against its detector's own
   // height, which is on the spectrum's scale wherever there is a spectrum.

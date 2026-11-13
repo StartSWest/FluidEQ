@@ -131,6 +131,8 @@ export interface IKitDrum {
   earlierDb: number[];
   /** Since the last hit shown, in music time. */
   shownSinceMs: number;
+  /** When the net was last sure of this drum, in music time (`hearKitNet`). */
+  sureAt: number[];
 }
 
 export type TDrumKit = Record<TDrum, IKitDrum>;
@@ -143,6 +145,7 @@ const newKitDrum = (drum: TDrum): IKitDrum => ({
   checks: [],
   earlierDb: [],
   shownSinceMs: 60_000,
+  sureAt: [],
 });
 
 export const createDrumKit = (): TDrumKit => ({
@@ -201,7 +204,15 @@ const followChecks = (
 /**
  * One step of the kit: `features` is what each drum's detector listens to,
  * `bands` the step's bands, `atMs` the music's time, `clock` where the bar
- * is when the clock is sure of it. Returns which drums were shown hitting.
+ * is when the clock is sure of it. Returns which drums these detectors heard
+ * hitting, and - unless `shows` is false - shows them.
+ *
+ * Where the sound has its samples it is the net that shows the drums
+ * (`hearKitNet`), and these detectors go on listening only for the beat's
+ * grid, which weighs its onsets by how tall their hits stand
+ * (`followHitHeight`) and was tuned on what they hear: handed the net's
+ * hits instead, a made-up song the net does not take for drums lost its
+ * beat altogether.
  */
 export const hearKit = (
   kit: TDrumKit,
@@ -210,6 +221,7 @@ export const hearKit = (
   atMs: number,
   clock: IKitClock | undefined,
   stepMs: number,
+  shows = true,
 ): Record<TDrum, boolean> => {
   const slot = clock ? slotOf(clock.beats, clock.phase, clock.tempo) : 0;
   const shown: Record<TDrum, boolean> = {
@@ -242,13 +254,15 @@ export const hearKit = (
         drum.earlierDb.shift();
       }
     }
-    drum.shownSinceMs += stepMs;
     shown[name] = stoodOver > 0 && drum.presence >= PRESENT;
-    if (shown[name]) {
-      drum.envelope = 1;
-      drum.shownSinceMs = 0;
-    } else {
-      drum.envelope *= 2 ** (-stepMs / HALF_LIFE_MS[name]);
+    if (shows) {
+      drum.shownSinceMs += stepMs;
+      if (shown[name]) {
+        drum.envelope = 1;
+        drum.shownSinceMs = 0;
+      } else {
+        drum.envelope *= 2 ** (-stepMs / HALF_LIFE_MS[name]);
+      }
     }
     // Where the drum plays is learnt from the hits shown, once the clock is
     // sure enough for "where in the bar" to mean something.
@@ -257,6 +271,73 @@ export const hearKit = (
         learnHit(drum.pattern, slot, stoodOver);
       }
       followPattern(drum.pattern, (stepMs * clock.tempo) / 60_000);
+    }
+  });
+  return shown;
+};
+
+/**
+ * How likely the net has to say a drum was hit for it to be shown
+ * (`drumNet.ts`). On songs it was never taught, with the rule below: a kick
+ * at 0.85 shows 75% of the real kicks with 84% of its lamps on one; a snare
+ * at 0.8, 59% and 70%; the hats at 0.8, 63% and 58%. Lower lines show more
+ * and are wrong more: at 0.7 the kick shows 81% with 76% right.
+ */
+const NET_LINE: Record<TDrum, number> = { kick: 0.85, snare: 0.8, hat: 0.8 };
+/**
+ * A drum is in the music once the net has been all but certain of it
+ * (NET_SURE) this many times within NET_SURE_WITHIN_MS. Shown without it, a
+ * clip with no drums in it lit the kick's lamp once every four seconds - a
+ * piano's hammer, a consonant; with it, once in eleven, for one real hit
+ * in a hundred shown later than it might have been.
+ */
+const NET_SURE = 0.95;
+const NET_SURE_HITS = 2;
+const NET_SURE_WITHIN_MS = 8_000;
+
+/**
+ * One step of the kit where the sound has its samples: `heard` is how
+ * likely the net says each drum was just hit, `atMs` the music's time.
+ * Returns which drums were shown hitting. It shows, and touches nothing the
+ * detectors keep for the beat's grid.
+ */
+export const hearKitNet = (
+  kit: TDrumKit,
+  heard: Record<TDrum, number>,
+  atMs: number,
+  stepMs: number,
+): Record<TDrum, boolean> => {
+  const shown: Record<TDrum, boolean> = {
+    kick: false,
+    snare: false,
+    hat: false,
+  };
+  DRUMS.forEach((name) => {
+    const drum = kit[name];
+    const { refractoryMs } = RULES[name];
+    const sureAt = drum.sureAt[drum.sureAt.length - 1];
+    if (
+      heard[name] >= NET_SURE &&
+      (sureAt === undefined || atMs - sureAt >= refractoryMs)
+    ) {
+      drum.sureAt.push(atMs);
+    }
+    while (
+      drum.sureAt.length > 0 &&
+      atMs - drum.sureAt[0] > NET_SURE_WITHIN_MS
+    ) {
+      drum.sureAt.shift();
+    }
+    drum.shownSinceMs += stepMs;
+    shown[name] =
+      heard[name] >= NET_LINE[name] &&
+      drum.shownSinceMs >= refractoryMs &&
+      drum.sureAt.length >= NET_SURE_HITS;
+    if (shown[name]) {
+      drum.envelope = 1;
+      drum.shownSinceMs = 0;
+    } else {
+      drum.envelope *= 2 ** (-stepMs / HALF_LIFE_MS[name]);
     }
   });
   return shown;
@@ -282,6 +363,7 @@ export const restartKit = (kit: TDrumKit) => {
     drum.presence = newKitDrum(name).presence;
     drum.checks = [];
     drum.earlierDb = [];
+    drum.sureAt = [];
   });
 };
 

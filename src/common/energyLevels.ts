@@ -57,6 +57,20 @@ import { NOTHING_DB, RHYTHM_BAND_COUNT, rhythmBandEdgeHz } from './soundHops';
  * or more; and between the notes Bass is over 0.3 in 0.7% of moments, where
  * it was in 32%.
  *
+ * THE TREBLE AND A VOICE. Everything from 5 kHz up was the treble, and a
+ * singer's "s", a guitar's pick and a synth's air are up there with the
+ * hats. Measured on thirty-six songs split into their drums, voice and the
+ * rest (2026-11-13), Treble read 0.85 in the moments only the drums were in
+ * the top - and 0.93 in the moments only a voice or an instrument was: it
+ * followed the singer more than the hats. So the top's power is weighed by
+ * how much of it is the drums' own, as the drums' net says (`drumNet.ts`,
+ * `drumsTop`), squared: weighed by the share itself Treble still read 0.73
+ * on a voice alone. Now 0.87 on the hats and 0.52 on a voice, and it
+ * follows the drums' own top at a correlation of 0.76 where it was 0.60,
+ * and the voice's and the instruments' at 0.11 where it was 0.48. The Bass
+ * and the Mids were measured the same way and needed nothing: 0.81 with
+ * their own part and 0.13 with another's, 0.73 and 0.06.
+ *
  * SILENCE. The analyser writes a bin with nothing in it as NOTHING_DB, and
  * that floor summed over every bin of the whole came to -75 dB, well over
  * the quietest its loudest was allowed to fall to: a dozen seconds after a
@@ -364,12 +378,15 @@ const followPart = (
  * One step of the four levels: from a hop's own bins where there are any,
  * else from the rhythm's bands (0..1 over 100 dB), which are too coarse to
  * tell a bass note's peak from a skirt: there the bass is its range's power.
+ * `drumsTop` is how much of the top is the drums' own, where that is known
+ * (THE TREBLE AND A VOICE).
  */
 export const followLevels = (
   state: ILevelState,
   bands: readonly number[],
   spectrum: IRhythmSpectrum | undefined,
   stepMs: number,
+  drumsTop = 1,
 ) => {
   let bass: number;
   let mid: number;
@@ -378,12 +395,15 @@ export const followLevels = (
   if (spectrum) {
     bass = bassPower(spectrum.low, spectrum.lowBinHz);
     mid = lastingPower(state, midPowersOf(spectrum));
-    treble = partPower(
-      spectrum.high,
-      spectrum.highBinHz,
-      TREBLE_FROM_HZ,
-      TREBLE_TO_HZ,
-    );
+    treble =
+      drumsTop *
+      drumsTop *
+      partPower(
+        spectrum.high,
+        spectrum.highBinHz,
+        TREBLE_FROM_HZ,
+        TREBLE_TO_HZ,
+      );
     all =
       partPower(spectrum.low, spectrum.lowBinHz, BASS_FROM_HZ, MID_FROM_HZ) +
       partPower(spectrum.high, spectrum.highBinHz, MID_FROM_HZ, TREBLE_TO_HZ);

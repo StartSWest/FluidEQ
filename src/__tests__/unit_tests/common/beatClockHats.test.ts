@@ -118,7 +118,11 @@ const hearLive = (hats: boolean): IHeard => {
       hop.atMs / 1000,
       reading.rhythm,
       reading.beat,
-      energy.rhythm.step.snare,
+      // The snare the GRID hears: its own detector's hit, this hop. What is
+      // shown where the sound has its samples is the net's (`hearKitNet`),
+      // which takes no white-noise hat for a snare - and the grid is not
+      // weighed by that.
+      energy.rhythm.kit.snare.detector.sinceMs === 0,
     );
   });
   return heard;
@@ -169,6 +173,21 @@ describe('the beat clock, with a hat between every two kicks', () => {
     const snares = fromKicks(hearLive(true).snares);
     expect(snares.length).toBeGreaterThanOrEqual(12);
     snares.forEach((offset) => expect(Math.abs(offset)).toBeGreaterThan(200));
+  });
+
+  it('shows none of those hats as a snare, where the net hears the kit', () => {
+    // What a scene is shown of the kit is the net's word, not the grid's
+    // detectors' (`hearKitNet`): they hear a snare in every one of these
+    // hats, above, and it takes none of them for one.
+    const energy = createEnergyState();
+    let shown = 0;
+    playHops(control(true), (hop) => {
+      hearSound(energy, [hop], 0);
+      if (energy.rhythm.step.snare && hop.atMs / 1000 >= SETTLED_S) {
+        shown += 1;
+      }
+    });
+    expect(shown).toBe(0);
   });
 
   it('beats on the kicks, and flashes on them, heard live', () => {

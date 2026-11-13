@@ -249,7 +249,15 @@ export const hearStep = (
   stepMs: number,
 ) => {
   const step = Math.max(1, Math.min(200, stepMs));
-  followLevels(state, heard.bands, heard.spectrum, step);
+  // The drums' share of the top is the net's, as of the hop before: the
+  // rhythm, which runs it, is advanced after the levels.
+  followLevels(
+    state,
+    heard.bands,
+    heard.spectrum,
+    step,
+    heard.spectrum ? state.rhythm.drumsHeard.top : 1,
+  );
   if (heard.voice) {
     followVoice(state.voice, heard.voice, step);
   } else {
