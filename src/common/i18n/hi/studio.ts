@@ -434,6 +434,8 @@ const studio = {
   'studio.stage.label': '{name}, लाइव चल रहा है',
   'studio.stage.ultraBand': 'अल्ट्रा-वाइड ग्राफ़',
   'studio.stage.ultraRest': 'बाक़ी विंडो, ऐप के पीछे',
+  'studio.stage.ultraWhole': 'पूरी तस्वीर',
+  'studio.stage.ultraWholeHint': 'ऐप के पीछे का हिस्सा भी पूरी चमक में दिखाएँ',
   'studio.stage.resize': 'प्रीव्यू का आकार बदलने के लिए खींचें',
   'studio.stage.zoomHint':
     'Ctrl + व्हील से ज़ूम करें; घुमाने के लिए Space दबाए रखें और खींचें',

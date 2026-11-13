@@ -447,6 +447,9 @@ const studio = {
   'studio.stage.label': '{name}, playing live',
   'studio.stage.ultraBand': 'Ultra-wide graph',
   'studio.stage.ultraRest': 'The rest of the window, behind the app',
+  'studio.stage.ultraWhole': 'Whole picture',
+  'studio.stage.ultraWholeHint':
+    'Show the part behind the app at full strength too',
   'studio.stage.resize': 'Drag to resize the preview',
   'studio.stage.zoomHint':
     'Ctrl + wheel zooms; hold Space and drag to move round',

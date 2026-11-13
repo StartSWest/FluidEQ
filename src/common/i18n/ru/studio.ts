@@ -436,6 +436,9 @@ const studio = {
   'studio.stage.label': '{name}, вживую',
   'studio.stage.ultraBand': 'Сверхширокий график',
   'studio.stage.ultraRest': 'Остальная часть окна, за приложением',
+  'studio.stage.ultraWhole': 'Вся картинка',
+  'studio.stage.ultraWholeHint':
+    'Показать в полную силу и ту часть, что за приложением',
   'studio.stage.resize': 'Потяните, чтобы изменить размер предпросмотра',
   'studio.stage.zoomHint':
     'Ctrl + колесо — масштаб; зажмите пробел и перетаскивайте, чтобы двигать',

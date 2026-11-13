@@ -379,6 +379,8 @@ const studio = {
   'studio.stage.label': '{name}，現場演奏',
   'studio.stage.ultraBand': '超寬螢幕圖表',
   'studio.stage.ultraRest': '視窗其餘部分，在應用程式後面',
+  'studio.stage.ultraWhole': '完整畫面',
+  'studio.stage.ultraWholeHint': '將應用程式後面的部分也以原亮度顯示',
   'studio.stage.resize': '拖曳以調整預覽大小',
   'studio.stage.zoomHint': 'Ctrl + 滾輪縮放；按住空白鍵拖曳即可移動',
   'studio.stage.startTitle': '您的場景在這裡播放',

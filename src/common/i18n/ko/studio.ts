@@ -423,6 +423,8 @@ const studio = {
   'studio.stage.label': '{name}, 라이브로 재생 중',
   'studio.stage.ultraBand': '울트라와이드 그래프',
   'studio.stage.ultraRest': '앱 뒤의 나머지 창',
+  'studio.stage.ultraWhole': '전체 화면',
+  'studio.stage.ultraWholeHint': '앱 뒤에 있는 부분도 원래 밝기로 표시합니다',
   'studio.stage.resize': '미리보기 크기를 조정하려면 드래그하세요.',
   'studio.stage.zoomHint':
     'Ctrl + 휠로 확대/축소, Space를 누른 채 드래그해 이동',

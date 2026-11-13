@@ -442,6 +442,9 @@ const studio = {
   'studio.stage.label': '{name}、ライブ再生中',
   'studio.stage.ultraBand': 'ウルトラワイドのグラフ',
   'studio.stage.ultraRest': 'アプリの後ろにあるウィンドウの残り',
+  'studio.stage.ultraWhole': '全体を表示',
+  'studio.stage.ultraWholeHint':
+    'アプリの後ろの部分もそのままの明るさで表示します',
   'studio.stage.resize': 'ドラッグしてプレビューの大きさを変更',
   'studio.stage.zoomHint':
     'Ctrl + ホイールで拡大縮小、Space を押しながらドラッグで移動',

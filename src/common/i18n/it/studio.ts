@@ -446,6 +446,9 @@ const studio = {
   'studio.stage.label': '{name}, dal vivo',
   'studio.stage.ultraBand': 'Grafico ultra-wide',
   'studio.stage.ultraRest': 'Il resto della finestra, dietro l’app',
+  'studio.stage.ultraWhole': 'Immagine intera',
+  'studio.stage.ultraWholeHint':
+    'Mostra a piena intensità anche la parte dietro l’app',
   'studio.stage.resize': 'Trascina per ridimensionare l’anteprima',
   'studio.stage.zoomHint':
     'Ctrl + rotellina per lo zoom; tieni premuta la barra spaziatrice e trascina per spostarti',

@@ -391,6 +391,8 @@ const studio = {
   'studio.stage.label': '{name}，实时播放中',
   'studio.stage.ultraBand': '超宽屏图表',
   'studio.stage.ultraRest': '窗口其余部分，在应用后面',
+  'studio.stage.ultraWhole': '完整画面',
+  'studio.stage.ultraWholeHint': '把应用后面的部分也按原亮度显示',
   'studio.stage.resize': '拖动可调整预览大小',
   'studio.stage.zoomHint': 'Ctrl + 滚轮缩放；按住空格键拖动即可移动',
   'studio.stage.startTitle': '你的场景在这里播放',

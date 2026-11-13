@@ -446,6 +446,9 @@ const studio = {
   'studio.stage.label': '{name}, en direct',
   'studio.stage.ultraBand': 'Graphique ultra-large',
   'studio.stage.ultraRest': 'Le reste de la fenêtre, derrière l’app',
+  'studio.stage.ultraWhole': 'Image entière',
+  'studio.stage.ultraWholeHint':
+    'Afficher aussi à pleine intensité la partie située derrière l’app',
   'studio.stage.resize': 'Faites glisser pour redimensionner l’aperçu',
   'studio.stage.zoomHint':
     'Ctrl + molette pour zoomer ; maintenez la barre d’espace et faites glisser pour vous déplacer',

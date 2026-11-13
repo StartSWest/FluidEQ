@@ -1,10 +1,12 @@
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // The ultra-wide graph framed on its window (`StudioUltraWideFrame`): the
 // band at full strength under an outline in the accent, the window round it
-// veiled to a little under half, so the picture outside still reads - its
-// foot, its fade or its black - and plainly is not the graph.
+// under a light veil - a fifth, where it was 58% and hid what it was there
+// to show - so the picture outside reads at once and plainly is not the
+// graph. "Whole picture" lifts the veil and leaves the outline.
 .studio-ultra-frame {
   position: absolute;
   z-index: 1;
@@ -24,9 +26,19 @@
   border-radius: 2px;
   // The veil is the band's own shadow, spread past every edge of the
   // window, so the band is the one clear rectangle with nothing to line up.
+  // A dark hairline outside the accent keeps the outline on a bright scene.
   box-shadow:
     0 0 0 1.5px $text-accent,
-    0 0 0 100vmax rgba($black, 0.58);
+    0 0 0 2.5px rgba($black, 0.5),
+    0 0 0 100vmax rgba($black, 0.22);
+  transition: box-shadow $motion-fast $ease-out;
+
+  .studio-ultra-frame.is-whole & {
+    box-shadow:
+      0 0 0 1.5px $text-accent,
+      0 0 0 2.5px rgba($black, 0.5),
+      0 0 0 100vmax rgba($black, 0);
+  }
 }
 
 .studio-ultra-frame__tag {
@@ -45,9 +57,68 @@
   white-space: nowrap;
 }
 
-// Under the band, on the veil: what the rest of the picture is.
-.studio-ultra-frame__tag--rest {
+// Under the band: what the rest of the picture is, and the switch that
+// shows it whole. A row that wraps, so a long language stacks the two.
+.studio-ultra-frame__rest {
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: center;
   margin-top: 6px;
-  color: rgba($white, 0.78);
+
+  .studio-ultra-frame__tag {
+    position: static;
+    max-width: 100%;
+  }
+}
+
+.studio-ultra-frame__tag--rest {
+  color: rgba($white, 0.82);
   font-weight: $weight-regular;
+}
+
+.studio-ultra-frame__whole {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  border: 1px solid rgba($white, 0.22);
+  color: rgba($white, 0.9);
+  font-family: inherit;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    border-color $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  svg {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    border-color: rgba($white, 0.5);
+    color: $white;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $text-accent;
+    color: $text-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-ultra-frame__band {
+    transition: none;
+  }
 }

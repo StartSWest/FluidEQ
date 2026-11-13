@@ -454,6 +454,9 @@ const studio = {
   'studio.stage.label': '{name}, live',
   'studio.stage.ultraBand': 'Ultrabreiter Graph',
   'studio.stage.ultraRest': 'Der Rest des Fensters, hinter der App',
+  'studio.stage.ultraWhole': 'Ganzes Bild',
+  'studio.stage.ultraWholeHint':
+    'Auch den Teil hinter der App in voller Stärke zeigen',
   'studio.stage.resize': 'Ziehen, um die Größe der Vorschau zu ändern',
   'studio.stage.zoomHint':
     'Strg + Mausrad zoomt; Leertaste halten und ziehen, um das Bild zu verschieben',
