@@ -128,28 +128,28 @@ describe('the ultra-wide graph on the stage', () => {
   // (Ivan, 2026-11-12: "the scene must be seen complete"), as far as a
   // band's height round the graph: the overflow "at a maximum size".
   it('shows the 3440-wide window from its top to a band’s height under the graph', () => {
-    // 166 above the band (all the window has), 534 of band, 534 under it.
+    // 174 above the band (all the window has), 534 of band, 534 under it.
     expect(ULTRA_WIDE_SHOWN).toEqual({
       left: 0,
       top: 0,
       width: 3440,
-      height: 1234,
+      height: 1242,
     });
-    expect(ULTRA_WIDE_WINDOW_SHAPE).toBeCloseTo(3440 / 1234, 6);
+    expect(ULTRA_WIDE_WINDOW_SHAPE).toBeCloseTo(3440 / 1242, 6);
     // The control: still far more than the band alone.
     expect(ULTRA_WIDE_WINDOW_SHAPE).toBeLessThan(ULTRA_WIDE_GRAPH_SHAPE / 1.9);
   });
 
-  it('frames the scene to the graph where it stands on the window, 143,166', () => {
+  it('frames the scene to the graph where it stands on the window, 143,174', () => {
     const [left, bottom, width, height] = ULTRA_WIDE_PANEL_VIEW;
     expect(left).toBeCloseTo(143 / 3440, 10);
     expect(width).toBeCloseTo(2956 / 3440, 10);
-    expect(height).toBeCloseTo(534 / 1234, 10);
-    // From the bottom, as GL counts: the band's foot at row 700 of the
-    // 1234 shown, a band's height above the foot of what is shown.
-    expect(bottom).toBeCloseTo(534 / 1234, 10);
+    expect(height).toBeCloseTo(534 / 1242, 10);
+    // From the bottom, as GL counts: the band's foot at row 708 of the
+    // 1242 shown, a band's height above the foot of what is shown.
+    expect(bottom).toBeCloseTo(534 / 1242, 10);
     // The frame the page lays over it is the same rectangle from the top.
-    expect(ULTRA_WIDE_BAND.top).toBeCloseTo(166 / 1234, 10);
+    expect(ULTRA_WIDE_BAND.top).toBeCloseTo(174 / 1242, 10);
     expect(ULTRA_WIDE_BAND.top + ULTRA_WIDE_BAND.height).toBeCloseTo(
       1 - bottom,
       10,
@@ -157,7 +157,7 @@ describe('the ultra-wide graph on the stage', () => {
     expect(ULTRA_WIDE_BAND.left).toBeCloseTo(left, 10);
     // In pixels it is the graph's own shape.
     expect(
-      (ULTRA_WIDE_BAND.width * 3440) / (ULTRA_WIDE_BAND.height * 1234),
+      (ULTRA_WIDE_BAND.width * 3440) / (ULTRA_WIDE_BAND.height * 1242),
     ).toBeCloseTo(ULTRA_WIDE_GRAPH_SHAPE, 6);
   });
 

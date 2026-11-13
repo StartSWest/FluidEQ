@@ -33,7 +33,10 @@ export const ULTRA_WIDE_GRAPH = { width: 2956, height: 534 } as const;
  * The whole window that ultra-wide graph stands in, as a scene covers it
  * behind the app (the Backdrop: the same scene drawn on the window, the
  * graph still its panel, `sceneView.ts`). Measured in the full-app harness
- * at 3440 by 1392 on the EQ tab: the graph's plot at 143,166, 2956 by 534.
+ * at 3440 by 1392 on the EQ tab: the graph's plot at 143,174, 2956 by 534
+ * (166 when first measured on 2026-11-12; the page's header has since grown
+ * by 8, measured again on 2026-11-13 as the plot's own box, which is the
+ * panel the EQ page hands the scene: `ScenePlot`, `.graph-plot`).
  * A scene composed only for the band stops short of the window's foot, and
  * on the Backdrop a member saw the picture end half-way down the window
  * with a flat brown under the faders (Ivan, 2026-11-12: "the picture leaves
@@ -44,7 +47,7 @@ export const ULTRA_WIDE_WINDOW = {
   width: 3440,
   height: 1392,
   graphLeft: 143,
-  graphTop: 166,
+  graphTop: 174,
 } as const;
 
 /**
@@ -53,7 +56,7 @@ export const ULTRA_WIDE_WINDOW = {
  * seen "at a maximum size"). Enough to see a picture run on past the graph
  * or stop short of it; the whole window made the band a strip under two
  * fifths of the preview, for rows under the faders. Above, the window has
- * only 166 pixels, so the cut is its own top; below, it stops 158 pixels
+ * only 174 pixels, so the cut is its own top; below, it stops 150 pixels
  * short of its foot.
  */
 const ULTRA_WIDE_REACH = ULTRA_WIDE_GRAPH.height;

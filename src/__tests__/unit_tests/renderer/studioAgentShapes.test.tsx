@@ -63,7 +63,7 @@ describe("the AI's shapes", () => {
   // round the graph, the graph its panel where the graph stands - the
   // stage's own view of it, shape and all.
   it('draw the ultra-wide window round its graph, and the graph alone flat', () => {
-    expect(ratio('ultra-wide-window')).toBeCloseTo(3440 / 1234, 6);
+    expect(ratio('ultra-wide-window')).toBeCloseTo(3440 / 1242, 6);
     expect(ratio('ultra-wide-window')).toBeCloseTo(ULTRA_WIDE_WINDOW_SHAPE, 6);
     expect(studioAgentViewOf('ultra-wide-window')).toEqual(
       ULTRA_WIDE_PANEL_VIEW,
