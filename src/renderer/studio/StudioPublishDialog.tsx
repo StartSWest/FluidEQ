@@ -364,12 +364,14 @@ export default function StudioPublishDialog({
             >
               {t('studio.publish.read')}
             </button>
+            {/* Between the terms and the buttons, in the room they leave: it
+                never pushes a button onto a line of its own. */}
+            {stillNeeded && !running && (
+              <p className="studio-publish__held" role="status">
+                {stillNeeded}
+              </p>
+            )}
             <div className="dialog-frame__actions">
-              {stillNeeded && !running && (
-                <p className="studio-publish__held" role="status">
-                  {stillNeeded}
-                </p>
-              )}
               <button
                 type="button"
                 className="button small subtle"

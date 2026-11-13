@@ -232,10 +232,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // What still holds Send, beside the buttons in the footer's quiet voice:
 // the reason used to be the button's tooltip alone, and nobody hovers a
 // disabled button. Never red: it is said from the first second, before the
-// member has done anything wrong. Wraps onto its own line before it squeezes
-// the buttons.
+// member has done anything wrong. It takes the footer's free room between the
+// terms and the buttons, and wraps to a line of its own before it pushes a
+// button off theirs.
 .studio-publish__held {
-  flex: 1 1 14rem;
+  flex: 1 1 12rem;
   align-self: center;
   min-width: 0;
   margin: 0;
