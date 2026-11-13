@@ -150,6 +150,9 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
 }
 
+// The pin beside Delete wears the same quiet icon button; lit in the accent
+// while the chat is pinned, so it says so without a hover.
+.studio-chat-past__pin,
 .studio-chat-past__delete {
   display: inline-grid;
   flex: none;
@@ -175,6 +178,32 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:focus-visible {
     @include focus-ring;
+  }
+}
+
+.studio-chat-past__pin {
+  svg {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  // Quiet until wanted, as the project picker's pins are: a pin down every
+  // row is a column of noise. Pinned, it stays, so the list says which.
+  &:not(.is-on) {
+    opacity: 0;
+  }
+
+  .studio-chat-past__item:hover &,
+  .studio-chat-past__item:focus-within &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &.is-on {
+    color: $text-accent;
   }
 }
 

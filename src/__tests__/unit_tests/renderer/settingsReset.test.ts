@@ -47,6 +47,9 @@ const KEPT = [
   'fluideq.forum.draft.v1:',
   'fluideq.dsp.crossfadeCurves.v1',
   'fluideq.dsp.favouritePresets.v1',
+  // The Studio's pinned projects and chats, one name per account
+  // (`studioPins.ts`): the member's own arrangement, like favourites.
+  'fluideq.studio.pins.v1:',
   'fluideq.dsp.savedRooms.v1',
   'fluideq.myCurves.v1',
   'fluideq.dsp.stagePresets.v1',

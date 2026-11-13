@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useMemo, useState } from 'react';
 import Glyph from '../../community/Glyph';
+import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import {
   deletePastStudioChat,
@@ -13,6 +14,12 @@ import {
   openPastStudioChat,
   useStudioChat,
 } from './studioChatStore';
+import {
+  dropChatPin,
+  pinnedFirst,
+  toggleChatPin,
+  useStudioPins,
+} from '../studioPins';
 import '../../styles/StudioChatPast.scss';
 
 /**
@@ -27,6 +34,8 @@ export default function StudioChatPast({ onOpened }: { onOpened: () => void }) {
   const { t, locale } = useTranslation();
   const { past, chat } = useStudioChat();
   const busy = chat?.busy ?? false;
+  const projectId = chat?.projectId;
+  const pinned = useStudioPins().chats[projectId ?? ''] ?? [];
   // A delete is for good, so the first press only asks.
   const [deleting, setDeleting] = useState<string>();
   // The reader's own calendar and clock, as the account cards use.
@@ -71,7 +80,7 @@ export default function StudioChatPast({ onOpened }: { onOpened: () => void }) {
         </p>
       )}
       <ul aria-label={t('studioChat.past.title')}>
-        {past.map((item) => (
+        {pinnedFirst(past, pinned, (item) => item.id).map((item) => (
           <li key={item.id} className="studio-chat-past__item">
             <button
               type="button"
@@ -100,6 +109,30 @@ export default function StudioChatPast({ onOpened }: { onOpened: () => void }) {
                 )}
               </span>
             </button>
+            {/* Pinned to the top of this project's list, newest pin first;
+                lit while it is, so a pinned chat says so without a hover. */}
+            {projectId && deleting !== item.id && (
+              <button
+                type="button"
+                className={`studio-chat-past__pin${
+                  pinned.includes(item.id) ? ' is-on' : ''
+                }`}
+                aria-pressed={pinned.includes(item.id)}
+                aria-label={`${t(
+                  pinned.includes(item.id)
+                    ? 'studio.pin.remove'
+                    : 'studio.pin.add',
+                )}: ${item.title || '…'}`}
+                title={t(
+                  pinned.includes(item.id)
+                    ? 'studio.pin.remove'
+                    : 'studio.pin.add',
+                )}
+                onClick={() => toggleChatPin(projectId, item.id)}
+              >
+                <MenuIcon name="pin" />
+              </button>
+            )}
             {item.source === 'fluideq' && deleting !== item.id && (
               <button
                 type="button"
@@ -118,7 +151,15 @@ export default function StudioChatPast({ onOpened }: { onOpened: () => void }) {
                   className="button small subtle"
                   onClick={() => {
                     setDeleting(undefined);
-                    deletePastStudioChat(item.id).catch(() => undefined);
+                    // A deleted chat takes its pin with it.
+                    deletePastStudioChat(item.id)
+                      .then(() => {
+                        if (projectId) {
+                          dropChatPin(projectId, item.id);
+                        }
+                        return undefined;
+                      })
+                      .catch(() => undefined);
                   }}
                 >
                   {t('common.icon.delete')}

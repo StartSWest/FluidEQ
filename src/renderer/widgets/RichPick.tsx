@@ -102,6 +102,11 @@ export interface IRichPickFavourites {
   addLabel: string;
   removeLabel: string;
   /**
+   * The mark at the row's end: the star for favourites, the pin where rows
+   * are pinned to the top (the Studio's projects). The same toggle either way.
+   */
+  icon?: 'star' | 'pin';
+  /**
    * Rows that take no star, drawn as plain full-width rows — a "None", which
    * is the absence of a choice rather than one worth keeping.
    */
@@ -425,7 +430,9 @@ const RichPick = ({
                   {item}
                   <button
                     type="button"
-                    className={`rich-pick__star${isFavourite ? ' is-on' : ''}`}
+                    className={`rich-pick__star${isFavourite ? ' is-on' : ''}${
+                      favourites.icon === 'pin' ? ' is-pin' : ''
+                    }`}
                     aria-pressed={isFavourite}
                     aria-label={`${
                       isFavourite ? favourites.removeLabel : favourites.addLabel
@@ -435,7 +442,7 @@ const RichPick = ({
                     }
                     onClick={() => favourites.onToggle(entry.id)}
                   >
-                    <MenuIcon name="star" />
+                    <MenuIcon name={favourites.icon ?? 'star'} />
                   </button>
                 </div>
               ) : (

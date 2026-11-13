@@ -407,6 +407,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       fill: currentcolor;
     }
   }
+
+  // A pin is an outline drawn open at its foot, so filled it reads as a
+  // blot: lit, it keeps its stroke and takes the accent, the Studio's own
+  // colour for what the member chose.
+  &.is-pin.is-on {
+    color: $text-accent;
+
+    svg {
+      fill: none;
+    }
+  }
 }
 
 // Actions under the list, apart from it: they make or bring a new entry

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
@@ -13,6 +13,12 @@ import StudioRenameProjectDialog from './StudioRenameProjectDialog';
 import SceneReviewBadge from '../plus/SceneReviewBadge';
 import { useStudioChat, type TStudioChatWork } from './chat/studioChatStore';
 import { forgetStudioProject, selectStudioProject } from './studioStore';
+import {
+  keepPinsFor,
+  pinnedFirst,
+  toggleProjectPin,
+  useStudioPins,
+} from './studioPins';
 import useProjectsReleased, {
   type TProjectRelease,
 } from './useProjectsReleased';
@@ -20,6 +26,8 @@ import useProjectsReleased, {
 const GROUP_OWN = 'projects';
 const GROUP_OFFICIAL = 'official';
 const GROUP_MEMBER = 'member';
+// Above every other group, whatever the pinned project's own.
+const GROUP_PINNED = 'pinned';
 
 /** Where a project files in the list: the member's own first. */
 const groupOf = (project: IStudioProject) => {
@@ -37,6 +45,7 @@ const GLYPH_OF: Record<string, TCommunityGlyph> = {
 };
 
 const GROUP_LABELS: Record<string, TranslationKey> = {
+  [GROUP_PINNED]: 'studio.project.groupPinned',
   [GROUP_OWN]: 'studio.project.group',
   [GROUP_OFFICIAL]: 'studio.project.groupOfficial',
   [GROUP_MEMBER]: 'studio.project.groupMember',
@@ -142,6 +151,15 @@ export default function StudioProjects({
   const { t, locale } = useTranslation();
   const { work } = useStudioChat();
   const releaseOf = useProjectsReleased(state.projects);
+  const pins = useStudioPins();
+  // A project the Studio no longer lists - forgotten, or its folder gone -
+  // takes its pins with it. Never on an empty list, which is also what the
+  // Studio holds before it has read its projects.
+  useEffect(() => {
+    if (state.projects.length > 0) {
+      keepPinsFor(state.projects.map((project) => project.id));
+    }
+  }, [state.projects]);
   const [switching, setSwitching] = useState(false);
   const picking = useRef(false);
   // The project being renamed, as it was when Rename was pressed.
@@ -158,82 +176,88 @@ export default function StudioProjects({
     // Scenes opened to look inside file after the member's own, FluidEQ's
     // and then other members', so a project called "Aurora" of theirs is
     // never mistaken for somebody else's.
+    // Pinned projects stand above all of it, newest pin first, under a
+    // heading of their own (`studioPins.ts`).
     () =>
-      [...state.projects]
-        .sort(
+      pinnedFirst(
+        [...state.projects].sort(
           (a, b) =>
             GROUP_ORDER.indexOf(groupOf(a)) - GROUP_ORDER.indexOf(groupOf(b)) ||
             a.path.localeCompare(b.path),
-        )
-        .map((project) => {
-          const doing = work[project.id];
-          // An AI at work on it says so instead: the scene is changing.
-          const release = doing ? undefined : releaseOf(project);
-          // The review's word on it stands beside whatever else is said. A
-          // version in review says so by its icon alone (below), so the
-          // review's own pending icon would only say it twice.
-          const mark =
-            groupOf(project) !== GROUP_OWN || release === 'review' ? null : (
-              <SceneReviewBadge sceneId={project.sceneId} />
-            );
-          let trailing;
-          if (doing) {
-            trailing = (
-              <span className={`studio-projects__state is-${doing}`}>
-                {t(WORK_LABEL[doing])}
-              </span>
-            );
-          } else if (release === 'review') {
-            // The icon alone at the row's end, its words on a hover and to a
-            // screen reader (Ivan, 2026-11-12: "just keep the icon at the end,
-            // and the hover says it"). As a word it wrapped onto a second
-            // line on a narrow picker and made the row taller than the rest.
-            trailing = (
-              <span
-                className="scene-review-mark scene-review-mark--pending"
-                role="img"
-                aria-label={t(RELEASE_LABEL.review)}
-                title={t(RELEASE_HINT.review)}
-              >
-                <MenuIcon name="pending" />
-              </span>
-            );
-          } else if (release) {
-            trailing = (
-              <span
-                className={`studio-projects__state is-${release}`}
-                title={t(RELEASE_HINT[release])}
-              >
-                {t(RELEASE_LABEL[release])}
-              </span>
-            );
-          }
-          return {
-            id: project.id,
-            name: project.names
-              ? resolveSceneName({ names: project.names }, locale)
-              : project.folderName,
-            hint: project.path,
-            group: groupOf(project),
-            icon: (
-              <Glyph
-                name={GLYPH_OF[groupOf(project)] ?? 'folder'}
-                className="rich-pick__glyph"
-              />
-            ),
-            ...(trailing || mark
-              ? {
-                  trailing: (
-                    <>
-                      {mark}
-                      {trailing}
-                    </>
-                  ),
-                }
-              : {}),
-          };
-        }),
-    [state.projects, locale, work, t, releaseOf],
+        ),
+        pins.projects,
+        (project) => project.id,
+      ).map((project) => {
+        const doing = work[project.id];
+        // An AI at work on it says so instead: the scene is changing.
+        const release = doing ? undefined : releaseOf(project);
+        // The review's word on it stands beside whatever else is said. A
+        // version in review says so by its icon alone (below), so the
+        // review's own pending icon would only say it twice.
+        const mark =
+          groupOf(project) !== GROUP_OWN || release === 'review' ? null : (
+            <SceneReviewBadge sceneId={project.sceneId} />
+          );
+        let trailing;
+        if (doing) {
+          trailing = (
+            <span className={`studio-projects__state is-${doing}`}>
+              {t(WORK_LABEL[doing])}
+            </span>
+          );
+        } else if (release === 'review') {
+          // The icon alone at the row's end, its words on a hover and to a
+          // screen reader (Ivan, 2026-11-12: "just keep the icon at the end,
+          // and the hover says it"). As a word it wrapped onto a second
+          // line on a narrow picker and made the row taller than the rest.
+          trailing = (
+            <span
+              className="scene-review-mark scene-review-mark--pending"
+              role="img"
+              aria-label={t(RELEASE_LABEL.review)}
+              title={t(RELEASE_HINT.review)}
+            >
+              <MenuIcon name="pending" />
+            </span>
+          );
+        } else if (release) {
+          trailing = (
+            <span
+              className={`studio-projects__state is-${release}`}
+              title={t(RELEASE_HINT[release])}
+            >
+              {t(RELEASE_LABEL[release])}
+            </span>
+          );
+        }
+        return {
+          id: project.id,
+          name: project.names
+            ? resolveSceneName({ names: project.names }, locale)
+            : project.folderName,
+          hint: project.path,
+          group: pins.projects.includes(project.id)
+            ? GROUP_PINNED
+            : groupOf(project),
+          icon: (
+            <Glyph
+              name={GLYPH_OF[groupOf(project)] ?? 'folder'}
+              className="rich-pick__glyph"
+            />
+          ),
+          ...(trailing || mark
+            ? {
+                trailing: (
+                  <>
+                    {mark}
+                    {trailing}
+                  </>
+                ),
+              }
+            : {}),
+        };
+      }),
+    [state.projects, locale, work, t, releaseOf, pins.projects],
   );
   // Another scene's chat with news: one waiting on the member first, then a
   // reply, then one at work.
@@ -270,6 +294,13 @@ export default function StudioProjects({
         menuMaxHeight={520}
         disabled={switching}
         entries={entries}
+        favourites={{
+          ids: pins.projects,
+          onToggle: toggleProjectPin,
+          addLabel: t('studio.pin.add'),
+          removeLabel: t('studio.pin.remove'),
+          icon: 'pin',
+        }}
         groupLabel={(group) => t(GROUP_LABELS[group] ?? 'studio.project.group')}
         activeId={state.activeId ?? ''}
         onPick={pick}
