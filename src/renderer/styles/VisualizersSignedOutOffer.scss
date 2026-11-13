@@ -33,48 +33,6 @@ it under the terms of the GNU General Public License version 3 or later.
     color-mix(in srgb, $surface-panel 88%, transparent);
 }
 
-.signed-out__coin {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  color: $secondary-light;
-  background:
-    radial-gradient(
-      circle at 35% 30%,
-      color-mix(in srgb, $secondary-light 42%, transparent),
-      transparent 60%
-    ),
-    color-mix(in srgb, $secondary-default 22%, $surface-panel);
-  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 6px color-mix(in srgb, $secondary-default 12%, transparent),
-    0 0 36px color-mix(in srgb, $secondary-default 35%, transparent);
-
-  svg {
-    width: 28px;
-    height: 28px;
-  }
-
-  > span {
-    position: absolute;
-    right: -6px;
-    bottom: -4px;
-    display: grid;
-    place-items: center;
-    min-width: 24px;
-    height: 24px;
-    color: $text-primary;
-    font-size: $text-body;
-    font-weight: $weight-bold;
-    background: $secondary-default;
-    border: 2px solid $surface-panel;
-    border-radius: $radius-pill;
-  }
-}
-
 .signed-out__offer-title {
   margin: 0;
   color: $text-primary;

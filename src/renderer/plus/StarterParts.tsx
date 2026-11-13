@@ -11,6 +11,7 @@ import lanternLake from '../../../assets/plus/lantern-lake.jpg';
 import nebulaHeart from '../../../assets/plus/nebula-heart.jpg';
 import neonHorizon from '../../../assets/plus/neon-horizon.jpg';
 import Glyph from '../community/Glyph';
+import CreditCoin from './CreditCoin';
 import { storeFailureKey } from './CreditPacks';
 import { openNotMineYet } from './plusNavigation';
 import { requestPlusTab } from './plusTabRequest';
@@ -38,15 +39,10 @@ export function StarterCoin({
   size: 'l' | 'm';
 }) {
   return (
-    <span
-      className={`starter-coin starter-coin--${size}${claimed ? ' is-claimed' : ''}`}
-      aria-hidden="true"
-    >
-      <Glyph name="credit" />
-      <span className="starter-coin__count">
-        {claimed ? <Glyph name="check" /> : STARTER_CREDITS}
-      </span>
-    </span>
+    <CreditCoin
+      size={size}
+      badge={claimed ? <Glyph name="check" /> : STARTER_CREDITS}
+    />
   );
 }
 

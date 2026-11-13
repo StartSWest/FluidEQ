@@ -16,73 +16,6 @@ it under the terms of the GNU General Public License version 3 or later.
 // them on 2026-11-13: the credit coin in front of three of FluidEQ's own
 // scenes, a frame for each first scene, the claim loud and Later quiet.
 
-// ---------------------------------------------------------------- the coin
-
-.starter-coin {
-  position: relative;
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  color: $secondary-light;
-  background:
-    radial-gradient(
-      circle at 35% 30%,
-      color-mix(in srgb, $secondary-light 42%, transparent),
-      transparent 60%
-    ),
-    color-mix(in srgb, $secondary-default 22%, $surface-panel);
-  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 6px color-mix(in srgb, $secondary-default 12%, transparent),
-    0 14px 30px rgba($black, 0.45),
-    0 0 36px color-mix(in srgb, $secondary-default 35%, transparent);
-
-  svg {
-    width: 46%;
-    height: 46%;
-  }
-}
-
-.starter-coin--l {
-  width: 72px;
-  height: 72px;
-}
-
-.starter-coin--m {
-  width: 48px;
-  height: 48px;
-}
-
-.starter-coin__count {
-  position: absolute;
-  right: -6px;
-  bottom: -4px;
-  display: grid;
-  place-items: center;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 7px;
-  color: $text-primary;
-  font-size: $text-body;
-  font-weight: $weight-bold;
-  background: $secondary-default;
-  border: 2px solid $surface-panel;
-  border-radius: $radius-pill;
-
-  svg {
-    width: 13px;
-    height: 13px;
-  }
-
-  .starter-coin--m & {
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    font-size: $text-small;
-  }
-}
-
 // ---------------------------------------------------------------- the dialog
 
 .starter-welcome-backdrop {
@@ -109,9 +42,10 @@ it under the terms of the GNU General Public License version 3 or later.
   isolation: isolate;
   border-bottom: 1px solid $border-subtle;
 
-  .starter-coin {
+  // The shared credit coin (`CreditCoin`), its centre on the hero's edge.
+  .credit-coin {
     position: absolute;
-    bottom: -36px;
+    bottom: calc(var(--coin) * -0.75);
     z-index: 2;
   }
 }
@@ -177,7 +111,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   justify-items: center;
   gap: 8px;
-  padding: 48px $spacing-l $spacing-m;
+  padding: 82px $spacing-l $spacing-m;
   text-align: center;
 }
 

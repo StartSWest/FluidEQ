@@ -11,6 +11,7 @@ import nebulaHeart from '../../../assets/plus/nebula-heart.jpg';
 import neonHorizon from '../../../assets/plus/neon-horizon.jpg';
 import prismBloom from '../../../assets/plus/prism-bloom.jpg';
 import reefLight from '../../../assets/plus/reef-light.jpg';
+import CreditCoin from './CreditCoin';
 import { landInGalleryOnSignIn } from './signedOutLanding';
 import '../styles/VisualizersSignedOutOffer.scss';
 import '../styles/VisualizersSignedOut.scss';
@@ -214,10 +215,7 @@ export default function VisualizersSignedOut({
             className="signed-out__glass signed-out__offer"
             aria-labelledby="signed-out-offer"
           >
-            <span className="signed-out__coin" aria-hidden="true">
-              <Glyph name="credit" />
-              <span>{STARTER_CREDITS}</span>
-            </span>
+            <CreditCoin size="l" badge={STARTER_CREDITS} />
             <h3 className="signed-out__offer-title" id="signed-out-offer">
               {t(
                 `plus.signedOut.offerTitle.${plural}` as TranslationKey,

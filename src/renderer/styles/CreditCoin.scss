@@ -1,0 +1,348 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The credit coin (`CreditCoin`), ported from the site's
+// (FluidEQ-Site `src/styles.css`, "The credit coin"): a struck disc tilted a
+// little toward the reader, its milled edge under it, floating inside a slow
+// orbit. The site's fixed teals are the window's accent here, so the coin
+// follows the window's colours like every other accent.
+
+$coin-deep: color-mix(in srgb, $secondary-default 55%, $black);
+
+.credit-coin {
+  --coin: 96px;
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: calc(var(--coin) * 1.5);
+  aspect-ratio: 1;
+}
+
+.credit-coin--m {
+  --coin: 46px;
+  width: calc(var(--coin) * 1.15);
+}
+
+.credit-coin__orbit {
+  position: absolute;
+  inset: 2%;
+  border: 1px dashed color-mix(in srgb, $secondary-light 26%, transparent);
+  border-radius: 50%;
+  animation: credit-coin-orbit 22s linear infinite;
+
+  // Two small coins riding the orbit, the same face in miniature.
+  i {
+    position: absolute;
+    top: 6%;
+    left: 22%;
+    width: 9px;
+    height: 9px;
+    background: radial-gradient(
+      circle at 35% 30%,
+      $white,
+      $secondary-light 55%,
+      $coin-deep
+    );
+    border-radius: 50%;
+    box-shadow: 0 0 10px color-mix(in srgb, $secondary-light 60%, transparent);
+  }
+
+  i:last-child {
+    top: auto;
+    right: 10%;
+    bottom: 16%;
+    left: auto;
+    width: 6px;
+    height: 6px;
+  }
+}
+
+.credit-coin__pulse {
+  position: absolute;
+  width: var(--coin);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, $secondary-default 40%, transparent);
+  border-radius: 50%;
+  animation: credit-coin-pulse 3.4s ease-out infinite;
+}
+
+.credit-coin__coin {
+  position: relative;
+  z-index: 2;
+  width: var(--coin);
+  aspect-ratio: 1;
+  transform: perspective(600px) rotateX(14deg);
+  animation: credit-coin-float 6s ease-in-out infinite;
+}
+
+// The milled edge: ridges all round, darker toward the shadow side.
+.credit-coin__edge {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba($black, 0.1) 40%, rgba($black, 0.6)),
+    repeating-linear-gradient(90deg, $secondary-light 0 2px, $coin-deep 2px 5px);
+  border-radius: 50%;
+  box-shadow:
+    0 calc(var(--coin) * 0.12) calc(var(--coin) * 0.24) rgba($black, 0.55),
+    0 0 calc(var(--coin) * 0.3)
+      color-mix(in srgb, $secondary-default 30%, transparent);
+  transform: translateY(calc(var(--coin) * 0.07));
+}
+
+// A struck field inside a polished band: the band a turning metal, the field
+// the window's deep panel, and one highlight where the light is.
+.credit-coin__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 34% 24%, rgba($white, 0.38), transparent 30%),
+    // Measured from the face's own edge (\`closest-side\`), so the polished
+    // band shows as a ring: the site's stops, read against the far corner,
+    // covered the band and left the coin a grey disc at this size.
+    radial-gradient(
+        circle closest-side at 50% 50%,
+        color-mix(in srgb, $coin-deep 55%, $surface-panel) 0,
+        color-mix(in srgb, $coin-deep 25%, $surface-panel) 74%,
+        transparent 79%
+      ),
+    conic-gradient(
+      from 210deg,
+      $secondary-light,
+      $coin-deep,
+      $white,
+      $coin-deep,
+      $secondary-light,
+      $coin-deep,
+      $secondary-light
+    );
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 calc(var(--coin) * 0.025)
+      color-mix(in srgb, $secondary-light 55%, transparent),
+    inset 0 calc(var(--coin) * -0.06) calc(var(--coin) * 0.14)
+      rgba($black, 0.45),
+    inset 0 calc(var(--coin) * 0.06) calc(var(--coin) * 0.1) rgba($white, 0.08);
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.credit-coin__rim {
+  stroke: color-mix(in srgb, $secondary-light 55%, transparent);
+  stroke-width: 6;
+}
+
+.credit-coin__rim--inner {
+  stroke: color-mix(in srgb, $secondary-light 22%, transparent);
+  stroke-width: 3;
+  stroke-dasharray: 2 10;
+  stroke-linecap: round;
+}
+
+.credit-coin__dots circle {
+  fill: color-mix(in srgb, $secondary-light 60%, transparent);
+}
+
+.credit-coin__glow {
+  stroke: $secondary-default;
+  stroke-opacity: 0.4;
+  stroke-width: 4;
+  stroke-linecap: round;
+  filter: blur(1px);
+}
+
+.credit-coin__wave {
+  stroke: $secondary-light;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+// Light running across the face now and then, as a struck coin catches it.
+.credit-coin__sheen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  pointer-events: none;
+
+  &::before {
+    position: absolute;
+    inset: -20% auto -20% -60%;
+    width: 40%;
+    content: '';
+    background: linear-gradient(
+      100deg,
+      transparent,
+      rgba($white, 0.28),
+      transparent
+    );
+    transform: rotate(18deg);
+    animation: credit-coin-sheen 5.5s ease-in-out infinite;
+  }
+}
+
+.credit-coin__spark {
+  position: absolute;
+  z-index: 3;
+  width: 9px;
+  height: 9px;
+  background: $white;
+  clip-path: polygon(
+    50% 0,
+    60% 40%,
+    100% 50%,
+    60% 60%,
+    50% 100%,
+    40% 60%,
+    0 50%,
+    40% 40%
+  );
+  opacity: 0;
+  animation: credit-coin-spark 4.2s ease-in-out infinite;
+}
+
+.credit-coin__spark--one {
+  top: 18%;
+  right: 20%;
+}
+
+.credit-coin__spark--two {
+  bottom: 24%;
+  left: 16%;
+  width: 7px;
+  height: 7px;
+  animation-delay: 1.4s;
+}
+
+// What the coin counts: a solid badge that reads at a glance (Ivan,
+// 2026-11-13: "fix the 3, it doesn't look good"), outside the tilted coin so
+// it never turns with it, ringed off from the coin in the panel's colour.
+.credit-coin__badge {
+  position: absolute;
+  z-index: 4;
+  right: calc(50% - var(--coin) * 0.62);
+  bottom: calc(50% - var(--coin) * 0.6);
+  display: grid;
+  place-items: center;
+  min-width: calc(var(--coin) * 0.42);
+  height: calc(var(--coin) * 0.42);
+  padding: 0 calc(var(--coin) * 0.06);
+  color: $surface-base;
+  font-size: calc(var(--coin) * 0.27);
+  font-weight: $weight-bold;
+  line-height: 1;
+  background: linear-gradient(
+    160deg,
+    $white -40%,
+    $secondary-light 45%,
+    $secondary-default
+  );
+  border: calc(var(--coin) * 0.04) solid $surface-panel;
+  border-radius: $radius-pill;
+  box-shadow: 0 4px 12px rgba($black, 0.4);
+
+  svg {
+    width: 55%;
+    height: 55%;
+  }
+}
+
+@keyframes credit-coin-orbit {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes credit-coin-pulse {
+  0% {
+    opacity: 0;
+    scale: 0.82;
+  }
+
+  35% {
+    opacity: 0.62;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 1.45;
+  }
+}
+
+@keyframes credit-coin-float {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -4deg;
+  }
+
+  50% {
+    translate: 0 calc(var(--coin) * -0.06);
+    rotate: 3deg;
+  }
+}
+
+@keyframes credit-coin-sheen {
+  0%,
+  55% {
+    left: -60%;
+  }
+
+  85%,
+  100% {
+    left: 130%;
+  }
+}
+
+@keyframes credit-coin-spark {
+  0%,
+  100% {
+    opacity: 0;
+    scale: 0.4;
+  }
+
+  45% {
+    opacity: 0.95;
+    scale: 1;
+  }
+
+  70% {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+// Motion turned down: nothing turns or floats, and the coin stays face-on.
+@media (prefers-reduced-motion: reduce) {
+  .credit-coin__orbit,
+  .credit-coin__pulse,
+  .credit-coin__coin,
+  .credit-coin__sheen::before,
+  .credit-coin__spark {
+    animation: none;
+  }
+
+  .credit-coin__coin {
+    transform: none;
+  }
+
+  .credit-coin__pulse,
+  .credit-coin__spark {
+    display: none;
+  }
+}
