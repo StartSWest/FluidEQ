@@ -59,9 +59,23 @@ jobs:
       # is published, which makes it what GitHub answers /releases/latest with —
       # and that is where the app's GitHub update feed goes looking for
       # latest.yml. It found a database archive instead.
+      #
+      # From 2.5.2 the app reads them from one fixed prerelease, `opra-database`,
+      # through plain release downloads (`src/main/opraFeed.ts`): the REST API
+      # it used to list releases with allows 60 unauthenticated requests an
+      # hour per address, and offices and carriers share one. A prerelease that
+      # is never marked latest leaves /releases/latest, and the 2.4 update feed
+      # reading it, alone. The copy on the version release stays for the
+      # versions before 2.5.2, which still look for it there.
       - name: Publish update assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           latest=$(gh release view --json tagName --jq .tagName)
           gh release upload "$latest" opra-database.zip assets/opra-version.json --clobber
+          if ! gh release view opra-database > /dev/null 2>&1; then
+            gh release create opra-database --prerelease --latest=false \
+              --title "OPRA headphone database" \
+              --notes "The headphone measurement library FluidEQ downloads. Data from OPRA, CC BY-SA 4.0; the licence and attribution are inside the archive."
+          fi
+          gh release upload opra-database opra-database.zip assets/opra-version.json --clobber

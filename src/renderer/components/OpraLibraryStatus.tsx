@@ -93,13 +93,16 @@ export default function OpraLibraryStatus() {
           t('autoeq.updateAvailable', {
             count: status.latest?.productCount.toLocaleString() ?? '',
           })}
+        {/* Up to date only against a manifest that was read: while a rate
+            limit runs, or before anything is published, there is nothing
+            to compare with (`opraFeed.ts`). */}
         {!isChecking &&
-          status &&
+          status?.latest &&
           !status.updateAvailable &&
           t('autoeq.upToDate', {
             count: status.current.productCount.toLocaleString(),
           })}
-        {!isChecking && !status && t('autoeq.updateUnknown')}
+        {!isChecking && !status?.latest && t('autoeq.updateUnknown')}
       </span>
       {status?.updateAvailable && (
         <Button

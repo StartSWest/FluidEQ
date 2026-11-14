@@ -25,11 +25,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * consumers to mirror the dataset instead of leaning on the CDN they run as a
  * courtesy for open-source projects. FluidEQ is sold, so we mirror.
  *
- * It rides on the version releases rather than a release of its own, so the
- * newest release is not necessarily the one carrying it: a version ships the
- * moment it is built, while the archive is only attached the next time the
- * database job runs. Hence the search back through recent releases for the
- * newest one that actually holds both assets.
+ * Where it is published and how often it is asked is `opraFeed.ts`: one fixed
+ * prerelease, read through release downloads rather than the REST API, once a
+ * day at most, conditionally, and never inside a rate limit's reset.
  *
  * The version check compares a hash of the upstream dataset. Its predecessor
  * compared AutoEq's upstream commit id, which had not moved since July 2025 and
@@ -43,15 +41,22 @@ import path from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { app } from 'electron';
+import log from 'electron-log';
 import { IOpraDatabaseManifest, IOpraUpdateStatus } from '../common/constants';
 import { isOpraProductId, isOpraShardName } from '../common/opraIds';
+import writeFileAtomically from './atomicWrite';
 import { forgetOpraIndex } from './opra';
+import {
+  IOpraFeedState,
+  OPRA_ARCHIVE_URL,
+  parseOpraFeedState,
+  readOpraManifest,
+} from './opraFeed';
 
 const execFileAsync = promisify(execFile);
-const RELEASES_API =
-  'https://api.github.com/repos/StartSWest/FluidEQ/releases?per_page=20';
 const MANIFEST_NAME = 'opra-version.json';
 const ARCHIVE_NAME = 'opra-database.zip';
+const FEED_STATE_NAME = 'opra-feed.json';
 
 /**
  * The most the library may weigh. The September 2026 library is 10.5 MB
@@ -61,15 +66,6 @@ const ARCHIVE_NAME = 'opra-database.zip';
  */
 const MAX_ARCHIVE_BYTES = 64 * 1024 * 1024;
 const MAX_DATABASE_BYTES = 256 * 1024 * 1024;
-
-interface IReleaseAsset {
-  name: string;
-  browser_download_url: string;
-}
-
-interface IReleaseResponse {
-  assets: IReleaseAsset[];
-}
 
 const bundledManifestPath = () =>
   app.isPackaged
@@ -89,54 +85,56 @@ const getCurrentManifest = () => {
   );
 };
 
-const fetchJson = async <Type>(url: string): Promise<Type> => {
-  const response = await fetch(url, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      'User-Agent': 'FluidEQ-Opra-Updater',
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`GitHub returned HTTP ${response.status}`);
+const feedStatePath = () => path.join(app.getPath('userData'), FEED_STATE_NAME);
+
+const readFeedState = (): IOpraFeedState => {
+  try {
+    return parseOpraFeedState(fs.readFileSync(feedStatePath(), 'utf8'));
+  } catch {
+    // No file yet, or one that cannot be read: ask as a first launch would.
+    return {};
   }
-  return (await response.json()) as Type;
 };
 
-const databaseAssets = (release: IReleaseResponse) => {
-  const manifest = release.assets.find((asset) => asset.name === MANIFEST_NAME);
-  const archive = release.assets.find((asset) => asset.name === ARCHIVE_NAME);
-  // A release carrying only one of the two is a half-finished upload, not a
-  // source: pairing them here keeps a manifest from being read against an
-  // archive published beside a different one.
-  return manifest && archive ? { manifest, archive } : undefined;
-};
-
-const getReleaseAssets = async () => {
-  const releases = await fetchJson<IReleaseResponse[]>(RELEASES_API);
-  const assets = releases
-    .map(databaseAssets)
-    .find((pair) => pair !== undefined);
-  if (!assets) {
-    throw new Error('OPRA database assets are missing.');
+/**
+ * The newest published manifest, by `opraFeed`'s rules, with what it decided
+ * kept for the next launch. A rate limit is one line in the log when it
+ * starts, and silence while it lasts.
+ */
+const latestManifest = async (): Promise<IOpraDatabaseManifest | undefined> => {
+  const before = readFeedState();
+  const answer = await readOpraManifest(before, Date.now(), fetch);
+  if (answer.state !== before) {
+    writeFileAtomically(feedStatePath(), JSON.stringify(answer.state, null, 2));
   }
-  return assets;
+  if (
+    answer.outcome === 'rate-limited' &&
+    answer.state.notBefore !== before.notBefore &&
+    answer.state.notBefore !== undefined
+  ) {
+    log.info(
+      `OPRA database check postponed until ${new Date(
+        answer.state.notBefore,
+      ).toISOString()}: rate limited by GitHub`,
+    );
+  }
+  return answer.latest;
 };
 
 export const checkOpraUpdate = async (): Promise<IOpraUpdateStatus> => {
   const current = getCurrentManifest();
-  const { manifest } = await getReleaseAssets();
-  const latest = await fetchJson<IOpraDatabaseManifest>(
-    manifest.browser_download_url,
-  );
+  const latest = await latestManifest();
   return {
     current,
     latest,
-    updateAvailable: latest.contentHash !== current.contentHash,
+    updateAvailable:
+      latest !== undefined && latest.contentHash !== current.contentHash,
   };
 };
 
 /**
- * Synchronize the bundled OPRA database with the latest published release.
+ * Synchronize the bundled OPRA database with the published one, by the
+ * feed's once-a-day rules (`opraFeed.ts`).
  * A current database is left untouched; a newer release is downloaded and
  * swapped in atomically by updateOpraDatabase.
  */
@@ -209,10 +207,10 @@ export const validateDatabase = (
 };
 
 export const updateOpraDatabase = async (): Promise<IOpraUpdateStatus> => {
-  const { archive, manifest } = await getReleaseAssets();
-  const latest = await fetchJson<IOpraDatabaseManifest>(
-    manifest.browser_download_url,
-  );
+  const latest = await latestManifest();
+  if (!latest) {
+    throw new Error('No OPRA database is published to update from.');
+  }
   const userDataDir = app.getPath('userData');
   const updateDir = path.join(userDataDir, `opra-update-${Date.now()}`);
   const archivePath = path.join(updateDir, ARCHIVE_NAME);
@@ -222,7 +220,9 @@ export const updateOpraDatabase = async (): Promise<IOpraUpdateStatus> => {
 
   fs.mkdirSync(extractedDir, { recursive: true });
   try {
-    const response = await fetch(archive.browser_download_url, {
+    // Published beside the manifest and replaced with it (`--clobber` on
+    // both), and checked against it below, product count and all.
+    const response = await fetch(OPRA_ARCHIVE_URL, {
       headers: { 'User-Agent': 'FluidEQ-Opra-Updater' },
     });
     if (!response.ok) {
