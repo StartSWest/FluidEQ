@@ -785,8 +785,6 @@ const studio = {
     'L’id doit compter de 2 à 48 minuscules, chiffres et tirets.',
   'studio.problem.names-missing': 'Un nom en anglais est obligatoire.',
   'studio.problem.name-too-long': 'Un nom dépasse 40 caractères.',
-  'studio.problem.bad-fallback':
-    'fallbackStyle n’est pas l’un des styles de FluidEQ.',
   'studio.problem.bad-swatch':
     'swatch demande de 2 à 4 couleurs comme #00e5cf.',
   'studio.problem.bad-artwork':

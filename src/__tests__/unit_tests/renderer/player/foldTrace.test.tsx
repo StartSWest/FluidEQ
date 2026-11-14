@@ -19,6 +19,8 @@ import PlayerAmp from 'renderer/player/PlayerAmp';
 import type { TGraphScene } from 'renderer/player/useGraphScenePack';
 
 let mockFolded = true;
+// The scene the graph's selection names, playable or not; none for a look.
+let mockChosen: string | undefined;
 let mockScene: TGraphScene = { state: 'none' };
 const mockCapture = jest.fn();
 const mockTrace = jest.fn();
@@ -35,6 +37,10 @@ jest.mock('renderer/player/playerLayout', () => ({
   usePlayerShelfOpen: () => ({ isShelfOpen: true }),
   usePlayerSound: () => ({ sound: { face: 'eq', isOpen: true } }),
   usePlayerVisFull: () => false,
+}));
+jest.mock('renderer/utils/graphStyle', () => ({
+  ...jest.requireActual('renderer/utils/graphStyle'),
+  useSelectedSceneLookId: () => mockChosen,
 }));
 jest.mock('renderer/player/useGraphScenePack', () => ({
   __esModule: true,
@@ -97,6 +103,7 @@ const traceIn = (container: HTMLElement) =>
 
 beforeEach(() => {
   mockFolded = true;
+  mockChosen = undefined;
   mockScene = { state: 'none' };
   mockCapture.mockClear();
   mockTrace.mockClear();
@@ -116,6 +123,14 @@ describe('the folded line and a standard look', () => {
     mockScene = READY;
     const { container } = render(<PlayerAmp onOpenPage={() => undefined} />);
     expect(screen.getByTestId('stage')).toHaveAttribute('data-scene', 'yes');
+    expect(traceIn(container)).toBeNull();
+  });
+
+  // Ivan, 2026-11-14: "only the full scene can show, always". A chosen
+  // scene that cannot play here gets no standard look in its place.
+  it('draws no standard look behind the line for a chosen scene that cannot play', () => {
+    mockChosen = 'premium:aurora';
+    const { container } = render(<PlayerAmp onOpenPage={() => undefined} />);
     expect(traceIn(container)).toBeNull();
   });
 

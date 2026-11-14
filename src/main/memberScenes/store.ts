@@ -1,7 +1,6 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import type { GraphStyle } from '../../common/graphStyles';
 import { parseMemberScenePayload } from '../../common/memberSceneFile';
 import {
   checkMemberScene,
@@ -64,7 +63,6 @@ export interface IMemberSceneSummary {
   version: number;
   revision?: string;
   names: TLocalizedName;
-  fallbackStyle: GraphStyle;
   swatch: string[];
   spectrumRange?: readonly [number, number];
   /** The wave its author built it around, when the pack names one. */
@@ -342,7 +340,6 @@ export const createMemberSceneStore = ({
       version: pack.version,
       revision: revisionOf(pack),
       names: pack.names,
-      fallbackStyle: pack.fallbackStyle,
       swatch: pack.swatch,
       ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
       ...(pack.wave ? { wave: pack.wave } : {}),

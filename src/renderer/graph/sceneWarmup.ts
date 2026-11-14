@@ -40,10 +40,12 @@ export const WARMUP_GOOD_FRAMES_TO_CLIMB = 12;
 /**
  * A frame this many intervals long is not a slow scene but a stalled GPU, and
  * three in a row at the smallest size is proof enough: waiting for the cost
- * ladder's usual count would mean seconds of a frozen window. The one thing
- * that stops a scene on this ladder, because a scene nobody here has watched
- * can hold the GPU until Windows resets the display driver for every program
- * on the machine; a scene that is merely slow rests at its smallest size.
+ * ladder's usual count would mean seconds of a frozen window. The first time,
+ * the scene is warmed again at an eighth of the panel and the slow rate; a
+ * second time there is the one thing that stops a scene on this ladder,
+ * because a scene nobody here has watched can hold the GPU until Windows
+ * resets the display driver for every program on the machine. A scene that
+ * is merely slow rests at its smallest size.
  */
 export const WARMUP_HOPELESS_FACTOR = 10;
 export const WARMUP_HOPELESS_FRAMES = 3;
@@ -135,6 +137,22 @@ export const createWarmupLadder = (top = 1, floor = 0): ICostLadder => {
 
       hopelessStreak = hopeless ? hopelessStreak + 1 : 0;
       if (rung <= floorRung && hopelessStreak >= WARMUP_HOPELESS_FRAMES) {
+        hopelessStreak = 0;
+        // Warmed again first, below the listener's smallest size and at the
+        // slow rate: the same scene smaller and slower, never a lesser look
+        // (Ivan, 2026-11-14: "only the full scene can show, always"). Only a
+        // scene that stalls the GPU even at an eighth of the panel and the
+        // slow rate is stopped - it would reset the display driver for every
+        // program on the machine - and its state is shown in its place.
+        if (rung > 0 || !slowed) {
+          rung = 0;
+          floorRung = 0;
+          ceiling = 0;
+          slowed = true;
+          goodStreak = 0;
+          slowStreak = 0;
+          return state();
+        }
         degraded = true;
         return state();
       }

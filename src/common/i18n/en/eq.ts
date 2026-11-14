@@ -231,13 +231,16 @@ const eq = {
   'graph.version.updatedNote': '{name} is now version {version}: {note}',
   'graph.version.see': "See what's new",
   'graph.look.refused.compile':
-    '{name} can’t play on the graph: its code doesn’t build on this computer. A standard look is showing instead.',
+    '{name} can’t play on the graph: its code doesn’t build on this computer.',
   'graph.look.refused.heavy':
-    '{name} is too heavy for this computer’s graphics right now. A standard look is showing instead.',
+    '{name} is too heavy for this computer’s graphics, even at its smallest size.',
   'graph.look.refused.unavailable':
-    '{name} can’t play here right now: this computer’s graphics can’t draw it. A standard look is showing instead.',
+    'This computer’s graphics can’t run scenes, so {name} can’t play here. The standard looks still work: pick one from the looks menu.',
   'graph.look.refused.driver':
-    'The graphics driver stopped while drawing {name}. A standard look is showing instead.',
+    'The graphics driver stopped while drawing {name}.',
+  'graph.look.thisScene': 'this scene',
+  'graph.look.refused.gone':
+    '{name} isn’t among your scenes on this computer any more. Pick another look from the looks menu.',
   'graph.look.retry': 'Try again',
   'graph.look.reportHint':
     'If it keeps happening, send us a report from {help} → {report}.',

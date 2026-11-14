@@ -773,8 +773,6 @@ const studio = {
     'id は 2〜48 文字の小文字の英字・数字・ハイフンにしてください。',
   'studio.problem.names-missing': '英語の名前が必要です。',
   'studio.problem.name-too-long': '40 文字を超える名前があります。',
-  'studio.problem.bad-fallback':
-    'fallbackStyle が FluidEQ の表示のどれでもありません。',
   'studio.problem.bad-swatch':
     'swatch には #00e5cf のような色を 2〜4 個入れてください。',
   'studio.problem.bad-artwork':

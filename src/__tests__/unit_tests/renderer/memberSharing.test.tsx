@@ -37,7 +37,6 @@ const theirs: IUsableMemberScene = {
   packId: 'neon-city',
   version: 1,
   names: { en: 'Neon City' },
-  fallbackStyle: 'skyline',
   swatch: ['#050a1a', '#00e5cf'],
   own: false,
   authorName: 'Mei Tanaka',

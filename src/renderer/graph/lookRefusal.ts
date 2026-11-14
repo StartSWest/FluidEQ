@@ -32,8 +32,8 @@ const emit = () => listeners.forEach((listener) => listener());
  * 2026-11-11: three of his scenes "didn't take" on the graph, which quietly
  * drew a standard look in their place, and the reason — a shader that would
  * not compile — was only in the log; it cost him hours). The graph still
- * draws the scene's own fallback form, and the choice stays written down
- * (`graphStyle.ts`, `repointFromScene`): this only says what happened.
+ * shows this in the scene's place, never a standard look, and the choice
+ * stays the scene (`sceneTrouble.ts`): this holds what happened.
  */
 export const refuseLook = (
   lookId: string,

@@ -695,7 +695,6 @@ const studio = {
   'studio.problem.bad-id': 'id 必须是 2 到 48 个小写字母、数字和连字符。',
   'studio.problem.names-missing': '必须有英文名称。',
   'studio.problem.name-too-long': '有一个名称超过 40 个字符。',
-  'studio.problem.bad-fallback': 'fallbackStyle 不是 FluidEQ 已有的外观。',
   'studio.problem.bad-swatch': 'swatch 需要 2 到 4 个颜色，例如 #00e5cf。',
   'studio.problem.bad-artwork': '图片不是 pack.json 所写尺寸的 WebP。',
   'studio.problem.bad-param':

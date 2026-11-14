@@ -1,8 +1,4 @@
-import {
-  canonicalGraphStyle,
-  DEFAULT_GRAPH_LOOK,
-  type GraphStyle,
-} from './graphStyles';
+import type { GraphStyle } from './graphStyles';
 import type { LocaleCode } from './i18n';
 import { normalizeSceneAmbient, type ISceneAmbient } from './sceneAmbient';
 import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
@@ -22,7 +18,6 @@ import {
   type ISceneResponse,
 } from './sceneResponse';
 import {
-  isGraphStyle,
   isRecord,
   MAX_SCENE_PARAMS,
   PACK_ID,
@@ -67,6 +62,17 @@ import {
  */
 
 export const SCENE_PACK_SCHEMA = 1;
+
+/**
+ * What every pack this app writes carries as `fallbackStyle`, for FluidEQ
+ * 2.5.2 and before: their Studio refuses a pack without one, and so does the
+ * gallery's publish check, which still asks for a style name. This version
+ * draws a scene only as itself and reads none (Ivan, 2026-11-14: "we cannot
+ * have fallbacks"), so the value is the app's, written where a project
+ * becomes a pack and never shown to a member or their AI. One that every
+ * FluidEQ has always had; not `schema`, which an older reader would refuse.
+ */
+export const LEGACY_FALLBACK_STYLE: GraphStyle = 'dots';
 
 /** Alongside `custom:`; never a member of `GraphStyle`. */
 export const PREMIUM_LOOK_PREFIX = 'premium:';
@@ -232,16 +238,13 @@ export const isLockedLookId = (id: string): boolean =>
  * So `contract` is read as what the scene was WRITTEN AGAINST and never as
  * what it needs. The app declares every uniform it has whatever a pack says,
  * so a shader that really does use one this build has not got fails to
- * compile and is drawn as its own `fallbackStyle` — which is what its author
- * chose for exactly this case. `schema` is the one number that may still
+ * compile and the scene says so where it would be drawn, with Try again. `schema` is the one number that may still
  * refuse a pack, because it means "an older reader would get this document
  * WRONG": bump it for a change in what a field MEANS, never for a new field.
  *
- * The fallback form goes through `canonicalGraphStyle` so a pack naming a form
- * the app has since retired lands on that form's replacement — the same
- * mechanism a saved look from an older version already uses — and a form the
- * app has never heard of, which is a form a newer FluidEQ added, lands on the
- * default one.
+ * A pack's own `fallbackStyle` is ignored: a scene is only ever drawn as
+ * itself. The field is set to `LEGACY_FALLBACK_STYLE` so a pack this app
+ * writes again carries what an older FluidEQ requires.
  */
 export const normalizeScenePack = (given: unknown): IScenePack | null => {
   // A pack handed over in its built layout reads as the same pack
@@ -266,9 +269,7 @@ export const normalizeScenePack = (given: unknown): IScenePack | null => {
   if (!names || !source) {
     return null;
   }
-  const fallbackStyle = isGraphStyle(raw.fallbackStyle)
-    ? canonicalGraphStyle(raw.fallbackStyle)
-    : DEFAULT_GRAPH_LOOK.style;
+  const fallbackStyle = LEGACY_FALLBACK_STYLE;
   // Dropped rather than refused: the scene draws without its picture, and a
   // picture this version cannot read is no reason to take the whole scene off
   // somebody's picker. The Studio names it for its author separately.
@@ -402,9 +403,8 @@ export const normalizeCatalogueEntry = (
     id: raw.id,
     version: Math.max(1, Math.round(readNumber(raw.version, 1))),
     names,
-    fallbackStyle: isGraphStyle(raw.fallback_style)
-      ? canonicalGraphStyle(raw.fallback_style)
-      : DEFAULT_GRAPH_LOOK.style,
+    // Ignored, as a pack's is (`normalizeScenePack`).
+    fallbackStyle: LEGACY_FALLBACK_STYLE,
     swatch: readSwatch(raw.swatch),
   };
 };

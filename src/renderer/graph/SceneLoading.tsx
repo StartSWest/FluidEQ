@@ -18,8 +18,9 @@ interface ISceneLoadingProps {
   swatch: string[];
   /** The scene has drawn its first frame: the backdrop fades and the ring goes. */
   settled: boolean;
-  width: number;
-  height: number;
+  /** The panel's size where it is known; absent, it fills its parent. */
+  width?: number;
+  height?: number;
 }
 
 /**

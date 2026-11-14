@@ -1,4 +1,3 @@
-import { GRAPH_STYLES } from './graphStyles';
 import {
   checkMemberSceneSource,
   checkMemberWorldHook,
@@ -176,7 +175,6 @@ export type TMemberProblemCode =
   | 'bad-id'
   | 'names-missing'
   | 'name-too-long'
-  | 'bad-fallback'
   | 'bad-swatch'
   | 'bad-artwork'
   | 'bad-param'
@@ -486,9 +484,11 @@ export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
   if (tooLong || params.tooLong) {
     add('name-too-long');
   }
-  if (!GRAPH_STYLES.some((style) => style === raw.fallbackStyle)) {
-    add('bad-fallback');
-  }
+  // No fallback look is asked of a scene, or checked: a scene is only ever
+  // drawn as itself (Ivan, 2026-11-14: "we cannot have fallbacks"). A value
+  // a pack carries is ignored here, and one it lacks is filled when the app
+  // writes the pack, for FluidEQ 2.5.2 and before, which require it
+  // (`withLegacyFallbackStyle`).
   const swatch = Array.isArray(raw.swatch)
     ? raw.swatch.filter(
         (colour): colour is string =>

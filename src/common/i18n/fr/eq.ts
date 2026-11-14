@@ -223,13 +223,16 @@ const eq: Partial<Dictionary> = {
   'graph.version.updatedNote': '{name} passe à la version {version} : {note}',
   'graph.version.see': 'Voir les nouveautés',
   'graph.look.refused.compile':
-    '{name} ne peut pas s’afficher sur le graphique : son code ne compile pas sur cet ordinateur. Un style standard s’affiche à la place.',
+    '{name} ne peut pas s’afficher sur le graphique : son code ne compile pas sur cet ordinateur.',
   'graph.look.refused.heavy':
-    '{name} est trop lourde pour la carte graphique de cet ordinateur pour l’instant. Un style standard s’affiche à la place.',
+    '{name} est trop lourde pour la carte graphique de cet ordinateur, même à sa plus petite taille.',
   'graph.look.refused.unavailable':
-    '{name} ne peut pas s’afficher pour l’instant : la carte graphique de cet ordinateur ne peut pas la dessiner. Un style standard s’affiche à la place.',
+    'La carte graphique de cet ordinateur ne peut pas faire tourner les scènes, donc {name} ne peut pas s’afficher ici. Les styles standard fonctionnent toujours : choisissez-en un dans le menu des styles.',
   'graph.look.refused.driver':
-    'Le pilote graphique s’est arrêté pendant le dessin de {name}. Un style standard s’affiche à la place.',
+    'Le pilote graphique s’est arrêté pendant le dessin de {name}.',
+  'graph.look.thisScene': 'cette scène',
+  'graph.look.refused.gone':
+    '{name} ne fait plus partie de vos scènes sur cet ordinateur. Choisissez un autre style dans le menu des styles.',
   'graph.look.retry': 'Réessayer',
   'graph.look.reportHint':
     'Si cela se reproduit, envoyez-nous un rapport depuis {help} → {report}.',

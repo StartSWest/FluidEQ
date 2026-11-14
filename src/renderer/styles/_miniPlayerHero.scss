@@ -40,6 +40,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   pointer-events: none;
 }
 
+// A chosen scene that cannot play here, said where it would be
+// (`SceneTroubleState`): pressable, for Try again.
+.player-hero__trouble {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
 .player-hero__trace,
 .player-hero__paper,
 .player-hero__spectrum {

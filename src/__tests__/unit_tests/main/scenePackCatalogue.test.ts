@@ -9,8 +9,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { DEFAULT_GRAPH_LOOK } from '../../../common/graphStyles';
-import { normalizeCatalogueEntry } from '../../../common/scenePacks';
+import {
+  LEGACY_FALLBACK_STYLE,
+  normalizeCatalogueEntry,
+} from '../../../common/scenePacks';
 import { createScenePackCatalogue } from '../../../main/scenePackCatalogue';
 
 const CONFIG = {
@@ -36,9 +38,9 @@ describe('a row of the public catalogue', () => {
       id: 'aurora',
       version: 1,
       names: { en: 'Aurora', es: 'Aurora boreal' },
-      // The catalogue still names the plain area, which is retired: the row
-      // is painted as the view that took its place.
-      fallbackStyle: 'analyzer',
+      // Whatever the catalogue names is ignored: a scene is only ever drawn
+      // as itself, and the row carries what older FluidEQ requires.
+      fallbackStyle: LEGACY_FALLBACK_STYLE,
       swatch: ['#0b1f2c', '#00e5cf'],
     });
   });
@@ -49,14 +51,15 @@ describe('a row of the public catalogue', () => {
     expect(normalizeCatalogueEntry('aurora')).toBeNull();
   });
 
-  // A form a newer FluidEQ added. It is only what the row is painted as
-  // until the scene itself runs, so it stands in for the default one rather
-  // than taking the row out of the picker.
+  // A form a newer FluidEQ added: ignored like any other, never a reason to
+  // take the row out of the picker.
   it('keeps a row naming a form this version has not got', () => {
-    expect(
-      normalizeCatalogueEntry({ ...AURORA, fallback_style: 'hologram' })
-        ?.fallbackStyle,
-    ).toBe(DEFAULT_GRAPH_LOOK.style);
+    const row = normalizeCatalogueEntry({
+      ...AURORA,
+      fallback_style: 'hologram',
+    });
+    expect(row?.id).toBe('aurora');
+    expect(row?.fallbackStyle).toBe(LEGACY_FALLBACK_STYLE);
   });
 });
 

@@ -119,10 +119,27 @@ describe('the warm-up ladder', () => {
     expect(ladder.scale()).toBe(0.25);
   });
 
-  it('gives up quickly on a scene that is hopeless even at the bottom', () => {
+  // Ivan, 2026-11-14: "only the full scene can show, always". A stalled GPU
+  // first warms the scene again at an eighth of the panel and the slow rate;
+  // only a scene that stalls there too is stopped, quickly, because it would
+  // reset the display driver for every program on the machine.
+  it('warms a stalled scene again, smallest and slowest, before stopping it', () => {
     const ladder = createWarmupLadder();
     expect(frames(ladder, WARMUP_HOPELESS_FRAMES - 1, HOPELESS)).toBe('ok');
+    expect(frames(ladder, 1, HOPELESS)).toBe('ok');
+    expect(ladder.scale()).toBe(0.125);
+    expect(ladder.slowed()).toBe(true);
+    expect(frames(ladder, WARMUP_HOPELESS_FRAMES - 1, HOPELESS)).toBe('ok');
     expect(frames(ladder, 1, HOPELESS)).toBe('degraded');
+  });
+
+  it('warms it again below the listener’s smallest size before stopping it', () => {
+    const ladder = createWarmupLadder(1, 0.5);
+    expect(frames(ladder, WARMUP_HOPELESS_FRAMES, HOPELESS)).toBe('ok');
+    expect(ladder.scale()).toBe(0.125);
+    expect(ladder.slowed()).toBe(true);
+    // The control: smooth there, it plays on and is never stopped.
+    expect(frames(ladder, WARMUP_GOOD_FRAMES_TO_CLIMB * 3, FAST)).toBe('ok');
   });
 
   // Ivan, 2026-11-08: "remove all low performance laptop fallback scenes ...

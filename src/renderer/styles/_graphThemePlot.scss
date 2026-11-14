@@ -182,6 +182,74 @@ it under the terms of the GNU General Public License version 3 or later.
   @include tracking(0.02em);
 }
 
+// A chosen scene that cannot be drawn right now (`SceneTroubleState.tsx`):
+// what happened, where the scene would be - never a standard look in its
+// place. Above the chart's drawing, so the words read over the EQ's curve,
+// and letting every press through but the card's own, so the curve and its
+// handles stay as editable as they are over a scene.
+.chart-scene-trouble {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  pointer-events: none;
+  animation: fade-in $motion-base $ease-out both;
+  // Its own height decides how much the card says: a short plot - the
+  // narrow window's is 149 px - keeps the words and Try again, and drops the
+  // icon and the report hint, which together came to about 190 px.
+  container-type: size;
+}
+
+@container (max-height: 200px) {
+  .chart-scene-trouble__icon,
+  .chart-scene-trouble__hint {
+    display: none;
+  }
+
+  .chart-scene-trouble__card {
+    gap: 6px;
+    padding: 10px 14px;
+  }
+}
+
+.chart-scene-trouble__card {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: 46ch;
+  padding: 14px 18px;
+  text-align: center;
+  pointer-events: auto;
+  background: color-mix(in srgb, $surface-panel 90%, transparent);
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  box-shadow: 0 8px 24px rgba($black, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.chart-scene-trouble__icon {
+  width: 28px;
+  height: 28px;
+  opacity: 0.7;
+}
+
+.chart-scene-trouble__text {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.chart-scene-trouble__hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
 // *** Output level meter *****************************************************
 //
 // How loud the output actually is, in real decibels below full scale, down the

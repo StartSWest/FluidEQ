@@ -789,8 +789,6 @@ const studio = {
     'The id must be 2 to 48 lowercase letters, digits and dashes.',
   'studio.problem.names-missing': 'An English name is required.',
   'studio.problem.name-too-long': 'A name is longer than 40 characters.',
-  'studio.problem.bad-fallback':
-    'fallbackStyle is not one of the looks FluidEQ has.',
   'studio.problem.bad-swatch': 'swatch needs 2 to 4 colours like #00e5cf.',
   'studio.problem.bad-artwork':
     'The picture is not a WebP of the size pack.json gives.',

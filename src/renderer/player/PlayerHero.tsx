@@ -14,6 +14,8 @@ import LightingToggle from '../graph/LightingToggle';
 import LiveTraceCanvas from '../graph/LiveTraceCanvas';
 import { liveLevelScaleFor } from '../graph/graphPaper';
 import SceneLikeButton from '../graph/SceneLikeButton';
+import SceneTroubleState from '../graph/SceneTroubleState';
+import type { ISceneTrouble } from '../graph/sceneTrouble';
 import LibraryCoverArt from '../library/LibraryCoverArt';
 import {
   useGraphAutoCycle,
@@ -25,6 +27,7 @@ import {
   useGraphGridHidden,
   useGraphLook,
   useSelectedLookId,
+  useSelectedSceneLookId,
 } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError } from '../utils/logger';
@@ -49,6 +52,9 @@ interface IPlayerHeroProps {
   scene: IGraphScenePack | undefined;
   /** One is on its way: nothing is drawn here in the meantime. */
   isLoading: boolean;
+  /** The chosen scene cannot play here: said in its place (`PlayerAmp`). */
+  trouble: ISceneTrouble | undefined;
+  onRetry: (lookId: string) => void;
   onOpenPage: (page: TPlayerPage) => void;
 }
 
@@ -63,13 +69,20 @@ interface IPlayerHeroProps {
  * Either way a double-press on the picture takes the screen, and a second
  * one, or Escape, gives it back.
  */
-const PlayerHero = ({ scene, isLoading, onOpenPage }: IPlayerHeroProps) => {
+const PlayerHero = ({
+  scene,
+  isLoading,
+  trouble,
+  onRetry,
+  onOpenPage,
+}: IPlayerHeroProps) => {
   const { t } = useTranslation();
   const heroRef = useRef<HTMLElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
   const isFull = usePlayerVisFull();
   const look = useGraphLook();
   const selectedLookId = useSelectedLookId();
+  const sceneChosen = useSelectedSceneLookId();
   const isGridHidden = useGraphGridHidden();
   const memberScenes = useUsableMemberScenes();
   const memberScene = isMemberLookId(selectedLookId)
@@ -137,7 +150,10 @@ const PlayerHero = ({ scene, isLoading, onOpenPage }: IPlayerHeroProps) => {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const isTrace = scene === undefined && !isLoading;
+  // A standard look's trace, only ever for a standard look: a chosen scene is
+  // drawn as itself or its state is shown, never a look in its place.
+  const isTrace =
+    scene === undefined && !isLoading && sceneChosen === undefined;
   useEffect(() => {
     const view = viewRef.current;
     if (!view || typeof ResizeObserver === 'undefined') {
@@ -224,6 +240,11 @@ const PlayerHero = ({ scene, isLoading, onOpenPage }: IPlayerHeroProps) => {
               />
             </div>
           )}
+        </div>
+      )}
+      {trouble && (
+        <div className="player-hero__trouble">
+          <SceneTroubleState trouble={trouble} onRetry={onRetry} />
         </div>
       )}
       <div className="player-hero__shade" aria-hidden="true" />

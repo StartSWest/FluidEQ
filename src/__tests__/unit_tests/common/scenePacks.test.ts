@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { DEFAULT_GRAPH_LOOK } from '../../../common/graphStyles';
 import {
   isPremiumLookId,
   isScenePackEnvelope,
@@ -16,6 +15,7 @@ import {
   parseScenePackPayload,
   premiumLookId,
   resolveSceneName,
+  LEGACY_FALLBACK_STYLE,
   SCENE_PACK_SCHEMA,
 } from '../../../common/scenePacks';
 import {
@@ -63,10 +63,9 @@ describe('normalising a scene pack', () => {
       id: 'aurora',
       version: 3,
       names: { en: 'Aurora', es: 'Aurora boreal' },
-      // The fixture asks for the area, which the September cull retired to
-      // the Analyzer: a pack names a form and the app answers with the one
-      // it would actually draw.
-      fallbackStyle: 'analyzer',
+      // The fixture asks for the area: ignored, as every pack's is. A scene
+      // is only ever drawn as itself (Ivan, 2026-11-14).
+      fallbackStyle: LEGACY_FALLBACK_STYLE,
       swatch: ['#00e5cf', '#9cfff4', '#ff3cac'],
     });
     expect(result?.params).toHaveLength(1);
@@ -105,13 +104,13 @@ describe('normalising a scene pack', () => {
   });
 
   /**
-   * A retired form names its replacement rather than being refused: the same
-   * mechanism a saved look from an older version already relies on.
+   * A pack's fallback form, retired or not, is read as the app's own: it is
+   * what an older FluidEQ is given, and nothing here draws it.
    */
-  it('canonicalises a retired fallback form', () => {
-    expect(
-      normalizeScenePack(pack({ fallbackStyle: 'ribbon' }))?.fallbackStyle,
-    ).toBe('analyzer');
+  it('ignores the fallback form a pack names', () => {
+    const read = normalizeScenePack(pack({ fallbackStyle: 'ribbon' }));
+    expect(read?.id).toBe('aurora');
+    expect(read?.fallbackStyle).toBe(LEGACY_FALLBACK_STYLE);
   });
 
   /**
@@ -135,11 +134,11 @@ describe('normalising a scene pack', () => {
       ).toBe('aurora');
     });
 
-    it('stands an unknown form in for the default one', () => {
-      // Only what is drawn when the scene cannot run: replaced, never fatal.
-      expect(
-        normalizeScenePack(pack({ fallbackStyle: 'lasers' }))?.fallbackStyle,
-      ).toBe(DEFAULT_GRAPH_LOOK.style);
+    it('reads a pack naming a form this version has not got', () => {
+      // Ignored, never fatal.
+      const read = normalizeScenePack(pack({ fallbackStyle: 'lasers' }));
+      expect(read?.id).toBe('aurora');
+      expect(read?.fallbackStyle).toBe(LEGACY_FALLBACK_STYLE);
     });
 
     it.each([

@@ -10,7 +10,10 @@ import {
   memberVersionWouldNotBuild,
   playerLookWouldNotBuild,
 } from '../graph/lookRecovery';
+import { refuseLook, retryLook, useLookRefusal } from '../graph/lookRefusal';
+import { useSceneTrouble } from '../graph/sceneTrouble';
 import type { TPreviewTrouble } from '../plus/ScenePreview';
+import { useSelectedSceneLookId } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import FoldStrip from './FoldStrip';
 import FoldTrace from './FoldTrace';
@@ -74,8 +77,9 @@ const PlayerAmp = ({
   // One load of the graph's Plus visualizer for the whole amp, folded or not:
   // it keeps moving behind the folded line.
   const scene = useGraphScenePack();
-  // The scene that failed here, so the free look stands in until another is
-  // picked.
+  // The scene that failed here. Its state stands in its place until it plays
+  // again - a better copy, or Try again - never a standard look (Ivan,
+  // 2026-11-14: "only the full scene can show, always").
   const [troubled, setTroubled] = useState<string>();
   const drawn =
     scene.state === 'ready' && scene.identity !== troubled ? scene : undefined;
@@ -85,16 +89,35 @@ const PlayerAmp = ({
         return;
       }
       setTroubled(scene.identity);
-      // Never only the free look in its place: a better copy, which draws
-      // here by itself, or the graph's word on why (`lookRecovery.ts`).
+      // A better copy, which draws here by itself, or the graph's word on
+      // why (`lookRecovery.ts`); anything else is said as it is.
       if (trouble === 'compile') {
         playerLookWouldNotBuild(scene.lookId, scene.pack.names).catch(
           () => undefined,
         );
+      } else {
+        refuseLook(scene.lookId, scene.pack.names, trouble);
       }
     },
     [scene],
   );
+  const sceneChosen = useSelectedSceneLookId();
+  const graphTrouble = useSceneTrouble();
+  const refusal = useLookRefusal();
+  let trouble = graphTrouble;
+  if (!trouble && scene.state === 'ready' && scene.identity === troubled) {
+    trouble = {
+      lookId: scene.lookId,
+      names: scene.pack.names,
+      swatch: scene.pack.swatch,
+      // Said once the graph has a word for it; a compile looked into first.
+      reason: refusal?.lookId === scene.lookId ? refusal.reason : 'waiting',
+    };
+  }
+  const onRetry = useCallback((retried: string) => {
+    setTroubled(undefined);
+    retryLook(retried);
+  }, []);
   const lookId = scene.state === 'ready' ? scene.lookId : undefined;
   const onVersionFailed = useCallback(() => {
     if (lookId !== undefined && isMemberLookId(lookId)) {
@@ -144,8 +167,11 @@ const PlayerAmp = ({
             onVersionFailed={onVersionFailed}
           />
           {/* A standard look behind the line, as a scene is behind it; none
-              while a scene is on its way, as the top panel draws none. */}
-          {drawn === undefined && scene.state !== 'loading' && <FoldTrace />}
+              while a scene is on its way, as the top panel draws none, and
+              never one standing in for a chosen scene. */}
+          {drawn === undefined &&
+            scene.state !== 'loading' &&
+            sceneChosen === undefined && <FoldTrace />}
           <FoldStrip onUnfold={unfold} />
         </>
       ) : (
@@ -171,6 +197,8 @@ const PlayerAmp = ({
               <PlayerHero
                 scene={drawn}
                 isLoading={scene.state === 'loading'}
+                trouble={trouble}
+                onRetry={onRetry}
                 onOpenPage={onOpenPage}
               />
               <PlayerDock />

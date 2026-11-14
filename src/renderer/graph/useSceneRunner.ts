@@ -599,11 +599,11 @@ export default function useSceneRunner({
             ladder.frame(result.cost, drawnIntervalMs, document.hidden) ===
               'degraded'
           ) {
-            // A scene nobody here has watched held the GPU at its smallest
-            // size long enough to freeze the window (`sceneWarmup.ts`). Never
-            // for being slow: a slow scene rests on its smallest size and
-            // stays. The source decides what this means: the graph falls back
-            // for this session, and the Studio says so.
+            // A scene nobody here has watched held the GPU even at an eighth
+            // of the panel and the slow rate, after being warmed again there
+            // (`sceneWarmup.ts`): long enough to freeze the window. Never for
+            // being slow: a slow scene rests on its smallest size and stays.
+            // The source says so in the scene's place, never a standard look.
             console.error(
               `Scene "${sourceRef.current.name}" held the GPU too long even at its smallest size; it stops until the next launch.`,
             );

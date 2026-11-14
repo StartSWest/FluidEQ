@@ -14,7 +14,8 @@ const AURORA = {
   id: 'aurora',
   version: 1,
   names: { en: 'Aurora', es: 'Aurora boreal' },
-  fallbackStyle: 'area' as const,
+  // The official catalogue still carries one, for older readers.
+  fallbackStyle: 'dots' as const,
   swatch: ['#00e5cf', '#ff3cac'],
 };
 
@@ -24,7 +25,15 @@ const listing = (
   owned: boolean,
   packs: IScenePacksListing['packs'] = [AURORA],
 ): IScenePacksListing =>
-  owned ? { packs, locked: [] } : { packs: [], locked: packs };
+  owned
+    ? { packs, locked: [] }
+    : {
+        packs: [],
+        locked: packs.map((pack) => ({
+          ...pack,
+          fallbackStyle: 'dots' as const,
+        })),
+      };
 
 /**
  * The look store is module state, so each case gets a fresh module registry
@@ -146,15 +155,17 @@ describe('premium looks in the look store', () => {
     expect(graphStyle.getGraphLookId()).toBe('premium:aurora');
   });
 
-  it('draws a premium selection as its fallback form while the scene is not running', () => {
+  // A scene is never drawn as a standard look (Ivan, 2026-11-14: "only the
+  // full scene can show, always"): the look a selection resolves to never
+  // takes the form a pack names, and the chart mounts the scene or its own
+  // state (`sceneNoStandIn.test.tsx`).
+  it('never resolves a premium selection to the form its pack names', () => {
     const { graphStyle, scenePacks } = load('premium:aurora');
     scenePacks.adoptScenePackListingForTesting(listing(true));
-    const resolved = graphStyle.getResolvedLook();
-    expect(resolved.style).toBe('area');
-    // The chart is told which canvas to mount separately, and this is the
-    // answer that says "the GPU one".
-    const scene = graphStyle.useSceneLook;
-    expect(typeof scene).toBe('function');
+    expect(graphStyle.getResolvedLook().style).not.toBe('area');
+    scenePacks.blockScene('aurora');
+    expect(graphStyle.getGraphLookId()).toBe('premium:aurora');
+    expect(graphStyle.getResolvedLook().style).not.toBe('area');
   });
 
   it('cycles through premium rows and wraps back to the first free form', () => {
@@ -170,27 +181,25 @@ describe('premium looks in the look store', () => {
   });
 
   /**
-   * Somebody who chose an aurora should land on the nearest free form when
-   * it goes away — not on Fluid.
+   * A scene the account no longer has stays chosen: the graph says so in its
+   * place, and no standard look is put up for it, on screen or on disk.
    */
-  it('lands on the scene’s own fallback when the subscription lapses', () => {
+  it('keeps the choice when the account no longer has the scene', () => {
     const { graphStyle, scenePacks } = load('premium:aurora');
     scenePacks.adoptScenePackListingForTesting(listing(true));
     expect(graphStyle.getGraphLookId()).toBe('premium:aurora');
 
     scenePacks.adoptScenePackListingForTesting(listing(false));
-    expect(graphStyle.getGraphLookId()).toBe('area-auto');
+    expect(graphStyle.getGraphLookId()).toBe('premium:aurora');
     expect(window.localStorage.getItem('fluideq-graph-style')).toBe(
-      'area-auto',
+      'premium:aurora',
     );
   });
 
   /**
    * Set aside for this session — the machine could not keep up, or the scene
-   * failed to build here — is not gone: it falls back until the next launch
-   * and the next launch tries it again. Writing the fallback down made a
-   * moment of a busy graphics card cost a Plus member their visualizer.
-   * The lapsed subscription above is the control: that one is written down.
+   * failed to build here — is not gone: it stays chosen, its state shown in
+   * its place, and the next launch tries it again.
    */
   it.each([
     [
@@ -202,13 +211,13 @@ describe('premium looks in the look store', () => {
       (packs: TScenePacksModule) => packs.blockScene('aurora'),
     ],
   ])(
-    'falls back for the session, and keeps the choice, when a scene %s',
+    'keeps the choice, never a standard look, when a scene %s',
     (_why, setAside) => {
       const first = load('premium:aurora');
       first.scenePacks.adoptScenePackListingForTesting(listing(true));
 
       setAside(first.scenePacks);
-      expect(first.graphStyle.getGraphLookId()).toBe('area-auto');
+      expect(first.graphStyle.getGraphLookId()).toBe('premium:aurora');
       expect(window.localStorage.getItem('fluideq-graph-style')).toBe(
         'premium:aurora',
       );

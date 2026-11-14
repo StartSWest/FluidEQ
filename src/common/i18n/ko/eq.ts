@@ -196,13 +196,16 @@ const eq = {
     '{name} · 버전 {version}로 업데이트되었습니다: {note}',
   'graph.version.see': '업데이트 내용 보기',
   'graph.look.refused.compile':
-    '{name}은(는) 그래프에서 재생할 수 없습니다: 이 컴퓨터에서 코드를 컴파일할 수 없습니다. 대신 기본 룩을 표시합니다.',
+    '{name}은(는) 그래프에서 재생할 수 없습니다: 이 컴퓨터에서 코드를 컴파일할 수 없습니다.',
   'graph.look.refused.heavy':
-    '{name}은(는) 지금 이 컴퓨터의 그래픽에 너무 무겁습니다. 대신 기본 룩을 표시합니다.',
+    '{name}은(는) 가장 작은 크기에서도 이 컴퓨터의 그래픽에 너무 무겁습니다.',
   'graph.look.refused.unavailable':
-    '{name}은(는) 지금 재생할 수 없습니다: 이 컴퓨터의 그래픽으로는 그릴 수 없습니다. 대신 기본 룩을 표시합니다.',
+    '이 컴퓨터의 그래픽으로는 장면을 실행할 수 없어 {name}을(를) 여기서 재생할 수 없습니다. 기본 룩은 계속 사용할 수 있습니다: 룩 메뉴에서 하나를 고르세요.',
   'graph.look.refused.driver':
-    '{name}을(를) 그리는 중에 그래픽 드라이버가 멈췄습니다. 대신 기본 룩을 표시합니다.',
+    '{name}을(를) 그리는 중에 그래픽 드라이버가 멈췄습니다.',
+  'graph.look.thisScene': '이 장면',
+  'graph.look.refused.gone':
+    '{name}은(는) 이제 이 컴퓨터의 내 장면에 없습니다. 룩 메뉴에서 다른 룩을 고르세요.',
   'graph.look.retry': '다시 시도',
   'graph.look.reportHint':
     '계속 발생하면 {help} → {report}에서 보고서를 보내 주세요.',

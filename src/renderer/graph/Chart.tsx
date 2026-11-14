@@ -57,6 +57,8 @@ import GenrePins, { useGenrePinSpots } from './GenrePins';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import LiveTraceCanvas from './LiveTraceCanvas';
 import ScenePlot from './ScenePlot';
+import SceneTroubleState from './SceneTroubleState';
+import { useSceneTrouble } from './sceneTrouble';
 import {
   FREQUENCY_MAJOR_TICKS,
   FREQUENCY_MINOR_TICKS,
@@ -210,6 +212,7 @@ const Chart = ({
     });
 
   const scene = useSceneLook();
+  const sceneTrouble = useSceneTrouble();
   const hasScene = Boolean(scene);
   // Only to decide whether the level scale describes what is drawn; the
   // trace subscribes to the look itself and is not re-rendered from here.
@@ -378,14 +381,18 @@ const Chart = ({
 
           Handed how to draw and not what: the measurement it reads for itself,
           which is what keeps this chart still while the music plays. */}
+      {/* A scene chosen and not drawable right now: its loading or what
+          happened to it, never the 2D trace drawing a standard look in its
+          place (`sceneTrouble.ts`). */}
+      {/* Filling the plot box by its own style, never a size measured
+          before the plot had one. */}
+      {sceneTrouble && <SceneTroubleState trouble={sceneTrouble} />}
       {liveCurves.length > 0 &&
+        !sceneTrouble &&
         (scene ? (
-          // A premium scene owns the whole plot and the 2D trace is not
-          // drawn under it. Every way a scene can fail makes `scene` null
-          // again, and the ordinary canvas below takes over with the look
-          // the store already resolved for it.
-          // The scene itself runs above the pages (`GraphScene`); the plot
-          // says where it is and shows its loading.
+          // A scene owns the whole plot and the 2D trace is not drawn under
+          // it. The scene itself runs above the pages (`GraphScene`); the
+          // plot says where it is and shows its loading.
           <ScenePlot
             scene={scene}
             width={width}

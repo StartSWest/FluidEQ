@@ -31,7 +31,6 @@ const AURORA = {
   version: 3,
   revision: 'rev-a',
   names: { en: 'Aurora' },
-  fallbackStyle: 'area' as const,
   swatch: ['#00e5cf', '#ff3cac'],
 } as IScenePacksListing['packs'][number];
 
@@ -43,7 +42,6 @@ const CAT = {
   version: 6,
   revision: 'rev-cat',
   names: { en: 'Cat' },
-  fallbackStyle: 'area' as const,
   swatch: ['#222222', '#ffaa00'],
   own: true,
 } as IMemberScenesListing['scenes'][number];
@@ -52,7 +50,15 @@ const packs = (
   owned: boolean,
   list: IScenePacksListing['packs'] = [AURORA],
 ): IScenePacksListing =>
-  owned ? { packs: list, locked: [] } : { packs: [], locked: list };
+  owned
+    ? { packs: list, locked: [] }
+    : {
+        packs: [],
+        locked: list.map((pack) => ({
+          ...pack,
+          fallbackStyle: 'dots' as const,
+        })),
+      };
 
 let seen: (ILampScene | null)[] = [];
 function Probe() {

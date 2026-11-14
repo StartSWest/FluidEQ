@@ -193,9 +193,9 @@ export const wakeOnViewChange = (set: Set<() => void>) => {
  * see-through sliders and the rest are set up differently for each, and one
  * value for both meant every switch between them undid the other's.
  *
- * `plus` is a Plus look or a member's scene, as the selection says; a scene
- * this session set aside is drawn as its free fallback form and is
- * `standard`, because that is what is on the plot. Read from the stored
+ * `plus` is a Plus look or a member's scene, as the selection says, set
+ * aside this session or not: what stands on the plot then is the scene's own
+ * state, never a standard look (`sceneTrouble.ts`). Read from the stored
  * selection here, so the very first read is right before the look store has
  * loaded, and kept by `graphStyle` from then on (`setGraphLookFamily`).
  */

@@ -184,13 +184,15 @@ const eq = {
   'graph.version.updatedNote': '{name} 已更新至版本 {version}：{note}',
   'graph.version.see': '檢視更新內容',
   'graph.look.refused.compile':
-    '{name} 無法在圖表上播放：它的程式碼在這台電腦上無法編譯。已改為顯示標準外觀。',
+    '{name} 無法在圖表上播放：它的程式碼在這台電腦上無法編譯。',
   'graph.look.refused.heavy':
-    '{name} 對這台電腦的顯示卡來說暫時太重了。已改為顯示標準外觀。',
+    '即使在最小尺寸下，{name} 對這台電腦的顯示卡來說也太重了。',
   'graph.look.refused.unavailable':
-    '{name} 暫時無法播放：這台電腦的顯示卡無法繪製它。已改為顯示標準外觀。',
-  'graph.look.refused.driver':
-    '繪製 {name} 時顯示卡驅動程式停止了。已改為顯示標準外觀。',
+    '這台電腦的顯示卡無法執行場景，所以 {name} 無法在這裡播放。標準外觀仍然可以使用：請從外觀選單中選擇一個。',
+  'graph.look.refused.driver': '繪製 {name} 時顯示卡驅動程式停止了。',
+  'graph.look.thisScene': '此場景',
+  'graph.look.refused.gone':
+    '{name} 已不在這台電腦上你的場景中。請從外觀選單中選擇其他外觀。',
   'graph.look.retry': '重試',
   'graph.look.reportHint':
     '如果反覆出現，請透過「{help} → {report}」向我們傳送報告。',

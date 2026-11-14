@@ -19,7 +19,6 @@ const NEON: IMemberSceneSummary = {
   packId: 'neon-city',
   version: 1,
   names: { en: 'Neon City', es: 'Ciudad de neón' },
-  fallbackStyle: 'skyline',
   swatch: ['#050a1a', '#00e5cf'],
   own: true,
 };
@@ -73,7 +72,7 @@ describe("a member's scenes in the look store", () => {
     expect(again.graphStyle.getGraphLookId()).toBe(LOOK_ID);
   });
 
-  it('never offers a scene without Plus, and lands on its own fallback form', () => {
+  it('never offers a scene without Plus, and keeps the choice of it', () => {
     const { graphStyle, members } = load(LOOK_ID);
     members.adoptMemberSceneListingForTesting(listing(false));
     expect(
@@ -85,8 +84,9 @@ describe("a member's scenes in the look store", () => {
     expect(
       members.getLockedMemberScenes().map((scene) => scene.lookId),
     ).toEqual([`locked:${LOOK_ID}`]);
-    // Neon City's own fallback form in its own colouring, not the first form.
-    expect(graphStyle.getGraphLookId()).toBe('skyline-auto');
+    // Still the scene: its state shows in its place, never a standard look
+    // (Ivan, 2026-11-14: "only the full scene can show, always").
+    expect(graphStyle.getGraphLookId()).toBe(LOOK_ID);
   });
 
   it('keeps the selection until the list has actually arrived', () => {
@@ -137,14 +137,14 @@ describe("a member's scenes in the look store", () => {
     ).not.toContain(LOOK_ID);
   });
 
-  // Set aside for this session only: its fallback now, the scene again at the
-  // next launch. Losing Plus, above, is the case that is written down.
-  it('falls back for the session and keeps the choice when a chosen scene is set aside', () => {
+  // Set aside for this session only: its state now, the scene again at the
+  // next launch - never a standard look in between.
+  it('keeps the choice when a chosen scene is set aside, and tries it at the next launch', () => {
     const first = load(LOOK_ID);
     first.members.adoptMemberSceneListingForTesting(listing(true));
 
     first.members.blockMemberScene(LOOK_ID);
-    expect(first.graphStyle.getGraphLookId()).toBe('skyline-auto');
+    expect(first.graphStyle.getGraphLookId()).toBe(LOOK_ID);
     expect(window.localStorage.getItem('fluideq-graph-style')).toBe(LOOK_ID);
 
     const relaunched = load(
@@ -154,14 +154,12 @@ describe("a member's scenes in the look store", () => {
     expect(relaunched.graphStyle.getGraphLookId()).toBe(LOOK_ID);
   });
 
-  it('writes the fallback down when Plus lapses under a chosen scene', () => {
+  it('writes no standard look down when Plus lapses under a chosen scene', () => {
     const { graphStyle, members } = load(LOOK_ID);
     members.adoptMemberSceneListingForTesting(listing(true));
     members.adoptMemberSceneListingForTesting(listing(false));
-    expect(graphStyle.getGraphLookId()).toBe('skyline-auto');
-    expect(window.localStorage.getItem('fluideq-graph-style')).toBe(
-      'skyline-auto',
-    );
+    expect(graphStyle.getGraphLookId()).toBe(LOOK_ID);
+    expect(window.localStorage.getItem('fluideq-graph-style')).toBe(LOOK_ID);
   });
 });
 

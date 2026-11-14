@@ -24,7 +24,6 @@ export interface IUsableMemberScene {
   version: number;
   revision?: string;
   names: IMemberSceneSummary['names'];
-  fallbackStyle: IMemberSceneSummary['fallbackStyle'];
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
   /**
@@ -46,7 +45,6 @@ export interface IUsableMemberScene {
 export interface ILockedMemberScene {
   lookId: string;
   names: IMemberSceneSummary['names'];
-  fallbackStyle: IMemberSceneSummary['fallbackStyle'];
   swatch: string[];
   own: boolean;
   /** Who sent it, for a scene another member made. */
@@ -78,7 +76,6 @@ const recompute = () => {
           version: scene.version,
           revision: scene.revision,
           names: scene.names,
-          fallbackStyle: scene.fallbackStyle,
           swatch: scene.swatch,
           own: scene.own,
           ...(scene.own ? {} : { authorName: scene.authorName ?? null }),
@@ -94,7 +91,6 @@ const recompute = () => {
         // choosing one opens the Plus card and no selection lands on it.
         lookId: lockedLookId(scene.lookId),
         names: scene.names,
-        fallbackStyle: scene.fallbackStyle,
         swatch: scene.swatch,
         own: scene.own,
         ...(scene.own ? {} : { authorName: scene.authorName ?? null }),

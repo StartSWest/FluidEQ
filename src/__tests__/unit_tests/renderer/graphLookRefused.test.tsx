@@ -8,15 +8,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * A look the graph had to put aside says why, on the graph (Ivan,
  * 2026-11-11: three of his scenes "didn't take", the graph quietly showed a
  * standard look, and the reason — a shader that would not compile — was only
- * in the log). The scene's loop is stood in for, so the test hands the
- * canvas its failures itself; the notice and Try again are the real ones.
+ * in the log). Said in the scene's place, never with a standard look drawn
+ * there (2026-11-14: "only the full scene can show, always"). The scene's
+ * loop is stood in for, so the test hands the canvas its failures itself;
+ * the state and Try again are the real ones.
  */
 
 import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { graphLookId } from '../../../common/graphStyles';
-import GraphLookRefusedNotice from '../../../renderer/graph/GraphLookRefusedNotice';
+import SceneTroubleState from '../../../renderer/graph/SceneTroubleState';
 import {
   resetLookRefusal,
   useLookRefusal,
@@ -72,7 +74,6 @@ const scene: IUsableMemberScene = {
   packId: 'waveform-3d',
   version: 1,
   names: { en: 'Waveform 3D' },
-  fallbackStyle: 'skyline',
   swatch: ['#102030', '#a0b0c0'],
   own: true,
 };
@@ -83,13 +84,28 @@ function Spy() {
   return null;
 }
 
+/** What the graph shows in the scene's place for a refusal (`sceneTrouble.ts`). */
+function Shown() {
+  const refusal = useLookRefusal();
+  return refusal ? (
+    <SceneTroubleState
+      trouble={{
+        lookId: refusal.lookId,
+        names: refusal.names,
+        swatch: [],
+        reason: refusal.reason,
+      }}
+    />
+  ) : null;
+}
+
 const mount = () => {
   const target = document.createElement('div');
   document.body.appendChild(target);
   return render(
     <>
       <SceneCanvas scene={scene} target={target} plot={undefined} />
-      <GraphLookRefusedNotice />
+      <Shown />
       <Spy />
     </>,
   );
@@ -127,10 +143,11 @@ it('says on the graph that a look’s code would not build here, and tries it ag
   );
   // What happened, then where to send the log line that explains it.
   expect(
-    screen.getByText(
-      'graph.look.refused.compile:Waveform 3D ' +
-        'graph.look.reportHint:help.menu,app.menu.reportProblem',
-    ),
+    // The line opens a sentence: its first letter is a capital.
+    screen.getByText('Graph.look.refused.compile:Waveform 3D'),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText('graph.look.reportHint:help.menu,app.menu.reportProblem'),
   ).toBeInTheDocument();
   await userEvent.click(
     screen.getByRole('button', { name: 'graph.look.retry' }),
@@ -178,7 +195,6 @@ it('names one of FluidEQ’s own looks by its look id', () => {
           version: 1,
           lookId: 'premium:aurora',
           names: { en: 'Aurora' },
-          fallbackStyle: 'skyline',
           swatch: ['#102030', '#a0b0c0'],
         }}
         target={target}
@@ -204,7 +220,6 @@ describe('a look that would not build is recovered first', () => {
     packId: 'waveform-3d',
     version: 1,
     names: { en: 'Waveform 3D' },
-    fallbackStyle: 'skyline',
     swatch: ['#102030', '#a0b0c0'],
     own: true,
   };
@@ -304,7 +319,7 @@ describe('a look that would not build is recovered first', () => {
 });
 
 // Emphasis follows recommendation: Try again is the way out of the problem
-// the notice states, so it wears the filled style, not the quiet outline.
+// the state names, so it wears the filled style, not the quiet outline.
 it('offers Try again as the loud button', async () => {
   mount();
   await act(async () => source().reportFailure('compile'));

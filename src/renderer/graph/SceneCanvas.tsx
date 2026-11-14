@@ -107,16 +107,18 @@ export const sceneIdentityOf = (scene: TDrawableScene): string =>
  * comes from, what failing means for it, and where its canvas stands.
  *
  * EVERY FAILURE PATH IS THE SAME PATH. A shader that will not compile, a GPU
- * context lost, a machine too slow at the ladder's floor — each reports the
- * scene unusable to its store, `useSceneLook` answers null, and the chart
- * mounts the 2D canvas with the scene's own fallback form. Nothing here draws
- * an error; the fallback form is the error state, and it is a working
- * visualizer.
+ * context lost twice running, a GPU stalled even at an eighth of the panel
+ * and the slow rate, no graphics to draw with - each sets the scene aside to
+ * its store with its reason (`lookRefusal.ts`), `useSceneLook` answers null,
+ * and the chart shows the scene's own state in its place with Try again
+ * (`sceneTrouble.ts`). Never a standard look standing in for it (Ivan,
+ * 2026-11-14: "only the full scene can show, always"). A first lost context
+ * is restored by the worker and the same scene drawn again.
  *
  * A VERSION THAT WILL NOT COMPILE IS NOT A FAILURE OF THE SCENE. The version
  * before it plays on — the one already drawn, or the last one that built here
  * (`sceneBuilds.ts`) — and the driver's words go to the log. Only a scene with
- * nothing of it that builds falls back.
+ * nothing of it that builds is set aside.
  *
  * How it is run — its size ladder, whether it is compiled ahead, what a GPU
  * reset costs it — follows from who made it (`sceneRules.ts`), exactly as it
@@ -138,7 +140,7 @@ export default function SceneCanvas({
   const { names } = scene;
   const source = useMemo<ISceneSource>(() => {
     // What the graph had to put aside, said where it was picked
-    // (`lookRefusal.ts`), before it falls back.
+    // (`lookRefusal.ts`), and shown in its place (`sceneTrouble.ts`).
     const lookId = member ? key : premiumLookId(key);
     const refused = (reason: TLookRefusal) => refuseLook(lookId, names, reason);
     const failed = (reason: TSceneFailure) =>
@@ -156,7 +158,7 @@ export default function SceneCanvas({
             blockMemberScene(key);
           },
           // Why, in the driver's words, is the runner's line in the log
-          // (`common/sceneFailureLog.ts`); here it only falls back.
+          // (`common/sceneFailureLog.ts`); here it is set aside.
           reportFailure: (reason) => {
             // Set aside first: where the graph's choice lands is how the
             // recovery knows the listener has not chosen something else.
@@ -205,7 +207,7 @@ export default function SceneCanvas({
             reportSceneBuilt(lookId, String(version));
           },
           // A slow session is a fact about the machine right now, not about
-          // the pack: fall back until the next launch, write nothing down.
+          // the pack: set aside until Try again or the next launch.
           tooSlow: () => {
             refused('heavy');
             blockScene(key);

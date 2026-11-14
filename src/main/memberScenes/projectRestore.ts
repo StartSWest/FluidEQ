@@ -39,7 +39,6 @@ export const restoredManifest = (pack: IScenePack) =>
       version: pack.version,
       contract: pack.contract,
       names: pack.names,
-      fallbackStyle: pack.fallbackStyle,
       swatch: pack.swatch,
       sourceFile: RESTORED_SOURCE_FILE,
       // Every control, in the layout a project's `pack.json` keeps them:

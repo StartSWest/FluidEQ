@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { DEFAULT_GRAPH_LOOK } from '../../../common/graphStyles';
 import {
   checkMemberScene,
   isMemberLookId,
@@ -14,7 +13,11 @@ import {
   readMemberScene,
   sanitizeDisplayText,
 } from '../../../common/memberScenes';
-import { MAX_PACK_BYTES, SCENE_PACK_SCHEMA } from '../../../common/scenePacks';
+import {
+  LEGACY_FALLBACK_STYLE,
+  MAX_PACK_BYTES,
+  SCENE_PACK_SCHEMA,
+} from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
 import { WORLD_LIMITS } from '../../../common/sceneWorld';
 import {
@@ -118,7 +121,6 @@ describe('checking a member scene', () => {
       { names: { en: 'x'.repeat(MAX_MEMBER_NAME_LENGTH + 1) } },
       'name-too-long',
     ],
-    ['an unknown fallback', { fallbackStyle: 'lasers' }, 'bad-fallback'],
     ['one swatch colour', { swatch: ['#000000'] }, 'bad-swatch'],
     [
       'broken artwork',
@@ -218,7 +220,7 @@ describe('reading a member scene somebody already has', () => {
   it('reads an ordinary scene whole', () => {
     expect(readMemberScene(raw())).toMatchObject({
       id: 'neon-city',
-      fallbackStyle: 'skyline',
+      fallbackStyle: LEGACY_FALLBACK_STYLE,
       names: { en: 'Neon City' },
       params: [{ id: 'glow' }],
     });
@@ -239,11 +241,11 @@ describe('reading a member scene somebody already has', () => {
     expect(readMemberScene(raw(over))).toMatchObject({ id: 'neon-city' });
   });
 
-  it('stands a form this version has not got in for the default one', () => {
-    // A look a newer FluidEQ added. The form is only what is drawn when the
-    // scene itself cannot run, so it is replaced, never a reason to refuse.
+  it('plays a scene naming a form this version has not got', () => {
+    // Ignored, as every pack's fallback form is, never a reason to refuse.
     const pack = readMemberScene(raw({ fallbackStyle: 'lasers' }));
-    expect(pack?.fallbackStyle).toBe(DEFAULT_GRAPH_LOOK.style);
+    expect(pack?.id).toBe('neon-city');
+    expect(pack?.fallbackStyle).toBe(LEGACY_FALLBACK_STYLE);
   });
 
   it('cuts a name past the members’ limit instead of losing the scene', () => {

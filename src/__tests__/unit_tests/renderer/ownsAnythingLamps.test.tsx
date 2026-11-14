@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { act, renderHook } from '@testing-library/react';
-import { GRAPH_STYLES } from 'common/graphStyles';
 import { memberLookId } from 'common/memberScenes';
 import type { IMemberSceneSummary } from 'main/memberScenes/store';
 import {
@@ -42,7 +41,6 @@ const summary = (
   packId,
   version: 1,
   names: { en: 'Scene' },
-  fallbackStyle: GRAPH_STYLES[0],
   swatch: ['#112233', '#445566'],
   own,
 });

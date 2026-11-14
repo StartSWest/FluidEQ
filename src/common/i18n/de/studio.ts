@@ -794,8 +794,6 @@ const studio = {
     'Die id muss aus 2 bis 48 Kleinbuchstaben, Ziffern und Bindestrichen bestehen.',
   'studio.problem.names-missing': 'Ein englischer Name ist erforderlich.',
   'studio.problem.name-too-long': 'Ein Name ist länger als 40 Zeichen.',
-  'studio.problem.bad-fallback':
-    'fallbackStyle ist keine der Darstellungen von FluidEQ.',
   'studio.problem.bad-swatch': 'swatch braucht 2 bis 4 Farben wie #00e5cf.',
   'studio.problem.bad-artwork':
     'Das Bild ist kein WebP in der Größe, die pack.json angibt.',

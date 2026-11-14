@@ -26,7 +26,6 @@ export interface IUsableScene {
   revision?: string;
   lookId: string;
   names: IScenePackSummary['names'];
-  fallbackStyle: IScenePackSummary['fallbackStyle'];
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
   /**
@@ -49,7 +48,6 @@ export interface ILockedScene {
   id: string;
   lookId: string;
   names: IScenePackCatalogueEntry['names'];
-  fallbackStyle: IScenePackCatalogueEntry['fallbackStyle'];
   swatch: string[];
 }
 
@@ -86,7 +84,6 @@ const recompute = () => {
           revision: pack.revision,
           lookId: premiumLookId(pack.id),
           names: pack.names,
-          fallbackStyle: pack.fallbackStyle,
           swatch: pack.swatch,
           ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
           ...(pack.wave ? { wave: pack.wave } : {}),
@@ -97,7 +94,6 @@ const recompute = () => {
         id: entry.id,
         lookId: lockedLookId(entry.id),
         names: entry.names,
-        fallbackStyle: entry.fallbackStyle,
         swatch: entry.swatch,
       }))
     : [];
@@ -159,18 +155,6 @@ export const getScenePackSummary = (
   packId: string,
 ): IScenePackSummary | undefined =>
   listing.packs.find((pack) => pack.id === packId);
-
-/**
- * The free form a FluidEQ scene is drawn as when it cannot run, whether this
- * account owns it or not: a scene no longer owned is in the locked list, not
- * among the packs, and a selection of it still lands on its own form — an
- * aurora on the area it falls back to, not on the default.
- */
-export const getScenePackFallbackStyle = (packId: string) =>
-  (
-    listing.packs.find((pack) => pack.id === packId) ??
-    listing.locked.find((entry) => entry.id === packId)
-  )?.fallbackStyle;
 
 /**
  * A pack this account may play, whether or not the graph can draw it right

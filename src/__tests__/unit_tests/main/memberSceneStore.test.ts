@@ -21,7 +21,10 @@ import {
 import { readSceneCache, writeSceneCache } from '../../../main/sceneCacheFile';
 import { resetSceneFailuresForTesting } from '../../../main/sceneFailures';
 import { memberLookId } from '../../../common/memberScenes';
-import type { IScenePack } from '../../../common/scenePacks';
+import {
+  LEGACY_FALLBACK_STYLE,
+  type IScenePack,
+} from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
 import {
   memberPayload,
@@ -45,7 +48,7 @@ const pack = (over: Partial<IScenePack> = {}): IScenePack => ({
   version: 1,
   contract: SCENE_CONTRACT_VERSION,
   names: { en: 'Neon City' },
-  fallbackStyle: 'skyline',
+  fallbackStyle: LEGACY_FALLBACK_STYLE,
   swatch: ['#050a1a', '#00e5cf'],
   source: SOURCE,
   params: [],

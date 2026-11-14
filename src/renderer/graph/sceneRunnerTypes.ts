@@ -67,7 +67,7 @@ export interface ISceneSource {
   /** For the console, where a person can act on it. */
   name: string;
   load(): Promise<IScenePack | undefined>;
-  /** The machine or the bridge failed, not the scene: fall back this session. */
+  /** The machine or the bridge failed, not the scene: set aside this session. */
   block(): void;
   /**
    * The scene itself failed here. `log` is the driver's message.
@@ -79,7 +79,7 @@ export interface ISceneSource {
   /**
    * A newer version would not compile, and an earlier one is drawn in its
    * place — the one already on the canvas, or `lastBuilt`'s. The scene has not
-   * failed: nothing falls back, and only a place whose author can act on the
+   * failed: nothing is set aside, and only a place whose author can act on the
    * driver's message (the Studio) shows it.
    */
   versionFailed?(log: string): void;

@@ -69,7 +69,6 @@ export interface IScenePackSummary {
   version: number;
   revision?: string;
   names: IScenePack['names'];
-  fallbackStyle: IScenePack['fallbackStyle'];
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
   /** The wave its author built it around, when the pack names one. */
@@ -281,7 +280,6 @@ export const createScenePackStore = ({
     version: pack.version,
     revision: createHash('sha256').update(JSON.stringify(pack)).digest('hex'),
     names: pack.names,
-    fallbackStyle: pack.fallbackStyle,
     swatch: pack.swatch,
     ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
     ...(pack.wave ? { wave: pack.wave } : {}),
@@ -320,7 +318,7 @@ export const createScenePackStore = ({
       // written against, not what it needs, and one written against a newer
       // FluidEQ that uses nothing new plays here perfectly. A shader that does
       // need a uniform this build has not got fails to compile and is drawn as
-      // its own fallbackStyle, which is the author's choice for this case.
+      // its own state with Try again, never a standard look in its place.
       const pinned = pinnedOf(id);
       return pinned === undefined ? readVerified(id) : readKept(id, pinned);
     },

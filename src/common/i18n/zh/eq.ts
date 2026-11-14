@@ -203,13 +203,15 @@ const eq: Partial<Dictionary> = {
   'graph.version.updatedNote': '{name} 已更新到版本 {version}：{note}',
   'graph.version.see': '查看新内容',
   'graph.look.refused.compile':
-    '{name} 无法在图表上播放：它的代码在这台电脑上无法编译。已改为显示标准外观。',
+    '{name} 无法在图表上播放：它的代码在这台电脑上无法编译。',
   'graph.look.refused.heavy':
-    '{name} 对这台电脑的显卡来说暂时太重了。已改为显示标准外观。',
+    '即使在最小尺寸下，{name} 对这台电脑的显卡来说也太重了。',
   'graph.look.refused.unavailable':
-    '{name} 暂时无法播放：这台电脑的显卡无法绘制它。已改为显示标准外观。',
-  'graph.look.refused.driver':
-    '绘制 {name} 时显卡驱动停止了。已改为显示标准外观。',
+    '这台电脑的显卡无法运行场景，所以 {name} 无法在这里播放。标准外观仍然可以使用：请从外观菜单中选择一个。',
+  'graph.look.refused.driver': '绘制 {name} 时显卡驱动停止了。',
+  'graph.look.thisScene': '此场景',
+  'graph.look.refused.gone':
+    '{name} 已不在这台电脑上你的场景中。请从外观菜单中选择其他外观。',
   'graph.look.retry': '重试',
   'graph.look.reportHint':
     '如果反复出现，请通过“{help} → {report}”向我们发送报告。',

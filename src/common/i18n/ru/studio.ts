@@ -771,8 +771,6 @@ const studio = {
     'id должен состоять из 2–48 строчных латинских букв, цифр и дефисов.',
   'studio.problem.names-missing': 'Нужно название на английском.',
   'studio.problem.name-too-long': 'Название длиннее 40 символов.',
-  'studio.problem.bad-fallback':
-    'fallbackStyle — не одно из оформлений FluidEQ.',
   'studio.problem.bad-swatch': 'swatch нужны 2–4 цвета вида #00e5cf.',
   'studio.problem.bad-artwork':
     'Изображение — не WebP того размера, что указан в pack.json.',

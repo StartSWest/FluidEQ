@@ -43,20 +43,14 @@ import {
   subscribeCustomLooks,
 } from './customLooks';
 import {
-  getMemberSceneSummary,
   getUsableMemberScene,
   getUsableMemberScenes,
-  isMemberSceneBlocked,
-  isMemberSceneListingLoaded,
   subscribeMemberScenes,
   type IUsableMemberScene,
 } from './memberScenes';
 import {
-  getScenePackFallbackStyle,
   getUsableScene,
   getUsableScenes,
-  isSceneBlocked,
-  isScenePackListingLoaded,
   subscribeScenePacks,
   type IUsableScene,
 } from './scenePacks';
@@ -146,25 +140,19 @@ const canonicalLookId = (id: string) => {
 };
 
 /**
- * The free look a scene selection is drawn as when the scene itself cannot
- * run — or, before its list has arrived, the default.
+ * The tuning a scene selection carries for everything that reads a look's
+ * numbers. Never drawn: a scene is only ever drawn as itself, and while it
+ * cannot be the graph shows the scene's own state (`sceneTrouble.ts`), never
+ * a standard look in its place (Ivan, 2026-11-14: "we cannot have fallbacks
+ * ... code it so only the full scene can show, always").
  */
-const fallbackLookFor = (sceneId: string): IResolvedLook => {
-  const fallbackStyle = isMemberLookId(sceneId)
-    ? getMemberSceneSummary(sceneId)?.fallbackStyle
-    : getScenePackFallbackStyle(packIdOfLook(sceneId));
-  return resolveBuiltInLook(
-    fallbackStyle
-      ? getGraphLook(graphLookId(fallbackStyle, 'auto'))
-      : DEFAULT_GRAPH_LOOK,
-  );
-};
+const SCENE_TUNING = resolveBuiltInLook(DEFAULT_GRAPH_LOOK);
 
-/** A scene's row in the picker: the scene's own id over its fallback's tuning. */
+/** A scene's row in the picker: the scene's own id and name. */
 const resolveSceneRow = (
   scene: IUsableScene | IUsableMemberScene,
 ): IResolvedLook => ({
-  ...resolveBuiltInLook(getGraphLook(graphLookId(scene.fallbackStyle, 'auto'))),
+  ...SCENE_TUNING,
   id: scene.lookId,
   label: scene.names.en,
 });
@@ -199,13 +187,12 @@ const computeResolved = (): IResolvedLook => {
   if (custom) {
     return resolveCustomLook(custom);
   }
-  // A premium selection resolves to its fallback FORM here, always. The 2D
-  // canvas never learns that premium exists: when the scene runs, a different
-  // canvas is mounted over this value; when it cannot — no GPU, a shader that
-  // will not compile, a lapsed subscription — the value it needs is already
-  // what this hands it. Every failure path is "mount the 2D canvas instead".
+  // A scene selection is never drawn by the 2D canvas, playing or not: the
+  // chart mounts the scene, or the scene's own state while it cannot play
+  // (`useSelectedSceneLookId`). These numbers are only what a look's readers
+  // ask for.
   if (isSceneLookId(selectedId)) {
-    return fallbackLookFor(selectedId);
+    return SCENE_TUNING;
   }
   // `getGraphLook` answers with the first look for anything it does not know,
   // which is what a stale id from an older version or a deleted custom look
@@ -225,9 +212,8 @@ setGraphLookFamily(lookFamilyOf(selectedId));
 
 const refresh = () => {
   resolved = computeResolved();
-  // Every change of selection comes through here, a scene set aside onto its
-  // fallback form included, so the grid, the wave and the rest follow the
-  // family of look now on the plot (`setGraphLookFamily`).
+  // Every change of selection comes through here, so the grid, the wave and
+  // the rest follow the family of look now on the plot (`setGraphLookFamily`).
   setGraphLookFamily(lookFamilyOf(selectedId));
   listeners.forEach((listener) => listener());
 };
@@ -493,53 +479,14 @@ subscribeCustomLooks(() => {
   refresh();
 });
 
-// A scene can stop being usable underneath the selection — the subscription
-// lapsed, this session blocked the pack after it failed, a new version
-// arrived without it. The
-// selection then lands on THAT SCENE'S fallback form, not on Fluid: somebody
-// who chose an aurora should get the nearest free form, not the first one.
-//
-// Only once the list has actually been received. At startup the store is empty
-// until the main process answers, and re-pointing then would throw away a
-// premium selection on every launch before the packs had a chance to arrive.
-//
-// Written down only when the scene is gone from the account. One this session
-// set aside — a compile that failed here, a machine that could not keep up
-// just now (`useSceneRunner`'s "until the next launch") — falls back for the
-// session and stays chosen on disk: it was written down too, so a Plus member
-// whose graphics card was busy with a game for a moment lost their
-// visualizer for good, the next launch opening on its fallback.
-const repointFromScene = (setAside: boolean) => {
-  selectedId = fallbackLookFor(selectedId).id;
-  if (!setAside) {
-    persistSelection();
-  }
-};
-
-subscribeScenePacks(() => {
-  if (
-    isPremiumLookId(selectedId) &&
-    isScenePackListingLoaded() &&
-    !getUsableScene(packIdOfLook(selectedId))
-  ) {
-    repointFromScene(isSceneBlocked(packIdOfLook(selectedId)));
-  }
-  refresh();
-});
-
-// The same for a member's scene: removed, blocked this session after it
-// failed, or Plus lapsed. Its own fallback form, and only once the list has
-// arrived.
-subscribeMemberScenes(() => {
-  if (
-    isMemberLookId(selectedId) &&
-    isMemberSceneListingLoaded() &&
-    !getUsableMemberScene(selectedId)
-  ) {
-    repointFromScene(isMemberSceneBlocked(selectedId));
-  }
-  refresh();
-});
+// A scene can stop being playable underneath the selection: set aside this
+// session after it failed, or gone from the account. The selection stays the
+// scene, on screen and on disk, and the graph says what happened in the
+// scene's place (`sceneTrouble.ts`). It used to land on the scene's fallback
+// form - a standard look standing in for it, which is what Ivan took out
+// (2026-11-14: "only the full scene can show, always").
+subscribeScenePacks(refresh);
+subscribeMemberScenes(refresh);
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
@@ -626,6 +573,18 @@ const selectedScene = (): TDrawableScene | null => {
   }
   return null;
 };
+
+/**
+ * The scene the graph's selection names, whether or not it can be drawn
+ * right now, or undefined for a standard look or a draft. What decides that
+ * the 2D canvas is not mounted at all: a scene is drawn as itself or its own
+ * state is shown (`sceneTrouble.ts`), never a standard look in its place.
+ */
+const selectedSceneLookId = (): string | undefined =>
+  !draft && isSceneLookId(selectedId) ? selectedId : undefined;
+
+export const useSelectedSceneLookId = () =>
+  useSyncExternalStore(subscribe, selectedSceneLookId, () => undefined);
 
 export const useSceneLook = () =>
   useSyncExternalStore(subscribe, selectedScene, () => null);

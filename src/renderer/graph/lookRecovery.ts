@@ -43,7 +43,7 @@ const recovered = async (lookId: string): Promise<boolean> => {
 
 /**
  * `lookId` would not build and has just been set aside, so the graph's
- * choice now stands on its fallback form: recovered and chosen again, or
+ * scene's state shows in its place: recovered and chosen again, or
  * refused in words.
  */
 export const memberLookWouldNotBuild = async (

@@ -221,13 +221,16 @@ const eq: Partial<Dictionary> = {
     '{name} ahora está en la versión {version}: {note}',
   'graph.version.see': 'Ver novedades',
   'graph.look.refused.compile':
-    '{name} no puede mostrarse en la gráfica: su código no se compila en este equipo. Se muestra un aspecto estándar en su lugar.',
+    '{name} no puede mostrarse en la gráfica: su código no se compila en este equipo.',
   'graph.look.refused.heavy':
-    '{name} es demasiado pesada para la gráfica de este equipo ahora mismo. Se muestra un aspecto estándar en su lugar.',
+    '{name} es demasiado pesada para la gráfica de este equipo, incluso en su tamaño más pequeño.',
   'graph.look.refused.unavailable':
-    '{name} no puede mostrarse ahora: la gráfica de este equipo no puede dibujarla. Se muestra un aspecto estándar en su lugar.',
+    'La gráfica de este equipo no puede ejecutar escenas, así que {name} no puede mostrarse aquí. Los aspectos estándar siguen funcionando: elige uno en el menú de aspectos.',
   'graph.look.refused.driver':
-    'El controlador gráfico se detuvo mientras dibujaba {name}. Se muestra un aspecto estándar en su lugar.',
+    'El controlador gráfico se detuvo mientras dibujaba {name}.',
+  'graph.look.thisScene': 'esta escena',
+  'graph.look.refused.gone':
+    '{name} ya no está entre tus escenas en este equipo. Elige otro aspecto en el menú de aspectos.',
   'graph.look.retry': 'Reintentar',
   'graph.look.reportHint':
     'Si vuelve a pasar, envíanos un informe desde {help} → {report}.',

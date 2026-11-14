@@ -2,7 +2,6 @@ import { PLAYER_PICTURE_HEIGHT, PLAYER_WIDTH } from 'common/constants';
 import { MAX_MEMBER_LOOP_ITERATIONS } from 'common/memberGlslLoops';
 import { MAX_MEMBER_PIXEL_WORK } from 'common/memberGlslWork';
 import { MAX_MEMBER_LOOPS } from 'common/memberSceneRules';
-import { SELECTABLE_GRAPH_STYLES, type GraphStyle } from 'common/graphStyles';
 import { PREVIEW_FILE } from 'common/memberScenes';
 import {
   NIGHT_BACKGROUND_MOST,
@@ -77,35 +76,6 @@ import { skillsSection } from './aiPromptSkills';
  * look_at_scene and hear_the_music tools (`main/studioAgent/studioTools.ts`)
  * and the card's switch by their exact names, which change with them.
  */
-/**
- * The instruments: they read the music rather than picture it, so they are
- * no fallback for a scene. Everything else still drawn as itself is.
- */
-const MEASURING_VIEWS: ReadonlySet<GraphStyle> = new Set<GraphStyle>([
-  'analyzer',
-  'compare',
-  'spectrogram',
-  'rta',
-  'average',
-  'waterfall',
-  'loudness',
-  'scope',
-  'midside',
-  'notes',
-  'energy',
-  'phase',
-]);
-
-/**
- * The fallback forms the brief offers a scene: every form still drawn as
- * itself, less the measuring views. Derived, not copied: the forms change
- * often (the plain ones were retired on 2026-09-23, and four visualizers were
- * swapped two days later), and a copied list told authors to pick forms that
- * land on the Analyzer or the RTA, or no longer exist at all.
- */
-export const SCENE_FALLBACK_STYLES: readonly GraphStyle[] =
-  SELECTABLE_GRAPH_STYLES.filter((style) => !MEASURING_VIEWS.has(style));
-
 /** The ultra-wide graph's proportion as the brief says it: about 5.5. */
 const ULTRA_WIDE_RATIO = (
   ULTRA_WIDE_GRAPH.width / ULTRA_WIDE_GRAPH.height
@@ -186,7 +156,6 @@ pack.json:
   "version": 1,
   "contract": ${SCENE_CONTRACT_VERSION},
   "names": { "en": "Short Name" },
-  "fallbackStyle": "skyline",
   "swatch": ["#rrggbb", "#rrggbb", "#rrggbb"],
   "sourceFile": "scene.frag",
   "framing": { "focus": [0.5, 0.45], "narrowest": 1.7778 },
@@ -215,8 +184,6 @@ pack.json:
 - names: English required; add es, pt, fr, de, it, ru, zh, zh-Hant, ja, ko, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.
-- fallbackStyle: drawn when a computer cannot run the scene. Use one of:
-  ${SCENE_FALLBACK_STYLES.join(', ')}.
 - params: the scene's own sliders, up to 8, which FluidEQ shows me by
   itself with the names you give them - and the Daylight control, which it
   sets itself (see DAY AND NIGHT). Add one for each thing my idea is

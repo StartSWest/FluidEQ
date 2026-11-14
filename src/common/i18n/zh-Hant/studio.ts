@@ -678,7 +678,6 @@ const studio = {
   'studio.problem.bad-id': 'ID 必須是 2 到 48 個小寫字母、數字和破折號。',
   'studio.problem.names-missing': '需提供英文名稱。',
   'studio.problem.name-too-long': '名稱長度超過 40 個字元。',
-  'studio.problem.bad-fallback': 'FallbackStyle 不是 FluidEQ 的外觀之一。',
   'studio.problem.bad-swatch': '樣本需要 2 到 4 種顏色，例如 #00e5cf。',
   'studio.problem.bad-artwork': '該圖片不是 pack.json 給出的大小的 WebP。',
   'studio.problem.bad-param':

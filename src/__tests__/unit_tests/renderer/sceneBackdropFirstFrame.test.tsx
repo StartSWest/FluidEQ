@@ -41,7 +41,6 @@ const scene: IUsableScene = {
   version: 1,
   lookId: 'scene:aurora',
   names: { en: 'Aurora' },
-  fallbackStyle: 'skyline',
   swatch: ['#102030', '#a0b0c0'],
 };
 

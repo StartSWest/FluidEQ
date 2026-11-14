@@ -19,7 +19,7 @@ import type { IWallpaperScene } from './wallpaper/surface';
  * place (Ivan, 2026-11-09: "I dont want fallbacks like that and some scene
  * still have them"). His own scenes were the ones falling back: a save from
  * the Studio's AI kept a version that did not compile, and every place that
- * showed the look dropped to its fallback style until something listed the
+ * showed the look stood aside until something listed the
  * looks again — after a relaunch, for good.
  *
  * Remembered by look id, and only as a version the stores themselves handed

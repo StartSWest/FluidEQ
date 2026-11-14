@@ -62,7 +62,7 @@ export const fetchOfficialScene = async (
     const pack = payload ? parseScenePackPayload(payload) : undefined;
     // Taken whatever contract it names: a scene written against a newer
     // FluidEQ that uses nothing new plays here, and one that does need
-    // something this build has not got is drawn as its own fallbackStyle.
+    // something this build has not got is shown as the scene that could not build here.
     return pack && pack.id === sceneId ? { pack, envelope } : undefined;
   } catch {
     return undefined;

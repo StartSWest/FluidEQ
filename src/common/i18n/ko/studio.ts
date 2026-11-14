@@ -746,8 +746,6 @@ const studio = {
     'ID는 2~48자의 소문자, 숫자, 대시로 구성되어야 합니다.',
   'studio.problem.names-missing': '영어 이름이 필요합니다.',
   'studio.problem.name-too-long': '이름이 40자를 초과합니다.',
-  'studio.problem.bad-fallback':
-    'fallbackStyle은 FluidEQ의 모양 중 하나가 아닙니다.',
   'studio.problem.bad-swatch':
     '견본에는 #00e5cf와 같이 2~4개의 색상이 필요합니다.',
   'studio.problem.bad-artwork':

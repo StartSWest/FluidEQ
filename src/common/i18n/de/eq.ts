@@ -222,13 +222,16 @@ const eq: Partial<Dictionary> = {
   'graph.version.updatedNote': '{name} ist jetzt Version {version}: {note}',
   'graph.version.see': 'Neuigkeiten ansehen',
   'graph.look.refused.compile':
-    '{name} kann im Diagramm nicht laufen: Ihr Code lässt sich auf diesem Computer nicht kompilieren. Stattdessen wird ein Standard-Look gezeigt.',
+    '{name} kann im Diagramm nicht laufen: Ihr Code lässt sich auf diesem Computer nicht kompilieren.',
   'graph.look.refused.heavy':
-    '{name} ist für die Grafik dieses Computers gerade zu schwer. Stattdessen wird ein Standard-Look gezeigt.',
+    '{name} ist für die Grafik dieses Computers zu schwer, selbst in der kleinsten Größe.',
   'graph.look.refused.unavailable':
-    '{name} kann gerade nicht laufen: Die Grafik dieses Computers kann sie nicht zeichnen. Stattdessen wird ein Standard-Look gezeigt.',
+    'Die Grafik dieses Computers kann keine Szenen ausführen, deshalb kann {name} hier nicht laufen. Die Standard-Looks funktionieren weiterhin: Wählen Sie einen im Look-Menü.',
   'graph.look.refused.driver':
-    'Der Grafiktreiber hat beim Zeichnen von {name} angehalten. Stattdessen wird ein Standard-Look gezeigt.',
+    'Der Grafiktreiber hat beim Zeichnen von {name} angehalten.',
+  'graph.look.thisScene': 'diese Szene',
+  'graph.look.refused.gone':
+    '{name} gehört auf diesem Computer nicht mehr zu Ihren Szenen. Wählen Sie im Look-Menü einen anderen Look.',
   'graph.look.retry': 'Erneut versuchen',
   'graph.look.reportHint':
     'Wenn es wieder passiert, senden Sie uns einen Bericht über {help} → {report}.',

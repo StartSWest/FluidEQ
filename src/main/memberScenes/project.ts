@@ -12,6 +12,7 @@ import { MAX_MEMBER_SOURCE_BYTES } from '../../common/memberSceneRules';
 import { isWholeSceneAmbient } from '../../common/sceneAmbient';
 import { MAX_SCENE_ARTWORK_BYTES } from '../../common/sceneArtwork';
 import {
+  LEGACY_FALLBACK_STYLE,
   SCENE_PACK_SCHEMA,
   type IScenePack,
   type TLocalizedName,
@@ -119,7 +120,10 @@ const buildRawPack = async (folder: string, drafts = NO_DRAFTS) => {
       version: manifest.version,
       contract: manifest.contract,
       names: manifest.names,
-      fallbackStyle: manifest.fallbackStyle,
+      // The app's, never the project's: what an older FluidEQ requires of a
+      // pack (`LEGACY_FALLBACK_STYLE`). Whatever a project's own file says
+      // is ignored, so neither a member nor their AI has a fallback to set.
+      fallbackStyle: LEGACY_FALLBACK_STYLE,
       swatch: manifest.swatch,
       source,
       params: manifest.params ?? [],

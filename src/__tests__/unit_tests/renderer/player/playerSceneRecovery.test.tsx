@@ -209,14 +209,22 @@ describe('the compact player, its scene not building', () => {
     expect(mockRefuse).toHaveBeenCalledWith(MEMBER_LOOK, NAMES, 'compile');
   });
 
-  it('asks nothing for a scene too heavy or a machine that cannot draw', async () => {
+  // Another copy cannot mend these, so nothing is asked of main; they are
+  // said in the scene's place at once, never a standard look drawn there
+  // (Ivan, 2026-11-14: "only the full scene can show, always").
+  it('asks nothing for a scene too heavy or a machine that cannot draw, and says why', async () => {
     const api = bridge(true);
     mockScene = ready(MEMBER_LOOK, 1);
     render(<PlayerAmp onOpenPage={() => undefined} />);
     await act(async () => stage().onTrouble('heavy'));
+    expect(mockRefuse).toHaveBeenLastCalledWith(MEMBER_LOOK, NAMES, 'heavy');
     await act(async () => stage().onTrouble('unavailable'));
+    expect(mockRefuse).toHaveBeenLastCalledWith(
+      MEMBER_LOOK,
+      NAMES,
+      'unavailable',
+    );
     expect(api.recoverMemberScene).not.toHaveBeenCalled();
-    expect(mockRefuse).not.toHaveBeenCalled();
   });
 
   it('puts right a newer version behind the one playing, for a member’s look only', async () => {

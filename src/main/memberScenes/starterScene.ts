@@ -267,7 +267,6 @@ export const starterManifest = (name: string, id: string) =>
       version: 1,
       contract: SCENE_CONTRACT_VERSION,
       names: { en: name },
-      fallbackStyle: 'dots',
       swatch: ['#0a0c22', '#ff5c9d', '#9fe6ff'],
       sourceFile: 'scene.frag',
       // The time of day first, as the Studio asks of every scene

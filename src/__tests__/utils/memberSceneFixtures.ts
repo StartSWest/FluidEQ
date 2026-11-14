@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { generateKeyPairSync, sign } from 'crypto';
-import type { IScenePack, IScenePackEnvelope } from '../../common/scenePacks';
+import {
+  LEGACY_FALLBACK_STYLE,
+  type IScenePack,
+  type IScenePackEnvelope,
+} from '../../common/scenePacks';
 import { SCENE_DAYLIGHT_CONTROL } from '../../common/sceneDaylight';
 import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
 import { trustMemberSceneKeyForTesting } from '../../main/scenePackVerify';
@@ -46,7 +50,8 @@ export const memberPack = (over: Partial<IScenePack> = {}): IScenePack => ({
   version: 1,
   contract: SCENE_CONTRACT_VERSION,
   names: { en: 'Neon City' },
-  fallbackStyle: 'skyline',
+  // What every pack reads as: a pack's own is ignored (`normalizeScenePack`).
+  fallbackStyle: LEGACY_FALLBACK_STYLE,
   swatch: ['#050a1a', '#00e5cf'],
   source: SOURCE,
   params: [],

@@ -218,13 +218,16 @@ const eq: Partial<Dictionary> = {
   'graph.version.updatedNote': '{name} ora è alla versione {version}: {note}',
   'graph.version.see': 'Vedi le novità',
   'graph.look.refused.compile':
-    '{name} non può comparire nel grafico: il suo codice non si compila su questo computer. Al suo posto c’è un aspetto standard.',
+    '{name} non può comparire nel grafico: il suo codice non si compila su questo computer.',
   'graph.look.refused.heavy':
-    '{name} è troppo pesante per la grafica di questo computer in questo momento. Al suo posto c’è un aspetto standard.',
+    '{name} è troppo pesante per la grafica di questo computer, anche alla dimensione più piccola.',
   'graph.look.refused.unavailable':
-    '{name} non può comparire ora: la grafica di questo computer non riesce a disegnarla. Al suo posto c’è un aspetto standard.',
+    'La grafica di questo computer non può eseguire le scene, quindi {name} non può comparire qui. Gli aspetti standard funzionano ancora: scegline uno dal menu degli aspetti.',
   'graph.look.refused.driver':
-    'Il driver grafico si è fermato mentre disegnava {name}. Al suo posto c’è un aspetto standard.',
+    'Il driver grafico si è fermato mentre disegnava {name}.',
+  'graph.look.thisScene': 'questa scena',
+  'graph.look.refused.gone':
+    '{name} non è più tra le tue scene su questo computer. Scegli un altro aspetto dal menu degli aspetti.',
   'graph.look.retry': 'Riprova',
   'graph.look.reportHint':
     'Se continua a succedere, inviaci una segnalazione da {help} → {report}.',

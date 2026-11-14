@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { GRAPH_STYLES, type GraphStyle } from './graphStyles';
 import type { LocaleCode } from './i18n';
 import { readPaletteValue, type IScenePaletteValue } from './scenePalette';
 import { readShowWhen, type TShowWhen } from './sceneShowWhen';
@@ -294,9 +293,6 @@ export const readSwatch = (value: unknown): string[] => {
     .slice(0, MAX_SWATCH_COLOURS)
     .map((entry) => entry.toLowerCase());
 };
-
-export const isGraphStyle = (value: unknown): value is GraphStyle =>
-  typeof value === 'string' && GRAPH_STYLES.some((style) => style === value);
 
 /**
  * The source, or nothing.

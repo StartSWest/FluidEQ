@@ -762,8 +762,6 @@ const studio = {
     'id में 2 से 48 छोटे अक्षर, अंक और हाइफ़न होने चाहिए।',
   'studio.problem.names-missing': 'अंग्रेज़ी नाम ज़रूरी है।',
   'studio.problem.name-too-long': 'एक नाम 40 अक्षरों से लंबा है।',
-  'studio.problem.bad-fallback':
-    'fallbackStyle, FluidEQ के रूपों में से कोई नहीं है।',
   'studio.problem.bad-swatch': 'swatch में #00e5cf जैसे 2 से 4 रंग चाहिए।',
   'studio.problem.bad-artwork':
     'चित्र उस आकार का WebP नहीं है जो pack.json में लिखा है।',

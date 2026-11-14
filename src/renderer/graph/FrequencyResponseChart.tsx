@@ -124,6 +124,7 @@ import {
   useGraphPalette,
   useIsPaletteSelectable,
   useSceneLook,
+  useSelectedSceneLookId,
   useSelectedLookId,
 } from '../utils/graphStyle';
 import { setChromeHeld } from '../utils/idleChrome';
@@ -154,7 +155,6 @@ import SceneLikeButton from './SceneLikeButton';
 import SceneTintMenu from './SceneTintMenu';
 import { isGraphWaveDrawn } from './graphScenePlace';
 import GraphUpdateNotice from './GraphUpdateNotice';
-import GraphLookRefusedNotice from './GraphLookRefusedNotice';
 import GraphWallpaperToggle from './GraphWallpaperToggle';
 import LightingToggle from './LightingToggle';
 import GraphViewMenu from './GraphViewMenu';
@@ -239,15 +239,21 @@ const LookAnnouncement = () => {
     onAnimationEnd,
   } = useMomentaryHold<HTMLSpanElement>(LOOK_ANNOUNCEMENT_HOLD);
   const knownRef = useRef<string | null>(null);
+  // A scene is named by its own loading and state, never by a look's name:
+  // a scene selection carries no look of its own to announce.
+  const sceneChosen = useSelectedSceneLookId() !== undefined;
 
-  const name = look.isCustom
-    ? look.label
-    : [
-        t(`graph.styleName.${look.style}` as TranslationKey),
-        look.palette === 'signal' ? '' : t(PALETTE_LABEL_KEYS[look.palette]),
-      ]
-        .filter(Boolean)
-        .join(' · ');
+  let name = '';
+  if (!sceneChosen) {
+    name = look.isCustom
+      ? look.label
+      : [
+          t(`graph.styleName.${look.style}` as TranslationKey),
+          look.palette === 'signal' ? '' : t(PALETTE_LABEL_KEYS[look.palette]),
+        ]
+          .filter(Boolean)
+          .join(' · ');
+  }
 
   useEffect(() => {
     if (knownRef.current === null) {
@@ -258,6 +264,9 @@ const LookAnnouncement = () => {
       return undefined;
     }
     knownRef.current = name;
+    if (!name) {
+      return undefined;
+    }
     // The name stays through the fade, or there would be nothing left to
     // fade away — clearing it when the hold ends cuts the fade at the
     // instant it starts.
@@ -1732,8 +1741,6 @@ const FrequencyResponseChart = ({
           two things deciding the same question is how they come to
           disagree. */}
       {drawnScene && <GraphUpdateNotice />}
-      {/* A look the graph had to put aside says why, whatever it shows now. */}
-      <GraphLookRefusedNotice />
       {/* Its shade is its own `::before` (`GraphTheme.scss`), so it is as
           tall as its rows and comes and goes with them. */}
       <div className={`live-output-controls${isChromeIdle ? ' is-idle' : ''}`}>
