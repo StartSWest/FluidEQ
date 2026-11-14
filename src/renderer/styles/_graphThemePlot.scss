@@ -88,24 +88,29 @@ it under the terms of the GNU General Public License version 3 or later.
   inset: 0;
   z-index: 0;
   pointer-events: none;
+}
 
-  // The worker's canvas stands on the app's floor (Ivan, 2026-11-13: "when
-  // the app freezes for a second it shows that white background"). His
-  // capture of v2.5.2 showed a solid white box exactly this canvas's size —
-  // the column layer's, head and graph together — with nothing of the card
-  // drawn over it, while a scene (Analyzer) played there and everything else
-  // in the window was painted. Every element round it was measured opaque or
-  // dark in the live window. The canvas is a placeholder for frames a worker
-  // commits (`transferControlToOffscreen`), and while no frame of the worker's
-  // is there to show, the compositor fills the box from the element's own
-  // background, which it had none of. Given the floor, that gap is the app's
-  // colour in every theme instead of white. Not reproduced on this machine (a
-  // crashed GPU process and a stalled worker both left it transparent); kept
-  // because the floor is what shows behind a scene in every place it plays,
-  // so it costs nothing where the scene is drawn.
-  > canvas {
-    background-color: $surface-base;
-  }
+// On the two layers that stand on the window's floor — behind the EQ head and
+// graph (`SceneColumnLayer`) and behind the whole window under the Backdrop
+// (`SceneCover`) — the worker's canvas has that floor behind it as its own
+// background (Ivan, 2026-11-13: "when the app freezes for a second it shows
+// that white background"). His capture of v2.5.2 showed a solid white box
+// exactly the column layer's size, head and graph together, with nothing of
+// the card drawn over it, while a scene (Analyzer) played there; every
+// element round it measured opaque or dark in the live window. The canvas is
+// a placeholder for frames its worker commits (`transferControlToOffscreen`):
+// while no frame of the worker's is there to show, the compositor fills its
+// box from the element's own background, which it had none of.
+//
+// Only where the floor is what lies under the canvas, so a missing frame, a
+// scene's fade-in and any pixel a scene leaves see-through all show what was
+// there anyway (`#root`'s floor; its faint bloom aside). On the plot the
+// card's own translucent face lies under it instead, so the canvas is left
+// clear there rather than given a new solid colour. Not reproduced on this
+// machine: a crashed GPU process, a stalled worker and a context lost while
+// hidden all left the canvas clear or holding its last frame.
+[data-scene-layer] .chart-scene-canvas > canvas {
+  background-color: $surface-base;
 }
 
 // The scene's panel on the plot (`SceneCanvas`): nothing drawn, only a box to
