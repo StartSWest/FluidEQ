@@ -300,6 +300,9 @@ const KEPT_FILES = [
   // (`opraFeed.ts`): reset away, the next launch would ask GitHub again
   // inside the day and lose the rate limit's reset time.
   'opra-feed.json',
+  // The launches that ended in a fatal error (`startFailures.ts`): reset
+  // away mid-loop, a FluidEQ that cannot start would never reach the report.
+  'start-failures.json',
   'index.json',
 ];
 
