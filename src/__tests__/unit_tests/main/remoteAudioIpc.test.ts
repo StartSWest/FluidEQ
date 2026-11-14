@@ -78,12 +78,16 @@ import path from 'path';
 // eslint-disable-next-line import/first
 import type { BrowserWindow } from 'electron';
 // eslint-disable-next-line import/first
+import log from 'electron-log';
+// eslint-disable-next-line import/first
 import {
   isRemoteAudioActive,
   registerRemoteAudioIpc,
 } from '../../../main/ipc/remoteAudio';
 // eslint-disable-next-line import/first
 import createRemoteAudioLan from '../../../main/remoteAudioLan';
+// eslint-disable-next-line import/first
+import { AudioWorkerStopped } from '../../../main/shareAudio/host';
 // eslint-disable-next-line import/first
 import {
   computerIdOf,
@@ -125,6 +129,59 @@ describe('Share Audio all to all: one code, every link kept', () => {
     });
   });
   afterEach(() => dispose());
+
+  describe('a start FluidEQ quits in the middle of', () => {
+    it('starts as usual when nothing stops it', async () => {
+      const error = jest.spyOn(log, 'error');
+      await expect(
+        handlers.get('remote-audio-lan-start')?.({}, false),
+      ).resolves.toEqual(
+        expect.objectContaining({ details: hostSession.details }),
+      );
+      expect(error).not.toHaveBeenCalled();
+    });
+
+    it('answers cancelled and logs no error when the quit stops the worker', async () => {
+      // The dev app's restarts logged "the local link could not start" and
+      // an Electron handler error for each of these (2026-11-13).
+      const error = jest.spyOn(log, 'error');
+      const info = jest.spyOn(log, 'info').mockImplementation(() => undefined);
+      mockStartRemoteAudioHostSession.mockRejectedValueOnce(
+        new AudioWorkerStopped(true),
+      );
+      await expect(
+        handlers.get('remote-audio-lan-start')?.({}, false),
+      ).resolves.toEqual({ cancelled: true });
+      expect(error).not.toHaveBeenCalled();
+      expect(info).toHaveBeenCalledWith(
+        'Share Audio: the local link stopped starting; FluidEQ is closing',
+      );
+      info.mockRestore();
+    });
+
+    it('still fails, and says so, when the worker dies on its own', async () => {
+      const error = jest
+        .spyOn(log, 'error')
+        .mockImplementation(() => undefined);
+      mockStartRemoteAudioHostSession.mockRejectedValueOnce(
+        new AudioWorkerStopped(false),
+      );
+      await expect(
+        handlers.get('remote-audio-lan-start')?.({}, false),
+      ).rejects.toThrow('Share Audio worker stopped.');
+      expect(error).toHaveBeenCalledWith(
+        'Share Audio: the local link could not start',
+        expect.any(AudioWorkerStopped),
+      );
+      error.mockRestore();
+      // And a later start, on the next real signal, starts again.
+      await expect(
+        handlers.get('remote-audio-lan-start')?.({}, false),
+      ).resolves.toEqual(
+        expect.objectContaining({ details: hostSession.details }),
+      );
+    });
+  });
 
   it('listens on its code and goes back to every computer pasted here', async () => {
     const first = codeOf('a'.repeat(43), 'DESK');

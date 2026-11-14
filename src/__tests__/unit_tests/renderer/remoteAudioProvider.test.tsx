@@ -206,6 +206,15 @@ describe('a link kept through restarts', () => {
     expect(value().error).toBeUndefined();
   });
 
+  it('says nothing failed when FluidEQ quits while it starts', async () => {
+    bridge.hasSavedRemoteAudioLan.mockResolvedValue(true);
+    bridge.startRemoteAudioLan.mockResolvedValueOnce({ cancelled: true });
+    await renderProvider();
+    expect(bridge.startRemoteAudioLan).toHaveBeenCalledTimes(1);
+    expect(value().error).toBeUndefined();
+    expect(value().phase).not.toBe('error');
+  });
+
   it('keeps a pasted computer it cannot reach as one it is looking for', async () => {
     await renderProvider();
     await act(() => value().start());

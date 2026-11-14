@@ -231,6 +231,10 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       if (generationRef.current !== attempt) {
         return;
       }
+      if ('cancelled' in started) {
+        // FluidEQ is closing: nothing failed, so nothing is said.
+        return;
+      }
       heardLinksRef.current = true;
       setDeviceName(started.details.deviceName);
       setCode(started.details.code);

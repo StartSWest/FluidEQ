@@ -71,13 +71,17 @@ const hasSavedRemoteAudioLan = () =>
 /**
  * Listens on this computer's code and goes back to every pasted one.
  * `replay`: this window is new, so every open link is told to it again.
+ * `cancelled`: FluidEQ quit while it was starting.
  */
 const startRemoteAudioLan = (replay = false) =>
-  ipcRenderer.invoke('remote-audio-lan-start', replay) as Promise<{
-    details: ILanHostDetails;
-    joins: ILanSavedJoin[];
-    links: ILanRemoteAudioSignal[];
-  }>;
+  ipcRenderer.invoke('remote-audio-lan-start', replay) as Promise<
+    | { cancelled: true }
+    | {
+        details: ILanHostDetails;
+        joins: ILanSavedJoin[];
+        links: ILanRemoteAudioSignal[];
+      }
+  >;
 
 /** Links with the computer whose code this is, beside every other. */
 const joinRemoteAudioLan = (code: string) =>

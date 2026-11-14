@@ -11,6 +11,29 @@ import type {
   TAudioResponse,
 } from './protocol';
 
+/**
+ * What a request still waiting gets when the worker goes. `deliberate` is
+ * true only when main stopped it on purpose — the app quitting
+ * (`stopAudioWorker`, from `will-quit`) — and false when the worker died
+ * or main could no longer talk to it. A start cut short by a quit is no
+ * failure: on 2026-11-13 every restart of the dev app while Share Audio was
+ * starting logged "the local link could not start" and an Electron handler
+ * error, three times in two minutes, for a link that had done nothing wrong.
+ */
+export class AudioWorkerStopped extends Error {
+  readonly deliberate: boolean;
+
+  constructor(deliberate: boolean) {
+    super('Share Audio worker stopped.');
+    this.name = 'AudioWorkerStopped';
+    this.deliberate = deliberate;
+  }
+}
+
+/** Whether a request ended because main stopped the worker on purpose. */
+export const stoppedOnPurpose = (error: unknown): boolean =>
+  error instanceof AudioWorkerStopped && error.deliberate;
+
 export interface IAudioWorkerTransport {
   on(event: 'message', listener: (message: TAudioResponse) => void): unknown;
   on(event: 'error', listener: (error: Error) => void): unknown;
@@ -42,14 +65,15 @@ export const createAudioWorkerHost = (
   let nextId = 0;
   let ended = false;
   let helperPid: number | undefined;
-  const stop = () => {
+  /** How the worker ended, for requests made after it. */
+  let endedOnPurpose = false;
+  const end = (deliberate: boolean) => {
     if (ended) {
       return;
     }
     ended = true;
-    pending.forEach(({ reject }) =>
-      reject(new Error('Share Audio worker stopped.')),
-    );
+    endedOnPurpose = deliberate;
+    pending.forEach(({ reject }) => reject(new AudioWorkerStopped(deliberate)));
     pending.clear();
     const clients = [...failures];
     failures.clear();
@@ -63,8 +87,11 @@ export const createAudioWorkerHost = (
     });
     worker.terminate().catch(() => undefined);
   };
-  worker.on('error', stop);
-  worker.on('exit', stop);
+  // Everything inside the host that ends the worker is a failure; only
+  // `stop`, which main calls, is on purpose.
+  const fail = () => end(false);
+  worker.on('error', fail);
+  worker.on('exit', fail);
   worker.on('message', (message: TAudioResponse) => {
     if (ended) {
       return;
@@ -103,13 +130,13 @@ export const createAudioWorkerHost = (
       } catch {
         // A failed persistence/control callback cannot leave an unowned link
         // running with state that the next launch will not remember.
-        stop();
+        fail();
       } finally {
         if (!ended && message.credit) {
           try {
             worker.postMessage({ type: 'credit', key: message.credit });
           } catch {
-            stop();
+            fail();
           }
         }
       }
@@ -123,7 +150,7 @@ export const createAudioWorkerHost = (
       ...args: IAudioMethods[K]['args']
     ): Promise<IAudioMethods[K]['result']> {
       if (ended) {
-        return Promise.reject(new Error('Share Audio worker stopped.'));
+        return Promise.reject(new AudioWorkerStopped(endedOnPurpose));
       }
       if (pending.size >= 128) {
         return Promise.reject(new Error('Share Audio control queue is full.'));
@@ -147,7 +174,7 @@ export const createAudioWorkerHost = (
         } catch {
           pending.delete(id);
           reject(new Error('Share Audio control could not be sent.'));
-          stop();
+          fail();
         }
       });
     },
@@ -163,7 +190,8 @@ export const createAudioWorkerHost = (
         failures.delete(listener);
       };
     },
-    stop,
+    /** Ends the worker on purpose: what still waits ends as cancelled. */
+    stop: () => end(true),
   };
 };
 export type TAudioWorkerHost = ReturnType<typeof createAudioWorkerHost>;

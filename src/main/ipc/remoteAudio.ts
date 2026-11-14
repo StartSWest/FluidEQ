@@ -37,6 +37,7 @@ import {
   getAudioWorker,
   listenAudioWorker,
   stopAudioWorker,
+  stoppedOnPurpose,
 } from '../shareAudio/host';
 
 const LAN_SIGNAL_CHANNEL = 'remote-audio-lan-signal';
@@ -434,13 +435,21 @@ export const registerRemoteAudioIpc = ({
       })();
       started = starting;
       starting.catch((error: unknown) => {
+        if (started === starting) {
+          started = undefined;
+        }
+        if (stoppedOnPurpose(error)) {
+          // FluidEQ quit (or the dev app restarted) while the link was
+          // still starting: nothing failed.
+          log.info(
+            'Share Audio: the local link stopped starting; FluidEQ is closing',
+          );
+          return;
+        }
         // The window can only say "could not open that local connection";
         // what actually failed (a port, the network, the Share Audio
         // service) is written here, where a bug report collects it.
         log.error('Share Audio: the local link could not start', error);
-        if (started === starting) {
-          started = undefined;
-        }
       });
     }
     // Asked again while running, the code is made from today's addresses:
@@ -457,7 +466,18 @@ export const registerRemoteAudioIpc = ({
     () => credentials.read().identity !== undefined,
   );
   ipcMain.handle('remote-audio-lan-start', async (_event, replay: unknown) => {
-    const details = await start();
+    let details: ILanHostDetails;
+    try {
+      details = await start();
+    } catch (error) {
+      // Cut short by the quit, the start is answered, not thrown: a throw
+      // here is an "Error occurred in handler" in the log for a link that
+      // only stopped because FluidEQ did.
+      if (stoppedOnPurpose(error)) {
+        return { cancelled: true };
+      }
+      throw error;
+    }
     if (replay !== true) {
       return { details, joins: savedJoins(), links: [] };
     }

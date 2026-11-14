@@ -2,10 +2,12 @@
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import {
+  AudioWorkerStopped,
   createAudioWorkerHost,
   enableAudioWorker,
   audioWorkerEnabled,
   stopAudioWorker,
+  stoppedOnPurpose,
 } from '../../../main/shareAudio/host';
 import startRemoteAudioHostSession from '../../../main/remoteAudioHostSession';
 import type { IRemoteAudioCredentialStore } from '../../../main/remoteAudioCredentials';
@@ -224,5 +226,48 @@ describe('a taken saved port through the Share Audio service', () => {
     await expect(startThrough('EACCES')).rejects.toMatchObject({
       code: 'EACCES',
     });
+  });
+});
+
+describe('a request the worker ends', () => {
+  // A start the app's quit cut short is cancelled, not failed: the dev app's
+  // restarts logged it as "the local link could not start" (2026-11-13).
+  it('is answered as stopped on purpose when main stops the worker', async () => {
+    const host = createAudioWorkerHost('fixture');
+    const waiting = host.request('lan.start', undefined, {
+      revoked: [],
+      links: [],
+    });
+    host.stop();
+    const error = await waiting.catch((reason: unknown) => reason);
+    expect(stoppedOnPurpose(error)).toBe(true);
+    expect(
+      stoppedOnPurpose(await host.request('lan.retry').catch((r) => r)),
+    ).toBe(true);
+  });
+
+  it('is a failure when the worker dies on its own', async () => {
+    const host = createAudioWorkerHost('fixture');
+    const waiting = host.request('lan.start', undefined, {
+      revoked: [],
+      links: [],
+    });
+    mockWorkers[0].emit('exit', 1);
+    const error = await waiting.catch((reason: unknown) => reason);
+    expect(error).toBeInstanceOf(AudioWorkerStopped);
+    expect(stoppedOnPurpose(error)).toBe(false);
+    expect(
+      stoppedOnPurpose(await host.request('lan.retry').catch((r) => r)),
+    ).toBe(false);
+  });
+
+  it('answers a request the worker finished, whatever happens after', async () => {
+    const host = createAudioWorkerHost('fixture');
+    const worker = mockWorkers[0] as EventEmitter & { postMessage: jest.Mock };
+    const waiting = host.request('status');
+    const { id } = worker.postMessage.mock.calls[0][0] as { id: number };
+    worker.emit('message', { type: 'answer', id, value: { scheduling: true } });
+    host.stop();
+    await expect(waiting).resolves.toEqual({ scheduling: true });
   });
 });
