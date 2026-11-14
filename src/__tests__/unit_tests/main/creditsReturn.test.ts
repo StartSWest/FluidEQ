@@ -95,6 +95,7 @@ describe('the credits coming back', () => {
     sent = [];
     const ownership = {
       subscribe: () => () => undefined,
+      onCreditsArrived: () => () => undefined,
       known: () => undefined,
       refreshNow: () => {
         refreshes += 1;

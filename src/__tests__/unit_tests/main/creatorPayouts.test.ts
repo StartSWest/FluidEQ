@@ -144,6 +144,7 @@ describe('fluideq://creators links', () => {
     const sent: unknown[] = [];
     const ownership = {
       subscribe: () => () => undefined,
+      onCreditsArrived: () => () => undefined,
       known: () => undefined,
       refreshNow: () => {
         refreshes += 1;
