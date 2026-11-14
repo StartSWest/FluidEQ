@@ -31,6 +31,7 @@ const plus = {
   'plus.gallery.empty.weekNew': 'На этой неделе новых сцен пока нет.',
   'plus.gallery.empty.weekUpdated': 'На этой неделе сцены пока не обновлялись.',
   'plus.gallery.empty.allMine': 'Все сцены отсюда вам уже доступны.',
+  'plus.gallery.empty.showAll': 'Показать все сцены',
   'plus.gallery.categories': 'Категории',
   'plus.gallery.all': 'Все',
   'plus.gallery.mine': 'Ваши сцены',

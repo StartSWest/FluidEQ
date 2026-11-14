@@ -36,6 +36,7 @@ const plus = {
   'plus.gallery.empty.weekNew': 'No new scenes this week yet.',
   'plus.gallery.empty.weekUpdated': 'No scene has been updated this week yet.',
   'plus.gallery.empty.allMine': 'You can already play every scene here.',
+  'plus.gallery.empty.showAll': 'Show all scenes',
   'plus.gallery.categories': 'Categories',
   'plus.gallery.all': 'All',
   'plus.gallery.mine': 'Your scenes',

@@ -185,8 +185,10 @@ export default function GalleryToolbar({
         {/* Beside the categories, not among the orders: it narrows whatever
             order and category are chosen, rather than being one more way to
             order them. Only for somebody signed in: there is nothing of
-            theirs to compare with otherwise. */}
-        {views && signedIn && (
+            theirs to compare with otherwise. Always there while it is on,
+            whatever the server has shown yet: a filter applied is a filter
+            shown, or an empty list has nothing on screen to explain it. */}
+        {signedIn && (views || filters.notMine === true) && (
           <button
             type="button"
             className="gallery-chip gallery-chip--switch"

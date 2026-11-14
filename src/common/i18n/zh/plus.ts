@@ -30,6 +30,7 @@ const plus = {
   'plus.gallery.empty.weekNew': '本周还没有新场景。',
   'plus.gallery.empty.weekUpdated': '本周还没有场景更新。',
   'plus.gallery.empty.allMine': '这里的场景你都已经可以使用。',
+  'plus.gallery.empty.showAll': '显示全部场景',
   'plus.gallery.categories': '分类',
   'plus.gallery.all': '全部',
   'plus.gallery.mine': '你的场景',

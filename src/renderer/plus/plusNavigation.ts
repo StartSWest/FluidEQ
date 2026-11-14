@@ -133,8 +133,12 @@ const bindAccount = () => {
     owner = next;
     // A saved scene page carries the previous account's likes and actions.
     // Keep the chosen workspace (including a guest's Studio destination),
-    // but open a fresh gallery page for the next account.
-    publish({ ...navigation, page: { kind: 'browse' } });
+    // but open a fresh gallery page for the next account. "Not mine yet" was
+    // the previous account's "mine": the next one starts on every scene, and
+    // a landing that means it for this account (`openNotMineYet`) binds the
+    // account first and sets it after.
+    const { notMine: _previous, ...filters } = navigation.filters;
+    publish({ ...navigation, page: { kind: 'browse' }, filters });
   }
 };
 

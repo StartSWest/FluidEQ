@@ -33,6 +33,7 @@ const plus = {
   'plus.gallery.empty.weekNew': '本週還沒有新場景。',
   'plus.gallery.empty.weekUpdated': '本週還沒有場景更新。',
   'plus.gallery.empty.allMine': '這裡的場景你都已經可以使用。',
+  'plus.gallery.empty.showAll': '顯示全部場景',
   'plus.gallery.categories': '類別',
   'plus.gallery.all': '全部',
   'plus.gallery.mine': '你的場景',

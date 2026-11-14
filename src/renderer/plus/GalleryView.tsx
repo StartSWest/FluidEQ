@@ -53,7 +53,11 @@ export default function GalleryView({ me }: IGalleryViewProps) {
   const open = (scene: IGalleryScene) =>
     openGalleryPage({ kind: 'scene', scene, from: query });
 
-  let empty: { title: TranslationKey; body?: TranslationKey } = {
+  let empty: {
+    title: TranslationKey;
+    body?: TranslationKey;
+    showAll?: boolean;
+  } = {
     title: 'plus.gallery.empty.title',
     body: 'plus.gallery.empty.body',
   };
@@ -62,7 +66,9 @@ export default function GalleryView({ me }: IGalleryViewProps) {
   } else if (filters.category) {
     empty = { title: 'plus.gallery.empty.category' };
   } else if (filters.notMine && me) {
-    empty = { title: 'plus.gallery.empty.allMine' };
+    // Nothing left that is not theirs: the way back to every scene, on the
+    // page that is empty, never only the chip up in the toolbar.
+    empty = { title: 'plus.gallery.empty.allMine', showAll: true };
   } else if (filters.sort === 'week-new') {
     empty = { title: 'plus.gallery.empty.weekNew' };
   } else if (filters.sort === 'week-updated') {
@@ -90,6 +96,15 @@ export default function GalleryView({ me }: IGalleryViewProps) {
             <p className="community__empty-title">
               {t(empty.title, { query: asked })}
             </p>
+            {empty.showAll && (
+              <button
+                type="button"
+                className="button small"
+                onClick={() => setBrowseFilters({ ...filters, notMine: false })}
+              >
+                {t('plus.gallery.empty.showAll')}
+              </button>
+            )}
             {empty.body && (
               <>
                 <p className="community__empty-hint">{t(empty.body)}</p>

@@ -36,6 +36,7 @@ const plus = {
     '이번 주에는 아직 업데이트된 장면이 없습니다.',
   'plus.gallery.empty.allMine':
     '여기 있는 장면은 모두 이미 사용할 수 있습니다.',
+  'plus.gallery.empty.showAll': '모든 장면 보기',
   'plus.gallery.categories': '카테고리',
   'plus.gallery.all': '모두',
   'plus.gallery.mine': '당신의 장면',

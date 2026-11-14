@@ -196,9 +196,15 @@ const load = async (query: TListQuery, offset: number) => {
     });
     return;
   }
+  // An answer to "Not mine yet" says so by being an answer: an older server
+  // refuses the parameter. Learned from rows alone, an account that owns every
+  // scene - the admin - asked it first after signing in, got none back, never
+  // learned, and the gallery stayed empty under a chip it never showed (Ivan,
+  // 2026-11-13: "when they get into the gallery it appears empty").
   if (
     !serverViews &&
-    outcome.scenes.some((scene) => scene.firstPublishedAt !== undefined)
+    (query.notMine === true ||
+      outcome.scenes.some((scene) => scene.firstPublishedAt !== undefined))
   ) {
     serverViews = true;
   }

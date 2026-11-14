@@ -32,6 +32,7 @@ const plus = {
   'plus.gallery.empty.weekNew': '今週はまだ新しいシーンがありません。',
   'plus.gallery.empty.weekUpdated': '今週はまだ更新されたシーンがありません。',
   'plus.gallery.empty.allMine': 'ここのシーンはすべてもう使えます。',
+  'plus.gallery.empty.showAll': 'すべてのシーンを表示',
   'plus.gallery.categories': 'カテゴリ',
   'plus.gallery.all': 'すべて',
   'plus.gallery.mine': 'あなたのシーン',

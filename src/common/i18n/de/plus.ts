@@ -33,6 +33,7 @@ const plus = {
   'plus.gallery.empty.weekUpdated':
     'Diese Woche wurde noch keine Szene aktualisiert.',
   'plus.gallery.empty.allMine': 'Sie können schon alle Szenen hier verwenden.',
+  'plus.gallery.empty.showAll': 'Alle Szenen zeigen',
   'plus.gallery.categories': 'Kategorien',
   'plus.gallery.all': 'Alle',
   'plus.gallery.mine': 'Ihre Szenen',

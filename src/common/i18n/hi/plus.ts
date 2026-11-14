@@ -32,6 +32,7 @@ const plus = {
   'plus.gallery.empty.weekUpdated': 'इस हफ़्ते अभी कोई सीन अपडेट नहीं हुआ है।',
   'plus.gallery.empty.allMine':
     'यहाँ के सभी सीन आप पहले से इस्तेमाल कर सकते हैं।',
+  'plus.gallery.empty.showAll': 'सभी सीन दिखाएँ',
   'plus.gallery.categories': 'श्रेणियाँ',
   'plus.gallery.all': 'सभी',
   'plus.gallery.mine': 'आपके सीन',
