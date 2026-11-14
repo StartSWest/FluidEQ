@@ -314,6 +314,8 @@ const eq: Partial<Dictionary> = {
   'graph.picker.yours': '你的',
   'graph.picker.filterStyles': '筛选样式',
   'graph.picker.filterPlus': '筛选场景',
+  'graph.picker.emptyCategory': '你在这个分类中还没有场景。',
+  'graph.picker.browseCategory': '在图库中查看这个分类',
   'graph.channel.left': '左',
   'graph.channel.right': '右',
   'graph.legend.live': '实时',

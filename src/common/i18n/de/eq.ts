@@ -343,6 +343,9 @@ const eq: Partial<Dictionary> = {
   'graph.picker.yours': 'Ihre',
   'graph.picker.filterStyles': 'Stile filtern',
   'graph.picker.filterPlus': 'Szenen filtern',
+  'graph.picker.emptyCategory':
+    'Sie haben noch keine Szenen in dieser Kategorie.',
+  'graph.picker.browseCategory': 'Diese Kategorie in der Galerie ansehen',
   'graph.channel.left': 'L',
   'graph.channel.right': 'R',
   'graph.legend.live': 'Live',

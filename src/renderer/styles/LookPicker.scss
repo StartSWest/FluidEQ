@@ -458,6 +458,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
   color: $text-dim;
   font-size: $text-small;
   text-align: center;
+
+  // A line with its way out under it (Clear search, a category's way to the
+  // gallery): the button is a flex box, which text-align does not move, so
+  // it sat at the column's left edge under a centred line.
+  &:has(> button) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-s;
+
+    > p {
+      margin: 0;
+    }
+
+    // The glyph apart from its label, as the Explore button under the list.
+    > .button {
+      gap: 6px;
+      max-width: 100%;
+    }
+  }
 }
 
 @include lookPickerDiscover.styles;

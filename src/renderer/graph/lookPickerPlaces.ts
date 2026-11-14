@@ -1,7 +1,12 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
+import type { TPlusCategory } from 'common/plusGallery';
 import { requestAccountPanel } from '../account/accountPanel';
-import { openGalleryPage, openPlusPlace } from '../plus/plusNavigation';
+import {
+  openGalleryCategory,
+  openGalleryPage,
+  openPlusPlace,
+} from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
 
 /**
@@ -14,8 +19,12 @@ const openLookPickerPlace = (
   place: 'gallery' | 'studio',
   onLeave: () => void,
   isSignedIn: boolean,
+  /** The gallery filed under this category, from a chip with none of the member's. */
+  category?: TPlusCategory,
 ) => {
-  if (place === 'gallery') {
+  if (place === 'gallery' && category) {
+    openGalleryCategory(category);
+  } else if (place === 'gallery') {
     openGalleryPage({ kind: 'browse' });
   } else {
     openPlusPlace('studio');

@@ -223,6 +223,22 @@ export const openNotMineYet = () => {
 };
 
 /**
+ * The gallery's front page filed under one category, no search: where the
+ * look picker sends a member whose own scenes hold none of that category
+ * (Ivan, 2026-11-13: the picker "must always have all the gallery's
+ * categories"), so the chip leads somewhere instead of to a blank list.
+ */
+export const openGalleryCategory = (category: TPlusCategory) => {
+  bindAccount();
+  publish({
+    ...navigation,
+    place: 'visualizers',
+    page: { kind: 'browse' },
+    filters: { ...opened(navigation.filters), category, text: '' },
+  });
+};
+
+/**
  * How far down each page was scrolled, by page, so Back lands where the
  * member left the gallery rather than at its top.
  */

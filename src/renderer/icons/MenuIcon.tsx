@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { SceneMarkPaths } from './SceneMark';
+
 /**
  * Glyphs for the actions menu and the panel buttons.
  *
@@ -158,12 +160,6 @@ const PATHS: Record<string, string> = {
   album:
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 10.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z',
   artist: 'M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5.5 19.5a6.5 6.5 0 0 1 13 0',
-  // A spark with a small plus beside it: the Plus tab, where the members'
-  // visualizers and the Studio live. The same spark the Plus
-  // card inside it wears. It was a speech bubble while the tab was only the
-  // community's chat, which has since given way to the Forum tab.
-  plusTab:
-    'M10.5 3.5Q11.4 9.6 17.5 10.5 11.4 11.4 10.5 17.5 9.6 11.4 3.5 10.5 9.6 9.6 10.5 3.5zM18.5 15.5v6M15.5 18.5h6',
   // The forum: a bubble with a second behind it, GitHub's own picture for
   // Discussions. The back one is only its right and lower edges, set clear of
   // the front one — a full overlapping pair reads as a blot at 13px.
@@ -242,7 +238,14 @@ const PATHS: Record<string, string> = {
   checkAll: 'M2.5 12.5l4.5 4.5 9.5-9.5M11 17l9.5-9.5',
 };
 
-export type MenuIconName = keyof typeof PATHS;
+/**
+ * 'scene' is the scene mark (`SceneMark.tsx`), drawn on its own 20-unit grid
+ * at its own 1.5 stroke - the same weight as these, scaled - from the one
+ * source the Gallery row draws it from. The Scenes tab wore a sparkle here
+ * while the row under it wore the mark (Ivan, 2026-11-13: "put the graph
+ * one, the same as in the gallery").
+ */
+export type MenuIconName = keyof typeof PATHS | 'scene';
 
 interface IMenuIconProps {
   name: MenuIconName;
@@ -253,6 +256,23 @@ export default function MenuIcon({
   name,
   className = 'menu-icon',
 }: IMenuIconProps) {
+  if (name === 'scene') {
+    return (
+      <svg
+        className={className}
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <SceneMarkPaths />
+      </svg>
+    );
+  }
   return (
     <svg
       className={className}

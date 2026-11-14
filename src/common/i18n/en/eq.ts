@@ -348,6 +348,8 @@ const eq = {
   'graph.picker.yours': 'Yours',
   'graph.picker.filterStyles': 'Filter styles',
   'graph.picker.filterPlus': 'Filter scenes',
+  'graph.picker.emptyCategory': 'None of your scenes are in this category yet.',
+  'graph.picker.browseCategory': 'See this category in the gallery',
   'graph.channel.left': 'L',
   'graph.channel.right': 'R',
   'graph.legend.live': 'Live',

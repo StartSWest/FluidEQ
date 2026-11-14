@@ -338,14 +338,18 @@ export const styleFilters = (rows: readonly IStyleRow[]): TStyleFilter[] => [
 ];
 
 /**
- * Only the categories something is filed under: a chip that empties the
- * column is a dead end, and the collection grows into the rest.
+ * Every one of the gallery's categories, in the gallery's order, from the
+ * gallery's own list - never only the ones the member's scenes are filed
+ * under. It used to be only those, and a member with no retro or 3D scene
+ * met a picker missing Retro games and 3D worlds that the gallery has
+ * (Ivan, 2026-11-13: "it must always have all the gallery's categories").
+ * A category none of the member's scenes is under shows its own empty
+ * line with the way to that category in the gallery (`LookPickerBody`).
+ * Who made them still shows only when there is somebody to pick.
  */
 export const plusFilters = (rows: readonly IPlusRow[]): TPlusFilter[] => [
   'all',
-  ...PLUS_CATEGORIES.filter((category) =>
-    rows.some((row) => row.categories.includes(category)),
-  ),
+  ...PLUS_CATEGORIES,
   ...(rows.some((row) => row.maker === 'mine') ? (['mine'] as const) : []),
   ...(rows.some((row) => row.maker === 'members')
     ? (['members'] as const)

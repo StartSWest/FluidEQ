@@ -70,7 +70,7 @@ const VisualizersTab = ({
       onPointerEnter={() => onApproach('community')}
       onFocus={() => onApproach('community')}
     >
-      <MenuIcon name="plusTab" />
+      <MenuIcon name="scene" />
       <span className="workspace-tab__label">{t('tabs.plus')}</span>
     </button>
   );

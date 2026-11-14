@@ -336,6 +336,8 @@ const eq: Partial<Dictionary> = {
   'graph.picker.yours': 'Ваши',
   'graph.picker.filterStyles': 'Фильтр стилей',
   'graph.picker.filterPlus': 'Фильтр сцен',
+  'graph.picker.emptyCategory': 'У вас пока нет сцен в этой категории.',
+  'graph.picker.browseCategory': 'Открыть эту категорию в галерее',
   'graph.channel.left': 'Л',
   'graph.channel.right': 'П',
   'graph.legend.live': 'Сейчас',

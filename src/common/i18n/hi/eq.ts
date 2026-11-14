@@ -332,6 +332,8 @@ const eq: Partial<Dictionary> = {
   'graph.picker.yours': 'आपके',
   'graph.picker.filterStyles': 'शैलियाँ फ़िल्टर करें',
   'graph.picker.filterPlus': 'सीन फ़िल्टर करें',
+  'graph.picker.emptyCategory': 'इस श्रेणी में अभी आपका कोई सीन नहीं है।',
+  'graph.picker.browseCategory': 'यह श्रेणी गैलरी में देखें',
   'graph.channel.left': 'बाएँ',
   'graph.channel.right': 'दाएँ',
   'graph.legend.live': 'लाइव',

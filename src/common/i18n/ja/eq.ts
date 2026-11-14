@@ -338,6 +338,8 @@ const eq: Partial<Dictionary> = {
   'graph.picker.yours': 'あなたの',
   'graph.picker.filterStyles': 'スタイルを絞り込む',
   'graph.picker.filterPlus': 'シーンを絞り込む',
+  'graph.picker.emptyCategory': 'このカテゴリのシーンはまだありません。',
+  'graph.picker.browseCategory': 'ギャラリーでこのカテゴリを見る',
   'graph.channel.left': 'L',
   'graph.channel.right': 'R',
   'graph.legend.live': 'ライブ',

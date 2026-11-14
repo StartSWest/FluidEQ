@@ -288,6 +288,8 @@ const eq = {
   'graph.picker.yours': '你的',
   'graph.picker.filterStyles': '過濾器樣式',
   'graph.picker.filterPlus': '過濾場景',
+  'graph.picker.emptyCategory': '您在這個分類中還沒有場景。',
+  'graph.picker.browseCategory': '在畫廊中查看這個分類',
   'graph.channel.left': 'L',
   'graph.channel.right': 'R',
   'graph.legend.live': '直播',

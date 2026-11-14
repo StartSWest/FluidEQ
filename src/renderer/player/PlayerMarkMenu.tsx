@@ -42,7 +42,7 @@ const PAGES = [
   { page: 'dsp', labelKey: 'tabs.dsp', icon: 'configure' },
   { page: 'library', labelKey: 'tabs.library', icon: 'album' },
   { page: 'karaoke', labelKey: 'tabs.karaoke', icon: 'microphone' },
-  { page: 'plus', labelKey: 'tabs.plus', icon: 'plusTab' },
+  { page: 'plus', labelKey: 'tabs.plus', icon: 'scene' },
 ] as const satisfies readonly {
   page: TPlayerPage;
   labelKey: string;

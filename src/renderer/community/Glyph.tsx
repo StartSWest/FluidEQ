@@ -1,3 +1,4 @@
+import { SceneMarkPaths } from '../icons/SceneMark';
 import CoinGlyph from '../plus/CoinGlyph';
 
 export type TCommunityGlyph =
@@ -95,13 +96,8 @@ export default function Glyph({ name, className }: IGlyphProps) {
           </>
         );
       case 'looks':
-        // A small spectrum: four bars under a curve.
-        return (
-          <>
-            <path d="M3 16.5V11M7.5 16.5V7M12 16.5V9.5M16.5 16.5V4.5" />
-            <path d="M2 8.5c3-3 5.5-3 8-1s5 1.5 8-2" opacity="0.6" />
-          </>
-        );
+        // THE scene mark: a small spectrum, four bars under a curve.
+        return <SceneMarkPaths />;
       case 'feature-requests':
         // A lit bulb.
         return (

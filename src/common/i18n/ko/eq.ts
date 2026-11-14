@@ -304,6 +304,8 @@ const eq = {
   'graph.picker.yours': '너의 것',
   'graph.picker.filterStyles': '스타일 필터링',
   'graph.picker.filterPlus': '장면 필터링',
+  'graph.picker.emptyCategory': '이 카테고리에는 아직 장면이 없습니다.',
+  'graph.picker.browseCategory': '갤러리에서 이 카테고리 보기',
   'graph.channel.left': 'L',
   'graph.channel.right': 'R',
   'graph.legend.live': '라이브',

@@ -119,7 +119,7 @@ function Announcement({ shown }: { shown: IShownAnnouncement }) {
       <DialogFrame
         ref={surfaceRef}
         className="scene-announcement"
-        icon={<MenuIcon name="plusTab" />}
+        icon={<MenuIcon name="scene" />}
         eyebrow={t('announce.eyebrow', {
           count: String(announcement.scenes.length),
         })}

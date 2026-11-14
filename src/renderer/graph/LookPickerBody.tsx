@@ -6,10 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { Fragment, type RefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import { isPlusCategory } from 'common/plusGallery';
 import LookIcon from '../icons/LookIcon';
 import { useTranslation } from '../utils/I18nContext';
 import LookPickerScene from './LookPickerScene';
 import LookPickerDiscover from './LookPickerDiscover';
+import LookPickerEmptyCategory from './LookPickerEmptyCategory';
 import LookPickerMore from './LookPickerMore';
 import {
   categoryName,
@@ -302,7 +304,13 @@ const LookPickerBody = ({
             {discovering && onLeave ? (
               <LookPickerDiscover onLeave={onLeave} />
             ) : (
-              shownPlus.length === 0 && (
+              shownPlus.length === 0 &&
+              (!searching && isPlusCategory(activePlus) ? (
+                <LookPickerEmptyCategory
+                  category={activePlus}
+                  onLeave={onLeave}
+                />
+              ) : (
                 <div className="look-picker__empty">
                   <p>{t('common.noMatches')}</p>
                   {searching && (
@@ -315,7 +323,7 @@ const LookPickerBody = ({
                     </button>
                   )}
                 </div>
-              )
+              ))
             )}
           </div>
           {/* Under the list, not in it: always there, however long the
