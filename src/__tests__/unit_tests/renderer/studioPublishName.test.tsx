@@ -116,10 +116,11 @@ describe('the gallery name in the publish dialog', () => {
     expect(
       document.querySelector('.studio-publish__body--named'),
     ).not.toBeNull();
-    expect(send()).toBeDisabled();
+    // Held, and still pressable: the press goes to the form.
+    expect(send()).toHaveAttribute('aria-disabled', 'true');
     // Said in the footer, where it is seen: nobody hovers a disabled button.
     expect(document.querySelector('.studio-publish__held')).toHaveTextContent(
-      'profile.name.choose',
+      'studio.publish.missing.name',
     );
     expect(send()).not.toHaveAttribute('title');
   });
@@ -130,5 +131,8 @@ describe('the gallery name in the publish dialog', () => {
     expect(screen.queryByText('profile.name.handle')).toBeNull();
     expect(document.querySelector('.studio-publish__body--named')).toBeNull();
     expect(send()).toBeEnabled();
+    expect(
+      document.querySelector('.studio-publish__held'),
+    ).not.toHaveTextContent('studio.publish.missing.name');
   });
 });

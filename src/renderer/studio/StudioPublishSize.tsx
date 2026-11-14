@@ -43,6 +43,9 @@ export default function StudioPublishSize({ size }: { size: IScenePackSize }) {
     <section
       className={`studio-publish-size${over ? ' is-over' : ''}`}
       aria-labelledby="studio-publish-size-label"
+      data-publish-part="size"
+      // Nothing in it takes the focus, and a press on Send is sent here.
+      tabIndex={-1}
     >
       <div className="studio-publish-size__head">
         <span className="gallery-dialog__label" id="studio-publish-size-label">

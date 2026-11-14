@@ -153,9 +153,7 @@ const studio = {
   'studio.publish.viewChoice': 'फ़्रेम में क्या दिखे',
   'studio.publish.viewLive': 'लाइव दृश्य',
   'studio.publish.viewRecorded': 'प्रीव्यू वीडियो',
-  'studio.publish.videoRequired':
-    'पहले चलने योग्य प्रीव्यू की रिकॉर्डिंग पूरी करें',
-  'studio.publish.videoWatermark': 'FluidEQ Plus · पूर्वावलोकन',
+  'studio.publish.videoWatermark': 'FluidEQ · पूर्वावलोकन',
 
   'studio.publish.title': '{name} प्रकाशित करें',
   'studio.publish.titleUpdate': 'गैलरी में {name} अपडेट करें',
@@ -188,7 +186,14 @@ const studio = {
     'यह सीन अभी यहाँ नहीं चल सकता। नीचे के कवर अब भी काम करते हैं।',
   'studio.publish.category': 'श्रेणियाँ',
   'studio.publish.categoryHint': 'अधिकतम दो। इसके कार्ड पर पहली दिखती है।',
-  'studio.publish.pickCategory': 'पहले एक श्रेणी चुनें',
+  'studio.publish.stillNeeded': 'अभी भी चाहिए:',
+  'studio.publish.missing.name': 'आपका नाम और @हैंडल, सबसे ऊपर',
+  'studio.publish.missing.video': 'चलने लायक प्रीव्यू वीडियो',
+  'studio.publish.missing.category': 'एक श्रेणी',
+  'studio.publish.missing.size': 'छोटा सीन',
+  'studio.publish.missing.note': 'नया क्या है, इस पर एक पंक्ति',
+  'studio.publish.missing.noteFirst': 'सीन के बारे में एक पंक्ति',
+  'studio.publish.missing.under': '{what}, {section} में',
   'studio.publish.needNote': 'पहले बताएँ कि इस संस्करण में नया क्या है',
   'studio.publish.noteFirst': 'इस सीन के बारे में',
   'studio.publish.notePlaceholderFirst':

@@ -153,9 +153,7 @@ const studio = {
   'studio.publish.viewChoice': 'O que o quadro mostra',
   'studio.publish.viewLive': 'Cena ao vivo',
   'studio.publish.viewRecorded': 'Vídeo da prévia',
-  'studio.publish.videoRequired':
-    'Primeiro termine de gravar uma prévia que possa ser reproduzida',
-  'studio.publish.videoWatermark': 'FluidEQ Plus · Prévia',
+  'studio.publish.videoWatermark': 'FluidEQ · Prévia',
 
   'studio.publish.title': 'Publicar {name}',
   'studio.publish.titleUpdate': 'Atualizar {name} na galeria',
@@ -188,7 +186,14 @@ const studio = {
     'A cena não pode tocar aqui agora. As capas abaixo continuam valendo.',
   'studio.publish.category': 'Categorias',
   'studio.publish.categoryHint': 'Até duas. O cartão mostra a primeira.',
-  'studio.publish.pickCategory': 'Escolha uma categoria primeiro',
+  'studio.publish.stillNeeded': 'Ainda falta:',
+  'studio.publish.missing.name': 'seu nome e @usuário, no topo',
+  'studio.publish.missing.video': 'um vídeo de prévia que reproduza',
+  'studio.publish.missing.category': 'uma categoria',
+  'studio.publish.missing.size': 'uma cena menor',
+  'studio.publish.missing.note': 'uma linha sobre o que há de novo',
+  'studio.publish.missing.noteFirst': 'uma linha sobre a cena',
+  'studio.publish.missing.under': '{what}, em {section}',
   'studio.publish.needNote': 'Diga primeiro o que há de novo nesta versão',
   'studio.publish.noteFirst': 'Sobre esta cena',
   'studio.publish.notePlaceholderFirst':

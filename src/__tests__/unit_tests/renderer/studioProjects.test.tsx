@@ -308,11 +308,13 @@ describe('the publish dialog', () => {
     // And that the review can say no, and what is left of the scene then.
     expect(screen.getByText('studio.publish.pointQuality')).toBeInTheDocument();
     const go = screen.getByRole('button', { name: 'studio.publish.goReview' });
-    expect(go).toBeDisabled();
+    // Held while the category is missing, and the press goes there.
+    expect(go).toHaveAttribute('aria-disabled', 'true');
     await userEvent.click(
       screen.getByRole('button', { name: 'plus.category.space' }),
     );
     expect(go).toBeEnabled();
+    expect(go).not.toHaveAttribute('aria-disabled');
     await userEvent.click(go);
     expect(onPublish).toHaveBeenCalledWith(
       'space',

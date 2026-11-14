@@ -229,21 +229,88 @@ it under the terms of the GNU General Public License version 3 or later.
   @include tracking(0.1em);
 }
 
-// What still holds Send, beside the buttons in the footer's quiet voice:
-// the reason used to be the button's tooltip alone, and nobody hovers a
-// disabled button. Never red: it is said from the first second, before the
-// member has done anything wrong. It takes the footer's free room between the
-// terms and the buttons, and wraps to a line of its own before it pushes a
-// button off theirs.
+// What still holds Send (`StudioPublishHeld`): a line of its own over the
+// footer's buttons, ending over the one it holds, every missing part a way
+// to it. It sat in small muted type between the terms and Cancel and Ivan
+// read the button as dead with the reason beside it (2026-11-14), so it is
+// the body's own colour now, with its sign — and never red: it is said from
+// the first second, before the member has done anything wrong.
 .studio-publish__held {
-  flex: 1 1 12rem;
-  align-self: center;
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  order: -1;
+  gap: 4px 8px;
   min-width: 0;
   margin: 0;
-  color: $text-muted;
-  font-size: $text-small;
+  color: $text-primary;
+  font-size: $text-body;
   line-height: 1.35;
-  text-align: end;
+}
+
+.studio-publish__held-icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: $text-accent;
+}
+
+.studio-publish__held-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: $text-muted;
+}
+
+// A missing part, and the way to it.
+.studio-publish__held-link {
+  padding: 0;
+  color: $text-primary;
+  font: inherit;
+  font-weight: $weight-semibold;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, $secondary-light 55%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+  }
+}
+
+// Send, while a part is missing: it looks held, and still takes the press,
+// which goes to the first missing part. The app's held buttons take no
+// pointer events (`Button.scss`), and that is what made this one read as
+// dead.
+.button.studio-publish__send[aria-disabled='true'] {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+// The part a press on Send or on its name was sent to, outlined once while
+// the focus lands in it. A colour that fades, never a movement; the class
+// goes on `animationend`, or when the focus leaves the part.
+[data-publish-part].is-called {
+  border-radius: $radius-m;
+  animation: publish-part-called 1.8s ease-out;
+}
+
+@keyframes publish-part-called {
+  0%,
+  45% {
+    outline: 2px solid $secondary-light;
+    outline-offset: 6px;
+  }
+
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 6px;
+  }
 }
 
 .studio-publish__note-wrong {

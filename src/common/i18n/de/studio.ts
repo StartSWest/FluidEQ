@@ -157,9 +157,7 @@ const studio = {
   'studio.publish.viewChoice': 'Was das Bild zeigt',
   'studio.publish.viewLive': 'Live-Szene',
   'studio.publish.viewRecorded': 'Vorschauvideo',
-  'studio.publish.videoRequired':
-    'Nehmen Sie zuerst eine abspielbare Vorschau auf',
-  'studio.publish.videoWatermark': 'FluidEQ Plus · Vorschau',
+  'studio.publish.videoWatermark': 'FluidEQ · Vorschau',
 
   'studio.publish.title': '{name} veröffentlichen',
   'studio.publish.titleUpdate': '{name} in der Galerie aktualisieren',
@@ -193,7 +191,14 @@ const studio = {
     'Die Szene kann hier gerade nicht laufen. Die Titelbilder darunter gelten weiter.',
   'studio.publish.category': 'Kategorien',
   'studio.publish.categoryHint': 'Bis zu zwei. Die Karte zeigt die erste.',
-  'studio.publish.pickCategory': 'Wählen Sie zuerst eine Kategorie',
+  'studio.publish.stillNeeded': 'Noch nötig:',
+  'studio.publish.missing.name': 'Ihr Name und @Handle, ganz oben',
+  'studio.publish.missing.video': 'ein abspielbares Vorschauvideo',
+  'studio.publish.missing.category': 'eine Kategorie',
+  'studio.publish.missing.size': 'eine kleinere Szene',
+  'studio.publish.missing.note': 'eine Zeile zu den Neuerungen',
+  'studio.publish.missing.noteFirst': 'eine Zeile über die Szene',
+  'studio.publish.missing.under': '{what}, unter {section}',
   'studio.publish.needNote': 'Sagen Sie zuerst, was in dieser Version neu ist',
   'studio.publish.noteFirst': 'Über diese Szene',
   'studio.publish.notePlaceholderFirst':

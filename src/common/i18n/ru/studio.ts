@@ -150,9 +150,7 @@ const studio = {
   'studio.publish.viewChoice': 'Что показывает кадр',
   'studio.publish.viewLive': 'Живая сцена',
   'studio.publish.viewRecorded': 'Видео предпросмотра',
-  'studio.publish.videoRequired':
-    'Сначала завершите запись воспроизводимого предпросмотра',
-  'studio.publish.videoWatermark': 'FluidEQ Plus · Предпросмотр',
+  'studio.publish.videoWatermark': 'FluidEQ · Предпросмотр',
 
   'studio.publish.title': 'Опубликовать «{name}»',
   'studio.publish.titleUpdate': 'Обновить «{name}» в галерее',
@@ -186,7 +184,15 @@ const studio = {
     'Сцена сейчас не может играть здесь. Обложки ниже по-прежнему подходят.',
   'studio.publish.category': 'Категории',
   'studio.publish.categoryHint': 'Не больше двух. На карточке видна первая.',
-  'studio.publish.pickCategory': 'Сначала выберите категорию',
+  'studio.publish.stillNeeded': 'Ещё нужно:',
+  'studio.publish.missing.name': 'ваше имя и @имя пользователя — вверху',
+  'studio.publish.missing.video':
+    'видео предпросмотра, которое воспроизводится',
+  'studio.publish.missing.category': 'категория',
+  'studio.publish.missing.size': 'сцена поменьше',
+  'studio.publish.missing.note': 'строка о том, что нового',
+  'studio.publish.missing.noteFirst': 'строка о сцене',
+  'studio.publish.missing.under': '{what} — в разделе «{section}»',
   'studio.publish.needNote': 'Сначала напишите, что нового в этой версии',
   'studio.publish.noteFirst': 'Об этой сцене',
   'studio.publish.notePlaceholderFirst':

@@ -152,9 +152,7 @@ const studio = {
   'studio.publish.viewChoice': 'フレームに表示する内容',
   'studio.publish.viewLive': 'ライブのシーン',
   'studio.publish.viewRecorded': 'プレビュー動画',
-  'studio.publish.videoRequired':
-    'まず再生できるプレビューの録画を完了してください',
-  'studio.publish.videoWatermark': 'FluidEQ Plus · プレビュー',
+  'studio.publish.videoWatermark': 'FluidEQ · プレビュー',
 
   'studio.publish.title': '{name} を公開',
   'studio.publish.titleUpdate': 'ギャラリーの {name} を更新',
@@ -189,7 +187,14 @@ const studio = {
     '今はここでシーンを再生できません。下のカバーはそのまま使えます。',
   'studio.publish.category': 'カテゴリ',
   'studio.publish.categoryHint': '2つまで。カードには1つ目が表示されます。',
-  'studio.publish.pickCategory': '先にカテゴリを選んでください',
+  'studio.publish.stillNeeded': 'まだ必要なもの:',
+  'studio.publish.missing.name': '名前と @ハンドル（いちばん上）',
+  'studio.publish.missing.video': '再生できるプレビュー動画',
+  'studio.publish.missing.category': 'カテゴリ',
+  'studio.publish.missing.size': 'もっと小さいシーン',
+  'studio.publish.missing.note': '新しい点の一文',
+  'studio.publish.missing.noteFirst': 'シーンについての一文',
+  'studio.publish.missing.under': '{what}（「{section}」）',
   'studio.publish.needNote': '先にこのバージョンの新しい点を書いてください',
   'studio.publish.noteFirst': 'このシーンについて',
   'studio.publish.notePlaceholderFirst':

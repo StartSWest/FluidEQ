@@ -69,7 +69,11 @@ export default function StudioPublishVideo({
   const counting = ['waiting', 'recording', 'paused'].includes(state.phase);
 
   return (
-    <section className="studio-publish__video" aria-labelledby={titleId}>
+    <section
+      className="studio-publish__video"
+      aria-labelledby={titleId}
+      data-publish-part="video"
+    >
       <span id={titleId} className="gallery-dialog__label">
         {t('studio.publish.videoTitle')}
       </span>

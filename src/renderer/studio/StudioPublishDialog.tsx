@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
-import { formatPackBytes, scenePackSize } from 'common/scenePackSize';
+import { scenePackSize } from 'common/scenePackSize';
 import { versionToPublish, type TVersionNotes } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
@@ -25,7 +25,10 @@ import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import StudioPublishCamera from './StudioPublishCamera';
 import StudioPublishCovers from './StudioPublishCovers';
+import StudioPublishHeld from './StudioPublishHeld';
 import StudioPublishSize from './StudioPublishSize';
+import StudioPublishTicks from './StudioPublishTicks';
+import { callPart, missingParts, type TPublishPart } from './publishMissing';
 import type {
   IPublishDraft,
   IPreparedPublishPreview,
@@ -80,8 +83,9 @@ interface IStudioPublishDialogProps {
  * Up to two, because one made a maker choose between what a scene shows and
  * what it is — a skyline on a lake is Cities and Water. The first picked is
  * the one its card names, and the chips number themselves once there are two.
- * A third pick takes the second's place, so the first stays put. Publish is
- * disabled until one is picked; an update starts on the ones the scene has.
+ * A third pick takes the second's place, so the first stays put. Until one is
+ * picked the press goes to them (`publishMissing`); an update starts on the
+ * ones the scene has.
  *
  * Every publication takes one line, a first version included (Ivan,
  * 2026-11-13: "notes needs to be exiged always", "even on first version"):
@@ -205,49 +209,36 @@ export default function StudioPublishDialog({
   const update = draft.published !== undefined;
   // The scene's chat writing or translating the line: Send waits for it.
   const waiting = noteSend.translating !== undefined || noteSend.writing;
-  // What holds the press back, said on the button rather than after it.
-  const pressHeld =
-    !category ||
-    !preview ||
-    !previewReady ||
-    running ||
-    tooLarge ||
-    publicName.missing;
   // Every publication goes out with its line: what changed for an update,
   // which the update notice and the versions page are built around, and
   // what the scene is for a first version, the first entry on that page.
   const needsNote = !noteLines.lines[sourceOf(noteLines, mine)].trim();
+  // What still holds the press back, part by part. The button stays
+  // pressable and goes to the first of them; only sending, or the chat
+  // writing the line, really disables it.
+  const missing = missingParts({
+    name: publicName.missing,
+    video: !previewReady,
+    category: !category,
+    size: tooLarge,
+    note: needsNote && !waiting,
+  });
+  const call = (part: TPublishPart) => {
+    if (part === 'note') {
+      setNoteMissing(true);
+    }
+    callPart(
+      surfaceRef.current,
+      part,
+      part === 'note' ? noteRef.current : null,
+    );
+  };
   // A member's publication waits for the admin before anybody sees it
   // (server migration 0037), and the dialog says so before the press rather
   // than after it: the button sends it for review, and the first point says
   // what that means. An account whose publications go straight out
   // (`useAddonCapabilities`) is told so.
   const reviewed = !publishesWithoutReview;
-  let publishHint: string | undefined;
-  if (tooLarge) {
-    publishHint = t('studio.publish.tooLarge', {
-      limit: formatPackBytes(size.limit, locale),
-    });
-  } else if (!previewReady) {
-    publishHint = t('studio.publish.videoRequired');
-  } else if (!category) {
-    publishHint = t('studio.publish.pickCategory');
-  }
-  // What still holds Send, said in the footer in its quiet voice: the
-  // reason used to live in the button's tooltip alone, and nobody hovers a
-  // disabled button — Ivan read the button as dead (2026-11-13). The line's
-  // own red word still waits for the press (`noteMissing`), and while the
-  // chat writes it the box says so itself, with its working dots.
-  let stillNeeded: string | undefined;
-  if (publicName.missing) {
-    stillNeeded = t('profile.name.choose');
-  } else if (publishHint) {
-    stillNeeded = publishHint;
-  } else if (needsNote && !noteMissing && !waiting) {
-    stillNeeded = t(
-      update ? 'studio.publish.needNote' : 'studio.publish.needNoteFirst',
-    );
-  }
   let go: string;
   if (!draft.agreed) {
     go = t(reviewed ? 'studio.publish.agreeReview' : 'studio.publish.agree');
@@ -311,44 +302,7 @@ export default function StudioPublishDialog({
         closeLabel={t('support.close')}
         // Away while the scene is being sent, as Escape and the backdrop are.
         onClose={canCancel ? cancel : undefined}
-        // What publishing means, in the rail: read once and the same every
-        // time, so the body is left to what is being decided now.
-        rail={
-          <ul className="studio-ticks">
-            {reviewed && (
-              <li>
-                <MenuIcon name="check" />
-                <span>
-                  {update
-                    ? t('studio.publish.pointReviewUpdate')
-                    : t('studio.publish.pointReview')}
-                </span>
-              </li>
-            )}
-            {/* That a review can say no, and what is left then, before the
-                press (Ivan, 2026-11-12: "they have to be great quality in
-                order to be accepted. But if it's not accepted, you still can
-                play it yourselves locally"). Only where a review decides. */}
-            {reviewed && (
-              <li>
-                <MenuIcon name="check" />
-                <span>{t('studio.publish.pointQuality')}</span>
-              </li>
-            )}
-            <li>
-              <MenuIcon name="check" />
-              <span>{t('studio.publish.point1')}</span>
-            </li>
-            <li>
-              <MenuIcon name="check" />
-              <span>
-                {update
-                  ? t('studio.publish.point3Update')
-                  : t('studio.publish.point3')}
-              </span>
-            </li>
-          </ul>
-        }
+        rail={<StudioPublishTicks reviewed={reviewed} update={update} />}
         footer={
           <>
             <button
@@ -364,12 +318,16 @@ export default function StudioPublishDialog({
             >
               {t('studio.publish.read')}
             </button>
-            {/* Between the terms and the buttons, in the room they leave: it
-                never pushes a button onto a line of its own. */}
-            {stillNeeded && !running && (
-              <p className="studio-publish__held" role="status">
-                {stillNeeded}
-              </p>
+            {/* A line of its own over the buttons, ending over the one it
+                holds. The line's red word in its box still waits for the
+                press (`noteMissing`), and while the chat writes it the box
+                says so itself, with its working dots. */}
+            {!running && (
+              <StudioPublishHeld
+                parts={missing}
+                update={update}
+                onCall={call}
+              />
             )}
             <div className="dialog-frame__actions">
               <button
@@ -393,16 +351,16 @@ export default function StudioPublishDialog({
               )}
               <button
                 type="button"
-                className={`button small${running ? ' is-running' : ''}`}
+                className={`button small studio-publish__send${running ? ' is-running' : ''}`}
                 aria-busy={running}
-                disabled={pressHeld || waiting}
+                aria-disabled={missing.length > 0 || undefined}
+                disabled={running || waiting}
                 onClick={() => {
-                  if (pressHeld || !category || !preview) {
+                  if (missing.length > 0) {
+                    call(missing[0]);
                     return;
                   }
-                  if (needsNote) {
-                    setNoteMissing(true);
-                    noteRef.current?.focus();
+                  if (!category || !preview) {
                     return;
                   }
                   const prepared = {
@@ -430,7 +388,7 @@ export default function StudioPublishDialog({
               "once they provide it we dont ask more"): asked here, while the
               account has neither, and gone for good once it is saved. */}
           {publicName.missing && (
-            <div className="studio-publish__name">
+            <div className="studio-publish__name" data-publish-part="name">
               <ProfileNameForm save={createProfile} onSaved={noop} />
             </div>
           )}
@@ -455,7 +413,10 @@ export default function StudioPublishDialog({
             onChoose={onChoose}
           />
 
-          <div className="studio-publish__category">
+          <div
+            className="studio-publish__category"
+            data-publish-part="category"
+          >
             <span
               className="gallery-dialog__label"
               id="studio-publish-category"

@@ -153,7 +153,7 @@ it('keeps the 30 fps cadence on a jittering 60 Hz source instead of drifting tow
 
 it('starts on a real canvas frame without waiting for the recorder start event', async () => {
   const progress = jest.fn();
-  const recording = record('FluidEQ Plus · Preview', progress);
+  const recording = record('FluidEQ · Preview', progress);
   expect(Recorder.instances).toHaveLength(0);
   recording.frame(source(), 2000);
   expect(requestFrame).toHaveBeenCalledTimes(1);
@@ -175,7 +175,7 @@ it('starts on a real canvas frame without waiting for the recorder start event',
     videoBitsPerSecond: 1050000,
   });
   expect(context.fillText).toHaveBeenCalledWith(
-    'FluidEQ Plus · Preview',
+    'FluidEQ · Preview',
     expect.any(Number),
     expect.any(Number),
   );

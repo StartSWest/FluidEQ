@@ -154,9 +154,7 @@ const studio = {
   'studio.publish.viewChoice': 'Qué muestra el cuadro',
   'studio.publish.viewLive': 'Escena en vivo',
   'studio.publish.viewRecorded': 'Vídeo de vista previa',
-  'studio.publish.videoRequired':
-    'Primero termina de grabar una vista previa que se pueda reproducir',
-  'studio.publish.videoWatermark': 'FluidEQ Plus · Vista previa',
+  'studio.publish.videoWatermark': 'FluidEQ · Vista previa',
 
   'studio.publish.title': 'Publicar {name}',
   'studio.publish.titleUpdate': 'Actualizar {name} en la galería',
@@ -190,7 +188,14 @@ const studio = {
     'La escena no se puede reproducir aquí ahora. Las portadas de abajo siguen sirviendo.',
   'studio.publish.category': 'Categorías',
   'studio.publish.categoryHint': 'Hasta dos. Su tarjeta muestra la primera.',
-  'studio.publish.pickCategory': 'Elige primero una categoría',
+  'studio.publish.stillNeeded': 'Aún falta:',
+  'studio.publish.missing.name': 'tu nombre y @usuario, arriba',
+  'studio.publish.missing.video': 'un vídeo de vista previa que se reproduzca',
+  'studio.publish.missing.category': 'una categoría',
+  'studio.publish.missing.size': 'una escena más pequeña',
+  'studio.publish.missing.note': 'una línea sobre lo nuevo',
+  'studio.publish.missing.noteFirst': 'una línea sobre la escena',
+  'studio.publish.missing.under': '{what}, en {section}',
   'studio.publish.needNote': 'Di primero qué hay de nuevo en esta versión',
   'studio.publish.noteFirst': 'Sobre esta escena',
   'studio.publish.notePlaceholderFirst':

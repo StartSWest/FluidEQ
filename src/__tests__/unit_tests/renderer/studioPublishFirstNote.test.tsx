@@ -112,22 +112,32 @@ const EVERY_LANGUAGE = Object.fromEntries(
   ]),
 ) as Record<(typeof VERSION_NOTE_LOCALES)[number], string>;
 
+// The parts the footer names, each "{what}, under {section}".
 const held = () =>
-  document.querySelector('.studio-publish__held')?.textContent ?? '';
+  [...document.querySelectorAll('.studio-publish__held-link')].map(
+    (link) => link.textContent,
+  );
 
 describe('a first publication', () => {
   it('asks for what the scene is, and says what Send still needs', async () => {
     open();
     expect(screen.getByText('studio.publish.noteFirst')).toBeInTheDocument();
-    // Before anything is done: the category is what is missing, said quietly.
-    expect(held()).toBe('studio.publish.pickCategory');
-    expect(send()).toBeDisabled();
+    // Before anything is done: every part still missing, said quietly, and
+    // Send held but still pressable (it goes to the first of them).
+    expect(held()).toEqual([
+      'studio.publish.missing.under:studio.publish.missing.category,studio.publish.category',
+      'studio.publish.missing.under:studio.publish.missing.noteFirst,studio.publish.noteFirst',
+    ]);
+    expect(send()).toHaveAttribute('aria-disabled', 'true');
+    expect(send()).not.toBeDisabled();
     fireEvent.click(
       screen.getByRole('button', { name: 'plus.category.nature' }),
     );
     await act(async () => undefined);
-    // Then the line: said in the footer's quiet voice, never red yet.
-    expect(held()).toBe('studio.publish.needNoteFirst');
+    // Then the line alone: said in the footer's quiet voice, never red yet.
+    expect(held()).toEqual([
+      'studio.publish.missing.under:studio.publish.missing.noteFirst,studio.publish.noteFirst',
+    ]);
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
@@ -157,6 +167,7 @@ describe('a first publication', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(
       'studio.publish.needNoteFirst',
     );
+    expect(document.activeElement?.tagName).toBe('TEXTAREA');
   });
 
   it('sends a first version with its line', async () => {
@@ -184,7 +195,8 @@ describe('a first publication', () => {
     );
     await act(async () => undefined);
     // The control: with the line there, nothing is said and nothing waits.
-    expect(held()).toBe('');
+    expect(held()).toEqual([]);
+    expect(send()).not.toHaveAttribute('aria-disabled');
     fireEvent.click(send());
     await act(async () => undefined);
     expect(onPublish).toHaveBeenCalledTimes(1);
@@ -221,6 +233,8 @@ describe('an update', () => {
       />,
     );
     expect(screen.getByText('studio.publish.note')).toBeInTheDocument();
-    expect(held()).toBe('studio.publish.needNote');
+    expect(held()).toEqual([
+      'studio.publish.missing.under:studio.publish.missing.note,studio.publish.note',
+    ]);
   });
 });

@@ -150,9 +150,7 @@ const studio = {
   'studio.publish.viewChoice': '화면에 표시할 내용',
   'studio.publish.viewLive': '실시간 장면',
   'studio.publish.viewRecorded': '미리 보기 동영상',
-  'studio.publish.videoRequired':
-    '먼저 재생 가능한 미리 보기 녹화를 완료하세요',
-  'studio.publish.videoWatermark': 'FluidEQ Plus · 미리보기',
+  'studio.publish.videoWatermark': 'FluidEQ · 미리보기',
 
   'studio.publish.title': '{name} 게시',
   'studio.publish.titleUpdate': '갤러리에서 {name}를 업데이트하세요.',
@@ -185,7 +183,14 @@ const studio = {
     '지금은 여기서 장면을 재생할 수 없습니다. 아래 덮개는 여전히 작동합니다.',
   'studio.publish.category': '카테고리',
   'studio.publish.categoryHint': '최대 2개. 카드에 첫 번째가 표시됩니다.',
-  'studio.publish.pickCategory': '먼저 카테고리를 선택하세요',
+  'studio.publish.stillNeeded': '아직 필요한 것:',
+  'studio.publish.missing.name': '이름과 @핸들(맨 위)',
+  'studio.publish.missing.video': '재생할 수 있는 미리보기 동영상',
+  'studio.publish.missing.category': '카테고리',
+  'studio.publish.missing.size': '더 작은 장면',
+  'studio.publish.missing.note': '새로운 점 한 줄',
+  'studio.publish.missing.noteFirst': '장면 소개 한 줄',
+  'studio.publish.missing.under': '{what}({section})',
   'studio.publish.needNote': '먼저 이 버전의 새로운 기능을 말해보세요.',
   'studio.publish.noteFirst': '이 장면에 대해',
   'studio.publish.notePlaceholderFirst':
