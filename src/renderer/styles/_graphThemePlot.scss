@@ -88,6 +88,24 @@ it under the terms of the GNU General Public License version 3 or later.
   inset: 0;
   z-index: 0;
   pointer-events: none;
+
+  // The worker's canvas stands on the app's floor (Ivan, 2026-11-13: "when
+  // the app freezes for a second it shows that white background"). His
+  // capture of v2.5.2 showed a solid white box exactly this canvas's size —
+  // the column layer's, head and graph together — with nothing of the card
+  // drawn over it, while a scene (Analyzer) played there and everything else
+  // in the window was painted. Every element round it was measured opaque or
+  // dark in the live window. The canvas is a placeholder for frames a worker
+  // commits (`transferControlToOffscreen`), and while no frame of the worker's
+  // is there to show, the compositor fills the box from the element's own
+  // background, which it had none of. Given the floor, that gap is the app's
+  // colour in every theme instead of white. Not reproduced on this machine (a
+  // crashed GPU process and a stalled worker both left it transparent); kept
+  // because the floor is what shows behind a scene in every place it plays,
+  // so it costs nothing where the scene is drawn.
+  > canvas {
+    background-color: $surface-base;
+  }
 }
 
 // The scene's panel on the plot (`SceneCanvas`): nothing drawn, only a box to
