@@ -58,11 +58,12 @@ export default function StarterCredits({
       </span>
       <button
         type="button"
-        className={`button small${claiming ? ' is-running' : ''}`}
+        className={`button small coin-action${claiming ? ' is-running' : ''}`}
         aria-busy={claiming}
         disabled={claiming}
         onClick={claim}
       >
+        <Glyph name="credit" />
         {t('store.starter.claim', { credits })}
       </button>
     </div>

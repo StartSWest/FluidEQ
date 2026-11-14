@@ -13,8 +13,8 @@ import {
   type TCheckoutFailure,
   type TStarterFailure,
 } from 'common/sceneStore';
-import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import CoinMedal from './CoinMedal';
 import { creditsText } from './credits';
 import { checkoutCreditPack, onCheckoutReturned } from './sceneStore';
 
@@ -115,7 +115,7 @@ function CoinPile({ coins }: { coins: number }) {
       {Array.from({ length: coins }, (_, index) => (
         // A coin's place in the pile is what it is: the pile never reorders.
         // eslint-disable-next-line react/no-array-index-key -- see above
-        <Glyph key={index} name="credit" className="store-pack__coin" />
+        <CoinMedal key={index} className="store-pack__coin" />
       ))}
     </span>
   );

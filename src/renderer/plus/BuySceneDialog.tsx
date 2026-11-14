@@ -173,11 +173,12 @@ export default function BuySceneDialog({
             {canBuy && (
               <button
                 type="button"
-                className={`button small${buying ? ' is-running' : ''}`}
+                className={`button small coin-action${buying ? ' is-running' : ''}`}
                 aria-busy={buying}
                 disabled={buying}
                 onClick={confirm}
               >
+                <Glyph name="credit" />
                 {buying
                   ? t('store.buy.buying')
                   : t('store.buy.use', {

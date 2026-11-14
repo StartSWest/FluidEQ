@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { STARTER_CREDITS } from 'common/sceneStore';
+import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { pluralCategory } from '../utils/pluralCategory';
 import { creditsText } from './credits';
@@ -112,11 +113,12 @@ export default function StarterCard({ accountId }: { accountId: string }) {
             </button>
             <button
               type="button"
-              className={`button small${phase === 'claiming' ? ' is-running' : ''}`}
+              className={`button small coin-action${phase === 'claiming' ? ' is-running' : ''}`}
               aria-busy={phase === 'claiming'}
               disabled={phase === 'claiming'}
               onClick={claim}
             >
+              <Glyph name="credit" />
               {t('store.starter.claim', {
                 credits: creditsText(t, locale, STARTER_CREDITS),
               })}

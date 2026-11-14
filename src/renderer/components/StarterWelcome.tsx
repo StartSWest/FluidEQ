@@ -186,11 +186,12 @@ function WelcomeDialog({ onAnswer }: { onAnswer: (later: boolean) => void }) {
             <button
               ref={actionRef}
               type="button"
-              className={`button small${phase === 'claiming' ? ' is-running' : ''}`}
+              className={`button small coin-action${phase === 'claiming' ? ' is-running' : ''}`}
               aria-busy={phase === 'claiming'}
               disabled={phase === 'claiming'}
               onClick={claim}
             >
+              <Glyph name="credit" />
               {t('store.starter.claim', {
                 credits: creditsText(t, locale, STARTER_CREDITS),
               })}

@@ -15,30 +15,32 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'theme' as *;
 
-// "Get · 1 credit" (`SceneGet`): the coin, then the words, on one line.
-.store-get {
+// Every button that spends or gets credits leads with the coin, then its
+// words, on one line (Ivan, 2026-11-14: "show it on buttons that use the
+// credit"): Get · 1 credit, Use 1 credit, Pay, Claim. The coin is a little
+// taller than the label's capitals, as an icon beside a word is. A long
+// label ("3 Gratis-Credits einlösen") may still wrap beside it.
+.coin-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  white-space: nowrap;
 
   > svg {
     flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
-    color: inherit;
-    stroke: currentColor;
+    width: 16px;
+    height: 16px;
   }
+}
+
+// "Get · 1 credit" (`SceneGet`) is short and stands in a card's row of
+// actions: one line, always.
+.store-get {
+  white-space: nowrap;
 }
 
 .gallery-card__get {
   flex: 0 0 auto;
-
-  svg {
-    width: 13px;
-    height: 13px;
-  }
 }
 
 .dialog-frame.gallery-report-dialog.store-dialog {

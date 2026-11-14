@@ -34,7 +34,7 @@ export default function SceneGet({ scene, name, className }: ISceneGetProps) {
     <>
       <button
         type="button"
-        className={`${className} store-get`}
+        className={`${className} coin-action store-get`}
         onClick={() => setOpen(true)}
       >
         <Glyph name="credit" />

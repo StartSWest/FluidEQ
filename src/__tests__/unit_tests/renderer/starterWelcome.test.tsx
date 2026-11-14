@@ -131,8 +131,11 @@ describe('the welcome dialog', () => {
     const claim = screen.getByRole('button', {
       name: 'store.starter.claim:store.credit.other:3',
     });
-    expect(claim).toHaveClass('button', 'small');
+    expect(claim).toHaveClass('button', 'small', 'coin-action');
     expect(claim).not.toHaveClass('subtle');
+    // A button that gets credits leads with the coin (Ivan, 2026-11-14).
+    expect(claim.firstElementChild?.tagName).toBe('svg');
+    expect(claim.querySelector('svg path')).not.toBeNull();
     expect(
       screen.getByRole('button', { name: 'store.welcome.later' }),
     ).toHaveClass('subtle');
@@ -280,6 +283,11 @@ describe('the card in Visualizers', () => {
     expect(
       screen.getByRole('heading', { name: 'store.welcome.cardTitle.other:3' }),
     ).toBeInTheDocument();
+    const claim = screen.getByRole('button', {
+      name: 'store.starter.claim:store.credit.other:3',
+    });
+    expect(claim).toHaveClass('coin-action');
+    expect(claim.firstElementChild?.tagName).toBe('svg');
   });
 
   it('is gone once they are claimed, on any computer', () => {

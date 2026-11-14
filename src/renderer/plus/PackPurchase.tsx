@@ -79,7 +79,7 @@ export default function PackPurchase({ store }: { store: ISceneStore }) {
                   not once the credits it was for have come. */}
               <button
                 type="button"
-                className={`button small${
+                className={`button small coin-action${
                   starterWaiting || checkout.waiting || checkout.arrived > 0
                     ? ' subtle'
                     : ''
@@ -88,6 +88,7 @@ export default function PackPurchase({ store }: { store: ISceneStore }) {
                 disabled={checkout.opening}
                 onClick={() => checkout.pay(pack.id)}
               >
+                <Glyph name="credit" />
                 {checkout.waiting
                   ? t('store.packs.again')
                   : t('store.packs.pay', {
