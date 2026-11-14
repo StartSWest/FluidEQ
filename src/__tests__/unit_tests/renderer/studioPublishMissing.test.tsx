@@ -136,8 +136,13 @@ describe('a press while a part is missing', () => {
     const onPublish = jest.fn();
     open({}, onPublish);
     // Ivan, 2026-11-14: "enable the button, so when they click they can tell
-    // which is the error". Never dead, and the list quiet until a press.
+    // which is the error". Never dead, and the list quiet until a press: not
+    // disabled, not marked held (the app draws aria-disabled as the dim
+    // outline), and in its loud style.
     expect(send()).toBeEnabled();
+    expect(send()).not.toHaveAttribute('aria-disabled');
+    expect(send()).toHaveClass('button', 'small');
+    expect(send()).not.toHaveClass('subtle');
     const line = document.querySelector('.studio-publish__held');
     expect(line).toHaveAttribute('role', 'status');
     expect(line).not.toHaveClass('is-alert');
