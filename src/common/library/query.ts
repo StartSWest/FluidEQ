@@ -220,6 +220,24 @@ export type TLibraryRequest =
       exclude: readonly string[];
       count: number;
     }
+  /**
+   * One song to start somewhere new (the Library's Surprise me): a genre
+   * drawn at random, then a song in it, moving away from the genres of
+   * `awayFrom`, skipping `exclude` and never `playing` while anything else
+   * is left (`surprise` in `libraryTrackQuestions.ts`).
+   */
+  | {
+      type: 'surprise';
+      playing?: string;
+      awayFrom: readonly string[];
+      exclude: readonly string[];
+    }
+  /**
+   * Covers for Surprise me's draw: up to `count` different pictures from the
+   * library's songs at random, none of `exclude` (art ids) — a deck of a
+   * couple of dozen, never the library's covers.
+   */
+  | { type: 'coverDeck'; count: number; exclude: readonly string[] }
   /** Summed durations of these ids, for "how long is left". */
   | { type: 'duration'; ids: readonly string[] }
   /** The row of every folder heading in a list that has them. */
@@ -264,6 +282,10 @@ export interface ILibraryAnswers {
   ids: string[];
   tracks: ILibraryTrack[];
   continuation: string[];
+  /** Null when the library has no song that can play. */
+  surprise: string | null;
+  /** Art ids, each once; fewer than asked when the library has fewer. */
+  coverDeck: string[];
   duration: number;
   headings: number[];
   /** -1 when the list does not hold `afterId`. */

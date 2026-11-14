@@ -96,6 +96,8 @@ const EMPTY_ANSWERS: Omit<ILibraryAnswers, 'page'> = {
   ids: [],
   tracks: [],
   continuation: [],
+  surprise: null,
+  coverDeck: [],
   duration: 0,
   headings: [],
   rest: -1,

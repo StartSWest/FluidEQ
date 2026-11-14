@@ -123,6 +123,13 @@ const library: Partial<Dictionary> = {
   'library.upNext.keepPlaying': '再生を続ける',
   'library.upNext.keepPlayingHint':
     'リストが終わったら、同じジャンルの曲を続けて再生します',
+  'library.upNext.surprise': 'おまかせ再生',
+  'library.upNext.surpriseHint':
+    'ライブラリからランダムに1曲再生し、続けて同じ雰囲気の曲を流します',
+  'library.upNext.surpriseStart':
+    'ライブラリからランダムに1曲。その後は同じ雰囲気の曲が続きます。',
+  'library.upNext.surpriseNothing':
+    '今はライブラリに再生できる曲がありません。',
   'library.queueAdd': 'キューに追加',
 
   'library.alsoInFolder':

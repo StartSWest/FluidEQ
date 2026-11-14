@@ -479,23 +479,128 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // `flex: 0 0 auto` for the reason the header above it carries the same: the
 // list below is the only thing in this column allowed to take the slack, and
 // a row that could shrink would be squeezed out of existence by a long queue.
+//
+// Surprise me shares the row, at its right. Wrapping rather than shrinking:
+// the switch's words keep their width, and where the panel is too narrow
+// for both (its 190px floor, a long translation) the button takes the next
+// line, still at the right, instead of covering them.
 .library-up-next__keep {
   display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
   padding: 8px 10px;
   border-bottom: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
+}
+
+// Allowed to narrow, so its label can wrap: "Продолжать воспроизведение" is
+// 168px on its own and ran past the panel's 190px floor on one line.
+.library-up-next__keep-switch {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.library-up-next__surprise {
+  margin-left: auto;
+}
+
+// The shuffle glyph of Surprise me, stroked in the button's own ink, and
+// its spark, which turns once on a press (`LibrarySurpriseButton`).
+.library-surprise {
+  gap: 6px;
+}
+
+.library-surprise__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.library-surprise__spark {
+  stroke-width: 1.2;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.library-surprise.is-sparking .library-surprise__spark {
+  animation: library-surprise-spark 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes library-surprise-spark {
+  0% {
+    transform: scale(1) rotate(0);
+  }
+
+  45% {
+    transform: scale(1.6) rotate(90deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(180deg);
+  }
+}
+
+// An empty queue, and Surprise me at full size as the way to start one,
+// with what it does written under it.
+.library-up-next__start {
+  display: grid;
+  justify-items: center;
+  padding: 22px 8px;
+  gap: 10px;
+  text-align: center;
+
+  .library-up-next__empty {
+    padding: 0;
+  }
+}
+
+// The filled button a size up from the small one, in the panel's lead size
+// rather than the page's 16px: at 16px "Überraschen lassen" broke onto two
+// lines at the panel's 190px floor and stood out of scale with every other
+// line in it. Its words may still wrap in a longer translation rather than
+// run past the card.
+.library-up-next__start-button {
+  max-width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  font-size: $text-lead;
+  gap: 7px;
+  white-space: normal;
+
+  .library-surprise__icon {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.library-up-next__start-hint {
+  max-width: 28ch;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+
+  &.is-nothing {
+    color: $text-muted;
+  }
 }
 
 // Same recipe as `.song-eq-save__label`, which is the app's other switch with
 // its name beside it — including the pointer, without which the words look
 // like a caption rather than half the control.
 .library-up-next__keep-label {
+  min-width: 0;
   color: $text-muted;
   font-size: $text-body;
   font-weight: $weight-semibold;
-  white-space: nowrap;
+  line-height: 1.25;
   cursor: pointer;
   transition: color $motion-fast ease;
 }

@@ -123,6 +123,13 @@ const library: Partial<Dictionary> = {
   'library.upNext.keepPlaying': 'Weiterspielen',
   'library.upNext.keepPlayingHint':
     'Wenn die Liste zu Ende ist, mit weiterer Musik desselben Genres fortfahren',
+  'library.upNext.surprise': 'Überraschen lassen',
+  'library.upNext.surpriseHint':
+    'Einen zufälligen Song aus Ihrer Bibliothek abspielen, danach mehr in dieser Richtung',
+  'library.upNext.surpriseStart':
+    'Ein zufälliger Song aus Ihrer Bibliothek, danach mehr in dieser Richtung.',
+  'library.upNext.surpriseNothing':
+    'In Ihrer Bibliothek lässt sich gerade nichts abspielen.',
   'library.queueAdd': 'Zur Warteschlange',
 
   'library.alsoInFolder': 'In diesem Ordner, nicht in diesem Album',

@@ -25,6 +25,9 @@ import type { TLibrarySort } from '../../common/library/types';
 /** A page is what one screen draws, with room to scroll. */
 const MAX_PAGE_ROWS = 500;
 
+/** Covers in Surprise me's draw: a deck, never a gallery. */
+const MAX_DECK = 64;
+
 /**
  * Ids asked for in one question: a playlist's scope, a queue's lookup, a
  * run of ids for "play all". A queue of the whole library is the listener's
@@ -172,6 +175,23 @@ const parseLibraryRequest = (value: unknown): TLibraryRequest | undefined => {
             exclude: value.exclude,
             count: value.count,
           }
+        : undefined;
+    case 'surprise':
+      return isOptionalText(value.playing, MAX_TEXT) &&
+        isIdList(value.awayFrom) &&
+        isIdList(value.exclude)
+        ? {
+            type: 'surprise',
+            ...(typeof value.playing === 'string'
+              ? { playing: value.playing }
+              : {}),
+            awayFrom: value.awayFrom,
+            exclude: value.exclude,
+          }
+        : undefined;
+    case 'coverDeck':
+      return isCount(value.count, MAX_DECK) && isIdList(value.exclude)
+        ? { type: 'coverDeck', count: value.count, exclude: value.exclude }
         : undefined;
     case 'duration':
       return isIdList(value.ids)

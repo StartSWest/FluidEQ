@@ -78,6 +78,7 @@ import {
 import { usePublishedPlaylistDeck } from '../../player/playlistDeck';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
+import { useSurprise } from './useSurprise';
 import { useTrackAnalysis } from './useTrackAnalysis';
 import { useTransportControls } from './useTransportControls';
 import { useUpNext } from './useUpNext';
@@ -436,6 +437,7 @@ export const LibraryPlayerProvider = ({
     setAddedIds,
     addedIdsRef,
     continuedIdsRef,
+    playedIdsRef,
     isGuess,
   } = useUpNext({
     queue,
@@ -546,6 +548,15 @@ export const LibraryPlayerProvider = ({
     continuedIdsRef,
     setAddedIds,
     playTracks,
+  });
+  /** Surprise me: a song from anywhere, and Up Next in its style. See `useSurprise`. */
+  const { surprise, lastSurprise } = useSurprise({
+    queueRef,
+    addedIdsRef,
+    playedIdsRef,
+    playTracks,
+    setQueue,
+    setAddedIds,
   });
   /**
    * Next/Previous, the scrubber and the fader — the controls that move the
@@ -671,6 +682,8 @@ export const LibraryPlayerProvider = ({
       appendToQueue,
       removeUpNextAt,
       moveUpNext,
+      surprise,
+      lastSurprise,
       skip,
       seek,
       setShuffle,
@@ -696,6 +709,8 @@ export const LibraryPlayerProvider = ({
       appendToQueue,
       removeUpNextAt,
       moveUpNext,
+      surprise,
+      lastSurprise,
       skip,
       seek,
       setShuffle,

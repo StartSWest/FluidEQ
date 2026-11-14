@@ -58,6 +58,8 @@ export interface IUpNext {
   setAddedIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   addedIdsRef: React.MutableRefObject<ReadonlySet<string>>;
   continuedIdsRef: React.MutableRefObject<ReadonlySet<string>>;
+  /** Everything played this session, which Surprise me skips as well. */
+  playedIdsRef: { readonly current: ReadonlySet<string> };
   /**
    * Whether a song stands in the queue as continuation's draw — drawn, and
    * not picked since. A new function whenever either set changes, so a list
@@ -138,7 +140,8 @@ export const useUpNext = (options: {
   /**
    * Everything played this session.
    *
-   * Kept so continuation never hands back a song that has just been heard —
+   * Kept so continuation, and Surprise me (`useSurprise`), never hand back a
+   * song that has just been heard —
    * a genre of forty tracks would otherwise start repeating itself inside an
    * hour, which reads as the feature being broken rather than as a small
    * pool. A ref rather than state: nothing renders from it, and a set that
@@ -293,6 +296,7 @@ export const useUpNext = (options: {
     setAddedIds,
     addedIdsRef,
     continuedIdsRef,
+    playedIdsRef: playedIds,
     isGuess,
   };
 };

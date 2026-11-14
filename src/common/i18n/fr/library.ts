@@ -125,6 +125,13 @@ const library: Partial<Dictionary> = {
   'library.upNext.keepPlaying': 'Continuer la lecture',
   'library.upNext.keepPlayingHint':
     'Quand la liste est épuisée, poursuivre avec d’autres titres du même genre',
+  'library.upNext.surprise': 'Surprenez-moi',
+  'library.upNext.surpriseHint':
+    'Lire un titre au hasard de votre bibliothèque, puis d’autres dans le même genre',
+  'library.upNext.surpriseStart':
+    'Un titre au hasard de votre bibliothèque, puis d’autres dans le même genre.',
+  'library.upNext.surpriseNothing':
+    'Rien dans votre bibliothèque ne peut être lu pour le moment.',
   'library.queueAdd': 'Ajouter à la file',
 
   'library.alsoInFolder': 'Dans ce dossier, pas dans cet album',

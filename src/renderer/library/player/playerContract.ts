@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { ILibraryQueue, TLibraryRepeat } from '../../../common/library/queue';
 import { ILibraryTrack } from '../../../common/library/types';
+import type { ILastSurprise } from './useSurprise';
 
 export const REPEAT_CYCLE: readonly TLibraryRepeat[] = ['off', 'all', 'one'];
 
@@ -184,6 +185,17 @@ export interface ILibraryPlayerContextValue {
    * dropping something behind the current track would drop it into the past.
    */
   moveUpNext: (from: number, to: number) => void;
+  /**
+   * Surprise me: a random song from the whole library starts now, from
+   * another genre than the one playing when there is one, and Keep playing
+   * carries on in its style. The listener's own picks in Up Next stay and
+   * play after it; the record they were in and Keep playing's old guesses
+   * go. Answers the song started, or null when there was none
+   * (`useSurprise`).
+   */
+  surprise: () => Promise<string | null>;
+  /** The last surprise started, which the Library's draw plays for. */
+  lastSurprise: ILastSurprise | undefined;
   skip: (direction: 1 | -1) => void;
   seek: (positionMs: number) => void;
   setShuffle: (isShuffled: boolean) => void;

@@ -68,6 +68,35 @@ export const writeStoredContinuation = (value: boolean): void => {
   }
 };
 
+const SURPRISES_KEY = 'fluideq.library.surprises';
+
+/**
+ * The songs Surprise me handed out lately, oldest first, so the next press
+ * skips them while anything else is left — across launches, or every new
+ * session would start by repeating the last one's surprises. Anything that
+ * is not a list of strings reads as none: it is a preference about variety,
+ * and losing it costs one repeat at most.
+ */
+export const readRecentSurprises = (): string[] => {
+  try {
+    const raw = window.localStorage.getItem(SURPRISES_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is string => typeof id === 'string')
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+export const writeRecentSurprises = (ids: readonly string[]): void => {
+  try {
+    window.localStorage.setItem(SURPRISES_KEY, JSON.stringify(ids));
+  } catch {
+    // Same as every other store here: it simply will not be there next time.
+  }
+};
+
 /** Positions nearer the start than this are not worth restoring: coming back
  * to a track two seconds in is indistinguishable from coming back to its
  * beginning, and the beginning is the less surprising of the two. */

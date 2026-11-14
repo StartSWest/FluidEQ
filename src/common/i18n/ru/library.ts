@@ -121,6 +121,13 @@ const library: Partial<Dictionary> = {
   'library.upNext.keepPlaying': 'Продолжать воспроизведение',
   'library.upNext.keepPlayingHint':
     'Когда очередь закончится, продолжить музыкой того же жанра',
+  'library.upNext.surprise': 'Удивите меня',
+  'library.upNext.surpriseHint':
+    'Включить случайную песню из вашей библиотеки, а затем похожую музыку',
+  'library.upNext.surpriseStart':
+    'Случайная песня из вашей библиотеки, а затем похожая музыка.',
+  'library.upNext.surpriseNothing':
+    'Сейчас в вашей библиотеке нечего воспроизвести.',
   'library.queueAdd': 'Добавить в очередь',
 
   'library.alsoInFolder': 'В этой папке, но не в этом альбоме',

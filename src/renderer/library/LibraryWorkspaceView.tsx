@@ -28,6 +28,7 @@ import LibraryVideoStage from './player/LibraryVideoStage';
 import LibraryToolbar from './LibraryToolbar';
 import LibraryFolderActions from './LibraryFolderActions';
 import LibraryUpNext, { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
+import SurpriseDrawLayer from './surpriseDraw/SurpriseDrawLayer';
 import LibraryScanProgress, { libraryHiddenScan } from './LibraryScanProgress';
 import LibraryEmptyState from './LibraryEmptyState';
 import Spinner from '../icons/Spinner';
@@ -590,6 +591,10 @@ const LibraryWorkspaceView = ({
                 query={query}
               />
             )}
+          {/* Surprise me's draw, over whichever shelf is drawn: after every
+          view, so it lies above them, and before the queue, which stays
+          above it. Never over a video, which has the tab. */}
+          <SurpriseDrawLayer isShelfShown={trackCount > 0 && !videoTrackId} />
           {/* Last, and outside every view above: the queue belongs to the tab
           rather than to whichever shelf is drawing it. On a shelf it stands
           in the strip `has-up-next` reserves; over a video it floats on the
@@ -600,6 +605,7 @@ const LibraryWorkspaceView = ({
             isCollapsed={isUpNextCollapsed}
             onCollapsedChange={setIsUpNextCollapsed}
             restTotal={upNextRestTotal}
+            canSurprise={trackCount > 0 && !videoTrackId}
           />
           {/* OVER A VIDEO ONLY. The picture takes the whole tab and the toolbar
           row that holds the chip everywhere else is not drawn, so here it

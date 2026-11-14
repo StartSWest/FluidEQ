@@ -120,6 +120,13 @@ const library = {
   'library.upNext.keepPlaying': 'Keep playing',
   'library.upNext.keepPlayingHint':
     'When the list runs out, keep going with more of the same genre',
+  'library.upNext.surprise': 'Surprise me',
+  'library.upNext.surpriseHint':
+    'Play a random song from your library, then more of its style',
+  'library.upNext.surpriseStart':
+    'A random song from your library, then more of its style.',
+  'library.upNext.surpriseNothing':
+    'Nothing in your library can be played right now.',
   'library.queueAdd': 'Add to up next',
 
   'library.alsoInFolder': 'In this folder, not in this album',

@@ -30,7 +30,10 @@ import { useTranslation } from '../utils/I18nContext';
 import { useLibraryTracks } from './useLibraryTracks';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryCoverArt from './LibraryCoverArt';
-import Switch from '../widgets/Switch';
+import {
+  LibraryUpNextKeepRow,
+  LibraryUpNextStart,
+} from './LibraryUpNextControls';
 import { ROW_HEIGHT, SCROLL_STEP, upNextWindowFor } from './upNextWindow';
 
 /**
@@ -206,9 +209,16 @@ const LibraryUpNext = ({
   isCollapsed,
   onCollapsedChange,
   restTotal,
+  canSurprise,
 }: {
   isCollapsed: boolean;
   onCollapsedChange: (next: boolean) => void;
+  /**
+   * Whether Surprise me is offered: the library has songs and a shelf is
+   * drawn. Over a video the queue floats on the picture, and a surprise
+   * would end the film for a song; the draw has no shelf to play over.
+   */
+  canSurprise: boolean;
   /**
    * How much of the shelf is still to come that the queue is NOT already
    * carrying — see `upNextTotal`, which adds it to the rows in hand.
@@ -222,14 +232,8 @@ const LibraryUpNext = ({
   restTotal: number | undefined;
 }) => {
   const { t } = useTranslation();
-  const {
-    upNext,
-    jumpToQueuePosition,
-    removeUpNextAt,
-    moveUpNext,
-    isContinuationOn,
-    setIsContinuationOn,
-  } = useLibraryPlayerSession();
+  const { upNext, jumpToQueuePosition, removeUpNextAt, moveUpNext } =
+    useLibraryPlayerSession();
 
   const listRef = useRef<HTMLDivElement | null>(null);
   /** Where the list is scrolled to, rounded down to a `SCROLL_STEP`. */
@@ -419,35 +423,11 @@ const LibraryUpNext = ({
           {listCount}
         </span>
       </button>
-      {/* ON THE SURFACE THE LIST IS, not in a menu.
-          What this switch does is add rows to the panel directly beneath it,
-          so it belongs beside them: a queue that refills itself with nothing
-          on screen to say why reads as the player having a mind of its own,
-          and a switch buried in settings is found only by somebody who
-          already suspects it exists. Outside the fold button rather than
-          inside it — a control cannot be nested in another control. */}
-      <span className="library-up-next__keep">
-        <Switch
-          id="library-up-next-keep-playing"
-          isOn={isContinuationOn}
-          isDisabled={false}
-          handleToggle={() => setIsContinuationOn(!isContinuationOn)}
-          ariaLabel={t('library.upNext.keepPlaying')}
-        />
-        {/* A label pointed at the same checkbox, for the reason
-            `SongEqSaveSwitch` gives: without it only the switch itself
-            answers a press and the words beside it are dead. */}
-        <label
-          className="library-up-next__keep-label"
-          htmlFor="library-up-next-keep-playing"
-          title={t('library.upNext.keepPlayingHint')}
-        >
-          {t('library.upNext.keepPlaying')}
-        </label>
-      </span>
-      {trackCount === 0 && (
-        <p className="library-up-next__empty">{t('library.upNext.empty')}</p>
-      )}
+      {/* Outside the fold button rather than inside it — a control cannot
+          be nested in another control. One Surprise me at a time: an empty
+          queue offers its own, larger, below. */}
+      <LibraryUpNextKeepRow canSurprise={canSurprise && trackCount > 0} />
+      {trackCount === 0 && <LibraryUpNextStart canSurprise={canSurprise} />}
       {trackCount > 0 && (
         <div
           ref={listRef}

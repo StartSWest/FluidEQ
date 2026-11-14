@@ -122,6 +122,13 @@ const library: Partial<Dictionary> = {
   'library.upNext.keepPlaying': 'बजाते रहें',
   'library.upNext.keepPlayingHint':
     'सूची खत्म होने पर उसी शैली का और संगीत चलता रहेगा',
+  'library.upNext.surprise': 'मुझे चौंकाएँ',
+  'library.upNext.surpriseHint':
+    'अपनी लाइब्रेरी से कोई भी गाना बजाएँ, फिर उसी शैली का और संगीत',
+  'library.upNext.surpriseStart':
+    'आपकी लाइब्रेरी से कोई भी गाना, फिर उसी शैली का और संगीत।',
+  'library.upNext.surpriseNothing':
+    'अभी आपकी लाइब्रेरी में बजाने लायक कुछ नहीं है।',
   'library.queueAdd': 'कतार में जोड़ें',
 
   'library.alsoInFolder': 'इसी फ़ोल्डर में है, इस एल्बम में नहीं',

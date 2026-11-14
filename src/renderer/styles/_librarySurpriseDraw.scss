@@ -1,0 +1,128 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// *** Surprise me's draw *****************************************************
+//
+// A layer over the shelf (`SurpriseDrawLayer`): under the toolbar row the way
+// the Up Next panel is, inside the card's own 12px, and clear of the panel by
+// the margin every child of `.library-workspace.has-up-next` already takes
+// (`_librarySearch.scss`). Empty and pressed through until a draw starts.
+.library-surprise-draw {
+  position: absolute;
+  z-index: 2;
+  inset: calc(var(--library-chrome-height, 0px) + 10px) 12px 12px;
+  overflow: hidden;
+  border-radius: $radius-m;
+  // The halo's colour: the accent, read back by the scene as computed
+  // `rgb()` (`accentColour` in `drawScene.ts`).
+  color: $secondary-light;
+  pointer-events: none;
+
+  // The shelf dimmed under the ring: darker at the edges, so the covers in
+  // the middle are what the eye meets. On a layer of its own so it can fade
+  // while the pick flies.
+  &::before {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at 50% 46%,
+      color-mix(in srgb, $surface-base 74%, transparent),
+      color-mix(in srgb, $surface-base 93%, transparent)
+    );
+    content: '';
+    opacity: 0;
+    transition: opacity $motion-fast $ease-out;
+  }
+
+  &.is-playing {
+    // A press anywhere on it skips.
+    cursor: pointer;
+    pointer-events: auto;
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &.is-leaving::before {
+    opacity: 0;
+    // The flight's own length (`DRAW_FLY_MS`).
+    transition-duration: 420ms;
+  }
+}
+
+.library-surprise-draw__canvas {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+// The song and its genre, under the pick as it lands.
+.library-surprise-draw__caption {
+  position: absolute;
+  left: 50%;
+  display: grid;
+  max-width: calc(100% - 32px);
+  justify-items: center;
+  padding: 7px 16px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, $surface-base 82%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, $secondary-light 24%, transparent);
+  color: $text-primary;
+  gap: 3px;
+  pointer-events: none;
+  text-align: center;
+  transform: translateX(-50%);
+
+  b {
+    overflow: hidden;
+    max-width: 100%;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    color: $secondary-light;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.14em);
+    text-transform: uppercase;
+  }
+}
+
+// The pick on its way to the player's cover.
+.library-surprise-draw__flyer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: $radius-s;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
+// Reduced motion: the pick alone, faded in and out where the ring would be.
+.library-surprise-draw__solo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(200px, 40%);
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: $radius-m;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, $secondary-light 50%, transparent),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+}

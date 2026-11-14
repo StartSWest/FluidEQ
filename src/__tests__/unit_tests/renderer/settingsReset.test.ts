@@ -77,6 +77,9 @@ const KEPT = [
   'fluideq.transport.lastShown',
   'fluideq.library.playback',
   'fluideq.library.videoPositions',
+  // What Surprise me handed out lately (`playbackMemory.ts`): what was
+  // played, not how anything is set, so a reset is no reason to repeat it.
+  'fluideq.library.surprises',
   'fluideq.videoLastUrl',
   'fluideq.videoResume',
   // The language: put back to Windows' own, somebody who chose another one

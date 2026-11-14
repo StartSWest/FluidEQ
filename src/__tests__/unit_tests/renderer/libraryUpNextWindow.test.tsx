@@ -123,6 +123,7 @@ it('renders once per step of scrolling, never once per scroll event', () => {
         isCollapsed={false}
         onCollapsedChange={() => undefined}
         restTotal={0}
+        canSurprise={false}
       />
     </Profiler>,
   );

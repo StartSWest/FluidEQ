@@ -117,6 +117,12 @@ const library: Partial<Dictionary> = {
   'library.upNext.continued': '相似音乐',
   'library.upNext.keepPlaying': '继续播放',
   'library.upNext.keepPlayingHint': '列表播完后，继续播放同一流派的音乐',
+  'library.upNext.surprise': '给我惊喜',
+  'library.upNext.surpriseHint':
+    '从你的媒体库随机播放一首歌，之后继续播放相同风格的音乐',
+  'library.upNext.surpriseStart':
+    '从你的媒体库随机挑一首歌，之后继续播放相同风格的音乐。',
+  'library.upNext.surpriseNothing': '你的媒体库里现在没有可以播放的内容。',
   'library.queueAdd': '加入播放队列',
 
   'library.alsoInFolder': '在此文件夹中，但不属于此专辑',

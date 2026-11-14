@@ -486,6 +486,14 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
             request.exclude,
             request.count,
           );
+        case 'surprise':
+          return songs.surprise(
+            request.playing,
+            request.awayFrom,
+            request.exclude,
+          );
+        case 'coverDeck':
+          return songs.coverDeck(request.count, request.exclude);
         case 'duration':
           return songs.duration(request.ids);
         case 'rest':
