@@ -43,9 +43,6 @@ const hold = (area: symbol, next: boolean) => {
   }
 };
 
-/** A keystroke or a turn of the wheel steps the size once, nested or not. */
-const handled = new WeakSet<Event>();
-
 const step = (key: ReturnType<typeof zoomKeyOf>) => {
   if (key === 'in') {
     largerReadingText();
@@ -79,7 +76,7 @@ export default function useReadingKeys(root: RefObject<HTMLElement | null>) {
       setActive(inside(event.target));
     const onFocusIn = (event: FocusEvent) => setActive(inside(event.target));
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!active || handled.has(event)) {
+      if (!active) {
         return;
       }
       const key = zoomKeyOf({
@@ -89,16 +86,14 @@ export default function useReadingKeys(root: RefObject<HTMLElement | null>) {
         alt: event.altKey,
       });
       if (key) {
-        handled.add(event);
         event.preventDefault();
         step(key);
       }
     };
     const onWheel = (event: WheelEvent) => {
-      if (!event.ctrlKey || event.deltaY === 0 || handled.has(event)) {
+      if (!event.ctrlKey || event.deltaY === 0) {
         return;
       }
-      handled.add(event);
       event.preventDefault();
       step(event.deltaY < 0 ? 'in' : 'out');
     };

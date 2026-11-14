@@ -30,17 +30,30 @@ const STORAGE_KEY = 'fluideq.readingSize.v1';
 const FORUM_KEY = 'fluideq.forum.textSize.v1';
 
 /**
+ * Two distances closer than this are a tie. 1.4 lies exactly between 1.3
+ * and 1.5, but in binary 1.4 − 1.3 comes out a hair under 1.5 − 1.4, and a
+ * plain comparison sent the tie down.
+ */
+const TIE = 1e-9;
+
+/**
  * The step nearest to `value`. Anything stored that is not a size this
  * ladder knows (an edited file, an older ladder) lands on the closest one,
- * and anything unreadable on 100%.
+ * a value halfway between two on the larger (the kinder guess for somebody
+ * who asked for large text), and anything unreadable on 100%.
  */
 export const nearestStep = (value: unknown): number => {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return 1;
   }
-  return READING_SIZE_STEPS.reduce((best, step) =>
-    Math.abs(step - value) < Math.abs(best - value) ? step : best,
-  );
+  return READING_SIZE_STEPS.reduce((best, step) => {
+    const gap = Math.abs(step - value);
+    const bestGap = Math.abs(best - value);
+    if (gap < bestGap - TIE) {
+      return step;
+    }
+    return Math.abs(gap - bestGap) <= TIE && step > best ? step : best;
+  });
 };
 
 const readSize = (): number => {

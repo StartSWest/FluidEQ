@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import ForumPanel from '../../../renderer/forum/ForumPanel';
 import {
   READING_SIZE_STEPS,
@@ -34,7 +34,31 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
  * Ctrl, the last step pressed again.
  */
 
-const KEY = 'fluideq.reading.textSize.v1';
+const KEY = 'fluideq.readingSize.v1';
+
+// One topic, so a test can wait for the Forum's first read to land before it
+// acts: an answer arriving after the test moved on updates React outside act.
+const TOPIC = {
+  id: 'D1',
+  number: 1,
+  title: 'A topic to read',
+  excerpt: '',
+  createdAt: '2026-11-01T00:00:00Z',
+  updatedAt: '2026-11-01T00:00:00Z',
+  url: '',
+  board: 'q-a',
+  answered: false,
+  locked: false,
+  replyCount: 0,
+  votes: 0,
+  author: { login: 'reader', avatarUrl: null, url: null },
+};
+
+const openForum = async () => {
+  const view = render(<ForumPanel />);
+  await screen.findByText('A topic to read');
+  return view;
+};
 
 const installBridge = () => {
   const bridge = {
@@ -45,7 +69,7 @@ const installBridge = () => {
       Promise.resolve({ ok: true, value: { boards: [], canStartIn: [] } }),
     ),
     forumTopics: jest.fn(() =>
-      Promise.resolve({ ok: true, value: { topics: [], total: 0 } }),
+      Promise.resolve({ ok: true, value: { topics: [TOPIC], total: 1 } }),
     ),
   };
   Object.defineProperty(window, 'electron', {
@@ -126,9 +150,9 @@ describe('remembered on this machine', () => {
 });
 
 describe('in the Forum tab', () => {
-  it('names its buttons, says the size, and sizes the reading text', () => {
+  it('names its buttons, says the size, and sizes the reading text', async () => {
     installBridge();
-    const { container } = render(<ForumPanel />);
+    const { container } = await openForum();
     expect(scaleOf(container)).toBe('1');
     const larger = screen.getByRole('button', {
       name: 'reading.textSize.larger',
@@ -139,20 +163,23 @@ describe('in the Forum tab', () => {
     fireEvent.click(larger);
     fireEvent.click(larger);
     expect(scaleOf(container)).toBe('1.3');
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'reading.textSize.now:130%',
-    );
+    // The announcement inside the control; the Forum has a loading status too.
+    expect(
+      within(
+        screen.getByRole('group', { name: 'reading.textSize.label' }),
+      ).getByRole('status'),
+    ).toHaveTextContent('reading.textSize.now:130%');
     fireEvent.click(
       screen.getByRole('button', { name: 'reading.textSize.reset:130%' }),
     );
     expect(scaleOf(container)).toBe('1');
   });
 
-  it('takes Ctrl + and Ctrl 0 while it has the keyboard, and not otherwise', () => {
+  it('takes Ctrl + and Ctrl 0 while it has the keyboard, and not otherwise', async () => {
     const bridge = installBridge();
     const outside = document.createElement('button');
     document.body.appendChild(outside);
-    const { container } = render(<ForumPanel />);
+    const { container } = await openForum();
 
     // The keyboard elsewhere: the window's zoom, not the Forum's.
     act(() => outside.focus());
@@ -178,9 +205,9 @@ describe('in the Forum tab', () => {
     outside.remove();
   });
 
-  it('takes Ctrl with the wheel over it, and leaves a plain wheel to scroll', () => {
+  it('takes Ctrl with the wheel over it, and leaves a plain wheel to scroll', async () => {
     installBridge();
-    const { container } = render(<ForumPanel />);
+    const { container } = await openForum();
     const forum = container.querySelector('.forum') as HTMLElement;
     fireEvent.wheel(forum, { deltaY: -100 });
     expect(scaleOf(container)).toBe('1');
@@ -190,9 +217,9 @@ describe('in the Forum tab', () => {
     expect(scaleOf(container)).toBe('1');
   });
 
-  it('gives the keys back to the window when it closes', () => {
+  it('gives the keys back to the window when it closes', async () => {
     const bridge = installBridge();
-    const { unmount } = render(<ForumPanel />);
+    const { unmount } = await openForum();
     act(() =>
       screen.getByRole('button', { name: 'reading.textSize.larger' }).focus(),
     );

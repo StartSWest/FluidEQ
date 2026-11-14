@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import HelpGuide from 'renderer/help/HelpGuide';
 import ForumPanel from 'renderer/forum/ForumPanel';
 import { resetForumStore } from 'renderer/forum/forumStore';
@@ -60,7 +60,29 @@ const installBridge = () => {
       Promise.resolve({ ok: true, value: { boards: [], canStartIn: [] } }),
     ),
     forumTopics: jest.fn(() =>
-      Promise.resolve({ ok: true, value: { topics: [], total: 0 } }),
+      Promise.resolve({
+        ok: true,
+        value: {
+          topics: [
+            {
+              id: 'D1',
+              number: 1,
+              title: 'A topic to read',
+              excerpt: '',
+              createdAt: '2026-11-01T00:00:00Z',
+              updatedAt: '2026-11-01T00:00:00Z',
+              url: '',
+              board: 'q-a',
+              answered: false,
+              locked: false,
+              replyCount: 0,
+              votes: 0,
+              author: { login: 'reader', avatarUrl: null, url: null },
+            },
+          ],
+          total: 1,
+        },
+      }),
     ),
   };
   Object.defineProperty(window, 'electron', {
@@ -74,6 +96,9 @@ const helpScale = () =>
   (document.querySelector('.help-guide') as HTMLElement).style.getPropertyValue(
     '--reading-scale',
   );
+
+// Help's own search box; the Forum behind it has one too.
+const helpSearch = () => document.getElementById('help-search') as HTMLElement;
 
 const openHelp = () =>
   render(
@@ -96,13 +121,17 @@ it('carries the shared size, and steps it from its own rail', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Larger text' }));
   expect(getReadingSize()).toBe(1.3);
   expect(helpScale()).toBe('1.3');
-  expect(screen.getByRole('status')).toHaveTextContent('Text size 130%');
+  expect(
+    within(screen.getByRole('group', { name: 'Text size' })).getByRole(
+      'status',
+    ),
+  ).toHaveTextContent('Text size 130%');
 });
 
 it('takes Ctrl + over the guide, and a plain + types', () => {
   installBridge();
   openHelp();
-  const search = screen.getByRole('searchbox');
+  const search = helpSearch();
   act(() => search.focus());
   fireEvent.keyDown(search, { key: '=' });
   expect(getReadingSize()).toBe(1);
@@ -114,11 +143,13 @@ it('takes Ctrl + over the guide, and a plain + types', () => {
   expect(getReadingSize()).toBe(1);
 });
 
-it('keeps the keys from main while Help sits over the Forum and either holds them', () => {
+it('keeps the keys from main while Help sits over the Forum and either holds them', async () => {
   const bridge = installBridge();
   render(<ForumPanel />);
+  // The Forum's first read lands before anything is pressed.
+  await screen.findByText('A topic to read');
   openHelp();
-  act(() => screen.getByRole('searchbox').focus());
+  act(() => helpSearch().focus());
   expect(bridge.sendMessage).toHaveBeenLastCalledWith('reading-zoom-keys', [
     true,
   ]);
@@ -129,8 +160,8 @@ it('keeps the keys from main while Help sits over the Forum and either holds the
   expect(bridge.sendMessage).not.toHaveBeenLastCalledWith('reading-zoom-keys', [
     false,
   ]);
-  // One press steps the size once, though two areas listen.
-  act(() => screen.getByRole('searchbox').focus());
+  // And back in Help, a press there sizes the text.
+  act(() => helpSearch().focus());
   fireEvent.keyDown(window, { key: '=', ctrlKey: true });
   expect(getReadingSize()).toBe(1.15);
 });
