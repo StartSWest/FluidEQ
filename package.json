@@ -104,6 +104,7 @@
     "@huggingface/transformers": "3.7.6",
     "ajv": "^8.20.0",
     "d3": "^7.9.0",
+    "d3-transition": "^3.0.2",
     "electron-debug": "^4.1.0",
     "electron-log": "^5.4.4",
     "electron-updater": "^6.8.9",

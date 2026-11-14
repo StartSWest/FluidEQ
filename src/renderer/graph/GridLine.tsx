@@ -17,6 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import * as d3 from 'd3';
+// What gives a selection .transition() and .interrupt(). d3 7.9.2 calls
+// itself side-effect free, so webpack dropped the copy d3 re-exports and the
+// whole window crashed on the first animated redraw (2026-11-14).
+import 'd3-transition';
 import { useEffect, useRef } from 'react';
 import scaleRangeKey from './scaleRange';
 import { GRAPH_ANIMATE_DURATION } from './ChartController';
