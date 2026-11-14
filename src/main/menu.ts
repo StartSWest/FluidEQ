@@ -24,6 +24,7 @@ import {
   MenuItemConstructorOptions,
 } from 'electron';
 import { PRODUCT_NAME, REPOSITORY_URL } from '../common/branding';
+import { zoomKeyOf } from '../common/readingZoom';
 import { inspectDetached, toggleDetachedDevTools } from './devTools';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
@@ -84,6 +85,15 @@ export default class MenuBuilder {
    */
   onZoom: () => void;
 
+  /**
+   * A reading page has the keyboard (the Forum, `common/readingZoom.ts`):
+   * Ctrl and +, − and 0 size its text, so they pass through to it instead
+   * of zooming the window. Back to false whenever the page is replaced, so a
+   * renderer that went away holding the keys cannot keep the window's zoom
+   * from working.
+   */
+  private readingHasKeys = false;
+
   constructor(mainWindow: BrowserWindow, onZoom: () => void) {
     this.mainWindow = mainWindow;
     this.onZoom = onZoom;
@@ -127,37 +137,34 @@ export default class MenuBuilder {
   installZoomShortcuts(): void {
     const { webContents } = this.mainWindow;
 
+    webContents.on(
+      'did-start-navigation',
+      (_event, _url, isInPlace, isMainFrame) => {
+        if (isMainFrame && !isInPlace) {
+          this.readingHasKeys = false;
+        }
+      },
+    );
+    webContents.on('render-process-gone', () => {
+      this.readingHasKeys = false;
+    });
+
     webContents.on('before-input-event', (event, input) => {
-      // `control` is set by AltGr on some layouts, which is how a European
-      // keyboard types the characters these shortcuts use.
-      if (input.type !== 'keyDown' || !input.control || input.alt) {
+      if (input.type !== 'keyDown') {
+        return;
+      }
+      const key = zoomKeyOf(input);
+      // A reading page with the keyboard sizes its own text with these.
+      if (key === undefined || this.readingHasKeys) {
         return;
       }
 
       const current = webContents.getZoomLevel();
-      let next: number | undefined;
-
-      // The plus key is unshifted `=` on most layouts and `+` on the numpad or
-      // with shift, so all three mean zoom in. Matching on `code` as well
-      // covers layouts where the character is somewhere else entirely.
-      if (
-        input.key === '+' ||
-        input.key === '=' ||
-        input.code === 'NumpadAdd'
-      ) {
+      let next = 0;
+      if (key === 'in') {
         next = Math.min(ZOOM_MAX_LEVEL, current + ZOOM_STEP);
-      } else if (
-        input.key === '-' ||
-        input.key === '_' ||
-        input.code === 'NumpadSubtract'
-      ) {
+      } else if (key === 'out') {
         next = Math.max(ZOOM_MIN_LEVEL, current - ZOOM_STEP);
-      } else if (input.key === '0' || input.code === 'Numpad0') {
-        next = 0;
-      }
-
-      if (next === undefined) {
-        return;
       }
 
       // Swallowed either way. Letting it through means the keystroke also
@@ -170,6 +177,11 @@ export default class MenuBuilder {
         this.onZoom();
       }
     });
+  }
+
+  /** Whether a reading page has the keyboard; see `readingHasKeys`. */
+  setReadingHasKeys(hasKeys: boolean): void {
+    this.readingHasKeys = hasKeys;
   }
 
   setupDevelopmentEnvironment(): void {

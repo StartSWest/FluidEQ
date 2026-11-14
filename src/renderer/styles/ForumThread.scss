@@ -59,7 +59,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-xs;
   background: transparent;
   font: inherit;
-  font-size: $text-body;
+  font-size: reading($text-body);
   font-weight: $weight-medium;
   cursor: pointer;
   transition:
@@ -135,7 +135,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
   margin: 0;
   color: $text-primary;
-  font-size: calc(#{$text-title} * 1.25);
+  font-size: reading($text-title * 1.25);
   font-weight: $weight-semibold;
   line-height: 1.3;
   overflow-wrap: anywhere;
@@ -160,7 +160,7 @@ it under the terms of the GNU General Public License version 3 or later.
   input {
     flex: 1 1 260px;
     min-width: 0;
-    font-size: $text-lead;
+    font-size: reading($text-lead);
   }
 }
 
@@ -173,7 +173,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-top: $spacing-xs;
   padding: 0 4px;
   color: $text-primary;
-  font-size: $text-body;
+  font-size: reading($text-body);
   font-weight: $weight-semibold;
 
   &::after {
@@ -251,7 +251,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-self: center;
   gap: 6px;
   color: $secondary-light;
-  font-size: $text-small;
+  font-size: reading($text-small);
   text-decoration: none;
 
   svg {
@@ -283,7 +283,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 10px;
   border: 1px dashed $border-subtle;
   border-radius: $radius-s;
-  font-size: $text-small;
+  font-size: reading($text-small);
 }
 
 .forum__sign-in-prompt {
@@ -296,5 +296,5 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   border: 1px solid $card-edge;
   border-radius: $radius-m;
-  font-size: $text-body;
+  font-size: reading($text-body);
 }

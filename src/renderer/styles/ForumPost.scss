@@ -80,7 +80,7 @@ it under the terms of the GNU General Public License version 3 or later.
   .forum-post--reply & .community__avatar {
     width: 24px;
     height: 24px;
-    font-size: $text-micro;
+    font-size: reading($text-micro);
   }
 }
 
@@ -94,7 +94,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .forum-post__login {
   color: $text-primary;
-  font-size: $text-body;
+  font-size: reading($text-body);
   font-weight: $weight-semibold;
   text-decoration: none;
 
@@ -113,7 +113,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   border: 1px solid $card-edge;
   border-radius: $radius-2xs;
-  font-size: $text-eyebrow;
+  font-size: reading($text-eyebrow);
   font-weight: $weight-semibold;
   @include tracking(0.06em);
   line-height: 1.6;
@@ -123,7 +123,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .forum-post__time,
 .forum-post__edited {
   color: $text-dim;
-  font-size: $text-micro;
+  font-size: reading($text-micro);
 }
 
 .forum-post__edited {
@@ -156,7 +156,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-dim;
   border: 1px dashed $border-subtle;
   border-radius: $radius-s;
-  font-size: $text-small;
+  font-size: reading($text-small);
 }
 
 // The row of what can be done: the vote pill first, then quiet words, and
@@ -189,7 +189,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-xs;
   background: $surface-control;
   font: inherit;
-  font-size: $text-small;
+  font-size: reading($text-small);
   font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
@@ -243,7 +243,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-xs;
   background: transparent;
   font: inherit;
-  font-size: $text-small;
+  font-size: reading($text-small);
   text-decoration: none;
   cursor: pointer;
   transition:
@@ -284,6 +284,6 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 6px;
   color: $text-faint;
-  font-size: $text-small;
+  font-size: reading($text-small);
   @include animate(pop-in, $motion-fast);
 }

@@ -32,6 +32,7 @@ import {
   playerMinimumSize,
   WINDOW_MODE_PARAM,
 } from '../common/windowMode';
+import { READING_ZOOM_KEYS_CHANNEL } from '../common/readingZoom';
 import type { IRect, TWindowMode } from '../common/windowMode';
 import type { TWindowModes } from './windowMode';
 import { resolveHtmlPath } from './util';
@@ -745,6 +746,19 @@ export const createMainWindowFactory = ({
       sendWindowState();
     });
     menuBuilder.buildMenu();
+    // The Forum says when it has the keyboard, and only this window's own
+    // page is listened to: nothing else may take the window's zoom keys.
+    const stopReadingKeys = onWindowMessage(
+      READING_ZOOM_KEYS_CHANNEL,
+      (event, args: unknown) => {
+        if (event.sender === created.webContents) {
+          menuBuilder.setReadingHasKeys(
+            Array.isArray(args) && args[0] === true,
+          );
+        }
+      },
+    );
+    created.once('closed', stopReadingKeys);
 
     setUpAutoUpdates().catch((error) => {
       // A setup failure is still a disabled updater. Never recover by loading it

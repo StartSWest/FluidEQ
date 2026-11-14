@@ -617,6 +617,16 @@ $text-lead: 0.8rem;
 
 $text-title: 0.95rem;
 
+// A size from the scale above, multiplied by the reader's own text size on a
+// page meant for reading (the Forum: `forumTextSize.ts` sets
+// `--reading-scale` on its root). Outside such a page the property is unset
+// and the size is the scale's own. A multiplier on rem, never a transform:
+// the text reflows and wraps at its real size, and nothing is drawn larger
+// than the box laid out for it.
+@function reading($size) {
+  @return calc(#{$size} * var(--reading-scale, 1));
+}
+
 $transition-control:
   border-color 150ms ease,
   background 150ms ease,

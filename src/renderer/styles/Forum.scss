@@ -41,6 +41,107 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The reader's text size, under the Forum's heading: a quiet row, its name
+// on the left and a joined A, size, A on the right. Not scaled itself, so it
+// never moves out from under the pointer pressing it.
+.forum__text-size {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs;
+  padding: 0 8px 8px;
+}
+
+.forum__text-size-label {
+  @include truncate;
+  color: $text-dim;
+  font-size: $text-micro;
+}
+
+.forum__text-size-steps {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-xs;
+  overflow: hidden;
+}
+
+.forum__text-size-step,
+.forum__text-size-value {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+    outline: none;
+  }
+
+  &:focus-visible {
+    box-shadow: inset 0 0 0 1px $secondary-default;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.45;
+  }
+}
+
+.forum__text-size-step {
+  width: 26px;
+}
+
+// The size now, and the press that puts it back to 100%. Fixed width, so
+// "100%" and "175%" do not shift the A beside them.
+.forum__text-size-value {
+  min-width: 42px;
+  padding: 0 4px;
+  border-inline: 1px solid $border-subtle;
+  font: inherit;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+
+  &:disabled {
+    opacity: 1;
+    color: $text-dim;
+  }
+}
+
+.forum__text-size-a {
+  font-weight: $weight-bold;
+  line-height: 1;
+
+  &.is-small {
+    font-size: $text-micro;
+  }
+
+  &.is-large {
+    font-size: $text-lead;
+  }
+}
+
+// Said aloud after each press, never drawn.
+.forum__text-size-said {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .forum__source-word {
   @include truncate;
 }
@@ -316,7 +417,7 @@ input.forum__search-input {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  font-size: $text-body;
+  font-size: reading($text-body);
 
   &:hover:not(:disabled):not([aria-disabled='true']),
   &:focus,
@@ -413,7 +514,7 @@ input.forum__search-input {
   margin: 0;
   padding: 0 4px;
   color: $text-dim;
-  font-size: $text-micro;
+  font-size: reading($text-micro);
   line-height: 1.5;
 
   svg {

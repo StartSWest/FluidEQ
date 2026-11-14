@@ -81,6 +81,8 @@ const installBridge = (
   issues: IForumTopicSummary[] = [],
 ) => {
   const bridge = {
+    // The Forum tells main when it has the zoom keys (`useForumTextKeys`).
+    sendMessage: jest.fn(),
     forumState: jest.fn((): Promise<TForumAuthState> =>
       Promise.resolve({ status: 'signed-out' }),
     ),

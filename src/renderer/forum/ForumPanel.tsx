@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { type CSSProperties, useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import failureMessage from './forumFailure';
 import ForumGlyph from './ForumGlyph';
@@ -15,6 +15,8 @@ import {
 import NewTopicForm from './NewTopicForm';
 import TopicList from './TopicList';
 import TopicView from './TopicView';
+import { useForumTextSize } from './forumTextSize';
+import useForumTextKeys from './useForumTextKeys';
 import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
 import '../styles/Forum.scss';
@@ -38,6 +40,9 @@ import '../styles/ForumComposer.scss';
 export default function ForumPanel() {
   const { t, locale } = useTranslation();
   const forum = useForum();
+  const root = useRef<HTMLDivElement>(null);
+  const textSize = useForumTextSize();
+  useForumTextKeys(root);
 
   useEffect(() => {
     openForum().catch(() => undefined);
@@ -57,7 +62,13 @@ export default function ForumPanel() {
   const message = forum.error ? failureMessage(forum.error, t, locale) : '';
 
   return (
-    <div className="community forum">
+    <div
+      ref={root}
+      className="community forum"
+      // The reader's text size, which every reading size in the Forum's
+      // stylesheets is multiplied by (`reading()`).
+      style={{ '--reading-scale': textSize } as CSSProperties}
+    >
       <ForumRail
         boards={forum.boards}
         board={forum.board}

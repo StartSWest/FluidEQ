@@ -19,7 +19,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .forum-prose {
   min-width: 0;
   color: $text-muted;
-  font-size: $text-lead;
+  font-size: reading($text-lead);
   line-height: 1.62;
   overflow-wrap: anywhere;
 
@@ -270,7 +270,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 3px 10px;
   border: 1px dashed $border-subtle;
   border-radius: $radius-xs;
-  font-size: $text-small;
+  font-size: reading($text-small);
 }
 
 // GitHub's alerts: `> [!NOTE]` and its four siblings, each on its own hue.

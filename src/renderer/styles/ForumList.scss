@@ -162,7 +162,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // excerpt under it is read only once a title has caught the eye.
 .forum__topic-title {
   color: $text-primary;
-  font-size: calc(#{$text-lead} * 1.08);
+  font-size: reading($text-lead * 1.08);
   font-weight: $weight-semibold;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -177,7 +177,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: -webkit-box;
   overflow: hidden;
   color: color-mix(in srgb, $text-faint 70%, transparent);
-  font-size: $text-small;
+  font-size: reading($text-small);
   line-height: 1.5;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -197,7 +197,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 5px;
   min-width: 0;
   color: $text-dim;
-  font-size: $text-micro;
+  font-size: reading($text-micro);
 }
 
 .forum__login {
@@ -229,7 +229,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-dim;
   border-radius: $radius-2xs;
   background: color-mix(in srgb, $white 4%, transparent);
-  font-size: $text-small;
+  font-size: reading($text-small);
   font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
 
@@ -261,7 +261,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-xs;
   background: color-mix(in srgb, $white 3%, transparent);
   font: inherit;
-  font-size: $text-micro;
+  font-size: reading($text-micro);
   font-weight: $weight-medium;
   line-height: 1.6;
   white-space: nowrap;
@@ -345,7 +345,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid color-mix(in srgb, $amber 45%, transparent);
   border-radius: $radius-s;
   background: color-mix(in srgb, $amber 10%, transparent);
-  font-size: $text-small;
+  font-size: reading($text-small);
   line-height: 1.45;
   @include animate(rise-in, $motion-fast);
 }
