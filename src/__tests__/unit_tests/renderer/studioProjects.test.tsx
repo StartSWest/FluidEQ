@@ -308,8 +308,8 @@ describe('the publish dialog', () => {
     // And that the review can say no, and what is left of the scene then.
     expect(screen.getByText('studio.publish.pointQuality')).toBeInTheDocument();
     const go = screen.getByRole('button', { name: 'studio.publish.goReview' });
-    // Held while the category is missing, and the press goes there.
-    expect(go).toHaveAttribute('aria-disabled', 'true');
+    // Never held for a missing part: the press says what is missing.
+    expect(go).toBeEnabled();
     await userEvent.click(
       screen.getByRole('button', { name: 'plus.category.space' }),
     );
@@ -679,8 +679,13 @@ describe('the publish dialog', () => {
         onCancel={jest.fn()}
       />
     );
-    const send = () =>
-      screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' });
+    // The last of the footer's buttons, whatever it says while it waits.
+    const send = () => {
+      const buttons = document.querySelectorAll<HTMLButtonElement>(
+        '.dialog-frame__actions button',
+      );
+      return buttons[buttons.length - 1];
+    };
     return { dialog, send };
   };
 
@@ -694,11 +699,13 @@ describe('the publish dialog', () => {
     );
     await userEvent.click(send());
     rerender(dialog({ noteTranslating: true }));
-    // Shown from the press, Send held, with a way out that sends nothing.
+    // Shown from the press, Send held and saying why, with a way out that
+    // sends nothing.
     expect(
-      screen.getByText('studio.publish.noteTranslating:11'),
-    ).toBeInTheDocument();
+      screen.getAllByText('studio.publish.noteTranslating:11').length,
+    ).toBeGreaterThan(0);
     expect(send()).toBeDisabled();
+    expect(send()).toHaveTextContent('studio.publish.noteTranslating:11');
     expect(
       screen.getByRole('button', { name: 'studio.publish.noteStopWaiting' }),
     ).toBeInTheDocument();
@@ -740,6 +747,7 @@ describe('the publish dialog', () => {
     const { dialog, send } = waitingDialog(onPublish);
     const { rerender } = render(dialog({ noteWriting: true }));
     expect(send()).toBeDisabled();
+    expect(send()).toHaveTextContent('studio.publish.writingButton');
     expect(screen.getByText('studio.publish.noteWriting')).toBeInTheDocument();
     const lines = notesAsWritten('The rain falls behind the signs');
     rerender(dialog({ noteWriting: false, suggestedNotes: lines }));

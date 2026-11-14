@@ -23,6 +23,8 @@ const UNDER: Record<Exclude<TPublishPart, 'name'>, TranslationKey> = {
 };
 
 interface IStudioPublishHeldProps {
+  /** Send was pressed with parts missing: said as an alert now. */
+  alert: boolean;
   parts: readonly TPublishPart[];
   /** A first version's line is about the scene, an update's about what changed. */
   update: boolean;
@@ -32,10 +34,11 @@ interface IStudioPublishHeldProps {
 /**
  * The footer's "Still needed" line, right over the button it holds: every
  * part still missing, each named with the section it is under and each a way
- * there. In the body text's own colour, never red: nothing has been done
- * wrong before anything has been pressed.
+ * there. In the body text's own colour until Send is pressed — nothing has
+ * been done wrong before that — and in the alert's once it has.
  */
 export default function StudioPublishHeld({
+  alert,
   parts,
   update,
   onCall,
@@ -58,8 +61,16 @@ export default function StudioPublishHeld({
     return t('studio.publish.missing.under', { what, section });
   };
   return (
-    <p className="studio-publish__held" role="status">
-      <MenuIcon name="info" className="studio-publish__held-icon" />
+    <p
+      className={`studio-publish__held${alert ? ' is-alert' : ''}`}
+      // A status either way: the press moves the focus to the part, and the
+      // line's own red word is the one alert, so nothing is announced twice.
+      role="status"
+    >
+      <MenuIcon
+        name={alert ? 'alert' : 'info'}
+        className="studio-publish__held-icon"
+      />
       <span>{t('studio.publish.stillNeeded')}</span>
       {parts.map((part, index) => (
         <span key={part} className="studio-publish__held-part">

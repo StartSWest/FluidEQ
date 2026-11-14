@@ -128,8 +128,8 @@ describe('a first publication', () => {
       'studio.publish.missing.under:studio.publish.missing.category,studio.publish.category',
       'studio.publish.missing.under:studio.publish.missing.noteFirst,studio.publish.noteFirst',
     ]);
-    expect(send()).toHaveAttribute('aria-disabled', 'true');
-    expect(send()).not.toBeDisabled();
+    // Send never looks dead: it is enabled and a press says what is missing.
+    expect(send()).toBeEnabled();
     fireEvent.click(
       screen.getByRole('button', { name: 'plus.category.nature' }),
     );

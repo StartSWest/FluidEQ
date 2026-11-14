@@ -204,3 +204,44 @@ describe('a take of the preview clip', () => {
     );
   });
 });
+
+// Send says "Recording the preview…" and waits only while a take is really
+// under way (Ivan, 2026-11-14: "enable the button"); waiting for the music
+// is not one, so the press can still say what is missing.
+describe('what the camera tells the dialog about a take', () => {
+  const reported = (phase: string) => {
+    const onRecording = jest.fn();
+    video.phase = phase;
+    render(
+      <SceneAudioProvider value={QUIET}>
+        <StudioPublishCamera
+          identity="balloon-dawn"
+          pack={pack}
+          name="Balloon Dawn"
+          locked={false}
+          tuning={{}}
+          onCapture={jest.fn()}
+          source="src"
+          onPreview={jest.fn()}
+          onRecording={onRecording}
+        />
+      </SceneAudioProvider>,
+    );
+    const { calls } = onRecording.mock;
+    return calls[calls.length - 1]?.[0];
+  };
+
+  it.each(['preparing', 'recording', 'paused', 'encoding', 'checking'])(
+    'a take that is %s is under way',
+    (phase) => {
+      expect(reported(phase)).toBe(true);
+    },
+  );
+
+  it.each(['waiting', 'ready', 'failed', 'cancelled'])(
+    'a take that is %s is not',
+    (phase) => {
+      expect(reported(phase)).toBe(false);
+    },
+  );
+});

@@ -177,6 +177,8 @@ const studio = {
   'studio.publish.missing.note': '一句新內容說明',
   'studio.publish.missing.noteFirst': '一句場景介紹',
   'studio.publish.missing.under': '{what}（在「{section}」中）',
+  'studio.publish.writingButton': '正在寫這一句…',
+  'studio.publish.recordingButton': '正在錄製預覽…',
   'studio.publish.needNote': '先說一下這個版本有什麼新內容',
   'studio.publish.noteFirst': '關於這個場景',
   'studio.publish.notePlaceholderFirst':

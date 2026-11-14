@@ -233,8 +233,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // footer's buttons, ending over the one it holds, every missing part a way
 // to it. It sat in small muted type between the terms and Cancel and Ivan
 // read the button as dead with the reason beside it (2026-11-14), so it is
-// the body's own colour now, with its sign — and never red: it is said from
-// the first second, before the member has done anything wrong.
+// the body's own colour now, with its sign — red only once Send has been
+// pressed (`.is-alert`): it is said from the first second, before the member
+// has done anything wrong.
 .studio-publish__held {
   display: flex;
   flex: 1 1 100%;
@@ -283,13 +284,18 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Send, while a part is missing: it looks held, and still takes the press,
-// which goes to the first missing part. The app's held buttons take no
-// pointer events (`Button.scss`), and that is what made this one read as
-// dead.
-.button.studio-publish__send[aria-disabled='true'] {
-  cursor: pointer;
-  pointer-events: auto;
+// After a press with parts missing, the line says it in the alert's voice:
+// the member has acted, and this is what stood in the way.
+.studio-publish__held.is-alert {
+  color: $red;
+
+  .studio-publish__held-icon {
+    color: $red;
+  }
+
+  .studio-publish__held-link {
+    text-decoration-color: color-mix(in srgb, $red 60%, transparent);
+  }
 }
 
 // The part a press on Send or on its name was sent to, outlined once while

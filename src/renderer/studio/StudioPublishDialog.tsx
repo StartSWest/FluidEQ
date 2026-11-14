@@ -213,12 +213,19 @@ export default function StudioPublishDialog({
   // which the update notice and the versions page are built around, and
   // what the scene is for a first version, the first entry on that page.
   const needsNote = !noteLines.lines[sourceOf(noteLines, mine)].trim();
-  // What still holds the press back, part by part. The button stays
-  // pressable and goes to the first of them; only sending, or the chat
-  // writing the line, really disables it.
+  // A take of the preview being recorded or finished (`StudioPublishCamera`).
+  const [recording, setRecording] = useState(false);
+  // Send is never held for a missing part (Ivan, 2026-11-14: "enable the
+  // button, so when they click they can tell which is the error"): a press
+  // shows what is missing, now in the alert's voice, and goes to the first.
+  // Only something under way holds it, and says what: sending, the chat
+  // writing the line, a take being recorded.
+  const [pressedMissing, setPressedMissing] = useState(false);
+  const busy = running || waiting || recording;
   const missing = missingParts({
     name: publicName.missing,
-    video: !previewReady,
+    // A take under way is said on Send itself, not listed as missing.
+    video: !previewReady && !recording,
     category: !category,
     size: tooLarge,
     note: needsNote && !waiting,
@@ -257,6 +264,14 @@ export default function StudioPublishDialog({
     if (phase === 'preparing' || phase === 'uploading') {
       buttonLabel = t('studio.publish.videoUploading');
     }
+  } else if (noteSend.translating !== undefined) {
+    buttonLabel = t('studio.publish.noteTranslating', {
+      count: noteSend.translating,
+    });
+  } else if (noteSend.writing) {
+    buttonLabel = t('studio.publish.writingButton');
+  } else if (recording) {
+    buttonLabel = t('studio.publish.recordingButton');
   }
 
   return createPortal(
@@ -324,6 +339,7 @@ export default function StudioPublishDialog({
                 says so itself, with its working dots. */}
             {!running && (
               <StudioPublishHeld
+                alert={pressedMissing}
                 parts={missing}
                 update={update}
                 onCall={call}
@@ -351,12 +367,12 @@ export default function StudioPublishDialog({
               )}
               <button
                 type="button"
-                className={`button small studio-publish__send${running ? ' is-running' : ''}`}
-                aria-busy={running}
-                aria-disabled={missing.length > 0 || undefined}
-                disabled={running || waiting}
+                className={`button small${busy ? ' is-running' : ''}`}
+                aria-busy={busy}
+                disabled={busy}
                 onClick={() => {
                   if (missing.length > 0) {
+                    setPressedMissing(true);
                     call(missing[0]);
                     return;
                   }
@@ -403,6 +419,7 @@ export default function StudioPublishDialog({
             onCapture={onCapture}
             source={source}
             onPreview={setPreview}
+            onRecording={setRecording}
           />
 
           <StudioPublishCovers

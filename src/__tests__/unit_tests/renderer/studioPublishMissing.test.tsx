@@ -13,6 +13,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 const identity = { loaded: true, missing: false };
+// Whether the camera says a take is being recorded.
+const take = { recording: false };
 jest.mock('../../../renderer/plus/profileStore', () => ({
   usePublicIdentity: () => identity,
   createProfile: jest.fn(() => Promise.resolve(true)),
@@ -26,11 +28,17 @@ jest.mock('../../../renderer/studio/StudioPublishCamera', () => {
   return function Camera({
     source,
     onPreview,
+    onRecording,
   }: {
     source: string;
     onPreview: (value: unknown) => void;
+    onRecording?: (recording: boolean) => void;
   }) {
     useLayoutEffect(() => {
+      onRecording?.(take.recording);
+      if (take.recording) {
+        return;
+      }
       onPreview({
         source,
         blob: new Blob(['clip']),
@@ -120,12 +128,19 @@ beforeAll(() => {
 beforeEach(() => {
   scrolled.mockClear();
   identity.missing = false;
+  take.recording = false;
 });
 
 describe('a press while a part is missing', () => {
   it('goes to the first missing part, focuses it and outlines it, and sends nothing', () => {
     const onPublish = jest.fn();
     open({}, onPublish);
+    // Ivan, 2026-11-14: "enable the button, so when they click they can tell
+    // which is the error". Never dead, and the list quiet until a press.
+    expect(send()).toBeEnabled();
+    const line = document.querySelector('.studio-publish__held');
+    expect(line).toHaveAttribute('role', 'status');
+    expect(line).not.toHaveClass('is-alert');
     // The category and the line are both missing; the category comes first.
     fireEvent.click(send());
     expect(onPublish).not.toHaveBeenCalled();
@@ -134,6 +149,8 @@ describe('a press while a part is missing', () => {
     );
     expect(part('category')).toHaveClass('is-called');
     expect(scrolled).toHaveBeenCalledTimes(1);
+    // Now that the member has acted, the list wears the alert's colours.
+    expect(line).toHaveClass('is-alert');
     // Not the line yet: nothing is red before its turn.
     expect(screen.queryByRole('alert')).toBeNull();
   });
@@ -162,6 +179,31 @@ describe('a press while a part is missing', () => {
     await act(async () => undefined);
     expect(onPublish).toHaveBeenCalledTimes(1);
     expect(scrolled).not.toHaveBeenCalled();
+  });
+});
+
+describe('while something is under way', () => {
+  it('holds Send with its own words while a take is recorded', () => {
+    take.recording = true;
+    open();
+    const held = screen.getByRole('button', {
+      name: 'studio.publish.recordingButton',
+    });
+    expect(held).toBeDisabled();
+    // The clip it is making is said on Send, not listed as missing.
+    expect(
+      [...document.querySelectorAll('.studio-publish__held-link')].map(
+        (link) => link.textContent,
+      ),
+    ).not.toContainEqual(expect.stringContaining('missing.video'));
+  });
+
+  it('gives Send back, enabled, when nothing is recorded', () => {
+    open();
+    expect(send()).toBeEnabled();
+    expect(
+      screen.queryByRole('button', { name: 'studio.publish.recordingButton' }),
+    ).toBeNull();
   });
 });
 

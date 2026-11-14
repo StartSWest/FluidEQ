@@ -6,16 +6,11 @@ import {
   useState,
   type RefObject,
 } from 'react';
-import type { TranslationKey } from 'common/i18n';
-import { SCENE_DAYLIGHT_MAX, SCENE_DAYLIGHT_MIN } from 'common/sceneDaylight';
+import { SCENE_DAYLIGHT_MIN } from 'common/sceneDaylight';
 import type { IScenePack } from 'common/scenePacks';
 import Glyph from '../community/Glyph';
 import { pageDaylight } from '../graph/sceneDaylight';
-import {
-  PERCENT_SNAPS,
-  snapFraction,
-  snapPercent,
-} from '../utils/percentSnaps';
+import { snapPercent } from '../utils/percentSnaps';
 import {
   SceneAudioProvider,
   useSceneAudio,
@@ -31,7 +26,6 @@ import StudioPublishVideo from './StudioPublishVideo';
 import StudioPublishDaylightIcon from './StudioPublishDaylightIcon';
 import { Setting } from './StudioSettings';
 import usePublishVideo, { type IPublishPreview } from './usePublishVideo';
-import type { TStudioSignal } from './studioSignals';
 import { previewCaptureSize } from './previewVideo';
 import createPublishDemoAudio from './publishDemoAudio';
 import {
@@ -42,44 +36,17 @@ import {
   viewOfShape,
   type TPublishShape,
 } from './StudioPublishShapes';
+import {
+  DAYLIGHT_SNAPS,
+  DAYLIGHT_SPAN,
+  MAX_FRAME_MS,
+  QUIET_LEVEL,
+  QUIET_MS,
+  SIGNALS,
+  TROUBLE_KEYS,
+  type TCameraSignal,
+} from './publishCameraSettings';
 import '../styles/StudioStage.scss';
-
-/** What the scene can hear while its cover is caught. */
-type TCameraSignal = Extract<TStudioSignal, 'live' | 'showcase'>;
-
-const SIGNALS: readonly { signal: TCameraSignal; key: TranslationKey }[] = [
-  { signal: 'live', key: 'studio.publish.yourMusic' },
-  { signal: 'showcase', key: 'studio.publish.demo' },
-];
-
-/**
- * Below this the scene is hearing nothing. The energy a scene is given falls
- * to zero when nothing plays and sits well above this under the quietest
- * passage of a real song.
- */
-const QUIET_LEVEL = 0.02;
-
-/**
- * How long nothing has to be heard before the stage says so, in drawn-frame
- * time: long enough that a gap between two songs, or the moment the stage
- * opens before the music reaches it, is not mistaken for silence.
- */
-const QUIET_MS = 1500;
-
-/** The runner's own cap on how far one frame moves the clock. */
-const MAX_FRAME_MS = 100;
-
-const DAYLIGHT_SPAN = SCENE_DAYLIGHT_MAX - SCENE_DAYLIGHT_MIN;
-/** The quarters, marked where the Window colours slider marks them. */
-const DAYLIGHT_SNAPS = PERCENT_SNAPS.map((snap) =>
-  snapFraction(snap, SCENE_DAYLIGHT_MIN, SCENE_DAYLIGHT_MAX),
-);
-
-const TROUBLE_KEYS: Record<TPreviewTrouble, TranslationKey> = {
-  heavy: 'studio.publish.stageHeavy',
-  unavailable: 'studio.publish.stageUnavailable',
-  compile: 'studio.publish.stageUnavailable',
-};
 
 interface IStudioPublishCameraProps {
   /** The project, so a new one would start the stage from the top. */
@@ -94,6 +61,11 @@ interface IStudioPublishCameraProps {
   onCapture: (frames: ISceneFrame[], daylight: number) => void;
   source: string;
   onPreview: (preview: IPublishPreview | undefined) => void;
+  /**
+   * A take is being recorded or finished: Send says so and waits. Waiting
+   * for the music is not one — nothing happens until it plays.
+   */
+  onRecording?: (recording: boolean) => void;
   initialFocusRef?: RefObject<HTMLButtonElement | null>;
 }
 
@@ -116,6 +88,7 @@ export default function StudioPublishCamera({
   onCapture,
   source,
   onPreview,
+  onRecording,
   initialFocusRef,
 }: IStudioPublishCameraProps) {
   const { t } = useTranslation();
@@ -186,6 +159,11 @@ export default function StudioPublishCamera({
   // two tabs in the frame itself (Ivan, 2026-11-07: under the buttons the
   // finished clip sat below everything else). A new clip opens on its own
   // tab; Live is the member's choice for that clip only.
+  const takeBusy =
+    isTakeHolding(videoState.phase) ||
+    videoState.phase === 'encoding' ||
+    videoState.phase === 'checking';
+  useEffect(() => onRecording?.(takeBusy), [takeBusy, onRecording]);
   const recordedUrl = videoState.phase === 'ready' ? videoState.url : undefined;
   const [liveOver, setLiveOver] = useState<string>();
   const showsRecorded = recordedUrl !== undefined && liveOver !== recordedUrl;

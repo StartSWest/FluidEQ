@@ -191,6 +191,8 @@ const studio = {
   'studio.publish.missing.note': '새로운 점 한 줄',
   'studio.publish.missing.noteFirst': '장면 소개 한 줄',
   'studio.publish.missing.under': '{what}({section})',
+  'studio.publish.writingButton': '한 줄을 쓰는 중…',
+  'studio.publish.recordingButton': '미리보기를 녹화하는 중…',
   'studio.publish.needNote': '먼저 이 버전의 새로운 기능을 말해보세요.',
   'studio.publish.noteFirst': '이 장면에 대해',
   'studio.publish.notePlaceholderFirst':

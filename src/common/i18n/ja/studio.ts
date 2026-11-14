@@ -195,6 +195,8 @@ const studio = {
   'studio.publish.missing.note': '新しい点の一文',
   'studio.publish.missing.noteFirst': 'シーンについての一文',
   'studio.publish.missing.under': '{what}（「{section}」）',
+  'studio.publish.writingButton': '一文を書いています…',
+  'studio.publish.recordingButton': 'プレビューを録画しています…',
   'studio.publish.needNote': '先にこのバージョンの新しい点を書いてください',
   'studio.publish.noteFirst': 'このシーンについて',
   'studio.publish.notePlaceholderFirst':

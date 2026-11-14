@@ -116,8 +116,8 @@ describe('the gallery name in the publish dialog', () => {
     expect(
       document.querySelector('.studio-publish__body--named'),
     ).not.toBeNull();
-    // Held, and still pressable: the press goes to the form.
-    expect(send()).toHaveAttribute('aria-disabled', 'true');
+    // Enabled: the press goes to the form.
+    expect(send()).toBeEnabled();
     // Said in the footer, where it is seen: nobody hovers a disabled button.
     expect(document.querySelector('.studio-publish__held')).toHaveTextContent(
       'studio.publish.missing.name',

@@ -193,6 +193,8 @@ const studio = {
   'studio.publish.missing.note': 'строка о том, что нового',
   'studio.publish.missing.noteFirst': 'строка о сцене',
   'studio.publish.missing.under': '{what} — в разделе «{section}»',
+  'studio.publish.writingButton': 'Пишется строка…',
+  'studio.publish.recordingButton': 'Записывается предпросмотр…',
   'studio.publish.needNote': 'Сначала напишите, что нового в этой версии',
   'studio.publish.noteFirst': 'Об этой сцене',
   'studio.publish.notePlaceholderFirst':

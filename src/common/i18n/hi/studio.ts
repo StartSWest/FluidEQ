@@ -194,6 +194,8 @@ const studio = {
   'studio.publish.missing.note': 'नया क्या है, इस पर एक पंक्ति',
   'studio.publish.missing.noteFirst': 'सीन के बारे में एक पंक्ति',
   'studio.publish.missing.under': '{what}, {section} में',
+  'studio.publish.writingButton': 'पंक्ति लिखी जा रही है…',
+  'studio.publish.recordingButton': 'प्रीव्यू रिकॉर्ड हो रहा है…',
   'studio.publish.needNote': 'पहले बताएँ कि इस संस्करण में नया क्या है',
   'studio.publish.noteFirst': 'इस सीन के बारे में',
   'studio.publish.notePlaceholderFirst':

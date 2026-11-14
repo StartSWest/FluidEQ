@@ -196,6 +196,8 @@ const studio = {
   'studio.publish.missing.note': 'una línea sobre lo nuevo',
   'studio.publish.missing.noteFirst': 'una línea sobre la escena',
   'studio.publish.missing.under': '{what}, en {section}',
+  'studio.publish.writingButton': 'Escribiendo la línea…',
+  'studio.publish.recordingButton': 'Grabando la vista previa…',
   'studio.publish.needNote': 'Di primero qué hay de nuevo en esta versión',
   'studio.publish.noteFirst': 'Sobre esta escena',
   'studio.publish.notePlaceholderFirst':
