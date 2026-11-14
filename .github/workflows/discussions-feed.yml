@@ -14,7 +14,17 @@ name: Publish discussions feed
 
 on:
   discussion:
-    types: [created, edited, deleted, answered, unanswered, category_changed]
+    types:
+      [
+        created,
+        edited,
+        deleted,
+        answered,
+        unanswered,
+        category_changed,
+        pinned,
+        unpinned,
+      ]
   discussion_comment:
     types: [created, edited, deleted]
   # The app's Forum shows the repository's issues too, from `issues.json`
@@ -106,6 +116,7 @@ jobs:
                 discussionCategories(first: 25) {
                   nodes { id name slug emoji emojiHTML description isAnswerable }
                 }
+                pinnedDiscussions(first: 4) { nodes { discussion { number } } }
                 discussions(first: 20, after: $cursor, orderBy: { field: UPDATED_AT, direction: DESC }) {
                   totalCount
                   pageInfo { hasNextPage endCursor }
@@ -140,12 +151,14 @@ jobs:
           (async () => {
             const discussions = [];
             let categories = [];
+            let pinned = [];
             let totalCount = 0;
             let cursor = null;
             do {
               const data = await graphql(DISCUSSIONS, { owner: OWNER, name: NAME, cursor });
               const repository = data.repository;
               categories = repository.discussionCategories.nodes;
+              pinned = repository.pinnedDiscussions.nodes.map((pin) => pin.discussion.number);
               totalCount = repository.discussions.totalCount;
               discussions.push(...repository.discussions.nodes);
               const page = repository.discussions.pageInfo;
@@ -171,7 +184,7 @@ jobs:
 
             fs.writeFileSync(
               'raw.json',
-              JSON.stringify({ categories, totalCount, discussions }),
+              JSON.stringify({ categories, pinned, totalCount, discussions }),
             );
             console.log(`${discussions.length} discussion(s) read`);
           })().catch((error) => {
@@ -354,6 +367,10 @@ jobs:
               description: c.description ?? '',
               isAnswerable: Boolean(c.isAnswerable),
             })),
+            // The discussions pinned for everyone, as numbers in GitHub's
+            // order; the app lists them first. Readers older than the field
+            // never look for it.
+            pinned: raw.pinned ?? [],
             topics: raw.discussions.map((rawNode) => {
               const { node, opening, rest } = promoteGiscus(rawNode);
               const text = (opening ? opening.bodyText : node.bodyText) ?? '';

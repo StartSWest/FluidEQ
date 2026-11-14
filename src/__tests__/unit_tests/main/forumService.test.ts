@@ -75,6 +75,7 @@ const FEED: IForumFeed = {
     topic(2, 'q-a', '2026-09-05T00:00:00Z', { title: 'Headphones sound thin' }),
     topic(3, 'general', '2026-09-03T00:00:00Z'),
   ],
+  pinned: [],
 };
 
 const session = (auth: TForumAuthState): IForumSession => ({
@@ -138,6 +139,7 @@ describe('reading signed out, from the feed', () => {
                 title: 'Classical',
               }),
             ],
+            pinned: [],
           }),
       },
     });
@@ -159,6 +161,7 @@ describe('reading signed out, from the feed', () => {
           `2026-09-01T00:00:${String(59 - index).padStart(2, '0')}Z`,
         ),
       ),
+      pinned: [],
     };
     const paging = createForumService({
       config: CONFIG,

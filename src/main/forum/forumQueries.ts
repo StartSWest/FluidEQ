@@ -95,6 +95,7 @@ query ForumTopics($owner: String!, $name: String!, $cursor: String, $categoryId:
       pageInfo { hasNextPage endCursor }
       nodes { ...TopicSummary }
     }
+    pinnedDiscussions(first: 4) { nodes { discussion { ...TopicSummary } } }
   }
 }
 ${TOPIC_SUMMARY}${PERSON}`;

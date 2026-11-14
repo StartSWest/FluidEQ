@@ -83,6 +83,7 @@ const forum = {
   'forum.topic.replies': 'Ответов: {count}',
   'forum.topic.votes': 'Голосов: {count}',
   'forum.topic.answered': 'Есть ответ',
+  'forum.topic.pinned': 'Закреплено',
   'forum.topic.locked': 'Закрыта',
 
   'forum.backTo': 'Назад: {board}',

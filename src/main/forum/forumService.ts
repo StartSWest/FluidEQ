@@ -23,10 +23,12 @@ import {
   type IRepositoryBoards,
   readBoardCounts,
   readBoards,
+  readPinned,
   readTopic,
   readTopicPage,
   readVote,
 } from './forumGraphqlModel';
+import { byPinThenActivity, pinnedFirst } from './forumPins';
 import {
   ADD_COMMENT,
   ADD_ISSUE_COMMENT,
@@ -120,6 +122,7 @@ const summaryOf = (topic: IForumTopic): IForumTopicSummary => ({
   votes: topic.votes,
   author: topic.author,
   ...(topic.issue ? { issue: topic.issue } : {}),
+  ...(topic.pinned ? { pinned: true } : {}),
 });
 
 const matchesWords = (
@@ -135,10 +138,14 @@ const matchesWords = (
   return matchesSearchTerms(haystack, words);
 };
 
-/** The feed has every topic, so a page is a slice and the cursor an offset. */
+/**
+ * The feed has every topic, so a page is a slice and the cursor an offset.
+ * `pinOrder` puts the pinned discussions first, except in a search.
+ */
 const feedPage = (
   topics: readonly IForumTopic[],
   query: IForumTopicQuery,
+  pinOrder: readonly number[] = [],
 ): IForumTopicPage => {
   const words = searchTerms(searchWords(query.search));
   const matching = topics
@@ -156,7 +163,7 @@ const feedPage = (
       }
       return query.filter === 'unanswered' ? !settled : true;
     })
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    .sort(byPinThenActivity(words.length ? [] : pinOrder));
   const start = Math.max(0, Math.floor(Number(query.cursor ?? 0)) || 0);
   const next = start + FEED_PAGE;
   return {
@@ -325,7 +332,8 @@ export const createForumService = ({
         return feedPage(await allIssues(), query);
       }
       if (!signedIn()) {
-        return feedPage((await feed.load()).topics, query);
+        const loaded = await feed.load();
+        return feedPage(loaded.topics, query, loaded.pinned);
       }
       const words = searchWords(query.search);
       if (words) {
@@ -348,7 +356,16 @@ export const createForumService = ({
         }),
       );
       const discussions = rec(rec(data.repository).discussions);
-      return readTopicPage(discussions, num(discussions.totalCount));
+      const page = readTopicPage(discussions, num(discussions.totalCount));
+      return {
+        ...page,
+        topics: pinnedFirst(
+          page.topics,
+          readPinned(data),
+          query,
+          query.cursor === undefined,
+        ),
+      };
     },
 
     topic: async (number, cursor) => {

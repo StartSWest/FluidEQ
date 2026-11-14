@@ -340,6 +340,12 @@ function TopicRow({ topic, boards, showBoard, isNew, locale }: ITopicRowProps) {
           <span className="forum__topic-excerpt">{topic.excerpt}</span>
         )}
         <span className="forum__topic-meta">
+          {topic.pinned && (
+            <span className="forum__chip forum__chip--pinned">
+              <ForumGlyph name="pin" />
+              {t('forum.topic.pinned')}
+            </span>
+          )}
           {isNew && (
             <span className="forum__chip forum__chip--new">
               {t('forum.topic.new')}

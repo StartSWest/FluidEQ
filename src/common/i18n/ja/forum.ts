@@ -81,6 +81,7 @@ const forum = {
   'forum.topic.replies': '返信 {count} 件',
   'forum.topic.votes': '賛成 {count} 票',
   'forum.topic.answered': '回答済み',
+  'forum.topic.pinned': '固定',
   'forum.topic.locked': 'ロック中',
 
   'forum.backTo': '{board} に戻る',

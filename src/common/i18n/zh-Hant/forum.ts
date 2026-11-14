@@ -79,6 +79,7 @@ const forum = {
   'forum.topic.replies': '回覆： {count}',
   'forum.topic.votes': '投票數：{count}',
   'forum.topic.answered': '已回答',
+  'forum.topic.pinned': '置頂',
   'forum.topic.locked': '鎖定',
   'forum.backTo': '回傳 {board}',
   'forum.thread.replies': '回覆',

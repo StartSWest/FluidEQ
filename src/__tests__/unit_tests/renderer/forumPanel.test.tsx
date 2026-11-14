@@ -160,6 +160,29 @@ describe('the Forum tab', () => {
     expect(screen.getByText('forum.thread.signInToReply')).toBeInTheDocument();
   });
 
+  // The pin is marked on its row, and only there: the topic beside it, read
+  // in the same list, is the control.
+  it('marks a pinned topic as pinned, and no other', async () => {
+    installBridge({
+      forumTopics: jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          value: {
+            topics: [{ ...summary(1, 'q-a'), pinned: true }, summary(2, 'q-a')],
+            total: 2,
+          },
+        }),
+      ),
+    });
+    render(<ForumPanel />);
+    const pinnedRow = (await screen.findByText('Topic 1 on q-a')).closest(
+      'button',
+    );
+    const otherRow = screen.getByText('Topic 2 on q-a').closest('button');
+    expect(pinnedRow).toHaveTextContent('forum.topic.pinned');
+    expect(otherRow).not.toHaveTextContent('forum.topic.pinned');
+  });
+
   it('says why when the forum cannot be reached', async () => {
     installBridge({
       forumTopics: jest.fn(() =>

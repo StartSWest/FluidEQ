@@ -81,6 +81,7 @@ const forum = {
   'forum.topic.replies': '답글: {count}',
   'forum.topic.votes': '투표: {count}',
   'forum.topic.answered': '답변됨',
+  'forum.topic.pinned': '고정됨',
   'forum.topic.locked': '잠김',
   'forum.backTo': '{board}로 돌아가기',
   'forum.thread.replies': '답글',

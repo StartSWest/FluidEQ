@@ -84,6 +84,7 @@ const forum = {
   'forum.topic.replies': 'Réponses : {count}',
   'forum.topic.votes': 'Votes positifs : {count}',
   'forum.topic.answered': 'Résolu',
+  'forum.topic.pinned': 'Épinglé',
   'forum.topic.locked': 'Verrouillé',
 
   'forum.backTo': 'Retour à {board}',

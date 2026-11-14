@@ -159,6 +159,16 @@ export const readTopicSummary = (
   };
 };
 
+/**
+ * The repository's pinned discussions from a topics answer, in GitHub's
+ * order. GitHub pins four at most; a pin made on one category's page alone
+ * is not in its API.
+ */
+export const readPinned = (data: unknown): IForumTopicSummary[] =>
+  arr(rec(rec(rec(data).repository).pinnedDiscussions).nodes)
+    .map((node) => readTopicSummary(rec(node).discussion))
+    .filter((topic): topic is IForumTopicSummary => topic !== undefined);
+
 export const readTopicPage = (
   connection: unknown,
   total: number,

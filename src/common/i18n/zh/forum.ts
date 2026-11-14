@@ -79,6 +79,7 @@ const forum = {
   'forum.topic.replies': '{count} 条回复',
   'forum.topic.votes': '{count} 个赞同',
   'forum.topic.answered': '已解答',
+  'forum.topic.pinned': '置顶',
   'forum.topic.locked': '已锁定',
 
   'forum.backTo': '返回{board}',

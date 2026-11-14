@@ -148,6 +148,13 @@ export interface IForumTopicSummary {
   author: IForumPerson;
   /** Present on an issue, which is read and never written here. */
   issue?: IForumIssue;
+  /**
+   * One of the discussions the repository pins for everyone (GitHub allows
+   * four). Listed first on its own board and on every board, in GitHub's
+   * order. A pin made on one category's page alone is not in GitHub's API,
+   * so only these can be known here.
+   */
+  pinned?: boolean;
 }
 
 /**

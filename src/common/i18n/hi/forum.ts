@@ -83,6 +83,7 @@ const forum = {
   'forum.topic.replies': 'जवाब: {count}',
   'forum.topic.votes': 'वोट: {count}',
   'forum.topic.answered': 'जवाब मिला',
+  'forum.topic.pinned': 'पिन किया गया',
   'forum.topic.locked': 'लॉक',
 
   'forum.backTo': '{board} पर वापस',

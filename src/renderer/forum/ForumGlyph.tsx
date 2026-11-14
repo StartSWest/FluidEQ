@@ -12,6 +12,7 @@ export type TForumGlyph =
   | 'question'
   | 'showcase'
   | 'tips'
+  | 'pin'
   | 'support'
   | 'issue'
   | 'issueClosed'
@@ -114,6 +115,14 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
         // A heart: what the board is for, and the shape every tip jar uses.
         return (
           <path d="M10 16.6 4.2 11a3.6 3.6 0 0 1 0-5.2 3.7 3.7 0 0 1 5.2 0l.6.6.6-.6a3.7 3.7 0 0 1 5.2 0 3.6 3.6 0 0 1 0 5.2Z" />
+        );
+      case 'pin':
+        // A push pin seen from the side, tilted as one stuck in a board.
+        return (
+          <>
+            <path d="M12.2 2.8 17.2 7.8M13.4 4l-3.9 3.9-3.3.4-1.2 1.2 6 6 1.2-1.2.4-3.3 3.9-3.9" />
+            <path d="M7.7 12.3 3 17" />
+          </>
         );
       case 'tips':
         // A wand and its sparkle: a small thing that does more than it

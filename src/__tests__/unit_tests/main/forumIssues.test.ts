@@ -138,7 +138,9 @@ describe('the issues’ row in the Forum', () => {
     const service = createForumService({
       config: CONFIG,
       session: session(auth),
-      feed: { load: () => Promise.resolve({ boards: [], topics: [] }) },
+      feed: {
+        load: () => Promise.resolve({ boards: [], topics: [], pinned: [] }),
+      },
       issues: { load: () => Promise.resolve(readIssues(FILE)) },
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
@@ -208,6 +210,7 @@ describe('the issues’ row in the Forum', () => {
             topics: readIssues({
               issues: [published(7, 'open', '2026-10-01T00:00:00Z')],
             }).map((thread) => ({ ...thread, board: 'q-a', issue: undefined })),
+            pinned: [],
           }),
       },
       issues: { load: () => Promise.reject(new Error('offline')) },

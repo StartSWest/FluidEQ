@@ -35,6 +35,12 @@ import {
 export interface IForumFeed {
   boards: IForumBoard[];
   topics: IForumTopic[];
+  /**
+   * The pinned discussions' numbers, in GitHub's order. Empty for a feed
+   * published before the workflow wrote them, which is every feed until it
+   * runs again: such a feed reads exactly as it always did.
+   */
+  pinned: number[];
 }
 
 export interface IForumFeedSource {
@@ -201,10 +207,16 @@ export const readFeed = (payload: unknown): IForumFeed => {
   if (!isRecord(payload)) {
     throw new ForumError('network', 'The discussions feed is unreadable.');
   }
+  const pinned = arr(payload.pinned)
+    .map(num)
+    .filter((number, at, all) => number > 0 && all.indexOf(number) === at);
   const topics = arr(payload.topics)
     .map(feedTopic)
-    .filter((topic): topic is IForumTopic => topic !== undefined);
-  return { boards: boardsOf(payload, topics), topics };
+    .filter((topic): topic is IForumTopic => topic !== undefined)
+    .map((topic) =>
+      pinned.includes(topic.number) ? { ...topic, pinned: true } : topic,
+    );
+  return { boards: boardsOf(payload, topics), topics, pinned };
 };
 
 /**

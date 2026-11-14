@@ -305,6 +305,14 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // New: filled, as the rail's count of them is — the outlined accent is
   // the answer's.
+  // Pinned by the repository for everyone: the accent's colour, outlined
+  // and unfilled, so it reads apart from an answered topic's tinted chip.
+  &--pinned {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 35%, transparent);
+    background: transparent;
+  }
+
   &--new {
     color: $surface-base;
     border-color: transparent;

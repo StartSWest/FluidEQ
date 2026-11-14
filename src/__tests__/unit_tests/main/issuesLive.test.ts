@@ -169,7 +169,9 @@ describe('the Forum’s issues, live first', () => {
     const service = createForumService({
       config: CONFIG,
       session: session(auth),
-      feed: { load: () => Promise.resolve({ boards: [], topics: [] }) },
+      feed: {
+        load: () => Promise.resolve({ boards: [], topics: [], pinned: [] }),
+      },
       issues: { load: () => Promise.resolve([published]) },
       live,
       fetchImpl: fetchImpl as unknown as typeof fetch,
