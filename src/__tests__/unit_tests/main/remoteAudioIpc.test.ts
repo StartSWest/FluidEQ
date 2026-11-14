@@ -153,13 +153,37 @@ describe('Share Audio all to all: one code, every link kept', () => {
         handlers.get('remote-audio-lan-start')?.({}, false),
       ).resolves.toEqual({ cancelled: true });
       expect(error).not.toHaveBeenCalled();
-      expect(info).toHaveBeenCalledWith(
-        'Share Audio: the local link stopped starting; FluidEQ is closing',
-      );
+      // Exactly one line, the quiet one.
+      expect(info.mock.calls).toEqual([
+        [
+          'Share Audio: local link start cancelled, FluidEQ closing or restarting',
+        ],
+      ]);
       info.mockRestore();
     });
 
-    it('still fails, and says so, when the worker dies on its own', async () => {
+    it('answers failed, in one warning with no stack, when the system refuses it', async () => {
+      const warn = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
+      const error = jest.spyOn(log, 'error');
+      mockStartRemoteAudioHostSession.mockRejectedValueOnce(
+        Object.assign(new Error('operation failed'), {
+          code: 'EACCES',
+          syscall: 'listen',
+        }),
+      );
+      await expect(
+        handlers.get('remote-audio-lan-start')?.({}, false),
+      ).resolves.toEqual({ failed: true });
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0]).toHaveLength(1);
+      expect(warn.mock.calls[0][0]).toContain(
+        'the system refused it (EACCES on listen)',
+      );
+      expect(error).not.toHaveBeenCalled();
+      warn.mockRestore();
+    });
+
+    it('answers failed, and logs the bug with its stack, when the worker dies on its own', async () => {
       const error = jest
         .spyOn(log, 'error')
         .mockImplementation(() => undefined);
@@ -168,9 +192,12 @@ describe('Share Audio all to all: one code, every link kept', () => {
       );
       await expect(
         handlers.get('remote-audio-lan-start')?.({}, false),
-      ).rejects.toThrow('Share Audio worker stopped.');
+      ).resolves.toEqual({ failed: true });
+      expect(error).toHaveBeenCalledTimes(1);
       expect(error).toHaveBeenCalledWith(
-        'Share Audio: the local link could not start',
+        expect.stringContaining(
+          'the Share Audio service stopped while it was starting (a bug)',
+        ),
         expect.any(AudioWorkerStopped),
       );
       error.mockRestore();
@@ -251,15 +278,22 @@ describe('Share Audio all to all: one code, every link kept', () => {
     );
   });
 
-  it('saves nothing for a code that is not one', async () => {
+  it('saves nothing for a code that is not one, and says so in the answer', async () => {
+    const info = jest.spyOn(log, 'info').mockImplementation(() => undefined);
     lan.join.mockImplementation(() => {
       throw new Error('Invalid FluidEQ LAN pairing code.');
     });
 
     await expect(
       handlers.get('remote-audio-lan-join')?.({}, 'not a code'),
-    ).rejects.toThrow('Invalid FluidEQ LAN pairing code.');
+    ).resolves.toEqual({ failed: 'code' });
     expect(credentials.addJoin).not.toHaveBeenCalled();
+    expect(info).toHaveBeenCalledWith(
+      'Share Audio: a pasted code was refused: not a FluidEQ code, or this computer’s own',
+    );
+    // What was pasted is never written.
+    expect(JSON.stringify(info.mock.calls)).not.toContain('not a code"');
+    info.mockRestore();
   });
 
   it('unlinks one computer and nothing else', async () => {

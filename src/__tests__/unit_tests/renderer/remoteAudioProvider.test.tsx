@@ -243,12 +243,37 @@ describe('a link kept through restarts', () => {
   it('says so when a pasted code is not one, and links nothing', async () => {
     await renderProvider();
     await act(() => value().start());
-    bridge.joinRemoteAudioLan.mockRejectedValue(new Error('Invalid'));
+    bridge.joinRemoteAudioLan.mockResolvedValue({ failed: 'code' });
     await act(async () => {
       await expect(value().link('nonsense')).resolves.toBe(false);
     });
     expect(value().error).toBe('code');
     expect(value().looking).toEqual([]);
+  });
+
+  it('shows a start that failed as the network, and starts again when the network comes back', async () => {
+    bridge.hasSavedRemoteAudioLan.mockResolvedValue(true);
+    bridge.startRemoteAudioLan.mockResolvedValueOnce({ failed: true });
+    await renderProvider();
+    expect(value().phase).toBe('error');
+    expect(value().error).toBe('lan');
+
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+    await settle();
+    expect(value().phase).toBe('ready');
+    expect(value().error).toBeUndefined();
+  });
+
+  it('does not blame a pasted code when Share Audio could not start', async () => {
+    await renderProvider();
+    bridge.startRemoteAudioLan.mockResolvedValueOnce({ failed: true });
+    await act(async () => {
+      await expect(value().link('FLUIDEQ-LAN-2.x')).resolves.toBe(false);
+    });
+    expect(value().error).toBe('lan');
+    expect(bridge.joinRemoteAudioLan).not.toHaveBeenCalled();
   });
 
   it('unlinks one computer and keeps every other', async () => {

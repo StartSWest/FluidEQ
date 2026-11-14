@@ -13,6 +13,7 @@ import {
   type ILanHostDetails,
   type ILanRemoteAudioChunk,
   type ILanRemoteAudioSignal,
+  type ILanSavedJoin,
 } from '../../common/remoteAudio';
 import {
   IRemoteAudioCapture,
@@ -24,6 +25,7 @@ import startRemoteAudioHostSession from '../remoteAudioHostSession';
 import type { IRemoteAudioLan } from '../remoteAudioLanTypes';
 import createRemoteAudioBook from '../remoteAudioBook';
 import createRemoteAudioLevels from '../remoteAudioLevels';
+import { logStartOutcome } from '../remoteAudioStartLog';
 import { createRemoteAudioLinks } from '../remoteAudioLinks';
 import createRemoteAudioPorts from '../remoteAudioPorts';
 import { createSmoothLinks, createSmoothSwitch } from '../remoteAudioSmooth';
@@ -438,26 +440,24 @@ export const registerRemoteAudioIpc = ({
         if (started === starting) {
           started = undefined;
         }
-        if (stoppedOnPurpose(error)) {
-          // FluidEQ quit (or the dev app restarted) while the link was
-          // still starting: nothing failed.
-          log.info(
-            'Share Audio: the local link stopped starting; FluidEQ is closing',
-          );
-          return;
-        }
         // The window can only say "could not open that local connection";
         // what actually failed (a port, the network, the Share Audio
-        // service) is written here, where a bug report collects it.
-        log.error('Share Audio: the local link could not start', error);
+        // service) is written here, once, where a bug report collects it.
+        logStartOutcome(error);
       });
     }
     // Asked again while running, the code is made from today's addresses:
     // `lan.start` on the running secret describes the session, nothing more.
     const running = started;
     return (async () => {
+      // Its failure is written by the catch above; this one's below.
       await running;
-      return (await startRemoteAudioHostSession(lan, credentials)).details;
+      try {
+        return (await startRemoteAudioHostSession(lan, credentials)).details;
+      } catch (error) {
+        logStartOutcome(error);
+        throw error;
+      }
     })();
   };
 
@@ -470,13 +470,10 @@ export const registerRemoteAudioIpc = ({
     try {
       details = await start();
     } catch (error) {
-      // Cut short by the quit, the start is answered, not thrown: a throw
-      // here is an "Error occurred in handler" in the log for a link that
-      // only stopped because FluidEQ did.
-      if (stoppedOnPurpose(error)) {
-        return { cancelled: true };
-      }
-      throw error;
+      // Answered, never thrown: a throw is Electron's own "Error occurred in
+      // handler" with a stack, for a quit, a busy network or a refused port
+      // — conditions, not crashes, and each already written in one line.
+      return stoppedOnPurpose(error) ? { cancelled: true } : { failed: true };
     }
     if (replay !== true) {
       return { details, joins: savedJoins(), links: [] };
@@ -504,8 +501,25 @@ export const registerRemoteAudioIpc = ({
     // through boot, sleep, Wi-Fi and the other computer's restarts until the
     // user explicitly unlinks.
     const normalizedCode = typeof code === 'string' ? code.trim() : '';
-    await start();
-    const joined = lan.join(normalizedCode, true);
+    try {
+      await start();
+    } catch (error) {
+      return stoppedOnPurpose(error)
+        ? { cancelled: true }
+        : { failed: 'lan' as const };
+    }
+    let joined: ILanSavedJoin;
+    try {
+      joined = lan.join(normalizedCode, true);
+    } catch {
+      // Somebody pasted something that is not a code, or this computer's
+      // own: their mistake, said on the page. Never the text, which may be
+      // a real code with its secret.
+      log.info(
+        'Share Audio: a pasted code was refused: not a FluidEQ code, or this computer’s own',
+      );
+      return { failed: 'code' as const };
+    }
     credentials.addJoin(
       normalizedCode,
       (saved) => computerOfCode(saved) === joined.computerId,

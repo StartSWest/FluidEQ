@@ -235,6 +235,11 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         // FluidEQ is closing: nothing failed, so nothing is said.
         return;
       }
+      if ('failed' in started) {
+        setError('lan');
+        setPhase('error');
+        return;
+      }
       heardLinksRef.current = true;
       setDeviceName(started.details.deviceName);
       setCode(started.details.code);
@@ -433,9 +438,24 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       setError(undefined);
       if (phaseRef.current === 'idle' || phaseRef.current === 'error') {
         await start();
+        if (phaseRef.current === 'error') {
+          // It could not start, and the page already says so; the code is
+          // not what is wrong.
+          return false;
+        }
       }
       try {
         const joined = await bridge.joinRemoteAudioLan(pasted.trim());
+        if ('cancelled' in joined) {
+          return false;
+        }
+        if ('failed' in joined) {
+          setError(joined.failed);
+          if (joined.failed === 'lan') {
+            setPhase('error');
+          }
+          return false;
+        }
         setJoins((current) => [
           ...current.filter((entry) => entry.computerId !== joined.computerId),
           joined,
