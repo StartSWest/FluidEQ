@@ -1,11 +1,25 @@
 /** @jest-environment node */
 import { EventEmitter } from 'events';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const mockStart = jest.fn();
+// A folder of the test's own for userData: installCrashLogging writes when
+// this launch began there (`startFailures.ts`), and an empty path put that
+// file in whatever folder the tests ran from - the repository's root.
+const mockUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'crash-dumps-'));
 const mockApp = Object.assign(new EventEmitter(), {
-  getPath: jest.fn((name: string) =>
-    name === 'crashDumps' ? 'C:/Users/me/AppData/Roaming/FluidEQ/Crashpad' : '',
-  ),
+  getPath: jest.fn((name: string) => {
+    if (name === 'crashDumps') {
+      return 'C:/Users/me/AppData/Roaming/FluidEQ/Crashpad';
+    }
+    return name === 'userData' ? mockUserData : '';
+  }),
+});
+
+afterAll(() => {
+  fs.rmSync(mockUserData, { recursive: true, force: true });
 });
 const mockLogError = jest.fn();
 jest.mock('electron', () => ({
