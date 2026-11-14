@@ -10,6 +10,27 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ### FluidEQ
 
+- **Surprise me.** In Up Next, **Surprise me** plays a song you have not
+  heard this session, drawn from your whole Library, with a short shuffle of its
+  covers, and the queue carries on in its style. Press it again for another
+  song, usually from another genre. Songs you put in the queue yourself
+  stay and play first. With an empty queue it is the big button in the
+  middle.
+- **A text size for reading.** The Forum and Help have a **Text size**
+  control, from 100% to 200%, for readers who need larger text; Ctrl + and
+  Ctrl − (or Ctrl and the mouse wheel) do the same over them, and Ctrl 0
+  goes back. The size is shared by both and kept on this computer.
+- **The Forum has Tips & tricks and Support FluidEQ.** Tips & tricks
+  gathers the features that work without being on screen, Support FluidEQ
+  how to help keep it going, and the guides pinned on GitHub lead the Forum
+  tab.
+- **Library covers cost less.** Rows and tiles load a cover at the size they
+  draw it, so scrolling a large Library decodes far less.
+- **Fewer false alarms.** The headphone database is checked once a day, and
+  a busy GitHub no longer shows as a failure; Share Audio no longer reports
+  an error when FluidEQ restarts while its link is starting; and the graph
+  keeps the app's colour while a scene draws its first frame again after the
+  computer wakes.
 - **A count of which audio engine is used, and nothing more.** Once a day,
   for a signed-in account that has seen the new terms, FluidEQ sends one
   word, the FluidEQ Engine, Equalizer APO or none yet, and only the day's
@@ -19,37 +40,69 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ### Scenes
 
-#### Scenes and the gallery
+#### Scenes everywhere
 
 - **Visualizers is now Scenes.** What plays on the graph, behind your
   desktop and on your lights was called two things; it is a scene
-  everywhere now, and the tab that holds the gallery, the Studio and
-  Dynamic lighting is **Scenes**. The graph's free looks are its standard
-  looks.
-- **Hover a card to see the scene move.** In the gallery, a scene's card
-  plays its preview video while the pointer is over it, silent and looping,
-  and goes back to its cover when it leaves. The scene itself is never
-  started for it.
+  everywhere now, with one mark for it, and the tab that holds the gallery,
+  the Studio and Dynamic lighting is **Scenes**. The graph's free looks are
+  its standard looks.
+- **Your first 3 scenes are on us.** The Scenes tab, before you sign in,
+  shows the gallery that waits behind it and what a free account brings: a
+  new account starts with 3 credits, one scene each, kept for good.
+  FluidEQ's sound never needs an account.
+- **Signing in and creating an account are new.** Google comes first, an
+  email account confirms with a six-digit code, and signing in from the
+  Scenes tab takes you straight to the gallery. A new account is offered its
+  3 free credits right away, once, and again from the Scenes tab until they
+  are claimed.
+- **The Account window is new,** with your balance beside the coin and
+  **Get more credits** at hand. Every credit in the app is the same coin, on
+  every button that spends one too.
+- **A pack lands with its coins.** When a payment for credits goes through,
+  its coins burst onto the screen and fly into your balance: one for the
+  small pack, two and three for the larger ones.
+- **What makers earn.** When someone gets your scene with a paid credit, you
+  receive half a credit, up to 3 credits per scene until the marketplace
+  opens, when that limit is removed.
+
+#### The gallery
+
+- **Hover a card to see the scene move.** A scene's card plays its preview
+  video while the pointer is over it, silent and looping, and goes back to
+  its cover when it leaves. The scene itself is never started for it.
+- **Cards keep their size.** The gallery opens at its final size, with
+  placeholders the size of the cards, and nothing grows when the scenes
+  arrive.
+- **Never an empty gallery you cannot explain.** A filter that is on is
+  always shown, and one that leaves nothing offers **Show all scenes**.
 - **A scene's versions fold away.** **All versions** on a scene's page is
-  closed each time the page opens, with the newest version's note above it;
-  one press opens the list.
+  closed each time the page opens, with the newest version's note above it.
+- **Every category in the look picker,** the same as the gallery's, with the
+  way to the gallery for one you have no scenes in yet.
 
 #### Studio
 
 - **Pin projects and chats to the top.** Every project in the picker, and
-  every earlier chat of a project, has a pin. Pinned ones stand first, the
-  newest pin at the top, kept on this computer for your account.
-- **Every publication says what it is.** Publish asks for a line on a
-  first version too: what the scene is, as a listener sees and hears it.
-  The chat writes it, in every language, and nothing is sent until you
-  press **Send for review**.
-- **Publish says what it is waiting for.** While **Send for review** cannot
-  be pressed, the dialog says why, beside the button: a category, the
-  preview video, your gallery name, or the line.
-- **Fable's limit, and Opus when it is reached.** The chat's account menu
-  shows Fable's own weekly limit beside the others. A reply stopped by it
-  says when Fable is back and, when Opus still has room, offers **Switch to
-  Opus**, which sends your message again; nothing switches by itself.
+  every earlier chat of a project, has a pin. Pinned ones stand first, kept
+  on this computer for your account.
+- **A model is the chat's own.** Picking a model in one chat changes that
+  chat only; a new chat starts on the default.
+- **The chat says why a reply stopped:** which limit and when it resets, a
+  lost sign-in, a subscription that cannot be used, no connection or a busy
+  server, each with what to do. Fable's own weekly limit shows in the
+  account menu, and when it is reached the chat offers **Switch to Opus**
+  while Opus has room; nothing switches by itself.
+- **Every publication says what it is.** Publish asks for a line on a first
+  version too, and the chat writes it, in every language. **Send for
+  review** is always ready: pressed with something missing, it names every
+  part still needed and takes you to the first. The preview video's mark
+  reads FluidEQ · Preview.
+- **Scenes hear the music better.** A scene's voice channel follows a voice,
+  not whatever is loud in the middle; the kick, snare and hats it is shown
+  come from a small trained listener, and the treble is the drums' share of
+  the top. The Ultra wide stage shows what lies outside the band, with a
+  switch for the whole picture.
 - **A scene that was not approved says why in your language,** the
   reviewer's reason in full, never cut short.
 
