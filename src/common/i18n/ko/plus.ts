@@ -214,7 +214,7 @@ const plus = {
     '매주 새로운 장면. 받기 전에 어떤 장면이든 몇 초 동안 볼 수 있습니다.',
   'plus.signedOut.studio.title': '스튜디오에서 직접 만들기',
   'plus.signedOut.studio.body':
-    '게시하면 누군가 유료 크레딧으로 받을 때마다 크레딧 반 개를 받습니다.',
+    '게시하면 누군가 유료 크레딧으로 받을 때마다 크레딧 반 개를 받습니다. 마켓플레이스가 열릴 때까지 장면당 최대 3크레딧입니다.',
   'plus.signedOut.forum.title': '포럼에 참여하기',
   'plus.signedOut.forum.body':
     '아이디어, 도움, 새로운 장면을 다른 회원 및 FluidEQ 제작자와 함께.',

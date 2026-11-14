@@ -199,7 +199,7 @@ const plus = {
     '每週都有新場景。取得之前，任何場景都可以先看幾秒。',
   'plus.signedOut.studio.title': '在工作室製作您自己的',
   'plus.signedOut.studio.body':
-    '發布後，每當有人用付費點數取得它，您就能賺到半個點數。',
+    '發布後，每當有人用付費點數取得它，您就能賺到半個點數；在市集開放之前，每個場景最多 3 點數。',
   'plus.signedOut.forum.title': '加入論壇',
   'plus.signedOut.forum.body':
     '與其他成員和 FluidEQ 的作者交流想法、取得幫助、發現新場景。',

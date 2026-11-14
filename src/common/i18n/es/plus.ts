@@ -226,7 +226,7 @@ const plus = {
     'Escenas nuevas cada semana. Mira cualquiera unos segundos antes de conseguirla.',
   'plus.signedOut.studio.title': 'Crea la tuya en el Estudio',
   'plus.signedOut.studio.body':
-    'Publícala y gana medio crédito cada vez que alguien la consiga con un crédito pagado.',
+    'Publícala y gana medio crédito cada vez que alguien la consiga con un crédito pagado, hasta 3 créditos por escena mientras no abra el mercado.',
   'plus.signedOut.forum.title': 'Únete al Foro',
   'plus.signedOut.forum.body':
     'Ideas, ayuda y escenas nuevas, con otros miembros y el creador de FluidEQ.',

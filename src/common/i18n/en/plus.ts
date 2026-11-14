@@ -224,7 +224,7 @@ const plus = {
     'New scenes every week. Watch any of them for a few seconds before you get it.',
   'plus.signedOut.studio.title': 'Make your own in the Studio',
   'plus.signedOut.studio.body':
-    'Publish it, and earn half a credit each time someone gets it with a paid credit.',
+    'Publish it, and earn half a credit each time someone gets it with a paid credit, up to 3 credits per scene until the marketplace opens.',
   'plus.signedOut.forum.title': 'Join the Forum',
   'plus.signedOut.forum.body':
     'Ideas, help and new scenes, with other members and FluidEQ’s maker.',

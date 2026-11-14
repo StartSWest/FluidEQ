@@ -206,7 +206,7 @@ const plus = {
     '每周都有新场景。获取之前，任何场景都可以先看几秒。',
   'plus.signedOut.studio.title': '在工作室制作你自己的',
   'plus.signedOut.studio.body':
-    '发布后，每当有人用付费点数获取它，你就能赚到半个点数。',
+    '发布后，每当有人用付费点数获取它，你就能赚到半个点数；在市场开放之前，每个场景最多 3 点数。',
   'plus.signedOut.forum.title': '加入论坛',
   'plus.signedOut.forum.body':
     '与其他成员和 FluidEQ 的作者交流想法、获取帮助、发现新场景。',

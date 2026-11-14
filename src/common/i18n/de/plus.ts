@@ -234,7 +234,7 @@ const plus = {
     'Jede Woche neue Szenen. Jede können Sie ein paar Sekunden ansehen, bevor Sie sie holen.',
   'plus.signedOut.studio.title': 'Bauen Sie Ihre eigene im Studio',
   'plus.signedOut.studio.body':
-    'Veröffentlichen Sie sie und erhalten Sie einen halben Credit, wann immer jemand sie mit einem bezahlten Credit holt.',
+    'Veröffentlichen Sie sie und erhalten Sie einen halben Credit, wann immer jemand sie mit einem bezahlten Credit holt, bis zu 3 Credits pro Szene, bis der Marktplatz öffnet.',
   'plus.signedOut.forum.title': 'Machen Sie im Forum mit',
   'plus.signedOut.forum.body':
     'Ideen, Hilfe und neue Szenen, mit anderen Mitgliedern und dem Macher von FluidEQ.',
