@@ -282,20 +282,24 @@ describe('the celebration', () => {
 
   // Ivan, 2026-11-14: claiming the 3 free credits plays the same burst,
   // from the welcome, the Scenes card or Get credits, which all claim
-  // through `claimStarterCredits`. A coin for each of the first 3 scenes.
-  it('plays the free credits once they are claimed, a coin for each', async () => {
+  // through `claimStarterCredits` - with one coin: "we don't want them to
+  // think they got the 19 plan", whose pile is three.
+  it('plays the free credits once they are claimed, with one coin', async () => {
     await mount();
     await act(async () => {
       await claimStarterCredits();
     });
     expect(document.querySelectorAll('.coin-celebration')).toHaveLength(1);
-    expect(coinsOnScreen()).toBe(3);
+    expect(coinsOnScreen()).toBe(1);
     expect(screen.getByRole('status')).toHaveTextContent('+3 credits');
     await act(async () =>
       animations.forEach((animation) => animation.finish()),
     );
     // Once: nothing plays again after it.
     expect(document.querySelector('.coin-celebration')).toBeNull();
+    // The control: a paid 30-credit pack still flies its pile of three.
+    await celebrate(30);
+    expect(coinsOnScreen()).toBe(3);
   });
 
   it('control: a claim the server refused plays nothing', async () => {

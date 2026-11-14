@@ -16,6 +16,9 @@ import {
 } from './sceneStore';
 import '../styles/CoinCelebration.scss';
 
+/** The free claim's coins: one, never the pile a bought pack shows. */
+const STARTER_COINS = 1;
+
 /** Sparks thrown by the burst: enough to read as a burst, few enough to stay a flourish. */
 const SPARKS = 10;
 
@@ -176,10 +179,11 @@ export default function CoinCelebration() {
     };
     const offPaid = onCreditsArrived((credits) => enqueue(credits));
     // The free starter credits celebrate the same way (Ivan, 2026-11-14),
-    // with a coin for each of "your first 3 scenes": by the packs' rule,
-    // three credits are under the smallest pack and would fly as one coin.
+    // with one coin and their "+3 credits": "just one coin on the claim",
+    // "we don't want them to think they got the 19 plan" - three coins are
+    // the pile of the biggest pack in Get credits.
     const offStarter = onStarterCreditsClaimed(() =>
-      enqueue(STARTER_CREDITS, STARTER_CREDITS),
+      enqueue(STARTER_CREDITS, STARTER_COINS),
     );
     return () => {
       offPaid();
