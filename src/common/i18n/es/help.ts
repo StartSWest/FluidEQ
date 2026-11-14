@@ -742,7 +742,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'El Foro trae a la app las GitHub Discussions de FluidEQ: anuncios, ideas, preguntas y ajustes de los que la gente está orgullosa. Cualquiera puede leer; para publicar se usa tu cuenta de GitHub, no una de FluidEQ.',
   'help.forum.steps':
-    'Abre Ayuda → Foro y elige una categoría: Anuncios, General, Ideas, Encuestas, Q&A o Muestra lo tuyo. Nuevo para ti reúne lo que llegó desde la última vez, e Incidencias muestra los problemas reportados en GitHub.\nBusca en el foro o abre un tema para leer las respuestas.\nPulsa Iniciar sesión con GitHub, termina en tu navegador y publica un Nuevo tema o una respuesta.',
+    'Abre Ayuda → Foro y elige una categoría: Anuncios, General, Ideas, Encuestas, Q&A, Muestra lo tuyo, Trucos y consejos o Apoya FluidEQ. Nuevo para ti reúne lo que llegó desde la última vez, e Incidencias muestra los problemas reportados en GitHub.\nBusca en el foro o abre un tema para leer las respuestas.\nPulsa Iniciar sesión con GitHub, termina en tu navegador y publica un Nuevo tema o una respuesta.',
   'help.forum.tip':
     'Todo lo que se publica es público en GitHub, con tu nombre de GitHub. En Q&A, marca la respuesta que te funcionó para que la encuentre quien venga después. El número amarillo de cada sección indica temas con actividad que no has visto; Problemas cuenta los que siguen abiertos. Los temas y respuestas a medio escribir se guardan al salir. Pulsa una imagen de una publicación para ampliarla dentro de FluidEQ.',
   'help.forum.keywords':

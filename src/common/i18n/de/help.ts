@@ -748,7 +748,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'Das Forum holt die GitHub Discussions von FluidEQ in die App: Ankündigungen, Ideen, Fragen und Klangeinstellungen, auf die Leute stolz sind. Lesen kann jeder; zum Schreiben nutzen Sie Ihr GitHub-Konto, kein FluidEQ-Konto.',
   'help.forum.steps':
-    'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A oder Schaufenster. Neu für Sie sammelt, was seit Ihrem letzten Besuch kam, und Issues listet die auf GitHub gemeldeten Probleme.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
+    'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A, Schaufenster, Tipps & Tricks oder FluidEQ unterstützen. Neu für Sie sammelt, was seit Ihrem letzten Besuch kam, und Issues listet die auf GitHub gemeldeten Probleme.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
   'help.forum.tip':
     'Alles, was Sie schreiben, ist auf GitHub unter Ihrem GitHub-Namen öffentlich. Markieren Sie in Q&A die Antwort, die geholfen hat, damit die nächste Person sie findet. Die gelbe Zahl eines Bereichs zeigt Themen mit Aktivität, die Sie noch nicht gesehen haben; Probleme zählt offene Probleme. Angefangene Themen und Antworten bleiben beim Verlassen erhalten. Drücken Sie auf ein Beitragsbild, um es in FluidEQ zu vergrößern.',
   'help.forum.keywords':
