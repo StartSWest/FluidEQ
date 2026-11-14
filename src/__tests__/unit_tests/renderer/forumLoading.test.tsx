@@ -147,7 +147,7 @@ const summary = (number: number, board: string): IForumTopicSummary => ({
 const installBridge = () => {
   const answers: Array<() => void> = [];
   const bridge = {
-    // The Forum tells main when it has the zoom keys (`useForumTextKeys`).
+    // The Forum tells main when it has the zoom keys (`useReadingKeys`).
     sendMessage: jest.fn(),
     forumState: () => Promise.resolve({ status: 'signed-out' }),
     onForumState: () => () => undefined,

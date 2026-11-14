@@ -82,9 +82,11 @@ const KEPT = [
   // The language: put back to Windows' own, somebody who chose another one
   // would face a language they may not read (Ivan, 2026-10-26).
   'fluideq.locale',
-  // The Forum's text size (`forumTextSize.ts`), for the same reason: put
-  // back to 100%, a reader who needs large text could not read the page
-  // that would tell them where to set it again.
+  // The reading text's size, shared by the Forum and Help (`readingSize.ts`),
+  // for the same reason: put back to 100%, a reader who needs large text
+  // could not read the page that would tell them where to set it again. The
+  // second is where the Forum kept it first, read once and cleared.
+  'fluideq.readingSize.v1',
   'fluideq.forum.textSize.v1',
   // What they searched for.
   'fluideq.autoEqModelSearchHistory',

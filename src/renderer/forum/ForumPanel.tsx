@@ -15,8 +15,8 @@ import {
 import NewTopicForm from './NewTopicForm';
 import TopicList from './TopicList';
 import TopicView from './TopicView';
-import { useForumTextSize } from './forumTextSize';
-import useForumTextKeys from './useForumTextKeys';
+import { useReadingSize } from '../reading/readingSize';
+import useReadingKeys from '../reading/useReadingKeys';
 import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
 import '../styles/Forum.scss';
@@ -41,8 +41,8 @@ export default function ForumPanel() {
   const { t, locale } = useTranslation();
   const forum = useForum();
   const root = useRef<HTMLDivElement>(null);
-  const textSize = useForumTextSize();
-  useForumTextKeys(root);
+  const textSize = useReadingSize();
+  useReadingKeys(root);
 
   useEffect(() => {
     openForum().catch(() => undefined);

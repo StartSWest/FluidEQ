@@ -9,7 +9,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { boardDescription, boardName } from './boardNames';
 import ForumAvatar from './ForumAvatar';
 import ForumGlyph, { boardGlyph, GithubMark } from './ForumGlyph';
-import ForumTextSizeControl from './ForumTextSizeControl';
+import ReadingSizeControl from '../reading/ReadingSizeControl';
 import { BoardsLoading } from './ForumLoading';
 import ForumNewsBadge from './ForumNewsBadge';
 import { cancelSignIn, NEW_BOARD, signIn, signOut } from './forumStore';
@@ -115,7 +115,7 @@ export default function ForumRail({
           <span className="forum__source-word">{t('forum.source')}</span>
         </span>
       </div>
-      <ForumTextSizeControl />
+      <ReadingSizeControl />
 
       <div className="community__channels">
         {row(

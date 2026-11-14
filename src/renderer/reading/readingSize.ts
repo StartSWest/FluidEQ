@@ -1,13 +1,18 @@
 import { useSyncExternalStore } from 'react';
 
 /**
- * How large the Forum's reading text is drawn (Ivan, 2026-11-13: "a zoom
- * feature on forums, so forums can show bigger text for readers with low
- * sight issues").
+ * How large the reading text is drawn on the pages meant for reading: the
+ * Forum and Help (Ivan, 2026-11-13: "a zoom feature on forums, so forums can
+ * show bigger text for readers with low sight issues", then "sure, in Help
+ * too").
+ *
+ * One size for both. A reader who needs larger text needs it on every page
+ * they read, and setting it twice, in two places, is the kind of chore that
+ * person is least able to do.
  *
  * A step on a short ladder rather than a free number: each press lands on a
  * size that was looked at in the window, and A− from the largest always
- * comes back the way it went. The Forum's root carries the step as
+ * comes back the way it went. Each page's root carries the step as
  * `--reading-scale`, which the stylesheets' `reading()` multiplies every
  * reading size by, so the text reflows at its real size.
  *
@@ -16,9 +21,13 @@ import { useSyncExternalStore } from 'react';
  * control again after a reset.
  */
 
-export const FORUM_TEXT_STEPS: readonly number[] = [1, 1.15, 1.3, 1.5, 1.75, 2];
+export const READING_SIZE_STEPS: readonly number[] = [
+  1, 1.15, 1.3, 1.5, 1.75, 2,
+];
 
-const STORAGE_KEY = 'fluideq.forum.textSize.v1';
+const STORAGE_KEY = 'fluideq.readingSize.v1';
+/** Where the Forum kept it before Help shared it (never in a release). */
+const FORUM_KEY = 'fluideq.forum.textSize.v1';
 
 /**
  * The step nearest to `value`. Anything stored that is not a size this
@@ -29,14 +38,16 @@ export const nearestStep = (value: unknown): number => {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return 1;
   }
-  return FORUM_TEXT_STEPS.reduce((best, step) =>
+  return READING_SIZE_STEPS.reduce((best, step) =>
     Math.abs(step - value) < Math.abs(best - value) ? step : best,
   );
 };
 
 const readSize = (): number => {
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored =
+      window.localStorage.getItem(STORAGE_KEY) ??
+      window.localStorage.getItem(FORUM_KEY);
     return stored === null ? 1 : nearestStep(Number(stored));
   } catch {
     // Unreadable storage: the default size.
@@ -54,15 +65,15 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-/** The Forum's text size, as a multiplier: 1 is 100%. */
-export const useForumTextSize = (): number =>
+/** The reading text's size, as a multiplier: 1 is 100%. */
+export const useReadingSize = (): number =>
   useSyncExternalStore(
     subscribe,
     () => size,
     () => size,
   );
 
-export const getForumTextSize = (): number => size;
+export const getReadingSize = (): number => size;
 
 const setSize = (next: number) => {
   const step = nearestStep(next);
@@ -71,6 +82,7 @@ const setSize = (next: number) => {
   }
   size = step;
   try {
+    window.localStorage.removeItem(FORUM_KEY);
     if (step === 1) {
       window.localStorage.removeItem(STORAGE_KEY);
     } else {
@@ -84,21 +96,23 @@ const setSize = (next: number) => {
 };
 
 /** One step larger, staying at the largest. */
-export const largerForumText = () => {
-  const at = FORUM_TEXT_STEPS.indexOf(size);
-  setSize(FORUM_TEXT_STEPS[Math.min(FORUM_TEXT_STEPS.length - 1, at + 1)] ?? 1);
+export const largerReadingText = () => {
+  const at = READING_SIZE_STEPS.indexOf(size);
+  setSize(
+    READING_SIZE_STEPS[Math.min(READING_SIZE_STEPS.length - 1, at + 1)] ?? 1,
+  );
 };
 
 /** One step smaller, staying at 100%. */
-export const smallerForumText = () => {
-  const at = FORUM_TEXT_STEPS.indexOf(size);
-  setSize(FORUM_TEXT_STEPS[Math.max(0, at - 1)] ?? 1);
+export const smallerReadingText = () => {
+  const at = READING_SIZE_STEPS.indexOf(size);
+  setSize(READING_SIZE_STEPS[Math.max(0, at - 1)] ?? 1);
 };
 
-export const resetForumText = () => setSize(1);
+export const resetReadingText = () => setSize(1);
 
 /** Test seam: the size as storage holds it now. */
-export const reloadForumTextSize = () => {
+export const reloadReadingSize = () => {
   size = readSize();
   listeners.forEach((listener) => listener());
 };

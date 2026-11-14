@@ -88,7 +88,7 @@ type TListener = (state: TForumAuthState) => void;
 const installBridge = (overrides: Record<string, unknown> = {}) => {
   const listeners: TListener[] = [];
   const bridge = {
-    // The Forum tells main when it has the zoom keys (`useForumTextKeys`).
+    // The Forum tells main when it has the zoom keys (`useReadingKeys`).
     sendMessage: jest.fn(),
     forumState: jest.fn(() => Promise.resolve({ status: 'signed-out' })),
     onForumState: jest.fn((listener: TListener) => {

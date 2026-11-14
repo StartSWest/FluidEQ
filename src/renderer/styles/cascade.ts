@@ -138,6 +138,7 @@ import './CommunityRail.scss';
 import './Community.scss';
 import './VisualsNews.scss';
 import './PlusRail.scss';
+import './ReadingSize.scss';
 import './ForumLoading.scss';
 import './Forum.scss';
 import './ForumList.scss';

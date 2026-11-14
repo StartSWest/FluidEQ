@@ -1,10 +1,10 @@
 /**
- * The window tells main whether a reading page (the Forum) has the keyboard,
- * as `[true]` or `[false]` on this channel.
+ * The window tells main whether a reading page (the Forum, Help) has the
+ * keyboard, as `[true]` or `[false]` on this channel.
  *
  * Main reads Ctrl and +, − and 0 before the page does, to zoom the whole
  * window, and swallows them. While a reading page has focus those keys size
- * its text instead (`forumTextSize.ts`), so main lets them through to it;
+ * its text instead (`readingSize.ts`), so main lets them through to it;
  * everywhere else they zoom the window exactly as before.
  */
 export const READING_ZOOM_KEYS_CHANNEL = 'reading-zoom-keys';

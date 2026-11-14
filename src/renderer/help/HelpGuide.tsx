@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import {
+  type CSSProperties,
   useCallback,
   useDeferredValue,
   useEffect,
@@ -30,6 +31,9 @@ import { HelpFoundContext, type IHelpFound } from './HelpMarks';
 import { buildHelpIndex, searchHelp } from './helpSearch';
 import HelpLiveEnlarged from './live/HelpLiveEnlarged';
 import holdFocusReturn from '../utils/focusReturn';
+import ReadingSizeControl from '../reading/ReadingSizeControl';
+import { useReadingSize } from '../reading/readingSize';
+import useReadingKeys from '../reading/useReadingKeys';
 import '../styles/FeatureTour.scss';
 
 interface IHelpGuideProps {
@@ -101,6 +105,10 @@ const stepThroughMarks = (viewport: HTMLElement, direction: 1 | -1) => {
 export default function HelpGuide({ onClose }: IHelpGuideProps) {
   const { t, locale } = useTranslation();
   const dialog = useRef<HTMLDialogElement>(null);
+  // The reading text's size, shared with the Forum; every reading size in
+  // the article is multiplied by it (`reading()` in HelpGuide.scss).
+  const readingSize = useReadingSize();
+  useReadingKeys(dialog);
   const lightbox = useRef<HTMLDialogElement>(null);
   const searchBox = useRef<HTMLInputElement>(null);
   const article = useRef<HTMLDivElement>(null);
@@ -328,6 +336,7 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
             ref={dialog}
             className="dialog-frame help-guide"
             aria-labelledby="help-title"
+            style={{ '--reading-scale': readingSize } as CSSProperties}
             onCancel={(event) => {
               event.preventDefault();
               onClose();
@@ -340,6 +349,7 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                 title={t('help.title')}
                 titleId="help-title"
               />
+              <ReadingSizeControl />
               <label htmlFor="help-search">{t('help.search')}</label>
               <input
                 ref={searchBox}

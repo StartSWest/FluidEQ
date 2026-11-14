@@ -8,14 +8,14 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import ForumPanel from '../../../renderer/forum/ForumPanel';
 import {
-  FORUM_TEXT_STEPS,
-  getForumTextSize,
-  largerForumText,
+  READING_SIZE_STEPS,
+  getReadingSize,
+  largerReadingText,
   nearestStep,
-  reloadForumTextSize,
-  resetForumText,
-  smallerForumText,
-} from '../../../renderer/forum/forumTextSize';
+  reloadReadingSize,
+  resetReadingText,
+  smallerReadingText,
+} from '../../../renderer/reading/readingSize';
 import { resetForumStore } from '../../../renderer/forum/forumStore';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -27,14 +27,14 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 
 /**
- * The Forum's text size for readers with low sight: a ladder of sizes, kept
- * on this machine, and Ctrl with +, − and 0 or the wheel while the Forum has
- * the keyboard. Every case stands beside the one that must leave the size
+ * The reading text's size for readers with low sight, shared by the Forum
+ * and Help: a ladder of sizes, kept on this machine, and Ctrl with +, − and
+ * 0 or the wheel while either has the keyboard. Every case stands beside the one that must leave the size
  * alone: the same key with the keyboard elsewhere, the same wheel without
  * Ctrl, the last step pressed again.
  */
 
-const KEY = 'fluideq.forum.textSize.v1';
+const KEY = 'fluideq.reading.textSize.v1';
 
 const installBridge = () => {
   const bridge = {
@@ -62,28 +62,28 @@ const scaleOf = (container: HTMLElement) =>
 
 beforeEach(() => {
   window.localStorage.clear();
-  reloadForumTextSize();
+  reloadReadingSize();
   resetForumStore();
 });
 
 describe('the ladder of sizes', () => {
   it('climbs a step at a time and stays at the largest', () => {
-    FORUM_TEXT_STEPS.slice(1).forEach((step) => {
-      largerForumText();
-      expect(getForumTextSize()).toBe(step);
+    READING_SIZE_STEPS.slice(1).forEach((step) => {
+      largerReadingText();
+      expect(getReadingSize()).toBe(step);
     });
-    largerForumText();
-    expect(getForumTextSize()).toBe(2);
+    largerReadingText();
+    expect(getReadingSize()).toBe(2);
   });
 
   it('comes down the same way and stays at 100%', () => {
-    largerForumText();
-    largerForumText();
-    smallerForumText();
-    expect(getForumTextSize()).toBe(1.15);
-    smallerForumText();
-    smallerForumText();
-    expect(getForumTextSize()).toBe(1);
+    largerReadingText();
+    largerReadingText();
+    smallerReadingText();
+    expect(getReadingSize()).toBe(1.15);
+    smallerReadingText();
+    smallerReadingText();
+    expect(getReadingSize()).toBe(1);
   });
 
   it('lands anything else on the nearest step, and the unreadable on 100%', () => {
@@ -96,23 +96,32 @@ describe('the ladder of sizes', () => {
 });
 
 describe('remembered on this machine', () => {
+  it('takes the size the Forum kept before Help shared it, and clears it', () => {
+    window.localStorage.setItem('fluideq.forum.textSize.v1', '1.5');
+    reloadReadingSize();
+    expect(getReadingSize()).toBe(1.5);
+    largerReadingText();
+    expect(window.localStorage.getItem('fluideq.forum.textSize.v1')).toBeNull();
+    expect(window.localStorage.getItem(KEY)).toBe('1.75');
+  });
+
   it('reads back the size it kept, and keeps nothing at 100%', () => {
-    largerForumText();
-    largerForumText();
+    largerReadingText();
+    largerReadingText();
     expect(window.localStorage.getItem(KEY)).toBe('1.3');
-    reloadForumTextSize();
-    expect(getForumTextSize()).toBe(1.3);
-    resetForumText();
+    reloadReadingSize();
+    expect(getReadingSize()).toBe(1.3);
+    resetReadingText();
     expect(window.localStorage.getItem(KEY)).toBeNull();
   });
 
   it('reads an edited or broken value as the nearest step or 100%', () => {
     window.localStorage.setItem(KEY, '1.6');
-    reloadForumTextSize();
-    expect(getForumTextSize()).toBe(1.5);
+    reloadReadingSize();
+    expect(getReadingSize()).toBe(1.5);
     window.localStorage.setItem(KEY, 'huge');
-    reloadForumTextSize();
-    expect(getForumTextSize()).toBe(1);
+    reloadReadingSize();
+    expect(getReadingSize()).toBe(1);
   });
 });
 
@@ -122,19 +131,19 @@ describe('in the Forum tab', () => {
     const { container } = render(<ForumPanel />);
     expect(scaleOf(container)).toBe('1');
     const larger = screen.getByRole('button', {
-      name: 'forum.textSize.larger',
+      name: 'reading.textSize.larger',
     });
     expect(
-      screen.getByRole('button', { name: 'forum.textSize.smaller' }),
+      screen.getByRole('button', { name: 'reading.textSize.smaller' }),
     ).toBeDisabled();
     fireEvent.click(larger);
     fireEvent.click(larger);
     expect(scaleOf(container)).toBe('1.3');
     expect(screen.getByRole('status')).toHaveTextContent(
-      'forum.textSize.now:130%',
+      'reading.textSize.now:130%',
     );
     fireEvent.click(
-      screen.getByRole('button', { name: 'forum.textSize.reset:130%' }),
+      screen.getByRole('button', { name: 'reading.textSize.reset:130%' }),
     );
     expect(scaleOf(container)).toBe('1');
   });
@@ -151,7 +160,7 @@ describe('in the Forum tab', () => {
     expect(scaleOf(container)).toBe('1');
 
     act(() =>
-      screen.getByRole('button', { name: 'forum.textSize.larger' }).focus(),
+      screen.getByRole('button', { name: 'reading.textSize.larger' }).focus(),
     );
     expect(bridge.sendMessage).toHaveBeenLastCalledWith('reading-zoom-keys', [
       true,
@@ -185,7 +194,7 @@ describe('in the Forum tab', () => {
     const bridge = installBridge();
     const { unmount } = render(<ForumPanel />);
     act(() =>
-      screen.getByRole('button', { name: 'forum.textSize.larger' }).focus(),
+      screen.getByRole('button', { name: 'reading.textSize.larger' }).focus(),
     );
     unmount();
     expect(bridge.sendMessage).toHaveBeenLastCalledWith('reading-zoom-keys', [
