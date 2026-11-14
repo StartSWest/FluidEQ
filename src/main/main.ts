@@ -61,7 +61,7 @@ import { createProcessMeter } from './processMeter';
 import ChannelEnum from '../common/channels';
 import { IState, OUTPUT_STATE_CHANGED_EVENT } from '../common/constants';
 import { TSuccess } from '../renderer/utils/equalizerApi';
-import { syncOpraDatabase } from './opraUpdater';
+import { logOpraSyncFailure, syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
 import {
   beginQuit,
@@ -316,7 +316,7 @@ const syncDatabasesOnStartup = async () => {
     .catch((reason) => ({ status: 'rejected' as const, reason }));
 
   if (opraResult.status === 'rejected') {
-    log.warn('Unable to synchronize the OPRA database', opraResult.reason);
+    logOpraSyncFailure('sync', opraResult.reason);
   }
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;

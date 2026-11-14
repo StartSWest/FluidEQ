@@ -52,6 +52,13 @@ import {
   parseOpraFeedState,
   readOpraManifest,
 } from './opraFeed';
+import {
+  isSyncFeedError,
+  offlineError,
+  SyncFeedError,
+  syncLogLine,
+  syncLogTime,
+} from './syncLog';
 
 const execFileAsync = promisify(execFile);
 const MANIFEST_NAME = 'opra-version.json';
@@ -96,10 +103,22 @@ const readFeedState = (): IOpraFeedState => {
   }
 };
 
+const FEED = 'OPRA database';
+
+/** "keeps the current database (6229 products, 2026-08-16)". */
+const keepsCurrent = () => {
+  try {
+    const current = getCurrentManifest();
+    return `keeps the current database (${current.productCount} products, ${current.generatedAt.slice(0, 10)})`;
+  } catch {
+    return 'keeps the current database';
+  }
+};
+
 /**
  * The newest published manifest, by `opraFeed`'s rules, with what it decided
  * kept for the next launch. A rate limit is one line in the log when it
- * starts, and silence while it lasts.
+ * starts and silence while it lasts; nothing published, one line a day.
  */
 const latestManifest = async (): Promise<IOpraDatabaseManifest | undefined> => {
   const before = readFeedState();
@@ -107,18 +126,56 @@ const latestManifest = async (): Promise<IOpraDatabaseManifest | undefined> => {
   if (answer.state !== before) {
     writeFileAtomically(feedStatePath(), JSON.stringify(answer.state, null, 2));
   }
+  const { notBefore } = answer.state;
   if (
     answer.outcome === 'rate-limited' &&
-    answer.state.notBefore !== before.notBefore &&
-    answer.state.notBefore !== undefined
+    notBefore !== undefined &&
+    notBefore !== before.notBefore
   ) {
-    log.info(
-      `OPRA database check postponed until ${new Date(
-        answer.state.notBefore,
-      ).toISOString()}: rate limited by GitHub`,
+    log.warn(
+      syncLogLine({
+        feed: FEED,
+        what: 'check skipped',
+        why: 'GitHub rate limit, HTTP 403/429',
+        next: `skipped until ${syncLogTime(notBefore)}; ${keepsCurrent()}`,
+      }),
+    );
+  }
+  if (answer.outcome === 'missing') {
+    log.warn(
+      syncLogLine({
+        feed: FEED,
+        what: 'nothing published to check against',
+        why: 'HTTP 404',
+        next: `checks again tomorrow; ${keepsCurrent()}`,
+      }),
     );
   }
   return answer.latest;
+};
+
+/**
+ * A check or an update that threw, in the log as it should read in a bug
+ * report: an expected network or HTTP condition as one line, anything else —
+ * a bug — with its stack and the feed's name. Both callers of the feed (the
+ * startup sync and the headphone page) go through here.
+ */
+export const logOpraSyncFailure = (
+  action: 'check' | 'update' | 'sync',
+  error: unknown,
+) => {
+  if (isSyncFeedError(error)) {
+    log.warn(
+      syncLogLine({
+        feed: FEED,
+        what: `${action} failed`,
+        why: error.why,
+        next: `tries again at the next launch; ${keepsCurrent()}`,
+      }),
+    );
+    return;
+  }
+  log.error(`${FEED}: ${action} failed unexpectedly`, error);
 };
 
 export const checkOpraUpdate = async (): Promise<IOpraUpdateStatus> => {
@@ -222,21 +279,34 @@ export const updateOpraDatabase = async (): Promise<IOpraUpdateStatus> => {
   try {
     // Published beside the manifest and replaced with it (`--clobber` on
     // both), and checked against it below, product count and all.
-    const response = await fetch(OPRA_ARCHIVE_URL, {
-      headers: { 'User-Agent': 'FluidEQ-Opra-Updater' },
-    });
+    let response: Response;
+    try {
+      response = await fetch(OPRA_ARCHIVE_URL, {
+        headers: { 'User-Agent': 'FluidEQ-Opra-Updater' },
+      });
+    } catch (error) {
+      throw offlineError(error);
+    }
     if (!response.ok) {
-      throw new Error(`Download failed with HTTP ${response.status}`);
+      throw new SyncFeedError(
+        'http',
+        `HTTP ${response.status} downloading the archive`,
+      );
     }
     const declared = Number(response.headers.get('content-length'));
     if (Number.isFinite(declared) && declared > MAX_ARCHIVE_BYTES) {
-      throw new Error('The OPRA database archive is too large.');
+      throw new SyncFeedError('invalid', 'the published archive is too large');
     }
     // Read it all, then write it. Streaming this through `pipeline` trips an
     // assertion inside Node's HTTP parser when the disk lags the socket.
-    const archiveBytes = Buffer.from(await response.arrayBuffer());
+    let archiveBytes: Buffer;
+    try {
+      archiveBytes = Buffer.from(await response.arrayBuffer());
+    } catch (error) {
+      throw offlineError(error);
+    }
     if (archiveBytes.length > MAX_ARCHIVE_BYTES) {
-      throw new Error('The OPRA database archive is too large.');
+      throw new SyncFeedError('invalid', 'the published archive is too large');
     }
     fs.writeFileSync(archivePath, archiveBytes);
 

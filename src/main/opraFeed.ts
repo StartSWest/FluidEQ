@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IOpraDatabaseManifest } from '../common/profileTypes';
+import { offlineError, SyncFeedError } from './syncLog';
 
 /**
  * WHERE THE OPRA LIBRARY IS PUBLISHED, AND HOW OFTEN IT IS ASKED.
@@ -154,8 +155,9 @@ export const readOpraManifest = async (
   if (state.notBefore !== undefined && now < state.notBefore) {
     return { outcome: 'rate-limited', latest: state.latest, state };
   }
+  // A day from any answer, a 404 included: nothing published is asked about
+  // again tomorrow, not at every launch.
   if (
-    state.latest &&
     state.checkedAt !== undefined &&
     now >= state.checkedAt &&
     now - state.checkedAt < OPRA_CHECK_INTERVAL_MS
@@ -174,7 +176,12 @@ export const readOpraManifest = async (
   if (state.latest && state.lastModified) {
     headers['If-Modified-Since'] = state.lastModified;
   }
-  const response = await request(OPRA_MANIFEST_URL, { headers });
+  let response: Response;
+  try {
+    response = await request(OPRA_MANIFEST_URL, { headers });
+  } catch (error) {
+    throw offlineError(error);
+  }
 
   if (response.status === 304 && state.latest) {
     const next = { ...state, checkedAt: now, notBefore: undefined };
@@ -193,11 +200,19 @@ export const readOpraManifest = async (
     return { outcome: 'missing', latest: state.latest, state: next };
   }
   if (!response.ok) {
-    throw new Error(`The OPRA manifest returned HTTP ${response.status}`);
+    throw new SyncFeedError('http', `HTTP ${response.status}`);
   }
-  const manifest: unknown = await response.json();
+  let manifest: unknown;
+  try {
+    manifest = await response.json();
+  } catch {
+    throw new SyncFeedError('invalid', 'the published manifest is not JSON');
+  }
   if (!isManifest(manifest)) {
-    throw new Error('The published OPRA manifest is not a manifest.');
+    throw new SyncFeedError(
+      'invalid',
+      'the published manifest is not a manifest',
+    );
   }
   const next: IOpraFeedState = {
     checkedAt: now,

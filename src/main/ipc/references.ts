@@ -38,7 +38,11 @@ import {
   getOpraPresets,
   getOpraProductList,
 } from '../opra';
-import { checkOpraUpdate, updateOpraDatabase } from '../opraUpdater';
+import {
+  checkOpraUpdate,
+  logOpraSyncFailure,
+  updateOpraDatabase,
+} from '../opraUpdater';
 import {
   downloadConvolution,
   getConvolutionCatalog,
@@ -351,7 +355,7 @@ export const registerReferencesIpc = ({
       };
       event.reply(channel, reply);
     } catch (error) {
-      log.warn('Unable to check for an OPRA database update', error);
+      logOpraSyncFailure('check', error);
       handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
     }
   });
@@ -364,7 +368,7 @@ export const registerReferencesIpc = ({
       };
       event.reply(channel, reply);
     } catch (error) {
-      log.error('Unable to update the OPRA database', error);
+      logOpraSyncFailure('update', error);
       handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
     }
   });
