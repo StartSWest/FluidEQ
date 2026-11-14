@@ -60,6 +60,7 @@ import WallpaperGraphLook from './wallpaper/WallpaperGraphLook';
 import WallpaperTuning from './wallpaper/WallpaperTuning';
 import { WallpaperDialogHost } from './wallpaper/WallpaperControls';
 import { GenreNotesHost } from './dsp/GenreNotesDialog';
+import CoinCelebration from './plus/CoinCelebration';
 import { FluidEqProvider, useFluidEqShell } from './utils/FluidEqContext';
 import SideBar from './SideBar';
 import {
@@ -914,6 +915,9 @@ export default function App() {
             {/* A genre's notes, for the same reason: two of the places that
                 open them are menus, which close when pressed. */}
             <GenreNotesHost />
+            {/* A pack's payment confirmed: its coins over whatever is on
+                screen, once, and gone. Renders nothing the rest of the time. */}
+            <CoinCelebration />
             {/* No router: the window has one page and moves between its
                 places with state (`activeWorkspaceTab`). A MemoryRouter with
                 a single route stood here, and its package shipped in the

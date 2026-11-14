@@ -41,6 +41,21 @@ export const sceneStoreBridge = {
       ipcRenderer.removeListener('scene-store-checkout-returned', handler);
     };
   },
+  // How many credits a pack's confirmed payment brought, told once
+  // (`sceneOwnership.onCreditsArrived`).
+  onCreditsArrived: (listener: (credits: number) => void) => {
+    const handler = (_event: IpcRendererEvent, credits: unknown) => {
+      if (typeof credits === 'number' && Number.isSafeInteger(credits)) {
+        if (credits > 0) {
+          listener(credits);
+        }
+      }
+    };
+    ipcRenderer.on('scene-store-credits-arrived', handler);
+    return () => {
+      ipcRenderer.removeListener('scene-store-credits-arrived', handler);
+    };
+  },
   // The earlier versions this computer kept of an owned scene, and going
   // back to one (`null` is the newest again).
   keptSceneVersions: (

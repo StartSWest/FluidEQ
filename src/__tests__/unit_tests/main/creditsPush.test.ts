@@ -414,4 +414,59 @@ describe('the store listening while a payment is owed', () => {
     owned.dispose();
     expect(pushes.stop).toHaveBeenCalledTimes(2);
   });
+
+  // Ivan, 2026-11-13: the coins celebrate a pack "when the hook confirms the
+  // payment and they're back in the app" - once, at that moment.
+  describe('telling the window a pack came in', () => {
+    it('says how many credits arrived, once, the moment the payment is confirmed', async () => {
+      const owned = ownership();
+      const arrived = jest.fn();
+      owned.onCreditsArrived(arrived);
+      await owned.refreshNow();
+      await owned.checkout('pack-12', 'en');
+      balance = 15;
+      credits();
+      await settled();
+      await settled();
+      expect(arrived).toHaveBeenCalledTimes(1);
+      expect(arrived).toHaveBeenCalledWith(12);
+      // The store had already gone out: the balance the coins fly to shows it.
+      expect(owned.known()?.balance).toBe(15);
+
+      // Read again and again afterwards: nothing more is owed, nothing said.
+      credits();
+      await owned.refreshNow();
+      await owned.refreshIfDue('focus');
+      expect(arrived).toHaveBeenCalledTimes(1);
+      owned.dispose();
+    });
+
+    it('control: says nothing for a balance that rises with no payment owed', async () => {
+      const owned = ownership();
+      const arrived = jest.fn();
+      owned.onCreditsArrived(arrived);
+      await owned.refreshNow();
+      // Credits that came another way - the starter credits, a refund, a gift.
+      balance = 6;
+      await owned.refreshNow();
+      expect(owned.known()?.balance).toBe(6);
+      expect(arrived).not.toHaveBeenCalled();
+      owned.dispose();
+    });
+
+    it('says nothing while the payment has not landed, and nothing for a balance that fell', async () => {
+      const owned = ownership();
+      const arrived = jest.fn();
+      owned.onCreditsArrived(arrived);
+      await owned.refreshNow();
+      await owned.checkout('pack-12', 'en');
+      await owned.refreshNow();
+      expect(arrived).not.toHaveBeenCalled();
+      // A scene bought meanwhile: the wait ends and nothing arrived.
+      balance = 2;
+      await owned.refreshNow();
+      expect(arrived).not.toHaveBeenCalled();
+      owned.dispose();
+    });
+  });
 });

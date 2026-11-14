@@ -1,0 +1,141 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The coins that celebrate a paid pack (`CoinCelebration`). Every part is
+// invisible at rest: only its animations (`coinCelebrationMotion.ts`) show
+// it, so a skip that cancels them leaves nothing on screen for the moment
+// before the layer is taken away.
+
+.coin-celebration {
+  position: fixed;
+  // Over every dialog (the store's terms reach 5100) - the credits most
+  // often land while the Get credits dialog is open - and under the
+  // window's own lit edge (`body::after`, 6000).
+  z-index: 5500;
+  inset: 0;
+  display: grid;
+  padding-bottom: 14vh;
+  place-items: center;
+  // Never in the way: a click goes through to the window and ends the
+  // celebration on its way (`CoinCelebration`).
+  pointer-events: none;
+}
+
+// One area for the coins and everything thrown out from behind them, laid
+// over each other by the grid itself; the line under it.
+.coin-celebration__stage {
+  display: grid;
+  grid-template-areas:
+    'coins'
+    'line';
+  justify-items: center;
+  align-items: center;
+  gap: 14px;
+}
+
+.coin-celebration__glow,
+.coin-celebration__burst,
+.coin-celebration__spark,
+.coin-celebration__coins {
+  grid-area: coins;
+}
+
+.coin-celebration__glow,
+.coin-celebration__burst,
+.coin-celebration__spark,
+.coin-celebration__coin,
+.coin-celebration__line {
+  opacity: 0;
+}
+
+.coin-celebration__glow {
+  width: 360px;
+  aspect-ratio: 1;
+  background: radial-gradient(
+    circle closest-side,
+    color-mix(in srgb, $secondary-default 42%, transparent),
+    color-mix(in srgb, $secondary-default 14%, transparent) 55%,
+    transparent
+  );
+  border-radius: 50%;
+}
+
+.coin-celebration__burst {
+  width: 150px;
+  aspect-ratio: 1;
+  border: 2px solid color-mix(in srgb, $secondary-light 80%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 24px color-mix(in srgb, $secondary-default 60%, transparent),
+    inset 0 0 18px color-mix(in srgb, $secondary-light 40%, transparent);
+}
+
+// The coin's own four-pointed spark, thrown out; every third a round glint.
+.coin-celebration__spark {
+  z-index: 3;
+  width: 14px;
+  height: 14px;
+  background: $white;
+  clip-path: polygon(
+    50% 0,
+    60% 40%,
+    100% 50%,
+    60% 60%,
+    50% 100%,
+    40% 60%,
+    0 50%,
+    40% 40%
+  );
+  filter: drop-shadow(
+    0 0 4px color-mix(in srgb, $secondary-light 90%, transparent)
+  );
+}
+
+.coin-celebration__spark--dot {
+  width: 7px;
+  height: 7px;
+  background: $secondary-light;
+  clip-path: none;
+  border-radius: 50%;
+  box-shadow: 0 0 10px $secondary-light;
+}
+
+.coin-celebration__coins {
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+// Every other coin a little higher, so two or three read as a heap thrown
+// up rather than a row set out.
+.coin-celebration__coin:nth-child(even) {
+  margin-bottom: 22px;
+}
+
+// The coin alone, larger than a card's corner: the celebration's subject.
+.coin-celebration .credit-coin--m {
+  --coin: 92px;
+}
+
+.coin-celebration__line {
+  grid-area: line;
+  margin: 0;
+  color: $white;
+  font-size: 1.9rem;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  text-shadow:
+    0 2px 12px rgba($black, 0.55),
+    0 0 26px color-mix(in srgb, $secondary-default 70%, transparent);
+  white-space: nowrap;
+}

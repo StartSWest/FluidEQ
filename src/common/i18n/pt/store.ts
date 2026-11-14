@@ -77,6 +77,7 @@ const store: Partial<Dictionary> = {
   'store.packs.fine':
     'Pagamento seguro pela Stripe. Um único pagamento; nada é renovado. Créditos não têm valor em dinheiro. Ao pagar, você aceita os termos do FluidEQ.',
   'store.packs.arrived': '{credits} na sua conta. Obrigado!',
+  'store.celebration.line': '+{credits}',
   'store.packs.again': 'Abrir a página de pagamento de novo',
   'store.packs.pay': 'Pagar {price}',
   'store.packs.none': 'Nenhum pacote está à venda agora. Tente mais tarde.',

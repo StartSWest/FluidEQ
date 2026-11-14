@@ -76,6 +76,7 @@ const store: Partial<Dictionary> = {
   'store.packs.fine':
     'Stripe के ज़रिए सुरक्षित भुगतान। एक भुगतान; कुछ भी रिन्यू नहीं होता। क्रेडिट का कोई नकद मूल्य नहीं है। भुगतान करने का मतलब है कि आप FluidEQ की शर्तों से सहमत हैं।',
   'store.packs.arrived': '{credits} आपके अकाउंट में। धन्यवाद!',
+  'store.celebration.line': '+{credits}',
   'store.packs.again': 'भुगतान पेज फिर से खोलें',
   'store.packs.pay': '{price} चुकाएँ',
   'store.packs.none': 'अभी कोई पैक बिक्री पर नहीं है। बाद में कोशिश करें।',

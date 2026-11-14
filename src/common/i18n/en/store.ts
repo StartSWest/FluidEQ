@@ -76,6 +76,7 @@ const store = {
   'store.packs.fine':
     'Paid securely through Stripe. One payment; nothing renews. Credits have no cash value. Paying means you agree to FluidEQ’s terms.',
   'store.packs.arrived': '{credits} added. Thank you!',
+  'store.celebration.line': '+{credits}',
   'store.packs.again': 'Open the payment page again',
   'store.packs.pay': 'Pay {price}',
   'store.packs.none': 'No packs are on sale right now. Try again later.',

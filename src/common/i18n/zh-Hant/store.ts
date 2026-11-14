@@ -65,6 +65,7 @@ const store = {
   'store.packs.fine':
     '透過 Stripe 安全支付。一次付款；沒有任何更新。點數沒有現金價值。付款即表示您同意 FluidEQ 的條款。',
   'store.packs.arrived': '新增了 {credits}。謝謝你！',
+  'store.celebration.line': '+{credits}',
   'store.packs.again': '再次開啟付款頁面',
   'store.packs.pay': '支付{price}',
   'store.packs.none': '目前沒有包裝出售。稍後再試。',

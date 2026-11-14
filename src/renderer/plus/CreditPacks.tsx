@@ -16,6 +16,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import CoinMedal from './CoinMedal';
 import { creditsText } from './credits';
+import packCoins from './packCoins';
 import { checkoutCreditPack, onCheckoutReturned } from './sceneStore';
 
 /** The pack the store suggests: twelve credits, or the middle of what is sold. */
@@ -145,11 +146,9 @@ export default function CreditPacks({
   const cheapest = Math.min(
     ...packs.map((pack) => pack.priceCents / pack.credits),
   );
-  // Each pack's rank by size: the pile grows with it, three coins at most.
-  const sizes = [...new Set(packs.map((pack) => pack.credits))].sort(
-    (a, b) => a - b,
-  );
-  const coinsFor = (credits: number) => Math.min(3, sizes.indexOf(credits) + 1);
+  // Each pack's rank by size: the pile grows with it, three coins at most,
+  // the same count the coins celebrating a paid pack take (`packCoins`).
+  const coinsFor = (credits: number) => packCoins(packs, credits);
   return (
     <div
       className="dialog-frame__group gallery-report-dialog__reasons store-packs"

@@ -78,6 +78,7 @@ const store: Partial<Dictionary> = {
   'store.packs.fine':
     'Stripe による安全な支払い。1 回の支払いで、更新はありません。クレジットに現金価値はありません。支払うと FluidEQ の利用条件に同意したことになります。',
   'store.packs.arrived': '{credits}を追加しました。ありがとうございます！',
+  'store.celebration.line': '+{credits}',
   'store.packs.again': '支払いページをもう一度開く',
   'store.packs.pay': '{price} を支払う',
   'store.packs.none':

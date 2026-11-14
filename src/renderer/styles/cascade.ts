@@ -90,6 +90,7 @@ import './Review.scss';
 import './Gallery.scss';
 import './PlusWelcome.scss';
 import './CreditCoin.scss';
+import './CoinCelebration.scss';
 import './AccountWelcome.scss';
 import './VisualizersSignedOutOffer.scss';
 import './VisualizersSignedOut.scss';

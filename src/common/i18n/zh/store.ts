@@ -68,6 +68,7 @@ const store: Partial<Dictionary> = {
   'store.packs.fine':
     '通过 Stripe 安全付款。一次付款，不会续费。点数没有现金价值。付款即表示你同意 FluidEQ 的条款。',
   'store.packs.arrived': '已添加 {credits}。谢谢！',
+  'store.celebration.line': '+{credits}',
   'store.packs.again': '重新打开付款页面',
   'store.packs.pay': '支付 {price}',
   'store.packs.none': '目前没有在售的点数包。请稍后再试。',

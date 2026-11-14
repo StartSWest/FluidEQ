@@ -69,6 +69,12 @@ export const registerSceneStoreIpc = ({
     getMainWindow()?.webContents.send('scene-store-changed', store ?? null);
   });
 
+  // A pack's payment confirmed, once (`onCreditsArrived`): the window
+  // celebrates it with as many coins as the pack's pile.
+  const offArrivals = ownership.onCreditsArrived((credits) => {
+    getMainWindow()?.webContents.send('scene-store-credits-arrived', credits);
+  });
+
   // Back from Stripe's page through fluideq.com's "Back to FluidEQ"
   // (`appLinks.ts`): the server is asked at once, focus or not, and the
   // window told how the payment ended. A webhook still on its way leaves the
@@ -161,6 +167,7 @@ export const registerSceneStoreIpc = ({
   return {
     dispose: () => {
       offChanges();
+      offArrivals();
       offLinks();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },

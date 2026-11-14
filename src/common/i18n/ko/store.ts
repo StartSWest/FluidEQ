@@ -74,6 +74,7 @@ const store = {
   'store.packs.fine':
     'Stripe를 통해 안전하게 결제됩니다. 한 번의 지불; 아무것도 갱신되지 않습니다. 크레딧에는 현금 가치가 없습니다. 결제한다는 것은 FluidEQ의 약관에 동의한다는 것을 의미합니다.',
   'store.packs.arrived': '{credits}가 추가되었습니다. 감사합니다!',
+  'store.celebration.line': '+{credits}',
   'store.packs.again': '결제 페이지를 다시 열어주세요',
   'store.packs.pay': '{price} 지불',
   'store.packs.none': '현재 판매중인 팩이 없습니다. 나중에 다시 시도하세요.',

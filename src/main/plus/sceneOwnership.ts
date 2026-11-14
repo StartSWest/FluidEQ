@@ -80,6 +80,13 @@ export interface ISceneOwnership {
   known(): ISceneStore | undefined;
   /** Hear about anything that changes `owns`: a buy, an account, Plus. */
   subscribe(listener: () => void): () => void;
+  /**
+   * Hear how many credits a pack paid for in the browser brought, once, at
+   * the moment its payment is confirmed: the first store after the checkout
+   * opened whose balance is above the one it opened from. Never at launch
+   * (nothing is owed then) and never on a refresh while nothing is owed.
+   */
+  onCreditsArrived(listener: (credits: number) => void): () => void;
   refreshIfDue(reason: string): Promise<void>;
   refreshNow(): Promise<TSceneStoreOutcome>;
   buy(scene: { authorId: string; sceneId: string }): Promise<TBuyOutcome>;
@@ -167,20 +174,30 @@ export const createSceneOwnership = ({
   };
 
   const announce = () => listeners.forEach((listener) => listener());
+  const arrivals = new Set<(credits: number) => void>();
 
   const adopt = (userId: string, next: ISceneStore) => {
+    // The balance the checkout opened from has moved: the payment is
+    // settled, and it is settled once, here, because the wait ends with it.
+    // A fall (a scene bought meanwhile) settles the wait and brings nothing.
+    let arrived = 0;
     if (awaiting?.userId === userId && awaiting.balance !== next.balance) {
+      arrived = next.balance - awaiting.balance;
       owe(undefined);
     }
-    if (record?.userId === userId && sameStore(record.store, next)) {
-      return;
+    if (record?.userId !== userId || !sameStore(record.store, next)) {
+      record = { userId, store: next };
+      loaded = true;
+      if (store.available()) {
+        store.write(record);
+      }
+      announce();
     }
-    record = { userId, store: next };
-    loaded = true;
-    if (store.available()) {
-      store.write(record);
+    // After the store itself has gone out, so the window that celebrates the
+    // credits already shows them in the balance they fly to.
+    if (arrived > 0) {
+      arrivals.forEach((listener) => listener(arrived));
     }
-    announce();
   };
 
   const authFor = async (userId: string): Promise<IGalleryAuth | undefined> => {
@@ -305,6 +322,12 @@ export const createSceneOwnership = ({
       listeners.add(listener);
       return () => {
         listeners.delete(listener);
+      };
+    },
+    onCreditsArrived: (listener) => {
+      arrivals.add(listener);
+      return () => {
+        arrivals.delete(listener);
       };
     },
     refreshIfDue,

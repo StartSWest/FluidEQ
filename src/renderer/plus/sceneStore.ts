@@ -184,6 +184,15 @@ export const checkoutCreditPack = async (
     ?.checkoutCreditPack?.(packId, locale)
     .catch(() => undefined)) ?? { ok: false, reason: 'offline' };
 
+/**
+ * How many credits a pack's payment brought, at the moment main sees it
+ * confirmed: once per purchase, never for a refresh or at launch
+ * (`sceneOwnership.onCreditsArrived`).
+ */
+export const onCreditsArrived = (
+  listener: (credits: number) => void,
+): (() => void) => bridge()?.onCreditsArrived?.(listener) ?? (() => {});
+
 /** How a pack's payment ended, once its return page has opened FluidEQ. */
 export const onCheckoutReturned = (
   listener: (ended: 'paid' | 'cancelled') => void,
