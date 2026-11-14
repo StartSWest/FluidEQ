@@ -29,6 +29,19 @@ const app: Partial<Dictionary> = {
   'recovery.quit': 'Выйти',
   'recovery.copy': 'Копировать сведения',
   'recovery.history': 'Прежние сбои',
+  'startFailure.title': 'Не удалось запустить FluidEQ',
+  'startFailure.lead':
+    'Приложение несколько раз подряд закрылось при запуске и больше не пытается. Отчёт поможет исправить ошибку: в нём журнал с момента вашего последнего отчёта, без личных данных.',
+  'startFailure.cause': 'Что пошло не так',
+  'startFailure.unknown': 'Ошибка не записана.',
+  'startFailure.send': 'Отправить отчёт',
+  'startFailure.sent':
+    'Отчёт скопирован в буфер обмена, страница для отправки открыта. Спасибо.',
+  'startFailure.sendFailed':
+    'Не удалось подготовить отчёт. Откройте папку журнала и приложите журнал.',
+  'startFailure.logs': 'Открыть папку журнала',
+  'startFailure.retry': 'Повторить',
+  'startFailure.quit': 'Выйти',
   'app.tagline': 'Ваш звук. На каждом устройстве. Автоматически.',
   'app.knob.type': 'Нажмите, чтобы ввести значение',
   'app.actions': 'Действия FluidEQ',

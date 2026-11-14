@@ -29,6 +29,19 @@ const app: Partial<Dictionary> = {
   'recovery.quit': 'Esci',
   'recovery.copy': 'Copia dettagli',
   'recovery.history': 'Errori precedenti',
+  'startFailure.title': 'FluidEQ non è riuscito ad avviarsi',
+  'startFailure.lead':
+    'Si è chiuso più volte di seguito durante l’avvio, quindi ha smesso di riprovare. Inviare il rapporto aiuta a risolvere: contiene il registro dal tuo ultimo rapporto, senza dati personali.',
+  'startFailure.cause': 'Cosa è andato storto',
+  'startFailure.unknown': 'Nessun errore registrato.',
+  'startFailure.send': 'Invia rapporto',
+  'startFailure.sent':
+    'Il rapporto è negli appunti e la pagina per inviarlo è aperta. Grazie.',
+  'startFailure.sendFailed':
+    'Impossibile preparare il rapporto. Apri la cartella del registro e allega il registro.',
+  'startFailure.logs': 'Apri cartella del registro',
+  'startFailure.retry': 'Riprova',
+  'startFailure.quit': 'Esci',
   'app.tagline': 'Il tuo suono. Su ogni dispositivo. Automaticamente.',
   'app.knob.type': 'Fai clic per digitare un valore',
   'app.actions': 'Azioni di FluidEQ',

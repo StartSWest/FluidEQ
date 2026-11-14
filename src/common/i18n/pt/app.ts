@@ -29,6 +29,19 @@ const app: Partial<Dictionary> = {
   'recovery.quit': 'Sair',
   'recovery.copy': 'Copiar detalhes',
   'recovery.history': 'Falhas anteriores',
+  'startFailure.title': 'O FluidEQ não conseguiu iniciar',
+  'startFailure.lead':
+    'Ele fechou várias vezes seguidas ao iniciar, então parou de tentar. Enviar o relatório ajuda a corrigir: ele leva o registro desde o seu último relatório, sem dados pessoais.',
+  'startFailure.cause': 'O que deu errado',
+  'startFailure.unknown': 'Nenhum erro foi registrado.',
+  'startFailure.send': 'Enviar relatório',
+  'startFailure.sent':
+    'O relatório está na sua área de transferência e a página para enviá-lo está aberta. Obrigado.',
+  'startFailure.sendFailed':
+    'Não foi possível preparar o relatório. Abra a pasta do registro e anexe o registro.',
+  'startFailure.logs': 'Abrir pasta do registro',
+  'startFailure.retry': 'Tentar de novo',
+  'startFailure.quit': 'Sair',
   'app.tagline': 'Seu som. Em todo dispositivo. Automaticamente.',
   'app.knob.type': 'Clique para digitar um valor',
   'app.actions': 'Ações do FluidEQ',

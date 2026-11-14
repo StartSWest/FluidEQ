@@ -27,6 +27,19 @@ const app = {
   'recovery.quit': 'Quit',
   'recovery.copy': 'Copy details',
   'recovery.history': 'Earlier failures',
+  'startFailure.title': 'FluidEQ could not start',
+  'startFailure.lead':
+    'It closed several times in a row while starting, so it stopped trying. Sending the report helps fix it: it carries the log since your last report, with personal details removed.',
+  'startFailure.cause': 'What went wrong',
+  'startFailure.unknown': 'No error was recorded.',
+  'startFailure.send': 'Send report',
+  'startFailure.sent':
+    'The report is on your clipboard and the page to send it is open. Thank you.',
+  'startFailure.sendFailed':
+    'The report could not be prepared. Open the log folder and attach the log instead.',
+  'startFailure.logs': 'Open log folder',
+  'startFailure.retry': 'Try again',
+  'startFailure.quit': 'Quit',
   'app.tagline': 'Your sound. Every device. Automatically.',
   'app.knob.type': 'Click to type a value',
   'app.actions': 'FluidEQ actions',

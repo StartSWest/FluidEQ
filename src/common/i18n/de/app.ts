@@ -29,6 +29,19 @@ const app: Partial<Dictionary> = {
   'recovery.quit': 'Beenden',
   'recovery.copy': 'Details kopieren',
   'recovery.history': 'Frühere Fehler',
+  'startFailure.title': 'FluidEQ konnte nicht starten',
+  'startFailure.lead':
+    'Es wurde beim Starten mehrmals hintereinander beendet und versucht es deshalb nicht mehr. Der Bericht hilft bei der Behebung: Er enthält das Protokoll seit Ihrem letzten Bericht, ohne persönliche Daten.',
+  'startFailure.cause': 'Was schiefging',
+  'startFailure.unknown': 'Es wurde kein Fehler aufgezeichnet.',
+  'startFailure.send': 'Bericht senden',
+  'startFailure.sent':
+    'Der Bericht ist in Ihrer Zwischenablage, und die Seite zum Senden ist geöffnet. Vielen Dank.',
+  'startFailure.sendFailed':
+    'Der Bericht konnte nicht erstellt werden. Öffnen Sie den Protokollordner und hängen Sie das Protokoll an.',
+  'startFailure.logs': 'Protokollordner öffnen',
+  'startFailure.retry': 'Erneut versuchen',
+  'startFailure.quit': 'Beenden',
   'app.tagline': 'Ihr Klang. Auf jedem Gerät. Automatisch.',
   'app.knob.type': 'Klicken Sie, um einen Wert einzugeben',
   'app.actions': 'FluidEQ-Aktionen',

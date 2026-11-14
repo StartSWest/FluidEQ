@@ -76,6 +76,8 @@ import { accountComeBackSteps, createComeBackWatch } from './comeBackSignals';
 import { createMainWindowFactory } from './mainWindow';
 import { startCrashDumps } from './crashDumps';
 import { installCrashLogging } from './crashRecovery';
+import { showStartFailureReport } from './startFailureReport';
+import { START_REPORT_ARGUMENT } from './startFailures';
 import { createApoAdoption } from './apoAdopt';
 import { registerTransferIpc } from './ipc/transfer';
 import { registerReferencesIpc } from './ipc/references';
@@ -1247,5 +1249,14 @@ const onAppReady = async () => {
 app
   .whenReady()
   .then(() => isTheOnlyCopy)
-  .then((isOnly) => (isOnly ? onAppReady() : undefined))
+  .then((isOnly) => {
+    if (!isOnly) {
+      return undefined;
+    }
+    // A start that failed too many times in a row comes back as this window
+    // alone, and nothing of the app is started (`startFailures.ts`).
+    return process.argv.includes(START_REPORT_ARGUMENT)
+      ? showStartFailureReport(userDataDir)
+      : onAppReady();
+  })
   .catch(log.error);

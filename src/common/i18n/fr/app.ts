@@ -29,6 +29,19 @@ const app: Partial<Dictionary> = {
   'recovery.quit': 'Quitter',
   'recovery.copy': 'Copier les détails',
   'recovery.history': 'Échecs précédents',
+  'startFailure.title': 'FluidEQ n’a pas pu démarrer',
+  'startFailure.lead':
+    'Il s’est fermé plusieurs fois de suite au démarrage, il a donc cessé d’essayer. Envoyer le rapport aide à corriger le problème : il contient le journal depuis votre dernier rapport, sans données personnelles.',
+  'startFailure.cause': 'Ce qui n’a pas fonctionné',
+  'startFailure.unknown': 'Aucune erreur n’a été enregistrée.',
+  'startFailure.send': 'Envoyer le rapport',
+  'startFailure.sent':
+    'Le rapport est dans votre presse-papiers et la page pour l’envoyer est ouverte. Merci.',
+  'startFailure.sendFailed':
+    'Le rapport n’a pas pu être préparé. Ouvrez le dossier du journal et joignez le journal.',
+  'startFailure.logs': 'Ouvrir le dossier du journal',
+  'startFailure.retry': 'Réessayer',
+  'startFailure.quit': 'Quitter',
   'app.tagline': 'Votre son. Sur chaque appareil. Automatiquement.',
   'app.knob.type': 'Cliquez pour saisir une valeur',
   'app.actions': 'Actions FluidEQ',

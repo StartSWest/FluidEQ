@@ -29,6 +29,19 @@ const app: Partial<Dictionary> = {
   'recovery.quit': '終了',
   'recovery.copy': '詳細をコピー',
   'recovery.history': '過去のエラー',
+  'startFailure.title': 'FluidEQ を起動できませんでした',
+  'startFailure.lead':
+    '起動中に何度も続けて終了したため、再試行を止めました。レポートを送ると修正に役立ちます。前回のレポート以降のログが含まれ、個人情報は取り除かれます。',
+  'startFailure.cause': '問題の内容',
+  'startFailure.unknown': 'エラーは記録されていません。',
+  'startFailure.send': 'レポートを送信',
+  'startFailure.sent':
+    'レポートをクリップボードにコピーし、送信用のページを開きました。ありがとうございます。',
+  'startFailure.sendFailed':
+    'レポートを作成できませんでした。ログフォルダーを開いてログを添付してください。',
+  'startFailure.logs': 'ログフォルダーを開く',
+  'startFailure.retry': 'もう一度試す',
+  'startFailure.quit': '終了',
   'app.tagline': 'あなたの音を、どの機器でも、自動で。',
   'app.knob.type': 'クリックして値を入力',
   'app.actions': 'FluidEQ の操作',

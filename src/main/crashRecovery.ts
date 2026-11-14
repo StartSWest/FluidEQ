@@ -9,12 +9,20 @@ import { flushPendingWrites } from './asyncWriter';
 import { crashDumpFolder } from './crashDumps';
 import { getTrayLocale, isAppQuitting } from './tray';
 import onWindowMessage from './ipc/windowMessages';
+import {
+  appRelaunchArguments,
+  clearStartFailures,
+  ERROR_RESTART_ARGUMENT,
+  markLaunch,
+  recordFatal,
+  START_FAILURE_LIMIT,
+  START_REPORT_ARGUMENT,
+} from './startFailures';
 
 // Kept outside the page: a counter in React or sessionStorage can disappear
 // with the very native renderer crash it is supposed to contain. Successful
 // page loads do not replenish it; startup crash loops must exhaust it too.
 const AUTOMATIC_RELOAD_LIMIT = 2;
-const MAIN_RESTART_ARGUMENT = '--fluideq-error-restarted';
 
 /** Enough to hold a crash loop's worth of entries without a dialog taller
  * than the screen: the message plus the first ten or so stack frames of a
@@ -293,11 +301,22 @@ export const installWindowRecovery = (
  * A fresh process may recover; continuing to write settings in this one may not.
  * Native aborts in main never enter JS handlers and require external supervision.
  */
-export const installMainFailureRecovery = () => {
+export const installMainFailureRecovery = (
+  userDataDir: string = app.getPath('userData'),
+) => {
   let exiting = false;
   let shuttingDown = false;
+  const isReport = process.argv.includes(START_REPORT_ARGUMENT);
   app.on('before-quit', () => {
     shuttingDown = true;
+  });
+  // A quit somebody asked for ends a start that went well: the count of
+  // failed starts goes back to nothing (`startFailures.ts`). `app.exit`, which
+  // the fatal path uses, emits no `will-quit`, so a crash never clears it.
+  app.on('will-quit', () => {
+    if (!isReport) {
+      clearStartFailures(userDataDir);
+    }
   });
   const fatal = (reason: unknown) => {
     if (exiting) {
@@ -307,15 +326,33 @@ export const installMainFailureRecovery = () => {
     exiting = true;
     try {
       log.error('Fatal main-process error', reason);
-      if (
-        app.isPackaged &&
-        !shuttingDown &&
-        !isAppQuitting() &&
-        !process.argv.includes(MAIN_RESTART_ARGUMENT)
-      ) {
-        app.relaunch({
-          args: [...process.argv.slice(1), MAIN_RESTART_ARGUMENT],
-        });
+      // The report window's own process never relaunches: it is the end of
+      // the road, and a failure in it is a failure to show one window.
+      if (app.isPackaged && !isReport && !shuttingDown && !isAppQuitting()) {
+        const { decision, state } = recordFatal(
+          userDataDir,
+          Date.now(),
+          reason,
+          process.argv.includes(ERROR_RESTART_ARGUMENT),
+        );
+        const args = appRelaunchArguments(process.argv);
+        if (decision === 'report') {
+          log.error(
+            `${PRODUCT_NAME} could not start ${state.failedStarts} times in a row (${state.cause ?? 'no cause recorded'}); relaunching into the report window instead of the app.`,
+          );
+          app.relaunch({ args: [...args, START_REPORT_ARGUMENT] });
+        } else if (decision === 'relaunch') {
+          log.warn(
+            state.failedStarts > 0
+              ? `Relaunching after a failed start (${state.failedStarts} of ${START_FAILURE_LIMIT} in a row).`
+              : 'Relaunching after a fatal error.',
+          );
+          app.relaunch({ args: [...args, ERROR_RESTART_ARGUMENT] });
+        } else {
+          log.error(
+            'Not relaunching: this process was already a relaunch after a fatal error.',
+          );
+        }
       }
     } finally {
       // Do not run async save/quit hooks against potentially partial state.
@@ -325,6 +362,35 @@ export const installMainFailureRecovery = () => {
   };
   process.on('uncaughtException', fatal);
   process.on('unhandledRejection', fatal);
+};
+
+/**
+ * A console nobody is reading is never a reason to die (2.5.2: a fatal
+ * "EPIPE: broken pipe, write" when the process was started with its stdout
+ * a pipe that had closed). A write to a closed stdout or stderr fails on the
+ * stream, asynchronously, and with no listener that failure is an uncaught
+ * exception. Here it is a note in the log file, once, and the console
+ * transport stops writing to where nothing arrives.
+ */
+export const guardConsoleStreams = (
+  streams: readonly NodeJS.WriteStream[] = [process.stdout, process.stderr],
+) => {
+  let noted = false;
+  streams.forEach((stream) => {
+    stream.on('error', (error: NodeJS.ErrnoException) => {
+      if (error.code !== 'EPIPE' && error.code !== 'ERR_STREAM_DESTROYED') {
+        log.error('The console stream failed', error);
+        return;
+      }
+      log.transports.console.level = false;
+      if (!noted) {
+        noted = true;
+        log.warn(
+          `The console is closed (${error.code}); logging goes to the file only.`,
+        );
+      }
+    });
+  });
 };
 
 /**
@@ -354,7 +420,13 @@ export const installCrashLogging = () => {
   // reach the file, because the file is what a bug report carries.
   log.initialize();
 
+  guardConsoleStreams();
   installMainFailureRecovery();
+  // When this launch began, for the count of failed starts. Not for the
+  // report window's own process, which is not a start of the app.
+  if (!process.argv.includes(START_REPORT_ARGUMENT)) {
+    markLaunch(app.getPath('userData'), Date.now());
+  }
 
   // The window's own process, or a video player's, dying underneath us. The
   // reason is Chromium's — 'crashed', 'oom', 'killed' — and it is the only

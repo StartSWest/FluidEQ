@@ -29,6 +29,19 @@ const app: Partial<Dictionary> = {
   'recovery.quit': 'बाहर निकलें',
   'recovery.copy': 'विवरण कॉपी करें',
   'recovery.history': 'पिछली विफलताएँ',
+  'startFailure.title': 'FluidEQ शुरू नहीं हो सका',
+  'startFailure.lead':
+    'शुरू होते समय यह कई बार लगातार बंद हुआ, इसलिए इसने कोशिश करना रोक दिया। रिपोर्ट भेजने से इसे ठीक करने में मदद मिलती है: इसमें आपकी पिछली रिपोर्ट के बाद का लॉग होता है, निजी जानकारी हटाकर।',
+  'startFailure.cause': 'क्या गड़बड़ हुई',
+  'startFailure.unknown': 'कोई त्रुटि दर्ज नहीं हुई।',
+  'startFailure.send': 'रिपोर्ट भेजें',
+  'startFailure.sent':
+    'रिपोर्ट आपके क्लिपबोर्ड पर है और भेजने का पेज खुल गया है। धन्यवाद।',
+  'startFailure.sendFailed':
+    'रिपोर्ट तैयार नहीं हो सकी। लॉग फ़ोल्डर खोलें और लॉग संलग्न करें।',
+  'startFailure.logs': 'लॉग फ़ोल्डर खोलें',
+  'startFailure.retry': 'फिर से कोशिश करें',
+  'startFailure.quit': 'बंद करें',
   'app.tagline': 'आपकी आवाज़। हर डिवाइस पर। अपने आप।',
   'app.knob.type': 'मान लिखने के लिए क्लिक करें',
   'app.actions': 'FluidEQ क्रियाएँ',

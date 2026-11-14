@@ -12,6 +12,19 @@ const app = {
   'recovery.quit': '종료',
   'recovery.copy': '세부정보 복사',
   'recovery.history': '이전 실패',
+  'startFailure.title': 'FluidEQ를 시작할 수 없습니다',
+  'startFailure.lead':
+    '시작하는 동안 여러 번 연속으로 종료되어 다시 시도하지 않습니다. 보고서를 보내면 문제 해결에 도움이 됩니다. 마지막 보고서 이후의 로그가 개인 정보를 제거한 채 포함됩니다.',
+  'startFailure.cause': '문제 내용',
+  'startFailure.unknown': '기록된 오류가 없습니다.',
+  'startFailure.send': '보고서 보내기',
+  'startFailure.sent':
+    '보고서가 클립보드에 복사되었고 보낼 페이지가 열렸습니다. 감사합니다.',
+  'startFailure.sendFailed':
+    '보고서를 준비할 수 없습니다. 로그 폴더를 열고 로그를 첨부해 주세요.',
+  'startFailure.logs': '로그 폴더 열기',
+  'startFailure.retry': '다시 시도',
+  'startFailure.quit': '종료',
   'app.tagline': '나만의 소리. 모든 장치에서. 자동으로.',
   'app.knob.type': '값을 입력하려면 클릭하세요.',
   'app.actions': 'FluidEQ 작업',
