@@ -115,7 +115,7 @@ describe('how the placeholders come and go', () => {
   it('lays the leaving ones over the arriving cards and fades them once the cards begin', () => {
     const leaving = '.gallery-grid--skeleton[data-closing]';
     expect(declared(leaving, 'position')).toBe('absolute');
-    // name, duration, easing, then the delay the cards wait before rising.
+    // name, duration, easing, then the delay the cards wait before fading in.
     expect(declared(leaving, 'animation')).toMatch(
       /^gallery-skeleton-out \S+ ease-in-out 120ms forwards$/,
     );

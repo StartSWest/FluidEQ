@@ -118,22 +118,15 @@ it under the terms of the GNU General Public License version 3 or later.
   border-color: color-mix(in srgb, $red 38%, transparent);
 }
 
+// The row's own parts with bars where its words will be (`YourScenes`): its
+// height is the real row's, never a number standing in for it.
 .gallery-row--skeleton {
-  height: 84px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, $white 3%, transparent) 0%,
-    color-mix(in srgb, $white 7%, transparent) 50%,
-    color-mix(in srgb, $white 3%, transparent) 100%
-  );
-  background-size: 200% 100%;
-  // Faded in, the second a beat after the first, while the shimmer runs.
-  animation:
-    fade-in $motion-slow ease-out backwards,
-    gallery-shimmer 1.6s linear infinite;
+  pointer-events: none;
+  // Faded in, the second a beat after the first; the bars shimmer.
+  animation: fade-in $motion-slow ease-out backwards;
 
   & + & {
-    animation-delay: 60ms, 0ms;
+    animation-delay: 60ms;
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -32,6 +32,11 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: 0;
   padding: $spacing-m 4px $spacing-m;
   overflow-y: auto;
+  // The scrollbar's 8 px kept whether or not the page scrolls: the
+  // placeholders stop at the view's foot and never scroll, the list that
+  // replaces them does, and the bar arriving with it took 8 px from the grid -
+  // every card narrower the moment the scenes came.
+  scrollbar-gutter: stable;
   overscroll-behavior: contain;
   container: plus / inline-size;
   @include slim-scrollbar;
@@ -292,7 +297,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- grid
 
-// As many columns as fit at 196px or more. The cards size the rows; a lone
+// As many columns as fit at `$gallery-card-min` or more; every card is the
+// same height, its rows' own (`_galleryTokens.scss`). A lone
 // card in the last row keeps its width instead of stretching across it.
 //
 // No dimming while a list refreshes. Opening the tab refreshes every list the
@@ -301,24 +307,39 @@ it under the terms of the GNU General Public License version 3 or later.
 // every time Plus was opened, over results that almost never change. The
 // list on screen is the one the member was last shown; it stays as it is, and
 // the answer replaces it when it lands (`galleryStore`).
+//
+// `min(100%, ...)`: a column never wider than the list, however narrow the
+// pane it stands in.
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, #{$gallery-card-min}), 1fr)
+  );
   gap: $spacing-s;
 }
 
+// Four across where four fit at a card's width, fewer below that. Four
+// columns down to a 720 px container made cards of 172 px, too narrow for
+// their own foot.
 .gallery-grid--row {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-
-  @container plus (max-width: 720px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(
+      min(100%, max(#{$gallery-card-min}, (100% - 3 * #{$spacing-s}) / 4)),
+      1fr
+    )
+  );
 }
 
+// Faded in where it stands, in reading order: never risen into place. Each
+// card arrives exactly where its placeholder was (`GallerySkeleton`), and a
+// card sliding up 8 px under the placeholder fading out over it was the one
+// thing still moving when the scenes came.
 .gallery-card {
   position: relative;
   @include animate(
-    rise-in,
+    fade-in,
     $motion-base,
     $ease-out,
     $gallery-card-lead + ($gallery-card-beats - 1) * $gallery-card-step
@@ -489,6 +510,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 6px;
   min-width: 0;
+  min-height: $gallery-byline-height;
 }
 
 .gallery-card__by {
@@ -513,13 +535,15 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The count on one side, the heart and Add on the other — and when the card
-// leaves no room for both, the pair goes under the count together. On one
-// line that could not wrap, a four-column grid pushed Add past the card's
-// edge, which cut German's to "Hinzufü" (measured at 1280 px).
+// The count on one side, the heart and Add on the other, always on one line:
+// the count gives way, down to nothing, and the pair keeps its full width.
+// A card is never narrower than the pair needs (`$gallery-card-min`). It used
+// to wrap the pair under the count where the card was narrow, which made that
+// card - and its row - taller than the others. Before that, a four-column grid
+// that could not wrap pushed Add past the card's edge and cut German's to
+// "Hinzufü" (measured at 1280 px): the pair never shrinks.
 .gallery-card__foot {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   margin-top: auto;
@@ -600,7 +624,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // Leaving, over the cards that replace them: out of the flow, so the cards
   // take the same place at once, and faded rather than removed, so there is
-  // no empty frame between the two. It holds until the cards begin to rise
+  // no empty frame between the two. It holds until the cards begin to fade in
   // (`$gallery-card-lead`) and fades while they do; fading from the first
   // frame left a beat where neither was there. `useExitAnimation` removes it
   // at the end.
@@ -632,8 +656,11 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
+// The button's own classes on the control's stand-in give it the button's
+// height; the three classes here put the shimmer over the button's fill.
 .gallery-card__ghost-picture,
-.gallery-card__ghost-line {
+.gallery-ghost-bar,
+.button.subtle.gallery-ghost-control {
   display: block;
   background: linear-gradient(
     90deg,
@@ -653,18 +680,27 @@ it under the terms of the GNU General Public License version 3 or later.
   aspect-ratio: 16 / 9;
 }
 
-.gallery-card__ghost-line {
-  height: 9px;
-  margin: 10px 10px 0;
+// A bar inside one of the card's rows, shorter than the row's line so the row
+// keeps the height its words give it: inline, centred on the line, never
+// taller than the text it stands for.
+.gallery-ghost-bar {
+  display: inline-block;
+  width: 72%;
+  height: 0.7em;
+  vertical-align: middle;
   border-radius: $radius-pill;
-
-  &:last-child {
-    margin-bottom: 14px;
-  }
 }
 
-.gallery-card__ghost-line--short {
-  width: 45%;
+.gallery-ghost-bar--short {
+  width: 46%;
+}
+
+// Where the heart and Add will stand: the small button's own box (its class
+// gives the height), as wide as the pair usually is, with nothing in it.
+.button.subtle.gallery-ghost-control {
+  width: 96px;
+  min-width: 0;
+  border-color: transparent;
 }
 
 @keyframes gallery-shimmer {

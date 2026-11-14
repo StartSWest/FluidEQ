@@ -31,6 +31,26 @@ $gallery-card-step: 16ms;
 
 $gallery-card-lead: 120ms;
 
+// A card's size comes from the grid and from rows of fixed height, never from
+// what is in them, so every card on a page is the same size and the
+// placeholders standing in for them before the list arrives are that size too
+// (`GallerySkeleton`). Ivan, 2026-11-13: "all cards are small and then they
+// grow ... All cards need to be the same size always" - the placeholders were
+// the picture and two thin bars, 58 px shorter than the card replacing them,
+// and the foot wrapped to a second line on some cards and not others.
+//
+// The narrowest a card is laid out: room on one line for the widest heart
+// (59 px, "1.3K") beside the widest Add or Get (136 px: German "Auf v12
+// aktualisieren", Russian "Получить · 1 кредит"), 6 px apart, inside the
+// body's 10 px each side - 221 px, measured in the stand-in on 2026-11-13. At
+// the old 196 the foot had to wrap, and a wrapped foot is a taller card.
+$gallery-card-min: 224px;
+
+// The byline is as tall as the Official tag on every card, tag or not: the
+// tag's box is `.community__role` - the eyebrow size at a 1.6 line height and
+// a 1px border above and below. A maker's card without it was 2.8 px shorter.
+$gallery-byline-height: calc(#{$text-eyebrow} * 1.6 + 2px);
+
 // How long a scene may take before anything is said about it. A scene already
 // on the computer draws in a couple of hundred milliseconds, so nothing under
 // this ever puts a ring on screen.

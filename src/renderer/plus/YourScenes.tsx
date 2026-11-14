@@ -194,12 +194,41 @@ function YourScenesList({ me }: IYourScenesProps) {
           role="status"
           aria-label={t('plus.gallery.loading')}
         >
+          {/* The row's own parts, in its own classes, so a placeholder is the
+              row it stands for in the wide layout and in the stacked one: a
+              fixed 84 px stood in for rows of 85, and for much taller ones
+              where the numbers and buttons go under the name. */}
           {[0, 1].map((index) => (
-            <span
+            <div
               key={index}
               className="gallery-row gallery-row--skeleton"
               aria-hidden="true"
-            />
+            >
+              <span className="gallery-picture gallery-picture--loading gallery-row__picture" />
+              <span className="gallery-row__text">
+                <span className="gallery-row__name">
+                  <span className="gallery-ghost-bar" />
+                </span>
+                <span className="gallery-row__meta">
+                  <span className="gallery-ghost-bar gallery-ghost-bar--short" />
+                </span>
+              </span>
+              <dl className="gallery-row__numbers">
+                {[0, 1].map((number) => (
+                  <div key={number}>
+                    <dt>
+                      <span className="gallery-ghost-bar" />
+                    </dt>
+                    <dd>
+                      <span className="gallery-ghost-bar gallery-ghost-bar--short" />
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <span className="gallery-row__actions">
+                <span className="button small subtle gallery-ghost-control" />
+              </span>
+            </div>
           ))}
         </div>
       )}

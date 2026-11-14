@@ -26,10 +26,11 @@ interface IGallerySkeletonProps {
  * the gallery's scroller — and filled to that foot, the last row cut there
  * rather than pushing a scrollbar onto a page that has nothing to scroll yet.
  *
- * They fade in, one after another in reading order (`Gallery.scss`), and when
- * the cards come they fade out over them instead of vanishing a moment before
- * the cards rise: the page goes from placeholders to scenes without an empty
- * frame between.
+ * They fade in together (`Gallery.scss`), and when the cards come they fade
+ * out over them instead of vanishing a moment before: the page goes from
+ * placeholders to scenes without an empty frame between. Each card lands
+ * exactly where its placeholder stood, at its size, because a placeholder is
+ * built from the card's own rows.
  */
 export default function GallerySkeleton({
   ref,
@@ -103,8 +104,30 @@ export default function GallerySkeleton({
           aria-hidden="true"
         >
           <span className="gallery-card__ghost-picture" />
-          <span className="gallery-card__ghost-line" />
-          <span className="gallery-card__ghost-line gallery-card__ghost-line--short" />
+          {/* The card's own rows, in its own classes, each holding a bar
+              where its words will be: a placeholder is exactly the size of
+              the card that replaces it because it is built the same way.
+              Its own picture and two bars were 58 px shorter, and every card
+              grew as the list came (Ivan, 2026-11-13). */}
+          <span className="gallery-card__body">
+            <span className="gallery-card__name">
+              <span className="gallery-ghost-bar" />
+            </span>
+            <span className="gallery-card__byline">
+              <span className="gallery-ghost-bar gallery-ghost-bar--short" />
+            </span>
+            <span className="gallery-card__version">
+              <span className="gallery-ghost-bar gallery-ghost-bar--short" />
+            </span>
+            <span className="gallery-card__foot">
+              <span className="gallery-card__adds">
+                <span className="gallery-ghost-bar gallery-ghost-bar--short" />
+              </span>
+              <span className="gallery-card__controls">
+                <span className="button small subtle gallery-ghost-control" />
+              </span>
+            </span>
+          </span>
         </span>
       ))}
     </div>
