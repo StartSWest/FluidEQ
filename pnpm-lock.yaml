@@ -138,7 +138,7 @@ importers:
         version: 8.65.0(eslint@8.57.1)(typescript@6.0.3)
       browserslist-config-erb:
         specifier: ^0.0.3
-        version: 0.0.3(electron@43.2.0)
+        version: 0.0.3(electron@43.8.10)
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -158,14 +158,14 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0(webpack@5.109.2)
       electron:
-        specifier: ^43.2.0
-        version: 43.2.0
+        specifier: ^43.8.10
+        version: 43.8.10
       electron-builder:
         specifier: ^26.15.3
         version: 26.15.3(electron-builder-squirrel-windows@26.15.3)
       electron-chromedriver:
-        specifier: ^43.2.0
-        version: 43.2.0
+        specifier: ^43.8.10
+        version: 43.8.10
       electron-devtools-installer:
         specifier: ^4.0.0
         version: 4.0.0
@@ -3331,8 +3331,8 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
-  electron-chromedriver@43.2.0:
-    resolution: {integrity: sha512-xILVqDcPsY4HnZPypWdFRjrj4HDvSKef88vMKLRjgbk4cA6XxYODAe4Id1b0GW4rwo67wYnTjRNdwlbX27TbTw==}
+  electron-chromedriver@43.8.10:
+    resolution: {integrity: sha512-m5zpsEocDT7K63kqZXHjx5mmBD1d71MuHEtPkzOTjP8D9uKw4lO2A8l2Mvm454XupoHNb+DJfWW8JUjViBtjDA==}
     engines: {node: '>=10.12.0'}
     hasBin: true
 
@@ -3370,8 +3370,8 @@ packages:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
     engines: {node: '>=8.0.0'}
 
-  electron@43.2.0:
-    resolution: {integrity: sha512-80zvrgG7ZRXD+tD0IyLvrnN9n+veSxadMRsMaC9wKKP3iUbtC7rGM8+dVuCmOb0Rrwwv8ESW4awnUZh9Hbp1fA==}
+  electron@43.8.10:
+    resolution: {integrity: sha512-He/CVZxahZbDOS++eIwzU+XubARqz8s3d/eqPCmE/VcWc67yf8sei5vbKVZJE2jCmqqbbr5yWrWKmXJSyds8Ug==}
     engines: {node: '>= 22.12.0'}
     hasBin: true
 
@@ -9994,9 +9994,9 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  browserslist-config-erb@0.0.3(electron@43.2.0):
+  browserslist-config-erb@0.0.3(electron@43.8.10):
     dependencies:
-      electron: 43.2.0
+      electron: 43.8.10
 
   browserslist@4.28.7:
     dependencies:
@@ -10899,7 +10899,7 @@ snapshots:
       - electron-builder-squirrel-windows
       - supports-color
 
-  electron-chromedriver@43.2.0:
+  electron-chromedriver@43.8.10:
     dependencies:
       '@electron/get': 2.0.3
       extract-zip: 2.0.1
@@ -10973,7 +10973,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@43.2.0:
+  electron@43.8.10:
     dependencies:
       '@electron-internal/extract-zip': 1.0.5
       '@electron/get': 5.1.0
