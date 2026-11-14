@@ -20,7 +20,10 @@ import {
   libraryTileHue,
   libraryTileInitials,
 } from '../../common/library/artwork';
-import { libraryMediaUrl } from '../../common/library/mediaUrl';
+import {
+  libraryMediaUrl,
+  librarySizedArtUrl,
+} from '../../common/library/mediaUrl';
 
 export type TLibraryCoverArtSize = 'row' | 'tile' | 'cover';
 
@@ -56,6 +59,12 @@ const libraryTileBackground = (label: string): string => {
   return `linear-gradient(155deg, hsl(${hue}deg 58% 34%), hsl(${hue}deg 66% 20%))`;
 };
 
+/** The picture a cached cover is drawn from at each size (see below). */
+const cachedCoverUrl = (artId: string, size: TLibraryCoverArtSize): string =>
+  size === 'row'
+    ? librarySizedArtUrl(artId, 'small')
+    : libraryMediaUrl('art', artId);
+
 /**
  * One component, three sizes — every view that shows a track, an album or an
  * artist reuses this rather than drawing its own cover.
@@ -73,20 +82,37 @@ const LibraryCoverArt = ({
   label,
   size,
 }: ILibraryCoverArtProps) => {
-  const source = src ?? (artId ? libraryMediaUrl('art', artId) : undefined);
+  // Each size asks for the picture it draws. A row draws 30 to 36 CSS
+  // pixels and takes the small one: the 320 cover decoded 61 times the
+  // pixels it showed there. A tile is 160 at most and offers the medium one
+  // beside the cover, so the browser takes 320 only on a display that needs
+  // it. A cover is drawn larger than that (Cover Flow's centre, the stage)
+  // and keeps the 320.
+  const cached = artId && !src ? artId : undefined;
+  const source =
+    src ?? (cached === undefined ? undefined : cachedCoverUrl(cached, size));
+  const tileSources =
+    cached !== undefined && size === 'tile'
+      ? `${librarySizedArtUrl(cached, 'medium')} 224w, ${libraryMediaUrl('art', cached)} 320w`
+      : undefined;
   return (
     <span className={`library-cover-art library-cover-art--${size}`}>
       {source ? (
         <img
           className="library-cover-art__image"
           src={source}
+          // The tile's medium picture or its cover, as the display needs:
+          // 160 CSS pixels at most, so the browser takes the 224 one up to
+          // 1.4x and the 320 one beyond.
+          srcSet={tileSources}
+          sizes={tileSources ? '160px' : undefined}
           alt=""
           loading="lazy"
-          // Off the main thread, and — with `content-visibility: auto` on the
-          // row or tile around it — not decoded at all until it is close to
-          // the viewport. Measured: 609 rows' worth of covers held 176MB of
-          // decoded pixels, about 0.29MB a row, which over fourteen thousand
-          // tracks is several gigabytes of a library nobody is looking at.
+          // Off the main thread: decoded by the raster workers, never while
+          // a frame is being laid out (measured, no decode on the main thread
+          // while the Library scrolls). The lists mount only the rows near
+          // the viewport (`useListWindow`), so a cover far off screen is
+          // never asked for at all.
           decoding="async"
         />
       ) : (

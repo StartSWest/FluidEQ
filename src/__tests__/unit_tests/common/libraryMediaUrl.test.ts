@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   libraryMediaUrl,
+  librarySizedArtUrl,
   parseLibraryMediaUrl,
 } from '../../../common/library/mediaUrl';
 
@@ -45,5 +46,32 @@ describe('the media URL the renderer is handed', () => {
     ).toBeUndefined();
     expect(parseLibraryMediaUrl('fluideq-media://track/')).toBeUndefined();
     expect(parseLibraryMediaUrl('')).toBeUndefined();
+  });
+
+  it('lets a cover name one of its sizes, and nothing else carry a query', () => {
+    expect(parseLibraryMediaUrl(librarySizedArtUrl('def456', 'small'))).toEqual(
+      {
+        kind: 'art',
+        id: 'def456',
+        size: 'small',
+      },
+    );
+    expect(
+      parseLibraryMediaUrl(librarySizedArtUrl('def456', 'medium')),
+    ).toEqual({ kind: 'art', id: 'def456', size: 'medium' });
+    // A song has no sizes, a size the cache does not make is not one, and
+    // no other query is part of the grammar.
+    expect(
+      parseLibraryMediaUrl('fluideq-media://track/abc123?size=small'),
+    ).toBeUndefined();
+    expect(
+      parseLibraryMediaUrl('fluideq-media://art/def456?size=huge'),
+    ).toBeUndefined();
+    expect(
+      parseLibraryMediaUrl('fluideq-media://art/def456?path=../x'),
+    ).toBeUndefined();
+    expect(
+      parseLibraryMediaUrl('fluideq-media://art/def456?size=small&x=1'),
+    ).toBeUndefined();
   });
 });

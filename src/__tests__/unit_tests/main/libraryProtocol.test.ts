@@ -65,12 +65,31 @@ jest.mock('fs', () => ({
   },
 }));
 
+/**
+ * What main answers when a row asks for a cover's smaller picture: the file it
+ * made, or nothing when there is no cover to make it from. The cover's own
+ * path stays the real `artworkPath`.
+ */
+const mockEnsureSized = jest.fn<
+  Promise<string | undefined>,
+  [string, string, string]
+>(() => Promise.resolve(undefined));
+
+jest.mock('../../../main/library/libraryArtwork', () => ({
+  ...jest.requireActual('../../../main/library/libraryArtwork'),
+  ensureSizedArtwork: (dir: string, id: string, size: string) =>
+    mockEnsureSized(dir, id, size),
+}));
+
 // eslint-disable-next-line import/first -- the mock must be installed first
 // eslint-disable-next-line import/first
 import {
   LIBRARY_MEDIA_SCHEME,
   libraryMediaUrl,
+  librarySizedArtUrl,
 } from '../../../common/library/mediaUrl';
+// eslint-disable-next-line import/first
+import { artworkPath } from '../../../main/library/libraryArtwork';
 // eslint-disable-next-line import/first
 import {
   handleLibraryMedia,
@@ -82,8 +101,14 @@ import { trackIdForPath } from '../../../main/library/libraryScanner';
 beforeEach(() => {
   handlers.clear();
   statMock.mockClear();
+  mockEnsureSized.mockReset();
+  mockEnsureSized.mockResolvedValue(undefined);
   readRanges.length = 0;
 });
+
+/** The file each request opened, in order. */
+const opened = (): unknown[] =>
+  statMock.mock.calls.map((call) => (call as unknown[])[0]);
 
 describe('answering a fluideq-media request for an id the index no longer knows (blocker 4)', () => {
   it('logs the id and what it resolved to before answering 404', async () => {
@@ -202,6 +227,57 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     expect(plain?.status).toBe(200);
     expect(plain?.headers.get('content-range')).toBeNull();
     expect(readRanges).toEqual([{ start: undefined, end: undefined }]);
+  });
+});
+
+describe('serving a cover', () => {
+  const USER_DATA = 'C:\\data';
+  const ART_ID = 'a1b2c3d4';
+  const coverPath = (): string => {
+    const resolved = artworkPath(USER_DATA, ART_ID);
+    if (resolved === undefined) {
+      throw new Error('expected artworkPath to resolve for a valid hex id');
+    }
+    return resolved;
+  };
+
+  it('serves a smaller picture main made, and the cover where it could not', async () => {
+    const smallPath = 'C:\\data\\library-art\\small\\a1b2c3d4.jpg';
+    mockEnsureSized.mockResolvedValueOnce(smallPath);
+    handleLibraryMedia({
+      userDataDir: USER_DATA,
+      getTrackPath: () => undefined,
+    });
+    const handler = handlers.get(LIBRARY_MEDIA_SCHEME);
+
+    const made = await handler?.(
+      new Request(librarySizedArtUrl(ART_ID, 'small')),
+    );
+    expect(made?.status).toBe(200);
+    expect(mockEnsureSized).toHaveBeenCalledWith(USER_DATA, ART_ID, 'small');
+    expect(opened()).toEqual([smallPath]);
+
+    // Nothing could be made (no cover to make it from, one that will not
+    // decode): the row still gets a picture, the cover itself.
+    statMock.mockClear();
+    const fallback = await handler?.(
+      new Request(librarySizedArtUrl(ART_ID, 'medium')),
+    );
+    expect(fallback?.status).toBe(200);
+    expect(mockEnsureSized).toHaveBeenLastCalledWith(
+      USER_DATA,
+      ART_ID,
+      'medium',
+    );
+    expect(opened()).toEqual([coverPath()]);
+    expect(fallback?.headers.get('content-type')).toBe('image/jpeg');
+
+    // A cover asked for without a size never makes one.
+    mockEnsureSized.mockClear();
+    statMock.mockClear();
+    await handler?.(new Request(libraryMediaUrl('art', ART_ID)));
+    expect(mockEnsureSized).not.toHaveBeenCalled();
+    expect(opened()).toEqual([coverPath()]);
   });
 });
 

@@ -33,19 +33,47 @@ export const libraryMediaUrl = (kind: 'track' | 'art', id: string): string =>
   `${LIBRARY_MEDIA_SCHEME}://${kind}/${id}`;
 
 /**
+ * A cover's smaller pictures, each made by main from the cached 320-pixel
+ * cover the first time it is asked for (`ensureSizedArtwork`):
+ *
+ * - `small`, for the rows that draw a cover at 30 to 36 CSS pixels (the
+ *   list, Up Next, the player's bar). Measured over 14,000 songs, a row
+ *   decoded the 320 cover to show 32 pixels — 61 times the pixels on screen.
+ * - `medium`, for a grid tile (160 CSS pixels at most) on a display that
+ *   does not need 320: the browser picks it from the tile's `srcset`.
+ */
+export type TCoverSize = 'small' | 'medium';
+
+export const librarySizedArtUrl = (id: string, size: TCoverSize): string =>
+  `${LIBRARY_MEDIA_SCHEME}://art/${id}?size=${size}`;
+
+/**
  * Ids only, and never a path.
  *
  * The host carries the kind and the single path segment carries the id, which
  * has to survive a strict character test. A URL is the one input to this
  * process that arrives from a document, so it gets the narrowest possible
- * grammar rather than a sanitiser.
+ * grammar rather than a sanitiser: a cover may name one of its sizes and
+ * nothing else may carry a query at all.
  */
 export const parseLibraryMediaUrl = (
   url: string,
-): { kind: 'track' | 'art'; id: string } | undefined => {
-  const match = /^fluideq-media:\/\/(track|art)\/([0-9a-f]{6,64})$/.exec(url);
+):
+  | { kind: 'track'; id: string }
+  | { kind: 'art'; id: string; size?: TCoverSize }
+  | undefined => {
+  const match =
+    /^fluideq-media:\/\/(track|art)\/([0-9a-f]{6,64})(?:\?size=(small|medium))?$/.exec(
+      url,
+    );
   if (!match) {
     return undefined;
   }
-  return { kind: match[1] === 'art' ? 'art' : 'track', id: match[2] };
+  const [, kind, id, size] = match;
+  if (kind === 'art') {
+    return size === 'small' || size === 'medium'
+      ? { kind: 'art', id, size }
+      : { kind: 'art', id };
+  }
+  return size === undefined ? { kind: 'track', id } : undefined;
 };
