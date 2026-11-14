@@ -149,7 +149,7 @@ const look: Partial<Dictionary> = {
   'support.title': 'Apoya el proyecto',
   'support.close': 'Cerrar',
   'support.pitch':
-    'FluidEQ es libre y de código abierto, y va a seguir siéndolo: el código es público, siempre puedes compilarlo tú mismo sin pagar nada, y nunca se rastrea nada. Lo que se vende es la compilación firmada, lista para usar. Si se ha ganado un sitio en tu equipo, una contribución financia el tiempo que lo mantiene vivo y las próximas ideas que salgan del mismo taller.',
+    'FluidEQ es libre y de código abierto, y va a seguir siéndolo: el código es público, siempre puedes compilarlo tú mismo sin pagar nada, y nunca se rastrea nada. Cada compilación está firmada, lista para usar y es gratis para todos: nada de FluidEQ en sí se vende. Si se ha ganado un sitio en tu equipo, una contribución financia el tiempo que lo mantiene vivo y las próximas ideas que salgan del mismo taller.',
   'support.craft':
     'Esto es el trabajo de una sola persona, hecho con muchísimo cariño y una atención al detalle poco razonable. Cada panel está dibujado a mano y discutido: cómo se lee la curva de un vistazo, cómo se despliega un menú, qué hace un mando cuando lo giras despacio, qué palabras van en un botón. Aquí no hay componentes de catálogo con un tema encima.',
   'support.card': 'Tarjeta o monedero',

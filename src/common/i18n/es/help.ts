@@ -513,7 +513,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'Tu cuenta, los créditos y la pestaña Escenas',
   'help.plus.intro':
-    'La cuenta es opcional: todo lo que era gratis funciona en este equipo sin ella. Con la sesión iniciada, la pestaña Escenas reúne la Galería, el Estudio, la Iluminación dinámica y el fondo de escritorio. Una escena de la Galería cuesta un crédito y es tuya para siempre; una cuenta confirmada recibe algunos créditos gratis, y los paquetes de créditos se pagan una sola vez.',
+    'La cuenta es opcional: todo lo que era gratis funciona en este equipo sin ella. Con la sesión iniciada, la pestaña Escenas reúne la Galería, el Estudio, la Iluminación dinámica y el fondo de escritorio. Una escena de la Galería cuesta un crédito y es tuya para siempre; una cuenta confirmada recibe 3 créditos gratis, y los paquetes de créditos se pagan una sola vez.',
   'help.plus.steps':
     'Abre la pestaña Escenas y pulsa Iniciar sesión, o Crea tu cuenta gratis y escribe el código de seis dígitos que llega a tu correo. Una vez dentro, tu cuenta es la tarjeta al pie de la columna izquierda de la pestaña.\nElige Galería. Abre una escena, mírala y pulsa Conseguir para gastar un crédito en ella.\nPara tener más créditos, abre tu cuenta desde esa tarjeta y elige un paquete. Se paga una sola vez en Stripe, en tu navegador.',
   'help.plus.tip':

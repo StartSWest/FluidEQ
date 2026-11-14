@@ -507,7 +507,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'Sua conta, os créditos e a aba Cenas',
   'help.plus.intro':
-    'A conta é opcional: tudo o que era gratuito funciona neste computador sem ela. Conectado, a aba Cenas reúne a Galeria, o Estúdio, a Iluminação dinâmica e o fundo da área de trabalho. Uma cena da Galeria custa um crédito e é sua para sempre; uma conta confirmada recebe alguns créditos grátis, e os pacotes de créditos são pagos uma única vez.',
+    'A conta é opcional: tudo o que era gratuito funciona neste computador sem ela. Conectado, a aba Cenas reúne a Galeria, o Estúdio, a Iluminação dinâmica e o fundo da área de trabalho. Uma cena da Galeria custa um crédito e é sua para sempre; uma conta confirmada recebe 3 créditos grátis, e os pacotes de créditos são pagos uma única vez.',
   'help.plus.steps':
     'Abra a aba Cenas e pressione Entrar, ou Criar sua conta grátis e digite o código de seis dígitos enviado para seu email. Depois de entrar, sua conta é o cartão no pé da coluna esquerda da aba.\nEscolha Galeria. Abra uma cena, assista e pressione Obter para gastar um crédito nela.\nPara ter mais créditos, abra sua conta por esse cartão e escolha um pacote. Ele é pago uma única vez na Stripe, no seu navegador.',
   'help.plus.tip':

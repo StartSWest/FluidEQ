@@ -515,7 +515,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'Votre compte, les crédits et l’onglet Scènes',
   'help.plus.intro':
-    'Le compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte. Une fois connecté, l’onglet Scènes réunit la Galerie, le Studio, l’Éclairage dynamique et le fond du Bureau. Une scène de la Galerie coûte un crédit et vous appartient pour de bon ; un compte confirmé reçoit quelques crédits gratuits, et les packs de crédits se paient une seule fois.',
+    'Le compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte. Une fois connecté, l’onglet Scènes réunit la Galerie, le Studio, l’Éclairage dynamique et le fond du Bureau. Une scène de la Galerie coûte un crédit et vous appartient pour de bon ; un compte confirmé reçoit 3 crédits gratuits, et les packs de crédits se paient une seule fois.',
   'help.plus.steps':
     'Ouvrez l’onglet Scènes et appuyez sur Se connecter ou sur Créer votre compte gratuit, puis saisissez le code à six chiffres envoyé à votre adresse e-mail. Une fois la connexion faite, votre compte est la carte au bas de la colonne de gauche de l’onglet.\nChoisissez Galerie. Ouvrez une scène, regardez-la, et appuyez sur Obtenir pour y dépenser un crédit.\nPour plus de crédits, ouvrez votre compte depuis cette carte et choisissez un pack. Il se paie une seule fois sur Stripe, dans votre navigateur.',
   'help.plus.tip':

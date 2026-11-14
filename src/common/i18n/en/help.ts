@@ -502,7 +502,7 @@ const help = {
 
   'help.plus.title': 'Your account, credits and the Scenes tab',
   'help.plus.intro':
-    'An account is optional: everything that was free runs on this computer without one. Signed in, the Scenes tab holds the Gallery, the Studio, Dynamic lighting and the desktop background. A scene from the Gallery costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
+    'An account is optional: everything that was free runs on this computer without one. Signed in, the Scenes tab holds the Gallery, the Studio, Dynamic lighting and the desktop background. A scene from the Gallery costs one credit and is yours for good; a confirmed account gets 3 credits free, and packs of credits are paid once.',
   'help.plus.steps':
     'Open the Scenes tab and press Sign in, or Create your free account and type the six-digit code sent to your email. Once you are in, your account is the card at the foot of the tab’s left rail.\nChoose Gallery. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open your account from that card and choose a pack. It is paid once on Stripe, in your browser.',
   'help.plus.tip':

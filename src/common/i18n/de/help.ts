@@ -518,7 +518,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'Ihr Konto, Credits und der Tab Szenen',
   'help.plus.intro':
-    'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Tab Szenen die Galerie, das Studio, die dynamische Beleuchtung und den Desktop-Hintergrund. Eine Szene aus der Galerie kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält einige Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
+    'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Tab Szenen die Galerie, das Studio, die dynamische Beleuchtung und den Desktop-Hintergrund. Eine Szene aus der Galerie kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält 3 Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
   'help.plus.steps':
     'Öffnen Sie den Tab Szenen und drücken Sie Anmelden oder Kostenloses Konto erstellen, und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde. Danach ist Ihr Konto die Karte unten in der linken Leiste des Tabs.\nWählen Sie Galerie. Öffnen Sie eine Szene, sehen Sie sie an, und drücken Sie Holen, um einen Credit dafür einzusetzen.\nFür weitere Credits öffnen Sie Ihr Konto über diese Karte und wählen ein Paket. Es wird einmalig über Stripe in Ihrem Browser bezahlt.',
   'help.plus.tip':
