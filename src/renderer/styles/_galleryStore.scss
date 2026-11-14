@@ -119,10 +119,22 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
 }
 
+// The balance before and after, behind the coin it counts. The coin is no
+// taller than the line, so the row keeps its height.
 .store-balance {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin: 0;
   color: $text-muted;
   font-size: $text-body;
+
+  svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+  }
 }
 
 // That the credit is spent for good: said once, in the warning colour, never

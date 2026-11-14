@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import CoinGlyph from '../plus/CoinGlyph';
 import { SceneMarkPaths } from './SceneMark';
 
 /**
@@ -231,9 +232,6 @@ const PATHS: Record<string, string> = {
   // The bell struck through: that count switched off.
   bellOff:
     'M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5l1.5-1.5zM10 20.5h4M4 4l16 16',
-  // A credit, the scene store's coin: the Glyph's, on this grid.
-  credit:
-    'M12 3.5a8 8.5 0 1 0 0 17 8 8.5 0 0 0 0-17zM12 7.5a4.2 4.6 0 1 0 0 9.2 4.2 4.6 0 0 0 0-9.2zM12 10v4.2',
   // Two ticks: everything read.
   checkAll: 'M2.5 12.5l4.5 4.5 9.5-9.5M11 17l9.5-9.5',
 };
@@ -256,6 +254,11 @@ export default function MenuIcon({
   name,
   className = 'menu-icon',
 }: IMenuIconProps) {
+  // A credit is the 3D coin everywhere it appears, a returned credit's
+  // notice included (Ivan, 2026-11-13).
+  if (name === 'credit') {
+    return <CoinGlyph className={className} />;
+  }
   if (name === 'scene') {
     return (
       <svg

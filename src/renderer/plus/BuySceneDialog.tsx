@@ -115,6 +115,7 @@ export default function BuySceneDialog({
           </span>
         </div>
         <p className="store-balance">
+          <Glyph name="credit" />
           {t('store.buy.balance', {
             credits: creditsText(t, locale, balance),
             after: creditsText(t, locale, balance - SCENE_PRICE_CREDITS),
