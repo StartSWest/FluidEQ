@@ -105,10 +105,35 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 8px 18px;
 
-  // The coin's orbit is wider than its disc: it may run into the card's
-  // padding, never push the figures away.
+  // Half the large coin (Ivan, 2026-11-14: "this coin is too big, make it 2x
+  // smaller"): about the height of the figure and its eyebrow beside it, the
+  // orbit, its two riders and the sparks scaled with it. Only here; the
+  // offer pane, the welcome and Get credits keep the full size. The orbit is
+  // wider than the disc: it may run into the card's padding, never push the
+  // figures away.
   .credit-coin {
-    margin: -22px -12px -12px -24px;
+    --coin: 48px;
+    margin: -8px -6px -8px -12px;
+  }
+
+  .credit-coin__orbit i {
+    width: 5px;
+    height: 5px;
+  }
+
+  .credit-coin__orbit i:last-child {
+    width: 3px;
+    height: 3px;
+  }
+
+  .credit-coin__spark {
+    width: 5px;
+    height: 5px;
+  }
+
+  .credit-coin__spark--two {
+    width: 4px;
+    height: 4px;
   }
 }
 
