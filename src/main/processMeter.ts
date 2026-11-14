@@ -25,6 +25,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
+import { startHelper } from './helperSpawn';
 
 export const PROCESS_METER_EXECUTABLE =
   process.platform === 'win32' ? 'FluidEQ-Meter.exe' : undefined;
@@ -153,7 +154,15 @@ export const createProcessMeter = (
       unavailable = true;
       return undefined;
     }
-    const started = spawn(executable, [], { windowsHide: true });
+    const started = startHelper(
+      'Process meter',
+      () => spawn(executable, [], { windowsHide: true }),
+      'it is tried again the next time it is needed',
+    );
+    if (!started) {
+      unavailable = true;
+      return undefined;
+    }
     started.stdout.setEncoding('utf8');
     started.stdout.on('data', (chunk: string) => {
       if (started !== child) {

@@ -32,6 +32,7 @@ import { execFile } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
+import { startHelper } from './helperSpawn';
 import { IFluidEngineEndpoint } from '../common/audioEngine';
 import { windowsAudioRestarted } from './windowsAudioRestarts';
 
@@ -249,9 +250,24 @@ export const runEngineSetup = (
     let stderrBytes = 0;
     let settled = false;
 
-    const child = execFile(exePath, [command, ...args], {
-      windowsHide: true,
-    });
+    const child = startHelper(
+      'FluidEQ Engine Setup',
+      () =>
+        execFile(exePath, [command, ...args], {
+          windowsHide: true,
+        }),
+      'this engine command reports a failure',
+    );
+    if (!child) {
+      // Refused outright rather than through `error`: the same answer.
+      resolve({
+        ok: false,
+        declined: false,
+        error: 'The setup helper could not be started.',
+        endpoints: [],
+      });
+      return;
+    }
 
     child.stdout?.on('data', (chunk: Buffer | string) => {
       if (stdoutOverflowed) {

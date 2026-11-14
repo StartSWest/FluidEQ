@@ -63,8 +63,13 @@ export const createAudioProcess = (
       });
       return undefined;
     })
-    .catch(() =>
-      events.emit('error', new Error('Share Audio process could not start.')),
+    .catch((error: unknown) =>
+      events.emit(
+        'error',
+        new Error(
+          `Share Audio process could not start: ${error instanceof Error ? error.message : String(error)}.`,
+        ),
+      ),
     );
   return Object.assign(events, {
     postMessage: send,

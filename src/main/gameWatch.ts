@@ -18,6 +18,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
+import { startHelper } from './helperSpawn';
 import { IGameProgram } from '../common/games';
 
 export const GAME_WATCH_EXECUTABLE =
@@ -186,7 +187,15 @@ export const createGameWatch = (
       unavailable = true;
       return undefined;
     }
-    const started = spawn(executable, [], { windowsHide: true });
+    const started = startHelper(
+      'Game watcher',
+      () => spawn(executable, [], { windowsHide: true }),
+      'it is tried again the next time it is needed',
+    );
+    if (!started) {
+      unavailable = true;
+      return undefined;
+    }
     started.stdout.setEncoding('utf8');
     started.stdout.on('data', (chunk: string) => {
       if (started !== child) {

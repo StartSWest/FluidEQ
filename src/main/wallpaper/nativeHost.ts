@@ -4,6 +4,7 @@ import path from 'path';
 import { createInterface } from 'readline';
 import { app } from 'electron';
 import log from 'electron-log';
+import { startHelper } from '../helperSpawn';
 import { parsePointerRecord, type TWallpaperPointer } from './pointerRelay';
 
 const EXECUTABLE = 'FluidEQ-Wallpaper.exe';
@@ -63,10 +64,35 @@ export const startWallpaperHost = (
     handle.length === 8
       ? handle.readBigUInt64LE().toString()
       : handle.readUInt32LE().toString();
-  const child = spawn(executable, [hwnd, String(process.pid)], {
-    windowsHide: true,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
+  const child = startHelper(
+    'Desktop visualizer host',
+    () =>
+      spawn(executable, [hwnd, String(process.pid)], {
+        windowsHide: true,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }),
+    'the desktop background stays off',
+  );
+  if (!child) {
+    // Refused outright: the host the caller gets does nothing, and says it
+    // failed as a host that failed later does — after this call returns, so
+    // the caller is never called back from inside the start it is making
+    // (the 2.5.2 lighting crash was exactly that).
+    let quiet = false;
+    queueMicrotask(() => {
+      if (!quiet) {
+        onEvent('error');
+      }
+    });
+    return {
+      setVisible: () => undefined,
+      setTouch: () => undefined,
+      setCameraKey: () => undefined,
+      stop: () => {
+        quiet = true;
+      },
+    };
+  }
   let stopped = false;
   let failed = false;
   let touching = false;

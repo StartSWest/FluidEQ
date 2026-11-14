@@ -19,6 +19,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import type { BrowserWindow } from 'electron';
 import log from 'electron-log';
+import { startHelper } from './helperSpawn';
 import {
   ISystemVolume,
   SYSTEM_VOLUME_CHANGED,
@@ -98,7 +99,17 @@ export const createSystemVolumeWatch = (
 
   const run = (executable: string) => {
     commands.reset();
-    const started = spawn(executable, [], { windowsHide: true });
+    const started = startHelper(
+      'System volume helper',
+      () => spawn(executable, [], { windowsHide: true }),
+      'it is tried again the next time it is needed',
+    );
+    if (!started) {
+      // As a helper that is not installed: no level to show.
+      last = null;
+      onChange(null);
+      return;
+    }
     const helper = replacement.run();
     started.stdout.setEncoding('utf8');
     started.stdout.on('data', (chunk: string) => {

@@ -54,6 +54,7 @@ import { ChildProcess, spawn } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
+import { startHelper } from './helperSpawn';
 import { APP_USER_MODEL_ID } from './appIdentity';
 import { createHelperReplacement } from './helperReplacement';
 import { POWERSHELL_PATH, utf8Command } from './powershell';
@@ -383,10 +384,19 @@ const startWatcher = (executable: string): void => {
   // The app's own id is the helper's one argument, so the rule that looks
   // past this app's sessions (`SELF_SKIP`) reads the same id on both sides.
   // Nobody reads its stderr, so it is not a pipe that could fill.
-  const started = spawn(executable, [APP_USER_MODEL_ID], {
-    stdio: ['pipe', 'pipe', 'ignore'],
-    windowsHide: true,
-  });
+  const started = startHelper(
+    'Media watcher',
+    () =>
+      spawn(executable, [APP_USER_MODEL_ID], {
+        stdio: ['pipe', 'pipe', 'ignore'],
+        windowsHide: true,
+      }),
+    'it is tried again the next time the window asks',
+  );
+  if (!started) {
+    // Refused outright: nothing playing is known, as with no helper at all.
+    return;
+  }
   child = started;
   const run = replacement.run();
 
@@ -604,18 +614,27 @@ ${commandScript}
 `;
 
   await new Promise<void>((resolve) => {
-    const runner = spawn(
-      POWERSHELL_PATH,
-      [
-        '-NoProfile',
-        '-NonInteractive',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        utf8Command(script),
-      ],
-      { windowsHide: true },
+    const runner = startHelper(
+      'Media command',
+      () =>
+        spawn(
+          POWERSHELL_PATH,
+          [
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-Command',
+            utf8Command(script),
+          ],
+          { windowsHide: true },
+        ),
+      'the command is skipped',
     );
+    if (!runner) {
+      resolve();
+      return;
+    }
     // Resolved either way. Windows answers a refused command with `false` and
     // a session that has gone with nothing at all, and neither is something
     // the window could show or act on.
@@ -678,21 +697,30 @@ foreach ($candidate in @($manager.GetSessions())) {
 `;
 
   await new Promise<void>((resolve) => {
-    const runner = spawn(
-      POWERSHELL_PATH,
-      [
-        '-NoProfile',
-        '-NonInteractive',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        utf8Command(script),
-      ],
-      {
-        windowsHide: true,
-        env: { ...process.env, FLUIDEQ_MEDIA_EXCEPT: exceptApp },
-      },
+    const runner = startHelper(
+      'Media command',
+      () =>
+        spawn(
+          POWERSHELL_PATH,
+          [
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-Command',
+            utf8Command(script),
+          ],
+          {
+            windowsHide: true,
+            env: { ...process.env, FLUIDEQ_MEDIA_EXCEPT: exceptApp },
+          },
+        ),
+      'the command is skipped',
     );
+    if (!runner) {
+      resolve();
+      return;
+    }
     // Same as every command here: a player that refuses, or one that has gone
     // between the reading and the asking, is not something a window could act
     // on.
