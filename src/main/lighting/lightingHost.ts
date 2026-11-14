@@ -45,7 +45,14 @@ export const startLightingHost = (
       windowsHide: true,
     });
   } catch (error) {
-    onExit(error instanceof Error ? error.message : String(error));
+    // Reported once this returns, never during the call: the caller keeps
+    // the host it is handed (lightingService's `started`) and its onExit
+    // reads it, so a failure reported inside the call read that const before
+    // it existed and threw "Cannot access before initialization" out of the
+    // IPC frame handler, which closed FluidEQ on every launch where Windows
+    // refused the spawn (2.5.2 right after install, 2026-11-14).
+    const detail = error instanceof Error ? error.message : String(error);
+    queueMicrotask(() => onExit(detail));
     return { pid: undefined, send: () => undefined, close: () => undefined };
   }
 
