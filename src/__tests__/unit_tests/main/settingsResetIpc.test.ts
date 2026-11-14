@@ -296,6 +296,10 @@ const KEPT_FILES = [
   'usage-ledger.json',
   'scene-plays.json',
   'opra-version.json',
+  // When the OPRA library was last checked and its validators
+  // (`opraFeed.ts`): reset away, the next launch would ask GitHub again
+  // inside the day and lose the rate limit's reset time.
+  'opra-feed.json',
   'index.json',
 ];
 
