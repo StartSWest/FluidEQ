@@ -19,7 +19,7 @@ import type { ICreditPack, ISceneStore } from 'common/sceneStore';
 import CoinCelebration from 'renderer/plus/CoinCelebration';
 import CreditPacks from 'renderer/plus/CreditPacks';
 import packCoins from 'renderer/plus/packCoins';
-import { resetSceneStore } from 'renderer/plus/sceneStore';
+import { claimStarterCredits, resetSceneStore } from 'renderer/plus/sceneStore';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 
 let mockReduced = false;
@@ -71,6 +71,7 @@ let animations: IFakeAnimation[] = [];
 let arrived: ((credits: number) => void) | undefined;
 let storeChanged: ((next: ISceneStore | null) => void) | undefined;
 let arrivalListeners = 0;
+let starterAnswer: unknown;
 
 beforeEach(() => {
   resetSceneStore();
@@ -79,6 +80,7 @@ beforeEach(() => {
   arrived = undefined;
   storeChanged = undefined;
   arrivalListeners = 0;
+  starterAnswer = { ok: true, store: store(3) };
   window.electron = {
     ipcRenderer: {
       getSceneStore: async () => ({ ok: true, store: store(3) }),
@@ -94,6 +96,7 @@ beforeEach(() => {
         };
       },
       onCheckoutReturned: () => () => undefined,
+      claimStarterCredits: async () => starterAnswer,
     },
   } as unknown as typeof window.electron;
   Object.defineProperty(HTMLElement.prototype, 'animate', {
@@ -275,6 +278,34 @@ describe('the celebration', () => {
       animation.frames.some((frame) => frame.transform !== undefined),
     );
     expect(moving).toHaveLength(0);
+  });
+
+  // Ivan, 2026-11-14: claiming the 3 free credits plays the same burst,
+  // from the welcome, the Scenes card or Get credits, which all claim
+  // through `claimStarterCredits`. A coin for each of the first 3 scenes.
+  it('plays the free credits once they are claimed, a coin for each', async () => {
+    await mount();
+    await act(async () => {
+      await claimStarterCredits();
+    });
+    expect(document.querySelectorAll('.coin-celebration')).toHaveLength(1);
+    expect(coinsOnScreen()).toBe(3);
+    expect(screen.getByRole('status')).toHaveTextContent('+3 credits');
+    await act(async () =>
+      animations.forEach((animation) => animation.finish()),
+    );
+    // Once: nothing plays again after it.
+    expect(document.querySelector('.coin-celebration')).toBeNull();
+  });
+
+  it('control: a claim the server refused plays nothing', async () => {
+    starterAnswer = { ok: false, reason: 'unconfirmed' };
+    await mount();
+    await act(async () => {
+      await claimStarterCredits();
+    });
+    expect(document.querySelector('.coin-celebration')).toBeNull();
+    expect(animations).toHaveLength(0);
   });
 
   it('stops listening for payments when it is taken away', async () => {

@@ -254,7 +254,9 @@ export default function CommunityPanel({
               <button
                 type="button"
                 className="community__link community__choose"
-                onClick={() => requestAccountPanel()}
+                // Straight onto the form (Ivan, 2026-11-14): the dialog's
+                // own "Choose your name" was one more press away.
+                onClick={() => requestAccountPanel('name')}
               >
                 <Glyph name="mention" />
                 {t('profile.name.choose')}

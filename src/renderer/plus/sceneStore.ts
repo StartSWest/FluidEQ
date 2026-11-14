@@ -132,6 +132,22 @@ export const buyScene = async (
   return outcome;
 };
 
+const starterClaims = new Set<() => void>();
+
+/**
+ * The starter credits claimed in this window, once per claim that the server
+ * took, after the store that holds them: the coin celebration's other way in
+ * (`CoinCelebration`), beside main's word that a payment arrived. Claimed
+ * from the welcome, the Scenes card or Get credits alike, since all three
+ * claim here.
+ */
+export const onStarterCreditsClaimed = (listener: () => void) => {
+  starterClaims.add(listener);
+  return () => {
+    starterClaims.delete(listener);
+  };
+};
+
 export const claimStarterCredits = async (): Promise<TStarterOutcome> => {
   bindAccount();
   const { owner } = state;
@@ -140,6 +156,7 @@ export const claimStarterCredits = async (): Promise<TStarterOutcome> => {
     .catch(() => undefined)) ?? { ok: false, reason: 'offline' };
   if (outcome.ok) {
     adoptStore(owner, outcome.store);
+    starterClaims.forEach((listener) => listener());
   }
   return outcome;
 };

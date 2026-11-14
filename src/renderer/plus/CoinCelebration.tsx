@@ -2,13 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { STARTER_CREDITS } from 'common/sceneStore';
 import { useTranslation } from '../utils/I18nContext';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import { playCelebration } from './coinCelebrationMotion';
 import CreditCoin from './CreditCoin';
 import { creditsText } from './credits';
 import packCoins from './packCoins';
-import { onCreditsArrived, useSceneStore } from './sceneStore';
+import {
+  onCreditsArrived,
+  onStarterCreditsClaimed,
+  useSceneStore,
+} from './sceneStore';
 import '../styles/CoinCelebration.scss';
 
 /** Sparks thrown by the burst: enough to read as a burst, few enough to stay a flourish. */
@@ -158,18 +163,29 @@ export default function CoinCelebration() {
   const packs = store?.packs ?? [];
   const packsRef = useRef(packs);
   packsRef.current = packs;
-  const [queue, setQueue] = useState<{ id: number; credits: number }[]>([]);
+  const [queue, setQueue] = useState<
+    { id: number; credits: number; coins?: number }[]
+  >([]);
   const nextId = useRef(0);
 
-  useEffect(
-    () =>
-      onCreditsArrived((credits) => {
-        nextId.current += 1;
-        const id = nextId.current;
-        setQueue((waiting) => [...waiting, { id, credits }]);
-      }),
-    [],
-  );
+  useEffect(() => {
+    const enqueue = (credits: number, coins?: number) => {
+      nextId.current += 1;
+      const id = nextId.current;
+      setQueue((waiting) => [...waiting, { id, credits, coins }]);
+    };
+    const offPaid = onCreditsArrived((credits) => enqueue(credits));
+    // The free starter credits celebrate the same way (Ivan, 2026-11-14),
+    // with a coin for each of "your first 3 scenes": by the packs' rule,
+    // three credits are under the smallest pack and would fly as one coin.
+    const offStarter = onStarterCreditsClaimed(() =>
+      enqueue(STARTER_CREDITS, STARTER_CREDITS),
+    );
+    return () => {
+      offPaid();
+      offStarter();
+    };
+  }, []);
 
   const current = queue[0];
   if (!current) {
@@ -179,7 +195,7 @@ export default function CoinCelebration() {
     <Celebration
       key={current.id}
       credits={current.credits}
-      coins={packCoins(packsRef.current, current.credits)}
+      coins={current.coins ?? packCoins(packsRef.current, current.credits)}
       onDone={() => setQueue((waiting) => waiting.slice(1))}
     />
   );

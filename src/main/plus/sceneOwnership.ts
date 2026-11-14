@@ -16,6 +16,7 @@ import {
   type TSceneStoreOutcome,
   type TStarterOutcome,
   type TSuspensionRefundOutcome,
+  STARTER_CREDITS,
 } from '../../common/sceneStore';
 import type { IAccountConfig } from '../../common/accountConfig';
 import type { IEntitlement } from '../account/entitlement';
@@ -368,6 +369,13 @@ export const createSceneOwnership = ({
       const claimed = await claimStarterCredits(auth);
       if (!claimed.ok) {
         return claimed;
+      }
+      // Not the payment a checkout is waiting for: claimed with Get credits
+      // open on a pack, the rise was read as the pack arriving and the
+      // window celebrated the same three credits twice — once as the
+      // starter's (`onStarterCreditsClaimed`) and once as a payment.
+      if (awaiting?.userId === userId) {
+        awaiting = { userId, balance: awaiting.balance + STARTER_CREDITS };
       }
       const refreshed = await refreshNow();
       return refreshed.ok

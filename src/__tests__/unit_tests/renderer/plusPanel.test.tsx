@@ -129,15 +129,26 @@ describe('the Plus tab', () => {
     expect(bridge.plusProfile).toHaveBeenCalledTimes(1);
   });
 
-  /** The name is chosen in the account panel; the foot of the rail leads there. */
-  it('leads a member without a name to the account panel to choose one', async () => {
+  /**
+   * The name is chosen in the account panel; the foot of the rail leads
+   * straight to its form (Ivan, 2026-11-14), and the card to the panel.
+   */
+  it('leads a member without a name straight to the account panel’s name form', async () => {
     const requests = jest.fn();
     const unsubscribe = subscribeAccountPanelRequests(requests);
     await renderPanel();
     await userEvent.click(
       screen.getByRole('button', { name: 'profile.name.choose' }),
     );
-    expect(requests).toHaveBeenCalledWith('home');
+    expect(requests).toHaveBeenLastCalledWith('name');
+    // The control: the card itself opens the panel as it always did.
+    const card = document.querySelector<HTMLButtonElement>(
+      '.community__account',
+    );
+    if (card) {
+      await userEvent.click(card);
+    }
+    expect(requests).toHaveBeenLastCalledWith('home');
     expect(screen.getByRole('status')).toHaveTextContent('visualizers');
     unsubscribe();
   });

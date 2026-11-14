@@ -548,6 +548,8 @@ describe('the name on the board, from the account panel', () => {
       answer({ ok: true, value: null });
     });
     expect(screen.getByText('profile.name.title')).toBeInTheDocument();
+    // The caret is in the handle: typing starts at once (Ivan, 2026-11-14).
+    expect(screen.getByLabelText(/profile\.name\.handle/)).toHaveFocus();
     await userEvent.type(
       screen.getByLabelText(/profile\.name\.handle/),
       'ivan_c',
@@ -565,6 +567,8 @@ describe('the name on the board, from the account panel', () => {
       await screen.findByRole('button', { name: 'profile.name.choose' }),
     ).toBeInTheDocument();
     expect(screen.queryByLabelText('profile.name.name')).toBeNull();
+    // Nothing to type into, so the caret is in no field.
+    expect(document.activeElement?.tagName).not.toBe('INPUT');
   });
 
   it('offers neither until the server has said whether there is a name', () => {

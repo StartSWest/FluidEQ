@@ -454,6 +454,30 @@ describe('the store listening while a payment is owed', () => {
       owned.dispose();
     });
 
+    // The window celebrates a starter claim itself (`onStarterCreditsClaimed`);
+    // claimed while Get credits waits on a pack, its rise used to be read as
+    // the pack arriving, and the same three credits celebrated twice.
+    it('takes a starter claim made while a pack is owed for no payment, and still says the pack', async () => {
+      const owned = ownership();
+      const arrived = jest.fn();
+      owned.onCreditsArrived(arrived);
+      await owned.refreshNow();
+      await owned.checkout('pack-12', 'en');
+      balance = 6;
+      const claimed = await owned.claimStarter();
+      expect(claimed.ok).toBe(true);
+      expect(owned.known()?.balance).toBe(6);
+      expect(arrived).not.toHaveBeenCalled();
+      // The pack lands afterwards, and is said as itself.
+      balance = 18;
+      credits();
+      await settled();
+      await settled();
+      expect(arrived).toHaveBeenCalledTimes(1);
+      expect(arrived).toHaveBeenCalledWith(12);
+      owned.dispose();
+    });
+
     it('says nothing while the payment has not landed, and nothing for a balance that fell', async () => {
       const owned = ownership();
       const arrived = jest.fn();

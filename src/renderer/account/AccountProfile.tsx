@@ -1,4 +1,4 @@
-import type { ReactNode, RefObject } from 'react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import type { ISceneStore } from 'common/sceneStore';
 import { CREATOR_PAYOUTS_OPEN } from 'common/creatorPayouts';
 import type { IPlusProfile } from 'common/plusProfile';
@@ -137,14 +137,26 @@ export function ProfileBody({
   errorLine,
   termsLink,
 }: IProfileBodyProps) {
+  // The caret goes into the handle the moment the form opens: it is opened
+  // only by asking for it — "Choose your name" or "Change name", in the rail
+  // or the Scenes tab — and a form waiting for one more click to be typed in
+  // read as not having opened (Ivan, 2026-11-14). Its first field is the
+  // handle.
+  const nameForm = useRef<HTMLDivElement>(null);
+  const formShown = editingName && profileLoaded;
+  // Run each time the form appears; while it is put away there is no form
+  // to focus in.
+  useEffect(() => {
+    nameForm.current?.querySelector('input')?.focus();
+  }, [formShown]);
   return (
     <>
       {/* First in the page, beside the links that ask for them: the name form
           used to appear at the foot, where pressing "Change name" looked like
           it had done nothing (Ivan, 2026-09-16). Only once the server has
           said whether there is a name: the form starts from it. */}
-      {editingName && profileLoaded && (
-        <div className="account__name-form">
+      {formShown && (
+        <div className="account__name-form" ref={nameForm}>
           <ProfileNameForm
             initial={
               profile
