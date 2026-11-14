@@ -162,6 +162,14 @@ const account = {
     'Googleでのサインインが完了しませんでした。もう一度試すか、メールアドレスでサインインしてください。',
   'account.google.doneTitle': 'サインインしました',
   'account.google.doneBody': 'このタブを閉じてFluidEQに戻れます。',
+  'account.google.doneInvite.one':
+    '新しいアカウントには、FluidEQ のシーンに使える無料クレジットが {count} 付きます。',
+  'account.google.doneInvite.few':
+    '新しいアカウントには、FluidEQ のシーンに使える無料クレジットが {count} 付きます。',
+  'account.google.doneInvite.many':
+    '新しいアカウントには、FluidEQ のシーンに使える無料クレジットが {count} 付きます。',
+  'account.google.doneInvite.other':
+    '新しいアカウントには、FluidEQ のシーンに使える無料クレジットが {count} 付きます。',
   'account.google.failedTitle': 'サインインが完了しませんでした',
   'account.google.failedBody':
     'FluidEQに戻ってもう一度試すか、メールアドレスでサインインしてください。',

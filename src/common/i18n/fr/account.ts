@@ -163,6 +163,14 @@ const account = {
   'account.google.doneTitle': 'Vous êtes connecté',
   'account.google.doneBody':
     'Vous pouvez fermer cet onglet et revenir à FluidEQ.',
+  'account.google.doneInvite.one':
+    'Les nouveaux comptes commencent avec {count} crédit gratuit pour des scènes dans FluidEQ.',
+  'account.google.doneInvite.few':
+    'Les nouveaux comptes commencent avec {count} crédits gratuits pour des scènes dans FluidEQ.',
+  'account.google.doneInvite.many':
+    'Les nouveaux comptes commencent avec {count} crédits gratuits pour des scènes dans FluidEQ.',
+  'account.google.doneInvite.other':
+    'Les nouveaux comptes commencent avec {count} crédits gratuits pour des scènes dans FluidEQ.',
   'account.google.failedTitle': 'La connexion n’a pas abouti',
   'account.google.failedBody':
     'Revenez à FluidEQ pour réessayer ou connectez-vous avec votre e-mail.',

@@ -164,6 +164,14 @@ const account = {
   'account.google.doneTitle': 'Sie sind angemeldet',
   'account.google.doneBody':
     'Sie können diesen Tab schließen und zu FluidEQ zurückkehren.',
+  'account.google.doneInvite.one':
+    'Neue Konten starten mit {count} Gratis-Credit für Szenen in FluidEQ.',
+  'account.google.doneInvite.few':
+    'Neue Konten starten mit {count} Gratis-Credits für Szenen in FluidEQ.',
+  'account.google.doneInvite.many':
+    'Neue Konten starten mit {count} Gratis-Credits für Szenen in FluidEQ.',
+  'account.google.doneInvite.other':
+    'Neue Konten starten mit {count} Gratis-Credits für Szenen in FluidEQ.',
   'account.google.failedTitle': 'Die Anmeldung wurde nicht abgeschlossen',
   'account.google.failedBody':
     'Kehren Sie zu FluidEQ zurück, um es erneut zu versuchen, oder melden Sie sich mit Ihrer E-Mail-Adresse an.',

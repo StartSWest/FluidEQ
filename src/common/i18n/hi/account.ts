@@ -159,6 +159,14 @@ const account = {
     'Google से साइन इन पूरा नहीं हुआ। फिर से कोशिश करें या अपने ईमेल से साइन इन करें।',
   'account.google.doneTitle': 'आप साइन इन हो गए हैं',
   'account.google.doneBody': 'आप यह टैब बंद करके FluidEQ पर लौट सकते हैं।',
+  'account.google.doneInvite.one':
+    'नए खाते FluidEQ के सीन के लिए {count} मुफ़्त क्रेडिट के साथ शुरू होते हैं।',
+  'account.google.doneInvite.few':
+    'नए खाते FluidEQ के सीन के लिए {count} मुफ़्त क्रेडिट के साथ शुरू होते हैं।',
+  'account.google.doneInvite.many':
+    'नए खाते FluidEQ के सीन के लिए {count} मुफ़्त क्रेडिट के साथ शुरू होते हैं।',
+  'account.google.doneInvite.other':
+    'नए खाते FluidEQ के सीन के लिए {count} मुफ़्त क्रेडिट के साथ शुरू होते हैं।',
   'account.google.failedTitle': 'साइन इन पूरा नहीं हुआ',
   'account.google.failedBody':
     'फिर से कोशिश करने के लिए FluidEQ पर लौटें, या अपने ईमेल से साइन इन करें।',

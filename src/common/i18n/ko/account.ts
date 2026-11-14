@@ -152,6 +152,14 @@ const account = {
     'Google로 로그인이 완료되지 않았습니다. 다시 시도하거나 이메일을 사용하세요.',
   'account.google.doneTitle': '로그인되었습니다',
   'account.google.doneBody': '이 탭을 닫고 FluidEQ로 돌아갈 수 있습니다.',
+  'account.google.doneInvite.one':
+    '새 계정은 FluidEQ 장면에 쓸 수 있는 무료 크레딧 {count}개로 시작합니다.',
+  'account.google.doneInvite.few':
+    '새 계정은 FluidEQ 장면에 쓸 수 있는 무료 크레딧 {count}개로 시작합니다.',
+  'account.google.doneInvite.many':
+    '새 계정은 FluidEQ 장면에 쓸 수 있는 무료 크레딧 {count}개로 시작합니다.',
+  'account.google.doneInvite.other':
+    '새 계정은 FluidEQ 장면에 쓸 수 있는 무료 크레딧 {count}개로 시작합니다.',
   'account.google.failedTitle': '로그인이 완료되지 않았습니다.',
   'account.google.failedBody':
     'FluidEQ로 돌아가서 다시 시도하거나 이메일로 로그인하세요.',

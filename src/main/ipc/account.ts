@@ -5,6 +5,7 @@ import {
   translate,
   type LocaleCode,
 } from '../../common/i18n';
+import { STARTER_CREDITS } from '../../common/sceneStore';
 import {
   ACCOUNT_CONFIG,
   isAccountConfigured,
@@ -20,6 +21,7 @@ import {
 } from '../account/session';
 import type { IOAuthPages } from '../account/oauthLoopback';
 import { oauthPage } from '../account/oauthPage';
+import oauthInvite from '../account/oauthInvite';
 import {
   createEntitlement,
   isEntitlementRecord,
@@ -285,6 +287,7 @@ export const registerAccountIpc = ({
         'done',
         say('account.google.doneTitle'),
         say('account.google.doneBody'),
+        oauthInvite(locale, STARTER_CREDITS),
       ),
       failed: oauthPage(
         locale,

@@ -65,6 +65,38 @@ const GLYPHS = {
 export type TOAuthPageTone = keyof typeof GLYPHS;
 
 /**
+ * The credit as the app draws it (`CoinGlyph`, `CreditCoin`): the struck
+ * disc with its edge under it, the polished band, the deep field and the
+ * app icon's wave. Here in the app's own teal, since the page has none of
+ * the window's colours to borrow.
+ */
+const coinSvg = `<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+<defs>
+<linearGradient id="cb" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".3" stop-color="#a1fcff"/><stop offset=".7" stop-color="#1bdee7"/><stop offset="1" stop-color="#a1fcff"/></linearGradient>
+<linearGradient id="ce" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#0e6a6e"/><stop offset="1" stop-color="#062a2c"/></linearGradient>
+<radialGradient id="cf" cx=".4" cy=".35" r=".75"><stop stop-color="#11414a"/><stop offset="1" stop-color="#07141c"/></radialGradient>
+</defs>
+<circle cx="10" cy="11.1" r="8" fill="url(#ce)"/>
+<circle cx="10" cy="9.4" r="8" fill="url(#cb)"/>
+<circle cx="10" cy="9.4" r="6.1" fill="url(#cf)"/>
+<circle cx="10" cy="9.4" r="6.1" fill="none" stroke="rgba(161,252,255,.45)" stroke-width=".5"/>
+<path d="${BRAND_MARK.path}" transform="translate(5.2 4.6) scale(.2)" fill="none" stroke="#a1fcff" stroke-width="5.2" stroke-linecap="round"/>
+<ellipse cx="7" cy="5.4" rx="2.6" ry="1.3" transform="rotate(-30 7 5.4)" fill="#fff" opacity=".45"/>
+</svg>`;
+
+/**
+ * Under "You are signed in": the coin with its count, and what a new account
+ * starts with (Ivan, 2026-11-13: "put the 3D coin and the enjoy-your-3-free-
+ * credits thing, we need to invite the user"). Worded as true for everyone:
+ * the page is served on this computer with no account data, so it cannot know
+ * whether this account is new or its credits already claimed.
+ */
+export interface IOAuthInvite {
+  count: number;
+  line: string;
+}
+
+/**
  * The browser tab's last page after Google: FluidEQ's logo and name, what
  * happened and what to do, in the reader's language and the app's own dark
  * glass. Served by the app's loopback server (`oauthLoopback.ts`), never by
@@ -77,6 +109,7 @@ export const oauthPage = (
   tone: TOAuthPageTone,
   title: string,
   body: string,
+  invite?: IOAuthInvite,
 ): string => `<!doctype html>
 <html lang="${escapeHtml(lang)}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -109,11 +142,21 @@ box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.4)}
 h1{margin:0 0 6px;font-size:22px;font-weight:700;line-height:1.3;text-wrap:balance}
 p{margin:0 auto;max-width:40ch;color:#a7bfc6;text-wrap:pretty}
 .wave{display:block;width:100%;height:24px;margin-top:30px;opacity:.45}
+.invite{display:flex;align-items:center;gap:18px;margin-top:24px;padding:16px 18px;border-radius:16px;text-align:left;
+background:linear-gradient(135deg,rgba(0,229,207,.1),rgba(39,184,255,.04));border:1px solid rgba(114,247,221,.28)}
+.coin{position:relative;flex:none;width:64px;height:64px;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45)) drop-shadow(0 0 14px rgba(27,222,231,.35))}
+.coin svg{display:block;width:100%;height:100%}
+.coin b{position:absolute;right:-7px;bottom:-5px;display:grid;place-items:center;min-width:28px;height:28px;padding:0 6px;border-radius:999px;
+border:3px solid #0b1219;background:linear-gradient(160deg,#fff -40%,#a1fcff 45%,#1bdee7);color:#060a0f;font-size:15px;font-weight:700;line-height:1}
+.invite p{margin:0;max-width:none;color:#e8f4f6;font-weight:600}
+@keyframes float{50%{transform:translateY(-4px) rotate(3deg)}}
+@media (prefers-reduced-motion:no-preference){.coin{animation:float 6s ease-in-out infinite}}
 </style></head>
 <body><main class="${tone}">
 <div class="brand">${logoTile}${wordmark}</div>
 <div class="state"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10.25"/>${GLYPHS[tone]}</svg>
 <div><h1>${escapeHtml(title)}</h1><p>${escapeHtml(body)}</p></div></div>
+${invite ? `<div class="invite"><span class="coin">${coinSvg}<b>${invite.count}</b></span><p>${escapeHtml(invite.line)}</p></div>` : ''}
 <svg class="wave" viewBox="0 0 440 28" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="line" x1="0" y1="0" x2="1" y2="0">${stops}</linearGradient></defs>
 <path d="M0 14C18 2 37 2 55 14S92 26 110 14 147 2 165 14 202 26 220 14 257 2 275 14 312 26 330 14 367 2 385 14 422 26 440 14" fill="none" stroke="url(#line)" stroke-width="1.5" stroke-linecap="round"/></svg>
 </main></body></html>`;

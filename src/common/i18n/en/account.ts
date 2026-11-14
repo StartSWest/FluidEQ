@@ -171,6 +171,14 @@ const account = {
     'Signing in with Google did not finish. Try again, or use your email.',
   'account.google.doneTitle': 'You are signed in',
   'account.google.doneBody': 'You can close this tab and go back to FluidEQ.',
+  'account.google.doneInvite.one':
+    'New accounts start with {count} free credit to spend on scenes in FluidEQ.',
+  'account.google.doneInvite.few':
+    'New accounts start with {count} free credits to spend on scenes in FluidEQ.',
+  'account.google.doneInvite.many':
+    'New accounts start with {count} free credits to spend on scenes in FluidEQ.',
+  'account.google.doneInvite.other':
+    'New accounts start with {count} free credits to spend on scenes in FluidEQ.',
   'account.google.failedTitle': 'Signing in did not finish',
   'account.google.failedBody':
     'Go back to FluidEQ to try again, or sign in with your email.',

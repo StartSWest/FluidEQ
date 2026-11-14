@@ -137,6 +137,14 @@ const account = {
     '使用 Google 登入未完成。再試一次，或使用您的電子郵件。',
   'account.google.doneTitle': '您已登入',
   'account.google.doneBody': '您可以關閉此分頁並返回 FluidEQ。',
+  'account.google.doneInvite.one':
+    '新帳戶附有 {count} 個免費點數，可用於 FluidEQ 的場景。',
+  'account.google.doneInvite.few':
+    '新帳戶附有 {count} 個免費點數，可用於 FluidEQ 的場景。',
+  'account.google.doneInvite.many':
+    '新帳戶附有 {count} 個免費點數，可用於 FluidEQ 的場景。',
+  'account.google.doneInvite.other':
+    '新帳戶附有 {count} 個免費點數，可用於 FluidEQ 的場景。',
   'account.google.failedTitle': '登入未完成',
   'account.google.failedBody': '返回 FluidEQ 重試，或使用您的電子郵件登入。',
 } satisfies Partial<Dictionary>;

@@ -160,6 +160,14 @@ const account = {
     'L’accesso con Google non è stato completato. Riprova o usa la tua email.',
   'account.google.doneTitle': 'Hai effettuato l’accesso',
   'account.google.doneBody': 'Puoi chiudere questa scheda e tornare a FluidEQ.',
+  'account.google.doneInvite.one':
+    'I nuovi account partono con {count} credito gratuito per le scene di FluidEQ.',
+  'account.google.doneInvite.few':
+    'I nuovi account partono con {count} crediti gratuiti per le scene di FluidEQ.',
+  'account.google.doneInvite.many':
+    'I nuovi account partono con {count} crediti gratuiti per le scene di FluidEQ.',
+  'account.google.doneInvite.other':
+    'I nuovi account partono con {count} crediti gratuiti per le scene di FluidEQ.',
   'account.google.failedTitle': 'L’accesso non è stato completato',
   'account.google.failedBody':
     'Torna a FluidEQ per riprovare o accedi con la tua email.',

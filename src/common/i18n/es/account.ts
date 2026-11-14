@@ -161,6 +161,14 @@ const account = {
     'El inicio de sesión con Google no terminó. Inténtalo de nuevo o usa tu correo.',
   'account.google.doneTitle': 'Has iniciado sesión',
   'account.google.doneBody': 'Puedes cerrar esta pestaña y volver a FluidEQ.',
+  'account.google.doneInvite.one':
+    'Las cuentas nuevas empiezan con {count} crédito gratis para escenas de FluidEQ.',
+  'account.google.doneInvite.few':
+    'Las cuentas nuevas empiezan con {count} créditos gratis para escenas de FluidEQ.',
+  'account.google.doneInvite.many':
+    'Las cuentas nuevas empiezan con {count} créditos gratis para escenas de FluidEQ.',
+  'account.google.doneInvite.other':
+    'Las cuentas nuevas empiezan con {count} créditos gratis para escenas de FluidEQ.',
   'account.google.failedTitle': 'El inicio de sesión no terminó',
   'account.google.failedBody':
     'Vuelve a FluidEQ para intentarlo de nuevo o inicia sesión con tu correo.',

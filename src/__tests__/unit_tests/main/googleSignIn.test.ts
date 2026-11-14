@@ -216,6 +216,44 @@ describe('the answer coming back to this computer', () => {
     expect(failed).toContain('M12 7.6');
     expect(failed).not.toContain('M8 12.4');
   });
+
+  // Ivan, 2026-11-13: "put the 3D coin and the enjoy-your-3-free-credits
+  // thing, we need to invite the user". The coin wears the count; the line is
+  // the caller's, written as text.
+  it('invites with the coin and its count when asked to', () => {
+    const page = oauthPage('en', 'done', 'Signed in', 'Close this tab.', {
+      count: 3,
+      line: 'New accounts start with <3> free credits.',
+    });
+    const invite = /<div class="invite">([\s\S]*?)<\/div>/.exec(page)?.[1];
+    expect(invite).toContain('<span class="coin"><svg');
+    expect(invite).toContain('<b>3</b>');
+    expect(invite).toContain(`d="${BRAND_MARK.path}"`);
+    expect(invite).toContain('New accounts start with &lt;3&gt; free credits.');
+    expect(page).not.toMatch(
+      /\b(src|href)=|@import|url\(\s*['"]?(https?:|\/\/)/i,
+    );
+  });
+
+  it('shows no coin where there is no invitation', () => {
+    const failed = oauthPage('en', 'failed', 'Did not finish', 'Try again.');
+    expect(failed).not.toContain('class="invite"');
+    expect(failed).not.toContain('class="coin"');
+  });
+
+  // The coin floats only for somebody whose system has not asked for less
+  // motion: the animation is declared inside the no-preference query alone.
+  it('moves the coin only where motion is welcome', () => {
+    const page = oauthPage('en', 'done', 'Signed in', 'Close this tab.', {
+      count: 3,
+      line: 'Three.',
+    });
+    const animations = page.match(/animation:[^;}]+/g) ?? [];
+    expect(animations).toHaveLength(1);
+    const query =
+      /@media \(prefers-reduced-motion:no-preference\)\{([^}]*\})\}/.exec(page);
+    expect(query?.[1]).toContain(animations[0]);
+  });
 });
 
 describe('signing in with Google', () => {

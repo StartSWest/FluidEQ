@@ -142,6 +142,14 @@ const account = {
     'Google 登录未完成。请重试，或使用电子邮件登录。',
   'account.google.doneTitle': '你已登录',
   'account.google.doneBody': '可以关闭此标签页并返回 FluidEQ。',
+  'account.google.doneInvite.one':
+    '新账户自带 {count} 个免费点数，可用于 FluidEQ 的场景。',
+  'account.google.doneInvite.few':
+    '新账户自带 {count} 个免费点数，可用于 FluidEQ 的场景。',
+  'account.google.doneInvite.many':
+    '新账户自带 {count} 个免费点数，可用于 FluidEQ 的场景。',
+  'account.google.doneInvite.other':
+    '新账户自带 {count} 个免费点数，可用于 FluidEQ 的场景。',
   'account.google.failedTitle': '登录未完成',
   'account.google.failedBody': '请返回 FluidEQ 重试，或使用电子邮件登录。',
 } as const;

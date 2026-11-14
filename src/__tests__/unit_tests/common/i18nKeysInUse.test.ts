@@ -174,6 +174,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ],
   ],
   // A creator's sales, in the language's own plural forms.
+  // The browser tab after a Google sign-in: what a new account starts with.
+  'src/main/account/oauthInvite.ts': [
+    [
+      'account.google.doneInvite.{one,few,many,other}',
+      'account.google.doneInvite.*',
+    ],
+  ],
   'src/renderer/account/CreatorPayoutsCard.tsx': [
     ['creator.sales.{one,few,many,other}', 'creator.sales.*'],
   ],

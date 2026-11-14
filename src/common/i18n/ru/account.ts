@@ -158,6 +158,14 @@ const account = {
     'Вход через Google не завершён. Попробуйте ещё раз или войдите по электронной почте.',
   'account.google.doneTitle': 'Вы вошли',
   'account.google.doneBody': 'Эту вкладку можно закрыть и вернуться в FluidEQ.',
+  'account.google.doneInvite.one':
+    'Новые аккаунты получают {count} бесплатный кредит на сцены в FluidEQ.',
+  'account.google.doneInvite.few':
+    'Новые аккаунты получают {count} бесплатных кредита на сцены в FluidEQ.',
+  'account.google.doneInvite.many':
+    'Новые аккаунты получают {count} бесплатных кредитов на сцены в FluidEQ.',
+  'account.google.doneInvite.other':
+    'Новые аккаунты получают {count} бесплатных кредита на сцены в FluidEQ.',
   'account.google.failedTitle': 'Вход не завершён',
   'account.google.failedBody':
     'Вернитесь в FluidEQ, чтобы попробовать снова, или войдите по электронной почте.',
