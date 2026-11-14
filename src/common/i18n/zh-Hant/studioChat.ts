@@ -64,11 +64,23 @@ const studioChat = {
   'studioChat.stopped': '停了。',
   'studioChat.failed.missing': 'Claude Code不再在此電腦上。',
   'studioChat.failed.signedOut':
-    'Claude Code已登出。登入，然後再次傳送您的訊息。',
+    'Claude Code 已登出，或登入已過期。請重新登入 Claude 後繼續。',
   'studioChat.failed.limit':
     '您的 Claude 計劃已達到使用限制。一段時間後會重設；然後再傳送您的訊息。',
   'studioChat.failed.crashed':
     'Claude Code還沒說完就停了下來。再次傳送您的訊息以繼續。',
+  'studioChat.failed.limitFiveHour':
+    '您的 Claude 方案已達到 5 小時工作階段上限。',
+  'studioChat.failed.limitWeek': '您的 Claude 方案已達到每週上限。',
+  'studioChat.failed.limitOpus': '您的 Claude 方案已達到 Opus 的每週上限。',
+  'studioChat.failed.subscription':
+    'Claude Code 目前無法使用您的 Claude 訂閱。通常是有款項逾期，或您的組織已將其關閉。請在 claude.ai 查看您的方案，然後重試。',
+  'studioChat.failed.network': '無法連線到 Claude。請檢查網路連線，然後重試。',
+  'studioChat.failed.server':
+    'Claude 負載過高，或它那邊出了問題。通常很快就會恢復。',
+  'studioChat.failed.tooLong':
+    '這個聊天太長，Claude 已無法讀取。請壓縮它，或開始新聊天。',
+  'studioChat.failed.said': 'Claude Code 的回覆：「{words}」',
   'studioChat.placeholderFirst': '描述一下你的場景…',
   'studioChat.placeholder': '要求改變，例如“讓軍鼓上的燈光閃爍”',
   'studioChat.attach': '安裝舞臺',
@@ -196,7 +208,7 @@ const studioChat = {
   'studioChat.step.compact': '壓縮對話',
   'studioChat.step.compactNow': '壓縮對話...',
   'studioChat.step.compactTokens': '{before} → {after} 代幣',
-  'studioChat.compact.label': '緊湊型',
+  'studioChat.compact.label': '壓縮',
   'studioChat.context.share': '{percent} 上下文百分比',
   'studioChat.context.detail':
     'Claude 上下文視窗中的 {used} 或 {window} 令牌。緊湊，騰出空間。',

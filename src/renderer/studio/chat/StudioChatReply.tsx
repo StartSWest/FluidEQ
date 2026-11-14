@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useMemo, useState } from 'react';
-import type { TranslationKey } from 'common/i18n';
 import type {
   IStudioChatStep,
   TStudioChatEntry,
@@ -16,20 +15,11 @@ import { useTranslation } from '../../utils/I18nContext';
 import ChatText from './ChatText';
 import StudioChatCopy from './StudioChatCopy';
 import StudioChatFableLimit from './StudioChatFableLimit';
+import StudioChatStopped from './StudioChatStopped';
 import { isCutOut, pictureKey, stepLabel } from './chatPictureList';
-import { CLAUDE_CODE_INSTALL_URL } from './StudioChatSetup';
-import { signInToStudioChat, useStudioChat } from './studioChatStore';
 import '../../styles/StudioChatReply.scss';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
-
-const FAILURE_WORDS: Record<NonNullable<TReply['failure']>, TranslationKey> = {
-  missing: 'studioChat.failed.missing',
-  'signed-out': 'studioChat.failed.signedOut',
-  limit: 'studioChat.failed.limit',
-  'fable-limit': 'studioChat.failed.fableLimit',
-  crashed: 'studioChat.failed.crashed',
-};
 
 /**
  * Steps that would read the same twice in a row - the scene file changed in
@@ -149,7 +139,6 @@ export default function StudioChatReply({
   onRestore,
 }: IStudioChatReplyProps) {
   const { t } = useTranslation();
-  const { signingIn } = useStudioChat();
   const [restore, setRestore] = useState<
     'idle' | 'running' | 'done' | 'failed'
   >('idle');
@@ -240,41 +229,11 @@ export default function StudioChatReply({
       {reply.state === 'failed' &&
         reply.failure &&
         reply.failure !== 'fable-limit' && (
-          <div className="studio-chat__failure" role="alert">
-            <Glyph name="alert" />
-            <span>{t(FAILURE_WORDS[reply.failure])}</span>
-            {reply.failure === 'signed-out' && (
-              <button
-                type="button"
-                className={`button small${signingIn ? ' is-running' : ''}`}
-                aria-busy={signingIn}
-                disabled={signingIn}
-                onClick={() => {
-                  signInToStudioChat()
-                    .then((answer) => {
-                      if (answer?.state === 'ready') {
-                        onRetry?.();
-                      }
-                      return undefined;
-                    })
-                    .catch(() => undefined);
-                }}
-              >
-                {t('studioChat.signIn')}
-              </button>
-            )}
-            {reply.failure === 'missing' && (
-              <button
-                type="button"
-                className="button small"
-                onClick={() =>
-                  window.open(CLAUDE_CODE_INSTALL_URL, '_blank', 'noopener')
-                }
-              >
-                {t('studioChat.install')}
-              </button>
-            )}
-          </div>
+          <StudioChatStopped
+            reply={reply}
+            failure={reply.failure}
+            onRetry={onRetry}
+          />
         )}
       {/* The reply's words, to copy, once it has ended. */}
       {reply.text && !working && (

@@ -10,6 +10,12 @@ import type {
   TStudioChatFailure,
 } from '../../common/studioChat';
 import { ANIMATION_NAME } from '../../common/studioAnimation';
+import {
+  stopOf,
+  stopReport,
+  type IChatStop,
+  type IStopClues,
+} from './chatStop';
 
 /**
  * Claude Code's stream (`--output-format stream-json`), one JSON object a
@@ -55,7 +61,11 @@ export type TChatStreamEvent =
       /** The first picture it carried, as a data URL. */
       picture?: string;
     }
-  | { type: 'end'; failure?: TStudioChatFailure }
+  /**
+   * The turn ended: well with no `failure`, else why (`chatStop.ts`), with
+   * a `report` of what Claude Code named when the chat has no notice for it.
+   */
+  | ({ type: 'end'; report?: string } & Partial<IChatStop>)
   /**
    * Claude Code asks whether a tool may run that neither the chat nor the
    * member's own settings allow (`--permission-prompt-tool stdio`), and
@@ -186,29 +196,12 @@ const pictureOf = (content: unknown): string | undefined => {
 };
 
 /**
- * Why a reply that ended in an error ended, from the words Claude Code ends
- * it with: a plan's limit and a lost sign-in each have something the member
- * can do about them; anything else is the chat's own failure.
+ * Why a reply that ended in an error ended, from its closing words alone:
+ * what is left to go by where Claude Code named nothing beside them
+ * (`stopOf` in `chatStop.ts` reads the rest).
  */
-export const failureOf = (text: unknown): TStudioChatFailure => {
-  const words = typeof text === 'string' ? text : '';
-  // Claude Code's words when Fable's own weekly window is spent: "You've
-  // reached your Fable limit. … switch models" (2.1.321). Another model is
-  // not held to it, which is why it is told apart from the plan's limit;
-  // read as the plan's, it fell through to "stopped before it finished".
-  if (/\bFable limit\b/i.test(words)) {
-    return 'fable-limit';
-  }
-  if (
-    /usage limit|rate limit|limit reached|out of (extra )?usage/i.test(words)
-  ) {
-    return 'limit';
-  }
-  if (/\/login|log ?in|sign ?in|oauth|api key|authenticat/i.test(words)) {
-    return 'signed-out';
-  }
-  return 'crashed';
-};
+export const failureOf = (text: unknown): TStudioChatFailure =>
+  stopOf({ result: text }).failure;
 
 /**
  * A system line: the session it is, and Claude Code compacting the
@@ -295,8 +288,15 @@ const permissionEvents = (
   ];
 };
 
-/** The events one line of the stream holds; none for a line passed over. */
-export const readStreamLine = (line: string): TChatStreamEvent[] => {
+/**
+ * The events one line of the stream holds; none for a line passed over.
+ * `clues`: what the turn's earlier lines named about its end, for the line
+ * that ends it (`withStopClues`).
+ */
+export const readStreamLine = (
+  line: string,
+  clues?: IStopClues,
+): TChatStreamEvent[] => {
   let message: unknown;
   try {
     message = JSON.parse(line);
@@ -400,10 +400,22 @@ export const readStreamLine = (line: string): TChatStreamEvent[] => {
         ];
       });
     }
-    case 'result':
-      return message.is_error === true || message.subtype !== 'success'
-        ? [{ type: 'end', failure: failureOf(message.result) }]
-        : [{ type: 'end' }];
+    case 'result': {
+      if (message.is_error !== true && message.subtype === 'success') {
+        return [{ type: 'end' }];
+      }
+      const stop = stopOf(message, clues);
+      return [
+        {
+          type: 'end',
+          ...stop,
+          // What a stop with no notice of its own was, for the log.
+          ...(stop.failure === 'crashed'
+            ? { report: stopReport(message, clues) }
+            : {}),
+        },
+      ];
+    }
     case 'control_request':
       return permissionEvents(message);
     default:

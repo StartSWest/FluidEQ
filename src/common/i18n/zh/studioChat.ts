@@ -60,11 +60,22 @@ const studioChat = {
   'studioChat.stopped': '已停止。',
   'studioChat.failed.missing': '这台电脑上已经没有 Claude Code 了。',
   'studioChat.failed.signedOut':
-    'Claude Code 已退出登录。请登录后再发送一次消息。',
+    'Claude Code 已退出登录，或登录已过期。请重新登录 Claude 后继续。',
   'studioChat.failed.limit':
     '你的 Claude 套餐已达到用量上限。过一段时间会重置，届时再发送一次消息。',
   'studioChat.failed.crashed':
     'Claude Code 在完成前停止了。再发送一次消息即可继续。',
+  'studioChat.failed.limitFiveHour': '你的 Claude 套餐已达到 5 小时会话上限。',
+  'studioChat.failed.limitWeek': '你的 Claude 套餐已达到每周上限。',
+  'studioChat.failed.limitOpus': '你的 Claude 套餐已达到 Opus 的每周上限。',
+  'studioChat.failed.subscription':
+    'Claude Code 目前无法使用你的 Claude 订阅。通常是有款项逾期，或你的组织已将其关闭。请在 claude.ai 查看你的套餐，然后重试。',
+  'studioChat.failed.network': '无法连接到 Claude。请检查网络连接，然后重试。',
+  'studioChat.failed.server':
+    'Claude 负载过高，或它那边出了问题。通常很快就会恢复。',
+  'studioChat.failed.tooLong':
+    '这个聊天太长，Claude 已无法读取。请压缩它，或开始新聊天。',
+  'studioChat.failed.said': 'Claude Code 的回复：“{words}”',
   'studioChat.placeholderFirst': '描述你的场景…',
   'studioChat.placeholder': '提出修改，比如“让灯光随军鼓闪烁”',
   'studioChat.attach': '附上舞台',

@@ -347,9 +347,14 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Fable's own limit: the card's line, then what Opus can do on a row of
-// its own, set in under the words so the icon keeps its column.
+// A stop's notice, and Fable's own limit: the card's line, then what there
+// is to add or to press on rows of their own, set in under the words so the
+// icon keeps its column. The words run to five lines in some languages
+// (German, 282px), so the icon stands on the first, not half way down:
+// measured, its middle is the first line's with no offset at all.
 .studio-chat__fable {
+  align-items: flex-start;
+
   > .studio-chat__fable-note,
   > .studio-chat__fable-actions {
     flex: 1 1 100%;

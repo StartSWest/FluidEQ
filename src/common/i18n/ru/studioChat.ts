@@ -61,11 +61,26 @@ const studioChat = {
   'studioChat.stopped': 'Остановлено.',
   'studioChat.failed.missing': 'Claude Code больше нет на этом компьютере.',
   'studioChat.failed.signedOut':
-    'В Claude Code выполнен выход. Войдите и отправьте сообщение ещё раз.',
+    'В Claude Code выполнен выход, или срок входа истёк. Войдите в Claude снова, чтобы продолжить.',
   'studioChat.failed.limit':
     'Достигнут лимит использования вашего плана Claude. Он сбросится через некоторое время; тогда отправьте сообщение ещё раз.',
   'studioChat.failed.crashed':
     'Claude Code остановился, не закончив. Отправьте сообщение ещё раз, чтобы продолжить.',
+  'studioChat.failed.limitFiveHour':
+    'Достигнут 5-часовой лимит сессии вашего плана Claude.',
+  'studioChat.failed.limitWeek':
+    'Достигнут недельный лимит вашего плана Claude.',
+  'studioChat.failed.limitOpus':
+    'Достигнут недельный лимит Opus в вашем плане Claude.',
+  'studioChat.failed.subscription':
+    'Claude Code сейчас не может использовать вашу подписку Claude. Обычно это просроченный платёж, или ваша организация её отключила. Проверьте план на claude.ai и попробуйте ещё раз.',
+  'studioChat.failed.network':
+    'Не удалось связаться с Claude. Проверьте подключение к интернету и попробуйте ещё раз.',
+  'studioChat.failed.server':
+    'Claude перегружен, или на его стороне возникла проблема. Обычно это проходит через минуту.',
+  'studioChat.failed.tooLong':
+    'Этот чат стал слишком длинным, чтобы Claude мог его прочитать. Сожмите его или начните новый чат.',
+  'studioChat.failed.said': 'Claude Code ответил: «{words}»',
   'studioChat.placeholderFirst': 'Опишите вашу сцену…',
   'studioChat.placeholder':
     'Попросите изменение, например «пусть свет вспыхивает на малом барабане»',

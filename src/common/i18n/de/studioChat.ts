@@ -63,11 +63,26 @@ const studioChat = {
   'studioChat.failed.missing':
     'Claude Code ist nicht mehr auf diesem Computer.',
   'studioChat.failed.signedOut':
-    'Claude Code ist abgemeldet. Melden Sie sich an und senden Sie Ihre Nachricht erneut.',
+    'Claude Code ist abgemeldet, oder die Anmeldung ist abgelaufen. Melden Sie sich erneut bei Claude an, um weiterzumachen.',
   'studioChat.failed.limit':
     'Das Nutzungslimit Ihres Claude-Abos ist erreicht. Es setzt sich nach einer Weile zurück; senden Sie Ihre Nachricht dann erneut.',
   'studioChat.failed.crashed':
     'Claude Code hat vor dem Ende aufgehört. Senden Sie Ihre Nachricht erneut, um weiterzumachen.',
+  'studioChat.failed.limitFiveHour':
+    'Das 5-Stunden-Sitzungslimit Ihres Claude-Abos ist erreicht.',
+  'studioChat.failed.limitWeek':
+    'Das Wochenlimit Ihres Claude-Abos ist erreicht.',
+  'studioChat.failed.limitOpus':
+    'Das Wochenlimit Ihres Claude-Abos für Opus ist erreicht.',
+  'studioChat.failed.subscription':
+    'Claude Code kann Ihr Claude-Abo gerade nicht nutzen. Meist ist eine Zahlung überfällig, oder Ihre Organisation hat es abgeschaltet. Prüfen Sie Ihr Abo auf claude.ai und versuchen Sie es dann erneut.',
+  'studioChat.failed.network':
+    'Claude war nicht erreichbar. Prüfen Sie Ihre Internetverbindung und versuchen Sie es dann erneut.',
+  'studioChat.failed.server':
+    'Claude ist überlastet oder hatte ein Problem auf seiner Seite. Das ist meist nach einem Moment vorbei.',
+  'studioChat.failed.tooLong':
+    'Dieser Chat ist zu lang geworden, als dass Claude ihn lesen könnte. Verdichten Sie ihn, oder beginnen Sie einen neuen Chat.',
+  'studioChat.failed.said': 'Claude Code meldete: „{words}“',
   'studioChat.placeholderFirst': 'Beschreiben Sie Ihre Szene…',
   'studioChat.placeholder':
     'Bitten Sie um eine Änderung, etwa „die Lichter blitzen bei der Snare“',

@@ -65,11 +65,25 @@ const studioChat = {
   'studioChat.stopped': '중지되었습니다.',
   'studioChat.failed.missing': 'Claude Code는 더 이상 이 컴퓨터에 없습니다.',
   'studioChat.failed.signedOut':
-    'Claude Code가 로그아웃되었습니다. 로그인한 다음 메시지를 다시 보내세요.',
+    'Claude Code가 로그아웃되었거나 로그인이 만료되었습니다. 계속하려면 Claude에 다시 로그인하세요.',
   'studioChat.failed.limit':
     'Claude 요금제의 사용량 한도에 도달했습니다. 잠시 후 재설정됩니다. 그럼 다시 메시지를 보내주세요.',
   'studioChat.failed.crashed':
     'Claude Code는 완료되기 전에 중지되었습니다. 계속하려면 메시지를 다시 보내세요.',
+  'studioChat.failed.limitFiveHour':
+    'Claude 요금제의 5시간 세션 한도에 도달했습니다.',
+  'studioChat.failed.limitWeek': 'Claude 요금제의 주간 한도에 도달했습니다.',
+  'studioChat.failed.limitOpus':
+    'Claude 요금제의 Opus 주간 한도에 도달했습니다.',
+  'studioChat.failed.subscription':
+    '지금은 Claude Code가 Claude 구독을 사용할 수 없습니다. 대개 결제가 연체되었거나 조직에서 꺼 둔 경우입니다. claude.ai에서 요금제를 확인한 다음 다시 시도하세요.',
+  'studioChat.failed.network':
+    'Claude에 연결할 수 없습니다. 인터넷 연결을 확인한 다음 다시 시도하세요.',
+  'studioChat.failed.server':
+    'Claude가 과부하 상태이거나 Claude 쪽에서 문제가 발생했습니다. 대개 잠시 후 해결됩니다.',
+  'studioChat.failed.tooLong':
+    '이 채팅이 너무 길어져 Claude가 읽을 수 없습니다. 압축하거나 새 채팅을 시작하세요.',
+  'studioChat.failed.said': 'Claude Code의 응답: “{words}”',
   'studioChat.placeholderFirst': '당신의 장면을 묘사하세요…',
   'studioChat.placeholder':
     '"스네어에서 조명을 깜박이게 해 줘"와 같이 변경을 요청하세요.',
@@ -203,7 +217,7 @@ const studioChat = {
   'studioChat.step.compact': '대화를 압축했습니다.',
   'studioChat.step.compactNow': '대화를 압축하는 중…',
   'studioChat.step.compactTokens': '{before} → {after} 토큰',
-  'studioChat.compact.label': '콤팩트',
+  'studioChat.compact.label': '압축',
   'studioChat.context.share': '{percent}%(컨텍스트)',
   'studioChat.context.detail':
     'Claude의 컨텍스트 창에 있는 {window} 토큰의 {used}. 컴팩트하게 공간을 확보하세요.',

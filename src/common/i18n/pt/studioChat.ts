@@ -61,11 +61,26 @@ const studioChat = {
   'studioChat.stopped': 'Interrompido.',
   'studioChat.failed.missing': 'O Claude Code não está mais neste computador.',
   'studioChat.failed.signedOut':
-    'O Claude Code saiu da conta. Entre e envie sua mensagem de novo.',
+    'O Claude Code saiu da conta, ou o acesso expirou. Entre de novo no Claude para continuar.',
   'studioChat.failed.limit':
     'O limite de uso do seu plano do Claude foi atingido. Ele se renova depois de um tempo; envie sua mensagem de novo então.',
   'studioChat.failed.crashed':
     'O Claude Code parou antes de terminar. Envie sua mensagem de novo para continuar.',
+  'studioChat.failed.limitFiveHour':
+    'Você atingiu o limite de sessão de 5 horas do seu plano do Claude.',
+  'studioChat.failed.limitWeek':
+    'Você atingiu o limite semanal do seu plano do Claude.',
+  'studioChat.failed.limitOpus':
+    'Você atingiu o limite semanal do Opus no seu plano do Claude.',
+  'studioChat.failed.subscription':
+    'O Claude Code não pode usar sua assinatura do Claude agora. Em geral há um pagamento atrasado, ou sua organização a desativou. Confira seu plano em claude.ai e tente de novo.',
+  'studioChat.failed.network':
+    'Não foi possível conectar ao Claude. Confira sua conexão com a internet e tente de novo.',
+  'studioChat.failed.server':
+    'O Claude está sobrecarregado ou teve um problema do lado dele. Costuma passar em instantes.',
+  'studioChat.failed.tooLong':
+    'Esta conversa ficou longa demais para o Claude ler. Compacte-a, ou comece uma nova conversa.',
+  'studioChat.failed.said': 'O Claude Code respondeu: “{words}”',
   'studioChat.placeholderFirst': 'Descreva sua cena…',
   'studioChat.placeholder':
     'Peça uma mudança, como “faça as luzes piscarem na caixa”',

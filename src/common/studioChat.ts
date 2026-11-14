@@ -16,6 +16,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * (code.claude.com/docs/en/legal-and-compliance, 2026-10-09).
  */
 
+import type { IStudioChatLimitHit, TStudioChatFailure } from './studioChatStop';
+
 /** Whether the chat can be used on this computer, and why not. */
 export type TStudioChatAvailability =
   | { state: 'checking' }
@@ -69,14 +71,7 @@ export interface IStudioChatStep {
   tokens?: { before: number; after: number };
 }
 
-/** Why a reply stopped short. */
-export type TStudioChatFailure =
-  | 'missing'
-  | 'signed-out'
-  | 'limit'
-  /** Fable's own weekly limit, which another model is not held to. */
-  | 'fable-limit'
-  | 'crashed';
+export type { TStudioChatFailure };
 
 export type TStudioChatEntry =
   | {
@@ -92,7 +87,12 @@ export type TStudioChatEntry =
       text: string;
       steps: IStudioChatStep[];
       state: 'working' | 'done' | 'stopped' | 'failed';
+      /** Why it stopped short, where it failed (`studioChatStop.ts`). */
       failure?: TStudioChatFailure;
+      /** The plan's limit that stopped it, where Claude Code said which. */
+      limit?: IStudioChatLimitHit;
+      /** Claude Code's own words, on a stop the chat has no notice for. */
+      said?: string;
       /**
        * The version the project stood at when the reply ended, where the
        * reply changed the scene: the card that can bring it back.

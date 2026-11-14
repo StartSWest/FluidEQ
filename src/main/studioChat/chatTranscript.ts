@@ -12,8 +12,12 @@ import {
   type IStudioChatPicks,
   type IStudioChatStep,
   type TStudioChatEntry,
-  type TStudioChatFailure,
 } from '../../common/studioChat';
+import {
+  isStudioChatFailure,
+  readStudioChatLimitHit,
+  STUDIO_CHAT_SAID_MAX,
+} from '../../common/studioChatStop';
 import writeFileAtomically from '../atomicWrite';
 import { readChatContext } from './chatUsage';
 
@@ -94,15 +98,21 @@ const kindOf = (raw: unknown): IStudioChatStep['kind'] | undefined => {
 };
 const STEP_STATES = new Set(['running', 'done', 'failed']);
 const REPLY_STATES = new Set(['working', 'done', 'stopped', 'failed']);
-const FAILURES: ReadonlySet<string> = new Set<TStudioChatFailure>([
-  'missing',
-  'signed-out',
-  'limit',
-  'fable-limit',
-  'crashed',
-]);
-const isFailure = (value: unknown): value is TStudioChatFailure =>
-  typeof value === 'string' && FAILURES.has(value);
+
+/** Why a saved reply failed, with what Claude Code said of it, each checked. */
+const stopOfSaved = (raw: Record<string, unknown>) => {
+  if (!isStudioChatFailure(raw.failure)) {
+    return {};
+  }
+  const limit = readStudioChatLimitHit(raw.limit);
+  return {
+    failure: raw.failure,
+    ...(limit ? { limit } : {}),
+    ...(typeof raw.said === 'string' && raw.said
+      ? { said: raw.said.slice(0, STUDIO_CHAT_SAID_MAX) }
+      : {}),
+  };
+};
 
 const tokensOf = (raw: unknown) =>
   isRecord(raw) &&
@@ -169,7 +179,7 @@ export const readEntry = (raw: unknown): TStudioChatEntry | undefined => {
       step.state === 'running' ? { ...step, state: 'failed' } : step,
     ),
     state,
-    ...(isFailure(raw.failure) ? { failure: raw.failure } : {}),
+    ...stopOfSaved(raw),
     ...(typeof raw.version === 'number' && Number.isInteger(raw.version)
       ? { version: raw.version }
       : {}),

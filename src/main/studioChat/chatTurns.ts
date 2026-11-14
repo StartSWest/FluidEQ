@@ -13,6 +13,7 @@ import type { IChatSession } from './chatLaunch';
 import { userLine, type IChatMessage } from './chatMessage';
 import { chatPictureFromBytes, chatPictureFromDataUrl } from './chatPicture';
 import type { TChatQueue } from './chatQueue';
+import { stopFields, type IChatStop } from './chatStop';
 import type { TChatStreamEvent } from './chatStream';
 import { keepReplyVersion, nextReplyVersion } from './chatVersions';
 import {
@@ -134,7 +135,7 @@ const createChatTurns = ({
     projectId: string,
     session: IChatSession,
     state: 'done' | 'stopped' | 'failed',
-    failure?: TStudioChatFailure,
+    stop?: IChatStop,
   ) => {
     const { reply } = session;
     if (!reply) {
@@ -158,7 +159,7 @@ const createChatTurns = ({
       steps: reply.steps.map((step) =>
         step.state === 'running' ? { ...step, state: 'failed' } : step,
       ),
-      ...(failure && state === 'failed' ? { failure } : {}),
+      ...(stop && state === 'failed' ? stopFields(stop) : {}),
       ...(version === undefined ? {} : { version }),
     });
     save(projectId);
@@ -385,7 +386,12 @@ const createChatTurns = ({
         }
         session.stopping = false;
         session.sendingNow = false;
-        close(projectId, session, state, event.failure);
+        close(
+          projectId,
+          session,
+          state,
+          event.failure ? { ...event, failure: event.failure } : undefined,
+        );
         // Stopped or done, what waits goes on, read as Claude's next turn
         // (2026-10-16: "stop but read any pending message and continue with
         // those until user stop them"). A failure keeps it waiting: the
@@ -478,7 +484,7 @@ const createChatTurns = ({
         projectId,
         session,
         stopped ? 'stopped' : 'failed',
-        stopped ? undefined : failure,
+        stopped ? undefined : { failure },
       );
     },
   };

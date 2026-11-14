@@ -61,11 +61,26 @@ const studioChat = {
   'studioChat.stopped': 'Arrêté.',
   'studioChat.failed.missing': 'Claude Code n’est plus sur cet ordinateur.',
   'studioChat.failed.signedOut':
-    'Claude Code est déconnecté. Connectez-vous, puis renvoyez votre message.',
+    'Claude Code est déconnecté, ou sa connexion a expiré. Reconnectez-vous à Claude pour continuer.',
   'studioChat.failed.limit':
     'La limite d’utilisation de votre forfait Claude est atteinte. Elle se réinitialise au bout d’un moment ; renvoyez alors votre message.',
   'studioChat.failed.crashed':
     'Claude Code s’est arrêté avant la fin. Renvoyez votre message pour continuer.',
+  'studioChat.failed.limitFiveHour':
+    'Vous avez atteint la limite de session de 5 heures de votre forfait Claude.',
+  'studioChat.failed.limitWeek':
+    'Vous avez atteint la limite hebdomadaire de votre forfait Claude.',
+  'studioChat.failed.limitOpus':
+    'Vous avez atteint la limite hebdomadaire d’Opus de votre forfait Claude.',
+  'studioChat.failed.subscription':
+    'Claude Code ne peut pas utiliser votre abonnement Claude pour le moment. Le plus souvent, un paiement est en retard, ou votre organisation l’a désactivé. Vérifiez votre forfait sur claude.ai, puis réessayez.',
+  'studioChat.failed.network':
+    'Impossible de joindre Claude. Vérifiez votre connexion internet, puis réessayez.',
+  'studioChat.failed.server':
+    'Claude est surchargé ou a rencontré un problème de son côté. Cela passe en général en un instant.',
+  'studioChat.failed.tooLong':
+    'Cette discussion est devenue trop longue pour que Claude la lise. Compactez-la, ou commencez une nouvelle discussion.',
+  'studioChat.failed.said': 'Claude Code a répondu : « {words} »',
   'studioChat.placeholderFirst': 'Décrivez votre scène…',
   'studioChat.placeholder':
     'Demandez un changement, par exemple « fais clignoter les lumières sur la caisse claire »',

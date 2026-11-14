@@ -61,11 +61,26 @@ const studioChat = {
   'studioChat.stopped': 'रोका गया।',
   'studioChat.failed.missing': 'Claude Code अब इस कंप्यूटर पर नहीं है।',
   'studioChat.failed.signedOut':
-    'Claude Code से साइन आउट हो गया है। साइन इन करें, फिर अपना संदेश दोबारा भेजें।',
+    'Claude Code से साइन आउट हो गया है, या उसका साइन-इन समाप्त हो गया है। जारी रखने के लिए Claude में फिर से साइन इन करें।',
   'studioChat.failed.limit':
     'आपके Claude प्लान की उपयोग सीमा पूरी हो गई। यह कुछ समय बाद रीसेट होती है; तब अपना संदेश दोबारा भेजें।',
   'studioChat.failed.crashed':
     'Claude Code पूरा होने से पहले रुक गया। जारी रखने के लिए अपना संदेश दोबारा भेजें।',
+  'studioChat.failed.limitFiveHour':
+    'आपके Claude प्लान की 5 घंटे की सेशन सीमा पूरी हो गई है।',
+  'studioChat.failed.limitWeek':
+    'आपके Claude प्लान की साप्ताहिक सीमा पूरी हो गई है।',
+  'studioChat.failed.limitOpus':
+    'आपके Claude प्लान में Opus की साप्ताहिक सीमा पूरी हो गई है।',
+  'studioChat.failed.subscription':
+    'Claude Code अभी आपकी Claude सदस्यता का उपयोग नहीं कर पा रहा है। आम तौर पर कोई भुगतान बकाया होता है, या आपके संगठन ने इसे बंद कर दिया है। claude.ai पर अपना प्लान देखें, फिर दोबारा कोशिश करें।',
+  'studioChat.failed.network':
+    'Claude तक नहीं पहुँचा जा सका। अपना इंटरनेट कनेक्शन जाँचें, फिर दोबारा कोशिश करें।',
+  'studioChat.failed.server':
+    'Claude पर अभी बहुत भार है या उसकी ओर से कोई समस्या आई। यह आम तौर पर कुछ ही देर में ठीक हो जाता है।',
+  'studioChat.failed.tooLong':
+    'यह चैट इतनी लंबी हो गई है कि Claude इसे पढ़ नहीं सकता। इसे संक्षिप्त करें, या नई चैट शुरू करें।',
+  'studioChat.failed.said': 'Claude Code ने कहा: “{words}”',
   'studioChat.placeholderFirst': 'अपने सीन के बारे में बताइए…',
   'studioChat.placeholder': 'कोई बदलाव माँगिए, जैसे “स्नेयर पर लाइटें चमकाओ”',
   'studioChat.attach': 'स्टेज जोड़ें',

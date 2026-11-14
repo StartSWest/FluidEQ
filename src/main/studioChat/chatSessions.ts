@@ -161,6 +161,13 @@ const createChatSessions = ({
         if (event.type === 'end' && event.failure === 'signed-out') {
           session.process.end();
         }
+        // A stop the chat has no notice for: what Claude Code named, kept
+        // for the bug report that will give it one.
+        if (event.type === 'end' && event.report) {
+          logger?.warn(
+            `A Studio reply ended on something the chat has no notice for: ${event.report}`,
+          );
+        }
       },
       (use) => noteUsage(projectId, use),
       (failure, errors) => {

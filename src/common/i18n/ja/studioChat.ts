@@ -62,11 +62,25 @@ const studioChat = {
   'studioChat.failed.missing':
     'このコンピューターに Claude Code が見つからなくなりました。',
   'studioChat.failed.signedOut':
-    'Claude Code がサインアウトしています。サインインしてから、もう一度メッセージを送ってください。',
+    'Claude Code がサインアウトしているか、サインインの期限が切れています。続けるには、もう一度 Claude にサインインしてください。',
   'studioChat.failed.limit':
     'Claude プランの使用上限に達しました。しばらくするとリセットされるので、そのときにもう一度送ってください。',
   'studioChat.failed.crashed':
     'Claude Code が途中で止まりました。続けるには、もう一度メッセージを送ってください。',
+  'studioChat.failed.limitFiveHour':
+    'Claude プランの 5 時間のセッション上限に達しました。',
+  'studioChat.failed.limitWeek': 'Claude プランの週間上限に達しました。',
+  'studioChat.failed.limitOpus':
+    'Claude プランの Opus の週間上限に達しました。',
+  'studioChat.failed.subscription':
+    'Claude Code は現在、Claude のサブスクリプションを利用できません。多くの場合、支払いが滞っているか、組織が無効にしています。claude.ai でプランを確認してから、もう一度お試しください。',
+  'studioChat.failed.network':
+    'Claude に接続できませんでした。インターネット接続を確認してから、もう一度お試しください。',
+  'studioChat.failed.server':
+    'Claude が混み合っているか、Claude 側で問題が起きました。たいていはすぐに解消します。',
+  'studioChat.failed.tooLong':
+    'このチャットは長くなりすぎて、Claude が読めません。圧縮するか、新しいチャットを始めてください。',
+  'studioChat.failed.said': 'Claude Code の応答:「{words}」',
   'studioChat.placeholderFirst': 'シーンを説明してください…',
   'studioChat.placeholder':
     '変更を頼んでみましょう。例：「スネアに合わせてライトを光らせて」',

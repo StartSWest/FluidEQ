@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 jest.mock('../../../main/studioChat/chatVersions', () => ({
   keepReplyVersion: jest.fn(() => undefined),
+  nextReplyVersion: jest.fn(() => 1),
 }));
 jest.mock('../../../main/studioChat/claudeCode', () => ({
   findClaudeCode: () => 'claude',
@@ -78,11 +79,13 @@ const setUp = (
     held = [],
     skills,
     offered,
+    logger,
   }: {
     restarting?: boolean;
     held?: ((adopt: (adoption: IChatAdoption) => void) => void)[];
     skills?: () => { dir: string; digest: string } | undefined;
     offered?: (model: TStudioChatModel) => boolean;
+    logger?: { info(message: string): void; warn(message: string): void };
   } = {},
 ) => {
   const transcripts = new Map<string, IChatTranscript>();
@@ -157,6 +160,7 @@ const setUp = (
     noteUsage: () => undefined,
     ...(skills ? { skills } : {}),
     ...(offered ? { offered } : {}),
+    ...(logger ? { logger } : {}),
   });
   return {
     chat,
@@ -362,6 +366,47 @@ describe("a project's Claude Code across FluidEQ closing", () => {
       expect(fluid.noteServers).toHaveBeenCalledTimes(1);
       expect(fluid.noteServers).toHaveBeenCalledWith(
         new Map([['claude.ai Higgsfield', 'needs-auth']]),
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('writes down what Claude Code named when a reply ends on something the chat has no notice for, and nothing where it has one', async () => {
+    const root = tmp();
+    try {
+      const warn = jest.fn();
+      const fluid = setUp(root, { logger: { info: () => undefined, warn } });
+      const session = await fluid.chat.sessionFor(
+        'lake',
+        'C:/Lake',
+        message(''),
+      );
+      if (!session) {
+        throw new Error('no session was started');
+      }
+      const [{ events }] = fluid.attached;
+      const ended = (result: string, status: number) =>
+        events.line(
+          say({
+            type: 'result',
+            subtype: 'success',
+            is_error: true,
+            terminal_reason: 'api_error',
+            api_error_status: status,
+            result,
+          }),
+        );
+      // A stop with a notice of its own (`chatStop.ts`): nothing to report.
+      fluid.turns.begin('lake', session, [message('make it rain')]);
+      ended('API Error: 529 Overloaded.', 529);
+      expect(warn).not.toHaveBeenCalled();
+      fluid.turns.begin('lake', session, [message('again')]);
+      ended('API Error: 400 something new', 400);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toContain('has no notice for');
+      expect(warn.mock.calls[0][0]).toContain(
+        '"status":400,"words":"API Error: 400 something new"',
       );
     } finally {
       fs.rmSync(root, { recursive: true, force: true });

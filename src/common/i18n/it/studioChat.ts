@@ -62,11 +62,26 @@ const studioChat = {
   'studioChat.stopped': 'Interrotto.',
   'studioChat.failed.missing': 'Claude Code non è più su questo computer.',
   'studioChat.failed.signedOut':
-    'Claude Code è disconnesso. Accedi, poi invia di nuovo il messaggio.',
+    'Claude Code è disconnesso, o l’accesso è scaduto. Accedi di nuovo a Claude per continuare.',
   'studioChat.failed.limit':
     'Hai raggiunto il limite di utilizzo del tuo piano Claude. Si azzera dopo un po’; invia di nuovo il messaggio allora.',
   'studioChat.failed.crashed':
     'Claude Code si è fermato prima di finire. Invia di nuovo il messaggio per continuare.',
+  'studioChat.failed.limitFiveHour':
+    'Hai raggiunto il limite di sessione di 5 ore del tuo piano Claude.',
+  'studioChat.failed.limitWeek':
+    'Hai raggiunto il limite settimanale del tuo piano Claude.',
+  'studioChat.failed.limitOpus':
+    'Hai raggiunto il limite settimanale di Opus del tuo piano Claude.',
+  'studioChat.failed.subscription':
+    'Claude Code non può usare il tuo abbonamento Claude in questo momento. Di solito c’è un pagamento scaduto, o la tua organizzazione lo ha disattivato. Controlla il tuo piano su claude.ai, poi riprova.',
+  'studioChat.failed.network':
+    'Impossibile raggiungere Claude. Controlla la connessione a internet, poi riprova.',
+  'studioChat.failed.server':
+    'Claude è sovraccarico o ha avuto un problema dal suo lato. Di solito passa in un attimo.',
+  'studioChat.failed.tooLong':
+    'Questa chat è diventata troppo lunga perché Claude la legga. Compattala, o inizia una nuova chat.',
+  'studioChat.failed.said': 'Claude Code ha risposto: «{words}»',
   'studioChat.placeholderFirst': 'Descrivi la tua scena…',
   'studioChat.placeholder':
     'Chiedi una modifica, come «fai lampeggiare le luci sul rullante»',

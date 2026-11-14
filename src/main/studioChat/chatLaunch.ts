@@ -23,6 +23,7 @@ import type {
   IChatProcess,
   IChatProcessEvents,
 } from './chatProcess';
+import { withStopClues, type IStopClues } from './chatStop';
 import { readUsageLine, type TChatUsage } from './chatUsage';
 import type { INoteMark } from './noteDue';
 import { CAREFUL_SETTINGS } from './chatForeign';
@@ -290,6 +291,9 @@ export const claudeCodeEvents = (
   onServers?: (servers: TServersSeen) => void,
 ): IChatProcessEvents => {
   let errors = '';
+  // What the turn being read has named about its own end (`chatStop.ts`):
+  // kept until its result line, which is read with it.
+  let clues: IStopClues = {};
   return {
     // The use first, so a turn's last line has its window counted before the
     // reply it ends is saved.
@@ -301,7 +305,13 @@ export const claudeCodeEvents = (
       if (servers) {
         onServers?.(servers);
       }
-      readStreamLine(line).forEach(onEvent);
+      clues = withStopClues(line, clues);
+      readStreamLine(line, clues).forEach((event) => {
+        if (event.type === 'end') {
+          clues = {};
+        }
+        onEvent(event);
+      });
     },
     errors: (chunk) => {
       errors = `${errors}${chunk}`.slice(-2000);

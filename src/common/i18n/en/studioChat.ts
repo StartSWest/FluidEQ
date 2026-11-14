@@ -64,11 +64,26 @@ const studioChat = {
   'studioChat.stopped': 'Stopped.',
   'studioChat.failed.missing': "Claude Code isn't on this computer any more.",
   'studioChat.failed.signedOut':
-    'Claude Code is signed out. Sign in, then send your message again.',
+    'Claude Code is signed out, or its sign-in has expired. Sign in to Claude again to carry on.',
   'studioChat.failed.limit':
     "Your Claude plan's usage limit was reached. It resets after a while; send your message again then.",
   'studioChat.failed.crashed':
     'Claude Code stopped before it finished. Send your message again to carry on.',
+  'studioChat.failed.limitFiveHour':
+    'You’ve reached your Claude plan’s 5-hour session limit.',
+  'studioChat.failed.limitWeek':
+    'You’ve reached your Claude plan’s weekly limit.',
+  'studioChat.failed.limitOpus':
+    'You’ve reached your Claude plan’s weekly limit for Opus.',
+  'studioChat.failed.subscription':
+    'Claude Code can’t use your Claude subscription right now. Usually a payment is past due, or your organization has turned it off. Check your plan at claude.ai, then try again.',
+  'studioChat.failed.network':
+    'Couldn’t reach Claude. Check your internet connection, then try again.',
+  'studioChat.failed.server':
+    'Claude is overloaded or had a problem on its side. It is usually over in a moment.',
+  'studioChat.failed.tooLong':
+    'This chat has grown too long for Claude to read. Compact it, or start a new chat.',
+  'studioChat.failed.said': 'Claude Code said: “{words}”',
   'studioChat.placeholderFirst': 'Describe your scene…',
   'studioChat.placeholder':
     'Ask for a change, like “make the lights flash on the snare”',
