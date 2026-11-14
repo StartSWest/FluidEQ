@@ -96,10 +96,6 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
 }
 
-.account__dot {
-  color: $text-dim;
-}
-
 .account__email {
   color: $text-faint;
   font-size: $text-body;
@@ -124,49 +120,6 @@ it under the terms of the GNU General Public License version 3 or later.
 // by the balance as a figure — the one number on it anybody looks for.
 .credits-card {
   @include account-section;
-}
-
-.credits-card__figures {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 16px;
-}
-
-.credits-card__balance {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  color: $text-primary;
-
-  svg {
-    width: 18px;
-    height: 18px;
-    color: $secondary-light;
-    align-self: center;
-  }
-}
-
-.credits-card__count {
-  font-size: $text-title * 1.6;
-  font-weight: $weight-bold;
-  line-height: 1;
-}
-
-// The half waiting from the account's own scenes, drawn as the figure it adds
-// to: "2 ½".
-.credits-card__fraction {
-  margin-left: -2px;
-  color: $secondary-light;
-  font-size: $text-title;
-  font-weight: $weight-bold;
-  line-height: 1;
-}
-
-.credits-card__unit {
-  color: $text-muted;
-  font-size: $text-body;
 }
 
 // Half a credit from the account's own scenes, waiting for its pair (premium
@@ -255,42 +208,6 @@ it under the terms of the GNU General Public License version 3 or later.
     stroke: $secondary-light;
     stroke-linecap: round;
     stroke-width: 1.6;
-  }
-}
-
-// Number over label, three abreast, on the rail's hairline. Each as wide as
-// its own word: equal thirds cut Russian's "Опубликованы" to "ОПУБЛИК…",
-// and a row that cannot hold all three wraps the last under the first.
-.account-stats {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0;
-  padding-top: 14px;
-  border-top: dialog.$seam;
-}
-
-.account-stats__item {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 5px;
-
-  dt {
-    color: $text-faint;
-    font-size: $text-eyebrow;
-    font-weight: $weight-bold;
-    @include tracking(0.1em);
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  dd {
-    margin: 0;
-    color: $text-primary;
-    font-size: $text-title * 1.15;
-    font-weight: $weight-bold;
-    line-height: 1;
   }
 }
 

@@ -89,33 +89,37 @@ export default function CreditsCard() {
   const numbers = new Intl.NumberFormat(locale);
   return (
     <section className="credits-card" aria-labelledby="credits-card-title">
-      <span id="credits-card-title" className="plus-card__eyebrow">
-        {t('store.credits.title')}
-      </span>
-      <div className="credits-card__figures">
-        <span className="credits-card__balance">
-          <Glyph name="credit" />
-          <span className="credits-card__count">
-            {numbers.format(store.balance)}
+      {/* The account's credits as the panel's lead (Ivan, 2026-11-13: "put
+          get more credits"): the 3D coin, the balance large beside it, and
+          getting more as the loud action. */}
+      <div className="credits-card__hero">
+        <CreditCoin size="l" />
+        <div className="credits-card__figures">
+          <span id="credits-card-title" className="plus-card__eyebrow">
+            {t('store.credits.title')}
           </span>
-          {/* The half beside the whole ones, as the figure it adds to; the
-              line under says it in words for a screen reader. */}
-          {store.halfCredit && (
-            <span className="credits-card__fraction" aria-hidden="true">
-              ½
+          <span className="credits-card__balance">
+            <span className="credits-card__count">
+              {numbers.format(store.balance)}
             </span>
-          )}
-          <span className="credits-card__unit">
-            {creditsUnit(t, locale, store.balance)}
+            {/* The half beside the whole ones, as the figure it adds to; the
+                line under says it in words for a screen reader. */}
+            {store.halfCredit && (
+              <span className="credits-card__fraction" aria-hidden="true">
+                ½
+              </span>
+            )}
+            <span className="credits-card__unit">
+              {creditsUnit(t, locale, store.balance)}
+            </span>
           </span>
-        </span>
-        {/* Loud only while there is nothing to spend: with credits left, more
-            is not what the panel recommends. */}
+        </div>
         <button
           type="button"
-          className={`button small${store.balance > 0 ? ' subtle' : ''}`}
+          className="button credits-card__more"
           onClick={() => setBuying(true)}
         >
+          <Glyph name="credit" />
           {t(
             store.starterClaimed
               ? 'store.credits.buy'

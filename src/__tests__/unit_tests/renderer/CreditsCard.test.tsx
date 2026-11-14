@@ -66,16 +66,25 @@ describe('the credits card', () => {
     expect(screen.queryByText('½')).not.toBeInTheDocument();
   });
 
-  it('offers the free credits first, and wears the loud style only with none to spend', () => {
+  // Ivan, 2026-11-13 ("put get more credits"): getting more is the card's
+  // loud action whatever the balance, the free credits first while unclaimed;
+  // the balance stands large beside the 3D coin.
+  it('offers the free credits first, then Get more credits, loud either way', () => {
     mockStore = storeWith({ balance: 0, starterClaimed: false });
-    const { rerender } = render(<CreditsCard />);
+    const { rerender, container } = render(<CreditsCard />);
     const free = screen.getByRole('button', { name: 'store.credits.getFree' });
-    expect(free).toHaveClass('button', 'small');
+    expect(free).toHaveClass('button', 'credits-card__more');
     expect(free).not.toHaveClass('subtle');
     mockStore = storeWith({ balance: 3 });
     rerender(<CreditsCard />);
-    expect(
-      screen.getByRole('button', { name: 'store.credits.buy' }),
-    ).toHaveClass('subtle');
+    const more = screen.getByRole('button', { name: 'store.credits.buy' });
+    expect(more).toHaveClass('button');
+    expect(more).not.toHaveClass('subtle');
+    expect(container.querySelector('.credits-card__count')).toHaveTextContent(
+      '3',
+    );
+    expect(container.querySelector('.credit-coin--l')).not.toBeNull();
+    // The coin carries no badge here: the figure beside it is the count.
+    expect(container.querySelector('.credit-coin__badge')).toBeNull();
   });
 });

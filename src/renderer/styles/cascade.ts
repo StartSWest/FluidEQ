@@ -84,6 +84,7 @@ import './AccountForms.scss';
 import './SignOutConfirm.scss';
 import './About.scss';
 import './Account.scss';
+import './AccountProfile.scss';
 import './PlusToastStack.scss';
 import './Review.scss';
 import './Gallery.scss';

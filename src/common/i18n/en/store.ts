@@ -25,7 +25,7 @@ const store = {
     'Each credit keeps one scene from the gallery for good: on the graph, your desktop and your lights.',
   'store.credits.half':
     'Half a credit is waiting: the next scene of yours got with a paid credit makes it whole.',
-  'store.credits.buy': 'Get credits',
+  'store.credits.buy': 'Get more credits',
   'store.credits.getFree': 'Claim free credits',
   'store.error.offline':
     "Couldn't reach FluidEQ. Check your connection and try again.",

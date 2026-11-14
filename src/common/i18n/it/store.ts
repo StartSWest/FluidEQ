@@ -23,7 +23,7 @@ const store: Partial<Dictionary> = {
     'Ogni credito tiene per sempre una scena della galleria: sul grafico, sul desktop e sulle tue luci.',
   'store.credits.half':
     'Hai mezzo credito in attesa: la prossima tua scena ottenuta con un credito pagato lo completa.',
-  'store.credits.buy': 'Ottieni crediti',
+  'store.credits.buy': 'Ottieni altri crediti',
   'store.credits.getFree': 'Ricevi crediti gratuiti',
   'store.error.offline':
     'Impossibile raggiungere FluidEQ. Controlla la connessione e riprova.',

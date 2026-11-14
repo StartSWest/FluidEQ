@@ -23,7 +23,7 @@ const store: Partial<Dictionary> = {
     '各クレジットでギャラリーのシーンを 1 つずっと持てます。グラフでも、デスクトップでも、ライトでも。',
   'store.credits.half':
     '0.5 クレジットが待っています。支払い済みのクレジットであなたのシーンがもう 1 つ手に入れられると、1 クレジットになります。',
-  'store.credits.buy': 'クレジットを入手',
+  'store.credits.buy': 'クレジットを追加で入手',
   'store.credits.getFree': '無料クレジットを受け取る',
   'store.error.offline':
     'FluidEQ に接続できませんでした。接続を確認して、もう一度お試しください。',

@@ -1,0 +1,175 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The account panel signed in (`AccountProfile`), Ivan 2026-11-13 ("improve
+// account a bit", "put get more credits"): the person in the rail, and the
+// page led by the credits with the 3D coin and the loud way to more.
+
+// ---------------------------------------------------------------- the rail
+
+// Under the name: the @handle, then the address quieter on its own line.
+.account-contact {
+  display: grid;
+  gap: 3px;
+
+  .account__email {
+    overflow: hidden;
+    font-size: $text-small;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// The account's two actions: links, each with its glyph, on a row of their
+// own under the person.
+.account-actions {
+  gap: 6px 18px;
+
+  .account-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 auto;
+    }
+  }
+}
+
+// The three numbers as rows of one panel: the word on the left, the figure
+// on the right. Tiles side by side cut the long words of some languages
+// ("VERÖFFENTLIC HT"; Chromium has no German hyphenation on Windows), and
+// Russian's "Опубликованы" was cut to "ОПУБЛИК…" when they were thirds.
+.account-stats {
+  display: grid;
+  margin: 0;
+  overflow: hidden;
+  background: color-mix(in srgb, $surface-base 40%, transparent);
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+}
+
+.account-stats__item {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+
+  & + & {
+    border-top: 1px solid $border-subtle;
+  }
+
+  dt {
+    min-width: 0;
+    color: $text-faint;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.08em);
+    text-transform: uppercase;
+    overflow-wrap: break-word;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-title * 1.2;
+    font-weight: $weight-bold;
+    line-height: 1;
+  }
+}
+
+// ---------------------------------------------------------------- the credits
+
+.credits-card {
+  container: credits-card / inline-size;
+}
+
+// The coin, the balance large beside it, and getting more as the loud action.
+.credits-card__hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 18px;
+
+  // The coin's orbit is wider than its disc: it may run into the card's
+  // padding, never push the figures away.
+  .credit-coin {
+    margin: -22px -12px -12px -24px;
+  }
+}
+
+.credits-card__figures {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.credits-card__balance {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: $text-primary;
+}
+
+.credits-card__count {
+  font-size: 2.6rem;
+  font-weight: $weight-bold;
+  line-height: 1;
+}
+
+// The half waiting from the account's own scenes, drawn as the figure it adds
+// to: "2 ½".
+.credits-card__fraction {
+  margin-left: -4px;
+  color: $secondary-light;
+  font-size: 1.4rem;
+  font-weight: $weight-bold;
+  line-height: 1;
+}
+
+.credits-card__unit {
+  color: $text-muted;
+  font-size: $text-lead;
+}
+
+.button.credits-card__more {
+  min-height: 40px;
+  padding: 0 18px;
+  gap: 8px;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  box-shadow: 0 8px 22px color-mix(in srgb, $secondary-default 40%, transparent);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// Narrow: the coin and the figure on one line, the button under them across.
+@container credits-card (max-width: 460px) {
+  .credits-card__hero {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .button.credits-card__more {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+}

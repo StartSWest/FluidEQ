@@ -19,7 +19,8 @@ export default function CreditCoin({
   badge,
 }: {
   size: 'l' | 'm';
-  badge: ReactNode;
+  /** What the coin counts; absent where the figure stands beside it. */
+  badge?: ReactNode;
 }) {
   return (
     <span className={`credit-coin credit-coin--${size}`} aria-hidden="true">
@@ -64,7 +65,9 @@ export default function CreditCoin({
           <span className="credit-coin__spark credit-coin__spark--two" />
         </>
       )}
-      <span className="credit-coin__badge">{badge}</span>
+      {badge !== undefined && (
+        <span className="credit-coin__badge">{badge}</span>
+      )}
     </span>
   );
 }

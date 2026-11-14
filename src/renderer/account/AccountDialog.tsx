@@ -9,33 +9,20 @@ import type { TAuthFailure } from 'main/account/authClient';
 import type { TranslationKey } from 'common/i18n/en';
 import { isAccountConfigured } from 'common/accountConfig';
 import { PLUS_TERMS_EDITION } from 'common/plusTerms';
-import { CREATOR_PAYOUTS_OPEN } from 'common/creatorPayouts';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from '../components/DialogFrame';
 import { identityStyle } from '../community/identity';
-import {
-  createProfile,
-  forgetProfile,
-  loadProfile,
-  updateProfile,
-  useProfile,
-} from '../plus/profileStore';
+import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import type { TAccountPanelPage } from './accountPanel';
 import { useAccount } from './accountStore';
 import { loadMyScenes, type TMine } from '../plus/myScenes';
 import AccountCover from './AccountCover';
-import AccountPublished from './AccountPublished';
-import AccountScenes from './AccountScenes';
-import AccountStats from './AccountStats';
-import CreditsCard from './CreditsCard';
-import ProfileNameForm from './ProfileNameForm';
+import { ProfileBody, ProfileContact, ProfileRail } from './AccountProfile';
 import PlusTermsDocument from './PlusTermsDocument';
 import { useSceneStore } from '../plus/sceneStore';
-import CreatorPayoutsCard from './CreatorPayoutsCard';
 import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
-import SignOutConfirm from './SignOutConfirm';
 import { WelcomeCover, WelcomeRail, useWelcome } from './AccountWelcome';
 import initialsOf from './initials';
 // The panel sits on the About panel's backdrop, so it asks for the sheet that
@@ -315,60 +302,20 @@ export default function AccountDialog({
         title: displayName,
         description:
           profile || email ? (
-            <>
-              {profile && (
-                <span className="account__handle">@{profile.handle}</span>
-              )}
-              {profile && email && (
-                <span className="account__dot" aria-hidden="true">
-                  {' · '}
-                </span>
-              )}
-              {email && <span className="account__email">{email}</span>}
-            </>
+            <ProfileContact handle={profile?.handle} email={email} />
           ) : undefined,
         rail: (
-          <>
-            {/* The two things you can do to the account itself, as links
-                under the name they are about rather than as a row of
-                buttons: neither is what anybody opened this panel to be
-                encouraged into, and a button says press me. Signing out
-                asks first — it is one click from every Plus lock closing
-                and the account's scenes leaving the lists — and while it
-                asks, the question stands at the top of the page and these
-                wait for its answer. */}
-            {!signingOut && (
-              <p className="account__links">
-                {/* Only once the server has said whether there is a name:
-                    "choose" offered to somebody who has one would fail on
-                    the first press. */}
-                {profileLoaded && !editingName && (
-                  <button
-                    type="button"
-                    className="account-link"
-                    onClick={() => setEditingName(true)}
-                  >
-                    {t(profile ? 'account.name.change' : 'profile.name.choose')}
-                  </button>
-                )}
-                <button
-                  ref={signOutLinkRef}
-                  type="button"
-                  className="account-link"
-                  onClick={() => setSigningOut(true)}
-                >
-                  {t('account.signOut')}
-                </button>
-              </p>
-            )}
-            {store && (
-              <AccountStats
-                owned={store.owned.length}
-                publishedFromStore={store.published?.length ?? 0}
-                mine={mine}
-              />
-            )}
-          </>
+          <ProfileRail
+            profileLoaded={profileLoaded}
+            hasName={Boolean(profile)}
+            editingName={editingName}
+            onEditName={() => setEditingName(true)}
+            signingOut={signingOut}
+            onSignOut={() => setSigningOut(true)}
+            signOutLinkRef={signOutLinkRef}
+            store={store}
+            mine={mine}
+          />
         ),
         cover: <AccountCover ownsScenes={ownsScenes} />,
       };
@@ -438,70 +385,24 @@ export default function AccountDialog({
             back. */}
         <div className="account__page" hidden={onDocument}>
           {signedIn && (
-            <>
-              {/* First in the page, beside the links that ask for them: the
-                  name form used to appear at the foot, below both sections,
-                  where pressing "Change name" looked like it had done
-                  nothing (Ivan, 2026-09-16). */}
-              {/* Only once the server has said whether there is a name: the
-                  form starts from it, and saves a new one or a change. */}
-              {editingName && profileLoaded && (
-                <div className="account__name-form">
-                  <ProfileNameForm
-                    initial={
-                      profile
-                        ? {
-                            handle: profile.handle,
-                            displayName: profile.displayName,
-                          }
-                        : undefined
-                    }
-                    save={profile ? updateProfile : createProfile}
-                    onSaved={() => setEditingName(false)}
-                    onCancel={() => setEditingName(false)}
-                  />
-                </div>
-              )}
-              {signingOut && (
-                <SignOutConfirm
-                  ownsScenes={ownsScenes}
-                  onCancel={() => {
-                    returnToSignOut.current = true;
-                    setSigningOut(false);
-                  }}
-                />
-              )}
-
-              {/* What gets scenes: credits. Plus is not sold any more, and
-                  nothing about a subscription is shown (Ivan, 2026-10-21). */}
-              <CreditsCard />
-              {store && (
-                <AccountScenes
-                  owned={store.owned}
-                  unpublished={store.unpublished}
-                  onLeave={onClose}
-                />
-              )}
-              {accountId && (
-                <AccountPublished
-                  me={accountId}
-                  mine={mine}
-                  onLeave={onClose}
-                />
-              )}
-              {/* Getting paid for the scenes members keep, once FluidEQ
-                  can pay creators; never asked for until then. */}
-              {CREATOR_PAYOUTS_OPEN && accountId && (
-                <CreatorPayoutsCard accountId={accountId} />
-              )}
-
-              {errorLine}
-
-              <div className="account__foot">
-                <p className="account__optional">{t('account.optional')}</p>
-                {termsLink}
-              </div>
-            </>
+            <ProfileBody
+              editingName={editingName}
+              profileLoaded={profileLoaded}
+              profile={profile}
+              onNameDone={() => setEditingName(false)}
+              signingOut={signingOut}
+              ownsScenes={ownsScenes}
+              onSignOutCancel={() => {
+                returnToSignOut.current = true;
+                setSigningOut(false);
+              }}
+              store={store}
+              accountId={accountId}
+              mine={mine}
+              onClose={onClose}
+              errorLine={errorLine}
+              termsLink={termsLink}
+            />
           )}
 
           {status === 'unavailable' && (

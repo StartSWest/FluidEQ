@@ -22,7 +22,7 @@ const store: Partial<Dictionary> = {
     '每 1 点数都能永久保留画廊中的一个场景：在图表、桌面和你的灯光上。',
   'store.credits.half':
     '有 0.5 点数在等待：你的下一个场景被人用付费点数获取后，就会凑成 1 点数。',
-  'store.credits.buy': '获取点数',
+  'store.credits.buy': '获取更多点数',
   'store.credits.getFree': '领取免费点数',
   'store.error.offline': '无法连接到 FluidEQ。请检查网络连接后重试。',
   'store.error.signedOut': '请重新登录以使用你的点数。',

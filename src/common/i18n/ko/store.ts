@@ -19,7 +19,7 @@ const store = {
     '각 크레딧은 갤러리의 한 장면(그래프, 데스크탑 및 조명)을 영원히 유지합니다.',
   'store.credits.half':
     '절반의 크레딧이 기다리고 있습니다. 유료 크레딧으로 얻은 다음 장면이 전체를 만듭니다.',
-  'store.credits.buy': '크레딧 받기',
+  'store.credits.buy': '크레딧 더 받기',
   'store.credits.getFree': '무료 크레딧 신청',
   'store.error.offline':
     'FluidEQ에 연결할 수 없습니다. 연결을 확인하고 다시 시도하세요.',

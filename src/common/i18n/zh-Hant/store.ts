@@ -18,7 +18,7 @@ const store = {
     '每個點數都會永久保留相簿中的一個場景：在圖表、桌面和燈光上。',
   'store.credits.half':
     '一半的點數正在等待：您用付費點數獲得的下一個場景使其完整。',
-  'store.credits.buy': '獲得點數',
+  'store.credits.buy': '取得更多點數',
   'store.credits.getFree': '索取免費點數',
   'store.error.offline': '無法到達 FluidEQ。檢查您的連線並重試。',
   'store.error.signedOut': '再次登入以使用您的點數。',
