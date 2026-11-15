@@ -122,13 +122,16 @@ const revealSelected = (node: HTMLDivElement | null) => {
   if (!node || !box) {
     return;
   }
+  // A row out of sight comes to the middle of the rail, with the folders
+  // around it in view (Ivan, 2026-11-15: "put the selected in the centre, not
+  // on the bottom"); scrolled only far enough to show, a Surprise me pick
+  // landed on the rail's bottom edge with nothing beneath it. A row already
+  // in sight stays where it is, so a press in the tree never moves the tree
+  // under the pointer. The browser clamps a centre past either end.
   const row = node.getBoundingClientRect();
   const view = box.getBoundingClientRect();
-  const air = 8;
-  if (row.top < view.top) {
-    box.scrollTop -= view.top - row.top + air;
-  } else if (row.bottom > view.bottom) {
-    box.scrollTop += row.bottom - view.bottom + air;
+  if (row.top < view.top || row.bottom > view.bottom) {
+    box.scrollTop += row.top + row.height / 2 - (view.top + view.height / 2);
   }
 };
 
