@@ -127,6 +127,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 40px 0;
 }
 
+// The arrow at a folder row's end (`LibraryListGroupRow`): the third step,
+// lit with the row like its words.
+.library-list__more {
+  display: flex;
+  grid-column: -2 / -1;
+  justify-content: flex-end;
+  color: $studio-t3;
+  transition: $transition-control;
+
+  .library-list__row:hover &,
+  .library-list__row--selected & {
+    color: $text-primary;
+  }
+}
+
+.library-list__more-icon {
+  width: 16px;
+  height: 16px;
+}
+
 // `$library-row-height` is every row's height, headings included, so the
 // windowing (`useListWindow`) can measure one and know them all.
 .library-list__header,
@@ -318,6 +338,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &--span {
     grid-column: 2 / -1;
+  }
+
+  // A folder's words stop short of the last column, where its arrow is.
+  &--span.library-list__col--before-more {
+    grid-column: 2 / -2;
   }
 
   &.is-numeric,

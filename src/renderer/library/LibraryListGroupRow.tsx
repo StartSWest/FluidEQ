@@ -83,7 +83,7 @@ const LibraryListGroupRow = ({
         role="cell"
         className={`library-list__col library-list__col--title${
           cells === undefined ? ' library-list__col--span' : ''
-        }`}
+        }${isFolder && cells === undefined ? ' library-list__col--before-more' : ''}`}
       >
         <span className="library-list__title-text">
           {isBuiltIn && (
@@ -109,6 +109,14 @@ const LibraryListGroupRow = ({
         <small className="library-list__subtitle">{subtitle}</small>
       </span>
       {cells}
+      {/* A folder leads somewhere: the arrow at the row's end says there is
+          more inside, as Explorer's does (Ivan, 2026-11-15: "add the end
+          more arrow on folders too ... so they know there is more inside"). */}
+      {isFolder && cells === undefined && (
+        <span role="cell" className="library-list__col library-list__more">
+          <MenuIcon name="forward" className="library-list__more-icon" />
+        </span>
+      )}
     </div>
   );
 };

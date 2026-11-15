@@ -23,9 +23,12 @@ import type { ILibraryList } from './useLibraryList';
 /**
  * `near`: the folder's own matches follow. `nearEmpty`: nothing in the folder
  * matched, said rather than left for the reader to infer from a list that
- * starts elsewhere. `elsewhere`: the rest of the library follows.
+ * starts elsewhere. `elsewhere`: the rest of the library follows. `folders`
+ * and `songs`: a folder's own folders, then its songs, in one list
+ * (`libraryFoldersAhead`).
  */
-export type TLibrarySection = 'near' | 'nearEmpty' | 'elsewhere';
+export type TLibrarySection =
+  'near' | 'nearEmpty' | 'elsewhere' | 'folders' | 'songs';
 
 export interface ILibrarySectionRow {
   kind: 'section';
@@ -64,6 +67,16 @@ export interface ISectionAt {
 /** The headings a list's search draws, in order. */
 export const librarySectionsOf = (list: ILibraryList): ISectionAt[] => {
   const { query, count, nearCount } = list;
+  // A folder's folders over its songs: each run named, as a file manager
+  // parts them, and counted.
+  if (list.lead !== undefined && list.lead > 0) {
+    return count > list.lead
+      ? [
+          { before: 0, section: 'folders', count: list.lead },
+          { before: list.lead, section: 'songs', count: count - list.lead },
+        ]
+      : [{ before: 0, section: 'folders', count: list.lead }];
+  }
   if (
     query?.near === undefined ||
     (query.search ?? '').trim() === '' ||

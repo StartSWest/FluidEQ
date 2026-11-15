@@ -48,6 +48,12 @@ export interface ILibraryList {
   readonly markedCount: number;
   /** The list asked for has answered at least once. */
   readonly isLoaded: boolean;
+  /**
+   * Rows ahead of the query's own (a folder's folders before its songs,
+   * `libraryFoldersAhead`): a position the store gives for the query is
+   * this much further down the list. Absent, the list is the query's alone.
+   */
+  readonly lead?: number;
   /** The row at `index`, or nothing while its page is out. */
   readonly at: (index: number) => TLibraryListItem | undefined;
   /** These rows are on screen: have them, and keep what is near them. */

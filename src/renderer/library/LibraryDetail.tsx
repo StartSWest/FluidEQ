@@ -43,6 +43,7 @@ import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 import { usePlaylists } from './PlaylistContext';
 import { useLibraryList } from './useLibraryList';
+import { libraryFoldersAhead } from './libraryFoldersAhead';
 import { useLibraryAnswer } from './useLibraryAnswer';
 import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
 import { formatOf } from './libraryColumns';
@@ -299,6 +300,11 @@ const LibraryDetail = ({
     };
   }, [folderPath, sort, sortDirection, isQueryTheContainer, query]);
   const children = useLibraryList(childrenQuery);
+  /** The folder's folders, then its songs, as one table (`libraryFoldersAhead`). */
+  const foldersAhead = useMemo(
+    () => libraryFoldersAhead(children, table),
+    [children, table],
+  );
 
   /**
    * The whole record summed for the hero's facts — its songs and how long
@@ -640,6 +646,13 @@ const LibraryDetail = ({
   const tableKey = `detail|${albumId ?? artistId ?? genreId ?? playlistId ?? folderPath ?? ''}|${sort ?? ''}|${sortDirection}`;
   const childrenKey = `children|${folderPath ?? ''}|${sort ?? ''}|${sortDirection}`;
 
+  /**
+   * A folder that holds folders and songs lists them in one table, its
+   * folders first, with one scroll and no line between two boxes.
+   */
+  const shownTable =
+    children.count > 0 && onOpenFolder !== undefined ? foldersAhead : table;
+
   return (
     <div className="library-detail">
       {/* No Back of its own: the place bar over every view is the one way
@@ -679,13 +692,11 @@ const LibraryDetail = ({
           onFilter={setFilter}
         />
       )}
-      {/* What is inside this folder, above what is loose in it, drawn by the
-          same two views the panel uses, so a choice of list or grid holds all
-          the way down the tree. */}
-      {children.count > 0 && onOpenFolder && (
-        <div
-          className={`library-detail__children${isWayThrough ? ' is-only' : ''}`}
-        >
+      {/* A folder of nothing but folders: those folders, drawn by the same
+          two views the panel uses, so a choice of list or grid holds all the
+          way down the tree. One with songs too lists both in its table. */}
+      {isWayThrough && children.count > 0 && onOpenFolder && (
+        <div className="library-detail__children is-only">
           {viewMode === 'grid' ? (
             <LibraryGridView
               list={children}
@@ -733,8 +744,10 @@ const LibraryDetail = ({
         !(isPlaylist && playlist?.trackIds.length === 0) &&
         (viewMode === 'grid' ? (
           <LibraryGridView
-            list={table}
+            list={shownTable}
             browseMode="song"
+            folderParent={folderPath}
+            onOpenFolder={onOpenFolder}
             onOpenAlbum={() => undefined}
             onOpenArtist={() => undefined}
             onPlayTrack={onPlayTrack}
@@ -746,8 +759,10 @@ const LibraryDetail = ({
           />
         ) : (
           <LibraryListView
-            list={table}
+            list={shownTable}
             browseMode="song"
+            folderParent={folderPath}
+            onOpenFolder={onOpenFolder}
             onOpenAlbum={() => undefined}
             onOpenArtist={() => undefined}
             onPlayTrack={onPlayTrack}

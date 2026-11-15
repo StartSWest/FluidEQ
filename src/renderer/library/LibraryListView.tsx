@@ -349,7 +349,9 @@ const LibraryListView = ({
         query: current.query,
         id: revealTrackId,
       })
-      .then(go)
+      // The store answers in the songs' own positions; a folder's folders
+      // stand ahead of them here (`lead`).
+      .then((index) => go(index < 0 ? index : index + (current.lead ?? 0)))
       .catch(() => undefined);
     return () => {
       isCurrent = false;
@@ -414,11 +416,14 @@ const LibraryListView = ({
         const to = current.indexOf(trackId);
         if (from !== -1 && to !== -1) {
           const [low, high] = from <= to ? [from, to] : [to, from];
+          // Songs only reach here, and the store counts them from its own
+          // first song, not from the folders ahead of it.
+          const lead = current.lead ?? 0;
           window.electron.ipcRenderer
             .queryLibrary({
               type: 'ids',
               query: current.query,
-              offset: low,
+              offset: low - lead,
               limit: high - low + 1,
             })
             .then((ids) => {

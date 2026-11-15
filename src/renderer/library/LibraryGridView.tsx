@@ -130,6 +130,9 @@ interface ITile {
   meta: string;
   /** A song tile's root, to dim it when the drive is out. */
   rootId?: string;
+  /** A folder, drawn and opened as one whatever the shelf: a folder's own
+   * folders ride ahead of its songs (`libraryFoldersAhead`). */
+  isFolder?: boolean;
   isPending: boolean;
 }
 
@@ -402,7 +405,9 @@ const LibraryGridView = ({
         query: current.query,
         id: revealTrackId,
       })
-      .then(go)
+      // The store answers in the songs' own positions; a folder's folders
+      // stand ahead of them here (`lead`).
+      .then((index) => go(index < 0 ? index : index + (current.lead ?? 0)))
       .catch(() => undefined);
     return () => {
       isCurrent = false;
@@ -465,6 +470,7 @@ const LibraryGridView = ({
               ? countText(t, 'library.trackCount', item.trackCount)
               : '',
           isPending: item.isPending,
+          isFolder: true,
         };
       case 'track':
         return {
@@ -514,7 +520,12 @@ const LibraryGridView = ({
 
   /** The tile's primary action. `pressCount` is the system's own click
    * count: the second press of a double-press on a song starts it again. */
-  const openItem = (id: string, pressCount: number) => {
+  const openItem = (id: string, pressCount: number, isFolder: boolean) => {
+    if (isFolder && browseMode !== 'folder') {
+      rememberActive(id);
+      onOpenFolder?.(id);
+      return;
+    }
     const open: Partial<Record<TLibraryBrowseMode, (openId: string) => void>> =
       {
         album: onOpenAlbum,
@@ -565,6 +576,7 @@ const LibraryGridView = ({
     // tile has one root to dim by.
     const isOffline = Boolean(tile.rootId && offlineRootIds.has(tile.rootId));
     const isSelected = activeId === tile.id;
+    const isFolderArt = browseMode === 'folder' || tile.isFolder === true;
     const className = [
       'library-grid__tile',
       isOffline ? 'library-grid__tile--offline' : '',
@@ -582,16 +594,18 @@ const LibraryGridView = ({
         aria-current={isSelected ? 'true' : undefined}
         className={className}
         title={isOffline ? t('library.root.offline') : undefined}
-        onClick={(event) => openItem(tile.id, event.detail)}
+        onClick={(event) =>
+          openItem(tile.id, event.detail, tile.isFolder === true)
+        }
       >
         <span
           className={`library-grid__art${
-            browseMode === 'folder' ? ' library-grid__art--folder' : ''
+            isFolderArt ? ' library-grid__art--folder' : ''
           }`}
         >
           {/* A folder tile is a folder: its picture belongs to the first
               album beneath it, not to the directory — see `LibraryFolderArt`. */}
-          {browseMode === 'folder' ? (
+          {isFolderArt ? (
             <LibraryFolderArt
               artId={tile.artId}
               label={tile.title}

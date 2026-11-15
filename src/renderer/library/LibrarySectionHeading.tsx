@@ -32,8 +32,21 @@ export const useSectionLabel = (): ((
     if (section === 'nearEmpty') {
       return t('library.search.nearEmpty', { folder });
     }
+    if (section === 'folders') {
+      return t('library.browse.folder');
+    }
+    if (section === 'songs') {
+      return t('library.browse.song');
+    }
     return t('library.search.elsewhere');
   };
+};
+
+const sectionIcon = (section: TLibrarySection) => {
+  if (section === 'elsewhere') {
+    return 'folderTree';
+  }
+  return section === 'songs' ? 'song' : 'folder';
 };
 
 const SectionContent = ({
@@ -47,7 +60,7 @@ const SectionContent = ({
   return (
     <>
       <MenuIcon
-        name={row.section === 'elsewhere' ? 'folderTree' : 'folder'}
+        name={sectionIcon(row.section)}
         className="library-section__icon"
       />
       <span className="library-section__label">

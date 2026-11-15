@@ -373,29 +373,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-small;
 }
 
-// The folders inside the one that is open, above the files that are loose in
-// it. Separated by a line for the reason the header above it is separated
-// from the table: two lists in one panel, and one of them is somewhere to go
-// rather than something to play.
-.library-detail__children {
+// A folder that only leads to other folders: the list of them is the whole
+// panel, so it takes the whole panel. A folder that holds songs as well lists
+// its folders ahead of them in its one table (`libraryFoldersAhead`): the two
+// boxes this used to draw, each with its own scrollbar and a line between
+// them, are gone (Ivan, 2026-11-15, option A of the mockups).
+.library-detail__children.is-only {
   display: flex;
   min-height: 0;
-  flex-direction: column;
-  padding-bottom: $spacing-s;
-  border-bottom: 1px solid $border-panel;
-  margin-bottom: $spacing-s;
-}
-
-// A folder that only leads to other folders: the list of them is the whole
-// panel, so it takes the whole panel. Left at its own height it sat four rows
-// deep with its own scrollbar under half a screen of nothing — and the line
-// under it divided the list from an empty space, which is not a division
-// worth drawing.
-.library-detail__children.is-only {
   flex: 1 1 auto;
-  padding-bottom: 0;
-  border-bottom: none;
-  margin-bottom: 0;
+  flex-direction: column;
 }
 
 // Where this record lives on disk, under its name. Muted, and truncating from
