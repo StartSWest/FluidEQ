@@ -1452,12 +1452,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 ------------------------------------------------------------------------------
-d3 7.9.0
+d3 7.9.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org
 
-Copyright 2010-2023 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1471,12 +1471,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-array 3.2.4
+d3-array 3.2.5
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-array/
 
-Copyright 2010-2023 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1490,12 +1490,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-axis 3.0.0
+d3-axis 3.0.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-axis/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1509,12 +1509,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-brush 3.0.0
+d3-brush 3.0.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-brush/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1528,12 +1528,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-chord 3.0.1
+d3-chord 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-chord/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1547,12 +1547,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-color 3.1.0
+d3-color 3.1.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-color/
 
-Copyright 2010-2022 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1566,12 +1566,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-contour 4.0.2
+d3-contour 4.0.3
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-contour/
 
-Copyright 2012-2023 Mike Bostock
+Copyright 2012-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1585,12 +1585,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-delaunay 6.0.4
+d3-delaunay 6.0.6
 License: ISC
 Author: Mike Bostock
 Home: https://github.com/d3/d3-delaunay
 
-Copyright 2018-2021 Observable, Inc.
+Copyright 2018-2026 Observable, Inc.
 Copyright 2021 Mapbox
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
@@ -1605,12 +1605,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-dispatch 3.0.1
+d3-dispatch 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-dispatch/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1624,12 +1624,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-drag 3.0.0
+d3-drag 3.0.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-drag/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1643,12 +1643,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-dsv 3.0.1
+d3-dsv 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-dsv/
 
-Copyright 2013-2021 Mike Bostock
+Copyright 2013-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1662,12 +1662,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-ease 3.0.1
+d3-ease 3.0.2
 License: BSD-3-Clause
 Author: Mike Bostock
 Home: https://d3js.org/d3-ease/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 Copyright 2001 Robert Penner
 All rights reserved.
 
@@ -1696,12 +1696,12 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ------------------------------------------------------------------------------
-d3-fetch 3.0.1
+d3-fetch 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-fetch/
 
-Copyright 2016-2021 Mike Bostock
+Copyright 2016-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1715,12 +1715,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-force 3.0.0
+d3-force 3.0.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-force/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1734,7 +1734,7 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-format 3.1.2
+d3-format 3.1.3
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-format/
@@ -1753,12 +1753,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-geo 3.1.1
+d3-geo 3.1.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-geo/
 
-Copyright 2010-2024 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1793,12 +1793,12 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
-d3-hierarchy 3.1.2
+d3-hierarchy 3.1.3
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-hierarchy/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1812,12 +1812,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-interpolate 3.0.1
+d3-interpolate 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-interpolate/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1831,12 +1831,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-path 3.1.0
+d3-path 3.1.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-path/
 
-Copyright 2015-2022 Mike Bostock
+Copyright 2015-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1850,12 +1850,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-polygon 3.0.1
+d3-polygon 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-polygon/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1869,12 +1869,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-quadtree 3.0.1
+d3-quadtree 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-quadtree/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1888,12 +1888,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-random 3.0.1
+d3-random 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-random/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1907,12 +1907,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-scale 4.0.2
+d3-scale 4.0.3
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-scale/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1926,12 +1926,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-scale-chromatic 3.1.0
+d3-scale-chromatic 3.1.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-scale-chromatic/
 
-Copyright 2010-2024 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1960,12 +1960,12 @@ under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 ------------------------------------------------------------------------------
-d3-selection 3.0.0
+d3-selection 3.0.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-selection/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1979,12 +1979,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-shape 3.2.0
+d3-shape 3.2.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-shape/
 
-Copyright 2010-2022 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -1998,12 +1998,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-time 3.1.0
+d3-time 3.1.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-time/
 
-Copyright 2010-2022 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -2017,12 +2017,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-time-format 4.1.0
+d3-time-format 4.1.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-time-format/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -2036,12 +2036,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-timer 3.0.1
+d3-timer 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-timer/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -2055,12 +2055,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-transition 3.0.1
+d3-transition 3.0.2
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-transition/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -2074,12 +2074,12 @@ OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ------------------------------------------------------------------------------
-d3-zoom 3.0.0
+d3-zoom 3.0.1
 License: ISC
 Author: Mike Bostock
 Home: https://d3js.org/d3-zoom/
 
-Copyright 2010-2021 Mike Bostock
+Copyright 2010-2026 Mike Bostock
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -2538,7 +2538,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ------------------------------------------------------------------------------
-electron-updater 6.8.9
+electron-updater 6.8.11
 License: MIT
 Author: Vladimir Krivosheev
 Home: https://github.com/electron-userland/electron-builder
@@ -2967,7 +2967,7 @@ WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEM
 OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
-global-agent 3.0.0, 4.1.3
+global-agent 3.0.0, 4.1.7
 License: BSD-3-Clause
 Author: Gajus Kuizinas
 Home: https://github.com/gajus/global-agent#readme
@@ -3051,25 +3051,65 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ------------------------------------------------------------------------------
-graceful-fs 4.2.11
-License: ISC
+graceful-fs 4.2.12
+License: BlueOak-1.0.0
 Home: https://github.com/isaacs/node-graceful-fs#readme
 
-The ISC License
+# Blue Oak Model License
 
-Copyright (c) 2011-2022 Isaac Z. Schlueter, Ben Noordhuis, and Contributors
+Version 1.0.0
 
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
+## Purpose
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+This license gives everyone as much permission to work with
+this software as possible, while protecting contributors
+from liability.
+
+## Acceptance
+
+In order to receive this license, you must agree to its
+rules.  The rules of this license are both obligations
+under that agreement and conditions to your license.
+You must not do anything with this software that triggers
+a rule that you cannot or will not follow.
+
+## Copyright
+
+Each contributor licenses you to do everything with this
+software that would otherwise infringe that contributor's
+copyright in it.
+
+## Notices
+
+You must ensure that everyone who gets a copy of
+any part of this software from you, with or without
+changes, also gets the text of this license or a link to
+<https://blueoakcouncil.org/license/1.0.0>.
+
+## Excuse
+
+If anyone notifies you in writing that you have not
+complied with [Notices](#notices), you can keep your
+license by taking all practical steps to comply within 30
+days after the notice.  If you do not do so, your license
+ends immediately.
+
+## Patent
+
+Each contributor licenses you to do everything with this
+software that would otherwise infringe any patent claims
+they can license or become able to license.
+
+## Reliability
+
+No contributor can revoke this license.
+
+## No Liability
+
+***As far as the law allows, this software comes as is,
+without any warranty or condition, and no contributor
+will be liable to anyone for any damages related to this
+software or this license, under any kind of legal claim.***
 ------------------------------------------------------------------------------
 guid-typescript 1.0.9
 License: ISC
@@ -3221,7 +3261,7 @@ Home: https://github.com/juliangruber/isarray
 
 The package ships no licence file. It declares MIT in its package.json; the text of that licence is the one published for its SPDX identifier.
 ------------------------------------------------------------------------------
-js-yaml 4.3.1
+js-yaml 4.3.2
 License: MIT
 Author: Vladimir Zapparov
 Home: https://github.com/nodeca/js-yaml#readme
@@ -3971,7 +4011,7 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
-protobufjs 7.6.5
+protobufjs 7.6.6
 License: BSD-3-Clause
 Author: Daniel Wirtz
 Home: https://protobufjs.github.io/protobuf.js/
@@ -4016,7 +4056,7 @@ of the input file used when generating it. This code is not
 standalone and requires a support library to be linked with it. This
 support library is itself covered by the above license.
 ------------------------------------------------------------------------------
-react 19.2.8
+react 19.3.1
 License: MIT
 Home: https://react.dev/
 
@@ -4042,7 +4082,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ------------------------------------------------------------------------------
-react-dom 19.2.8
+react-dom 19.3.1
 License: MIT
 Home: https://react.dev/
 
@@ -4326,7 +4366,7 @@ without any warranty or condition, and no contributor
 will be liable to anyone for any damages related to this
 software or this license, under any kind of legal claim.***
 ------------------------------------------------------------------------------
-scheduler 0.27.0
+scheduler 0.28.0
 License: MIT
 Home: https://react.dev/
 
@@ -4352,7 +4392,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ------------------------------------------------------------------------------
-semver 7.7.4, 7.8.5
+semver 7.7.4, 7.8.6
 License: ISC
 Author: GitHub Inc.
 Home: https://github.com/npm/node-semver#readme
@@ -4698,7 +4738,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ------------------------------------------------------------------------------
-tar 7.5.22
+tar 7.5.23
 License: BlueOak-1.0.0
 Author: Isaac Z. Schlueter
 Home: https://github.com/isaacs/node-tar#readme
@@ -4985,7 +5025,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
-ws 8.21.3
+ws 8.23.0
 License: MIT
 Author: Einar Otto Stangvik
 Home: https://github.com/websockets/ws
