@@ -98,12 +98,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // moving pointer would read as two things hovered at once.
   // Drawn inside the card: a ring outside it was cut by the scroller's top
   // edge on the first row.
-  &--selected {
-    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, $secondary-light 35%, transparent);
-    opacity: 1;
-  }
+  // A solid 2px accent ring - the card's own edge and one more pixel inside
+  // it - over a faint accent tint (Ivan, 2026-11-15: "I want to see more
+  // clearly which thing is selected"). The ring at half strength over the
+  // card's own fill was lost among a screen of covers. Declared after
+  // `--playing` below, so the playing tile, when it is also the one chosen,
+  // keeps the ring rather than having it wiped by the playing edge.
 
   // Whatever the player is on, wherever it appears — the same answer
   // `.library-list__row--playing` gives a row, in the only register a tile
@@ -122,6 +122,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .library-grid__title {
       color: $secondary-light;
     }
+  }
+
+  &--selected,
+  &--selected:hover {
+    border-color: $secondary-default;
+    // The tint laid over the card's face, as `card-hover` lays its own.
+    background:
+      linear-gradient(
+        color-mix(in srgb, $secondary-default 9%, transparent) 0 0
+      ),
+      $card-glow, $surface-card;
+    box-shadow: inset 0 0 0 1px $secondary-default;
+    opacity: 1;
   }
 
   // Same dimming, and the same reasoning, as `.library-list__row--offline` —
