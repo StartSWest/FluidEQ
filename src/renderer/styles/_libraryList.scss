@@ -279,13 +279,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-primary;
     background: color-mix(in srgb, $secondary-default 8%, transparent);
 
-    // The Library's one mark's line, straight down the row's whole edge.
+    // The Library's one mark's line, clear of the row's top and bottom
+    // (`studio-mark`).
     &::before {
       position: absolute;
-      top: 0;
-      bottom: 0;
+      top: $studio-mark-air;
+      bottom: $studio-mark-air;
       left: 0;
-      width: 2px;
+      width: $studio-mark-line;
       background: $secondary-default;
       content: '';
     }

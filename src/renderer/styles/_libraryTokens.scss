@@ -91,14 +91,27 @@ $studio-select: color-mix(in srgb, $secondary-default 12%, transparent);
 
 // THE ONE MARK FOR "HERE" across the Library: the shelf open in the rail,
 // the folder in the tree, the line being sung, the row last opened - a
-// faint accent fill and a straight 2px accent line down the left edge,
+// faint accent fill and a straight 2px accent line on the left edge,
 // square-cornered (Ivan, 2026-11-15: "let's make all those highlights like
 // the line in the song list", "same for the Library"). Rounded rows with a
 // 3px inset bar curved at both ends and stood apart from the list's.
+//
+// The line stops short of both ends ("I didn't want the highlight line to
+// cover the full thing, leave top and bottom space"): drawn down the whole
+// edge it ran into the next row's and read as a border. A strip painted
+// over the fill rather than an edge shadow, which cannot stop short, or a
+// pseudo-element, which the lyric lines already spend.
+$studio-mark-line: 2px;
+
+$studio-mark-air: 6px;
+
 @mixin studio-mark {
   border-radius: 0;
-  background: $studio-select;
-  box-shadow: inset 2px 0 0 $secondary-default;
+  background:
+    linear-gradient($secondary-default, $secondary-default) left center /
+      $studio-mark-line calc(100% - #{2 * $studio-mark-air}) no-repeat,
+    $studio-select;
+  box-shadow: none;
 }
 
 // The mockup's type, in the app's rem: 14px rows and names, 13px trees and
