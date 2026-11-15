@@ -11,7 +11,11 @@ import {
   translate,
   type TranslationKey,
 } from 'common/i18n';
-import { DSP_PLAYBACK_SECTIONS, DSP_SECTIONS } from 'renderer/dsp/sections';
+import {
+  DSP_LEVEL_SECTIONS,
+  DSP_PLAYBACK_SECTIONS,
+  DSP_SECTIONS,
+} from 'renderer/dsp/sections';
 import { buildHelpIndex, searchHelp } from 'renderer/help/helpSearch';
 
 /**
@@ -39,7 +43,7 @@ it('explains every stage and playback option visible in the DSP rail', () => {
   expect(drawing && isLiveFigure(drawing)).toBe(true);
   const named = drawing?.controls?.map(({ name }) => name) ?? [];
   expect(
-    [...DSP_SECTIONS, ...DSP_PLAYBACK_SECTIONS]
+    [...DSP_LEVEL_SECTIONS, ...DSP_SECTIONS, ...DSP_PLAYBACK_SECTIONS]
       .filter(({ labelKey }) => !named.includes(labelKey))
       .map(({ id }) => id),
   ).toEqual([]);

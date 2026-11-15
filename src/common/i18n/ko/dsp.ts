@@ -127,6 +127,9 @@ const dsp = {
   'dsp.normalizer.description':
     '피크와 게인 한도 안에서 가장 큰 3초 구간을 효과 처리 전에 맞춥니다. 조용한 구간은 상대적인 레벨을 유지합니다. 라이브러리는 파일을 측정하고, 라이브는 재생하면서 학습합니다.',
   'dsp.normalizer.mode': '정규화 모드',
+  'dsp.rail.levelGroup': '소스 레벨',
+  'dsp.normalizer.independent':
+    '프리셋과 별개입니다. 프리셋을 골라도 바뀌지 않고, 바꿔도 프리셋은 그대로입니다.',
   'dsp.normalizer.off': '꺼짐',
   'dsp.normalizer.truePeak': '트루피크',
   'dsp.normalizer.loudness': '음량',

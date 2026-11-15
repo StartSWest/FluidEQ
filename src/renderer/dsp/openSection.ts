@@ -4,7 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { DSP_PLAYBACK_SECTIONS, DSP_SECTIONS, TDspSection } from './sections';
+import {
+  DSP_LEVEL_SECTIONS,
+  DSP_PLAYBACK_SECTIONS,
+  DSP_SECTIONS,
+  TDspSection,
+} from './sections';
 
 /** Exported so a test can forget the choice without spelling it out again. */
 export const DSP_OPEN_SECTION_KEY = 'fluideq.dsp.openSection';
@@ -23,6 +28,7 @@ export const DSP_OPEN_SECTION_KEY = 'fluideq.dsp.openSection';
  * with an imported one.
  */
 const KNOWN: readonly TDspSection[] = [
+  ...DSP_LEVEL_SECTIONS.map((section) => section.id),
   ...DSP_SECTIONS.map((section) => section.id),
   ...DSP_PLAYBACK_SECTIONS.map((section) => section.id),
 ];

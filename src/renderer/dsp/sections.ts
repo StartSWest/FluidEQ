@@ -37,9 +37,8 @@ export type TDspSection =
  * change the sound by accident.
  */
 export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
-  { id: 'normalizer', labelKey: 'dsp.normalizer.title' },
-  // Beside the Normalizer rather than beside the creative stages: both of
-  // these fix the source, and the rack reads as repair-then-colour.
+  // First under the Normalizer, which stands above them in a group of its
+  // own: Denoise fixes the source, and the rack reads as repair-then-colour.
   { id: 'denoise', labelKey: 'dsp.denoise.title' },
   // Beside Denoise, where the audio runs (`chain_process_deesser` follows the
   // restoration): a harsh S is a fault of the recording, mended before any
@@ -73,6 +72,18 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
   { id: 'master', labelKey: 'dsp.master.title' },
 ];
+
+/**
+ * The source level, first in the audio and first on the rail, but in a group
+ * of its own like the crossfade: no preset switches it or carries it, and
+ * changing it keeps the preset's name (Ivan, 2026-11-15: "es una opción
+ * separada de los presets"). Listed among the filters, its lamp read as one
+ * more stage the chain owned.
+ */
+export const DSP_LEVEL_SECTIONS: {
+  id: TDspSection;
+  labelKey: TranslationKey;
+}[] = [{ id: 'normalizer', labelKey: 'dsp.normalizer.title' }];
 
 /** Playback transitions are configured here, but are not DSP filter stages. */
 export const DSP_PLAYBACK_SECTIONS: {

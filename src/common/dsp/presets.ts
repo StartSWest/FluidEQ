@@ -368,6 +368,11 @@ export const dspPresetSettings = (
     // Crossfade is playback behaviour, not a colour in the DSP rack. A chain
     // choice must never silently start, stop or reshape the next transition.
     crossfade: current?.crossfade ?? preset.settings.crossfade,
+    // The Normalizer is the listener's too, beside the presets rather than
+    // in them (Ivan, 2026-11-15: "es independiente"): every factory chain
+    // has it off, and a pick neither switches it on nor takes away the
+    // level somebody set.
+    normalizer: current?.normalizer ?? preset.settings.normalizer,
     // And the surround switch is the machine, not the sound: it says which
     // channels of THIS output the rack runs on. Every recipe is built from
     // the defaults, so without this a listener who had chosen the front pair

@@ -58,8 +58,6 @@ describe('the shareable complete DSP chain file', () => {
       throw new Error('a chain file this module wrote was not readable');
     }
     expect(read.name).toBe('My full chain');
-    expect(read.settings.normalizer.mode).toBe('loudness');
-    expect(read.settings.normalizer.targetLufs).toBe(-16);
     expect(read.settings.denoise.enabled).toBe(true);
     expect(read.settings.eq.model).toBe('wide');
     expect(read.settings.exciter.enabled).toBe(true);
@@ -71,13 +69,18 @@ describe('the shareable complete DSP chain file', () => {
     expect(read.settings.master.matchedBypass).toBe(true);
   });
 
-  it('leaves Crossfade and temporary monitor state out', () => {
+  it('leaves Crossfade, the Normalizer and temporary monitor state out', () => {
     const read = fromDspChainPresetFile(
       toDspChainPresetFile('Portable', fullChain()),
     );
     expect(read?.settings.enabled).toBe(true);
     expect(read?.settings.presetId).toBe('');
     expect(read?.settings.crossfade).toEqual(DSP_DEFAULTS.crossfade);
+    // The listener's level, beside the presets rather than in them (Ivan,
+    // 2026-11-15): a shared chain neither carries one nor switches it.
+    // POSITIVE CONTROL: the chain written had it on, at -16 LUFS.
+    expect(fullChain().normalizer.mode).toBe('loudness');
+    expect(read?.settings.normalizer).toEqual(DSP_DEFAULTS.normalizer);
     expect(read?.settings.denoise.isolate).toBe(false);
     expect(read?.settings.eq.isolate).toBe(false);
     expect(read?.settings.exciter.isolate).toBe(false);

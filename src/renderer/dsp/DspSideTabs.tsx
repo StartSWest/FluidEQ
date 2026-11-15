@@ -6,7 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useTranslation } from '../utils/I18nContext';
 import DspSectionIcon from './DspSectionIcon';
-import { DSP_PLAYBACK_SECTIONS, DSP_SECTIONS, TDspSection } from './sections';
+import {
+  DSP_LEVEL_SECTIONS,
+  DSP_PLAYBACK_SECTIONS,
+  DSP_SECTIONS,
+  TDspSection,
+} from './sections';
 
 interface IDspSideTabsProps {
   active: TDspSection;
@@ -20,8 +25,9 @@ interface IDspSideTabsProps {
 }
 
 /**
- * The rail down the side of the DSP page: filters in signal order, followed by
- * the player transition in its own group.
+ * The rail down the side of the DSP page: the source level in a group of its
+ * own, the filters in signal order, then the player transition in its own
+ * group. The two groups are what no preset sets.
  *
  * Stacking every processor on one scrolling page put four cards and forty-one
  * knobs in front of someone who wanted to move one — the EQ alone was eighteen
@@ -67,6 +73,10 @@ const DspSideTabs = ({
 
   return (
     <nav className="dsp-rail" aria-label={t('dsp.title')}>
+      <div className="dsp-rail-level">
+        <span className="dsp-rail-group-label">{t('dsp.rail.levelGroup')}</span>
+        {DSP_LEVEL_SECTIONS.map(renderTab)}
+      </div>
       <div className="dsp-rail-processors">{DSP_SECTIONS.map(renderTab)}</div>
       <div className="dsp-rail-playback">
         <span className="dsp-rail-group-label">

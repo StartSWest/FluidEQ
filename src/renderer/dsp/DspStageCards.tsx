@@ -97,7 +97,9 @@ const DspStageCards = ({
         <DspNormalizerCard
           normalizer={normalizer}
           analysisState={inputAnalysis}
-          onPatch={(next) => onPatch({ normalizer: next })}
+          // Independent of the preset, like the crossfade below: switching it
+          // or turning a dial never turns the chain's name into Custom.
+          onPatch={(next) => onPatch({ normalizer: next }, true)}
           onCommit={onCommit}
         />
       );

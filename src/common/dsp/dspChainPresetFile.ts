@@ -59,6 +59,9 @@ export const portableDspChainSettings = (
     enabled: true,
     presetId: '',
     crossfade: DSP_DEFAULTS.crossfade,
+    // The listener's level, not the chain's: a saved or shared chain carries
+    // none, and applying one keeps whatever Normalizer is on now.
+    normalizer: DSP_DEFAULTS.normalizer,
     denoise: { ...settings.denoise, isolate: false },
     deEsser: { ...settings.deEsser, isolate: false },
     eq: { ...settings.eq, isolate: false },

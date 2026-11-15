@@ -142,6 +142,9 @@ const dsp = {
   'dsp.normalizer.description':
     'Aligne les passages de trois secondes les plus forts avant les effets, dans les limites de crête et de gain. Les passages doux gardent leur niveau relatif. La Bibliothèque mesure le fichier ; le mode Direct apprend pendant la lecture.',
   'dsp.normalizer.mode': 'Mode de normalisation',
+  'dsp.rail.levelGroup': 'Niveau de la source',
+  'dsp.normalizer.independent':
+    'Indépendant des préréglages : en choisir un ne le modifie jamais, et le modifier conserve votre préréglage.',
   'dsp.normalizer.off': 'Désactivé',
   'dsp.normalizer.truePeak': 'Crête vraie',
   'dsp.normalizer.loudness': 'Sonie',

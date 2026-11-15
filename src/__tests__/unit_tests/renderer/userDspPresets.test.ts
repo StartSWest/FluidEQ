@@ -79,7 +79,7 @@ it('keeps the listener’s Treble choice when a saved chain is picked', () => {
   expect(resolveDspPreset(saved.id, DSP_DEFAULTS)?.eq.treble).toBe('precise');
 });
 
-it('retains deliberate level controls in an older saved chain', () => {
+it('retains a saved chain’s Master but keeps the listener’s Normalizer', () => {
   const settings = {
     ...DSP_DEFAULTS,
     normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'loudness' as const },
@@ -87,6 +87,20 @@ it('retains deliberate level controls in an older saved chain', () => {
   };
   const saved = saveUserDspPreset('My levelled chain', settings);
   const selected = resolveDspPreset(saved.id, DSP_DEFAULTS);
-  expect(selected?.normalizer).toEqual(settings.normalizer);
+  // The Normalizer stands beside the presets (Ivan, 2026-11-15): a saved
+  // chain neither carries one nor switches the listener's.
+  expect(selected?.normalizer).toEqual(DSP_DEFAULTS.normalizer);
+  const levelled = {
+    ...DSP_DEFAULTS,
+    normalizer: {
+      mode: 'truePeak' as const,
+      truePeakDbtp: -2,
+      targetLufs: -16,
+    },
+  };
+  expect(resolveDspPreset(saved.id, levelled)?.normalizer).toEqual(
+    levelled.normalizer,
+  );
+  // POSITIVE CONTROL: the chain's own stages still come back with it.
   expect(selected?.master).toEqual(settings.master);
 });

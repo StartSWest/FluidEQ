@@ -112,6 +112,7 @@ const DspNormalizerCard = ({
               </button>
             ))}
           </div>
+          <p className="dsp-band-hint">{t('dsp.normalizer.independent')}</p>
           <div className="dsp-normalizer-dials">
             <Dial
               labelKey="dsp.normalizer.ceiling"

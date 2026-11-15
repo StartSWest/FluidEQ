@@ -8,7 +8,7 @@ import type { IDspSettings } from '../../common/dsp/chain';
 import type { TGameSoundPart } from '../../common/gameSoundParts';
 import type { TranslationKey } from '../../common/i18n/en';
 import type { ITone } from '../../common/tone';
-import { DSP_SECTIONS, TDspSection } from '../dsp/sections';
+import { DSP_LEVEL_SECTIONS, DSP_SECTIONS, TDspSection } from '../dsp/sections';
 
 /**
  * Every part of a game's sound, as the Gaming Lab's rail lists them: the
@@ -44,13 +44,15 @@ export const GAMING_STAGES: readonly IGamingStageDef[] = [
   { id: 'footsteps', group: 'game', labelKey: SOUND_LABEL_KEYS.footsteps },
   { id: 'mainEq', group: 'sound', labelKey: SOUND_LABEL_KEYS.mainEq },
   { id: 'curve', group: 'sound', labelKey: SOUND_LABEL_KEYS.curve },
-  ...DSP_SECTIONS.filter((section) => isRackPart(section.id)).map(
-    (section) => ({
+  // The Normalizer leads the music rail in a group of its own; a game's
+  // sound lists it with the rest of its rack, as it always did.
+  ...[...DSP_LEVEL_SECTIONS, ...DSP_SECTIONS]
+    .filter((section) => isRackPart(section.id))
+    .map((section) => ({
       id: section.id as TGamingStage,
       group: 'dsp' as const,
       labelKey: section.labelKey,
-    }),
-  ),
+    })),
 ];
 
 /** A part's name on screen, for the rail and the "Tuned: …" line alike. */

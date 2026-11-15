@@ -40,11 +40,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 168px;
 }
 
+.dsp-rail-level,
 .dsp-rail-processors,
 .dsp-rail-playback {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+// The Normalizer, first as it is first in the audio, set apart as the
+// crossfade is below: no preset switches it or carries it, so its lamp must
+// not read as one more stage the chain owns. The same rule and spacing as the
+// playback group, mirrored under it.
+.dsp-rail-level {
+  gap: 5px;
+  margin-bottom: 11px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $menu-rule;
 }
 
 // Crossfade schedules the player; it is not a filter in the signal chain.

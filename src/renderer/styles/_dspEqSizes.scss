@@ -109,6 +109,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding-bottom: 2px;
   }
 
+  .dsp-rail-level,
   .dsp-rail-processors,
   .dsp-rail-playback {
     flex-direction: row;
@@ -118,6 +119,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dsp-rail-processors {
     flex: 1 1 auto;
     justify-content: space-around;
+  }
+
+  // The playback group's rule, on the level group's other side.
+  .dsp-rail-level {
+    flex: 0 0 auto;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    padding-right: 4px;
+    border-bottom: 0;
+    border-right: 1px solid rgba($white, 0.09);
   }
 
   .dsp-rail-playback {

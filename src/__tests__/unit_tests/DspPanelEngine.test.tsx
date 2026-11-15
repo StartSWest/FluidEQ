@@ -171,9 +171,10 @@ describe('DspPanel and the engine', () => {
     );
     const rail = screen.getByRole('navigation', { name: 'DSP' });
     expect(
-      within(
-        rail.querySelector('.dsp-rail-processors') as HTMLElement,
-      ).getByRole('button', { name: /Normalizer/i }),
+      within(rail.querySelector('.dsp-rail-level') as HTMLElement).getByRole(
+        'button',
+        { name: /Normalizer/i },
+      ),
     ).toBeEnabled();
   });
 
@@ -285,7 +286,15 @@ describe('DspPanel and the engine', () => {
     const playback = within(
       rail.querySelector('.dsp-rail-playback') as HTMLElement,
     );
-    expect(filters.getByRole('button', { name: /Normalizer/i })).toBeDisabled();
+    // The Normalizer stands in its own group above the filters, and is part
+    // of the rack the bypass holds off, like every filter below it.
+    expect(
+      within(rail.querySelector('.dsp-rail-level') as HTMLElement).getByRole(
+        'button',
+        { name: /Normalizer/i },
+      ),
+    ).toBeDisabled();
+    expect(filters.getByRole('button', { name: /Denoise/i })).toBeDisabled();
     const crossfadeTab = playback.getByRole('button', {
       name: /Crossfade/i,
     });

@@ -480,6 +480,41 @@ describe('dsp chain settings', () => {
     });
   });
 
+  /**
+   * The Normalizer is the listener's, beside the presets (Ivan, 2026-11-15:
+   * "es independiente"): no factory chain switches it on, and a pick keeps
+   * whatever level somebody set.
+   */
+  it('switches the Normalizer on in no factory preset', () => {
+    // POSITIVE CONTROL: a rack can hold it on, so "off" below is a reading.
+    expect(
+      clampDspSettings({
+        ...DSP_DEFAULTS,
+        normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'loudness' },
+      }).normalizer.mode,
+    ).toBe('loudness');
+    expect(DSP_PRESETS.length).toBeGreaterThan(100);
+    expect(
+      DSP_PRESETS.filter(
+        (preset) => preset.settings.normalizer.mode !== 'off',
+      ).map((preset) => preset.id),
+    ).toEqual([]);
+  });
+
+  it('keeps the Normalizer as the listener set it when a whole-chain preset is applied', () => {
+    const current: IDspSettings = {
+      ...DSP_DEFAULTS,
+      normalizer: { mode: 'loudness', truePeakDbtp: -2, targetLufs: -16 },
+    };
+    expect(dspPresetSettings('rock', current)?.normalizer).toEqual(
+      current.normalizer,
+    );
+    // And one set off stays off whatever the chain is.
+    expect(dspPresetSettings('rock', DSP_DEFAULTS)?.normalizer.mode).toBe(
+      'off',
+    );
+  });
+
   it('keeps Crossfade independent when a whole-chain preset is applied', () => {
     const current: IDspSettings = {
       ...DSP_DEFAULTS,

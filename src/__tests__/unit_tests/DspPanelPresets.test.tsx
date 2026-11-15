@@ -222,6 +222,47 @@ describe('DspPanel presets, isolates and monitors', () => {
   });
 
   /**
+   * The Normalizer stands beside the presets like the crossfade (Ivan,
+   * 2026-11-15: "si el usuario lo pone on no debe decir custom ya que es
+   * independiente"): a pick keeps it, and switching it keeps the pick's name.
+   */
+  it('does not change the Normalizer when a DSP preset is chosen', async () => {
+    mockSetVoicing.mockResolvedValue(undefined);
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      normalizer: { mode: 'loudness', truePeakDbtp: -2, targetLufs: -16 },
+    };
+    const { onChange } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
+    });
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.presetId).toBe('rock');
+    expect(next.normalizer).toEqual(active.normalizer);
+  });
+
+  it('keeps the preset named when the Normalizer is switched on', () => {
+    const rock = DSP_PRESETS.find((preset) => preset.id === 'rock');
+    if (!rock) {
+      throw new Error('the Rock chain is missing from the catalogue');
+    }
+    // POSITIVE CONTROL: the rack really is named Rock, with the Normalizer off.
+    expect(rock.settings.presetId).toBe('rock');
+    expect(rock.settings.normalizer.mode).toBe('off');
+    const { container, onChange } = renderPanel(rock.settings);
+    fireEvent.click(
+      container.querySelector('[data-dsp-section="normalizer"]') as HTMLElement,
+    );
+    // Library playback owns the rack here, so the Library's own mode names.
+    fireEvent.click(screen.getByRole('button', { name: 'True Peak' }));
+    const { calls } = onChange.mock;
+    const next = calls[calls.length - 1][0] as IDspSettings;
+    expect(next.normalizer.mode).toBe('truePeak');
+    expect(next.presetId).toBe('rock');
+  });
+
+  /**
    * The header says what the rack is doing, not what was asked for: the Room
    * takes every channel to place them around the head, so while it is on the
    * switch reads All channels and holds still.

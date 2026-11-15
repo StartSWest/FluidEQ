@@ -66,11 +66,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
+// The level group arrives as one piece, on the rail's first beat, like the
+// playback group below and for the same reason: its label is child one.
+.dsp-rail-level {
+  @include animate(rise-in, $motion-base, $ease-out, $dsp-rail-offset);
+}
+
 .dsp-rail-processors > .dsp-rail-tab {
   @include stagger-in(
     $count: $dsp-rail-filters,
     $step: $dsp-rail-step,
-    $offset: $dsp-rail-offset
+    $offset: $dsp-rail-offset + $dsp-rail-step
   );
 }
 
@@ -85,7 +91,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     rise-in,
     $motion-base,
     $ease-out,
-    $dsp-rail-offset + $dsp-rail-filters * $dsp-rail-step
+    $dsp-rail-offset + ($dsp-rail-filters + 1) * $dsp-rail-step
   );
 }
 
