@@ -120,7 +120,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   border-radius: $radius-m;
   background: none;
-  color: $studio-t2;
+  // The theme's muted text, not the studio's second step: at 68% of the
+  // primary the shelves and the folders read as switched off (Ivan,
+  // 2026-11-15: "that text looks like disabled, we need more contrast").
+  color: $text-muted;
   font-family: inherit;
   font-size: $studio-text-row;
   text-align: left;
@@ -220,7 +223,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Each level steps in 15px under the shelf's own 10, as Explorer indents.
   padding: 5px 10px 5px calc(10px + var(--tree-level, 0) * 15px);
   border-radius: 7px;
-  color: $studio-t2;
+  // As the shelves above it: the muted text, read as live.
+  color: $text-muted;
   font-size: $studio-text-tree;
   white-space: nowrap;
   cursor: pointer;
@@ -257,7 +261,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 12px;
   flex: 0 0 auto;
   place-items: center;
-  color: $studio-t3;
+  color: $studio-t2;
 
   svg {
     width: 10px;
@@ -283,7 +287,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
-  opacity: 0.75;
+  opacity: 0.9;
 }
 
 .library-tree__name {
