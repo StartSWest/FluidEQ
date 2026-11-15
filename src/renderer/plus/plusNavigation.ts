@@ -109,9 +109,16 @@ const INITIAL: IPlusNavigation = {
   filters: { sort: OPENING_SORT, text: '' },
 };
 
-/** The filters as a new visit finds them: Newest, the rest as they were. */
+/**
+ * The filters as a new visit finds them: Newest, and every scene - "Not mine
+ * yet" off - the rest as they were. Left on from an earlier visit, that
+ * filter made a member who owns every scene find the gallery empty, and it
+ * read as the scenes not loading (Ivan, 2026-11-15).
+ */
 const opened = (filters: IBrowseFilters): IBrowseFilters =>
-  filters.sort === OPENING_SORT ? filters : { ...filters, sort: OPENING_SORT };
+  filters.sort === OPENING_SORT && filters.notMine !== true
+    ? filters
+    : { ...filters, sort: OPENING_SORT, notMine: undefined };
 
 let navigation: IPlusNavigation = { ...INITIAL, place: storedPlace() };
 const listeners = new Set<() => void>();

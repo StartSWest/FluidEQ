@@ -77,3 +77,16 @@ it('starts on Newest when another part of the app sends the member to a gallery 
   press(() => openGalleryPage({ kind: 'scene', scene }));
   expect(now().filters.sort).toBe('new');
 });
+
+// Left on from an earlier visit, "Not mine yet" showed a member who owns every
+// scene an empty gallery, which read as the scenes not loading (Ivan,
+// 2026-11-15). A visit keeps it; the next one starts on every scene.
+it('keeps Not mine yet through the visit and starts the next one without it', () => {
+  press(() => setBrowseFilters({ sort: 'new', text: '', notMine: true }));
+  press(() => openGalleryPage({ kind: 'scene', scene }));
+  press(() => openGalleryPage({ kind: 'browse' }));
+  // The control: the visit itself keeps it.
+  expect(now().filters.notMine).toBe(true);
+  press(() => plusTabOpened());
+  expect(now().filters.notMine).not.toBe(true);
+});
