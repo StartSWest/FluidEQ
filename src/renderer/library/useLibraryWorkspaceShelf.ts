@@ -96,6 +96,7 @@ const useLibraryWorkspaceShelf = ({
     forceRescan,
     cancelScan,
     removeRoot,
+    queueFiles,
   } = useLibrary();
   const { roots, wasReset, trackCount } = summary;
   const { playlists, wasReset: playlistsWereReset } = usePlaylists();
@@ -112,6 +113,24 @@ const useLibraryWorkspaceShelf = ({
     seek,
     closeVideo,
   } = useLibraryPlayerSession();
+  /**
+   * Files dropped on the Library play, songs and films alike, in the order
+   * they were dropped (Ivan, 2026-11-15: "what happens if I drop videos into
+   * the Library player? We just play those"). They join the library on the
+   * way, as a drop on the queue already does; a dropped folder plays what
+   * is in it. Nothing playable in the drop leaves what is playing alone.
+   */
+  const playDroppedFiles = useCallback(
+    async (paths: string[]) => {
+      const trackIds = await queueFiles(paths);
+      const first = trackIds[0];
+      if (first !== undefined) {
+        playTracks(trackIds, first);
+      }
+    },
+    [playTracks, queueFiles],
+  );
+
   /** The film on the tab, named in the place bar after the shelf it was
    * opened from. */
   const videoTitle =
@@ -834,6 +853,7 @@ const useLibraryWorkspaceShelf = ({
     showScanNotice,
     addFolder,
     addFolderPaths,
+    playDroppedFiles,
     rescan,
     forceRescan,
     cancelScan,

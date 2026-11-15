@@ -107,6 +107,7 @@ const LibraryWorkspaceView = ({
     showScanNotice,
     addFolder,
     addFolderPaths,
+    playDroppedFiles,
     rescan,
     forceRescan,
     cancelScan,
@@ -214,7 +215,14 @@ const LibraryWorkspaceView = ({
     const paths = Array.from(event.dataTransfer.files)
       .map(droppedFilePath)
       .filter((path): path is string => path.length > 0);
-    if (paths.length) {
+    if (paths.length === 0) {
+      return;
+    }
+    // An empty library takes a drop as the folders to read, as its empty
+    // state says; one with music plays what was dropped.
+    if (hasLibrary) {
+      playDroppedFiles(paths).catch(() => undefined);
+    } else {
       addFolderPaths(paths).catch(() => undefined);
     }
   };
