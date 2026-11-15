@@ -1,0 +1,319 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The colours a scene lends the window: the three swatches and the small
+// window painted in them, under the Window colours menu's modes and on the
+// Studio's Tune tab (Ivan, 2026-11-14, the tuning mockup).
+
+// *** The three ***************************************************************
+
+.window-colour-swatches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+// The whole swatch is the picker, as the Studio's single colour is
+// (`.studio-colour__pick`): the system's colour input lies over it unseen.
+.window-colour-swatch {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 3px;
+  padding: 6px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+  }
+
+  &:has(:focus-visible) {
+    @include focus-ring;
+  }
+
+  &:has(:disabled) {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+.window-colour-swatch__well {
+  height: 22px;
+  border-radius: 4px;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgba($white, 0.2);
+}
+
+.window-colour-swatch__name {
+  overflow: hidden;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// A colour changed from the scene's own carries a dot after its name.
+.window-colour-swatch.is-changed .window-colour-swatch__name::after {
+  content: ' •';
+  color: $amber;
+}
+
+.window-colour-swatch__about {
+  color: $text-muted;
+  font-size: $text-micro;
+  line-height: 1.3;
+}
+
+.window-colour-swatch__hex {
+  overflow: hidden;
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: $text-micro;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.window-colour-swatch__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: inherit;
+}
+
+// *** The small window ********************************************************
+
+// Its colours come in as properties from the window's own toning
+// (`WindowColoursPreview.tsx`); the shapes are a title bar over a side column
+// and a pane.
+.window-colours-preview {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: $radius-xs;
+  background: var(--preview-floor);
+  transition: background $motion-base $ease-out;
+}
+
+.window-colours-preview__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+}
+
+.window-colours-preview__logo {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--preview-accent);
+  border-radius: 3px;
+}
+
+.window-colours-preview__wave {
+  position: relative;
+  flex: 1 1 auto;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--preview-pane);
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--preview-accent);
+    stroke-width: 1.4;
+  }
+}
+
+.window-colours-preview__body {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+}
+
+.window-colours-preview__side {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 6px;
+  padding: 6px 0;
+  background: var(--preview-pane);
+}
+
+.window-colours-preview__power {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 40%,
+    color-mix(in srgb, var(--preview-accent) 80%, $white),
+    var(--preview-accent)
+  );
+  box-shadow: 0 0 10px
+    color-mix(in srgb, var(--preview-accent) 45%, transparent);
+}
+
+.window-colours-preview__switch {
+  position: relative;
+  width: 20px;
+  height: 11px;
+  border-radius: 6px;
+  background: var(--preview-active);
+
+  &::after {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $white;
+    content: '';
+  }
+}
+
+.window-colours-preview__pane {
+  display: grid;
+  gap: 5px;
+  margin: 6px;
+  padding: 5px;
+  border-radius: 4px;
+  background: var(--preview-field);
+}
+
+.window-colours-preview__pills {
+  display: flex;
+  gap: 4px;
+}
+
+.window-colours-preview__pill {
+  width: 26px;
+  height: 7px;
+  border-radius: 3px;
+
+  &.is-filled {
+    background: var(--preview-accent);
+  }
+
+  &.is-on {
+    border: 1px solid var(--preview-active);
+  }
+}
+
+.window-colours-preview__curve {
+  position: relative;
+  height: 22px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--preview-floor);
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--preview-accent);
+    stroke-width: 1.6;
+  }
+}
+
+// *** Under the Window colours menu *******************************************
+
+.scene-window-colours {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 8px 6px 4px;
+  border-top: 1px solid $menu-rule;
+}
+
+.scene-window-colours__head {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.scene-window-colours__title {
+  min-width: 0;
+  overflow: hidden;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-window-colours__badge {
+  padding: 1px 7px;
+  color: $text-muted;
+  border: 1px solid $border-control;
+  border-radius: 999px;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+
+  &.is-yours {
+    color: $amber;
+    border-color: color-mix(in srgb, $amber 55%, transparent);
+  }
+}
+
+.scene-window-colours__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+// *** On the Studio's Tune tab ************************************************
+
+.studio-window-colours {
+  display: grid;
+  gap: 10px;
+}
+
+.studio-window-colours__head {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.studio-window-colours__source,
+.studio-window-colours__note,
+.studio-window-colours__empty {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.studio-window-colours__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}

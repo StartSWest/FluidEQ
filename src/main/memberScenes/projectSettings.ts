@@ -19,6 +19,10 @@ import {
   readPaletteValue,
   type IScenePaletteValue,
 } from '../../common/scenePalette';
+import {
+  readSceneWindowColours,
+  type ISceneWindowColours,
+} from '../../common/sceneWindowColours';
 import { MANIFEST_FILE, readManifest, writeInside } from './projectFiles';
 import { queueSettingsWrite } from './settingsWrites';
 
@@ -29,7 +33,8 @@ import { queueSettingsWrite } from './settingsWrites';
  * carries what they settled on, and so their AI sees it next time.
  *
  * Only what a member tunes changes — the controls, the response, the
- * ambient elements and where the scene wants the wave. Every other field of
+ * ambient elements, where the scene wants the wave and the colours it lends
+ * the window. Every other field of
  * `pack.json` is the AI's
  * and is written back as it was read; a control this scene does not have is
  * ignored rather than added, and each value is kept inside its control's own
@@ -57,6 +62,12 @@ export interface IProjectSettings {
    * graph then stands wherever they left it, as it did before.
    */
   wave?: ISceneWave | null;
+  /**
+   * The colours the scene lends the window (`sceneWindowColours.ts`), which
+   * its AI chose and the member tuned on the Tune tab. `null` takes them
+   * out: the window then works them out from the scene's palette.
+   */
+  windowColours?: ISceneWindowColours | null;
 }
 
 export type TSettingsWrite = 'written' | 'unchanged' | 'failed';
@@ -185,6 +196,17 @@ const writeSettings = async (
         height: tidy(wave.height),
         position: tidy(wave.position),
       };
+    }
+  }
+
+  if (settings.windowColours === null) {
+    delete manifest.windowColours;
+  } else if (settings.windowColours !== undefined) {
+    // A set that is not three colours is written as nothing at all: the
+    // scene keeps what it had rather than losing its colours to a slip.
+    const windowColours = readSceneWindowColours(settings.windowColours);
+    if (windowColours) {
+      manifest.windowColours = { ...windowColours };
     }
   }
 

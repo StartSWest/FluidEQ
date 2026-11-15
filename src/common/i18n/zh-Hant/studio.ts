@@ -699,6 +699,16 @@ const studio = {
     'pack.json 中的一些環境元素或控制被遺漏。檢查它們的形狀、動作、顏色、計數以及每個控制項的移動內容。',
   'studio.problem.bad-window-colours':
     'pack.json 中的 windowColours 需要 surface、accent 和 glow，每項都是類似 #00e5cf 的顏色。',
+  'studio.windowColours.failed': '無法儲存顏色。請再試一次。',
+  'studio.windowColours.note': '儲存在場景中，所有播放它的人都會看到這些顏色。',
+  'studio.windowColours.undo': '復原我的修改',
+  'studio.windowColours.fromPalette': '從調色盤選擇',
+  'studio.windowColours.none':
+    '此場景還沒有可取色的調色盤。請讓你的 AI 選擇視窗顏色。',
+  'studio.windowColours.byYou': '由你修改',
+  'studio.windowColours.byPalette': '由 FluidEQ 根據調色盤算出',
+  'studio.windowColours.byAi': '由你的 AI 從場景中選出',
+  'studio.windowColours.title': '視窗顏色',
   'studio.problem.bad-world':
     '3D世界沒有這個版本可以畫的東西。檢查它的節點、材料和公式。',
   'studio.problem.bad-model':

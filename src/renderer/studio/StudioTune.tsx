@@ -22,6 +22,8 @@ interface IStudioTuneProps {
   canResetWave: boolean;
   /** Nothing is on the stage: the controls stay where they will be, unlit. */
   idle: boolean;
+  /** The colours the scene lends the window (`StudioWindowColours.tsx`). */
+  windowColours: ReactNode;
   /**
    * The scene's own settings (`StudioSettings.tsx`): its controls, how it
    * answers the music, its elements in the window.
@@ -44,6 +46,7 @@ export default function StudioTune({
   onWaveReset,
   canResetWave,
   idle,
+  windowColours,
   settings,
 }: IStudioTuneProps) {
   const { t } = useTranslation();
@@ -55,6 +58,7 @@ export default function StudioTune({
         <StudioTintSwitch />
         <StudioBrightness />
       </section>
+      {windowColours}
       <section
         className="studio-card studio-tune__box"
         aria-labelledby={pictureId}

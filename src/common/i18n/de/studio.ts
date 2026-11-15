@@ -817,6 +817,18 @@ const studio = {
     'Einige ambient-Elemente oder -Regler in pack.json wurden weggelassen. Prüfen Sie Formen, Bewegungen, Farben, Anzahlen und was jeder Regler bewegt.',
   'studio.problem.bad-window-colours':
     'windowColours in pack.json braucht surface, accent und glow, jeweils eine Farbe wie #00e5cf.',
+  'studio.windowColours.failed':
+    'Die Farben konnten nicht gespeichert werden. Versuchen Sie es erneut.',
+  'studio.windowColours.note':
+    'In der Szene gespeichert, damit alle, die sie abspielen, diese Farben sehen.',
+  'studio.windowColours.undo': 'Meine Änderungen zurücknehmen',
+  'studio.windowColours.fromPalette': 'Aus der Palette wählen',
+  'studio.windowColours.none':
+    'Diese Szene hat noch keine Palette, aus der Farben kommen können. Bitten Sie Ihre KI, die Fensterfarben zu wählen.',
+  'studio.windowColours.byYou': 'Von Ihnen geändert',
+  'studio.windowColours.byPalette': 'Von FluidEQ aus der Palette ermittelt',
+  'studio.windowColours.byAi': 'Von Ihrer KI aus der Szene gewählt',
+  'studio.windowColours.title': 'Fensterfarben',
   'studio.problem.bad-world':
     'Die 3D-Welt enthält nichts, was diese Version zeichnen kann. Prüfen Sie Knoten, Materialien und Formeln.',
   'studio.problem.bad-model':

@@ -797,6 +797,18 @@ const studio = {
     'pack.json の ambient の要素かコントロールの一部が使われませんでした。形、動き、色、数、各コントロールが動かすものを確認してください。',
   'studio.problem.bad-window-colours':
     'pack.json の windowColours には surface、accent、glow が必要です。どれも #00e5cf のような色で指定します。',
+  'studio.windowColours.failed':
+    '色を保存できませんでした。もう一度お試しください。',
+  'studio.windowColours.note':
+    'シーンに保存されるので、再生する人全員にこの色が表示されます。',
+  'studio.windowColours.undo': '変更を元に戻す',
+  'studio.windowColours.fromPalette': 'パレットから選ぶ',
+  'studio.windowColours.none':
+    'このシーンには色を取れるパレットがまだありません。AI にウィンドウの色を選んでもらってください。',
+  'studio.windowColours.byYou': 'あなたが変更しました',
+  'studio.windowColours.byPalette': 'FluidEQ がパレットから決めました',
+  'studio.windowColours.byAi': 'AI がシーンから選びました',
+  'studio.windowColours.title': 'ウィンドウの色',
   'studio.problem.bad-world':
     'この 3D ワールドには、このバージョンで描けるものがありません。ノード、マテリアル、数式を確認してください。',
   'studio.problem.bad-model':

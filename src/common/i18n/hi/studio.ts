@@ -785,6 +785,17 @@ const studio = {
     'pack.json के कुछ ambient तत्व या नियंत्रण छोड़ दिए गए। उनके आकार, गति, रंग, संख्या और हर नियंत्रण क्या बदलता है, जाँचें।',
   'studio.problem.bad-window-colours':
     'pack.json में windowColours को surface, accent और glow चाहिए, हर एक #00e5cf जैसा रंग।',
+  'studio.windowColours.failed': 'रंग सेव नहीं हो सके। फिर से कोशिश करें।',
+  'studio.windowColours.note':
+    'सीन में सेव होते हैं, इसलिए इसे चलाने वाले सभी लोग ये रंग देखते हैं।',
+  'studio.windowColours.undo': 'मेरे बदलाव वापस लें',
+  'studio.windowColours.fromPalette': 'पैलेट से चुनें',
+  'studio.windowColours.none':
+    'इस सीन में अभी रंग लेने के लिए कोई पैलेट नहीं है। अपने AI से विंडो के रंग चुनने को कहें।',
+  'studio.windowColours.byYou': 'आपने बदले',
+  'studio.windowColours.byPalette': 'FluidEQ ने पैलेट से तय किए',
+  'studio.windowColours.byAi': 'आपके AI ने सीन से चुने',
+  'studio.windowColours.title': 'विंडो के रंग',
   'studio.problem.bad-world':
     'इस 3D दुनिया में ऐसा कुछ नहीं है जिसे यह संस्करण बना सके। इसके नोड, सामग्री और सूत्र जाँचें।',
   'studio.problem.bad-model':

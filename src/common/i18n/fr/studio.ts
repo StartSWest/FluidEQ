@@ -809,6 +809,19 @@ const studio = {
     'Des éléments ou contrôles ambient de pack.json ont été écartés. Vérifiez leurs formes, mouvements, couleurs, nombres et ce que règle chaque contrôle.',
   'studio.problem.bad-window-colours':
     'windowColours dans pack.json demande surface, accent et glow, chacun une couleur comme #00e5cf.',
+  'studio.windowColours.failed':
+    'Les couleurs n’ont pas pu être enregistrées. Réessayez.',
+  'studio.windowColours.note':
+    'Enregistrées dans la scène : tous ceux qui la lancent voient ces couleurs.',
+  'studio.windowColours.undo': 'Annuler mes modifications',
+  'studio.windowColours.fromPalette': 'Les choisir dans la palette',
+  'studio.windowColours.none':
+    'Cette scène n’a pas encore de palette d’où tirer des couleurs. Demandez à votre IA de choisir ses couleurs de fenêtre.',
+  'studio.windowColours.byYou': 'Modifiées par vous',
+  'studio.windowColours.byPalette':
+    'Calculées par FluidEQ à partir de la palette',
+  'studio.windowColours.byAi': 'Choisies par votre IA dans la scène',
+  'studio.windowColours.title': 'Couleurs de la fenêtre',
   'studio.problem.bad-world':
     'Le monde 3D ne contient rien que cette version puisse dessiner. Vérifiez ses nœuds, matériaux et formules.',
   'studio.problem.bad-model':

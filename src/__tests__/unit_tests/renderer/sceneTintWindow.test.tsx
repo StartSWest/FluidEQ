@@ -154,6 +154,31 @@ describe('the graph’s visualizer', () => {
     expect(mockMeasureScene).not.toHaveBeenCalled();
   });
 
+  // The listener's own colours for a scene, from the Window colours menu,
+  // over the scene's (Ivan, 2026-11-14: "implement that").
+  it('wears the colours the listener chose for the scene over its own', () => {
+    mockWindowColours = {
+      surface: '#1d2b4f',
+      accent: '#5fd4ff',
+      glow: '#7dffb0',
+    };
+    window.localStorage.setItem(
+      'fluideq.sceneWindowColours',
+      JSON.stringify({
+        'premium:bloom': {
+          surface: '#3a1d12',
+          accent: '#5fd4ff',
+          glow: '#7dffb0',
+        },
+      }),
+    );
+    const { store } = mount();
+    // #3a1d12 is a red-brown, nowhere near the scene's own blue (266).
+    const shown = store.getShownSceneSky();
+    expect(shown?.hue).toBeLessThan(60);
+    expect(mockMeasureScene).not.toHaveBeenCalled();
+  });
+
   it('control: a scene naming none is measured, as before', () => {
     remember([['premium:bloom', '2', sky(30)]]);
     mount();

@@ -794,6 +794,18 @@ const studio = {
     'Часть элементов или регуляторов ambient в pack.json пропущена. Проверьте формы, движения, цвета, количество и то, чем управляет каждый регулятор.',
   'studio.problem.bad-window-colours':
     'windowColours в pack.json нужны surface, accent и glow — каждый цвет вида #00e5cf.',
+  'studio.windowColours.failed':
+    'Не удалось сохранить цвета. Попробуйте ещё раз.',
+  'studio.windowColours.note':
+    'Сохраняются в сцене: все, кто её запустит, увидят эти цвета.',
+  'studio.windowColours.undo': 'Отменить мои изменения',
+  'studio.windowColours.fromPalette': 'Взять из палитры',
+  'studio.windowColours.none':
+    'У этой сцены пока нет палитры, из которой можно взять цвета. Попросите ИИ выбрать цвета окна.',
+  'studio.windowColours.byYou': 'Изменены вами',
+  'studio.windowColours.byPalette': 'Подобраны FluidEQ по палитре',
+  'studio.windowColours.byAi': 'Выбраны вашим ИИ по сцене',
+  'studio.windowColours.title': 'Цвета окна',
   'studio.problem.bad-world':
     'В 3D-мире нет ничего, что эта версия может нарисовать. Проверьте узлы, материалы и формулы.',
   'studio.problem.bad-model':

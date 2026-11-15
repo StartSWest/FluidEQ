@@ -26,6 +26,7 @@ import PointerSparksSwitch from './PointerSparksSwitch';
 import RainbowSwitch from './RainbowSwitch';
 import AppIconTintSwitch from './AppIconTintSwitch';
 import SceneDaylightSlider from './SceneDaylightSlider';
+import SceneWindowColours from './SceneWindowColours';
 import WindowBrightnessSlider from './WindowBrightnessSlider';
 
 /**
@@ -159,6 +160,9 @@ const SceneTintMenu = () => {
               </button>
             ))}
           </div>
+          {/* The chosen scene's own three colours, under the modes they
+              apply in (Ivan, 2026-11-14: the tuning mockup). */}
+          <SceneWindowColours />
         </div>
       </AnchoredMenu>
     </span>

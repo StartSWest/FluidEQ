@@ -206,6 +206,21 @@ const eq = {
   // The picker's headings over the scenes members made in the Studio: this
   // member's own, and the ones other members sent them.
   'graph.member.mine': 'Made by you',
+  'graph.sceneColours.preview': 'The window in these colours',
+  'graph.sceneColours.reset': "Use the scene's colours",
+  'graph.sceneColours.pick': 'Change the {role} colour',
+  'graph.sceneColours.glowUnused':
+    'Too close to red: FluidEQ keeps its own “on”',
+  'graph.sceneColours.glowAbout': '“On” and the glow',
+  'graph.sceneColours.accentAbout': 'Buttons and the curve',
+  'graph.sceneColours.surfaceAbout': 'Panes and fields',
+  'graph.sceneColours.glow': 'Glow',
+  'graph.sceneColours.accent': 'Accent',
+  'graph.sceneColours.surface': 'Surface',
+  'graph.sceneColours.yours': 'Yours',
+  'graph.sceneColours.own': "The scene's own",
+  'graph.sceneColours.thisScene': "This scene's colours",
+  'graph.sceneColours.title': "{name}'s colours",
   'graph.member.theirs': 'Made by members',
   'graph.member.by': 'by {name}',
   // A member who sent a scene without a display name on their account.

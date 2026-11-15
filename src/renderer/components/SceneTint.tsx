@@ -20,15 +20,12 @@ import { LAGOON_SKY } from '../utils/rainbowPalette';
 import { tintedLagoon, useWindowTint } from '../utils/windowTint';
 import { skyFromSwatch } from '../utils/sceneTint';
 import {
-  sceneWindowColours,
   skyFromWindowColours,
   windowColoursFromStops,
 } from '../utils/sceneOwnColours';
-import {
-  useSceneColourControls,
-  useStudioAppColours,
-} from '../utils/sceneAppColours';
+import { useStudioAppColours } from '../utils/sceneAppColours';
 import { useListenerParams } from '../utils/sceneParamStore';
+import useSceneWindowColours from '../utils/useSceneWindowColours';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
 import {
@@ -100,29 +97,24 @@ const SceneTint = () => {
   // and the swatch its picker row is drawn in (`skyFromSwatch`), as text so
   // the effect below compares it by value. Undefined until the lists arrive,
   // or for a scene that is not usable.
-  const controls = useSceneColourControls(isSceneLook ? lookId : '');
   const chosen = useListenerParams(lookId);
   const studioStops = useStudioAppColours();
-  const { version, swatch, own } = useMemo(() => {
+  // The colours the listener chose for this scene in the Window colours
+  // menu, else the scene's own: the ones it names, from its listing, so they
+  // are on the window as it is chosen, or the ones its palette gives as the
+  // listener's choices leave it (`useSceneWindowColours`).
+  const windowColours = useSceneWindowColours(isSceneLook ? lookId : '');
+  const wearing = windowColours.chosen ?? windowColours.declared;
+  const own = wearing && `${wearing.surface} ${wearing.accent} ${wearing.glow}`;
+  const { version, swatch } = useMemo(() => {
     const scene = isPremiumLookId(lookId)
       ? scenes.find((entry) => entry.lookId === lookId)
       : memberScenes.find((entry) => entry.lookId === lookId);
-    // The colours the scene names, from its listing, so they are on the
-    // window as it is chosen; or, once a pack of it has been drawn, the ones
-    // its palette gives as the listener's choices leave it
-    // (`sceneOwnColours.ts`). As text, compared by value below.
-    const windowColours =
-      scene?.windowColours ??
-      (controls &&
-        sceneWindowColours(controls, chosen ? { params: chosen } : {}));
     return {
       version: scene && (scene.revision ?? String(scene.version)),
       swatch: scene?.swatch.join(' '),
-      own:
-        windowColours &&
-        `${windowColours.surface} ${windowColours.accent} ${windowColours.glow}`,
     };
-  }, [lookId, scenes, memberScenes, controls, chosen]);
+  }, [lookId, scenes, memberScenes]);
   // The Studio's project, as its pack names its colours or as the member
   // edits its palette on the bench.
   const studioOwn = useMemo(() => {

@@ -123,6 +123,19 @@ export const windowColoursFromStops = (
   };
 };
 
+/**
+ * A measured sky as the three colours, for a scene that names none and has
+ * no palette: what the editors show as "the scene's own" and start from.
+ */
+export const windowColoursOfSky = (sky: ISceneSky): ISceneWindowColours => {
+  const accent = sky.accent ?? sky;
+  return {
+    surface: hexOf(sky),
+    accent: hexOf(accent),
+    glow: hexOf(sky.active ?? accent),
+  };
+};
+
 /** What of a scene says which colours it lends the window. */
 export interface ISceneOwnColourSource extends ISceneColourControls {
   windowColours?: ISceneWindowColours;

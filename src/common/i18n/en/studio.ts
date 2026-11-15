@@ -812,6 +812,17 @@ const studio = {
     'Some ambient elements or controls in pack.json were left out. Check their shapes, motions, colours, counts and what each control moves.',
   'studio.problem.bad-window-colours':
     'windowColours in pack.json needs surface, accent and glow, each a colour like #00e5cf.',
+  'studio.windowColours.failed': 'The colours could not be saved. Try again.',
+  'studio.windowColours.note':
+    'Saved into the scene, so everyone who plays it sees these colours.',
+  'studio.windowColours.undo': 'Undo my changes',
+  'studio.windowColours.fromPalette': 'Choose them from the palette',
+  'studio.windowColours.none':
+    'This scene has no palette to take colours from yet. Ask your AI to choose its window colours.',
+  'studio.windowColours.byYou': 'Changed by you',
+  'studio.windowColours.byPalette': 'Worked out by FluidEQ from the palette',
+  'studio.windowColours.byAi': 'Chosen by your AI from the scene',
+  'studio.windowColours.title': 'Window colours',
   'studio.problem.bad-world':
     'The 3D world has nothing this version can draw. Check its nodes, materials and formulas.',
   'studio.problem.bad-model':

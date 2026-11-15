@@ -38,6 +38,7 @@ import type { IStudioSettingsOutcome } from './ipc/studioSettings';
 import type { ISceneResponse } from '../common/sceneResponse';
 import type { IScenePaletteValue } from '../common/scenePalette';
 import type { ISceneWave } from '../common/sceneWave';
+import type { ISceneWindowColours } from '../common/sceneWindowColours';
 import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
 import type { IProjectSource } from './memberScenes/project';
 import type { TInspectOutcome } from './ipc/studioInspect';
@@ -266,6 +267,8 @@ const writeStudioSettings = (settings: {
   response?: ISceneResponse | null;
   /** Where the scene wants the wave; `null` takes it out (`sceneWave.ts`). */
   wave?: ISceneWave | null;
+  /** The colours it lends the window; `null` takes them out. */
+  windowColours?: ISceneWindowColours | null;
 }) =>
   ipcRenderer.invoke(
     'studio-write-settings',

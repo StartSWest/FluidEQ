@@ -770,6 +770,17 @@ const studio = {
     'pack.json의 일부 주변 요소 또는 컨트롤이 생략되었습니다. 모양, 움직임, 색상, 개수 및 각 컨트롤이 움직이는 것을 확인하세요.',
   'studio.problem.bad-window-colours':
     'pack.json의 windowColours에는 surface, accent, glow가 필요하며, 각각 #00e5cf 같은 색이어야 합니다.',
+  'studio.windowColours.failed': '색을 저장하지 못했습니다. 다시 시도하세요.',
+  'studio.windowColours.note':
+    '장면에 저장되므로 재생하는 모든 사람이 이 색을 봅니다.',
+  'studio.windowColours.undo': '내 변경 취소',
+  'studio.windowColours.fromPalette': '팔레트에서 고르기',
+  'studio.windowColours.none':
+    '이 장면에는 아직 색을 가져올 팔레트가 없습니다. AI에게 창 색을 골라 달라고 하세요.',
+  'studio.windowColours.byYou': '내가 바꿨습니다',
+  'studio.windowColours.byPalette': 'FluidEQ가 팔레트에서 정했습니다',
+  'studio.windowColours.byAi': 'AI가 장면에서 골랐습니다',
+  'studio.windowColours.title': '창 색',
   'studio.problem.bad-world':
     '3D 세계에는 이 버전에서 그릴 수 있는 것이 없습니다. 노드, 재료 및 공식을 확인하십시오.',
   'studio.problem.bad-model':

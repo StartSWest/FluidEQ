@@ -716,6 +716,16 @@ const studio = {
     'pack.json 中的部分 ambient 元素或控件被忽略了。请检查它们的形状、运动、颜色、数量以及每个控件调节的内容。',
   'studio.problem.bad-window-colours':
     'pack.json 中的 windowColours 需要 surface、accent 和 glow，每项都是类似 #00e5cf 的颜色。',
+  'studio.windowColours.failed': '无法保存颜色。请重试。',
+  'studio.windowColours.note': '保存在场景中，所有播放它的人都会看到这些颜色。',
+  'studio.windowColours.undo': '撤销我的修改',
+  'studio.windowColours.fromPalette': '从调色板选择',
+  'studio.windowColours.none':
+    '此场景还没有可取色的调色板。请让你的 AI 选择窗口颜色。',
+  'studio.windowColours.byYou': '由你修改',
+  'studio.windowColours.byPalette': '由 FluidEQ 根据调色板算出',
+  'studio.windowColours.byAi': '由你的 AI 从场景中选出',
+  'studio.windowColours.title': '窗口颜色',
   'studio.problem.bad-world':
     '这个 3D 世界里没有此版本能绘制的内容。请检查它的节点、材质和公式。',
   'studio.problem.bad-model':

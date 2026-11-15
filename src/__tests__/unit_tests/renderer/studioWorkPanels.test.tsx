@@ -116,6 +116,9 @@ describe('the Tune tab', () => {
         onWaveReset={jest.fn()}
         canResetWave={false}
         idle={false}
+        windowColours={
+          <section className="studio-tune__box" aria-label="window colours" />
+        }
         settings={<p>the settings of the scene</p>}
       />,
     );
@@ -130,9 +133,14 @@ describe('the Tune tab', () => {
     expect(
       within(visualizer).getByText('the settings of the scene'),
     ).toBeInTheDocument();
+    // The window's colours come after what the whole app does with the scene
+    // and before the picture.
     const boxes = [...container.querySelectorAll('.studio-tune__box')];
-    expect(boxes).toHaveLength(3);
-    expect(boxes[2]).toBe(visualizer);
+    expect(boxes).toHaveLength(4);
+    expect(boxes[1]).toBe(
+      screen.getByRole('region', { name: 'window colours' }),
+    );
+    expect(boxes[3]).toBe(visualizer);
   });
 });
 

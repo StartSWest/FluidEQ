@@ -3,6 +3,10 @@ import { readPaletteValue } from '../../common/scenePalette';
 import { readColourValue } from '../../common/sceneColourControl';
 import type { ISceneResponse } from '../../common/sceneResponse';
 import { readSceneWave, type ISceneWave } from '../../common/sceneWave';
+import {
+  readSceneWindowColours,
+  type ISceneWindowColours,
+} from '../../common/sceneWindowColours';
 import { readProject } from '../memberScenes/project';
 import {
   writeProjectSettings,
@@ -107,9 +111,18 @@ const readSettings = (raw: unknown): IProjectSettings => {
   } else if (raw.wave !== undefined) {
     wave = readSceneWave(raw.wave) ?? null;
   }
+  // `null` takes the scene's window colours out; anything else is three
+  // #rrggbb colours or not written at all.
+  let windowColours: ISceneWindowColours | null | undefined;
+  if (raw.windowColours === null) {
+    windowColours = null;
+  } else if (raw.windowColours !== undefined) {
+    windowColours = readSceneWindowColours(raw.windowColours);
+  }
   return {
     ...(params ? { params } : {}),
     ...(ambient ? { ambient } : {}),
+    ...(windowColours !== undefined ? { windowColours } : {}),
     ...(palettes && Object.keys(palettes).length ? { palettes } : {}),
     ...(colours && Object.keys(colours).length ? { colours } : {}),
     ...(response !== undefined ? { response } : {}),

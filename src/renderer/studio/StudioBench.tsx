@@ -59,6 +59,8 @@ import useStudioAmbientTuning from './useStudioAmbientTuning';
 import useStudioBaseline from './useStudioBaseline';
 import useStudioKeep from './useStudioKeep';
 import useStudioTuning from './useStudioTuning';
+import useStudioWindowColours from './useStudioWindowColours';
+import StudioWindowColours from './StudioWindowColours';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
 import useStudioReading from './useStudioReading';
@@ -155,6 +157,7 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
   const [publications, setPublications] = useState(0);
   const baseline = useStudioBaseline(state.activeId, publications);
   const tuner = useStudioTuning(pack, state.activeId, baseline);
+  const windowColours = useStudioWindowColours(pack, state.activeId, baseline);
   const ambient = useStudioAmbientTuning(pack, state.activeId, baseline);
   const colourControls: IStudioColours = {
     params: tuner.colourParams,
@@ -409,6 +412,9 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
         onWaveReset={tuner.resetWave}
         canResetWave={tuner.canResetWave}
         idle={idle}
+        windowColours={
+          <StudioWindowColours state={windowColours} idle={idle} />
+        }
         settings={
           <StudioSettings
             params={tuner.params}
