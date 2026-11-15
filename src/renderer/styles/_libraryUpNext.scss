@@ -815,7 +815,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: $radius-pill;
+  // Square-cornered like every other Library button (2026-11-15).
+  border-radius: $radius-xs;
   background: none;
   color: $studio-t2;
   cursor: pointer;

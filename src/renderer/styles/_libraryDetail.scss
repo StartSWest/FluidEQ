@@ -499,16 +499,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: 12px;
 }
 
-// The mockup's pill: quiet by default, a hairline round the word; Play alone
-// wears the accent, as the recommended action does everywhere in the app.
+// The bar's own control, square-cornered like Sort, Up next and the search
+// above it (Ivan, 2026-11-15: "these buttons need to be the same square we
+// use on the others"): 30px tall, a hairline drawn inside, quiet by default;
+// Play alone wears the accent, as the recommended action does everywhere in
+// the app. They were the mockup's pills, the only round buttons left in the
+// Library.
 .library-hero__button {
   display: inline-flex;
+  height: 30px;
+  box-sizing: border-box;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid $studio-hair;
-  border-radius: $radius-pill;
+  padding: 0 12px;
+  border: 0;
+  border-radius: $radius-m;
   background: none;
+  box-shadow: inset 0 0 0 1px $studio-hair;
   color: $text-primary;
   font-family: inherit;
   font-size: $studio-text-tree;
@@ -519,8 +526,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition: $transition-control;
 
   &:hover {
-    border-color: color-mix(in srgb, $edge-tint 18%, transparent);
     background: $studio-surface;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 18%, transparent);
   }
 
   &:focus-visible {
@@ -529,8 +536,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-go {
-    border-color: transparent;
     background: $secondary-default;
+    box-shadow: none;
     color: $studio-on-accent;
 
     &:hover {
@@ -539,7 +546,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-icon {
-    padding-inline: 11px;
+    width: 30px;
+    justify-content: center;
+    padding: 0;
 
     svg {
       width: 15px;
