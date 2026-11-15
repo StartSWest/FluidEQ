@@ -57,6 +57,7 @@ import {
   NUMERIC_COLUMNS,
   useLibraryColumns,
 } from './libraryColumns';
+import { countText } from './libraryFormat';
 
 interface ILibraryListViewProps {
   /**
@@ -738,7 +739,7 @@ const LibraryListView = ({
           isEven={row % 2 === 1}
           id={item.id}
           title={title}
-          subtitle={t('library.trackCount', { count: item.trackCount })}
+          subtitle={countText(t, 'library.trackCount', item.trackCount)}
           artId={item.artId}
           isPending={item.isPending}
           isSelected={activeId === item.id}
@@ -769,10 +770,7 @@ const LibraryListView = ({
           isEven={row % 2 === 1}
           id={item.id}
           title={item.name || t('library.unknownArtist')}
-          subtitle={`${t('library.albumCount', { count: item.albumCount })} · ${t(
-            'library.trackCount',
-            { count: item.trackCount },
-          )}`}
+          subtitle={`${countText(t, 'library.albumCount', item.albumCount)} · ${countText(t, 'library.trackCount', item.trackCount)}`}
           artId={item.artId}
           isPending={item.isPending}
           isSelected={activeId === item.id}
@@ -792,10 +790,7 @@ const LibraryListView = ({
               ? t('library.genre.unknown')
               : item.name
           }
-          subtitle={`${t('library.artistCount', { count: item.artistCount })} · ${t(
-            'library.trackCount',
-            { count: item.trackCount },
-          )}`}
+          subtitle={`${countText(t, 'library.artistCount', item.artistCount)} · ${countText(t, 'library.trackCount', item.trackCount)}`}
           artId={item.artId}
           isPending={item.isPending}
           isSelected={activeId === item.id}
@@ -814,8 +809,8 @@ const LibraryListView = ({
         title={item.name}
         subtitle={
           folderParent === undefined
-            ? `${t('library.trackCount', { count: item.trackCount })} · ${item.id}`
-            : t('library.trackCount', { count: item.trackCount })
+            ? `${countText(t, 'library.trackCount', item.trackCount)} · ${item.id}`
+            : countText(t, 'library.trackCount', item.trackCount)
         }
         artId={item.artId}
         isFolder

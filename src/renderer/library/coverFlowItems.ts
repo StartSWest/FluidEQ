@@ -23,6 +23,7 @@ import {
   type ILibraryPlaylist,
 } from '../../common/library/playlists';
 import type { TLibraryListItem } from '../../common/library/query';
+import { countText } from './libraryFormat';
 
 /** One cover's worth of what this view draws, words resolved. */
 export interface ICoverFlowItem {
@@ -65,7 +66,7 @@ export const coverFlowItemOf = (
         artId: item.artId,
         title: item.name || t('library.unknownArtist'),
         railTitle: item.name,
-        subtitle: t('library.albumCount', { count: item.albumCount }),
+        subtitle: countText(t, 'library.albumCount', item.albumCount),
         isPending: item.isPending,
       };
     case 'genre':
@@ -75,7 +76,7 @@ export const coverFlowItemOf = (
         title:
           item.id === UNKNOWN_GENRE_ID ? t('library.genre.unknown') : item.name,
         railTitle: item.name,
-        subtitle: t('library.artistCount', { count: item.artistCount }),
+        subtitle: countText(t, 'library.artistCount', item.artistCount),
         isPending: item.isPending,
       };
     case 'folder':

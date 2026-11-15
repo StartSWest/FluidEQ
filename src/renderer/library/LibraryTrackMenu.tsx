@@ -26,6 +26,7 @@ import { usePlaylists } from './PlaylistContext';
 import LibraryPlaylistPicker from './LibraryPlaylistPicker';
 import { canSendTrackToKaraoke, trackAsKaraokeFile } from './libraryToKaraoke';
 import { sendFilesToKaraoke } from './karaokeHandoff';
+import { countText } from './libraryFormat';
 
 interface ILibraryTrackMenuProps {
   anchor: HTMLElement | null;
@@ -160,7 +161,7 @@ const LibraryTrackMenu = ({
           things to a library. */}
       {!isOne && (
         <p className="library-list__menu-subject">
-          {t('library.trackCount', { count: trackIds.length })}
+          {countText(t, 'library.trackCount', trackIds.length)}
         </p>
       )}
       {/* FIRST, and above the two that file the song away.
