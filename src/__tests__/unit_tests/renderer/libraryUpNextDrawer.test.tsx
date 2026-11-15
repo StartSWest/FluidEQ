@@ -210,3 +210,67 @@ describe('on a wide card', () => {
     expect(isOpen()).toBe(true);
   });
 });
+
+/**
+ * Off its tab the workspace renders nothing, and coming back mounts a new
+ * card. The width used to be watched on the card that existed when the
+ * Library first mounted, so a width changed while away was never seen: the
+ * same window docked the queue one time and floated it the next (Ivan,
+ * 2026-11-15). Each case ends on the width the card arrived at, judged.
+ */
+describe('a card that comes back after its tab was left', () => {
+  const library = (isHidden: boolean) => (
+    <I18nProvider>
+      <LibraryProvider>
+        <LibraryPlayerProvider>
+          <LibraryWorkspace
+            isHidden={isHidden}
+            isFullScreen={false}
+            onToggleFullScreen={() => undefined}
+          />
+        </LibraryPlayerProvider>
+      </LibraryProvider>
+    </I18nProvider>
+  );
+
+  /** The bar drawn: the shelf has loaded and every first answer is in. */
+  const settled = () =>
+    waitFor(() =>
+      expect(
+        document.querySelector('.library-top .library-up-next__chip'),
+      ).not.toBeNull(),
+    );
+
+  const isFloating = () => card().classList.contains('has-up-next-floating');
+
+  const comeBackAt = async (from: number, to: number) => {
+    cardWidth = from;
+    const view = render(library(false));
+    await settled();
+    const wasFloating = isFloating();
+    await act(async () => {
+      view.rerender(library(true));
+    });
+    expect(document.querySelector('.library-workspace')).toBeNull();
+    cardWidth = to;
+    await act(async () => {
+      view.rerender(library(false));
+    });
+    await settled();
+    return wasFloating;
+  };
+
+  it('floats once it comes back narrow, having left wide', async () => {
+    const wasFloating = await comeBackAt(1600, 900);
+    // The control: wide, it stood beside the shelf.
+    expect(wasFloating).toBe(false);
+    await waitFor(() => expect(isFloating()).toBe(true));
+  });
+
+  it('stands beside the shelf once it comes back wide, having left narrow', async () => {
+    const wasFloating = await comeBackAt(900, 1600);
+    // The control: narrow, it floated.
+    expect(wasFloating).toBe(true);
+    await waitFor(() => expect(isFloating()).toBe(false));
+  });
+});

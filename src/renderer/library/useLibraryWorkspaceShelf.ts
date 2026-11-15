@@ -174,9 +174,48 @@ const useLibraryWorkspaceShelf = ({
    * scrollport with. The card is what is asked, not the window: the queue
    * takes a fifth of the card, so the two disagree by exactly the amount that
    * decides this.
+   *
+   * A CALLBACK REF, like the chrome's below, because the card is not one
+   * element for the life of this hook: off its tab the workspace renders
+   * nothing (`LibraryWorkspaceView`), and coming back mounts a new card. An
+   * effect over a `useRef` observed only the card that existed at mount — or
+   * none, if the hook mounted with the tab hidden — and kept watching a
+   * detached one, whose zero width is ignored below. The drawer then stayed
+   * whatever the last live card had been, so the same width docked the queue
+   * one time and floated it the next (Ivan, 2026-11-15).
    */
-  const cardRef = useRef<HTMLElement | null>(null);
   const [isCardNarrow, setIsCardNarrow] = useState(false);
+  const cardObserverRef = useRef<ResizeObserver | undefined>(undefined);
+  const cardRef = useCallback((node: HTMLElement | null) => {
+    cardObserverRef.current?.disconnect();
+    cardObserverRef.current = undefined;
+    if (!node || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[entries.length - 1]?.contentRect.width;
+      // A HIDDEN CARD HAS NO WIDTH TO JUDGE, and zero is not narrow.
+      //
+      // Over a video the card stays mounted while the tab is hidden, and
+      // reports a width of 0 — which read as "very narrow", turned the drawer
+      // on, and armed the press-outside listener. The next click anywhere in
+      // the app, on any other tab, then folded the queue away for no reason
+      // the reader could see. Nothing measurable means nothing to reconsider.
+      if (width !== undefined && width > 0) {
+        setIsCardNarrow(width < UP_NEXT_FLOAT_WIDTH);
+      }
+    });
+    // Observing reports the current size at once, so a new card is judged on
+    // its first frame rather than at its first resize.
+    observer.observe(node);
+    cardObserverRef.current = observer;
+  }, []);
+  useEffect(
+    () => () => {
+      cardObserverRef.current?.disconnect();
+    },
+    [],
+  );
   /**
    * How tall the controls above the shelf are, so the drawer can start below
    * them.
@@ -222,28 +261,6 @@ const useLibraryWorkspaceShelf = ({
     },
     [],
   );
-  useEffect(() => {
-    const card = cardRef.current;
-    if (!card || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const observer = new ResizeObserver((entries) => {
-      const width = entries[entries.length - 1]?.contentRect.width;
-      // A HIDDEN CARD HAS NO WIDTH TO JUDGE, and zero is not narrow.
-      //
-      // This tab is hidden rather than unmounted, so leaving it reports a
-      // width of 0 — which read as "very narrow", turned the drawer on, and
-      // armed the press-outside listener. The next click anywhere in the app,
-      // on any other tab, then folded the queue away for no reason the reader
-      // could see. Nothing measurable means nothing to reconsider.
-      if (width !== undefined && width > 0) {
-        setIsCardNarrow(width < UP_NEXT_FLOAT_WIDTH);
-      }
-    });
-    observer.observe(card);
-    return () => observer.disconnect();
-  }, []);
-
   /**
    * Whether the queue stands over the shelf as a drawer rather than beside
    * it. Not whether it is open: the drawer keeps its look while it folds away
