@@ -1090,12 +1090,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-pane__tabs {
   display: flex;
   flex: 0 0 auto;
-  // The first tab's icon on the cover's left edge above it, the last at the
-  // row's right, the middle between: each tab its own width (Ivan,
-  // 2026-11-15: "too much left padding, something is off" - stretched tabs
-  // centred their words and stood the first a cover-width in).
-  justify-content: space-between;
-  gap: 4px;
+  // From the start, one after another, the first tab's icon on the cover's
+  // left edge above it (Ivan, 2026-11-15: "too much left padding", then
+  // "don't spread them across the tab, start them from the left").
+  justify-content: flex-start;
+  gap: 14px;
   margin: 0;
   padding: 0 8px;
   border-bottom: 1px solid $studio-hair;
