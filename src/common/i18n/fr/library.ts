@@ -27,6 +27,11 @@ const library: Partial<Dictionary> = {
     'Ajoutez un dossier et FluidEQ lira les chansons et les vidéos qu’il contient.',
   'library.empty.add': 'Ajouter un dossier',
   'library.empty.drop': 'ou déposez un dossier ici',
+  'library.empty.feature.sound':
+    'Chaque morceau passe par votre EQ et votre DSP',
+  'library.empty.feature.lyrics': 'Des paroles qui s’allument mot à mot',
+  'library.empty.feature.browse':
+    'Albums, Cover Flow, À suivre et Surprenez-moi',
   'library.karaokeSkipped':
     '{count} chansons de karaoké ignorées — ouvrez-les dans l’onglet Karaoké',
 

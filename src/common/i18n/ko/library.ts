@@ -9,6 +9,9 @@ const library = {
     '폴더를 추가하면 FluidEQ가 그 안에 있는 노래와 비디오를 읽습니다.',
   'library.empty.add': '폴더 추가',
   'library.empty.drop': '아니면 여기에 폴더를 드롭하세요',
+  'library.empty.feature.sound': '모든 곡이 내 EQ와 DSP를 거쳐 재생됩니다',
+  'library.empty.feature.lyrics': '단어마다 빛나는 가사',
+  'library.empty.feature.browse': '앨범, 커버 플로우, 다음, 깜짝 선곡',
   'library.karaokeSkipped':
     '{count} 노래방 노래를 건너뛰었습니다. 노래방 탭에서 엽니다.',
   'library.add': '폴더 추가',

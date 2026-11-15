@@ -141,22 +141,47 @@ const renderWorkspace = ({
 const MUSIC = libraryRoot('r1', 'C:\\Music');
 
 describe('the library with nothing in it', () => {
+  /** The empty state's card, where the one recommended action lives. */
+  const emptyCard = async () => {
+    await screen.findByText('No music yet');
+    const card = document.querySelector<HTMLElement>('.library-empty');
+    expect(card).not.toBeNull();
+    return card as HTMLElement;
+  };
+
   it('offers the one action that fixes an empty library', async () => {
     const { addLibraryRoot } = renderWorkspace();
-    expect(await screen.findByText('No music yet')).toBeInTheDocument();
-    // With no roots yet the toolbar row does not render at all, so the
-    // empty state's own button is the only "Add folder" on screen -- see
-    // `LibraryWorkspace.tsx`'s `roots.length > 0` gate.
-    const add = screen.getByRole('button', { name: 'Add folder' });
+    const add = within(await emptyCard()).getByRole('button', {
+      name: 'Add folder',
+    });
     await userEvent.click(add);
     expect(addLibraryRoot).toHaveBeenCalled();
   });
 
+  it('stands beside the shelves a folder will fill', async () => {
+    // Ivan, 2026-11-15: "show the list on the left so it is not that
+    // empty". The rail is there before the first folder, every shelf at 0.
+    renderWorkspace();
+    await emptyCard();
+    const rail = screen.getByRole('navigation', {
+      name: 'What the library is showing',
+    });
+    expect(within(rail).getByRole('button', { name: /Albums/ })).toBeVisible();
+    expect(within(rail).getByRole('button', { name: /Songs/ })).toBeVisible();
+  });
+
   it('gives the suggested action the loud style and nothing else', async () => {
     renderWorkspace();
-    const add = await screen.findByRole('button', { name: 'Add folder' });
+    const add = within(await emptyCard()).getByRole('button', {
+      name: 'Add folder',
+    });
     expect(add.className).toContain('button');
     expect(add.className).not.toContain('subtle');
+    // The rail's own Add folder is a quiet row, never a second loud button.
+    const loud = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('button.button'),
+    ).filter((button) => !button.className.includes('subtle'));
+    expect(loud).toEqual([add]);
   });
 });
 

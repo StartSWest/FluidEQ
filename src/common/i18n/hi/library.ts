@@ -27,6 +27,9 @@ const library: Partial<Dictionary> = {
     'एक फ़ोल्डर जोड़ें और FluidEQ उसमें मौजूद गाने और वीडियो पढ़ लेगा।',
   'library.empty.add': 'फ़ोल्डर जोड़ें',
   'library.empty.drop': 'या यहाँ फ़ोल्डर खींचकर छोड़ें',
+  'library.empty.feature.sound': 'हर गाना आपके EQ और DSP से होकर बजता है',
+  'library.empty.feature.lyrics': 'बोल जो शब्द-दर-शब्द जगमगाते हैं',
+  'library.empty.feature.browse': 'एल्बम, Cover Flow, आगे और मुझे चौंकाएँ',
   'library.karaokeSkipped':
     '{count} कराओके गाने छोड़ दिए गए — उन्हें कराओके टैब पर खोलें',
 

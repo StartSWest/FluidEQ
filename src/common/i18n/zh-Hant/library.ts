@@ -8,6 +8,9 @@ const library = {
   'library.empty.body': '新增一個資料夾，FluidEQ 將讀取其中的歌曲和影片。',
   'library.empty.add': '新增資料夾',
   'library.empty.drop': '或將資料夾拖放到此處',
+  'library.empty.feature.sound': '每首歌都經過你的 EQ 和 DSP 播放',
+  'library.empty.feature.lyrics': '歌詞逐字亮起',
+  'library.empty.feature.browse': '專輯、Cover Flow、接下來播放和「給我驚喜」',
   'library.karaokeSkipped':
     '{count} 卡拉 OK 歌曲已跳過 — 在卡拉 OK 標籤上開啟它們',
   'library.add': '新增資料夾',

@@ -17,7 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useTranslation } from '../utils/I18nContext';
-import MenuIcon from '../icons/MenuIcon';
+import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
+
+/** What the Library does once it has music, one line each. */
+const FEATURES = [
+  { icon: 'eqBars', label: 'library.empty.feature.sound' },
+  { icon: 'notes', label: 'library.empty.feature.lyrics' },
+  { icon: 'viewCoverFlow', label: 'library.empty.feature.browse' },
+] as const satisfies readonly { icon: MenuIconName; label: string }[];
 
 interface ILibraryEmptyStateProps {
   /**
@@ -32,11 +39,16 @@ interface ILibraryEmptyStateProps {
 }
 
 /**
- * The only screen an empty library has.
+ * The only screen an empty library has, beside the shelf rail.
  *
- * A centred card rather than a message pinned to the top-left of a large
- * empty panel — there is exactly one useful next step, so the whole surface
- * points at it instead of leaving it to be found.
+ * The rail stands to its left from the first run (Ivan, 2026-11-15: "make
+ * sure we show the list on the left so it is not that empty"), so the
+ * shelves a folder will fill are already in their places. This is the drop
+ * target made visible — a dashed frame the whole card answers when a folder
+ * is dragged over it (`is-drag-over`) — with a stack of sleeves for a
+ * picture, the one action that fills it, and three lines on what the
+ * Library does once it has music. Emphasis follows recommendation: Add
+ * folder is the only loud control on it.
  */
 const LibraryEmptyState = ({
   karaokeSkippedCount,
@@ -47,11 +59,16 @@ const LibraryEmptyState = ({
   return (
     <div className="library-empty">
       <div className="library-empty__card">
+        <div className="library-empty__art" aria-hidden="true">
+          <span className="library-empty__sleeve library-empty__sleeve--left" />
+          <span className="library-empty__sleeve library-empty__sleeve--right" />
+          <span className="library-empty__disc" />
+          <span className="library-empty__sleeve library-empty__sleeve--front">
+            <MenuIcon name="folder" className="library-empty__sleeve-icon" />
+          </span>
+        </div>
         <h2>{t('library.empty.title')}</h2>
         <p>{t('library.empty.body')}</p>
-        {/* The one action that fixes an empty library. Emphasis follows
-            recommendation: this is the loud "button small", and nothing else
-            on this card is. */}
         <button
           type="button"
           className="button small library-empty__add"
@@ -61,6 +78,14 @@ const LibraryEmptyState = ({
           <span>{t('library.empty.add')}</span>
         </button>
         <small className="library-empty__hint">{t('library.empty.drop')}</small>
+        <ul className="library-empty__features">
+          {FEATURES.map(({ icon, label }) => (
+            <li key={label} className="library-empty__feature">
+              <MenuIcon name={icon} className="library-empty__feature-icon" />
+              <span>{t(label)}</span>
+            </li>
+          ))}
+        </ul>
         {karaokeSkippedCount > 0 && (
           <p className="library-empty__karaoke-note">
             {t('library.karaokeSkipped', { count: karaokeSkippedCount })}

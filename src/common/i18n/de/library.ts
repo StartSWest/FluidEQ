@@ -27,6 +27,10 @@ const library: Partial<Dictionary> = {
     'Fügen Sie einen Ordner hinzu, und FluidEQ liest die Songs und Videos darin ein.',
   'library.empty.add': 'Ordner hinzufügen',
   'library.empty.drop': 'oder hier einen Ordner ablegen',
+  'library.empty.feature.sound': 'Jeder Song läuft durch Ihren EQ und DSP',
+  'library.empty.feature.lyrics': 'Liedtexte, die Wort für Wort aufleuchten',
+  'library.empty.feature.browse':
+    'Alben, Cover Flow, Als Nächstes und Überraschen lassen',
   'library.karaokeSkipped':
     '{count} Karaoke-Songs übersprungen — öffnen Sie sie im Karaoke-Tab',
 

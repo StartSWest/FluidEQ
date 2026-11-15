@@ -27,6 +27,10 @@ const library: Partial<Dictionary> = {
     'Adicione uma pasta e o FluidEQ vai ler as músicas e os vídeos que ela contém.',
   'library.empty.add': 'Adicionar pasta',
   'library.empty.drop': 'ou solte uma pasta aqui',
+  'library.empty.feature.sound': 'Cada música toca pelo seu EQ e DSP',
+  'library.empty.feature.lyrics': 'Letras que acendem palavra por palavra',
+  'library.empty.feature.browse':
+    'Álbuns, Cover Flow, A seguir e Me surpreenda',
   'library.karaokeSkipped':
     '{count} músicas de karaokê ignoradas — abra-as na aba Karaokê',
 

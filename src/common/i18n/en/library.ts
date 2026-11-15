@@ -25,6 +25,9 @@ const library = {
     'Add a folder and FluidEQ will read the songs and videos inside it.',
   'library.empty.add': 'Add folder',
   'library.empty.drop': 'or drop a folder here',
+  'library.empty.feature.sound': 'Every song plays through your EQ and DSP',
+  'library.empty.feature.lyrics': 'Lyrics that light up word by word',
+  'library.empty.feature.browse': 'Albums, Cover Flow, Up next and Surprise me',
   'library.karaokeSkipped':
     '{count} karaoke songs skipped — open them on the Karaoke tab',
 

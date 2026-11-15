@@ -261,9 +261,10 @@ const LibraryWorkspaceView = ({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      {/* An empty library has one useful next step, and the empty state is
-          the whole screen for it; the rail appears with the first root. */}
-      {!isHidden && hasLibrary && (
+      {/* From the first run too: an empty library shows the shelves a folder
+          will fill, with the empty state beside them rather than alone in
+          the middle of a bare card (Ivan, 2026-11-15). */}
+      {!isHidden && (
         <LibraryShelfRail
           browseMode={browseMode}
           counts={counts}

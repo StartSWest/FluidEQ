@@ -27,6 +27,9 @@ const library: Partial<Dictionary> = {
     'Aggiungi una cartella e FluidEQ leggerà i brani e i video al suo interno.',
   'library.empty.add': 'Aggiungi cartella',
   'library.empty.drop': 'oppure trascina qui una cartella',
+  'library.empty.feature.sound': 'Ogni brano suona attraverso il tuo EQ e DSP',
+  'library.empty.feature.lyrics': 'Testi che si illuminano parola per parola',
+  'library.empty.feature.browse': 'Album, Cover Flow, In coda e Sorprendimi',
   'library.karaokeSkipped':
     '{count} brani karaoke saltati — aprili nella scheda Karaoke',
 

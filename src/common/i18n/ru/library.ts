@@ -27,6 +27,11 @@ const library: Partial<Dictionary> = {
     'Добавьте папку, и FluidEQ прочитает песни и видео внутри неё.',
   'library.empty.add': 'Добавить папку',
   'library.empty.drop': 'или перетащите папку сюда',
+  'library.empty.feature.sound':
+    'Каждая песня звучит через ваш эквалайзер и DSP',
+  'library.empty.feature.lyrics': 'Тексты песен, подсвеченные слово за словом',
+  'library.empty.feature.browse':
+    'Альбомы, Cover Flow, «Далее» и «Удивите меня»',
   'library.karaokeSkipped':
     '{count} песен караоке пропущено — откройте их на вкладке Караоке',
 

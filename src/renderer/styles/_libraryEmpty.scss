@@ -1,0 +1,291 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// THE LIBRARY BEFORE ITS FIRST FOLDER, beside the shelf rail (Ivan,
+// 2026-11-15: "improve that screen ... show the list on the left so it is not
+// that empty"). The card is the drop target drawn: a dashed frame the whole
+// workspace lights when a folder is dragged over it, a stack of sleeves with
+// a record half out of them, the one action that fills it, and three lines on
+// what the Library does once it has music. Every colour is the window's
+// accent or its surfaces, so the picture wears a scene's colours with the
+// rest of the app.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.library-empty {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  place-items: center;
+  padding: $spacing-l $spacing-m;
+  overflow: auto;
+}
+
+.library-empty__card {
+  display: grid;
+  width: min(560px, 100%);
+  justify-items: center;
+  gap: 6px;
+  padding: $spacing-xl $spacing-l 28px;
+  text-align: center;
+  border: 1.5px dashed rgba($edge-tint, 0.16);
+  border-radius: $radius-xl + 6px;
+  // The accent's light falls from above the sleeves, and nowhere else.
+  background: radial-gradient(
+    ellipse 70% 55% at 50% 0%,
+    color-mix(in srgb, $secondary-default 10%, transparent),
+    transparent 75%
+  );
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+
+  h2 {
+    margin: 0;
+    color: $text-primary;
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  p {
+    max-width: 380px;
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-lead;
+    line-height: 1.55;
+    text-wrap: balance;
+  }
+
+  // A folder held over the workspace: the frame it will land in answers.
+  .library-workspace.is-drag-over & {
+    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
+    background-color: color-mix(in srgb, $secondary-default 6%, transparent);
+  }
+}
+
+// *** The sleeves ***************************************************************
+
+.library-empty__art {
+  position: relative;
+  width: 196px;
+  height: 148px;
+  margin-bottom: $spacing-m;
+}
+
+.library-empty__sleeve,
+.library-empty__disc {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+}
+
+.library-empty__sleeve {
+  width: 96px;
+  height: 96px;
+  border-radius: $radius-m;
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px rgba($edge-tint, 0.1);
+}
+
+.library-empty__sleeve--left {
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, $secondary-default 34%, $surface-card),
+    color-mix(in srgb, $secondary-default 12%, $surface-card)
+  );
+  transform: translateX(-50%) translateX(-46px) translateY(-4px) rotate(-13deg);
+}
+
+.library-empty__sleeve--right {
+  background: linear-gradient(
+    210deg,
+    color-mix(in srgb, $secondary-default 24%, $surface-card),
+    color-mix(in srgb, $secondary-default 8%, $surface-card)
+  );
+  transform: translateX(-50%) translateX(46px) translateY(-4px) rotate(13deg);
+}
+
+// A record half out of the top of the front sleeve: grooves catching two
+// glints, round a label in the accent. Black because vinyl is, in every
+// theme. A folder held over the workspace draws it further out.
+.library-empty__disc {
+  bottom: 50px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      $surface-base 0 3px,
+      $secondary-default 3.5px 14px,
+      rgba(0, 0, 0, 0.5) 14.5px 15.5px,
+      transparent 16px
+    ),
+    conic-gradient(
+      from 20deg,
+      transparent 0 8%,
+      rgba(255, 255, 255, 0.14) 13%,
+      transparent 18% 58%,
+      rgba(255, 255, 255, 0.1) 63%,
+      transparent 68%
+    ),
+    repeating-radial-gradient(circle, #10171e 0 1.4px, #232e39 1.4px 2.8px);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba($edge-tint, 0.1);
+  transform: translateX(-50%) translateX(10px);
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  .library-workspace.is-drag-over & {
+    transform: translateX(-50%) translateX(10px) translateY(-16px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.library-empty__sleeve--front {
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, $secondary-default 28%, $surface-base);
+  background: linear-gradient(
+    155deg,
+    color-mix(in srgb, $secondary-default 90%, white),
+    color-mix(in srgb, $secondary-default 58%, black)
+  );
+  transform: translateX(-50%);
+
+  // The sleeve's gloss, and the lip of its opening along the top.
+  &::after {
+    position: absolute;
+    inset: 0;
+    border-top: 2px solid rgba(0, 0, 0, 0.22);
+    border-radius: inherit;
+    background: linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.3),
+      transparent 42%
+    );
+    content: '';
+    pointer-events: none;
+  }
+}
+
+.library-empty__sleeve-icon {
+  width: 34px;
+  height: 34px;
+  opacity: 0.85;
+}
+
+// *** The action ****************************************************************
+
+.library-empty__add {
+  margin-top: $spacing-s;
+  gap: 7px;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+.library-empty__add-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.library-empty__hint {
+  display: block;
+  margin-top: $spacing-xxs;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+// *** What it does ****************************************************************
+
+.library-empty__features {
+  display: grid;
+  width: 100%;
+  margin: 22px 0 0;
+  padding: 18px 0 0;
+  list-style: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-m;
+  border-top: 1px solid rgba($edge-tint, 0.1);
+}
+
+.library-empty__feature {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: $spacing-s;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+// Each glyph on a soft disc of the accent, so the three read as a row of
+// marks rather than three loose icons.
+.library-empty__feature-icon {
+  box-sizing: content-box;
+  width: 18px;
+  height: 18px;
+  padding: 8px;
+  border-radius: 50%;
+  color: $secondary-default;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+}
+
+.library-empty__karaoke-note {
+  max-width: 380px;
+  margin: $spacing-s 0 0;
+  padding-top: $spacing-s;
+  border-top: 1px solid rgba($edge-tint, 0.12);
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.5;
+}
+
+// A narrow card: the three lines stack, each with its glyph to its left.
+@container library (max-width: #{$bp-md}) {
+  .library-empty__card {
+    padding: 28px $spacing-m $spacing-l;
+  }
+
+  .library-empty__features {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .library-empty__feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: start;
+  }
+
+  .library-empty__feature-icon {
+    flex: 0 0 auto;
+  }
+}

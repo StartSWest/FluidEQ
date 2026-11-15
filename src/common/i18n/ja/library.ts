@@ -27,6 +27,11 @@ const library: Partial<Dictionary> = {
     'フォルダーを追加すると、FluidEQ がその中の曲と動画を読み込みます。',
   'library.empty.add': 'フォルダーを追加',
   'library.empty.drop': 'またはここにフォルダーをドロップ',
+  'library.empty.feature.sound':
+    'すべての曲があなたの EQ と DSP を通って再生されます',
+  'library.empty.feature.lyrics': '歌詞が一語ずつ光ります',
+  'library.empty.feature.browse':
+    'アルバム、Cover Flow、次に再生、おまかせ再生',
   'library.karaokeSkipped':
     'カラオケの曲を {count} 曲スキップしました — カラオケタブで開いてください',
 

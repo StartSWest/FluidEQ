@@ -26,6 +26,9 @@ const library: Partial<Dictionary> = {
   'library.empty.body': '添加一个文件夹，FluidEQ 会读取其中的歌曲和视频。',
   'library.empty.add': '添加文件夹',
   'library.empty.drop': '或将文件夹拖放到这里',
+  'library.empty.feature.sound': '每首歌都经过你的 EQ 和 DSP 播放',
+  'library.empty.feature.lyrics': '歌词逐字亮起',
+  'library.empty.feature.browse': '专辑、Cover Flow、接下来播放和“给我惊喜”',
   'library.karaokeSkipped':
     '已跳过 {count} 首卡拉OK歌曲 — 请在卡拉OK标签页中打开它们',
 

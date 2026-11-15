@@ -111,8 +111,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow-y: auto;
   scrollbar-gutter: auto;
 
-  // No rail before the first folder: the empty state stands in the middle of
-  // the whole card.
+  // No bar before the first folder: the empty state starts under the card's
+  // top edge, beside the rail.
   .library-workspace:not(.has-library) > & {
     padding-top: 12px;
   }
