@@ -28,6 +28,7 @@ import type { TLibraryBrowseMode } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import { coverFlowLayout } from './coverFlow/coverFlowGeometry';
 import type { ICoverFlowItem } from './coverFlowItems';
+import type { TDrawCaption } from './coverFlow/useCoverFlowSurprise';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryFolderArt from './LibraryFolderArt';
 
@@ -40,6 +41,9 @@ interface ILibraryCoverFlowStageProps {
   currentIndex: number;
   count: number;
   centreItem: ICoverFlowItem | undefined;
+  /** Surprise me spinning this row (`useCoverFlowSurprise`): null while it
+   * spins, the pick's name once it lands, undefined the rest of the time. */
+  drawCaption: TDrawCaption | undefined;
   isDrawn: boolean;
   isOverCover: boolean;
   optionId: (id: string) => string;
@@ -90,6 +94,7 @@ const LibraryCoverFlowStage = ({
   currentIndex,
   count,
   centreItem,
+  drawCaption,
   isDrawn,
   isOverCover,
   optionId,
@@ -152,7 +157,7 @@ const LibraryCoverFlowStage = ({
       {/* The centre cover's name, hung under its sleeve. Seen, not read:
           the option below is what a screen reader announces. Keyed on the
           cover so each new name rises in after the row has turned. */}
-      {centreItem !== undefined && (
+      {drawCaption === undefined && centreItem !== undefined && (
         <div
           key={centreItem.id}
           className="library-coverflow__caption"
@@ -167,6 +172,24 @@ const LibraryCoverFlowStage = ({
           <small
             className="library-coverflow__subtitle"
             data-text={centreItem.subtitle}
+          />
+        </div>
+      )}
+      {/* The pick's name, hung where the row's own would be, once the spin
+          lands on it. Seen, not read: the player says which song it was. */}
+      {drawCaption && (
+        <div
+          key={drawCaption.key}
+          className="library-coverflow__caption is-surprise"
+          aria-hidden="true"
+        >
+          <span
+            className="library-coverflow__title"
+            data-text={drawCaption.title}
+          />
+          <small
+            className="library-coverflow__subtitle"
+            data-text={drawCaption.detail}
           />
         </div>
       )}

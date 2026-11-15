@@ -18,7 +18,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * picture simply stays, with every input, the caption and the songs panel
  * working as before.
  */
-import { type RefObject, useEffect, useRef, useState } from 'react';
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { ICoverFlowScene, ICoverFlowSource } from './coverFlowScene';
 
 export interface ICoverFlowSceneInput {
@@ -47,6 +53,9 @@ const useCoverFlowScene = ({
   isReducedMotion,
 }: ICoverFlowSceneInput) => {
   const sceneRef = useRef<ICoverFlowScene | undefined>(undefined);
+  /** The scene is lent to Surprise me's draw (`borrow`): the row's own
+   * covers and centre wait until it is given back. */
+  const isLentRef = useRef(false);
   const [isDrawn, setIsDrawn] = useState(false);
   const [isShown, setIsShown] = useState(isWindowShown);
   /** Bumped when a lost context comes back, to build the scene again. */
@@ -100,8 +109,10 @@ const useCoverFlowScene = ({
         built.setReducedMotion(now.isReducedMotion);
         built.setExpanded(now.isExpanded);
         built.setHovered(now.hovered);
-        built.setSource(now.source);
-        built.setCentre(now.centre);
+        if (!isLentRef.current) {
+          built.setSource(now.source);
+          built.setCentre(now.centre);
+        }
         sceneRef.current = built;
         return undefined;
       })
@@ -120,11 +131,38 @@ const useCoverFlowScene = ({
   }, [hostRef, isShown, generation]);
 
   useEffect(() => {
-    sceneRef.current?.setSource(source);
+    if (!isLentRef.current) {
+      sceneRef.current?.setSource(source);
+    }
   });
   useEffect(() => {
-    sceneRef.current?.setCentre(centre);
+    if (!isLentRef.current) {
+      sceneRef.current?.setCentre(centre);
+    }
   }, [centre]);
+
+  /**
+   * Lends the scene to Surprise me's draw, so a press over Cover Flow spins
+   * this very row rather than building a second scene over it. Answers
+   * undefined when there is no scene to lend (still loading, no WebGL, or
+   * already lent); otherwise the function that gives it back, which puts the
+   * row's own covers in again and stands it where the row is now, at once.
+   */
+  const borrow = useCallback((): (() => void) | undefined => {
+    const scene = sceneRef.current;
+    if (!scene || isLentRef.current) {
+      return undefined;
+    }
+    isLentRef.current = true;
+    return () => {
+      isLentRef.current = false;
+      const now = latest.current;
+      const { current } = sceneRef;
+      current?.setExpanded(now.isExpanded);
+      current?.setSource(now.source);
+      current?.jumpTo(now.centre);
+    };
+  }, []);
   useEffect(() => {
     sceneRef.current?.setHovered(hovered);
   }, [hovered]);
@@ -135,7 +173,7 @@ const useCoverFlowScene = ({
     sceneRef.current?.setReducedMotion(isReducedMotion);
   }, [isReducedMotion]);
 
-  return { sceneRef, isDrawn };
+  return { sceneRef, isDrawn, borrow };
 };
 
 export default useCoverFlowScene;

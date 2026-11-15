@@ -39,6 +39,7 @@ import {
   createCoverFlowArtCache,
 } from './coverFlowArtCache';
 import { type ICard, createCoverFlowWorld } from './coverFlowWorld';
+import { spinPosition } from '../surpriseDraw/drawTiming';
 /** A cover as the scene draws it; `undefined` while its page is out. */
 export interface ICoverFlowSlot extends ICoverFlowArtRequest {
   id: string;
@@ -65,7 +66,24 @@ export interface ICoverFlowScene {
   /** Which cover is drawn under a point, or failing that the nearest one
    * across — the whole strip above and below a cover is live. */
   coverAt: (clientX: number, clientY: number) => number | undefined;
+  /** Puts the row at `index` at once, with no glide. */
+  jumpTo: (index: number) => void;
+  /**
+   * Surprise me's draw (`drawTiming.ts`): the row runs from where it stands
+   * to `to`, fast out and slow into the stop, calls `onLanded` as it stops,
+   * holds there for `holdMs` and resolves. An abort, the scene being
+   * disposed or the context lost ends it at once, standing on `to`.
+   */
+  spin: (request: ICoverFlowSpin) => Promise<void>;
   dispose: () => void;
+}
+
+export interface ICoverFlowSpin {
+  to: number;
+  spinMs: number;
+  holdMs: number;
+  onLanded: () => void;
+  signal: AbortSignal;
 }
 
 export interface ICoverFlowSceneOptions {
@@ -136,7 +154,22 @@ export const createCoverFlowScene = (
   let isReduced = false;
   let frame = 0;
   let lastTime = 0;
+  /** The last frame's own clock, which a spin's elapsed time is read from. */
+  let frameNow = 0;
   let isFirstFrameShown = false;
+  /** A Surprise me spin in progress; it owns the row's position. */
+  let spinning:
+    | {
+        from: number;
+        to: number;
+        spinMs: number;
+        holdMs: number;
+        startedAt: number | undefined;
+        isLanded: boolean;
+        onLanded: () => void;
+        finish: () => void;
+      }
+    | undefined;
 
   const request = () => {
     if (frame === 0 && !isDisposed && !isLost) {
@@ -231,7 +264,26 @@ export const createCoverFlowScene = (
   };
 
   const render = (seconds: number): boolean => {
-    if (drag !== undefined) {
+    if (spinning) {
+      // Timed from its first drawn frame, so the covers it starts on have had
+      // that frame to be asked for.
+      spinning.startedAt ??= frameNow;
+      const elapsed = frameNow - spinning.startedAt;
+      position = spinPosition(
+        spinning.from,
+        spinning.to,
+        elapsed,
+        spinning.spinMs,
+      );
+      target = spinning.to;
+      if (!spinning.isLanded && elapsed >= spinning.spinMs) {
+        spinning.isLanded = true;
+        spinning.onLanded();
+      }
+      if (elapsed >= spinning.spinMs + spinning.holdMs) {
+        spinning.finish();
+      }
+    } else if (drag !== undefined) {
       position = drag;
     } else if (isReduced) {
       position = target;
@@ -270,6 +322,7 @@ export const createCoverFlowScene = (
       Math.abs(glow.b - wanted.b);
     const isWaiting = pictures.isWaiting();
     return (
+      spinning !== undefined ||
       (drag === undefined && position !== target) ||
       reflectionStrength.value !== strength ||
       glowGap > 0.002 ||
@@ -283,6 +336,7 @@ export const createCoverFlowScene = (
     const seconds =
       lastTime === 0 ? 1 / 60 : Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
+    frameNow = now;
     if (render(seconds)) {
       request();
     } else {
@@ -328,6 +382,8 @@ export const createCoverFlowScene = (
       cancelAnimationFrame(frame);
       frame = 0;
     }
+    // No frame will come to finish a spin on a lost context.
+    spinning?.finish();
     options.onLost();
   };
   const onRestored = () => options.onRestored();
@@ -409,11 +465,49 @@ export const createCoverFlowScene = (
       });
       return best;
     },
+    jumpTo: (index) => {
+      hasCentre = true;
+      position = index;
+      target = index;
+      request();
+    },
+    spin: ({ to, spinMs, holdMs, onLanded, signal }) =>
+      new Promise<void>((resolve) => {
+        spinning?.finish();
+        if (signal.aborted || isDisposed || isLost) {
+          resolve();
+          return;
+        }
+        const finish = () => {
+          signal.removeEventListener('abort', finish);
+          if (spinning === current) {
+            spinning = undefined;
+            position = to;
+            target = to;
+            request();
+          }
+          resolve();
+        };
+        const current = {
+          from: position,
+          to,
+          spinMs: isReduced ? 0 : spinMs,
+          holdMs,
+          startedAt: undefined,
+          isLanded: false,
+          onLanded,
+          finish,
+        };
+        spinning = current;
+        signal.addEventListener('abort', finish, { once: true });
+        request();
+      }),
     dispose: () => {
       if (isDisposed) {
         return;
       }
       isDisposed = true;
+      spinning?.finish();
       if (frame !== 0) {
         cancelAnimationFrame(frame);
         frame = 0;

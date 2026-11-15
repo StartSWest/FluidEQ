@@ -540,3 +540,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 }
+
+// *** Surprise me spinning the row ********************************************
+//
+// The row is the draw (`useCoverFlowSurprise`): the arrows step back while it
+// spins and holds, because nothing on it can be steered until it is given
+// back, and the letter rail stays where it is.
+.library-coverflow.is-drawing .library-coverflow__arrow {
+  opacity: 0;
+  pointer-events: none;
+}

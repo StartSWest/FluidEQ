@@ -26,6 +26,8 @@ import MenuIcon from '../icons/MenuIcon';
 import { COVER_FLOW_WINDOW } from './coverFlow/coverFlowGeometry';
 import type { ICoverFlowSource } from './coverFlow/coverFlowScene';
 import useCoverFlowScene from './coverFlow/useCoverFlowScene';
+import useCoverFlowSurprise from './coverFlow/useCoverFlowSurprise';
+import type { TSurpriseStageRef } from './surpriseDraw/surpriseStage';
 import {
   clampIndex,
   coverFlowItemOf,
@@ -89,6 +91,9 @@ interface ILibraryCoverFlowProps {
   query?: string;
   /** Add-to-queue, forwarded to the panel this opens. */
   onQueueTracks?: (trackIds: readonly string[]) => void;
+  /** Filled while this view is on screen, so Surprise me's draw spins this
+   * row instead of building a second scene (`surpriseStage.ts`). */
+  surpriseStageRef?: TSurpriseStageRef;
 }
 
 /**
@@ -122,6 +127,7 @@ const LibraryCoverFlow = ({
   revealTrack,
   query,
   onQueueTracks,
+  surpriseStageRef,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
   const { isScanning } = useLibrary();
@@ -501,7 +507,7 @@ const LibraryCoverFlow = ({
   // "is it one of the covers", which with the row read a page at a time would
   // close the panel whenever the reader turned the row far enough from it —
   // and a folder holding only folders is never a cover at all.
-  const isExpanded = hasDrillIn && expandedId !== undefined;
+  const isOpen = hasDrillIn && expandedId !== undefined;
 
   /** What the scene draws, read again on every render: the row's covers as
    * pictures, and the one the music is coming from. */
@@ -521,14 +527,23 @@ const LibraryCoverFlow = ({
     },
     playingId: playingItemId,
   };
-  const { sceneRef, isDrawn } = useCoverFlowScene({
+  const { sceneRef, isDrawn, borrow } = useCoverFlowScene({
     hostRef,
     source,
     centre: currentIndex,
     hovered: hoveredIndex,
-    isExpanded,
+    isExpanded: isOpen,
     isReducedMotion: prefersReducedMotion(),
   });
+  // Surprise me spinning this row: the songs panel folds for its length and
+  // opens again when the row is given back.
+  const drawCaption = useCoverFlowSurprise({
+    stageRef: surpriseStageRef,
+    sceneRef,
+    borrow,
+  });
+  const isDrawing = drawCaption !== undefined;
+  const isExpanded = isOpen && !isDrawing;
 
   // The keys, the wheel, a drag and a press (`useCoverFlowGestures.ts`).
   const {
@@ -585,7 +600,9 @@ const LibraryCoverFlow = ({
   }
 
   return (
-    <div className={`library-coverflow${isExpanded ? ' is-expanded' : ''}`}>
+    <div
+      className={`library-coverflow${isExpanded ? ' is-expanded' : ''}${isDrawing ? ' is-drawing' : ''}`}
+    >
       {/* Which half of a search the cover in front of the reader is in. */}
       {centreSection !== undefined && (
         <p
@@ -646,6 +663,7 @@ const LibraryCoverFlow = ({
           currentIndex={currentIndex}
           count={count}
           centreItem={centreItem}
+          drawCaption={drawCaption}
           isDrawn={isDrawn}
           isOverCover={hoveredIndex !== undefined}
           optionId={optionId}

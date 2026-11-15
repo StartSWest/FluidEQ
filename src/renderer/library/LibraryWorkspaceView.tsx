@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, DragEvent } from 'react';
+import { CSSProperties, DragEvent, useRef } from 'react';
 import {
   droppedFilePath,
   UP_NEXT_MAX,
@@ -29,6 +29,7 @@ import LibraryToolbar from './LibraryToolbar';
 import LibraryFolderActions from './LibraryFolderActions';
 import LibraryUpNext, { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
 import SurpriseDrawLayer from './surpriseDraw/SurpriseDrawLayer';
+import type { ISurpriseStage } from './surpriseDraw/surpriseStage';
 import LibraryScanProgress, { libraryHiddenScan } from './LibraryScanProgress';
 import LibraryEmptyState from './LibraryEmptyState';
 import Spinner from '../icons/Spinner';
@@ -66,6 +67,9 @@ const LibraryWorkspaceView = ({
   isHidden,
   onToggleFullScreen,
 }: TLibraryWorkspaceViewProps) => {
+  /** Cover Flow fills it while on screen, so Surprise me spins that row
+   * rather than building a second scene over it (`surpriseStage.ts`). */
+  const surpriseStageRef = useRef<ISurpriseStage | undefined>(undefined);
   const {
     t,
     isIndexLoaded,
@@ -589,12 +593,16 @@ const LibraryWorkspaceView = ({
                 onOpenChange={handleCoverFlowOpen}
                 onQueueTracks={appendToQueue}
                 query={query}
+                surpriseStageRef={surpriseStageRef}
               />
             )}
           {/* Surprise me's draw, over whichever shelf is drawn: after every
           view, so it lies above them, and before the queue, which stays
           above it. Never over a video, which has the tab. */}
-          <SurpriseDrawLayer isShelfShown={trackCount > 0 && !videoTrackId} />
+          <SurpriseDrawLayer
+            isShelfShown={trackCount > 0 && !videoTrackId}
+            stageRef={surpriseStageRef}
+          />
           {/* Last, and outside every view above: the queue belongs to the tab
           rather than to whichever shelf is drawing it. On a shelf it stands
           in the strip `has-up-next` reserves; over a video it floats on the

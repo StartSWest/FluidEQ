@@ -9,89 +9,63 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * (Ivan, 2026-11-13: "that button will do a nice random drawing animation
  * with the cover art, but make sure it's performant").
  *
- * A ring of covers spins, slows and stops with the pick in front; the pick
- * steps forward while the others step back; then it flies into the player.
- * Every frame is asked for by `requestAnimationFrame` and placed by how long
- * the draw has been running — nothing here waits on a clock, and a slow frame
- * lands where it should rather than late.
+ * It is Cover Flow's own row (Ivan, 2026-11-14: "remove the surprise me cover
+ * art component and use the new cover art, same component, not loading two"):
+ * a row of covers runs from the left, slows and stops with the pick in the
+ * centre, holds it under its name, and gives the row back. Every frame is
+ * asked for by `requestAnimationFrame` and placed by how long the spin has
+ * been running, so nothing here waits on a clock and a slow frame lands
+ * where it should rather than late.
  */
 
-/** The spin, from a press to the pick in front. */
-export const DRAW_SPIN_MS = 1150;
-/** The pick stepping forward while the rest of the deck steps back. */
-export const DRAW_LAND_MS = 360;
-/** The pick flying into the player's cover. */
-export const DRAW_FLY_MS = 420;
-/** Covers on the ring besides the pick: enough to read as the library. */
-export const DRAW_DECK_SIZE = 19;
-/** Whole turns before the stop, so even a pick beside the start goes round. */
-const TURNS = 2;
+/** The spin, from a press to the pick in the centre. */
+export const DRAW_SPIN_MS = 1400;
+/** The pick held in the centre under its name before the row goes back. */
+export const DRAW_HOLD_MS = 1100;
+/**
+ * How many covers the row runs past. Inside the scene's drawn window
+ * (`COVER_FLOW_WINDOW`, ten each side, plus the two it keeps beyond), so
+ * every cover the spin crosses is asked for on its first frame and none
+ * flies past as an empty sleeve.
+ */
+export const DRAW_TRAVEL = 12;
+/** Covers left of where the spin starts, so its first frame is a full row
+ * rather than one with an empty left side. */
+export const DRAW_LEAD = 6;
+/** Covers besides the pick: the lead, the travel, and a side after it. */
+export const DRAW_DECK_SIZE = 25;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 /** Fast out of the press, slow into the stop. */
 export const easeOutQuart = (t: number): number => 1 - (1 - clamp01(t)) ** 4;
 
-/** A step forward that overshoots a touch and settles. */
-export const easeOutBack = (t: number): number => {
-  const u = clamp01(t) - 1;
-  return 1 + 2.2 * u ** 3 + 1.2 * u ** 2;
-};
-
-/** How far apart the cards stand: one card and a gap each, never cramped. */
-export const ringRadius = (cards: number): number =>
-  Math.max(3.2, (cards * 1.22) / (2 * Math.PI));
-
-/** Where card `index` of `cards` stands on the ring, in radians. */
-export const cardAngle = (index: number, cards: number): number =>
-  (index / cards) * Math.PI * 2;
-
-/** The ring's turn that puts the card at `angle` in front, after the turns. */
-export const stopRotation = (angle: number): number =>
-  -angle - TURNS * Math.PI * 2;
+/** Where the row stands `elapsed` ms into a spin from `from` to `to`. */
+export const spinPosition = (
+  from: number,
+  to: number,
+  elapsed: number,
+  spinMs: number,
+): number =>
+  spinMs <= 0 || elapsed >= spinMs
+    ? to
+    : from + (to - from) * easeOutQuart(elapsed / spinMs);
 
 /**
- * How lit a card is by where it faces: full in front, dim at the sides, so
- * the ring reads as depth rather than as a row.
+ * The row the draw spins: the others with the pick `DRAW_TRAVEL` past where
+ * the spin starts, and `DRAW_LEAD` covers before the start. A small library
+ * that answered fewer covers than asked for gives up its lead first, then
+ * its travel, so the pick always stands after every cover the row runs past.
  */
-export const cardLight = (angle: number, rotation: number): number =>
-  0.26 + 0.74 * Math.max(0, Math.cos(angle + rotation)) ** 1.6;
-
-export interface IDrawFrame {
-  /** The ring's turn. */
-  rotation: number;
-  /** 1 at the start of the spin and 0 at the stop: the cards' stretch. */
-  speed: number;
-  /** 0 until the stop, then up to 1 as the pick steps forward. */
-  landing: number;
-  /** The landing is over: time for the pick to fly. */
-  isLanded: boolean;
-}
-
-/** Everything a frame `elapsed` ms into the draw needs. */
-export const drawFrameAt = (elapsed: number, stop: number): IDrawFrame => {
-  const spun = clamp01(elapsed / DRAW_SPIN_MS);
-  const landing = clamp01((elapsed - DRAW_SPIN_MS) / DRAW_LAND_MS);
-  return {
-    rotation: stop * easeOutQuart(spun),
-    speed: (1 - spun) ** 3,
-    landing,
-    isLanded: elapsed >= DRAW_SPIN_MS + DRAW_LAND_MS,
-  };
-};
-
-/**
- * The ring: the others, with the pick at a place drawn at random among them,
- * so where it lands on the ring tells nothing about which it is.
- */
-export const dealDeck = <T>(
+export const dealRow = <T>(
   others: readonly T[],
   pick: T,
-  random: () => number = Math.random,
-): { deck: T[]; pickIndex: number } => {
-  const pickIndex = Math.floor(random() * (others.length + 1));
+): { row: T[]; startIndex: number; pickIndex: number } => {
+  const pickIndex = Math.min(DRAW_LEAD + DRAW_TRAVEL, others.length);
+  const startIndex = Math.max(0, pickIndex - DRAW_TRAVEL);
   return {
-    deck: [...others.slice(0, pickIndex), pick, ...others.slice(pickIndex)],
+    row: [...others.slice(0, pickIndex), pick, ...others.slice(pickIndex)],
+    startIndex,
     pickIndex,
   };
 };

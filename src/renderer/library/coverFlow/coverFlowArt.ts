@@ -27,7 +27,7 @@ import {
   libraryMediaUrl,
   librarySizedArtUrl,
 } from '../../../common/library/mediaUrl';
-import { drawTile } from '../surpriseDraw/drawCovers';
+import drawTile from './coverFlowTile';
 
 /** The picture sizes the row uses. */
 export type TCoverFlowArtSize = 'near' | 'far';
