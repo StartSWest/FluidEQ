@@ -103,6 +103,7 @@ import {
 import { useRhythmRun } from './utils/rhythmRun';
 import useSmoothFrames from './utils/useSmoothFrames';
 import useMomentaryHold from './utils/useMomentaryHold';
+import useMeterLabelFit from './useMeterLabelFit';
 import {
   toggleEuphoriaEnabled,
   useIsEuphoriaEnabled,
@@ -834,6 +835,13 @@ const WaveformVisualizer = () => {
     kickFrames();
   }, [isEuphoric, isOverloading, isPaused, kickFrames, style]);
 
+  // LIVE OUTPUT steps aside where it would run into the Rainbow pill, in
+  // whatever language both are in (`useMeterLabelFit`).
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const signalRef = useRef<HTMLSpanElement | null>(null);
+  const pillRef = useRef<HTMLButtonElement | null>(null);
+  useMeterLabelFit(shellRef, signalRef, pillRef, !isOff);
+
   return (
     // A wrapper, so the pill can be a real button.
     //
@@ -842,6 +850,7 @@ const WaveformVisualizer = () => {
     // unnesting, which loses the inner click. The pill therefore sits beside
     // the meter and is positioned over it.
     <div
+      ref={shellRef}
       /*
        * Hidden by class, never unmounted.
        *
@@ -879,7 +888,7 @@ const WaveformVisualizer = () => {
             inset; these hug the edge. */}
         {!isOff && (
           <span className="waveform-visualizer__meta">
-            <span className="waveform-visualizer__signal">
+            <span ref={signalRef} className="waveform-visualizer__signal">
               <span className="waveform-visualizer__signal-dot" />
               {t(isActive ? 'waveform.live' : 'waveform.signal')}
             </span>
@@ -959,6 +968,7 @@ const WaveformVisualizer = () => {
         alone (`Euphoria.scss`), so what it says and how it looks cannot
         disagree. */}
       <button
+        ref={pillRef}
         type="button"
         className="euphoria-pill waveform-visualizer__euphoria"
         aria-pressed={isRainbowOn}

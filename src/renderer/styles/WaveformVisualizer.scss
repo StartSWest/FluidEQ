@@ -323,26 +323,26 @@ it under the terms of the GNU General Public License version 3 or later.
 // shell carries a definite width (`App.scss`), which is what makes it a
 // size container without collapsing.
 //
-// Measured in the harness, 2026-09-22, which is where each number below
-// comes from — the width at which that pair first touches, and not a pixel
-// earlier: the strip keeps everything it can still draw clear.
+// Measured in the harness, 2026-09-22 — the width at which that pair first
+// touches, and not a pixel earlier: the strip keeps everything it can still
+// draw clear.
 //
-//   325  LIVE OUTPUT and its light (84 from the left edge) come within the
-//        strip's own 8px of the pill; they touch outright at 309. Below
-//        1920 of window the label is already gone (`App.scss`), so this is
-//        for a wide window whose titlebar grid has squeezed the pane.
-//   222  the held peak — which sits at the LEFT once the label is gone,
-//        because the row is `space-between` and it is then the only thing
-//        in it — comes within the same 8px of the pill.
+//   LIVE OUTPUT is not given a width here. It was (325, measured for
+//        English), and Spanish "SALIDA EN DIRECTO" ran under "COLORIDO" at
+//        widths English clears (Ivan, 2026-11-15): the component measures
+//        the label against the pill in the language on screen and marks it
+//        `data-cramped` (`useMeterLabelFit.ts`). Hidden, not removed, so the
+//        held peak keeps its place at the right.
+//   222  the held peak comes within the same 8px of the pill (at the left,
+//        where `App.scss` has removed the label below 1920 of window; at
+//        the right it clears a few pixels sooner).
 //   136  the pill no longer fits the pane at all.
 //
 // What goes, goes in that order: the label repeats what the trace says, the
 // number is the next most replaceable, and the pill last — its mode is
 // named nowhere else on screen, though Ctrl+E still turns it on.
-@container wave-meter (max-width: 325px) {
-  .waveform-visualizer__signal {
-    display: none;
-  }
+.waveform-visualizer__signal[data-cramped] {
+  visibility: hidden;
 }
 
 @container wave-meter (max-width: 222px) {
