@@ -43,7 +43,7 @@ import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 import { usePlaylists } from './PlaylistContext';
 import { useLibraryList } from './useLibraryList';
-import { libraryFoldersAhead } from './libraryFoldersAhead';
+import libraryFoldersAhead from './libraryFoldersAhead';
 import { useLibraryAnswer } from './useLibraryAnswer';
 import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
 import { formatOf } from './libraryColumns';

@@ -20,7 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { ILibraryList } from './useLibraryList';
 
-export const libraryFoldersAhead = (
+const libraryFoldersAhead = (
   folders: ILibraryList,
   songs: ILibraryList,
 ): ILibraryList => {
@@ -51,3 +51,5 @@ export const libraryFoldersAhead = (
     },
   };
 };
+
+export default libraryFoldersAhead;
