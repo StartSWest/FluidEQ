@@ -153,9 +153,24 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 0;
   background: none;
   box-shadow: none;
+  // The video's fixed layer spans the window, not this panel: inline-size
+  // containment would make the panel its containing block, as
+  // `is-video-full` says of the same stage.
+  container-type: normal;
 
-  > :not(.library-video-stage) {
+  // The video lives in the content column (`.library-main`, first in it, so
+  // hiding the shelf never remounts it), not on this panel. Hiding every
+  // child but the stage hid the column, and the film under a full-screen
+  // graph was heard and never seen (Ivan, 2026-11-15: "it doesn't show the
+  // video, I can hear it playing but not see it").
+  > :not(.library-main),
+  .library-main > :not(.library-video-stage) {
     display: none;
+  }
+
+  .library-main {
+    padding: 0;
+    overflow: visible;
   }
 }
 
