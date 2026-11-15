@@ -66,6 +66,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// THE RAIL ARRIVES ROW BY ROW, as the DSP page's rail does (Ivan,
+// 2026-11-15: "add animation to the left pane on the Library, similar to how
+// we do the DSP left side"): the heading, each shelf, the playlists' heading
+// and every playlist rising a beat after the one above, on the DSP rail's
+// own beat (26 ms) and lead (110 ms). A long list of playlists past the
+// sixteenth arrives with the last beat rather than trailing for seconds.
+// The workspace is rebuilt on every visit (`LibraryWorkspaceView` renders
+// nothing off its tab), so it plays each time the tab is opened.
+.library-rail__scroll > * {
+  @include stagger-in($count: 16, $step: 26ms, $offset: 110ms);
+}
+
 // The shelves and playlists scroll; the foot stays.
 .library-rail__scroll {
   display: grid;
