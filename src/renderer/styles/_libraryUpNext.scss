@@ -1006,10 +1006,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: 56px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  margin: 14px 14px 10px;
-  padding: 12px;
-  border-radius: $radius-xl;
-  background: $studio-surface;
+  // Flat on the column, no box round it (Ivan, 2026-11-15: "want a more
+  // flat style here too, perhaps just underlines"): the cover and its two
+  // lines, the tabs' hairline under them.
+  margin: 0;
+  padding: 16px 14px 12px;
 
   .library-cover-art--tile {
     width: 56px;
@@ -1050,16 +1051,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-semibold;
 }
 
-// The three tabs, as one segmented control: a tray, the chosen tab a step of
-// light on it.
+// The three tabs as words over a hairline, the chosen one underlined in the
+// accent - no tray, no step of light (Ivan, 2026-11-15: "perhaps just
+// underlines on those").
 .library-pane__tabs {
   display: flex;
   flex: 0 0 auto;
-  gap: 2px;
-  margin: 0 14px;
-  padding: 3px;
-  border-radius: 9px;
-  background: $studio-surface;
+  gap: 4px;
+  margin: 0;
+  padding: 0 10px;
+  border-bottom: 1px solid $studio-hair;
 }
 
 .library-pane__tab {
@@ -1069,11 +1070,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 6px;
+  // The underline sits on the row's hairline: 2px of the tab's own foot,
+  // drawn inside it so nothing moves when it changes hands.
+  margin-bottom: -1px;
+  padding: 9px 6px 8px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 0;
   background: none;
-  color: $studio-t3;
+  // The second step, not the third: at 44% the tabs not chosen read as
+  // switched off.
+  color: $studio-t2;
   font-family: inherit;
   font-size: $studio-text-meta;
   font-weight: $weight-semibold;
@@ -1087,11 +1093,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover:not(.is-active) {
-    color: $studio-t2;
+    color: $text-primary;
   }
 
   &.is-active {
-    background: $studio-raise;
+    box-shadow: inset 0 -2px 0 $secondary-default;
     color: $text-primary;
   }
 
