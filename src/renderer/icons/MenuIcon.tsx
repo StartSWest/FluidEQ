@@ -152,6 +152,16 @@ const PATHS: Record<string, string> = {
   // `next`, whose bar makes it a transport's skip.
   forward: 'M9.5 6l6 6-6 6',
   play: 'M9 6l8 6-8 6V6z',
+  // Play at a size a loud button carries it: the triangle filling its grid,
+  // its corners rounded. `play` above is a transport's, drawn small and
+  // sharp; at 13px in the record's Play it read as a speck (Ivan, 2026-11-15:
+  // "that icon is too small and ugly"). Drawn to be filled, not stroked.
+  playSolid:
+    'M7.5 5.2v13.6a1.2 1.2 0 0 0 1.8 1l11-6.8a1.2 1.2 0 0 0 0-2l-11-6.8a1.2 1.2 0 0 0-1.8 1z',
+  // Two crossing paths with their arrowheads: play in another order. The set
+  // had none; the Surprise draw's own glyph carries a spark and is its own.
+  shuffle:
+    'M4 7h3c2 0 3 1 4.3 3l1.4 2c1.3 2 2.3 3 4.3 3h3M4 17h3c2 0 3-1 4-2.5M13.7 9.5C15 7.8 16 7 18 7h2M17.5 4.5L20 7l-2.5 2.5M17.5 12.5L20 15l-2.5 2.5',
   pause: 'M9 6v12M15 6v12',
   stop: 'M6 6h12v12H6V6z',
   volume: 'M5 10v4h3l4 3V7l-4 3H5M15 9a4 4 0 0 1 0 6',

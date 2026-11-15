@@ -493,12 +493,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Play's own glyph, filled, at a size the loud button carries (Ivan,
+// 2026-11-15: "that icon is too small and ugly").
 .library-hero__button-icon {
-  width: 13px;
-  height: 13px;
-  margin-left: -2px;
+  width: 16px;
+  height: 16px;
+  margin-left: -3px;
   fill: currentcolor;
   stroke: none;
+}
+
+// The quiet actions' line icons (Shuffle, Add to up next, Show in Explorer),
+// at the size and weight the rail's draw theirs.
+.library-hero__glyph {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  margin-left: -3px;
+  opacity: 0.85;
 }
 
 // The record's own filter, at the far end of the actions, quiet until used.

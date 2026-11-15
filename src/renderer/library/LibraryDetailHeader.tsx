@@ -219,7 +219,10 @@ const LibraryDetailHeader = ({
               className="library-hero__button is-go"
               onClick={onPlay}
             >
-              <MenuIcon name="play" className="library-hero__button-icon" />
+              <MenuIcon
+                name="playSolid"
+                className="library-hero__button-icon"
+              />
               <span>{t('library.play')}</span>
             </button>
           )}
@@ -229,7 +232,8 @@ const LibraryDetailHeader = ({
               className="library-hero__button"
               onClick={onShuffle}
             >
-              {t('library.shuffle')}
+              <MenuIcon name="shuffle" className="library-hero__glyph" />
+              <span>{t('library.shuffle')}</span>
             </button>
           )}
           {/* Play this after what is already going. With nothing playing
@@ -247,7 +251,8 @@ const LibraryDetailHeader = ({
                   .catch(() => undefined);
               }}
             >
-              {t('library.queueAdd')}
+              <MenuIcon name="queueAdd" className="library-hero__glyph" />
+              <span>{t('library.queueAdd')}</span>
             </button>
           )}
           {/* Where the record lives, when all of it lives in one folder:
@@ -259,7 +264,8 @@ const LibraryDetailHeader = ({
               className="library-hero__button"
               onClick={onReveal}
             >
-              {t('library.reveal')}
+              <MenuIcon name="folder" className="library-hero__glyph" />
+              <span>{t('library.reveal')}</span>
             </button>
           )}
           {/* THE WHOLE RECORD, filed in one press — the menu a row opens,
