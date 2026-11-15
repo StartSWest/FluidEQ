@@ -47,6 +47,7 @@ const useBench = (start: ILibraryQueue | undefined) => {
   );
   const upNext = useUpNext({
     queue,
+    isQueueKnown: true,
     trackId: queue ? currentTrackId(queue) : undefined,
     trackById,
     setQueue,

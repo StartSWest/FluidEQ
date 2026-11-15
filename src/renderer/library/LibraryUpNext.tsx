@@ -236,6 +236,7 @@ const LibraryUpNext = ({
   const {
     upNext,
     isDrawingMore,
+    isUpNextSettling,
     jumpToQueuePosition,
     removeUpNextAt,
     moveUpNext,
@@ -407,8 +408,15 @@ const LibraryUpNext = ({
           not the empty queue's invitation. Between a Surprise me press and
           its continuation the queue holds only the pick, and the empty state
           stood there for the length of the ask, then gave way to the list. */}
-      {trackCount === 0 && isDrawingMore && <LibraryUpNextFilling />}
-      {trackCount === 0 && !isDrawingMore && <LibraryUpNextStart />}
+      {/* Rows on their way while more is drawn, or while it is not yet
+          known whether anything is coming; the empty queue only once it is
+          certain. */}
+      {trackCount === 0 && (isDrawingMore || isUpNextSettling) && (
+        <LibraryUpNextFilling />
+      )}
+      {trackCount === 0 && !isDrawingMore && !isUpNextSettling && (
+        <LibraryUpNextStart />
+      )}
       {trackCount > 0 && (
         <div
           ref={listRef}
@@ -506,7 +514,9 @@ const LibraryUpNext = ({
         </div>
       )}
       {canSurprise && (
-        <LibraryUpNextFoot isQueueEmpty={trackCount === 0 && !isDrawingMore} />
+        <LibraryUpNextFoot
+          isQueueEmpty={trackCount === 0 && !isDrawingMore && !isUpNextSettling}
+        />
       )}
     </div>
   );

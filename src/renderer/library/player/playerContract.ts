@@ -162,6 +162,8 @@ export interface ILibraryPlayerContextValue {
    * empty state, so a Surprise me press does not flash "nothing queued".
    */
   isDrawingMore: boolean;
+  /** An empty Up Next is not yet an answer (`useUpNext`'s `isSettling`). */
+  isUpNextSettling: boolean;
   /**
    * Straight to a track already in the queue, without rebuilding it.
    *

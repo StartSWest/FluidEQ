@@ -302,7 +302,7 @@ export const LibraryPlayerProvider = ({
    * its playhead offered to the loader, never a window that starts making
    * noise on its own. See `useSessionMemory`.
    */
-  const { pendingRestore } = useSessionMemory({
+  const { pendingRestore, isQueueKnown } = useSessionMemory({
     queue,
     queueRef,
     positionMs,
@@ -452,8 +452,10 @@ export const LibraryPlayerProvider = ({
     playedIdsRef,
     isGuess,
     isDrawingMore,
+    isSettling: isUpNextSettling,
   } = useUpNext({
     queue,
+    isQueueKnown,
     trackId,
     trackById,
     setQueue,
@@ -701,6 +703,7 @@ export const LibraryPlayerProvider = ({
       topUpQueue,
       upNext,
       isDrawingMore,
+      isUpNextSettling,
       isContinuationOn,
       setIsContinuationOn,
       jumpToQueuePosition,
@@ -729,6 +732,7 @@ export const LibraryPlayerProvider = ({
       topUpQueue,
       upNext,
       isDrawingMore,
+      isUpNextSettling,
       isContinuationOn,
       setIsContinuationOn,
       jumpToQueuePosition,

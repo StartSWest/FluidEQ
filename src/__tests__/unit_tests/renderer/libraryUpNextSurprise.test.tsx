@@ -43,11 +43,13 @@ let mockUpNext: {
 }[] = [];
 const mockSurprise = jest.fn<Promise<string | null>, []>();
 let mockIsDrawingMore = false;
+let mockIsUpNextSettling = false;
 
 jest.mock('renderer/library/player/LibraryPlayerContext', () => ({
   useLibraryPlayerSession: () => ({
     upNext: mockUpNext,
     isDrawingMore: mockIsDrawingMore,
+    isUpNextSettling: mockIsUpNextSettling,
     jumpToQueuePosition: () => undefined,
     removeUpNextAt: () => undefined,
     moveUpNext: () => undefined,
@@ -82,6 +84,7 @@ const animationEnded = (element: Element, animationName: string) => {
 
 beforeEach(() => {
   mockIsDrawingMore = false;
+  mockIsUpNextSettling = false;
   mockSurprise.mockReset();
   mockSurprise.mockResolvedValue('t9');
 });
@@ -200,6 +203,22 @@ describe('Up Next while Keep playing is drawing more', () => {
     const [button] = surpriseButtons();
     expect(surpriseButtons()).toHaveLength(1);
     expect(button.closest('.library-up-next__foot')).not.toBeNull();
+  });
+
+  // Ivan, 2026-11-15: "there is a 'nothing' on Up next that flashes while
+  // it is still not decided ... show the placeholder loader first". While
+  // the last session's queue is read back, or the playing song's kind is
+  // still unknown on its last song, an empty list is not yet an answer.
+  it('shows the rows on their way, never the empty queue, while it is not yet known', () => {
+    mockUpNext = [];
+    mockIsUpNextSettling = true;
+    const { container } = panel(true);
+    expect(
+      screen.getByRole('status', { name: 'More like this' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Nothing queued yet')).toBeNull();
+    // Nor the empty queue's line under the button at the foot.
+    expect(container.querySelector('.library-up-next__start-hint')).toBeNull();
   });
 
   it('shows the empty queue once nothing more is coming', () => {

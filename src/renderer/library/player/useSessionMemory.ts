@@ -25,6 +25,7 @@ import {
   SetStateAction,
   useEffect,
   useRef,
+  useState,
 } from 'react';
 import { ILibraryQueue } from '../../../common/library/queue';
 import { useLibrary } from '../LibraryContext';
@@ -42,6 +43,12 @@ export interface ISessionMemory {
   pendingRestore: MutableRefObject<
     { trackId: string; positionMs: number } | undefined
   >;
+  /**
+   * Whether the last session's queue has been read back - put in place, or
+   * found not to be there. Until then an empty queue is not yet an answer,
+   * and Up Next shows its rows on their way rather than "nothing queued".
+   */
+  isQueueKnown: boolean;
 }
 
 export const useSessionMemory = (options: {
@@ -71,6 +78,8 @@ export const useSessionMemory = (options: {
    * before that, or the first render's empty queue would erase the very
    * thing being restored. */
   const isRestoringRef = useRef(true);
+  /** The same moment as state, for what draws from it (`isQueueKnown`). */
+  const [isQueueKnown, setIsQueueKnown] = useState(false);
 
   /**
    * Puts the last session's queue and playhead back, once.
@@ -89,6 +98,7 @@ export const useSessionMemory = (options: {
     const memory = readPlaybackMemory();
     if (!memory) {
       isRestoringRef.current = false;
+      setIsQueueKnown(true);
       return undefined;
     }
     let isCurrent = true;
@@ -102,6 +112,7 @@ export const useSessionMemory = (options: {
           return undefined;
         }
         isRestoringRef.current = false;
+        setIsQueueKnown(true);
         // Something was pressed while the library answered: that is what the
         // listener wants now, not what they had last time.
         if (queueRef.current !== undefined) {
@@ -191,6 +202,7 @@ export const useSessionMemory = (options: {
       .catch((error: unknown) => {
         // Nothing to put back is still an answer: stop holding writes.
         isRestoringRef.current = false;
+        setIsQueueKnown(true);
         // eslint-disable-next-line no-console -- context-rich error before it is dropped; the player starts empty
         console.error('Could not read the last session back', error);
       });
@@ -242,5 +254,5 @@ export const useSessionMemory = (options: {
     // hook boundary.
   }, [isRestoringRef, queueRef]);
 
-  return { pendingRestore };
+  return { pendingRestore, isQueueKnown };
 };

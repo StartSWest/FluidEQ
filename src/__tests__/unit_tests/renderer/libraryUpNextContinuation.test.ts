@@ -45,6 +45,7 @@ const mount = (start: ILibraryQueue) => {
     ({ current }: { current: ILibraryQueue | undefined }) =>
       useUpNext({
         queue: current,
+        isQueueKnown: true,
         trackId: current?.trackIds[current.order[current.position] ?? -1],
         trackById,
         setQueue,
@@ -161,5 +162,51 @@ describe('Up Next while Keep playing is drawing', () => {
     window.localStorage.setItem('fluideq.library.keepPlaying', 'off');
     const made = mount(queueAt(2));
     expect(made.hook.result.current.isDrawingMore).toBe(false);
+  });
+});
+
+// An empty queue is an answer only once it is known (Ivan, 2026-11-15:
+// "show the placeholder loader first"): while the last session's queue is
+// read back, and on the last song before the song's kind is known.
+describe('whether an empty Up Next is an answer yet', () => {
+  const settling = (options: {
+    isQueueKnown: boolean;
+    queue: ILibraryQueue | undefined;
+    tracks: ReadonlyMap<string, ILibraryTrack>;
+  }) =>
+    renderHook(() =>
+      useUpNext({
+        queue: options.queue,
+        isQueueKnown: options.isQueueKnown,
+        trackId: undefined,
+        trackById: options.tracks,
+        setQueue: () => undefined,
+      }),
+    ).result.current.isSettling;
+
+  it('is not while the last session is still being read back', () => {
+    expect(
+      settling({ isQueueKnown: false, queue: undefined, tracks: trackById }),
+    ).toBe(true);
+    // The control: read back with nothing in it is an answer.
+    expect(
+      settling({ isQueueKnown: true, queue: undefined, tracks: trackById }),
+    ).toBe(false);
+  });
+
+  it('is not on the last song before the song is known', () => {
+    // The ask for more stays out: nothing lands after the reading.
+    queryLibrary.mockReturnValue(
+      new Promise(() => {
+        // Never settles.
+      }),
+    );
+    expect(
+      settling({ isQueueKnown: true, queue: queueAt(2), tracks: new Map() }),
+    ).toBe(true);
+    // The control: known, the last song decides for itself.
+    expect(
+      settling({ isQueueKnown: true, queue: queueAt(2), tracks: trackById }),
+    ).toBe(false);
   });
 });

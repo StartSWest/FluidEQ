@@ -75,17 +75,29 @@ export interface IUpNext {
    * the rows that follow it.
    */
   isDrawingMore: boolean;
+  /**
+   * Whether an empty list is not yet an answer: the last session's queue
+   * is still being read back, or the queue stands on its last song before
+   * the playing song's kind is known, so whether more will be drawn is
+   * still open. Up Next shows its rows on their way meanwhile, never
+   * "nothing queued" - it flashed for that moment and then gave way to the
+   * list (Ivan, 2026-11-15: "only show it when it is clear there is
+   * nothing up next, and show the placeholder loader first").
+   */
+  isSettling: boolean;
 }
 
 export const useUpNext = (options: {
   queue: ILibraryQueue | undefined;
+  /** The last session's queue has been read back (`useSessionMemory`). */
+  isQueueKnown: boolean;
   trackId: string | undefined;
   trackById: ReadonlyMap<string, ILibraryTrack>;
   setQueue: (
     update: (current: ILibraryQueue | undefined) => ILibraryQueue | undefined,
   ) => void;
 }): IUpNext => {
-  const { queue, trackId, trackById, setQueue } = options;
+  const { queue, isQueueKnown, trackId, trackById, setQueue } = options;
 
   /**
    * KEEP PLAYING WHEN THE LIST RUNS OUT.
@@ -181,6 +193,16 @@ export const useUpNext = (options: {
     playing !== undefined &&
     seedKind === 'audio';
   const isDrawingMore = wantsMore && exhaustedSeed !== playing;
+  // On the last song with continuation on, before the lookup that says what
+  // the song is has arrived: `wantsMore` cannot be decided yet.
+  const isKindPending =
+    isContinuationOn &&
+    queue !== undefined &&
+    queue.repeat === 'off' &&
+    isOnLastSong(queue) &&
+    playing !== undefined &&
+    seedKind === undefined;
+  const isSettling = !isQueueKnown || isKindPending;
   useEffect(() => {
     // `repeat` other than 'off' means the queue never runs out — 'all' wraps
     // and 'one' holds — so there is nothing here to answer.
@@ -327,5 +349,6 @@ export const useUpNext = (options: {
     playedIdsRef: playedIds,
     isGuess,
     isDrawingMore,
+    isSettling,
   };
 };
