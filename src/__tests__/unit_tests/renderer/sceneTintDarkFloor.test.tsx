@@ -175,19 +175,20 @@ describe('the floor below 50% Brightness', () => {
     expect(previous).toBeCloseTo(0.13, 2);
   });
 
-  it('moves the floor alone: the panes, edges and accent keep their toning', () => {
+  // The surfaces walk down with the floor (Ivan, 2026-11-14: "even on 0
+  // brightness the green is too light on the panels"); the edges and the
+  // accents keep their toning, as he asked of the floor's walk on 10-25
+  // ("dont touch primary or sec or any color").
+  it('darkens every surface and leaves the edges and accent their toning', () => {
     mount('tint', 0);
     const expected = toned(heldShade(0));
-    [
-      '--surface-panel',
-      '--surface-block',
-      '--border-panel',
-      '--border-subtle',
-    ].forEach((name) =>
+    ['--border-panel', '--border-subtle'].forEach((name) =>
       expect(token(name)).toBe(expected[name as keyof typeof expected]),
     );
-    // POSITIVE CONTROL: the floor is the one token that moved.
-    expect(token('--surface-base')).not.toBe(expected['--surface-base']);
+    // POSITIVE CONTROL: the floor and the panes moved, and darker.
+    ['--surface-base', '--surface-panel', '--surface-block'].forEach((name) => {
+      expect(token(name)).not.toBe(expected[name as keyof typeof expected]);
+    });
   });
 
   it('leaves 50% and the light half exactly as the toning paints them', () => {

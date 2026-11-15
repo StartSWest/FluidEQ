@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import type * as TestingLibrary from '@testing-library/react';
 import type { ReactElement } from 'react';
+import { parseCssColour, rgbToLab } from '../../../renderer/utils/oklab';
 import {
   SCENE_SKY_MEASUREMENT,
   type ISceneSky,
@@ -319,10 +320,11 @@ describe('the graph’s visualizer', () => {
   // A Plus visualizer's colours hold in Colours and Ambient however low the
   // Brightness goes (Ivan, 2026-09-28: "on plus viz we keep the viz original
   // color when moving the app brightness"): their walk starts at 30, where
-  // the Backdrop's follows the Brightness all the way. Below 50% the floor of
-  // either is the colour it has at 50%, darkened (`sceneTintDarkFloor.test`),
-  // so what this holds is the panes, which keep the walk: Colours and Ambient
-  // paint the Backdrop's 30 at Black.
+  // the Backdrop's follows the Brightness all the way. Below 50% every
+  // surface walks down from its colour at 50% to a dark ceiling at Black,
+  // keeping its hue (`sceneTintDark.test`; Ivan, 2026-11-14: "even on 0
+  // brightness the green is too light on the panels"): Colours and Ambient
+  // paint the same dark, coloured pane at Black, never the Backdrop's 30.
   it('holds a visualizer’s colours at Black in Colours and Ambient', () => {
     remember([['premium:bloom', '3', sky(300)]]);
     const paneIn = (mode: string, shade: string) => {
@@ -338,9 +340,14 @@ describe('the graph’s visualizer', () => {
     const colours = paneIn('tint', 'black');
     expect(colours).toMatch(/^#/);
     expect(paneIn('pulse', 'black')).toBe(colours);
-    expect(paneIn('cover', '30')).toBe(colours);
-    // POSITIVE CONTROL: the Backdrop at Black has gone darker than that.
-    expect(paneIn('cover', 'black')).not.toBe(colours);
+    const parsed = parseCssColour(colours);
+    const lab = parsed ? rgbToLab(parsed.rgb) : { l: 1, a: 0, b: 0 };
+    // Dark, and still the scene's colour rather than a grey.
+    expect(lab.l).toBeLessThan(0.19);
+    expect(Math.hypot(lab.a, lab.b)).toBeGreaterThan(0.02);
+    // POSITIVE CONTROL: the Backdrop's 30 is lighter than Colours at Black.
+    const backdrop = parseCssColour(paneIn('cover', '30'));
+    expect(backdrop ? rgbToLab(backdrop.rgb).l : 0).toBeGreaterThan(lab.l);
   });
 
   it('gives a look that is not a scene Lagoon, not a remembered scene’s colour', () => {

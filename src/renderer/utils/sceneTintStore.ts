@@ -18,6 +18,7 @@ import {
   type ISceneColour,
   type ISceneSky,
 } from './sceneTint';
+import { DARK_KNEE, darkenSurfaces } from './sceneTintDark';
 import { getThemeShade, subscribeTheme } from './theme';
 import {
   THEME_SHADE_MAX,
@@ -25,7 +26,6 @@ import {
   THEME_SHADE_TOKENS,
   themeShadeTokens,
 } from './themeShade';
-import { labToHex, parseCssColour, rgbToLab } from './oklab';
 
 /**
  * The window in a Plus visualizer's colour: the switch, what each scene's sky
@@ -494,7 +494,7 @@ let wantedTone: TSkyTone = 'follow';
 const HELD_SHADE_FLOOR = 30;
 
 /** The theme's shade a sky of `tone` is toned against, at `shade`. */
-const toneShadeOf = (tone: TSkyTone, shade: number) =>
+export const toneShadeOf = (tone: TSkyTone, shade: number) =>
   tone === 'held'
     ? Math.round(
         HELD_SHADE_FLOOR +
@@ -504,48 +504,13 @@ const toneShadeOf = (tone: TSkyTone, shade: number) =>
     : shade;
 
 /**
- * Below this Brightness the window's floor (`--surface-base`) under a
- * visualizer's colours keeps the colour it has here and only darkens; from
- * here up it is the toning above, unchanged.
- *
- * THE CAUSE OF THE LOST TINT (Ivan, 2026-10-25: "when I move to 0 it gets
- * lost its color when on ambient or color mode"): the floor was re-mixed from
- * the theme's own colour at every step, and a scene that tints the window
- * only faintly is mostly that theme colour (`sceneTintStrength` — Fireflies
- * lends 0.2 of its hue), so as the theme walked toward Black its grey took the
- * floor with it: hue 214 at 50% sliding to 157, at 0.009 chroma, under the
- * Backdrop. Only the floor is held, at Ivan's word ("just the bg color dont
- * touch primary or sec or any color", "just its brightness when at 0"); the
- * panes, edges, accents and text keep the toning they have.
+ * Below the knee of the Brightness every surface under a visualizer's colours
+ * walks down from the knee's colour to a dark ceiling at 0, keeping its hue
+ * and enough colour to be seen (`sceneTintDark.ts`, which says why). It was
+ * the floor alone (Ivan, 2026-10-25: "when I move to 0 it gets lost its color
+ * when on ambient or color mode"), and the panes stayed light: "even on 0
+ * brightness the green is too light on the panels" (2026-11-14).
  */
-const DARK_FLOOR_KNEE = (THEME_SHADE_MIN + THEME_SHADE_MAX) / 2;
-
-/**
- * The floor's OKLab lightness at Brightness 0: near black, where the held
- * floor used to stop at 0.17 (Ivan, 2026-10-24: "we can go even darker … to
- * almost black but with that colored tint"). Its colour is scaled with its
- * lightness, the same share of colour to light, so it stays inside what the
- * screen shows: kept at full chroma, a teal floor at 0.13 clipped to the same
- * #00090d for every scene in that hue.
- */
-const DARK_FLOOR_LIGHTNESS = 0.13;
-
-/** `kneeFloor` at `brightness`, its lightness alone walked down. */
-const darkerFloor = (kneeFloor: string, brightness: number): string => {
-  const parsed = parseCssColour(kneeFloor);
-  if (!parsed) {
-    return kneeFloor;
-  }
-  const lab = rgbToLab(parsed.rgb);
-  const along =
-    (brightness - THEME_SHADE_MIN) / (DARK_FLOOR_KNEE - THEME_SHADE_MIN);
-  const lightness = Math.min(
-    lab.l,
-    DARK_FLOOR_LIGHTNESS + (lab.l - DARK_FLOOR_LIGHTNESS) * along,
-  );
-  const scale = lab.l > 0 ? lightness / lab.l : 1;
-  return labToHex({ l: lightness, a: lab.a * scale, b: lab.b * scale });
-};
 
 /**
  * What the root carries now, and the theme's shade it was toned against.
@@ -560,7 +525,7 @@ const darkerFloor = (kneeFloor: string, brightness: number): string => {
  * lighter, so its colour survives (`TSkyTone`). They used to be lifted past
  * the theme by a lift of their own, which is now the theme's light end
  * (`themeShade.ts`). And the Brightness itself, which the floor below
- * `DARK_FLOOR_KNEE` follows step by step where a held sky's shade, rounded,
+ * `DARK_KNEE` follows step by step where a held sky's shade, rounded,
  * can stand still for two of them.
  */
 let painted: {
@@ -651,7 +616,7 @@ const readThemeBase = (shade: number) => {
 };
 
 /**
- * The theme at the knee's shade (`DARK_FLOOR_KNEE`), kept apart from
+ * The theme at the knee's shade (`DARK_KNEE`), kept apart from
  * `readThemeBase`: sharing its one slot, every step below the knee would work
  * out both tables again.
  */
@@ -684,27 +649,24 @@ const paint = () => {
     wanted && reach > 0
       ? tintThemePalette(readThemeBase(shade), wanted, reach)
       : undefined;
-  // A visualizer's colours, below the knee: the floor is the one the knee
-  // gives, darkened (`DARK_FLOOR_KNEE`). A lent sky keeps its own walk, which
-  // fades the colour out toward Black on purpose (`lentSkyReach`).
+  // A visualizer's colours, below the knee: every surface walks down from
+  // the knee's colour (`darkenSurfaces`). A lent sky keeps its own walk,
+  // which fades the colour out toward Black on purpose (`lentSkyReach`).
   const brightness = getThemeShade();
-  if (
-    palette &&
-    wanted &&
-    wantedTone !== 'lent' &&
-    brightness < DARK_FLOOR_KNEE
-  ) {
-    const kneeFloor = tintThemePalette(
-      readKneeBase(toneShadeOf(wantedTone, DARK_FLOOR_KNEE)),
-      wanted,
-      reach,
-    )['--surface-base'];
-    if (kneeFloor) {
-      palette['--surface-base'] = darkerFloor(kneeFloor, brightness);
-    }
-  }
+  const shown =
+    palette && wanted && wantedTone !== 'lent' && brightness < DARK_KNEE
+      ? darkenSurfaces(
+          palette,
+          tintThemePalette(
+            readKneeBase(toneShadeOf(wantedTone, DARK_KNEE)),
+            wanted,
+            reach,
+          ),
+          brightness,
+        )
+      : palette;
   SCENE_TINT_TOKENS.forEach((token) => {
-    const value = palette?.[token];
+    const value = shown?.[token];
     if (value) {
       style.setProperty(token, value);
     } else {
