@@ -33,6 +33,11 @@ module.exports = {
     // "id3v1"/"id3v2" and silently redirected music-metadata's ID3 parser to
     // the D3 charting library instead of leaving it unmapped.
     '^d3$': '<rootDir>/node_modules/d3/dist/d3.min.js',
+    // The graph imports d3-transition for its side effect (webpack would drop
+    // it otherwise). Its own build is ES-only, and d3's bundle above already
+    // carries it and patches the same selections, so it resolves to that one
+    // module: one copy of d3 in a test, as in the window.
+    '^d3-transition$': '<rootDir>/node_modules/d3/dist/d3.min.js',
     '^music-metadata$': '<rootDir>/node_modules/music-metadata/lib/index.js',
     '^file-type$': fileTypeEntry,
     // The ES module build itself, transpiled below: `three.cjs` only
