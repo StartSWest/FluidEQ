@@ -28,10 +28,25 @@ import LibraryCoverArt from './LibraryCoverArt';
  */
 const LibraryNowPlayingCard = ({
   track,
+  isPending = false,
 }: {
   track: ILibraryTrack | undefined;
+  /** The player has a song coming and has not read it yet. */
+  isPending?: boolean;
 }) => {
   const { t } = useTranslation();
+  // Its room and nothing in it while the song is still coming: "Nothing
+  // playing" said for a moment before the song's own name read as the card
+  // changing its mind (Ivan, 2026-11-15: "make sure it completely has it
+  // before showing it").
+  if (track === undefined && isPending) {
+    return (
+      <div className="library-now is-empty is-pending" aria-hidden="true">
+        <span className="library-now__art-empty" />
+        <span className="library-now__text" />
+      </div>
+    );
+  }
   if (track === undefined) {
     return (
       <div className="library-now is-empty">

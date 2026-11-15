@@ -716,9 +716,13 @@ export const LibraryPlayerProvider = ({
     const index = memory?.order[memory.position];
     return index === undefined ? undefined : memory?.trackIds[index];
   });
+  // Through the whole of it: the queue read back first, then its song
+  // looked up - the song the queue is on, or before the queue is back, the
+  // one it was on when the window last wrote it.
+  const pendingId = queuedTrackId ?? (isQueueKnown ? undefined : rememberedId);
   const shownTrack =
     track ??
-    (!isQueueKnown && lastShown.track?.id === rememberedId
+    (pendingId !== undefined && lastShown.track?.id === pendingId
       ? lastShown.track
       : undefined);
   const value = useMemo<ILibraryPlayerSession>(

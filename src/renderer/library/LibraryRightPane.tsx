@@ -72,7 +72,7 @@ const LibraryRightPane = ({
   head?: ReactNode;
 }) => {
   const { t } = useTranslation();
-  const { track } = useLibraryPlayerSession();
+  const { track, queue, isUpNextSettling } = useLibraryPlayerSession();
   const [tab, setTab] = useState<TPaneTab>(() =>
     readPersistedMode(PANE_TAB_KEY, PANE_TABS, 'upNext'),
   );
@@ -88,7 +88,14 @@ const LibraryRightPane = ({
       inert={isCollapsed}
     >
       {head && <div className="library-pane__drawer-head">{head}</div>}
-      <LibraryNowPlayingCard track={track} />
+      <LibraryNowPlayingCard
+        track={track}
+        // A queue whose song is still being read, or a queue not yet read
+        // back: not "nothing playing" yet.
+        isPending={
+          track === undefined && (queue !== undefined || isUpNextSettling)
+        }
+      />
       <div
         ref={tabsRef}
         className={`library-pane__tabs${isCompact ? ' is-compact' : ''}`}
