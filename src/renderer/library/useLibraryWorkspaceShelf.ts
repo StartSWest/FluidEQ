@@ -40,6 +40,7 @@ import {
   UP_NEXT_FLOAT_WIDTH,
   UP_NEXT_MAX,
   UP_NEXT_MIN,
+  UP_NEXT_COLLAPSED_KEY,
   UP_NEXT_WIDTH_KEY,
   VIEW_MODE_KEY,
   VIEW_MODES,
@@ -63,6 +64,13 @@ import { shelfQueryFor } from './libraryShelfQuery';
 import { useLibraryList } from './useLibraryList';
 import { type ILibraryWorkspaceProps } from './LibraryWorkspace';
 import shelfItemOf from './shelfItem';
+
+/**
+ * The song put back at launch has been shown (`showLoadedSong`): once per
+ * window, not once per mount - a Library rebuilt on the way back from
+ * another tab is where the reader left it, never pulled to the song again.
+ */
+const launchReveal = { isDone: false };
 
 /**
  * The Library's shelf: the index and the queue, the browse mode, view and
@@ -113,8 +121,23 @@ const useLibraryWorkspaceShelf = ({
    * that it is the reader's: folding it by hand sticks until the list next
    * goes from empty to not.
    */
-  const [isUpNextCollapsed, setIsUpNextCollapsed] = useState(true);
-  const hadUpNextRef = useRef(false);
+  //
+  // AND IT COMES BACK AS IT WAS LEFT (Ivan, 2026-11-15: "coming from Karaoke
+  // to the Library it forces Up Next open even when it was closed - open it
+  // with no animation, like coming from DSP"). Karaoke playing takes the
+  // Library's place as the last thing played, so the Library unmounts and is
+  // built again on the way back, where DSP leaves it standing. Rebuilt, the
+  // panel started folded, the list arrived, "from empty to not" opened it -
+  // the slide in, over whatever the reader had chosen. The fold is kept
+  // (`UP_NEXT_COLLAPSED_KEY`): a rebuilt Library starts in it, so nothing
+  // moves, and the list arriving is not news.
+  const [rememberedFold] = useState(() =>
+    readPersistedText(UP_NEXT_COLLAPSED_KEY),
+  );
+  const [isUpNextCollapsed, setIsUpNextCollapsed] = useState(
+    () => rememberedFold !== 'off',
+  );
+  const hadUpNextRef = useRef(rememberedFold !== undefined);
   useEffect(() => {
     const has = upNext.length > 0;
     if (has && !hadUpNextRef.current) {
@@ -122,6 +145,19 @@ const useLibraryWorkspaceShelf = ({
     }
     hadUpNextRef.current = has;
   }, [upNext.length]);
+  // Kept once it has been shown or changed: the fold a first launch starts
+  // in is not a choice, and keeping it would switch the rule above off.
+  const firstFoldRef = useRef<boolean | undefined>(isUpNextCollapsed);
+  useEffect(() => {
+    if (
+      rememberedFold === undefined &&
+      isUpNextCollapsed === firstFoldRef.current
+    ) {
+      return;
+    }
+    firstFoldRef.current = undefined;
+    writePersistedText(UP_NEXT_COLLAPSED_KEY, isUpNextCollapsed ? 'on' : 'off');
+  }, [isUpNextCollapsed, rememberedFold]);
 
   /** Dragged from the panel's own edge; remembered for the next session. */
   const [upNextWidth, setUpNextWidth] = useState(() => {
@@ -761,16 +797,16 @@ const useLibraryWorkspaceShelf = ({
    * the app it needs to continue from where it left us in the Library, so
    * that song needs to be selected"). The song put back as the window
    * opens is shown and marked in the view it opens on, as a view switch
-   * shows it - once, the first time there is a loaded song, so the reader
-   * is never pulled back to it afterwards.
+   * shows it - once in the window's life, the first time there is a loaded
+   * song, so the reader is never pulled back to it afterwards
+   * (`launchReveal`).
    */
-  const hasShownLoadedRef = useRef(false);
   const loadedId = playingTrack?.id;
   useEffect(() => {
-    if (loadedId === undefined || hasShownLoadedRef.current) {
+    if (loadedId === undefined || launchReveal.isDone) {
       return;
     }
-    hasShownLoadedRef.current = true;
+    launchReveal.isDone = true;
     showLoadedSong(viewMode);
     // Once, for the first song loaded; `showLoadedSong` and `viewMode` are
     // read as they stand then.

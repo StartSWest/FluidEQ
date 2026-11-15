@@ -47,6 +47,14 @@ export const UP_NEXT_DEFAULT_WIDTH = 300;
 export const UP_NEXT_WIDTH_KEY = 'fluideq.library.upNextWidth';
 
 /**
+ * Up Next folded (`on`) or open (`off`), as the reader last left it: a
+ * Library built again - after another tab played, at the next launch -
+ * comes back in it, with no slide (Ivan, 2026-11-15). Absent until the
+ * panel has first been shown, so a first launch keeps "folded while empty".
+ */
+export const UP_NEXT_COLLAPSED_KEY = 'fluideq.library.upNextCollapsed';
+
+/**
  * The shelf rail's width, dragged at its edge (Ivan, 2026-11-15: "we need a
  * resizable splitter here", of a folder tree whose names were cut). The
  * design's 236px first; narrower than 180 the counts crowd the names, wider

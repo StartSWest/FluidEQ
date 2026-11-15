@@ -87,6 +87,7 @@ import { useVideoElement } from './useVideoElement';
 import useTrackEnd from './useTrackEnd';
 import usePlayCounter from './usePlayCounter';
 import { useTrackLoader } from './useTrackLoader';
+import { readPlaybackMemory } from './playbackMemory';
 
 // Re-exported so every existing importer keeps working: the contract moved,
 // the module that serves it did not.
@@ -99,6 +100,18 @@ const LibraryPlayerContext = createContext<ILibraryPlayerSession | undefined>(
 const LibraryPlayerClockContext = createContext<
   ILibraryPlayerClock | undefined
 >(undefined);
+
+/**
+ * The song the player last described, for the life of the window. Another
+ * tab playing takes the Library's place as the last thing played, and the
+ * player is disposed with the Library; built again on the way back, it
+ * spent its first moments with no song while the remembered queue was read
+ * back and the song looked up, and the pane said "Nothing playing", then
+ * the song (Ivan, 2026-11-15: "it still shows something there before
+ * showing the final song title", where DSP, which keeps the player, shows
+ * the song at once). Until the queue is known again it is still this song.
+ */
+const lastShown: { track?: ILibraryTrack } = {};
 
 export const LibraryPlayerProvider = ({
   children,
@@ -691,10 +704,27 @@ export const LibraryPlayerProvider = ({
   const positionNowRef = useRef(publishedPositionMs);
   positionNowRef.current = publishedPositionMs;
   const readPositionMs = useCallback(() => positionNowRef.current, []);
+  useEffect(() => {
+    if (track !== undefined) {
+      lastShown.track = track;
+    }
+  }, [track]);
+  // While the remembered queue is being read back, the song it held - and
+  // only if the queue being read back is on that very song.
+  const [rememberedId] = useState(() => {
+    const memory = readPlaybackMemory();
+    const index = memory?.order[memory.position];
+    return index === undefined ? undefined : memory?.trackIds[index];
+  });
+  const shownTrack =
+    track ??
+    (!isQueueKnown && lastShown.track?.id === rememberedId
+      ? lastShown.track
+      : undefined);
   const value = useMemo<ILibraryPlayerSession>(
     () => ({
       queue,
-      track,
+      track: shownTrack,
       isPlaying,
       isShuffled: queue?.isShuffled ?? false,
       repeat: queue?.repeat ?? 'off',
@@ -726,7 +756,7 @@ export const LibraryPlayerProvider = ({
     }),
     [
       queue,
-      track,
+      shownTrack,
       isPlaying,
       videoTrackId,
       isUnplayable,

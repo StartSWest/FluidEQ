@@ -134,6 +134,7 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.library.sort',
   'fluideq.library.sortDirection',
   'fluideq.library.upNextWidth',
+  'fluideq.library.upNextCollapsed',
   'fluideq.library.viewMode',
   // Gaming's list size and folded state, separate from saved game profiles.
   'fluideq.gaming.gamesLayout',
