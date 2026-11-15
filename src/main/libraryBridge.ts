@@ -31,8 +31,10 @@ import type { ILibraryPlaylists } from '../common/library/playlists';
 import type { ILibraryTrackFacts } from '../common/library/trackFacts';
 import type { ILibraryLyricsAnswer } from '../common/library/lyrics';
 import type {
+  ILyricsRemoveTarget,
   TLyricsImportResult,
   TLyricsPickResult,
+  TLyricsRemoveResult,
 } from '../common/library/lyricsImport';
 
 /**
@@ -162,6 +164,19 @@ const importLibraryTrackLyrics = (
     replace,
   ) as Promise<TLyricsImportResult | undefined>;
 
+/**
+ * Removes a lyrics file kept with a song: its own beside it, or FluidEQ's
+ * copy. Main builds the path from the id; lyrics in the song's tags are
+ * never touched.
+ */
+const removeLibraryTrackLyrics = (
+  trackId: string,
+  target: ILyricsRemoveTarget,
+) =>
+  ipcRenderer.invoke('library-lyrics-remove', trackId, target) as Promise<
+    TLyricsRemoveResult | undefined
+  >;
+
 /** One more play of a song the window heard past half its length. */
 const noteLibraryTrackPlayed = (trackId: string) =>
   ipcRenderer.invoke('library-track-played', trackId) as Promise<boolean>;
@@ -283,6 +298,7 @@ const libraryBridge = {
   libraryTrackLyrics,
   pickLibraryLyricsFile,
   importLibraryTrackLyrics,
+  removeLibraryTrackLyrics,
   libraryTrackBytes,
   libraryTrackSignature,
   setLibraryTrackNormalization,

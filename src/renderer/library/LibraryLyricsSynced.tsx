@@ -145,7 +145,7 @@ const LyricsRow = memo(
  */
 const LibraryLyricsSynced = ({ lines }: { lines: readonly ILyricsLine[] }) => {
   const { t } = useTranslation();
-  const { positionMs, isPlaying, seek } = useLibraryPlayer();
+  const { positionMs, isPlaying, seek, toggle } = useLibraryPlayer();
   const active = reachedIndex(lines, positionMs);
   const listRef = useRef<HTMLOListElement>(null);
   const [isFollowing, setIsFollowing] = useState(true);
@@ -223,12 +223,19 @@ const LibraryLyricsSynced = ({ lines }: { lines: readonly ILyricsLine[] }) => {
     };
   }, []);
 
+  // A press plays the song from that line, paused or stopped as it may be:
+  // the jump alone left a paused song sitting silent at the new line, which
+  // read as the press doing nothing (Ivan, 2026-11-15). Play is the bar's
+  // own (`toggle`), after the jump, so it starts where the line is.
   const handleSeek = useCallback(
     (line: ILyricsLine) => {
       seek(line.timeMs);
+      if (!isPlaying) {
+        toggle();
+      }
       setIsFollowing(true);
     },
-    [seek],
+    [isPlaying, seek, toggle],
   );
 
   return (

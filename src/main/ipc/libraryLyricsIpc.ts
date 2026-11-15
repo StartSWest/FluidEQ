@@ -24,15 +24,18 @@ import {
   type OpenDialogOptions,
 } from 'electron';
 import path from 'path';
-import type {
-  TLyricsImportResult,
-  TLyricsPickResult,
+import {
+  asLyricsRemoveTarget,
+  type TLyricsImportResult,
+  type TLyricsPickResult,
+  type TLyricsRemoveResult,
 } from '../../common/library/lyricsImport';
 import { readTrackLyrics } from '../library/libraryLyrics';
 import {
   importTrackLyrics,
   readPickedLyrics,
 } from '../library/libraryLyricsImport';
+import { removeTrackLyrics } from '../library/libraryLyricsRemove';
 import { LYRICS_STORE_FOLDER } from '../library/libraryLyricsPlaces';
 import mainText from '../mainText';
 
@@ -49,11 +52,11 @@ export interface ILibraryLyricsIpcDeps {
 const MAX_IMPORT_CHARS = 1024 * 1024;
 
 /**
- * The Lyrics tab's three calls: a song's words, the open dialog for a lyrics
- * file, and keeping lyrics with a song.
+ * The Lyrics tab's four calls: a song's words, the open dialog for a lyrics
+ * file, keeping lyrics with a song, and removing a lyrics file kept with it.
  *
  * BY ID ONLY. The window names a song by its library id and main finds the
- * file in the store, so neither the reader nor the writer can be pointed at
+ * file in the store, so neither the reader, the writer nor the remover can be pointed at
  * a path that is not a library song's own lyrics file, or FluidEQ's copy of
  * one.
  */
@@ -130,6 +133,22 @@ export const registerLibraryLyricsIpc = ({
         text: rawText,
         replace: rawReplace === true,
       });
+    },
+  );
+
+  ipcMain.handle(
+    'library-lyrics-remove',
+    (
+      _event,
+      rawTrackId: unknown,
+      rawTarget: unknown,
+    ): TLyricsRemoveResult | undefined => {
+      const song = songOf(rawTrackId);
+      const target = asLyricsRemoveTarget(rawTarget);
+      if (song === undefined || target === undefined) {
+        return undefined;
+      }
+      return removeTrackLyrics({ trackPath: song, storeDir, target });
     },
   );
 };

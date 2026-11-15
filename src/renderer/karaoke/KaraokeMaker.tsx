@@ -11,6 +11,12 @@ import { IKaraokeAudioClock } from './karaokeAudioClock';
 import useKaraokeMakerEditor from './useKaraokeMakerEditor';
 import useKaraokeMakerTools from './useKaraokeMakerTools';
 import KaraokeMakerView from './KaraokeMakerView';
+import type { IKaraokeLibraryOrigin } from './karaokeLibraryOrigin';
+import {
+  type IKaraokeMakerLibraryEntry,
+  useMakerLibraryEntry,
+  useMakerSongSave,
+} from './useMakerLibrarySong';
 
 export interface IKaraokeMakerProps {
   song: IKaraokeSong;
@@ -58,6 +64,10 @@ export interface IKaraokeMakerProps {
   onModelWorkChange: (working: boolean) => void;
   isFullScreen: boolean;
   onToggleFullScreen: () => void;
+  /** The Library song this karaoke came from, to save its timing back to. */
+  libraryOrigin?: IKaraokeLibraryOrigin;
+  /** Opened just now from that song's Lyrics tab, with its words. */
+  libraryEntry?: IKaraokeMakerLibraryEntry;
 }
 
 const KaraokeMaker = ({
@@ -85,6 +95,8 @@ const KaraokeMaker = ({
   onModelWorkChange,
   isFullScreen,
   onToggleFullScreen,
+  libraryOrigin,
+  libraryEntry,
 }: IKaraokeMakerProps) => {
   // The editing surface's hooks, then the tools', in the order they have
   // always run; the markup reads both and holds nothing of its own.
@@ -101,6 +113,14 @@ const KaraokeMaker = ({
     readPlayheadMs,
     restoreSavedDraft,
     song,
+    fromLibrary: libraryEntry !== undefined,
+  });
+  useMakerLibraryEntry(editor, libraryEntry);
+  const songSave = useMakerSongSave({
+    project: editor.project,
+    origin: libraryOrigin,
+    setNotice: editor.setNotice,
+    t: editor.t,
   });
   const tools = useKaraokeMakerTools(editor, {
     audioFile,
@@ -132,6 +152,7 @@ const KaraokeMaker = ({
       onToggleFullScreen={onToggleFullScreen}
       onVocalLevel={onVocalLevel}
       playheadMs={playheadMs}
+      songSave={libraryOrigin === undefined ? undefined : songSave}
       stemFocus={stemFocus}
       vocalLevel={vocalLevel}
     />

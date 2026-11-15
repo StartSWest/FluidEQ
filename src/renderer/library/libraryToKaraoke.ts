@@ -35,6 +35,8 @@ import {
   KARAOKE_AUDIO_EXTENSIONS,
   setKaraokeRelativePath,
 } from '../../common/karaoke/files';
+import type { ILyricsLine } from '../../common/library/lyrics';
+import { lrcFromLines } from '../../common/library/lyricsLrc';
 import { ILibraryTrack } from '../../common/library/types';
 
 /** Chromium sniffs the container anyway; this is for the ones it does not. */
@@ -95,6 +97,34 @@ export const trackAsKaraokeFile = async (
   const name = fileNameOf(track);
   const file = new File([bytes], name, {
     type: MIME_BY_EXTENSION[extensionOf(track)] ?? '',
+    // The song's own time, never the moment of the copy: the Karaoke tab
+    // knows a song by name, size and this (`karaokeSongIdForFile`), and a
+    // copy stamped now was a new song on every send — the Maker's work on it
+    // was never found again.
+    lastModified: Math.round(track.mtimeMs),
+  });
+  return setKaraokeRelativePath(file, name);
+};
+
+/**
+ * The song's timed words as the `.lrc` the Karaoke tab pairs with its audio:
+ * the song's own name, so the playlist puts the two together as it does a
+ * song and its lyrics dropped side by side.
+ */
+export const syncedLyricsAsKaraokeFile = (
+  track: ILibraryTrack,
+  lines: readonly ILyricsLine[],
+): File => {
+  const audioName = fileNameOf(track);
+  const dot = audioName.lastIndexOf('.');
+  const name = `${dot < 0 ? audioName : audioName.slice(0, dot)}.lrc`;
+  const text = lrcFromLines(lines, {
+    title: track.title,
+    artist: track.artist,
+  });
+  const file = new File([text], name, {
+    type: 'text/plain',
+    lastModified: Math.round(track.mtimeMs),
   });
   return setKaraokeRelativePath(file, name);
 };

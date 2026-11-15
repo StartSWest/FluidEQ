@@ -31,7 +31,7 @@ import {
   useLastTransportOwner,
   useTransportIdentitySources,
 } from '../audio/transportSource';
-import { useHasPendingKaraokeFiles } from '../library/karaokeHandoff';
+import { useHasPendingKaraokeHandoff } from '../library/karaokeHandoff';
 import { useSceneLook } from '../utils/graphStyle';
 import type { TWorkspaceTab } from '../workspaceTabs';
 
@@ -241,14 +241,14 @@ const usePlayerMounts = ({
    * The queue is what is watched rather than an event, so a file sent before
    * the workspace has ever been mounted still lands. See `karaokeHandoff.ts`.
    */
-  const hasPendingKaraokeFiles = useHasPendingKaraokeFiles();
+  const hasPendingKaraokeHandoff = useHasPendingKaraokeHandoff();
   useEffect(() => {
-    if (!hasPendingKaraokeFiles) {
+    if (!hasPendingKaraokeHandoff) {
       return;
     }
     setHasOpenedKaraoke(true);
     selectTopWorkspaceTab('karaoke');
-  }, [hasPendingKaraokeFiles, selectTopWorkspaceTab]);
+  }, [hasPendingKaraokeHandoff, selectTopWorkspaceTab]);
 
   useEffect(() => {
     if (!isVideoTab) {

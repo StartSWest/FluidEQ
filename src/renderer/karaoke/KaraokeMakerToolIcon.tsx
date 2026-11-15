@@ -3,6 +3,9 @@
 const PATHS = {
   project: 'M12 15V4m0 0L8 8m4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4',
   lyrics: 'M6 3.5h8l4 4V20H6V3.5zM14 3.5v4h4M9 11h6M9 15h6',
+  // The lyrics sheet with an arrow into it: timing handed to the song.
+  saveSong:
+    'M6 3.5h8l4 4V20H6V3.5zM14 3.5v4h4M12 9.5v7m0 0-2.8-2.8M12 16.5l2.8-2.8',
   timing: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 7v5l3.5 2M4 12H2m20 0h-2',
   hand: 'M8 11V7a1.5 1.5 0 0 1 3 0v4-1.5M11 10V5.5a1.5 1.5 0 0 1 3 0V11m0-3.5a1.5 1.5 0 0 1 3 0V12m0-2a1.5 1.5 0 0 1 3 0v4c0 4-3 7-7 7h-1c-3 0-5-1.5-6.5-4L3 13.5a1.5 1.5 0 0 1 2.4-1.8L8 14',
   select: 'M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M8 9h8v6H8z',

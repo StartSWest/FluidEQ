@@ -15,6 +15,9 @@ import {
 import { buildSongIdentity } from 'common/songIdentity';
 import {
   IKaraokePlaylistItem,
+  isKaraokeLyricFile,
+  karaokeFileDirectory,
+  karaokeFileNamesMatch,
   selectKaraokePlaylist,
 } from '../../common/karaoke/files';
 import { importedFileIdentity } from './karaokeWorkspaceRestore';
@@ -79,7 +82,7 @@ const useKaraokeWorkspacePlaylist = (
     clearSavedProgress,
   } = stage;
   const loadPlaylistItem = useCallback(
-    async (item: IKaraokePlaylistItem, autoplay = false) => {
+    async (item: IKaraokePlaylistItem, autoplay = false): Promise<boolean> => {
       autoplayAfterLoadRef.current = autoplay;
       setRetainWhenHidden(autoplay);
       playheadRef.current = 0;
@@ -97,6 +100,7 @@ const useKaraokeWorkspacePlaylist = (
         autoplayAfterLoadRef.current = false;
         setRetainWhenHidden(false);
       }
+      return loaded;
     },
     [
       autoplayAfterLoadRef,
@@ -107,10 +111,28 @@ const useKaraokeWorkspacePlaylist = (
     ],
   );
 
+  /**
+   * `focus` names the song that was asked for — the Lyrics tab's "Open in
+   * Karaoke" — which is loaded whatever the list held before: a song already
+   * in it is loaded again, because the words sent with it may be new. The
+   * answer is whether that song is now the one loaded.
+   */
   const addFiles = useCallback(
-    async (files: readonly File[]) => {
+    async (files: readonly File[], focus?: File): Promise<boolean> => {
       if (!files.length) {
-        return;
+        return false;
+      }
+      if (focus) {
+        // The asked-for song's words are the ones sent with it now. A lyrics
+        // file kept from an earlier send would pair with it again — the
+        // timing the Library just had removed, under words sent plain.
+        libraryFilesRef.current = libraryFilesRef.current.filter(
+          (file) =>
+            files.includes(file) ||
+            !isKaraokeLyricFile(file) ||
+            karaokeFileDirectory(file) !== karaokeFileDirectory(focus) ||
+            !karaokeFileNamesMatch(file.name, focus.name),
+        );
       }
       const merged = new Map(
         libraryFilesRef.current.map((file) => [
@@ -129,7 +151,7 @@ const useKaraokeWorkspacePlaylist = (
       setSetAsideFiles(karaokeSetAsideFiles(selection));
       if (!selection.items.length) {
         session.loadFiles(files);
-        return;
+        return false;
       }
 
       const nextById = new Map(selection.items.map((item) => [item.id, item]));
@@ -173,6 +195,12 @@ const useKaraokeWorkspacePlaylist = (
         playlist.length > 0
           ? ordered.find((item) => !playlist.some((was) => was.id === item.id))
           : undefined;
+      const asked = focus
+        ? ordered.find((item) => item.id === importedFileIdentity(focus))
+        : undefined;
+      if (asked) {
+        return loadPlaylistItem(asked);
+      }
       if (arrived) {
         await loadPlaylistItem(arrived);
       } else if (!nextSelected) {
@@ -183,6 +211,7 @@ const useKaraokeWorkspacePlaylist = (
       ) {
         await loadPlaylistItem(nextSelected, session.status === 'playing');
       }
+      return false;
     },
     [
       libraryFilesRef,
@@ -677,6 +706,7 @@ const useKaraokeWorkspacePlaylist = (
   useEffect(() => () => clearTransportSource('karaoke'), []);
 
   return {
+    addFiles,
     onFileInput,
     onDrop,
     clearPlaylist,

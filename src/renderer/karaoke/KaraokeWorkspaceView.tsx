@@ -33,6 +33,7 @@ import { importedFileIdentity } from './karaokeWorkspaceRestore';
 import { karaokeMakerProjectToSong } from '../../common/karaoke/makerProject';
 import { type IKaraokeWorkspaceProps } from './KaraokeWorkspace';
 import { type TKaraokeWorkspaceStage } from './useKaraokeWorkspaceStage';
+import { type TKaraokeLibraryEntry } from './useKaraokeLibraryEntry';
 import { type TKaraokeWorkspacePlaylist } from './useKaraokeWorkspacePlaylist';
 
 type TKaraokeLyricSizeStyle = CSSProperties & {
@@ -53,6 +54,7 @@ type TKaraokeWorkspaceViewProps = Pick<IKaraokeWorkspaceProps, 'isHidden'> &
   > & {
     stage: TKaraokeWorkspaceStage;
     songs: TKaraokeWorkspacePlaylist;
+    library: TKaraokeLibraryEntry;
   };
 
 /**
@@ -64,6 +66,7 @@ type TKaraokeWorkspaceViewProps = Pick<IKaraokeWorkspaceProps, 'isHidden'> &
 const KaraokeWorkspaceView = ({
   stage,
   songs,
+  library,
   hasFullScreenTopBar,
   isChromeIdle,
   isFullScreen,
@@ -774,7 +777,11 @@ const KaraokeWorkspaceView = ({
               // so it deliberately keeps the same editor. A different audio
               // item gets a fresh Maker instance and restores its own saved
               // draft.
-              key={importedFileIdentity(makerAudio.file)}
+              // A press of the Library's "Open in Karaoke" is a fresh editor
+              // even on the song already open: it brings that song's words.
+              key={`${importedFileIdentity(makerAudio.file)}#${
+                library.libraryEntry?.nonce ?? 0
+              }`}
               song={song}
               audioFile={makerAudio.file}
               playheadMs={playheadMs}
@@ -828,6 +835,8 @@ const KaraokeWorkspaceView = ({
               }}
               isFullScreen={isFullScreen}
               onToggleFullScreen={onToggleFullScreen}
+              libraryOrigin={library.libraryOrigin}
+              libraryEntry={library.libraryEntry}
             />
           )}
         </KaraokeLiveValue>

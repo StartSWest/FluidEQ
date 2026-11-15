@@ -36,6 +36,12 @@ interface IUseKaraokeMakerProject {
    * draft one Undo away. Decided by the workspace before the editor mounts.
    */
   restoreSavedDraft: boolean;
+  /**
+   * Opened from the Library's Lyrics tab, which says for itself whether a
+   * draft was kept (`useMakerLibraryEntry`): the plain "draft restored" toast
+   * beside that sentence would be two notices for one fact.
+   */
+  fromLibrary?: boolean;
   t: Translate;
   /**
    * A whole project arrived from disk rather than from an edit.
@@ -78,6 +84,7 @@ const useKaraokeMakerProject = ({
   song,
   audioFile,
   restoreSavedDraft,
+  fromLibrary = false,
   onProjectAdopted,
   t,
 }: IUseKaraokeMakerProject) => {
@@ -86,6 +93,8 @@ const useKaraokeMakerProject = ({
   const [future, setFuture] = useState<IKaraokeMakerProject[]>([]);
   const [restoreToast, setRestoreToast] = useState<string>();
   const [draftReady, setDraftReady] = useState(false);
+  // A saved draft became the project, rather than the song's own timing.
+  const [adoptedDraft, setAdoptedDraft] = useState(false);
   const projectRef = useRef(project);
   const draftDecisionReadyRef = useRef(false);
   const persistedDraftUpdatedAtRef = useRef<string | undefined>(undefined);
@@ -278,7 +287,10 @@ const useKaraokeMakerProject = ({
           persistedDraftUpdatedAtRef.current = saved.updatedAt;
           setProject(saved);
           onProjectAdopted(saved);
-          setRestoreToast(t('karaoke.maker.draftRestored'));
+          setAdoptedDraft(true);
+          if (!fromLibrary) {
+            setRestoreToast(t('karaoke.maker.draftRestored'));
+          }
         } else {
           // Keep the saved work one Undo away, but use the player's normalized
           // timing now. This prevents a stale shifted draft from making an
@@ -383,6 +395,7 @@ const useKaraokeMakerProject = ({
     clearHistory,
     restoreOriginal,
     draftReady,
+    adoptedDraft,
     restoreToast,
     dismissRestoreToast,
   };

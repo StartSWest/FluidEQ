@@ -184,15 +184,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow-wrap: anywhere;
 }
 
+// Where the words came from, then what can be done with them: two rows, so
+// the source keeps the pane's whole width to name its file and the actions
+// never squeeze it to a word.
 .library-lyrics__foot {
   display: flex;
   min-width: 0;
   flex: 0 0 auto;
-  align-items: center;
-  // The button drops under the source where the pane leaves the source too
-  // little to name a file (the basis below), rather than cutting it to a word.
-  flex-wrap: wrap;
-  gap: 6px 8px;
+  flex-direction: column;
+  gap: 6px;
   padding: 8px 6px 0;
   border-top: 1px solid $studio-hair;
 }
@@ -200,7 +200,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-lyrics__source {
   display: flex;
   min-width: 0;
-  flex: 1 1 10rem;
   align-items: center;
   gap: 5px;
   margin: 0;
@@ -242,11 +241,91 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The way to other lyrics, at the foot's far end: quiet, and the source
-// gives way to it rather than pushing it off the pane.
-.library-lyrics__other.button {
+// The source, and Remove at its end: the one action that takes something
+// away stands beside the file it would take, apart from the two that bring
+// words in.
+.library-lyrics__source-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  > .library-lyrics__source {
+    flex: 1 1 auto;
+  }
+}
+
+// Open in Karaoke and Find other lyrics: quiet, the tab's words being what
+// the eye is on. Each grows to fill its row: side by side where both labels
+// fit, one to a row across the pane's width where they do not (a longer
+// language, a narrower pane) — never two buttons wrapped ragged under each
+// other, and never a label cut.
+.library-lyrics__actions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  > .button {
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .menu-icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+  }
+}
+
+// Square, an icon alone, the quiet outline every button here wears: it
+// shares its row with a sentence and takes no more of it than it needs.
+.library-lyrics__remove.button {
   flex: 0 0 auto;
+  width: 28px;
+  min-height: 28px;
+  padding: 0;
+  justify-content: center;
+
+  .menu-icon {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Remove asked in the foot, where the actions were: the sentence, then the
+// answers, on the foot's own floor rather than a box dropped on the words.
+.library-lyrics__ask {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.library-lyrics__ask-text {
+  min-width: 0;
+  flex: 1 1 12rem;
+  margin: 0;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.library-lyrics__ask-buttons {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
   margin-inline-start: auto;
+}
+
+.library-lyrics__action-note {
+  margin: 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
 }
 
 // Reading: said only if it lasts long enough to notice. The words almost

@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '../styles/Karaoke.scss';
 import useKaraokeWorkspaceStage from './useKaraokeWorkspaceStage';
 import useKaraokeWorkspacePlaylist from './useKaraokeWorkspacePlaylist';
+import useKaraokeLibraryEntry from './useKaraokeLibraryEntry';
 import KaraokeWorkspaceView from './KaraokeWorkspaceView';
 
 export interface IKaraokeWorkspaceProps {
@@ -51,10 +52,12 @@ const KaraokeWorkspace = ({
   const songs = useKaraokeWorkspacePlaylist(stage, {
     isHidden,
   });
+  const library = useKaraokeLibraryEntry(stage, songs);
   return (
     <KaraokeWorkspaceView
       stage={stage}
       songs={songs}
+      library={library}
       hasFullScreenTopBar={hasFullScreenTopBar}
       isChromeIdle={isChromeIdle}
       isFullScreen={isFullScreen}

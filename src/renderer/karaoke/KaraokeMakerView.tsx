@@ -33,6 +33,8 @@ import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
 import { type IKaraokeMakerProps } from './KaraokeMaker';
 import { type TKaraokeMakerEditor } from './useKaraokeMakerEditor';
 import { type TKaraokeMakerTools } from './useKaraokeMakerTools';
+import { type useMakerSongSave } from './useMakerLibrarySong';
+import KaraokeMakerSongReplaceDialog from './KaraokeMakerSongReplaceDialog';
 
 interface IKaraokeMakerViewProps extends Pick<
   IKaraokeMakerProps,
@@ -55,6 +57,8 @@ interface IKaraokeMakerViewProps extends Pick<
 > {
   editor: TKaraokeMakerEditor;
   tools: TKaraokeMakerTools;
+  /** "Save to song", only for a karaoke that came from the Library. */
+  songSave?: ReturnType<typeof useMakerSongSave>;
 }
 
 /**
@@ -82,6 +86,7 @@ const KaraokeMakerView = ({
   playheadMs,
   stemFocus,
   vocalLevel,
+  songSave,
 }: IKaraokeMakerViewProps) => {
   const {
     t,
@@ -523,6 +528,8 @@ const KaraokeMakerView = ({
         issues={issues}
         onApply={onApply}
         onClose={onClose}
+        onSaveToSong={songSave?.saveToSong}
+        isSavingToSong={songSave?.save.state === 'busy'}
         onToggleFullScreen={onToggleFullScreen}
         project={project}
         redo={redo}
@@ -897,6 +904,14 @@ const KaraokeMakerView = ({
           }
         }}
       />
+
+      {songSave && (
+        <KaraokeMakerSongReplaceDialog
+          save={songSave.save}
+          onReplace={songSave.replace}
+          onKeep={songSave.keep}
+        />
+      )}
 
       {lyricsOpen && (
         <KaraokeMakerLyricsDialog

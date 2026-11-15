@@ -84,7 +84,8 @@ const displayTitleFromFile = (file: File): string => {
     .trim();
 };
 
-const sessionIdForFile = (file: File): string =>
+/** A song by its audio file: what its Maker drafts and the Library's link to it are kept under. */
+export const karaokeSongIdForFile = (file: File): string =>
   `${karaokeFileBaseName(file.name)}-${file.size}-${file.lastModified}`;
 
 const materializeRestoredAudio = async (file: File): Promise<File> => {
@@ -280,7 +281,7 @@ export const useKaraokeSession = (isActive: boolean) => {
         revokeObjectUrl();
         objectUrlRef.current = nextUrl;
 
-        const id = sessionIdForFile(audioFile);
+        const id = karaokeSongIdForFile(audioFile);
         // Resolved here rather than at import, because only now is the lyric
         // file parsed — UltraStar names its own cover, background and video,
         // and a folder holding several songs' artwork needs that header to

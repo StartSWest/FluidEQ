@@ -134,3 +134,38 @@ export const checkLyricsImport = (text: string): TLyricsImportCheck => {
     extension: lyrics.kind === 'synced' ? '.lrc' : '.txt',
   };
 };
+
+/**
+ * A lyrics file FluidEQ may remove: the song's own `.lrc` or `.txt` beside
+ * it, or FluidEQ's copy in its lyrics folder. Named by place and extension,
+ * never by path — main builds the path from the song's id, so nothing else
+ * can be named. Lyrics in the song's own tags are never removed: FluidEQ
+ * does not rewrite a listener's audio files.
+ */
+export interface ILyricsRemoveTarget {
+  place: TLyricsPlace;
+  extension: TLyricsFileExtension;
+}
+
+export type TLyricsRemoveResult =
+  | { state: 'removed' }
+  /** Nothing is there any more: gone already, which is what was asked. */
+  | { state: 'missing' }
+  /** Something other than a plain file is there — a link, a folder. */
+  | { state: 'refused' }
+  | { state: 'failed' };
+
+/** The window's request as main receives it: anything, until checked. */
+export const asLyricsRemoveTarget = (
+  value: unknown,
+): ILyricsRemoveTarget | undefined => {
+  if (typeof value !== 'object' || value === null) {
+    return undefined;
+  }
+  const { place, extension } = value as Record<string, unknown>;
+  if (place !== 'beside' && place !== 'store') {
+    return undefined;
+  }
+  const known = LYRICS_FILE_EXTENSIONS.find((ext) => ext === extension);
+  return known === undefined ? undefined : { place, extension: known };
+};

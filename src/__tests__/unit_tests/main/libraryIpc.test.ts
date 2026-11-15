@@ -234,6 +234,7 @@ describe('the library channels', () => {
       'library-track-lyrics',
       'library-lyrics-pick',
       'library-lyrics-import',
+      'library-lyrics-remove',
     ].forEach((channel) => expect(handlers.has(channel)).toBe(true));
   });
 

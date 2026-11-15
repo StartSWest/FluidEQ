@@ -78,6 +78,7 @@ const useKaraokeMakerEditor = ({
   readPlayheadMs,
   restoreSavedDraft,
   song,
+  fromLibrary,
 }: Pick<
   IKaraokeMakerProps,
   | 'audioClock'
@@ -92,7 +93,7 @@ const useKaraokeMakerEditor = ({
   | 'readPlayheadMs'
   | 'restoreSavedDraft'
   | 'song'
->) => {
+> & { fromLibrary: boolean }) => {
   const { t } = useTranslation();
   const noteAudition = useKaraokeNoteAudition();
   const controlId = useId();
@@ -112,12 +113,14 @@ const useKaraokeMakerEditor = ({
     clearHistory,
     restoreOriginal: restoreOriginalProject,
     draftReady,
+    adoptedDraft,
     restoreToast,
     dismissRestoreToast,
   } = useKaraokeMakerProject({
     song,
     audioFile,
     restoreSavedDraft,
+    fromLibrary,
     t,
     // A project that arrived from disk rather than from an edit: re-seed the
     // lyric editor's text from it, which is the one piece of view state derived
@@ -591,6 +594,8 @@ const useKaraokeMakerEditor = ({
     pushHistory,
     clearHistory,
     restoreOriginalProject,
+    draftReady,
+    adoptedDraft,
     restoreToast,
     dismissRestoreToast,
     translationLanguage,

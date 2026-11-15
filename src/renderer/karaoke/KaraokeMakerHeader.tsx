@@ -33,6 +33,9 @@ export interface IKaraokeMakerHeaderProps extends Pick<
   /** What the Maker was handed, and what it hands back. */
   onApply: (project: IKaraokeMakerProject) => void;
   onClose: () => void;
+  /** "Save to song", for a song that came from the Library. */
+  onSaveToSong?: () => void;
+  isSavingToSong?: boolean;
   /**
    * A local model is running: separation, transcription, melody detection or
    * the download in front of one. Both ways out of the editor are shut while
@@ -59,6 +62,8 @@ const KaraokeMakerHeader = ({
   issues,
   onApply,
   onClose,
+  onSaveToSong,
+  isSavingToSong,
   onToggleFullScreen,
   project,
   redo,
@@ -110,6 +115,8 @@ const KaraokeMakerHeader = ({
         onRedo={redo}
         canRedo={canRedo}
         onRestore={() => setDestructiveAction('restore')}
+        onSaveToSong={onSaveToSong}
+        isSavingToSong={isSavingToSong}
         onApply={() => {
           const untimedCount = issues.filter(
             (issue) => issue.code === 'untimed-word',

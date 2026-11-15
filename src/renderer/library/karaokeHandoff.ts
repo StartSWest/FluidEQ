@@ -33,6 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { useSyncExternalStore } from 'react';
+import type { IKaraokeLibraryOrigin } from '../karaoke/karaokeLibraryOrigin';
 
 const listeners = new Set<() => void>();
 
@@ -85,16 +86,62 @@ export const drainKaraokeFiles = (): readonly File[] => {
 };
 
 /**
- * Whether something is waiting.
+ * A song sent from the Library's Lyrics tab to be timed in the Maker, with
+ * the words it already has.
  *
- * App watches this to switch to the Karaoke tab and to mount the workspace
- * that will drain it. It deliberately does not look at the files themselves —
- * moving the reader is all App's half of this is.
+ * Its own slot beside the files, because it asks for something different:
+ * a file sent from the row menu is a song to SING, and lands in the player
+ * with the Maker put away; this one is a song to WORK ON, and lands in the
+ * Maker. One slot, not a queue: a second press before the tab took the
+ * first asked for the second song.
  */
-export const useHasPendingKaraokeFiles = (): boolean =>
+export interface IKaraokeMakerRequest {
+  /** The song's audio, as `trackAsKaraokeFile` reads it. */
+  audio: File;
+  /** Timed words as the `.lrc` the playlist pairs with the audio. */
+  lyrics?: File;
+  /** Plain words, for the Maker's lyric editor to time. */
+  plainText?: string;
+  /** Where the song lives in the Library, to save the timing back to. */
+  origin: IKaraokeLibraryOrigin;
+}
+
+let pendingMaker: IKaraokeMakerRequest | undefined;
+
+export const sendSongToKaraokeMaker = (request: IKaraokeMakerRequest) => {
+  pendingMaker = request;
+  emit();
+};
+
+/** Takes the waiting request; only the Karaoke workspace calls this. */
+export const takeKaraokeMakerRequest = (): IKaraokeMakerRequest | undefined => {
+  const taken = pendingMaker;
+  if (taken !== undefined) {
+    pendingMaker = undefined;
+    emit();
+  }
+  return taken;
+};
+
+export const usePendingKaraokeMakerRequest = ():
+  IKaraokeMakerRequest | undefined =>
   useSyncExternalStore(
     subscribe,
-    () => pending.length > 0,
+    () => pendingMaker,
+    () => undefined,
+  );
+
+/**
+ * Whether anything is waiting, files or a song for the Maker.
+ *
+ * App watches this to switch to the Karaoke tab and to mount the workspace
+ * that will drain it. It deliberately does not look at what is waiting —
+ * moving the reader is all App's half of this is.
+ */
+export const useHasPendingKaraokeHandoff = (): boolean =>
+  useSyncExternalStore(
+    subscribe,
+    () => pending.length > 0 || pendingMaker !== undefined,
     () => false,
   );
 

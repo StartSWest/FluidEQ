@@ -23,6 +23,7 @@ const mockPlayer = {
   positionMs: 0,
   isPlaying: false,
   seek: jest.fn<void, [number]>(),
+  toggle: jest.fn<void, []>(),
 };
 
 jest.mock('renderer/library/player/LibraryPlayerContext', () => ({
@@ -76,6 +77,7 @@ beforeEach(() => {
   mockPlayer.positionMs = 0;
   mockPlayer.isPlaying = false;
   mockPlayer.seek.mockClear();
+  mockPlayer.toggle.mockClear();
   libraryTrackLyrics.mockClear();
   scrollTo.mockClear();
   answers = {};
@@ -191,10 +193,24 @@ describe('timed lyrics', () => {
     }
   });
 
-  it('plays from a line when it is pressed', async () => {
+  it('jumps a playing song to a line when it is pressed, and keeps it playing', async () => {
+    mockPlayer.isPlaying = true;
     await show('harbour');
     fireEvent.click(line('Home before the tide'));
     expect(mockPlayer.seek).toHaveBeenCalledWith(12_000);
+    // Play again would pause it.
+    expect(mockPlayer.toggle).not.toHaveBeenCalled();
+  });
+
+  it('starts a paused or stopped song from the line pressed', async () => {
+    await show('harbour');
+    fireEvent.click(line('Home before the tide'));
+    expect(mockPlayer.seek).toHaveBeenCalledWith(12_000);
+    expect(mockPlayer.toggle).toHaveBeenCalledTimes(1);
+    // The jump first, so it plays from the line and not from where it was.
+    expect(mockPlayer.seek.mock.invocationCallOrder[0]).toBeLessThan(
+      mockPlayer.toggle.mock.invocationCallOrder[0],
+    );
   });
 
   it('holds the line being sung in the middle as the song moves', async () => {

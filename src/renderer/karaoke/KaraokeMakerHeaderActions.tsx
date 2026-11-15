@@ -26,6 +26,12 @@ interface IKaraokeMakerHeaderActionsProps {
   canRedo: boolean;
   onRestore: () => void;
   /**
+   * Hands the timing back to the Library song it came from. Absent for a
+   * song that did not come from the Library: there is no song to save to.
+   */
+  onSaveToSong?: () => void;
+  isSavingToSong?: boolean;
+  /**
    * Hand the edits to the player.
    *
    * The whole handler, not the pieces of one. Whether the project is fit to
@@ -46,7 +52,7 @@ interface IKaraokeMakerHeaderActionsProps {
 }
 
 /**
- * Undo, Redo, Restore, Use in player, and full screen.
+ * Undo, Redo, Restore, Save to song, Use in player, and full screen.
  *
  * Seven props against the confirmation dialog's three, and the difference is
  * the honest measure of the two: a dialog asks one question, whereas this row
@@ -60,6 +66,8 @@ const KaraokeMakerHeaderActions = ({
   onRedo,
   canRedo,
   onRestore,
+  onSaveToSong,
+  isSavingToSong = false,
   onApply,
   isModelWorking,
   isFullScreen,
@@ -101,6 +109,21 @@ const KaraokeMakerHeaderActions = ({
       >
         <KaraokeMakerToolIcon name="restore" />
       </button>
+      {onSaveToSong && (
+        // The quiet face: Use in player stays the one suggested way out.
+        <button
+          className="karaoke-maker__header-action karaoke-maker__save-song"
+          type="button"
+          disabled={isSavingToSong}
+          aria-disabled={isSavingToSong}
+          aria-label={t('karaoke.maker.song.save')}
+          data-tooltip={t('karaoke.maker.song.saveHint')}
+          onClick={onSaveToSong}
+        >
+          <KaraokeMakerToolIcon name="saveSong" />
+          <span>{t('karaoke.maker.song.save')}</span>
+        </button>
+      )}
       <button
         className="is-primary karaoke-maker__header-action"
         type="button"

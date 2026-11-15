@@ -44,6 +44,22 @@ const remember = (key: string, answer: ILibraryLyricsAnswer) => {
   }
 };
 
+/** Every mounted Lyrics tab, told when a song's lyrics changed elsewhere. */
+const changeListeners = new Set<(trackId: string) => void>();
+
+/**
+ * A song's lyrics were written or removed outside its Lyrics tab — the
+ * Karaoke Maker saved its timing to the song. The cached answer is let go
+ * and a tab showing the song asks main again, because the song's own key
+ * (its size and time) does not move for a lyrics file beside it.
+ */
+export const announceTrackLyricsChanged = (trackId: string): void => {
+  [...cache.keys()]
+    .filter((key) => key.startsWith(`${trackId}|`))
+    .forEach((key) => cache.delete(key));
+  changeListeners.forEach((listener) => listener(trackId));
+};
+
 export type TTrackLyrics = (
   { state: 'reading' } | { state: 'ready'; answer: ILibraryLyricsAnswer }
 ) & {
@@ -72,6 +88,18 @@ export const useTrackLyrics = (track: ILibraryTrack): TTrackLyrics => {
     cache.delete(key);
     setAsked((count) => count + 1);
   }, [key]);
+
+  useEffect(() => {
+    const listener = (changed: string) => {
+      if (changed === trackId) {
+        setAsked((count) => count + 1);
+      }
+    };
+    changeListeners.add(listener);
+    return () => {
+      changeListeners.delete(listener);
+    };
+  }, [trackId]);
 
   useEffect(() => {
     if (cache.has(key)) {

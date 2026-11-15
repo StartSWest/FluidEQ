@@ -57,6 +57,9 @@ const KEPT = [
   'fluideq.dsp.userPresets.v1',
   'fluideq.games.profiles.v1',
   'fluideq.karaoke.current-progress.v1',
+  // Which Library song each karaoke came from, so the Maker can save its
+  // timing back to that song: a fact about the songs, not a setting.
+  'fluideq.karaoke.libraryOrigins.v1',
   'fluideq.squiglink-import.text',
   'fluideq.studio.idea',
   // A new project's guide: the steps done, and closed for good once

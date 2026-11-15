@@ -52,6 +52,7 @@ import creator from './creator';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
 import dspOff from './dspOff';
+import lyricsHandoff from './lyricsHandoff';
 import engineUpdate from './engineUpdate';
 import lighting from './lighting';
 import wallpaper from './wallpaper';
@@ -107,6 +108,7 @@ const ja: Partial<Dictionary> = {
   ...termsNotice,
   ...engineHealth,
   ...dspOff,
+  ...lyricsHandoff,
   ...engineUpdate,
   ...lighting,
   ...wallpaper,

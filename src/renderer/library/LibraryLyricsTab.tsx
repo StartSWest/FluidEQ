@@ -21,6 +21,7 @@ import type { ILibraryLyrics } from '../../common/library/lyrics';
 import type { ILibraryTrack } from '../../common/library/types';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import LibraryLyricsActions from './LibraryLyricsActions';
 import LibraryLyricsFinder from './LibraryLyricsFinder';
 import LibraryLyricsSynced from './LibraryLyricsSynced';
 import { type TLyricsImportState, useLyricsImport } from './useLyricsImport';
@@ -36,15 +37,19 @@ const showsSaved = (lyrics: ILibraryLyrics, saved: TSaved): boolean =>
     : lyrics.kept !== true && lyrics.fileName === saved.fileName;
 
 /** Where the words came from — or, right after an import, where they were
- * kept — said once at the foot, with the way to other lyrics at its end. */
+ * kept — said once at the foot, with what can be done with them under it. */
 const SourceFoot = ({
+  track,
   lyrics,
   saved,
   onFind,
+  onRemoved,
 }: {
+  track: ILibraryTrack;
   lyrics: ILibraryLyrics;
   saved: TSaved | undefined;
   onFind: () => void;
+  onRemoved: () => void;
 }) => {
   const { t } = useTranslation();
   let source: string;
@@ -68,25 +73,24 @@ const SourceFoot = ({
   }
   return (
     <div className="library-lyrics__foot">
-      <p
-        className={`library-lyrics__source${
-          saved === undefined && lyrics.kept !== true ? '' : ' is-notice'
-        }${saved === undefined ? '' : ' is-saved'}`}
-        title={source}
-        role={saved === undefined ? undefined : 'status'}
-      >
-        {saved !== undefined && <MenuIcon name="check" />}
-        <span>{source}</span>
-      </p>
-      {/* "Send to Karaoke" joins this end when the Karaoke tab can take a
-          song's words with it. */}
-      <button
-        type="button"
-        className="button small subtle library-lyrics__other"
-        onClick={onFind}
-      >
-        {t('library.lyrics.other')}
-      </button>
+      <LibraryLyricsActions
+        track={track}
+        lyrics={lyrics}
+        onFind={onFind}
+        onRemoved={onRemoved}
+        source={
+          <p
+            className={`library-lyrics__source${
+              saved === undefined && lyrics.kept !== true ? '' : ' is-notice'
+            }${saved === undefined ? '' : ' is-saved'}`}
+            title={source}
+            role={saved === undefined ? undefined : 'status'}
+          >
+            {saved !== undefined && <MenuIcon name="check" />}
+            <span>{source}</span>
+          </p>
+        }
+      />
     </div>
   );
 };
@@ -103,6 +107,13 @@ const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
     reload();
   }, [reload]);
   const lyricsImport = useLyricsImport(track.id, onSaved);
+  const { dismiss: dismissImport } = lyricsImport;
+  // What is left is read again; a "saved" line about the file just removed
+  // would otherwise stay under the words that replace it.
+  const onRemoved = useCallback(() => {
+    dismissImport();
+    reload();
+  }, [dismissImport, reload]);
 
   if (read.state === 'reading') {
     // Says so only if the read is slow enough to notice (a fade with a delay
@@ -173,6 +184,7 @@ const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
           <div className="library-lyrics__plain">{lyrics.text}</div>
         )}
         <SourceFoot
+          track={track}
           lyrics={lyrics}
           saved={
             lyricsImport.status.state === 'saved'
@@ -180,6 +192,7 @@ const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
               : undefined
           }
           onFind={() => setIsFinding(true)}
+          onRemoved={onRemoved}
         />
       </>
     );
