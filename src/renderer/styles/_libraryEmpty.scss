@@ -39,9 +39,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: auto;
 }
 
-// Filled like every card on the Library's floor (`card-surface`, Ivan
-// 2026-09-26: cards wear the window's colour), with its edge dashed for the
-// drop and the accent's light falling from above the sleeves.
+// GRADIENTS ON THE GROUND, FLAT ON TOP (Ivan, 2026-11-15: "a nice balance
+// between gradients in the background and flat and clean, so it is
+// consistent"). The window and the scene carry the gradients; a card has the
+// one fill every Library card wears (`card-surface`) and nothing laid over
+// it; what stands on the card is solid colour, its depth only from overlap
+// and one shadow. The first version stacked six gradients here - an extra
+// light on the card, one per sleeve, a gloss, glints on the record and an
+// inner glow on a drop - and read busier than the rest of the app.
 .library-empty__card {
   @include card-surface;
   display: grid;
@@ -52,16 +57,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-align: center;
   border: 1.5px dashed rgba($edge-tint, 0.18);
   border-radius: $radius-xl + 6px;
-  background:
-    radial-gradient(
-      ellipse 70% 55% at 50% 0%,
-      color-mix(in srgb, $secondary-default 10%, transparent),
-      transparent 75%
-    ),
-    $card-glow, $surface-card;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+  transition: border-color 160ms ease;
 
   h2 {
     margin: 0;
@@ -80,11 +76,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     text-wrap: balance;
   }
 
-  // A folder held over the workspace: the frame it will land in answers.
+  // A folder held over the workspace: the frame it will land in answers in
+  // its edge alone - the workspace round it already glows.
   .library-workspace.is-drag-over & {
     border-color: color-mix(in srgb, $secondary-default 70%, transparent);
-    box-shadow: inset 0 0 40px
-      color-mix(in srgb, $secondary-default 12%, transparent);
   }
 }
 
@@ -93,8 +88,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-empty__art {
   position: relative;
   width: 196px;
-  height: 148px;
+  height: 166px;
   margin-bottom: $spacing-m;
+  // One soft shadow under the whole stack, from its silhouette, instead of
+  // one per sleeve.
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.32));
 }
 
 .library-empty__sleeve,
@@ -108,34 +106,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 96px;
   height: 96px;
   border-radius: $radius-m;
-  box-shadow:
-    0 12px 26px rgba(0, 0, 0, 0.38),
-    inset 0 0 0 1px rgba($edge-tint, 0.1);
 }
 
+// The two behind: the accent at two strengths, solid.
 .library-empty__sleeve--left {
-  background: linear-gradient(
-    150deg,
-    color-mix(in srgb, $secondary-default 34%, $surface-card),
-    color-mix(in srgb, $secondary-default 12%, $surface-card)
-  );
+  background: color-mix(in srgb, $secondary-default 32%, $surface-card);
   transform: translateX(-50%) translateX(-46px) translateY(-4px) rotate(-13deg);
 }
 
 .library-empty__sleeve--right {
-  background: linear-gradient(
-    210deg,
-    color-mix(in srgb, $secondary-default 24%, $surface-card),
-    color-mix(in srgb, $secondary-default 8%, $surface-card)
-  );
+  background: color-mix(in srgb, $secondary-default 18%, $surface-card);
   transform: translateX(-50%) translateX(46px) translateY(-4px) rotate(13deg);
 }
 
-// A record half out of the top of the front sleeve: grooves catching two
-// glints, round a label in the accent. Black because vinyl is, in every
-// theme. A folder held over the workspace draws it further out.
+// A record half out of the top of the front sleeve: grooves round a label
+// in the accent - the grooves are what make it a record, so they stay.
+// Black because vinyl is, in every theme. A folder held over the workspace
+// draws it further out.
+// Its label stands clear of the sleeve's edge: both are the accent, and
+// touching they read as one keyhole-shaped blob.
 .library-empty__disc {
-  bottom: 50px;
+  bottom: 74px;
   width: 90px;
   height: 90px;
   border-radius: 50%;
@@ -144,21 +135,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       circle,
       $surface-base 0 3px,
       $secondary-default 3.5px 14px,
-      rgba(0, 0, 0, 0.5) 14.5px 15.5px,
-      transparent 16px
+      transparent 14.5px
     ),
-    conic-gradient(
-      from 20deg,
-      transparent 0 8%,
-      rgba(255, 255, 255, 0.14) 13%,
-      transparent 18% 58%,
-      rgba(255, 255, 255, 0.1) 63%,
-      transparent 68%
-    ),
-    repeating-radial-gradient(circle, #10171e 0 1.4px, #232e39 1.4px 2.8px);
-  box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px rgba($edge-tint, 0.1);
+    repeating-radial-gradient(circle, #121a22 0 1.4px, #1f2a34 1.4px 2.8px);
   transform: translateX(-50%) translateX(10px);
   transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
@@ -174,34 +153,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-empty__sleeve--front {
   display: grid;
   place-items: center;
-  color: color-mix(in srgb, $secondary-default 28%, $surface-base);
-  background: linear-gradient(
-    155deg,
-    color-mix(in srgb, $secondary-default 90%, white),
-    color-mix(in srgb, $secondary-default 58%, black)
-  );
+  // The accent exactly as the Add folder button wears it, ink and all, so
+  // the picture and the action are one colour.
+  color: $surface-base;
+  background: $secondary-default;
   transform: translateX(-50%);
-
-  // The sleeve's gloss, and the lip of its opening along the top.
-  &::after {
-    position: absolute;
-    inset: 0;
-    border-top: 2px solid rgba(0, 0, 0, 0.22);
-    border-radius: inherit;
-    background: linear-gradient(
-      140deg,
-      rgba(255, 255, 255, 0.3),
-      transparent 42%
-    );
-    content: '';
-    pointer-events: none;
-  }
 }
 
 .library-empty__sleeve-icon {
   width: 34px;
   height: 34px;
-  opacity: 0.85;
+  opacity: 0.6;
 }
 
 // *** The action ****************************************************************
