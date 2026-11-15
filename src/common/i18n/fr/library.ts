@@ -141,7 +141,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.file': 'Importer des paroles…',
   'library.lyrics.import.paste': 'Coller',
   'library.lyrics.import.drop':
-    'Ou déposez un fichier .lrc ou .txt sur cet onglet.',
+    'Ou déposez un fichier de paroles sur cet onglet : .lrc, .srt, .vtt, .ttml, .json, .yaml ou .txt.',
   'library.lyrics.import.pasteLabel': 'Paroles à garder avec ce titre',
   'library.lyrics.import.pastePlaceholder':
     'Collez les paroles ou un .lrc synchronisé',
@@ -167,7 +167,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.notText': 'Ce fichier n’est pas du texte.',
   'library.lyrics.import.empty': 'Il ne contient aucune parole.',
   'library.lyrics.import.notLyricsFile':
-    'Seuls les fichiers .lrc ou .txt peuvent être importés.',
+    'Seuls les fichiers de paroles peuvent être importés : .lrc, .srt, .vtt, .ttml, .json, .yaml ou .txt.',
   'library.lyrics.import.failed': 'Impossible d’enregistrer les paroles.',
   'library.lyrics.fromKept':
     'Du dossier de paroles de FluidEQ : impossible d’écrire dans le dossier du titre',

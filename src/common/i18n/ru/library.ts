@@ -140,7 +140,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.file': 'Импортировать текст…',
   'library.lyrics.import.paste': 'Вставить',
   'library.lyrics.import.drop':
-    'Или перетащите файл .lrc или .txt на эту вкладку.',
+    'Или перетащите файл с текстом на эту вкладку: .lrc, .srt, .vtt, .ttml, .json, .yaml или .txt.',
   'library.lyrics.import.pasteLabel':
     'Текст, который будет сохранён с этой песней',
   'library.lyrics.import.pastePlaceholder':
@@ -165,7 +165,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.notText': 'Это не текстовый файл.',
   'library.lyrics.import.empty': 'В нём нет текста.',
   'library.lyrics.import.notLyricsFile':
-    'Импортировать можно только файлы .lrc или .txt.',
+    'Импортировать можно только файлы с текстом: .lrc, .srt, .vtt, .ttml, .json, .yaml или .txt.',
   'library.lyrics.import.failed': 'Не удалось сохранить текст.',
   'library.lyrics.fromKept':
     'Из папки текстов FluidEQ: в папку песни нельзя записывать',

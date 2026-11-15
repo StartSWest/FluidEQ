@@ -137,7 +137,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.file': 'Importa testo…',
   'library.lyrics.import.paste': 'Incolla',
   'library.lyrics.import.drop':
-    'Oppure trascina un file .lrc o .txt su questa scheda.',
+    'Oppure trascina un file di testo su questa scheda: .lrc, .srt, .vtt, .ttml, .json, .yaml o .txt.',
   'library.lyrics.import.pasteLabel': 'Testo da conservare con questo brano',
   'library.lyrics.import.pastePlaceholder':
     'Incolla il testo o un .lrc sincronizzato',
@@ -161,7 +161,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.notText': 'Il file non è di testo.',
   'library.lyrics.import.empty': 'Non contiene parole.',
   'library.lyrics.import.notLyricsFile':
-    'Si possono importare solo file .lrc o .txt.',
+    'Si possono importare solo file di testi: .lrc, .srt, .vtt, .ttml, .json, .yaml o .txt.',
   'library.lyrics.import.failed': 'Impossibile salvare il testo.',
   'library.lyrics.fromKept':
     'Dalla cartella dei testi di FluidEQ: non si può scrivere nella cartella del brano',

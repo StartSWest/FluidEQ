@@ -88,6 +88,40 @@ describe('the Lyrics tab’s channels', () => {
     });
   });
 
+  it('keeps word-timed lyrics in any format with the song, words and all', async () => {
+    const vtt =
+      'WEBVTT\n\n00:01.000 --> 00:03.000\nSalt <00:00:01.500>on <00:00:02.000>the <00:00:02.400>rope\n';
+    await expect(
+      call('library-lyrics-import', 'harbour', vtt, false),
+    ).resolves.toEqual({
+      state: 'saved',
+      place: 'beside',
+      fileName: 'Harbour.lrc',
+    });
+    // Read back from disk as the tab reads every song: lit word by word.
+    await expect(
+      call('library-track-lyrics', 'harbour'),
+    ).resolves.toMatchObject({
+      lyrics: {
+        kind: 'synced',
+        fileName: 'Harbour.lrc',
+        lines: [
+          {
+            timeMs: 1000,
+            text: 'Salt on the rope',
+            words: [
+              { timeMs: 1000, text: 'Salt ' },
+              { timeMs: 1500, text: 'on ' },
+              { timeMs: 2000, text: 'the ' },
+              { timeMs: 2400, text: 'rope' },
+            ],
+          },
+          { timeMs: 3000, text: '' },
+        ],
+      },
+    });
+  });
+
   it('writes nothing for an id the library does not know, or a path in its place', async () => {
     await expect(
       call('library-lyrics-import', song, 'Salt on the rope', false),
@@ -214,7 +248,21 @@ describe('the Lyrics tab’s channels', () => {
     expect(showOpenDialog).toHaveBeenCalledWith(
       expect.objectContaining({
         defaultPath: 'C:\\Users\\listener\\Downloads',
-        filters: [{ name: 'files.type.lyrics', extensions: ['lrc', 'txt'] }],
+        filters: [
+          {
+            name: 'files.type.lyrics',
+            // Every format the import reads, TTML and WebVTT among them.
+            extensions: expect.arrayContaining([
+              'lrc',
+              'txt',
+              'ttml',
+              'vtt',
+              'srt',
+              'json',
+              'yaml',
+            ]),
+          },
+        ],
       }),
     );
     showOpenDialog.mockResolvedValue({ canceled: true, filePaths: [] });

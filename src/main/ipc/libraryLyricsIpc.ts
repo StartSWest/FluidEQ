@@ -26,6 +26,7 @@ import {
 import path from 'path';
 import {
   asLyricsRemoveTarget,
+  LYRICS_IMPORT_EXTENSIONS,
   type TLyricsImportResult,
   type TLyricsPickResult,
   type TLyricsRemoveResult,
@@ -92,7 +93,10 @@ export const registerLibraryLyricsIpc = ({
         defaultPath: app.getPath('downloads'),
         properties: ['openFile'],
         filters: [
-          { name: mainText('files.type.lyrics'), extensions: ['lrc', 'txt'] },
+          {
+            name: mainText('files.type.lyrics'),
+            extensions: LYRICS_IMPORT_EXTENSIONS.map((ext) => ext.slice(1)),
+          },
         ],
       };
       const result = window

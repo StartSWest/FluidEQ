@@ -141,7 +141,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.file': 'Songtext importieren…',
   'library.lyrics.import.paste': 'Einfügen',
   'library.lyrics.import.drop':
-    'Oder ziehen Sie eine .lrc- oder .txt-Datei auf diesen Tab.',
+    'Oder ziehen Sie eine Songtext-Datei auf diesen Tab: .lrc, .srt, .vtt, .ttml, .json, .yaml oder .txt.',
   'library.lyrics.import.pasteLabel': 'Songtext, der bei diesem Titel bleibt',
   'library.lyrics.import.pastePlaceholder':
     'Text oder eine .lrc mit Zeitstempeln einfügen',
@@ -166,7 +166,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.notText': 'Die Datei ist keine Textdatei.',
   'library.lyrics.import.empty': 'Sie enthält keinen Text.',
   'library.lyrics.import.notLyricsFile':
-    'Nur .lrc- und .txt-Dateien lassen sich importieren.',
+    'Nur Songtext-Dateien lassen sich importieren: .lrc, .srt, .vtt, .ttml, .json, .yaml oder .txt.',
   'library.lyrics.import.failed':
     'Der Songtext konnte nicht gespeichert werden.',
   'library.lyrics.fromKept':

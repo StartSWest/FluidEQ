@@ -26,9 +26,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { lyricsFromText, MAX_LYRICS_FILE_BYTES } from './lyrics';
+import { lyricsAsKeptText } from './lyricsFormats';
 
-/** The extensions a lyrics file is imported from, and written as. */
+/** The extensions lyrics are kept as, beside the song or in FluidEQ's folder. */
 export const LYRICS_FILE_EXTENSIONS = ['.lrc', '.txt'] as const;
+
+/** The extensions a lyrics file is imported from: every timed format
+ * `lyricsFormats.ts` reads, kept afterwards as one of the two above. */
+export const LYRICS_IMPORT_EXTENSIONS = [
+  '.lrc',
+  '.elrc',
+  '.txt',
+  '.srt',
+  '.vtt',
+  '.ttml',
+  '.xml',
+  '.json',
+  '.yaml',
+  '.yml',
+] as const;
 export type TLyricsFileExtension = (typeof LYRICS_FILE_EXTENSIONS)[number];
 
 export type TLyricsImportRefusal = 'empty' | 'tooBig' | 'notText';
@@ -57,7 +73,9 @@ export type TLyricsPickResult =
 /** A name that is a lyrics file by its extension, any case. */
 export const isLyricsFileName = (name: string): boolean => {
   const lower = name.toLowerCase();
-  return LYRICS_FILE_EXTENSIONS.some((extension) => lower.endsWith(extension));
+  return LYRICS_IMPORT_EXTENSIONS.some((extension) =>
+    lower.endsWith(extension),
+  );
 };
 
 /**
@@ -112,7 +130,8 @@ const normalise = (text: string): string =>
 
 /**
  * Whether these words can be imported, and as what: a `.lrc` where the text
- * carries timing the Lyrics tab can follow, a `.txt` otherwise — decided by
+ * carries timing the Lyrics tab can follow — any timed format written as
+ * Enhanced LRC first (`lyricsAsKeptText`) — a `.txt` otherwise — decided by
  * the very reader that will read the file back (`lyricsFromText`), so what
  * is written is always what the tab then shows.
  */
@@ -123,7 +142,8 @@ export const checkLyricsImport = (text: string): TLyricsImportCheck => {
   if (looksBinary(text)) {
     return { ok: false, reason: 'notText' };
   }
-  const normalised = normalise(text);
+  // Any timed format becomes Enhanced LRC here, the one the song keeps.
+  const normalised = normalise(lyricsAsKeptText(text));
   const lyrics = lyricsFromText(normalised, 'txt');
   if (lyrics === undefined) {
     return { ok: false, reason: 'empty' };

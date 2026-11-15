@@ -116,7 +116,7 @@ const library = {
   'library.lyrics.import.file': '가사 가져오기…',
   'library.lyrics.import.paste': '붙여넣기',
   'library.lyrics.import.drop':
-    '또는 .lrc나 .txt 파일을 이 탭에 끌어다 놓으세요.',
+    '또는 가사 파일(.lrc, .srt, .vtt, .ttml, .json, .yaml, .txt)을 이 탭에 끌어다 놓으세요.',
   'library.lyrics.import.pasteLabel': '이 노래와 함께 저장할 가사',
   'library.lyrics.import.pastePlaceholder': '가사나 싱크된 .lrc를 붙여넣으세요',
   'library.lyrics.import.save': '가사 저장',
@@ -140,7 +140,7 @@ const library = {
   'library.lyrics.import.notText': '텍스트 파일이 아닙니다.',
   'library.lyrics.import.empty': '가사가 들어 있지 않습니다.',
   'library.lyrics.import.notLyricsFile':
-    '.lrc 또는 .txt 파일만 가져올 수 있습니다.',
+    '가사 파일(.lrc, .srt, .vtt, .ttml, .json, .yaml, .txt)만 가져올 수 있습니다.',
   'library.lyrics.import.failed': '가사를 저장하지 못했습니다.',
   'library.lyrics.fromKept':
     'FluidEQ 가사 폴더에서 가져옴. 노래 폴더에 쓸 수 없습니다',

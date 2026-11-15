@@ -133,7 +133,8 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.heading': '随歌曲保存',
   'library.lyrics.import.file': '导入歌词…',
   'library.lyrics.import.paste': '粘贴',
-  'library.lyrics.import.drop': '也可以把 .lrc 或 .txt 文件拖到此标签页上。',
+  'library.lyrics.import.drop':
+    '也可以把歌词文件（.lrc、.srt、.vtt、.ttml、.json、.yaml 或 .txt）拖到此标签页上。',
   'library.lyrics.import.pasteLabel': '要随这首歌保存的歌词',
   'library.lyrics.import.pastePlaceholder': '粘贴歌词，或带时间轴的 .lrc',
   'library.lyrics.import.save': '保存歌词',
@@ -154,7 +155,8 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.tooBig': '该文件超过 512 KB，作为歌词太大了。',
   'library.lyrics.import.notText': '该文件不是文本。',
   'library.lyrics.import.empty': '其中没有歌词。',
-  'library.lyrics.import.notLyricsFile': '只能导入 .lrc 或 .txt 文件。',
+  'library.lyrics.import.notLyricsFile':
+    '只能导入歌词文件：.lrc、.srt、.vtt、.ttml、.json、.yaml 或 .txt。',
   'library.lyrics.import.failed': '无法保存歌词。',
   'library.lyrics.fromKept':
     '来自 FluidEQ 的歌词文件夹：无法写入歌曲所在文件夹',

@@ -134,7 +134,8 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.heading': 'गाने के साथ रखें',
   'library.lyrics.import.file': 'बोल इम्पोर्ट करें…',
   'library.lyrics.import.paste': 'पेस्ट करें',
-  'library.lyrics.import.drop': 'या कोई .lrc या .txt फ़ाइल इस टैब पर छोड़ें।',
+  'library.lyrics.import.drop':
+    'या कोई बोल फ़ाइल इस टैब पर छोड़ें: .lrc, .srt, .vtt, .ttml, .json, .yaml या .txt।',
   'library.lyrics.import.pasteLabel': 'इस गाने के साथ रखे जाने वाले बोल',
   'library.lyrics.import.pastePlaceholder': 'बोल या समय वाली .lrc पेस्ट करें',
   'library.lyrics.import.save': 'बोल सहेजें',
@@ -158,7 +159,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.notText': 'यह फ़ाइल टेक्स्ट नहीं है।',
   'library.lyrics.import.empty': 'इसमें कोई बोल नहीं हैं।',
   'library.lyrics.import.notLyricsFile':
-    'सिर्फ़ .lrc या .txt फ़ाइल इम्पोर्ट की जा सकती है।',
+    'सिर्फ़ बोल फ़ाइल इम्पोर्ट की जा सकती है: .lrc, .srt, .vtt, .ttml, .json, .yaml या .txt।',
   'library.lyrics.import.failed': 'बोल सहेजे नहीं जा सके।',
   'library.lyrics.fromKept':
     'FluidEQ के बोल फ़ोल्डर से: गाने के फ़ोल्डर में लिखा नहीं जा सकता',

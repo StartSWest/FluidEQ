@@ -132,7 +132,8 @@ const library = {
   'library.lyrics.import.heading': 'Keep them with the song',
   'library.lyrics.import.file': 'Import lyrics…',
   'library.lyrics.import.paste': 'Paste',
-  'library.lyrics.import.drop': 'Or drop a .lrc or .txt file on this tab.',
+  'library.lyrics.import.drop':
+    'Or drop a lyrics file on this tab: .lrc, .srt, .vtt, .ttml, .json, .yaml or .txt.',
   'library.lyrics.import.pasteLabel': 'Lyrics to keep with this song',
   'library.lyrics.import.pastePlaceholder': 'Paste the words, or a timed .lrc',
   'library.lyrics.import.save': 'Save lyrics',
@@ -156,7 +157,7 @@ const library = {
   'library.lyrics.import.notText': 'That file isn’t text.',
   'library.lyrics.import.empty': 'There are no words in it.',
   'library.lyrics.import.notLyricsFile':
-    'Only a .lrc or .txt file can be imported.',
+    'Only a lyrics file can be imported: .lrc, .srt, .vtt, .ttml, .json, .yaml or .txt.',
   'library.lyrics.import.failed': 'The lyrics couldn’t be saved.',
   'library.lyrics.fromKept':
     'From FluidEQ’s lyrics folder: the song’s folder can’t be written',

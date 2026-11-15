@@ -138,7 +138,8 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.heading': 'Guardar com a música',
   'library.lyrics.import.file': 'Importar letra…',
   'library.lyrics.import.paste': 'Colar',
-  'library.lyrics.import.drop': 'Ou solte um arquivo .lrc ou .txt nesta aba.',
+  'library.lyrics.import.drop':
+    'Ou solte um arquivo de letra nesta aba: .lrc, .srt, .vtt, .ttml, .json, .yaml ou .txt.',
   'library.lyrics.import.pasteLabel': 'Letra para guardar com esta música',
   'library.lyrics.import.pastePlaceholder':
     'Cole a letra ou um .lrc sincronizado',
@@ -163,7 +164,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.notText': 'O arquivo não é de texto.',
   'library.lyrics.import.empty': 'Não há nenhuma letra nele.',
   'library.lyrics.import.notLyricsFile':
-    'Só é possível importar arquivos .lrc ou .txt.',
+    'Só é possível importar arquivos de letra: .lrc, .srt, .vtt, .ttml, .json, .yaml ou .txt.',
   'library.lyrics.import.failed': 'Não foi possível salvar a letra.',
   'library.lyrics.fromKept':
     'Da pasta de letras do FluidEQ: não é possível gravar na pasta da música',

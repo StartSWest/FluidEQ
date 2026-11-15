@@ -113,7 +113,8 @@ const library = {
   'library.lyrics.import.heading': '隨歌曲保存',
   'library.lyrics.import.file': '匯入歌詞…',
   'library.lyrics.import.paste': '貼上',
-  'library.lyrics.import.drop': '也可以把 .lrc 或 .txt 檔案拖曳到此分頁上。',
+  'library.lyrics.import.drop':
+    '也可以把歌詞檔案（.lrc、.srt、.vtt、.ttml、.json、.yaml 或 .txt）拖曳到此分頁上。',
   'library.lyrics.import.pasteLabel': '要隨這首歌保存的歌詞',
   'library.lyrics.import.pastePlaceholder': '貼上歌詞，或含時間軸的 .lrc',
   'library.lyrics.import.save': '儲存歌詞',
@@ -134,7 +135,8 @@ const library = {
   'library.lyrics.import.tooBig': '此檔案超過 512 KB，作為歌詞太大了。',
   'library.lyrics.import.notText': '此檔案不是文字檔。',
   'library.lyrics.import.empty': '其中沒有歌詞。',
-  'library.lyrics.import.notLyricsFile': '只能匯入 .lrc 或 .txt 檔案。',
+  'library.lyrics.import.notLyricsFile':
+    '只能匯入歌詞檔案：.lrc、.srt、.vtt、.ttml、.json、.yaml 或 .txt。',
   'library.lyrics.import.failed': '無法儲存歌詞。',
   'library.lyrics.fromKept':
     '來自 FluidEQ 的歌詞資料夾：無法寫入歌曲所在的資料夾',

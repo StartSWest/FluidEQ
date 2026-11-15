@@ -139,7 +139,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.file': '歌詞を読み込む…',
   'library.lyrics.import.paste': '貼り付け',
   'library.lyrics.import.drop':
-    '.lrc または .txt ファイルをこのタブにドロップすることもできます。',
+    '歌詞ファイル（.lrc、.srt、.vtt、.ttml、.json、.yaml、.txt）をこのタブにドロップすることもできます。',
   'library.lyrics.import.pasteLabel': 'この曲と一緒に保存する歌詞',
   'library.lyrics.import.pastePlaceholder':
     '歌詞、またはタイミング付きの .lrc を貼り付け',
@@ -164,7 +164,7 @@ const library: Partial<Dictionary> = {
   'library.lyrics.import.notText': 'このファイルはテキストではありません。',
   'library.lyrics.import.empty': '歌詞が含まれていません。',
   'library.lyrics.import.notLyricsFile':
-    '読み込めるのは .lrc または .txt ファイルだけです。',
+    '読み込めるのは歌詞ファイル（.lrc、.srt、.vtt、.ttml、.json、.yaml、.txt）だけです。',
   'library.lyrics.import.failed': '歌詞を保存できませんでした。',
   'library.lyrics.fromKept':
     'FluidEQ の歌詞フォルダーから（曲のフォルダーに書き込めません）',

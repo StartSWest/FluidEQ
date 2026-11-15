@@ -274,7 +274,9 @@ describe('bringing lyrics in', () => {
     fireEvent.drop(tab, { dataTransfer: { files: [file], types: ['Files'] } });
     await settle();
     expect(
-      screen.getByText('Only a .lrc or .txt file can be imported.'),
+      screen.getByText(
+        'Only a lyrics file can be imported: .lrc, .srt, .vtt, .ttml, .json, .yaml or .txt.',
+      ),
     ).toBeInTheDocument();
     expect(importLibraryTrackLyrics).not.toHaveBeenCalled();
   });
