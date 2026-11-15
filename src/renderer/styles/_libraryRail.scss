@@ -73,7 +73,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 auto;
   align-content: start;
   gap: 1px;
-  padding: 16px 10px 8px;
+  padding: 12px 10px 8px;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -81,7 +81,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-rail__heading {
   padding: 10px 10px 6px;
-  color: $studio-t3;
+  // The second step, not the 44% third: the heading read as switched off
+  // (Ivan, 2026-11-15: "this header I don't like, make it bolder and more
+  // toward the top").
+  color: $studio-t2;
+
+  // The first one sits at the rail's top, not 26px down it.
+  &:first-child {
+    padding-top: 2px;
+  }
   font-size: $studio-text-label;
   font-weight: $weight-bold;
   @include tracking(0.12em);
