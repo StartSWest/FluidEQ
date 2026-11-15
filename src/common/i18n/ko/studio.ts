@@ -256,8 +256,6 @@ const studio = {
   'studio.publish.sizeCode': '코드 및 설정',
   'studio.publish.tooLarge':
     '이 장면은 게시할 수 있는 최대 크기인 {limit}를 넘습니다. 아트워크를 줄이거나(이미지 수를 줄이거나 더 작게) AI에게 가볍게 만들어 달라고 요청하세요.',
-  'studio.publish.noWindowColours':
-    '이 장면은 주변 창에 줄 색을 아직 정하지 않았습니다. AI에게 창 색을 추가해 달라고 한 다음 게시하세요.',
   'studio.publish.failed': '장면을 게시할 수 없습니다. 다시 시도해 보세요.',
   'studio.publish.officialCopy':
     '이 장면의 대부분은 FluidEQ의 장면 중 하나입니다. 그들로부터 아이디어를 얻고, 게시하기 전에 장면을 자신만의 것으로 만드십시오.',

@@ -236,8 +236,6 @@ const studio = {
   'studio.publish.sizeCode': '代码和设置',
   'studio.publish.tooLarge':
     '此场景超过了 {limit}，即场景可发布的上限。请缩小其美术图（减少图片或使用更小的图片），或让你的 AI 为它瘦身。',
-  'studio.publish.noWindowColours':
-    '此场景还没有指定给周围窗口的颜色。请让你的 AI 添加窗口颜色，然后再发布。',
   'studio.publish.failed': '无法发布场景。请重试。',
   'studio.publish.officialCopy':
     '这个场景的大部分内容与 FluidEQ 的某个场景相同。可以从中汲取灵感，但请先把它变成你自己的场景再发布。',

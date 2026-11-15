@@ -1073,27 +1073,29 @@ describe('publishing from the Studio', () => {
     expect(publishRequests()).toHaveLength(1);
   });
 
-  // A published scene names the colours it lends the window (Ivan,
-  // 2026-11-14: "we want the agent to give those colours"), so everybody who
-  // plays it sees its maker's window rather than one the app worked out.
-  it('publishes no scene that does not name its window colours', async () => {
+  // The colours a scene lends the window travel with it when it names them;
+  // one that names none still goes out (Ivan, 2026-11-14: "in case they don't
+  // exist we need a deterministic algorithm"), and its window is worked out
+  // from its palette wherever it plays.
+  it('sends the window colours a scene names, and publishes one that names none', async () => {
     setup();
-    const manifest = path.join(String(folder), 'pack.json');
-    const named = JSON.parse(await fs.promises.readFile(manifest, 'utf8'));
-    const { windowColours, ...without } = named;
-    expect(windowColours).toBeDefined();
-    await fs.promises.writeFile(manifest, JSON.stringify(without));
-    expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
-      ok: false,
-      reason: 'no-window-colours',
-    });
-    expect(calls).toEqual([]);
-    // The control: the same scene naming them is sent.
-    await fs.promises.writeFile(manifest, JSON.stringify(named));
     expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
       ok: true,
     });
-    expect(publishRequests()).toHaveLength(1);
+    expect(publishRequest()?.body.pack).toMatchObject({
+      windowColours: { surface: '#0a0c22', accent: '#ff5c9d', glow: '#9fe6ff' },
+    });
+    const manifest = path.join(String(folder), 'pack.json');
+    const { windowColours, ...without } = JSON.parse(
+      await fs.promises.readFile(manifest, 'utf8'),
+    );
+    expect(windowColours).toBeDefined();
+    await fs.promises.writeFile(manifest, JSON.stringify(without));
+    calls = [];
+    expect(await invoke('studio-publish', 6, 'space', webpBytes())).toEqual({
+      ok: true,
+    });
+    expect(publishRequest()?.body.pack).not.toHaveProperty('windowColours');
   });
 
   it("says so when the server finds the scene is mostly one of FluidEQ's", async () => {

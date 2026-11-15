@@ -268,8 +268,6 @@ const studio = {
   'studio.publish.sizeCode': 'Code und Einstellungen',
   'studio.publish.tooLarge':
     'Diese Szene ist größer als {limit}, die maximale Größe für eine Veröffentlichung. Machen Sie das Artwork kleiner (weniger oder kleinere Bilder) oder bitten Sie Ihre KI, sie zu verschlanken.',
-  'studio.publish.noWindowColours':
-    'Diese Szene legt noch nicht fest, welche Farben sie dem Fenster um sie herum gibt. Bitten Sie Ihre KI, die Fensterfarben hinzuzufügen, und veröffentlichen Sie dann.',
   'studio.publish.failed':
     'Die Szene konnte nicht veröffentlicht werden. Versuchen Sie es erneut.',
   'studio.publish.officialCopy':

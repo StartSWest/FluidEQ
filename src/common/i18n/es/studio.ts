@@ -264,8 +264,6 @@ const studio = {
   'studio.publish.sizeCode': 'Código y ajustes',
   'studio.publish.tooLarge':
     'Esta escena supera {limit}, lo máximo con que se puede publicar una escena. Haz su arte más ligero (menos imágenes o más pequeñas) o pídele a tu IA que la aligere.',
-  'studio.publish.noWindowColours':
-    'Esta escena todavía no dice qué colores le da a la ventana que la rodea. Pídele a tu IA que añada sus colores de ventana y luego publica.',
   'studio.publish.failed':
     'No se pudo publicar la escena. Vuelve a intentarlo.',
   'studio.publish.officialCopy':

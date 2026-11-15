@@ -185,7 +185,7 @@ pack.json:
 - names: English required; add es, pt, fr, de, it, ru, zh, zh-Hant, ja, ko, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.
-- windowColours: required to publish. The colours FluidEQ's window wears
+- windowColours: always give them. The colours FluidEQ's window wears
   round my scene, chosen from the scene's own (the fluideq-finish skill says
   how). Choose them again whenever the scene's colours change.
 - params: the scene's own sliders, up to 8, which FluidEQ shows me by

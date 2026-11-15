@@ -21,7 +21,8 @@ carry a scene on past its panel.)
 If the change touched colour, or the scene is new: open `preview.png` and
 set `windowColours` in `pack.json` from what you see - the colours
 FluidEQ's window wears round the scene, so the whole app looks like it
-belongs to the picture. FluidEQ will not publish the scene without them.
+belongs to the picture. Without them FluidEQ works colours out from the
+palette by itself, which is a fallback: always give your own.
 `{ "surface": "#rrggbb", "accent": "#rrggbb", "glow": "#rrggbb" }`, all
 three, chosen from the scene's OWN colours as they are on screen, never new
 ones. With palettes, take them from the first palette's stops as shown.

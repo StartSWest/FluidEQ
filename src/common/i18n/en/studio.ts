@@ -266,8 +266,6 @@ const studio = {
   'studio.publish.sizeCode': 'Code and settings',
   'studio.publish.tooLarge':
     'This scene is over {limit}, the most a scene can be published at. Make its artwork smaller (fewer or smaller pictures), or ask your AI to slim it down.',
-  'studio.publish.noWindowColours':
-    'This scene doesn’t say yet which colours it gives the window around it. Ask your AI to add its window colours, then publish.',
   'studio.publish.failed': 'The scene could not be published. Try again.',
   'studio.publish.officialCopy':
     'Most of this scene is one of FluidEQ’s own. Take ideas from them, but make the scene your own before you publish it.',

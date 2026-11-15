@@ -261,8 +261,6 @@ const studio = {
   'studio.publish.sizeCode': 'Código e configurações',
   'studio.publish.tooLarge':
     'Esta cena passa de {limit}, o máximo com que uma cena pode ser publicada. Deixe a arte mais leve (menos imagens ou imagens menores) ou peça à sua IA para enxugá-la.',
-  'studio.publish.noWindowColours':
-    'Esta cena ainda não diz quais cores dá à janela ao redor. Peça à sua IA para adicionar as cores da janela e depois publique.',
   'studio.publish.failed': 'Não foi possível publicar a cena. Tente de novo.',
   'studio.publish.officialCopy':
     'Quase toda esta cena é uma das cenas do FluidEQ. Tire ideias delas, mas faça a cena ser sua antes de publicá-la.',

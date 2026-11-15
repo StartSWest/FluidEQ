@@ -236,8 +236,6 @@ const studio = {
   'studio.publish.sizeCode': '程式碼與設定',
   'studio.publish.tooLarge':
     '此場景超過了 {limit}，即場景可發佈的上限。請縮小其美術圖（減少圖片或使用更小的圖片），或請你的 AI 為它瘦身。',
-  'studio.publish.noWindowColours':
-    '此場景還沒有指定給周圍視窗的顏色。請讓你的 AI 加入視窗顏色，然後再發佈。',
   'studio.publish.failed': '該場景無法發布。再試一次。',
   'studio.publish.officialCopy':
     '該場景大部分是 FluidEQ 自己的場景之一。從他們那裡獲取想法，但在發布之前將場景變成你自己的。',

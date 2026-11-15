@@ -260,8 +260,6 @@ const studio = {
   'studio.publish.sizeCode': 'コードと設定',
   'studio.publish.tooLarge':
     'このシーンは公開できる上限の {limit} を超えています。アートワークを小さくする（画像を減らす・小さくする）か、AI に軽量化を頼んでください。',
-  'studio.publish.noWindowColours':
-    'このシーンは、周りのウィンドウに使う色をまだ指定していません。AI にウィンドウの色を追加してもらってから公開してください。',
   'studio.publish.failed':
     'シーンを公開できませんでした。もう一度お試しください。',
   'studio.publish.officialCopy':

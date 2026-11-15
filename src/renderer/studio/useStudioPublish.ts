@@ -66,7 +66,6 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   deleted: 'studio.publish.deleted',
   'inspect-only': 'studio.inspect.locked',
   'too-large': 'studio.publish.tooLarge',
-  'no-window-colours': 'studio.publish.noWindowColours',
   'blocked-scene': 'studio.publish.blockedScene',
   'blocked-account': 'studio.publish.blockedAccount',
   server: 'studio.publish.failed',

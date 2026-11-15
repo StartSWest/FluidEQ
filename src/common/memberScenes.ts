@@ -196,8 +196,9 @@ export type TMemberProblemCode =
   | 'no-daylight'
   | 'bad-ambient'
   // `windowColours` (`sceneWindowColours.ts`) that are not three #rrggbb
-  // colours. None at all is not a problem for a build - the window takes
-  // colours from the scene's palette - and is refused only at publishing.
+  // colours. None at all is no problem anywhere, publishing included (Ivan:
+  // "in case they don't exist we need a deterministic algorithm"): the
+  // window takes colours from the scene's own palette.
   | 'bad-window-colours'
   // The 3D world (`sceneWorld.ts`) left nothing to draw, a model in it is not
   // one the engine reads (`worldModelCheck.ts`), or its models together are

@@ -268,8 +268,6 @@ const studio = {
   'studio.publish.sizeCode': 'Code et réglages',
   'studio.publish.tooLarge':
     'Cette scène dépasse {limit}, la taille maximale pour publier une scène. Allégez ses illustrations (moins d’images ou des images plus petites), ou demandez à votre IA de l’alléger.',
-  'studio.publish.noWindowColours':
-    'Cette scène n’indique pas encore les couleurs qu’elle donne à la fenêtre qui l’entoure. Demandez à votre IA d’ajouter ses couleurs de fenêtre, puis publiez.',
   'studio.publish.failed': 'La scène n’a pas pu être publiée. Réessayez.',
   'studio.publish.officialCopy':
     'Cette scène est pour l’essentiel une scène de FluidEQ. Inspirez-vous-en, mais faites-en votre propre scène avant de la publier.',
