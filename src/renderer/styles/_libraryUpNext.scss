@@ -1058,19 +1058,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-pane__tabs {
   display: flex;
   flex: 0 0 auto;
+  // The first tab's icon on the cover's left edge above it, the last at the
+  // row's right, the middle between: each tab its own width (Ivan,
+  // 2026-11-15: "too much left padding, something is off" - stretched tabs
+  // centred their words and stood the first a cover-width in).
+  justify-content: space-between;
   gap: 4px;
   margin: 0;
-  padding: 0 10px;
+  padding: 0 8px;
   border-bottom: 1px solid $studio-hair;
 }
 
 .library-pane__tab {
   display: inline-flex;
   min-width: 0;
-  // Each its words' width, the rest of the row shared out: equal thirds cut
-  // "A continuación" while "Letra" sat in room it did not need. When the
-  // words cannot all fit, the row folds to icons (`usePaneTabsFit`).
-  flex: 1 1 auto;
+  // Each its words' width and no wider (equal thirds cut "A continuación"
+  // while "Letra" sat in room it did not need); the row spaces them. When
+  // the words cannot all fit, the row folds to icons (`usePaneTabsFit`).
+  flex: 0 1 auto;
   align-items: center;
   justify-content: center;
   gap: 5px;
