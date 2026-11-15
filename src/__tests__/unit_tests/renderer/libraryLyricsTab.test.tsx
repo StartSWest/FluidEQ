@@ -28,6 +28,7 @@ const mockPlayer = {
 
 jest.mock('renderer/library/player/LibraryPlayerContext', () => ({
   useLibraryPlayer: () => mockPlayer,
+  useLibraryPlayerSessionIfAny: () => undefined,
 }));
 
 const track = (id: string): ILibraryTrack => ({

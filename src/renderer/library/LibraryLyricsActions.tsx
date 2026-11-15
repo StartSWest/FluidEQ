@@ -27,6 +27,9 @@ import { useOpenInKaraoke } from './useOpenInKaraoke';
 interface ILibraryLyricsActionsProps {
   track: ILibraryTrack;
   lyrics: ILibraryLyrics;
+  /** The most completely timed words the song has, where they are not the
+   * ones shown: what Open in Karaoke hands over. */
+  forKaraoke?: ILibraryLyrics;
   onFind: () => void;
   /** The lyrics file was removed: read the song's lyrics again. */
   onRemoved: () => void;
@@ -46,13 +49,14 @@ interface ILibraryLyricsActionsProps {
 const LibraryLyricsActions = ({
   track,
   lyrics,
+  forKaraoke,
   onFind,
   onRemoved,
   source,
 }: ILibraryLyricsActionsProps) => {
   const { t } = useTranslation();
   const questionId = useId();
-  const karaoke = useOpenInKaraoke(track, lyrics);
+  const karaoke = useOpenInKaraoke(track, forKaraoke ?? lyrics);
   const remove = useLyricsRemove(track.id, lyrics, onRemoved);
   const { status } = remove;
 

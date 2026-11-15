@@ -686,6 +686,11 @@ export const LibraryPlayerProvider = ({
    * read either number. The clock has one visual consumer; the session has the
    * rest, so their context boundaries now match their actual update rates.
    */
+  // The published playhead behind a function that never changes, so reading
+  // it at a press redraws nothing (`readPositionMs` in `playerContract.ts`).
+  const positionNowRef = useRef(publishedPositionMs);
+  positionNowRef.current = publishedPositionMs;
+  const readPositionMs = useCallback(() => positionNowRef.current, []);
   const value = useMemo<ILibraryPlayerSession>(
     () => ({
       queue,
@@ -714,6 +719,7 @@ export const LibraryPlayerProvider = ({
       lastSurprise,
       skip,
       seek,
+      readPositionMs,
       setShuffle,
       cycleRepeat,
       registerVideoElement,
@@ -743,6 +749,7 @@ export const LibraryPlayerProvider = ({
       lastSurprise,
       skip,
       seek,
+      readPositionMs,
       setShuffle,
       cycleRepeat,
       registerVideoElement,

@@ -25,13 +25,28 @@ import LibraryLyricsTab from 'renderer/library/LibraryLyricsTab';
  * only a lyrics file FluidEQ may remove, and shows what is left.
  */
 
+/** The player the song is handed on from, or none (a panel without one). */
+let mockSession:
+  | {
+      track: { id: string } | undefined;
+      isPlaying: boolean;
+      readPositionMs: () => number;
+      toggle: jest.Mock;
+    }
+  | undefined;
+
 jest.mock('renderer/library/player/LibraryPlayerContext', () => ({
   useLibraryPlayer: () => ({
     positionMs: 0,
     isPlaying: false,
     seek: jest.fn(),
   }),
+  useLibraryPlayerSessionIfAny: () => mockSession,
 }));
+
+afterEach(() => {
+  mockSession = undefined;
+});
 
 const track = (id: string, path = `C:\\Music\\${id}.mp3`): ILibraryTrack => ({
   id,
@@ -166,6 +181,61 @@ describe('Open in Karaoke', () => {
     expect(lyricsFile.name).toBe(`${id}.lrc`);
     // Read as the Karaoke tab reads a lyrics file.
     const text = await readKaraokeTextFile(lyricsFile);
+    expect(parseLrc(text)).toEqual(
+      TIMED.lyrics?.kind === 'synced' ? TIMED.lyrics.lines : [],
+    );
+  });
+
+  // Ivan, 2026-11-15: "the same song playing in the same position, like
+  // continuing from the Library to the Karaoke, so it looks seamless".
+  it('carries the song on from where the Library has it, and pauses the Library', async () => {
+    const toggle = jest.fn();
+    mockSession = {
+      track: { id: `song-${songCount + 1}` },
+      isPlaying: true,
+      readPositionMs: () => 42_500,
+      toggle,
+    };
+    await show([TIMED]);
+    fireEvent.click(screen.getByRole('button', { name: /Open in Karaoke/ }));
+    const request = await requested();
+    expect(request.continueAt).toEqual({ positionMs: 42_500, isPlaying: true });
+    // Never two players at once.
+    expect(toggle).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts from the top a song the Library is not playing', async () => {
+    const toggle = jest.fn();
+    mockSession = {
+      track: { id: 'another-song' },
+      isPlaying: true,
+      readPositionMs: () => 42_500,
+      toggle,
+    };
+    await show([TIMED]);
+    fireEvent.click(screen.getByRole('button', { name: /Open in Karaoke/ }));
+    const request = await requested();
+    expect(request.continueAt).toBeUndefined();
+    expect(toggle).not.toHaveBeenCalled();
+  });
+
+  // Ivan, 2026-11-15: "when exporting to Karaoke I wanted to export also
+  // the word timing, so it was as complete as possible".
+  it('hands over the most completely timed words, not just the ones shown', async () => {
+    const lineTimed: ILibraryLyricsAnswer = {
+      lyrics: {
+        kind: 'synced',
+        source: 'lrc',
+        fileName: 'harbour.lrc',
+        lines: [{ timeMs: 1000, text: 'Ropes on the wall' }],
+      },
+      forKaraoke: TIMED.lyrics,
+      looked: [],
+    };
+    await show([lineTimed]);
+    fireEvent.click(screen.getByRole('button', { name: /Open in Karaoke/ }));
+    const request = await requested();
+    const text = await readKaraokeTextFile(request.lyrics as File);
     expect(parseLrc(text)).toEqual(
       TIMED.lyrics?.kind === 'synced' ? TIMED.lyrics.lines : [],
     );

@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ILibraryLyrics } from '../../common/library/lyrics';
 import type { ILibraryTrack } from '../../common/library/types';
 import { sendSongToKaraokeMaker } from './karaokeHandoff';
+import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
 import {
   canSendTrackToKaraoke,
   syncedLyricsAsKaraokeFile,
@@ -42,6 +43,11 @@ export const useOpenInKaraoke = (
   lyrics: ILibraryLyrics | undefined,
 ) => {
   const [state, setState] = useState<TOpenInKaraokeState>('idle');
+  // None in a panel shown without a player: the song is sent from its start.
+  const player = useLibraryPlayerSessionIfAny();
+  // Read at the press, not when the hook last rendered: the clock moves on.
+  const playerRef = useRef(player);
+  playerRef.current = player;
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
@@ -64,8 +70,26 @@ export const useOpenInKaraoke = (
           }
           return undefined;
         }
+        // THE SONG CARRIES ON IN THE MAKER (Ivan, 2026-11-15: "the same
+        // song playing in the same position, like continuing from the
+        // Library to the Karaoke, so it looks seamless"): where the Library
+        // has it, read as the bytes arrive, and the Library paused in the
+        // same breath so the two never play at once.
+        const now = playerRef.current;
+        const isThisSong = now !== undefined && now.track?.id === track.id;
+        if (isThisSong && now.isPlaying) {
+          now.toggle();
+        }
         sendSongToKaraokeMaker({
           audio,
+          ...(isThisSong
+            ? {
+                continueAt: {
+                  positionMs: now.readPositionMs(),
+                  isPlaying: now.isPlaying,
+                },
+              }
+            : {}),
           ...(lyrics.kind === 'synced'
             ? { lyrics: syncedLyricsAsKaraokeFile(track, lyrics.lines) }
             : { plainText: lyrics.text }),

@@ -206,6 +206,12 @@ export interface ILibraryPlayerContextValue {
   lastSurprise: ILastSurprise | undefined;
   skip: (direction: 1 | -1) => void;
   seek: (positionMs: number) => void;
+  /**
+   * Where the playhead is now, read when called: for a press that hands the
+   * song somewhere else (Open in Karaoke) and must not redraw at every tick
+   * to know it, as subscribing to the clock would make it.
+   */
+  readPositionMs: () => number;
   setShuffle: (isShuffled: boolean) => void;
   cycleRepeat: () => void;
   /**

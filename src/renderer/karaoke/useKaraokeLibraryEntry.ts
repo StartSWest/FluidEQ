@@ -24,6 +24,8 @@ interface IEntry extends IKaraokeMakerLibraryEntry {
   /** The song the Maker is to open on (`karaokeSongIdForFile`). */
   songId: string;
   origin: IKaraokeLibraryOrigin;
+  /** Where the Library had the song, for the Maker to carry on from. */
+  continueAt?: { positionMs: number; isPlaying: boolean };
   /** The Maker has been opened for it. */
   isOpened: boolean;
   /**
@@ -59,6 +61,8 @@ const useKaraokeLibraryEntry = (
     isMakerWorking,
     setIsMakerOpen,
     setRestoreMakerDraft,
+    session,
+    handleEditorPlay,
   } = stage;
   const { addFiles, makerAudio } = songs;
   const request = usePendingKaraokeMakerRequest();
@@ -96,6 +100,9 @@ const useKaraokeLibraryEntry = (
             origin: taken.origin,
             nonce,
             plainText: taken.plainText,
+            ...(taken.continueAt === undefined
+              ? {}
+              : { continueAt: taken.continueAt }),
             isOpened: false,
             isSpent: false,
           });
@@ -119,7 +126,24 @@ const useKaraokeLibraryEntry = (
     setRestoreMakerDraft(true);
     setIsMakerOpen(true);
     setEntry({ ...entry, isOpened: true });
-  }, [audioSongId, entry, setIsMakerOpen, setRestoreMakerDraft]);
+    // The song carries on where the Library left it: the same second, and
+    // playing if it was (`useOpenInKaraoke` paused the Library as it sent
+    // it). Through the Maker's own transport, so it plays as a press of the
+    // Maker's play does - no singer's count-in.
+    if (entry.continueAt !== undefined) {
+      session.seek(entry.continueAt.positionMs);
+      if (entry.continueAt.isPlaying) {
+        handleEditorPlay();
+      }
+    }
+  }, [
+    audioSongId,
+    entry,
+    handleEditorPlay,
+    session,
+    setIsMakerOpen,
+    setRestoreMakerDraft,
+  ]);
 
   useEffect(() => {
     if (entry?.isOpened === true && !entry.isSpent && !isMakerOpen) {

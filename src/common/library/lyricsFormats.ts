@@ -65,13 +65,6 @@ export type TLyricsFormat =
   | 'unreadable'
   | 'plain';
 
-/**
- * A silence between two lines this long is drawn as a pause (a stamped empty
- * line), as an `.lrc` writes one; shorter ones are a breath, and stamping
- * every subtitle's 100 ms gap would fill the tab with pause marks.
- */
-const PAUSE_GAP_MS = 2000;
-
 interface IReadLyrics {
   format: TLyricsFormat;
   lines?: ITimedLine[];
@@ -235,6 +228,48 @@ const innerBody = (record: TRecord): unknown => {
   }
 };
 
+/**
+ * The stanzas the shape's own `plain` text parts the lines into, as empty
+ * lines between them (Ivan, 2026-11-15: "show the same spaces between
+ * stanzas the original lyric has"): its timed lines carry no blank line, its
+ * plain text does. Read only where the plain text has exactly the timed
+ * lines' count of lines with words, so a text that says something else
+ * parts nothing. Each space stands a hundredth of a second before the line
+ * that opens the next stanza, so the two keep separate stamps in an `.lrc`.
+ */
+const withPlainStanzas = (
+  lines: ITimedLine[],
+  plain: unknown,
+): ITimedLine[] => {
+  if (typeof plain !== 'string') {
+    return lines;
+  }
+  const rows = plain.split('\n').map((row) => row.trim());
+  const opensStanza: boolean[] = [];
+  let afterBlank = false;
+  rows.forEach((row) => {
+    if (row === '') {
+      afterBlank = opensStanza.length > 0;
+      return;
+    }
+    opensStanza.push(afterBlank);
+    afterBlank = false;
+  });
+  if (opensStanza.length !== lines.length) {
+    return lines;
+  }
+  const sorted = [...lines].sort((a, b) => a.startMs - b.startMs);
+  return sorted.flatMap((line, at) => {
+    const previous = sorted[at - 1];
+    const spaceMs = line.startMs - 10;
+    return opensStanza[at] &&
+      previous !== undefined &&
+      spaceMs > previous.startMs
+      ? [{ startMs: spaceMs, text: '' }, line]
+      : [line];
+  });
+};
+
 const fromStructure = (
   value: unknown,
   isYaml: boolean,
@@ -260,7 +295,7 @@ const fromStructure = (
   if (lines !== undefined) {
     return {
       format: isYaml ? 'lines-yaml' : 'lines-json',
-      lines,
+      lines: withPlainStanzas(lines, value.plain),
       header: headerOf(value),
     };
   }
@@ -305,15 +340,23 @@ export const readLyricsFormat = (input: string): IReadLyrics => {
 
 /**
  * The read lines as the Library's: each line's text whitespace-tidied, its
- * pieces as words, in time order, with a pause stamped where a line ends
- * well before the next begins and after the last one.
+ * pieces as words, in time order - and nothing the file does not say.
+ *
+ * A pause used to be stamped wherever a line ended well before the next and
+ * after the last one, from each line's end time; a file's line ends are the
+ * least trustworthy numbers it carries (his word-timed YAML ended "Me dieron
+ * ganas de llorar" 360 ms after it began), and the tab drew rows of dots
+ * between lines sung straight through. Ivan, 2026-11-15: "just do as it
+ * comes in the lyric, don't invent - display exactly as it comes". A pause
+ * the file writes itself (an empty timed line, Spotify's instrumental note)
+ * is still read as one.
  */
 export const libraryLinesOf = (timed: readonly ITimedLine[]): ILyricsLine[] => {
   const sorted = [...timed]
     .sort((a, b) => a.startMs - b.startMs)
     .slice(0, MAX_LYRICS_LINES);
   const lines: ILyricsLine[] = [];
-  sorted.forEach((line, index) => {
+  sorted.forEach((line) => {
     const words =
       line.pieces === undefined
         ? undefined
@@ -324,14 +367,6 @@ export const libraryLinesOf = (timed: readonly ITimedLine[]): ILyricsLine[] => {
       .replace(/\s+/g, ' ')
       .trim();
     lines.push({ timeMs: line.startMs, text, ...(words ? { words } : {}) });
-    const nextStart = sorted[index + 1]?.startMs;
-    if (
-      line.endMs !== undefined &&
-      line.endMs > line.startMs &&
-      (nextStart === undefined || nextStart - line.endMs >= PAUSE_GAP_MS)
-    ) {
-      lines.push({ timeMs: line.endMs, text: '' });
-    }
   });
   return lines.slice(0, MAX_LYRICS_LINES);
 };

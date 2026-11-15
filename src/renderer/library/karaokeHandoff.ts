@@ -104,6 +104,14 @@ export interface IKaraokeMakerRequest {
   plainText?: string;
   /** Where the song lives in the Library, to save the timing back to. */
   origin: IKaraokeLibraryOrigin;
+  /**
+   * Where the Library had the song when it was sent, for the Maker to carry
+   * on from - the same second, playing if it was playing (Ivan, 2026-11-15:
+   * "the same song playing in the same position, like continuing from the
+   * Library to the Karaoke, so it looks seamless"). Absent when the song
+   * sent is not the one the Library has loaded.
+   */
+  continueAt?: { positionMs: number; isPlaying: boolean };
 }
 
 let pendingMaker: IKaraokeMakerRequest | undefined;

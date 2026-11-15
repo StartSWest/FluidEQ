@@ -375,13 +375,15 @@ describe("a song's lyrics, read from its tags and the files beside it", () => {
       );
     });
 
-    it('lets word timing in a .txt win over line timing in the .lrc', async () => {
+    it('keeps the .lrc the listener saved over a word-timed .txt', async () => {
+      // The .lrc is the file the Library writes: a stale .txt from an old
+      // import must not displace timing somebody fixed by hand.
       const file = song('Five.mp3', mpegFrames());
       fs.writeFileSync(path.join(dir, 'Five.lrc'), '[00:07.93]Ayer');
       fs.writeFileSync(path.join(dir, 'Five.txt'), WORD_YAML);
       expect((await readTrackLyrics(file)).lyrics).toMatchObject({
         kind: 'synced',
-        source: 'txt',
+        source: 'lrc',
       });
     });
 

@@ -41,12 +41,14 @@ const showsSaved = (lyrics: ILibraryLyrics, saved: TSaved): boolean =>
 const SourceFoot = ({
   track,
   lyrics,
+  forKaraoke,
   saved,
   onFind,
   onRemoved,
 }: {
   track: ILibraryTrack;
   lyrics: ILibraryLyrics;
+  forKaraoke: ILibraryLyrics | undefined;
   saved: TSaved | undefined;
   onFind: () => void;
   onRemoved: () => void;
@@ -76,6 +78,7 @@ const SourceFoot = ({
       <LibraryLyricsActions
         track={track}
         lyrics={lyrics}
+        forKaraoke={forKaraoke}
         onFind={onFind}
         onRemoved={onRemoved}
         source={
@@ -125,7 +128,7 @@ const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
     );
   }
 
-  const { lyrics, looked } = read.answer;
+  const { lyrics, looked, forKaraoke } = read.answer;
   // A file dropped on the words that needs a question or a refusal answered
   // brings up the import controls it is answered beside.
   const { state } = lyricsImport.status;
@@ -186,6 +189,7 @@ const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
         <SourceFoot
           track={track}
           lyrics={lyrics}
+          forKaraoke={forKaraoke}
           saved={
             lyricsImport.status.state === 'saved'
               ? lyricsImport.status

@@ -116,7 +116,6 @@ describe('the Lyrics tab’s channels', () => {
               { timeMs: 2400, text: 'rope' },
             ],
           },
-          { timeMs: 3000, text: '' },
         ],
       },
     });

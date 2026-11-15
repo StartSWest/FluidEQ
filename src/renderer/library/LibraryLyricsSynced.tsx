@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type ILyricsLine,
   type ILyricsWord,
@@ -100,17 +100,13 @@ const LyricsRow = memo(
   }) => {
     const stateClass = state === 'next' ? '' : ` is-${state}`;
     if (line.text === '') {
-      // A stamped pause: an instrumental stretch, drawn as one.
+      // The space between two stanzas, as the file leaves it: room, no mark.
       return (
         <li
-          className={`library-lyrics__gap${stateClass}`}
+          className="library-lyrics__stanza"
           data-line={index}
           aria-hidden="true"
-        >
-          <span />
-          <span />
-          <span />
-        </li>
+        />
       );
     }
     return (
@@ -143,10 +139,36 @@ const LyricsRow = memo(
  * or presses a line. Everything moves on the player's own clock — a reading
  * moves the line, a painted frame moves the word — and never on a timer.
  */
-const LibraryLyricsSynced = ({ lines }: { lines: readonly ILyricsLine[] }) => {
+const LibraryLyricsSynced = ({
+  lines: allLines,
+}: {
+  lines: readonly ILyricsLine[];
+}) => {
+  // The words and their times, and the stanzas as the file parts them -
+  // never a row of dots, which drew pauses between lines sung straight
+  // through (Ivan, 2026-11-15: "only the lyrics, with the times they come",
+  // "show the same spaces between stanzas the original lyric has", "one for
+  // each space, never double"). An empty timed line is one space; a run of
+  // them is still one, and none stands before the first words or after the
+  // last.
+  const lines = useMemo(() => {
+    let lastWords = allLines.length - 1;
+    while (lastWords >= 0 && allLines[lastWords].text === '') {
+      lastWords -= 1;
+    }
+    return allLines.filter(
+      (line, at) =>
+        line.text !== '' ||
+        (at > 0 && at < lastWords && allLines[at - 1].text !== ''),
+    );
+  }, [allLines]);
   const { t } = useTranslation();
   const { positionMs, isPlaying, seek, toggle } = useLibraryPlayer();
-  const active = reachedIndex(lines, positionMs);
+  // Through a stanza's space the line sung last stays lit until the next
+  // begins: the space is never the song's place.
+  const reached = reachedIndex(lines, positionMs);
+  const active =
+    reached > 0 && lines[reached].text === '' ? reached - 1 : reached;
   const listRef = useRef<HTMLOListElement>(null);
   const [isFollowing, setIsFollowing] = useState(true);
   /** The first placement jumps; after it, the line glides to its place. */

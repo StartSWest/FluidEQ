@@ -61,6 +61,10 @@ import {
   readLyricsFormat,
 } from '../../common/library/lyricsFormats';
 import { LYRICS_FILE_EXTENSIONS } from '../../common/library/lyricsImport';
+import {
+  stanzaLayoutOf,
+  withStanzas,
+} from '../../common/library/lyricsStanzas';
 import { sidecarPath, storedLyricsPath } from './libraryLyricsPlaces';
 
 /**
@@ -206,12 +210,7 @@ const lyricsOfText = (
   return lyricsFromText(text, source, fileName);
 };
 
-/**
- * How much timing a lyrics answer carries: words, then lines, then none. Of
- * everything found, the richest wins; on a tie the first found, in the
- * order tags, the `.lrc`, the `.txt`, FluidEQ's own folder. A line-timed
- * `.lrc` from an older save used to win over word timing beside it.
- */
+/** How much timing lyrics carry: words, then lines, then none. */
 const timingRank = (lyrics: ILibraryLyrics): number => {
   if (lyrics.kind === 'plain') {
     return 0;
@@ -347,13 +346,39 @@ export const readTrackLyrics = async (
   const candidates = [...tagged, lrc, txt, ...kept].filter(
     (lyrics): lyrics is ILibraryLyrics => lyrics !== undefined,
   );
-  // The richest timing found, the first found among equals.
-  const lyrics = candidates.reduce<ILibraryLyrics | undefined>(
+  // The first timed answer, in the order tags, the `.lrc`, the `.txt`,
+  // FluidEQ's own folder; then the first plain one. NOT the richest timing:
+  // that was tried (2026-11-15) and put a stale word-timed `.txt` from an
+  // old import over the `.lrc` the listener had timed by hand and saved -
+  // the `.lrc` is the file the Library itself writes, so it speaks for the
+  // song.
+  const chosen =
+    candidates.find((candidate) => candidate.kind === 'synced') ??
+    candidates.find((candidate) => candidate.kind === 'plain');
+  if (chosen === undefined) {
+    return { looked };
+  }
+  // Timed lines parted into the stanzas of the words as written beside them,
+  // where the song has such words (`lyricsStanzas.ts`).
+  let lyrics = chosen;
+  if (chosen.kind === 'synced') {
+    const layout = candidates
+      .filter((candidate) => candidate !== chosen)
+      .map(stanzaLayoutOf)
+      .find((found) => found !== undefined);
+    const parted =
+      layout === undefined ? undefined : withStanzas(chosen.lines, layout);
+    if (parted !== undefined) {
+      lyrics = { ...chosen, lines: parted };
+    }
+  }
+  // For the Karaoke, the most timing any source carries (`forKaraoke`).
+  const richest = candidates.reduce(
     (best, candidate) =>
-      best === undefined || timingRank(candidate) > timingRank(best)
-        ? candidate
-        : best,
-    undefined,
+      timingRank(candidate) > timingRank(best) ? candidate : best,
+    chosen,
   );
-  return lyrics === undefined ? { looked } : { lyrics, looked };
+  return richest === chosen
+    ? { lyrics, looked }
+    : { lyrics, forKaraoke: richest, looked };
 };

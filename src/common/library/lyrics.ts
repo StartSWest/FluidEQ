@@ -58,6 +58,15 @@ export type ILibraryLyrics =
 export interface ILibraryLyricsAnswer {
   /** Nothing when no source had words. */
   lyrics?: ILibraryLyrics;
+  /**
+   * The song's most completely timed words where they are not the ones
+   * shown: word timing in a `.txt` beside a line-timed `.lrc`, say. The
+   * Lyrics tab shows `lyrics`, the file that speaks for the song; Open in
+   * Karaoke hands over these, so the Maker starts as complete as it can
+   * (Ivan, 2026-11-15: "when exporting to Karaoke I wanted to export also
+   * the word timing, so it was as complete as possible").
+   */
+  forKaraoke?: ILibraryLyrics;
   /** The sidecar names looked for, by name only, for the empty state. */
   looked: string[];
 }

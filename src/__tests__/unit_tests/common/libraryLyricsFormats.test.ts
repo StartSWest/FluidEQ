@@ -69,13 +69,11 @@ plain: |-
 `;
 
 describe('the lines and words JSON, and its YAML twin', () => {
-  it('reads the YAML export with its word times, and a pause where it rests', () => {
+  it('reads the YAML export with its word times, and nothing it does not say', () => {
     expect(readLyricsFormat(YAML).format).toBe('lines-yaml');
     expect(starts(YAML)).toEqual([
       [7930, 'Salt on the rope'],
-      [9800, ''],
       [14000, 'Gulls over the ferry'],
-      [16500, ''],
     ]);
     expect(wordStarts(YAML)).toEqual([
       [7930, 'Salt '],
@@ -89,11 +87,27 @@ describe('the lines and words JSON, and its YAML twin', () => {
     );
   });
 
+  // A line's end is the least trustworthy number in these files, and no
+  // pause is made from it (Ivan, 2026-11-15: "just do as it comes in the
+  // lyric, don't invent").
+  it('never invents a pause from a line end, however long the break', () => {
+    const text = JSON.stringify({
+      lines: [
+        { text: 'Salt on the rope', start_ms: 7930, end_ms: 9800 },
+        { text: 'Gulls over the ferry', start_ms: 30000, end_ms: 32000 },
+      ],
+    });
+    expect(starts(text)).toEqual([
+      [7930, 'Salt on the rope'],
+      [30000, 'Gulls over the ferry'],
+    ]);
+  });
+
   it('reads the same shape as JSON', () => {
     const json = JSON.stringify(parseLyricsYaml(YAML));
     expect(readLyricsFormat(json).format).toBe('lines-json');
     expect(starts(json)).toEqual(starts(YAML));
-    expect(wordStarts(json, 2)).toEqual([
+    expect(wordStarts(json, 1)).toEqual([
       [14000, 'Gulls '],
       [14650, 'over '],
       [15200, 'the '],
@@ -148,11 +162,8 @@ describe('TTML', () => {
     expect(readLyricsFormat(TTML).format).toBe('ttml');
     expect(starts(TTML)).toEqual([
       [7930, 'Salt on the rope(ho)'],
-      [9800, ''],
       [14000, 'Gulls over the fer&ry'],
-      [16500, ''],
       [20000, 'A line timed <whole> on two rows'],
-      [22000, ''],
     ]);
     expect(wordStarts(TTML)).toEqual([
       [7930, 'Salt '],
@@ -161,7 +172,7 @@ describe('TTML', () => {
       [9120, 'rope'],
       [9300, '(ho)'],
     ]);
-    expect(wordStarts(TTML, 2)?.map(([time]) => time)).toEqual([
+    expect(wordStarts(TTML, 1)?.map(([time]) => time)).toEqual([
       14000, 14650, 15200, 15600,
     ]);
   });
@@ -174,9 +185,7 @@ describe('SubRip and WebVTT', () => {
     expect(readLyricsFormat(srt).format).toBe('srt');
     expect(starts(srt)).toEqual([
       [7930, 'Salt on the rope'],
-      [9800, ''],
       [14000, 'Gulls over the ferry'],
-      [16500, ''],
     ]);
   });
 
@@ -198,9 +207,7 @@ intro
     expect(readLyricsFormat(vtt).format).toBe('vtt');
     expect(starts(vtt)).toEqual([
       [7930, 'Salt on the rope'],
-      [9800, ''],
       [14000, 'Gulls over the ferry'],
-      [16500, ''],
     ]);
     expect(wordStarts(vtt)).toEqual([
       [7930, 'Salt '],
@@ -241,7 +248,6 @@ describe('Musixmatch and Spotify', () => {
     expect(starts(text)).toEqual([
       [7930, 'Salt on the rope'],
       [10200, 'Gulls'],
-      [12000, ''],
     ]);
     expect(wordStarts(text)).toEqual([
       [7930, 'Salt '],

@@ -75,6 +75,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The space between two stanzas, where the file leaves an empty line: room
+// and nothing in it, about half a line, so the verses part as they do in the
+// words as written (Ivan, 2026-11-15) - one, however many empty lines.
+.library-lyrics__stanza {
+  height: 14px;
+}
+
 // A line: the song's next lines in the quiet ink, the ones sung quieter, the
 // one being sung in full ink on a step of light with the accent's bar inset
 // on its leading edge — the rail's mark for "here". One size and one weight
@@ -125,30 +132,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-lyrics__word.is-sung {
   color: $text-primary;
-}
-
-// A stamped pause, an instrumental stretch: three dots, lit in the accent
-// while it is the song's place.
-.library-lyrics__gap {
-  display: flex;
-  gap: 5px;
-  padding: 12px 12px 12px 14px;
-
-  > span {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: $studio-t3;
-    transition: $transition-control;
-  }
-
-  &.is-past > span {
-    opacity: 0.6;
-  }
-
-  &.is-active > span {
-    background: $secondary-default;
-  }
 }
 
 // The lines and the button back to the song: the box the button floats in.
