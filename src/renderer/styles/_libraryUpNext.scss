@@ -64,41 +64,73 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Its contents are squeezed while it is narrower than they are, and never
   // drawn outside it.
   overflow: hidden;
-  // Opening: the column widens, the contents follow a quarter of the way in,
-  // when it is already most of the way open on this curve. `transform` is
-  // the full-screen slide out of the picture's way.
+  // THE COLUMN NEVER WIDENS BY DEGREES (Ivan, 2026-11-15: "fix the glitch in
+  // the grid when animating the side pane in - it seems like the grid is
+  // trying to figure out how many columns"). A width eased over the move
+  // re-laid the shelf on every frame, and the grid of covers counted its
+  // columns again each time: tiles jumping between seven and five across.
+  // Opening, the column takes its width at once - the shelf re-lays once -
+  // and the queue slides in from its edge and fades up in it; folding, the
+  // queue slides out first and the column gives its width back once it has
+  // gone. `translate` carries the slide, as `transform` is the full-screen
+  // slide out of the picture's way.
+  translate: 0 0;
   transition:
-    width var(--up-next-move) $ease-out,
-    padding var(--up-next-move) $ease-out,
+    translate var(--up-next-move) $ease-out,
     opacity var(--up-next-settle) ease-out,
     transform var(--up-next-chrome) $ease-out;
 
-  > * {
-    transition: opacity var(--up-next-settle) ease-out
-      calc(var(--up-next-move) * 0.25);
-  }
-
-  // Folding: the contents go first, quickly, so nothing is seen being
-  // squeezed; the column follows them out, its padding closing with it so no
-  // sliver is left at the edge, and it is hidden once shut so nothing in it
-  // can be hovered.
+  // Shut: slid out and faded, then the width and the padding go in one step
+  // when the slide is over, and it is hidden so nothing in it can be hovered.
   &.is-collapsed {
     width: 0;
     padding-inline: 0;
     opacity: 0;
+    translate: 24px 0;
     visibility: hidden;
     transition:
-      width var(--up-next-move) $ease-out,
-      padding var(--up-next-move) $ease-out,
-      opacity calc(var(--up-next-move) * 0.5) ease-out
-        calc(var(--up-next-move) * 0.2),
+      translate var(--up-next-move) $ease-out,
+      opacity calc(var(--up-next-move) * 0.6) ease-in,
+      width 0s linear var(--up-next-move),
+      padding 0s linear var(--up-next-move),
       visibility 0s linear var(--up-next-move),
       transform var(--up-next-chrome) $ease-out;
+  }
+}
 
-    > * {
-      opacity: 0;
-      transition: opacity 90ms ease-out;
-    }
+// ARRIVING OPEN, IT OPENS (Ivan, 2026-11-15: "animate the Up Next pane as it
+// does when opening, but also when coming to the UI if it is open"). The
+// workspace is built anew each time its tab opens, and an open queue stood
+// there from the first frame while the rail rose in beside it. Mounted open,
+// it plays its own opening - the slide in from its edge and the fade, at its
+// full width from the first frame so the shelf lays out once; on a narrow
+// card the sheet slides in from the card's edge.
+@keyframes up-next-open {
+  from {
+    opacity: 0;
+    translate: 24px 0;
+  }
+}
+
+@keyframes up-next-sheet-in {
+  from {
+    transform: translateX(calc(100% + 32px));
+  }
+}
+
+.library-up-next:not(.is-collapsed) {
+  animation: up-next-open var(--up-next-move) $ease-out backwards;
+}
+
+.library-workspace.has-up-next-floating
+  .library-side
+  .library-up-next:not(.is-collapsed) {
+  animation: up-next-sheet-in var(--up-next-move) $ease-out backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-up-next:not(.is-collapsed) {
+    animation: none;
   }
 }
 
