@@ -140,7 +140,11 @@ const useLibraryWorkspaceShelf = ({
   const hadUpNextRef = useRef(rememberedFold !== undefined);
   useEffect(() => {
     const has = upNext.length > 0;
-    if (has && !hadUpNextRef.current) {
+    // Folded by the reader, it stays folded whatever starts playing (Ivan,
+    // 2026-11-15: "if Up Next is closed it needs to keep closed on
+    // changes"): the list filling again is not a reason to open it.
+    const isFoldedByChoice = readPersistedText(UP_NEXT_COLLAPSED_KEY) === 'on';
+    if (has && !hadUpNextRef.current && !isFoldedByChoice) {
       setIsUpNextCollapsed(false);
     }
     hadUpNextRef.current = has;
