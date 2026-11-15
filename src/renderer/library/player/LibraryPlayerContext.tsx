@@ -443,6 +443,7 @@ export const LibraryPlayerProvider = ({
     continuedIdsRef,
     playedIdsRef,
     isGuess,
+    isDrawingMore,
   } = useUpNext({
     queue,
     trackId,
@@ -691,6 +692,7 @@ export const LibraryPlayerProvider = ({
       retargetQueue,
       topUpQueue,
       upNext,
+      isDrawingMore,
       isContinuationOn,
       setIsContinuationOn,
       jumpToQueuePosition,
@@ -718,6 +720,7 @@ export const LibraryPlayerProvider = ({
       retargetQueue,
       topUpQueue,
       upNext,
+      isDrawingMore,
       isContinuationOn,
       setIsContinuationOn,
       jumpToQueuePosition,

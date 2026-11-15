@@ -59,6 +59,41 @@ export const LibraryUpNextKeepRow = ({
   );
 };
 
+/** As many as fill the panel's opening height without a scrollbar. */
+const FILLING_ROWS = 4;
+
+/**
+ * The songs Keep playing is fetching, before they arrive.
+ *
+ * Drawn as the list's own heading and rows, at the rows' own 42px, so the
+ * answer lands in place: the panel keeps its shape, and only the words and
+ * covers appear.
+ */
+export const LibraryUpNextFilling = () => {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="library-up-next__filling"
+      role="status"
+      aria-busy="true"
+      aria-label={t('library.upNext.continued')}
+    >
+      <p className="library-up-next__section is-continued" aria-hidden="true">
+        {t('library.upNext.continued')}
+      </p>
+      {Array.from({ length: FILLING_ROWS }, (_, index) => (
+        <div key={index} className="library-up-next__ghost" aria-hidden="true">
+          <span className="library-up-next__ghost-cover" />
+          <span className="library-up-next__ghost-text">
+            <span className="library-up-next__ghost-bar" />
+            <span className="library-up-next__ghost-bar is-short" />
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 /**
  * An empty queue, and the way to start one.
  *

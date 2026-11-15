@@ -157,6 +157,12 @@ export interface ILibraryPlayerContextValue {
   isContinuationOn: boolean;
   setIsContinuationOn: (next: boolean) => void;
   /**
+   * Keep playing is about to add, or is asking for, more songs after the
+   * last one (`useUpNext`). Up Next shows the rows coming rather than its
+   * empty state, so a Surprise me press does not flash "nothing queued".
+   */
+  isDrawingMore: boolean;
+  /**
    * Straight to a track already in the queue, without rebuilding it.
    *
    * `playTracks` would do the job but at a price: it builds a new queue, and

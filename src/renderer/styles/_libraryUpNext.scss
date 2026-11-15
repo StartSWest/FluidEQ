@@ -934,6 +934,80 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-bottom-style: dashed;
 }
 
+// *** Keep playing's songs on their way ****************************************
+//
+// The rows a continuation is about to fill, in a row's own measurements
+// (42px, a 30px cover, the same padding and gap), so the answer lands where
+// these stand and nothing below them moves. Faded in rather than cut in: the
+// ask usually answers in a few frames and the bars should not blink.
+.library-up-next__filling {
+  display: flex;
+  flex-direction: column;
+  animation: fade-in $motion-slow ease-out backwards;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.library-up-next__ghost {
+  display: flex;
+  height: 42px;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 5px 6px;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.library-up-next__ghost-cover,
+.library-up-next__ghost-bar {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 4%, transparent) 0%,
+    color-mix(in srgb, $white 9%, transparent) 50%,
+    color-mix(in srgb, $white 4%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: library-up-next-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.library-up-next__ghost-cover {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: $radius-s;
+}
+
+.library-up-next__ghost-text {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 6px;
+}
+
+.library-up-next__ghost-bar {
+  width: 70%;
+  height: 8px;
+  border-radius: $radius-pill;
+
+  &.is-short {
+    width: 42%;
+    height: 6px;
+  }
+}
+
+@keyframes library-up-next-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
 // *** Two groups that are always their glyphs ********************************
 //
 // Not a breakpoint, because measuring said it should not be one. The row holds

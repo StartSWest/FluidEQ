@@ -42,10 +42,12 @@ let mockUpNext: {
   isContinued: boolean;
 }[] = [];
 const mockSurprise = jest.fn<Promise<string | null>, []>();
+let mockIsDrawingMore = false;
 
 jest.mock('renderer/library/player/LibraryPlayerContext', () => ({
   useLibraryPlayerSession: () => ({
     upNext: mockUpNext,
+    isDrawingMore: mockIsDrawingMore,
     jumpToQueuePosition: () => undefined,
     removeUpNextAt: () => undefined,
     moveUpNext: () => undefined,
@@ -86,6 +88,7 @@ const animationEnded = (element: Element, animationName: string) => {
 };
 
 beforeEach(() => {
+  mockIsDrawingMore = false;
   mockSurprise.mockReset();
   mockSurprise.mockResolvedValue('t9');
 });
@@ -178,5 +181,40 @@ describe('Surprise me in Up Next', () => {
     expect(button).toHaveClass('is-sparking');
     animationEnded(button, 'library-surprise-spark');
     expect(button).not.toHaveClass('is-sparking');
+  });
+});
+
+describe('Up Next while Keep playing is drawing more', () => {
+  it('shows the rows on their way, never the empty queue, after a surprise leaves only the pick', () => {
+    mockUpNext = [];
+    mockIsDrawingMore = true;
+    const { container } = panel(true);
+    const filling = screen.getByRole('status', { name: 'More like this' });
+    expect(filling).toHaveAttribute('aria-busy', 'true');
+    expect(container.querySelectorAll('.library-up-next__ghost')).toHaveLength(
+      4,
+    );
+    expect(screen.queryByText('Nothing queued yet')).toBeNull();
+    expect(container.querySelector('.library-up-next__start')).toBeNull();
+    // The small Surprise me stays on the Keep playing row, as over a list.
+    const [button] = surpriseButtons();
+    expect(surpriseButtons()).toHaveLength(1);
+    expect(button.closest('.library-up-next__keep')).not.toBeNull();
+  });
+
+  it('shows the empty queue once nothing more is coming', () => {
+    mockUpNext = [];
+    mockIsDrawingMore = false;
+    const { container } = panel(true);
+    expect(screen.queryByRole('status', { name: 'More like this' })).toBeNull();
+    expect(container.querySelector('.library-up-next__start')).not.toBeNull();
+  });
+
+  it('draws the list itself, not the placeholders, once songs are queued', () => {
+    mockUpNext = queued();
+    mockIsDrawingMore = true;
+    const { container } = panel(true);
+    expect(container.querySelector('.library-up-next__filling')).toBeNull();
+    expect(container.querySelector('.library-up-next__list')).not.toBeNull();
   });
 });

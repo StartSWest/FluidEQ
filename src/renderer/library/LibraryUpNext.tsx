@@ -31,6 +31,7 @@ import { useLibraryTracks } from './useLibraryTracks';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryCoverArt from './LibraryCoverArt';
 import {
+  LibraryUpNextFilling,
   LibraryUpNextKeepRow,
   LibraryUpNextStart,
 } from './LibraryUpNextControls';
@@ -232,8 +233,13 @@ const LibraryUpNext = ({
   restTotal: number | undefined;
 }) => {
   const { t } = useTranslation();
-  const { upNext, jumpToQueuePosition, removeUpNextAt, moveUpNext } =
-    useLibraryPlayerSession();
+  const {
+    upNext,
+    isDrawingMore,
+    jumpToQueuePosition,
+    removeUpNextAt,
+    moveUpNext,
+  } = useLibraryPlayerSession();
 
   const listRef = useRef<HTMLDivElement | null>(null);
   /** Where the list is scrolled to, rounded down to a `SCROLL_STEP`. */
@@ -426,8 +432,17 @@ const LibraryUpNext = ({
       {/* Outside the fold button rather than inside it — a control cannot
           be nested in another control. One Surprise me at a time: an empty
           queue offers its own, larger, below. */}
-      <LibraryUpNextKeepRow canSurprise={canSurprise && trackCount > 0} />
-      {trackCount === 0 && <LibraryUpNextStart canSurprise={canSurprise} />}
+      <LibraryUpNextKeepRow
+        canSurprise={canSurprise && (trackCount > 0 || isDrawingMore)}
+      />
+      {/* Keep playing's next songs on their way: the rows they will fill,
+          not the empty queue's invitation. Between a Surprise me press and
+          its continuation the queue holds only the pick, and the empty state
+          stood there for the length of the ask, then gave way to the list. */}
+      {trackCount === 0 && isDrawingMore && <LibraryUpNextFilling />}
+      {trackCount === 0 && !isDrawingMore && (
+        <LibraryUpNextStart canSurprise={canSurprise} />
+      )}
       {trackCount > 0 && (
         <div
           ref={listRef}

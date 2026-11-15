@@ -112,3 +112,54 @@ describe('Keep playing', () => {
     expect(made.queue()?.order).toEqual([0, 1, 2]);
   });
 });
+
+describe('Up Next while Keep playing is drawing', () => {
+  it('says it is drawing from the first render on the last song, before any answer', () => {
+    queryLibrary.mockReturnValue(
+      new Promise(() => {
+        // Never settles: the ask is still out.
+      }),
+    );
+    const made = mount(queueAt(2));
+    expect(made.hook.result.current.isDrawingMore).toBe(true);
+  });
+
+  it('says nothing while songs of the list are still to come', () => {
+    const made = mount(queueAt(1));
+    expect(made.hook.result.current.isDrawingMore).toBe(false);
+  });
+
+  it('stops saying it once the drawn songs are in the queue', async () => {
+    const made = mount(queueAt(2));
+    await waitFor(() => expect(made.queue()?.order).toHaveLength(5));
+    made.redraw();
+    expect(made.hook.result.current.isDrawingMore).toBe(false);
+  });
+
+  it('stops saying it when the store has nothing more', async () => {
+    queryLibrary.mockResolvedValue([]);
+    const made = mount(queueAt(2));
+    await waitFor(() =>
+      expect(made.hook.result.current.isDrawingMore).toBe(false),
+    );
+    expect(continuationAsks()).toHaveLength(1);
+  });
+
+  it('stops saying it when the ask fails', async () => {
+    const quiet = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    queryLibrary.mockRejectedValue(new Error('store gone'));
+    const made = mount(queueAt(2));
+    await waitFor(() =>
+      expect(made.hook.result.current.isDrawingMore).toBe(false),
+    );
+    quiet.mockRestore();
+  });
+
+  it('says nothing while it is switched off', () => {
+    window.localStorage.setItem('fluideq.library.keepPlaying', 'off');
+    const made = mount(queueAt(2));
+    expect(made.hook.result.current.isDrawingMore).toBe(false);
+  });
+});

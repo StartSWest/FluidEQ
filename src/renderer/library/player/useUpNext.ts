@@ -66,6 +66,15 @@ export interface IUpNext {
    * drawn from it (the amp's) is drawn again.
    */
   isGuess: (trackId: string) => boolean;
+  /**
+   * Whether continuation is about to append, or is out asking for, more of
+   * the playing song's genre: the queue is on its last song and the store
+   * has not yet said it has nothing more. Read in the same render the queue
+   * reaches its last song, never from the ask's own start, so the panel
+   * never draws a frame of "nothing queued" between a Surprise me press and
+   * the rows that follow it.
+   */
+  isDrawingMore: boolean;
 }
 
 export const useUpNext = (options: {
@@ -160,6 +169,18 @@ export const useUpNext = (options: {
   // loudness measured — does not ask for more while the first ask is out.
   const seedKind =
     playing === undefined ? undefined : trackById.get(playing)?.kind;
+  /** The last song the store answered "nothing more" for, or failed on. */
+  const [exhaustedSeed, setExhaustedSeed] = useState<string | undefined>(
+    undefined,
+  );
+  const wantsMore =
+    isContinuationOn &&
+    queue !== undefined &&
+    queue.repeat === 'off' &&
+    isOnLastSong(queue) &&
+    playing !== undefined &&
+    seedKind === 'audio';
+  const isDrawingMore = wantsMore && exhaustedSeed !== playing;
   useEffect(() => {
     // `repeat` other than 'off' means the queue never runs out — 'all' wraps
     // and 'one' holds — so there is nothing here to answer.
@@ -185,7 +206,11 @@ export const useUpNext = (options: {
         // stops at the end of the run, which is the honest answer — better
         // than starting the same forty songs again without being asked. And
         // a queue that moved while this was out asks again for itself.
-        if (!isCurrent || picked.length === 0) {
+        if (!isCurrent) {
+          return undefined;
+        }
+        if (picked.length === 0) {
+          setExhaustedSeed(playing);
           return undefined;
         }
         setContinuedIds((current) => {
@@ -216,6 +241,9 @@ export const useUpNext = (options: {
       .catch((error: unknown) => {
         // eslint-disable-next-line no-console -- context-rich error before it is dropped; the run ends where it ends
         console.error('Could not draw songs to keep playing', error);
+        if (isCurrent) {
+          setExhaustedSeed(playing);
+        }
       });
     return () => {
       isCurrent = false;
@@ -298,5 +326,6 @@ export const useUpNext = (options: {
     continuedIdsRef,
     playedIdsRef: playedIds,
     isGuess,
+    isDrawingMore,
   };
 };
