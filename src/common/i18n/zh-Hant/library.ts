@@ -32,6 +32,7 @@ const library = {
   'library.rail.library': '媒體庫',
   'library.rail.allPlaylists': '全部播放清單',
   'library.roots.manage': '管理資料夾',
+  'library.rail.resize': '清單寬度',
   'library.tree.more': '還有 {count} 個…',
   'library.history': '返回與前進',
   'library.forward': '前進',

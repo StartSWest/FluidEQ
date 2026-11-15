@@ -53,6 +53,7 @@ const library: Partial<Dictionary> = {
   'library.rail.library': 'लाइब्रेरी',
   'library.rail.allPlaylists': 'सभी प्लेलिस्ट',
   'library.roots.manage': 'आपके फ़ोल्डर',
+  'library.rail.resize': 'सूची की चौड़ाई',
   'library.tree.more': '{count} और…',
   'library.history': 'पीछे और आगे',
   'library.forward': 'आगे',

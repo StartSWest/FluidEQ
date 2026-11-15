@@ -19,13 +19,7 @@ import Switch from '../widgets/Switch';
  * the panel is too narrow for both, it takes the next line, at the right,
  * rather than covering the switch's words.
  */
-export const LibraryUpNextKeepRow = ({
-  canSurprise,
-}: {
-  /** The button is offered only while there is a shelf to surprise from
-   * and the empty queue's own larger one is not already on screen. */
-  canSurprise: boolean;
-}) => {
+export const LibraryUpNextKeepRow = () => {
   const { t } = useTranslation();
   const { isContinuationOn, setIsContinuationOn } = useLibraryPlayerSession();
   return (
@@ -49,19 +43,65 @@ export const LibraryUpNextKeepRow = ({
           {t('library.upNext.keepPlaying')}
         </label>
       </span>
-      {canSurprise && (
-        <LibrarySurpriseButton
-          // Quiet beside the record's Play, which is the one loud button on
-          // the screen; the empty queue's own invitation stays loud.
-          className="small subtle library-up-next__surprise"
-          title={t('library.upNext.surpriseHint')}
-        />
+    </div>
+  );
+};
+
+/**
+ * Surprise me at the foot of the queue, one button in one place whether the
+ * queue holds songs or nothing (Ivan, 2026-11-15: "Surprise me button at the
+ * bottom of the Up next", then "it needs to be the same for both cases, I
+ * like the filled version"). It stood squeezed beside Keep playing over a
+ * list and large in the middle of an empty queue - two buttons for one
+ * action. Filled, as he chose.
+ *
+ * While the queue is empty its line stands under it: what it does, or what
+ * the end of the song will do, or - a library with nothing it can play
+ * (every song on a drive that is not plugged in, or only videos) - that
+ * there is nothing to pick, because a press that visibly does nothing reads
+ * as a broken button.
+ */
+export const LibraryUpNextFoot = ({
+  isQueueEmpty,
+}: {
+  isQueueEmpty: boolean;
+}) => {
+  const { t } = useTranslation();
+  const { isContinuationOn, track, repeat } = useLibraryPlayerSession();
+  const [isNothingToPlay, setIsNothingToPlay] = useState(false);
+  // Said while a song stands with nothing after it and its end will press
+  // Surprise me by itself (`useSurpriseAtEnd`): a next song nobody queued
+  // must not arrive unannounced.
+  const surprisesNext =
+    repeat === 'off' &&
+    surprisesAtEnd({ isContinuationOn, endedKind: track?.kind });
+  return (
+    <div className="library-up-next__foot">
+      <LibrarySurpriseButton
+        className="small library-up-next__surprise"
+        title={t('library.upNext.surpriseHint')}
+        onAnswer={(picked) => setIsNothingToPlay(picked === null)}
+      />
+      {isQueueEmpty && (
+        <p
+          className={`library-up-next__start-hint${
+            isNothingToPlay ? ' is-nothing' : ''
+          }`}
+          // Said aloud when it changes to "nothing can be played": the press
+          // that caused it moved no focus and started no sound.
+          aria-live="polite"
+        >
+          {isNothingToPlay && t('library.upNext.surpriseNothing')}
+          {!isNothingToPlay &&
+            (surprisesNext
+              ? t('library.upNext.surpriseNext')
+              : t('library.upNext.surpriseStart'))}
+        </p>
       )}
     </div>
   );
 };
 
-/** As many as fill the panel's opening height without a scrollbar. */
 const FILLING_ROWS = 4;
 
 /**
@@ -97,55 +137,11 @@ export const LibraryUpNextFilling = () => {
 };
 
 /**
- * An empty queue, and the way to start one.
- *
- * Nothing queued is the moment Surprise me is most useful, so it is offered
- * there at full size with what it does written under it — the hint the
- * small one keeps in its tooltip. A library with nothing it can play (every
- * song on a drive that is not plugged in, or only videos) answers no song;
- * the line under the button then says so, because a press that visibly does
- * nothing reads as a broken button.
+ * An empty queue: what it is, in the middle of the column. The way to start
+ * one is the queue's own foot (`LibraryUpNextFoot`), where it stands whatever
+ * the queue holds.
  */
-export const LibraryUpNextStart = ({
-  canSurprise,
-}: {
-  canSurprise: boolean;
-}) => {
+export const LibraryUpNextStart = () => {
   const { t } = useTranslation();
-  const { isContinuationOn, track, repeat } = useLibraryPlayerSession();
-  const [isNothingToPlay, setIsNothingToPlay] = useState(false);
-  // Said while a song stands with nothing after it and its end will press
-  // Surprise me by itself (`useSurpriseAtEnd`): a next song nobody queued
-  // must not arrive unannounced.
-  const surprisesNext =
-    repeat === 'off' &&
-    surprisesAtEnd({ isContinuationOn, endedKind: track?.kind });
-  if (!canSurprise) {
-    return (
-      <p className="library-up-next__empty">{t('library.upNext.empty')}</p>
-    );
-  }
-  return (
-    <div className="library-up-next__start">
-      <p className="library-up-next__empty">{t('library.upNext.empty')}</p>
-      <LibrarySurpriseButton
-        className="library-up-next__start-button"
-        onAnswer={(picked) => setIsNothingToPlay(picked === null)}
-      />
-      <p
-        className={`library-up-next__start-hint${
-          isNothingToPlay ? ' is-nothing' : ''
-        }`}
-        // Said aloud when it changes to "nothing can be played": the press
-        // that caused it moved no focus and started no sound.
-        aria-live="polite"
-      >
-        {isNothingToPlay && t('library.upNext.surpriseNothing')}
-        {!isNothingToPlay &&
-          (surprisesNext
-            ? t('library.upNext.surpriseNext')
-            : t('library.upNext.surpriseStart'))}
-      </p>
-    </div>
-  );
+  return <p className="library-up-next__empty">{t('library.upNext.empty')}</p>;
 };

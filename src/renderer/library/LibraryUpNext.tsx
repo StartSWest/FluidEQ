@@ -32,6 +32,7 @@ import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryCoverArt from './LibraryCoverArt';
 import {
   LibraryUpNextFilling,
+  LibraryUpNextFoot,
   LibraryUpNextKeepRow,
   LibraryUpNextStart,
 } from './LibraryUpNextControls';
@@ -401,17 +402,13 @@ const LibraryUpNext = ({
 
   return (
     <div className="library-up-next__body">
-      <LibraryUpNextKeepRow
-        canSurprise={canSurprise && (trackCount > 0 || isDrawingMore)}
-      />
+      <LibraryUpNextKeepRow />
       {/* Keep playing's next songs on their way: the rows they will fill,
           not the empty queue's invitation. Between a Surprise me press and
           its continuation the queue holds only the pick, and the empty state
           stood there for the length of the ask, then gave way to the list. */}
       {trackCount === 0 && isDrawingMore && <LibraryUpNextFilling />}
-      {trackCount === 0 && !isDrawingMore && (
-        <LibraryUpNextStart canSurprise={canSurprise} />
-      )}
+      {trackCount === 0 && !isDrawingMore && <LibraryUpNextStart />}
       {trackCount > 0 && (
         <div
           ref={listRef}
@@ -507,6 +504,9 @@ const LibraryUpNext = ({
           })}
           <div style={{ height: below }} aria-hidden="true" />
         </div>
+      )}
+      {canSurprise && (
+        <LibraryUpNextFoot isQueueEmpty={trackCount === 0 && !isDrawingMore} />
       )}
     </div>
   );

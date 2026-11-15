@@ -54,6 +54,7 @@ const library: Partial<Dictionary> = {
   'library.rail.library': 'Biblioteca',
   'library.rail.allPlaylists': 'Todas as playlists',
   'library.roots.manage': 'Suas pastas',
+  'library.rail.resize': 'Largura da lista',
   'library.tree.more': 'Mais {count}…',
   'library.history': 'Voltar e avançar',
   'library.forward': 'Avançar',

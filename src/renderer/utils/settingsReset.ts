@@ -128,6 +128,8 @@ export const SETTING_STEMS: readonly string[] = [
   // The details table's columns, and which tab the right pane stands on.
   'fluideq.library.columns',
   'fluideq.library.paneTab',
+  // The shelf rail's dragged width.
+  'fluideq.library.railWidth',
   'fluideq.library.keepPlaying',
   'fluideq.library.sort',
   'fluideq.library.sortDirection',

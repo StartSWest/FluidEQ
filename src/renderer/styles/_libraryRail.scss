@@ -22,27 +22,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'motion' as *;
-@use 'spacing' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
 .library-rail {
   display: flex;
-  width: 236px;
+  // Dragged at its edge (`LibraryRailSplitter`), 236px until it is.
+  width: var(--rail-width, 236px);
   min-height: 0;
   grid-column: 1;
   // The full height, foot included: the status line belongs to the content
   // panel beside it.
   grid-row: 1 / 3;
   flex-direction: column;
-  // A card of its own, a gap from the content panel - and the very same card:
-  // fill, edge and corner (`section-card`). The Scenes rail's opaque colour
-  // was tried first and stood a tone apart from the see-through content card
-  // beside it (Ivan, 2026-11-15: "both panels don't look the same").
-  @include section-card;
-  margin-right: $spacing-s;
+  // On the panel's own tone, parted from the shelf by its hairline alone
+  // (the mockups' "Library C", Ivan 2026-11-15): no card, no step of colour.
+  border-right: 1px solid $studio-hair;
+  background: none;
   overflow: hidden;
   transition: width $motion-base $ease-out;
+
+  // Under the pointer the edge follows the hand, not a 200ms ease behind it.
+  .library-workspace.is-resizing-rail & {
+    transition: none;
+  }
+}
+
+// The rail's edge as a splitter, over its hairline: a 12px target on the
+// column's right side with the grip landing on the line, as the queue's does
+// on its left (`.library-up-next__splitter`).
+.library-rail__splitter {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  width: 12px;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  justify-self: end;
+  margin-right: -6px;
+
+  .karaoke-pane-splitter.is-vertical {
+    width: 100%;
+  }
 }
 
 // The shelves and playlists scroll; the foot stays.
@@ -330,6 +351,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @container library (max-width: #{$bp-lg}) {
   .library-rail {
     width: 56px;
+  }
+
+  // Folded to its glyphs it has no width to give, so no edge to drag.
+  .library-rail__splitter {
+    display: none;
   }
 
   .library-rail__scroll {

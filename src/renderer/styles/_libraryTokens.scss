@@ -79,6 +79,13 @@ $studio-raise: color-mix(in srgb, $edge-tint 9%, transparent);
 
 $studio-hair: color-mix(in srgb, $edge-tint 8%, transparent);
 
+// The content column's sides: how far the bar, the breadcrumb and the shelf
+// stand in from the rail's hairline and the panel's edge, and the surprise
+// draw with them. It was 22px, and with each row's own inset the titles
+// stood a third of a rail away from the line (Ivan, 2026-11-15: "list and
+// grid have too much padding").
+$library-gutter: 12px;
+
 // The chosen folder, the playing row: the accent, faint.
 $studio-select: color-mix(in srgb, $secondary-default 12%, transparent);
 

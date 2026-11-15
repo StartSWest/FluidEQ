@@ -51,6 +51,7 @@ const library = {
   'library.rail.library': 'Library',
   'library.rail.allPlaylists': 'All playlists',
   'library.roots.manage': 'Your folders',
+  'library.rail.resize': 'List width',
   'library.tree.more': '{count} more…',
   'library.history': 'Back and forward',
   'library.forward': 'Forward',

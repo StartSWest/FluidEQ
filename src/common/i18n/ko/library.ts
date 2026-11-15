@@ -33,6 +33,7 @@ const library = {
   'library.rail.library': '라이브러리',
   'library.rail.allPlaylists': '모든 재생목록',
   'library.roots.manage': '폴더 관리',
+  'library.rail.resize': '목록 너비',
   'library.tree.more': '{count}개 더…',
   'library.history': '뒤로 및 앞으로',
   'library.forward': '앞으로',

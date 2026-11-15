@@ -89,13 +89,16 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('Surprise me in Up Next', () => {
-  it('stands beside Keep playing while songs are queued, and starts a surprise', async () => {
+  it('stands at the foot of the queue while songs are queued, and starts a surprise', async () => {
     mockUpNext = queued();
     const { container } = panel(true);
     const [button] = surpriseButtons();
     expect(surpriseButtons()).toHaveLength(1);
-    // On the switch's own row, the small filled one, its hint in the tooltip.
-    expect(button.closest('.library-up-next__keep')).not.toBeNull();
+    // At the queue's foot, under the songs (Ivan, 2026-11-15: "Surprise me
+    // button at the bottom of the Up next"), the small filled one, its hint
+    // in the tooltip - and no longer on Keep playing's row.
+    expect(button.closest('.library-up-next__foot')).not.toBeNull();
+    expect(container.querySelector('.library-up-next__keep button')).toBeNull();
     expect(button).toHaveClass('button', 'small');
     expect(button).toHaveAttribute(
       'title',
@@ -109,13 +112,17 @@ describe('Surprise me in Up Next', () => {
     expect(mockSurprise).toHaveBeenCalledTimes(1);
   });
 
-  it('offers one larger button in an empty queue, with what it does under it', () => {
+  it('offers the same filled button at the foot of an empty queue, with what it does under it', () => {
     mockUpNext = [];
     const { container } = panel(true);
     expect(surpriseButtons()).toHaveLength(1);
     const [button] = surpriseButtons();
-    expect(button.closest('.library-up-next__start')).not.toBeNull();
-    expect(button).not.toHaveClass('small');
+    // One button in one place for both cases, filled (Ivan, 2026-11-15:
+    // "it needs to be the same for both cases, I like the filled version").
+    const foot = button.closest('.library-up-next__foot');
+    expect(foot).not.toBeNull();
+    expect(button).toHaveClass('button', 'small');
+    expect(button).not.toHaveClass('subtle');
     expect(container.querySelector('.library-up-next__keep button')).toBeNull();
     expect(screen.getByText('Nothing queued yet')).toBeInTheDocument();
     expect(
@@ -189,10 +196,10 @@ describe('Up Next while Keep playing is drawing more', () => {
     );
     expect(screen.queryByText('Nothing queued yet')).toBeNull();
     expect(container.querySelector('.library-up-next__start')).toBeNull();
-    // The small Surprise me stays on the Keep playing row, as over a list.
+    // The small Surprise me stays at the queue's foot, as over a list.
     const [button] = surpriseButtons();
     expect(surpriseButtons()).toHaveLength(1);
-    expect(button.closest('.library-up-next__keep')).not.toBeNull();
+    expect(button.closest('.library-up-next__foot')).not.toBeNull();
   });
 
   it('shows the empty queue once nothing more is coming', () => {
@@ -200,7 +207,8 @@ describe('Up Next while Keep playing is drawing more', () => {
     mockIsDrawingMore = false;
     const { container } = panel(true);
     expect(screen.queryByRole('status', { name: 'More like this' })).toBeNull();
-    expect(container.querySelector('.library-up-next__start')).not.toBeNull();
+    expect(screen.getByText('Nothing queued yet')).toBeInTheDocument();
+    expect(container.querySelector('.library-up-next__foot')).not.toBeNull();
   });
 
   it('draws the list itself, not the placeholders, once songs are queued', () => {

@@ -454,8 +454,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px;
 }
 
+// The queue's foot (`LibraryUpNextFoot`): Surprise me across the column
+// under whatever stands above it - an empty queue's one line, or the list,
+// which takes the height between - pushed down by `margin-top: auto`, a
+// hairline over it. While the queue is empty its line stands under the button.
+.library-up-next__foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: auto;
+  padding: 10px;
+  border-top: 1px solid $studio-hair;
+
+  .library-up-next__start-hint {
+    text-align: center;
+  }
+}
+
+// The filled button a size up from the small one, in the panel's lead size
+// rather than the page's 16px: at 16px "Überraschen lassen" broke onto two
+// lines at the panel's 190px floor and stood out of scale with every other
+// line in it. Its words may still wrap in a longer translation rather than
+// run past the column.
 .library-up-next__surprise {
-  margin-left: auto;
+  min-width: 0;
+  justify-content: center;
+  padding: 8px 12px;
+  font-size: $text-lead;
+  gap: 7px;
+  white-space: normal;
+
+  .library-surprise__icon {
+    width: 15px;
+    height: 15px;
+  }
 }
 
 // The shuffle glyph of Surprise me, stroked in the button's own ink, and
@@ -498,42 +532,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// An empty queue, and Surprise me at full size as the way to start one,
-// with what it does written under it.
-.library-up-next__start {
-  display: grid;
-  justify-items: center;
-  padding: 22px 8px;
-  gap: 10px;
-  text-align: center;
-
-  .library-up-next__empty {
-    padding: 0;
-  }
-}
-
-// The filled button a size up from the small one, in the panel's lead size
-// rather than the page's 16px: at 16px "Überraschen lassen" broke onto two
-// lines at the panel's 190px floor and stood out of scale with every other
-// line in it. Its words may still wrap in a longer translation rather than
-// run past the card.
-.library-up-next__start-button {
-  max-width: 100%;
-  min-width: 0;
-  padding: 8px 12px;
-  font-size: $text-lead;
-  gap: 7px;
-  white-space: normal;
-
-  .library-surprise__icon {
-    width: 15px;
-    height: 15px;
-  }
-}
-
+// What Surprise me does, under it at the foot of an empty queue.
 .library-up-next__start-hint {
   max-width: 28ch;
-  margin: 0;
+  margin: 0 auto;
   color: $text-faint;
   font-size: $text-small;
   line-height: 1.45;

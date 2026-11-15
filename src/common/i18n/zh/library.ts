@@ -52,6 +52,7 @@ const library: Partial<Dictionary> = {
   'library.rail.library': '媒体库',
   'library.rail.allPlaylists': '全部播放列表',
   'library.roots.manage': '管理文件夹',
+  'library.rail.resize': '列表宽度',
   'library.tree.more': '还有 {count} 个…',
   'library.history': '后退和前进',
   'library.forward': '前进',

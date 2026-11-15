@@ -230,11 +230,10 @@ describe('what stands on the floor', () => {
     expect(card).toContain('radial-gradient(');
   });
 
-  // The Library is two panels, as the Scenes page is (Ivan, 2026-11-15: "we
-  // already have the idea in EQ and the visualizer library, two separated
-  // panels, same flat gradient"): its rail is the Scenes rail's card, and
-  // the shelf, queue and status line stand on one section card like the
-  // Scenes place - with no tone of their own inside it.
+  // The Library is one panel with no card inside it - the mockups' "Library
+  // C" (Ivan, 2026-11-15: "no card in the centre or colour, so all three
+  // panes are the same background"): the page's section card, and the rail,
+  // the queue and the status line on its one tone, parted by hairlines.
   const surfaceOf = (declarations: string) =>
     ['background', 'border', 'border-radius'].map((property) =>
       declarations
@@ -242,30 +241,14 @@ describe('what stands on the floor', () => {
         ?.trim(),
     );
 
-  // The two panels are one card twice: the rail took the Scenes rail's
-  // opaque colour first and stood a tone apart ("both panels don't look the
-  // same").
-  it("stands the Library's rail on the same card as its content", () => {
-    const rail = surfaceOf(
-      declarationsOf(compiledCss('Library.scss'), '.library-rail'),
+  it('stands the whole Library on one panel, the rail on its tone', () => {
+    const rail = declarationsOf(compiledCss('Library.scss'), '.library-rail');
+    expect(rail).toContain('background: none');
+    expect(rail).toContain('border-right: 1px solid');
+    // No second card drawn behind the shelf and the queue.
+    expect(compiledCss('Library.scss')).not.toContain(
+      '.library-workspace::before',
     );
-    const content = surfaceOf(
-      declarationsOf(compiledCss('Library.scss'), '.library-workspace::before'),
-    );
-    // The control: both read a real surface, not three empty answers.
-    expect(content.every((value) => value !== undefined)).toBe(true);
-    expect(rail).toEqual(content);
-  });
-
-  it("stands the Library's content on the Scenes place's card", () => {
-    const content = surfaceOf(
-      declarationsOf(compiledCss('Library.scss'), '.library-workspace::before'),
-    );
-    const scenesPlace = surfaceOf(
-      declarationsOf(compiledCss('Community.scss'), '.community__main'),
-    );
-    expect(scenesPlace.every((value) => value !== undefined)).toBe(true);
-    expect(content).toEqual(scenesPlace);
   });
 
   // The Scenes page's rail, pinned, is its place's card too ("same colour,

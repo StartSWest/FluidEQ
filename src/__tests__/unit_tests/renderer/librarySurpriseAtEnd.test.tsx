@@ -17,7 +17,7 @@ import {
   surprisesAtEnd,
   useSurpriseAtEnd,
 } from 'renderer/library/player/useSurpriseAtEnd';
-import { LibraryUpNextStart } from 'renderer/library/LibraryUpNextControls';
+import { LibraryUpNextFoot } from 'renderer/library/LibraryUpNextControls';
 
 /**
  * Surprise me presses itself when the last song ends with nothing after it
@@ -194,25 +194,25 @@ describe('Up Next saying the next song will be a surprise', () => {
   });
 
   it('says so while the last song plays with nothing after it', () => {
-    render(<LibraryUpNextStart canSurprise />);
+    render(<LibraryUpNextFoot isQueueEmpty />);
     expect(screen.getByText(en['library.upNext.surpriseNext'])).toBeVisible();
   });
 
   it('says what the button does instead when the end would just stop (the control)', () => {
     mockSession.isContinuationOn = false;
-    render(<LibraryUpNextStart canSurprise />);
+    render(<LibraryUpNextFoot isQueueEmpty />);
     expect(screen.queryByText(en['library.upNext.surpriseNext'])).toBeNull();
     expect(screen.getByText(en['library.upNext.surpriseStart'])).toBeVisible();
   });
 
   it('says nothing of it under a film or with repeat on', () => {
     mockSession.track = track('film', 'video');
-    const { unmount } = render(<LibraryUpNextStart canSurprise />);
+    const { unmount } = render(<LibraryUpNextFoot isQueueEmpty />);
     expect(screen.queryByText(en['library.upNext.surpriseNext'])).toBeNull();
     unmount();
     mockSession.track = track('song', 'audio');
     mockSession.repeat = 'all';
-    render(<LibraryUpNextStart canSurprise />);
+    render(<LibraryUpNextFoot isQueueEmpty />);
     expect(screen.queryByText(en['library.upNext.surpriseNext'])).toBeNull();
   });
 });

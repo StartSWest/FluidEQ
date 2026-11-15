@@ -46,6 +46,20 @@ export const UP_NEXT_DEFAULT_WIDTH = 300;
 /** The Up Next panel's width, dragged from its own edge. */
 export const UP_NEXT_WIDTH_KEY = 'fluideq.library.upNextWidth';
 
+/**
+ * The shelf rail's width, dragged at its edge (Ivan, 2026-11-15: "we need a
+ * resizable splitter here", of a folder tree whose names were cut). The
+ * design's 236px first; narrower than 180 the counts crowd the names, wider
+ * than 420 the shelf it stands beside loses its table's columns.
+ */
+export const RAIL_WIDTH_KEY = 'fluideq.library.railWidth';
+
+export const RAIL_DEFAULT_WIDTH = 236;
+
+export const RAIL_MIN = 180;
+
+export const RAIL_MAX = 420;
+
 export const UP_NEXT_MIN = 190;
 
 export const UP_NEXT_MAX = 420;

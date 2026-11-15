@@ -51,28 +51,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Nothing scrolls on this box: every list here has its own scrolling body.
   // `.workspace-tab-panel`'s reserved gutter would stand as an empty strip.
   scrollbar-gutter: auto;
-  // TWO PANELS, AS THE SCENES PAGE AND EQ STAND (Ivan, 2026-11-15: "we
-  // already have the idea in EQ and the visualizer library, two separated
-  // panels, same flat gradient, let's do that"). The page's section card
-  // (`$section-card-pages`) is given up here: the rail is a card of its own,
-  // as the Scenes rail is (`.community__rail`), and everything else - the
-  // shelf, the queue and the status line - stands on one section card drawn
-  // behind them (`::before`), a gap apart. One card across three grid items
-  // rather than a box wrapped round them, so no markup moves. Inside it there
-  // is one tone: the queue and the status line take no step of their own.
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-
-  &::before {
-    @include section-card;
-    grid-column: 2 / 4;
-    grid-row: 1 / 3;
-    content: '';
-    pointer-events: none;
-    transition: border-color $motion-fast $ease-out;
-  }
+  // ONE PANEL, NO CARD INSIDE IT (Ivan, 2026-11-15, the mockups' "Library
+  // C": "no card in the centre or colour, so all three panes are the same
+  // background"). The page's section card (`$section-card-pages`) is the one
+  // surface; the rail, the shelf, the queue and the status line all stand on
+  // it in its one tone, parted by hairlines alone. Two separate panels were
+  // tried first the same day and replaced by this.
 
   &.is-hidden {
     display: none;
@@ -86,9 +70,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     container-type: normal;
     // NO FRAME. With the picture filling the screen the card's border,
     // corners and floor are a frame drawn around the only thing on it.
-    &::before {
-      display: none;
-    }
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
 
     .library-rail,
     .library-status,
@@ -102,8 +87,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   // The empty state advertises the drop; the whole page is the target, so
-  // the content panel answers back - in its edge, with no glow round it.
-  &.is-drag-over::before {
+  // the whole panel answers back - in its edge, with no glow round it.
+  &.is-drag-over {
     border-color: color-mix(in srgb, $secondary-default 70%, transparent);
   }
 }
@@ -124,7 +109,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   flex-direction: column;
   gap: $spacing-s;
-  padding: 0 22px 12px;
+  padding: 0 $library-gutter 12px;
   // A graph dragged up leaves the shelf less than its floor (the views carry
   // their own, for a cover and a few rows); this column then scrolls rather
   // than crushing the table to one clipped row.
@@ -375,7 +360,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   border-radius: 7px;
   background: none;
-  color: $studio-t3;
+  // The second step, not the third: at 44% the views not chosen read as
+  // switched off.
+  color: $studio-t2;
   font-size: $studio-text-meta;
   font-weight: $weight-semibold;
   white-space: nowrap;
@@ -383,7 +370,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition: $transition-control;
 
   &:hover:not(.is-active) {
-    color: $studio-t2;
+    color: $text-primary;
   }
 
   &.is-active {
@@ -397,12 +384,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The words are the switch; the glyphs stand in for them only where the bar
-// has no room left for words (below).
+// Each view's glyph beside its word (Ivan, 2026-11-15: "add icons to the
+// Details, Grid etc. toggle on top"); where the bar has no room left for
+// words the glyph stands alone (below).
 .library-top__view-icon {
-  display: none;
+  display: block;
   width: 14px;
   height: 14px;
+  flex: 0 0 auto;
 }
 
 .library-top__sort {

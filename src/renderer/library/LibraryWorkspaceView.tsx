@@ -27,6 +27,9 @@ import {
 import LibraryVideoStage from './player/LibraryVideoStage';
 import LibraryTopBar from './LibraryTopBar';
 import LibraryShelfRail from './LibraryShelfRail';
+import LibraryRailSplitter, {
+  useLibraryRailWidth,
+} from './LibraryRailSplitter';
 import LibraryStatusLine from './LibraryStatusLine';
 import LibraryShelfViews from './LibraryShelfViews';
 import { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
@@ -168,6 +171,7 @@ const LibraryWorkspaceView = ({
     handlePlaceFolder,
   } = steps;
   const counts = useShelfCounts();
+  const rail = useLibraryRailWidth();
   const hasLibrary = roots.length > 0;
   const shownTotals = useLibraryAnswer(
     hasLibrary && !isHidden && shownTracksQuery !== undefined
@@ -239,7 +243,7 @@ const LibraryWorkspaceView = ({
         isResizingUpNext && !isHidden && !isUpNextCollapsed
           ? ' is-resizing-up-next'
           : ''
-      }`}
+      }${rail.isResizing ? ' is-resizing-rail' : ''}`}
       ref={cardRef}
       aria-label={t('tabs.library')}
       aria-hidden={isHidden}
@@ -253,6 +257,7 @@ const LibraryWorkspaceView = ({
       style={
         {
           '--up-next-width': `${upNextWidth}px`,
+          '--rail-width': `${rail.width}px`,
           // What the surprise draw has to clear inside the main column.
           '--library-chrome-height': `${chromeHeight}px`,
         } as CSSProperties
@@ -281,6 +286,9 @@ const LibraryWorkspaceView = ({
           }}
         />
       )}
+      {/* On the rail's inner edge; not over a video in full screen, where
+          the rail is not drawn. */}
+      {!isHidden && !isVideoFull && <LibraryRailSplitter rail={rail} />}
       <div className="library-main">
         {/* First in the column, so hiding the workspace never remounts a
             playing video: hidden, only this engine and its wrapper stay. */}

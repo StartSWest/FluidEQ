@@ -7,12 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'motion' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // *** Surprise me's draw *****************************************************
 //
 // A layer over the shelf (`SurpriseDrawLayer`), in the main column: under the
 // top bar and the breadcrumb (`--library-chrome-height`, measured), inside the
-// column's own 22px sides, and so clear of the queue, which is a column of
+// column's own sides ($library-gutter), and so clear of the queue, which is a column of
 // its own. Empty and pressed through until a draw starts.
 //
 // The draw is Cover Flow's own scene. Over the list or the grid it fills this
@@ -21,7 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .library-surprise-draw {
   position: absolute;
   z-index: 2;
-  inset: calc(var(--library-chrome-height, 0px) + 8px) 22px 12px;
+  inset: calc(var(--library-chrome-height, 0px) + 8px) $library-gutter 12px;
   overflow: hidden;
   border-radius: $radius-m;
   pointer-events: none;

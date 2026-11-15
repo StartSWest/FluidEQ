@@ -55,6 +55,7 @@ const library: Partial<Dictionary> = {
   'library.rail.library': 'ライブラリ',
   'library.rail.allPlaylists': 'すべてのプレイリスト',
   'library.roots.manage': 'フォルダーの管理',
+  'library.rail.resize': 'リストの幅',
   'library.tree.more': 'ほか {count} 件…',
   'library.history': '戻る・進む',
   'library.forward': '進む',
