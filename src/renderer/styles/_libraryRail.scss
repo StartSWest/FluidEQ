@@ -69,6 +69,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The shelves and playlists scroll; the foot stays.
 .library-rail__scroll {
   display: grid;
+  // One column the rail's width and never wider: an implicit column takes
+  // its widest row's width, and a long root path in the tree (a library
+  // added deep inside a synced folder) stretched every row past the rail -
+  // measured in Ivan's window, a 349px column in a 311px rail - where the
+  // counts at the rows' ends were cut off and the names never shortened
+  // (2026-11-15: "it needs to always show like this").
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   flex: 1 1 auto;
   align-content: start;
@@ -232,6 +239,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-tree,
 .library-tree__group {
   display: grid;
+  // The rail's width, never a long name's (`.library-rail__scroll`).
+  grid-template-columns: minmax(0, 1fr);
   margin: 0;
   padding: 0;
   gap: 1px;
