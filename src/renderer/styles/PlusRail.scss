@@ -95,17 +95,10 @@ $rail-reveal-delay: 110ms;
     width: $rail-folded;
   }
 
-  // The menus' material, 95% of the floor: folded, the rail opens OVER the
-  // place, the Studio's stage and controls included, and with no fill of its
-  // own they showed through its rows (Ivan, 2026-09-26: "the plus side pane
-  // can't be transparent because when it is collapsed it opens on top of the
-  // studio so make it 95%"). Pinned it is the same material, so pinning an
-  // open rail changes nothing but the room beside it.
   .community--plus .community__rail {
     position: absolute;
     inset: 0 auto 0 0;
     width: $rail-open;
-    background: $surface-menu-floor;
     overflow-x: hidden;
     transition:
       width var(--rail-settle) $ease-out 60ms,
@@ -114,6 +107,16 @@ $rail-reveal-delay: 110ms;
     @include rail-words {
       transition: opacity var(--rail-settle) ease-out;
     }
+  }
+
+  // The menus' material, 95% of the floor, while folded: the rail opens OVER
+  // the place then, the Studio's stage and controls included, and with the
+  // card's see-through fill they showed through its rows (Ivan, 2026-09-26:
+  // "the plus side pane can't be transparent because when it is collapsed it
+  // opens on top of the studio so make it 95%"). Pinned it stands beside the
+  // place and is the place's card (`CommunityRail.scss`).
+  .community--rail-folded .community__rail {
+    background: $surface-menu-floor;
   }
 
   // Folded and at rest. `:has(:focus-visible)` rather than `:focus-within`,

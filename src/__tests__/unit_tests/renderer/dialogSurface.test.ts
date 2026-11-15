@@ -268,6 +268,22 @@ describe('what stands on the floor', () => {
     expect(content).toEqual(scenesPlace);
   });
 
+  // The Scenes page's rail, pinned, is its place's card too ("same colour,
+  // different"); folded open over the place it takes the menus' opaque floor.
+  it('stands the Scenes rail on the same card as the Scenes place', () => {
+    const rail = surfaceOf(
+      declarationsOf(compiledCss('CommunityRail.scss'), '.community__rail'),
+    );
+    const place = surfaceOf(
+      declarationsOf(compiledCss('Community.scss'), '.community__main'),
+    );
+    expect(place.every((value) => value !== undefined)).toBe(true);
+    expect(rail).toEqual(place);
+    expect(compiledCss('PlusRail.scss')).toMatch(
+      /\.community--rail-folded \.community__rail \{[^}]*background: var\(--surface-menu-floor\)/,
+    );
+  });
+
   // The empty Library stands straight on that card, as the A design draws
   // the screen - Ivan, 2026-11-15: "make the centre card flat, no card, like
   // in A".

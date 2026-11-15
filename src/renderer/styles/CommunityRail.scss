@@ -148,13 +148,14 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-xxs;
   min-height: 0;
   padding: $spacing-xs;
-  border: 1px solid $card-edge;
-  border-radius: $radius-m;
-  // The card's colour, opaque, on the Forum as on Plus (Ivan, 2026-09-27:
-  // "make sure side menu on forum and plus is same bg color"): the Plus rail
-  // is the menus' floor because folded it opens over the page, and the Forum's
-  // was the edge alone, a hollow frame beside a filled one.
-  background: $surface-menu-floor;
+  // The place's own card beside it - fill, edge and corner (`section-card`),
+  // on the Forum as on Scenes (Ivan, 2026-09-27: "make sure side menu on
+  // forum and plus is same bg color"; 2026-11-15, of the Scenes page: "same
+  // colour, different" - the menus' opaque floor stood a tone apart from the
+  // see-through card beside it). Folded open over the place, the Scenes rail
+  // takes the menus' floor back (`PlusRail.scss`), where it must not be
+  // see-through.
+  @include section-card;
   overflow-y: auto;
   @include slim-scrollbar;
   @include animate(fade-to-rest);
