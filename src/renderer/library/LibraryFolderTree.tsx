@@ -105,6 +105,33 @@ interface ITreeContext {
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
 }
 
+/**
+ * Brings the lit folder into the rail's view the moment it becomes the lit
+ * one - or the moment it first exists, when its branch's folders arrive after
+ * the branches above it were opened. A Surprise me pick on the Folders shelf
+ * opened the tree to a folder far down it and left it out of sight (Ivan,
+ * 2026-11-15: "make sure Surprise me scrolls and discovers it on the folder
+ * tree also"). Only as far as it takes, so a folder already in view,
+ * pressed by hand, does not move.
+ */
+const revealSelected = (node: HTMLDivElement | null) => {
+  // The rail's own scroller, moved by hand: `scrollIntoView` also scrolls
+  // every clipped box around it, the card and the workspace among them
+  // (`EqModeCard` says what that did to the window).
+  const box = node?.closest<HTMLElement>('.library-rail__scroll');
+  if (!node || !box) {
+    return;
+  }
+  const row = node.getBoundingClientRect();
+  const view = box.getBoundingClientRect();
+  const air = 8;
+  if (row.top < view.top) {
+    box.scrollTop -= view.top - row.top + air;
+  } else if (row.bottom > view.bottom) {
+    box.scrollTop += row.bottom - view.bottom + air;
+  }
+};
+
 const FolderNode = ({
   folder,
   level,
@@ -121,6 +148,9 @@ const FolderNode = ({
   return (
     <li role="none">
       <div
+        // Attached only while this row is the lit one, so the callback runs
+        // when it becomes it, and when the row first mounts lit.
+        ref={isSelected ? revealSelected : undefined}
         role="treeitem"
         aria-level={level}
         aria-selected={isSelected}
