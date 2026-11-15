@@ -74,8 +74,6 @@ export const LIBRARY_UNPLAYABLE_EXTENSIONS = [
   'divx',
 ] as const;
 
-const LYRIC_EXTENSIONS = ['lrc', 'elrc'] as const;
-
 export const libraryFileExtension = (name: string): string => {
   const lastDot = name.lastIndexOf('.');
   return lastDot >= 0 ? name.slice(lastDot + 1).toLowerCase() : '';
@@ -132,23 +130,28 @@ const ULTRASTAR_ADAPTER = KARAOKE_TEXT_ADAPTERS.find(
 export const isUltraStarText = (contents: string): boolean =>
   ULTRASTAR_ADAPTER?.canParse(contents) ?? false;
 
-export const karaokeLyricCandidates = (
+/**
+ * The files beside a song that may make it a karaoke song, one that belongs
+ * to the Karaoke tab and not the Library: a `.txt` of the same name, which
+ * `isUltraStarText` then reads, because a tracklist is as common there as a
+ * chart.
+ *
+ * An `.lrc` or `.elrc` beside a song is NOT one, though it was: it is the
+ * song's own lyrics, the Library's Lyrics tab reads it and writes it there
+ * itself (import, Save to Library), and taking it as a karaoke song made
+ * every song the listener gave lyrics vanish from the Library at the next
+ * scan of its folder (Ivan, 2026-11-15: "why are the songs that have lyrics
+ * disappearing from the Library" - four of Silvana Di Lorenzo's album, each
+ * beside the .lrc saved for it that afternoon).
+ */
+export const karaokeChartCandidates = (
   fileName: string,
   siblings: readonly string[],
-): { certain: string[]; needsContentCheck: string[] } => {
+): string[] => {
   const base = libraryBaseName(fileName);
-  const certain: string[] = [];
-  const needsContentCheck: string[] = [];
-  siblings.forEach((sibling) => {
-    if (libraryBaseName(sibling) !== base) {
-      return;
-    }
-    const extension = libraryFileExtension(sibling);
-    if (LYRIC_EXTENSIONS.some((entry) => entry === extension)) {
-      certain.push(sibling);
-    } else if (extension === 'txt') {
-      needsContentCheck.push(sibling);
-    }
-  });
-  return { certain, needsContentCheck };
+  return siblings.filter(
+    (sibling) =>
+      libraryBaseName(sibling) === base &&
+      libraryFileExtension(sibling) === 'txt',
+  );
 };

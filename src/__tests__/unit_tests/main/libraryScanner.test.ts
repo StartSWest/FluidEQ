@@ -191,12 +191,14 @@ describe('scanning a folder', () => {
     }
   });
 
-  it('excludes a song that has a lyric file beside it, and counts it', async () => {
+  it('keeps a song with its own .lrc beside it: that is its lyrics', async () => {
+    // It used to be excluded as a karaoke song, and every song the Library
+    // gave lyrics (it writes them as that .lrc) vanished at the next scan.
     const dir = folder({ 'Song.mp3': 'x', 'Song.lrc': '[00:01.00]hi' });
     const walk = recordWalk();
     const result = await scan(dir, walk);
-    expect(walk.songs()).toHaveLength(0);
-    expect(result.karaokeSkipped).toBe(1);
+    expect(walk.songs()).toHaveLength(1);
+    expect(result.karaokeSkipped).toBe(0);
   });
 
   it('keeps a song whose .txt sibling is not an UltraStar chart', async () => {

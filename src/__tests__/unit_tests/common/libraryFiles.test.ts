@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   isLibraryPlayable,
   isUltraStarText,
-  karaokeLyricCandidates,
+  karaokeChartCandidates,
   libraryFileKind,
   libraryTitleFromFileName,
 } from '../../../common/library/files';
@@ -51,34 +51,32 @@ describe('classifying a file the scanner has found', () => {
 });
 
 describe('keeping karaoke songs out of the library', () => {
-  it('pairs a song with its lyric file by base name', () => {
-    const found = karaokeLyricCandidates('Song.mp3', [
-      'Song.mp3',
-      'Song.lrc',
-      'Other.lrc',
-    ]);
-    expect(found.certain).toEqual(['Song.lrc']);
-    expect(found.needsContentCheck).toEqual([]);
+  it('never takes the song’s own .lrc for a karaoke mark', () => {
+    // The Library keeps a song's lyrics as the .lrc beside it; taken as a
+    // karaoke song, every song given lyrics left the Library (2026-11-15).
+    expect(
+      karaokeChartCandidates('Song.mp3', ['Song.mp3', 'Song.lrc', 'Song.elrc']),
+    ).toEqual([]);
   });
 
   it('defers a .txt sibling to a content check', () => {
     // A .txt beside an MP3 is as often a tracklist as an UltraStar chart, so
     // the extension alone must not exclude the song.
-    const found = karaokeLyricCandidates('Song.mp3', ['Song.mp3', 'Song.txt']);
-    expect(found.certain).toEqual([]);
-    expect(found.needsContentCheck).toEqual(['Song.txt']);
+    expect(
+      karaokeChartCandidates('Song.mp3', ['Song.mp3', 'Song.txt', 'Other.txt']),
+    ).toEqual(['Song.txt']);
   });
 
   it('finds no pairing for an ordinary album folder', () => {
     // The positive control. Without it, a function that returns nothing for
     // every input passes the two tests above and destroys the library.
-    const found = karaokeLyricCandidates('Song.mp3', [
-      'Song.mp3',
-      'cover.jpg',
-      'Another Song.mp3',
-    ]);
-    expect(found.certain).toEqual([]);
-    expect(found.needsContentCheck).toEqual([]);
+    expect(
+      karaokeChartCandidates('Song.mp3', [
+        'Song.mp3',
+        'cover.jpg',
+        'Another Song.mp3',
+      ]),
+    ).toEqual([]);
   });
 
   it('recognises an UltraStar chart by its contents', () => {

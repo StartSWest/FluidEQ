@@ -43,7 +43,7 @@ import {
 import {
   isLibraryPlayable,
   isUltraStarText,
-  karaokeLyricCandidates,
+  karaokeChartCandidates,
   libraryFileKind,
   libraryTitleFromFileName,
 } from '../../common/library/files';
@@ -120,22 +120,15 @@ interface IKaraokeContext {
 
 /**
  * True when `name` is a karaoke song and must not enter the library — it
- * belongs to the Karaoke tab instead. A `.lrc`/`.elrc` sibling is certain
- * proof; a `.txt` sibling is not (a tracklist is as common as a chart), so
- * that case alone is read and classified, once per distinct sibling name.
+ * belongs to the Karaoke tab instead: an UltraStar chart beside it, read and
+ * classified once per distinct sibling name. An `.lrc` beside a song is its
+ * lyrics, never a karaoke mark (`karaokeChartCandidates`).
  */
 const resolveKaraokeSkip = async (
   name: string,
   ctx: IKaraokeContext,
 ): Promise<boolean> => {
-  const { certain, needsContentCheck } = karaokeLyricCandidates(
-    name,
-    ctx.fileNames,
-  );
-  if (certain.length > 0) {
-    return true;
-  }
-  const candidate = needsContentCheck[0];
+  const [candidate] = karaokeChartCandidates(name, ctx.fileNames);
   if (candidate === undefined) {
     return false;
   }
