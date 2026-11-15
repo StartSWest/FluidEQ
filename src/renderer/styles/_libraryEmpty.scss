@@ -39,24 +39,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: auto;
 }
 
+// Filled like every card on the Library's floor (`card-surface`, Ivan
+// 2026-09-26: cards wear the window's colour), with its edge dashed for the
+// drop and the accent's light falling from above the sleeves.
 .library-empty__card {
+  @include card-surface;
   display: grid;
   width: min(560px, 100%);
   justify-items: center;
   gap: 6px;
   padding: $spacing-xl $spacing-l 28px;
   text-align: center;
-  border: 1.5px dashed rgba($edge-tint, 0.16);
+  border: 1.5px dashed rgba($edge-tint, 0.18);
   border-radius: $radius-xl + 6px;
-  // The accent's light falls from above the sleeves, and nowhere else.
-  background: radial-gradient(
-    ellipse 70% 55% at 50% 0%,
-    color-mix(in srgb, $secondary-default 10%, transparent),
-    transparent 75%
-  );
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 50% 0%,
+      color-mix(in srgb, $secondary-default 10%, transparent),
+      transparent 75%
+    ),
+    $card-glow, $surface-card;
   transition:
     border-color 160ms ease,
-    background-color 160ms ease;
+    box-shadow 160ms ease;
 
   h2 {
     margin: 0;
@@ -78,7 +83,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // A folder held over the workspace: the frame it will land in answers.
   .library-workspace.is-drag-over & {
     border-color: color-mix(in srgb, $secondary-default 70%, transparent);
-    background-color: color-mix(in srgb, $secondary-default 6%, transparent);
+    box-shadow: inset 0 0 40px
+      color-mix(in srgb, $secondary-default 12%, transparent);
   }
 }
 
