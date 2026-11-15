@@ -54,6 +54,12 @@ interface ILibraryTrackMenuProps {
    * append to, and the item is then not drawn at all. */
   onQueueTracks?: (trackIds: readonly string[]) => void;
   onReveal: (trackId: string) => void;
+  /**
+   * A whole record that lives in one folder (`recordFolder` in the detail
+   * header): Show in Explorer opens that folder. Absent where the songs are
+   * spread over several folders, which have no one place to show.
+   */
+  onRevealFolder?: () => void;
   onClose: () => void;
 }
 
@@ -79,6 +85,7 @@ const LibraryTrackMenu = ({
   openPlaylistId,
   onQueueTracks,
   onReveal,
+  onRevealFolder,
   onClose,
 }: ILibraryTrackMenuProps) => {
   const { t } = useTranslation();
@@ -272,6 +279,18 @@ const LibraryTrackMenu = ({
           <MenuIcon name="external" className="library-list__menu-icon" />
           <span>{t('library.reveal')}</span>
         </button>
+      )}
+      {/* A record of many songs in one folder: that folder, the way a song
+          shows its file (Ivan, 2026-11-14: "for album add also show in
+          explorer same as we have for each song"). */}
+      {!isOne && onRevealFolder && (
+        <>
+          <div className="library-list__menu-rule" role="none" />
+          <button type="button" onClick={onRevealFolder}>
+            <MenuIcon name="external" className="library-list__menu-icon" />
+            <span>{t('library.reveal')}</span>
+          </button>
+        </>
       )}
     </>
   );

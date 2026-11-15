@@ -259,6 +259,19 @@ const LibraryDetailHeader = ({
                     .catch(() => undefined);
                   setIsContainerMenuOpen(false);
                 }}
+                // The record's folder, when all of it lives in one: shown
+                // the way a song's is, through its first song, so main is
+                // still only ever handed an id it knows and never a path.
+                onRevealFolder={
+                  recordFolder !== undefined && menuTrackIds[0] !== undefined
+                    ? () => {
+                        window.electron.ipcRenderer
+                          .revealLibraryTrack(menuTrackIds[0])
+                          .catch(() => undefined);
+                        setIsContainerMenuOpen(false);
+                      }
+                    : undefined
+                }
                 onClose={() => setIsContainerMenuOpen(false)}
               />
             </>
