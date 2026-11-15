@@ -31,6 +31,7 @@ import type { ICoverFlowItem } from './coverFlowItems';
 import type { TDrawCaption } from './coverFlow/useCoverFlowSurprise';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryFolderArt from './LibraryFolderArt';
+import MenuIcon from '../icons/MenuIcon';
 
 interface ILibraryCoverFlowStageProps {
   stageRef: RefObject<HTMLDivElement | null>;
@@ -46,6 +47,9 @@ interface ILibraryCoverFlowStageProps {
   drawCaption: TDrawCaption | undefined;
   isDrawn: boolean;
   isOverCover: boolean;
+  /** Set when the row has nothing in it: what the stage says instead, and
+   * why (`LibraryCoverFlow`). */
+  empty?: { title: string; hint: string };
   optionId: (id: string) => string;
   moveBy: (delta: number) => void;
   onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
@@ -97,6 +101,7 @@ const LibraryCoverFlowStage = ({
   drawCaption,
   isDrawn,
   isOverCover,
+  empty,
   optionId,
   moveBy,
   onKeyDown,
@@ -112,7 +117,9 @@ const LibraryCoverFlowStage = ({
   return (
     <div
       ref={stageRef}
-      className={`library-coverflow__stage${isOverCover ? ' is-over-cover' : ''}`}
+      className={`library-coverflow__stage${isOverCover ? ' is-over-cover' : ''}${
+        empty ? ' is-empty' : ''
+      }`}
       role="listbox"
       tabIndex={0}
       aria-label={t('library.view.coverflow')}
@@ -128,7 +135,21 @@ const LibraryCoverFlowStage = ({
     >
       {/* The still centre cover, under the canvas until the scene has
           drawn it. */}
-      {!isDrawn && (
+      {/* An empty row says so, where its centre cover would stand (Ivan,
+          2026-11-15: "show something there when there is nothing"): the
+          stage was the scene's light alone, a glow round nothing. */}
+      {empty && (
+        <div className="library-coverflow__empty" role="status">
+          <span className="library-coverflow__empty-sleeve" aria-hidden="true">
+            <MenuIcon name="album" className="library-coverflow__empty-icon" />
+          </span>
+          <strong className="library-coverflow__empty-title">
+            {empty.title}
+          </strong>
+          <span className="library-coverflow__empty-hint">{empty.hint}</span>
+        </div>
+      )}
+      {!isDrawn && !empty && (
         <div className="library-coverflow__still" aria-hidden="true">
           {centreItem === undefined && (
             <span className="library-cover-art library-cover-art--cover" />

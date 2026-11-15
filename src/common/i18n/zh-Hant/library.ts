@@ -25,6 +25,11 @@ const library = {
   'library.jumpTo': '依首字母跳轉',
   'library.coverflow.previous': '上一封面',
   'library.coverflow.next': '下一個封面',
+  'library.coverflow.emptyTitle': '這裡什麼都沒有',
+  'library.coverflow.emptyHint':
+    '這個書架在這裡沒有可顯示的內容。請選擇其他書架或資料夾。',
+  'library.coverflow.noMatchTitle': '沒有符合「{query}」的結果',
+  'library.coverflow.noMatchHint': '換個關鍵字試試，或清除搜尋。',
   'library.filterHere': '過濾這些歌曲',
   'library.view.list': '詳細資料',
   'library.view.grid': '網格',

@@ -47,6 +47,12 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'Zu einem Buchstaben springen',
   'library.coverflow.previous': 'Vorheriges Cover',
   'library.coverflow.next': 'Nächstes Cover',
+  'library.coverflow.emptyTitle': 'Hier ist nichts',
+  'library.coverflow.emptyHint':
+    'Dieses Regal hat hier nichts zu zeigen. Wählen Sie ein anderes Regal oder einen anderen Ordner.',
+  'library.coverflow.noMatchTitle': 'Keine Treffer für „{query}“',
+  'library.coverflow.noMatchHint':
+    'Versuchen Sie andere Wörter oder löschen Sie die Suche.',
   'library.filterHere': 'Diese Songs filtern',
   'library.view.list': 'Details',
   'library.view.grid': 'Raster',

@@ -48,6 +48,12 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'Перейти к букве',
   'library.coverflow.previous': 'Предыдущая обложка',
   'library.coverflow.next': 'Следующая обложка',
+  'library.coverflow.emptyTitle': 'Здесь ничего нет',
+  'library.coverflow.emptyHint':
+    'На этой полке здесь нечего показать. Выберите другую полку или папку.',
+  'library.coverflow.noMatchTitle': 'Ничего не найдено по запросу «{query}»',
+  'library.coverflow.noMatchHint':
+    'Попробуйте другие слова или очистите поиск.',
   'library.filterHere': 'Фильтр по этим песням',
   'library.view.list': 'Таблица',
   'library.view.grid': 'Сетка',

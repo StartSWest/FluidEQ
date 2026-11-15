@@ -26,6 +26,11 @@ const library = {
   'library.jumpTo': '첫 글자로 이동',
   'library.coverflow.previous': '이전 표지',
   'library.coverflow.next': '다음 표지',
+  'library.coverflow.emptyTitle': '여기에는 아무것도 없습니다',
+  'library.coverflow.emptyHint':
+    '이 책장에는 여기에 표시할 것이 없습니다. 다른 책장이나 폴더를 고르세요.',
+  'library.coverflow.noMatchTitle': '“{query}”에 대한 결과가 없습니다',
+  'library.coverflow.noMatchHint': '다른 단어로 찾아보거나 검색을 지우세요.',
   'library.filterHere': '이 노래 필터링',
   'library.view.list': '자세히',
   'library.view.grid': '그리드',

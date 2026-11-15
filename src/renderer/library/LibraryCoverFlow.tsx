@@ -639,6 +639,26 @@ const LibraryCoverFlow = ({
   });
 
   const centreItem = itemAt(currentIndex);
+
+  /** What the stage says when the row has nothing in it, once the store has
+   * answered: a search that matched nothing, or a shelf with nothing here. */
+  const isEmpty = isPlaylists
+    ? count === 0
+    : list?.isLoaded === true && count === 0;
+  const searchText = (list?.query?.search ?? '').trim();
+  let emptyNote: { title: string; hint: string } | undefined;
+  if (isEmpty) {
+    emptyNote =
+      searchText === ''
+        ? {
+            title: t('library.coverflow.emptyTitle'),
+            hint: t('library.coverflow.emptyHint'),
+          }
+        : {
+            title: t('library.coverflow.noMatchTitle', { query: searchText }),
+            hint: t('library.coverflow.noMatchHint'),
+          };
+  }
   const optionId = (id: string) => `library-coverflow-option-${id}`;
 
   /**
@@ -729,6 +749,7 @@ const LibraryCoverFlow = ({
           drawCaption={drawCaption}
           isDrawn={isDrawn}
           isOverCover={hoveredIndex !== undefined}
+          empty={emptyNote}
           optionId={optionId}
           moveBy={moveBy}
           onKeyDown={onStageKeyDown}

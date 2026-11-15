@@ -44,6 +44,11 @@ const library = {
   'library.jumpTo': 'Jump to a letter',
   'library.coverflow.previous': 'Previous cover',
   'library.coverflow.next': 'Next cover',
+  'library.coverflow.emptyTitle': 'Nothing here',
+  'library.coverflow.emptyHint':
+    'This shelf has nothing to show here. Pick another shelf or folder.',
+  'library.coverflow.noMatchTitle': 'No matches for “{query}”',
+  'library.coverflow.noMatchHint': 'Try other words, or clear the search.',
   'library.filterHere': 'Filter these songs',
   'library.view.list': 'Details',
   'library.view.grid': 'Grid',

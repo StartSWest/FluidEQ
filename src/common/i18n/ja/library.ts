@@ -48,6 +48,12 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': '頭文字へ移動',
   'library.coverflow.previous': '前のジャケット',
   'library.coverflow.next': '次のジャケット',
+  'library.coverflow.emptyTitle': 'ここには何もありません',
+  'library.coverflow.emptyHint':
+    'この棚にはここに表示するものがありません。別の棚かフォルダーを選んでください。',
+  'library.coverflow.noMatchTitle': '「{query}」に一致するものはありません',
+  'library.coverflow.noMatchHint':
+    '別の言葉で試すか、検索をクリアしてください。',
   'library.filterHere': 'この中の曲を絞り込む',
   'library.view.list': '詳細',
   'library.view.grid': 'グリッド',

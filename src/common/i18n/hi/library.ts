@@ -46,6 +46,11 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': 'किसी अक्षर पर जाएँ',
   'library.coverflow.previous': 'पिछला कवर',
   'library.coverflow.next': 'अगला कवर',
+  'library.coverflow.emptyTitle': 'यहाँ कुछ नहीं है',
+  'library.coverflow.emptyHint':
+    'इस शेल्फ़ में यहाँ दिखाने को कुछ नहीं है। कोई दूसरा शेल्फ़ या फ़ोल्डर चुनें।',
+  'library.coverflow.noMatchTitle': '“{query}” के लिए कोई मिलान नहीं',
+  'library.coverflow.noMatchHint': 'दूसरे शब्द आज़माएँ, या खोज साफ़ करें।',
   'library.filterHere': 'इन गानों को फ़िल्टर करें',
   'library.view.list': 'विवरण',
   'library.view.grid': 'ग्रिड',

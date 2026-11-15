@@ -109,7 +109,12 @@ export const REFLECTION_FRAGMENT = /* glsl */ `
  * over the covers (Ivan, 2026-11-15: "let's not have too much glow on cover
  * art, at least not on top"). It is half as strong, tighter, and fades out
  * above the centre cover, so it lights only what the row stands in front of
- * and the floor under it. */
+ * and the floor under it.
+ *
+ * Halved again with the floor's pool (Ivan, 2026-11-15: "the Cover Flow
+ * background is too much"): 0.18 here and a pool lit to 0.8 of the cover's
+ * colour at 0.2 alpha read as a lamp behind the row, and the pool as a bright
+ * bar across the stage wherever the covers did not hide it. */
 export const HALO_VERTEX = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -129,7 +134,7 @@ export const HALO_FRAGMENT = /* glsl */ `
     float halo = exp(-dot(p, p) * 8.0);
     // Full below the centre, gone a quarter of the stage above it.
     float below = 1.0 - smoothstep(uAnchor - 0.05, uAnchor + 0.25, vUv.y);
-    gl_FragColor = vec4(uGlow, halo * below * 0.18);
+    gl_FragColor = vec4(uGlow, halo * below * 0.1);
     #include <colorspace_fragment>
     gl_FragColor.rgb *= gl_FragColor.a;
   }
@@ -152,8 +157,8 @@ export const FLOOR_FRAGMENT = /* glsl */ `
     float d = length(vec2(vWorld.x * 0.45, vWorld.z + 0.6));
     float pool = exp(-d * d * 0.9);
     float reach = smoothstep(-9.0, -2.0, vWorld.z) * (1.0 - smoothstep(2.5, 5.5, vWorld.z));
-    float alpha = (0.16 + pool * 0.2) * reach;
-    vec3 colour = mix(vec3(0.0), uGlow, pool * 0.8);
+    float alpha = (0.16 + pool * 0.1) * reach;
+    vec3 colour = mix(vec3(0.0), uGlow, pool * 0.5);
     gl_FragColor = vec4(colour, alpha);
     #include <colorspace_fragment>
     gl_FragColor.rgb *= gl_FragColor.a;

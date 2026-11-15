@@ -45,6 +45,11 @@ const library: Partial<Dictionary> = {
   'library.jumpTo': '跳转到字母',
   'library.coverflow.previous': '上一张封面',
   'library.coverflow.next': '下一张封面',
+  'library.coverflow.emptyTitle': '这里什么都没有',
+  'library.coverflow.emptyHint':
+    '这个书架在这里没有可显示的内容。请选择其他书架或文件夹。',
+  'library.coverflow.noMatchTitle': '没有与“{query}”匹配的结果',
+  'library.coverflow.noMatchHint': '换个关键词试试，或清除搜索。',
   'library.filterHere': '筛选这些歌曲',
   'library.view.list': '详细信息',
   'library.view.grid': '网格',

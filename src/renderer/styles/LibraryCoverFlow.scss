@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // *** Cover Flow ***************************************************************
 //
@@ -291,6 +292,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
     linear-gradient(to bottom, #000 82%, transparent);
   mask-composite: intersect;
+  // Out while the row is empty (`.is-empty`), back when covers arrive.
+  transition: opacity 200ms $ease-out;
 }
 
 .library-coverflow__canvas {
@@ -303,6 +306,66 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // (`--cover-flow-centre-y` and `--cover-flow-size` are the scene's own
 // layout, `coverFlowLayout`), until the scene has drawn it — and for good
 // where WebGL cannot start.
+// AN EMPTY ROW SAYS SO (Ivan, 2026-11-15: "the Cover Flow background is too
+// much, also show something there when there is nothing"). With no covers
+// the stage was the scene's light alone: the halo round where the centre
+// cover would stand and the floor's pool, drawn as a bright line across the
+// stage by nothing. The light goes, and an empty sleeve stands where the
+// centre cover would, with what the row is missing under it.
+.library-coverflow__stage.is-empty {
+  cursor: default;
+
+  .library-coverflow__scene {
+    opacity: 0;
+  }
+
+  .library-coverflow__arrow {
+    visibility: hidden;
+  }
+}
+
+.library-coverflow__empty {
+  position: absolute;
+  top: calc(var(--cover-flow-centre-y) - var(--cover-flow-size) * 0.3);
+  left: 50%;
+  display: flex;
+  width: min(90%, 380px);
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  translate: -50% 0;
+}
+
+.library-coverflow__empty-sleeve {
+  display: grid;
+  width: calc(var(--cover-flow-size) * 0.42);
+  height: calc(var(--cover-flow-size) * 0.42);
+  margin-bottom: 10px;
+  place-items: center;
+  border: 1px solid $studio-hair;
+  border-radius: calc(var(--cover-flow-size) * 0.035);
+  background: $studio-surface;
+}
+
+.library-coverflow__empty-icon {
+  width: calc(var(--cover-flow-size) * 0.14);
+  height: calc(var(--cover-flow-size) * 0.14);
+  color: $studio-t3;
+}
+
+.library-coverflow__empty-title {
+  color: $text-primary;
+  font-size: $studio-text-lead;
+  font-weight: $weight-semibold;
+}
+
+.library-coverflow__empty-hint {
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
+}
+
 .library-coverflow__still {
   position: absolute;
   top: calc(var(--cover-flow-centre-y) - var(--cover-flow-size) / 2);
