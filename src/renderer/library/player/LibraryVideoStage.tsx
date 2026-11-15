@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef } from 'react';
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
 import { useGraphFullScreen } from '../../utils/graphStyle';
@@ -27,6 +33,9 @@ import {
   writeVideoPosition,
 } from './playbackMemory';
 import '../../styles/NowPlayingBar.scss';
+
+/** How far one arrow press skips through a film. */
+const SEEK_STEP_MS = 5000;
 
 /**
  * The video half of the player: a `<video>` filling the Library tab's body
@@ -53,8 +62,15 @@ const LibraryVideoStage = ({
   onToggleFullScreen,
 }: ILibraryVideoStageProps) => {
   const { t } = useTranslation();
-  const { videoTrackId, isPlaying, registerVideoElement, toggle, closeVideo } =
-    useLibraryPlayerSession();
+  const {
+    videoTrackId,
+    isPlaying,
+    registerVideoElement,
+    toggle,
+    closeVideo,
+    seek,
+    readPositionMs,
+  } = useLibraryPlayerSession();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   /**
    * The graph is expanded or full screen over this tab, so the picture behind
@@ -165,6 +181,32 @@ const LibraryVideoStage = ({
     closeVideo();
   };
 
+  /**
+   * A press pauses or plays; a double-press goes full screen and leaves the
+   * film as it was (Ivan, 2026-11-15: "when double clicking for fullscreen
+   * don't make the video stop, only when the user clicks once"). The two
+   * presses of a double-press are two clicks, and nothing can know at the
+   * first whether a second is coming without waiting on a clock, so the
+   * second (`detail` 2) gives back what the first did: the picture stops
+   * for the length of a double-press and plays on.
+   */
+  const onPress = (event: MouseEvent<HTMLVideoElement>) => {
+    if (event.detail <= 2) {
+      toggle();
+    }
+  };
+
+  /** The arrows skip through the film while it has the focus, as every
+   * player on this machine does: 5 s a press. */
+  const onKey = (event: KeyboardEvent<HTMLVideoElement>) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+      return;
+    }
+    event.preventDefault();
+    const step = event.key === 'ArrowLeft' ? -SEEK_STEP_MS : SEEK_STEP_MS;
+    seek(Math.max(0, readPositionMs() + step));
+  };
+
   if (!videoTrackId) {
     return null;
   }
@@ -183,8 +225,11 @@ const LibraryVideoStage = ({
         ref={setVideoRef}
         className="library-video-stage__video"
         src={libraryMediaUrl('track', videoTrackId)}
-        onClick={toggle}
+        // Focusable, so the arrows reach it once it has been pressed.
+        tabIndex={0}
+        onClick={onPress}
         onDoubleClick={onToggleFullScreen}
+        onKeyDown={onKey}
         // BACK WHERE IT WAS LEFT, AND NOT BEFORE THE METADATA IS IN.
         //
         // `currentTime` assigned while the element is still at

@@ -432,16 +432,6 @@ const LibraryWorkspaceView = ({
               stageRef={surpriseStageRef}
               onPick={showSurprisePick}
             />
-            {/* Over a video in full screen only, where the bar holding the
-                chip everywhere else is not drawn. */}
-            {isUpNextCollapsed && isVideoFull && (
-              <LibraryUpNextChip
-                className="library-up-next__chip--over-video"
-                isOpen={false}
-                count={upNextCount}
-                onToggle={() => setIsUpNextCollapsed(false)}
-              />
-            )}
           </>
         )}
       </div>

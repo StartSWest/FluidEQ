@@ -45,7 +45,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // it sits inside the card's padding, under the toolbar and beside a pane,
   // and 18px there was a rounder corner than anything else on the tab.
   border-radius: $radius-m;
-  background: $black;
+  // The app's own colour round the picture, never a black box (Ivan,
+  // 2026-11-15: "don't show a black background, only the app colour"):
+  // inside the tab the panel shows through the letterbox, full screen the
+  // window's base.
+  background: none;
 
   &.is-fullscreen {
     // App expands the shared Media/Library/Karaoke workspace. Keeping this
@@ -57,6 +61,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 0;
     flex: 1 1 auto;
     border-radius: 0;
+    background: $surface-base;
   }
 
   // The picture behind an expanded or full-screen graph on this tab.
@@ -92,8 +97,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background: $black;
+  background: none;
   cursor: pointer;
+
+  // Focus is how the arrows reach it (`LibraryVideoStage`); a ring round a
+  // whole film would frame the picture, so the keyboard's own ring only.
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, $secondary-default 60%, transparent);
+    outline-offset: -2px;
+  }
 }
 
 // The one control on the picture, in the corner karaoke puts its own way back

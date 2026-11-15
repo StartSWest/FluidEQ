@@ -258,8 +258,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     order: 1;
   }
 
-  // Full screen: the picture fills the window and the queue floats over its
-  // right-hand edge on glass, clear of the picture's corner buttons.
+  // Full screen: the picture fills the window, and the queue and its chip
+  // leave it (Ivan, 2026-11-15: "while the video is in full screen we don't
+  // show Up Next"). They floated over its right-hand edge on glass, and a
+  // film is watched, not browsed.
   &.is-video-full {
     .library-video-stage {
       position: fixed;
@@ -268,50 +270,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     .library-side {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      bottom: 12px;
-      border: 0;
-      background: none;
-    }
-
-    .library-up-next {
-      border-radius: $radius-l;
-      background: color-mix(in srgb, $surface-panel 88%, transparent);
-      backdrop-filter: blur(22px) saturate(130%);
-      -webkit-backdrop-filter: blur(22px) saturate(130%);
-    }
-
-    .library-up-next__splitter {
       display: none;
-    }
-
-    .library-up-next__chip--over-video {
-      top: 12px;
     }
   }
 }
 
-// Under the optional titlebar the window keeps in full screen, everything on
-// the picture's top edge starts below the bar.
+// Under the optional titlebar the window keeps in full screen, the picture's
+// Back starts below the bar.
 .app-workspace.is-app-full.is-media-full.has-top-bar
-  .library-workspace.is-video-full {
-  .library-side,
-  .library-up-next__chip--over-video,
+  .library-workspace.is-video-full
   .library-video-stage__back {
-    top: calc(#{$title-bar-height} + 8px + 12px);
-  }
+  top: calc(#{$title-bar-height} + 8px + 12px);
 }
 
 // *** The chrome over a full-screen picture goes together **********************
 //
-// The picture's Back, the queue and its chip leave with the window's chrome
-// when the pointer rests, and come back with it — one gesture, never pieces.
+// The picture's Back leaves with the window's chrome when the pointer rests,
+// and comes back with it — one gesture, never pieces.
 .library-workspace.is-video-full {
-  .library-video-stage__back,
-  .library-side,
-  .library-up-next__chip--over-video {
+  .library-video-stage__back {
     transition:
       opacity $motion-base $ease-out,
       transform $motion-base $ease-out;
@@ -324,69 +301,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     transform: translateY(calc(-100% - #{$title-bar-height}));
     pointer-events: none;
   }
-
-  .library-side,
-  .library-up-next__chip--over-video {
-    opacity: 0;
-    transform: translateX(calc(100% + 12px));
-    pointer-events: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .library-workspace.is-video-full {
-    .library-video-stage__back,
-    .library-side,
-    .library-up-next__chip--over-video {
+    .library-video-stage__back {
       transition: none;
     }
-  }
-}
-
-// The now-playing bar floats over a full-screen picture; the queue ends above
-// it rather than under it.
-#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
-  .library-workspace.has-video.is-video-full
-  .library-side {
-  bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
-}
-
-// Folded, the way back to the queue is a chip on the picture — the corner the
-// full-screen button used to hold, which is where a video player puts this
-// control and where the eye goes for it.
-.library-up-next__chip--over-video {
-  position: absolute;
-  z-index: 1160;
-  // Only over a FULL-SCREEN picture, where the top bar that holds the chip
-  // otherwise is not drawn (`LibraryWorkspaceView`). The picture's own inset
-  // twice over, which pairs it with the picture's Back in the opposite
-  // corner: the window's edge, then the picture's 12px inside it.
-  top: 12px;
-  right: calc(12px + 12px);
-
-  // THE SAME GLASS AS THE BACK BUTTON OPPOSITE IT, for the same reason. In
-  // the toolbar this chip is a quiet pill — 7% of the accent on a muted
-  // label — which is right beside its siblings on a panel and invisible on a
-  // picture: measured over a brown frame it was a ghost of an outline nobody
-  // could read. Over the video it is the way into the queue and the only
-  // thing in that corner, so it takes the header's blur, a white label and
-  // a neutral hairline, exactly as Back does in the other corner.
-  color: $text-primary;
-  border-color: rgba($edge-tint, 0.16);
-  background: color-mix(in srgb, $surface-panel 55%, transparent);
-  box-shadow: 0 6px 18px rgba($black, 0.28);
-  backdrop-filter: blur(22px) saturate(130%);
-  -webkit-backdrop-filter: blur(22px) saturate(130%);
-
-  .library-up-next__count {
-    color: $text-primary;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: rgba($edge-tint, 0.3);
-    background: color-mix(in srgb, $surface-menu-top 80%, transparent);
   }
 }
 
@@ -420,32 +341,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The panel's edge and the chip that stands in for it over a video arrive as
-// the fold ends, not with its first frame: the edge is placed where the open
-// panel's left side will be, and shown at once it would hang in the shelf
-// while the panel was still on its way there. The chip comes in from the side
-// the queue went. `translate` rather than `transform`, which the full-screen
-// slide out of the picture's way already owns.
+// The panel's edge arrives as the fold ends, not with its first frame: it is
+// placed where the open panel's left side will be, and shown at once it would
+// hang in the shelf while the panel was still on its way there.
 @keyframes up-next-edge-in {
   from {
     opacity: 0;
   }
 }
 
-@keyframes up-next-chip-in {
-  from {
-    opacity: 0;
-    translate: 8px 0;
-  }
-}
-
 .library-up-next__splitter {
   animation: up-next-edge-in var(--up-next-settle) ease-out
-    calc(var(--up-next-move) * 0.6) backwards;
-}
-
-.library-up-next__chip--over-video {
-  animation: up-next-chip-in var(--up-next-settle) $ease-out
     calc(var(--up-next-move) * 0.6) backwards;
 }
 
