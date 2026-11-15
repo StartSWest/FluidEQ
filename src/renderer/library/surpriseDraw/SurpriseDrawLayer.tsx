@@ -176,6 +176,7 @@ const SurpriseDrawLayer = ({
         slotOf(`${key}-pick`, track.artId, track.title),
       );
       const draw: ISurpriseDraw = {
+        pick: track,
         row,
         startIndex,
         pickIndex,

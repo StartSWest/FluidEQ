@@ -53,9 +53,13 @@ const useCoverFlowScene = ({
   isReducedMotion,
 }: ICoverFlowSceneInput) => {
   const sceneRef = useRef<ICoverFlowScene | undefined>(undefined);
-  /** The scene is lent to Surprise me's draw (`borrow`): the row's own
-   * covers and centre wait until it is given back. */
-  const isLentRef = useRef(false);
+  /**
+   * The scene is lent to Surprise me's draw (`borrow`): the row's centre
+   * waits until it is given back, and so do its covers when the draw spins a
+   * row of its own ('all'). Spinning along the shelf's own row ('centre'),
+   * the covers keep arriving as their pages load.
+   */
+  const lentRef = useRef<'all' | 'centre' | undefined>(undefined);
   const [isDrawn, setIsDrawn] = useState(false);
   const [isShown, setIsShown] = useState(isWindowShown);
   /** Bumped when a lost context comes back, to build the scene again. */
@@ -109,8 +113,10 @@ const useCoverFlowScene = ({
         built.setReducedMotion(now.isReducedMotion);
         built.setExpanded(now.isExpanded);
         built.setHovered(now.hovered);
-        if (!isLentRef.current) {
+        if (lentRef.current !== 'all') {
           built.setSource(now.source);
+        }
+        if (lentRef.current === undefined) {
           built.setCentre(now.centre);
         }
         sceneRef.current = built;
@@ -131,12 +137,12 @@ const useCoverFlowScene = ({
   }, [hostRef, isShown, generation]);
 
   useEffect(() => {
-    if (!isLentRef.current) {
+    if (lentRef.current !== 'all') {
       sceneRef.current?.setSource(source);
     }
   });
   useEffect(() => {
-    if (!isLentRef.current) {
+    if (lentRef.current === undefined) {
       sceneRef.current?.setCentre(centre);
     }
   }, [centre]);
@@ -148,21 +154,24 @@ const useCoverFlowScene = ({
    * already lent); otherwise the function that gives it back, which puts the
    * row's own covers in again and stands it where the row is now, at once.
    */
-  const borrow = useCallback((): (() => void) | undefined => {
-    const scene = sceneRef.current;
-    if (!scene || isLentRef.current) {
-      return undefined;
-    }
-    isLentRef.current = true;
-    return () => {
-      isLentRef.current = false;
-      const now = latest.current;
-      const { current } = sceneRef;
-      current?.setExpanded(now.isExpanded);
-      current?.setSource(now.source);
-      current?.jumpTo(now.centre);
-    };
-  }, []);
+  const borrow = useCallback(
+    (options?: { keepRow?: boolean }): (() => void) | undefined => {
+      const scene = sceneRef.current;
+      if (!scene || lentRef.current !== undefined) {
+        return undefined;
+      }
+      lentRef.current = options?.keepRow ? 'centre' : 'all';
+      return () => {
+        lentRef.current = undefined;
+        const now = latest.current;
+        const { current } = sceneRef;
+        current?.setExpanded(now.isExpanded);
+        current?.setSource(now.source);
+        current?.jumpTo(now.centre);
+      };
+    },
+    [],
+  );
   useEffect(() => {
     sceneRef.current?.setHovered(hovered);
   }, [hovered]);

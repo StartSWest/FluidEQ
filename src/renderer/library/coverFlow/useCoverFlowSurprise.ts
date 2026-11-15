@@ -9,6 +9,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * lends its own scene (`surpriseStage.ts`), so a press spins the row the
  * listener is looking at instead of laying a second scene over it.
  *
+ * THE SHELF'S OWN ROW, WHEREVER IT CAN BE. The spin runs along the row as it
+ * is, from a few covers before the pick to the pick's own cover, so the
+ * covers either side of it when it lands are the ones that stay there.
+ * Spinning a deck of covers from anywhere in the library and then giving the
+ * row back swapped every neighbour at the end (Ivan, 2026-11-15: "the items
+ * to the side of the picked one ... change to new different ones"). Only a
+ * pick this row does not hold (a Playlists shelf, a search that left it out)
+ * spins the draw's own deck.
+ *
  * For the length of the draw the songs panel folds away, so the row has the
  * whole height (Ivan, 2026-11-14: "hide the album detail so it shows fully,
  * then when it lands it opens the album detail if that was open"); the view
@@ -16,8 +25,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * row's own caption gives way to the pick's once it lands.
  */
 import { type MutableRefObject, useEffect, useState } from 'react';
+import type { TLibraryBrowseMode } from '../../../common/library/types';
 import type { ICoverFlowScene } from './coverFlowScene';
-import { DRAW_HOLD_MS, DRAW_SPIN_MS } from '../surpriseDraw/drawTiming';
+import shelfItemOf from '../shelfItem';
+import {
+  DRAW_HOLD_MS,
+  DRAW_SPIN_MS,
+  DRAW_TRAVEL,
+} from '../surpriseDraw/drawTiming';
 import type {
   ISurpriseCaption,
   ISurpriseStage,
@@ -30,14 +45,38 @@ import type {
  */
 export type TDrawCaption = (ISurpriseCaption & { key: string }) | null;
 
+/** Where the pick's cover stands in this row, or -1 for not in it. */
+const shelfIndexOf = async (
+  browseMode: TLibraryBrowseMode,
+  itemId: string,
+  positionOf: (id: string) => Promise<number>,
+): Promise<number> => {
+  // A playlist cover is the playlist, never a song's; a video shelf has no
+  // Cover Flow. Neither row can hold the pick.
+  if (browseMode === 'playlist' || browseMode === 'video') {
+    return -1;
+  }
+  try {
+    return await positionOf(itemId);
+  } catch {
+    // A row that cannot say where the pick is spins the draw's own deck.
+    return -1;
+  }
+};
+
 const useCoverFlowSurprise = ({
   stageRef,
   sceneRef,
   borrow,
+  browseMode,
+  positionOfRef,
 }: {
   stageRef: TSurpriseStageRef | undefined;
   sceneRef: MutableRefObject<ICoverFlowScene | undefined>;
-  borrow: () => (() => void) | undefined;
+  borrow: (options?: { keepRow?: boolean }) => (() => void) | undefined;
+  browseMode: TLibraryBrowseMode;
+  /** The row's own lookup of a cover's place, read at the press. */
+  positionOfRef: MutableRefObject<(id: string) => Promise<number>>;
 }): TDrawCaption | undefined => {
   const [drawCaption, setDrawCaption] = useState<TDrawCaption | undefined>(
     undefined,
@@ -49,9 +88,18 @@ const useCoverFlowSurprise = ({
     }
     let serial = 0;
     const stage: ISurpriseStage = {
-      play: async ({ row, startIndex, pickIndex, caption, signal }) => {
+      play: async ({ pick, row, startIndex, pickIndex, caption, signal }) => {
+        const shelfIndex = await shelfIndexOf(
+          browseMode,
+          shelfItemOf(browseMode, pick),
+          positionOfRef.current,
+        );
+        if (signal.aborted) {
+          return true;
+        }
+        const isOwnRow = shelfIndex >= 0;
         const scene = sceneRef.current;
-        const giveBack = borrow();
+        const giveBack = borrow({ keepRow: isOwnRow });
         if (!scene || !giveBack) {
           giveBack?.();
           return false;
@@ -62,14 +110,18 @@ const useCoverFlowSurprise = ({
         try {
           // The reflections come back with the panel folded away.
           scene.setExpanded(false);
-          scene.setSource({
-            count: row.length,
-            itemAt: (index) => row[index],
-            playingId: undefined,
-          });
-          scene.jumpTo(startIndex);
+          if (isOwnRow) {
+            scene.jumpTo(Math.max(0, shelfIndex - DRAW_TRAVEL));
+          } else {
+            scene.setSource({
+              count: row.length,
+              itemAt: (index) => row[index],
+              playingId: undefined,
+            });
+            scene.jumpTo(startIndex);
+          }
           await scene.spin({
-            to: pickIndex,
+            to: isOwnRow ? shelfIndex : pickIndex,
             spinMs: DRAW_SPIN_MS,
             holdMs: DRAW_HOLD_MS,
             onLanded: () => setDrawCaption({ key, ...caption }),
@@ -88,7 +140,7 @@ const useCoverFlowSurprise = ({
         stageRef.current = undefined;
       }
     };
-  }, [stageRef, sceneRef, borrow]);
+  }, [stageRef, sceneRef, borrow, browseMode, positionOfRef]);
 
   return drawCaption;
 };

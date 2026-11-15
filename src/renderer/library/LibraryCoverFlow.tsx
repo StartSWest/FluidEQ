@@ -570,6 +570,8 @@ const LibraryCoverFlow = ({
     stageRef: surpriseStageRef,
     sceneRef,
     borrow,
+    browseMode,
+    positionOfRef,
   });
   const isDrawing = drawCaption !== undefined;
   const isExpanded = isOpen && !isDrawing;

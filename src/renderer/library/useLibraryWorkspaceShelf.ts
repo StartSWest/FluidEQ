@@ -53,39 +53,11 @@ import {
   type TLibrarySortDirection,
   type TLibraryViewMode,
 } from '../../common/library/types';
-import {
-  albumKey,
-  artistKey,
-  parentFolderPath,
-  trackFolderPath,
-} from '../../common/library/grouping';
+import { parentFolderPath } from '../../common/library/grouping';
 import { shelfQueryFor } from './libraryShelfQuery';
 import { useLibraryList } from './useLibraryList';
-import { trackGenreIds } from '../../common/library/genres';
 import { type ILibraryWorkspaceProps } from './LibraryWorkspace';
-
-/**
- * The cover a song belongs to on the shelf being browsed: its album,
- * artist, first genre, folder, or the song itself. One rule for the
- * playing mark and for where Surprise me's pick is shown.
- */
-const shelfItemOf = (
-  browseMode: TLibraryBrowseMode,
-  track: ILibraryTrack,
-): string => {
-  switch (browseMode) {
-    case 'album':
-      return albumKey(track);
-    case 'artist':
-      return artistKey(track);
-    case 'genre':
-      return trackGenreIds(track)[0] ?? track.id;
-    case 'folder':
-      return trackFolderPath(track.path);
-    default:
-      return track.id;
-  }
-};
+import shelfItemOf from './shelfItem';
 
 /**
  * The Library's shelf: the index and the queue, the browse mode, view and

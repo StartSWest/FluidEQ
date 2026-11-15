@@ -21,6 +21,7 @@ import {
   easeOutQuart,
   spinPosition,
 } from '../../../renderer/library/surpriseDraw/drawTiming';
+import type { ILibraryTrack } from '../../../common/library/types';
 import type { ILastSurprise } from '../../../renderer/library/player/useSurprise';
 import SurpriseDrawLayer from '../../../renderer/library/surpriseDraw/SurpriseDrawLayer';
 import type {
@@ -285,7 +286,19 @@ describe('the draw over Cover Flow', () => {
 });
 
 describe('Cover Flow lending its row', () => {
+  const PICK = {
+    id: 'z',
+    title: 'Otra Vez',
+    artist: 'Nico Duende',
+    album: 'Azotea',
+    path: 'D:/Music/Nico Duende/Azotea/01.flac',
+  } as unknown as ILibraryTrack;
+  /** Where Cover Flow's own row holds the pick's cover, as its lookup says. */
+  const lookup = (answer: Promise<number>) => ({
+    current: jest.fn(() => answer),
+  });
   const draw = (signal: AbortSignal): ISurpriseDraw => ({
+    pick: PICK,
     row: [
       { id: 'a', artId: 'a1', label: '', isFolder: false, isPending: false },
       {
@@ -302,7 +315,73 @@ describe('Cover Flow lending its row', () => {
     signal,
   });
 
-  it('folds the panel, spins its own scene, captions the pick, and gives the row back', async () => {
+  it('spins along its own row to the pick, so the covers beside it never change', async () => {
+    const made = makeScene();
+    const giveBack = jest.fn();
+    const borrow = jest.fn((_options?: { keepRow?: boolean }) => giveBack);
+    const stageRef: MutableRefObject<ISurpriseStage | undefined> = {
+      current: undefined,
+    };
+    const sceneRef = {
+      current: made.scene as unknown as ICoverFlowScene,
+    };
+    const positionOfRef = lookup(Promise.resolve(40));
+    renderHook(() =>
+      useCoverFlowSurprise({
+        stageRef,
+        sceneRef,
+        borrow,
+        browseMode: 'album',
+        positionOfRef,
+      }),
+    );
+    let playing: Promise<boolean> | undefined;
+    await act(async () => {
+      playing = stageRef.current?.play(draw(new AbortController().signal));
+    });
+    // Looked up by the cover the song belongs to on this shelf: its album.
+    expect(positionOfRef.current).toHaveBeenCalledTimes(1);
+    expect(borrow).toHaveBeenCalledWith({ keepRow: true });
+    // The row's own covers stay: no deck is put in.
+    expect(made.scene.setSource).not.toHaveBeenCalled();
+    expect(made.scene.jumpTo).toHaveBeenCalledWith(40 - DRAW_TRAVEL);
+    expect(made.spinRequest()).toMatchObject({ to: 40 });
+    await act(async () => {
+      made.finish();
+      await playing;
+    });
+    expect(giveBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('spins the draw deck for a pick its row does not hold, never asking a Playlists row', async () => {
+    const made = makeScene();
+    const borrow = jest.fn((_options?: { keepRow?: boolean }) => jest.fn());
+    const stageRef: MutableRefObject<ISurpriseStage | undefined> = {
+      current: undefined,
+    };
+    const positionOfRef = lookup(Promise.resolve(5));
+    renderHook(() =>
+      useCoverFlowSurprise({
+        stageRef,
+        sceneRef: { current: made.scene as unknown as ICoverFlowScene },
+        borrow,
+        browseMode: 'playlist',
+        positionOfRef,
+      }),
+    );
+    await act(async () => {
+      stageRef.current?.play(draw(new AbortController().signal));
+    });
+    expect(positionOfRef.current).not.toHaveBeenCalled();
+    expect(borrow).toHaveBeenCalledWith({ keepRow: false });
+    expect(made.scene.setSource.mock.calls[0][0].count).toBe(2);
+    expect(made.spinRequest()).toMatchObject({ to: 1 });
+  });
+
+  it('folds the panel, spins, captions the pick, and gives the row back', async () => {
+    const refusingLookup = {
+      current: jest.fn(() => Promise.reject(new Error('no answer'))),
+    };
     const made = makeScene();
     const giveBack = jest.fn();
     const stageRef: MutableRefObject<ISurpriseStage | undefined> = {
@@ -312,11 +391,18 @@ describe('Cover Flow lending its row', () => {
       current: made.scene as unknown as ICoverFlowScene,
     };
     const hook = renderHook(() =>
-      useCoverFlowSurprise({ stageRef, sceneRef, borrow: () => giveBack }),
+      useCoverFlowSurprise({
+        stageRef,
+        sceneRef,
+        borrow: () => giveBack,
+        browseMode: 'album',
+        // A row that cannot say where the pick is spins the draw's deck.
+        positionOfRef: refusingLookup,
+      }),
     );
     expect(hook.result.current).toBeUndefined();
     let playing: Promise<boolean> | undefined;
-    act(() => {
+    await act(async () => {
       playing = stageRef.current?.play(draw(new AbortController().signal));
     });
     // Spinning: the panel folds (the view reads `null` as drawing) and no
@@ -349,6 +435,8 @@ describe('Cover Flow lending its row', () => {
         stageRef,
         sceneRef: { current: undefined },
         borrow: () => undefined,
+        browseMode: 'album',
+        positionOfRef: lookup(Promise.resolve(-1)),
       }),
     );
     await expect(
@@ -365,6 +453,8 @@ describe('Cover Flow lending its row', () => {
         stageRef,
         sceneRef: { current: undefined },
         borrow: () => undefined,
+        browseMode: 'album',
+        positionOfRef: lookup(Promise.resolve(-1)),
       }),
     );
     expect(stageRef.current).toBeDefined();

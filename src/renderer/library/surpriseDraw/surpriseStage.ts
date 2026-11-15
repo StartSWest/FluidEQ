@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * way one scene, one WebGL context, one copy of three.js.
  */
 import type { MutableRefObject } from 'react';
+import type { ILibraryTrack } from '../../../common/library/types';
 import type { ICoverFlowSlot } from '../coverFlow/coverFlowScene';
 
 export interface ISurpriseCaption {
@@ -22,6 +23,9 @@ export interface ISurpriseCaption {
 }
 
 export interface ISurpriseDraw {
+  /** The song picked: Cover Flow spins along its own row to this song's
+   * cover when the row holds it, and only otherwise along `row`. */
+  pick: ILibraryTrack;
   /** The covers the row runs past, the pick among them. */
   row: readonly ICoverFlowSlot[];
   /** Where the row stands when the spin starts. */
