@@ -22,28 +22,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 
 // ONE SWITCH, ONE SIZE, FLAT (Ivan, 2026-11-15: "the toggle components need
-// a redesign for the entire app, less round, more flat, to match", and
-// "make sure they are the same size: the Library's is bigger than in the
-// rest of the app"). It was a 50x28 pill with a glow round the track and a
-// lit radial knob when on, and nine pages overrode its size to four others
-// (38x22, 42x24, 34x20, 30x16). Now one 34x18 track everywhere with 4px
-// corners and a round knob: off, a dark well with a hairline and a light
-// knob; on, the accent's edge drawn inside the track, a faint tint of it
-// within, and the knob the accent - no glow, no gradient. Two tries were
-// sent back first: a square dark knob on a solid accent track, then a white
-// knob on it ("a border inside, not that rounded either, and not white").
-// Pages no longer set a size.
+// a redesign for the entire app, less round, more flat, to match", and "make
+// sure they are the same size: the Library's is bigger than in the rest of
+// the app"). It was a 50x28 pill with a glow round the track and a lit radial
+// knob, and nine pages overrode its size to four others.
+//
+// THE HALF BLOCK, picked from four on the design canvas ("let's go with D,
+// but make them a bit bigger, they are too small"): a 38x20 track with 3px
+// corners and a hairline, and a block that fills half of it - grey on the
+// left when off, the accent on the right when on. Three tries were sent back
+// before it: a small square dark knob on a solid accent track, a white knob,
+// and a round accent knob in a tinted track.
+//
+// The block is worked out from the track, so a page that has to fit a
+// smaller one (the Song EQ chip's 32px two-line face) sets only the width
+// and height.
 
-$switch-width: 34px;
-$switch-height: 18px;
-$switch-thumb: 12px;
-$switch-inset: 3px;
+$switch-width: 38px;
+$switch-height: 20px;
 
 .switch {
   --switch-width: #{$switch-width};
   --switch-height: #{$switch-height};
-  --switch-thumb: #{$switch-thumb};
-  --switch-inset: #{$switch-inset};
 
   display: inline-flex;
   width: min-content;
@@ -57,25 +57,23 @@ $switch-inset: 3px;
   height: var(--switch-height);
   box-sizing: border-box;
   align-items: center;
-  justify-content: space-between;
   border: 1px solid $border-subtle;
-  border-radius: 4px;
+  border-radius: 3px;
   background: $track-well;
   box-shadow: none;
   cursor: pointer;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease;
+  transition: border-color 160ms ease;
 
+  // Inside the 1px edge, a pixel off every side: half the inner width less
+  // that pixel, the inner height less one above and one below.
   .switch-button {
     position: absolute;
-    // Inside the 1px edge: the inset is measured from the track's inner box.
-    top: calc(var(--switch-inset) - 1px);
-    left: calc(var(--switch-inset) - 1px);
-    width: var(--switch-thumb);
-    height: var(--switch-thumb);
-    border-radius: 50%;
-    background: color-mix(in srgb, $edge-tint 70%, transparent);
+    top: 1px;
+    left: 1px;
+    width: calc((var(--switch-width) - 2px) / 2 - 1px);
+    height: calc(var(--switch-height) - 4px);
+    border-radius: 2px;
+    background: color-mix(in srgb, $edge-tint 26%, transparent);
     box-shadow: none;
     transition:
       left 160ms ease,
@@ -96,16 +94,15 @@ $switch-inset: 3px;
 
   &:checked + .switch-label {
     border-color: $secondary-default;
-    background: color-mix(in srgb, $secondary-default 18%, $track-well);
 
     .switch-button {
-      left: calc(100% - var(--switch-thumb) - var(--switch-inset) + 1px);
+      left: calc(100% - (var(--switch-width) - 2px) / 2);
       background: $secondary-default;
     }
   }
 
   &:not(:disabled) + .switch-label:hover .switch-button {
-    background: color-mix(in srgb, $edge-tint 90%, transparent);
+    background: color-mix(in srgb, $edge-tint 38%, transparent);
   }
 
   &:checked:not(:disabled) + .switch-label:hover {
@@ -118,12 +115,11 @@ $switch-inset: 3px;
 
   &:disabled + .switch-label {
     border-color: $border-subtle;
-    background: $track-well;
     cursor: default;
     opacity: 0.6;
 
     .switch-button {
-      background: color-mix(in srgb, $edge-tint 40%, transparent);
+      background: color-mix(in srgb, $edge-tint 18%, transparent);
     }
   }
 }

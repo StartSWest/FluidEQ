@@ -68,12 +68,12 @@ $song-eq-status-line: 12px;
     }
   }
 
-  // Sized to the first line, so the thumb rides level with the label.
+  // Sized to the first line, so the block rides level with the label: the
+  // one switch in the app smaller than the standard, because the chip is two
+  // lines in a button's 32px. The block is worked out from these two.
   .switch {
     --switch-width: #{$song-eq-lead};
     --switch-height: #{$song-eq-label-line};
-    --switch-thumb: 10px;
-    --switch-inset: 2px;
   }
 }
 
