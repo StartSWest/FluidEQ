@@ -12,6 +12,8 @@ export default {
   'genre.electronic.pin.8000.why': '明るいミックスの上端。',
   'genre.electronic.stage.dimension':
     '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.electronic.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.electronic.stage.maximizer':
     '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.electronic.off':
@@ -28,6 +30,8 @@ export default {
   'genre.edm.pin.5000.why': 'リードのエッジ。',
   'genre.edm.stage.dimension':
     '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.edm.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.edm.stage.maximizer':
     '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.edm.off':
@@ -164,6 +168,8 @@ export default {
   'genre.lofi.pin.3150.why': 'レコードより明るくはしません。',
   'genre.lofi.stage.dimension':
     '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.lofi.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.lofi.stage.maximizer':
     '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.lofi.off':

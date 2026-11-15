@@ -95,6 +95,10 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'balanced',
     labelKey: 'dsp.eqPreset.default',
     group: 'basic',
+    // The music chains de-ess a voice's sharp S gently (Ivan, 2026-11-14):
+    // half the everyday cut, in the centre only, spectral, cymbals kept. The
+    // factory audit holds its level change on each source to 0.5 LU.
+    deEsser: 'gentle',
     // Default must be a clean baseline. Enabling Exciter here added fuzz to
     // every source before the user had chosen any character at all; the
     // standalone Exciter preset remains available when that colour is wanted.
@@ -107,12 +111,14 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'reference',
     labelKey: 'dsp.masterPreset.reference',
     group: 'basic',
+    deEsser: 'gentle',
     maximizer: 'safety',
   },
   {
     id: 'music',
     labelKey: 'dsp.preset.music',
     group: 'basic',
+    deEsser: 'gentle',
     voicing: 'music',
     // The everyday chain, so both additions are the quiet kind: the picture
     // its curve implies, and a ceiling that only catches what the curve's
@@ -133,6 +139,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'music-room',
     labelKey: 'dsp.preset.music',
     group: 'basic',
+    deEsser: 'gentle',
     voicing: 'music',
     maximizer: 'musicRoom',
     room: 'musicSpaceV2',
@@ -151,6 +158,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'warm',
     labelKey: 'dsp.eqPreset.warm',
     group: 'basic',
+    deEsser: 'gentle',
     // Warmth is the broad low-mid tilt. Exciter and Bass Forge both added
     // harmonics on top of the EQ's own colour, which turned a tonal preset
     // into audible grit. Keep the chain clean and let its curve own the name.
@@ -163,6 +171,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'clarity',
     labelKey: 'dsp.eqPreset.air',
     group: 'basic',
+    deEsser: 'gentle',
     eq: 'air',
     // No Exciter. Harmonics were never here — the curve already lifts the
     // top, and exciting it as well is how clarity turns into sibilance — and
@@ -180,6 +189,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'punch',
     labelKey: 'dsp.maximizerPreset.punch',
     group: 'basic',
+    deEsser: 'gentle',
     // One source of punch, not five stacked versions of it. The old chain
     // boosted both ends, synthesized a sub octave, exaggerated the bass
     // transient, let a slow compressor accent it, then drove a second fast
@@ -203,6 +213,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'expansive',
     labelKey: 'dsp.dimensionPreset.expansive',
     group: 'basic',
+    deEsser: 'gentle',
     // Width plus space, without exciting and re-limiting the widened side
     // channel. Those extra stages made the diffuse top sound distorted even
     // while the final sample peaks remained numerically safe. No curve: it
@@ -221,6 +232,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'late-night',
     labelKey: 'dsp.eqPreset.lateNight',
     group: 'basic',
+    deEsser: 'gentle',
     eq: 'lateNight',
     /**
      * The bass comes back as harmonics, because the real octave is what the

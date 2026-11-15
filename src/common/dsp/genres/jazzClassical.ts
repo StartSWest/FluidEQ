@@ -30,6 +30,18 @@ const JAZZ_CLASSICAL_RACKS: readonly IGenreRack[] = [
     // on the classic Blue Note records. Its old Exciter is offered, not
     // used: added harmonics colour horns and piano audibly.
     id: 'jazz',
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [{ mix: 0.07 }, { mix: 0.11 }, { mix: 0.16, texture: 0.5 }],
       { enabled: true, amount: 0.16, focusHz: 450, range: 0.35 },
@@ -42,6 +54,18 @@ const JAZZ_CLASSICAL_RACKS: readonly IGenreRack[] = [
     // Glossy studio stereo, a soft top and the saxophone in front. Warmth,
     // never presence on the sax, and no punch: the genre is soft on purpose.
     id: 'smoothJazz',
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     // Offered under its name and not played: no presence or excitement on the
     // sax.
     exciter: exciterProfile(

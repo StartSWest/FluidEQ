@@ -12,6 +12,8 @@ export default {
   'genre.jazz.pin.12500.why': '鼓组的顶端，保持开阔。',
   'genre.jazz.stage.dimension':
     '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.jazz.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.jazz.stage.maximizer':
     '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.jazz.off':
@@ -28,6 +30,8 @@ export default {
   'genre.smoothJazz.pin.12500.why': '保留录音棚的光泽。',
   'genre.smoothJazz.stage.dimension':
     '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.smoothJazz.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.smoothJazz.stage.maximizer':
     '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.smoothJazz.off':

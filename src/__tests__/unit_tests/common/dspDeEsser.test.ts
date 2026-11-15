@@ -45,6 +45,37 @@ import en from '../../../common/i18n/en';
  */
 const DE_ESSER_SLOT = 2 + 9 + 18 + 11 + 1;
 
+/** The basic chains that de-ess with the gentle profile (Ivan, 2026-11-14). */
+const GENTLE_CHAINS = [
+  'balanced',
+  'reference',
+  'music',
+  'music-room',
+  'warm',
+  'clarity',
+  'punch',
+  'expansive',
+  'late-night',
+];
+
+/** The genres switched on beside those that already de-essed. */
+const GENTLE_GENRES = ['jazz', 'smoothJazz', 'electronic', 'edm', 'lofi'];
+
+/** The genres Ivan kept without one. */
+const DRY_GENRES = [
+  'classical',
+  'orchestra',
+  'piano',
+  'strings',
+  'indianClassical',
+  'ambient',
+  'techno',
+  'trance',
+  'drumBass',
+  'dubstep',
+  'fusion',
+];
+
 describe('De-esser profiles', () => {
   it('Vocal music is what switching the stage on gives', () => {
     expect(deEsserPresetSettings('vocalMusic', false)).toEqual(
@@ -183,6 +214,38 @@ describe('the chains that de-ess', () => {
     });
   });
 
+  it('the basic music chains de-ess gently, and keep the EQ they had', () => {
+    GENTLE_CHAINS.forEach((id) => {
+      expect({ id, deEsser: chain(id).settings.deEsser }).toEqual({
+        id,
+        deEsser: deEsserPresetSettings('gentle', true),
+      });
+    });
+    // None of them de-essed through an EQ band, so handing the S to the
+    // De-esser takes nothing out of their EQ: Late night keeps its bass
+    // guard, the only dynamic bands among them.
+    const guard = chain('late-night')
+      .settings.eq.bands.filter((band) => band.enabled && band.dynamic)
+      .map((band) => band.frequency);
+    expect(guard).toEqual([32, 50, 80]);
+  });
+
+  it('the five genres switched on de-ess, and the eleven kept dry stay so', () => {
+    const on = (id: string) => {
+      const rack = GENRE_RACKS.find((one) => one.id === id);
+      if (!rack) {
+        throw new Error(`no genre ${id}`);
+      }
+      return chain(genreChainId(rack)).settings.deEsser.enabled;
+    };
+    expect(GENTLE_GENRES.map((id) => [id, on(id)])).toEqual(
+      GENTLE_GENRES.map((id) => [id, true]),
+    );
+    expect(DRY_GENRES.map((id) => [id, on(id)])).toEqual(
+      DRY_GENRES.map((id) => [id, false]),
+    );
+  });
+
   it('music chains use their own declared De-esser and every other chain leaves it off', () => {
     GENRE_RACKS.forEach((rack) => {
       const { deEsser } = chain(genreChainId(rack)).settings;
@@ -199,7 +262,13 @@ describe('the chains that de-ess', () => {
     const musicIds = GENRE_RACKS.map(genreChainId);
     DSP_PRESETS.filter(
       (preset) =>
-        !['speech', 'podcast', 'audiobook', ...musicIds].includes(preset.id),
+        ![
+          'speech',
+          'podcast',
+          'audiobook',
+          ...GENTLE_CHAINS,
+          ...musicIds,
+        ].includes(preset.id),
     ).forEach((preset) => {
       expect({ id: preset.id, on: preset.settings.deEsser.enabled }).toEqual({
         id: preset.id,

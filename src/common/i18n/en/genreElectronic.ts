@@ -13,6 +13,8 @@ const genreElectronic = {
   'genre.electronic.pin.8000.why': 'The top of a bright mix.',
   'genre.electronic.stage.dimension':
     'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.electronic.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.electronic.stage.maximizer':
     'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.electronic.off':
@@ -29,6 +31,8 @@ const genreElectronic = {
   'genre.edm.pin.5000.why': 'The lead’s edge.',
   'genre.edm.stage.dimension':
     'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.edm.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.edm.stage.maximizer':
     'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.edm.off':
@@ -164,6 +168,8 @@ const genreElectronic = {
   'genre.lofi.pin.3150.why': 'Nothing brighter than the record.',
   'genre.lofi.stage.dimension':
     'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.lofi.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.lofi.stage.maximizer':
     'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.lofi.off':

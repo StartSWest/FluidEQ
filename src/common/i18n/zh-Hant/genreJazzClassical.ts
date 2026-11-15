@@ -14,6 +14,8 @@ const genreJazzClassical = {
   'genre.jazz.pin.12500.why': '套件頂部開啟。',
   'genre.jazz.stage.dimension':
     '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.jazz.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.jazz.stage.maximizer':
     '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.jazz.off':
@@ -29,6 +31,8 @@ const genreJazzClassical = {
   'genre.smoothJazz.pin.12500.why': '工作室的光澤，得以保留。',
   'genre.smoothJazz.stage.dimension':
     '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.smoothJazz.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.smoothJazz.stage.maximizer':
     '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.smoothJazz.off':

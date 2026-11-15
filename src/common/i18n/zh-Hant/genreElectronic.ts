@@ -14,6 +14,8 @@ const genreElectronic = {
   'genre.electronic.pin.8000.why': '明亮混合的頂部。',
   'genre.electronic.stage.dimension':
     '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.electronic.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.electronic.stage.maximizer':
     '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.electronic.off':
@@ -29,6 +31,8 @@ const genreElectronic = {
   'genre.edm.pin.5000.why': '領先優勢。',
   'genre.edm.stage.dimension':
     '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.edm.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.edm.stage.maximizer':
     '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.edm.off':
@@ -150,6 +154,8 @@ const genreElectronic = {
   'genre.lofi.pin.3150.why': '沒有什麼比唱片更耀眼的了。',
   'genre.lofi.stage.dimension':
     '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.lofi.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.lofi.stage.maximizer':
     '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.lofi.off': '它的 Exciter 被提供並停止：唱片已經在磁帶上飽和了。',

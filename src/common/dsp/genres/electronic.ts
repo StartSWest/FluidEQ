@@ -34,6 +34,18 @@ const ELECTRONIC_RACKS: readonly IGenreRack[] = [
     // The whole family at its median: -9.3 LUFS, narrow, bass-weighted. Its
     // old Exciter, Forge and Bass Punch are offered under its name.
     id: 'electronic',
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [
         { freqHz: 72, drive: 2.2, mix: 0.25, texture: 0.04 },
@@ -56,6 +68,18 @@ const ELECTRONIC_RACKS: readonly IGenreRack[] = [
     // nothing else between the record and its ceiling. Its old top-band
     // Exciter is offered.
     id: 'edm',
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile([
       { enabled: false },
       { enabled: false },
@@ -170,6 +194,18 @@ const ELECTRONIC_RACKS: readonly IGenreRack[] = [
     // of the record and the master sometimes narrowed to 80-90%. Warmth and
     // nothing brighter; a slight narrowing, the bottom mono under 120 Hz.
     id: 'lofi',
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     // Offered under its name and not played: the record is saturated on tape
     // already.
     exciter: exciterProfile(

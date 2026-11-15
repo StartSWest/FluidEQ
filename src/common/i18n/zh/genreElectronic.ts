@@ -12,6 +12,8 @@ export default {
   'genre.electronic.pin.8000.why': '明亮混音的顶端。',
   'genre.electronic.stage.dimension':
     '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.electronic.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.electronic.stage.maximizer':
     '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.electronic.off':
@@ -28,6 +30,8 @@ export default {
   'genre.edm.pin.5000.why': '主旋律的边缘。',
   'genre.edm.stage.dimension':
     '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.edm.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.edm.stage.maximizer':
     '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.edm.off':
@@ -158,6 +162,8 @@ export default {
   'genre.lofi.pin.3150.why': '不比唱片更亮。',
   'genre.lofi.stage.dimension':
     '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.lofi.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.lofi.stage.maximizer':
     '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.lofi.off':

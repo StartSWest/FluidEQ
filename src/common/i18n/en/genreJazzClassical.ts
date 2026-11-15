@@ -13,6 +13,8 @@ const genreJazzClassical = {
   'genre.jazz.pin.12500.why': 'The top of the kit, open.',
   'genre.jazz.stage.dimension':
     'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.jazz.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.jazz.stage.maximizer':
     'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.jazz.off':
@@ -29,6 +31,8 @@ const genreJazzClassical = {
   'genre.smoothJazz.pin.12500.why': 'The studio sheen, kept.',
   'genre.smoothJazz.stage.dimension':
     'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.smoothJazz.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.smoothJazz.stage.maximizer':
     'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.smoothJazz.off':

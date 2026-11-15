@@ -18,6 +18,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * pins read the way the notes draw them (`curveGainDb`).
  */
 import en from '../../../common/i18n/en';
+import de from '../../../common/i18n/de';
+import es from '../../../common/i18n/es';
+import fr from '../../../common/i18n/fr';
+import hi from '../../../common/i18n/hi';
+import italian from '../../../common/i18n/it';
+import ja from '../../../common/i18n/ja';
+import ko from '../../../common/i18n/ko';
+import pt from '../../../common/i18n/pt';
+import ru from '../../../common/i18n/ru';
+import zh from '../../../common/i18n/zh';
+import zhHant from '../../../common/i18n/zh-Hant';
+import { LOCALES } from '../../../common/i18n';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 import { GENRE_NOTES } from '../../../common/dsp/genreNotes';
 import { GENRE_MEASURED } from '../../../common/dsp/genreEvidence';
@@ -121,6 +133,43 @@ describe('a genre’s notes', () => {
           `${rack.id} ${stage} ${Boolean(text[key(rack.id, `stage.${stage}`)])}`,
         ).toBe(`${rack.id} ${stage} ${inGenreChain(rack, stage)}`);
       });
+    });
+  });
+
+  it('is in every language, never English standing in for one', () => {
+    // Dictionaries are partial and fall back to English by design, so a note
+    // left out of one language would read as English there without anything
+    // failing. Every genre note is in all twelve, and stays so: a stage
+    // switched on for a genre brings its line in each of them.
+    const others: Record<string, Partial<Record<string, string>>> = {
+      de,
+      es,
+      fr,
+      hi,
+      it: italian,
+      ja,
+      ko,
+      pt,
+      ru,
+      zh,
+      'zh-Hant': zhHant,
+    };
+    expect(Object.keys(others).sort()).toEqual(
+      LOCALES.map((one) => one.code)
+        .filter((code) => code !== 'en')
+        .sort(),
+    );
+    const notes = Object.keys(text).filter((one) => one.startsWith('genre.'));
+    // The control: the notes are there to look for.
+    expect(notes.length).toBeGreaterThan(1000);
+    Object.entries(others).forEach(([code, dictionary]) => {
+      expect({
+        code,
+        missing: notes.filter((one) => !dictionary[one]),
+        stale: Object.keys(dictionary).filter(
+          (one) => one.startsWith('genre.') && !(one in text),
+        ),
+      }).toEqual({ code, missing: [], stale: [] });
     });
   });
 

@@ -4,9 +4,9 @@
   "method": "Offline live Graph at original levels with no level facts. Room examples use the bundled medium head.",
   "headphoneCorrection": false,
   "outputDevicesOpened": false,
-  "processingSha256": "db775539edf7e14518c768d081c46795ccf34c5e89807e8108279cc7ee4b8cde",
-  "graphSha256": "9c3eb37c95110e67db6406f1f2bcf3ec650ecc8fb1ad9eb2a23daa67345c7ec7",
-  "nativeMeterSha256": "05427e4933173cba867fc0699d22c528bd35863f1e731b4a43538d16146a581a",
+  "processingSha256": "1c3d1cdcf42a339f00561542345d560a62e8c37e9400f47b99efca11dacf2b3c",
+  "graphSha256": "2c7cb30ca6a3d13fa876595cea55af0c27eb5346dd4c50dcc29ac0c091a97caa",
+  "nativeMeterSha256": "787c67eb160906ddd9b65087e38d38b0114b84fa304bbecf346b7b2685b7fc11",
   "roomHeadSha256": "21fac3dffc1874a7bb86d0903cc5c5761a86734a1dcc676ad3d5ce536582e9cb",
   "manifestSha256": "cc6eb7f7ba4d3073baa024b3cb1359b54489a0a9ab3f23580664bfb0d94dec06",
   "completeCatalogue": true,
@@ -87,7 +87,7 @@
       "id": "balanced",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "6b812f98c70f0d766b44125638f9b016cdfc09a4b6c819f244704f60c64c1166",
+      "configurationSha256": "901d13fb0284141c6fb55b526a55b113789ea6009958b022bda48f3de4521f4c",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -115,37 +115,44 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -9.57474727,
-            "maxShortTermLufs": -7.989709091,
-            "truePeakDbtp": -0.999999128,
-            "crestDb": 11.20703834,
-            "blockRmsRangeDb": 9.080665127
+            "integratedLufs": -9.57207356,
+            "maxShortTermLufs": -7.991823835,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 11.181838986,
+            "blockRmsRangeDb": 9.048841808
           },
-          "loudnessDeltaLu": -2.827369996,
-          "limiterLossLu": 1.103482304,
-          "limiterCrestLossDb": 1.239581502,
-          "limiterPhraseLossDb": 0.6638187149999997,
+          "loudnessDeltaLu": -2.824696286,
+          "limiterLossLu": 1.060689975999999,
+          "limiterCrestLossDb": 1.2395599379999993,
+          "limiterPhraseLossDb": 0.688413066999999,
           "effects": [
             {
-              "stage": "eq",
-              "loudnessDeltaLu": -0.20619160799999925,
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0.0026737099999998293,
               "peakDeltaDb": -5.809999999994986e-7,
-              "crestDeltaDb": 0.220644999000001,
-              "phraseDeltaDb": -0.3141231340000008
+              "crestDeltaDb": -0.02519935399999973,
+              "phraseDeltaDb": -0.03182331899999902
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.2057500989999994,
+              "peakDeltaDb": -5.809999999994986e-7,
+              "crestDeltaDb": 0.21950818100000014,
+              "phraseDeltaDb": -0.3472108519999999
             },
             {
               "stage": "dimension",
-              "loudnessDeltaLu": -0.34963342799999886,
-              "peakDeltaDb": 5.809999999994986e-7,
-              "crestDeltaDb": 0.41057392400000126,
-              "phraseDeltaDb": -0.06175340100000071
+              "loudnessDeltaLu": -0.3482447759999996,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.40920089600000153,
+              "phraseDeltaDb": -0.09715952300000019
             },
             {
               "stage": "curve",
-              "loudnessDeltaLu": 0.09597373899999972,
-              "peakDeltaDb": 5.809999999994986e-7,
-              "crestDeltaDb": -0.18738075799999976,
-              "phraseDeltaDb": 0.6741861619999998
+              "loudnessDeltaLu": 0.10186573700000068,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.20268893099999907,
+              "phraseDeltaDb": 0.6459332300000007
             }
           ]
         },
@@ -175,6 +182,13 @@
           "limiterPhraseLossDb": 4.000000330961484e-9,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            },
+            {
               "stage": "eq",
               "loudnessDeltaLu": -0.002824635000003184,
               "peakDeltaDb": -0.14180150300000038,
@@ -203,7 +217,7 @@
       "id": "reference",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "11663ffbc9fae57f7af6e5e0d90de902cd9b8a84a21e3878ac5fa134051f9ef5",
+      "configurationSha256": "b8434d37988cbd1dafd5e2d9a88ba544501dedc08ba9b1b7e10d1a3bfaea752e",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -231,17 +245,25 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -7.918269002,
-            "maxShortTermLufs": -6.382014881,
-            "truePeakDbtp": -0.999999709,
-            "crestDb": 9.538396219,
-            "blockRmsRangeDb": 8.336499885
+            "integratedLufs": -7.917903026,
+            "maxShortTermLufs": -6.373762122,
+            "truePeakDbtp": -0.999979791,
+            "crestDb": 9.525839021,
+            "blockRmsRangeDb": 8.380373855
           },
-          "loudnessDeltaLu": -1.170891728,
-          "limiterLossLu": 1.170891728,
-          "limiterCrestLossDb": 0.7011438640000005,
-          "limiterPhraseLossDb": 0.766816232,
-          "effects": []
+          "loudnessDeltaLu": -1.1705257520000005,
+          "limiterLossLu": 1.1477636640000002,
+          "limiterCrestLossDb": 0.723240788,
+          "limiterPhraseLossDb": 0.7192997380000001,
+          "effects": [
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0.000365975999999435,
+              "peakDeltaDb": 0.000019918000000007652,
+              "crestDeltaDb": -0.012557197999999659,
+              "phraseDeltaDb": 0.04387396999999993
+            }
+          ]
         },
         {
           "id": "jazz-1",
@@ -267,7 +289,15 @@
           "limiterLossLu": 0,
           "limiterCrestLossDb": 0,
           "limiterPhraseLossDb": 0,
-          "effects": []
+          "effects": [
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            }
+          ]
         }
       ]
     },
@@ -275,7 +305,7 @@
       "id": "music",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "4dd120b560f55b47fbd10109f980ce1558ee69229e63fd32e083d30df15ab2cf",
+      "configurationSha256": "909da08fc4232dc19ab93a317433845696f803fd979d08f282520c8abf30ea38",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -303,30 +333,37 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -9.753231,
-            "maxShortTermLufs": -8.241334339,
+            "integratedLufs": -9.765493853,
+            "maxShortTermLufs": -8.255791647,
             "truePeakDbtp": -0.999999128,
-            "crestDb": 11.014884474,
-            "blockRmsRangeDb": 9.992325115
+            "crestDb": 11.010480816,
+            "blockRmsRangeDb": 9.988235206
           },
-          "loudnessDeltaLu": -3.005853726,
-          "limiterLossLu": 1.0591388619999993,
-          "limiterCrestLossDb": 1.0892633959999998,
-          "limiterPhraseLossDb": 0.6109351780000001,
+          "loudnessDeltaLu": -3.018116579000001,
+          "limiterLossLu": 1.0458193850000015,
+          "limiterCrestLossDb": 1.100828366,
+          "limiterPhraseLossDb": 0.6116197969999995,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.012262853000001073,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.004403658000001087,
+              "phraseDeltaDb": -0.004089908999999281
+            },
+            {
               "stage": "dimension",
-              "loudnessDeltaLu": -0.2689292229999989,
-              "peakDeltaDb": -0.00000343499999999608,
-              "crestDeltaDb": 0.3596216280000011,
-              "phraseDeltaDb": -0.08087724299999977
+              "loudnessDeltaLu": -0.26831434600000037,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.35858176699999866,
+              "phraseDeltaDb": -0.08006847399999906
             },
             {
               "stage": "curve",
-              "loudnessDeltaLu": -0.28454713300000023,
-              "peakDeltaDb": 0.00013294000000008133,
-              "crestDeltaDb": -0.14856596299999936,
-              "phraseDeltaDb": 0.7509412330000007
+              "loudnessDeltaLu": -0.28523190499999984,
+              "peakDeltaDb": 0.006245333999999936,
+              "crestDeltaDb": -0.1439204150000002,
+              "phraseDeltaDb": 0.742859536000001
             }
           ]
         },
@@ -356,6 +393,13 @@
           "limiterPhraseLossDb": 4.000000330961484e-9,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            },
+            {
               "stage": "dimension",
               "loudnessDeltaLu": 0.11014734600000153,
               "peakDeltaDb": 0.2605314519999995,
@@ -377,7 +421,7 @@
       "id": "music-room",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "2f4869b730ecf1255f60bc5a944f38ca99bda2b6418d79eb1c7e4f3decaceae6",
+      "configurationSha256": "fa5f3164f30ef6a419d66b236f6125fc0c316a6d02e70129b79714e1ed45c843",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -405,37 +449,44 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -11.759804077,
-            "maxShortTermLufs": -10.245079928,
+            "integratedLufs": -11.771922479,
+            "maxShortTermLufs": -10.267597626,
             "truePeakDbtp": -0.999999709,
-            "crestDb": 12.661051204,
-            "blockRmsRangeDb": 10.924827811
+            "crestDb": 12.659045035,
+            "blockRmsRangeDb": 10.921784687
           },
-          "loudnessDeltaLu": -5.012426803,
-          "limiterLossLu": 1.1256935129999999,
-          "limiterCrestLossDb": 1.8458002740000001,
-          "limiterPhraseLossDb": 0.7459922960000007,
+          "loudnessDeltaLu": -5.024545205000001,
+          "limiterLossLu": 1.116047408,
+          "limiterCrestLossDb": 1.8553727040000005,
+          "limiterPhraseLossDb": 0.7457735219999986,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.012118402000000472,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.0020061689999995025,
+              "phraseDeltaDb": -0.0030431239999995086
+            },
+            {
               "stage": "eq",
-              "loudnessDeltaLu": -0.40045606300000003,
+              "loudnessDeltaLu": -0.40922882699999974,
               "peakDeltaDb": -5.809999999994986e-7,
-              "crestDeltaDb": 1.0439590509999999,
-              "phraseDeltaDb": -2.469755137
+              "crestDeltaDb": 1.0459672990000008,
+              "phraseDeltaDb": -2.468440118
             },
             {
               "stage": "room",
-              "loudnessDeltaLu": -1.3646114750000002,
-              "peakDeltaDb": 0.011470028000000076,
-              "crestDeltaDb": 0.15698846299999936,
-              "phraseDeltaDb": 1.995687877
+              "loudnessDeltaLu": -1.354249770000001,
+              "peakDeltaDb": 0.017787120999999906,
+              "crestDeltaDb": 0.1304176290000001,
+              "phraseDeltaDb": 1.9867303210000014
             },
             {
               "stage": "curve",
-              "loudnessDeltaLu": 0.32160411299999936,
+              "loudnessDeltaLu": 0.3133720950000001,
               "peakDeltaDb": 0,
-              "crestDeltaDb": -0.8475452089999997,
-              "phraseDeltaDb": 1.3513028420000008
+              "crestDeltaDb": -0.8416372869999993,
+              "phraseDeltaDb": 1.3540962630000006
             }
           ]
         },
@@ -465,6 +516,13 @@
           "limiterPhraseLossDb": -9.000000744663339e-9,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            },
+            {
               "stage": "eq",
               "loudnessDeltaLu": -0.21169665399999715,
               "peakDeltaDb": 2.4354953890000006,
@@ -493,7 +551,7 @@
       "id": "warm",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "cb92407f20b60e89ce4b7d60a874958b2c10527866b53f5e818751954c0ade6b",
+      "configurationSha256": "563f11afcb360700b99b135baa3256a043ab5e3171516c4a31018f00a270d757",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -521,37 +579,44 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -10.022070694,
-            "maxShortTermLufs": -8.436428344,
+            "integratedLufs": -10.02695613,
+            "maxShortTermLufs": -8.447735895,
             "truePeakDbtp": -0.999999709,
-            "crestDb": 11.117802814,
-            "blockRmsRangeDb": 9.723646069
+            "crestDb": 11.112705949,
+            "blockRmsRangeDb": 9.726906298
           },
-          "loudnessDeltaLu": -3.27469342,
-          "limiterLossLu": 1.0908661770000005,
-          "limiterCrestLossDb": 1.491079794000001,
-          "limiterPhraseLossDb": 0.8404263199999988,
+          "loudnessDeltaLu": -3.2795788560000005,
+          "limiterLossLu": 1.0801646070000004,
+          "limiterCrestLossDb": 1.488308503999999,
+          "limiterPhraseLossDb": 0.8359500480000008,
           "effects": [
             {
-              "stage": "eq",
-              "loudnessDeltaLu": -0.46148010099999937,
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.004885436000000354,
               "peakDeltaDb": 0,
-              "crestDeltaDb": 0.4692144839999983,
-              "phraseDeltaDb": -0.38382283499999836
+              "crestDeltaDb": -0.005096864999998729,
+              "phraseDeltaDb": 0.00326022899999856
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.45990824000000075,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.4677477440000004,
+              "phraseDeltaDb": -0.382617981000001
             },
             {
               "stage": "dimension",
-              "loudnessDeltaLu": -0.28420999999999985,
+              "loudnessDeltaLu": -0.28462928000000076,
               "peakDeltaDb": 0,
-              "crestDeltaDb": 0.25801102599999837,
-              "phraseDeltaDb": 0.33423387700000085
+              "crestDeltaDb": 0.25775341199999957,
+              "phraseDeltaDb": 0.3449127359999995
             },
             {
               "stage": "curve",
-              "loudnessDeltaLu": -0.3651954160000006,
+              "loudnessDeltaLu": -0.365804068000001,
               "peakDeltaDb": 0,
-              "crestDeltaDb": -0.18101460300000127,
-              "phraseDeltaDb": 1.134492196
+              "crestDeltaDb": -0.17623927400000028,
+              "phraseDeltaDb": 1.1506826270000001
             }
           ]
         },
@@ -581,6 +646,13 @@
           "limiterPhraseLossDb": -8.000000661922968e-9,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            },
+            {
               "stage": "eq",
               "loudnessDeltaLu": -0.0030451969999987227,
               "peakDeltaDb": -0.1913459210000008,
@@ -609,7 +681,7 @@
       "id": "clarity",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "6a3de310d27d3fb84f9bba7582baf77f2f0afc0a8efdcd9ff6004fa95bba1efa",
+      "configurationSha256": "b74cfe75e75a92d1f5bd101acd433786fa51abd2bc0d8f53290d7b0a058ab80e",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -637,37 +709,44 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -9.659652442,
-            "maxShortTermLufs": -8.02464291,
-            "truePeakDbtp": -0.999914261,
-            "crestDb": 11.619244697,
-            "blockRmsRangeDb": 8.664583931
+            "integratedLufs": -9.618172598,
+            "maxShortTermLufs": -7.967546654,
+            "truePeakDbtp": -0.999998547,
+            "crestDb": 11.549472334,
+            "blockRmsRangeDb": 8.652898043
           },
-          "loudnessDeltaLu": -2.9122751680000007,
-          "limiterLossLu": 1.1459706230000002,
-          "limiterCrestLossDb": 1.2839414430000016,
-          "limiterPhraseLossDb": 0.7460677540000002,
+          "loudnessDeltaLu": -2.8707953239999995,
+          "limiterLossLu": 1.023418529999999,
+          "limiterCrestLossDb": 1.0460510039999988,
+          "limiterPhraseLossDb": 0.7328963309999992,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0.041479844000001265,
+              "peakDeltaDb": -0.00008428599999998898,
+              "crestDeltaDb": -0.06977236299999845,
+              "phraseDeltaDb": -0.011685887999998812
+            },
+            {
               "stage": "eq",
-              "loudnessDeltaLu": -0.373759089,
-              "peakDeltaDb": -0.000005330000000025592,
-              "crestDeltaDb": 0.39167315999999985,
-              "phraseDeltaDb": -0.27697019400000045
+              "loudnessDeltaLu": -0.4161647439999996,
+              "peakDeltaDb": 0.0000011619999999989972,
+              "crestDeltaDb": 0.43350399600000067,
+              "phraseDeltaDb": -0.3764766609999999
             },
             {
               "stage": "dimension",
-              "loudnessDeltaLu": -0.15145294000000042,
-              "peakDeltaDb": 0.00008428599999998898,
-              "crestDeltaDb": 0.22020564399999998,
-              "phraseDeltaDb": 0.034043694999999374
+              "loudnessDeltaLu": -0.1937324339999993,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.2611571950000009,
+              "phraseDeltaDb": -0.00877902399999897
             },
             {
               "stage": "curve",
-              "loudnessDeltaLu": -0.11838461099999975,
-              "peakDeltaDb": 0.00008544799999998798,
-              "crestDeltaDb": 0.37364965099999914,
-              "phraseDeltaDb": 0.1198062809999989
+              "loudnessDeltaLu": -0.07253648099999843,
+              "peakDeltaDb": 0.0000011619999999989972,
+              "crestDeltaDb": 0.3125867420000006,
+              "phraseDeltaDb": 0.1151429970000013
             }
           ]
         },
@@ -697,6 +776,13 @@
           "limiterPhraseLossDb": -7.000000579182597e-9,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            },
+            {
               "stage": "eq",
               "loudnessDeltaLu": -0.002028710000001155,
               "peakDeltaDb": -0.18833184199999975,
@@ -725,7 +811,7 @@
       "id": "punch",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "88d3241b1c22ed0d7bbf5be7f0fffa413fc179a3a2bca195b15eb056f235be50",
+      "configurationSha256": "db0e5cba1b012c8822d434b7edefdbb2fbd954036553219c23badee5a7056c2e",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -753,37 +839,44 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -10.125113566,
-            "maxShortTermLufs": -8.582999811,
-            "truePeakDbtp": -0.999999709,
-            "crestDb": 11.85128291,
-            "blockRmsRangeDb": 9.279336222
+            "integratedLufs": -10.155761176,
+            "maxShortTermLufs": -8.611987887,
+            "truePeakDbtp": -0.999695863,
+            "crestDb": 11.841214114,
+            "blockRmsRangeDb": 9.286720867
           },
-          "loudnessDeltaLu": -3.377736292,
-          "limiterLossLu": 1.2479979950000004,
-          "limiterCrestLossDb": 2.0053957570000005,
-          "limiterPhraseLossDb": 0.8535679750000007,
+          "loudnessDeltaLu": -3.4083839020000006,
+          "limiterLossLu": 1.244377053000001,
+          "limiterCrestLossDb": 2.032754478000001,
+          "limiterPhraseLossDb": 0.8366332920000001,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.030647610000000824,
+              "peakDeltaDb": 0.0003038459999999965,
+              "crestDeltaDb": -0.010068796000000546,
+              "phraseDeltaDb": 0.007384645000000134
+            },
+            {
               "stage": "eq",
-              "loudnessDeltaLu": -0.22571669399999905,
-              "peakDeltaDb": -0.0007743630000000001,
-              "crestDeltaDb": 0.2494757950000004,
-              "phraseDeltaDb": -0.29777975400000045
+              "loudnessDeltaLu": -0.24508085599999951,
+              "peakDeltaDb": -0.00009610300000006955,
+              "crestDeltaDb": 0.248920287999999,
+              "phraseDeltaDb": -0.29961266799999997
             },
             {
               "stage": "bassPunch",
-              "loudnessDeltaLu": -0.4478147459999988,
-              "peakDeltaDb": 0,
-              "crestDeltaDb": 0.33596691900000053,
-              "phraseDeltaDb": 0.005080238999999764
+              "loudnessDeltaLu": -0.4800278070000008,
+              "peakDeltaDb": 0.0003038459999999965,
+              "crestDeltaDb": 0.347221274999999,
+              "phraseDeltaDb": -0.00616242999999983
             },
             {
               "stage": "curve",
-              "loudnessDeltaLu": -0.008294809999998876,
-              "peakDeltaDb": 0,
-              "crestDeltaDb": 0.19363704100000056,
-              "phraseDeltaDb": 0.6232674599999992
+              "loudnessDeltaLu": -0.035027816000001266,
+              "peakDeltaDb": 0.0003038459999999965,
+              "crestDeltaDb": 0.19272326900000003,
+              "phraseDeltaDb": 0.5947440579999999
             }
           ]
         },
@@ -813,6 +906,13 @@
           "limiterPhraseLossDb": -4.000000330961484e-9,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            },
+            {
               "stage": "eq",
               "loudnessDeltaLu": -0.0034429980000005855,
               "peakDeltaDb": 0.03422554600000005,
@@ -841,7 +941,7 @@
       "id": "expansive",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "6fe741784399ddca9c0794e6d53d778d5b91f3e9bb4b2470ba9d779c577a0288",
+      "configurationSha256": "88fce6a7a9e5d1c23784c1fa971048c50d6830c42c612a73c4c11f8716990713",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -869,23 +969,30 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -9.326945846,
-            "maxShortTermLufs": -7.768931375,
+            "integratedLufs": -9.331991137,
+            "maxShortTermLufs": -7.777088813,
             "truePeakDbtp": -0.999999709,
-            "crestDb": 11.144760473,
-            "blockRmsRangeDb": 8.574733158
+            "crestDb": 11.137158255,
+            "blockRmsRangeDb": 8.574249028
           },
-          "loudnessDeltaLu": -2.5795685719999994,
-          "limiterLossLu": 1.2252956389999987,
-          "limiterCrestLossDb": 1.3160017479999997,
-          "limiterPhraseLossDb": 0.793888085999999,
+          "loudnessDeltaLu": -2.5846138629999995,
+          "limiterLossLu": 1.2081626519999986,
+          "limiterCrestLossDb": 1.1630234810000015,
+          "limiterPhraseLossDb": 0.7908158669999992,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.005045291000000063,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.0076022180000006045,
+              "phraseDeltaDb": -0.0004841300000002491
+            },
+            {
               "stage": "dimension",
-              "loudnessDeltaLu": -0.5795685719999994,
+              "loudnessDeltaLu": -0.5618517749999992,
               "peakDeltaDb": 0.13418938499999988,
-              "crestDeltaDb": 0.9052204540000002,
-              "phraseDeltaDb": -0.5285829619999998
+              "crestDeltaDb": 0.8880785099999997,
+              "phraseDeltaDb": -0.525424567
             }
           ]
         },
@@ -915,6 +1022,13 @@
           "limiterPhraseLossDb": 0,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            },
+            {
               "stage": "dimension",
               "loudnessDeltaLu": 0.5394040259999997,
               "peakDeltaDb": 0.8559553270000002,
@@ -929,7 +1043,7 @@
       "id": "late-night",
       "group": "basic",
       "sourceGroup": "music",
-      "configurationSha256": "481fa6f42ea9cbdd9f7070b89fc00a87a476a0c468ad027e67169bed2d3cbdef",
+      "configurationSha256": "4872ab1fd38a7f607fa772a5a468f3d368508b2e82f8b94a9710a81722df8a97",
       "normalizerMode": "off",
       "adaptiveMaster": false,
       "gameMode": false,
@@ -957,37 +1071,44 @@
             "blockRmsRangeDb": 9.103316117
           },
           "output": {
-            "integratedLufs": -12.754979812,
-            "maxShortTermLufs": -11.260835849,
-            "truePeakDbtp": -3.000000249,
-            "crestDb": 13.18954709,
-            "blockRmsRangeDb": 6.99331205
+            "integratedLufs": -12.75739282,
+            "maxShortTermLufs": -11.266698488,
+            "truePeakDbtp": -2.999999518,
+            "crestDb": 13.190360925,
+            "blockRmsRangeDb": 6.992825326
           },
-          "loudnessDeltaLu": -6.007602538,
-          "limiterLossLu": 1.448220202,
-          "limiterCrestLossDb": 1.7921431329999997,
-          "limiterPhraseLossDb": 0.42020831099999967,
+          "loudnessDeltaLu": -6.010015546,
+          "limiterLossLu": 1.4473386759999993,
+          "limiterCrestLossDb": 1.7931084179999992,
+          "limiterPhraseLossDb": 0.4204105760000001,
           "effects": [
             {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.00241300799999955,
+              "peakDeltaDb": 7.310000000870787e-7,
+              "crestDeltaDb": 0.0008138350000006511,
+              "phraseDeltaDb": -0.00048672399999993843
+            },
+            {
               "stage": "bassForge",
-              "loudnessDeltaLu": 0.004296656999999371,
+              "loudnessDeltaLu": 0.004152894000000629,
               "peakDeltaDb": 0,
-              "crestDeltaDb": -0.005526868000000462,
-              "phraseDeltaDb": 0.05415102400000027
+              "crestDeltaDb": -0.00539213399999916,
+              "phraseDeltaDb": 0.054263058000000086
             },
             {
               "stage": "eq",
-              "loudnessDeltaLu": -1.5215572220000002,
-              "peakDeltaDb": 0,
-              "crestDeltaDb": 2.3316372459999997,
-              "phraseDeltaDb": -0.1532479379999998
+              "loudnessDeltaLu": -1.5189491010000005,
+              "peakDeltaDb": 7.310000000870787e-7,
+              "crestDeltaDb": 2.328950539000001,
+              "phraseDeltaDb": -0.153775907
             },
             {
               "stage": "curve",
-              "loudnessDeltaLu": 0.22840123499999976,
-              "peakDeltaDb": 0,
-              "crestDeltaDb": -0.4526232580000009,
-              "phraseDeltaDb": -0.07813283199999965
+              "loudnessDeltaLu": 0.2265082980000006,
+              "peakDeltaDb": 7.310000000870787e-7,
+              "crestDeltaDb": -0.43919494000000014,
+              "phraseDeltaDb": -0.06271035199999986
             }
           ]
         },
@@ -1016,6 +1137,13 @@
           "limiterCrestLossDb": 1.000000082740371e-9,
           "limiterPhraseLossDb": -6.000000496442226e-9,
           "effects": [
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": 0,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0,
+              "phraseDeltaDb": 0
+            },
             {
               "stage": "bassForge",
               "loudnessDeltaLu": -0.0020534750000003044,
