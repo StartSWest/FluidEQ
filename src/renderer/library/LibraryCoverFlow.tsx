@@ -191,6 +191,12 @@ const LibraryCoverFlow = ({
   const centredId = useRef<string | undefined>(undefined);
   /** The `openId` this view has already centred on — once per id. */
   const appliedOpenId = useRef<string | undefined>(undefined);
+  /** A centre request still waiting for a row that holds its cover. */
+  const pendingRequest = useRef<{ id: string; nonce: number } | undefined>(
+    undefined,
+  );
+  /** The last centre request answered or given up, by its nonce. */
+  const appliedRequestNonce = useRef<number | undefined>(undefined);
   /**
    * The album or artist the drill-in below the row is showing, if any.
    *
@@ -245,6 +251,12 @@ const LibraryCoverFlow = ({
   /** Moves the centre to `index`, clamped to the row, and records what is
    * now centred. Every path that changes the centre goes through this. */
   const setCentre = (index: number) => {
+    // The reader moving the row ends any request still waiting for a row
+    // that holds its cover (a pick a search leaves out never arrives).
+    if (pendingRequest.current !== undefined) {
+      appliedRequestNonce.current = pendingRequest.current.nonce;
+      pendingRequest.current = undefined;
+    }
     const clamped = clampIndex(index, count);
     centredId.current = itemAt(clamped)?.id;
     setCurrentIndex(clamped);
@@ -328,14 +340,15 @@ const LibraryCoverFlow = ({
   const listKey = list?.query === undefined ? '' : JSON.stringify(list.query);
   useEffect(() => {
     const id = centredId.current;
-    if (id === undefined) {
+    // A centre request waiting for this row is what the row goes to.
+    if (id === undefined || pendingRequest.current !== undefined) {
       return undefined;
     }
     let isCurrent = true;
     positionOfRef
       .current(id)
       .then((index) => {
-        if (isCurrent && index >= 0) {
+        if (isCurrent && index >= 0 && pendingRequest.current === undefined) {
           setCurrentIndex(index);
         }
         return undefined;
@@ -415,18 +428,36 @@ const LibraryCoverFlow = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealTrackId, revealNonce]);
 
-  /** Any cover the workspace asks for, in any mode: Surprise me's pick. */
+  /**
+   * Any cover the workspace asks for, in any mode: Surprise me's pick.
+   *
+   * Answered by the row that holds it, which is not always the row on screen
+   * when it is asked: a pick from outside the folder the reader stood in
+   * steps the shelf out of that folder in the same breath, and the narrowed
+   * row has no such cover. Asked of that row alone, the request found
+   * nothing, and the whole shelf then arrived centred on whatever had been
+   * centred before — the pick nowhere in sight. So a request not yet found
+   * stays pending across a change of row, and the row-change effect above
+   * stands aside for it.
+   */
   const requestedNonce = centreRequest?.nonce;
   const requestedId = centreRequest?.id;
   useEffect(() => {
-    if (requestedId === undefined) {
+    if (
+      requestedId === undefined ||
+      requestedNonce === undefined ||
+      appliedRequestNonce.current === requestedNonce
+    ) {
       return undefined;
     }
+    pendingRequest.current = { id: requestedId, nonce: requestedNonce };
     let isCurrent = true;
     positionOfRef
       .current(requestedId)
       .then((index) => {
         if (isCurrent && index >= 0) {
+          appliedRequestNonce.current = requestedNonce;
+          pendingRequest.current = undefined;
           centredId.current = requestedId;
           setCurrentIndex(index);
         }
@@ -436,9 +467,10 @@ const LibraryCoverFlow = ({
     return () => {
       isCurrent = false;
     };
-    // Keyed on the request, as the song reveal above is.
+    // Keyed on the request and on the row, never on the row's length: a scan
+    // must not drag the reader back to an old pick.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedId, requestedNonce]);
+  }, [requestedId, requestedNonce, listKey]);
 
   /**
    * The first cover under each letter of the rail, in the row's current

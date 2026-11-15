@@ -53,7 +53,10 @@ import {
   type TLibrarySortDirection,
   type TLibraryViewMode,
 } from '../../common/library/types';
-import { parentFolderPath } from '../../common/library/grouping';
+import {
+  isTrackBeneathFolder,
+  parentFolderPath,
+} from '../../common/library/grouping';
 import { shelfQueryFor } from './libraryShelfQuery';
 import { useLibraryList } from './useLibraryList';
 import { type ILibraryWorkspaceProps } from './LibraryWorkspace';
@@ -619,6 +622,19 @@ const useLibraryWorkspaceShelf = ({
    */
   const showSurprisePick = useCallback(
     (track: ILibraryTrack) => {
+      // A pick from outside the folder the reader stands in steps out of it.
+      // A surprise comes from the whole library, but every shelf but Folders
+      // is narrowed to that folder, so the place bar went on naming it over
+      // the pick's own record — "Heidi Talbot › Exitos", Exitos being nowhere
+      // in Heidi Talbot, and "Nothing in Heidi Talbot" over the row (Ivan,
+      // 2026-11-15, after a surprise on Folders had left him standing there).
+      if (
+        browseMode !== 'folder' &&
+        openFolderPath !== undefined &&
+        !isTrackBeneathFolder(track.path, openFolderPath)
+      ) {
+        setOpenFolderPath(undefined);
+      }
       if (browseMode === 'song') {
         revealRow(track.id);
         return;
