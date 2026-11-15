@@ -80,7 +80,10 @@ it under the terms of the GNU General Public License version 3 or later.
 .signed-out__panes {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
-  gap: 18px;
+  // The gap the Library's and the Scenes page's two panels keep (Ivan,
+  // 2026-11-15: "same gap ... so they match more what we have on the EQ page
+  // and the visualizer library"); it was 18px.
+  gap: $spacing-s;
   align-items: stretch;
   width: 100%;
   max-width: 1120px;
@@ -88,16 +91,17 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 28px;
 }
 
-// The window's glass made nearly opaque, with a deep shadow, so the panes
-// stand off the gallery in both themes.
+// The window's glass made nearly opaque, so the panes stand off the gallery
+// in both themes. Their shadow is a soft, close one ("less drop shadow",
+// Ivan, 2026-11-15): the 90px cast it had made them float over the page
+// where every other pair of panels in the app sits on it.
 .signed-out__glass {
   @include window-glass;
   background: color-mix(in srgb, $surface-panel 88%, transparent);
   border: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
   box-shadow:
     $glass-bevel,
-    0 30px 90px rgba($black, 0.55),
-    0 2px 10px rgba($black, 0.3);
+    0 6px 18px rgba($black, 0.22);
 }
 
 // ---------------------------------------------------------------- the story
@@ -218,7 +222,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 0;
   overflow: hidden;
   border-radius: $radius-m;
-  box-shadow: 0 10px 24px rgba($black, 0.35);
+  box-shadow: 0 4px 12px rgba($black, 0.22);
 
   img {
     display: block;
