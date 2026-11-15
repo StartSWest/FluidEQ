@@ -693,12 +693,11 @@ const useLibraryWorkspaceShelf = ({
    * only: a shelf switch keeps where the reader stands, never what is playing
    * (`handleBrowseMode`).
    */
-  const chooseViewMode = useCallback(
+  const showLoadedSong = useCallback(
     (mode: TLibraryViewMode) => {
-      setViewMode(mode);
       // The loaded song, paused or not: it is still the one being listened
       // to, as the reveal from the now-playing bar has it.
-      if (mode === viewMode || !playingTrack) {
+      if (!playingTrack) {
         return;
       }
       const isRecordOpen =
@@ -737,7 +736,6 @@ const useLibraryWorkspaceShelf = ({
       }
     },
     [
-      viewMode,
       playingTrack,
       browseMode,
       openAlbumId,
@@ -748,6 +746,36 @@ const useLibraryWorkspaceShelf = ({
       roots,
     ],
   );
+  const chooseViewMode = useCallback(
+    (mode: TLibraryViewMode) => {
+      setViewMode(mode);
+      if (mode !== viewMode) {
+        showLoadedSong(mode);
+      }
+    },
+    [showLoadedSong, viewMode],
+  );
+
+  /**
+   * THE LIBRARY OPENS WHERE IT WAS LEFT (Ivan, 2026-11-15: "when opening
+   * the app it needs to continue from where it left us in the Library, so
+   * that song needs to be selected"). The song put back as the window
+   * opens is shown and marked in the view it opens on, as a view switch
+   * shows it - once, the first time there is a loaded song, so the reader
+   * is never pulled back to it afterwards.
+   */
+  const hasShownLoadedRef = useRef(false);
+  const loadedId = playingTrack?.id;
+  useEffect(() => {
+    if (loadedId === undefined || hasShownLoadedRef.current) {
+      return;
+    }
+    hasShownLoadedRef.current = true;
+    showLoadedSong(viewMode);
+    // Once, for the first song loaded; `showLoadedSong` and `viewMode` are
+    // read as they stand then.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadedId]);
 
   return {
     t,
