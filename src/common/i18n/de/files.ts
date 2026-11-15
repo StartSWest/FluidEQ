@@ -18,6 +18,7 @@ const files = {
   'files.type.pictures': 'Bilder',
   'files.type.all': 'Alle Dateien',
   'files.type.lyrics': 'Songtexte',
+  'files.type.subtitles': 'Untertitel',
   'files.imported.profile': '{count} Bänder aus dem FluidEQ-Profil importiert.',
   'files.imported.graphicEq':
     '{count} Bänder aus der GraphicEQ-Datei importiert.',

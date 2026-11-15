@@ -22,6 +22,7 @@ const files = {
   'files.type.pictures': '사진',
   'files.type.all': '모든 파일',
   'files.type.lyrics': '가사',
+  'files.type.subtitles': '자막',
   'files.imported.profile': 'FluidEQ 프로필에서 {count} 밴드를 가져왔습니다.',
   'files.imported.graphicEq': 'GraphicEQ 파일에서 {count} 밴드를 가져왔습니다.',
   'files.imported.parametricEq':

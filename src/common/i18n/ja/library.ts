@@ -170,6 +170,37 @@ const library: Partial<Dictionary> = {
     'FluidEQ の歌詞フォルダーから（曲のフォルダーに書き込めません）',
   'library.lyrics.other': '別の歌詞を探す',
   'library.lyrics.back': '歌詞に戻る',
+  'library.pane.subtitles': '字幕',
+  'library.subtitles.reading': '字幕を探しています…',
+  'library.subtitles.none': 'この動画には字幕がありません',
+  'library.subtitles.looked':
+    'FluidEQ は動画の隣にある同じ名前の .srt または .vtt ファイルを探しました。名前のあとに言語を付けることもできます: {example}',
+  'library.subtitles.listLabel': '字幕。行を押すとそこから再生します。',
+  'library.subtitles.language': '字幕の言語',
+  'library.subtitles.variant': '{language} · {variant}',
+  'library.subtitles.unreadable':
+    'FluidEQ は {name} からタイミング付きの行を読み取れませんでした。',
+  'library.subtitles.back': '字幕に戻る',
+  'library.subtitles.other': '別の字幕を探す',
+  'library.subtitles.find.heading': 'オンラインで探す',
+  'library.subtitles.find.moviesAndTv': '映画とテレビ番組',
+  'library.subtitles.find.tv': 'テレビ番組',
+  'library.subtitles.find.open': 'この動画をブラウザーの {site} で検索',
+  'library.subtitles.find.searches':
+    '「{query}」で検索します。サイトで .srt または .vtt ファイルをダウンロードし、下から取り込んでください。',
+  'library.subtitles.import.heading': '動画と一緒に保存',
+  'library.subtitles.import.file': '字幕を読み込む…',
+  'library.subtitles.import.drop':
+    'または .srt か .vtt ファイルをこのタブにドロップしてください。動画の隣に、動画と同じ名前で保存されます。',
+  'library.subtitles.import.busy': '字幕を保存しています…',
+  'library.subtitles.import.saved': '動画の隣に {name} として保存しました',
+  'library.subtitles.import.failed': '字幕を動画の隣に保存できませんでした。',
+  'library.subtitles.import.empty': 'タイミング付きの行が含まれていません。',
+  'library.subtitles.import.tooBig':
+    'このファイルは 2 MB を超えており、字幕としては大きすぎます。',
+  'library.subtitles.import.notText': 'このファイルはテキストではありません。',
+  'library.subtitles.import.notSubtitles':
+    '読み込めるのは字幕ファイル (.srt または .vtt) だけです。',
   'library.view.aria': 'ライブラリの表示方法',
   'library.browse.aria': 'ライブラリに表示している内容',
 
@@ -230,6 +261,7 @@ const library: Partial<Dictionary> = {
     'ライブラリの索引を読み込めなかったため、再構築しました。',
 
   'library.back': '戻る',
+  'library.video.skip': '{seconds} 秒',
   'library.place.aria': 'ライブラリ内の現在地',
   'library.place.allHint': 'このフォルダーを出て、ライブラリ全体を表示',
   'library.search.near': '{folder} 内',

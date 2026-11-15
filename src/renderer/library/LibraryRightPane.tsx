@@ -78,7 +78,14 @@ const LibraryRightPane = ({
   );
   useEffect(() => writePersistedMode(PANE_TAB_KEY, tab), [tab]);
   const tabsRef = useRef<HTMLDivElement>(null);
-  const labels = PANE_TABS.map((name) => t(TAB_LABEL_KEYS[name]));
+  // A video's Lyrics tab is its Subtitles, in word and picture (Ivan,
+  // 2026-11-15: "when on video instead of Letra it should say Subtitles").
+  const isVideo = track?.kind === 'video';
+  const labels = PANE_TABS.map((name) =>
+    name === 'lyrics' && isVideo
+      ? t('library.pane.subtitles')
+      : t(TAB_LABEL_KEYS[name]),
+  );
   const isCompact = usePaneTabsFit(tabsRef, labels.join('|'));
 
   return (
@@ -117,7 +124,12 @@ const LibraryRightPane = ({
             title={isCompact ? labels[at] : undefined}
             onClick={() => setTab(name)}
           >
-            <MenuIcon name={TAB_ICONS[name]} className="library-pane__icon" />
+            <MenuIcon
+              name={
+                name === 'lyrics' && isVideo ? 'subtitles' : TAB_ICONS[name]
+              }
+              className="library-pane__icon"
+            />
             <span className="library-pane__label">{labels[at]}</span>
           </button>
         ))}

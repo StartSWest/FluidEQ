@@ -146,6 +146,37 @@ const library = {
     'FluidEQ 가사 폴더에서 가져옴. 노래 폴더에 쓸 수 없습니다',
   'library.lyrics.other': '다른 가사 찾기',
   'library.lyrics.back': '가사로 돌아가기',
+  'library.pane.subtitles': '자막',
+  'library.subtitles.reading': '자막을 찾는 중…',
+  'library.subtitles.none': '이 동영상에는 자막이 없습니다',
+  'library.subtitles.looked':
+    'FluidEQ가 동영상 옆에서 같은 이름의 .srt 또는 .vtt 파일을 찾아보았습니다. 이름 뒤에 언어를 붙일 수도 있습니다: {example}',
+  'library.subtitles.listLabel': '자막. 줄을 누르면 그 부분부터 재생합니다.',
+  'library.subtitles.language': '자막 언어',
+  'library.subtitles.variant': '{language} · {variant}',
+  'library.subtitles.unreadable':
+    'FluidEQ가 {name}에서 시간 정보가 있는 줄을 읽지 못했습니다.',
+  'library.subtitles.back': '자막으로 돌아가기',
+  'library.subtitles.other': '다른 자막 찾기',
+  'library.subtitles.find.heading': '온라인에서 찾기',
+  'library.subtitles.find.moviesAndTv': '영화와 TV 프로그램',
+  'library.subtitles.find.tv': 'TV 프로그램',
+  'library.subtitles.find.open': '브라우저에서 {site}로 이 동영상 검색',
+  'library.subtitles.find.searches':
+    '검색어: “{query}”. 사이트에서 .srt 또는 .vtt 파일을 내려받은 다음 아래에서 가져오세요.',
+  'library.subtitles.import.heading': '동영상과 함께 저장',
+  'library.subtitles.import.file': '자막 가져오기…',
+  'library.subtitles.import.drop':
+    '또는 .srt나 .vtt 파일을 이 탭에 끌어다 놓으세요. 동영상 옆에 동영상과 같은 이름으로 저장됩니다.',
+  'library.subtitles.import.busy': '자막을 저장하는 중…',
+  'library.subtitles.import.saved': '동영상 옆에 {name} 파일로 저장했습니다',
+  'library.subtitles.import.failed': '자막을 동영상 옆에 저장하지 못했습니다.',
+  'library.subtitles.import.empty': '시간 정보가 있는 줄이 없습니다.',
+  'library.subtitles.import.tooBig':
+    '파일이 2 MB를 넘어 자막으로 보기에는 너무 큽니다.',
+  'library.subtitles.import.notText': '텍스트 파일이 아닙니다.',
+  'library.subtitles.import.notSubtitles':
+    '자막 파일(.srt 또는 .vtt)만 가져올 수 있습니다.',
   'library.view.aria': '라이브러리가 표시되는 방식',
   'library.browse.aria': '라이브러리에 표시할 항목',
   'library.sort': '정렬',
@@ -195,6 +226,7 @@ const library = {
   'library.pending': '이 파일을 찾았으며 해당 세부정보를 아직 읽는 중입니다.',
   'library.indexReset': '라이브러리 인덱스를 읽을 수 없어 다시 작성되었습니다.',
   'library.back': '뒤로',
+  'library.video.skip': '{seconds}초',
   'library.place.aria': '당신이 라이브러리에 있는 곳',
   'library.place.allHint':
     '이 폴더를 그대로 두고 전체 라이브러리를 표시하세요.',

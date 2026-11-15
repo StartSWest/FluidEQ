@@ -173,6 +173,41 @@ const library: Partial<Dictionary> = {
     'Du dossier de paroles de FluidEQ : impossible d’écrire dans le dossier du titre',
   'library.lyrics.other': 'Trouver d’autres paroles',
   'library.lyrics.back': 'Retour aux paroles',
+  'library.pane.subtitles': 'Sous-titres',
+  'library.subtitles.reading': 'Recherche des sous-titres…',
+  'library.subtitles.none': 'Pas de sous-titres pour cette vidéo',
+  'library.subtitles.looked':
+    'FluidEQ a cherché à côté de la vidéo un fichier .srt ou .vtt du même nom. Une langue peut suivre le nom : {example}.',
+  'library.subtitles.listLabel':
+    'Sous-titres. Cliquez sur une ligne pour lire à partir de là.',
+  'library.subtitles.language': 'Langue des sous-titres',
+  'library.subtitles.variant': '{language} · {variant}',
+  'library.subtitles.unreadable':
+    'FluidEQ n’a pu lire aucune ligne minutée dans {name}.',
+  'library.subtitles.back': 'Retour aux sous-titres',
+  'library.subtitles.other': 'Trouver d’autres sous-titres',
+  'library.subtitles.find.heading': 'Les trouver en ligne',
+  'library.subtitles.find.moviesAndTv': 'Films et séries',
+  'library.subtitles.find.tv': 'Séries',
+  'library.subtitles.find.open':
+    'Rechercher cette vidéo sur {site} dans votre navigateur',
+  'library.subtitles.find.searches':
+    'Recherche « {query} ». Téléchargez un fichier .srt ou .vtt sur le site, puis ajoutez-le ci-dessous.',
+  'library.subtitles.import.heading': 'Les garder avec la vidéo',
+  'library.subtitles.import.file': 'Importer des sous-titres…',
+  'library.subtitles.import.drop':
+    'Ou déposez un fichier .srt ou .vtt sur cet onglet. Il est enregistré à côté de la vidéo, sous son nom.',
+  'library.subtitles.import.busy': 'Enregistrement des sous-titres…',
+  'library.subtitles.import.saved':
+    'Enregistrés à côté de la vidéo sous {name}',
+  'library.subtitles.import.failed':
+    'Les sous-titres n’ont pas pu être enregistrés à côté de la vidéo.',
+  'library.subtitles.import.empty': 'Il ne contient aucune ligne minutée.',
+  'library.subtitles.import.tooBig':
+    'Ce fichier dépasse 2 Mo, trop pour des sous-titres.',
+  'library.subtitles.import.notText': 'Ce fichier n’est pas du texte.',
+  'library.subtitles.import.notSubtitles':
+    'Seul un fichier de sous-titres peut être importé : .srt ou .vtt.',
   'library.view.aria': 'Comment la bibliothèque est affichée',
   'library.browse.aria': 'Ce que la bibliothèque affiche',
 
@@ -233,6 +268,7 @@ const library: Partial<Dictionary> = {
     'L’index de la bibliothèque n’a pas pu être lu et a été reconstruit.',
 
   'library.back': 'Retour',
+  'library.video.skip': '{seconds} s',
   'library.place.aria': 'Où vous êtes dans la bibliothèque',
   'library.place.allHint':
     'Quitter ce dossier et afficher toute votre bibliothèque',

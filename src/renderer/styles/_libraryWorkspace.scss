@@ -412,7 +412,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   align-items: center;
   gap: 4px;
+}
 
+// The Library's quiet dropdown face, one for every picker it has: the sort
+// in the bar, and a video's subtitle language at its Subtitles tab's foot
+// (`LibrarySubtitlesFoot`).
+.library-top__sort,
+.library-lyrics__language {
   .dropdown > [role='menu'] {
     min-height: 30px;
     padding: 0 10px;

@@ -170,6 +170,40 @@ const library: Partial<Dictionary> = {
     'Da pasta de letras do FluidEQ: não é possível gravar na pasta da música',
   'library.lyrics.other': 'Encontrar outra letra',
   'library.lyrics.back': 'Voltar à letra',
+  'library.pane.subtitles': 'Legendas',
+  'library.subtitles.reading': 'Procurando legendas…',
+  'library.subtitles.none': 'Este vídeo não tem legendas',
+  'library.subtitles.looked':
+    'O FluidEQ procurou ao lado do vídeo um arquivo .srt ou .vtt com o mesmo nome. Depois do nome pode vir um idioma: {example}.',
+  'library.subtitles.listLabel':
+    'Legendas. Clique em uma linha para tocar a partir dela.',
+  'library.subtitles.language': 'Idioma das legendas',
+  'library.subtitles.variant': '{language} · {variant}',
+  'library.subtitles.unreadable':
+    'O FluidEQ não conseguiu ler nenhuma linha com tempo em {name}.',
+  'library.subtitles.back': 'Voltar às legendas',
+  'library.subtitles.other': 'Encontrar outras legendas',
+  'library.subtitles.find.heading': 'Encontre on-line',
+  'library.subtitles.find.moviesAndTv': 'Filmes e séries',
+  'library.subtitles.find.tv': 'Séries',
+  'library.subtitles.find.open':
+    'Pesquisar este vídeo no {site} no seu navegador',
+  'library.subtitles.find.searches':
+    'Pesquisa “{query}”. Baixe lá um arquivo .srt ou .vtt e depois traga-o aqui embaixo.',
+  'library.subtitles.import.heading': 'Guardar com o vídeo',
+  'library.subtitles.import.file': 'Importar legendas…',
+  'library.subtitles.import.drop':
+    'Ou solte um arquivo .srt ou .vtt nesta aba. Ele é salvo ao lado do vídeo, com o nome dele.',
+  'library.subtitles.import.busy': 'Salvando as legendas…',
+  'library.subtitles.import.saved': 'Salvas ao lado do vídeo como {name}',
+  'library.subtitles.import.failed':
+    'Não foi possível salvar as legendas ao lado do vídeo.',
+  'library.subtitles.import.empty': 'Não há nenhuma linha com tempo nele.',
+  'library.subtitles.import.tooBig':
+    'O arquivo tem mais de 2 MB, grande demais para ser legendas.',
+  'library.subtitles.import.notText': 'O arquivo não é de texto.',
+  'library.subtitles.import.notSubtitles':
+    'Só é possível importar um arquivo de legendas: .srt ou .vtt.',
   'library.view.aria': 'Como a biblioteca é exibida',
   'library.browse.aria': 'O que a biblioteca está mostrando',
 
@@ -230,6 +264,7 @@ const library: Partial<Dictionary> = {
     'O índice da biblioteca não pôde ser lido e foi reconstruído.',
 
   'library.back': 'Voltar',
+  'library.video.skip': '{seconds} s',
   'library.place.aria': 'Onde você está na biblioteca',
   'library.place.allHint': 'Sair desta pasta e mostrar toda a sua biblioteca',
   'library.search.near': 'Em {folder}',

@@ -18,6 +18,7 @@ const files = {
   'files.type.pictures': '图片',
   'files.type.all': '所有文件',
   'files.type.lyrics': '歌词',
+  'files.type.subtitles': '字幕',
   'files.imported.profile': '已从 FluidEQ 配置导入 {count} 个频段。',
   'files.imported.graphicEq': '已从 GraphicEQ 文件导入 {count} 个频段。',
   'files.imported.parametricEq':

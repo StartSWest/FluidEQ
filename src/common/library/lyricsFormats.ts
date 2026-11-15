@@ -371,11 +371,17 @@ export const readLyricsFormat = (input: string): IReadLyrics => {
  * comes in the lyric, don't invent - display exactly as it comes". A pause
  * the file writes itself (an empty timed line, Spotify's instrumental note)
  * is still read as one.
+ *
+ * `limit` is a song's line cap unless the caller reads something longer: a
+ * film's subtitles (`subtitles.ts`).
  */
-export const libraryLinesOf = (timed: readonly ITimedLine[]): ILyricsLine[] => {
+export const libraryLinesOf = (
+  timed: readonly ITimedLine[],
+  limit: number = MAX_LYRICS_LINES,
+): ILyricsLine[] => {
   const sorted = [...timed]
     .sort((a, b) => a.startMs - b.startMs)
-    .slice(0, MAX_LYRICS_LINES);
+    .slice(0, limit);
   const lines: ILyricsLine[] = [];
   sorted.forEach((line) => {
     const words =
@@ -389,7 +395,7 @@ export const libraryLinesOf = (timed: readonly ITimedLine[]): ILyricsLine[] => {
       .trim();
     lines.push({ timeMs: line.startMs, text, ...(words ? { words } : {}) });
   });
-  return lines.slice(0, MAX_LYRICS_LINES);
+  return lines;
 };
 
 /**

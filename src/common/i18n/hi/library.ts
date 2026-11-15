@@ -165,6 +165,38 @@ const library: Partial<Dictionary> = {
     'FluidEQ के बोल फ़ोल्डर से: गाने के फ़ोल्डर में लिखा नहीं जा सकता',
   'library.lyrics.other': 'दूसरे बोल खोजें',
   'library.lyrics.back': 'बोल पर वापस जाएँ',
+  'library.pane.subtitles': 'सबटाइटल',
+  'library.subtitles.reading': 'सबटाइटल खोजे जा रहे हैं…',
+  'library.subtitles.none': 'इस वीडियो के सबटाइटल नहीं हैं',
+  'library.subtitles.looked':
+    'FluidEQ ने वीडियो के पास उसी नाम की .srt या .vtt फ़ाइल खोजी। नाम के बाद भाषा भी हो सकती है: {example}।',
+  'library.subtitles.listLabel': 'सबटाइटल। किसी पंक्ति को दबाकर वहीं से चलाएँ।',
+  'library.subtitles.language': 'सबटाइटल की भाषा',
+  'library.subtitles.variant': '{language} · {variant}',
+  'library.subtitles.unreadable':
+    'FluidEQ {name} में समय वाली कोई पंक्ति नहीं पढ़ सका।',
+  'library.subtitles.back': 'सबटाइटल पर वापस जाएँ',
+  'library.subtitles.other': 'दूसरे सबटाइटल खोजें',
+  'library.subtitles.find.heading': 'ऑनलाइन खोजें',
+  'library.subtitles.find.moviesAndTv': 'फ़िल्में और टीवी शो',
+  'library.subtitles.find.tv': 'टीवी शो',
+  'library.subtitles.find.open':
+    'इस वीडियो को अपने ब्राउज़र में {site} पर खोजें',
+  'library.subtitles.find.searches':
+    '“{query}” खोजता है। वहाँ से .srt या .vtt फ़ाइल डाउनलोड करें, फिर नीचे जोड़ें।',
+  'library.subtitles.import.heading': 'वीडियो के साथ रखें',
+  'library.subtitles.import.file': 'सबटाइटल इम्पोर्ट करें…',
+  'library.subtitles.import.drop':
+    'या इस टैब पर .srt या .vtt फ़ाइल छोड़ें। यह वीडियो के पास, उसी के नाम से सहेजी जाती है।',
+  'library.subtitles.import.busy': 'सबटाइटल सहेजे जा रहे हैं…',
+  'library.subtitles.import.saved': 'वीडियो के पास {name} के रूप में सहेजा गया',
+  'library.subtitles.import.failed': 'सबटाइटल वीडियो के पास सहेजे नहीं जा सके।',
+  'library.subtitles.import.empty': 'इसमें समय वाली कोई पंक्ति नहीं है।',
+  'library.subtitles.import.tooBig':
+    'यह फ़ाइल 2 MB से बड़ी है, सबटाइटल के लिए बहुत बड़ी।',
+  'library.subtitles.import.notText': 'यह फ़ाइल टेक्स्ट नहीं है।',
+  'library.subtitles.import.notSubtitles':
+    'केवल सबटाइटल फ़ाइल इम्पोर्ट की जा सकती है: .srt या .vtt।',
   'library.view.aria': 'लाइब्रेरी किस तरह दिखाई जाती है',
   'library.browse.aria': 'लाइब्रेरी क्या दिखा रही है',
 
@@ -223,6 +255,7 @@ const library: Partial<Dictionary> = {
     'लाइब्रेरी इंडेक्स पढ़ा नहीं जा सका और उसे फिर से बनाया गया है।',
 
   'library.back': 'वापस',
+  'library.video.skip': '{seconds} से.',
   'library.place.aria': 'लाइब्रेरी में आप कहाँ हैं',
   'library.place.allHint':
     'इस फ़ोल्डर से बाहर निकलें और अपनी पूरी लाइब्रेरी देखें',

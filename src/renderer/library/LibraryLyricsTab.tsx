@@ -24,6 +24,7 @@ import { useTranslation } from '../utils/I18nContext';
 import LibraryLyricsActions from './LibraryLyricsActions';
 import LibraryLyricsFinder from './LibraryLyricsFinder';
 import LibraryLyricsSynced from './LibraryLyricsSynced';
+import LibrarySubtitles from './LibrarySubtitles';
 import { type TLyricsImportState, useLyricsImport } from './useLyricsImport';
 import { useTrackLyrics } from './useTrackLyrics';
 
@@ -243,6 +244,9 @@ const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
  * words follow the song; plain ones are there to read. A song with none says
  * where FluidEQ looked, and where the listener can find its words and bring
  * them in to stay with it (`LibraryLyricsFinder`).
+ *
+ * A video's tab is its Subtitles instead, every part of it
+ * (`LibrarySubtitles`).
  */
 const LibraryLyricsTab = ({ track }: { track: ILibraryTrack | undefined }) => {
   const { t } = useTranslation();
@@ -250,7 +254,11 @@ const LibraryLyricsTab = ({ track }: { track: ILibraryTrack | undefined }) => {
     return <p className="library-pane__empty">{t('library.lyrics.nothing')}</p>;
   }
   // Keyed by song: a new song starts at its own first line, followed.
-  return <TrackLyrics key={track.id} track={track} />;
+  return track.kind === 'video' ? (
+    <LibrarySubtitles key={track.id} track={track} />
+  ) : (
+    <TrackLyrics key={track.id} track={track} />
+  );
 };
 
 export default LibraryLyricsTab;

@@ -34,6 +34,7 @@ import { openLibraryStore } from '../library/libraryStoreOpen';
 import { readTrackFacts } from '../library/libraryTrackFacts';
 import { isLocalRendererPath } from '../rendererPaths';
 import { registerLibraryLyricsIpc } from './libraryLyricsIpc';
+import { registerLibrarySubtitlesIpc } from './librarySubtitlesIpc';
 import onWindowMessage from './windowMessages';
 
 /**
@@ -386,6 +387,9 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
     getMainWindow,
     trackPath: store.trackPath,
   });
+
+  // A video's subtitles, and subtitles the viewer keeps with it, by id.
+  registerLibrarySubtitlesIpc({ getMainWindow, trackPath: store.trackPath });
 
   // A play the window heard (`usePlayCounter`), by id only: an id the
   // library does not know changes nothing and tells nobody.

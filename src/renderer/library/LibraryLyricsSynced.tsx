@@ -141,8 +141,12 @@ const LyricsRow = memo(
  */
 const LibraryLyricsSynced = ({
   lines: allLines,
+  label,
 }: {
   lines: readonly ILyricsLine[];
+  /** What the list is to a screen reader, where it is not a song's lyrics:
+   * a video's subtitles (`LibrarySubtitles`). */
+  label?: string;
 }) => {
   // The words and their times, and the stanzas as the file parts them -
   // never a row of dots, which drew pauses between lines sung straight
@@ -268,7 +272,7 @@ const LibraryLyricsSynced = ({
       <ol
         ref={listRef}
         className="library-lyrics__lines"
-        aria-label={t('library.lyrics.listLabel')}
+        aria-label={label ?? t('library.lyrics.listLabel')}
         // A focusable list scrolls from the keyboard, as any scroll area.
         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrollable region must be reachable by keyboard
         tabIndex={0}

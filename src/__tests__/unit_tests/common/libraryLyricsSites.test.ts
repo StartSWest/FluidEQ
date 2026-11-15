@@ -5,6 +5,11 @@ import {
   lyricsSearchQuery,
   lyricsSearchUrl,
 } from 'common/library/lyricsSites';
+import {
+  SUBTITLE_SITES,
+  subtitleSearchQuery,
+  subtitleSearchUrl,
+} from 'common/library/subtitleSites';
 import type { ILibraryTrack } from 'common/library/types';
 
 /**
@@ -127,5 +132,83 @@ describe('lyrics site searches', () => {
       undefined,
     );
     expect(lyricsSearchUrl(site('genius'), { title: '' })).toBe(undefined);
+  });
+});
+
+/**
+ * A video's Subtitles tab searches subtitle sites instead, with the video's
+ * title tidied out of a release name; a song's tab keeps the lyric sites
+ * above, untouched.
+ */
+describe('subtitle site searches', () => {
+  const subSite = (id: string) => {
+    const found = SUBTITLE_SITES.find((candidate) => candidate.id === id);
+    if (found === undefined) {
+      throw new Error(`no subtitle site ${id}`);
+    }
+    return found;
+  };
+
+  it('offers OpenSubtitles, SubDL and Addic7ed, and none of the lyric sites', () => {
+    expect(SUBTITLE_SITES.map((candidate) => candidate.name)).toEqual([
+      'OpenSubtitles',
+      'SubDL',
+      'Addic7ed',
+    ]);
+    const lyricHosts = LYRICS_SITES.map(
+      (candidate) => new URL(candidate.searchUrl('x')).host,
+    );
+    SUBTITLE_SITES.forEach((candidate) => {
+      expect(lyricHosts).not.toContain(new URL(candidate.searchUrl('x')).host);
+    });
+  });
+
+  it('builds each search in the shape its site answers, checked live on 2026-11-15', () => {
+    expect(subSite('opensubtitles').searchUrl('The Matrix')).toBe(
+      'https://www.opensubtitles.org/en/search2/sublanguageid-all/moviename-The%20Matrix',
+    );
+    expect(subSite('subdl').searchUrl('The Matrix')).toBe(
+      'https://subdl.com/search/The%20Matrix',
+    );
+    expect(subSite('addic7ed').searchUrl('The Office')).toBe(
+      'https://www.addic7ed.com/search.php?search=The%20Office&Submit=Search',
+    );
+  });
+
+  it('gives a slash as a space, so a path search stays one search', () => {
+    SUBTITLE_SITES.forEach((candidate) => {
+      const url = candidate.searchUrl('Face/Off');
+      expect(url).not.toContain('Face/Off');
+      expect(url).not.toContain('%2F');
+      expect(url).toContain('Face%20Off');
+    });
+    // The control: an accent is encoded, not dropped.
+    expect(subSite('subdl').searchUrl('Amélie')).toBe(
+      'https://subdl.com/search/Am%C3%A9lie',
+    );
+  });
+
+  it('searches a release name by its title, an episode by its code', () => {
+    expect(
+      subtitleSearchQuery({ title: 'The.Matrix.1999.1080p.BluRay.x264' }),
+    ).toBe('The Matrix');
+    expect(subtitleSearchQuery({ title: 'Some_Show.S02E05.720p.WEB-DL' })).toBe(
+      'Some Show S02E05',
+    );
+    // A title that is a year keeps it; a title with "Web" in it is not cut.
+    expect(subtitleSearchQuery({ title: '1917 (2019)' })).toBe('1917');
+    expect(subtitleSearchQuery({ title: "Charlotte's Web" })).toBe(
+      "Charlotte's Web",
+    );
+    // The control: a plain title passes through as it is.
+    expect(subtitleSearchQuery({ title: 'Amélie' })).toBe('Amélie');
+  });
+
+  it('offers no search for a video with no title left', () => {
+    expect(subtitleSearchQuery({ title: '1080p.x265' })).toBe(undefined);
+    expect(subtitleSearchUrl(subSite('subdl'), { title: ' ' })).toBe(undefined);
+    expect(subtitleSearchUrl(subSite('subdl'), { title: 'Heat' })).toBe(
+      'https://subdl.com/search/Heat',
+    );
   });
 });

@@ -36,6 +36,8 @@ import type {
   TLyricsPickResult,
   TLyricsRemoveResult,
 } from '../common/library/lyricsImport';
+import type { ILibrarySubtitlesAnswer } from '../common/library/subtitles';
+import type { TSubtitleImportResult } from '../common/library/subtitleImport';
 
 /**
  * The Library's calls: its folders and scans, the page of songs the window
@@ -177,6 +179,44 @@ const removeLibraryTrackLyrics = (
     TLyricsRemoveResult | undefined
   >;
 
+/**
+ * A video's subtitle files and the lines of one: `wanted` by its file name,
+ * or the one main puts first for the `preferred` languages.
+ */
+const libraryTrackSubtitles = (
+  trackId: string,
+  wanted: string | undefined,
+  preferred: readonly string[],
+) =>
+  ipcRenderer.invoke(
+    'library-track-subtitles',
+    trackId,
+    wanted,
+    preferred,
+  ) as Promise<ILibrarySubtitlesAnswer | undefined>;
+
+/** Opens the system's file dialog for a `.srt` or `.vtt` and keeps the file
+ * picked beside the video. */
+const pickLibrarySubtitlesFile = (trackId: string) =>
+  ipcRenderer.invoke(
+    'library-subtitles-pick',
+    trackId,
+  ) as Promise<TSubtitleImportResult>;
+
+/** Keeps a dropped subtitle file's text beside the video, under the
+ * video's name and the language the file's own name ends on. */
+const importLibrarySubtitles = (
+  trackId: string,
+  sourceName: string,
+  text: string,
+) =>
+  ipcRenderer.invoke(
+    'library-subtitles-import',
+    trackId,
+    sourceName,
+    text,
+  ) as Promise<TSubtitleImportResult>;
+
 /** One more play of a song the window heard past half its length. */
 const noteLibraryTrackPlayed = (trackId: string) =>
   ipcRenderer.invoke('library-track-played', trackId) as Promise<boolean>;
@@ -299,6 +339,9 @@ const libraryBridge = {
   pickLibraryLyricsFile,
   importLibraryTrackLyrics,
   removeLibraryTrackLyrics,
+  libraryTrackSubtitles,
+  pickLibrarySubtitlesFile,
+  importLibrarySubtitles,
   libraryTrackBytes,
   libraryTrackSignature,
   setLibraryTrackNormalization,

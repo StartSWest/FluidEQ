@@ -23,6 +23,7 @@ const files = {
   'files.type.pictures': 'Pictures',
   'files.type.all': 'All files',
   'files.type.lyrics': 'Lyrics',
+  'files.type.subtitles': 'Subtitles',
   'files.imported.profile': 'Imported {count} bands from the FluidEQ profile.',
   'files.imported.graphicEq': 'Imported {count} bands from the GraphicEQ file.',
   'files.imported.parametricEq':

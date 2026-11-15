@@ -18,6 +18,7 @@ const files = {
   'files.type.pictures': 'तस्वीरें',
   'files.type.all': 'सभी फ़ाइलें',
   'files.type.lyrics': 'बोल',
+  'files.type.subtitles': 'सबटाइटल',
   'files.imported.profile': 'FluidEQ प्रोफ़ाइल से {count} बैंड इंपोर्ट किए गए।',
   'files.imported.graphicEq': 'GraphicEQ फ़ाइल से {count} बैंड इंपोर्ट किए गए।',
   'files.imported.parametricEq':

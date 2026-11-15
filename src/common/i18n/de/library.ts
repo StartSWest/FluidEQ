@@ -173,6 +173,40 @@ const library: Partial<Dictionary> = {
     'Aus dem Songtext-Ordner von FluidEQ: Der Ordner des Titels lässt sich nicht beschreiben',
   'library.lyrics.other': 'Anderen Songtext finden',
   'library.lyrics.back': 'Zurück zum Songtext',
+  'library.pane.subtitles': 'Untertitel',
+  'library.subtitles.reading': 'Untertitel werden gesucht…',
+  'library.subtitles.none': 'Keine Untertitel zu diesem Video',
+  'library.subtitles.looked':
+    'FluidEQ hat neben dem Video nach einer .srt- oder .vtt-Datei mit demselben Namen gesucht. Auf den Namen kann eine Sprache folgen: {example}.',
+  'library.subtitles.listLabel':
+    'Untertitel. Klicken Sie auf eine Zeile, um ab dort abzuspielen.',
+  'library.subtitles.language': 'Untertitelsprache',
+  'library.subtitles.variant': '{language} · {variant}',
+  'library.subtitles.unreadable':
+    'FluidEQ konnte in {name} keine Zeilen mit Zeitangaben lesen.',
+  'library.subtitles.back': 'Zurück zu den Untertiteln',
+  'library.subtitles.other': 'Andere Untertitel finden',
+  'library.subtitles.find.heading': 'Online finden',
+  'library.subtitles.find.moviesAndTv': 'Filme und Serien',
+  'library.subtitles.find.tv': 'Serien',
+  'library.subtitles.find.open':
+    '{site} im Browser nach diesem Video durchsuchen',
+  'library.subtitles.find.searches':
+    'Sucht nach „{query}“. Laden Sie dort eine .srt- oder .vtt-Datei herunter, und übernehmen Sie sie dann unten.',
+  'library.subtitles.import.heading': 'Beim Video speichern',
+  'library.subtitles.import.file': 'Untertitel importieren…',
+  'library.subtitles.import.drop':
+    'Oder ziehen Sie eine .srt- oder .vtt-Datei auf diesen Tab. Sie wird neben dem Video unter dessen Namen gespeichert.',
+  'library.subtitles.import.busy': 'Untertitel werden gespeichert…',
+  'library.subtitles.import.saved': 'Neben dem Video als {name} gespeichert',
+  'library.subtitles.import.failed':
+    'Die Untertitel konnten nicht neben dem Video gespeichert werden.',
+  'library.subtitles.import.empty': 'Sie enthält keine Zeilen mit Zeitangaben.',
+  'library.subtitles.import.tooBig':
+    'Die Datei ist größer als 2 MB und damit zu groß für Untertitel.',
+  'library.subtitles.import.notText': 'Die Datei ist keine Textdatei.',
+  'library.subtitles.import.notSubtitles':
+    'Nur eine Untertiteldatei kann importiert werden: .srt oder .vtt.',
   'library.view.aria': 'Wie die Bibliothek angezeigt wird',
   'library.browse.aria': 'Was die Bibliothek gerade zeigt',
 
@@ -232,6 +266,7 @@ const library: Partial<Dictionary> = {
     'Der Bibliotheksindex konnte nicht gelesen werden und wurde neu aufgebaut.',
 
   'library.back': 'Zurück',
+  'library.video.skip': '{seconds} s',
   'library.place.aria': 'Ihr Ort in der Bibliothek',
   'library.place.allHint':
     'Diesen Ordner verlassen und die ganze Bibliothek zeigen',

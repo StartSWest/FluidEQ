@@ -163,6 +163,38 @@ const library = {
     'From FluidEQ’s lyrics folder: the song’s folder can’t be written',
   'library.lyrics.other': 'Find other lyrics',
   'library.lyrics.back': 'Back to the lyrics',
+  'library.pane.subtitles': 'Subtitles',
+  'library.subtitles.reading': 'Looking for subtitles…',
+  'library.subtitles.none': 'No subtitles for this video',
+  'library.subtitles.looked':
+    'FluidEQ looked beside the video for a .srt or .vtt file with the same name. A language can follow the name: {example}.',
+  'library.subtitles.listLabel': 'Subtitles. Press a line to play from it.',
+  'library.subtitles.language': 'Subtitle language',
+  'library.subtitles.variant': '{language} · {variant}',
+  'library.subtitles.unreadable':
+    'FluidEQ couldn’t read any timed lines in {name}.',
+  'library.subtitles.back': 'Back to the subtitles',
+  'library.subtitles.other': 'Find other subtitles',
+  'library.subtitles.find.heading': 'Find them online',
+  'library.subtitles.find.moviesAndTv': 'Movies and TV shows',
+  'library.subtitles.find.tv': 'TV shows',
+  'library.subtitles.find.open': 'Search {site} for this video in your browser',
+  'library.subtitles.find.searches':
+    'Searches for “{query}”. Download a .srt or .vtt file there, then bring it in below.',
+  'library.subtitles.import.heading': 'Keep them with the video',
+  'library.subtitles.import.file': 'Import subtitles…',
+  'library.subtitles.import.drop':
+    'Or drop a .srt or .vtt file on this tab. It is saved beside the video, under the video’s name.',
+  'library.subtitles.import.busy': 'Saving the subtitles…',
+  'library.subtitles.import.saved': 'Saved beside the video as {name}',
+  'library.subtitles.import.failed':
+    'The subtitles couldn’t be saved beside the video.',
+  'library.subtitles.import.empty': 'There are no timed lines in it.',
+  'library.subtitles.import.tooBig':
+    'That file is over 2 MB, too big to be subtitles.',
+  'library.subtitles.import.notText': 'That file isn’t text.',
+  'library.subtitles.import.notSubtitles':
+    'Only a subtitle file can be imported: .srt or .vtt.',
   'library.view.aria': 'How the library is shown',
   'library.browse.aria': 'What the library is showing',
 
@@ -222,6 +254,7 @@ const library = {
     'The library index could not be read and has been rebuilt.',
 
   'library.back': 'Back',
+  'library.video.skip': '{seconds} s',
   'library.place.aria': 'Where you are in the library',
   'library.place.allHint': 'Leave this folder and show your whole library',
   'library.search.near': 'In {folder}',

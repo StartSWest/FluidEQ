@@ -252,6 +252,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A video's subtitle language, where Remove stands for a song: sized to its
+// language's name, and never more than half the row, so the file it names
+// keeps the rest (`LibrarySubtitlesFoot`). Its face is the Library bar's
+// quiet dropdown (`_libraryWorkspace.scss`).
+.library-lyrics__language {
+  min-width: 0;
+  max-width: 50%;
+  flex: 0 1 auto;
+}
+
 // Open in Karaoke and Find other lyrics: quiet, the tab's words being what
 // the eye is on. Each grows to fill its row: side by side where both labels
 // fit, one to a row across the pane's width where they do not (a longer

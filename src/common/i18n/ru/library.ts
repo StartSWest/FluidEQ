@@ -171,6 +171,39 @@ const library: Partial<Dictionary> = {
     'Из папки текстов FluidEQ: в папку песни нельзя записывать',
   'library.lyrics.other': 'Найти другой текст',
   'library.lyrics.back': 'Назад к тексту',
+  'library.pane.subtitles': 'Субтитры',
+  'library.subtitles.reading': 'Ищем субтитры…',
+  'library.subtitles.none': 'У этого видео нет субтитров',
+  'library.subtitles.looked':
+    'FluidEQ искал рядом с видео файл .srt или .vtt с тем же именем. После имени может стоять язык: {example}.',
+  'library.subtitles.listLabel':
+    'Субтитры. Нажмите на строку, чтобы играть с неё.',
+  'library.subtitles.language': 'Язык субтитров',
+  'library.subtitles.variant': '{language} · {variant}',
+  'library.subtitles.unreadable':
+    'FluidEQ не смог прочитать в {name} ни одной строки с таймингом.',
+  'library.subtitles.back': 'Назад к субтитрам',
+  'library.subtitles.other': 'Найти другие субтитры',
+  'library.subtitles.find.heading': 'Найти в интернете',
+  'library.subtitles.find.moviesAndTv': 'Фильмы и сериалы',
+  'library.subtitles.find.tv': 'Сериалы',
+  'library.subtitles.find.open': 'Искать это видео на {site} в браузере',
+  'library.subtitles.find.searches':
+    'Поиск «{query}». Скачайте там файл .srt или .vtt, а затем добавьте его ниже.',
+  'library.subtitles.import.heading': 'Сохранить с видео',
+  'library.subtitles.import.file': 'Импортировать субтитры…',
+  'library.subtitles.import.drop':
+    'Или перетащите файл .srt или .vtt на эту вкладку. Он сохранится рядом с видео под его именем.',
+  'library.subtitles.import.busy': 'Сохраняем субтитры…',
+  'library.subtitles.import.saved': 'Сохранено рядом с видео как {name}',
+  'library.subtitles.import.failed':
+    'Не удалось сохранить субтитры рядом с видео.',
+  'library.subtitles.import.empty': 'В нём нет строк с таймингом.',
+  'library.subtitles.import.tooBig':
+    'Файл больше 2 МБ — слишком большой для субтитров.',
+  'library.subtitles.import.notText': 'Это не текстовый файл.',
+  'library.subtitles.import.notSubtitles':
+    'Импортировать можно только файл субтитров: .srt или .vtt.',
   'library.view.aria': 'Как отображается библиотека',
   'library.browse.aria': 'Что показывает библиотека',
 
@@ -229,6 +262,7 @@ const library: Partial<Dictionary> = {
     'Индекс библиотеки не удалось прочитать, и он был перестроен.',
 
   'library.back': 'Назад',
+  'library.video.skip': '{seconds} с',
   'library.place.aria': 'Где вы находитесь в библиотеке',
   'library.place.allHint': 'Выйти из этой папки и показать всю библиотеку',
   'library.search.near': 'В папке «{folder}»',

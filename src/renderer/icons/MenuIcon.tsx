@@ -184,6 +184,10 @@ const PATHS: Record<string, string> = {
     'M4 11.5V5.5A1.5 1.5 0 0 1 5.5 4h6l8.5 8.5-7.5 7.5L4 11.5zM8.4 7.9a.9.9 0 1 1-1.8 0 .9.9 0 0 1 1.8 0',
   song: 'M9 16.5V5.5l9-2v11M9 16.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM18 14.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z',
   video: 'M3.5 6.5h17v11h-17zM10 9.75l4.5 2.25L10 14.25z',
+  // The video's frame with two caption lines across its foot: a video's
+  // Subtitles tab, where a song's has the microphone.
+  subtitles:
+    'M3.5 5.5h17v13h-17zM7 12.5h3M12.5 12.5h4.5M7 15.5h6M15.5 15.5h1.5',
   // The library's three shelves, for when the tab is too narrow to name them.
   // Rows with a leading mark for the table, four panes for the grid, and a
   // sleeve standing between two turned neighbours for cover flow — which is

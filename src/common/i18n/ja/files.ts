@@ -18,6 +18,7 @@ const files = {
   'files.type.pictures': '画像',
   'files.type.all': 'すべてのファイル',
   'files.type.lyrics': '歌詞',
+  'files.type.subtitles': '字幕',
   'files.imported.profile':
     'FluidEQ のプロファイルから {count} 個のバンドを読み込みました。',
   'files.imported.graphicEq':
