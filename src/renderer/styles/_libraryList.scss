@@ -377,7 +377,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition: opacity $motion-fast ease-out;
 }
 
-.library-list__row:hover .library-list__no-play:not(:disabled),
+// Never on the song that is playing: its bars stay under the pointer (Ivan,
+// 2026-11-15: "I don't want to show the play button on a song already
+// playing, keep it with the animation"). A play glyph there offered what is
+// already happening. Paused, the row is not `--playing` and shows the glyph
+// that resumes it; the keyboard's focus still shows it everywhere.
+.library-list__row:not(.library-list__row--playing):hover
+  .library-list__no-play:not(:disabled),
 .library-list__no-play:focus-visible {
   .library-list__no-glyph {
     opacity: 1;
