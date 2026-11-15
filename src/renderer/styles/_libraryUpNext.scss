@@ -40,7 +40,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   grid-column: 3;
   grid-row: 1;
-  background: $studio-rail;
+  background: $studio-column-light, $studio-rail;
 
   // The hairline belongs to an open queue only: folded, the column is gone.
   .library-workspace.has-up-next & {

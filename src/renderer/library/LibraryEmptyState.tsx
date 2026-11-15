@@ -59,10 +59,15 @@ const LibraryEmptyState = ({
   return (
     <div className="library-empty">
       <div className="library-empty__card">
+        {/* The light drifting behind everything on the card. */}
+        <span className="library-empty__aurora" aria-hidden="true" />
         <div className="library-empty__art" aria-hidden="true">
           <span className="library-empty__sleeve library-empty__sleeve--left" />
           <span className="library-empty__sleeve library-empty__sleeve--right" />
-          <span className="library-empty__disc" />
+          {/* The record turns inside a frame that keeps its light still. */}
+          <span className="library-empty__disc">
+            <span className="library-empty__vinyl" />
+          </span>
           <span className="library-empty__sleeve library-empty__sleeve--front">
             <MenuIcon name="folder" className="library-empty__sleeve-icon" />
           </span>

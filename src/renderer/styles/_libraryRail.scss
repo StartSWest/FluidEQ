@@ -33,7 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-row: 1;
   flex-direction: column;
   border-right: 1px solid $studio-hair;
-  background: $studio-rail;
+  background: $studio-column-light, $studio-rail;
   transition: width $motion-base $ease-out;
 }
 

@@ -18,9 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // THE LIBRARY BEFORE ITS FIRST FOLDER, beside the shelf rail (Ivan,
 // 2026-11-15: "improve that screen ... show the list on the left so it is not
-// that empty"). The card is the drop target drawn: a dashed frame the whole
-// workspace lights when a folder is dragged over it, a stack of sleeves with
-// a record half out of them, the one action that fills it, and three lines on
+// that empty"). The card is the stage and the drop target: its edge lights
+// when a folder is dragged over the workspace, and on it stand a stack of
+// sleeves with a record half out of them, the one action that fills it, and three lines on
 // what the Library does once it has music. Every colour is the window's
 // accent or its surfaces, so the picture wears a scene's colours with the
 // rest of the app.
@@ -39,30 +39,77 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: auto;
 }
 
-// GRADIENTS ON THE GROUND, FLAT ON TOP (Ivan, 2026-11-15: "a nice balance
-// between gradients in the background and flat and clean, so it is
-// consistent"). The window and the scene carry the gradients; a card has the
-// one fill every Library card wears (`card-surface`) and nothing laid over
-// it; what stands on the card is solid colour, its depth only from overlap
-// and one shadow. The first version stacked six gradients here - an extra
-// light on the card, one per sleeve, a gloss, glints on the record and an
-// inner glow on a drop - and read busier than the rest of the app.
+// LIGHT WHERE IT GIVES FORM, FLAT WHERE IT IS CHROME. A flat pass (solid
+// sleeves, no light anywhere) was sent back the same day: "too flat, it looks
+// cheap, I cannot see the disc" (Ivan, 2026-11-15, "let's make something look
+// really premium", "animate the gradient if animations is on"). So the card
+// is the stage - its fill, a light in the window's accent drifting behind
+// everything, and an edge a beam of that light runs round - and what stands
+// on it are objects lit like objects: sleeves with faces and a gloss, and a
+// record whose grooves catch the light while it turns. Text and the button
+// stay flat. Every colour is the window's accent or its surfaces, so the
+// picture wears a scene's colours with the rest of the app. Every motion here
+// stops with the app's own Animations switch (`data-motion`, App.scss) and
+// with Windows' reduced motion.
+
+// The beam's place round the edge, animatable because it is typed.
+@property --library-empty-beam {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .library-empty__card {
   @include card-surface;
+  position: relative;
+  isolation: isolate;
   display: grid;
   width: min(560px, 100%);
   justify-items: center;
   gap: 6px;
   padding: $spacing-xl $spacing-l 28px;
+  overflow: hidden;
   text-align: center;
-  border: 1.5px dashed rgba($edge-tint, 0.18);
+  border-color: rgba($edge-tint, 0.1);
   border-radius: $radius-xl + 6px;
-  transition: border-color 160ms ease;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba($edge-tint, 0.06);
+
+  // The edge's beam: a short arc of the accent running round a hairline
+  // ring, masked so only the 1px ring shows.
+  &::before {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--library-empty-beam),
+      transparent 0 62%,
+      color-mix(in srgb, $secondary-default 70%, transparent) 78%,
+      transparent 92%
+    );
+    content: '';
+    pointer-events: none;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: library-empty-beam 9s linear infinite;
+  }
 
   h2 {
     margin: 0;
-    color: $text-primary;
-    font-size: clamp(1.25rem, 2vw, 1.55rem);
+    // A breath of the accent at the foot of the letters, nothing more.
+    background: linear-gradient(
+      180deg,
+      $text-primary 40%,
+      color-mix(in srgb, $text-primary 72%, $secondary-default)
+    );
+    background-clip: text;
+    color: transparent;
+    font-size: clamp(1.3rem, 2vw, 1.6rem);
     line-height: 1.2;
     text-wrap: balance;
   }
@@ -76,23 +123,89 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     text-wrap: balance;
   }
 
-  // A folder held over the workspace: the frame it will land in answers in
-  // its edge alone - the workspace round it already glows.
-  .library-workspace.is-drag-over & {
-    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
+  // A folder held over the workspace: the whole edge lights, and the record
+  // comes further out of its sleeve.
+  .library-workspace.is-drag-over &::before {
+    background: color-mix(in srgb, $secondary-default 80%, transparent);
+    animation: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      animation: none;
+    }
   }
 }
 
-// *** The sleeves ***************************************************************
+@keyframes library-empty-beam {
+  to {
+    --library-empty-beam: 360deg;
+  }
+}
+
+// Behind everything on the card: three soft pools of the accent, wandering
+// slowly. Transform only, so the compositor moves it without a repaint.
+.library-empty__aurora {
+  position: absolute;
+  z-index: -1;
+  inset: -35% -25%;
+  background:
+    radial-gradient(
+      circle at 32% 30%,
+      color-mix(in srgb, $secondary-default 26%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 70% 24%,
+      color-mix(in srgb, $secondary-default 16%, transparent),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 52% 78%,
+      color-mix(in srgb, $secondary-default 10%, transparent),
+      transparent 36%
+    );
+  pointer-events: none;
+  animation: library-empty-aurora 22s ease-in-out infinite alternate;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes library-empty-aurora {
+  0% {
+    transform: translate3d(-4%, -2%, 0) rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: translate3d(3%, 2%, 0) rotate(8deg) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(-2%, 4%, 0) rotate(-6deg) scale(1.02);
+  }
+}
+
+// *** The sleeves and the record ************************************************
 
 .library-empty__art {
   position: relative;
-  width: 196px;
-  height: 166px;
+  width: 210px;
+  height: 172px;
   margin-bottom: $spacing-m;
-  // One soft shadow under the whole stack, from its silhouette, instead of
-  // one per sleeve.
-  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.32));
+
+  // The light the stack stands in, so the record's black reads against it.
+  &::before {
+    position: absolute;
+    inset: -12% -18% 4%;
+    background: radial-gradient(
+      ellipse 50% 52% at 50% 46%,
+      color-mix(in srgb, $secondary-default 30%, transparent),
+      transparent 70%
+    );
+    content: '';
+  }
 }
 
 .library-empty__sleeve,
@@ -103,46 +216,85 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-empty__sleeve {
-  width: 96px;
-  height: 96px;
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
   border-radius: $radius-m;
+  box-shadow:
+    0 14px 26px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba($edge-tint, 0.12);
 }
 
-// The two behind: the accent at two strengths, solid.
+// The two behind wear album faces: a sun setting on a horizon, and rings -
+// each on the part of its sleeve the front one leaves showing.
 .library-empty__sleeve--left {
-  background: color-mix(in srgb, $secondary-default 32%, $surface-card);
-  transform: translateX(-50%) translateX(-46px) translateY(-4px) rotate(-13deg);
+  background:
+    linear-gradient(
+      180deg,
+      transparent 60%,
+      color-mix(in srgb, $secondary-default 30%, $surface-base) 60%
+    ),
+    radial-gradient(
+      circle at 30% 60%,
+      color-mix(in srgb, $secondary-default 70%, white) 0 17%,
+      transparent 18%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, $secondary-default 46%, $surface-card),
+      color-mix(in srgb, $secondary-default 14%, $surface-base)
+    );
+  transform: translateX(-50%) translateX(-50px) translateY(-6px) rotate(-14deg);
 }
 
 .library-empty__sleeve--right {
-  background: color-mix(in srgb, $secondary-default 18%, $surface-card);
-  transform: translateX(-50%) translateX(46px) translateY(-4px) rotate(13deg);
+  background:
+    repeating-radial-gradient(
+      circle at 72% 30%,
+      color-mix(in srgb, $secondary-default 34%, transparent) 0 3px,
+      transparent 3px 9px
+    ),
+    linear-gradient(
+      200deg,
+      color-mix(in srgb, $secondary-default 32%, $surface-card),
+      color-mix(in srgb, $secondary-default 10%, $surface-base)
+    );
+  transform: translateX(-50%) translateX(50px) translateY(-6px) rotate(14deg);
 }
 
-// A record half out of the top of the front sleeve: grooves round a label
-// in the accent - the grooves are what make it a record, so they stay.
-// Black because vinyl is, in every theme. A folder held over the workspace
-// draws it further out.
+// The record half out of the top of the front sleeve. The frame holds the
+// light still - a glint on each side and a rim - while the vinyl inside it
+// turns, so the turning is seen in the label's mark and the grooves' grain.
 // Its label stands clear of the sleeve's edge: both are the accent, and
 // touching they read as one keyhole-shaped blob.
 .library-empty__disc {
   bottom: 74px;
-  width: 90px;
-  height: 90px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  background:
-    radial-gradient(
-      circle,
-      $surface-base 0 3px,
-      $secondary-default 3.5px 14px,
-      transparent 14.5px
-    ),
-    repeating-radial-gradient(circle, #121a22 0 1.4px, #1f2a34 1.4px 2.8px);
-  transform: translateX(-50%) translateX(10px);
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba($edge-tint, 0.16);
+  transform: translateX(-50%) translateX(12px);
   transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
+  &::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 25deg,
+      transparent 0 6%,
+      rgba(255, 255, 255, 0.2) 12%,
+      transparent 19% 56%,
+      rgba(255, 255, 255, 0.13) 62%,
+      transparent 69%
+    );
+    content: '';
+  }
+
   .library-workspace.is-drag-over & {
-    transform: translateX(-50%) translateX(10px) translateY(-16px);
+    transform: translateX(-50%) translateX(12px) translateY(-18px);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -150,20 +302,67 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Black because vinyl is, in every theme: grooves fine enough to read as
+// grain, a run-out band, and a label in the accent with a pale mark on it.
+.library-empty__vinyl {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle, $surface-base 0 2.6px, transparent 3px),
+    radial-gradient(
+      circle at 50% 38%,
+      color-mix(in srgb, $secondary-default 30%, white) 0 2.4px,
+      transparent 2.8px
+    ),
+    radial-gradient(
+      circle,
+      color-mix(in srgb, $secondary-default 88%, white) 0 9px,
+      $secondary-default 9px 15px,
+      #0b1015 15px 17px,
+      transparent 17px
+    ),
+    repeating-radial-gradient(circle, #161f28 0 1.1px, #263340 1.1px 2.2px);
+  animation: library-empty-spin 7s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes library-empty-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .library-empty__sleeve--front {
   display: grid;
   place-items: center;
-  // The accent exactly as the Add folder button wears it, ink and all, so
-  // the picture and the action are one colour.
-  color: $surface-base;
-  background: $secondary-default;
+  color: color-mix(in srgb, $secondary-default 30%, $surface-base);
+  background:
+    linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.34),
+      rgba(255, 255, 255, 0) 46%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, $secondary-default 92%, white),
+      color-mix(in srgb, $secondary-default 64%, $surface-base)
+    );
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.45),
+    inset 0 2px 0 rgba(0, 0, 0, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16);
   transform: translateX(-50%);
 }
 
 .library-empty__sleeve-icon {
   width: 34px;
   height: 34px;
-  opacity: 0.6;
+  opacity: 0.75;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35));
 }
 
 // *** The action ****************************************************************
