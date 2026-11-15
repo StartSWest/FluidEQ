@@ -24,13 +24,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // ONE SWITCH, ONE SIZE, FLAT (Ivan, 2026-11-15: "the toggle components need
 // a redesign for the entire app, less round, more flat, to match", and
 // "make sure they are the same size: the Library's is bigger than in the
-// rest of the app"). It was a 50x28 pill with a round knob, a glow round the
-// track and a lit radial knob when on, and nine pages overrode its size to
-// four others (38x22, 42x24, 34x20, 30x16). Now one 34x18 rounded rectangle
-// everywhere, its knob round: off, a dark well with a
-// hairline and a light round knob; on, the track the accent itself and the
-// knob white - no glow, no gradient. A square dark knob was tried first and
-// sent back ("I don't like the square inside, also too dark"). Pages no longer set a size.
+// rest of the app"). It was a 50x28 pill with a glow round the track and a
+// lit radial knob when on, and nine pages overrode its size to four others
+// (38x22, 42x24, 34x20, 30x16). Now one 34x18 track everywhere with 4px
+// corners and a round knob: off, a dark well with a hairline and a light
+// knob; on, the accent's edge drawn inside the track, a faint tint of it
+// within, and the knob the accent - no glow, no gradient. Two tries were
+// sent back first: a square dark knob on a solid accent track, then a white
+// knob on it ("a border inside, not that rounded either, and not white").
+// Pages no longer set a size.
 
 $switch-width: 34px;
 $switch-height: 18px;
@@ -57,7 +59,7 @@ $switch-inset: 3px;
   align-items: center;
   justify-content: space-between;
   border: 1px solid $border-subtle;
-  border-radius: $radius-xs;
+  border-radius: 4px;
   background: $track-well;
   box-shadow: none;
   cursor: pointer;
@@ -94,11 +96,11 @@ $switch-inset: 3px;
 
   &:checked + .switch-label {
     border-color: $secondary-default;
-    background: $secondary-default;
+    background: color-mix(in srgb, $secondary-default 18%, $track-well);
 
     .switch-button {
       left: calc(100% - var(--switch-thumb) - var(--switch-inset) + 1px);
-      background: $white;
+      background: $secondary-default;
     }
   }
 
@@ -108,10 +110,9 @@ $switch-inset: 3px;
 
   &:checked:not(:disabled) + .switch-label:hover {
     border-color: $secondary-light;
-    background: $secondary-light;
 
     .switch-button {
-      background: $white;
+      background: $secondary-light;
     }
   }
 
