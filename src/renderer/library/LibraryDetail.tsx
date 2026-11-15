@@ -46,7 +46,7 @@ import { useLibraryList } from './useLibraryList';
 import { useLibraryAnswer } from './useLibraryAnswer';
 import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
 import { formatOf } from './libraryColumns';
-import { formatLength } from './libraryFormat';
+import { countText, formatLength } from './libraryFormat';
 
 interface ILibraryDetailProps {
   albumId?: string;
@@ -384,6 +384,14 @@ const LibraryDetail = ({
   const lastFolderShapeRef = useRef<'record' | 'through' | undefined>(
     undefined,
   );
+  /**
+   * The record whose header has been drawn whole. Narrowing the table, a new
+   * sort or a search re-asks the lists of the same record, and the panel
+   * stays on screen through those; only another record waits again.
+   */
+  const recordKey =
+    albumId ?? artistId ?? genreId ?? playlistId ?? folderPath ?? '';
+  const knownRecordRef = useRef<string | undefined>(undefined);
 
   /**
    * A record that is gone — a rescan dropped the folder, the root was
@@ -426,6 +434,29 @@ const LibraryDetail = ({
   if (isFolderKnown) {
     lastFolderShapeRef.current =
       place.count === 0 && children.count > 0 ? 'through' : 'record';
+  }
+  /**
+   * NOTHING IS DRAWN UNTIL THE RECORD IS KNOWN. Every list here shows the
+   * last answer of its shelf while the next is read, and none at all on a
+   * first open, so the header came up as another artist's picture and name,
+   * or as an "Unknown artist" in an empty folder, and turned into the record
+   * a moment later; a folder that is one album was drawn as a folder until
+   * its album answered (Ivan, 2026-11-15: "when no actual final element
+   * loaded it shows a preview, an empty folder or whatever"). The panel
+   * waits for every answer the header reads - the record, its songs for
+   * the picture, the album inside a folder, the folder line under the
+   * title - and then appears whole, as the Up Next header does.
+   */
+  const isRecordKnown =
+    summary.isLoaded &&
+    (tableQuery === undefined || table.isLoaded) &&
+    (placeQuery === undefined || place.isLoaded) &&
+    (!isFolder || (isFolderKnown && folderAlbums !== undefined)) &&
+    (!isPlaylist || playlist !== undefined);
+  if (isRecordKnown) {
+    knownRecordRef.current = recordKey;
+  } else if (knownRecordRef.current !== recordKey) {
+    return <div className="library-detail-pending" aria-busy="true" />;
   }
   const folderShape = isFolder ? lastFolderShapeRef.current : 'record';
   const isWayThrough = folderShape === 'through';
@@ -498,19 +529,13 @@ const LibraryDetail = ({
     kind = t('library.kind.genre');
   }
 
-  let counts = t('library.trackCount', { count: table.count });
+  let counts = countText(t, 'library.trackCount', table.count);
   if (artist) {
-    counts = `${t('library.albumCount', { count: artist.albumCount })} · ${t(
-      'library.trackCount',
-      { count: artist.trackCount },
-    )}`;
+    counts = `${countText(t, 'library.albumCount', artist.albumCount)} · ${countText(t, 'library.trackCount', artist.trackCount)}`;
   } else if (genre) {
     // A genre's pair is how many bands and how many songs: forty records say
     // nothing about how varied it is, twenty artists say exactly that.
-    counts = `${t('library.artistCount', { count: genre.artistCount })} · ${t(
-      'library.trackCount',
-      { count: genre.trackCount },
-    )}`;
+    counts = `${countText(t, 'library.artistCount', genre.artistCount)} · ${countText(t, 'library.trackCount', genre.trackCount)}`;
   } else if (playlist) {
     // What the playlist holds, the songs out of sight included.
     counts = t(
@@ -522,7 +547,7 @@ const LibraryDetail = ({
   } else if (isFolder && children.count > 0) {
     // A folder with subfolders counts what is under it: "0 songs" over five
     // hundred one level down is the kind of true that reads as broken.
-    counts = t('library.trackCount', { count: summary.count });
+    counts = countText(t, 'library.trackCount', summary.count);
   }
 
   /**
