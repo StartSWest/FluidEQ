@@ -109,6 +109,11 @@ const library = {
   'library.lyrics.none': 'No lyrics in this song',
   'library.lyrics.looked':
     'FluidEQ looked in the song’s own tags and for a .lrc or .txt file with the same name beside it.',
+  'library.lyrics.fromTags': 'From the song’s tags',
+  'library.lyrics.fromFile': 'From {name}',
+  'library.lyrics.reading': 'Looking for lyrics…',
+  'library.lyrics.follow': 'Back to the playing line',
+  'library.lyrics.listLabel': 'Lyrics. Press a line to play from it.',
   'library.view.aria': 'How the library is shown',
   'library.browse.aria': 'What the library is showing',
 

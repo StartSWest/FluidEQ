@@ -29,6 +29,7 @@ import type {
 } from '../common/library/query';
 import type { ILibraryPlaylists } from '../common/library/playlists';
 import type { ILibraryTrackFacts } from '../common/library/trackFacts';
+import type { ILibraryLyricsAnswer } from '../common/library/lyrics';
 
 /**
  * The Library's calls: its folders and scans, the page of songs the window
@@ -125,6 +126,12 @@ const revealLibraryTrack = (trackId: string) =>
 const libraryTrackFacts = (trackId: string) =>
   ipcRenderer.invoke('library-track-facts', trackId) as Promise<
     ILibraryTrackFacts | undefined
+  >;
+
+/** The Lyrics tab's words for a song, read from its tags or sidecar by id. */
+const libraryTrackLyrics = (trackId: string) =>
+  ipcRenderer.invoke('library-track-lyrics', trackId) as Promise<
+    ILibraryLyricsAnswer | undefined
   >;
 
 /** One more play of a song the window heard past half its length. */
@@ -245,6 +252,7 @@ const libraryBridge = {
   revealLibraryTrack,
   noteLibraryTrackPlayed,
   libraryTrackFacts,
+  libraryTrackLyrics,
   libraryTrackBytes,
   libraryTrackSignature,
   setLibraryTrackNormalization,

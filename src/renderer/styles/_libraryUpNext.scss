@@ -1130,16 +1130,3 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 0 6px;
   justify-self: start;
 }
-
-// The Lyrics tab, empty: what it looked for, said once.
-.library-lyrics.is-empty {
-  padding: 18px 6px;
-  text-align: center;
-}
-
-.library-lyrics__none {
-  margin: 0;
-  color: $studio-t2;
-  font-size: $studio-text-tree;
-  font-weight: $weight-semibold;
-}

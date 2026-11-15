@@ -111,6 +111,11 @@ const library: Partial<Dictionary> = {
   'library.lyrics.none': 'इस गाने में बोल नहीं हैं',
   'library.lyrics.looked':
     'FluidEQ ने गाने के टैग में और उसके पास उसी नाम की .lrc या .txt फ़ाइल में खोजा।',
+  'library.lyrics.fromTags': 'गाने के टैग से',
+  'library.lyrics.fromFile': '{name} से',
+  'library.lyrics.reading': 'बोल खोजे जा रहे हैं…',
+  'library.lyrics.follow': 'चल रही पंक्ति पर लौटें',
+  'library.lyrics.listLabel': 'बोल। किसी पंक्ति को दबाकर वहीं से चलाएँ।',
   'library.view.aria': 'लाइब्रेरी किस तरह दिखाई जाती है',
   'library.browse.aria': 'लाइब्रेरी क्या दिखा रही है',
 

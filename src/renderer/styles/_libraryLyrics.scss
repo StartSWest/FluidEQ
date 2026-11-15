@@ -1,0 +1,259 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// The right pane's Lyrics tab (`LibraryLyricsTab`): timed lines that follow
+// the song, plain words to read, or where FluidEQ looked.
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+.library-lyrics {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+// The lines, as a teleprompter: the line being sung is held in the upper
+// third (`HOLD_AT` in `LibraryLyricsSynced`, 32% of the list), so the list
+// carries that much room above its first line and the rest below its last
+// for either to reach it, and its edges fade so a line arrives rather than
+// being cut.
+.library-lyrics__lines {
+  @include slim-scrollbar;
+  position: relative;
+  min-height: 0;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  container-type: size;
+  list-style: none;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 14%,
+    #000 86%,
+    transparent
+  );
+
+  &::before,
+  &::after {
+    display: block;
+    content: '';
+  }
+
+  &::before {
+    height: 32cqh;
+  }
+
+  &::after {
+    height: 68cqh;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// A line: the song's next lines in the quiet ink, the ones sung quieter, the
+// one being sung in full ink on a step of light with the accent's bar inset
+// on its leading edge — the rail's mark for "here". One size and one weight
+// for every state, so lighting a line never re-wraps it.
+.library-lyrics__line {
+  display: block;
+  width: 100%;
+  margin: 1px 0;
+  padding: 7px 10px 7px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: $studio-t2;
+  font-family: inherit;
+  font-size: $studio-text-lead;
+  font-weight: $weight-semibold;
+  line-height: 1.45;
+  text-align: start;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: $studio-surface;
+    color: $text-primary;
+  }
+
+  &.is-past {
+    color: $studio-t3;
+  }
+
+  &.is-active {
+    background: $studio-raise;
+    box-shadow: inset 3px 0 0 $secondary-default;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// Inside the line being sung, a word lights as it is sung; the rest wait in
+// the quiet ink.
+.library-lyrics__line.is-active:has(.library-lyrics__word) {
+  color: $studio-t2;
+}
+
+.library-lyrics__word.is-sung {
+  color: $text-primary;
+}
+
+// A stamped pause, an instrumental stretch: three dots, lit in the accent
+// while it is the song's place.
+.library-lyrics__gap {
+  display: flex;
+  gap: 5px;
+  padding: 12px 12px 12px 14px;
+
+  > span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: $studio-t3;
+    transition: $transition-control;
+  }
+
+  &.is-past > span {
+    opacity: 0.6;
+  }
+
+  &.is-active > span {
+    background: $secondary-default;
+  }
+}
+
+// Back to the song, after the reader scrolled away: floated over the lines'
+// faded foot. The quiet outline (`button small subtle`) has no fill, so it
+// takes a menu's surface and its soft shadow, as anything floating over
+// content does here — over a lyric line, a clear button read as one more
+// line drawn through the words.
+.library-lyrics__follow.button {
+  position: absolute;
+  z-index: 1;
+  bottom: 44px;
+  background: $surface-menu;
+  box-shadow: 0 6px 18px rgba($black, 0.28);
+  left: 50%;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+// Plain words, to read: the reading size, the full ink, the file's own lines.
+.library-lyrics__plain {
+  @include slim-scrollbar;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 6px 8px 12px;
+  overflow-y: auto;
+  color: $text-primary;
+  font-size: $studio-text-row;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.library-lyrics__foot {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px 0;
+  border-top: 1px solid $studio-hair;
+}
+
+.library-lyrics__source {
+  @include truncate;
+  min-width: 0;
+  margin: 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
+}
+
+// Reading: said only if it lasts long enough to notice. The words almost
+// always arrive first, and then this never shows.
+.library-lyrics__reading {
+  animation: library-lyrics-arrive 0.2s ease 0.6s both;
+}
+
+@keyframes library-lyrics-arrive {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// No lyrics: what was looked for, said once, and the two file names that
+// would have been read.
+.library-lyrics.is-empty {
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 18px 6px;
+  text-align: center;
+}
+
+.library-lyrics__none {
+  margin: 0;
+  color: $studio-t2;
+  font-size: $studio-text-tree;
+  font-weight: $weight-semibold;
+}
+
+.library-lyrics__looked {
+  display: flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    @include truncate;
+    max-width: 100%;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: $studio-surface;
+    color: $studio-t2;
+    font-size: $studio-text-meta;
+    line-height: 1.5;
+  }
+}

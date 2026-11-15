@@ -90,6 +90,11 @@ const library = {
   'library.lyrics.none': '這首歌沒有歌詞',
   'library.lyrics.looked':
     'FluidEQ 查看了歌曲本身的標籤，以及旁邊同名的 .lrc 或 .txt 檔案。',
+  'library.lyrics.fromTags': '來自歌曲標籤',
+  'library.lyrics.fromFile': '來自 {name}',
+  'library.lyrics.reading': '正在尋找歌詞…',
+  'library.lyrics.follow': '回到正在播放的行',
+  'library.lyrics.listLabel': '歌詞。點按一行即可從那裡播放。',
   'library.view.aria': '庫的顯示方式',
   'library.browse.aria': '媒體庫正在展示什麼',
   'library.sort': '排序',

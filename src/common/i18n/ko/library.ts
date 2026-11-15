@@ -92,6 +92,11 @@ const library = {
   'library.lyrics.none': '이 노래에는 가사가 없습니다',
   'library.lyrics.looked':
     'FluidEQ가 노래의 태그와 같은 이름의 .lrc 또는 .txt 파일을 찾아보았습니다.',
+  'library.lyrics.fromTags': '노래 태그에서',
+  'library.lyrics.fromFile': '{name}에서',
+  'library.lyrics.reading': '가사를 찾는 중…',
+  'library.lyrics.follow': '재생 중인 줄로 돌아가기',
+  'library.lyrics.listLabel': '가사. 줄을 누르면 그 부분부터 재생합니다.',
   'library.view.aria': '라이브러리가 표시되는 방식',
   'library.browse.aria': '라이브러리에 표시할 항목',
   'library.sort': '정렬',

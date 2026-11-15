@@ -501,19 +501,21 @@ const LibraryListView = ({
         className={`library-list__col${extraClass ? ` ${extraClass}` : ''}${
           isActive ? ' is-sorted' : ''
         }`}
+        // A heading longer than its column (Russian's "Plays" in a narrow
+        // table) is cut with an ellipsis; the whole word is on the tooltip.
+        title={hint ?? label}
       >
         {onSort && key !== undefined ? (
           <button
             type="button"
             className={`library-list__sort${isActive ? ' is-active' : ''}`}
-            title={hint}
             onClick={() => onSort(key)}
           >
-            {label}
+            <span className="library-list__sort-label">{label}</span>
             {sortArrow(isActive)}
           </button>
         ) : (
-          label
+          <span className="library-list__sort-label">{label}</span>
         )}
       </span>
     );

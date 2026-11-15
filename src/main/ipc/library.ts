@@ -32,6 +32,7 @@ import parseLibraryRequest from '../library/libraryRequestGuard';
 import { createLibraryScanRunner } from '../library/libraryScanRunner';
 import { openLibraryStore } from '../library/libraryStoreOpen';
 import { readTrackFacts } from '../library/libraryTrackFacts';
+import { readTrackLyrics } from '../library/libraryLyrics';
 import { isLocalRendererPath } from '../rendererPaths';
 import onWindowMessage from './windowMessages';
 
@@ -378,6 +379,23 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
     }
     return readTrackFacts(trackPath);
   });
+
+  // The Lyrics tab's words for one song, from its tags or a lyrics file of
+  // its own name beside it. By id only: the window never names a path, so
+  // it can never point the reader at a file that is not a song's sidecar.
+  ipcMain.handle(
+    'library-track-lyrics',
+    async (_event, rawTrackId: unknown) => {
+      const trackPath =
+        typeof rawTrackId === 'string' && rawTrackId.length <= 512
+          ? store.trackPath(rawTrackId)
+          : undefined;
+      if (trackPath === undefined) {
+        return undefined;
+      }
+      return readTrackLyrics(trackPath);
+    },
+  );
 
   // A play the window heard (`usePlayCounter`), by id only: an id the
   // library does not know changes nothing and tells nobody.

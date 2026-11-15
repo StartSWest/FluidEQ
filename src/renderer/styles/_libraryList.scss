@@ -227,6 +227,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .library-list__col {
     padding: 0 12px;
   }
+
+  // A number sits on its right edge, so the space before it is only the
+  // gap to the column beside it: 4px, which is what lets every heading fit
+  // (`TRACKS` in `libraryColumns.ts`).
+  .library-list__col.is-numeric {
+    padding-left: 4px;
+  }
 }
 
 .library-list__header {
@@ -245,13 +252,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: inherit;
   }
 
+  // A heading never runs into its neighbour: a numeric column's cell lets
+  // its number overflow in the rows, never its label here (Russian's
+  // "ПРОСЛУШИВАНИЯ" ran into Format at 1366px).
+  .library-list__col,
+  .library-list__col.is-numeric {
+    min-width: 0;
+    overflow: hidden;
+  }
+
   .library-list__col.is-sorted {
     color: $text-primary;
   }
 }
 
+.library-list__sort-label {
+  @include truncate;
+  min-width: 0;
+}
+
 .library-list__sort {
   display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 4px;
   padding: 0;
@@ -271,6 +294,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-list__sort-arrow {
+  flex: 0 0 auto;
   color: $secondary-light;
   letter-spacing: 0;
 }

@@ -112,6 +112,11 @@ const library: Partial<Dictionary> = {
   'library.lyrics.none': 'この曲には歌詞がありません',
   'library.lyrics.looked':
     'FluidEQ は曲のタグと、同じ名前の .lrc または .txt ファイルを探しました。',
+  'library.lyrics.fromTags': '曲のタグから',
+  'library.lyrics.fromFile': '{name} から',
+  'library.lyrics.reading': '歌詞を探しています…',
+  'library.lyrics.follow': '再生中の行に戻る',
+  'library.lyrics.listLabel': '歌詞。行を押すとそこから再生します。',
   'library.view.aria': 'ライブラリの表示方法',
   'library.browse.aria': 'ライブラリに表示している内容',
 

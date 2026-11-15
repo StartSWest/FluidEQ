@@ -112,6 +112,12 @@ const library: Partial<Dictionary> = {
   'library.lyrics.none': 'Esta música não tem letra',
   'library.lyrics.looked':
     'O FluidEQ procurou nas tags da música e um arquivo .lrc ou .txt com o mesmo nome ao lado.',
+  'library.lyrics.fromTags': 'Das tags da música',
+  'library.lyrics.fromFile': 'De {name}',
+  'library.lyrics.reading': 'Procurando a letra…',
+  'library.lyrics.follow': 'Voltar para a linha que está tocando',
+  'library.lyrics.listLabel':
+    'Letra. Clique em uma linha para tocar a partir dela.',
   'library.view.aria': 'Como a biblioteca é exibida',
   'library.browse.aria': 'O que a biblioteca está mostrando',
 

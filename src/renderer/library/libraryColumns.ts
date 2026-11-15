@@ -76,17 +76,23 @@ export const NUMERIC_COLUMNS: ReadonlySet<TLibraryColumn> = new Set([
 /**
  * Each column's track, as shares of the table the way the mockup's table
  * lays them out at full width — Title a quarter, Artist and Album a fifth
- * each, Format, Plays and Time the rest — with floors under the narrow ones
- * so a badge or a number is never cut.
+ * each, Format, Plays and Time the rest — with floors under the narrow ones.
+ * The floors are their headings in every language, measured in the window
+ * (11px bold capitals): Time's longest is Italian's DURATA at 51px, Year's
+ * French's ANNÉE at 43, Format's FORMATO at 61, each with the sort arrow
+ * and the cell's padding (4px before a number, 12 after). Plays runs to
+ * 119px in Russian; it takes a floor that holds the shorter languages, and
+ * a narrow table cuts the longest with an ellipsis, the whole word on its
+ * tooltip, as a file manager's headings do.
  */
 const TRACKS: Record<TLibraryColumn, string> = {
   artist: 'minmax(0, 1.8fr)',
   album: 'minmax(0, 2fr)',
-  year: 'minmax(60px, 0.8fr)',
+  year: 'minmax(72px, 0.8fr)',
   genre: 'minmax(0, 1.2fr)',
-  format: 'minmax(72px, 1.6fr)',
-  plays: 'minmax(60px, 1fr)',
-  time: 'minmax(60px, 0.8fr)',
+  format: 'minmax(80px, 1.6fr)',
+  plays: 'minmax(84px, 1fr)',
+  time: 'minmax(80px, 0.8fr)',
 };
 
 /** `#`, Title, the chosen columns in their fixed order, the chooser. */
@@ -102,11 +108,11 @@ export const columnTemplate = (columns: readonly TLibraryColumn[]): string =>
 const MIN_WIDTHS: Record<TLibraryColumn, number> = {
   artist: 120,
   album: 120,
-  year: 60,
+  year: 72,
   genre: 100,
-  format: 72,
-  plays: 60,
-  time: 60,
+  format: 80,
+  plays: 84,
+  time: 80,
 };
 
 /** `#`, a title that can still be read, and the chooser. */

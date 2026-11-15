@@ -22,7 +22,7 @@ describe('the details table columns', () => {
 
   it('lays the template out as # | Title | chosen | chooser', () => {
     expect(columnTemplate(['time'])).toBe(
-      '44px minmax(0, 2.5fr) minmax(60px, 0.8fr) 34px',
+      '44px minmax(0, 2.5fr) minmax(80px, 0.8fr) 34px',
     );
   });
 

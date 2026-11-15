@@ -110,6 +110,11 @@ const library: Partial<Dictionary> = {
   'library.lyrics.none': '这首歌没有歌词',
   'library.lyrics.looked':
     'FluidEQ 查看了歌曲自身的标签，以及旁边同名的 .lrc 或 .txt 文件。',
+  'library.lyrics.fromTags': '来自歌曲标签',
+  'library.lyrics.fromFile': '来自 {name}',
+  'library.lyrics.reading': '正在查找歌词…',
+  'library.lyrics.follow': '回到正在播放的行',
+  'library.lyrics.listLabel': '歌词。点按一行即可从那里播放。',
   'library.view.aria': '媒体库的显示方式',
   'library.browse.aria': '媒体库正在显示的内容',
 
