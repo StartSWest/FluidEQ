@@ -21,19 +21,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-$switch-width: 50px;
-$switch-height: 28px;
-$switch-thumb: 18px;
-$switch-inset: 4px;
+// ONE SWITCH, ONE SIZE, FLAT (Ivan, 2026-11-15: "the toggle components need
+// a redesign for the entire app, less round, more flat, to match", and
+// "make sure they are the same size: the Library's is bigger than in the
+// rest of the app"). It was a 50x28 pill with a round knob, a glow round the
+// track and a lit radial knob when on, and nine pages overrode its size to
+// four others (38x22, 42x24, 34x20, 30x16). Now one 34x18 rounded rectangle
+// everywhere, its knob round: off, a dark well with a
+// hairline and a light round knob; on, the track the accent itself and the
+// knob white - no glow, no gradient. A square dark knob was tried first and
+// sent back ("I don't like the square inside, also too dark"). Pages no longer set a size.
 
-// Structure taken from https://upmostly.com/tutorials/build-a-react-switch-toggle-component
-//
-// Every measurement below reads from these four custom properties rather than
-// from the Sass values directly, so a caller sitting somewhere that cannot
-// take a 50x28 control — the EQ toolbar, whose buttons are 32px tall and whose
-// labels are 0.72rem — overrides four numbers instead of restating the whole
-// geometry, and the thumb travel stays correct because it is derived from them.
-// The defaults are the sizes every existing caller already had.
+$switch-width: 34px;
+$switch-height: 18px;
+$switch-thumb: 12px;
+$switch-inset: 3px;
+
 .switch {
   --switch-width: #{$switch-width};
   --switch-height: #{$switch-height};
@@ -45,46 +48,36 @@ $switch-inset: 4px;
   height: min-content;
 }
 
-// NEON (Ivan, 2026-09-27, picked from "as it is", "deep" and "neon": "and the
-// neon toggles?"). The toggles were a pale cyan pill with a white knob, the
-// lightest thing on a panel ("all toggles def not good, too light"), and now
-// they are the knob's material: a dark track, and on, a lit knob in the
-// accent's light with the track's edge lit round it — the same neon the dials
-// carry, so a toggle and a knob beside it read as one family.
 .switch-label {
   position: relative;
   display: flex;
   width: var(--switch-width);
   height: var(--switch-height);
+  box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
   border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
-  // Off is the empty-track colour — see `$track-well`, the same one the
-  // meters show with no signal, so an unlit toggle and an unlit meter are
-  // the same material.
+  border-radius: $radius-xs;
   background: $track-well;
   box-shadow: none;
   cursor: pointer;
   transition:
-    background 200ms ease,
-    border-color 200ms ease,
-    box-shadow 200ms ease;
+    background 160ms ease,
+    border-color 160ms ease;
 
-  // Off: an unlit knob, grey glass.
   .switch-button {
     position: absolute;
-    top: var(--switch-inset);
-    left: var(--switch-inset);
+    // Inside the 1px edge: the inset is measured from the track's inner box.
+    top: calc(var(--switch-inset) - 1px);
+    left: calc(var(--switch-inset) - 1px);
     width: var(--switch-thumb);
     height: var(--switch-thumb);
     border-radius: 50%;
-    background: color-mix(in srgb, $edge-tint 48%, transparent);
+    background: color-mix(in srgb, $edge-tint 70%, transparent);
     box-shadow: none;
     transition:
-      left 200ms ease,
-      background 200ms ease,
-      box-shadow 200ms ease;
+      left 160ms ease,
+      background 160ms ease;
   }
 }
 
@@ -94,64 +87,42 @@ $switch-inset: 4px;
   height: 0;
   opacity: 0;
 
-  // Same focus treatment regardless of checked state.
   &:focus-visible + .switch-label {
     border-color: $secondary-light;
     @include focus-ring;
   }
 
-  // On: the knob lit — a white core, the accent's light round it, the
-  // accent at its rim, glowing — on the track tinted a sixth toward the
-  // accent, its edge lit.
   &:checked + .switch-label {
-    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
-    background: color-mix(in oklab, $secondary-default 16%, $track-well);
-    box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 30%, transparent);
+    border-color: $secondary-default;
+    background: $secondary-default;
 
     .switch-button {
-      left: calc(100% - var(--switch-thumb) - var(--switch-inset));
-      background: radial-gradient(
-        circle,
-        $white 0 22%,
-        $secondary-light 48%,
-        $secondary-default 100%
-      );
-      box-shadow: 0 0 6px
-        color-mix(in srgb, $secondary-default 70%, transparent);
+      left: calc(100% - var(--switch-thumb) - var(--switch-inset) + 1px);
+      background: $white;
     }
   }
 
-  // Under the pointer the light comes up: an unlit knob brightens, a lit one
-  // glows more.
   &:not(:disabled) + .switch-label:hover .switch-button {
-    background: color-mix(in srgb, $edge-tint 70%, transparent);
+    background: color-mix(in srgb, $edge-tint 90%, transparent);
   }
 
   &:checked:not(:disabled) + .switch-label:hover {
-    border-color: $secondary-default;
+    border-color: $secondary-light;
+    background: $secondary-light;
 
     .switch-button {
-      background: radial-gradient(
-        circle,
-        $white 0 22%,
-        $secondary-light 48%,
-        $secondary-default 100%
-      );
-      box-shadow: 0 0 9px
-        color-mix(in srgb, $secondary-default 85%, transparent);
+      background: $white;
     }
   }
 
   &:disabled + .switch-label {
     border-color: $border-subtle;
     background: $track-well;
-    box-shadow: none;
     cursor: default;
     opacity: 0.6;
 
     .switch-button {
       background: color-mix(in srgb, $edge-tint 40%, transparent);
-      box-shadow: none;
     }
   }
 }

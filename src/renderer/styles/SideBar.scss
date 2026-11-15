@@ -278,15 +278,6 @@ $power-key-cast:
   &:hover > label:not(.switch) {
     color: $secondary-light;
   }
-
-  // The compact cut of the switch: the standard 50px one is a third of this
-  // column's width, which is the size of a control, not of a setting.
-  .switch {
-    --switch-width: 38px;
-    --switch-height: 22px;
-    --switch-thumb: 14px;
-    --switch-inset: 3px;
-  }
 }
 
 // *** Preamp ****************************************************************

@@ -113,8 +113,8 @@ describe('the filled controls', () => {
     expect(ruleBody(css('Button.scss'), '.button')).toContain(
       'var(--control-fill)',
     );
-    // A switch on is its knob lit on a well tinted toward the accent, not a
-    // filled pill (`Switch.scss`): nothing of the span reaches it.
+    // A switch on is the accent itself, flat (`Switch.scss`): nothing of
+    // Rainbow's span reaches it.
     expect(
       ruleBody(css('Switch.scss'), '.switch-checkbox:checked + .switch-label'),
     ).not.toContain('fill)');

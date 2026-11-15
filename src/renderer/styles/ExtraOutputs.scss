@@ -37,16 +37,6 @@ it under the terms of the GNU General Public License version 3 or later.
     flex: 0 0 auto;
   }
 
-  // The compact cut of the switch, here and on every output row below: the
-  // standard 50px one beside a two-line name is the size of a control, not
-  // of a setting.
-  .switch {
-    --switch-width: 38px;
-    --switch-height: 22px;
-    --switch-thumb: 14px;
-    --switch-inset: 3px;
-  }
-
   // The sentence under the name wraps here, where an endpoint's profile does
   // not. A profile is a name and a clipped name is still recognisable; this
   // is a sentence, and clipped it read "pauses the rest of the ..." — which
@@ -84,13 +74,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   > .device-dot {
     margin-top: 8px;
-  }
-
-  .switch {
-    --switch-width: 38px;
-    --switch-height: 22px;
-    --switch-thumb: 14px;
-    --switch-inset: 3px;
   }
 }
 

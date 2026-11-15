@@ -204,10 +204,6 @@ $windows-blue: #8ec5ff;
   min-width: 0;
 
   .switch {
-    --switch-width: 38px;
-    --switch-height: 22px;
-    --switch-thumb: 14px;
-    --switch-inset: 4px;
     flex: 0 0 auto;
   }
 }
@@ -793,13 +789,6 @@ $windows-blue: #8ec5ff;
   flex: 0 0 auto;
   justify-content: flex-end;
   width: 38px;
-
-  .switch {
-    --switch-width: 34px;
-    --switch-height: 20px;
-    --switch-thumb: 12px;
-    --switch-inset: 4px;
-  }
 }
 
 .lighting-devices__searching,
