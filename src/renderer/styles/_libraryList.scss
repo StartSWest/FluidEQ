@@ -265,7 +265,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &--playing,
   &--playing.is-even,
   &--playing:hover {
-    background: $studio-select;
     color: $text-primary;
 
     .library-list__title-label,
@@ -274,6 +273,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
+  // ONE MARK, for the row chosen and the row playing alike (Ivan,
+  // 2026-11-15: "why do we have two styles, only the one with the line
+  // should be"): the faint accent fill and the short line on the leading
+  // edge. The playing row had a fill of its own and no line, and stood
+  // beside the chosen one as a second kind of highlight; what says it is
+  // playing is its bars and its accent title.
+  &--playing,
+  &--playing.is-even,
+  &--playing:hover,
   &--selected {
     position: relative;
     color: $text-primary;
