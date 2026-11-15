@@ -28,19 +28,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // knob, and nine pages overrode its size to four others.
 //
 // THE HALF BLOCK, picked from four on the design canvas ("let's go with D,
-// but make them a bit bigger, they are too small"): a 38x20 track with the
-// buttons' 6px corners and a hairline, and a block that fills half of it,
-// grey on the left when off, the accent on the right when on. Three tries
-// were sent back
-// before it: a small square dark knob on a solid accent track, a white knob,
+// but make them a bit bigger, they are too small", then "a bit bigger"
+// again): a 42x22 track with the buttons' 6px corners and a hairline, and a
+// block that fills half of it, grey on the left when off, the accent on the
+// right when on. Three tries were sent back before it: a small square dark
+// knob on a solid accent track, a white knob,
 // and a round accent knob in a tinted track.
 //
 // The block is worked out from the track, so a page that has to fit a
 // smaller one (the Song EQ chip's 32px two-line face) sets only the width
 // and height.
 
-$switch-width: 38px;
-$switch-height: 20px;
+$switch-width: 42px;
+$switch-height: 22px;
 
 .switch {
   --switch-width: #{$switch-width};
