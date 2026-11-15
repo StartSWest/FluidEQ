@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryNowPlayingCard from './LibraryNowPlayingCard';
@@ -46,13 +46,20 @@ const TAB_LABEL_KEYS = {
  * folded too, so it closes and opens on the Plus rail's motion
  * (`_libraryUpNext.scss`), and inert while folded so nothing in it can be
  * reached. The tab chosen is remembered between sessions.
+ *
+ * As a drawer (a narrow card) it runs from the card's top over the bar, so
+ * the bar's Up next button is under it: `head` is that button drawn again in
+ * the drawer's own first row, where the bar's stands, and pressing it puts
+ * the drawer away.
  */
 const LibraryRightPane = ({
   isCollapsed,
   canSurprise,
+  head,
 }: {
   isCollapsed: boolean;
   canSurprise: boolean;
+  head?: ReactNode;
 }) => {
   const { t } = useTranslation();
   const { track } = useLibraryPlayerSession();
@@ -67,6 +74,7 @@ const LibraryRightPane = ({
       aria-label={t('library.nowPlaying')}
       inert={isCollapsed}
     >
+      {head && <div className="library-pane__drawer-head">{head}</div>}
       <LibraryNowPlayingCard track={track} />
       <div
         className="library-pane__tabs"

@@ -274,8 +274,19 @@ const useLibraryWorkspaceShelf = ({
         setIsUpNextCollapsed(true);
       }
     };
+    // Escape puts it away too, as every sheet here goes — unless something
+    // in it answered the key first (a menu, a field clearing its text).
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) {
+        setIsUpNextCollapsed(true);
+      }
+    };
     window.addEventListener('mousedown', onPointerDown);
-    return () => window.removeEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
   }, [isUpNextFloating]);
 
   /**

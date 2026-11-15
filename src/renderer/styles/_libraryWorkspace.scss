@@ -296,40 +296,46 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 0 auto;
   align-items: center;
   gap: 10px;
+}
 
-  // Up Next stands at the far end, over the column it opens, in the bar's
-  // own material: a tray of light like the arrows beside the search, lit
-  // with the accent while its column is open.
-  > .library-up-next__chip {
-    height: 30px;
-    margin-left: auto;
-    padding: 0 10px;
-    border: 0;
-    border-radius: $radius-m;
-    background: $studio-surface;
-    color: $studio-t2;
-    font-size: $studio-text-meta;
-    font-weight: $weight-semibold;
+// Up Next stands at the far end, over the column it opens, in the bar's
+// own material: a tray of light like the arrows beside the search, lit
+// with the accent while its column is open. The drawer draws the same
+// button in its own first row, where the bar's stands under it
+// (`.library-pane__drawer-head`), so the two are one rule.
+.library-top__controls > .library-up-next__chip,
+.library-pane__drawer-head > .library-up-next__chip {
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: $radius-m;
+  background: $studio-surface;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
 
-    &:hover {
-      background: $studio-raise;
-      color: $text-primary;
-    }
-
-    &.is-active {
-      background: $studio-select;
-      color: $secondary-light;
-    }
-
-    .library-up-next__count {
-      color: $studio-t3;
-      font-variant-numeric: tabular-nums;
-    }
-
-    &.is-active .library-up-next__count {
-      color: inherit;
-    }
+  &:hover {
+    background: $studio-raise;
+    color: $text-primary;
   }
+
+  &.is-active {
+    background: $studio-select;
+    color: $secondary-light;
+  }
+
+  .library-up-next__count {
+    color: $studio-t3;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.is-active .library-up-next__count {
+    color: inherit;
+  }
+}
+
+.library-top__controls > .library-up-next__chip {
+  margin-left: auto;
 }
 
 .library-top__views {

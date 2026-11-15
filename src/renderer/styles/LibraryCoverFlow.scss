@@ -30,8 +30,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // that gives that transform somewhere to happen and the surface each cover
 // draws on.
 
+// The row stands straight on the main column, under the breadcrumb, as the
+// table and the tiles do — no box round the stage (Ivan, 2026-11-15: "same for
+// the cover art, no wrapper").
 .library-coverflow {
-  @include lifted-surface;
   display: flex;
   // A floor, so the row and whatever is open under it are never crushed into
   // an unreadable strip when the graph takes half the window — past this the
@@ -279,6 +281,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Under the arrows and the caption; above the still cover it replaces.
   z-index: 1;
   pointer-events: none;
+  // With no box round the stage, the light the scene lays behind and under
+  // the row would end in a hard rectangle at the stage's sides and foot — the
+  // box again, drawn by the light instead of a border. The picture fades out
+  // at those three edges so the row stands on the main surface itself; the
+  // arrows and the caption are the stage's own children above this layer, so
+  // they keep their full strength.
+  mask-image:
+    linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
+    linear-gradient(to bottom, #000 82%, transparent);
+  mask-composite: intersect;
 }
 
 .library-coverflow__canvas {

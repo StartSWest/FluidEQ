@@ -120,32 +120,92 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // *** A drawer, where the card is narrow ***************************************
 //
 // Below the width that leaves the shelf a table's worth beside a rail and a
-// queue, the queue stands over the shelf instead of beside it, and a press
-// outside puts it away (`useLibraryWorkspaceShelf`). It keeps that look while
-// it folds, or its shadow would drop off on the first frame of closing.
+// queue, the queue stands over the shelf instead of beside it: a side sheet,
+// the wide column itself slid over the shelf (Ivan, 2026-11-15: "I don't like
+// the style of the floating pane ... the dropdown, and it does not start more
+// top"). It used to hang under the top bar as a rounded card with a heavy
+// shadow, which read as a menu dropped from the button.
 //
-// IT COVERS THE SHELF, NEVER THE CONTROLS: it starts under the top bar and
-// the breadcrumb (measured, `--library-chrome-height`), so the search, the
-// order and the very button that put it away stay in reach.
+// So it is the wide column's own box: the card's top to the status line
+// (absolutely placed in the card's first grid row, so the status line's
+// height is never guessed), flush with the card's right edge, the rail's tint
+// and the hairline on its leading edge, and only the faintest shadow on that
+// edge to say it lies over the shelf. It covers the bar's right end, Up next
+// button included, so the pane draws that button again in its own first row
+// (`head` in `LibraryRightPane`); a press outside, the button, or Escape
+// put it away (`useLibraryWorkspaceShelf`). It slides in and out on the
+// queue's own motion rather than widening, and keeps the sheet's look while it
+// goes.
 .library-workspace.has-up-next-floating .library-side {
   position: absolute;
-  top: var(--library-chrome-height, 0px);
-  right: 0;
-  bottom: var(--library-status-height, 31px);
   z-index: 6;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  grid-column: 1 / -1;
+  // Both lines named: an absolutely placed item whose end line is left to
+  // auto ends at the card's edge, which ran it over the status line.
+  grid-row: 1 / 2;
+  overflow: hidden;
   border-left: 0;
   background: none;
 
   .library-up-next {
-    border-top-left-radius: $radius-l;
-    background: $surface-panel;
-    box-shadow:
-      -18px 0 44px rgba($black, 0.45),
-      0 0 0 1px $studio-hair;
+    width: min(var(--up-next-width, 300px), 100cqw);
+    border-left: 1px solid $studio-hair;
+    // The rail's tint over the card's own floor: the wide column is that tint
+    // over the card, and a sheet has to be opaque over the shelf it covers.
+    background: linear-gradient($studio-rail, $studio-rail), $surface-panel;
+    box-shadow: -12px 0 28px -18px rgba($black, 0.55);
+    transform: translateX(0);
+    transition:
+      transform var(--up-next-move) $ease-out,
+      visibility 0s linear 0s;
+
+    > * {
+      opacity: 1;
+      transition: none;
+    }
+
+    &.is-collapsed {
+      width: min(var(--up-next-width, 300px), 100cqw);
+      padding-inline: 0;
+      opacity: 1;
+      visibility: hidden;
+      // Past its own shadow, so nothing of it lingers at the edge.
+      transform: translateX(calc(100% + 32px));
+      transition:
+        transform var(--up-next-move) $ease-out,
+        visibility 0s linear var(--up-next-move);
+
+      > * {
+        opacity: 1;
+      }
+    }
   }
 
   .library-up-next__splitter {
     display: none;
+  }
+}
+
+// Shut, the sheet's box is still there at the card's edge: it must not take
+// the presses meant for the shelf under it.
+.library-workspace.has-up-next-floating:not(.has-up-next) .library-side {
+  pointer-events: none;
+}
+
+// The drawer's first row: the bar's Up next button again, where the bar's
+// stands — the same 14px from the card's top as the bar (`.library-head`),
+// on the pane's own 14px sides.
+.library-pane__drawer-head {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  padding: 14px 14px 0;
+
+  + .library-now {
+    margin-top: 10px;
   }
 }
 

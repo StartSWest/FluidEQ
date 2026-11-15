@@ -466,6 +466,15 @@ const LibraryWorkspaceView = ({
           <LibraryRightPane
             isCollapsed={isUpNextCollapsed}
             canSurprise={trackCount > 0 && !videoTrackId}
+            head={
+              isUpNextDrawer && (
+                <LibraryUpNextChip
+                  isOpen={!isUpNextCollapsed}
+                  count={upNextCount}
+                  onToggle={() => setIsUpNextCollapsed(true)}
+                />
+              )
+            }
           />
         </div>
       )}

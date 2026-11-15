@@ -251,13 +251,15 @@ describe('what stands on the floor', () => {
     expect(table).not.toContain('radial-gradient(');
   });
 
-  // The control: the box that holds a set keeps its edge alone — the grid
-  // round the Library's tiles is not a card (Ivan: "the grid card, not the
-  // bg").
-  it('leaves the box round a set unfilled', () => {
-    expect(
-      declarationsOf(compiledCss('Library.scss'), '.library-grid'),
-    ).toContain('background: transparent');
+  // The control: the Library's tiles stand straight on the main column, with
+  // no box round the set at all — not filled ("the grid card, not the bg")
+  // and, since 2026-11-15, not edged either ("the grid view has like a double
+  // wrapper ... let the grid cards land on the root container").
+  it('draws no box round the Library’s tiles', () => {
+    const grid = declarationsOf(compiledCss('Library.scss'), '.library-grid');
+    expect(grid).toContain('display: grid');
+    expect(grid).not.toMatch(/(^|;)\s*border(-radius)?:/);
+    expect(grid).not.toMatch(/(^|;)\s*background(-color)?:/);
   });
 
   // A control's track is every control's face and edge, the ones each select

@@ -24,8 +24,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
+// The tiles stand straight on the main column, as the table and the record's
+// hero do: no box round the set (Ivan, 2026-11-15: "the grid view has like a
+// double wrapper, remove that and let the grid cards land on the root
+// container"). The tiles are the cards; a card round the cards was a second
+// frame inside the card the whole Library already is.
 .library-grid {
-  @include lifted-surface;
   @include slim-scrollbar;
   display: grid;
   // Same floor and the same reason as `.library-list` — about one row of
@@ -39,7 +43,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   align-content: start;
   gap: $spacing-m;
-  padding: $spacing-m;
+  // The tiles' edges on the column's gutters, where the breadcrumb and the
+  // table start; the 6px each side is room for a tile's hover lift and focus
+  // ring, which the scrolling box would otherwise cut, given back by the
+  // margin so the first tile still lands on the gutter.
+  margin-inline: -6px;
+  padding: 6px 6px $spacing-l;
   overflow-y: auto;
 }
 
