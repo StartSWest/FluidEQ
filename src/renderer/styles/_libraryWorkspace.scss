@@ -111,6 +111,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The place being read: the bar, the breadcrumb, then the shelf. The frame
 // the scan pane, the surprise draw and the chip over a video stand in.
 .library-main {
+  // The app's slim bar when this column scrolls: an opened record's grid
+  // scrolls here, and drew the platform's own bar beside the slim ones of
+  // every list around it (Ivan, 2026-11-15: "we need a nice scroller in the
+  // grid view too").
+  @include slim-scrollbar;
   position: relative;
   display: flex;
   grid-column: 2;
