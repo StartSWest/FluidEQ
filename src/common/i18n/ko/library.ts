@@ -91,12 +91,14 @@ const library = {
   'library.upNext.continued': '유사한 항목 더 보기',
   'library.upNext.keepPlaying': '계속 재생',
   'library.upNext.keepPlayingHint':
-    '목록이 다 떨어지면 동일한 장르를 더 많이 계속 진행하세요.',
+    '목록이 끝나면 같은 장르의 곡을 이어서 재생하고, 그마저 없으면 깜짝 선곡으로 이어갑니다',
   'library.upNext.surprise': '깜짝 선곡',
   'library.upNext.surpriseHint':
     '라이브러리에서 무작위로 한 곡을 재생하고, 이어서 비슷한 스타일의 곡을 재생합니다',
   'library.upNext.surpriseStart':
     '라이브러리에서 무작위로 한 곡, 이어서 비슷한 스타일의 곡이 재생됩니다.',
+  'library.upNext.surpriseNext':
+    '이 곡이 끝나면 깜짝 선곡이 다음 곡을 고릅니다.',
   'library.upNext.surpriseNothing':
     '지금은 라이브러리에 재생할 수 있는 곡이 없습니다.',
   'library.queueAdd': '다음 항목에 추가',

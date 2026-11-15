@@ -67,6 +67,14 @@ const useTrackEnd = (options: {
   dspSettings: IDspSettings;
   publishedPositionMs: number;
   publishedDurationMs: number;
+  /**
+   * Asked when the last song ends with repeat off, before the player stops:
+   * true when it is starting something else instead (Surprise me, see
+   * `useSurpriseAtEnd`), and then it owns stopping if that comes to nothing.
+   * A ref, read at the end: what it decides with changes far more often than
+   * a song ends.
+   */
+  carryOnRef?: MutableRefObject<(endedTrackId: string) => boolean>;
 }): ((element: HTMLMediaElement) => void) => {
   const {
     queueRef,
@@ -84,6 +92,7 @@ const useTrackEnd = (options: {
     dspSettings,
     publishedPositionMs,
     publishedDurationMs,
+    carryOnRef,
   } = options;
 
   /**
@@ -127,16 +136,25 @@ const useTrackEnd = (options: {
         return;
       }
       const wasAtEnd = queueAtEnd(current);
-      setRetainWhenHidden(!wasAtEnd || current.repeat === 'all');
+      const endedTrackId = currentTrackId(current);
+      // Nothing queued after it: asked first whether something else starts
+      // in its place, the way a press on Surprise me would.
+      const carriesOn =
+        wasAtEnd &&
+        current.repeat === 'off' &&
+        endedTrackId !== undefined &&
+        (carryOnRef?.current(endedTrackId) ?? false);
+      setRetainWhenHidden(!wasAtEnd || current.repeat === 'all' || carriesOn);
       setQueue(advanceQueue(current, 1));
-      if (wasAtEnd && current.repeat === 'off') {
-        // Nothing queued after it — a player with nothing next just stops,
-        // rather than replaying the track that just ended.
+      if (wasAtEnd && current.repeat === 'off' && !carriesOn) {
+        // A player with nothing next just stops, rather than replaying the
+        // track that just ended.
         releasePlayback('library');
         setIsPlaying(false);
       }
     },
     [
+      carryOnRef,
       endedTrackRef,
       hostOwnsTransportRef,
       queueRef,

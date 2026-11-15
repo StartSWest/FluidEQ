@@ -87,12 +87,14 @@ const library = {
   'library.upNext.rest': '然後',
   'library.upNext.continued': '更多類似的歌曲',
   'library.upNext.keepPlaying': '繼續播放',
-  'library.upNext.keepPlayingHint': '當清單用完時，繼續選擇更多相同型別的內容',
+  'library.upNext.keepPlayingHint':
+    '清單播完後，繼續播放相同類型的音樂；沒有了就來個驚喜',
   'library.upNext.surprise': '給我驚喜',
   'library.upNext.surpriseHint':
     '從你的媒體庫隨機播放一首歌，之後繼續播放相同風格的音樂',
   'library.upNext.surpriseStart':
     '從你的媒體庫隨機挑一首歌，之後繼續播放相同風格的音樂。',
+  'library.upNext.surpriseNext': '這首歌結束後，「給我驚喜」會挑下一首。',
   'library.upNext.surpriseNothing': '你的媒體庫目前沒有可以播放的內容。',
   'library.queueAdd': '新增到下一個',
   'library.alsoInFolder': '在此資料夾中，不在該相簿中',

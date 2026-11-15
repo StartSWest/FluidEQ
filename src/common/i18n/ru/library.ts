@@ -120,12 +120,14 @@ const library: Partial<Dictionary> = {
   'library.upNext.continued': 'Похожее',
   'library.upNext.keepPlaying': 'Продолжать воспроизведение',
   'library.upNext.keepPlayingHint':
-    'Когда очередь закончится, продолжить музыкой того же жанра',
+    'Когда очередь закончится, продолжить музыкой того же жанра, а когда и она кончится — сюрпризом',
   'library.upNext.surprise': 'Удивите меня',
   'library.upNext.surpriseHint':
     'Включить случайную песню из вашей библиотеки, а затем похожую музыку',
   'library.upNext.surpriseStart':
     'Случайная песня из вашей библиотеки, а затем похожая музыка.',
+  'library.upNext.surpriseNext':
+    'Когда эта песня закончится, «Удивите меня» выберет следующую.',
   'library.upNext.surpriseNothing':
     'Сейчас в вашей библиотеке нечего воспроизвести.',
   'library.queueAdd': 'Добавить в очередь',

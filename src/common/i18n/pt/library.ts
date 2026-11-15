@@ -122,12 +122,14 @@ const library: Partial<Dictionary> = {
   'library.upNext.continued': 'Mais deste estilo',
   'library.upNext.keepPlaying': 'Continuar tocando',
   'library.upNext.keepPlayingHint':
-    'Quando a lista acabar, continua com mais música do mesmo gênero',
+    'Quando a lista acabar, continua com mais música do mesmo gênero e, quando não houver mais, com uma surpresa',
   'library.upNext.surprise': 'Me surpreenda',
   'library.upNext.surpriseHint':
     'Tocar uma música aleatória da sua biblioteca e depois mais do mesmo estilo',
   'library.upNext.surpriseStart':
     'Uma música aleatória da sua biblioteca e depois mais do mesmo estilo.',
+  'library.upNext.surpriseNext':
+    'Quando esta música acabar, Me surpreenda escolhe a próxima.',
   'library.upNext.surpriseNothing':
     'No momento, nada na sua biblioteca pode ser tocado.',
   'library.queueAdd': 'Adicionar à fila',

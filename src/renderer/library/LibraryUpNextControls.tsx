@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibrarySurpriseButton from './LibrarySurpriseButton';
+import { surprisesAtEnd } from './player/useSurpriseAtEnd';
 import Switch from '../widgets/Switch';
 
 /**
@@ -74,7 +75,14 @@ export const LibraryUpNextStart = ({
   canSurprise: boolean;
 }) => {
   const { t } = useTranslation();
+  const { isContinuationOn, track, repeat } = useLibraryPlayerSession();
   const [isNothingToPlay, setIsNothingToPlay] = useState(false);
+  // Said while a song stands with nothing after it and its end will press
+  // Surprise me by itself (`useSurpriseAtEnd`): a next song nobody queued
+  // must not arrive unannounced.
+  const surprisesNext =
+    repeat === 'off' &&
+    surprisesAtEnd({ isContinuationOn, endedKind: track?.kind });
   if (!canSurprise) {
     return (
       <p className="library-up-next__empty">{t('library.upNext.empty')}</p>
@@ -95,9 +103,11 @@ export const LibraryUpNextStart = ({
         // that caused it moved no focus and started no sound.
         aria-live="polite"
       >
-        {isNothingToPlay
-          ? t('library.upNext.surpriseNothing')
-          : t('library.upNext.surpriseStart')}
+        {isNothingToPlay && t('library.upNext.surpriseNothing')}
+        {!isNothingToPlay &&
+          (surprisesNext
+            ? t('library.upNext.surpriseNext')
+            : t('library.upNext.surpriseStart'))}
       </p>
     </div>
   );

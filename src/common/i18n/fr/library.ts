@@ -124,12 +124,14 @@ const library: Partial<Dictionary> = {
   'library.upNext.continued': 'Dans le même genre',
   'library.upNext.keepPlaying': 'Continuer la lecture',
   'library.upNext.keepPlayingHint':
-    'Quand la liste est épuisée, poursuivre avec d’autres titres du même genre',
+    'Quand la liste est épuisée, poursuivre avec d’autres titres du même genre, puis avec une surprise quand il n’y en a plus',
   'library.upNext.surprise': 'Surprenez-moi',
   'library.upNext.surpriseHint':
     'Lire un titre au hasard de votre bibliothèque, puis d’autres dans le même genre',
   'library.upNext.surpriseStart':
     'Un titre au hasard de votre bibliothèque, puis d’autres dans le même genre.',
+  'library.upNext.surpriseNext':
+    'À la fin de ce titre, Surprenez-moi choisira le suivant.',
   'library.upNext.surpriseNothing':
     'Rien dans votre bibliothèque ne peut être lu pour le moment.',
   'library.queueAdd': 'Ajouter à la file',

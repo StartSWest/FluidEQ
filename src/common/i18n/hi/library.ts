@@ -121,12 +121,14 @@ const library: Partial<Dictionary> = {
   'library.upNext.continued': 'इससे मिलता-जुलता',
   'library.upNext.keepPlaying': 'बजाते रहें',
   'library.upNext.keepPlayingHint':
-    'सूची खत्म होने पर उसी शैली का और संगीत चलता रहेगा',
+    'सूची खत्म होने पर उसी शैली का और संगीत चलता रहेगा, और वह भी खत्म हो तो कोई चौंकाने वाला गाना',
   'library.upNext.surprise': 'मुझे चौंकाएँ',
   'library.upNext.surpriseHint':
     'अपनी लाइब्रेरी से कोई भी गाना बजाएँ, फिर उसी शैली का और संगीत',
   'library.upNext.surpriseStart':
     'आपकी लाइब्रेरी से कोई भी गाना, फिर उसी शैली का और संगीत।',
+  'library.upNext.surpriseNext':
+    'यह गाना खत्म होने पर “मुझे चौंकाएँ” अगला गाना चुनेगा।',
   'library.upNext.surpriseNothing':
     'अभी आपकी लाइब्रेरी में बजाने लायक कुछ नहीं है।',
   'library.queueAdd': 'कतार में जोड़ें',

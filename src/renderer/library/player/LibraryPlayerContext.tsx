@@ -79,6 +79,7 @@ import { usePublishedPlaylistDeck } from '../../player/playlistDeck';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
 import { useSurprise } from './useSurprise';
+import { useSurpriseAtEnd } from './useSurpriseAtEnd';
 import { useTrackAnalysis } from './useTrackAnalysis';
 import { useTransportControls } from './useTransportControls';
 import { useUpNext } from './useUpNext';
@@ -304,6 +305,8 @@ export const LibraryPlayerProvider = ({
    * A track running out — what to do about it, when the host says it has,
    * and when to start an overlap before it does. See `useTrackEnd`.
    */
+  /** Surprise me at the end of the list, set once it exists below. */
+  const carryOnRef = useRef<(endedTrackId: string) => boolean>(() => false);
   const handleEnded = useTrackEnd({
     queueRef,
     setQueue,
@@ -320,6 +323,7 @@ export const LibraryPlayerProvider = ({
     dspSettings,
     publishedPositionMs,
     publishedDurationMs,
+    carryOnRef,
   });
   /**
    * What the player learns by listening to a deck. See `useMediaEvents`,
@@ -557,6 +561,17 @@ export const LibraryPlayerProvider = ({
     playTracks,
     setQueue,
     setAddedIds,
+  });
+  const stopAtEnd = useCallback(() => {
+    releasePlayback('library');
+    setIsPlaying(false);
+  }, []);
+  /** And pressed by itself when the list has nothing left. See `useSurpriseAtEnd`. */
+  carryOnRef.current = useSurpriseAtEnd({
+    isContinuationOn,
+    trackById,
+    surprise,
+    stop: stopAtEnd,
   });
   /**
    * Next/Previous, the scrubber and the fader — the controls that move the
