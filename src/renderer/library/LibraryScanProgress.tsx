@@ -106,10 +106,13 @@ const LibraryScanProgress = ({
       <div className="library-scan-progress__copy">
         {/* Nothing to name yet, right at the first tick before any file has
             been opened — the count line below still appears immediately. */}
-        {current && <strong>{runningLabel}</strong>}
+        {current && <strong title={runningLabel}>{runningLabel}</strong>}
         <span>{t('library.scan.counted', { parsed, seen })}</span>
         {karaokeSkipped > 0 && (
-          <span className="library-scan-progress__karaoke">
+          <span
+            className="library-scan-progress__karaoke"
+            title={t('library.karaokeSkipped', { count: karaokeSkipped })}
+          >
             {t('library.karaokeSkipped', { count: karaokeSkipped })}
           </span>
         )}

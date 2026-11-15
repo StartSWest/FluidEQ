@@ -634,11 +634,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   row-gap: 8px;
   padding: 11px 12px;
   color: $text-primary;
-  box-shadow: 0 18px 42px rgba($black, 0.46);
+  // Flat, in the panel's own colour and edge (Ivan, 2026-11-15: "make it
+  // flat and more like our style now"): opaque, because it stands over the
+  // shelf, and no drop shadow - its edge parts it from the rows under it.
   animation: library-scan-progress-in $motion-base $ease-out;
-  background: color-mix(in srgb, $surface-menu-top 96%, transparent);
-  border: 1px solid $border-field;
-  border-radius: $radius-l;
+  background: $surface-panel;
+  border: 1px solid $card-edge;
+  border-top-color: rgba($edge-tint, 0.22);
+  border-radius: $card-radius;
 
   > .button {
     min-height: 30px;
@@ -666,8 +669,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   gap: 3px;
 
+  // ONE LINE EACH, cut with an ellipsis (Ivan, 2026-11-15: "I hate how it
+  // grows to the top due to text on multiple lines"). The card is anchored
+  // at its foot, so a folder name that wrapped pushed its top up the shelf
+  // and back down with every file; the whole name is in the line's title.
+  strong,
+  span {
+    @include truncate;
+  }
+
   strong {
-    overflow-wrap: anywhere;
     font-size: $text-lead;
   }
 
@@ -699,7 +710,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     inset: 0 auto 0 0;
     background: $secondary-default;
     border-radius: inherit;
-    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 36%, transparent);
     transition: width 180ms ease;
   }
 
