@@ -72,6 +72,9 @@ export const SETTING_STEMS: readonly string[] = [
   // Windows' own, somebody who chose another one would be facing a language
   // they may not read.
   'fluideq.sceneTintMode',
+  // The window colours chosen for a scene, as its sliders are its own
+  // (`sceneWindowColourStore.ts`): a reset wears each scene's colours again.
+  'fluideq.sceneWindowColours',
   'fluideq-rainbow',
   'fluideq.theme',
   'fluideq.backdropVeil',
@@ -122,6 +125,9 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.videoAdBlockRevealed',
   // The Library.
   'fluideq.library.browseMode',
+  // The details table's columns, and which tab the right pane stands on.
+  'fluideq.library.columns',
+  'fluideq.library.paneTab',
   'fluideq.library.keepPlaying',
   'fluideq.library.sort',
   'fluideq.library.sortDirection',
