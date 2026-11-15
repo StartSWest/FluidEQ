@@ -1850,12 +1850,21 @@ textarea,
   *,
   *::before,
   *::after {
-    // Not zero: a duration of none cancels the event that tells a component
-    // its transition finished, and the ones that wait for it never arrive.
+    // An animation is cut to 1ms, never to none: a duration of none fires no
+    // `animationend`, and the many components that wait on one would never
+    // hear it. Only an element that has an animation is touched by this.
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
+    // A transition is cut to none. Every element carries one - `all 0s` is
+    // the initial value - so 1ms here gave every element in the window a
+    // transition of everything, and each change of layout stood one frame
+    // where it had been before it moved: the Library's bar and shelf painted
+    // 12px and 29px low and jumped up as they arrived (Ivan, 2026-11-15:
+    // "the lib content starts a bit down and moves up"). What waits on a
+    // `transitionend` here asks `prefersReducedMotion()` first
+    // (`ForumLoading`), or settles on the change itself (`observeShown`).
+    transition-duration: 0s !important;
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
