@@ -50,7 +50,7 @@ interface IVideoGuestEventsInput {
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setBlockedUrl: Dispatch<SetStateAction<string>>;
   onRequestFullScreenRef: RefObject<() => void>;
-  onRequestGraphFullScreenRef: RefObject<() => void>;
+  onToggleVideoFullScreenRef: RefObject<() => void>;
   pendingVolumePushesRef: RefObject<number>;
   lastPushedVolumeRef: RefObject<number | undefined>;
   guestVolumeArgumentsRef: RefObject<number>;
@@ -73,7 +73,7 @@ const useVideoGuestEvents = ({
   setIsLoading,
   setBlockedUrl,
   onRequestFullScreenRef,
-  onRequestGraphFullScreenRef,
+  onToggleVideoFullScreenRef,
   pendingVolumePushesRef,
   lastPushedVolumeRef,
   guestVolumeArgumentsRef,
@@ -162,7 +162,7 @@ const useVideoGuestEvents = ({
     const handleGuestMessage = (event: Event) => {
       const { channel } = event as Event & { channel?: string };
       if (channel === VIDEO_GRAPH_FULLSCREEN_REQUEST) {
-        onRequestGraphFullScreenRef.current();
+        onToggleVideoFullScreenRef.current();
         return;
       }
       if (channel !== VIDEO_GUEST_VOLUME_CHANGED) {
@@ -285,7 +285,7 @@ const useVideoGuestEvents = ({
     setBlockedUrl,
     onRequestFullScreenRef,
     pendingVolumePushesRef,
-    onRequestGraphFullScreenRef,
+    onToggleVideoFullScreenRef,
     lastPushedVolumeRef,
     guestVolumeArgumentsRef,
     setIsGuestReady,

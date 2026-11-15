@@ -754,7 +754,6 @@ const AppContent = () => {
                 isKaraokeSurfaceFullScreen={isKaraokeSurfaceFullScreen}
                 isKaraokeGraphFullScreen={isKaraokeGraphFullScreen}
                 onGoToTab={selectTopWorkspaceTab}
-                setActiveTabGraphVisibility={setActiveTabGraphVisibility}
               />
               {/* Outside the tab switch for the same class of reason, and more
                 strictly: this one renders nothing at all. It hosts both Smart

@@ -5,15 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What a double-click on an Online Media video does, with and without a Plus
- * visualizer on the graph.
- *
- * Without one it is the graph's full screen, as Ctrl+F is (the whole app's
- * test holds that path end to end). With one, it is the video's OWN full
- * screen, in and out: the graph's would put the visualizer over the video,
- * and in the video's own the page stands over the visualizer instead
- * (`VideoSceneBackdrop`). Only the choice is tested here, on the component
- * that makes it; everything drawn around it is a stand-in.
+ * What a double-click on an Online Media video does: the video's OWN full
+ * screen, in and out, with or without a Plus visualizer on the graph, and
+ * never the graph's - which used to switch the graph on and cover the film
+ * (Ivan, 2026-11-15: "when I double click the YouTube video it shows the
+ * graph always even if it is off, and it turns it on"). The graph's full
+ * screen, with the film behind it, is a double-click on the graph. Only the
+ * choice is tested here, on the component that makes it; everything drawn
+ * around it is a stand-in.
  */
 
 import { act, render } from '@testing-library/react';
@@ -23,7 +22,7 @@ import WorkspacePlayers, {
 } from '../../../renderer/shell/WorkspacePlayers';
 import { toggleGraphFullScreen } from '../../../renderer/utils/graphStyle';
 
-type TMediaPageProps = { onRequestGraphFullScreen: () => void };
+type TMediaPageProps = { onToggleVideoFullScreen: () => void };
 
 let mediaPage: TMediaPageProps | undefined;
 
@@ -80,7 +79,6 @@ const openPlayers = ({
 }) => {
   const applyMediaFullScreen = jest.fn();
   const releaseMediaSurface = jest.fn();
-  const setActiveTabGraphVisibility = jest.fn();
   const mounts = {
     hasOpenedVideo: true,
     keepVideoMounted: true,
@@ -107,7 +105,6 @@ const openPlayers = ({
       isKaraokeSurfaceFullScreen={false}
       isKaraokeGraphFullScreen={false}
       onGoToTab={jest.fn()}
-      setActiveTabGraphVisibility={setActiveTabGraphVisibility}
     />,
   );
   const doubleClick = () => {
@@ -115,13 +112,12 @@ const openPlayers = ({
       throw new Error('Online Media was not drawn');
     }
     const page = mediaPage;
-    act(() => page.onRequestGraphFullScreen());
+    act(() => page.onToggleVideoFullScreen());
   };
   return {
     doubleClick,
     applyMediaFullScreen,
     releaseMediaSurface,
-    setActiveTabGraphVisibility,
   };
 };
 
@@ -141,7 +137,6 @@ describe('a double-click on an Online Media video', () => {
     expect(players.applyMediaFullScreen).toHaveBeenCalledWith('video');
     // Never the graph's full screen, which would cover the video.
     expect(toggleGraphFullScreen).not.toHaveBeenCalled();
-    expect(players.setActiveTabGraphVisibility).not.toHaveBeenCalled();
   });
 
   it('brings the video back out of its own full screen on the next one', () => {
@@ -156,30 +151,25 @@ describe('a double-click on an Online Media video', () => {
     expect(players.releaseMediaSurface).not.toHaveBeenCalled();
   });
 
-  it('is the graph’s full screen when no Plus visualizer is on it', () => {
+  it('is the video’s own full screen with no Plus visualizer on the graph too', () => {
     const players = openPlayers({
       isSceneOnGraph: false,
       isVideoFullScreen: false,
     });
     players.doubleClick();
-    expect(players.setActiveTabGraphVisibility).toHaveBeenCalledWith(true);
-    expect(toggleGraphFullScreen).toHaveBeenCalledTimes(1);
-    expect(players.applyMediaFullScreen).not.toHaveBeenCalled();
+    expect(players.applyMediaFullScreen).toHaveBeenCalledTimes(1);
+    expect(players.applyMediaFullScreen).toHaveBeenCalledWith('video');
+    expect(toggleGraphFullScreen).not.toHaveBeenCalled();
   });
 
-  it('hands the window from the video to the graph without leaving full screen first', () => {
+  it('brings the video out of its own full screen with no visualizer too', () => {
     const players = openPlayers({
       isSceneOnGraph: false,
       isVideoFullScreen: true,
     });
     players.doubleClick();
-    expect(players.releaseMediaSurface).toHaveBeenCalledTimes(1);
-    expect(toggleGraphFullScreen).toHaveBeenCalledTimes(1);
-    expect(
-      players.releaseMediaSurface.mock.invocationCallOrder[0],
-    ).toBeLessThan(
-      jest.mocked(toggleGraphFullScreen).mock.invocationCallOrder[0],
-    );
-    expect(players.applyMediaFullScreen).not.toHaveBeenCalled();
+    expect(players.applyMediaFullScreen).toHaveBeenCalledWith(undefined);
+    expect(toggleGraphFullScreen).not.toHaveBeenCalled();
+    expect(players.releaseMediaSurface).not.toHaveBeenCalled();
   });
 });

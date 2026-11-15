@@ -27,7 +27,6 @@ import SystemStageArt from '../library/SystemStageArt';
 import {
   exitGraphFullScreen,
   toggleFullScreenTopBar,
-  toggleGraphFullScreen,
 } from '../utils/graphStyle';
 import { KaraokePage, LibraryPage, MediaPage } from '../workspacePages';
 import type { TWorkspaceTab } from '../workspaceTabs';
@@ -52,8 +51,6 @@ export interface IWorkspacePlayersProps {
   isKaraokeSurfaceFullScreen: boolean;
   isKaraokeGraphFullScreen: boolean;
   onGoToTab: (tab: TWorkspaceTab) => void;
-  /** Switches the open tab's graph on, for the video's double-click. */
-  setActiveTabGraphVisibility: (next: boolean) => void;
 }
 
 /**
@@ -77,7 +74,6 @@ const WorkspacePlayers = ({
   isKaraokeSurfaceFullScreen,
   isKaraokeGraphFullScreen,
   onGoToTab,
-  setActiveTabGraphVisibility,
 }: IWorkspacePlayersProps) => {
   const isVideoTab = activeTab === 'video';
   const isLibraryTab = activeTab === 'library';
@@ -90,7 +86,6 @@ const WorkspacePlayers = ({
     isPointerNearChrome,
     hasFullScreenTopBar,
     applyMediaFullScreen,
-    releaseMediaSurface,
   } = fullScreen;
   // Faded out with the rest of the chrome once full screen has been still for
   // a moment, and back on the next movement — the same two seconds the graph's
@@ -112,25 +107,14 @@ const WorkspacePlayers = ({
             onRequestFullScreen={() => {
               applyMediaFullScreen('video');
             }}
-            onRequestGraphFullScreen={() => {
-              // With a Plus visualizer on the graph, a double-click on
-              // the video is the video's own full screen, in and out:
-              // the visualizer would only have covered it (see the
-              // backdrop above).
-              if (mounts.isSceneOnGraph) {
-                applyMediaFullScreen(isMediaFullScreen ? undefined : 'video');
-                return;
-              }
-              // A double-click on the guest is the same command as
-              // Ctrl+F. If the shared no-graph media surface already
-              // owns the OS window, transfer it without first bouncing
-              // out of full screen and making Chromium resize the live
-              // video twice.
-              if (isMediaFullScreen) {
-                releaseMediaSurface();
-              }
-              setActiveTabGraphVisibility(true);
-              toggleGraphFullScreen();
+            // A double-click on the film is the film's own full screen, in
+            // and out, whether or not the graph is showing; the graph's full
+            // screen, with the film behind it, is a double-click on the
+            // graph (Ivan, 2026-11-15: "when I double click the YouTube
+            // video it shows the graph always even if it is off, and it
+            // turns it on").
+            onToggleVideoFullScreen={() => {
+              applyMediaFullScreen(isMediaFullScreen ? undefined : 'video');
             }}
           />
         </Suspense>

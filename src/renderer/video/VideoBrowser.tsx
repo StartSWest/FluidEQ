@@ -89,8 +89,9 @@ interface IVideoBrowserProps {
   isGraphBackdrop: boolean;
   /** Promotes a site's HTML-fullscreen request to FluidEQ's window instead. */
   onRequestFullScreen: () => void;
-  /** A double-click on the guest video requests graph fullscreen. */
-  onRequestGraphFullScreen: () => void;
+  /** A double-click on the guest video: the video's own full screen, in and
+   * out, never the graph's. */
+  onToggleVideoFullScreen: () => void;
 }
 
 const VideoBrowser = ({
@@ -98,7 +99,7 @@ const VideoBrowser = ({
   isFullScreen,
   isGraphBackdrop,
   onRequestFullScreen,
-  onRequestGraphFullScreen,
+  onToggleVideoFullScreen,
 }: IVideoBrowserProps) => {
   const { t } = useTranslation();
   const webviewRef = useRef<IWebview | null>(null);
@@ -165,8 +166,8 @@ const VideoBrowser = ({
   isHiddenRef.current = isHidden;
   const onRequestFullScreenRef = useRef(onRequestFullScreen);
   onRequestFullScreenRef.current = onRequestFullScreen;
-  const onRequestGraphFullScreenRef = useRef(onRequestGraphFullScreen);
-  onRequestGraphFullScreenRef.current = onRequestGraphFullScreen;
+  const onToggleVideoFullScreenRef = useRef(onToggleVideoFullScreen);
+  onToggleVideoFullScreenRef.current = onToggleVideoFullScreen;
   const graphView = useGraphView();
 
   // Read once, into a ref as well as into state: the `src` attribute must not
@@ -404,7 +405,7 @@ const VideoBrowser = ({
     setIsLoading,
     setBlockedUrl,
     onRequestFullScreenRef,
-    onRequestGraphFullScreenRef,
+    onToggleVideoFullScreenRef,
     pendingVolumePushesRef,
     lastPushedVolumeRef,
     guestVolumeArgumentsRef,
