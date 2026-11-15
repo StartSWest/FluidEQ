@@ -505,17 +505,18 @@ describe('KaraokeWorkspace with the Maker', () => {
     });
     expect(Number(wordTimingSliders[1].value)).toBe(availableLongerDuration);
 
+    // Control alone plays nothing and moves nothing: it is the key a wheel
+    // zoom is held with (Ivan, 2026-11-15: "remove that shortcut, Control is
+    // for scroll zoom with the mouse"). Held, it used to loop the line, and
+    // let go it put the song back at the line's start.
     play.mockClear();
     pause.mockClear();
+    const beforeControlMs = guidedAudio.currentTime;
     fireEvent.keyDown(window, { key: 'Control', code: 'ControlLeft' });
-    const sentenceStartMs = guidedAudio.currentTime;
-    expect(sentenceStartMs).toBeGreaterThan(0);
-    expect(play).toHaveBeenCalledTimes(1);
-    guidedAudio.currentTime = sentenceStartMs + 0.7;
-    const pauseCallsBeforeRelease = pause.mock.calls.length;
     fireEvent.keyUp(window, { key: 'Control', code: 'ControlLeft' });
-    expect(pause).toHaveBeenCalledTimes(pauseCallsBeforeRelease + 1);
-    expect(guidedAudio.currentTime).toBeCloseTo(sentenceStartMs, 3);
+    expect(play).not.toHaveBeenCalled();
+    expect(pause).not.toHaveBeenCalled();
+    expect(guidedAudio.currentTime).toBe(beforeControlMs);
 
     const previewSelectionCoach = maker.querySelector(
       '.karaoke-maker__selection-coach',

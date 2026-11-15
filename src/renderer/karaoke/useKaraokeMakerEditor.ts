@@ -45,7 +45,6 @@ import {
 import { IWhisperRunProfile } from './useMakerAnalysisRun';
 import { IKaraokeMakerAnalysisNote } from './makerAnalysis';
 import { useMakerCanvasGesture } from './useMakerCanvasGesture';
-import { ISentenceAuditionState, useMakerKeyboard } from './useMakerKeyboard';
 import useMakerAuditions from './useMakerAuditions';
 import useMakerLineEntryCountdown from './useMakerLineEntryCountdown';
 import { useMakerCanvasModel } from './useMakerCanvasModel';
@@ -316,9 +315,6 @@ const useKaraokeMakerEditor = ({
   const lyricsInputRef = useRef<HTMLInputElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
   const gesture = useMakerCanvasGesture();
-  const sentenceAuditionRef = useRef<ISentenceAuditionState | undefined>(
-    undefined,
-  );
   const analysisAbortRef = useRef<AbortController | undefined>(undefined);
   const prepareAfterWhisperRef = useRef(false);
   const lyricsWorkflowActiveRef = useRef(false);
@@ -339,7 +335,6 @@ const useKaraokeMakerEditor = ({
     audioRef,
     audioClock,
     gesture,
-    sentenceAuditionRef,
     wordAuditionRef,
     setScrubAuditionAnchorMs,
     setIsCanvasScrubbing,
@@ -445,20 +440,6 @@ const useKaraokeMakerEditor = ({
   });
 
   useSpaceTogglesPlayback({ lineEntryMode, isPlaying, onPause, onPlay });
-
-  useMakerKeyboard({
-    cancelAudibleInteractions,
-    lineEntryMode,
-    onPause,
-    onPlay,
-    onSeek,
-    playheadMsRef,
-    projectRef,
-    readPlayheadMs,
-    selection,
-    sentenceAuditionRef,
-    whenPlayheadReaches,
-  });
 
   useMakerDismissals({
     analysisAbortRef,
