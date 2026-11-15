@@ -95,14 +95,15 @@ export const shelfQueryFor = (
       };
     case 'video':
       // By folder, a heading over each, and a search that narrows without
-      // scattering them out of their folders.
+      // scattering them out of their folders. Cover Flow's row of covers
+      // carries no headings, as the songs' does not.
       return {
         shelf: 'tracks',
         ...where,
         scope: { ...where.scope, kind: 'video' },
         direction: state.direction,
         natural: 'path',
-        folderHeadings: true,
+        ...(state.viewMode === 'coverflow' ? {} : { folderHeadings: true }),
         unranked: true,
       };
     case 'folder':

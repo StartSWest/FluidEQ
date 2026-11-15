@@ -94,8 +94,8 @@ const LibraryShelfViews = ({
 
   // Videos have no album or artist to drill into — routed here on their own
   // rather than through the views below. As a list they are the songs'
-  // table under their folders' headings; any other view is the grid of
-  // frames (there is no Cover Flow for films).
+  // table under their folders' headings, as a grid the frames; Cover Flow
+  // turns them as it turns songs, a press playing the one in the centre.
   if (browseMode === 'video' && viewMode === 'list') {
     return (
       <LibraryListView
@@ -110,7 +110,7 @@ const LibraryShelfViews = ({
       />
     );
   }
-  if (browseMode === 'video') {
+  if (browseMode === 'video' && viewMode !== 'coverflow') {
     return (
       <LibraryVideoSection
         list={shelfList}

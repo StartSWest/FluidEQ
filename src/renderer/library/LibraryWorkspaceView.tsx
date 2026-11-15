@@ -236,8 +236,8 @@ const LibraryWorkspaceView = ({
 
   /**
    * A film has the tab until the reader goes somewhere else: a shelf, a
-   * folder or a playlist picked in the rail, or a step of the place bar,
-   * closes it and shows that place (Ivan, 2026-11-15: "when I jump out of
+   * folder or a playlist picked in the rail, a step of the place bar, a view
+   * or a search, closes it and shows that place (Ivan, 2026-11-15: "when I jump out of
    * the video it needs to exit the video, because I moved to Albums and it
    * was still showing the video").
    */
@@ -377,11 +377,21 @@ const LibraryWorkspaceView = ({
                   viewMode={viewMode}
                   sort={sort}
                   sortDirection={sortDirection}
-                  onViewMode={chooseViewMode}
+                  // Over a film the views and the search are still there, and
+                  // either one leaves the film for what it asks for (Ivan,
+                  // 2026-11-15: "if we search we just exit the video", "or
+                  // if we click Details or Grid we go to that view").
+                  onViewMode={(mode) => {
+                    leaveFilm();
+                    chooseViewMode(mode);
+                  }}
                   onSort={canSort ? handlePickSort : undefined}
                   onSortDirection={canSort ? handleSortDirection : undefined}
                   query={query}
-                  onQuery={handleQuery}
+                  onQuery={(next) => {
+                    leaveFilm();
+                    handleQuery(next);
+                  }}
                   // Over a video the back arrow leaves the film for the shelf
                   // it was opened from, where the picture's own Back button
                   // used to float (Ivan, 2026-11-15: "improve the video view,

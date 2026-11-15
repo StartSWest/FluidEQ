@@ -209,23 +209,16 @@ const LibraryTopBar = ({
         />
       </div>
       <div className="library-top__controls">
-        {/* Videos read as a list or a grid of frames; a film has no sleeve
-            for Cover Flow to turn, so on Videos that choice shows the grid
-            (Ivan, 2026-11-15: "we can show by folders, list etc similar to
-            music"). */}
+        {/* Every shelf, Videos included, reads in all three (Ivan,
+            2026-11-15: "we can show by folders, list etc similar to music",
+            and of Cover Flow, "we want it there also, definitely"). */}
         <div
           className="library-top__views"
           role="group"
           aria-label={t('library.view.aria')}
         >
-          {VIEW_MODES.filter(
-            ({ mode }) => browseMode !== 'video' || mode !== 'coverflow',
-          ).map(({ mode, icon, label }) => {
-            const isActive =
-              viewMode === mode ||
-              (browseMode === 'video' &&
-                mode === 'grid' &&
-                viewMode === 'coverflow');
+          {VIEW_MODES.map(({ mode, icon, label }) => {
+            const isActive = viewMode === mode;
             return (
               <button
                 key={mode}
