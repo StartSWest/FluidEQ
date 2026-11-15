@@ -239,7 +239,10 @@ const LibraryLyricsSynced = ({ lines }: { lines: readonly ILyricsLine[] }) => {
   );
 
   return (
-    <>
+    // The lines and the button back to the song, in one box: the button
+    // floats from this box's foot, above the tab's own foot whatever its
+    // height (`_libraryLyrics.scss`).
+    <div className="library-lyrics__stage">
       <ol
         ref={listRef}
         className="library-lyrics__lines"
@@ -279,7 +282,7 @@ const LibraryLyricsSynced = ({ lines }: { lines: readonly ILyricsLine[] }) => {
           {t('library.lyrics.follow')}
         </button>
       )}
-    </>
+    </div>
   );
 };
 

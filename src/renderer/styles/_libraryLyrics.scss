@@ -151,15 +151,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The lines and the button back to the song: the box the button floats in.
+.library-lyrics__stage {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
 // Back to the song, after the reader scrolled away: floated over the lines'
 // faded foot. The quiet outline (`button small subtle`) has no fill, so it
 // takes a menu's surface and its soft shadow, as anything floating over
 // content does here — over a lyric line, a clear button read as one more
 // line drawn through the words.
+//
+// From the lines' own box, above the tab's foot and its hairline (Ivan,
+// 2026-11-15: "put this button above the line"): measured 44px from the
+// whole tab's bottom, it landed on the foot once the foot grew a second row
+// (the source, then Open in Karaoke and Find other lyrics).
 .library-lyrics__follow.button {
   position: absolute;
   z-index: 1;
-  bottom: 44px;
+  bottom: 12px;
   background: $surface-menu;
   box-shadow: 0 6px 18px rgba($black, 0.28);
   left: 50%;
