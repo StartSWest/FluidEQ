@@ -111,7 +111,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px;
   margin-top: 6px;
   border: 0;
-  border-radius: $radius-m;
+  border-radius: 0;
   background: none;
   font-family: inherit;
   text-align: left;
@@ -123,9 +123,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $studio-t2;
   }
 
+  // The Library's one mark, as every shelf wears it (Ivan, 2026-11-15:
+  // "Playlists highlight fix" - it kept the rounded 3px bar of before).
   &.is-active {
-    background: $studio-raise;
-    box-shadow: inset 3px 0 0 $secondary-default;
+    @include studio-mark;
   }
 
   &:focus-visible {
