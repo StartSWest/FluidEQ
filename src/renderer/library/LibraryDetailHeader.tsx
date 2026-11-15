@@ -33,10 +33,14 @@ export interface IEditablePlaylist {
 }
 
 interface ILibraryDetailHeaderProps {
+  /** What kind of record this is, the line over the title: "Album · Soul". */
+  kind: string;
   title: string;
+  /** Who made it, or where it is: the line under the title. */
   subtitle: string;
   /** The one directory everything in the table lives in, when there is one. */
   recordFolder?: string;
+  /** The meta line: year, songs, length, format. */
   counts: string;
   /** Songs the toolbar's search lit inside a record it did not name. */
   matchedCount: number;
@@ -45,6 +49,10 @@ interface ILibraryDetailHeaderProps {
   /** Anything to play: withheld for an empty playlist. */
   hasTracks: boolean;
   onPlay: () => void;
+  /** The record from a song drawn at random, the player's Shuffle on. */
+  onShuffle?: () => void;
+  /** Show the record's one folder in Explorer; absent when it has several. */
+  onReveal?: () => void;
   /** Every id in the table, in its order, asked for when needed. */
   loadTrackIds: () => Promise<readonly string[]>;
   /** The one song, when the table holds exactly one. */
@@ -57,7 +65,14 @@ interface ILibraryDetailHeaderProps {
   onFilter: (value: string) => void;
 }
 
+/**
+ * THE RECORD'S HERO (the "A + C" design, Ivan 2026-11-14): the cover at
+ * 136px, what kind of record it is, its name at 30px, who made it, one line
+ * of facts, and the actions — Play the one loud button, Shuffle, Add to Up
+ * Next, Show in Explorer, and the record's menu.
+ */
 const LibraryDetailHeader = ({
+  kind,
   title,
   subtitle,
   recordFolder,
@@ -67,6 +82,8 @@ const LibraryDetailHeader = ({
   artId,
   hasTracks,
   onPlay,
+  onShuffle,
+  onReveal,
   loadTrackIds,
   onlyTrack,
   onQueueTracks,
@@ -138,13 +155,14 @@ const LibraryDetailHeader = ({
   };
 
   return (
-    <div className="library-detail__header">
+    <div className="library-hero">
       {isFolder ? (
         <LibraryFolderArt artId={artId} label={title} size="cover" />
       ) : (
         <LibraryCoverArt artId={artId} label={title} size="cover" />
       )}
-      <div className="library-detail__info">
+      <div className="library-hero__info">
+        {kind && <div className="library-hero__kind">{kind}</div>}
         {/* The name becomes the field it is edited in, in place. A modal for
             one text box would cover the very list that says which playlist
             this is. */}
@@ -170,16 +188,16 @@ const LibraryDetailHeader = ({
             </button>
           </div>
         ) : (
-          <h2 className="library-detail__title">{title}</h2>
+          <h2 className="library-hero__title" title={title}>
+            {title}
+          </h2>
         )}
-        {subtitle && <p className="library-detail__subtitle">{subtitle}</p>}
-        {recordFolder !== undefined && (
-          <p className="library-detail__where" title={recordFolder}>
-            <MenuIcon name="folder" className="library-detail__where-icon" />
-            <span>{recordFolder}</span>
-          </p>
+        {subtitle && (
+          <div className="library-hero__who" title={subtitle}>
+            {subtitle}
+          </div>
         )}
-        <p className="library-detail__counts">
+        <div className="library-hero__meta">
           {/* How many of how many, when the search named songs inside rather
               than this record: the honest answer to "why is this compilation
               on screen at all". */}
@@ -190,28 +208,36 @@ const LibraryDetailHeader = ({
             </>
           )}
           {counts}
-        </p>
-        <div className="library-detail__actions">
-          {/* Emphasis follows recommendation: the one filled button on the
+        </div>
+        <div className="library-hero__actions">
+          {/* Emphasis follows recommendation: the one loud button on the
               screen. Withheld for an empty playlist — a Play that starts
-              nothing is the click-that-does-nothing this project treats as a
-              bug. */}
+              nothing is a click that does nothing. */}
           {hasTracks && (
             <button
               type="button"
-              className="button small library-detail__play"
+              className="library-hero__button is-go"
               onClick={onPlay}
             >
-              <MenuIcon name="play" className="library-detail__play-icon" />
+              <MenuIcon name="play" className="library-hero__button-icon" />
               <span>{t('library.play')}</span>
             </button>
           )}
-          {/* The quiet one beside it: play this after what is already going.
-              With nothing playing the two do the same thing. */}
+          {hasTracks && onShuffle && (
+            <button
+              type="button"
+              className="library-hero__button"
+              onClick={onShuffle}
+            >
+              {t('library.shuffle')}
+            </button>
+          )}
+          {/* Play this after what is already going. With nothing playing
+              the two do the same thing. */}
           {onQueueTracks && hasTracks && (
             <button
               type="button"
-              className="button small subtle library-detail__queue"
+              className="library-hero__button"
               onClick={() => {
                 loadTrackIds()
                   .then((ids) => {
@@ -224,6 +250,18 @@ const LibraryDetailHeader = ({
               {t('library.queueAdd')}
             </button>
           )}
+          {/* Where the record lives, when all of it lives in one folder:
+              shown through its first song, so main is only ever handed an id
+              it knows and never a path. It was in the menu below alone. */}
+          {onReveal && (
+            <button
+              type="button"
+              className="library-hero__button"
+              onClick={onReveal}
+            >
+              {t('library.reveal')}
+            </button>
+          )}
           {/* THE WHOLE RECORD, filed in one press — the menu a row opens,
               handed every song on the page. */}
           {hasTracks && (
@@ -231,7 +269,7 @@ const LibraryDetailHeader = ({
               <button
                 type="button"
                 ref={containerMenuRef}
-                className="button small subtle library-detail__more"
+                className="library-hero__button is-icon"
                 aria-label={t('library.trackMenu')}
                 title={t('library.trackMenu')}
                 aria-haspopup="menu"
@@ -259,9 +297,7 @@ const LibraryDetailHeader = ({
                     .catch(() => undefined);
                   setIsContainerMenuOpen(false);
                 }}
-                // The record's folder, when all of it lives in one: shown
-                // the way a song's is, through its first song, so main is
-                // still only ever handed an id it knows and never a path.
+                // The record's folder, when all of it lives in one.
                 onRevealFolder={
                   recordFolder !== undefined && menuTrackIds[0] !== undefined
                     ? () => {
@@ -282,7 +318,7 @@ const LibraryDetailHeader = ({
             <>
               <button
                 type="button"
-                className="button small subtle"
+                className="library-hero__button"
                 onClick={() => {
                   setIsConfirmingDelete(false);
                   setDraftName(editablePlaylist.name);
@@ -293,7 +329,7 @@ const LibraryDetailHeader = ({
               {!isConfirmingDelete && (
                 <button
                   type="button"
-                  className="button small subtle"
+                  className="library-hero__button"
                   onClick={() => setIsConfirmingDelete(true)}
                 >
                   {t('library.playlist.delete')}
@@ -301,6 +337,17 @@ const LibraryDetailHeader = ({
               )}
             </>
           )}
+          {/* The record's own filter, at the far end of the actions: it
+              narrows this record and nothing else, where the top bar's
+              search looks through the whole library. */}
+          <div className="library-hero__filter">
+            <LibrarySearchField
+              value={filter}
+              onChange={onFilter}
+              label={t('library.filterHere')}
+              history={libraryFilterHistory}
+            />
+          </div>
         </div>
         {/* Two steps, no modal: the question opens under the buttons, where
             the one that asked it was, over nothing it has to hide. */}
@@ -340,18 +387,6 @@ const LibraryDetailHeader = ({
             }
           />
         )}
-      </div>
-      {/* Over the table it narrows, on the line the sleeve ends on. It
-          filters this record and nothing else; the toolbar's own box is
-          withheld while a drill-in is open, so there is one search on screen
-          and it does what the screen it is on suggests. */}
-      <div className="library-detail__search">
-        <LibrarySearchField
-          value={filter}
-          onChange={onFilter}
-          label={t('library.filterHere')}
-          history={libraryFilterHistory}
-        />
       </div>
     </div>
   );

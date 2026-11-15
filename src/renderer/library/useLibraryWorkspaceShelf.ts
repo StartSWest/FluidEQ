@@ -234,7 +234,9 @@ const useLibraryWorkspaceShelf = ({
     }
     setChromeHeight(Math.round(node.getBoundingClientRect().height));
     const observer = new ResizeObserver((entries) => {
-      const height = entries[entries.length - 1]?.contentRect.height;
+      // The border box: the head pads its top, and a content height short
+      // by that padding put the drawer's edge across the breadcrumb.
+      const height = entries[entries.length - 1]?.borderBoxSize?.[0]?.blockSize;
       if (height !== undefined && height > 0) {
         setChromeHeight(Math.round(height));
       }

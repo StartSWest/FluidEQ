@@ -17,7 +17,11 @@ import { Profiler } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ILibraryTrack } from 'common/library/types';
 import LibraryUpNext from 'renderer/library/LibraryUpNext';
-import { upNextWindowFor } from 'renderer/library/upNextWindow';
+import {
+  ROW_HEIGHT,
+  SCROLL_STEP,
+  upNextWindowFor,
+} from 'renderer/library/upNextWindow';
 
 const mockTracks: ILibraryTrack[] = Array.from({ length: 200 }, (_, index) => ({
   id: `t${index}`,
@@ -63,7 +67,7 @@ describe('the window over the queue', () => {
     bottom: number,
   ): { start: number; end: number } => {
     let start = 0;
-    while (start < offsets.length && offsets[start] + 42 < top) {
+    while (start < offsets.length && offsets[start] + ROW_HEIGHT < top) {
       start += 1;
     }
     let end = start;
@@ -79,7 +83,7 @@ describe('the window over the queue', () => {
       if (index % 37 === 0) {
         return 32;
       }
-      return index % 9 === 0 ? 26 : 42;
+      return index % 9 === 0 ? 26 : ROW_HEIGHT;
     });
     const offsets: number[] = [];
     let height = 0;
@@ -90,7 +94,7 @@ describe('the window over the queue', () => {
     const layout = { offsets, height };
     const pane = 600;
     for (let scrolled = 0; scrolled <= height - pane; scrolled += 37) {
-      const step = Math.floor(scrolled / 252) * 252;
+      const step = Math.floor(scrolled / SCROLL_STEP) * SCROLL_STEP;
       const shown = upNextWindowFor(layout, pane, step);
       const needed = walked(offsets, scrolled, scrolled + pane);
       expect(shown.start).toBeLessThanOrEqual(needed.start);
@@ -99,14 +103,23 @@ describe('the window over the queue', () => {
   });
 
   it('answers what the walk answered for the same offset, and more below', () => {
-    const offsets = Array.from({ length: 300 }, (_, index) => index * 42);
-    const layout = { offsets, height: 300 * 42 };
-    [0, 252, 504, 2520, 5040].forEach((step) => {
-      const shown = upNextWindowFor(layout, 600, step);
-      const walk = walked(offsets, step - 252, step + 600 + 252);
-      expect(shown.start).toBe(walk.start);
-      expect(shown.end).toBeGreaterThanOrEqual(walk.end);
-    });
+    const offsets = Array.from(
+      { length: 300 },
+      (_, index) => index * ROW_HEIGHT,
+    );
+    const layout = { offsets, height: 300 * ROW_HEIGHT };
+    [0, 1, 2, 10, 20]
+      .map((steps) => steps * SCROLL_STEP)
+      .forEach((step) => {
+        const shown = upNextWindowFor(layout, 600, step);
+        const walk = walked(
+          offsets,
+          step - SCROLL_STEP,
+          step + 600 + SCROLL_STEP,
+        );
+        expect(shown.start).toBe(walk.start);
+        expect(shown.end).toBeGreaterThanOrEqual(walk.end);
+      });
   });
 });
 
@@ -119,12 +132,7 @@ it('renders once per step of scrolling, never once per scroll event', () => {
         commits += 1;
       }}
     >
-      <LibraryUpNext
-        isCollapsed={false}
-        onCollapsedChange={() => undefined}
-        restTotal={0}
-        canSurprise={false}
-      />
+      <LibraryUpNext canSurprise={false} />
     </Profiler>,
   );
   const list = container.querySelector('.library-up-next__list');

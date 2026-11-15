@@ -316,7 +316,8 @@ describe('the folded queue chip', () => {
       return reachable[0];
     });
     expect(
-      screen.getByRole('complementary', { name: 'Up next' }),
+      // The right pane: Now Playing over the Up Next, Details and Lyrics tabs.
+      screen.getByRole('complementary', { name: 'Now playing' }),
     ).toHaveAttribute('inert');
     expect(chip.closest('.library-top__controls')).not.toBeNull();
     // Folded, and the chip is what says so — it is drawn in both states, so
@@ -451,7 +452,9 @@ describe('handing a click off to the player', () => {
     // The SHELF is replaced by the picture — see the `!videoTrackId` guard on
     // `LibraryVideoSection` in `LibraryWorkspace`. The toolbar above it is
     // not: browse, view and search stay reachable while a video plays.
-    expect(screen.queryByText('Live at the Roxy')).not.toBeInTheDocument();
+    // The video's own shelf is gone; its title stays in the right pane's
+    // Now Playing card, which is where what plays is named.
+    expect(document.querySelector('.library-video-section')).toBeNull();
     expect(screen.getByRole('searchbox')).toBeInTheDocument();
   });
 
@@ -549,6 +552,10 @@ describe('handing a click off to the player', () => {
     // The shelf is still the thing on screen -- a click on an unplayable
     // track is not a silent no-op, it just does not open a stage that would
     // only ever show a black box.
-    expect(screen.getByText('Old Camcorder Tape')).toBeInTheDocument();
+    const main = document.querySelector('.library-main');
+    if (!(main instanceof HTMLElement)) {
+      throw new Error('no main column');
+    }
+    expect(within(main).getByText('Old Camcorder Tape')).toBeInTheDocument();
   });
 });

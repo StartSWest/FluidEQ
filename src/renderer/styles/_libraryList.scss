@@ -170,31 +170,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // container instead of fighting table layout for the cover art and the
 // title-plus-subtitle stack in the same cell.
 
-// The listing is a card of its own, filled a step over the floor (Ivan,
-// 2026-09-26: "some bg color in the listing but subtle"); its rows stand on
-// it unfilled and answer the pointer as before.
+// *** The details table (the "A + C" design, Ivan 2026-11-14) ****************
+//
+// No card round it: a hairline over the header and rows on the shelf's own
+// floor, a faint zebra so the eye keeps its row, a step of light under the
+// pointer, the accent faint under the song that plays. Header 11px capitals
+// at 0.1em in the quietest ink; rows 14px, 10px 12px round each cell.
 .library-list {
-  @include card-surface;
   display: flex;
-  // A floor rather than zero, so the table cannot be squeezed to a single
-  // clipped row when the graph takes half the window. Below this the
-  // workspace above overflows instead, and it scrolls — see its own comment.
-  // Roughly a header and four rows, which is the least that still reads as a
-  // list you can work in.
   min-height: 220px;
   flex: 1 1 auto;
   flex-direction: column;
   overflow: hidden;
+  border-top: 1px solid $studio-hair;
 }
 
-// `$library-row-height` is the tables' row height, from `_libraryMetrics.scss`
-// — see there for why every kind of row takes it from one place.
-
-// The tab while the index is still being read.
-//
-// A spinner rather than the empty panel, and rather than nothing: the read is
-// usually a few frames and occasionally is not, and a blank card that turns
-// into a library says less than one that says it is working.
 .library-loading {
   display: grid;
   flex: 1 1 auto;
@@ -202,231 +192,138 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 40px 0;
 }
 
+// `$library-row-height` is every row's height, headings included, so the
+// windowing (`useListWindow`) can measure one and know them all.
 .library-list__header,
 .library-list__row {
   display: grid;
   min-width: 0;
-  height: $library-row-height;
-  // Without this the height above is a suggestion. A row is a flex item in a
-  // column whose content is far taller than it, so it gets shrunk — down to
-  // its automatic minimum, which is the 32px cover inside it. Measured in the
-  // running window: rows declared at 46px came out at 32 and the reserved
-  // space no longer matched them.
   flex-shrink: 0;
   grid-template-columns:
     $control-height-sm minmax(0, 1.8fr) minmax(0, 1fr) minmax(0, 1fr)
     64px;
   align-items: center;
-  column-gap: $spacing-s;
-  padding: 0 $spacing-s;
+  // The shelves of records: a gap between the cover and the words, and
+  // between the words and each cell. The details table pads its cells
+  // instead (below), as the mockup's cells are padded.
+  column-gap: 12px;
 }
 
-@keyframes library-scan-progress-in {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
+.library-list__row {
+  height: $library-row-height;
+  padding: 0 12px;
+}
+
+// The details table's columns are the reader's (`libraryColumns.ts`): the
+// template rides in on the table, and every cell pads itself as a `td`.
+.library-list--songs {
+  .library-list__header,
+  .library-list__row {
+    grid-template-columns: var(--library-columns);
+    column-gap: 0;
+    padding: 0;
   }
 
-  to {
-    transform: translateY(0);
-    opacity: 1;
+  .library-list__col {
+    padding: 0 12px;
   }
 }
 
-// A sortable column header. The arrow is present only on the column actually
-// driving the order — an arrow on every header would say all four are active.
+.library-list__header {
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border-bottom: 1px solid $studio-hair;
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
+  text-transform: uppercase;
+
+  .library-list__col {
+    padding-top: 10px;
+    padding-bottom: 8px;
+    font-size: inherit;
+  }
+
+  .library-list__col.is-sorted {
+    color: $text-primary;
+  }
+}
+
 .library-list__sort {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 0;
   border: 0;
+  background: none;
   color: inherit;
   font: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
-  background: none;
   cursor: pointer;
 
   &:hover,
   &:focus-visible {
-    color: $secondary-light;
+    color: $text-primary;
+    outline: none;
   }
-
-  &.is-active {
-    color: $secondary-light;
-  }
-}
-
-// Sits over the numbers rather than beside the word "Title": the same 18px
-// box and right edge `.library-list__track-no` gives every number under it,
-// and the 5px is `.library-list__title-text`'s own gap, so the header lines
-// up with the column it sorts instead of merely being near it.
-.library-list__sort--no {
-  min-width: 18px;
-  margin-right: 5px;
-  justify-content: flex-end;
-  font-variant-numeric: tabular-nums;
 }
 
 .library-list__sort-arrow {
-  opacity: 0;
-  font-size: 0.7em;
-}
-
-.library-list__sort.is-active .library-list__sort-arrow {
-  opacity: 1;
-}
-
-// The cover art doubles as the row's play button: the glyph fades up over it
-// on hover or focus rather than occupying a column of its own on every row
-// for something only ever wanted on the row under the pointer.
-// One radius through the whole stack — button, artwork and hover glyph.
-//
-// The button and the glyph were `$radius-xs` while the art under them is
-// `$radius-s`, so the two layers over a rounded thumbnail had squarer corners
-// than it did and showed as hard edges poking out past the picture. `inherit`
-// rather than another literal, so this cannot drift again the next time the
-// cover's own radius moves.
-.library-list__art-play {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  padding: 0;
-  border: 0;
-  border-radius: $radius-s;
-  background: none;
-  cursor: pointer;
-
-  &:disabled {
-    cursor: default;
-  }
-}
-
-.library-list__art-play-glyph {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  border-radius: inherit;
-  background: color-mix(in srgb, $surface-well 62%, transparent);
   color: $secondary-light;
-  opacity: 0;
-  inset: 0;
-  transition: opacity $motion-base $ease-out;
-}
-
-.library-list__row:hover .library-list__art-play-glyph,
-.library-list__art-play:focus-visible .library-list__art-play-glyph {
-  opacity: 1;
-}
-
-.library-list__art-play:disabled .library-list__art-play-glyph {
-  display: none;
-}
-
-.library-list__header {
-  flex: 0 0 auto;
-  border-bottom: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
-  color: $text-faint;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.08em);
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .library-list__body {
   @include slim-scrollbar;
   display: flex;
   min-height: 0;
-  // `flex-basis: 0`, never `auto`, and this is load-bearing.
-  //
-  // `LibraryListView` mounts a few hundred rows and reserves the height of
-  // all fourteen thousand as empty blocks. With a basis of `auto` that
-  // reserved height IS this element's content size, so whenever the chain
-  // above stopped handing down a definite height — which is what a narrow
-  // window does — it grew to 647,542px and took the page with it: a list of
-  // nine rows followed by six hundred screens of nothing, and a scrollbar to
-  // match. From zero, the size comes from the free space it is given and
-  // content cannot inflate it, so this stays a scroll box under every layout
-  // rather than only under the ones that happened to constrain it.
   flex: 1 1 0;
   flex-direction: column;
   overflow-y: auto;
 }
 
-// A row is a button in every way that matters — it opens or plays something
-// — without being one, since it also has to carry a nested cover image and a
-// two-line title cell that a real `<button>` cannot lay out as a grid.
 .library-list__row {
-  // No `content-visibility` here, deliberately, and it used to be.
-  //
-  // It was how this list avoided decoding cover art it was not showing, back
-  // when it mounted every row it had ever scrolled past. `LibraryListView`
-  // now mounts a few hundred rows at most and drops the rest, which does the
-  // same job and more — and the two together were worse than either alone: a
-  // skipped row reports a height of zero, so the measurement the window takes
-  // to size the space it reserves came back as nothing, and the scrollbar
-  // went with it. Measured in the running window before this was removed: a
-  // row read 32px at the top of the list and 0px anywhere else.
-  color: $text-muted;
-  // Square. A row is a full-width band of a table, not a card: rounded ends
-  // on a highlight that runs edge to edge read as a pill dropped into a list,
-  // and a run of them reads as a stack of loose objects rather than as rows.
-  border-radius: 0;
+  color: $studio-t2;
   cursor: pointer;
-  transition: $transition-control;
+  transition: background $motion-fast ease-out;
+
+  &.is-even {
+    background: color-mix(in srgb, $edge-tint 1.8%, transparent);
+  }
 
   &:hover,
   &:focus-visible {
-    color: $text-primary;
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
+    background: $studio-raise;
     outline: none;
   }
 
-  // Spec §10: a root missing at rescan keeps its tracks, dimmed rather than
-  // hidden or removed — this is the one place that promise is actually kept.
-  // Still fully clickable: the file may come back the moment its drive is
-  // plugged back in, and a click on a genuinely gone one already gets the
-  // real "cannot play" answer from the `error` listener in
-  // `LibraryPlayerContext`, not a dead row.
   &--offline {
     opacity: 0.5;
   }
 
-  // Pending metadata does not prevent playback. The badge carries that
-  // status; fading the row made a playable song look unavailable.
-  &--pending {
-    opacity: 1;
-  }
-
-  // Whatever the player is on, wherever it appears — the album's own table,
-  // a search result, the folder view. Colour as well as the mark beside the
-  // title, because the mark alone is small and the tint alone is a shade you
-  // would have to compare against neighbours to be sure of.
-  &--playing {
+  &--playing,
+  &--playing.is-even,
+  &--playing:hover {
+    background: $studio-select;
     color: $text-primary;
-    opacity: 1;
 
-    .library-list__title-label {
+    .library-list__title-label,
+    .library-list__col--no {
       color: $secondary-light;
     }
   }
 
-  // The row the reader last opened, still marked when they come back out of
-  // it. A left edge rather than a fill: the fill is what hover uses, and a
-  // permanently filled row under a moving pointer reads as two things
-  // hovered at once. Wins over the dimming above — an opened row is the one
-  // thing on screen the reader is looking for.
   &--selected {
     position: relative;
     color: $text-primary;
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-    opacity: 1;
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
 
     &::before {
       position: absolute;
-      top: 4px;
-      bottom: 4px;
+      top: 6px;
+      bottom: 6px;
       left: 0;
       width: 2px;
       border-radius: $radius-pill;
@@ -438,7 +335,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-list__col {
   @include truncate;
-  font-size: $text-body;
+  font-size: $studio-text-row;
+  line-height: 1.5;
 
   &--art {
     display: flex;
@@ -450,43 +348,161 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 1px;
   }
 
-  // The artist row's only data column — spans past the three tracks a song
-  // or album row fills with Artist/Album/Length, so the name reads at full
-  // width instead of leaving three empty cells trailing it.
   &--span {
     grid-column: 2 / -1;
   }
 
+  &.is-numeric,
   &--length {
-    // The duration, and the row's menu button after it. `flex-end` keeps the
-    // number where it has always been — hard right, tabular, a column the eye
-    // runs down — with the button outside it rather than in front of it.
-    //
-    // `overflow: visible` is deliberate and overrides the `truncate` above:
-    // the button is revealed on hover and has nothing to truncate, and the
-    // clip was cutting its focus ring.
     display: flex;
     overflow: visible;
     align-items: center;
     justify-content: flex-end;
     gap: 4px;
-    color: $text-faint;
     font-variant-numeric: tabular-nums;
     text-align: right;
   }
+
+  &--menu {
+    display: flex;
+    overflow: visible;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
-// The row's own way into the track menu.
-//
-// Held at zero opacity rather than `display: none` so it keeps its width in
-// every row: appearing on hover in a cell that then has to grow for it would
-// shove the duration left under the pointer, and a column of numbers that
-// twitches as the mouse passes is worse than a button always drawn. Visible
-// on hover, on focus, and while its own menu is open.
+// `#`: the record's number, the playing song's bars, and the row's play
+// control under the pointer — one cell, right-aligned like every number.
+.library-list__col--no {
+  display: flex;
+  justify-content: flex-end;
+  color: $studio-t3;
+}
+
+.library-list__no-play {
+  position: relative;
+  display: grid;
+  min-width: 20px;
+  height: 22px;
+  justify-items: end;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.library-list__no-glyph {
+  display: grid;
+  place-items: center;
+  color: $text-primary;
+  opacity: 0;
+  transition: opacity $motion-fast ease-out;
+}
+
+.library-list__row:hover .library-list__no-play:not(:disabled),
+.library-list__no-play:focus-visible {
+  .library-list__no-glyph {
+    opacity: 1;
+  }
+
+  // The number or the bars give way to the glyph in the same cell.
+  > :not(.library-list__no-glyph) {
+    opacity: 0;
+  }
+}
+
+.library-list__track-no {
+  font-size: $studio-text-row;
+}
+
+// The file's format as a small badge on a tray: FLAC, MP3, M4A.
+.library-list__format {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: $studio-surface;
+  color: $studio-t2;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  @include tracking(0.04em);
+}
+
+// The column chooser at the header's end (the mockup's `th.pick`).
+.library-list__chooser {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: $studio-t3;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: currentcolor;
+  }
+
+  &:hover,
+  &.is-open {
+    background: $studio-surface;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.library-columns-menu__tick {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  opacity: 0;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: $secondary-light;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  &.is-on {
+    opacity: 1;
+  }
+}
+
+// The row's own menu, in the chooser's column, on the row under the pointer.
 .library-list__row-menu {
   display: grid;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
@@ -494,7 +510,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-xs;
   opacity: 0;
   background: none;
-  color: $text-muted;
+  color: $studio-t2;
   cursor: pointer;
   transition: $transition-control;
 
@@ -507,14 +523,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover,
   &:focus-visible {
     opacity: 1;
-    color: $white;
-    background: color-mix(in srgb, $secondary-default 20%, transparent);
+    color: $text-primary;
+    background: $studio-surface;
     outline: none;
   }
 
   .library-list__row:hover &,
   .library-list__row:focus-visible &,
-  .library-list__row.is-selected & {
+  .library-list__row--selected & {
     opacity: 1;
   }
 }
@@ -525,7 +541,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 5px;
   color: $text-primary;
-  font-weight: $weight-bold;
+  font-weight: $weight-medium;
 }
 
 // The app's own curve over bars, in miniature, in front of the playing
@@ -646,8 +662,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-list__subtitle {
   @include truncate;
-  color: $text-faint;
-  font-size: $text-micro;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  line-height: 1.3;
 }
 
 .library-list__badge {

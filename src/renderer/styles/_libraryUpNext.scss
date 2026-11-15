@@ -55,8 +55,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   flex: 0 0 auto;
   flex-direction: column;
-  padding: 10px 6px 10px 12px;
-  gap: 4px;
+  // The Now Playing card, the tabs and the tab's body each keep their own
+  // margins (the mockup's 14px sides), so the column itself pads nothing.
+  padding: 0;
   // Its contents are squeezed while it is narrower than they are, and never
   // drawn outside it.
   overflow: hidden;
@@ -612,43 +613,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-up-next__group {
   @include truncate;
   display: flex;
-  // Never shrinks. The list is a flex column that overflows, so a child whose
-  // content is shorter than its height gives that height up — one line of
-  // 0.6rem text put these at 9px against the 26 the offset table assumes, and
-  // the spacers then described a list a third longer than the one drawn.
   height: 26px;
   flex: 0 0 auto;
   align-items: flex-end;
   padding: 6px 6px 3px;
   margin: 0;
-  color: $text-accent;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.08em);
-  text-transform: uppercase;
+  color: $studio-t2;
+  font-size: $studio-text-label;
+  font-weight: $weight-semibold;
 }
 
 // 42px tall, and `LibraryUpNext` says so in a constant: the window that
 // decides which rows are mounted is arithmetic on this number, so the two
 // have to agree. 30px of picture, 6px of padding either side.
 .library-up-next__row {
-  display: flex;
+  display: grid;
   width: 100%;
-  height: 42px;
+  height: 50px;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   align-items: center;
-  padding: 5px 6px;
+  gap: 10px;
+  padding: 7px 6px;
   border: 0;
-  border-radius: $radius-s;
+  border-radius: $radius-m;
   background: none;
-  gap: 8px;
   text-align: start;
   cursor: pointer;
   transition: $transition-control;
 
-  // The choosing tint on the card; the block colour was a lighter slab laid
-  // in a card that is itself darker now (2026-09-26).
   &:hover {
-    background: $hover-accent;
+    background: $studio-raise;
   }
 
   &:focus-visible {
@@ -657,8 +651,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .library-cover-art--row {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     flex: 0 0 auto;
   }
 }
@@ -671,14 +665,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-up-next__track {
   @include truncate;
-  color: rgba($white, 0.88);
-  font-size: $text-body;
+  color: $text-primary;
+  font-size: $studio-text-tree;
+  font-weight: $weight-medium;
+  line-height: 1.4;
 }
 
 .library-up-next__artist {
   @include truncate;
-  color: $text-faint;
-  font-size: $text-micro;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  line-height: 1.4;
+}
+
+// The song's length at the row's end, as the mockup's queue shows it; the
+// remove control takes its place under the pointer.
+.library-up-next__time {
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  font-variant-numeric: tabular-nums;
+}
+
+.library-up-next__entry:hover .library-up-next__time {
+  visibility: hidden;
 }
 
 // Gone: a `@media (max-width: 1080px)` that hid the queue outright and zeroed
@@ -696,19 +705,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // swallows its own click on some pointer sequences, and the click here is
 // what plays the song.
 .library-up-next__entry {
+  position: relative;
   display: flex;
-  // 42px and not a pixel less, for the same reason the heading holds its 26:
-  // the offset table behind the windowing is arithmetic on these two numbers,
-  // and a row that gave ground would put the scrollbar out of step with what
-  // is drawn.
-  height: 42px;
+  height: 50px;
   flex: 0 0 auto;
   align-items: center;
-  border-radius: $radius-s;
-  gap: 2px;
+  border-radius: $radius-m;
 
   &:hover {
-    background: $hover-accent;
+    background: $studio-raise;
   }
 
   &.is-dragging {
@@ -733,24 +738,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // row whose main verb is "play this", and a cross on every line reads as a
 // list of things to delete.
 .library-up-next__remove {
+  position: absolute;
+  top: 50%;
+  right: 6px;
   display: grid;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  margin-right: 4px;
+  border-radius: $radius-pill;
   background: none;
-  color: $text-faint;
+  color: $studio-t2;
   cursor: pointer;
   opacity: 0;
+  transform: translateY(-50%);
   transition: $transition-control;
 
   &:hover {
-    color: $white;
-    background: rgba($white, 0.1);
+    color: $text-primary;
+    background: $studio-surface;
   }
 
   &:focus-visible {
@@ -771,12 +778,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Play and "add to up next" are two answers to the same question, so they sit
 // on one line rather than stacked like two unrelated decisions.
-.library-detail__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-s;
-}
 
 // The two halves of the list, named.
 //
@@ -795,27 +796,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   align-items: flex-end;
   padding: 10px 6px 4px;
-  border-bottom: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
   margin: 0;
-  color: $text-faint;
-  font-size: $text-eyebrow;
+  color: $studio-t3;
+  font-size: $studio-text-label;
   font-weight: $weight-bold;
-  @include tracking(0.14em);
+  @include tracking(0.12em);
   text-transform: uppercase;
 }
 
 // The listener's own half wears the accent; what merely follows does not.
 .library-up-next__section.is-added {
   color: $secondary-light;
-  border-bottom-color: color-mix(in srgb, $secondary-light 30%, transparent);
 }
 
 // And what the player chose for itself is quieter still than "then": a dashed
 // rule, because everything under it is a guess rather than a list anybody
 // asked for, and the heading has to be able to say so without a sentence.
 .library-up-next__section.is-continued {
-  color: $text-faint;
-  border-bottom-style: dashed;
+  color: $studio-t3;
 }
 
 // *** Keep playing's songs on their way ****************************************
@@ -931,3 +929,217 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // not see. The queue starts below the bar now, so the row is the card's full
 // width; the container is still the honest thing to ask, because it is the
 // box the controls actually live in.
+
+// *** The pane: Now Playing and the tabs (the "A + C" design) ****************
+
+.library-now {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin: 14px 14px 10px;
+  padding: 12px;
+  border-radius: $radius-xl;
+  background: $studio-surface;
+
+  .library-cover-art--tile {
+    width: 56px;
+    height: 56px;
+    border-radius: $radius-m;
+  }
+}
+
+.library-now__art-empty {
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-m;
+  background: $studio-raise;
+}
+
+.library-now__text {
+  display: grid;
+  min-width: 0;
+}
+
+.library-now__title {
+  @include truncate;
+  color: $text-primary;
+  font-size: $studio-text-row;
+  font-weight: $weight-bold;
+  line-height: 1.5;
+}
+
+.library-now__who {
+  @include truncate;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
+}
+
+.library-now.is-empty .library-now__title {
+  color: $studio-t2;
+  font-weight: $weight-semibold;
+}
+
+// The three tabs, as one segmented control: a tray, the chosen tab a step of
+// light on it.
+.library-pane__tabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  margin: 0 14px;
+  padding: 3px;
+  border-radius: 9px;
+  background: $studio-surface;
+}
+
+.library-pane__tab {
+  display: inline-flex;
+  min-width: 0;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: $studio-t3;
+  font-family: inherit;
+  font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
+  line-height: 1.5;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  > span {
+    @include truncate;
+  }
+
+  &:hover:not(.is-active) {
+    color: $studio-t2;
+  }
+
+  &.is-active {
+    background: $studio-raise;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.library-pane__tab-count {
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  font-variant-numeric: tabular-nums;
+}
+
+.library-pane__body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: 10px;
+  overflow: hidden;
+}
+
+// Up Next inside the body: the list takes what is left and scrolls.
+.library-up-next__body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.library-pane__empty {
+  margin: 24px 6px;
+  color: $studio-t3;
+  font-size: $studio-text-tree;
+  text-align: center;
+}
+
+.library-pane__heading {
+  margin: 0;
+  padding: 10px 6px 4px;
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+}
+
+.library-pane__note {
+  margin: 8px 6px 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
+}
+
+// The Details tab: label and value, the label in the quiet ink.
+.library-facts {
+  @include slim-scrollbar;
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.library-facts__group dl {
+  display: grid;
+  margin: 0;
+  gap: 2px;
+}
+
+.library-facts__row {
+  display: grid;
+  grid-template-columns: minmax(84px, 40%) minmax(0, 1fr);
+  gap: 10px;
+  padding: 4px 6px;
+  font-size: $studio-text-tree;
+  line-height: 1.5;
+
+  dt {
+    color: $studio-t3;
+  }
+
+  dd {
+    @include truncate;
+    margin: 0;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.library-facts__path {
+  margin: 0;
+  padding: 4px 6px 8px;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.library-facts__reveal {
+  margin: 0 6px;
+  justify-self: start;
+}
+
+// The Lyrics tab, empty: what it looked for, said once.
+.library-lyrics.is-empty {
+  padding: 18px 6px;
+  text-align: center;
+}
+
+.library-lyrics__none {
+  margin: 0;
+  color: $studio-t2;
+  font-size: $studio-text-tree;
+  font-weight: $weight-semibold;
+}

@@ -29,7 +29,8 @@ import LibraryTopBar from './LibraryTopBar';
 import LibraryShelfRail from './LibraryShelfRail';
 import LibraryStatusLine from './LibraryStatusLine';
 import LibraryShelfViews from './LibraryShelfViews';
-import LibraryUpNext, { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
+import { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
+import LibraryRightPane from './LibraryRightPane';
 import SurpriseDrawLayer from './surpriseDraw/SurpriseDrawLayer';
 import type { ISurpriseStage } from './surpriseDraw/surpriseStage';
 import LibraryScanProgress from './LibraryScanProgress';
@@ -462,10 +463,8 @@ const LibraryWorkspaceView = ({
               />
             </div>
           )}
-          <LibraryUpNext
+          <LibraryRightPane
             isCollapsed={isUpNextCollapsed}
-            onCollapsedChange={setIsUpNextCollapsed}
-            restTotal={upNextRestTotal}
             canSurprise={trackCount > 0 && !videoTrackId}
           />
         </div>

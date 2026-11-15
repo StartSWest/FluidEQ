@@ -43,6 +43,11 @@ jest.mock('renderer/library/useLibraryList', () => ({
     };
   },
 }));
+// The hero's facts (totals, the album a folder holds) say nothing about the
+// folder's shape, which is what this file is about: nothing answered.
+jest.mock('renderer/library/useLibraryAnswer', () => ({
+  useLibraryAnswer: () => undefined,
+}));
 jest.mock('renderer/library/PlaylistContext', () => ({
   usePlaylists: () => ({ playlists: [], isFavorite: () => false }),
 }));

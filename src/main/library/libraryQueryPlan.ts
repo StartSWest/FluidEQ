@@ -34,6 +34,7 @@ import {
   scoreSql,
   type TBind,
 } from './libraryQuerySql';
+import { PLAY_COLUMNS } from './libraryStoreRows';
 
 export interface ILibraryQueryPlan {
   body: string;
@@ -78,6 +79,14 @@ const trackSortTerms = (sort: TLibrarySort): string[] => {
       'seq',
     ];
   }
+  // Most played first, as Recently added is newest first: the order a
+  // reader presses the header for. Reversed, the least played come up.
+  if (sort === 'plays') {
+    return ['COALESCE(play_count, 0) DESC', 'sort_title', 'seq'];
+  }
+  if (sort === 'length') {
+    return ['COALESCE(duration_ms, 0)', 'sort_title', 'seq'];
+  }
   return ['sort_title', 'seq'];
 };
 
@@ -102,7 +111,7 @@ const TRACK_COLUMNS = `
   t.duration_ms, t.bitrate, t.sample_rate, t.channels, t.codec, t.art_id,
   t.artwork_checked, t.size_bytes, t.mtime_ms, t.added_at,
   t.has_metadata_error, t.normalization, t.is_pending, t.sort_title,
-  t.sort_artist, t.sort_album`;
+  t.sort_artist, t.sort_album, ${PLAY_COLUMNS}`;
 
 const tracksPlan = (query: ILibraryListQuery): ILibraryQueryPlan => {
   const { params, bind } = binder();
@@ -146,7 +155,8 @@ const tracksPlan = (query: ILibraryListQuery): ILibraryQueryPlan => {
   const narrow = body.replace(
     `SELECT ${TRACK_COLUMNS},`,
     `SELECT t.seq, t.id, t.folder, t.sort_title, t.sort_artist, t.sort_album,
-      t.year, t.added_at, t.disc_no, t.track_no,`,
+      t.year, t.added_at, t.disc_no, t.track_no, t.duration_ms,
+      ${PLAY_COLUMNS},`,
   );
   const terms: string[] = [];
   if (near !== undefined) {

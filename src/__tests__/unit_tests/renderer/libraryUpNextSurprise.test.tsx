@@ -66,14 +66,7 @@ const queued = () =>
   }));
 
 const panel = (canSurprise: boolean) =>
-  render(
-    <LibraryUpNext
-      isCollapsed={false}
-      onCollapsedChange={() => undefined}
-      restTotal={0}
-      canSurprise={canSurprise}
-    />,
-  );
+  render(<LibraryUpNext canSurprise={canSurprise} />);
 
 const surpriseButtons = () =>
   screen.queryAllByRole('button', { name: /Surprise me/ });

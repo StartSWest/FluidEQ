@@ -209,6 +209,9 @@ export const trackFromRow = (row: TStoreRow): ILibraryTrack => {
     hasMetadataError: bool(row.has_metadata_error),
     normalization: normalizationOf(row.normalization),
     isPending: bool(row.is_pending),
+    // Absent until the first play, like every other optional here.
+    playCount: Number(row.play_count) > 0 ? Number(row.play_count) : undefined,
+    lastPlayedAt: num(row.last_played_at),
   };
   (Object.keys(optional) as (keyof ILibraryTrack)[]).forEach((key) => {
     const value = optional[key];
@@ -236,10 +239,21 @@ export const rootFromRow = (row: TStoreRow): ILibraryRoot => {
   return root;
 };
 
+/**
+ * A song's plays, read beside its row from their own table (`track_plays`):
+ * a lookup by its primary key per row, so no query that reads songs has to
+ * change what it reads them from. Nothing for a song never heard.
+ */
+export const PLAY_COLUMNS = `
+  (SELECT p.play_count FROM track_plays p WHERE p.track_id = t.id)
+    AS play_count,
+  (SELECT p.last_played_at FROM track_plays p WHERE p.track_id = t.id)
+    AS last_played_at`;
+
 /** The columns a track row is read back through — every stored field. */
 export const TRACK_SELECT = `
   t.id, t.root_id, t.path, t.kind, t.is_playable, t.title, t.artist,
   t.album_artist, t.album, t.track_no, t.disc_no, t.year, t.genre,
   t.duration_ms, t.bitrate, t.sample_rate, t.channels, t.codec, t.art_id,
   t.artwork_checked, t.size_bytes, t.mtime_ms, t.added_at,
-  t.has_metadata_error, t.normalization, t.is_pending`;
+  t.has_metadata_error, t.normalization, t.is_pending, ${PLAY_COLUMNS}`;

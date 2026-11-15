@@ -97,6 +97,11 @@ export interface ILibraryStore {
     analysis: ILibraryNormalizationAnalysis,
     signature: { sizeBytes: number; mtimeMs: number },
   ) => ILibraryTrack | undefined;
+  /**
+   * One more play of a song, counted when the window says it was heard
+   * (`usePlayCounter`). False for an id the library does not know.
+   */
+  readonly notePlayed: (trackId: string, at: number) => boolean;
   readonly close: () => void;
 }
 
@@ -367,6 +372,21 @@ export const createStore = (database: DatabaseSync): ILibraryStore => {
       }
       changed();
       return track(trackId);
+    },
+    notePlayed: (trackId, at) => {
+      // Only for a song the library holds: a play is not a way to make rows.
+      const result = statement(
+        `INSERT INTO track_plays (track_id, play_count, last_played_at)
+         SELECT id, 1, ? FROM tracks WHERE id = ?
+         ON CONFLICT (track_id) DO UPDATE SET
+           play_count = play_count + 1,
+           last_played_at = excluded.last_played_at`,
+      ).run(at, trackId);
+      if (Number(result.changes) === 0) {
+        return false;
+      }
+      changed();
+      return true;
     },
     close: () => {
       database.close();

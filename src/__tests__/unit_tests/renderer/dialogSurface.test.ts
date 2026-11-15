@@ -216,7 +216,6 @@ describe('what stands on the floor', () => {
   // floor — never lighter than a pane ("fix those pane too light").
   it.each([
     ['Library.scss', '.library-grid__tile'],
-    ['Library.scss', '.library-list'],
     ['Library.scss', '.library-empty__card'],
     ['Games.scss', '.gaming-game'],
     ['ConfigInspector.scss', '.config-card'],
@@ -242,6 +241,14 @@ describe('what stands on the floor', () => {
     const column = declarationsOf(compiledCss(sheet), selector);
     expect(column).toContain('color-mix(in srgb, #d6e9f7 2.5%, transparent)');
     expect(column).not.toContain('radial-gradient(');
+  });
+
+  // The details table stands on the shelf's floor under one hairline, as the
+  // mockup's table does: no card round it.
+  it('draws the Library table as rows under a hairline, not a card', () => {
+    const table = declarationsOf(compiledCss('Library.scss'), '.library-list');
+    expect(table).toContain('border-top: 1px solid');
+    expect(table).not.toContain('radial-gradient(');
   });
 
   // The control: the box that holds a set keeps its edge alone — the grid

@@ -51,7 +51,9 @@ export const LibraryUpNextKeepRow = ({
       </span>
       {canSurprise && (
         <LibrarySurpriseButton
-          className="small library-up-next__surprise"
+          // Quiet beside the record's Play, which is the one loud button on
+          // the screen; the empty queue's own invitation stays loud.
+          className="small subtle library-up-next__surprise"
           title={t('library.upNext.surpriseHint')}
         />
       )}

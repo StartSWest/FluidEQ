@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  CSSProperties,
   KeyboardEvent,
   ReactNode,
   useCallback,
@@ -47,6 +48,15 @@ import { libraryRows } from './libraryRows';
 import type { ILibraryList } from './useLibraryList';
 import { useListWindow } from './useListWindow';
 import usePlaylistCovers from './usePlaylistCovers';
+import LibraryColumnChooser from './LibraryColumnChooser';
+import {
+  COLUMN_LABEL_KEYS as TABLE_COLUMN_LABEL_KEYS,
+  COLUMN_SORTS,
+  columnTemplate,
+  fitColumns,
+  NUMERIC_COLUMNS,
+  useLibraryColumns,
+} from './libraryColumns';
 
 interface ILibraryListViewProps {
   /**
@@ -87,6 +97,9 @@ interface ILibraryListViewProps {
   /** Asked for a column. The workspace decides whether that means a new
    * column or a reversal — this view only reports the press. */
   onSort?: (key: TLibrarySort) => void;
+  /** The order the rows are in while no column is chosen, marked on its
+   * header: an album in its own track order lights '#'. */
+  naturalSort?: TLibrarySort;
   /** The song the player is on, so its row can say so. */
   playingTrackId?: string;
   /** Go to this row, scroll it into view and mark it. Carries a nonce because
@@ -177,6 +190,7 @@ const LibraryListView = ({
   sort,
   sortDirection,
   onSort,
+  naturalSort,
   playingTrackId,
   revealTrack,
   resetKey = '',
@@ -190,6 +204,31 @@ const LibraryListView = ({
     [list],
   );
   const isPlaylists = browseMode === 'playlist';
+  /** Songs are the details table; every other shelf lists what it groups. */
+  const isSongTable = browseMode === 'song';
+  const { columns, toggleColumn } = useLibraryColumns();
+  /** The table's width, so a narrow one shows the columns that fit. */
+  const tableRef = useRef<HTMLDivElement | null>(null);
+  const [tableWidth, setTableWidth] = useState(0);
+  useEffect(() => {
+    const table = tableRef.current;
+    if (!table || !isSongTable || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[entries.length - 1]?.contentRect.width;
+      // A hidden tab measures nothing, and nothing is not narrow.
+      if (width !== undefined && width > 0) {
+        setTableWidth(Math.round(width));
+      }
+    });
+    observer.observe(table);
+    return () => observer.disconnect();
+  }, [isSongTable]);
+  const shownColumns = useMemo(
+    () => fitColumns(columns, tableWidth),
+    [columns, tableWidth],
+  );
   const count = isPlaylists ? playlists.length : (rows?.count ?? 0);
 
   /**
@@ -433,85 +472,108 @@ const LibraryListView = ({
 
   const columnHeader = (column: TListColumn) => t(COLUMN_LABEL_KEYS[column]);
 
-  /**
-   * The track-number header, inside the title cell because the number itself
-   * is — see `LibraryTrackRow`. `aria-hidden`: the title cell is already the
-   * `columnheader`, and its own `aria-sort` announces the order this sets.
-   */
-  const trackNoSort = () =>
-    onSort ? (
-      <button
-        type="button"
-        className={`library-list__sort library-list__sort--no${
-          sort === 'track' ? ' is-active' : ''
-        }`}
-        onClick={() => onSort('track')}
-        title={t(COLUMN_LABEL_KEYS.trackNo)}
-        aria-hidden="true"
-        tabIndex={-1}
-      >
-        #
-      </button>
+  /** The arrow on the column driving the order: up while it runs from the
+   * top, down reversed. The accent paints it (`_libraryList.scss`). */
+  const sortArrow = (isActive: boolean) =>
+    isActive ? (
+      <span className="library-list__sort-arrow" aria-hidden="true">
+        {sortDirection === 'desc' ? '↓' : '↑'}
+      </span>
     ) : null;
 
-  /** A sortable header cell. `length` stays plain everywhere: no order sorts
-   * by duration, and a control that does nothing is worse than none. */
-  const sortableHeader = (
-    column: TListColumn,
-    key: TLibrarySort,
+  /** A header cell that orders the table when pressed, or a plain label
+   * where nothing orders by it (or where the table's order is its own). */
+  const headerCell = (
+    label: string,
+    key: TLibrarySort | undefined,
     extraClass?: string,
-    lead?: ReactNode,
+    hint?: string,
   ) => {
-    const isActive = onSort !== undefined && sort === key;
+    const isActive =
+      onSort !== undefined &&
+      key !== undefined &&
+      (sort === key || (sort === undefined && naturalSort === key));
     return (
       <span
+        key={label}
         role="columnheader"
         aria-sort={activeSortLabel(isActive, sortDirection)}
-        className={`library-list__col${
-          column === 'length' ? ' library-list__col--length' : ''
-        }${extraClass ? ` ${extraClass}` : ''}`}
+        className={`library-list__col${extraClass ? ` ${extraClass}` : ''}${
+          isActive ? ' is-sorted' : ''
+        }`}
       >
-        {lead}
-        {onSort ? (
+        {onSort && key !== undefined ? (
           <button
             type="button"
             className={`library-list__sort${isActive ? ' is-active' : ''}`}
+            title={hint}
             onClick={() => onSort(key)}
           >
-            {columnHeader(column)}
-            <span className="library-list__sort-arrow" aria-hidden="true">
-              {isActive && sortDirection === 'desc' ? '▾' : '▴'}
-            </span>
+            {label}
+            {sortArrow(isActive)}
           </button>
         ) : (
-          columnHeader(column)
+          label
         )}
       </span>
     );
   };
 
+  /** The album shelf's own four, as before the details table. */
   const lengthHeader = (
     <span
       role="columnheader"
-      className="library-list__col library-list__col--length"
+      className="library-list__col library-list__col--length is-numeric"
     >
       {columnHeader('length')}
     </span>
   );
 
+  /** The details table's header: `#`, Title, the chosen columns and the
+   * chooser that picks them. */
+  const songHeaderCells = (): ReactNode => (
+    <>
+      {headerCell(
+        '#',
+        'track',
+        'library-list__col--no is-numeric',
+        t(COLUMN_LABEL_KEYS.trackNo),
+      )}
+      {headerCell(columnHeader('title'), 'title', 'library-list__col--title')}
+      {shownColumns.map((column) =>
+        headerCell(
+          t(TABLE_COLUMN_LABEL_KEYS[column]),
+          COLUMN_SORTS[column],
+          `library-list__col--${column}${
+            NUMERIC_COLUMNS.has(column) ? ' is-numeric' : ''
+          }`,
+        ),
+      )}
+      <span
+        role="columnheader"
+        className="library-list__col library-list__col--menu"
+      >
+        <LibraryColumnChooser columns={columns} onToggle={toggleColumn} />
+      </span>
+    </>
+  );
+
   const headerCells = (): ReactNode => {
+    if (isSongTable) {
+      return songHeaderCells();
+    }
     if (browseMode === 'album') {
       return (
         <>
-          {sortableHeader('title', 'title')}
-          {sortableHeader('artist', 'artist')}
-          {sortableHeader('year', 'year')}
+          {headerCell(columnHeader('title'), 'title')}
+          {headerCell(columnHeader('artist'), 'artist')}
+          {headerCell(columnHeader('year'), 'year')}
           {lengthHeader}
         </>
       );
     }
     if (isPlaylists) {
-      // A plain label: the playlists are in their own order — Favourites
+      // A plain label: the playlists keep their own order — Favourites
       // first, then by name — and a header that could be pressed would be a
       // control that does nothing.
       return (
@@ -523,20 +585,10 @@ const LibraryListView = ({
         </span>
       );
     }
-    if (
-      browseMode === 'artist' ||
-      browseMode === 'genre' ||
-      browseMode === 'folder'
-    ) {
-      return sortableHeader('title', 'title', 'library-list__col--span');
-    }
-    return (
-      <>
-        {sortableHeader('title', 'title', undefined, trackNoSort())}
-        {sortableHeader('artist', 'artist')}
-        {sortableHeader('album', 'album')}
-        {lengthHeader}
-      </>
+    return headerCell(
+      columnHeader('title'),
+      'title',
+      'library-list__col--span',
     );
   };
 
@@ -565,6 +617,7 @@ const LibraryListView = ({
         )}
         artId={covers.get(playlist.id)}
         isBuiltIn={isBuiltIn}
+        isEven={at % 2 === 1}
         isPending={false}
         isSelected={activeId === playlist.id}
         onOpen={openGroup(onOpenPlaylist)}
@@ -615,6 +668,8 @@ const LibraryListView = ({
         <LibraryTrackRow
           key={keyFor(track.id)}
           track={track}
+          columns={shownColumns}
+          isEven={row % 2 === 1}
           isOffline={offlineRootIds.has(track.rootId)}
           isFolderOnly={item.folderOnly === true}
           isSearchMatch={item.matched === true}
@@ -636,6 +691,7 @@ const LibraryListView = ({
       return (
         <LibraryListGroupRow
           key={keyFor(item.id)}
+          isEven={row % 2 === 1}
           id={item.id}
           title={title}
           subtitle={t('library.trackCount', { count: item.trackCount })}
@@ -666,6 +722,7 @@ const LibraryListView = ({
       return (
         <LibraryListGroupRow
           key={keyFor(item.id)}
+          isEven={row % 2 === 1}
           id={item.id}
           title={item.name || t('library.unknownArtist')}
           subtitle={`${t('library.albumCount', { count: item.albumCount })} · ${t(
@@ -683,6 +740,7 @@ const LibraryListView = ({
       return (
         <LibraryListGroupRow
           key={keyFor(item.id)}
+          isEven={row % 2 === 1}
           id={item.id}
           // The one bucket with no tag behind it is named here, in a locale.
           title={
@@ -707,6 +765,7 @@ const LibraryListView = ({
     return (
       <LibraryListGroupRow
         key={keyFor(item.id)}
+        isEven={row % 2 === 1}
         id={item.id}
         title={item.name}
         subtitle={
@@ -729,12 +788,26 @@ const LibraryListView = ({
   }
 
   return (
-    <div className="library-list" role="table" aria-label={t('tabs.library')}>
+    <div
+      ref={tableRef}
+      className={`library-list${isSongTable ? ' library-list--songs' : ''}`}
+      role="table"
+      aria-label={t('tabs.library')}
+      style={
+        isSongTable
+          ? ({
+              '--library-columns': columnTemplate(shownColumns),
+            } as CSSProperties)
+          : undefined
+      }
+    >
       <div className="library-list__header" role="row">
-        <span
-          className="library-list__col library-list__col--art"
-          aria-hidden="true"
-        />
+        {!isSongTable && (
+          <span
+            className="library-list__col library-list__col--art"
+            aria-hidden="true"
+          />
+        )}
         {headerCells()}
       </div>
       <div

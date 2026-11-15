@@ -30,6 +30,8 @@ interface ILibraryListGroupRowProps {
   isFolder?: boolean;
   isPending: boolean;
   isSelected: boolean;
+  /** Every other row a shade lighter, from its place in the whole list. */
+  isEven?: boolean;
   /** The one playlist that is always there, marked as such. */
   isBuiltIn?: boolean;
   /** Cells after the title — an album's artist, year and length. Without
@@ -46,6 +48,7 @@ const LibraryListGroupRow = ({
   isFolder = false,
   isPending,
   isSelected,
+  isEven = false,
   isBuiltIn = false,
   cells,
   onOpen,
@@ -63,9 +66,9 @@ const LibraryListGroupRow = ({
       role="row"
       tabIndex={0}
       aria-selected={isSelected}
-      className={`library-list__row${isPending ? ' library-list__row--pending' : ''}${
-        isSelected ? ' library-list__row--selected' : ''
-      }`}
+      className={`library-list__row${isEven ? ' is-even' : ''}${
+        isPending ? ' library-list__row--pending' : ''
+      }${isSelected ? ' library-list__row--selected' : ''}`}
       onClick={activate}
       onKeyDown={onKeyDown}
     >

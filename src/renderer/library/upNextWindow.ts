@@ -10,8 +10,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * where each entry starts.
  */
 
-/** A track row: 30px of picture with 6px either side of it. */
-export const ROW_HEIGHT = 42;
+/** A track row: 36px of picture with 7px either side of it (the mockup). */
+export const ROW_HEIGHT = 50;
 /** Entries kept mounted beyond the scrollport, either side. */
 const OVERSCAN = 6;
 /**

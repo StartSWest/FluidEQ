@@ -108,6 +108,15 @@ export const LibraryUpNextChip = ({
 };
 
 /** An album heading: one small line and the space above it. */
+/** `m:ss`, or nothing for a song whose length is not known yet. */
+const formatQueueLength = (durationMs: number | undefined): string => {
+  if (durationMs === undefined || !Number.isFinite(durationMs)) {
+    return '';
+  }
+  const seconds = Math.round(durationMs / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+};
+
 const HEADING_HEIGHT = 26;
 
 /**
@@ -206,31 +215,21 @@ const buildEntries = (
  * tab is the thing that has to give it up, so `LibraryWorkspace` owns that
  * state and hands it down.
  */
+/**
+ * Up Next, the right pane's first tab (`LibraryRightPane`): Keep playing and
+ * Surprise me, the songs on their way while Keep playing fills, and the list
+ * in its sections, dragged to reorder. The pane around it holds the fold, the
+ * Now Playing card and the tabs; this is the list and only the list.
+ */
 const LibraryUpNext = ({
-  isCollapsed,
-  onCollapsedChange,
-  restTotal,
   canSurprise,
 }: {
-  isCollapsed: boolean;
-  onCollapsedChange: (next: boolean) => void;
   /**
    * Whether Surprise me is offered: the library has songs and a shelf is
    * drawn. Over a video the queue floats on the picture, and a surprise
    * would end the film for a song; the draw has no shelf to play over.
    */
   canSurprise: boolean;
-  /**
-   * How much of the shelf is still to come that the queue is NOT already
-   * carrying — see `upNextTotal`, which adds it to the rows in hand.
-   *
-   * The queue is a 200-entry window that slides as the playhead moves, so a
-   * ten-thousand-song shelf plays through in full while never holding more
-   * than a slice of itself. Counting rows reported the slice — "199" for a
-   * shelf with nine thousand left to play — so the caller, which is the one
-   * that knows the whole list, says what the slice leaves out.
-   */
-  restTotal: number | undefined;
 }) => {
   const { t } = useTranslation();
   const {
@@ -376,9 +375,7 @@ const LibraryUpNext = ({
    * lit, and what is coming altogether, quiet — and only the total when
    * nothing has been chosen yet.
    */
-  const addedCount = upNext.filter((entry) => entry.isAdded).length;
   const trackCount = upNext.length;
-  const listCount = upNextTotal(upNext, restTotal);
   // Clamped at zero, both of them. Widening the panel re-measures the
   // scrollport a frame after the list has already been re-laid out, and for
   // that frame the arithmetic can ask for a negative spacer — which the
@@ -403,35 +400,7 @@ const LibraryUpNext = ({
   };
 
   return (
-    <aside
-      className={`library-up-next${isCollapsed ? ' is-collapsed' : ''}`}
-      aria-label={t('library.upNext')}
-      // Folded it stays mounted, so the fold can move, and out of reach.
-      inert={isCollapsed}
-    >
-      {/* The header is the fold, and says which way it will go by which way
-          the chevron points. */}
-      <button
-        type="button"
-        className="library-up-next__head"
-        aria-expanded={!isCollapsed}
-        onClick={() => onCollapsedChange(!isCollapsed)}
-      >
-        <svg className="library-up-next__caret" viewBox="0 0 16 16" aria-hidden>
-          <path d="M4 6.5l4 4 4-4" />
-        </svg>
-        <span className="library-up-next__title">{t('library.upNext')}</span>
-        <span className="library-up-next__count">
-          {addedCount > 0 && (
-            <b className="library-up-next__count-picked">{addedCount}</b>
-          )}
-          {addedCount > 0 && <span aria-hidden="true">/</span>}
-          {listCount}
-        </span>
-      </button>
-      {/* Outside the fold button rather than inside it — a control cannot
-          be nested in another control. One Surprise me at a time: an empty
-          queue offers its own, larger, below. */}
+    <div className="library-up-next__body">
       <LibraryUpNextKeepRow
         canSurprise={canSurprise && (trackCount > 0 || isDrawingMore)}
       />
@@ -518,6 +487,9 @@ const LibraryUpNext = ({
                       {entry.track.artist ?? ''}
                     </span>
                   </span>
+                  <span className="library-up-next__time">
+                    {formatQueueLength(entry.track.durationMs)}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -536,7 +508,7 @@ const LibraryUpNext = ({
           <div style={{ height: below }} aria-hidden="true" />
         </div>
       )}
-    </aside>
+    </div>
   );
 };
 

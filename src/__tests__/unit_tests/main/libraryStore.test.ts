@@ -415,3 +415,95 @@ describe('an album key', () => {
     expect(joined).not.toBe(split);
   });
 });
+
+describe('plays', () => {
+  it('counts a play of a song the library holds, and only of one', () => {
+    const { store } = open(temp());
+    const song = track();
+    store.addRoots([root()]);
+    store.upsertTracks([song], 0);
+    expect(store.track(song.id)?.playCount).toBeUndefined();
+
+    const before = store.version();
+    expect(store.notePlayed(song.id, 1000)).toBe(true);
+    expect(store.notePlayed(song.id, 2000)).toBe(true);
+    expect(store.version()).toBe(before + 2);
+    expect(store.track(song.id)).toMatchObject({
+      playCount: 2,
+      lastPlayedAt: 2000,
+    });
+    // A play is not a way to make rows: an unknown id changes nothing.
+    expect(store.notePlayed('nobody', 3000)).toBe(false);
+    expect(
+      store.database.prepare('SELECT COUNT(*) AS n FROM track_plays').get(),
+    ).toEqual({ n: 1 });
+  });
+
+  it('keeps the plays of a song a rescan writes again', () => {
+    const { store } = open(temp());
+    const song = track();
+    store.addRoots([root()]);
+    store.upsertTracks([song], 0);
+    store.notePlayed(song.id, 1000);
+    store.upsertTracks([{ ...song, title: 'Retagged' }], 1);
+    expect(store.track(song.id)).toMatchObject({
+      title: 'Retagged',
+      playCount: 1,
+    });
+  });
+
+  /**
+   * A file as schema 1 and schema 2 wrote it, opened by this build. Neither
+   * had `track_plays`; their tables are otherwise the ones this build makes,
+   * so the files are made here and the new table taken away, with schema 1's
+   * NUL album keys as well — every step of the chain a user's file can come
+   * up through. The plays table must appear, every song must survive, and a
+   * play must count.
+   */
+  it.each([1, 2])(
+    'gives a schema %i file its plays and keeps every song',
+    (schema) => {
+      const dir = temp();
+      const songs = [
+        track({ album: 'Blue', artist: 'Miles' }),
+        track({ album: 'Kind of Blue', artist: 'Miles' }),
+      ];
+      const written = open(dir);
+      written.store.addRoots([root()]);
+      written.store.upsertTracks(songs, 0);
+      written.store.database.exec('DROP TABLE track_plays');
+      if (schema === 1) {
+        const legacy = written.store.database.prepare(
+          'UPDATE tracks SET album_key = ? WHERE id = ?',
+        );
+        songs.forEach((song) =>
+          legacy.run(
+            albumKey(song).replace(ALBUM_KEY_SEPARATOR, String.fromCharCode(0)),
+            song.id,
+          ),
+        );
+      }
+      written.store.database
+        .prepare("UPDATE meta SET value = ? WHERE key = 'schema'")
+        .run(String(schema));
+      opened.pop()?.close();
+
+      const { store, wasReset } = open(dir);
+      expect(wasReset).toBe(false);
+      songs.forEach((song) => {
+        expect(store.track(song.id)).toMatchObject({
+          title: song.title,
+          album: song.album,
+        });
+        expect(store.track(song.id)?.playCount).toBeUndefined();
+      });
+      expect(store.notePlayed(songs[0].id, 1000)).toBe(true);
+      expect(store.track(songs[0].id)?.playCount).toBe(1);
+      expect(
+        store.database
+          .prepare("SELECT value FROM meta WHERE key = 'schema'")
+          .get(),
+      ).toEqual({ value: String(SCHEMA_VERSION) });
+    },
+  );
+});

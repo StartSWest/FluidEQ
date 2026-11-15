@@ -135,6 +135,14 @@ export interface ILibraryTrack {
    * never set back to `true` once cleared, since that would mean an already
    * -read file forgot what it learned. */
   isPending?: boolean;
+  /**
+   * How many times the song was heard through FluidEQ: past half its length
+   * or four minutes, whichever came first (`usePlayCounter`). Absent until
+   * the first; kept across rescans, because it is not in the file.
+   */
+  playCount?: number;
+  /** When it was last counted as heard, as `Date.now()`. */
+  lastPlayedAt?: number;
 }
 
 export type TLibraryBrowseMode =
@@ -149,7 +157,11 @@ export type TLibrarySort =
   // The order the record itself puts them in — disc, then track number, off
   // the tags. The one order an album is actually meant to be heard in, and
   // until it was a sort of its own the only way to get it was not to sort.
-  | 'track';
+  | 'track'
+  // The details table's Plays and Time columns (2026-11-14): most played
+  // first, and shortest first.
+  | 'plays'
+  | 'length';
 export type TLibrarySortDirection = 'asc' | 'desc';
 
 export interface ILibraryScanProgress {

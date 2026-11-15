@@ -43,6 +43,10 @@ import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 import { usePlaylists } from './PlaylistContext';
 import { useLibraryList } from './useLibraryList';
+import { useLibraryAnswer } from './useLibraryAnswer';
+import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
+import { formatOf } from './libraryColumns';
+import { formatLength } from './libraryFormat';
 
 interface ILibraryDetailProps {
   albumId?: string;
@@ -297,6 +301,49 @@ const LibraryDetail = ({
   const children = useLibraryList(childrenQuery);
 
   /**
+   * The whole record summed for the hero's facts — its songs and how long
+   * they last — whatever the table is narrowed or ordered by. A folder counts
+   * everything beneath it, as its count in the tree does.
+   */
+  const recordTotals = useLibraryAnswer(
+    record === undefined
+      ? undefined
+      : {
+          type: 'totals',
+          query: {
+            shelf: 'tracks',
+            scope: folderPath ? { beneath: folderPath } : record.scope,
+            direction: 'asc',
+          },
+        },
+  );
+  /**
+   * The one album a folder holds, when it holds exactly one: the hero then
+   * reads as that record — its title, its artist, its year — under a kind
+   * line saying it is a folder with an album inside (the mockup's own case).
+   */
+  const folderAlbums = useLibraryAnswer(
+    folderPath
+      ? {
+          type: 'page',
+          query: {
+            shelf: 'albums',
+            scope: { beneath: folderPath },
+            direction: 'asc',
+          },
+          offset: 0,
+          limit: 2,
+        }
+      : undefined,
+  );
+  const albumInside =
+    folderAlbums?.total === 1 && folderAlbums.items[0]?.kind === 'album'
+      ? folderAlbums.items[0]
+      : undefined;
+  // Shuffle needs the player; a panel drawn without one simply offers none.
+  const setShuffle = useLibraryPlayerSessionIfAny()?.setShuffle;
+
+  /**
    * For a folder, its own files unfiltered: a folder with none is a way
    * through to what is under it, not a record. For anything else, the
    * folders its songs are in: one, and it is named under the title; more,
@@ -389,7 +436,7 @@ const LibraryDetail = ({
   if (isAlbum) {
     title = album?.title || t('library.unknownAlbum');
   } else if (isFolder) {
-    title = folderName;
+    title = albumInside?.title || folderName;
   } else if (isGenre) {
     title =
       genreId === UNKNOWN_GENRE_ID
@@ -412,10 +459,43 @@ const LibraryDetail = ({
   if (isAlbum) {
     subtitle = album?.artist || t('library.unknownArtist');
   } else if (isFolder) {
-    // The whole path: "CD1" alone says nothing about which CD1.
-    subtitle = folderPath ?? '';
+    // The album's artist when the folder is one album; otherwise the whole
+    // path: "CD1" alone says nothing about which CD1.
+    subtitle = albumInside
+      ? albumInside.artist || t('library.unknownArtist')
+      : (folderPath ?? '');
   } else if (isPlaylist && missingCount > 0) {
     subtitle = t('library.playlist.missing', { count: missingCount });
+  }
+
+  /** The song the facts are read from: the first the table holds. */
+  const leadItem = table.at(0);
+  const leadSong = leadItem?.kind === 'track' ? leadItem.track : undefined;
+  const firstSongGenre = leadSong?.genre;
+  /** "FLAC 44.1 kHz": the file's format and its rate. */
+  const firstFormat = leadSong
+    ? [
+        formatOf(leadSong.path),
+        leadSong.sampleRate ? `${leadSong.sampleRate / 1000} kHz` : '',
+      ]
+        .filter(Boolean)
+        .join(' ')
+    : '';
+
+  /** The kind line over the title: what this record is, and its genre. */
+  let kind = t('library.kind.playlist');
+  if (isAlbum) {
+    kind = firstSongGenre
+      ? `${t('library.kind.album')} · ${firstSongGenre}`
+      : t('library.kind.album');
+  } else if (isFolder) {
+    kind = albumInside
+      ? t('library.kind.folderAlbum')
+      : t('library.kind.folder');
+  } else if (artistId) {
+    kind = t('library.kind.artist');
+  } else if (isGenre) {
+    kind = t('library.kind.genre');
   }
 
   let counts = t('library.trackCount', { count: table.count });
@@ -444,6 +524,21 @@ const LibraryDetail = ({
     // hundred one level down is the kind of true that reads as broken.
     counts = t('library.trackCount', { count: summary.count });
   }
+
+  /**
+   * One line of facts: the year, how many songs and how long, and the format
+   * a record of one kind of file is in ("FLAC 44.1 kHz"). Each part only
+   * where it is known; a record of many formats names none.
+   */
+  const year = album?.year ?? albumInside?.year;
+  const facts = [
+    year === undefined ? '' : String(year),
+    counts,
+    recordTotals !== undefined && recordTotals.durationMs > 0
+      ? formatLength(recordTotals.durationMs, t)
+      : '',
+    (isAlbum || albumInside !== undefined) && firstFormat ? firstFormat : '',
+  ].filter(Boolean);
 
   const firstTableTrack = table.at(0);
   const firstSong =
@@ -479,6 +574,21 @@ const LibraryDetail = ({
     }
   };
 
+  /** The record from a song drawn at random, with the player's Shuffle on
+   * so the songs after it are drawn as well. */
+  const handleShuffle = () => {
+    loadTrackIds()
+      .then((ids) => {
+        const pick = ids[Math.floor(Math.random() * ids.length)];
+        if (pick !== undefined) {
+          onPlayTrack(pick);
+          setShuffle?.(true);
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+  };
+
   /** Every id in the table, in its order — for the queue and the menu. */
   const loadTrackIds = (): Promise<readonly string[]> =>
     tableQuery === undefined
@@ -512,15 +622,28 @@ const LibraryDetail = ({
           itself — an orphan, a deleted playlist. */}
       {isHeaderShown && (
         <LibraryDetailHeader
+          kind={kind}
           title={title}
           subtitle={subtitle}
           recordFolder={recordFolder}
-          counts={counts}
+          counts={facts.join(' · ')}
           matchedCount={table.markedCount}
-          isFolder={isFolder}
-          artId={headerArtId}
+          // A folder that is one album shows the album's cover, as the
+          // mockup's folder hero does; any other folder is drawn as one.
+          isFolder={isFolder && albumInside === undefined}
+          artId={albumInside?.artId ?? headerArtId}
           hasTracks={hasTracks}
           onPlay={handlePlay}
+          onShuffle={setShuffle ? handleShuffle : undefined}
+          onReveal={
+            (recordFolder !== undefined || isFolder) && firstSong
+              ? () => {
+                  window.electron.ipcRenderer
+                    .revealLibraryTrack(firstSong.id)
+                    .catch(() => undefined);
+                }
+              : undefined
+          }
           loadTrackIds={loadTrackIds}
           onlyTrack={table.count === 1 ? firstSong : undefined}
           onQueueTracks={onQueueTracks}
@@ -613,6 +736,8 @@ const LibraryDetail = ({
             sort={sort}
             sortDirection={sortDirection}
             onSort={handleSort}
+            // An album plays in its own track order until a column is chosen.
+            naturalSort={isAlbum ? 'track' : undefined}
             resetKey={tableKey}
           />
         ))}

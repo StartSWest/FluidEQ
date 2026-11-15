@@ -36,7 +36,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0 10px 0 16px;
   border-top: 1px solid $studio-hair;
   background: $studio-rail;
-  color: $text-faint;
+  color: $studio-t3;
   font-size: $studio-text-meta;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -117,7 +117,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   border-radius: $radius-xs;
   background: none;
-  color: $text-faint;
+  color: $studio-t3;
   cursor: pointer;
   transition: $transition-control;
 

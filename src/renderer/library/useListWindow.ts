@@ -41,7 +41,7 @@ const OVERSCAN_VIEWPORTS = 3;
  * sets. Wrong here costs one frame of a slightly misjudged window, never a
  * wrong scrollbar.
  */
-const ROW_HEIGHT = 46;
+const ROW_HEIGHT = 41;
 
 /** Rows mounted before anything has been measured — enough to fill the
  * tallest pane this app is usable in. */

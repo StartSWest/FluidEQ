@@ -28,6 +28,7 @@ import type {
   TLibraryRequest,
 } from '../common/library/query';
 import type { ILibraryPlaylists } from '../common/library/playlists';
+import type { ILibraryTrackFacts } from '../common/library/trackFacts';
 
 /**
  * The Library's calls: its folders and scans, the page of songs the window
@@ -119,6 +120,16 @@ const onLibraryChanged = (listener: (summary: ILibrarySummary) => void) => {
 /** Shows the file in Explorer/Finder; an id the library no longer knows does nothing. */
 const revealLibraryTrack = (trackId: string) =>
   ipcRenderer.invoke('library-reveal', trackId) as Promise<void>;
+
+/** The Details pane's facts about a song, read from its file by id. */
+const libraryTrackFacts = (trackId: string) =>
+  ipcRenderer.invoke('library-track-facts', trackId) as Promise<
+    ILibraryTrackFacts | undefined
+  >;
+
+/** One more play of a song the window heard past half its length. */
+const noteLibraryTrackPlayed = (trackId: string) =>
+  ipcRenderer.invoke('library-track-played', trackId) as Promise<boolean>;
 
 /**
  * The whole audio file, so the player can hold it as a blob and seek inside
@@ -232,6 +243,8 @@ const libraryBridge = {
   onLibraryScanProgress,
   onLibraryChanged,
   revealLibraryTrack,
+  noteLibraryTrackPlayed,
+  libraryTrackFacts,
   libraryTrackBytes,
   libraryTrackSignature,
   setLibraryTrackNormalization,

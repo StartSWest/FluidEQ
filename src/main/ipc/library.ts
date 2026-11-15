@@ -31,6 +31,7 @@ import { buildRoot, queueLibraryFiles } from '../library/libraryQueueFiles';
 import parseLibraryRequest from '../library/libraryRequestGuard';
 import { createLibraryScanRunner } from '../library/libraryScanRunner';
 import { openLibraryStore } from '../library/libraryStoreOpen';
+import { readTrackFacts } from '../library/libraryTrackFacts';
 import { isLocalRendererPath } from '../rendererPaths';
 import onWindowMessage from './windowMessages';
 
@@ -363,6 +364,32 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
     if (trackPath !== undefined) {
       shell.showItemInFolder(trackPath);
     }
+  });
+
+  // The Details pane's facts about one song, read from its file. By id
+  // only, like Show in Explorer: the window never names a path to read.
+  ipcMain.handle('library-track-facts', async (_event, rawTrackId: unknown) => {
+    const trackPath =
+      typeof rawTrackId === 'string' && rawTrackId.length <= 512
+        ? store.trackPath(rawTrackId)
+        : undefined;
+    if (trackPath === undefined) {
+      return undefined;
+    }
+    return readTrackFacts(trackPath);
+  });
+
+  // A play the window heard (`usePlayCounter`), by id only: an id the
+  // library does not know changes nothing and tells nobody.
+  ipcMain.handle('library-track-played', (_event, rawTrackId: unknown) => {
+    if (typeof rawTrackId !== 'string' || rawTrackId.length > 512) {
+      return false;
+    }
+    if (!store.notePlayed(rawTrackId, Date.now())) {
+      return false;
+    }
+    announce();
+    return true;
   });
 
   // Once per process, on the first window actually shown: a window closed

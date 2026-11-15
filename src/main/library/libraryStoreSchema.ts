@@ -96,6 +96,17 @@ export const SCHEMA = `
     PRIMARY KEY (track_id, genre_id)
   );
   CREATE INDEX IF NOT EXISTS track_genres_genre ON track_genres (genre_id);
+  -- The Library's Plays column (notePlayed), in a table of its own rather
+  -- than columns on tracks: an older file gains it the way it gains every
+  -- table here, by CREATE IF NOT EXISTS, with no ALTER and no migration step
+  -- that could fail half-way and leave the songs table unreadable. A song
+  -- with no row has never been heard. Keyed by the song's id, so a rescan
+  -- that rewrites the song keeps its count, as it keeps its loudness.
+  CREATE TABLE IF NOT EXISTS track_plays (
+    track_id TEXT PRIMARY KEY,
+    play_count INTEGER NOT NULL,
+    last_played_at REAL NOT NULL
+  );
 `;
 
 export const TRACK_UPSERT = `

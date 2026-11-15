@@ -24,18 +24,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
-// The track number the record was pressed with. Quiet, and a fixed width so a
-// column of them reads as a column rather than pushing every title to a
-// different left edge.
-.library-list__track-no {
-  min-width: 18px;
-  flex: 0 0 auto;
-  color: $text-faint;
-  font-size: $text-small;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-
 // Why this panel is on screen.
 //
 // A compilation that came up because two of its five hundred songs are by the

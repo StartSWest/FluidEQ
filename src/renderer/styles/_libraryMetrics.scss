@@ -16,4 +16,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // this number is safe; letting rows differ from *each other* is not — which
 // is why a folder heading, a search section and a row still being read all
 // take it from here.
-$library-row-height: 46px;
+// 41px since the details table (2026-11-14): the mockup's 14px row at a
+// 1.5 line height, 10px above and below.
+$library-row-height: 41px;

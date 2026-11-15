@@ -52,7 +52,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-rail__heading {
   padding: 10px 10px 6px;
-  color: $text-faint;
+  color: $studio-t3;
   font-size: $studio-text-label;
   font-weight: $weight-bold;
   @include tracking(0.12em);
@@ -76,7 +76,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover,
   &.is-active {
-    color: $text-muted;
+    color: $studio-t2;
   }
 
   &.is-active {
@@ -112,7 +112,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   border-radius: $radius-m;
   background: none;
-  color: $text-muted;
+  color: $studio-t2;
   font-family: inherit;
   font-size: $studio-text-row;
   text-align: left;
@@ -164,7 +164,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-rail__count {
   margin-left: auto;
   padding-left: 8px;
-  color: $text-faint;
+  color: $studio-t3;
   font-size: $studio-text-meta;
   font-variant-numeric: tabular-nums;
 }
@@ -212,7 +212,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Each level steps in 15px under the shelf's own 10, as Explorer indents.
   padding: 5px 10px 5px calc(10px + var(--tree-level, 0) * 15px);
   border-radius: 7px;
-  color: $text-muted;
+  color: $studio-t2;
   font-size: $studio-text-tree;
   white-space: nowrap;
   cursor: pointer;
@@ -249,7 +249,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 12px;
   flex: 0 0 auto;
   place-items: center;
-  color: $text-faint;
+  color: $studio-t3;
 
   svg {
     width: 10px;
@@ -286,7 +286,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-tree__count {
   margin-left: auto;
   padding-left: 6px;
-  color: $text-faint;
+  color: $studio-t3;
   font-size: $studio-text-label;
   font-variant-numeric: tabular-nums;
 }
@@ -298,7 +298,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   border-radius: 7px;
   background: none;
-  color: $text-faint;
+  color: $studio-t3;
   font-family: inherit;
   font-size: $studio-text-label;
   text-align: left;

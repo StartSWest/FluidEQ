@@ -85,6 +85,7 @@ import { useTransportControls } from './useTransportControls';
 import { useUpNext } from './useUpNext';
 import { useVideoElement } from './useVideoElement';
 import useTrackEnd from './useTrackEnd';
+import usePlayCounter from './usePlayCounter';
 import { useTrackLoader } from './useTrackLoader';
 
 // Re-exported so every existing importer keeps working: the contract moved,
@@ -251,6 +252,13 @@ export const LibraryPlayerProvider = ({
     positionMs,
     durationMs,
     upcoming,
+  });
+  // The Library's Plays column, from the clock the transport publishes.
+  usePlayCounter({
+    trackId: track?.id,
+    positionMs: publishedPositionMs,
+    durationMs: publishedDurationMs,
+    isPlaying,
   });
   // The element claims fallback playback from its own `play` event. A native
   // deck has no DOM event, so its first non-ended telemetry frame is the real
@@ -762,6 +770,15 @@ export const useLibraryPlayerSession = (): ILibraryPlayerSession => {
   }
   return context;
 };
+
+/**
+ * The session when a player stands above, nothing otherwise: for a panel
+ * that offers more with a player (a record's Shuffle) and is still a whole
+ * panel without one.
+ */
+export const useLibraryPlayerSessionIfAny = ():
+  ILibraryPlayerSession | undefined =>
+  useContext(LibraryPlayerContext) ?? undefined;
 
 export const useLibraryPlayer = (): ILibraryPlayerContextValue => {
   const session = useLibraryPlayerSession();

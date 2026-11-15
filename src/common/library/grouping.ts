@@ -625,6 +625,20 @@ export const sortTracks = (
         compareTracksInAlbum(left, right)
       );
     }
+    // The store's own two (`trackSortTerms`): most played first, shortest
+    // first, by title among equals.
+    if (sort === 'plays') {
+      return (
+        (right.playCount ?? 0) - (left.playCount ?? 0) ||
+        left.title.localeCompare(right.title)
+      );
+    }
+    if (sort === 'length') {
+      return (
+        (left.durationMs ?? 0) - (right.durationMs ?? 0) ||
+        left.title.localeCompare(right.title)
+      );
+    }
     return left.title.localeCompare(right.title);
   };
   const sorted = [...tracks].sort(compare);

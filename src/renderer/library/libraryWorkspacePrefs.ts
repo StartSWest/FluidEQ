@@ -99,6 +99,8 @@ export const SORTS: readonly TLibrarySort[] = [
   'year',
   'added',
   'track',
+  'plays',
+  'length',
 ];
 
 /**

@@ -94,3 +94,20 @@ $studio-text-tree: 0.8125rem;
 $studio-text-meta: 0.75rem;
 
 $studio-text-label: 0.6875rem;
+
+$studio-text-title: 1.875rem;
+
+$studio-text-lead: 0.9375rem;
+
+// The mockup's three levels of ink: t1 the reader's own (`$text-primary`),
+// t2 a step down for what qualifies it (an artist, a count), t3 the quietest
+// for labels and facts. Mixed from the window's own text colour, so a light
+// theme and a Plus scene's colours carry them as they carry t1; the shipped
+// muted and faint inks are lighter than the mockup's t2 and t3 by more than a
+// step, and a long list read flat with them.
+$studio-t2: color-mix(in srgb, $text-primary 68%, transparent);
+
+$studio-t3: color-mix(in srgb, $text-primary 44%, transparent);
+
+// Ink on the accent: the filled button's own (`.button`), the window's floor.
+$studio-on-accent: $surface-base;

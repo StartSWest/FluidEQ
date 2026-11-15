@@ -47,6 +47,8 @@ const SORTS: readonly TLibrarySort[] = [
   'album',
   'year',
   'added',
+  'plays',
+  'length',
 ];
 
 const SORT_LABEL_KEYS = {
@@ -56,6 +58,8 @@ const SORT_LABEL_KEYS = {
   album: 'library.sort.album',
   year: 'library.sort.year',
   added: 'library.sort.added',
+  plays: 'library.sort.plays',
+  length: 'library.sort.length',
 } as const;
 
 /**
