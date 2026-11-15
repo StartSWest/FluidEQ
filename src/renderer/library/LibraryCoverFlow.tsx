@@ -94,6 +94,9 @@ interface ILibraryCoverFlowProps {
   /** Filled while this view is on screen, so Surprise me's draw spins this
    * row instead of building a second scene (`surpriseStage.ts`). */
   surpriseStageRef?: TSurpriseStageRef;
+  /** A cover to centre, numbered so the same one twice still moves the row:
+   * Surprise me's pick (`showSurprisePick`). */
+  centreRequest?: { id: string; nonce: number };
 }
 
 /**
@@ -128,6 +131,7 @@ const LibraryCoverFlow = ({
   query,
   onQueueTracks,
   surpriseStageRef,
+  centreRequest,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
   const { isScanning } = useLibrary();
@@ -410,6 +414,31 @@ const LibraryCoverFlow = ({
     // Keyed on the request, not on the row changing under a scan.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealTrackId, revealNonce]);
+
+  /** Any cover the workspace asks for, in any mode: Surprise me's pick. */
+  const requestedNonce = centreRequest?.nonce;
+  const requestedId = centreRequest?.id;
+  useEffect(() => {
+    if (requestedId === undefined) {
+      return undefined;
+    }
+    let isCurrent = true;
+    positionOfRef
+      .current(requestedId)
+      .then((index) => {
+        if (isCurrent && index >= 0) {
+          centredId.current = requestedId;
+          setCurrentIndex(index);
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      isCurrent = false;
+    };
+    // Keyed on the request, as the song reveal above is.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedId, requestedNonce]);
 
   /**
    * The first cover under each letter of the rail, in the row's current

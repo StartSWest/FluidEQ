@@ -46,6 +46,7 @@ import {
   writePersistedText,
 } from './libraryWorkspacePrefs';
 import {
+  type ILibraryTrack,
   type TLibraryBrowseMode,
   type TLibrarySort,
   type TLibrarySortDirection,
@@ -61,6 +62,29 @@ import { shelfQueryFor } from './libraryShelfQuery';
 import { useLibraryList } from './useLibraryList';
 import { trackGenreIds } from '../../common/library/genres';
 import { type ILibraryWorkspaceProps } from './LibraryWorkspace';
+
+/**
+ * The cover a song belongs to on the shelf being browsed: its album,
+ * artist, first genre, folder, or the song itself. One rule for the
+ * playing mark and for where Surprise me's pick is shown.
+ */
+const shelfItemOf = (
+  browseMode: TLibraryBrowseMode,
+  track: ILibraryTrack,
+): string => {
+  switch (browseMode) {
+    case 'album':
+      return albumKey(track);
+    case 'artist':
+      return artistKey(track);
+    case 'genre':
+      return trackGenreIds(track)[0] ?? track.id;
+    case 'folder':
+      return trackFolderPath(track.path);
+    default:
+      return track.id;
+  }
+};
 
 /**
  * The Library's shelf: the index and the queue, the browse mode, view and
@@ -573,19 +597,58 @@ const useLibraryWorkspaceShelf = ({
     if (!isPlaying || !playingTrack) {
       return undefined;
     }
-    switch (browseMode) {
-      case 'album':
-        return albumKey(playingTrack);
-      case 'artist':
-        return artistKey(playingTrack);
-      case 'genre':
-        return trackGenreIds(playingTrack)[0];
-      case 'folder':
-        return trackFolderPath(playingTrack.path);
-      default:
-        return playingTrack.id;
-    }
+    return shelfItemOf(browseMode, playingTrack);
   }, [browseMode, isPlaying, playingTrack]);
+
+  /**
+   * A cover for Cover Flow to centre, numbered so the same one twice still
+   * moves the row. Written by `showSurprisePick`.
+   */
+  const [centreRequest, setCentreRequest] = useState<
+    { id: string; nonce: number } | undefined
+  >(undefined);
+  /**
+   * Surprise me's pick, shown where the reader is browsing (Ivan,
+   * 2026-11-14: "it needs to also select that album so it shows down"). The
+   * shelf moves to the cover the pick belongs to, and whatever drill-in was
+   * open becomes the pick's own, so the panel under the row stops naming
+   * the record that was playing before. Nothing opens that was not open.
+   * Asked for while the draw spins, so Cover Flow is given back already
+   * standing on it.
+   */
+  const showSurprisePick = useCallback(
+    (track: ILibraryTrack) => {
+      if (browseMode === 'song') {
+        revealRow(track.id);
+        return;
+      }
+      if (browseMode === 'video' || browseMode === 'playlist') {
+        return;
+      }
+      const itemId = shelfItemOf(browseMode, track);
+      setCentreRequest((current) => ({
+        id: itemId,
+        nonce: (current?.nonce ?? 0) + 1,
+      }));
+      if (browseMode === 'album' && openAlbumId !== undefined) {
+        setOpenAlbumId(itemId);
+      } else if (browseMode === 'artist' && openArtistId !== undefined) {
+        setOpenArtistId(itemId);
+      } else if (browseMode === 'genre' && openGenreId !== undefined) {
+        setOpenGenreId(itemId);
+      } else if (browseMode === 'folder' && openFolderPath !== undefined) {
+        setOpenFolderPath(itemId);
+      }
+    },
+    [
+      browseMode,
+      openAlbumId,
+      openArtistId,
+      openGenreId,
+      openFolderPath,
+      revealRow,
+    ],
+  );
 
   return {
     t,
@@ -669,6 +732,8 @@ const useLibraryWorkspaceShelf = ({
     shelfQuery,
     shelfList,
     playingItemId,
+    centreRequest,
+    showSurprisePick,
   };
 };
 

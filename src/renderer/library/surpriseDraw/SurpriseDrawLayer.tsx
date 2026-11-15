@@ -112,10 +112,14 @@ const captionPlace = (host: HTMLElement): CSSProperties => {
 const SurpriseDrawLayer = ({
   isShelfShown,
   stageRef,
+  onPick,
 }: {
   isShelfShown: boolean;
   /** Filled while Cover Flow is on screen: its row is then the draw. */
   stageRef: TSurpriseStageRef;
+  /** The shelf moves to the pick while the draw spins, so the row and the
+   * panel under it name the song now playing when it ends. */
+  onPick?: (track: ILibraryTrack) => void;
 }) => {
   const { lastSurprise } = useLibraryPlayerSession();
   const sceneHostRef = useRef<HTMLDivElement | null>(null);
@@ -124,6 +128,9 @@ const SurpriseDrawLayer = ({
     (ISurpriseCaption & { place: CSSProperties }) | undefined
   >(undefined);
   const skipRef = useRef<AbortController | undefined>(undefined);
+  /** The latest `onPick`, read inside a draw without restarting it. */
+  const onPickRef = useRef(onPick);
+  onPickRef.current = onPick;
   /**
    * The surprise already started when the shelf came on screen: a draw
    * belongs to the press that made it, and coming back to the Library is
@@ -152,6 +159,7 @@ const SurpriseDrawLayer = ({
       if (!track || signal.aborted) {
         return;
       }
+      onPickRef.current?.(track);
       const artIds = await ask({
         type: 'coverDeck',
         count: DRAW_DECK_SIZE,

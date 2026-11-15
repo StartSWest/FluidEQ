@@ -372,3 +372,26 @@ describe('Cover Flow lending its row', () => {
     expect(stageRef.current).toBeUndefined();
   });
 });
+
+describe('the pick shown where the reader is browsing', () => {
+  it('hands the pick to the shelf as soon as it is known, before the spin', async () => {
+    const onPick = jest.fn();
+    const stageRef = emptyStage();
+    const view = render(
+      <SurpriseDrawLayer isShelfShown stageRef={stageRef} onPick={onPick} />,
+    );
+    mockLastSurprise = { trackId: 'z', serial: 1 };
+    view.rerender(
+      <SurpriseDrawLayer isShelfShown stageRef={stageRef} onPick={onPick} />,
+    );
+    await waitFor(() => expect(mockMade[0]?.spinRequest()).toBeDefined());
+    // Asked while the row still spins, so Cover Flow is given back standing
+    // on it and the panel under it names the song now playing.
+    expect(onPick).toHaveBeenCalledTimes(1);
+    expect(onPick.mock.calls[0][0]).toMatchObject({ id: 'z', artId: 'feed01' });
+    act(() => mockMade[0].land());
+    await act(async () => mockMade[0].finish());
+    await waitFor(() => expect(mockMade[0].scene.dispose).toHaveBeenCalled());
+    expect(onPick).toHaveBeenCalledTimes(1);
+  });
+});

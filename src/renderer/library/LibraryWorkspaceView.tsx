@@ -130,6 +130,8 @@ const LibraryWorkspaceView = ({
     listResetKey,
     shelfList,
     playingItemId,
+    centreRequest,
+    showSurprisePick,
   } = shelf;
   const {
     handleSort,
@@ -594,6 +596,7 @@ const LibraryWorkspaceView = ({
                 onQueueTracks={appendToQueue}
                 query={query}
                 surpriseStageRef={surpriseStageRef}
+                centreRequest={centreRequest}
               />
             )}
           {/* Surprise me's draw, over whichever shelf is drawn: after every
@@ -602,6 +605,7 @@ const LibraryWorkspaceView = ({
           <SurpriseDrawLayer
             isShelfShown={trackCount > 0 && !videoTrackId}
             stageRef={surpriseStageRef}
+            onPick={showSurprisePick}
           />
           {/* Last, and outside every view above: the queue belongs to the tab
           rather than to whichever shelf is drawing it. On a shelf it stands
