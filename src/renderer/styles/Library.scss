@@ -17,10 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 // The Library tab's stylesheet, in the order it cascades: the workspace
-// and its toolbar, the list, the grid and detail, search, Up Next, and the
-// workspace's sizes. What they share is in _libraryTokens.scss. One file of
+// and its top bar, the rail and the status line, the list, the grid and
+// detail, search, Up Next, and the workspace's sizes. What they share is in _libraryTokens.scss. One file of
 // 3,800 lines until 2026-09-28, split with the compiled CSS held identical.
 @use 'libraryWorkspace';
+@use 'libraryRail';
+@use 'libraryStatus';
 @use 'libraryList';
 @use 'libraryDetail';
 @use 'librarySearch';

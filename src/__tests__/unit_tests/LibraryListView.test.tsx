@@ -60,7 +60,6 @@ const showShelf = (
     search: '',
     sort: 'title',
     direction: 'asc',
-    isTree: false,
     hasRoots: true,
     folderLevel: undefined,
   });

@@ -24,123 +24,110 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
+// *** The studio's frame (the "A + C" design, Ivan 2026-11-14) ****************
+//
+// One grid: the shelves' rail, the place being read, Up Next, and the status
+// line across the foot. The rail and the queue are columns of their own, so
+// nothing has to clear anything — the queue used to be placed absolutely over
+// the card while every other child took a margin the width of it, and a
+// splitter, a drawer and a video each needed a rule to agree with that margin.
 .library-workspace {
-  // The frame the floating scan pane positions itself against.
-  position: relative;
-  // And the box the toolbar measures itself against.
+  // And the box the rail and the bar measure themselves against: what crowds
+  // them is this card, not the window.
   //
-  // What crowds that row is not the window — it is this card, which gives a
-  // quarter of itself to the queue when that is open. A media query asks the
-  // wrong question: at 1920 it sees plenty of room while the shelf is down to
-  // 909px, the toolbar has already wrapped, and the queue has dropped onto a
-  // second line by itself.
-  //
-  // It has a cost, and it is not obvious: `inline-size` containment makes this
-  // element the containing block for every FIXED descendant it has, exactly
-  // the way `will-change: transform` does on `.center-workspace`. Measured
-  // here, a `position: fixed; inset: 0` child came out at 192,90 1370x858 —
-  // the card — rather than the window. The full-screen video is such a child.
-  // See `is-video-full` below, which takes the containment away for as long
-  // as one is up.
+  // `inline-size` containment makes this element the containing block for
+  // every FIXED descendant, the full-screen video among them — see
+  // `is-video-full`, which takes the containment away while one is up.
   container: library / inline-size;
-  display: flex;
+  position: relative;
+  display: grid;
   min-width: 0;
   min-height: 0;
   flex: 1 1 auto;
-  flex-direction: column;
-  // `$spacing-s`, the gap `.video-browser__bar` uses between its own controls
-  // and the stage below them. At `$spacing-m` the toolbar floated well clear
-  // of the list it steers while the Media tab's sat right on top of its own
-  // content — the same two rows, spaced two different ways.
-  gap: $spacing-s;
-  // This element IS `.workspace-tab-panel--library` — `LibraryWorkspace` puts
-  // both classes on one div — which is why `overflow: hidden` here was fatal:
-  // it overrode the panel's own `overflow-y: auto` on the very box that was
-  // supposed to scroll, so with the graph dragged up the table was crushed to
-  // a single clipped row and there was no way to reach the rest. The floors
-  // that make the scroll actually happen are on the views below, because they
-  // are what knows how much room a cover and a few rows need.
-  overflow-x: hidden;
-  overflow-y: auto;
-  // The Media tab's choice, for the Media tab's reason: something other than
-  // this box's own scrollbar owns the right-hand edge.
-  //
-  // `.workspace-tab-panel` reserves a stable gutter so text does not jump when
-  // a scrollbar arrives. Here it reserved 15px for a scrollbar that never
-  // comes — measured, `scrollHeight` and `clientHeight` are the same number —
-  // and the queue, which is placed against the PADDING box, was pushed in by
-  // it. That is the right-hand side standing 16px off the card while the left
-  // stood 12: the difference was a gutter, not a padding.
-  //
-  // Nothing scrolls on this box anyway. Every list in this tab has its own
-  // scrolling body, which is where the rows actually move.
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  // The rail, the queue and the status line run to the card's edges and are
+  // clipped by its corners; the main column pads itself.
+  padding: 0;
+  overflow: hidden;
+  // Nothing scrolls on this box: every list here has its own scrolling body.
+  // `.workspace-tab-panel`'s reserved gutter would stand as an empty strip.
   scrollbar-gutter: auto;
-  // What the queue stands in from the card's edge, and the one number the
-  // strip, the panel and the splitter are all measured from — the same 12 the
-  // card pads its left with, so the two sides match by construction rather
-  // than by three numbers agreeing.
-  --up-next-inset: 12px;
 
   &.is-hidden {
     display: none;
   }
 
-  // What the containment above costs, given back for as long as a video is
-  // full screen.
-  //
-  // `container-type: inline-size` makes this element the containing block for
-  // every fixed descendant, and the full-screen stage is one: `inset: 0`
-  // resolved against this card and the picture filled the middle column
-  // between the two sidebars instead of the window — the same failure
-  // `.center-workspace`'s `will-change` caused, from a different direction,
-  // and the same answer. Nothing queries the container while a video owns the
-  // tab: the toolbar that measures itself against it is not on screen.
-  //
-  // `is-video-full` is the card's own word for its video stage being full
-  // screen (`LibraryWorkspace`). It was `:has(.library-video-stage
-  // .is-fullscreen)` here and in the rules below; see `is-resizing-up-next`
-  // for what asking the card's subtree cost.
+  // What the containment above costs, given back while a video is full
+  // screen: `inset: 0` on the picture would otherwise resolve against this
+  // card and fill the middle column instead of the window. Nothing queries
+  // the container meanwhile; the rail and the bar are not on screen.
   &.is-video-full {
     container-type: normal;
-    // NO FRAME. The card's border, corners, shadow and floor are what make it
-    // one panel among several; with the picture filling the screen they are a
-    // frame drawn around the only thing on it, and the two rounded corners at
-    // the top read as the video having been cut. Same answer, and the same
-    // reason, as `.video-browser.is-fullscreen .video-browser__stage`.
-    //
-    // The padding goes with them, so the picture reaches all four window
-    // edges. The queue keeps its own inset: it is placed against this box's
-    // padding edge, which is now the window's, so its 10px and 12px become
-    // exactly the margin karaoke's playlist keeps off a full screen.
-    padding: 0;
+    // NO FRAME. With the picture filling the screen the card's border,
+    // corners and floor are a frame drawn around the only thing on it.
     border: 0;
     border-radius: 0;
     background: none;
     box-shadow: none;
 
-    // The padding those two were spelled out against is gone with it, so the
-    // corners they stand in are now the window's own — see the chip's base
-    // rule for why the numbers are written twice rather than inherited.
-    .library-up-next,
-    .library-up-next__splitter {
-      top: 12px;
+    .library-rail,
+    .library-status,
+    .library-head {
+      display: none;
     }
 
-    .library-up-next__chip--over-video {
-      top: 12px;
-      right: 12px;
+    .library-main {
+      padding: 0;
     }
   }
 
-  // The empty state is the one thing that advertises the drop; the whole
-  // panel is the target, so the whole panel has to answer back. Same
-  // treatment as `.karaoke-workspace__stage.is-dragging`.
+  // The empty state advertises the drop; the whole panel is the target, so
+  // the whole panel answers back.
   &.is-drag-over {
     border-color: color-mix(in srgb, $secondary-default 70%, transparent);
     box-shadow:
       inset 0 0 0 1px color-mix(in srgb, $secondary-default 32%, transparent),
       0 0 30px color-mix(in srgb, $secondary-default 10%, transparent);
   }
+}
+
+// The place being read: the bar, the breadcrumb, then the shelf. The frame
+// the scan pane, the surprise draw and the chip over a video stand in.
+.library-main {
+  position: relative;
+  display: flex;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: $spacing-s;
+  padding: 0 22px 12px;
+  // A graph dragged up leaves the shelf less than its floor (the views carry
+  // their own, for a cover and a few rows); this column then scrolls rather
+  // than crushing the table to one clipped row.
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: auto;
+
+  // No rail before the first folder: the empty state stands in the middle of
+  // the whole card.
+  .library-workspace:not(.has-library) > & {
+    padding-top: 12px;
+  }
+}
+
+// The bar and the breadcrumb, together: what the surprise draw starts below
+// (`--library-chrome-height`), and above the shelf so the recent searches
+// hang over it — Cover Flow composites as one `preserve-3d` unit, and a
+// z-index on the list alone competed inside the wrong stacking context.
+.library-head {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  flex: 0 0 auto;
+  padding-top: 14px;
 }
 
 .library-workspace__notice {
@@ -193,105 +180,247 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// *** The toolbar *************************************************************
+// *** The top bar **************************************************************
 //
-// Steers what the library shows: which grouping, which layout, how it is
-// sorted, and what is filtered. On screen once there is at least one root —
-// an empty library has exactly one useful next step, and that is the empty
-// state's own Add folder button, not a row of browse/view/sort controls with
-// nothing yet to act on.
-
-// The Media tab's bar, spacing included — see `.video-browser__bar`.
-//
-// No `padding-inline` of its own, which the Media tab needs only because its
-// panel pads the top and nothing else. This panel already pads all four sides
-// by the same 12, so adding it again put the toolbar on a different left rule
-// from the Back button and the list underneath it — one page with two left
-// edges. `$spacing-s` between everything, not a `$spacing-l` gutter down the
-// middle: the wide gap was there to shove the folder actions to the far
-// right, which left the row reading as two clusters at opposite ends of an
-// empty strip rather than one toolbar.
-.library-toolbar-row {
-  // Above the content, so the recent-searches list can hang over it rather
-  // than being painted through by it — the identical note
-  // `.video-browser__bar` carries about its own suggestion list. Cover Flow
-  // is what made it necessary here: a `preserve-3d` subtree composites as one
-  // unit, so a `z-index` on the list alone was competing inside the wrong
-  // stacking context and the covers came out on top of it.
-  position: relative;
-  z-index: 5;
-  // THE BOX THE TOOLBAR'S OWN BREAKPOINTS ASK ABOUT.
-  //
-  // Not the card, which is what `library` measures. The card does not change
-  // width when the queue opens — the queue takes its strip out of the views
-  // by margin — so a card query saw 1370px and kept every label while the bar
-  // beside a 420px queue actually had 900 and had already wrapped. This row
-  // carries that margin, so its width IS what the controls have to fit in.
+// Back and Forward, the search, the views, the order, and Up Next at the far
+// end, over the column it opens. One calm row of the studio's own surfaces —
+// trays a step of light above the floor, the chosen item a step more — rather
+// than a row of outlined chips: the shelves that crowded it live in the rail.
+.library-top {
+  // The box the bar's own reflow asks about: the main column, not the card.
   container: library-bar / inline-size;
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+.library-top__nav {
+  display: inline-flex;
   flex: 0 0 auto;
-  // NOT `wrap`, and the toolbar below is why it can afford not to.
-  //
-  // A flex line breaks on its items' hypothetical sizes, and `.library-toolbar`
-  // asks for its max-content — far more than this row ever has — so with wrap
-  // on it took the whole line by itself and the tail beside it was pushed onto
-  // a line of its own. Measured at a 1365px window: the bar 868 wide, the
-  // queue chip alone on a third row under the search box.
-  //
-  // Held on one line the bar shrinks instead (it has `min-width: 0`) and wraps
-  // WITHIN itself, which is where the wrapping belonged all along: the search
-  // box drops under the chips, and the right-hand cluster stays at the right.
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: $spacing-s;
+  gap: 2px;
 }
 
-.library-toolbar {
+// The nav arrows and the order's direction: one square, as the mockup has it.
+.library-top__arrow {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-m;
+  background: $studio-surface;
+  color: $text-muted;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+    transition: transform $motion-fast $ease-out;
+  }
+
+  svg.is-desc {
+    transform: rotate(180deg);
+  }
+
+  &:hover:not(:disabled) {
+    background: $studio-raise;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+}
+
+// The search takes what is left, up to the width a query needs.
+.library-top__search {
+  position: relative;
+  min-width: 180px;
+  flex: 1 1 200px;
+  max-width: 460px;
+
+  // The mockup's field: a tray of light, no edge, the glyph quiet. Focus
+  // still lights an edge, drawn inside so the field does not grow.
+  .library-search__field {
+    height: 36px;
+    gap: 8px;
+    padding: 0 6px 0 12px;
+    border: 0;
+    border-radius: $radius-l;
+    background: $studio-surface;
+    box-shadow: inset 0 0 0 1px transparent;
+
+    &:focus-within {
+      box-shadow: inset 0 0 0 1px $border-field-focus;
+    }
+  }
+
+  .library-search__icon {
+    width: 15px;
+    height: 15px;
+    color: $text-faint;
+  }
+
+  .library-search__input {
+    font-size: $studio-text-row;
+  }
+}
+
+// The views, the order and Up Next: they travel together, so a short bar
+// moves them to a line of their own as one group rather than one at a time.
+.library-top__controls {
   display: flex;
   min-width: 0;
-  flex: 1 1 auto;
-  flex-wrap: wrap;
+  flex: 1 0 auto;
   align-items: center;
-  gap: $spacing-s;
+  gap: 10px;
+
+  // Up Next stands at the far end, over the column it opens, in the bar's
+  // own material: a tray of light like the arrows beside the search, lit
+  // with the accent while its column is open.
+  > .library-up-next__chip {
+    height: 30px;
+    margin-left: auto;
+    padding: 0 10px;
+    border: 0;
+    border-radius: $radius-m;
+    background: $studio-surface;
+    color: $text-muted;
+    font-size: $studio-text-meta;
+    font-weight: $weight-semibold;
+
+    &:hover {
+      background: $studio-raise;
+      color: $text-primary;
+    }
+
+    &.is-active {
+      background: $studio-select;
+      color: $secondary-light;
+    }
+
+    .library-up-next__count {
+      color: $text-faint;
+      font-variant-numeric: tabular-nums;
+    }
+
+    &.is-active .library-up-next__count {
+      color: inherit;
+    }
+  }
 }
 
-// The browse-mode and view-mode rows. Both are a `role="tab"`/`aria-pressed`
-// choice among a few mutually exclusive options, and both are drawn as the
-// Media tab draws its site chips — see `.video-browser__sites`. The capsule
-// of filled `.button small`s this used to be was the loudest thing on the
-// screen for a control nobody looks at twice; the chip states what is chosen
-// without shouting it, and makes this row read as the same toolbar the Media
-// tab has.
-.library-toolbar__browse-modes,
-.library-toolbar__view-modes {
-  display: flex;
-  min-width: 0;
-  // Content width, not grown: the slack in this row belongs to the search
-  // box, which can use it. Same reasoning as `.video-browser__sites`.
-  flex: 0 1 auto;
-  flex-wrap: wrap;
+.library-top__views {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 3px;
+  border-radius: $radius-l;
+  background: $studio-surface;
+}
+
+.library-top__view {
+  display: inline-flex;
   align-items: center;
-  gap: $spacing-xs;
-}
-
-// What is being browsed and how it is drawn are two different questions. At
-// the row's own `$spacing-s` between them all eight chips read as one run of
-// options — "Videos" and "List" sat as close together as "Songs" and
-// "Folders", and the eye had nothing to tell it where one choice ended. The
-// hairline is what says it; the space either side of it is what makes the
-// hairline read as a divider rather than as an edge.
-.library-toolbar__view-modes {
-  margin-left: $spacing-xs;
-  padding-left: $spacing-m;
-  border-left: 1px solid rgba($edge-tint, 0.14);
-}
-
-// A scan running with its notice put away, on the Rescan chip ("Scanning
-// 26%"): kept at every width — the bar drops only unclassed words — and in
-// even figures, so the chip does not twitch as the number climbs.
-.library-toolbar__chip-status {
-  font-variant-numeric: tabular-nums;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: $text-faint;
+  font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
   white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(.is-active) {
+    color: $text-muted;
+  }
+
+  &.is-active {
+    background: $studio-raise;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// The words are the switch; the glyphs stand in for them only where the bar
+// has no room left for words (below).
+.library-top__view-icon {
+  display: none;
+  width: 14px;
+  height: 14px;
+}
+
+.library-top__sort {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+
+  .dropdown > [role='menu'] {
+    min-height: 30px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: $radius-m;
+    background: $studio-surface;
+    box-shadow: none;
+    color: $text-muted;
+    font-size: $studio-text-meta;
+    font-weight: $weight-semibold;
+    gap: 6px;
+
+    &:hover:not([aria-disabled='true']) {
+      background: $studio-raise;
+      color: $text-primary;
+    }
+  }
+
+  .dropdown .arrow {
+    flex: 0 0 auto;
+    opacity: 0.7;
+  }
+}
+
+// A bar too short for every word: the views keep their glyphs (each with its
+// name as a tooltip), and the search takes a line of its own.
+@container library-bar (max-width: #{$bp-md}) {
+  .library-top__view {
+    padding-inline: 8px;
+
+    > span {
+      display: none;
+    }
+  }
+
+  .library-top__view-icon {
+    display: block;
+  }
+
+  .library-top__search {
+    flex-basis: calc(100% - 72px);
+    max-width: none;
+  }
 }
 
 // `.video-browser__site`'s pill, under this file's own name so the two can
@@ -331,34 +460,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $secondary-light;
   }
 
-  // The recommended action in the row — one of them, never two. Reads as the
-  // active state without claiming to be a current selection, which is what
-  // `is-active` means everywhere else on this class.
-  &--accent {
-    border-color: $border-control-hover;
-    background: $surface-control-press;
-    color: $secondary-light;
-  }
-
-  // Square, for a chip carrying a glyph and no words. The pill's side padding
-  // around a lone icon leaves it swimming in an oval.
-  //
-  // Sized by the same padding the text chips use rather than by
-  // `$control-height-sm`, which measured 32px against their 23 in the running
-  // window — a row of pills with two taller boxes wedged into it. Four above,
-  // four below and a 13px glyph is exactly the box a 13px line of text makes.
-  &--icon {
-    justify-content: center;
-    padding: 4px;
-    flex: 0 0 auto;
-    border-radius: $radius-xs;
-
-    .library-toolbar__action-icon {
-      width: 13px;
-      height: 13px;
-    }
-  }
-
   &:disabled {
     opacity: $disabled-opacity;
     cursor: default;
@@ -381,197 +482,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   opacity: 0.8;
 
   .library-toolbar__chip:hover &,
-  .library-toolbar__chip.is-active &,
-  .library-toolbar__chip--accent & {
+  .library-toolbar__chip.is-active & {
     opacity: 1;
-  }
-}
-
-.library-toolbar__sort {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: $spacing-xs;
-  min-width: 168px;
-
-  // The same rule the folder controls draw before the queue chip, for the same
-  // reason: what is on the left of it chooses how the shelf is DRAWN and what
-  // is on the right chooses the ORDER it is drawn in. Two kinds of control
-  // butted together with only a gap between them read as one long run of
-  // buttons — which is exactly what a toolbar should never read as.
-  //
-  // A pseudo-element rather than an element of its own, because it belongs to
-  // this control's left edge and has to travel with it when the bar wraps: a
-  // loose `<span>` would be a flex item that could end a line on its own.
-  &::before {
-    width: 1px;
-    height: 18px;
-    flex: 0 0 auto;
-    margin-inline-end: $spacing-xxs;
-    background: color-mix(in srgb, $secondary-light 16%, transparent);
-    content: '';
-  }
-
-  // The trigger wears the chip, not `field-surface`. Left alone it drew the
-  // app's form-field box — square-ish, a different border, `$control-height`
-  // tall — beside a row of 23px pills, which is the one control on this bar
-  // that did not look like the bar. The menu it opens is untouched: that is a
-  // portalled list and is meant to look like every other portalled list.
-  .dropdown > [role='menu'] {
-    min-height: 0;
-    padding: 4px 9px;
-    border: 1px solid rgba($edge-tint, 0.14);
-    border-radius: $radius-xs;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
-    box-shadow: none;
-    color: $text-muted;
-    font-size: $text-small;
-    line-height: 13px;
-    gap: 6px;
-
-    &:hover:not([aria-disabled='true']) {
-      border-color: color-mix(in srgb, $secondary-light 45%, transparent);
-      color: $secondary-light;
-    }
-  }
-
-  .dropdown .arrow {
-    flex: 0 0 auto;
-    opacity: 0.7;
-  }
-}
-
-// Square rather than pill-wide: it carries one glyph, and a pill around a
-// single arrow reads as an empty button with something stuck in it. Sized by
-// the same 4px padding over a 13px line box every other chip uses — measured
-// in the running window, where `$control-height-sm` had made this one 32px
-// against its neighbours' 23.
-.library-toolbar__sort-direction {
-  justify-content: center;
-  padding: 4px 8px;
-  flex: 0 0 auto;
-  border-radius: $radius-xs;
-  font-size: $text-body;
-  line-height: 13px;
-}
-
-// The same left-to-right sweep the Media tab's own bar plays, and for the
-// same reason: the row reads as one thing arriving rather than four controls
-// appearing at once. Quick — this is a toolbar, not the content.
-.library-toolbar__browse-modes .library-toolbar__chip {
-  @include stagger-in($count: 4, $step: 26ms, $duration: $motion-fast);
-}
-
-.library-toolbar__view-modes .library-toolbar__chip {
-  @include stagger-in(
-    $count: 3,
-    $step: 26ms,
-    $offset: 78ms,
-    $duration: $motion-fast
-  );
-}
-
-// Same width budget as `.video-browser__search`: wide enough to read a
-// query, capped so it does not out-grow the row it shares with everything
-// else that steers the library.
-// A child of the ROW, not of the bar beside it — see `LibraryWorkspace`. That
-// is what fixes it to the top line: the row does not wrap, so this box has the
-// same home at every width instead of riding whichever line the bar's own
-// wrapping left it on.
-//
-// It takes the slack between the shelf's controls and the folder controls:
-// `flex: 1 1` against the bar's own `1 1 auto`, so the two share what is left
-// and the search is the one that gives first when the bar needs the room.
-.library-toolbar__search {
-  @include animate(rise-in, $motion-fast, $ease-out, 182ms);
-  // The frame the recent-searches list positions itself against.
-  position: relative;
-  // A SMALL BASIS AND A HARD CAP, and both halves are load-bearing.
-  //
-  // The basis is what a flex line breaks on — not how far an item could shrink
-  // afterwards. At 340 the line reserved 340 for this box and sent the view
-  // glyphs to a second row, while the box itself sat there with room to spare
-  // it never gave up. At 170 the line counts 170, the glyphs fit beside it,
-  // and the grow puts the width back.
-  //
-  // The cap is what stops the grow being state-dependent. Left uncapped it ate
-  // whatever the row had spare, and what the row has spare depends on what is
-  // open: the Sort control is withheld inside a drill-in, so opening an album
-  // handed the box 168px it did not have a moment earlier and it visibly grew
-  // under the pointer. Capped, it is already at 340 in every case that has the
-  // room, and the slack simply stays slack.
-  // It is LAST in the bar, so it is what drops when the row runs short — see
-  // `LibraryToolbar`. A wide basis is therefore safe and wanted: it stays on
-  // the top line while it fits there, and takes the line below at a comfortable
-  // width when it does not, rather than squeezing to a stub to stay up.
-  //
-  // The cap is what keeps the grow from being state-dependent. Uncapped it ate
-  // whatever the row had spare, and what the row has spare depends on what is
-  // open: the Sort control is withheld inside a drill-in, so opening an album
-  // handed the box 168px it did not have a moment earlier and it visibly grew
-  // under the pointer.
-  min-width: 170px;
-  flex: 1 1 240px;
-  max-width: 340px;
-  // The bar wraps to two lines and this does not, so without an anchor it
-  // would sit centred against a box twice its height.
-  align-self: flex-start;
-}
-
-// The bar's right-hand end: the folder controls and, when it is folded, the
-// queue.
-//
-// `nowrap` and `flex-start` are the whole point. These were loose children of
-// `.library-toolbar-row`, which wraps, so at a width where the search box
-// dropped to a second line the queue chip dropped to a THIRD and sat alone
-// under it — a control the reader had just been taught lives at the top right.
-// As one item the cluster cannot come apart, and aligning it to the top of the
-// row keeps it level with the first line rather than floating to the middle of
-// however many lines the toolbar beside it has taken.
-//
-// It keeps no width of its own: `.library-toolbar` is the `flex: 1 1 auto`
-// that grows, so this is pushed to the end without a margin saying so.
-.library-toolbar__tail {
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
-  align-items: center;
-  align-self: flex-start;
-  gap: 8px;
-
-  // The same rule the sort control draws, for the same reason. Left of it are
-  // controls that steer what the shelf SHOWS; right of it are actions that
-  // change what is IN the library. Two kinds of thing butted together with
-  // only a gap between them read as one long run of buttons.
-  //
-  // A pseudo-element rather than an element of its own, so it belongs to this
-  // cluster's left edge and travels with it — a loose `<span>` would be a flex
-  // item of the row that could end a line on its own, which is the bug the
-  // cluster exists to prevent.
-  &::before {
-    width: 1px;
-    height: 18px;
-    flex: 0 0 auto;
-    margin-inline-end: $spacing-xxs;
-    background: color-mix(in srgb, $secondary-light 16%, transparent);
-    content: '';
-  }
-}
-
-.library-toolbar__actions {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 8px;
-
-  // Same disabled recipe as `.karaoke-workspace__actions .button:disabled`:
-  // quieter than its neighbours rather than a flat grey rectangle.
-  .button:disabled {
-    color: $text-muted;
-    border-color: rgba($edge-tint, 0.08);
-    background: $block-lift;
-    box-shadow: none;
-    cursor: not-allowed;
   }
 }
 

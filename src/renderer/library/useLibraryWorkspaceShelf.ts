@@ -19,12 +19,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
-import { useFolderTree } from './folderTree';
 import { usePlaylists } from './PlaylistContext';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import {
   BROWSE_MODE_KEY,
   BROWSE_MODES,
+  forgetFolderReading,
   OPEN_ALBUM_KEY,
   OPEN_ARTIST_KEY,
   OPEN_FOLDER_KEY,
@@ -36,6 +36,7 @@ import {
   SORT_DIRECTIONS,
   SORT_KEY,
   SORTS,
+  UP_NEXT_DEFAULT_WIDTH,
   UP_NEXT_FLOAT_WIDTH,
   UP_NEXT_MAX,
   UP_NEXT_MIN,
@@ -112,7 +113,6 @@ const useLibraryWorkspaceShelf = ({
     removeRoot,
   } = useLibrary();
   const { roots, wasReset, trackCount } = summary;
-  const isTree = useFolderTree();
   const { playlists, wasReset: playlistsWereReset } = usePlaylists();
   const {
     playTracks,
@@ -151,7 +151,7 @@ const useLibraryWorkspaceShelf = ({
     const stored = Number(readPersistedText(UP_NEXT_WIDTH_KEY));
     return Number.isFinite(stored) && stored > 0
       ? Math.min(UP_NEXT_MAX, Math.max(UP_NEXT_MIN, stored))
-      : 260;
+      : UP_NEXT_DEFAULT_WIDTH;
   });
   /** The width the drag started from — the splitter reports a delta, not a
    * position, exactly as the karaoke panes' does. */
@@ -323,9 +323,10 @@ const useLibraryWorkspaceShelf = ({
   // The toolbar's own state. Held here rather than inside `LibraryToolbar` so
   // that component stays a pure controlled view, testable without a
   // `LibraryProvider` above it.
-  const [browseMode, setBrowseMode] = useState<TLibraryBrowseMode>(() =>
-    readPersistedMode(BROWSE_MODE_KEY, BROWSE_MODES, 'album'),
-  );
+  const [browseMode, setBrowseMode] = useState<TLibraryBrowseMode>(() => {
+    forgetFolderReading();
+    return readPersistedMode(BROWSE_MODE_KEY, BROWSE_MODES, 'album');
+  });
   // Cover Flow on a fresh install, and albums with it: the first thing the
   // library should be is a shelf of covers, because that is what somebody
   // recognises their own music by. The grid is a fine second look and the list
@@ -567,7 +568,6 @@ const useLibraryWorkspaceShelf = ({
       search: query,
       sort: viewSort,
       direction: sortDirection,
-      isTree,
       hasRoots,
       folderLevel,
     }),
@@ -578,7 +578,6 @@ const useLibraryWorkspaceShelf = ({
       query,
       viewSort,
       sortDirection,
-      isTree,
       hasRoots,
       folderLevel,
     ],

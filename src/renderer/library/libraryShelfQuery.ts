@@ -31,8 +31,6 @@ export interface IShelfState {
   /** Nothing while a search ranks the shelf by relevance. */
   sort: TLibrarySort | undefined;
   direction: TLibrarySortDirection;
-  /** The Folders shelf reads as a tree of the roots, a level at a time. */
-  isTree: boolean;
   hasRoots: boolean;
   /** Cover Flow on the Folders shelf: the level the open folder stands on,
    * so the open one is among its neighbours. */
@@ -108,9 +106,13 @@ export const shelfQueryFor = (
         unranked: true,
       };
     case 'folder':
-      // A search is flat whichever reading is on: what somebody searching
-      // wants is where the matches are, every folder holding one.
-      if (where.search !== undefined || !state.isTree || !state.hasRoots) {
+      // ONE READING: the tree, the roots first and a level at a time, as the
+      // rail draws it. The flat list of every folder at once was a second
+      // reading behind the chip until 2026-11-14, when the tree moved into
+      // the rail and made it redundant. A search is still flat: what
+      // somebody searching wants is where the matches are, every folder
+      // holding one, wherever it sits.
+      if (where.search !== undefined || !state.hasRoots) {
         return { shelf: 'folders', ...where, ...order };
       }
       if (state.viewMode === 'coverflow' && state.folderLevel !== undefined) {

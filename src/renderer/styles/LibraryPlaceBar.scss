@@ -9,73 +9,64 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // *** Where the reader is standing *********************************************
 //
-// See `LibraryPlaceBar.tsx`. One line under the toolbar: the Back chip the
-// drill-in used to carry — the same chip, `.library-detail__back`, glyph and
-// nudge included — then the trail.
+// See `LibraryPlaceBar.tsx`. The breadcrumb under the top bar (the "A + C"
+// design, Ivan 2026-11-14): quiet steps, the place itself in the reader's
+// own ink, a soft `›` between them.
 .library-place {
-  // Its own width is what the trail has to fit in: the queue takes its strip
-  // out of this row by margin, so the card's width says nothing about it.
-  container: library-place / inline-size;
   display: flex;
+  min-width: 0;
   flex: 0 0 auto;
   align-items: center;
-  gap: $spacing-s;
-  min-width: 0;
+  padding-bottom: 4px;
   @include animate(rise-in, $motion-fast);
 }
 
 // ONE LINE, WHATEVER THE DEPTH. Wrapping to a second line would push the
-// shelf down a row every time a folder was entered. What does not fit folds
-// into `…` from the root side (`LibraryPlaceBar`); the clip here only stops a
-// frame's overflow from showing while it does.
+// shelf down every time the reader went one folder deeper; the trail folds
+// from the root side instead (`LibraryPlaceBar`), and only the step above the
+// place may shrink.
 .library-place__trail {
   display: flex;
+  min-width: 0;
   flex: 1 1 auto;
   align-items: center;
-  gap: 1px;
-  min-width: 0;
+  gap: 2px;
   margin: 0;
   padding: 0;
   overflow: hidden;
   list-style: none;
 }
 
-// Every step at its whole name. Folding, not squeezing, is how the line makes
-// room — "Mu… › Wo… › La…" names nothing — so only the two steps that never
-// fold may give way, and only once nothing is left to fold: the step above
-// the place first, the place itself last and least.
 .library-place__crumb {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
 
   &.is-above {
-    flex: 0 1 auto;
-    // A letter and the ellipsis: squeezed to nothing it could not be pressed.
     min-width: 2.6em;
+    flex: 0 1 auto;
   }
 
-  // Whole, until the bar says otherwise. Even a shrink factor of 0.001 took a
-  // third of a pixel from the place while the step above still had a hundred
-  // to give (measured at 420px), and a third of a pixel is an ellipsis.
   &.is-here {
-    flex: 0 0 auto;
     min-width: 0;
+    flex: 0 0 auto;
+  }
+
+  // The line's first step stands on its own: no separator before it.
+  &:first-child > .library-place__sep {
+    display: none;
   }
 }
 
-// Folded as far as it goes and the step above at its minimum, and still too
-// wide: now, and only now, the place gives way too (`tight`).
 .library-place.is-tight .library-place__crumb.is-here {
-  flex-shrink: 1;
   min-width: 4em;
+  flex-shrink: 1;
 }
 
-// The folded steps: a quiet `…` like the steps it stands for, lit while its
-// menu is open, the way a chip is lit while its own menu is.
 .library-place__fold {
   padding-inline: 5px;
 
@@ -86,13 +77,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &.is-open {
-    background: color-mix(in srgb, $secondary-light 14%, transparent);
-    color: $secondary-light;
+    background: $studio-surface;
+    color: $text-primary;
   }
 }
 
-// Wide enough for a folder name on one line, which is what the track menu it
-// borrows its rows from is sized for too.
 .library-place__menu {
   width: auto;
   min-width: 180px;
@@ -103,40 +92,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
   width: 12px;
   height: 12px;
   flex: none;
-  margin-inline: 1px;
+  margin-inline: 2px;
   fill: none;
-  stroke: rgba($edge-tint, 0.34);
+  stroke: currentcolor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.6;
-}
-
-.library-place__icon {
-  width: 13px;
-  height: 13px;
-  flex: none;
+  color: $text-faint;
+  opacity: 0.6;
 }
 
 .library-place__label {
   @include truncate;
 }
 
-// The steps above the place: quiet text that lights like the chips around it
-// when the pointer is on it. No box at rest — six boxed crumbs in a row read
-// as a second toolbar, which is what this must not look like.
 .library-place__link {
   display: inline-flex;
-  align-items: center;
-  gap: 5px;
   min-width: 0;
   max-width: 100%;
-  padding: 3px 6px;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 5px;
   border: 0;
   border-radius: $radius-xs;
   background: transparent;
   color: $text-faint;
   font: inherit;
-  font-size: $text-small;
+  font-size: $studio-text-tree;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -144,8 +126,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
     color 140ms ease;
 
   &:hover {
-    background: color-mix(in srgb, $secondary-light 10%, transparent);
-    color: $secondary-light;
+    background: $studio-surface;
+    color: $text-primary;
   }
 
   &:focus-visible {
@@ -153,31 +135,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Here: the one step that is not a way anywhere, in the ink the drill-in's
-// title is written in, with the glyph of what it is — a folder, a record, an
-// artist — in the accent.
 .library-place__here {
   display: inline-flex;
-  align-items: center;
-  gap: 5px;
   min-width: 0;
   max-width: 100%;
-  padding: 3px 6px;
+  align-items: center;
+  padding: 2px 5px;
   color: $text-primary;
-  font-size: $text-small;
+  font-size: $studio-text-tree;
   font-weight: $weight-semibold;
   white-space: nowrap;
-
-  .library-place__icon {
-    color: $secondary-light;
-  }
-}
-
-// Narrow: All music keeps its glyph and gives up its words — the button keeps
-// them as its name — the way the toolbar's shelf chips give up theirs. The
-// place keeps its name longest of anything on the line.
-@container library-place (max-width: #{$bp-lg}) {
-  .library-place__crumb--all .library-place__label {
-    display: none;
-  }
 }

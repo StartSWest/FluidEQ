@@ -1,0 +1,151 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// The status line across the Library's foot (`LibraryStatusLine`): what is
+// on screen, what the library holds, whether it is up to date.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+.library-status {
+  display: flex;
+  min-width: 0;
+  min-height: 30px;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-items: center;
+  gap: 16px;
+  padding: 0 10px 0 16px;
+  border-top: 1px solid $studio-hair;
+  background: $studio-rail;
+  color: $text-faint;
+  font-size: $studio-text-meta;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.library-status__part {
+  min-width: 0;
+  @include truncate;
+}
+
+.library-status__scan {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+// The state, with its light: the app's own "on" colour while the library is
+// up to date, amber and breathing while a scan runs.
+.library-status__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+
+  &::before {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    border-radius: $radius-pill;
+    background: $active;
+    content: '';
+  }
+
+  &.is-scanning::before {
+    background: $amber;
+    animation: library-status-breathe 1.4s ease-in-out infinite;
+  }
+
+  &.is-link {
+    cursor: pointer;
+
+    &:hover {
+      color: $secondary-light;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+      outline: none;
+    }
+  }
+}
+
+@keyframes library-status-breathe {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-status__state.is-scanning::before {
+    animation: none;
+  }
+}
+
+.library-status__action {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: $text-faint;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    background: $studio-surface;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+}
+
+.library-status__icon {
+  width: 13px;
+  height: 13px;
+}
+
+// A short line keeps what is on screen and the scan, and lets the library's
+// totals go first: they answer the question least often asked of it.
+@container library (max-width: #{$bp-md}) {
+  .library-status__part--library {
+    display: none;
+  }
+}

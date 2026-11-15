@@ -30,13 +30,18 @@ import {
 
 /**
  * The card width below which the queue floats over the shelf instead of taking
- * a strip beside it.
+ * a column beside it — `$bp-xl`, the standard step.
  *
- * 900 because the panel is 273 of it: below this the shelf is left under 600px,
- * which is where the track table starts losing Album and most of Artist. The
- * queue is worth a fifth of a wide card and not a third of a narrow one.
+ * The card now holds the rail as well (236px, 56 folded below `$bp-lg`), so
+ * at 1280 a 300px queue leaves the shelf about 740px: the details table with
+ * every column a song needs. Narrower, the queue would take it below 600,
+ * where Album and most of Artist go — it is worth a fifth of a wide card and
+ * not a third of a narrow one.
  */
-export const UP_NEXT_FLOAT_WIDTH = 900;
+export const UP_NEXT_FLOAT_WIDTH = 1280;
+
+/** The queue's width before anybody drags its edge: the design's 300px. */
+export const UP_NEXT_DEFAULT_WIDTH = 300;
 
 /** The Up Next panel's width, dragged from its own edge. */
 export const UP_NEXT_WIDTH_KEY = 'fluideq.library.upNextWidth';
@@ -95,6 +100,23 @@ export const SORTS: readonly TLibrarySort[] = [
   'added',
   'track',
 ];
+
+/**
+ * Which way the Folders shelf was read — the tree, or every folder at once —
+ * from when it had two readings behind its chip. The tree is the only one
+ * since the rail took it over (2026-11-14), so the stored choice is removed
+ * the first time a Library opens: a `false` left behind would otherwise sit
+ * in the profile for ever, naming a reading nothing draws.
+ */
+const LEGACY_FOLDER_READING_KEY = 'fluideq.library.folderTree';
+
+export const forgetFolderReading = (): void => {
+  try {
+    window.localStorage.removeItem(LEGACY_FOLDER_READING_KEY);
+  } catch {
+    // Storage refused: there is nothing stored to forget either.
+  }
+};
 
 /**
  * A stored mode, validated against the values that actually exist.

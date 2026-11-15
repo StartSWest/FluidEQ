@@ -43,20 +43,19 @@ describe('how the Up next panel folds', () => {
     expect(css).not.toContain('@keyframes up-next-in');
   });
 
-  it('gives the shelf its strip back in the same movement, except under a drag', () => {
-    const shelf = rules.find(
-      ({ selectors, declarations: declared }) =>
-        declared.get('transition') ===
-          'margin-right var(--up-next-move) cubic-bezier(0.32, 0.72, 0, 1)' &&
-        selectors.some((selector) => selector.startsWith('.library-workspace')),
-    );
-    // The drag is excluded in this very selector: a separate override would
-    // be outranked by its chain of `:not()`s, which is how it first shipped.
-    // The card says it is being resized (`LibraryWorkspace`) rather than the
-    // stylesheet asking its subtree with `:has()`.
-    expect(shelf?.selectors.join()).toContain(
-      '.library-workspace:not(.is-resizing-up-next)',
-    );
+  it('gives the shelf its width back in the same movement, except under a drag', () => {
+    // The queue is a column of the card's own grid, sized by the panel: as
+    // the panel narrows the shelf's column takes the width frame by frame,
+    // with no transition of its own to fall out of step. It used to be a
+    // margin on every other child, transitioned to match the panel's.
+    expect(
+      declarations('.library-workspace', 'grid-template-columns'),
+    ).toContain('auto minmax(0, 1fr) auto');
+    expect(declarations('.library-side', 'grid-column')).toContain('3');
+    expect(css).not.toMatch(/transition: margin-right var\(--up-next-move\)/);
+    // A drag moves the edge under the pointer, so the panel's own width
+    // follows it at once. The card says it is being resized
+    // (`LibraryWorkspace`) rather than the stylesheet asking with `:has()`.
     expect(
       declarations(
         '.library-workspace.is-resizing-up-next .library-up-next',

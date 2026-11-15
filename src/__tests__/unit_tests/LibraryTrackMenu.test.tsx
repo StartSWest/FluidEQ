@@ -78,7 +78,6 @@ const SONG_SHELF = shelfQueryFor({
   search: '',
   sort: 'title',
   direction: 'asc',
-  isTree: false,
   hasRoots: true,
   folderLevel: undefined,
 });

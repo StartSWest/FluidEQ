@@ -17,7 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ILibraryRoot, ILibraryTrack } from '../../common/library/types';
 import LibraryWorkspace from '../../renderer/library/LibraryWorkspace';
@@ -283,7 +290,7 @@ describe('the search box, wired to the shelf below it', () => {
 });
 
 describe('the folded queue chip', () => {
-  it('rides in the toolbar row rather than floating under it', async () => {
+  it('rides in the top bar rather than floating under it', async () => {
     // It used to be absolutely placed in the slot the panel opens into, and
     // two rules elsewhere made room for it: a `padding-right` on the
     // drill-in's path row and a 23px drop on every shelf. In the row it
@@ -311,10 +318,55 @@ describe('the folded queue chip', () => {
     expect(
       screen.getByRole('complementary', { name: 'Up next' }),
     ).toHaveAttribute('inert');
-    expect(chip.closest('.library-toolbar__tail')).not.toBeNull();
+    expect(chip.closest('.library-top__controls')).not.toBeNull();
     // Folded, and the chip is what says so — it is drawn in both states, so
     // opening the queue cannot re-lay the cluster out around it.
     expect(chip.getAttribute('aria-expanded')).toBe('false');
+  });
+});
+
+describe('the folder tree in the rail', () => {
+  it('opens a folder from the tree, and Back and Forward walk the steps', async () => {
+    window.localStorage.setItem('fluideq.library.browseMode', 'folder');
+    renderWorkspace({
+      roots: [MUSIC],
+      tracks: [
+        track({ title: 'Blue', path: 'C:\\Music\\Jazz\\Kind\\Blue.mp3' }),
+        track({ title: 'Red', path: 'C:\\Music\\Rock\\Red.mp3' }),
+      ],
+    });
+    const tree = await screen.findByRole('tree', { name: 'Folders' });
+    const root = await within(tree).findByRole('treeitem', {
+      name: /C:\\Music/,
+    });
+    // A caret only where opening finds a folder: the root has two.
+    expect(root).toHaveAttribute('aria-expanded', 'false');
+    const caret = root.querySelector('.library-tree__caret');
+    if (!(caret instanceof HTMLElement)) {
+      throw new Error('the root draws no caret');
+    }
+    await userEvent.click(caret);
+    expect(root).toHaveAttribute('aria-expanded', 'true');
+    // The caret only opened the branch; the reader is still where they were.
+    const place = screen.getByRole('navigation', {
+      name: 'Where you are in the library',
+    });
+    /** The step the breadcrumb names as where the reader stands. */
+    const here = () =>
+      place.querySelector('[aria-current="location"]')?.textContent;
+    expect(here()).toBe('Folders');
+
+    const rock = await within(tree).findByRole('treeitem', { name: /Rock/ });
+    // A folder with only songs in it has nothing to open.
+    expect(rock).not.toHaveAttribute('aria-expanded');
+    await userEvent.click(rock);
+    expect(rock).toHaveAttribute('aria-selected', 'true');
+    expect(here()).toBe('Rock');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(here()).toBe('Folders');
+    await userEvent.click(screen.getByRole('button', { name: 'Forward' }));
+    expect(here()).toBe('Rock');
   });
 });
 
@@ -490,9 +542,10 @@ describe('handing a click off to the player', () => {
         'v1 unplayable',
       ),
     );
-    expect(
-      screen.queryByRole('button', { name: 'Back' }),
-    ).not.toBeInTheDocument();
+    // No stage, so no picture's Back: the one Back on screen is the top
+    // bar's history arrow, which belongs to the shelf.
+    expect(document.querySelector('.library-video-stage')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Back' })).toHaveLength(1);
     // The shelf is still the thing on screen -- a click on an unplayable
     // track is not a silent no-op, it just does not open a stage that would
     // only ever show a black box.

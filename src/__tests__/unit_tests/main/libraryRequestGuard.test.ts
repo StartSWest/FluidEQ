@@ -24,6 +24,7 @@ describe('a question from the window', () => {
       { type: 'duration', ids: ['a'] },
       { type: 'headings', query: { ...query, folderHeadings: true } },
       { type: 'rest', query, afterId: 'a', exclude: [] },
+      { type: 'totals', query },
     ];
     questions.forEach((question) => {
       expect(parseLibraryRequest(question)).toEqual(question);
@@ -37,6 +38,8 @@ describe('a question from the window', () => {
       { type: 'drop table' },
       { type: 'page', query, offset: 0, limit: 100000 },
       { type: 'page', query, offset: -1, limit: 10 },
+      // A shelf of albums or folders sums in its own rows; totals are songs'.
+      { type: 'totals', query: { ...query, shelf: 'albums' } },
       {
         type: 'page',
         query: { ...query, shelf: 'everything' },

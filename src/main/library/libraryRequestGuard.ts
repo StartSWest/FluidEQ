@@ -201,6 +201,11 @@ const parseLibraryRequest = (value: unknown): TLibraryRequest | undefined => {
       return isListQuery(value.query)
         ? { type: 'headings', query: value.query }
         : undefined;
+    case 'totals':
+      // Songs only: a shelf of albums or folders sums in its own rows.
+      return isListQuery(value.query) && value.query.shelf === 'tracks'
+        ? { type: 'totals', query: value.query }
+        : undefined;
     case 'rest':
       return isListQuery(value.query) &&
         isText(value.afterId, MAX_PATH) &&

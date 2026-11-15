@@ -44,6 +44,11 @@ export interface ILibraryQueryPlan {
   /** How many items, asked without building them (headings not counted). */
   count: string;
   /**
+   * `tracks` only: the songs counted and their durations summed, `n` and
+   * `ms`, over the same rows `count` counts.
+   */
+  sums?: string;
+  /**
    * The body with only what ordering and numbering read — what a window over
    * the whole list runs on. The same as `body` where that is narrow already.
    */
@@ -130,8 +135,11 @@ const tracksPlan = (query: ILibraryListQuery): ILibraryQueryPlan => {
       ${ids === undefined ? '0' : 'CAST(listed.key AS INTEGER)'} AS ids_order
     FROM tracks t ${join}
     ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''}`;
-  const count = `SELECT COUNT(*) AS n FROM tracks t ${join}
+  const from = `FROM tracks t ${join}
     ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''}`;
+  const count = `SELECT COUNT(*) AS n ${from}`;
+  const sums = `SELECT COUNT(*) AS n,
+    COALESCE(SUM(COALESCE(t.duration_ms, 0)), 0) AS ms ${from}`;
   // What numbering the whole list needs and nothing more: a window over
   // every song's full row (paths, loudness JSON) cost 390 ms on 14,077 songs
   // for one page of headings. The page's own rows are joined back after.
@@ -161,6 +169,7 @@ const tracksPlan = (query: ILibraryListQuery): ILibraryQueryPlan => {
     params,
     headings: query.folderHeadings === true,
     count,
+    sums,
     narrow,
   };
 };
@@ -330,7 +339,8 @@ const childrenPlan = (query: ILibraryListQuery): ILibraryQueryPlan => {
     stats AS (
       SELECT child AS id, MAX(child_name) AS list_title,
         SUM(track_count) AS track_count, MAX(added_at) AS added_at,
-        MIN(all_pending) AS all_pending, MIN(first_seq) AS first_seq
+        MIN(all_pending) AS all_pending, MIN(first_seq) AS first_seq,
+        MAX(beneath.id <> beneath.child) AS has_folders
       FROM beneath GROUP BY child
     ),
     arts AS (
@@ -374,14 +384,15 @@ const searchedChildrenPlan = (
   const segment = childSegment('t.folder', prefix);
   const body = `
     WITH kept AS MATERIALIZED (
-      SELECT t.seq, t.art_id, t.added_at, t.is_pending,
+      SELECT t.seq, t.folder, t.art_id, t.added_at, t.is_pending,
         ${prefix} || ${segment} AS child, ${segment} AS child_name
       FROM tracks t WHERE ${conditions.join(' AND ')}
     ),
     stats AS (
       SELECT child AS id, MAX(child_name) AS list_title,
         COUNT(*) AS track_count, MAX(added_at) AS added_at,
-        MIN(COALESCE(is_pending, 0)) AS all_pending, MIN(seq) AS first_seq
+        MIN(COALESCE(is_pending, 0)) AS all_pending, MIN(seq) AS first_seq,
+        MAX(kept.folder <> kept.child) AS has_folders
       FROM kept GROUP BY child
     ),
     arts AS (

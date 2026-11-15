@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '../styles/Library.scss';
 import useLibraryWorkspaceShelf from './useLibraryWorkspaceShelf';
 import useLibraryWorkspaceNavigation from './useLibraryWorkspaceNavigation';
+import useLibrarySteps from './useLibrarySteps';
 import LibraryWorkspaceView from './LibraryWorkspaceView';
 
 export interface ILibraryWorkspaceProps {
@@ -48,10 +49,12 @@ const LibraryWorkspace = ({
     revealRequest,
   });
   const navigation = useLibraryWorkspaceNavigation(shelf);
+  const steps = useLibrarySteps(shelf, navigation);
   return (
     <LibraryWorkspaceView
       shelf={shelf}
       navigation={navigation}
+      steps={steps}
       isFullScreen={isFullScreen}
       isGraphBackdrop={isGraphBackdrop}
       isHidden={isHidden}

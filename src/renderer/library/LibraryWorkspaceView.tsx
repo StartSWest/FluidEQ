@@ -25,24 +25,23 @@ import {
   writePersistedText,
 } from './libraryWorkspacePrefs';
 import LibraryVideoStage from './player/LibraryVideoStage';
-import LibraryToolbar from './LibraryToolbar';
-import LibraryFolderActions from './LibraryFolderActions';
+import LibraryTopBar from './LibraryTopBar';
+import LibraryShelfRail from './LibraryShelfRail';
+import LibraryStatusLine from './LibraryStatusLine';
+import LibraryShelfViews from './LibraryShelfViews';
 import LibraryUpNext, { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
 import SurpriseDrawLayer from './surpriseDraw/SurpriseDrawLayer';
 import type { ISurpriseStage } from './surpriseDraw/surpriseStage';
-import LibraryScanProgress, { libraryHiddenScan } from './LibraryScanProgress';
+import LibraryScanProgress from './LibraryScanProgress';
 import LibraryEmptyState from './LibraryEmptyState';
 import Spinner from '../icons/Spinner';
 import LibraryPlaceBar from './LibraryPlaceBar';
-import LibraryVideoSection from './LibraryVideoSection';
-import LibraryDetail from './LibraryDetail';
-import LibraryListView from './LibraryListView';
-import LibraryGridView from './LibraryGridView';
-import LibraryCoverFlow from './LibraryCoverFlow';
 import KaraokePaneSplitter from '../karaoke/KaraokePaneSplitter';
 import { type ILibraryWorkspaceProps } from './LibraryWorkspace';
 import { type TLibraryWorkspaceShelf } from './useLibraryWorkspaceShelf';
 import { type TLibraryWorkspaceNavigation } from './useLibraryWorkspaceNavigation';
+import { type TLibrarySteps } from './useLibrarySteps';
+import { useLibraryAnswer, useShelfCounts } from './useLibraryAnswer';
 
 type TLibraryWorkspaceViewProps = Pick<
   ILibraryWorkspaceProps,
@@ -51,24 +50,48 @@ type TLibraryWorkspaceViewProps = Pick<
   Required<Pick<ILibraryWorkspaceProps, 'isGraphBackdrop'>> & {
     shelf: TLibraryWorkspaceShelf;
     navigation: TLibraryWorkspaceNavigation;
+    steps: TLibrarySteps;
   };
 
+/** The rail's names for the shelves, which the breadcrumb starts from. */
+const SHELF_LABEL_KEYS = {
+  album: 'library.browse.album',
+  artist: 'library.browse.artist',
+  genre: 'library.browse.genre',
+  song: 'library.browse.song',
+  folder: 'library.browse.folder',
+  video: 'library.videos',
+  playlist: 'library.browse.playlist',
+} as const;
+
+const DismissGlyph = () => (
+  <svg viewBox="0 0 12 12" aria-hidden="true">
+    <path d="M3 3l6 6M9 3l-6 6" />
+  </svg>
+);
+
 /**
- * The Library workspace's markup: the toolbar and place bar, the shelf in
- * its view, the detail of what is open, Up next beside it, the roots and
- * the drop target. Holds no state and runs no hooks; everything it shows
- * comes from the shelf and the navigation.
+ * THE LIBRARY, LAID OUT AS ONE STUDIO (Ivan, 2026-11-14: the "A + C"
+ * design): the shelves' rail on the left, the place being read in the
+ * middle under its top bar and breadcrumb, Up Next beside it, and a quiet
+ * status line across the foot. Three columns of one grid, so the rail, the
+ * shelf and the queue can never disagree about how much of the tab each has
+ * — the queue used to stand absolutely over the card while every other child
+ * took a margin to clear it.
+ *
+ * Holds no state and runs no hooks beyond the two small questions the rail
+ * and the status line ask; everything else comes from the shelf, the
+ * navigation and the reader's steps.
  */
 const LibraryWorkspaceView = ({
   shelf,
   navigation,
+  steps,
   isFullScreen,
   isGraphBackdrop,
   isHidden,
   onToggleFullScreen,
 }: TLibraryWorkspaceViewProps) => {
-  /** Cover Flow fills it while on screen, so Surprise me spins that row
-   * rather than building a second scene over it (`surpriseStage.ts`). */
   const surpriseStageRef = useRef<ISurpriseStage | undefined>(undefined);
   const {
     t,
@@ -87,8 +110,8 @@ const LibraryWorkspaceView = ({
     roots,
     wasReset,
     trackCount,
+    playlists,
     playlistsWereReset,
-    appendToQueue,
     upNext,
     videoTrackId,
     isUpNextCollapsed,
@@ -104,7 +127,6 @@ const LibraryWorkspaceView = ({
     chromeHeight,
     chromeRef,
     isUpNextDrawer,
-    playingMarkId,
     isDragOver,
     setIsDragOver,
     isResetNoticeDismissed,
@@ -118,66 +140,46 @@ const LibraryWorkspaceView = ({
     sort,
     query,
     openFolderPath,
-    openAlbumId,
-    openArtistId,
-    openGenreId,
     openPlaylistId,
-    revealTrack,
     karaokeSkippedCount,
-    offlineRootIds,
     isSearching,
-    viewSort,
-    listResetKey,
-    shelfList,
-    playingItemId,
-    centreRequest,
     showSurprisePick,
   } = shelf;
   const {
-    handleSort,
-    handleBrowseMode,
-    handleOpenFolder,
-    handleOpenPlaylist,
-    handleCoverFlowOpen,
-    shelfGenreId,
-    shelfPlaylistId,
-    hasOpenRecord,
     isDrilledIn,
     placeRecord,
     handleQuery,
     handleSortDirection,
     handlePickSort,
-    handleOpenAlbum,
-    handleOpenArtist,
-    handleOpenGenre,
-    handleBack,
-    handleAllMusic,
-    handlePlaceFolder,
     upNextRestTotal,
-    handlePlayTrack,
+    shownTracksQuery,
     transportRef,
     transportAtPressRef,
-    handleRestartTrack,
   } = navigation;
+  const {
+    canGoBack,
+    canGoForward,
+    handleGoBack,
+    handleGoForward,
+    handleBrowseMode,
+    handleShowPlaylist,
+    handleAllMusic,
+    handlePlaceFolder,
+  } = steps;
+  const counts = useShelfCounts();
+  const hasLibrary = roots.length > 0;
+  const shownTotals = useLibraryAnswer(
+    hasLibrary && !isHidden && shownTracksQuery !== undefined
+      ? { type: 'totals', query: shownTracksQuery }
+      : undefined,
+  );
+
   const handleAddFolder = () => {
     addFolder().catch(() => undefined);
   };
 
-  const handleRescan = () => {
-    rescan().catch(() => undefined);
-  };
-
-  const handleForceRescan = () => {
-    forceRescan().catch(() => undefined);
-  };
-
-  const handleRemoveRoot = (rootId: string) => {
-    removeRoot(rootId).catch(() => undefined);
-  };
-
   const onDragOver = (event: DragEvent<HTMLElement>) => {
-    // Required for the element to accept the drop at all; the browser refuses
-    // by default.
+    // Required for the element to accept the drop at all.
     event.preventDefault();
     setIsDragOver(true);
   };
@@ -199,44 +201,40 @@ const LibraryWorkspaceView = ({
     }
   };
 
-  // Audio tracks live entirely in LibraryPlayerProvider's detached decks.
-  // With no video element to preserve, an off-tab library needs no workspace
-  // DOM at all; its engine and transport remain above this component.
+  // Audio lives in LibraryPlayerProvider's detached decks. With no video
+  // element to keep, an off-tab library needs no workspace DOM at all.
   if (isHidden && !videoTrackId) {
     return null;
   }
+
+  // Withheld while a record is open, because this orders the SHELF and the
+  // record replaces it — except in Cover Flow, whose record opens under the
+  // row it reorders. Withheld on Playlists, which keep their own order.
+  const canSort =
+    !(isDrilledIn && viewMode !== 'coverflow') && browseMode !== 'playlist';
+
+  const upNextCount = upNextTotal(upNext, upNextRestTotal);
+  /** The picture owns the screen: no bar, no rail, no status line. */
+  const isVideoFull = Boolean(videoTrackId) && isFullScreen;
 
   return (
     <section
       className={`library-workspace workspace-tab-panel workspace-tab-panel--library${
         isHidden ? ' is-hidden' : ''
-      }${
-        isGraphBackdrop ? ' is-playback-backdrop' : ''
-      }${isDragOver ? ' is-drag-over' : ''}${
-        // Only while the panel is actually drawn. The class reserves the
-        // column the panel stands in — folded there is no panel and no strip,
-        // and leaving it on left a third of the tab empty with the shelf
-        // squeezed into what was left.
-        //
-        // A VIDEO IS NOT AN EXCEPTION TO IT. It used to be: the picture kept
-        // the whole tab and the queue was laid on top of its right-hand edge,
-        // which is not what this app does anywhere else. Karaoke puts its
-        // playlist BESIDE the stage and takes the width out of it, and so does
-        // every player worth copying — a list over the picture hides part of
-        // what is playing and puts the two things in one rectangle. The strip
-        // is reserved here as well now, and the picture is the width that is
-        // left over.
+      }${isGraphBackdrop ? ' is-playback-backdrop' : ''}${
+        isDragOver ? ' is-drag-over' : ''
+      }${hasLibrary ? ' has-library' : ''}${
+        // Only while the panel is drawn: folded, its column gives the width
+        // back. Over a video too — the queue stands BESIDE the picture, as
+        // karaoke's playlist does, never over a strip of it.
         !isUpNextCollapsed ? ' has-up-next' : ''
       }${isUpNextOverVideo ? ' has-video' : ''}${
         isUpNextDrawer ? ' has-up-next-floating' : ''
       }${
-        // The picture owns the screen: what `LibraryVideoStage` marks
-        // `is-fullscreen`, said on the card so the stylesheet need not ask
-        // the card's whole subtree with `:has()` (see `isResizingUpNext`).
-        videoTrackId && isFullScreen ? ' is-video-full' : ''
+        // The picture owns the screen; said on the card so the stylesheet
+        // need not ask the card's subtree with `:has()`.
+        isVideoFull ? ' is-video-full' : ''
       }${
-        // Only while the splitter is there to be dragged, as the handle's
-        // own `is-dragging` was.
         isResizingUpNext && !isHidden && !isUpNextCollapsed
           ? ' is-resizing-up-next'
           : ''
@@ -251,14 +249,10 @@ const LibraryWorkspaceView = ({
           transportAtPressRef.current = transportRef.current.trackId;
         }
       }}
-      // The one number both the panel and the strip it stands in are sized
-      // from, so the two cannot disagree about how much of the tab is spoken
-      // for.
       style={
         {
           '--up-next-width': `${upNextWidth}px`,
-          // What the drawer has to clear. Zero until the row is measured,
-          // which only matters for the first frame of a floating queue.
+          // What the surprise draw has to clear inside the main column.
           '--library-chrome-height': `${chromeHeight}px`,
         } as CSSProperties
       }
@@ -266,375 +260,177 @@ const LibraryWorkspaceView = ({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      {/* Fixed in the tree so hiding the workspace never remounts a playing
-          video. Hidden mode leaves only this media engine and its wrapper;
-          every library shelf and control below is unmounted. */}
-      {videoTrackId && (
-        <LibraryVideoStage
-          isHidden={isHidden}
-          isFullScreen={isFullScreen}
-          onToggleFullScreen={onToggleFullScreen}
+      {/* An empty library has one useful next step, and the empty state is
+          the whole screen for it; the rail appears with the first root. */}
+      {!isHidden && hasLibrary && (
+        <LibraryShelfRail
+          browseMode={browseMode}
+          counts={counts}
+          roots={roots}
+          playlists={playlists}
+          openFolderPath={openFolderPath}
+          openPlaylistId={openPlaylistId}
+          onBrowseMode={handleBrowseMode}
+          onOpenFolder={handlePlaceFolder}
+          onShowPlaylist={handleShowPlaylist}
+          onAddFolder={handleAddFolder}
+          onRemoveRoot={(rootId) => {
+            removeRoot(rootId).catch(() => undefined);
+          }}
         />
       )}
-      {!isHidden && (
-        <>
-          {/* A library that silently emptied itself after a bad shutdown is the
-          worst version of this failure — surfaced once, dismissibly, rather
-          than folded into the empty state below where it would read as
-          nothing had ever been added. */}
-          {wasReset && !isResetNoticeDismissed && (
-            <div className="library-workspace__notice" role="status">
-              <span>{t('library.indexReset')}</span>
-              <button
-                type="button"
-                aria-label={t('app.dismiss')}
-                onClick={() => setIsResetNoticeDismissed(true)}
-              >
-                <svg viewBox="0 0 12 12" aria-hidden="true">
-                  <path d="M3 3l6 6M9 3l-6 6" />
-                </svg>
-              </button>
-            </div>
-          )}
-          {/* Its own notice rather than a line in the one above, and worth more
-          than that one is: a rescan puts the songs back, and nothing puts
-          back a playlist. This is the only moment it can be said. */}
-          {playlistsWereReset && !isPlaylistNoticeDismissed && (
-            <div className="library-workspace__notice" role="status">
-              <span>{t('library.playlist.reset')}</span>
-              <button
-                type="button"
-                aria-label={t('app.dismiss')}
-                onClick={() => setIsPlaylistNoticeDismissed(true)}
-              >
-                <svg viewBox="0 0 12 12" aria-hidden="true">
-                  <path d="M3 3l6 6M9 3l-6 6" />
-                </svg>
-              </button>
-            </div>
-          )}
-          {/* An empty library has exactly one useful next step, and the empty
-          state below is the whole screen for it — a toolbar of browse/view/
-          sort/search controls with nothing yet to act on, beside a second
-          "Add folder" button, undercuts that. Once a root exists there is
-          something to steer and something else worth adding, so the row
-          appears from then on.
-
-          AND OVER A VIDEO TOO, which it did not used to be. It was withheld
-          while one played, on the argument that the picture should have the
-          whole tab — and what that produced was a tab with no way back to
-          the library except the one button drawn on the picture, and no
-          search, no browse and no view while a video was up. The row keeps
-          its place at the top and the picture takes what is left under it
-          (see `has-video` in Library.scss, which orders the two), so
-          leaving a video is the same gesture as leaving anything else. */}
-          {roots.length > 0 && (
-            <div className="library-toolbar-row" ref={chromeRef}>
-              <LibraryToolbar
-                browseMode={browseMode}
-                viewMode={viewMode}
-                sort={sort}
-                sortDirection={sortDirection}
-                onBrowseMode={handleBrowseMode}
-                onViewMode={setViewMode}
-                // Withheld while a drill-in is open, because this control orders
-                // the SHELF and a drill-in replaces the shelf — the bar would be
-                // steering a list that is not on screen, and the panel's own
-                // headers order the panel.
-                //
-                // Cover flow is the exception, and the reason is literal: its
-                // panel opens UNDER the row rather than instead of it, so the
-                // carousel this reorders is still there to watch reorder.
-                //
-                // Withheld on Playlists too, for the reason all three shelf
-                // views already give in their own code: a playlist is put in
-                // order by `sortPlaylists` — Favourites first, then by name —
-                // and none of them reads this. The dropdown was on screen
-                // there, opened, and changed nothing, which is exactly the
-                // control the list view refuses to draw a header for.
-                onSort={
-                  (isDrilledIn && viewMode !== 'coverflow') ||
-                  browseMode === 'playlist'
-                    ? undefined
-                    : handlePickSort
-                }
-                onSortDirection={
-                  (isDrilledIn && viewMode !== 'coverflow') ||
-                  browseMode === 'playlist'
-                    ? undefined
-                    : handleSortDirection
-                }
-                query={query}
-                onQuery={handleQuery}
-              />
-              {/* ONE CLUSTER, AND IT NEVER BREAKS UP. The folder controls were
-              separate children of this row, so when the bar ran out of width
-              they wrapped one at a time and turned up on lines of their own
-              under the search box. Bound together they travel as a unit and
-              stay where the eye goes looking for them: the top right. */}
-              <div className="library-toolbar__tail">
-                <LibraryFolderActions
-                  roots={roots}
-                  isScanning={isScanning}
-                  onAddFolder={handleAddFolder}
-                  onRescan={handleRescan}
-                  onForceRescan={handleForceRescan}
-                  onRemoveRoot={handleRemoveRoot}
-                  hiddenScan={libraryHiddenScan({
-                    isScanning,
-                    isScanNoticeHidden,
-                    progress,
-                  })}
-                  onShowScan={showScanNotice}
+      <div className="library-main">
+        {/* First in the column, so hiding the workspace never remounts a
+            playing video: hidden, only this engine and its wrapper stay. */}
+        {videoTrackId && (
+          <LibraryVideoStage
+            isHidden={isHidden}
+            isFullScreen={isFullScreen}
+            onToggleFullScreen={onToggleFullScreen}
+          />
+        )}
+        {!isHidden && (
+          <>
+            {/* A library that emptied itself after a bad shutdown, said once
+                and dismissibly rather than folded into the empty state. */}
+            {wasReset && !isResetNoticeDismissed && (
+              <div className="library-workspace__notice" role="status">
+                <span>{t('library.indexReset')}</span>
+                <button
+                  type="button"
+                  aria-label={t('app.dismiss')}
+                  onClick={() => setIsResetNoticeDismissed(true)}
+                >
+                  <DismissGlyph />
+                </button>
+              </div>
+            )}
+            {/* Worth more than the one above: a rescan puts songs back, and
+                nothing puts back a playlist. */}
+            {playlistsWereReset && !isPlaylistNoticeDismissed && (
+              <div className="library-workspace__notice" role="status">
+                <span>{t('library.playlist.reset')}</span>
+                <button
+                  type="button"
+                  aria-label={t('app.dismiss')}
+                  onClick={() => setIsPlaylistNoticeDismissed(true)}
+                >
+                  <DismissGlyph />
+                </button>
+              </div>
+            )}
+            {/* Over a video too: the picture takes what is left under the
+                bar, so leaving a video is the same gesture as leaving
+                anything else (`has-video` orders the two). */}
+            {hasLibrary && (
+              <div className="library-head" ref={chromeRef}>
+                <LibraryTopBar
+                  browseMode={browseMode}
+                  viewMode={viewMode}
+                  sort={sort}
+                  sortDirection={sortDirection}
+                  onViewMode={setViewMode}
+                  onSort={canSort ? handlePickSort : undefined}
+                  onSortDirection={canSort ? handleSortDirection : undefined}
+                  query={query}
+                  onQuery={handleQuery}
+                  history={
+                    videoTrackId
+                      ? undefined
+                      : {
+                          canGoBack,
+                          canGoForward,
+                          onGoBack: handleGoBack,
+                          onGoForward: handleGoForward,
+                        }
+                  }
+                  tail={
+                    !isVideoFull && (
+                      <LibraryUpNextChip
+                        isOpen={!isUpNextCollapsed}
+                        count={upNextCount}
+                        onToggle={() => setIsUpNextCollapsed((open) => !open)}
+                      />
+                    )
+                  }
                 />
-                {/* IN THE ROW, AND IN BOTH STATES.
-                It stood under the row before, in the slot the panel opens
-                into, to stop the cluster re-laying itself out when the queue
-                opened. Mounted here in both states there is nothing to
-                re-lay: the chip keeps its place and only lights up, and the
-                panel starts below this row at every width — see
-                `.library-workspace.has-up-next`, which exempts
-                `.library-toolbar-row` from the strip the queue takes. What
-                the old position cost was a shelf pushed down 23px and a
-                folder path truncated early to clear a chip floating over
-                them both.
-
-                Not over a video: there the picture takes the whole tab and
-                this row is not drawn at all, so the chip floats — see
-                `library-up-next__chip--over-video` below. */}
-                {!isUpNextOverVideo && (
-                  <LibraryUpNextChip
-                    isOpen={!isUpNextCollapsed}
-                    count={upNextTotal(upNext, upNextRestTotal)}
-                    onToggle={() => setIsUpNextCollapsed((open) => !open)}
+                {/* Where the reader stands, over every shelf and view. On the
+                    Folders shelf inside a folder the path is the start, as
+                    in a file manager. Not over a video, which has the tab. */}
+                {trackCount > 0 && !videoTrackId && (
+                  <LibraryPlaceBar
+                    shelf={
+                      browseMode === 'folder' &&
+                      openFolderPath !== undefined &&
+                      !isSearching
+                        ? undefined
+                        : t(SHELF_LABEL_KEYS[browseMode])
+                    }
+                    folderPath={openFolderPath}
+                    roots={roots}
+                    record={placeRecord}
+                    onAllMusic={handleAllMusic}
+                    onOpenFolder={handlePlaceFolder}
                   />
                 )}
               </div>
-            </div>
-          )}
-          {/* Pinned under the toolbar rather than a modal: the scan is
-          backgroundable simply by leaving the tab, which only works if
-          nothing here blocks the rest of the workspace. */}
-          {isScanning && progress && !isScanNoticeHidden && (
-            <LibraryScanProgress
-              progress={progress}
-              onCancel={cancelScan}
-              onHide={hideScanNotice}
+            )}
+            {/* Pinned under the bar rather than a modal: the scan is
+                backgroundable by leaving the tab. */}
+            {isScanning && progress && !isScanNoticeHidden && (
+              <LibraryScanProgress
+                progress={progress}
+                onCancel={cancelScan}
+                onHide={hideScanNotice}
+              />
+            )}
+            {/* Only once the index has been read: it starts empty, and gated
+                on the count alone this greeted a full library with "no music
+                yet" every time the tab opened. */}
+            {isIndexLoaded && trackCount === 0 && (
+              <LibraryEmptyState
+                karaokeSkippedCount={karaokeSkippedCount}
+                onAddFolder={handleAddFolder}
+              />
+            )}
+            {!isIndexLoaded && (
+              <div className="library-loading" role="status">
+                <Spinner />
+              </div>
+            )}
+            <LibraryShelfViews
+              shelf={shelf}
+              navigation={navigation}
+              steps={steps}
+              surpriseStageRef={surpriseStageRef}
             />
-          )}
-          {/* Only once the index has actually been read. It starts empty and is
-          filled by a reply a moment later, so gated on the count alone this
-          panel greeted everybody with a library every time they opened the
-          tab — "no music yet" over a library of fourteen thousand songs. */}
-          {isIndexLoaded && trackCount === 0 && (
-            <LibraryEmptyState
-              karaokeSkippedCount={karaokeSkippedCount}
-              onAddFolder={handleAddFolder}
+            {/* Over whichever shelf is drawn, after every view so it lies
+                above them. Never over a video, which has the tab. */}
+            <SurpriseDrawLayer
+              isShelfShown={trackCount > 0 && !videoTrackId}
+              stageRef={surpriseStageRef}
+              onPick={showSurprisePick}
             />
-          )}
-          {!isIndexLoaded && (
-            <div className="library-loading" role="status">
-              <Spinner />
-            </div>
-          )}
-          {/* WHERE THE READER IS STANDING, over every shelf and every view,
-          and the one Back in the Library (`LibraryPlaceBar`). It used to be
-          two things: a Back on an opened album's panel, and one on Videos.
-          Every other screen a folder narrowed had neither — Genres, Songs,
-          Playlists, an Albums shelf whose folder held only folders, Cover
-          Flow after its panel closed — and the library read as a fraction of
-          itself with no word why and no way out (Ivan, 2026-09-23). Drawn
-          whenever anything narrows the shelf, a folder or an open record. */}
-          {trackCount > 0 &&
-            !videoTrackId &&
-            (openFolderPath !== undefined || hasOpenRecord) && (
-              <LibraryPlaceBar
-                folderPath={openFolderPath}
-                roots={roots}
-                record={placeRecord}
-                onBack={handleBack}
-                onAllMusic={handleAllMusic}
-                onOpenFolder={handlePlaceFolder}
+            {/* Over a video in full screen only, where the bar holding the
+                chip everywhere else is not drawn. */}
+            {isUpNextCollapsed && isVideoFull && (
+              <LibraryUpNextChip
+                className="library-up-next__chip--over-video"
+                isOpen={false}
+                count={upNextCount}
+                onToggle={() => setIsUpNextCollapsed(false)}
               />
             )}
-          {/* Videos have no album or artist to drill into — routed here on its
-          own rather than through the three views below, which never see
-          `browseMode === 'video'` at all. The view-mode toggle (list/grid/
-          Cover Flow) has nothing to say about a shelf grouped by folder, so
-          it is ignored while this is what is browsed. */}
-          {trackCount > 0 && !videoTrackId && browseMode === 'video' && (
-            <LibraryVideoSection
-              list={shelfList}
-              onPlayTrack={handlePlayTrack}
-              offlineRootIds={offlineRootIds}
-            />
-          )}
-          {/* The drill-in behind whichever tile, row or cover was opened, in
-          place of the browse view below rather than over it — search and
-          sort still apply to what got you here, but the album or artist
-          itself is shown whole, not narrowed further by a query that was
-          for finding it in the first place. */}
-          {/* Not in Cover Flow: that view renders this very component itself,
-          underneath its row, from the same `openAlbumId`. Rendering it here
-          as well put the same album on the screen twice, one above the
-          carousel and one below it. */}
-          {trackCount > 0 &&
-            !videoTrackId &&
-            browseMode !== 'video' &&
-            viewMode !== 'coverflow' &&
-            isDrilledIn && (
-              <LibraryDetail
-                albumId={openAlbumId}
-                artistId={openArtistId}
-                genreId={browseMode === 'genre' ? openGenreId : undefined}
-                // Only the Folders shelf draws a folder as a panel. On the other
-                // three the same folder is the place the shelf is being read in,
-                // and the panel would be a second answer to a question the list
-                // below is already answering.
-                folderPath={
-                  browseMode === 'folder' && !isSearching
-                    ? openFolderPath
-                    : undefined
-                }
-                playlistId={
-                  browseMode === 'playlist' ? openPlaylistId : undefined
-                }
-                onBack={handleBack}
-                onPlayTrack={handlePlayTrack}
-                onRestartTrack={handleRestartTrack}
-                onQueueTracks={appendToQueue}
-                offlineRootIds={offlineRootIds}
-                onOpenFolder={handleOpenFolder}
-                viewMode={viewMode}
-                playingTrackId={playingMarkId}
-                revealTrack={revealTrack}
-                query={query}
-              />
-            )}
-          {trackCount > 0 &&
-            !videoTrackId &&
-            browseMode !== 'video' &&
-            !isDrilledIn &&
-            viewMode === 'list' && (
-              <LibraryListView
-                list={shelfList}
-                browseMode={browseMode}
-                onOpenAlbum={handleOpenAlbum}
-                onOpenArtist={handleOpenArtist}
-                onOpenGenre={handleOpenGenre}
-                onOpenFolder={handleOpenFolder}
-                onOpenPlaylist={handleOpenPlaylist}
-                onPlayTrack={handlePlayTrack}
-                onRestartTrack={handleRestartTrack}
-                // The Songs shelf has no drill-in header to queue from, so the
-                // row menu is the only way into the queue here at all.
-                onQueueTracks={appendToQueue}
-                offlineRootIds={offlineRootIds}
-                sort={viewSort}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-                playingTrackId={playingMarkId}
-                revealTrack={revealTrack}
-                resetKey={listResetKey}
-              />
-            )}
-          {trackCount > 0 &&
-            !videoTrackId &&
-            browseMode !== 'video' &&
-            !isDrilledIn &&
-            viewMode === 'grid' && (
-              <LibraryGridView
-                list={shelfList}
-                browseMode={browseMode}
-                onOpenAlbum={handleOpenAlbum}
-                onOpenArtist={handleOpenArtist}
-                onOpenGenre={handleOpenGenre}
-                onOpenFolder={handleOpenFolder}
-                onOpenPlaylist={handleOpenPlaylist}
-                onPlayTrack={handlePlayTrack}
-                onRestartTrack={handleRestartTrack}
-                offlineRootIds={offlineRootIds}
-                playingItemId={playingItemId}
-                revealTrack={revealTrack}
-                resetKey={listResetKey}
-              />
-            )}
-          {/* Not gated on `isDrilledIn` like the other two: this view shows the
-          drill-in itself, under its own row. Switching to it from an open
-          album carries that album across -- `openId` centres it and opens it
-          -- rather than dropping the reader at the top of an unrelated
-          carousel with what they were reading closed. */}
-          {trackCount > 0 &&
-            !videoTrackId &&
-            browseMode !== 'video' &&
-            viewMode === 'coverflow' && (
-              <LibraryCoverFlow
-                list={shelfList}
-                browseMode={browseMode}
-                onPlayTrack={handlePlayTrack}
-                onRestartTrack={handleRestartTrack}
-                folderRoots={roots}
-                playingTrackId={playingMarkId}
-                playingItemId={playingItemId}
-                revealTrack={revealTrack}
-                // What is open ON THIS SHELF, and nothing else. It was the
-                // first of all five, so over Albums a folder's path came
-                // through as the album to open: no cover answered to it, no
-                // panel opened, and the shelf sat narrowed with no Back.
-                openId={
-                  {
-                    album: openAlbumId,
-                    artist: openArtistId,
-                    genre: shelfGenreId,
-                    playlist: shelfPlaylistId,
-                    folder: openFolderPath,
-                    song: undefined,
-                    video: undefined,
-                  }[browseMode]
-                }
-                onOpenChange={handleCoverFlowOpen}
-                onQueueTracks={appendToQueue}
-                query={query}
-                surpriseStageRef={surpriseStageRef}
-                centreRequest={centreRequest}
-              />
-            )}
-          {/* Surprise me's draw, over whichever shelf is drawn: after every
-          view, so it lies above them, and before the queue, which stays
-          above it. Never over a video, which has the tab. */}
-          <SurpriseDrawLayer
-            isShelfShown={trackCount > 0 && !videoTrackId}
-            stageRef={surpriseStageRef}
-            onPick={showSurprisePick}
-          />
-          {/* Last, and outside every view above: the queue belongs to the tab
-          rather than to whichever shelf is drawing it. On a shelf it stands
-          in the strip `has-up-next` reserves; over a video it floats on the
-          picture, full screen included — `has-video` is what moves it. */}
-          {/* Mounted folded as well, so it can close and open on the Plus
-          rail's motion (`Library.scss`) instead of vanishing in one frame. */}
-          <LibraryUpNext
-            isCollapsed={isUpNextCollapsed}
-            onCollapsedChange={setIsUpNextCollapsed}
-            restTotal={upNextRestTotal}
-            canSurprise={trackCount > 0 && !videoTrackId}
-          />
-          {/* OVER A VIDEO ONLY. The picture takes the whole tab and the toolbar
-          row that holds the chip everywhere else is not drawn, so here it
-          floats — a little below the top, clear of the picture's own Back and
-          full-screen buttons, which hold the two corners. */}
-          {isUpNextCollapsed && isUpNextOverVideo && (
-            <LibraryUpNextChip
-              className="library-up-next__chip--over-video"
-              isOpen={false}
-              count={upNextTotal(upNext, upNextRestTotal)}
-              onToggle={() => setIsUpNextCollapsed(false)}
-            />
-          )}
-          {/* The same splitter the karaoke panes are divided by, not a strip of
-          this tab's own. Dragging left widens the queue, which is why the
-          delta is subtracted: the panel is anchored to the right edge and
-          grows towards the pointer. */}
+          </>
+        )}
+      </div>
+      {/* The queue belongs to the tab rather than to whichever shelf is
+          drawing it: a column of its own. Mounted folded as well, so it
+          closes and opens on the Plus rail's motion instead of vanishing. */}
+      {!isHidden && (
+        <div className="library-side">
+          {/* The karaoke panes' splitter, on the column's inner edge.
+              Dragging left widens the queue: the panel is anchored right. */}
           {!isUpNextCollapsed && (
             <div className="library-up-next__splitter">
               <KaraokePaneSplitter
@@ -666,7 +462,30 @@ const LibraryWorkspaceView = ({
               />
             </div>
           )}
-        </>
+          <LibraryUpNext
+            isCollapsed={isUpNextCollapsed}
+            onCollapsedChange={setIsUpNextCollapsed}
+            restTotal={upNextRestTotal}
+            canSurprise={trackCount > 0 && !videoTrackId}
+          />
+        </div>
+      )}
+      {!isHidden && hasLibrary && (
+        <LibraryStatusLine
+          shown={shownTotals}
+          shownKind={browseMode === 'video' ? 'video' : 'song'}
+          counts={counts}
+          isScanning={isScanning}
+          progress={progress}
+          isScanNoticeHidden={isScanNoticeHidden}
+          onShowScan={showScanNotice}
+          onRescan={() => {
+            rescan().catch(() => undefined);
+          }}
+          onForceRescan={() => {
+            forceRescan().catch(() => undefined);
+          }}
+        />
       )}
     </section>
   );

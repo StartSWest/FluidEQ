@@ -115,15 +115,15 @@ it('remembers a dragged width when the drag ends, not on every move', async () =
   );
   expect(widthWrites(setItem)).toEqual([]);
   fireEvent.pointerUp(edge, { clientX: 440 });
-  // Dragged 60px towards the shelf from the 260 it opens at.
-  expect(widthWrites(setItem)).toEqual(['320']);
+  // Dragged 60px towards the shelf from the 300 it opens at.
+  expect(widthWrites(setItem)).toEqual(['360']);
 });
 
 it('remembers the width a key step reached, not the one before it', async () => {
   const edge = await openQueueEdge();
   const setItem = jest.spyOn(Storage.prototype, 'setItem');
   fireEvent.keyDown(edge, { key: 'ArrowLeft' });
-  expect(widthWrites(setItem)).toEqual(['284']);
+  expect(widthWrites(setItem)).toEqual(['324']);
 });
 
 // The stylesheet reads the drag from the card (`is-resizing-up-next`) rather

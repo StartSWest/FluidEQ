@@ -172,7 +172,6 @@ describe('videos in the library', () => {
     search: '',
     sort: 'title',
     direction: 'asc',
-    isTree: false,
     hasRoots: true,
     folderLevel: undefined,
   });

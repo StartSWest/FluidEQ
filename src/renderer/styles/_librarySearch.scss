@@ -427,67 +427,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-faint;
 }
 
-// *** Up next *****************************************************************
-//
-// The queue, said out loud. It is assembled from whatever list is on screen
-// and re-aimed whenever the view changes, and until now the only way to learn
-// what it held was to wait and hear.
-//
-// Absolutely placed against the tab rather than laid out as a column beside
-// it: this section is already the positioning frame for the floating scan
-// pane, and `has-up-next` reserves the strip on the right so nothing runs
-// underneath. A wrapper element around every other child would be a large
-// edit for the same picture.
-// The strip it stands in, plus the gap between it and the shelf. Folded it
-// gives all of that back but the width of its own tab.
-// The panel's width plus the splitter's, and nothing else.
-//
-// 12px is the graph divider's rule taken sideways: `.pane-resizer` is exactly
-// as thick as the gap the workspace already leaves between two cards, so it
-// sits IN that gap rather than adding to it. Here the same — the splitter is
-// the space between the shelf and the queue, not a third thing between them.
-// The strip the queue stands in: the panel, the gap between it and the shelf,
-// and the panel's own inset from the card.
-//
-// Held as a margin on each VIEW rather than as padding on the card, and the
-// reason is a rule of container queries rather than a matter of taste: an
-// element is not its own ancestor, so `@container library` can never restyle
-// the box that declares the container. The card declares it. Its padding is
-// therefore unreachable from the very query that has to release the strip when
-// the tab gets narrow — see the 900px block — while its children are not.
-//
-// The card keeps its own 12px padding-right underneath, so the total clearance
-// is the same as when this was `padding-right: calc(width + 12 + inset)`.
-.library-workspace.has-up-next
-  > *:not(.library-up-next):not(.library-up-next__splitter):not(
-    .library-toolbar-row
-  ) {
-  margin-right: calc(var(--up-next-width, 260px) + var(--up-next-inset));
-}
-
-// Folded there is no panel to reserve for: `has-up-next` comes off the
-// section entirely and the shelf has the whole width back. The chip in the
-// folder row is the way in.
-
-// *** The fold ****************************************************************
+// *** The queue's fold *******************************************************
 //
 // THE QUEUE FOLDS THE WAY THE PLUS TAB'S RAIL DOES (`PlusRail.scss`), and the
-// way karaoke's playlist does beside its stage: the panel closes towards the
+// way karaoke's playlist does beside its stage: the column closes towards the
 // edge it stands against on the same length and curve, its contents leave
-// before it narrows and come back once there is room, and the shelf gives up
-// its strip — and takes it back — in the same movement. No pin and no
-// opening on hover; the fold is only ever the chip's or the header's.
-//
-// It used to be unmounted, and only its arrival was animated, because the
-// strip came back the instant it was folded and a panel sliding away over a
-// shelf already laid out underneath it would have disagreed with it. Both
-// move together now, so the panel stays mounted, inert while folded
-// (`LibraryUpNext`).
+// before it narrows and come back once there is room, and the shelf takes the
+// width back in the same movement — it is a grid column, so the shelf follows
+// it frame by frame with no transition of its own. No pin and no opening on
+// hover; the fold is only ever the chip's or the header's.
 //
 // Reduced motion shortens it rather than removing it, as the rail does: a
-// shelf that jumps a quarter of the card sideways reads as the layout
-// breaking. `--up-next-chrome` is the full-screen slide out of the picture's
-// way (below), which reduced motion does remove.
+// shelf that jumps a fifth of the card sideways reads as the layout breaking.
+// `--up-next-chrome` is the full-screen slide out of the picture's way, which
+// reduced motion does remove.
 .library-workspace {
   --up-next-move: #{$motion-slow};
   --up-next-settle: #{$motion-base};
@@ -500,29 +453,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The shelf, the video and every other view give the strip up and take it
-// back as the panel moves. None of them has a transition of its own to be
-// replaced by this; the toolbar row and the queue's own pieces are left out.
-//
-// Not while the panel's edge is dragged, which moves the shelf under the
-// pointer: a transition there would trail every movement by the length of a
-// fold. Said in this selector rather than overridden by another one, which
-// this many `:not()`s would outrank.
-//
-// `is-resizing-up-next` is the card saying so (`LibraryWorkspace`). It was
-// `:has(.library-up-next__splitter .is-dragging)`, and a queue row being
-// dragged wears `is-dragging` too, so picking one up or putting it down made
-// the browser ask the card's whole subtree again: measured in Chromium on a
-// windowed list of 14,000 rows, 9 ms of style work each time against 0.2 ms
-// with the class, and a scroll 1.2-1.8x the style work.
-.library-workspace:not(.is-resizing-up-next)
-  > *:not(.library-up-next):not(.library-up-next__splitter):not(
-    .library-toolbar-row
-  ):not(.library-up-next__chip--over-video) {
-  transition: margin-right var(--up-next-move) $ease-out;
-}
-
-// And the panel's own width follows the same drag.
+// The column's width follows a drag of its edge at once: a transition there
+// would trail every movement by the length of a fold. `is-resizing-up-next`
+// is the card saying so (`LibraryWorkspaceView`) — it was a `:has()` on the
+// splitter's own class, and a queue row being dragged wears that class too,
+// which made the browser ask the card's whole subtree again at every pick-up.
 .library-workspace.is-resizing-up-next .library-up-next {
   transition: none;
 }

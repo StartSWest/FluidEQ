@@ -449,7 +449,13 @@ const groupFields = (items: TLibraryListItem[]): Omit<TGroupItem, 'near'>[] =>
     if (item.kind === 'track' || item.kind === 'heading') {
       throw new Error('a group was expected');
     }
+    // `hasFolders` is the tree's own question, asked of the store alone and
+    // held by its own test below; the grouping models never had it.
     const { near: _near, ...rest } = item;
+    if (rest.kind === 'folder') {
+      const { hasFolders: _hasFolders, ...folder } = rest;
+      return folder;
+    }
     return rest;
   });
 
@@ -680,17 +686,83 @@ describe('the folder shelves', () => {
   });
 
   it('lists the roots as rootFolders does', () => {
-    const items = all({
-      shelf: 'roots',
-      scope: {},
-      sort: 'added',
-      direction: 'asc',
-    });
+    const items = groupFields(
+      all({
+        shelf: 'roots',
+        scope: {},
+        sort: 'added',
+        direction: 'asc',
+      }),
+    );
     expect(items).toEqual(
       sortFolders(rootFolders(TRACKS, ROOTS), 'added').map((folder) => ({
         kind: 'folder',
         ...folder,
       })),
+    );
+  });
+
+  // The rail's tree draws a caret only where opening a folder finds one.
+  it('says which folders have a folder of music beneath them', () => {
+    const folders = new Set(TRACKS.map((track) => trackFolderPath(track.path)));
+    const hasBeneath = (id: string) =>
+      Array.from(folders).some((folder) => folder.startsWith(`${id}/`));
+    const listed = [
+      ...all({ shelf: 'roots', scope: {}, direction: 'asc' }),
+      ...all({
+        shelf: 'children',
+        scope: {},
+        parent: 'C:/Music',
+        direction: 'asc',
+      }),
+    ].filter((item) => item.kind === 'folder');
+    // Both answers present, so neither "always" nor "never" can pass.
+    expect(listed.some((item) => item.hasFolders === true)).toBe(true);
+    expect(listed.some((item) => item.hasFolders !== true)).toBe(true);
+    listed.forEach((item) => {
+      expect([item.id, item.hasFolders === true]).toEqual([
+        item.id,
+        hasBeneath(item.id),
+      ]);
+    });
+  });
+});
+
+describe('a list of songs summed', () => {
+  it('counts the songs and adds their lengths in one answer', () => {
+    const query: ILibraryListQuery = {
+      shelf: 'tracks',
+      scope: { beneath: 'C:/Music' },
+      direction: 'asc',
+    };
+    const songs = all(query).flatMap((item) =>
+      item.kind === 'track' ? [item.track] : [],
+    );
+    expect(songs.length).toBeGreaterThan(0);
+    expect(ask({ type: 'totals', query })).toEqual({
+      count: songs.length,
+      durationMs: songs.reduce(
+        (total, track) => total + (track.durationMs ?? 0),
+        0,
+      ),
+    });
+  });
+
+  it('sums only what a search keeps', () => {
+    const query: ILibraryListQuery = {
+      shelf: 'tracks',
+      scope: {},
+      search: 'queen',
+      direction: 'asc',
+    };
+    const songs = all(query).flatMap((item) =>
+      item.kind === 'track' ? [item.track] : [],
+    );
+    // A search that keeps some and not all, or the sum proves nothing.
+    expect(songs.length).toBeGreaterThan(0);
+    expect(songs.length).toBeLessThan(TRACKS.length);
+    expect((ask({ type: 'totals', query }) as { count: number }).count).toBe(
+      songs.length,
     );
   });
 });

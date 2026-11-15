@@ -566,6 +566,35 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
   );
 
   /**
+   * The songs on screen, for the status line to count and time: the record
+   * open, or the shelf's own songs. A folder on the Folders shelf counts
+   * everything beneath it, as its count in the tree does — its own files
+   * alone would say "3 songs" over a folder of three hundred in subfolders.
+   */
+  const shownTracksQuery = useMemo((): ILibraryListQuery | undefined => {
+    if (
+      openFolderPath !== undefined &&
+      browseMode === 'folder' &&
+      !isSearching &&
+      !hasOpenRecord
+    ) {
+      return {
+        shelf: 'tracks',
+        scope: { beneath: openFolderPath },
+        direction: 'asc',
+      };
+    }
+    return recordQueueQuery ?? shelfTracksQuery;
+  }, [
+    browseMode,
+    hasOpenRecord,
+    isSearching,
+    openFolderPath,
+    recordQueueQuery,
+    shelfTracksQuery,
+  ]);
+
+  /**
    * What plays next follows what is on screen, and how much of it is still
    * to come — see `useViewQueue`. A track this build cannot decode is still
    * handed to the player rather than swallowed here: the player marks it
@@ -639,6 +668,7 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     handleAllMusic,
     handlePlaceFolder,
     upNextRestTotal,
+    shownTracksQuery,
     handlePlayTrack,
     transportRef,
     transportAtPressRef,

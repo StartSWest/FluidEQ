@@ -24,48 +24,45 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
-.library-up-next {
-  // A card, as the listing beside it is: the pane's flat slate made it the
-  // one grey slab on the tab (Ivan, 2026-09-26: "something nice for the up
-  // next in lib too", "bg color there also"). `card-surface` carries the
-  // inner corner the list, the grid and the video all have.
-  @include card-surface;
-  position: absolute;
+// *** The column ***************************************************************
+//
+// The queue is the studio's third column (`LibraryWorkspaceView`): the
+// rail's surface, a hairline between it and the shelf, running from the top
+// of the card to the status line. It used to stand absolutely over the card
+// below the toolbar while every other child took a margin as wide as it; as a
+// grid column the shelf simply has what is left, and the bar above the shelf
+// keeps exactly the shelf's width.
+.library-side {
+  position: relative;
   z-index: 3;
-  // The card's own padding, restated.
-  //
-  // An absolutely placed child resolves against the padding BOX, which starts
-  // inside the border and takes no notice of the padding itself — so `top: 0`
-  // put this hard against the card's edge while every other thing in the tab
-  // stood 10px in from it. These are the tab panel's own
-  // `padding: 10px 12px 12px`, so the queue stands off the card by what the
-  // shelf stands off it, on every side it touches — the right included, which
-  // used to be flush and so read as 16px once the reserved scrollbar gutter
-  // was counted.
-  //
-  // IT STARTS BELOW THE TOOLBAR, not beside it. The strip used to run the full
-  // height of the tab, which meant the bar had to fit its six shelf chips, a
-  // search, three view chips and a sort control into whatever the queue left —
-  // about 900px of a Full HD card with the panel opened out to 420. Below the
-  // bar instead, the toolbar keeps the whole width at every queue size and the
-  // queue costs the list nothing it was using. The row's height is measured
-  // rather than assumed: it is one line or two depending on what has
-  // collapsed. The 8px is the gap the card already leaves under that row.
-  top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
-  right: var(--up-next-inset);
-  bottom: 12px;
   display: flex;
-  width: var(--up-next-width, 260px);
+  min-width: 0;
+  min-height: 0;
+  grid-column: 3;
+  grid-row: 1;
+  background: $studio-rail;
+
+  // The hairline belongs to an open queue only: folded, the column is gone.
+  .library-workspace.has-up-next & {
+    border-left: 1px solid $studio-hair;
+  }
+}
+
+.library-up-next {
+  position: relative;
+  display: flex;
+  width: var(--up-next-width, 300px);
+  min-height: 0;
+  flex: 0 0 auto;
   flex-direction: column;
-  padding: 6px 4px 8px 10px;
+  padding: 10px 6px 10px 12px;
   gap: 4px;
   // Its contents are squeezed while it is narrower than they are, and never
-  // drawn outside it. The focus ring its header draws is inset far enough to
-  // stay inside.
+  // drawn outside it.
   overflow: hidden;
-  // Opening: the surface comes in at once and widens; the contents follow a
-  // quarter of the way in, when the panel is already most of the way open on
-  // this curve. `transform` is the full-screen slide out of the picture's way.
+  // Opening: the column widens, the contents follow a quarter of the way in,
+  // when it is already most of the way open on this curve. `transform` is
+  // the full-screen slide out of the picture's way.
   transition:
     width var(--up-next-move) $ease-out,
     padding var(--up-next-move) $ease-out,
@@ -78,9 +75,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   // Folding: the contents go first, quickly, so nothing is seen being
-  // squeezed; the surface follows them out while it closes, its padding
-  // closing with it so no sliver is left standing at the edge, and it is
-  // hidden once shut so nothing in it can be hovered.
+  // squeezed; the column follows them out, its padding closing with it so no
+  // sliver is left at the edge, and it is hidden once shut so nothing in it
+  // can be hovered.
   &.is-collapsed {
     width: 0;
     padding-inline: 0;
@@ -99,153 +96,110 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transition: opacity 90ms ease-out;
     }
   }
-  // OPAQUE, overriding `panel-surface`'s translucent one, and the CARD
-  // colour — the same one the right rail's sections and every other block
-  // in the window stand on.
-  //
-  // The mixin lets the shell show through, which is right for a card sitting
-  // in the window and wrong for a list of rows: the queue's own titles were
-  // competing with whatever was behind them. It then took an opaque colour of
-  // its own, a darker slate than any card beside it, so the one panel that
-  // floats over the shelf was also the one panel in a different material.
-  //
-  // Then it was the block colour, opaque — a step lighter than every card
-  // (Ivan, 2026-09-26: "fix up next in library pane darker a bit too"). Now
-  // the card itself, laid over the floor so the shelf does not show through
-  // (`.studio-ship-card` does the same).
-  background: $card-glow, linear-gradient($surface-card 0 0), $surface-base;
+}
+
+// The column's edge, dragged: the karaoke panes' splitter, centred on the
+// hairline so the grip sits in the seam between shelf and queue.
+.library-up-next__splitter {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  left: -6px;
+  display: flex;
+  width: 12px;
+
+  // Its own vertical form is 18px wide with the grip centred in that; it
+  // takes these 12 instead so the grip lands on the hairline.
+  .karaoke-pane-splitter.is-vertical {
+    width: 100%;
+  }
+}
+
+// *** A drawer, where the card is narrow ***************************************
+//
+// Below the width that leaves the shelf a table's worth beside a rail and a
+// queue, the queue stands over the shelf instead of beside it, and a press
+// outside puts it away (`useLibraryWorkspaceShelf`). It keeps that look while
+// it folds, or its shadow would drop off on the first frame of closing.
+//
+// IT COVERS THE SHELF, NEVER THE CONTROLS: it starts under the top bar and
+// the breadcrumb (measured, `--library-chrome-height`), so the search, the
+// order and the very button that put it away stay in reach.
+.library-workspace.has-up-next-floating .library-side {
+  position: absolute;
+  top: var(--library-chrome-height, 0px);
+  right: 0;
+  bottom: var(--library-status-height, 31px);
+  z-index: 6;
+  border-left: 0;
+  background: none;
+
+  .library-up-next {
+    border-top-left-radius: $radius-l;
+    background: $surface-panel;
+    box-shadow:
+      -18px 0 44px rgba($black, 0.45),
+      0 0 0 1px $studio-hair;
+  }
+
+  .library-up-next__splitter {
+    display: none;
+  }
 }
 
 // *** The queue beside a video ************************************************
 //
 // A video is a queue entry like any other, and "what is next" is the question
-// a listener has WHILE one plays — so the panel is drawn there too, the way
-// karaoke keeps its playlist beside the stage, and the way the list sits down
-// the right of every video site this app opens.
-//
-// BESIDE, NOT OVER. It floated on the picture's right-hand edge before, with
-// `has-up-next` withheld so the stage kept the whole tab. Two things were
-// wrong with that and both of them show: the queue covered a quarter of what
-// was playing, and the picture and the list were one rectangle instead of two
-// panes with an edge between them that can be dragged. It takes the strip now
-// like every other view in this tab, so the only thing left here is where the
-// column starts and ends.
+// a listener has WHILE one plays — so the column stays beside the picture, as
+// karaoke keeps its playlist beside the stage. The picture takes what is left
+// under the top bar (`order`).
 .library-workspace.has-video {
-  // The toolbar keeps the top, the picture takes what is left.
-  //
-  // The stage is FIRST in the markup and has to stay there: it is the one
-  // child that survives the tab being hidden, and React reconciles by
-  // position, so moving it in the tree would remount a playing video. Order
-  // is a paint-time answer to a layout question, which is exactly the case
-  // for it.
   .library-video-stage {
     order: 1;
   }
 
-  .library-up-next,
-  .library-up-next__splitter {
-    // Level with the top of the picture beside it, which is now under the
-    // toolbar rather than at the card's own edge — so the queue starts where
-    // it starts on a shelf, from the measured row height, and the base rule
-    // already says exactly that. Nothing to override.
-    //
-    // The full-screen picture is the exception: there the toolbar is gone and
-    // the stage does own the whole card again.
-    top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
-  }
-
+  // Full screen: the picture fills the window and the queue floats over its
+  // right-hand edge on glass, clear of the picture's corner buttons.
   &.is-video-full {
-    // THE BROWSE BAR IS NOT DRAWN OVER A FULL-SCREEN PICTURE.
-    //
-    // It earns its place while the tab is a tab — it is how you leave the
-    // video and how you search — and none of that applies to a picture
-    // filling the screen, where the way out is Escape or another
-    // double-click. Left up it did real damage rather than merely taking
-    // room: the row sits at `z-index: 5` and the queue at 3, so browse chips,
-    // a search box and the folder buttons were painted straight across the
-    // top of the list, taking its heading and the Keep playing switch with
-    // them.
-    .library-toolbar-row {
-      display: none;
-    }
-
-    // THE PICTURE IS THE SCREEN, and everything else is drawn on top of it.
-    //
-    // Fixed to the viewport rather than laid out in the card, which is what
-    // karaoke's own full-screen stage does and for the same reason: the card
-    // reserves the height of the optional FluidEQ bar at its top (see
-    // `has-top-bar` in App.scss), and a picture that respects that reservation
-    // leaves a band of shell between the bar and the top of the video — the
-    // one thing a full screen is not supposed to have. Fixed, it reaches all
-    // four edges and the bar floats over it, translucent, the way it already
-    // floats over the graph and over a karaoke stage.
-    //
-    // This is the fixed descendant `container-type: normal` above is given
-    // back for: with the card still an inline-size container, `inset: 0` would
-    // resolve against the card and the picture would fill the middle column
-    // instead of the window.
     .library-video-stage {
       position: fixed;
       z-index: 0;
       inset: 0;
     }
 
-    .library-up-next,
-    .library-up-next__splitter {
+    .library-side {
+      position: absolute;
       top: 12px;
+      right: 12px;
+      bottom: 12px;
+      border: 0;
+      background: none;
     }
 
-    // MORE PRESENT THAN THE SHELF VERSION, and made of the same glass as the
-    // Back button opposite it — the header's own `blur(22px) saturate(130%)`.
-    //
-    // Over a picture the flat field colour the panel wears on a shelf reads as
-    // a dark hole cut in the film; lifted onto the panel tone at 88% it is a
-    // pane the titles sit on and the picture carries on behind it. The two
-    // things drawn on this screen are now one material at two strengths: this
-    // one holds a list somebody is reading, so it is the stronger of them.
     .library-up-next {
+      border-radius: $radius-l;
       background: color-mix(in srgb, $surface-panel 88%, transparent);
       backdrop-filter: blur(22px) saturate(130%);
       -webkit-backdrop-filter: blur(22px) saturate(130%);
     }
 
-    // No toolbar to clear here — the picture owns the whole card — so the
-    // chip goes back to the corner it pairs with the Back button in.
-    .library-up-next__chip--over-video {
-      top: 12px;
+    .library-up-next__splitter {
+      display: none;
     }
 
-    // The picture is fixed, so the queue has nothing in the flow left to
-    // stand beside and the strip reserved for it would be reserved out of
-    // nothing. It floats on the picture in full screen — which is what
-    // karaoke does too, and it is the only arrangement that lets the video
-    // reach the edges.
-    > *:not(.library-up-next):not(.library-up-next__splitter) {
-      margin-right: 0;
+    .library-up-next__chip--over-video {
+      top: 12px;
     }
   }
 }
 
-// The queue clears the FluidEQ bar when that bar is kept over a full screen.
-//
-// The card reserves its height as padding, and an absolutely placed child is
-// laid against the padding BOX — which starts inside the border and knows
-// nothing about the padding — so the panel, its splitter and the folded chip
-// all began at the top of the SCREEN and ran up behind the bar: measured, the
-// queue's heading and its Keep playing switch were underneath it. The same
-// arithmetic App.scss uses for the padding, said again here because there is
-// no way for one to read the other.
+// Under the optional titlebar the window keeps in full screen, everything on
+// the picture's top edge starts below the bar.
 .app-workspace.is-app-full.is-media-full.has-top-bar
   .library-workspace.is-video-full {
-  .library-up-next,
-  .library-up-next__splitter,
-  .library-up-next__chip--over-video {
-    top: calc(#{$title-bar-height} + 8px + 12px);
-  }
-
-  // And so does the way out. The picture runs under the bar now, so a Back
-  // button 12px inside the picture is 12px inside the BAR — the one control
-  // on the screen, behind the one thing drawn over it.
+  .library-side,
+  .library-up-next__chip--over-video,
   .library-video-stage__back {
     top: calc(#{$title-bar-height} + 8px + 12px);
   }
@@ -253,28 +207,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** The chrome over a full-screen picture goes together **********************
 //
-// Back and the queue answer to the same stillness the transport bar answers
-// to, and they leave and arrive with it. Anything else is a picture that is
-// only half uncovered: the bar slides away after two seconds and a button and
-// a list of two thousand songs stay lit over the film.
-//
-// `#root.is-chrome-idle` is the flag App publishes for exactly this — full
-// screen, and either the pointer is away from the chrome or it has been still
-// long enough. The same class the queue already reads to take back the room
-// under a faded bar.
-//
-// Each leaves by its own edge, which is what the bar does rather than merely
-// fading: a panel that only faded would leave its shadow lying over the
-// picture. `pointer-events` goes with them so nothing invisible can swallow a
-// press meant for the video, and the movement that would bring them back has
-// already happened by the time a press could land.
-//
-// The queue panel itself is not in this list: it already moves for its fold,
-// and a list here would replace that one. Its own transitions carry the
-// slide out as well (`.library-up-next`, `--up-next-chrome`).
+// The picture's Back, the queue and its chip leave with the window's chrome
+// when the pointer rests, and come back with it — one gesture, never pieces.
 .library-workspace.is-video-full {
   .library-video-stage__back,
-  .library-up-next__splitter,
+  .library-side,
   .library-up-next__chip--over-video {
     transition:
       opacity $motion-base $ease-out,
@@ -284,16 +221,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #root.is-chrome-idle .library-workspace.is-video-full {
   .library-video-stage__back {
-    // Up and out through the top edge it sits against.
     opacity: 0;
     transform: translateY(calc(-100% - #{$title-bar-height}));
     pointer-events: none;
   }
 
-  .library-up-next,
-  .library-up-next__splitter,
+  .library-side,
   .library-up-next__chip--over-video {
-    // Out through the right, the edge all three are anchored to.
     opacity: 0;
     transform: translateX(calc(100% + 12px));
     pointer-events: none;
@@ -303,27 +237,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @media (prefers-reduced-motion: reduce) {
   .library-workspace.is-video-full {
     .library-video-stage__back,
-    .library-up-next__splitter,
+    .library-side,
     .library-up-next__chip--over-video {
       transition: none;
     }
   }
 }
 
-// The queue under a floating transport bar, in full screen.
-//
-// Word for word the rule karaoke's playlist keeps, from the same two root
-// classes: `is-floating-bar` says a bar is drawn OVER the content instead of
-// beside it, and `is-chrome-idle` says it has faded out and the room is the
-// panel's again. Without it the bar is laid across the queue's last rows —
-// the ones nearest what plays next, which is the half of the list anybody
-// looks at in full screen.
+// The now-playing bar floats over a full-screen picture; the queue ends above
+// it rather than under it.
 #root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
-  .library-workspace.has-video.is-video-full {
-  .library-up-next,
-  .library-up-next__splitter {
-    bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
-  }
+  .library-workspace.has-video.is-video-full
+  .library-side {
+  bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
 }
 
 // Folded, the way back to the queue is a chip on the picture — the corner the
@@ -332,20 +258,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-up-next__chip--over-video {
   position: absolute;
   z-index: 1160;
-  // UNDER THE TOOLBAR, not across it. The browse row is drawn over a video
-  // now (see `has-video`, which orders the picture below it), and at a fixed
-  // inset from the card this chip landed on top of that row — the same
-  // measured height the queue panel starts below is the only number that
-  // cannot be wrong about where the row ends.
-  //
-  // The 12px afterwards is the picture's own inset, which is what pairs it
-  // with the Back button in the opposite corner; an absolute child is placed
-  // against the padding BOX, so the card's own right padding has to be said
-  // again here or the chip rides further out than the control it matches.
-  // The last 12px is the picture's own inset, which is what pairs this with
-  // the Back button in the opposite corner — without it the chip sits exactly
-  // on the top edge of the picture while its partner sits 12px inside it.
-  top: calc(var(--library-chrome-height, 0px) + 10px + 8px + 12px);
+  // Only over a FULL-SCREEN picture, where the top bar that holds the chip
+  // otherwise is not drawn (`LibraryWorkspaceView`). The picture's own inset
+  // twice over, which pairs it with the picture's Back in the opposite
+  // corner: the window's edge, then the picture's 12px inside it.
+  top: 12px;
   right: calc(12px + 12px);
 
   // THE SAME GLASS AS THE BACK BUTTON OPPOSITE IT, for the same reason. In
@@ -401,39 +318,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   svg .is-filled {
     fill: currentColor;
     stroke: none;
-  }
-}
-
-// The rule between the folder controls and it.
-.library-folder-actions__divider {
-  width: 1px;
-  height: 18px;
-  flex: 0 0 auto;
-  background: color-mix(in srgb, $secondary-light 16%, transparent);
-}
-
-// The edge between the two. `KaraokePaneSplitter` draws itself — this only
-// stands it where the boundary is, and goes with the panel when that folds.
-.library-up-next__splitter {
-  position: absolute;
-  z-index: 4;
-  // The panel's own top, for the same reason: it divides the queue from the
-  // list, and the list starts under the toolbar.
-  top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
-  // Immediately left of the panel, which stands its own inset off the card —
-  // so the splitter has to carry that inset too or it lands under the queue's
-  // left edge.
-  right: calc(var(--up-next-width, 260px) + var(--up-next-inset));
-  bottom: 12px;
-  display: flex;
-  width: 12px;
-
-  // The splitter's own vertical form is 18px wide, and its grip centres
-  // inside that rather than inside the 12px this reserves — so left alone the
-  // grip sat 3px off the middle of the gap. It takes the gap's width instead;
-  // the grip is the same 3px bar either way.
-  .karaoke-pane-splitter.is-vertical {
-    width: 100%;
   }
 }
 

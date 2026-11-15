@@ -9,7 +9,7 @@ import {
   folderDisplayName,
   normaliseFolderPath,
 } from '../../common/library/grouping';
-import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import '../styles/LibraryPlaceBar.scss';
@@ -49,13 +49,6 @@ export const placeTrail = (
       trail.push(`${trail[trail.length - 1]}/${segment}`);
     });
   return trail;
-};
-
-const RECORD_ICONS: Record<ILibraryPlaceRecord['kind'], MenuIconName> = {
-  album: 'album',
-  artist: 'artist',
-  genre: 'genre',
-  playlist: 'playlist',
 };
 
 const Chevron = () => (
@@ -160,41 +153,41 @@ const PlaceFold = ({
 };
 
 /**
- * WHERE THE READER IS STANDING, ON EVERY SHELF AND IN EVERY VIEW.
+ * WHERE THE READER IS STANDING, ON EVERY SHELF AND IN EVERY VIEW — the line
+ * under the top bar (Ivan, 2026-11-14: the "A + C" design's breadcrumb).
  *
- * A folder narrows every shelf — walk into `Pop` and Albums shows the albums
- * in it, Songs its songs — and that is right, but the only way back out used
- * to live on an opened album's own panel. Any screen without one had no exit
- * and nothing saying it was narrowed: Genres, Songs and Playlists always, and
- * Albums whenever the folder held only folders. After a restart the library
- * could open on a fraction of itself with no word why (Ivan, 2026-09-23).
+ * It reads the way a path does: the shelf, the root, each folder, then
+ * whatever is open inside — `Albums › Velvet Underpass`, or on the Folders
+ * shelf the path alone, `D:\Music › Soul › The Late Trains`, as Explorer's
+ * address bar spells it. Every step above the last is a press straight there;
+ * the shelf's own is the way out of every folder and record at once.
  *
- * So the place is one bar, drawn by the workspace over whichever view is up,
- * and it is the only Back in the Library. It reads the way a path does — All
- * music, the root, each folder, then whatever is open inside — and Back takes
- * one step up that trail: the open record first, then one folder at a time.
- * Every step above the last is a press straight there, All music included.
+ * Back is no longer here: it is the top bar's arrow, beside Forward, and it
+ * walks the reader's own history (`useLibraryHistory`). What this bar kept
+ * from the place bar it was (Ivan, 2026-09-23) is the rest of its job — a
+ * narrowed shelf always says so, and always has a way out.
  *
  * ONE LINE AT ANY DEPTH, AND THE PLACE ALWAYS NAMED. Where the steps do not
- * fit, the ones nearest the root fold into `…` — a file manager's answer —
- * rather than every step being squeezed to two letters: "Mu… › Wo… › La…"
- * names nothing, and at 420px it still pushed the place itself off the end
- * of the line. The step above the place and All music never fold; they are
- * the two a reader goes back to.
+ * fit, the ones nearest the root fold into `…` rather than every step being
+ * squeezed to two letters. The step above the place and the shelf never fold;
+ * they are the two a reader goes back to.
  */
 const LibraryPlaceBar = ({
+  shelf,
   folderPath,
   roots,
   record,
-  onBack,
   onAllMusic,
   onOpenFolder,
 }: {
+  /** The shelf the trail starts from, named as the rail names it; absent on
+   * the Folders shelf inside a folder, where the root is the start, as in a
+   * file manager. */
+  shelf: string | undefined;
   /** The folder the reader is standing in, as stored: forward slashes. */
   folderPath: string | undefined;
   roots: readonly { path: string }[];
   record: ILibraryPlaceRecord | undefined;
-  onBack: () => void;
   onAllMusic: () => void;
   onOpenFolder: (folderPath: string) => void;
 }) => {
@@ -203,6 +196,11 @@ const LibraryPlaceBar = ({
   // The folders before the step above the place: the ones that may fold.
   const foldable = Math.max(0, trail.length - (record === undefined ? 2 : 1));
   const trailRef = useRef<HTMLOListElement>(null);
+  /** A root is spelled as it was added, `D:\Music`, not as stored. */
+  const labelOf = (path: string): string =>
+    roots.find((root) => normaliseFolderPath(root.path) === path)?.path ??
+    folderDisplayName(path);
+  const isShelfHere = trail.length === 0 && record === undefined;
 
   /**
    * How the line was made to fit, for the trail it was worked out for — a
@@ -215,7 +213,7 @@ const LibraryPlaceBar = ({
    * than a small shrink factor, because any shrink at all — measured at a
    * third of a pixel — is enough for its name to end in an ellipsis.
    */
-  const trailKey = `${trail.join('|')}|${record?.name ?? ''}`;
+  const trailKey = `${shelf ?? ''}|${trail.join('|')}|${record?.name ?? ''}`;
   const WHOLE = { key: trailKey, folded: 0, tight: false };
   const [fit, setFit] = useState(WHOLE);
   const current = fit.key === trailKey ? fit : WHOLE;
@@ -283,33 +281,29 @@ const LibraryPlaceBar = ({
       className={`library-place${current.tight ? ' is-tight' : ''}`}
       aria-label={t('library.place.aria')}
     >
-      <button
-        type="button"
-        className="library-toolbar__chip library-detail__back"
-        onClick={onBack}
-      >
-        <svg viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M10 3L5 8l5 5" />
-        </svg>
-        <span>{t('library.back')}</span>
-      </button>
       <ol className="library-place__trail" ref={trailRef}>
-        <li className="library-place__crumb library-place__crumb--all">
-          <button
-            type="button"
-            className="library-place__link"
-            // Its name, whether or not the words are on screen: a narrow bar
-            // shows the glyph alone.
-            aria-label={t('library.place.all')}
-            title={t('library.place.allHint')}
-            onClick={onAllMusic}
+        {shelf !== undefined && (
+          <li
+            className={`library-place__crumb library-place__crumb--shelf${
+              isShelfHere ? ' is-here' : ''
+            }`}
           >
-            <MenuIcon name="song" className="library-place__icon" />
-            <span className="library-place__label">
-              {t('library.place.all')}
-            </span>
-          </button>
-        </li>
+            {isShelfHere ? (
+              <span className="library-place__here" aria-current="location">
+                <span className="library-place__label">{shelf}</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="library-place__link"
+                title={t('library.place.allHint')}
+                onClick={onAllMusic}
+              >
+                <span className="library-place__label">{shelf}</span>
+              </button>
+            )}
+          </li>
+        )}
         {hidden.length > 0 && (
           <PlaceFold paths={hidden} onOpenFolder={onOpenFolder} />
         )}
@@ -327,6 +321,7 @@ const LibraryPlaceBar = ({
                 isAbove ? ' is-above' : ''
               }`}
             >
+              {/* The line's first step draws none (`LibraryPlaceBar.scss`). */}
               <Chevron />
               {isHere ? (
                 <span
@@ -334,10 +329,7 @@ const LibraryPlaceBar = ({
                   aria-current="location"
                   title={path}
                 >
-                  <MenuIcon name="folder" className="library-place__icon" />
-                  <span className="library-place__label">
-                    {folderDisplayName(path)}
-                  </span>
+                  <span className="library-place__label">{labelOf(path)}</span>
                 </span>
               ) : (
                 <button
@@ -346,9 +338,7 @@ const LibraryPlaceBar = ({
                   title={path}
                   onClick={() => onOpenFolder(path)}
                 >
-                  <span className="library-place__label">
-                    {folderDisplayName(path)}
-                  </span>
+                  <span className="library-place__label">{labelOf(path)}</span>
                 </button>
               )}
             </li>
@@ -362,10 +352,6 @@ const LibraryPlaceBar = ({
               aria-current="location"
               title={record.name}
             >
-              <MenuIcon
-                name={RECORD_ICONS[record.kind]}
-                className="library-place__icon"
-              />
               <span className="library-place__label">{record.name}</span>
             </span>
           </li>

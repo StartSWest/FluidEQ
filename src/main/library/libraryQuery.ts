@@ -27,6 +27,7 @@ import type {
   ILibraryFolderItem,
   ILibraryListQuery,
   ILibraryPage,
+  ILibraryTotals,
   TLibraryListItem,
   TLibraryRequest,
 } from '../../common/library/query';
@@ -109,7 +110,12 @@ const itemOf = (
       ...(row.folder_only === 1 ? { folderOnly: true } : {}),
     };
   }
-  return { kind: 'folder', ...common, name: text(row.list_title) };
+  return {
+    kind: 'folder',
+    ...common,
+    name: text(row.list_title),
+    ...(row.has_folders === 1 ? { hasFolders: true } : {}),
+  };
 };
 
 export interface ILibraryQueries {
@@ -235,6 +241,8 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
 
   const listRoots = (query: ILibraryListQuery): TLibraryListItem[] => {
     const needle = normalizeForGrouping(query.search ?? '');
+    /** The roots with a folder of music beneath them (`hasFolders`). */
+    const withFolders = new Set<string>();
     const folders: ILibraryFolder[] = store.roots().map((root) => {
       const id = normaliseFolderPath(root.path);
       const { params, bind } = binder();
@@ -246,6 +254,7 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
         summary = one(
           `SELECT COALESCE(SUM(track_count), 0) AS n, MAX(added_at) AS added_at,
              MIN(all_pending) AS all_pending,
+             MAX(f.id <> ${bind(id)}) AS has_folders,
              (SELECT art_id FROM folder_groups f WHERE ${where}
                AND art_id IS NOT NULL ORDER BY art_seq LIMIT 1) AS art_id
            FROM folder_groups f WHERE ${where}`,
@@ -265,6 +274,7 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
         summary = one(
           `SELECT COUNT(*) AS n, MAX(added_at) AS added_at,
              MIN(COALESCE(is_pending, 0)) AS all_pending,
+             MAX(t.folder <> ${bind(id)}) AS has_folders,
              (SELECT art_id FROM tracks t WHERE ${where} AND art_id IS NOT NULL
                ORDER BY seq LIMIT 1) AS art_id
            FROM tracks t WHERE ${where}`,
@@ -273,6 +283,9 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
       }
       const count = Number(summary?.n ?? 0);
       const artId = optionalText(summary?.art_id);
+      if (summary?.has_folders === 1) {
+        withFolders.add(id);
+      }
       return {
         id,
         name: id.split('/').filter(Boolean).pop() ?? id,
@@ -290,6 +303,7 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
     return ordered.map((folder): ILibraryFolderItem => ({
       kind: 'folder',
       ...folder,
+      ...(withFolders.has(folder.id) ? { hasFolders: true } : {}),
     }));
   };
 
@@ -408,6 +422,20 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
     return found;
   };
 
+  /** A list of songs counted and its durations summed, in one statement. */
+  const totals = (query: ILibraryListQuery): ILibraryTotals => {
+    const plan = planLibraryList(query);
+    if (plan.sums === undefined) {
+      // The guard admits `tracks` lists only, and every one of them sums.
+      throw new Error(`Only a list of songs has totals: ${query.shelf}`);
+    }
+    const row = one(plan.sums, plan.params);
+    return {
+      count: Number(row?.n ?? 0),
+      durationMs: Number(row?.ms ?? 0),
+    };
+  };
+
   /** Where each folder heading stands, as a row of the list. */
   const headings = (query: ILibraryListQuery): number[] => {
     const plan = planLibraryList(query);
@@ -496,6 +524,8 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
           return songs.coverDeck(request.count, request.exclude);
         case 'duration':
           return songs.duration(request.ids);
+        case 'totals':
+          return totals(request.query);
         case 'rest':
           return rest(request.query, request.afterId, request.exclude);
         case 'headings':

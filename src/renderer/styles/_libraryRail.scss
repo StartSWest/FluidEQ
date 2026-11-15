@@ -1,0 +1,358 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// The shelves' rail and the folder tree inside it (`LibraryShelfRail`,
+// `LibraryFolderTree`): the "A + C" design's left column, Ivan 2026-11-14.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+.library-rail {
+  display: flex;
+  width: 236px;
+  min-height: 0;
+  grid-column: 1;
+  grid-row: 1;
+  flex-direction: column;
+  border-right: 1px solid $studio-hair;
+  background: $studio-rail;
+  transition: width $motion-base $ease-out;
+}
+
+// The shelves and playlists scroll; the foot stays.
+.library-rail__scroll {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-content: start;
+  gap: 1px;
+  padding: 16px 10px 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.library-rail__heading {
+  padding: 10px 10px 6px;
+  color: $text-faint;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// The Playlists heading is the way to the shelf of every playlist.
+.library-rail__heading--link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: $radius-m;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &.is-active {
+    color: $text-muted;
+  }
+
+  &.is-active {
+    background: $studio-raise;
+    box-shadow: inset 3px 0 0 $secondary-default;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// Only where the rail has folded to its glyphs; the word says it otherwise.
+.library-rail__heading-icon {
+  display: none;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.library-rail__shelf {
+  display: grid;
+  gap: 1px;
+}
+
+.library-rail__item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: $radius-m;
+  background: none;
+  color: $text-muted;
+  font-family: inherit;
+  font-size: $studio-text-row;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: color-mix(in srgb, $edge-tint 4%, transparent);
+    color: $text-primary;
+  }
+
+  // Where the reader is: a step of light, and the accent's bar inset on its
+  // leading edge.
+  &.is-active {
+    background: $studio-raise;
+    box-shadow: inset 3px 0 0 $secondary-default;
+    color: $text-primary;
+
+    .library-rail__icon {
+      color: $secondary-light;
+      opacity: 1;
+    }
+  }
+
+  &.is-open {
+    background: $studio-raise;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.library-rail__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
+
+.library-rail__label {
+  min-width: 0;
+  @include truncate;
+}
+
+.library-rail__count {
+  margin-left: auto;
+  padding-left: 8px;
+  color: $text-faint;
+  font-size: $studio-text-meta;
+  font-variant-numeric: tabular-nums;
+}
+
+// Add folder and the folders being read, under a hairline at the rail's end.
+.library-rail__foot {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 1px;
+  padding: 8px 10px 10px;
+  border-top: 1px solid $studio-hair;
+}
+
+// Adding music is the rail's one recommendation, so it wears the accent's
+// ink — quietly, as a word and not a filled button: a library that already
+// has music is not being asked to add more.
+.library-rail__item--add {
+  color: $secondary-light;
+
+  .library-rail__icon {
+    opacity: 1;
+  }
+}
+
+// *** The folder tree ******************************************************
+
+.library-tree,
+.library-tree__group {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 1px;
+  list-style: none;
+}
+
+.library-tree {
+  margin: 2px 0 6px;
+}
+
+.library-tree__item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  // Each level steps in 15px under the shelf's own 10, as Explorer indents.
+  padding: 5px 10px 5px calc(10px + var(--tree-level, 0) * 15px);
+  border-radius: 7px;
+  color: $text-muted;
+  font-size: $studio-text-tree;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: color-mix(in srgb, $edge-tint 4%, transparent);
+    color: $text-primary;
+  }
+
+  &.is-selected {
+    background: $studio-select;
+    color: $text-primary;
+
+    .library-tree__icon {
+      color: $secondary-light;
+      opacity: 1;
+    }
+  }
+
+  &.is-offline {
+    opacity: $disabled-opacity;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.library-tree__caret {
+  display: grid;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: $text-faint;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    transition: transform $motion-fast $ease-out;
+  }
+
+  &.is-open svg {
+    transform: rotate(90deg);
+  }
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.library-tree__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  opacity: 0.75;
+}
+
+.library-tree__name {
+  min-width: 0;
+  @include truncate;
+}
+
+.library-tree__count {
+  margin-left: auto;
+  padding-left: 6px;
+  color: $text-faint;
+  font-size: $studio-text-label;
+  font-variant-numeric: tabular-nums;
+}
+
+.library-tree__more {
+  display: block;
+  width: 100%;
+  padding: 4px 10px 4px calc(29px + var(--tree-level, 0) * 15px);
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: $text-faint;
+  font-family: inherit;
+  font-size: $studio-text-label;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: $secondary-light;
+  }
+}
+
+// *** Narrow: the rail keeps its glyphs ************************************
+//
+// Below a laptop's card the rail gives up its words and counts and keeps one
+// glyph per shelf, each named by its tooltip, so the shelf beside it keeps
+// the width a table needs. The tree folds away with the words: the
+// breadcrumb and the folder rows still walk the folders.
+@container library (max-width: #{$bp-lg}) {
+  .library-rail {
+    width: 56px;
+  }
+
+  .library-rail__scroll {
+    padding-inline: 8px;
+    scrollbar-gutter: auto;
+  }
+
+  .library-rail__item,
+  .library-rail__heading--link {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .library-rail__label,
+  .library-rail__count,
+  .library-rail__heading:not(.library-rail__heading--link),
+  .library-rail__heading--link > span,
+  .library-tree {
+    display: none;
+  }
+
+  .library-rail__heading-icon {
+    display: block;
+  }
+
+  // The playlists stand apart from the shelves by a hairline, where the
+  // heading's word used to part them.
+  .library-rail__heading--link {
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 1px solid $studio-hair;
+    border-radius: 0 0 $radius-m $radius-m;
+  }
+
+  .library-rail__foot {
+    padding-inline: 8px;
+  }
+}

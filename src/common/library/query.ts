@@ -151,6 +151,11 @@ export interface ILibraryFolderItem {
   addedAt: number;
   isPending: boolean;
   near?: boolean;
+  /**
+   * `children` and `roots` only: a folder with music inside it lies beneath
+   * this one, so the tree draws a caret only where opening finds something.
+   */
+  hasFolders?: boolean;
 }
 
 export interface ILibraryTrackItem {
@@ -240,6 +245,12 @@ export type TLibraryRequest =
   | { type: 'coverDeck'; count: number; exclude: readonly string[] }
   /** Summed durations of these ids, for "how long is left". */
   | { type: 'duration'; ids: readonly string[] }
+  /**
+   * How many songs a `tracks` list holds and how long they last together —
+   * the Library's status line, which says what is on screen without the
+   * window holding the list whole.
+   */
+  | { type: 'totals'; query: ILibraryListQuery }
   /** The row of every folder heading in a list that has them. */
   | { type: 'headings'; query: ILibraryListQuery }
   /**
@@ -272,6 +283,13 @@ export interface ILibrarySummary {
   wasReset: boolean;
 }
 
+/** A `tracks` list summed: its songs and their length together. */
+export interface ILibraryTotals {
+  count: number;
+  /** Songs whose length is unknown count as nothing. */
+  durationMs: number;
+}
+
 /** What each question answers (`TLibraryRequest`), by its `type`. */
 export interface ILibraryAnswers {
   page: ILibraryPage;
@@ -287,6 +305,7 @@ export interface ILibraryAnswers {
   /** Art ids, each once; fewer than asked when the library has fewer. */
   coverDeck: string[];
   duration: number;
+  totals: ILibraryTotals;
   headings: number[];
   /** -1 when the list does not hold `afterId`. */
   rest: number;

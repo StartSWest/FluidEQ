@@ -5,10 +5,8 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ILibraryScanProgress } from 'common/library/types';
 import { LibraryProvider, useLibrary } from 'renderer/library/LibraryContext';
-import LibraryFolderActions from 'renderer/library/LibraryFolderActions';
-import LibraryScanProgress, {
-  libraryHiddenScan,
-} from 'renderer/library/LibraryScanProgress';
+import LibraryStatusLine from 'renderer/library/LibraryStatusLine';
+import LibraryScanProgress from 'renderer/library/LibraryScanProgress';
 import {
   useLibraryDeck,
   usePublishedLibraryDeck,
@@ -100,21 +98,22 @@ const ScanNotice = () => {
 };
 
 /**
- * The Library toolbar's folder actions, told about a put-away scan the way
- * the Library page tells them (`libraryHiddenScan`).
+ * The Library's status line, told about the scan the way the Library page
+ * tells it: put away, its scan state is the way back to the notice.
  */
-const FolderActions = () => {
+const StatusLine = () => {
   const library = useLibrary();
   return (
-    <LibraryFolderActions
-      roots={[]}
+    <LibraryStatusLine
+      shown={undefined}
+      shownKind="song"
+      counts={{ song: 0, video: 0 }}
       isScanning={library.isScanning}
-      onAddFolder={() => undefined}
+      progress={library.progress}
+      isScanNoticeHidden={library.isScanNoticeHidden}
+      onShowScan={library.showScanNotice}
       onRescan={() => undefined}
       onForceRescan={() => undefined}
-      onRemoveRoot={() => undefined}
-      hiddenScan={libraryHiddenScan(library)}
-      onShowScan={library.showScanNotice}
     />
   );
 };
@@ -154,7 +153,7 @@ describe('a notice put away', () => {
       <I18nProvider>
         <LibraryProvider>
           <ScanNotice />
-          <FolderActions />
+          <StatusLine />
           <PublishedDeck />
           <DeckScan />
         </LibraryProvider>
@@ -184,9 +183,9 @@ describe('a notice put away', () => {
     expect(notice()).toBeInTheDocument();
   });
 
-  // Put away, nothing else showed the scan or could stop it: Rescan now says
-  // how far it has got and brings the notice back.
-  it('turns Rescan into the way back, with how far the scan has got', async () => {
+  // Put away, nothing else showed the scan or could stop it: the status
+  // line's scan state says how far it has got and brings the notice back.
+  it('turns the scan state into the way back, with how far the scan has got', async () => {
     const opened = mount();
     act(() => opened.sendProgress(scan({ parsed: 0 })));
     expect(screen.getByRole('button', { name: 'Rescan' })).toBeDisabled();

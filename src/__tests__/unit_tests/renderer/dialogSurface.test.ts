@@ -217,7 +217,6 @@ describe('what stands on the floor', () => {
   it.each([
     ['Library.scss', '.library-grid__tile'],
     ['Library.scss', '.library-list'],
-    ['Library.scss', '.library-up-next'],
     ['Library.scss', '.library-empty__card'],
     ['Games.scss', '.gaming-game'],
     ['ConfigInspector.scss', '.config-card'],
@@ -231,6 +230,18 @@ describe('what stands on the floor', () => {
       'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 34%, transparent)',
     );
     expect(card).toContain('radial-gradient(');
+  });
+
+  // The Library's rail and its queue are the studio's columns (the "A + C"
+  // design, Ivan 2026-11-14): one step of light over the card, a hairline at
+  // their inner edge, never a card standing inside the card.
+  it.each([
+    ['Library.scss', '.library-rail'],
+    ['Library.scss', '.library-side'],
+  ])('%s stands %s on the rail step, not a card', (sheet, selector) => {
+    const column = declarationsOf(compiledCss(sheet), selector);
+    expect(column).toContain('color-mix(in srgb, #d6e9f7 2.5%, transparent)');
+    expect(column).not.toContain('radial-gradient(');
   });
 
   // The control: the box that holds a set keeps its edge alone — the grid

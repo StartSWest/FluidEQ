@@ -63,3 +63,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 $library-wave-span: 180;
 
 $library-wave-step: 4ms;
+
+// *** The studio's surfaces (the "A + C" design, Ivan 2026-11-14) ************
+//
+// Steps of light on the card's own floor instead of boxes inside boxes: the
+// rail, the queue and the status line one step up, a tray or a field a step
+// more, the chosen item a step more again. Each step is the shell's edge tint
+// over whatever floor the card stands on, so a Plus scene's window colours
+// tint the steps with the rest of the window; the mockup's hex values were
+// these same steps measured on its own dark floor.
+$studio-rail: color-mix(in srgb, $edge-tint 2.5%, transparent);
+
+$studio-surface: color-mix(in srgb, $edge-tint 5%, transparent);
+
+$studio-raise: color-mix(in srgb, $edge-tint 9%, transparent);
+
+$studio-hair: color-mix(in srgb, $edge-tint 8%, transparent);
+
+// The chosen folder, the playing row: the accent, faint.
+$studio-select: color-mix(in srgb, $secondary-default 12%, transparent);
+
+// The mockup's type, in the app's rem: 14px rows and names, 13px trees and
+// crumbs, 12px meta, 11px labels. Bigger than the old 11.5px rows on purpose
+// — a long list is read at a glance only when its rows can be (the design's
+// own brief).
+$studio-text-row: 0.875rem;
+
+$studio-text-tree: 0.8125rem;
+
+$studio-text-meta: 0.75rem;
+
+$studio-text-label: 0.6875rem;
