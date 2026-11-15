@@ -16,7 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryNowPlayingCard from './LibraryNowPlayingCard';
@@ -24,6 +25,7 @@ import LibraryUpNext from './LibraryUpNext';
 import LibraryTrackDetails from './LibraryTrackDetails';
 import LibraryLyricsTab from './LibraryLyricsTab';
 import { readPersistedMode, writePersistedMode } from './libraryWorkspacePrefs';
+import usePaneTabsFit from './usePaneTabsFit';
 
 const PANE_TABS = ['upNext', 'details', 'lyrics'] as const;
 
@@ -36,6 +38,14 @@ const TAB_LABEL_KEYS = {
   details: 'library.pane.details',
   lyrics: 'library.pane.lyrics',
 } as const;
+
+/** Each tab's picture: what the tab holds, and all of the tab once the pane
+ * is too narrow for its words (`usePaneTabsFit`). */
+const TAB_ICONS: Record<TPaneTab, MenuIconName> = {
+  upNext: 'playlist',
+  details: 'info',
+  lyrics: 'microphone',
+};
 
 /**
  * THE LIBRARY'S RIGHT PANE (the "A + C" design, Ivan 2026-11-14): what is
@@ -67,6 +77,9 @@ const LibraryRightPane = ({
     readPersistedMode(PANE_TAB_KEY, PANE_TABS, 'upNext'),
   );
   useEffect(() => writePersistedMode(PANE_TAB_KEY, tab), [tab]);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const labels = PANE_TABS.map((name) => t(TAB_LABEL_KEYS[name]));
+  const isCompact = usePaneTabsFit(tabsRef, labels.join('|'));
 
   return (
     <aside
@@ -77,11 +90,12 @@ const LibraryRightPane = ({
       {head && <div className="library-pane__drawer-head">{head}</div>}
       <LibraryNowPlayingCard track={track} />
       <div
-        className="library-pane__tabs"
+        ref={tabsRef}
+        className={`library-pane__tabs${isCompact ? ' is-compact' : ''}`}
         role="tablist"
         aria-label={t('library.pane.tabs')}
       >
-        {PANE_TABS.map((name) => (
+        {PANE_TABS.map((name, at) => (
           <button
             key={name}
             type="button"
@@ -90,9 +104,14 @@ const LibraryRightPane = ({
             aria-selected={tab === name}
             aria-controls="library-pane-body"
             className={`library-pane__tab${tab === name ? ' is-active' : ''}`}
+            // Named on the button itself, so a folded tab - its words not
+            // laid out - is still named to a screen reader and in its tooltip.
+            aria-label={labels[at]}
+            title={isCompact ? labels[at] : undefined}
             onClick={() => setTab(name)}
           >
-            {t(TAB_LABEL_KEYS[name])}
+            <MenuIcon name={TAB_ICONS[name]} className="library-pane__icon" />
+            <span className="library-pane__label">{labels[at]}</span>
           </button>
         ))}
       </div>

@@ -1067,7 +1067,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-pane__tab {
   display: inline-flex;
   min-width: 0;
-  flex: 1 1 0;
+  // Each its words' width, the rest of the row shared out: equal thirds cut
+  // "A continuación" while "Letra" sat in room it did not need. When the
+  // words cannot all fit, the row folds to icons (`usePaneTabsFit`).
+  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
   gap: 5px;
@@ -1089,10 +1092,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   cursor: pointer;
   transition: $transition-control;
 
-  > span {
-    @include truncate;
-  }
-
   &:hover:not(.is-active) {
     color: $text-primary;
   }
@@ -1100,11 +1099,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-active {
     box-shadow: inset 0 -2px 0 $secondary-default;
     color: $text-primary;
+
+    .library-pane__icon {
+      color: $secondary-light;
+    }
   }
 
   &:focus-visible {
     @include focus-ring;
     outline: none;
+  }
+}
+
+// Each tab's picture beside its word, at the rail's icon size.
+.library-pane__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.library-pane__label {
+  @include truncate;
+}
+
+// TOO NARROW FOR THE WORDS: the pictures alone, a size up (Ivan, 2026-11-15:
+// "make it responsive here with icons"). The row measures whether its words
+// fit (`usePaneTabsFit`), so the fold comes exactly when the language on
+// screen needs it.
+.library-pane__tabs.is-compact {
+  .library-pane__label {
+    display: none;
+  }
+
+  .library-pane__icon {
+    width: 16px;
+    height: 16px;
   }
 }
 
