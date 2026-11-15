@@ -123,6 +123,48 @@ const library: Partial<Dictionary> = {
   'library.lyrics.follow': 'Volver a la línea que suena',
   'library.lyrics.listLabel':
     'Letra. Pulsa una línea para reproducir desde ahí.',
+  'library.lyrics.find.heading': 'Búscala en internet',
+  'library.lyrics.find.free': 'Gratis, con tiempos',
+  'library.lyrics.find.licensed': 'Letras con licencia',
+  'library.lyrics.find.open': 'Buscar esta canción en {site} en tu navegador',
+  'library.lyrics.find.searches':
+    'Busca «{query}». Descarga o copia la letra allí y luego tráela aquí abajo.',
+  'library.lyrics.import.heading': 'Guárdala con la canción',
+  'library.lyrics.import.file': 'Importar letra…',
+  'library.lyrics.import.paste': 'Pegar',
+  'library.lyrics.import.drop':
+    'O suelta un archivo .lrc o .txt en esta pestaña.',
+  'library.lyrics.import.pasteLabel': 'Letra que se guardará con esta canción',
+  'library.lyrics.import.pastePlaceholder':
+    'Pega la letra o un .lrc con tiempos',
+  'library.lyrics.import.save': 'Guardar letra',
+  'library.lyrics.import.cancel': 'Cancelar',
+  'library.lyrics.import.busy': 'Guardando la letra…',
+  'library.lyrics.import.exists':
+    '{name} ya está junto a la canción. ¿Reemplazarlo?',
+  'library.lyrics.import.existsKept':
+    'FluidEQ ya guarda una letra para esta canción. ¿Reemplazarla?',
+  'library.lyrics.import.replace': 'Reemplazar',
+  'library.lyrics.import.keep': 'Conservar la anterior',
+  'library.lyrics.import.savedBeside':
+    'Guardada junto a la canción como {name}',
+  'library.lyrics.import.savedKept':
+    'Guardada en la carpeta de letras de FluidEQ: no se puede escribir en la carpeta de la canción',
+  'library.lyrics.import.shadowed':
+    'Guardada como {name}. Se muestra primero la letra que ya trae la canción.',
+  'library.lyrics.import.shadowedKept':
+    'Guardada en la carpeta de letras de FluidEQ. Se muestra primero la letra que ya trae la canción.',
+  'library.lyrics.import.tooBig':
+    'El archivo pasa de 512 KB: es demasiado grande para ser una letra.',
+  'library.lyrics.import.notText': 'El archivo no es de texto.',
+  'library.lyrics.import.empty': 'No contiene ninguna letra.',
+  'library.lyrics.import.notLyricsFile':
+    'Solo se pueden importar archivos .lrc o .txt.',
+  'library.lyrics.import.failed': 'No se pudo guardar la letra.',
+  'library.lyrics.fromKept':
+    'De la carpeta de letras de FluidEQ: no se puede escribir en la carpeta de la canción',
+  'library.lyrics.other': 'Buscar otra letra',
+  'library.lyrics.back': 'Volver a la letra',
   'library.view.aria': 'Cómo se muestra la biblioteca',
   'library.browse.aria': 'Qué está mostrando la biblioteca',
 

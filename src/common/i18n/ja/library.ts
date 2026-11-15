@@ -123,6 +123,47 @@ const library: Partial<Dictionary> = {
   'library.lyrics.reading': '歌詞を探しています…',
   'library.lyrics.follow': '再生中の行に戻る',
   'library.lyrics.listLabel': '歌詞。行を押すとそこから再生します。',
+  'library.lyrics.find.heading': 'オンラインで探す',
+  'library.lyrics.find.free': '無料・タイミング付き',
+  'library.lyrics.find.licensed': 'ライセンス済みの歌詞',
+  'library.lyrics.find.open': 'この曲をブラウザーの {site} で検索',
+  'library.lyrics.find.searches':
+    '「{query}」で検索します。サイトで歌詞をダウンロードまたはコピーし、下から取り込んでください。',
+  'library.lyrics.import.heading': '曲と一緒に保存',
+  'library.lyrics.import.file': '歌詞を読み込む…',
+  'library.lyrics.import.paste': '貼り付け',
+  'library.lyrics.import.drop':
+    '.lrc または .txt ファイルをこのタブにドロップすることもできます。',
+  'library.lyrics.import.pasteLabel': 'この曲と一緒に保存する歌詞',
+  'library.lyrics.import.pastePlaceholder':
+    '歌詞、またはタイミング付きの .lrc を貼り付け',
+  'library.lyrics.import.save': '歌詞を保存',
+  'library.lyrics.import.cancel': 'キャンセル',
+  'library.lyrics.import.busy': '歌詞を保存しています…',
+  'library.lyrics.import.exists':
+    '{name} はすでに曲の隣にあります。置き換えますか？',
+  'library.lyrics.import.existsKept':
+    'この曲の歌詞はすでに FluidEQ が保存しています。置き換えますか？',
+  'library.lyrics.import.replace': '置き換える',
+  'library.lyrics.import.keep': '古いものを残す',
+  'library.lyrics.import.savedBeside': '曲の隣に {name} として保存しました',
+  'library.lyrics.import.savedKept':
+    'FluidEQ の歌詞フォルダーに保存しました（曲のフォルダーに書き込めません）',
+  'library.lyrics.import.shadowed':
+    '{name} として保存しました。曲にすでに含まれている歌詞が優先して表示されます。',
+  'library.lyrics.import.shadowedKept':
+    'FluidEQ の歌詞フォルダーに保存しました。曲にすでに含まれている歌詞が優先して表示されます。',
+  'library.lyrics.import.tooBig':
+    'このファイルは 512 KB を超えており、歌詞としては大きすぎます。',
+  'library.lyrics.import.notText': 'このファイルはテキストではありません。',
+  'library.lyrics.import.empty': '歌詞が含まれていません。',
+  'library.lyrics.import.notLyricsFile':
+    '読み込めるのは .lrc または .txt ファイルだけです。',
+  'library.lyrics.import.failed': '歌詞を保存できませんでした。',
+  'library.lyrics.fromKept':
+    'FluidEQ の歌詞フォルダーから（曲のフォルダーに書き込めません）',
+  'library.lyrics.other': '別の歌詞を探す',
+  'library.lyrics.back': '歌詞に戻る',
   'library.view.aria': 'ライブラリの表示方法',
   'library.browse.aria': 'ライブラリに表示している内容',
 

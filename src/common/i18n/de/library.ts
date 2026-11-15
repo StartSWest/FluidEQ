@@ -125,6 +125,48 @@ const library: Partial<Dictionary> = {
   'library.lyrics.follow': 'Zurück zur aktuellen Zeile',
   'library.lyrics.listLabel':
     'Songtext. Klicken Sie auf eine Zeile, um ab dort abzuspielen.',
+  'library.lyrics.find.heading': 'Online finden',
+  'library.lyrics.find.free': 'Kostenlos, mit Zeitstempeln',
+  'library.lyrics.find.licensed': 'Lizenzierte Songtexte',
+  'library.lyrics.find.open': '{site} im Browser nach diesem Titel durchsuchen',
+  'library.lyrics.find.searches':
+    'Sucht nach „{query}“. Laden Sie den Songtext dort herunter oder kopieren Sie ihn, und übernehmen Sie ihn dann unten.',
+  'library.lyrics.import.heading': 'Beim Titel speichern',
+  'library.lyrics.import.file': 'Songtext importieren…',
+  'library.lyrics.import.paste': 'Einfügen',
+  'library.lyrics.import.drop':
+    'Oder ziehen Sie eine .lrc- oder .txt-Datei auf diesen Tab.',
+  'library.lyrics.import.pasteLabel': 'Songtext, der bei diesem Titel bleibt',
+  'library.lyrics.import.pastePlaceholder':
+    'Text oder eine .lrc mit Zeitstempeln einfügen',
+  'library.lyrics.import.save': 'Songtext speichern',
+  'library.lyrics.import.cancel': 'Abbrechen',
+  'library.lyrics.import.busy': 'Songtext wird gespeichert…',
+  'library.lyrics.import.exists':
+    '{name} liegt bereits neben dem Titel. Ersetzen?',
+  'library.lyrics.import.existsKept':
+    'FluidEQ speichert bereits einen Songtext für diesen Titel. Ersetzen?',
+  'library.lyrics.import.replace': 'Ersetzen',
+  'library.lyrics.import.keep': 'Alten behalten',
+  'library.lyrics.import.savedBeside': 'Neben dem Titel als {name} gespeichert',
+  'library.lyrics.import.savedKept':
+    'Im Songtext-Ordner von FluidEQ gespeichert: Der Ordner des Titels lässt sich nicht beschreiben',
+  'library.lyrics.import.shadowed':
+    'Als {name} gespeichert. Der Songtext, der schon im Titel steckt, wird zuerst angezeigt.',
+  'library.lyrics.import.shadowedKept':
+    'Im Songtext-Ordner von FluidEQ gespeichert. Der Songtext, der schon im Titel steckt, wird zuerst angezeigt.',
+  'library.lyrics.import.tooBig':
+    'Die Datei ist größer als 512 KB – zu groß für einen Songtext.',
+  'library.lyrics.import.notText': 'Die Datei ist keine Textdatei.',
+  'library.lyrics.import.empty': 'Sie enthält keinen Text.',
+  'library.lyrics.import.notLyricsFile':
+    'Nur .lrc- und .txt-Dateien lassen sich importieren.',
+  'library.lyrics.import.failed':
+    'Der Songtext konnte nicht gespeichert werden.',
+  'library.lyrics.fromKept':
+    'Aus dem Songtext-Ordner von FluidEQ: Der Ordner des Titels lässt sich nicht beschreiben',
+  'library.lyrics.other': 'Anderen Songtext finden',
+  'library.lyrics.back': 'Zurück zum Songtext',
   'library.view.aria': 'Wie die Bibliothek angezeigt wird',
   'library.browse.aria': 'Was die Bibliothek gerade zeigt',
 

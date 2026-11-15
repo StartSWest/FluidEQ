@@ -183,7 +183,15 @@ const LibraryWorkspaceView = ({
     addFolder().catch(() => undefined);
   };
 
+  // A drag or drop a part of the card has already taken — a lyrics file on
+  // the Lyrics tab — is not a folder for the library, and the card's edge
+  // stops saying it is. Said by the part calling `preventDefault`, so the
+  // card still hears the event and its edge is never left lit.
   const onDragOver = (event: DragEvent<HTMLElement>) => {
+    if (event.defaultPrevented) {
+      setIsDragOver(false);
+      return;
+    }
     // Required for the element to accept the drop at all.
     event.preventDefault();
     setIsDragOver(true);
@@ -196,8 +204,11 @@ const LibraryWorkspaceView = ({
   };
 
   const onDrop = (event: DragEvent<HTMLElement>) => {
-    event.preventDefault();
     setIsDragOver(false);
+    if (event.defaultPrevented) {
+      return;
+    }
+    event.preventDefault();
     const paths = Array.from(event.dataTransfer.files)
       .map(droppedFilePath)
       .filter((path): path is string => path.length > 0);

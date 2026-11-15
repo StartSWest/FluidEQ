@@ -17,6 +17,7 @@ const files = {
   'files.type.programs': 'Программы',
   'files.type.pictures': 'Изображения',
   'files.type.all': 'Все файлы',
+  'files.type.lyrics': 'Тексты песен',
   'files.imported.profile': 'Импортировано полос из профиля FluidEQ: {count}.',
   'files.imported.graphicEq':
     'Импортировано полос из файла GraphicEQ: {count}.',

@@ -118,6 +118,45 @@ const library = {
   'library.lyrics.reading': 'Looking for lyrics…',
   'library.lyrics.follow': 'Back to the playing line',
   'library.lyrics.listLabel': 'Lyrics. Press a line to play from it.',
+  'library.lyrics.find.heading': 'Find them online',
+  'library.lyrics.find.free': 'Free, timed lyrics',
+  'library.lyrics.find.licensed': 'Licensed lyrics',
+  'library.lyrics.find.open': 'Search {site} for this song in your browser',
+  'library.lyrics.find.searches':
+    'Searches for “{query}”. Download or copy the lyrics there, then bring them in below.',
+  'library.lyrics.import.heading': 'Keep them with the song',
+  'library.lyrics.import.file': 'Import lyrics…',
+  'library.lyrics.import.paste': 'Paste',
+  'library.lyrics.import.drop': 'Or drop a .lrc or .txt file on this tab.',
+  'library.lyrics.import.pasteLabel': 'Lyrics to keep with this song',
+  'library.lyrics.import.pastePlaceholder': 'Paste the words, or a timed .lrc',
+  'library.lyrics.import.save': 'Save lyrics',
+  'library.lyrics.import.cancel': 'Cancel',
+  'library.lyrics.import.busy': 'Saving the lyrics…',
+  'library.lyrics.import.exists':
+    '{name} is already beside the song. Replace it?',
+  'library.lyrics.import.existsKept':
+    'FluidEQ already keeps lyrics for this song. Replace them?',
+  'library.lyrics.import.replace': 'Replace',
+  'library.lyrics.import.keep': 'Keep the old one',
+  'library.lyrics.import.savedBeside': 'Saved beside the song as {name}',
+  'library.lyrics.import.savedKept':
+    'Saved in FluidEQ’s lyrics folder: the song’s folder can’t be written',
+  'library.lyrics.import.shadowed':
+    'Saved as {name}. The lyrics already in the song are shown first.',
+  'library.lyrics.import.shadowedKept':
+    'Saved in FluidEQ’s lyrics folder. The lyrics already in the song are shown first.',
+  'library.lyrics.import.tooBig':
+    'That file is over 512 KB, too big to be lyrics.',
+  'library.lyrics.import.notText': 'That file isn’t text.',
+  'library.lyrics.import.empty': 'There are no words in it.',
+  'library.lyrics.import.notLyricsFile':
+    'Only a .lrc or .txt file can be imported.',
+  'library.lyrics.import.failed': 'The lyrics couldn’t be saved.',
+  'library.lyrics.fromKept':
+    'From FluidEQ’s lyrics folder: the song’s folder can’t be written',
+  'library.lyrics.other': 'Find other lyrics',
+  'library.lyrics.back': 'Back to the lyrics',
   'library.view.aria': 'How the library is shown',
   'library.browse.aria': 'What the library is showing',
 

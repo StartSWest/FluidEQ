@@ -16,24 +16,77 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { type DragEvent, type ReactNode, useCallback, useState } from 'react';
 import type { ILibraryLyrics } from '../../common/library/lyrics';
 import type { ILibraryTrack } from '../../common/library/types';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import LibraryLyricsFinder from './LibraryLyricsFinder';
 import LibraryLyricsSynced from './LibraryLyricsSynced';
+import { type TLyricsImportState, useLyricsImport } from './useLyricsImport';
 import { useTrackLyrics } from './useTrackLyrics';
 
-/** Where the words came from, said once at the foot. */
-const SourceFoot = ({ lyrics }: { lyrics: ILibraryLyrics }) => {
+type TSaved = Extract<TLyricsImportState, { state: 'saved' }>;
+
+/** Whether the words on show are the ones just kept, or others the reader
+ * puts first (timed words in the song's tags over a plain file, say). */
+const showsSaved = (lyrics: ILibraryLyrics, saved: TSaved): boolean =>
+  saved.place === 'store'
+    ? lyrics.kept === true
+    : lyrics.kept !== true && lyrics.fileName === saved.fileName;
+
+/** Where the words came from — or, right after an import, where they were
+ * kept — said once at the foot, with the way to other lyrics at its end. */
+const SourceFoot = ({
+  lyrics,
+  saved,
+  onFind,
+}: {
+  lyrics: ILibraryLyrics;
+  saved: TSaved | undefined;
+  onFind: () => void;
+}) => {
   const { t } = useTranslation();
+  let source: string;
+  if (saved !== undefined && !showsSaved(lyrics, saved)) {
+    source =
+      saved.place === 'store'
+        ? t('library.lyrics.import.shadowedKept')
+        : t('library.lyrics.import.shadowed', { name: saved.fileName });
+  } else if (saved?.place === 'beside') {
+    source = t('library.lyrics.import.savedBeside', { name: saved.fileName });
+  } else if (lyrics.kept === true) {
+    source = t(
+      saved === undefined
+        ? 'library.lyrics.fromKept'
+        : 'library.lyrics.import.savedKept',
+    );
+  } else if (lyrics.fileName === undefined) {
+    source = t('library.lyrics.fromTags');
+  } else {
+    source = t('library.lyrics.fromFile', { name: lyrics.fileName });
+  }
   return (
     <div className="library-lyrics__foot">
-      <p className="library-lyrics__source">
-        {lyrics.fileName === undefined
-          ? t('library.lyrics.fromTags')
-          : t('library.lyrics.fromFile', { name: lyrics.fileName })}
+      <p
+        className={`library-lyrics__source${
+          saved === undefined && lyrics.kept !== true ? '' : ' is-notice'
+        }${saved === undefined ? '' : ' is-saved'}`}
+        title={source}
+        role={saved === undefined ? undefined : 'status'}
+      >
+        {saved !== undefined && <MenuIcon name="check" />}
+        <span>{source}</span>
       </p>
-      {/* "Send to Karaoke" belongs here, at the foot's other end, when the
-          Karaoke tab can take a song's words with it. */}
+      {/* "Send to Karaoke" joins this end when the Karaoke tab can take a
+          song's words with it. */}
+      <button
+        type="button"
+        className="button small subtle library-lyrics__other"
+        onClick={onFind}
+      >
+        {t('library.lyrics.other')}
+      </button>
     </div>
   );
 };
@@ -42,6 +95,15 @@ const SourceFoot = ({ lyrics }: { lyrics: ILibraryLyrics }) => {
 const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
   const { t } = useTranslation();
   const read = useTrackLyrics(track);
+  const { reload } = read;
+  const [isFinding, setIsFinding] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const onSaved = useCallback(() => {
+    setIsFinding(false);
+    reload();
+  }, [reload]);
+  const lyricsImport = useLyricsImport(track.id, onSaved);
+
   if (read.state === 'reading') {
     // Says so only if the read is slow enough to notice (a fade with a delay
     // in the stylesheet); a quick one shows nothing before the words.
@@ -51,30 +113,109 @@ const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
       </p>
     );
   }
+
   const { lyrics, looked } = read.answer;
+  // A file dropped on the words that needs a question or a refusal answered
+  // brings up the import controls it is answered beside.
+  const { state } = lyricsImport.status;
+  const needsAnswer =
+    state === 'confirm' || state === 'refused' || state === 'failed';
+
+  let mode: string;
+  let content: ReactNode;
   if (lyrics === undefined) {
-    return (
-      <div className="library-lyrics is-empty">
-        <p className="library-lyrics__none">{t('library.lyrics.none')}</p>
-        <p className="library-pane__note">{t('library.lyrics.looked')}</p>
-        {looked.length > 0 && (
-          <ul className="library-lyrics__looked">
-            {looked.map((name) => (
-              <li key={name}>{name}</li>
-            ))}
-          </ul>
+    mode = 'is-empty';
+    content = (
+      <>
+        <div className="library-lyrics__empty-head">
+          <p className="library-lyrics__none">{t('library.lyrics.none')}</p>
+          <p className="library-pane__note">{t('library.lyrics.looked')}</p>
+          {looked.length > 0 && (
+            <ul className="library-lyrics__looked">
+              {looked.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <LibraryLyricsFinder track={track} lyricsImport={lyricsImport} isLead />
+      </>
+    );
+  } else if (isFinding || needsAnswer) {
+    mode = 'is-finding';
+    content = (
+      <>
+        <button
+          type="button"
+          className="button small subtle library-lyrics__back"
+          onClick={() => {
+            lyricsImport.dismiss();
+            setIsFinding(false);
+          }}
+        >
+          <MenuIcon name="back" />
+          {t('library.lyrics.back')}
+        </button>
+        <LibraryLyricsFinder
+          track={track}
+          lyricsImport={lyricsImport}
+          isLead={false}
+        />
+      </>
+    );
+  } else {
+    mode = `is-${lyrics.kind}`;
+    content = (
+      <>
+        {lyrics.kind === 'synced' ? (
+          <LibraryLyricsSynced lines={lyrics.lines} />
+        ) : (
+          <div className="library-lyrics__plain">{lyrics.text}</div>
         )}
-      </div>
+        <SourceFoot
+          lyrics={lyrics}
+          saved={
+            lyricsImport.status.state === 'saved'
+              ? lyricsImport.status
+              : undefined
+          }
+          onFind={() => setIsFinding(true)}
+        />
+      </>
     );
   }
+
+  // A lyrics file dropped anywhere on the tab is kept with the song. Taken
+  // with `preventDefault`, never stopped: the Library card around the tab
+  // reads that as "not a folder to add" and puts its own edge out, which it
+  // could not do for an event it never heard (`LibraryWorkspaceView`).
   return (
-    <div className={`library-lyrics is-${lyrics.kind}`}>
-      {lyrics.kind === 'synced' ? (
-        <LibraryLyricsSynced lines={lyrics.lines} />
-      ) : (
-        <div className="library-lyrics__plain">{lyrics.text}</div>
-      )}
-      <SourceFoot lyrics={lyrics} />
+    <div
+      className={`library-lyrics ${mode}${isDragOver ? ' is-drop-target' : ''}`}
+      onDragOver={(event: DragEvent<HTMLElement>) => {
+        if (!event.dataTransfer.types.includes('Files')) {
+          return;
+        }
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+        setIsDragOver(true);
+      }}
+      onDragLeave={(event: DragEvent<HTMLElement>) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+          setIsDragOver(false);
+        }
+      }}
+      onDrop={(event: DragEvent<HTMLElement>) => {
+        const [file] = Array.from(event.dataTransfer.files);
+        if (file === undefined) {
+          return;
+        }
+        event.preventDefault();
+        setIsDragOver(false);
+        lyricsImport.importFile(file);
+      }}
+    >
+      {content}
     </div>
   );
 };
@@ -82,8 +223,9 @@ const TrackLyrics = ({ track }: { track: ILibraryTrack }) => {
 /**
  * The right pane's Lyrics tab: the playing song's words, from its tags or a
  * lyrics file of its own name beside it (`libraryLyrics.ts` in main). Timed
- * words follow the song; plain ones are there to read; a song with none says
- * where FluidEQ looked.
+ * words follow the song; plain ones are there to read. A song with none says
+ * where FluidEQ looked, and where the listener can find its words and bring
+ * them in to stay with it (`LibraryLyricsFinder`).
  */
 const LibraryLyricsTab = ({ track }: { track: ILibraryTrack | undefined }) => {
   const { t } = useTranslation();

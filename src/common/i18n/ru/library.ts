@@ -124,6 +124,47 @@ const library: Partial<Dictionary> = {
   'library.lyrics.follow': 'Вернуться к текущей строке',
   'library.lyrics.listLabel':
     'Текст песни. Нажмите на строку, чтобы играть с неё.',
+  'library.lyrics.find.heading': 'Найти в интернете',
+  'library.lyrics.find.free': 'Бесплатно, с таймингом',
+  'library.lyrics.find.licensed': 'Лицензионные тексты',
+  'library.lyrics.find.open': 'Искать эту песню на {site} в браузере',
+  'library.lyrics.find.searches':
+    'Поиск «{query}». Скачайте или скопируйте текст там, а затем добавьте его ниже.',
+  'library.lyrics.import.heading': 'Сохранить с песней',
+  'library.lyrics.import.file': 'Импортировать текст…',
+  'library.lyrics.import.paste': 'Вставить',
+  'library.lyrics.import.drop':
+    'Или перетащите файл .lrc или .txt на эту вкладку.',
+  'library.lyrics.import.pasteLabel':
+    'Текст, который будет сохранён с этой песней',
+  'library.lyrics.import.pastePlaceholder':
+    'Вставьте текст или .lrc с таймингом',
+  'library.lyrics.import.save': 'Сохранить текст',
+  'library.lyrics.import.cancel': 'Отмена',
+  'library.lyrics.import.busy': 'Сохраняем текст…',
+  'library.lyrics.import.exists': '{name} уже лежит рядом с песней. Заменить?',
+  'library.lyrics.import.existsKept':
+    'FluidEQ уже хранит текст этой песни. Заменить?',
+  'library.lyrics.import.replace': 'Заменить',
+  'library.lyrics.import.keep': 'Оставить старый',
+  'library.lyrics.import.savedBeside': 'Сохранено рядом с песней как {name}',
+  'library.lyrics.import.savedKept':
+    'Сохранено в папке текстов FluidEQ: в папку песни нельзя записывать',
+  'library.lyrics.import.shadowed':
+    'Сохранено как {name}. Сначала показывается текст, который уже есть в песне.',
+  'library.lyrics.import.shadowedKept':
+    'Сохранено в папке текстов FluidEQ. Сначала показывается текст, который уже есть в песне.',
+  'library.lyrics.import.tooBig':
+    'Файл больше 512 КБ — слишком велик для текста песни.',
+  'library.lyrics.import.notText': 'Это не текстовый файл.',
+  'library.lyrics.import.empty': 'В нём нет текста.',
+  'library.lyrics.import.notLyricsFile':
+    'Импортировать можно только файлы .lrc или .txt.',
+  'library.lyrics.import.failed': 'Не удалось сохранить текст.',
+  'library.lyrics.fromKept':
+    'Из папки текстов FluidEQ: в папку песни нельзя записывать',
+  'library.lyrics.other': 'Найти другой текст',
+  'library.lyrics.back': 'Назад к тексту',
   'library.view.aria': 'Как отображается библиотека',
   'library.browse.aria': 'Что показывает библиотека',
 

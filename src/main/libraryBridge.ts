@@ -30,6 +30,10 @@ import type {
 import type { ILibraryPlaylists } from '../common/library/playlists';
 import type { ILibraryTrackFacts } from '../common/library/trackFacts';
 import type { ILibraryLyricsAnswer } from '../common/library/lyrics';
+import type {
+  TLyricsImportResult,
+  TLyricsPickResult,
+} from '../common/library/lyricsImport';
 
 /**
  * The Library's calls: its folders and scans, the page of songs the window
@@ -133,6 +137,30 @@ const libraryTrackLyrics = (trackId: string) =>
   ipcRenderer.invoke('library-track-lyrics', trackId) as Promise<
     ILibraryLyricsAnswer | undefined
   >;
+
+/**
+ * Opens the system's file dialog for a `.lrc` or `.txt` and hands back its
+ * text for the Lyrics tab to import, or why it cannot be imported.
+ */
+const pickLibraryLyricsFile = () =>
+  ipcRenderer.invoke('library-lyrics-pick') as Promise<TLyricsPickResult>;
+
+/**
+ * Keeps lyrics with a song for good: beside it as its own `.lrc` or `.txt`,
+ * or in FluidEQ's own folder where the song's folder cannot be written. A
+ * lyrics file already there is replaced only when `replace` says so.
+ */
+const importLibraryTrackLyrics = (
+  trackId: string,
+  text: string,
+  replace: boolean,
+) =>
+  ipcRenderer.invoke(
+    'library-lyrics-import',
+    trackId,
+    text,
+    replace,
+  ) as Promise<TLyricsImportResult | undefined>;
 
 /** One more play of a song the window heard past half its length. */
 const noteLibraryTrackPlayed = (trackId: string) =>
@@ -253,6 +281,8 @@ const libraryBridge = {
   noteLibraryTrackPlayed,
   libraryTrackFacts,
   libraryTrackLyrics,
+  pickLibraryLyricsFile,
+  importLibraryTrackLyrics,
   libraryTrackBytes,
   libraryTrackSignature,
   setLibraryTrackNormalization,

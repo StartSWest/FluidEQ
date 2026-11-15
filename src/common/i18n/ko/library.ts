@@ -101,6 +101,46 @@ const library = {
   'library.lyrics.reading': '가사를 찾는 중…',
   'library.lyrics.follow': '재생 중인 줄로 돌아가기',
   'library.lyrics.listLabel': '가사. 줄을 누르면 그 부분부터 재생합니다.',
+  'library.lyrics.find.heading': '온라인에서 찾기',
+  'library.lyrics.find.free': '무료, 싱크 가사',
+  'library.lyrics.find.licensed': '라이선스 가사',
+  'library.lyrics.find.open': '브라우저에서 {site}로 이 노래 검색',
+  'library.lyrics.find.searches':
+    '검색어: “{query}”. 사이트에서 가사를 내려받거나 복사한 다음 아래에서 가져오세요.',
+  'library.lyrics.import.heading': '노래와 함께 저장',
+  'library.lyrics.import.file': '가사 가져오기…',
+  'library.lyrics.import.paste': '붙여넣기',
+  'library.lyrics.import.drop':
+    '또는 .lrc나 .txt 파일을 이 탭에 끌어다 놓으세요.',
+  'library.lyrics.import.pasteLabel': '이 노래와 함께 저장할 가사',
+  'library.lyrics.import.pastePlaceholder': '가사나 싱크된 .lrc를 붙여넣으세요',
+  'library.lyrics.import.save': '가사 저장',
+  'library.lyrics.import.cancel': '취소',
+  'library.lyrics.import.busy': '가사를 저장하는 중…',
+  'library.lyrics.import.exists':
+    '{name} 파일이 이미 노래 옆에 있습니다. 바꿀까요?',
+  'library.lyrics.import.existsKept':
+    'FluidEQ가 이미 이 노래의 가사를 보관하고 있습니다. 바꿀까요?',
+  'library.lyrics.import.replace': '바꾸기',
+  'library.lyrics.import.keep': '기존 파일 유지',
+  'library.lyrics.import.savedBeside': '노래 옆에 {name} 파일로 저장했습니다',
+  'library.lyrics.import.savedKept':
+    'FluidEQ 가사 폴더에 저장했습니다. 노래 폴더에 쓸 수 없습니다',
+  'library.lyrics.import.shadowed':
+    '{name} 파일로 저장했습니다. 노래에 이미 들어 있는 가사가 먼저 표시됩니다.',
+  'library.lyrics.import.shadowedKept':
+    'FluidEQ 가사 폴더에 저장했습니다. 노래에 이미 들어 있는 가사가 먼저 표시됩니다.',
+  'library.lyrics.import.tooBig':
+    '파일이 512KB를 넘어 가사로 보기에는 너무 큽니다.',
+  'library.lyrics.import.notText': '텍스트 파일이 아닙니다.',
+  'library.lyrics.import.empty': '가사가 들어 있지 않습니다.',
+  'library.lyrics.import.notLyricsFile':
+    '.lrc 또는 .txt 파일만 가져올 수 있습니다.',
+  'library.lyrics.import.failed': '가사를 저장하지 못했습니다.',
+  'library.lyrics.fromKept':
+    'FluidEQ 가사 폴더에서 가져옴. 노래 폴더에 쓸 수 없습니다',
+  'library.lyrics.other': '다른 가사 찾기',
+  'library.lyrics.back': '가사로 돌아가기',
   'library.view.aria': '라이브러리가 표시되는 방식',
   'library.browse.aria': '라이브러리에 표시할 항목',
   'library.sort': '정렬',

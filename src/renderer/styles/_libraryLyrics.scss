@@ -190,18 +190,64 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   flex: 0 0 auto;
   align-items: center;
-  gap: 8px;
+  // The button drops under the source where the pane leaves the source too
+  // little to name a file (the basis below), rather than cutting it to a word.
+  flex-wrap: wrap;
+  gap: 6px 8px;
   padding: 8px 6px 0;
   border-top: 1px solid $studio-hair;
 }
 
 .library-lyrics__source {
-  @include truncate;
+  display: flex;
   min-width: 0;
+  flex: 1 1 10rem;
+  align-items: center;
+  gap: 5px;
   margin: 0;
   color: $studio-t3;
   font-size: $studio-text-meta;
   line-height: 1.5;
+
+  > span {
+    @include truncate;
+    min-width: 0;
+  }
+
+  .menu-icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    color: $secondary-default;
+  }
+
+  // Where imported words were kept is a sentence, not a file name: it wraps
+  // rather than losing the half that says why.
+  &.is-notice {
+    align-items: flex-start;
+
+    > span {
+      overflow: visible;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .menu-icon {
+      margin-top: 2px;
+    }
+  }
+
+  // Just kept: said in the reader's own ink until the song changes.
+  &.is-saved {
+    color: $studio-t2;
+  }
+}
+
+// The way to other lyrics, at the foot's far end: quiet, and the source
+// gives way to it rather than pushing it off the pane.
+.library-lyrics__other.button {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
 }
 
 // Reading: said only if it lasts long enough to notice. The words almost
@@ -220,13 +266,58 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// No lyrics: what was looked for, said once, and the two file names that
-// would have been read.
-.library-lyrics.is-empty {
-  flex: 0 0 auto;
-  align-items: center;
-  padding: 18px 6px;
-  text-align: center;
+// No lyrics, or other lyrics asked for: what was looked for, then where to
+// find words and how to bring them in (`LibraryLyricsFinder`). The column
+// scrolls as one, so the pane's height never clips the import at its foot.
+.library-lyrics.is-empty,
+.library-lyrics.is-finding {
+  @include slim-scrollbar;
+  gap: 14px;
+  padding: 14px 0 12px;
+  overflow-y: auto;
+}
+
+// A file carried over the tab: the whole tab is the target, tinted with the
+// accent faintly and ringed by its hairline 4px outside the content, in the
+// pane's own padding — a ring drawn on the edge crowded the words against
+// it, and padding added for the drag would move every line while it lasts.
+.library-lyrics.is-drop-target {
+  border-radius: 6px;
+  background: $studio-select;
+  // The ring is an outline, not a second spread: under a translucent tint
+  // a spread ring shows through the whole band and reads 5px thick.
+  box-shadow: 0 0 0 4px $studio-select;
+  outline: 1px solid $secondary-default;
+  outline-offset: 4px;
+}
+
+// Read down one edge with the sections under it: centred, it stood apart
+// from the lists it now heads.
+.library-lyrics__empty-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 4px 6px 0;
+
+  .library-pane__note {
+    margin-inline: 0;
+  }
+
+  .library-lyrics__looked {
+    justify-content: flex-start;
+  }
+}
+
+.library-lyrics__back.button {
+  align-self: flex-start;
+  gap: 4px;
+  margin: 0 6px;
+  padding-left: 6px;
+
+  .menu-icon {
+    width: 15px;
+    height: 15px;
+  }
 }
 
 .library-lyrics__none {

@@ -120,6 +120,45 @@ const library: Partial<Dictionary> = {
   'library.lyrics.reading': 'बोल खोजे जा रहे हैं…',
   'library.lyrics.follow': 'चल रही पंक्ति पर लौटें',
   'library.lyrics.listLabel': 'बोल। किसी पंक्ति को दबाकर वहीं से चलाएँ।',
+  'library.lyrics.find.heading': 'ऑनलाइन खोजें',
+  'library.lyrics.find.free': 'मुफ़्त, समय के साथ',
+  'library.lyrics.find.licensed': 'लाइसेंस वाले बोल',
+  'library.lyrics.find.open': 'इस गाने को अपने ब्राउज़र में {site} पर खोजें',
+  'library.lyrics.find.searches':
+    '“{query}” खोजता है। वहाँ से बोल डाउनलोड या कॉपी करें, फिर नीचे जोड़ें।',
+  'library.lyrics.import.heading': 'गाने के साथ रखें',
+  'library.lyrics.import.file': 'बोल इम्पोर्ट करें…',
+  'library.lyrics.import.paste': 'पेस्ट करें',
+  'library.lyrics.import.drop': 'या कोई .lrc या .txt फ़ाइल इस टैब पर छोड़ें।',
+  'library.lyrics.import.pasteLabel': 'इस गाने के साथ रखे जाने वाले बोल',
+  'library.lyrics.import.pastePlaceholder': 'बोल या समय वाली .lrc पेस्ट करें',
+  'library.lyrics.import.save': 'बोल सहेजें',
+  'library.lyrics.import.cancel': 'रद्द करें',
+  'library.lyrics.import.busy': 'बोल सहेजे जा रहे हैं…',
+  'library.lyrics.import.exists': '{name} पहले से गाने के पास है। उसे बदलें?',
+  'library.lyrics.import.existsKept':
+    'FluidEQ इस गाने के बोल पहले से रखता है। उन्हें बदलें?',
+  'library.lyrics.import.replace': 'बदलें',
+  'library.lyrics.import.keep': 'पुरानी रखें',
+  'library.lyrics.import.savedBeside':
+    'गाने के पास {name} के रूप में सहेजा गया',
+  'library.lyrics.import.savedKept':
+    'FluidEQ के बोल फ़ोल्डर में सहेजा गया: गाने के फ़ोल्डर में लिखा नहीं जा सकता',
+  'library.lyrics.import.shadowed':
+    '{name} के रूप में सहेजा गया। गाने में पहले से मौजूद बोल पहले दिखाए जाते हैं।',
+  'library.lyrics.import.shadowedKept':
+    'FluidEQ के बोल फ़ोल्डर में सहेजा गया। गाने में पहले से मौजूद बोल पहले दिखाए जाते हैं।',
+  'library.lyrics.import.tooBig':
+    'यह फ़ाइल 512 KB से बड़ी है, बोल होने के लिए बहुत बड़ी।',
+  'library.lyrics.import.notText': 'यह फ़ाइल टेक्स्ट नहीं है।',
+  'library.lyrics.import.empty': 'इसमें कोई बोल नहीं हैं।',
+  'library.lyrics.import.notLyricsFile':
+    'सिर्फ़ .lrc या .txt फ़ाइल इम्पोर्ट की जा सकती है।',
+  'library.lyrics.import.failed': 'बोल सहेजे नहीं जा सके।',
+  'library.lyrics.fromKept':
+    'FluidEQ के बोल फ़ोल्डर से: गाने के फ़ोल्डर में लिखा नहीं जा सकता',
+  'library.lyrics.other': 'दूसरे बोल खोजें',
+  'library.lyrics.back': 'बोल पर वापस जाएँ',
   'library.view.aria': 'लाइब्रेरी किस तरह दिखाई जाती है',
   'library.browse.aria': 'लाइब्रेरी क्या दिखा रही है',
 

@@ -42,20 +42,18 @@ export interface ILyricsLine {
   words?: ILyricsWord[];
 }
 
+interface ILyricsOrigin {
+  source: TLyricsSource;
+  /** The file it came from, by name only, for a sidecar. */
+  fileName?: string;
+  /** Imported by the listener and kept in FluidEQ's own folder, because the
+   * song's folder could not be written (`libraryLyricsPlaces.ts`). */
+  kept?: boolean;
+}
+
 export type ILibraryLyrics =
-  | {
-      kind: 'synced';
-      source: TLyricsSource;
-      /** The file it came from, by name only, for a sidecar. */
-      fileName?: string;
-      lines: ILyricsLine[];
-    }
-  | {
-      kind: 'plain';
-      source: TLyricsSource;
-      fileName?: string;
-      text: string;
-    };
+  | (ILyricsOrigin & { kind: 'synced'; lines: ILyricsLine[] })
+  | (ILyricsOrigin & { kind: 'plain'; text: string });
 
 export interface ILibraryLyricsAnswer {
   /** Nothing when no source had words. */

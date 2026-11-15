@@ -21,6 +21,7 @@ const files = {
   'files.type.programs': '節目',
   'files.type.pictures': '圖片',
   'files.type.all': '所有檔案',
+  'files.type.lyrics': '歌詞',
   'files.imported.profile': '從 FluidEQ 設定檔匯入 {count} 頻段。',
   'files.imported.graphicEq': '從 GraphicEQ 檔案匯入 {count} 頻段。',
   'files.imported.parametricEq':

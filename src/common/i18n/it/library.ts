@@ -121,6 +121,46 @@ const library: Partial<Dictionary> = {
   'library.lyrics.reading': 'Ricerca del testo…',
   'library.lyrics.follow': 'Torna alla riga in riproduzione',
   'library.lyrics.listLabel': 'Testo. Premi una riga per riprodurre da lì.',
+  'library.lyrics.find.heading': 'Trovali online',
+  'library.lyrics.find.free': 'Gratis, sincronizzati',
+  'library.lyrics.find.licensed': 'Testi con licenza',
+  'library.lyrics.find.open': 'Cerca questo brano su {site} nel browser',
+  'library.lyrics.find.searches':
+    'Cerca «{query}». Scarica o copia lì il testo, poi aggiungilo qui sotto.',
+  'library.lyrics.import.heading': 'Conservalo con il brano',
+  'library.lyrics.import.file': 'Importa testo…',
+  'library.lyrics.import.paste': 'Incolla',
+  'library.lyrics.import.drop':
+    'Oppure trascina un file .lrc o .txt su questa scheda.',
+  'library.lyrics.import.pasteLabel': 'Testo da conservare con questo brano',
+  'library.lyrics.import.pastePlaceholder':
+    'Incolla il testo o un .lrc sincronizzato',
+  'library.lyrics.import.save': 'Salva testo',
+  'library.lyrics.import.cancel': 'Annulla',
+  'library.lyrics.import.busy': 'Salvataggio del testo…',
+  'library.lyrics.import.exists': '{name} è già accanto al brano. Sostituirlo?',
+  'library.lyrics.import.existsKept':
+    'FluidEQ conserva già un testo per questo brano. Sostituirlo?',
+  'library.lyrics.import.replace': 'Sostituisci',
+  'library.lyrics.import.keep': 'Tieni il vecchio',
+  'library.lyrics.import.savedBeside': 'Salvato accanto al brano come {name}',
+  'library.lyrics.import.savedKept':
+    'Salvato nella cartella dei testi di FluidEQ: non si può scrivere nella cartella del brano',
+  'library.lyrics.import.shadowed':
+    'Salvato come {name}. Il testo già presente nel brano viene mostrato per primo.',
+  'library.lyrics.import.shadowedKept':
+    'Salvato nella cartella dei testi di FluidEQ. Il testo già presente nel brano viene mostrato per primo.',
+  'library.lyrics.import.tooBig':
+    'Il file supera 512 KB: troppo grande per un testo.',
+  'library.lyrics.import.notText': 'Il file non è di testo.',
+  'library.lyrics.import.empty': 'Non contiene parole.',
+  'library.lyrics.import.notLyricsFile':
+    'Si possono importare solo file .lrc o .txt.',
+  'library.lyrics.import.failed': 'Impossibile salvare il testo.',
+  'library.lyrics.fromKept':
+    'Dalla cartella dei testi di FluidEQ: non si può scrivere nella cartella del brano',
+  'library.lyrics.other': 'Trova un altro testo',
+  'library.lyrics.back': 'Torna al testo',
   'library.view.aria': 'Come viene mostrata la libreria',
   'library.browse.aria': 'Cosa sta mostrando la libreria',
 

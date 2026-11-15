@@ -1,0 +1,196 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// The Lyrics tab's way to a song's words (`LibraryLyricsFinder`,
+// `LibraryLyricsImportStatus`): searches on lyrics sites, and lyrics
+// picked, pasted or dropped, kept with the song.
+@use 'color' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// Where to find the words, and how to keep them with the song.
+.library-lyrics-finder {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  text-align: start;
+}
+
+.library-lyrics-finder__sites {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+// A site: its name, what it offers, and the arrow out of the app, on a step
+// of light under the pointer as a lyric line has. The name is the site's
+// own and never wraps; the note gives way first.
+.library-lyrics-finder__site {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  // The name on the headings' 6px edge, so the column reads as one.
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: $text-primary;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: $studio-surface;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.library-lyrics-finder__site-name {
+  flex: 0 0 auto;
+  font-size: $studio-text-row;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+}
+
+.library-lyrics-finder__site-note {
+  @include truncate;
+  min-width: 0;
+  flex: 1 1 auto;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+}
+
+.library-lyrics-finder__site-icon.menu-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: $studio-t3;
+  transition: $transition-control;
+
+  .library-lyrics-finder__site:hover & {
+    color: $secondary-default;
+  }
+}
+
+.library-lyrics-finder__query {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+// The import's buttons wrap under one another where a translation is long
+// and the pane is narrow, rather than squeezing either.
+.library-lyrics-finder__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 6px 0;
+
+  .button {
+    gap: 6px;
+  }
+
+  .button .menu-icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+  }
+}
+
+.library-lyrics-finder__paste {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// The field's own face, as the Library's search capsule has it: the
+// control's edge and fill, the accent's edge while typed in.
+.library-lyrics-finder__paste-box {
+  @include slim-scrollbar;
+  box-sizing: border-box;
+  width: calc(100% - 12px);
+  min-height: 112px;
+  max-height: 40vh;
+  margin: 4px 6px 0;
+  padding: 8px 10px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  color: $text-primary;
+  font-family: inherit;
+  font-size: $studio-text-tree;
+  line-height: 1.55;
+  resize: vertical;
+  transition: $transition-control;
+
+  &::placeholder {
+    color: $studio-t3;
+  }
+
+  &:focus {
+    border-color: $border-field-focus;
+    outline: none;
+  }
+}
+
+// What the import is doing: saving, a question, or why nothing was kept.
+.library-lyrics-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 10px 6px 0;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
+
+  .menu-icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    margin-top: 1px;
+  }
+
+  &.is-problem {
+    color: $amber;
+  }
+
+  &.is-question {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-inline: 0;
+    padding: 10px 0 2px;
+    border-top: 1px solid $studio-hair;
+    color: $text-primary;
+  }
+}
+
+.library-lyrics-status__text {
+  margin: 0 6px;
+  overflow-wrap: anywhere;
+}

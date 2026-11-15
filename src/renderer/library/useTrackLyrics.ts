@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { ILibraryLyricsAnswer } from '../../common/library/lyrics';
 import type { ILibraryTrack } from '../../common/library/types';
 
@@ -44,8 +44,13 @@ const remember = (key: string, answer: ILibraryLyricsAnswer) => {
   }
 };
 
-export type TTrackLyrics =
-  { state: 'reading' } | { state: 'ready'; answer: ILibraryLyricsAnswer };
+export type TTrackLyrics = (
+  { state: 'reading' } | { state: 'ready'; answer: ILibraryLyricsAnswer }
+) & {
+  /** Asks main again past the cache, because lyrics were just imported. The
+   * words already shown stay until the new answer lands. */
+  reload: () => void;
+};
 
 /**
  * The song's lyrics as main reads them (`library-track-lyrics`), by id, for
@@ -59,6 +64,14 @@ export const useTrackLyrics = (track: ILibraryTrack): TTrackLyrics => {
     { key: string; answer: ILibraryLyricsAnswer } | undefined
   >(undefined);
   const trackId = track.id;
+  // Bumped by `reload`: imported lyrics live beside the song, not in it, so
+  // the song's own key never changes for them.
+  const [asked, setAsked] = useState(0);
+
+  const reload = useCallback(() => {
+    cache.delete(key);
+    setAsked((count) => count + 1);
+  }, [key]);
 
   useEffect(() => {
     if (cache.has(key)) {
@@ -87,11 +100,11 @@ export const useTrackLyrics = (track: ILibraryTrack): TTrackLyrics => {
     return () => {
       isCurrent = false;
     };
-  }, [key, trackId]);
+  }, [key, trackId, asked]);
 
   const answer =
     cache.get(key) ?? (held?.key === key ? held.answer : undefined);
   return answer === undefined
-    ? { state: 'reading' }
-    : { state: 'ready', answer };
+    ? { state: 'reading', reload }
+    : { state: 'ready', answer, reload };
 };

@@ -33,6 +33,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * THE ORDER: words with timing first — the tags', then a `.lrc` file — and
  * plain words after — the tags', then a `.txt` file. A synced file beside a
  * song whose tags carry the same words unsynced is the better of the two.
+ * Lyrics the listener imported where the song's folder could not be written
+ * are kept in FluidEQ's own folder and come last within each kind.
  *
  * The path comes from the store by the song's id (`library-track-lyrics`),
  * never from the window, and a sidecar is only ever the song's own name with
@@ -53,6 +55,8 @@ import {
   MAX_LYRICS_WORDS,
   wordsFromPieces,
 } from '../../common/library/lyrics';
+import { LYRICS_FILE_EXTENSIONS } from '../../common/library/lyricsImport';
+import { sidecarPath, storedLyricsPath } from './libraryLyricsPlaces';
 
 /**
  * Text tags that hold lyrics, by their native name upper-cased, any tag
@@ -229,14 +233,39 @@ const readSidecar = async (file: string): Promise<string | undefined> => {
   }
 };
 
-/** The song's own name with another extension, beside it. */
-const sidecarPath = (trackPath: string, extension: string): string => {
-  const parsed = path.parse(trackPath);
-  return path.join(parsed.dir, `${parsed.name}${extension}`);
+/** What FluidEQ kept in its own folder for this song, where an import could
+ * not write beside it: read as the files beside it are, said as kept. */
+const fromStore = async (
+  storeDir: string,
+  trackPath: string,
+): Promise<ILibraryLyrics[]> => {
+  const kept = await Promise.all(
+    LYRICS_FILE_EXTENSIONS.map(
+      async (extension): Promise<ILibraryLyrics | undefined> => {
+        const text = await readSidecar(
+          storedLyricsPath(storeDir, trackPath, extension),
+        );
+        const lyrics =
+          text === undefined
+            ? undefined
+            : lyricsFromText(text, extension === '.lrc' ? 'lrc' : 'txt');
+        return lyrics === undefined ? undefined : { ...lyrics, kept: true };
+      },
+    ),
+  );
+  return kept.filter(
+    (lyrics): lyrics is ILibraryLyrics => lyrics !== undefined,
+  );
 };
 
+/**
+ * `storeDir` is FluidEQ's own lyrics folder (`libraryLyricsPlaces.ts`),
+ * looked in after the tags and the files beside the song; without it only
+ * the song's own places are read.
+ */
 export const readTrackLyrics = async (
   trackPath: string,
+  storeDir?: string,
 ): Promise<ILibraryLyricsAnswer> => {
   const lrcPath = sidecarPath(trackPath, '.lrc');
   const txtPath = sidecarPath(trackPath, '.txt');
@@ -263,7 +292,10 @@ export const readTrackLyrics = async (
       ? undefined
       : lyricsFromText(txtText, 'txt', path.basename(txtPath));
 
-  const candidates = [...tagged, lrc, txt].filter(
+  const kept =
+    storeDir === undefined ? [] : await fromStore(storeDir, trackPath);
+
+  const candidates = [...tagged, lrc, txt, ...kept].filter(
     (lyrics): lyrics is ILibraryLyrics => lyrics !== undefined,
   );
   const lyrics =

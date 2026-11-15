@@ -231,6 +231,9 @@ describe('the library channels', () => {
       'library-track-bytes',
       'library-track-signature',
       'library-track-normalization-set',
+      'library-track-lyrics',
+      'library-lyrics-pick',
+      'library-lyrics-import',
     ].forEach((channel) => expect(handlers.has(channel)).toBe(true));
   });
 

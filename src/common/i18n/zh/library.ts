@@ -119,6 +119,42 @@ const library: Partial<Dictionary> = {
   'library.lyrics.reading': '正在查找歌词…',
   'library.lyrics.follow': '回到正在播放的行',
   'library.lyrics.listLabel': '歌词。点按一行即可从那里播放。',
+  'library.lyrics.find.heading': '在线查找',
+  'library.lyrics.find.free': '免费，带时间轴',
+  'library.lyrics.find.licensed': '正版授权歌词',
+  'library.lyrics.find.open': '在浏览器中用 {site} 搜索这首歌',
+  'library.lyrics.find.searches':
+    '搜索“{query}”。在网站上下载或复制歌词，然后在下方导入。',
+  'library.lyrics.import.heading': '随歌曲保存',
+  'library.lyrics.import.file': '导入歌词…',
+  'library.lyrics.import.paste': '粘贴',
+  'library.lyrics.import.drop': '也可以把 .lrc 或 .txt 文件拖到此标签页上。',
+  'library.lyrics.import.pasteLabel': '要随这首歌保存的歌词',
+  'library.lyrics.import.pastePlaceholder': '粘贴歌词，或带时间轴的 .lrc',
+  'library.lyrics.import.save': '保存歌词',
+  'library.lyrics.import.cancel': '取消',
+  'library.lyrics.import.busy': '正在保存歌词…',
+  'library.lyrics.import.exists': '歌曲旁已有 {name}。要替换吗？',
+  'library.lyrics.import.existsKept':
+    'FluidEQ 已为这首歌保存了歌词。要替换吗？',
+  'library.lyrics.import.replace': '替换',
+  'library.lyrics.import.keep': '保留原来的',
+  'library.lyrics.import.savedBeside': '已在歌曲旁保存为 {name}',
+  'library.lyrics.import.savedKept':
+    '已保存到 FluidEQ 的歌词文件夹：无法写入歌曲所在文件夹',
+  'library.lyrics.import.shadowed':
+    '已保存为 {name}。歌曲中已有的歌词会优先显示。',
+  'library.lyrics.import.shadowedKept':
+    '已保存到 FluidEQ 的歌词文件夹。歌曲中已有的歌词会优先显示。',
+  'library.lyrics.import.tooBig': '该文件超过 512 KB，作为歌词太大了。',
+  'library.lyrics.import.notText': '该文件不是文本。',
+  'library.lyrics.import.empty': '其中没有歌词。',
+  'library.lyrics.import.notLyricsFile': '只能导入 .lrc 或 .txt 文件。',
+  'library.lyrics.import.failed': '无法保存歌词。',
+  'library.lyrics.fromKept':
+    '来自 FluidEQ 的歌词文件夹：无法写入歌曲所在文件夹',
+  'library.lyrics.other': '查找其他歌词',
+  'library.lyrics.back': '返回歌词',
   'library.view.aria': '媒体库的显示方式',
   'library.browse.aria': '媒体库正在显示的内容',
 

@@ -124,6 +124,49 @@ const library: Partial<Dictionary> = {
   'library.lyrics.follow': 'Revenir à la ligne en cours',
   'library.lyrics.listLabel':
     'Paroles. Cliquez sur une ligne pour lire à partir de là.',
+  'library.lyrics.find.heading': 'Les trouver en ligne',
+  'library.lyrics.find.free': 'Gratuites, synchronisées',
+  'library.lyrics.find.licensed': 'Paroles sous licence',
+  'library.lyrics.find.open':
+    'Rechercher ce titre sur {site} dans votre navigateur',
+  'library.lyrics.find.searches':
+    'Recherche « {query} ». Téléchargez ou copiez les paroles sur le site, puis ajoutez-les ci-dessous.',
+  'library.lyrics.import.heading': 'Les garder avec le titre',
+  'library.lyrics.import.file': 'Importer des paroles…',
+  'library.lyrics.import.paste': 'Coller',
+  'library.lyrics.import.drop':
+    'Ou déposez un fichier .lrc ou .txt sur cet onglet.',
+  'library.lyrics.import.pasteLabel': 'Paroles à garder avec ce titre',
+  'library.lyrics.import.pastePlaceholder':
+    'Collez les paroles ou un .lrc synchronisé',
+  'library.lyrics.import.save': 'Enregistrer les paroles',
+  'library.lyrics.import.cancel': 'Annuler',
+  'library.lyrics.import.busy': 'Enregistrement des paroles…',
+  'library.lyrics.import.exists':
+    '{name} est déjà à côté du titre. Le remplacer ?',
+  'library.lyrics.import.existsKept':
+    'FluidEQ garde déjà des paroles pour ce titre. Les remplacer ?',
+  'library.lyrics.import.replace': 'Remplacer',
+  'library.lyrics.import.keep': 'Garder l’ancien',
+  'library.lyrics.import.savedBeside':
+    'Enregistrées à côté du titre sous {name}',
+  'library.lyrics.import.savedKept':
+    'Enregistrées dans le dossier de paroles de FluidEQ : impossible d’écrire dans le dossier du titre',
+  'library.lyrics.import.shadowed':
+    'Enregistrées sous {name}. Les paroles déjà présentes dans le titre s’affichent en premier.',
+  'library.lyrics.import.shadowedKept':
+    'Enregistrées dans le dossier de paroles de FluidEQ. Les paroles déjà présentes dans le titre s’affichent en premier.',
+  'library.lyrics.import.tooBig':
+    'Ce fichier dépasse 512 Ko : trop gros pour des paroles.',
+  'library.lyrics.import.notText': 'Ce fichier n’est pas du texte.',
+  'library.lyrics.import.empty': 'Il ne contient aucune parole.',
+  'library.lyrics.import.notLyricsFile':
+    'Seuls les fichiers .lrc ou .txt peuvent être importés.',
+  'library.lyrics.import.failed': 'Impossible d’enregistrer les paroles.',
+  'library.lyrics.fromKept':
+    'Du dossier de paroles de FluidEQ : impossible d’écrire dans le dossier du titre',
+  'library.lyrics.other': 'Trouver d’autres paroles',
+  'library.lyrics.back': 'Retour aux paroles',
   'library.view.aria': 'Comment la bibliothèque est affichée',
   'library.browse.aria': 'Ce que la bibliothèque affiche',
 
