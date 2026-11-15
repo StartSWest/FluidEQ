@@ -332,9 +332,18 @@ const LibraryGridView = ({
    */
   const revealNonce = revealTrack?.nonce;
   const revealTrackId = revealTrack?.trackId;
+  // Answered once; asked again only while it has found nothing and the list
+  // becomes a different list - the reason `LibraryListView` gives.
+  const revealedNonceRef = useRef<number | undefined>(undefined);
+  const revealQueryKey =
+    list?.query === undefined ? '' : JSON.stringify(list.query);
   useEffect(() => {
     const { current } = listRef;
-    if (revealTrackId === undefined || current?.query === undefined) {
+    if (
+      revealTrackId === undefined ||
+      current?.query === undefined ||
+      revealedNonceRef.current === revealNonce
+    ) {
       return undefined;
     }
     let isCurrent = true;
@@ -344,6 +353,7 @@ const LibraryGridView = ({
       if (!isCurrent || index < 0 || !element || shown === undefined) {
         return;
       }
+      revealedNonceRef.current = revealNonce;
       rememberActive(revealTrackId);
       const top = gridRowTop(
         shown.rowOf(index),
@@ -377,8 +387,8 @@ const LibraryGridView = ({
     return () => {
       isCurrent = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the request, not on rows that change under a scan
-  }, [revealTrackId, revealNonce]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the request and what the list is, not on rows that change under a scan
+  }, [revealTrackId, revealNonce, revealQueryKey]);
 
   /** A tile's words and picture, from what the store sent. */
   const tileOf = (item: TLibraryRow): ITile | undefined => {

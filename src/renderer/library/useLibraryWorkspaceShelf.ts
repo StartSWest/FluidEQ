@@ -649,6 +649,7 @@ const useLibraryWorkspaceShelf = ({
         id: itemId,
         nonce: (current?.nonce ?? 0) + 1,
       }));
+      let isRecordOpen = true;
       if (browseMode === 'album' && openAlbumId !== undefined) {
         setOpenAlbumId(itemId);
       } else if (browseMode === 'artist' && openArtistId !== undefined) {
@@ -657,6 +658,17 @@ const useLibraryWorkspaceShelf = ({
         setOpenGenreId(itemId);
       } else if (browseMode === 'folder' && openFolderPath !== undefined) {
         setOpenFolderPath(itemId);
+      } else {
+        isRecordOpen = false;
+      }
+      // The pick's own row in the record now open, marked and scrolled to
+      // (Ivan, 2026-11-15: "sometimes during Surprise me the selected
+      // highlight doesn't show"). The record changed to the pick's, and its
+      // song played with the playing tint, but nothing asked the record's
+      // list to select it, so the row had no mark when the record was the
+      // same one or the list kept the selection of the one before.
+      if (isRecordOpen) {
+        revealRow(track.id);
       }
     },
     [

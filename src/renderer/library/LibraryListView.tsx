@@ -282,9 +282,21 @@ const LibraryListView = ({
    */
   const revealNonce = revealTrack?.nonce;
   const revealTrackId = revealTrack?.trackId;
+  // A request answered once, then left alone: asked again only while it has
+  // found nothing and the list becomes a different list. Surprise me opens
+  // the pick's record and asks for its row in the same breath, and the list
+  // answering first can still be the record before, where the song is not:
+  // asked of that list alone, the row was never marked (Ivan, 2026-11-15).
+  const revealedNonceRef = useRef<number | undefined>(undefined);
+  const revealQueryKey =
+    list?.query === undefined ? '' : JSON.stringify(list.query);
   useEffect(() => {
     const { current } = listRef;
-    if (revealTrackId === undefined || current?.query === undefined) {
+    if (
+      revealTrackId === undefined ||
+      current?.query === undefined ||
+      revealedNonceRef.current === revealNonce
+    ) {
       return undefined;
     }
     let isCurrent = true;
@@ -293,6 +305,7 @@ const LibraryListView = ({
       if (!isCurrent || index < 0 || shown === undefined) {
         return;
       }
+      revealedNonceRef.current = revealNonce;
       setActiveId(revealTrackId);
       scrollToRow(shown.rowOf(index));
     };
@@ -312,10 +325,11 @@ const LibraryListView = ({
     return () => {
       isCurrent = false;
     };
-    // Keyed on the request: the list changes under a scan, and re-running
-    // for that would drag the reader back to the row for the whole of it.
+    // Keyed on the request and on what the list is, never on its rows: the
+    // rows change under a scan, and re-running for that would drag the
+    // reader back to the row for the whole of it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revealTrackId, revealNonce]);
+  }, [revealTrackId, revealNonce, revealQueryKey]);
 
   // The row a right click or a keyboard context-menu request landed on, and
   // the element the menu hangs off.
