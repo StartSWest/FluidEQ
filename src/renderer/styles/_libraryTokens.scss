@@ -89,6 +89,18 @@ $library-gutter: 12px;
 // The chosen folder, the playing row: the accent, faint.
 $studio-select: color-mix(in srgb, $secondary-default 12%, transparent);
 
+// THE ONE MARK FOR "HERE" across the Library: the shelf open in the rail,
+// the folder in the tree, the line being sung, the row last opened - a
+// faint accent fill and a straight 2px accent line down the left edge,
+// square-cornered (Ivan, 2026-11-15: "let's make all those highlights like
+// the line in the song list", "same for the Library"). Rounded rows with a
+// 3px inset bar curved at both ends and stood apart from the list's.
+@mixin studio-mark {
+  border-radius: 0;
+  background: $studio-select;
+  box-shadow: inset 2px 0 0 $secondary-default;
+}
+
 // The mockup's type, in the app's rem: 14px rows and names, 13px trees and
 // crumbs, 12px meta, 11px labels. Bigger than the old 11.5px rows on purpose
 // — a long list is read at a glance only when its rows can be (the design's

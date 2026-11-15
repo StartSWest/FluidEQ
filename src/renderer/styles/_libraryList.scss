@@ -279,13 +279,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-primary;
     background: color-mix(in srgb, $secondary-default 8%, transparent);
 
+    // The Library's one mark's line, straight down the row's whole edge.
     &::before {
       position: absolute;
-      top: 6px;
-      bottom: 6px;
+      top: 0;
+      bottom: 0;
       left: 0;
       width: 2px;
-      border-radius: $radius-pill;
       background: $secondary-default;
       content: '';
     }

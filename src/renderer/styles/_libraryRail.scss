@@ -147,7 +147,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   padding: 7px 10px;
   border: 0;
-  border-radius: $radius-m;
+  border-radius: 0;
   background: none;
   // The theme's muted text, not the studio's second step: at 68% of the
   // primary the shelves and the folders read as switched off (Ivan,
@@ -165,11 +165,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-primary;
   }
 
-  // Where the reader is: a step of light, and the accent's bar inset on its
-  // leading edge.
+  // Where the reader is: the Library's one mark (`studio-mark`).
   &.is-active {
-    background: $studio-raise;
-    box-shadow: inset 3px 0 0 $secondary-default;
+    @include studio-mark;
     color: $text-primary;
 
     .library-rail__icon {
@@ -251,7 +249,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 7px;
   // Each level steps in 15px under the shelf's own 10, as Explorer indents.
   padding: 5px 10px 5px calc(10px + var(--tree-level, 0) * 15px);
-  border-radius: 7px;
+  border-radius: 0;
   // As the shelves above it: the muted text, read as live.
   color: $text-muted;
   font-size: $studio-text-tree;
@@ -265,7 +263,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-selected {
-    background: $studio-select;
+    @include studio-mark;
     color: $text-primary;
 
     .library-tree__icon {
