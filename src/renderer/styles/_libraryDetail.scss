@@ -575,12 +575,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: clamp(160px, 26%, 260px);
   margin-left: auto;
 
+  // The bar's search, flat: no fill, a hairline round it.
   .library-search__field {
-    height: 32px;
+    height: 30px;
     border: 0;
-    border-radius: $radius-pill;
-    background: $studio-surface;
-    box-shadow: inset 0 0 0 1px transparent;
+    border-radius: $radius-m;
+    background: none;
+    box-shadow: inset 0 0 0 1px $studio-hair;
 
     &:focus-within {
       box-shadow: inset 0 0 0 1px $border-field-focus;

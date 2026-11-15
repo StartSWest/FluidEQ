@@ -216,9 +216,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
+  // Flat: a hairline round it, a faint fill under the pointer (Ivan,
+  // 2026-11-15, of the bar: "we also need to tune these to match the
+  // style").
   border: 0;
   border-radius: $radius-m;
-  background: $studio-surface;
+  background: none;
+  box-shadow: inset 0 0 0 1px $studio-hair;
   color: $studio-t2;
   cursor: pointer;
   transition: $transition-control;
@@ -239,7 +243,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover:not(:disabled) {
-    background: $studio-raise;
+    background: $studio-surface;
     color: $text-primary;
   }
 
@@ -264,13 +268,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The mockup's field: a tray of light, no edge, the glyph quiet. Focus
   // still lights an edge, drawn inside so the field does not grow.
   .library-search__field {
-    height: 36px;
+    // Flat: no fill, a hairline round it and the accent's while typing.
+    height: 32px;
     gap: 8px;
     padding: 0 6px 0 12px;
     border: 0;
-    border-radius: $radius-l;
-    background: $studio-surface;
-    box-shadow: inset 0 0 0 1px transparent;
+    border-radius: $radius-m;
+    background: none;
+    box-shadow: inset 0 0 0 1px $studio-hair;
 
     &:focus-within {
       box-shadow: inset 0 0 0 1px $border-field-focus;
@@ -282,7 +287,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       font-size: $studio-text-row;
 
       &::placeholder {
-        color: $studio-t3;
+        color: $studio-t2;
       }
     }
   }
@@ -315,18 +320,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0 10px;
   border: 0;
   border-radius: $radius-m;
-  background: $studio-surface;
+  // Flat like the bar's other controls: a hairline round it, a faint fill
+  // under the pointer, the accent's edge and ink while the queue is open.
+  background: none;
+  box-shadow: inset 0 0 0 1px $studio-hair;
   color: $studio-t2;
   font-size: $studio-text-meta;
   font-weight: $weight-semibold;
 
   &:hover {
-    background: $studio-raise;
+    background: $studio-surface;
     color: $text-primary;
   }
 
   &.is-active {
-    background: $studio-select;
+    background: none;
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-default 55%, transparent);
     color: $secondary-light;
   }
 
@@ -344,21 +354,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-left: auto;
 }
 
+// The views as underlined words, as the right pane's tabs are: no tray, the
+// chosen one underlined in the accent.
 .library-top__views {
   display: inline-flex;
   flex: 0 0 auto;
-  padding: 3px;
-  border-radius: 9px;
-  background: $studio-surface;
+  gap: 2px;
+  padding: 0;
+  border-radius: 0;
+  background: none;
 }
 
 .library-top__view {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 10px;
+  padding: 7px 10px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 0;
   background: none;
   // The second step, not the third: at 44% the views not chosen read as
   // switched off.
@@ -374,7 +387,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-active {
-    background: $studio-raise;
+    box-shadow: inset 0 -2px 0 $secondary-default;
     color: $text-primary;
   }
 
@@ -405,15 +418,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 10px;
     border: 0;
     border-radius: $radius-m;
-    background: $studio-surface;
-    box-shadow: none;
+    background: none;
+    box-shadow: inset 0 0 0 1px $studio-hair;
     color: $studio-t2;
     font-size: $studio-text-meta;
     font-weight: $weight-semibold;
     gap: 6px;
 
     &:hover:not([aria-disabled='true']) {
-      background: $studio-raise;
+      background: $studio-surface;
       color: $text-primary;
     }
   }
