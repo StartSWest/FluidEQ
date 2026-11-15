@@ -22,6 +22,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
 } from 'react';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
@@ -185,6 +186,17 @@ const LibraryVideoStage = ({
     }
   };
 
+  /**
+   * How far the arrows have just skipped, flashed in the middle of the
+   * picture (Ivan, 2026-11-15: "show how much forward or backward the video
+   * jumped in the centre of the screen when I seek via keys"). Presses the
+   * same way add up while it shows; its fade's own end takes it away, and a
+   * new press restarts the fade (`nonce` is its key).
+   */
+  const [skipped, setSkipped] = useState<
+    { totalMs: number; nonce: number } | undefined
+  >(undefined);
+
   /** The arrows skip through the film while it has the focus, as every
    * player on this machine does. */
   const onKey = (event: KeyboardEvent<HTMLVideoElement>) => {
@@ -195,6 +207,13 @@ const LibraryVideoStage = ({
     const length = event.ctrlKey ? SEEK_LONG_STEP_MS : SEEK_STEP_MS;
     const step = event.key === 'ArrowLeft' ? -length : length;
     seek(Math.max(0, readPositionMs() + step));
+    setSkipped((shown) => ({
+      totalMs:
+        shown !== undefined && Math.sign(shown.totalMs) === Math.sign(step)
+          ? shown.totalMs + step
+          : step,
+      nonce: (shown?.nonce ?? 0) + 1,
+    }));
   };
 
   if (!videoTrackId) {
@@ -277,6 +296,60 @@ const LibraryVideoStage = ({
           </svg>
           <span>{t('library.back')}</span>
         </button>
+      )}
+      {/* On the side it skipped toward, as a big arrow with the seconds
+          under it, flat on the picture (Ivan, 2026-11-15: "make it more our
+          flat style and show a big arrow, next and previous, to each side"). */}
+      {skipped !== undefined && (
+        <div
+          key={skipped.nonce}
+          className={`library-video-stage__skip ${
+            skipped.totalMs < 0 ? 'is-back' : 'is-forward'
+          }`}
+          aria-live="polite"
+          onAnimationEnd={(event) => {
+            if (event.target === event.currentTarget) {
+              setSkipped(undefined);
+            }
+          }}
+        >
+          <svg
+            className="library-video-stage__skip-arrow"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d={
+                skipped.totalMs < 0
+                  ? 'M12 6l-6 6 6 6M18 6l-6 6 6 6'
+                  : 'M6 6l6 6-6 6M12 6l6 6-6 6'
+              }
+            />
+          </svg>
+          <span className="library-video-stage__skip-label">
+            {t('library.video.skip', {
+              seconds: `${skipped.totalMs < 0 ? '−' : '+'}${Math.abs(skipped.totalMs) / 1000}`,
+            })}
+          </span>
+        </div>
+      )}
+      {/* The way out of full screen with the film still on, opposite Back.
+          No header switch: a film's full screen is the picture alone, and
+          the graph's full screen has its own (Ivan, 2026-11-15). */}
+      {!isHidden && isFullScreen && (
+        <div className="library-video-stage__tools">
+          <button
+            type="button"
+            className="button small library-video-stage__tool"
+            aria-label={t('karaoke.fullscreen.exit')}
+            title={t('karaoke.fullscreen.exit')}
+            onClick={onToggleFullScreen}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+            </svg>
+          </button>
+        </div>
       )}
     </div>
   );

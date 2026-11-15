@@ -90,7 +90,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: var(--stage-art-height, 100vh);
     border-radius: 0;
 
-    > .library-video-stage__back {
+    > .library-video-stage__back,
+    > .library-video-stage__tools {
       display: none;
     }
   }
@@ -108,15 +109,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: none;
   cursor: pointer;
 
-  // Focus is how the arrows reach it (`LibraryVideoStage`); a ring round a
-  // whole film would frame the picture, so the keyboard's own ring only.
-  &:focus {
-    outline: none;
-  }
-
+  // Focus is how the arrows reach it (`LibraryVideoStage`), and no ring: a
+  // border round the whole film framed the picture (Ivan, 2026-11-15:
+  // "remove the cyan video focused highlight border").
+  &:focus,
   &:focus-visible {
-    outline: 2px solid color-mix(in srgb, $secondary-default 60%, transparent);
-    outline-offset: -2px;
+    outline: none;
   }
 }
 
@@ -146,7 +144,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     top: 12px;
     left: 12px;
     gap: 6px;
+  }
 
+  // Full screen's header switch and exit, in the corner opposite Back.
+  .library-video-stage__tools {
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .library-video-stage__tool {
+    justify-content: center;
+    aspect-ratio: 1;
+    padding: 0;
+  }
+
+  :is(.library-video-stage__back, .library-video-stage__tool) {
     svg {
       width: 15px;
       height: 15px;
@@ -166,7 +182,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // carries on legibly underneath the word. Blurred, it is a pane over the
   // picture and the picture stays whole behind it. Quieter than the queue on
   // purpose: this is a way out, the queue is something to read.
-  .library-video-stage__back.button {
+  :is(.library-video-stage__back, .library-video-stage__tool).button {
     color: $text-primary;
     border-color: rgba($edge-tint, 0.16);
     background: color-mix(in srgb, $surface-panel 55%, transparent);
@@ -196,6 +212,103 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       background: color-mix(in srgb, $surface-menu-top 92%, transparent);
     }
   }
+}
+
+// How far the arrows just skipped, on the side they skipped toward: a big
+// double arrow over the seconds, flat on the picture - no pill, no edge, no
+// blur - on a soft shade that keeps it legible over a bright frame. Faded in
+// and out by its own animation, whose end removes it (`LibraryVideoStage`).
+// It is information, not motion, so it keeps its length with animations off
+// - cut to a millisecond it was never seen - and only its drift is dropped.
+.library-video-stage__skip {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  width: 32%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: $white;
+  font-size: 1.125rem;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  animation: video-skip-flash 800ms $ease-out forwards;
+
+  &.is-back {
+    left: 0;
+    background: radial-gradient(
+      ellipse 70% 55% at 35% 50%,
+      rgba($black, 0.38),
+      transparent 70%
+    );
+  }
+
+  &.is-forward {
+    right: 0;
+    background: radial-gradient(
+      ellipse 70% 55% at 65% 50%,
+      rgba($black, 0.38),
+      transparent 70%
+    );
+  }
+}
+
+.library-video-stage__skip-arrow {
+  width: 72px;
+  height: 72px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+  filter: drop-shadow(0 2px 6px rgba($black, 0.45));
+
+  .is-back & {
+    animation: video-skip-back 800ms $ease-out;
+  }
+
+  .is-forward & {
+    animation: video-skip-forward 800ms $ease-out;
+  }
+}
+
+.library-video-stage__skip-label {
+  text-shadow: 0 1px 6px rgba($black, 0.6);
+}
+
+@keyframes video-skip-back {
+  from {
+    translate: 10px 0;
+  }
+}
+
+@keyframes video-skip-forward {
+  from {
+    translate: -10px 0;
+  }
+}
+
+@keyframes video-skip-flash {
+  0% {
+    opacity: 0;
+  }
+
+  12%,
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+:root[data-motion='reduced'] .library-video-stage__skip {
+  animation-duration: 800ms !important;
 }
 
 // *** The compact options menu ***********************************************

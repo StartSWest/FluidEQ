@@ -276,19 +276,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Under the optional titlebar the window keeps in full screen, the picture's
-// Back starts below the bar.
+// Back and its two tools start below the bar.
 .app-workspace.is-app-full.is-media-full.has-top-bar
   .library-workspace.is-video-full
-  .library-video-stage__back {
+  :is(.library-video-stage__back, .library-video-stage__tools) {
   top: calc(#{$title-bar-height} + 8px + 12px);
 }
 
 // *** The chrome over a full-screen picture goes together **********************
 //
-// The picture's Back leaves with the window's chrome when the pointer rests,
-// and comes back with it — one gesture, never pieces.
+// The picture's Back and its tools leave with the window's chrome when the
+// pointer rests, and come back with it — one gesture, never pieces.
 .library-workspace.is-video-full {
-  .library-video-stage__back {
+  :is(.library-video-stage__back, .library-video-stage__tools) {
     transition:
       opacity $motion-base $ease-out,
       transform $motion-base $ease-out;
@@ -296,7 +296,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 #root.is-chrome-idle .library-workspace.is-video-full {
-  .library-video-stage__back {
+  :is(.library-video-stage__back, .library-video-stage__tools) {
     opacity: 0;
     transform: translateY(calc(-100% - #{$title-bar-height}));
     pointer-events: none;
@@ -305,7 +305,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @media (prefers-reduced-motion: reduce) {
   .library-workspace.is-video-full {
-    .library-video-stage__back {
+    :is(.library-video-stage__back, .library-video-stage__tools) {
       transition: none;
     }
   }

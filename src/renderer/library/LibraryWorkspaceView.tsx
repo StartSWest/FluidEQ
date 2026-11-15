@@ -234,6 +234,19 @@ const LibraryWorkspaceView = ({
     browseMode !== 'playlist' &&
     videoTrackId === undefined;
 
+  /**
+   * A film has the tab until the reader goes somewhere else: a shelf, a
+   * folder or a playlist picked in the rail, or a step of the place bar,
+   * closes it and shows that place (Ivan, 2026-11-15: "when I jump out of
+   * the video it needs to exit the video, because I moved to Albums and it
+   * was still showing the video").
+   */
+  const leaveFilm = () => {
+    if (videoTrackId) {
+      closeVideo();
+    }
+  };
+
   const upNextCount = upNextTotal(upNext, upNextRestTotal);
   /** The picture owns the screen: no bar, no rail, no status line. */
   const isVideoFull = Boolean(videoTrackId) && isFullScreen;
@@ -293,9 +306,18 @@ const LibraryWorkspaceView = ({
           playlists={playlists}
           openFolderPath={openFolderPath}
           openPlaylistId={openPlaylistId}
-          onBrowseMode={handleBrowseMode}
-          onOpenFolder={handlePlaceFolder}
-          onShowPlaylist={handleShowPlaylist}
+          onBrowseMode={(mode) => {
+            leaveFilm();
+            handleBrowseMode(mode);
+          }}
+          onOpenFolder={(folder) => {
+            leaveFilm();
+            handlePlaceFolder(folder);
+          }}
+          onShowPlaylist={(playlistId) => {
+            leaveFilm();
+            handleShowPlaylist(playlistId);
+          }}
           onAddFolder={handleAddFolder}
           onRemoveRoot={(rootId) => {
             removeRoot(rootId).catch(() => undefined);
@@ -411,15 +433,11 @@ const LibraryWorkspaceView = ({
                         : { kind: 'video', name: videoTitle }
                     }
                     onAllMusic={() => {
-                      if (videoTrackId) {
-                        closeVideo();
-                      }
+                      leaveFilm();
                       handleAllMusic();
                     }}
                     onOpenFolder={(folder) => {
-                      if (videoTrackId) {
-                        closeVideo();
-                      }
+                      leaveFilm();
                       handlePlaceFolder(folder);
                     }}
                   />

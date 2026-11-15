@@ -89,7 +89,17 @@ const useShellFullScreen = ({
   // Full screen with the top bar kept. Everything below reads this rather than
   // the mode alone, so "full screen" and "full screen with the bar" cannot end
   // up disagreeing about which pieces are on screen.
-  const hasFullScreenTopBar = useFullScreenTopBar();
+  //
+  // Never over a film: a Library or Online Media video gone full screen is the
+  // picture alone, header and all (Ivan, 2026-11-15: "it is a video full
+  // screen so don't show the app header; only when clicking on the graph we
+  // do, and we already have options there for hiding it"). The graph's full
+  // screen, Karaoke's and the stage's keep the reader's choice.
+  const prefersFullScreenTopBar = useFullScreenTopBar();
+  const hasFullScreenTopBar =
+    prefersFullScreenTopBar &&
+    mediaFullScreenOwner !== 'library' &&
+    mediaFullScreenOwner !== 'video';
   const isChromeHidden =
     (isGraphAppFullScreen || isMediaFullScreen) && !hasFullScreenTopBar;
   /**
