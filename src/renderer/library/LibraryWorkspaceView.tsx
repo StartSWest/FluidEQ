@@ -139,7 +139,7 @@ const LibraryWorkspaceView = ({
     setIsPlaylistNoticeDismissed,
     browseMode,
     viewMode,
-    setViewMode,
+    chooseViewMode,
     sortDirection,
     sort,
     query,
@@ -350,7 +350,7 @@ const LibraryWorkspaceView = ({
                   viewMode={viewMode}
                   sort={sort}
                   sortDirection={sortDirection}
-                  onViewMode={setViewMode}
+                  onViewMode={chooseViewMode}
                   onSort={canSort ? handlePickSort : undefined}
                   onSortDirection={canSort ? handleSortDirection : undefined}
                   query={query}

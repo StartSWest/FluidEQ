@@ -55,7 +55,9 @@ import {
 } from '../../common/library/types';
 import {
   isTrackBeneathFolder,
+  normaliseFolderPath,
   parentFolderPath,
+  trackFolderPath,
 } from '../../common/library/grouping';
 import { shelfQueryFor } from './libraryShelfQuery';
 import { useLibraryList } from './useLibraryList';
@@ -667,6 +669,74 @@ const useLibraryWorkspaceShelf = ({
     ],
   );
 
+  /**
+   * A VIEW SWITCH WHILE A SONG IS LOADED SHOWS IT (Ivan, 2026-11-15:
+   * "while playing a song, when I switch views it always shows that song in
+   * view, or its root folder, or its album"). Details, Grid and Cover Flow are
+   * three looks at the same shelf, and each opened wherever its own scroll
+   * happened to be. The new view is handed what the playing song is on this
+   * shelf: the song itself on Songs, its album, artist or genre on those, its
+   * root on Folders' top level. With a record open the record keeps its
+   * place, and the song is looked for inside it. This is the view switch
+   * only: a shelf switch keeps where the reader stands, never what is playing
+   * (`handleBrowseMode`).
+   */
+  const chooseViewMode = useCallback(
+    (mode: TLibraryViewMode) => {
+      setViewMode(mode);
+      // The loaded song, paused or not: it is still the one being listened
+      // to, as the reveal from the now-playing bar has it.
+      if (mode === viewMode || !playingTrack) {
+        return;
+      }
+      const isRecordOpen =
+        (browseMode === 'album' && openAlbumId !== undefined) ||
+        (browseMode === 'artist' && openArtistId !== undefined) ||
+        (browseMode === 'genre' && openGenreId !== undefined) ||
+        (browseMode === 'folder' && openFolderPath !== undefined);
+      if (browseMode === 'song' || isRecordOpen) {
+        revealRow(playingTrack.id);
+        return;
+      }
+      let itemId: string | undefined;
+      if (browseMode === 'folder') {
+        // The top level is the roots: the deepest one holding the song.
+        const folder = trackFolderPath(playingTrack.path);
+        [itemId] = roots
+          .map((root) => normaliseFolderPath(root.path))
+          .filter((path) => folder === path || folder.startsWith(`${path}/`))
+          .sort((left, right) => right.length - left.length);
+      } else if (browseMode !== 'video' && browseMode !== 'playlist') {
+        itemId = shelfItemOf(browseMode, playingTrack);
+      }
+      if (itemId === undefined) {
+        return;
+      }
+      // The list and the grid find any item of their row by id; Cover Flow
+      // centres a container through its own request.
+      if (mode === 'coverflow') {
+        const id = itemId;
+        setCentreRequest((current) => ({
+          id,
+          nonce: (current?.nonce ?? 0) + 1,
+        }));
+      } else {
+        revealRow(itemId);
+      }
+    },
+    [
+      viewMode,
+      playingTrack,
+      browseMode,
+      openAlbumId,
+      openArtistId,
+      openGenreId,
+      openFolderPath,
+      revealRow,
+      roots,
+    ],
+  );
+
   return {
     t,
     isIndexLoaded,
@@ -720,6 +790,7 @@ const useLibraryWorkspaceShelf = ({
     setBrowseMode,
     viewMode,
     setViewMode,
+    chooseViewMode,
     sortDirection,
     setSortDirection,
     sort,
