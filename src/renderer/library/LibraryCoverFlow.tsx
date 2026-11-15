@@ -21,15 +21,18 @@ import { parentFolderPath } from '../../common/library/grouping';
 import { JUMP_LETTERS, jumpLetterOf } from '../../common/library/jumpLetter';
 import type { TLibraryBrowseMode } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
+import { prefersReducedMotion } from '../utils/bandReveal';
 import MenuIcon from '../icons/MenuIcon';
+import { COVER_FLOW_WINDOW } from './coverFlow/coverFlowGeometry';
+import type { ICoverFlowSource } from './coverFlow/coverFlowScene';
+import useCoverFlowScene from './coverFlow/useCoverFlowScene';
 import {
   clampIndex,
   coverFlowItemOf,
   playlistCoverFlowItem,
   type ICoverFlowItem,
 } from './coverFlowItems';
-import LibraryCoverArt from './LibraryCoverArt';
-import LibraryFolderArt from './LibraryFolderArt';
+import LibraryCoverFlowStage from './LibraryCoverFlowStage';
 import LibraryDetail from './LibraryDetail';
 import { useSectionLabel } from './LibrarySectionHeading';
 import { usePlaylists } from './PlaylistContext';
@@ -39,84 +42,11 @@ import usePlaylistCovers from './usePlaylistCovers';
 import { useLibrary } from './LibraryContext';
 import '../styles/LibraryCoverFlow.scss';
 
-/** Covers kept mounted either side of the centre. Past this, nothing renders
- * — a 5,000-album library only ever pays for the same 13 DOM nodes a 20-album
+/** Covers asked for and named either side of the centre — the scene's own
+ * window (`COVER_FLOW_WINDOW`). Past this, nothing is read, drawn or held:
+ * a 5,000-album library only ever pays for the same 21 covers a 30-album
  * one does. */
-export const COVER_FLOW_NEIGHBOURS = 6;
-/** Degrees a side cover is turned towards the middle. */
-const COVER_FLOW_ANGLE = 60;
-/**
- * Horizontal step, in cover widths, between neighbours.
- *
- * Widened from 0.42 once only the centre cover keeps its label: at the old
- * spacing thirteen titles were drawn on top of one another in a band under
- * the row, and tightening the covers was the only thing holding that band
- * together. With the sides silent the row can breathe, and the fan reaches
- * the edges of a stage it used to leave three-quarters empty.
- */
-const COVER_FLOW_STEP = 0.55;
-/**
- * How far back each step pushes a cover, as a fraction of the cover's own
- * width — not a pixel count.
- *
- * Pixels were wrong the moment the cover started sizing itself off the stage:
- * a fixed 60px behind a 160px cover is a deep row, and behind a 420px one it
- * is a flat wall. Expressed against the cover, the perspective holds at every
- * window size.
- *
- * The value has a floor that geometry, not taste, decides. A cover of width
- * `W` turned `COVER_FLOW_ANGLE` about its own centre puts its near edge at
- * `+(W/2)·sin(60°) = 0.433W` in front of wherever that centre sits. So a
- * first neighbour parked at `-0.42W` has its leading edge at `+0.013W` —
- * in front of the centre cover's own plane, which is why the sides were seen
- * slicing through the middle of the centre sleeve as two vertical seams.
- * Anything above `0.433` clears it; `0.62` clears it with room, and reads as
- * a deeper row into the bargain.
- */
-const COVER_FLOW_DEPTH_RATIO = 0.62;
-
-/**
- * The angle, spacing and depth a cover at `offset` steps from the centre
- * sits at. `offset` is signed and can be fractional in neither direction —
- * it is always an integer distance in the flow, negative to the left.
- *
- * The centre cover is a special case rather than `offset * 0`: at zero the
- * direction sign (`offset > 0 ? 1 : -1`) is meaningless, and forcing it
- * through the general formula would rotate a cover that is supposed to be
- * facing the viewer square-on by a sign error's worth of nothing — better to
- * say plainly that it isn't turned at all.
- *
- * The depth is a `calc()` against `--cover-flow-size`, the custom property
- * `LibraryCoverFlow.scss` sizes the covers from. It has to be: the cover is
- * sized in container units now, so its width is not known until layout, and
- * a depth in fixed pixels would read as a deep row on a small window and a
- * flat wall on a large one.
- *
- * `rotateY(direction * COVER_FLOW_ANGLE)`, not the negation, is what curls
- * the row inward rather than peeling it outward. CSS's Y-rotation matrix
- * sends a point at local `(x, 0, 0)` to `(x·cosθ, 0, −x·sinθ)`, and positive
- * z is toward the viewer (the same convention the depth uses: `translateZ`
- * goes *negative* to push a cover *away*). A cover to the right
- * of centre (`direction = 1`) has its centre-facing edge on its own local
- * left, `x = −1`; at `θ = +60deg` that edge maps to `z = −(−1)·sin60° > 0` —
- * toward the viewer — while its outer right edge recedes, which is the row
- * curling inward. The left side is the mirror image at `θ = −60deg`. Get the
- * sign wrong and both edges swap: the covers present their outer edges to
- * the viewer and the row peels outward instead of curling into a carousel.
- */
-export const coverFlowTransform = (offset: number): string => {
-  if (offset === 0) {
-    return 'translateX(0) translateZ(0) rotateY(0deg)';
-  }
-  const direction = offset > 0 ? 1 : -1;
-  const distance = Math.abs(offset);
-  const depth = (distance * COVER_FLOW_DEPTH_RATIO).toFixed(2);
-  return [
-    `translateX(${offset * COVER_FLOW_STEP * 100}%)`,
-    `translateZ(calc(var(--cover-flow-size) * -${depth}))`,
-    `rotateY(${direction * COVER_FLOW_ANGLE}deg)`,
-  ].join(' ');
-};
+export const COVER_FLOW_NEIGHBOURS = COVER_FLOW_WINDOW;
 
 const NO_FOLDER_ROOTS: readonly { path: string }[] = [];
 
@@ -164,7 +94,7 @@ interface ILibraryCoverFlowProps {
 /**
  * The third view: covers arranged in a turning row, the centre one facing
  * the viewer, the rest angled away to either side and pushed back with
- * depth. `coverFlowTransform` is the whole geometry; this component is the
+ * depth, drawn in three.js (`coverFlowScene.ts`); this component is the
  * window, the input handling and the accessible structure around it.
  *
  * Only `COVER_FLOW_NEIGHBOURS` covers either side of the centre are ever
@@ -294,12 +224,10 @@ const LibraryCoverFlow = ({
   useEffect(() => {
     setExpandedId(hasDrillIn ? openId : undefined);
   }, [hasDrillIn, openId]);
-  /** The covers' shared parent, measured on every press — see
-   * `coverIndexAt`, which has to work out for itself what was pressed. */
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  /** Which cover the pointer is over, or nothing. React state rather than a
-   * CSS `:hover` rule: Chromium does not deliver hover to these rotated
-   * covers, so only the centre one ever lit up. */
+  /** The stage, and inside it the element the scene's canvas fills. */
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  /** Which cover the pointer is over, or nothing — the scene answers. */
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(
     undefined,
   );
@@ -553,15 +481,54 @@ const LibraryCoverFlow = ({
     onPlayTrack?.(item.id);
   };
 
-  const start = Math.max(0, currentIndex - COVER_FLOW_NEIGHBOURS);
-  const end = Math.min(count - 1, currentIndex + COVER_FLOW_NEIGHBOURS);
-  // A cover whose page is still out is drawn as an empty sleeve in its place,
-  // so every mounted cover is one step of the row — `coverIndexAt` counts on
-  // that.
-  const visible: { item: ICoverFlowItem | undefined; index: number }[] = [];
-  for (let index = start; index <= end; index += 1) {
-    visible.push({ item: itemAt(index), index });
+  // The covers the listbox names: the window either side of the centre,
+  // those whose page has come back.
+  const options: { item: ICoverFlowItem; index: number }[] = [];
+  for (
+    let index = Math.max(0, currentIndex - COVER_FLOW_NEIGHBOURS);
+    index <= Math.min(count - 1, currentIndex + COVER_FLOW_NEIGHBOURS);
+    index += 1
+  ) {
+    const item = itemAt(index);
+    if (item !== undefined) {
+      options.push({ item, index });
+    }
   }
+
+  // Open is open. Whether what it names still exists is the panel's own
+  // question: `LibraryDetail` closes itself when its record is gone (a rescan
+  // dropped the album, the root was removed). It used to be asked here as
+  // "is it one of the covers", which with the row read a page at a time would
+  // close the panel whenever the reader turned the row far enough from it —
+  // and a folder holding only folders is never a cover at all.
+  const isExpanded = hasDrillIn && expandedId !== undefined;
+
+  /** What the scene draws, read again on every render: the row's covers as
+   * pictures, and the one the music is coming from. */
+  const source: ICoverFlowSource = {
+    count,
+    itemAt: (index) => {
+      const item = itemAt(index);
+      return item === undefined
+        ? undefined
+        : {
+            id: item.id,
+            artId: item.artId,
+            label: item.title,
+            isFolder: browseMode === 'folder',
+            isPending: item.isPending,
+          };
+    },
+    playingId: playingItemId,
+  };
+  const { sceneRef, isDrawn } = useCoverFlowScene({
+    hostRef,
+    source,
+    centre: currentIndex,
+    hovered: hoveredIndex,
+    isExpanded,
+    isReducedMotion: prefersReducedMotion(),
+  });
 
   // The keys, the wheel, a drag and a press (`useCoverFlowGestures.ts`).
   const {
@@ -575,10 +542,18 @@ const LibraryCoverFlow = ({
   } = useCoverFlowGestures({
     currentIndex,
     count,
-    start,
     setCentre,
     activateCurrent,
-    trackRef,
+    // The scene says which cover is drawn under the pointer. With no scene
+    // (still loading, or no WebGL) the one cover on show is the centre.
+    coverIndexAt: (clientX, clientY) => {
+      const scene = sceneRef.current;
+      if (scene) {
+        return scene.coverAt(clientX, clientY);
+      }
+      return count > 0 ? currentIndex : undefined;
+    },
+    onDragPosition: (position) => sceneRef.current?.setDrag(position),
     expandedId,
     openPanel,
     itemAt,
@@ -587,14 +562,6 @@ const LibraryCoverFlow = ({
 
   const centreItem = itemAt(currentIndex);
   const optionId = (id: string) => `library-coverflow-option-${id}`;
-
-  // Open is open. Whether what it names still exists is the panel's own
-  // question: `LibraryDetail` closes itself when its record is gone (a rescan
-  // dropped the album, the root was removed). It used to be asked here as
-  // "is it one of the covers", which with the row read a page at a time would
-  // close the panel whenever the reader turned the row far enough from it —
-  // and a folder holding only folders is never a cover at all.
-  const isExpanded = hasDrillIn && expandedId !== undefined;
 
   /**
    * Which half of a search the centre is in, when the search was made from
@@ -666,144 +633,32 @@ const LibraryCoverFlow = ({
           );
         })}
       </div>
-      <div
-        className="library-coverflow__stage"
-        role="listbox"
-        tabIndex={0}
-        aria-label={t('library.view.coverflow')}
-        aria-activedescendant={centreItem ? optionId(centreItem.id) : undefined}
-        onKeyDown={onStageKeyDown}
-        onWheel={onStageWheel}
-        onClick={onStageClick}
-        onPointerDown={onStagePointerDown}
-        onPointerMove={onStagePointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        onPointerLeave={() => setHoveredIndex(undefined)}
-      >
-        {/* The two arrows, in the dead space either side of the fan. The row
-            has always been steerable by wheel, drag and keyboard, none of
-            which a first-time reader can see; these are the one affordance
-            that says so without a tooltip. `stopPropagation` because the
-            stage turns a press into "centre the nearest cover" — see
-            `coverIndexAt` — and a press on an arrow means something else. */}
-        <button
-          type="button"
-          className="library-coverflow__arrow library-coverflow__arrow--back"
-          aria-label={t('library.coverflow.previous')}
-          title={t('library.coverflow.previous')}
-          disabled={currentIndex <= 0}
-          onClick={(event) => {
-            event.stopPropagation();
-            moveBy(-1);
-          }}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M15 5L8 12l7 7" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="library-coverflow__arrow library-coverflow__arrow--next"
-          aria-label={t('library.coverflow.next')}
-          title={t('library.coverflow.next')}
-          disabled={currentIndex >= count - 1}
-          onClick={(event) => {
-            event.stopPropagation();
-            moveBy(1);
-          }}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-        <div className="library-coverflow__track" ref={trackRef}>
-          {visible.map(({ item, index }) => {
-            const isCentre = index === currentIndex;
-            if (item === undefined) {
-              return (
-                <div
-                  key={`pending-${index}`}
-                  aria-hidden="true"
-                  className="library-coverflow__cover library-coverflow__cover--placeholder"
-                  style={{
-                    transform: coverFlowTransform(index - currentIndex),
-                  }}
-                >
-                  <span className="library-coverflow__art">
-                    <span className="library-cover-art library-cover-art--cover" />
-                  </span>
-                </div>
-              );
-            }
-            const { title, subtitle } = item;
-            return (
-              // An `option` in the `aria-activedescendant` pattern is
-              // deliberately not a tab stop and has no key handler of its
-              // own — the listbox above owns every key, exactly as WAI-ARIA's
-              // authoring practice describes it and as this file's own doc
-              // comment says. It has no click handler either: the stage owns
-              // the press and works out which cover was meant, because
-              // Chromium will not deliver input to a cover rotated in 3D.
-              // See `coverIndexAt`.
-              <div
-                key={item.id}
-                id={optionId(item.id)}
-                role="option"
-                aria-selected={isCentre}
-                className={`library-coverflow__cover${isCentre ? ' is-centre' : ''}${
-                  index === hoveredIndex && !isCentre ? ' is-hovered' : ''
-                }${item.id === playingItemId ? ' is-playing' : ''}${
-                  item.isPending ? ' library-coverflow__cover--pending' : ''
-                }`}
-                style={{ transform: coverFlowTransform(index - currentIndex) }}
-              >
-                <span className="library-coverflow__art">
-                  {/* The one shelf whose sleeves are not albums — see
-                      `LibraryFolderArt` for why a directory cannot be drawn
-                      as the first cover found beneath it. */}
-                  {browseMode === 'folder' ? (
-                    <LibraryFolderArt
-                      artId={item.artId}
-                      label={title}
-                      size="cover"
-                    />
-                  ) : (
-                    <LibraryCoverArt
-                      artId={item.artId}
-                      label={title}
-                      size="cover"
-                    />
-                  )}
-                  {/* Same restraint as `LibraryListView`'s pending badge:
-                      information, not a problem, so it draws quiet rather
-                      than alarmed. */}
-                  {item.isPending && (
-                    <span
-                      className="library-grid__badge--pending"
-                      title={t('library.pending')}
-                    >
-                      <MenuIcon
-                        name="pending"
-                        className="library-list__badge-icon"
-                      />
-                    </span>
-                  )}
-                </span>
-                {/* Wrapped so the pair can be hidden together on every cover
-                    but the centre one — see `.library-coverflow__label`. */}
-                <span className="library-coverflow__label">
-                  <span className="library-coverflow__title">{title}</span>
-                  <small className="library-coverflow__subtitle">
-                    {subtitle}
-                  </small>
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      {/* The drill-in itself, under the row rather than instead of it.
+      {/* The row and the songs under it share this box and nothing else, so
+          the stage's full share is the room left under the letter rail: a
+          basis of the whole card put the stage one rail taller than its box,
+          and focusing it scrolled the rail out of sight. */}
+      <div className="library-coverflow__body">
+        <LibraryCoverFlowStage
+          stageRef={stageRef}
+          hostRef={hostRef}
+          browseMode={browseMode}
+          options={options}
+          currentIndex={currentIndex}
+          count={count}
+          centreItem={centreItem}
+          isDrawn={isDrawn}
+          isOverCover={hoveredIndex !== undefined}
+          optionId={optionId}
+          moveBy={moveBy}
+          onKeyDown={onStageKeyDown}
+          onWheel={onStageWheel}
+          onClick={onStageClick}
+          onPointerDown={onStagePointerDown}
+          onPointerMove={onStagePointerMove}
+          onPointerEnd={endDrag}
+          onPointerLeave={() => setHoveredIndex(undefined)}
+        />
+        {/* The drill-in itself, under the row rather than instead of it.
           `LibraryDetail` verbatim — the same header, the same Play button,
           the same track table with its badges and reveal menu that the list
           and grid open. A second, near-identical panel was written here
@@ -812,38 +667,39 @@ const LibraryCoverFlow = ({
           over the views; closing a record there collapses this panel and
           leaves the row where it was, which is the whole point of this
           view. */}
-      {isExpanded && (
-        <div className="library-coverflow__panel">
-          <LibraryDetail
-            albumId={browseMode === 'album' ? expandedId : undefined}
-            artistId={browseMode === 'artist' ? expandedId : undefined}
-            genreId={browseMode === 'genre' ? expandedId : undefined}
-            folderPath={browseMode === 'folder' ? expandedId : undefined}
-            playlistId={browseMode === 'playlist' ? expandedId : undefined}
-            // Walking deeper is opening a different cover, which this view
-            // already knows how to do.
-            onOpenFolder={(path) => openPanel(path)}
-            // Up one level in the tree, not out of it: Back from
-            // `Artist/Album` is `Artist`, the same as it is everywhere else
-            // this library is walked. At a root there is nothing above, and
-            // `parentFolderPath` says so by answering nothing — which closes
-            // the panel, which is what Back has always done there.
-            onBack={() =>
-              openPanel(
-                browseMode === 'folder' && expandedId !== undefined
-                  ? parentFolderPath(expandedId, folderRoots)
-                  : undefined,
-              )
-            }
-            onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
-            onRestartTrack={onRestartTrack}
-            onQueueTracks={onQueueTracks}
-            playingTrackId={playingTrackId}
-            revealTrack={revealTrack}
-            query={query}
-          />
-        </div>
-      )}
+        {isExpanded && (
+          <div className="library-coverflow__panel">
+            <LibraryDetail
+              albumId={browseMode === 'album' ? expandedId : undefined}
+              artistId={browseMode === 'artist' ? expandedId : undefined}
+              genreId={browseMode === 'genre' ? expandedId : undefined}
+              folderPath={browseMode === 'folder' ? expandedId : undefined}
+              playlistId={browseMode === 'playlist' ? expandedId : undefined}
+              // Walking deeper is opening a different cover, which this view
+              // already knows how to do.
+              onOpenFolder={(path) => openPanel(path)}
+              // Up one level in the tree, not out of it: Back from
+              // `Artist/Album` is `Artist`, the same as it is everywhere else
+              // this library is walked. At a root there is nothing above, and
+              // `parentFolderPath` says so by answering nothing — which closes
+              // the panel, which is what Back has always done there.
+              onBack={() =>
+                openPanel(
+                  browseMode === 'folder' && expandedId !== undefined
+                    ? parentFolderPath(expandedId, folderRoots)
+                    : undefined,
+                )
+              }
+              onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
+              onRestartTrack={onRestartTrack}
+              onQueueTracks={onQueueTracks}
+              playingTrackId={playingTrackId}
+              revealTrack={revealTrack}
+              query={query}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -23,35 +23,35 @@ import {
   type KeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent,
-  type RefObject,
   type SetStateAction,
   type WheelEvent,
 } from 'react';
+import { dragUnit, flickTarget } from './coverFlow/coverFlowGeometry';
 import { clampIndex, type ICoverFlowItem } from './coverFlowItems';
 
 /** Wheel distance, in the units a mouse notch reports, that moves the centre
  * by one cover. A trackpad's much smaller per-frame deltas simply accumulate
  * across events until they cross it, rather than each one moving a step. */
 const COVER_FLOW_WHEEL_STEP = 80;
-/** Drag distance, in pixels, that moves the centre by one cover. Measured
- * from where the drag began — the same "distance from where the drag began,
- * not since the last event" rule `PaneResizer` uses — so a pointer that
- * pauses mid-drag does not keep advancing on its own. */
-const COVER_FLOW_DRAG_STEP = 70;
 /** Pointer movement, in pixels, below which a press-and-release still counts
  * as the click that opens or selects a cover rather than a drag. */
 const COVER_FLOW_DRAG_CLICK_TOLERANCE = 6;
+/** How far past either end a drag may pull the row, in covers: enough to
+ * feel the end give, not enough to lose it. */
+const COVER_FLOW_OVERPULL = 0.4;
 
 export interface ICoverFlowGesturesInput {
   currentIndex: number;
   count: number;
-  /** The first cover mounted, which `coverIndexAt` counts from. */
-  start: number;
   setCentre: (index: number) => void;
   /** The centre's own primary action — see `activateCurrent`. */
   activateCurrent: (pressCount: number) => void;
-  /** The covers' shared parent, measured on every press. */
-  trackRef: RefObject<HTMLDivElement | null>;
+  /** Which cover is drawn under a point (the scene's own answer), or
+   * nothing while there is no scene to ask. */
+  coverIndexAt: (clientX: number, clientY: number) => number | undefined;
+  /** A drag's own fractional place in the row, followed frame by frame by
+   * the scene, and `undefined` once it lets go. */
+  onDragPosition: (position: number | undefined) => void;
   expandedId: string | undefined;
   openPanel: (next: string | undefined) => void;
   itemAt: (index: number) => ICoverFlowItem | undefined;
@@ -60,16 +60,17 @@ export interface ICoverFlowGesturesInput {
 
 /**
  * How the row is turned: the arrow keys and Home/End, on the stage and at
- * window level, the mouse wheel, a pointer drag, and a press on a cover —
- * the stage's handlers, and the step the arrow buttons take.
+ * window level, the mouse wheel, a pointer drag with the momentum of a
+ * flick, and a press on a cover — the stage's handlers, and the step the
+ * arrow buttons take.
  */
 const useCoverFlowGestures = ({
   currentIndex,
   count,
-  start,
   setCentre,
   activateCurrent,
-  trackRef,
+  coverIndexAt,
+  onDragPosition,
   expandedId,
   openPanel,
   itemAt,
@@ -170,9 +171,19 @@ const useCoverFlowGestures = ({
   // every move is measured from that start rather than accumulated move to
   // move — see `PaneResizer.onDrag` for why that avoids drift. `moved` marks
   // whether the drag travelled far enough that the pointerup afterwards is a
-  // drag ending, not a click.
+  // drag ending, not a click. `velocity` is covers per second, smoothed over
+  // the last few moves, so the flick that ends a drag carries on.
   const dragState = useRef<
-    | { pointerId: number; startX: number; startIndex: number; moved: boolean }
+    | {
+        pointerId: number;
+        startX: number;
+        startIndex: number;
+        moved: boolean;
+        position: number;
+        lastX: number;
+        lastTime: number;
+        velocity: number;
+      }
     | undefined
   >(undefined);
   // Set for the one click that follows a real drag's pointerup, so releasing
@@ -180,59 +191,11 @@ const useCoverFlowGestures = ({
   const suppressNextClick = useRef(false);
 
   /**
-   * Which cover the pointer is over, worked out from where the covers have
-   * actually landed on screen rather than from what the event says it hit.
-   *
-   * Chromium will not route real input to these covers. They are rotated in
-   * 3D inside a `preserve-3d` subtree, and while `elementFromPoint` happily
-   * reports the side cover under a given point, the compositor's own hit test
-   * — the one that decides what a mouse press targets — does not: every press
-   * on a side cover arrived with the track as its target, so the per-cover
-   * `onClick` never fired and only the unrotated centre cover could be
-   * pressed at all. Confirmed against the running window, not inferred: a
-   * real `Input.dispatchMouseEvent` on a side cover's artwork reported
-   * `closest('.library-coverflow__cover') === null`, at coordinates where
-   * `elementsFromPoint` listed that very cover.
-   *
-   * So the stage takes the press and answers the question itself. Each
-   * cover's projected centre is read from its own client rect — which IS
-   * accurate, and matches what is drawn — and the nearest one horizontally
-   * wins. That also makes the whole vertical strip above and below a cover
-   * live, which is the behaviour wanted anyway: pressing near a cover in a
-   * fanned row should take you to it.
-   */
-  const coverIndexAt = (clientX: number): number | undefined => {
-    const track = trackRef.current;
-    if (!track) {
-      return undefined;
-    }
-    const covers = track.querySelectorAll<HTMLElement>(
-      '.library-coverflow__cover',
-    );
-    let bestIndex: number | undefined;
-    let bestDistance = Number.POSITIVE_INFINITY;
-    covers.forEach((element, offset) => {
-      const rect = element.getBoundingClientRect();
-      const distance = Math.abs(clientX - (rect.left + rect.width / 2));
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestIndex = start + offset;
-      }
-    });
-    return bestIndex;
-  };
-
-  /**
    * A press begins a *possible* drag. The pointer is deliberately NOT
-   * captured here.
-   *
-   * Capturing on pointerdown retargets every following pointer event to the
-   * stage — and, per the pointer-events spec, the `click` that follows is
-   * dispatched at the capture target too. So every cover's own `onClick` was
-   * dead: pressing any cover, centre or side, did nothing at all, and the
-   * only way to move the row was the keyboard, the wheel or a drag. Capture
-   * is taken in `onStagePointerMove` instead, at the moment a drag actually
-   * becomes a drag, which is the only moment it is needed for.
+   * captured here: capturing on pointerdown retargets the `click` that
+   * follows to the stage too, and a press that never becomes a drag has to
+   * stay a click. Capture is taken in `onStagePointerMove`, at the moment a
+   * drag actually becomes a drag.
    */
   const onStagePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     dragState.current = {
@@ -240,36 +203,52 @@ const useCoverFlowGestures = ({
       startX: event.clientX,
       startIndex: currentIndex,
       moved: false,
+      position: currentIndex,
+      lastX: event.clientX,
+      lastTime: event.timeStamp,
+      velocity: 0,
     };
   };
 
   const onStagePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const drag = dragState.current;
     if (!drag || drag.pointerId !== event.pointerId) {
-      // Not dragging, so this is just the pointer passing over the row. Which
-      // cover it is over has to be worked out the same way a press does —
-      // see `coverIndexAt` for why a CSS `:hover` rule only ever lit the
-      // centre cover.
-      setHoveredIndex(coverIndexAt(event.clientX));
+      // Not dragging, so this is just the pointer passing over the row.
+      setHoveredIndex(coverIndexAt(event.clientX, event.clientY));
       return;
     }
     const distance = event.clientX - drag.startX;
-    if (Math.abs(distance) >= COVER_FLOW_DRAG_CLICK_TOLERANCE) {
-      // Now it is a drag, and now the stage wants the pointer: the row has to
-      // keep following a pointer that leaves it, and the `click` this would
-      // otherwise end with is one the reader no longer means. Taken here
-      // rather than on pointerdown — see `onStagePointerDown`.
-      if (!drag.moved) {
-        event.currentTarget.setPointerCapture(event.pointerId);
+    if (!drag.moved) {
+      if (Math.abs(distance) < COVER_FLOW_DRAG_CLICK_TOLERANCE) {
+        return;
       }
+      // Now it is a drag, and now the stage wants the pointer: the row has
+      // to keep following a pointer that leaves it, and the `click` this
+      // would otherwise end with is one the reader no longer means.
+      event.currentTarget.setPointerCapture(event.pointerId);
       drag.moved = true;
+      setHoveredIndex(undefined);
     }
+    const unit = dragUnit(event.currentTarget.clientWidth);
     // Dragging the row left (negative distance) reveals what is further
     // along it, the same way pulling a filmstrip left brings the next frame
-    // into the centre — hence the subtraction rather than addition.
-    const target =
-      drag.startIndex - Math.round(distance / COVER_FLOW_DRAG_STEP);
-    setCentre(target);
+    // into the centre — hence the subtraction rather than addition. The row
+    // follows the pointer continuously, through every angle in between.
+    const position = Math.max(
+      -COVER_FLOW_OVERPULL,
+      Math.min(
+        count - 1 + COVER_FLOW_OVERPULL,
+        drag.startIndex - distance / unit,
+      ),
+    );
+    const seconds = Math.max(0.001, (event.timeStamp - drag.lastTime) / 1000);
+    const instant = -(event.clientX - drag.lastX) / unit / seconds;
+    drag.velocity = drag.velocity * 0.7 + instant * 0.3;
+    drag.lastX = event.clientX;
+    drag.lastTime = event.timeStamp;
+    drag.position = position;
+    onDragPosition(position);
+    setCentre(Math.round(position));
   };
 
   const endDrag = (event: PointerEvent<HTMLDivElement>) => {
@@ -284,6 +263,12 @@ const useCoverFlowGestures = ({
     }
     suppressNextClick.current = drag.moved;
     dragState.current = undefined;
+    if (drag.moved) {
+      // A pointer held still before letting go has no flick left in it.
+      const isHeld = event.timeStamp - drag.lastTime > 80;
+      setCentre(flickTarget(drag.position, isHeld ? 0 : drag.velocity, count));
+      onDragPosition(undefined);
+    }
   };
 
   const onCoverClick = (index: number, pressCount: number) => {
@@ -305,7 +290,7 @@ const useCoverFlowGestures = ({
   };
 
   const onStageClick = (event: ReactMouseEvent<HTMLDivElement>) => {
-    const index = coverIndexAt(event.clientX);
+    const index = coverIndexAt(event.clientX, event.clientY);
     if (index !== undefined) {
       onCoverClick(index, event.detail);
     }

@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Animations API, whose `finished` is what ends the draw.
  */
 import * as THREE from 'three';
+import cssColourChannels from '../../utils/cssColour';
 import { DRAW_COVER_EDGE, type TDrawCover } from './drawCovers';
 import {
   DRAW_FLY_MS,
@@ -108,28 +109,12 @@ const coverTexture = (cover: TDrawCover): THREE.Texture => {
  * neither of which needs three to understand the theme's own notation.
  */
 const accentColour = (host: HTMLElement): THREE.Color => {
-  const value = getComputedStyle(host).color;
-  const rgb = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/.exec(value);
+  const channels = cssColourChannels(getComputedStyle(host).color);
   // Channels as the page has them, in sRGB: three takes bare numbers as
   // linear and would wash the accent out.
-  if (rgb) {
-    return new THREE.Color().setRGB(
-      Number(rgb[1]) / 255,
-      Number(rgb[2]) / 255,
-      Number(rgb[3]) / 255,
-      THREE.SRGBColorSpace,
-    );
-  }
-  const srgb = /color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(value);
-  if (srgb) {
-    return new THREE.Color().setRGB(
-      Number(srgb[1]),
-      Number(srgb[2]),
-      Number(srgb[3]),
-      THREE.SRGBColorSpace,
-    );
-  }
-  return new THREE.Color('#00e5cf');
+  return channels
+    ? new THREE.Color().setRGB(...channels, THREE.SRGBColorSpace)
+    : new THREE.Color('#00e5cf');
 };
 
 /**

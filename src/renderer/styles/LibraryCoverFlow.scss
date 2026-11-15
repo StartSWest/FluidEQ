@@ -51,14 +51,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // read a track list, then having to come back and find your place again, threw
 // away the only thing Cover Flow has that the list and grid do not.
 //
-// The row keeps its own box and simply gets less of the column. Because the
-// stage is a size container and `--cover-flow-size` is quoted in `cqh`, the
-// covers shrink themselves as it does — the transition on `flex-basis` is the
-// only thing declared, and the whole carousel resizes and re-fans off the back
-// of it. Nothing measures anything.
+// The row keeps its own box and simply gets less of the column. The scene
+// sizes its camera off the stage on every resize (`coverFlowLayout`), so the
+// covers shrink frame by frame as it does — the transition on `flex-basis` is
+// the only thing declared, and the whole carousel resizes and re-fans off the
+// back of it.
 .library-coverflow__stage,
 .library-coverflow__panel {
   transition: flex-basis 340ms cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+// The row and the songs: everything under the letter rail. The stage's
+// 100% is a share of this box, not of the card, which also holds the rail.
+.library-coverflow__body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .library-coverflow__stage {
@@ -89,61 +99,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .library-coverflow__stage {
     // Enough of the column to keep the fan legible and its centre cover
     // recognisable; the rest belongs to the songs, which is what the reader
-    // just asked to see. The floor stops the percentage from collapsing the
-    // row to nothing in a short pane — see this block's own `min-height`.
-    // See the base rule for why grow and shrink are the same in both states
-    // and only the basis moves.
+    // just asked to see. See the base rule for why grow and shrink are the
+    // same in both states and only the basis moves. The covers follow the
+    // stage down frame by frame (`coverFlowLayout`), so nothing else here
+    // has to change size.
     min-height: 190px;
     flex-basis: 34%;
-  }
-
-  // With the detail open the covers are the smaller thing on screen, and a
-  // drop shadow at that size is a grey smudge under each sleeve rather than a
-  // sense of height. The ring stays; only the cast shadow goes.
-  .library-coverflow__art .library-cover-art--cover {
-    box-shadow: 0 0 0 1px rgba($white, 0.07) inset;
-  }
-
-  // No reflection either — the first thing to cost more than it is worth once
-  // the row is a strip — so the label can sit right under the sleeve.
-  .library-coverflow__art {
-    -webkit-box-reflect: none;
-  }
-
-  .library-coverflow__cover {
-    --cover-flow-label-gap: 0.05;
-    // Deliberately NOT a different `--cover-flow-anchor`. The class flips in
-    // one frame while `flex-basis` takes 340ms, so any percentage that
-    // differs between the two states resolves against a stage that has not
-    // moved yet — measured, a 6-point difference dropped the sleeve 106px on
-    // the frame the panel opened and then flew it back up as the stage
-    // shrank. One anchor for both states is what makes the opening a single
-    // motion instead of a lurch. 41% is checked against the strip too: it
-    // leaves the title clear of the panel below it.
-    //
-    // No `--cover-flow-size` here either, for exactly the same reason. The
-    // strip's own `70cqh` share of a 372px stage is the 260px this used to
-    // declare outright, so the sleeve reaches the same size by following the
-    // stage down rather than by jumping ahead of it.
+    --cover-flow-caption-gap: 0.05;
   }
 }
 
 .library-coverflow__stage {
-  // The frame the side arrows position against.
+  // The frame the side arrows, the canvas and the caption position against.
   position: relative;
-  display: flex;
+  overflow: hidden;
   width: 100%;
-  align-items: center;
-  justify-content: center;
   outline: none;
-  // The box every measurement below is taken from — see `--cover-flow-size`.
-  container-type: size;
-  container-name: coverflow;
-  // Proportional to the stage rather than a fixed 1200px, which was picked
-  // when a cover was always 160 wide. At three times that size a fixed
-  // perspective flattens the fan into a strip of parallelograms: the vanishing
-  // point has to recede with the covers or the illusion goes with it.
-  perspective: 240cqh;
+  cursor: grab;
+  // The colours the scene paints with: the light behind the row before any
+  // cover has lent it its own, the ring round the cover the music is coming
+  // from, and the folder a Folders cover stands in (`LibraryFolderArt.scss`
+  // sets the last two).
+  --cover-flow-glow: #{$secondary-default};
+  --cover-flow-ring: #{color-mix(in srgb, $secondary-light 85%, transparent)};
+  --cover-flow-caption-gap: 0.4;
+  transition:
+    flex-basis 340ms cubic-bezier(0.22, 0.9, 0.24, 1),
+    --cover-flow-caption-gap 340ms cubic-bezier(0.22, 0.9, 0.24, 1);
+
+  &.is-over-cover {
+    cursor: pointer;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
 
   &:focus-visible {
     @include focus-ring;
@@ -240,291 +230,136 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.library-coverflow__track {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  // Without this the rotated covers below flatten onto the page instead of
-  // turning in front of and behind one another — the same reason `_motion.scss`
-  // sets it on the paper-fold entrance.
-  transform-style: preserve-3d;
+// *** The scene ****************************************************************
+//
+// The row is drawn by three.js (`coverFlowScene.ts`) into a transparent
+// canvas filling the stage, so the Library's own surface — whatever the
+// window's colours — shows through between the covers. The scene reads the
+// theme's colours from the four properties below; registered as colours so
+// the computed value comes back resolved (`rgb()` or `color(srgb …)`)
+// rather than as the `color-mix()` it was written as.
+@property --cover-flow-glow {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
 }
 
-/**
- * How wide one cover is, and the unit everything else here is expressed in.
- *
- * It was a flat 160px, borrowed from the drill-in header's cover, and on a
- * 1900x1150 stage that put thirteen postage stamps in the middle of an
- * otherwise empty page. A carousel is the one view whose whole job is to fill
- * the space it is given.
- *
- * Sized off the stage: the smaller of a share of its height (the cover is
- * square, and the reflection under it wants room too) and a share of its
- * width (six covers either side still have to fit). Clamped at both ends —
- * below 150 the art is unreadable, above 420 a single album takes the whole
- * window and the fan stops being a fan.
- *
- * `--cover-flow-size` is also read from JavaScript's side of the geometry:
- * `coverFlowTransform` builds its `translateZ` as a `calc()` against this, so
- * depth stays proportional at every window size.
- */
-.library-coverflow__cover {
-  // The width cap is not taste either: the whole fan measures about 5.2 cover
-  // widths across (measured in the running window — the perspective pulls the
-  // far ends in, so it is well under the 6.6 the raw step would give), and it
-  // has to fit a stage that is 6 to 8 covers wide. 17.5cqw keeps the row
-  // inside the frame at every window this app is usable at; at 420px it ran
-  // 111% of the stage and the ends were clipped off the sides.
-  //
-  // One formula for both states, and that is the point of the `70cqh`.
-  //
-  // The strip used to declare its own — a taller share of a shorter stage —
-  // and the two disagreed at the moment the class flipped: `is-expanded`
-  // lands in one frame while `flex-basis` takes 340ms, so the strip's size
-  // was resolved against a stage still at its full height and the covers
-  // snapped from 344px to 260px before travelling anywhere. That snap is the
-  // "blink" a reader sees on opening a cover, and no transition fixes it —
-  // it is two descriptions of the same thing disagreeing, not a missing
-  // animation. With one formula the size only ever changes as the stage
-  // does, frame for frame, and the row simply glides up. Measured, the two
-  // ends land where they always did: 344px at a 1967x1066 stage (the width
-  // cap decides) and 260px at 1967x372 (the height share does).
-  --cover-flow-size: clamp(140px, min(70cqh, 17.5cqw), 380px);
-  // How far down the sleeve the reflection reaches before it is gone, as a
-  // fraction of the sleeve. Named rather than written into the gradient
-  // because the title has to clear it, and the two drifting apart is how the
-  // title ended up painted over the mirror the first time.
-  --cover-flow-reflect-reach: 0.4;
-  // How far under the sleeve the title sits, as a fraction of the sleeve —
-  // just past where the reflection dies, so it can never be read through it.
-  // The strip overrides this to a hair: there is no reflection there to
-  // clear, and the title tucks straight under the sleeve.
-  --cover-flow-label-gap: calc(var(--cover-flow-reflect-reach) + 0.04);
-  // Where the *sleeve's* centre sits down the stage.
-  //
-  // Not 50%, because only the sleeve is anchored here — the reflection and
-  // the title hang off its bottom edge and get no say (see the box comment
-  // below). Measured in the running window at a 1066px stage: dead centre
-  // put a 360px sleeve at 554, leaving 353px of nothing above the row and
-  // the mirror and title crowded into the 200px left under them. 41% lifts
-  // the whole assembly so what hangs below has the room, and the row reads
-  // as standing on something rather than floating in the middle of a void.
-  --cover-flow-anchor: 41%;
+@property --cover-flow-ring {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
 
+@property --cover-flow-folder-top {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --cover-flow-folder-bottom {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+// How far under the centre cover its name hangs, as a share of the cover:
+// past the reflection's bright part while the row has the stage to itself,
+// tucked under the sleeve once the songs open and the reflection gives way.
+// Registered so the change eases with the stage's own 340 ms instead of
+// jumping in the frame the panel opens.
+@property --cover-flow-caption-gap {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.4;
+}
+
+.library-coverflow__scene {
   position: absolute;
-  top: var(--cover-flow-anchor);
-  left: 50%;
-  // Exactly the sleeve, nothing more.
-  //
-  // The label used to sit in this box's flow and the reflection used to
-  // reserve room in it, which made the element half again as tall as the art
-  // — and since it is centred on the stage, that put the *artwork* well above
-  // centre with a band of nothing above it and its own label and reflection
-  // filling the space below. Anchoring the square alone is what centres what
-  // the reader is actually looking at; the label hangs off the bottom without
-  // a say in where the sleeve lands.
-  width: var(--cover-flow-size);
-  height: var(--cover-flow-size);
-  margin: calc(var(--cover-flow-size) / -2) 0 0
-    calc(var(--cover-flow-size) / -2);
-  cursor: pointer;
-  // Slightly longer than `$motion-base` and on a curve with a little
-  // overshoot: this is the one motion in the app that is the feature rather
-  // than the polish on it, and a linear-feeling slide between two positions
-  // reads as a slideshow. `transform` and `translate` are listed separately
-  // because they are separate properties here — see `.is-centre`.
-  // Nothing about the sleeve's own box is transitioned, deliberately: its
-  // width, height and margin all read `--cover-flow-size`, which is quoted
-  // against a stage that is already animating, so the box tracks it frame for
-  // frame on its own. A transition here would be a second animation racing
-  // the first and would lag behind it — see the note on the size itself.
-  transition:
-    transform 320ms cubic-bezier(0.22, 0.9, 0.24, 1),
-    translate 320ms cubic-bezier(0.22, 0.9, 0.24, 1),
-    scale 320ms cubic-bezier(0.22, 0.9, 0.24, 1),
-    opacity 260ms $ease-out,
-    filter 260ms $ease-out;
-
-  // The row falls away towards its edges instead of running to the frame at
-  // full strength — the far covers are context, not choices. Desaturated as
-  // well as dimmed, so the centre is the only cover with its real colour.
-  &:not(.is-centre) {
-    opacity: 0.78;
-    filter: saturate(0.72) brightness(0.82);
-  }
-
-  // Pointing at a side cover previews it: it brightens and steps forward a
-  // little, which is the affordance saying the row can be steered by clicking
-  // rather than only by scrolling.
-  //
-  // `.is-hovered`, set from React, not `:hover`. Chromium does not deliver
-  // pointer events to these covers at all once they are rotated in 3D — the
-  // same reason the click is computed rather than received; see
-  // `coverIndexAt`. A `:hover` rule here lit the centre cover and nothing
-  // else, which is precisely the cover that does not need it.
-  &.is-hovered {
-    opacity: 1;
-    filter: saturate(1) brightness(1);
-    translate: 0 0 calc(var(--cover-flow-size) * 0.06);
-  }
-
-  // The cover the music is actually coming from, wherever it has got to in
-  // the row. A ring rather than a fill or a lift: the centre already owns
-  // the scale and the forward step, and a second cover competing for those
-  // would read as two centres.
-  &.is-playing {
-    opacity: 1;
-    filter: none;
-
-    .library-cover-art--cover {
-      box-shadow:
-        0 0 0 2px color-mix(in srgb, $secondary-light 85%, transparent) inset,
-        0 calc(var(--cover-flow-size) * 0.06)
-          calc(var(--cover-flow-size) * 0.13) rgba($black, 0.55);
-    }
-  }
-
-  &.is-centre {
-    // Composed with the inline `transform`, not part of it: `translate` and
-    // `scale` are their own properties in Chromium and are applied before it,
-    // so `coverFlowTransform` stays a pure description of position and this
-    // stays a description of emphasis. The forward lift is what guarantees
-    // the centre sleeve is in front of its neighbours' near edges no matter
-    // how the depth ratio is tuned.
-    translate: 0 0 calc(var(--cover-flow-size) * 0.08);
-    scale: 1.04;
-
-    .library-coverflow__title {
-      color: $text-primary;
-    }
-  }
+  inset: 0;
+  // Under the arrows and the caption; above the still cover it replaces.
+  z-index: 1;
+  pointer-events: none;
 }
 
-.library-coverflow__art {
-  position: relative;
+.library-coverflow__canvas {
   display: block;
   width: 100%;
-  // Chromium's own reflection, not a second rendered copy: the compositor
-  // mirrors the pixels already on screen, so there is no extra `<img>` and
-  // nothing new for the art cache to fetch. Electron ships Chromium only, so
-  // the vendor prefix is not a portability risk here.
-  //
-  // The gradient runs the other way round from how it reads.
-  //
-  // Chromium masks the reflection in the *reflected content's* own
-  // coordinates — before the flip — so the gradient's 0% end lands at the
-  // reflection's far edge and its 100% end lands against the sleeve. Written
-  // the obvious way (opaque first, transparent by 26%) the ink therefore
-  // landed in the wrong quarter: measured in the running window, the visible
-  // band sat 130px clear of a sleeve it was supposed to be touching, which is
-  // exactly what a detached grey smear halfway down an empty stage looks
-  // like. Proven, not deduced — the same row screenshotted with the stops
-  // reversed put the mirror hard against the artwork.
-  //
-  // So: nothing at all for the far 60%, then up through a knee to half
-  // strength at the join. A reflection is meant to say "these are standing on
-  // something"; all of that is said in the first few pixels, and anything
-  // beyond it is a second, upside-down wall competing with the first.
-  //
-  // The gap scales with the cover for the same reason the depth does: 4px
-  // under a 160px cover is a seam, under a 380px one it is a join.
-  -webkit-box-reflect: below calc(var(--cover-flow-size) * 0.012)
-    linear-gradient(
-      to bottom,
-      transparent calc(100% - var(--cover-flow-reflect-reach) * 100%),
-      rgba($black, 0.16) calc(100% - var(--cover-flow-reflect-reach) * 45%),
-      rgba($black, 0.5)
-    );
+  height: 100%;
+}
 
-  // `LibraryCoverArt size="cover"` is a literal 160px square — the drill-in
-  // header's size, and the reason the carousel stayed small no matter what
-  // this file did to the box around it. Overridden to the cover's own width
-  // here, and only here; the drill-in header keeps its 160.
-  .library-cover-art--cover {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1;
-    border-radius: calc(var(--cover-flow-size) * 0.035);
-    // A sleeve, not a flat square: a hairline along the top-left edge for the
-    // light, a drop shadow underneath for the distance from the stage floor.
-    box-shadow:
-      0 calc(var(--cover-flow-size) * 0.06) calc(var(--cover-flow-size) * 0.13)
-        rgba($black, 0.55),
-      0 0 0 1px rgba($white, 0.07) inset;
-    transition: box-shadow 260ms $ease-out;
-  }
+// The centre cover as a still picture, exactly where the scene draws it
+// (`--cover-flow-centre-y` and `--cover-flow-size` are the scene's own
+// layout, `coverFlowLayout`), until the scene has drawn it — and for good
+// where WebGL cannot start.
+.library-coverflow__still {
+  position: absolute;
+  top: calc(var(--cover-flow-centre-y) - var(--cover-flow-size) / 2);
+  left: 50%;
+  width: var(--cover-flow-size);
+  height: var(--cover-flow-size);
+  translate: -50% 0;
 
-  // The Folders shelf's sleeve is a folder holding a cover, and it carries
-  // the same literal 160px to undo — see `LibraryFolderArt.scss`. Only the
-  // size: the shadow and the corners belong to the silhouette, which casts
-  // and rounds its own.
+  .library-cover-art--cover,
   .library-folder-art--cover {
     width: 100%;
-    height: auto;
-    aspect-ratio: 1;
+    height: 100%;
   }
 
-  // The generated initials tile scales with the sleeve rather than staying at
-  // the 2.4rem the drill-in header wants.
+  .library-cover-art--cover {
+    border-radius: calc(var(--cover-flow-size) * 0.035);
+    box-shadow: 0 0 0 1px rgba($white, 0.07) inset;
+  }
+
   .library-cover-art__tile {
     font-size: calc(var(--cover-flow-size) * 0.26);
   }
 }
 
-// *** The label ****************************************************************
+// *** The caption **************************************************************
 //
-// Only the centre cover is named.
-//
-// Every cover carried its title and artist, and at any spacing tight enough
-// to look like a carousel that meant thirteen labels drawn over one another
-// in an unreadable band beneath the row — the single worst thing about this
-// view. The sides are already identified by their artwork; the one the reader
-// has actually selected is the one that needs words. This is also what let
-// the covers spread out: the labels were the reason they could not.
-//
-// `visibility` as well as opacity, so a hidden title cannot be read out or
-// hit-tested from behind the cover in front of it.
-.library-coverflow__label {
-  // Hung off the bottom of the sleeve rather than laid out under it — see
-  // `.library-coverflow__cover`, which is now exactly the sleeve and nothing
-  // else so that the artwork is what gets centred on the stage. Wider than
-  // the sleeve on purpose: an album title is longer than a cover is wide.
+// Only the centre cover is named: thirteen labels under a fanned row were
+// an unreadable band, and the sides are identified by their artwork. Seen,
+// not read — the listbox's option is what a screen reader announces.
+.library-coverflow__caption {
   position: absolute;
-  top: 100%;
-  right: -20%;
-  left: -20%;
+  z-index: 2;
+  top: calc(
+    var(--cover-flow-centre-y) + var(--cover-flow-size) *
+      (0.5 + var(--cover-flow-caption-gap))
+  );
+  left: 50%;
   display: grid;
-  margin-top: calc(var(--cover-flow-size) * var(--cover-flow-label-gap));
+  width: min(
+    calc(100% - 2 * #{$spacing-l}),
+    calc(var(--cover-flow-size) * 1.6)
+  );
   justify-items: center;
   gap: 2px;
-  opacity: 0;
-  visibility: hidden;
-  // Rises into place rather than blinking on, and a beat behind the covers'
-  // own 320ms so the name arrives after the sleeve it belongs to has stopped
-  // moving — reading a title that is still sliding is what made the old
-  // version feel unsettled.
-  translate: 0 6px;
-  transition:
-    opacity 200ms $ease-out 140ms,
-    translate 200ms $ease-out 140ms,
-    visibility 0s linear 340ms;
+  translate: -50% 0;
+  pointer-events: none;
+  // Rises in a beat behind the row, so the name arrives after the cover it
+  // belongs to has stopped turning — a title read while still sliding is
+  // what made the first version feel unsettled.
+  animation: coverflow-caption-in 200ms $ease-out 140ms backwards;
+}
 
-  .library-coverflow__cover.is-centre & {
+@keyframes coverflow-caption-in {
+  from {
+    opacity: 0;
+    translate: -50% 6px;
+  }
+
+  to {
     opacity: 1;
-    visibility: visible;
-    translate: 0 0;
-    transition:
-      opacity 200ms $ease-out 140ms,
-      translate 200ms $ease-out 140ms,
-      visibility 0s linear 0s;
+    translate: -50% 0;
   }
 }
 
 .library-coverflow__title {
   @include truncate;
   max-width: 100%;
-  color: $text-muted;
-  // Scales with the cover, within reason: a fixed 0.76rem under a 420px
+  color: $text-primary;
+  // Scales with the cover, within reason: a fixed 0.76rem under a 400px
   // sleeve reads as a caption that lost its picture.
   font-size: clamp(0.78rem, calc(var(--cover-flow-size) * 0.052), 1.15rem);
   font-weight: $weight-bold;
@@ -537,6 +372,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-faint;
   font-size: clamp(0.66rem, calc(var(--cover-flow-size) * 0.04), 0.9rem);
   text-align: center;
+}
+
+// The caption's words come from `data-text` (see `LibraryCoverFlowStage`).
+.library-coverflow__title::before,
+.library-coverflow__subtitle::before {
+  content: attr(data-text);
+}
+
+// The listbox's options, for a screen reader alone: the picture of the
+// covers is the canvas. Clipped to nothing rather than `display: none`,
+// which would take them out of the accessibility tree with it.
+.library-coverflow__options {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 // *** The expanded panel ******************************************************
@@ -645,19 +498,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  // The layout stays — covers still move to a new centre on every input —
-  // only the sweep between positions is gone, same convention as
-  // `SidebarSection.scss` and `VideoBrowser.scss`. The label keeps its
-  // `visibility` switch, which is not motion: without it the hidden titles
-  // would come back and the band of overlapping text with them.
-  .library-coverflow__cover,
-  .library-coverflow__art .library-cover-art--cover {
-    transition: none;
-  }
-
-  .library-coverflow__label {
-    translate: none;
-    transition: visibility 0s;
+  // The layout stays — the row still moves to a new centre on every input,
+  // and the scene places it there at once (`setReducedMotion`) — only the
+  // sweep between positions is gone, same convention as
+  // `SidebarSection.scss` and `VideoBrowser.scss`.
+  .library-coverflow__caption {
+    animation: none;
   }
 
   // The panel still opens and the row still gives up its share of the column
@@ -677,22 +523,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // A laptop's height (`$bp-laptop-height`): the row over an open album becomes a
 // strip. At 34% of the column it stood 211px on a 1440x852 window — a Mac's
 // view of the PC at 200% — and the album under it showed two songs (Ivan,
-// 2026-09-23). Here it is 172, and its sleeves keep their usual seven tenths
-// of the stage, 120, which is under the carousel's 140px floor: so the floor
-// comes down too. A sleeve in the strip is for steering by, and the carousel
-// on its own is never short enough on such a window to reach the new floor.
-// 172 rather than a rounder 160 because the title and artist hang under the
-// sleeve at a fixed 33px: at 160 they ran 3px over the seam into the album.
-// The block's own floor follows, the strip plus the drill-in's 360.
+// 2026-09-23). Here it is 172; the scene's own floor (110px sleeves,
+// `coverFlowLayout`) keeps the strip steerable. The block's own floor
+// follows, the strip plus the drill-in's 360.
 //
 // Only the basis again, and a length now rather than a share, which still
 // eases from the collapsed 100% — see the base rule for why nothing else may
 // differ between the two states.
 @media (max-height: $bp-laptop-height) {
-  .library-coverflow__cover {
-    --cover-flow-size: clamp(120px, min(70cqh, 17.5cqw), 380px);
-  }
-
   .library-coverflow.is-expanded {
     min-height: 532px;
 

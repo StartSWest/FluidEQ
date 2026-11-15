@@ -27,9 +27,16 @@ import type {
 } from '../../common/library/types';
 import LibraryCoverFlow, {
   COVER_FLOW_NEIGHBOURS,
-  coverFlowTransform,
 } from '../../renderer/library/LibraryCoverFlow';
 import { LibraryProvider } from '../../renderer/library/LibraryContext';
+import {
+  COVER_FLOW_WINDOW,
+  coverFlowLayout,
+  coverPlacement,
+  flickTarget,
+  glideToward,
+  travelStart,
+} from '../../renderer/library/coverFlow/coverFlowGeometry';
 import { shelfQueryFor } from '../../renderer/library/libraryShelfQuery';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
 import LibraryListOf from '../utils/LibraryListOf';
@@ -164,37 +171,84 @@ const showInLibrary = (
 const centre = () => screen.findByRole('option', { selected: true });
 
 describe('the cover flow geometry', () => {
-  it('leaves the centre cover facing the viewer', () => {
-    expect(coverFlowTransform(0)).toContain('rotateY(0deg)');
+  it('leaves the centre cover facing the viewer, in front of the row', () => {
+    const centre = coverPlacement(0);
+    expect(Math.abs(centre.rotationY)).toBe(0);
+    expect(centre.x).toBe(0);
+    expect(centre.z).toBeGreaterThan(coverPlacement(1).z);
   });
 
-  it('turns the two sides towards the middle, not the same way', () => {
-    // A right-side cover (positive offset) turns +60deg to present its
-    // centre-facing (local left) edge to the viewer as it curls inward; the
-    // left side is the mirror image at -60deg. See `coverFlowTransform`'s own
-    // comment for the rotation-matrix derivation these numbers come from.
-    expect(coverFlowTransform(-1)).toContain('rotateY(-60deg)');
-    expect(coverFlowTransform(1)).toContain('rotateY(60deg)');
+  it('turns the two sides towards the middle, mirror images of each other', () => {
+    // A right-side cover (positive offset) turns its face to the left,
+    // towards the middle; the left side is its mirror image. A sign error
+    // would peel the row outward instead of curling it in.
+    const right = coverPlacement(1);
+    const left = coverPlacement(-1);
+    expect(right.rotationY).toBeLessThan(0);
+    expect(left.rotationY).toBeCloseTo(-right.rotationY);
+    expect(left.x).toBeCloseTo(-right.x);
+    expect(left.z).toBeCloseTo(right.z);
   });
 
-  it('pushes distant covers back, further the further out they are', () => {
-    // Without translateZ the row is a flat fan; without the depth GROWING
-    // with distance every side cover sits on one plane, which is a different
-    // flat fan. The depth is a `calc()` against `--cover-flow-size` because
-    // the cover sizes itself off the stage — see `coverFlowTransform`.
-    const depthOf = (offset: number): number => {
-      const match =
-        /translateZ\(calc\(var\(--cover-flow-size\) \* -([\d.]+)\)\)/.exec(
-          coverFlowTransform(offset),
-        );
-      return match ? Number(match[1]) : Number.NaN;
-    };
-    expect(depthOf(1)).toBeGreaterThan(0);
-    expect(depthOf(3)).toBeGreaterThan(depthOf(1));
-    // Both sides recede. A sign that leaked into the depth would pull the
-    // left half of the row towards the viewer instead.
-    expect(depthOf(-3)).toBe(depthOf(3));
-    expect(coverFlowTransform(0)).toContain('translateZ(0)');
+  it('pushes distant covers back and into shade, further the further out', () => {
+    expect(coverPlacement(4).z).toBeLessThan(coverPlacement(1).z);
+    expect(coverPlacement(4).shade).toBeLessThan(coverPlacement(1).shade);
+    expect(coverPlacement(4).renderOrder).toBeLessThan(
+      coverPlacement(1).renderOrder,
+    );
+  });
+
+  it('turns through every angle in between as the row moves', () => {
+    // The approved look: no hinge at the moment a cover leaves the centre.
+    const angles = [0, 0.25, 0.5, 0.75, 1].map(
+      (offset) => coverPlacement(offset).rotationY,
+    );
+    angles.slice(1).forEach((angle, index) => {
+      expect(angle).toBeLessThan(angles[index]);
+    });
+    expect(coverPlacement(0.5).turn).toBeCloseTo(0.5);
+  });
+
+  it('brings the cover under the pointer forward and into full light', () => {
+    expect(coverPlacement(2, true).z).toBeGreaterThan(coverPlacement(2).z);
+    expect(coverPlacement(2, true).saturation).toBe(1);
+  });
+
+  it('sizes the centre cover off the stage, within its floor and ceiling', () => {
+    expect(coverFlowLayout(1200, 800).coverPx).toBeCloseTo(1200 / 3.8);
+    expect(coverFlowLayout(2000, 500).coverPx).toBeCloseTo(500 * 0.6);
+    expect(coverFlowLayout(3000, 1500).coverPx).toBe(400);
+    expect(coverFlowLayout(300, 150).coverPx).toBe(110);
+    // The same cover comes out smaller from a camera further away.
+    expect(coverFlowLayout(800, 600).distance).toBeGreaterThan(
+      coverFlowLayout(1600, 800).distance,
+    );
+  });
+
+  it('lets a flick carry on, within the row', () => {
+    expect(flickTarget(5, 0, 100)).toBe(5);
+    expect(flickTarget(5, 20, 100)).toBe(11);
+    expect(flickTarget(5, -100, 100)).toBe(0);
+    expect(flickTarget(95, 100, 100)).toBe(99);
+  });
+
+  it('does not fly through a whole library to reach a far letter', () => {
+    expect(travelStart(3, 5)).toBe(3);
+    expect(travelStart(3, 3000)).toBe(3000 - COVER_FLOW_WINDOW / 2);
+    expect(travelStart(3000, 3)).toBe(3 + COVER_FLOW_WINDOW / 2);
+  });
+
+  it('glides the same distance per second whatever the frame rate', () => {
+    let at60 = 0;
+    for (let frame = 0; frame < 6; frame += 1) {
+      at60 = glideToward(at60, 10, 1 / 60);
+    }
+    let at240 = 0;
+    for (let frame = 0; frame < 24; frame += 1) {
+      at240 = glideToward(at240, 10, 1 / 240);
+    }
+    expect(at240).toBeCloseTo(at60, 6);
+    expect(glideToward(9.9999, 10, 1 / 60)).toBe(10);
   });
 });
 
@@ -209,6 +263,27 @@ describe('cover flow', () => {
     expect(covers.length).toBeLessThanOrEqual(COVER_FLOW_NEIGHBOURS * 2 + 1);
   });
 
+  it('shows the centre cover and opens it on a press where WebGL cannot draw', async () => {
+    // jsdom has no WebGL, like a machine whose graphics card is refused: the
+    // still cover stands in for the row, and a press on the stage still
+    // opens the album in front.
+    showInLibrary(
+      albumTracks(3),
+      <ShelfCoverFlow browseMode="album" onPlayTrack={jest.fn()} />,
+    );
+    await centre();
+    expect(
+      document.querySelector('.library-coverflow__still .library-cover-art'),
+    ).not.toBeNull();
+    await userEvent.click(screen.getByRole('listbox'));
+    await waitFor(() =>
+      expect(
+        screen
+          .queryAllByRole('row')
+          .some((row) => row.textContent?.includes('Song 0')),
+      ).toBe(true),
+    );
+  });
   it('moves with the arrow keys', async () => {
     showInLibrary(albumTracks(5), <ShelfCoverFlow browseMode="album" />);
     await centre();

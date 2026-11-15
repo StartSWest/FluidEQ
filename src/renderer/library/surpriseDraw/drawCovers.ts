@@ -30,10 +30,13 @@ export type TDrawCover = ImageBitmap | HTMLCanvasElement;
  * The Library's generated tile (`LibraryCoverArt`), painted: the same hue
  * from the same name and the same initials, for a song with no cover.
  */
-export const drawTile = (label: string): HTMLCanvasElement => {
+export const drawTile = (
+  label: string,
+  edge = DRAW_COVER_EDGE,
+): HTMLCanvasElement => {
   const canvas = document.createElement('canvas');
-  canvas.width = DRAW_COVER_EDGE;
-  canvas.height = DRAW_COVER_EDGE;
+  canvas.width = edge;
+  canvas.height = edge;
   const context = canvas.getContext('2d');
   if (!context) {
     return canvas;
@@ -41,7 +44,7 @@ export const drawTile = (label: string): HTMLCanvasElement => {
   const hue = libraryTileHue(label);
   // 155 degrees, as the tile's CSS gradient runs.
   const angle = (155 - 90) * (Math.PI / 180);
-  const half = DRAW_COVER_EDGE / 2;
+  const half = edge / 2;
   const dx = Math.cos(angle) * half;
   const dy = Math.sin(angle) * half;
   const gradient = context.createLinearGradient(
@@ -53,9 +56,9 @@ export const drawTile = (label: string): HTMLCanvasElement => {
   gradient.addColorStop(0, `hsl(${hue}deg 58% 34%)`);
   gradient.addColorStop(1, `hsl(${hue}deg 66% 20%)`);
   context.fillStyle = gradient;
-  context.fillRect(0, 0, DRAW_COVER_EDGE, DRAW_COVER_EDGE);
+  context.fillRect(0, 0, edge, edge);
   context.fillStyle = 'rgba(255, 255, 255, 0.92)';
-  context.font = `700 ${DRAW_COVER_EDGE * 0.3}px -apple-system, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif`;
+  context.font = `700 ${edge * 0.3}px -apple-system, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif`;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.fillText(libraryTileInitials(label), half, half);

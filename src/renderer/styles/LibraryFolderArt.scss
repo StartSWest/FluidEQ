@@ -131,3 +131,10 @@ $folder-chrome-bottom: color-mix(in srgb, $secondary-darker 40%, $panel-bottom);
 .library-folder-art--cover .library-folder-art__sheet .library-cover-art__tile {
   font-size: calc(var(--cover-flow-size, 160px) * 0.2);
 }
+
+// The Cover Flow scene paints a Folders cover itself (`coverFlowArt.ts`),
+// with the same two surfaces as the sleeve above.
+.library-coverflow__stage {
+  --cover-flow-folder-top: #{$folder-chrome-top};
+  --cover-flow-folder-bottom: #{$folder-chrome-bottom};
+}
