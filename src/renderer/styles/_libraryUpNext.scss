@@ -40,7 +40,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   grid-column: 3;
   grid-row: 1;
-  background: $studio-column-light, $studio-rail;
+  // On the content panel's own tone, parted from the shelf by its hairline
+  // alone: a step of its own was the second tone Ivan did not want
+  // (2026-11-15).
+  background: none;
 
   // The hairline belongs to an open queue only: folded, the column is gone.
   .library-workspace.has-up-next & {
@@ -153,9 +156,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .library-up-next {
     width: min(var(--up-next-width, 300px), 100cqw);
     border-left: 1px solid $studio-hair;
-    // The rail's tint over the card's own floor: the wide column is that tint
-    // over the card, and a sheet has to be opaque over the shelf it covers.
-    background: linear-gradient($studio-rail, $studio-rail), $surface-panel;
+    // The content panel's own tone, opaque: the wide column stands on that
+    // panel with no step of its own, and a sheet has to cover the shelf.
+    background: $surface-panel;
+    // Its top right is the panel's own rounded corner, which a square sheet
+    // stood over.
+    border-top-right-radius: $card-radius;
     box-shadow: -12px 0 28px -18px rgba($black, 0.55);
     transform: translateX(0);
     transition:

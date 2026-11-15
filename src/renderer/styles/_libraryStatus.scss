@@ -29,13 +29,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   min-width: 0;
   min-height: 30px;
-  grid-column: 1 / -1;
+  // Across the content panel, under the shelf and the queue; the rail beside
+  // it is a card of its own and runs to the foot.
+  grid-column: 2 / -1;
   grid-row: 2;
   align-items: center;
   gap: 16px;
   padding: 0 10px 0 16px;
   border-top: 1px solid $studio-hair;
-  background: $studio-rail;
+  background: none;
   color: $studio-t3;
   font-size: $studio-text-meta;
   font-variant-numeric: tabular-nums;

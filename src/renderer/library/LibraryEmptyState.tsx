@@ -59,8 +59,6 @@ const LibraryEmptyState = ({
   return (
     <div className="library-empty">
       <div className="library-empty__card">
-        {/* The light drifting behind everything on the card. */}
-        <span className="library-empty__aurora" aria-hidden="true" />
         <div className="library-empty__art" aria-hidden="true">
           <span className="library-empty__sleeve library-empty__sleeve--left" />
           <span className="library-empty__sleeve library-empty__sleeve--right" />

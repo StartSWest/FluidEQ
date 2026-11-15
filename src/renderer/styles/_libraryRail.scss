@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'motion' as *;
+@use 'spacing' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
@@ -30,10 +31,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 236px;
   min-height: 0;
   grid-column: 1;
-  grid-row: 1;
+  // The full height, foot included: the status line belongs to the content
+  // panel beside it.
+  grid-row: 1 / 3;
   flex-direction: column;
-  border-right: 1px solid $studio-hair;
-  background: $studio-column-light, $studio-rail;
+  // A card of its own, a gap from the content panel - and the very same card:
+  // fill, edge and corner (`section-card`). The Scenes rail's opaque colour
+  // was tried first and stood a tone apart from the see-through content card
+  // beside it (Ivan, 2026-11-15: "both panels don't look the same").
+  @include section-card;
+  margin-right: $spacing-s;
+  overflow: hidden;
   transition: width $motion-base $ease-out;
 }
 

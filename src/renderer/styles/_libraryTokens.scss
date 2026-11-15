@@ -73,16 +73,6 @@ $library-wave-step: 4ms;
 // tint the steps with the rest of the window; the mockup's hex values were
 // these same steps measured on its own dark floor.
 $studio-rail: color-mix(in srgb, $edge-tint 2.5%, transparent);
-
-// The columns' light from above (the rail and the queue): the accent, faint
-// at the top and gone a third of the way down. On the step alone the rail
-// read flat and cheap beside the card (Ivan, 2026-11-15).
-$studio-column-light: linear-gradient(
-  180deg,
-  color-mix(in srgb, $secondary-default 8%, transparent),
-  transparent 280px
-);
-
 $studio-surface: color-mix(in srgb, $edge-tint 5%, transparent);
 
 $studio-raise: color-mix(in srgb, $edge-tint 9%, transparent);

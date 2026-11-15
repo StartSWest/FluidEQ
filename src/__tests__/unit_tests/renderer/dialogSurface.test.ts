@@ -216,7 +216,6 @@ describe('what stands on the floor', () => {
   // floor — never lighter than a pane ("fix those pane too light").
   it.each([
     ['Library.scss', '.library-grid__tile'],
-    ['Library.scss', '.library-empty__card'],
     ['Games.scss', '.gaming-game'],
     ['ConfigInspector.scss', '.config-card'],
     ['StudioMaker.scss', '.studio-maker'],
@@ -231,17 +230,68 @@ describe('what stands on the floor', () => {
     expect(card).toContain('radial-gradient(');
   });
 
-  // The Library's rail and its queue are the studio's columns (the "A + C"
-  // design, Ivan 2026-11-14): one step of light over the card, a hairline at
-  // their inner edge, never a card standing inside the card.
-  it.each([
-    ['Library.scss', '.library-rail'],
-    ['Library.scss', '.library-side'],
-  ])('%s stands %s on the rail step, not a card', (sheet, selector) => {
-    const column = declarationsOf(compiledCss(sheet), selector);
-    expect(column).toContain('color-mix(in srgb, #d6e9f7 2.5%, transparent)');
-    expect(column).not.toContain('radial-gradient(');
+  // The Library is two panels, as the Scenes page is (Ivan, 2026-11-15: "we
+  // already have the idea in EQ and the visualizer library, two separated
+  // panels, same flat gradient"): its rail is the Scenes rail's card, and
+  // the shelf, queue and status line stand on one section card like the
+  // Scenes place - with no tone of their own inside it.
+  const surfaceOf = (declarations: string) =>
+    ['background', 'border', 'border-radius'].map((property) =>
+      declarations
+        .match(new RegExp(`(?:^|;)\\s*${property}:\\s*([^;]+)`))?.[1]
+        ?.trim(),
+    );
+
+  // The two panels are one card twice: the rail took the Scenes rail's
+  // opaque colour first and stood a tone apart ("both panels don't look the
+  // same").
+  it("stands the Library's rail on the same card as its content", () => {
+    const rail = surfaceOf(
+      declarationsOf(compiledCss('Library.scss'), '.library-rail'),
+    );
+    const content = surfaceOf(
+      declarationsOf(compiledCss('Library.scss'), '.library-workspace::before'),
+    );
+    // The control: both read a real surface, not three empty answers.
+    expect(content.every((value) => value !== undefined)).toBe(true);
+    expect(rail).toEqual(content);
   });
+
+  it("stands the Library's content on the Scenes place's card", () => {
+    const content = surfaceOf(
+      declarationsOf(compiledCss('Library.scss'), '.library-workspace::before'),
+    );
+    const scenesPlace = surfaceOf(
+      declarationsOf(compiledCss('Community.scss'), '.community__main'),
+    );
+    expect(scenesPlace.every((value) => value !== undefined)).toBe(true);
+    expect(content).toEqual(scenesPlace);
+  });
+
+  // The empty Library stands straight on that card, as the A design draws
+  // the screen - Ivan, 2026-11-15: "make the centre card flat, no card, like
+  // in A".
+  it('draws the empty Library on the content card, with no card of its own', () => {
+    const empty = declarationsOf(
+      compiledCss('Library.scss'),
+      '.library-empty__card',
+    );
+    // The control: the rule read is the empty state's, with its layout in it.
+    expect(empty).toContain('display: grid');
+    expect(empty).not.toMatch(/(?:^|;)\s*(background|border|box-shadow):/);
+  });
+
+  it.each([
+    ['Library.scss', '.library-side'],
+    ['Library.scss', '.library-status'],
+  ])(
+    '%s gives %s no tone of its own on the content card',
+    (sheet, selector) => {
+      expect(declarationsOf(compiledCss(sheet), selector)).toContain(
+        'background: none',
+      );
+    },
+  );
 
   // The details table stands on the shelf's floor under one hairline, as the
   // mockup's table does: no card round it.
