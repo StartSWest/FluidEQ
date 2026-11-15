@@ -11,7 +11,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * from the sRGB the member picked, as a palette's texture is read. It does
  * not count toward the eight sliders. An older FluidEQ reads the entry as a
  * slider that moves nothing, and a shader naming `uColour_<id>` fails to
- * compile there and plays the scene's fallback form. This file imports
+ * compile there, where that build draws its old stand-in look instead
+ * (this one never does: it says why the scene cannot play). This file imports
  * only `scenePalette.ts`, so the server checks colours with these very bytes
  * (`vendor-member-rules.mjs`).
  */

@@ -14,8 +14,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * and saved, but it is not a slider: it does not count toward the eight, and
  * a FluidEQ before contract 9 skips nothing here - it read every entry as a
  * slider, so a palette there is a slider that moves nothing, and the shader,
- * naming a texture that build never declares, fails to compile and is drawn
- * as the scene's fallback form, which is what its author chose for that.
+ * naming a texture that build never declares, fails to compile there. Those
+ * builds still drew a stand-in look in a scene's place, the `fallbackStyle`
+ * the server keeps writing for them; this one only ever shows the scene, or
+ * says why it cannot.
  */
 
 export const MIN_PALETTE_STOPS = 2;
