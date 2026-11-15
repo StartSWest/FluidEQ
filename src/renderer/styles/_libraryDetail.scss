@@ -253,7 +253,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // heading instead of a flat grid.
 
 .library-video-section {
-  @include lifted-surface;
+  // On the panel's own tone like every other shelf, no card round it (Ivan,
+  // 2026-11-15: "remove the card wrapper on the video list and make it
+  // nicer").
   @include slim-scrollbar;
   display: flex;
   min-height: 0;
@@ -270,7 +272,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // used to come from a larger gap here is padding on the heading instead,
   // where `offsetHeight` can see it.
   gap: $spacing-m;
-  padding: $spacing-m;
+  padding: 4px 0 $spacing-m;
   overflow-y: auto;
 
   // No folders to show a heading for — the same centred, single-message
@@ -304,9 +306,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-align: center;
 }
 
-// Same heading recipe as `.karaoke-playlist__heading h3`: uppercase, the
-// same size and letter-spacing, sat on the same faint rule.
+// A folder's films under its name, the way a record's table labels its
+// folders and its songs (`LibrarySectionRow`): the folder glyph, the name in
+// the Library's label voice, and a hairline running out to the edge.
 .library-video-section__folder-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   // Padding, never margin, and this is load-bearing: the shelf reserves space
   // for headings it has not mounted from a measured `offsetHeight`, which
@@ -314,25 +320,88 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // would be invisible to the measurement and every folder would sit eight
   // pixels out of step with the scrollbar.
   padding-top: $spacing-s;
-  padding-bottom: 7px;
-  border-bottom: 1px solid rgba($edge-tint, 0.09);
-  color: $text-primary;
-  font-size: $text-body;
-  @include tracking(0.04em);
+  padding-bottom: 2px;
+  color: $studio-t2;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
   text-transform: uppercase;
+
+  &::after {
+    height: 1px;
+    flex: 1 1 auto;
+    background: $studio-hair;
+    content: '';
+  }
 }
 
-// Same `auto-fill` recipe as `.library-grid`: the column count is whatever
-// the panel's width allows, never chosen up front.
+.library-video-section__folder-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: $secondary-light;
+}
+
+.library-video-section__folder-name {
+  min-width: 0;
+  @include truncate;
+}
+
+// Same `auto-fill` recipe as `.library-grid`, wider: a film's frame is 16:9,
+// and a square's 150px column would draw it as a sliver.
 .library-video-section__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: $spacing-m;
 }
 
 .library-video-section__art {
   position: relative;
   display: block;
+
+  // The sleeve drawn as a frame, not a square.
+  .library-cover-art--tile {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+// The play mark, under the pointer only: at rest the frame carries the
+// film's letters, and a mark over them read as a second label. Shown, the
+// frame dims behind the accent's disc, which is the one thing a press on a
+// film does.
+.library-video-section__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: color-mix(in srgb, $surface-base 45%, transparent);
+  opacity: 0;
+  transition: opacity $motion-fast $ease-out;
+
+  &::before {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: $secondary-default;
+    content: '';
+  }
+
+  .library-grid__tile:hover &,
+  .library-grid__tile:focus-visible & {
+    opacity: 1;
+  }
+}
+
+.library-video-section__play-icon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  margin-left: 2px;
+  color: $studio-on-accent;
+  fill: currentcolor;
+  stroke: none;
 }
 
 // A grid tile has no title cell to carry the "cannot play" mark inline the

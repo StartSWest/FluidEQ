@@ -93,8 +93,23 @@ const LibraryShelfViews = ({
   }
 
   // Videos have no album or artist to drill into — routed here on their own
-  // rather than through the three views below, which never see the video
-  // shelf at all. The view switch is ignored there.
+  // rather than through the views below. As a list they are the songs'
+  // table under their folders' headings; any other view is the grid of
+  // frames (there is no Cover Flow for films).
+  if (browseMode === 'video' && viewMode === 'list') {
+    return (
+      <LibraryListView
+        list={shelfList}
+        browseMode="song"
+        onOpenAlbum={handleOpenAlbum}
+        onOpenArtist={handleOpenArtist}
+        onPlayTrack={handlePlayTrack}
+        onRestartTrack={handleRestartTrack}
+        offlineRootIds={offlineRootIds}
+        resetKey={listResetKey}
+      />
+    );
+  }
   if (browseMode === 'video') {
     return (
       <LibraryVideoSection

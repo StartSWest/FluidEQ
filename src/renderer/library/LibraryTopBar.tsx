@@ -209,32 +209,38 @@ const LibraryTopBar = ({
         />
       </div>
       <div className="library-top__controls">
-        {/* Not on Videos: that shelf is its own section, laid out by folder,
-            and reads none of these. Not rendered rather than hidden, because
-            the group is a flex row and `hidden` loses to its own display. */}
-        {browseMode !== 'video' && (
-          <div
-            className="library-top__views"
-            role="group"
-            aria-label={t('library.view.aria')}
-          >
-            {VIEW_MODES.map(({ mode, icon, label }) => (
+        {/* Videos read as a list or a grid of frames; a film has no sleeve
+            for Cover Flow to turn, so on Videos that choice shows the grid
+            (Ivan, 2026-11-15: "we can show by folders, list etc similar to
+            music"). */}
+        <div
+          className="library-top__views"
+          role="group"
+          aria-label={t('library.view.aria')}
+        >
+          {VIEW_MODES.filter(
+            ({ mode }) => browseMode !== 'video' || mode !== 'coverflow',
+          ).map(({ mode, icon, label }) => {
+            const isActive =
+              viewMode === mode ||
+              (browseMode === 'video' &&
+                mode === 'grid' &&
+                viewMode === 'coverflow');
+            return (
               <button
                 key={mode}
                 type="button"
-                aria-pressed={viewMode === mode}
-                className={`library-top__view${
-                  viewMode === mode ? ' is-active' : ''
-                }`}
+                aria-pressed={isActive}
+                className={`library-top__view${isActive ? ' is-active' : ''}`}
                 title={t(label)}
                 onClick={() => onViewMode(mode)}
               >
                 <MenuIcon name={icon} className="library-top__view-icon" />
                 <span>{t(label)}</span>
               </button>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
         {onSort && onSortDirection && (
           <div className="library-top__sort">
             <Dropdown

@@ -27,6 +27,8 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
+import { formatOf } from './libraryColumns';
+import { formatDuration } from './player/NowPlayingBar';
 import { LibrarySectionBand } from './LibrarySectionHeading';
 import { useLibrary } from './LibraryContext';
 import { librarySectionsOf, TLibrarySection } from './libraryRows';
@@ -410,6 +412,7 @@ const LibraryVideoSection = ({
             <span className="library-cover-art library-cover-art--tile" />
           </span>
           <span className="library-grid__title">{' '}</span>
+          <small className="library-grid__meta">{' '}</small>
         </span>
       );
     }
@@ -431,12 +434,20 @@ const LibraryVideoSection = ({
         title={isOffline ? t('library.root.offline') : undefined}
         onClick={() => onPlayTrack(track.id)}
       >
+        {/* A film's frame, 16:9, with the play mark it answers to; the
+            sleeve's letters stand in for a picture until a still exists. */}
         <span className="library-video-section__art">
           <LibraryCoverArt
             artId={track.artId}
             label={track.title}
             size="tile"
           />
+          <span className="library-video-section__play" aria-hidden="true">
+            <MenuIcon
+              name="playSolid"
+              className="library-video-section__play-icon"
+            />
+          </span>
           {/* Chromium has no demuxer for this container — marked on the art
               itself, the one place a grid tile has to put it. */}
           {!track.isPlayable && (
@@ -459,6 +470,17 @@ const LibraryVideoSection = ({
           )}
         </span>
         <span className="library-grid__title">{track.title}</span>
+        {/* The facts a film is picked by: how long, and what kind of file. */}
+        <small className="library-grid__meta">
+          {[
+            track.durationMs === undefined
+              ? ''
+              : formatDuration(track.durationMs),
+            formatOf(track.path),
+          ]
+            .filter(Boolean)
+            .join(' · ') || ' '}
+        </small>
       </button>
     );
   };
@@ -492,7 +514,13 @@ const LibraryVideoSection = ({
           const heading = list.at(row.heading);
           return (
             <h3 key={row.key} className="library-video-section__folder-title">
-              {heading?.kind === 'heading' ? folderName(heading.folder) : ' '}
+              <MenuIcon
+                name="folder"
+                className="library-video-section__folder-icon"
+              />
+              <span className="library-video-section__folder-name">
+                {heading?.kind === 'heading' ? folderName(heading.folder) : ' '}
+              </span>
             </h3>
           );
         }

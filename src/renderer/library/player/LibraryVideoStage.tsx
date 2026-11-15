@@ -34,8 +34,13 @@ import {
 } from './playbackMemory';
 import '../../styles/NowPlayingBar.scss';
 
-/** How far one arrow press skips through a film. */
+/**
+ * How far one arrow press skips through a film: 5 s, YouTube's step for the
+ * arrows, and 10 s with Ctrl, its step for J and L (Ivan, 2026-11-15:
+ * "arrows move 5 secs and Ctrl arrows 10 sec, or what is the standard").
+ */
 const SEEK_STEP_MS = 5000;
+const SEEK_LONG_STEP_MS = 10_000;
 
 /**
  * The video half of the player: a `<video>` filling the Library tab's body
@@ -181,13 +186,14 @@ const LibraryVideoStage = ({
   };
 
   /** The arrows skip through the film while it has the focus, as every
-   * player on this machine does: 5 s a press. */
+   * player on this machine does. */
   const onKey = (event: KeyboardEvent<HTMLVideoElement>) => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
       return;
     }
     event.preventDefault();
-    const step = event.key === 'ArrowLeft' ? -SEEK_STEP_MS : SEEK_STEP_MS;
+    const length = event.ctrlKey ? SEEK_LONG_STEP_MS : SEEK_STEP_MS;
+    const step = event.key === 'ArrowLeft' ? -length : length;
     seek(Math.max(0, readPositionMs() + step));
   };
 
