@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   folderDisplayName,
   normalizeForGrouping,
@@ -328,6 +328,15 @@ const LibraryDetail = ({
     return undefined;
   }, [albumId, artistId, genreId, folderPath]);
   const place = useLibraryList(placeQuery);
+  /**
+   * What the last folder that had answered turned out to be: a record (its
+   * own header) or a way through to its subfolders (none). Held for the
+   * renders between opening a folder and its two lists answering, when
+   * neither is known yet; undefined until any folder has answered.
+   */
+  const lastFolderShapeRef = useRef<'record' | 'through' | undefined>(
+    undefined,
+  );
 
   /**
    * A record that is gone — a rescan dropped the folder, the root was
@@ -359,8 +368,21 @@ const LibraryDetail = ({
    * folders under it, and the moment it holds files of its own, its own
    * record appears.
    */
-  const isWayThrough =
-    isFolder && place.isLoaded && place.count === 0 && children.count > 0;
+  // Decided only once both of this folder's lists have answered. Guessed
+  // from the lists still loading, the header was drawn for a frame or two
+  // over every folder that holds only folders, then taken away (Ivan,
+  // 2026-11-14: "it shows the album header for a millisecond then it shows
+  // the folder tree"): `isLoaded` is the folder being opened, while `count`
+  // may still be the folder before it. Until then the panel keeps what the
+  // last folder was, and on a first open draws no header at all.
+  const isFolderKnown = isFolder && place.isLoaded && children.isLoaded;
+  if (isFolderKnown) {
+    lastFolderShapeRef.current =
+      place.count === 0 && children.count > 0 ? 'through' : 'record';
+  }
+  const folderShape = isFolder ? lastFolderShapeRef.current : 'record';
+  const isWayThrough = folderShape === 'through';
+  const isHeaderShown = folderShape === 'record';
   const folderName = folderPath ? folderDisplayName(folderPath) : '';
 
   let title = artist?.name || t('library.unknownArtist');
@@ -488,7 +510,7 @@ const LibraryDetail = ({
       {/* No Back of its own: the place bar over every view is the one way
           out (`LibraryPlaceBar`). `onBack` is still how this panel closes
           itself — an orphan, a deleted playlist. */}
-      {!isWayThrough && (
+      {isHeaderShown && (
         <LibraryDetailHeader
           title={title}
           subtitle={subtitle}
