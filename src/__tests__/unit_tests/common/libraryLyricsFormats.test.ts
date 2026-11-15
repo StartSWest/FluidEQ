@@ -68,6 +68,33 @@ plain: |-
   Gulls over the ferry
 `;
 
+// Ivan, 2026-11-15: the same site's export of a song with no timing, its
+// words only in `plain` - "make sure we don't include that metadata".
+describe('an export with no timed lines and its words as written', () => {
+  const PLAIN_ONLY = `version: '1.0'
+metadata:
+  title: Harbour Lights
+  artist: The Gulls
+  duration_ms: 177000
+  instrumental: false
+lines: []
+plain: |-
+  Salt on the rope
+  Gulls over the ferry
+
+  Bells in the harbour
+`;
+
+  it('keeps the words and none of the document around them', () => {
+    expect(lyricsAsKeptText(PLAIN_ONLY)).toBe(
+      'Salt on the rope\nGulls over the ferry\n\nBells in the harbour',
+    );
+    expect(lyricsAsKeptText(JSON.stringify(parseLyricsYaml(PLAIN_ONLY)))).toBe(
+      'Salt on the rope\nGulls over the ferry\n\nBells in the harbour',
+    );
+  });
+});
+
 describe('the lines and words JSON, and its YAML twin', () => {
   it('reads the YAML export with its word times, and nothing it does not say', () => {
     expect(readLyricsFormat(YAML).format).toBe('lines-yaml');

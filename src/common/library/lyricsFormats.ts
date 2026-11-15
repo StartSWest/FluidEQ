@@ -69,6 +69,13 @@ interface IReadLyrics {
   format: TLyricsFormat;
   lines?: ITimedLine[];
   header?: ILrcHeader;
+  /**
+   * The words as written, for a shape that brings them and no timed line
+   * (`lines: []` beside `plain`): kept as plain lyrics, and the rest of the
+   * document - title, artist, album, duration - never taken for words (Ivan,
+   * 2026-11-15: "make sure we don't include that metadata in the lyric").
+   */
+  plainText?: string;
 }
 
 type TRecord = Record<string, unknown>;
@@ -292,6 +299,18 @@ const fromStructure = (
     return fromStructure(inner, false);
   }
   const lines = fromLinesShape(value);
+  if (
+    Array.isArray(value.lines) &&
+    value.lines.length === 0 &&
+    typeof value.plain === 'string' &&
+    value.plain.trim() !== ''
+  ) {
+    return {
+      format: isYaml ? 'lines-yaml' : 'lines-json',
+      plainText: value.plain,
+      header: headerOf(value),
+    };
+  }
   if (lines !== undefined) {
     return {
       format: isYaml ? 'lines-yaml' : 'lines-json',
@@ -329,7 +348,9 @@ export const readLyricsFormat = (input: string): IReadLyrics => {
   if (parseLrc(text) !== undefined) {
     return { format: 'lrc' };
   }
-  if (/^lines:\s*$/m.test(text)) {
+  // A YAML export opens its timed lines with `lines:`, followed by the list
+  // or by `[]` when the song has none and only its plain words.
+  if (/^lines:\s*(\[\s*\])?\s*$/m.test(text)) {
     const read = fromStructure(parseLyricsYaml(text), true);
     if (read !== undefined) {
       return read;
@@ -379,6 +400,9 @@ export const libraryLinesOf = (timed: readonly ITimedLine[]): ILyricsLine[] => {
  */
 export const lyricsAsKeptText = (input: string): string => {
   const read = readLyricsFormat(input);
+  if (read.plainText !== undefined) {
+    return read.plainText;
+  }
   if (read.lines === undefined) {
     return input;
   }

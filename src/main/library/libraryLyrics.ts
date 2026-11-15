@@ -196,6 +196,11 @@ const lyricsOfText = (
   fileName?: string,
 ): ILibraryLyrics | undefined => {
   const read = readLyricsFormat(text);
+  // Words as written and no timing: those words, never the document's
+  // metadata around them (already-kept files of that shape included).
+  if (read.plainText !== undefined) {
+    return lyricsFromText(read.plainText, source, fileName);
+  }
   if (read.lines !== undefined) {
     const lines = libraryLinesOf(read.lines);
     if (lines.some((line) => line.text !== '')) {
