@@ -466,6 +466,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-hero__info {
+  // The delete question floats from here (`.library-detail__confirm`).
+  position: relative;
   display: grid;
   min-width: 0;
   align-content: end;
@@ -638,9 +640,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// FLOATING, under the buttons, over the table (Ivan, 2026-11-15: "this pane
+// needs to float, not in line like this"): set in the header's flow it
+// pushed the whole record down while it asked. Hung from the record's info
+// column (`.library-hero__info`), lifted as a menu is, so nothing moves
+// under it.
 .compact-frame.library-detail__confirm {
+  position: absolute;
+  z-index: 6;
+  top: calc(100% + #{$spacing-xs});
+  left: 0;
   width: min(460px, 100%);
-  margin-top: $spacing-xs;
+  margin: 0;
+  box-shadow: var(--menu-lift, #{$menu-lift});
 }
 
 // A playlist with nothing in it yet, and how to fill it. Centred and quiet:

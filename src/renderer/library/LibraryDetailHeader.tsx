@@ -332,15 +332,16 @@ const LibraryDetailHeader = ({
               >
                 {t('library.playlist.rename')}
               </button>
-              {!isConfirmingDelete && (
-                <button
-                  type="button"
-                  className="library-hero__button"
-                  onClick={() => setIsConfirmingDelete(true)}
-                >
-                  {t('library.playlist.delete')}
-                </button>
-              )}
+              {/* Stays while its question is open: the question floats
+                  from it, and the row must not change length under it. */}
+              <button
+                type="button"
+                className="library-hero__button"
+                aria-expanded={isConfirmingDelete}
+                onClick={() => setIsConfirmingDelete(true)}
+              >
+                {t('library.playlist.delete')}
+              </button>
             </>
           )}
           {/* The record's own filter, at the far end of the actions: it
@@ -355,8 +356,8 @@ const LibraryDetailHeader = ({
             />
           </div>
         </div>
-        {/* Two steps, no modal: the question opens under the buttons, where
-            the one that asked it was, over nothing it has to hide. */}
+        {/* Two steps, no modal: the question floats under the buttons, over
+            the table, and nothing moves while it asks. */}
         {editablePlaylist && draftName === undefined && isConfirmingDelete && (
           <CompactFrame
             className="library-detail__confirm"
