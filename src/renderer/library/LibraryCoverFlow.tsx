@@ -248,9 +248,29 @@ const LibraryCoverFlow = ({
     undefined,
   );
 
+  /**
+   * THE ROW OPENS ON ITS COVER, never turning to it (Ivan, 2026-11-15: "it
+   * needs to load directly on the selected cover instead of scrolling,
+   * animating into it"). The row stands on cover 0 until the store says where
+   * the open record, the asked-for cover or the remembered one is, and the
+   * scene then travelled the whole way there on every visit. The first
+   * placement after the row appears jumps; every one after it travels.
+   */
+  const hasPlacedRef = useRef(false);
+  /** The scene's jump, filled in where the scene is made, below. */
+  const jumpSceneRef = useRef<(index: number) => void>(() => undefined);
+  const placeAt = (index: number) => {
+    if (!hasPlacedRef.current) {
+      hasPlacedRef.current = true;
+      jumpSceneRef.current(index);
+    }
+    setCurrentIndex(index);
+  };
+
   /** Moves the centre to `index`, clamped to the row, and records what is
    * now centred. Every path that changes the centre goes through this. */
   const setCentre = (index: number) => {
+    hasPlacedRef.current = true;
     // The reader moving the row ends any request still waiting for a row
     // that holds its cover (a pick a search leaves out never arrives).
     if (pendingRequest.current !== undefined) {
@@ -349,7 +369,7 @@ const LibraryCoverFlow = ({
       .current(id)
       .then((index) => {
         if (isCurrent && index >= 0 && pendingRequest.current === undefined) {
-          setCurrentIndex(index);
+          placeAt(index);
         }
         return undefined;
       })
@@ -389,7 +409,7 @@ const LibraryCoverFlow = ({
         }
         appliedOpenId.current = openId;
         centredId.current = openId;
-        setCurrentIndex(index);
+        placeAt(index);
         setExpandedId(openId);
         return undefined;
       })
@@ -416,7 +436,7 @@ const LibraryCoverFlow = ({
       .then((index) => {
         if (isCurrent && index >= 0) {
           centredId.current = revealTrackId;
-          setCurrentIndex(index);
+          placeAt(index);
         }
         return undefined;
       })
@@ -459,7 +479,7 @@ const LibraryCoverFlow = ({
           appliedRequestNonce.current = requestedNonce;
           pendingRequest.current = undefined;
           centredId.current = requestedId;
-          setCurrentIndex(index);
+          placeAt(index);
         }
         return undefined;
       })
@@ -596,6 +616,7 @@ const LibraryCoverFlow = ({
     isExpanded: isOpen,
     isReducedMotion: prefersReducedMotion(),
   });
+  jumpSceneRef.current = (index: number) => sceneRef.current?.jumpTo(index);
   // Surprise me spinning this row: the songs panel folds for its length and
   // opens again when the row is given back.
   const drawCaption = useCoverFlowSurprise({
