@@ -17,44 +17,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // its own. Empty and pressed through until a draw starts.
 //
 // The draw is Cover Flow's own scene. Over the list or the grid it fills this
-// whole layer, the shelf dimmed under it; over Cover Flow the row on screen
-// is the draw, so the layer is clear and only catches the press that skips.
+// whole layer, straight over the shelf; over Cover Flow the row on screen is
+// the draw, so the layer only catches the press that skips.
 .library-surprise-draw {
   position: absolute;
   z-index: 2;
   inset: calc(var(--library-chrome-height, 0px) + 8px) $library-gutter 12px;
   overflow: hidden;
-  border-radius: $radius-m;
   pointer-events: none;
 
-  // The shelf dimmed under the row: darker at the edges, so the covers in
-  // the middle are what the eye meets.
-  &::before {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      ellipse at 50% 46%,
-      color-mix(in srgb, $surface-base 82%, transparent),
-      color-mix(in srgb, $surface-base 96%, transparent)
-    );
-    content: '';
-    opacity: 0;
-    transition: opacity $motion-fast $ease-out;
-  }
-
+  // No dimming box under the row: the dark rounded panel it laid over the
+  // list or the grid stood out as a card of its own (Ivan, 2026-11-15:
+  // "there is a dark bar with rounded corners ... remove that bg"). The
+  // covers stand straight over the shelf.
   &.is-playing {
     // A press anywhere on it skips.
     cursor: pointer;
     pointer-events: auto;
-
-    &::before {
-      opacity: 1;
-    }
-  }
-
-  // Cover Flow's own row is spinning underneath: nothing to dim.
-  &.is-over-flow::before {
-    opacity: 0;
   }
 }
 

@@ -152,6 +152,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .library-cover-art {
     border-radius: calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px) 0 0;
   }
+
+  // A folder is a shape, not a picture to run to the edges: stretched there
+  // it read as a slab with an empty band over its tab (Ivan, 2026-11-15: "we
+  // need to improve the folder view card"). It keeps the square every cover
+  // has, so a folder's row lines up with an album's, on a quiet backing in
+  // the panel's tone, and the folder stands in it at four fifths, centred.
+  &--folder {
+    display: grid;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px) 0 0;
+    background: color-mix(in srgb, $edge-tint 4%, transparent);
+
+    .library-folder-art {
+      width: 80%;
+    }
+
+    // The picture inside the folder keeps its own small corners.
+    .library-cover-art {
+      border-radius: inherit;
+    }
+  }
 }
 
 // Same shape, size and quiet colour as `.library-list__badge--pending`,

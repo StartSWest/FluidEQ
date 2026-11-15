@@ -554,7 +554,11 @@ const LibraryGridView = ({
         title={isOffline ? t('library.root.offline') : undefined}
         onClick={(event) => openItem(tile.id, event.detail)}
       >
-        <span className="library-grid__art">
+        <span
+          className={`library-grid__art${
+            browseMode === 'folder' ? ' library-grid__art--folder' : ''
+          }`}
+        >
           {/* A folder tile is a folder: its picture belongs to the first
               album beneath it, not to the directory — see `LibraryFolderArt`. */}
           {browseMode === 'folder' ? (
