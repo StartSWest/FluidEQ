@@ -337,4 +337,62 @@ describe("a song's lyrics, read from its tags and the files beside it", () => {
       });
     });
   });
+
+  // Ivan, 2026-11-15: his word-timed YAML had been kept as the song's .txt
+  // by an import from before the formats were read, beside a line-timed
+  // .lrc, and the Karaoke got the lines without their words.
+  describe('a timed format kept under any name', () => {
+    const WORD_YAML = [
+      "version: '1.0'",
+      'lines:',
+      '- text: Ayer cuando nos separamos',
+      '  start_ms: 7930',
+      '  end_ms: 13040',
+      '  words:',
+      "  - text: 'Ayer '",
+      '    start_ms: 7930',
+      "  - text: 'cuando '",
+      '    start_ms: 11730',
+      '  - text: separamos',
+      '    start_ms: 13026',
+    ].join('\n');
+
+    it('reads a word-timed YAML in a .txt as timed words', async () => {
+      const file = song('Four.mp3', mpegFrames());
+      fs.writeFileSync(path.join(dir, 'Four.txt'), WORD_YAML);
+      const { lyrics } = await readTrackLyrics(file);
+      expect(lyrics).toMatchObject({ kind: 'synced', source: 'txt' });
+      expect(lyrics?.kind === 'synced' ? lyrics.lines[0] : undefined).toEqual(
+        expect.objectContaining({
+          timeMs: 7930,
+          text: 'Ayer cuando separamos',
+          words: [
+            { timeMs: 7930, text: 'Ayer ' },
+            { timeMs: 11730, text: 'cuando ' },
+            { timeMs: 13026, text: 'separamos' },
+          ],
+        }),
+      );
+    });
+
+    it('lets word timing in a .txt win over line timing in the .lrc', async () => {
+      const file = song('Five.mp3', mpegFrames());
+      fs.writeFileSync(path.join(dir, 'Five.lrc'), '[00:07.93]Ayer');
+      fs.writeFileSync(path.join(dir, 'Five.txt'), WORD_YAML);
+      expect((await readTrackLyrics(file)).lyrics).toMatchObject({
+        kind: 'synced',
+        source: 'txt',
+      });
+    });
+
+    it('still takes the .lrc first when both carry the same timing', async () => {
+      const file = song('Six.mp3', mpegFrames());
+      fs.writeFileSync(path.join(dir, 'Six.lrc'), '[00:07.93]from the lrc');
+      fs.writeFileSync(path.join(dir, 'Six.txt'), '[00:01.00]from the txt');
+      expect((await readTrackLyrics(file)).lyrics).toMatchObject({
+        kind: 'synced',
+        source: 'lrc',
+      });
+    });
+  });
 });

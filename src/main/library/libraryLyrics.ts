@@ -48,6 +48,7 @@ import {
   type ILibraryLyrics,
   type ILibraryLyricsAnswer,
   type ILyricsLine,
+  type TLyricsSource,
   lyricsFromText,
   MAX_LYRICS_FILE_BYTES,
   MAX_LYRICS_LINE_CHARS,
@@ -55,6 +56,10 @@ import {
   MAX_LYRICS_WORDS,
   wordsFromPieces,
 } from '../../common/library/lyrics';
+import {
+  libraryLinesOf,
+  readLyricsFormat,
+} from '../../common/library/lyricsFormats';
 import { LYRICS_FILE_EXTENSIONS } from '../../common/library/lyricsImport';
 import { sidecarPath, storedLyricsPath } from './libraryLyricsPlaces';
 
@@ -171,6 +176,50 @@ const syltLines = (
 };
 
 /**
+ * A lyrics text as the Library reads it, WHATEVER ITS FORMAT, whatever the
+ * file is called (Ivan, 2026-11-15: "it is not taking the lyrics to the
+ * Karaoke with the synced words already"). His word-timed YAML had been
+ * kept as the song's `.txt` by an import from before the formats were
+ * read, and the reader took any `.txt` for plain words: the song showed a
+ * line-timed `.lrc` instead and handed the Karaoke lines without words. A
+ * text in any of the formats the import reads (`readLyricsFormat`: the
+ * lines/words JSON and YAML, Spotify, Musixmatch, TTML, SRT, WebVTT) is now
+ * read as the timed lines it holds; LRC and plain words as before.
+ */
+const lyricsOfText = (
+  text: string,
+  source: TLyricsSource,
+  fileName?: string,
+): ILibraryLyrics | undefined => {
+  const read = readLyricsFormat(text);
+  if (read.lines !== undefined) {
+    const lines = libraryLinesOf(read.lines);
+    if (lines.some((line) => line.text !== '')) {
+      return {
+        kind: 'synced',
+        source,
+        ...(fileName === undefined ? {} : { fileName }),
+        lines,
+      };
+    }
+  }
+  return lyricsFromText(text, source, fileName);
+};
+
+/**
+ * How much timing a lyrics answer carries: words, then lines, then none. Of
+ * everything found, the richest wins; on a tie the first found, in the
+ * order tags, the `.lrc`, the `.txt`, FluidEQ's own folder. A line-timed
+ * `.lrc` from an older save used to win over word timing beside it.
+ */
+const timingRank = (lyrics: ILibraryLyrics): number => {
+  if (lyrics.kind === 'plain') {
+    return 0;
+  }
+  return lyrics.lines.some((line) => line.words !== undefined) ? 2 : 1;
+};
+
+/**
  * What the song's tags hold, in the order they were found: timed lines from
  * SYLT, and every lyrics text — which `lyricsFromText` reads as LRC where it
  * carries stamps.
@@ -185,7 +234,7 @@ const fromTags = async (trackPath: string): Promise<ILibraryLyrics[]> => {
     tags.forEach(({ id, value }) => {
       const name = id.toUpperCase();
       if (typeof value === 'string' && TEXT_TAGS.has(name)) {
-        const lyrics = lyricsFromText(value, 'tags');
+        const lyrics = lyricsOfText(value, 'tags');
         if (lyrics) {
           found.push(lyrics);
         }
@@ -200,7 +249,7 @@ const fromTags = async (trackPath: string): Promise<ILibraryLyrics[]> => {
         return;
       }
       if (typeof value.text === 'string') {
-        const lyrics = lyricsFromText(value.text, 'tags');
+        const lyrics = lyricsOfText(value.text, 'tags');
         if (lyrics) {
           found.push(lyrics);
         }
@@ -248,7 +297,7 @@ const fromStore = async (
         const lyrics =
           text === undefined
             ? undefined
-            : lyricsFromText(text, extension === '.lrc' ? 'lrc' : 'txt');
+            : lyricsOfText(text, extension === '.lrc' ? 'lrc' : 'txt');
         return lyrics === undefined ? undefined : { ...lyrics, kept: true };
       },
     ),
@@ -286,11 +335,11 @@ export const readTrackLyrics = async (
   const lrc =
     lrcText === undefined
       ? undefined
-      : lyricsFromText(lrcText, 'lrc', path.basename(lrcPath));
+      : lyricsOfText(lrcText, 'lrc', path.basename(lrcPath));
   const txt =
     txtText === undefined
       ? undefined
-      : lyricsFromText(txtText, 'txt', path.basename(txtPath));
+      : lyricsOfText(txtText, 'txt', path.basename(txtPath));
 
   const kept =
     storeDir === undefined ? [] : await fromStore(storeDir, trackPath);
@@ -298,8 +347,13 @@ export const readTrackLyrics = async (
   const candidates = [...tagged, lrc, txt, ...kept].filter(
     (lyrics): lyrics is ILibraryLyrics => lyrics !== undefined,
   );
-  const lyrics =
-    candidates.find((candidate) => candidate.kind === 'synced') ??
-    candidates.find((candidate) => candidate.kind === 'plain');
+  // The richest timing found, the first found among equals.
+  const lyrics = candidates.reduce<ILibraryLyrics | undefined>(
+    (best, candidate) =>
+      best === undefined || timingRank(candidate) > timingRank(best)
+        ? candidate
+        : best,
+    undefined,
+  );
   return lyrics === undefined ? { looked } : { lyrics, looked };
 };
