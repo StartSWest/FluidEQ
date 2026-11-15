@@ -148,6 +148,9 @@ const library: Partial<Dictionary> = {
   'library.trackCount': '{count} brani',
   'library.albumCount': '{count} album',
   'library.artistCount': '{count} artisti',
+  'library.trackCountOne': '1 brano',
+  'library.albumCountOne': '1 album',
+  'library.artistCountOne': '1 artista',
 
   'library.videos': 'Video',
   'library.videos.empty': 'Nessun video nelle cartelle che hai aggiunto.',

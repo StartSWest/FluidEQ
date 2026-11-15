@@ -65,8 +65,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // the window cannot have — it sizes the space it reserves from a real one.
   display: grid;
   min-width: 0;
-  gap: $spacing-xs;
-  padding: $spacing-s;
+  align-content: start;
+  // The words' room: 10px at the sides and foot, and the cover above them
+  // runs to the card's own edges (`.library-grid__art`) - the visualizer
+  // library's card, a picture over its words (Ivan, 2026-11-15: "the cover
+  // filling the top and nice descriptions").
+  gap: 3px;
+  padding: 0 10px 11px;
+  // NOT `overflow: hidden`, though it would clip the cover to the corners:
+  // a grid item that clips may shrink to nothing, and a grid of many rows in
+  // its fixed-height scroller then crushed every tile to 51px of cover
+  // (measured, the Songs shelf). The cover rounds its own top corners.
   color: inherit;
   text-align: left;
   cursor: pointer;
@@ -130,6 +139,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-grid__art {
   position: relative;
   display: block;
+  // Out over the card's side padding to its edges, its top corners the
+  // card's own (inside its 1px edge), its foot square on the words.
+  margin: 0 -10px 7px;
+
+  .library-cover-art {
+    border-radius: calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px) 0 0;
+  }
 }
 
 // Same shape, size and quiet colour as `.library-list__badge--pending`,
@@ -171,8 +187,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-grid__subtitle {
   @include truncate;
   display: block;
-  color: $text-faint;
+  color: $text-muted;
   font-size: $text-small;
+}
+
+// The facts line: year, songs and length, or a song's album, length and
+// format, quieter than the line above it, as the gallery card's version line.
+.library-grid__meta {
+  @include truncate;
+  display: block;
+  margin-top: 1px;
+  // Faint, never the dim grey: that one reads as switched off.
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
 }
 
 // *** The video section **************************************************

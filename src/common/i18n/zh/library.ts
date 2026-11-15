@@ -146,6 +146,9 @@ const library: Partial<Dictionary> = {
   'library.trackCount': '{count} 首歌曲',
   'library.albumCount': '{count} 张专辑',
   'library.artistCount': '{count} 位歌手',
+  'library.trackCountOne': '1 首歌曲',
+  'library.albumCountOne': '1 张专辑',
+  'library.artistCountOne': '1 位歌手',
 
   'library.videos': '视频',
   'library.videos.empty': '已添加的文件夹中没有视频。',

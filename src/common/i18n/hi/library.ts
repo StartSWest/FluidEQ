@@ -147,6 +147,9 @@ const library: Partial<Dictionary> = {
   'library.trackCount': '{count} गाने',
   'library.albumCount': '{count} एल्बम',
   'library.artistCount': '{count} कलाकार',
+  'library.trackCountOne': '1 गाना',
+  'library.albumCountOne': '1 एल्बम',
+  'library.artistCountOne': '1 कलाकार',
 
   'library.videos': 'वीडियो',
   'library.videos.empty': 'आपके जोड़े गए फ़ोल्डरों में कोई वीडियो नहीं है।',

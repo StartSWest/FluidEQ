@@ -145,6 +145,9 @@ const library = {
   'library.trackCount': '{count} songs',
   'library.albumCount': '{count} albums',
   'library.artistCount': '{count} artists',
+  'library.trackCountOne': '1 song',
+  'library.albumCountOne': '1 album',
+  'library.artistCountOne': '1 artist',
 
   'library.videos': 'Videos',
   'library.videos.empty': 'No videos in the folders you have added.',

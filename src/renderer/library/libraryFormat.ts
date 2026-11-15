@@ -32,6 +32,24 @@ export const formatCount = (count: number, locale: string): string => {
   }
 };
 
+/** The Library's counts, and the key that says each one of it. */
+const SINGULAR = {
+  'library.trackCount': 'library.trackCountOne',
+  'library.albumCount': 'library.albumCountOne',
+  'library.artistCount': 'library.artistCountOne',
+} as const;
+
+/**
+ * "1 album", never "1 albums": the singular from its own key, any other count
+ * from the plural's. One key per form, as the playlists' "1 song" already
+ * is, rather than a plural engine (`common/i18n`'s reason).
+ */
+export const countText = (
+  t: Translate,
+  key: keyof typeof SINGULAR,
+  count: number,
+): string => (count === 1 ? t(SINGULAR[key]) : t(key, { count }));
+
 /**
  * How long a run of songs lasts, in the words a person says it: "38 min",
  * "2 h 14 min". Under a minute is "1 min" rather than nothing, because a list

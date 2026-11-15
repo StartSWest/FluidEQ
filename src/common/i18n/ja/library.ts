@@ -150,6 +150,9 @@ const library: Partial<Dictionary> = {
   'library.trackCount': '{count} 曲',
   'library.albumCount': '{count} 枚のアルバム',
   'library.artistCount': '{count} 組のアーティスト',
+  'library.trackCountOne': '1 曲',
+  'library.albumCountOne': '1 枚のアルバム',
+  'library.artistCountOne': '1 組のアーティスト',
 
   'library.videos': '動画',
   'library.videos.empty': '追加したフォルダー内に動画がありません。',

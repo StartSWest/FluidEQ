@@ -151,6 +151,9 @@ const library: Partial<Dictionary> = {
   'library.trackCount': '{count} песен',
   'library.albumCount': '{count} альбомов',
   'library.artistCount': '{count} исполнителей',
+  'library.trackCountOne': '1 песня',
+  'library.albumCountOne': '1 альбом',
+  'library.artistCountOne': '1 исполнитель',
 
   'library.videos': 'Видео',
   'library.videos.empty': 'В добавленных папках нет видео.',

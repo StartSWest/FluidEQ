@@ -32,6 +32,9 @@ import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryFolderArt from './LibraryFolderArt';
+import { formatOf } from './libraryColumns';
+import { countText, formatLength } from './libraryFormat';
+import { formatDuration } from './player/NowPlayingBar';
 import { LibrarySectionBand } from './LibrarySectionHeading';
 import { usePlaylists } from './PlaylistContext';
 import {
@@ -108,12 +111,23 @@ const rememberGrid = (
   }
 };
 
+/** A tile's facts on one line, the empty ones left out. */
+const facts = (...parts: string[]) => parts.filter(Boolean).join(' · ');
+
 /** One tile: the raw values, turned into words at render time. */
 interface ITile {
   id: string;
   artId?: string;
   title: string;
   subtitle: string;
+  /**
+   * The third line, the facts a person picks a card by: an album's year,
+   * songs and length, a song's album, length and format, how many songs an
+   * artist, a genre or a folder holds (Ivan, 2026-11-15: "nice descriptions,
+   * useful ones, like the visualizer library's cards"). Empty where there is
+   * nothing worth the line.
+   */
+  meta: string;
   /** A song tile's root, to dim it when the drive is out. */
   rootId?: string;
   isPending: boolean;
@@ -375,6 +389,11 @@ const LibraryGridView = ({
           artId: item.artId,
           title: item.title || t('library.unknownAlbum'),
           subtitle: item.artist || t('library.unknownArtist'),
+          meta: facts(
+            item.year === undefined ? '' : String(item.year),
+            countText(t, 'library.trackCount', item.trackCount),
+            item.durationMs > 0 ? formatLength(item.durationMs, t) : '',
+          ),
           isPending: item.isPending,
         };
       case 'artist':
@@ -382,7 +401,8 @@ const LibraryGridView = ({
           id: item.id,
           artId: item.artId,
           title: item.name || t('library.unknownArtist'),
-          subtitle: t('library.albumCount', { count: item.albumCount }),
+          subtitle: countText(t, 'library.albumCount', item.albumCount),
+          meta: countText(t, 'library.trackCount', item.trackCount),
           isPending: item.isPending,
         };
       case 'genre':
@@ -393,7 +413,8 @@ const LibraryGridView = ({
             item.id === UNKNOWN_GENRE_ID
               ? t('library.genre.unknown')
               : item.name,
-          subtitle: t('library.artistCount', { count: item.artistCount }),
+          subtitle: countText(t, 'library.artistCount', item.artistCount),
+          meta: countText(t, 'library.trackCount', item.trackCount),
           isPending: item.isPending,
         };
       case 'folder':
@@ -406,7 +427,13 @@ const LibraryGridView = ({
           subtitle:
             folderParent === undefined
               ? item.id
-              : t('library.trackCount', { count: item.trackCount }),
+              : countText(t, 'library.trackCount', item.trackCount),
+          // Under the path, the count; inside the tree the count is the
+          // second line already.
+          meta:
+            folderParent === undefined
+              ? countText(t, 'library.trackCount', item.trackCount)
+              : '',
           isPending: item.isPending,
         };
       case 'track':
@@ -415,6 +442,13 @@ const LibraryGridView = ({
           artId: item.track.artId,
           title: item.track.title,
           subtitle: item.track.artist ?? '',
+          meta: facts(
+            item.track.album ?? '',
+            item.track.durationMs === undefined
+              ? ''
+              : formatDuration(item.track.durationMs),
+            formatOf(item.track.path),
+          ),
           rootId: item.track.rootId,
           isPending: item.track.isPending === true,
         };
@@ -443,6 +477,7 @@ const LibraryGridView = ({
           : 'library.playlist.songCount',
         { count: playlist.trackIds.length },
       ),
+      meta: '',
       isPending: false,
     };
   };
@@ -492,6 +527,7 @@ const LibraryGridView = ({
           </span>
           <span className="library-grid__title">{' '}</span>
           <small className="library-grid__subtitle">{' '}</small>
+          <small className="library-grid__meta">{' '}</small>
         </span>
       );
     }
@@ -545,6 +581,11 @@ const LibraryGridView = ({
         </span>
         <span className="library-grid__title">{tile.title}</span>
         <small className="library-grid__subtitle">{tile.subtitle}</small>
+        {/* Always drawn, a space when there is nothing to say: every tile is
+            one height, which the windowing measures from a real one. */}
+        <small className="library-grid__meta" title={tile.meta || undefined}>
+          {tile.meta || ' '}
+        </small>
       </button>
     );
   };
