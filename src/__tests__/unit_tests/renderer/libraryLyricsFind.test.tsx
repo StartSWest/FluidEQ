@@ -29,6 +29,7 @@ jest.mock('renderer/library/player/LibraryPlayerContext', () => ({
     isPlaying: false,
     seek: jest.fn(),
   }),
+  useLibraryPlayerSessionIfAny: () => undefined,
 }));
 
 const track = (id: string): ILibraryTrack => ({
@@ -144,7 +145,7 @@ describe('finding a song’s lyrics', () => {
         'noopener',
       ],
       [
-        'https://www.musixmatch.com/search/The%20Quay%20Harbour%20Lights',
+        'https://www.musixmatch.com/search?query=The+Quay+Harbour+Lights',
         '_blank',
         'noopener',
       ],

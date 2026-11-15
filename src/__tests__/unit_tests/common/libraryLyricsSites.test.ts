@@ -58,14 +58,15 @@ describe('lyrics site searches', () => {
       'https://genius.com/search?q=AC%2FDC%20Back%20in%20Black',
     );
     expect(lyricsSearchUrl(site('musixmatch'), song)).toBe(
-      'https://www.musixmatch.com/search/AC%2FDC%20Back%20in%20Black',
+      'https://www.musixmatch.com/search?query=AC%2FDC+Back+in+Black',
     );
   });
 
   it('puts nothing but the artist and title in the address', () => {
     LYRICS_SITES.forEach((candidate) => {
       const url = lyricsSearchUrl(candidate, song) ?? '';
-      const decoded = decodeURIComponent(url);
+      // A query value's spaces travel as `+`.
+      const decoded = decodeURIComponent(url.replace(/\+/g, ' '));
       ['listener', 'Private Folder', 'Secret Album Name', 'Rock', 'track-7f3a']
         .concat(['root-1', '.flac'])
         .forEach((private_) => expect(decoded).not.toContain(private_));
@@ -86,17 +87,26 @@ describe('lyrics site searches', () => {
       expect(url.host).toMatch(
         /^(lrclib\.net|genius\.com|www\.musixmatch\.com)$/,
       );
-      const query =
-        candidate.id === 'genius'
-          ? url.searchParams.get('q')
-          : decodeURIComponent(url.pathname.replace(/^\/search\//, ''));
+      let query: string | null;
+      if (candidate.id === 'genius') {
+        query = url.searchParams.get('q');
+      } else if (candidate.id === 'musixmatch') {
+        query = url.searchParams.get('query');
+      } else {
+        query = decodeURIComponent(url.pathname.replace(/^\/search\//, ''));
+      }
       expect(query).toBe('Ünder ⁄ Ñame Why? #1 & 50% off/on');
-      // Genius: `/search` and the one parameter `q`. The others: `/search/`
-      // and one segment, with no parameters at all.
+      // Genius and Musixmatch: `/search` and their one parameter. LRCLIB:
+      // `/search/` and one segment, with no parameters at all.
+      const shape = {
+        genius: [2, ['q']],
+        musixmatch: [2, ['query']],
+        lrclib: [3, []],
+      }[candidate.id];
       expect([
         url.pathname.split('/').length,
         [...url.searchParams.keys()],
-      ]).toEqual(candidate.id === 'genius' ? [2, ['q']] : [3, []]);
+      ]).toEqual(shape);
     });
   });
 

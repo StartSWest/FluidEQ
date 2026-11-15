@@ -30,9 +30,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * The address shapes were checked against each site on 2026-11-15: LRCLIB's
  * own router serves `/search/:keyword`, Genius's search form is a GET to
- * `/search` with `q`, and Musixmatch's search lives at `/search/<query>`
- * (it refuses scripted requests, so that one is the shape lyrics tools such
- * as spotDL build, not a page fetched here).
+ * `/search` with `q`, and Musixmatch's search is `/search?query=` - the
+ * address its own search box leaves, given by Ivan on 2026-11-15 after the
+ * `/search/<query>` path lyrics tools build answered "Forbidden".
  */
 
 export type TLyricsSiteId = 'lrclib' | 'genius' | 'musixmatch';
@@ -65,8 +65,13 @@ export const LYRICS_SITES: readonly ILyricsSite[] = [
     id: 'musixmatch',
     name: 'Musixmatch',
     isFreeSynced: false,
+    // `?query=`, its spaces as `+`: the path form `/search/<query>` answers
+    // "Forbidden" (Ivan, 2026-11-15, with the address of a search he made
+    // there: musixmatch.com/search?query=roberto+Jordan).
     searchUrl: (query) =>
-      `https://www.musixmatch.com/search/${encodeURIComponent(query)}`,
+      `https://www.musixmatch.com/search?query=${encodeURIComponent(
+        query,
+      ).replace(/%20/g, '+')}`,
   },
 ];
 
