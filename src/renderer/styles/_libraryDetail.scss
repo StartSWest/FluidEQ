@@ -560,6 +560,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
+  // A switch that is on (Shuffle while the player shuffles): the accent's
+  // tint and edge, the way the Library marks what is chosen, quieter than
+  // Play's filled accent beside it.
+  &.is-on {
+    background: $studio-select;
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-default 55%, transparent);
+    color: $secondary-light;
+
+    &:hover {
+      background: color-mix(in srgb, $secondary-default 18%, transparent);
+      box-shadow: inset 0 0 0 1px $secondary-default;
+    }
+  }
+
   &.is-icon {
     width: 30px;
     justify-content: center;

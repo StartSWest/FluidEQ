@@ -347,7 +347,9 @@ const LibraryDetail = ({
       ? folderAlbums.items[0]
       : undefined;
   // Shuffle needs the player; a panel drawn without one simply offers none.
-  const setShuffle = useLibraryPlayerSessionIfAny()?.setShuffle;
+  const playerSession = useLibraryPlayerSessionIfAny();
+  const setShuffle = playerSession?.setShuffle;
+  const isShuffled = playerSession?.isShuffled === true;
 
   /**
    * For a folder, its own files unfiltered: a folder with none is a way
@@ -607,7 +609,17 @@ const LibraryDetail = ({
 
   /** The record from a song drawn at random, with the player's Shuffle on
    * so the songs after it are drawn as well. */
+  /**
+   * Shuffle is a switch here as in the player (Ivan, 2026-11-15: "Aleatorio
+   * needs to toggle here too"): off, a press plays the record from a song
+   * picked at random with shuffle on; on, a press turns shuffle off and
+   * leaves the song playing.
+   */
   const handleShuffle = () => {
+    if (isShuffled) {
+      setShuffle?.(false);
+      return;
+    }
     loadTrackIds()
       .then((ids) => {
         const pick = ids[Math.floor(Math.random() * ids.length)];
@@ -673,6 +685,7 @@ const LibraryDetail = ({
           hasTracks={hasTracks}
           onPlay={handlePlay}
           onShuffle={setShuffle ? handleShuffle : undefined}
+          isShuffled={isShuffled}
           onReveal={
             (recordFolder !== undefined || isFolder) && firstSong
               ? () => {

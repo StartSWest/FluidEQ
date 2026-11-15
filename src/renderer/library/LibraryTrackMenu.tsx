@@ -54,7 +54,9 @@ interface ILibraryTrackMenuProps {
    * outward callbacks are: a caller with no player attached has no queue to
    * append to, and the item is then not drawn at all. */
   onQueueTracks?: (trackIds: readonly string[]) => void;
-  onReveal: (trackId: string) => void;
+  /** Show this file in Explorer. Absent where the place it is opened from
+   * already has its own Show in Explorer (the record's header). */
+  onReveal?: (trackId: string) => void;
   /**
    * A whole record that lives in one folder (`recordFolder` in the detail
    * header): Show in Explorer opens that folder. Absent where the songs are
@@ -275,7 +277,7 @@ const LibraryTrackMenu = ({
       {/* One file has a place on disk. A selection spanning four folders does
           not, and picking one of them to open would be answering a question
           nobody asked. */}
-      {isOne && (
+      {isOne && onReveal && (
         <button type="button" onClick={() => onReveal(single)}>
           <MenuIcon name="external" className="library-list__menu-icon" />
           <span>{t('library.reveal')}</span>

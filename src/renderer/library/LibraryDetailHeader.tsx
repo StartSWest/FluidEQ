@@ -53,6 +53,8 @@ interface ILibraryDetailHeaderProps {
   onShuffle?: () => void;
   /** Show the record's one folder in Explorer; absent when it has several. */
   onReveal?: () => void;
+  /** The player's shuffle is on: the Shuffle button is lit and turns it off. */
+  isShuffled?: boolean;
   /** Every id in the table, in its order, asked for when needed. */
   loadTrackIds: () => Promise<readonly string[]>;
   /** The one song, when the table holds exactly one. */
@@ -84,6 +86,7 @@ const LibraryDetailHeader = ({
   onPlay,
   onShuffle,
   onReveal,
+  isShuffled = false,
   loadTrackIds,
   onlyTrack,
   onQueueTracks,
@@ -229,7 +232,8 @@ const LibraryDetailHeader = ({
           {hasTracks && onShuffle && (
             <button
               type="button"
-              className="library-hero__button"
+              className={`library-hero__button${isShuffled ? ' is-on' : ''}`}
+              aria-pressed={isShuffled}
               onClick={onShuffle}
             >
               <MenuIcon name="shuffle" className="library-hero__glyph" />
@@ -294,18 +298,25 @@ const LibraryDetailHeader = ({
                 trackIds={menuTrackIds}
                 track={onlyTrack}
                 openPlaylistId={openPlaylistId}
-                onQueueTracks={onQueueTracks}
-                // Show in Explorer is only ever offered for one song, and a
-                // record of one is the only way this fires.
-                onReveal={(trackId) => {
-                  window.electron.ipcRenderer
-                    .revealLibraryTrack(trackId)
-                    .catch(() => undefined);
-                  setIsContainerMenuOpen(false);
-                }}
+                // Add to up next and Show in Explorer are buttons beside this
+                // menu, so the menu leaves them out rather than offering each
+                // twice (Ivan, 2026-11-15: "options are duplicated"). Shown
+                // in the menu only where the header has no button for it.
+                onReveal={
+                  onReveal
+                    ? undefined
+                    : (trackId) => {
+                        window.electron.ipcRenderer
+                          .revealLibraryTrack(trackId)
+                          .catch(() => undefined);
+                        setIsContainerMenuOpen(false);
+                      }
+                }
                 // The record's folder, when all of it lives in one.
                 onRevealFolder={
-                  recordFolder !== undefined && menuTrackIds[0] !== undefined
+                  !onReveal &&
+                  recordFolder !== undefined &&
+                  menuTrackIds[0] !== undefined
                     ? () => {
                         window.electron.ipcRenderer
                           .revealLibraryTrack(menuTrackIds[0])
