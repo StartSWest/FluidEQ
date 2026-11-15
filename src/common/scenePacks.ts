@@ -5,6 +5,10 @@ import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
 import { readSceneCamera, type ISceneCameraLimits } from './sceneCamera';
 import { readSceneFraming, type ISceneFraming } from './sceneFraming';
 import { readScenePointer, type IScenePointer } from './scenePointer';
+import {
+  readSceneWindowColours,
+  type ISceneWindowColours,
+} from './sceneWindowColours';
 import { MAX_SCENE_PALETTES } from './scenePalette';
 import { MAX_SCENE_COLOURS } from './sceneColourControl';
 import { readSceneWave, type ISceneWave } from './sceneWave';
@@ -169,6 +173,12 @@ export interface IScenePack {
    * mouse draws nothing over it.
    */
   pointer?: IScenePointer;
+  /**
+   * The colours it lends the window around it (`sceneWindowColours.ts`).
+   * Absent, the window takes colours from the scene's own palette by a fixed
+   * rule, or from its picture where it declares none.
+   */
+  windowColours?: ISceneWindowColours;
 }
 
 /**
@@ -352,6 +362,9 @@ export const normalizeScenePack = (given: unknown): IScenePack | null => {
     raw.pointer,
     ambient?.elements.map((element) => element.id),
   );
+  // All three colours or none, never refused: without them the window takes
+  // colours of its own from the scene.
+  const windowColours = readSceneWindowColours(raw.windowColours);
   return {
     schema: raw.schema,
     id: raw.id,
@@ -373,6 +386,7 @@ export const normalizeScenePack = (given: unknown): IScenePack | null => {
     ...(camera ? { camera } : {}),
     ...(framing ? { framing } : {}),
     ...(pointer ? { pointer } : {}),
+    ...(windowColours ? { windowColours } : {}),
   };
 };
 

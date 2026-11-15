@@ -268,6 +268,8 @@ const studio = {
   'studio.publish.sizeCode': 'Code und Einstellungen',
   'studio.publish.tooLarge':
     'Diese Szene ist größer als {limit}, die maximale Größe für eine Veröffentlichung. Machen Sie das Artwork kleiner (weniger oder kleinere Bilder) oder bitten Sie Ihre KI, sie zu verschlanken.',
+  'studio.publish.noWindowColours':
+    'Diese Szene legt noch nicht fest, welche Farben sie dem Fenster um sie herum gibt. Bitten Sie Ihre KI, die Fensterfarben hinzuzufügen, und veröffentlichen Sie dann.',
   'studio.publish.failed':
     'Die Szene konnte nicht veröffentlicht werden. Versuchen Sie es erneut.',
   'studio.publish.officialCopy':
@@ -815,6 +817,8 @@ const studio = {
     'Jede Szene braucht den Regler Daylight, {control} in params, und zeichnet bei 0 die Nacht und bei 100 den Tag.',
   'studio.problem.bad-ambient':
     'Einige ambient-Elemente oder -Regler in pack.json wurden weggelassen. Prüfen Sie Formen, Bewegungen, Farben, Anzahlen und was jeder Regler bewegt.',
+  'studio.problem.bad-window-colours':
+    'windowColours in pack.json braucht surface, accent und glow, jeweils eine Farbe wie #00e5cf.',
   'studio.problem.bad-world':
     'Die 3D-Welt enthält nichts, was diese Version zeichnen kann. Prüfen Sie Knoten, Materialien und Formeln.',
   'studio.problem.bad-model':

@@ -35,6 +35,8 @@ export interface IUsableScene {
    * range because the graph decides both before the scene has loaded.
    */
   wave?: ISceneWave;
+  /** The colours it lends the window, when its pack names them. */
+  windowColours?: IScenePack['windowColours'];
 }
 
 /**
@@ -87,6 +89,7 @@ const recompute = () => {
           swatch: pack.swatch,
           ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
           ...(pack.wave ? { wave: pack.wave } : {}),
+          ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
         }))
     : [];
   locked = canDraw

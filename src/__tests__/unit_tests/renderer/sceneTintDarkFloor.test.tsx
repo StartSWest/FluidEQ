@@ -39,6 +39,8 @@ jest.mock('../../../renderer/utils/memberScenes', () => ({
 jest.mock('../../../renderer/graph/sceneSky', () => ({
   measureSceneSky: () => Promise.resolve(undefined),
   measureStudioSky: () => Promise.resolve(undefined),
+  // A scene with no choices made is remembered under its own version.
+  sceneSkyVersion: (_lookId: string, version: string) => version,
 }));
 
 const root = document.documentElement;

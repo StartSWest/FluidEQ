@@ -236,6 +236,8 @@ const studio = {
   'studio.publish.sizeCode': '程式碼與設定',
   'studio.publish.tooLarge':
     '此場景超過了 {limit}，即場景可發佈的上限。請縮小其美術圖（減少圖片或使用更小的圖片），或請你的 AI 為它瘦身。',
+  'studio.publish.noWindowColours':
+    '此場景還沒有指定給周圍視窗的顏色。請讓你的 AI 加入視窗顏色，然後再發佈。',
   'studio.publish.failed': '該場景無法發布。再試一次。',
   'studio.publish.officialCopy':
     '該場景大部分是 FluidEQ 自己的場景之一。從他們那裡獲取想法，但在發布之前將場景變成你自己的。',
@@ -697,6 +699,8 @@ const studio = {
     '每個場景都需要日光控制，引數為 {control}，並在 0 處繪製夜晚，在 100 處繪製白天。',
   'studio.problem.bad-ambient':
     'pack.json 中的一些環境元素或控制被遺漏。檢查它們的形狀、動作、顏色、計數以及每個控制項的移動內容。',
+  'studio.problem.bad-window-colours':
+    'pack.json 中的 windowColours 需要 surface、accent 和 glow，每項都是類似 #00e5cf 的顏色。',
   'studio.problem.bad-world':
     '3D世界沒有這個版本可以畫的東西。檢查它的節點、材料和公式。',
   'studio.problem.bad-model':

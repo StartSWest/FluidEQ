@@ -12,12 +12,23 @@ import { isPremiumLookId } from 'common/scenePacks';
 import {
   measureSceneSky,
   measureStudioSky,
+  sceneSkyVersion,
   type TSkyMeasurement,
 } from '../graph/sceneSky';
 import { useSelectedLookId } from '../utils/graphStyle';
 import { LAGOON_SKY } from '../utils/rainbowPalette';
 import { tintedLagoon, useWindowTint } from '../utils/windowTint';
 import { skyFromSwatch } from '../utils/sceneTint';
+import {
+  sceneWindowColours,
+  skyFromWindowColours,
+  windowColoursFromStops,
+} from '../utils/sceneOwnColours';
+import {
+  useSceneColourControls,
+  useStudioAppColours,
+} from '../utils/sceneAppColours';
+import { useListenerParams } from '../utils/sceneParamStore';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
 import {
@@ -49,7 +60,10 @@ import {
  * belongs to the window: it stays while the graph is on another tab, and the
  * graph unmounts there.
  *
- * Every scene is measured once per version and remembered — a graph look by
+ * A scene that names the colours it lends the window, or has a palette to
+ * work them out from (`sceneOwnColours.ts`), is shown in those at once and
+ * never drawn to find out. Any other scene is measured once per version and
+ * remembered — a graph look by
  * its id, a Studio project by its own — so a launch opens straight in the
  * colour it closed in, before the scene lists have even arrived, and going
  * back to a project is its colour at once. While a graph look nobody has
@@ -86,15 +100,37 @@ const SceneTint = () => {
   // and the swatch its picker row is drawn in (`skyFromSwatch`), as text so
   // the effect below compares it by value. Undefined until the lists arrive,
   // or for a scene that is not usable.
-  const { version, swatch } = useMemo(() => {
+  const controls = useSceneColourControls(isSceneLook ? lookId : '');
+  const chosen = useListenerParams(lookId);
+  const studioStops = useStudioAppColours();
+  const { version, swatch, own } = useMemo(() => {
     const scene = isPremiumLookId(lookId)
       ? scenes.find((entry) => entry.lookId === lookId)
       : memberScenes.find((entry) => entry.lookId === lookId);
+    // The colours the scene names, from its listing, so they are on the
+    // window as it is chosen; or, once a pack of it has been drawn, the ones
+    // its palette gives as the listener's choices leave it
+    // (`sceneOwnColours.ts`). As text, compared by value below.
+    const windowColours =
+      scene?.windowColours ??
+      (controls &&
+        sceneWindowColours(controls, chosen ? { params: chosen } : {}));
     return {
       version: scene && (scene.revision ?? String(scene.version)),
       swatch: scene?.swatch.join(' '),
+      own:
+        windowColours &&
+        `${windowColours.surface} ${windowColours.accent} ${windowColours.glow}`,
     };
-  }, [lookId, scenes, memberScenes]);
+  }, [lookId, scenes, memberScenes, controls, chosen]);
+  // The Studio's project, as its pack names its colours or as the member
+  // edits its palette on the bench.
+  const studioOwn = useMemo(() => {
+    const named = studio?.playing?.pack.windowColours;
+    const colours =
+      named ?? (studioStops ? windowColoursFromStops(studioStops) : undefined);
+    return colours && `${colours.surface} ${colours.accent} ${colours.glow}`;
+  }, [studio, studioStops]);
 
   // A layout effect, so a launch's first frame is already in the remembered
   // colour instead of flashing the theme first.
@@ -119,6 +155,17 @@ const SceneTint = () => {
       isCurrent = false;
     };
 
+    // Colours a scene says it lends are shown as they are, and nothing is
+    // drawn to second-guess them: the same on every computer, from the first
+    // frame.
+    const ownSky = (text: string) => {
+      const [surface, accent, glow] = text.split(' ');
+      return skyFromWindowColours({ surface, accent, glow });
+    };
+    if (studio && studioOwn) {
+      showSceneSky(ownSky(studioOwn), fade, tone);
+      return stop;
+    }
     if (studio) {
       // The project's own colour straight away, as last measured — and the
       // theme for a project never measured, never the previous project's
@@ -159,6 +206,10 @@ const SceneTint = () => {
       showSceneSky(undefined, fade);
       return stop;
     }
+    if (own) {
+      showSceneSky(ownSky(own), fade, tone);
+      return stop;
+    }
     const remembered = recallSceneSky(lookId);
     if (remembered) {
       showSceneSky(remembered.sky ?? undefined, fade, tone);
@@ -170,11 +221,28 @@ const SceneTint = () => {
         showSceneSky(provisional, fade, tone);
       }
     }
-    if (version !== undefined && remembered?.version !== version) {
-      showMeasured(measureSceneSky(lookId, version));
+    // Measured for the choices the listener made in it, which can swap the
+    // palette it is drawn in, and remembered under them.
+    if (
+      version !== undefined &&
+      remembered?.version !== sceneSkyVersion(lookId, version, chosen)
+    ) {
+      showMeasured(measureSceneSky(lookId, version, chosen));
     }
     return stop;
-  }, [studio, isEnabled, isSceneLook, lookId, version, swatch, tone, tint]);
+  }, [
+    studio,
+    studioOwn,
+    isEnabled,
+    isSceneLook,
+    lookId,
+    version,
+    swatch,
+    own,
+    chosen,
+    tone,
+    tint,
+  ]);
 
   return null;
 };

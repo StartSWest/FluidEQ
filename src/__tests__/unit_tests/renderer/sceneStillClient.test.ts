@@ -115,7 +115,22 @@ it('answers each request with its own reply, whatever order they come in', async
   await expect(still).resolves.toBe(blob);
 });
 
-it("sends the page's accent, which a worker cannot read", async () => {
+it("sends a picture the page's accent, which a worker cannot read", async () => {
+  const client = load()();
+  client.drawStillInWorker(pack);
+  await settle();
+  const [request] = FakeWorker.made[0].sent;
+  if (request.kind !== 'still') {
+    throw new Error('a still was asked for');
+  }
+  expect(request.accent[0]).toBeCloseTo(0x52 / 255);
+  expect(request.accent[1]).toBeCloseTo(0xe9 / 255);
+});
+
+it("measures a scene's colour in one fixed grey accent, never a scene's tint of it", async () => {
+  // The page's --accent (#52e9dc here) is whatever scene tinted the window
+  // last; measured in it, a scene drawing in the app's accent took the
+  // previous scene's colour, and kept it across launches.
   const client = load()();
   client.sampleSceneInWorker(pack);
   await settle();
@@ -123,8 +138,9 @@ it("sends the page's accent, which a worker cannot read", async () => {
   if (request.kind !== 'sample') {
     throw new Error('a sample was asked for');
   }
-  expect(request.accent[0]).toBeCloseTo(0x52 / 255);
-  expect(request.accent[1]).toBeCloseTo(0xe9 / 255);
+  // The same on every computer and in every theme, and a grey, which the
+  // measurement weighs out.
+  expect(request.accent).toEqual([0.5, 0.5, 0.5]);
 });
 
 it('passes a caught moment’s frames for a captured picture', async () => {

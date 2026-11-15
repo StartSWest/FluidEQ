@@ -43,6 +43,7 @@ export const EVERY_PACK_FIELD: Record<keyof IScenePack, true> = {
   camera: true,
   framing: true,
   pointer: true,
+  windowColours: true,
 };
 
 /**
@@ -213,6 +214,7 @@ const fullPack = (): IScenePack =>
         },
       ],
     },
+    windowColours: { surface: '#1d2b4f', accent: '#5fd4ff', glow: '#ff8fd0' },
   });
 
 /**

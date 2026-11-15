@@ -1073,6 +1073,29 @@ describe('publishing from the Studio', () => {
     expect(publishRequests()).toHaveLength(1);
   });
 
+  // A published scene names the colours it lends the window (Ivan,
+  // 2026-11-14: "we want the agent to give those colours"), so everybody who
+  // plays it sees its maker's window rather than one the app worked out.
+  it('publishes no scene that does not name its window colours', async () => {
+    setup();
+    const manifest = path.join(String(folder), 'pack.json');
+    const named = JSON.parse(await fs.promises.readFile(manifest, 'utf8'));
+    const { windowColours, ...without } = named;
+    expect(windowColours).toBeDefined();
+    await fs.promises.writeFile(manifest, JSON.stringify(without));
+    expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+      ok: false,
+      reason: 'no-window-colours',
+    });
+    expect(calls).toEqual([]);
+    // The control: the same scene naming them is sent.
+    await fs.promises.writeFile(manifest, JSON.stringify(named));
+    expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+      ok: true,
+    });
+    expect(publishRequests()).toHaveLength(1);
+  });
+
   it("says so when the server finds the scene is mostly one of FluidEQ's", async () => {
     setup();
     publishRefusedWith(() => fakeResponse(422, { error: 'official_copy' }));

@@ -12,6 +12,7 @@ import {
   readColourValue,
 } from './sceneColourControl';
 import { isWholeShowWhen } from './sceneShowWhen';
+import { windowColoursProblem } from './sceneWindowColours';
 import {
   isChoiceEntry,
   isChoiceIcon,
@@ -194,6 +195,10 @@ export type TMemberProblemCode =
   // No control answering to the time of day (`sceneDaylight.ts`).
   | 'no-daylight'
   | 'bad-ambient'
+  // `windowColours` (`sceneWindowColours.ts`) that are not three #rrggbb
+  // colours. None at all is not a problem for a build - the window takes
+  // colours from the scene's palette - and is refused only at publishing.
+  | 'bad-window-colours'
   // The 3D world (`sceneWorld.ts`) left nothing to draw, a model in it is not
   // one the engine reads (`worldModelCheck.ts`), or its models together are
   // past the world's triangles or image pixels.
@@ -497,6 +502,10 @@ export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
     : [];
   if (swatch.length < 2 || swatch.length > 4) {
     add('bad-swatch');
+  }
+  // Absent is fine here: a build plays with colours of the app's choosing.
+  if (windowColoursProblem(raw.windowColours) === 'bad') {
+    add('bad-window-colours');
   }
   if (raw.artwork !== undefined && !normalizeSceneArtwork(raw.artwork)) {
     add('bad-artwork', 'artwork');

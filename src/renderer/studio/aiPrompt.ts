@@ -157,6 +157,7 @@ pack.json:
   "contract": ${SCENE_CONTRACT_VERSION},
   "names": { "en": "Short Name" },
   "swatch": ["#rrggbb", "#rrggbb", "#rrggbb"],
+  "windowColours": { "surface": "#rrggbb", "accent": "#rrggbb", "glow": "#rrggbb" },
   "sourceFile": "scene.frag",
   "framing": { "focus": [0.5, 0.45], "narrowest": 1.7778 },
   "params": [
@@ -184,6 +185,9 @@ pack.json:
 - names: English required; add es, pt, fr, de, it, ru, zh, zh-Hant, ja, ko, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.
+- windowColours: required to publish. The colours FluidEQ's window wears
+  round my scene, chosen from the scene's own (the fluideq-finish skill says
+  how). Choose them again whenever the scene's colours change.
 - params: the scene's own sliders, up to 8, which FluidEQ shows me by
   itself with the names you give them - and the Daylight control, which it
   sets itself (see DAY AND NIGHT). Add one for each thing my idea is

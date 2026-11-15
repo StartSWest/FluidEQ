@@ -268,6 +268,10 @@ export const starterManifest = (name: string, id: string) =>
       contract: SCENE_CONTRACT_VERSION,
       names: { en: name },
       swatch: ['#0a0c22', '#ff5c9d', '#9fe6ff'],
+      // What the window wears round it, from its own swatch - the night, the
+      // pink and the ice blue - as every scene the Studio publishes names
+      // (`sceneWindowColours.ts`).
+      windowColours: { surface: '#0a0c22', accent: '#ff5c9d', glow: '#9fe6ff' },
       sourceFile: 'scene.frag',
       // The time of day first, as the Studio asks of every scene
       // (`sceneDaylight.ts`): the shader draws night at 0 and day at 100.

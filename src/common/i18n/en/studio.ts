@@ -266,6 +266,8 @@ const studio = {
   'studio.publish.sizeCode': 'Code and settings',
   'studio.publish.tooLarge':
     'This scene is over {limit}, the most a scene can be published at. Make its artwork smaller (fewer or smaller pictures), or ask your AI to slim it down.',
+  'studio.publish.noWindowColours':
+    'This scene doesn’t say yet which colours it gives the window around it. Ask your AI to add its window colours, then publish.',
   'studio.publish.failed': 'The scene could not be published. Try again.',
   'studio.publish.officialCopy':
     'Most of this scene is one of FluidEQ’s own. Take ideas from them, but make the scene your own before you publish it.',
@@ -810,6 +812,8 @@ const studio = {
     'Every scene needs the Daylight control, {control} in params, and draws night at 0 and day at 100.',
   'studio.problem.bad-ambient':
     'Some ambient elements or controls in pack.json were left out. Check their shapes, motions, colours, counts and what each control moves.',
+  'studio.problem.bad-window-colours':
+    'windowColours in pack.json needs surface, accent and glow, each a colour like #00e5cf.',
   'studio.problem.bad-world':
     'The 3D world has nothing this version can draw. Check its nodes, materials and formulas.',
   'studio.problem.bad-model':

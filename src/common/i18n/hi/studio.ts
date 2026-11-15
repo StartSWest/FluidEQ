@@ -259,6 +259,8 @@ const studio = {
   'studio.publish.sizeCode': 'कोड और सेटिंग्स',
   'studio.publish.tooLarge':
     'यह सीन {limit} से बड़ा है, जो किसी सीन को प्रकाशित करने की अधिकतम सीमा है। इसका आर्टवर्क छोटा करें (कम या छोटी तस्वीरें), या अपने AI से इसे हल्का करने को कहें।',
+  'studio.publish.noWindowColours':
+    'यह सीन अभी नहीं बताता कि यह अपने आसपास की विंडो को कौन-से रंग देता है। अपने AI से विंडो के रंग जोड़ने को कहें, फिर पब्लिश करें।',
   'studio.publish.failed': 'सीन प्रकाशित नहीं हो सका। फिर कोशिश करें।',
   'studio.publish.officialCopy':
     'यह सीन ज़्यादातर FluidEQ के एक सीन जैसा ही है। उनसे आइडिया लें, लेकिन प्रकाशित करने से पहले सीन को अपना बनाएँ।',
@@ -783,6 +785,8 @@ const studio = {
     'हर सीन को Daylight नियंत्रण चाहिए: params में {control} रखें, और 0 पर रात और 100 पर दिन बनाएँ।',
   'studio.problem.bad-ambient':
     'pack.json के कुछ ambient तत्व या नियंत्रण छोड़ दिए गए। उनके आकार, गति, रंग, संख्या और हर नियंत्रण क्या बदलता है, जाँचें।',
+  'studio.problem.bad-window-colours':
+    'pack.json में windowColours को surface, accent और glow चाहिए, हर एक #00e5cf जैसा रंग।',
   'studio.problem.bad-world':
     'इस 3D दुनिया में ऐसा कुछ नहीं है जिसे यह संस्करण बना सके। इसके नोड, सामग्री और सूत्र जाँचें।',
   'studio.problem.bad-model':

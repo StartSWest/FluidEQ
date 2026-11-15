@@ -33,6 +33,8 @@ export interface IUsableMemberScene {
    * range because the graph decides both before the scene has loaded.
    */
   wave?: ISceneWave;
+  /** The colours it lends the window, when its pack names them. */
+  windowColours?: IScenePack['windowColours'];
   own: boolean;
   /** Who sent it, for a scene another member made. */
   authorName?: string | null;
@@ -83,6 +85,9 @@ const recompute = () => {
             ? { spectrumRange: scene.spectrumRange }
             : {}),
           ...(scene.wave ? { wave: scene.wave } : {}),
+          ...(scene.windowColours
+            ? { windowColours: scene.windowColours }
+            : {}),
         }))
     : [];
   locked = canDraw

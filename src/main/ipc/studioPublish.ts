@@ -291,6 +291,13 @@ export const registerStudioPublish = ({
       if (tooLargeToPublish(build.pack)) {
         return { ok: false, reason: 'too-large' };
       }
+      // A published scene says which colours it lends the window (Ivan,
+      // 2026-11-14: "we want the agent to give those colours"), so everybody
+      // who plays it sees the window its maker chose rather than one the app
+      // worked out. A build without them still plays in the Studio.
+      if (!build.pack.windowColours) {
+        return { ok: false, reason: 'no-window-colours' };
+      }
       timeline.phase('read');
       const sceneId = build.pack.id;
       // The account the server will record the agreement for is the one this

@@ -106,9 +106,11 @@ export {
  * Which way of measuring a sky the answers below come from. Raise it with any
  * change to what `findSceneSky` returns for the same frames: remembered skies
  * from another measurement are thrown away and the scenes measured again.
- * 2 added the accent, 3 the colour for "on", 4 grey skies, 5 the palette.
+ * 2 added the accent, 3 the colour for "on", 4 grey skies, 5 the palette, 6
+ * the colours a scene names or its palette gives (`sceneOwnColours.ts`)
+ * ahead of any drawing, and drawings in the theme's own accent.
  */
-export const SCENE_SKY_MEASUREMENT = 5;
+export const SCENE_SKY_MEASUREMENT = 6;
 
 /** Ten degrees a bin. */
 const HUE_BINS = 36;
@@ -190,6 +192,12 @@ const MIN_ACTIVE_SHARE = 0.006;
  */
 const WARNING_HUES = [14, 66] as const;
 const MIN_WARNING_SEPARATION = 35;
+
+/** Whether `hue` is far enough from red and amber to say "on". */
+export const clearsWarningHues = (hue: number) =>
+  WARNING_HUES.every(
+    (warning) => hueDistance(hue, warning) >= MIN_WARNING_SEPARATION,
+  );
 /**
  * The palette's size, and how far apart round the wheel its colours stand: a
  * rainbow of five is five colours somebody would name, not a sky and its own
@@ -399,9 +407,7 @@ export const findSceneSky = (
       (buttonHue === undefined
         ? apart(centre, sky.hue)
         : hueDistance(centre, buttonHue) >= MIN_ACCENT_SEPARATION) &&
-      WARNING_HUES.every(
-        (warning) => hueDistance(centre, warning) >= MIN_WARNING_SEPARATION,
-      ),
+      clearsWarningHues(centre),
   );
   const palette: ISceneColour[] = [];
   const isApart = (hue: number) =>

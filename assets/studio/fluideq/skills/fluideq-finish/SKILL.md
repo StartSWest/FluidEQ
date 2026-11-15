@@ -18,6 +18,31 @@ wide; nothing black and no hard line under the Compact player's panel.
 (The fluideq-views skill has what right looks like in each, and how to
 carry a scene on past its panel.)
 
+If the change touched colour, or the scene is new: open `preview.png` and
+set `windowColours` in `pack.json` from what you see - the colours
+FluidEQ's window wears round the scene, so the whole app looks like it
+belongs to the picture. FluidEQ will not publish the scene without them.
+`{ "surface": "#rrggbb", "accent": "#rrggbb", "glow": "#rrggbb" }`, all
+three, chosen from the scene's OWN colours as they are on screen, never new
+ones. With palettes, take them from the first palette's stops as shown.
+
+- `surface`: the colour covering most of the picture - its sky, water or
+  night, never its brightest detail. A neon skyline's is the violet behind
+  the signs, not the signs. FluidEQ keeps every pane as light as the
+  member's theme makes it and takes only this colour's hue and how colourful
+  it is, so text always reads. A grey (`#3a3a3a`) is right for a scene that
+  is mostly grey, like polished metal.
+- `accent`: the scene's second colour, in front of its sky - the signs,
+  the lit windows, the fish, the flame. Buttons and switches point with it.
+  Clearly a different hue from `surface` (about 50 degrees round the wheel
+  or more) and colourful enough to point with. A scene of truly one colour
+  takes a brighter, more saturated version of the surface's.
+- `glow`: a third colour of the scene, for "on" and the window's glow - a
+  moon, a heart, a few sparks. Clearly apart from `accent`, and never a red,
+  a pink close to red, an orange or an amber: FluidEQ says off and waiting
+  with those, and leaves a glow near them unused. If the only third
+  colour is one of those, repeat the accent.
+
 If the change touched light, colour, sky, fog or materials: `look_at_scene`
 with `sliders: { "daylight": 0 }` and `sound: "silence"`, and read its
 **Night check**. It must say PASSES - the background at 6% or under. TOO

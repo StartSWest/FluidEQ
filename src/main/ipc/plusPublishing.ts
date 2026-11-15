@@ -67,7 +67,8 @@ export type TPublishOutcome =
         | 'no-build'
         | 'no-picture'
         | 'inspect-only'
-        | 'too-large';
+        | 'too-large'
+        | 'no-window-colours';
       /** When a block the admin chose ends (`blocked-scene`, `blocked-account`). */
       blockedUntil?: string;
     };

@@ -16,6 +16,7 @@ import {
 } from '../../common/scenePacks';
 import storedScenePack, { storedFormOf } from '../../common/sceneStoredPack';
 import type { ISceneWave } from '../../common/sceneWave';
+import type { ISceneWindowColours } from '../../common/sceneWindowColours';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import writeFileAtomically from '../atomicWrite';
 import { logSceneFailure } from '../sceneFailures';
@@ -67,6 +68,12 @@ export interface IMemberSceneSummary {
   spectrumRange?: readonly [number, number];
   /** The wave its author built it around, when the pack names one. */
   wave?: ISceneWave;
+  /**
+   * The colours it lends the window, when the pack names them: carried on
+   * the summary so the window is in them as the scene is chosen, before the
+   * scene has loaded.
+   */
+  windowColours?: ISceneWindowColours;
   /**
    * From the store: built on this computer by the account it is stored
    * under, rather than installed or sent. Through `visibleScenes`: made by
@@ -343,6 +350,7 @@ export const createMemberSceneStore = ({
       swatch: pack.swatch,
       ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
       ...(pack.wave ? { wave: pack.wave } : {}),
+      ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
       own: !imported,
       ...(imported ? { authorName: imported.authorName } : {}),
     };

@@ -268,6 +268,8 @@ const studio = {
   'studio.publish.sizeCode': 'Code et réglages',
   'studio.publish.tooLarge':
     'Cette scène dépasse {limit}, la taille maximale pour publier une scène. Allégez ses illustrations (moins d’images ou des images plus petites), ou demandez à votre IA de l’alléger.',
+  'studio.publish.noWindowColours':
+    'Cette scène n’indique pas encore les couleurs qu’elle donne à la fenêtre qui l’entoure. Demandez à votre IA d’ajouter ses couleurs de fenêtre, puis publiez.',
   'studio.publish.failed': 'La scène n’a pas pu être publiée. Réessayez.',
   'studio.publish.officialCopy':
     'Cette scène est pour l’essentiel une scène de FluidEQ. Inspirez-vous-en, mais faites-en votre propre scène avant de la publier.',
@@ -807,6 +809,8 @@ const studio = {
     'Chaque scène a besoin du contrôle Daylight, {control} dans params, et dessine la nuit à 0 et le jour à 100.',
   'studio.problem.bad-ambient':
     'Des éléments ou contrôles ambient de pack.json ont été écartés. Vérifiez leurs formes, mouvements, couleurs, nombres et ce que règle chaque contrôle.',
+  'studio.problem.bad-window-colours':
+    'windowColours dans pack.json demande surface, accent et glow, chacun une couleur comme #00e5cf.',
   'studio.problem.bad-world':
     'Le monde 3D ne contient rien que cette version puisse dessiner. Vérifiez ses nœuds, matériaux et formules.',
   'studio.problem.bad-model':

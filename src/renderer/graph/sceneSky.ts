@@ -10,12 +10,16 @@ import { isPremiumLookId, packIdOfLook } from 'common/scenePacks';
 import type { IScenePack } from 'common/scenePacks';
 import { loadMemberScene } from '../utils/memberScenes';
 import { loadScenePack } from '../utils/scenePacks';
+import { sceneOwnSky } from '../utils/sceneOwnColours';
+import type { TListenerParams } from '../utils/sceneParamStore';
 import { findSceneSky, type ISceneSky } from '../utils/sceneTint';
 import { rememberSceneSky, studioSkyKey } from '../utils/sceneTintStore';
 import { sampleSceneInWorker } from './sceneStillClient';
 
 /**
- * What colour a scene's sky is, measured by drawing the scene.
+ * What colour a scene lends the window: the colours it names or its palette
+ * gives (`sceneOwnColours.ts`), and only for a scene that says neither, its
+ * sky measured by drawing the scene.
  *
  * A pack says nothing about its sky: its swatch is the picker icon's few
  * colours, which for a neon skyline are the signs, not the night behind them.
@@ -49,10 +53,68 @@ const inTurn = <T>(work: () => Promise<T>): Promise<T> => {
   return run;
 };
 
+/**
+ * Which of each scene's controls are choices, learned from its pack the
+ * first time it is measured. A choice can swap the palette a scene is drawn
+ * in (`sceneShowWhen.ts`), so the colour is measured, and remembered, for
+ * the choices the listener made: measured at the pack's own, the panes kept
+ * the default palette's colour while Colourful mode wore the chosen one.
+ */
+const choiceIds = new Map<string, readonly string[]>();
+
+/** The listener's choices in `lookId`, of those its pack offers, in its order. */
+const chosenIn = (lookId: string, params: TListenerParams | undefined) =>
+  (choiceIds.get(lookId) ?? []).flatMap((id) =>
+    params?.[id] === undefined ? [] : [[id, params[id]] as const],
+  );
+
+/**
+ * The version `lookId`'s colour is remembered under: the scene's own, and
+ * the choices the listener made in it. A scene measured before its choices
+ * are known is remembered under its version alone, and measured again for
+ * them the next time it is asked.
+ */
+export const sceneSkyVersion = (
+  lookId: string,
+  version: string,
+  params?: TListenerParams,
+) => {
+  const chosen = chosenIn(lookId, params);
+  return chosen.length
+    ? `${version}#${chosen.map(([id, value]) => `${id}=${value}`).join(',')}`
+    : version;
+};
+
+/** `pack` set to the listener's choices, as it is drawn for them. */
+const withChoices = (
+  pack: IScenePack,
+  chosen: ReturnType<typeof chosenIn>,
+): IScenePack => {
+  if (chosen.length === 0) {
+    return pack;
+  }
+  const values = new Map<string, number>(chosen);
+  return {
+    ...pack,
+    params: pack.params.map((param) =>
+      values.has(param.id)
+        ? { ...param, value: values.get(param.id) ?? param.value }
+        : param,
+    ),
+  };
+};
+
 const skyOf = async (
   what: string,
   pack: IScenePack | undefined,
 ): Promise<TSkyMeasurement> => {
+  // What the scene says comes before any drawing: the same on every
+  // computer, with nothing compiled to know it. The pack carries the
+  // listener's choices already (`withChoices`).
+  const own = pack && sceneOwnSky(pack);
+  if (own) {
+    return own;
+  }
   const pixels = pack ? await sampleSceneInWorker(pack) : undefined;
   if (!pixels) {
     console.error(`Could not draw scene "${what}" to measure its colour.`);
@@ -69,27 +131,50 @@ const skyOf = async (
  */
 const measurements = new Map<string, Promise<TSkyMeasurement>>();
 
-/** `lookId`'s sky at `version`. */
+/** `lookId`'s sky at `version`, as the listener's choices in it leave it. */
 export const measureSceneSky = (
   lookId: string,
   version: string,
+  params?: TListenerParams,
 ): Promise<TSkyMeasurement> => {
-  const key = `${lookId}@${version}`;
-  const running = measurements.get(key);
+  // Until its pack has been read, which controls are choices is not known,
+  // and a measurement is kept only once it is, under what it was for.
+  const known = choiceIds.has(lookId);
+  const key = `${lookId}@${sceneSkyVersion(lookId, version, params)}`;
+  const running = known ? measurements.get(key) : undefined;
   if (running) {
     return running;
   }
   const measurement = inTurn(async () => {
-    const sky = await skyOf(lookId, await loadPack(lookId));
+    const pack = await loadPack(lookId);
+    if (pack) {
+      choiceIds.set(
+        lookId,
+        pack.params.filter((param) => param.options).map((param) => param.id),
+      );
+    }
+    const chosen = chosenIn(lookId, params);
+    const sky = await skyOf(lookId, pack && withChoices(pack, chosen));
     if (sky !== undefined) {
-      rememberSceneSky(lookId, version, sky);
+      rememberSceneSky(lookId, sceneSkyVersion(lookId, version, params), sky);
     }
     return sky;
   }).catch((error: unknown) => {
     console.error(`Could not measure the colour of scene "${lookId}":`, error);
     return undefined;
   });
-  measurements.set(key, measurement);
+  if (known) {
+    measurements.set(key, measurement);
+  } else {
+    measurement
+      .then(() =>
+        measurements.set(
+          `${lookId}@${sceneSkyVersion(lookId, version, params)}`,
+          measurement,
+        ),
+      )
+      .catch(() => undefined);
+  }
   return measurement;
 };
 

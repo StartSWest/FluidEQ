@@ -9,6 +9,7 @@ import {
   type IScenePackEnvelope,
 } from '../common/scenePacks';
 import type { ISceneWave } from '../common/sceneWave';
+import type { ISceneWindowColours } from '../common/sceneWindowColours';
 import { verifyScenePackEnvelope } from './scenePackVerify';
 import { logSceneFailure } from './sceneFailures';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
@@ -73,6 +74,12 @@ export interface IScenePackSummary {
   spectrumRange?: IScenePack['spectrumRange'];
   /** The wave its author built it around, when the pack names one. */
   wave?: ISceneWave;
+  /**
+   * The colours it lends the window, when the pack names them: carried on
+   * the summary so the window is in them as the scene is chosen, before the
+   * scene has loaded.
+   */
+  windowColours?: ISceneWindowColours;
 }
 
 /** One row of the server's listing — the envelope, plus what the cache compares. */
@@ -283,6 +290,7 @@ export const createScenePackStore = ({
     swatch: pack.swatch,
     ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
     ...(pack.wave ? { wave: pack.wave } : {}),
+    ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
   });
 
   /** Both names a pack can be stored under; see `packPath`. */

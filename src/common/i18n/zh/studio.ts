@@ -236,6 +236,8 @@ const studio = {
   'studio.publish.sizeCode': '代码和设置',
   'studio.publish.tooLarge':
     '此场景超过了 {limit}，即场景可发布的上限。请缩小其美术图（减少图片或使用更小的图片），或让你的 AI 为它瘦身。',
+  'studio.publish.noWindowColours':
+    '此场景还没有指定给周围窗口的颜色。请让你的 AI 添加窗口颜色，然后再发布。',
   'studio.publish.failed': '无法发布场景。请重试。',
   'studio.publish.officialCopy':
     '这个场景的大部分内容与 FluidEQ 的某个场景相同。可以从中汲取灵感，但请先把它变成你自己的场景再发布。',
@@ -714,6 +716,8 @@ const studio = {
     '每个场景都需要 Daylight 控件：在 params 中加入 {control}，0 时画夜晚，100 时画白天。',
   'studio.problem.bad-ambient':
     'pack.json 中的部分 ambient 元素或控件被忽略了。请检查它们的形状、运动、颜色、数量以及每个控件调节的内容。',
+  'studio.problem.bad-window-colours':
+    'pack.json 中的 windowColours 需要 surface、accent 和 glow，每项都是类似 #00e5cf 的颜色。',
   'studio.problem.bad-world':
     '这个 3D 世界里没有此版本能绘制的内容。请检查它的节点、材质和公式。',
   'studio.problem.bad-model':

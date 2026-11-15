@@ -24,6 +24,8 @@ let mockLookId = 'premium:bloom';
 // The colours of the scene's picker icon, which every scene the list offers
 // carries — none, unless a test gives it some.
 let mockSwatch: string[] = [];
+// The colours the scene names for the window, when a test gives it some.
+let mockWindowColours: Record<string, string> | undefined;
 const mockMeasureScene = jest.fn();
 const mockMeasureStudio = jest.fn();
 
@@ -32,7 +34,13 @@ jest.mock('../../../renderer/utils/graphStyle', () => ({
 }));
 jest.mock('../../../renderer/utils/scenePacks', () => ({
   useUsableScenes: () => [
-    { id: 'bloom', lookId: 'premium:bloom', version: 3, swatch: mockSwatch },
+    {
+      id: 'bloom',
+      lookId: 'premium:bloom',
+      version: 3,
+      swatch: mockSwatch,
+      ...(mockWindowColours ? { windowColours: mockWindowColours } : {}),
+    },
   ],
 }));
 jest.mock('../../../renderer/utils/memberScenes', () => ({
@@ -41,6 +49,8 @@ jest.mock('../../../renderer/utils/memberScenes', () => ({
 jest.mock('../../../renderer/graph/sceneSky', () => ({
   measureSceneSky: (...args: unknown[]) => mockMeasureScene(...args),
   measureStudioSky: (...args: unknown[]) => mockMeasureStudio(...args),
+  // A scene with no choices made is remembered under its own version.
+  sceneSkyVersion: (_lookId: string, version: string) => version,
 }));
 
 // The measurement the app stores now, whatever its number: written as a
@@ -74,6 +84,7 @@ beforeEach(() => {
   window.localStorage.setItem('fluideq.theme', 'black');
   mockLookId = 'premium:bloom';
   mockSwatch = [];
+  mockWindowColours = undefined;
   mockMeasureScene.mockReset().mockResolvedValue(undefined);
   mockMeasureStudio.mockReset().mockResolvedValue(undefined);
   const style = document.createElement('style');
@@ -124,6 +135,34 @@ const mount = () => {
 // has their colors cant be like that due to day or night just darker or
 // lighter").
 describe('the graph’s visualizer', () => {
+  // A scene that names its window colours (Ivan, 2026-11-14: "we want the
+  // agent to give those colours") is shown in them as it is chosen, on every
+  // computer the same, and never drawn to second-guess them.
+  it('wears the colours a scene names at once, and never draws it to measure', () => {
+    mockWindowColours = {
+      surface: '#1d2b4f',
+      accent: '#5fd4ff',
+      glow: '#7dffb0',
+    };
+    // Even over a remembered measurement of another colour.
+    remember([['premium:bloom', '3', sky(30)]]);
+    const { store } = mount();
+    expect(root).toHaveAttribute('data-scene-tint');
+    const shown = store.getShownSceneSky();
+    expect(Math.abs((shown?.hue ?? 0) - 266.3)).toBeLessThan(1);
+    expect(mockMeasureScene).not.toHaveBeenCalled();
+  });
+
+  it('control: a scene naming none is measured, as before', () => {
+    remember([['premium:bloom', '2', sky(30)]]);
+    mount();
+    expect(mockMeasureScene).toHaveBeenCalledWith(
+      'premium:bloom',
+      '3',
+      undefined,
+    );
+  });
+
   it('opens the window in the colour it was last measured, before anything is drawn', () => {
     remember([['premium:bloom', '3', sky(300)]]);
     mount();
@@ -140,20 +179,32 @@ describe('the graph’s visualizer', () => {
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
-    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
+    expect(mockMeasureScene).toHaveBeenCalledWith(
+      'premium:bloom',
+      '3',
+      undefined,
+    );
   });
 
   // The control: with no swatch there is nothing to lend before measuring.
   it('lends nothing before measuring a scene with no swatch', () => {
     mount();
     expect(root).not.toHaveAttribute('data-scene-tint');
-    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
+    expect(mockMeasureScene).toHaveBeenCalledWith(
+      'premium:bloom',
+      '3',
+      undefined,
+    );
   });
 
   it('measures a version it has not seen, keeping the colour it had meanwhile', () => {
     remember([['premium:bloom', '2', sky(300)]]);
     mount();
-    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
+    expect(mockMeasureScene).toHaveBeenCalledWith(
+      'premium:bloom',
+      '3',
+      undefined,
+    );
   });
 
   // Brightness tones the colour; it is not a new measurement. Under the old
@@ -171,7 +222,11 @@ describe('the graph’s visualizer', () => {
     remember([['premium:bloom', '3', sky(300)]], MEASUREMENT - 1);
     const { store } = mount();
     expect(store.recallSceneSky('premium:bloom')).toBeUndefined();
-    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
+    expect(mockMeasureScene).toHaveBeenCalledWith(
+      'premium:bloom',
+      '3',
+      undefined,
+    );
   });
 
   it('puts the theme back when its mode is the theme', () => {

@@ -66,6 +66,7 @@ export const restoredManifest = (pack: IScenePack) =>
       ...(pack.camera ? { camera: pack.camera } : {}),
       ...(pack.framing ? { framing: pack.framing } : {}),
       ...(pack.pointer ? { pointer: pack.pointer } : {}),
+      ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
     },
     null,
     2,

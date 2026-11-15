@@ -264,6 +264,9 @@ const untilHidden = (done: AbortSignal): Promise<void> =>
     );
   });
 
+/** The accent a scene is measured in: the same grey on every computer. */
+export const MEASURING_ACCENT: [number, number, number] = [0.5, 0.5, 0.5];
+
 /**
  * `pack`'s showcase frames, drawn small and read back as RGBA, at the time
  * of day its author set it at. They are read for the scene's colour, and a
@@ -273,6 +276,15 @@ const untilHidden = (done: AbortSignal): Promise<void> =>
  * 2026-10-14: "each scene has their colors cant be like that due to day or
  * night just darker or lighter"). The Brightness tones the colour found here
  * (`sceneTintStore.ts`); it never chooses it.
+ *
+ * And in a fixed, colourless accent, never the page's. The page's
+ * `--accent` is whatever scene tinted the window last, so a scene that
+ * draws in the app's accent was measured in the previous scene's colour: the
+ * answer depended on which scene happened to be on screen before it, and was
+ * remembered so across launches. The theme's own accent would still differ
+ * from one theme to the next; a grey is the same everywhere and is weighed
+ * out of the measurement as a grey, so only the scene's own colours count
+ * (`MEASURING_ACCENT`).
  */
 export const sampleSceneInWorker = async (
   pack: IScenePack,
@@ -282,7 +294,7 @@ export const sampleSceneInWorker = async (
     await ask<'sample'>({
       kind: 'sample',
       pack,
-      accent: pageAccent(),
+      accent: MEASURING_ACCENT,
       daylight: authoredDaylight(pack),
     })
   )?.pixels;

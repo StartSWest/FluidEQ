@@ -260,6 +260,8 @@ const studio = {
   'studio.publish.sizeCode': 'コードと設定',
   'studio.publish.tooLarge':
     'このシーンは公開できる上限の {limit} を超えています。アートワークを小さくする（画像を減らす・小さくする）か、AI に軽量化を頼んでください。',
+  'studio.publish.noWindowColours':
+    'このシーンは、周りのウィンドウに使う色をまだ指定していません。AI にウィンドウの色を追加してもらってから公開してください。',
   'studio.publish.failed':
     'シーンを公開できませんでした。もう一度お試しください。',
   'studio.publish.officialCopy':
@@ -795,6 +797,8 @@ const studio = {
     'すべてのシーンに Daylight コントロールが必要です。params に {control} を入れ、0 で夜、100 で昼を描いてください。',
   'studio.problem.bad-ambient':
     'pack.json の ambient の要素かコントロールの一部が使われませんでした。形、動き、色、数、各コントロールが動かすものを確認してください。',
+  'studio.problem.bad-window-colours':
+    'pack.json の windowColours には surface、accent、glow が必要です。どれも #00e5cf のような色で指定します。',
   'studio.problem.bad-world':
     'この 3D ワールドには、このバージョンで描けるものがありません。ノード、マテリアル、数式を確認してください。',
   'studio.problem.bad-model':

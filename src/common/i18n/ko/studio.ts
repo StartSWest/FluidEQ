@@ -256,6 +256,8 @@ const studio = {
   'studio.publish.sizeCode': '코드 및 설정',
   'studio.publish.tooLarge':
     '이 장면은 게시할 수 있는 최대 크기인 {limit}를 넘습니다. 아트워크를 줄이거나(이미지 수를 줄이거나 더 작게) AI에게 가볍게 만들어 달라고 요청하세요.',
+  'studio.publish.noWindowColours':
+    '이 장면은 주변 창에 줄 색을 아직 정하지 않았습니다. AI에게 창 색을 추가해 달라고 한 다음 게시하세요.',
   'studio.publish.failed': '장면을 게시할 수 없습니다. 다시 시도해 보세요.',
   'studio.publish.officialCopy':
     '이 장면의 대부분은 FluidEQ의 장면 중 하나입니다. 그들로부터 아이디어를 얻고, 게시하기 전에 장면을 자신만의 것으로 만드십시오.',
@@ -768,6 +770,8 @@ const studio = {
     '모든 장면에는 일광 제어(매개변수에 {control})가 필요하며 밤을 0으로, 낮을 100으로 그립니다.',
   'studio.problem.bad-ambient':
     'pack.json의 일부 주변 요소 또는 컨트롤이 생략되었습니다. 모양, 움직임, 색상, 개수 및 각 컨트롤이 움직이는 것을 확인하세요.',
+  'studio.problem.bad-window-colours':
+    'pack.json의 windowColours에는 surface, accent, glow가 필요하며, 각각 #00e5cf 같은 색이어야 합니다.',
   'studio.problem.bad-world':
     '3D 세계에는 이 버전에서 그릴 수 있는 것이 없습니다. 노드, 재료 및 공식을 확인하십시오.',
   'studio.problem.bad-model':

@@ -146,6 +146,11 @@ const buildRawPack = async (folder: string, drafts = NO_DRAFTS) => {
       ...(manifest.camera === undefined ? {} : { camera: manifest.camera }),
       ...(manifest.framing === undefined ? {} : { framing: manifest.framing }),
       ...(manifest.pointer === undefined ? {} : { pointer: manifest.pointer }),
+      // The colours the scene lends the window, which its AI chooses
+      // (`sceneWindowColours.ts`); read and checked by the pack's own reader.
+      ...(manifest.windowColours === undefined
+        ? {}
+        : { windowColours: manifest.windowColours }),
     },
     artworkHash,
   };
