@@ -21,6 +21,7 @@ import useLibraryWorkspaceShelf from './useLibraryWorkspaceShelf';
 import useLibraryWorkspaceNavigation from './useLibraryWorkspaceNavigation';
 import useLibrarySteps from './useLibrarySteps';
 import LibraryWorkspaceView from './LibraryWorkspaceView';
+import useVideoFullScreenExit from './useVideoFullScreenExit';
 
 export interface ILibraryWorkspaceProps {
   /** Hidden instead of unmounted, matching KaraokeWorkspace and VideoBrowser:
@@ -49,6 +50,7 @@ const LibraryWorkspace = ({
     revealRequest,
   });
   const navigation = useLibraryWorkspaceNavigation(shelf);
+  useVideoFullScreenExit(shelf.videoTrackId, isFullScreen, onToggleFullScreen);
   const steps = useLibrarySteps(shelf, navigation);
   return (
     <LibraryWorkspaceView

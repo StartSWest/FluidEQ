@@ -16,7 +16,7 @@ import '../styles/LibraryPlaceBar.scss';
 
 /** What is open beneath the folder: one album, artist, genre or playlist. */
 export interface ILibraryPlaceRecord {
-  kind: 'album' | 'artist' | 'genre' | 'playlist';
+  kind: 'album' | 'artist' | 'genre' | 'playlist' | 'video';
   name: string;
 }
 

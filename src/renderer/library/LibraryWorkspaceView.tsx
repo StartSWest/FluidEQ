@@ -118,6 +118,8 @@ const LibraryWorkspaceView = ({
     playlistsWereReset,
     upNext,
     videoTrackId,
+    videoTitle,
+    closeVideo,
     isUpNextCollapsed,
     setIsUpNextCollapsed,
     upNextWidth,
@@ -225,9 +227,12 @@ const LibraryWorkspaceView = ({
 
   // Withheld while a record is open, because this orders the SHELF and the
   // record replaces it — except in Cover Flow, whose record opens under the
-  // row it reorders. Withheld on Playlists, which keep their own order.
+  // row it reorders. Withheld on Playlists, which keep their own order, and
+  // over a film, which has the tab and nothing to order.
   const canSort =
-    !(isDrilledIn && viewMode !== 'coverflow') && browseMode !== 'playlist';
+    !(isDrilledIn && viewMode !== 'coverflow') &&
+    browseMode !== 'playlist' &&
+    videoTrackId === undefined;
 
   const upNextCount = upNextTotal(upNext, upNextRestTotal);
   /** The picture owns the screen: no bar, no rail, no status line. */
@@ -355,9 +360,19 @@ const LibraryWorkspaceView = ({
                   onSortDirection={canSort ? handleSortDirection : undefined}
                   query={query}
                   onQuery={handleQuery}
+                  // Over a video the back arrow leaves the film for the shelf
+                  // it was opened from, where the picture's own Back button
+                  // used to float (Ivan, 2026-11-15: "improve the video view,
+                  // that back button and things, to be like the music with
+                  // the navigator").
                   history={
                     videoTrackId
-                      ? undefined
+                      ? {
+                          canGoBack: true,
+                          canGoForward: false,
+                          onGoBack: closeVideo,
+                          onGoForward: () => undefined,
+                        }
                       : {
                           canGoBack,
                           canGoForward,
@@ -377,8 +392,9 @@ const LibraryWorkspaceView = ({
                 />
                 {/* Where the reader stands, over every shelf and view. On the
                     Folders shelf inside a folder the path is the start, as
-                    in a file manager. Not over a video, which has the tab. */}
-                {trackCount > 0 && !videoTrackId && (
+                    in a file manager. Over a video, the film is the last
+                    step, and any step before it leaves the film for it. */}
+                {trackCount > 0 && (
                   <LibraryPlaceBar
                     shelf={
                       browseMode === 'folder' &&
@@ -389,9 +405,23 @@ const LibraryWorkspaceView = ({
                     }
                     folderPath={openFolderPath}
                     roots={roots}
-                    record={placeRecord}
-                    onAllMusic={handleAllMusic}
-                    onOpenFolder={handlePlaceFolder}
+                    record={
+                      videoTitle === undefined
+                        ? placeRecord
+                        : { kind: 'video', name: videoTitle }
+                    }
+                    onAllMusic={() => {
+                      if (videoTrackId) {
+                        closeVideo();
+                      }
+                      handleAllMusic();
+                    }}
+                    onOpenFolder={(folder) => {
+                      if (videoTrackId) {
+                        closeVideo();
+                      }
+                      handlePlaceFolder(folder);
+                    }}
                   />
                 )}
               </div>

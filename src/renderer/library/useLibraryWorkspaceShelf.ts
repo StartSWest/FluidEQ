@@ -110,7 +110,14 @@ const useLibraryWorkspaceShelf = ({
     track: playingTrack,
     isPlaying,
     seek,
+    closeVideo,
   } = useLibraryPlayerSession();
+  /** The film on the tab, named in the place bar after the shelf it was
+   * opened from. */
+  const videoTitle =
+    videoTrackId !== undefined && playingTrack?.id === videoTrackId
+      ? playingTrack.title
+      : undefined;
 
   /**
    * The Up Next panel's fold, and the width it takes when open.
@@ -843,6 +850,8 @@ const useLibraryWorkspaceShelf = ({
     appendToQueue,
     upNext,
     videoTrackId,
+    videoTitle,
+    closeVideo,
     playingTrack,
     isPlaying,
     seek,

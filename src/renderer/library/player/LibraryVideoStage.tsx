@@ -166,22 +166,6 @@ const LibraryVideoStage = ({
   }, [videoTrackId]);
 
   /**
-   * Back: out of full screen as well as out of the video.
-   *
-   * Leaving the picture while the window stays full screen puts the reader on
-   * a library shelf with no titlebar and no way back to the rest of the app —
-   * a mode with nothing left in it that the mode was for. The window comes
-   * down first, so there is never a frame of a full-screen tab with no video
-   * in it.
-   */
-  const goBack = () => {
-    if (isFullScreen) {
-      onToggleFullScreen();
-    }
-    closeVideo();
-  };
-
-  /**
    * A press pauses or plays; a double-press goes full screen and leaves the
    * film as it was (Ivan, 2026-11-15: "when double clicking for fullscreen
    * don't make the video stop, only when the user clicks once"). The two
@@ -270,13 +254,17 @@ const LibraryVideoStage = ({
           machine already answers to — a button in the corner is a third
           spelling of a command nobody was looking for one for, and it cost
           the top-right corner of every video to say it. */}
-      {!isHidden && (
+      {/* Only in full screen, where the bar is not drawn; in the tab the
+          bar's own back arrow and place bar lead out of the film. */}
+      {!isHidden && isFullScreen && (
         <button
           type="button"
           className="button small library-video-stage__back"
           aria-label={t('library.back')}
           title={t('library.back')}
-          onClick={goBack}
+          // Out of full screen as well: `useVideoFullScreenExit` takes the
+          // window down whenever the film leaves.
+          onClick={closeVideo}
         >
           <svg viewBox="0 0 20 20" aria-hidden="true">
             <path d="M12 4l-6 6 6 6" />

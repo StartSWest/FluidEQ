@@ -108,8 +108,9 @@ const NOT_TEXT = /[\u0000-\u0008\u000b\u000e-\u001f\u007f]/g;
 
 /** A NUL anywhere, or more than one character in a hundred that is a
  * control character: a binary renamed, or a UTF-16 file with no mark.
- * A real lyrics file can carry a stray one an editor left. */
-const looksBinary = (text: string): boolean => {
+ * A real lyrics file can carry a stray one an editor left. Subtitles brought
+ * to a video are held to the same test (`subtitleImport.ts`). */
+export const looksBinary = (text: string): boolean => {
   if (text.includes('\u0000')) {
     return true;
   }
