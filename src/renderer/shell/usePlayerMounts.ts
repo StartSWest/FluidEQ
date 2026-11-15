@@ -58,7 +58,6 @@ const usePlayerMounts = ({
   const isVideoTab = activeWorkspaceTab === 'video';
   const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
-  const isDspTab = activeWorkspaceTab === 'dsp';
   const playingOwner = usePlaybackOwner();
   const transportIdentities = useTransportIdentitySources();
 
@@ -140,15 +139,15 @@ const usePlayerMounts = ({
     isRecentlyHeard: isMediaRecentlyHeard,
   });
   const keepLibraryMounted = keepsPlayerMounted({
-    // The native DSP engine lives in this provider as well. If it has already
-    // been opened, the visible DSP rack is an active consumer even though the
-    // Library shelf itself is not the selected tab. So is the amp's open
-    // queue deck (`playerWantsLibrary`).
-    isActive:
-      isLibraryTab ||
-      isDspTab ||
-      playerWantsLibrary ||
-      showsLibraryGraphBackdrop,
+    // The amp's open queue deck is an active consumer (`playerWantsLibrary`).
+    // The DSP tab is not, though the native DSP host lives in this provider:
+    // the host only carries the rack for the Library's own songs, and while
+    // one plays or was the last thing played the rules below keep it anyway.
+    // Kept for the DSP tab as well, a silent Library and its host stayed in
+    // memory there and nowhere else (Ivan, 2026-11-15: "DSP to Library shows
+    // instant because we keep it in memory - we cannot"). With no host the
+    // DSP page shows the state it shows before the Library is first opened.
+    isActive: isLibraryTab || playerWantsLibrary || showsLibraryGraphBackdrop,
     isPlaying:
       playingOwner === 'library' ||
       transportIdentities.library?.isPlaying === true,
