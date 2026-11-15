@@ -265,6 +265,34 @@ const LibraryListView = ({
     rows?.want(start, end);
   }, [rows, start, end]);
 
+  /**
+   * THE MARK MOVES ON WITH THE MUSIC when it was on the song that ended
+   * (Ivan, 2026-11-15, "bug fix": the marked row one above the playing one).
+   * A Surprise me pick, a reveal or a press marks the song as it starts; the
+   * queue then moved to the next song and the mark stayed on the one that
+   * had finished, so the table showed one song chosen and another playing.
+   * A row the reader marked while something else played keeps its mark: only
+   * a mark that was on the playing song follows it. A pause is not a change
+   * of song (`playingTrackId` is nothing while paused).
+   */
+  const activeIdRef = useRef(activeId);
+  activeIdRef.current = activeId;
+  const lastPlayingIdRef = useRef(playingTrackId);
+  useEffect(() => {
+    if (playingTrackId === undefined) {
+      return;
+    }
+    const previous = lastPlayingIdRef.current;
+    lastPlayingIdRef.current = playingTrackId;
+    if (
+      previous !== undefined &&
+      previous !== playingTrackId &&
+      activeIdRef.current === previous
+    ) {
+      rememberActive(playingTrackId);
+    }
+  }, [playingTrackId, rememberActive]);
+
   /** Read by the reveal and the selection, which must not re-run for every
    * page that lands. */
   const listRef = useRef(list);

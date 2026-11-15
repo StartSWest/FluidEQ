@@ -259,6 +259,26 @@ const LibraryGridView = ({
     [resetKey],
   );
 
+  // The mark moves on with the music when it was on the tile that stopped
+  // playing - the reason `LibraryListView` gives at length.
+  const activeIdRef = useRef(activeId);
+  activeIdRef.current = activeId;
+  const lastPlayingIdRef = useRef(playingItemId);
+  useEffect(() => {
+    if (playingItemId === undefined) {
+      return;
+    }
+    const previous = lastPlayingIdRef.current;
+    lastPlayingIdRef.current = playingItemId;
+    if (
+      previous !== undefined &&
+      previous !== playingItemId &&
+      activeIdRef.current === previous
+    ) {
+      rememberActive(playingItemId);
+    }
+  }, [playingItemId, rememberActive]);
+
   // Back to where the reader left this grid, or to the top. Keyed on what the
   // grid MEANS, never on its rows, which change under a scan.
   useLayoutEffect(() => {
