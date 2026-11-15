@@ -28,9 +28,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // knob, and nine pages overrode its size to four others.
 //
 // THE HALF BLOCK, picked from four on the design canvas ("let's go with D,
-// but make them a bit bigger, they are too small"): a 38x20 track with 3px
-// corners and a hairline, and a block that fills half of it - grey on the
-// left when off, the accent on the right when on. Three tries were sent back
+// but make them a bit bigger, they are too small"): a 38x20 track with the
+// buttons' 6px corners and a hairline, and a block that fills half of it -
+// grey on the left when off, the accent on the right when on. Three tries
+// were sent back
 // before it: a small square dark knob on a solid accent track, a white knob,
 // and a round accent knob in a tinted track.
 //
@@ -58,7 +59,9 @@ $switch-height: 20px;
   box-sizing: border-box;
   align-items: center;
   border: 1px solid $border-subtle;
-  border-radius: 3px;
+  // The small buttons' own corner (Ivan, 2026-11-15: "same rounded like the
+  // buttons, it is too square"); 3px read as a different family beside them.
+  border-radius: $radius-xs;
   background: $track-well;
   box-shadow: none;
   cursor: pointer;
@@ -72,7 +75,9 @@ $switch-height: 20px;
     left: 1px;
     width: calc((var(--switch-width) - 2px) / 2 - 1px);
     height: calc(var(--switch-height) - 4px);
-    border-radius: 2px;
+    // The track's corner less the 2px between them, so the curves run
+    // parallel.
+    border-radius: calc(#{$radius-xs} - 2px);
     background: color-mix(in srgb, $edge-tint 26%, transparent);
     box-shadow: none;
     transition:
