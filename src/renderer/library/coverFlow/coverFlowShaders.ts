@@ -101,7 +101,15 @@ export const REFLECTION_FRAGMENT = /* glsl */ `
 `;
 
 /** The light behind the row: the centre cover's colour, a soft halo
- * around where the centre cover stands. Drawn straight in clip space. */
+ * around where the centre cover stands, low and quiet. Drawn straight in
+ * clip space.
+ *
+ * Kept off the top: at 0.36 and spread over the whole stage it washed the
+ * space above the row in the cover's colour, which read as a coloured sky
+ * over the covers (Ivan, 2026-11-15: "let's not have too much glow on cover
+ * art, at least not on top"). It is half as strong, tighter, and fades out
+ * above the centre cover, so it lights only what the row stands in front of
+ * and the floor under it. */
 export const HALO_VERTEX = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -118,8 +126,10 @@ export const HALO_FRAGMENT = /* glsl */ `
   void main() {
     vec2 p = vUv - vec2(0.5, uAnchor);
     p.x *= uAspect;
-    float halo = exp(-dot(p, p) * 5.5);
-    gl_FragColor = vec4(uGlow, halo * 0.36);
+    float halo = exp(-dot(p, p) * 8.0);
+    // Full below the centre, gone a quarter of the stage above it.
+    float below = 1.0 - smoothstep(uAnchor - 0.05, uAnchor + 0.25, vUv.y);
+    gl_FragColor = vec4(uGlow, halo * below * 0.18);
     #include <colorspace_fragment>
     gl_FragColor.rgb *= gl_FragColor.a;
   }
