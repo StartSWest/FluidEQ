@@ -24,11 +24,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Fix tags *********************************************************************
 //
-// One readable column: Back, the album's name and one sentence, then two
-// cards — the album's values and each song's number and title — every value
-// in a box, what it replaces said under it or struck through beside it. The
-// rules wait folded at the foot (`_libraryTagsFixRules.scss`). On the editor
-// page's own frame (`.library-tags-set`).
+// Fix is the album editor's own action now: the record's chip that opens
+// it, the line that says what it typed in, and — for a folder of several
+// albums — the list to pick one from.
 
 // The record's facts line offers Fix as one quiet chip, counting nothing.
 .library-hero__meta-dot {
@@ -65,230 +63,55 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 13px;
 }
 
-// A form reads down one column; past ~900px the eye loses the row.
-.library-tags-fix__page {
+// "FluidEQ filled in what was missing…": one line over the album, in the
+// accent's faint fill, the same colour the changed fields wear.
+.library-tags-set__fixed {
+  display: flex;
+  margin: 0 0 18px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: $radius-m;
+  background: $studio-select;
+  color: $text-primary;
+  font-size: $studio-text-tree;
+  line-height: 1.45;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    margin-top: 1px;
+    stroke: $secondary-light;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &.is-nothing {
+    background: $studio-surface;
+    color: $studio-t2;
+
+    svg {
+      stroke: $studio-t3;
+    }
+  }
+}
+
+// *** A folder of several albums: pick one ***********************************
+
+.library-tags-fix-albums {
   display: grid;
   max-width: 900px;
-  gap: 16px;
+
+  .library-tags__group {
+    margin-top: 0;
+  }
 }
 
-.library-tags-fix__top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.library-tags-fix__head {
+.library-tags-fix-albums__row {
   display: grid;
-  gap: 2px;
-
-  h2 {
-    margin: 0;
-    font-size: 1.375rem;
-    font-weight: $weight-bold;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-  }
-}
-
-.library-tags-fix__lead {
-  max-width: 62ch;
-  margin: 4px 0 0;
-  color: $studio-t2;
-  font-size: $studio-text-tree;
-  line-height: 1.5;
-}
-
-.library-tags-fix__reading {
-  max-width: 420px;
-}
-
-// *** The cards ********************************************************************
-
-.library-tags-fix__card {
-  display: grid;
-  min-width: 0;
-  padding: 4px 16px 8px;
-  border-radius: $radius-l;
-  background: $studio-surface;
-}
-
-.library-tags-fix__card-title {
-  margin: 12px 0 4px;
-  color: $studio-t3;
-  font-size: $studio-text-label;
-  font-weight: $weight-bold;
-  @include tracking(0.1em);
-  text-transform: uppercase;
-}
-
-// An album value: the tick, its name, the box, and under the box where it
-// came from and what the songs say now.
-.library-tags-fix-field {
-  display: grid;
-  grid-template-columns: 16px 150px minmax(0, 1fr);
-  align-items: start;
-  gap: 0 14px;
-  padding: 10px 0;
-
-  & + & {
-    box-shadow: inset 0 1px 0 $studio-hair;
-  }
-
-  > input[type='checkbox'] {
-    @include checkbox-face;
-
-    // Centred on the 32px box beside it.
-    margin: 8px 0 0;
-  }
-
-  &.is-off {
-    .library-tags-fix-field__label,
-    .library-tags-fix-field__value {
-      opacity: 0.45;
-    }
-  }
-}
-
-.library-tags-fix-field__label {
-  color: $studio-t2;
-  font-size: $studio-text-tree;
-  line-height: 32px;
-}
-
-.library-tags-fix-field__value {
-  display: grid;
-  min-width: 0;
-  gap: 5px;
-}
-
-.library-tags-fix-field__facts {
-  color: $studio-t3;
-  font-size: $studio-text-meta;
-  overflow-wrap: anywhere;
-}
-
-// A song: the tick, its number, its title, and what the title replaces.
-.library-tags-fix-song {
-  display: grid;
-  min-height: 46px;
-  grid-template-columns: 16px 64px minmax(0, 1.3fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 0 12px;
-  padding: 6px 0;
-  box-shadow: inset 0 1px 0 $studio-hair;
-
-  > input[type='checkbox'] {
-    @include checkbox-face;
-
-    margin: 0;
-  }
-
-  &.is-head {
-    min-height: 26px;
-    padding: 0;
-    box-shadow: none;
-    color: $studio-t3;
-    font-size: $studio-text-label;
-    font-weight: $weight-bold;
-    @include tracking(0.06em);
-    text-transform: uppercase;
-  }
-
-  &.is-off {
-    .library-tags-fix-song__no,
-    .library-tags-fix-song__title,
-    .library-tags-fix-song__before {
-      opacity: 0.45;
-    }
-  }
-}
-
-.library-tags-fix-song__no,
-.library-tags-fix-song__title {
-  min-width: 0;
-}
-
-.library-tags-fix-song__now {
-  display: block;
-  padding-left: 11px;
-  color: $studio-t2;
-  font-size: $studio-text-tree;
-  @include truncate;
-}
-
-.library-tags-fix-song__before {
-  min-width: 0;
-  color: $studio-t3;
-  font-size: $studio-text-meta;
-  @include truncate;
-
-  del {
-    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
-    text-decoration-thickness: 1px;
-  }
-}
-
-// *** The rules, folded ************************************************************
-
-.library-tags-fix__settings {
-  min-width: 0;
-
-  > summary {
-    display: inline-flex;
-    height: 30px;
-    align-items: center;
-    gap: 6px;
-    padding: 0 10px 0 8px;
-    border-radius: $radius-xs;
-    color: $studio-t2;
-    font-size: $studio-text-tree;
-    list-style: none;
-    cursor: pointer;
-
-    &::-webkit-details-marker {
-      display: none;
-    }
-
-    &::before {
-      width: 6px;
-      height: 6px;
-      border-right: 1.5px solid currentColor;
-      border-bottom: 1.5px solid currentColor;
-      content: '';
-      transform: rotate(-45deg);
-      transition: transform 130ms ease;
-    }
-
-    &:hover {
-      background: $studio-surface;
-      color: $text-primary;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-  }
-
-  &[open] > summary::before {
-    transform: rotate(45deg);
-  }
-
-  // One column: side by side, the four rules' headings wrapped to different
-  // heights and their rows stood out of line.
-  .library-tags-fix__rules {
-    max-width: 560px;
-    padding: 4px 16px 12px;
-  }
-}
-
-// *** A folder: its albums ******************************************************
-
-.library-tags-fix__album {
-  display: grid;
-  min-height: 52px;
+  min-height: 56px;
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
@@ -296,7 +119,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: inset 0 1px 0 $studio-hair;
 }
 
-.library-tags-fix__album-name {
+.library-tags-fix-albums__name {
   display: grid;
   min-width: 0;
   font-size: $studio-text-tree;
@@ -312,52 +135,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.library-tags-fix__album-state {
-  color: $studio-t2;
+.library-tags-fix-albums__state {
+  color: $secondary-light;
   font-size: $studio-text-meta;
+
+  &.is-none {
+    color: $studio-t3;
+  }
 }
 
 @container library (max-width: #{$bp-md}) {
-  .library-tags-fix__card {
-    padding: 4px 12px 8px;
-  }
-
-  // The name over its box: a 150px column leaves the box nothing.
-  .library-tags-fix-field {
-    grid-template-columns: 16px minmax(0, 1fr);
-    gap: 4px 10px;
-
-    > input[type='checkbox'] {
-      margin-top: 2px;
-    }
-  }
-
-  .library-tags-fix-field__label {
-    line-height: 1.4;
-  }
-
-  .library-tags-fix-field__value {
-    grid-column: 2;
-  }
-
-  // What a title replaces drops under it.
-  .library-tags-fix-song {
-    grid-template-columns: 16px 56px minmax(0, 1fr);
-    gap: 4px 10px;
-
-    &.is-head > :last-child {
-      display: none;
-    }
-  }
-
-  .library-tags-fix-song__before {
-    grid-column: 3;
-  }
-
-  .library-tags-fix__album {
+  .library-tags-fix-albums__row {
     grid-template-columns: minmax(0, 1fr) auto;
 
-    .library-tags-fix__album-state {
+    .library-tags-fix-albums__state {
       grid-row: 2;
     }
   }

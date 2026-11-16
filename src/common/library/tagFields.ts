@@ -26,6 +26,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * "this file has none" — removed on write.
  */
 
+import type { ICueSheet } from './cueSheet';
+
 /** What the panel shows first: the song, the album, the details. */
 export const TAG_COMMON_FIELDS = [
   'title',
@@ -206,6 +208,16 @@ export type TTagReadResult =
 export const MAX_COVER_BYTES = 20 * 1024 * 1024;
 
 export type TTagCoverMime = 'image/jpeg' | 'image/png';
+
+/** What an album's folder holds besides its songs, read by main for Fix
+ * tags: its CUE sheet and its picture, where it has them. */
+export interface ITagFolderFacts {
+  /** The folder, spelled as `ITrackTagSheet.folder`. */
+  folder: string;
+  cue?: ICueSheet;
+  /** The album picture's file name and size; its bytes come on their own. */
+  cover?: { fileName: string; bytes: number };
+}
 
 /** A cover picked through the system's own file dialog, read by main. */
 export type TTagCoverPick =

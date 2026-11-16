@@ -25,6 +25,7 @@ import {
 import fs from 'fs';
 import path from 'path';
 import {
+  type ITagFolderFacts,
   MAX_COVER_BYTES,
   type TTagCoverPick,
   type TTagItemAnswer,
@@ -32,11 +33,15 @@ import {
 } from '../../common/library/tagFields';
 import type { ILibraryStore } from '../library/libraryStore';
 import { storeArtwork } from '../library/libraryArtwork';
+import { readFolderCover, readFolderFacts } from '../library/tagFolderFacts';
 import type { ITagJobs } from '../library/tagJobs';
 import mainText from '../mainText';
 
 /** Songs one read may ask for; the window reads a folder in pages. */
 const MAX_READ_IDS = 50;
+
+/** Songs one folder-facts ask may name: the most a folder editor opens on. */
+const MAX_FOLDER_IDS = 5000;
 
 const ANSWERS: readonly TTagItemAnswer[] = ['retry', 'skip', 'make-writable'];
 
@@ -150,6 +155,43 @@ export const registerLibraryTagsIpc = ({
 
   ipcMain.handle('library-tags-undo', (_event, rawJobId: unknown) =>
     isId(rawJobId) ? jobs?.undo(rawJobId) : undefined,
+  );
+
+  // What the songs' album folders hold for Fix tags: a CUE sheet and a
+  // picture. Folders are found from the songs, one read each, in turn.
+  ipcMain.handle(
+    'library-tags-folder-facts',
+    async (_event, rawIds: unknown): Promise<ITagFolderFacts[]> => {
+      if (!Array.isArray(rawIds) || rawIds.length > MAX_FOLDER_IDS) {
+        return [];
+      }
+      const folders = new Set<string>();
+      rawIds.forEach((rawId) => {
+        const track = isId(rawId) ? store.track(rawId) : undefined;
+        if (track?.kind === 'audio') {
+          folders.add(path.dirname(track.path));
+        }
+      });
+      // One folder at a time: a folder of a hundred albums is a hundred
+      // listings one after another, not a hundred at once.
+      return [...folders].reduce<Promise<ITagFolderFacts[]>>(
+        async (done, folder) => [
+          ...(await done),
+          await readFolderFacts(folder),
+        ],
+        Promise.resolve([]),
+      );
+    },
+  );
+
+  ipcMain.handle(
+    'library-tags-folder-cover',
+    async (_event, rawTrackId: unknown): Promise<TTagCoverPick> => {
+      const track = isId(rawTrackId) ? store.track(rawTrackId) : undefined;
+      return track
+        ? readFolderCover(path.dirname(track.path))
+        : { state: 'refused' };
+    },
   );
 
   // Choose… for a cover opens in the song's own folder, where an album's

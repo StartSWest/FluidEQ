@@ -135,7 +135,6 @@ const libraryTags = {
   'library.tags.saveFailed':
     'Alcuni valori non si sono potuti scrivere così come sono. Controlla i campi segnati.',
 
-  'library.tags.set.album': 'Album',
   'library.tags.set.reading': 'Lettura dei tag · {done} di {count}',
   'library.tags.set.use': 'Usa {value}',
   'library.tags.set.coversMixed': '{count} copertine diverse',
@@ -230,66 +229,18 @@ const libraryTags = {
   'library.tags.menu.fixShortcut': 'Ctrl+Maiusc+I',
   'library.tags.hero.fix': 'Correggi i tag',
   'library.tags.selection.fix': 'Correggi',
-  'library.tags.fix.leadNone':
-    'Niente da correggere dai tag e dai nomi dei file dei brani.',
-  'library.tags.fix.source.fileName': 'Nome del file',
-  'library.tags.fix.source.capitals': 'Maiuscole',
-  'library.tags.fix.source.junk': 'Pulizia',
-  'library.tags.fix.source.majority': 'Maggioranza dell’album',
-  'library.tags.fix.source.count': 'Numero di brani',
-  'library.tags.fix.source.spelling': 'La tua grafia',
-  'library.tags.fix.source.hand': 'Cambiato da te',
-  'library.tags.fix.songsAll': 'Tutti e {count}',
   'library.tags.fix.empty': 'vuoto',
-  'library.tags.fix.apply': 'Applica questa modifica',
-  'library.tags.fix.rules.fileNames': 'Titoli dai nomi dei file',
-  'library.tags.fix.rules.patternNeedsTitle':
-    'Lo schema deve contenere %title%',
-  'library.tags.fix.rules.preview': '{file} → traccia {track}, titolo {title}',
-  'library.tags.fix.rules.previewTitle': '{file} → titolo {title}',
-  'library.tags.fix.rules.previewNone':
-    'Nessun nome di file di questo album corrisponde allo schema',
-  'library.tags.fix.rules.strip': 'Togli dai titoli',
-  'library.tags.fix.rules.stripPlaceholder': 'Testo da togliere',
-  'library.tags.fix.rules.stripAdd': 'Aggiungi',
-  'library.tags.fix.rules.stripRemove': 'Togli {text}',
-  'library.tags.fix.rules.capitals': 'Maiuscole',
-  'library.tags.fix.rules.capsReleased': 'Come pubblicato',
-  'library.tags.fix.rules.capsTitle': 'Ogni Parola',
-  'library.tags.fix.rules.capsSentence': 'Come una frase',
-  'library.tags.fix.rules.capsNote':
-    '“de”, “la”, “en”, “y”, “of”, “the” restano minuscole dentro un titolo; “¡” e “¿” vengono mantenuti. “Come pubblicato” corregge solo i titoli scritti tutti maiuscoli o tutti minuscoli.',
-  'library.tags.fix.rules.spellings': 'Grafie imparate',
-  'library.tags.fix.rules.spellingsNote':
-    'Attiva: ogni album che correggi da ora in poi la usa anche.',
-  'library.tags.fix.rules.spellingsNone':
-    'Qui compaiono le grafie che questo album uniforma; attivane una per continuare a usarla.',
-  'library.tags.fix.rules.keepSpelling': 'Usa sempre {to} al posto di {from}',
-  'library.tags.fix.changes': '{count} modifiche',
-  'library.tags.fix.changesOne': '1 modifica',
-  'library.tags.fix.files': '{count} file · originali tenuti per Annulla',
-  'library.tags.fix.filesOne': '1 file · originale tenuto per Annulla',
-  'library.tags.fix.nothing': 'Niente spuntato',
-  'library.tags.fix.nothingHint': 'Spunta una riga per correggerla',
-  'library.tags.fix.write': 'Scrivi {count} modifiche',
-  'library.tags.fix.writeOne': 'Scrivi 1 modifica',
-  'library.tags.fix.cancel': 'Annulla',
   'library.tags.fix.albums': '{count} album',
-  'library.tags.fix.review': 'Rivedi',
   'library.tags.fix.albumNothing': 'Niente da correggere',
   'library.tags.fix.albumChanges': '{count} modifiche',
   'library.tags.fix.albumChangesOne': '1 modifica',
-  'library.tags.fix.allAlbums': 'Tutti gli album',
-  'library.tags.fix.intro':
-    'Ricavato da tag, nomi dei file e cartelle. Cambia quello che vuoi prima di salvare. Niente è stato cercato online.',
-  'library.tags.fix.beforeCol': 'Prima',
-  'library.tags.fix.now': 'Ora: {value}',
-  'library.tags.fix.onlySong': 'Solo nel brano {songs}',
-  'library.tags.fix.onlySongs': 'Solo nei brani {songs}',
-  'library.tags.fix.settings': 'Regole per titoli e grafie',
-  'library.tags.fix.source.folder': 'Dal nome della cartella',
-  'library.tags.fix.source.parentFolder': 'Dalla cartella superiore',
-  'library.tags.fix.source.artistInTitle': 'Artista nel titolo',
+  'library.tags.fix.nothingFound':
+    'FluidEQ non ha trovato nulla da correggere in questi brani.',
+  'library.tags.fix.filled':
+    'FluidEQ ha completato ciò che mancava. Ciò che cambia è colorato, con il vecchio valore barrato accanto: controlla e salva, oppure scarta.',
+  'library.tags.fix.fixAlbum': 'Correggi',
+  'library.tags.fix.openAlbum': 'Apri',
+  'library.tags.fix.editByHand': 'Modifica tutto a mano',
 };
 
 export default libraryTags;

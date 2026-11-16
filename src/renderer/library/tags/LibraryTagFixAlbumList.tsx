@@ -16,67 +16,66 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import type { IFixLine } from '../../../common/library/tagFix';
 import { useTranslation } from '../../utils/I18nContext';
 import type { ISheetGroup } from './tagGroups';
 
-export interface IAlbumLines {
+export interface IAlbumToFix {
   group: ISheetGroup;
-  lines: IFixLine[];
+  /** How many values Fix would change in it, its folder picture counted. */
+  changes: number;
 }
 
 interface ILibraryTagFixAlbumListProps {
-  albums: readonly IAlbumLines[];
-  isOff: (line: IFixLine) => boolean;
-  onReview: (key: string) => void;
+  albums: readonly IAlbumToFix[];
+  onFix: (group: ISheetGroup) => void;
 }
 
 /**
- * A folder of several albums: each one with what it would change and a
- * Review that opens its own lines. One write takes all of them.
+ * A folder of several albums asked to be fixed: one line per album with how
+ * much Fix found in it, and Fix, which opens that album in the editor with
+ * the proposals typed in. One album at a time, because an album's name and
+ * artist are typed once for its songs and a folder's albums each have their
+ * own.
  */
 const LibraryTagFixAlbumList = ({
   albums,
-  isOff,
-  onReview,
+  onFix,
 }: ILibraryTagFixAlbumListProps) => {
   const { t } = useTranslation();
   return (
-    <section className="library-tags-fix__card">
-      <h3 className="library-tags-fix__card-title">
+    <section className="library-tags-fix-albums">
+      <h3 className="library-tags__group">
         {t('library.tags.fix.albums', { count: albums.length })}
       </h3>
-      {albums.map((album) => {
-        const on = album.lines.filter((line) => !isOff(line)).length;
-        return (
-          <div key={album.group.key} className="library-tags-fix__album">
-            <div className="library-tags-fix__album-name">
-              <b>{album.group.label}</b>
-              <span>
-                {album.group.sheets.length === 1
-                  ? t('library.trackCountOne')
-                  : t('library.trackCount', {
-                      count: album.group.sheets.length,
-                    })}
-              </span>
-            </div>
-            <span className="library-tags-fix__album-state">
-              {on === 0 && t('library.tags.fix.albumNothing')}
-              {on === 1 && t('library.tags.fix.albumChangesOne')}
-              {on > 1 && t('library.tags.fix.albumChanges', { count: on })}
+      {albums.map(({ group, changes }) => (
+        <div key={group.key} className="library-tags-fix-albums__row">
+          <div className="library-tags-fix-albums__name">
+            <b>{group.label}</b>
+            <span>
+              {group.sheets.length === 1
+                ? t('library.trackCountOne')
+                : t('library.trackCount', { count: group.sheets.length })}
             </span>
-            {album.lines.length > 0 && (
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => onReview(album.group.key)}
-              >
-                {t('library.tags.fix.review')}
-              </button>
-            )}
           </div>
-        );
-      })}
+          <span
+            className={`library-tags-fix-albums__state${changes === 0 ? ' is-none' : ''}`}
+          >
+            {changes === 0 && t('library.tags.fix.albumNothing')}
+            {changes === 1 && t('library.tags.fix.albumChangesOne')}
+            {changes > 1 &&
+              t('library.tags.fix.albumChanges', { count: changes })}
+          </span>
+          <button
+            type="button"
+            className={`button small${changes === 0 ? ' subtle' : ''}`}
+            onClick={() => onFix(group)}
+          >
+            {changes === 0
+              ? t('library.tags.fix.openAlbum')
+              : t('library.tags.fix.fixAlbum')}
+          </button>
+        </div>
+      ))}
     </section>
   );
 };

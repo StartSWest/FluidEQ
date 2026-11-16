@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type {
   ITagJobState,
+  ITagFolderFacts,
   ITagWriteRequest,
   TTagCoverPick,
   TTagItemAnswer,
@@ -69,6 +70,19 @@ const releaseLibraryTagItem = (jobId: string, trackId: string) =>
 const undoLibraryTagJob = (jobId: string) =>
   ipcRenderer.invoke('library-tags-undo', jobId) as Promise<string | undefined>;
 
+/** What the songs' album folders hold: a CUE sheet and a picture. */
+const readLibraryTagFolders = (trackIds: readonly string[]) =>
+  ipcRenderer.invoke('library-tags-folder-facts', trackIds) as Promise<
+    ITagFolderFacts[]
+  >;
+
+/** The picture in a song's album folder, as bytes. */
+const readLibraryTagFolderCover = (trackId: string) =>
+  ipcRenderer.invoke(
+    'library-tags-folder-cover',
+    trackId,
+  ) as Promise<TTagCoverPick>;
+
 /** The system's file dialog for a cover, opened in the song's folder. */
 const pickLibraryTagCover = (trackId: string | undefined) =>
   ipcRenderer.invoke(
@@ -93,6 +107,8 @@ const libraryTagsBridge = {
   releaseLibraryTagItem,
   undoLibraryTagJob,
   pickLibraryTagCover,
+  readLibraryTagFolders,
+  readLibraryTagFolderCover,
   onLibraryTagJob,
 };
 

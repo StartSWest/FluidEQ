@@ -48,7 +48,11 @@ const useShared = (
   const typed = state.shared[fieldKey];
   const isEdited = typed !== undefined;
   const value = typed ?? (isMixed ? '' : (values[0]?.value ?? ''));
-  return { values, isMixed, isEdited, value };
+  // What the songs said before an edit, struck under it where they agreed
+  // on something: "<Desconocido>" gone, "Goodbye Lullaby" in its place.
+  const was = !isMixed ? (values[0]?.value ?? '') : '';
+  const showsWas = isEdited && was !== '' && was !== value;
+  return { values, isMixed, isEdited, value, was, showsWas };
 };
 
 /**
@@ -102,9 +106,13 @@ export const LibraryTagAlbumTitle = ({
 }: ISharedProps) => {
   const { t } = useTranslation();
   const id = useId();
-  const { isMixed, isEdited, value } = useShared(fieldKey, sheets, state);
+  const { isMixed, isEdited, value, was, showsWas } = useShared(
+    fieldKey,
+    sheets,
+    state,
+  );
   return (
-    <div className="library-tags-album__title">
+    <div className={`library-tags-album__title${isEdited ? ' is-edited' : ''}`}>
       <label htmlFor={id}>
         {t(FIELD_LABEL_KEYS[fieldKey])}
         {' · '}
@@ -138,6 +146,11 @@ export const LibraryTagAlbumTitle = ({
           </button>
         )}
       </div>
+      {showsWas && (
+        <p className="library-tags-album__was">
+          <del>{was}</del>
+        </p>
+      )}
       {isMixed && !isEdited && (
         <Varies fieldKey={fieldKey} sheets={sheets} onShared={onShared} />
       )}
@@ -159,7 +172,11 @@ export const LibraryTagAlbumField = ({
 }) => {
   const { t } = useTranslation();
   const id = useId();
-  const { isMixed, isEdited, value } = useShared(fieldKey, sheets, state);
+  const { isMixed, isEdited, value, was, showsWas } = useShared(
+    fieldKey,
+    sheets,
+    state,
+  );
   return (
     <div className={`library-tags-album__field${isEdited ? ' is-edited' : ''}`}>
       <label htmlFor={id}>{t(FIELD_LABEL_KEYS[fieldKey])}</label>
@@ -185,6 +202,11 @@ export const LibraryTagAlbumField = ({
           ) : undefined
         }
       />
+      {showsWas && (
+        <p className="library-tags-album__was">
+          <del>{was}</del>
+        </p>
+      )}
       {isMixed && !isEdited && (
         <Varies fieldKey={fieldKey} sheets={sheets} onShared={onShared} />
       )}

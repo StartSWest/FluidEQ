@@ -55,8 +55,14 @@ export type TTagEditorView =
   | { kind: 'song'; ids: string[]; index: number }
   /** An album, a folder or a selection: the page becomes the editor. */
   | {
-      /** "set" edits by hand; "fix" proposes changes to tick and edit. */
-      kind: 'set' | 'fix';
+      kind: 'set';
+      /**
+       * Opened by Fix tags: the editor comes up with what Fix proposes
+       * already typed in, to look over and save. It used to be a page of its
+       * own, of ticks, sources and word diffs, that Ivan could not read
+       * ("not liking this WTF is this", 2026-11-16).
+       */
+      fix?: boolean;
       scope: TTagSetScope;
       ids: string[];
       title: string;
@@ -73,7 +79,7 @@ interface ITagEditorContextValue {
     title: string,
     place?: string,
   ) => void;
-  /** "Fix this album": the proposed changes for the same scopes. */
+  /** "Fix tags": the same editor, opened with Fix's proposals filled in. */
   openFix: (
     scope: TTagSetScope,
     ids: readonly string[],
@@ -306,7 +312,7 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
 
   const leavePage = useCallback(
     (then?: () => void) => {
-      if (view?.kind !== 'set' && view?.kind !== 'fix') {
+      if (view?.kind !== 'set') {
         then?.();
         return;
       }
@@ -354,7 +360,7 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
       },
       openFix: (scope, ids, title, place) => {
         setWaitingLeave(undefined);
-        setView({ kind: 'fix', scope, ids: [...ids], title, place });
+        setView({ kind: 'set', fix: true, scope, ids: [...ids], title, place });
       },
       walkTo: (index) =>
         setView((current) =>

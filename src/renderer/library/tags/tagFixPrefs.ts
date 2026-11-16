@@ -17,10 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * The Fix page's rules as the reader left them: the file-name pattern, the
- * text taken out of titles, the capitals and the spellings to keep using.
- * A convenience of this window, kept like the Library's other view choices
- * (`libraryWorkspacePrefs.ts`); a storage that refuses gives the defaults.
+ * Fix tags' rules: the file-name pattern, the text taken out of titles, the
+ * capitals and the spellings to keep using — as a reader set them on the
+ * old Fix page, whose panel is gone (2026-11-16), or the defaults. Kept
+ * like the Library's other view choices (`libraryWorkspacePrefs.ts`); a
+ * storage that refuses gives the defaults.
  */
 
 import {
@@ -35,7 +36,7 @@ const CAPITALS: readonly TCapitals[] = ['released', 'title', 'sentence'];
 
 const isText = (value: unknown): value is string => typeof value === 'string';
 
-export const readFixRules = (): IFixRules => {
+const readFixRules = (): IFixRules => {
   try {
     const raw: unknown = JSON.parse(
       window.localStorage.getItem(RULES_KEY) ?? 'null',
@@ -70,10 +71,4 @@ export const readFixRules = (): IFixRules => {
   }
 };
 
-export const writeFixRules = (rules: IFixRules): void => {
-  try {
-    window.localStorage.setItem(RULES_KEY, JSON.stringify(rules));
-  } catch {
-    // A storage that refuses keeps the rules for this visit only.
-  }
-};
+export default readFixRules;

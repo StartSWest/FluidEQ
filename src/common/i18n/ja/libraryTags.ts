@@ -135,7 +135,6 @@ const libraryTags = {
   'library.tags.saveFailed':
     '入力どおりに書き込めない値があります。印の付いたフィールドを確認してください。',
 
-  'library.tags.set.album': 'アルバム',
   'library.tags.set.reading': 'タグを読み込み中 · {done}/{count}',
   'library.tags.set.use': '「{value}」を使う',
   'library.tags.set.coversMixed': '{count} 種類のジャケット',
@@ -230,66 +229,18 @@ const libraryTags = {
   'library.tags.menu.fixShortcut': 'Ctrl+Shift+I',
   'library.tags.hero.fix': 'タグを修正',
   'library.tags.selection.fix': '修正',
-  'library.tags.fix.leadNone':
-    '曲のタグとファイル名から直すところはありません。',
-  'library.tags.fix.source.fileName': 'ファイル名',
-  'library.tags.fix.source.capitals': '大文字小文字',
-  'library.tags.fix.source.junk': '整理',
-  'library.tags.fix.source.majority': 'アルバムの多数派',
-  'library.tags.fix.source.count': '曲数',
-  'library.tags.fix.source.spelling': 'あなたの表記',
-  'library.tags.fix.source.hand': 'あなたが変更',
-  'library.tags.fix.songsAll': '全 {count} 曲',
   'library.tags.fix.empty': '空',
-  'library.tags.fix.apply': 'この変更を適用',
-  'library.tags.fix.rules.fileNames': 'ファイル名からタイトル',
-  'library.tags.fix.rules.patternNeedsTitle': 'パターンには %title% が必要です',
-  'library.tags.fix.rules.preview':
-    '{file} → トラック {track}、タイトル {title}',
-  'library.tags.fix.rules.previewTitle': '{file} → タイトル {title}',
-  'library.tags.fix.rules.previewNone':
-    'このアルバムにパターンに合うファイル名はありません',
-  'library.tags.fix.rules.strip': 'タイトルから取り除く',
-  'library.tags.fix.rules.stripPlaceholder': '取り除く文字',
-  'library.tags.fix.rules.stripAdd': '追加',
-  'library.tags.fix.rules.stripRemove': '{text} を外す',
-  'library.tags.fix.rules.capitals': '大文字小文字',
-  'library.tags.fix.rules.capsReleased': 'リリース時のまま',
-  'library.tags.fix.rules.capsTitle': '単語ごとに大文字',
-  'library.tags.fix.rules.capsSentence': '文のように',
-  'library.tags.fix.rules.capsNote':
-    '「de」「la」「en」「y」「of」「the」はタイトルの途中では小文字のままです。「¡」と「¿」は残ります。「リリース時のまま」は、すべて大文字またはすべて小文字で書かれたタイトルだけを直します。',
-  'library.tags.fix.rules.spellings': '覚えた表記',
-  'library.tags.fix.rules.spellingsNote':
-    'オン：これから修正するすべてのアルバムでも使います。',
-  'library.tags.fix.rules.spellingsNone':
-    'このアルバムで統一する表記がここに表示されます。オンにすると今後も使います。',
-  'library.tags.fix.rules.keepSpelling': '{from} は常に {to} にする',
-  'library.tags.fix.changes': '{count} 件の変更',
-  'library.tags.fix.changesOne': '1 件の変更',
-  'library.tags.fix.files': '{count} ファイル · 元に戻す用に元のタグを保存',
-  'library.tags.fix.filesOne': '1 ファイル · 元に戻す用に元のタグを保存',
-  'library.tags.fix.nothing': 'チェックなし',
-  'library.tags.fix.nothingHint': '直す行にチェックを入れてください',
-  'library.tags.fix.write': '{count} 件の変更を書き込む',
-  'library.tags.fix.writeOne': '1 件の変更を書き込む',
-  'library.tags.fix.cancel': 'キャンセル',
   'library.tags.fix.albums': '{count} アルバム',
-  'library.tags.fix.review': '確認',
   'library.tags.fix.albumNothing': '直すところなし',
   'library.tags.fix.albumChanges': '{count} 件の変更',
   'library.tags.fix.albumChangesOne': '1 件の変更',
-  'library.tags.fix.allAlbums': 'すべてのアルバム',
-  'library.tags.fix.intro':
-    'タグ、ファイル名、フォルダーから割り出しました。保存する前に自由に変更できます。オンラインには何も問い合わせていません。',
-  'library.tags.fix.beforeCol': '変更前',
-  'library.tags.fix.now': '現在: {value}',
-  'library.tags.fix.onlySong': '曲 {songs} のみ',
-  'library.tags.fix.onlySongs': '曲 {songs} のみ',
-  'library.tags.fix.settings': 'タイトルと表記のルール',
-  'library.tags.fix.source.folder': 'フォルダー名から',
-  'library.tags.fix.source.parentFolder': '上のフォルダーから',
-  'library.tags.fix.source.artistInTitle': 'タイトル内のアーティスト',
+  'library.tags.fix.nothingFound':
+    'FluidEQ はこれらの曲に修正する点を見つけませんでした。',
+  'library.tags.fix.filled':
+    'FluidEQ が足りない情報を補いました。変更箇所は色付きで、元の値は横に取り消し線で表示されます。確認して保存するか、破棄してください。',
+  'library.tags.fix.fixAlbum': '修正',
+  'library.tags.fix.openAlbum': '開く',
+  'library.tags.fix.editByHand': 'すべて手で編集',
 };
 
 export default libraryTags;

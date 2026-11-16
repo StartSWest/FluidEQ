@@ -136,7 +136,6 @@ const libraryTags = {
   'library.tags.saveFailed':
     'Einige Werte konnten nicht wie eingegeben geschrieben werden. Prüfen Sie die markierten Felder.',
 
-  'library.tags.set.album': 'Album',
   'library.tags.set.reading': 'Tags werden gelesen · {done} von {count}',
   'library.tags.set.use': '{value} verwenden',
   'library.tags.set.coversMixed': '{count} verschiedene Cover',
@@ -233,68 +232,18 @@ const libraryTags = {
   'library.tags.menu.fixShortcut': 'Strg+Umschalt+I',
   'library.tags.hero.fix': 'Tags korrigieren',
   'library.tags.selection.fix': 'Korrigieren',
-  'library.tags.fix.leadNone':
-    'Aus den Tags und Dateinamen der Songs gibt es nichts zu korrigieren.',
-  'library.tags.fix.source.fileName': 'Dateiname',
-  'library.tags.fix.source.capitals': 'Großschreibung',
-  'library.tags.fix.source.junk': 'Bereinigung',
-  'library.tags.fix.source.majority': 'Album-Mehrheit',
-  'library.tags.fix.source.count': 'Anzahl der Songs',
-  'library.tags.fix.source.spelling': 'Ihre Schreibweise',
-  'library.tags.fix.source.hand': 'Von Ihnen geändert',
-  'library.tags.fix.songsAll': 'Alle {count}',
   'library.tags.fix.empty': 'leer',
-  'library.tags.fix.apply': 'Diese Änderung übernehmen',
-  'library.tags.fix.rules.fileNames': 'Titel aus Dateinamen',
-  'library.tags.fix.rules.patternNeedsTitle': 'Das Muster braucht %title%',
-  'library.tags.fix.rules.preview':
-    '{file} → Titelnummer {track}, Titel {title}',
-  'library.tags.fix.rules.previewTitle': '{file} → Titel {title}',
-  'library.tags.fix.rules.previewNone':
-    'Kein Dateiname in diesem Album passt zum Muster',
-  'library.tags.fix.rules.strip': 'Aus Titeln entfernen',
-  'library.tags.fix.rules.stripPlaceholder': 'Zu entfernender Text',
-  'library.tags.fix.rules.stripAdd': 'Hinzufügen',
-  'library.tags.fix.rules.stripRemove': '{text} entfernen',
-  'library.tags.fix.rules.capitals': 'Großschreibung',
-  'library.tags.fix.rules.capsReleased': 'Wie veröffentlicht',
-  'library.tags.fix.rules.capsTitle': 'Jedes Wort groß',
-  'library.tags.fix.rules.capsSentence': 'Wie ein Satz',
-  'library.tags.fix.rules.capsNote':
-    '„de“, „la“, „en“, „y“, „of“, „the“ bleiben innerhalb eines Titels klein; „¡“ und „¿“ bleiben erhalten. „Wie veröffentlicht“ korrigiert nur Titel, die ganz in einer Schreibweise geschrieben sind.',
-  'library.tags.fix.rules.spellings': 'Gelernte Schreibweisen',
-  'library.tags.fix.rules.spellingsNote':
-    'An: Jedes Album, das Sie ab jetzt korrigieren, nutzt sie auch.',
-  'library.tags.fix.rules.spellingsNone':
-    'Schreibweisen, die dieses Album vereinheitlicht, erscheinen hier; schalten Sie eine ein, um sie weiter zu nutzen.',
-  'library.tags.fix.rules.keepSpelling': 'Immer {to} statt {from} verwenden',
-  'library.tags.fix.changes': '{count} Änderungen',
-  'library.tags.fix.changesOne': '1 Änderung',
-  'library.tags.fix.files':
-    '{count} Dateien · Originale für Rückgängig behalten',
-  'library.tags.fix.filesOne': '1 Datei · Original für Rückgängig behalten',
-  'library.tags.fix.nothing': 'Nichts angehakt',
-  'library.tags.fix.nothingHint':
-    'Haken Sie eine Zeile an, um sie zu korrigieren',
-  'library.tags.fix.write': '{count} Änderungen schreiben',
-  'library.tags.fix.writeOne': '1 Änderung schreiben',
-  'library.tags.fix.cancel': 'Abbrechen',
   'library.tags.fix.albums': '{count} Alben',
-  'library.tags.fix.review': 'Ansehen',
   'library.tags.fix.albumNothing': 'Nichts zu korrigieren',
   'library.tags.fix.albumChanges': '{count} Änderungen',
   'library.tags.fix.albumChangesOne': '1 Änderung',
-  'library.tags.fix.allAlbums': 'Alle Alben',
-  'library.tags.fix.intro':
-    'Aus den Tags, Dateinamen und Ordnern ermittelt. Ändern Sie vor dem Speichern, was Sie möchten. Nichts wurde online abgefragt.',
-  'library.tags.fix.beforeCol': 'Vorher',
-  'library.tags.fix.now': 'Jetzt: {value}',
-  'library.tags.fix.onlySong': 'Nur bei Song {songs}',
-  'library.tags.fix.onlySongs': 'Nur bei den Songs {songs}',
-  'library.tags.fix.settings': 'Regeln für Titel und Schreibweisen',
-  'library.tags.fix.source.folder': 'Aus dem Ordnernamen',
-  'library.tags.fix.source.parentFolder': 'Aus dem übergeordneten Ordner',
-  'library.tags.fix.source.artistInTitle': 'Interpret im Titel',
+  'library.tags.fix.nothingFound':
+    'FluidEQ hat in diesen Songs nichts zu korrigieren gefunden.',
+  'library.tags.fix.filled':
+    'FluidEQ hat Fehlendes ergänzt. Geändertes ist farbig, der alte Wert daneben durchgestrichen: Prüfen Sie es und speichern Sie, oder verwerfen Sie es.',
+  'library.tags.fix.fixAlbum': 'Korrigieren',
+  'library.tags.fix.openAlbum': 'Öffnen',
+  'library.tags.fix.editByHand': 'Alles von Hand bearbeiten',
 };
 
 export default libraryTags;

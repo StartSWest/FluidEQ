@@ -208,9 +208,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     text-transform: uppercase;
   }
 
-  &.is-edited > label {
-    color: $secondary-light;
+  // An edited value wears the accent the changed cells below wear, so what
+  // Fix typed in reads as changed at a glance.
+  &.is-edited {
+    > label {
+      color: $secondary-light;
+    }
+
+    .library-tags__box {
+      background: $studio-select;
+    }
+
+    .library-tags__box input {
+      color: $secondary-light;
+    }
   }
+}
+
+// What the songs said before, struck under the new value.
+.library-tags-album__was {
+  margin: 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  @include truncate;
+
+  del {
+    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+  }
+}
+
+.library-tags-album__title.is-edited .library-tags-album__title-box input {
+  color: $secondary-light;
 }
 
 // "Varies: 2009 · 2011 · 2014 and 2 more", each value a press.

@@ -51,7 +51,6 @@ import LibraryTagSongPanel from './tags/LibraryTagSongPanel';
 import LibraryTagProblemsPanel from './tags/LibraryTagProblemsPanel';
 import LibraryTagWriteCard from './tags/LibraryTagWriteCard';
 import LibraryTagSetEditor from './tags/LibraryTagSetEditor';
-import LibraryTagFixPage from './tags/LibraryTagFixPage';
 
 type TLibraryWorkspaceViewProps = Pick<
   ILibraryWorkspaceProps,
@@ -187,8 +186,7 @@ const LibraryWorkspaceView = ({
   const isTagPanelOpen =
     tagEditor.isProblemsOpen || tagEditor.view?.kind === 'song';
   /** An album, folder or selection being edited: the page is the editor. */
-  const isTagPage =
-    tagEditor.view?.kind === 'set' || tagEditor.view?.kind === 'fix';
+  const isTagPage = tagEditor.view?.kind === 'set';
   const hasLibrary = roots.length > 0;
   const shownTotals = useLibraryAnswer(
     hasLibrary && !isHidden && shownTracksQuery !== undefined
@@ -517,10 +515,9 @@ const LibraryWorkspaceView = ({
             {/* An album, a folder or a selection being edited: the page is
                 the editor until it is saved or left. */}
             {tagEditor.view?.kind === 'set' && (
-              <LibraryTagSetEditor key={tagEditor.view.ids.join('|')} />
-            )}
-            {tagEditor.view?.kind === 'fix' && (
-              <LibraryTagFixPage key={tagEditor.view.ids.join('|')} />
+              <LibraryTagSetEditor
+                key={`${tagEditor.view.ids.join('|')}${tagEditor.view.fix ? '|fix' : ''}`}
+              />
             )}
             {!isTagPage && (
               <LibraryShelfViews

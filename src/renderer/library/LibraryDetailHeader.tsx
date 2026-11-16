@@ -114,7 +114,7 @@ const LibraryDetailHeader = ({
       );
     }
   };
-  /** The record's proposed fixes, to tick and edit. */
+  /** The record in the editor, with Fix's proposals filled in. */
   const fixRecordTags = (trackIds: readonly string[]) => {
     if (tagEditor && tagScope && trackIds.length > 0) {
       tagEditor.openFix(

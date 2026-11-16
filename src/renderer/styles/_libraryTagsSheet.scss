@@ -121,9 +121,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: inset 0 0 0 1px $amber;
   }
 
-  // A title find & replace would change: the preview stands over the cell
-  // while the caret is elsewhere; typing in the cell shows the cell itself.
-  td.is-found {
+  // A title find & replace would change, or a cell changed from the file:
+  // the preview stands over the cell while the caret is elsewhere; typing in
+  // the cell shows the cell itself.
+  td.is-previewed {
     position: relative;
 
     &:not(:focus-within) .library-tags-sheet__cell {
@@ -203,6 +204,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: color-mix(in srgb, $secondary-default 26%, transparent);
     color: $secondary-light;
     text-decoration: none;
+  }
+
+  // A changed cell: the new value in the accent, the file's old one struck
+  // after it in the quiet colour.
+  &.is-change {
+    ins {
+      padding: 0;
+      background: none;
+    }
+
+    del {
+      padding: 0;
+      background: none;
+      color: $studio-t3;
+      font-size: $studio-text-meta;
+      text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+      text-decoration-thickness: 1px;
+    }
+
+    ins + del {
+      margin-left: 10px;
+    }
   }
 }
 

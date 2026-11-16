@@ -27,6 +27,7 @@ import {
   LibraryTagAlbumTitle,
 } from './LibraryTagAlbumFields';
 import LibraryTagBack from './LibraryTagBack';
+import LibraryTagFixAlbumList from './LibraryTagFixAlbumList';
 import LibraryTagSetCover from './LibraryTagSetCover';
 import LibraryTagSetTools, { type IFindReplace } from './LibraryTagSetTools';
 import LibraryTagSheet from './LibraryTagSheet';
@@ -46,6 +47,7 @@ import {
   withCell,
   withShared,
 } from './tagSetModel';
+import { useEditorFix } from './useEditorFix';
 import { useTagSheets } from './useTagSheets';
 
 /** Beside the cover, what most albums need. */
@@ -78,8 +80,7 @@ const WandGlyph = () => (
  */
 const LibraryTagSetEditor = () => {
   const { t } = useTranslation();
-  const { view, close, write, leavePage, openFix, setPageHasChanges } =
-    useTagEditor();
+  const { view, close, write, openFix, setPageHasChanges } = useTagEditor();
   const ids = useMemo(() => (view?.kind === 'set' ? view.ids : []), [view]);
   const sheets = useTagSheets(ids);
   const tracks = useLibraryTracks(ids);
@@ -109,6 +110,19 @@ const LibraryTagSetEditor = () => {
     [state, ordered, changes],
   );
   const hasChanges = summary.changeCount > 0;
+  const isFolder = view?.kind === 'set' && view.scope === 'folder';
+  const groups = useMemo(
+    () => groupsOf(ordered, isFolder),
+    [ordered, isFolder],
+  );
+  const fix = useEditorFix({
+    ids,
+    ordered,
+    groups,
+    isComplete: sheets.isComplete,
+    isFixOpen: view?.kind === 'set' && view.fix === true,
+    setState,
+  });
   // A view or shelf pressed while there are edits asks before leaving.
   useEffect(() => {
     setPageHasChanges(hasChanges);
@@ -117,8 +131,6 @@ const LibraryTagSetEditor = () => {
   if (view?.kind !== 'set') {
     return null;
   }
-  const isFolder = view.scope === 'folder';
-  const groups = groupsOf(ordered, isFolder);
   const canSave =
     hasChanges && sheets.isComplete && isSetValid(changes) && !isSaving;
   const found =
@@ -186,17 +198,40 @@ const LibraryTagSetEditor = () => {
       <div className="library-tags-set__scroll">
         <div className="library-tags-set__top">
           <LibraryTagBack />
-          <button
-            type="button"
-            className="button small subtle library-tags-set__fix"
-            onClick={() =>
-              leavePage(() => openFix(view.scope, ids, view.title, view.place))
-            }
+          {fix.isChoosing && (
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={fix.stopChoosing}
+            >
+              {t('library.tags.fix.editByHand')}
+            </button>
+          )}
+          {!fix.isChoosing && (
+            <button
+              type="button"
+              className="button small subtle library-tags-set__fix"
+              disabled={!sheets.isComplete}
+              onClick={fix.run}
+            >
+              <WandGlyph />
+              {fixLabel}
+            </button>
+          )}
+        </div>
+        {fix.note !== undefined && !fix.isChoosing && (
+          <p
+            className={`library-tags-set__fixed${fix.note === 'nothing' ? ' is-nothing' : ''}`}
+            role="status"
           >
             <WandGlyph />
-            {fixLabel}
-          </button>
-        </div>
+            <span>
+              {fix.note === 'filled'
+                ? t('library.tags.fix.filled')
+                : t('library.tags.fix.nothingFound')}
+            </span>
+          </p>
+        )}
         {!sheets.isComplete && (
           <div className="library-tags-set__reading" role="status">
             <span>
@@ -219,7 +254,20 @@ const LibraryTagSetEditor = () => {
             {t('library.tags.set.unreadable', { count: unreadable })}
           </p>
         )}
-        {ordered.length > 0 && (
+        {fix.isChoosing && (
+          <LibraryTagFixAlbumList
+            albums={fix.albums}
+            onFix={(group) =>
+              openFix(
+                'album',
+                group.sheets.map((sheet) => sheet.trackId),
+                group.label ?? view.title,
+                view.place,
+              )
+            }
+          />
+        )}
+        {ordered.length > 0 && !fix.isChoosing && (
           <>
             <div className="library-tags-album">
               <LibraryTagSetCover
@@ -251,7 +299,16 @@ const LibraryTagSetEditor = () => {
                     />
                   ))}
                 </div>
-                <details className="library-tags-album__more">
+                <details
+                  className="library-tags-album__more"
+                  // Open while it holds an edit, so a value Fix typed in
+                  // there is never folded out of sight.
+                  open={
+                    MORE_FIELDS.some(
+                      (key) => state.shared[key] !== undefined,
+                    ) || undefined
+                  }
+                >
                   <summary>
                     {t('library.tags.set.moreFields', { fields: moreLabel })}
                   </summary>
@@ -325,7 +382,10 @@ const LibraryTagSetEditor = () => {
               type="button"
               className="button small subtle"
               disabled={!hasChanges}
-              onClick={() => setState(initialSetState(ids))}
+              onClick={() => {
+                setState(initialSetState(ids));
+                fix.clearNote();
+              }}
             >
               {t('library.tags.set.discard')}
             </button>

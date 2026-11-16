@@ -134,7 +134,6 @@ const libraryTags = {
   'library.tags.saveFailed':
     'कुछ मान लिखे गए रूप में नहीं लिखे जा सके। चिह्नित फ़ील्ड जाँचें।',
 
-  'library.tags.set.album': 'एल्बम',
   'library.tags.set.reading': 'टैग पढ़े जा रहे हैं · {count} में से {done}',
   'library.tags.set.use': '{value} का उपयोग करें',
   'library.tags.set.coversMixed': '{count} अलग-अलग कवर',
@@ -232,66 +231,18 @@ const libraryTags = {
   'library.tags.menu.fixShortcut': 'Ctrl+Shift+I',
   'library.tags.hero.fix': 'टैग ठीक करें',
   'library.tags.selection.fix': 'ठीक करें',
-  'library.tags.fix.leadNone':
-    'गानों के टैग और फ़ाइल नामों से ठीक करने को कुछ नहीं है।',
-  'library.tags.fix.source.fileName': 'फ़ाइल नाम',
-  'library.tags.fix.source.capitals': 'बड़े अक्षर',
-  'library.tags.fix.source.junk': 'सफ़ाई',
-  'library.tags.fix.source.majority': 'एल्बम का बहुमत',
-  'library.tags.fix.source.count': 'गानों की संख्या',
-  'library.tags.fix.source.spelling': 'आपकी वर्तनी',
-  'library.tags.fix.source.hand': 'आपने बदला',
-  'library.tags.fix.songsAll': 'सभी {count}',
   'library.tags.fix.empty': 'खाली',
-  'library.tags.fix.apply': 'यह बदलाव लागू करें',
-  'library.tags.fix.rules.fileNames': 'फ़ाइल नामों से शीर्षक',
-  'library.tags.fix.rules.patternNeedsTitle': 'पैटर्न में %title% चाहिए',
-  'library.tags.fix.rules.preview': '{file} → ट्रैक {track}, शीर्षक {title}',
-  'library.tags.fix.rules.previewTitle': '{file} → शीर्षक {title}',
-  'library.tags.fix.rules.previewNone':
-    'इस एल्बम का कोई फ़ाइल नाम पैटर्न से मेल नहीं खाता',
-  'library.tags.fix.rules.strip': 'शीर्षकों से हटाएँ',
-  'library.tags.fix.rules.stripPlaceholder': 'हटाने वाला टेक्स्ट',
-  'library.tags.fix.rules.stripAdd': 'जोड़ें',
-  'library.tags.fix.rules.stripRemove': '{text} हटाएँ',
-  'library.tags.fix.rules.capitals': 'बड़े अक्षर',
-  'library.tags.fix.rules.capsReleased': 'जैसा जारी हुआ',
-  'library.tags.fix.rules.capsTitle': 'हर शब्द बड़ा',
-  'library.tags.fix.rules.capsSentence': 'वाक्य की तरह',
-  'library.tags.fix.rules.capsNote':
-    '“de”, “la”, “en”, “y”, “of”, “the” शीर्षक के बीच में छोटे अक्षरों में रहते हैं; “¡” और “¿” बने रहते हैं। “जैसा जारी हुआ” सिर्फ़ उन शीर्षकों को ठीक करता है जो पूरे एक ही केस में लिखे हों।',
-  'library.tags.fix.rules.spellings': 'सीखी गई वर्तनियाँ',
-  'library.tags.fix.rules.spellingsNote':
-    'चालू: अब से आप जो भी एल्बम ठीक करेंगे, वह भी इसे इस्तेमाल करेगा।',
-  'library.tags.fix.rules.spellingsNone':
-    'यह एल्बम जिन वर्तनियों को एक जैसा करता है, वे यहाँ दिखती हैं; आगे भी इस्तेमाल करने के लिए किसी को चालू करें।',
-  'library.tags.fix.rules.keepSpelling':
-    '{from} की जगह हमेशा {to} इस्तेमाल करें',
-  'library.tags.fix.changes': '{count} बदलाव',
-  'library.tags.fix.changesOne': '1 बदलाव',
-  'library.tags.fix.files': '{count} फ़ाइलें · पूर्ववत के लिए मूल रखे गए',
-  'library.tags.fix.filesOne': '1 फ़ाइल · पूर्ववत के लिए मूल रखा गया',
-  'library.tags.fix.nothing': 'कुछ भी चुना नहीं गया',
-  'library.tags.fix.nothingHint': 'ठीक करने के लिए कोई पंक्ति चुनें',
-  'library.tags.fix.write': '{count} बदलाव लिखें',
-  'library.tags.fix.writeOne': '1 बदलाव लिखें',
-  'library.tags.fix.cancel': 'रद्द करें',
   'library.tags.fix.albums': '{count} एल्बम',
-  'library.tags.fix.review': 'देखें',
   'library.tags.fix.albumNothing': 'ठीक करने को कुछ नहीं',
   'library.tags.fix.albumChanges': '{count} बदलाव',
   'library.tags.fix.albumChangesOne': '1 बदलाव',
-  'library.tags.fix.allAlbums': 'सभी एल्बम',
-  'library.tags.fix.intro':
-    'टैग, फ़ाइल नामों और फ़ोल्डरों से निकाला गया। सहेजने से पहले जो चाहें बदलें। कुछ भी ऑनलाइन नहीं खोजा गया।',
-  'library.tags.fix.beforeCol': 'पहले',
-  'library.tags.fix.now': 'अभी: {value}',
-  'library.tags.fix.onlySong': 'केवल गाना {songs} में',
-  'library.tags.fix.onlySongs': 'केवल गाने {songs} में',
-  'library.tags.fix.settings': 'शीर्षक और वर्तनी के नियम',
-  'library.tags.fix.source.folder': 'फ़ोल्डर के नाम से',
-  'library.tags.fix.source.parentFolder': 'ऊपर वाले फ़ोल्डर से',
-  'library.tags.fix.source.artistInTitle': 'शीर्षक में कलाकार',
+  'library.tags.fix.nothingFound':
+    'FluidEQ को इन गानों में ठीक करने लायक कुछ नहीं मिला।',
+  'library.tags.fix.filled':
+    'FluidEQ ने जो कमी थी उसे भर दिया। बदला हुआ रंग में है, पुराना मान बगल में कटा हुआ: जाँचें और सहेजें, या छोड़ दें।',
+  'library.tags.fix.fixAlbum': 'ठीक करें',
+  'library.tags.fix.openAlbum': 'खोलें',
+  'library.tags.fix.editByHand': 'सब हाथ से बदलें',
 };
 
 export default libraryTags;

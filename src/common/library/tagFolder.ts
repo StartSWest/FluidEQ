@@ -208,3 +208,55 @@ export const readFolderTags = (folder: string): IFolderTags => {
 /** True for an artist name that stands for many: an album artist only. */
 export const isVariousArtists = (name: string): boolean =>
   VARIOUS_NAMES.has(nameKey(name));
+
+/**
+ * The names album pictures are saved under, best first: what Windows Media
+ * Player, iTunes, foobar2000, EAC and most rips write beside the songs.
+ */
+const COVER_STEMS = ['folder', 'cover', 'front', 'albumart', 'album'];
+
+const COVER_EXTENSIONS = ['jpg', 'jpeg', 'png'];
+
+const splitName = (name: string): { stem: string; ext: string } => {
+  const dot = name.lastIndexOf('.');
+  return dot > 0
+    ? {
+        stem: name.slice(0, dot).toLocaleLowerCase(),
+        ext: name.slice(dot + 1).toLocaleLowerCase(),
+      }
+    : { stem: name.toLocaleLowerCase(), ext: '' };
+};
+
+/**
+ * The album picture among a folder's file names: a known name first
+ * ("folder.jpg" before "cover.jpg"), then Windows Media Player's large
+ * "AlbumArt_{…}_Large.jpg", then the folder's only picture if it has just
+ * one. `undefined` where nothing reads as the album's cover — a folder of
+ * scans or photos is not guessed from.
+ */
+export const pickFolderCover = (
+  names: readonly string[],
+): string | undefined => {
+  const pictures = names.filter((name) =>
+    COVER_EXTENSIONS.includes(splitName(name).ext),
+  );
+  const byStem = COVER_STEMS.map((stem) =>
+    pictures.find((name) => splitName(name).stem === stem),
+  ).find((name) => name !== undefined);
+  if (byStem) {
+    return byStem;
+  }
+  const mediaPlayer = pictures.find((name) =>
+    /^albumart_.+_large$/.test(splitName(name).stem),
+  );
+  if (mediaPlayer) {
+    return mediaPlayer;
+  }
+  return pictures.length === 1 ? pictures[0] : undefined;
+};
+
+/** The folder's CUE sheet: the first by name where a rip left several. */
+export const pickCueFile = (names: readonly string[]): string | undefined =>
+  [...names]
+    .filter((name) => splitName(name).ext === 'cue')
+    .sort((a, b) => a.localeCompare(b))[0];

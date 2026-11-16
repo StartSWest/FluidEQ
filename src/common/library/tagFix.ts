@@ -28,8 +28,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import type { TTagFieldKey, TTagFields } from './tagFields';
+import { cueTrackFor, type ICueSheet } from './cueSheet';
 import {
-  type IFolderValue,
   isVariousArtists,
   readFolderTags,
   type TFolderSource,
@@ -55,6 +55,7 @@ export type TFixSource =
   | 'spelling'
   | 'hand'
   | 'artistInTitle'
+  | 'cue'
   | TFolderSource;
 
 /** One proposed change: the same before and after for every song it names. */
@@ -227,6 +228,12 @@ export const isPlaceholderName = (value: string): boolean =>
 /** "Avril Lavigne - Black Star": the artist, then the title. */
 const ARTIST_TITLE = /^(.+?)\s+[-–—]\s+(.+)$/;
 
+/** A value for an album field and where it was read. */
+interface IFixValue {
+  value: string;
+  source: TFixSource;
+}
+
 /** Fields that belong to the album, where most songs agreeing is evidence. */
 const ALBUM_FIELDS: readonly TTagFieldKey[] = [
   'album',
@@ -296,6 +303,8 @@ const mergeLines = (drafts: readonly ILineDraft[]): IFixLine[] => {
 export const proposeFixes = (
   songs: readonly IFixSong[],
   rules: IFixRules,
+  /** The album folder's CUE sheet, when every song is in that folder. */
+  cue?: ICueSheet,
 ): IFixLine[] => {
   const drafts: ILineDraft[] = [];
   // Placeholders read as empty from the start; each line's "before" is
@@ -319,7 +328,9 @@ export const proposeFixes = (
     }
   };
 
-  // Titles: out of the file name, junk out, capitals.
+  // Titles: from the CUE sheet, else out of the file name, junk out,
+  // capitals. A sheet's titles are the ripper's own words and are taken as
+  // written.
   songs.forEach((song) => {
     const fields = current.get(song.trackId) ?? {};
     const title = fields.title ?? '';
@@ -328,6 +339,52 @@ export const proposeFixes = (
       title === '' ||
       title.toLocaleLowerCase() === base.toLocaleLowerCase() ||
       /^\d{1,3}\s*[-.]\s+/.test(title);
+    const trackNo = Number.parseInt(fields.trackNo ?? '', 10);
+    const fromCue = cue
+      ? cueTrackFor(
+          cue,
+          song.fileName,
+          Number.isFinite(trackNo)
+            ? trackNo
+            : Number.parseInt(
+                titleFromFileName(song.fileName)?.trackNo ?? '',
+                10,
+              ),
+        )
+      : undefined;
+    if (fromCue?.performer && (fields.artist ?? '') === '') {
+      add({
+        kind: 'fill',
+        field: 'artist',
+        trackId: song.trackId,
+        before: '',
+        after: fromCue.performer,
+        source: 'cue',
+      });
+    }
+    if (isFileName && fromCue?.title) {
+      if (fromCue.title !== title) {
+        add({
+          kind: 'clean',
+          field: 'title',
+          trackId: song.trackId,
+          before: title,
+          after: fromCue.title,
+          source: 'cue',
+        });
+      }
+      if ((fields.trackNo ?? '') === '') {
+        add({
+          kind: 'fill',
+          field: 'trackNo',
+          trackId: song.trackId,
+          before: '',
+          after: String(fromCue.number),
+          source: 'cue',
+        });
+      }
+      return;
+    }
     if (isFileName) {
       const byPattern = readFileNamePattern(song.fileName, rules.pattern);
       const read = byPattern?.title
@@ -455,11 +512,17 @@ export const proposeFixes = (
   // 2026-11-16: "poner las etiquetas de acuerdo al nombre de la carpeta").
   // Only where every song shares one folder and the field is empty on all of
   // them: a field some songs fill is the majority's to settle, below.
+  // A CUE sheet beside the songs says the same in words and comes first.
   const folders = new Set(songs.map((song) => song.folder ?? ''));
   const [folder] = [...folders];
-  if (folders.size === 1 && folder !== undefined && folder !== '') {
-    const read = readFolderTags(folder);
-    const fillAll = (field: TTagFieldKey, value: IFolderValue | undefined) => {
+  const isOneFolder =
+    folders.size === 1 && folder !== undefined && folder !== '';
+  if (isOneFolder || cue) {
+    const read = isOneFolder ? readFolderTags(folder) : {};
+    const fromCue = (value: string | undefined): IFixValue | undefined =>
+      value ? { value, source: 'cue' } : undefined;
+    const cueYear = /\b(?:19|20)\d\d\b/.exec(cue?.date ?? '')?.[0];
+    const fillAll = (field: TTagFieldKey, value: IFixValue | undefined) => {
       if (
         value === undefined ||
         songs.some((song) => (current.get(song.trackId)?.[field] ?? '') !== '')
@@ -477,13 +540,15 @@ export const proposeFixes = (
         }),
       );
     };
-    fillAll('album', read.album);
-    if (read.artist && !isVariousArtists(read.artist.value)) {
-      fillAll('artist', read.artist);
+    const artist = fromCue(cue?.performer) ?? read.artist;
+    fillAll('album', fromCue(cue?.title) ?? read.album);
+    if (artist && !isVariousArtists(artist.value)) {
+      fillAll('artist', artist);
     }
-    fillAll('albumArtist', read.artist);
-    fillAll('year', read.year);
-    fillAll('genre', read.genre);
+    fillAll('albumArtist', artist);
+    fillAll('year', fromCue(cueYear) ?? read.year);
+    fillAll('genre', fromCue(cue?.genre) ?? read.genre);
+    fillAll('composer', fromCue(cue?.songwriter));
     fillAll('discNo', read.discNo);
   }
 

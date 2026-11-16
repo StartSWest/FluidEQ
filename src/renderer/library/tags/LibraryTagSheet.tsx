@@ -129,12 +129,18 @@ const LibraryTagSheet = ({
     // encontrando ... como un tachado").
     const parts = key === 'title' ? findParts(value, finding.find) : [];
     const isFound = parts.some((part) => part.isMatch);
+    // A text cell changed from what the file says shows the new value and,
+    // struck through after it, the old one — what Fix tags typed in reads
+    // as a change at a glance, not as the file's own value.
+    const original = sheet.fields[key] ?? '';
+    const showsChange = !isFound && !isNumber && isChanged && original !== '';
+    const isPreviewed = isFound || showsChange;
     return (
       <td
         key={key}
         className={`${isNumber ? 'is-number' : ''}${isChanged ? ' is-changed' : ''}${
           value === '' ? ' is-empty' : ''
-        }${isInvalid ? ' is-invalid' : ''}${isFound ? ' is-found' : ''}`}
+        }${isInvalid ? ' is-invalid' : ''}${isPreviewed ? ' is-previewed' : ''}`}
       >
         <input
           className="library-tags-sheet__cell"
@@ -167,6 +173,15 @@ const LibraryTagSheet = ({
                 </span>
               );
             })}
+          </span>
+        )}
+        {showsChange && (
+          <span
+            className="library-tags-sheet__preview is-change"
+            aria-hidden="true"
+          >
+            {value !== '' && <ins>{value}</ins>}
+            <del>{original}</del>
           </span>
         )}
       </td>
