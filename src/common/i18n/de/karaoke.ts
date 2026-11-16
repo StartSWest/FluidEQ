@@ -340,6 +340,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.previousView': 'Vorheriger Abschnitt',
   'karaoke.maker.nextView': 'Nächster Abschnitt',
   'karaoke.maker.resetZoom': 'Doppelklicken, um Liedtext einzupassen',
+  'karaoke.maker.pitchRange': 'Tonhöhenbereich',
+  'karaoke.maker.pitchHint':
+    'Ein Ende ziehen zum Zoomen, die Mitte zum Verschieben. Shift + Mausrad verschiebt die Tonhöhe, Ctrl + Shift + Mausrad zoomt sie. Doppelklicken, um die Noten einzupassen.',
   'karaoke.maker.livePreview': 'Live-Vorschau',
   'karaoke.maker.showPreview': 'Vorschau anzeigen',
   'karaoke.maker.hidePreview': 'Vorschau ausblenden',

@@ -22,13 +22,9 @@ import {
   IDragState,
   INotePaintDraft,
 } from './makerCanvasTypes';
-import {
-  IMakerPlot,
-  makerPitchAtY,
-  makerPlot,
-} from './makerCanvasGeometry';
+import { IMakerPlot, makerPitchAtY, makerPlot } from './makerCanvasGeometry';
 import { IMakerPitchWindow } from './makerPitchView';
-import { useMakerPitchView } from './useMakerPitchView';
+import type useMakerPitchView from './useMakerPitchView';
 import {
   ICanvasScrubState,
   IMakerCanvasGesture,
@@ -42,6 +38,15 @@ import useKaraokeNoteAudition from './useKaraokeNoteAudition';
 import { flattenTokens } from './makerProjectEdits';
 import { TWhenPlayheadReaches } from './karaokeMediaCue';
 import makerPointerMove from './makerPointerMove';
+
+/** How fast a wheel zooms, per pixel of turn; the time zoom's rate. */
+const WHEEL_ZOOM_RATE = 0.002;
+
+/**
+ * A wheel notch (about 100 px of turn) scrolls pitch by a tenth of the
+ * window, so it moves the same share of what is on screen at any zoom.
+ */
+const PITCH_SCROLL_PER_WINDOW = 1_000;
 
 /**
  * Everything the pointer does on the Maker canvas.
@@ -596,6 +601,7 @@ export const useMakerCanvasPointer = ({
   const { onCanvasPointerMove } = makerPointerMove({
     gesture,
     canvasPoint,
+    plotAt,
     renderCanvasRef,
     setSelectedNoteIds,
     setSelection,
@@ -847,7 +853,7 @@ export const useMakerCanvasPointer = ({
         minimumViewDurationMs,
         Math.min(
           maximumViewDurationMs,
-          visibleViewDurationMs * Math.exp(event.deltaY * 0.002),
+          visibleViewDurationMs * Math.exp(event.deltaY * WHEEL_ZOOM_RATE),
         ),
       );
       setViewDurationMs(nextDuration);

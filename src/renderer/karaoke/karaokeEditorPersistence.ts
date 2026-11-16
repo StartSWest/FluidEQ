@@ -1,5 +1,10 @@
 /* FluidEQ renderer-side Karaoke progress persistence. GPL-3.0-or-later. */
 
+import {
+  IMakerPitchWindow,
+  normalizePersistedPitchWindow,
+} from './makerPitchView';
+
 export type TKaraokeMakerPersistedSelection =
   { kind: 'word'; id: string } | { kind: 'note'; id: string };
 
@@ -12,6 +17,12 @@ export interface IKaraokeMakerEditorView {
   previewHeight?: number;
   timingScope: 'all' | 'from-word';
   selection?: TKaraokeMakerPersistedSelection;
+  /**
+   * The note grid's pitch zoom, only once somebody zoomed or scrolled it.
+   * Absent, the editor fits the song's notes when it opens, so a melody
+   * detected after the last visit is still framed on the next one.
+   */
+  pitchWindow?: IMakerPitchWindow;
 }
 
 interface IKaraokeMakerEditorViewRecord extends IKaraokeMakerEditorView {
@@ -76,6 +87,7 @@ const normalizeEditorView = (
     previewHeight: finiteNonNegative(candidate.previewHeight),
     timingScope: candidate.timingScope === 'from-word' ? 'from-word' : 'all',
     selection: normalizeSelection(candidate.selection),
+    pitchWindow: normalizePersistedPitchWindow(candidate.pitchWindow),
     updatedAt: finiteNonNegative(candidate.updatedAt) ?? 0,
   };
 };

@@ -332,6 +332,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.previousView': '前の区間',
   'karaoke.maker.nextView': '次の区間',
   'karaoke.maker.resetZoom': 'ダブルクリックで歌詞全体を表示',
+  'karaoke.maker.pitchRange': '音域',
+  'karaoke.maker.pitchHint':
+    '端をドラッグで拡大・縮小、中央をドラッグでスクロール。Shift + ホイールで音高をスクロール、Ctrl + Shift + ホイールで拡大・縮小します。ダブルクリックでノートに合わせます。',
   'karaoke.maker.livePreview': 'ライブプレビュー',
   'karaoke.maker.showPreview': 'プレビューを表示',
   'karaoke.maker.hidePreview': 'プレビューを隠す',

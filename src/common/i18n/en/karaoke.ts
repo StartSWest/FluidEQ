@@ -331,6 +331,9 @@ const karaoke = {
   'karaoke.maker.previousView': 'Previous section',
   'karaoke.maker.nextView': 'Next section',
   'karaoke.maker.resetZoom': 'Double-click to fit timed lyrics',
+  'karaoke.maker.pitchRange': 'Pitch range',
+  'karaoke.maker.pitchHint':
+    'Drag an end to zoom, the middle to scroll. Shift + wheel scrolls pitch, Ctrl + Shift + wheel zooms it. Double-click to fit the notes.',
   'karaoke.maker.livePreview': 'Live preview',
   'karaoke.maker.showPreview': 'Show preview',
   'karaoke.maker.hidePreview': 'Hide preview',

@@ -335,6 +335,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.previousView': 'Предыдущий участок',
   'karaoke.maker.nextView': 'Следующий участок',
   'karaoke.maker.resetZoom': 'Двойной щелчок — вместить текст',
+  'karaoke.maker.pitchRange': 'Диапазон высоты',
+  'karaoke.maker.pitchHint':
+    'Потяните край, чтобы изменить масштаб, середину — чтобы прокрутить. Shift + колесо прокручивает высоту, Ctrl + Shift + колесо меняет масштаб. Двойной щелчок — вместить ноты.',
   'karaoke.maker.livePreview': 'Предпросмотр',
   'karaoke.maker.showPreview': 'Показать предпросмотр',
   'karaoke.maker.hidePreview': 'Скрыть предпросмотр',

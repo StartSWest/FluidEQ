@@ -18,6 +18,7 @@ import {
   karaokeMakerLyricFocus,
   karaokeMakerSectionGroups,
 } from './makerCanvasLayout';
+import { IMakerPitchWindow } from './makerPitchView';
 
 /**
  * Painting the canvas, and every reason to paint it again.
@@ -62,6 +63,8 @@ export interface IMakerCanvasRenderParams {
   /** The window being drawn, and where the playhead sits inside it. */
   viewStartMs: number;
   visibleViewDurationMs: number;
+  /** The pitch the note grid shows; see `useMakerPitchView.ts`. */
+  pitchWindow: IMakerPitchWindow;
   visualPlayheadMs: number;
   effectiveDurationMs: number;
   headerHeight: number;
@@ -100,6 +103,7 @@ export const useMakerCanvasRender = ({
   hoveredEditHandle,
   lyricLaneHeight,
   lyricSectionTop,
+  pitchWindow,
   project,
   renderCanvasRef,
   selectedNoteIds,
@@ -157,6 +161,7 @@ export const useMakerCanvasRender = ({
       controlLinkMode,
       viewStartMs,
       visibleViewDurationMs,
+      pitchWindow,
       visualPlayheadMs,
       effectiveDurationMs,
       hitRegionsRef: gesture.hitRegions,
@@ -183,6 +188,7 @@ export const useMakerCanvasRender = ({
     headerHeight,
     lyricLaneHeight,
     lyricSectionTop,
+    pitchWindow,
     translationRow,
     visualPlayheadMs,
     project,

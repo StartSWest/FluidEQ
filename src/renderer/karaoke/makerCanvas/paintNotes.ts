@@ -89,7 +89,9 @@ export const paintNotes = (
     right: plotRight,
     top: plotTop,
     bottom: plotBottom,
-    height: plotHeight,
+    lowMidi,
+    highMidi,
+    semitoneHeight,
     timeX,
     noteY,
   } = plot;
@@ -154,10 +156,7 @@ export const paintNotes = (
     const shape = karaokeLeadNoteShape(note);
     const left = Math.max(plotLeft, timeX(shape.startMs));
     const right = Math.min(plotRight, Math.max(left + 5, timeX(shape.endMs)));
-    const noteHeight = Math.max(
-      8,
-      (plotHeight / (MAX_NOTE_MIDI - MIN_NOTE_MIDI)) * 0.8,
-    );
+    const noteHeight = Math.max(8, semitoneHeight * 0.8);
     /*
      * A NOTE IS DRAWN INSIDE THE PITCH GRID OR NOT AT ALL.
      *
@@ -178,10 +177,22 @@ export const paintNotes = (
      * keeps its real label: pinning is how the editor says "this one is off
      * the top", and replacing the name with the limit's name would hide the
      * very thing the user has to fix.
+     *
+     * Pinned to the GRID's range, not to the pitch window: with the pitch
+     * zoomed in, a note above or below the window is simply out of view — it
+     * is drawn nowhere and claims no hit region. Pinning it to the window's
+     * edge would show it on a row that is not its pitch.
      */
+    const gridMidi = Math.max(
+      MIN_NOTE_MIDI,
+      Math.min(MAX_NOTE_MIDI, note.targetMidi),
+    );
+    if (gridMidi < lowMidi - 1e-6 || gridMidi > highMidi + 1e-6) {
+      return;
+    }
     const centerY = Math.max(
       plotTop + noteHeight / 2,
-      Math.min(plotBottom - noteHeight / 2, noteY(note.targetMidi)),
+      Math.min(plotBottom - noteHeight / 2, noteY(gridMidi)),
     );
     const selected = selectedNoteIds.has(note.id);
     // The same extent the block is drawn with, so the fill reaches the right

@@ -49,6 +49,42 @@ describe('Karaoke editor persistence', () => {
     expect(readKaraokeProgress()).toBeUndefined();
   });
 
+  it('remembers the note grid pitch zoom per project, and drops a broken one', () => {
+    const view = {
+      viewStartMs: 0,
+      viewDurationMs: 8_000,
+      followViewport: true,
+      previewOpen: true,
+      timingScope: 'all' as const,
+    };
+    writeKaraokeMakerEditorView('maker-song-a', {
+      ...view,
+      pitchWindow: { lowMidi: 52.5, highMidi: 70 },
+    });
+    expect(readKaraokeMakerEditorView('maker-song-a')?.pitchWindow).toEqual({
+      lowMidi: 52.5,
+      highMidi: 70,
+    });
+
+    // Upside down: not a window. The rest of the view still restores.
+    window.localStorage.setItem(
+      'fluideq.karaoke.maker-editor-views.v1',
+      JSON.stringify({
+        version: 1,
+        projects: {
+          'maker-song-b': {
+            ...view,
+            pitchWindow: { lowMidi: 70, highMidi: 50 },
+            updatedAt: 1,
+          },
+        },
+      }),
+    );
+    const restored = readKaraokeMakerEditorView('maker-song-b');
+    expect(restored?.viewDurationMs).toBe(8_000);
+    expect(restored?.pitchWindow).toBeUndefined();
+  });
+
   it('ignores malformed persisted editor data', () => {
     window.localStorage.setItem(
       'fluideq.karaoke.maker-editor-views.v1',

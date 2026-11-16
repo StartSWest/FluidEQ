@@ -20,9 +20,8 @@ import { MutableRefObject } from 'react';
 import {
   IHitRegion,
   IMakerPlot,
-  MAX_NOTE_MIDI,
-  MIN_NOTE_MIDI,
   drawRoundedRect,
+  makerPitchAtY,
 } from '../makerCanvasGeometry';
 import {
   ICanvasSelectionBox,
@@ -81,8 +80,9 @@ export const paintOverlays = (
     right: plotRight,
     top: plotTop,
     bottom: plotBottom,
-    height: plotHeight,
+    semitoneHeight,
     timeX,
+    noteY,
   } = plot;
 
   const notePaintDraft = notePaintDraftRef.current;
@@ -95,10 +95,15 @@ export const paintOverlays = (
       plotRight,
       Math.max(notePaintDraft.startX + 5, notePaintDraft.currentX),
     );
-    const centerY = Math.max(plotTop, Math.min(plotBottom, notePaintDraft.y));
-    const noteHeight = Math.max(
-      8,
-      (plotHeight / (MAX_NOTE_MIDI - MIN_NOTE_MIDI)) * 0.8,
+    // On the row the note will be committed to (`makerPitchAtY`), so the
+    // draft shows its pitch rather than wherever the press happened to be.
+    const noteHeight = Math.max(8, semitoneHeight * 0.8);
+    const centerY = Math.max(
+      plotTop + noteHeight / 2,
+      Math.min(
+        plotBottom - noteHeight / 2,
+        noteY(makerPitchAtY(plot, notePaintDraft.y)),
+      ),
     );
     context.save();
     context.fillStyle = readAccent(0.34, 'rgba(58, 242, 222, .34)');

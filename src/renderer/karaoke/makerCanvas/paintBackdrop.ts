@@ -21,8 +21,7 @@ import { IKaraokeMakerSectionGroup } from '../makerCanvasLayout';
 import formatClock from '../makerFormat';
 import {
   IMakerPlot,
-  MAX_NOTE_MIDI,
-  MIN_NOTE_MIDI,
+  OCTAVE_LABEL_RIGHT,
   SECTION_GROUP_HEIGHT,
   SECTION_GROUP_TOP,
   WAVEFORM_HEIGHT,
@@ -30,6 +29,12 @@ import {
 } from '../makerCanvasGeometry';
 import { midiToNoteName } from '../../../common/karaoke/pitch';
 import { readTextInk, readAccent, readSurfaceAlpha } from '../../utils/theme';
+
+/**
+ * Zoomed in this far, every row gets its name, not only the Cs: a 10px name
+ * needs about 12px of height, and a little more keeps neighbours apart.
+ */
+const NAME_EVERY_ROW_PX = 15;
 
 export interface IPaintBackdropInput {
   plot: IMakerPlot;
@@ -205,8 +210,13 @@ export const paintBackdrop = (
   }
   // A line for every note, barely there, and a little more for each octave
   // (Ivan, 2026-11-15: "we need subtle lines for each note"); the C labels
-  // stay at the left. It was a row every three semitones, ruled loud.
-  for (let midi = MIN_NOTE_MIDI; midi <= MAX_NOTE_MIDI; midi += 1) {
+  // stay at the left. It was a row every three semitones, ruled loud. Only
+  // the rows inside the pitch window: the rest would land on the lyrics.
+  for (
+    let midi = Math.ceil(plot.lowMidi - 1e-6);
+    midi <= Math.floor(plot.highMidi + 1e-6);
+    midi += 1
+  ) {
     const y = noteY(midi);
     const isOctave = midi % 12 === 0;
     context.strokeStyle = isOctave
@@ -216,10 +226,11 @@ export const paintBackdrop = (
     context.moveTo(plotLeft, y);
     context.lineTo(plotRight, y);
     context.stroke();
-    if (isOctave) {
-      context.fillStyle = 'rgb(160, 244, 112)';
+    if (isOctave || plot.semitoneHeight >= NAME_EVERY_ROW_PX) {
+      context.font = '10px system-ui, sans-serif';
+      context.fillStyle = isOctave ? 'rgb(160, 244, 112)' : textInk;
       context.textAlign = 'right';
-      context.fillText(midiToNoteName(midi), plotLeft - 8, y + 3);
+      context.fillText(midiToNoteName(midi), OCTAVE_LABEL_RIGHT, y + 3);
     }
   }
 

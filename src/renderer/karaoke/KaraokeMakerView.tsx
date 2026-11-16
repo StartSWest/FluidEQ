@@ -20,6 +20,7 @@ import KaraokeMakerToolbar from './KaraokeMakerToolbar';
 import KaraokeMakerWizard from './KaraokeMakerWizard';
 import KaraokeMakerHeader from './KaraokeMakerHeader';
 import KaraokeMakerNavigator from './KaraokeMakerNavigator';
+import KaraokeMakerPitchScroller from './KaraokeMakerPitchScroller';
 import KaraokeMakerCaptureCoach from './KaraokeMakerCaptureCoach';
 import KaraokeMakerFloatingPanel from './KaraokeMakerFloatingPanel';
 import KaraokeMakerPreview from './KaraokeMakerPreview';
@@ -204,6 +205,12 @@ const KaraokeMakerView = ({
     onCanvasPointerUp,
     resetLyricZoom,
     resizeViewport,
+    headerHeight,
+    pitchWindow,
+    zoomPitch,
+    panPitch,
+    showPitchWindow,
+    fitPitch,
   } = editor;
   const {
     clearLyrics,
@@ -540,45 +547,61 @@ const KaraokeMakerView = ({
       />
 
       <div ref={canvasHostRef} className="karaoke-maker__canvas-host">
-        <canvas
-          ref={canvasRef}
-          className={`karaoke-maker__canvas${
-            handPanMode ? ' is-hand-pan' : ''
-          }${
-            isPitchPanReady ? ' is-pitch-pan-ready' : ''
-          }${isCanvasPanning ? ' is-panning' : ''}${
-            isCanvasScrubbing ? ' is-scrubbing' : ''
-          }${noteEditMode === 'select' ? ' is-note-selecting' : ''}${
-            noteEditMode === 'paint' ? ' is-note-painting' : ''
-          }${
-            hoveredEditHandle?.behavior === 'move' ? ' is-note-move-ready' : ''
-          }${
-            hoveredEditHandle?.behavior === 'resize-start' ||
-            hoveredEditHandle?.behavior === 'resize-end'
-              ? ' is-note-resize-ready'
-              : ''
-          }`}
-          // NO NATIVE TOOLTIP ON THE EDITING SURFACE.
-          //
-          // A `title` on the canvas means the browser pops a yellow box under
-          // the pointer after a second of stillness — over the one element
-          // somebody rests the pointer on constantly while deciding where to
-          // drag a note. It covered the notes it was describing, and it could
-          // not be styled or placed. The instruction is still on screen: it is
-          // rendered as the status line under the canvas, which is where the
-          // mode already says what the current tool does.
-          aria-label={canvasInteractionHint}
-          onPointerDown={onCanvasPointerDown}
-          onPointerMove={onCanvasPointerMove}
-          onPointerUp={onCanvasPointerUp}
-          onPointerCancel={onCanvasPointerUp}
-          onPointerLeave={() => {
-            if (!gesture.drag.current) {
-              setHoveredEditHandle(undefined);
-              setIsPitchPanReady(false);
-            }
-          }}
-        />
+        <div className="karaoke-maker__canvas-stage">
+          <canvas
+            ref={canvasRef}
+            id={`${controlId}-canvas`}
+            className={`karaoke-maker__canvas${
+              handPanMode ? ' is-hand-pan' : ''
+            }${
+              isPitchPanReady ? ' is-pitch-pan-ready' : ''
+            }${isCanvasPanning ? ' is-panning' : ''}${
+              isCanvasScrubbing ? ' is-scrubbing' : ''
+            }${noteEditMode === 'select' ? ' is-note-selecting' : ''}${
+              noteEditMode === 'paint' ? ' is-note-painting' : ''
+            }${
+              hoveredEditHandle?.behavior === 'move'
+                ? ' is-note-move-ready'
+                : ''
+            }${
+              hoveredEditHandle?.behavior === 'resize-start' ||
+              hoveredEditHandle?.behavior === 'resize-end'
+                ? ' is-note-resize-ready'
+                : ''
+            }`}
+            // NO NATIVE TOOLTIP ON THE EDITING SURFACE.
+            //
+            // A `title` on the canvas means the browser pops a yellow box under
+            // the pointer after a second of stillness — over the one element
+            // somebody rests the pointer on constantly while deciding where to
+            // drag a note. It covered the notes it was describing, and it could
+            // not be styled or placed. The instruction is still on screen: it is
+            // rendered as the status line under the canvas, which is where the
+            // mode already says what the current tool does.
+            aria-label={canvasInteractionHint}
+            onPointerDown={onCanvasPointerDown}
+            onPointerMove={onCanvasPointerMove}
+            onPointerUp={onCanvasPointerUp}
+            onPointerCancel={onCanvasPointerUp}
+            onPointerLeave={() => {
+              if (!gesture.drag.current) {
+                setHoveredEditHandle(undefined);
+                setIsPitchPanReady(false);
+              }
+            }}
+          />
+          <KaraokeMakerPitchScroller
+            pitchWindow={pitchWindow}
+            gridTop={headerHeight}
+            controls={`${controlId}-canvas`}
+            label={t('karaoke.maker.pitchRange')}
+            hint={t('karaoke.maker.pitchHint')}
+            onPan={panPitch}
+            onZoom={zoomPitch}
+            onShow={showPitchWindow}
+            onFit={fitPitch}
+          />
+        </div>
         <KaraokeMakerNavigator
           durationMs={effectiveDurationMs}
           viewportStartMs={viewStartMs}

@@ -56,6 +56,7 @@ import useMakerDismissals from './useMakerDismissals';
 import useMakerViewportFollow from './useMakerViewportFollow';
 import { useMakerCanvasRender } from './useMakerCanvasRender';
 import { useMakerCanvasPointer } from './useMakerCanvasPointer';
+import useMakerPitchView from './useMakerPitchView';
 import { type IKaraokeMakerProps } from './KaraokeMaker';
 
 /**
@@ -225,6 +226,19 @@ const useKaraokeMakerEditor = ({
     previewHeight,
     setPreviewHeight,
   } = useKaraokeMakerEditorView(project.id, initialEditorView);
+  // The note grid's pitch zoom, kept per project beside the time view.
+  const {
+    pitchWindow,
+    pitchWindowChosen,
+    zoomPitch,
+    panPitch,
+    showPitchWindow,
+    fitPitch,
+  } = useMakerPitchView({
+    projectId: project.id,
+    notes: project.melody.notes,
+    draftReady,
+  });
   // The lyric editor's text and whether it still matches the project. Kept
   // apart from the detection it triggers: that is a long asynchronous job, this
   // is a textarea and two derived numbers.
@@ -427,6 +441,7 @@ const useKaraokeMakerEditor = ({
     previewHeight,
     timingScope,
     selection,
+    pitchWindow: pitchWindowChosen ? pitchWindow : undefined,
   };
 
   const { shiftTimeline } = useMakerTimelineShift({
@@ -501,6 +516,7 @@ const useKaraokeMakerEditor = ({
     translationRow,
     viewStartMs,
     visibleViewDurationMs,
+    pitchWindow,
     visualPlayheadMs,
     wordFocusAnimationRef,
   });
@@ -533,6 +549,8 @@ const useKaraokeMakerEditor = ({
     onPause,
     onPlay,
     onSeek,
+    panPitch,
+    pitchWindow,
     playheadMs,
     project,
     projectRef,
@@ -557,6 +575,7 @@ const useKaraokeMakerEditor = ({
     viewStartMs,
     visibleViewDurationMs,
     whenPlayheadReaches,
+    zoomPitch,
   });
 
   return {
@@ -718,6 +737,12 @@ const useKaraokeMakerEditor = ({
     onCanvasWheel,
     resetLyricZoom,
     resizeViewport,
+    headerHeight,
+    pitchWindow,
+    zoomPitch,
+    panPitch,
+    showPitchWindow,
+    fitPitch,
   };
 };
 

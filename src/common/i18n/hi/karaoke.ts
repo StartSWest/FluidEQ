@@ -325,6 +325,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.previousView': 'पिछला भाग',
   'karaoke.maker.nextView': 'अगला भाग',
   'karaoke.maker.resetZoom': 'गीत फिट करने के लिए डबल-क्लिक करें',
+  'karaoke.maker.pitchRange': 'पिच रेंज',
+  'karaoke.maker.pitchHint':
+    'ज़ूम करने के लिए किसी सिरे को और स्क्रॉल करने के लिए बीच को खींचें। Shift + व्हील से पिच स्क्रॉल होती है, Ctrl + Shift + व्हील से ज़ूम होती है। नोट्स में फिट करने के लिए डबल-क्लिक करें।',
   'karaoke.maker.livePreview': 'लाइव पूर्वावलोकन',
   'karaoke.maker.showPreview': 'पूर्वावलोकन दिखाएँ',
   'karaoke.maker.hidePreview': 'पूर्वावलोकन छिपाएँ',

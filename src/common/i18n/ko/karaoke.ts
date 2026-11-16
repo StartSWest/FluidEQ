@@ -312,6 +312,9 @@ const karaoke = {
   'karaoke.maker.previousView': '이전 섹션',
   'karaoke.maker.nextView': '다음 섹션',
   'karaoke.maker.resetZoom': '시간에 맞춰 가사를 맞추려면 두 번 클릭하세요.',
+  'karaoke.maker.pitchRange': '음역',
+  'karaoke.maker.pitchHint':
+    '끝을 끌어 확대/축소하고 가운데를 끌어 스크롤합니다. Shift + 휠로 음높이를 스크롤하고 Ctrl + Shift + 휠로 확대/축소합니다. 두 번 클릭하면 음표에 맞춥니다.',
   'karaoke.maker.livePreview': '실시간 미리보기',
   'karaoke.maker.showPreview': '미리보기 표시',
   'karaoke.maker.hidePreview': '미리보기 숨기기',

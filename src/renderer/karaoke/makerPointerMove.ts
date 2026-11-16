@@ -11,7 +11,11 @@ import {
 } from 'react';
 import { karaokeMakerPannedViewportStart } from './makerCanvasLayout';
 import { IDragState } from './makerCanvasTypes';
-import { MAX_NOTE_MIDI, MIN_NOTE_MIDI } from './makerCanvasGeometry';
+import {
+  IMakerPlot,
+  MAX_NOTE_MIDI,
+  MIN_NOTE_MIDI,
+} from './makerCanvasGeometry';
 import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
 import { flattenTokens, replaceNote } from './makerProjectEdits';
 import {
@@ -33,6 +37,11 @@ interface IMakerPointerMoveInput {
     width: number;
     height: number;
   };
+  /**
+   * The plot the painter drew at this canvas size, so a drag reads time and
+   * pitch with the painter's own arithmetic, at the current pitch zoom.
+   */
+  plotAt: (size: { width: number; height: number }) => IMakerPlot;
   renderCanvasRef: React.MutableRefObject<() => void>;
   setSelectedNoteIds: Dispatch<SetStateAction<Set<string>>>;
   setSelection: Dispatch<SetStateAction<TSelection>>;
@@ -86,6 +95,7 @@ interface IMakerPointerMoveInput {
 const makerPointerMove = ({
   gesture,
   canvasPoint,
+  plotAt,
   renderCanvasRef,
   setSelectedNoteIds,
   setSelection,
@@ -163,12 +173,11 @@ const makerPointerMove = ({
     const pan = gesture.pan.current;
     if (pan) {
       const point = canvasPoint(event);
-      const plotWidth = Math.max(1, point.width - 72);
       setViewStartMs(
         karaokeMakerPannedViewportStart(
           pan.viewStartMs,
           point.x - pan.pointerX,
-          plotWidth,
+          plotAt(point).width,
           visibleViewDurationMs,
           maximumViewStartMs,
         ),
@@ -241,13 +250,11 @@ const makerPointerMove = ({
     }
     setIsPitchPanReady(false);
     setHoveredEditHandle(undefined);
+    const plot = plotAt(point);
     const timeDelta =
-      ((point.x - drag.pointerX) / Math.max(1, point.width - 72)) *
-      visibleViewDurationMs;
+      ((point.x - drag.pointerX) / plot.width) * visibleViewDurationMs;
     const semitoneDelta = Math.round(
-      (-(point.y - drag.pointerY) /
-        Math.max(1, event.currentTarget.clientHeight - headerHeight - 28)) *
-        (MAX_NOTE_MIDI - MIN_NOTE_MIDI),
+      -(point.y - drag.pointerY) / plot.semitoneHeight,
     );
     if (drag.selection.kind === 'note') {
       const movingNoteIds = new Set(

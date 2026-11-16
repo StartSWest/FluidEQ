@@ -308,6 +308,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.previousView': '上一段',
   'karaoke.maker.nextView': '下一段',
   'karaoke.maker.resetZoom': '双击以显示全部定时歌词',
+  'karaoke.maker.pitchRange': '音域',
+  'karaoke.maker.pitchHint':
+    '拖动一端以缩放，拖动中间以滚动。Shift + 滚轮滚动音高，Ctrl + Shift + 滚轮缩放音高。双击以适配音符。',
   'karaoke.maker.livePreview': '实时预览',
   'karaoke.maker.showPreview': '显示预览',
   'karaoke.maker.hidePreview': '隐藏预览',

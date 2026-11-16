@@ -9,6 +9,8 @@ const PATHS = {
   timing: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 7v5l3.5 2M4 12H2m20 0h-2',
   hand: 'M8 11V7a1.5 1.5 0 0 1 3 0v4-1.5M11 10V5.5a1.5 1.5 0 0 1 3 0V11m0-3.5a1.5 1.5 0 0 1 3 0V12m0-2a1.5 1.5 0 0 1 3 0v4c0 4-3 7-7 7h-1c-3 0-5-1.5-6.5-4L3 13.5a1.5 1.5 0 0 1 2.4-1.8L8 14',
   select: 'M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M8 9h8v6H8z',
+  // Two notes of the grid held between a ceiling and a floor: the pitch view
+  // closed in on the melody. Drawn in Select's language of brackets.
   noteAdd:
     'M6 18V7l10-2v10M6 7l10-2M6 18a2.5 2 0 1 1-5 0 2.5 2 0 0 1 5 0zm10-3a2.5 2 0 1 1-5 0 2.5 2 0 0 1 5 0zM20 4v6m-3-3h6',
   split: 'M7 5v5m0 4v5M17 5v5m0 4v5M4 12h16M10 9l4 3-4 3',

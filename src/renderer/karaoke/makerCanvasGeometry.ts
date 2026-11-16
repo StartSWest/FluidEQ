@@ -16,6 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// Type-only: `makerPitchView.ts` reads this module's range constants, so a
+// value import back would be a cycle.
+import type { IMakerPitchWindow } from './makerPitchView';
+
 /**
  * The bands stacked above the pitch grid, in pixels from the canvas top.
  *
@@ -87,15 +91,26 @@ export const COMPACT_LYRIC_LANE_HEIGHT = 22;
 export const TRANSLATION_LANE_HEIGHT = LYRIC_LANE_HEIGHT;
 
 /** Room for the octave names down the left edge, and no more (Ivan,
- * 2026-11-15: "less left padding"): "C7" right-aligned 8px short of the plot
- * needs about 30px. It was 54, from when piano keys stood there. */
-const PLOT_LEFT = 34;
+ * 2026-11-15: "less left padding"): the names stand right-aligned at
+ * `OCTAVE_LABEL_RIGHT` and the pitch scroller takes the 8px between them and
+ * the plot. It was 54, from when piano keys stood there. */
+export const PLOT_LEFT = 34;
+
+/** Where the octave names end, leaving the pitch scroller its column. */
+export const OCTAVE_LABEL_RIGHT = PLOT_LEFT - 11;
 
 /** A margin on the right, so the last note is not flush against the frame. */
 const PLOT_RIGHT_INSET = 18;
 
 /** Room under the plot for the time ruler. */
-const PLOT_BOTTOM_INSET = 28;
+export const PLOT_BOTTOM_INSET = 28;
+
+/**
+ * The gap between the last lyric lane and the top of the note grid. A note's
+ * name is drawn just above it, so a note at the top of the grid keeps its
+ * name inside this gap and never over the lyrics.
+ */
+export const PLOT_TOP_GAP = 10;
 
 /** The pitch range the grid covers, in MIDI note numbers. */
 export const MIN_NOTE_MIDI = 24;
@@ -164,6 +179,11 @@ export interface IMakerPlotInput {
   headerHeight: number;
   viewStartMs: number;
   visibleViewDurationMs: number;
+  /**
+   * The pitch the grid shows, bottom to top; see `makerPitchView.ts`. The
+   * whole grid when left out, for a caller that reads only the time axis.
+   */
+  pitchWindow?: IMakerPitchWindow;
 }
 
 export interface IMakerPlot {
@@ -173,6 +193,11 @@ export interface IMakerPlot {
   top: number;
   bottom: number;
   height: number;
+  /** The pitch at the plot's bottom edge and at its top edge. */
+  lowMidi: number;
+  highMidi: number;
+  /** How many pixels one semitone takes at this zoom. */
+  semitoneHeight: number;
   /** Milliseconds to a horizontal pixel. */
   timeX: (timeMs: number) => number;
   /** A MIDI note number to a vertical pixel. */
@@ -206,6 +231,7 @@ export const makerPlot = ({
   headerHeight,
   viewStartMs,
   visibleViewDurationMs,
+  pitchWindow = { lowMidi: MIN_NOTE_MIDI, highMidi: MAX_NOTE_MIDI },
 }: IMakerPlotInput): IMakerPlot => {
   const left = PLOT_LEFT;
   const right = width - PLOT_RIGHT_INSET;
@@ -213,7 +239,9 @@ export const makerPlot = ({
   const top = headerHeight;
   const bottom = height - PLOT_BOTTOM_INSET;
   const plotHeight = Math.max(1, bottom - top);
-  const midiSpan = MAX_NOTE_MIDI - MIN_NOTE_MIDI;
+  const { lowMidi, highMidi } = pitchWindow;
+  // Guarded like the width: a window of no span would divide by zero.
+  const midiSpan = Math.max(1e-6, highMidi - lowMidi);
 
   return {
     left,
@@ -222,11 +250,25 @@ export const makerPlot = ({
     top,
     bottom,
     height: plotHeight,
+    lowMidi,
+    highMidi,
+    semitoneHeight: plotHeight / midiSpan,
     timeX: (timeMs) =>
       left + ((timeMs - viewStartMs) / visibleViewDurationMs) * plotWidth,
-    noteY: (midi) => top + ((MAX_NOTE_MIDI - midi) / midiSpan) * plotHeight,
+    noteY: (midi) => top + ((highMidi - midi) / midiSpan) * plotHeight,
     xTime: (x) =>
       viewStartMs + ((x - left) / plotWidth) * visibleViewDurationMs,
-    yNote: (y) => MAX_NOTE_MIDI - ((y - top) / plotHeight) * midiSpan,
+    yNote: (y) => highMidi - ((y - top) / plotHeight) * midiSpan,
   };
+};
+
+/**
+ * The semitone a press at `y` lands on: the nearest row, kept to the rows
+ * the pitch window shows and to the grid's range. The note painter commits
+ * this and the draft overlay draws it, so the two cannot disagree.
+ */
+export const makerPitchAtY = (plot: IMakerPlot, y: number): number => {
+  const lowestRow = Math.max(MIN_NOTE_MIDI, Math.ceil(plot.lowMidi - 1e-6));
+  const highestRow = Math.min(MAX_NOTE_MIDI, Math.floor(plot.highMidi + 1e-6));
+  return Math.max(lowestRow, Math.min(highestRow, Math.round(plot.yNote(y))));
 };

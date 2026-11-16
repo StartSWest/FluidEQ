@@ -290,6 +290,9 @@ const karaoke = {
   'karaoke.maker.previousView': '上一節',
   'karaoke.maker.nextView': '下一節',
   'karaoke.maker.resetZoom': '雙擊以適應定時歌詞',
+  'karaoke.maker.pitchRange': '音域',
+  'karaoke.maker.pitchHint':
+    '拖曳一端以縮放，拖曳中間以捲動。Shift + 滾輪捲動音高，Ctrl + Shift + 滾輪縮放音高。雙擊以適應音符。',
   'karaoke.maker.livePreview': '即時預覽',
   'karaoke.maker.showPreview': '顯示預覽',
   'karaoke.maker.hidePreview': '隱藏預覽',

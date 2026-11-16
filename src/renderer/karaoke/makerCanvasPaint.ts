@@ -24,9 +24,11 @@ import {
 } from './makerCanvasLayout';
 import {
   IHitRegion,
+  PLOT_TOP_GAP,
   TMakerDragBehavior,
   makerPlot,
 } from './makerCanvasGeometry';
+import { IMakerPitchWindow } from './makerPitchView';
 import {
   ICanvasLyricWord,
   ICanvasSelectionBox,
@@ -89,6 +91,8 @@ export interface IMakerCanvasPaint {
   controlLinkMode: boolean;
   viewStartMs: number;
   visibleViewDurationMs: number;
+  /** The pitch the note grid shows; see `makerPitchView.ts`. */
+  pitchWindow: IMakerPitchWindow;
   visualPlayheadMs: number;
   effectiveDurationMs: number;
   /** Written by the paint, read by the pointer handlers. */
@@ -131,6 +135,7 @@ export const paintMakerCanvas = ({
   controlLinkMode,
   viewStartMs,
   visibleViewDurationMs,
+  pitchWindow,
   visualPlayheadMs,
   effectiveDurationMs,
   hitRegionsRef,
@@ -147,6 +152,7 @@ export const paintMakerCanvas = ({
     headerHeight,
     viewStartMs,
     visibleViewDurationMs,
+    pitchWindow,
   });
   const regions: IHitRegion[] = [];
 
@@ -203,6 +209,19 @@ export const paintMakerCanvas = ({
   // The melody, after the words: a note linked to a lyric is drawn against
   // that word's position, so `canvasLyricWords` goes in to answer "which word
   // is this note on" rather than to draw anything.
+  //
+  // Held to the grid's own height as well (and the gap above it, where a top
+  // note's name stands): with the pitch zoomed in, a slur running to a note
+  // out of view would otherwise be drawn across the lyrics and the waves.
+  context.save();
+  context.beginPath();
+  context.rect(
+    plot.left,
+    plot.top - PLOT_TOP_GAP,
+    plot.right - plot.left,
+    plot.height + PLOT_TOP_GAP,
+  );
+  context.clip();
   regions.push(
     ...paintNotes(context, {
       plot,
@@ -216,6 +235,7 @@ export const paintMakerCanvas = ({
       visualPlayheadMs,
     }),
   );
+  context.restore();
   context.restore();
 
   // Last, and on top: the gesture in flight and the playhead. None of it is

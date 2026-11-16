@@ -23,6 +23,7 @@ import {
   BASE_LYRIC_SECTION_TOP,
   COMPACT_LYRIC_LANE_HEIGHT,
   LYRIC_LANE_HEIGHT,
+  PLOT_TOP_GAP,
   SECTION_GROUP_HEIGHT,
   TRANSLATION_LANE_HEIGHT,
   lyricSectionHeight,
@@ -224,7 +225,7 @@ export const useMakerCanvasModel = ({
   const lyricSectionTop =
     BASE_LYRIC_SECTION_TOP +
     (canvasSectionGroups.length ? SECTION_GROUP_HEIGHT : 0);
-  const headerHeight = lyricSectionTop + lyricSectionHeightPx + 10;
+  const headerHeight = lyricSectionTop + lyricSectionHeightPx + PLOT_TOP_GAP;
   const lyricLines = useMemo(
     () =>
       project.lyrics.lines.filter(
