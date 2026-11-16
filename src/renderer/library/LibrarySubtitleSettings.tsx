@@ -19,9 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { ReactNode } from 'react';
 import type { TranslationKey } from '../../common/i18n';
 import {
-  anchorOf,
-  anchorPosition,
-  SUBTITLE_ANCHORS,
   SUBTITLE_BACKGROUNDS,
   SUBTITLE_COLOURS,
   SUBTITLE_INK,
@@ -34,6 +31,7 @@ import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import SegmentedControl from '../widgets/SegmentedControl';
 import Switch from '../widgets/Switch';
+import LibrarySubtitlePreview from './LibrarySubtitlePreview';
 import {
   setCaptionsMoving,
   updateSubtitleStyle,
@@ -62,18 +60,6 @@ const BACKGROUND_KEYS: Record<TSubtitleBackground, TranslationKey> = {
   box: 'library.subtitles.background.box',
 };
 
-const PLACE_KEYS = {
-  topLeft: 'library.subtitles.place.topLeft',
-  topCentre: 'library.subtitles.place.topCentre',
-  topRight: 'library.subtitles.place.topRight',
-  middleLeft: 'library.subtitles.place.middleLeft',
-  middleCentre: 'library.subtitles.place.middleCentre',
-  middleRight: 'library.subtitles.place.middleRight',
-  bottomLeft: 'library.subtitles.place.bottomLeft',
-  bottomCentre: 'library.subtitles.place.bottomCentre',
-  bottomRight: 'library.subtitles.place.bottomRight',
-} as const;
-
 /** A setting's name over its control, so a long translation never squeezes
  * the control beside it in a narrow pane. */
 const Setting = ({
@@ -94,14 +80,14 @@ const Setting = ({
  * 2026-11-15: "the list of imported subs and the settings"): on or off,
  * size, ink, background and the box's opacity, one of nine places or one
  * dragged on the picture. One style for every film, kept per viewer
- * (`subtitleStyleStore`). The app's own controls throughout: the switch,
- * the segmented tracks, and the scene picker's colour chip for the inks.
+ * (`subtitleStyleStore`). A small screen at the top shows the captions as
+ * they will look and is where a place is picked; under it the app's own
+ * switch and segmented tracks, and the inks as round swatches.
  */
 const LibrarySubtitleSettings = () => {
   const { t, locale } = useTranslation();
   const style = useSubtitleStyle();
   const isMoving = useCaptionsMoving();
-  const anchor = anchorOf(style.position);
   const percent = new Intl.NumberFormat(locale, { style: 'percent' });
 
   return (
@@ -124,6 +110,21 @@ const LibrarySubtitleSettings = () => {
           handleToggle={() => updateSubtitleStyle({ enabled: !style.enabled })}
         />
       </div>
+      {/* The captions as they will look, and where: press a place on it. */}
+      <LibrarySubtitlePreview style={style} />
+      <div className="library-subtitles__move">
+        <button
+          type="button"
+          className={`button small${isMoving ? '' : ' subtle'}`}
+          aria-pressed={isMoving}
+          onClick={() => setCaptionsMoving(!isMoving)}
+        >
+          <MenuIcon name={isMoving ? 'check' : 'bothWays'} />
+          {t(
+            isMoving ? 'library.subtitles.moveDone' : 'library.subtitles.move',
+          )}
+        </button>
+      </div>
       <Setting label={t('library.subtitles.size')}>
         <SegmentedControl
           name={t('library.subtitles.size')}
@@ -142,7 +143,7 @@ const LibrarySubtitleSettings = () => {
       </Setting>
       <Setting label={t('library.subtitles.colour')}>
         <div
-          className="segmented library-subtitles__inks"
+          className="library-subtitles__inks"
           role="radiogroup"
           aria-label={t('library.subtitles.colour')}
         >
@@ -154,17 +155,12 @@ const LibrarySubtitleSettings = () => {
               aria-checked={style.colour === colour}
               aria-label={t(COLOUR_KEYS[colour])}
               title={t(COLOUR_KEYS[colour])}
-              className={`segmented__option${
+              className={`library-subtitles__ink${
                 style.colour === colour ? ' is-selected' : ''
               }`}
+              style={{ background: SUBTITLE_INK[colour] }}
               onClick={() => updateSubtitleStyle({ colour })}
-            >
-              <span
-                className="scene-choice__swatch"
-                style={{ background: SUBTITLE_INK[colour] }}
-                aria-hidden="true"
-              />
-            </button>
+            />
           ))}
         </div>
       </Setting>
@@ -207,48 +203,6 @@ const LibrarySubtitleSettings = () => {
           />
         </Setting>
       )}
-      <Setting label={t('library.subtitles.place')}>
-        <div className="library-subtitles__place">
-          <div
-            className="segmented library-subtitles__anchors"
-            role="radiogroup"
-            aria-label={t('library.subtitles.place')}
-          >
-            {SUBTITLE_ANCHORS.map((place) => (
-              <button
-                key={place}
-                type="button"
-                role="radio"
-                aria-checked={anchor === place}
-                aria-label={t(PLACE_KEYS[place])}
-                title={t(PLACE_KEYS[place])}
-                className={`segmented__option${
-                  anchor === place ? ' is-selected' : ''
-                }`}
-                // A named place replaces one dragged by hand.
-                onClick={() =>
-                  updateSubtitleStyle({ position: anchorPosition(place) })
-                }
-              >
-                <span className="library-subtitles__anchor-dot" />
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className={`button small${isMoving ? '' : ' subtle'}`}
-            aria-pressed={isMoving}
-            onClick={() => setCaptionsMoving(!isMoving)}
-          >
-            <MenuIcon name={isMoving ? 'check' : 'bothWays'} />
-            {t(
-              isMoving
-                ? 'library.subtitles.moveDone'
-                : 'library.subtitles.move',
-            )}
-          </button>
-        </div>
-      </Setting>
     </section>
   );
 };

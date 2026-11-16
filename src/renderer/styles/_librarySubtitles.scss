@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // here.
 @use 'color' as *;
 @use 'constant' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
@@ -39,11 +40,46 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-lyrics__line.library-subtitles__file {
-  overflow: hidden;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
   font-size: $studio-text-row;
-  text-overflow: ellipsis;
+  text-align: left;
   white-space: nowrap;
   overflow-wrap: normal;
+}
+
+// The language over the file's own name, each cut at the pane's edge.
+.library-subtitles__file-words {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.library-subtitles__file-language,
+.library-subtitles__file-name {
+  min-width: 0;
+  @include truncate;
+}
+
+.library-subtitles__file-name {
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  font-weight: $weight-regular;
+}
+
+// SRT, VTT: the quiet chip the song table's format column wears.
+.library-subtitles__file-kind {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: $radius-xs;
+  background: $studio-surface;
+  color: $studio-t2;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
 }
 
 .library-subtitles__note {
@@ -90,22 +126,129 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-semibold;
 }
 
-// The inks: one chip each in the segmented track, the scene picker's chip.
-.library-subtitles__inks .segmented__option {
-  display: grid;
-  padding: 6px 0;
-  place-items: center;
+// The inks: round swatches, the chosen one ringed in the accent.
+.library-subtitles__inks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-// The nine places as a small picture of the screen: three rows of three in
-// the segmented track's own face, each cell a dash where a caption would
-// stand. Beside it, the switch into moving by hand.
-.library-subtitles__place {
+.library-subtitles__ink {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba($black, 0.35),
+    0 0 0 2px transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    box-shadow:
+      inset 0 0 0 1px rgba($black, 0.35),
+      0 0 0 2px $studio-hair;
+  }
+
+  &.is-selected {
+    box-shadow:
+      inset 0 0 0 1px rgba($black, 0.35),
+      0 0 0 2px $surface-base,
+      0 0 0 4px $secondary-default;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// The captions as they will look, on a small screen (`LibrarySubtitlePreview`):
+// a film-like frame, 16:9, the sample drawn with the picture's own caption
+// classes and size, and the nine places to press over it.
+.library-subtitle-preview {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  margin: 0 6px;
+  border-radius: $radius-m;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 30% 25%,
+      rgba(#f0b46a, 0.28),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 70% 70% at 80% 80%,
+      rgba(#2b6f8f, 0.45),
+      transparent 70%
+    ),
+    linear-gradient(160deg, #24384a, #0f1c27 70%);
+  box-shadow: inset 0 0 0 1px $studio-hair;
+
+  &.is-off .library-subtitle-preview__room {
+    opacity: 0.25;
+  }
+}
+
+.library-subtitle-preview__room {
+  position: absolute;
+  inset: 8% 6%;
+  container-type: size;
+  pointer-events: none;
+
+  .library-video-stage__caption {
+    max-width: 100%;
+    transition: none;
+  }
+}
+
+.library-subtitle-preview__places {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.library-subtitle-preview__place {
+  display: grid;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  place-items: center;
+
+  &:hover .library-subtitle-preview__dot {
+    background: rgba($white, 0.7);
+    transform: scale(1.3);
+  }
+
+  // The place in use shows the caption itself; a dot there sat on its words.
+  &.is-selected .library-subtitle-preview__dot {
+    opacity: 0;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.library-subtitle-preview__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba($white, 0.32);
+  transition:
+    background $motion-fast $ease-out,
+    transform $motion-fast $ease-out;
+}
+
+.library-subtitles__move {
   display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+  padding: 0 6px;
 
   > .button {
     gap: 6px;
@@ -116,25 +259,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       flex: 0 0 auto;
     }
   }
-}
-
-.segmented.library-subtitles__anchors {
-  display: grid;
-  flex: 0 0 auto;
-  grid-template-columns: repeat(3, 26px);
-  grid-auto-rows: 18px;
-  gap: 2px;
-
-  .segmented__option {
-    display: grid;
-    padding: 0;
-    place-items: center;
-  }
-}
-
-.library-subtitles__anchor-dot {
-  width: 10px;
-  height: 3px;
-  border-radius: 1px;
-  background: currentcolor;
 }

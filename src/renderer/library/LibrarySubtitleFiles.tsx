@@ -22,13 +22,18 @@ import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import subtitleLabels from './subtitleLabels';
 
+/** A file's kind as its extension says it: SRT, VTT. */
+const kindOf = (fileName: string): string =>
+  fileName.slice(fileName.lastIndexOf('.') + 1).toUpperCase();
+
 /**
- * A video's subtitle files, one row each, named by language and never by
- * file (`subtitleLabels`); the one in use wears the Library's mark
- * (`studio-mark`, as the playing lyric line and the rail's place do) and a
- * press puts another in use. A row never wraps: a name too long for the
- * pane is cut, and its whole self is the row's tooltip. A file just kept
- * says so above the rows, on one line.
+ * A video's subtitle files, one row each: the language (`subtitleLabels`)
+ * over the file's own name, and its kind (SRT, VTT) at the end (Ivan,
+ * 2026-11-15: "also show the sub name in the list"). The one in use wears
+ * the Library's mark (`studio-mark`, as the playing lyric line and the
+ * rail's place do) and a press puts another in use. A row never wraps: a
+ * name too long for the pane is cut, and its whole self is the row's
+ * tooltip. A file just kept says so above the rows, on one line.
  */
 const LibrarySubtitleFiles = ({
   files,
@@ -92,7 +97,17 @@ const LibrarySubtitleFiles = ({
                   }
                 }}
               >
-                {label}
+                <span className="library-subtitles__file-words">
+                  <span className="library-subtitles__file-language">
+                    {label}
+                  </span>
+                  <small className="library-subtitles__file-name">
+                    {file.fileName}
+                  </small>
+                </span>
+                <small className="library-subtitles__file-kind">
+                  {kindOf(file.fileName)}
+                </small>
               </button>
             </li>
           );
