@@ -459,7 +459,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.lighting': 'このシーンで RGB デバイスを光らせます。',
   'help.graph.desktop': 'このシーンをデスクトップアイコンの背面に表示します。',
   'help.graph.viewCaption': '「表示」メニュー',
-  'help.graph.expand': 'グラフがエディターの上に広がります。',
   'help.graph.fullscreen': 'グラフが画面いっぱいに表示されます。',
   'help.graph.showingName': '表示中',
   'help.graph.showing':

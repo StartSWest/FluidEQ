@@ -430,7 +430,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.lighting': '用这个场景点亮你的 RGB 设备。',
   'help.graph.desktop': '把这个场景放到桌面图标后面。',
   'help.graph.viewCaption': '“视图”菜单',
-  'help.graph.expand': '图表放大，覆盖编辑区。',
   'help.graph.fullscreen': '图表铺满整个屏幕。',
   'help.graph.showingName': '当前显示',
   'help.graph.showing': '依次切换图表显示的内容，包括频段标签。',

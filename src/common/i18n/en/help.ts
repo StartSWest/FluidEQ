@@ -463,7 +463,6 @@ const help = {
   'help.graph.lighting': 'Lights your RGB devices with this scene.',
   'help.graph.desktop': 'Puts this scene behind your desktop icons.',
   'help.graph.viewCaption': 'The View menu',
-  'help.graph.expand': 'The graph grows over the editor.',
   'help.graph.fullscreen': 'The graph fills the screen.',
   'help.graph.showingName': 'Showing',
   'help.graph.showing':

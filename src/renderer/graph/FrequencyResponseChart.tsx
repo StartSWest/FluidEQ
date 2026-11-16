@@ -92,7 +92,6 @@ import {
   setGraphLook,
   setGraphPalette,
   setGraphView,
-  toggleGraphExpanded,
   toggleGraphFullScreen,
   toggleGraphCoverage,
   toggleGraphMeter,
@@ -513,13 +512,6 @@ interface IFrequencyResponseChartProps {
    * stays in the View menu.
    */
   hasLayersInHead?: boolean;
-  /**
-   * Expanded on a page with no picture of its own: the graph keeps its card
-   * in the column and only grows (`isGraphGrown` in `App.tsx`), so it is
-   * still one part of the window — a Backdrop scene stays behind the window
-   * and the plain plot stays a measurement, as at the normal size.
-   */
-  isGrown?: boolean;
   /** The Karaoke stage remains behind the graph, including Plus looks. */
   hasPlaybackBackdrop?: boolean;
   backdropControls?: ReactNode;
@@ -538,7 +530,6 @@ const escapeInFront = new WeakMap<KeyboardEvent, 'menu' | 'dialog'>();
 const FrequencyResponseChart = ({
   isVisible,
   hasLayersInHead = false,
-  isGrown = false,
   hasPlaybackBackdrop = false,
   backdropControls,
 }: IFrequencyResponseChartProps) => {
@@ -631,7 +622,7 @@ const FrequencyResponseChart = ({
   // shows its own deck, not this
   // graph. Where it goes is `graphScenePlace.ts`; only a scene draws on
   // either, and the 2D looks stay on their plot.
-  const isCardInColumn = graphView === 'normal' || isGrown;
+  const isCardInColumn = graphView === 'normal';
   const isPlotPartOfWindow = isCardInColumn && windowMode !== 'player';
   const isCoverageHidden = useGraphCoverageHidden();
   const isMeterHidden = useGraphMeterHidden();
@@ -1455,9 +1446,7 @@ const FrequencyResponseChart = ({
           // nothing to save here and closing the window is the titlebar's
           // business, so both are taken.
           event.preventDefault();
-          if (key === 's') {
-            toggleGraphExpanded();
-          } else if (key === 'f') {
+          if (key === 'f') {
             toggleGraphFullScreen();
           } else if (key === 'g') {
             if (!isPlayerWindowRef.current) {
@@ -2169,8 +2158,8 @@ const FrequencyResponseChart = ({
             isLiveOutputForeground={isLiveOutputForeground}
             isPlotPartOfWindow={isPlotPartOfWindow}
             // This plot fills the screen on a double-click (see `Chart`).
-            onPlotDoubleClick={(toWindow) =>
-              setGraphView(viewAfterPlotDoubleClick(getGraphView(), toWindow))
+            onPlotDoubleClick={() =>
+              setGraphView(viewAfterPlotDoubleClick(getGraphView()))
             }
             onMarqueeSelect={
               canEditEqCurve

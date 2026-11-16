@@ -472,7 +472,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.lighting': 'Ilumina tus dispositivos RGB con esta escena.',
   'help.graph.desktop': 'Pone esta escena detrás de los iconos del escritorio.',
   'help.graph.viewCaption': 'El menú Vista',
-  'help.graph.expand': 'La gráfica crece por encima del editor.',
   'help.graph.fullscreen': 'La gráfica ocupa toda la pantalla.',
   'help.graph.showingName': 'Mostrando',
   'help.graph.showing':

@@ -77,7 +77,10 @@ import { announceGraphMode } from './graphModeAnnouncement';
  * live furthest up are the ones Ctrl+W walks. The view store itself, which only
  * ever runs after startup, stays down among the other controls.
  */
-export type TGraphView = 'normal' | 'expanded' | 'fullscreen';
+// No Expanded view between them any more (Ivan, 2026-11-16: "get rid of
+// Ctrl+S, the expanded mode, completely"); a stored 'expanded' reads as
+// 'normal' below.
+export type TGraphView = 'normal' | 'fullscreen';
 
 /**
  * Exported for the scene wave store, which keeps a listener's wave for one
@@ -85,7 +88,7 @@ export type TGraphView = 'normal' | 'expanded' | 'fullscreen';
  * storage. The modes are this file's list; a second copy of them somewhere
  * else is a fourth mode waiting to be missed.
  */
-export const GRAPH_VIEWS: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
+export const GRAPH_VIEWS: TGraphView[] = ['normal', 'fullscreen'];
 
 let view: TGraphView =
   GRAPH_VIEWS.find((entry) => entry === readStored(VIEW_KEYS.view)) ?? 'normal';
@@ -223,7 +226,6 @@ export const createPerViewSetting = <T>(
   const loaded = (family: TGraphLookFamily): Record<TGraphView, T> => {
     const values: Record<TGraphView, T> = {
       normal: fallbackFor('normal'),
-      expanded: fallbackFor('expanded'),
       fullscreen: fallbackFor('fullscreen'),
     };
     GRAPH_VIEWS.forEach((mode) => {
@@ -977,10 +979,6 @@ export const getGraphView = () => view;
  * step — somebody pressing it wants their app back, not the next size down.
  */
 export const exitGraphFullScreen = () => setGraphView('normal');
-
-/** Ctrl+S, and the click on the plot's own toggle. */
-export const toggleGraphExpanded = () =>
-  setGraphView(view === 'expanded' ? 'normal' : 'expanded');
 
 /** Ctrl+F. */
 export const toggleGraphFullScreen = () =>

@@ -239,12 +239,6 @@ const CAPTURED = {
     caption: 'help.graph.viewCaption',
     controls: [
       {
-        box: [6, 34, 360, 28],
-        name: 'graph.view.expand',
-        text: 'help.graph.expand',
-        keys: 'Ctrl+S',
-      },
-      {
         box: [6, 62, 360, 28],
         name: 'graph.view.fullscreen',
         text: 'help.graph.fullscreen',

@@ -29,7 +29,6 @@ import {
   exitGraphFullScreen,
   getGraphView,
   onWindowFullScreenChange,
-  toggleGraphExpanded,
   toggleGraphFullScreen,
   useFullScreenTopBar,
 } from '../utils/graphStyle';
@@ -287,7 +286,7 @@ const useShellFullScreen = ({
         (event.ctrlKey || event.metaKey) &&
         !event.altKey &&
         !event.repeat &&
-        (shortcut === 'f' || shortcut === 's');
+        shortcut === 'f';
       const wantsExit = event.key === 'Escape' && isMediaFullScreen;
       if (!wantsToggle && !wantsExit) {
         return;
@@ -318,11 +317,7 @@ const useShellFullScreen = ({
         releaseMediaSurface();
       }
       setActiveTabGraphVisibility(true);
-      if (shortcut === 's') {
-        toggleGraphExpanded();
-      } else {
-        toggleGraphFullScreen();
-      }
+      toggleGraphFullScreen();
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);

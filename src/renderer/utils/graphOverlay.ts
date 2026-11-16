@@ -126,7 +126,6 @@ const opacitySetting = createPerViewSetting(
   OPACITY_KEY,
   {
     normal: DEFAULT_OPACITY,
-    expanded: DEFAULT_OVERLAID_OPACITY,
     fullscreen: DEFAULT_OVERLAID_OPACITY,
   },
   parseNumber(DEFAULT_OPACITY, MIN_OVERLAY_OPACITY, 1),

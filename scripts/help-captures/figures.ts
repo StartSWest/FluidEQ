@@ -300,7 +300,6 @@ export const FIGURES: readonly IFigureSpec[] = [
     controls: [
       ...(
         [
-          ['Expand view', 'graph.view.expand', 'help.graph.expand', 'Ctrl+S'],
           [
             'Full screen',
             'graph.view.fullscreen',

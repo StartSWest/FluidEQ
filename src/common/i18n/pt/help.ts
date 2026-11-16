@@ -466,7 +466,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.desktop':
     'Coloca esta cena atrás dos ícones da área de trabalho.',
   'help.graph.viewCaption': 'O menu Visualização',
-  'help.graph.expand': 'O gráfico cresce por cima do editor.',
   'help.graph.fullscreen': 'O gráfico ocupa a tela toda.',
   'help.graph.showingName': 'Mostrando',
   'help.graph.showing':

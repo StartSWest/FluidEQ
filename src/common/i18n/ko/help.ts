@@ -437,7 +437,6 @@ const help = {
   'help.graph.lighting': '이 장면으로 RGB 장치를 비춥니다.',
   'help.graph.desktop': '이 장면을 데스크탑 아이콘 뒤에 놓습니다.',
   'help.graph.viewCaption': '보기 메뉴',
-  'help.graph.expand': '그래프가 편집기 위로 커집니다.',
   'help.graph.fullscreen': '그래프가 화면을 가득 채웁니다.',
   'help.graph.showingName': '표시',
   'help.graph.showing':

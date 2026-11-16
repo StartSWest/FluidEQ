@@ -474,7 +474,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.lighting': 'Éclaire vos appareils RVB avec cette scène.',
   'help.graph.desktop': 'Place cette scène derrière les icônes du Bureau.',
   'help.graph.viewCaption': 'Le menu Affichage',
-  'help.graph.expand': 'Le graphique s’agrandit par-dessus l’éditeur.',
   'help.graph.fullscreen': 'Le graphique remplit l’écran.',
   'help.graph.showingName': 'Affichage',
   'help.graph.showing':

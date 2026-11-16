@@ -463,7 +463,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.lighting': 'Подсвечивает ваши RGB-устройства этой сценой.',
   'help.graph.desktop': 'Помещает эту сцену за значки рабочего стола.',
   'help.graph.viewCaption': 'Меню «Вид»',
-  'help.graph.expand': 'График разворачивается поверх редактора.',
   'help.graph.fullscreen': 'График заполняет весь экран.',
   'help.graph.showingName': 'Показано',
   'help.graph.showing':

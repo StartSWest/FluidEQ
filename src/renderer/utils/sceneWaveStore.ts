@@ -62,7 +62,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const readModes = (raw: unknown): TSceneWaves | undefined => {
   const flat = readSceneWave(raw);
   if (flat) {
-    return { normal: flat, expanded: flat, fullscreen: flat };
+    return { normal: flat, fullscreen: flat };
   }
   if (!isRecord(raw)) {
     return undefined;

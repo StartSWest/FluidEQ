@@ -148,7 +148,6 @@ const ORIENTATION_LABEL: Record<TWaveOrientation, TranslationKey> = {
 
 const VIEW_LABEL: Record<TGraphView, TranslationKey> = {
   normal: 'graph.view.normal',
-  expanded: 'graph.view.expanded',
   fullscreen: 'graph.view.fullscreen',
 };
 
@@ -267,22 +266,6 @@ const GraphViewMenu = ({
             // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
             {...groupProps('own', true)}
           >
-            <button
-              type="button"
-              role="menuitemradio"
-              aria-checked={view === 'expanded'}
-              className={view === 'expanded' ? 'is-on' : undefined}
-              onClick={choose(() =>
-                onChangeView(view === 'expanded' ? 'normal' : 'expanded'),
-              )}
-            >
-              <Icon>
-                <path d="M2.5 4.5h11v7h-11z" />
-                <path d="M5.5 7.2L3.6 8l1.9.8M10.5 7.2L12.4 8l-1.9.8" />
-              </Icon>
-              <span>{t('graph.view.expand')}</span>
-              <kbd>Ctrl+S</kbd>
-            </button>
             <button
               type="button"
               role="menuitemradio"

@@ -339,13 +339,7 @@ const AppContent = () => {
    * — Media, Library, Karaoke — where the graph is drawn over the video, the
    * record or the lyrics, and seeing them through it is the point.
    */
-  const isGraphGrown =
-    graphView === 'expanded' &&
-    showsGraph &&
-    activeWorkspaceTab !== 'video' &&
-    activeWorkspaceTab !== 'library' &&
-    activeWorkspaceTab !== 'karaoke';
-  const isGraphOverlay = isGraphFullScreen && !isGraphGrown;
+  const isGraphOverlay = isGraphFullScreen;
   const isGraphFirst =
     activeWorkspaceTab === 'eq' && showsGraph && !isGraphOverlay;
   const [eqTitleSlot, setEqTitleSlot] = useState<HTMLElement | null>(null);
@@ -692,7 +686,7 @@ const AppContent = () => {
             isGraphOverlay && showsGraph && !isMediaFullScreen
               ? ' is-graph-full'
               : ''
-          }${isGraphGrown && !isMediaFullScreen ? ' is-graph-grown' : ''}${
+          }${
             resize.isResizingPanes ? ' is-resizing' : ''
           }${isGraphFirst ? ' is-graph-first' : ''}`}
           onDoubleClickCapture={(event) => {
@@ -821,7 +815,6 @@ const AppContent = () => {
               <FrequencyResponseChart
                 isVisible
                 hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
-                isGrown={isGraphGrown}
                 hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
                 backdropControls={
                   activeWorkspaceTab === 'karaoke' &&

@@ -67,7 +67,7 @@ import {
  */
 const gridSetting = createPerViewSetting(
   VIEW_KEYS.grid,
-  { normal: false, expanded: false, fullscreen: true },
+  { normal: false, fullscreen: true },
   parseFlag,
   serializeFlag,
 );
@@ -291,7 +291,7 @@ migrateLegacyWaveSize();
  */
 const waveHeightSetting = createPerViewSetting(
   VIEW_KEYS.waveHeight,
-  { normal: 1, expanded: 0.75, fullscreen: 0.75 },
+  { normal: 1, fullscreen: 0.75 },
   parseWaveHeight,
   serializeWaveControl,
 );

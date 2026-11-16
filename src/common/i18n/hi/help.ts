@@ -461,7 +461,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.lighting': 'आपके RGB डिवाइस को इस सीन से जगमगाता है।',
   'help.graph.desktop': 'इस सीन को आपके डेस्कटॉप आइकन के पीछे रखता है।',
   'help.graph.viewCaption': 'दृश्य मेनू',
-  'help.graph.expand': 'ग्राफ़ बड़ा होकर संपादक के ऊपर फैल जाता है।',
   'help.graph.fullscreen': 'ग्राफ़ पूरी स्क्रीन भर देता है।',
   'help.graph.showingName': 'दिखाया जा रहा है',
   'help.graph.showing':

@@ -409,7 +409,6 @@ const help = {
   'help.graph.lighting': '使用此場景點亮您的 RGB 裝置。',
   'help.graph.desktop': '將此場景放在桌面圖示後面。',
   'help.graph.viewCaption': '檢視選單',
-  'help.graph.expand': '圖表在編輯器上增長。',
   'help.graph.fullscreen': '圖表充滿螢幕。',
   'help.graph.showingName': '顯示中',
   'help.graph.showing': '逐步瀏覽圖表顯示的內容，包含波段標籤。',

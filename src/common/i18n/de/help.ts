@@ -477,7 +477,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.lighting': 'Beleuchtet Ihre RGB-Geräte mit dieser Szene.',
   'help.graph.desktop': 'Legt diese Szene hinter Ihre Desktopsymbole.',
   'help.graph.viewCaption': 'Das Menü Ansicht',
-  'help.graph.expand': 'Das Diagramm wächst über den Editor.',
   'help.graph.fullscreen': 'Das Diagramm füllt den Bildschirm.',
   'help.graph.showingName': 'Anzeige',
   'help.graph.showing':
