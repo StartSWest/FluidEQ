@@ -46,36 +46,30 @@ import { type IKaraokeToken } from '../../common/karaoke/types';
 // the review strip and the legend were all taken off it.
 
 interface IPaintPitchGridInput {
-  firstPitchTick: number;
-  topPitchTick: number;
-  lineStep: number;
-  yForMidi: (midi: number) => number;
   context: CanvasRenderingContext2D;
-  plotWidth: number;
+  width: number;
+  height: number;
 }
 
-/** Faint pitch lines every `lineStep` semitones from a C, unlabelled. */
+/**
+ * Four faint rules across the strip, evenly spaced, as the K1 mockup draws
+ * them (Ivan, 2026-11-16: "it needs to be a flat thing with the lines, and
+ * no bg"): a texture to read the notes' height against, not a scale.
+ */
 export const paintPitchGrid = ({
-  firstPitchTick,
-  topPitchTick,
-  lineStep,
-  yForMidi,
   context,
-  plotWidth,
+  width,
+  height,
 }: IPaintPitchGridInput) => {
-  context.strokeStyle = 'rgba(214, 233, 247, 0.06)';
+  context.strokeStyle = 'rgba(214, 233, 247, 0.07)';
   context.lineWidth = 1;
-  for (
-    let tickMidi = firstPitchTick;
-    tickMidi <= topPitchTick;
-    tickMidi += lineStep
-  ) {
-    const y = Math.round(yForMidi(tickMidi)) + 0.5;
+  [16, 40, 64, 88].forEach((at) => {
+    const y = Math.round((height * at) / 96) + 0.5;
     context.beginPath();
-    context.moveTo(PLOT_LEFT, y);
-    context.lineTo(PLOT_LEFT + plotWidth, y);
+    context.moveTo(0, y);
+    context.lineTo(width, y);
     context.stroke();
-  }
+  });
 };
 
 interface IPaintNoteBlocksInput {

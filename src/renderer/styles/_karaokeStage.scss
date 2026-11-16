@@ -289,7 +289,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   z-index: 2;
   display: grid;
   flex: 0 0 auto;
-  gap: 8px;
+  gap: 2px;
   padding: 0 12px 10px;
 }
 
@@ -354,15 +354,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // in a small one.
   height: min(var(--karaoke-pitch-height, 96px), 42vh);
   min-width: 0;
+  // Straight on the stage, as the mockup draws it (Ivan, 2026-11-16: "I
+  // don't want card or border radius"): no fill, no corners, no edge, the
+  // live microphone told by its own button.
   overflow: hidden;
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-base 38%, transparent);
-  transition: box-shadow 260ms ease;
-
-  &.is-microphone-live {
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, $secondary-light 18%, transparent);
-  }
 
   canvas {
     display: block;
@@ -399,8 +394,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   pointer-events: none;
 }
 
-// The strip's handle: a slim bar between the words and the chords.
-.karaoke-workspace__stage > .karaoke-pane-splitter.is-horizontal {
+// The strip's handle: a slim bar between the chords and the strip.
+.karaoke-stage__guides > .karaoke-pane-splitter.is-horizontal {
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
@@ -440,7 +435,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   color: $studio-t2;
   border: 0;
   border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-base 60%, transparent);
+  background: none;
   cursor: pointer;
   transition: $transition-control;
 

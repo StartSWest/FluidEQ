@@ -569,16 +569,6 @@ const KaraokeWorkspaceView = ({
               {/* Under the words, as the K1 mockup draws them: the chords as a
                   row of chips over the slim pitch lane, the chords alone, or
                   neither (the toolbar's Pitch, Chords, Words only). */}
-              {guides === 'pitch' && (
-                <KaraokePaneSplitter
-                  orientation="horizontal"
-                  ariaLabel={t('karaoke.pitch.resize')}
-                  valuePercent={pitchHeightPercent}
-                  onStart={startPitchResize}
-                  onDrag={resizePitch}
-                  onEnd={commitLayout}
-                />
-              )}
               {guides !== 'words' && (
                 <div className="karaoke-stage__guides" style={pitchStyle}>
                   <KaraokeLiveValue value={playhead}>
@@ -591,6 +581,19 @@ const KaraokeWorkspaceView = ({
                       />
                     )}
                   </KaraokeLiveValue>
+                  {/* The strip's handle, under the chords and over the strip
+                      it sizes (Ivan, 2026-11-16: "move the resizer below
+                      the chords"). */}
+                  {guides === 'pitch' && (
+                    <KaraokePaneSplitter
+                      orientation="horizontal"
+                      ariaLabel={t('karaoke.pitch.resize')}
+                      valuePercent={pitchHeightPercent}
+                      onStart={startPitchResize}
+                      onDrag={resizePitch}
+                      onEnd={commitLayout}
+                    />
+                  )}
                   {guides === 'pitch' && (
                     // No playhead here: the lane reads the element itself
                     // every frame, and re-renders only for the pitch it

@@ -317,26 +317,7 @@ const KaraokePitchLane = ({
       const xForSongTime = (timeMs: number) =>
         karaokePitchSongTimeX(timeMs, synchronizedPlayheadMs, plotWidth);
 
-      const bottomMidi = centerMidi - semitoneSpan / 2;
-      const tickStep = semitoneSpan > 48 ? 12 : 6;
-      // A line packed tighter than 4px is a texture, not a scale: every
-      // other one goes.
-      const lineStep = tickStep * semitoneHeight >= 4 ? tickStep : tickStep * 2;
-      // Counted from the zero rather than from MIDI 0. The two agree for 6 and
-      // 12, the zero being a C; a 24-semitone step from MIDI 0 would miss it.
-      const firstPitchTick =
-        KARAOKE_CANONICAL_CENTER_MIDI +
-        Math.ceil((bottomMidi - KARAOKE_CANONICAL_CENTER_MIDI) / lineStep) *
-          lineStep;
-      const topPitchTick = centerMidi + semitoneSpan / 2;
-      paintPitchGrid({
-        firstPitchTick,
-        topPitchTick,
-        lineStep,
-        yForMidi,
-        context,
-        plotWidth,
-      });
+      paintPitchGrid({ context, width, height });
 
       recordSinger(now, synchronizedPlayheadMs, centerMidi);
       // Only as far back as the lane can actually show. With the trace trailing
@@ -560,9 +541,7 @@ const KaraokePitchLane = ({
   // corner. No title, labels, ruler, words or footnote around it.
   return (
     <article
-      className={`karaoke-pitch${hasTargets ? ' has-targets' : ''}${
-        isMicrophoneLive ? ' is-microphone-live' : ''
-      }`}
+      className={`karaoke-pitch${hasTargets ? ' has-targets' : ''}`}
       aria-label={t('karaoke.pitch.title')}
     >
       <canvas
