@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useTranslation } from '../utils/I18nContext';
 import formatClock from './makerFormat';
+import rangeFill from '../utils/rangeFill';
 
 /**
  * The sliders that move one word's start and length.
@@ -82,6 +83,11 @@ const KaraokeMakerTimingSliders = ({
           max={positionMaximum}
           step={10}
           value={Math.round(selectedTokenTimingControls.startMs)}
+          style={rangeFill(
+            selectedTokenTimingControls.startMs,
+            positionMinimum,
+            positionMaximum,
+          )}
           disabled={!selectedTokenTimingControls.canResizeStart}
           onChange={(event) =>
             updateSelectedTokenTiming({ startMs: Number(event.target.value) })
@@ -107,6 +113,11 @@ const KaraokeMakerTimingSliders = ({
               durationMaximum,
               Math.round(selectedTokenTimingControls.durationMs),
             ),
+          )}
+          style={rangeFill(
+            selectedTokenTimingControls.durationMs,
+            selectedTokenTimingControls.minimumDurationMs,
+            durationMaximum,
           )}
           disabled={!selectedTokenTimingControls.canResizeEnd}
           onChange={(event) =>

@@ -297,35 +297,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   input[type='range'] {
     --karaoke-gain-position: 50%;
-
-    height: 5px;
+    // The one slider (`toggle-knob-slider`), on the plot's floor.
+    @include toggle-knob-slider(var(--karaoke-gain-position), $surface-plot);
     width: 100%;
     min-width: 0;
-    appearance: none;
-    border: 0;
-    border-radius: $radius-pill;
-    background: linear-gradient(
-      90deg,
-      $secondary-default 0 var(--karaoke-gain-position),
-      rgba($edge-tint, 0.16) var(--karaoke-gain-position) 100%
-    );
-    cursor: pointer;
-
-    &::-webkit-slider-thumb {
-      width: 14px;
-      height: 14px;
-      appearance: none;
-      border: 2px solid $surface-base;
-      border-radius: 50%;
-      background: $secondary-light;
-      box-shadow: 0 0 0 2px
-        color-mix(in srgb, $secondary-default 28%, transparent);
-    }
-
-    &:focus-visible {
-      outline: 2px solid color-mix(in srgb, $secondary-light 55%, transparent);
-      outline-offset: 4px;
-    }
   }
 
   strong {

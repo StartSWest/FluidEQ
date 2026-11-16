@@ -12,6 +12,7 @@ import KaraokeLyrics from './KaraokeLyrics';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { rainbowColourAt } from '../utils/rainbowPalette';
 import { readAccent } from '../utils/theme';
+import rangeFill from '../utils/rangeFill';
 
 interface IKaraokeMakerPreviewProps {
   song: IKaraokeSong;
@@ -280,6 +281,7 @@ const KaraokeMakerPreview = ({
                 max="200"
                 step="5"
                 value={textSize}
+                style={rangeFill(textSize, 75, 200)}
                 aria-label={textSizeLabel}
                 aria-valuetext={`${textSize}%`}
                 title={`${textSizeLabel} · ${textSize}%`}

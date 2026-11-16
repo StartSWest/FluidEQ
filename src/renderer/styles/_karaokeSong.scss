@@ -303,42 +303,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   input[type='range'] {
+    // The one slider (`toggle-knob-slider`).
+    @include toggle-knob-slider(var(--karaoke-lyric-size-progress));
     width: 100%;
     min-width: 0;
-    height: 3px;
-    margin: 0;
-    appearance: none;
-    border-radius: $radius-pill;
-    outline: none;
-    background: linear-gradient(
-      90deg,
-      $secondary-default 0%,
-      $secondary-default var(--karaoke-lyric-size-progress),
-      $track-well var(--karaoke-lyric-size-progress),
-      $track-well 100%
-    );
-    cursor: pointer;
-
-    &::-webkit-slider-thumb {
-      width: 13px;
-      height: 13px;
-      appearance: none;
-      border: 2px solid color-mix(in srgb, $surface-base 95%, transparent);
-      border-radius: 50%;
-      background: $secondary-light;
-      box-shadow: 0 0 0 1px
-        color-mix(in srgb, $secondary-default 55%, transparent);
-      transition:
-        scale 140ms ease,
-        box-shadow 140ms ease;
-    }
-
-    &:hover::-webkit-slider-thumb,
-    &:focus-visible::-webkit-slider-thumb {
-      box-shadow: 0 0 0 2px
-        color-mix(in srgb, $secondary-default 20%, transparent);
-      scale: 1.12;
-    }
   }
 }
 

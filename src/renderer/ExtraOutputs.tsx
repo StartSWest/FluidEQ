@@ -23,6 +23,7 @@ import { setSinglePlayer, useSinglePlayer } from './utils/singlePlayer';
 import './styles/ExtraOutputs.scss';
 import SecondOutputProfilePicker from './SecondOutputProfilePicker';
 import OutputEditButton from './OutputEditButton';
+import rangeFill from './utils/rangeFill';
 
 interface IExtraOutputsProps {
   /** Passed straight down to the per-output badge. See the picker. */
@@ -287,6 +288,7 @@ const ExtraOutputs = ({ engine, isPaneShown = true }: IExtraOutputsProps) => {
                         title={t('extraOutput.volume')}
                         type="range"
                         value={Math.round(target.volume * 100)}
+                        style={rangeFill(target.volume, 0, 1)}
                       />
                       <span className="extra-outputs__volumeValue">
                         {Math.round(target.volume * 100)}%

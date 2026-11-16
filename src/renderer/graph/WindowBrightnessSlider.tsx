@@ -16,6 +16,7 @@ import {
 import { setThemeShade, useThemeShade } from '../utils/theme';
 import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
 import useLiveSlider from '../utils/useLiveSlider';
+import rangeFill from '../utils/rangeFill';
 
 /**
  * How light the window stands, beside Transparency at the head of the
@@ -80,6 +81,7 @@ const WindowBrightnessSlider = () => {
           max={THEME_SHADE_MAX}
           step={1}
           value={shade}
+          style={rangeFill(shade, THEME_SHADE_MIN, THEME_SHADE_MAX)}
           onChange={(event) => set(snapPercent(Number(event.target.value)))}
         />
       </span>

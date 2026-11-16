@@ -534,55 +534,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-transport input[type='range'],
 .karaoke-transport__mix-popover input[type='range'] {
-  appearance: none;
+  // The one slider (`toggle-knob-slider`), on the transport's floor.
+  @include toggle-knob-slider(var(--karaoke-range-progress), $surface-base);
   width: 100%;
-  height: 16px;
-  margin: 0;
-  background: transparent;
-  cursor: pointer;
-
-  &::-webkit-slider-runnable-track {
-    height: 5px;
-    border-radius: $radius-pill;
-    background: linear-gradient(
-      90deg,
-      $secondary-light 0,
-      $secondary-default var(--karaoke-range-progress),
-      $track-well var(--karaoke-range-progress),
-      $track-well 100%
-    );
-    // Flat, like the library's transport line. The inset shadow read as a
-    // dark rule along the top of the groove — at 5px there is no room for
-    // it to be depth — and the empty half is the app's one empty-track
-    // colour rather than a wash of white.
-    box-shadow: none;
-  }
-
-  &::-webkit-slider-thumb {
-    appearance: none;
-    width: 13px;
-    height: 13px;
-    margin-top: -4px;
-    border: 2px solid color-mix(in srgb, $text-primary 92%, transparent);
-    border-radius: 50%;
-    background: $secondary-default;
-    box-shadow: none;
-  }
-
-  &:focus-visible {
-    outline: none;
-  }
-
-  &:focus-visible::-webkit-slider-thumb {
-    box-shadow:
-      0 0 0 3px color-mix(in srgb, $surface-base 95%, transparent),
-      0 0 0 5px color-mix(in srgb, $secondary-light 72%, transparent);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
 }
 
 // Volume faders collapse only when their actual content count no longer fits.

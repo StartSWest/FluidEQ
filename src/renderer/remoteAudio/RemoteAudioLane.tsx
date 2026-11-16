@@ -17,6 +17,7 @@ import {
   pushLaneReading,
 } from './laneHistory';
 import type { TRemoteAudioMeterListener } from './meter';
+import rangeFill from '../utils/rangeFill';
 
 /** What the stylesheet paints the bars in before a theme says otherwise. */
 const BAR_INK = '#9cfff4';
@@ -261,6 +262,7 @@ const RemoteAudioLane = ({
               title={level.label}
               type="range"
               value={Math.round(level.value * 100)}
+              style={rangeFill(level.value, 0, 1)}
             />
             <span className="remote-audio__lane-level-value">
               {Math.round(level.value * 100)}%

@@ -9,6 +9,7 @@ import { useTranslation } from '../utils/I18nContext';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { KaraokeTransportIcon } from './KaraokeTransport';
 import { readAccent } from '../utils/theme';
+import rangeFill from '../utils/rangeFill';
 
 /**
  * One stem drawn as a waveform.
@@ -328,6 +329,11 @@ const KaraokeMakerStems = ({
             max={1}
             step={0.01}
             value={stemFocus === 'voice' ? backingBlend : vocalLevel}
+            style={rangeFill(
+              stemFocus === 'voice' ? backingBlend : vocalLevel,
+              0,
+              1,
+            )}
             onChange={(event) =>
               stemFocus === 'voice'
                 ? onBackingBlend?.(Number(event.target.value))

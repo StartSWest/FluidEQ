@@ -12,6 +12,7 @@ import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { MOTION_COPY } from './wallpaperCopy';
 import WallpaperDaylightControl from './WallpaperDaylightControl';
+import rangeFill from '../utils/rangeFill';
 
 /**
  * The desktop dialog's choices under its monitors (`WallpaperDialog`): how
@@ -121,6 +122,11 @@ export function WallpaperDialogSettings({
           max={100}
           step={1}
           value={Math.round(wave.height * 100)}
+          style={rangeFill(
+            Math.round(wave.height * 100),
+            MIN_GRAPH_WAVE_HEIGHT * 100,
+            100,
+          )}
           disabled={disabled}
           onChange={(event) =>
             onWave({
@@ -146,6 +152,7 @@ export function WallpaperDialogSettings({
           max={100}
           step={1}
           value={Math.round(wave.position * 100)}
+          style={rangeFill(Math.round(wave.position * 100), 0, 100)}
           disabled={disabled}
           onChange={(event) =>
             onWave({

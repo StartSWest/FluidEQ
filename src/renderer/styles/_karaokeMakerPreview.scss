@@ -250,13 +250,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     text-align: right;
   }
 
+  // The Maker's slider (`toggle-knob-slider`, set in `_karaokeMaker.scss`);
+  // here only its width.
   input[type='range'] {
     width: 100%;
     min-width: 0;
-    height: 3px;
-    margin: 0;
-    accent-color: $secondary-default;
-    cursor: pointer;
   }
 }
 

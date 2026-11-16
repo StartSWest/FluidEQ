@@ -14,53 +14,13 @@ it under the terms of the GNU General Public License version 3 or later.
 // The Studio's sliders — a scene's own controls, how it answers the music,
 // the zoom on a photo being framed — and the card they sit in.
 
-// The app's slider: a thin track with a round accent thumb. The part of the
-// track below the thumb is lit, from `--fill` (a percentage the component
-// sets), so where a value sits reads at a glance across a column of them.
+// The app's one slider (`toggle-knob-slider`), lit to `--fill` (a percentage
+// the component sets), so where a value sits reads at a glance across a
+// column of them.
 .studio-slider {
+  @include toggle-knob-slider;
   width: 100%;
   min-width: 0;
-  height: 4px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: $radius-pill;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, $secondary-default 80%, transparent) var(--fill, 0%),
-    rgba($white, 0.12) var(--fill, 0%)
-  );
-  appearance: none;
-  cursor: pointer;
-
-  &::-webkit-slider-thumb {
-    width: 14px;
-    height: 14px;
-    border: 2px solid color-mix(in srgb, $black 55%, $secondary-light);
-    border-radius: 50%;
-    background: $secondary-light;
-    box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 45%, transparent);
-    appearance: none;
-    transition: transform $motion-fast $ease-out;
-  }
-
-  &:hover:not(:disabled)::-webkit-slider-thumb,
-  &:active:not(:disabled)::-webkit-slider-thumb {
-    transform: scale(1.15);
-  }
-
-  &:focus-visible {
-    outline: none;
-
-    &::-webkit-slider-thumb {
-      @include focus-ring;
-    }
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
 }
 
 // ---------------------------------------------------------------- settings

@@ -26,6 +26,7 @@ import { getMaxLookColours } from 'common/customLooks';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
+import rangeFill from '../utils/rangeFill';
 
 // What the look designer is built from: the palettes and swatches it
 // offers, a gradient stop's picker, and a setting's row and slider.
@@ -294,6 +295,7 @@ export const SettingSlider = ({
     max={max}
     step={step}
     value={value}
+    style={rangeFill(value, min, max)}
     disabled={isDisabled}
     onChange={(event) => onChange(Number(event.target.value))}
   />

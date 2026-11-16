@@ -87,53 +87,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   opacity: 0.4;
 }
 
-// THE SONG'S LINE AND THE VOLUME, as the approved amp draws them (Ivan,
-// 2026-10-25: "seek bar bg not good either"): the empty part sunk into the
-// theme's own well, darker than the pane, with no glow round it; the filled
-// part in the accent, from its dark end to its own; a white thumb in a ring
-// of the accent. The amp's sliders lit the whole line, empty part and all,
-// and in a lighter grey than the pane, so the line read as one bright tube.
-.player-dock .player-range {
-  --track-height: 4px;
-  --thumb-size: 14px;
-  --thumb-halo: color-mix(in srgb, var(--accent) 35%, transparent);
-
-  &::-webkit-slider-runnable-track {
-    background:
-      linear-gradient(
-        90deg,
-        transparent var(--fill, 0%),
-        var(--track-well) var(--fill, 0%)
-      ),
-      var(--fill-paint);
-    box-shadow: none;
-  }
-
-  &::-webkit-slider-thumb {
-    box-shadow:
-      0 0 0 3px var(--thumb-halo),
-      0 2px 6px rgba($black, 0.5);
-  }
-
-  &:hover:not(:disabled)::-webkit-slider-thumb {
-    box-shadow:
-      0 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent),
-      0 2px 6px rgba($black, 0.5);
-  }
-}
-
-.player-dock .player-range--seek {
-  --fill-paint: linear-gradient(90deg, var(--accent-dark), var(--accent));
-}
-
-.player-dock .player-range--volume {
-  --fill-paint: linear-gradient(
-    90deg,
-    var(--accent-dark),
-    var(--accent) 70%,
-    var(--accent-light)
-  );
-}
+// The song's line and the volume are the app's one slider, as the amp's
+// own (`_ampSliders.scss`); the dock adds nothing to them.
 
 .player-dock__time {
   color: var(--player-text-soft);

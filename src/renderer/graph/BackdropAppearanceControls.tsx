@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { PERCENT_SNAPS, snapPercent } from '../utils/percentSnaps';
 import { Icon } from './GraphViewMenuFrame';
+import rangeFill from '../utils/rangeFill';
 
 /** The existing transparency and blur faders, shared by graph and scenery menus. */
 export default function BackdropAppearanceControls({
@@ -57,6 +58,11 @@ export default function BackdropAppearanceControls({
             // is an opacity because that is what CSS wants; the slider
             // is a transparency because that is what the label says.
             value={Math.round((1 - opacity) * 100)}
+            style={rangeFill(
+              Math.round((1 - opacity) * 100),
+              minOpacity * 100,
+              100,
+            )}
             onChange={(event) =>
               onChangeOpacity(1 - snapPercent(Number(event.target.value)) / 100)
             }
@@ -85,6 +91,7 @@ export default function BackdropAppearanceControls({
           max={maxBlur}
           step={1}
           value={blur}
+          style={rangeFill(blur, 0, maxBlur)}
           onChange={(event) => onChangeBlur(Number(event.target.value))}
         />
         <span className="graph-view-menu__value" aria-hidden>

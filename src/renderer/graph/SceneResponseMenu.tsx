@@ -23,6 +23,7 @@ import {
   useListenerResponse,
   useOwnResponse,
 } from '../utils/sceneResponseStore';
+import rangeFill from '../utils/rangeFill';
 
 interface ISceneResponseMenuProps {
   /** The Plus visualizer on the graph. */
@@ -104,6 +105,7 @@ function TimingSlider({
           value={Math.round(
             responseToPosition(field, value) * RESPONSE_SLIDER_STEPS,
           )}
+          style={rangeFill(responseToPosition(field, value), 0, 1)}
           aria-valuetext={readout}
           disabled={disabled}
           onChange={(event) => {

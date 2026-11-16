@@ -379,27 +379,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
+  // The Maker's slider (`toggle-knob-slider`, set in `_karaokeMaker.scss`);
+  // here only its width and the resize cursor of a timing.
   input[type='range'] {
     width: 100%;
-    height: 16px;
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    outline: 0;
-    accent-color: $secondary-default;
     cursor: ew-resize;
-
-    &:focus-visible {
-      filter: drop-shadow(
-        0 0 5px color-mix(in srgb, $secondary-default 58%, transparent)
-      );
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: $disabled-opacity;
-    }
   }
 
   small {

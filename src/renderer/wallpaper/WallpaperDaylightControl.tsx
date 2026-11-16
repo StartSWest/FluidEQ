@@ -23,6 +23,7 @@ import { useThemeShade } from '../utils/theme';
 import SegmentedControl from '../widgets/SegmentedControl';
 // The segmented track every closed set of choices in the app is drawn on.
 import '../styles/Dsp.scss';
+import rangeFill from '../utils/rangeFill';
 
 /** The graph's own words for the three, so the two menus read alike. */
 const SOURCE_COPY: Record<
@@ -162,6 +163,7 @@ export default function WallpaperDaylightControl({
           max={SCENE_DAYLIGHT_MAX}
           step={1}
           value={shown}
+          style={rangeFill(shown, SCENE_DAYLIGHT_MIN, SCENE_DAYLIGHT_MAX)}
           disabled={disabled || !isOwn}
           onChange={(event) => {
             const next = snapPercent(Number(event.target.value));

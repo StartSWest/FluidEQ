@@ -148,18 +148,12 @@
     flex: 0 0 auto;
   }
 
+  // The app's one slider (`toggle-knob-slider`), lit to `rangeFill`.
   input[type='range'] {
+    @include toggle-knob-slider;
     width: 120px;
     min-width: 60px;
     flex: 1 1 120px;
-    height: 3px;
-    accent-color: $secondary-default;
-    cursor: pointer;
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.45;
-    }
   }
 }
 

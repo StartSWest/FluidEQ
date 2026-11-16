@@ -20,6 +20,7 @@ import {
 } from '../utils/sceneDaylightSetting';
 import useLiveSlider from '../utils/useLiveSlider';
 import { usePageDaylight } from './sceneDaylight';
+import rangeFill from '../utils/rangeFill';
 
 /** What the slider's title says while something else sets it. */
 const FOLLOWING_HINT: Record<TDaylightSource, TranslationKey> = {
@@ -91,6 +92,7 @@ const SceneDaylightSlider = () => {
           step={1}
           disabled={!isOwn}
           value={daylight}
+          style={rangeFill(daylight, SCENE_DAYLIGHT_MIN, SCENE_DAYLIGHT_MAX)}
           onChange={(event) => set(snapPercent(Number(event.target.value)))}
         />
       </span>

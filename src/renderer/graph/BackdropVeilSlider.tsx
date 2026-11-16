@@ -21,6 +21,7 @@ import {
 } from '../utils/percentSnaps';
 import useIsBackdrop from '../utils/useIsBackdrop';
 import useLiveSlider from '../utils/useLiveSlider';
+import rangeFill from '../utils/rangeFill';
 
 /** A transparency set as the veil it leaves. */
 const setTransparency = (transparency: number) =>
@@ -93,6 +94,7 @@ const BackdropVeilSlider = () => {
           step={1}
           disabled={!isBackdrop}
           value={transparency}
+          style={rangeFill(transparency, MIN_SHOWN, MAX_SHOWN)}
           onChange={(event) => set(snapPercent(Number(event.target.value)))}
         />
       </span>

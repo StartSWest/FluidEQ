@@ -339,12 +339,11 @@ it under the terms of the GNU General Public License version 3 or later.
     font-weight: $weight-semibold;
   }
 
+  // The app's one slider (`toggle-knob-slider`), lit to `rangeFill`.
   input[type='range'] {
+    @include toggle-knob-slider;
     min-width: 0;
     flex: 1 1 auto;
-    height: 3px;
-    accent-color: $secondary-default;
-    cursor: pointer;
   }
 }
 

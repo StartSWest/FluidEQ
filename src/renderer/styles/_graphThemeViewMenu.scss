@@ -343,32 +343,19 @@ it under the terms of the GNU General Public License version 3 or later.
     overflow-wrap: break-word;
   }
 
+  // The one slider (`toggle-knob-slider`), ringed in the menu's floor; its
+  // fill from `rangeFill`.
   input[type='range'] {
+    @include toggle-knob-slider(var(--fill, 0%), $surface-menu-floor);
     width: 100%;
-    height: 3px;
     flex: 0 0 auto;
-    padding: 0;
-    border: none;
-    border-radius: $radius-pill;
-    background: rgba($edge-tint, 0.18);
-    appearance: none;
-    cursor: pointer;
-
-    &::-webkit-slider-thumb {
-      width: 11px;
-      height: 11px;
-      border: none;
-      border-radius: 50%;
-      background: $secondary-light;
-      appearance: none;
-    }
   }
 }
 
 // The wave height slider's snap ticks: the track in a box of its own so the
 // marks can sit on it. A range thumb travels the track minus its own width,
 // so a tick at a value goes at that fraction of the inner 75px, offset by
-// half the 11px thumb — the same place the thumb's centre lands.
+// half the 10px thumb — the same place the thumb's centre lands.
 .graph-view-menu__track {
   position: relative;
   display: inline-flex;
@@ -394,7 +381,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // The value's fraction of the thumb's travel: half a thumb in from each
   // end, whatever the track is wide. It was written against an 86px track,
   // which stopped being true the moment the track became a grid column.
-  left: calc(5.5px + var(--snap-frac, 0) * (100% - 11px));
+  left: calc(5px + var(--snap-frac, 0) * (100% - 10px));
   // A hair the height of the track and a little over, faint: a hint of
   // where the thumb will settle, not a scale.
   width: 1px;
@@ -416,12 +403,12 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // The window's Tint (`WindowTintSlider`): the colour wheel along the track,
-// every hue at one lightness and strength so no part of it shouts, the thumb
-// white in a dark ring so it reads on any of them, and the colour itself
-// where the other rows put a number.
+// every hue at one lightness and strength so no part of it shouts - the
+// colour under the knob is the value, so there is nothing to fill - the knob
+// white so it reads on any of them, and the colour itself where the other
+// rows put a number.
 .graph-view-menu__slider--hue {
-  input[type='range'] {
-    height: 6px;
+  input[type='range']::-webkit-slider-runnable-track {
     background: linear-gradient(
       90deg,
       oklch(0.72 0.13 0),
@@ -434,11 +421,10 @@ it under the terms of the GNU General Public License version 3 or later.
       oklch(0.72 0.13 315),
       oklch(0.72 0.13 360)
     );
+  }
 
-    &::-webkit-slider-thumb {
-      background: $white;
-      box-shadow: 0 0 0 2px rgba($black, 0.45);
-    }
+  input[type='range']::-webkit-slider-thumb {
+    background: $white;
   }
 }
 

@@ -18,6 +18,7 @@ import {
 } from '../utils/sceneParamStore';
 import sceneSliderParams from './sceneSliders';
 import SceneChoice from './SceneChoice';
+import rangeFill from '../utils/rangeFill';
 
 interface ISceneParamMenuProps {
   /** The Plus visualizer on the graph. */
@@ -89,6 +90,7 @@ function ParamSlider({
           max={STEPS}
           step={1}
           value={Math.round(toPosition(value) * STEPS)}
+          style={rangeFill(toPosition(value), 0, 1)}
           aria-valuetext={readout}
           onChange={(event) => {
             const position = Number(event.target.value) / STEPS;

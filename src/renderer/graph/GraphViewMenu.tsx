@@ -50,6 +50,7 @@ import ScenePerformanceMenu from './ScenePerformanceMenu';
 import SceneCameraMenu from './SceneCameraMenu';
 import BackdropAppearanceControls from './BackdropAppearanceControls';
 import { PERCENT_SNAPS, snapPercent } from '../utils/percentSnaps';
+import rangeFill from '../utils/rangeFill';
 
 /**
  * How big the graph is, what it shows, and how to say either from the keyboard.
@@ -614,6 +615,11 @@ const GraphViewMenu = ({
                       max={100}
                       step={1}
                       value={Math.round(waveHeight * 100)}
+                      style={rangeFill(
+                        Math.round(waveHeight * 100),
+                        MIN_GRAPH_WAVE_HEIGHT * 100,
+                        100,
+                      )}
                       disabled={isWaveHidden}
                       onChange={(event) =>
                         onChangeWaveHeight(
@@ -648,6 +654,7 @@ const GraphViewMenu = ({
                     max={100}
                     step={1}
                     value={Math.round(wavePosition * 100)}
+                    style={rangeFill(Math.round(wavePosition * 100), 0, 100)}
                     disabled={isWavePositionLocked}
                     onChange={(event) =>
                       onChangeWavePosition(Number(event.target.value) / 100)

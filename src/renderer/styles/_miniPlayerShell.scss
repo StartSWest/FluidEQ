@@ -79,14 +79,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // The empty part of a line — the volume, the song, the queue's progress —
   // light on the glass, so it reads over any picture.
   --player-track: color-mix(in srgb, #{$edge-tint} 17%, transparent);
-  // The same, solid, for a slider's empty part: it is laid over the fill's
-  // paint (`_miniPlayerSliders.scss`), and a see-through one let the paint
-  // show through past the thumb — the whole line read as filled.
-  --player-track-solid: color-mix(
-    in srgb,
-    var(--surface-base),
-    #{$edge-tint} 24%
-  );
   --player-lamp: var(--accent);
   --player-lamp-off: color-mix(in srgb, #{$edge-tint} 20%, transparent);
   --player-lamp-warm: var(--active);

@@ -414,6 +414,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Every slider in the Maker and its dialogs is the app's one slider
+// (`toggle-knob-slider`), lit to the `--fill` each sets (`rangeFill`); the
+// rules beside each one only size it.
+.karaoke-maker input[type='range'],
+.karaoke-maker__lyrics-modal input[type='range'] {
+  @include toggle-knob-slider;
+}
+
 // A HEADER BUTTON THAT IS OFF HAS TO LOOK OFF.
 //
 // Nothing here had a disabled appearance: `.karaoke-maker__header-icon` only

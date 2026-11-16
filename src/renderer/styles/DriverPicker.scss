@@ -69,54 +69,11 @@ it under the terms of the GNU General Public License version 3 or later.
     font-weight: $weight-bold;
   }
 
-  // Same hand-painted track as the voicing slider, so the two controls that do
-  // the same job feel like the same control.
+  // The app's one slider (`toggle-knob-slider`), as the voicing slider's.
   input[type='range'] {
     --fill: 60%;
+    @include toggle-knob-slider;
     width: 100%;
-    height: 18px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    cursor: pointer;
-    appearance: none;
-
-    &::-webkit-slider-runnable-track {
-      height: 7px;
-      border-radius: $radius-pill;
-      background:
-        linear-gradient(
-            color-mix(in srgb, $secondary-default 95%, transparent),
-            color-mix(in srgb, $secondary-default 95%, transparent)
-          )
-          0 / var(--fill) 100% no-repeat,
-        rgba($edge-tint, 0.14);
-      box-shadow: inset 0 1px 2px rgba(#000, 0.45);
-    }
-
-    &::-webkit-slider-thumb {
-      width: 16px;
-      height: 16px;
-      margin-top: -4.5px;
-      border: 2px solid color-mix(in srgb, $surface-well 85%, transparent);
-      border-radius: 50%;
-      background: $secondary-light;
-      box-shadow:
-        0 0 0 1px color-mix(in srgb, $secondary-light 50%, transparent),
-        0 0 12px color-mix(in srgb, $secondary-default 60%, transparent);
-      cursor: grab;
-      appearance: none;
-    }
-
-    &:active::-webkit-slider-thumb {
-      cursor: grabbing;
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: $disabled-opacity;
-    }
   }
 }
 

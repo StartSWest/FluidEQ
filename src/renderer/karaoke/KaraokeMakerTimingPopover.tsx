@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useTranslation } from '../utils/I18nContext';
 import DialogClose from '../components/DialogClose';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import rangeFill from '../utils/rangeFill';
 
 /** How far one press of the nudge buttons moves the timing. */
 const NUDGE_MS = 100;
@@ -122,6 +123,11 @@ const KaraokeMakerTimingPopover = ({
           max={Math.max(SLIDER_MAX_MS, shiftMs)}
           step={25}
           value={shiftMs}
+          style={rangeFill(
+            shiftMs,
+            Math.min(SLIDER_MIN_MS, shiftMs),
+            Math.max(SLIDER_MAX_MS, shiftMs),
+          )}
           onChange={(event) => onShift(Number(event.target.value) - shiftMs)}
           aria-label={t('karaoke.maker.lyricsTiming')}
         />
