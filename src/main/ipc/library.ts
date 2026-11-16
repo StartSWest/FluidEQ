@@ -35,6 +35,7 @@ import { readTrackFacts } from '../library/libraryTrackFacts';
 import { isLocalRendererPath } from '../rendererPaths';
 import { registerLibraryLyricsIpc } from './libraryLyricsIpc';
 import { registerLibrarySubtitlesIpc } from './librarySubtitlesIpc';
+import { registerLibraryTagsIpc } from './libraryTagsIpc';
 import onWindowMessage from './windowMessages';
 
 /**
@@ -387,6 +388,9 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
     getMainWindow,
     trackPath: store.trackPath,
   });
+
+  // The tag editor: songs' tags read and written, by id.
+  registerLibraryTagsIpc({ userDataDir, store, getMainWindow, announce });
 
   // A video's subtitles, and subtitles the viewer keeps with it, by id.
   registerLibrarySubtitlesIpc({ getMainWindow, trackPath: store.trackPath });

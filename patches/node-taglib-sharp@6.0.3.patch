@@ -1,0 +1,49 @@
+diff --git a/dist/id3v2/frames/frameFactory.js b/dist/id3v2/frames/frameFactory.js
+index fc438b1..5a968fa 100644
+--- a/dist/id3v2/frames/frameFactory.js
++++ b/dist/id3v2/frames/frameFactory.js
+@@ -65,7 +65,7 @@ class Id3v2FrameFactory {
+      *     * offset: updated offset where the next frame starts
+      */
+     // @TODO: Split into fromFile and fromData
+-    static createFrame(data, file, offset, version, alreadyUnsynced) {
++    static createFrame(data, file, offset, version, alreadyUnsynced, endIndex) {
+         utils_1.Guards.uint(offset, "offset");
+         utils_1.Guards.byte(version, "version");
+         let position = 0;
+@@ -85,9 +85,19 @@ class Id3v2FrameFactory {
+         if (data.get(position) === 0) {
+             return undefined;
+         }
++        // FluidEQ patch (issue #144): a frame ID is three (v2.2) or four upper-case
++        // letters and digits; anything else is padding or garbage, and ends the frames.
++        const rawFrameIdText = data.subarray(position, version === 2 ? 3 : 4).toString(byteVector_1.StringType.Latin1);
++        if (!(version === 2 ? /^[A-Z0-9]{3}$/ : /^[A-Z0-9]{4}$/).test(rawFrameIdText)) {
++            return undefined;
++        }
+         const header = frameHeader_1.Id3v2FrameHeader.fromData(data.subarray(position, frameHeaderSize), version);
+         const frameStartIndex = offset + frameHeaderSize;
+         const frameEndIndex = offset + header.frameSize + frameHeaderSize;
++        // FluidEQ patch (issue #144): a frame that runs past the tag's end is not a frame.
++        if (endIndex !== undefined && frameEndIndex > endIndex) {
++            return undefined;
++        }
+         const frameSize = frameEndIndex - frameStartIndex;
+         // Illegal frames are filtered out when creating the frame header
+         // Mark the frame as unsynchronized if the entire tag is already unsynchronized
+diff --git a/dist/id3v2/id3v2Tag.js b/dist/id3v2/id3v2Tag.js
+index e783d7a..70b02e3 100644
+--- a/dist/id3v2/id3v2Tag.js
++++ b/dist/id3v2/id3v2Tag.js
+@@ -1251,7 +1251,10 @@ class Id3v2Tag extends tag_1.Tag {
+         // Parse the frames
+         while (frameDataPosition < frameDataEndPosition) {
+             try {
+-                const frameRead = frameFactory_1.Id3v2FrameFactory.createFrame(data, file, frameDataPosition, this._header.majorVersion, fullTagUnsync);
++                // FluidEQ patch (issue #144): the tag's end bounds every frame, so a frame
++                // header that is really padding or a size in the other version's encoding
++                // ends the frames instead of swallowing the audio into the next save.
++                const frameRead = frameFactory_1.Id3v2FrameFactory.createFrame(data, file, frameDataPosition, this._header.majorVersion, fullTagUnsync, frameDataEndPosition);
+                 // If the frame factory returned undefined, that means we've hit the end of frames
+                 if (!frameRead) {
+                     break;

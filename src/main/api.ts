@@ -45,6 +45,7 @@ import { addonBridge } from './addonBridge';
 import { dspHostBridge } from './dspHost/bridge';
 import karaokeBridge from './karaokeBridge';
 import libraryBridge from './libraryBridge';
+import libraryTagsBridge from './libraryTagsBridge';
 import remoteAudioBridge from './remoteAudioBridge';
 import accountBridge from './accountBridge';
 import studioBridge from './studioBridge';
@@ -409,6 +410,7 @@ export default {
     ...dspHostBridge,
     ...karaokeBridge,
     ...libraryBridge,
+    ...libraryTagsBridge,
     ...remoteAudioBridge,
     ...accountBridge,
     ...studioBridge,
