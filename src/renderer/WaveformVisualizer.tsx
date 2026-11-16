@@ -114,6 +114,9 @@ const FULL_HEIGHT_STYLES: ReadonlySet<WaveformStyle> = new Set([
   'heat',
   'waterfall',
 ]);
+/** A full-height stage's own inset from the meter's top, in CSS pixels
+ * (`.is-full-height` in `WaveformVisualizer.scss`). */
+const FULL_HEIGHT_INSET = 2;
 
 type TWaveformCycleStyle = WaveformStyle | 'off';
 
@@ -304,7 +307,7 @@ const WaveformVisualizer = () => {
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   // The element's own box in CSS pixels, kept by the observer below rather than
   // measured in the frame, so drawing never asks layout a question.
-  const sizeRef = useRef({ width: 0, height: 0 });
+  const sizeRef = useRef({ width: 0, height: 0, meterOffset: 0 });
   // The three states that used to reach the trace as a class on an ancestor.
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;
@@ -559,6 +562,9 @@ const WaveformVisualizer = () => {
       ink,
       light,
       unlit,
+      meterTop: FULL_HEIGHT_STYLES.has(styleRef.current)
+        ? pane.y + sizeRef.current.meterOffset
+        : pane.y,
     });
     return moving;
   }, []);
@@ -610,6 +616,18 @@ const WaveformVisualizer = () => {
       }
       sizeRef.current.width = box.width;
       sizeRef.current.height = box.height;
+      // Where the meter itself begins inside a full-height stage: under the
+      // label row, as every other style's stage does. Read here, where the
+      // stage has just changed size, rather than asked of layout per frame.
+      const meter = canvas.closest('.waveform-visualizer');
+      const room = meter
+        ? parseFloat(
+            getComputedStyle(meter).getPropertyValue('--meter-meta-room'),
+          )
+        : Number.NaN;
+      sizeRef.current.meterOffset = Number.isFinite(room)
+        ? Math.max(0, room - FULL_HEIGHT_INSET)
+        : 0;
       kickFrames();
     });
     observer.observe(canvas);

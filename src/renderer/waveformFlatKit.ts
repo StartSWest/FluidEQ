@@ -36,6 +36,13 @@ export interface IFlatMeterInput {
   light: string;
   /** What an unlit cell or a track is painted. */
   unlit: string;
+  /**
+   * Where the meter itself begins, as a y in the box. The styles with a
+   * background grid draw that grid to the box's top, under the label row,
+   * and light it only from here down (Ivan, 2026-11-16: "just the bg not the
+   * meter"). The box's own top for every other style.
+   */
+  meterTop: number;
 }
 
 export type TPainter = (
@@ -56,8 +63,15 @@ export const snap = (value: number, ratio: number) =>
   Math.round(value * ratio) / ratio;
 
 /**
- * `count` slots of equal whole-pixel width with a `gap` between each, the
- * whole row centred in the box: the only way a row of pieces has even gaps.
+ * `count` slots on whole device pixels with an even `gap` between each,
+ * spanning the box edge to edge (Ivan, 2026-11-16: "all meters need to fill
+ * the full width of the container").
+ *
+ * The row's width rarely divides into whole pixels, and centring a row of
+ * equal pieces left up to a pixel per piece at the two ends: 64 device pixels,
+ * 32 CSS, on a 2x screen. The pixels left over go one each to pieces spread
+ * evenly along the row instead, so a piece is at most one device pixel wider
+ * than its neighbour, which no eye can tell, and the row reaches both edges.
  */
 export const slots = (
   box: IFlatMeterBox,
@@ -66,17 +80,22 @@ export const slots = (
   gap: number,
 ) => {
   const deviceGap = Math.max(1, Math.round(gap * ratio));
-  const deviceWidth = Math.max(
-    1,
-    Math.floor((box.width * ratio - deviceGap * (count - 1)) / count),
-  );
-  const used = deviceWidth * count + deviceGap * (count - 1);
-  const left = Math.round(box.x * ratio + (box.width * ratio - used) / 2);
-  const width = deviceWidth / ratio;
-  return Array.from({ length: count }, (_, index) => ({
-    x: (left + index * (deviceWidth + deviceGap)) / ratio,
-    width,
-  }));
+  const span = Math.max(count, Math.round(box.width * ratio));
+  const room = Math.max(count, span - deviceGap * (count - 1));
+  const base = Math.floor(room / count);
+  const extra = room - base * count;
+  const left = Math.round(box.x * ratio);
+  const pieces: { x: number; width: number }[] = [];
+  let at = left;
+  for (let index = 0; index < count; index += 1) {
+    const grows =
+      Math.floor(((index + 1) * extra) / count) -
+      Math.floor((index * extra) / count);
+    const width = base + grows;
+    pieces.push({ x: at / ratio, width: width / ratio });
+    at += width + deviceGap;
+  }
+  return pieces;
 };
 
 /** The bands resampled to `count` pieces, each the loudest band it covers. */

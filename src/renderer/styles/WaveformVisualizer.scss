@@ -257,10 +257,11 @@ it under the terms of the GNU General Public License version 3 or later.
 .waveform-visualizer__stage {
   position: absolute;
   z-index: 0;
-  // Top clears the meta row; two pixels on the other three sides is the
-  // least that keeps the drawing off the pane's own edge without eating
-  // into the width the wave has to span.
-  inset: var(--meter-meta-room) 2px 2px;
+  // Top clears the meta row and two pixels keep the drawing off the foot.
+  // No inset at the sides: every style spans the meter edge to edge (Ivan,
+  // 2026-11-16: "all meters need to fill the full width of the container"),
+  // and the rounded clip below keeps the corners.
+  inset: var(--meter-meta-room) 0 2px;
   display: block;
   // The app's corners (`$radius-m`, as every card has), clipped by a path:
   // Chromium clips a composited canvas by an ancestor's rectangle but not by
@@ -279,15 +280,17 @@ it under the terms of the GNU General Public License version 3 or later.
 // releases its capture and keeps the existing style-name label visible as OFF.
 .waveform-visualizer.is-off {
   .waveform-visualizer__stage {
-    inset: 2px;
+    inset: 2px 0;
   }
 }
 
 // The styles with a background of their own fill the meter top to bottom,
-// under the label row (`FULL_HEIGHT_STYLES` in `WaveformVisualizer.tsx`).
+// under the label row (`FULL_HEIGHT_STYLES` in `WaveformVisualizer.tsx`):
+// their background, that is, while the meter itself still starts under the
+// row (`meterTop`, Ivan 2026-11-16: "just the bg not the meter").
 .waveform-visualizer.is-full-height {
   .waveform-visualizer__stage {
-    inset: 2px;
+    inset: 2px 0;
   }
 }
 
