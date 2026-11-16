@@ -61,7 +61,7 @@ import {
   TKaraokeMicrophoneStatus,
   TKaraokePitchAnalysisStatus,
 } from './useKaraokeMicrophone';
-import { readAccent } from '../utils/theme';
+import { readAccent, readTextInk } from '../utils/theme';
 import { paintNoteBlocks, paintPitchGrid, paintTrace } from './pitchLaneLayers';
 
 interface IKaraokePitchLaneProps {
@@ -317,7 +317,15 @@ const KaraokePitchLane = ({
       const xForSongTime = (timeMs: number) =>
         karaokePitchSongTimeX(timeMs, synchronizedPlayheadMs, plotWidth);
 
-      paintPitchGrid({ context, width, height });
+      paintPitchGrid({
+        context,
+        yForMidi,
+        lowMidi: topMidi - semitoneSpan,
+        highMidi: topMidi,
+        semitoneHeight,
+        plotWidth,
+        textInk: readTextInk(),
+      });
 
       recordSinger(now, synchronizedPlayheadMs, centerMidi);
       // Only as far back as the lane can actually show. With the trace trailing

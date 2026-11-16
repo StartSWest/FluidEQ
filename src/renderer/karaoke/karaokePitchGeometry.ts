@@ -68,7 +68,6 @@ export const LIVE_WINDOW_MS = WINDOW_PAST_MS + WINDOW_FUTURE_MS;
 export const TRACE_HISTORY_MS = 6_000;
 export const MATCH_TOLERANCE_SEMITONES = 0.5;
 export const MATCH_FRESHNESS_MS = 180;
-export const NOTE_APPROACH_MS = 700;
 export const PERFORMANCE_BUCKET_MS = 50;
 export const PERFORMANCE_ISSUE_REFRESH_MS = 260;
 export const PERFORMANCE_ISSUE_GAP_MS = 240;
@@ -85,10 +84,10 @@ export const VISUAL_PITCH_DEADBAND = 0.025;
 // 4px hairline, where the K1 mockup's are bars.
 export const MINIMUM_VISIBLE_SEMITONES = 18;
 export const VIEWPORT_PADDING_SEMITONES = 2;
-// The slim lane's margins (Ivan, 2026-11-15, "K1"): no semitone labels on
-// the left any more, so the plot starts a breath in from the edge, and a few
-// pixels above and below keep a block at the window's top or bottom whole.
-export const PLOT_LEFT = 8;
+// The strip's margins: the note names at the left, as the Maker has them
+// (Ivan, 2026-11-16), and a few pixels above and below so a note at the
+// strip's top or bottom stays whole.
+export const PLOT_LEFT = 34;
 export const PLOT_RIGHT = 8;
 export const PLOT_INSET_Y = 8;
 
@@ -515,43 +514,6 @@ export const findKaraokePitchIssues = (
     });
   flush();
   return issues;
-};
-
-export type TKaraokeNoteTimingState = 'idle' | 'approaching' | 'active';
-
-/** Timing-only state for the target block as it reaches the playhead. */
-export const karaokeNoteTimingState = (
-  startMs: number,
-  endMs: number,
-  playheadMs: number,
-  approachMs = NOTE_APPROACH_MS,
-): TKaraokeNoteTimingState => {
-  if (playheadMs >= startMs && playheadMs <= endMs) {
-    return 'active';
-  }
-  if (startMs > playheadMs && startMs - playheadMs <= approachMs) {
-    return 'approaching';
-  }
-  return 'idle';
-};
-
-/** Join provider syllable tokens into readable words without losing timing. */
-export const roundedRectPath = (
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  preferredRadius?: number,
-) => {
-  const radius = Math.min(preferredRadius ?? height / 2, height / 2, width / 2);
-  context.beginPath();
-  context.moveTo(x + radius, y);
-  context.arcTo(x + width, y, x + width, y + height, radius);
-  context.arcTo(x + width, y + height, x, y + height, radius);
-  context.arcTo(x, y + height, x, y, radius);
-  context.arcTo(x, y, x + width, y, radius);
-  context.closePath();
 };
 
 export const traceColor = (

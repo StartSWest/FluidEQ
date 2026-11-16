@@ -21,16 +21,20 @@ import {
   easeKaraokeSingerTrace,
   IKaraokePitchPoint,
   IKaraokeTraceAxis,
-  karaokeNoteTimingState,
   karaokeTraceSampleX,
   MATCH_TOLERANCE_SEMITONES,
   PLOT_LEFT,
-  roundedRectPath,
   singerTargetAtTime,
   traceColor,
 } from './karaokePitchGeometry';
 import { readAccent, readAccentLight } from '../utils/theme';
+import { drawRoundedRect } from './makerCanvasGeometry';
 import {
+  karaokeMakerNoteIsActive,
+  karaokeMakerNoteProgress,
+} from './makerCanvasLayout';
+import {
+  midiToNoteName,
   projectSingerPitchToTarget,
   singerPitchMatchesTarget,
   type TKaraokePitchOctavePolicy,
@@ -47,29 +51,58 @@ import { type IKaraokeToken } from '../../common/karaoke/types';
 
 interface IPaintPitchGridInput {
   context: CanvasRenderingContext2D;
-  width: number;
-  height: number;
+  yForMidi: (midi: number) => number;
+  lowMidi: number;
+  highMidi: number;
+  semitoneHeight: number;
+  plotWidth: number;
+  textInk: string;
 }
 
+/** Where the note names end, right-aligned, left of the plot. */
+const NOTE_NAME_RIGHT = PLOT_LEFT - 6;
+/** Rows this tall have room for a name each; shorter, only the Cs. */
+const NAME_EVERY_ROW_PX = 15;
+
 /**
- * Four faint rules across the strip, evenly spaced, as the K1 mockup draws
- * them (Ivan, 2026-11-16: "it needs to be a flat thing with the lines, and
- * no bg"): a texture to read the notes' height against, not a scale.
+ * The Maker's pitch grid, drawn the same here (Ivan, 2026-11-16: "add the
+ * notes to the pitch lane too, to the left"): a faint line for every note,
+ * the Cs a step stronger in the accent, and the note names at the left -
+ * every C, and every row where a row is tall enough to hold one
+ * (`makerCanvas/paintBackdrop.ts`). Flat on the stage, nothing behind it.
  */
 export const paintPitchGrid = ({
   context,
-  width,
-  height,
+  yForMidi,
+  lowMidi,
+  highMidi,
+  semitoneHeight,
+  plotWidth,
+  textInk,
 }: IPaintPitchGridInput) => {
-  context.strokeStyle = 'rgba(214, 233, 247, 0.07)';
   context.lineWidth = 1;
-  [16, 40, 64, 88].forEach((at) => {
-    const y = Math.round((height * at) / 96) + 0.5;
+  context.font = '10px system-ui, sans-serif';
+  context.textAlign = 'right';
+  context.textBaseline = 'alphabetic';
+  for (
+    let midi = Math.ceil(lowMidi - 1e-6);
+    midi <= Math.floor(highMidi + 1e-6);
+    midi += 1
+  ) {
+    const y = Math.round(yForMidi(midi)) + 0.5;
+    const isOctave = midi % 12 === 0;
+    context.strokeStyle = isOctave
+      ? readAccent(0.09, 'rgba(65, 218, 203, .09)')
+      : 'rgba(71, 116, 151, .045)';
     context.beginPath();
-    context.moveTo(0, y);
-    context.lineTo(width, y);
+    context.moveTo(PLOT_LEFT, y);
+    context.lineTo(PLOT_LEFT + plotWidth, y);
     context.stroke();
-  });
+    if (isOctave || semitoneHeight >= NAME_EVERY_ROW_PX) {
+      context.fillStyle = isOctave ? 'rgb(160, 244, 112)' : textInk;
+      context.fillText(midiToNoteName(midi), NOTE_NAME_RIGHT, y + 3);
+    }
+  }
 };
 
 interface IPaintNoteBlocksInput {
@@ -83,7 +116,14 @@ interface IPaintNoteBlocksInput {
   context: CanvasRenderingContext2D;
 }
 
-/** The target's note blocks, lit while the singer is on them. */
+// The Maker's note, drawn the same here (Ivan, 2026-11-16: "fix the pitch
+// notes and highlight to be like the Maker"): flat, a 2px corner, and the
+// note under the playhead filling with the light accent as it is sung, with
+// a ring standing off it (`makerCanvas/paintNotes.ts`).
+const NOTE_CORNER = 2;
+const NOTE_RING_GAP = 2.5;
+
+/** The target's notes, as the Maker draws them. */
 export const paintNoteBlocks = ({
   visibleNotes,
   xForSongTime,
@@ -96,61 +136,124 @@ export const paintNoteBlocks = ({
 }: IPaintNoteBlocksInput) => {
   visibleNotes.forEach((note) => {
     const startMs = note.startMs as number;
-    const { endMs } = karaokeLeadNoteShape({
+    const shape = karaokeLeadNoteShape({
       startMs,
       endMs: note.endMs as number,
       targetMidi: note.targetMidi,
       kind: note.kind,
     });
     const midi = note.targetMidi as number;
-    const x = xForSongTime(startMs);
-    const noteWidth = Math.max(3, xForSongTime(endMs) - x);
-    // A bar, never a hairline: at least 6px, two semitones' worth where the
-    // strip is short, and no taller than 12px where it is tall.
-    const noteHeight = Math.min(12, Math.max(6, semitoneHeight * 1.6));
+    const left = xForSongTime(shape.startMs);
+    const right = Math.max(left + 5, xForSongTime(shape.endMs));
+    const noteHeight = Math.max(8, semitoneHeight * 0.8);
+    const top = yForMidi(midi) - noteHeight / 2;
+    const isGolden = note.kind === 'golden';
+    const isFree = note.kind === 'free';
+    const active = karaokeMakerNoteIsActive(
+      shape.startMs,
+      shape.endMs,
+      synchronizedPlayheadMs,
+    );
+    // Sung in tune right now: the note takes the Maker's selected fill.
     const isPitchMatch =
-      note.kind !== 'free' &&
+      !isFree &&
       latestVoicedPoint !== undefined &&
-      latestVoicedPoint.songTimeMs >= startMs &&
-      latestVoicedPoint.songTimeMs <= endMs &&
+      latestVoicedPoint.songTimeMs >= shape.startMs &&
+      latestVoicedPoint.songTimeMs <= shape.endMs &&
       singerPitchMatchesTarget(
         latestVoicedPoint.midi,
         midi,
         octavePolicy,
         MATCH_TOLERANCE_SEMITONES,
       );
-    const timingState = karaokeNoteTimingState(
-      startMs,
-      endMs,
-      synchronizedPlayheadMs,
-    );
-    // Flat accent bars, as the K1 mockup draws them: what has been reached
-    // solid, what is still ahead at 40%, a free note fainter still, and the
-    // note being sung in tune in the accent's light tint.
-    let noteColor = readAccent(0.4, 'rgba(50, 225, 234, 0.4)');
-    if (note.kind === 'free') {
-      noteColor = readAccent(0.18, 'rgba(50, 225, 234, 0.18)');
-    } else if (isPitchMatch) {
-      noteColor = readAccentLight(1, 'rgba(169, 250, 255, 1)');
-    } else if (startMs <= synchronizedPlayheadMs) {
-      noteColor = readAccent(0.95, 'rgba(50, 225, 234, 0.95)');
-    }
-    const noteY = yForMidi(midi) - noteHeight / 2;
-    context.fillStyle = noteColor;
-    roundedRectPath(context, x, noteY, noteWidth, noteHeight);
-    context.fill();
 
-    // The note under the playhead, and the one about to reach it, edged.
-    if (timingState !== 'idle' && note.kind !== 'free') {
-      context.strokeStyle = readAccentLight(
-        timingState === 'active' ? 0.9 : 0.45,
-        'rgba(169, 250, 255, 0.6)',
-      );
-      context.lineWidth = timingState === 'active' ? 1.6 : 1;
+    let fill = readAccent(0.85, 'rgba(88, 191, 215, .85)');
+    if (isPitchMatch) {
+      fill = readAccentLight(1, '#bffff7');
+    }
+    if (isGolden) {
+      fill = '#ffd25a';
+    } else if (isFree) {
+      fill = readAccent(0.24, 'rgba(88, 191, 215, .24)');
+    }
+    context.save();
+    context.fillStyle = fill;
+    drawRoundedRect(context, left, top, right - left, noteHeight, NOTE_CORNER);
+    context.fill();
+    if (isFree) {
+      // Hollow: a note sung to no pitch.
+      context.setLineDash([4, 3]);
+      context.lineWidth = 1.6;
+      context.strokeStyle = readAccent(0.85, 'rgba(88, 191, 215, .85)');
+      context.stroke();
       context.setLineDash([]);
-      roundedRectPath(context, x, noteY, noteWidth, noteHeight);
+    }
+    if (active) {
+      const progressRight =
+        left +
+        (right - left) *
+          karaokeMakerNoteProgress(
+            shape.startMs,
+            shape.endMs,
+            synchronizedPlayheadMs,
+          );
+      // The sung part in the light accent, flat as the note under it.
+      context.save();
+      drawRoundedRect(
+        context,
+        left,
+        top,
+        right - left,
+        noteHeight,
+        NOTE_CORNER,
+      );
+      context.clip();
+      context.fillStyle = isGolden ? '#fff0a8' : readAccentLight(1, '#e8fffd');
+      context.fillRect(
+        left,
+        top,
+        Math.max(1, progressRight - left),
+        noteHeight,
+      );
+      context.restore();
+      const playbackX = Math.max(left, Math.min(right, progressRight));
+      context.strokeStyle = isGolden
+        ? '#fff7a3'
+        : readAccentLight(1, '#effffc');
+      context.lineWidth = 1.2;
+      context.beginPath();
+      context.moveTo(playbackX, top + 1);
+      context.lineTo(playbackX, top + noteHeight - 1);
+      context.stroke();
+      // The ring round the note, apart from it by a hair.
+      context.lineWidth = 1.5;
+      context.strokeStyle = isGolden
+        ? 'rgba(255, 240, 168, .95)'
+        : readAccentLight(0.95, 'rgba(191, 255, 247, .95)');
+      drawRoundedRect(
+        context,
+        left - NOTE_RING_GAP,
+        top - NOTE_RING_GAP,
+        right - left + NOTE_RING_GAP * 2,
+        noteHeight + NOTE_RING_GAP * 2,
+        NOTE_CORNER + NOTE_RING_GAP,
+      );
       context.stroke();
     }
+    context.restore();
+    // Each note's name over it, as the Maker prints it, lifted clear of
+    // the ring when there is one.
+    context.fillStyle = active
+      ? 'rgba(245, 255, 254, .98)'
+      : readAccentLight(1, '#cfe7ee');
+    context.font = `${active ? 700 : 600} 9px system-ui, sans-serif`;
+    context.textAlign = 'center';
+    context.textBaseline = 'alphabetic';
+    context.fillText(
+      midiToNoteName(midi),
+      left + (right - left) / 2,
+      top - 4 - (active ? NOTE_RING_GAP + 1 : 0),
+    );
   });
 };
 
