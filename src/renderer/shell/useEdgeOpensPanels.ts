@@ -23,12 +23,13 @@ const cancelWait = (armed: RefObject<IEdgeWait | undefined>) => {
  * How close to the window's side the pointer has to come for a full-screen
  * panel to open. It was the very edge, 3px, and the pointer had to be pressed
  * against the side to reach it (Ivan, 2026-11-16: "I have to put the mouse
- * right at the edge, it needs a bit more range"). Sixteen is reached by
+ * right at the edge, it needs a bit more range"; then "more range, about 20
+ * pixels"). Twenty-four is reached by
  * heading for the side; the plot's own controls start further in than that
  * (its level labels take the first 50px), so dragging the lowest band does
  * not pull the drawer out.
  */
-export const EDGE_OPENS_PX = 16;
+export const EDGE_OPENS_PX = 24;
 
 /**
  * How long the pointer has to stay at an edge before its panel opens, and
