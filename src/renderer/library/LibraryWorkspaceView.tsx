@@ -186,6 +186,9 @@ const LibraryWorkspaceView = ({
    * open: the files that need an answer first, then the song being edited. */
   const isTagPanelOpen =
     tagEditor.isProblemsOpen || tagEditor.view?.kind === 'song';
+  /** An album, folder or selection being edited: the page is the editor. */
+  const isTagPage =
+    tagEditor.view?.kind === 'set' || tagEditor.view?.kind === 'fix';
   const hasLibrary = roots.length > 0;
   const shownTotals = useLibraryAnswer(
     hasLibrary && !isHidden && shownTracksQuery !== undefined
@@ -265,6 +268,16 @@ const LibraryWorkspaceView = ({
       closeVideo();
     }
   };
+  /**
+   * The same for an album's, folder's or selection's tag page (Ivan,
+   * 2026-11-16: "cuando le dé clic en Coverflow o algo, tiene que ir para
+   * atrás, salir de ahí"). `go` waits only while the page asks about unsaved
+   * edits, and is dropped if the reader keeps editing.
+   */
+  const leaveFor = (go: () => void) => {
+    leaveFilm();
+    tagEditor.leavePage(go);
+  };
 
   const upNextCount = upNextTotal(upNext, upNextRestTotal);
   /** The picture owns the screen: no bar, no rail, no status line. */
@@ -328,16 +341,13 @@ const LibraryWorkspaceView = ({
           openFolderPath={openFolderPath}
           openPlaylistId={openPlaylistId}
           onBrowseMode={(mode) => {
-            leaveFilm();
-            handleBrowseMode(mode);
+            leaveFor(() => handleBrowseMode(mode));
           }}
           onOpenFolder={(folder) => {
-            leaveFilm();
-            handlePlaceFolder(folder);
+            leaveFor(() => handlePlaceFolder(folder));
           }}
           onShowPlaylist={(playlistId) => {
-            leaveFilm();
-            handleShowPlaylist(playlistId);
+            leaveFor(() => handleShowPlaylist(playlistId));
           }}
           onAddFolder={handleAddFolder}
           onRemoveRoot={(rootId) => {
@@ -403,15 +413,18 @@ const LibraryWorkspaceView = ({
                   // 2026-11-15: "if we search we just exit the video", "or
                   // if we click Details or Grid we go to that view").
                   onViewMode={(mode) => {
-                    leaveFilm();
-                    chooseViewMode(mode);
+                    leaveFor(() => chooseViewMode(mode));
                   }}
                   onSort={canSort ? handlePickSort : undefined}
                   onSortDirection={canSort ? handleSortDirection : undefined}
                   query={query}
+                  // The search is taken at once, as typed — a controlled box
+                  // that waited on the page's question would drop the keys
+                  // pressed meanwhile; its results show once the page goes.
                   onQuery={(next) => {
                     leaveFilm();
                     handleQuery(next);
+                    tagEditor.leavePage();
                   }}
                   // Over a video the back arrow leaves the film for the shelf
                   // it was opened from, where the picture's own Back button
@@ -427,10 +440,13 @@ const LibraryWorkspaceView = ({
                           onGoForward: () => undefined,
                         }
                       : {
-                          canGoBack,
+                          // Over a tag page, Back is one step: off the page,
+                          // to the shelf it was opened on.
+                          canGoBack: canGoBack || isTagPage,
                           canGoForward,
-                          onGoBack: handleGoBack,
-                          onGoForward: handleGoForward,
+                          onGoBack: () =>
+                            isTagPage ? tagEditor.leavePage() : handleGoBack(),
+                          onGoForward: () => leaveFor(handleGoForward),
                         }
                   }
                   tail={
@@ -464,12 +480,10 @@ const LibraryWorkspaceView = ({
                         : { kind: 'video', name: videoTitle }
                     }
                     onAllMusic={() => {
-                      leaveFilm();
-                      handleAllMusic();
+                      leaveFor(handleAllMusic);
                     }}
                     onOpenFolder={(folder) => {
-                      leaveFilm();
-                      handlePlaceFolder(folder);
+                      leaveFor(() => handlePlaceFolder(folder));
                     }}
                   />
                 )}
@@ -508,24 +522,18 @@ const LibraryWorkspaceView = ({
             {tagEditor.view?.kind === 'fix' && (
               <LibraryTagFixPage key={tagEditor.view.ids.join('|')} />
             )}
-            {tagEditor.view?.kind !== 'set' &&
-              tagEditor.view?.kind !== 'fix' && (
-                <LibraryShelfViews
-                  shelf={shelf}
-                  navigation={navigation}
-                  steps={steps}
-                  surpriseStageRef={surpriseStageRef}
-                />
-              )}
+            {!isTagPage && (
+              <LibraryShelfViews
+                shelf={shelf}
+                navigation={navigation}
+                steps={steps}
+                surpriseStageRef={surpriseStageRef}
+              />
+            )}
             {/* Over whichever shelf is drawn, after every view so it lies
                 above them. Never over a video, which has the tab. */}
             <SurpriseDrawLayer
-              isShelfShown={
-                trackCount > 0 &&
-                !videoTrackId &&
-                tagEditor.view?.kind !== 'set' &&
-                tagEditor.view?.kind !== 'fix'
-              }
+              isShelfShown={trackCount > 0 && !videoTrackId && !isTagPage}
               stageRef={surpriseStageRef}
               onPick={showSurprisePick}
             />

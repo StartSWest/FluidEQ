@@ -82,6 +82,19 @@ interface ITagEditorContextValue {
   ) => void;
   walkTo: (index: number) => void;
   close: () => void;
+  /**
+   * Leaves an album's, folder's or selection's page for `then` (a view, a
+   * shelf, a folder, Back). It leaves at once unless the page holds unsaved
+   * edits; then its leave question is raised and `then` waits for the answer.
+   * With no page open, `then` simply runs.
+   */
+  leavePage: (then?: () => void) => void;
+  /** A leave is waiting on the page's question. */
+  isLeaveAsked: boolean;
+  /** The page's answer: discard leaves and runs what waited, keep stays. */
+  answerLeave: (discard: boolean) => void;
+  /** The page says whether it holds unsaved edits. */
+  setPageHasChanges: (hasChanges: boolean) => void;
   drafts: ReadonlyMap<string, ITagDraft>;
   setDraft: (trackId: string, draft: ITagDraft) => void;
   discardDrafts: (trackIds?: readonly string[]) => void;
@@ -283,6 +296,46 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
       .catch(() => undefined);
   }, [undoable]);
 
+  // Ivan, 2026-11-16: pressing Cover Flow, Grid or Details over the editor
+  // "tiene que ir para atrás, salir de ahí". A ref, because the page reports
+  // on every edit and nothing has to draw from it.
+  const pageHasChanges = useRef(false);
+  const [waitingLeave, setWaitingLeave] = useState<
+    { go: (() => void) | undefined } | undefined
+  >(undefined);
+
+  const leavePage = useCallback(
+    (then?: () => void) => {
+      if (view?.kind !== 'set' && view?.kind !== 'fix') {
+        then?.();
+        return;
+      }
+      if (pageHasChanges.current) {
+        setWaitingLeave({ go: then });
+        return;
+      }
+      setView(undefined);
+      then?.();
+    },
+    [view],
+  );
+
+  const answerLeave = useCallback(
+    (discard: boolean) => {
+      setWaitingLeave(undefined);
+      if (discard) {
+        pageHasChanges.current = false;
+        setView(undefined);
+        waitingLeave?.go?.();
+      }
+    },
+    [waitingLeave],
+  );
+
+  const setPageHasChanges = useCallback((hasChanges: boolean) => {
+    pageHasChanges.current = hasChanges;
+  }, []);
+
   const value = useMemo<ITagEditorContextValue>(
     () => ({
       view,
@@ -295,17 +348,28 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
           index,
         });
       },
-      openSet: (scope, ids, title, place) =>
-        setView({ kind: 'set', scope, ids: [...ids], title, place }),
-      openFix: (scope, ids, title, place) =>
-        setView({ kind: 'fix', scope, ids: [...ids], title, place }),
+      openSet: (scope, ids, title, place) => {
+        setWaitingLeave(undefined);
+        setView({ kind: 'set', scope, ids: [...ids], title, place });
+      },
+      openFix: (scope, ids, title, place) => {
+        setWaitingLeave(undefined);
+        setView({ kind: 'fix', scope, ids: [...ids], title, place });
+      },
       walkTo: (index) =>
         setView((current) =>
           current?.kind === 'song' && index >= 0 && index < current.ids.length
             ? { ...current, index }
             : current,
         ),
-      close: () => setView(undefined),
+      close: () => {
+        setWaitingLeave(undefined);
+        setView(undefined);
+      },
+      leavePage,
+      isLeaveAsked: waitingLeave !== undefined,
+      answerLeave,
+      setPageHasChanges,
       drafts,
       setDraft,
       discardDrafts,
@@ -324,6 +388,10 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
     }),
     [
       view,
+      leavePage,
+      waitingLeave,
+      answerLeave,
+      setPageHasChanges,
       drafts,
       setDraft,
       discardDrafts,

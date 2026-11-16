@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { type KeyboardEvent, useMemo, useState } from 'react';
+import {
+  type KeyboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from '../../utils/I18nContext';
 import { useLibraryPlayerSessionIfAny } from '../player/LibraryPlayerContext';
 import { useLibraryTracks } from '../useLibraryTracks';
@@ -46,13 +52,21 @@ import { useTagSheets } from './useTagSheets';
  */
 const LibraryTagSetEditor = () => {
   const { t } = useTranslation();
-  const { view, close, write } = useTagEditor();
+  const {
+    view,
+    close,
+    write,
+    leavePage,
+    isLeaveAsked,
+    answerLeave,
+    setPageHasChanges,
+  } = useTagEditor();
   const ids = useMemo(() => (view?.kind === 'set' ? view.ids : []), [view]);
   const sheets = useTagSheets(ids);
   const tracks = useLibraryTracks(ids);
   const session = useLibraryPlayerSessionIfAny();
   const [state, setState] = useState<ISetState>(() => initialSetState(ids));
-  const [isLeaving, setIsLeaving] = useState(false);
+  const leaveRef = useRef<HTMLDivElement>(null);
   const [didRefuse, setDidRefuse] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -68,13 +82,28 @@ const LibraryTagSetEditor = () => {
     () => changedFields(state, ordered),
     [state, ordered],
   );
+  const summary = useMemo(
+    () => summarise(state, ordered, changes),
+    [state, ordered, changes],
+  );
+  const hasChanges = summary.changeCount > 0;
+  // A view or shelf pressed while there are edits asks here before leaving.
+  useEffect(() => {
+    setPageHasChanges(hasChanges);
+  }, [hasChanges, setPageHasChanges]);
+  useEffect(() => () => setPageHasChanges(false), [setPageHasChanges]);
+  // The question stands at the head of the page, which may be scrolled away
+  // when a view is pressed at the foot of a long album.
+  useEffect(() => {
+    if (isLeaveAsked) {
+      leaveRef.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [isLeaveAsked]);
   if (view?.kind !== 'set') {
     return null;
   }
   const isFolder = view.scope === 'folder';
   const groups = groupsOf(ordered, isFolder);
-  const summary = summarise(state, ordered, changes);
-  const hasChanges = summary.changeCount > 0;
   const canSave =
     hasChanges && sheets.isComplete && isSetValid(changes) && !isSaving;
 
@@ -159,20 +188,24 @@ const LibraryTagSetEditor = () => {
             <h2>{title}</h2>
           </div>
           <div className="library-tags-set__head-side">
-            {isLeaving ? (
-              <div className="library-tags-set__leave" role="alert">
+            {isLeaveAsked ? (
+              <div
+                className="library-tags-set__leave"
+                role="alert"
+                ref={leaveRef}
+              >
                 <span>{t('library.tags.set.leaveAsk')}</span>
                 <button
                   type="button"
                   className="button small subtle"
-                  onClick={() => setIsLeaving(false)}
+                  onClick={() => answerLeave(false)}
                 >
                   {t('library.tags.set.keepEditing')}
                 </button>
                 <button
                   type="button"
                   className="button small danger"
-                  onClick={close}
+                  onClick={() => answerLeave(true)}
                 >
                   {t('library.tags.set.discard')}
                 </button>
@@ -181,7 +214,7 @@ const LibraryTagSetEditor = () => {
               <button
                 type="button"
                 className="button small subtle"
-                onClick={() => (hasChanges ? setIsLeaving(true) : close())}
+                onClick={() => leavePage()}
               >
                 {t('library.tags.set.back')}
               </button>
