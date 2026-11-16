@@ -323,6 +323,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: none;
 }
 
+// A surface that floats over others and must be read on its own: a dialog, a
+// panel over the Karaoke Maker's editor. Opaque and never blurred (Ivan,
+// 2026-11-15: "make sure all modals are not transparent or blurred, also the
+// big modals across the app"): the page's card fill laid over the window's
+// floor, which is the very colour a card is seen as, so a dialog reads as a
+// card of the page lifted off it - only solid.
+@mixin solid-panel-face {
+  border: 1px solid $card-edge;
+  // The cards' corner: a floating panel is never a square slab.
+  border-radius: $card-radius;
+  background:
+    linear-gradient($surface-section, $surface-section), $surface-base;
+  backdrop-filter: none;
+}
+
 // Quiet, outline-only button (titlebar actions, graph overlay controls).
 @mixin ghost-button {
   // The quiet button, everywhere: the same face as `.button.subtle` and as

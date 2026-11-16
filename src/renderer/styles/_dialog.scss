@@ -106,19 +106,18 @@ $rail: color-mix(in srgb, $surface-panel 66%, transparent);
 // hairline, never a ruled accent.
 $seam: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 
-// The floating glass since 2026-09-27 (`_glass.scss`), the panes' and the
-// menus' own: the amp's frosted fill and blur, the cards' faint edge all
-// round, and the panes' one-pixel bevel for depth. No shadow under it (Ivan:
-// "remove all crappy dropshadow from all modal and make borders uniform and
-// almost not visible like our cards, those modal needs to be also blurred
-// like that"). `$sheet` stays for the notices that float with no scrim
-// under them and keep a floor they can be read on.
+// SOLID, NEVER GLASS (Ivan, 2026-11-15: "make sure all modals are not
+// transparent or blurred, also on big modals across the app remove any blur /
+// transparent background"): the page's card face, opaque (`solid-panel-face`),
+// the cards' faint edge all round and the panes' one-pixel bevel for depth.
+// From 2026-09-27 it was the floating glass, frosted and blurred, and what
+// lay under a dialog showed through its words. Still no drop shadow (Ivan,
+// 2026-09-27: "remove all crappy dropshadow from all modal and make borders
+// uniform and almost not visible like our cards").
 @mixin surface-look {
-  border: 1px solid $card-edge;
+  @include solid-panel-face;
   border-radius: $corner;
-  background: $glass-fill;
   box-shadow: $glass-bevel;
-  backdrop-filter: $glass-blur;
 }
 
 @mixin surface($width, $height) {

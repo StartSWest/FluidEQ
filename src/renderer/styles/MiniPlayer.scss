@@ -104,21 +104,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   );
 }
 
-// EVERY MENU OPENED IN THE AMP IS A PANE OF THE GLASS (Ivan, 2026-09-28:
-// "menu need blur also … all menus there"): the frosted fill, the blur
-// behind it and the bevel — the treatment the app's menus take over the
-// Backdrop (`App.scss`, read by `menu-face` and by the menus built without it
-// in `Rainbow.scss`). The app's rule is keyed on its own Backdrop being
-// drawn, which it never is while the window is the amp, so the amp's menus
-// came out with no blur at all. Edged in the amp's own divider colour
-// (`--player-rule`), so a menu stands off the panes it opens over (Ivan,
+// A MENU OPENED IN THE AMP is the 98% card every menu is (Ivan, 2026-11-15:
+// "all menus need to be like 98% opaque"; from 2026-09-28 it was a pane of
+// the frosted glass), edged in the amp's own divider colour
+// (`--player-rule`) so it stands off the panes it opens over (Ivan,
 // 2026-10-25: "same border colour to the menu as the divider so it's more
 // visible"); with no edge it dissolved into them.
 :root[data-amp] {
-  --surface-menu-floor: #{glass.$glass-fill};
   --menu-edge: var(--player-rule);
-  --menu-lift: #{glass.$glass-bevel};
-  --menu-glass: #{glass.$glass-blur};
 }
 
 // THE AMP'S EDGE IS WINDOWS' OWN (Ivan, 2026-09-28: "why does the amp's

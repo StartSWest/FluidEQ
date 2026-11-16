@@ -1875,18 +1875,10 @@ textarea,
   @include shipped-theme;
 }
 
-// Under the Backdrop every menu is a pane of the floating glass
-// (`_glass.scss`): its fill, its blur, its bevel and no edge, the panes'
-// own treatment (Ivan, 2026-09-27: "all dropdown menu during that backdrop
-// mode need to be blur too same treatment"). Read by `menu-face` and by the
-// menus built without it (`Rainbow.scss`). It was the veiled floor at 95%
-// with the card's edge and a shadow, a dark slab beside frosted panes.
-:root:is(.is-scene-backdrop, [data-app-full].is-scene-full) {
-  --surface-menu-floor: #{$glass-fill};
-  --menu-edge: transparent;
-  --menu-lift: #{$glass-bevel};
-  --menu-glass: #{$glass-blur};
-}
+// Under the Backdrop a menu is the same 98% card it is everywhere else, with
+// its edge and lift (Ivan, 2026-11-15: "all menus need to be like 98%
+// opaque"). From 2026-09-27 it was a pane of the floating glass there, and
+// whatever lay behind - a scene, the Maker's notes - read through its words.
 
 // Rainbow mode's buttons and switches carry the span again: the accent
 // between the palette's greener and bluer ends (`Rainbow.scss` sets them).
