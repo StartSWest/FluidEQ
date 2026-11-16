@@ -98,6 +98,42 @@ export const slots = (
   return pieces;
 };
 
+/**
+ * `count` rows on whole device pixels with an even `gap` between each,
+ * spanning the box top to bottom, the bottom row first: a background grid's
+ * rows (Ivan, 2026-11-16: "for the bg ones you are still missing bit of the
+ * top"). Rows of one fixed pitch stacked up from the floor left whatever
+ * part of a pitch the box's height did not divide into, up to a whole row,
+ * as an empty band under the label row. The pixels left over go one each to
+ * rows spread evenly up the grid instead, as `slots` does across.
+ */
+export const rowsSpanning = (
+  box: IFlatMeterBox,
+  ratio: number,
+  count: number,
+  gap: number,
+) =>
+  slots({ x: box.y, y: 0, width: box.height, height: 0 }, ratio, count, gap)
+    .reverse()
+    .map(({ x, width }) => ({ y: x, height: width }));
+
+/**
+ * How many rows the grid over the whole box needs so that the bottom
+ * `inMeter` of them fit between `meterTop` and the floor: never fewer, so a
+ * row is never taller than the meter's own would be and the lit rows never
+ * rise above the meter's top.
+ */
+export const gridRowsFor = (
+  box: IFlatMeterBox,
+  meterTop: number,
+  inMeter: number,
+  gap: number,
+) => {
+  const floor = box.y + box.height;
+  const meterPitch = Math.max(1e-6, (floor - meterTop + gap) / inMeter);
+  return Math.max(inMeter, Math.ceil((box.height + gap) / meterPitch - 1e-9));
+};
+
 /** The bands resampled to `count` pieces, each the loudest band it covers. */
 export const resample = (bands: readonly number[], count: number): number[] => {
   if (bands.length === 0) {

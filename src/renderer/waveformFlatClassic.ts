@@ -128,11 +128,20 @@ const CLASSIC_PAINTERS: Record<
     const radius = Math.max(1, Math.min(row[0].width / 2, 2.4));
     const pitch = radius * 2 + 2;
     const floor = box.y + box.height;
-    // The grid runs to the box's top; only the rows inside the meter light.
-    const rows = Math.max(3, Math.floor(box.height / pitch));
+    // The grid runs from the floor to the box's top, its rows spread evenly
+    // between the two: stacked at a fixed pitch, the part of a pitch the
+    // height did not divide into was left empty at the top (Ivan,
+    // 2026-11-16: "for the bg ones you are still missing bit of the top").
+    // Only the rows wholly inside the meter light.
+    const reach = Math.max(0, box.height - radius * 2);
+    const rows = Math.max(3, Math.floor(reach / pitch) + 1);
+    const spacing = reach / (rows - 1);
     const meterRows = Math.max(
       3,
-      Math.min(rows, Math.floor((floor - input.meterTop) / pitch)),
+      Math.min(
+        rows,
+        Math.floor((floor - input.meterTop - radius * 2) / spacing + 1e-9) + 1,
+      ),
     );
     // The unlit dots stay as a faint grid, so the shape reads at rest.
     const lit = new Path2D();
@@ -142,7 +151,7 @@ const CLASSIC_PAINTERS: Record<
       for (let level = 0; level < rows; level += 1) {
         const target = level < Math.max(1, on) ? lit : dark;
         const cx = x + width / 2;
-        const cy = floor - radius - level * pitch;
+        const cy = floor - radius - level * spacing;
         target.moveTo(cx + radius, cy);
         target.arc(cx, cy, radius, 0, Math.PI * 2);
       }

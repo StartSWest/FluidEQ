@@ -14,7 +14,9 @@ import {
   WARM,
   across,
   countFor,
+  gridRowsFor,
   resample,
+  rowsSpanning,
   silhouette,
   slots,
   snap,
@@ -73,16 +75,13 @@ const NEW_PAINTERS: Record<
     const values = resample(input.bands, row.length);
     const cells = 8;
     const gap = snap(2, ratio);
-    const floor = box.y + box.height;
     // Eight cells in the meter; the grid carries on, unlit, to the box's top.
-    const cell = Math.max(
-      1 / ratio,
-      // Rounded down, so eight cells never rise above the meter's top.
-      Math.floor(
-        ((floor - input.meterTop - gap * (cells - 1)) / cells) * ratio,
-      ) / ratio,
+    const grid = rowsSpanning(
+      box,
+      ratio,
+      gridRowsFor(box, input.meterTop, cells, gap),
+      gap,
     );
-    const rows = Math.max(cells, Math.floor((box.height + gap) / (cell + gap)));
     const groups = {
       unlit: new Path2D(),
       body: new Path2D(),
@@ -91,7 +90,7 @@ const NEW_PAINTERS: Record<
     };
     row.forEach(({ x, width }, index) => {
       const lit = Math.round(values[index] * cells);
-      for (let level = 0; level < rows; level += 1) {
+      grid.forEach(({ y, height }, level) => {
         let group: keyof typeof groups = 'unlit';
         if (level < lit) {
           if (level === cells - 1) {
@@ -102,14 +101,8 @@ const NEW_PAINTERS: Record<
             group = 'body';
           }
         }
-        groups[group].roundRect(
-          x,
-          snap(floor - (level + 1) * cell - level * gap, ratio),
-          width,
-          cell,
-          1,
-        );
-      }
+        groups[group].roundRect(x, y, width, height, 1);
+      });
     });
     context.fillStyle = input.unlit;
     context.fill(groups.unlit);
@@ -201,15 +194,16 @@ const NEW_PAINTERS: Record<
     const values = resample(input.bands, row.length);
     const inset = snap(Math.min(4, box.height * 0.1), ratio);
     const floor = box.y + box.height - inset;
-    // The cells' background runs to the box's top; the light stays in the
-    // meter.
+    // The cells' background runs to the box's top, with no inset there: the
+    // floor's inset stood at the top too and read as the grid stopping short
+    // (Ivan, 2026-11-16). The light stays in the meter.
     context.fillStyle = input.unlit;
     context.beginPath();
     row.forEach(({ x, width }) => {
-      context.roundRect(x, box.y + inset, width, floor - box.y - inset, 2);
+      context.roundRect(x, box.y, width, floor - box.y, 2);
     });
     context.fill();
-    const top = Math.max(box.y + inset, input.meterTop);
+    const top = Math.max(box.y, input.meterTop);
     context.fillStyle = input.ink;
     row.forEach(({ x, width }, index) => {
       context.globalAlpha = 0.08 + 0.92 * values[index] ** 1.6;
@@ -225,26 +219,21 @@ const NEW_PAINTERS: Record<
     const row = slots(box, ratio, countFor(box, 8.5, 24, 64), 2);
     const rows = 8;
     const gap = snap(2, ratio);
-    const floor = box.y + box.height;
-    // Eight rows of the past in the meter, newest at its top; the grid
-    // carries on, unlit, above it to the box's top.
-    const height = Math.max(
-      1 / ratio,
-      // Rounded down, so eight rows never rise above the meter's top.
-      Math.floor(((floor - input.meterTop - gap * (rows - 1)) / rows) * ratio) /
-        ratio,
+    // Eight rows of the past in the meter, the bottom eight of the grid and
+    // newest at their top; the grid carries on, unlit, above it to the box's
+    // top.
+    const grid = rowsSpanning(
+      box,
+      ratio,
+      gridRowsFor(box, input.meterTop, rows, gap),
+      gap,
     );
-    const meterTop = floor - rows * height - (rows - 1) * gap;
     context.fillStyle = input.unlit;
-    for (
-      let y = meterTop - height - gap;
-      y >= box.y - height / 2;
-      y -= height + gap
-    ) {
+    grid.slice(rows).forEach(({ y, height }) => {
       row.forEach(({ x, width }) => {
-        context.fillRect(x, snap(y, ratio), width, height);
+        context.fillRect(x, y, width, height);
       });
-    }
+    });
     context.fillStyle = input.ink;
     for (let age = 0; age < rows; age += 1) {
       const frame = input.state.history[age];
@@ -252,7 +241,7 @@ const NEW_PAINTERS: Record<
         break;
       }
       const values = resample(frame, row.length);
-      const y = snap(meterTop + age * (height + gap), ratio);
+      const { y, height } = grid[rows - 1 - age];
       row.forEach(({ x, width }, index) => {
         context.globalAlpha =
           (0.06 + 0.94 * values[index] ** 1.8) * (1 - age * 0.09);
