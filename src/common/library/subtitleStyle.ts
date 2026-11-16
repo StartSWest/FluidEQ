@@ -40,6 +40,12 @@ export type TSubtitleColour = (typeof SUBTITLE_COLOURS)[number];
 export const SUBTITLE_BACKGROUNDS = ['none', 'outline', 'box'] as const;
 export type TSubtitleBackground = (typeof SUBTITLE_BACKGROUNDS)[number];
 
+/** How heavy the outline's dark edge is: a hairline, or the thick black
+ * stroke of burnt-in subtitles (Ivan, 2026-11-15: "on Outline add an option
+ * for more shadow"). */
+export const SUBTITLE_EDGES = ['thin', 'thick'] as const;
+export type TSubtitleEdge = (typeof SUBTITLE_EDGES)[number];
+
 /** The box's opacities offered: four steps a viewer can tell apart. */
 export const SUBTITLE_OPACITIES = [0.25, 0.5, 0.75, 1] as const;
 
@@ -79,6 +85,8 @@ export interface ISubtitleStyle {
   background: TSubtitleBackground;
   /** The box's opacity; the box alone has one. */
   opacity: number;
+  /** The outline's weight; the outline alone has one. */
+  edge: TSubtitleEdge;
   position: ISubtitlePosition;
 }
 
@@ -88,6 +96,7 @@ export const DEFAULT_SUBTITLE_STYLE: ISubtitleStyle = {
   colour: 'white',
   background: 'outline',
   opacity: 0.75,
+  edge: 'thin',
   position: { x: 0.5, y: 1 },
 };
 
@@ -172,6 +181,7 @@ export const parseSubtitleStyle = (raw: string | null): ISubtitleStyle => {
       defaults.background,
     ),
     opacity: opacity ?? defaults.opacity,
+    edge: oneOf(stored.edge, SUBTITLE_EDGES, defaults.edge),
     position: {
       x: fraction(position.x, defaults.position.x),
       y: fraction(position.y, defaults.position.y),

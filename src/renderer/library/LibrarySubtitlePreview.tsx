@@ -70,7 +70,7 @@ const LibrarySubtitlePreview = ({ style }: { style: ISubtitleStyle }) => {
     >
       <div className="library-subtitle-preview__room" aria-hidden="true">
         <div
-          className={`library-video-stage__caption is-${style.background}`}
+          className={`library-video-stage__caption is-${style.background} is-edge-${style.edge}`}
           style={captionStyle}
         >
           <p className="library-video-stage__caption-line">

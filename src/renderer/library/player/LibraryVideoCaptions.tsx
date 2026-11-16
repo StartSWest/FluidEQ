@@ -254,7 +254,7 @@ const Captions = ({
       <div ref={setRoomRef} className="library-video-stage__caption-room">
         <div
           ref={boxRef}
-          className={`library-video-stage__caption is-${style.background}${
+          className={`library-video-stage__caption is-${style.background} is-edge-${style.edge}${
             isMoving ? ' is-moving' : ''
           }${drag === undefined ? '' : ' is-dragging'}${
             room.width === 0 ? ' is-unmeasured' : ''

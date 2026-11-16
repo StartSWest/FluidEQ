@@ -20,11 +20,13 @@ import type { ReactNode } from 'react';
 import type { TranslationKey } from '../../common/i18n';
 import {
   SUBTITLE_BACKGROUNDS,
+  SUBTITLE_EDGES,
   SUBTITLE_COLOURS,
   SUBTITLE_INK,
   SUBTITLE_OPACITIES,
   SUBTITLE_SIZES,
   type TSubtitleBackground,
+  type TSubtitleEdge,
   type TSubtitleSize,
 } from '../../common/library/subtitleStyle';
 import MenuIcon from '../icons/MenuIcon';
@@ -53,6 +55,11 @@ const COLOUR_KEYS = {
   green: 'library.subtitles.colour.green',
   pink: 'library.subtitles.colour.pink',
 } as const;
+
+const EDGE_KEYS: Record<TSubtitleEdge, TranslationKey> = {
+  thin: 'library.subtitles.edge.thin',
+  thick: 'library.subtitles.edge.thick',
+};
 
 const BACKGROUND_KEYS: Record<TSubtitleBackground, TranslationKey> = {
   none: 'library.subtitles.background.none',
@@ -182,6 +189,26 @@ const LibrarySubtitleSettings = () => {
           }}
         />
       </Setting>
+      {/* Only the outline has an edge to make heavier: thin, or the thick
+          black stroke of burnt-in subtitles. */}
+      {style.background === 'outline' && (
+        <Setting label={t('library.subtitles.edge')}>
+          <SegmentedControl
+            name={t('library.subtitles.edge')}
+            value={style.edge}
+            options={SUBTITLE_EDGES.map((edge) => ({
+              value: edge,
+              label: t(EDGE_KEYS[edge]),
+            }))}
+            onChange={(next) => {
+              const edge = SUBTITLE_EDGES.find((entry) => entry === next);
+              if (edge !== undefined) {
+                updateSubtitleStyle({ edge });
+              }
+            }}
+          />
+        </Setting>
+      )}
       {/* Only the box has a fill to be seen through. */}
       {style.background === 'box' && (
         <Setting label={t('library.subtitles.opacity')}>

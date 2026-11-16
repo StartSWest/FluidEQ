@@ -81,29 +81,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   white-space: pre-line;
   overflow-wrap: break-word;
   translate: -50% -50%;
-  transition:
-    left 200ms $ease-out,
-    top 200ms $ease-out;
+  // No glide to its place: placed once its size is read, a glide carried it
+  // there from wherever the first unmeasured frame put it.
 
   // Its size is read before it is placed; the frame before that, unseen.
   &.is-unmeasured {
     visibility: hidden;
   }
 
-  // The drag follows the pointer, never a glide behind it.
-  &.is-dragging {
-    transition: none;
-  }
-
   // Outline: a dark edge all round each letter, so any ink reads over a
   // white sky as well as a black night — the broadcast captions' edge.
-  &.is-outline {
+  &.is-outline.is-edge-thin {
     text-shadow:
       -1px -1px 0 rgba($black, 0.9),
       1px -1px 0 rgba($black, 0.9),
       -1px 1px 0 rgba($black, 0.9),
       1px 1px 0 rgba($black, 0.9),
       0 0 0.18em rgba($black, 0.85);
+  }
+
+  // Thick: the heavy black stroke of subtitles burnt into a film - an edge
+  // a twelfth of the letter's height in sixteen directions and a soft drop
+  // under it - and a bolder face to carry it (Ivan, 2026-11-15: "on Outline
+  // add an option for more shadow, like the example").
+  &.is-outline.is-edge-thick {
+    font-weight: $weight-bold;
+    text-shadow:
+      0.08em 0 0 $black,
+      -0.08em 0 0 $black,
+      0 0.08em 0 $black,
+      0 -0.08em 0 $black,
+      0.057em 0.057em 0 $black,
+      -0.057em 0.057em 0 $black,
+      0.057em -0.057em 0 $black,
+      -0.057em -0.057em 0 $black,
+      0.074em 0.033em 0 $black,
+      -0.074em 0.033em 0 $black,
+      0.074em -0.033em 0 $black,
+      -0.074em -0.033em 0 $black,
+      0.033em 0.074em 0 $black,
+      -0.033em 0.074em 0 $black,
+      0.033em -0.074em 0 $black,
+      -0.033em -0.074em 0 $black,
+      0 0.1em 0.12em rgba($black, 0.7);
   }
 
   // Moving: the box takes the pointer, wears a dashed accent edge, and
