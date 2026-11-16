@@ -245,6 +245,76 @@ $cover-veil: color-mix(
   }
 }
 
+// THE SEE-THROUGH BACKDROP: every page that has the Backdrop but the EQ page.
+// Which pages those are is decided in one place, `BACKDROP_PAGES`
+// (`graphScenePlace.ts`); this asks only that the scene be behind the window
+// and the page not be the EQ's, whose floating glass is below. The page keeps
+// its layout exactly - no pane moves, none changes shape - and only the
+// window's back changes: the scene behind the whole window, blurred, with
+// every pane see-through over it in the veil the rules above already lay on
+// it (Ivan, 2026-11-15: "it shows the Library as it is but the entire app is
+// that scene background and all panes are blurred. Don't change the panes
+// like we do on EQ").
+//
+// One blur over the scene, not one per pane. The panes here tile the window
+// - the two side columns, the page's column and the two bars - so it looks
+// the same, without a seam where two panes meet, and it is one pass over the
+// window a frame where a blur per pane would be six, each reading back what
+// lies under it. A `backdrop-filter` mirrors the picture at the window's edges,
+// where a `filter` on the canvas faded it to the floor along every side. And
+// it is laid over the canvas inside the layer, never on a pane: a pane with
+// a `backdrop-filter` becomes the containing block of every fixed child it
+// has, and its menus and drag images would be placed and clipped by it.
+//
+// What text stands on is the veil, `--backdrop-veil`, the Transparency
+// slider's, over the scene dimmed by `$see-through-dim`: the blur takes the
+// detail out from under the words, and the dim the light. Measured on the
+// Library at the slider's default (2026-11-15), against the same words on
+// the page without the Backdrop: over the aurora every label read the same
+// as on the plain page; over a white picture the blur alone left the left
+// column's labels at 3.3:1 (15.9 on the plain page) and the toolbar's at
+// 4.1, and with the dim they are 5.5 and 5.2, and the status line's quiet
+// words 3.1 (3.9 on the plain page).
+//
+// A brightness and not a veil of the floor: it takes a share of the light,
+// so a white scene comes down by a third and a dark one, which has little
+// light to give, loses little (under the aurora no pane went down by more
+// than twenty levels of 255, and every label read at least as well as on
+// the plain page). One value for every pane, never a pane's own.
+$see-through-dim: brightness(0.7);
+
+:root.is-scene-backdrop:not([data-page='eq']) {
+  .scene-cover::after {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: $glass-blur $see-through-dim;
+    content: '';
+  }
+
+  // WHAT STANDS OVER A PAGE'S OWN CONTENT. The veil thins every surface in a
+  // pane, and a sheet laid over the page's content was opaque so as to hide
+  // what runs under it: thinned, the content showed through it. The Library's
+  // Up next column stands over the shelf (`_libraryUpNext.scss`), and the
+  // songs' format column and every row's length read through it, doubled.
+  // It is a column of the page, so it is glass like the rest: what is under
+  // it blurred away, in the veil. Already a containing block for its fixed
+  // children (it slides by a transform), so the filter changes none of them.
+  .library-up-next {
+    backdrop-filter: $glass-blur;
+  }
+
+  // A notice floating over the content keeps its solid face, as every
+  // surface over the page does (`solid-panel-face`; Ivan, 2026-11-15: "make
+  // sure all modals are not transparent or blurred"). And the empty
+  // Library's drawing of a record half in its sleeve, with two sleeves behind:
+  // thinned, the record showed whole through the front sleeve and the back
+  // sleeves' corners through it too.
+  .library-scan-progress,
+  .library-empty__art {
+    --surface-panel: var(--solid-surface-panel);
+  }
+}
+
 // FLOATING GLASS, on the EQ page first (Ivan, 2026-09-27: "while on backdrop
 // mode the whole app is the scene and then we put blurred floating pane for
 // EQ and the side panes and header and playbar ... I want that clean look",

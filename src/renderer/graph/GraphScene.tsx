@@ -31,8 +31,8 @@ import { useGraphSceneStoodIn } from './sceneStandIn';
  * scene is not the graph's to take down: the plot moving from the EQ column
  * to its own card, the graph going full screen and back, the window's
  * colours going from Colours to the Backdrop — each moves the same canvas
- * (`graphScenePlace`). The Backdrop is the EQ page's alone
- * (`sceneModeOnPage`): every other page draws it as Ambient does. In Colours
+ * (`graphScenePlace`). The Backdrop is drawn only on the pages that have it
+ * (`BACKDROP_PAGES`): every other page draws it as Ambient does. In Colours
  * and Ambient a page without the graph has nowhere to show it, and it stops;
  * and it stops wherever another player stands in for it (`sceneStandIn.ts`).
  */

@@ -70,22 +70,43 @@ export interface IGraphScenePlaces {
   column: HTMLElement | null;
 }
 
-/** The one page the Backdrop is drawn on. */
-export const BACKDROP_PAGE: TWorkspaceTab = 'eq';
+/**
+ * The pages the Backdrop is drawn on.
+ *
+ * The EQ page has a design of its own there: every pane a floating sheet of
+ * glass (`SceneCover.scss`, under `[data-page='eq']`). Every other page in
+ * this set keeps its layout exactly as it is, and only the window's back
+ * changes: the scene behind the whole window, blurred, and every pane
+ * see-through over it (the see-through Backdrop, `SceneCover.scss`). Which
+ * pages get it is decided here and nowhere else — the stylesheet asks only
+ * whether the scene is behind the window and the page is not the EQ's.
+ *
+ * Tried on the Library first (Ivan, 2026-11-15: "I wanna use backdrop mode
+ * for all pages too, let's do it for the Library now to test it ... don't
+ * limit it, so it can be changed to all pages in one line"). THE ONE LINE:
+ * for every page, this set becomes `new Set(WORKSPACE_TABS)`.
+ *
+ * A page added here wants a look over a bright scene first: whatever stood
+ * opaque over that page's own content to hide it is thinned with the pane
+ * and lets the content through, as the Library's Up next column did until it
+ * was given glass of its own (`SceneCover.scss`).
+ */
+export const BACKDROP_PAGES: ReadonlySet<TWorkspaceTab> =
+  new Set<TWorkspaceTab>(['eq', 'library']);
 
 /**
- * The mode the scene is drawn in on `page`: the one chosen, except that the
- * Backdrop is the EQ page's alone and every other page shows it as Ambient —
- * the window's colours and its glow, the scene on the page's own graph where
- * it has one (Ivan, 2026-09-27: "only on EQ we have that mode, in the rest of
- * the app no backdrop mode"). The menu still names the Backdrop there: it is
- * what comes back on the EQ page.
+ * The mode the scene is drawn in on `page`: the one chosen, except that a
+ * page outside `BACKDROP_PAGES` shows the Backdrop as Ambient — the window's
+ * colours and its glow, the scene on the page's own graph where it has one
+ * (Ivan, 2026-09-27: "only on EQ we have that mode, in the rest of the app no
+ * backdrop mode"). The menu still names the Backdrop there: it is what comes
+ * back on a page that has it.
  */
 export const sceneModeOnPage = (
   mode: TSceneTintMode,
   page: TWorkspaceTab,
 ): TSceneTintMode =>
-  mode === 'cover' && page !== BACKDROP_PAGE ? 'pulse' : mode;
+  mode === 'cover' && !BACKDROP_PAGES.has(page) ? 'pulse' : mode;
 
 /**
  * Where the graph's scene is drawn, or nowhere.

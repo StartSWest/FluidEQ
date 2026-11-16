@@ -17,9 +17,9 @@ import { useEffect, useSyncExternalStore } from 'react';
  * that covered it - the same scene twice, one of them seen by nobody.
  *
  * Not the Studio's stage any more. It stood in so the graph's scene would not
- * run behind the Studio under the Backdrop, and with the Backdrop the EQ
- * page's alone (`sceneModeOnPage`) the only copy left for it to stop was the
- * graph open under the Studio, in plain sight, which then sat on "Loading
+ * run behind the Studio under the Backdrop, and with the Backdrop kept off
+ * the Studio's page (`BACKDROP_PAGES`) the only copy left for it to stop was
+ * the graph open under the Studio, in plain sight, which then sat on "Loading
  * visualizer" for as long as the stage played (Ivan, 2026-09-27: "why the
  * hell doesn't the viz load in the graph below the studio").
  *
