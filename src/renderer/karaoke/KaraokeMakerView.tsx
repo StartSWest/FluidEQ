@@ -592,6 +592,8 @@ const KaraokeMakerView = ({
           />
           <KaraokeMakerPitchScroller
             pitchWindow={pitchWindow}
+            notes={project.melody.notes}
+            durationMs={effectiveDurationMs}
             gridTop={headerHeight}
             controls={`${controlId}-canvas`}
             label={t('karaoke.maker.pitchRange')}

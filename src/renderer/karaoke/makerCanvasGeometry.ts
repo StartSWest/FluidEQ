@@ -90,14 +90,24 @@ export const COMPACT_LYRIC_LANE_HEIGHT = 22;
 // does that.
 export const TRANSLATION_LANE_HEIGHT = LYRIC_LANE_HEIGHT;
 
-/** Room for the octave names down the left edge, and no more (Ivan,
- * 2026-11-15: "less left padding"): the names stand right-aligned at
- * `OCTAVE_LABEL_RIGHT` and the pitch scroller takes the 8px between them and
- * the plot. It was 54, from when piano keys stood there. */
-export const PLOT_LEFT = 34;
+/**
+ * The pitch mini-map's column, against the left edge: wide enough to draw
+ * the whole song's notes inside it under the window onto the grid, as the
+ * song strip under the canvas draws them under its window onto time (Ivan,
+ * 2026-11-15: "make it like the horizontal one, covering the notes so I can
+ * see them inside", then "put that on the left and the notes on the right
+ * of it"). An 8px bar with nothing in it read as a stray line.
+ */
+export const PITCH_STRIP_LEFT = 2;
+export const PITCH_STRIP_WIDTH = 22;
 
-/** Where the octave names end, leaving the pitch scroller its column. */
-export const OCTAVE_LABEL_RIGHT = PLOT_LEFT - 11;
+/** Where the note names end, right-aligned, past the strip: room for the
+ * widest ("G#5" at 10px is 20px) and a gap on each side of it. */
+export const OCTAVE_LABEL_RIGHT = PITCH_STRIP_LEFT + PITCH_STRIP_WIDTH + 27;
+
+/** The plot starts just past the names; nothing else stands in the gutter
+ * (Ivan, 2026-11-15: "less left padding"). */
+export const PLOT_LEFT = OCTAVE_LABEL_RIGHT + 6;
 
 /** A margin on the right, so the last note is not flush against the frame. */
 const PLOT_RIGHT_INSET = 18;

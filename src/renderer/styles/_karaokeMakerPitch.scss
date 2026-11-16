@@ -10,14 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'karaokeTokens' as *;
 @use 'libraryTokens' as *;
 
-// The pitch scroller and its fit button, laid over the editor canvas in the
-// gutter beside the octave names (`KaraokeMakerPitchScroller.tsx`). Their
-// horizontal places are the canvas geometry's: the octave names end at 23px
-// (`OCTAVE_LABEL_RIGHT`) and the plot starts at 34px (`PLOT_LEFT`), so the
-// bar's 8px hit column is 25-33 and its drawn track the 4px in the middle.
-$pitch-bar-left: 25px;
-$pitch-bar-width: 8px;
-$pitch-track-width: 4px;
+// The pitch strip (`KaraokeMakerPitchScroller.tsx`), laid over the editor
+// canvas in the gutter beside the octave names. Its place and width are the
+// canvas geometry's (`PITCH_STRIP_LEFT`, `PITCH_STRIP_WIDTH`), set inline,
+// and everything in it is drawn on its own canvas, as the song strip is.
 
 // The stage the canvas and the scroller share, so the scroller's `bottom`
 // is measured from the canvas's own bottom and not the song strip's.
@@ -27,87 +23,33 @@ $pitch-track-width: 4px;
   min-height: 0;
 }
 
-// FLAT AND QUIET, as the Maker is (Ivan, 2026-11-15): a hairline track and a
-// faint thumb that only brightens under the hand. No glow, the small corner.
 .karaoke-maker-pitch {
   position: absolute;
-  left: $pitch-bar-left;
-  width: $pitch-bar-width;
   touch-action: none;
   cursor: grab;
+  border-radius: 6px;
   outline: none;
 
-  &::before {
-    position: absolute;
-    inset: 0 auto;
-    left: calc(50% - #{$pitch-track-width} / 2);
-    width: $pitch-track-width;
-    background: $studio-hair;
-    border-radius: 2px;
-    content: '';
-  }
-
   &:focus-visible {
-    border-radius: 2px;
     box-shadow: 0 0 0 1px
       color-mix(in srgb, $secondary-default 45%, transparent);
+  }
+
+  &.is-at-edge {
+    cursor: ns-resize;
   }
 
   &.is-dragging {
     cursor: grabbing;
   }
-}
 
-// THE SONG STRIP'S WINDOW, ON ITS SIDE (`KaraokeMakerNavigator` draws it):
-// the accent's light edge round a faint accent fill, a grip at each end.
-// Dragging a grip zooms from that end, as dragging the strip's grips zooms
-// time, so the two zooms are one gesture in two directions.
-.karaoke-maker-pitch__thumb {
-  position: absolute;
-  inset-inline: 0;
-  min-height: 18px;
-  box-sizing: border-box;
-  background: color-mix(in srgb, $secondary-default 20%, transparent);
-  border: 1.5px solid color-mix(in srgb, $secondary-light 70%, transparent);
-  border-radius: 3px;
-  transition:
-    background-color 120ms ease,
-    border-color 120ms ease;
-
-  .karaoke-maker-pitch:hover &,
-  .karaoke-maker-pitch:focus-visible &,
-  .karaoke-maker-pitch.is-dragging & {
-    background: color-mix(in srgb, $secondary-default 30%, transparent);
-    border-color: $secondary-light;
+  &.is-dragging.is-at-edge {
+    cursor: ns-resize;
   }
 }
 
-// A grip is the strip's own: a short bright bar across the edge, with a hit
-// band round it that is wider than it looks.
-.karaoke-maker-pitch__grip {
-  position: absolute;
-  left: -3px;
-  right: -3px;
-  height: 9px;
-  cursor: ns-resize;
-
-  &::before {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 10px;
-    height: 3px;
-    background: $secondary-light;
-    border-radius: 2px;
-    transform: translate(-50%, -50%);
-    content: '';
-  }
-
-  &.is-high {
-    top: -5px;
-  }
-
-  &.is-low {
-    bottom: -5px;
-  }
+.karaoke-maker-pitch__map {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
