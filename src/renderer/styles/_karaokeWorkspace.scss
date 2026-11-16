@@ -352,20 +352,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: 0 0 0 1px color-mix(in srgb, $surface-well 50%, transparent);
   }
 
-  // Inset from the screen edges, and solid enough to read over a bright
-  // cover. The picture now runs under this panel, so at 34% the song titles
-  // were sitting on whatever the artwork happened to be — white sleeves and
-  // pale photographs among them.
-  // Flush to the screen's edge like the Library's rail, never a floating
-  // card (Ivan, 2026-11-16: "left pane needs to be like in Library, not
-  // floating"); the card colour behind it, opaque, so the rows read over
-  // whatever the artwork is.
-  // Its heading on the stage row's line, as the graph's options are: the
-  // list's 10px of top padding put it a row's half lower than the stage's
-  // row beside it (`_karaokeStage.scss`).
+  // A card floating inside the full screen (Ivan, 2026-11-16: "I want it to
+  // float, a card inside the full screen, the top and bottom margins equal,
+  // margin on the left too and round corners"): 16px from the window's left
+  // edge and from the bottom, the same 16px the stage leaves under the header
+  // above it, at the cards' corner. Opaque, the card colour, so the rows read
+  // over whatever the artwork is. Its top stays where the stage's row is, so
+  // its heading keeps that row's line (`_karaokeStage.scss`).
   .karaoke-workspace__player.has-playlist > .karaoke-playlist {
-    margin: 0;
+    margin: 0 0 16px 16px;
     padding-top: 0;
+    border-radius: $card-radius;
     background: $karaoke-chip-face;
   }
 
