@@ -169,6 +169,8 @@ const eq: Partial<Dictionary> = {
     'Die Farbe des Fensters bei einem Standard-Look. Doppelklick für die ursprüngliche Farbe.',
   'graph.backdropVeil': 'Transparenz',
   'graph.backdropVeilHint': 'Wie viel von der Szene durch die Flächen scheint',
+  'graph.backdropBlur': 'Unschärfe',
+  'graph.backdropBlurHint': 'Wie weich die Szene hinter den Flächen ist',
   'graph.sceneTint.brightness': 'Helligkeit',
   'graph.sceneTint.rainbow': 'Bunter Modus',
   'graph.sceneTint.rainbowHint':

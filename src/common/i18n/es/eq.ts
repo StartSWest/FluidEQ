@@ -166,6 +166,9 @@ const eq: Partial<Dictionary> = {
     'El color de la ventana con un aspecto estándar. Doble clic para volver al color original.',
   'graph.backdropVeil': 'Transparencia',
   'graph.backdropVeilHint': 'Cuánto de la escena se ve a través de los paneles',
+  'graph.backdropBlur': 'Desenfoque',
+  'graph.backdropBlurHint':
+    'Qué tan difuminada se ve la escena detrás de los paneles',
   'graph.sceneTint.brightness': 'Brillo',
   'graph.sceneTint.rainbow': 'Modo colorido',
   'graph.sceneTint.rainbowHint':

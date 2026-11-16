@@ -8,10 +8,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useId, type CSSProperties } from 'react';
 import {
-  BACKDROP_VEIL_MAX,
   BACKDROP_VEIL_MIN,
+  backdropVeilMax,
   setBackdropVeil,
   useBackdropVeil,
+  useBackdropVeilScope,
 } from '../utils/backdropVeil';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -19,7 +20,7 @@ import {
   snapFraction,
   snapPercent,
 } from '../utils/percentSnaps';
-import useIsBackdrop from '../utils/useIsBackdrop';
+import useIsSceneLook from '../utils/useIsSceneLook';
 import useLiveSlider from '../utils/useLiveSlider';
 import rangeFill from '../utils/rangeFill';
 
@@ -37,21 +38,23 @@ const setTransparency = (transparency: number) =>
  * its transparency, which is what the name says, so right is more of the
  * scene.
  *
- * Only the Backdrop puts a scene behind the panes, so under any other mode
- * it stands dimmed and does not move: a slider that moved and changed
- * nothing would read as broken. In the amp, which is always the Backdrop
- * with a Plus visualizer, it moves the amp's glass (`backdropVeil.ts`).
+ * In the full app it is the Backdrop's switch as well (Ivan, 2026-11-16:
+ * "instead of having a backdrop mode is just transparency and blur"): at 0
+ * there is no scene behind the window, and above it there is. So it is live
+ * whenever a Plus visualizer is chosen, which is all the Backdrop needs, and
+ * dimmed with a standard look, which has no picture to show. In the amp,
+ * which is always the Backdrop with a Plus visualizer, it moves the amp's
+ * glass and stops short of 0 (`backdropVeil.ts`).
  */
-/** The slider's ends as transparencies, the veil's range turned round. */
-const MIN_SHOWN = 100 - BACKDROP_VEIL_MAX;
+/** The slider's top end as a transparency, the lightest veil turned round. */
 const MAX_SHOWN = 100 - BACKDROP_VEIL_MIN;
 
 const BackdropVeilSlider = () => {
   const { t } = useTranslation();
   const veil = useBackdropVeil();
-  // Only while the Backdrop is drawn: the amp is, whenever a Plus
-  // visualizer is on (`setAmpHoldsWindow`).
-  const isBackdrop = useIsBackdrop();
+  const isLive = useIsSceneLook();
+  // 0 in the full app, where it turns the scene off; 5 in the amp.
+  const minShown = 100 - backdropVeilMax(useBackdropVeilScope());
   // The thumb under the pointer, the window's restyle a frame behind it
   // (`useLiveSlider`), as Brightness beside it.
   const { shown: transparency, set } = useLiveSlider(
@@ -61,7 +64,7 @@ const BackdropVeilSlider = () => {
   const id = useId();
   return (
     <label
-      className={`graph-view-menu__slider${isBackdrop ? '' : ' is-disabled'}`}
+      className={`graph-view-menu__slider${isLive ? '' : ' is-disabled'}`}
       htmlFor={id}
       title={t('graph.backdropVeilHint')}
     >
@@ -79,7 +82,7 @@ const BackdropVeilSlider = () => {
             className="graph-view-menu__snap"
             style={
               {
-                '--snap-frac': snapFraction(snap, MIN_SHOWN, MAX_SHOWN),
+                '--snap-frac': snapFraction(snap, minShown, MAX_SHOWN),
               } as CSSProperties
             }
             aria-hidden
@@ -89,12 +92,12 @@ const BackdropVeilSlider = () => {
           id={id}
           type="range"
           aria-label={t('graph.backdropVeil')}
-          min={MIN_SHOWN}
+          min={minShown}
           max={MAX_SHOWN}
           step={1}
-          disabled={!isBackdrop}
+          disabled={!isLive}
           value={transparency}
-          style={rangeFill(transparency, MIN_SHOWN, MAX_SHOWN)}
+          style={rangeFill(transparency, minShown, MAX_SHOWN)}
           onChange={(event) => set(snapPercent(Number(event.target.value)))}
         />
       </span>

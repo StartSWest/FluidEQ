@@ -42,8 +42,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // together. Qualified by the strip and the dropdown twice over because the
 // field rule it replaces is `.dropdown > [role='menu']`; the values are the
 // strip's `button` rule, measured off the View button in the running window.
-.live-output-controls
-  :is(.dropdown.graph-auto-cycle > [role='menu'], .graph-scene-look__trigger) {
+.live-output-controls .dropdown.graph-auto-cycle > [role='menu'] {
   @include ghost-button;
   min-height: 28px;
   gap: 5px;
@@ -96,10 +95,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // different colour (Ivan, 2026-09-27: "the ambient backdrop still having a
 // different border fix").
 .live-output-controls
-  :is(
-    .dropdown.graph-auto-cycle:is(.is-on, .dropdown--open) > [role='menu'],
-    .graph-scene-look__trigger:is(.is-on, .is-open)
-  ) {
+  .dropdown.graph-auto-cycle:is(.is-on, .dropdown--open)
+  > [role='menu'] {
   color: $white;
 
   .graph-auto-cycle__icon {

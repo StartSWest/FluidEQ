@@ -35,9 +35,10 @@ import {
   studioSkyKey,
   useAmpHoldsWindow,
   useSceneTintEnabled,
+  useStudioTintMode,
   useStudioTintSource,
-  useWindowTintMode,
 } from '../utils/sceneTintStore';
+import useIsBackdrop from '../utils/useIsBackdrop';
 
 /**
  * Puts the whole window in the colour of a Plus scene. Renders nothing.
@@ -81,8 +82,11 @@ const SceneTint = () => {
   const hasPainted = useRef(false);
   // Colours and Ambient hold the scene's colour however low the Brightness
   // goes; the Backdrop's glass darkens with it (`TSkyTone`). The Studio's
-  // own mode while it is the one asking.
-  const tone = useWindowTintMode() === 'cover' ? 'follow' : 'held';
+  // own mode while it is the one asking, which never has the Backdrop.
+  const isBackdrop = useIsBackdrop();
+  const studioMode = useStudioTintMode();
+  const isStudioAsking = studio !== undefined && studioMode !== 'theme';
+  const tone = isBackdrop && !isStudioAsking ? 'follow' : 'held';
 
   const isSceneLook = isPremiumLookId(lookId) || isMemberLookId(lookId);
   // THE COLOUR FOLLOWS THE SWITCH, NOT THE PICTURE (Ivan, 2026-09-22: "if the
@@ -173,7 +177,11 @@ const SceneTint = () => {
       return stop;
     }
 
-    if (!isSceneLook) {
+    // Original under a Plus visualizer is the app's own colour too, the one
+    // its Tint picks (Ivan, 2026-11-16: "color = original so they change the
+    // color via app color slider"): it was the bare theme, with no slider that
+    // moved it.
+    if (!isSceneLook || !isEnabled) {
       // No visualizer chosen: the window wears Lagoon (`LAGOON_SKY`), Rainbow
       // mode or not. Rainbow on used to lend it and Rainbow off to put the
       // bare theme back, so the switch changed every pane and the floor under
@@ -192,10 +200,6 @@ const SceneTint = () => {
       } else {
         showSceneSky(tintedLagoon(tint), fade, 'held');
       }
-      return stop;
-    }
-    if (!isEnabled) {
-      showSceneSky(undefined, fade);
       return stop;
     }
     if (own) {

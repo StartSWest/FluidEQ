@@ -165,6 +165,8 @@ const eq: Partial<Dictionary> = {
     'Цвет окна при стандартном виде. Двойной щелчок возвращает исходный цвет.',
   'graph.backdropVeil': 'Прозрачность',
   'graph.backdropVeilHint': 'Насколько сцена видна сквозь панели',
+  'graph.backdropBlur': 'Размытие',
+  'graph.backdropBlurHint': 'Насколько размыта сцена за панелями',
   'graph.sceneTint.brightness': 'Яркость',
   'graph.sceneTint.rainbow': 'Цветной режим',
   'graph.sceneTint.rainbowHint':

@@ -415,6 +415,19 @@
   }
 }
 
+// The scene's own three colours under the sliders (`WindowLookSection`),
+// across the whole tray as they stood across the Window colours menu they
+// came from: in one of the tray's columns the three tiles were squeezed to
+// a name cut short, and the next row's name stood beside them. At the tray's
+// width and never wider: their lines kept on one line pushed the whole menu
+// 90px wider whenever a scene was chosen, where the Window colours menu
+// wrapped them at its 300px.
+.actions-menu__prefs > .scene-window-colours {
+  width: 0;
+  min-width: 100%;
+  grid-column: 1 / -1;
+}
+
 // The language list's trigger, drawn as a sibling of the tray's other
 // controls rather than as a field that wandered in: 28px, the switches' edge
 // and radius. Regular weight: a field's value is set bold, and in the tray

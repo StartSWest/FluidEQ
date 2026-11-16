@@ -152,7 +152,6 @@ import LookDesigner from '../components/LookDesigner';
 import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
 import SceneLikeButton from './SceneLikeButton';
-import SceneTintMenu from './SceneTintMenu';
 import { isGraphWaveDrawn } from './graphScenePlace';
 import GraphUpdateNotice from './GraphUpdateNotice';
 import GraphWallpaperToggle from './GraphWallpaperToggle';
@@ -1896,8 +1895,7 @@ const FrequencyResponseChart = ({
               isWaveHidden={isDisplayedWaveHidden}
               isEditing={isDesignerOpen}
             />
-            {/* A member's scene has somebody to thank. The heart stands ahead
-                of the window's colours, so those stand beside the desk lights,
+            {/* A member's scene has somebody to thank, beside the desk lights,
                 which follow the same scene (Ivan, 2026-09-29). Keyed on the
                 scene so the count never carries over from the last one. */}
             {selectedMemberScene && (
@@ -1917,13 +1915,12 @@ const FrequencyResponseChart = ({
                 was designed with — a control that quietly did nothing when it
                 was pressed would be worse than one that says it cannot.
 
-                A Plus visualizer brings its own colours, so on one the slot
-                holds the menu that lends those colours to the window — named,
-                where a palette is a glyph, because Ambient and the Backdrop
-                behind a glyph that cycles went unnoticed. */}
-            {isPremiumSceneSelected ? (
-              <SceneTintMenu />
-            ) : (
+                A Plus visualizer brings its own colours and has none to
+                cycle. What it lends the window is chosen in the actions
+                menu, with everything else about the window's look (Ivan,
+                2026-11-16: "we can remove the options from the graph since
+                they will exist only on the app main menu"). */}
+            {!isPremiumSceneSelected && (
               <button
                 type="button"
                 className="graph-look-step graph-look-step--toggle"

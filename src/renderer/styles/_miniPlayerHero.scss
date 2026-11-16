@@ -171,7 +171,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .player-hero__keys {
   .player-hero__key,
   .graph-look-step,
-  .graph-scene-look__trigger,
   .graph-like,
   .dropdown.graph-auto-cycle > [role='menu'] {
     @include hero-glass;
@@ -224,13 +223,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   .player-hero__key[aria-pressed='true'],
   .graph-look-step[aria-pressed='true'],
-  .graph-scene-look__trigger.is-on,
   .dropdown.graph-auto-cycle.is-on > [role='menu'] {
     border-color: color-mix(in srgb, var(--accent) 55%, transparent);
     color: var(--player-ink-bright);
   }
 
-  .graph-scene-look__trigger.is-open,
   .dropdown--open > [role='menu'] {
     background: color-mix(in srgb, var(--surface-base) 80%, transparent);
     color: var(--player-text);
@@ -238,14 +235,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   // Glyphs alone: the words the graph's strip gives these are said by their
   // titles, and the corner has room for keys, not for sentences.
-  .graph-scene-look__trigger > span,
   .arrow {
     display: none;
-  }
-
-  .scene-tint-choice__glyph {
-    width: 14px;
-    height: 14px;
   }
 
   // The heart on a member's scene carries its count, drawn as a line in the

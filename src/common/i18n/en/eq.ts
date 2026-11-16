@@ -171,6 +171,8 @@ const eq = {
     "The window's colour while a standard look is on. Double-click for the original colour.",
   'graph.backdropVeil': 'Transparency',
   'graph.backdropVeilHint': 'How much of the scene shows through the panels',
+  'graph.backdropBlur': 'Blur',
+  'graph.backdropBlurHint': 'How soft the scene is behind the panels',
   // The window-colours menu's Brightness: the theme's own slider, which also
   // sets how light a visualizer's colours stand.
   'graph.sceneTint.brightness': 'Brightness',

@@ -5,8 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useSyncExternalStore } from 'react';
-import type { TSceneTintMode } from '../utils/sceneTintStore';
-import type { TWorkspaceTab } from '../workspaceTabs';
 import type { ISceneInteraction } from './sceneInteraction';
 
 /**
@@ -62,51 +60,17 @@ export interface IGraphSceneRun {
 export interface IGraphScenePlaces {
   /** Whether a scene is chosen and the graph draws it (`isGraphWaveDrawn`). */
   drawsScene: boolean;
-  mode: TSceneTintMode;
+  /**
+   * Whether the scene stands behind the whole window: a Plus visualizer and
+   * the app's Transparency above 0 (`useIsAppBackdrop`), on every page.
+   */
+  isBackdrop: boolean;
   plot: IScenePlot | undefined;
   /** The window's back layer (`SceneCover`). */
   backdrop: HTMLElement | null;
   /** The layer behind an EQ page's head and graph (`SceneColumnLayer`). */
   column: HTMLElement | null;
 }
-
-/**
- * The pages the Backdrop is drawn on.
- *
- * The EQ page has a design of its own there: every pane a floating sheet of
- * glass (`SceneCover.scss`, under `[data-page='eq']`). Every other page in
- * this set keeps its layout exactly as it is, and only the window's back
- * changes: the scene behind the whole window, blurred, and every pane
- * see-through over it (the see-through Backdrop, `SceneCover.scss`). Which
- * pages get it is decided here and nowhere else — the stylesheet asks only
- * whether the scene is behind the window and the page is not the EQ's.
- *
- * Tried on the Library first (Ivan, 2026-11-15: "I wanna use backdrop mode
- * for all pages too, let's do it for the Library now to test it ... don't
- * limit it, so it can be changed to all pages in one line"). THE ONE LINE:
- * for every page, this set becomes `new Set(WORKSPACE_TABS)`.
- *
- * A page added here wants a look over a bright scene first: whatever stood
- * opaque over that page's own content to hide it is thinned with the pane
- * and lets the content through, as the Library's Up next column did until it
- * was given glass of its own (`SceneCover.scss`).
- */
-export const BACKDROP_PAGES: ReadonlySet<TWorkspaceTab> =
-  new Set<TWorkspaceTab>(['eq', 'library']);
-
-/**
- * The mode the scene is drawn in on `page`: the one chosen, except that a
- * page outside `BACKDROP_PAGES` shows the Backdrop as Ambient — the window's
- * colours and its glow, the scene on the page's own graph where it has one
- * (Ivan, 2026-09-27: "only on EQ we have that mode, in the rest of the app no
- * backdrop mode"). The menu still names the Backdrop there: it is what comes
- * back on a page that has it.
- */
-export const sceneModeOnPage = (
-  mode: TSceneTintMode,
-  page: TWorkspaceTab,
-): TSceneTintMode =>
-  mode === 'cover' && !BACKDROP_PAGES.has(page) ? 'pulse' : mode;
 
 /**
  * Where the graph's scene is drawn, or nowhere.
@@ -118,13 +82,17 @@ export const sceneModeOnPage = (
  * With no plot — the graph closed on this page, or still loading — only the
  * Backdrop has anywhere to put it: the scene is the window's there, and goes
  * on behind every page (Ivan, 2026-09-26: "when I have a viz on the graph and
- * I switch to another page we need to keep same viz on"). In Colours and
- * Ambient nothing would show it, and the window keeps the colours measured
- * for it (`SceneTint`) without it running.
+ * I switch to another page we need to keep same viz on"), the same canvas
+ * from page to page, never built again (Ivan, 2026-11-16: "it doesn't reload
+ * the scene on switching ui ... it runs on for the whole app and stays
+ * there"). Without the Backdrop nothing would show it, so it is let go and
+ * its memory with it, and the window keeps the colours measured for it
+ * (`SceneTint`) without it running: Transparency 0 unloads the scene, and
+ * moving it up loads it again.
  */
 export const graphScenePlace = ({
   drawsScene,
-  mode,
+  isBackdrop,
   plot,
   backdrop,
   column,
@@ -132,9 +100,9 @@ export const graphScenePlace = ({
   if (!drawsScene) {
     return undefined;
   }
-  const layer = mode === 'cover' ? backdrop : column;
+  const layer = isBackdrop ? backdrop : column;
   if (!plot) {
-    return mode === 'cover' ? (backdrop ?? undefined) : undefined;
+    return isBackdrop ? (backdrop ?? undefined) : undefined;
   }
   return (plot.isPartOfWindow ? layer : null) ?? plot.slot;
 };

@@ -166,6 +166,8 @@ const eq: Partial<Dictionary> = {
     'A cor da janela com um visual padrão. Clique duas vezes para voltar à cor original.',
   'graph.backdropVeil': 'Transparência',
   'graph.backdropVeilHint': 'Quanto da cena aparece através dos painéis',
+  'graph.backdropBlur': 'Desfoque',
+  'graph.backdropBlurHint': 'Quanto a cena fica desfocada atrás dos painéis',
   'graph.sceneTint.brightness': 'Brilho',
   'graph.sceneTint.rainbow': 'Modo colorido',
   'graph.sceneTint.rainbowHint':

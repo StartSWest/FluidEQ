@@ -12,12 +12,10 @@ import {
   useSceneLook,
 } from '../utils/graphStyle';
 import { useSceneColumnHost, useSceneCoverHost } from '../utils/sceneCover';
-import { useSceneTintMode } from '../utils/sceneTintStore';
-import type { TWorkspaceTab } from '../workspaceTabs';
+import { useIsAppBackdrop } from '../utils/useIsBackdrop';
 import {
   graphScenePlace,
   isGraphWaveDrawn,
-  sceneModeOnPage,
   useGraphSceneRun,
   useScenePlot,
 } from './graphScenePlace';
@@ -31,14 +29,14 @@ import { useGraphSceneStoodIn } from './sceneStandIn';
  * scene is not the graph's to take down: the plot moving from the EQ column
  * to its own card, the graph going full screen and back, the window's
  * colours going from Colours to the Backdrop — each moves the same canvas
- * (`graphScenePlace`). The Backdrop is drawn only on the pages that have it
- * (`BACKDROP_PAGES`): every other page draws it as Ambient does. In Colours
- * and Ambient a page without the graph has nowhere to show it, and it stops;
+ * (`graphScenePlace`). The Backdrop is the whole app's: behind every page,
+ * the one canvas, from the moment Transparency leaves 0. Without it a page
+ * without the graph has nowhere to show it, and it stops;
  * and it stops wherever another player stands in for it (`sceneStandIn.ts`).
  */
-export default function GraphScene({ page }: { page: TWorkspaceTab }) {
+export default function GraphScene() {
   const scene = useSceneLook();
-  const mode = sceneModeOnPage(useSceneTintMode(), page);
+  const isBackdrop = useIsAppBackdrop();
   const plot = useScenePlot();
   const backdrop = useSceneCoverHost();
   const column = useSceneColumnHost();
@@ -54,7 +52,7 @@ export default function GraphScene({ page }: { page: TWorkspaceTab }) {
       scene !== null &&
       !isStoodIn &&
       isGraphWaveDrawn({ isClean, isEngineUsable, isWaveHidden }),
-    mode,
+    isBackdrop,
     plot,
     backdrop,
     column,
@@ -66,7 +64,7 @@ export default function GraphScene({ page }: { page: TWorkspaceTab }) {
   // a picture, as the layer's own mark waits for one (`SceneCanvas`).
   const hasDrawn = useGraphSceneRun()?.drawnIdentity !== undefined;
   const isBackdropOnPlot =
-    mode === 'cover' &&
+    isBackdrop &&
     target !== undefined &&
     plot !== undefined &&
     !plot.isPartOfWindow &&

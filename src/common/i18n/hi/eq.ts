@@ -163,6 +163,8 @@ const eq: Partial<Dictionary> = {
     'स्टैंडर्ड लुक में विंडो का रंग। मूल रंग पर लौटने के लिए डबल-क्लिक करें।',
   'graph.backdropVeil': 'पारदर्शिता',
   'graph.backdropVeilHint': 'पैनलों के पार सीन कितना दिखे',
+  'graph.backdropBlur': 'धुंधलापन',
+  'graph.backdropBlurHint': 'पैनलों के पीछे सीन कितना धुंधला दिखे',
   'graph.sceneTint.brightness': 'चमक',
   'graph.sceneTint.rainbow': 'रंगीन मोड',
   'graph.sceneTint.rainbowHint':

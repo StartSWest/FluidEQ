@@ -16,12 +16,13 @@ import { useEffect, useSyncExternalStore } from 'react';
  * (`VideoSceneBackdrop`), where the graph's copy went on drawing under a page
  * that covered it - the same scene twice, one of them seen by nobody.
  *
- * Not the Studio's stage any more. It stood in so the graph's scene would not
- * run behind the Studio under the Backdrop, and with the Backdrop kept off
- * the Studio's page (`BACKDROP_PAGES`) the only copy left for it to stop was
- * the graph open under the Studio, in plain sight, which then sat on "Loading
+ * Not the Studio's stage. It stood in once, so the graph's scene would not
+ * run behind the Studio under the Backdrop, and it stopped as well the graph
+ * open under the Studio, in plain sight, which then sat on "Loading
  * visualizer" for as long as the stage played (Ivan, 2026-09-27: "why the
- * hell doesn't the viz load in the graph below the studio").
+ * hell doesn't the viz load in the graph below the studio"). The Backdrop is
+ * the whole app's now and stays behind the Studio too, never built again
+ * (Ivan, 2026-11-16: "it runs on for the whole app and stays there").
  *
  * The window's full screen here is not the document's, which is what
  * `observeShown` can see, so nothing else told the graph's scene it was

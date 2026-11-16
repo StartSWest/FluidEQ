@@ -811,9 +811,9 @@ const AppContent = () => {
               />
             )}
             {/* The graph's Plus visualizer, beside the graph and not in it:
-                on the plot, the EQ column or, on the EQ page, the Backdrop
+                on the plot, the EQ column or the Backdrop behind every page
                 (`GraphScene`). Renders only its canvas, wherever that is. */}
-            <GraphScene page={activeWorkspaceTab} />
+            <GraphScene />
           </Activity>
         </div>
         {/* One backdrop for both drawers, and pressing it shuts both. Two of
@@ -888,8 +888,8 @@ export default function App() {
             <RainbowSource />
             {/* The taskbar button in the window's colours. Renders nothing. */}
             <TaskbarIconSource />
-            {/* The back of the window, where that visualizer is drawn in the
-                Backdrop mode; an empty layer otherwise. */}
+            {/* The back of the window, where that visualizer is drawn while
+                Transparency is above 0; an empty layer otherwise. */}
             <SceneCover />
             {/* The window beating with that visualizer, when its mode asks
                 for it; nothing in the page otherwise. */}

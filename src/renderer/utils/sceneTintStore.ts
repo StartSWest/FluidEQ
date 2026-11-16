@@ -46,11 +46,25 @@ import {
  * colours, its colours with the window beating along with it
  * (`ScenePulse.tsx`) and its elements around it — Ambient — or all of that
  * with the scene itself behind the whole window, the graph still its frame:
- * the Backdrop (`SceneCover.tsx`; Ivan, 2026-09-25: "cover the app bg … as
- * the 4th option").
+ * the Backdrop (`SceneCover.tsx`).
+ *
+ * The Backdrop is no longer a mode anybody picks. The scene stands behind
+ * the window whenever the Transparency slider is above 0 (`useIsBackdrop`),
+ * whatever the window's colours (Ivan, 2026-11-16: "instead of having a
+ * backdrop mode is just transparency and blur"), so the three below are the
+ * choice, and `cover` is only what the window is in while the amp holds it.
  */
 export const SCENE_TINT_MODES = ['off', 'tint', 'pulse', 'cover'] as const;
 export type TSceneTintMode = (typeof SCENE_TINT_MODES)[number];
+
+/**
+ * The window's colours as they are chosen, in the actions menu (Ivan,
+ * 2026-11-16: "color = original so they change the color via app color
+ * slider, then we want scene color so they pick those scene colors, then
+ * scene colors plus flying things").
+ */
+export const SCENE_TINT_CHOICES = ['off', 'tint', 'pulse'] as const;
+export type TSceneTintChoice = (typeof SCENE_TINT_CHOICES)[number];
 
 /**
  * Whether the window beats with the scene and wears its elements: Ambient,
@@ -89,24 +103,35 @@ export const SCENE_TINT_MODE_ABOUT: Record<TSceneTintMode, TranslationKey> = {
   cover: 'graph.sceneTint.about.cover',
 };
 
-const isSceneTintMode = (value: unknown): value is TSceneTintMode =>
+const isSceneTintChoice = (value: unknown): value is TSceneTintChoice =>
   typeof value === 'string' &&
-  (SCENE_TINT_MODES as readonly string[]).includes(value);
+  (SCENE_TINT_CHOICES as readonly string[]).includes(value);
+
+/** Where the app's choice is kept, and the switch it replaced. */
+export const SCENE_TINT_MODE_KEY = 'fluideq.sceneTintMode';
+export const SCENE_TINT_LEGACY_KEY = 'fluideq.sceneTint';
 
 /**
  * A remembered mode. It replaced an on/off switch kept under `legacyKey`, and
  * somebody who had turned that off keeps the theme, somebody who had it on
  * keeps the colours: the new mode starts as the old switch left it.
+ *
+ * A Backdrop chosen when it was a mode is read as Ambient, which is what the
+ * Backdrop was besides the scene behind the window; the scene itself stays,
+ * because its Transparency was kept for it (`backdropVeil.ts`). Read so and
+ * never written back, so that reading in either order finds the old word.
  */
 const createModeSetting = (
   key: string,
   legacyKey: string,
-  fallback: TSceneTintMode,
+  fallback: TSceneTintChoice,
 ) => {
   const stored = readStored(key);
   const legacy = readStored(legacyKey);
-  let value: TSceneTintMode = fallback;
-  if (isSceneTintMode(stored)) {
+  let value: TSceneTintChoice = fallback;
+  if (stored === 'cover') {
+    value = 'pulse';
+  } else if (isSceneTintChoice(stored)) {
     value = stored;
   } else if (legacy !== null) {
     value = legacy === 'true' ? 'tint' : 'off';
@@ -114,7 +139,7 @@ const createModeSetting = (
   const modeListeners = new Set<() => void>();
   return {
     get: () => value,
-    set: (next: TSceneTintMode) => {
+    set: (next: TSceneTintChoice) => {
       if (next === value) {
         return;
       }
@@ -132,28 +157,26 @@ const createModeSetting = (
 };
 
 /**
- * The Backdrop from the start: the visualizer behind the whole window, with
- * Ambient's colours and light around it (Ivan, 2026-09-29: "when the user
- * selects a Plus viz the settings are Backdrop"; it was Ambient from
- * 2026-09-13). Choosing a Plus visualizer is choosing how the app looks, and
- * somebody who has just become a member should see everything a scene does
- * without first finding the control that turns it on; it sits beside the
- * picker for anyone who wants less. Only a profile that never chose starts
- * here — a mode picked before, or the old on/off switch, is kept. A free
- * look never wears it: the Backdrop needs a Plus visualizer to stand behind
- * the panes (`useIsBackdrop`).
+ * Ambient from the start, and the Backdrop with it: a fresh install's
+ * Transparency is above 0 (`backdropVeil.ts`), so the visualizer stands
+ * behind the whole window with Ambient's colours and light around it (Ivan,
+ * 2026-09-29: "when the user selects a Plus viz the settings are Backdrop").
+ * Choosing a Plus visualizer is choosing how the app looks, and somebody who
+ * has just become a member should see everything a scene does without first
+ * finding the control that turns it on. Only a profile that never chose
+ * starts here — a mode picked before, or the old on/off switch, is kept.
  *
- * The app's mode, the graph's Window colours. The Studio has its own
+ * The app's choice, in the actions menu. The Studio has its own
  * (`useStudioTintMode`, below), and neither ever sets the other.
  */
 const setting = createModeSetting(
-  'fluideq.sceneTintMode',
-  'fluideq.sceneTint',
-  'cover',
+  SCENE_TINT_MODE_KEY,
+  SCENE_TINT_LEGACY_KEY,
+  'pulse',
 );
 
-export const setSceneTintMode = (next: TSceneTintMode) => setting.set(next);
-export const useSceneTintMode = () =>
+export const setSceneTintMode = (next: TSceneTintChoice) => setting.set(next);
+export const useSceneTintMode = (): TSceneTintChoice =>
   useSyncExternalStore(setting.subscribe, setting.get, () => 'off' as const);
 export const useSceneTintEnabled = () => useSceneTintMode() !== 'off';
 

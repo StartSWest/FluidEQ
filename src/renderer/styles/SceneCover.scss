@@ -53,6 +53,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // its default.
 :root {
   --backdrop-veil: 50%;
+  // The Blur slider's radius (`backdropBlur.ts`), the glass's own until it
+  // is moved, and the glass's saturation, which Blur at 0 takes back to none.
+  --backdrop-blur: 26px;
+  --backdrop-saturate: #{$glass-saturate};
+}
+
+// THE BACKDROP'S BLUR, one for the whole window: the see-through pages' and
+// the EQ page's floating glass alike (Ivan, 2026-11-16: "we want the backdrop
+// transparent and blur settings on the main app hamburger button", "we want
+// blur amount too"). Only the Backdrop's: the amp, the menus and every other
+// glass keep the glass's own.
+$backdrop-blur: blur(var(--backdrop-blur)) saturate(var(--backdrop-saturate));
+
+// The glass, blurred by the Backdrop's amount.
+@mixin backdrop-glass {
+  @include window-glass;
+  backdrop-filter: $backdrop-blur;
 }
 
 $cover-veil: color-mix(
@@ -245,10 +262,10 @@ $cover-veil: color-mix(
   }
 }
 
-// THE SEE-THROUGH BACKDROP: every page that has the Backdrop but the EQ page.
-// Which pages those are is decided in one place, `BACKDROP_PAGES`
-// (`graphScenePlace.ts`); this asks only that the scene be behind the window
-// and the page not be the EQ's, whose floating glass is below. The page keeps
+// THE SEE-THROUGH BACKDROP: every page but the EQ page, whose floating glass
+// is below. The Backdrop is the whole app's (`useIsAppBackdrop`), so this
+// asks only that the scene be behind the window and the page not be the
+// EQ's. Tried on the Library first, then every page. The page keeps
 // its layout exactly - no pane moves, none changes shape - and only the
 // window's back changes: the scene behind the whole window, blurred, with
 // every pane see-through over it in the veil the rules above already lay on
@@ -269,7 +286,7 @@ $cover-veil: color-mix(
 // What text stands on is the veil, `--backdrop-veil`, the Transparency
 // slider's, over the scene dimmed by `$see-through-dim`: the blur takes the
 // detail out from under the words, and the dim the light. Measured on the
-// Library at the slider's default (2026-11-15), against the same words on
+// Library at both sliders' defaults (2026-11-15), against the same words on
 // the page without the Backdrop: over the aurora every label read the same
 // as on the plain page; over a white picture the blur alone left the left
 // column's labels at 3.3:1 (15.9 on the plain page) and the toolbar's at
@@ -287,7 +304,7 @@ $see-through-dim: brightness(0.7);
   .scene-cover::after {
     position: absolute;
     inset: 0;
-    backdrop-filter: $glass-blur $see-through-dim;
+    backdrop-filter: $backdrop-blur $see-through-dim;
     content: '';
   }
 
@@ -299,6 +316,8 @@ $see-through-dim: brightness(0.7);
   // It is a column of the page, so it is glass like the rest: what is under
   // it blurred away, in the veil. Already a containing block for its fixed
   // children (it slides by a transform), so the filter changes none of them.
+  // The glass's own blur and not the Blur slider's: what it hides is the
+  // page's content, not the scene, and at Blur 0 the rows read through it.
   .library-up-next {
     backdrop-filter: $glass-blur;
   }
@@ -376,7 +395,7 @@ $float-radius: $radius-xl;
   // The bands and the Tone: the section card, made of glass. Its edge is
   // the glass's hairline; the card's own is kept for its width and cleared.
   > .center-workspace > .middle-content > .workspace-tab-panel--eq {
-    @include window-glass;
+    @include backdrop-glass;
     margin: 0 $float-gap $float-gap;
     border-color: transparent;
     border-radius: $float-radius;
@@ -417,7 +436,7 @@ $float-radius: $radius-xl;
     margin: calc(#{$float-gap} - 2px) 0 $float-gap $float-gap;
     padding-inline: calc(18px - #{$float-gap} / 2);
     border-color: transparent;
-    @include window-glass;
+    @include backdrop-glass;
     border-radius: $float-radius;
 
     // As a drawer its width is its own rather than the grid's, so it gives
@@ -444,7 +463,7 @@ $float-radius: $radius-xl;
       position: absolute;
       z-index: -1;
       inset: 0 $float-gap 0 0;
-      @include window-glass;
+      @include backdrop-glass;
       border-radius: $float-radius;
       content: '';
       pointer-events: none;
@@ -480,7 +499,7 @@ $float-radius: $radius-xl;
     }
 
     .right-content__fold {
-      @include window-glass;
+      @include backdrop-glass;
 
       &:hover {
         background: $hover-accent;
@@ -552,7 +571,7 @@ $float-radius: $radius-xl;
     &::before {
       position: absolute;
       z-index: -1;
-      @include window-glass;
+      @include backdrop-glass;
       content: '';
       pointer-events: none;
     }
