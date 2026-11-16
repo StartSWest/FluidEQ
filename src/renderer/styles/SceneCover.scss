@@ -334,6 +334,56 @@ $see-through-dim: brightness(0.7);
   }
 }
 
+// THE KARAOKE'S LYRIC WINDOW, with the scene for its background: the
+// window's own scene, seen more there than through the rest of the window
+// (Ivan, 2026-11-16: "it just that can be seen more than the rest inside the
+// lyric window but is same scene not a different draw", "it needs to only be
+// the scene as the lib"). The stage draws nothing of its own under the
+// Backdrop (`KaraokeGraphBackground`); its page's column drops the veil, the
+// playlist and its divider take it back, as a Library rail is veiled, and
+// the stage keeps a thin one of the same floor, so the words still sit on
+// something while the picture comes through (Ivan, 2026-11-16, at 0.45 of
+// the slider's: "just modify the karaoke part to be more transparent"). A share of the slider's
+// veil rather than a fixed one, so Transparency moves the stage with
+// everything else. The playlist's opaque card face is for a song's picture,
+// which the playlist stands over; this is the window's scene, which it sits
+// beside like every other pane.
+$karaoke-stage-veil: color-mix(
+  in srgb,
+  $surface-base calc(var(--backdrop-veil) * 0.15),
+  transparent
+);
+
+:root.is-scene-backdrop[data-page='karaoke']
+  .app-workspace:not(.is-app-full)
+  > .center-workspace
+  > .middle-content:has(.karaoke-workspace__stage.is-backdrop-graph) {
+  background-color: transparent;
+
+  // The page's card is clear, and the floor round it — 8px under the
+  // titlebar, 10px at the sides and foot — is veiled like every pane by a
+  // shadow of the veil spread from its edge, cut at the column's sides as
+  // the graph's card is cut above: left clear, that floor was a frame of
+  // unveiled picture round the card. Spread well past the gutter, because a
+  // spread shadow's outer corner is rounded by the card's radius plus the
+  // spread: at 12px it left the column's four corners clear.
+  > .karaoke-workspace:not(.is-fullscreen) {
+    background: transparent;
+    box-shadow: 0 0 0 40px $cover-veil;
+    clip-path: inset(-8px -10px -10px -10px);
+  }
+
+  .karaoke-workspace:not(.is-fullscreen)
+    > .karaoke-workspace__player
+    > :is(.karaoke-playlist, .karaoke-pane-splitter) {
+    background: $cover-veil;
+  }
+
+  .karaoke-workspace__stage {
+    background-color: $karaoke-stage-veil;
+  }
+}
+
 // FLOATING GLASS, on the EQ page first (Ivan, 2026-09-27: "while on backdrop
 // mode the whole app is the scene and then we put blurred floating pane for
 // EQ and the side panes and header and playbar ... I want that clean look",

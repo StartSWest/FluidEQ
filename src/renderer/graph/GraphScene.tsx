@@ -11,7 +11,11 @@ import {
   useGraphWaveHidden,
   useSceneLook,
 } from '../utils/graphStyle';
-import { useSceneColumnHost, useSceneCoverHost } from '../utils/sceneCover';
+import {
+  useSceneColumnHost,
+  useSceneCoverHost,
+  useSceneKaraokeHost,
+} from '../utils/sceneCover';
 import { useIsAppBackdrop } from '../utils/useIsBackdrop';
 import {
   graphScenePlace,
@@ -40,6 +44,7 @@ export default function GraphScene() {
   const plot = useScenePlot();
   const backdrop = useSceneCoverHost();
   const column = useSceneColumnHost();
+  const karaoke = useSceneKaraokeHost();
   const { isEngineUsable } = useFluidEqShell();
   const isClean = useGraphContents() === 'clean';
   const isWaveHidden = useGraphWaveHidden();
@@ -48,14 +53,13 @@ export default function GraphScene() {
   // draw a second (`sceneStandIn.ts`).
   const isStoodIn = useGraphSceneStoodIn();
   const target = graphScenePlace({
-    drawsScene:
-      scene !== null &&
-      !isStoodIn &&
-      isGraphWaveDrawn({ isClean, isEngineUsable, isWaveHidden }),
+    isChosen: scene !== null && !isStoodIn,
+    drawsScene: isGraphWaveDrawn({ isClean, isEngineUsable, isWaveHidden }),
     isBackdrop,
     plot,
     backdrop,
     column,
+    karaoke,
   });
   // Expanded or full screen, the Backdrop's scene is drawn on the plot, which
   // is the window then, so nothing marks the root `is-scene-backdrop`; this
@@ -65,6 +69,7 @@ export default function GraphScene() {
   const hasDrawn = useGraphSceneRun()?.drawnIdentity !== undefined;
   const isBackdropOnPlot =
     isBackdrop &&
+    target !== karaoke &&
     target !== undefined &&
     plot !== undefined &&
     !plot.isPartOfWindow &&
