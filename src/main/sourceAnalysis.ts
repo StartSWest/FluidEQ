@@ -93,7 +93,11 @@ export const formatSourceAnalysis = (
     `version=${publication.library && publication.owner === 'engine' && update.analysis?.version === 3 ? 2 : 1}`,
     `kind=${publication.library ? 'library' : 'live'}`,
     `owner=${publication.owner}`,
-    `source=${update.trackId ? createHash('sha256').update(update.trackId).digest('hex').slice(0, 16) : '0000000000000000'}`,
+    // The passage, never the song: the engine starts the graph of a new
+    // source empty, and a song change or seek is heard mid-music. A new song
+    // arrives as new level lines under the same source (renderer
+    // `sourceAnalysis.ts`, `latest`).
+    `source=${update.trackId ? createHash('sha256').update(`passage:${publication.epoch}`).digest('hex').slice(0, 16) : '0000000000000000'}`,
     `epoch=${publication.epoch}`,
     `revision=${publication.revision}`,
     `endpoint=${publication.endpoint}`,

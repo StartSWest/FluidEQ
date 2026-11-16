@@ -14,6 +14,22 @@ interface IInputSourceAnalysis {
   analysis?: ILibraryNormalizationAnalysis;
 }
 
+/**
+ * What the output is told about the Library's sound.
+ *
+ * `epoch` names a passage of continuous sound, not a song: it moves only when
+ * the source becomes another player's (`setDspSourceClient`). It used to
+ * move at every new song and every seek, and the engine starts the graph of
+ * a new source empty — no filter history, no audio in its delay lines, no
+ * limiter or level state (`adopt_state`, `feq_chain_transfer_state`). The
+ * file landed while the music went on, in the middle of a crossfade's
+ * handoff or right after a seek, so 1589 frames of silence (33 ms at
+ * 48 kHz) and a cold limiter were heard there: the sound "se calla" (Ivan,
+ * 2026-11-16). With the epoch kept, a new song's level and floor reach the
+ * engine as an edit of the same passage — its state carried and its gains
+ * gliding from the last song's — as they did in the Library host's own
+ * chain.
+ */
 let latest: ISourceAnalysisUpdate = {
   version: 1,
   epoch: Date.now(),
@@ -126,22 +142,11 @@ export const publishDspSourceAnalysis = (input: IInputSourceAnalysis): void => {
       (input.status === 'analyzing' && input.trackId === latest.trackId
         ? latest.analysis
         : undefined),
-    epoch: input.trackId !== latest.trackId ? latest.epoch + 1 : latest.epoch,
   });
   if (!next) {
     return;
   }
   latest = next;
-  publish();
-};
-
-/** Seeks/replay need an epoch even when the track identity stays the same. */
-export const markDspSourceBoundary = (trackId?: string): void => {
-  // A new track identity advances its own epoch in publishDspSourceAnalysis.
-  if (trackId !== undefined && trackId !== latest.trackId) {
-    return;
-  }
-  latest = { ...latest, epoch: latest.epoch + 1 };
   publish();
 };
 

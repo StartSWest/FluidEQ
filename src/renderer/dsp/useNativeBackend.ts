@@ -54,7 +54,6 @@ import {
   usePlaybackPresetTone,
 } from './store';
 import {
-  markDspSourceBoundary,
   prepareDspSourceStart,
   releaseDspSourcePlayback,
 } from './sourceAnalysis';
@@ -500,12 +499,11 @@ export const useNativeMirror = (
    * telemetry, and that is a different question from whether the mirror
    * exists.
    */
-  return useCallback(async (positionMs: number) => {
-    const applied = await (mirrorRef.current?.seek(positionMs) ??
-      Promise.resolve(false));
-    if (applied) {
-      markDspSourceBoundary();
-    }
-    return applied;
-  }, []);
+  // A seek continues the same passage: the engine is not told of it, or it
+  // would start its graph empty mid-song (`sourceAnalysis.ts`, `latest`).
+  return useCallback(
+    (positionMs: number) =>
+      mirrorRef.current?.seek(positionMs) ?? Promise.resolve(false),
+    [],
+  );
 };

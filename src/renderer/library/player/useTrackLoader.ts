@@ -48,7 +48,6 @@ import {
 } from '../../dsp/inputNormalizer';
 import { IDspInputAnalysisState, setDspInputAnalysis } from '../../dsp/store';
 import { readRackGate } from '../../dsp/rackPlacement';
-import { markDspSourceBoundary } from '../../dsp/sourceAnalysis';
 import {
   setDspNoiseProfile,
   setDspTrackLevelGains,
@@ -307,22 +306,15 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
      */
     let deferredNoiseProfile: INoiseProfile | undefined;
     let hasDeferredNoiseProfile = false;
-    let sourceAnnounced = false;
-    const commitAnalysis = (next: IDspInputAnalysisState) => {
-      if (!sourceAnnounced) {
-        // A repeated/reloaded file is a new passage too. During a crossfade
-        // this is called only at the same handoff as its gains and floor.
-        markDspSourceBoundary(next.trackId);
-        sourceAnnounced = true;
-      }
-      setDspInputAnalysis(next);
-    };
+    // During a crossfade the analysis lands only at the handoff, with its
+    // gains and floor. A repeated or reloaded file is the same passage of
+    // sound to the output, not a new one (`sourceAnalysis.ts`, `latest`).
     const publishAnalysis = (next: IDspInputAnalysisState) => {
       if (isCrossfading && !handoffComplete) {
         deferredAnalysis = next;
         return;
       }
-      commitAnalysis(next);
+      setDspInputAnalysis(next);
     };
     const publishTrackGains = (analysis: ILibraryTrack['normalization']) => {
       if (isCrossfading && !handoffComplete && !analysis) {
@@ -361,7 +353,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
         return;
       }
       if (deferredAnalysis) {
-        commitAnalysis(deferredAnalysis);
+        setDspInputAnalysis(deferredAnalysis);
         deferredAnalysis = undefined;
       }
       if (deferredTrackGains) {
