@@ -475,9 +475,9 @@ $power-key-cast:
 // left:-20000px in this mode, which no tab could bring back.
 .app-workspace.is-app-full > .side-bar {
   @include side-bar-drawer;
-  // The sound panel's quiet edge, mirrored (`App.scss`): over a full-screen
-  // picture the panel colour's own edge drew a hard line down the drawer.
-  border-right-color: $border-subtle;
+  // No edge over a full-screen picture, as the sound panel has none there
+  // (Ivan, 2026-11-16: "the left panel has a border on its right side").
+  border-right-color: transparent;
 
   // Above the plot's own fixed chrome and the full-screen header's glass.
   z-index: 70;

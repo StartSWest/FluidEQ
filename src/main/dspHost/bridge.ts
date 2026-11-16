@@ -154,7 +154,9 @@ type TDspTransportVerb =
   // one-word instruction to the same host with the same validation in front of
   // it, and a channel of its own would be ceremony around a boolean.
   | 'analysis'
-  | 'volume';
+  | 'volume'
+  | 'deck-gain'
+  | 'layer-gain';
 
 const transport = (
   verb: TDspTransportVerb,
@@ -241,6 +243,24 @@ const cancelDspDenoiseModel = (): Promise<void> =>
  */
 const setDspHostVolume = (volume: number): Promise<boolean> =>
   transport('volume', 0, volume);
+
+/**
+ * A deck's layer: a second file it plays in lockstep, each at a gain of its
+ * own — the Karaoke's backing and voice. `setDeckGain` in main's `wire.ts`
+ * says what the host must do, and that a host built before layers answers
+ * false to all four without harm.
+ */
+const supportsDspHostLayers = (): Promise<boolean> =>
+  ipcRenderer.invoke('dsp-host-layers');
+const loadDspHostLayer = (
+  deck: number,
+  mediaPath: string | null,
+): Promise<boolean> =>
+  ipcRenderer.invoke('dsp-host-load-layer', deck, mediaPath ?? '');
+const setDspHostDeckGain = (deck: number, gain: number): Promise<boolean> =>
+  transport('deck-gain', deck, gain);
+const setDspHostLayerGain = (deck: number, gain: number): Promise<boolean> =>
+  transport('layer-gain', deck, gain);
 
 /**
  * Ask the host to measure what the panel draws, or to stop.
@@ -383,6 +403,10 @@ export const dspHostBridge = {
   downloadDspDenoiseModel,
   cancelDspDenoiseModel,
   setDspHostVolume,
+  supportsDspHostLayers,
+  loadDspHostLayer,
+  setDspHostDeckGain,
+  setDspHostLayerGain,
   setDspHostAnalysis,
   onDspHostAnalysis,
   onDspHostTelemetry,

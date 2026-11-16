@@ -717,3 +717,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > .karaoke-workspace__player {
   padding-left: min(#{$side-bar-width-compact}, 86vw);
 }
+
+// The sound panel, opened over a full-screen Karaoke, pushes the stage and
+// its row of options over from the right the same way (Ivan, 2026-11-16:
+// "on the right pane push the options on top too").
+.karaoke-workspace.is-fullscreen > .karaoke-workspace__player {
+  transition:
+    padding-left 180ms ease-out,
+    padding-right 180ms ease-out;
+}
+
+.app-workspace.is-app-full:has(> .right-content.is-open)
+  .karaoke-workspace.is-fullscreen
+  > .karaoke-workspace__player {
+  padding-right: $sound-panel-width;
+}

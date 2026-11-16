@@ -51,8 +51,71 @@ const publish = (): void => {
     });
 };
 
+/**
+ * The Library's own record while the Karaoke holds the host (`hostLease.ts`),
+ * or undefined while the Library does.
+ *
+ * What is published names the Library's track and carries its measured level
+ * and noise floor, and the engine is told whose sound that is. Left in place
+ * under a karaoke song, preparing the Karaoke's start would hand the endpoint
+ * the Library track's analysis — Denoise subtracting another record's hiss,
+ * the leveller aiming at another record's loudness. The Karaoke has no
+ * analysis of that kind, so while it plays the source names no track, and
+ * `prepareDspSourceStart` keeps the rack in the player's host, as it does for
+ * any source it cannot vouch for. The Library's record waits here and comes
+ * back whole, kept current by anything its analysis says in the meantime.
+ */
+let libraryRecord: ISourceAnalysisUpdate | undefined;
+
+/** Which player's sound the source describes. See `libraryRecord`. */
+export const setDspSourceClient = (client: 'library' | 'karaoke'): void => {
+  if (client === 'karaoke') {
+    if (libraryRecord !== undefined) {
+      return;
+    }
+    libraryRecord = latest;
+    latest = {
+      ...latest,
+      trackId: undefined,
+      analysis: undefined,
+      epoch: latest.epoch + 1,
+    };
+    publish();
+    return;
+  }
+  if (libraryRecord === undefined) {
+    return;
+  }
+  latest = {
+    ...libraryRecord,
+    // Where playback stands now, not where it stood when the Karaoke came.
+    libraryAudible: latest.libraryAudible,
+    sendingRawAudio: latest.sendingRawAudio,
+    epoch: latest.epoch + 1,
+  };
+  libraryRecord = undefined;
+  publish();
+};
+
 /** Called by the input-analysis setter, including a late floor rescan. */
 export const publishDspSourceAnalysis = (input: IInputSourceAnalysis): void => {
+  if (libraryRecord !== undefined) {
+    // The Library's analysis, while the Karaoke's sound is the source: kept
+    // for the Library's return, never published under the karaoke song.
+    const kept = copySourceAnalysisUpdate({
+      ...libraryRecord,
+      trackId: input.trackId,
+      analysis:
+        input.analysis ??
+        (input.status === 'analyzing' && input.trackId === libraryRecord.trackId
+          ? libraryRecord.analysis
+          : undefined),
+    });
+    if (kept) {
+      libraryRecord = kept;
+    }
+    return;
+  }
   const next = copySourceAnalysisUpdate({
     ...latest,
     trackId: input.trackId,

@@ -72,10 +72,27 @@ import { crossfadeShapeTable } from '../../common/dsp/crossfadeShape';
 import { watchElementClock } from './elementClock';
 import { muteForMirror } from './mirrorElements';
 import { INativeBackendController } from './nativeBackend';
-import { INativeMirror, INativeMirrorState } from './nativeMirrorTypes';
+import {
+  createMixTold,
+  forgetLayerOn,
+  nextLayerStep,
+  nextVolumeStep,
+} from './nativeMirrorMix';
+import {
+  INativeMirror,
+  INativeMirrorOptions,
+  INativeMirrorState,
+} from './nativeMirrorTypes';
+import { readDspNativeTransport } from './store';
 
 type TTransition = NonNullable<INativeMirrorState['transition']>;
 type TUpcoming = NonNullable<INativeMirrorState['upcoming']>;
+
+/** The Library's: its transport store, which telemetry writes. */
+const readLibraryHostPosition = (): number | undefined => {
+  const transport = readDspNativeTransport();
+  return transport.hasSource ? transport.positionSeconds : undefined;
+};
 
 const createNativeMirror = (
   controller: INativeBackendController,
@@ -87,8 +104,15 @@ const createNativeMirror = (
    * its copy for them — which it cannot know from `isPlaying` alone.
    */
   onOwnership?: (hostOwnsTransport: boolean) => void,
+  options: INativeMirrorOptions = {},
 ): INativeMirror => {
-  const { standDown: standDownElements, handBack } = muteForMirror(elements);
+  const { standDown: standDownElements, handBack } = muteForMirror(
+    elements,
+    options.claimSource,
+  );
+  const readHostPosition = options.readHostPosition ?? readLibraryHostPosition;
+  /** The volume and the layer as the host was last told them. */
+  const mixTold = createMixTold();
 
   /*
    * What the host has been told, changed only by the worker's steps — each
@@ -156,6 +180,7 @@ const createNativeMirror = (
     // The host lets go of the next track with its decks (UNLOAD_DECK).
     spareTold = undefined;
     handBack(resume);
+    options.onTrackRefused?.();
     await controller.transport.unload(0);
     await controller.transport.unload(1);
   };
@@ -202,6 +227,8 @@ const createNativeMirror = (
       await giveUpTrack(isPlaying);
       return;
     }
+    // The load took the deck's layer off, whatever happens next.
+    forgetLayerOn(mixTold, deck);
     if (released) {
       return;
     }
@@ -281,6 +308,7 @@ const createNativeMirror = (
       await giveUpTrack(true);
       return;
     }
+    forgetLayerOn(mixTold, deck);
     if (released) {
       return;
     }
@@ -342,6 +370,10 @@ const createNativeMirror = (
     if (released || want === undefined) {
       return undefined;
     }
+    const volumeStep = nextVolumeStep(want.mix, mixTold, controller.transport);
+    if (volumeStep !== undefined) {
+      return volumeStep;
+    }
     if (want.mediaPath !== loadedPath) {
       const previous = loadedPath;
       const incoming = want.mediaPath;
@@ -383,7 +415,7 @@ const createNativeMirror = (
        * when it was readied as the next one with it, and at zero if not.
        */
       let startMs = 0;
-      if (previous === undefined) {
+      if (previous === undefined || want.followPosition === true) {
         startMs = want.positionMs;
       } else if (spareTold?.path === incoming) {
         startMs = spareTold.startPositionMs;
@@ -430,6 +462,16 @@ const createNativeMirror = (
       return async () => {
         await controller.transport.seek(activeDeck, positionMs / 1_000);
       };
+    }
+    const layerStep = nextLayerStep(
+      want.mix,
+      mixTold,
+      activeDeck,
+      hostOwnsTransport,
+      controller.transport,
+    );
+    if (layerStep !== undefined) {
+      return layerStep;
     }
     /*
      * The next track, named once for each change of it and only while the
@@ -532,10 +574,19 @@ const createNativeMirror = (
     },
 
     release: (resume) => {
+      // Only a position the host can vouch for, for the track the elements
+      // hold: a release with a change of track still on its way would hand
+      // one song's playhead to another's file.
+      const handBackAt =
+        hostOwnsTransport &&
+        loadedPath !== undefined &&
+        loadedPath === wanted?.mediaPath
+          ? readHostPosition()
+          : undefined;
       released = true;
       seekWanted?.settle(false);
       seekWanted = undefined;
-      handBack(resume);
+      handBack(resume, handBackAt);
       loadedPath = undefined;
       playing = false;
       own(false);

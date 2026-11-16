@@ -3634,11 +3634,10 @@ $graph-card-pages: list.join(
   width: $sound-pane-rail;
   @include sound-pane-over-page($sound-pane-rail-shift);
 
-  // Over a full-screen picture both panes wear the same quiet edge on their
-  // inner side, the left drawer's mirrored (`SideBar.scss`; Ivan,
-  // 2026-11-16: "add a border to both, but more subtle, only in full screen").
+  // No edge on either pane over a full-screen picture (`SideBar.scss`; Ivan,
+  // 2026-11-16: "the left panel has a border on its right side").
   &.is-open > .right-content__panel {
-    border-left-color: $border-subtle;
+    border-left-color: transparent;
   }
 
   // Closed, only its button over the picture — once it has slid away.
@@ -4749,4 +4748,19 @@ button.graph-legend {
   &.is-active {
     color: $secondary-light;
   }
+}
+
+// The graph's row of options over a full-screen picture moves in from the
+// side a panel opens on, so neither panel covers it (Ivan, 2026-11-16: "on
+// the right pane push the options on top too").
+.app-workspace.is-app-full:has(> .right-content.is-open)
+  .graph-wrapper
+  > .live-output-controls {
+  right: calc(#{$sound-panel-width} + #{$spacing-s});
+}
+
+.app-workspace.is-app-full:has(> .side-bar.is-open)
+  .graph-wrapper
+  > .live-output-controls {
+  left: calc(min(#{$side-bar-width-compact}, 86vw) + #{$spacing-s});
 }

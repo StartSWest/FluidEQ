@@ -26,7 +26,12 @@ import {
   createNativeBackendController,
 } from './nativeBackend';
 import createNativeMirror from './nativeMirror';
-import { INativeMirror, INativeMirrorState } from './nativeMirrorTypes';
+import {
+  INativeMirror,
+  INativeMirrorOptions,
+  INativeMirrorState,
+} from './nativeMirrorTypes';
+import type { THostClient } from './hostLease';
 import {
   INativeTransportFrame,
   quantizeTransportPosition,
@@ -74,16 +79,23 @@ const bridgeOf = ():
     : undefined;
 };
 
+/** A window with no preload (the harness) has no host to wait for. */
+export const hasNativeHostBridge = (): boolean => bridgeOf() !== undefined;
+
 /**
  * Returns the controller while the native backend is the selected one.
  *
  * `undefined` when it is not, which is what makes the caller's fallback a
  * branch rather than a flag it has to remember to check — there is nothing to
  * call, so nothing can be called by mistake.
+ *
+ * `client` drives the host (`hostLease.ts`); only the Library's is handed the
+ * Library's track gains and noise floor, its analysis of its own tracks.
  */
 export const useNativeBackend = (
   settings: IDspSettings,
   hasLibraryAudioTrack = true,
+  client: THostClient = 'library',
 ): INativeBackendController | undefined => {
   const nativeState = useDspNativeState();
   // The rack as this player may run it: switched off at the root while the
@@ -116,9 +128,12 @@ export const useNativeBackend = (
        * the next press. Video library items and an empty deck still have
        * nothing for an audio-only engine to do, and those are the stable facts
        * this now turns on.
+       *
+       * The state is the other player's engine's too (`hostLease.ts`), and a
+       * Library mounting idle mid-karaoke wrote `idle` over its `engaged`:
+       * an engaged engine says `idle` in its own teardown, below.
        */
       controllerRef.current = undefined;
-      setDspNativeState('idle');
       return undefined;
     }
     const bridge = bridgeOf();
@@ -222,7 +237,7 @@ export const useNativeBackend = (
    */
   const controller = controllerRef.current;
   useEffect(() => {
-    if (!controller) {
+    if (!controller || client !== 'library') {
       return undefined;
     }
     setDspNativeTrackGainSink((inputGainDb, masterLoudnessGainDb) => {
@@ -240,7 +255,7 @@ export const useNativeBackend = (
       setDspNativeTrackGainSink(undefined);
       setDspNativeNoiseProfileSink(undefined);
     };
-  }, [controller]);
+  }, [client, controller]);
 
   /**
    * Handed over only once the host has FINISHED engaging, never before.
@@ -369,10 +384,16 @@ export const useNativeMirror = (
   controller: INativeBackendController | undefined,
   elements: readonly HTMLMediaElement[],
   state: INativeMirrorState,
+  /** The Karaoke's (`INativeMirrorOptions`); read when the mirror is built. */
+  options?: INativeMirrorOptions & {
+    onOwnership?: (hostOwnsTransport: boolean) => void;
+  },
 ): ((positionMs: number) => Promise<boolean>) => {
   const mirrorRef = useRef<INativeMirror | undefined>(undefined);
   const stateRef = useRef(state);
   stateRef.current = state;
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
   // Whether the host has the track rather than the media elements, as the
   // mirror reports it. See `isAudible` below.
   const [hostOwns, setHostOwns] = useState(false);
@@ -391,7 +412,20 @@ export const useNativeMirror = (
     if (!controller) {
       return undefined;
     }
-    const mirror = createNativeMirror(controller, elements, setHostOwns);
+    const built = optionsRef.current;
+    const mirror = createNativeMirror(
+      controller,
+      elements,
+      (owns) => {
+        setHostOwns(owns);
+        optionsRef.current?.onOwnership?.(owns);
+      },
+      {
+        claimSource: built?.claimSource,
+        readHostPosition: built?.readHostPosition,
+        onTrackRefused: () => optionsRef.current?.onTrackRefused?.(),
+      },
+    );
     mirrorRef.current = mirror;
     // Immediately, not on the next tick: the switch can be flipped mid-track
     // and the host should pick up where the element already is.

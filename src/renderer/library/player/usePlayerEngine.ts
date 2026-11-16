@@ -32,6 +32,7 @@ import {
   seekSettled,
 } from './pendingSeek';
 import { MIN_LEAD_IN_TRIM_MS } from './playerContract';
+import { useHostClient } from '../../dsp/hostLease';
 import {
   useNativeBackend,
   useNativeDeviceGeneration,
@@ -116,11 +117,20 @@ export const usePlayerEngine = (options: {
    * whether it is playing this instant, and the resident process is bounded by
    * the Library provider's own off-tab lease rather than by the pause button.
    */
-  const nativeBackend = useNativeBackend(dspSettings, track?.kind === 'audio');
+  /**
+   * And only while the host is the Library's to drive: the Karaoke borrows
+   * it while it plays, or while its tab is in front with a song and nothing
+   * of the Library's is playing (`hostLease.ts`). Lent, the engine lets go
+   * exactly as it does when the track goes away; given back, it engages and
+   * cues the track again where the host had left it.
+   */
+  const hostClient = useHostClient();
+  const nativeBackend = useNativeBackend(
+    dspSettings,
+    track?.kind === 'audio' && hostClient === 'library',
+  );
   // And the mirror re-cues when the host moves to a different endpoint.
   useNativeDeviceGeneration(nativeBackend);
-  // The clock comes from the engine making the sound. See `hostTransport`.
-  useNativeTransport(nativeBackend);
   /**
    * One clock, and it belongs to whatever is audible.
    *
@@ -200,6 +210,17 @@ export const usePlayerEngine = (options: {
         }
       : undefined,
   });
+  /**
+   * The clock comes from the engine making the sound. See `hostTransport`.
+   *
+   * Called AFTER the mirror, and the order is the point: React tears a
+   * component's effects down in the order they were declared, and this one's
+   * teardown empties the transport store. The mirror's reads the host's last
+   * position from that store to hand the element back at it (`release`), so
+   * it has to run first — the other way round, every engine let go handed
+   * its track back at the place the host first took it, minutes behind.
+   */
+  useNativeTransport(nativeBackend);
 
   /**
    * The scrubber's route to the deck that is making the sound.

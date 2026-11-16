@@ -22,6 +22,7 @@ import mainText from '../mainText';
 import {
   clearKaraokeSession,
   readRestoredKaraokeFile,
+  restoredKaraokeAudioPath,
   restoreKaraokeSession,
   saveKaraokeSession,
 } from '../karaokeSession';
@@ -85,6 +86,10 @@ export const registerKaraokeIpc = ({
 
   ipcMain.handle('karaoke-session-file-duration', (_event, token: unknown) =>
     typeof token === 'string' ? readRestoredKaraokeDuration(token) : null,
+  );
+
+  ipcMain.handle('karaoke-session-audio-path', (_event, token: unknown) =>
+    typeof token === 'string' ? restoredKaraokeAudioPath(token) : undefined,
   );
 
   ipcMain.handle('karaoke-session-clear', () => {

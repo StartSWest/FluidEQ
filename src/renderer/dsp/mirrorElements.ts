@@ -18,12 +18,23 @@ import { claimDspNativeSource } from './store';
 export interface IMirrorElements {
   /** The host has the track: stop the second decoder. */
   standDown: (positionSeconds: number) => void;
-  /** The host has let go: the elements' own sound again. */
-  handBack: (resume: boolean) => void;
+  /**
+   * The host has let go: the elements' own sound again, from where the host
+   * had got to when that is known.
+   */
+  handBack: (resume: boolean, positionSeconds?: number) => void;
 }
 
+/**
+ * `claimSource` is how the player learns a deck has the track before the
+ * host's telemetry says so — see `standDown`. The Library's transport store
+ * by default; the Karaoke's own clock for the Karaoke, whose deck is not the
+ * Library's track and must never read as one in the store the Library's
+ * end-of-track and seek bar are built on.
+ */
 export const muteForMirror = (
   elements: readonly HTMLMediaElement[],
+  claimSource: (positionSeconds: number) => void = claimDspNativeSource,
 ): IMirrorElements => {
   const muted = new Map<HTMLMediaElement, boolean>();
   elements.forEach((element) => {
@@ -57,7 +68,7 @@ export const muteForMirror = (
      * had just engaged.
      */
     standDown: (positionSeconds) => {
-      claimDspNativeSource(positionSeconds);
+      claimSource(positionSeconds);
       elements.forEach((element) => {
         if (!element.paused) {
           stoodDown.add(element);
@@ -78,9 +89,23 @@ export const muteForMirror = (
      * mid-song and exactly wrong for Stop and Pause — both of which disengage
      * the engine and reach here through the mirror's `release`. So the
      * listener's intent travels with the call; nothing here can work it out.
+     *
+     * The element was paused where the host took the track over, and the
+     * host has played on since. Handed back there, a song resumed minutes
+     * behind where the listener left it — which the Library now does each
+     * time it lends the host to the Karaoke (`hostLease.ts`). So the host's
+     * position goes with the sound, onto the one element holding a file —
+     * not the ones stood down, which a track cued while paused never was.
+     * Two holding files is a crossfade's overlap, where the position is the
+     * incoming track's and the outgoing element is the player's to let go.
      */
-    handBack: (resume) => {
+    handBack: (resume, positionSeconds) => {
       unmute();
+      const holding = elements.filter((element) => element.currentSrc !== '');
+      if (positionSeconds !== undefined && holding.length === 1) {
+        // eslint-disable-next-line no-param-reassign -- the element IS the subject.
+        holding[0].currentTime = positionSeconds;
+      }
       if (resume) {
         stoodDown.forEach((element) => {
           if (element.paused) {

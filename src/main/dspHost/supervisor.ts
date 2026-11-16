@@ -376,6 +376,73 @@ export class DspHostSupervisor extends DspHostProcess {
   }
 
   /**
+   * Whether this host plays a deck's layer (`setDeckGain` in `wire.ts`), for
+   * the process now running: undefined until it has been asked, and asked
+   * again of every new process, because a rebuilt host is a different binary.
+   */
+  private layers: { pid: number; supported: boolean } | undefined;
+
+  /**
+   * The gain of a deck's own file — and the probe for layers, which is why
+   * the answer is remembered: UNSUPPORTED is a host that predates them, and
+   * only this payload-free command may be sent to find that out.
+   */
+  async setDeckGain(deck: number, gain: number): Promise<boolean> {
+    const pid = this.getPid();
+    const ack = await this.send(HOST_COMMANDS.setDeckGain, {
+      parameterIndex: deck,
+      value: gain,
+    });
+    if (pid !== undefined && ack.status !== HOST_STATUS.rejected) {
+      this.layers = { pid, supported: ack.status === HOST_STATUS.applied };
+    }
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  /**
+   * Asked of the running host once and remembered for its life, with the
+   * deck's own gain at its default as the question, which changes nothing.
+   */
+  async supportsLayers(): Promise<boolean> {
+    const pid = this.getPid();
+    if (pid === undefined) {
+      return false;
+    }
+    if (this.layers?.pid !== pid) {
+      await this.setDeckGain(0, 1);
+    }
+    return this.layers?.pid === pid && this.layers.supported;
+  }
+
+  /**
+   * A file layered on a deck, or the layer taken off (`undefined`). Refused
+   * without sending anything to a host that has not said it knows layers:
+   * this command carries a payload, and a host that does not know it would
+   * read the path as the next frame.
+   */
+  async loadLayer(deck: number, path: string | undefined): Promise<boolean> {
+    if (!(await this.supportsLayers())) {
+      return false;
+    }
+    const payload = path ? Buffer.from(path, 'utf8') : undefined;
+    const ack = await this.send(HOST_COMMANDS.loadLayer, {
+      parameterIndex: deck,
+      // Byte length, not character count, as for a deck's own path.
+      parameterId: payload ? payload.byteLength : 0,
+      payload,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  async setLayerGain(deck: number, gain: number): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.setLayerGain, {
+      parameterIndex: deck,
+      value: gain,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  /**
    * Bring a replacement host back to where the last one was.
    *
    * Settings, yes. The transport, deliberately not: a crash mid-song should

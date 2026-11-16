@@ -121,6 +121,41 @@ export const HOST_COMMANDS = {
   /** Model path, newline, runtime path, as UTF-8. Empty payload unloads. */
   loadVoiceModel: 22,
   setRawSharing: 23,
+  /**
+   * A deck's LAYER: a second file the deck plays in lockstep with its own,
+   * each at a gain of its own — the Karaoke's backing track and its separated
+   * voice, under two faders. Not built into the host yet; the contract the
+   * native side has to meet is written down here, beside the numbers, so the
+   * two halves cannot be read apart.
+   *
+   * `setDeckGain` (24): `parameterIndex` the deck, `value` the linear gain of
+   * the deck's own file, 0 to 1, gliding over 20 ms as the volume does. No
+   * payload — and that is load-bearing: it is the command the app probes
+   * with. A host that predates layers answers any command it does not know
+   * UNSUPPORTED (`host_commands.cpp`, `default:`) and reads nothing after the
+   * frame, so a payload-free probe leaves the stream in step. A probe with a
+   * payload would desynchronise every host built before it.
+   *
+   * `loadLayer` (25): `parameterIndex` the deck, `parameterId` the byte length
+   * of the UTF-8 path that follows; zero bytes takes the layer off. Sent only
+   * to a host that answered `setDeckGain` APPLIED. The layer is decoded by the
+   * deck's decoder thread into a read-ahead of its own and cued to the frame
+   * the deck's own file has reached, in the same command; every move of the
+   * deck afterwards (SEEK_DECK, a cue inside LOAD_DECK) moves the layer to the
+   * same frame in the same command; a LOAD_DECK or UNLOAD_DECK of the deck
+   * takes the layer off. The audio thread sums `own * deckGain + layer * layerGain`, and when
+   * either read-ahead is short of a block it renders that block silent and
+   * advances NEITHER — the two never part, which is the whole point of having
+   * the host mix them rather than two players. A layer shorter than its deck
+   * plays silence past its end; the deck's position, duration and state in
+   * telemetry stay the deck's own file's.
+   *
+   * `setLayerGain` (26): `parameterIndex` the deck, `value` the layer's gain,
+   * 0 to 1, gliding over 20 ms. No payload.
+   */
+  setDeckGain: 24,
+  loadLayer: 25,
+  setLayerGain: 26,
 } as const;
 
 /** `parameterId` for `setDiagnosticSignal`; `value` carries the frequency. */

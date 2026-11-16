@@ -40,6 +40,7 @@ import type { ILyricsLine } from '../../common/library/lyrics';
 import { lrcFromLines } from '../../common/library/lyricsLrc';
 import { ILibraryTrack } from '../../common/library/types';
 import { setKaraokeLibraryFacts } from '../karaoke/karaokeLibraryFacts';
+import { setKaraokeHostSource } from '../karaoke/karaokeMediaPath';
 
 /** Chromium sniffs the container anyway; this is for the ones it does not. */
 const MIME_BY_EXTENSION: Readonly<Record<string, string>> = {
@@ -133,5 +134,8 @@ export const syncedLyricsAsKaraokeFile = (
     type: 'text/plain',
     lastModified: Math.round(track.mtimeMs),
   });
+  // The copy has no path of its own, and the Karaoke plays through the
+  // Library's native player, which opens a file by its path: the track's.
+  setKaraokeHostSource(file, { kind: 'path', path: track.path });
   return setKaraokeRelativePath(file, name);
 };

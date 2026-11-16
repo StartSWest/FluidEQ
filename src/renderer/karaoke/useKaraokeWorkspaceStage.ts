@@ -53,6 +53,7 @@ import { useSystemFader } from '../audio/systemVolume';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeChordAnalysis } from './useKaraokeChordAnalysis';
 import { useKaraokeVocalMix } from './useKaraokeVocalMix';
+import { karaokeStemFile } from './karaokeMediaPath';
 import { releaseKaraokeWhisperModel } from './makerAi';
 import { setChromeHeld } from '../utils/idleChrome';
 import { IKaraokePitchIssue } from './karaokePitchGeometry';
@@ -159,7 +160,13 @@ const useKaraokeWorkspaceStage = ({
   // playback — another tab, or the amp over the window — falls back to the
   // audio element's low-rate `timeupdate` events, which keep the transport
   // moving without animating an unseen stage.
-  const session = useKaraokeSession(!isHidden && isStageShown);
+  // The song plays through the Library's native player while this tab is in
+  // front or playing, and on the page's own element while the Maker is open
+  // (`useKaraokeNativeDeck`).
+  const session = useKaraokeSession(!isHidden && isStageShown, {
+    isShown: !isHidden,
+    isMakerOpen,
+  });
   // The computer's volume, the one fader this app has (`useSystemFader`): the
   // backing track plays at full level and karaoke's master row moves Windows.
   const fader = useSystemFader();
@@ -181,7 +188,14 @@ const useKaraokeWorkspaceStage = ({
   const { vocalLevel, setVocalLevel, canMixVocals } = useKaraokeVocalMix({
     audioRef: session.audioRef,
     vocals: song?.assets.find((asset) => asset.role === 'vocals')?.file,
+    hostPlaysVocals: session.hostPlaysVocals,
   });
+  // And the same fader to the native player, which plays the voice as a layer
+  // on the backing track's deck when it plays a separated song.
+  const { setGuideVocalLevel } = session;
+  useEffect(() => {
+    setGuideVocalLevel(vocalLevel);
+  }, [setGuideVocalLevel, vocalLevel]);
   // Which stem the stems-panel is listening to. 'backing' is normal play —
   // the fader blends the voice over the backing track. 'voice' inverts it:
   // the voice at full level, the slider now the amount of backing underneath,
@@ -269,13 +283,17 @@ const useKaraokeWorkspaceStage = ({
         if (stems) {
           applyStemsToSong(
             song,
-            new File([stems.vocals as BlobPart], `${song.title} (vocals).wav`, {
-              type: 'audio/wav',
-            }),
-            new File(
-              [stems.instrumental as BlobPart],
+            karaokeStemFile(
+              song.id,
+              'vocals',
+              stems.vocals as BlobPart,
+              `${song.title} (vocals).wav`,
+            ),
+            karaokeStemFile(
+              song.id,
+              'instrumental',
+              stems.instrumental as BlobPart,
               `${song.title} (instrumental).wav`,
-              { type: 'audio/wav' },
             ),
           );
         }
@@ -715,6 +733,7 @@ const useKaraokeWorkspaceStage = ({
     playheadRef,
     surfaceRef: workspaceRef,
     audioRef: session.audioRef,
+    playhead,
     status,
     playlist,
     selectedPlaylistId,

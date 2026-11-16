@@ -29,6 +29,7 @@ import karaokeMicrophoneImage from '../../../assets/karaoke-microphone.png';
 import MenuIcon from '../icons/MenuIcon';
 import KaraokeMaker from './KaraokeMaker';
 import { importedFileIdentity } from './karaokeWorkspaceRestore';
+import { setKaraokeHostSource } from './karaokeMediaPath';
 import { karaokeMakerProjectToSong } from '../../common/karaoke/makerProject';
 import { type IKaraokeWorkspaceProps } from './KaraokeWorkspace';
 import { type TKaraokeWorkspaceStage } from './useKaraokeWorkspaceStage';
@@ -751,9 +752,12 @@ const KaraokeWorkspaceView = ({
                 // asset stays exactly as imported — the Maker is keyed on it,
                 // and an earlier version that swapped it remounted the open
                 // editor.
-                applyStemsToSong(song, vocals, instrumental);
-                // And onto disk, so a refresh recovers them with the
-                // workspace.
+                //
+                // Onto disk first, so a refresh recovers them with the
+                // workspace — and because the Library's native player opens
+                // a file by its path, and a stem only has one once main has
+                // written it. Joined to the song either way: a save that
+                // failed leaves the song playing on the page's own element.
                 Promise.all([vocals.arrayBuffer(), instrumental.arrayBuffer()])
                   .then(([vocalBytes, instrumentalBytes]) =>
                     window.electron.ipcRenderer.saveKaraokeStems(
@@ -762,6 +766,23 @@ const KaraokeWorkspaceView = ({
                       instrumentalBytes,
                     ),
                   )
+                  .then(
+                    () => {
+                      setKaraokeHostSource(vocals, {
+                        kind: 'stem',
+                        key: song.id,
+                        role: 'vocals',
+                      });
+                      setKaraokeHostSource(instrumental, {
+                        kind: 'stem',
+                        key: song.id,
+                        role: 'instrumental',
+                      });
+                      return undefined;
+                    },
+                    () => undefined,
+                  )
+                  .then(() => applyStemsToSong(song, vocals, instrumental))
                   .catch(() => undefined);
               }}
               onApply={(project) => {

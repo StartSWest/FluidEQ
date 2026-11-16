@@ -54,6 +54,12 @@ const readKaraokeSessionFileDuration = (token: string) =>
     number | null
   >;
 
+/** A restored song's audio file on disk, for the native player; or none. */
+const karaokeSessionAudioPath = (token: string) =>
+  ipcRenderer.invoke('karaoke-session-audio-path', token) as Promise<
+    string | undefined
+  >;
+
 const clearKaraokeSession = () =>
   ipcRenderer.invoke('karaoke-session-clear') as Promise<void>;
 
@@ -149,6 +155,13 @@ const loadKaraokeStems = (key: string) =>
     instrumental: Uint8Array;
   } | null>;
 
+/** Both of a song's stems on disk, once both are whole there; or null. */
+const karaokeStemPaths = (key: string) =>
+  ipcRenderer.invoke('karaoke-stems-paths', key) as Promise<{
+    vocals: string;
+    instrumental: string;
+  } | null>;
+
 const releaseKaraokeSeparationModel = () =>
   ipcRenderer.send('karaoke-separate-release', []);
 
@@ -173,6 +186,7 @@ const karaokeBridge = {
   restoreKaraokeSession,
   readKaraokeSessionFile,
   readKaraokeSessionFileDuration,
+  karaokeSessionAudioPath,
   clearKaraokeSession,
   saveKaraokeMakerDraft,
   loadKaraokeMakerDraft,
@@ -185,6 +199,7 @@ const karaokeBridge = {
   onKaraokePitchProgress,
   saveKaraokeStems,
   loadKaraokeStems,
+  karaokeStemPaths,
   releaseKaraokeSeparationModel,
   cancelKaraokeSeparation,
   onKaraokeSeparationProgress,

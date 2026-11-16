@@ -402,6 +402,21 @@ export const registerKaraokeSeparation = () => {
       ]);
     },
   );
+  // Where a song's two stems are on disk, for the Library's native player to
+  // open, and only once both are whole there: a stem is written beside
+  // itself and renamed over (`writeStem`), so a file found is a file done.
+  ipcMain.handle('karaoke-stems-paths', async (_event, key: unknown) => {
+    const files = stemFiles(key);
+    try {
+      await Promise.all([
+        fs.promises.access(files.vocals),
+        fs.promises.access(files.instrumental),
+      ]);
+      return { vocals: files.vocals, instrumental: files.instrumental };
+    } catch {
+      return null;
+    }
+  });
   ipcMain.handle('karaoke-stems-load', async (_event, key: string) => {
     const files = stemFiles(key);
     try {

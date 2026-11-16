@@ -37,6 +37,7 @@ import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
 import { createDspHostPublisher } from '../dspHost/windowPublisher';
+import registerDspHostLayerIpc from './dspHostLayers';
 import { IHostAnalysis, IHostStats } from '../dspHost/wire';
 
 export interface IDspHostIpcDeps {
@@ -491,6 +492,22 @@ export const registerDspHostIpc = ({
             return isFiniteNumber(value) && isFiniteNumber(extra)
               ? await supervisor.setTrackGains(value, extra, true)
               : false;
+          // A deck's own gain and its layer's (`setDeckGain` in `wire.ts`),
+          // clamped as the volume is.
+          case 'deck-gain':
+            return isFiniteNumber(value)
+              ? await supervisor.setDeckGain(
+                  slot,
+                  Math.min(1, Math.max(0, value)),
+                )
+              : false;
+          case 'layer-gain':
+            return isFiniteNumber(value)
+              ? await supervisor.setLayerGain(
+                  slot,
+                  Math.min(1, Math.max(0, value)),
+                )
+              : false;
           default:
             return false;
         }
@@ -565,6 +582,8 @@ export const registerDspHostIpc = ({
       }
     },
   );
+
+  registerDspHostLayerIpc(() => supervisor);
 
   ipcMain.handle(
     'dsp-host-parameter',

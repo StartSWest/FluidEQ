@@ -481,14 +481,6 @@ export const restoreKaraokeSession = async (
   };
 };
 
-/** A restored song's own file, for what is read of it without its bytes. */
-export const restoredKaraokeAudioPath = (token: string): string | undefined => {
-  const localPath = tokenPaths.get(token);
-  return localPath && roleForPath(localPath) === 'audio'
-    ? localPath
-    : undefined;
-};
-
 export const readRestoredKaraokeFile = (
   token: string,
 ): Promise<IKaraokeRestoredFileBytes | undefined> => {
@@ -517,6 +509,20 @@ export const readRestoredKaraokeFile = (
       };
     })
     .catch(() => undefined);
+};
+
+/**
+ * Where a restored song's audio lives, for the Library's native player to
+ * open — the path the window itself named when the session was saved, and
+ * only an audio file's: the player decodes nothing else, and a picture's
+ * token is no business of a decoder's. Also what a restored song's length
+ * is read from (`karaokeSessionDuration.ts`).
+ */
+export const restoredKaraokeAudioPath = (token: string): string | undefined => {
+  const localPath = tokenPaths.get(token);
+  return localPath && roleForPath(localPath) === 'audio'
+    ? localPath
+    : undefined;
 };
 
 export const clearKaraokeSession = (userDataDir: string): Promise<void> => {

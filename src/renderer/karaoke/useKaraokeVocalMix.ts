@@ -28,6 +28,13 @@ interface IUseKaraokeVocalMixOptions {
   audioRef: React.RefObject<HTMLAudioElement | null>;
   /** The isolated voice, or undefined when this song has not been separated. */
   vocals?: File;
+  /**
+   * The Library's native player is playing the voice itself, as a layer on
+   * the backing track's deck (`useKaraokeNativeDeck`), and this copy stays
+   * silent — still decoded, because the element may be handed the song back
+   * mid-verse and has to sing it then.
+   */
+  hostPlaysVocals?: boolean;
 }
 
 /** Where the fader sits when a separated song is first opened. */
@@ -39,7 +46,10 @@ const SILENT = 0.001;
 export const useKaraokeVocalMix = ({
   audioRef,
   vocals,
+  hostPlaysVocals = false,
 }: IUseKaraokeVocalMixOptions) => {
+  const hostPlaysVocalsRef = useRef(hostPlaysVocals);
+  hostPlaysVocalsRef.current = hostPlaysVocals;
   const contextRef = useRef<AudioContext | undefined>(undefined);
   const sourceRef = useRef<AudioBufferSourceNode | undefined>(undefined);
   const gainRef = useRef<GainNode | undefined>(undefined);
@@ -130,7 +140,13 @@ export const useKaraokeVocalMix = ({
     const buffer =
       decodedStem?.file === vocals ? decodedStem?.buffer : undefined;
     const currentLevel = levelRef.current;
-    if (!element || !context || !buffer || currentLevel < SILENT) {
+    if (
+      !element ||
+      !context ||
+      !buffer ||
+      currentLevel < SILENT ||
+      hostPlaysVocalsRef.current
+    ) {
       stop();
       return;
     }
@@ -208,7 +224,7 @@ export const useKaraokeVocalMix = ({
         context.resume().catch(() => undefined);
       }
       if (!sourceRef.current) {
-        if (levelRef.current >= SILENT) {
+        if (levelRef.current >= SILENT && !hostPlaysVocalsRef.current) {
           sync();
         }
         return;
@@ -243,6 +259,27 @@ export const useKaraokeVocalMix = ({
       stop();
     };
   }, [audioRef, isReady, stop, sync]);
+
+  // The host taking the voice over, or handing it back with the song: this
+  // copy goes quiet at once, or starts again from wherever the element is.
+  // On the change only — a new `sync` is a new stem, which the effect above
+  // already starts, and starting it twice is a restart heard as a tick.
+  const syncRef = useRef(sync);
+  syncRef.current = sync;
+  const hostHadVocalsRef = useRef(hostPlaysVocals);
+  useEffect(() => {
+    if (hostHadVocalsRef.current === hostPlaysVocals) {
+      return;
+    }
+    hostHadVocalsRef.current = hostPlaysVocals;
+    if (hostPlaysVocals) {
+      stop();
+      return;
+    }
+    if (audioRef.current && !audioRef.current.paused) {
+      syncRef.current();
+    }
+  }, [audioRef, hostPlaysVocals, stop]);
 
   // A level change while playing should be heard immediately, not at the next
   // seek, so the gain is adjusted in place rather than restarting the source.

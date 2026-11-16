@@ -49,6 +49,42 @@ export interface INativeMirrorState {
     /** Cue the incoming deck here before it becomes audible. */
     startPositionMs?: number;
   };
+  /**
+   * A change of track is cued at `positionMs`, rather than at the track's
+   * start.
+   *
+   * The Library's position belongs to the track it replaced on the tick that
+   * changes it (see `nextStep`), so it never sets this. The Karaoke does: its
+   * one change of file inside a song is the backing track replacing the mix
+   * once the song has been separated, and that keeps its place — the song
+   * went on, only what it is made of changed. A new song writes its position
+   * to zero before its file is known, so it starts at the top all the same.
+   */
+  followPosition?: boolean;
+  /**
+   * The level the host plays at and a layer on the deck in use, for a player
+   * that has a fader of its own. Absent is the Library's: full level, no
+   * layer — the system's fader is its only one (`nativeMirrorMix.ts`).
+   */
+  mix?: INativeMirrorMix;
+}
+
+/** What `nativeMirrorMix.ts` keeps the host at. */
+export interface INativeMirrorMix {
+  /** The listener volume, 0 to 1, applied ahead of the rack. */
+  volume: number;
+  /**
+   * A second file on the deck in use, in lockstep with it: the Karaoke's
+   * separated voice over its backing track. Only for a host that says it
+   * plays layers (`INativeTransport.supportsLayers`).
+   */
+  layer?: {
+    path: string;
+    /** The deck's own file's gain: the backing fader. */
+    deckGain: number;
+    /** The layer's gain: the guide-vocal fader. */
+    gain: number;
+  };
 }
 
 export interface INativeMirror {
@@ -86,4 +122,24 @@ export interface INativeMirror {
    * them is the bug this parameter exists to prevent (`mirrorElements.ts`).
    */
   release: (resume: boolean) => void;
+}
+
+/** What only some players need from the mirror; the Library's by default. */
+export interface INativeMirrorOptions {
+  /** See `muteForMirror`: where a deck's claim on the track is said. */
+  claimSource?: (positionSeconds: number) => void;
+  /**
+   * Where the host had got to, in seconds, for the elements to pick up from
+   * when the host lets the track go; undefined when nothing says.
+   */
+  readHostPosition?: () => number | undefined;
+  /**
+   * The host could not take the track — a file it cannot open, or a start it
+   * could not prepare — and the elements have it back. The Library needs no
+   * word of it: its element was already playing, muted, and is audible the
+   * moment it is unmuted. The Karaoke never starts its element while the host
+   * is expected (that would be a burst of the song through Chromium ahead of
+   * every host start), so it has to be told to start it.
+   */
+  onTrackRefused?: () => void;
 }

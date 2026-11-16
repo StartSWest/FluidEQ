@@ -58,6 +58,11 @@ const installHost = () => {
     setDspHostCrossfadeTable: yes,
     setDspHostVolume: yes,
     setDspHostNoiseProfile: yes,
+    // A host built before layers, as every host so far is.
+    supportsDspHostLayers: () => Promise.resolve(false),
+    loadDspHostLayer: () => Promise.resolve(false),
+    setDspHostDeckGain: () => Promise.resolve(false),
+    setDspHostLayerGain: () => Promise.resolve(false),
   };
   (window as unknown as { electron?: { ipcRenderer?: unknown } }).electron = {
     ipcRenderer: { ...bridge, ...createSourceAnalysisBridge() },

@@ -25,13 +25,10 @@ import {
   useState,
 } from 'react';
 import {
-  karaokeFileBaseName,
-  karaokeFileExtension,
   parseKaraokeLyricFile,
   selectKaraokeFiles,
-  selectKaraokeStageMedia,
 } from '../../common/karaoke/files';
-import { TrackClock } from '../../common/karaoke/clock';
+import { TrackClock, clampKaraokeTime } from '../../common/karaoke/clock';
 import {
   claimPlayback,
   registerPlayer,
@@ -39,15 +36,19 @@ import {
 } from '../audio/playbackOwner';
 import {
   IKaraokeSong,
-  KaraokeParseError,
   TKaraokeParseErrorCode,
 } from '../../common/karaoke/types';
 import { createKaraokeLiveValue, IKaraokeLiveValue } from './karaokeLiveValue';
-import readKaraokeSongChords from './karaokeSongChords';
 import {
-  materializeRestoredAudio,
-  materializeRestoredMedia,
-} from './karaokeRestoredFiles';
+  TParsedKaraokeLyrics,
+  asKaraokeParseError,
+  assembleKaraokeSong,
+} from './karaokeSessionFiles';
+import { materializeRestoredAudio } from './karaokeRestoredFiles';
+import { useKaraokeNativeDeck } from './useKaraokeNativeDeck';
+import useKaraokeMediaEvents from './useKaraokeMediaEvents';
+
+export { karaokeSongIdForFile } from './karaokeSessionFiles';
 
 const PLAYHEAD_RENDER_INTERVAL_MS = 50;
 
@@ -74,23 +75,31 @@ export interface IKaraokeSessionWarning {
   line?: number;
 }
 
-const asKaraokeParseError = (error: unknown): KaraokeParseError | undefined =>
-  error instanceof KaraokeParseError ? error : undefined;
+export interface IKaraokeSessionOptions {
+  /** The Karaoke tab is in front; `isActive` by default. */
+  isShown?: boolean;
+  /**
+   * The Maker is open. Its auditions are timed on the page's own `<audio>`
+   * element, so while it is the song plays there (`useKaraokeNativeDeck`).
+   */
+  isMakerOpen?: boolean;
+}
 
-const displayTitleFromFile = (file: File): string => {
-  const extension = karaokeFileExtension(file.name);
-  return (extension ? file.name.slice(0, -(extension.length + 1)) : file.name)
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
-
-/** A song by its audio file: what its Maker drafts and the Library's link to it are kept under. */
-export const karaokeSongIdForFile = (file: File): string =>
-  `${karaokeFileBaseName(file.name)}-${file.size}-${file.lastModified}`;
-
-/** Owns one local song session; no selected file or path leaves the renderer. */
-export const useKaraokeSession = (isActive: boolean) => {
+/**
+ * Owns one local song session.
+ *
+ * The song plays through the Library's native player whenever that can play
+ * it (`useKaraokeNativeDeck`), and on the page's own `<audio>` element
+ * otherwise — which stays loaded with the song either way, as the Library's
+ * do, so the host can hand it back. `status` is the session's own word for
+ * what the listener wants and what has happened: the element's events write
+ * it while the element is the sound, and play, pause and the host's
+ * end-of-file write it while the host is.
+ */
+export const useKaraokeSession = (
+  isActive: boolean,
+  { isShown = isActive, isMakerOpen = false }: IKaraokeSessionOptions = {},
+) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const objectUrlRef = useRef<string | undefined>(undefined);
   /** The backing track's URL once a song is separated; the element plays it. */
@@ -98,12 +107,14 @@ export const useKaraokeSession = (isActive: boolean) => {
   const importRequestRef = useRef(0);
   const [song, setSong] = useState<IKaraokeSong>();
   const [status, setStatus] = useState<TKaraokePlaybackStatus>('empty');
+  const statusRef = useRef(status);
+  statusRef.current = status;
   const [error, setError] = useState<TKaraokeSessionError>();
   const [warning, setWarning] = useState<IKaraokeSessionWarning>();
   /**
    * Where the song is, as every readout draws it: sampled each
-   * PLAYHEAD_RENDER_INTERVAL_MS while the stage plays, from `timeupdate`
-   * while it is hidden.
+   * PLAYHEAD_RENDER_INTERVAL_MS while the stage plays, from `timeupdate` or
+   * the host's frames while it is hidden.
    *
    * Not state. As state it re-rendered the whole workspace twenty times a
    * second, where only the few components that show it need to; see
@@ -118,15 +129,49 @@ export const useKaraokeSession = (isActive: boolean) => {
   // same song in the library and nothing on screen said why.
   // Solo listening scales the backing track under the master volume; 1 is
   // normal playback, 0 is voice alone. A ref, because the element must be
-  // retuned inside callbacks that never re-render.
+  // retuned inside callbacks that never re-render; state as well, because the
+  // host is told it through a render (`useKaraokeNativeDeck`).
   const backingScaleRef = useRef(1);
+  const [backingScale, setBackingScaleState] = useState(1);
+  /** The guide-vocal fader, which the host plays as the deck's layer. */
+  const [guideVocalLevel, setGuideVocalLevel] = useState(0);
   isActiveRef.current = isActive;
 
-  /** Read the media element directly for frame-accurate visual synchronization. */
+  /** The host's frames, for a playhead no frame loop is drawing. */
+  const readPlayheadMsRef = useRef<() => number>(() => playhead.read());
+  const onHostFrame = useCallback(() => {
+    if (!isActiveRef.current) {
+      playhead.write(readPlayheadMsRef.current());
+    }
+  }, [playhead]);
+  const deck = useKaraokeNativeDeck({
+    audioRef,
+    song,
+    isPlaying: status === 'playing',
+    positionMs: playhead.read(),
+    isShown,
+    isMakerOpen,
+    backingScale,
+    vocalLevel: guideVocalLevel,
+    onFrame: onHostFrame,
+  });
+  const deckRef = useRef(deck);
+  deckRef.current = deck;
+
+  /**
+   * Read the engine making the sound, for frame-accurate visual
+   * synchronization: the host's clock while it has the song, the media
+   * element's otherwise.
+   */
   const readPlayheadMs = useCallback((): number => {
+    const { current } = deckRef;
+    if (current.ownsRef.current) {
+      return current.readMs(statusRef.current === 'playing');
+    }
     const audio = audioRef.current;
     return audio ? new TrackClock(audio).read().nowMs : playhead.read();
   }, [playhead]);
+  readPlayheadMsRef.current = readPlayheadMs;
 
   const revokeObjectUrl = useCallback(() => {
     if (objectUrlRef.current) {
@@ -165,6 +210,7 @@ export const useKaraokeSession = (isActive: boolean) => {
     // the imported file's identity and because the guide-vocal fader adds the
     // voice back on top of whatever the element plays: over the instrumental
     // that reconstructs the song, over the mix it would double the singer.
+    // The host swaps the same way, at its own place (`followPosition`).
     const instrumental = nextSong.assets.find(
       (asset) => asset.role === 'instrumental',
     );
@@ -207,7 +253,7 @@ export const useKaraokeSession = (isActive: boolean) => {
       setError(undefined);
       setWarning(undefined);
 
-      let parsed;
+      let parsed: TParsedKaraokeLyrics | undefined;
       if (selection.lyrics) {
         try {
           parsed = await parseKaraokeLyricFile(selection.lyrics);
@@ -236,84 +282,15 @@ export const useKaraokeSession = (isActive: boolean) => {
         audio.pause();
         revokeObjectUrl();
         objectUrlRef.current = nextUrl;
-
-        const id = karaokeSongIdForFile(audioFile);
-        // Resolved here rather than at import, because only now is the lyric
-        // file parsed — UltraStar names its own cover, background and video,
-        // and a folder holding several songs' artwork needs that header to
-        // pick the right one. Formats with no header fall back to matching by
-        // base name, which is all an LRC or a bare MP3 can offer.
-        const chosenMedia = selectKaraokeStageMedia(selection.audio, files, {
-          coverFileName: parsed?.coverFileName,
-          backgroundFileName: parsed?.backgroundFileName,
-          videoFileName: parsed?.videoFileName,
-        });
-        // Only the three that won are read off disk. Fetching every picture in
-        // the folder would mean loading the losing candidates too, and a song
-        // folder can hold a 60MB video that the stage never shows.
-        const [cover, background, video] = await Promise.all([
-          materializeRestoredMedia(chosenMedia.cover),
-          materializeRestoredMedia(chosenMedia.background),
-          materializeRestoredMedia(chosenMedia.video),
-        ]);
-        const stageMedia = { cover, background, video };
-        const chords = await readKaraokeSongChords(
-          selection.audio,
-          files,
-          parsed,
-          materializeRestoredMedia,
+        setSong(
+          await assembleKaraokeSong({
+            audioFile,
+            importedAudio: selection.audio,
+            lyrics: selection.lyrics,
+            parsed,
+            files,
+          }),
         );
-        const mediaAsset = (
-          role: 'cover' | 'background' | 'video',
-          file: File | undefined,
-        ) =>
-          file
-            ? [
-                {
-                  id: `${id}-${role}`,
-                  role,
-                  file,
-                  extension: karaokeFileExtension(file.name),
-                },
-              ]
-            : [];
-        setSong({
-          id,
-          title: parsed?.title || displayTitleFromFile(audioFile),
-          artist: parsed?.artist,
-          assets: [
-            {
-              id: `${id}-audio`,
-              role: 'audio',
-              file: audioFile,
-              extension: karaokeFileExtension(audioFile.name),
-            },
-            ...mediaAsset('cover', stageMedia.cover),
-            ...mediaAsset('background', stageMedia.background),
-            ...mediaAsset('video', stageMedia.video),
-            ...(selection.lyrics
-              ? [
-                  {
-                    id: `${id}-lyrics`,
-                    role: 'lyrics' as const,
-                    file: selection.lyrics,
-                    extension: karaokeFileExtension(selection.lyrics.name),
-                  },
-                ]
-              : []),
-          ],
-          timingPrecision: parsed?.timingPrecision ?? 'none',
-          lines: parsed?.lines ?? [],
-          chords,
-          pitch: parsed?.pitch ?? { kind: 'none', reason: 'missing' },
-          meta: {
-            sourceFormat: parsed?.sourceFormat ?? 'audio-only',
-            gapMs: parsed?.gapMs ?? 0,
-            videoGapMs: parsed?.videoGapMs,
-            bpm: parsed?.bpm,
-            language: parsed?.language,
-          },
-        });
         playhead.write(0);
         setDurationMs(0);
         setStatus('ready');
@@ -330,9 +307,42 @@ export const useKaraokeSession = (isActive: boolean) => {
     [playhead, revokeObjectUrl, song],
   );
 
+  const seek = useCallback(
+    (nextMs: number) => {
+      const audio = audioRef.current;
+      if (!audio) {
+        return;
+      }
+      // The element keeps the place whichever engine plays: it is the
+      // fallback, and is handed the song back where it stands.
+      const target = clampKaraokeTime(
+        nextMs,
+        Number.isFinite(audio.duration) ? audio.duration * 1_000 : 0,
+      );
+      new TrackClock(audio).seek(target);
+      deckRef.current.seek(target);
+      playhead.write(readPlayheadMs());
+    },
+    [playhead, readPlayheadMs],
+  );
+
   const play = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio || !song) {
+      return;
+    }
+    if (deckRef.current.canPlay) {
+      // Claimed FIRST, on the host's path. The claim is what pauses the
+      // Library and lends the Karaoke the host (`hostLease.ts`); the deck
+      // starts once the host has the song. The element is not started at
+      // all: started here, the song came out of Chromium for as long as the
+      // host took to engage, and then a second time out of the host.
+      claimPlayback('karaoke');
+      setError(undefined);
+      if (deckRef.current.ended || statusRef.current === 'ended') {
+        seek(0);
+      }
+      setStatus('playing');
       return;
     }
     try {
@@ -347,14 +357,18 @@ export const useKaraokeSession = (isActive: boolean) => {
       setError('playback');
       setStatus('error');
     }
-  }, [song]);
+  }, [seek, song]);
 
   const pause = useCallback(() => {
     const audio = audioRef.current;
-    if (audio) {
+    if (audio && !audio.paused) {
       new TrackClock(audio).pause();
-      releasePlayback('karaoke');
     }
+    // Said here rather than left to the element's `pause` event: the host has
+    // no element event, and the element it stands down pauses with nobody
+    // having pressed anything.
+    setStatus((current) => (current === 'playing' ? 'paused' : current));
+    releasePlayback('karaoke');
   }, []);
 
   const togglePlayback = useCallback(() => {
@@ -370,99 +384,38 @@ export const useKaraokeSession = (isActive: boolean) => {
   // lyrics and their place in it, and gets them back on the next press.
   useEffect(() => registerPlayer('karaoke', pause), [pause]);
 
-  const seek = useCallback(
-    (nextMs: number) => {
-      const audio = audioRef.current;
-      if (!audio) {
-        return;
-      }
-      const clock = new TrackClock(audio);
-      clock.seek(nextMs);
-      playhead.write(clock.read().nowMs);
-    },
-    [playhead],
-  );
-
   const restart = useCallback(() => {
     seek(0);
   }, [seek]);
 
   const setBackingScale = useCallback((scale: number) => {
-    backingScaleRef.current = Math.min(1, Math.max(0, scale));
+    const clamped = Math.min(1, Math.max(0, scale));
+    backingScaleRef.current = clamped;
+    setBackingScaleState(clamped);
     if (audioRef.current) {
-      audioRef.current.volume = backingScaleRef.current;
+      audioRef.current.volume = clamped;
     }
   }, []);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) {
-      return undefined;
-    }
-    const syncTime = () => {
-      const snapshot = new TrackClock(audio).read();
-      playhead.write(snapshot.nowMs);
-      setDurationMs(snapshot.durationMs);
-    };
-    const onPlaying = () => {
-      syncTime();
-      setStatus('playing');
-    };
-    const onPause = () => {
-      syncTime();
-      if (!audio.ended && audio.currentSrc) {
-        setStatus((current) => (current === 'ready' ? current : 'paused'));
-      }
-    };
-    const onTimeUpdate = () => {
-      // The visible stage owns its smoother frame clock below. Off-tab, this
-      // native media event is enough to keep the one transport readout honest
-      // without running an animation loop for DOM that is not mounted.
-      if (!isActiveRef.current) {
-        syncTime();
-      }
-    };
-    const onEnded = () => {
-      syncTime();
-      setStatus('ended');
-    };
-    const onReady = () => {
-      syncTime();
-      setSong((current) =>
-        current ? { ...current, durationMs: audio.duration * 1_000 } : current,
-      );
-      setStatus((current) => (current === 'loading' ? 'ready' : current));
-    };
-    const onError = () => {
-      releasePlayback('karaoke');
-      setError('playback');
-      setStatus('error');
-    };
-
-    audio.addEventListener('playing', onPlaying);
-    audio.addEventListener('pause', onPause);
-    audio.addEventListener('timeupdate', onTimeUpdate);
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('loadedmetadata', onReady);
-    audio.addEventListener('durationchange', onReady);
-    audio.addEventListener('seeked', syncTime);
-    audio.addEventListener('error', onError);
-    return () => {
-      audio.removeEventListener('playing', onPlaying);
-      audio.removeEventListener('pause', onPause);
-      audio.removeEventListener('timeupdate', onTimeUpdate);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('loadedmetadata', onReady);
-      audio.removeEventListener('durationchange', onReady);
-      audio.removeEventListener('seeked', syncTime);
-      audio.removeEventListener('error', onError);
-    };
-  }, [playhead]);
+  useKaraokeMediaEvents({
+    audioRef,
+    playhead,
+    isActiveRef,
+    deck,
+    deckRef,
+    status,
+    statusRef,
+    readPlayheadMs,
+    setStatus,
+    setSong,
+    setError,
+    setDurationMs,
+  });
 
   useEffect(() => {
     if (!isActive || status !== 'playing') {
-      if (isActive && audioRef.current) {
-        playhead.write(new TrackClock(audioRef.current).read().nowMs);
+      if (isActive) {
+        playhead.write(readPlayheadMs());
       }
       return undefined;
     }
@@ -471,15 +424,13 @@ export const useKaraokeSession = (isActive: boolean) => {
     const renderFrame = (renderTime: number) => {
       if (renderTime - lastRender >= PLAYHEAD_RENDER_INTERVAL_MS) {
         lastRender = renderTime;
-        if (audioRef.current) {
-          playhead.write(new TrackClock(audioRef.current).read().nowMs);
-        }
+        playhead.write(readPlayheadMs());
       }
       frame = window.requestAnimationFrame(renderFrame);
     };
     frame = window.requestAnimationFrame(renderFrame);
     return () => window.cancelAnimationFrame(frame);
-  }, [isActive, playhead, status]);
+  }, [isActive, playhead, readPlayheadMs, status]);
 
   useEffect(
     () => () => {
@@ -492,6 +443,8 @@ export const useKaraokeSession = (isActive: boolean) => {
     },
     [revokeObjectUrl],
   );
+
+  const { hostPlaysVocals } = deck;
 
   // One object for as long as nothing in it changes. The workspace's playlist
   // callbacks depend on it, and a new object every render would make each of
@@ -516,6 +469,9 @@ export const useKaraokeSession = (isActive: boolean) => {
       seek,
       restart,
       setBackingScale,
+      setGuideVocalLevel,
+      /** The voice is the host's layer; the page's own copy stays silent. */
+      hostPlaysVocals,
     }),
     [
       song,
@@ -534,6 +490,7 @@ export const useKaraokeSession = (isActive: boolean) => {
       seek,
       restart,
       setBackingScale,
+      hostPlaysVocals,
     ],
   );
 };

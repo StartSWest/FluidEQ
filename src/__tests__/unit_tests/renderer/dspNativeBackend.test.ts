@@ -42,6 +42,11 @@ const recordingBridge = (overrides: Partial<INativeBackendBridge> = {}) => {
     setDspHostCrossfadeTable: record('crossfadeTable', true),
     setDspHostVolume: record('volume', true),
     setDspHostNoiseProfile: record('noiseProfile', true),
+    // A host built before layers, as every host so far is.
+    supportsDspHostLayers: record('layers', false),
+    loadDspHostLayer: record('loadLayer', false),
+    setDspHostDeckGain: record('deckGain', false),
+    setDspHostLayerGain: record('layerGain', false),
     ...overrides,
   };
   return { bridge, calls };

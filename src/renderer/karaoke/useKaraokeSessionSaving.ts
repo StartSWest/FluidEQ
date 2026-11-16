@@ -21,6 +21,7 @@ import {
   writeKaraokeProgress,
 } from './karaokeEditorPersistence';
 import { TKaraokePlaybackStatus } from './useKaraokeSession';
+import { IKaraokeLiveValue } from './karaokeLiveValue';
 
 interface IKaraokeSessionSavingOptions {
   /** False until last session has been read back; nothing is saved before. */
@@ -32,7 +33,10 @@ interface IKaraokeSessionSavingOptions {
   playheadRef: RefObject<number>;
   /** The stage, watched for going out of sight while the window stays up. */
   surfaceRef: RefObject<HTMLElement | null>;
+  /** Seeked whichever engine plays: it keeps the place as the fallback. */
   audioRef: RefObject<HTMLAudioElement>;
+  /** The song's place, from whichever engine is playing it. */
+  playhead: IKaraokeLiveValue<number>;
   status: TKaraokePlaybackStatus;
   playlist: readonly IKaraokePlaylistItem[];
   selectedPlaylistId?: string;
@@ -99,6 +103,7 @@ const useKaraokeSessionSaving = ({
   playheadRef,
   surfaceRef,
   audioRef,
+  playhead,
   status,
   playlist,
   selectedPlaylistId,
@@ -226,23 +231,27 @@ const useKaraokeSessionSaving = ({
   // `PROGRESS_STEP_S` of the song. Nothing else writes during continuous
   // playback, so a crash, End task or a power cut three minutes into a song
   // came back to where the song was chosen or last paused. Driven by the
-  // element's own `timeupdate`, never a clock, and main is asked nothing.
+  // playhead, never a clock, and main is asked nothing. It was the element's
+  // `timeupdate`, which says nothing while the Library's native player has
+  // the song and the element stands paused.
+  // Only while it plays, as `timeupdate` was: the playhead also moves when a
+  // song is loaded and starts at zero, and a load is no place to save.
+  const isPlayingRef = useRef(status === 'playing');
+  isPlayingRef.current = status === 'playing';
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) {
-      return undefined;
-    }
     let step: number | undefined;
-    const followPlayback = () => {
-      const next = Math.floor(audio.currentTime / PROGRESS_STEP_S);
+    return playhead.subscribe(() => {
+      if (!isPlayingRef.current) {
+        return;
+      }
+      const playheadMs = playhead.read();
+      const next = Math.floor(playheadMs / 1_000 / PROGRESS_STEP_S);
       if (next !== step) {
         step = next;
-        writeProgressAt(Math.round(audio.currentTime * 1_000));
+        writeProgressAt(Math.round(playheadMs));
       }
-    };
-    audio.addEventListener('timeupdate', followPlayback);
-    return () => audio.removeEventListener('timeupdate', followPlayback);
-  }, [audioRef, writeProgressAt]);
+    });
+  }, [playhead, writeProgressAt]);
 
   // The stage going out of sight: another tab, or the amp over the window.
   useEffect(() => {

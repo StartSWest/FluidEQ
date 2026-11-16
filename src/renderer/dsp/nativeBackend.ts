@@ -64,6 +64,13 @@ export interface INativeBackendBridge {
   setDspHostNoiseProfile: (
     values: readonly number[] | null,
   ) => Promise<boolean>;
+  supportsDspHostLayers: () => Promise<boolean>;
+  loadDspHostLayer: (
+    deck: number,
+    mediaPath: string | null,
+  ) => Promise<boolean>;
+  setDspHostDeckGain: (deck: number, gain: number) => Promise<boolean>;
+  setDspHostLayerGain: (deck: number, gain: number) => Promise<boolean>;
 }
 
 export interface INativeBackendController {
@@ -157,6 +164,19 @@ export interface INativeTransport {
    * DSP setting, and it belongs to the same object that owns play and seek.
    */
   setVolume: (volume: number) => Promise<boolean>;
+  /**
+   * Whether the host plays a deck's LAYER — a second file in lockstep with
+   * the deck's own, each at a gain of its own: the Karaoke's backing and its
+   * separated voice. False from every host built before layers, which is
+   * every host so far (`setDeckGain` in main's `wire.ts` holds the contract).
+   */
+  supportsLayers: () => Promise<boolean>;
+  /** A file layered on `deck`, or the layer taken off (`undefined`). */
+  loadLayer: (deck: number, mediaPath: string | undefined) => Promise<boolean>;
+  /** The gain of the deck's own file, 0 to 1. */
+  setDeckGain: (deck: number, gain: number) => Promise<boolean>;
+  /** The gain of the deck's layer, 0 to 1. */
+  setLayerGain: (deck: number, gain: number) => Promise<boolean>;
 }
 
 /**
@@ -357,6 +377,11 @@ export const createNativeBackendController = (
         bridge.setDspHostNoiseProfile(
           profile ? encodeNoiseProfile(profile) : null,
         ),
+      supportsLayers: () => bridge.supportsDspHostLayers(),
+      loadLayer: (deck, mediaPath) =>
+        bridge.loadDspHostLayer(deck, mediaPath ?? null),
+      setDeckGain: (deck, gain) => bridge.setDspHostDeckGain(deck, gain),
+      setLayerGain: (deck, gain) => bridge.setDspHostLayerGain(deck, gain),
     },
   };
 };
