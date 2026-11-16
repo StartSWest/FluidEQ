@@ -161,7 +161,7 @@ it under the terms of the GNU General Public License version 3 or later.
     height: auto;
     margin: 4px 0;
     border-radius: $radius-s;
-    box-shadow: 0 6px 18px rgba($black, 0.3);
+    box-shadow: none;
   }
 
   // GitHub wraps an image in a link to itself; the link must not draw an
@@ -190,7 +190,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
     &:hover img {
       transform: translateY(-1px);
-      box-shadow: 0 10px 26px rgba($black, 0.38);
+      box-shadow: none;
     }
 
     &:focus-visible {

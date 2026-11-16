@@ -190,7 +190,7 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-bold;
   background: $white;
   border-color: $white;
-  box-shadow: 0 10px 28px rgba($black, 0.35);
+  box-shadow: none;
 
   &:hover:not(:disabled) {
     color: #1f1f1f;

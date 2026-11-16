@@ -742,7 +742,7 @@ $video-sign-out-said: 4s;
   border: 1px solid color-mix(in srgb, $secondary-light 42%, transparent);
   border-radius: $radius-m;
   background: color-mix(in srgb, $surface-menu-top 98%, transparent);
-  box-shadow: 0 16px 42px rgba($black, 0.5);
+  box-shadow: none;
 
   &.is-completed {
     border-color: rgba(#55f2bd, 0.52);
@@ -904,7 +904,7 @@ $video-sign-out-said: 4s;
   border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
   border-radius: $radius-m;
   background: color-mix(in srgb, $surface-menu-top 97%, transparent);
-  box-shadow: 0 16px 40px rgba($black, 0.45);
+  box-shadow: none;
 
   > div {
     display: grid;

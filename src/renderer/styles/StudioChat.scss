@@ -252,7 +252,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid $card-edge;
   border-radius: 999px;
   background: $surface-floating;
-  box-shadow: 0 6px 18px rgba($black, 0.35);
+  box-shadow: none;
   cursor: pointer;
   transform: translateY(calc(-100% - 4px));
   pointer-events: auto;

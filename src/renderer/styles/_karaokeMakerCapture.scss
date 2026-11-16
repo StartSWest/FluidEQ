@@ -41,7 +41,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // playhead show through the words, and a panel over a moving canvas read
   // as a smear (Ivan, 2026-11-15: "the modals that have bad transparency").
   @include solid-panel-face;
-  box-shadow: 0 20px 54px rgba($black, 0.54);
+  box-shadow: none;
   will-change: transform;
 
   &.is-end {
@@ -73,7 +73,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: $surface-menu-floor;
   border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-pill;
-  box-shadow: 0 7px 16px rgba($black, 0.35);
+  box-shadow: none;
   transform: translateX(-50%);
   cursor: grab;
   touch-action: none;
@@ -91,7 +91,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       ),
       $surface-menu-floor;
     border-color: $border-field-hover;
-    box-shadow: 0 8px 20px rgba($black, 0.4);
+    box-shadow: none;
   }
 
   > span {
@@ -147,7 +147,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-primary;
   // Solid, as the capture panel above.
   @include solid-panel-face;
-  box-shadow: 0 20px 54px rgba($black, 0.54);
+  box-shadow: none;
   will-change: transform;
 
   &.is-word-selection {

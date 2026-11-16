@@ -222,7 +222,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 0;
   overflow: hidden;
   border-radius: $radius-m;
-  box-shadow: 0 4px 12px rgba($black, 0.22);
+  box-shadow: none;
 
   img {
     display: block;

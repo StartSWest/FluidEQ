@@ -363,7 +363,7 @@ $range-ticks-short: repeating-linear-gradient(
     place-items: center;
     border-radius: $radius-xs;
     background: color-mix(in srgb, $surface-menu 96%, transparent);
-    box-shadow: 0 6px 18px rgba($black, 0.35);
+    box-shadow: none;
     opacity: 0;
     cursor: pointer;
   }

@@ -186,7 +186,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-primary;
     border-color: rgba($edge-tint, 0.16);
     background: color-mix(in srgb, $surface-panel 55%, transparent);
-    box-shadow: 0 6px 18px rgba($black, 0.28);
+    box-shadow: none;
     backdrop-filter: blur(22px) saturate(130%);
     -webkit-backdrop-filter: blur(22px) saturate(130%);
     font-weight: $weight-semibold;
@@ -202,7 +202,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: $white;
       border-color: rgba($edge-tint, 0.3);
       background: color-mix(in srgb, $surface-menu-top 80%, transparent);
-      box-shadow: 0 8px 22px rgba($black, 0.34);
+      box-shadow: none;
       transform: none;
       filter: none;
     }

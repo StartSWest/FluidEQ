@@ -236,7 +236,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($edge-tint, 0.18);
   border-radius: 50%;
   background: color-mix(in srgb, $surface-menu-top 82%, transparent);
-  box-shadow: 0 4px 14px rgba($black, 0.5);
+  box-shadow: none;
   opacity: 0;
   scale: 0.8;
   transition:

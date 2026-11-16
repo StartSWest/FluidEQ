@@ -717,7 +717,9 @@ $card-radius: $radius-m;
 // What a menu casts, floating over the page: short and soft, just enough to
 // lift it off what it opens over. It was 8px down and 20px of blur at 30%,
 // with a lit inner rim — a slab over the window.
-$menu-lift: 0 4px 12px rgba($black, 0.18);
+// No shadow under a menu (Ivan, 2026-11-16: "look at that black shadow on the
+// microphone, I want every interface flatter"): its edge says where it ends.
+$menu-lift: none;
 
 // A menu's edge: the cards' own, taken further toward the edge tint, so a
 // menu floating over cards of its own colour is drawn round rather than

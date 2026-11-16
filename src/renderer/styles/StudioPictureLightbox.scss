@@ -247,7 +247,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($edge-tint, 0.12);
   border-radius: 50%;
   background: color-mix(in srgb, $surface-menu-top 86%, transparent);
-  box-shadow: 0 10px 30px rgba($black, 0.45);
+  box-shadow: none;
   cursor: pointer;
   transition:
     $transition-control,

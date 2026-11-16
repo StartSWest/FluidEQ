@@ -194,7 +194,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // Its top right is the panel's own rounded corner, which a square sheet
     // stood over.
     border-top-right-radius: $card-radius;
-    box-shadow: -12px 0 28px -18px rgba($black, 0.55);
+    box-shadow: none;
     transform: translateX(0);
     transition:
       transform var(--up-next-move) $ease-out,

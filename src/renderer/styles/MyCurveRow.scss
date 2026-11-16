@@ -182,7 +182,7 @@
   border: 1px solid $card-edge;
   border-radius: $radius-m;
   background: $surface-panel;
-  box-shadow: 0 12px 30px rgba($black, 0.4);
+  box-shadow: none;
 
   // Each entry is its glyph and its words, the glyph in the accent's quiet
   // tone so a column of them reads as one list.

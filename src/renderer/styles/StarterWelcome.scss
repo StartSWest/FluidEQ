@@ -78,7 +78,7 @@ it under the terms of the GNU General Public License version 3 or later.
   object-fit: cover;
   border: 1px solid rgba($white, 0.12);
   border-radius: $radius-m;
-  box-shadow: 0 16px 34px rgba($black, 0.5);
+  box-shadow: none;
   filter: brightness(0.82);
 
   &.is-lead {
@@ -277,7 +277,7 @@ it under the terms of the GNU General Public License version 3 or later.
     object-fit: cover;
     border: 2px solid $surface-panel;
     border-radius: $radius-s;
-    box-shadow: 0 6px 14px rgba($black, 0.4);
+    box-shadow: none;
 
     & + img {
       margin-left: -18px;

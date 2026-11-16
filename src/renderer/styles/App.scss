@@ -955,7 +955,7 @@ select option {
     border: 1px solid $border-field;
     border-radius: $radius-s;
     background: color-mix(in srgb, $surface-menu-top 96%, transparent);
-    box-shadow: 0 10px 26px rgba($black, 0.45);
+    box-shadow: none;
     opacity: 0;
     visibility: hidden;
     white-space: nowrap;

@@ -50,7 +50,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($white, 0.08);
   border-radius: $radius-m;
   background: $surface-plot;
-  box-shadow: 0 12px 32px rgba($black, 0.38);
+  box-shadow: none;
 
   &:first-of-type {
     grid-row: span 2;

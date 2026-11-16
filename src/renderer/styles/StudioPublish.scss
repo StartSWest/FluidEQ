@@ -359,7 +359,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($white, 0.08);
   border-radius: $radius-m;
   background: $black;
-  box-shadow: 0 18px 44px rgba($black, 0.5);
+  box-shadow: none;
   isolation: isolate;
 }
 
@@ -567,7 +567,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $black;
   border-radius: 50%;
   background: $secondary-default;
-  box-shadow: 0 2px 6px rgba($black, 0.4);
+  box-shadow: none;
 
   svg {
     width: 12px;

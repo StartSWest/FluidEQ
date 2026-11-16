@@ -22,7 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // glass a row's title stood as a ghost behind the card's own words — the
   // drop's notice (`QueueDropNotice`) as much as the scan.
   background: var(--surface-menu-top);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  box-shadow: none;
 }
 
 // A drop's notice is a line of words beside its button, not the scan's two

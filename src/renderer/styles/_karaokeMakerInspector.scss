@@ -474,7 +474,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 22;
   top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 18px;
-  box-shadow: 0 18px 48px rgba($black, 0.42);
+  box-shadow: none;
 }
 
 // The failure replaces the progress block inside the lyrics dialog. The base
@@ -498,7 +498,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 13px 14px;
   // A panel floating over the editor, solid as the capture panel is.
   @include solid-panel-face;
-  box-shadow: 0 18px 48px rgba($black, 0.42);
+  box-shadow: none;
 }
 
 // The advanced-tools popover, split into "voice and music" and "lyrics and

@@ -162,7 +162,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 4.5rem;
   border: 2px solid $surface-panel;
   border-radius: $radius-l * 1.5;
-  box-shadow: 0 8px 22px rgba($black, 0.45);
+  box-shadow: none;
 
   > .account__avatar {
     font-size: 1.55rem;

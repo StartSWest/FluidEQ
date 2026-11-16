@@ -225,7 +225,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: color-mix(in srgb, $surface-panel 90%, transparent);
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  box-shadow: 0 8px 24px rgba($black, 0.35);
+  box-shadow: none;
   backdrop-filter: blur(8px);
 }
 
