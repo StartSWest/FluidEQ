@@ -32,6 +32,8 @@ import { MAX_LYRIC_TEXT_SIZE, MIN_LYRIC_TEXT_SIZE } from './karaokeLyricText';
 import { type useKaraokeMicrophoneInput } from './useKaraokeMicrophone';
 
 interface IKaraokeStageToolbarProps {
+  /** What stands before the song's name: the folded playlist's button. */
+  leading?: ReactNode;
   song: IKaraokeSong | undefined;
   guides: TKaraokeStageGuides;
   setGuides: Dispatch<SetStateAction<TKaraokeStageGuides>>;
@@ -96,6 +98,7 @@ const Segment = ({
  * Adding and clearing songs moved to the list's +.
  */
 const KaraokeStageToolbar = ({
+  leading,
   song,
   guides,
   setGuides,
@@ -140,6 +143,7 @@ const KaraokeStageToolbar = ({
       role="toolbar"
       aria-label={t('karaoke.actions')}
     >
+      {leading}
       <p className="karaoke-stage-bar__crumb">
         <span>{t('tabs.karaoke')}</span>
         {song && (

@@ -206,25 +206,35 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// A narrow stage: the Maker keeps its pencil and loses its words, then the
-// song's name takes a row of its own above the switches.
-@container karaoke-stage-bar (max-width: 720px) {
-  .karaoke-stage-bar__maker {
+// A narrow stage: the two labelled buttons fold to their icons before the
+// bar wraps. With the folded playlist's button in the bar as well, a window
+// of 900px put the last two icons on a row of their own.
+@container karaoke-stage-bar (max-width: 900px) {
+  .karaoke-stage-bar__maker,
+  .karaoke-playlist__expand {
     padding-inline: 8px;
 
     > span {
       display: none;
     }
   }
+}
 
+// Narrower, the switches tighten, then the song's name takes a row of its
+// own above them.
+@container karaoke-stage-bar (max-width: 720px) {
   .karaoke-stage-bar__segment {
     padding: 0 8px;
   }
 }
 
+// The name's row keeps room for the folded playlist's button beside it (its
+// 36px and the bar's 8px gap): at the whole row the button stood alone on a
+// row above the name. The switches after the name are wider than that room,
+// so they still start the next row.
 @container karaoke-stage-bar (max-width: 560px) {
   .karaoke-stage-bar__crumb {
-    flex-basis: 100%;
+    flex: 1 0 calc(100% - 44px);
   }
 }
 

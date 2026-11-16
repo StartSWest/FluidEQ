@@ -199,8 +199,27 @@ const KaraokeWorkspaceView = ({
     setIsMakerOpen(true);
   }, [cancelCountIn, session, setIsMakerOpen, setRestoreMakerDraft, song]);
 
+  // In the stage's bar, ahead of the song's name: it floated over the
+  // stage's corner and stood on the name (Ivan, 2026-11-16: "fix this too,
+  // name on top of floating list button").
+  const playlistExpand = playlist.length > 0 && layout.playlistCollapsed && (
+    <button
+      type="button"
+      className="karaoke-playlist__expand"
+      aria-label={t('karaoke.playlist.expand')}
+      title={t('karaoke.playlist.expand')}
+      onClick={() => updateLayout({ playlistCollapsed: false }, true)}
+    >
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M4 5.5h6M4 10h6M4 14.5h6M12.5 4.5 18 10l-5.5 5.5" />
+      </svg>
+      <span>{t('karaoke.playlist.title')}</span>
+    </button>
+  );
+
   const stageToolbar = (
     <KaraokeStageToolbar
+      leading={playlistExpand}
       song={song}
       guides={guides}
       setGuides={setGuides}
@@ -525,20 +544,6 @@ const KaraokeWorkspaceView = ({
               isPlaying={status === 'playing'}
               isGraphOverlay={isGraphOverlay}
             />
-          )}
-          {playlist.length > 0 && layout.playlistCollapsed && (
-            <button
-              type="button"
-              className="karaoke-playlist__expand"
-              aria-label={t('karaoke.playlist.expand')}
-              title={t('karaoke.playlist.expand')}
-              onClick={() => updateLayout({ playlistCollapsed: false }, true)}
-            >
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M4 5.5h6M4 10h6M4 14.5h6M12.5 4.5 18 10l-5.5 5.5" />
-              </svg>
-              <span>{t('karaoke.playlist.title')}</span>
-            </button>
           )}
           {!(isFullScreen && isGraphOverlay) && stageToolbar}
           {song ? (

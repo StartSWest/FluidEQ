@@ -216,9 +216,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Out of the fold it just closed: the pill stands on the stage's left edge, so
-// it rides that edge across while the column shuts and arrives, from the
-// side the list went, as the fold ends. The reduced-motion fold is shorter,
+// Out of the fold it just closed: the pill stands at the stage's left edge,
+// so it arrives from the side the list went, as the fold ends. The reduced-motion fold is shorter,
 // and so is the wait. Keyed off the tab showing, like the stage's cascade, so
 // it arrives again with the rest of the tab on the way back to it.
 @keyframes karaoke-playlist-pill-in {
@@ -233,11 +232,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     calc(var(--playlist-move) * 0.6) backwards;
 }
 
+// In the stage's bar, before the song's name, at the bar's control height.
 .karaoke-playlist__expand {
-  position: absolute;
-  z-index: 4;
-  top: 12px;
-  left: 12px;
+  flex: 0 0 auto;
   gap: 7px;
   height: 30px;
   padding: 0 10px 0 8px;
