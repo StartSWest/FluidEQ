@@ -943,3 +943,36 @@ it under the terms of the GNU General Public License version 3 or later.
     transform-origin: left bottom;
   }
 }
+
+// A full-screen graph over the Karaoke is the session's background and
+// nothing more (Ivan, 2026-11-16: "the graph needs to show behind the
+// playlist, not on top of it, and the lyrics too; the graph is only a
+// background for the karaoke session"). The page is lifted over the graph,
+// clear where it has no surface of its own, so the drawing runs behind the
+// words and the playlist card; the Karaoke's own picture stands down, since
+// the graph is the picture now. A double click anywhere still leaves full
+// screen (`App`'s capture on the column).
+.center-workspace.is-graph-full:has(
+    .workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden)
+  ) {
+  > .middle-content {
+    position: relative;
+    z-index: 3;
+  }
+
+  > .graph-wrapper {
+    pointer-events: none;
+  }
+
+  .workspace-tab-panel--karaoke.is-graph-overlay {
+    background: none;
+
+    .karaoke-workspace__stage {
+      background: none;
+    }
+
+    .karaoke-backdrop {
+      display: none;
+    }
+  }
+}
