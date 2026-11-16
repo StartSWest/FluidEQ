@@ -245,14 +245,6 @@ it under the terms of the GNU General Public License version 3 or later.
   user-select: none;
 }
 
-.feature-tour__check {
-  width: 14px;
-  height: 14px;
-  margin: 0;
-  accent-color: $secondary-default;
-  cursor: pointer;
-}
-
 // A link, not a button: it is the way to the longer document, and it must
 // not compete with Next.
 .feature-tour__notes {

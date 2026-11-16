@@ -338,6 +338,68 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   backdrop-filter: none;
 }
 
+// The one checkbox (Ivan, 2026-11-15: "make smaller and then replace it in
+// the whole app", "better aligned with the text"): a 14px box with the
+// toggles' well, hairline and small corner, filled with the accent when on.
+//
+// Placed on the first line of its label whatever the label wraps to: the
+// box is centred on one line box (`1lh`, the label's own line height, since
+// inputs inherit the font) and then lowered by 0.08em, because the line box
+// centre is not where text looks centred - on Segoe UI the middle of the
+// capitals and the x-height sits 0.06-0.16em below it, and the 18px box this
+// replaced read as riding high beside its words.
+@mixin checkbox-face {
+  $size: 14px;
+  $centre: calc((1lh - #{$size}) / 2);
+
+  display: inline-grid;
+  width: $size;
+  height: $size;
+  margin: calc(#{$centre} + 0.08em) 0 calc(#{$centre} - 0.08em);
+  flex: 0 0 auto;
+  align-self: flex-start;
+  place-items: center;
+  appearance: none;
+  border: 1px solid $border-control;
+  border-radius: $radius-2xs;
+  background: $track-well;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &::after {
+    width: 4px;
+    height: 7px;
+    margin-top: -2px;
+    border: solid $surface-base;
+    border-width: 0 1.5px 1.5px 0;
+    opacity: 0;
+    transform: rotate(45deg);
+    content: '';
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $secondary-light;
+  }
+
+  &:checked {
+    border-color: $secondary-default;
+    background: $secondary-default;
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
 // Quiet, outline-only button (titlebar actions, graph overlay controls).
 @mixin ghost-button {
   // The quiet button, everywhere: the same face as `.button.subtle` and as

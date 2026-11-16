@@ -409,53 +409,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 7px;
   color: $text-muted;
   font-size: $text-lead;
-
-  // The toggles' face on a box (Ivan, 2026-11-15: "the borders of this check,
-  // make it look like the toggles"): the switch's well and hairline at rest,
-  // its accent edge and fill when on, the same small corner.
-  input[type='checkbox'] {
-    display: grid;
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    flex: 0 0 auto;
-    place-items: center;
-    appearance: none;
-    border: 1px solid $border-subtle;
-    border-radius: $radius-2xs;
-    background: $track-well;
-    cursor: pointer;
-    transition: $transition-control;
-
-    &::after {
-      width: 5px;
-      height: 9px;
-      margin-top: -2px;
-      border: solid $surface-base;
-      border-width: 0 2px 2px 0;
-      opacity: 0;
-      transform: rotate(45deg);
-      content: '';
-    }
-
-    &:hover {
-      border-color: $secondary-light;
-    }
-
-    &:checked {
-      border-color: $secondary-default;
-      background: $secondary-default;
-
-      &::after {
-        opacity: 1;
-      }
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-      outline: none;
-    }
-  }
 }
 
 .karaoke-maker__export-wrap {

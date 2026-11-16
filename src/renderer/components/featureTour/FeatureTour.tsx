@@ -288,7 +288,6 @@ export default function FeatureTour({
                   <input
                     id="feature-tour-tick"
                     type="checkbox"
-                    className="feature-tour__check"
                     checked={dontShowAgain}
                     onChange={(event) => setDontShowAgain(event.target.checked)}
                   />

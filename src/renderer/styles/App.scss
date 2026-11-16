@@ -216,6 +216,13 @@ button {
 // wrapper owns the surface and the inner <input> must stay transparent —
 // could not turn it off without an `!important`.
 
+// Every checkbox in the app wears the one face, at no specificity so a
+// component can still place it. The switch draws its own face over a hidden
+// checkbox and is left alone.
+:where(input[type='checkbox']:not(.switch-checkbox)) {
+  @include checkbox-face;
+}
+
 // Boxes you type into take no hover at all — see `field-static` in
 // _theme.scss for why, and why nothing may add one back.
 input:where(:not([type='range'], [type='checkbox'], [type='radio'])),
