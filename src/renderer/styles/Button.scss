@@ -282,30 +282,39 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Rainbow mode keeps the filled span for the suggested action: the accent
-// between the palette's greener and bluer ends (`--control-fill`, set on
-// `:root.is-euphoric`), with dark ink, as before the Deep primary. A span
-// is a fill or it is nothing; at a quarter strength it would be mud.
+// Rainbow mode draws the Deep primary too, its edge in the mode's span: the
+// accent between the palette's greener and bluer ends (`--control-fill`, set
+// on `:root.is-euphoric`), laid under the dark fill and showing only through
+// the transparent border. Keeping the old filled span here left every primary
+// as bright as before for anyone in Rainbow mode (Ivan, 2026-11-15: "and the
+// buttons?", in Rainbow mode, after the Deep primary had shipped).
 :root.is-euphoric .button:not(.subtle, .danger) {
-  color: $surface-base;
   border-color: transparent;
-  background: $secondary-default var(--control-fill) border-box;
-
-  path:not([fill='none']) {
-    fill: $surface-well;
-  }
-
-  &:hover:not([aria-disabled='true']):not(:disabled),
-  &:active:not([aria-disabled='true']):not(:disabled) {
-    color: $surface-base;
-    background: $secondary-default var(--control-fill) border-box;
-  }
+  background:
+    linear-gradient(
+        color-mix(in srgb, $secondary-default 24%, $surface-base),
+        color-mix(in srgb, $secondary-default 24%, $surface-base)
+      )
+      padding-box,
+    $secondary-default var(--control-fill) border-box;
 
   &:hover:not([aria-disabled='true']):not(:disabled) {
-    filter: brightness(1.1);
+    background:
+      linear-gradient(
+          color-mix(in srgb, $secondary-default 34%, $surface-base),
+          color-mix(in srgb, $secondary-default 34%, $surface-base)
+        )
+        padding-box,
+      $secondary-default var(--control-fill) border-box;
   }
 
   &:active:not([aria-disabled='true']):not(:disabled) {
-    filter: brightness(0.9);
+    background:
+      linear-gradient(
+          color-mix(in srgb, $secondary-default 18%, $surface-base),
+          color-mix(in srgb, $secondary-default 18%, $surface-base)
+        )
+        padding-box,
+      $secondary-default var(--control-fill) border-box;
   }
 }
