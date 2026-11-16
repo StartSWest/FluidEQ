@@ -86,6 +86,25 @@ $studio-hair: color-mix(in srgb, $edge-tint 8%, transparent);
 // grid have too much padding").
 $library-gutter: 12px;
 
+// THE QUIET FIELD: the Library search's face (`.library-top__search`) for
+// any box typed into or picked from beside it - no fill, a hairline drawn
+// inside, the field corner, and the accent's edge while it has the caret.
+// The Karaoke Maker's fields wear it too (Ivan, 2026-11-15: "no background,
+// same as the search in the Library", "inputs suck").
+@mixin quiet-field {
+  color: $text-muted;
+  background: none;
+  border: 0;
+  border-radius: $radius-m;
+  box-shadow: inset 0 0 0 1px $studio-hair;
+  outline: 0;
+  transition: box-shadow 130ms ease;
+}
+
+@mixin quiet-field-focus {
+  box-shadow: inset 0 0 0 1px $border-field-focus;
+}
+
 // The chosen folder, the playing row: the accent, faint.
 $studio-select: color-mix(in srgb, $secondary-default 12%, transparent);
 

@@ -73,7 +73,14 @@ const KaraokeMakerLyricsPasteView = ({
   return (
     <section className="karaoke-maker__lyrics-source">
       <div className="karaoke-maker__lyrics-section-head">
-        <strong>{t('karaoke.maker.referenceLyrics')}</strong>
+        {/* A translation is named by its language: both columns said
+            "Reference lyrics", the box being typed into and the song's own
+            lines beside it. */}
+        <strong lang={isTranslationTarget ? targetLanguage : undefined}>
+          {isTranslationTarget
+            ? karaokeLanguageName(targetLanguage)
+            : t('karaoke.maker.referenceLyrics')}
+        </strong>
         <div className="karaoke-maker__lyrics-source-actions">
           <span title={lyricsFileName}>
             {lyricsFileName ??
