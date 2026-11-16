@@ -140,6 +140,8 @@ export const SETTING_STEMS: readonly string[] = [
   // language the next film opens in.
   'fluideq.library.subtitleStyle',
   'fluideq.library.subtitleLanguage',
+  // The subtitle file each video was last watched with.
+  'fluideq.library.subtitleByVideo',
   // Gaming's list size and folded state, separate from saved game profiles.
   'fluideq.gaming.gamesLayout',
   // Karaoke.

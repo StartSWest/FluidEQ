@@ -10,6 +10,7 @@ kept beside the video the id names.
 
 const handlers = new Map<string, (...args: unknown[]) => unknown>();
 const showOpenDialog = jest.fn();
+const trashItem = jest.fn((_file: string) => Promise.resolve());
 jest.mock('electron', () => ({
   app: { getPath: () => 'C:\\Users\\viewer\\Downloads' },
   ipcMain: {
@@ -18,6 +19,9 @@ jest.mock('electron', () => ({
   },
   dialog: {
     showOpenDialog: (...args: unknown[]) => showOpenDialog(...args),
+  },
+  shell: {
+    trashItem: (file: string) => trashItem(file),
   },
 }));
 jest.mock('../../../main/mainText', () => ({
@@ -113,5 +117,26 @@ describe('the Subtitles tab’s channels', () => {
         filters: [{ name: 'files.type.subtitles', extensions: ['srt', 'vtt'] }],
       }),
     );
+  });
+
+  it('sends a video’s subtitle file to the Recycle Bin, never deletes it, and nothing for a song', async () => {
+    trashItem.mockClear();
+    await expect(
+      call('library-subtitles-remove', 'video', 'Tide.srt'),
+    ).resolves.toEqual({ state: 'removed' });
+    expect(trashItem).toHaveBeenCalledWith(path.join(dir, 'Tide.srt'));
+    // The bin took it; the file itself was never deleted here.
+    expect(fs.existsSync(path.join(dir, 'Tide.srt'))).toBe(true);
+    trashItem.mockClear();
+    await expect(
+      call('library-subtitles-remove', 'song', 'Tide.srt'),
+    ).resolves.toEqual({ state: 'refused' });
+    await expect(
+      call('library-subtitles-remove', 'video', '..\\Tide.mp3'),
+    ).resolves.toEqual({ state: 'refused' });
+    await expect(
+      call('library-subtitles-remove', 'video', 42),
+    ).resolves.toEqual({ state: 'refused' });
+    expect(trashItem).not.toHaveBeenCalled();
   });
 });

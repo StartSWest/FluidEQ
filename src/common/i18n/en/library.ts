@@ -229,6 +229,11 @@ const library = {
   'library.subtitles.place.bottomRight': 'Bottom right',
   'library.subtitles.move': 'Move on the picture',
   'library.subtitles.moveDone': 'Done moving',
+  'library.subtitles.remove.label': 'Remove {name}',
+  'library.subtitles.remove.ask': 'Remove {name}? It goes to the bin.',
+  'library.subtitles.remove.confirm': 'Remove',
+  'library.subtitles.remove.cancel': 'Cancel',
+  'library.subtitles.remove.failed': '{name} couldn’t be removed.',
   'library.view.aria': 'How the library is shown',
   'library.browse.aria': 'What the library is showing',
 

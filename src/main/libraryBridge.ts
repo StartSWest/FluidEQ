@@ -36,7 +36,10 @@ import type {
   TLyricsPickResult,
   TLyricsRemoveResult,
 } from '../common/library/lyricsImport';
-import type { ILibrarySubtitlesAnswer } from '../common/library/subtitles';
+import type {
+  ILibrarySubtitlesAnswer,
+  TSubtitleRemoveResult,
+} from '../common/library/subtitles';
 import type { TSubtitleImportResult } from '../common/library/subtitleImport';
 
 /**
@@ -195,6 +198,15 @@ const libraryTrackSubtitles = (
     preferred,
   ) as Promise<ILibrarySubtitlesAnswer | undefined>;
 
+/** Moves one of a video's subtitle files, named as main listed it, to the
+ * Recycle Bin. */
+const removeLibrarySubtitle = (trackId: string, fileName: string) =>
+  ipcRenderer.invoke(
+    'library-subtitles-remove',
+    trackId,
+    fileName,
+  ) as Promise<TSubtitleRemoveResult>;
+
 /** Opens the system's file dialog for a `.srt` or `.vtt` and keeps the file
  * picked beside the video. */
 const pickLibrarySubtitlesFile = (trackId: string) =>
@@ -342,6 +354,7 @@ const libraryBridge = {
   libraryTrackSubtitles,
   pickLibrarySubtitlesFile,
   importLibrarySubtitles,
+  removeLibrarySubtitle,
   libraryTrackBytes,
   libraryTrackSignature,
   setLibraryTrackNormalization,

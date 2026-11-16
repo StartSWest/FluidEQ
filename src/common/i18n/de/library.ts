@@ -240,6 +240,12 @@ const library: Partial<Dictionary> = {
   'library.subtitles.place.bottomRight': 'Unten rechts',
   'library.subtitles.move': 'Auf dem Bild verschieben',
   'library.subtitles.moveDone': 'Fertig',
+  'library.subtitles.remove.label': '{name} entfernen',
+  'library.subtitles.remove.ask':
+    '{name} entfernen? Die Datei kommt in den Papierkorb.',
+  'library.subtitles.remove.confirm': 'Entfernen',
+  'library.subtitles.remove.cancel': 'Abbrechen',
+  'library.subtitles.remove.failed': '{name} konnte nicht entfernt werden.',
   'library.view.aria': 'Wie die Bibliothek angezeigt wird',
   'library.browse.aria': 'Was die Bibliothek gerade zeigt',
 

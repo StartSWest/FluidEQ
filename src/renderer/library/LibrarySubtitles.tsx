@@ -23,7 +23,12 @@ import { useTranslation } from '../utils/I18nContext';
 import LibrarySubtitleFiles from './LibrarySubtitleFiles';
 import LibrarySubtitleSettings from './LibrarySubtitleSettings';
 import LibrarySubtitlesFinder from './LibrarySubtitlesFinder';
-import { chooseSubtitle, useSubtitleChoice } from './subtitleChoice';
+import {
+  chooseSubtitle,
+  forgetSubtitleChoice,
+  useSubtitleChoice,
+} from './subtitleChoice';
+import { useSubtitleRemove } from './useSubtitleRemove';
 import { useSubtitlesImport } from './useSubtitlesImport';
 import { useTrackSubtitles } from './useTrackSubtitles';
 
@@ -65,6 +70,28 @@ const LibrarySubtitles = ({ track }: { track: ILibraryTrack }) => {
     [track.id, track.path, reload],
   );
   const subtitlesImport = useSubtitlesImport(track.id, onSaved);
+
+  // A file gone from beside the video. Taken from the one in use, the next
+  // in the list goes in use (the one before it, for the last), or nothing
+  // is chosen when it was the only one, and main then picks again.
+  const answer = read.state === 'ready' ? read.answer : undefined;
+  const onGone = useCallback(
+    (fileName: string) => {
+      const files = answer?.files ?? [];
+      if (answer?.shown?.fileName === fileName) {
+        const at = files.findIndex((file) => file.fileName === fileName);
+        const next = files[at + 1] ?? files[at - 1];
+        if (next === undefined || next.fileName === fileName) {
+          forgetSubtitleChoice(track.id);
+        } else {
+          chooseSubtitle(track.id, next.fileName, next.tag);
+        }
+      }
+      reload();
+    },
+    [answer, track.id, reload],
+  );
+  const remove = useSubtitleRemove(track.id, onGone);
 
   if (read.state === 'reading') {
     // Said only if the read is slow enough to notice (`_libraryLyrics.scss`).
@@ -121,6 +148,7 @@ const LibrarySubtitles = ({ track }: { track: ILibraryTrack }) => {
                 : undefined
             }
             onChoose={choose}
+            remove={remove}
           />
           <LibrarySubtitleSettings />
         </>

@@ -15,6 +15,7 @@ import {
   importPickedSubtitles,
   importVideoSubtitles,
   readTrackSubtitles,
+  removeVideoSubtitle,
 } from '../../../main/library/librarySubtitles';
 
 const SRT = [
@@ -146,5 +147,82 @@ describe("a video's subtitles", () => {
     } finally {
       fs.rmSync(downloads, { recursive: true, force: true });
     }
+  });
+
+  describe('removing one', () => {
+    /** The Recycle Bin, as `shell.trashItem` is to main: here the file is
+     * moved aside, so a test can see exactly what was sent. */
+    const binned: string[] = [];
+    const trash = jest.fn(async (file: string) => {
+      binned.push(path.basename(file));
+      fs.rmSync(file);
+    });
+    beforeEach(() => {
+      binned.length = 0;
+      trash.mockClear();
+    });
+
+    it('sends a listed subtitle file to the bin, and nothing else', async () => {
+      put('Pier.srt', SRT);
+      put('Pier.es.vtt', VTT);
+      await expect(
+        removeVideoSubtitle(video, 'Pier.es.vtt', trash),
+      ).resolves.toEqual({ state: 'removed' });
+      expect(binned).toEqual(['Pier.es.vtt']);
+      expect(fs.existsSync(path.join(dir, 'Pier.srt'))).toBe(true);
+      expect(fs.existsSync(video)).toBe(true);
+    });
+
+    it('refuses any name that is not one of the video’s subtitle files', async () => {
+      put('Pier.srt', SRT);
+      put('Other.srt', SRT);
+      put('notes.txt', 'keep me');
+      const outside = path.join(os.tmpdir(), 'fluideq-outside.srt');
+      fs.writeFileSync(outside, SRT);
+      try {
+        const names = [
+          'Other.srt',
+          'notes.txt',
+          'Pier.mp4',
+          '..\\fluideq-outside.srt',
+          '../fluideq-outside.srt',
+          outside,
+          'Missing.srt',
+        ];
+        const answers = await Promise.all(
+          names.map((name) => removeVideoSubtitle(video, name, trash)),
+        );
+        expect(answers).toEqual(names.map(() => ({ state: 'refused' })));
+        expect(trash).not.toHaveBeenCalled();
+        expect(fs.existsSync(outside)).toBe(true);
+        // The control: the video's own file is taken.
+        await expect(
+          removeVideoSubtitle(video, 'Pier.srt', trash),
+        ).resolves.toEqual({ state: 'removed' });
+      } finally {
+        fs.rmSync(outside, { force: true });
+      }
+    });
+
+    it('refuses a folder named like a subtitle file', async () => {
+      fs.mkdirSync(path.join(dir, 'Pier.en.srt'));
+      await expect(
+        removeVideoSubtitle(video, 'Pier.en.srt', trash),
+      ).resolves.toEqual({ state: 'refused' });
+      expect(trash).not.toHaveBeenCalled();
+    });
+
+    it('says it failed when the bin refuses, and the file stays', async () => {
+      put('Pier.srt', SRT);
+      const refusing = jest.fn(async () => {
+        throw new Error('the bin is not available');
+      });
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      await expect(
+        removeVideoSubtitle(video, 'Pier.srt', refusing),
+      ).resolves.toEqual({ state: 'failed' });
+      expect(fs.existsSync(path.join(dir, 'Pier.srt'))).toBe(true);
+      jest.restoreAllMocks();
+    });
   });
 });

@@ -237,6 +237,11 @@ const library: Partial<Dictionary> = {
   'library.subtitles.place.bottomRight': 'Внизу справа',
   'library.subtitles.move': 'Двигать на картинке',
   'library.subtitles.moveDone': 'Готово',
+  'library.subtitles.remove.label': 'Удалить {name}',
+  'library.subtitles.remove.ask': 'Удалить {name}? Файл попадёт в корзину.',
+  'library.subtitles.remove.confirm': 'Удалить',
+  'library.subtitles.remove.cancel': 'Отмена',
+  'library.subtitles.remove.failed': 'Не удалось удалить {name}.',
   'library.view.aria': 'Как отображается библиотека',
   'library.browse.aria': 'Что показывает библиотека',
 

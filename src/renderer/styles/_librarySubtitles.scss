@@ -86,6 +86,50 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 4px 6px 0;
 }
 
+// A row: the file's own button across the whole width, so the mark of the
+// one in use spans the row, and its Remove standing over the right end of
+// it (the lyric foot's square icon button). Seen on the row the pointer or
+// the keyboard is on, and always on the one in use; held in its place
+// while hidden, so nothing moves when it shows. Its question opens under
+// the row, inside it.
+// One grid cell holds the file and its Remove, so the button is centred on
+// the file's own height (one line or two) and not on the row's, which
+// grows when the question opens in the second.
+.library-subtitles__row {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+
+  > .library-subtitles__file {
+    grid-area: 1 / 1;
+    padding-right: 46px;
+  }
+
+  > .library-lyrics__remove.button {
+    z-index: 1;
+    grid-area: 1 / 1;
+    justify-self: end;
+    margin-right: 8px;
+    opacity: 0;
+    transition: opacity 130ms ease;
+  }
+
+  &:hover,
+  &:focus-within,
+  &.is-active {
+    > .library-lyrics__remove.button {
+      opacity: 1;
+    }
+  }
+
+  > .library-lyrics__ask {
+    grid-area: 2 / 1;
+    gap: 6px 10px;
+    padding: 6px 8px 10px 12px;
+  }
+}
+
 // The style: a column of settings, each name over its control so a long
 // translation never squeezes the control beside it.
 .library-subtitles__settings {

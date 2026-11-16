@@ -201,3 +201,13 @@ export const pickSubtitle = (
     .find((file) => file !== undefined);
   return found ?? files.find((file) => file.tag === undefined) ?? files[0];
 };
+
+/**
+ * A subtitle file taken away from beside its video (Ivan, 2026-11-15:
+ * "add an option to remove a sub"): to the system's Recycle Bin, so a wrong
+ * press is undone there. A name that is not one of the video's subtitle
+ * files as they stand now, or something other than a plain file, is
+ * refused and nothing is touched.
+ */
+export type TSubtitleRemoveResult =
+  { state: 'removed' } | { state: 'refused' } | { state: 'failed' };

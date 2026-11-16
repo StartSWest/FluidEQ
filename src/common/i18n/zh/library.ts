@@ -224,6 +224,11 @@ const library: Partial<Dictionary> = {
   'library.subtitles.place.bottomRight': '右下',
   'library.subtitles.move': '在画面上移动',
   'library.subtitles.moveDone': '完成',
+  'library.subtitles.remove.label': '移除 {name}',
+  'library.subtitles.remove.ask': '移除 {name}？它会移到回收站。',
+  'library.subtitles.remove.confirm': '移除',
+  'library.subtitles.remove.cancel': '取消',
+  'library.subtitles.remove.failed': '无法移除 {name}。',
   'library.view.aria': '媒体库的显示方式',
   'library.browse.aria': '媒体库正在显示的内容',
 

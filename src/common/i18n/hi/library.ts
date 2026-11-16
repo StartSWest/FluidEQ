@@ -231,6 +231,11 @@ const library: Partial<Dictionary> = {
   'library.subtitles.place.bottomRight': 'नीचे दाएँ',
   'library.subtitles.move': 'तस्वीर पर खिसकाएँ',
   'library.subtitles.moveDone': 'हो गया',
+  'library.subtitles.remove.label': '{name} हटाएँ',
+  'library.subtitles.remove.ask': '{name} हटाएँ? यह रीसायकल बिन में जाएगी।',
+  'library.subtitles.remove.confirm': 'हटाएँ',
+  'library.subtitles.remove.cancel': 'रद्द करें',
+  'library.subtitles.remove.failed': '{name} हटाई नहीं जा सकी।',
   'library.view.aria': 'लाइब्रेरी किस तरह दिखाई जाती है',
   'library.browse.aria': 'लाइब्रेरी क्या दिखा रही है',
 

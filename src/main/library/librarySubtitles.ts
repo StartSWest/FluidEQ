@@ -41,6 +41,7 @@ import {
   MAX_SUBTITLE_FILE_BYTES,
   pickSubtitle,
   subtitleFilesOf,
+  type TSubtitleRemoveResult,
 } from '../../common/library/subtitles';
 import { parseSubtitleCues } from '../../common/library/subtitleCues';
 
@@ -175,4 +176,42 @@ export const importPickedSubtitles = async (
     sourceName: path.basename(file),
     text: decodeLyricsBytes(await fs.promises.readFile(file)),
   });
+};
+
+/**
+ * Moves one of a video's subtitle files to the Recycle Bin (`trash`, which
+ * is Electron's `shell.trashItem` in the app), never deleting it for good.
+ * The name must be exactly one of the subtitle files found beside the video
+ * at this moment (`subtitleFilesOf`), so the window can name nothing else -
+ * not a path, not another video's file, not a file of the folder that only
+ * looks like one. A link or a folder of that name is refused too: the bin
+ * would take whatever it points at.
+ */
+export const removeVideoSubtitle = async (
+  videoPath: string,
+  fileName: string,
+  trash: (file: string) => Promise<void>,
+): Promise<TSubtitleRemoveResult> => {
+  const files = subtitleFilesOf(
+    path.basename(videoPath),
+    await siblingsOf(videoPath),
+  );
+  if (!files.some((file) => file.fileName === fileName)) {
+    // Never one of its files, or gone since the list was read: either way
+    // nothing here to take, and the tab reads the list again.
+    return { state: 'refused' };
+  }
+  const file = path.join(path.dirname(videoPath), fileName);
+  try {
+    const stats = await fs.promises.lstat(file);
+    if (!stats.isFile()) {
+      return { state: 'refused' };
+    }
+    await trash(file);
+    return { state: 'removed' };
+  } catch (error) {
+    // eslint-disable-next-line no-console -- context-rich error before it is dropped; the tab says the file could not be removed
+    console.error(`Could not move ${file} to the Recycle Bin`, error);
+    return { state: 'failed' };
+  }
 };

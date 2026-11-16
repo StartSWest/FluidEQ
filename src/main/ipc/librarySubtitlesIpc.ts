@@ -22,17 +22,20 @@ import {
   dialog,
   ipcMain,
   type OpenDialogOptions,
+  shell,
 } from 'electron';
 import { libraryFileKind } from '../../common/library/files';
 import type { TSubtitleImportResult } from '../../common/library/subtitleImport';
 import {
   type ILibrarySubtitlesAnswer,
   SUBTITLE_EXTENSIONS,
+  type TSubtitleRemoveResult,
 } from '../../common/library/subtitles';
 import {
   importPickedSubtitles,
   importVideoSubtitles,
   readTrackSubtitles,
+  removeVideoSubtitle,
 } from '../library/librarySubtitles';
 import mainText from '../mainText';
 
@@ -56,8 +59,9 @@ const isText = (value: unknown, max: number): value is string =>
   typeof value === 'string' && value.length <= max;
 
 /**
- * The Subtitles tab's three calls: a video's subtitles, keeping a file
- * picked in the open dialog beside it, and keeping a dropped one.
+ * The Subtitles tab's four calls: a video's subtitles, keeping a file
+ * picked in the open dialog beside it, keeping a dropped one, and moving
+ * one to the Recycle Bin.
  *
  * BY ID ONLY, as the Lyrics tab's calls: main finds the video in the store,
  * a subtitle file is read only when it is one found beside that video, and
@@ -160,6 +164,25 @@ export const registerLibrarySubtitlesIpc = ({
         sourceName: rawSourceName,
         text: rawText,
       });
+    },
+  );
+
+  // To the Recycle Bin, never deleted for good, and only a file listed
+  // beside the video the id names (`removeVideoSubtitle`).
+  ipcMain.handle(
+    'library-subtitles-remove',
+    async (
+      _event,
+      rawTrackId: unknown,
+      rawFileName: unknown,
+    ): Promise<TSubtitleRemoveResult> => {
+      const video = videoOf(rawTrackId);
+      if (video === undefined || !isText(rawFileName, 512)) {
+        return { state: 'refused' };
+      }
+      return removeVideoSubtitle(video, rawFileName, (file) =>
+        shell.trashItem(file),
+      );
     },
   );
 };

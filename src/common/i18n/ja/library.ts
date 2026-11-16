@@ -235,6 +235,11 @@ const library: Partial<Dictionary> = {
   'library.subtitles.place.bottomRight': '右下',
   'library.subtitles.move': '映像上で動かす',
   'library.subtitles.moveDone': '完了',
+  'library.subtitles.remove.label': '{name} を削除',
+  'library.subtitles.remove.ask': '{name} を削除しますか？ごみ箱に移動します。',
+  'library.subtitles.remove.confirm': '削除',
+  'library.subtitles.remove.cancel': 'キャンセル',
+  'library.subtitles.remove.failed': '{name} を削除できませんでした。',
   'library.view.aria': 'ライブラリの表示方法',
   'library.browse.aria': 'ライブラリに表示している内容',
 

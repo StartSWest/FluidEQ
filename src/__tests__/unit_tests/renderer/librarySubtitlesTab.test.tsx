@@ -9,7 +9,10 @@ import {
   screen,
 } from '@testing-library/react';
 import type { ILibraryLyricsAnswer } from 'common/library/lyrics';
-import type { ILibrarySubtitlesAnswer } from 'common/library/subtitles';
+import type {
+  ILibrarySubtitlesAnswer,
+  TSubtitleRemoveResult,
+} from 'common/library/subtitles';
 import type { ILibraryTrack } from 'common/library/types';
 import LibraryLyricsTab from 'renderer/library/LibraryLyricsTab';
 
@@ -65,10 +68,17 @@ const libraryTrackSubtitles = jest.fn(
 const libraryTrackLyrics = jest.fn((): Promise<ILibraryLyricsAnswer> =>
   Promise.resolve({ looked: [] }),
 );
+let removeAnswer: TSubtitleRemoveResult = { state: 'removed' };
+const removeLibrarySubtitle = jest.fn(
+  (_id: string, _fileName: string): Promise<TSubtitleRemoveResult> =>
+    Promise.resolve(removeAnswer),
+);
 
 beforeEach(() => {
   libraryTrackSubtitles.mockClear();
   libraryTrackLyrics.mockClear();
+  removeLibrarySubtitle.mockClear();
+  removeAnswer = { state: 'removed' };
   subtitles = undefined;
   window.localStorage.clear();
   Object.defineProperty(window, 'electron', {
@@ -79,6 +89,7 @@ beforeEach(() => {
         libraryTrackLyrics,
         pickLibrarySubtitlesFile: jest.fn(),
         importLibrarySubtitles: jest.fn(),
+        removeLibrarySubtitle,
       },
     },
   });
@@ -205,6 +216,113 @@ describe("a video's Subtitles tab", () => {
     expect(screen.queryByText('Caption style')).toBeNull();
     expect(
       screen.getByRole('button', { name: /Import subtitles/ }),
+    ).toBeInTheDocument();
+  });
+});
+
+const settle = () =>
+  act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+describe("a video's last used subtitles", () => {
+  it('are remembered for that video and asked for when it opens again', async () => {
+    subtitles = THREE_FILES;
+    const { unmount } = await show(item('pier-memory', 'video'));
+    fireEvent.click(screen.getByRole('radio', { name: /^Subtitles 2/ }));
+    await settle();
+    expect(
+      JSON.parse(
+        window.localStorage.getItem('fluideq.library.subtitleByVideo') ?? '[]',
+      ),
+    ).toEqual([['pier-memory', 'TAYLOR SWIFT MISS AMERICANA [2020].2.srt']]);
+    unmount();
+    libraryTrackSubtitles.mockClear();
+    await show(item('pier-memory', 'video'));
+    expect(libraryTrackSubtitles).toHaveBeenCalledWith(
+      'pier-memory',
+      'TAYLOR SWIFT MISS AMERICANA [2020].2.srt',
+      ['en'],
+    );
+  });
+
+  it('leave a video with no choice of its own to the language (the control)', async () => {
+    subtitles = THREE_FILES;
+    await show(item('pier-fresh', 'video'));
+    expect(libraryTrackSubtitles).toHaveBeenCalledWith(
+      'pier-fresh',
+      undefined,
+      ['en'],
+    );
+  });
+});
+
+describe('removing a subtitle file', () => {
+  it('gives every row a Remove, asked in the row before anything is touched', async () => {
+    subtitles = THREE_FILES;
+    await show(item('pier-ask', 'video'));
+    const removes = screen.getAllByRole('button', { name: /^Remove / });
+    expect(removes.map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Remove Subtitles 1',
+      'Remove Subtitles 2',
+      'Remove español',
+    ]);
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Subtitles 1' }));
+    expect(
+      screen.getByText('Remove Subtitles 1? It goes to the bin.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove' })).toHaveClass(
+      'danger',
+    );
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveClass(
+      'subtle',
+    );
+    expect(removeLibrarySubtitle).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(
+      screen.queryByText('Remove Subtitles 1? It goes to the bin.'),
+    ).toBeNull();
+    expect(removeLibrarySubtitle).not.toHaveBeenCalled();
+  });
+
+  it('sends the file to main by the name it listed, and reads the list again', async () => {
+    subtitles = THREE_FILES;
+    await show(item('pier-remove', 'video'));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Subtitles 1' }));
+    libraryTrackSubtitles.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    await settle();
+    expect(removeLibrarySubtitle).toHaveBeenCalledWith(
+      'pier-remove',
+      'TAYLOR SWIFT MISS AMERICANA [2020].srt',
+    );
+    expect(libraryTrackSubtitles).toHaveBeenCalled();
+  });
+
+  it('puts the next file in use when the one in use is removed', async () => {
+    subtitles = THREE_FILES;
+    await show(item('pier-in-use', 'video'));
+    // español is in use and last, so the one before it takes its place.
+    fireEvent.click(screen.getByRole('button', { name: 'Remove español' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    await settle();
+    expect(libraryTrackSubtitles).toHaveBeenLastCalledWith(
+      'pier-in-use',
+      'TAYLOR SWIFT MISS AMERICANA [2020].2.srt',
+      ['en'],
+    );
+  });
+
+  it('says so in the row when the file could not be removed', async () => {
+    subtitles = THREE_FILES;
+    removeAnswer = { state: 'failed' };
+    await show(item('pier-fail', 'video'));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Subtitles 2' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    await settle();
+    expect(
+      screen.getByText('Subtitles 2 couldn’t be removed.'),
     ).toBeInTheDocument();
   });
 });

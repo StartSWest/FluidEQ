@@ -211,6 +211,12 @@ const library = {
   'library.subtitles.place.bottomRight': '오른쪽 아래',
   'library.subtitles.move': '화면에서 옮기기',
   'library.subtitles.moveDone': '완료',
+  'library.subtitles.remove.label': '{name} 제거',
+  'library.subtitles.remove.ask':
+    '{name}을(를) 제거할까요? 휴지통으로 이동합니다.',
+  'library.subtitles.remove.confirm': '제거',
+  'library.subtitles.remove.cancel': '취소',
+  'library.subtitles.remove.failed': '{name}을(를) 제거하지 못했습니다.',
   'library.view.aria': '라이브러리가 표시되는 방식',
   'library.browse.aria': '라이브러리에 표시할 항목',
   'library.sort': '정렬',
