@@ -7,18 +7,16 @@ import {
 } from 'common/library/subtitleImport';
 import {
   lookedSubtitleNames,
-  MAX_SUBTITLE_LINES,
   pickSubtitle,
   subtitleFilesOf,
   subtitleLanguage,
-  subtitleLines,
   subtitleQualifiers,
 } from 'common/library/subtitles';
 
 /**
  * A video's subtitles: which files beside it are its own, which language
- * each names, which one opens first, and the SubRip and WebVTT cues read as
- * the timed lines the Lyrics tab already follows.
+ * each names, which one opens first, and what is kept when a viewer brings
+ * one. The cues themselves are `librarySubtitleCues.test.ts`'s.
  */
 
 const SRT = [
@@ -102,6 +100,10 @@ describe('the language a subtitle file names', () => {
     expect(subtitleLanguage('eng')).toBe('en');
     expect(subtitleLanguage('pt-br')).toBe('pt-BR');
     expect(subtitleLanguage('EN.forced')).toBe('en');
+    // Hindi, one of the app's own languages, even though some players
+    // write `hi` after a language for the hearing impaired.
+    expect(subtitleLanguage('hi')).toBe('hi');
+    expect(subtitleQualifiers('en.hi')).toEqual(['hi']);
   });
 
   it('reads no language from a qualifier, a word or a number', () => {
@@ -152,38 +154,6 @@ describe('the subtitle file shown first', () => {
       )?.fileName,
     ).toBe('F.de.srt');
     expect(pickSubtitle([], ['en'])).toBe(undefined);
-  });
-});
-
-describe('subtitle cues as timed lines', () => {
-  it('reads SubRip, its styling and placement codes gone, rows joined', () => {
-    expect(subtitleLines(SRT, 'F.srt')).toEqual([
-      { timeMs: 1000, text: 'Where were you last night?' },
-      { timeMs: 4250, text: 'Out. Walking.' },
-      { timeMs: 3_723_040, text: 'The harbour, mostly.' },
-    ]);
-  });
-
-  it('reads WebVTT by its extension, the NOTE block and cue settings ignored', () => {
-    expect(subtitleLines(VTT, 'F.vtt')).toEqual([
-      { timeMs: 1000, text: 'Where were you last night?' },
-      { timeMs: 4250, text: 'Out. Walking.' },
-    ]);
-  });
-
-  it('keeps a film’s every cue past a song’s line cap', () => {
-    const cues = Array.from({ length: 2500 }, (_, at) => {
-      const second = at + 1;
-      const clock = (value: number) =>
-        `${String(Math.floor(value / 3600)).padStart(2, '0')}:${String(
-          Math.floor(value / 60) % 60,
-        ).padStart(2, '0')}:${String(value % 60).padStart(2, '0')},000`;
-      return `${second}\n${clock(second)} --> ${clock(second)}\nLine ${second}\n`;
-    }).join('\n');
-    const lines = subtitleLines(cues, 'F.srt');
-    expect(lines).toHaveLength(2500);
-    expect(lines[2499]).toEqual({ timeMs: 2_500_000, text: 'Line 2500' });
-    expect(MAX_SUBTITLE_LINES).toBeGreaterThan(2500);
   });
 });
 

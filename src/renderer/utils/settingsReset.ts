@@ -136,6 +136,10 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.library.upNextWidth',
   'fluideq.library.upNextCollapsed',
   'fluideq.library.viewMode',
+  // A video's captions: how they look and where they stand, and the
+  // language the next film opens in.
+  'fluideq.library.subtitleStyle',
+  'fluideq.library.subtitleLanguage',
   // Gaming's list size and folded state, separate from saved game profiles.
   'fluideq.gaming.gamesLayout',
   // Karaoke.

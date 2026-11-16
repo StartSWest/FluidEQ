@@ -355,7 +355,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // find words and how to bring them in (`LibraryLyricsFinder`). The column
 // scrolls as one, so the pane's height never clips the import at its foot.
 .library-lyrics.is-empty,
-.library-lyrics.is-finding {
+.library-lyrics.is-finding,
+.library-lyrics.is-subtitles {
   @include slim-scrollbar;
   gap: 14px;
   padding: 14px 0 12px;

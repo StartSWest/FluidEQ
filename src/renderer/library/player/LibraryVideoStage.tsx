@@ -27,7 +27,10 @@ import {
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
 import { useGraphFullScreen } from '../../utils/graphStyle';
+import { setCaptionsMoving, useCaptionsMoving } from '../subtitleStyleStore';
 import { useLibraryPlayerSession } from './LibraryPlayerContext';
+import LibraryVideoCaptions from './LibraryVideoCaptions';
+import LibraryVideoCaptionsMenu from './LibraryVideoCaptionsMenu';
 import {
   readVideoPosition,
   restorablePositionMs,
@@ -69,6 +72,7 @@ const LibraryVideoStage = ({
 }: ILibraryVideoStageProps) => {
   const { t } = useTranslation();
   const {
+    track,
     videoTrackId,
     isPlaying,
     registerVideoElement,
@@ -77,7 +81,14 @@ const LibraryVideoStage = ({
     seek,
     readPositionMs,
   } = useLibraryPlayerSession();
+  const videoTrack = track?.id === videoTrackId ? track : undefined;
+  const isMovingCaptions = useCaptionsMoving();
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  /** The element as state too, for the captions, which follow its frames
+   * and its size and so must hear of it when it arrives and goes. */
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
+    null,
+  );
   /**
    * The graph is expanded or full screen over this tab, so the picture behind
    * it should be this video rather than the record sleeve.
@@ -114,7 +125,12 @@ const LibraryVideoStage = ({
   const setVideoRef = useCallback(
     (element: HTMLVideoElement | null) => {
       videoRef.current = element;
-      return registerVideoElement(element);
+      setVideoElement(element);
+      const unregister = registerVideoElement(element);
+      return () => {
+        setVideoElement(null);
+        unregister();
+      };
     },
     [registerVideoElement],
   );
@@ -181,6 +197,12 @@ const LibraryVideoStage = ({
    * for the length of a double-press and plays on.
    */
   const onPress = (event: MouseEvent<HTMLVideoElement>) => {
+    // While the captions are being moved, a press on the film beside them
+    // puts them down; it is not asking to pause (Ivan, 2026-11-15).
+    if (isMovingCaptions) {
+      setCaptionsMoving(false);
+      return;
+    }
     if (event.detail <= 2) {
       toggle();
     }
@@ -227,9 +249,10 @@ const LibraryVideoStage = ({
         isBehindGraph ? ' is-behind-graph' : ''
       }`}
     >
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption -- a local
-          library file carries no caption track to offer; there is nothing to
-          associate one with. */}
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption -- captions
+          are drawn over the picture by `LibraryVideoCaptions`, not through a
+          <track>: SubRip has no <track> form, and a cue drawn by the browser
+          can be neither placed by the viewer nor dragged. */}
       <video
         ref={setVideoRef}
         className="library-video-stage__video"
@@ -266,6 +289,16 @@ const LibraryVideoStage = ({
           }
         }}
       />
+      {/* On the picture, in the tab and in full screen, under the stage's
+          controls; nothing at all while the stage only keeps the media
+          engine (`isHidden`). */}
+      {!isHidden && (
+        <LibraryVideoCaptions
+          video={videoElement}
+          track={videoTrack}
+          isFullScreen={isFullScreen}
+        />
+      )}
       {/* The way out, and the only control drawn on the picture.
           Without it a video owned the whole tab until the queue happened to
           move off it — and a video-only queue at its own end never does, so
@@ -338,6 +371,9 @@ const LibraryVideoStage = ({
           the graph's full screen has its own (Ivan, 2026-11-15). */}
       {!isHidden && isFullScreen && (
         <div className="library-video-stage__tools">
+          {/* The captions' quick switch, where the Subtitles tab is out of
+              sight. In the tab the pane beside the film holds all of it. */}
+          <LibraryVideoCaptionsMenu track={videoTrack} />
           <button
             type="button"
             className="button small library-video-stage__tool"

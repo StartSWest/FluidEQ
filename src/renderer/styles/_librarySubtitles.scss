@@ -1,0 +1,140 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// A video's Subtitles tab (`LibrarySubtitles`): its subtitle files, the
+// captions' style, then the finder. Built from the tab's own pieces — the
+// lyric line's row and mark, the pane's heading and note, the app's
+// segmented track, switch and colour chip — with only their arrangement
+// here.
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// The files: the lyric line's row and its mark for the one in use, at the
+// row size, and NEVER wrapped — a name too long for the pane is cut and
+// whole in its tooltip.
+.library-subtitles__files {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.library-lyrics__line.library-subtitles__file {
+  overflow: hidden;
+  font-size: $studio-text-row;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.library-subtitles__note {
+  margin: 4px 6px 0;
+}
+
+// The style: a column of settings, each name over its control so a long
+// translation never squeezes the control beside it.
+.library-subtitles__settings {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.library-subtitles__setting {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 6px;
+
+  // On and off reads as one line: the name, and its switch at the end.
+  &.is-inline {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  // At the pane's narrowest (190px) three words of a long language —
+  // "Ninguno · Contorno · Caja" — are wider than the track: an option goes
+  // to a second row of the track rather than the track running out of the
+  // pane and under its edge.
+  > .segmented {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+}
+
+.library-subtitles__label {
+  min-width: 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
+}
+
+// The inks: one chip each in the segmented track, the scene picker's chip.
+.library-subtitles__inks .segmented__option {
+  display: grid;
+  padding: 6px 0;
+  place-items: center;
+}
+
+// The nine places as a small picture of the screen: three rows of three in
+// the segmented track's own face, each cell a dash where a caption would
+// stand. Beside it, the switch into moving by hand.
+.library-subtitles__place {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+
+  > .button {
+    gap: 6px;
+
+    .menu-icon {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+    }
+  }
+}
+
+.segmented.library-subtitles__anchors {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(3, 26px);
+  grid-auto-rows: 18px;
+  gap: 2px;
+
+  .segmented__option {
+    display: grid;
+    padding: 0;
+    place-items: center;
+  }
+}
+
+.library-subtitles__anchor-dot {
+  width: 10px;
+  height: 3px;
+  border-radius: 1px;
+  background: currentcolor;
+}

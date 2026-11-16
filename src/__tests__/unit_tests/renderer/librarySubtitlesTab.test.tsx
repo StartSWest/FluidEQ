@@ -14,23 +14,21 @@ import type { ILibraryTrack } from 'common/library/types';
 import LibraryLyricsTab from 'renderer/library/LibraryLyricsTab';
 
 /**
- * A video's Lyrics tab is its Subtitles: the file beside it lit line by
- * line on the player's clock and pressed to play from a line, a language
- * picker where there are several, and subtitle sites — never lyric sites —
- * where there are none. A song's tab beside it is the control: it still
- * asks for lyrics and offers lyric sites. Every line was written for this
- * test.
+ * A video's Lyrics tab is its Subtitles: the files beside the film named by
+ * language (never by file), the one in use marked and a press putting
+ * another in use, the captions' style, and subtitle sites — never lyric
+ * sites — to find more. The captions themselves are drawn over the film,
+ * not here. A song's tab beside it is the control: it still asks for
+ * lyrics and offers lyric sites. Every line was written for this test.
  */
 
-const mockPlayer = {
-  positionMs: 0,
-  isPlaying: false,
-  seek: jest.fn<void, [number]>(),
-  toggle: jest.fn<void, []>(),
-};
-
 jest.mock('renderer/library/player/LibraryPlayerContext', () => ({
-  useLibraryPlayer: () => mockPlayer,
+  useLibraryPlayer: () => ({
+    positionMs: 0,
+    isPlaying: false,
+    seek: () => undefined,
+    toggle: () => undefined,
+  }),
   useLibraryPlayerSessionIfAny: () => undefined,
 }));
 
@@ -46,16 +44,17 @@ const item = (id: string, kind: 'audio' | 'video'): ILibraryTrack => ({
   addedAt: 1,
 });
 
-const TWO_LANGUAGES: ILibrarySubtitlesAnswer = {
-  files: [{ fileName: 'Pier.srt' }, { fileName: 'Pier.es.srt', tag: 'es' }],
+const THREE_FILES: ILibrarySubtitlesAnswer = {
+  files: [
+    { fileName: 'TAYLOR SWIFT MISS AMERICANA [2020].srt' },
+    { fileName: 'TAYLOR SWIFT MISS AMERICANA [2020].2.srt', tag: '2' },
+    { fileName: 'TAYLOR SWIFT MISS AMERICANA [2020].es.srt', tag: 'es' },
+  ],
   shown: {
-    fileName: 'Pier.es.srt',
-    lines: [
-      { timeMs: 1000, text: 'Las luces del muelle' },
-      { timeMs: 4000, text: 'El café cerró temprano' },
-    ],
+    fileName: 'TAYLOR SWIFT MISS AMERICANA [2020].es.srt',
+    cues: [{ startMs: 1000, endMs: 2000, text: 'Las luces del muelle' }],
   },
-  looked: ['Pier.srt', 'Pier.vtt'],
+  looked: [],
 };
 
 let subtitles: ILibrarySubtitlesAnswer | undefined;
@@ -66,14 +65,8 @@ const libraryTrackSubtitles = jest.fn(
 const libraryTrackLyrics = jest.fn((): Promise<ILibraryLyricsAnswer> =>
   Promise.resolve({ looked: [] }),
 );
-const pickLibrarySubtitlesFile = jest.fn();
-const importLibrarySubtitles = jest.fn();
 
 beforeEach(() => {
-  mockPlayer.positionMs = 0;
-  mockPlayer.isPlaying = false;
-  mockPlayer.seek.mockClear();
-  mockPlayer.toggle.mockClear();
   libraryTrackSubtitles.mockClear();
   libraryTrackLyrics.mockClear();
   subtitles = undefined;
@@ -84,16 +77,11 @@ beforeEach(() => {
       ipcRenderer: {
         libraryTrackSubtitles,
         libraryTrackLyrics,
-        pickLibrarySubtitlesFile,
-        importLibrarySubtitles,
+        pickLibrarySubtitlesFile: jest.fn(),
+        importLibrarySubtitles: jest.fn(),
       },
     },
   });
-  Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
-    configurable: true,
-    get: () => 300,
-  });
-  Element.prototype.scrollTo = jest.fn();
 });
 
 afterEach(cleanup);
@@ -108,48 +96,91 @@ const show = async (track: ILibraryTrack) => {
 
 describe("a video's Subtitles tab", () => {
   it('asks main for subtitles by id, in the app’s language, and never for lyrics', async () => {
-    subtitles = TWO_LANGUAGES;
+    subtitles = THREE_FILES;
     await show(item('pier', 'video'));
     expect(libraryTrackSubtitles).toHaveBeenCalledWith('pier', undefined, [
       'en',
     ]);
     expect(libraryTrackLyrics).not.toHaveBeenCalled();
-    expect(screen.getByText('From Pier.es.srt')).toBeInTheDocument();
+  });
+
+  it('names each file by language, never by file, and marks the one in use', async () => {
+    subtitles = THREE_FILES;
+    await show(item('pier-names', 'video'));
+    const rows = screen.getAllByRole('radio', { name: /./ });
+    const names = rows
+      .filter((row) => row.closest('.library-subtitles__files') !== null)
+      .map((row) => row.textContent);
+    expect(names).toEqual(['Subtitles 1', 'Subtitles 2', 'español']);
     expect(
-      screen.getByRole('list', {
-        name: 'Subtitles. Press a line to play from it.',
-      }),
+      screen.queryByText(/TAYLOR SWIFT/, { selector: 'button' }),
+    ).toBeNull();
+    const inUse = screen.getByRole('radio', { name: 'español' });
+    expect(inUse).toHaveAttribute('aria-checked', 'true');
+    expect(inUse).toHaveClass('is-active');
+    // The file it is stays reachable, in its tooltip.
+    expect(inUse).toHaveAttribute(
+      'title',
+      'TAYLOR SWIFT MISS AMERICANA [2020].es.srt',
+    );
+  });
+
+  it('puts another file in use on a press, and asks main for it', async () => {
+    subtitles = THREE_FILES;
+    await show(item('pier-pick', 'video'));
+    fireEvent.click(screen.getByRole('radio', { name: 'Subtitles 2' }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(libraryTrackSubtitles).toHaveBeenLastCalledWith(
+      'pier-pick',
+      'TAYLOR SWIFT MISS AMERICANA [2020].2.srt',
+      ['en'],
+    );
+  });
+
+  it('holds the captions’ style, kept for the next film', async () => {
+    subtitles = THREE_FILES;
+    await show(item('pier-style', 'video'));
+    expect(
+      screen.getByRole('checkbox', { name: 'Show captions' }),
+    ).toBeChecked();
+    fireEvent.click(screen.getByRole('radio', { name: 'XL' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Yellow' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Top right' }));
+    expect(
+      JSON.parse(
+        window.localStorage.getItem('fluideq.library.subtitleStyle') ?? '{}',
+      ),
+    ).toMatchObject({
+      size: 'xl',
+      colour: 'yellow',
+      position: { x: 1, y: 0 },
+    });
+    // The box's opacity is offered with the box alone.
+    expect(
+      screen.queryByRole('radiogroup', { name: 'Box opacity' }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole('radio', { name: 'Box' }));
+    expect(
+      screen.getByRole('radiogroup', { name: 'Box opacity' }),
     ).toBeInTheDocument();
   });
 
-  it('lights the line the film has reached and plays from a pressed one', async () => {
-    subtitles = TWO_LANGUAGES;
-    mockPlayer.positionMs = 4500;
-    await show(item('pier', 'video'));
-    const reached = screen.getByRole('button', {
-      name: 'El café cerró temprano',
-    });
-    expect(reached).toHaveAttribute('aria-current', 'true');
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Las luces del muelle' }),
+  it('turns moving on the picture on and off from its button', async () => {
+    subtitles = THREE_FILES;
+    await show(item('pier-move', 'video'));
+    const move = screen.getByRole('button', { name: /Move on the picture/ });
+    expect(move).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(move);
+    expect(screen.getByRole('button', { name: /Done moving/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
     );
-    expect(mockPlayer.seek).toHaveBeenCalledWith(1000);
-    expect(mockPlayer.toggle).toHaveBeenCalledTimes(1);
-  });
-
-  it('offers a language picker only where there is more than one file', async () => {
-    subtitles = TWO_LANGUAGES;
-    const { unmount } = await show(item('pier', 'video'));
-    expect(screen.getByText(/español/i)).toBeInTheDocument();
-    unmount();
-
-    subtitles = {
-      ...TWO_LANGUAGES,
-      files: [{ fileName: 'Pier.es.srt', tag: 'es' }],
-    };
-    await show(item('pier-one', 'video'));
-    expect(screen.queryByText(/español/i)).toBeNull();
-    expect(screen.getByText('From Pier.es.srt')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Done moving/ }));
+    expect(
+      screen.getByRole('button', { name: /Move on the picture/ }),
+    ).toBeInTheDocument();
   });
 
   it('with no subtitles, names the files looked for and offers subtitle sites', async () => {
@@ -158,12 +189,9 @@ describe("a video's Subtitles tab", () => {
     expect(screen.getByText('No subtitles for this video')).toBeInTheDocument();
     expect(screen.getByText('Pier.vtt')).toBeInTheDocument();
     expect(screen.getByText('OpenSubtitles')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'Searches for “The Pier”. Download a .srt or .vtt file there, then bring it in below.',
-      ),
-    ).toBeInTheDocument();
     expect(screen.queryByText('LRCLIB')).toBeNull();
+    // No style to set for captions there are none of.
+    expect(screen.queryByText('Caption style')).toBeNull();
     expect(
       screen.getByRole('button', { name: /Import subtitles/ }),
     ).toBeInTheDocument();

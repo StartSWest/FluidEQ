@@ -35,11 +35,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { looksBinary } from './lyricsImport';
 import { isSrt, isVtt } from './lyricsMarkup';
+import { parseSubtitleCues } from './subtitleCues';
 import {
   MAX_SUBTITLE_FILE_BYTES,
   SUBTITLE_EXTENSIONS,
   subtitleLanguage,
-  subtitleLines,
 } from './subtitles';
 
 export type TSubtitleExtension = (typeof SUBTITLE_EXTENSIONS)[number];
@@ -85,7 +85,7 @@ export const isSubtitleFileName = (name: string): boolean =>
  * Whether this text can be kept as the video's subtitles, and as which
  * format: the source's own extension where it names one, its text's
  * signature otherwise (a paste, a file saved as `.txt`). Accepted only where
- * the very reader that will show it finds a line with words in it.
+ * the very reader that will show it finds a cue with words in it.
  */
 export const checkSubtitleImport = (
   text: string,
@@ -111,8 +111,7 @@ export const checkSubtitleImport = (
       return { ok: false, reason: 'notSubtitles' };
     }
   }
-  const lines = subtitleLines(plain, `subtitles.${extension}`);
-  return lines.some((line) => line.text !== '')
+  return parseSubtitleCues(plain).length > 0
     ? { ok: true, text: plain, extension }
     : { ok: false, reason: 'empty' };
 };

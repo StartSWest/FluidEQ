@@ -24,43 +24,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * a language and its qualifiers between the name and the extension,
  * `Movie.en.srt`, `Movie.pt-BR.vtt`, `Movie.en.forced.srt`.
  *
- * They are read as the timed lines the Lyrics tab already draws, so a line
- * lights as it is spoken and a press plays from it, exactly as a song's.
- * Subtitle files are never library tracks (`libraryFileKind` knows neither
- * extension), so nothing here can hide a video or add a row.
+ * They are read as cues with a start and an end (`subtitleCues.ts`) and
+ * drawn over the film as captions; the tab lists the files and holds the
+ * captions' settings. Subtitle files are never library tracks
+ * (`libraryFileKind` knows neither extension), so nothing here can hide a
+ * video or add a row.
  */
 
-import { type ILyricsLine } from './lyrics';
-import { libraryLinesOf } from './lyricsFormats';
-import { parseSrt, parseVtt } from './lyricsMarkup';
+import type { ISubtitleCue } from './subtitleCues';
 
 export const SUBTITLE_EXTENSIONS = ['srt', 'vtt'] as const;
 
-/**
- * A film's dialogue runs to well over a song's line cap
- * (`MAX_LYRICS_LINES`, 2000): a three-hour film with the hard-of-hearing
- * captions carries about 3000 cues. Past this a file is cut, not refused.
- */
-export const MAX_SUBTITLE_LINES = 6000;
-
-/** That many cues in SubRip are about 450 KB; a WebVTT file with styling and
- * positions on every cue is two to three times its SubRip. */
+/** A three-hour film's cues in SubRip are about 450 KB; a WebVTT file with
+ * styling and positions on every cue is two to three times its SubRip. */
 export const MAX_SUBTITLE_FILE_BYTES = 2 * 1024 * 1024;
 
 /**
  * Words players write after the language that say what kind of track it is,
  * never which language. `sdh` is also the ISO 639-3 code for Southern
- * Kurdish, and `Movie.sdh.srt` means the hard-of-hearing track far more often.
+ * Kurdish, and `Movie.sdh.srt` means the hard-of-hearing track far more
+ * often. `hi`, the hearing-impaired mark some players write, is NOT here:
+ * first in a tag it is Hindi, one of the app's own languages, and after a
+ * language (`Movie.en.hi.srt`) it is a qualifier anyway.
  */
-const QUALIFIERS = new Set([
-  'cc',
-  'default',
-  'forced',
-  'full',
-  'hi',
-  'sdh',
-  'signs',
-]);
+const QUALIFIERS = new Set(['cc', 'default', 'forced', 'full', 'sdh', 'signs']);
 
 export interface ISubtitleFile {
   fileName: string;
@@ -73,9 +60,9 @@ export interface ILibrarySubtitlesAnswer {
   /** Every subtitle file beside the video, the one of its own name first
    * and the rest in name order. */
   files: ISubtitleFile[];
-  /** The one read, by the window's pick or `pickSubtitle`. Its lines are
-   * empty where the file held no cue that could be read. */
-  shown?: { fileName: string; lines: ILyricsLine[] };
+  /** The one read, by the window's pick or `pickSubtitle`. Its cues are
+   * empty where the file held none that could be read. */
+  shown?: { fileName: string; cues: ISubtitleCue[] };
   /** The names looked for, by name only, for the empty state. */
   looked: string[];
 }
@@ -214,14 +201,3 @@ export const pickSubtitle = (
     .find((file) => file !== undefined);
   return found ?? files.find((file) => file.tag === undefined) ?? files[0];
 };
-
-/**
- * A subtitle file's text as timed lines, read by its extension rather than
- * by sniffing: a SubRip file with no cue numbers, or a WebVTT one missing
- * its header, still has its timing rows, and those are what is read.
- */
-export const subtitleLines = (text: string, fileName: string): ILyricsLine[] =>
-  libraryLinesOf(
-    extensionOf(fileName) === 'vtt' ? parseVtt(text) : parseSrt(text),
-    MAX_SUBTITLE_LINES,
-  );

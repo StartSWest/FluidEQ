@@ -41,8 +41,8 @@ import {
   MAX_SUBTITLE_FILE_BYTES,
   pickSubtitle,
   subtitleFilesOf,
-  subtitleLines,
 } from '../../common/library/subtitles';
+import { parseSubtitleCues } from '../../common/library/subtitleCues';
 
 /** The names in the video's folder; none where it cannot be listed. */
 const siblingsOf = async (videoPath: string): Promise<string[]> => {
@@ -77,7 +77,7 @@ export const readSubtitleText = async (
 };
 
 /**
- * Every subtitle file beside the video, and the lines of one: `wanted`
+ * Every subtitle file beside the video, and the cues of one: `wanted`
  * where it names one of them, else the one `pickSubtitle` puts first for
  * the viewer's `preferred` languages.
  */
@@ -103,7 +103,7 @@ export const readTrackSubtitles = async (
     looked,
     shown: {
       fileName: chosen.fileName,
-      lines: text === undefined ? [] : subtitleLines(text, chosen.fileName),
+      cues: text === undefined ? [] : parseSubtitleCues(text),
     },
   };
 };

@@ -63,7 +63,7 @@ describe("a video's subtitles", () => {
     ]);
     expect(answer.shown).toEqual({
       fileName: 'Pier.es.vtt',
-      lines: [{ timeMs: 1000, text: 'Las luces del muelle' }],
+      cues: [{ startMs: 1000, endMs: 2000, text: 'Las luces del muelle' }],
     });
     // The control: with no preference, the file of the video's own name.
     expect(
@@ -95,9 +95,9 @@ describe("a video's subtitles", () => {
       Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(SRT, 'utf16le')]),
     );
     const answer = await readTrackSubtitles(video, undefined, []);
-    expect(answer.shown?.lines).toEqual([
-      { timeMs: 1000, text: 'Lights off at the pier' },
-      { timeMs: 3500, text: 'Café closed early' },
+    expect(answer.shown?.cues).toEqual([
+      { startMs: 1000, endMs: 2000, text: 'Lights off at the pier' },
+      { startMs: 3500, endMs: 5000, text: 'Café closed early' },
     ]);
   });
 
@@ -118,7 +118,7 @@ describe("a video's subtitles", () => {
     );
     // And the tab finds it at once.
     expect(
-      (await readTrackSubtitles(video, 'Pier.en.2.srt', [])).shown?.lines,
+      (await readTrackSubtitles(video, 'Pier.en.2.srt', [])).shown?.cues,
     ).toHaveLength(2);
   });
 

@@ -42,6 +42,9 @@ export interface IFakeLibraryBridge {
   queryLibrary: (
     request: TLibraryRequest,
   ) => Promise<ILibraryAnswers[TLibraryRequest['type']]>;
+  /** A playing video's captions ask for its subtitles; this library's
+   * videos have none beside them. */
+  libraryTrackSubtitles: () => Promise<undefined>;
 }
 
 export interface IFakeLibraryStore {
@@ -182,6 +185,7 @@ const createFakeLibraryStore = (
       },
       onLibraryScanProgress: () => () => undefined,
       queryLibrary: (request) => ask(() => answer(request)),
+      libraryTrackSubtitles: () => Promise.resolve(undefined),
     },
     setTracks: (next) => {
       tracks = [...next];

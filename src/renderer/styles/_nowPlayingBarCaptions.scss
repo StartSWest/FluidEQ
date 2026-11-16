@@ -1,0 +1,148 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// The captions over a playing film (`LibraryVideoCaptions`): a layer the
+// size of the picture itself (measured, never the letterbox), a room inside
+// it that a full screen's floating bar shortens, and the caption box placed
+// in the room by its centre. Its size, ink, background and place are the
+// viewer's (`subtitleStyle.ts`) and arrive as custom properties.
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+.library-video-stage__captions {
+  position: absolute;
+  // Over the picture, under the stage's own controls and the skip flash
+  // (z-index 2), which must stay where they are and pressable.
+  z-index: 1;
+  pointer-events: none;
+}
+
+// A size container, so a caption is a share of the picture's height
+// (`100cqh`): the same size against the film in a pane and full screen.
+.library-video-stage__caption-room {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  transition: bottom 200ms $ease-out;
+}
+
+// A full-screen film under the floating bar: the room stops above the bar
+// while it shows, less whatever letterbox under the picture already clears
+// it, and takes the room back when the chrome goes quiet — the same pair
+// of root states the karaoke stage and the look designer clear it by.
+#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
+  .library-video-stage.is-fullscreen
+  .library-video-stage__caption-room {
+  bottom: max(
+    0px,
+    calc(var(--now-playing-bar-height, 0px) + 12px - var(--caption-below, 0px))
+  );
+}
+
+// A graph over the film owns the window; its captions go with the stage's
+// other controls.
+.library-video-stage.is-behind-graph .library-video-stage__captions {
+  display: none;
+}
+
+.library-video-stage__caption {
+  position: absolute;
+  display: flex;
+  // Its own width, never what is left of the room right of its `left`: an
+  // absolute box shrinks to that by default, so a caption put at the right
+  // edge wrapped into a column of single words before it was moved in.
+  width: max-content;
+  max-width: 90%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  color: var(--caption-ink);
+  font-size: max(12px, calc(var(--caption-scale) * 100cqh));
+  font-weight: $weight-semibold;
+  line-height: 1.25;
+  text-align: center;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  translate: -50% -50%;
+  transition:
+    left 200ms $ease-out,
+    top 200ms $ease-out;
+
+  // Its size is read before it is placed; the frame before that, unseen.
+  &.is-unmeasured {
+    visibility: hidden;
+  }
+
+  // The drag follows the pointer, never a glide behind it.
+  &.is-dragging {
+    transition: none;
+  }
+
+  // Outline: a dark edge all round each letter, so any ink reads over a
+  // white sky as well as a black night — the broadcast captions' edge.
+  &.is-outline {
+    text-shadow:
+      -1px -1px 0 rgba($black, 0.9),
+      1px -1px 0 rgba($black, 0.9),
+      -1px 1px 0 rgba($black, 0.9),
+      1px 1px 0 rgba($black, 0.9),
+      0 0 0.18em rgba($black, 0.85);
+  }
+
+  // Moving: the box takes the pointer, wears a dashed accent edge, and
+  // shows the hand that picks it up.
+  &.is-moving {
+    border-radius: 4px;
+    outline: 1.5px dashed $secondary-light;
+    outline-offset: 6px;
+    cursor: grab;
+    pointer-events: auto;
+    touch-action: none;
+  }
+
+  &.is-moving.is-dragging {
+    cursor: grabbing;
+  }
+}
+
+.library-video-stage__caption-line {
+  margin: 0;
+}
+
+// Box: a dark band behind each cue's text alone, at the viewer's opacity,
+// hugging the words rather than spanning the picture.
+.library-video-stage__caption.is-box .library-video-stage__caption-line {
+  width: fit-content;
+  padding: 0.08em 0.4em;
+  border-radius: 0.18em;
+  background: rgba($black, var(--caption-box-opacity, 0.75));
+}
+
+:root[data-motion='reduced'] {
+  .library-video-stage__caption,
+  .library-video-stage__caption-room {
+    transition: none;
+  }
+}
+
+// The captions' quick switch, in the corner tools: lit while they show.
+.library-video-stage .library-video-stage__tool.is-on.button {
+  color: $secondary-light;
+}

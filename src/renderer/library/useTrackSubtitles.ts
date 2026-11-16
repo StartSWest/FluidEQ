@@ -30,6 +30,17 @@ const KEPT = 16;
  */
 const cache = new Map<string, ILibrarySubtitlesAnswer>();
 
+/**
+ * Questions on their way, by the same key: the Subtitles tab and the
+ * captions over the picture ask for the same file at the same moment, and
+ * main reads it once for both.
+ */
+const asking = new Map<string, Promise<ILibrarySubtitlesAnswer>>();
+
+/** Every reader of a video's subtitles, told when a file was kept beside
+ * it, so the captions over the picture learn of it with the tab. */
+const changeListeners = new Set<(videoId: string) => void>();
+
 const remember = (key: string, answer: ILibrarySubtitlesAnswer) => {
   cache.delete(key);
   cache.set(key, answer);
@@ -41,11 +52,40 @@ const remember = (key: string, answer: ILibrarySubtitlesAnswer) => {
   }
 };
 
+const NOTHING: ILibrarySubtitlesAnswer = { files: [], looked: [] };
+
+const ask = (
+  key: string,
+  videoId: string,
+  wanted: string | undefined,
+  preferred: readonly string[],
+): Promise<ILibrarySubtitlesAnswer> => {
+  const pending = asking.get(key);
+  if (pending !== undefined) {
+    return pending;
+  }
+  const question = window.electron.ipcRenderer
+    .libraryTrackSubtitles(videoId, wanted, preferred)
+    .then((answer) => {
+      const settled = answer ?? NOTHING;
+      if (settled.files.length > 0) {
+        remember(key, settled);
+      }
+      return settled;
+    })
+    .finally(() => {
+      asking.delete(key);
+    });
+  asking.set(key, question);
+  return question;
+};
+
 export type TTrackSubtitles = (
   { state: 'reading' } | { state: 'ready'; answer: ILibrarySubtitlesAnswer }
 ) & {
-  /** Asks main again past the cache, because a subtitle file was just kept
-   * beside the video. What is shown stays until the new answer lands. */
+  /** Asks main again past the cache, for every reader of this video,
+   * because a subtitle file was just kept beside it. What is shown stays
+   * until the new answer lands. */
   reload: () => void;
 };
 
@@ -53,48 +93,61 @@ export type TTrackSubtitles = (
  * The video's subtitles as main reads them (`library-track-subtitles`), by
  * id: `wanted` names the file the viewer picked, `preferred` the languages
  * to open in when nothing is picked. While another language is being read,
- * the one before stays on screen rather than the tab going blank.
+ * the one before stays rather than the captions going blank.
  */
 export const useTrackSubtitles = (
   track: ILibraryTrack,
   wanted: string | undefined,
   preferred: readonly string[],
 ): TTrackSubtitles => {
-  const trackId = track.id;
+  const videoId = track.id;
   const preferredKey = preferred.join(',');
-  const key = `${trackId}|${track.sizeBytes}|${track.mtimeMs}|${
-    wanted ?? ''
-  }|${preferredKey}`;
+  // A pick speaks for itself; the preference only decides while there is
+  // none, so two readers with a pick ask one question whatever each prefers.
+  const key = `${videoId}|${track.sizeBytes}|${track.mtimeMs}|${
+    wanted === undefined ? `?${preferredKey}` : `=${wanted}`
+  }`;
   const [held, setHeld] = useState<
-    { key: string; answer: ILibrarySubtitlesAnswer } | undefined
+    { videoId: string; answer: ILibrarySubtitlesAnswer } | undefined
   >(undefined);
   const [asked, setAsked] = useState(0);
 
+  useEffect(() => {
+    const listener = (changed: string) => {
+      if (changed === videoId) {
+        setAsked((count) => count + 1);
+      }
+    };
+    changeListeners.add(listener);
+    return () => {
+      changeListeners.delete(listener);
+    };
+  }, [videoId]);
+
   const reload = useCallback(() => {
     [...cache.keys()]
-      .filter((cached) => cached.startsWith(`${trackId}|`))
+      .filter((cached) => cached.startsWith(`${videoId}|`))
       .forEach((cached) => cache.delete(cached));
-    setAsked((count) => count + 1);
-  }, [trackId]);
+    [...asking.keys()]
+      .filter((pending) => pending.startsWith(`${videoId}|`))
+      .forEach((pending) => asking.delete(pending));
+    changeListeners.forEach((listener) => listener(videoId));
+  }, [videoId]);
 
   useEffect(() => {
     if (cache.has(key)) {
       return undefined;
     }
     let isCurrent = true;
-    window.electron.ipcRenderer
-      .libraryTrackSubtitles(
-        trackId,
-        wanted,
-        preferredKey === '' ? [] : preferredKey.split(','),
-      )
+    ask(
+      key,
+      videoId,
+      wanted,
+      preferredKey === '' ? [] : preferredKey.split(','),
+    )
       .then((answer) => {
-        const settled = answer ?? { files: [], looked: [] };
-        if (settled.files.length > 0) {
-          remember(key, settled);
-        }
         if (isCurrent) {
-          setHeld({ key, answer: settled });
+          setHeld({ videoId, answer });
         }
         return undefined;
       })
@@ -102,23 +155,23 @@ export const useTrackSubtitles = (
         // eslint-disable-next-line no-console -- context-rich error before it is dropped; the tab says nothing was found
         console.error(
           'Could not read the subtitles of a video',
-          trackId,
+          videoId,
           error,
         );
         if (isCurrent) {
-          setHeld({ key, answer: { files: [], looked: [] } });
+          setHeld({ videoId, answer: NOTHING });
         }
       });
     return () => {
       isCurrent = false;
     };
-  }, [key, trackId, wanted, preferredKey, asked]);
+  }, [key, videoId, wanted, preferredKey, asked]);
 
   const answer =
     cache.get(key) ??
-    // The tab is keyed by video, so anything held is this video's: the
-    // language before, until the one picked has been read.
-    held?.answer;
+    // The language before, until the one picked has been read - and only
+    // this video's: the stage outlives a change of video.
+    (held?.videoId === videoId ? held.answer : undefined);
   return answer === undefined
     ? { state: 'reading', reload }
     : { state: 'ready', answer, reload };
