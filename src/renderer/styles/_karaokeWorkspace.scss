@@ -269,11 +269,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   isolation: isolate;
   padding: 0;
   overflow: hidden;
-  // The floor, flat and nothing else (Ivan, 2026-11-16: "remove the glow
-  // bg crap from the karaoke fullscreen"). Three coloured glows stood on it,
-  // and before them a diagonal under a 34px graph-paper grid — texture no
-  // other page has, on a stage whose words are the subject.
-  background: $surface-base;
+  // The page card's own face, as the window shows it ($surface-section over
+  // the floor), so the header and the transport, which are the floor, still
+  // read as apart from the stage (Ivan, 2026-11-16: "in full screen it must
+  // keep the same panel colour inside so the header and the bar are told
+  // apart, otherwise everything looks the same colour"). Flat and nothing
+  // else ("remove the glow bg crap from the karaoke fullscreen"): three
+  // coloured glows stood on it, and before them a graph-paper grid.
+  background: $surface-section;
 
   > .karaoke-workspace__player,
   > .karaoke-workspace__notice {
