@@ -1000,6 +1000,14 @@ export const setGraphView = (next: TGraphView) => {
   if (wasFullScreen !== (next === 'fullscreen')) {
     applyWindowFullScreen?.(next === 'fullscreen');
   }
+  // Full screen opens on the first of Ctrl+W's stops, the wave, whatever it
+  // was left on (Ivan, 2026-11-16: "when it turns full screen always show the
+  // wave, as if it resets the W / S cycle each time, so users don't get lost
+  // why it doesn't show the waves"). Full screen keeps its own contents, so a
+  // stop of curves alone left there came back as a picture with no wave.
+  if (!wasFullScreen && next === 'fullscreen') {
+    setGraphContents('wave');
+  }
   // Every per-view setting has a new answer now, and not one of them was set.
   //
   // Their getters already read the right thing the instant `view` moved — they

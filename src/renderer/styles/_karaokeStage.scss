@@ -64,11 +64,39 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  min-height: 52px;
-  padding: 10px 12px;
+  // One band height everywhere, the graph strip's (Ivan, 2026-11-16: "the
+  // bar the same height everywhere ... the karaoke's is a bit tall at the
+  // bottom"): 16px over the row, the row's 32px buttons, the band's foot
+  // under them — 55px, as the strip's 17px inset, 28px row and 10px foot.
+  // It was 10px of padding round a 52px row, a band 62px deep.
+  min-height: 0;
+  padding: 16px 12px 0;
   transition: opacity $motion-base ease;
 
-  // Fades with the rest of the chrome in full screen, in place.
+  // THE BAND UNDER THE OPTIONS, the graph strip's own
+  // (`_graphThemeWorkspace.scss`), so the row reads over a bright scene or
+  // cover and comes and goes with it (Ivan, 2026-11-16: "show that same bg
+  // for the options on the karaoke, with the same behaviour"). Across the
+  // stage column only, never over the playlist beside it; from the window's
+  // top in full screen, where the stage starts under the header.
+  &::before {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 0;
+    bottom: -7px;
+    left: 0;
+    // Flat, as the graph's (Ivan, 2026-11-16: "flat like the application").
+    background: $surface-base;
+    content: '';
+    pointer-events: none;
+  }
+
+  .karaoke-workspace.is-fullscreen &::before {
+    top: -100vh;
+  }
+
+  // Fades with the rest of the chrome when the pointer rests, in place.
   &.is-idle {
     opacity: 0;
     pointer-events: none;

@@ -157,7 +157,10 @@ const KaraokeStageToolbar = ({
 
   return (
     <div
-      className={`karaoke-stage-bar${isFullScreen && isChromeIdle ? ' is-idle' : ''}`}
+      // Goes with the pointer at rest, or a click on the words, in every view,
+      // as the graph's strip does (Ivan, 2026-11-16: "same behaviour
+      // everywhere").
+      className={`karaoke-stage-bar${isChromeIdle ? ' is-idle' : ''}`}
       role="toolbar"
       aria-label={t('karaoke.actions')}
     >

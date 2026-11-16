@@ -198,9 +198,16 @@ const useShellFullScreen = ({
     // `isChromeHidden` as well: full screen fades the transport bar too, and a
     // full-screen surface with no graph on it would otherwise have nothing
     // watching for the stillness that fades it.
-    watchChromeIdle(showsGraph || isMediaFullScreen || isChromeHidden);
+    // And the Karaoke in any view: its options row fades as the graph's strip
+    // does (`KaraokeStageToolbar`).
+    watchChromeIdle(
+      showsGraph ||
+        isMediaFullScreen ||
+        isChromeHidden ||
+        activeWorkspaceTab === 'karaoke',
+    );
     return () => watchChromeIdle(false);
-  }, [isChromeHidden, isMediaFullScreen, showsGraph]);
+  }, [activeWorkspaceTab, isChromeHidden, isMediaFullScreen, showsGraph]);
 
   /**
    * THE ONE WAY THIS APP ASKS FOR A FULL-SCREEN WINDOW.

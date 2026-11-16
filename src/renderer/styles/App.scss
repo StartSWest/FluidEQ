@@ -2167,8 +2167,11 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   // Full-screen content lies behind the translucent FluidEQ titlebar. When
   // the shared graph/Karaoke preference keeps that bar visible, reserve only
   // its actual height; when it is hidden the stage reaches the top edge.
+  // 16px under it, as with the header floating and in the windowed view, so
+  // the band under the options is the graph strip's 55px everywhere (Ivan,
+  // 2026-11-16: "the bar the same height everywhere"); at 8px it was 47.
   &.has-top-bar .karaoke-workspace.is-fullscreen {
-    padding-top: calc(#{$title-bar-height} + 8px);
+    padding-top: calc(#{$title-bar-height} + 16px);
   }
 
   // Keep the first usable pixel of an online player and the Library below the
@@ -2745,6 +2748,17 @@ $graph-card-pages: list.join(
   .center-workspace:not(.is-graph-first) > .middle-content > & {
     margin-top: 8px;
   }
+}
+
+// The Karaoke's card meets the header with no gap and no corner, so the band
+// under its options (`_karaokeStage.scss`) is stuck to the header as the
+// graph's is (Ivan, 2026-11-16: "always stuck to the menu above").
+.center-workspace:not(.is-graph-first)
+  > .middle-content
+  > .workspace-tab-panel--karaoke {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 // Between a section card and the graph the divider is a strip of floor, its

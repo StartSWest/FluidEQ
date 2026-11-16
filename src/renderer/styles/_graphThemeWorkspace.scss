@@ -621,15 +621,10 @@ it under the terms of the GNU General Public License version 3 or later.
   right: -100vw;
   bottom: -10px;
   left: -100vw;
-  // Dark and crisp, not a soft wash (Ivan, 2026-11-15: "make this darker and
-  // sharper, not that soft crap"): nearly opaque down to the row's foot and
-  // gone within a few pixels under it.
-  background: linear-gradient(
-    to top,
-    transparent 0,
-    color-mix(in srgb, $surface-base 90%, transparent) 6px,
-    color-mix(in srgb, $surface-base 92%, transparent) 100%
-  );
+  // Flat, the app's own floor, with a hard edge (Ivan, 2026-11-16: "flat like
+  // the application, no gradient or anything like that"). It was a near-
+  // opaque gradient that faded out over its last 6px.
+  background: $surface-base;
   content: '';
   pointer-events: none;
 }
