@@ -75,8 +75,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
     transition-duration: 480ms;
   }
 
+  // In full screen the row stands on the line every page's options do, the
+  // graph strip's (Ivan, 2026-11-16: "those top options always at the same
+  // level"): the stage starts 16px under the header and the strip's centre is
+  // 31px under it, so a 30px row with nothing above or below it centres there.
   .karaoke-workspace.is-fullscreen & {
-    padding-right: calc(var(--fullscreen-controls-right, 0px) + 12px);
+    min-height: 30px;
+    padding-block: 0;
   }
 }
 
@@ -262,8 +267,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
     font-weight: $weight-bold;
   }
 
+  // The track in a box of its own, for the marks at 100, 150, 200 and 250
+  // to stand on it (`graph-view-menu__snap`, the Brightness slider's).
+  .karaoke-stage-bar__text-size-track {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+  }
+
   input[type='range'] {
     @include toggle-knob-slider;
+    position: relative;
     width: 100%;
     min-width: 0;
   }
@@ -505,6 +520,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 2px;
   min-height: 34px;
   padding: 0 2px 6px 8px;
+
+  // On the same line as the stage's row beside it, in full screen.
+  .karaoke-workspace.is-fullscreen & {
+    min-height: 30px;
+    padding-bottom: 0;
+  }
 
   h3 {
     flex: 1 1 auto;

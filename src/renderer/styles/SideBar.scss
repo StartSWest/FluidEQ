@@ -424,10 +424,11 @@ $power-key-cast:
   padding: 14px 18px 10px;
   overflow-y: auto;
   border-right: 1px solid $border-panel;
-  // The floor it stands on when docked, lifted off the page by its shadow
-  // alone — the sound panel's drawer on the other edge, mirrored.
+  // The floor it stands on when docked, and its hairline: flat, no shadow
+  // under it (Ivan, 2026-11-16: "remove the drop shadow crap from the side
+  // panes when they float ... make those panes float flat"). The sound
+  // panel's drawer on the other edge, mirrored.
   background: $surface-base;
-  box-shadow: 10px 0 28px rgba($black, 0.22);
   transform: translateX(-105%);
   transition: transform 180ms ease-out;
 
@@ -474,6 +475,9 @@ $power-key-cast:
 // left:-20000px in this mode, which no tab could bring back.
 .app-workspace.is-app-full > .side-bar {
   @include side-bar-drawer;
+  // The sound panel's quiet edge, mirrored (`App.scss`): over a full-screen
+  // picture the panel colour's own edge drew a hard line down the drawer.
+  border-right-color: $border-subtle;
 
   // Above the plot's own fixed chrome and the full-screen header's glass.
   z-index: 70;

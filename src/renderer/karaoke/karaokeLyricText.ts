@@ -97,6 +97,11 @@ export const LYRIC_TEXT_SIZE_KEY = 'fluideq-karaoke-lyric-text-size';
 export const DEFAULT_LYRIC_TEXT_SIZE = 100;
 export const MIN_LYRIC_TEXT_SIZE = 75;
 export const MAX_LYRIC_TEXT_SIZE = 300;
+/**
+ * The sizes marked on the slider (Ivan, 2026-11-16: "put marks on the zoom
+ * 100, 150, 200, 250"): the normal size and each half step up from it.
+ */
+export const LYRIC_TEXT_SIZE_MARKS: readonly number[] = [100, 150, 200, 250];
 
 export const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));

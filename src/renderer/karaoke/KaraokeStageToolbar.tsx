@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  type CSSProperties,
   type Dispatch,
   type ReactNode,
   type RefObject,
@@ -28,7 +29,12 @@ import {
   writeKaraokeBackground,
   writeKaraokeStageGuides,
 } from './karaokeWorkspacePrefs';
-import { MAX_LYRIC_TEXT_SIZE, MIN_LYRIC_TEXT_SIZE } from './karaokeLyricText';
+import {
+  LYRIC_TEXT_SIZE_MARKS,
+  MAX_LYRIC_TEXT_SIZE,
+  MIN_LYRIC_TEXT_SIZE,
+} from './karaokeLyricText';
+import { snapFraction } from '../utils/percentSnaps';
 import { type useKaraokeMicrophoneInput } from './useKaraokeMicrophone';
 
 interface IKaraokeStageToolbarProps {
@@ -308,22 +314,40 @@ const KaraokeStageToolbar = ({
           <span className="is-small" aria-hidden="true">
             A
           </span>
-          <input
-            id={lyricTextSizeId}
-            type="range"
-            min={MIN_LYRIC_TEXT_SIZE}
-            max={MAX_LYRIC_TEXT_SIZE}
-            step="5"
-            value={lyricTextSize}
-            aria-label={t('karaoke.lyrics.textSize')}
-            aria-valuetext={`${lyricTextSize}%`}
-            style={rangeFill(
-              lyricTextSize,
-              MIN_LYRIC_TEXT_SIZE,
-              MAX_LYRIC_TEXT_SIZE,
-            )}
-            onChange={(event) => onLyricTextSize(Number(event.target.value))}
-          />
+          <span className="karaoke-stage-bar__text-size-track">
+            {LYRIC_TEXT_SIZE_MARKS.map((mark) => (
+              <i
+                key={mark}
+                className="graph-view-menu__snap"
+                style={
+                  {
+                    '--snap-frac': snapFraction(
+                      mark,
+                      MIN_LYRIC_TEXT_SIZE,
+                      MAX_LYRIC_TEXT_SIZE,
+                    ),
+                  } as CSSProperties
+                }
+                aria-hidden
+              />
+            ))}
+            <input
+              id={lyricTextSizeId}
+              type="range"
+              min={MIN_LYRIC_TEXT_SIZE}
+              max={MAX_LYRIC_TEXT_SIZE}
+              step="5"
+              value={lyricTextSize}
+              aria-label={t('karaoke.lyrics.textSize')}
+              aria-valuetext={`${lyricTextSize}%`}
+              style={rangeFill(
+                lyricTextSize,
+                MIN_LYRIC_TEXT_SIZE,
+                MAX_LYRIC_TEXT_SIZE,
+              )}
+              onChange={(event) => onLyricTextSize(Number(event.target.value))}
+            />
+          </span>
           <span className="is-large" aria-hidden="true">
             A
           </span>

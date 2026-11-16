@@ -160,7 +160,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The rows read over whatever the picture is: the card colour, opaque, as
   // full screen has it.
   > .karaoke-workspace__player.has-playlist > .karaoke-playlist {
-    background: $card-glow, $karaoke-chip-face;
+    background: $karaoke-chip-face;
   }
 }
 
@@ -269,26 +269,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   isolation: isolate;
   padding: 0;
   overflow: hidden;
-  background:
-    radial-gradient(
-      circle at 14% 42%,
-      color-mix(in srgb, #{$karaoke-warm} 16%, transparent),
-      transparent 32%
-    ),
-    radial-gradient(
-      circle at 84% 36%,
-      color-mix(in srgb, #{$karaoke-cool} 15%, transparent),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 52% 112%,
-      color-mix(in srgb, #{$karaoke-cool} 8%, transparent),
-      transparent 34%
-    ),
-    // The floor, flat. It was a diagonal from the pane colour to the well's
-    // under a 34px graph-paper grid — texture no other page has, and on a
-    // stage whose words are the subject.
-    $surface-base;
+  // The floor, flat and nothing else (Ivan, 2026-11-16: "remove the glow
+  // bg crap from the karaoke fullscreen"). Three coloured glows stood on it,
+  // and before them a diagonal under a 34px graph-paper grid — texture no
+  // other page has, on a stage whose words are the subject.
+  background: $surface-base;
 
   > .karaoke-workspace__player,
   > .karaoke-workspace__notice {
@@ -372,9 +357,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // card (Ivan, 2026-11-16: "left pane needs to be like in Library, not
   // floating"); the card colour behind it, opaque, so the rows read over
   // whatever the artwork is.
+  // Its heading on the stage row's line, as the graph's options are: the
+  // list's 10px of top padding put it a row's half lower than the stage's
+  // row beside it (`_karaokeStage.scss`).
   .karaoke-workspace__player.has-playlist > .karaoke-playlist {
     margin: 0;
-    background: $card-glow, $karaoke-chip-face;
+    padding-top: 0;
+    background: $karaoke-chip-face;
   }
 
   .karaoke-workspace__stage {

@@ -80,7 +80,6 @@ import useWorkspaceAxis from './utils/workspaceAxis';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import eqReachesSound from './utils/eqReachesSound';
 import useWindowFloor from './utils/windowFloor';
-import Chevron from './icons/Chevron';
 import { type TEngineState } from './components/ActionsMenu';
 import type { IHelpHandlers } from './help/helpMenuActions';
 import MiniPlayer from './player/MiniPlayer';
@@ -105,6 +104,7 @@ import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
 import SceneColumnLayer from './graph/SceneColumnLayer';
 import GraphScene from './graph/GraphScene';
+import useEdgeOpensPanels from './shell/useEdgeOpensPanels';
 import SceneTint from './components/SceneTint';
 import RainbowSource from './components/RainbowSource';
 import TaskbarIconSource from './components/TaskbarIconSource';
@@ -463,6 +463,14 @@ const AppContent = () => {
   const isSoundPaneOverPage =
     isSoundPaneDrawer || isGraphAppFullScreen || isMediaFullScreen;
   const isSoundDrawerOpen = isSoundPaneOverPage && rightPaneOpen;
+  // Over a full-screen picture the panels open from the window's edges.
+  useEdgeOpensPanels({
+    isActive: isGraphAppFullScreen || isMediaFullScreen,
+    isLeftOpen: topPaneOpen,
+    isRightOpen: rightPaneOpen,
+    setLeftOpen: setTopPaneOpen,
+    setRightOpen: setRightPaneOpen,
+  });
   const isSoundPaneShown = isSoundPaneOverPage
     ? rightPaneOpen
     : !isSoundPaneFolded;
@@ -656,9 +664,18 @@ const AppContent = () => {
           title={t('app.soundPanel')}
           onClick={() => setTopPaneOpen((open) => !open)}
         >
-          {/* Which way the panel goes, not what is in it: the tab is a
-              handle, and the chevron turns over with the panel. */}
-          <Chevron className="drawer-tab__chevron" />
+          {/* The sound panel's own drawing turned round (`SoundPanel`):
+              one control on either side, its arrow turning with the panel. */}
+          <svg
+            className="drawer-tab__glyph"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <rect x="2" y="2.5" width="12" height="11" rx="1.6" />
+            <path d="M6 2.5v11" />
+            <path className="drawer-tab__arrow" d="M8.6 6.2 10.4 8l-1.8 1.8" />
+          </svg>
         </button>
         <SideBar
           showGraphToggle

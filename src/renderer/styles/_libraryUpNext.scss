@@ -276,11 +276,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Under the optional titlebar the window keeps in full screen, the picture's
-// Back and its two tools start below the bar.
+// Back and its two tools stand on the line every page's options do, the
+// graph strip's, at its buttons' height (Ivan, 2026-11-16: "those top options
+// always at the same level").
 .app-workspace.is-app-full.is-media-full.has-top-bar
-  .library-workspace.is-video-full
+  .library-workspace.is-video-full {
   :is(.library-video-stage__back, .library-video-stage__tools) {
-  top: calc(#{$title-bar-height} + 8px + 12px);
+    top: calc(#{$title-bar-height} + #{$graph-strip-inset});
+  }
+
+  :is(.library-video-stage__back, .library-video-stage__tool) {
+    height: $graph-strip-button;
+    min-height: $graph-strip-button;
+  }
 }
 
 // *** The chrome over a full-screen picture goes together **********************

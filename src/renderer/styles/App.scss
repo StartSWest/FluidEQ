@@ -3167,10 +3167,19 @@ $graph-card-pages: list.join(
     @include focus-ring;
   }
 
-  .drawer-tab__chevron {
-    width: 12px;
-    height: 12px;
-    opacity: 1;
+  .drawer-tab__glyph {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.3;
+  }
+
+  .drawer-tab__arrow {
+    transform-origin: 9.5px 8px;
+    transition: transform $motion-base $ease-out;
   }
 }
 
@@ -3215,7 +3224,6 @@ $graph-card-pages: list.join(
   @include drawer-handle;
   border-left: 0;
   border-radius: 0 $radius-xs $radius-xs 0;
-  box-shadow: 4px 0 12px rgba($black, 0.16);
   transform: translateY(-50%);
   // Offset from the other tab's cycle, so the two never light together and
   // read as one thing flashing across the window.
@@ -3227,17 +3235,13 @@ $graph-card-pages: list.join(
     color 150ms ease,
     border-color 150ms ease;
 
-  .drawer-tab__chevron {
-    transform: rotate(-90deg);
-  }
-
-  // The same, on the other edge.
+  // Open, the arrow points where shutting sends the panel: back out left.
   &.is-open {
     left: min($side-bar-width-compact, 86vw);
     animation: none;
 
-    .drawer-tab__chevron {
-      transform: rotate(90deg);
+    .drawer-tab__arrow {
+      transform: rotate(180deg);
     }
   }
 }
@@ -3403,6 +3407,21 @@ $graph-card-pages: list.join(
   animation: none;
 }
 
+// NO HANDLES OVER A FULL-SCREEN PICTURE (Ivan, 2026-11-16: "remove the
+// handler, and when the user goes to the left or to the right it
+// automatically opens the floating panels"). The pointer at the window's very
+// edge opens the panel on that side and leaving it shuts it
+// (`useEdgeOpensPanels`), so neither the left drawer's tab nor the sound
+// panel's button is drawn. Both stay in the focus order and show while the
+// keyboard is on them, the keyboard's way to the same panels.
+.app-workspace.is-app-full {
+  > .side-bar-toggle:not(:focus-visible),
+  > .right-content .right-content__fold:not(:focus-visible) {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
 // `:focus-visible` is the keyboard's version of reaching for the edge. Without
 // it the Tab key still lands on the button — opacity does not take an element
 // out of the focus order — and the ring would be drawn on something invisible.
@@ -3413,7 +3432,7 @@ $graph-card-pages: list.join(
   pointer-events: none;
   // Out through the edge it belongs to, rather than dissolving where it
   // stands: the tab lives just off the screen, and should read as gone back.
-  transform: translate(-100%, -50%);
+  transform: translateX(-100%);
 }
 
 // The sound panel's button over a full-screen picture, on the same terms.
@@ -3599,11 +3618,11 @@ $graph-card-pages: list.join(
   }
 
   // Open over the page it hides what it covers: the floor, opaque.
+  // Flat, its hairline and no shadow, as the drawer on the other side.
   &.is-open > .right-content__panel {
     transform: none;
     border-left-color: $border-panel;
     background: $surface-base;
-    box-shadow: -10px 0 28px rgba($black, 0.22);
   }
 }
 
@@ -3621,6 +3640,13 @@ $graph-card-pages: list.join(
   );
   width: $sound-pane-rail;
   @include sound-pane-over-page($sound-pane-rail-shift);
+
+  // Over a full-screen picture both panes wear the same quiet edge on their
+  // inner side, the left drawer's mirrored (`SideBar.scss`; Ivan,
+  // 2026-11-16: "add a border to both, but more subtle, only in full screen").
+  &.is-open > .right-content__panel {
+    border-left-color: $border-subtle;
+  }
 
   // Closed, only its button over the picture — once it has slid away.
   &:not(.is-open):not(.is-sliding) > .right-content__panel {
@@ -3651,11 +3677,6 @@ $graph-card-pages: list.join(
 $graph-controls-past-fold: calc(
   (#{$sound-pane-rail} + #{$sound-pane-fold}) / 2 + #{$spacing-s}
 );
-
-.app-workspace.is-app-full {
-  // Playback toolbars share the graph's clearance for the sound-pane fold.
-  --fullscreen-controls-right: #{$graph-controls-past-fold};
-}
 
 .app-workspace.is-app-full .graph-wrapper > .live-output-controls {
   right: var(--graph-controls-right, #{$graph-controls-past-fold});
