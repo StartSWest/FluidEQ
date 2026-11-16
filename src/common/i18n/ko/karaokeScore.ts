@@ -27,6 +27,7 @@ const karaokeScore = {
   'karaoke.score.practiseLine': '{line}: 다시 부르기',
   'karaoke.score.outOf': '/ {max}',
   'karaoke.score.streak': '연속',
+  'karaoke.score.openReport': '결과 보기',
   'karaoke.score.close': '결과 닫기',
   'karaoke.score.recapTitle': '요약',
   'karaoke.score.bestFirst': '이 곡의 첫 점수입니다',

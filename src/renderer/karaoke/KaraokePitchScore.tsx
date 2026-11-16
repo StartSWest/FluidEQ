@@ -62,15 +62,23 @@ const KaraokePitchScore = ({
   onSingFrom,
   onSingAgain,
 }: IKaraokePitchScoreProps) => {
-  const { sheet, snapshot, isListening, readVerdict, endCard, closeEndCard } =
-    useKaraokeScore({
-      song,
-      livePitch: microphone.livePitch,
-      microphoneStatus: microphone.status,
-      status,
-      readPlayheadMs,
-      isActive,
-    });
+  const {
+    sheet,
+    snapshot,
+    isListening,
+    readVerdict,
+    endCard,
+    hasEndCard,
+    closeEndCard,
+    openEndCard,
+  } = useKaraokeScore({
+    song,
+    livePitch: microphone.livePitch,
+    microphoneStatus: microphone.status,
+    status,
+    readPlayheadMs,
+    isActive,
+  });
   const practiseLine = useCallback(
     (line: IKaraokeScoreLine) => {
       closeEndCard();
@@ -117,6 +125,7 @@ const KaraokePitchScore = ({
           sheet={sheet}
           snapshot={snapshot}
           onPractiseLine={practiseLine}
+          onOpenReport={hasEndCard ? openEndCard : undefined}
         />
       )}
       {endCard && (

@@ -27,6 +27,7 @@ const karaokeScore: Partial<Dictionary> = {
   'karaoke.score.practiseLine': '{line}: спеть ещё раз',
   'karaoke.score.outOf': 'из {max}',
   'karaoke.score.streak': 'Серия',
+  'karaoke.score.openReport': 'Результаты',
   'karaoke.score.close': 'Закрыть результат',
   'karaoke.score.recapTitle': 'Итог',
   'karaoke.score.bestFirst': 'Ваш первый результат в этой песне',

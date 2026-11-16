@@ -27,6 +27,7 @@ const karaokeScore = {
   'karaoke.score.practiseLine': '{line}：再唱一次',
   'karaoke.score.outOf': '/ {max}',
   'karaoke.score.streak': '連擊',
+  'karaoke.score.openReport': '查看結果',
   'karaoke.score.close': '關閉結果',
   'karaoke.score.recapTitle': '總結',
   'karaoke.score.bestFirst': '您在這首歌的第一個成績',

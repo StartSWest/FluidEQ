@@ -2133,6 +2133,21 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     box-shadow: none;
   }
 
+  // Not even the 8px the page card keeps under the titlebar at the head of
+  // the column (`#{$section-card-pages}`, which outranks the rule above): in
+  // full screen that strip showed the window's floor across the top, read as
+  // a piece of the hidden header left behind (Ivan, 2026-11-16: "the header
+  // hides, I must not see anything of it, I see a small frame").
+  > .center-workspace
+    > .middle-content
+    > :is(
+      .workspace-tab-panel--karaoke,
+      .workspace-tab-panel--library,
+      .workspace-tab-panel--video
+    ) {
+    margin-top: 0;
+  }
+
   // The Library keeps its card's colour, as the Karaoke does, so the header
   // and the transport, which are the floor, read as apart from it (Ivan,
   // 2026-11-16: "put the Library's colour in full screen so it stands apart
@@ -3201,9 +3216,10 @@ $graph-card-pages: list.join(
   z-index: 58;
   inset: 0;
   padding: 0;
-  // Enough to say the page is behind the panel, not enough to put it out:
-  // at 0.45 the window went dark every time a panel was pulled out.
-  background: rgba(2, 8, 14, 0.24);
+  // Clear: it only catches the press that shuts the drawers (Ivan,
+  // 2026-11-16: "don't put a dark shutter"). It was a 24% shade, and 45%
+  // before that.
+  background: transparent;
   border: 0;
   cursor: pointer;
   // The window darkens over the same 180ms the panel takes to arrive, rather
@@ -3392,6 +3408,30 @@ $graph-card-pages: list.join(
 @media (prefers-reduced-motion: reduce) {
   .side-bar-toggle {
     animation: none;
+  }
+}
+
+// *** The full-screen frame moves as one *************************************
+//
+// The header, the transport and both side panels come and go together
+// (`useFullScreenFrame`), and they have to be seen to: each had its own
+// timing — the left panel 180ms, the right 300ms on its own curve, the header
+// and the transport 220ms, and both panels' contents fading in 90-120ms after
+// their panel — so one click showed four things arriving one after another
+// (Ivan, 2026-11-16: "they come out at different times, it has to be all one
+// thing"). Over a full-screen picture all four travel the transport's
+// `$motion-base` on `$ease-out`, contents with their panel. The panels'
+// own travel is set where each is placed over the picture, after the mixin
+// that gives it its usual timing (`SideBar.scss`, and the sound panel's
+// rule below).
+.app-workspace.is-app-full {
+  > .side-bar.is-open > * {
+    animation: none;
+  }
+
+  > .right-content .right-content__scroll,
+  > .right-content .right-content__footer {
+    transition: none;
   }
 }
 
@@ -3650,6 +3690,11 @@ $graph-card-pages: list.join(
   );
   width: $sound-pane-rail;
   @include sound-pane-over-page($sound-pane-rail-shift);
+
+  // On the frame's one clock ("The full-screen frame moves as one").
+  > .right-content__panel {
+    transition: transform $motion-base $ease-out;
+  }
 
   // No edge on either pane over a full-screen picture (`SideBar.scss`; Ivan,
   // 2026-11-16: "the left panel has a border on its right side").

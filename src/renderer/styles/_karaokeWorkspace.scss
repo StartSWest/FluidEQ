@@ -357,10 +357,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // A card floating inside the full screen (Ivan, 2026-11-16: "I want it to
   // float, a card inside the full screen, the top and bottom margins equal,
   // margin on the left too and round corners"): 16px from the window's left
-  // edge and from the bottom, the same 16px the stage leaves under the header
-  // above it, at the cards' corner. Opaque, the card colour, so the rows read
-  // over whatever the artwork is. Its top stays where the stage's row is, so
-  // its heading keeps that row's line (`_karaokeStage.scss`).
+  // edge and from the bottom, and 16px from the top, which the player's own
+  // padding gives it (below) so the stage's row stands on the same line.
+  // Opaque, the card colour, so the rows read over whatever the artwork is.
   .karaoke-workspace__player.has-playlist > .karaoke-playlist {
     margin: 0 0 16px 16px;
     padding-top: 0;
@@ -711,7 +710,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // sure the left panel pushes the playlist panel to the right, so it never
 // overlaps"), and gives the room back as it shuts, on the panel's own slide.
 .karaoke-workspace.is-fullscreen > .karaoke-workspace__player {
-  transition: padding-left 180ms ease-out;
+  transition: padding-left $motion-base $ease-out;
 }
 
 .app-workspace.is-app-full:has(> .side-bar.is-open)
@@ -725,8 +724,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // "on the right pane push the options on top too").
 .karaoke-workspace.is-fullscreen > .karaoke-workspace__player {
   transition:
-    padding-left 180ms ease-out,
-    padding-right 180ms ease-out;
+    padding-left $motion-base $ease-out,
+    padding-right $motion-base $ease-out;
 }
 
 .app-workspace.is-app-full:has(> .right-content.is-open)
@@ -743,15 +742,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .app-workspace.is-app-full:not(.has-top-bar)
   .karaoke-workspace.is-fullscreen
   > .karaoke-workspace__player {
+  // The playlist's top margin and the stage row's, equal to the playlist's
+  // margin at the bottom, with the header away.
+  padding-top: 16px;
   transition:
-    padding-top 180ms ease-out,
-    padding-left 180ms ease-out,
-    padding-right 180ms ease-out;
+    padding-top $motion-base $ease-out,
+    padding-left $motion-base $ease-out,
+    padding-right $motion-base $ease-out;
 }
 
 #root:not(.is-chrome-idle)
   .app-workspace.is-app-full:not(.has-top-bar)
   .karaoke-workspace.is-fullscreen
   > .karaoke-workspace__player {
-  padding-top: $title-bar-height;
+  padding-top: calc(#{$title-bar-height} + 8px);
 }

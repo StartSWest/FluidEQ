@@ -27,6 +27,7 @@ const karaokeScore: Partial<Dictionary> = {
   'karaoke.score.practiseLine': '{line}: फिर से गाएं',
   'karaoke.score.outOf': '{max} में से',
   'karaoke.score.streak': 'लगातार',
+  'karaoke.score.openReport': 'परिणाम देखें',
   'karaoke.score.close': 'परिणाम बंद करें',
   'karaoke.score.recapTitle': 'सारांश',
   'karaoke.score.bestFirst': 'इस गाने पर आपका पहला स्कोर',

@@ -8,14 +8,14 @@ import { type RefObject, useEffect, useEffectEvent, useRef } from 'react';
 import {
   hideChromeNow,
   isChromeIdleNow,
+  setFrameControl,
   setFrameShown,
-  setFrameToggle,
 } from '../utils/idleChrome';
 
 /**
- * How close to the window's side the pointer has to come to bring the frame
- * up: 24px (Ivan, 2026-11-16: "it needs a bit more range", "about 20
- * pixels"). The plot's own controls start further in (its level labels take
+ * How close to any of the window's four edges the pointer has to come to
+ * bring the frame up: 24px (Ivan, 2026-11-16: "it needs a bit more range",
+ * "about 20 pixels"). The plot's own controls start further in (its level labels take
  * the first 50px), so dragging the lowest band does not bring it up.
  */
 export const EDGE_OPENS_PX = 24;
@@ -84,10 +84,11 @@ const cancelWait = (armed: RefObject<IEdgeWait | undefined>) => {
  * everything at the same time ... the header, the bottom bar and the side
  * panels; if the user clicks the screen it opens them, or if they reach the
  * edge; if they click the screen again it hides them all"). Half a second at
- * either side edge, or a click on the picture, brings up both side panels
+ * any of the four edges, or a click on the picture, brings up both side panels
  * with the header and the transport (`setFrameShown` keeps those two on
- * screen meanwhile); a click on the picture again, which lands on the panels'
- * backdrop, puts all four away. The handles are gone (`App.scss`).
+ * screen meanwhile); a click on the picture again, or three still seconds
+ * off all four, puts them all away. No backdrop stands over the picture while
+ * they are out, so everything under them stays pressable. The handles are gone (`App.scss`).
  */
 const useFullScreenFrame = ({
   isActive,
@@ -131,6 +132,14 @@ const useFullScreenFrame = ({
     setShown(true);
   });
 
+  // The clock's end: three still seconds off the frame take the panels
+  // away with the header and the transport.
+  const hide = useEffectEvent(() => {
+    if (isShown) {
+      setShown(false);
+    }
+  });
+
   const arm = () => {
     if (armed.current) {
       return;
@@ -152,11 +161,16 @@ const useFullScreenFrame = ({
       .catch(() => undefined);
   };
 
+  // Any of the four edges: the sides, where the panels live, and the top
+  // and the bottom, where the header and the transport do. Each brings all
+  // four (Ivan, 2026-11-16: "with the hover on any of the four sides").
   const onMove = useEffectEvent((event: PointerEvent) => {
     const isAtEdge =
       event.pointerType !== 'touch' &&
       (event.clientX <= EDGE_OPENS_PX ||
-        event.clientX >= window.innerWidth - 1 - EDGE_OPENS_PX);
+        event.clientX >= window.innerWidth - 1 - EDGE_OPENS_PX ||
+        event.clientY <= EDGE_OPENS_PX ||
+        event.clientY >= window.innerHeight - 1 - EDGE_OPENS_PX);
     if (isAtEdge && !isShown) {
       arm();
     } else {
@@ -191,13 +205,13 @@ const useFullScreenFrame = ({
     window.addEventListener('click', click);
     root.addEventListener('pointerleave', stop);
     window.addEventListener('blur', stop);
-    setFrameToggle(() => toggle());
+    setFrameControl({ toggle: () => toggle(), hide: () => hide() });
     return () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('click', click);
       root.removeEventListener('pointerleave', stop);
       window.removeEventListener('blur', stop);
-      setFrameToggle(undefined);
+      setFrameControl(undefined);
       stop();
     };
   }, [isActive]);

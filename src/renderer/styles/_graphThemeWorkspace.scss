@@ -549,9 +549,11 @@ it under the terms of the GNU General Public License version 3 or later.
   opacity: 0;
   transform: translateY(-100%);
   pointer-events: none;
+  // The transport's timing, which the side panels take too (App.scss, "The
+  // full-screen frame moves as one").
   transition:
-    opacity $motion-base ease,
-    transform $motion-base ease;
+    opacity $motion-base $ease-out,
+    transform $motion-base $ease-out;
 }
 
 #root:not(.is-chrome-idle)

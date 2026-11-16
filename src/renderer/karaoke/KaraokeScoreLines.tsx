@@ -33,6 +33,8 @@ interface IKaraokeScoreLinesProps {
   sheet: IKaraokeScoreSheet;
   snapshot: IKaraokeScoreSnapshot;
   onPractiseLine: (line: IKaraokeScoreLine) => void;
+  /** Opens the song's report again; absent until the song has one. */
+  onOpenReport?: () => void;
 }
 
 interface IKaraokeScoreLineRowProps {
@@ -107,12 +109,14 @@ const KaraokeScoreLineRow = ({
  * line a row of cells, one per note and as long as it, filling with their
  * verdicts' colours; its rating and percentage once it ends; and a press on
  * it takes the song back to that line to sing it again. The running score
- * and the streak stand at its end, counting.
+ * and the streak stand at its end, counting, and once the song has ended
+ * with a report, the press that opens it again.
  */
 const KaraokeScoreLines = ({
   sheet,
   snapshot,
   onPractiseLine,
+  onOpenReport,
 }: IKaraokeScoreLinesProps) => {
   const { t, locale } = useTranslation();
   const { results, firstOpen } = snapshot;
@@ -158,6 +162,15 @@ const KaraokeScoreLines = ({
             />
           </span>
         </span>
+        {onOpenReport && (
+          <button
+            type="button"
+            className="button small subtle karaoke-score__report"
+            onClick={onOpenReport}
+          >
+            {t('karaoke.score.openReport')}
+          </button>
+        )}
       </div>
     </section>
   );

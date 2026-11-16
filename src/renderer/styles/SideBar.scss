@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'constant' as *;
 @use 'color' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -478,6 +479,9 @@ $power-key-cast:
   // No edge over a full-screen picture, as the sound panel has none there
   // (Ivan, 2026-11-16: "the left panel has a border on its right side").
   border-right-color: transparent;
+  // On the frame's one clock, with the header, the transport and the sound
+  // panel (App.scss, "The full-screen frame moves as one").
+  transition: transform $motion-base $ease-out;
 
   // Above the plot's own fixed chrome and the full-screen header's glass.
   z-index: 70;

@@ -836,30 +836,22 @@ const AppContent = () => {
             them stacked, each closing only its own, meant a press outside
             with both open closed whichever happened to be on top and left
             the other standing. */}
-        {(isSoundDrawerOpen || topPaneOpen) && (
-          <button
-            type="button"
-            className="drawer-backdrop"
-            aria-label={t('app.dismiss')}
-            // One click puts the panels away. The second click of a double
-            // is not another dismissal: over a full-screen picture a double
-            // click leaves full screen, from here as from the picture itself
-            // (Ivan, 2026-11-16: "separate a single click from a double click
-            // to exit full screen, in all cases").
-            onClick={(event) => {
-              if (event.detail > 1) {
-                return;
-              }
-              setRightPaneOpen(false);
-              setTopPaneOpen(false);
-            }}
-            onDoubleClick={() => {
-              if (isGraphAppFullScreen || isMediaFullScreen) {
-                fullScreen.leaveFullScreen();
-              }
-            }}
-          />
-        )}
+        {/* None over a full-screen picture (Ivan, 2026-11-16: "when the
+            side panes come out don't block the UI or put a dark shutter"):
+            there a click on the picture is what puts the frame away
+            (`useFullScreenFrame`), and everything else stays pressable. */}
+        {(isSoundDrawerOpen || topPaneOpen) &&
+          !(isGraphAppFullScreen || isMediaFullScreen) && (
+            <button
+              type="button"
+              className="drawer-backdrop"
+              aria-label={t('app.dismiss')}
+              onClick={() => {
+                setRightPaneOpen(false);
+                setTopPaneOpen(false);
+              }}
+            />
+          )}
         <SoundPanel
           panelRef={soundPanelRef}
           isDrawerOpen={isSoundDrawerOpen}

@@ -25,6 +25,7 @@ const karaokeScore = {
   'karaoke.score.practiseLine': '{line}: sing it again',
   'karaoke.score.outOf': 'of {max}',
   'karaoke.score.streak': 'Streak',
+  'karaoke.score.openReport': 'See results',
   'karaoke.score.close': 'Close the results',
   'karaoke.score.recapTitle': 'Summary',
   'karaoke.score.bestFirst': 'Your first score on this song',

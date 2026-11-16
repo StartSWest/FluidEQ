@@ -131,6 +131,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   letter-spacing: -0.01em;
 }
 
+// The way back to the song's report, under the score that summed it up.
+.karaoke-score__report {
+  margin-top: 4px;
+}
+
 .karaoke-score__sub {
   display: flex;
   gap: 10px;

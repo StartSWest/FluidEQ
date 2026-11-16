@@ -99,9 +99,12 @@ export const paintPitchGrid = ({
   ) {
     const y = Math.round(yForMidi(midi)) + 0.5;
     const isOctave = midi % 12 === 0;
+    // A semitone's line at 12% and an octave's at 24% (Ivan, 2026-11-16:
+    // "make the pitch lines a bit more visible"): at 4.5% and 9% the rows
+    // the notes sit on were all but gone over a bright stage.
     context.strokeStyle = isOctave
-      ? readAccent(0.09, 'rgba(65, 218, 203, .09)')
-      : 'rgba(71, 116, 151, .045)';
+      ? readAccent(0.24, 'rgba(65, 218, 203, .24)')
+      : 'rgba(120, 165, 200, .12)';
     context.beginPath();
     context.moveTo(PLOT_LEFT, y);
     context.lineTo(PLOT_LEFT + plotWidth, y);

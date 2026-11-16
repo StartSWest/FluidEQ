@@ -146,7 +146,11 @@ const useKaraokeScore = ({
   readPlayheadRef.current = readPlayheadMs;
   const [snapshot, setSnapshot] =
     useState<IKaraokeScoreSnapshot>(EMPTY_SNAPSHOT);
-  const [endCard, setEndCard] = useState<IKaraokeEndCard | undefined>();
+  // The song's report is kept after it is closed, so it can be opened again
+  // from the score (Ivan, 2026-11-16: "where does the Karaoke show the
+  // report?"); a new song or new notes throw it away.
+  const [lastCard, setLastCard] = useState<IKaraokeEndCard | undefined>();
+  const [isCardOpen, setCardOpen] = useState(false);
 
   const publish = useCallback(() => {
     const run = runRef.current;
@@ -162,7 +166,8 @@ const useKaraokeScore = ({
     runRef.current = sheet ? createKaraokeScoreRun(sheet) : undefined;
     judgedAtRef.current = new Map();
     publish();
-    setEndCard(undefined);
+    setLastCard(undefined);
+    setCardOpen(false);
   }, [sheet, publish]);
 
   const isListening = Boolean(sheet) && isActive && microphoneStatus === 'live';
@@ -240,7 +245,8 @@ const useKaraokeScore = ({
     };
     const after = recordKaraokeAttempt(songId, attempt);
     const deltas = karaokeLineDeltas(summary.linePercents, before.best?.lines);
-    setEndCard({
+    setCardOpen(true);
+    setLastCard({
       sheet: run.sheet,
       results: [...run.results],
       summary,
@@ -270,15 +276,18 @@ const useKaraokeScore = ({
     [noteIndexOf],
   );
 
-  const closeEndCard = useCallback(() => setEndCard(undefined), []);
+  const closeEndCard = useCallback(() => setCardOpen(false), []);
+  const openEndCard = useCallback(() => setCardOpen(true), []);
 
   return {
     sheet,
     snapshot,
     isListening,
     readVerdict,
-    endCard,
+    endCard: isCardOpen ? lastCard : undefined,
+    hasEndCard: lastCard !== undefined,
     closeEndCard,
+    openEndCard,
   };
 };
 
