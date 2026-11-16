@@ -380,6 +380,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: 0;
     background: transparent;
     box-shadow: none;
+    // Nothing clipped here: the options band reaches up to the header and out
+    // to both edges from inside this box (`_karaokeStage.scss`), and clipped
+    // at the stage's top it left 16px of scene under the header (Ivan,
+    // 2026-11-16: "fix the full-screen bar"). The window clips at its edges.
+    overflow: visible;
   }
 }
 
