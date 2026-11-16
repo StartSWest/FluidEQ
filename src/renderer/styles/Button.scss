@@ -28,20 +28,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 8px 13px;
-  color: $surface-base;
-  // No edge of its own and no glow at rest: the filled button is already the
-  // loudest thing in its row, and a lighter outline and a halo round it were
-  // two more rings saying so (Ivan, 2026-09-25: "I want a clean design").
-  //
-  // Filled with the controls' fill (`--control-fill`): the accent, flat, and
-  // the icon's span through it only in Rainbow mode (Ivan, 2026-09-27: "when
-  // rainbow mode is off make buttons flat, no gradient"). No lit edge along
-  // its top either: that was a bevel on a face that is meant to be flat.
-  // Painted from the border's edge, so the transparent border shows the
-  // fill's own ends and not a repeat of it.
-  border: 1px solid transparent;
+  // DEEP (Ivan, 2026-11-15, from four calmer primaries: "go on buttons with
+  // the recommended"): a dark teal fill, the accent's whole edge and light
+  // ink. It was the accent filled edge to edge with dark ink, the brightest
+  // slab in every panel it stood in; this is still plainly the one to press
+  // - its edge is the accent itself where the quiet button's is a pale
+  // hairline - without lighting the panel up. Flat: no glow, no bevel.
+  // Rainbow mode keeps the filled span (below).
+  color: $secondary-light;
+  border: 1px solid $secondary-default;
   border-radius: $radius-s;
-  background: $secondary-default var(--control-fill) border-box;
+  background: color-mix(in srgb, $secondary-default 24%, $surface-base);
   box-shadow: none;
   font-weight: $weight-bold;
   line-height: 1.15;
@@ -61,7 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // inside of every outlined icon near-black, so a stroked arrow on a quiet
   // button carried a black blob in its bowl.
   path:not([fill='none']) {
-    fill: $surface-well;
+    fill: currentColor;
   }
 
   // The stroked icon sets say `fill="none"` once, on the svg, and the paths
@@ -73,14 +70,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Hover and press light and dim the same fill rather than swapping it, and
   // nothing round it: the halo under the pointer was a glow on a flat face.
   &:hover:not([aria-disabled='true']):not(:disabled) {
-    color: $surface-base;
+    color: $white;
+    background: color-mix(in srgb, $secondary-default 34%, $surface-base);
     box-shadow: none;
-    filter: brightness(1.1);
   }
 
   &:active:not([aria-disabled='true']):not(:disabled) {
-    color: $surface-base;
-    filter: brightness(0.9);
+    color: $white;
+    background: color-mix(in srgb, $secondary-default 18%, $surface-base);
   }
 
   &.small {
@@ -282,5 +279,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus-visible {
     background: color-mix(in srgb, $secondary-default 8%, transparent);
     outline: none;
+  }
+}
+
+// Rainbow mode keeps the filled span for the suggested action: the accent
+// between the palette's greener and bluer ends (`--control-fill`, set on
+// `:root.is-euphoric`), with dark ink, as before the Deep primary. A span
+// is a fill or it is nothing; at a quarter strength it would be mud.
+:root.is-euphoric .button:not(.subtle, .danger) {
+  color: $surface-base;
+  border-color: transparent;
+  background: $secondary-default var(--control-fill) border-box;
+
+  path:not([fill='none']) {
+    fill: $surface-well;
+  }
+
+  &:hover:not([aria-disabled='true']):not(:disabled),
+  &:active:not([aria-disabled='true']):not(:disabled) {
+    color: $surface-base;
+    background: $secondary-default var(--control-fill) border-box;
+  }
+
+  &:hover:not([aria-disabled='true']):not(:disabled) {
+    filter: brightness(1.1);
+  }
+
+  &:active:not([aria-disabled='true']):not(:disabled) {
+    filter: brightness(0.9);
   }
 }

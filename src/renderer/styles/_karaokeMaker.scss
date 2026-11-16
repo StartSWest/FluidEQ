@@ -99,7 +99,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       box-shadow: none;
     }
 
-    &.is-primary,
     &.is-active {
       color: $surface-base;
       font-weight: $weight-bold;
@@ -108,9 +107,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       box-shadow: inset 0 1px 0 rgba($white, 0.24);
     }
 
-    // Bright primary actions need dark ink in every interaction state. The
-    // generic hover selector above is more specific than `.is-primary` and was
-    // turning "Use in player" white against the pale teal surface.
+    // The app's Deep primary (`Button.scss`): dark teal, the accent's edge,
+    // light ink (Ivan, 2026-11-15).
+    &.is-primary {
+      color: $secondary-light;
+      font-weight: $weight-bold;
+      background: color-mix(in srgb, $secondary-default 24%, $surface-base);
+      border-color: $secondary-default;
+      box-shadow: none;
+    }
+
     &.is-primary {
       // One line always: at narrow widths this wrapped to "Use in /
       // player", the most prominent button in the editor torn in half.
@@ -118,17 +124,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       flex: none;
     }
 
-    // The filled button's own hover (`Button.scss`): brighter and lit, the
-    // ink kept dark.
+    // The Deep primary's own hover (`Button.scss`): a deeper teal, white
+    // ink. Said here because the generic hover above outranks `.is-primary`.
     &.is-primary:hover:not(:disabled),
     &.is-primary:focus-visible {
-      color: $surface-base;
-      background: $secondary-default var(--control-fill) border-box;
-      border-color: transparent;
-      filter: brightness(1.1);
-      box-shadow:
-        inset 0 1px 0 rgba($white, 0.24),
-        0 0 16px color-mix(in srgb, $secondary-default 16%, transparent);
+      color: $white;
+      background: color-mix(in srgb, $secondary-default 34%, $surface-base);
+      border-color: $secondary-default;
+      filter: none;
+      box-shadow: none;
     }
 
     &:disabled {
