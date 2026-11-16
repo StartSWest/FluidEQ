@@ -22,6 +22,7 @@ import useLibraryWorkspaceNavigation from './useLibraryWorkspaceNavigation';
 import useLibrarySteps from './useLibrarySteps';
 import LibraryWorkspaceView from './LibraryWorkspaceView';
 import useVideoFullScreenExit from './useVideoFullScreenExit';
+import { TagEditorProvider } from './tags/TagEditorContext';
 
 export interface ILibraryWorkspaceProps {
   /** Hidden instead of unmounted, matching KaraokeWorkspace and VideoBrowser:
@@ -53,15 +54,17 @@ const LibraryWorkspace = ({
   useVideoFullScreenExit(shelf.videoTrackId, isFullScreen, onToggleFullScreen);
   const steps = useLibrarySteps(shelf, navigation);
   return (
-    <LibraryWorkspaceView
-      shelf={shelf}
-      navigation={navigation}
-      steps={steps}
-      isFullScreen={isFullScreen}
-      isGraphBackdrop={isGraphBackdrop}
-      isHidden={isHidden}
-      onToggleFullScreen={onToggleFullScreen}
-    />
+    <TagEditorProvider>
+      <LibraryWorkspaceView
+        shelf={shelf}
+        navigation={navigation}
+        steps={steps}
+        isFullScreen={isFullScreen}
+        isGraphBackdrop={isGraphBackdrop}
+        isHidden={isHidden}
+        onToggleFullScreen={onToggleFullScreen}
+      />
+    </TagEditorProvider>
   );
 };
 

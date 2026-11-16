@@ -23,6 +23,7 @@ import LibraryCoverArt from './LibraryCoverArt';
 import LibraryFolderArt from './LibraryFolderArt';
 import LibrarySearchField from './LibrarySearchField';
 import LibraryTrackMenu from './LibraryTrackMenu';
+import { type TTagSetScope, useTagEditorIfAny } from './tags/TagEditorContext';
 
 /** A playlist the reader may rename and remove — never Favourites. */
 export interface IEditablePlaylist {
@@ -65,6 +66,9 @@ interface ILibraryDetailHeaderProps {
   onBack: () => void;
   filter: string;
   onFilter: (value: string) => void;
+  /** What "Edit tags" edits from this header: the album, the folder, or the
+   * record's songs as a selection (an artist, a genre, a playlist). */
+  tagScope?: { scope: TTagSetScope; title: string; place?: string };
 }
 
 /**
@@ -95,8 +99,57 @@ const LibraryDetailHeader = ({
   onBack,
   filter,
   onFilter,
+  tagScope,
 }: ILibraryDetailHeaderProps) => {
   const { t } = useTranslation();
+  const tagEditor = useTagEditorIfAny();
+  /** The record's songs on the tag editor page. */
+  const editRecordTags = (trackIds: readonly string[]) => {
+    if (tagEditor && tagScope && trackIds.length > 0) {
+      tagEditor.openSet(
+        tagScope.scope,
+        trackIds,
+        tagScope.title,
+        tagScope.place,
+      );
+    }
+  };
+
+  // Ctrl+I on the record's page edits the whole record, unless a row (which
+  // answers Ctrl+I itself) or a text box has the keys.
+  useEffect(() => {
+    if (!tagEditor || !tagScope || !hasTracks) {
+      return undefined;
+    }
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        event.defaultPrevented ||
+        !(event.ctrlKey || event.metaKey) ||
+        event.key.toLowerCase() !== 'i' ||
+        tagEditor.view !== undefined ||
+        target?.closest('input, textarea, [contenteditable="true"]')
+      ) {
+        return;
+      }
+      event.preventDefault();
+      loadTrackIds()
+        .then((ids) => {
+          if (ids.length > 0) {
+            tagEditor.openSet(
+              tagScope.scope,
+              ids,
+              tagScope.title,
+              tagScope.place,
+            );
+          }
+          return undefined;
+        })
+        .catch(() => undefined);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [tagEditor, tagScope, hasTracks, loadTrackIds]);
   /** The rename field while it is open. Empty is a legitimate half-typed
    * name, so "is it open" cannot be asked of the text. */
   const [draftName, setDraftName] = useState<string | undefined>(undefined);
@@ -323,6 +376,17 @@ const LibraryDetailHeader = ({
                           .catch(() => undefined);
                         setIsContainerMenuOpen(false);
                       }
+                    : undefined
+                }
+                onEditTags={tagEditor && tagScope ? editRecordTags : undefined}
+                editTagsLabel={
+                  tagScope?.scope === 'album'
+                    ? t('library.tags.menu.editAlbum')
+                    : undefined
+                }
+                onChangeCover={
+                  tagEditor && tagScope && tagScope.scope !== 'selection'
+                    ? () => editRecordTags(menuTrackIds)
                     : undefined
                 }
                 onClose={() => setIsContainerMenuOpen(false)}

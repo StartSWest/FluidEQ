@@ -46,6 +46,11 @@ import { type TLibraryWorkspaceShelf } from './useLibraryWorkspaceShelf';
 import { type TLibraryWorkspaceNavigation } from './useLibraryWorkspaceNavigation';
 import { type TLibrarySteps } from './useLibrarySteps';
 import { useLibraryAnswer, useShelfCounts } from './useLibraryAnswer';
+import { useTagEditor } from './tags/TagEditorContext';
+import LibraryTagSongPanel from './tags/LibraryTagSongPanel';
+import LibraryTagProblemsPanel from './tags/LibraryTagProblemsPanel';
+import LibraryTagWriteCard from './tags/LibraryTagWriteCard';
+import LibraryTagSetEditor from './tags/LibraryTagSetEditor';
 
 type TLibraryWorkspaceViewProps = Pick<
   ILibraryWorkspaceProps,
@@ -175,6 +180,11 @@ const LibraryWorkspaceView = ({
   } = steps;
   const counts = useShelfCounts();
   const rail = useLibraryRailWidth();
+  const tagEditor = useTagEditor();
+  /** The side column shows a tag panel in place of the queue while one is
+   * open: the files that need an answer first, then the song being edited. */
+  const isTagPanelOpen =
+    tagEditor.isProblemsOpen || tagEditor.view?.kind === 'song';
   const hasLibrary = roots.length > 0;
   const shownTotals = useLibraryAnswer(
     hasLibrary && !isHidden && shownTracksQuery !== undefined
@@ -280,7 +290,9 @@ const LibraryWorkspaceView = ({
         isResizingUpNext && !isHidden && !isUpNextCollapsed
           ? ' is-resizing-up-next'
           : ''
-      }${rail.isResizing ? ' is-resizing-rail' : ''}`}
+      }${rail.isResizing ? ' is-resizing-rail' : ''}${
+        isTagPanelOpen ? ' has-tag-panel' : ''
+      }`}
       ref={cardRef}
       aria-label={t('tabs.library')}
       aria-hidden={isHidden}
@@ -462,6 +474,8 @@ const LibraryWorkspaceView = ({
                 )}
               </div>
             )}
+            {/* A tag write, from its first file to its result. */}
+            <LibraryTagWriteCard />
             {/* Pinned under the bar rather than a modal: the scan is
                 backgroundable by leaving the tab. */}
             {isScanning && progress && !isScanNoticeHidden && (
@@ -485,16 +499,26 @@ const LibraryWorkspaceView = ({
                 <Spinner />
               </div>
             )}
-            <LibraryShelfViews
-              shelf={shelf}
-              navigation={navigation}
-              steps={steps}
-              surpriseStageRef={surpriseStageRef}
-            />
+            {/* An album, a folder or a selection being edited: the page is
+                the editor until it is saved or left. */}
+            {tagEditor.view?.kind === 'set' ? (
+              <LibraryTagSetEditor key={tagEditor.view.ids.join('|')} />
+            ) : (
+              <LibraryShelfViews
+                shelf={shelf}
+                navigation={navigation}
+                steps={steps}
+                surpriseStageRef={surpriseStageRef}
+              />
+            )}
             {/* Over whichever shelf is drawn, after every view so it lies
                 above them. Never over a video, which has the tab. */}
             <SurpriseDrawLayer
-              isShelfShown={trackCount > 0 && !videoTrackId}
+              isShelfShown={
+                trackCount > 0 &&
+                !videoTrackId &&
+                tagEditor.view?.kind !== 'set'
+              }
               stageRef={surpriseStageRef}
               onPick={showSurprisePick}
             />
@@ -508,7 +532,11 @@ const LibraryWorkspaceView = ({
         <div className="library-side">
           {/* The karaoke panes' splitter, on the column's inner edge.
               Dragging left widens the queue: the panel is anchored right. */}
-          {!isUpNextCollapsed && (
+          {tagEditor.isProblemsOpen && <LibraryTagProblemsPanel />}
+          {!tagEditor.isProblemsOpen && tagEditor.view?.kind === 'song' && (
+            <LibraryTagSongPanel />
+          )}
+          {!isTagPanelOpen && !isUpNextCollapsed && (
             <div className="library-up-next__splitter">
               <KaraokePaneSplitter
                 orientation="vertical"
@@ -540,7 +568,7 @@ const LibraryWorkspaceView = ({
             </div>
           )}
           <LibraryRightPane
-            isCollapsed={isUpNextCollapsed}
+            isCollapsed={isUpNextCollapsed || isTagPanelOpen}
             canSurprise={trackCount > 0 && !videoTrackId}
             head={
               isUpNextDrawer && (

@@ -1,0 +1,307 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'themeMixins' as *;
+@use 'libraryTokens' as *;
+
+// *** The tag editor: writing *************************************************
+//
+// A write from its first file to its result (the mockup's section 5), the
+// files that need an answer, and the bar a multi-selection raises.
+
+// *** Writing ********************************************************************
+
+.library-tags__bar {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: $track-well;
+
+  i {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: $secondary-default;
+    transition: width 120ms linear;
+  }
+
+  &.is-line {
+    width: 120px;
+    flex: 0 0 auto;
+  }
+}
+
+.library-tags-card {
+  display: grid;
+  max-width: 640px;
+  margin: 10px $library-gutter 4px;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: $radius-m;
+  background: $studio-surface;
+  font-size: $studio-text-tree;
+
+  &.is-settled {
+    max-width: none;
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+.library-tags-card__top {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  color: $studio-t2;
+
+  b {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+}
+
+.library-tags-card__file {
+  min-width: 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  @include truncate;
+}
+
+.library-tags-card__icon {
+  width: 18px;
+  height: 18px;
+  color: $secondary-default;
+
+  .has-failed & {
+    color: $amber;
+  }
+}
+
+.library-tags-card__text {
+  display: grid;
+  min-width: 0;
+  color: $studio-t2;
+
+  b {
+    color: $text-primary;
+    font-size: $studio-text-row;
+    font-weight: $weight-semibold;
+  }
+}
+
+.library-tags-card__failed {
+  color: $amber;
+}
+
+.library-tags-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  .library-tags-card:not(.is-settled) & {
+    justify-content: flex-start;
+  }
+
+  .button svg {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+@container library (max-width: #{$bp-md}) {
+  .library-tags-card.is-settled {
+    grid-template-columns: 20px minmax(0, 1fr);
+
+    .library-tags-card__actions {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+    }
+  }
+}
+
+// In the background: one line at the foot of the shelf.
+.library-tags-line {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 $library-gutter;
+  background: $studio-rail;
+  box-shadow: inset 0 1px 0 $studio-hair;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+}
+
+.library-tags-line__text {
+  min-width: 0;
+  margin-right: auto;
+  @include truncate;
+}
+
+.library-tags-line__spin {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border: 2px solid $track-well;
+  border-top-color: $secondary-default;
+  border-radius: 50%;
+  animation: library-tags-spin 0.8s linear infinite;
+}
+
+@keyframes library-tags-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// *** Files that need an answer ***********************************************
+
+.library-tags-problem {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0 14px;
+  box-shadow: inset 0 -1px 0 $studio-hair;
+
+  &:last-child {
+    box-shadow: none;
+  }
+}
+
+.library-tags-problem__top {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+
+  .library-cover-art {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.library-tags-problem__name {
+  display: grid;
+  min-width: 0;
+  font-size: $studio-text-tree;
+
+  b {
+    font-weight: $weight-semibold;
+    @include truncate;
+  }
+
+  span {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+    @include truncate;
+  }
+}
+
+.library-tags-problem__why {
+  display: flex;
+  margin: 0;
+  align-items: flex-start;
+  gap: 8px;
+  color: $studio-t2;
+  font-size: $studio-text-tree;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: $amber;
+  }
+
+  &.is-bad svg {
+    color: $red;
+  }
+}
+
+.library-tags-problem__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-left: 23px;
+}
+
+// *** The selection bar ***********************************************************
+
+.library-list {
+  position: relative;
+}
+
+.library-selection-bar {
+  position: absolute;
+  z-index: 25;
+  bottom: 16px;
+  left: 50%;
+  display: flex;
+  max-width: calc(100% - 24px);
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 14px;
+  overflow-x: auto;
+  transform: translateX(-50%);
+  scrollbar-width: none;
+  @include menu-surface;
+  animation: library-selection-bar-in 160ms ease-out backwards;
+
+  b {
+    margin-right: 6px;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+  }
+
+  .button svg {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+  }
+}
+
+@keyframes library-selection-bar-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+// The shortcut beside a menu item, in the menu's quiet ink.
+.library-list__menu-key {
+  margin-left: auto;
+  padding-left: 12px;
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+}

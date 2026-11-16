@@ -63,6 +63,17 @@ interface ILibraryTrackMenuProps {
    * spread over several folders, which have no one place to show.
    */
   onRevealFolder?: () => void;
+  /**
+   * Edit the tags of what the menu is about: one song in the side panel,
+   * several (or a whole record) on the editor page. Absent where nothing can
+   * be edited — a video, a menu with no Library above it.
+   */
+  onEditTags?: (trackIds: readonly string[]) => void;
+  /** The item's words where "Edit tags…" is not the whole story: the record
+   * header's "Edit album tags…". */
+  editTagsLabel?: string;
+  /** A record's "Change cover…": its editor page, where the cover leads. */
+  onChangeCover?: () => void;
   onClose: () => void;
 }
 
@@ -89,6 +100,9 @@ const LibraryTrackMenu = ({
   onQueueTracks,
   onReveal,
   onRevealFolder,
+  onEditTags,
+  editTagsLabel,
+  onChangeCover,
   onClose,
 }: ILibraryTrackMenuProps) => {
   const { t } = useTranslation();
@@ -243,6 +257,45 @@ const LibraryTrackMenu = ({
           <MenuIcon name="clear" className="library-list__menu-icon" />
           <span>{t('library.playlist.removeFrom')}</span>
         </button>
+      )}
+      {/* The song's own words: its tags, edited in the side panel for one,
+          on the editor page for a set. Ctrl+I opens the same from a row. */}
+      {onEditTags && (
+        <>
+          <div className="library-list__menu-rule" role="none" />
+          <button
+            type="button"
+            onClick={() => {
+              onEditTags(trackIds);
+              onClose();
+            }}
+          >
+            <MenuIcon name="pencil" className="library-list__menu-icon" />
+            <span>
+              {editTagsLabel ??
+                (isOne
+                  ? t('library.tags.menu.edit')
+                  : t('library.tags.menu.editMany', {
+                      count: trackIds.length,
+                    }))}
+            </span>
+            <span className="library-list__menu-key" aria-hidden="true">
+              {t('library.tags.menu.shortcut')}
+            </span>
+          </button>
+          {onChangeCover && (
+            <button
+              type="button"
+              onClick={() => {
+                onChangeCover();
+                onClose();
+              }}
+            >
+              <MenuIcon name="image" className="library-list__menu-icon" />
+              <span>{t('library.tags.menu.cover')}</span>
+            </button>
+          )}
+        </>
       )}
       {/* Filing done; what follows leaves the library — and neither of them
           means anything for a set, so for a set there is nothing below the

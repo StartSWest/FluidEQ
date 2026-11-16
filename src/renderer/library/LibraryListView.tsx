@@ -58,6 +58,8 @@ import {
   useLibraryColumns,
 } from './libraryColumns';
 import { countText } from './libraryFormat';
+import { useListTagEditing } from './tags/useListTagEditing';
+import LibrarySelectionBar from './tags/LibrarySelectionBar';
 
 interface ILibraryListViewProps {
   /**
@@ -298,6 +300,7 @@ const LibraryListView = ({
    * page that lands. */
   const listRef = useRef(list);
   listRef.current = list;
+  const editTags = useListTagEditing(listRef);
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
 
@@ -507,6 +510,21 @@ const LibraryListView = ({
         onPlayTrack(track.id);
         return;
       }
+      // Ctrl+I, as Get Info was: the lit rows when this one is among them,
+      // otherwise this one.
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === 'i' &&
+        editTags
+      ) {
+        event.preventDefault();
+        editTags(
+          selectedIds.has(track.id) && selectedIds.size > 1
+            ? Array.from(selectedIds)
+            : [track.id],
+        );
+        return;
+      }
       if (
         event.key === 'ContextMenu' ||
         (event.shiftKey && event.key === 'F10')
@@ -515,7 +533,7 @@ const LibraryListView = ({
         setTrackMenu({ trackId: track.id, anchor: event.currentTarget });
       }
     },
-    [onPlayTrack],
+    [onPlayTrack, editTags, selectedIds],
   );
 
   const columnHeader = (column: TListColumn) => t(COLUMN_LABEL_KEYS[column]);
@@ -895,9 +913,23 @@ const LibraryListView = ({
             openPlaylistId={openPlaylistId}
             onQueueTracks={onQueueTracks}
             onReveal={reveal}
+            // Songs only: a video has no tags this editor writes.
+            onEditTags={
+              menuSubject.track?.kind === 'video' ? undefined : editTags
+            }
             onClose={() => setTrackMenu(undefined)}
           />
         )}
+      {editTags && selectedIds.size > 1 && (
+        <LibrarySelectionBar
+          trackIds={Array.from(selectedIds)}
+          onEditTags={(ids) => {
+            editTags(ids);
+          }}
+          onQueueTracks={onQueueTracks}
+          onClear={clearSelection}
+        />
+      )}
     </div>
   );
 };

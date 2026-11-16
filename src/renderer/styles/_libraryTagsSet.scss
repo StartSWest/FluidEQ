@@ -1,0 +1,377 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'themeMixins' as *;
+@use 'libraryTokens' as *;
+
+// *** An album, a folder or a selection: the page as the editor ****************
+//
+// The mockup's section 3: shared fields and one cover over a spreadsheet of
+// the songs, on the shelf's own floor, with the shelf's gutters.
+
+.library-tags-set {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  color: $text-primary;
+}
+
+.library-tags-set__scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 18px $library-gutter 24px;
+  overflow: auto;
+  @include slim-scrollbar;
+}
+
+.library-tags-set__head {
+  display: flex;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.library-tags-set__heading {
+  min-width: 0;
+
+  h2 {
+    margin: 2px 0 0;
+    font-size: 1.375rem;
+    font-weight: $weight-bold;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+}
+
+.library-tags-set__eyebrow {
+  color: $studio-t2;
+  font-size: $studio-text-tree;
+  overflow-wrap: anywhere;
+
+  b {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+}
+
+.library-tags-set__head-side {
+  display: grid;
+  max-width: 320px;
+  justify-items: end;
+  gap: 6px;
+
+  .library-tags__note {
+    margin: 0;
+    text-align: right;
+  }
+}
+
+.library-tags-set__leave {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: $studio-t2;
+  font-size: $studio-text-tree;
+}
+
+.library-tags-set__reading {
+  display: grid;
+  max-width: 420px;
+  margin-bottom: 14px;
+  gap: 6px;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+}
+
+.library-tags-set__shared {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 20px;
+  padding-bottom: 20px;
+  box-shadow: inset 0 -1px 0 $studio-hair;
+}
+
+.library-tags-set__cover-caption {
+  display: grid;
+  margin-top: 4px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+
+  b {
+    color: $text-primary;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
+  }
+}
+
+// The covers the songs disagree on, stacked: what "2 different covers" is.
+.library-tags-stack {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.library-tags-stack__card {
+  position: absolute;
+  overflow: hidden;
+  width: 144px;
+  height: 144px;
+  border-radius: $radius-l;
+  background: $studio-raise;
+  box-shadow: 0 0 0 2px $surface-base;
+
+  &.is-0 {
+    top: 0;
+    left: 24px;
+    width: 136px;
+    height: 136px;
+  }
+
+  &.is-1 {
+    top: 12px;
+    left: 12px;
+  }
+
+  &.is-2 {
+    top: 24px;
+    left: 0;
+  }
+
+  .library-cover-art {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// A stack has no frame of its own: the cards are the picture.
+.library-tags__cover.is-set
+  .library-tags__cover-frame:has(.library-tags-stack) {
+  overflow: visible;
+  background: none;
+}
+
+.library-tags-set__fields {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 0 24px;
+
+  .library-tags__row {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .library-tags__row.is-wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.library-tags__pair.is-wrapping {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.library-tags__all {
+  flex: 0 0 auto;
+}
+
+// "3 values": the songs' own values behind a Mixed field.
+.library-tags__values {
+  display: inline-flex;
+  height: 24px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 8px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: $studio-surface;
+  color: $studio-t2;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  cursor: pointer;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    background: $studio-raise;
+    color: $text-primary;
+  }
+}
+
+.library-tags__suggestions.is-values {
+  right: 0;
+  left: auto;
+  width: min(268px, 100%);
+
+  .is-empty {
+    color: $studio-t3;
+  }
+
+  .library-tags__suggestion svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.library-tags__suggestions-rule {
+  height: 1px;
+  margin: 4px 6px;
+  background: color-mix(in srgb, $secondary-light 14%, transparent);
+}
+
+// *** Tools ************************************************************************
+
+.library-tags-set__tools {
+  display: grid;
+  margin: 18px 0 10px;
+  gap: 8px;
+}
+
+.library-tags-set__tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  .library-tags__group.is-inline {
+    margin: 0 auto 0 0;
+
+    &::after {
+      display: none;
+    }
+  }
+
+  .button.is-on {
+    border-color: $secondary-default;
+    color: $secondary-light;
+  }
+}
+
+.library-tags-set__replace {
+  display: grid;
+  max-width: 640px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
+// *** The foot ****************************************************************
+
+.library-tags-set__foot {
+  display: flex;
+  min-height: 56px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px $library-gutter;
+  box-shadow: inset 0 1px 0 $studio-hair;
+}
+
+.library-tags-set__what {
+  display: flex;
+  min-width: 0;
+  margin-right: auto;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+
+  b {
+    color: $text-primary;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
+  }
+}
+
+@container library (max-width: #{$bp-md}) {
+  .library-tags-set__shared {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .library-tags__cover.is-set {
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+
+    .library-tags__cover-frame {
+      width: 96px;
+      height: 96px;
+    }
+  }
+
+  .library-tags-stack__card {
+    width: 80px;
+    height: 80px;
+
+    &.is-0 {
+      left: 16px;
+      width: 80px;
+      height: 80px;
+    }
+
+    &.is-1 {
+      top: 8px;
+      left: 8px;
+    }
+
+    &.is-2 {
+      top: 16px;
+    }
+  }
+
+  .library-tags-set__fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .library-tags-set__head-side {
+    justify-items: start;
+
+    .library-tags__note {
+      text-align: left;
+    }
+  }
+
+  .library-tags-set__replace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

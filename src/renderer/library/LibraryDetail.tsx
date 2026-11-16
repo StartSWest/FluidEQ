@@ -41,6 +41,7 @@ import { useTranslation } from '../utils/I18nContext';
 import LibraryDetailHeader from './LibraryDetailHeader';
 import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
+import type { TTagSetScope } from './tags/TagEditorContext';
 import { usePlaylists } from './PlaylistContext';
 import { useLibraryList } from './useLibraryList';
 import libraryFoldersAhead from './libraryFoldersAhead';
@@ -48,6 +49,23 @@ import { useLibraryAnswer } from './useLibraryAnswer';
 import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
 import { formatOf } from './libraryColumns';
 import { countText, formatLength } from './libraryFormat';
+
+/** What the header's "Edit tags" edits: the album, the folder, or any other
+ * record's songs as a selection. */
+const tagScopeOf = (
+  isAlbum: boolean,
+  isFolder: boolean,
+  title: string,
+  place: string | undefined,
+): { scope: TTagSetScope; title: string; place?: string } => {
+  if (isAlbum) {
+    return { scope: 'album', title, place };
+  }
+  if (isFolder) {
+    return { scope: 'folder', title, place };
+  }
+  return { scope: 'selection', title };
+};
 
 interface ILibraryDetailProps {
   albumId?: string;
@@ -703,6 +721,12 @@ const LibraryDetail = ({
           onBack={onBack}
           filter={filter}
           onFilter={setFilter}
+          tagScope={tagScopeOf(
+            isAlbum,
+            isFolder,
+            title,
+            recordFolder ?? folderPath,
+          )}
         />
       )}
       {/* A folder of nothing but folders: those folders, drawn by the same

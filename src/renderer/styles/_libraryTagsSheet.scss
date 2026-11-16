@@ -1,0 +1,206 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'themeMixins' as *;
+@use 'libraryTokens' as *;
+
+// *** The tag editor: the spreadsheet of songs ********************************
+//
+// Each song's own cells under the shared fields: changed cells lit, empty
+// ones marked, rows dragged by their grip, a folder grouped by album.
+
+// *** The sheet ********************************************************************
+
+.library-tags-sheet {
+  max-width: 100%;
+  overflow: auto;
+  border-radius: $radius-m;
+  box-shadow: inset 0 0 0 1px $studio-hair;
+  @include slim-scrollbar;
+
+  table {
+    width: 100%;
+    min-width: 860px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: $studio-text-tree;
+    table-layout: fixed;
+  }
+
+  col.is-grip {
+    width: 30px;
+  }
+
+  col.is-no,
+  col.is-disc,
+  col.is-time {
+    width: 64px;
+  }
+
+  col.is-artist {
+    width: 20%;
+  }
+
+  col.is-year {
+    width: 76px;
+  }
+
+  col.is-file {
+    width: 24%;
+  }
+
+  th {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    height: 34px;
+    padding: 0 10px;
+    background:
+      linear-gradient($surface-section, $surface-section), $surface-base;
+    box-shadow: inset 0 -1px 0 $studio-hair;
+    color: $studio-t3;
+    font-size: $studio-text-label;
+    font-weight: $weight-bold;
+    @include tracking(0.1em);
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    height: 36px;
+    padding: 0 2px;
+    box-shadow: inset 0 -1px 0 $studio-hair;
+    color: $studio-t2;
+    white-space: nowrap;
+  }
+
+  tr:last-child td {
+    box-shadow: none;
+  }
+
+  .is-number {
+    text-align: right;
+  }
+
+  td.is-fact {
+    overflow: hidden;
+    padding: 0 10px;
+    color: $studio-t3;
+    text-overflow: ellipsis;
+  }
+
+  td.is-number .library-tags-sheet__cell {
+    text-align: right;
+  }
+
+  td.is-changed .library-tags-sheet__cell {
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    color: $secondary-light;
+  }
+
+  td.is-empty .library-tags-sheet__cell::placeholder {
+    color: $amber;
+    opacity: 0.8;
+  }
+
+  td.is-invalid .library-tags-sheet__cell {
+    box-shadow: inset 0 0 0 1px $amber;
+  }
+
+  tr.is-dragging td {
+    opacity: 0.4;
+  }
+
+  tr.is-over td {
+    box-shadow: inset 0 2px 0 $secondary-default;
+  }
+}
+
+.library-tags-sheet__cell {
+  display: block;
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: $radius-xs;
+  outline: 0;
+  background: none;
+  color: $text-primary;
+  font: inherit;
+  text-overflow: ellipsis;
+
+  &:hover {
+    box-shadow: inset 0 0 0 1px $studio-hair;
+  }
+
+  &:focus {
+    box-shadow: inset 0 0 0 1px $border-field-focus;
+  }
+}
+
+.library-tags-sheet__grip {
+  padding: 0 0 0 6px;
+  color: $studio-t3;
+  cursor: grab;
+
+  svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+}
+
+.library-tags-sheet__group td {
+  height: 34px;
+  padding: 0 4px;
+  background: $studio-rail;
+
+  button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border: 0;
+    background: none;
+    color: $text-primary;
+    font: inherit;
+    font-weight: $weight-semibold;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  svg {
+    width: 13px;
+    height: 13px;
+    stroke: $studio-t3;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.library-tags-sheet__group-count {
+  color: $studio-t3;
+  font-weight: $weight-regular;
+}

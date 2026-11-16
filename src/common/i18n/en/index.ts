@@ -93,6 +93,7 @@ import genreWorld from './genreWorld';
 import troubleshoot from './troubleshoot';
 import files from './files';
 import gaming from './gaming';
+import libraryTags from './libraryTags';
 
 const en = {
   ...karaoke,
@@ -149,6 +150,7 @@ const en = {
   ...troubleshoot,
   ...files,
   ...gaming,
+  ...libraryTags,
 };
 
 export type TranslationKey = keyof typeof en;

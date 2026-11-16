@@ -72,6 +72,7 @@ import genreLatin from './genreLatin';
 import genreWorld from './genreWorld';
 import troubleshoot from './troubleshoot';
 import files from './files';
+import libraryTags from './libraryTags';
 
 const zhHant: Dictionary = {
   ...karaoke,
@@ -128,6 +129,7 @@ const zhHant: Dictionary = {
   ...genreWorld,
   ...troubleshoot,
   ...files,
+  ...libraryTags,
 };
 
 export default zhHant;

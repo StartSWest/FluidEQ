@@ -1,0 +1,247 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/** The Library's tag editor. See `../en/libraryTags.ts`. */
+const libraryTags = {
+  'library.tags.menu.edit': 'Tags bearbeiten…',
+  'library.tags.menu.editMany': 'Tags von {count} Songs bearbeiten…',
+  'library.tags.menu.editAlbum': 'Album-Tags bearbeiten…',
+  'library.tags.menu.cover': 'Cover ändern…',
+  'library.tags.menu.shortcut': 'Strg+I',
+  'library.tags.selection.count': '{count} Songs',
+  'library.tags.selection.edit': 'Tags bearbeiten',
+  'library.tags.selection.clear': 'Auswahl aufheben',
+
+  'library.tags.field.title': 'Titel',
+  'library.tags.field.artist': 'Interpret',
+  'library.tags.field.composer': 'Komponist',
+  'library.tags.field.album': 'Album',
+  'library.tags.field.albumArtist': 'Albuminterpret',
+  'library.tags.field.trackNo': 'Titelnr.',
+  'library.tags.field.trackTotal': 'Titel gesamt',
+  'library.tags.field.discNo': 'CD',
+  'library.tags.field.discTotal': 'CDs gesamt',
+  'library.tags.field.year': 'Jahr',
+  'library.tags.field.genre': 'Genre',
+  'library.tags.field.bpm': 'BPM',
+  'library.tags.field.comment': 'Kommentar',
+  'library.tags.field.grouping': 'Gruppierung',
+  'library.tags.field.publisher': 'Label',
+  'library.tags.field.copyright': 'Copyright',
+  'library.tags.field.isrc': 'ISRC',
+  'library.tags.field.conductor': 'Dirigent',
+  'library.tags.field.subtitle': 'Untertitel',
+  'library.tags.field.remixer': 'Remix von',
+  'library.tags.field.initialKey': 'Tonart',
+  'library.tags.field.compilation': 'Compilation',
+  'library.tags.field.titleSort': 'Sortiertitel',
+  'library.tags.field.artistSort': 'Sortierinterpret',
+  'library.tags.field.albumSort': 'Sortieralbum',
+  'library.tags.field.albumArtistSort': 'Sortier-Albuminterpret',
+  'library.tags.field.composerSort': 'Sortierkomponist',
+  'library.tags.field.musicBrainzTrackId': 'MusicBrainz-Aufnahme',
+  'library.tags.field.musicBrainzReleaseId': 'MusicBrainz-Veröffentlichung',
+  'library.tags.field.musicBrainzArtistId': 'MusicBrainz-Interpret',
+  'library.tags.field.musicBrainzReleaseArtistId': 'MusicBrainz-Albuminterpret',
+  'library.tags.field.musicBrainzReleaseGroupId':
+    'MusicBrainz-Veröffentlichungsgruppe',
+
+  'library.tags.panel.title': 'Tags bearbeiten',
+  'library.tags.panel.position': '{index} von {count}',
+  'library.tags.panel.previous': 'Vorheriger Song (Alt+↑)',
+  'library.tags.panel.next': 'Nächster Song (Alt+↓)',
+  'library.tags.panel.close': 'Schließen (Esc): Änderungen bleiben',
+  'library.tags.panel.reading': 'Tags der Datei werden gelesen…',
+  'library.tags.panel.readFailed':
+    'Die Tags dieser Datei konnten nicht gelesen werden. Sie ist vielleicht beschädigt oder in Gebrauch.',
+  'library.tags.panel.missing':
+    'Dieser Song ist nicht mehr auf dem Datenträger.',
+  'library.tags.panel.unsupported':
+    'FluidEQ bearbeitet die Tags dieses Dateityps nicht.',
+  'library.tags.group.song': 'Song',
+  'library.tags.group.album': 'Album',
+  'library.tags.group.details': 'Details',
+  'library.tags.group.file': 'Datei',
+  'library.tags.of': 'von',
+  'library.tags.sameAsArtist': 'Wie der Interpret',
+  'library.tags.putBack': 'Zurücksetzen',
+  'library.tags.noArtist': 'Kein Interpret',
+  'library.tags.noAlbum': 'Kein Album',
+  'library.tags.genre.inLibrary': 'In Ihrer Bibliothek',
+  'library.tags.tip.fileName':
+    'Der Titel ist der Dateiname. {title} verwenden?',
+  'library.tags.tip.fileNameTrack':
+    'Der Titel ist der Dateiname. {title}, Titelnr. {track} verwenden?',
+  'library.tags.tip.use': 'Verwenden',
+
+  'library.tags.cover.dropHint': 'Bild ablegen oder einfügen',
+  'library.tags.cover.facts': '{width} × {height} · {kind} · {size}',
+  'library.tags.cover.factsShort': '{kind} · {size}',
+  'library.tags.cover.none': 'Kein Cover in dieser Datei',
+  'library.tags.cover.new': 'Neues Cover · {width} × {height}',
+  'library.tags.cover.removed': 'Cover wird beim Speichern entfernt',
+  'library.tags.cover.replace': 'Ersetzen',
+  'library.tags.cover.choose': 'Auswählen…',
+  'library.tags.cover.paste': 'Einfügen',
+  'library.tags.cover.remove': 'Entfernen',
+  'library.tags.cover.refused': 'Nur ein JPEG- oder PNG-Bild bis 20 MB.',
+  'library.tags.cover.emptyClipboard': 'In der Zwischenablage ist kein Bild.',
+
+  'library.tags.more.toggle': 'Weitere Felder',
+  'library.tags.more.count': '{count} in dieser Datei · beliebige hinzufügen',
+  'library.tags.more.countNone': 'beliebige hinzufügen',
+  'library.tags.more.add': 'Feld hinzufügen',
+  'library.tags.more.addHint':
+    'Jedes Feld, das das Format erlaubt, über seinen Code.',
+  'library.tags.more.code': 'Code',
+  'library.tags.more.value': 'Wert',
+  'library.tags.more.addConfirm': 'Hinzufügen',
+  'library.tags.more.badCode':
+    'Das Format dieser Datei kann diesen Code nicht als Text speichern.',
+
+  'library.tags.file.format': 'Format',
+  'library.tags.file.tags': 'Tags in der Datei',
+  'library.tags.file.noTags': 'Keine Tags',
+  'library.tags.file.writeAs': 'Schreiben als',
+  'library.tags.file.keep': '{version} beibehalten',
+  'library.tags.file.v23Note':
+    'v2.3 lesen der Windows-Explorer, Autoradios und ältere Player am besten. v2.4 speichert UTF-8 und mehrere Werte pro Feld.',
+  'library.tags.file.v24Note':
+    'Der Windows-Explorer und manche Autoradios lesen v2.4 schlecht; v2.3 ist die sichere Wahl, wenn diese Datei unterwegs ist.',
+  'library.tags.file.id3v1': 'Das alte ID3v1-Tag mitpflegen',
+  'library.tags.file.readOnly':
+    'Diese Datei ist schreibgeschützt. Sie werden gefragt, bevor sie geschrieben wird.',
+
+  'library.tags.foot.none': 'Keine Änderungen',
+  'library.tags.foot.noneHint':
+    'Änderungen bleiben, während Sie durch das Album gehen',
+  'library.tags.foot.changes': '{count} ungespeicherte Änderungen',
+  'library.tags.foot.changesOne': '1 ungespeicherte Änderung',
+  'library.tags.foot.inSongs': 'in {count} Songs',
+  'library.tags.foot.inSongsOne': 'in 1 Song',
+  'library.tags.revert': 'Verwerfen',
+  'library.tags.save': 'Speichern',
+  'library.tags.saveSongs': '{count} Songs speichern',
+  'library.tags.saveFailed':
+    'Einige Werte konnten nicht wie eingegeben geschrieben werden. Prüfen Sie die markierten Felder.',
+
+  'library.tags.set.album': 'Album',
+  'library.tags.set.folder': 'Ordner',
+  'library.tags.set.selection': 'Auswahl',
+  'library.tags.set.reading': 'Tags werden gelesen · {done} von {count}',
+  'library.tags.set.mixedNote':
+    'Ein gemischtes Feld behält den Wert jedes Songs, bis Sie einen für alle eingeben oder auswählen.',
+  'library.tags.set.mixed': 'Gemischt',
+  'library.tags.set.values': '{count} Werte',
+  'library.tags.set.pickFor': '{field} · einen für alle {count} wählen',
+  'library.tags.set.empty': 'Leer',
+  'library.tags.set.keepEach': 'Wert jedes Songs behalten',
+  'library.tags.set.use': '{value} verwenden',
+  'library.tags.set.toAll': '→ alle {count}',
+  'library.tags.set.coversMixed': '{count} verschiedene Cover',
+  'library.tags.set.coversNone': '{count} Songs haben keins',
+  'library.tags.set.coverOne': 'Ein Cover für alle',
+  'library.tags.set.coverNoneAll': 'Kein Song hat ein Cover',
+  'library.tags.set.coverToAll': 'Für alle {count} Songs',
+  'library.tags.set.version': 'Tag-Version',
+  'library.tags.set.versionKeep': 'Die jeder Datei',
+  'library.tags.set.versionAll23': 'Alle ID3v2.3',
+  'library.tags.set.versionAll24': 'Alle ID3v2.4',
+  'library.tags.set.versionCounts':
+    'ID3v2.3 bei {v3} · v2.4 bei {v4} · keine bei {none}',
+  'library.tags.set.songs': 'Songs',
+  'library.tags.set.renumber': 'Nach Reihenfolge nummerieren',
+  'library.tags.set.fromFileNames': 'Titel aus Dateinamen',
+  'library.tags.set.fixCapitals': 'Großschreibung korrigieren',
+  'library.tags.set.findReplace': 'Suchen und ersetzen',
+  'library.tags.set.find': 'In Titeln suchen',
+  'library.tags.set.replaceWith': 'Ersetzen durch',
+  'library.tags.set.replaceAll': 'Alle ersetzen',
+  'library.tags.set.sheetHint':
+    'Eingabe geht nach unten · Tab nach rechts · Strg+D kopiert die Zelle darüber · ziehen Sie eine Zeile am Griff, um sie zu verschieben, dann Nummerieren.',
+  'library.tags.set.col.no': 'Nr.',
+  'library.tags.set.col.time': 'Dauer',
+  'library.tags.set.col.file': 'Dateiname',
+  'library.tags.set.grip': 'Zum Verschieben ziehen',
+  'library.tags.set.missingCell': 'fehlt',
+  'library.tags.set.groupSongs': '{count} Songs',
+  'library.tags.set.changes': '{count} Änderungen',
+  'library.tags.set.changesOne': '1 Änderung',
+  'library.tags.set.files': '{count} Dateien · noch nichts geschrieben',
+  'library.tags.set.filesOne': '1 Datei · noch nichts geschrieben',
+  'library.tags.set.noChanges':
+    'Geben Sie etwas in ein gemeinsames Feld ein, um alle Songs zu ändern',
+  'library.tags.set.discard': 'Verwerfen',
+  'library.tags.set.saveTo': 'In {count} Dateien speichern',
+  'library.tags.set.saveToOne': 'In 1 Datei speichern',
+  'library.tags.set.back': 'Zurück',
+  'library.tags.set.leaveAsk': 'Ohne Speichern dieser Änderungen verlassen?',
+  'library.tags.set.keepEditing': 'Weiter bearbeiten',
+  'library.tags.set.selectionTitle': '{first}, {second} und {count} weitere',
+  'library.tags.set.unreadable':
+    '{count} Songs konnten nicht gelesen werden und bleiben außen vor.',
+
+  'library.tags.write.progress': 'Tags werden geschrieben · {done} von {count}',
+  'library.tags.write.undoing':
+    'Tags werden zurückgesetzt · {done} von {count}',
+  'library.tags.write.background': 'Im Hintergrund fortsetzen',
+  'library.tags.write.show': 'Anzeigen',
+  'library.tags.write.cancel': 'Abbrechen',
+  'library.tags.write.written': '{done} von {count} geschrieben',
+  'library.tags.write.needYou': '{count} brauchen Sie',
+  'library.tags.write.review': '{count} Dateien prüfen',
+  'library.tags.write.reviewOne': '1 Datei prüfen',
+  'library.tags.write.done': '{count} Dateien aktualisiert',
+  'library.tags.write.doneOne': '1 Datei aktualisiert',
+  'library.tags.write.doneNote':
+    'Die bisherigen Tags werden aufbewahrt – Rückgängig stellt alle wieder her.',
+  'library.tags.write.undo': 'Rückgängig',
+  'library.tags.write.undone': 'Rückgängig gemacht',
+  'library.tags.write.undoneNote':
+    'Jede Datei hat wieder ihre bisherigen Tags, Cover eingeschlossen.',
+  'library.tags.write.stopped': 'Angehalten nach {done} von {count}',
+  'library.tags.write.stoppedNote':
+    'Bereits geschriebene Dateien behalten ihre neuen Tags; Rückgängig stellt die alten wieder her.',
+  'library.tags.write.failed': '{count} konnten nicht geschrieben werden',
+  'library.tags.write.failedOne': '1 konnte nicht geschrieben werden',
+  'library.tags.write.dismiss': 'Schließen',
+  'library.tags.problems.title': '{count} Dateien brauchen Sie',
+  'library.tags.problems.titleOne': '1 Datei braucht Sie',
+  'library.tags.problems.allHandled': 'Alles erledigt',
+  'library.tags.problems.waiting': '{count} warten auf das Ende ihres Songs',
+  'library.tags.problems.waitingOne': '1 wartet auf das Ende seines Songs',
+  'library.tags.problems.held':
+    'Läuft gerade in FluidEQ – wird geschrieben, sobald der Song endet.',
+  'library.tags.problems.locked':
+    'In einem anderen Programm geöffnet. Schließen Sie sie dort und versuchen Sie es erneut.',
+  'library.tags.problems.readOnly':
+    'Diese Datei ist schreibgeschützt und kann so nicht geändert werden.',
+  'library.tags.problems.failed':
+    'Diese Datei konnte nicht geschrieben werden. Sie ist unverändert; nichts ging verloren.',
+  'library.tags.problems.missing':
+    'Diese Datei ist nicht mehr dort, wo die Bibliothek sie gefunden hat.',
+  'library.tags.problems.retry': 'Erneut versuchen',
+  'library.tags.problems.skip': 'Überspringen',
+  'library.tags.problems.makeWritable': 'Schreibbar machen und schreiben',
+  'library.tags.problems.skipAll': 'Alle überspringen',
+  'library.tags.problems.nothingToDo': 'Nichts zu tun.',
+  'library.tags.problems.everythingElse': 'Alles andere ist geschrieben',
+  'library.tags.problems.undoCovers': 'Rückgängig gilt auch für diese',
+};
+
+export default libraryTags;
