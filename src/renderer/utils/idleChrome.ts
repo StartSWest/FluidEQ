@@ -41,11 +41,11 @@ import { useSyncExternalStore } from 'react';
 /**
  * How long the pointer has to be still.
  *
- * Five seconds. Two was long enough to reach a control after revealing it,
- * and short enough to be startling: the chrome left while you were still
- * looking at what you had just changed.
+ * Three seconds (Ivan, 2026-11-16: "the header and the bottom bar have to
+ * hide after, I don't know, 3 seconds"). It was five; two was long enough to
+ * reach a control after revealing it, and short enough to be startling.
  */
-export const CHROME_IDLE_MS = 5000;
+export const CHROME_IDLE_MS = 3000;
 
 /**
  * What counts as being here.
@@ -210,8 +210,12 @@ const bottomWakeEdge = (): number =>
  * control under the pointer again. These are the three surfaces whose lower
  * controls participate in that layout.
  */
-const BOTTOM_CHROME_HOLD_SELECTOR =
-  '.now-playing-bar, .look-designer, .karaoke-playlist, .karaoke-pitch';
+//
+// Not the Karaoke's playlist or pitch strip any more: they fill most of a
+// full-screen stage, and a pointer left resting on either after a move held
+// the header and the bar up for good (Ivan, 2026-11-16: "Karaoke is not
+// working, I don't move the mouse").
+const BOTTOM_CHROME_HOLD_SELECTOR = '.now-playing-bar, .look-designer';
 
 const isInBottomChromeSurface = (event: PointerEvent): boolean =>
   event.target instanceof Element &&
@@ -521,6 +525,25 @@ export const setFrameShown = (next: boolean) => {
   if (isHeld) {
     return;
   }
+  setNearBottom(false);
+  setNearSide(false);
+  setIdle(true);
+};
+
+/** Whether the header and the transport are away now. */
+export const isChromeIdleNow = () => isIdle;
+
+/**
+ * Put the header and the transport away at once, whatever brought them up,
+ * unless something holds them: the second half of a click on the picture
+ * that shows or hides everything (`useFullScreenFrame`).
+ */
+export const hideChromeNow = () => {
+  if (!isWatching || isHeld) {
+    return;
+  }
+  isFrameShown = false;
+  clearTimer();
   setNearBottom(false);
   setNearSide(false);
   setIdle(true);

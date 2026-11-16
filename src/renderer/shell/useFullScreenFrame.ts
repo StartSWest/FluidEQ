@@ -5,7 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react';
-import { setFrameShown, setFrameToggle } from '../utils/idleChrome';
+import {
+  hideChromeNow,
+  isChromeIdleNow,
+  setFrameShown,
+  setFrameToggle,
+} from '../utils/idleChrome';
 
 /**
  * How close to the window's side the pointer has to come to bring the frame
@@ -113,7 +118,18 @@ const useFullScreenFrame = ({
     wasActive.current = isActive;
   }, [isActive]);
 
-  const toggle = useEffectEvent(() => setShown(!isShown));
+  // A click shows everything or puts everything away: away whenever any of
+  // it is up — the panels, or the header and the transport brought up by
+  // the pointer — and up only from nothing (Ivan, 2026-11-16: "click to hide
+  // and show, including the header").
+  const toggle = useEffectEvent(() => {
+    if (isShown || !isChromeIdleNow()) {
+      setShown(false);
+      hideChromeNow();
+      return;
+    }
+    setShown(true);
+  });
 
   const arm = () => {
     if (armed.current) {
@@ -151,7 +167,6 @@ const useFullScreenFrame = ({
   const onClick = useEffectEvent((event: MouseEvent) => {
     // The first press only: the second of a double click leaves full screen.
     if (
-      isShown ||
       event.detail !== 1 ||
       event.button !== 0 ||
       !(event.target instanceof Element) ||
@@ -159,7 +174,7 @@ const useFullScreenFrame = ({
     ) {
       return;
     }
-    setShown(true);
+    toggle();
   });
 
   useEffect(() => {

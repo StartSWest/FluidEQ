@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
   useEffect,
   useRef,
@@ -29,6 +30,7 @@ import MenuIcon from '../icons/MenuIcon';
 import Dropdown from '../widgets/Dropdown';
 import { useTranslation } from '../utils/I18nContext';
 import observeShown from '../utils/observeShown';
+import { toggleChromeNow } from '../utils/idleChrome';
 import {
   DEFAULT_LYRIC_TEXT_SIZE,
   EUPHORIA_SWEEP_TIME_MS,
@@ -884,6 +886,25 @@ const KaraokeLyrics = ({
     }
   };
 
+  // A click on the words that lands on no line is a click on the picture:
+  // it shows or hides the full screen's frame, as anywhere else on the stage
+  // (`toggleChromeNow`; it does nothing out of full screen).
+  const onCanvasClick = (event: ReactMouseEvent<HTMLCanvasElement>) => {
+    if (event.detail !== 1) {
+      return;
+    }
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - bounds.left;
+    const y = event.clientY - bounds.top;
+    if (
+      !lineHitRegionsRef.current.some((region) =>
+        lyricHitRegionContains(region, x, y),
+      )
+    ) {
+      toggleChromeNow();
+    }
+  };
+
   const onCanvasKeyDown = (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
@@ -943,6 +964,7 @@ const KaraokeLyrics = ({
           event.currentTarget.style.cursor = 'default';
         }}
         onPointerDown={onCanvasPointerDown}
+        onClick={onCanvasClick}
         onKeyDown={onCanvasKeyDown}
       />
       {(translationPickerVisible || isSelectedTranslationEmpty) && (

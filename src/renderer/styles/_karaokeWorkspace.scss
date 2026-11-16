@@ -734,3 +734,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > .karaoke-workspace__player {
   padding-right: $sound-panel-width;
 }
+
+// The floating header over a full-screen Karaoke pushes the playlist and the
+// stage's row of options down while it is out, and gives the room back as it
+// goes (Ivan, 2026-11-16: "the playlist always has to be pushed down when the
+// header comes out, and the options at the top too"). Only where the header
+// floats: with the bar kept in full screen it already has its own band.
+.app-workspace.is-app-full:not(.has-top-bar)
+  .karaoke-workspace.is-fullscreen
+  > .karaoke-workspace__player {
+  transition:
+    padding-top 180ms ease-out,
+    padding-left 180ms ease-out,
+    padding-right 180ms ease-out;
+}
+
+#root:not(.is-chrome-idle)
+  .app-workspace.is-app-full:not(.has-top-bar)
+  .karaoke-workspace.is-fullscreen
+  > .karaoke-workspace__player {
+  padding-top: $title-bar-height;
+}
