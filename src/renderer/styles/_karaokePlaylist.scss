@@ -221,9 +221,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   padding: 0;
   color: $text-muted;
-  border: 1px solid $border-field;
+  // Frameless, as the Library rail's heading buttons (Ivan, 2026-11-15,
+  // "K1"): the surface step under the pointer, the chosen tint when on.
+  border: 1px solid transparent;
   border-radius: $radius-xs;
-  background: $surface-control;
+  background: none;
   transition: $transition-control;
 
   svg {
@@ -231,11 +233,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 15px;
   }
 
-  &:hover,
+  &:hover {
+    color: $text-primary;
+    border-color: transparent;
+    background: $studio-surface;
+    box-shadow: none;
+  }
+
   &[aria-pressed='true'] {
     color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 50%, transparent);
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
+    border-color: transparent;
+    background: $studio-select;
     box-shadow: none;
   }
 }
@@ -274,18 +282,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// On the card, not over the picture: the quiet button, like the group toggle
-// beside it, rather than a dark opaque square among two tinted ones.
+// On the rail, not over the picture: frameless like the group toggle beside
+// it (Ivan, 2026-11-15, "K1").
 .karaoke-playlist__collapse {
   width: 26px;
   height: 26px;
   padding: 0;
+  color: $text-muted;
+  border-color: transparent;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: none;
 
   &:hover,
   &:focus-visible {
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
+    color: $text-primary;
+    border-color: transparent;
+    background: $studio-surface;
   }
 }
 
@@ -327,7 +339,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-playlist__song {
   display: grid;
   min-width: 0;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   padding: 9px 6px 9px 10px;
@@ -370,6 +382,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     @include tracking(0.06em);
     text-transform: uppercase;
   }
+}
+
+// The Library list's moving bars on the song being sung, the same 14 by 12.
+.karaoke-playlist__playing {
+  display: block;
+  width: 14px;
+  height: 12px;
+  margin-right: 4px;
 }
 
 .karaoke-playlist__item-actions {

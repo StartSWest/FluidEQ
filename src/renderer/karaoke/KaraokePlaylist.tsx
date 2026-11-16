@@ -23,10 +23,16 @@ import {
 } from '../../common/karaoke/files';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import LibraryPlayingBars from '../library/LibraryPlayingBars';
 
 interface IKaraokePlaylistProps {
   items: readonly IKaraokePlaylistItem[];
   selectedId?: string;
+  /**
+   * The chosen song is being sung: its row wears the Library's moving bars,
+   * as the playing song does in the Library's list (Ivan, 2026-11-15, "K1").
+   */
+  isPlaying?: boolean;
   groupByFolder?: boolean;
   onToggleFolderGrouping: () => void;
   onSelect: (id: string) => void;
@@ -117,6 +123,7 @@ const songsIn = (node: IKaraokePlaylistTreeNode): number =>
 const KaraokePlaylist = ({
   items,
   selectedId,
+  isPlaying = false,
   groupByFolder = false,
   onToggleFolderGrouping,
   onSelect,
@@ -197,6 +204,11 @@ const KaraokePlaylist = ({
                 : karaokeFileExtension(item.audio.name).toUpperCase()}
             </small>
           </span>
+          {isSelected && isPlaying && (
+            <span className="karaoke-playlist__playing" aria-hidden="true">
+              <LibraryPlayingBars />
+            </span>
+          )}
         </button>
         <div className="karaoke-playlist__item-actions">
           <button

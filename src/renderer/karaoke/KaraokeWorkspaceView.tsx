@@ -474,6 +474,7 @@ const KaraokeWorkspaceView = ({
           <KaraokePlaylist
             items={playlist}
             selectedId={selectedPlaylistId}
+            isPlaying={status === 'playing'}
             groupByFolder={groupPlaylistByFolder}
             onToggleFolderGrouping={toggleFolderGrouping}
             onSelect={selectPlaylistItem}
