@@ -42,8 +42,7 @@ import '../styles/LibraryStageArt.scss';
  * the graph owns -- a double-click to leave full screen among them — reach it
  * through the picture.
  *
- * The machine's own sound gets the same picture from `SystemStageArt`; the
- * box both stand in is `useStageArtFrame`'s.
+ * The box it stands in is `useStageArtFrame`'s.
  */
 const LibraryStageArt = () => {
   const { track, videoTrackId } = useLibraryPlayerSession();

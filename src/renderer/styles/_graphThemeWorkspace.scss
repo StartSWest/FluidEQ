@@ -80,9 +80,9 @@ it under the terms of the GNU General Public License version 3 or later.
     visibility: hidden;
   }
 
-  // Another program's song is the one picture drawn through here: its cover
-  // (`SystemStageArt`) stands behind the graph with no pane of ours under it,
-  // and `has-stage-art` on the root is the only sign of it. The pane above
+  // A stage picture drawn through here (`LibraryStageArt`) stands behind the
+  // graph with no pane of ours under it, and `has-stage-art` on the root is
+  // the only sign of it. The pane above
   // still goes — the column is lifted over the cover, pane and all — but the
   // card stays as clear as the see-through slider says, and keeps the slider.
   // Solid black here hid the cover entirely.

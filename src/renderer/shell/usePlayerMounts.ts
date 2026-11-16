@@ -25,15 +25,17 @@ import keepsPlayerMounted from '../audio/playerMount';
 import useSilenceHold, { MEDIA_SILENCE_HOLD_MS } from '../audio/useSilenceHold';
 import {
   readRememberedTransportOwner,
-  useHasTransportTitle,
-  useIsTransportPlaying,
-  useLastPlayingOwner,
   useLastTransportOwner,
   useTransportIdentitySources,
 } from '../audio/transportSource';
 import { useHasPendingKaraokeHandoff } from '../library/karaokeHandoff';
 import { useSceneLook } from '../utils/graphStyle';
 import type { TWorkspaceTab } from '../workspaceTabs';
+
+/** The player whose picture a page's graph opens over. */
+const PAGE_PICTURE: Partial<
+  Record<TWorkspaceTab, 'karaoke' | 'library' | 'media'>
+> = { karaoke: 'karaoke', library: 'library', video: 'media' };
 
 export interface IPlayerMountsInput {
   activeWorkspaceTab: TWorkspaceTab;
@@ -68,53 +70,29 @@ const usePlayerMounts = ({
   // video, see-through and all (Ivan, 2026-09-21). Karaoke keeps its stage
   // under the graph: that is its lyrics, and it has no other full screen.
   const isSceneOnGraph = useSceneLook() !== null;
-  // The song the transport holds, paused or not: the one playing, else the one
-  // that played last and still describes the same song. Keyed to playing
-  // alone, every pause took the picture away and left a black card. Worse on
-  // Karaoke, where a lyric press pauses for its count-in: the stage stopped
-  // being the backdrop, went hidden, hiding cancelled the count-in, and the
-  // song never came back (Ivan, 2026-09-23: "it stops and get black").
-  const lastPlayingOwner = useLastPlayingOwner();
-  const heldOwner = playingOwner ?? lastPlayingOwner;
   /**
-   * The machine's own player, when it is the one making the sound.
-   *
-   * It wins the backdrop over whatever of ours played LAST — a Library song
-   * paused an hour ago is not the song Spotify is playing now — but never over
-   * one of ours that is playing, and never over Karaoke's stage, which is its
-   * lyrics and whose count-in dies if the stage is hidden (see above).
+   * THE PAGE YOU ARE ON, NOT WHAT IS PLAYING (Ivan, 2026-11-16: "I double-click
+   * the graph and it will open just the graph, not the lyrics ... depending on
+   * where I click, I want to see that view, not whatever is playing"). Under
+   * the graph goes the picture of the page it was opened from: the Karaoke's
+   * stage on the Karaoke, the Library's picture on the Library, the video on
+   * Online Media, and on every other page the graph alone, its own scene and
+   * all. It used to be whatever played, or played last, wherever it was: from
+   * the EQ page with a song on the Karaoke the graph opened over the lyrics,
+   * and the Karaoke's stage, mounted for it, took the scene's stand-in and
+   * drew no scene behind them either. The machine's own song lost its cover
+   * here for the same rule: it has no page to be opened from.
    */
-  // Two flags, not the register: read whole, it changes with the position and
-  // re-rendered this entire tree on every seek-bar tick while music played.
-  const isSystemPlaying = useIsTransportPlaying('system');
-  const hasSystemTitle = useHasTransportTitle('system');
-  const isSystemSounding = playingOwner === undefined && isSystemPlaying;
-  const heldGraphBackdropOwner =
-    isGraphBackdropMode &&
-    (!isSceneOnGraph || heldOwner === 'karaoke') &&
-    (!isSystemSounding || heldOwner === 'karaoke')
-      ? heldOwner
-      : undefined;
-  // Opening the graph over Karaoke must keep that page's chosen scenery,
-  // including before its first Play. A playback claim is about sound, not
-  // permission to show the background the member explicitly switched on.
+  const pageOwner = PAGE_PICTURE[activeWorkspaceTab];
   const graphBackdropOwner =
-    isGraphBackdropMode && isKaraokeTab ? 'karaoke' : heldGraphBackdropOwner;
+    isGraphBackdropMode &&
+    pageOwner !== undefined &&
+    (pageOwner === 'karaoke' || !isSceneOnGraph)
+      ? pageOwner
+      : undefined;
   const showsMediaGraphBackdrop = graphBackdropOwner === 'media';
   const showsLibraryGraphBackdrop = graphBackdropOwner === 'library';
   const showsKaraokeGraphBackdrop = graphBackdropOwner === 'karaoke';
-  // The same picture for the machine's own song, when none of ours holds the
-  // backdrop and the machine has a song to show (Ivan, 2026-09-23: "when doing
-  // expanded mode or fullscreen on system audio we can show the covert art to
-  // same as we do for libarery"). A Plus scene fills the graph edge to edge,
-  // so it takes this picture's place just as it takes the Library's.
-  const showsSystemGraphBackdrop =
-    isGraphBackdropMode &&
-    !isSceneOnGraph &&
-    !showsMediaGraphBackdrop &&
-    !showsLibraryGraphBackdrop &&
-    !showsKaraokeGraphBackdrop &&
-    hasSystemTitle;
 
   // Off its tab a player stays for as long as it plays, hands over, or is the
   // last thing played — see `keepsPlayerMounted`. The picture under an
@@ -281,7 +259,6 @@ const usePlayerMounts = ({
     showsMediaGraphBackdrop,
     showsLibraryGraphBackdrop,
     showsKaraokeGraphBackdrop,
-    showsSystemGraphBackdrop,
     keepVideoMounted,
     keepLibraryMounted,
     keepKaraokeMounted,

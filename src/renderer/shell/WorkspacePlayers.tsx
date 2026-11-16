@@ -23,7 +23,6 @@ import { LibraryProvider } from '../library/LibraryContext';
 import LibraryStageArt from '../library/LibraryStageArt';
 import { LibraryPlayerProvider } from '../library/player/LibraryPlayerContext';
 import { PlaylistProvider } from '../library/PlaylistContext';
-import SystemStageArt from '../library/SystemStageArt';
 import {
   exitGraphFullScreen,
   toggleFullScreenTopBar,
@@ -184,7 +183,6 @@ const WorkspacePlayers = ({
         none of them, and inside they are mounted only once the Library
         has been opened, so after a launch that never visited it an
         expanded graph showed Spotify's song with no picture. */}
-      {mounts.showsSystemGraphBackdrop && <SystemStageArt />}
       {/* Loaded Karaoke keeps only its audio element and exact shared
         transport while it is the last thing played. Otherwise it
         unmounts completely. */}
