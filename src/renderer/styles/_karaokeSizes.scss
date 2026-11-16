@@ -92,16 +92,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@container autoeq-workspace (max-width: 390px) {
-  .karaoke-microphone__controls {
-    grid-template-columns: 1fr;
-
-    button {
-      width: 100%;
-    }
-  }
-}
-
 @media (max-width: 980px) {
   .karaoke-workspace__empty {
     grid-template-columns: auto minmax(0, 1fr);

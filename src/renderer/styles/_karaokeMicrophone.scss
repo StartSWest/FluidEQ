@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 @use 'karaokeTokens' as *;
 
 .karaoke-workspace__levels {
@@ -55,11 +56,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The menus' own face (`menu-surface`: the menu floor, the menu edge, the
+// cards' corner, no lift), at the latency menu's measure - 14px by 16px in,
+// 12px between rows - and the Karaoke mix popover's heading. Nothing inside
+// is boxed: a panel ruled into cards inside a card is what Ivan sent back
+// (2026-11-16, "every interface flatter"). 360px holds the device pick and
+// "Activar micrófono" on one line; narrower, the button wraps under it.
 .karaoke-microphone-popover {
   @include menu-surface;
   z-index: 1200;
-  width: min(470px, calc(100vw - 24px));
-  padding: 16px;
+  width: min(360px, calc(100vw - 16px));
+  padding: 14px 16px;
 }
 
 // The device picker is intentionally still a floating app dropdown. Its
@@ -70,200 +77,198 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-microphone {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start !important;
-  gap: 0;
-  transition: $transition-control;
-
-  > .karaoke-workspace__card-icon {
-    position: absolute;
-    z-index: 1;
-    top: 0;
-    left: 0;
-  }
-
-  &.is-live {
-    border-color: color-mix(in srgb, $secondary-default 32%, transparent);
-    box-shadow: none;
-  }
-}
-
-.karaoke-microphone__body {
   display: grid;
   min-width: 0;
   gap: 12px;
-
-  > .karaoke-workspace__card-title {
-    min-height: 38px;
-    padding-left: 52px;
-
-    h3 {
-      margin: 0;
-      color: $text-primary;
-      font-size: $text-title;
-      line-height: 1.15;
-    }
-  }
 }
 
-.karaoke-microphone__controls {
-  display: grid;
+// The Karaoke mix popover's title line (`.karaoke-transport__mix-title`),
+// with the state at its end in the latency menu's quiet caps. The glyph
+// says the same as the word: faint while the input is off, the accent
+// while it is live.
+.karaoke-microphone__head {
+  display: flex;
   min-width: 0;
-  grid-template-columns: minmax(130px, 1fr) auto;
-  align-items: end;
+  align-items: center;
   gap: 8px;
 
-  .karaoke-microphone__input {
-    display: grid;
+  h3 {
     min-width: 0;
-    gap: 4px;
-
-    > span {
-      color: $text-faint;
-      font-size: $text-eyebrow;
-      font-weight: $weight-bold;
-      @include tracking(0.08em);
-      text-transform: uppercase;
-    }
-  }
-
-  .dropdown {
-    width: 100%;
-    min-width: 0;
-
-    > [role='menu'] {
-      min-height: $control-height;
-      font-size: $text-small;
-    }
-  }
-
-  .karaoke-microphone__toggle {
-    min-height: $control-height;
-    min-width: 108px;
-    gap: 6px;
-    padding: 7px 12px;
-    font-size: $text-small;
+    flex: 1 1 auto;
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-body;
     font-weight: $weight-bold;
-    white-space: nowrap;
-
-    &:disabled {
-      color: $text-faint;
-      border-color: rgba($edge-tint, 0.08);
-      background: color-mix(in srgb, $surface-panel 40%, transparent);
-      box-shadow: none;
-    }
+    @include tracking(0.02em);
+    line-height: 1.2;
   }
 }
 
-.karaoke-microphone__level {
+.karaoke-microphone__glyph {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: $text-faint;
+  transition: color $motion-fast $ease-out;
+
+  .karaoke-microphone.is-live & {
+    color: $secondary-light;
+  }
+}
+
+.karaoke-microphone__state {
+  flex: 0 0 auto;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
+  text-transform: uppercase;
+
+  .karaoke-microphone.is-live & {
+    color: $secondary-light;
+  }
+}
+
+// A row's name and its figure: the View menu's slider rows (`$text-small`,
+// muted, the figure faint and tabular), stacked over their track so a long
+// translation ("Nivel de entrada del micrófono") wraps instead of crushing
+// the track.
+.karaoke-microphone__name {
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.35;
+}
+
+.karaoke-microphone__value {
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.karaoke-microphone__input {
   display: grid;
   min-width: 0;
   gap: 6px;
 }
 
-.karaoke-microphone__level-heading {
+// The pick takes the room and the button keeps its words; when both no
+// longer fit on one line the button goes under the pick, full width. Both
+// may grow, the pick a thousand times faster: on one line all the spare
+// room goes to the device's name (equal shares cut "Predeterminado del
+// sistema" short to give the button air it does not need), and on a line
+// of its own the button still fills it.
+.karaoke-microphone__controls {
   display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: $text-faint;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.04em);
+  gap: 8px;
 
-  strong {
-    color: $secondary-light;
-    font-size: $text-micro;
-    font-variant-numeric: tabular-nums;
+  .dropdown {
+    min-width: 0;
+    flex: 1000 1 150px;
+
+    // The Karaoke's quiet field (the Maker's language pick, the playlist
+    // search): no fill, a hairline drawn inside, at the small button's
+    // height so the pick and the button beside it stand level.
+    > [role='menu'] {
+      @include quiet-field;
+      min-height: $control-height-sm;
+      padding-block: 6px;
+      font-weight: $weight-regular;
+    }
+  }
+
+  .dropdown--open > [role='menu'],
+  .dropdown > [role='menu']:focus-visible {
+    @include quiet-field-focus;
+  }
+
+  .karaoke-microphone__toggle {
+    flex: 1 0 auto;
+    gap: 6px;
+    white-space: nowrap;
+
+    .karaoke-button__icon {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 auto;
+    }
   }
 }
 
+// The level and the volume read the same way: the name and its figure on
+// one line, the track under them, both tracks the same 6px line.
+.karaoke-microphone__reading {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 6px 12px;
+
+  > .karaoke-microphone__meter,
+  > input[type='range'] {
+    grid-column: 1 / -1;
+  }
+
+  input[type='range'] {
+    --karaoke-gain-position: 50%;
+    // The one slider (`toggle-knob-slider`), ringed in the menu's floor.
+    @include toggle-knob-slider(
+      var(--karaoke-gain-position),
+      $surface-menu-floor
+    );
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+// The slider's own well (`toggle-knob-slider`'s track: 6px, the hairline
+// drawn inside) with the accent filling it, so the meter and the volume
+// under it are one kind of line. The fill is one colour: a gradient scaled
+// with the level squeezed its yellow and red into the tip at every level,
+// so they never said anything about clipping.
 .karaoke-microphone__meter {
   position: relative;
   height: 6px;
+  margin-block: 5px;
   overflow: hidden;
-  border: 1px solid rgba($edge-tint, 0.06);
   border-radius: $radius-pill;
   background: $track-well;
+  box-shadow: inset 0 0 0 1px $border-subtle;
 
   span {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(
-      90deg,
-      $secondary-default 0 72%,
-      $neon-yellow 88%,
-      $red 100%
-    );
-    box-shadow: none;
+    background: $secondary-default;
     transform-origin: left center;
     transition: transform 50ms linear;
   }
 }
 
-.karaoke-microphone__gain {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: auto minmax(90px, 1fr) 38px;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 10px;
-  color: $text-faint;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-s;
-  background: $surface-plot;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-
-  input[type='range'] {
-    --karaoke-gain-position: 50%;
-    // The one slider (`toggle-knob-slider`), on the plot's floor.
-    @include toggle-knob-slider(var(--karaoke-gain-position), $surface-plot);
-    width: 100%;
-    min-width: 0;
-  }
-
-  strong {
-    display: grid;
-    min-width: 38px;
-    height: 22px;
-    place-items: center;
-    color: $secondary-light;
-    border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
-    border-radius: $radius-2xs;
-    background: color-mix(in srgb, $secondary-default 6%, transparent);
-    font-size: $text-micro;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.karaoke-microphone__privacy {
+// What the input does with the voice, under the menus' inner rule
+// (`$menu-rule`), as plain text: the latency menu's note.
+.karaoke-microphone__note {
   display: grid;
   min-width: 0;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   gap: 8px;
-  padding: 9px 10px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid $menu-rule;
   color: $text-faint;
-  border: 1px solid color-mix(in srgb, $secondary-default 10%, transparent);
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 3.5%, transparent);
+  font-size: $text-small;
+  line-height: 1.5;
 
   .karaoke-button__icon {
     width: 14px;
     height: 14px;
     margin-top: 1px;
-    color: $text-accent;
-  }
-
-  p {
-    margin: 0;
-    font-size: $text-micro;
-    line-height: 1.45;
   }
 }
 
@@ -315,53 +320,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   100% {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-.karaoke-workspace__card-icon {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  color: $secondary-light;
-  border: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $secondary-default 8%, transparent);
-
-  svg {
-    width: 21px;
-    height: 21px;
-    overflow: visible;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.6;
-  }
-}
-
-.karaoke-workspace__card-title {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-
-  span {
-    flex: 0 0 auto;
-    padding: 3px 7px;
-    color: $text-faint;
-    border: 1px solid rgba($edge-tint, 0.12);
-    border-radius: $radius-2xs;
-    font-size: $text-eyebrow;
-    font-weight: $weight-bold;
-    @include tracking(0.08em);
-    text-transform: uppercase;
-
-    &.is-live {
-      color: $secondary-light;
-      border-color: color-mix(in srgb, $secondary-default 35%, transparent);
-      background: color-mix(in srgb, $secondary-default 9%, transparent);
-    }
   }
 }

@@ -91,38 +91,38 @@ export const KaraokeMicrophoneSettings = ({
     [devices, t],
   );
 
+  // One flat panel on the menus' face, like the Karaoke's other popovers
+  // (the mix and the text size): a heading line, then the rows standing
+  // apart by space alone. It used to be a card inside the menu - an icon
+  // tile, a chip round the state, the volume and the note each boxed - and
+  // Ivan sent it back with every other floating panel (2026-11-16).
   return (
     <article
       className={`karaoke-microphone${isLive ? ' is-live' : ''}`}
       aria-labelledby="karaoke-microphone-title"
     >
-      <div className="karaoke-workspace__card-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4Z" />
-          <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" />
-        </svg>
-      </div>
-      <div className="karaoke-microphone__body">
-        <div className="karaoke-workspace__card-title">
-          <h3 id="karaoke-microphone-title">{t('karaoke.mic.title')}</h3>
-          <span className={isLive ? 'is-live' : ''} aria-live="polite">
-            {t(STATUS_KEYS[status])}
-          </span>
-        </div>
+      <header className="karaoke-microphone__head">
+        <MenuIcon name="microphone" className="karaoke-microphone__glyph" />
+        <h3 id="karaoke-microphone-title">{t('karaoke.mic.title')}</h3>
+        <span className="karaoke-microphone__state" aria-live="polite">
+          {t(STATUS_KEYS[status])}
+        </span>
+      </header>
 
+      <div className="karaoke-microphone__input">
+        <span className="karaoke-microphone__name">
+          {t('karaoke.mic.select')}
+        </span>
         <div className="karaoke-microphone__controls">
-          <div className="karaoke-microphone__input">
-            <span>{t('karaoke.mic.select')}</span>
-            <Dropdown
-              name={t('karaoke.mic.select')}
-              options={deviceOptions}
-              value={selectedDeviceId}
-              handleChange={selectDevice}
-              isDisabled={isRequesting || isUnavailable}
-              placement="down"
-              menuClassName="karaoke-microphone-menu"
-            />
-          </div>
+          <Dropdown
+            name={t('karaoke.mic.select')}
+            options={deviceOptions}
+            value={selectedDeviceId}
+            handleChange={selectDevice}
+            isDisabled={isRequesting || isUnavailable}
+            placement="down"
+            menuClassName="karaoke-microphone-menu"
+          />
           <button
             type="button"
             className={`button small karaoke-microphone__toggle${
@@ -138,56 +138,60 @@ export const KaraokeMicrophoneSettings = ({
               : t(isLive ? 'karaoke.mic.turnOff' : 'karaoke.mic.turnOn')}
           </button>
         </div>
+      </div>
 
-        <div className="karaoke-microphone__level">
-          <div className="karaoke-microphone__level-heading">
-            <span>{t('karaoke.mic.level')}</span>
-            <strong>{levelPercent}%</strong>
-          </div>
-          <div
-            className="karaoke-microphone__meter"
-            role="meter"
-            aria-label={t('karaoke.mic.level')}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={levelPercent}
-            aria-valuetext={t('karaoke.mic.levelValue', {
-              percent: levelPercent,
-            })}
-          >
-            <span style={{ transform: `scaleX(${level})` }} />
-          </div>
-        </div>
-        <label
-          className="karaoke-microphone__gain"
-          htmlFor="karaoke-microphone-gain"
+      <div className="karaoke-microphone__reading">
+        <span className="karaoke-microphone__name">
+          {t('karaoke.mic.level')}
+        </span>
+        <span className="karaoke-microphone__value">{levelPercent}%</span>
+        <div
+          className="karaoke-microphone__meter"
+          role="meter"
+          aria-label={t('karaoke.mic.level')}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={levelPercent}
+          aria-valuetext={t('karaoke.mic.levelValue', {
+            percent: levelPercent,
+          })}
         >
-          <span>{t('karaoke.mic.volume')}</span>
-          <input
-            id="karaoke-microphone-gain"
-            type="range"
-            min="0"
-            max="200"
-            step="1"
-            value={Math.round(inputGain * 100)}
-            onChange={(event) => setInputGain(Number(event.target.value) / 100)}
-            style={
-              {
-                '--karaoke-gain-position': `${gainPosition}%`,
-              } as CSSProperties
-            }
-            aria-label={t('karaoke.mic.volume')}
-            aria-valuetext={t('karaoke.mic.volumeValue', {
-              percent: Math.round(inputGain * 100),
-            })}
-          />
-          <strong>{Math.round(inputGain * 100)}%</strong>
-        </label>
-        <div className="karaoke-microphone__privacy">
-          <MenuIcon name="info" className="karaoke-button__icon" />
-          <p>{t(isLive ? 'karaoke.mic.privacy' : 'karaoke.mic.hint')}</p>
+          <span style={{ transform: `scaleX(${level})` }} />
         </div>
       </div>
+      <label
+        className="karaoke-microphone__reading"
+        htmlFor="karaoke-microphone-gain"
+      >
+        <span className="karaoke-microphone__name">
+          {t('karaoke.mic.volume')}
+        </span>
+        <span className="karaoke-microphone__value">
+          {Math.round(inputGain * 100)}%
+        </span>
+        <input
+          id="karaoke-microphone-gain"
+          type="range"
+          min="0"
+          max="200"
+          step="1"
+          value={Math.round(inputGain * 100)}
+          onChange={(event) => setInputGain(Number(event.target.value) / 100)}
+          style={
+            {
+              '--karaoke-gain-position': `${gainPosition}%`,
+            } as CSSProperties
+          }
+          aria-label={t('karaoke.mic.volume')}
+          aria-valuetext={t('karaoke.mic.volumeValue', {
+            percent: Math.round(inputGain * 100),
+          })}
+        />
+      </label>
+      <p className="karaoke-microphone__note">
+        <MenuIcon name="info" className="karaoke-button__icon" />
+        <span>{t(isLive ? 'karaoke.mic.privacy' : 'karaoke.mic.hint')}</span>
+      </p>
     </article>
   );
 };
