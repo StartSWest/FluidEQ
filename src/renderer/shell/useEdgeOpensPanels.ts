@@ -4,7 +4,20 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useEffectEvent } from 'react';
+import { type RefObject, useEffect, useEffectEvent, useRef } from 'react';
+
+type TEdge = 'left' | 'right';
+
+interface IEdgeWait {
+  side: TEdge;
+  wait: Animation;
+}
+
+/** Stops waiting at an edge, if one was being waited at. */
+const cancelWait = (armed: RefObject<IEdgeWait | undefined>) => {
+  armed.current?.wait.cancel();
+  armed.current = undefined;
+};
 
 /**
  * How close to the window's side the pointer has to come for a full-screen
@@ -16,6 +29,17 @@ import { useEffect, useEffectEvent } from 'react';
  * not pull the drawer out.
  */
 export const EDGE_OPENS_PX = 16;
+
+/**
+ * How long the pointer has to stay at an edge before its panel opens (Ivan,
+ * 2026-11-16: "a second in the corner before the side panels come out ...
+ * if I'm moving the mouse to another screen I don't want the panel"). The
+ * one duration here is the request itself, not a guess at when something is
+ * ready: it is waited on as an animation of the document on the page's own
+ * timeline (`Element.animate`, its `finished`), cancelled the moment the
+ * pointer leaves the edge or the window.
+ */
+export const EDGE_DWELL_MS = 1000;
 
 /**
  * How far past an open panel's edge the pointer may stray before it shuts:
@@ -71,8 +95,9 @@ const hasLeft = (
  * on to the page beyond an open panel shuts it. A panel stays while the
  * pointer is on something it opened outside its own box (a menu, a list, a
  * dialog) and while a button is held, which is a slider being dragged past
- * the panel's edge. Only pointer moves decide, so nothing opens or shuts on
- * its own while the pointer rests.
+ * the panel's edge. A panel opens only once the pointer has stayed at its
+ * edge for EDGE_DWELL_MS; crossing the edge on the way to another screen
+ * opens nothing.
  */
 const useEdgeOpensPanels = ({
   isActive,
@@ -81,22 +106,56 @@ const useEdgeOpensPanels = ({
   setLeftOpen,
   setRightOpen,
 }: IEdgePanels) => {
+  // The edge being waited at, and the wait itself.
+  const armed = useRef<IEdgeWait>(undefined);
+  const disarm = () => cancelWait(armed);
+
+  const arm = (side: TEdge) => {
+    if (armed.current?.side === side) {
+      return;
+    }
+    disarm();
+    const wait = document.documentElement.animate([{}, {}], {
+      duration: EDGE_DWELL_MS,
+    });
+    armed.current = { side, wait };
+    wait.finished
+      .then(() => {
+        if (armed.current?.wait === wait) {
+          armed.current = undefined;
+          if (side === 'left') {
+            setLeftOpen(true);
+          } else {
+            setRightOpen(true);
+          }
+        }
+        return undefined;
+      })
+      // Cancelled: the pointer left the edge, which is the answer "no".
+      .catch(() => undefined);
+  };
+
   const onMove = useEffectEvent((event: PointerEvent) => {
     if (event.pointerType === 'touch') {
       return;
     }
     if (event.clientX <= EDGE_OPENS_PX) {
-      if (!isLeftOpen) {
-        setLeftOpen(true);
+      if (isLeftOpen) {
+        disarm();
+      } else {
+        arm('left');
       }
       return;
     }
     if (event.clientX >= window.innerWidth - 1 - EDGE_OPENS_PX) {
-      if (!isRightOpen) {
-        setRightOpen(true);
+      if (isRightOpen) {
+        disarm();
+      } else {
+        arm('right');
       }
       return;
     }
+    disarm();
     if (event.buttons !== 0) {
       return;
     }
@@ -119,8 +178,19 @@ const useEdgeOpensPanels = ({
       return undefined;
     }
     const listener = (event: PointerEvent) => onMove(event);
+    // The pointer gone off the window (to another screen) sends no more
+    // moves, so its leaving is what cancels the wait.
+    const root = document.documentElement;
+    const stop = () => cancelWait(armed);
     window.addEventListener('pointermove', listener, { passive: true });
-    return () => window.removeEventListener('pointermove', listener);
+    root.addEventListener('pointerleave', stop);
+    window.addEventListener('blur', stop);
+    return () => {
+      window.removeEventListener('pointermove', listener);
+      root.removeEventListener('pointerleave', stop);
+      window.removeEventListener('blur', stop);
+      stop();
+    };
   }, [isActive]);
 };
 
