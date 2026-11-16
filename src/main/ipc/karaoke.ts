@@ -25,6 +25,7 @@ import {
   restoreKaraokeSession,
   saveKaraokeSession,
 } from '../karaokeSession';
+import readRestoredKaraokeDuration from '../karaokeSessionDuration';
 import {
   deleteKaraokeMakerDraft,
   loadKaraokeMakerDraft,
@@ -80,6 +81,10 @@ export const registerKaraokeIpc = ({
 
   ipcMain.handle('karaoke-session-read-file', (_event, token: unknown) =>
     typeof token === 'string' ? readRestoredKaraokeFile(token) : undefined,
+  );
+
+  ipcMain.handle('karaoke-session-file-duration', (_event, token: unknown) =>
+    typeof token === 'string' ? readRestoredKaraokeDuration(token) : null,
   );
 
   ipcMain.handle('karaoke-session-clear', () => {

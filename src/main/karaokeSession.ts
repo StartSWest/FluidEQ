@@ -481,6 +481,14 @@ export const restoreKaraokeSession = async (
   };
 };
 
+/** A restored song's own file, for what is read of it without its bytes. */
+export const restoredKaraokeAudioPath = (token: string): string | undefined => {
+  const localPath = tokenPaths.get(token);
+  return localPath && roleForPath(localPath) === 'audio'
+    ? localPath
+    : undefined;
+};
+
 export const readRestoredKaraokeFile = (
   token: string,
 ): Promise<IKaraokeRestoredFileBytes | undefined> => {

@@ -16,6 +16,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * forty decoders together.
  */
 
+import { karaokeRestoredFileToken } from '../../common/karaoke/files';
+
 const durations = new WeakMap<File, number | null>();
 const pending = new Map<File, Promise<number | null>>();
 let queue: Promise<unknown> = Promise.resolve();
@@ -45,6 +47,21 @@ const readOne = (file: File): Promise<number | null> =>
     element.src = url;
   });
 
+/**
+ * A song restored from the last session is a name and a token until it is
+ * opened, with no bytes here to read: its length is read from the file's
+ * header on the other side instead (`karaokeSessionDuration.ts`), never by
+ * carrying the whole song across for one number.
+ */
+const readLength = (file: File): Promise<number | null> => {
+  const token = karaokeRestoredFileToken(file);
+  const header = window.electron?.ipcRenderer.readKaraokeSessionFileDuration;
+  if (token && file.size === 0) {
+    return header ? header(token).catch(() => null) : Promise.resolve(null);
+  }
+  return readOne(file);
+};
+
 /** The length already read, `null` for one that cannot be, or nothing yet. */
 export const knownKaraokeItemDuration = (
   file: File,
@@ -59,7 +76,7 @@ export const readKaraokeItemDuration = (file: File): Promise<number | null> => {
   if (waiting) {
     return waiting;
   }
-  const read = queue.then(() => readOne(file));
+  const read = queue.then(() => readLength(file));
   queue = read;
   const kept = read.then((seconds) => {
     durations.set(file, seconds);

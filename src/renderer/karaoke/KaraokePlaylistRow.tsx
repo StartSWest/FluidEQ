@@ -4,7 +4,14 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  memo,
+  type RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { type IKaraokePlaylistItem } from '../../common/karaoke/files';
 import { formatKaraokeTime } from '../../common/karaoke/clock';
 import LibraryCoverArt from '../library/LibraryCoverArt';
@@ -24,6 +31,7 @@ import {
   karaokePlaylistRowNames,
 } from './karaokePlaylistFacts';
 import { KARAOKE_PLAYLIST_DRAG_MIME } from './karaokePlaylistTree';
+import karaokeRowPicture from './karaokeRowPicture';
 
 /**
  * What a row learns once it has been seen: the Library's facts for its song
@@ -95,6 +103,47 @@ const useSeenRowFacts = (item: IKaraokePlaylistItem) => {
   return { holder, facts: facts ?? undefined, durationMs };
 };
 
+/**
+ * The row's picture once the row has been seen: a thumbnail made from the
+ * picture's real bytes (`karaokeRowPicture`), which a restored song does not
+ * have in the window until they are asked for.
+ */
+const useSeenRowPicture = (
+  holder: RefObject<HTMLLIElement | null>,
+  cover: File | undefined,
+): string | undefined => {
+  const [picture, setPicture] = useState<{ file: File; url?: string }>();
+  useEffect(() => {
+    const element = holder.current;
+    if (!cover || !element) {
+      return undefined;
+    }
+    let isCurrent = true;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) {
+        return;
+      }
+      observer.disconnect();
+      karaokeRowPicture(cover)
+        .then((url) => {
+          if (isCurrent) {
+            setPicture({ file: cover, url });
+          }
+          return undefined;
+        })
+        .catch(() => undefined);
+    });
+    observer.observe(element);
+    return () => {
+      isCurrent = false;
+      observer.disconnect();
+    };
+  }, [cover, holder]);
+  // Only the picture made for this cover: a row handed another song's keeps
+  // nothing of the last one's while the new one is made.
+  return picture && picture.file === cover ? picture.url : undefined;
+};
+
 interface IKaraokePlaylistRowProps {
   item: IKaraokePlaylistItem;
   isSelected: boolean;
@@ -137,18 +186,7 @@ const KaraokePlaylistRow = ({
     () => (facts?.artId ? undefined : karaokePlaylistCoverFile(item)),
     [facts?.artId, item],
   );
-  const coverUrl = useMemo(
-    () => (cover ? URL.createObjectURL(cover) : undefined),
-    [cover],
-  );
-  useEffect(
-    () => () => {
-      if (coverUrl) {
-        URL.revokeObjectURL(coverUrl);
-      }
-    },
-    [coverUrl],
-  );
+  const coverUrl = useSeenRowPicture(holder, cover);
 
   return (
     <li

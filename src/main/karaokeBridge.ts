@@ -48,6 +48,12 @@ const readKaraokeSessionFile = (token: string) =>
     IKaraokeRestoredFileBytes | undefined
   >;
 
+/** A restored song's length in seconds, read from its file's header. */
+const readKaraokeSessionFileDuration = (token: string) =>
+  ipcRenderer.invoke('karaoke-session-file-duration', token) as Promise<
+    number | null
+  >;
+
 const clearKaraokeSession = () =>
   ipcRenderer.invoke('karaoke-session-clear') as Promise<void>;
 
@@ -166,6 +172,7 @@ const karaokeBridge = {
   saveKaraokeSession,
   restoreKaraokeSession,
   readKaraokeSessionFile,
+  readKaraokeSessionFileDuration,
   clearKaraokeSession,
   saveKaraokeMakerDraft,
   loadKaraokeMakerDraft,
