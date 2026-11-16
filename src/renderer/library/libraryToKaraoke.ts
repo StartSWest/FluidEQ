@@ -34,6 +34,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   KARAOKE_AUDIO_EXTENSIONS,
   setKaraokeRelativePath,
+  setKaraokeSourceLocalPath,
 } from '../../common/karaoke/files';
 import type { ILyricsLine } from '../../common/library/lyrics';
 import { lrcFromLines } from '../../common/library/lyricsLrc';
@@ -103,6 +104,7 @@ export const trackAsKaraokeFile = async (
     // was never found again.
     lastModified: Math.round(track.mtimeMs),
   });
+  setKaraokeSourceLocalPath(file, track.path);
   return setKaraokeRelativePath(file, name);
 };
 

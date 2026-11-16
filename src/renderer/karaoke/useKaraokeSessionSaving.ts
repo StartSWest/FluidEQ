@@ -9,6 +9,7 @@ import {
   IKaraokePlaylistItem,
   karaokeFileRelativePath,
   karaokeRestoredFileToken,
+  karaokeSourceLocalPath,
 } from '../../common/karaoke/files';
 import {
   IKaraokeSessionFileReference,
@@ -53,6 +54,13 @@ const persistedFileReference = (
   const token = karaokeRestoredFileToken(file);
   if (token) {
     return { token, relativePath: karaokeFileRelativePath(file) };
+  }
+  const sourcePath = karaokeSourceLocalPath(file);
+  if (sourcePath) {
+    return {
+      localPath: sourcePath,
+      relativePath: karaokeFileRelativePath(file),
+    };
   }
   try {
     const localPath = window.electron?.ipcRenderer.getPathForFile?.(file) ?? '';

@@ -189,11 +189,13 @@ export const karaokeFileNamesMatch = (left: string, right: string): boolean => {
 
 const DRAGGED_RELATIVE_PATH = Symbol('karaokeRelativePath');
 const RESTORED_FILE_TOKEN = Symbol('karaokeRestoredFileToken');
+const SOURCE_LOCAL_PATH = Symbol('karaokeSourceLocalPath');
 
 type TKaraokePathFile = File & {
   readonly webkitRelativePath?: string;
   [DRAGGED_RELATIVE_PATH]?: string;
   [RESTORED_FILE_TOKEN]?: string;
+  [SOURCE_LOCAL_PATH]?: string;
 };
 
 /** Preserve a folder drop's relative path without copying its file bytes. */
@@ -218,6 +220,28 @@ export const setKaraokeRestoredFileToken = (
 
 export const karaokeRestoredFileToken = (file: File): string | undefined =>
   (file as TKaraokePathFile)[RESTORED_FILE_TOKEN];
+
+/**
+ * The file on disk an in-memory copy was read from.
+ *
+ * A song sent from the Library arrives as a File built from its bytes, which
+ * has no path of its own (`getPathForFile` answers `''` for it), so the
+ * Karaoke session could not keep it: after a restart the song was gone, and
+ * the Maker that was open on it came back with nothing to open (Ivan,
+ * 2026-11-15: "when the app loads it needs to restore the song we were
+ * working on in the Maker"). Main checks the path as it checks any other
+ * the session is handed (`isKeepablePath`).
+ */
+export const setKaraokeSourceLocalPath = (
+  file: File,
+  localPath: string,
+): File => {
+  (file as TKaraokePathFile)[SOURCE_LOCAL_PATH] = localPath;
+  return file;
+};
+
+export const karaokeSourceLocalPath = (file: File): string | undefined =>
+  (file as TKaraokePathFile)[SOURCE_LOCAL_PATH];
 
 /**
  * The folder a file arrived in, or `''` when nobody told us.
