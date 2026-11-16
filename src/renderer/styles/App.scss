@@ -2750,17 +2750,6 @@ $graph-card-pages: list.join(
   }
 }
 
-// The Karaoke's card meets the header with no gap and no corner, so the band
-// under its options (`_karaokeStage.scss`) is stuck to the header as the
-// graph's is (Ivan, 2026-11-16: "always stuck to the menu above").
-.center-workspace:not(.is-graph-first)
-  > .middle-content
-  > .workspace-tab-panel--karaoke {
-  margin-top: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
-
 // Between a section card and the graph the divider is a strip of floor, its
 // grip in the middle and no line (Ivan, 2026-09-27: "remove the graph
 // division splitter line and add a gap so the rounded pane separated from
