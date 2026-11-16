@@ -18,45 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import { GraphPalette, IGraphBallistics } from 'common/graphStyles';
-import type { WaveformStyle } from 'common/waveformStyles';
 import { readSurface, type TSurfaceName } from './utils/theme';
 
 /**
- * How the titlebar waveform is drawn, and the numbers behind it.
- *
- * Two hundred and fifty lines of dimensions, easing rates, stroke colours and
- * per-style paint tables, sitting above a component that is otherwise about
- * subscribing to audio and running an animation frame. Neither half was easy to
- * read past the other.
- *
- * The per-style table is the reason this is worth its own file rather than a
- * section: adding a waveform style means adding one entry here and nothing
- * else, and that is much easier to see when the table is the file.
+ * The titlebar meter's numbers, and the spectrum bars the EQ graph's signal
+ * looks paint: easing rates, ranges, colours. Kept apart from a component that
+ * is otherwise about subscribing to audio and running an animation frame. How
+ * each meter style is painted is `waveformFlatPaint.ts`.
  */
-/**
- * The box every shape is built in, and the one the pane is projected from.
- *
- * This was the SVG's `viewBox`, and it stays a fixed box for the same reason it
- * was one: the styles carry absolute sizes — a dot is at least 1.4 across, an
- * LED segment at least 2 tall — and those numbers were chosen against a
- * fifty-eight unit box. Building the shape at the pane's real size instead
- * would let them shrink into the floors and turn the ladder style into a row of
- * gaps on a short titlebar.
- */
-export const WAVEFORM_WIDTH = 420;
-export const WAVEFORM_HEIGHT = 58;
-
-/**
- * Where the trace tops out: as tall as the box allows, in both modes.
- *
- * There was a quieter figure beside this one that the pane used at rest,
- * with euphoria switching to this. The pair is gone because the drawing no
- * longer shrinks with the volume — a wave that reaches the edges in one mode
- * and hugs the middle in the other reads as two different instruments, and
- * the mode is carried by the palette instead.
- */
-export const WAVEFORM_AMPLITUDE_MAX = WAVEFORM_HEIGHT / 2 - 2;
-
 /**
  * How far the drawing is allowed to spill past the box it is measured in.
  *
@@ -119,9 +88,6 @@ export const SPECTRUM_BAR_RANGE_DB = 80;
  */
 /** What a bar shows when there is nothing to show. */
 const STUMP_HEIGHT = 6;
-
-export const spectrumBarCount = (width: number) =>
-  Math.max(48, Math.floor(width / 11));
 
 /**
  * Move the bars toward the frame, snapping up and easing back.
@@ -438,10 +404,6 @@ export const spectrumBarsPath = (
   });
   return path;
 };
-/** Vertical rules behind the trace, so the pane reads as a meter. */
-export const GRID_DIVISIONS = 12;
-/** How far short of the pane's edges those rules stop. */
-export const GRID_INSET = 4;
 /** dB below which there is nothing worth showing a number for. */
 export const SILENCE_DB = -70;
 /**
@@ -450,14 +412,6 @@ export const SILENCE_DB = -70;
  */
 export const PEAK_RELEASE_DB = 1.1;
 
-/**
- * The pane's own furniture: faint vertical rules and a dashed centre, so it
- * reads as an instrument rather than a stray line on a dark rectangle.
- */
-export const GRID_STROKE = 'rgba(216, 210, 255, 0.06)';
-export const BASELINE_STROKE = 'rgba(216, 210, 255, 0.13)';
-export const BASELINE_DASH = [2, 5];
-export const NO_DASH: number[] = [];
 /** Paused: one flat colour, and none of the light. */
 export const PAUSED_STROKE = 'rgba(216, 210, 255, 0.68)';
 /** Clipping: the trace itself turns the warning's red, flat. */
@@ -484,76 +438,6 @@ export const traceWalkStops = (): { offset: number; colour: string }[] =>
     offset,
     colour: readSurface(token, fallback),
   }));
-
-/**
- * The styles that read the analyser's frequency bands rather than the
- * time-domain samples.
- *
- * A bar built from `Math.abs(sample)` is the envelope of the waveform, which
- * wobbles with the volume and says nothing about what is in the sound. Given
- * the FFT the same drawing becomes a real spectrum, and the whole family —
- * bars, blades, ladders, bead columns, and the silhouette over them — reads
- * as one instrument seen several ways. Every style here keeps a time-domain
- * fallback for the case where no analyser is running.
- */
-export const FFT_WAVEFORM_STYLES: ReadonlySet<WaveformStyle> = new Set([
-  'bars',
-  'mirror-bars',
-  'blocks',
-  'dots',
-  'spikes',
-  'outline',
-  'lattice',
-]);
-
-/**
- * Everything the eleven styles say about how they are painted: flat, in
- * the trace's colours, with no light round them. They wore a pink-and-cyan
- * neon halo, a soft coloured shadow and in Rainbow mode a fat translucent
- * copy of the figure under itself; every one of those blurred the edges the
- * strip is read by (Ivan, 2026-09-26: "fix them all ... clean", "no glow").
- */
-export interface IStylePaint {
-  fillAlpha: number;
-  strokeWidth: number;
-  strokeAlpha: number;
-  lineCap: CanvasLineCap;
-}
-
-export const BASE_PAINT: IStylePaint = {
-  fillAlpha: 1,
-  strokeWidth: 1.6,
-  strokeAlpha: 1,
-  lineCap: 'round',
-};
-
-/**
- * What each style changes, and nothing else. The styles made of separate
- * pieces carry nearly full ink; a body behind an edge carries a third, so
- * the edge is what is read.
- */
-export const STYLE_PAINT: Partial<Record<WaveformStyle, Partial<IStylePaint>>> =
-  {
-    filled: { fillAlpha: 0.3, strokeWidth: 1.4 },
-    bars: { fillAlpha: 0.95 },
-    'mirror-bars': { fillAlpha: 0.95 },
-    dots: { fillAlpha: 0.95 },
-    blocks: { fillAlpha: 0.95 },
-    // Blades overlap at their feet, so a touch less ink.
-    spikes: { fillAlpha: 0.82 },
-    // The body without an edge: a shape rather than a trace.
-    ribbon: { fillAlpha: 0.62 },
-    lattice: { strokeWidth: 1.4 },
-    // The spectrum's silhouette: one line carrying the whole picture.
-    outline: { strokeWidth: 1.8 },
-    // One smooth wave over the spectrum's bars.
-    fluid: { strokeWidth: 1.8 },
-  };
-
-export const resolveStylePaint = (style: WaveformStyle): IStylePaint => ({
-  ...BASE_PAINT,
-  ...STYLE_PAINT[style],
-});
 
 /**
  * Canvas ignores an alpha outside 0..1 and keeps the last one, which is worse

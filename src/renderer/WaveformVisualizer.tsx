@@ -28,11 +28,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * leaves running. A canvas draw is a resource update instead: the pixels are
  * replaced and nothing else in the document has an opinion about it.
  *
- * WHAT DID NOT CHANGE. `createWaveformShape` still returns SVG path data for
- * all ten styles, because `new Path2D(d)` takes exactly that string. The shapes,
- * the easing and the normalising were untouched by that swap — it was a
- * renderer swap, not a redesign. How a block is scaled to the pane, and when
- * silence becomes the flat line, is `waveformGate.ts`.
+ * HOW IT IS DRAWN. Every style is painted flat at the pane's real size by
+ * `waveformFlatPaint.ts` (Ivan, 2026-11-16: the eleven styles redrawn flat and
+ * ten added), with what the styles remember between frames — held peaks, the
+ * last moments, the two channels — in `waveformFlatState.ts`. How a block is
+ * scaled to the pane, and when silence becomes the flat line, is
+ * `waveformGate.ts`.
  *
  * WHAT STAYS IN THE DOM. The pane, the labels, the held peak, the euphoria
  * pill. Those are text and controls; they change when the audio changes *state*
@@ -48,45 +49,25 @@ import {
   MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
+import { WAVEFORM_STYLES, WaveformStyle } from 'common/waveformStyles';
 import {
-  WAVEFORM_STYLES,
-  WaveformStyle,
-  createWaveformShape,
-} from 'common/waveformStyles';
-import {
-  BASELINE_DASH,
-  BASELINE_STROKE,
   CLIP_STROKE,
-  FFT_WAVEFORM_STYLES,
-  GRID_DIVISIONS,
-  GRID_INSET,
-  GRID_STROKE,
-  NO_DASH,
   PAUSED_STROKE,
   PEAK_RELEASE_DB,
   SILENCE_DB,
   advanceSpectrumBars,
-  paintSpectrumBars,
-  spectrumBarCount,
   SPECTRUM_BAR_ATTACK_MS,
   SPECTRUM_BAR_RELEASE_MS,
-  SPECTRUM_HUE_FLAT,
   traceWalkStops,
-  WAVEFORM_AMPLITUDE_MAX,
   WAVEFORM_BLEED,
-  WAVEFORM_HEIGHT,
   WAVEFORM_STYLE_KEY,
-  WAVEFORM_WIDTH,
   peakDbOf,
-  resolveStylePaint,
-  setAlpha,
 } from './waveformPaint';
 import { type IWaveGate, createWaveGate } from './waveformGate';
 import {
@@ -113,11 +94,12 @@ import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import { readSurface } from './utils/theme';
 import { rainbowGradientStops } from './utils/rainbowPalette';
-import { CRISP_BAR_STYLES, paintCrispBars } from './waveformBars';
+import paintFlatMeter from './waveformFlatPaint';
+import { advanceFlatMeter, createFlatMeterState } from './waveformFlatState';
 import './styles/WaveformVisualizer.scss';
 
-/** How strong fluid's spectrum stands behind its wave. */
-const FLUID_BAR_ALPHA = 0.34;
+/** The spectrum's bands every style reads: as many as the pane can show. */
+const FLAT_BAND_COUNT = 64;
 
 type TWaveformCycleStyle = WaveformStyle | 'off';
 
@@ -309,38 +291,22 @@ const WaveformVisualizer = () => {
   // The element's own box in CSS pixels, kept by the observer below rather than
   // measured in the frame, so drawing never asks layout a question.
   const sizeRef = useRef({ width: 0, height: 0 });
-  // Read inside the animation frame rather than closed over, so changing mode
-  // does not have to rebuild the callback and restart the loop.
-  //
-  // Every style now takes the max-amplitude look regardless of mode — the
-  // pane's own drawing does not shrink with the volume knob, because the gate
-  // scales every block by the music's own peak. The distinction between the
-  // two is carried by the colours below (cyan tones at rest, rainbow in
-  // euphoria), not by the geometry.
-  const amplitudeRef = useRef(WAVEFORM_AMPLITUDE_MAX);
-  amplitudeRef.current = WAVEFORM_AMPLITUDE_MAX;
   // The three states that used to reach the trace as a class on an ancestor.
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;
   const isPausedRef = useRef(isPaused);
   isPausedRef.current = isPaused;
-  // Resolved on the render that changes the style rather than on every frame,
-  // so the loop allocates nothing it does not hand to the rasteriser.
-  const paint = useMemo(
-    () => resolveStylePaint(drawableStyle),
-    [drawableStyle],
-  );
-  const paintRef = useRef(paint);
-  paintRef.current = paint;
   // The freq-domain points, kept in a ref so the frame loop reads whatever
   // the analyser last published without waking up on each new frame — the
   // loop is already scheduled by the wave-samples effect.
   const pointsRef = useRef<IChartPointData[]>(points);
   pointsRef.current = points;
-  // The spectrum bars buffer, reused across frames. Sized to a compact ~48
-  // bars regardless of how many FFT points arrive, which is what the
-  // titlebar's short width can legibly hold.
+  // The spectrum's bands, reused across frames.
   const spectrumMagnitudesRef = useRef<number[]>([]);
+  // What the styles remember between frames (`waveformFlatState.ts`), and how
+  // long since the last moment was kept.
+  const flatStateRef = useRef(createFlatMeterState());
+  const sinceHistoryRef = useRef({ value: 0 });
 
   // One drawn frame, painted straight onto the canvas.
   //
@@ -445,117 +411,48 @@ const WaveformVisualizer = () => {
     if (waveGate.isHolding() && (fresh !== undefined || isStandingRest)) {
       moving = true;
     }
-    // The FFT magnitudes are computed for every style that draws bars off
-    // the spectrum — `bars`, `mirror-bars`, and the wave-plus-bars
-    // `spectrum`. The renderer's imperative bar drawing below runs its
-    // own downsample against the same points; this one is for the shared
-    // shape function so those three styles read real frequency bands.
-    let spectrumMagnitudes: number[] | undefined;
-    const stylesUsingFftBars = FFT_WAVEFORM_STYLES.has(styleRef.current);
-    const bandCount = 48;
-    const bufferForShape = spectrumMagnitudesRef.current;
-    // Once the bands are up they stay the figure, and a frame with no
-    // spectrum lets them fall rather than handing the style to its
-    // waveform fallback. The spectrum calls a frame silent when no band
-    // passes -95 dB (`LIVE_SILENCE_DB`), the wave only under -70 dBFS
-    // peak (`WAVE_SILENCE_AMPLITUDE`), and quiet speech spreads its energy
-    // thin enough to sit between the two: every other frame swapped 48
-    // spectrum bars for a hundred narrow bars of the raw wave scaled to
-    // fill the pane, which is what read as the bars glitching and changing
-    // width as a voice trailed off.
-    if (
-      stylesUsingFftBars &&
-      (framePoints.length > 0 || bufferForShape.length === bandCount)
-    ) {
-      const source = framePoints;
-      if (bufferForShape.length !== bandCount) {
-        bufferForShape.length = bandCount;
-        bufferForShape.fill(0);
-      }
-      // FFT forms need interpolation too; smoothing only the waveform left
-      // all seven of these jumping directly between capture frames.
-      moving =
-        advanceSpectrumBars(
-          bufferForShape,
-          source,
-          MIN_GAIN,
-          deltaMs,
-          undefined,
-          MAX_GAIN - MIN_GAIN,
-        ) || moving;
-      spectrumMagnitudes = bufferForShape;
+    // The spectrum's bands, for every style: eased like the wave, snapping up
+    // on a hit and falling back over a tenth of a second. Once they are up
+    // they stay the figure, and a frame with no spectrum lets them fall rather
+    // than handing the drawing to anything else. The spectrum calls a frame
+    // silent when no band passes -95 dB (`LIVE_SILENCE_DB`), the wave only
+    // under -70 dBFS peak (`WAVE_SILENCE_AMPLITUDE`), and quiet speech sits
+    // between the two: swapping the figure at that line read as the bars
+    // glitching as a voice trailed off.
+    const bands = spectrumMagnitudesRef.current;
+    if (bands.length !== FLAT_BAND_COUNT) {
+      bands.length = FLAT_BAND_COUNT;
+      bands.fill(0);
     }
+    moving =
+      advanceSpectrumBars(
+        bands,
+        framePoints,
+        MIN_GAIN,
+        deltaMs,
+        undefined,
+        MAX_GAIN - MIN_GAIN,
+      ) || moving;
 
-    const shape = createWaveformShape(
-      smoothed,
-      styleRef.current,
-      WAVEFORM_WIDTH,
-      WAVEFORM_HEIGHT,
-      amplitudeRef.current,
-      spectrumMagnitudes,
-    );
-
-    const scaleX = boxWidth / WAVEFORM_WIDTH;
-    const scaleY = boxHeight / WAVEFORM_HEIGHT;
-    /**
-     * The canonical box carried onto the pane — baked into the geometry rather
-     * than left on the context.
-     *
-     * The SVG stretched unevenly (`preserveAspectRatio="none"`) and then kept
-     * every stroke out of that stretch (`vector-effect="non-scaling-stroke"`),
-     * which is the only reason a 1.8px line over a box four times wider than it
-     * is tall does not smear into a smudge. A context scaled the same way would
-     * smear it, because a canvas stroke is transformed with the path. Moving
-     * the points and leaving the pen alone is how that survives the port.
-     */
-    const project = {
-      a: scaleX,
-      b: 0,
-      c: 0,
-      d: scaleY,
-      e: WAVEFORM_BLEED,
-      f: WAVEFORM_BLEED,
+    // Off is still a visible, clickable instrument: a faint centre line
+    // remains, so the titlebar does not turn into an unexplained empty
+    // capsule; only the live figure and the analyser work below this point
+    // stop.
+    const pane = {
+      x: WAVEFORM_BLEED,
+      y: WAVEFORM_BLEED,
+      width: boxWidth,
+      height: boxHeight,
     };
-    const bake = (data: string) => {
-      const path = new Path2D();
-      path.addPath(new Path2D(data), project);
-      return path;
-    };
-
-    // Faint rules and a dashed centre, so the pane reads as an instrument
-    // rather than a stray line on a dark rectangle. Redrawn with everything
-    // else rather than kept on a second static canvas underneath: twelve
-    // straight lines cost far less than another layer to composite.
-    context.lineJoin = 'round';
-    context.lineCap = 'butt';
-    context.lineWidth = 1;
-    setAlpha(context, 1);
-    context.strokeStyle = GRID_STROKE;
-    context.setLineDash(NO_DASH);
-    context.beginPath();
-    for (let division = 1; division < GRID_DIVISIONS; division += 1) {
-      const x = WAVEFORM_BLEED + (division * boxWidth) / GRID_DIVISIONS;
-      context.moveTo(x, WAVEFORM_BLEED + GRID_INSET * scaleY);
-      context.lineTo(
-        x,
-        WAVEFORM_BLEED + (WAVEFORM_HEIGHT - GRID_INSET) * scaleY,
-      );
-    }
-    context.stroke();
-
-    const centre = WAVEFORM_BLEED + boxHeight / 2;
-    context.strokeStyle = BASELINE_STROKE;
-    context.setLineDash(BASELINE_DASH);
-    context.beginPath();
-    context.moveTo(WAVEFORM_BLEED, centre);
-    context.lineTo(WAVEFORM_BLEED + boxWidth, centre);
-    context.stroke();
-    context.setLineDash(NO_DASH);
-
-    // Off is still a visible, clickable instrument. Its static paper remains
-    // so the titlebar does not turn into an unexplained empty capsule; only the
-    // live figure and the analyser work below this point stop.
+    const unlit = readSurface('--meter-unlit', 'rgba(200, 240, 245, 0.08)');
     if (isOffRef.current) {
+      context.fillStyle = unlit;
+      context.fillRect(
+        pane.x,
+        Math.round((pane.y + pane.height / 2) * ratio) / ratio,
+        pane.width,
+        1 / ratio,
+      );
       return false;
     }
 
@@ -586,128 +483,69 @@ const WaveformVisualizer = () => {
       moving = moving || held !== undefined;
     }
 
+    // The held marks, the last moments and the two channels (Peaks, Echo,
+    // Waterfall, Level). The channels are each one's loudest sample as the
+    // capture read it; without a fresh read — paused, another PC's audio —
+    // both stand on the wave's own peak.
+    const loudest = smoothed.reduce(
+      (peak, value) => Math.max(peak, Math.abs(value)),
+      0,
+    );
+    const channelPeaks = fresh?.channelPeaks;
+    const channels: [number, number] = [
+      channelPeaks?.[0] ?? loudest,
+      channelPeaks?.[1] ?? channelPeaks?.[0] ?? loudest,
+    ];
+    moving =
+      advanceFlatMeter(
+        flatStateRef.current,
+        bands,
+        isPausedRef.current ? [0, 0] : channels,
+        isPausedRef.current ? 0 : deltaMs,
+        sinceHistoryRef.current,
+      ) || moving;
+
     // The trace's colours, left to right across the pane and pinned to it
     // rather than to the figure, so a frequency is the same colour loud or
     // quiet: the mode's rainbow — Lagoon, or a Plus visualizer's — or the
     // primary's walk in Normal mode. One rule for every style; the whole
-    // pane changes together.
+    // pane changes together. Clipping outranks paused, as it always did: a
+    // paused analyser that was clipping when it stopped keeps the warning.
     const traceStops = isEuphoricRef.current
       ? rainbowGradientStops()
       : traceWalkStops();
     const traceRamp = context.createLinearGradient(
-      WAVEFORM_BLEED,
+      pane.x,
       0,
-      WAVEFORM_BLEED + boxWidth,
+      pane.x + pane.width,
       0,
     );
     traceStops.forEach((stop) => {
       traceRamp.addColorStop(stop.offset, stop.colour);
     });
-    // The lit edge on each piece of the bar styles: the primary's light in
-    // Normal mode, and a plain light over the rainbow, which has no light of
-    // its own to take.
-    const capInk = isEuphoricRef.current
+    let ink: string | CanvasGradient = traceRamp;
+    let light = isEuphoricRef.current
       ? 'rgba(255, 255, 255, 0.85)'
       : readSurface('--accent-light', '#c8fff8');
-    const pane = {
-      x: WAVEFORM_BLEED,
-      y: WAVEFORM_BLEED,
-      width: boxWidth,
-      height: boxHeight,
-    };
-
-    // Fluid's spectrum behind its wave: a bar every eleven pixels in the
-    // trace's own colours, faint enough that the wave over them is what is
-    // read. They swept their own hue, cyan into violet, whatever the window
-    // was wearing.
-    if (styleRef.current === 'fluid') {
-      const barCount = spectrumBarCount(boxWidth);
-      const buffer = spectrumMagnitudesRef.current;
-      if (buffer.length !== barCount) {
-        buffer.length = barCount;
-        buffer.fill(0);
-      }
-      moving =
-        advanceSpectrumBars(
-          buffer,
-          framePoints,
-          MIN_GAIN,
-          deltaMs,
-          undefined,
-          MAX_GAIN - MIN_GAIN,
-        ) || moving;
-      setAlpha(context, FLUID_BAR_ALPHA);
-      paintSpectrumBars(
-        context,
-        pane,
-        buffer,
-        isEuphoricRef.current,
-        SPECTRUM_HUE_FLAT,
-        0,
-        () => traceRamp,
-      );
-      setAlpha(context, 1);
-    }
-
-    const chosen = paintRef.current;
-    // Clipping outranks paused, as it always did: a paused analyser that was
-    // clipping when it stopped keeps the warning.
-    let strokeColour: string | CanvasGradient = traceRamp;
     if (isOverloadingRef.current) {
-      strokeColour = CLIP_STROKE;
+      ink = CLIP_STROKE;
+      light = CLIP_STROKE;
     } else if (isPausedRef.current) {
-      strokeColour = PAUSED_STROKE;
+      ink = PAUSED_STROKE;
+      light = PAUSED_STROKE;
     }
 
-    // The bar styles on the screen's own pixels, while the analyser's bands
-    // are there (`waveformBars.ts`); their shapes are the fallback.
-    const isCrisp =
-      spectrumMagnitudes !== undefined &&
-      CRISP_BAR_STYLES.has(styleRef.current);
-    if (spectrumMagnitudes !== undefined && isCrisp) {
-      setAlpha(context, chosen.fillAlpha);
-      paintCrispBars(
-        context,
-        ratio,
-        pane,
-        spectrumMagnitudes,
-        styleRef.current,
-        isOverloadingRef.current ? CLIP_STROKE : traceRamp,
-        capInk,
-      );
-      setAlpha(context, 1);
-    }
-
-    const linePath = !isCrisp && shape.line ? bake(shape.line) : undefined;
-    const mirrorPath =
-      !isCrisp && shape.mirror ? bake(shape.mirror) : undefined;
-    const figurePath = !isCrisp && shape.fill ? bake(shape.fill) : undefined;
-
-    // Flat: no halo, no shadow, no translucent copy under the figure. The
-    // pieces of a bar style carry their own light as a cap instead.
-    if (figurePath) {
-      setAlpha(context, chosen.fillAlpha);
-      context.fillStyle = traceRamp;
-      context.fill(figurePath);
-    }
-    context.lineCap = chosen.lineCap;
-    context.lineJoin = 'round';
-    setAlpha(context, chosen.strokeAlpha);
-    context.strokeStyle = strokeColour;
-    context.lineWidth = chosen.strokeWidth;
-    if (linePath) {
-      context.stroke(linePath);
-    }
-    // The mirrored edge, stroked the same way, so the shape is outlined
-    // rather than being a lit top over a bare bottom.
-    if (mirrorPath) {
-      context.stroke(mirrorPath);
-    }
-    setAlpha(context, 1);
-
-    // Nothing else is painted here. The meta row and the style-name pill
-    // both live in DOM, outside the stage, so they sit on the pane rather
-    // than inside the clipped drawing — see the markup below.
+    paintFlatMeter(context, {
+      style: styleRef.current,
+      box: pane,
+      ratio,
+      wave: smoothed,
+      bands,
+      state: flatStateRef.current,
+      ink,
+      light,
+      unlit,
+    });
     return moving;
   }, []);
 

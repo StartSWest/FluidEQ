@@ -17,9 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * Ten ways to draw the same measurements.
+ * Twenty-one ways to draw the same measurements: the first eleven are also
+ * built here as path data, which the EQ graph's forms draw from; the ten
+ * added on 2026-11-16 are the title bar's alone and are painted there
+ * (`waveformFlatPaint.ts`), as are the first eleven now.
  *
- * EVERY ONE IS A PATH, including the ones that look like bars or dots. That is
+ * EVERY SHAPE BUILT HERE IS A PATH, including the ones that look like bars or
+ * dots. That is
  * the whole design: a bar chart drawn as ninety-six rectangles is ninety-six
  * elements to create when the style is chosen and destroy when it is left, and
  * cycling through the styles would churn the DOM every time. Drawn as
@@ -41,7 +45,17 @@ export type WaveformStyle =
   | 'blocks'
   | 'outline'
   | 'lattice'
-  | 'fluid';
+  | 'fluid'
+  | 'peaks'
+  | 'segments'
+  | 'steps'
+  | 'beads'
+  | 'echo'
+  | 'heat'
+  | 'waterfall'
+  | 'level'
+  | 'reflection'
+  | 'contour';
 
 /** In cycle order, which is the order clicking walks them. */
 export const WAVEFORM_STYLES: WaveformStyle[] = [
@@ -56,6 +70,16 @@ export const WAVEFORM_STYLES: WaveformStyle[] = [
   'outline',
   'lattice',
   'fluid',
+  'peaks',
+  'segments',
+  'steps',
+  'beads',
+  'echo',
+  'heat',
+  'waterfall',
+  'level',
+  'reflection',
+  'contour',
 ];
 
 export const nextWaveformStyle = (style: WaveformStyle): WaveformStyle => {

@@ -68,7 +68,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // opaque (2026-09-27: "to the top wave border color add border color that
   // is same as card bg color"). The window's hairline it was drew a light
   // outline once the hairlines were solved to read. Still no fill.
-  border: 1px solid $card-edge;
+  //
+  // And then flat (Ivan, 2026-11-16, the meter styles' mockup: "do all of
+  // them, flat"): no outline either, as the Library has no card in a card.
+  // The pixel stays, transparent, for the arithmetic above and for the focus
+  // ring below.
+  border: 1px solid transparent;
   border-radius: $radius-m;
   background: transparent;
   overflow: visible;

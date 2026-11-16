@@ -518,9 +518,11 @@ it under the terms of the GNU General Public License version 3 or later.
       color-mix(in oklab, var(--pill-lit) 35%, transparent) 72%,
       transparent
     );
-    box-shadow:
-      inset 0 0 0 1.5px var(--pill-lit),
-      0 0 8px -3px var(--pill-lit);
+    // Flat (Ivan, 2026-11-16, the meter styles' mockup): no ring and no glow.
+    // On still differs from off in light, not only in hue — a tinted face, a
+    // filled dot and lit letters against a dark face, a hollow dot and faint
+    // letters — which is what the 2026-11-08 report asked of the two.
+    box-shadow: none;
 
     &:hover {
       background-color: color-mix(
@@ -546,11 +548,13 @@ it under the terms of the GNU General Public License version 3 or later.
       currentcolor 78%,
       transparent 88%
     );
-    box-shadow: inset 0 0 0 1px $border-control;
+    // No outline (flat, 2026-11-16): the dark face alone, lifted under the
+    // pointer.
+    box-shadow: none;
 
     &:hover {
       color: $text-primary;
-      box-shadow: inset 0 0 0 1px $border-control-hover;
+      background-color: color-mix(in srgb, $surface-base 92%, $text-faint);
     }
   }
 }
