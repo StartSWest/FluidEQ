@@ -42,7 +42,7 @@ const line = (id: string, tokens: IKaraokeMakerToken[]): IKaraokeMakerLine => ({
 const busyGesture = (): IMakerCanvasGesture => ({
   hitRegions: { current: [] },
   drag: { current: { behavior: 'move' } as never },
-  pan: { current: { pointerX: 10, viewStartMs: 0 } },
+  pan: { current: { pointerX: 10, viewStartMs: 0, pointerY: 0 } },
   scrub: { current: { anchorMs: 0, auditionWordGrain: false } },
   selectionBox: { current: { x: 0, y: 0, width: 1, height: 1 } as never },
   notePaintDraft: { current: { startMs: 0 } as never },

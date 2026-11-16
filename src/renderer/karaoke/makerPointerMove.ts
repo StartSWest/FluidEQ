@@ -61,6 +61,8 @@ interface IMakerPointerMoveInput {
   setScrubAuditionAnchorMs: Dispatch<SetStateAction<number | undefined>>;
   auditionWordScrubGrain: (scrub: ICanvasScrubState) => void;
   setIsPitchPanReady: Dispatch<SetStateAction<boolean>>;
+  /** Moves the pitch window up (positive) or down by semitones. */
+  panPitch: (semitones: number) => void;
   handPanMode: boolean;
   noteEditMode: 'select' | 'paint' | undefined;
   lineEntryMode: boolean;
@@ -106,6 +108,7 @@ const makerPointerMove = ({
   setScrubAuditionAnchorMs,
   auditionWordScrubGrain,
   setIsPitchPanReady,
+  panPitch,
   handPanMode,
   noteEditMode,
   lineEntryMode,
@@ -173,15 +176,25 @@ const makerPointerMove = ({
     const pan = gesture.pan.current;
     if (pan) {
       const point = canvasPoint(event);
+      const plot = plotAt(point);
       setViewStartMs(
         karaokeMakerPannedViewportStart(
           pan.viewStartMs,
           point.x - pan.pointerX,
-          plotAt(point).width,
+          plot.width,
           visibleViewDurationMs,
           maximumViewStartMs,
         ),
       );
+      // A grab moves the grid both ways, as a hand on paper does: pulled
+      // down, the notes follow the hand down and higher ones come into view
+      // (Ivan, 2026-11-15). Step by step from the last point, so a window
+      // stopped at the grid's edge answers the moment the hand turns back.
+      const rise = point.y - pan.pointerY;
+      if (rise !== 0) {
+        panPitch(rise / Math.max(1e-6, plot.semitoneHeight));
+        pan.pointerY = point.y;
+      }
       return;
     }
     if (gesture.scrub.current?.pointerId === event.pointerId) {

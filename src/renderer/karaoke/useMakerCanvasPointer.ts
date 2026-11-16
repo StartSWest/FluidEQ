@@ -404,12 +404,16 @@ export const useMakerCanvasPointer = ({
           point.y >= region.top &&
           point.y <= region.bottom,
       );
-    if (handPanMode && hit?.kind !== 'note') {
+    // The middle button grabs the grid wherever it is pressed, as the hand
+    // does (Ivan, 2026-11-15: "the mouse in the centre moves in both
+    // directions, the hand").
+    if (event.button === 1 || (handPanMode && hit?.kind !== 'note')) {
       event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
       gesture.pan.current = {
         pointerX: point.x,
         viewStartMs,
+        pointerY: point.y,
       };
       setFollowViewport(false);
       setIsPitchPanReady(false);
@@ -467,6 +471,7 @@ export const useMakerCanvasPointer = ({
       gesture.pan.current = {
         pointerX: point.x,
         viewStartMs,
+        pointerY: point.y,
       };
       setFollowViewport(false);
       setIsPitchPanReady(false);
@@ -599,6 +604,7 @@ export const useMakerCanvasPointer = ({
   };
 
   const { onCanvasPointerMove } = makerPointerMove({
+    panPitch,
     gesture,
     canvasPoint,
     plotAt,

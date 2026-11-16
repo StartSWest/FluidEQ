@@ -17,6 +17,8 @@ import { IHitRegion } from './makerCanvasGeometry';
 export interface ICanvasPanState {
   pointerX: number;
   viewStartMs: number;
+  /** Where the pointer last was down the grid: a grab moves pitch too. */
+  pointerY: number;
 }
 
 /** A scrub in progress, and the grain of audio it is auditioning. */
