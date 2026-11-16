@@ -41,6 +41,8 @@ import {
 
 /** A note's corner: a small one, flat, never the pill it was. */
 const NOTE_CORNER = 2;
+/** How far the ring of a selected or sung note stands off its edge. */
+const NOTE_RING_GAP = 2.5;
 
 export interface IPaintNotesInput {
   plot: IMakerPlot;
@@ -271,13 +273,6 @@ export const paintNotes = (
       );
       context.restore();
 
-      context.lineWidth = 1.4;
-      context.strokeStyle =
-        note.kind === 'golden'
-          ? 'rgba(255, 253, 210, .96)'
-          : readAccentLight(0.96, 'rgba(221, 255, 252, .96)');
-      context.stroke();
-
       const playbackX = Math.max(left, Math.min(right, progressRight));
       context.save();
       context.strokeStyle =
@@ -289,6 +284,28 @@ export const paintNotes = (
       context.stroke();
       context.restore();
     }
+    if (selected || active) {
+      // A RING ROUND THE NOTE, apart from it by a hair of the grid (Ivan,
+      // 2026-11-15: "fix the note highlight, lighter, and a border so it is
+      // more visible"). The edge used to be stroked on the note itself in
+      // the light accent the sung part is filled with, so the sung note
+      // read as one pale block with no edge at all; a ring standing off it
+      // shows against the dark grid whatever the note is filled with.
+      context.lineWidth = 1.5;
+      context.strokeStyle =
+        note.kind === 'golden'
+          ? 'rgba(255, 240, 168, .95)'
+          : readAccentLight(0.95, 'rgba(191, 255, 247, .95)');
+      drawRoundedRect(
+        context,
+        left - NOTE_RING_GAP,
+        centerY - noteHeight / 2 - NOTE_RING_GAP,
+        right - left + NOTE_RING_GAP * 2,
+        noteHeight + NOTE_RING_GAP * 2,
+        NOTE_CORNER + NOTE_RING_GAP,
+      );
+      context.stroke();
+    }
     context.restore();
     context.fillStyle =
       selected || active
@@ -299,7 +316,11 @@ export const paintNotes = (
     context.fillText(
       midiToNoteName(note.targetMidi),
       left + (right - left) / 2,
-      centerY - noteHeight / 2 - 4,
+      // Lifted clear of the ring when there is one.
+      centerY -
+        noteHeight / 2 -
+        4 -
+        (selected || active ? NOTE_RING_GAP + 1 : 0),
     );
     if (controlLinkMode && selected) {
       const indicatorX = Math.max(left + 6, Math.min(right - 6, right - 7));
