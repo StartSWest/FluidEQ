@@ -491,7 +491,11 @@ const AppContent = () => {
   // start of a fold, and until an unfold's slide has finished — the panel
   // covers the difference either way.
   const soundPanelRef = useRef<HTMLDivElement>(null);
-  const isSoundPaneSliding = useSoundPaneSlide(soundPanelRef, isSoundPaneShown);
+  const isSoundPaneSliding = useSoundPaneSlide(
+    soundPanelRef,
+    isSoundPaneShown,
+    isSoundPaneOverPage,
+  );
   const isSoundColumnNarrow =
     isSoundPaneFolded || (isSoundPaneSliding && !isSoundPaneOverPage);
   // Which split the divider moves: the tab's own; on a short window and a

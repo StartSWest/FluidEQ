@@ -86,14 +86,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
     right: 0;
     bottom: -7px;
     left: 0;
-    // Flat, as the graph's (Ivan, 2026-11-16: "flat like the application").
-    background: $surface-base;
+    // Flat, as the graph's (Ivan, 2026-11-16: "flat like the application"),
+    // and as see-through (`_graphThemeWorkspace.scss`).
+    background: color-mix(in srgb, $surface-base 72%, transparent);
     content: '';
     pointer-events: none;
   }
 
+  // In full screen from the window's top and across the whole window, as
+  // the graph's: within the stage column it stopped at the stage's 12px
+  // insets and left the scene showing at both ends (Ivan, 2026-11-16: "you
+  // haven't fixed the full-screen option bar in the karaoke"). The playlist
+  // card, lifted over the stage, stands on top of it.
   .karaoke-workspace.is-fullscreen &::before {
     top: -100vh;
+    right: -100vw;
+    left: -100vw;
   }
 
   // Fades with the rest of the chrome when the pointer rests, in place.

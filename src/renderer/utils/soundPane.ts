@@ -128,14 +128,22 @@ const slidesOf = (panel: HTMLElement | null): Animation[] =>
 export const useSoundPaneSlide = (
   panel: RefObject<HTMLElement | null>,
   isShown: boolean,
+  /**
+   * Where the panel stands: over the page (a drawer) or beside it (a
+   * column). A change of place is not a fold: leaving full screen the panel
+   * is simply where the windowed layout keeps it, at once, as the left
+   * panel is (Ivan, 2026-11-16: "when I leave full screen the left panel
+   * appears at once, I like it; do the same for the right").
+   */
+  isOverPage: boolean,
 ): boolean => {
-  const [seen, setSeen] = useState(isShown);
+  const [seen, setSeen] = useState({ isShown, isOverPage });
   const [isSliding, setSliding] = useState(false);
   // Set in the render that changes it, so the column is never laid out at
   // its new width for one frame before the slide is known to have begun.
-  if (seen !== isShown) {
-    setSeen(isShown);
-    setSliding(true);
+  if (seen.isShown !== isShown || seen.isOverPage !== isOverPage) {
+    setSeen({ isShown, isOverPage });
+    setSliding(seen.isOverPage === isOverPage);
   }
   useLayoutEffect(() => {
     if (!isSliding) {

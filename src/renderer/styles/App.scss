@@ -3545,13 +3545,13 @@ $graph-card-pages: list.join(
   // stood solid over a scene behind the window (the Backdrop), where every
   // other pane lets it through.
   background: none;
-  // The fold is this and nothing else: a transform, composited, so no frame
-  // of it lays anything out.
-  transition: transform $sound-pane-ease;
-
   // Crossing the page it hides what it covers, as it does opened over it.
+  // The fold is a transform, composited, so no frame of it lays anything out,
+  // and it runs only while folding (`useSoundPaneSlide`): a change of layout,
+  // leaving full screen among them, puts the panel in place at once.
   .right-content.is-sliding > & {
     background: $surface-base;
+    transition: transform $sound-pane-ease;
   }
 }
 

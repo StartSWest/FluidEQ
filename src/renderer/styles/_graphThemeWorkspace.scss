@@ -621,10 +621,11 @@ it under the terms of the GNU General Public License version 3 or later.
   right: -100vw;
   bottom: -10px;
   left: -100vw;
-  // Flat, the app's own floor, with a hard edge (Ivan, 2026-11-16: "flat like
-  // the application, no gradient or anything like that"). It was a near-
-  // opaque gradient that faded out over its last 6px.
-  background: $surface-base;
+  // Flat, the app's own floor at 72%, with a hard edge (Ivan, 2026-11-16:
+  // "flat like the application, no gradient", then "make that band more
+  // transparent"). It was a near-opaque gradient that faded out over its
+  // last 6px, then the floor solid.
+  background: color-mix(in srgb, $surface-base 72%, transparent);
   content: '';
   pointer-events: none;
 }
