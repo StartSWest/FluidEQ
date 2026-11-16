@@ -71,6 +71,7 @@ import { CROSSFADE_CURVES } from '../../common/dsp/chain';
 import { crossfadeShapeTable } from '../../common/dsp/crossfadeShape';
 import { watchElementClock } from './elementClock';
 import { muteForMirror } from './mirrorElements';
+import { createMirrorPlacement } from './mirrorPlacement';
 import { INativeBackendController } from './nativeBackend';
 import {
   createMixTold,
@@ -159,6 +160,8 @@ const createNativeMirror = (
   let working = false;
   let preparingPlayback = false;
   const clock = watchElementClock();
+  /** Where the rack runs, held through a pause (`mirrorPlacement.ts`). */
+  const placement = createMirrorPlacement(controller, options.onPlacement);
 
   /**
    * A track the host cannot play, handed to the elements whole.
@@ -183,17 +186,22 @@ const createNativeMirror = (
     options.onTrackRefused?.();
     await controller.transport.unload(0);
     await controller.transport.unload(1);
+    // The elements play with no rack of their own, so the engine takes it
+    // back — a placement held for the track the host had before this one.
+    if (placement.isHeld()) {
+      await placement.letGo();
+    }
   };
 
   const preparePlayback = async (): Promise<boolean> => {
     preparingPlayback = true;
     try {
-      await controller.preparePlayback?.();
+      await placement.prepare();
       return true;
     } catch {
       const resume = wanted?.isPlaying === true;
-      await controller
-        .finishPlayback?.(controller.transport.pause())
+      await placement
+        .letGo(controller.transport.pause())
         .catch(() => undefined);
       await giveUpTrack(resume);
       // The elements now answer this play request. Only a new transport
@@ -246,10 +254,8 @@ const createNativeMirror = (
      * that arrives a moment later agrees with a stale flag and is never sent.
      */
     if (isPlaying) {
-      if (!playing) {
-        if (!(await preparePlayback())) {
-          return;
-        }
+      if (!placement.isHeld() && !(await preparePlayback())) {
+        return;
       }
       if (
         released ||
@@ -260,8 +266,9 @@ const createNativeMirror = (
       }
       await controller.transport.play();
     } else {
+      // The transport alone: a placement held for the track before this one
+      // stays, as it does across a track change while playing.
       await controller.transport.pause();
-      await controller.finishPlayback?.();
     }
     if (released) {
       return;
@@ -326,7 +333,7 @@ const createNativeMirror = (
     if (!playing) {
       // The fade was asked for with the host stopped, so it is this track
       // coming in alone; starting the transport is what lets it.
-      if (!(await preparePlayback())) {
+      if (!placement.isHeld() && !(await preparePlayback())) {
         return;
       }
       if (
@@ -389,7 +396,7 @@ const createNativeMirror = (
           // Both, because a fade leaves the previous track on the other deck.
           await controller.transport.unload(0);
           await controller.transport.unload(1);
-          await controller.finishPlayback?.();
+          await placement.letGo();
           settleClock();
         };
       }
@@ -431,7 +438,8 @@ const createNativeMirror = (
       playing = isPlaying;
       return async () => {
         if (isPlaying) {
-          if (!(await preparePlayback())) {
+          // Held from before the pause, nothing but the transport moves.
+          if (!placement.isHeld() && !(await preparePlayback())) {
             return;
           }
           if (released || wanted?.isPlaying !== true) {
@@ -440,10 +448,14 @@ const createNativeMirror = (
           }
           await controller.transport.play();
         } else {
+          // The placement stays where it is (`mirrorPlacement.ts`).
           await controller.transport.pause();
-          await controller.finishPlayback?.();
         }
       };
+    }
+    if (placement.letGoDue(playing)) {
+      // Another player took the sound while this one was paused.
+      return () => placement.letGo();
     }
     if (seekWanted !== undefined) {
       const request = seekWanted;
@@ -527,6 +539,13 @@ const createNativeMirror = (
     }
   };
 
+  // Another player took the sound (`placementLetGo.ts`): the let-go waits
+  // in `nextStep` for the pause that comes with it.
+  const stopWatchingLetGo = controller.watchLetGo?.(() => {
+    placement.askToLetGo();
+    work().catch(() => undefined);
+  });
+
   return {
     sync: (state) => {
       if (released) {
@@ -537,7 +556,11 @@ const createNativeMirror = (
       if (!state.isPlaying && preparingPlayback) {
         // Cancels an event-based preparation wait; Pause cannot sit behind
         // a native readiness event for a start the listener no longer wants.
-        controller.finishPlayback?.().catch(() => undefined);
+        placement.letGo().catch(() => undefined);
+      }
+      if (state.isPlaying && previous?.isPlaying === false) {
+        // The listener took the sound back before any let-go was due.
+        placement.keep();
       }
       const now = performance.now();
       if (previous === undefined || previous.mediaPath !== state.mediaPath) {
@@ -590,8 +613,9 @@ const createNativeMirror = (
       loadedPath = undefined;
       playing = false;
       own(false);
+      stopWatchingLetGo?.();
       const stopped = controller.transport.pause();
-      controller.finishPlayback?.(stopped).catch(() => undefined);
+      placement.letGo(stopped).catch(() => undefined);
       stopped.catch(() => undefined);
       // Both decks, because a crossfade leaves the previous track loaded on the
       // other one and an unload of only the active deck would leave a whole

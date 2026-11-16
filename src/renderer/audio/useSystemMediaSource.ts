@@ -67,6 +67,7 @@ import {
   setTransportSource,
 } from './transportSource';
 import { isSinglePlayerEnabled } from '../utils/singlePlayer';
+import { letGoOfEveryDspPlacement } from '../dsp/placementLetGo';
 
 /** What the bar shows for a player that has published no artist. */
 const subtitleFor = (snapshot: ISystemMediaSnapshot): string | undefined =>
@@ -298,6 +299,12 @@ export const useSystemMediaSource = (): void => {
         // Somebody pressed play somewhere else. Ours stops, the way it stops
         // when somebody presses play on another tab of this app.
         stopAllPlayback();
+      } else if (started && playingOwnerRef.current === undefined) {
+        // A program started while ours is paused: a paused track's rack
+        // placement goes back to the engine, which plays everything, so the
+        // program is not heard through a rack placed for that track. The
+        // yield above does the same through each player's stopper.
+        letGoOfEveryDspPlacement();
       }
       show(snapshot, gameRef.current);
     });

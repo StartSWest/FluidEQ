@@ -24,7 +24,9 @@ import type { IDspSettings } from '../../common/dsp/chain';
  *   source-analysis readiness keeps the same player processing. An engine
  *   that explicitly acknowledges the prepared source can own Library DSP on
  *   each output instead. That choice is made with the transport stopped;
- *   a status arriving during a song cannot move its rack mid-passage.
+ *   a status arriving during a song cannot move its rack mid-passage. And
+ *   it holds through a pause: only the Library letting go of the track
+ *   moves the rack back (`mirrorPlacement.ts`).
  * - **The engine, the rest of the time**, on every output.
  * - **Nowhere, while the engine is off** — FluidEQ switched off, or the
  *   engine not running on the output that is playing. Under the FluidEQ
@@ -52,7 +54,11 @@ export interface IRackGate {
    * what the red "isn't running" notice says (`engineTrouble`).
    */
   engineOff: boolean;
-  /** The Library player is playing through its own engine right now. */
+  /**
+   * The Library player holds a track it started through its own engine —
+   * playing, or paused until it truly lets go (`mirrorPlacement.ts`), so a
+   * resume moves nothing in either audio path.
+   */
   libraryAudible: boolean;
   /** Latched only at a stopped transport boundary after native capability. */
   librarySourceReady?: boolean;

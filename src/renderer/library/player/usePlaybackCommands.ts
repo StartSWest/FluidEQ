@@ -37,6 +37,7 @@ import {
   releasePlayback,
 } from '../../audio/playbackOwner';
 import type { TSetPlaybackHandoff } from '../../audio/playbackHandoff';
+import { letGoOfDspPlacement } from '../../dsp/placementLetGo';
 import { uniqueTrackIds } from './upNextRules';
 
 export interface IPlaybackCommands {
@@ -212,7 +213,16 @@ export const usePlaybackCommands = (options: {
   // How Online Media, Karaoke and an outside system-media session silence the
   // Library. Kept beside the command rather than beside the elements, because
   // the elements are only fallbacks while the native host owns transport.
-  useEffect(() => registerPlayer('library', pausePlayback), [pausePlayback]);
+  // Unlike the listener's own pause, this one gives the rack's placement
+  // back too: the sound is somebody else's now (`placementLetGo.ts`).
+  useEffect(
+    () =>
+      registerPlayer('library', () => {
+        pausePlayback();
+        letGoOfDspPlacement('library');
+      }),
+    [pausePlayback],
+  );
 
   const stop = useCallback(() => {
     const hostWasAudible = hostOwnsTransportRef.current;

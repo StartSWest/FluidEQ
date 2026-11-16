@@ -78,6 +78,12 @@ export interface INativeBackendController {
   preparePlayback?: () => Promise<void>;
   finishPlayback?: (stopped?: Promise<unknown>) => Promise<void>;
   /**
+   * Told when another player takes the sound from this engine's client, so
+   * a paused hold of the rack's placement lets go (`placementLetGo.ts`).
+   * Returns the unsubscribe.
+   */
+  watchLetGo?: (listener: () => void) => () => void;
+  /**
    * Bring the engine up and hand it the current chain, in that order.
    *
    * The chain goes before the device on purpose: the first callback should run

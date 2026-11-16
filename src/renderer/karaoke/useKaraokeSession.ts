@@ -34,6 +34,7 @@ import {
   registerPlayer,
   releasePlayback,
 } from '../audio/playbackOwner';
+import { letGoOfDspPlacement } from '../dsp/placementLetGo';
 import {
   IKaraokeSong,
   TKaraokeParseErrorCode,
@@ -382,7 +383,15 @@ export const useKaraokeSession = (
   // How the rest of the app silences this session when something else takes
   // over. `pause` and not a teardown: the singer keeps their song, their
   // lyrics and their place in it, and gets them back on the next press.
-  useEffect(() => registerPlayer('karaoke', pause), [pause]);
+  // The rack's placement goes back with the sound (`placementLetGo.ts`).
+  useEffect(
+    () =>
+      registerPlayer('karaoke', () => {
+        pause();
+        letGoOfDspPlacement('karaoke');
+      }),
+    [pause],
+  );
 
   const restart = useCallback(() => {
     seek(0);

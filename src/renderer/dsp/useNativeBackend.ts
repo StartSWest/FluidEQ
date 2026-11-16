@@ -58,6 +58,7 @@ import {
   prepareDspSourceStart,
   releaseDspSourcePlayback,
 } from './sourceAnalysis';
+import { onDspPlacementLetGo } from './placementLetGo';
 
 /**
  * The preload bridge, read through a widening rather than declared present.
@@ -170,6 +171,7 @@ export const useNativeBackend = (
         setDspRackGate({ librarySourceReady: false, libraryAudible: false });
       }
     };
+    controller.watchLetGo = (listener) => onDspPlacementLetGo(client, listener);
     let isCurrent = true;
     controllerRef.current = controller;
     controller
@@ -216,7 +218,7 @@ export const useNativeBackend = (
       setDspNativeState('idle');
       controller.disengage().catch(() => undefined);
     };
-  }, [hasLibraryAudioTrack]);
+  }, [hasLibraryAudioTrack, client]);
 
   useEffect(() => {
     controllerRef.current?.update(hostSettings, tone).catch(() => undefined);
@@ -397,6 +399,9 @@ export const useNativeMirror = (
   // Whether the host has the track rather than the media elements, as the
   // mirror reports it. See `isAudible` below.
   const [hostOwns, setHostOwns] = useState(false);
+  // Whether the rack's placement is held for that track, through a pause
+  // too (`mirrorPlacement.ts`). See `isAudible` below.
+  const [placementHeld, setPlacementHeld] = useState(false);
   /**
    * Rebuilt when the host moves to a different endpoint.
    *
@@ -424,6 +429,7 @@ export const useNativeMirror = (
         claimSource: built?.claimSource,
         readHostPosition: built?.readHostPosition,
         onTrackRefused: () => optionsRef.current?.onTrackRefused?.(),
+        onPlacement: setPlacementHeld,
       },
     );
     mirrorRef.current = mirror;
@@ -455,17 +461,24 @@ export const useNativeMirror = (
   }, [state.mediaPath, state.isPlaying, state.positionMs, state]);
 
   /**
-   * Whether the Library player is the sound right now — its own engine
-   * engaged and the track playing. While it is, the FluidEQ Engine's copy of
-   * the rack stands aside, or every track the Library plays would go through
-   * the rack twice (`rackPlacement.ts`). A player whose host failed — or
+   * Whether the Library player is the sound — its own engine engaged and the
+   * track it started still held, playing or paused. While it is, the
+   * FluidEQ Engine's copy of the rack stands aside, or every track the
+   * Library plays would go through the rack twice (`rackPlacement.ts`) —
+   * unless the engine has taken the Library's source itself
+   * (`librarySourceReady`). A player whose host failed — or
    * could not open this one file, and handed it back to the media elements —
    * plays with no rack of its own, so the engine keeps its copy and the
    * Library still gets one. Asked of the mirror rather than inferred from
    * the controller existing: a host that is up but refused a file still
    * existed, and the track played with no rack anywhere.
+   *
+   * Held through a pause rather than following `isPlaying`: a pause that
+   * handed the rack back to the engine rebuilt the engine's graph, and the
+   * resume rebuilt it again with a delay 96 frames shorter, crossing over
+   * as the music came back (`mirrorPlacement.ts`).
    */
-  const isAudible = hostOwns && state.isPlaying;
+  const isAudible = hostOwns && placementHeld;
   useEffect(() => {
     if (!isAudible) {
       return undefined;

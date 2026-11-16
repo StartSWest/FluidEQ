@@ -142,4 +142,10 @@ export interface INativeMirrorOptions {
    * every host start), so it has to be told to start it.
    */
   onTrackRefused?: () => void;
+  /**
+   * Whether the rack's placement is held for this player's track — from the
+   * start it prepared until it truly lets go, paused or not
+   * (`mirrorPlacement.ts`).
+   */
+  onPlacement?: (held: boolean) => void;
 }
