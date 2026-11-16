@@ -230,7 +230,16 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
         status: 'unavailable',
         fraction: 0,
       });
-      setIsPlaying(true);
+      // A video brought back from the last session is cued, like a song
+      // (see the restore branch below), never started: it was set playing
+      // whatever the reason it loaded, so opening the Library after a launch
+      // started the film last watched (Ivan, 2026-11-15: "going to the
+      // Library, it cannot auto start playing the video"). The stage puts
+      // the picture back where it was left from its own memory
+      // (`readVideoPosition`), so the restore has nothing more to do here.
+      const isRestored = pendingRestore.current?.trackId === track.id;
+      pendingRestore.current = undefined;
+      setIsPlaying(!isRestored);
       return undefined;
     }
     let cancelled = false;
