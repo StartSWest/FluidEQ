@@ -106,8 +106,13 @@ export const IdleTransportBarSlot = ({
   // that was asked for — across restarts once a song of the listener's own
   // has played, since only that is written down (`lastShown.ts`), and saying
   // what it was. Anything that played outside is never what it says.
+  // NOR WHILE THE LIBRARY HAS A SONG. With no owner picked, the Library's
+  // own bar draws itself whenever it has a track (`ConnectedNowPlayingBar`),
+  // so this one stood in the same place on top of it: two bars, one over the
+  // other, and the one that works underneath.
   if (
     owner !== undefined ||
+    sources.library !== undefined ||
     isFullScreen ||
     (lastOwner === undefined && remembered === undefined)
   ) {

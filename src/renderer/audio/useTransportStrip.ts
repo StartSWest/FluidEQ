@@ -18,8 +18,51 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { RefObject, useEffect, useRef } from 'react';
 
-/** The hook instance currently responsible for the classes on `#root`. */
-let stripOwner: symbol | undefined;
+interface IStripClaim {
+  isFloating: boolean;
+  /** The room the bar takes, once it has been measured while drawn. */
+  height: number | undefined;
+}
+
+/**
+ * Every bar that is up now, oldest first.
+ *
+ * THE CLASSES ON `#root` ARE WORKED OUT FROM ALL OF THEM, EVERY TIME.
+ *
+ * They used to belong to one owner: the last bar to claim them, and a bar
+ * leaving released them if it was still that owner. Three bars use this hook
+ * (the Library's, the other tabs', and the idle one that says what played
+ * last), two could be up at once, and then it broke whenever the second one
+ * up was the first one down. On a tab with no player of its own, a Library
+ * song restored from the last session and not played since is picked by no
+ * rule (`pickTransportOwner`), so the idle bar came up beside the Library's,
+ * became the owner, and on the way back to the Library left and took the
+ * reservation with it while the Library's bar stayed drawn with no reason to
+ * claim again. The Library slid under the bar, its "Add folder" row cut in
+ * half (Ivan, 2026-11-16: "fix this issue once and for all the bottom player
+ * bar sometimes overlaps"). A set has no order of effects to get wrong: the
+ * strip is reserved for as long as any bar is up.
+ */
+const claims = new Map<symbol, IStripClaim>();
+
+/**
+ * Write what the claims say onto `#root`. The newest claim is the bar on
+ * top, so it is the one whose floating and height count; a bar that has not
+ * been measured yet leaves the height the last one published, which is the
+ * room the same bar took before it was hidden.
+ */
+const publishClaims = () => {
+  const root = document.getElementById('root');
+  if (!root) {
+    return;
+  }
+  const newest = Array.from(claims.values()).pop();
+  root.classList.toggle('has-now-playing', newest !== undefined);
+  root.classList.toggle('is-floating-bar', newest?.isFloating === true);
+  if (newest?.height !== undefined) {
+    root.style.setProperty('--now-playing-bar-height', `${newest.height}px`);
+  }
+};
 
 /**
  * Reserve the strip of window the transport bar sits in.
@@ -49,49 +92,24 @@ const useTransportStrip = (
    */
   isFloating = false,
 ): void => {
-  // Whose turn it is to own the two classes on `#root`.
-  //
-  // Both bars use this hook and only one of them is ever on screen, but the
-  // handover is not clean: React runs the arriving bar's effect before the
-  // leaving bar's cleanup, so the one going away wiped the classes the one
-  // arriving had just set — and the layout stopped reserving the strip while
-  // a bar was still drawn over it. The token makes a cleanup a no-op unless
-  // it is still the current owner.
-  const ownerRef = useRef<symbol>(Symbol('transport-strip'));
+  const claimRef = useRef<symbol>(Symbol('transport-strip'));
+  // What this bar measured last, kept across its claims: a bar that comes
+  // back reserves the room it took before it is measured again.
+  const heightRef = useRef<number | undefined>(undefined);
 
+  // A BAR WITH NOTHING TO SHOW CLAIMS NOTHING. Two of these are mounted at
+  // once whatever happens: the library's bar stays in the tree with its tab
+  // hidden, and with no queue it asks for nothing.
   useEffect(() => {
-    const root = document.getElementById('root');
-    const owner = ownerRef.current;
-    // A BAR WITH NOTHING TO SHOW DOES NOT OWN THE STRIP.
-    //
-    // The token below was written to make a *cleanup* a no-op for a bar that
-    // is no longer the owner, and the effect body ignored it — so an instance
-    // with `isShowing` false took ownership anyway and wrote both classes
-    // off. Two of these are mounted at once: the library's bar stays in the
-    // tree with its tab hidden, and with no queue it asks for nothing. Its
-    // effect ran last, and `#root` came back with neither class on it while a
-    // bar was on screen — measured in the running window as
-    // `class="minimized"` with the idle bar drawn over the sidebar's last
-    // 64px. Writing the classes is the owner's job; a bar that is not showing
-    // only releases them, and only if they were its own.
     if (!isShowing) {
-      if (stripOwner === owner) {
-        stripOwner = undefined;
-        root?.classList.remove('has-now-playing');
-        root?.classList.remove('is-floating-bar');
-      }
       return undefined;
     }
-    stripOwner = owner;
-    root?.classList.add('has-now-playing');
-    root?.classList.toggle('is-floating-bar', isFloating);
+    const claim = claimRef.current;
+    claims.set(claim, { isFloating, height: heightRef.current });
+    publishClaims();
     return () => {
-      if (stripOwner !== owner) {
-        return;
-      }
-      stripOwner = undefined;
-      root?.classList.remove('has-now-playing');
-      root?.classList.remove('is-floating-bar');
+      claims.delete(claim);
+      publishClaims();
     };
   }, [isFloating, isShowing]);
 
@@ -100,8 +118,7 @@ const useTransportStrip = (
   // rather than something to mock.
   useEffect(() => {
     const element = ref.current;
-    const root = document.getElementById('root');
-    if (!element || !root || typeof ResizeObserver === 'undefined') {
+    if (!element || typeof ResizeObserver === 'undefined') {
       return undefined;
     }
     const applyHeight = () => {
@@ -129,10 +146,12 @@ const useTransportStrip = (
       // here.
       const inset =
         Number.parseFloat(window.getComputedStyle(element).bottom) || 0;
-      root.style.setProperty(
-        '--now-playing-bar-height',
-        `${Math.round(element.offsetHeight + inset)}px`,
-      );
+      heightRef.current = Math.round(element.offsetHeight + inset);
+      const claim = claims.get(claimRef.current);
+      if (claim) {
+        claim.height = heightRef.current;
+        publishClaims();
+      }
     };
     applyHeight();
     const observer = new ResizeObserver(applyHeight);
