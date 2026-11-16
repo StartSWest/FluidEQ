@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 @use 'karaokeTokens' as *;
 
 // The two colours every karaoke wash and glow is lit in: the palette the
@@ -274,6 +275,69 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-primary;
     font-size: 1.22rem;
     line-height: 1.2;
+  }
+}
+
+// WITH A SONG ON THE STAGE THE HEADER IS ONLY ITS TOOLBAR, as the Library's
+// top bar is (Ivan, 2026-11-15, "K1 · Library twin"): the page's eyebrow and
+// title said "Karaoke" over a tab that already says it, and took a row from
+// the stage. Kept for assistive technology, which names the region by it.
+.karaoke-workspace.has-song .karaoke-workspace__header {
+  justify-content: flex-end;
+
+  > :first-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+// And the toolbar is quiet, as the Library's: its words are outline buttons,
+// its icons have no frame until the pointer is on them, and a switch that is on
+// wears the Library's chosen tint rather than the filled accent.
+.karaoke-workspace.has-song .karaoke-workspace__actions {
+  .button:not(.karaoke-workspace__icon-action):not(:disabled) {
+    color: $text-muted;
+    border-color: transparent;
+    background: none;
+
+    &:hover {
+      color: $text-primary;
+      border-color: transparent;
+      background: $studio-surface;
+    }
+  }
+
+  .karaoke-workspace__icon-action:not([aria-pressed='true']) {
+    color: $text-muted;
+    border-color: transparent;
+    background: none;
+
+    &:hover:not(:disabled) {
+      color: $text-primary;
+      background: $studio-surface;
+    }
+  }
+
+  .karaoke-workspace__pitch-toggle[aria-pressed='true'],
+  .karaoke-workspace__graph-background-toggle[aria-pressed='true'],
+  .karaoke-workspace__stage-art-toggle[aria-pressed='true']:not(:disabled),
+  .karaoke-workspace__fullscreen[aria-pressed='true'] {
+    color: $secondary-light;
+    border-color: transparent;
+    background: $studio-select;
+    filter: none;
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      color: $text-primary;
+      border-color: transparent;
+      background: $studio-select;
+      filter: none;
+    }
   }
 }
 

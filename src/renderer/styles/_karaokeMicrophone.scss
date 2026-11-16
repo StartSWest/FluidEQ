@@ -378,7 +378,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // panel on this page that is mostly empty space the glossiest thing in the
   // window. The block colour it had after that was a grey slab, and then an
   // edge alone.
-  background: $card-glow, $karaoke-chip-face !important;
+  // Flat (Ivan, 2026-11-15, "K1 · Library twin"): the stage's chip face,
+  // which keeps the lane readable over a scene, without the card's glow.
+  background: $karaoke-chip-face !important;
   text-align: left;
   transform: translateZ(0);
   transition: border-color 280ms ease;
@@ -487,7 +489,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   min-height: 128px;
   overflow: hidden;
-  border: 1px solid $card-edge;
+  // No frame inside the lane's own face (Ivan, 2026-11-15, "K1"): a box in
+  // a box. A live microphone still lights its edge.
+  border: 1px solid transparent;
   border-radius: $radius-m;
   // The plot colour, flat. The drawing inside paints the same colour edge
   // to edge, so a wash here only showed as a darker rim where the two did

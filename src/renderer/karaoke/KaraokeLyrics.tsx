@@ -604,10 +604,13 @@ const KaraokeLyrics = ({
             // travelling colour on top of the key is the actual edge.
             context.save();
             context.lineJoin = 'round';
+            // A thin, soft key (Ivan, 2026-11-15, "K1": the player flat as
+            // the Library): enough to hold the words over a bright scene, no
+            // longer the heavy black outline that read as a sticker.
             context.lineWidth = hasEuphoriaText
               ? 0.7 + 2.5 * focusAmount
-              : 0.7 + 1.1 * focusAmount;
-            context.strokeStyle = 'rgba(2, 8, 15, 0.85)';
+              : 0.5 + 0.6 * focusAmount;
+            context.strokeStyle = 'rgba(2, 8, 15, 0.6)';
             context.strokeText(text, wordX, y);
             if (hasEuphoriaText) {
               context.lineWidth = Math.max(0.7, 1.15 * focusAmount);

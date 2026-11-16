@@ -22,17 +22,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 @use 'karaokeTokens' as *;
 
+// THE LIBRARY'S RAIL (Ivan, 2026-11-15, "K1 · Library twin" from the Karaoke
+// player mockups: "fix the karaoke player to look awesome and flat as our
+// Library"): no card of its own inside the page's card, the rail's faint step
+// and the hairline on its edge, as the Library's left column. Full screen keeps
+// a fill of its own below, where the rows have to read over the artwork.
 .karaoke-playlist {
-  @include card-surface;
   display: flex;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  padding: 10px;
-  // A card, as the Library's listing is (`card-surface`). Full screen keeps a
-  // fill of its own below, where the rows have to read over the artwork.
+  padding: 10px 8px;
+  border-radius: $radius-m;
+  background: $studio-rail;
 }
 
 .karaoke-playlist__groups {
@@ -51,27 +56,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   list-style: none;
 }
 
+// A row of the Library's list: no box, the surface step under the pointer and
+// the Library's one mark (`studio-mark`) on the song chosen.
 .karaoke-playlist__item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 3px;
-  margin-bottom: 4px;
-  border: 1px solid transparent;
+  margin-bottom: 1px;
   border-radius: $radius-s;
-  transition: $transition-control;
+  transition: background-color 130ms ease;
 
-  // The choosing tint on the card, not a lighter slab laid in it.
   &:hover,
   &:focus-within {
-    border-color: rgba($edge-tint, 0.11);
-    background: $hover-accent;
+    background: $studio-surface;
   }
 
   &.is-selected {
-    border-color: color-mix(in srgb, $secondary-default 28%, transparent);
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
-    box-shadow: inset 2px 0 $secondary-default;
+    @include studio-mark;
   }
 }
 
@@ -186,26 +188,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 1px 3px 7px;
-  border-bottom: 1px solid rgba($edge-tint, 0.09);
+  padding: 1px 4px 6px 8px;
 
+  // The Library rail's own heading: small, tracked, quiet, no rule under it.
   h3 {
-    margin: 0;
-    color: $text-primary;
-    font-size: $text-body;
-    @include tracking(0.04em);
+    margin: 0 auto 0 0;
+    color: $studio-t3;
+    font-size: $studio-text-label;
+    font-weight: $weight-bold;
+    @include tracking(0.12em);
     text-transform: uppercase;
   }
 
   .karaoke-playlist__count {
-    display: grid;
-    min-width: 22px;
-    height: 22px;
-    place-items: center;
-    color: $secondary-light;
-    border: 1px solid color-mix(in srgb, $secondary-default 25%, transparent);
-    border-radius: $radius-2xs;
-    font-size: $text-eyebrow;
+    color: $studio-t3;
+    font-size: $studio-text-label;
     font-weight: $weight-bold;
   }
 }
@@ -332,8 +329,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 7px;
-  padding: 7px 5px 7px 7px;
+  gap: 8px;
+  padding: 9px 6px 9px 10px;
   color: $text-muted;
   border: 0;
   background: transparent;
@@ -359,9 +356,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     overflow: hidden;
-    color: inherit;
-    font-size: $text-small;
-    font-weight: $weight-bold;
+    color: $text-primary;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
