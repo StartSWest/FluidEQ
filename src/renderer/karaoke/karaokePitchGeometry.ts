@@ -67,7 +67,6 @@ export const WINDOW_FUTURE_MS = 6_400;
 export const LIVE_WINDOW_MS = WINDOW_PAST_MS + WINDOW_FUTURE_MS;
 export const TRACE_HISTORY_MS = 6_000;
 export const MATCH_TOLERANCE_SEMITONES = 0.5;
-export const MATCH_FRESHNESS_MS = 180;
 export const PERFORMANCE_BUCKET_MS = 50;
 export const PERFORMANCE_ISSUE_REFRESH_MS = 260;
 export const PERFORMANCE_ISSUE_GAP_MS = 240;
@@ -210,15 +209,17 @@ export const NOTE_ATTACH_HOLD_MS = 200;
 /**
  * The note the singer is on at a moment, by the timing they were given.
  *
- * A note's drawn shape (`karaokeLeadNoteShape`) answers a different question
- * and must not be used for this one. It is deliberately short — the gate ends
- * each note before its syllable does so that consecutive blocks read as
+ * The guide melody's articulation (`karaokeLeadNoteShape`) answers a
+ * different question and must not be used for this one. It is deliberately
+ * short — the gate ends each note before its syllable does so that
+ * consecutive blocks read as
  * separate. Asked instead which note a singer is on, it was
  * wrong on every note in the song: the trace came unstuck for the last fifth
  * of each syllable and drifted at absolute pitch until the next one began, and
  * while the cue was also capped at 1.45 seconds it came unstuck two and a half
- * seconds into a four-second held vowel. The attachment that is the whole
- * point of this lane was therefore off most of the time it was needed.
+ * seconds into a four-second held vowel. Measuring the line against its note,
+ * the whole point of this lane, was therefore off most of the time it was
+ * needed.
  *
  * The authored range is the syllable the singer was asked to sing, so that,
  * widened by the hold above, is what they are on.
@@ -249,72 +250,58 @@ export const singerTargetAtTime = (
   });
   return nearestMidi;
 };
+/**
+ * How far off its note the singer's line is ever drawn, either way.
+ *
+ * The E mockup's reach (Ivan, 2026-11-16, "the line that draws the boxes has
+ * to be exact as I told you"): past two and a bit semitones the singer is on
+ * another note, and the line pins there rather than wandering off across
+ * the strip.
+ */
+export const TRACE_NOTE_REACH_SEMITONES = 2.4;
 
-const smoothStep = (value: number): number => {
-  const clamped = Math.max(0, Math.min(1, value));
-  return clamped * clamped * (3 - 2 * clamped);
-};
+export interface IKaraokeTracePlacement {
+  /** Where the line is drawn, in MIDI. */
+  midi: number;
+  /** How far from its note, in cents; `undefined` with no note near. */
+  cents: number | undefined;
+}
 
 /**
- * How far off the note the singer can be before the curve stops moving away.
+ * Where the singer's line goes against the note they are on, and how far off
+ * it is.
  *
- * Two semitones is a whole tone — comfortably past "slightly flat" and into
- * "singing a different note". There is nothing useful left to show beyond it:
- * whether somebody is two semitones or nine semitones out, the answer is the
- * same and it is not on this note.
+ * AT THE PITCH SUNG, folded to the note's octave and held within
+ * `TRACE_NOTE_REACH_SEMITONES` of it. It used to be squashed through a
+ * smooth step and capped at 1.1 semitones, so a singer 60 cents flat was
+ * drawn a third of that under the note and the line seemed to sit on the box
+ * when it did not; the mockup draws the deviation as it is, and an in-tune
+ * line through the middle of its box is the whole reading.
+ *
+ * With no note near there is nothing to measure against: the pitch is folded
+ * to the octave of the lane's centre, so it stays on the strip, and has no
+ * cents.
  */
-const ATTACH_VISIBLE_SEMITONES = 2;
-
-/**
- * The furthest the curve is ever drawn from the note's own line.
- *
- * A shade over one semitone, which is a little more than the height of a note
- * block. That is the whole point: however wrong the singing, the line stays
- * beside the note it belongs to instead of wandering into open lane, so it
- * always reads as "above this note", "below this note" or "on it".
- */
-const ATTACH_MAX_OFFSET_SEMITONES = 1.1;
-
-/**
- * Draw the singer against the note rather than against the whole octave.
- *
- * THE CURVE USED TO BE PLOTTED AT ABSOLUTE PITCH, which is honest and reads
- * badly. A singer a tone under the melody produced a line drifting somewhere
- * between two note blocks, belonging to neither, and the eye had to measure a
- * gap to work out what was wrong. What a singer needs from this lane is one
- * fact — am I on the note, over it, or under it — and that fact is a position
- * relative to the note, not a position in the octave.
- *
- * COMPRESSED, NOT SNAPPED, and the difference is the whole design. Snapping to
- * the nearest note would make being a quarter-tone flat look identical to
- * being perfect, which throws away the only thing the lane is for. Instead the
- * error is squashed through `smoothStep` and capped: small errors stay small
- * and near the middle of the note, a full semitone shows as roughly half a
- * semitone of visible offset, and anything past a whole tone pins just outside
- * the block. The tune is still legible — sharp still looks sharp — but it is
- * legible *at* the note.
- *
- * The easing pass runs after this one, which is what makes the handover at a
- * note boundary a curve rather than a step: nothing here has to blend, because
- * `easeKaraokeSingerTrace` is already smoothing the series it produces.
- *
- * With no note sounding there is nothing to attach to, so the raw pitch is
- * returned and the line floats — which is correct between phrases, where there
- * is no right answer to be near.
- */
-export const attachKaraokePitchToNote = (
+export const placeKaraokeTraceSample = (
   singerMidi: number,
-  targetMidi: number | undefined,
-): number => {
-  if (targetMidi === undefined || !Number.isFinite(singerMidi)) {
-    return singerMidi;
+  noteMidi: number | undefined,
+  centerMidi: number,
+  octavePolicy: TKaraokePitchOctavePolicy,
+): IKaraokeTracePlacement => {
+  if (noteMidi === undefined) {
+    return {
+      midi: projectSingerPitchToTarget(singerMidi, centerMidi, octavePolicy),
+      cents: undefined,
+    };
   }
-  const deviation = singerMidi - targetMidi;
-  const magnitude = Math.abs(deviation);
-  const eased = smoothStep(magnitude / ATTACH_VISIBLE_SEMITONES);
-  return (
-    targetMidi + Math.sign(deviation) * ATTACH_MAX_OFFSET_SEMITONES * eased
-  );
+  const deviation =
+    projectSingerPitchToTarget(singerMidi, noteMidi, octavePolicy) - noteMidi;
+  return {
+    midi:
+      noteMidi +
+      clamp(deviation, -TRACE_NOTE_REACH_SEMITONES, TRACE_NOTE_REACH_SEMITONES),
+    cents: deviation * 100,
+  };
 };
 
 /**
@@ -514,30 +501,4 @@ export const findKaraokePitchIssues = (
     });
   flush();
   return issues;
-};
-
-export const traceColor = (
-  current: IKaraokePitchPoint,
-  previous: IKaraokePitchPoint | undefined,
-  notes: readonly IKaraokeToken[],
-  octavePolicy: TKaraokePitchOctavePolicy,
-): string => {
-  if (!current.voiced) {
-    return 'rgba(34, 224, 214, 0.38)';
-  }
-  // The same note the curve is drawn against, so the colour and the position
-  // can never disagree about whether the singer is sharp.
-  const targetMidi = singerTargetAtTime(notes, current.songTimeMs);
-  const movement =
-    targetMidi === undefined
-      ? current.midi - (previous?.midi ?? current.midi)
-      : projectSingerPitchToTarget(current.midi, targetMidi, octavePolicy) -
-        targetMidi;
-  if (movement > 0.35) {
-    return '#9be348';
-  }
-  if (movement < -0.35) {
-    return '#ff655d';
-  }
-  return '#f2d04f';
 };

@@ -39,7 +39,6 @@ import {
   IKaraokePitchIssue,
   IKaraokePitchPoint,
   LIVE_WINDOW_MS,
-  MATCH_FRESHNESS_MS,
   MINIMUM_VISIBLE_SEMITONES,
   PERFORMANCE_BUCKET_MS,
   PERFORMANCE_ISSUE_REFRESH_MS,
@@ -56,6 +55,7 @@ import {
   karaokePitchScrubTime,
   karaokePitchSongTimeX,
   karaokeTraceBehindPlayhead,
+  singerTargetAtTime,
 } from './karaokePitchGeometry';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -64,7 +64,8 @@ import {
   TKaraokePitchAnalysisStatus,
 } from './useKaraokeMicrophone';
 import { readAccent, readTextInk } from '../utils/theme';
-import { paintNoteBlocks, paintPitchGrid, paintTrace } from './pitchLaneLayers';
+import { paintNoteBlocks, paintPitchGrid } from './pitchLaneLayers';
+import paintTrace from './pitchLaneTrace';
 
 interface IKaraokePitchLaneProps {
   isActive: boolean;
@@ -334,6 +335,7 @@ const KaraokePitchLane = ({
         semitoneHeight,
         plotWidth,
         textInk: readTextInk(),
+        markMidi: singerTargetAtTime(visibleNotes, synchronizedPlayheadMs),
       });
 
       recordSinger(now, synchronizedPlayheadMs, centerMidi);
@@ -355,19 +357,11 @@ const KaraokePitchLane = ({
             synchronizedPlayheadMs,
           )
         : liveTrace;
-      const latestVoicedPoint = [...liveTrace]
-        .reverse()
-        .find(
-          (point) =>
-            point.voiced && now - point.wallTimeMs <= MATCH_FRESHNESS_MS,
-        );
 
       paintNoteBlocks({
         visibleNotes,
         xForSongTime,
         semitoneHeight,
-        latestVoicedPoint,
-        octavePolicy,
         synchronizedPlayheadMs,
         yForMidi,
         context,
@@ -376,10 +370,11 @@ const KaraokePitchLane = ({
         now,
       });
 
-      // The playhead, a plain accent line through the whole strip.
+      // The playhead, a plain accent line through the whole strip, a shade
+      // under full so the verdict colours read over it (the E mockup's 75%).
       const playheadX = Math.round(xForSongTime(synchronizedPlayheadMs)) + 0.5;
       if (hasSongClock) {
-        context.strokeStyle = readAccent(0.9, 'rgba(50, 225, 234, 0.9)');
+        context.strokeStyle = readAccent(0.75, 'rgba(27, 222, 231, 0.75)');
         context.lineWidth = 1.5;
         context.beginPath();
         context.moveTo(playheadX, 0);

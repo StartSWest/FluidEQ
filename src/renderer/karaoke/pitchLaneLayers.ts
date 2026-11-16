@@ -16,32 +16,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  attachKaraokePitchToNote,
-  easeKaraokeSingerTrace,
-  IKaraokePitchPoint,
-  IKaraokeTraceAxis,
-  karaokeTraceSampleX,
-  MATCH_TOLERANCE_SEMITONES,
-  PLOT_LEFT,
-  singerTargetAtTime,
-  traceColor,
-} from './karaokePitchGeometry';
+import { PLOT_LEFT } from './karaokePitchGeometry';
 import { readAccent, readAccentLight } from '../utils/theme';
 import { drawRoundedRect } from './makerCanvasGeometry';
 import {
   karaokeMakerNoteIsActive,
   karaokeMakerNoteProgress,
 } from './makerCanvasLayout';
-import {
-  midiToNoteName,
-  projectSingerPitchToTarget,
-  singerPitchMatchesTarget,
-  type TKaraokePitchOctavePolicy,
-} from '../../common/karaoke/pitch';
-import { karaokeLeadNoteShape } from '../../common/karaoke/melodyArticulation';
+import { midiToNoteName } from '../../common/karaoke/pitch';
 import { type IKaraokeToken } from '../../common/karaoke/types';
 import { prefersReducedMotion } from '../utils/bandReveal';
+import { LYRIC_FONT_FAMILY } from './karaokeLyricText';
 import {
   type IJudgedNoteBox,
   paintVerdictChips,
@@ -49,13 +34,12 @@ import {
 } from './pitchLaneVerdicts';
 import { type IKaraokeLaneVerdict } from './useKaraokeScore';
 
-// The pitch lane's layers, each painted by one function in the order the
-// lane stacks them: the pitch grid, the note blocks (with their verdicts'
-// chips once sung, `pitchLaneVerdicts.ts`) and the singer's trace. Called
-// from the lane's frame with what that frame measured. The lane is the slim
-// strip under the chords that the K1 mockup draws (Ivan, 2026-11-15, "fix the pitch as you promised"): the words
-// band over it, the note names, the semitone labels, the seconds ruler,
-// the review strip and the legend were all taken off it.
+// The pitch lane's grid and note blocks, in the order the lane stacks them:
+// the pitch grid, then the note blocks with their verdicts' chips once sung
+// (`pitchLaneVerdicts.ts`); the singer's line goes over both
+// (`pitchLaneTrace.ts`). Every size and colour is the E mockup's
+// ("Veredicto por nota"; Ivan, 2026-11-16: "it is not at all like the
+// mockups"), on the slim strip under the chords that the K1 mockup set out.
 
 interface IPaintPitchGridInput {
   context: CanvasRenderingContext2D;
@@ -65,19 +49,22 @@ interface IPaintPitchGridInput {
   semitoneHeight: number;
   plotWidth: number;
   textInk: string;
+  /** The note at the playhead, whose name lights up in the gutter. */
+  markMidi: number | undefined;
 }
 
 /** Where the note names end, right-aligned, left of the plot. */
 const NOTE_NAME_RIGHT = PLOT_LEFT - 6;
 /** Rows this tall have room for a name each; shorter, only the Cs. */
 const NAME_EVERY_ROW_PX = 15;
+/** A name this close to the lit one gives way to it rather than overlap. */
+const NAME_CLEARANCE_PX = 10;
 
 /**
- * The Maker's pitch grid, drawn the same here (Ivan, 2026-11-16: "add the
- * notes to the pitch lane too, to the left"): a faint line for every note,
- * the Cs a step stronger in the accent, and the note names at the left -
- * every C, and every row where a row is tall enough to hold one
- * (`makerCanvas/paintBackdrop.ts`). Flat on the stage, nothing behind it.
+ * A faint line for every note, the Cs a step stronger in the accent, and the
+ * note names at the left: every C, every row tall enough to hold a name, and
+ * the note at the playhead lit in the light accent, so the gutter says which
+ * row the note being sung is on. Flat on the stage, nothing behind it.
  */
 export const paintPitchGrid = ({
   context,
@@ -87,11 +74,12 @@ export const paintPitchGrid = ({
   semitoneHeight,
   plotWidth,
   textInk,
+  markMidi,
 }: IPaintPitchGridInput) => {
   context.lineWidth = 1;
-  context.font = '10px system-ui, sans-serif';
   context.textAlign = 'right';
   context.textBaseline = 'alphabetic';
+  const markY = markMidi === undefined ? Number.NaN : yForMidi(markMidi);
   for (
     let midi = Math.ceil(lowMidi - 1e-6);
     midi <= Math.floor(highMidi + 1e-6);
@@ -99,9 +87,11 @@ export const paintPitchGrid = ({
   ) {
     const y = Math.round(yForMidi(midi)) + 0.5;
     const isOctave = midi % 12 === 0;
+    const isMark = midi === markMidi;
     // A semitone's line at 12% and an octave's at 24% (Ivan, 2026-11-16:
-    // "make the pitch lines a bit more visible"): at 4.5% and 9% the rows
-    // the notes sit on were all but gone over a bright stage.
+    // "make the pitch lines a bit more visible"), over the mockup's 6% and
+    // 10%: at those the rows the notes sit on were all but gone over a
+    // bright stage.
     context.strokeStyle = isOctave
       ? readAccent(0.24, 'rgba(65, 218, 203, .24)')
       : 'rgba(120, 165, 200, .12)';
@@ -109,8 +99,17 @@ export const paintPitchGrid = ({
     context.moveTo(PLOT_LEFT, y);
     context.lineTo(PLOT_LEFT + plotWidth, y);
     context.stroke();
-    if (isOctave || semitoneHeight >= NAME_EVERY_ROW_PX) {
-      context.fillStyle = isOctave ? 'rgb(160, 244, 112)' : textInk;
+    const isCrowded = !isMark && Math.abs(y - markY) < NAME_CLEARANCE_PX;
+    const hasRoom = isOctave || isMark || semitoneHeight >= NAME_EVERY_ROW_PX;
+    if (hasRoom && !isCrowded) {
+      let ink = textInk;
+      if (isMark) {
+        ink = readAccentLight(1, '#a1fcff');
+      } else if (isOctave) {
+        ink = 'rgb(160, 244, 112)';
+      }
+      context.fillStyle = ink;
+      context.font = `${isMark ? 700 : 400} 10px ${LYRIC_FONT_FAMILY}`;
       context.fillText(midiToNoteName(midi), NOTE_NAME_RIGHT, y + 3);
     }
   }
@@ -120,8 +119,6 @@ interface IPaintNoteBlocksInput {
   visibleNotes: IKaraokeToken[];
   xForSongTime: (timeMs: number) => number;
   semitoneHeight: number;
-  latestVoicedPoint: IKaraokePitchPoint | undefined;
-  octavePolicy: TKaraokePitchOctavePolicy;
   synchronizedPlayheadMs: number;
   yForMidi: (midi: number) => number;
   context: CanvasRenderingContext2D;
@@ -131,20 +128,39 @@ interface IPaintNoteBlocksInput {
   now: number;
 }
 
-// The Maker's note, drawn the same here (Ivan, 2026-11-16: "fix the pitch
-// notes and highlight to be like the Maker"): flat, a 2px corner, and the
-// note under the playhead filling with the light accent as it is sung, with
-// a ring standing off it (`makerCanvas/paintNotes.ts`).
+// Flat with a 2px corner, and the note under the playhead filling with a
+// pale light from its left as it is sung, a ring standing off it. Nothing
+// else marks the note being sung: it no longer turns light while the voice
+// is in tune, nor carries a line at the playhead inside it; the singer's
+// own line through it says that.
 const NOTE_CORNER = 2;
 const NOTE_RING_GAP = 2.5;
+const NOTE_STRENGTH = 0.85;
+const ACCENT_FALLBACK = 'rgba(27, 222, 231, .85)';
+/** The sung part of the note under the playhead, the mockup's own pale. */
+const NOTE_SUNG = '#e8fffd';
+const NAME_ACTIVE = 'rgba(245, 255, 254, .98)';
+const NAME_IDLE = '#cfe7ee';
+/** The rest drawn between one syllable's box and the next. */
+const NOTE_GAP_MS = 40;
 
-/** The target's notes, as the Maker draws them. */
+/**
+ * A note's box spans its whole syllable less a short rest, as the mockup
+ * draws it. It used to take the guide melody's articulation, which ends each
+ * note at 74-88% of its syllable at random: the singer's line, sung through
+ * the syllable, ran off the end of every box. Half a syllable at most goes
+ * to the rest, so a very short one keeps a box.
+ */
+const drawnNoteRange = (startMs: number, endMs: number) => ({
+  startMs,
+  endMs: endMs - Math.min(NOTE_GAP_MS, Math.max(0, endMs - startMs) / 2),
+});
+
+/** The target's notes, each wearing its verdict once it has ended. */
 export const paintNoteBlocks = ({
   visibleNotes,
   xForSongTime,
   semitoneHeight,
-  latestVoicedPoint,
-  octavePolicy,
   synchronizedPlayheadMs,
   yForMidi,
   context,
@@ -154,13 +170,7 @@ export const paintNoteBlocks = ({
 }: IPaintNoteBlocksInput) => {
   const judgedBoxes: IJudgedNoteBox[] = [];
   visibleNotes.forEach((note) => {
-    const startMs = note.startMs as number;
-    const shape = karaokeLeadNoteShape({
-      startMs,
-      endMs: note.endMs as number,
-      targetMidi: note.targetMidi,
-      kind: note.kind,
-    });
+    const shape = drawnNoteRange(note.startMs as number, note.endMs as number);
     const midi = note.targetMidi as number;
     const left = xForSongTime(shape.startMs);
     const right = Math.max(left + 5, xForSongTime(shape.endMs));
@@ -173,33 +183,17 @@ export const paintNoteBlocks = ({
       shape.endMs,
       synchronizedPlayheadMs,
     );
-    // Sung in tune right now: the note takes the Maker's selected fill.
-    const isPitchMatch =
-      !isFree &&
-      latestVoicedPoint !== undefined &&
-      latestVoicedPoint.songTimeMs >= shape.startMs &&
-      latestVoicedPoint.songTimeMs <= shape.endMs &&
-      singerPitchMatchesTarget(
-        latestVoicedPoint.midi,
-        midi,
-        octavePolicy,
-        MATCH_TOLERANCE_SEMITONES,
-      );
 
-    let fill = readAccent(0.85, 'rgba(88, 191, 215, .85)');
-    if (isPitchMatch) {
-      fill = readAccentLight(1, '#bffff7');
-    }
+    let fill = readAccent(NOTE_STRENGTH, ACCENT_FALLBACK);
     if (isGolden) {
       fill = '#ffd25a';
     } else if (isFree) {
-      fill = readAccent(0.24, 'rgba(88, 191, 215, .24)');
+      fill = readAccent(0.24, 'rgba(27, 222, 231, .24)');
     }
-    // Once it has ended and been judged, the note wears its verdict, as it
-    // wore the light accent while it was sung in tune.
+    // Once it has ended and been judged, the note wears its verdict.
     const judged = isFree ? undefined : readVerdict?.(note);
     if (judged) {
-      fill = verdictColour(judged.verdict, 0.88);
+      fill = verdictColour(judged.verdict, NOTE_STRENGTH);
       judgedBoxes.push({ left, right, top, judged });
     }
     context.save();
@@ -210,7 +204,7 @@ export const paintNoteBlocks = ({
       // Hollow: a note sung to no pitch.
       context.setLineDash([4, 3]);
       context.lineWidth = 1.6;
-      context.strokeStyle = readAccent(0.85, 'rgba(88, 191, 215, .85)');
+      context.strokeStyle = readAccent(NOTE_STRENGTH, ACCENT_FALLBACK);
       context.stroke();
       context.setLineDash([]);
     }
@@ -223,7 +217,6 @@ export const paintNoteBlocks = ({
             shape.endMs,
             synchronizedPlayheadMs,
           );
-      // The sung part in the light accent, flat as the note under it.
       context.save();
       drawRoundedRect(
         context,
@@ -234,7 +227,7 @@ export const paintNoteBlocks = ({
         NOTE_CORNER,
       );
       context.clip();
-      context.fillStyle = isGolden ? '#fff0a8' : readAccentLight(1, '#e8fffd');
+      context.fillStyle = isGolden ? '#fff0a8' : NOTE_SUNG;
       context.fillRect(
         left,
         top,
@@ -242,20 +235,11 @@ export const paintNoteBlocks = ({
         noteHeight,
       );
       context.restore();
-      const playbackX = Math.max(left, Math.min(right, progressRight));
-      context.strokeStyle = isGolden
-        ? '#fff7a3'
-        : readAccentLight(1, '#effffc');
-      context.lineWidth = 1.2;
-      context.beginPath();
-      context.moveTo(playbackX, top + 1);
-      context.lineTo(playbackX, top + noteHeight - 1);
-      context.stroke();
       // The ring round the note, apart from it by a hair.
       context.lineWidth = 1.5;
       context.strokeStyle = isGolden
         ? 'rgba(255, 240, 168, .95)'
-        : readAccentLight(0.95, 'rgba(191, 255, 247, .95)');
+        : readAccentLight(0.95, 'rgba(161, 252, 255, .95)');
       drawRoundedRect(
         context,
         left - NOTE_RING_GAP,
@@ -271,12 +255,9 @@ export const paintNoteBlocks = ({
       // Its verdict's chip stands where its name was.
       return;
     }
-    // Each note's name over it, as the Maker prints it, lifted clear of
-    // the ring when there is one.
-    context.fillStyle = active
-      ? 'rgba(245, 255, 254, .98)'
-      : readAccentLight(1, '#cfe7ee');
-    context.font = `${active ? 700 : 600} 9px system-ui, sans-serif`;
+    // Each note's name over it, lifted clear of the ring when there is one.
+    context.fillStyle = active ? NAME_ACTIVE : NAME_IDLE;
+    context.font = `${active ? 700 : 600} 9px ${LYRIC_FONT_FAMILY}`;
     context.textAlign = 'center';
     context.textBaseline = 'alphabetic';
     context.fillText(
@@ -293,161 +274,4 @@ export const paintNoteBlocks = ({
     now,
     reducedMotion: prefersReducedMotion(),
   });
-};
-
-interface IPaintTraceInput {
-  trace: IKaraokePitchPoint[];
-  synchronizedPlayheadMs: number;
-  now: number;
-  plotWidth: number;
-  hasSongClock: boolean;
-  hasTargets: boolean;
-  visibleNotes: IKaraokeToken[];
-  centerMidi: number;
-  octavePolicy: TKaraokePitchOctavePolicy;
-  yForMidi: (midi: number) => number;
-  context: CanvasRenderingContext2D;
-  plotTop: number;
-  plotHeight: number;
-}
-
-/**
- * The singer's own pitch, the newest sample on the cursor, folded to the
- * target's octave by the lane's octave policy.
- */
-export const paintTrace = ({
-  trace,
-  synchronizedPlayheadMs,
-  now,
-  plotWidth,
-  hasSongClock,
-  hasTargets,
-  visibleNotes,
-  centerMidi,
-  octavePolicy,
-  yForMidi,
-  context,
-  plotTop,
-  plotHeight,
-}: IPaintTraceInput) => {
-  if (trace.length > 0) {
-    // See `karaokeTraceSampleX`: the newest sample lands on the cursor.
-    const traceAxis: IKaraokeTraceAxis = {
-      playheadMs: synchronizedPlayheadMs,
-      nowMs: now,
-      plotWidth,
-      hasSongClock,
-      usesSongTime: hasTargets,
-    };
-    const xForTracePoint = (point: IKaraokePitchPoint) =>
-      karaokeTraceSampleX(point, traceAxis);
-    const visualPitchSamples = trace.map((point) => {
-      // `visibleNotes`, not the whole chart: every point drawn here is
-      // inside the window those notes were selected for, and searching a
-      // three-minute song's worth of syllables per sample per frame was
-      // paying for several thousand lookups a second to answer with one
-      // of the forty notes on screen.
-      const noteMidi = singerTargetAtTime(visibleNotes, point.songTimeMs);
-      return {
-        // Three steps, in this order, and each undoes a different kind of
-        // wrongness. The octave projection decides whether a bass singing
-        // an octave down counts as the same note. The attachment draws the
-        // remaining error against that note instead of against the whole
-        // lane — see `attachKaraokePitchToNote` for why compressing beats
-        // snapping. The easing, further down, calms the detector.
-        //
-        // Only the picture is touched. Scoring and the performance review
-        // read the raw samples, so a curve that sits on the note does not
-        // quietly award marks the singing did not earn.
-        midi: point.voiced
-          ? attachKaraokePitchToNote(
-              projectSingerPitchToTarget(
-                point.midi,
-                noteMidi ?? centerMidi,
-                octavePolicy,
-              ),
-              noteMidi,
-            )
-          : centerMidi,
-        timeMs: hasTargets ? point.songTimeMs : point.wallTimeMs,
-        voiced: point.voiced,
-      };
-    });
-    const easedMidis = easeKaraokeSingerTrace(visualPitchSamples, centerMidi);
-    const plottedTrace = trace.map((point, index) => ({
-      ...point,
-      x: xForTracePoint(point),
-      y: yForMidi(easedMidis[index]),
-    }));
-    const first = plottedTrace[0];
-    const last = plottedTrace[plottedTrace.length - 1];
-    const previous = plottedTrace[plottedTrace.length - 2];
-    const headColor = traceColor(last, previous, visibleNotes, octavePolicy);
-    const tracePath = () => {
-      context.beginPath();
-      context.moveTo(first.x, first.y);
-      for (let index = 1; index < plottedTrace.length - 1; index += 1) {
-        const point = plottedTrace[index];
-        const next = plottedTrace[index + 1];
-        context.quadraticCurveTo(
-          point.x,
-          point.y,
-          (point.x + next.x) / 2,
-          (point.y + next.y) / 2,
-        );
-      }
-      context.lineTo(last.x, last.y);
-    };
-
-    context.lineJoin = 'round';
-    context.lineCap = 'round';
-    // The curve is the one thing on this canvas whose extent is decided by
-    // a microphone rather than by the layout, so it is the one thing that
-    // can run off the plot and paint over the semitone labels in the left
-    // gutter. Held to the plot rectangle it simply leaves at the edge.
-    context.save();
-    context.beginPath();
-    context.rect(PLOT_LEFT, plotTop - 6, plotWidth, plotHeight + 12);
-    context.clip();
-
-    // The microphone is one continuous pitch curve over the song blocks.
-    // Input energy changes its weight; the presentation-only pitch easing
-    // above calms detector wobble without changing scoring coordinates.
-    const microphoneGradient = context.createLinearGradient(
-      first.x,
-      0,
-      Math.max(first.x + 1, last.x),
-      0,
-    );
-    const range = Math.max(1, last.x - first.x);
-    plottedTrace.forEach((point, index) => {
-      microphoneGradient.addColorStop(
-        Math.max(0, Math.min(1, (point.x - first.x) / range)),
-        traceColor(point, plottedTrace[index - 1], visibleNotes, octavePolicy),
-      );
-    });
-    // One stroke that thickens as the voice gets louder. It was a 6px
-    // haze under a glow sized by the same energy — the loudness is still
-    // there, in the line's own weight rather than in a blur round it.
-    context.globalAlpha = Math.max(0.72, last.confidence);
-    context.strokeStyle = microphoneGradient;
-    context.lineWidth = 2.1 + Math.min(1.6, last.energy * 3);
-    tracePath();
-    context.stroke();
-    context.globalAlpha = 1;
-
-    // The voice's head: a ring that breathes while it sings, round a
-    // point. It was a radial glow the ring's size.
-    const pulse = last.voiced ? 4.6 + Math.sin(now / 145) * 0.75 : 2.7;
-    context.strokeStyle = headColor;
-    context.lineWidth = 1.5;
-    context.beginPath();
-    context.arc(last.x, last.y, pulse, 0, Math.PI * 2);
-    context.stroke();
-    context.fillStyle = last.voiced ? '#ffffff' : headColor;
-    context.beginPath();
-    context.arc(last.x, last.y, 1.8, 0, Math.PI * 2);
-    context.fill();
-    context.restore();
-  }
 };

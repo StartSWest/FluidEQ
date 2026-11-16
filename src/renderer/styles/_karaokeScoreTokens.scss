@@ -14,15 +14,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // beside "Mapa de la canción", `_karaokeScoreCard.scss`). Flat on the stage
 // like the strip above it; the card on the dialogs' solid face.
 
-// The verdicts' colours, the same on the strip's canvas
-// (`pitchLaneVerdicts.ts`): the accent for a good note, amber for one that
-// came close or late, a muted red for one that was off.
-$score-on: $secondary-default;
-$score-good: color-mix(in srgb, $secondary-default 62%, transparent);
-$score-near: $amber;
-// `$red` taken down toward the floor: an off note reads as off without
-// shouting over the stage. Written as the canvas writes it.
-$score-off: #e0717c;
+// The verdicts' colours, the E mockup's three, written as the strip's canvas
+// writes them (`pitchLaneVerdicts.ts`): green for a note sung in tune,
+// yellow for one that came close or late, red for one that was off. Not the
+// accent for in tune: the notes still to sing are the accent, and a sung one
+// has to read apart from them (Ivan, 2026-11-16: "it is not at all like the
+// mockups").
+$score-on: #8df5b8;
+$score-good: color-mix(in srgb, $score-on 72%, transparent);
+$score-near: #f2d04f;
+$score-off: #ff6a5e;
 $score-missed: color-mix(in srgb, $text-primary 26%, transparent);
 // A note not sung yet: the accent's faint well with its edge, so the colour
 // that lands in it reads.
@@ -54,7 +55,7 @@ $score-well-edge: color-mix(in srgb, $secondary-default 28%, transparent);
 
 @mixin tone-ink {
   &[data-tone='on'] {
-    color: $secondary-light;
+    color: $score-on;
   }
 
   &[data-tone='near'] {
