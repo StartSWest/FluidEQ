@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { IKaraokeChordSegment } from './chords';
 import type { TKaraokePitchOctavePolicy } from './pitch';
 
 export type TKaraokeTimingPrecision = 'none' | 'line' | 'word' | 'syllable';
@@ -107,6 +108,12 @@ export interface IKaraokeSong {
    * assets — rather than one song that already knows its own alternates.
    */
   translations?: { language: string; lines: IKaraokeLine[] }[];
+  /**
+   * The chords the song's own files write (its lyric file, or a chord sheet
+   * beside it), on the song's clock. Absent, the chords are heard from the
+   * audio instead (`useKaraokeChordAnalysis`).
+   */
+  chords?: IKaraokeChordSegment[];
   pitch: TKaraokePitchTarget;
   meta: {
     /** Open provider id. Import adapters must not require a renderer change. */
@@ -126,6 +133,11 @@ export interface IKaraokeSong {
 }
 
 export interface IKaraokeParsedLyrics {
+  /**
+   * Chords the file itself writes, on the song's clock. When a song brings
+   * its chords, the stage shows them and nothing is guessed from the audio.
+   */
+  chords?: IKaraokeChordSegment[];
   title?: string;
   artist?: string;
   audioFileName?: string;

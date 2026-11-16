@@ -270,6 +270,27 @@ export const isKaraokeImageFile = (file: File): boolean =>
     ) as (typeof KARAOKE_IMAGE_EXTENSIONS)[number],
   );
 
+/**
+ * A song's chord sheet beside it: ChordPro (`.cho .chopro .chordpro .crd`)
+ * or a timed .lab chord annotation. Carried with the song's pictures, so it
+ * travels with the song and survives a restart the same way; the session
+ * reads the one named like the song (`chordSheets.ts`).
+ */
+export const KARAOKE_CHORD_SHEET_EXTENSIONS = [
+  'cho',
+  'chopro',
+  'chordpro',
+  'crd',
+  'lab',
+] as const;
+
+export const isKaraokeChordSheetFile = (file: File): boolean =>
+  KARAOKE_CHORD_SHEET_EXTENSIONS.includes(
+    karaokeFileExtension(
+      file.name,
+    ) as (typeof KARAOKE_CHORD_SHEET_EXTENSIONS)[number],
+  );
+
 export const isKaraokeVideoFile = (file: File): boolean =>
   KARAOKE_VIDEO_EXTENSIONS.includes(
     karaokeFileExtension(

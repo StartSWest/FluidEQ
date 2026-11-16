@@ -47,6 +47,7 @@ import {
   TKaraokeParseErrorCode,
 } from '../../common/karaoke/types';
 import { createKaraokeLiveValue, IKaraokeLiveValue } from './karaokeLiveValue';
+import readKaraokeSongChords from './karaokeSongChords';
 
 const PLAYHEAD_RENDER_INTERVAL_MS = 50;
 
@@ -301,6 +302,12 @@ export const useKaraokeSession = (isActive: boolean) => {
           materializeRestoredMedia(chosenMedia.video),
         ]);
         const stageMedia = { cover, background, video };
+        const chords = await readKaraokeSongChords(
+          selection.audio,
+          files,
+          parsed,
+          materializeRestoredMedia,
+        );
         const mediaAsset = (
           role: 'cover' | 'background' | 'video',
           file: File | undefined,
@@ -342,6 +349,7 @@ export const useKaraokeSession = (isActive: boolean) => {
           ],
           timingPrecision: parsed?.timingPrecision ?? 'none',
           lines: parsed?.lines ?? [],
+          chords,
           pitch: parsed?.pitch ?? { kind: 'none', reason: 'missing' },
           meta: {
             sourceFormat: parsed?.sourceFormat ?? 'audio-only',

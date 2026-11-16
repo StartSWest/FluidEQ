@@ -112,15 +112,31 @@ export const useKaraokeChordAnalysis = (
   const [state, setState] = useState<IKaraokeChordAnalysisResult>(initialState);
   const [progress] = useState(() => createKaraokeLiveValue(0));
   const songId = song?.id;
-  const audioFile = song?.assets.find((asset) => asset.role === 'audio')?.file;
+  // The chords the song's own files write, when it brings them: nothing is
+  // guessed then (`karaokeSongChords`).
+  const writtenChords = song?.chords;
+  // The backing alone where the song has been separated: the sung line is
+  // what most often pulls a heard chord wrong, and without it the band's
+  // harmony is all there is to hear.
+  const instrumental = song?.assets.find(
+    (asset) => asset.role === 'instrumental',
+  )?.file;
+  const audioFile =
+    instrumental ?? song?.assets.find((asset) => asset.role === 'audio')?.file;
+  const cacheKey = songId && `${songId}:${instrumental ? 'backing' : 'mix'}`;
 
   useEffect(() => {
-    if (!songId) {
+    if (!songId || !cacheKey) {
       setState(initialState);
       progress.write(0);
       return undefined;
     }
-    const cached = recallRecent(chordCache, songId);
+    if (writtenChords?.length) {
+      setState({ status: 'ready', chords: writtenChords });
+      progress.write(1);
+      return undefined;
+    }
+    const cached = recallRecent(chordCache, cacheKey);
     if (cached) {
       setState({ status: 'ready', chords: cached });
       progress.write(1);
@@ -183,7 +199,7 @@ export const useKaraokeChordAnalysis = (
         if (cancelled) {
           return;
         }
-        rememberRecent(chordCache, songId, chords, CACHED_SONGS);
+        rememberRecent(chordCache, cacheKey, chords, CACHED_SONGS);
         progress.write(1);
         setState({ status: 'ready', chords });
       } catch {
@@ -201,7 +217,7 @@ export const useKaraokeChordAnalysis = (
       cancelled = true;
       context?.close().catch(() => undefined);
     };
-  }, [audioFile, isActive, progress, songId]);
+  }, [audioFile, cacheKey, isActive, progress, songId, writtenChords]);
 
   return useMemo(() => ({ ...state, progress }), [progress, state]);
 };

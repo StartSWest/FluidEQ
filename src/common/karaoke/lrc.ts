@@ -23,6 +23,7 @@ import {
   KaraokeParseError,
 } from './types';
 import { isKaraokeSectionText } from './sections';
+import { chordsFromStarts, takeInlineChords, timeInLine } from './chordSheets';
 
 /**
  * Exported so content detection cannot drift from parsing.
@@ -188,6 +189,10 @@ export const parseLrc = (contents: string): IKaraokeParsedLyrics => {
   const timeShiftMs = -offsetMs;
 
   const lines: IKaraokeLine[] = [];
+  // Chords written into a line, ChordPro's way ("[00:12.30]I [G]walk the
+  // [Em]line"): taken out of the words and timed by the word they stand on
+  // once every line's end is known (`chordSheets.ts`).
+  const lineChords = new Map<IKaraokeLine, { label: string; at: number }[]>();
   let hasWordTiming = false;
   source.split('\n').forEach((row, sourceIndex) => {
     LINE_TIMESTAMP.lastIndex = 0;
@@ -204,7 +209,14 @@ export const parseLrc = (contents: string): IKaraokeParsedLyrics => {
         ? groups.pop()
         : undefined;
     groups.forEach((group, groupIndex) => {
-      const lyricText = group.text;
+      const chorded = takeInlineChords(group.text);
+      const lyricText = chorded.text;
+      // A chord's place in the words as they read, word stamps not counted.
+      const chords = chorded.chords.map((chord) => ({
+        label: chord.label,
+        at: lyricText.slice(0, chord.at).replace(WORD_TIMESTAMP, '').length,
+      }));
+      WORD_TIMESTAMP.lastIndex = 0;
       const enhanced = WORD_TIMESTAMP.test(lyricText);
       WORD_TIMESTAMP.lastIndex = 0;
       hasWordTiming = hasWordTiming || enhanced;
@@ -212,7 +224,7 @@ export const parseLrc = (contents: string): IKaraokeParsedLyrics => {
 
       group.startsMs.forEach((rawStartMs, stampIndex) => {
         const startMs = rawStartMs + timeShiftMs;
-        lines.push({
+        const line: IKaraokeLine = {
           id: `lrc-${sourceIndex}-${groupIndex}-${stampIndex}-${startMs}`,
           kind: isKaraokeSectionText(lyricText) ? 'section' : 'lyrics',
           startMs,
@@ -235,7 +247,11 @@ export const parseLrc = (contents: string): IKaraokeParsedLyrics => {
                 timeShiftMs + (rawStartMs - group.startsMs[0]),
               )
             : [{ text: lyricText }],
-        });
+        };
+        lines.push(line);
+        if (chords.length) {
+          lineChords.set(line, chords);
+        }
       });
     });
   });
@@ -290,11 +306,23 @@ export const parseLrc = (contents: string): IKaraokeParsedLyrics => {
     }
   });
 
+  const lastLine = deduped[deduped.length - 1];
+  const songEndMs = lastLine?.endMs ?? (lastLine?.startMs ?? 0) + 4_000;
+  const chordStarts = deduped.flatMap((line, index) =>
+    (lineChords.get(line) ?? []).map((chord) => ({
+      label: chord.label,
+      ms: timeInLine(line, chord.at, deduped[index + 1]?.startMs ?? songEndMs),
+    })),
+  );
+
   return {
     title,
     artist,
     timingPrecision: hasWordTiming ? 'word' : 'line',
     lines: deduped,
+    chords: chordStarts.length
+      ? chordsFromStarts(chordStarts, songEndMs)
+      : undefined,
     pitch: { kind: 'none', reason: 'missing' },
     // Zero, not the offset. `gapMs` means "the singing starts here", which LRC
     // has no way of saying; the offset is already inside every time above.

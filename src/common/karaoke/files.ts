@@ -22,9 +22,11 @@ import { parseUltraStar } from './ultrastar';
 import { decodeKaraokeText } from './textEncoding';
 import {
   KARAOKE_AUDIO_EXTENSIONS,
+  KARAOKE_CHORD_SHEET_EXTENSIONS,
   KARAOKE_IMAGE_EXTENSIONS,
   KARAOKE_PLAYABLE_VIDEO_EXTENSIONS,
   isKaraokeAudioFile,
+  isKaraokeChordSheetFile,
   isKaraokeImageFile,
   isKaraokeVideoFile,
   karaokeFileDirectory,
@@ -100,6 +102,7 @@ export const KARAOKE_FILE_PICKER_ACCEPT = [
   ...KARAOKE_LYRIC_EXTENSIONS,
   ...KARAOKE_IMAGE_EXTENSIONS,
   ...KARAOKE_PLAYABLE_VIDEO_EXTENSIONS,
+  ...KARAOKE_CHORD_SHEET_EXTENSIONS,
 ]
   .map((extension) => `.${extension}`)
   .join(',');
@@ -229,7 +232,9 @@ export const selectKaraokePlaylist = (
       media: files.filter(
         (file) =>
           karaokeFileDirectory(file) === karaokeFileDirectory(audio) &&
-          (isKaraokeImageFile(file) || isKaraokeVideoFile(file)),
+          (isKaraokeImageFile(file) ||
+            isKaraokeVideoFile(file) ||
+            isKaraokeChordSheetFile(file)),
       ),
     };
   });

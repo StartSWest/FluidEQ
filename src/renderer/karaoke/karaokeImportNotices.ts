@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { Translate, TranslationKey } from '../../common/i18n';
 import {
   IKaraokePlaylistSelection,
+  isKaraokeChordSheetFile,
   isKaraokeImageFile,
   isKaraokeVideoFile,
   karaokeFileExtension,
@@ -124,7 +125,10 @@ export const karaokeSetAsideFiles = (
     new Set(
       selection.ignored
         .filter(
-          (file) => !isKaraokeImageFile(file) && !isKaraokeVideoFile(file),
+          (file) =>
+            !isKaraokeImageFile(file) &&
+            !isKaraokeVideoFile(file) &&
+            !isKaraokeChordSheetFile(file),
         )
         .map((file) => karaokeFileExtension(file.name).toUpperCase())
         .filter((extension) => extension.length > 0),
