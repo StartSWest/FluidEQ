@@ -112,6 +112,7 @@ const eq = {
   'graph.view.fullscreen': 'Full screen',
   'graph.scene.resetView': 'Reset view',
   'graph.contents.everything': 'Everything',
+  'graph.contents.waveCurves': 'Wave with curves',
   'graph.contents.layers': 'Layers over wave',
   'graph.contents.curves': 'Curves only',
   'graph.contents.clean': 'Clean',

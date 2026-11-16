@@ -114,6 +114,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.fullscreen': 'Полный экран',
   'graph.scene.resetView': 'Сбросить вид',
   'graph.contents.everything': 'Всё',
+  'graph.contents.waveCurves': 'Волна с кривыми',
   'graph.contents.layers': 'Слои поверх волны',
   'graph.contents.curves': 'Только кривые',
   'graph.contents.clean': 'Чистый вид',

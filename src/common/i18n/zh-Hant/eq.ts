@@ -93,6 +93,7 @@ const eq = {
   'graph.view.fullscreen': '全螢幕',
   'graph.scene.resetView': '重設檢視',
   'graph.contents.everything': '全部',
+  'graph.contents.waveCurves': '波形與曲線',
   'graph.contents.layers': '波形上的圖層',
   'graph.contents.curves': '僅曲線',
   'graph.contents.clean': '簡潔',

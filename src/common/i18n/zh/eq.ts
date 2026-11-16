@@ -110,6 +110,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.fullscreen': '全屏',
   'graph.scene.resetView': '重置视角',
   'graph.contents.everything': '全部',
+  'graph.contents.waveCurves': '波形与曲线',
   'graph.contents.layers': '波形上的图层',
   'graph.contents.curves': '仅曲线',
   'graph.contents.clean': '简洁',

@@ -536,6 +536,13 @@ const everythingAsLabelled = (): TGraphContents =>
  */
 const CYCLE_STOPS = ['wave', 'everything', 'curves'] as const;
 
+/** Each stop said by its own name, never the labels' state under it. */
+const STOP_LABEL: Record<(typeof CYCLE_STOPS)[number], TranslationKey> = {
+  wave: 'graph.contents.wave',
+  everything: 'graph.contents.waveCurves',
+  curves: 'graph.contents.curves',
+};
+
 const stopOf = (contents: TGraphContents): number => {
   const at = (CYCLE_STOPS as readonly TGraphContents[]).indexOf(contents);
   return at < 0 ? 1 : at;
@@ -548,7 +555,7 @@ export const cycleGraphContents = (direction: 1 | -1 = 1) => {
   // Everything as the labels' own switch has it, never a step that turns them.
   const next = stop === 'everything' ? everythingAsLabelled() : stop;
   setGraphContents(next);
-  announceGraphMode(GRAPH_CONTENTS_LABEL[next]);
+  announceGraphMode(STOP_LABEL[stop]);
 };
 
 /**

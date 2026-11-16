@@ -115,6 +115,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.fullscreen': 'Tela cheia',
   'graph.scene.resetView': 'Redefinir visualização',
   'graph.contents.everything': 'Tudo',
+  'graph.contents.waveCurves': 'Onda com curvas',
   'graph.contents.layers': 'Camadas sobre a onda',
   'graph.contents.curves': 'Somente curvas',
   'graph.contents.clean': 'Limpo',

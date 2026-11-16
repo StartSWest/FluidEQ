@@ -97,6 +97,7 @@ const eq = {
   'graph.view.fullscreen': '전체 화면',
   'graph.scene.resetView': '보기 재설정',
   'graph.contents.everything': '전체',
+  'graph.contents.waveCurves': '파형과 곡선',
   'graph.contents.layers': '파형 위 레이어',
   'graph.contents.curves': '곡선만',
   'graph.contents.clean': '깔끔하게',

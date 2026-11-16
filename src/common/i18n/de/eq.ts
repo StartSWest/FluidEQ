@@ -118,6 +118,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.fullscreen': 'Vollbild',
   'graph.scene.resetView': 'Ansicht zurücksetzen',
   'graph.contents.everything': 'Alles',
+  'graph.contents.waveCurves': 'Welle mit Kurven',
   'graph.contents.layers': 'Ebenen über der Welle',
   'graph.contents.curves': 'Nur Kurven',
   'graph.contents.clean': 'Bereinigt',
