@@ -343,6 +343,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     transition: margin-bottom $motion-base $ease-out;
   }
 
+  // The pitch strip makes room for the transport on the same clock as the
+  // playlist beside it (`_karaokeMakerSizes.scss` sets the room): it jumped
+  // while the playlist slid (Ivan, 2026-11-16: "when I go down it has to
+  // move with me, pushed up, animated").
+  .karaoke-pitch {
+    transition: margin-bottom $motion-base $ease-out;
+  }
+
   // The notch, over a picture rather than over a panel.
   //
   // At 18% of a pale ink it was invisible against the artwork, which is the

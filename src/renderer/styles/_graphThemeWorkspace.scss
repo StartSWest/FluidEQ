@@ -675,7 +675,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // (see `idleChrome`), so this reservation cannot disappear under the pointer.
 // Once the pointer exits both, the chrome can fade and the preview gets the
 // room back without moving a control somebody is reaching for.
-#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
+#root.has-now-playing.is-floating-bar:not(.is-bar-idle)
   .app-workspace.is-app-full
   .look-designer {
   bottom: calc(var(--now-playing-bar-height, 0px) + 8px);

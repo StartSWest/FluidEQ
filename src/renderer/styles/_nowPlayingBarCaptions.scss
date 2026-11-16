@@ -47,7 +47,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // while it shows, less whatever letterbox under the picture already clears
 // it, and takes the room back when the chrome goes quiet — the same pair
 // of root states the karaoke stage and the look designer clear it by.
-#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
+#root.has-now-playing.is-floating-bar:not(.is-bar-idle)
   .library-video-stage.is-fullscreen
   .library-video-stage__caption-room {
   bottom: max(

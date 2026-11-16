@@ -35,6 +35,7 @@ import {
 import {
   useIsChromeIdle,
   useIsPointerNearChrome,
+  useIsPointerNearTop,
   useIsPointerNearSideChrome,
   watchChromeIdle,
 } from '../utils/idleChrome';
@@ -138,6 +139,7 @@ const useShellFullScreen = ({
   const isChromeIdle = useIsChromeIdle();
   // The bar answers to the pointer, not to the clock — see `idleChrome`.
   const isPointerNearChrome = useIsPointerNearChrome();
+  const isPointerNearTop = useIsPointerNearTop();
   // The drawer tabs answer the side edges the same way.
   const isPointerNearSideChrome = useIsPointerNearSideChrome();
 
@@ -146,12 +148,19 @@ const useShellFullScreen = ({
   // fades, and CSS cannot read a React flag.
   useEffect(() => {
     const root = document.getElementById('root');
+    // The header's state, from the top edge; `is-bar-idle` the transport's,
+    // from the bottom (Ivan, 2026-11-16: "when I go down the bottom one
+    // comes out and when I go up the top one does").
     root?.classList.toggle(
       'is-chrome-idle',
+      isAppFullScreen && (!isPointerNearTop || isChromeIdle),
+    );
+    root?.classList.toggle(
+      'is-bar-idle',
       isAppFullScreen && (!isPointerNearChrome || isChromeIdle),
     );
-    return () => root?.classList.remove('is-chrome-idle');
-  }, [isAppFullScreen, isChromeIdle, isPointerNearChrome]);
+    return () => root?.classList.remove('is-chrome-idle', 'is-bar-idle');
+  }, [isAppFullScreen, isChromeIdle, isPointerNearChrome, isPointerNearTop]);
   // And the same for the two drawer tabs, which are the only chrome that
   // lives on the vertical edges. Kept apart from the flag above so that
   // reaching for a panel does not also summon the header and the transport.

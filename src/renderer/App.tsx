@@ -104,7 +104,6 @@ import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
 import SceneColumnLayer from './graph/SceneColumnLayer';
 import GraphScene from './graph/GraphScene';
-import useFullScreenFrame from './shell/useFullScreenFrame';
 import SceneTint from './components/SceneTint';
 import RainbowSource from './components/RainbowSource';
 import TaskbarIconSource from './components/TaskbarIconSource';
@@ -457,16 +456,18 @@ const AppContent = () => {
   const isSoundPaneOverPage =
     isSoundPaneDrawer || isGraphAppFullScreen || isMediaFullScreen;
   const isSoundDrawerOpen = isSoundPaneOverPage && rightPaneOpen;
-  // Over a full-screen picture the side panels, the header and the
-  // transport come and go together, from an edge or a click on the picture.
-  useFullScreenFrame({
-    isActive: isGraphAppFullScreen || isMediaFullScreen,
-    isShown: topPaneOpen || rightPaneOpen,
-    setShown: (shown) => {
-      setTopPaneOpen(shown);
-      setRightPaneOpen(shown);
-    },
-  });
+  // NO SIDE PANELS OVER A FULL-SCREEN PICTURE (Ivan, 2026-11-16: "remove
+  // the side panels coming out in full screen"): only the header, from the
+  // top edge, and the transport, from the bottom (`idleChrome`). Whatever was
+  // open as a drawer is put away on the way in and on the way out, or it came
+  // back as the narrow layout's drawer with its backdrop over the page.
+  const isAnyFullScreen = isGraphAppFullScreen || isMediaFullScreen;
+  const [wasAnyFullScreen, setWasAnyFullScreen] = useState(isAnyFullScreen);
+  if (wasAnyFullScreen !== isAnyFullScreen) {
+    setWasAnyFullScreen(isAnyFullScreen);
+    setTopPaneOpen(false);
+    setRightPaneOpen(false);
+  }
   const isSoundPaneShown = isSoundPaneOverPage
     ? rightPaneOpen
     : !isSoundPaneFolded;
@@ -837,21 +838,18 @@ const AppContent = () => {
             with both open closed whichever happened to be on top and left
             the other standing. */}
         {/* None over a full-screen picture (Ivan, 2026-11-16: "when the
-            side panes come out don't block the UI or put a dark shutter"):
-            there a click on the picture is what puts the frame away
-            (`useFullScreenFrame`), and everything else stays pressable. */}
-        {(isSoundDrawerOpen || topPaneOpen) &&
-          !(isGraphAppFullScreen || isMediaFullScreen) && (
-            <button
-              type="button"
-              className="drawer-backdrop"
-              aria-label={t('app.dismiss')}
-              onClick={() => {
-                setRightPaneOpen(false);
-                setTopPaneOpen(false);
-              }}
-            />
-          )}
+            side panes come out don't block the UI or put a dark shutter"). */}
+        {(isSoundDrawerOpen || topPaneOpen) && !isAnyFullScreen && (
+          <button
+            type="button"
+            className="drawer-backdrop"
+            aria-label={t('app.dismiss')}
+            onClick={() => {
+              setRightPaneOpen(false);
+              setTopPaneOpen(false);
+            }}
+          />
+        )}
         <SoundPanel
           panelRef={soundPanelRef}
           isDrawerOpen={isSoundDrawerOpen}

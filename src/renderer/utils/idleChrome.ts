@@ -98,41 +98,6 @@ let isHeld = false;
 
 const isKeptUp = () => isHeld;
 
-/**
- * The full-screen frame managed as one (`useFullScreenFrame`): the header,
- * the transport and both side panels come and go together (Ivan, 2026-11-16:
- * "simplify it: the four panels come out at the same time, with the click or
- * with the hover on any of the four sides"). While it is set, a pointer moving
- * over the picture brings nothing back by itself — only an edge or a click,
- * which the hook answers — and the clock that takes the chrome away takes the
- * side panels with it (`hide`). `toggle` is what a click on the picture does.
- */
-interface IFrameControl {
-  toggle: () => void;
-  hide: () => void;
-}
-let frameControl: IFrameControl | undefined;
-export const setFrameControl = (next: IFrameControl | undefined) => {
-  frameControl = next;
-};
-
-/**
- * Where a resting pointer keeps the frame up: on any of its four panels, the
- * graph's own strip, or a menu or dialog one of them opened.
- */
-const FRAME_SURFACE_SELECTOR = [
-  '.window-titlebar',
-  '.now-playing-bar',
-  '.is-app-full > .side-bar',
-  '.is-app-full > .right-content',
-  TOP_CHROME_SELECTOR,
-  '[role="menu"]',
-  '[role="listbox"]',
-  '[role="dialog"]',
-].join(', ');
-let framePointerTarget: Element | null = null;
-const isUsingFrame = () => !!framePointerTarget?.isConnected;
-
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
@@ -165,18 +130,12 @@ const startIdleClock = () => {
   const tick = (now: number) => {
     // A menu can unmount without a pointermove or blur. Check the real target
     // on animation frames so that closing it releases the hold automatically.
-    if (
-      isKeptUp() ||
-      isUsingTopChrome() ||
-      isUsingSideChrome() ||
-      (frameControl !== undefined && isUsingFrame())
-    ) {
+    if (isKeptUp() || isUsingTopChrome() || isUsingSideChrome()) {
       lastActiveAt = now;
     }
     if (now - lastActiveAt >= CHROME_IDLE_MS) {
       idleFrame = undefined;
-      // The side panels go with the header and the transport.
-      frameControl?.hide();
+      setNearTop(false);
       setNearBottom(false);
       // The side tabs otherwise have no way back down: they follow the
       // pointer, and a pointer that has left for a second monitor sends no
@@ -246,9 +205,14 @@ const isInBottomChromeSurface = (event: PointerEvent): boolean =>
   event.target instanceof Element &&
   event.target.closest(BOTTOM_CHROME_HOLD_SELECTOR) !== null;
 
-const isInWakeZone = (event: PointerEvent): boolean =>
-  event.clientY >= window.innerHeight - bottomWakeEdge() ||
+const isInBottomZone = (event: PointerEvent): boolean =>
+  event.clientY >= window.innerHeight - bottomWakeEdge();
+
+const isInTopZone = (event: PointerEvent): boolean =>
   event.clientY <= TOP_WAKE_EDGE_PX;
+
+const isInWakeZone = (event: PointerEvent): boolean =>
+  isInBottomZone(event) || isInTopZone(event);
 
 /**
  * How near the faded graph toolbar the pointer brings it back, in pixels.
@@ -283,17 +247,42 @@ const isOverFadedToolbar = (event: PointerEvent): boolean => {
 };
 
 /**
- * Whether the pointer is at one of the window's chrome edges.
+ * Whether the pointer has gone to the window's top or bottom edge.
  *
- * EITHER edge, and the two bars answer it together: going to the top brings
- * the header AND the transport, going to the bottom brings both as well. They
- * are the app's two strips of chrome and hiding one while showing the other
- * made full screen feel like it had lost a piece rather than tidied itself.
+ * EACH EDGE BRINGS ITS OWN BAR (Ivan, 2026-11-16: "when I go down the bottom
+ * one comes out and when I go up the top one does"): the top the header, the
+ * bottom the transport. They used to answer either edge together.
  *
- * Entering an edge reveals them. Leaving starts the same five-second clock as
- * the rest of the chrome; it does not make a bar snap shut under a pointer
- * travelling to a neighbouring control.
+ * Entering an edge reveals its bar. Leaving starts the same clock as the rest
+ * of the chrome; it does not make a bar snap shut under a pointer travelling
+ * to a neighbouring control.
  */
+let isNearTop = false;
+const topListeners = new Set<() => void>();
+
+const setNearTop = (next: boolean) => {
+  if (next === isNearTop) {
+    return;
+  }
+  isNearTop = next;
+  topListeners.forEach((listener) => listener());
+};
+
+const subscribeNearTop = (listener: () => void) => {
+  topListeners.add(listener);
+  return () => {
+    topListeners.delete(listener);
+  };
+};
+
+/** True while the pointer has the header out: at the top edge. */
+export const useIsPointerNearTop = () =>
+  useSyncExternalStore(
+    subscribeNearTop,
+    () => isNearTop,
+    () => false,
+  );
+
 let isNearBottom = false;
 const bottomListeners = new Set<() => void>();
 
@@ -312,7 +301,7 @@ const subscribeNearBottom = (listener: () => void) => {
   };
 };
 
-/** True while the pointer is at either strip of chrome. */
+/** True while the pointer has the transport out: at the bottom edge. */
 export const useIsPointerNearChrome = () =>
   useSyncExternalStore(
     subscribeNearBottom,
@@ -406,20 +395,6 @@ const handleActivity = (event?: Event) => {
       : null;
     setNearSide(isInSideWakeZone(event as PointerEvent));
   }
-  // The frame managed as one: activity keeps it up while it is up, and
-  // never brings it up by itself.
-  if (frameControl) {
-    if (event?.type === 'pointermove') {
-      framePointerTarget =
-        event.target instanceof Element
-          ? event.target.closest(FRAME_SURFACE_SELECTOR)
-          : null;
-    }
-    if (!isIdle && !isKeptUp()) {
-      startIdleClock();
-    }
-    return;
-  }
   if (event?.type === 'pointerdown' && !isTopChrome(event.target)) {
     return;
   }
@@ -429,7 +404,7 @@ const handleActivity = (event?: Event) => {
       : null;
   }
   if (isUsingTopChrome()) {
-    setNearBottom(true);
+    setNearTop(true);
     setIdle(false);
     startIdleClock();
     return;
@@ -444,8 +419,11 @@ const handleActivity = (event?: Event) => {
     // as `nearBottom` made a pointer in the middle of the screen summon the
     // transport — exactly the opposite of the ten-pixel wake target.
     bottomSurfaceHoldsOpen = isInBottomSurface && isNearBottom && !isIdle;
-    if (isInWakeZone(move)) {
+    if (isInBottomZone(move)) {
       setNearBottom(true);
+    }
+    if (isInTopZone(move)) {
+      setNearTop(true);
     }
   }
   // Keys and the wheel are deliberate by nature and wake it at once. The
@@ -518,73 +496,26 @@ export const setChromeHeld = (next: boolean) => {
 };
 
 /**
- * Put the chrome away now, or bring it back — whichever it is not.
+ * Put the chrome away now, if any of it is out.
  *
- * Bound to a click on the drawing, and a toggle rather than a hide because a
- * control that only works in one direction is one somebody presses twice and
- * then stops trusting. Waiting out the timer is the right answer for a person
- * who has simply stopped moving, and a strange thing to ask of one who has just
- * said what they want.
- *
- * Showing restarts the clock, so a click to look at something is followed by
- * the same fade as any other reveal.
+ * Bound to a click on the drawing. Waiting out the timer is the right answer
+ * for a person who has simply stopped moving, and a strange thing to ask of
+ * one who has just said what they want. It brings nothing back: the header
+ * comes from the top edge and the transport from the bottom, each alone.
  */
 export const toggleChromeNow = () => {
-  if (frameControl) {
-    frameControl.toggle();
-    return;
-  }
   if (!isWatching || isKeptUp()) {
     return;
   }
-  if (isIdle) {
-    handleActivity();
+  // A click puts away whatever bar is out and brings none: each bar is its
+  // own edge's (Ivan, 2026-11-16: "don't make both open at the same time on
+  // a click").
+  if (isIdle || (!isNearTop && !isNearBottom)) {
     return;
   }
   clearTimer();
-  setIdle(true);
-};
-
-/**
- * Show the whole frame, or put all of it away (Ivan, 2026-11-16: "open
- * everything at the same time ... if they click the screen again, it hides
- * the panels, bottom and sides"), called as the side panels open and shut.
- * Shown, the header and the transport come with them on the same three-second
- * clock, which shuts the panels too; put away, they go at once.
- */
-export const setFrameShown = (next: boolean) => {
-  if (!isWatching) {
-    return;
-  }
-  if (next) {
-    setIdle(false);
-    startIdleClock();
-    return;
-  }
-  clearTimer();
-  if (isHeld) {
-    return;
-  }
+  setNearTop(false);
   setNearBottom(false);
-  setNearSide(false);
-  setIdle(true);
-};
-
-/** Whether the header and the transport are away now. */
-export const isChromeIdleNow = () => isIdle;
-
-/**
- * Put the header and the transport away at once, whatever brought them up,
- * unless something holds them: the second half of a click on the picture
- * that shows or hides everything (`useFullScreenFrame`).
- */
-export const hideChromeNow = () => {
-  if (!isWatching || isHeld) {
-    return;
-  }
-  clearTimer();
-  setNearBottom(false);
-  setNearSide(false);
   setIdle(true);
 };
 
@@ -631,6 +562,7 @@ export const watchChromeIdle = (next: boolean) => {
     window.removeEventListener(event, handleActivity),
   );
   clearTimer();
+  setNearTop(false);
   setNearBottom(false);
   setNearSide(false);
   // A dismissal belongs to the mode it was made in. Carrying it out would mean
@@ -639,7 +571,6 @@ export const watchChromeIdle = (next: boolean) => {
   // same reason: whatever was asking for it is gone with the mode.
   isHeld = false;
   topPointerTarget = null;
-  framePointerTarget = null;
   sidePointerTarget = null;
   setIdle(false);
 };
