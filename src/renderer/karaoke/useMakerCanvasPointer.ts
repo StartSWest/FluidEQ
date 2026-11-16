@@ -22,7 +22,13 @@ import {
   IDragState,
   INotePaintDraft,
 } from './makerCanvasTypes';
-import { MAX_NOTE_MIDI, MIN_NOTE_MIDI } from './makerCanvasGeometry';
+import {
+  IMakerPlot,
+  makerPitchAtY,
+  makerPlot,
+} from './makerCanvasGeometry';
+import { IMakerPitchWindow } from './makerPitchView';
+import { useMakerPitchView } from './useMakerPitchView';
 import {
   ICanvasScrubState,
   IMakerCanvasGesture,
@@ -76,6 +82,11 @@ export interface IMakerCanvasPointerParams
   setViewDurationMs: Dispatch<SetStateAction<number>>;
   setFollowViewport: Dispatch<SetStateAction<boolean>>;
   setLyricFollowRequestKey: Dispatch<SetStateAction<number>>;
+
+  /** The pitch the grid shows, and the wheel's two ways of moving it. */
+  pitchWindow: IMakerPitchWindow;
+  zoomPitch: ReturnType<typeof useMakerPitchView>['zoomPitch'];
+  panPitch: ReturnType<typeof useMakerPitchView>['panPitch'];
 
   /** Transport, so a drag can scrub and audition against real playback. */
   playheadMs: number;
@@ -131,6 +142,8 @@ export const useMakerCanvasPointer = ({
   onPause,
   onPlay,
   onSeek,
+  panPitch,
+  pitchWindow,
   playheadMs,
   project,
   projectRef,
@@ -155,6 +168,7 @@ export const useMakerCanvasPointer = ({
   viewStartMs,
   visibleViewDurationMs,
   whenPlayheadReaches,
+  zoomPitch,
 }: IMakerCanvasPointerParams) => {
   const canvasPoint = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -166,30 +180,31 @@ export const useMakerCanvasPointer = ({
     };
   };
 
-  const canvasTimeAtX = (x: number, width: number): number => {
-    const plotWidth = Math.max(1, width - 72);
-    return Math.max(
-      0,
-      Math.min(
-        effectiveDurationMs,
-        viewStartMs + ((x - 54) / plotWidth) * visibleViewDurationMs,
-      ),
-    );
-  };
+  // Every pixel read here goes through the plot the painter drew with. These
+  // were hand-copied insets (54 and 72), and when the paint's left margin
+  // went to 34 they stayed, so every press landed 20px later in time than
+  // the note or word under it.
+  const plotAt = ({
+    width,
+    height,
+  }: {
+    width: number;
+    height: number;
+  }): IMakerPlot =>
+    makerPlot({
+      width,
+      height,
+      headerHeight,
+      viewStartMs,
+      visibleViewDurationMs,
+      pitchWindow,
+    });
 
-  const canvasMidiAtY = (y: number, height: number): number => {
-    const plotHeight = Math.max(1, height - headerHeight - 28);
-    return Math.max(
-      MIN_NOTE_MIDI,
-      Math.min(
-        MAX_NOTE_MIDI,
-        Math.round(
-          MAX_NOTE_MIDI -
-            ((y - headerHeight) / plotHeight) * (MAX_NOTE_MIDI - MIN_NOTE_MIDI),
-        ),
-      ),
+  const canvasTimeAtX = (x: number, width: number): number =>
+    Math.max(
+      0,
+      Math.min(effectiveDurationMs, plotAt({ width, height: 1 }).xTime(x)),
     );
-  };
 
   const seekCanvasPoint = (point: ReturnType<typeof canvasPoint>): number => {
     const nextTimeMs = canvasTimeAtX(point.x, point.width);
@@ -302,7 +317,13 @@ export const useMakerCanvasPointer = ({
   const resetLyricZoom = useCallback(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
-    const plotWidth = Math.max(1, (canvas?.clientWidth ?? 392) - 72);
+    const plotWidth = makerPlot({
+      width: canvas?.clientWidth ?? 392,
+      height: canvas?.clientHeight ?? 1,
+      headerHeight,
+      viewStartMs,
+      visibleViewDurationMs,
+    }).width;
     const selected =
       selection?.kind === 'word'
         ? canvasLyricWords.find((word) =>
@@ -357,16 +378,17 @@ export const useMakerCanvasPointer = ({
     canvasLyricWords,
     canvasRef,
     effectiveDurationMs,
+    headerHeight,
     minimumViewDurationMs,
     playheadMs,
     selection,
+    viewStartMs,
+    visibleViewDurationMs,
   ]);
 
   const onCanvasPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const point = canvasPoint(event);
-    const plotWidth = Math.max(1, point.width - 72);
-    const playheadX =
-      54 + ((playheadMs - viewStartMs) / visibleViewDurationMs) * plotWidth;
+    const playheadX = plotAt(point).timeX(playheadMs);
     const grabbedPlayhead = Math.abs(point.x - playheadX) <= 9;
     const hit = [...gesture.hitRegions.current]
       .reverse()
@@ -697,7 +719,7 @@ export const useMakerCanvasPointer = ({
         Math.abs(paintDraft.currentX - paintDraft.startX) < 4
           ? Math.min(effectiveDurationMs, startTime + 500)
           : Math.max(startTime + 40, draggedEndTime);
-      const targetMidi = canvasMidiAtY(paintDraft.y, point.height);
+      const targetMidi = makerPitchAtY(plotAt(point), paintDraft.y);
       const note: IKaraokeMakerNote = {
         id: karaokeMakerId('note'),
         startMs: startTime,
@@ -787,17 +809,38 @@ export const useMakerCanvasPointer = ({
     }
   };
 
+  /**
+   * The wheel: alone it scrolls time, with Ctrl it zooms time — as before —
+   * and Shift moves it to pitch, the other axis: Shift scrolls pitch, and
+   * Ctrl + Shift zooms pitch about the row under the pointer. Shift is the
+   * free key here because Chromium already turns a Shift-held wheel
+   * sideways, which this canvas scrolled exactly like a plain one.
+   */
   const onCanvasWheel = (event: ReactWheelEvent<HTMLCanvasElement>) => {
     event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const plot = plotAt(rect);
+    const zoomKey = event.ctrlKey || event.metaKey;
+    if (event.shiftKey) {
+      // That sideways turn is why the amount is read from either axis.
+      const turn = event.deltaY !== 0 ? event.deltaY : event.deltaX;
+      if (zoomKey) {
+        zoomPitch(
+          plot.yNote(event.clientY - rect.top),
+          Math.exp(turn * WHEEL_ZOOM_RATE),
+        );
+      } else {
+        panPitch(
+          (-turn * (plot.highMidi - plot.lowMidi)) / PITCH_SCROLL_PER_WINDOW,
+        );
+      }
+      return;
+    }
     setFollowViewport(false);
-    if (event.ctrlKey || event.metaKey) {
-      const rect = event.currentTarget.getBoundingClientRect();
+    if (zoomKey) {
       const cursorProgress = Math.max(
         0,
-        Math.min(
-          1,
-          (event.clientX - rect.left - 54) / Math.max(1, rect.width - 72),
-        ),
+        Math.min(1, (event.clientX - rect.left - plot.left) / plot.width),
       );
       const cursorTime = viewStartMs + cursorProgress * visibleViewDurationMs;
       const nextDuration = Math.max(

@@ -32,7 +32,49 @@ import { IKaraokeToken } from '../../common/karaoke/types';
  * this code rather than of the component that calls it.
  */
 export const WHEEL_STEP_THRESHOLD = 24;
-export const LYRIC_MOTION_TIME_MS = 105;
+/**
+ * How long the lyrics take to move one line on: settled within 1% of a row.
+ *
+ * The glide used to be an exponential with a 105 ms time constant. That moves
+ * at its fastest on the very first frame - 14% of a whole row in 16 ms - and
+ * read as the words jumping to the next line and then creeping the rest of
+ * the way (Ivan, 2026-11-15: "jumping instead of moving forward with soft
+ * animation"). A critically damped spring starts from rest, speeds up and
+ * settles with no overshoot, and keeps its speed when a new line arrives
+ * mid-glide, so a fast run of lines rolls instead of stuttering.
+ */
+export const LYRIC_GLIDE_MS = 620;
+/** 6.64 natural periods take a critically damped step to within 1%. */
+const LYRIC_GLIDE_RATE_PER_MS = 6.64 / LYRIC_GLIDE_MS;
+
+export interface ILyricGlide {
+  /** Fractional line index at the centre of the stage. */
+  center: number;
+  /** Lines per millisecond, toward the target or away from it. */
+  velocity: number;
+}
+
+/**
+ * Advances the lyric glide by `elapsedMs` toward `target`, exactly - the
+ * closed form of a critically damped spring, so a long frame lands where a
+ * run of short ones would have, never past the target.
+ */
+export const glideLyricsToward = (
+  glide: ILyricGlide,
+  target: number,
+  elapsedMs: number,
+): ILyricGlide => {
+  const rate = LYRIC_GLIDE_RATE_PER_MS;
+  const offset = glide.center - target;
+  const lead = glide.velocity + rate * offset;
+  const decay = Math.exp(-rate * elapsedMs);
+  const center = target + (offset + lead * elapsedMs) * decay;
+  const velocity = (glide.velocity - rate * lead * elapsedMs) * decay;
+  if (Math.abs(center - target) < 0.0005 && Math.abs(velocity) < 0.00001) {
+    return { center: target, velocity: 0 };
+  }
+  return { center, velocity };
+};
 export const SONG_LYRIC_ENTRANCE_TIME_MS = 560;
 export const EUPHORIA_SWEEP_TIME_MS = 3_600;
 /**

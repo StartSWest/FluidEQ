@@ -33,9 +33,9 @@ import {
   DEFAULT_LYRIC_TEXT_SIZE,
   EUPHORIA_SWEEP_TIME_MS,
   LYRIC_FONT_FAMILY,
-  LYRIC_MOTION_TIME_MS,
   WHEEL_STEP_THRESHOLD,
   clamp,
+  glideLyricsToward,
   groupKaraokeTokensIntoWords,
   karaokeLyricEntranceOpacity,
   karaokeVisualWordProgressWidth,
@@ -150,6 +150,7 @@ interface ILyricDrawState {
 
 interface ILyricMotionState {
   center: number;
+  velocity: number;
   frameTimeMs: number;
 }
 
@@ -385,25 +386,18 @@ const KaraokeLyrics = ({
         ? 160
         : ((frameTimeMs % EUPHORIA_SWEEP_TIME_MS) / EUPHORIA_SWEEP_TIME_MS) *
           360;
-      let animatedCenter = targetCenterIndex;
+      let glide = { center: targetCenterIndex, velocity: 0 };
       if (previousMotion && !reducedMotion) {
-        const elapsedMs = clamp(
-          frameTimeMs - previousMotion.frameTimeMs,
-          0,
-          50,
+        // A stalled frame (a heavy render on the line change) advances the
+        // glide by at most 50 ms, so the words never leap to catch up.
+        glide = glideLyricsToward(
+          previousMotion,
+          targetCenterIndex,
+          clamp(frameTimeMs - previousMotion.frameTimeMs, 0, 50),
         );
-        const smoothing = 1 - Math.exp(-elapsedMs / LYRIC_MOTION_TIME_MS);
-        animatedCenter =
-          previousMotion.center +
-          (targetCenterIndex - previousMotion.center) * smoothing;
-        if (Math.abs(animatedCenter - targetCenterIndex) < 0.001) {
-          animatedCenter = targetCenterIndex;
-        }
       }
-      motionStateRef.current = {
-        center: animatedCenter,
-        frameTimeMs,
-      };
+      const animatedCenter = glide.center;
+      motionStateRef.current = { ...glide, frameTimeMs };
 
       const textScale = textSizeRef.current / 100;
       const preferredSize = clamp(width * 0.066, 28, 64) * textScale;
@@ -497,7 +491,13 @@ const KaraokeLyrics = ({
           maximumHeight / cached.layout.height,
         );
         const size = Math.floor(cached.layout.fontSize * scale * 4) / 4;
-        const scaledKey = `${size}:${focus > 0.5}`;
+        // Black is the line being sung, decided by the target and never by
+        // how far the glide has got: switched at half way, the glyphs of
+        // both lines changed face in the middle of the move, a pop in the
+        // glide (Ivan, 2026-11-15). Now the face changes once, with the
+        // line, as the move starts.
+        const isLead = !isSection && index === targetCenterIndex;
+        const scaledKey = `${size}:${isLead}`;
         let { scaled } = cached;
         if (!scaled || scaled.key !== scaledKey) {
           scaled = {
@@ -506,7 +506,7 @@ const KaraokeLyrics = ({
               context,
               cached.layout,
               size,
-              !isSection && focus > 0.5,
+              isLead,
             ),
           };
           cached.scaled = scaled;
