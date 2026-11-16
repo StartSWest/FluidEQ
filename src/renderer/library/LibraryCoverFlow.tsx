@@ -253,24 +253,39 @@ const LibraryCoverFlow = ({
    * needs to load directly on the selected cover instead of scrolling,
    * animating into it"). The row stands on cover 0 until the store says where
    * the open record, the asked-for cover or the remembered one is, and the
-   * scene then travelled the whole way there on every visit. The first
-   * placement after the row appears jumps; every one after it travels.
+   * scene then travelled the whole way there on every visit.
+   *
+   * Every placement the store makes jumps until the row has been moved by
+   * hand; only after that does one travel (a reveal, a new song). It was
+   * the first placement alone, and an arrival places more than once: the
+   * row's first list is often a passing one (recorded in Ivan's window: the
+   * shelf's own first album, then an empty row, then the real list), the
+   * first placement was spent on it, and the real one travelled from there
+   * to "Exitos II" on every visit ("done and still scrolling").
    */
-  const hasPlacedRef = useRef(false);
+  const isTouchedRef = useRef(false);
   /** The scene's jump, filled in where the scene is made, below. */
   const jumpSceneRef = useRef<(index: number) => void>(() => undefined);
   const placeAt = (index: number) => {
-    if (!hasPlacedRef.current) {
-      hasPlacedRef.current = true;
+    if (!isTouchedRef.current) {
       jumpSceneRef.current(index);
     }
+    setCurrentIndex(index);
+  };
+  /**
+   * The same cover kept centred where a new list moved it: the row did not
+   * move for the reader, so the scene must not either - a jump to its new
+   * index, never a journey through the covers between.
+   */
+  const keepAt = (index: number) => {
+    jumpSceneRef.current(index);
     setCurrentIndex(index);
   };
 
   /** Moves the centre to `index`, clamped to the row, and records what is
    * now centred. Every path that changes the centre goes through this. */
   const setCentre = (index: number) => {
-    hasPlacedRef.current = true;
+    isTouchedRef.current = true;
     // The reader moving the row ends any request still waiting for a row
     // that holds its cover (a pick a search leaves out never arrives).
     if (pendingRequest.current !== undefined) {
@@ -325,7 +340,7 @@ const LibraryCoverFlow = ({
     const held = heldPositionOfRef.current(wanted);
     if (held !== undefined) {
       if (held >= 0) {
-        setCurrentIndex(held);
+        keepAt(held);
       } else {
         centredId.current = centreId;
       }
@@ -339,7 +354,7 @@ const LibraryCoverFlow = ({
           return undefined;
         }
         if (index >= 0) {
-          setCurrentIndex(index);
+          keepAt(index);
         } else {
           centredId.current = centreId;
         }
