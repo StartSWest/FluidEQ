@@ -93,14 +93,12 @@ import {
   setGraphPalette,
   setGraphView,
   toggleGraphFullScreen,
-  toggleGraphCoverage,
   toggleGraphMeter,
   toggleGraphGrid,
   toggleFullScreenTopBar,
   cycleGraphContents,
   useGraphContents,
   useGraphFullScreen,
-  useGraphCoverageHidden,
   useGraphMeterHidden,
   useGraphGridHidden,
   useGraphWaveHidden,
@@ -622,7 +620,6 @@ const FrequencyResponseChart = ({
   // either, and the 2D looks stay on their plot.
   const isCardInColumn = graphView === 'normal';
   const isPlotPartOfWindow = isCardInColumn && windowMode !== 'player';
-  const isCoverageHidden = useGraphCoverageHidden();
   const isMeterHidden = useGraphMeterHidden();
   const isWaveHidden = useGraphWaveHidden();
   const hiddenCurves = useHiddenCurves();
@@ -770,10 +767,6 @@ const FrequencyResponseChart = ({
   // curves, and a card with nothing on it at all read as the graph having
   // failed rather than as a stage.
   const isDisplayedGridHidden = isGridHidden;
-  // A Plus visualizer keeps the listening bands off its picture (see
-  // `CoverageOverlay`), so the switches say hidden while one is drawn.
-  const isDisplayedCoverageHidden =
-    isClean || isCoverageHidden || !isEngineUsable || Boolean(drawnScene);
   const canEditEqCurve =
     !isClean && !isSolo && isEngineUsable && !areHandlesHidden;
   // The live output is the subject whenever no APO response can be heard. This
@@ -1984,44 +1977,6 @@ const FrequencyResponseChart = ({
               screen, they are the widest things the row ever held, and the row
               is right-aligned, so arriving in the mode shoved everything else
               left and on a narrow window pushed it under the waveform. */}
-            {/* The two washes over the plot, switchable without opening the
-              menu — the same pair of questions as the wave chip at the other
-              end of the row, and asked just as often while watching.
-
-              Icon only, and deliberately. The notes above record that this row
-              is the first thing to run out of width and that the sliders were
-              moved into the menu for exactly that reason; two more labelled
-              pills would be the same mistake with different words. The drawing
-              is the label: columns for the listening bands, because they are
-              blocks standing on the axis rather than a line, and a ruled square
-              for the grid.
-
-              They stay in the menu as well. This is a shortcut to the two that
-              change what the plot looks like most, not a move.
-
-              Not over a Plus visualizer, which never draws the bands: a
-              switch there would press and change nothing. */}
-            {!drawnScene && (
-              <button
-                type="button"
-                className="graph-look-step graph-look-step--toggle"
-                aria-pressed={!isDisplayedCoverageHidden}
-                aria-label={t(
-                  isDisplayedCoverageHidden ? 'graph.show' : 'graph.hide',
-                  { item: t('graph.item.bands') },
-                )}
-                title={t(
-                  isDisplayedCoverageHidden ? 'graph.show' : 'graph.hide',
-                  { item: t('graph.item.bands') },
-                )}
-                disabled={!isEngineUsable}
-                onClick={toggleGraphCoverage}
-              >
-                <svg viewBox="0 0 16 16" aria-hidden>
-                  <path d="M3 13V8.5M6.3 13V5M9.7 13V6.8M13 13V3.5" />
-                </svg>
-              </button>
-            )}
             <button
               type="button"
               className="graph-look-step graph-look-step--toggle"
@@ -2054,8 +2009,6 @@ const FrequencyResponseChart = ({
               onToggleCurve={toggleGraphCurve}
               isGridHidden={isDisplayedGridHidden}
               onToggleGrid={toggleGraphGrid}
-              isCoverageHidden={isDisplayedCoverageHidden}
-              onToggleCoverage={toggleGraphCoverage}
               isMeterHidden={isMeterHidden}
               onToggleMeter={toggleGraphMeter}
               waveHeight={waveHeight}

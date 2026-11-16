@@ -582,12 +582,9 @@ const Chart = ({
           waits. */}
         <CoverageOverlay
           xScale={xScaleFreq}
-          yScale={yScaleGain}
-          eqScale={yScaleEq}
           top={drawingPadding.top}
           plotHeight={drawingFloor}
           isResponseHidden={isLiveOutputForeground}
-          isOverScene={Boolean(scene)}
         />
         {selectionBox && (
           <rect

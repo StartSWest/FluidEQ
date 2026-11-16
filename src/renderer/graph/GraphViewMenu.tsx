@@ -84,8 +84,6 @@ interface IGraphViewMenuProps {
   onToggleCurve: (curve: TGraphCurve) => void;
   isGridHidden: boolean;
   onToggleGrid: () => void;
-  isCoverageHidden: boolean;
-  onToggleCoverage: () => void;
   isMeterHidden: boolean;
   onToggleMeter: () => void;
   waveHeight: number;
@@ -150,8 +148,6 @@ const GraphViewMenu = ({
   onToggleCurve,
   isGridHidden,
   onToggleGrid,
-  isCoverageHidden,
-  onToggleCoverage,
   isMeterHidden,
   onToggleMeter,
   waveHeight,
@@ -408,42 +404,6 @@ const GraphViewMenu = ({
                 })}
               </span>
               <kbd>Ctrl+G</kbd>
-            </button>
-
-            {/* Beside the grid because it is the same kind of switch: furniture
-              belonging to the measurement rather than to the sound.
-
-              No shortcut of its own, but the cycle above does reach it now —
-              "Clean" is its fourth stop. That is not the cycle getting longer:
-              it still has five states, because "Clean" took the place of one
-              that only changed the weight of a line. So hidden here no longer
-              stays hidden whatever the cycle does; stepping off "Clean" brings
-              the columns back.
-
-              This switch is still the way in and out of that one state without
-              walking the other four, and it is exactly reversible — it moves
-              this flag and nothing else, so showing the columns again puts back
-              whichever state was underneath, quiet EQ line and all.
-
-              The progress bars along the foot are not covered by this — see
-              `useGraphCoverageHidden`. */}
-            <button
-              type="button"
-              role="menuitemcheckbox"
-              aria-checked={isCoverageHidden}
-              // A Plus visualizer never draws the bands, so over one this has
-              // nothing to switch.
-              disabled={!isResponseAvailable || sceneLookId !== undefined}
-              onClick={choose(onToggleCoverage)}
-            >
-              <Icon>
-                <path d="M2.5 3.5h3v9h-3zM6.5 3.5h3v9h-3zM10.5 3.5h3v9h-3z" />
-              </Icon>
-              <span>
-                {t(isCoverageHidden ? 'graph.show' : 'graph.hide', {
-                  item: t('graph.item.bands'),
-                })}
-              </span>
             </button>
 
             {/* The meter is not on the plot, and it is here anyway.
