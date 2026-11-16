@@ -24,6 +24,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // other mark, in the dialogs, keeps the app icon's Lagoon. Both classes, so
 // the order the two sheets land in never decides which edge is drawn.
 .brand-mark.brand-mark--signal {
+  // Its pulse runs forever: a layer of its own (`SupportPet.scss`).
+  will-change: transform;
   --logo-1: var(--accent-start);
   --logo-2: color-mix(in oklab, var(--accent-start), var(--accent));
   --logo-3: var(--accent);
@@ -172,6 +174,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // painted apart from its parent and the clip misses it — the whole name
 // vanished that way in the mockup.
 .signal-name__suffix {
+  // Glows forever: a layer of its own (`SupportPet.scss`).
+  will-change: transform;
   display: inline-block;
   color: transparent;
   // The sweep's last stretch (below): from the accent, where "d" ends, to

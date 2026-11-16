@@ -144,6 +144,15 @@ $pet-hop-duration: 520ms;
   cursor: pointer;
   transition: $transition-control;
   -webkit-app-region: no-drag;
+  // A LAYER OF ITS OWN. Its ears, eyes and stars animate forever, and
+  // painted into the window's root layer every one of their frames repainted
+  // the whole document: measured at 150 full-window repaints a second, the
+  // GPU process busy 94% rasterising them, and the Karaoke Maker and the
+  // Library crawling (Ivan, 2026-11-16: "it is repainting thousands of
+  // times"). Promoted, a frame repaints the 40px pet. The tab pill, the
+  // Colourful pill and the brand's pulse carry the same rule for the same
+  // reason (`App.scss`, `Rainbow.scss`, `Euphoria.scss`, `SignalBrand.scss`).
+  will-change: transform;
 
   &:hover,
   &:focus-visible {

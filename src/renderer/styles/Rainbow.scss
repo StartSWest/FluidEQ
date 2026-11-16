@@ -125,6 +125,8 @@ html.is-euphoric {
   background: var(--rainbow-sweep);
   background-size: 200% 100%;
   animation: rainbow-drift 12s linear infinite;
+  // Swept forever: a layer of its own (`SupportPet.scss`).
+  will-change: transform;
 }
 
 // The shared menu/dialog mixins cover their families. These semantic surfaces

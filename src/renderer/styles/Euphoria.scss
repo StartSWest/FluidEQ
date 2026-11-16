@@ -423,6 +423,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // it runs through the palette in use; off, it is drained of colour but not
 // of presence, so it reads as a control that is there to be pressed.
 .euphoria-pill {
+  // Cycles its hue forever: a layer of its own (`SupportPet.scss`).
+  will-change: transform;
   padding: 2px 9px;
   color: $surface-well;
   border-radius: $radius-xs;

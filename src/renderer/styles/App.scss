@@ -2509,6 +2509,8 @@ $tab-bar-inset: 8px;
 .workspace-tabs__pill {
   position: absolute;
   z-index: 0;
+  // Its own layer: Colourful sweeps it forever (`SupportPet.scss`).
+  will-change: transform;
   bottom: 0;
   // Inset from both ends of the tab it was measured against — the same 8px
   // the hover bar keeps — so it fits inside the tab's rounded corners. At
