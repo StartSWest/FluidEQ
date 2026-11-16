@@ -82,26 +82,62 @@ export interface ILyricsSearchSong {
   albumArtist?: string;
 }
 
+/** Stray spacing folded to one space and trimmed. */
+const tidy = (text: string | undefined): string =>
+  (text ?? '').replace(/\s+/g, ' ').trim();
+
 /**
- * "Artist Title", the way a listener would type it: the song's artist (or
- * its album's, where the song names none) and its title, each tidied of
- * stray spacing. Nothing when the title is empty — a search for an artist
- * alone finds everything they ever wrote.
+ * The first artist a tag names: "Nino Bravo,DjMrTrim." is Nino Bravo, as are
+ * "Nino Bravo; X", "Nino Bravo feat. X" and "Nino Bravo / X". The others are
+ * what a search site does not know the song by. An ampersand or a slash with
+ * no space round it is part of a name: Simon & Garfunkel, AC/DC.
+ */
+const ARTIST_SEPARATOR =
+  /\s*(?:[,;]|\s\/\s|\bfeat\.?(?=\s)|\bft\.?(?=\s)|\bfeaturing\b)\s*/i;
+
+const firstArtist = (artist: string): string =>
+  tidy(artist.split(ARTIST_SEPARATOR)[0])
+    // The full stop and dashes a tagger leaves at the end of a name.
+    .replace(/[\s._-]+$/, '');
+
+/**
+ * The song's own title, without what a library's files add to it: a run of
+ * dashes or underscores and whatever follows ("America, America----dueto con
+ * El Consorcio"), a bracketed note ("(Remastered 2011)", "[Live]"), a "feat."
+ * credit; and the commas and other marks a search box treats as syntax
+ * turned to spaces. Nothing left of it, the title as it was.
+ */
+const searchTitle = (title: string): string => {
+  const cleaned = tidy(
+    title
+      .replace(/\s*(?:-{2,}|_{2,}).*$/, '')
+      .replace(/\s*[([{][^)\]}]*[)\]}]/g, ' ')
+      .replace(/\s+(?:feat\.?|ft\.?|featuring)\s.*$/i, '')
+      .replace(/[,;:!?"“”«»|]+/g, ' '),
+  );
+  return cleaned === '' ? tidy(title) : cleaned;
+};
+
+/**
+ * "Artist Title", the way a listener would type it: the song's first artist
+ * (or its album's, where the song names none) and its own title, cleaned of
+ * what a library adds to tags (Ivan, 2026-11-15: Musixmatch answered
+ * "Something went wrong" to "Nino Bravo,DjMrTrim. America, America----dueto
+ * con El Consorcio"). Nothing when the title is empty — a search for an
+ * artist alone finds everything they ever wrote.
  */
 export const lyricsSearchQuery = (
   song: ILyricsSearchSong,
 ): string | undefined => {
-  const tidy = (text: string | undefined) =>
-    (text ?? '').replace(/\s+/g, ' ').trim();
-  const title = tidy(song.title);
+  const title = searchTitle(tidy(song.title));
   if (title === '') {
     return undefined;
   }
-  const artist = tidy(song.artist) || tidy(song.albumArtist);
+  const artist =
+    firstArtist(tidy(song.artist)) || firstArtist(tidy(song.albumArtist));
   return artist === '' ? title : `${artist} ${title}`;
 };
 
-/** The site's search for this song, or nothing for a song with no title. */
 export const lyricsSearchUrl = (
   site: ILyricsSite,
   song: ILyricsSearchSong,
