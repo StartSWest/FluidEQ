@@ -720,9 +720,14 @@ export const LibraryPlayerProvider = ({
   // looked up - the song the queue is on, or before the queue is back, the
   // one it was on when the window last wrote it.
   const pendingId = queuedTrackId ?? (isQueueKnown ? undefined : rememberedId);
+  // Only while the song is still being looked up: one the store has answered
+  // as gone (a removed folder's) is no song to stand in for, or the bar went
+  // on showing it with nothing left to play.
   const shownTrack =
     track ??
-    (pendingId !== undefined && lastShown.track?.id === pendingId
+    (pendingId !== undefined &&
+    !lookup.has(pendingId) &&
+    lastShown.track?.id === pendingId
       ? lastShown.track
       : undefined);
   const value = useMemo<ILibraryPlayerSession>(
