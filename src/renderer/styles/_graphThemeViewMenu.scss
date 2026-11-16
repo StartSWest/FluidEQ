@@ -388,44 +388,21 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
 }
 
-.graph-view-menu__chips {
-  display: flex;
+// The curves as the window colours' choice is drawn (`WindowColourChoice`):
+// the app's segmented switch, every option a curve that is lit while drawn,
+// any number of them at once, wrapping to a second line at the menu's width
+// (Ivan, 2026-11-16: "instead of hiding and showing, do the selection, same
+// as for the colours").
+.graph-view-menu__choice.graph-view-menu__curve-choice {
   flex-wrap: wrap;
-  gap: 6px;
-}
+  gap: 2px;
 
-.graph-view-menu__chip {
-  min-height: 26px;
-  padding: 0 10px;
-  color: $text-muted;
-  border: 1px solid $menu-edge;
-  border-radius: $radius-pill;
-  background: none;
-  font-size: $text-micro;
-  font-weight: $weight-semibold;
+  .segmented__option {
+    flex: 0 1 auto;
 
-  &::first-letter {
-    text-transform: uppercase;
-  }
-
-  &:hover:not(:disabled) {
-    color: $text-primary;
-    border-color: $border-field-hover;
-  }
-
-  &.is-on {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: default;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
+    &::first-letter {
+      text-transform: uppercase;
+    }
   }
 }
 

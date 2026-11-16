@@ -179,32 +179,15 @@ export const useGraphMeterHidden = () =>
   useSyncExternalStore(meterSetting.subscribe, meterSetting.get, () => false);
 
 /**
- * Whether the titlebar keeps its waveform.
- *
- * The strip across the top is the one piece of this app that is decoration
- * before it is instrumentation — it says the audio is alive and little else,
- * and somebody working on a curve for an hour may reasonably want the top of
- * the window to stop moving.
- *
- * Hidden by CSS rather than by unmounting, which is the same rule the full
- * screen path already follows: tearing the component down takes its analyser
- * hook with it and builds a new one on every toggle, for a component nobody can
- * see. The bar stops being drawn; the capture behind it is untouched.
+ * Whether the titlebar's waveform was hidden, as stored before it always
+ * showed (Ivan, 2026-11-16: "take out hide the top wave, that one always
+ * shows"). Read once, by the waveform's own migration of the first version's
+ * Off (`WaveformVisualizer`); nothing hides the wave any more. Its own Off
+ * stop, on its button, is how it stops drawing.
  */
 const titlebarWaveSetting = createFlagSetting(VIEW_KEYS.titlebarWave, false);
 
-export const toggleTitlebarWave = () => {
-  titlebarWaveSetting.set(!titlebarWaveSetting.get());
-};
-
 export const getTitlebarWaveHidden = () => titlebarWaveSetting.get();
-
-export const useTitlebarWaveHidden = () =>
-  useSyncExternalStore(
-    titlebarWaveSetting.subscribe,
-    titlebarWaveSetting.get,
-    () => false,
-  );
 
 /**
  * The wave never disappears completely under its own height control. The

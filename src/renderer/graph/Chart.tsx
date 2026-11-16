@@ -467,7 +467,12 @@ const Chart = ({
         // Not on a band handle: those are for dragging, and moving the toolbar
         // every time one is touched would be a control that punishes being used.
         onClick={(event) => {
-          if ((event.target as Element).closest?.('.graph-edit-point')) {
+          // The first press of a double click only: the second leaves full
+          // screen, and toggling on it as well flashed the frame on the way.
+          if (
+            event.detail > 1 ||
+            (event.target as Element).closest?.('.graph-edit-point')
+          ) {
             return;
           }
           toggleChromeNow();

@@ -132,8 +132,10 @@ const useFullScreenFrame = ({
   });
 
   const onClick = useEffectEvent((event: MouseEvent) => {
+    // The first press only: the second of a double click leaves full screen.
     if (
       isShown ||
+      event.detail !== 1 ||
       event.button !== 0 ||
       !(event.target instanceof Element) ||
       event.target.closest(NOT_THE_PICTURE)

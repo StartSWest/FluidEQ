@@ -95,7 +95,6 @@ import {
   toggleGraphFullScreen,
   toggleGraphCoverage,
   toggleGraphMeter,
-  toggleTitlebarWave,
   toggleGraphGrid,
   toggleFullScreenTopBar,
   cycleGraphContents,
@@ -103,7 +102,6 @@ import {
   useGraphFullScreen,
   useGraphCoverageHidden,
   useGraphMeterHidden,
-  useTitlebarWaveHidden,
   useGraphGridHidden,
   useGraphWaveHidden,
   useHiddenCurves,
@@ -626,7 +624,6 @@ const FrequencyResponseChart = ({
   const isPlotPartOfWindow = isCardInColumn && windowMode !== 'player';
   const isCoverageHidden = useGraphCoverageHidden();
   const isMeterHidden = useGraphMeterHidden();
-  const isTitlebarWaveHidden = useTitlebarWaveHidden();
   const isWaveHidden = useGraphWaveHidden();
   const hiddenCurves = useHiddenCurves();
   // Which of the five arrangements the switches add up to, so the View menu's
@@ -1459,11 +1456,10 @@ const FrequencyResponseChart = ({
               cycleWaveOrientation();
             }
           } else if (isEngineUsable) {
-            // Ctrl+W walks the five things the plot can show rather than
-            // toggling one of two switches that each turn the other off. One of
-            // the five is reachable no other way, which is why the View menu's
-            // row for this names the state rather than only the action.
-            cycleGraphContents();
+            // Ctrl+W walks the five things the plot can show forwards and
+            // Ctrl+S backwards, rather than toggling one of two switches that
+            // each turn the other off. One of the five is reachable no other way.
+            cycleGraphContents(key === 's' ? -1 : 1);
           }
           return;
         }
@@ -2062,8 +2058,6 @@ const FrequencyResponseChart = ({
               onToggleCoverage={toggleGraphCoverage}
               isMeterHidden={isMeterHidden}
               onToggleMeter={toggleGraphMeter}
-              isTitlebarWaveHidden={isTitlebarWaveHidden}
-              onToggleTitlebarWave={toggleTitlebarWave}
               waveHeight={waveHeight}
               onChangeWaveHeight={setWaveHeight}
               wavePosition={wavePosition}

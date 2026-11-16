@@ -90,7 +90,7 @@ import {
   useIsEuphoriaEnabled,
   useIsEuphoric,
 } from './utils/euphoriaMode';
-import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
+import { getTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import { readSurface } from './utils/theme';
 import { rainbowGradientStops } from './utils/rainbowPalette';
@@ -163,7 +163,6 @@ const nextHeldPeak = (
 };
 
 const WaveformVisualizer = () => {
-  const isTitlebarWaveHidden = useTitlebarWaveHidden();
   const { t } = useTranslation();
   // Subscribed rather than read from the DOM class the shell sets, so this
   // re-renders when the run changes instead of being told by a stylesheet.
@@ -210,7 +209,6 @@ const WaveformVisualizer = () => {
   // being handed back a different meter every morning is not charming. The
   // first-run default is `spectrum` — the site's signal-deck look, and the
   // one this pane is designed around; other styles are behind clicks.
-  const migratedLegacyOffRef = useRef(false);
   const [style, setStyle] = useState<TWaveformCycleStyle>(() => {
     try {
       const stored = window.localStorage.getItem(WAVEFORM_STYLE_KEY);
@@ -219,13 +217,12 @@ const WaveformVisualizer = () => {
       // exact legacy pair once so somebody already stranded there gets the new
       // visible Off state instead of needing an invisible click target.
       if (
-        isTitlebarWaveHidden &&
+        getTitlebarWaveHidden() &&
         stored === WAVEFORM_STYLES[0] &&
         window.localStorage.getItem(LEGACY_WAVE_OFF_MIGRATION_KEY) !== 'true'
       ) {
         window.localStorage.setItem(LEGACY_WAVE_OFF_MIGRATION_KEY, 'true');
         window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'off');
-        migratedLegacyOffRef.current = true;
         return 'off';
       }
       return isWaveformCycleStyle(stored) ? stored : 'fluid';
@@ -244,14 +241,6 @@ const WaveformVisualizer = () => {
   // actually releases this visualiser's analyser claim while leaving its
   // button on screen so it can be clicked back on.
   useLiveAudioCapture(!isOff);
-
-  useEffect(() => {
-    if (!migratedLegacyOffRef.current || !isTitlebarWaveHidden) {
-      return;
-    }
-    migratedLegacyOffRef.current = false;
-    toggleTitlebarWave();
-  }, [isTitlebarWaveHidden]);
 
   // A brief announcement of the style the click just landed on. Shown for
   // two seconds in a pill on the pane and then faded out. It lives in DOM
@@ -719,20 +708,7 @@ const WaveformVisualizer = () => {
     // inside a button is invalid markup that browsers resolve by silently
     // unnesting, which loses the inner click. The pill therefore sits beside
     // the meter and is positioned over it.
-    <div
-      ref={shellRef}
-      /*
-       * Hidden by class, never unmounted.
-       *
-       * The same rule the full-screen path follows and for the same reason:
-       * tearing this down takes its analyser hook with it and builds a new one
-       * on the way back, for a component nobody can see. The bar stops being
-       * drawn; the capture behind it carries on untouched.
-       */
-      className={`waveform-visualizer-shell${
-        isTitlebarWaveHidden ? ' is-hidden' : ''
-      }`}
-    >
+    <div ref={shellRef} className="waveform-visualizer-shell">
       <button
         type="button"
         // The style modifier no longer paints anything — the frame loop does —

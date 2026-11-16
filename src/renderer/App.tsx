@@ -841,9 +841,22 @@ const AppContent = () => {
             type="button"
             className="drawer-backdrop"
             aria-label={t('app.dismiss')}
-            onClick={() => {
+            // One click puts the panels away. The second click of a double
+            // is not another dismissal: over a full-screen picture a double
+            // click leaves full screen, from here as from the picture itself
+            // (Ivan, 2026-11-16: "separate a single click from a double click
+            // to exit full screen, in all cases").
+            onClick={(event) => {
+              if (event.detail > 1) {
+                return;
+              }
               setRightPaneOpen(false);
               setTopPaneOpen(false);
+            }}
+            onDoubleClick={() => {
+              if (isGraphAppFullScreen || isMediaFullScreen) {
+                fullScreen.leaveFullScreen();
+              }
             }}
           />
         )}

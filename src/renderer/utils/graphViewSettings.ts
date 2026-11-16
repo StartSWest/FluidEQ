@@ -535,9 +535,13 @@ const everythingAsLabelled = (): TGraphContents =>
  * wrong: a control that was just pressed has already said what it did. So the
  * announcement moved out here, where the one caller that needs it is.
  */
-export const cycleGraphContents = () => {
+/** Ctrl+W forwards, Ctrl+S back (Ivan, 2026-11-16: "Ctrl+W forward and Ctrl+S back"). */
+export const cycleGraphContents = (direction: 1 | -1 = 1) => {
   const at = CONTENTS_ORDER.indexOf(getGraphContents());
-  const next = CONTENTS_ORDER[(at + 1) % CONTENTS_ORDER.length];
+  const next =
+    CONTENTS_ORDER[
+      (at + direction + CONTENTS_ORDER.length) % CONTENTS_ORDER.length
+    ];
   setGraphContents(next);
   announceGraphMode(GRAPH_CONTENTS_LABEL[next]);
 };

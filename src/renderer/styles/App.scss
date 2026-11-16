@@ -2235,6 +2235,15 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
 // hunt for — but it is drawn over the two panes instead of between them,
 // above both: the graph stands at 2 and the page at 1. `paneSizes.ts`
 // measures the divider's box, so the split counts the one pixel it takes.
+// A menu open on the graph stands over the divider too: menus are always on
+// top (Ivan, 2026-11-16: "I should not be able to resize the graph while that
+// menu is on top"). The graph's 2 holds every menu it opens, so while one is
+// open the graph is lifted over the divider's 3, and a press on the menu
+// where it crosses the divider lands on the menu.
+.center-workspace > .graph-wrapper:has([role='menu']) {
+  z-index: 4;
+}
+
 .center-workspace > .pane-resizer {
   z-index: 3;
   height: 1px;

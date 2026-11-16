@@ -88,8 +88,6 @@ interface IGraphViewMenuProps {
   onToggleCoverage: () => void;
   isMeterHidden: boolean;
   onToggleMeter: () => void;
-  isTitlebarWaveHidden: boolean;
-  onToggleTitlebarWave: () => void;
   waveHeight: number;
   onChangeWaveHeight: (next: number) => void;
   wavePosition: number;
@@ -156,8 +154,6 @@ const GraphViewMenu = ({
   onToggleCoverage,
   isMeterHidden,
   onToggleMeter,
-  isTitlebarWaveHidden,
-  onToggleTitlebarWave,
   waveHeight,
   onChangeWaveHeight,
   wavePosition,
@@ -347,14 +343,14 @@ const GraphViewMenu = ({
                 </Icon>
                 <span>{t('graph.curves')}</span>
               </span>
-              <span className="graph-view-menu__chips">
+              <span className="segmented graph-view-menu__choice graph-view-menu__curve-choice">
                 {curveToggles.map(({ curve, label }) => {
                   const isShown = !hiddenCurves.includes(curve);
                   return (
                     <button
                       type="button"
                       key={curve}
-                      className={`graph-view-menu__chip${isShown ? ' is-on' : ''}`}
+                      className={`segmented__option${isShown ? ' is-selected' : ''}`}
                       aria-pressed={isShown}
                       disabled={!isResponseAvailable}
                       onClick={() => onToggleCurve(curve)}
@@ -365,7 +361,7 @@ const GraphViewMenu = ({
                 })}
                 <button
                   type="button"
-                  className={`graph-view-menu__chip${bandLabelsHidden ? '' : ' is-on'}`}
+                  className={`segmented__option${bandLabelsHidden ? '' : ' is-selected'}`}
                   aria-pressed={!bandLabelsHidden}
                   disabled={!isResponseAvailable}
                   onClick={toggleGraphBandLabels}
@@ -388,22 +384,6 @@ const GraphViewMenu = ({
               <span>
                 {t(isWaveHidden ? 'graph.show' : 'graph.hide', {
                   item: t('graph.item.wave'),
-                })}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              role="menuitemcheckbox"
-              aria-checked={isTitlebarWaveHidden}
-              onClick={choose(onToggleTitlebarWave)}
-            >
-              <Icon>
-                <path d="M1.5 8h2l2-4 2 8 2-6 1.5 2h2" />
-              </Icon>
-              <span>
-                {t(isTitlebarWaveHidden ? 'graph.show' : 'graph.hide', {
-                  item: t('graph.item.topWave'),
                 })}
               </span>
             </button>
