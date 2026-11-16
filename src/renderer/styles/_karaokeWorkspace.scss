@@ -703,3 +703,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 68px;
   }
 }
+
+// The left panel, opened over a full-screen Karaoke, pushes the stage over
+// by its own width instead of lying on the playlist (Ivan, 2026-11-16: "make
+// sure the left panel pushes the playlist panel to the right, so it never
+// overlaps"), and gives the room back as it shuts, on the panel's own slide.
+.karaoke-workspace.is-fullscreen > .karaoke-workspace__player {
+  transition: padding-left 180ms ease-out;
+}
+
+.app-workspace.is-app-full:has(> .side-bar.is-open)
+  .karaoke-workspace.is-fullscreen
+  > .karaoke-workspace__player {
+  padding-left: min(#{$side-bar-width-compact}, 86vw);
+}

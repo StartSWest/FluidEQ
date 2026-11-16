@@ -96,6 +96,25 @@ let idleFrame: number | undefined;
  */
 let isHeld = false;
 
+/**
+ * The whole frame shown on purpose: the side panels opened together with the
+ * header and the transport, by an edge or a click on the picture
+ * (`useFullScreenFrame`). Kept apart from `isHeld`, which other surfaces set
+ * and release on their own, so one never releases the other's.
+ */
+let isFrameShown = false;
+const isKeptUp = () => isHeld || isFrameShown;
+
+/**
+ * What a click on the picture does while the full-screen frame is managed as
+ * one (`useFullScreenFrame`): shows all of it or puts all of it away. Absent,
+ * a click toggles the header and the transport alone.
+ */
+let frameToggle: (() => void) | undefined;
+export const setFrameToggle = (next: (() => void) | undefined) => {
+  frameToggle = next;
+};
+
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
@@ -128,7 +147,7 @@ const startIdleClock = () => {
   const tick = (now: number) => {
     // A menu can unmount without a pointermove or blur. Check the real target
     // on animation frames so that closing it releases the hold automatically.
-    if (isHeld || isUsingTopChrome() || isUsingSideChrome()) {
+    if (isKeptUp() || isUsingTopChrome() || isUsingSideChrome()) {
       lastActiveAt = now;
     }
     if (now - lastActiveAt >= CHROME_IDLE_MS) {
@@ -425,7 +444,7 @@ const handleActivity = (event?: Event) => {
   // left to consult here, only the clock.
   //
   // Held open: present, and no clock running to take it away again.
-  if (isHeld) {
+  if (isKeptUp()) {
     setIdle(false);
     clearTimer();
     return;
@@ -468,7 +487,11 @@ export const setChromeHeld = (next: boolean) => {
  * the same fade as any other reveal.
  */
 export const toggleChromeNow = () => {
-  if (!isWatching || isHeld) {
+  if (frameToggle) {
+    frameToggle();
+    return;
+  }
+  if (!isWatching || isKeptUp()) {
     return;
   }
   if (isIdle) {
@@ -476,6 +499,30 @@ export const toggleChromeNow = () => {
     return;
   }
   clearTimer();
+  setIdle(true);
+};
+
+/**
+ * Show the whole frame, or put all of it away (Ivan, 2026-11-16: "open
+ * everything at the same time ... if they click the screen again, it hides
+ * the panels, bottom and sides"). Shown, the header and the transport stay
+ * with the side panels and no clock takes them; put away, they go at once.
+ */
+export const setFrameShown = (next: boolean) => {
+  if (!isWatching || next === isFrameShown) {
+    return;
+  }
+  isFrameShown = next;
+  clearTimer();
+  if (next) {
+    setIdle(false);
+    return;
+  }
+  if (isHeld) {
+    return;
+  }
+  setNearBottom(false);
+  setNearSide(false);
   setIdle(true);
 };
 
@@ -529,6 +576,7 @@ export const watchChromeIdle = (next: boolean) => {
   // amount of moving the mouse would explain why. A hold is dropped for the
   // same reason: whatever was asking for it is gone with the mode.
   isHeld = false;
+  isFrameShown = false;
   topPointerTarget = null;
   sidePointerTarget = null;
   setIdle(false);

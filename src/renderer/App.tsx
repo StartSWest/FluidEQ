@@ -104,7 +104,7 @@ import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
 import SceneColumnLayer from './graph/SceneColumnLayer';
 import GraphScene from './graph/GraphScene';
-import useEdgeOpensPanels from './shell/useEdgeOpensPanels';
+import useFullScreenFrame from './shell/useFullScreenFrame';
 import SceneTint from './components/SceneTint';
 import RainbowSource from './components/RainbowSource';
 import TaskbarIconSource from './components/TaskbarIconSource';
@@ -457,13 +457,15 @@ const AppContent = () => {
   const isSoundPaneOverPage =
     isSoundPaneDrawer || isGraphAppFullScreen || isMediaFullScreen;
   const isSoundDrawerOpen = isSoundPaneOverPage && rightPaneOpen;
-  // Over a full-screen picture the panels open from the window's edges.
-  useEdgeOpensPanels({
+  // Over a full-screen picture the side panels, the header and the
+  // transport come and go together, from an edge or a click on the picture.
+  useFullScreenFrame({
     isActive: isGraphAppFullScreen || isMediaFullScreen,
-    isLeftOpen: topPaneOpen,
-    isRightOpen: rightPaneOpen,
-    setLeftOpen: setTopPaneOpen,
-    setRightOpen: setRightPaneOpen,
+    isShown: topPaneOpen || rightPaneOpen,
+    setShown: (shown) => {
+      setTopPaneOpen(shown);
+      setRightPaneOpen(shown);
+    },
   });
   const isSoundPaneShown = isSoundPaneOverPage
     ? rightPaneOpen
