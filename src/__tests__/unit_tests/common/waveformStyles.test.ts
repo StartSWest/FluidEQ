@@ -35,10 +35,17 @@ const samples = Array.from({ length: 96 }, (_value, index) =>
 const shapeOf = (style: WaveformStyle) =>
   createWaveformShape(samples, style, WIDTH, HEIGHT, AMPLITUDE);
 
+/**
+ * The eleven this module builds as path data, which the EQ graph's forms draw
+ * from. The ten added on 2026-11-16 are the title bar's alone and are painted
+ * there (`waveformFlatPaint.ts`, held by `waveformFlat.test.ts`).
+ */
+const SHAPED_STYLES = WAVEFORM_STYLES.slice(0, 11);
+
 describe('the style cycle', () => {
-  it('offers eleven', () => {
-    expect(WAVEFORM_STYLES).toHaveLength(11);
-    expect(new Set(WAVEFORM_STYLES).size).toBe(11);
+  it('offers twenty-one', () => {
+    expect(WAVEFORM_STYLES).toHaveLength(21);
+    expect(new Set(WAVEFORM_STYLES).size).toBe(21);
   });
 
   it('comes back round', () => {
@@ -49,7 +56,7 @@ describe('the style cycle', () => {
       style = nextWaveformStyle(style);
     }
     // Every style reachable, and back to the start.
-    expect(seen.size).toBe(11);
+    expect(seen.size).toBe(21);
     expect(style).toBe(WAVEFORM_STYLES[0]);
   });
 
@@ -63,14 +70,14 @@ describe('the style cycle', () => {
 });
 
 describe('every style', () => {
-  it.each(WAVEFORM_STYLES)('draws something for %s', (style) => {
+  it.each(SHAPED_STYLES)('draws something for %s', (style) => {
     const shape = shapeOf(style);
     expect(
       shape.line.length + shape.mirror.length + shape.fill.length,
     ).toBeGreaterThan(0);
   });
 
-  it.each(WAVEFORM_STYLES)('emits only valid path data for %s', (style) => {
+  it.each(SHAPED_STYLES)('emits only valid path data for %s', (style) => {
     const shape = shapeOf(style);
     // NaN in a path silently blanks the whole element, which is the failure
     // mode worth guarding: it looks exactly like "the meter stopped working".
@@ -79,7 +86,7 @@ describe('every style', () => {
     });
   });
 
-  it.each(WAVEFORM_STYLES)('stays inside its box for %s', (style) => {
+  it.each(SHAPED_STYLES)('stays inside its box for %s', (style) => {
     const shape = shapeOf(style);
     const numbers = `${shape.line} ${shape.mirror} ${shape.fill}`
       .split(/[^-\d.]+/)

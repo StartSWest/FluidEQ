@@ -9,9 +9,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * line comes only after real silence has lasted — with nothing published to
  * wake the drawing, as the capture sends nothing once the output is at rest.
  *
- * Read back from the path the canvas is handed. The pane is the `fluid`
- * style's box, 58 tall with its centre line at 29: a wave's height is how far
- * its highest point stands above that line.
+ * Read back from the calls the canvas is handed (`waveformFlatPaint.ts`
+ * paints straight onto it). The canvas reports 180 x 44 and is grown by the
+ * 10 px bleed on every side, so the pane is 160 x 24 with its centre line at
+ * 22, and the `fluid` wave reaches 10 above it at most (half the pane less
+ * two): a wave's height is how far its highest point stands above that line.
  */
 
 import { act, render } from '@testing-library/react';
@@ -20,11 +22,7 @@ import {
   SILENT_WAVEFORM,
   WAVEFORM_POINT_COUNT,
 } from 'renderer/graph/liveSpectrumFrames';
-import {
-  WAVEFORM_AMPLITUDE_MAX,
-  WAVEFORM_HEIGHT,
-  WAVEFORM_STYLE_KEY,
-} from 'renderer/waveformPaint';
+import { WAVEFORM_BLEED, WAVEFORM_STYLE_KEY } from 'renderer/waveformPaint';
 import WaveformVisualizer from 'renderer/WaveformVisualizer';
 
 const mockAudio = {
@@ -56,8 +54,25 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: () => undefined,
 }));
 
+/** One drawn frame: the curve's points and every rounded piece. */
+interface IDrawnFrame {
+  curveYs: number[];
+  pieces: [number, number, number, number][];
+}
+const frames: IDrawnFrame[] = [];
+const current = () => frames[frames.length - 1];
+
 const gradient = { addColorStop: () => undefined };
-const drawing: Record<string | symbol, unknown> = {};
+const drawing: Record<string | symbol, unknown> = {
+  // Every frame starts by clearing the canvas.
+  clearRect: () => {
+    frames.push({ curveYs: [], pieces: [] });
+  },
+  moveTo: (_x: number, y: number) => current()?.curveYs.push(y),
+  bezierCurveTo: (...args: number[]) => current()?.curveYs.push(args[5]),
+  roundRect: (x: number, y: number, width: number, height: number) =>
+    current()?.pieces.push([x, y, width, height]),
+};
 const context = new Proxy(drawing, {
   get: (target, property) =>
     property in target ? target[property] : () => gradient,
@@ -67,14 +82,24 @@ const context = new Proxy(drawing, {
   },
 });
 
-/** Every path the frame loop builds, kept so the last one can be read. */
-const paths: string[] = [];
-const FakePath2D = jest.fn((data?: string) => {
-  if (typeof data === 'string') {
-    paths.push(data);
+/** jsdom has no Path2D; the styles that build one only need it to exist. */
+class FakePath2D {
+  moveTo() {
+    return this;
   }
-  return { addPath: () => undefined };
-});
+
+  arc() {
+    return this;
+  }
+
+  rect() {
+    return this;
+  }
+
+  roundRect() {
+    return this;
+  }
+}
 
 const SizedResizeObserver = jest.fn(
   (
@@ -88,7 +113,10 @@ const SizedResizeObserver = jest.fn(
   }),
 );
 
-const CENTRE = WAVEFORM_HEIGHT / 2;
+const PANE_HEIGHT = 44 - WAVEFORM_BLEED * 2;
+const CENTRE = WAVEFORM_BLEED + PANE_HEIGHT / 2;
+/** How far the fluid wave may stand above the centre line. */
+const REACH = PANE_HEIGHT / 2 - 2;
 
 const flatAt = (db: number) =>
   Array.from({ length: WAVEFORM_POINT_COUNT }, () => 10 ** (db / 20));
@@ -96,12 +124,9 @@ const flatAt = (db: number) =>
 const digitalSilence = () =>
   Array.from({ length: WAVEFORM_POINT_COUNT }, () => 0);
 
-/** How far the newest drawn line stands above the centre line. */
+/** How far the newest drawn wave stands above the centre line. */
 const drawnHeight = () => {
-  const latest = paths[paths.length - 1] ?? '';
-  const ys = [...latest.matchAll(/-?\d+(?:\.\d+)?,(-?\d+(?:\.\d+)?)/g)].map(
-    (match) => Number(match[1]),
-  );
+  const ys = current()?.curveYs ?? [];
   return ys.length === 0 ? Number.NaN : CENTRE - Math.min(...ys);
 };
 
@@ -119,7 +144,7 @@ let realResizeObserver: unknown;
 
 beforeEach(() => {
   jest.useFakeTimers();
-  paths.length = 0;
+  frames.length = 0;
   mockAudio.capturePoints = [];
   window.localStorage.clear();
   jest
@@ -159,17 +184,17 @@ describe('the titlebar wave', () => {
   it('stands a -45 dBFS record up to the top of the pane', () => {
     playSoftly();
     // It used to be drawn at 28% of the pane, on the centre line's doorstep.
-    expect(drawnHeight()).toBeGreaterThan(WAVEFORM_AMPLITUDE_MAX * 0.9);
+    expect(drawnHeight()).toBeGreaterThan(REACH * 0.9);
   });
 
   it('keeps the wave through 300 ms of silence', () => {
     const view = playSoftly();
     const sounding = drawnHeight();
-    const drawnBefore = paths.length;
+    const drawnBefore = frames.length;
     fallSilent(view);
     advance(300);
     // Drawn all the while, not merely left standing by a stopped loop.
-    expect(paths.length).toBeGreaterThan(drawnBefore + 5);
+    expect(frames.length).toBeGreaterThan(drawnBefore + 5);
     expect(drawnHeight()).toBeCloseTo(sounding, 1);
   });
 
@@ -194,26 +219,23 @@ describe('the titlebar wave', () => {
     publish(flatAt(-45));
     view.rerender(<WaveformVisualizer />);
     advance(50);
-    expect(drawnHeight()).toBeGreaterThan(WAVEFORM_AMPLITUDE_MAX * 0.9);
+    expect(drawnHeight()).toBeGreaterThan(REACH * 0.9);
   });
 });
 
 /**
  * Ivan, 2026-11-03: talking, the bars "glitch when the volume is reaching 0"
  * and "it changes the band width". Quiet speech sits between the spectrum's
- * silence (no band over -95 dB) and the wave's (-70 dBFS peak), so frames
- * alternated between the analyser's 48 bands and the bars style's fallback:
- * a narrow bar per sample of the raw wave, scaled to fill the pane.
+ * silence (no band over -95 dB) and the wave's (-70 dBFS peak), and frames
+ * once alternated between the analyser's bands and a narrow bar per sample of
+ * the raw wave. The flat bars only ever read the bands, which fall when a
+ * frame brings none: the same bars at the same widths, frame after frame.
  */
 describe('the titlebar bars on a voice trailing off', () => {
   const SPECTRUM: IChartPointData[] = Array.from(
     { length: 64 },
-    (_value, index) => ({ x: 20 * 1.1 ** index, y: -30 }),
+    (_value, index) => ({ x: 20 * 1.1 ** index, y: 15 }),
   );
-
-  /** Paths the bars style drew from the raw wave rather than the spectrum. */
-  const waveBarsSince = (from: number) =>
-    paths.slice(from).filter((data) => data.includes(' Z'));
 
   const playBars = () => {
     window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'bars');
@@ -222,16 +244,16 @@ describe('the titlebar bars on a voice trailing off', () => {
     return render(<WaveformVisualizer />);
   };
 
-  it('keeps the spectrum bars when a quiet frame brings no spectrum', () => {
-    let cleared = 0;
-    drawing.clearRect = () => {
-      cleared += 1;
-    };
+  /** Each piece's left edge and width: what a glitch in band width moves. */
+  const columns = (frame: IDrawnFrame) =>
+    frame.pieces.map(([x, , width]) => `${x.toFixed(2)}:${width.toFixed(2)}`);
+
+  it('keeps every bar where it was, at its width, when a quiet frame brings no spectrum', () => {
     mockAudio.capturePoints = SPECTRUM;
     const view = playBars();
     advance(200);
-    const from = paths.length;
-    const clearedBefore = cleared;
+    const before = columns(current());
+    const from = frames.length;
     // Still over the wave's silence, under the spectrum's; a voice keeps
     // sending blocks, each a little different, so the drawing stays awake.
     mockAudio.capturePoints = [];
@@ -241,16 +263,28 @@ describe('the titlebar bars on a voice trailing off', () => {
       view.rerender(<WaveformVisualizer />);
       advance(50);
     }
-    // Drawn all the while, so "no wave bars" is not a stopped loop.
-    expect(cleared).toBeGreaterThan(clearedBefore + 5);
-    expect(waveBarsSince(from)).toEqual([]);
-    Reflect.deleteProperty(drawing, 'clearRect');
+    // Drawn all the while, so "nothing changed" is not a stopped loop.
+    expect(frames.length).toBeGreaterThan(from + 5);
+    frames.slice(from).forEach((frame) => {
+      expect(columns(frame)).toEqual(before);
+    });
   });
 
-  it('draws the wave as bars where no spectrum ever came (the control)', () => {
-    playBars();
-    const from = paths.length;
+  it('stands the bars up on the spectrum and lets them fall without it (the control)', () => {
+    mockAudio.capturePoints = SPECTRUM;
+    const view = playBars();
     advance(200);
-    expect(waveBarsSince(from).length).toBeGreaterThan(0);
+    const tallest = () =>
+      Math.max(...current().pieces.map(([, , , height]) => height));
+    const standing = tallest();
+    expect(standing).toBeGreaterThan(PANE_HEIGHT * 0.5);
+    mockAudio.capturePoints = [];
+    for (let step = 0; step < 6; step += 1) {
+      mockAudio.capture = flatAt(-55 - step);
+      publish(flatAt(-55 - step));
+      view.rerender(<WaveformVisualizer />);
+      advance(50);
+    }
+    expect(tallest()).toBeLessThan(standing * 0.5);
   });
 });

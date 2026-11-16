@@ -25,6 +25,9 @@ import {
   traceCurve,
 } from './waveformFlatKit';
 
+/** The pale bead on each Lattice rule, and how far its row stands in. */
+const LATTICE_BEAD = 1.6;
+
 const CLASSIC_PAINTERS: Record<
   | 'line'
   | 'filled'
@@ -217,7 +220,14 @@ const CLASSIC_PAINTERS: Record<
 
   lattice(context, input) {
     const { box, ratio } = input;
-    const row = slots(box, ratio, countFor(box, 8, 24, 64), 5);
+    // The row stands a bead's radius in from each edge, so the beads at the
+    // two ends are drawn whole rather than cut by the meter's edge.
+    const row = slots(
+      { ...box, x: box.x + LATTICE_BEAD, width: box.width - LATTICE_BEAD * 2 },
+      ratio,
+      countFor(box, 8, 24, 64),
+      5,
+    );
     const values = resample(input.bands, row.length);
     const floor = box.y + box.height;
     const hair = Math.max(1, Math.round(ratio)) / ratio;
@@ -230,8 +240,8 @@ const CLASSIC_PAINTERS: Record<
         ratio,
       );
       rules.rect(middle, top, hair, floor - top);
-      beads.moveTo(middle + hair / 2 + 1.6, top);
-      beads.arc(middle + hair / 2, top, 1.6, 0, Math.PI * 2);
+      beads.moveTo(middle + hair / 2 + LATTICE_BEAD, top);
+      beads.arc(middle + hair / 2, top, LATTICE_BEAD, 0, Math.PI * 2);
     });
     context.fillStyle = input.ink;
     context.fill(rules);

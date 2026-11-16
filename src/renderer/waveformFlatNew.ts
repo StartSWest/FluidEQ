@@ -77,7 +77,10 @@ const NEW_PAINTERS: Record<
     // Eight cells in the meter; the grid carries on, unlit, to the box's top.
     const cell = Math.max(
       1 / ratio,
-      snap((floor - input.meterTop - gap * (cells - 1)) / cells, ratio),
+      // Rounded down, so eight cells never rise above the meter's top.
+      Math.floor(
+        ((floor - input.meterTop - gap * (cells - 1)) / cells) * ratio,
+      ) / ratio,
     );
     const rows = Math.max(cells, Math.floor((box.height + gap) / (cell + gap)));
     const groups = {
@@ -227,7 +230,9 @@ const NEW_PAINTERS: Record<
     // carries on, unlit, above it to the box's top.
     const height = Math.max(
       1 / ratio,
-      snap((floor - input.meterTop - gap * (rows - 1)) / rows, ratio),
+      // Rounded down, so eight rows never rise above the meter's top.
+      Math.floor(((floor - input.meterTop - gap * (rows - 1)) / rows) * ratio) /
+        ratio,
     );
     const meterTop = floor - rows * height - (rows - 1) * gap;
     context.fillStyle = input.unlit;
