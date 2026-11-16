@@ -123,9 +123,14 @@ const eq: Partial<Dictionary> = {
   'graph.show': '{item}を表示',
   'graph.hide': '{item}を非表示',
   'graph.item.wave': '波形',
+  // The View menu's switches name the drawing itself.
+  'graph.switch.eqLabels': 'EQラベル',
+  'graph.switch.wave': '波形',
+  'graph.switch.grid': 'グリッド',
+  'graph.switch.meter': 'レベルメーター',
+  'graph.switch.topBar': '上部バー',
   'graph.item.grid': 'グリッド',
   'graph.item.meter': 'レベルメーター',
-  'graph.item.topBar': '上部バー',
   'graph.waveHeight': '波形の高さ',
   'graph.waveHeightHint':
     '波形をほぼ平らな状態からグラフ全体の高さまで調整します',

@@ -124,9 +124,14 @@ const eq: Partial<Dictionary> = {
   'graph.show': 'Afficher {item}',
   'graph.hide': 'Masquer {item}',
   'graph.item.wave': 'l’onde',
+  // The View menu's switches name the drawing itself.
+  'graph.switch.eqLabels': "Étiquettes de l'EQ",
+  'graph.switch.wave': 'Onde',
+  'graph.switch.grid': 'Grille',
+  'graph.switch.meter': 'Indicateur de niveau',
+  'graph.switch.topBar': 'Barre supérieure',
   'graph.item.grid': 'la grille',
   'graph.item.meter': 'l’indicateur de niveau',
-  'graph.item.topBar': 'la barre supérieure',
   'graph.waveHeight': 'Hauteur de l’onde',
   'graph.waveHeightHint':
     'Règle l’onde d’un faible frémissement à toute la hauteur du graphique',

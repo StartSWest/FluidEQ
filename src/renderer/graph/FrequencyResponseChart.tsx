@@ -97,6 +97,7 @@ import {
   toggleGraphGrid,
   toggleFullScreenTopBar,
   cycleGraphContents,
+  setGraphContents,
   useGraphContents,
   useGraphFullScreen,
   useGraphMeterHidden,
@@ -811,7 +812,10 @@ const FrequencyResponseChart = ({
   // With no usable APO engine none of these layers reaches the output. The
   // graph itself still has a live signal to show, so leave that graph fully
   // available and omit only the response curves that would claim to be heard.
-  if (!isLiveOutputForeground) {
+  // Built in solo as well, so the View menu can still offer every curve
+  // there (drawn as off); with no usable engine none is offered, since none
+  // reaches the output.
+  if (isEngineUsable) {
     if (hasConvolution) {
       curveChips.push({
         curve: 'convolution',
@@ -2005,8 +2009,21 @@ const FrequencyResponseChart = ({
               onToggleWave={toggleGraphWave}
               isResponseAvailable={isEngineUsable}
               curveToggles={curveChips}
-              hiddenCurves={hiddenCurves}
-              onToggleCurve={toggleGraphCurve}
+              hiddenCurves={
+                isSolo ? curveChips.map(({ curve }) => curve) : hiddenCurves
+              }
+              // In solo every curve is off; turning one on leaves solo with
+              // that curve drawn, rather than switching a curve nobody sees.
+              onToggleCurve={(curve) => {
+                if (isSolo) {
+                  setGraphContents('everything');
+                  if (hiddenCurves.includes(curve)) {
+                    toggleGraphCurve(curve);
+                  }
+                  return;
+                }
+                toggleGraphCurve(curve);
+              }}
               isGridHidden={isDisplayedGridHidden}
               onToggleGrid={toggleGraphGrid}
               isMeterHidden={isMeterHidden}

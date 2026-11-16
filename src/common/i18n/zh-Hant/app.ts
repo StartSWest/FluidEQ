@@ -392,7 +392,7 @@ const app = {
   'startup.label': '隨 Windows 啟動',
   'startup.blocked': 'Windows 已在啟動應用程式中關閉此功能',
   'startup.failed': 'Windows 未能變更這項設定。',
-  'settings.group.picture': '畫面',
+  'settings.group.picture': '圖表',
   'settings.group.visualizer': '場景',
   'settings.group.drawing': '繪製方式',
   'settings.group.thisView': '目前檢視',

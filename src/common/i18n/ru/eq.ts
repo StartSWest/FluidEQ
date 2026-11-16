@@ -121,9 +121,14 @@ const eq: Partial<Dictionary> = {
   'graph.show': 'Показать {item}',
   'graph.hide': 'Скрыть {item}',
   'graph.item.wave': 'волну',
+  // The View menu's switches name the drawing itself.
+  'graph.switch.eqLabels': 'Подписи EQ',
+  'graph.switch.wave': 'Волна',
+  'graph.switch.grid': 'Сетка',
+  'graph.switch.meter': 'Индикатор уровня',
+  'graph.switch.topBar': 'Верхняя панель',
   'graph.item.grid': 'сетку',
   'graph.item.meter': 'индикатор уровня',
-  'graph.item.topBar': 'верхнюю панель',
   'graph.waveHeight': 'Высота волны',
   'graph.waveHeightHint':
     'Настройте волну от почти плоской до полной высоты графика',

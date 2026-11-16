@@ -431,15 +431,6 @@ export const toggleLiveOutputSolo = () =>
 export type TGraphContents =
   'everything' | 'unlabelled' | 'layers' | 'curves' | 'clean' | 'wave';
 
-const CONTENTS_ORDER: TGraphContents[] = [
-  'everything',
-  'unlabelled',
-  'layers',
-  'curves',
-  'clean',
-  'wave',
-];
-
 /**
  * What each state is called, in one place: the key of its words, in every
  * language.
@@ -535,13 +526,27 @@ const everythingAsLabelled = (): TGraphContents =>
  * wrong: a control that was just pressed has already said what it did. So the
  * announcement moved out here, where the one caller that needs it is.
  */
-/** Ctrl+W forwards, Ctrl+S back (Ivan, 2026-11-16: "Ctrl+W forward and Ctrl+S back"). */
+/**
+ * The stops Ctrl+W walks forwards and Ctrl+S back: everything, the curves
+ * alone, the wave alone, clean (Ivan, 2026-11-16: "we only need a few there
+ * that make sense, in the right order"). The labels have a switch of their own
+ * now, so they are no stop, and the quieted EQ line (`layers`) was a stop for
+ * one line's weight. Either of those, reached from the View menu or stored,
+ * counts as everything here.
+ */
+const CYCLE_STOPS = ['everything', 'curves', 'wave', 'clean'] as const;
+
+const stopOf = (contents: TGraphContents): number => {
+  const at = (CYCLE_STOPS as readonly TGraphContents[]).indexOf(contents);
+  return at < 0 ? 0 : at;
+};
+
 export const cycleGraphContents = (direction: 1 | -1 = 1) => {
-  const at = CONTENTS_ORDER.indexOf(getGraphContents());
-  const next =
-    CONTENTS_ORDER[
-      (at + direction + CONTENTS_ORDER.length) % CONTENTS_ORDER.length
-    ];
+  const count = CYCLE_STOPS.length;
+  const stop =
+    CYCLE_STOPS[(stopOf(getGraphContents()) + direction + count) % count];
+  // Everything as the labels' own switch has it, never a step that turns them.
+  const next = stop === 'everything' ? everythingAsLabelled() : stop;
   setGraphContents(next);
   announceGraphMode(GRAPH_CONTENTS_LABEL[next]);
 };

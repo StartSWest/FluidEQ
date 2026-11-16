@@ -442,7 +442,7 @@ const app: Partial<Dictionary> = {
   'startup.failed': 'Windows non ha permesso la modifica',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
-  'settings.group.picture': 'L’immagine',
+  'settings.group.picture': 'Grafico',
   'settings.group.visualizer': 'La scena',
   'settings.group.drawing': 'Come viene disegnato',
   'settings.group.thisView': 'Questa vista',

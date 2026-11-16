@@ -104,9 +104,14 @@ const eq = {
   'graph.show': '{item} 표시',
   'graph.hide': '{item} 숨기기',
   'graph.item.wave': '파형',
+  // The View menu's switches name the drawing itself.
+  'graph.switch.eqLabels': 'EQ 레이블',
+  'graph.switch.wave': '파형',
+  'graph.switch.grid': '격자',
+  'graph.switch.meter': '레벨 미터',
+  'graph.switch.topBar': '상단 바',
   'graph.item.grid': '그리드',
   'graph.item.meter': '레벨 미터',
-  'graph.item.topBar': '상단 바',
   'graph.waveHeight': '파형 높이',
   'graph.waveHeightHint':
     '낮은 잔물결부터 전체 플롯 높이까지 파도가 그려지는 높이',

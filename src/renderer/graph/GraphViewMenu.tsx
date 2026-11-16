@@ -27,6 +27,7 @@ import { OWN_GROUP_TITLE, SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
+import ViewMenuSwitch from './ViewMenuSwitch';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
   MIN_GRAPH_WAVE_HEIGHT,
@@ -272,22 +273,17 @@ const GraphViewMenu = ({
                   app's own chrome away, so it is the only one with a top bar to
                   argue about. */}
                 {view === 'fullscreen' && (
-                  <button
-                    type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={hasTopBar}
-                    onClick={choose(onToggleTopBar)}
-                  >
-                    <Icon>
-                      <path d="M2.5 2.5h11v11h-11z" />
-                      <path d="M2.5 6h11" />
-                    </Icon>
-                    <span>
-                      {t(hasTopBar ? 'graph.hide' : 'graph.show', {
-                        item: t('graph.item.topBar'),
-                      })}
-                    </span>
-                  </button>
+                  <ViewMenuSwitch
+                    icon={
+                      <>
+                        <path d="M2.5 2.5h11v11h-11z" />
+                        <path d="M2.5 6h11" />
+                      </>
+                    }
+                    name={t('graph.switch.topBar')}
+                    isOn={hasTopBar}
+                    onToggle={onToggleTopBar}
+                  />
                 )}
 
                 {/* Karaoke keeps its independent scenery behind every look.
@@ -318,93 +314,56 @@ const GraphViewMenu = ({
             // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
             {...groupProps('picture')}
           >
-            {/* ONE ROW FOR THE CURVES (Ivan, 2026-11-16: "simplify ... the
-              other curves part, too many options"). Each curve the plot draws
-              - the headphone correction, the preset, the EQ's response, the
-              final output - and the EQ's labels is a chip, lit while it is
-              drawn; a press turns it on or off and leaves the menu open for
-              the next. They were five rows of "Hide ..." and a sixth that
-              walked their arrangements (Ctrl+W), which the keyboard still does.
-              Data-driven like the strip above the graph, in the order APO
-              applies the layers, so a layer appearing or bypassed changes both
-              surfaces together. */}
-            <div
-              className="graph-view-menu__curves"
-              role="group"
-              aria-label={t('graph.curves')}
-            >
-              <span className="graph-view-menu__curves-name">
-                <Icon>
+            {/* Every curve the plot draws, and the EQ's labels, a switch of its
+              own, like the wave's and the grid's below (Ivan, 2026-11-16: "do
+              the curves like the wave and grid thing"). Data-driven like the
+              strip above the graph, in the order APO applies the layers; none
+              over a look that draws no curves. Ctrl+W still walks their
+              arrangements from the keyboard, Ctrl+S back. */}
+            {curveToggles.map(({ curve, label }) => (
+              <ViewMenuSwitch
+                key={curve}
+                icon={
                   <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
-                </Icon>
-                <span>{t('graph.curves')}</span>
-              </span>
-              <span className="segmented graph-view-menu__choice graph-view-menu__curve-choice">
-                {curveToggles.map(({ curve, label }) => {
-                  const isShown = !hiddenCurves.includes(curve);
-                  return (
-                    <button
-                      type="button"
-                      key={curve}
-                      className={`segmented__option${isShown ? ' is-selected' : ''}`}
-                      aria-pressed={isShown}
-                      disabled={!isResponseAvailable}
-                      onClick={() => onToggleCurve(curve)}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  className={`segmented__option${bandLabelsHidden ? '' : ' is-selected'}`}
-                  aria-pressed={!bandLabelsHidden}
-                  disabled={!isResponseAvailable}
-                  onClick={toggleGraphBandLabels}
-                >
-                  {t('graph.item.eqLabels')}
-                </button>
-              </span>
-            </div>
+                }
+                name={label}
+                isOn={!hiddenCurves.includes(curve)}
+                isDisabled={!isResponseAvailable}
+                onToggle={() => onToggleCurve(curve)}
+              />
+            ))}
+            {curveToggles.length > 0 && (
+              <ViewMenuSwitch
+                icon={<path d="M2 2.5h12v7H9l-3 3v-3H2zM5 5h6M5 7h4" />}
+                name={t('graph.switch.eqLabels')}
+                isOn={!bandLabelsHidden}
+                isDisabled={!isResponseAvailable}
+                onToggle={toggleGraphBandLabels}
+              />
+            )}
 
-            <button
-              type="button"
-              role="menuitemcheckbox"
-              aria-checked={isWaveHidden}
-              disabled={!isResponseAvailable}
-              onClick={choose(onToggleWave)}
-            >
-              <Icon>
+            <ViewMenuSwitch
+              icon={
                 <path d="M1.5 8c1.6 0 1.6-4 3.2-4s1.6 8 3.2 8 1.6-8 3.2-8 1.6 4 3.2 4" />
-              </Icon>
-              <span>
-                {t(isWaveHidden ? 'graph.show' : 'graph.hide', {
-                  item: t('graph.item.wave'),
-                })}
-              </span>
-            </button>
+              }
+              name={t('graph.switch.wave')}
+              isOn={!isWaveHidden}
+              isDisabled={!isResponseAvailable}
+              onToggle={onToggleWave}
+            />
 
             {/* The paper, rather than what is drawn on it. Solo above hides the
               other curves and keeps the scale, which is what reading a trace
               needs; this takes the scale away too, for when the graph has
               stopped being a measurement and become a visualiser. */}
-            <button
-              type="button"
-              role="menuitemcheckbox"
-              aria-checked={isGridHidden}
-              onClick={choose(onToggleGrid)}
-            >
-              <Icon>
-                <path d="M2.5 2.5h11v11h-11z" />
-                <path d="M6.2 2.5v11M9.8 2.5v11M2.5 6.2h11M2.5 9.8h11" />
-              </Icon>
-              <span>
-                {t(isGridHidden ? 'graph.show' : 'graph.hide', {
-                  item: t('graph.item.grid'),
-                })}
-              </span>
-              <kbd>Ctrl+G</kbd>
-            </button>
+            <ViewMenuSwitch
+              icon={
+                <path d="M2.5 2.5h11v11h-11zM2.5 6.2h11M2.5 9.8h11M6.2 2.5v11M9.8 2.5v11" />
+              }
+              name={t('graph.switch.grid')}
+              isOn={!isGridHidden}
+              onToggle={onToggleGrid}
+            />
 
             {/* The meter is not on the plot, and it is here anyway.
               This menu is where every "show me less" switch already lives, and
@@ -413,21 +372,12 @@ const GraphViewMenu = ({
               rather than per mode: the sidebar is the same in all three, so a
               control that came back on a mode change would only ever be
               surprising. */}
-            <button
-              type="button"
-              role="menuitemcheckbox"
-              aria-checked={isMeterHidden}
-              onClick={choose(onToggleMeter)}
-            >
-              <Icon>
-                <path d="M5 3.5h2v9H5zM9 3.5h2v9H9z" />
-              </Icon>
-              <span>
-                {t(isMeterHidden ? 'graph.show' : 'graph.hide', {
-                  item: t('graph.item.meter'),
-                })}
-              </span>
-            </button>
+            <ViewMenuSwitch
+              icon={<path d="M6 13.5V2.5h4v11zM6 8.5h4" />}
+              name={t('graph.switch.meter')}
+              isOn={!isMeterHidden}
+              onToggle={onToggleMeter}
+            />
 
             {/* Continuous controls replace the three-stop Ctrl+B size mode. The
               old control mixed plot margins with wave amplitude, which made
@@ -639,9 +589,10 @@ const GraphViewMenu = ({
           {/* Standard looks use the same GPU engine, with their own saved
               drawing choices. Gating this on a Plus id hid their controls. */}
           <Group
-            title={`${t(SETTINGS_GROUP_TITLE.drawing)} · ${t(
-              sceneLookId ? 'graph.scene.badge' : 'graph.picker.styles',
-            )}`}
+            // Named for the scenes whatever look is on: the drawing choices are
+            // the GPU engine's, and the standard looks are drawn by it too
+            // (Ivan, 2026-11-16: "how the scenes are drawn, not the styles").
+            title={`${t(SETTINGS_GROUP_TITLE.drawing)} · ${t('graph.family.scenes')}`}
             // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
             {...groupProps('drawing')}
           >

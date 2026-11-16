@@ -119,9 +119,14 @@ const eq = {
   'graph.show': 'Show {item}',
   'graph.hide': 'Hide {item}',
   'graph.item.wave': 'the wave',
+  // The View menu's switches name the drawing itself.
+  'graph.switch.eqLabels': 'EQ labels',
+  'graph.switch.wave': 'Wave',
+  'graph.switch.grid': 'Grid',
+  'graph.switch.meter': 'Level meter',
+  'graph.switch.topBar': 'Top bar',
   'graph.item.grid': 'grid',
   'graph.item.meter': 'level meter',
-  'graph.item.topBar': 'the top bar',
   'graph.waveHeight': 'Wave height',
   'graph.waveHeightHint':
     'How tall the wave is drawn, from a low ripple to the full plot height',

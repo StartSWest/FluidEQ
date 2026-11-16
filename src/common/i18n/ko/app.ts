@@ -414,7 +414,7 @@ const app = {
   'startup.label': 'Windows 시작 시 실행',
   'startup.blocked': 'Windows의 시작 앱에서 이 기능이 꺼져 있습니다.',
   'startup.failed': 'Windows에서 설정을 변경하지 못했습니다.',
-  'settings.group.picture': '화면',
+  'settings.group.picture': '그래프',
   'settings.group.visualizer': '장면',
   'settings.group.drawing': '렌더링 방식',
   'settings.group.thisView': '이 보기',

@@ -372,40 +372,6 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-column: 3;
 }
 
-// The curves' row (`GraphViewMenu`): its name where every row's is, and
-// the chips wrapping under it at the menu's width, each a curve or the EQ's
-// labels, lit while drawn.
-.graph-view-menu__curves {
-  display: grid;
-  gap: 6px;
-  padding: 6px 10px 8px;
-}
-
-.graph-view-menu__curves-name {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: $text-muted;
-}
-
-// The curves as the window colours' choice is drawn (`WindowColourChoice`):
-// the app's segmented switch, every option a curve that is lit while drawn,
-// any number of them at once, wrapping to a second line at the menu's width
-// (Ivan, 2026-11-16: "instead of hiding and showing, do the selection, same
-// as for the colours").
-.graph-view-menu__choice.graph-view-menu__curve-choice {
-  flex-wrap: wrap;
-  gap: 2px;
-
-  .segmented__option {
-    flex: 0 1 auto;
-
-    &::first-letter {
-      text-transform: uppercase;
-    }
-  }
-}
-
 .graph-view-menu__snap {
   position: absolute;
   top: 50%;

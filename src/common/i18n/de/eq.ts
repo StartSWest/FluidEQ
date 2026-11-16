@@ -125,9 +125,14 @@ const eq: Partial<Dictionary> = {
   'graph.show': '{item} anzeigen',
   'graph.hide': '{item} ausblenden',
   'graph.item.wave': 'Welle',
+  // The View menu's switches name the drawing itself.
+  'graph.switch.eqLabels': 'EQ-Beschriftungen',
+  'graph.switch.wave': 'Welle',
+  'graph.switch.grid': 'Raster',
+  'graph.switch.meter': 'Pegelanzeige',
+  'graph.switch.topBar': 'Obere Leiste',
   'graph.item.grid': 'Raster',
   'graph.item.meter': 'Pegelanzeige',
-  'graph.item.topBar': 'FluidEQ-Kopfzeile',
   'graph.waveHeight': 'Wellenhöhe',
   'graph.waveHeightHint':
     'Die Welle von einer flachen Bewegung bis zur vollen Diagrammhöhe zeichnen',

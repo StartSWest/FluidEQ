@@ -427,7 +427,7 @@ const app = {
   'startup.failed': 'Windows would not change this',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
-  'settings.group.picture': 'The picture',
+  'settings.group.picture': 'Graph',
   'settings.group.visualizer': 'The scene',
   'settings.group.drawing': 'How it is drawn',
   'settings.group.thisView': 'This view',

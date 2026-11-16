@@ -58,7 +58,12 @@ $switch-height: 22px;
   height: var(--switch-height);
   box-sizing: border-box;
   align-items: center;
-  border: 1px solid $border-subtle;
+  // An edge a field would have, and a solid knob: off is a state, not a
+  // switch that cannot be used. Off used to be the subtle hairline round a
+  // knob of edge tint at 26%, and read as disabled beside every other control
+  // (Ivan, 2026-11-16: "the toggles when they are off look like they are
+  // disabled, fix it globally"). Disabled is its own look below, faded.
+  border: 1px solid $border-field;
   // The small buttons' own corner (Ivan, 2026-11-15: "same rounded like the
   // buttons, it is too square"); 3px read as a different family beside them.
   border-radius: $radius-xs;
@@ -79,7 +84,7 @@ $switch-height: 22px;
     // The track's corner less the edge and the air between them, so the
     // curves run parallel.
     border-radius: calc(#{$radius-xs} - 3px);
-    background: color-mix(in srgb, $edge-tint 26%, transparent);
+    background: $text-muted;
     box-shadow: none;
     transition:
       left 160ms ease,
@@ -108,8 +113,12 @@ $switch-height: 22px;
     }
   }
 
-  &:not(:disabled) + .switch-label:hover .switch-button {
-    background: color-mix(in srgb, $edge-tint 38%, transparent);
+  &:not(:disabled) + .switch-label:hover {
+    border-color: $border-field-hover;
+
+    .switch-button {
+      background: $text-primary;
+    }
   }
 
   &:checked:not(:disabled) + .switch-label:hover {
