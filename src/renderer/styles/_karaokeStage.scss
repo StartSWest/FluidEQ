@@ -66,11 +66,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 8px;
   // One band height everywhere, the graph strip's (Ivan, 2026-11-16: "the
   // bar the same height everywhere ... the karaoke's is a bit tall at the
-  // bottom"): 16px over the row, the row's 32px buttons, the band's foot
-  // under them — 55px, as the strip's 17px inset, 28px row and 10px foot.
-  // It was 10px of padding round a 52px row, a band 62px deep.
+  // bottom"): 55px, as the strip's 17px inset, 28px row and 10px foot. Here
+  // the row stands in the middle of it, 11px over its 32px buttons and 12px
+  // under (Ivan: "reduce the top padding a bit so it looks more centred in
+  // the band"); it was 16 over and 7 under.
   min-height: 0;
-  padding: 16px 12px 0;
+  padding: 11px 12px 0;
   transition: opacity $motion-base ease;
 
   // THE BAND UNDER THE OPTIONS, the graph strip's own
@@ -84,7 +85,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     z-index: -1;
     top: 0;
     right: 0;
-    bottom: -7px;
+    bottom: -12px;
     left: 0;
     // Flat, as the graph's (Ivan, 2026-11-16: "flat like the application"),
     // and as see-through (`_graphThemeWorkspace.scss`).
@@ -101,6 +102,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .karaoke-workspace.is-fullscreen &::before {
     top: -100vh;
     right: -100vw;
+    // The stage's own 16px stands over the row in full screen, so the foot
+    // that keeps the band at 55px is 7px.
+    bottom: -7px;
     left: -100vw;
   }
 
