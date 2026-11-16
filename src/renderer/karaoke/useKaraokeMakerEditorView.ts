@@ -35,6 +35,33 @@ export const DEFAULT_PREVIEW_HEIGHT = 150;
  */
 const MAKER_PREVIEW_OPEN_KEY = 'fluideq.karaoke.maker-preview-open';
 
+/**
+ * The preview's height is the same kind of preference (Ivan, 2026-11-15:
+ * "the resize of the preview in the Maker also gets saved"): it was kept per
+ * song, so every other song, and one with no saved draft, opened it at the
+ * default again.
+ */
+const MAKER_PREVIEW_HEIGHT_KEY = 'fluideq.karaoke.maker-preview-height';
+
+/** The splitter's own range (`KaraokeMakerPreview`). */
+const MIN_PREVIEW_HEIGHT = 96;
+const MAX_PREVIEW_HEIGHT = 420;
+
+export const initialPreviewHeight = (): number => {
+  try {
+    const stored = Number(
+      window.localStorage.getItem(MAKER_PREVIEW_HEIGHT_KEY) ?? Number.NaN,
+    );
+    return Number.isFinite(stored) &&
+      stored >= MIN_PREVIEW_HEIGHT &&
+      stored <= MAX_PREVIEW_HEIGHT
+      ? stored
+      : DEFAULT_PREVIEW_HEIGHT;
+  } catch {
+    return DEFAULT_PREVIEW_HEIGHT;
+  }
+};
+
 export const initialPreviewOpen = (): boolean => {
   try {
     return window.localStorage.getItem(MAKER_PREVIEW_OPEN_KEY) !== 'false';
@@ -96,9 +123,7 @@ export const useKaraokeMakerEditorView = (
   const [previewTextSize, setPreviewTextSize] = useState(
     initialEditorView?.previewTextSize ?? 100,
   );
-  const [previewHeight, setPreviewHeight] = useState(
-    initialEditorView?.previewHeight ?? DEFAULT_PREVIEW_HEIGHT,
-  );
+  const [previewHeight, setPreviewHeight] = useState(initialPreviewHeight);
 
   useEffect(() => {
     try {
@@ -107,6 +132,17 @@ export const useKaraokeMakerEditorView = (
       // A blocked storage partition should not disable the editor preview.
     }
   }, [previewOpen]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        MAKER_PREVIEW_HEIGHT_KEY,
+        String(Math.round(previewHeight)),
+      );
+    } catch {
+      // A blocked storage partition keeps the height for this session only.
+    }
+  }, [previewHeight]);
 
   /**
    * Write where the editor is looking, under the song it was looking at.

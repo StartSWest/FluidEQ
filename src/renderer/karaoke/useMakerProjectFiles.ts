@@ -32,7 +32,7 @@ import {
 } from './karaokeEditorPersistence';
 import { plainLyrics } from './useKaraokeMakerLyricsDraft';
 import {
-  DEFAULT_PREVIEW_HEIGHT,
+  initialPreviewHeight,
   DEFAULT_VIEW_MS,
   initialPreviewOpen,
 } from './useKaraokeMakerEditorView';
@@ -249,7 +249,7 @@ export const useMakerProjectFiles = ({
       setFollowViewport(importedView?.followViewport ?? true);
       setPreviewOpen(importedView?.previewOpen ?? initialPreviewOpen());
       setPreviewTextSize(importedView?.previewTextSize ?? 100);
-      setPreviewHeight(importedView?.previewHeight ?? DEFAULT_PREVIEW_HEIGHT);
+      setPreviewHeight(initialPreviewHeight());
       setTimingScope(importedView?.timingScope ?? 'all');
       setLyricsDraft(plainLyrics(imported));
       setNotice(
