@@ -20,7 +20,7 @@ import { useState } from 'react';
 import type { ITrackTagSheet } from '../../../common/library/tagFields';
 import { useTranslation } from '../../utils/I18nContext';
 import { LibraryTagInput } from './LibraryTagField';
-import type { ISheetGroup } from './LibraryTagSheet';
+import type { ISheetGroup } from './tagGroups';
 import {
   capitalsFixed,
   type ISetState,

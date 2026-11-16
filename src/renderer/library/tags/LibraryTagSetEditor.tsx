@@ -17,13 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { type KeyboardEvent, useMemo, useState } from 'react';
-import type { ITrackTagSheet } from '../../../common/library/tagFields';
 import { useTranslation } from '../../utils/I18nContext';
 import { useLibraryPlayerSessionIfAny } from '../player/LibraryPlayerContext';
 import { useLibraryTracks } from '../useLibraryTracks';
 import LibraryTagSetCover from './LibraryTagSetCover';
 import LibraryTagSharedFields from './LibraryTagSharedFields';
-import LibraryTagSheet, { type ISheetGroup } from './LibraryTagSheet';
+import LibraryTagSheet from './LibraryTagSheet';
+import { groupsOf } from './tagGroups';
 import LibraryTagSetTools from './LibraryTagSetTools';
 import { useTagEditor } from './TagEditorContext';
 import {
@@ -37,39 +37,6 @@ import {
   withShared,
 } from './tagSetModel';
 import { useTagSheets } from './useTagSheets';
-
-/** A folder's songs grouped by album, each group in the editor's order. */
-const groupsOf = (
-  ordered: readonly ITrackTagSheet[],
-  isFolder: boolean,
-): ISheetGroup[] => {
-  if (!isFolder) {
-    return [{ key: 'all', sheets: [...ordered] }];
-  }
-  const groups = new Map<string, ISheetGroup>();
-  ordered.forEach((sheet) => {
-    // One album however its artist is spelled: grouped by the album's name
-    // (and its album artist where it has one), case aside; a song with no
-    // album stands with the others of its folder.
-    const album = sheet.fields.album ?? '';
-    const albumArtist = sheet.fields.albumArtist ?? '';
-    const key =
-      album === ''
-        ? `folder\u001f${sheet.folder}`
-        : `${albumArtist.toLocaleLowerCase()}\u001f${album.toLocaleLowerCase()}`;
-    const group = groups.get(key) ?? {
-      key,
-      label:
-        [albumArtist || sheet.fields.artist, album]
-          .filter(Boolean)
-          .join(' — ') || sheet.folder,
-      sheets: [],
-    };
-    group.sheets.push(sheet);
-    groups.set(key, group);
-  });
-  return [...groups.values()];
-};
 
 /**
  * AN ALBUM, A FOLDER OR A SELECTION, edited on the page itself (the mockup's
@@ -323,22 +290,24 @@ const LibraryTagSetEditor = () => {
             </span>
           )}
         </div>
-        <button
-          type="button"
-          className="button small subtle"
-          disabled={!hasChanges}
-          onClick={() => setState(initialSetState(ids))}
-        >
-          {t('library.tags.set.discard')}
-        </button>
-        <button
-          type="button"
-          className="button small"
-          disabled={!canSave}
-          onClick={save}
-        >
-          {saveLabel()}
-        </button>
+        <div className="library-tags-set__actions">
+          <button
+            type="button"
+            className="button small subtle"
+            disabled={!hasChanges}
+            onClick={() => setState(initialSetState(ids))}
+          >
+            {t('library.tags.set.discard')}
+          </button>
+          <button
+            type="button"
+            className="button small"
+            disabled={!canSave}
+            onClick={save}
+          >
+            {saveLabel()}
+          </button>
+        </div>
       </footer>
     </section>
   );

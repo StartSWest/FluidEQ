@@ -243,6 +243,83 @@ const libraryTags = {
   'library.tags.problems.nothingToDo': 'Rien à faire.',
   'library.tags.problems.everythingElse': 'Tout le reste est écrit',
   'library.tags.problems.undoCovers': 'Annuler s’applique aussi à ceux-ci',
+  'library.tags.menu.fix': 'Corriger les tags automatiquement…',
+  'library.tags.menu.fixAlbum': 'Corriger cet album…',
+  'library.tags.menu.fixShortcut': 'Ctrl+Maj+I',
+  'library.tags.hero.fix': 'Corriger les tags',
+  'library.tags.selection.fix': 'Corriger',
+  'library.tags.fix.lead':
+    '{count} modifications proposées · rien n’est encore écrit',
+  'library.tags.fix.leadOne':
+    '1 modification proposée · rien n’est encore écrit',
+  'library.tags.fix.leadNone':
+    'Rien à corriger d’après les tags et les noms de fichier des morceaux.',
+  'library.tags.fix.offline':
+    'Déduit des tags et des noms de fichier des morceaux eux-mêmes. Rien n’est allé en ligne.',
+  'library.tags.fix.kind.all': 'Tout',
+  'library.tags.fix.kind.clean': 'Nettoyage',
+  'library.tags.fix.kind.unify': 'Harmoniser',
+  'library.tags.fix.kind.fill': 'Compléter',
+  'library.tags.fix.group.clean': 'Titres nettoyés',
+  'library.tags.fix.group.cleanSub':
+    'D’après les noms de fichier, parasites retirés, majuscules corrigées',
+  'library.tags.fix.group.unify': 'Graphies harmonisées',
+  'library.tags.fix.group.unifySub':
+    'Ce que dit déjà la plus grande partie de l’album',
+  'library.tags.fix.group.fill': 'Manques complétés',
+  'library.tags.fix.group.fillSub':
+    'Numéros de piste, totaux, artiste, album, année, genre',
+  'library.tags.fix.groupCount': '{on} sur {count}',
+  'library.tags.fix.source.fileName': 'Nom de fichier',
+  'library.tags.fix.source.capitals': 'Majuscules',
+  'library.tags.fix.source.junk': 'Nettoyage',
+  'library.tags.fix.source.majority': 'Majorité de l’album',
+  'library.tags.fix.source.count': 'Nombre de morceaux',
+  'library.tags.fix.source.spelling': 'Votre graphie',
+  'library.tags.fix.source.hand': 'Modifié par vous',
+  'library.tags.fix.songsAll': 'Les {count}',
+  'library.tags.fix.empty': 'vide',
+  'library.tags.fix.apply': 'Appliquer cette modification',
+  'library.tags.fix.applyGroup': 'Tout appliquer dans {group}',
+  'library.tags.fix.editHint': 'Modifiez-la à la main',
+  'library.tags.fix.rules.fileNames': 'Titres d’après les noms de fichier',
+  'library.tags.fix.rules.patternNeedsTitle': 'Le modèle doit contenir %title%',
+  'library.tags.fix.rules.preview': '{file} → piste {track}, titre {title}',
+  'library.tags.fix.rules.previewTitle': '{file} → titre {title}',
+  'library.tags.fix.rules.previewNone':
+    'Aucun nom de fichier de cet album ne correspond au modèle',
+  'library.tags.fix.rules.strip': 'Retirer des titres',
+  'library.tags.fix.rules.stripPlaceholder': 'Texte à retirer',
+  'library.tags.fix.rules.stripAdd': 'Ajouter',
+  'library.tags.fix.rules.stripRemove': 'Retirer {text}',
+  'library.tags.fix.rules.capitals': 'Majuscules',
+  'library.tags.fix.rules.capsReleased': 'Comme publié',
+  'library.tags.fix.rules.capsTitle': 'Chaque Mot',
+  'library.tags.fix.rules.capsSentence': 'Comme une phrase',
+  'library.tags.fix.rules.capsNote':
+    '« de », « la », « en », « y », « of », « the » restent en minuscules à l’intérieur d’un titre ; « ¡ » et « ¿ » sont conservés. « Comme publié » ne corrige que les titres écrits entièrement dans une seule casse.',
+  'library.tags.fix.rules.spellings': 'Graphies apprises',
+  'library.tags.fix.rules.spellingsNote':
+    'Activée : chaque album que vous corrigerez désormais l’utilisera aussi.',
+  'library.tags.fix.rules.spellingsNone':
+    'Les graphies que cet album harmonise apparaissent ici ; activez-en une pour continuer à l’utiliser.',
+  'library.tags.fix.rules.keepSpelling':
+    'Toujours écrire {to} au lieu de {from}',
+  'library.tags.fix.changes': '{count} modifications',
+  'library.tags.fix.changesOne': '1 modification',
+  'library.tags.fix.files': '{count} fichiers · originaux gardés pour Annuler',
+  'library.tags.fix.filesOne': '1 fichier · original gardé pour Annuler',
+  'library.tags.fix.nothing': 'Rien de coché',
+  'library.tags.fix.nothingHint': 'Cochez une ligne pour la corriger',
+  'library.tags.fix.write': 'Écrire {count} modifications',
+  'library.tags.fix.writeOne': 'Écrire 1 modification',
+  'library.tags.fix.cancel': 'Annuler',
+  'library.tags.fix.albums': '{count} albums',
+  'library.tags.fix.review': 'Examiner',
+  'library.tags.fix.albumNothing': 'Rien à corriger',
+  'library.tags.fix.albumChanges': '{count} modifications',
+  'library.tags.fix.albumChangesOne': '1 modification',
+  'library.tags.fix.allAlbums': 'Tous les albums',
 };
 
 export default libraryTags;

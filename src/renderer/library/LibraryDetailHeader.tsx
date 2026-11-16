@@ -114,6 +114,17 @@ const LibraryDetailHeader = ({
       );
     }
   };
+  /** The record's proposed fixes, to tick and edit. */
+  const fixRecordTags = (trackIds: readonly string[]) => {
+    if (tagEditor && tagScope && trackIds.length > 0) {
+      tagEditor.openFix(
+        tagScope.scope,
+        trackIds,
+        tagScope.title,
+        tagScope.place,
+      );
+    }
+  };
 
   // Ctrl+I on the record's page edits the whole record, unless a row (which
   // answers Ctrl+I itself) or a text box has the keys.
@@ -133,15 +144,12 @@ const LibraryDetailHeader = ({
         return;
       }
       event.preventDefault();
+      // Ctrl+Shift+I fixes; Ctrl+I edits.
+      const open = event.shiftKey ? tagEditor.openFix : tagEditor.openSet;
       loadTrackIds()
         .then((ids) => {
           if (ids.length > 0) {
-            tagEditor.openSet(
-              tagScope.scope,
-              ids,
-              tagScope.title,
-              tagScope.place,
-            );
+            open(tagScope.scope, ids, tagScope.title, tagScope.place);
           }
           return undefined;
         })
@@ -264,6 +272,34 @@ const LibraryDetailHeader = ({
             </>
           )}
           {counts}
+          {/* One plain button, and nothing counted: what Fix finds is
+              worked out on the press, never in the background (Ivan,
+              2026-11-15: no "N fixes found" unasked). */}
+          {tagEditor &&
+            tagScope &&
+            tagScope.scope !== 'selection' &&
+            hasTracks && (
+              <>
+                <span className="library-hero__meta-dot" aria-hidden="true">
+                  ·
+                </span>
+                <button
+                  type="button"
+                  className="library-hero__fix"
+                  onClick={() => {
+                    loadTrackIds()
+                      .then(fixRecordTags)
+                      .catch(() => undefined);
+                  }}
+                >
+                  <MenuIcon
+                    name="checkAll"
+                    className="library-hero__fix-icon"
+                  />
+                  {t('library.tags.hero.fix')}
+                </button>
+              </>
+            )}
         </div>
         <div className="library-hero__actions">
           {/* Emphasis follows recommendation: the one loud button on the
@@ -382,6 +418,12 @@ const LibraryDetailHeader = ({
                 editTagsLabel={
                   tagScope?.scope === 'album'
                     ? t('library.tags.menu.editAlbum')
+                    : undefined
+                }
+                onFixTags={tagEditor && tagScope ? fixRecordTags : undefined}
+                fixTagsLabel={
+                  tagScope?.scope === 'album'
+                    ? t('library.tags.menu.fixAlbum')
                     : undefined
                 }
                 onChangeCover={

@@ -23,6 +23,7 @@ import { CloseGlyph } from './LibraryTagSongPanel';
 interface ILibrarySelectionBarProps {
   trackIds: readonly string[];
   onEditTags: (trackIds: readonly string[]) => void;
+  onFixTags?: (trackIds: readonly string[]) => void;
   onQueueTracks?: (trackIds: readonly string[]) => void;
   onClear: () => void;
 }
@@ -35,6 +36,7 @@ interface ILibrarySelectionBarProps {
 const LibrarySelectionBar = ({
   trackIds,
   onEditTags,
+  onFixTags,
   onQueueTracks,
   onClear,
 }: ILibrarySelectionBarProps) => {
@@ -54,6 +56,16 @@ const LibrarySelectionBar = ({
         <MenuIcon name="pencil" />
         {t('library.tags.selection.edit')}
       </button>
+      {onFixTags && (
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={() => onFixTags(trackIds)}
+        >
+          <MenuIcon name="checkAll" />
+          {t('library.tags.selection.fix')}
+        </button>
+      )}
       {onQueueTracks && (
         <button
           type="button"

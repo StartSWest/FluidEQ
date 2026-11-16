@@ -68,3 +68,19 @@ export const useListTagEditing = (
   );
   return editor === undefined ? undefined : edit;
 };
+
+/** What a song list's "Fix tags automatically" does: the proposals for the
+ * songs chosen, one or many. */
+export const useListTagFixing = ():
+  ((trackIds: readonly string[]) => void) | undefined => {
+  const editor = useTagEditorIfAny();
+  const fix = useCallback(
+    (trackIds: readonly string[]) => {
+      if (editor !== undefined && trackIds.length > 0) {
+        editor.openFix('selection', trackIds, '');
+      }
+    },
+    [editor],
+  );
+  return editor === undefined ? undefined : fix;
+};

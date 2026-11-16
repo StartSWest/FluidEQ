@@ -55,7 +55,8 @@ export type TTagEditorView =
   | { kind: 'song'; ids: string[]; index: number }
   /** An album, a folder or a selection: the page becomes the editor. */
   | {
-      kind: 'set';
+      /** "set" edits by hand; "fix" proposes changes to tick and edit. */
+      kind: 'set' | 'fix';
       scope: TTagSetScope;
       ids: string[];
       title: string;
@@ -67,6 +68,13 @@ interface ITagEditorContextValue {
   view: TTagEditorView | undefined;
   openSong: (ids: readonly string[], startId: string) => void;
   openSet: (
+    scope: TTagSetScope,
+    ids: readonly string[],
+    title: string,
+    place?: string,
+  ) => void;
+  /** "Fix this album": the proposed changes for the same scopes. */
+  openFix: (
     scope: TTagSetScope,
     ids: readonly string[],
     title: string,
@@ -289,6 +297,8 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
       },
       openSet: (scope, ids, title, place) =>
         setView({ kind: 'set', scope, ids: [...ids], title, place }),
+      openFix: (scope, ids, title, place) =>
+        setView({ kind: 'fix', scope, ids: [...ids], title, place }),
       walkTo: (index) =>
         setView((current) =>
           current?.kind === 'song' && index >= 0 && index < current.ids.length

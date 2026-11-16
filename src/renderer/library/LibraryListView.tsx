@@ -58,7 +58,7 @@ import {
   useLibraryColumns,
 } from './libraryColumns';
 import { countText } from './libraryFormat';
-import { useListTagEditing } from './tags/useListTagEditing';
+import { useListTagEditing, useListTagFixing } from './tags/useListTagEditing';
 import LibrarySelectionBar from './tags/LibrarySelectionBar';
 
 interface ILibraryListViewProps {
@@ -301,6 +301,7 @@ const LibraryListView = ({
   const listRef = useRef(list);
   listRef.current = list;
   const editTags = useListTagEditing(listRef);
+  const fixTags = useListTagFixing();
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
 
@@ -510,20 +511,19 @@ const LibraryListView = ({
         onPlayTrack(track.id);
         return;
       }
-      // Ctrl+I, as Get Info was: the lit rows when this one is among them,
-      // otherwise this one.
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        event.key.toLowerCase() === 'i' &&
-        editTags
-      ) {
-        event.preventDefault();
-        editTags(
+      // Ctrl+I, as Get Info was, and Ctrl+Shift+I to fix: the lit rows when
+      // this one is among them, otherwise this one.
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'i') {
+        const subject =
           selectedIds.has(track.id) && selectedIds.size > 1
             ? Array.from(selectedIds)
-            : [track.id],
-        );
-        return;
+            : [track.id];
+        const act = event.shiftKey ? fixTags : editTags;
+        if (act) {
+          event.preventDefault();
+          act(subject);
+          return;
+        }
       }
       if (
         event.key === 'ContextMenu' ||
@@ -533,7 +533,7 @@ const LibraryListView = ({
         setTrackMenu({ trackId: track.id, anchor: event.currentTarget });
       }
     },
-    [onPlayTrack, editTags, selectedIds],
+    [onPlayTrack, editTags, fixTags, selectedIds],
   );
 
   const columnHeader = (column: TListColumn) => t(COLUMN_LABEL_KEYS[column]);
@@ -917,6 +917,9 @@ const LibraryListView = ({
             onEditTags={
               menuSubject.track?.kind === 'video' ? undefined : editTags
             }
+            onFixTags={
+              menuSubject.track?.kind === 'video' ? undefined : fixTags
+            }
             onClose={() => setTrackMenu(undefined)}
           />
         )}
@@ -926,6 +929,7 @@ const LibraryListView = ({
           onEditTags={(ids) => {
             editTags(ids);
           }}
+          onFixTags={fixTags}
           onQueueTracks={onQueueTracks}
           onClear={clearSelection}
         />

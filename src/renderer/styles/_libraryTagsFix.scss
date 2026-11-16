@@ -1,0 +1,415 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'themeMixins' as *;
+@use 'libraryTokens' as *;
+
+// *** Fix this album **************************************************************
+//
+// The mockup's section 4: the rules on the left, the before → after lines in
+// groups on the right, the deletions a red tint and the arrivals the accent's.
+// On the editor page's own layout (`.library-tags-set`); the rules' column is
+// `_libraryTagsFixRules.scss`.
+
+// The record's facts line offers Fix as one quiet chip, counting nothing.
+.library-hero__meta-dot {
+  margin: 0 6px;
+  opacity: 0.6;
+}
+
+.library-hero__fix {
+  display: inline-flex;
+  height: 22px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 6px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: $studio-select;
+  color: $secondary-light;
+  font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
+  vertical-align: middle;
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, $secondary-default 20%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.library-hero__fix-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.library-tags-fix__lead {
+  display: grid;
+  margin: 4px 0 0;
+  color: $studio-t2;
+  font-size: $studio-text-tree;
+
+  b {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+  }
+}
+
+.library-tags-fix__filters {
+  max-width: 100%;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.library-tags-fix__filter-count {
+  margin-left: 6px;
+  color: $studio-t3;
+
+  .is-selected & {
+    color: $secondary-light;
+    opacity: 0.8;
+  }
+}
+
+.library-tags-fix__grid {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+// *** The lines ***************************************************************
+
+.library-tags-fix__diff {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+}
+
+.library-tags-fix__group-head {
+  display: flex;
+  height: 34px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border-radius: $radius-xs;
+  background: $studio-surface;
+
+  input[type='checkbox'] {
+    @include checkbox-face;
+
+    align-self: center;
+    margin: 0;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: $studio-text-tree;
+    font-weight: $weight-bold;
+    white-space: nowrap;
+  }
+}
+
+.library-tags-fix__group-sub {
+  min-width: 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  @include truncate;
+}
+
+.library-tags-fix__group-count {
+  margin-left: auto;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  white-space: nowrap;
+}
+
+.library-tags-fix-row {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: 16px 170px minmax(0, 1fr) 14px minmax(0, 1fr);
+  align-items: center;
+  gap: 0 12px;
+  padding: 7px 10px;
+  box-shadow: inset 0 -1px 0 $studio-hair;
+  font-size: $studio-text-tree;
+
+  > input[type='checkbox'] {
+    @include checkbox-face;
+
+    align-self: center;
+    margin: 0;
+  }
+
+  &.is-off {
+    .library-tags-fix-row__meta,
+    .library-tags-fix-row__before,
+    .library-tags-fix-row__after {
+      opacity: 0.45;
+    }
+
+    ins {
+      background: none;
+    }
+  }
+
+  &.is-hand .library-tags-fix-row__source {
+    color: $secondary-light;
+  }
+
+  del {
+    padding: 0 1px;
+    border-radius: 3px;
+    background: color-mix(in srgb, $red 16%, transparent);
+    color: color-mix(in srgb, $red 45%, $white);
+    text-decoration: none;
+  }
+
+  ins {
+    padding: 0 1px;
+    border-radius: 3px;
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    color: $secondary-light;
+    text-decoration: none;
+  }
+}
+
+.library-tags-fix-row__meta {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.library-tags-fix-row__songs {
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  @include truncate;
+}
+
+.library-tags-fix-row__field {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+}
+
+// Wraps rather than running into the old value ("Большинство альбома").
+.library-tags-fix-row__source {
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  overflow-wrap: anywhere;
+}
+
+.library-tags-fix-row__before {
+  min-width: 0;
+  color: $studio-t3;
+  overflow-wrap: anywhere;
+}
+
+.library-tags-fix-row__arrow {
+  color: $studio-t3;
+
+  svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.library-tags-fix-row__after {
+  min-width: 0;
+  color: $text-primary;
+}
+
+.library-tags-fix-row__empty {
+  color: $studio-t3;
+}
+
+// The new value: lit words, a box under the pointer, the field on a press.
+.library-tags-fix-row__value {
+  display: inline-block;
+  max-width: 100%;
+  margin: -3px -6px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: text;
+  transition: box-shadow 130ms ease;
+
+  &:hover {
+    box-shadow: inset 0 0 0 1px $studio-hair;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-invalid {
+    box-shadow: inset 0 0 0 1px $amber;
+  }
+}
+
+.library-tags-fix-row__input {
+  width: 100%;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: $radius-xs;
+  outline: 0;
+  background: none;
+  box-shadow: inset 0 0 0 1px $border-field-focus;
+  color: $text-primary;
+  font: inherit;
+
+  &.is-invalid {
+    box-shadow: inset 0 0 0 1px $amber;
+  }
+}
+
+// *** A folder: its albums ******************************************************
+
+.library-tags-fix__albums {
+  display: grid;
+}
+
+.library-tags-fix__album {
+  display: grid;
+  min-height: 52px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  box-shadow: inset 0 -1px 0 $studio-hair;
+}
+
+.library-tags-fix__album-name {
+  display: grid;
+  min-width: 0;
+  font-size: $studio-text-tree;
+
+  b {
+    font-weight: $weight-semibold;
+    @include truncate;
+  }
+
+  span {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+  }
+}
+
+.library-tags-fix__album-state {
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+}
+
+@container library (max-width: #{$bp-lg}) {
+  .library-tags-fix__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container library (max-width: #{$bp-md}) {
+  .library-tags-fix-row {
+    grid-template-columns: 16px minmax(0, 1fr);
+    grid-template-areas:
+      'check meta'
+      'check before'
+      'check after';
+    gap: 4px 10px;
+    padding: 10px;
+
+    > input[type='checkbox'] {
+      grid-area: check;
+      align-self: start;
+      margin-top: 2px;
+    }
+  }
+
+  // One line of facts over the values: "2  Title  File name".
+  .library-tags-fix-row__meta {
+    display: flex;
+    grid-area: meta;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .library-tags-fix-row__songs {
+    flex: none;
+    max-width: 40%;
+  }
+
+  .library-tags-fix-row__field {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .library-tags-fix-row__before {
+    grid-area: before;
+  }
+
+  .library-tags-fix-row__arrow {
+    display: none;
+  }
+
+  .library-tags-fix-row__after {
+    grid-area: after;
+
+    &::before {
+      color: $studio-t3;
+      content: '→ ';
+    }
+  }
+
+  .library-tags-fix__group-sub {
+    display: none;
+  }
+
+  .library-tags-fix__album {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .library-tags-fix__album-state {
+      grid-row: 2;
+    }
+  }
+}

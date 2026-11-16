@@ -74,6 +74,10 @@ interface ILibraryTrackMenuProps {
   editTagsLabel?: string;
   /** A record's "Change cover…": its editor page, where the cover leads. */
   onChangeCover?: () => void;
+  /** "Fix tags automatically…": the proposed changes, to tick and edit. */
+  onFixTags?: (trackIds: readonly string[]) => void;
+  /** The record header's "Fix this album…". */
+  fixTagsLabel?: string;
   onClose: () => void;
 }
 
@@ -103,6 +107,8 @@ const LibraryTrackMenu = ({
   onEditTags,
   editTagsLabel,
   onChangeCover,
+  onFixTags,
+  fixTagsLabel,
   onClose,
 }: ILibraryTrackMenuProps) => {
   const { t } = useTranslation();
@@ -283,6 +289,21 @@ const LibraryTrackMenu = ({
               {t('library.tags.menu.shortcut')}
             </span>
           </button>
+          {onFixTags && (
+            <button
+              type="button"
+              onClick={() => {
+                onFixTags(trackIds);
+                onClose();
+              }}
+            >
+              <MenuIcon name="checkAll" className="library-list__menu-icon" />
+              <span>{fixTagsLabel ?? t('library.tags.menu.fix')}</span>
+              <span className="library-list__menu-key" aria-hidden="true">
+                {t('library.tags.menu.fixShortcut')}
+              </span>
+            </button>
+          )}
           {onChangeCover && (
             <button
               type="button"

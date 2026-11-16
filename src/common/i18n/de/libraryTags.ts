@@ -242,6 +242,84 @@ const libraryTags = {
   'library.tags.problems.nothingToDo': 'Nichts zu tun.',
   'library.tags.problems.everythingElse': 'Alles andere ist geschrieben',
   'library.tags.problems.undoCovers': 'Rückgängig gilt auch für diese',
+  'library.tags.menu.fix': 'Tags automatisch korrigieren…',
+  'library.tags.menu.fixAlbum': 'Dieses Album korrigieren…',
+  'library.tags.menu.fixShortcut': 'Strg+Umschalt+I',
+  'library.tags.hero.fix': 'Tags korrigieren',
+  'library.tags.selection.fix': 'Korrigieren',
+  'library.tags.fix.lead':
+    '{count} Änderungen vorgeschlagen · noch nichts geschrieben',
+  'library.tags.fix.leadOne':
+    '1 Änderung vorgeschlagen · noch nichts geschrieben',
+  'library.tags.fix.leadNone':
+    'Aus den Tags und Dateinamen der Songs gibt es nichts zu korrigieren.',
+  'library.tags.fix.offline':
+    'Aus den eigenen Tags und Dateinamen der Songs ermittelt. Nichts ging online.',
+  'library.tags.fix.kind.all': 'Alle',
+  'library.tags.fix.kind.clean': 'Bereinigen',
+  'library.tags.fix.kind.unify': 'Vereinheitlichen',
+  'library.tags.fix.kind.fill': 'Ergänzen',
+  'library.tags.fix.group.clean': 'Titel bereinigt',
+  'library.tags.fix.group.cleanSub':
+    'Aus Dateinamen, Überflüssiges entfernt, Großschreibung korrigiert',
+  'library.tags.fix.group.unify': 'Schreibweisen vereinheitlicht',
+  'library.tags.fix.group.unifySub': 'Was der Großteil des Albums schon sagt',
+  'library.tags.fix.group.fill': 'Fehlendes ergänzt',
+  'library.tags.fix.group.fillSub':
+    'Titelnummern, Gesamtzahlen, Interpret, Album, Jahr, Genre',
+  'library.tags.fix.groupCount': '{on} von {count}',
+  'library.tags.fix.source.fileName': 'Dateiname',
+  'library.tags.fix.source.capitals': 'Großschreibung',
+  'library.tags.fix.source.junk': 'Bereinigung',
+  'library.tags.fix.source.majority': 'Album-Mehrheit',
+  'library.tags.fix.source.count': 'Anzahl der Songs',
+  'library.tags.fix.source.spelling': 'Ihre Schreibweise',
+  'library.tags.fix.source.hand': 'Von Ihnen geändert',
+  'library.tags.fix.songsAll': 'Alle {count}',
+  'library.tags.fix.empty': 'leer',
+  'library.tags.fix.apply': 'Diese Änderung übernehmen',
+  'library.tags.fix.applyGroup': 'Alle in {group} übernehmen',
+  'library.tags.fix.editHint': 'Von Hand ändern',
+  'library.tags.fix.rules.fileNames': 'Titel aus Dateinamen',
+  'library.tags.fix.rules.patternNeedsTitle': 'Das Muster braucht %title%',
+  'library.tags.fix.rules.preview':
+    '{file} → Titelnummer {track}, Titel {title}',
+  'library.tags.fix.rules.previewTitle': '{file} → Titel {title}',
+  'library.tags.fix.rules.previewNone':
+    'Kein Dateiname in diesem Album passt zum Muster',
+  'library.tags.fix.rules.strip': 'Aus Titeln entfernen',
+  'library.tags.fix.rules.stripPlaceholder': 'Zu entfernender Text',
+  'library.tags.fix.rules.stripAdd': 'Hinzufügen',
+  'library.tags.fix.rules.stripRemove': '{text} entfernen',
+  'library.tags.fix.rules.capitals': 'Großschreibung',
+  'library.tags.fix.rules.capsReleased': 'Wie veröffentlicht',
+  'library.tags.fix.rules.capsTitle': 'Jedes Wort groß',
+  'library.tags.fix.rules.capsSentence': 'Wie ein Satz',
+  'library.tags.fix.rules.capsNote':
+    '„de“, „la“, „en“, „y“, „of“, „the“ bleiben innerhalb eines Titels klein; „¡“ und „¿“ bleiben erhalten. „Wie veröffentlicht“ korrigiert nur Titel, die ganz in einer Schreibweise geschrieben sind.',
+  'library.tags.fix.rules.spellings': 'Gelernte Schreibweisen',
+  'library.tags.fix.rules.spellingsNote':
+    'An: Jedes Album, das Sie ab jetzt korrigieren, nutzt sie auch.',
+  'library.tags.fix.rules.spellingsNone':
+    'Schreibweisen, die dieses Album vereinheitlicht, erscheinen hier; schalten Sie eine ein, um sie weiter zu nutzen.',
+  'library.tags.fix.rules.keepSpelling': 'Immer {to} statt {from} verwenden',
+  'library.tags.fix.changes': '{count} Änderungen',
+  'library.tags.fix.changesOne': '1 Änderung',
+  'library.tags.fix.files':
+    '{count} Dateien · Originale für Rückgängig behalten',
+  'library.tags.fix.filesOne': '1 Datei · Original für Rückgängig behalten',
+  'library.tags.fix.nothing': 'Nichts angehakt',
+  'library.tags.fix.nothingHint':
+    'Haken Sie eine Zeile an, um sie zu korrigieren',
+  'library.tags.fix.write': '{count} Änderungen schreiben',
+  'library.tags.fix.writeOne': '1 Änderung schreiben',
+  'library.tags.fix.cancel': 'Abbrechen',
+  'library.tags.fix.albums': '{count} Alben',
+  'library.tags.fix.review': 'Ansehen',
+  'library.tags.fix.albumNothing': 'Nichts zu korrigieren',
+  'library.tags.fix.albumChanges': '{count} Änderungen',
+  'library.tags.fix.albumChangesOne': '1 Änderung',
+  'library.tags.fix.allAlbums': 'Alle Alben',
 };
 
 export default libraryTags;

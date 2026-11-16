@@ -28,13 +28,7 @@ import { useTranslation } from '../../utils/I18nContext';
 import { FIELD_LABEL_KEYS } from './tagLabels';
 import { formatDuration } from './tagTime';
 import { effectiveValue, type ISetState, SHEET_FIELDS } from './tagSetModel';
-
-export interface ISheetGroup {
-  key: string;
-  /** "Marea Alta — Luna de Papel"; absent for a single album. */
-  label?: string;
-  sheets: ITrackTagSheet[];
-}
+import type { ISheetGroup } from './tagGroups';
 
 interface ILibraryTagSheetProps {
   groups: readonly ISheetGroup[];

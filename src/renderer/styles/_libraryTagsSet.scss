@@ -307,6 +307,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: inset 0 1px 0 $studio-hair;
 }
 
+// The decline and the write stay side by side; on a narrow page they move to
+// a line of their own together, at its right.
+.library-tags-set__actions {
+  display: flex;
+  margin-left: auto;
+  gap: 8px;
+}
+
 .library-tags-set__what {
   display: flex;
   min-width: 0;
