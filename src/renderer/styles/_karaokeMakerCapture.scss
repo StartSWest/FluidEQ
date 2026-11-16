@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'constant' as *;
-@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -38,14 +37,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-sizing: border-box;
   padding: 16px 16px 12px;
   color: $text-primary;
-  // The dialogs' material (`dialog.surface-look`), a card floating over the
-  // editor like any other: a cyan and a pink wash under a bright accent rim
-  // made the Maker's two floating panels a family of their own (Ivan,
-  // 2026-09-26: "all panes", "fix all modals").
-  @include dialog.surface-look;
-  box-shadow:
-    0 20px 54px rgba($black, 0.54),
-    inset 0 1px rgba($white, 0.05);
+  // SOLID, the menus' face (`menu-face`): the dialogs' glass let the notes and
+  // the playhead show through the words, and a panel over a moving canvas
+  // read as a smear (Ivan, 2026-11-15: "the modals that have bad
+  // transparency"). Under the Backdrop a menu is glass on purpose, and these
+  // follow it there.
+  @include menu-face;
+  box-shadow: 0 20px 54px rgba($black, 0.54);
   will-change: transform;
 
   &.is-end {
@@ -149,11 +147,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-sizing: border-box;
   padding: 25px 48px 15px 18px;
   color: $text-primary;
-  // The dialogs' material, as the capture panel above.
-  @include dialog.surface-look;
-  box-shadow:
-    0 20px 54px rgba($black, 0.54),
-    inset 0 1px rgba($white, 0.05);
+  // Solid, as the capture panel above.
+  @include menu-face;
+  box-shadow: 0 20px 54px rgba($black, 0.54);
   will-change: transform;
 
   &.is-word-selection {

@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'karaokeTokens' as *;
+@use 'libraryTokens' as *;
 
 // Karaoke Maker is a single Canvas-backed editing surface. The DOM here is
 // deliberately limited to stable controls and inspectors; notes, words,
@@ -283,12 +284,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px 14px;
   min-height: 54px;
   padding: 5px 12px;
-  // The toolbar in the pane colour, a bar of its own over the floor the
-  // song is edited on, as the titlebar is over the app's (Ivan, 2026-09-27:
-  // "make tool bar be another color like pane colors so is different"), and
-  // parted from it by the panes' own hairline, edge to edge.
-  background: $surface-panel;
-  border-bottom: 1px solid $border-panel;
+  // FLAT, AS THE LIBRARY IS (Ivan, 2026-11-15: "fix the karaoke UI to look
+  // like the library ... nicer and flat", then of the mockups, "get rid of
+  // the wrapper panes, we want to simplify this"): the bar is the page's own
+  // tone, parted from the editor by the Library's hairline alone. It was the
+  // pane colour, a bar of its own (2026-09-27).
+  background: transparent;
+  border-bottom: 1px solid $studio-hair;
 }
 
 .karaoke-maker__header-tools {
@@ -345,19 +347,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The Library's label voice over the title, which is the thing to read.
 .karaoke-maker__eyebrow {
-  color: $secondary-default;
-  font-size: $text-body;
+  color: $studio-t3;
+  font-size: $studio-text-label;
   font-weight: $weight-bold;
-  @include tracking(0.14em);
+  @include tracking(0.12em);
 }
 
 .karaoke-maker__title-input {
   width: 100%;
   min-width: 0;
   padding: 2px 0;
-  color: $text-muted;
-  font-size: 15px;
+  color: $text-primary;
+  font-size: 1.5rem;
   font-weight: $weight-bold;
   background: transparent;
   border: 0;
@@ -378,9 +381,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: flex-end;
   gap: 4px;
   padding: 4px;
-  border: 1px solid color-mix(in srgb, $secondary-default 12%, transparent);
-  border-radius: $radius-l;
-  box-shadow: inset 0 1px rgba($white, 0.025);
 }
 
 .karaoke-maker__header-icon,
@@ -522,13 +522,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__header-back {
   flex: 0 0 auto;
-  background: $maker-quiet !important;
-  border-color: color-mix(
-    in srgb,
-    $secondary-default 19%,
-    transparent
-  ) !important;
+  background: transparent !important;
+  border-color: transparent !important;
   border-radius: $radius-xs !important;
+
+  &:hover:not(:disabled) {
+    background: $studio-surface !important;
+  }
 }
 
 .karaoke-maker__header-action {
@@ -553,20 +553,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: none;
 }
 
+// The groups are no longer boxes: one row of tools, a group parted from the
+// next by a hairline, as the Library's toolbar parts its controls.
 .karaoke-maker__tool-group {
   flex: 0 0 auto;
   gap: 4px;
   padding: 3px;
-  background: linear-gradient(
-    180deg,
-    rgba(20, 54, 72, 0.58),
-    color-mix(in srgb, $surface-base 66%, transparent)
-  );
-  border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
-  border-radius: $radius-m;
-  box-shadow:
-    inset 0 1px rgba($white, 0.025),
-    0 6px 18px color-mix(in srgb, $surface-base 10%, transparent);
+}
+
+.karaoke-maker__tool-group + .karaoke-maker__tool-group,
+.karaoke-maker__tool-group + .karaoke-maker__export-wrap {
+  margin-left: 2px;
+  padding-left: 9px;
+  border-left: 1px solid $studio-hair;
 }
 
 // The language Dropdown's trigger wears the tool-button surface, not
@@ -599,13 +598,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover:not([aria-disabled='true']),
   &:focus-visible {
-    color: $secondary-light;
-    background: linear-gradient(
-      180deg,
-      rgba(37, 141, 148, 0.2),
-      color-mix(in srgb, $surface-base 32%, transparent)
-    );
-    border-color: color-mix(in srgb, $secondary-default 38%, transparent);
+    color: $text-primary;
+    background: $studio-surface;
+    border-color: transparent;
   }
 }
 
@@ -642,30 +637,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transform 150ms ease;
   }
 
+  // Flat: under the pointer the Library's quiet surface, and a tool that is
+  // on wears its tint and the accent's ink - no gradient, no glow.
   &:hover:not(:disabled),
-  &:focus-visible,
+  &:focus-visible {
+    color: $text-primary !important;
+    background: $studio-surface !important;
+  }
+
   &.is-active {
     color: $secondary-light !important;
-    background: linear-gradient(
-      180deg,
-      rgba(37, 141, 148, 0.2),
-      color-mix(in srgb, $surface-base 32%, transparent)
-    ) !important;
-    border-color: color-mix(
-      in srgb,
-      $secondary-default 38%,
-      transparent
-    ) !important;
-    box-shadow:
-      inset 0 0 14px color-mix(in srgb, $secondary-default 8%, transparent),
-      0 0 12px color-mix(in srgb, $secondary-default 8%, transparent) !important;
-
-    svg {
-      filter: drop-shadow(
-        0 0 5px color-mix(in srgb, $secondary-default 42%, transparent)
-      );
-      transform: translateY(-1px);
-    }
+    background: $studio-select !important;
   }
 
   &.is-active::before {
@@ -676,7 +658,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 4px;
     background: $secondary-default;
     border-radius: 50%;
-    box-shadow: 0 0 7px $secondary-default;
     content: '';
   }
 

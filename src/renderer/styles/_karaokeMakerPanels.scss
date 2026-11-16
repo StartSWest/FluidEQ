@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'karaokeTokens' as *;
+@use 'libraryTokens' as *;
 
 .karaoke-maker__action-popover {
   display: grid;
@@ -345,9 +346,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: auto minmax(150px, 1fr) auto;
   align-items: center;
   gap: 7px;
-  padding: 7px;
-  border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
-  border-radius: $radius-s;
+  // On the panel itself under a hairline: no box inside the box.
+  padding: 8px 0 0;
+  border-top: 1px solid $studio-hair;
 }
 
 .karaoke-maker__timing-shift button {
@@ -364,20 +365,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   accent-color: $secondary-default;
 }
 
+// Two pills on the panel, not a track in a well: the one in use in the
+// Library's tint and the accent's ink.
 .karaoke-maker__timing-scope {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 3px;
-  background: $maker-quiet;
-  border: 1px solid $border-field;
-  border-radius: $radius-s;
+  gap: 6px;
 
   button {
     min-height: 27px;
     font-size: $text-lead;
-    border-radius: $radius-xs;
+    border-radius: $radius-pill;
   }
+}
+
+// Over the Maker's own filled `is-active`, which is for a switch that acts.
+.karaoke-maker .karaoke-maker__timing-scope button.is-active {
+  color: $secondary-light;
+  background: $studio-select;
+  border-color: color-mix(in srgb, $secondary-default 45%, transparent);
+  box-shadow: none;
 }
 
 .karaoke-maker__timing-hint {
@@ -466,8 +473,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 9px;
   padding: 2px 7px;
   white-space: nowrap;
-  border: 1px solid rgba(82, 145, 164, 0.12);
-  border-radius: $radius-2xs;
 
   > span {
     gap: 4px;
@@ -551,14 +556,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
-  margin: 8px 10px 0;
+  margin: 0;
   overflow: hidden;
-  // The app's own card (`section-card`), as the Studio's panes and every
-  // page's cards are, on the Maker's floor: it was the floor's colour inside
-  // a field's lit edge with a glow and a shadow, a well cut into the floor
-  // rather than a pane standing on it (Ivan, 2026-09-27: "fix karaoke maker
-  // too bg color panes").
-  @include section-card;
+  // No pane round it: the editor runs edge to edge on the page's tone, as
+  // the Library's shelf does, and a hairline parts it from what is under it
+  // (Ivan, 2026-11-15: "get rid of the wrapper panes, we want to simplify
+  // this"). It was the app's card (`section-card`) from 2026-09-27.
+  border-bottom: 1px solid $studio-hair;
 }
 
 .karaoke-maker__canvas {

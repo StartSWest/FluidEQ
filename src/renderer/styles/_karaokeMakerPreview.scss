@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'karaokeTokens' as *;
+@use 'libraryTokens' as *;
 
 .karaoke-maker-nav {
   z-index: 4;
@@ -32,8 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 6px;
   min-height: 52px;
   padding: 5px 8px;
-  border-top: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
-  box-shadow: 0 -10px 30px color-mix(in srgb, $surface-base 18%, transparent);
+  border-top: 1px solid $studio-hair;
 }
 
 .karaoke-maker-nav__summary {
@@ -42,10 +42,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding-inline: 4px 7px;
 
   span {
-    color: $text-faint;
-    font-size: $text-body;
+    color: $studio-t3;
+    font-size: $studio-text-label;
     font-weight: $weight-bold;
-    @include tracking(0.11em);
+    @include tracking(0.12em);
     text-transform: uppercase;
   }
 
@@ -106,12 +106,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   padding: 0 !important;
   color: $text-accent !important;
-  background: $maker-quiet !important;
-  border: 1px solid $border-field !important;
+  background: transparent !important;
+  border: 1px solid $studio-hair !important;
   border-radius: 50% !important;
-  box-shadow:
-    0 6px 16px color-mix(in srgb, $surface-base 20%, transparent),
-    inset 0 1px rgba($white, 0.05) !important;
+  box-shadow: none !important;
 
   svg {
     width: 16px;
@@ -121,16 +119,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover:not(:disabled) {
     color: $white !important;
-    background: $maker-quiet-hover !important;
+    background: $studio-surface !important;
     border-color: color-mix(
       in srgb,
-      $secondary-default 58%,
+      $secondary-default 45%,
       transparent
     ) !important;
-    box-shadow:
-      0 8px 20px color-mix(in srgb, $surface-base 24%, transparent),
-      0 0 18px color-mix(in srgb, $secondary-default 16%, transparent),
-      inset 0 1px rgba($white, 0.08) !important;
+    box-shadow: none !important;
 
     svg {
       transform: scale(1.08);
@@ -166,7 +161,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted !important;
   font-size: $text-body;
   font-weight: $weight-bold;
-  text-shadow: 0 0 9px color-mix(in srgb, $secondary-default 22%, transparent);
 
   span {
     color: inherit;
@@ -178,11 +172,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 13px;
   }
 
+  // A switch that is on wears the Library's tint and the accent's ink, not a
+  // filled block: the Maker's one loud button is Use in player.
   &.is-active {
-    color: $surface-well !important;
+    color: $secondary-light !important;
     text-shadow: none;
-    background: $secondary-default !important;
-    border-color: rgba($white, 0.46) !important;
+    background: $studio-select !important;
+    border-color: color-mix(
+      in srgb,
+      $secondary-default 45%,
+      transparent
+    ) !important;
   }
 
   &:hover:not(:disabled):not(.is-active),
@@ -212,11 +212,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker-preview {
   position: relative;
   min-width: 0;
-  margin: 6px 10px;
+  margin: 0;
   overflow: hidden;
-  // The app's own card, like the note canvas above it: the cards' fill with
-  // their edge. It was the edge alone, a hollow frame on the Maker's floor.
-  @include section-card;
+  // No pane, like the editor above it: the page's tone, a hairline over it.
 
   > header {
     display: flex;
@@ -277,24 +275,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   cursor: ns-resize;
   outline: 0;
 
+  // The preview's top edge is the hairline itself; the grip shows only
+  // under the pointer, where it is the thing being held.
+  border-top: 1px solid $studio-hair;
+
   > span {
     width: 54px;
     height: 3px;
-    background: color-mix(in srgb, $secondary-light 28%, transparent);
-    border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
+    background: transparent;
     border-radius: $radius-pill;
-    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 8%, transparent);
     transition:
       width 140ms ease,
-      background-color 140ms ease,
-      box-shadow 140ms ease;
+      background-color 140ms ease;
   }
 
   &:hover > span,
   &:focus-visible > span {
     width: 72px;
-    background: color-mix(in srgb, $secondary-light 78%, transparent);
-    box-shadow: 0 0 15px color-mix(in srgb, $secondary-default 30%, transparent);
+    background: color-mix(in srgb, $secondary-light 60%, transparent);
   }
 }
 
@@ -307,8 +305,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 6px;
   padding: 2px 7px;
   color: $text-muted;
-  border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
-  border-radius: $radius-xs;
 
   > span {
     font-size: $text-eyebrow;
@@ -344,16 +340,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
   letter-spacing: 0 !important;
   text-transform: none;
-  background: $maker-quiet !important;
-  border-color: color-mix(
-    in srgb,
-    $secondary-light 20%,
-    transparent
-  ) !important;
+  background: transparent !important;
+  border-color: $studio-hair !important;
   border-radius: $radius-xs !important;
-  box-shadow:
-    inset 0 1px rgba($white, 0.05),
-    0 5px 14px rgba($black, 0.18) !important;
+  box-shadow: none !important;
 
   svg {
     width: 14px !important;
@@ -362,14 +352,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover {
     color: $white !important;
+    background: $studio-surface !important;
     border-color: color-mix(
       in srgb,
-      $secondary-light 55%,
+      $secondary-light 40%,
       transparent
     ) !important;
-    box-shadow:
-      inset 0 0 13px color-mix(in srgb, $secondary-default 8%, transparent),
-      0 0 16px color-mix(in srgb, $secondary-default 10%, transparent) !important;
   }
 
   // The shared ring, whose inner hairline no ancestor can clip — an offset
@@ -403,41 +391,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   );
   min-height: 0;
   overflow: hidden;
-  background:
-    radial-gradient(
-      circle at 18% 48%,
-      color-mix(in srgb, #{$karaoke-warm} 14%, transparent),
-      transparent 27%
-    ),
-    radial-gradient(
-      circle at 82% 42%,
-      color-mix(in srgb, #{$karaoke-cool} 12%, transparent),
-      transparent 30%
-    ),
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, $surface-panel 70%, transparent),
-      color-mix(in srgb, $surface-base 45%, transparent)
-    );
-
-  &::before {
-    position: absolute;
-    inset: 0;
-    opacity: 0.22;
-    background-image:
-      linear-gradient(
-        color-mix(in srgb, $secondary-light 8%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, $secondary-light 8%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 34px 34px;
-    pointer-events: none;
-    content: '';
-  }
+  // The words on the plain page: no glossy stage, no grid behind them (Ivan,
+  // 2026-11-15: "don't show a glossy background on the lyrics or any of
+  // that"). It was two coloured glows over a gradient under a 34px grid.
+  background: none;
 
   .karaoke-lyrics-shell {
     width: 100%;

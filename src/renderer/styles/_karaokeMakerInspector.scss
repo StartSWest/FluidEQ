@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 @use 'karaokeTokens' as *;
 
 @keyframes karaoke-maker-capture-coach-cue {
@@ -181,7 +182,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 15px;
   min-height: 44px;
   padding: 5px 13px;
-  border-top: 1px solid $border-field;
+  border-top: 1px solid $studio-hair;
 }
 
 .karaoke-maker__command-dock {
@@ -189,11 +190,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 12;
   display: grid;
   min-width: 0;
-  // The toolbar's pair at the foot, in the same pane colour and hairline, as
-  // the transport bar pairs the titlebar: the song's fields and checks are a
-  // bar, not more of the editing floor.
-  background: $surface-panel;
-  border-top: 1px solid $border-panel;
+  // The toolbar's pair at the foot, flat as it is: the page's tone under one
+  // hairline (Ivan, 2026-11-15, the Maker made flat like the Library).
+  background: transparent;
+  border-top: 1px solid $studio-hair;
 
   > .karaoke-transport {
     // Match the player's 12px workspace inset exactly, so switching into the
@@ -206,7 +206,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__command-primary {
   display: block;
   min-width: 0;
-  border-bottom: 1px solid rgba(64, 129, 153, 0.13);
+  border-bottom: 1px solid $studio-hair;
 
   > .karaoke-maker__status-row {
     min-height: 28px;
@@ -231,9 +231,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 27px;
     padding: 0 8px;
     color: $text-muted;
-    background: $surface-plot;
-    border: 1px solid color-mix(in srgb, $secondary-default 27%, transparent);
-    border-radius: $radius-xs;
+    // A value on a line, the field's edge drawn under it only: no box.
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom-color: $studio-hair;
+    border-radius: 0;
     outline: 0;
 
     &:focus {
@@ -480,9 +482,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 22;
   top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 18px;
-  box-shadow:
-    0 18px 48px rgba($black, 0.42),
-    inset 0 1px rgba($white, 0.055);
+  box-shadow: 0 18px 48px rgba($black, 0.42);
 }
 
 // The failure replaces the progress block inside the lyrics dialog. The base
@@ -504,12 +504,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   right: 18px;
   width: min(430px, calc(100% - 36px));
   padding: 13px 14px;
-  // A panel floating over the editor: the dialogs' material, not a slab of
-  // the block colour.
-  @include dialog.surface-look;
-  box-shadow:
-    0 18px 48px rgba($black, 0.42),
-    inset 0 1px rgba($white, 0.05);
+  // A panel floating over the editor, solid as the capture panel is.
+  @include menu-face;
+  box-shadow: 0 18px 48px rgba($black, 0.42);
 }
 
 // The advanced-tools popover, split into "voice and music" and "lyrics and

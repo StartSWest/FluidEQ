@@ -102,8 +102,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px 12px;
   padding: 11px 12px;
   color: $text-primary;
-  // The window's filled card, where the progress stands in a panel.
-  @include card-surface;
+  // Solid, the menus' face: the card's fill is a third opaque, and over the
+  // editor the notes ran through the progress words (Ivan, 2026-11-15: "the
+  // modals that have bad transparency"). Inside the lyrics dialog it stands
+  // on the dialog, where the same face reads as a panel.
+  @include menu-face;
   border-radius: $radius-l;
 
   > button {
