@@ -220,16 +220,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // so it arrives from the side the list went, as the fold ends. The reduced-motion fold is shorter,
 // and so is the wait. Keyed off the tab showing, like the stage's cascade, so
 // it arrives again with the rest of the tab on the way back to it.
+//
+// It takes no room in the bar until the fold is over, and then all of it at
+// once, in the same frame the stage takes the column's width: so the song's
+// name beside it changes once, rather than growing when the column went and
+// shrinking again while the button grew in.
 @keyframes karaoke-playlist-pill-in {
-  from {
+  // Out of the bar's flow through the wait, so it takes no room there; in
+  // it at full size the moment the wait ends, never a width in between.
+  0% {
+    position: absolute;
     opacity: 0;
     translate: -8px 0;
+  }
+
+  1% {
+    position: static;
   }
 }
 
 .karaoke-workspace:not(.is-hidden) .karaoke-playlist__expand {
   animation: karaoke-playlist-pill-in var(--playlist-settle) $ease-out
-    calc(var(--playlist-move) * 0.6) backwards;
+    var(--playlist-move) backwards;
 }
 
 // In the stage's bar, before the song's name, at the bar's control height.

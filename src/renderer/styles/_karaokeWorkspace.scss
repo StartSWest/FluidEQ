@@ -522,11 +522,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // them. No pin and no opening on hover: here the fold is only ever the
   // button's.
   //
-  // It is the grid that moves, not the list. Folded keeps three tracks,
-  // zero-wide, so the columns interpolate track by track; a folded grid of one
-  // column, as it used to be, has nothing to interpolate with and jumped.
-  // Chromium interpolates `grid-template-columns` whenever both sides have the
-  // same number of tracks of the same kind.
+  // THE COLUMN NEVER CHANGES WIDTH BY DEGREES, as the Library's Up next
+  // column does not. The grid used to interpolate the fold, so the stage
+  // widened a step every frame and re-laid its bar each time: crossing the
+  // width where the bar folds its labels to icons, the song's name showed
+  // longer for a moment and was cut again (Ivan, 2026-11-16: "a glitch in the
+  // karaoke title ... when I collapse it shows a longer name for a second").
+  // Folding, the list leaves and the column holds its width until it has
+  // gone, then gives it to the stage at once; opening, the column takes its
+  // width at once and the list comes back into it. Folded keeps three tracks,
+  // zero-wide, so the two states stay the same shape.
   //
   // How long the fold takes. Reduced motion shortens it rather than removing
   // it, as the rail does: a stage that jumps a quarter of the window sideways
@@ -544,7 +549,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       minmax(160px, var(--karaoke-playlist-size, 27%)) 18px
       minmax(0, 1fr);
     gap: 0;
-    transition: grid-template-columns var(--playlist-move) $ease-out;
+    // Opening: at once.
+    transition: none;
 
     > .karaoke-playlist {
       grid-column: 1;
@@ -582,6 +588,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.has-playlist.is-playlist-collapsed {
     grid-template-columns: minmax(0px, 0%) 0px minmax(0, 1fr);
+    // Folding: held until the list has left, then at once.
+    transition: grid-template-columns 0s linear var(--playlist-move);
 
     // The words go first, quickly, so nothing is seen being squeezed; the card
     // follows them out while the column closes, its padding closing with it so
