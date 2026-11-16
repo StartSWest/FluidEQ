@@ -634,6 +634,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Paused, where the mark stays (the folder tree keeps it on the song's
+// folders while it is paused): the bars stop where they are.
+.library-list__playing-frame.is-held .library-list__playing-bars rect {
+  animation-play-state: paused;
+}
+
 // Held at four different heights rather than one, so the mark still reads as
 // a level meter standing still instead of four identical ticks.
 @media (prefers-reduced-motion: reduce) {

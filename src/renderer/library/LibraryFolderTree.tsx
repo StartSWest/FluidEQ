@@ -47,10 +47,15 @@ import type {
   ILibraryFolderItem,
   TLibraryRequest,
 } from '../../common/library/query';
-import { normaliseFolderPath } from '../../common/library/grouping';
+import {
+  normaliseFolderPath,
+  trackFolderPath,
+} from '../../common/library/grouping';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import LibraryPlayingBars from './LibraryPlayingBars';
 import { placeTrail } from './LibraryPlaceBar';
+import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
 import { formatCount } from './libraryFormat';
 import { useLibraryAnswer } from './useLibraryAnswer';
 
@@ -100,6 +105,17 @@ interface ITreeContext {
   /** The way a root is spelled on screen: as it was added, `D:\Music`. */
   rootLabel: (path: string) => string | undefined;
   offline: ReadonlySet<string>;
+  /**
+   * The folder of the song being heard and every folder above it, marked
+   * with the playing bars so the way back to it can be seen from anywhere in
+   * the tree (Ivan, 2026-11-15: "show the one playing with a playing
+   * animation so it is easy to go back from there even if I am exploring
+   * other folders", "so it is on the container folders").
+   */
+  playing: ReadonlySet<string>;
+  /** Paused: the bars hold still at their heights. */
+  isPlayingHeld: boolean;
+  nowPlayingLabel: string;
   locale: string;
   /** The tree pattern's keys, handled by the row that has the focus. */
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
@@ -147,6 +163,7 @@ const FolderNode = ({
   const path = folder.id;
   const isExpanded = folder.hasFolders === true && context.isExpanded(path);
   const isSelected = context.selected === path;
+  const isPlayingHere = context.playing.has(path);
   const label = context.rootLabel(path) ?? folder.name;
   return (
     <li role="none">
@@ -161,8 +178,8 @@ const FolderNode = ({
         tabIndex={context.focused === path ? 0 : -1}
         data-path={path}
         className={`library-tree__item${isSelected ? ' is-selected' : ''}${
-          context.offline.has(path) ? ' is-offline' : ''
-        }`}
+          isPlayingHere ? ' is-playing' : ''
+        }${context.offline.has(path) ? ' is-offline' : ''}`}
         style={{ '--tree-level': level - 1 } as CSSProperties}
         title={label}
         onKeyDown={context.onKeyDown}
@@ -193,7 +210,16 @@ const FolderNode = ({
         ) : (
           <span className="library-tree__caret" aria-hidden="true" />
         )}
-        <MenuIcon name="folder" className="library-tree__icon" />
+        {isPlayingHere ? (
+          <span
+            className="library-tree__icon library-tree__playing"
+            title={context.nowPlayingLabel}
+          >
+            <LibraryPlayingBars isHeld={context.isPlayingHeld} />
+          </span>
+        ) : (
+          <MenuIcon name="folder" className="library-tree__icon" />
+        )}
         <span className="library-tree__name">{label}</span>
         <small className="library-tree__count">
           {formatCount(folder.trackCount, context.locale)}
@@ -287,6 +313,16 @@ const LibraryFolderTree = ({
     });
   }, [openFolderPath, roots]);
 
+  const player = useLibraryPlayerSessionIfAny();
+  const playingPath = player?.track?.path;
+  const playing = useMemo<ReadonlySet<string>>(
+    () =>
+      playingPath === undefined
+        ? new Set()
+        : new Set(placeTrail(trackFolderPath(playingPath), roots)),
+    [playingPath, roots],
+  );
+
   const labels = useMemo(
     () =>
       new Map(roots.map((root) => [normaliseFolderPath(root.path), root.path])),
@@ -335,6 +371,9 @@ const LibraryFolderTree = ({
     focus: setFocused,
     rootLabel: (path) => labels.get(path),
     offline,
+    playing,
+    isPlayingHeld: player?.isPlaying !== true,
+    nowPlayingLabel: t('library.nowPlaying'),
     locale,
     // Read when a key lands, by which time the handler below exists.
     onKeyDown: (event) => onKeyDown(event),

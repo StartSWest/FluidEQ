@@ -332,6 +332,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The playing bars in the folder icon's place, on the song's folder and the
+// folders above it (`LibraryFolderTree`), in the light accent the playing
+// row's name is drawn in.
+.library-tree__playing {
+  display: block;
+  padding-block: 1px;
+}
+
+.library-tree__item.is-playing .library-tree__name {
+  color: $secondary-light;
+}
+
 .library-tree__icon {
   width: 14px;
   height: 14px;

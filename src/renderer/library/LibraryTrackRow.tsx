@@ -20,6 +20,7 @@ import { KeyboardEvent, memo, type ReactNode } from 'react';
 import { ILibraryTrack } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
+import LibraryPlayingBars from './LibraryPlayingBars';
 import {
   formatOf,
   NUMERIC_COLUMNS,
@@ -197,19 +198,7 @@ const LibraryTrackRow = ({
               title={t('library.nowPlaying')}
               aria-label={t('library.nowPlaying')}
             >
-              {/* In a frame of its own: the bars move every frame, and a
-                  drawing that moves is laid out again — as an item of the
-                  row's grid it took the table's layout with it. */}
-              <span className="library-list__playing-frame">
-                <svg viewBox="0 0 14 12" aria-hidden="true">
-                  <g className="library-list__playing-bars">
-                    <rect x="0.5" y="1" width="2.2" height="10" rx="1.1" />
-                    <rect x="4.1" y="1" width="2.2" height="10" rx="1.1" />
-                    <rect x="7.7" y="1" width="2.2" height="10" rx="1.1" />
-                    <rect x="11.3" y="1" width="2.2" height="10" rx="1.1" />
-                  </g>
-                </svg>
-              </span>
+              <LibraryPlayingBars />
             </span>
           ) : (
             <span className="library-list__track-no">
