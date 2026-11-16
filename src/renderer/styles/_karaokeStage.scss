@@ -102,9 +102,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .karaoke-workspace.is-fullscreen &::before {
     top: -100vh;
     right: -100vw;
-    // The stage's own 16px stands over the row in full screen, so the foot
-    // that keeps the band at 55px is 7px.
-    bottom: -7px;
+    // 11px over the row in full screen (the stage's 16px, less the row's 5px
+    // lift), so the foot is 12px, as in the windowed view: 55px in all.
+    bottom: -12px;
     left: -100vw;
   }
 
@@ -119,8 +119,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // graph strip's (Ivan, 2026-11-16: "those top options always at the same
   // level"): the stage starts 16px under the header and the strip's centre is
   // 31px under it, so a 30px row with nothing above or below it centres there.
+  // Centred in its band in full screen too: the stage stands 16px under the
+  // header (the playlist card's own top), so the row lifts 5px of it, 11px
+  // over the buttons and a 12px foot under them (Ivan, 2026-11-16: "the top
+  // padding of the bar in full screen is too much").
   .karaoke-workspace.is-fullscreen & {
     min-height: 30px;
+    margin-top: -5px;
     padding-block: 0;
   }
 }
