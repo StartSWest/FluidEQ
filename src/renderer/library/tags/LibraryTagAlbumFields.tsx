@@ -28,9 +28,6 @@ import { LibraryTagInput, PutBackGlyph } from './LibraryTagField';
 import { FIELD_LABEL_KEYS } from './tagLabels';
 import { fieldValues, type ISetState } from './tagSetModel';
 
-/** How many of a mixed field's values are named under it before "and N more". */
-const VALUES_NAMED = 3;
-
 interface ISharedProps {
   fieldKey: TTagFieldKey;
   sheets: readonly ITrackTagSheet[];
@@ -65,9 +62,11 @@ const useShared = (
 };
 
 /**
- * Under a field the songs disagree on, what they hold: "Varies: 2009 ·
- * 2011 · 2014 and 2 more", each a press that gives it to every song. It
- * replaced a "Mixed · 3 values" chip behind which the values hid.
+ * Under a field the songs disagree on, every value they hold: "Varies:
+ * 2009 · 2011 · 2014 · 2015", each a press that gives it to every song. It
+ * replaced a "Mixed · 3 values" chip behind which the values hid, and then
+ * an "and 2 more" that hid the rest (Ivan, 2026-11-16: "I want to see all
+ * the values").
  */
 const Varies = ({
   fieldKey,
@@ -76,11 +75,10 @@ const Varies = ({
 }: Omit<ISharedProps, 'state'>) => {
   const { t } = useTranslation();
   const values = fieldValues(sheets, fieldKey);
-  const named = values.slice(0, VALUES_NAMED);
   return (
     <p className="library-tags-album__varies">
       <span>{t('library.tags.set.varies')}</span>
-      {named.map((entry, index) => (
+      {values.map((entry, index) => (
         <span key={entry.value} className="library-tags-album__value">
           {index > 0 && <span aria-hidden="true">·</span>}
           <button
@@ -92,13 +90,6 @@ const Varies = ({
           </button>
         </span>
       ))}
-      {values.length > VALUES_NAMED && (
-        <span>
-          {t('library.tags.set.variesMore', {
-            count: values.length - VALUES_NAMED,
-          })}
-        </span>
-      )}
     </p>
   );
 };

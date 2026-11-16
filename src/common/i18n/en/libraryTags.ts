@@ -155,7 +155,6 @@ const libraryTags = {
   'library.tags.set.fixAuto': 'Fix tags automatically',
   'library.tags.set.moreFields': 'More fields ({fields})',
   'library.tags.set.varies': 'Varies:',
-  'library.tags.set.variesMore': 'and {count} more',
   'library.tags.set.variesPlaceholder': 'Varies · type one for all',
   'library.tags.set.useForAll': 'Use for all {count} songs',
   'library.tags.set.found': '{count} songs found',

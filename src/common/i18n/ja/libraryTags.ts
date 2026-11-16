@@ -147,7 +147,6 @@ const libraryTags = {
   'library.tags.set.fixAuto': '自動で修正',
   'library.tags.set.moreFields': 'その他の項目（{fields}）',
   'library.tags.set.varies': '曲ごとに異なる:',
-  'library.tags.set.variesMore': 'ほか {count} 件',
   'library.tags.set.variesPlaceholder': '曲ごとに異なる · 全曲共通の値を入力',
   'library.tags.set.useForAll': '{count} 曲すべてに使う',
   'library.tags.set.found': '{count} 曲が見つかりました',

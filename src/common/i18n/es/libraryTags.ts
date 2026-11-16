@@ -149,7 +149,6 @@ const libraryTags = {
   'library.tags.set.fixAuto': 'Corregir automáticamente',
   'library.tags.set.moreFields': 'Más campos ({fields})',
   'library.tags.set.varies': 'Varía:',
-  'library.tags.set.variesMore': 'y {count} más',
   'library.tags.set.variesPlaceholder': 'Varía · escribe uno para todas',
   'library.tags.set.useForAll': 'Usar en las {count} canciones',
   'library.tags.set.found': '{count} canciones encontradas',

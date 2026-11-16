@@ -139,7 +139,6 @@ const libraryTags = {
   'library.tags.set.fixAuto': '自动修正',
   'library.tags.set.moreFields': '更多字段（{fields}）',
   'library.tags.set.varies': '各不相同：',
-  'library.tags.set.variesMore': '等另外 {count} 个',
   'library.tags.set.variesPlaceholder': '各不相同 · 输入一个用于全部',
   'library.tags.set.useForAll': '用于全部 {count} 首歌曲',
   'library.tags.set.found': '找到 {count} 首歌曲',

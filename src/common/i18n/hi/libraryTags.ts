@@ -146,7 +146,6 @@ const libraryTags = {
   'library.tags.set.fixAuto': 'अपने आप ठीक करें',
   'library.tags.set.moreFields': 'और फ़ील्ड ({fields})',
   'library.tags.set.varies': 'अलग-अलग:',
-  'library.tags.set.variesMore': 'और {count}',
   'library.tags.set.variesPlaceholder': 'अलग-अलग · सबके लिए एक लिखें',
   'library.tags.set.useForAll': 'सभी {count} गानों के लिए इस्तेमाल करें',
   'library.tags.set.found': '{count} गाने मिले',

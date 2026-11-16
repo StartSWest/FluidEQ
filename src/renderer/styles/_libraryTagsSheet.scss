@@ -49,6 +49,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 30px;
   }
 
+  col.is-cover {
+    width: 40px;
+  }
+
   col.is-no {
     width: 64px;
   }
@@ -171,6 +175,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:focus {
     box-shadow: inset 0 0 0 1px $border-field-focus;
+  }
+}
+
+// Each song's cover, and what the album's new or removed cover does to it.
+.library-tags-sheet__cover {
+  padding: 0 4px;
+}
+
+.library-tags-sheet__thumb {
+  display: block;
+  overflow: hidden;
+  width: 26px;
+  height: 26px;
+  border-radius: $radius-xs;
+  background: $studio-raise;
+
+  img,
+  .library-cover-art,
+  .library-cover-art img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .is-folder & {
+    opacity: 0.45;
+  }
+
+  // The new cover where the song had none: an addition, in green.
+  .is-added & {
+    box-shadow: 0 0 0 2px $analogous-2;
+  }
+
+  .is-changed & {
+    box-shadow: 0 0 0 2px $secondary-default;
+  }
+
+  // Taken off: the frame left empty, in red.
+  .is-removed & {
+    background: none;
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, $red 70%, transparent);
   }
 }
 

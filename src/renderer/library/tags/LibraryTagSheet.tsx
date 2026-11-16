@@ -26,6 +26,7 @@ import {
 import { isPlaceholderName } from '../../../common/library/tagFix';
 import type { ILibraryTrack } from '../../../common/library/types';
 import { useTranslation } from '../../utils/I18nContext';
+import LibraryCoverArt from '../LibraryCoverArt';
 import { FIELD_LABEL_KEYS } from './tagLabels';
 import { formatDuration } from './tagTime';
 import type { IFindReplace } from './LibraryTagSetTools';
@@ -197,12 +198,46 @@ const LibraryTagSheet = ({
     );
   };
 
+  /**
+   * Each song's cover, and what a new or removed album cover does to it:
+   * green where the song had none, the accent where it replaces one, an
+   * empty red frame where it is taken off (Ivan, 2026-11-16: "cuando cambie
+   * la portada, debe marcar los cambios para las canciones que no la
+   * tienen").
+   */
+  const coverCell = (sheet: ITrackTagSheet, artId: string | undefined) => {
+    const hadCover = sheet.cover !== undefined;
+    let mark = '';
+    if (state.cover === null && hadCover) {
+      mark = ' is-removed';
+    } else if (state.cover) {
+      mark = hadCover ? ' is-changed' : ' is-added';
+    }
+    let picture = null;
+    if (state.cover) {
+      picture = <img src={state.cover.url} alt="" />;
+    } else if (state.cover === undefined && artId !== undefined) {
+      // The Library may draw a folder picture for a song whose file holds
+      // none: drawn faint, as it is not in the file.
+      picture = <LibraryCoverArt artId={artId} label="" size="row" />;
+      if (!hadCover) {
+        mark = ' is-folder';
+      }
+    }
+    return (
+      <td className={`library-tags-sheet__cover${mark}`}>
+        <span className="library-tags-sheet__thumb">{picture}</span>
+      </td>
+    );
+  };
+
   let rowIndex = -1;
   return (
     <div className="library-tags-sheet">
       <table ref={tableRef}>
         <colgroup>
           <col className="is-grip" />
+          <col className="is-cover" />
           <col className="is-no" />
           <col className="is-title" />
           <col className="is-artist" />
@@ -211,6 +246,7 @@ const LibraryTagSheet = ({
         <thead>
           <tr>
             <th aria-label={t('library.tags.set.grip')} />
+            <th aria-label={t('library.tags.changes.cover')} />
             <th className="is-number">{t('library.tags.set.col.no')}</th>
             <th>{t(FIELD_LABEL_KEYS.title)}</th>
             <th>{t(FIELD_LABEL_KEYS.artist)}</th>
@@ -226,7 +262,7 @@ const LibraryTagSheet = ({
                   key={`group-${group.key}`}
                   className="library-tags-sheet__group"
                 >
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <button
                       type="button"
                       aria-expanded={!isFolded}
@@ -307,6 +343,7 @@ const LibraryTagSheet = ({
                         >
                           <GripGlyph />
                         </td>
+                        {coverCell(sheet, track?.artId)}
                         {SHEET_FIELDS.map((key) => cell(sheet, index, key))}
                         <td
                           className="is-number is-fact"

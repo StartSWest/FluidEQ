@@ -144,7 +144,6 @@ const libraryTags = {
   'library.tags.set.fixAuto': '자동으로 고치기',
   'library.tags.set.moreFields': '더 많은 항목 ({fields})',
   'library.tags.set.varies': '곡마다 다름:',
-  'library.tags.set.variesMore': '외 {count}개',
   'library.tags.set.variesPlaceholder': '곡마다 다름 · 모두에 쓸 값을 입력',
   'library.tags.set.useForAll': '{count}곡 모두에 사용',
   'library.tags.set.found': '{count}곡 찾음',

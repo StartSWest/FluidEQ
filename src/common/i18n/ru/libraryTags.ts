@@ -152,7 +152,6 @@ const libraryTags = {
   'library.tags.set.fixAuto': 'Исправить автоматически',
   'library.tags.set.moreFields': 'Другие поля ({fields})',
   'library.tags.set.varies': 'Разное:',
-  'library.tags.set.variesMore': 'и ещё {count}',
   'library.tags.set.variesPlaceholder': 'Разное · введите одно для всех',
   'library.tags.set.useForAll': 'Использовать для всех песен ({count})',
   'library.tags.set.found': 'Найдено песен: {count}',
