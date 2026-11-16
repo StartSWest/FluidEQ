@@ -73,6 +73,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #{$maker-own-button} {
     min-height: 30px;
     padding: 0 11px;
+    // The app's button text, set here because `font: inherit` above hands
+    // every Maker button the page's 16px, and this rule outranks each
+    // button's own size: "Save to library" and "Use in player" stood at
+    // 16px, wrapped to two lines and dwarfed the toolbar (Ivan, 2026-11-15).
+    font-size: $text-lead;
+    white-space: nowrap;
     color: $secondary-light;
     background: $surface-control;
     border: 1px solid $border-field;
