@@ -142,6 +142,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volume': 'Громкость микрофона',
   'karaoke.mic.volumeValue': 'Громкость микрофона: {percent}%',
   'karaoke.pitch.title': 'Линия высоты тона',
+  'karaoke.pitch.resize': 'Изменить размер линии высоты тона',
+  'karaoke.pitch.micOff':
+    'Включите микрофон, чтобы увидеть высоту своего голоса.',
   'karaoke.pitch.toneVolume': 'Громкость тона мелодии',
   'karaoke.pitch.scrubHint':
     'Перетащите влево или вправо для перемещения по песне; отпустите, чтобы оставить паузу.',

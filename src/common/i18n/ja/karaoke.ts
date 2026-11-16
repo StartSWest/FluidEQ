@@ -141,6 +141,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volume': 'マイク音量',
   'karaoke.mic.volumeValue': 'マイク音量：{percent}%',
   'karaoke.pitch.title': 'ピッチレーン',
+  'karaoke.pitch.resize': 'ピッチレーンのサイズを変更',
+  'karaoke.pitch.micOff': 'マイクをオンにすると音程を確認できます。',
   'karaoke.pitch.toneVolume': 'メロディー音の音量',
   'karaoke.pitch.scrubHint':
     '左右にドラッグして曲内を移動します。離すと一時停止したままになります。',

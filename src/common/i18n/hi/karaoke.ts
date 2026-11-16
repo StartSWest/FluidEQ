@@ -141,6 +141,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volume': 'माइक वॉल्यूम',
   'karaoke.mic.volumeValue': 'माइक वॉल्यूम: {percent}%',
   'karaoke.pitch.title': 'सुर लेन',
+  'karaoke.pitch.resize': 'सुर लेन का आकार बदलें',
+  'karaoke.pitch.micOff': 'अपना सुर देखने के लिए माइक्रोफ़ोन चालू करें।',
   'karaoke.pitch.toneVolume': 'धुन स्वर का वॉल्यूम',
   'karaoke.pitch.scrubHint':
     'गाने में आगे या पीछे जाने के लिए बाएँ या दाएँ खींचें; छोड़ने पर गाना रुका रहेगा।',

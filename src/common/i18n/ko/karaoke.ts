@@ -122,6 +122,8 @@ const karaoke = {
   'karaoke.mic.volume': '마이크 볼륨',
   'karaoke.mic.volumeValue': '마이크 볼륨: {percent}%',
   'karaoke.pitch.title': '피치레인',
+  'karaoke.pitch.resize': '피치 차선 크기 조정',
+  'karaoke.pitch.micOff': '마이크를 켜서 피치를 확인하세요.',
   'karaoke.pitch.toneVolume': '멜로디 톤 볼륨',
   'karaoke.pitch.scrubHint':
     '노래를 이동하려면 왼쪽이나 오른쪽으로 드래그하세요. 일시중지 상태를 유지하려면 버튼을 놓으세요.',

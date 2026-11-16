@@ -133,6 +133,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volume': '麦克风音量',
   'karaoke.mic.volumeValue': '麦克风音量：{percent}%',
   'karaoke.pitch.title': '音高轨道',
+  'karaoke.pitch.resize': '调整音高轨道大小',
+  'karaoke.pitch.micOff': '打开麦克风即可查看你的音高。',
   'karaoke.pitch.toneVolume': '旋律提示音音量',
   'karaoke.pitch.scrubHint': '左右拖动可在歌曲中移动；松开后保持暂停。',
   'karaoke.pitch.waveCanvas': '歌手实时音高曲线叠加在歌曲音符上',

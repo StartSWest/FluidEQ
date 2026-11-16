@@ -21,20 +21,32 @@ export type TKaraokeLayoutMode = 'normal' | 'fullscreen';
 export interface IKaraokeLayoutSettings {
   playlistShare: number;
   playlistCollapsed: boolean;
+  /**
+   * The pitch strip's height in pixels, dragged at its top edge (Ivan,
+   * 2026-11-16: "make sure it's resizable too"). Pixels rather than a share
+   * of the stage: the strip is drawn at a size, slim by default as the K1
+   * mockup has it, and a window made taller should give its room to the
+   * words, not to the strip.
+   */
+  pitchHeight: number;
 }
 
 const STORAGE_STEM = 'fluideq.karaokeLayout';
 const MIN_PLAYLIST_SHARE = 0.14;
 const MAX_PLAYLIST_SHARE = 0.46;
+const MIN_PITCH_HEIGHT = 56;
+const MAX_PITCH_HEIGHT = 360;
 
 const DEFAULTS: Record<TKaraokeLayoutMode, IKaraokeLayoutSettings> = {
   normal: {
     playlistShare: 0.27,
     playlistCollapsed: false,
+    pitchHeight: 96,
   },
   fullscreen: {
     playlistShare: 0.22,
     playlistCollapsed: false,
+    pitchHeight: 132,
   },
 };
 
@@ -43,6 +55,15 @@ const clamp = (value: number, minimum: number, maximum: number) =>
 
 export const clampKaraokePlaylistShare = (share: number) =>
   clamp(share, MIN_PLAYLIST_SHARE, MAX_PLAYLIST_SHARE);
+
+export const clampKaraokePitchHeight = (height: number) =>
+  Math.round(clamp(height, MIN_PITCH_HEIGHT, MAX_PITCH_HEIGHT));
+
+/** Where the strip's height stands in its range, for its handle's reading. */
+export const karaokePitchHeightPercent = (height: number) =>
+  ((clampKaraokePitchHeight(height) - MIN_PITCH_HEIGHT) /
+    (MAX_PITCH_HEIGHT - MIN_PITCH_HEIGHT)) *
+  100;
 
 export const karaokeLayoutStorageKey = (mode: TKaraokeLayoutMode) =>
   `${STORAGE_STEM}.${mode}`;
@@ -66,6 +87,9 @@ export const readKaraokeLayout = (
         typeof parsed.playlistCollapsed === 'boolean'
           ? parsed.playlistCollapsed
           : fallback.playlistCollapsed,
+      pitchHeight: Number.isFinite(parsed.pitchHeight)
+        ? clampKaraokePitchHeight(parsed.pitchHeight as number)
+        : fallback.pitchHeight,
     };
   } catch {
     return { ...fallback };

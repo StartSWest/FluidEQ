@@ -145,6 +145,10 @@ const KaraokeWorkspaceView = ({
     startPlaylistResize,
     resizePlaylist,
     playerStyle,
+    pitchStyle,
+    pitchHeightPercent,
+    startPitchResize,
+    resizePitch,
     isRestoring,
   } = stage;
   const {
@@ -565,8 +569,18 @@ const KaraokeWorkspaceView = ({
               {/* Under the words, as the K1 mockup draws them: the chords as a
                   row of chips over the slim pitch lane, the chords alone, or
                   neither (the toolbar's Pitch, Chords, Words only). */}
+              {guides === 'pitch' && (
+                <KaraokePaneSplitter
+                  orientation="horizontal"
+                  ariaLabel={t('karaoke.pitch.resize')}
+                  valuePercent={pitchHeightPercent}
+                  onStart={startPitchResize}
+                  onDrag={resizePitch}
+                  onEnd={commitLayout}
+                />
+              )}
               {guides !== 'words' && (
-                <div className="karaoke-stage__guides">
+                <div className="karaoke-stage__guides" style={pitchStyle}>
                   <KaraokeLiveValue value={playhead}>
                     {(playheadMs) => (
                       <KaraokeChordGuide

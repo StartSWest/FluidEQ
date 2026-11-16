@@ -39,6 +39,7 @@ import {
 import type { ILyricsLine } from '../../common/library/lyrics';
 import { lrcFromLines } from '../../common/library/lyricsLrc';
 import { ILibraryTrack } from '../../common/library/types';
+import { setKaraokeLibraryFacts } from '../karaoke/karaokeLibraryFacts';
 
 /** Chromium sniffs the container anyway; this is for the ones it does not. */
 const MIME_BY_EXTENSION: Readonly<Record<string, string>> = {
@@ -105,7 +106,11 @@ export const trackAsKaraokeFile = async (
     lastModified: Math.round(track.mtimeMs),
   });
   setKaraokeSourceLocalPath(file, track.path);
-  return setKaraokeRelativePath(file, name);
+  setKaraokeRelativePath(file, name);
+  // The Karaoke list draws the song as the Library does: its tagged title
+  // and artist, its cover and its length (`karaokeLibraryFacts`).
+  setKaraokeLibraryFacts(file, track);
+  return file;
 };
 
 /**

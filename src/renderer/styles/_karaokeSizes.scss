@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 @use 'karaokeTokens' as *;
 
 @container autoeq-workspace (max-width: 760px) {
@@ -34,15 +35,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-workspace__player.has-playlist {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(76px, 0.2fr) minmax(360px, 1fr);
-    gap: 8px;
+    gap: 0;
     transition:
       grid-template-rows var(--playlist-move) $ease-out,
       row-gap var(--playlist-move) $ease-out;
 
+    // Stacked over the stage, its hairline moves to its foot.
     > .karaoke-playlist {
       max-height: 160px;
       grid-row: 1;
       grid-column: 1;
+      border-right: 0;
+      border-bottom: 1px solid $studio-hair;
     }
 
     > .karaoke-pane-splitter.is-vertical {
@@ -139,10 +143,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 8px;
   }
 
-  .karaoke-pitch {
-    height: 76px;
-  }
-
   .karaoke-transport {
     padding-block: 6px;
   }
@@ -166,12 +166,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @media (max-width: 720px) and (max-height: 760px) {
   .karaoke-workspace__empty {
     min-height: 0;
-  }
-}
-
-@media (max-height: 620px) {
-  .karaoke-pitch {
-    height: 60px;
   }
 }
 

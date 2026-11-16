@@ -123,11 +123,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ) {
   padding: 0;
 
-  > .karaoke-workspace__player
-    > :not(.karaoke-workspace__stage, .karaoke-pane-splitter) {
-    margin: 0 0 12px 12px;
-  }
-
   > .karaoke-workspace__player > .karaoke-workspace__stage {
     border-radius: 0;
   }
@@ -165,7 +160,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The rows read over whatever the picture is: the card colour, opaque, as
   // full screen has it.
   > .karaoke-workspace__player.has-playlist > .karaoke-playlist {
-    border-color: color-mix(in srgb, $secondary-light 20%, transparent);
     background: $card-glow, $karaoke-chip-face;
   }
 }
@@ -374,13 +368,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // cover. The picture now runs under this panel, so at 34% the song titles
   // were sitting on whatever the artwork happened to be — white sleeves and
   // pale photographs among them.
+  // Flush to the screen's edge like the Library's rail, never a floating
+  // card (Ivan, 2026-11-16: "left pane needs to be like in Library, not
+  // floating"); the card colour behind it, opaque, so the rows read over
+  // whatever the artwork is.
   .karaoke-workspace__player.has-playlist > .karaoke-playlist {
-    margin: 12px 0 12px 12px;
-    border-color: color-mix(in srgb, $secondary-light 20%, transparent);
-    // The card colour, opaque: the rows have to read over whatever the
-    // artwork is, and a card is what every other list in the app is. The
-    // card itself laid over the floor, as Library's Up next is — the block
-    // colour was a step lighter than every card (2026-09-26).
+    margin: 0;
     background: $card-glow, $karaoke-chip-face;
   }
 

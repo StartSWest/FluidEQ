@@ -36,8 +36,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   flex-direction: column;
   padding: 10px 8px;
-  border-radius: $radius-m;
-  background: $studio-rail;
+  // Flush, full height, parted from the stage by its hairline alone, as the
+  // Library's rail is (`.library-rail`; Ivan, 2026-11-16: "left pane needs
+  // to be like in Library, not floating").
+  border-right: 1px solid $studio-hair;
+  border-radius: 0;
+  background: none;
 }
 
 .karaoke-playlist__groups {

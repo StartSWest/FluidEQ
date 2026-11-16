@@ -145,6 +145,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volume': 'Mikrofonlautstärke',
   'karaoke.mic.volumeValue': 'Mikrofonlautstärke: {percent} %',
   'karaoke.pitch.title': 'Tonhöhenspur',
+  'karaoke.pitch.resize': 'Tonhöhenspur skalieren',
+  'karaoke.pitch.micOff':
+    'Schalten Sie das Mikrofon ein, um Ihre Tonhöhe zu sehen.',
   'karaoke.pitch.toneVolume': 'Lautstärke des Melodietons',
   'karaoke.pitch.scrubHint':
     'Nach links oder rechts ziehen, um durch den Song zu gehen; loslassen, um pausiert zu bleiben.',

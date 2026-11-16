@@ -15,53 +15,84 @@ import {
   readKaraokeItemDuration,
 } from './karaokeItemDuration';
 import {
+  type IKaraokeLibraryFacts,
+  karaokeLibraryFactsOf,
+  lookUpKaraokeLibraryFacts,
+} from './karaokeLibraryFacts';
+import {
   karaokePlaylistCoverFile,
   karaokePlaylistRowNames,
 } from './karaokePlaylistFacts';
 import { KARAOKE_PLAYLIST_DRAG_MIME } from './karaokePlaylistTree';
 
 /**
- * A song's length, read once its row has been seen (`karaokeItemDuration`):
- * a list of thousands opens no file until it is scrolled to.
+ * What a row learns once it has been seen: the Library's facts for its song
+ * (`karaokeLibraryFacts`), and its length, read from the file only when the
+ * Library has none. A list of thousands asks nothing until it is scrolled.
  */
-const KaraokePlaylistDuration = ({ file }: { file: File }) => {
-  const holder = useRef<HTMLSpanElement>(null);
-  const [seconds, setSeconds] = useState(() => knownKaraokeItemDuration(file));
+const useSeenRowFacts = (item: IKaraokePlaylistItem) => {
+  const holder = useRef<HTMLLIElement>(null);
+  const [facts, setFacts] = useState<IKaraokeLibraryFacts | null | undefined>(
+    () => karaokeLibraryFactsOf(item.audio),
+  );
+  const [seconds, setSeconds] = useState(() =>
+    knownKaraokeItemDuration(item.audio),
+  );
+  const isSettled =
+    facts !== undefined &&
+    (facts?.durationMs !== undefined || seconds !== undefined);
 
   useEffect(() => {
     const element = holder.current;
-    if (seconds !== undefined || !element) {
+    if (isSettled || !element) {
       return undefined;
     }
     let isCurrent = true;
+    // Side by side, neither waiting on the other: the file's own length
+    // is a metadata read, and a song the Library has replaces it with the
+    // Library's.
+    const learn = () => {
+      if (facts === undefined) {
+        lookUpKaraokeLibraryFacts(item.audio, item.title)
+          .then((found) => {
+            if (isCurrent) {
+              setFacts(found);
+            }
+            return undefined;
+          })
+          .catch(() => undefined);
+      }
+      if (facts?.durationMs === undefined && seconds === undefined) {
+        readKaraokeItemDuration(item.audio)
+          .then((read) => {
+            if (isCurrent) {
+              setSeconds(read);
+            }
+            return undefined;
+          })
+          .catch(() => undefined);
+      }
+    };
     const observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) {
         return;
       }
       observer.disconnect();
-      readKaraokeItemDuration(file)
-        .then((read) => {
-          if (isCurrent) {
-            setSeconds(read);
-          }
-          return undefined;
-        })
-        // The read itself never rejects: a file that will not decode
-        // resolves as `null` and prints no length.
-        .catch(() => undefined);
+      // Neither read rejects: a song the Library does not have, or a file
+      // that will not decode, comes back as nothing to show.
+      learn();
     });
     observer.observe(element);
     return () => {
       isCurrent = false;
       observer.disconnect();
     };
-  }, [file, seconds]);
+  }, [facts, isSettled, item.audio, item.title, seconds]);
 
-  return (
-    <span ref={holder} className="karaoke-playlist__duration">
-      {typeof seconds === 'number' ? formatKaraokeTime(seconds * 1000) : ''}
-    </span>
-  );
+  const durationMs =
+    facts?.durationMs ??
+    (typeof seconds === 'number' ? seconds * 1000 : undefined);
+  return { holder, facts: facts ?? undefined, durationMs };
 };
 
 interface IKaraokePlaylistRowProps {
@@ -95,8 +126,17 @@ const KaraokePlaylistRow = ({
   onRemove,
 }: IKaraokePlaylistRowProps) => {
   const { t } = useTranslation();
-  const names = useMemo(() => karaokePlaylistRowNames(item), [item]);
-  const cover = useMemo(() => karaokePlaylistCoverFile(item), [item]);
+  const { holder, facts, durationMs } = useSeenRowFacts(item);
+  const fileNames = useMemo(() => karaokePlaylistRowNames(item), [item]);
+  const names = facts
+    ? { title: facts.title, subtitle: facts.artist ?? fileNames.subtitle }
+    : fileNames;
+  // The Library's cover where it has one; the picture in the song's own
+  // folder otherwise.
+  const cover = useMemo(
+    () => (facts?.artId ? undefined : karaokePlaylistCoverFile(item)),
+    [facts?.artId, item],
+  );
   const coverUrl = useMemo(
     () => (cover ? URL.createObjectURL(cover) : undefined),
     [cover],
@@ -111,7 +151,10 @@ const KaraokePlaylistRow = ({
   );
 
   return (
-    <li className={`karaoke-playlist__item${isSelected ? ' is-selected' : ''}`}>
+    <li
+      ref={holder}
+      className={`karaoke-playlist__item${isSelected ? ' is-selected' : ''}`}
+    >
       <button
         type="button"
         className="karaoke-playlist__song"
@@ -141,7 +184,12 @@ const KaraokePlaylistRow = ({
           }
         }}
       >
-        <LibraryCoverArt src={coverUrl} label={names.title} size="row" />
+        <LibraryCoverArt
+          artId={facts?.artId}
+          src={coverUrl}
+          label={names.title}
+          size="row"
+        />
         <span className="karaoke-playlist__names">
           <strong>{names.title}</strong>
           <small>{names.subtitle}</small>
@@ -151,7 +199,9 @@ const KaraokePlaylistRow = ({
             <LibraryPlayingBars />
           </span>
         ) : (
-          <KaraokePlaylistDuration file={item.audio} />
+          <span className="karaoke-playlist__duration">
+            {durationMs === undefined ? '' : formatKaraokeTime(durationMs)}
+          </span>
         )}
       </button>
       <div className="karaoke-playlist__item-actions">

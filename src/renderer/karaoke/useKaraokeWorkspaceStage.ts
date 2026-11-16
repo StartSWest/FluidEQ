@@ -36,7 +36,9 @@ import {
 } from './karaokeWorkspacePrefs';
 import { IKaraokeSetAsideFiles } from './karaokeImportNotices';
 import {
+  clampKaraokePitchHeight,
   clampKaraokePlaylistShare,
+  karaokePitchHeightPercent,
   IKaraokeLayoutSettings,
   readKaraokeLayout,
   TKaraokeLayoutMode,
@@ -65,7 +67,7 @@ import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { type IKaraokeWorkspaceProps } from './KaraokeWorkspace';
 
 type TKaraokeLayoutStyle = CSSProperties & {
-  '--karaoke-pitch-size'?: string;
+  '--karaoke-pitch-height'?: string;
   '--karaoke-playlist-size'?: string;
 };
 
@@ -552,6 +554,25 @@ const useKaraokeWorkspaceStage = ({
     [updateLayout],
   );
 
+  const pitchResizeStartRef = useRef(0);
+  const startPitchResize = useCallback(() => {
+    pitchResizeStartRef.current = layoutsRef.current[layoutMode].pitchHeight;
+  }, [layoutMode]);
+  // The handle sits above the strip: dragged up, the strip grows.
+  const resizePitch = useCallback(
+    (deltaY: number) => {
+      updateLayout({
+        pitchHeight: clampKaraokePitchHeight(
+          pitchResizeStartRef.current - deltaY,
+        ),
+      });
+    },
+    [updateLayout],
+  );
+  const pitchStyle: TKaraokeLayoutStyle = {
+    '--karaoke-pitch-height': `${layout.pitchHeight}px`,
+  };
+
   const playerStyle: TKaraokeLayoutStyle = {
     '--karaoke-playlist-size': `${layout.playlistShare * 100}%`,
   };
@@ -863,6 +884,10 @@ const useKaraokeWorkspaceStage = ({
     startPlaylistResize,
     resizePlaylist,
     playerStyle,
+    pitchStyle,
+    pitchHeightPercent: karaokePitchHeightPercent(layout.pitchHeight),
+    startPitchResize,
+    resizePitch,
     isRestoring,
     clearSavedSession,
     clearSavedProgress,

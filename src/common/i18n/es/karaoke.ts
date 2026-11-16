@@ -145,6 +145,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volume': 'Volumen del micrófono',
   'karaoke.mic.volumeValue': 'Volumen del micrófono: {percent}%',
   'karaoke.pitch.title': 'Guía de afinación',
+  'karaoke.pitch.resize': 'Cambiar el tamaño de la guía de afinación',
+  'karaoke.pitch.micOff': 'Activa el micrófono para ver tu afinación.',
   'karaoke.pitch.toneVolume': 'Volumen del tono guía',
   'karaoke.pitch.scrubHint':
     'Arrastra a izquierda o derecha para moverte por la canción; al soltar quedará pausada.',

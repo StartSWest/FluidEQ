@@ -114,6 +114,8 @@ const karaoke = {
   'karaoke.mic.volume': '麥克風音量',
   'karaoke.mic.volumeValue': '麥克風音量：{percent}%',
   'karaoke.pitch.title': '球場車道',
+  'karaoke.pitch.resize': '調整球場車道大小',
+  'karaoke.pitch.micOff': '開啟麥克風檢視您的音調。',
   'karaoke.pitch.toneVolume': '旋律音量',
   'karaoke.pitch.scrubHint':
     '向左或向右拖曳可在歌曲中移動；釋放以保持暫停狀態。',

@@ -49,7 +49,6 @@ import {
   WINDOW_FUTURE_MS,
   WINDOW_PAST_MS,
   isTimedTarget,
-  buildKaraokeMelodyGuide,
   clamp,
   findKaraokePitchIssues,
   karaokePitchScrubTime,
@@ -63,12 +62,7 @@ import {
   TKaraokePitchAnalysisStatus,
 } from './useKaraokeMicrophone';
 import { readAccent } from '../utils/theme';
-import {
-  paintMelodyGuide,
-  paintNoteBlocks,
-  paintPitchGrid,
-  paintTrace,
-} from './pitchLaneLayers';
+import { paintNoteBlocks, paintPitchGrid, paintTrace } from './pitchLaneLayers';
 
 interface IKaraokePitchLaneProps {
   isActive: boolean;
@@ -381,33 +375,6 @@ const KaraokePitchLane = ({
         context,
       });
 
-      // Draw the normalized lead melody as one ideal, singer-like curve. It
-      // sits over the note blocks and under the live microphone trace, so the
-      // singer can aim for the guide and then watch their own curve cover it.
-      const melodyGuide = buildKaraokeMelodyGuide(visibleNotes);
-      paintMelodyGuide({
-        melodyGuide,
-        context,
-        xForSongTime,
-        yForMidi,
-        plotWidth,
-        visibleNotes,
-        synchronizedPlayheadMs,
-      });
-
-      // A visible zero line anchors the combined song-note/live-voice view.
-      const baselineY = yForMidi(centerMidi);
-      context.strokeStyle = isMicrophoneLive
-        ? readAccent(0.2, 'rgba(34, 224, 214, 0.2)')
-        : 'rgba(167, 181, 205, 0.13)';
-      context.lineWidth = 1.2;
-      context.setLineDash([4, 5]);
-      context.beginPath();
-      context.moveTo(PLOT_LEFT, baselineY);
-      context.lineTo(PLOT_LEFT + plotWidth, baselineY);
-      context.stroke();
-      context.setLineDash([]);
-
       // The playhead, a plain accent line through the whole strip.
       const playheadX = Math.round(xForSongTime(synchronizedPlayheadMs)) + 0.5;
       if (hasSongClock) {
@@ -616,6 +583,11 @@ const KaraokePitchLane = ({
         onPointerCancel={finishCanvasScrub}
         onKeyDown={onCanvasKeyDown}
       />
+      {/* A song with no notes to sing to and no microphone on is an empty
+          strip; it says what fills it rather than looking broken. */}
+      {!hasTargets && !isMicrophoneLive && (
+        <p className="karaoke-pitch__hint">{t('karaoke.pitch.micOff')}</p>
+      )}
       <div className="karaoke-pitch__corner">
         {isMicrophoneLive && (
           <span className="karaoke-pitch__readout" aria-live="polite">

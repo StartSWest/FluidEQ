@@ -17,7 +17,35 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // the stage, the words in the middle, and under them the chords as chips over
 // a slim pitch strip. No header row above the tab, no title block, no cards.
 
+// The page is the one surface, as the Library's is: no padding round the
+// list and the stage, which meet at the list's hairline.
+.karaoke-workspace.workspace-tab-panel--karaoke {
+  gap: 0;
+  padding: 0;
+
+  > .karaoke-workspace__notice {
+    margin: 10px 12px 0;
+  }
+}
+
+// The splitter stands on the list's hairline rather than in a gutter of its
+// own, as the Library rail's does.
+.karaoke-workspace__player.has-playlist {
+  grid-template-columns:
+    minmax(160px, var(--karaoke-playlist-size, 27%)) 0px
+    minmax(0, 1fr);
+
+  > .karaoke-pane-splitter.is-vertical {
+    position: relative;
+    z-index: 4;
+    width: 12px;
+    margin-left: -6px;
+  }
+}
+
 .karaoke-workspace__stage {
+  border: 0;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -320,7 +348,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // stage, with only the microphone's button in its corner.
 .karaoke-pitch {
   position: relative;
-  height: 96px;
+  // Dragged at the handle above it (`--karaoke-pitch-height`, kept in the
+  // layout), slim by default; never more than half the stage's height, so
+  // a tall strip remembered from a big window leaves the words their room
+  // in a small one.
+  height: min(var(--karaoke-pitch-height, 96px), 42vh);
   min-width: 0;
   overflow: hidden;
   border-radius: $radius-m;
@@ -352,6 +384,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
       @include focus-ring;
     }
   }
+}
+
+.karaoke-pitch__hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0 44px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  text-align: center;
+  pointer-events: none;
+}
+
+// The strip's handle: a slim bar between the words and the chords.
+.karaoke-workspace__stage > .karaoke-pane-splitter.is-horizontal {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  height: 10px;
 }
 
 .karaoke-pitch__corner {

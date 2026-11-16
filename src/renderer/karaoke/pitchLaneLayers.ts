@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   attachKaraokePitchToNote,
   easeKaraokeSingerTrace,
-  type IKaraokeMelodyGuidePoint,
   IKaraokePitchPoint,
   IKaraokeTraceAxis,
   karaokeNoteTimingState,
@@ -28,7 +27,6 @@ import {
   PLOT_LEFT,
   roundedRectPath,
   singerTargetAtTime,
-  targetAtTime,
   traceColor,
 } from './karaokePitchGeometry';
 import { readAccent, readAccentLight } from '../utils/theme';
@@ -41,8 +39,7 @@ import { karaokeLeadNoteShape } from '../../common/karaoke/melodyArticulation';
 import { type IKaraokeToken } from '../../common/karaoke/types';
 
 // The pitch lane's layers, each painted by one function in the order the
-// lane stacks them: the pitch grid, the note blocks, the guide melody and
-// the singer's trace. Called from the lane's frame with what that frame
+// lane stacks them: the pitch grid, the note blocks and the singer's trace. Called from the lane's frame with what that frame
 // measured. The lane is the slim strip under the chords that the K1 mockup
 // draws (Ivan, 2026-11-15, "fix the pitch as you promised"): the words
 // band over it, the note names, the semitone labels, the seconds ruler,
@@ -114,13 +111,9 @@ export const paintNoteBlocks = ({
     const midi = note.targetMidi as number;
     const x = xForSongTime(startMs);
     const noteWidth = Math.max(3, xForSongTime(endMs) - x);
-    const noteHeight = Math.max(4, semitoneHeight * 0.76);
-    let noteColor = 'rgba(83, 139, 238, 0.68)';
-    let noteEdge = readAccent(0.88, 'rgba(61, 214, 226, 0.88)');
-    if (note.kind === 'free') {
-      noteColor = 'rgba(83, 139, 238, 0.25)';
-      noteEdge = 'rgba(83, 139, 238, 0.42)';
-    }
+    // A bar, never a hairline: at least 6px, two semitones' worth where the
+    // strip is short, and no taller than 12px where it is tall.
+    const noteHeight = Math.min(12, Math.max(6, semitoneHeight * 1.6));
     const isPitchMatch =
       note.kind !== 'free' &&
       latestVoicedPoint !== undefined &&
@@ -137,125 +130,34 @@ export const paintNoteBlocks = ({
       endMs,
       synchronizedPlayheadMs,
     );
-    if (isPitchMatch) {
-      noteColor = readAccent(0.96, 'rgba(40, 242, 213, 0.96)');
-      noteEdge = readAccentLight(1, 'rgba(226, 255, 250, 1)');
+    // Flat accent bars, as the K1 mockup draws them: what has been reached
+    // solid, what is still ahead at 40%, a free note fainter still, and the
+    // note being sung in tune in the accent's light tint.
+    let noteColor = readAccent(0.4, 'rgba(50, 225, 234, 0.4)');
+    if (note.kind === 'free') {
+      noteColor = readAccent(0.18, 'rgba(50, 225, 234, 0.18)');
+    } else if (isPitchMatch) {
+      noteColor = readAccentLight(1, 'rgba(169, 250, 255, 1)');
+    } else if (startMs <= synchronizedPlayheadMs) {
+      noteColor = readAccent(0.95, 'rgba(50, 225, 234, 0.95)');
     }
     const noteY = yForMidi(midi) - noteHeight / 2;
-    const noteGradient = context.createLinearGradient(
-      x,
-      noteY,
-      x + noteWidth,
-      noteY,
-    );
-    noteGradient.addColorStop(0, noteEdge);
-    noteGradient.addColorStop(0.35, noteColor);
-    noteGradient.addColorStop(1, noteColor);
-    context.fillStyle = noteGradient;
+    context.fillStyle = noteColor;
     roundedRectPath(context, x, noteY, noteWidth, noteHeight);
     context.fill();
 
-    if (timingState !== 'idle') {
-      let timingBorder = readAccent(0.5, 'rgba(34, 224, 214, 0.5)');
-      if (timingState === 'active') {
-        timingBorder = 'rgba(48, 145, 255, 1)';
-      }
-      if (isPitchMatch) {
-        timingBorder = readAccentLight(1, 'rgba(226, 255, 250, 1)');
-      }
-      context.strokeStyle = timingBorder;
-      context.lineWidth = timingState === 'active' ? 2.2 : 1.35;
+    // The note under the playhead, and the one about to reach it, edged.
+    if (timingState !== 'idle' && note.kind !== 'free') {
+      context.strokeStyle = readAccentLight(
+        timingState === 'active' ? 0.9 : 0.45,
+        'rgba(169, 250, 255, 0.6)',
+      );
+      context.lineWidth = timingState === 'active' ? 1.6 : 1;
       context.setLineDash([]);
       roundedRectPath(context, x, noteY, noteWidth, noteHeight);
       context.stroke();
     }
   });
-};
-
-interface IPaintMelodyGuideInput {
-  melodyGuide: IKaraokeMelodyGuidePoint[];
-  context: CanvasRenderingContext2D;
-  xForSongTime: (timeMs: number) => number;
-  yForMidi: (midi: number) => number;
-  plotWidth: number;
-  visibleNotes: IKaraokeToken[];
-  synchronizedPlayheadMs: number;
-}
-
-/**
- * The guide melody as one singer-like curve over the note blocks.
- */
-export const paintMelodyGuide = ({
-  melodyGuide,
-  context,
-  xForSongTime,
-  yForMidi,
-  plotWidth,
-  visibleNotes,
-  synchronizedPlayheadMs,
-}: IPaintMelodyGuideInput) => {
-  if (melodyGuide.length > 1) {
-    const guidePath = () => {
-      context.beginPath();
-      let previous: { x: number; y: number; startsPhrase: boolean } | undefined;
-      melodyGuide.forEach((point) => {
-        const plotted = {
-          x: xForSongTime(point.songTimeMs),
-          y: yForMidi(point.midi),
-          startsPhrase: point.startsPhrase,
-        };
-        if (!previous || plotted.startsPhrase) {
-          context.moveTo(plotted.x, plotted.y);
-        } else {
-          const controlX = (previous.x + plotted.x) / 2;
-          context.bezierCurveTo(
-            controlX,
-            previous.y,
-            controlX,
-            plotted.y,
-            plotted.x,
-            plotted.y,
-          );
-        }
-        previous = plotted;
-      });
-    };
-    const guideGradient = context.createLinearGradient(
-      PLOT_LEFT,
-      0,
-      PLOT_LEFT + plotWidth,
-      0,
-    );
-    guideGradient.addColorStop(0, 'rgba(91, 147, 235, 0.34)');
-    guideGradient.addColorStop(0.2, 'rgba(123, 195, 255, 0.82)');
-    guideGradient.addColorStop(
-      1,
-      readAccent(0.76, 'rgba(107, 233, 242, 0.76)'),
-    );
-    // One sharp line. It ran over a 6px haze of its own blue under a
-    // 10px glow, and the lane read as lit fog (Ivan, 2026-09-26: the
-    // pitch lane "need to be clean and nice").
-    context.lineCap = 'round';
-    context.lineJoin = 'round';
-    context.setLineDash([]);
-    context.strokeStyle = guideGradient;
-    context.lineWidth = 1.8;
-    guidePath();
-    context.stroke();
-
-    const guideTargetMidi = targetAtTime(
-      visibleNotes.filter((note) => note.kind !== 'free'),
-      synchronizedPlayheadMs,
-    );
-    if (guideTargetMidi !== undefined) {
-      const guideY = yForMidi(guideTargetMidi);
-      const guideX = xForSongTime(synchronizedPlayheadMs);
-      context.fillStyle = readAccentLight(1, '#dff8ff');
-      context.beginPath();
-      context.arc(guideX, guideY, 3, 0, Math.PI * 2);
-      context.fill();
-    }
-  }
 };
 
 interface IPaintTraceInput {

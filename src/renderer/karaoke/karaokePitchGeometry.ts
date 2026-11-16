@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { karaokeLeadNoteShape } from '../../common/karaoke/melodyArticulation';
 import {
   KARAOKE_CANONICAL_CENTER_MIDI,
   projectSingerPitchToTarget,
@@ -57,12 +56,6 @@ export interface IKaraokePitchIssue {
   sampleCount: number;
 }
 
-export interface IKaraokeMelodyGuidePoint {
-  songTimeMs: number;
-  midi: number;
-  startsPhrase: boolean;
-}
-
 export interface IKaraokeVisualPitchSample {
   midi: number;
   timeMs: number;
@@ -80,9 +73,6 @@ export const PERFORMANCE_BUCKET_MS = 50;
 export const PERFORMANCE_ISSUE_REFRESH_MS = 260;
 export const PERFORMANCE_ISSUE_GAP_MS = 240;
 export const MINIMUM_ISSUE_SAMPLES = 3;
-export const MELODY_GUIDE_SAMPLE_MS = 35;
-export const MELODY_GUIDE_TRANSITION_MS = 90;
-export const MELODY_GUIDE_MAX_GAP_MS = 90;
 export const VISUAL_PITCH_SAMPLE_COUNT = 3;
 export const VISUAL_PITCH_RESET_MS = 320;
 export const VISUAL_PITCH_SILENCE_HOLD_MS = 180;
@@ -90,8 +80,11 @@ export const VISUAL_PITCH_EASE_MS = 105;
 export const VISUAL_PITCH_LARGE_MOVE_EASE_MS = 180;
 export const VISUAL_PITCH_SILENCE_EASE_MS = 760;
 export const VISUAL_PITCH_DEADBAND = 0.025;
-export const MINIMUM_VISIBLE_SEMITONES = 24;
-export const VIEWPORT_PADDING_SEMITONES = 4;
+// An octave and a half at least, with two semitones over and under the
+// notes in view: across two octaves a 96px strip drew each note as a
+// 4px hairline, where the K1 mockup's are bars.
+export const MINIMUM_VISIBLE_SEMITONES = 18;
+export const VIEWPORT_PADDING_SEMITONES = 2;
 // The slim lane's margins (Ivan, 2026-11-15, "K1"): no semitone labels on
 // the left any more, so the plot starts a breath in from the edge, and a few
 // pixels above and below keep a block at the window's top or bottom whole.
@@ -203,19 +196,6 @@ export const isTimedTarget = (
   note.endMs !== undefined &&
   note.targetMidi !== undefined;
 
-/** Where the melody guide is at a moment, on the note's drawn shape. */
-export const targetAtTime = (
-  notes: readonly IKaraokeToken[],
-  timeMs: number,
-): number | undefined =>
-  notes.find((note) => {
-    if (!isTimedTarget(note)) {
-      return false;
-    }
-    const shape = karaokeLeadNoteShape(note);
-    return shape.startMs <= timeMs && shape.endMs >= timeMs;
-  })?.targetMidi;
-
 /**
  * How far outside a note the singer still counts as being on it.
  *
@@ -231,10 +211,10 @@ export const NOTE_ATTACH_HOLD_MS = 200;
 /**
  * The note the singer is on at a moment, by the timing they were given.
  *
- * `targetAtTime` above answers a different question and must not be used for
- * this one. It reports where the *guide* is, on a window that is deliberately
- * short — the gate ends each note before its syllable does so that consecutive
- * blocks read as separate. Asked instead which note a singer is on, it was
+ * A note's drawn shape (`karaokeLeadNoteShape`) answers a different question
+ * and must not be used for this one. It is deliberately short — the gate ends
+ * each note before its syllable does so that consecutive blocks read as
+ * separate. Asked instead which note a singer is on, it was
  * wrong on every note in the song: the trace came unstuck for the last fifth
  * of each syllable and drifted at absolute pitch until the next one began, and
  * while the cue was also capped at 1.45 seconds it came unstuck two and a half
@@ -416,100 +396,6 @@ export const easeKaraokeSingerTrace = (
     lastSampleAt = sampleTime;
     return displayedMidi ?? safeFallback;
   });
-};
-
-/**
- * Turn normalized lead notes into an ideal singer-like pitch trace.
- * Short neighboring notes glide into one another; real phrase gaps remain
- * separate so the guide never invents pitch while the singer should breathe.
- */
-export const buildKaraokeMelodyGuide = (
-  notes: readonly IKaraokeToken[],
-): IKaraokeMelodyGuidePoint[] => {
-  const timedNotes = notes.filter(isTimedTarget).sort((left, right) => {
-    return left.startMs - right.startMs;
-  });
-  const points: IKaraokeMelodyGuidePoint[] = [];
-  const connects = (
-    left: (typeof timedNotes)[number] | undefined,
-    right: (typeof timedNotes)[number] | undefined,
-  ) => {
-    if (
-      left === undefined ||
-      right === undefined ||
-      left.kind === 'free' ||
-      right.kind === 'free'
-    ) {
-      return false;
-    }
-    const authoredGapMs = right.startMs - left.endMs;
-    const articulatedGapMs = right.startMs - karaokeLeadNoteShape(left).endMs;
-    const continuesSameWord = right.startsWord === false;
-    return continuesSameWord
-      ? authoredGapMs <= MELODY_GUIDE_MAX_GAP_MS
-      : articulatedGapMs <= 18;
-  };
-
-  timedNotes.forEach((note, noteIndex) => {
-    if (note.kind === 'free') {
-      return;
-    }
-    const previous = timedNotes[noteIndex - 1];
-    const next = timedNotes[noteIndex + 1];
-    const connectsPrevious = connects(previous, note);
-    const connectsNext = connects(note, next);
-    const shape = karaokeLeadNoteShape(note);
-    const noteEndMs = shape.endMs;
-    const duration = shape.durationMs;
-    const transitionMs = Math.min(MELODY_GUIDE_TRANSITION_MS, duration * 0.36);
-    const sampleTimes: number[] = [note.startMs];
-    for (
-      let timeMs = note.startMs + MELODY_GUIDE_SAMPLE_MS;
-      timeMs < noteEndMs;
-      timeMs += MELODY_GUIDE_SAMPLE_MS
-    ) {
-      sampleTimes.push(timeMs);
-    }
-    sampleTimes.push(noteEndMs);
-
-    sampleTimes.forEach((songTimeMs, sampleIndex) => {
-      let midi = note.targetMidi;
-      if (
-        connectsPrevious &&
-        previous &&
-        songTimeMs <= note.startMs + transitionMs
-      ) {
-        const progress = smoothStep(
-          (songTimeMs - (note.startMs - transitionMs)) / (transitionMs * 2),
-        );
-        midi =
-          previous.targetMidi +
-          (note.targetMidi - previous.targetMidi) * progress;
-      } else if (
-        connectsNext &&
-        next &&
-        songTimeMs >= noteEndMs - transitionMs
-      ) {
-        const progress = smoothStep(
-          (songTimeMs - (noteEndMs - transitionMs)) / (transitionMs * 2),
-        );
-        midi = note.targetMidi + (next.targetMidi - note.targetMidi) * progress;
-      }
-      const previousPoint = points[points.length - 1];
-      if (
-        previousPoint?.songTimeMs === songTimeMs &&
-        Math.abs(previousPoint.midi - midi) < 0.001
-      ) {
-        return;
-      }
-      points.push({
-        songTimeMs,
-        midi,
-        startsPhrase: sampleIndex === 0 && !connectsPrevious,
-      });
-    });
-  });
-  return points;
 };
 
 /** Find contiguous latest-attempt regions that need another vocal pass. */

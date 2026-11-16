@@ -144,6 +144,8 @@ const karaoke = {
   'karaoke.mic.volume': 'Mic volume',
   'karaoke.mic.volumeValue': 'Mic volume: {percent}%',
   'karaoke.pitch.title': 'Pitch lane',
+  'karaoke.pitch.resize': 'Resize pitch lane',
+  'karaoke.pitch.micOff': 'Turn on the microphone to see your pitch.',
   'karaoke.pitch.toneVolume': 'Melody tone volume',
   'karaoke.pitch.scrubHint':
     'Drag left or right to move through the song; release to stay paused.',
