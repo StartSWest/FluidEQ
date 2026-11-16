@@ -226,6 +226,10 @@ const KaraokeStageToolbar = ({
               <LookPicker
                 value={selectedLookId}
                 disabled={false}
+                // The app's quiet button, as "Open in the Maker" beside it:
+                // with no class of its own the trigger was a bare browser
+                // button, grey and outset.
+                triggerClassName="look-picker__trigger button small subtle"
                 onChoose={(lookId) => {
                   if (isLockedLookId(lookId)) {
                     requestAccountPanel();

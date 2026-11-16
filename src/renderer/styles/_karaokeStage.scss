@@ -121,6 +121,46 @@ SPDX-License-Identifier: GPL-3.0-or-later
     display: flex;
     min-width: 0;
   }
+
+  // The name and its glyph inside the button, and the arrow at its end, as
+  // the graph strip's pill sets them (`_graphThemeLegend.scss`).
+  .look-picker__trigger {
+    min-width: 0;
+    max-width: 220px;
+    gap: 6px;
+
+    .graph-look-option {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .graph-look-name {
+      overflow: hidden;
+      color: inherit;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .graph-look-option__icon {
+      width: 14px;
+      height: 14px;
+      flex: none;
+    }
+
+    svg.arrow {
+      width: 8px;
+      flex: none;
+      margin-left: auto;
+      opacity: 0.7;
+    }
+  }
+
+  .dropdown--open > .look-picker__trigger svg.arrow {
+    opacity: 1;
+    transform: rotate(180deg);
+  }
 }
 
 .karaoke-stage-bar__switch {
