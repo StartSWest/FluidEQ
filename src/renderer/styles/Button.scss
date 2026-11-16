@@ -288,6 +288,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // the transparent border. Keeping the old filled span here left every primary
 // as bright as before for anyone in Rainbow mode (Ivan, 2026-11-15: "and the
 // buttons?", in Rainbow mode, after the Deep primary had shipped).
+//
+// The colour under the span is the Deep fill, never the accent: the button's
+// background transitions, and with the accent there the switch out of Rainbow
+// mode dropped the span at once and then faded the accent - hidden under it
+// until then - down to the Deep fill, a bright flash on every primary (Ivan,
+// 2026-11-15: "they light up for a millisecond and go dark again").
 :root.is-euphoric .button:not(.subtle, .danger) {
   border-color: transparent;
   background:
@@ -296,7 +302,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         color-mix(in srgb, $secondary-default 24%, $surface-base)
       )
       padding-box,
-    $secondary-default var(--control-fill) border-box;
+    color-mix(in srgb, $secondary-default 24%, $surface-base)
+      var(--control-fill) border-box;
 
   &:hover:not([aria-disabled='true']):not(:disabled) {
     background:
@@ -305,7 +312,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
           color-mix(in srgb, $secondary-default 34%, $surface-base)
         )
         padding-box,
-      $secondary-default var(--control-fill) border-box;
+      color-mix(in srgb, $secondary-default 34%, $surface-base)
+        var(--control-fill) border-box;
   }
 
   &:active:not([aria-disabled='true']):not(:disabled) {
@@ -315,6 +323,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
           color-mix(in srgb, $secondary-default 18%, $surface-base)
         )
         padding-box,
-      $secondary-default var(--control-fill) border-box;
+      color-mix(in srgb, $secondary-default 18%, $surface-base)
+        var(--control-fill) border-box;
   }
 }
