@@ -660,6 +660,45 @@ export const proposeFixes = (
       });
     }
 
+    // Track numbers still missing after the file names and the CUE sheet
+    // (Ivan, 2026-11-16: "la corrección incluye los números de track
+    // faltantes ... se debería autocompletar"): the numbers from 1 to the
+    // album's count that no song holds go to the songs that hold none, in
+    // the order of their file names — exactly as many of each, or nothing,
+    // since a number to spare or a song too many means the album is not
+    // simply 1 to N. Shown before anything is written, and Renumber after
+    // a drag puts a wrong order right.
+    const held = new Set(
+      songs.map((song) => Number(current.get(song.trackId)?.trackNo ?? '')),
+    );
+    const unnumbered = songs
+      .filter((song) => (current.get(song.trackId)?.trackNo ?? '') === '')
+      .sort((a, b) =>
+        baseNameOf(a.fileName).localeCompare(
+          baseNameOf(b.fileName),
+          undefined,
+          {
+            numeric: true,
+            sensitivity: 'base',
+          },
+        ),
+      );
+    const free = Array.from({ length: songs.length }, (_, i) => i + 1).filter(
+      (n) => !held.has(n),
+    );
+    if (unnumbered.length > 0 && unnumbered.length === free.length) {
+      unnumbered.forEach((song, index) =>
+        add({
+          kind: 'fill',
+          field: 'trackNo',
+          trackId: song.trackId,
+          before: '',
+          after: String(free[index]),
+          source: 'count',
+        }),
+      );
+    }
+
     // The track total, where every song is numbered within the album's count.
     const numbers = songs.map((song) =>
       Number(current.get(song.trackId)?.trackNo ?? ''),
