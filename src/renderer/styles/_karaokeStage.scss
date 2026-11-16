@@ -110,6 +110,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // A two- or three-way switch: a hairline round it, the chosen part on the
 // Library's chosen tint.
+// The scene picker beside the background choice: the graph strip's pill,
+// as long as its name allows and never wider than the row can give.
+.karaoke-stage-bar__look {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+
+  .dropdown.look-picker {
+    display: flex;
+    min-width: 0;
+  }
+}
+
 .karaoke-stage-bar__switch {
   display: inline-flex;
   flex: 0 0 auto;

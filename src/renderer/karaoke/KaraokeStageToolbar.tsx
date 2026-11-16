@@ -11,7 +11,11 @@ import {
   type RefObject,
   type SetStateAction,
 } from 'react';
+import { isLockedLookId } from 'common/scenePacks';
+import { requestAccountPanel } from '../account/accountPanel';
+import LookPicker from '../graph/LookPicker';
 import MenuIcon from '../icons/MenuIcon';
+import { setGraphLook, useSelectedLookId } from '../utils/graphStyle';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import rangeFill from '../utils/rangeFill';
 import { useTranslation } from '../utils/I18nContext';
@@ -129,6 +133,7 @@ const KaraokeStageToolbar = ({
   onToggleFullScreen,
 }: IKaraokeStageToolbarProps) => {
   const { t } = useTranslation();
+  const selectedLookId = useSelectedLookId();
   const hasStill = song ? hasKaraokeStageStill(song) : false;
   const hasVideo = song ? hasKaraokeStageVideo(song) : false;
   // A background pressed again is the bare stage: three choices and "none"
@@ -210,6 +215,27 @@ const KaraokeStageToolbar = ({
               {t('karaoke.stage.video')}
             </Segment>
           </div>
+          {/* The scene behind the words, changed where it is seen (Ivan,
+              2026-11-16: "the scene selector there too, to change the
+              background quickly, only with Scene on"). The graph's own
+              picker: the stage plays the window's scene, so one choice
+              moves both. A locked scene asks for the Account panel and
+              leaves the one on screen, as the graph's does. */}
+          {background === 'graph' && (
+            <span className="karaoke-stage-bar__look">
+              <LookPicker
+                value={selectedLookId}
+                disabled={false}
+                onChoose={(lookId) => {
+                  if (isLockedLookId(lookId)) {
+                    requestAccountPanel();
+                    return;
+                  }
+                  setGraphLook(lookId);
+                }}
+              />
+            </span>
+          )}
           <button
             type="button"
             className="button small subtle karaoke-stage-bar__maker"
