@@ -4,7 +4,7 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import CompactFrame from '../components/CompactFrame';
 import MenuIcon from '../icons/MenuIcon';
@@ -12,6 +12,7 @@ import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import '../styles/RestartAudioDialog.scss';
 
+/** Asks before the whole playlist is unloaded. */
 function ClearPlaylistDialog({
   onCancel,
   onConfirm,
@@ -70,32 +71,4 @@ function ClearPlaylistDialog({
   );
 }
 
-export default function KaraokeClearButton({
-  onClear,
-}: {
-  onClear: () => void;
-}) {
-  const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <>
-      <button
-        type="button"
-        className="button small subtle karaoke-workspace__action"
-        onClick={() => setIsOpen(true)}
-      >
-        <MenuIcon name="clear" className="karaoke-button__icon" />
-        <span>{t('karaoke.import.clear')}</span>
-      </button>
-      {isOpen && (
-        <ClearPlaylistDialog
-          onCancel={() => setIsOpen(false)}
-          onConfirm={() => {
-            setIsOpen(false);
-            onClear();
-          }}
-        />
-      )}
-    </>
-  );
-}
+export default ClearPlaylistDialog;

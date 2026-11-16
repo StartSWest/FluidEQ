@@ -16,224 +16,64 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { type RefObject } from 'react';
 import {
   attachKaraokePitchToNote,
-  clamp,
   easeKaraokeSingerTrace,
   type IKaraokeMelodyGuidePoint,
-  type IKaraokePitchIssue,
   IKaraokePitchPoint,
-  type IKaraokePitchWord,
   IKaraokeTraceAxis,
-  isTimedTarget,
   karaokeNoteTimingState,
-  karaokePitchWordProgress,
   karaokeTraceSampleX,
   MATCH_TOLERANCE_SEMITONES,
-  MIN_NOTE_NAME_PLOT_PX,
-  PITCH_WORD_LANE_SPACING,
-  PITCH_WORD_LANE_TOP,
   PLOT_LEFT,
   roundedRectPath,
   singerTargetAtTime,
   targetAtTime,
   traceColor,
 } from './karaokePitchGeometry';
-import { readAccent, readAccentLight, readSurfaceAlpha } from '../utils/theme';
+import { readAccent, readAccentLight } from '../utils/theme';
 import {
-  KARAOKE_CANONICAL_CENTER_MIDI,
-  midiToNoteName,
   projectSingerPitchToTarget,
   singerPitchMatchesTarget,
   type TKaraokePitchOctavePolicy,
 } from '../../common/karaoke/pitch';
 import { karaokeLeadNoteShape } from '../../common/karaoke/melodyArticulation';
-import {
-  type IKaraokeToken,
-  type TKaraokePitchTarget,
-} from '../../common/karaoke/types';
-import { type Translate } from '../../common/i18n';
-import { type IKaraokeIssueHitRegion } from './KaraokePitchLane';
+import { type IKaraokeToken } from '../../common/karaoke/types';
 
 // The pitch lane's layers, each painted by one function in the order the
-// lane stacks them: the words under their notes, the pitch grid, the note
-// blocks, the guide melody, the singer's trace, the review strip and the
-// legend. Called from the lane's frame with what that frame measured.
-
-/**
- * The system font, the same stack the stylesheet uses — a canvas cannot read
- * it from there. Named for the platforms it ships on: Windows first, then
- * macOS, then the Linux families, and never `Inter`, which was in here for
- * the life of the lane without ever being bundled.
- */
-export const LANE_FONT =
-  "'Segoe UI', -apple-system, Ubuntu, Cantarell, 'Noto Sans', 'DejaVu Sans', sans-serif";
-
-interface IPaintWordsInput {
-  wordLayout: {
-    word: IKaraokePitchWord;
-    lane: number;
-    noteLeft: number;
-    noteRight: number;
-    center: number;
-    slotLeft: number;
-    slotRight: number;
-  }[];
-  synchronizedPlayheadMs: number;
-  context: CanvasRenderingContext2D;
-  plotWidth: number;
-  plotTop: number;
-  textInk: string;
-}
-
-/**
- * Each word in its slot under its note, the one being sung lit.
- */
-export const paintWords = ({
-  wordLayout,
-  synchronizedPlayheadMs,
-  context,
-  plotWidth,
-  plotTop,
-  textInk,
-}: IPaintWordsInput) => {
-  wordLayout.forEach((layoutWord) => {
-    const { word, lane, noteLeft, noteRight, center, slotLeft, slotRight } =
-      layoutWord;
-    const slotWidth = Math.max(1, slotRight - slotLeft);
-    const isCurrent =
-      word.startMs <= synchronizedPlayheadMs &&
-      word.endMs >= synchronizedPlayheadMs;
-    const isComplete = synchronizedPlayheadMs > word.endMs;
-    const wordProgress = karaokePitchWordProgress(
-      word.startMs,
-      word.endMs,
-      synchronizedPlayheadMs,
-    );
-    context.save();
-    context.beginPath();
-    context.rect(PLOT_LEFT, 0, plotWidth, plotTop - 3);
-    context.clip();
-    let labelFontSize = isCurrent ? 14 : 12.5;
-    const labelWeight = isCurrent ? 700 : 600;
-    context.font = `${labelWeight} ${labelFontSize}px ${LANE_FONT}`;
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    let textWidth = Math.max(1, context.measureText(word.text).width);
-    const availableLabelWidth = Math.max(18, slotWidth - 8);
-    if (textWidth > availableLabelWidth) {
-      labelFontSize = Math.max(
-        8.5,
-        labelFontSize * (availableLabelWidth / textWidth),
-      );
-      context.font = `${labelWeight} ${labelFontSize}px ${LANE_FONT}`;
-      textWidth = Math.max(1, context.measureText(word.text).width);
-    }
-    const labelX = clamp(
-      center,
-      PLOT_LEFT + textWidth / 2 + 3,
-      PLOT_LEFT + plotWidth - textWidth / 2 - 3,
-    );
-    const labelY = PITCH_WORD_LANE_TOP + lane * PITCH_WORD_LANE_SPACING;
-    const textLeft = labelX - textWidth / 2;
-    context.fillStyle = isComplete
-      ? readAccentLight(0.88, 'rgba(151, 247, 238, .88)')
-      : textInk;
-    context.fillText(word.text, labelX, labelY);
-    if (wordProgress > 0 && !isComplete) {
-      context.save();
-      context.beginPath();
-      context.rect(
-        textLeft,
-        labelY - labelFontSize,
-        textWidth * wordProgress,
-        labelFontSize * 2,
-      );
-      context.clip();
-      context.fillStyle = readAccentLight(1, '#73fff3');
-      context.fillText(word.text, labelX, labelY);
-      context.restore();
-    }
-    context.restore();
-
-    context.strokeStyle = readAccent(0.25, 'rgba(34, 224, 214, 0.25)');
-    context.lineWidth = 1.4;
-    context.lineCap = 'round';
-    context.beginPath();
-    context.moveTo(noteLeft, plotTop - 6);
-    context.lineTo(Math.max(noteLeft + 1, noteRight), plotTop - 6);
-    context.stroke();
-    if (wordProgress > 0) {
-      const progressRight =
-        noteLeft + Math.max(1, noteRight - noteLeft) * wordProgress;
-      context.save();
-      context.strokeStyle = isComplete
-        ? readAccent(0.7, 'rgba(91, 237, 224, .7)')
-        : readAccent(1, '#49f2e3');
-      context.lineWidth = isCurrent ? 2.6 : 2;
-      context.beginPath();
-      context.moveTo(noteLeft, plotTop - 6);
-      context.lineTo(Math.max(noteLeft + 1, progressRight), plotTop - 6);
-      context.stroke();
-      context.restore();
-    }
-  });
-};
+// lane stacks them: the pitch grid, the note blocks, the guide melody and
+// the singer's trace. Called from the lane's frame with what that frame
+// measured. The lane is the slim strip under the chords that the K1 mockup
+// draws (Ivan, 2026-11-15, "fix the pitch as you promised"): the words
+// band over it, the note names, the semitone labels, the seconds ruler,
+// the review strip and the legend were all taken off it.
 
 interface IPaintPitchGridInput {
   firstPitchTick: number;
   topPitchTick: number;
   lineStep: number;
-  labelStep: number;
   yForMidi: (midi: number) => number;
   context: CanvasRenderingContext2D;
-  targetHasAbsoluteOctaves: boolean;
   plotWidth: number;
 }
 
-/**
- * The pitch lines, every `lineStep` semitones from a C, labelled every
- * `labelStep` with the note's name (and its octave where the target has
- * absolute octaves).
- */
+/** Faint pitch lines every `lineStep` semitones from a C, unlabelled. */
 export const paintPitchGrid = ({
   firstPitchTick,
   topPitchTick,
   lineStep,
-  labelStep,
   yForMidi,
   context,
-  targetHasAbsoluteOctaves,
   plotWidth,
 }: IPaintPitchGridInput) => {
+  context.strokeStyle = 'rgba(214, 233, 247, 0.06)';
+  context.lineWidth = 1;
   for (
     let tickMidi = firstPitchTick;
     tickMidi <= topPitchTick;
     tickMidi += lineStep
   ) {
-    const semitone = tickMidi - KARAOKE_CANONICAL_CENTER_MIDI;
-    const isLabelled = semitone % labelStep === 0;
-    const y = yForMidi(tickMidi);
-    let labelColor = 'rgba(242, 208, 79, 0.78)';
-    if (semitone > 0) {
-      labelColor = 'rgba(155, 227, 72, 0.78)';
-    } else if (semitone < 0) {
-      labelColor = 'rgba(255, 101, 93, 0.78)';
-    }
-    if (isLabelled) {
-      context.fillStyle = labelColor;
-      context.fillText(
-        `${midiToNoteName(tickMidi, targetHasAbsoluteOctaves)} ${
-          semitone > 0 ? '+' : ''
-        }${semitone}`,
-        PLOT_LEFT - 8,
-        y,
-      );
-    }
-    context.strokeStyle =
-      semitone === 0 ? 'rgba(242, 208, 79, 0.2)' : 'rgba(225, 231, 244, 0.075)';
-    context.lineWidth = 1;
+    const y = Math.round(yForMidi(tickMidi)) + 0.5;
     context.beginPath();
     context.moveTo(PLOT_LEFT, y);
     context.lineTo(PLOT_LEFT + plotWidth, y);
@@ -250,17 +90,9 @@ interface IPaintNoteBlocksInput {
   synchronizedPlayheadMs: number;
   yForMidi: (midi: number) => number;
   context: CanvasRenderingContext2D;
-  targetHasAbsoluteOctaves: boolean;
-  plotWidth: number;
-  floatingLabelRightByPitch: Map<number, number>;
-  plotHeight: number;
-  plotTop: number;
 }
 
-/**
- * The target's note blocks, lit while the singer is on them, with each
- * note's name floated beside it where there is room.
- */
+/** The target's note blocks, lit while the singer is on them. */
 export const paintNoteBlocks = ({
   visibleNotes,
   xForSongTime,
@@ -270,11 +102,6 @@ export const paintNoteBlocks = ({
   synchronizedPlayheadMs,
   yForMidi,
   context,
-  targetHasAbsoluteOctaves,
-  plotWidth,
-  floatingLabelRightByPitch,
-  plotHeight,
-  plotTop,
 }: IPaintNoteBlocksInput) => {
   visibleNotes.forEach((note) => {
     const startMs = note.startMs as number;
@@ -341,39 +168,6 @@ export const paintNoteBlocks = ({
       context.setLineDash([]);
       roundedRectPath(context, x, noteY, noteWidth, noteHeight);
       context.stroke();
-    }
-
-    const noteName = midiToNoteName(midi, targetHasAbsoluteOctaves);
-    const labelX = Math.max(
-      PLOT_LEFT + 8,
-      Math.min(PLOT_LEFT + plotWidth - 8, x + noteWidth / 2),
-    );
-    context.font = `700 11px ${LANE_FONT}`;
-    const labelWidth = context.measureText(noteName).width;
-    const pitchRow = Math.round(midi);
-    const previousLabelRight =
-      floatingLabelRightByPitch.get(pitchRow) ?? -Infinity;
-    const labelLeft = labelX - labelWidth / 2;
-    // A name needs a line of room above or below its block. In a lane too
-    // short for either — 14px of canvas under a docked graph on a 720-tall
-    // window — it was printed half outside the plot, cut off by the card's
-    // own edge. The blocks are what that lane is for; the names go.
-    if (
-      plotHeight >= MIN_NOTE_NAME_PLOT_PX &&
-      labelLeft > previousLabelRight + 5
-    ) {
-      const labelAbove = noteY - 4 >= plotTop + 9;
-      context.textAlign = 'center';
-      context.textBaseline = labelAbove ? 'bottom' : 'top';
-      context.fillStyle = isPitchMatch
-        ? readAccentLight(1, 'rgba(226, 255, 250, 1)')
-        : 'rgba(221, 233, 251, 0.9)';
-      context.fillText(
-        noteName,
-        labelX,
-        labelAbove ? noteY - 3 : noteY + noteHeight + 3,
-      );
-      floatingLabelRightByPitch.set(pitchRow, labelX + labelWidth / 2);
     }
   });
 };
@@ -618,295 +412,5 @@ export const paintTrace = ({
     context.arc(last.x, last.y, 1.8, 0, Math.PI * 2);
     context.fill();
     context.restore();
-  }
-};
-
-interface IPaintReviewInput {
-  target: TKaraokePitchTarget | undefined;
-  showsReview: boolean;
-  t: Translate;
-  currentIssues: IKaraokePitchIssue[];
-  height: number;
-  plotWidth: number;
-  width: number;
-  context: CanvasRenderingContext2D;
-  textInk: string;
-  hoveredIssueIdRef: RefObject<string | undefined>;
-  issueHitRegionsRef: RefObject<IKaraokeIssueHitRegion[]>;
-  synchronizedPlayheadMs: number;
-}
-
-/**
- * The review strip for a sung song: each issue along the song's length,
- * its hit region kept for the pointer, the hovered one called out.
- */
-export const paintReview = ({
-  target,
-  showsReview,
-  t,
-  currentIssues,
-  height,
-  plotWidth,
-  width,
-  context,
-  textInk,
-  hoveredIssueIdRef,
-  issueHitRegionsRef,
-  synchronizedPlayheadMs,
-}: IPaintReviewInput) => {
-  if (target?.kind === 'notes' && showsReview) {
-    const performanceDurationMs = target.notes.reduce(
-      (duration, note) =>
-        isTimedTarget(note) ? Math.max(duration, note.endMs) : duration,
-      1,
-    );
-    const reviewLabel = t('karaoke.pitch.review');
-    const reviewCount = t('karaoke.pitch.reviewCount', {
-      count: currentIssues.length,
-    });
-    const reviewY = height - 22;
-    const reviewTrackHeight = 11;
-    const reviewMinimumTrackWidth = Math.min(82, plotWidth * 0.42);
-    const reviewFontSize = width < 620 ? 10 : 11;
-    context.font = `700 ${reviewFontSize}px ${LANE_FONT}`;
-    const measuredLabelWidth = Math.ceil(
-      context.measureText(reviewLabel).width,
-    );
-    const measuredCountWidth = Math.ceil(
-      context.measureText(reviewCount).width,
-    );
-    // Localized labels vary dramatically in length. Size both gutters from
-    // the text that is actually drawn instead of letting a fixed English
-    // width place the track underneath Spanish and other translations.
-    let reviewLabelWidth = measuredLabelWidth + 22;
-    let reviewCountWidth = measuredCountWidth + 12;
-    if (
-      reviewLabelWidth + reviewCountWidth + reviewMinimumTrackWidth >
-      plotWidth
-    ) {
-      reviewCountWidth = 0;
-    }
-    reviewLabelWidth = Math.min(
-      reviewLabelWidth,
-      Math.max(0, plotWidth - reviewCountWidth - reviewMinimumTrackWidth),
-    );
-    if (reviewLabelWidth < 28) {
-      reviewLabelWidth = 0;
-    }
-    const reviewTrackX = PLOT_LEFT + reviewLabelWidth;
-    const reviewTrackWidth = Math.max(
-      24,
-      plotWidth - reviewLabelWidth - reviewCountWidth,
-    );
-    // The plot's own ground, opaque, so the strip hides what scrolls
-    // under it without standing out from the plot as a lighter slab. It
-    // was the block colour under a drop shadow.
-    context.save();
-    context.fillStyle = readSurfaceAlpha(
-      '--surface-base',
-      0.94,
-      'rgba(1, 21, 33, 0.94)',
-    );
-    roundedRectPath(
-      context,
-      PLOT_LEFT - 7,
-      reviewY - 5,
-      plotWidth + 14,
-      reviewTrackHeight + 10,
-      8,
-    );
-    context.fill();
-    context.restore();
-
-    context.textBaseline = 'middle';
-    if (reviewLabelWidth > 0) {
-      context.fillStyle = readAccent(0.78, 'rgba(107, 233, 242, 0.78)');
-      context.beginPath();
-      context.arc(
-        PLOT_LEFT + 3,
-        reviewY + reviewTrackHeight / 2,
-        2,
-        0,
-        2 * Math.PI,
-      );
-      context.fill();
-      context.textAlign = 'left';
-      context.fillStyle = textInk;
-      context.fillText(
-        reviewLabel,
-        PLOT_LEFT + 10,
-        reviewY + reviewTrackHeight / 2,
-        Math.max(1, reviewLabelWidth - 16),
-      );
-    }
-
-    const trackGradient = context.createLinearGradient(
-      reviewTrackX,
-      reviewY,
-      reviewTrackX,
-      reviewY + reviewTrackHeight,
-    );
-    // The empty-track colour, like every groove in the app — not black.
-    trackGradient.addColorStop(
-      0,
-      readSurfaceAlpha('--track-well', 0.95, 'rgba(46, 79, 99, 0.95)'),
-    );
-    trackGradient.addColorStop(
-      1,
-      readSurfaceAlpha('--track-well', 0.85, 'rgba(46, 79, 99, 0.85)'),
-    );
-    context.fillStyle = trackGradient;
-    context.strokeStyle = readAccent(0.13, 'rgba(107, 233, 242, 0.13)');
-    context.lineWidth = 1;
-    roundedRectPath(
-      context,
-      reviewTrackX,
-      reviewY,
-      reviewTrackWidth,
-      reviewTrackHeight,
-    );
-    context.fill();
-    context.stroke();
-
-    currentIssues.forEach((issue) => {
-      const issueStart = Math.max(
-        0,
-        Math.min(1, issue.startMs / performanceDurationMs),
-      );
-      const issueEnd = Math.max(
-        issueStart,
-        Math.min(1, issue.endMs / performanceDurationMs),
-      );
-      const issueLeft = reviewTrackX + issueStart * reviewTrackWidth;
-      const issueRight = reviewTrackX + issueEnd * reviewTrackWidth;
-      const issueWidth = Math.max(3, issueRight - issueLeft);
-      const isHovered = hoveredIssueIdRef.current === issue.id;
-      let issueColor = '#f0a64a';
-      if (issue.kind === 'high') {
-        issueColor = '#9be348';
-      } else if (issue.kind === 'low') {
-        issueColor = '#ff655d';
-      }
-      context.fillStyle = issueColor;
-      context.globalAlpha = isHovered ? 1 : 0.88;
-      roundedRectPath(
-        context,
-        issueLeft,
-        reviewY + 2,
-        issueWidth,
-        reviewTrackHeight - 4,
-      );
-      context.fill();
-      context.globalAlpha = 1;
-      issueHitRegionsRef.current.push({
-        issue,
-        left: issueLeft - 2,
-        right: issueLeft + issueWidth + 2,
-        top: reviewY - 4,
-        bottom: reviewY + reviewTrackHeight + 4,
-      });
-    });
-
-    const reviewPlayheadX =
-      reviewTrackX +
-      Math.max(0, Math.min(1, synchronizedPlayheadMs / performanceDurationMs)) *
-        reviewTrackWidth;
-    context.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    context.beginPath();
-    context.moveTo(reviewPlayheadX, reviewY - 2);
-    context.lineTo(reviewPlayheadX, reviewY + reviewTrackHeight + 2);
-    context.stroke();
-    if (reviewCountWidth > 0) {
-      context.textAlign = 'right';
-      context.fillStyle = textInk;
-      context.fillText(
-        reviewCount,
-        PLOT_LEFT + plotWidth - 3,
-        reviewY + reviewTrackHeight / 2,
-        Math.max(1, reviewCountWidth - 8),
-      );
-    }
-  }
-};
-
-interface IPaintLegendInput {
-  hasTargets: boolean;
-  width: number;
-  plotHeight: number;
-  t: Translate;
-  plotWidth: number;
-  plotTop: number;
-  context: CanvasRenderingContext2D;
-}
-
-/**
- * The legend of the lane's colours, where the lane is wide and tall enough.
- */
-export const paintLegend = ({
-  hasTargets,
-  width,
-  plotHeight,
-  t,
-  plotWidth,
-  plotTop,
-  context,
-}: IPaintLegendInput) => {
-  if (hasTargets && width >= 560 && plotHeight >= 86) {
-    const legendItems = [
-      ['guide', t('karaoke.pitch.guide'), '#8fc8ff'],
-      ['↑', t('karaoke.pitch.high'), '#9be348'],
-      ['—', t('karaoke.pitch.tuned'), '#f2d04f'],
-      ['↓', t('karaoke.pitch.low'), '#ff655d'],
-    ] as const;
-    const legendWidth = 132;
-    const legendHeight = 72;
-    const legendX = PLOT_LEFT + plotWidth - legendWidth - 11;
-    const legendY = plotTop + plotHeight - legendHeight - 10;
-    // The review strip's ground, for the same reason, with an edge and
-    // nothing else: no drop shadow, no lit rim along its top.
-    context.save();
-    context.fillStyle = readSurfaceAlpha(
-      '--surface-base',
-      0.94,
-      'rgba(1, 21, 33, 0.94)',
-    );
-    roundedRectPath(context, legendX, legendY, legendWidth, legendHeight, 9);
-    context.fill();
-    context.restore();
-    context.strokeStyle = readAccent(0.16, 'rgba(107, 233, 242, 0.16)');
-    context.lineWidth = 1;
-    roundedRectPath(context, legendX, legendY, legendWidth, legendHeight, 9);
-    context.stroke();
-
-    context.font = `600 11px ${LANE_FONT}`;
-    context.textAlign = 'left';
-    context.textBaseline = 'middle';
-    legendItems.forEach(([symbol, label, color], index) => {
-      const y = legendY + 13 + index * 15;
-      const swatchX = legendX + 13;
-      context.fillStyle = color;
-      context.strokeStyle = color;
-      if (symbol === 'guide') {
-        context.lineWidth = 1.6;
-        context.lineCap = 'round';
-        context.beginPath();
-        context.moveTo(swatchX, y + 1);
-        context.bezierCurveTo(
-          swatchX + 3,
-          y - 3,
-          swatchX + 7,
-          y + 3,
-          swatchX + 12,
-          y - 1,
-        );
-        context.stroke();
-      } else {
-        context.font = `700 11px ${LANE_FONT}`;
-        context.fillText(symbol, swatchX + 1, y);
-      }
-      context.font = `600 11px ${LANE_FONT}`;
-      context.fillStyle = 'rgba(222, 232, 247, 0.9)';
-      context.fillText(label, legendX + 34, y, legendWidth - 45);
-    });
   }
 };

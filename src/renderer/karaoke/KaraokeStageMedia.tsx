@@ -25,41 +25,40 @@ const VIDEO_DRIFT_TOLERANCE_MS = 200;
 
 export interface IKaraokeStageMediaProps {
   song: IKaraokeSong;
+  /**
+   * The song's video, chosen on the toolbar's Video, where Art shows its
+   * picture alone. The picture still stands under a video until it plays.
+   */
+  showsVideo: boolean;
   /** The song's clock, which the picture follows rather than leads. */
   playheadMs: number;
   isPlaying: boolean;
 }
 
 /**
- * Whether this song brings anything for the stage to show.
+ * Whether this song brings a picture for the toolbar's Art to show: a
+ * background or a cover. Art is offered disabled for a song with none,
+ * rather than hidden: a library of bare UltraStar text files never showed
+ * the control at all, and the setting looked like it did not exist.
  *
- * The stage-art toggle in the workspace is offered only when the answer is
- * yes: a control that visibly does nothing reads as broken, and an audio-only
- * song has nothing behind the words either way. Undecodable video counts —
- * the stage still puts up the artwork that replaced it, and the notice saying
- * why, both of which the toggle is entitled to remove.
- *
- * That last clause is only honest because the notice now renders with no
- * artwork under it. While the component returned `null` for a video-only pack
- * this function answered yes for a stage that drew nothing, and the toggle was
- * enabled over an empty layer — exactly the broken-looking control it exists
- * to avoid.
- *
- * One case it still cannot answer: a cover this build cannot decode. Whether a
- * file decodes is known only after `<img>` has tried, which is a render later
- * and inside the component, so a song whose only stage asset is a truncated
- * JPEG leaves the toggle enabled over the gradient. That is the smaller of the
- * two defects — the alternative was drawing the browser's broken-image frame
- * across the stage — and closing it would mean this answer changing after the
- * fact, which is a different shape of surprise.
+ * One case it cannot answer: a picture this build cannot decode. Whether a
+ * file decodes is known only after `<img>` has tried, a render later and
+ * inside the component, so a song whose only picture is a truncated JPEG
+ * leaves Art enabled over the bare stage. The alternative was drawing the
+ * browser's broken-image frame across the stage.
  */
-export const hasKaraokeStageArt = (song: IKaraokeSong): boolean =>
+export const hasKaraokeStageStill = (song: IKaraokeSong): boolean =>
   song.assets.some(
-    (asset) =>
-      asset.role === 'video' ||
-      asset.role === 'background' ||
-      asset.role === 'cover',
+    (asset) => asset.role === 'background' || asset.role === 'cover',
   );
+
+/**
+ * Whether this song brings a video for the toolbar's Video. An undecodable
+ * one counts: the stage then says why it cannot play it, which is content a
+ * user chose this pack for.
+ */
+export const hasKaraokeStageVideo = (song: IKaraokeSong): boolean =>
+  song.assets.some((asset) => asset.role === 'video');
 
 /**
  * The picture behind the words: a song's own video, or its artwork.
@@ -79,6 +78,7 @@ export const hasKaraokeStageArt = (song: IKaraokeSong): boolean =>
  */
 const KaraokeStageMedia = ({
   song,
+  showsVideo: wantsVideo,
   playheadMs,
   isPlaying,
 }: IKaraokeStageMediaProps) => {
@@ -89,7 +89,9 @@ const KaraokeStageMedia = ({
 
   const cover = song.assets.find((asset) => asset.role === 'cover');
   const background = song.assets.find((asset) => asset.role === 'background');
-  const video = song.assets.find((asset) => asset.role === 'video');
+  const video = wantsVideo
+    ? song.assets.find((asset) => asset.role === 'video')
+    : undefined;
 
   // Recognised but undecodable is its own state, and the commonest one in a
   // real UltraStar library: those packs are full of AVI and FLV, which

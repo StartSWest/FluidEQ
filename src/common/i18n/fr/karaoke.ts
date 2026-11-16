@@ -23,10 +23,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.import.clearTitle': 'Décharger tous les morceaux du karaoké ?',
   'karaoke.import.clearBody':
     'La lecture s’arrêtera et toute la liste du karaoké sera vidée. Vos fichiers resteront sur cet ordinateur.',
-  'karaoke.eyebrow': 'KARAOKÉ LOCAL',
-  'karaoke.title': 'Une scène conçue autour de votre musique',
-  'karaoke.intro':
-    'Cet espace réunira les morceaux, les paroles synchronisées, le retour micro et le suivi de justesse, entièrement en local sur votre PC.',
   'karaoke.fullscreen.enter': 'Passer en plein écran',
   'karaoke.fullscreen.exit': 'Quitter le plein écran',
   'karaoke.fullscreen.hideHeader': 'Masquer l’en-tête FluidEQ',
@@ -80,12 +76,24 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.videoUnsupported':
     'Les vidéos {format} ne peuvent pas être lues ici',
   'karaoke.stage.videoFailed': 'La vidéo {format} n’a pas pu être décodée ici',
-  'karaoke.stage.hideArt': 'Masquer la pochette',
   'karaoke.stage.showGraph':
     'Utiliser la scène ou le style du graphique en arrière-plan',
   'karaoke.stage.hideGraph': 'Désactiver la scène en arrière-plan',
-  'karaoke.stage.showArt': 'Afficher la pochette',
   'karaoke.stage.noArt': 'Ce morceau n’a pas de pochette',
+  'karaoke.stage.show': 'Ce que montre la scène',
+  'karaoke.stage.pitch': 'Justesse',
+  'karaoke.stage.chords': 'Accords',
+  'karaoke.stage.wordsOnly': 'Paroles seules',
+  'karaoke.stage.background': 'Arrière-plan',
+  'karaoke.stage.scene': 'Scène',
+  'karaoke.stage.art': 'Pochette',
+  'karaoke.stage.video': 'Vidéo',
+  'karaoke.stage.noVideo': 'Ce morceau n’a pas de vidéo',
+  'karaoke.maker.openIn': 'Ouvrir dans le Créateur',
+  'karaoke.playlist.songs': 'Morceaux',
+  'karaoke.playlist.search': 'Rechercher des morceaux',
+  'karaoke.playlist.add': 'Ajouter des morceaux',
+  'karaoke.playlist.noMatch': 'Aucun morceau ne correspond à « {query} »',
   'karaoke.playlist.title': 'Liste de lecture',
   'karaoke.playlist.groupFolders': 'Regrouper par dossier',
   'karaoke.playlist.looseFiles': 'Fichiers non classés',
@@ -137,50 +145,25 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volume': 'Volume du micro',
   'karaoke.mic.volumeValue': 'Volume du micro : {percent} %',
   'karaoke.pitch.title': 'Suivi de justesse',
-  'karaoke.pitch.resize': 'Redimensionner la piste de hauteur',
-  'karaoke.pitch.show': 'Afficher le guide de hauteur',
-  'karaoke.pitch.hide': 'Masquer le guide de hauteur',
-  'karaoke.pitch.guide': 'Guide mélodique',
   'karaoke.pitch.toneVolume': 'Volume du ton mélodique',
   'karaoke.pitch.scrubHint':
     'Faites glisser à gauche ou à droite pour parcourir le morceau ; relâchez pour rester en pause.',
   'karaoke.pitch.waveCanvas':
     'Courbe de hauteur du chanteur en temps réel sur les notes du morceau',
-  'karaoke.pitch.waveFooter':
-    'Les blocs bleus sont les notes du morceau ; la fine courbe en direct est la hauteur captée par votre micro.',
-  'karaoke.pitch.review': 'Bilan de la performance',
-  'karaoke.pitch.reviewCount': '{count} passages à travailler',
-  'karaoke.pitch.issueHigh':
-    'Hauteur trop élevée à {time}. Retravaillez ce passage.',
-  'karaoke.pitch.issueLow':
-    'Hauteur trop basse à {time}. Retravaillez ce passage.',
-  'karaoke.pitch.issueMissed':
-    'Notes manquées à {time}. Retravaillez ce passage.',
   'karaoke.practice.go': 'C’EST PARTI !',
   'karaoke.practice.ready': 'Préparez-vous à chanter de nouveau',
   'karaoke.countIn.ready': 'Préparez-vous — le morceau commence après GO',
   'karaoke.pitch.canvas': 'Piste en direct du micro et des notes cibles',
-  'karaoke.pitch.micOff':
-    'Activez le micro pour voir la hauteur de votre voix.',
   'karaoke.pitch.loading': 'Démarrage de l’analyse de hauteur…',
   'karaoke.pitch.unavailable':
     'L’analyse de hauteur est indisponible. Le niveau du micro fonctionne toujours.',
   'karaoke.pitch.noSignal':
     'Chantez dans le micro pour tracer la hauteur de votre voix.',
-  'karaoke.pitch.empty':
-    'Les notes cibles n’apparaîtront que si le morceau importé en contient réellement.',
-  'karaoke.pitch.high': 'Trop haut',
-  'karaoke.pitch.tuned': 'Juste',
-  'karaoke.pitch.low': 'Trop bas',
   'karaoke.chords.aria':
     'Accords de guitare estimés à partir de l’accompagnement',
   'karaoke.chords.analyzing': 'Recherche des accords… {percent} %',
-  'karaoke.chords.estimate': 'Accord estimé',
-  'karaoke.chords.next': 'Suivant',
-  'karaoke.chords.in': 'dans {seconds} s',
   'karaoke.chords.none': 'Aucun accord stable détecté',
   'karaoke.chords.confidence': 'Fiabilité de l’estimation audio : {percent} %',
-  'karaoke.maker.open': 'Créer',
   'karaoke.maker.openTitle': 'Créer ou modifier ce karaoké',
   'karaoke.maker.dialog': 'Créateur de karaoké',
   'karaoke.maker.eyebrow': 'CRÉATEUR DE KARAOKÉ FLUIDEQ',

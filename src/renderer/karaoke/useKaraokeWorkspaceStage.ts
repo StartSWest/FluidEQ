@@ -29,16 +29,13 @@ import {
   selectKaraokePlaylist,
 } from '../../common/karaoke/files';
 import {
-  initiallyUseStagePitch,
   readKaraokePlaylistFolderGrouping,
-  readPitchGuideVisibility,
+  readKaraokeStageGuides,
   readKaraokeBackground,
   publishKaraokeBackgroundChoice,
-  STAGE_PITCH_MEDIA_QUERY,
 } from './karaokeWorkspacePrefs';
 import { IKaraokeSetAsideFiles } from './karaokeImportNotices';
 import {
-  clampKaraokePitchShare,
   clampKaraokePlaylistShare,
   IKaraokeLayoutSettings,
   readKaraokeLayout,
@@ -124,10 +121,9 @@ const useKaraokeWorkspaceStage = ({
    * `Song.srt` played with no lyrics and no explanation.
    */
   const [setAsideFiles, setSetAsideFiles] = useState<IKaraokeSetAsideFiles>();
-  const [useStagePitch, setUseStagePitch] = useState(initiallyUseStagePitch);
-  const [isPitchGuideVisible, setIsPitchGuideVisible] = useState(
-    readPitchGuideVisibility,
-  );
+  const [guides, setGuides] = useState(readKaraokeStageGuides);
+  const [isTextSizeOpen, setIsTextSizeOpen] = useState(false);
+  const textSizeButtonRef = useRef<HTMLButtonElement>(null);
   const [background, setBackground] = useState(readKaraokeBackground);
   // The graph menu edits this picture while the stage keeps owning it. Notify
   // after commit: the toggle's updater must not update a different component.
@@ -141,7 +137,6 @@ const useKaraokeWorkspaceStage = ({
   }));
   const layoutsRef = useRef(layouts);
   const playlistResizeStartRef = useRef(0);
-  const pitchResizeStartRef = useRef(0);
   const cancelCountInCuesRef = useRef<(() => void) | undefined>(undefined);
   const resumeWithCountInAfterScrubRef = useRef(false);
   const autoplayAfterLoadRef = useRef(false);
@@ -312,12 +307,12 @@ const useKaraokeWorkspaceStage = ({
   // Keep that dock present while its panel is open; otherwise a person who
   // stops moving to read a device name would lose the control beneath it.
   useEffect(() => {
-    if (!isFullScreen || !isMicrophoneMenuOpen) {
+    if (!isFullScreen || (!isMicrophoneMenuOpen && !isTextSizeOpen)) {
       return undefined;
     }
     setChromeHeld(true);
     return () => setChromeHeld(false);
-  }, [isFullScreen, isMicrophoneMenuOpen]);
+  }, [isFullScreen, isMicrophoneMenuOpen, isTextSizeOpen]);
 
   const changeLyricTextSize = useCallback((nextSize: number) => {
     const normalized = Math.min(
@@ -557,35 +552,8 @@ const useKaraokeWorkspaceStage = ({
     [updateLayout],
   );
 
-  const startPitchResize = useCallback(() => {
-    pitchResizeStartRef.current = layoutsRef.current[layoutMode].pitchShare;
-  }, [layoutMode]);
-
-  const resizePitch = useCallback(
-    (deltaY: number) => {
-      const container =
-        song && useStagePitch ? stageRef.current : workspaceRef.current;
-      const height =
-        container?.getBoundingClientRect().height ||
-        container?.clientHeight ||
-        window.innerHeight ||
-        720;
-      updateLayout({
-        // The splitter sits above the lane, so moving it upward gives the lane
-        // more room and moving it downward gives the lyrics more room.
-        pitchShare: clampKaraokePitchShare(
-          pitchResizeStartRef.current - deltaY / height,
-        ),
-      });
-    },
-    [song, updateLayout, useStagePitch],
-  );
-
   const playerStyle: TKaraokeLayoutStyle = {
     '--karaoke-playlist-size': `${layout.playlistShare * 100}%`,
-  };
-  const pitchStyle: TKaraokeLayoutStyle = {
-    '--karaoke-pitch-size': `${layout.pitchShare * 100}%`,
   };
 
   // Kept by a subscription rather than copied in after each render, because
@@ -734,16 +702,25 @@ const useKaraokeWorkspaceStage = ({
     isHidden,
   });
 
+  // The text size's popover closes on a press anywhere but itself and its
+  // button, as the microphone's does below.
   useEffect(() => {
-    if (typeof window.matchMedia !== 'function') {
+    if (!isTextSizeOpen) {
       return undefined;
     }
-    const mediaQuery = window.matchMedia(STAGE_PITCH_MEDIA_QUERY);
-    const onChange = () => setUseStagePitch(mediaQuery.matches);
-    onChange();
-    mediaQuery.addEventListener('change', onChange);
-    return () => mediaQuery.removeEventListener('change', onChange);
-  }, []);
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (
+        textSizeButtonRef.current?.contains(target) ||
+        isInsideAnchoredMenu(target)
+      ) {
+        return;
+      }
+      setIsTextSizeOpen(false);
+    };
+    window.addEventListener('pointerdown', onPointerDown);
+    return () => window.removeEventListener('pointerdown', onPointerDown);
+  }, [isTextSizeOpen]);
 
   useEffect(() => {
     if (!isMicrophoneMenuOpen) {
@@ -831,9 +808,11 @@ const useKaraokeWorkspaceStage = ({
     setSelectedPlaylistId,
     setAsideFiles,
     setSetAsideFiles,
-    useStagePitch,
-    isPitchGuideVisible,
-    setIsPitchGuideVisible,
+    guides,
+    setGuides,
+    isTextSizeOpen,
+    setIsTextSizeOpen,
+    textSizeButtonRef,
     background,
     setBackground,
     autoplayAfterLoadRef,
@@ -883,10 +862,7 @@ const useKaraokeWorkspaceStage = ({
     commitLayout,
     startPlaylistResize,
     resizePlaylist,
-    startPitchResize,
-    resizePitch,
     playerStyle,
-    pitchStyle,
     isRestoring,
     clearSavedSession,
     clearSavedProgress,

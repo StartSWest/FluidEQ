@@ -59,10 +59,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // A row of the Library's list: no box, the surface step under the pointer and
 // the Library's one mark (`studio-mark`) on the song chosen.
 .karaoke-playlist__item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 3px;
   margin-bottom: 1px;
   border-radius: $radius-s;
   transition: background-color 130ms ease;
@@ -183,72 +179,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
 }
 
-.karaoke-playlist__heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 1px 4px 6px 8px;
-
-  // The Library rail's own heading: small, tracked, quiet, no rule under it.
-  h3 {
-    margin: 0 auto 0 0;
-    color: $studio-t3;
-    font-size: $studio-text-label;
-    font-weight: $weight-bold;
-    @include tracking(0.12em);
-    text-transform: uppercase;
-  }
-
-  .karaoke-playlist__count {
-    color: $studio-t3;
-    font-size: $studio-text-label;
-    font-weight: $weight-bold;
-  }
-}
-
-.karaoke-playlist__heading-actions {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 6px;
-}
-
-.karaoke-playlist__group-toggle {
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  padding: 0;
-  color: $text-muted;
-  // Frameless, as the Library rail's heading buttons (Ivan, 2026-11-15,
-  // "K1"): the surface step under the pointer, the chosen tint when on.
-  border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: none;
-  transition: $transition-control;
-
-  svg {
-    width: 15px;
-    height: 15px;
-  }
-
-  &:hover {
-    color: $text-primary;
-    border-color: transparent;
-    background: $studio-surface;
-    box-shadow: none;
-  }
-
-  &[aria-pressed='true'] {
-    color: $secondary-light;
-    border-color: transparent;
-    background: $studio-select;
-    box-shadow: none;
-  }
-}
-
-.karaoke-playlist__collapse,
 .karaoke-playlist__expand {
   display: inline-flex;
   align-items: center;
@@ -279,25 +209,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: $karaoke-chip-hover;
     box-shadow: none;
     outline: none;
-  }
-}
-
-// On the rail, not over the picture: frameless like the group toggle beside
-// it (Ivan, 2026-11-15, "K1").
-.karaoke-playlist__collapse {
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  color: $text-muted;
-  border-color: transparent;
-  border-radius: $radius-xs;
-  background: none;
-
-  &:hover,
-  &:focus-visible {
-    color: $text-primary;
-    border-color: transparent;
-    background: $studio-surface;
   }
 }
 
@@ -336,93 +247,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.karaoke-playlist__song {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 6px 9px 10px;
-  color: $text-muted;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  cursor: grab;
-
-  &:active {
-    cursor: grabbing;
-  }
-
-  > i {
-    color: $text-faint;
-    font-size: $text-small;
-    font-style: normal;
-    letter-spacing: -0.18em;
-  }
-
-  > span {
-    display: grid;
-    min-width: 0;
-    gap: 2px;
-  }
-
-  strong {
-    overflow: hidden;
-    color: $text-primary;
-    font-size: $studio-text-tree;
-    font-weight: $weight-semibold;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  small {
-    color: $text-faint;
-    font-size: $text-eyebrow;
-    font-weight: $weight-bold;
-    @include tracking(0.06em);
-    text-transform: uppercase;
-  }
-}
-
 // The Library list's moving bars on the song being sung, the same 14 by 12.
 .karaoke-playlist__playing {
   display: block;
   width: 14px;
   height: 12px;
   margin-right: 4px;
-}
-
-.karaoke-playlist__item-actions {
-  display: none;
-  align-items: center;
-  padding-right: 3px;
-
-  .karaoke-playlist__item:hover &,
-  .karaoke-playlist__item:focus-within & {
-    display: flex;
-  }
-
-  button {
-    display: grid;
-    width: 22px;
-    height: 22px;
-    place-items: center;
-    padding: 0;
-    color: $text-faint;
-    border: 0;
-    border-radius: $radius-s;
-    background: transparent;
-    font-size: $text-small;
-
-    &:hover:not(:disabled) {
-      color: $secondary-light;
-      background: color-mix(in srgb, $secondary-default 10%, transparent);
-    }
-
-    &:disabled {
-      opacity: $disabled-opacity;
-    }
-  }
 }
 
 .karaoke-workspace__stage {
@@ -455,50 +285,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: inset 0 0 0 1px
       color-mix(in srgb, $secondary-default 32%, transparent);
   }
-
-  &.has-song {
-    min-height: 0;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(52px, 1fr);
-    align-items: stretch;
-    gap: clamp(10px, 1vh, 14px);
-    padding: clamp(14px, 1.7vh, 20px);
-  }
-
-  &.has-song.has-stage-pitch {
-    min-height: 0;
-    // The guide is user-resizable, but the heading, lyrics and shared
-    // transport still need guaranteed room in the surrounding workspace.
-    // Without this cap, a persisted 62% guide could consume the whole stage.
-    grid-template-rows:
-      auto minmax(52px, 1fr) 12px
-      minmax(104px, min(var(--karaoke-pitch-size, 34%), calc(100% - 220px)));
-  }
-
-  // A song with target notes draws its words above the plot and its review
-  // under it, and the floor above left its canvas 44px for all three: at
-  // 1440×852 with the graph docked the lane was 143px tall and the plot one
-  // pixel (2026-09-23). 220 is the lane's header and footer, measured at 73px
-  // in Segoe UI, round a canvas that holds every band and a 36px plot
-  // (`pitchLaneLayout`), with a few pixels for a system font that sets the
-  // header taller — as long as the stage can spare it; below that the old
-  // floor holds and the drawing gives way instead.
-  //
-  // `:where()` keeps this at the specificity of the rule above, which it
-  // follows, and of the short-window rules further down, which follow it and
-  // set their own floors.
-  &.has-song.has-stage-pitch:where(:has(> .karaoke-pitch.has-targets)) {
-    grid-template-rows:
-      auto minmax(52px, 1fr) 12px
-      minmax(
-        max(104px, min(220px, calc(100% - 220px))),
-        min(var(--karaoke-pitch-size, 34%), calc(100% - 220px))
-      );
-  }
-
-  > .karaoke-pane-splitter.is-horizontal {
-    align-self: center;
-  }
 }
 
 .karaoke-workspace__drop-overlay {
@@ -520,24 +306,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The stage while last session's playlist is being read back. A spinner and
 // nothing else: the empty state's own words would be wrong, and its picture
 // would be the wrong picture.
-// What is wrong with this song's words, beside the words.
-//
-// One line, quiet, and only while there is something to say: a song whose
-// lyric file could not be read, or one that never had a lyric file. It sat in
-// the header as a sentence about a whole import before this, which is how a
-// folder of twenty songs produced a complaint that stayed on screen while a
-// song played perfectly well.
-.karaoke-lyrics__notice {
-  margin: 0 0 6px;
-  padding: 6px 10px;
-  color: $text-muted;
-  border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-well 32%, transparent);
-  font-size: $text-micro;
-  text-align: center;
-}
-
 .karaoke-workspace__restoring {
   display: grid;
   flex: 1 1 auto;

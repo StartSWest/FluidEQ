@@ -16,14 +16,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, memo, ReactNode, useMemo, useState } from 'react';
-import {
-  IKaraokePlaylistItem,
-  karaokeFileExtension,
-} from '../../common/karaoke/files';
+import { memo, ReactNode, useDeferredValue, useMemo, useState } from 'react';
+import { IKaraokePlaylistItem } from '../../common/karaoke/files';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
-import LibraryPlayingBars from '../library/LibraryPlayingBars';
+import KaraokePlaylistAddMenu from './KaraokePlaylistAddMenu';
+import KaraokePlaylistRow from './KaraokePlaylistRow';
+import {
+  buildKaraokePlaylistFolderTree,
+  type IKaraokePlaylistTreeNode,
+  songsIn,
+} from './karaokePlaylistTree';
 
 interface IKaraokePlaylistProps {
   items: readonly IKaraokePlaylistItem[];
@@ -34,7 +37,11 @@ interface IKaraokePlaylistProps {
    */
   isPlaying?: boolean;
   groupByFolder?: boolean;
+  isBusy: boolean;
   onToggleFolderGrouping: () => void;
+  onAddFiles: () => void;
+  onAddFolder: () => void;
+  onClear: () => void;
   onSelect: (id: string) => void;
   /** A song double-clicked: played now, where a single click only selects. */
   onActivate: (id: string) => void;
@@ -49,83 +56,26 @@ interface IKaraokePlaylistProps {
   isCollapsed?: boolean;
 }
 
-export const KARAOKE_PLAYLIST_DRAG_MIME = 'application/x-fluideq-karaoke-song';
+const matches = (item: IKaraokePlaylistItem, query: string) =>
+  item.title.toLocaleLowerCase().includes(query) ||
+  item.relativePath.toLocaleLowerCase().includes(query);
 
-export interface IKaraokePlaylistTreeNode {
-  id: string;
-  label?: string;
-  path: string;
-  items: IKaraokePlaylistItem[];
-  children: IKaraokePlaylistTreeNode[];
-}
-
-export const karaokePlaylistFolderPath = (
-  item: IKaraokePlaylistItem,
-): string | undefined => {
-  const normalized = item.relativePath
-    .replace(/\\/g, '/')
-    .replace(/^\.\//, '')
-    .replace(/\/+$/g, '');
-  const separator = normalized.lastIndexOf('/');
-  return separator > 0 ? normalized.slice(0, separator) : undefined;
-};
-
-/** Build a visual folder tree without mutating the playback queue. */
-export const buildKaraokePlaylistFolderTree = (
-  items: readonly IKaraokePlaylistItem[],
-): IKaraokePlaylistTreeNode[] => {
-  const roots: IKaraokePlaylistTreeNode[] = [];
-  const nodes = new Map<string, IKaraokePlaylistTreeNode>();
-  const looseItems: IKaraokePlaylistItem[] = [];
-
-  items.forEach((item) => {
-    const folder = karaokePlaylistFolderPath(item);
-    if (!folder) {
-      looseItems.push(item);
-      return;
-    }
-    let parent: IKaraokePlaylistTreeNode | undefined;
-    let path = '';
-    folder.split('/').forEach((label) => {
-      path = path ? `${path}/${label}` : label;
-      const id = path.toLocaleLowerCase();
-      let node = nodes.get(id);
-      if (!node) {
-        node = { id, label, path, items: [], children: [] };
-        nodes.set(id, node);
-        if (parent) {
-          parent.children.push(node);
-        } else {
-          roots.push(node);
-        }
-      }
-      parent = node;
-    });
-    parent?.items.push(item);
-  });
-
-  if (looseItems.length) {
-    roots.push({
-      id: '__loose_files__',
-      path: '',
-      items: looseItems,
-      children: [],
-    });
-  }
-  return roots;
-};
-
-/** The songs a folder holds, its sub-folders' included. */
-const songsIn = (node: IKaraokePlaylistTreeNode): number =>
-  node.items.length +
-  node.children.reduce((total, child) => total + songsIn(child), 0);
-
+/**
+ * The song list, as the Library's rail (Ivan, 2026-11-15, "K1 · Library
+ * twin"): a quiet "Songs" heading with the search and the + beside it, rows
+ * with the song's picture, its title and artist and its length, the song
+ * being sung marked with the Library's bars, and folders that fold.
+ */
 const KaraokePlaylist = ({
   items,
   selectedId,
   isPlaying = false,
   groupByFolder = false,
+  isBusy,
   onToggleFolderGrouping,
+  onAddFiles,
+  onAddFolder,
+  onClear,
   onSelect,
   onActivate,
   onMove,
@@ -134,9 +84,20 @@ const KaraokePlaylist = ({
   isCollapsed = false,
 }: IKaraokePlaylistProps) => {
   const { t } = useTranslation();
+  const [isSearching, setIsSearching] = useState(false);
+  const [query, setQuery] = useState('');
+  // A 5,000-song list re-filters behind the typing rather than in front of it.
+  const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase());
+  const shown = useMemo(
+    () =>
+      deferredQuery
+        ? items.filter((item) => matches(item, deferredQuery))
+        : items,
+    [deferredQuery, items],
+  );
   const tree = useMemo(
-    () => (groupByFolder ? buildKaraokePlaylistFolderTree(items) : []),
-    [groupByFolder, items],
+    () => (groupByFolder ? buildKaraokePlaylistFolderTree(shown) : []),
+    [groupByFolder, shown],
   );
   const [closedFolders, setClosedFolders] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -152,92 +113,32 @@ const KaraokePlaylist = ({
       return next;
     });
 
-  const onDropItem = (
-    event: DragEvent<HTMLButtonElement>,
-    targetId: string,
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const draggedId = event.dataTransfer.getData(KARAOKE_PLAYLIST_DRAG_MIME);
-    if (draggedId && draggedId !== targetId) {
-      onMove(draggedId, targetId);
-    }
+  const closeSearch = () => {
+    setIsSearching(false);
+    setQuery('');
   };
 
   const renderSong = (
     item: IKaraokePlaylistItem,
     siblingItems: readonly IKaraokePlaylistItem[],
     siblingIndex: number,
-  ) => {
-    const isSelected = item.id === selectedId;
-    return (
-      <li
-        key={item.id}
-        className={`karaoke-playlist__item${isSelected ? ' is-selected' : ''}`}
-      >
-        <button
-          type="button"
-          className="karaoke-playlist__song"
-          draggable
-          aria-current={isSelected ? 'true' : undefined}
-          aria-label={t('karaoke.playlist.select', { title: item.title })}
-          onClick={() => onSelect(item.id)}
-          onDoubleClick={() => onActivate(item.id)}
-          onDragStart={(event) => {
-            event.stopPropagation();
-            event.dataTransfer.effectAllowed = 'move';
-            event.dataTransfer.setData(KARAOKE_PLAYLIST_DRAG_MIME, item.id);
-          }}
-          onDragOver={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            event.dataTransfer.dropEffect = 'move';
-          }}
-          onDrop={(event) => onDropItem(event, item.id)}
-        >
-          <i aria-hidden="true">⋮⋮</i>
-          <span>
-            <strong>{item.title}</strong>
-            <small>
-              {item.lyrics
-                ? karaokeFileExtension(item.lyrics.name).toUpperCase()
-                : karaokeFileExtension(item.audio.name).toUpperCase()}
-            </small>
-          </span>
-          {isSelected && isPlaying && (
-            <span className="karaoke-playlist__playing" aria-hidden="true">
-              <LibraryPlayingBars />
-            </span>
-          )}
-        </button>
-        <div className="karaoke-playlist__item-actions">
-          <button
-            type="button"
-            disabled={siblingIndex === 0}
-            aria-label={t('karaoke.playlist.moveUp', { title: item.title })}
-            onClick={() => onMove(item.id, siblingItems[siblingIndex - 1].id)}
-          >
-            ↑
-          </button>
-          <button
-            type="button"
-            disabled={siblingIndex === siblingItems.length - 1}
-            aria-label={t('karaoke.playlist.moveDown', { title: item.title })}
-            onClick={() => onMove(item.id, siblingItems[siblingIndex + 1].id)}
-          >
-            ↓
-          </button>
-          <button
-            type="button"
-            aria-label={t('karaoke.playlist.remove', { title: item.title })}
-            onClick={() => onRemove(item.id)}
-          >
-            ×
-          </button>
-        </div>
-      </li>
-    );
-  };
+  ) => (
+    <KaraokePlaylistRow
+      key={item.id}
+      item={item}
+      isSelected={item.id === selectedId}
+      isPlaying={isPlaying}
+      // Reordering a filtered list would move songs past ones it hides.
+      previousId={
+        deferredQuery ? undefined : siblingItems[siblingIndex - 1]?.id
+      }
+      nextId={deferredQuery ? undefined : siblingItems[siblingIndex + 1]?.id}
+      onSelect={onSelect}
+      onActivate={onActivate}
+      onMove={onMove}
+      onRemove={onRemove}
+    />
+  );
 
   // A folder folds to its heading, and its heading says how many songs it
   // holds, sub-folders included. Folded rows are not drawn at all: a session
@@ -285,38 +186,80 @@ const KaraokePlaylist = ({
       inert={isCollapsed}
     >
       <div className="karaoke-playlist__heading">
-        <h3 id="karaoke-playlist-title">{t('karaoke.playlist.title')}</h3>
-        <div className="karaoke-playlist__heading-actions">
-          <span className="karaoke-playlist__count">{items.length}</span>
-          <button
-            type="button"
-            className="karaoke-playlist__group-toggle"
-            aria-label={t('karaoke.playlist.groupFolders')}
-            title={t('karaoke.playlist.groupFolders')}
-            aria-pressed={groupByFolder}
-            onClick={onToggleFolderGrouping}
-          >
-            <MenuIcon name="folderTree" />
-          </button>
-          <button
-            type="button"
-            className="karaoke-playlist__collapse"
-            aria-label={t('karaoke.playlist.collapse')}
-            title={t('karaoke.playlist.collapse')}
-            onClick={onCollapse}
-          >
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M12.5 4.5 7 10l5.5 5.5" />
-            </svg>
-          </button>
-        </div>
+        <h3 id="karaoke-playlist-title">
+          {t('karaoke.playlist.songs')}
+          <span className="karaoke-playlist__count"> · {items.length}</span>
+        </h3>
+        <button
+          type="button"
+          className="karaoke-playlist__tool"
+          aria-label={t('karaoke.playlist.search')}
+          title={t('karaoke.playlist.search')}
+          aria-pressed={isSearching}
+          onClick={() => {
+            if (isSearching) {
+              closeSearch();
+              return;
+            }
+            setIsSearching(true);
+          }}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4.5 4.5" />
+          </svg>
+        </button>
+        <KaraokePlaylistAddMenu
+          isBusy={isBusy}
+          hasSongs={items.length > 0}
+          groupByFolder={groupByFolder}
+          onAddFiles={onAddFiles}
+          onAddFolder={onAddFolder}
+          onToggleFolderGrouping={onToggleFolderGrouping}
+          onClear={onClear}
+        />
+        <button
+          type="button"
+          className="karaoke-playlist__tool"
+          aria-label={t('karaoke.playlist.collapse')}
+          title={t('karaoke.playlist.collapse')}
+          onClick={onCollapse}
+        >
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M12.5 4.5 7 10l5.5 5.5" />
+          </svg>
+        </button>
       </div>
+      {isSearching && (
+        <input
+          className="karaoke-playlist__search"
+          type="search"
+          value={query}
+          placeholder={t('karaoke.playlist.search')}
+          aria-label={t('karaoke.playlist.search')}
+          // Opened by its own button, so it takes the typing at once.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              closeSearch();
+            }
+          }}
+        />
+      )}
       <div className="karaoke-playlist__groups">
+        {deferredQuery && shown.length === 0 && (
+          <p className="karaoke-playlist__no-match">
+            {t('karaoke.playlist.noMatch', { query: query.trim() })}
+          </p>
+        )}
         {groupByFolder ? (
           <ul className="karaoke-playlist__tree">{tree.map(renderTreeNode)}</ul>
         ) : (
           <ol className="karaoke-playlist__flat">
-            {items.map((item, index) => renderSong(item, items, index))}
+            {shown.map((item, index) => renderSong(item, shown, index))}
           </ol>
         )}
       </div>

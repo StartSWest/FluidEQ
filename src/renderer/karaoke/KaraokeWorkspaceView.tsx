@@ -4,25 +4,24 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { type CSSProperties } from 'react';
+import { useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   karaokeLyricWarningSentence,
   karaokeSetAsideSentences,
 } from './karaokeImportNotices';
-import KaraokeWorkspaceActions from './KaraokeWorkspaceActions';
+import KaraokeStageToolbar from './KaraokeStageToolbar';
 import { KaraokeLiveValue } from './karaokeLiveValue';
 import KaraokeTransport from './KaraokeTransport';
 import KaraokeSceneAppearanceControls from './KaraokeSceneAppearanceControls';
-import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
+import KaraokePlaylist from './KaraokePlaylist';
+import { KARAOKE_PLAYLIST_DRAG_MIME } from './karaokePlaylistTree';
 import { KARAOKE_FILE_PICKER_ACCEPT } from '../../common/karaoke/files';
-import { ERROR_KEYS, SOURCE_KEYS } from './karaokeWorkspaceLabels';
+import { ERROR_KEYS } from './karaokeWorkspaceLabels';
 import KaraokeSetAsideNotice from './KaraokeSetAsideNotice';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
 import KaraokeBackdrop, { karaokeBackdropKind } from './KaraokeBackdrop';
 import KaraokeChordGuide from './KaraokeChordGuide';
-import { karaokeProviderDisplayName } from '../../common/karaoke/provider';
-import { MAX_LYRIC_TEXT_SIZE, MIN_LYRIC_TEXT_SIZE } from './karaokeLyricText';
 import KaraokeLyrics from './KaraokeLyrics';
 import KaraokePitchLane from './KaraokePitchLane';
 import Spinner from '../icons/Spinner';
@@ -35,10 +34,6 @@ import { type IKaraokeWorkspaceProps } from './KaraokeWorkspace';
 import { type TKaraokeWorkspaceStage } from './useKaraokeWorkspaceStage';
 import { type TKaraokeLibraryEntry } from './useKaraokeLibraryEntry';
 import { type TKaraokeWorkspacePlaylist } from './useKaraokeWorkspacePlaylist';
-
-type TKaraokeLyricSizeStyle = CSSProperties & {
-  '--karaoke-lyric-size-progress': string;
-};
 
 type TKaraokeWorkspaceViewProps = Pick<IKaraokeWorkspaceProps, 'isHidden'> &
   Required<
@@ -103,9 +98,11 @@ const KaraokeWorkspaceView = ({
     selectedPlaylistId,
     setAsideFiles,
     setSetAsideFiles,
-    useStagePitch,
-    isPitchGuideVisible,
-    setIsPitchGuideVisible,
+    guides,
+    setGuides,
+    isTextSizeOpen,
+    setIsTextSizeOpen,
+    textSizeButtonRef,
     background,
     setBackground,
     audioClock,
@@ -147,10 +144,7 @@ const KaraokeWorkspaceView = ({
     commitLayout,
     startPlaylistResize,
     resizePlaylist,
-    startPitchResize,
-    resizePitch,
     playerStyle,
-    pitchStyle,
     isRestoring,
   } = stage;
   const {
@@ -167,32 +161,60 @@ const KaraokeWorkspaceView = ({
     makerAudio,
     isMakerShown,
   } = songs;
+  const addFiles = useCallback(
+    () => fileInputRef.current?.click(),
+    [fileInputRef],
+  );
+  const addFolder = useCallback(
+    () => folderInputRef.current?.click(),
+    [folderInputRef],
+  );
   const lyricWarningSentence = warning
     ? karaokeLyricWarningSentence(warning, t)
     : '';
 
-  const workspaceActions = (
-    <KaraokeWorkspaceActions
+  /** The Maker opened on the song on the stage. */
+  const openMaker = useCallback(() => {
+    if (!song) {
+      return;
+    }
+    cancelCountIn();
+    session.pause();
+    // Which takes precedence, the saved draft or the player's own timing,
+    // depends on what the song is. An existing karaoke — the song itself
+    // carries word timing — opens on the player's normalized truth, with the
+    // draft one Undo away, so a stale shifted draft cannot make a finished
+    // song look out of sync. A song with no timing of its own has all its
+    // work in the draft: detected lyrics vanished on reopen until it
+    // restored.
+    setRestoreMakerDraft(
+      !song.lines.some((line) =>
+        line.tokens.some((token) => token.startMs !== undefined),
+      ),
+    );
+    setIsMakerOpen(true);
+  }, [cancelCountIn, session, setIsMakerOpen, setRestoreMakerDraft, song]);
+
+  const stageToolbar = (
+    <KaraokeStageToolbar
       song={song}
+      guides={guides}
+      setGuides={setGuides}
       background={background}
-      isFullScreen={isFullScreen}
-      isChromeIdle={isChromeIdle}
-      playlist={playlist}
-      clearPlaylist={clearPlaylist}
-      folderInputRef={folderInputRef}
-      isLoading={isLoading}
-      cancelCountIn={cancelCountIn}
-      session={session}
-      setRestoreMakerDraft={setRestoreMakerDraft}
-      setIsMakerOpen={setIsMakerOpen}
-      fileInputRef={fileInputRef}
-      isPitchGuideVisible={isPitchGuideVisible}
-      setIsPitchGuideVisible={setIsPitchGuideVisible}
       setBackground={setBackground}
+      onOpenMaker={openMaker}
+      lyricTextSizeId={lyricTextSizeId}
+      lyricTextSize={lyricTextSize}
+      onLyricTextSize={changeLyricTextSize}
+      textSizeButtonRef={textSizeButtonRef}
+      isTextSizeOpen={isTextSizeOpen}
+      setIsTextSizeOpen={setIsTextSizeOpen}
       microphoneMenuButtonRef={microphoneMenuButtonRef}
       microphone={microphone}
       isMicrophoneMenuOpen={isMicrophoneMenuOpen}
       setIsMicrophoneMenuOpen={setIsMicrophoneMenuOpen}
+      isFullScreen={isFullScreen}
+      isChromeIdle={isChromeIdle}
       hasFullScreenTopBar={hasFullScreenTopBar}
       onToggleFullScreenTopBar={onToggleFullScreenTopBar}
       onToggleFullScreen={onToggleFullScreen}
@@ -347,8 +369,7 @@ const KaraokeWorkspaceView = ({
       }${isMakerOpen ? ' is-maker-open' : ''}${
         isMakerShown ? ' is-maker-shown' : ''
       }${song ? ' has-song' : ' is-empty'}`}
-      aria-labelledby={isFullScreen ? undefined : 'karaoke-workspace-title'}
-      aria-label={isFullScreen ? t('karaoke.title') : undefined}
+      aria-label={t('tabs.karaoke')}
       aria-hidden={isHidden}
       /* No press handler on the stage.
 
@@ -414,24 +435,6 @@ const KaraokeWorkspaceView = ({
         tabIndex={-1}
         aria-hidden="true"
       />
-      {!isFullScreen && (
-        <header className="karaoke-workspace__header">
-          <div>
-            <p className="eyebrow">{t('karaoke.eyebrow')}</p>
-            <h2 id="karaoke-workspace-title">{t('karaoke.title')}</h2>
-            {/* The sentence explaining what this tab is for, and only while
-                it is not being used for it. With a playlist loaded and a song
-                on the stage, "this workspace will keep songs, timed lyrics and
-                pitch feedback together" is a paragraph about what is already
-                on screen, taking the room the playlist could have. */}
-            {!song && playlist.length === 0 && (
-              <p className="karaoke-workspace__intro">{t('karaoke.intro')}</p>
-            )}
-          </div>
-          {workspaceActions}
-        </header>
-      )}
-
       {error && (
         <div className="karaoke-workspace__notice is-error" role="alert">
           {t(ERROR_KEYS[error])}
@@ -476,7 +479,11 @@ const KaraokeWorkspaceView = ({
             selectedId={selectedPlaylistId}
             isPlaying={status === 'playing'}
             groupByFolder={groupPlaylistByFolder}
+            isBusy={isLoading}
             onToggleFolderGrouping={toggleFolderGrouping}
+            onAddFiles={addFiles}
+            onAddFolder={addFolder}
+            onClear={clearPlaylist}
             onSelect={selectPlaylistItem}
             onActivate={activatePlaylistItem}
             onMove={movePlaylistItem}
@@ -500,19 +507,12 @@ const KaraokeWorkspaceView = ({
           className={`karaoke-workspace__stage is-backdrop-${karaokeBackdropKind(
             background,
             song,
-            isGraphOverlay,
           )}${song ? ' has-song' : ''}${
-            isPitchGuideVisible && song && useStagePitch
-              ? ' has-stage-pitch'
-              : ''
-          }${
             playlist.length > 0 && layout.playlistCollapsed
               ? ' has-collapsed-playlist'
               : ''
           }${isDragging ? ' is-dragging' : ''}`}
-          style={pitchStyle}
         >
-          {isFullScreen && !isGraphOverlay && workspaceActions}
           {!isHidden && !isMakerOpen && (
             <KaraokeBackdrop
               background={background}
@@ -536,73 +536,9 @@ const KaraokeWorkspaceView = ({
               <span>{t('karaoke.playlist.title')}</span>
             </button>
           )}
+          {!(isFullScreen && isGraphOverlay) && stageToolbar}
           {song ? (
             <>
-              <div className="karaoke-song__heading">
-                <div>
-                  <p>{song.artist || t('karaoke.song.unknownArtist')}</p>
-                  <h3>{song.title}</h3>
-                </div>
-                <div className="karaoke-song__tools">
-                  <KaraokeLiveValue value={playhead}>
-                    {(playheadMs) => (
-                      <KaraokeChordGuide
-                        status={chordAnalysis.status}
-                        chords={chordAnalysis.chords}
-                        progress={chordAnalysis.progress}
-                        playheadMs={playheadMs}
-                      />
-                    )}
-                  </KaraokeLiveValue>
-                  <div className="karaoke-song__utility">
-                    <span className="karaoke-song__source">
-                      {SOURCE_KEYS[song.meta.sourceFormat]
-                        ? t(SOURCE_KEYS[song.meta.sourceFormat])
-                        : karaokeProviderDisplayName(song.meta.sourceFormat) ||
-                          t(SOURCE_KEYS['audio-only'])}
-                    </span>
-                    <label
-                      className="karaoke-song__text-size"
-                      htmlFor={lyricTextSizeId}
-                    >
-                      <span className="is-small" aria-hidden="true">
-                        A
-                      </span>
-                      <input
-                        id={lyricTextSizeId}
-                        type="range"
-                        min={MIN_LYRIC_TEXT_SIZE}
-                        max={MAX_LYRIC_TEXT_SIZE}
-                        step="5"
-                        value={lyricTextSize}
-                        aria-label={t('karaoke.lyrics.textSize')}
-                        aria-valuetext={`${lyricTextSize}%`}
-                        title={`${t(
-                          'karaoke.lyrics.textSize',
-                        )} · ${lyricTextSize}%`}
-                        style={
-                          {
-                            '--karaoke-lyric-size-progress': `${
-                              ((lyricTextSize - MIN_LYRIC_TEXT_SIZE) /
-                                (MAX_LYRIC_TEXT_SIZE - MIN_LYRIC_TEXT_SIZE)) *
-                              100
-                            }%`,
-                          } as TKaraokeLyricSizeStyle
-                        }
-                        onChange={(event) =>
-                          changeLyricTextSize(Number(event.target.value))
-                        }
-                      />
-                      <span className="is-large" aria-hidden="true">
-                        A
-                      </span>
-                      <span className="karaoke-song__text-value">
-                        {lyricTextSize}%
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
               {/* Beside the words, because it is about the words.
                   It used to sit in the header as one sentence for a whole
                   import -- "these lyric files were not used", listed for a
@@ -626,39 +562,46 @@ const KaraokeWorkspaceView = ({
                   />
                 )}
               </KaraokeLiveValue>
-              {isPitchGuideVisible && useStagePitch && (
-                <>
-                  <KaraokePaneSplitter
-                    orientation="horizontal"
-                    ariaLabel={t('karaoke.pitch.resize')}
-                    valuePercent={layout.pitchShare * 100}
-                    onStart={startPitchResize}
-                    onDrag={resizePitch}
-                    onEnd={commitLayout}
-                  />
-                  {/* No playhead here: the lane reads the element itself
-                      every frame, and re-renders only for the pitch its
-                      header prints. */}
-                  <KaraokeLiveValue value={microphone.livePitch}>
-                    {(pitch) => (
-                      <KaraokePitchLane
-                        isActive={!isHidden && !isMakerShown}
-                        isPlaying={status === 'playing'}
-                        pitch={pitch}
-                        analysisStatus={microphone.pitchAnalysisStatus}
-                        microphoneStatus={microphone.status}
-                        onToggleMicrophone={microphone.toggle}
-                        target={song.pitch}
-                        durationMs={session.durationMs}
-                        readPlayheadMs={session.readPlayheadMs}
-                        onPracticeIssue={practicePitchIssue}
-                        onScrubStart={handlePitchScrubStart}
-                        onScrub={handlePitchScrub}
-                        onScrubEnd={handlePitchScrubEnd}
+              {/* Under the words, as the K1 mockup draws them: the chords as a
+                  row of chips over the slim pitch lane, the chords alone, or
+                  neither (the toolbar's Pitch, Chords, Words only). */}
+              {guides !== 'words' && (
+                <div className="karaoke-stage__guides">
+                  <KaraokeLiveValue value={playhead}>
+                    {(playheadMs) => (
+                      <KaraokeChordGuide
+                        status={chordAnalysis.status}
+                        chords={chordAnalysis.chords}
+                        progress={chordAnalysis.progress}
+                        playheadMs={playheadMs}
                       />
                     )}
                   </KaraokeLiveValue>
-                </>
+                  {guides === 'pitch' && (
+                    // No playhead here: the lane reads the element itself
+                    // every frame, and re-renders only for the pitch it
+                    // prints.
+                    <KaraokeLiveValue value={microphone.livePitch}>
+                      {(pitch) => (
+                        <KaraokePitchLane
+                          isActive={!isHidden && !isMakerShown}
+                          isPlaying={status === 'playing'}
+                          pitch={pitch}
+                          analysisStatus={microphone.pitchAnalysisStatus}
+                          microphoneStatus={microphone.status}
+                          onToggleMicrophone={microphone.toggle}
+                          target={song.pitch}
+                          durationMs={session.durationMs}
+                          readPlayheadMs={session.readPlayheadMs}
+                          onPracticeIssue={practicePitchIssue}
+                          onScrubStart={handlePitchScrubStart}
+                          onScrub={handlePitchScrub}
+                          onScrubEnd={handlePitchScrubEnd}
+                        />
+                      )}
+                    </KaraokeLiveValue>
+                  )}
+                </div>
               )}
               {countInCue && (
                 <div
@@ -682,7 +625,7 @@ const KaraokeWorkspaceView = ({
                 <Spinner />
               </div>
             )) || (
-              <>
+              <div className="karaoke-workspace__empty">
                 <img
                   className="karaoke-workspace__microphone-art"
                   src={karaokeMicrophoneImage}
@@ -699,19 +642,34 @@ const KaraokeWorkspaceView = ({
                     )}
                   </h3>
                   <p>{t('karaoke.empty.body')}</p>
-                  <button
-                    type="button"
-                    className="button small karaoke-workspace__empty-open"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isLoading}
-                    aria-disabled={isLoading}
-                  >
-                    <MenuIcon
-                      name="filePlus"
-                      className="karaoke-button__icon"
-                    />
-                    <span>{t('karaoke.import.open')}</span>
-                  </button>
+                  <div className="karaoke-workspace__empty-actions">
+                    <button
+                      type="button"
+                      className="button small karaoke-workspace__empty-open"
+                      onClick={addFiles}
+                      disabled={isLoading}
+                      aria-disabled={isLoading}
+                    >
+                      <MenuIcon
+                        name="filePlus"
+                        className="karaoke-button__icon"
+                      />
+                      <span>{t('karaoke.import.open')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="button small subtle karaoke-workspace__empty-open"
+                      onClick={addFolder}
+                      disabled={isLoading}
+                      aria-disabled={isLoading}
+                    >
+                      <MenuIcon
+                        name="folder"
+                        className="karaoke-button__icon"
+                      />
+                      <span>{t('karaoke.import.folder')}</span>
+                    </button>
+                  </div>
                   <small>{t('karaoke.import.formats')}</small>
                 </div>
                 <div className="karaoke-workspace__levels" aria-hidden="true">
@@ -723,7 +681,7 @@ const KaraokeWorkspaceView = ({
                   <i />
                   <i />
                 </div>
-              </>
+              </div>
             )
           )}
           {isDragging && (
@@ -734,42 +692,6 @@ const KaraokeWorkspaceView = ({
         </div>
       </div>
 
-      {isPitchGuideVisible && (!song || !useStagePitch) && (
-        <>
-          <KaraokePaneSplitter
-            orientation="horizontal"
-            ariaLabel={t('karaoke.pitch.resize')}
-            valuePercent={layout.pitchShare * 100}
-            onStart={startPitchResize}
-            onDrag={resizePitch}
-            onEnd={commitLayout}
-          />
-          <div
-            className="karaoke-workspace__readiness is-pitch-only is-resizable"
-            style={pitchStyle}
-          >
-            <KaraokeLiveValue value={microphone.livePitch}>
-              {(pitch) => (
-                <KaraokePitchLane
-                  isActive={!isHidden && !isMakerShown}
-                  isPlaying={status === 'playing'}
-                  pitch={pitch}
-                  analysisStatus={microphone.pitchAnalysisStatus}
-                  microphoneStatus={microphone.status}
-                  onToggleMicrophone={microphone.toggle}
-                  target={song?.pitch}
-                  durationMs={session.durationMs}
-                  readPlayheadMs={session.readPlayheadMs}
-                  onPracticeIssue={practicePitchIssue}
-                  onScrubStart={handlePitchScrubStart}
-                  onScrub={handlePitchScrub}
-                  onScrubEnd={handlePitchScrubEnd}
-                />
-              )}
-            </KaraokeLiveValue>
-          </div>
-        </>
-      )}
       {isMakerShown && song && makerAudio && (
         <KaraokeLiveValue value={playhead}>
           {(playheadMs) => (

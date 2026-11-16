@@ -18,15 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   KeyboardEvent as ReactKeyboardEvent,
-  MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from 'react';
-import { TranslationKey } from '../../common/i18n';
-import { formatKaraokeTime } from '../../common/karaoke/clock';
 import {
   easeKaraokePitchViewport,
   IKaraokePitchViewport,
@@ -39,13 +36,12 @@ import observeShown from '../utils/observeShown';
 import {
   IKaraokePitchIssue,
   IKaraokePitchPoint,
-  ISSUE_KEYS,
   LIVE_WINDOW_MS,
   MATCH_FRESHNESS_MS,
   MINIMUM_VISIBLE_SEMITONES,
   PERFORMANCE_BUCKET_MS,
   PERFORMANCE_ISSUE_REFRESH_MS,
-  PITCH_LABEL_CLEARANCE_PX,
+  PLOT_INSET_Y,
   PLOT_LEFT,
   PLOT_RIGHT,
   TRACE_HISTORY_MS,
@@ -56,11 +52,9 @@ import {
   buildKaraokeMelodyGuide,
   clamp,
   findKaraokePitchIssues,
-  groupKaraokePitchWords,
   karaokePitchScrubTime,
   karaokePitchSongTimeX,
   karaokeTraceBehindPlayhead,
-  pitchLaneLayout,
 } from './karaokePitchGeometry';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -68,16 +62,12 @@ import {
   TKaraokeMicrophoneStatus,
   TKaraokePitchAnalysisStatus,
 } from './useKaraokeMicrophone';
-import { readTextInk, readAccent } from '../utils/theme';
+import { readAccent } from '../utils/theme';
 import {
-  LANE_FONT,
-  paintLegend,
   paintMelodyGuide,
   paintNoteBlocks,
   paintPitchGrid,
-  paintReview,
   paintTrace,
-  paintWords,
 } from './pitchLaneLayers';
 
 interface IKaraokePitchLaneProps {
@@ -101,14 +91,6 @@ interface IKaraokePitchLaneProps {
 interface IKaraokePitchViewportState {
   viewport: IKaraokePitchViewport;
   frameTimeMs: number;
-}
-
-export interface IKaraokeIssueHitRegion {
-  issue: IKaraokePitchIssue;
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
 }
 
 interface IKaraokePitchScrubState {
@@ -137,8 +119,6 @@ const KaraokePitchLane = ({
 }: IKaraokePitchLaneProps) => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const issueHitRegionsRef = useRef<IKaraokeIssueHitRegion[]>([]);
-  const hoveredIssueIdRef = useRef<string | undefined>(undefined);
   const traceRef = useRef<IKaraokePitchPoint[]>([]);
   const performanceTraceRef = useRef(new Map<number, IKaraokePitchPoint>());
   const performanceIssueUpdateRef = useRef(0);
@@ -146,18 +126,6 @@ const KaraokePitchLane = ({
   const viewportRef = useRef<IKaraokePitchViewportState | undefined>(undefined);
   const lastTraceSampleRef = useRef(0);
   const scrubStateRef = useRef<IKaraokePitchScrubState | undefined>(undefined);
-  /**
-   * The click that ends a scrub, which is not a click on what it lands on.
-   *
-   * A press that moved is a drag, and the `click` the pointer's release sends
-   * after it would otherwise practise whatever issue the drag ended over. Set
-   * by the release and spent by that click; a new press clears it, because
-   * whatever click comes after that press belongs to it. It was cleared by a
-   * zero-delay timer, which relied on the click being dispatched in the same
-   * task as the release — true, but a guess about the browser rather than a
-   * reading of the events themselves.
-   */
-  const suppressCanvasClickRef = useRef(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [performanceIssues, setPerformanceIssues] = useState<
     IKaraokePitchIssue[]
@@ -286,8 +254,6 @@ const KaraokePitchLane = ({
 
     const draw = () => {
       const currentPitch = pitchRef.current;
-      const currentIssues = performanceIssuesRef.current;
-      const textInk = readTextInk();
       const bounds = canvas.getBoundingClientRect();
       const width = Math.max(1, bounds.width);
       const height = Math.max(1, bounds.height);
@@ -304,9 +270,6 @@ const KaraokePitchLane = ({
       }
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       context.clearRect(0, 0, width, height);
-      context.fontKerning = 'normal';
-      context.textRendering = 'optimizeLegibility';
-      issueHitRegionsRef.current = [];
 
       // Nothing painted under the drawing: the canvas's box is the plot well
       // (`.karaoke-pitch__canvas`, `$surface-plot`), the colour every other
@@ -316,11 +279,8 @@ const KaraokePitchLane = ({
       // lane bg color"). Before that it was a ramp of near-black blues.
 
       const plotWidth = Math.max(1, width - PLOT_LEFT - PLOT_RIGHT);
-      const { plotTop, plotBottom, wordLanes, showsReview } = pitchLaneLayout(
-        height,
-        hasTargets,
-      );
-      const plotHeight = Math.max(1, height - plotTop - plotBottom);
+      const plotTop = PLOT_INSET_Y;
+      const plotHeight = Math.max(1, height - PLOT_INSET_Y * 2);
       const now = performance.now();
       const synchronizedPlayheadMs = readSongTimeMs();
       const windowStartMs = synchronizedPlayheadMs - WINDOW_PAST_MS;
@@ -336,7 +296,6 @@ const KaraokePitchLane = ({
           : [];
       const octavePolicy =
         target?.kind === 'notes' ? target.octavePolicy : 'nearest-target';
-      const targetHasAbsoluteOctaves = octavePolicy === 'absolute';
       const targetMidis = visibleNotes
         .map((note) => note.targetMidi)
         .filter((midi): midi is number => midi !== undefined)
@@ -364,76 +323,11 @@ const KaraokePitchLane = ({
       const xForSongTime = (timeMs: number) =>
         karaokePitchSongTimeX(timeMs, synchronizedPlayheadMs, plotWidth);
 
-      // Keep a stable lane derived from the word's global index. Words then
-      // glide horizontally with the song clock without jumping vertically as
-      // neighboring words enter or leave the visible time window.
-      const allWords =
-        target?.kind === 'notes' ? groupKaraokePitchWords(target.notes) : [];
-      // None at all when the lane is too short to give them a row; the lyrics
-      // above the lane are showing the same words.
-      const visibleWords =
-        wordLanes > 0
-          ? allWords
-              .map((word, wordIndex) => ({ word, wordIndex }))
-              .filter(
-                ({ word }) =>
-                  word.endMs >= windowStartMs && word.startMs <= windowEndMs,
-              )
-          : [];
-      const wordLayout = visibleWords.map(({ word, wordIndex }) => {
-        const noteLeft = Math.max(PLOT_LEFT, xForSongTime(word.startMs));
-        const noteRight = Math.min(
-          PLOT_LEFT + plotWidth,
-          xForSongTime(word.endMs),
-        );
-        const centerMs = (word.startMs + word.endMs) / 2;
-        const previousLaneWord = allWords[wordIndex - wordLanes];
-        const nextLaneWord = allWords[wordIndex + wordLanes];
-        const slotStartMs = previousLaneWord
-          ? ((previousLaneWord.startMs + previousLaneWord.endMs) / 2 +
-              centerMs) /
-            2
-          : windowStartMs;
-        const slotEndMs = nextLaneWord
-          ? (centerMs + (nextLaneWord.startMs + nextLaneWord.endMs) / 2) / 2
-          : windowEndMs;
-        return {
-          word,
-          lane: wordIndex % wordLanes,
-          noteLeft,
-          noteRight,
-          center: xForSongTime(centerMs),
-          slotLeft: Math.max(PLOT_LEFT, xForSongTime(slotStartMs)),
-          slotRight: Math.min(PLOT_LEFT + plotWidth, xForSongTime(slotEndMs)),
-        };
-      });
-      paintWords({
-        wordLayout,
-        synchronizedPlayheadMs,
-        context,
-        plotWidth,
-        plotTop,
-        textInk,
-      });
-
-      context.font = `600 11px ${LANE_FONT}`;
-      context.textBaseline = 'middle';
-      context.textAlign = 'right';
       const bottomMidi = centerMidi - semitoneSpan / 2;
       const tickStep = semitoneSpan > 48 ? 12 : 6;
-      // Labels step up an octave at a time until they clear each other, so a
-      // lane squeezed by a short window names fewer notes instead of printing
-      // five on one line. The zero is what the singer is measured against and
-      // is always a multiple of the step, so it always keeps its label. A line
-      // packed tighter than its own width is taken away with its label.
-      let labelStep = tickStep;
-      while (
-        labelStep * semitoneHeight < PITCH_LABEL_CLEARANCE_PX &&
-        labelStep < semitoneSpan
-      ) {
-        labelStep *= 2;
-      }
-      const lineStep = tickStep * semitoneHeight >= 4 ? tickStep : labelStep;
+      // A line packed tighter than 4px is a texture, not a scale: every
+      // other one goes.
+      const lineStep = tickStep * semitoneHeight >= 4 ? tickStep : tickStep * 2;
       // Counted from the zero rather than from MIDI 0. The two agree for 6 and
       // 12, the zero being a C; a 24-semitone step from MIDI 0 would miss it.
       const firstPitchTick =
@@ -445,35 +339,10 @@ const KaraokePitchLane = ({
         firstPitchTick,
         topPitchTick,
         lineStep,
-        labelStep,
         yForMidi,
         context,
-        targetHasAbsoluteOctaves,
         plotWidth,
       });
-
-      // A second ruler belongs to a song. Drawn with no song loaded it counted
-      // out the first seconds of a track that was never opened, under a cursor
-      // for a playhead that could not move.
-      if (hasSongClock) {
-        const firstTickMs = Math.ceil(windowStartMs / 1_000) * 1_000;
-        context.textAlign = 'center';
-        context.textBaseline = 'bottom';
-        for (let tickMs = firstTickMs; tickMs <= windowEndMs; tickMs += 1_000) {
-          const x = xForSongTime(tickMs);
-          context.strokeStyle = 'rgba(225, 231, 244, 0.055)';
-          context.beginPath();
-          context.moveTo(x, plotTop);
-          context.lineTo(x, plotTop + plotHeight);
-          context.stroke();
-          context.fillStyle = textInk;
-          context.fillText(
-            formatKaraokeTime(tickMs),
-            x,
-            plotTop + plotHeight + 15,
-          );
-        }
-      }
 
       recordSinger(now, synchronizedPlayheadMs, centerMidi);
       // Only as far back as the lane can actually show. With the trace trailing
@@ -501,7 +370,6 @@ const KaraokePitchLane = ({
             point.voiced && now - point.wallTimeMs <= MATCH_FRESHNESS_MS,
         );
 
-      const floatingLabelRightByPitch = new Map<number, number>();
       paintNoteBlocks({
         visibleNotes,
         xForSongTime,
@@ -511,11 +379,6 @@ const KaraokePitchLane = ({
         synchronizedPlayheadMs,
         yForMidi,
         context,
-        targetHasAbsoluteOctaves,
-        plotWidth,
-        floatingLabelRightByPitch,
-        plotHeight,
-        plotTop,
       });
 
       // Draw the normalized lead melody as one ideal, singer-like curve. It
@@ -545,18 +408,15 @@ const KaraokePitchLane = ({
       context.stroke();
       context.setLineDash([]);
 
-      const playheadX = xForSongTime(synchronizedPlayheadMs);
+      // The playhead, a plain accent line through the whole strip.
+      const playheadX = Math.round(xForSongTime(synchronizedPlayheadMs)) + 0.5;
       if (hasSongClock) {
-        context.strokeStyle = 'rgba(48, 145, 255, 0.92)';
-        context.lineWidth = 2;
+        context.strokeStyle = readAccent(0.9, 'rgba(50, 225, 234, 0.9)');
+        context.lineWidth = 1.5;
         context.beginPath();
-        context.moveTo(playheadX, plotTop - 3);
-        context.lineTo(playheadX, plotTop + plotHeight);
+        context.moveTo(playheadX, 0);
+        context.lineTo(playheadX, height);
         context.stroke();
-        context.fillStyle = '#3091ff';
-        context.beginPath();
-        context.arc(playheadX, plotTop, 3.5, 0, Math.PI * 2);
-        context.fill();
       }
 
       paintTrace({
@@ -573,31 +433,6 @@ const KaraokePitchLane = ({
         context,
         plotTop,
         plotHeight,
-      });
-
-      paintReview({
-        target,
-        showsReview,
-        t,
-        currentIssues,
-        height,
-        plotWidth,
-        width,
-        context,
-        textInk,
-        hoveredIssueIdRef,
-        issueHitRegionsRef,
-        synchronizedPlayheadMs,
-      });
-
-      paintLegend({
-        hasTargets,
-        width,
-        plotHeight,
-        t,
-        plotWidth,
-        plotTop,
-        context,
       });
     };
 
@@ -651,35 +486,16 @@ const KaraokePitchLane = ({
     t,
   ]);
 
-  let readout = t('karaoke.pitch.micOff');
+  // What the microphone hears, beside its button and only while it is on:
+  // the note being sung, or why there is none.
+  let readout = '';
   if (analysisStatus === 'loading') {
     readout = t('karaoke.pitch.loading');
   } else if (analysisStatus === 'unsupported' || analysisStatus === 'error') {
     readout = t('karaoke.pitch.unavailable');
-  } else if (analysisStatus === 'ready') {
-    readout = pitch ? '' : t('karaoke.pitch.noSignal');
+  } else if (analysisStatus === 'ready' && !pitch) {
+    readout = t('karaoke.pitch.noSignal');
   }
-
-  const footerKey: TranslationKey = hasTargets
-    ? 'karaoke.pitch.waveFooter'
-    : 'karaoke.pitch.empty';
-
-  const issueAtCanvasPoint = (
-    canvas: HTMLCanvasElement,
-    clientX: number,
-    clientY: number,
-  ): IKaraokePitchIssue | undefined => {
-    const bounds = canvas.getBoundingClientRect();
-    const x = clientX - bounds.left;
-    const y = clientY - bounds.top;
-    return issueHitRegionsRef.current.find(
-      (region) =>
-        x >= region.left &&
-        x <= region.right &&
-        y >= region.top &&
-        y <= region.bottom,
-    )?.issue;
-  };
 
   const onCanvasPointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const scrub = scrubStateRef.current;
@@ -688,8 +504,6 @@ const KaraokePitchLane = ({
       if (!scrub.moved && Math.abs(deltaX) >= 4) {
         scrub.moved = true;
         setIsScrubbing(true);
-        hoveredIssueIdRef.current = undefined;
-        event.currentTarget.title = '';
         onScrubStart?.();
       }
       if (scrub.moved) {
@@ -708,26 +522,10 @@ const KaraokePitchLane = ({
       }
     }
 
-    const issue = issueAtCanvasPoint(
-      event.currentTarget,
-      event.clientX,
-      event.clientY,
-    );
-    hoveredIssueIdRef.current = issue?.id;
-    let cursor = canScrub ? 'grab' : 'default';
-    let title = canScrub ? t('karaoke.pitch.scrubHint') : '';
-    if (issue && onPracticeIssue) {
-      cursor = 'pointer';
-      title = t(ISSUE_KEYS[issue.kind], {
-        time: formatKaraokeTime(issue.startMs),
-      });
-    }
-    event.currentTarget.style.cursor = cursor;
-    event.currentTarget.title = title;
+    event.currentTarget.style.cursor = canScrub ? 'grab' : 'default';
   };
 
   const onCanvasPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    suppressCanvasClickRef.current = false;
     if (!canScrub || event.button !== 0) {
       return;
     }
@@ -755,27 +553,9 @@ const KaraokePitchLane = ({
       return;
     }
     setIsScrubbing(false);
-    // A cancelled pointer sends no click, so there is nothing to swallow.
-    suppressCanvasClickRef.current = event.type === 'pointerup';
     event.currentTarget.style.cursor = 'grab';
-    event.currentTarget.title = t('karaoke.pitch.scrubHint');
     onScrubEnd?.(scrub.lastTimeMs);
     event.preventDefault();
-  };
-
-  const onCanvasClick = (event: ReactMouseEvent<HTMLCanvasElement>) => {
-    if (suppressCanvasClickRef.current) {
-      suppressCanvasClickRef.current = false;
-      return;
-    }
-    const issue = issueAtCanvasPoint(
-      event.currentTarget,
-      event.clientX,
-      event.clientY,
-    );
-    if (issue) {
-      onPracticeIssue?.(issue);
-    }
   };
 
   const onCanvasKeyDown = (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
@@ -807,96 +587,69 @@ const KaraokePitchLane = ({
     onPracticeIssue(issue);
   };
 
+  // The slim strip of the K1 mockup (Ivan, 2026-11-15: "the tuning guide is
+  // the pitch, I want that as promised"): the notes, the guide melody, the
+  // singer's curve and the playhead, and the microphone's button in its
+  // corner. No title, labels, ruler, words or footnote around it.
   return (
     <article
-      className={`karaoke-pitch is-curve${hasTargets ? ' has-targets' : ''}${
+      className={`karaoke-pitch${hasTargets ? ' has-targets' : ''}${
         isMicrophoneLive ? ' is-microphone-live' : ''
       }`}
-      aria-labelledby="karaoke-pitch-title"
+      aria-label={t('karaoke.pitch.title')}
     >
-      <header className="karaoke-pitch__header">
-        <div className="karaoke-pitch__title">
-          <h3 id="karaoke-pitch-title">{t('karaoke.pitch.title')}</h3>
-          {target?.kind === 'notes' && <span>{target.source}</span>}
-        </div>
-        <div className="karaoke-pitch__header-actions">
-          <div className="karaoke-pitch__readout" aria-live="polite">
+      <canvas
+        ref={canvasRef}
+        className={`${canScrub ? 'is-scrubbable' : ''}${
+          isScrubbing ? ' is-scrubbing' : ''
+        }`}
+        role="button"
+        aria-label={t(
+          hasTargets ? 'karaoke.pitch.waveCanvas' : 'karaoke.pitch.canvas',
+        )}
+        aria-disabled={!canScrub}
+        tabIndex={canScrub || performanceIssues.length ? 0 : -1}
+        title={canScrub ? t('karaoke.pitch.scrubHint') : undefined}
+        onPointerDown={onCanvasPointerDown}
+        onPointerMove={onCanvasPointerMove}
+        onPointerUp={finishCanvasScrub}
+        onPointerCancel={finishCanvasScrub}
+        onKeyDown={onCanvasKeyDown}
+      />
+      <div className="karaoke-pitch__corner">
+        {isMicrophoneLive && (
+          <span className="karaoke-pitch__readout" aria-live="polite">
             {pitch && analysisStatus === 'ready' ? (
               <>
                 <strong>{pitch.note}</strong>
                 <span>
                   {pitch.cents >= 0 ? '+' : ''}
-                  {pitch.cents} ¢ · {pitch.frequencyHz.toFixed(1)} Hz
+                  {pitch.cents} ¢
                 </span>
               </>
             ) : (
-              <span>{readout}</span>
+              readout
             )}
-          </div>
-          {onToggleMicrophone && (
-            <button
-              type="button"
-              className={`button small subtle karaoke-pitch__mic-toggle${
-                isMicrophoneLive ? ' is-live' : ''
-              }`}
-              onClick={onToggleMicrophone}
-              disabled={isMicrophoneBusy || isMicrophoneUnavailable}
-              aria-disabled={isMicrophoneBusy || isMicrophoneUnavailable}
-              aria-pressed={isMicrophoneLive}
-              aria-label={t(
-                isMicrophoneLive ? 'karaoke.mic.turnOff' : 'karaoke.mic.turnOn',
-              )}
-              title={t(
-                isMicrophoneLive ? 'karaoke.mic.turnOff' : 'karaoke.mic.turnOn',
-              )}
-            >
-              <MenuIcon name="microphone" className="karaoke-button__icon" />
-              <span>
-                {t(isMicrophoneLive ? 'karaoke.mic.live' : 'karaoke.mic.off')}
-              </span>
-            </button>
-          )}
-        </div>
-      </header>
-
-      <div className="karaoke-pitch__canvas">
-        <canvas
-          ref={canvasRef}
-          className={`${canScrub ? 'is-scrubbable' : ''}${
-            isScrubbing ? ' is-scrubbing' : ''
-          }`}
-          role="button"
-          aria-label={t(
-            hasTargets ? 'karaoke.pitch.waveCanvas' : 'karaoke.pitch.canvas',
-          )}
-          aria-disabled={
-            !canScrub && (!performanceIssues.length || !onPracticeIssue)
-          }
-          tabIndex={
-            canScrub || (performanceIssues.length && onPracticeIssue) ? 0 : -1
-          }
-          title={canScrub ? t('karaoke.pitch.scrubHint') : undefined}
-          onPointerDown={onCanvasPointerDown}
-          onPointerMove={onCanvasPointerMove}
-          onPointerUp={finishCanvasScrub}
-          onPointerCancel={finishCanvasScrub}
-          onPointerLeave={(event) => {
-            if (scrubStateRef.current?.moved) {
-              return;
-            }
-            hoveredIssueIdRef.current = undefined;
-            event.currentTarget.style.cursor = canScrub ? 'grab' : 'default';
-            event.currentTarget.title = canScrub
-              ? t('karaoke.pitch.scrubHint')
-              : '';
-          }}
-          onClick={onCanvasClick}
-          onKeyDown={onCanvasKeyDown}
-        />
+          </span>
+        )}
+        {onToggleMicrophone && (
+          <button
+            type="button"
+            className={`karaoke-pitch__mic${isMicrophoneLive ? ' is-live' : ''}`}
+            onClick={onToggleMicrophone}
+            disabled={isMicrophoneBusy || isMicrophoneUnavailable}
+            aria-pressed={isMicrophoneLive}
+            aria-label={t(
+              isMicrophoneLive ? 'karaoke.mic.turnOff' : 'karaoke.mic.turnOn',
+            )}
+            title={t(
+              isMicrophoneLive ? 'karaoke.mic.turnOff' : 'karaoke.mic.turnOn',
+            )}
+          >
+            <MenuIcon name="microphone" className="karaoke-button__icon" />
+          </button>
+        )}
       </div>
-      <footer className="karaoke-pitch__footer">
-        <span>{t(footerKey)}</span>
-      </footer>
     </article>
   );
 };

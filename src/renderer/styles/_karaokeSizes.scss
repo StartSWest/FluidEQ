@@ -25,26 +25,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'karaokeTokens' as *;
 
 @container autoeq-workspace (max-width: 760px) {
-  .karaoke-workspace__header {
-    flex-direction: column;
-    gap: 9px;
-  }
-
-  .karaoke-workspace__actions:not(.is-stage-toolbar) {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 6px;
-
-    .karaoke-workspace__action {
-      min-width: max-content;
-      flex: 1 1 auto;
-    }
-
-    .karaoke-workspace__icon-action {
-      flex: 0 0 $control-height-sm;
-    }
-  }
-
   // At this width a persistent side-by-side library takes the useful width
   // away from lyrics and pitch. Keep the library available as a compact row,
   // then give the actual performance surface the full panel width.
@@ -60,7 +40,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       row-gap var(--playlist-move) $ease-out;
 
     > .karaoke-playlist {
-      max-height: 112px;
+      max-height: 160px;
       grid-row: 1;
       grid-column: 1;
     }
@@ -80,40 +60,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       gap: 0;
     }
   }
-
-  .karaoke-workspace__stage.has-song {
-    padding: 10px;
-  }
-
-  // The fullscreen dock spans the narrow stage: there is no free left-hand
-  // corner for the title. Give the entire heading the dock's row clearance.
-  .karaoke-workspace.is-fullscreen
-    .karaoke-workspace__stage.has-song:has(
-      > .karaoke-workspace__actions.is-stage-toolbar
-    )
-    .karaoke-song__heading {
-    flex-wrap: wrap;
-    margin-top: 56px;
-
-    > div:first-child {
-      flex-basis: 100%;
-    }
-
-    .karaoke-song__tools {
-      width: 100%;
-      flex-wrap: wrap;
-      justify-content: flex-start;
-      margin-top: 0;
-    }
-  }
-
-  .karaoke-chords__next[data-order='2'] {
-    display: none;
-  }
-
-  .karaoke-song__utility {
-    width: clamp(168px, 25vw, 200px);
-  }
 }
 
 @container autoeq-workspace (max-width: 660px) {
@@ -123,10 +69,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &.is-playlist-collapsed {
       grid-template-columns: minmax(0, 1fr);
     }
-  }
-
-  .karaoke-workspace__readiness {
-    grid-template-columns: 1fr;
   }
 
   .karaoke-transport {
@@ -144,49 +86,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-transport__position {
     grid-template-columns: minmax(90px, 1fr);
   }
-
-  .karaoke-song__source,
-  .karaoke-chords__next {
-    display: none;
-  }
-
-  .karaoke-song__heading {
-    gap: 8px;
-  }
-
-  .karaoke-song__tools {
-    gap: 6px;
-  }
-
-  .karaoke-song__utility {
-    width: clamp(152px, 36vw, 184px);
-    grid-template-rows: 1fr;
-  }
-
-  .karaoke-chords {
-    min-width: 76px;
-    min-height: 36px;
-
-    &.is-analyzing {
-      min-width: 126px;
-    }
-  }
 }
 
 @container autoeq-workspace (max-width: 390px) {
-  .karaoke-song__heading {
-    flex-wrap: wrap;
-  }
-
-  .karaoke-song__tools {
-    width: 100%;
-  }
-
-  .karaoke-song__utility {
-    width: auto;
-    flex: 1 1 auto;
-  }
-
   .karaoke-microphone__controls {
     grid-template-columns: 1fr;
 
@@ -197,7 +99,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: 980px) {
-  .karaoke-workspace__stage {
+  .karaoke-workspace__empty {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
@@ -214,113 +116,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: 720px) {
-  .karaoke-workspace__header {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .karaoke-workspace__stage {
+  .karaoke-workspace__empty {
     min-height: 280px;
     grid-template-columns: 1fr;
     justify-items: center;
     text-align: center;
   }
 
+  .karaoke-workspace__empty-actions {
+    justify-content: center;
+  }
+
   .karaoke-workspace__microphone-art {
     display: none;
   }
-
-  .karaoke-workspace__readiness {
-    grid-template-columns: 1fr;
-  }
-
-  .karaoke-workspace__actions {
-    width: 100%;
-
-    button {
-      flex: 1;
-    }
-
-    .karaoke-workspace__icon-action {
-      flex: 0 0 $control-height-sm;
-    }
-
-    &.is-stage-toolbar {
-      width: auto;
-
-      button,
-      .karaoke-workspace__icon-action {
-        flex: 0 0 29px;
-      }
-
-      .karaoke-workspace__action {
-        width: 29px;
-        padding: 0;
-
-        span {
-          display: none;
-        }
-      }
-    }
-  }
 }
 
-// A short laptop window needs a vertical layout of its own. Width-only
-// breakpoints previously stacked the playlist and then kept 280-360px minimum
-// tracks, so the pitch guide and bottom transport were pushed through one
-// another. These floors preserve every band while letting the graph contract
-// before controls overlap.
+// A short laptop window: the strip under the words gives up some height
+// before the words do.
 @media (max-height: 760px) {
   .karaoke-workspace {
     gap: 8px;
   }
 
-  .karaoke-workspace__header {
-    gap: 8px;
-    padding-top: 2px;
-
-    h2 {
-      margin-block: 0 2px;
-    }
-  }
-
-  .karaoke-workspace__intro {
-    display: none;
-  }
-
-  .karaoke-workspace__stage.has-song {
-    grid-template-rows: auto minmax(36px, 1fr);
-    gap: 6px;
-    padding: 8px;
-  }
-
-  .karaoke-workspace__stage.has-song.has-stage-pitch {
-    grid-template-rows:
-      auto minmax(36px, 1fr) 8px
-      minmax(64px, min(var(--karaoke-pitch-size, 28%), 28%));
-  }
-
-  .karaoke-workspace__stage > .karaoke-pane-splitter.is-horizontal,
-  .karaoke-workspace > .karaoke-pane-splitter.is-horizontal {
-    height: 8px;
-  }
-
-  .karaoke-workspace__readiness,
-  .karaoke-workspace__readiness.is-resizable {
-    min-height: 88px;
-    max-height: min(42%, 170px);
-    flex: 0 1 min(var(--karaoke-pitch-size, 28%), 170px);
-  }
-
-  .karaoke-workspace__readiness .karaoke-pitch,
-  .karaoke-workspace__readiness .karaoke-pitch.has-targets {
-    min-height: 0;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    padding: 7px 9px 6px !important;
-  }
-
-  .karaoke-workspace__readiness .karaoke-pitch__canvas {
-    min-height: 0;
+  .karaoke-pitch {
+    height: 76px;
   }
 
   .karaoke-transport {
@@ -332,7 +152,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       grid-template-rows: minmax(56px, 0.16fr) minmax(0, 1fr);
 
       > .karaoke-playlist {
-        max-height: 88px;
+        max-height: 120px;
       }
     }
 
@@ -344,32 +164,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: 720px) and (max-height: 760px) {
-  .karaoke-workspace__stage {
+  .karaoke-workspace__empty {
     min-height: 0;
   }
 }
 
 @media (max-height: 620px) {
-  .karaoke-workspace__stage.has-song {
-    grid-template-rows: auto minmax(28px, 1fr);
-    padding: 6px;
-  }
-
-  .karaoke-workspace__stage.has-song.has-stage-pitch {
-    grid-template-rows:
-      auto minmax(28px, 1fr) 6px
-      minmax(54px, min(var(--karaoke-pitch-size, 25%), 25%));
-  }
-
-  .karaoke-workspace__readiness,
-  .karaoke-workspace__readiness.is-resizable {
-    min-height: 76px;
-    max-height: min(38%, 138px);
-    flex-basis: min(var(--karaoke-pitch-size, 25%), 138px);
-  }
-
-  .karaoke-workspace .karaoke-pitch__footer {
-    display: none;
+  .karaoke-pitch {
+    height: 60px;
   }
 }
 
@@ -379,16 +181,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .karaoke-pane-splitter__handle > span,
-  .karaoke-playlist__collapse,
   .karaoke-playlist__expand,
-  .karaoke-song__text-size,
-  .karaoke-song__text-size input[type='range']::-webkit-slider-thumb,
-  .karaoke-workspace__actions.is-stage-toolbar,
+  .karaoke-stage-bar,
   .karaoke-transport,
   .karaoke-transport__control,
   .karaoke-transport input[type='range']::-webkit-slider-thumb,
-  .karaoke-pitch,
-  .karaoke-pitch__canvas {
+  .karaoke-pitch {
     transition: none !important;
   }
 

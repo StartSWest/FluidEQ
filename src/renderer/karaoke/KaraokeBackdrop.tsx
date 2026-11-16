@@ -8,33 +8,37 @@ import type { CSSProperties } from 'react';
 import type { IKaraokeSong } from '../../common/karaoke/types';
 import { useOverlayBlur } from '../utils/graphOverlay';
 import KaraokeGraphBackground from './KaraokeGraphBackground';
-import KaraokeLights from './KaraokeLights';
-import KaraokeStageMedia, { hasKaraokeStageArt } from './KaraokeStageMedia';
+import KaraokeStageMedia, {
+  hasKaraokeStageStill,
+  hasKaraokeStageVideo,
+} from './KaraokeStageMedia';
 import { KaraokeLiveValue, type IKaraokeLiveValue } from './karaokeLiveValue';
 import type { TKaraokeBackground } from './karaokeWorkspacePrefs';
 import { useKaraokeSceneAppearance } from './karaokeSceneAppearance';
 
 /**
- * What stands behind the words. The graph's scene, the song's cover, the
- * stage's own lights when there is neither — or nothing at all while the
- * window's visualizer is drawn through the page: its picture is the
- * backdrop then, and lights laid over it were a second spotlight on a stage
- * that already had one (Ivan, 2026-10-29).
+ * What stands behind the words: the app's scene, the song's picture, the
+ * song's video, or the bare flat stage. The stage's own dancing lights,
+ * drawn when there was none of those, were taken out (Ivan, 2026-11-15:
+ * "the lights that are now the bg, remove that"); the stage is the
+ * Library's flat card then, as the K1 mockup draws it.
  */
-export type TKaraokeBackdropKind = 'graph' | 'cover' | 'lights' | 'none';
+export type TKaraokeBackdropKind = 'graph' | 'cover' | 'video' | 'none';
 
 export const karaokeBackdropKind = (
   background: TKaraokeBackground,
   song: IKaraokeSong | undefined,
-  isGraphOverlay: boolean,
 ): TKaraokeBackdropKind => {
   if (background === 'graph') {
     return 'graph';
   }
-  if (background === 'cover' && song && hasKaraokeStageArt(song)) {
+  if (background === 'cover' && song && hasKaraokeStageStill(song)) {
     return 'cover';
   }
-  return isGraphOverlay ? 'none' : 'lights';
+  if (background === 'video' && song && hasKaraokeStageVideo(song)) {
+    return 'video';
+  }
+  return 'none';
 };
 
 /** Exactly one backdrop. Hidden pages unmount it, stopping every renderer. */
@@ -59,7 +63,7 @@ export default function KaraokeBackdrop({
   } else if (isGraphOverlay) {
     blur = overlayBlur;
   }
-  const kind = karaokeBackdropKind(background, song, isGraphOverlay);
+  const kind = karaokeBackdropKind(background, song);
   return (
     <div
       className="karaoke-backdrop"
@@ -71,18 +75,18 @@ export default function KaraokeBackdrop({
       }
     >
       {kind === 'graph' && <KaraokeGraphBackground />}
-      {kind === 'cover' && song && (
+      {(kind === 'cover' || kind === 'video') && song && (
         <KaraokeLiveValue value={playhead}>
           {(playheadMs) => (
             <KaraokeStageMedia
               song={song}
+              showsVideo={kind === 'video'}
               playheadMs={playheadMs}
               isPlaying={isPlaying}
             />
           )}
         </KaraokeLiveValue>
       )}
-      {kind === 'lights' && <KaraokeLights isPlaying={isPlaying} />}
     </div>
   );
 }

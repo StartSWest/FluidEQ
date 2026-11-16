@@ -27,7 +27,7 @@ import {
   usePendingKaraokeFiles,
 } from '../library/karaokeHandoff';
 import { reportError } from '../utils/logger';
-import { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
+import { KARAOKE_PLAYLIST_DRAG_MIME } from './karaokePlaylistTree';
 import collectKaraokeDropFiles from './droppedFiles';
 import { writeKaraokePlaylistFolderGrouping } from './karaokeWorkspacePrefs';
 import { useTransportSlot } from '../audio/transportSlot';

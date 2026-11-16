@@ -399,16 +399,27 @@ const KaraokeTransport = ({
    * arrangement the Smart EQ pane already uses.
    */
   const isTight = useMediaQuery('(max-width: 700px)');
+  // Where the bar has the room, the mix itself stands on it as the K1 mockup
+  // draws it (Ivan, 2026-11-15, "K1 · Library twin"): the music and the
+  // voice beside the volume, bare faders with their icons. Narrower, they
+  // go back behind the arrow with the rest.
+  const isWide = useMediaQuery('(min-width: 1280px)');
+  const inlineLevels = isWide
+    ? levels.filter(
+        (level) => level.channel === 'backing' || level.channel === 'vocal',
+      )
+    : [];
+  const barLevels = levels.filter((level) => !inlineLevels.includes(level));
 
   const [lastLevelId, setLastLevelId] = useState<string | undefined>(undefined);
   const shownLevel =
-    levels.find((level) => level.id === lastLevelId) ??
+    barLevels.find((level) => level.id === lastLevelId) ??
     // The one that is not a mix channel — the app's own volume. A level with
     // no `channel` is not part of the mix, which is the same rule the icon
     // above already follows.
-    levels.find((level) => level.channel === undefined) ??
-    levels.find((level) => level.channel === 'backing') ??
-    levels[0];
+    barLevels.find((level) => level.channel === undefined) ??
+    barLevels.find((level) => level.channel === 'backing') ??
+    barLevels[0];
 
   const controlId = useId();
   const [mixMenuAnchor, setMixMenuAnchor] = useState<HTMLElement | null>(null);
@@ -614,6 +625,18 @@ const KaraokeTransport = ({
           columns either side of it are equal fractions, and a fourth column
           would make this side wider than the other by its own width. */}
       <div className="karaoke-transport__rest">
+        {inlineLevels.length > 0 && (
+          <div className="karaoke-transport__mix-inline">
+            {inlineLevels.map((level) => (
+              <KaraokeTransportLevel
+                key={level.id}
+                level={level}
+                inputId={`${controlId}-${level.id}-inline`}
+                onTouch={setLastLevelId}
+              />
+            ))}
+          </div>
+        )}
         {shownLevel && (
           <KaraokeTransportLevel
             level={shownLevel}

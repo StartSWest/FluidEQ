@@ -68,60 +68,68 @@ const KaraokeChordGuide = ({
     );
   }
 
-  const current = chords.find(
+  // A row of chips over the pitch lane, as the K1 mockup draws them (Ivan,
+  // 2026-11-15: "with the chords on top of it exactly as the mockups"): the
+  // chord just played, the one sounding, tinted, and the next two. It was a
+  // panel of labelled boxes beside the song's title, with a countdown.
+  const currentIndex = chords.findIndex(
     (chord) => chord.startMs <= playheadMs && chord.endMs > playheadMs,
   );
-  const upcoming = chords
-    .filter(
-      (chord) =>
-        chord.startMs > playheadMs + 80 &&
-        (!current || chord.label !== current.label),
-    )
-    .slice(0, 2);
+  const nextIndex =
+    currentIndex >= 0
+      ? currentIndex + 1
+      : chords.findIndex((chord) => chord.startMs > playheadMs);
+  // Between two chords there is none sounding: the one before is the last
+  // that started before the next one.
+  const previousIndex =
+    currentIndex >= 0
+      ? currentIndex - 1
+      : (nextIndex < 0 ? chords.length : nextIndex) - 1;
+  const previous = previousIndex >= 0 ? chords[previousIndex] : undefined;
+  const current = currentIndex >= 0 ? chords[currentIndex] : undefined;
+  const upcoming = nextIndex < 0 ? [] : chords.slice(nextIndex, nextIndex + 2);
+
+  if (!chords.length) {
+    return (
+      <div className="karaoke-chords" role="status">
+        <span className="karaoke-chords__empty">
+          {t('karaoke.chords.none')}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`karaoke-chords${current ? ' has-current' : ''}`}
+      className="karaoke-chords"
       role="status"
       aria-live="polite"
       aria-label={t('karaoke.chords.aria')}
     >
-      <div className="karaoke-chords__current">
-        <span>{t('karaoke.chords.estimate')}</span>
-        <strong
-          title={t('karaoke.chords.confidence', {
-            percent: Math.round((current?.confidence ?? 0) * 100),
-          })}
-        >
-          {current?.label ?? '—'}
-        </strong>
-      </div>
-      {upcoming.map((chord, index) => {
-        const seconds = Math.max(0, chord.startMs - playheadMs) / 1_000;
-        return (
-          <div
-            className="karaoke-chords__next"
-            data-order={index + 1}
-            key={`${chord.startMs}-${chord.label}`}
-          >
-            <span>{index === 0 ? t('karaoke.chords.next') : ''}</span>
-            <strong>{chord.label}</strong>
-            {index === 0 && (
-              <small>
-                {t('karaoke.chords.in', {
-                  seconds:
-                    seconds < 10 ? seconds.toFixed(1) : Math.round(seconds),
-                })}
-              </small>
-            )}
-          </div>
-        );
-      })}
-      {!chords.length && (
-        <span className="karaoke-chords__empty">
-          {t('karaoke.chords.none')}
+      {previous && (
+        <span key={`${previous.startMs}-past`} className="karaoke-chords__chip">
+          {previous.label}
         </span>
       )}
+      {current && (
+        <strong
+          key={`${current.startMs}-now`}
+          className="karaoke-chords__chip is-current"
+          title={t('karaoke.chords.confidence', {
+            percent: Math.round(current.confidence * 100),
+          })}
+        >
+          {current.label}
+        </strong>
+      )}
+      {upcoming.map((chord) => (
+        <span
+          key={`${chord.startMs}-next`}
+          className="karaoke-chords__chip is-next"
+        >
+          {chord.label}
+        </span>
+      ))}
     </div>
   );
 };

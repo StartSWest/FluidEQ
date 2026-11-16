@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 // The karaoke workspace's remembered choices: playlist grouped by folder,
-// the pitch guide and the stage background, each kept in this
-// window's local storage, and whether the stage opens with its pitch lane.
+// what the stage shows under the words (pitch, chords or words only) and
+// what stands behind them, each kept in this window's local storage.
 
 import { useSyncExternalStore } from 'react';
 
@@ -18,8 +18,6 @@ const subscribeBackground = (listener: () => void) => {
   };
 };
 
-export const STAGE_PITCH_MEDIA_QUERY = '(min-width: 1120px)';
-
 const PLAYLIST_FOLDER_GROUPING_KEY = 'fluideq-karaoke-playlist-group-by-folder';
 
 const PITCH_GUIDE_VISIBILITY_KEY = 'fluideq-karaoke-pitch-guide-visible';
@@ -28,7 +26,22 @@ const STAGE_ART_VISIBILITY_KEY = 'fluideq-karaoke-stage-art-visible';
 
 const STAGE_BACKGROUND_KEY = 'fluideq-karaoke-stage-background';
 
-export type TKaraokeBackground = 'cover' | 'graph' | 'none';
+const STAGE_GUIDES_KEY = 'fluideq-karaoke-stage-guides';
+
+/**
+ * What stands behind the words: the app's scene, the song's picture, the
+ * song's video, or the bare stage. `cover` is the picture alone since the
+ * stage's toolbar offered Art and Video apart (Ivan, 2026-11-15, "K1"); it
+ * used to mean "the video, or the picture when there is none".
+ */
+export type TKaraokeBackground = 'cover' | 'video' | 'graph' | 'none';
+
+/**
+ * What the stage draws under the words: the chords over the pitch lane, the
+ * chords alone, or neither. One choice, as the toolbar's three-way switch
+ * shows it.
+ */
+export type TKaraokeStageGuides = 'pitch' | 'chords' | 'words';
 
 export const readKaraokePlaylistFolderGrouping = (): boolean => {
   try {
@@ -46,17 +59,25 @@ export const writeKaraokePlaylistFolderGrouping = (enabled: boolean): void => {
   }
 };
 
-export const readPitchGuideVisibility = (): boolean => {
+export const readKaraokeStageGuides = (): TKaraokeStageGuides => {
   try {
-    return window.localStorage.getItem(PITCH_GUIDE_VISIBILITY_KEY) !== 'false';
+    const saved = window.localStorage.getItem(STAGE_GUIDES_KEY);
+    if (saved === 'pitch' || saved === 'chords' || saved === 'words') {
+      return saved;
+    }
+    // The pitch guide's old switch: a lane switched off kept the chords,
+    // which were always drawn.
+    return window.localStorage.getItem(PITCH_GUIDE_VISIBILITY_KEY) === 'false'
+      ? 'chords'
+      : 'pitch';
   } catch {
-    return true;
+    return 'pitch';
   }
 };
 
-export const writePitchGuideVisibility = (visible: boolean): void => {
+export const writeKaraokeStageGuides = (guides: TKaraokeStageGuides): void => {
   try {
-    window.localStorage.setItem(PITCH_GUIDE_VISIBILITY_KEY, String(visible));
+    window.localStorage.setItem(STAGE_GUIDES_KEY, guides);
   } catch {
     // Keep the live preference when storage is unavailable.
   }
@@ -65,7 +86,12 @@ export const writePitchGuideVisibility = (visible: boolean): void => {
 export const readKaraokeBackground = (): TKaraokeBackground => {
   try {
     const saved = window.localStorage.getItem(STAGE_BACKGROUND_KEY);
-    if (saved === 'cover' || saved === 'graph' || saved === 'none') {
+    if (
+      saved === 'cover' ||
+      saved === 'video' ||
+      saved === 'graph' ||
+      saved === 'none'
+    ) {
       return saved;
     }
     // Keep the old art switch's choice when upgrading to three backgrounds.
@@ -105,7 +131,3 @@ export const useKaraokeBackgroundChoice = () =>
     getShownBackground,
     () => 'cover' as const,
   );
-
-export const initiallyUseStagePitch = (): boolean =>
-  typeof window.matchMedia !== 'function' ||
-  window.matchMedia(STAGE_PITCH_MEDIA_QUERY).matches;

@@ -23,10 +23,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.import.clearTitle': 'Karaoke-Wiedergabeliste leeren?',
   'karaoke.import.clearBody':
     'Die Wiedergabe wird gestoppt und die gesamte Karaoke-Wiedergabeliste geleert. Deine Dateien bleiben auf diesem Computer.',
-  'karaoke.eyebrow': 'LOKALES KARAOKE',
-  'karaoke.title': 'Eine Bühne für Ihre Musik',
-  'karaoke.intro':
-    'Hier kommen Songs, synchronisierte Texte, Mikrofon-Monitoring und Tonhöhenhilfe zusammen – vollständig lokal auf Ihrem PC.',
   'karaoke.fullscreen.enter': 'Vollbild öffnen',
   'karaoke.fullscreen.exit': 'Vollbild verlassen',
   'karaoke.fullscreen.hideHeader': 'FluidEQ-Kopfzeile ausblenden',
@@ -80,12 +76,24 @@ const karaoke: Partial<Dictionary> = {
     '{format}-Videos können hier nicht abgespielt werden',
   'karaoke.stage.videoFailed':
     '{format}-Video konnte hier nicht dekodiert werden',
-  'karaoke.stage.hideArt': 'Cover ausblenden',
   'karaoke.stage.showGraph':
     'Szene oder Stil des Diagramms als Hintergrund verwenden',
   'karaoke.stage.hideGraph': 'Szenen-Hintergrund ausschalten',
-  'karaoke.stage.showArt': 'Cover einblenden',
   'karaoke.stage.noArt': 'Dieser Titel hat kein Cover',
+  'karaoke.stage.show': 'Was die Bühne zeigt',
+  'karaoke.stage.pitch': 'Tonhöhe',
+  'karaoke.stage.chords': 'Akkorde',
+  'karaoke.stage.wordsOnly': 'Nur Text',
+  'karaoke.stage.background': 'Hintergrund',
+  'karaoke.stage.scene': 'Szene',
+  'karaoke.stage.art': 'Cover',
+  'karaoke.stage.video': 'Video',
+  'karaoke.stage.noVideo': 'Dieser Titel hat kein Video',
+  'karaoke.maker.openIn': 'Im Editor öffnen',
+  'karaoke.playlist.songs': 'Titel',
+  'karaoke.playlist.search': 'Titel suchen',
+  'karaoke.playlist.add': 'Titel hinzufügen',
+  'karaoke.playlist.noMatch': 'Kein Titel passt zu „{query}“',
   'karaoke.playlist.title': 'Playlist',
   'karaoke.playlist.groupFolders': 'Nach Ordner gruppieren',
   'karaoke.playlist.looseFiles': 'Lose Dateien',
@@ -137,49 +145,24 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volume': 'Mikrofonlautstärke',
   'karaoke.mic.volumeValue': 'Mikrofonlautstärke: {percent} %',
   'karaoke.pitch.title': 'Tonhöhenspur',
-  'karaoke.pitch.resize': 'Tonhöhenspur skalieren',
-  'karaoke.pitch.show': 'Tonhöhenanzeige einblenden',
-  'karaoke.pitch.hide': 'Tonhöhenanzeige ausblenden',
-  'karaoke.pitch.guide': 'Melodieführung',
   'karaoke.pitch.toneVolume': 'Lautstärke des Melodietons',
   'karaoke.pitch.scrubHint':
     'Nach links oder rechts ziehen, um durch den Song zu gehen; loslassen, um pausiert zu bleiben.',
   'karaoke.pitch.waveCanvas':
     'Echtzeit-Tonhöhenkurve der Stimme über den Songnoten',
-  'karaoke.pitch.waveFooter':
-    'Die blauen Blöcke sind die Songnoten; die dünne Live-Kurve zeigt die vom Mikrofon erfasste Tonhöhe.',
-  'karaoke.pitch.review': 'Leistungsübersicht',
-  'karaoke.pitch.reviewCount': '{count} Stellen zum Üben',
-  'karaoke.pitch.issueHigh':
-    'Tonhöhe bei {time} zu hoch. Üben Sie diesen Abschnitt.',
-  'karaoke.pitch.issueLow':
-    'Tonhöhe bei {time} zu niedrig. Üben Sie diesen Abschnitt.',
-  'karaoke.pitch.issueMissed':
-    'Ausgelassene Noten bei {time}. Üben Sie diesen Abschnitt.',
   'karaoke.practice.go': 'LOS',
   'karaoke.practice.ready': 'Machen Sie sich bereit, erneut zu singen',
   'karaoke.countIn.ready': 'Machen Sie sich bereit – der Song beginnt nach LOS',
   'karaoke.pitch.canvas': 'Live-Tonhöhenspur für Mikrofon und Zieltöne',
-  'karaoke.pitch.micOff':
-    'Schalten Sie das Mikrofon ein, um Ihre Tonhöhe zu sehen.',
   'karaoke.pitch.loading': 'Tonhöhenanalyse wird gestartet…',
   'karaoke.pitch.unavailable':
     'Die Tonhöhenanalyse ist nicht verfügbar. Der Mikrofonpegel funktioniert weiterhin.',
   'karaoke.pitch.noSignal':
     'Singen Sie ins Mikrofon, um Ihre Tonhöhe aufzuzeichnen.',
-  'karaoke.pitch.empty':
-    'Zieltöne erscheinen nur, wenn der importierte Song sie tatsächlich enthält.',
-  'karaoke.pitch.high': 'Zu hoch',
-  'karaoke.pitch.tuned': 'Richtig',
-  'karaoke.pitch.low': 'Zu tief',
   'karaoke.chords.aria': 'Aus der Begleitspur geschätzte Gitarrenakkorde',
   'karaoke.chords.analyzing': 'Akkorde werden gesucht… {percent}%',
-  'karaoke.chords.estimate': 'Geschätzter Akkord',
-  'karaoke.chords.next': 'Nächster',
-  'karaoke.chords.in': 'in {seconds}s',
   'karaoke.chords.none': 'Kein stabiler Akkord gefunden',
   'karaoke.chords.confidence': 'Konfidenz der Audioschätzung: {percent}%',
-  'karaoke.maker.open': 'Erstellen',
   'karaoke.maker.openTitle': 'Dieses Karaoke erstellen oder bearbeiten',
   'karaoke.maker.dialog': 'Karaoke-Editor',
   'karaoke.maker.eyebrow': 'FLUIDEQ KARAOKE-EDITOR',

@@ -571,3 +571,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: flex;
   }
 }
+
+// The mix on the bar (Ivan, 2026-11-15, "K1 · Library twin"): the music and
+// the voice as bare faders, an icon and a slider each, beside the volume's
+// pill. Their readings are in the arrow's menu with the rest of the mix.
+// Four classes: the adopted bar sizes every fader pill at three.
+.karaoke-transport .karaoke-transport__rest > .karaoke-transport__mix-inline {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+
+  > .karaoke-transport__volume {
+    grid-template-columns: 22px minmax(60px, 96px);
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+
+    .karaoke-transport__volume-value {
+      display: none;
+    }
+  }
+}

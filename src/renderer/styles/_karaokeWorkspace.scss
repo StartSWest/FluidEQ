@@ -68,9 +68,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // toolbar while separate leaf delays brought the rest in at different times.
 // The restore promise determines readiness; the finished view fades in once.
 .karaoke-workspace.is-restoring {
-  > .karaoke-workspace__header,
-  > .karaoke-workspace__player,
-  > .karaoke-workspace__readiness {
+  > .karaoke-workspace__player {
     visibility: hidden;
   }
 
@@ -117,17 +115,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // runs to the card's own rounded edge, which clips it.
 .karaoke-workspace:has(
   > .karaoke-workspace__player
-    > .karaoke-workspace__stage:is(.is-backdrop-graph, .is-backdrop-cover)
+    > .karaoke-workspace__stage:is(
+      .is-backdrop-graph,
+      .is-backdrop-cover,
+      .is-backdrop-video
+    )
 ) {
   padding: 0;
-
-  > .karaoke-workspace__header {
-    padding: 12px 12px 0;
-  }
-
-  > .karaoke-workspace__readiness {
-    margin: 0 12px 12px;
-  }
 
   > .karaoke-workspace__player
     > :not(.karaoke-workspace__stage, .karaoke-pane-splitter) {
@@ -149,7 +143,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // stacking context, so what must stay over the picture is lifted above it.
 .karaoke-workspace:not(.is-fullscreen):has(
     > .karaoke-workspace__player
-      > .karaoke-workspace__stage:is(.is-backdrop-graph, .is-backdrop-cover)
+      > .karaoke-workspace__stage:is(
+        .is-backdrop-graph,
+        .is-backdrop-cover,
+        .is-backdrop-video
+      )
   ) {
   contain: layout;
 
@@ -158,8 +156,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     inset: 0;
   }
 
-  > .karaoke-workspace__header,
-  > .karaoke-workspace__readiness,
   > .karaoke-workspace__player > .karaoke-playlist,
   > .karaoke-workspace__player > .karaoke-pane-splitter {
     position: relative;
@@ -255,179 +251,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.karaoke-workspace__header {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: $spacing-l;
-  // No inset of its own. The workspace tab panel already pads to 12px on
-  // every side and the other tabs' headings sit flush against that inset —
-  // the 4px this used to add put the Karaoke title further in than the EQ,
-  // Presets, Voicing and Convolution titles beside it.
-  padding: 0;
-
-  // 1.22rem matches the intro `h2` on Presets, Voicing and Convolution, so
-  // the page title is the same size on every tab. Held at the same line
-  // height it had before so the eyebrow above it does not shift.
-  h2 {
-    margin: 1px 0 4px;
-    color: $text-primary;
-    font-size: 1.22rem;
-    line-height: 1.2;
-  }
-}
-
-// WITH A SONG ON THE STAGE THE HEADER IS ONLY ITS TOOLBAR, as the Library's
-// top bar is (Ivan, 2026-11-15, "K1 · Library twin"): the page's eyebrow and
-// title said "Karaoke" over a tab that already says it, and took a row from
-// the stage. Kept for assistive technology, which names the region by it.
-.karaoke-workspace.has-song .karaoke-workspace__header {
-  justify-content: flex-end;
-
-  > :first-child {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-}
-
-// And the toolbar is quiet, as the Library's: its words are outline buttons,
-// its icons have no frame until the pointer is on them, and a switch that is on
-// wears the Library's chosen tint rather than the filled accent.
-.karaoke-workspace.has-song .karaoke-workspace__actions {
-  .button:not(.karaoke-workspace__icon-action):not(:disabled) {
-    color: $text-muted;
-    border-color: transparent;
-    background: none;
-
-    &:hover {
-      color: $text-primary;
-      border-color: transparent;
-      background: $studio-surface;
-    }
-  }
-
-  .karaoke-workspace__icon-action:not([aria-pressed='true']) {
-    color: $text-muted;
-    border-color: transparent;
-    background: none;
-
-    &:hover:not(:disabled) {
-      color: $text-primary;
-      background: $studio-surface;
-    }
-  }
-
-  .karaoke-workspace__pitch-toggle[aria-pressed='true'],
-  .karaoke-workspace__graph-background-toggle[aria-pressed='true'],
-  .karaoke-workspace__stage-art-toggle[aria-pressed='true']:not(:disabled),
-  .karaoke-workspace__fullscreen[aria-pressed='true'] {
-    color: $secondary-light;
-    border-color: transparent;
-    background: $studio-select;
-    filter: none;
-
-    &:hover:not(:disabled),
-    &:focus-visible {
-      color: $text-primary;
-      border-color: transparent;
-      background: $studio-select;
-      filter: none;
-    }
-  }
-}
-
 .karaoke-workspace__file-input,
 .karaoke-workspace > audio {
   display: none;
-}
-
-.karaoke-workspace__actions {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 8px;
-
-  .button {
-    min-height: $control-height-sm;
-    gap: 6px;
-    font-size: $text-small;
-    font-weight: $weight-bold;
-
-    &:disabled {
-      color: $text-muted;
-      border-color: rgba($edge-tint, 0.08);
-      background: color-mix(in srgb, $surface-panel 42%, transparent);
-      box-shadow: none;
-      cursor: not-allowed;
-    }
-  }
-
-  .karaoke-workspace__icon-action {
-    display: grid;
-    width: $control-height-sm;
-    flex: 0 0 $control-height-sm;
-    place-items: center;
-    padding: 0;
-  }
-
-  .karaoke-workspace__fullscreen {
-    svg {
-      width: 17px;
-      height: 17px;
-      fill: none;
-      stroke: currentColor;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-width: 1.7;
-    }
-
-    path {
-      fill: none;
-    }
-
-    &[aria-pressed='true'] {
-      color: $surface-base;
-      border-color: color-mix(in srgb, $secondary-default 82%, transparent);
-      background: $secondary-default;
-      box-shadow: none;
-    }
-  }
-
-  .karaoke-workspace__settings.is-live {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
-    box-shadow: none;
-  }
-
-  // The stage-art toggle wears the same lit state as the pitch guide: they are
-  // the same kind of control and reading one as "on" while the other only dims
-  // would make the pair look like different mechanisms. `:not(:disabled)`
-  // because a song with no artwork still carries the preference — lighting up
-  // a button that cannot act is the one case where the highlight would lie.
-  .karaoke-workspace__pitch-toggle[aria-pressed='true'],
-  .karaoke-workspace__graph-background-toggle[aria-pressed='true'],
-  .karaoke-workspace__stage-art-toggle[aria-pressed='true']:not(:disabled) {
-    // The filled button's face (`--control-fill`): flat outside Rainbow mode,
-    // lit under the pointer by the same brightness the filled button takes.
-    color: $surface-base;
-    border-color: transparent;
-    background: $secondary-default var(--control-fill) border-box;
-    box-shadow: none;
-
-    &:hover:not(:disabled),
-    &:focus-visible {
-      color: $surface-base;
-      border-color: transparent;
-      background: $secondary-default var(--control-fill) border-box;
-      box-shadow: none;
-      filter: brightness(1.1);
-    }
-  }
 }
 
 .karaoke-button__icon {
@@ -525,8 +351,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // its contents moved. Shrinking the row that holds them is not it either:
   // the stage's rows re-share what that row loses, and the lyric above moves
   // with it.
-  .karaoke-playlist,
-  .karaoke-pitch {
+  .karaoke-playlist {
     // The inset they keep when there is no bar to clear. Without it the two
     // panels sat on the window's bottom edge the moment the bar faded, which
     // is the one place nothing else in this app touches.
@@ -565,74 +390,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: transparent;
     box-shadow: none;
   }
-}
-
-.karaoke-workspace__actions.is-stage-toolbar {
-  position: absolute;
-  z-index: 9;
-  top: 9px;
-  right: var(--fullscreen-controls-right, 10px);
-  left: auto;
-  width: auto;
-  max-width: calc(100% - var(--fullscreen-controls-right, 10px) - 10px);
-  gap: 5px;
-  padding: 5px;
-  border: 1px solid $border-field;
-  border-radius: $radius-l;
-  background: $karaoke-chip-face;
-  box-shadow: none;
-  opacity: 0.82;
-  transition:
-    opacity 180ms ease,
-    transform 220ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease;
-
-  &:hover,
-  &:focus-within {
-    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
-    box-shadow: none;
-    opacity: 1;
-  }
-
-  .button {
-    min-height: 29px;
-    padding-top: 4px;
-    padding-bottom: 4px;
-  }
-
-  .karaoke-workspace__icon-action {
-    width: 29px;
-    flex-basis: 29px;
-  }
-
-  .karaoke-workspace__top-bar[aria-pressed='true'] {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 46%, transparent);
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-    box-shadow: none;
-  }
-
-  // Fades in place. The 7px lift that used to come with it meant the bar slid
-  // down the screen on every pointer move after a pause, which reads as the
-  // toolbar wandering rather than as it coming back.
-  &.is-idle {
-    opacity: 0;
-    pointer-events: none;
-    transition-duration: 480ms;
-  }
-}
-
-// The full-screen dock now belongs to the top of the stage, not to the lyric
-// canvas. Move only the right-hand chord/tools pane beneath its 40px control
-// row, 8-9px top offset and a visible gap. The song title keeps its natural
-// position on the left, where it does not compete with the right-aligned dock.
-// Both fullscreen routes use this exact clearance, so opening the graph does
-// not make the chord pane jump to a second position.
-.karaoke-workspace.is-fullscreen
-  .karaoke-workspace__stage.has-song
-  .karaoke-song__tools {
-  margin-top: 56px;
 }
 
 // Normal mode gets this breathing room from the workspace panel's 12px outer
@@ -738,14 +495,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // than the rest, at 0.65rem and weight 900, which made it read as a heavier
 // and different label from the identical row on every other tab. One cyan,
 // one weight, one size across the app.
-.karaoke-workspace__intro {
-  max-width: 650px;
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-lead;
-  line-height: 1.55;
-}
-
 .karaoke-workspace__milestone {
   display: inline-flex;
   flex: 0 0 auto;
