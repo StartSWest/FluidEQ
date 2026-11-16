@@ -126,6 +126,7 @@ const eq = {
   'graph.switch.grid': 'Grid',
   'graph.switch.meter': 'Level meter',
   'graph.switch.topBar': 'Top bar',
+  'graph.switch.bottomBar': 'Bottom bar',
   'graph.item.grid': 'grid',
   'graph.item.meter': 'level meter',
   'graph.waveHeight': 'Wave height',

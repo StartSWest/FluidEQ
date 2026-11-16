@@ -7,6 +7,8 @@ const karaoke = {
   'karaoke.fullscreen.exit': '전체 화면 종료',
   'karaoke.fullscreen.hideHeader': 'FluidEQ 헤더 숨기기',
   'karaoke.fullscreen.showHeader': 'FluidEQ 헤더 표시',
+  'karaoke.fullscreen.pinBar': '재생 바 고정',
+  'karaoke.fullscreen.unpinBar': '재생 바 자동 숨기기',
   'karaoke.actions': '노래방 작업',
   'karaoke.empty.title': '무대가 준비되었습니다',
   'karaoke.empty.body':

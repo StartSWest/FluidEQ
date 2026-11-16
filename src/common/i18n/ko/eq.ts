@@ -111,6 +111,7 @@ const eq = {
   'graph.switch.grid': '격자',
   'graph.switch.meter': '레벨 미터',
   'graph.switch.topBar': '상단 바',
+  'graph.switch.bottomBar': '하단 바',
   'graph.item.grid': '그리드',
   'graph.item.meter': '레벨 미터',
   'graph.waveHeight': '파형 높이',

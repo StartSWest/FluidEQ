@@ -27,6 +27,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.fullscreen.exit': '全画面を終了',
   'karaoke.fullscreen.hideHeader': 'FluidEQ ヘッダーを隠す',
   'karaoke.fullscreen.showHeader': 'FluidEQ ヘッダーを表示',
+  'karaoke.fullscreen.pinBar': '再生バーを固定',
+  'karaoke.fullscreen.unpinBar': '再生バーを自動で隠す',
   'karaoke.actions': 'カラオケ操作',
   'karaoke.empty.title': 'ステージの準備ができました',
   'karaoke.empty.body':

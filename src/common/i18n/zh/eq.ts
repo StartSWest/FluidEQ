@@ -124,6 +124,7 @@ const eq: Partial<Dictionary> = {
   'graph.switch.grid': '网格',
   'graph.switch.meter': '电平表',
   'graph.switch.topBar': '顶部栏',
+  'graph.switch.bottomBar': '底部栏',
   'graph.item.grid': '网格',
   'graph.item.meter': '电平表',
   'graph.waveHeight': '波形高度',

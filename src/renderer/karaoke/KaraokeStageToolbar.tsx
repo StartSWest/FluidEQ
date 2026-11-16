@@ -15,7 +15,12 @@ import { isLockedLookId } from 'common/scenePacks';
 import { requestAccountPanel } from '../account/accountPanel';
 import LookPicker from '../graph/LookPicker';
 import MenuIcon from '../icons/MenuIcon';
-import { setGraphLook, useSelectedLookId } from '../utils/graphStyle';
+import {
+  setGraphLook,
+  toggleFullScreenBottomBar,
+  useFullScreenBottomBar,
+  useSelectedLookId,
+} from '../utils/graphStyle';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import rangeFill from '../utils/rangeFill';
 import { useTranslation } from '../utils/I18nContext';
@@ -134,6 +139,7 @@ const KaraokeStageToolbar = ({
 }: IKaraokeStageToolbarProps) => {
   const { t } = useTranslation();
   const selectedLookId = useSelectedLookId();
+  const hasBottomBar = useFullScreenBottomBar();
   const hasStill = song ? hasKaraokeStageStill(song) : false;
   const hasVideo = song ? hasKaraokeStageVideo(song) : false;
   // A background pressed again is the bare stage: three choices and "none"
@@ -304,6 +310,33 @@ const KaraokeStageToolbar = ({
             aria-hidden="true"
           >
             <path d="M4 4.5h16v15H4zM4 9h16" />
+          </svg>
+        </button>
+      )}
+      {/* The transport's pin, beside the header's and drawn as its mirror. */}
+      {isFullScreen && (
+        <button
+          type="button"
+          className="karaoke-stage-bar__icon"
+          aria-label={t(
+            hasBottomBar
+              ? 'karaoke.fullscreen.unpinBar'
+              : 'karaoke.fullscreen.pinBar',
+          )}
+          title={t(
+            hasBottomBar
+              ? 'karaoke.fullscreen.unpinBar'
+              : 'karaoke.fullscreen.pinBar',
+          )}
+          aria-pressed={hasBottomBar}
+          onClick={toggleFullScreenBottomBar}
+        >
+          <svg
+            className="karaoke-button__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M4 4.5h16v15H4zM4 15h16" />
           </svg>
         </button>
       )}

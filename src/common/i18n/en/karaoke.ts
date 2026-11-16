@@ -25,6 +25,8 @@ const karaoke = {
   'karaoke.fullscreen.exit': 'Exit full screen',
   'karaoke.fullscreen.hideHeader': 'Hide the FluidEQ header',
   'karaoke.fullscreen.showHeader': 'Show the FluidEQ header',
+  'karaoke.fullscreen.pinBar': 'Keep the player bar on screen',
+  'karaoke.fullscreen.unpinBar': 'Let the player bar hide',
   'karaoke.actions': 'Karaoke actions',
   'karaoke.empty.title': 'Your stage is ready',
   'karaoke.empty.body':

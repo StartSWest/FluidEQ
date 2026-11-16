@@ -7,6 +7,8 @@ const karaoke = {
   'karaoke.fullscreen.exit': '退出全螢幕',
   'karaoke.fullscreen.hideHeader': '隱藏 FluidEQ 標頭',
   'karaoke.fullscreen.showHeader': '顯示 FluidEQ 標頭',
+  'karaoke.fullscreen.pinBar': '固定播放列',
+  'karaoke.fullscreen.unpinBar': '允許播放列隱藏',
   'karaoke.actions': '卡拉OK動作',
   'karaoke.empty.title': '您的舞臺已準備就緒',
   'karaoke.empty.body':

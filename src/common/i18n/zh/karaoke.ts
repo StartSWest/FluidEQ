@@ -27,6 +27,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.fullscreen.exit': '退出全屏',
   'karaoke.fullscreen.hideHeader': '隐藏 FluidEQ 顶栏',
   'karaoke.fullscreen.showHeader': '显示 FluidEQ 顶栏',
+  'karaoke.fullscreen.pinBar': '固定播放栏',
+  'karaoke.fullscreen.unpinBar': '允许播放栏隐藏',
   'karaoke.actions': '卡拉OK 操作',
   'karaoke.empty.title': '舞台已经准备好',
   'karaoke.empty.body':

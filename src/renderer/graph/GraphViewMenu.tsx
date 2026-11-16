@@ -31,7 +31,9 @@ import ViewMenuSwitch from './ViewMenuSwitch';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
   MIN_GRAPH_WAVE_HEIGHT,
+  toggleFullScreenBottomBar,
   toggleGraphBandLabels,
+  useFullScreenBottomBar,
   useGraphBandLabelsHidden,
   TGraphCurve,
   TGraphView,
@@ -172,6 +174,7 @@ const GraphViewMenu = ({
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
   const bandLabelsHidden = useGraphBandLabelsHidden();
+  const hasBottomBar = useFullScreenBottomBar();
   // A Plus visualizer ignores the orientation, so a centred wave locks
   // nothing there.
   const isWavePositionLocked =
@@ -283,6 +286,19 @@ const GraphViewMenu = ({
                     name={t('graph.switch.topBar')}
                     isOn={hasTopBar}
                     onToggle={onToggleTopBar}
+                  />
+                )}
+                {view === 'fullscreen' && (
+                  <ViewMenuSwitch
+                    icon={
+                      <>
+                        <path d="M2.5 2.5h11v11h-11z" />
+                        <path d="M2.5 10h11" />
+                      </>
+                    }
+                    name={t('graph.switch.bottomBar')}
+                    isOn={hasBottomBar}
+                    onToggle={toggleFullScreenBottomBar}
                   />
                 )}
 

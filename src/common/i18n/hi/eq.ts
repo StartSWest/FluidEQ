@@ -128,6 +128,7 @@ const eq: Partial<Dictionary> = {
   'graph.switch.grid': 'ग्रिड',
   'graph.switch.meter': 'लेवल मीटर',
   'graph.switch.topBar': 'ऊपरी पट्टी',
+  'graph.switch.bottomBar': 'निचली पट्टी',
   'graph.item.grid': 'ग्रिड',
   'graph.item.meter': 'स्तर मीटर',
   'graph.waveHeight': 'तरंग की ऊँचाई',

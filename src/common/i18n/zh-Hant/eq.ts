@@ -107,6 +107,7 @@ const eq = {
   'graph.switch.grid': '網格',
   'graph.switch.meter': '電平表',
   'graph.switch.topBar': '頂部欄',
+  'graph.switch.bottomBar': '底部欄',
   'graph.item.grid': '網格',
   'graph.item.meter': '電平表',
   'graph.waveHeight': '波形高度',

@@ -30,6 +30,7 @@ import {
   getGraphView,
   onWindowFullScreenChange,
   toggleGraphFullScreen,
+  useFullScreenBottomBar,
   useFullScreenTopBar,
 } from '../utils/graphStyle';
 import {
@@ -96,6 +97,7 @@ const useShellFullScreen = ({
   // do, and we already have options there for hiding it"). The graph's full
   // screen, Karaoke's and the stage's keep the reader's choice.
   const prefersFullScreenTopBar = useFullScreenTopBar();
+  const hasFullScreenBottomBar = useFullScreenBottomBar();
   const hasFullScreenTopBar =
     prefersFullScreenTopBar &&
     mediaFullScreenOwner !== 'library' &&
@@ -157,10 +159,18 @@ const useShellFullScreen = ({
     );
     root?.classList.toggle(
       'is-bar-idle',
-      isAppFullScreen && (!isPointerNearChrome || isChromeIdle),
+      isAppFullScreen &&
+        !hasFullScreenBottomBar &&
+        (!isPointerNearChrome || isChromeIdle),
     );
     return () => root?.classList.remove('is-chrome-idle', 'is-bar-idle');
-  }, [isAppFullScreen, isChromeIdle, isPointerNearChrome, isPointerNearTop]);
+  }, [
+    hasFullScreenBottomBar,
+    isAppFullScreen,
+    isChromeIdle,
+    isPointerNearChrome,
+    isPointerNearTop,
+  ]);
   // And the same for the two drawer tabs, which are the only chrome that
   // lives on the vertical edges. Kept apart from the flag above so that
   // reaching for a panel does not also summon the header and the transport.
@@ -498,6 +508,7 @@ const useShellFullScreen = ({
     /** As large as it goes, by either route. */
     isWindowFilled: isWindowMaximized || isAppFullScreen,
     hasFullScreenTopBar,
+    hasFullScreenBottomBar,
     isChromeHidden,
     isChromeIdle,
     isPointerNearChrome,

@@ -931,6 +931,36 @@ export const useFullScreenTopBar = () =>
   );
 
 /**
+ * Whether full screen keeps the transport on screen, pinned, rather than
+ * letting it go with the pointer at rest (Ivan, 2026-11-16: "the icons to pin
+ * the header and all ... in full screen"). Off by default: the bar comes from
+ * the bottom edge and goes after three still seconds. Not persisted, like
+ * the top bar's.
+ */
+let hasFullScreenBottomBar = false;
+
+const bottomBarListeners = new Set<() => void>();
+
+export const toggleFullScreenBottomBar = () => {
+  hasFullScreenBottomBar = !hasFullScreenBottomBar;
+  bottomBarListeners.forEach((listener) => listener());
+};
+
+const subscribeBottomBar = (listener: () => void) => {
+  bottomBarListeners.add(listener);
+  return () => {
+    bottomBarListeners.delete(listener);
+  };
+};
+
+export const useFullScreenBottomBar = () =>
+  useSyncExternalStore(
+    subscribeBottomBar,
+    () => hasFullScreenBottomBar,
+    () => false,
+  );
+
+/**
  * Moving between the three modes. `TGraphView` and `view` itself are at the top
  * of the file, above the settings that index themselves by them; what is left
  * here is everything that only runs once somebody presses something.

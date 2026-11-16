@@ -85,13 +85,18 @@ const WorkspacePlayers = ({
     isChromeIdle,
     isPointerNearChrome,
     hasFullScreenTopBar,
+    hasFullScreenBottomBar,
     applyMediaFullScreen,
   } = fullScreen;
   // Faded out with the rest of the chrome once full screen has been still for
   // a moment, and back on the next movement — the same two seconds the graph's
   // own toolbar waits, from the same store, so the two cannot disagree about
   // when to go.
-  const isBarIdle = isAppFullScreen && (!isPointerNearChrome || isChromeIdle);
+  // Never while it is pinned (`useFullScreenBottomBar`).
+  const isBarIdle =
+    isAppFullScreen &&
+    !hasFullScreenBottomBar &&
+    (!isPointerNearChrome || isChromeIdle);
   return (
     <>
       {mounts.hasOpenedVideo && mounts.keepVideoMounted && (
