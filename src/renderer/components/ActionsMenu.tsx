@@ -9,6 +9,7 @@ import {
   KeyboardEvent,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -37,6 +38,9 @@ import EngineKeyDialog from './EngineKeyDialog';
 import SliderHandlePicker from './SliderHandlePicker';
 import StartupPicker from './StartupPicker';
 import WindowLookSection from './WindowLookSection';
+import { useSelectedSceneLookId } from '../utils/graphStyle';
+import { useCanSetDesktop } from '../wallpaper/WallpaperControls';
+import { openWallpaperDialog } from '../wallpaper/wallpaperDialogs';
 import '../styles/ActionsMenu.scss';
 
 /**
@@ -174,6 +178,28 @@ const ActionsMenu = ({
   const exit = useExitAnimation(open, 'menu-out', panel);
   const status = t(STATUS_KEYS[engineState]);
 
+  // The room the panel has: it hangs from the trigger's right edge, so it
+  // can reach as far left as that edge less the window's 12px gutter. Two
+  // columns side by side ran off the window's left edge in a narrow window;
+  // held to this, the look wraps under the rest instead (`ActionsMenu.scss`).
+  // Measured again whenever the window changes size while it is open.
+  const isPanelPresent = exit.present;
+  useLayoutEffect(() => {
+    const element = panel.current;
+    const button = trigger.current;
+    if (!isPanelPresent || !element || !button) {
+      return undefined;
+    }
+    const measure = () => {
+      const room = Math.floor(button.getBoundingClientRect().right - 12);
+      element.style.setProperty('--actions-menu-room', `${room}px`);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(document.documentElement);
+    return () => observer.disconnect();
+  }, [isPanelPresent]);
+
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -210,6 +236,11 @@ const ActionsMenu = ({
     };
   }, [open]);
 
+  // The scene the window wears, to put behind the desktop's icons; a
+  // standard look has none, and a machine without the desktop manager
+  // cannot take one.
+  const sceneLookId = useSelectedSceneLookId();
+  const canSetDesktop = useCanSetDesktop();
   const run = (action: () => void) => () => {
     setOpen(false);
     action();
@@ -319,45 +350,53 @@ const ActionsMenu = ({
           onAnimationEnd={exit.onAnimationEnd}
           onKeyDown={walk}
         >
-          {/* The status is the card, so a fault is never a line of text
+          {/* Two columns (Ivan, 2026-11-16: "this menu needs to be split in
+              two columns, one for all options, the other for theme
+              options"): what the app does and how it behaves on the left,
+              how it looks on the right. Each as wide as its own longest
+              row, so no label wraps in any language; a window too narrow
+              for both side by side puts the look under the rest. */}
+          <div className="actions-menu__columns">
+            <div className="actions-menu__column">
+              {/* The status is the card, so a fault is never a line of text
               with nothing to press: failing, the whole card is the way back
               to the notice with Install and Retry, which is otherwise out of
               reach once it has been dismissed. */}
-          {engineState === 'ready' && (
-            <button
-              type="button"
-              role="menuitem"
-              aria-haspopup="dialog"
-              className="actions-menu__engine"
-              onClick={run(onOpenEngine)}
-            >
-              <EngineBadge state={engineState} />
-              {engineText}
-              <Chevron className="actions-menu__engine-go" />
-            </button>
-          )}
-          {engineState === 'failing' && (
-            <button
-              type="button"
-              role="menuitem"
-              className="actions-menu__engine is-failing"
-              onClick={run(onFix)}
-            >
-              <EngineBadge state={engineState} />
-              {engineText}
-              <span className="actions-menu__engine-fix">
-                {t('app.menu.fix')}
-              </span>
-            </button>
-          )}
-          {engineState === 'checking' && (
-            <div className="actions-menu__engine is-checking">
-              <EngineBadge state={engineState} />
-              {engineText}
-            </div>
-          )}
+              {engineState === 'ready' && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  aria-haspopup="dialog"
+                  className="actions-menu__engine"
+                  onClick={run(onOpenEngine)}
+                >
+                  <EngineBadge state={engineState} />
+                  {engineText}
+                  <Chevron className="actions-menu__engine-go" />
+                </button>
+              )}
+              {engineState === 'failing' && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="actions-menu__engine is-failing"
+                  onClick={run(onFix)}
+                >
+                  <EngineBadge state={engineState} />
+                  {engineText}
+                  <span className="actions-menu__engine-fix">
+                    {t('app.menu.fix')}
+                  </span>
+                </button>
+              )}
+              {engineState === 'checking' && (
+                <div className="actions-menu__engine is-checking">
+                  <EngineBadge state={engineState} />
+                  {engineText}
+                </div>
+              )}
 
-          {/* Straight under the engine they repair, and in every state.
+              {/* Straight under the engine they repair, and in every state.
               These four used to appear only while the engine was reported
               healthy, which put the two repairs — the troubleshooter and the
               restart — out of reach at the one moment anybody wants them:
@@ -365,116 +404,134 @@ const ActionsMenu = ({
               red. Nothing here needs a working engine. The troubleshooter
               comes first: it is the one to open without knowing which repair
               is needed, which is everybody whose sound just stopped. */}
-          <Item icon="wrench" onSelect={run(onTroubleshoot)}>
-            {t('app.menu.fixAudio')}
-          </Item>
-          <Item icon="restart" onSelect={run(onRestartAudio)}>
-            {t('app.menu.restartAudio')}
-          </Item>
-          {/* FluidEQ's power switch on a key held system-wide, so it works
+              <Item icon="wrench" onSelect={run(onTroubleshoot)}>
+                {t('app.menu.fixAudio')}
+              </Item>
+              <Item icon="restart" onSelect={run(onRestartAudio)}>
+                {t('app.menu.restartAudio')}
+              </Item>
+              {/* FluidEQ's power switch on a key held system-wide, so it works
               from inside a game (`EngineKeySwitch`). */}
-          <Item icon="power" onSelect={run(() => setPickingKey(true))}>
-            {t('app.menu.engineKey')}
-          </Item>
-          <hr className="actions-menu__rule" />
-          <Item icon="import" onSelect={run(onImportEq)}>
-            {t('app.menu.importEq')}
-          </Item>
-          <Item icon="convolution" onSelect={run(onImportImpulse)}>
-            {t('app.menu.importConvolution')}
-          </Item>
-          <hr className="actions-menu__rule" />
+              <Item icon="power" onSelect={run(() => setPickingKey(true))}>
+                {t('app.menu.engineKey')}
+              </Item>
+              <hr className="actions-menu__rule" />
+              <Item icon="import" onSelect={run(onImportEq)}>
+                {t('app.menu.importEq')}
+              </Item>
+              <Item icon="convolution" onSelect={run(onImportImpulse)}>
+                {t('app.menu.importConvolution')}
+              </Item>
+              <hr className="actions-menu__rule" />
 
-          {/* In every state: neither needs the engine, and reinstalling is
+              {/* In every state: neither needs the engine, and reinstalling is
               one way out of an app whose engine will not start. */}
-          <Item icon="chip" onSelect={run(onProcesses)}>
-            {t('app.processes.menu')}
-          </Item>
-          {/* A way out of an app set up into a corner, like reinstalling and
+              <Item icon="chip" onSelect={run(onProcesses)}>
+                {t('app.processes.menu')}
+              </Item>
+              {/* A way out of an app set up into a corner, like reinstalling and
               short of it: the settings as a new install has them, the EQ,
               the outputs and the engine as they are. */}
-          <Item icon="reset" onSelect={run(() => setResetting(true))}>
-            {t('app.menu.resetSettings')}
-          </Item>
-          <Item
-            icon="download"
-            onSelect={run(() =>
-              window.open(LATEST_RELEASE_URL, '_blank', 'noopener'),
-            )}
-          >
-            {t('app.menu.reinstallApp', { product: PRODUCT_NAME })}
-          </Item>
-          <hr className="actions-menu__rule" />
-          {/* No Account row (Ivan, 2026-11-13): the sound needs no account,
+              <Item icon="reset" onSelect={run(() => setResetting(true))}>
+                {t('app.menu.resetSettings')}
+              </Item>
+              <Item
+                icon="download"
+                onSelect={run(() =>
+                  window.open(LATEST_RELEASE_URL, '_blank', 'noopener'),
+                )}
+              >
+                {t('app.menu.reinstallApp', { product: PRODUCT_NAME })}
+              </Item>
+              <hr className="actions-menu__rule" />
+              {/* No Account row (Ivan, 2026-11-13): the sound needs no account,
               and an account is for the Visualizers, so it lives on that tab
               alone — Sign in signed out, the card at the foot of its rail
               signed in. */}
-          <Item icon="support" onSelect={run(onSupport)}>
-            {t('app.menu.support')}
-          </Item>
-          {/* What left the titlebar for want of room, so nothing it held is
+              <Item icon="support" onSelect={run(onSupport)}>
+                {t('app.menu.support')}
+              </Item>
+              {/* What left the titlebar for want of room, so nothing it held is
               out of reach (Ivan, 2026-09-28: "shed small things"): Help's
               entries, less fixing audio, which heads this menu already, and
               the switch to the compact player, in its own drawing. */}
-          {isToolsShed && help && (
-            <>
-              <hr className="actions-menu__rule" />
-              {helpMenuActions(t, help, requestHelpGuide)
-                .filter((action) => action.id !== 'fixAudio')
-                .map((action) => (
-                  <Fragment key={action.id}>
-                    <Item icon={action.icon} onSelect={run(action.run)}>
-                      {action.id === 'forum' ? (
-                        <span className="help-menu__label">
-                          {action.label}
-                          <ForumNewsBadge count={forumNews} placement="row" />
-                        </span>
-                      ) : (
-                        action.label
-                      )}
-                    </Item>
-                    {action.id === 'forum' && (
-                      <ForumNewsMenuItems
-                        news={forumNewsAll}
-                        hidden={forumNewsHidden}
-                        run={run}
-                      />
-                    )}
-                  </Fragment>
-                ))}
-              <button
-                type="button"
-                role="menuitem"
-                className="workspace-header__menu-item"
-                onClick={run(() => {
-                  // As the switch does: main answers with the mode it is in,
-                  // and a request that fails reaches a main that is
-                  // restarting, whose next push says which mode it came back in.
-                  setWindowMode('player').catch(() => undefined);
-                })}
-              >
-                <PlayerIcon name="player" className="menu-icon player-icon" />
-                {t('player.switch.toPlayer')}
-              </button>
-            </>
-          )}
+              {isToolsShed && help && (
+                <>
+                  <hr className="actions-menu__rule" />
+                  {helpMenuActions(t, help, requestHelpGuide)
+                    .filter((action) => action.id !== 'fixAudio')
+                    .map((action) => (
+                      <Fragment key={action.id}>
+                        <Item icon={action.icon} onSelect={run(action.run)}>
+                          {action.id === 'forum' ? (
+                            <span className="help-menu__label">
+                              {action.label}
+                              <ForumNewsBadge
+                                count={forumNews}
+                                placement="row"
+                              />
+                            </span>
+                          ) : (
+                            action.label
+                          )}
+                        </Item>
+                        {action.id === 'forum' && (
+                          <ForumNewsMenuItems
+                            news={forumNewsAll}
+                            hidden={forumNewsHidden}
+                            run={run}
+                          />
+                        )}
+                      </Fragment>
+                    ))}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="workspace-header__menu-item"
+                    onClick={run(() => {
+                      // As the switch does: main answers with the mode it is in,
+                      // and a request that fails reaches a main that is
+                      // restarting, whose next push says which mode it came back in.
+                      setWindowMode('player').catch(() => undefined);
+                    })}
+                  >
+                    <PlayerIcon
+                      name="player"
+                      className="menu-icon player-icon"
+                    />
+                    {t('player.switch.toPlayer')}
+                  </button>
+                </>
+              )}
 
-          {/* Last, and in every state: someone who cannot read the rest of
+              {/* Last, and in every state: someone who cannot read the rest of
               this menu still has to be able to reach the language. */}
-          <div className="actions-menu__prefs">
-            {/* The window's look, all of it (`WindowLookSection`): the
-                graph's Window colours menu moved here whole (Ivan,
-                2026-11-16). */}
-            <WindowLookSection />
-            <SliderHandlePicker />
-            {/* How the window looks above, how the app behaves below. */}
-            <div className="actions-menu__prefs-rule" aria-hidden="true" />
-            <MotionPicker />
-            {/* Under the animations row, where Ivan asked for it
+              <div className="actions-menu__prefs">
+                <MotionPicker />
+                {/* Under the animations row, where Ivan asked for it
                 (2026-09-19). Nothing else in the app decides this: the answer
                 is Windows' own startup list for this person. */}
-            <StartupPicker />
-            <LanguagePicker />
+                <StartupPicker />
+                <LanguagePicker />
+              </div>
+            </div>
+            <div className="actions-menu__column is-look">
+              {/* The window's look, all of it (`WindowLookSection`): the
+                graph's Window colours menu moved here whole (Ivan,
+                2026-11-16). */}
+              <div className="actions-menu__prefs">
+                <WindowLookSection />
+                <SliderHandlePicker />
+              </div>
+              {sceneLookId && canSetDesktop && (
+                <Item
+                  icon="monitor"
+                  onSelect={run(() => openWallpaperDialog(sceneLookId))}
+                >
+                  {t('wallpaper.action')}
+                </Item>
+              )}
+            </div>
           </div>
         </div>
       )}

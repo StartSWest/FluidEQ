@@ -7,16 +7,22 @@
 
 // The actions menu: the engine, the commands, then the settings tray.
 //
-// One column, as wide as its longest label and never narrower than the tray
-// needs. It was two columns at a fixed 440px, and in French and Russian the
-// imports wrapped onto second lines inside them.
+// Two columns (below), each as wide as its longest label and never narrower
+// than its tray needs. It was two columns at a fixed 440px once, and in
+// French and Russian the imports wrapped onto second lines inside them.
 //
 // Doubled up with the surface's own class so it outranks it rather than tying
 // with it, which would leave the padding to stylesheet order.
 .workspace-header__menu.actions-menu__panel {
   width: max-content;
   min-width: 296px;
-  max-width: calc(100vw - 24px);
+  // As far left as the trigger's edge allows (`--actions-menu-room`, set by
+  // the menu while it is open), and the window's width less its gutters
+  // until then.
+  max-width: min(
+    calc(100vw - 24px),
+    var(--actions-menu-room, calc(100vw - 24px))
+  );
   // The menu hangs 77px below the top of the window (the titlebar's own
   // offset, the 36px trigger and the 10px under it); this leaves it an 11px
   // gutter above the bottom. A window at its 620px minimum then holds the
@@ -26,6 +32,44 @@
   max-height: calc(100vh - 88px);
   gap: 2px;
   padding: 8px;
+}
+
+// *** The two columns ********************************************************
+//
+// What the app does and how it behaves, then how it looks (Ivan, 2026-11-16:
+// "this menu needs to be split in two columns, one for all options, the
+// other for theme options"). Not a fixed grid: the earlier two columns at
+// 440px wrapped the imports in French and Russian. Each column is as wide as
+// its own longest row, the panel as wide as both, and a window narrower than
+// that (the panel stops 24px short of it) wraps the look under the rest, so
+// no breakpoint decides it. The hairline between them is the gap's own,
+// drawn only between two columns on one line, so a wrapped menu has none.
+.actions-menu__columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px 16px;
+  column-rule: 1px solid $menu-rule;
+}
+
+.actions-menu__column {
+  display: grid;
+  min-width: 280px;
+  flex: 1 1 auto;
+  gap: 2px;
+
+  // The look's tray heads its column, level with the engine card beside it,
+  // and runs down to the foot of the other column, where its last row (Set
+  // as desktop background) stands under it: a tray stopping half way left a
+  // hole the size of the commands beside it.
+  &.is-look {
+    grid-template-rows: 1fr auto;
+
+    > .actions-menu__prefs {
+      align-content: start;
+      margin-top: 0;
+    }
+  }
 }
 
 // *** The engine *************************************************************
