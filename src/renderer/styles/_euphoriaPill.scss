@@ -1,0 +1,134 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The lit Colourful pill on the header's wave (`Euphoria.scss`): its face in
+// the mode's colour, and the faces it fades between to run through the
+// palette.
+
+@use 'sass:math';
+@use 'theme' as *;
+
+// The lit pill in the mode's colour at `--rainbow-now`: the pill's own face
+// and each face it fades between (`.euphoria-pill__face`), drawn by one rule.
+// Stated again on each of them rather than inherited, because a custom
+// property inherits the colour worked out where it was set, not the formula.
+@mixin lit {
+  // The mode's colour at a lightness the chip below can carry, and no more
+  // saturated than a label should be: a dark palette is lifted, a pale one
+  // kept just short of white.
+  --pill-lit: oklch(from var(--rainbow-now) clamp(0.8, l, 0.92) min(c, 0.16) h);
+
+  color: var(--pill-lit);
+  background-color: color-mix(
+    in oklab,
+    var(--rainbow-now) var(--pill-tint),
+    $surface-base
+  );
+  background-image: radial-gradient(
+    circle closest-side,
+    var(--pill-lit) 52%,
+    color-mix(in oklab, var(--pill-lit) 35%, transparent) 72%,
+    transparent
+  );
+}
+
+// THE PALETTE ON THE COMPOSITOR. The lit pill used to run through Colourful
+// mode's colours by animating `--rainbow-now` (`rainbow-cycle`), which
+// restyled and repainted it on the main thread on every frame: 240 a second
+// on Ivan's display (2026-11-16: the main thread 82% busy with it, the pet's
+// and the brand's animations running, 17% with all of them paused).
+//
+// Now the pill holds the palette's first colour, and six faces stand over it
+// in the other six (`EuphoriaPillFaces`). Each fades in over the one below as
+// the cycle reaches its colour, holds while the next fades in over it, and
+// steps out once covered; the seventh fades back out onto the pill's first.
+// Only `opacity`, so the compositor runs all of it, on the same 3.6 s clock
+// as every other surface the mode sweeps. Every face is opaque and cut to the
+// pill's corners by the pill, so one at a share of its opacity over the one
+// under it is exactly that share of the way between the two colours: the
+// sRGB mix `rainbow-cycle` interpolated the palette's colours through. The
+// lit letters and the tint are worked out at each stop rather than between
+// them, which between neighbouring stops is the same colour to the eye.
+$palette-stops: 7;
+
+@function palette-stop($index) {
+  @return math.percentage(math.div($index, $palette-stops));
+}
+
+@mixin faces {
+  .euphoria-pill__faces {
+    display: none;
+  }
+
+  .is-euphoric .waveform-visualizer__euphoria[aria-pressed='true'] {
+    --rainbow-now: var(--rainbow-1);
+
+    overflow: hidden;
+
+    .euphoria-pill__faces {
+      position: absolute;
+      inset: 0;
+      display: block;
+      padding: inherit;
+    }
+  }
+
+  // The pill's own padding and the same centring a button gives its label, so
+  // every face's letters and dot land exactly on the pill's.
+  .euphoria-pill__face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: inherit;
+    background-repeat: no-repeat;
+    background-position: 8px 50%;
+    background-size: 9px 9px;
+    opacity: 0;
+    transition: $transition-control;
+    @include lit;
+
+    @for $face from 2 through $palette-stops {
+      &:nth-child(#{$face - 1}) {
+        --rainbow-now: var(--rainbow-#{$face});
+
+        animation: rainbow-face-#{$face} 3.6s linear infinite;
+      }
+    }
+  }
+
+  @for $face from 2 through $palette-stops {
+    @keyframes rainbow-face-#{$face} {
+      @if $face > 2 {
+        0%,
+        #{palette-stop($face - 2)} {
+          opacity: 0;
+        }
+      } @else {
+        0% {
+          opacity: 0;
+        }
+      }
+
+      #{palette-stop($face - 1)} {
+        opacity: 1;
+      }
+
+      // Covered from here by the face over it, at full: out at once.
+      @if $face < $palette-stops {
+        #{palette-stop($face)} {
+          opacity: 1;
+          animation-timing-function: step-start;
+        }
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+  }
+}

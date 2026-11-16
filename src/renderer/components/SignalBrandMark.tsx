@@ -27,7 +27,13 @@ import '../styles/SignalBrand.scss';
  * (`BrandMark`): this is the header's.
  *
  * `pathLength` makes the wave sixty units long whatever its geometry, which is
- * what the draw and the pulse are timed against.
+ * what the draw is timed against.
+ *
+ * The pulse is a spark of the page laid over the drawing, not a dash of the
+ * drawing: it travels the wave by moving, turning and stretching, which the
+ * compositor does on its own (`SignalBrand.scss`). A dash sliding along the
+ * path was laid out and painted on the main thread on every frame, 240 a
+ * second on Ivan's display, for as long as the window was open.
  */
 export default function SignalBrandMark() {
   const wave = useLagoonWave();
@@ -37,21 +43,21 @@ export default function SignalBrandMark() {
       aria-hidden="true"
       style={wave.style}
     >
-      <svg viewBox={BRAND_MARK.viewBox}>
-        <defs>
-          <ThemeWaveGradient id={wave.id} />
-        </defs>
-        <path
-          className="brand-mark__wave"
-          d={BRAND_MARK.path}
-          pathLength={60}
-        />
-        <path
-          className="brand-mark__pulse"
-          d={BRAND_MARK.path}
-          pathLength={60}
-        />
-      </svg>
+      <span className="brand-mark__drawing">
+        <svg viewBox={BRAND_MARK.viewBox}>
+          <defs>
+            <ThemeWaveGradient id={wave.id} />
+          </defs>
+          <path
+            className="brand-mark__wave"
+            d={BRAND_MARK.path}
+            pathLength={60}
+          />
+        </svg>
+        <span className="brand-mark__pulse">
+          <span className="brand-mark__spark" />
+        </span>
+      </span>
     </div>
   );
 }

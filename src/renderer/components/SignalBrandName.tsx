@@ -47,6 +47,8 @@ export default function SignalBrandName() {
       {glowFrom < letters.length && (
         <span
           className="signal-name__suffix"
+          // Drawn again by the stylesheet, once per glow (`SignalBrand.scss`).
+          data-text={letters.slice(glowFrom).join('')}
           style={{ '--letter-index': glowFrom } as CSSProperties}
         >
           {letters

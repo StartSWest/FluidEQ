@@ -1,0 +1,210 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// Where the header logo's pulse stands at each moment of its run, worked out
+// from the wave itself (`SignalBrand.scss`). The pulse was a dash of the
+// drawing sliding along its path, which only the main thread can paint; it is
+// a spark of the page now, and the compositor moves a spark only by
+// position, turn and stretch. So the run is sampled here: at each moment, the
+// part of the wave the dash would light, as the point at its middle, the
+// wave's direction there and its length. Sampled densely enough that the
+// straight steps between samples stay inside the wave's own stroke.
+
+@use 'sass:list';
+@use 'sass:math';
+
+// `BRAND_MARK.path` (`common/branding.ts`),
+// 'M7 24C12.6 10.7 18.3 10.7 24 24S35.4 37.3 41 24', as its two cubic
+// segments, the `S`'s reflected control point written out. Change the path
+// and change these with it.
+$-segments: (
+  ((7, 24), (12.6, 10.7), (18.3, 10.7), (24, 24)),
+  ((24, 24), (29.7, 37.3), (35.4, 37.3), (41, 24))
+);
+
+// The dash's own numbers, in the sixty units `pathLength` makes the wave: seven
+// long, run from just before the start (offset 7) to just past the end (-60),
+// on its easing. Its stroke is 3 wide with round caps, which reach half that
+// past either end.
+$-path-units: 60;
+$-dash: 7;
+$-easing: (0.45, 0, 0.2, 1);
+$stroke: 3;
+
+// Steps per segment of the table of lengths along the wave: finer than a
+// hundredth of a unit of error at this curvature.
+$-steps: 120;
+
+@function -cubic($a, $b, $c, $d, $t) {
+  $u: 1 - $t;
+  @return $u * $u * $u * $a + 3 * $u * $u * $t * $b + 3 * $u * $t * $t * $c +
+    $t * $t * $t * $d;
+}
+
+@function -cubic-slope($a, $b, $c, $d, $t) {
+  $u: 1 - $t;
+  @return 3 * $u * $u * ($b - $a) + 6 * $u * $t * ($c - $b) + 3 * $t * $t *
+    ($d - $c);
+}
+
+// One coordinate (1 is x, 2 is y) of a segment's point at `$t`.
+@function -along($segment, $t, $axis) {
+  @return -cubic(
+    list.nth(list.nth($segment, 1), $axis),
+    list.nth(list.nth($segment, 2), $axis),
+    list.nth(list.nth($segment, 3), $axis),
+    list.nth(list.nth($segment, 4), $axis),
+    $t
+  );
+}
+
+@function -heading($segment, $t, $axis) {
+  @return -cubic-slope(
+    list.nth(list.nth($segment, 1), $axis),
+    list.nth(list.nth($segment, 2), $axis),
+    list.nth(list.nth($segment, 3), $axis),
+    list.nth(list.nth($segment, 4), $axis),
+    $t
+  );
+}
+
+// The distance along the wave at every step, from 0 at its start.
+@function -lengths() {
+  $lengths: (0);
+  $total: 0;
+  @each $segment in $-segments {
+    @for $step from 1 through $-steps {
+      $from: math.div($step - 1, $-steps);
+      $to: math.div($step, $-steps);
+      $total: $total +
+        math.hypot(
+          -along($segment, $to, 1) - -along($segment, $from, 1),
+          -along($segment, $to, 2) - -along($segment, $from, 2)
+        );
+      $lengths: list.append($lengths, $total);
+    }
+  }
+  @return $lengths;
+}
+
+$-lengths: -lengths();
+
+// The wave's real length, in the drawing's units.
+$length: list.nth($-lengths, -1);
+
+// A unit of the dash's sixty, in the drawing's units.
+$-per-unit: math.div($length, $-path-units);
+
+// The spark at full length: the whole dash and both its caps.
+$spark-length: $-dash * $-per-unit + $stroke;
+
+// The segment and the place in it at a distance `$distance` along the wave.
+@function -locate($distance) {
+  $steps: list.length($-lengths) - 1;
+  $step: 1;
+  @while $step < $steps and list.nth($-lengths, $step + 1) < $distance {
+    $step: $step + 1;
+  }
+  $from: list.nth($-lengths, $step);
+  $to: list.nth($-lengths, $step + 1);
+  $fraction: math.clamp(0, math.div($distance - $from, $to - $from), 1);
+  $place: $step - 1 + $fraction;
+  $index: math.min(
+    math.floor(math.div($place, $-steps)),
+    list.length($-segments) - 1
+  );
+  @return (
+    list.nth($-segments, $index + 1),
+    math.div($place - $index * $-steps, $-steps)
+  );
+}
+
+// The easing's progress at `$time`, both 0 to 1: its x solved by halving.
+@function -eased($time) {
+  $low: 0;
+  $high: 1;
+  @for $i from 1 through 40 {
+    $middle: ($low + $high) * 0.5;
+    @if -cubic(0, list.nth($-easing, 1), list.nth($-easing, 3), 1, $middle) <
+      $time
+    {
+      $low: $middle;
+    } @else {
+      $high: $middle;
+    }
+  }
+  @return -cubic(
+    0,
+    list.nth($-easing, 2),
+    list.nth($-easing, 4),
+    1,
+    ($low + $high) * 0.5
+  );
+}
+
+@function -rounded($number, $places: 3) {
+  $scale: math.pow(10, $places);
+  @return math.div(math.round($number * $scale), $scale);
+}
+
+// The point of the wave at a distance along it, and its direction there.
+@function -point($distance) {
+  $located: -locate($distance);
+  @return (
+    -along(list.nth($located, 1), list.nth($located, 2), 1),
+    -along(list.nth($located, 1), list.nth($located, 2), 2)
+  );
+}
+
+@function -direction($distance) {
+  $located: -locate($distance);
+  @return math.atan2(
+    -heading(list.nth($located, 1), list.nth($located, 2), 2),
+    -heading(list.nth($located, 1), list.nth($located, 2), 1)
+  );
+}
+
+// The spark at `$time`, 0 to 1 of the run: where its middle stands, as shares
+// of its own box for `translate` from the square's corner (`translate`), its
+// turn (`angle`), the lit length with its caps as a share of the full spark
+// (`stretch`), and whether any of the wave is lit at all (`lit`) — none is
+// just before the start and just past the end, where the dash lies off the
+// path.
+//
+// A straight spark over a curved stretch of wave: it lies along the chord
+// between the stretch's ends, and halfway between the chord and the curve's
+// middle, so its ends and its middle stray from the line by the same amount,
+// at most 0.6 of a unit at the crests, against 1.2 laid on the curve's middle.
+@function frame($time) {
+  $offset: $-dash - ($-dash + $-path-units) * -eased($time);
+  $tail: math.max(0, -$offset) * $-per-unit;
+  $lead: math.min($-path-units, $-dash - $offset) * $-per-unit;
+  $lit-length: math.max(0, $lead - $tail);
+  $middle: -point(($tail + $lead) * 0.5);
+  $from: -point($tail);
+  $to: -point($lead);
+  $x: (list.nth($middle, 1) + (list.nth($from, 1) + list.nth($to, 1)) * 0.5) *
+    0.5;
+  $y: (list.nth($middle, 2) + (list.nth($from, 2) + list.nth($to, 2)) * 0.5) *
+    0.5;
+  // Along the chord while there is one to speak of; where the lit stretch is
+  // a point, the wave's own direction there.
+  $angle: -direction(($tail + $lead) * 0.5);
+  @if $lit-length > 0.05 {
+    $angle: math.atan2(
+      list.nth($to, 2) - list.nth($from, 2),
+      list.nth($to, 1) - list.nth($from, 1)
+    );
+  }
+  @return (
+    translate: -rounded(math.percentage(math.div($x, $spark-length))) -rounded(
+        math.percentage(math.div($y, $stroke))
+      ),
+    angle: -rounded($angle, 2),
+    stretch: -rounded(math.div($lit-length + $stroke, $spark-length), 4),
+    lit: $lead > $tail
+  );
+}

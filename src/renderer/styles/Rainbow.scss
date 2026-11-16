@@ -87,13 +87,22 @@ html.is-euphoric {
 // Doubled width and swept, so the gradient reads as moving light rather than as
 // a painted stripe. One pass is twelve seconds: slow enough to notice only when
 // looked at, which is the whole brief for something behind the actual work.
+//
+// The sweep is a strip four bars long (two periods of the palette, each twice
+// the bar) slid half its length inside the bar, which is one whole period:
+// the loop point is the picture it started from, and at every moment the bar
+// shows exactly what `background-position` 0% to 200% showed. Only
+// `translate`, so the compositor runs it. As a moving background it was the
+// main thread's to repaint on every frame, 240 a second on Ivan's display
+// (2026-11-16, with the pet and the brand: the main thread 82% busy against
+// 17% with every endless animation paused).
 @keyframes rainbow-drift {
   from {
-    background-position: 0% 50%;
+    translate: 0 0;
   }
 
   to {
-    background-position: 200% 50%;
+    translate: -50% 0;
   }
 }
 
@@ -120,13 +129,25 @@ html.is-euphoric {
 // place in the titlebar. They are the same mark doing the same job at two
 // levels, and a mode that swept one and not the other left the window looking
 // like the rainbow had only reached half of it.
+//
+// The bar keeps its glow and its rounded ends and cuts the strip to them; its
+// own colour goes, so no accent bleeds through the edges of the strip.
 .is-euphoric .workspace-tab-group__bar,
 .is-euphoric .workspace-tabs__pill {
-  background: var(--rainbow-sweep);
-  background-size: 200% 100%;
-  animation: rainbow-drift 12s linear infinite;
-  // Swept forever: a layer of its own (`SupportPet.scss`).
-  will-change: transform;
+  overflow: hidden;
+  background: transparent;
+
+  &::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 400%;
+    height: 100%;
+    background: var(--rainbow-sweep);
+    background-size: 50% 100%;
+    content: '';
+    animation: rainbow-drift 12s linear infinite;
+  }
 }
 
 // The shared menu/dialog mixins cover their families. These semantic surfaces
@@ -193,7 +214,7 @@ html
 // A moving gradient behind text is exactly the thing this setting is for
 // people who cannot have. The colours stay; only the travel stops.
 @media (prefers-reduced-motion: reduce) {
-  .is-euphoric .workspace-tab-group__bar {
+  .is-euphoric .workspace-tab-group__bar::before {
     animation: none;
   }
 }

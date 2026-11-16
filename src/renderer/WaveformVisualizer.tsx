@@ -75,6 +75,7 @@ import {
   useLiveAudioControl,
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
+import EuphoriaPillFaces from './components/EuphoriaPillFaces';
 import LiveFigure from './components/LiveFigure';
 import type { IChartPointData } from './graph/ChartController';
 import {
@@ -829,6 +830,7 @@ const WaveformVisualizer = () => {
             for a label this short (`WaveformVisualizer.scss`), and "Rainbow
             mode" ran to 171px in Italian. The hint names the mode in full. */}
         {t('waveform.rainbow')}
+        <EuphoriaPillFaces label={t('waveform.rainbow')} />
       </button>
     </div>
   );

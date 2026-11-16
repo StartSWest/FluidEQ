@@ -4,8 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+@use 'sass:map';
+@use 'sass:math';
 @use 'color' as *;
 @use 'theme' as *;
+@use 'signalPulsePath' as pulse;
 
 // The header's logo and name, "Signal" (`SignalBrandMark`, `SignalBrandName`;
 // Ivan chose it on 2026-09-25). One clock for both: the wave draws itself in
@@ -24,7 +27,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // other mark, in the dialogs, keeps the app icon's Lagoon. Both classes, so
 // the order the two sheets land in never decides which edge is drawn.
 .brand-mark.brand-mark--signal {
-  // Its pulse runs forever: a layer of its own (`SupportPet.scss`).
+  // A layer of its own: the wave draws itself at launch, and that draw
+  // repaints the tile alone rather than the window's root (`SupportPet.scss`).
   will-change: transform;
   --logo-1: var(--accent-start);
   --logo-2: color-mix(in oklab, var(--accent-start), var(--accent));
@@ -63,24 +67,71 @@ SPDX-License-Identifier: GPL-3.0-or-later
     );
   }
 
-  // `.brand-mark path` gives both paths the wave's stroke; these are the
-  // wave's drawing-on and the pulse's own light.
+  // `.brand-mark path` gives the wave its stroke; this is its drawing-on.
   .brand-mark__wave {
     stroke-dasharray: 60;
     stroke-dashoffset: 60;
     animation: signal-draw 900ms cubic-bezier(0.3, 0.7, 0, 1) 150ms forwards;
   }
+}
 
-  // A short dash, seven of the wave's sixty, travelling from just before its
-  // start to just past its end, where the seventy-unit gap hides it again.
-  .brand-mark__pulse {
-    stroke: $white;
-    stroke-width: 3;
-    stroke-dasharray: 7 70;
-    stroke-dashoffset: 7;
-    filter: drop-shadow(0 0 3px $secondary-light);
-    animation: signal-pulse 5.5s cubic-bezier(0.45, 0, 0.2, 1) 1.2s infinite;
+// The drawing and the pulse over it, one box the size the header gives the
+// drawing (`App.scss`'s `.brand-mark svg`).
+.brand-mark__drawing {
+  position: relative;
+  display: block;
+
+  svg {
+    display: block;
   }
+}
+
+// The pulse's ground: the drawing's square again, cut where the drawing is
+// cut, and measured in its units (`$pulse-unit`).
+.brand-mark__pulse {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+  pointer-events: none;
+}
+
+// THE PULSE, ON THE COMPOSITOR. A short light, seven of the wave's sixty
+// units with round ends, white with a 3-unit glow, run along the wave from
+// just before its start to just past its end in the first 22% of every
+// 5.5 s, the moment "EQ" glows. It was a dash of the drawing sliding along
+// its path (`stroke-dashoffset`), which the main thread restyled, laid out
+// and painted on every frame, the 78% it was hidden included: 240 times a
+// second on Ivan's display (2026-11-16, the main thread 82% busy with it,
+// the pet's and the Colourful animations running, 17% with all of them
+// paused). Now it is this spark, the dash's own shape, and its keyframes
+// place it where the dash was at every moment of the run (`signalPulsePath`):
+// over the lit part of the wave, turned along it, stretched to its length as
+// it comes in at the start and goes out at the end. Only `translate`,
+// `rotate`, `scale` and `opacity`, all the compositor's. The wave curves
+// under the dash and the spark is straight: at the crests, where it bends
+// most, it strays 0.6 of a unit off the line (0.3px at the header's size),
+// well inside the wave's 5.6-unit stroke.
+$pulse-unit: math.div(100cqw, 48);
+$pulse-glow: 3 * $pulse-unit;
+
+.brand-mark__spark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: pulse.$spark-length * $pulse-unit;
+  height: pulse.$stroke * $pulse-unit;
+  // Its middle on the square's corner, so the keyframes say where its middle
+  // is.
+  margin-top: pulse.$stroke * -0.5 * $pulse-unit;
+  margin-left: pulse.$spark-length * -0.5 * $pulse-unit;
+  border-radius: pulse.$stroke * 0.5 * $pulse-unit;
+  background: $white;
+  // The dash's glow was 3 of the drawing's units: a filter on a shape of a
+  // drawing is drawn in the drawing's units, not the page's.
+  filter: drop-shadow(0 0 $pulse-glow $secondary-light);
+  opacity: 0;
+  animation: signal-pulse 5.5s linear 1.2s infinite;
 }
 
 // The same smooth run of the accent in Rainbow mode too, where the mode's
@@ -95,14 +146,51 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// The run in 66 steps of 18 ms, the dash's easing worked into where each step
+// stands, so the steps between them are straight (`linear`); then hidden, at
+// the wave's end, until the next run. Fewer steps cut the corners at the
+// crests (44: 0.85 of a unit off the line); more gain nothing (88: 0.65).
+//
+// The dash came on whole the instant any of it reached the wave, a dot the
+// width of its stroke, and went off the same way at the end: so the spark is
+// lit within half a millisecond of each end (`$pulse-edge`), not faded across
+// a whole step, which left it half as bright as the dash for 18 ms at each
+// end.
+$pulse-run: 22%;
+$pulse-steps: 66;
+$pulse-edge: 0.0004;
+
+@mixin pulse-frame($frame) {
+  translate: map.get($frame, translate);
+  rotate: map.get($frame, angle);
+  scale: map.get($frame, stretch) 1;
+
+  @if map.get($frame, lit) {
+    opacity: 1;
+  } @else {
+    opacity: 0;
+  }
+}
+
+@mixin pulse-keyframe($time) {
+  #{$pulse-run * $time} {
+    @include pulse-frame(pulse.frame($time));
+  }
+}
+
 @keyframes signal-pulse {
-  0% {
-    stroke-dashoffset: 7;
+  @include pulse-keyframe(0);
+  @include pulse-keyframe($pulse-edge);
+
+  @for $step from 1 to $pulse-steps {
+    @include pulse-keyframe(math.div($step, $pulse-steps));
   }
 
-  22%,
+  @include pulse-keyframe(1 - $pulse-edge);
+
+  #{$pulse-run},
   100% {
-    stroke-dashoffset: -60;
+    @include pulse-frame(pulse.frame(1));
   }
 }
 
@@ -173,22 +261,67 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // not boxes of their own: a letter that is its own box, or still rising, is
 // painted apart from its parent and the clip misses it — the whole name
 // vanished that way in the mockup.
+//
+// The glow of a clipped word: a text shadow would be drawn through its
+// transparent letters and tint them, so the light is a drop shadow round the
+// painted word instead.
+$eq-glow: drop-shadow(
+  0 0 6px color-mix(in srgb, $secondary-default 55%, transparent)
+);
+$eq-glow-peak: drop-shadow(
+  0 0 9px color-mix(in srgb, $secondary-default 85%, transparent)
+);
+
+// The letters themselves only hold the box; the word is drawn twice over them
+// (`data-text`, read by the two pseudo-elements), once with the steady glow
+// and once with the brighter one, and the pulse's arrival cross-fades the
+// two (`signal-glow-rest`, `signal-glow-peak`). Adding light (`plus-lighter`)
+// rather than laying one over the other, a copy at a share of its opacity
+// plus the other at the rest is exactly that share of the way between the
+// two pictures, and the letters, the same in both, stay exactly as bright.
+// Only `opacity`, so the compositor runs it: the glow was a `filter`
+// animated forever, which the main thread repainted on every frame.
 .signal-name__suffix {
-  // Glows forever: a layer of its own (`SupportPet.scss`).
-  will-change: transform;
-  display: inline-block;
-  color: transparent;
   // The sweep's last stretch (below): from the accent, where "d" ends, to
-  // the bluer end of the window's span.
-  background: $secondary-default
-    linear-gradient(90deg, var(--accent), var(--accent-end));
-  background-clip: text;
+  // the bluer end of the window's span. Read by the two copies.
+  --eq-sweep: linear-gradient(90deg, var(--accent), var(--accent-end));
+
+  position: relative;
+  display: inline-block;
+  // The copies add their light to each other, never to the bar behind.
+  isolation: isolate;
+  color: transparent;
   opacity: 0;
   transform: translateY(5px);
-  animation:
-    signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards,
-    signal-glow-lit 5.5s ease-in-out infinite;
-  animation-delay: calc(700ms + var(--letter-index) * 45ms), 1.2s;
+  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
+  animation-delay: calc(700ms + var(--letter-index) * 45ms);
+
+  &::before,
+  &::after {
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    background: $secondary-default var(--eq-sweep);
+    background-clip: text;
+    // The word again, and nothing for a screen reader to read twice.
+    content: attr(data-text) / '';
+    white-space: nowrap;
+    mix-blend-mode: plus-lighter;
+    pointer-events: none;
+  }
+
+  // Steady, so "EQ" always reads as lit.
+  &::before {
+    filter: $eq-glow;
+    animation: signal-glow-rest 5.5s ease-in-out 1.2s infinite;
+  }
+
+  // Brighter each time the pulse arrives, on the pulse's clock.
+  &::after {
+    filter: $eq-glow-peak;
+    opacity: 0;
+    animation: signal-glow-peak 5.5s ease-in-out 1.2s infinite;
+  }
 
   .signal-name__letter,
   .signal-name__letter--glow {
@@ -253,29 +386,38 @@ $sweep-pale: color-mix(in oklab, $secondary-light 60%, $text-primary);
   }
 }
 
-// The glow of a clipped word: a text shadow would be drawn through its
-// transparent letters and tint them, so the light is a drop shadow round the
-// painted word instead. Steady, so "EQ" always reads as lit, and brighter
-// each time the pulse arrives, on the pulse's clock.
-$eq-glow: drop-shadow(
-  0 0 6px color-mix(in srgb, $secondary-default 55%, transparent)
-);
-
-@keyframes signal-glow-lit {
+// The pulse's arrival, as the share of the brighter copy: none until 16% of
+// the cycle, all of it at 22%, none again from 40%. The steady copy gives way
+// by exactly as much, so the two always add up to one word.
+@keyframes signal-glow-peak {
   0%,
   16% {
-    filter: $eq-glow;
+    opacity: 0;
   }
 
   22% {
-    filter: drop-shadow(
-      0 0 9px color-mix(in srgb, $secondary-default 85%, transparent)
-    );
+    opacity: 1;
   }
 
   40%,
   100% {
-    filter: $eq-glow;
+    opacity: 0;
+  }
+}
+
+@keyframes signal-glow-rest {
+  0%,
+  16% {
+    opacity: 1;
+  }
+
+  22% {
+    opacity: 0;
+  }
+
+  40%,
+  100% {
+    opacity: 1;
   }
 }
 
@@ -304,7 +446,11 @@ $eq-glow: drop-shadow(
     animation: none;
     opacity: 1;
     transform: none;
-    // Lit all the same, without the pulse.
-    filter: $eq-glow;
+  }
+
+  // Lit all the same, by the steady copy alone, without the pulse.
+  .signal-name__suffix::before,
+  .signal-name__suffix::after {
+    animation: none;
   }
 }

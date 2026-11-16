@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'color' as *;
 @use 'theme' as *;
+@use 'euphoriaPill' as pill;
 
 // Maximum multiplier. The whole application goes with it.
 //
@@ -67,9 +68,8 @@ it under the terms of the GNU General Public License version 3 or later.
   // Ivan took the pane's box off on 2026-09-25 — rim, fill and corners — so
   // the wave is drawn straight on the header; the rainbow is in the trace.
 
-  .euphoria-pill {
-    animation: rainbow-cycle 3.6s linear infinite;
-  }
+  // The pill runs through the palette too, by faces it fades between rather
+  // than by `rainbow-cycle` (`_euphoriaPill.scss`).
 
   // The game's trace turns rainbow, and only here. Ordinarily it is the app's
   // cyan; the spectrum is what reaching the ceiling buys, so it cannot already
@@ -423,7 +423,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // it runs through the palette in use; off, it is drained of colour but not
 // of presence, so it reads as a control that is there to be pressed.
 .euphoria-pill {
-  // Cycles its hue forever: a layer of its own (`SupportPet.scss`).
+  // A layer of its own, the faces it fades between included
+  // (`.euphoria-pill__face`): their fades composite here and repaint nothing
+  // around it.
   will-change: transform;
   padding: 2px 9px;
   color: $surface-well;
@@ -501,25 +503,10 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &[aria-pressed='true'] {
-    // The mode's colour at a lightness the chip below can carry, and no more
-    // saturated than a label should be: a dark palette is lifted, a pale one
-    // kept just short of white.
-    --pill-lit: oklch(
-      from var(--rainbow-now) clamp(0.8, l, 0.92) min(c, 0.16) h
-    );
+    // How much of the mode's colour tints the face: more under the pointer.
+    --pill-tint: 24%;
 
-    color: var(--pill-lit);
-    background-color: color-mix(
-      in oklab,
-      var(--rainbow-now) 24%,
-      $surface-base
-    );
-    background-image: radial-gradient(
-      circle closest-side,
-      var(--pill-lit) 52%,
-      color-mix(in oklab, var(--pill-lit) 35%, transparent) 72%,
-      transparent
-    );
+    @include pill.lit;
     // Flat (Ivan, 2026-11-16, the meter styles' mockup): no ring and no glow.
     // On still differs from off in light, not only in hue — a tinted face, a
     // filled dot and lit letters against a dark face, a hollow dot and faint
@@ -527,11 +514,7 @@ it under the terms of the GNU General Public License version 3 or later.
     box-shadow: none;
 
     &:hover {
-      background-color: color-mix(
-        in oklab,
-        var(--rainbow-now) 36%,
-        $surface-base
-      );
+      --pill-tint: 36%;
     }
   }
 
@@ -560,6 +543,9 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 }
+
+// The faces the lit pill fades between (`_euphoriaPill.scss`).
+@include pill.faces;
 
 // Registered so it can actually animate. Without the type the browser treats it
 // as an unparsed string and the sweep becomes six abrupt steps.

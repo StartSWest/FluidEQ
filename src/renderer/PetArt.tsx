@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useId } from 'react';
+import type { CSSProperties } from 'react';
 import './styles/SupportPet.scss';
 
 /** One cycle of the waveform in the eye, in SVG user units. */
@@ -41,6 +42,41 @@ export const buildEyeWave = (centreX: number, centreY: number) => {
 
 /** Every layer is the same 40-unit square, so they stack pixel for pixel. */
 const VIEW_BOX = '0 0 40 40';
+
+/** Where the pupils sit in the square, and how big they are. */
+const EYE_Y = 22;
+const PUPIL_RADIUS = 3.4;
+const LEFT_PUPIL_X = 15.4;
+const RIGHT_PUPIL_X = 24.6;
+
+/**
+ * The waveform in one pupil: a window of the page the shape of the pupil
+ * (`support-pet__pupil`, squinting with it), and inside it the whole square
+ * as a layer that slides one period and loops (`support-pet__eye-wave`). The
+ * wave runs well past the iris, so its ends never come into view. The
+ * squint is drawn inside the square as well as cut by the window, so the
+ * wave flattens with the eye exactly as it did under the pupil's clip.
+ */
+const EyeWave = ({ centreX }: { centreX: number }) => (
+  <span
+    className="support-pet__pupil"
+    style={
+      {
+        '--pupil-x': centreX,
+        '--pupil-y': EYE_Y,
+        '--pupil-r': PUPIL_RADIUS,
+      } as CSSProperties
+    }
+  >
+    <span className="support-pet__eye-wave">
+      <svg className="support-pet__layer" viewBox={VIEW_BOX} focusable="false">
+        <g className="support-pet__squint">
+          <path d={buildEyeWave(centreX, EYE_Y)} />
+        </g>
+      </svg>
+    </span>
+  </span>
+);
 
 /**
  * Its colours come from two tokens (`SupportPet.scss`): its own mint at rest,
@@ -92,45 +128,48 @@ export function PetArt() {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const earsTone = `pet-ears-tone-${uid}`;
   const bodyTone = `pet-body-tone-${uid}`;
-  const eyeLeft = `pet-eye-left-${uid}`;
-  const eyeRight = `pet-eye-right-${uid}`;
 
   return (
     <span className="support-pet__frame">
       <span className="support-pet__art" aria-hidden="true">
         {/* Ears double as a little EQ curve - the creature is made of the
-          thing the app does. Kept chunky so they survive at 40px. Their own
-          moves - the stretch to the music, the sway, the press - are the
-          group's, inside the drawing, because a non-scaling stroke keeps its
-          width only under a transform inside the drawing: on the layer the
-          stretch would thicken them. */}
-        <svg
-          className="support-pet__layer"
-          viewBox={VIEW_BOX}
-          focusable="false"
-        >
-          <PetTone id={earsTone} />
-          <g className="support-pet__ears">
-            <path
-              d="M11 12 L14 6 L17 12"
-              fill="none"
-              stroke={`url(#${earsTone})`}
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d="M23 12 L26 8 L29 12"
-              fill="none"
-              stroke={`url(#${earsTone})`}
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          </g>
-        </svg>
+          thing the app does. Kept chunky so they survive at 40px. What
+          stretches them - the music, the press - is the group's, inside the
+          drawing, because a non-scaling stroke keeps its width only under a
+          transform inside the drawing: on the layer the stretch would
+          thicken them. Their sway and their bob are a layer's of their own
+          around the drawing (`support-pet__ears-sway`): a turn and a shift
+          thicken nothing, and on a group they were laid out and painted on
+          the main thread on every frame of the music. */}
+        <span className="support-pet__ears-sway support-pet__layer">
+          <svg
+            className="support-pet__layer"
+            viewBox={VIEW_BOX}
+            focusable="false"
+          >
+            <PetTone id={earsTone} />
+            <g className="support-pet__ears">
+              <path
+                d="M11 12 L14 6 L17 12"
+                fill="none"
+                stroke={`url(#${earsTone})`}
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
+              <path
+                d="M23 12 L26 8 L29 12"
+                fill="none"
+                stroke={`url(#${earsTone})`}
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
+            </g>
+          </svg>
+        </span>
 
         <span className="support-pet__body support-pet__layer">
           <svg
@@ -164,8 +203,18 @@ export function PetArt() {
               focusable="false"
             >
               <g className="support-pet__squint">
-                <circle cx="15.4" cy="22" r="3.4" fill="#06131d" />
-                <circle cx="24.6" cy="22" r="3.4" fill="#06131d" />
+                <circle
+                  cx={LEFT_PUPIL_X}
+                  cy={EYE_Y}
+                  r={PUPIL_RADIUS}
+                  fill="#06131d"
+                />
+                <circle
+                  cx={RIGHT_PUPIL_X}
+                  cy={EYE_Y}
+                  r={PUPIL_RADIUS}
+                  fill="#06131d"
+                />
               </g>
             </svg>
 
@@ -179,32 +228,17 @@ export function PetArt() {
               A layer of its own between the pupils and their highlights,
               because that is what takes it out: Chromium keeps animating what
               is inside a hidden group of a drawing it is showing, and it laid
-              the page out sixty times a second for waves nobody could see. */}
-            <svg
-              className="support-pet__eye-waves support-pet__layer"
-              viewBox={VIEW_BOX}
-              focusable="false"
-            >
-              {/* The pupils, as clips. The waveform inside each eye runs well
-                past the iris so it can scroll without its ends ever coming
-                into view. */}
-              <defs>
-                <clipPath id={eyeLeft}>
-                  <circle cx="15.4" cy="22" r="3.4" />
-                </clipPath>
-                <clipPath id={eyeRight}>
-                  <circle cx="24.6" cy="22" r="3.4" />
-                </clipPath>
-              </defs>
-              <g className="support-pet__squint">
-                <g clipPath={`url(#${eyeLeft})`}>
-                  <path d={buildEyeWave(15.4, 22)} />
-                </g>
-                <g clipPath={`url(#${eyeRight})`}>
-                  <path d={buildEyeWave(24.6, 22)} />
-                </g>
-              </g>
-            </svg>
+              the page out sixty times a second for waves nobody could see.
+
+              Each pupil is a window of the page, the wave in it a layer that
+              slides: the compositor moves the one inside the other. As a path
+              scrolling under an SVG clip it was laid out and painted on the
+              main thread on every frame, 240 a second on Ivan's display, for
+              as long as Colourful mode kept her joyful. */}
+            <span className="support-pet__eye-waves support-pet__layer">
+              <EyeWave centreX={LEFT_PUPIL_X} />
+              <EyeWave centreX={RIGHT_PUPIL_X} />
+            </span>
 
             <svg
               className="support-pet__layer"
@@ -219,17 +253,21 @@ export function PetArt() {
           </span>
         </span>
 
-        {/* Only ever drawn for a supporter. */}
-        <svg
-          className="support-pet__star support-pet__layer"
-          viewBox={VIEW_BOX}
-          focusable="false"
-        >
-          <path
-            d="M31.5 8.2 L32.7 11 L35.6 11.3 L33.4 13.2 L34.1 16 L31.5 14.5 L28.9 16 L29.6 13.2 L27.4 11.3 L30.3 11 Z"
-            fill="#ffe66d"
-          />
-        </svg>
+        {/* Only ever drawn for a supporter. Its twinkle is the layer's
+          around the drawing: on the drawing's own root it still counted as
+          an SVG element's and ran on the main thread. */}
+        <span className="support-pet__star support-pet__layer">
+          <svg
+            className="support-pet__layer"
+            viewBox={VIEW_BOX}
+            focusable="false"
+          >
+            <path
+              d="M31.5 8.2 L32.7 11 L35.6 11.3 L33.4 13.2 L34.1 16 L31.5 14.5 L28.9 16 L29.6 13.2 L27.4 11.3 L30.3 11 Z"
+              fill="#ffe66d"
+            />
+          </svg>
+        </span>
       </span>
     </span>
   );
