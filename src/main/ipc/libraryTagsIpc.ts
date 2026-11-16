@@ -50,6 +50,8 @@ export interface ILibraryTagsIpcDeps {
   store: ILibraryStore;
   getMainWindow: () => BrowserWindow | null;
   announce: () => void;
+  /** The player's hold on a file let go for a write (`releaseDspHostFile`). */
+  releaseFile?: (filePath: string) => Promise<() => Promise<void>>;
 }
 
 const isId = (value: unknown): value is string =>
@@ -73,6 +75,7 @@ export const registerLibraryTagsIpc = ({
   store,
   getMainWindow,
   announce,
+  releaseFile,
 }: ILibraryTagsIpcDeps): void => {
   let engine: Promise<TTagEngine> | undefined;
   let jobs: ITagJobs | undefined;
@@ -93,6 +96,7 @@ export const registerLibraryTagsIpc = ({
         announce,
         send: (state) =>
           getMainWindow()?.webContents.send('library-tags-job', state),
+        releaseFile,
       });
     return jobs;
   };
@@ -181,6 +185,23 @@ export const registerLibraryTagsIpc = ({
         ],
         Promise.resolve([]),
       );
+    },
+  );
+
+  // A song's own cover at full size, for the album editor's choice of one
+  // of its songs' covers for all of them. By id only, like every call here.
+  ipcMain.handle(
+    'library-tags-track-cover',
+    async (_event, rawTrackId: unknown): Promise<TTagCoverPick> => {
+      const track = isId(rawTrackId) ? store.track(rawTrackId) : undefined;
+      if (track === undefined || track.kind !== 'audio') {
+        return { state: 'refused' };
+      }
+      const { readTrackCover } = await loadEngine();
+      const bytes = readTrackCover(track.path);
+      return bytes === undefined || bytes.length > MAX_COVER_BYTES
+        ? { state: 'refused' }
+        : { state: 'ok', bytes };
     },
   );
 

@@ -216,16 +216,31 @@ const libraryTags = {
   'library.tags.selection.fix': '修正',
   'library.tags.fix.empty': '空',
   'library.tags.fix.albums': '{count} 张专辑',
-  'library.tags.fix.albumNothing': '无需修正',
   'library.tags.fix.albumChanges': '{count} 处修改',
   'library.tags.fix.albumChangesOne': '1 处修改',
   'library.tags.fix.nothingFound':
     'FluidEQ 在这些歌曲中没有发现需要修正的地方。',
+  'library.tags.fix.noPicture': '无法使用专辑文件夹中的图片。',
   'library.tags.fix.filled':
     'FluidEQ 已补全缺少的信息。改动以彩色显示，旧值在旁边划掉：检查后保存，或放弃。',
   'library.tags.fix.fixAlbum': '修正',
   'library.tags.fix.openAlbum': '打开',
   'library.tags.fix.editByHand': '全部手动编辑',
+  'library.tags.fix.albumComplete': '已完整',
+  'library.tags.changes.title': '更改',
+  'library.tags.changes.none': '还没有更改。您做的更改会在保存前列在这里。',
+  'library.tags.changes.album': '整张专辑',
+  'library.tags.changes.songs': '逐首歌曲',
+  'library.tags.changes.removed': '移除',
+  'library.tags.changes.cover': '封面',
+  'library.tags.changes.coverNew': '新图片',
+  'library.tags.changes.coverRemoved': '移除',
+  'library.tags.cover.useOne': '选一张用于所有歌曲',
+  'library.tags.cover.useThis': '将此封面用于所有歌曲',
+  'library.tags.write.undoAsk': '要恢复 {count} 个文件之前的标签吗？',
+  'library.tags.write.undoAskOne': '要恢复 1 个文件之前的标签吗？',
+  'library.tags.write.undoKeep': '不',
+  'library.tags.write.undoConfirm': '撤销',
 };
 
 export default libraryTags;

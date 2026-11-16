@@ -143,3 +143,28 @@ export const readTrackTagSheet = (
     file?.dispose();
   }
 };
+
+/**
+ * The picture a song carries as its cover, as bytes: what the album editor
+ * offers when its songs carry different covers and one is chosen for all
+ * (Ivan, 2026-11-16: "N portadas distintas ... poder escoger ... y que se
+ * cambien en todas las canciones"). Read from the file at full size — the
+ * Library's own copy is a 320-pixel thumbnail.
+ */
+export const readTrackCover = (filePath: string): Uint8Array | undefined => {
+  const format = tagFormatOfPath(filePath);
+  if (format === undefined || !fs.existsSync(filePath)) {
+    return undefined;
+  }
+  let file: File | undefined;
+  try {
+    file = openTagFile(filePath, format);
+    return coverPictureOf(file.tag.pictures ?? [])?.data.toByteArray();
+  } catch (error) {
+    // eslint-disable-next-line no-console -- context-rich error before the menu says the picture could not be used
+    console.error(`Could not read the cover of ${filePath}`, error);
+    return undefined;
+  } finally {
+    file?.dispose();
+  }
+};

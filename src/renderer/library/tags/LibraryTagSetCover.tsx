@@ -102,6 +102,14 @@ const LibraryTagSetCover = ({
       draft={cover}
       size="set"
       stack={stack}
+      choices={distinct.flatMap((artId) => {
+        const sheet = sheets.find(
+          (each) =>
+            each.cover !== undefined &&
+            tracks.get(each.trackId)?.artId === artId,
+        );
+        return sheet ? [{ trackId: sheet.trackId, artId }] : [];
+      })}
       canRemove={distinct.length > 0}
       onPick={(picked) => {
         if (cover && cover !== picked) {

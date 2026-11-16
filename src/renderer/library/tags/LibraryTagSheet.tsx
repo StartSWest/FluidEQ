@@ -23,6 +23,7 @@ import {
   TAG_NUMBER_LIMITS,
   type TTagFieldKey,
 } from '../../../common/library/tagFields';
+import { isPlaceholderName } from '../../../common/library/tagFix';
 import type { ILibraryTrack } from '../../../common/library/types';
 import { useTranslation } from '../../utils/I18nContext';
 import { FIELD_LABEL_KEYS } from './tagLabels';
@@ -133,12 +134,19 @@ const LibraryTagSheet = ({
     // struck through after it, the old one — what Fix tags typed in reads
     // as a change at a glance, not as the file's own value.
     const original = sheet.fields[key] ?? '';
-    const showsChange = !isFound && !isNumber && isChanged && original !== '';
+    // Where the file had nothing ("<Desconocido>" is nothing), a value is an
+    // addition: green, with nothing to strike (Ivan, 2026-11-16: "en verde,
+    // como en addition").
+    const wasNothing = original === '' || isPlaceholderName(original);
+    const isAdded = isChanged && wasNothing && value !== '';
+    const showsChange = !isFound && !isNumber && isChanged && !wasNothing;
     const isPreviewed = isFound || showsChange;
     return (
       <td
         key={key}
-        className={`${isNumber ? 'is-number' : ''}${isChanged ? ' is-changed' : ''}${
+        className={`${isNumber ? 'is-number' : ''}${
+          isChanged && !isAdded ? ' is-changed' : ''
+        }${isAdded ? ' is-added' : ''}${
           value === '' ? ' is-empty' : ''
         }${isInvalid ? ' is-invalid' : ''}${isPreviewed ? ' is-previewed' : ''}`}
       >
@@ -163,8 +171,9 @@ const LibraryTagSheet = ({
               if (!part.isMatch) {
                 return <span key={partKey}>{part.text}</span>;
               }
+              // An empty "Replace with" deletes: the match is struck.
               if (finding.replace === '') {
-                return <mark key={partKey}>{part.text}</mark>;
+                return <del key={partKey}>{part.text}</del>;
               }
               return (
                 <span key={partKey}>

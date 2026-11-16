@@ -76,6 +76,13 @@ const readLibraryTagFolders = (trackIds: readonly string[]) =>
     ITagFolderFacts[]
   >;
 
+/** The cover a song carries, as bytes, at full size. */
+const readLibraryTagTrackCover = (trackId: string) =>
+  ipcRenderer.invoke(
+    'library-tags-track-cover',
+    trackId,
+  ) as Promise<TTagCoverPick>;
+
 /** The picture in a song's album folder, as bytes. */
 const readLibraryTagFolderCover = (trackId: string) =>
   ipcRenderer.invoke(
@@ -109,6 +116,7 @@ const libraryTagsBridge = {
   pickLibraryTagCover,
   readLibraryTagFolders,
   readLibraryTagFolderCover,
+  readLibraryTagTrackCover,
   onLibraryTagJob,
 };
 

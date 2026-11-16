@@ -44,6 +44,9 @@ const LibraryTagWriteCard = () => {
     setIsJobInBackground,
   } = useTagEditor();
   const [dismissed, setDismissed] = useState<string | undefined>(undefined);
+  // Undo rewrites every file the write touched: it asks first (Ivan,
+  // 2026-11-16: "deshacer también necesita confirmación").
+  const [isAskingUndo, setIsAskingUndo] = useState(false);
 
   if (job === undefined || job.items.length === 0 || dismissed === job.jobId) {
     return null;
@@ -189,11 +192,41 @@ const LibraryTagWriteCard = () => {
                 })}
           </button>
         )}
-        {undoable !== undefined && !isUndo && (
-          <button type="button" className="button small subtle" onClick={undo}>
+        {undoable !== undefined && !isUndo && !isAskingUndo && (
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => setIsAskingUndo(true)}
+          >
             <PutBackGlyph />
             {t('library.tags.write.undo')}
           </button>
+        )}
+        {undoable !== undefined && !isUndo && isAskingUndo && (
+          <span className="library-tags-card__ask" role="alert">
+            <span>
+              {counts.written === 1
+                ? t('library.tags.write.undoAskOne')
+                : t('library.tags.write.undoAsk', { count: counts.written })}
+            </span>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => setIsAskingUndo(false)}
+            >
+              {t('library.tags.write.undoKeep')}
+            </button>
+            <button
+              type="button"
+              className="button small danger"
+              onClick={() => {
+                setIsAskingUndo(false);
+                undo();
+              }}
+            >
+              {t('library.tags.write.undoConfirm')}
+            </button>
+          </span>
         )}
         <button
           type="button"

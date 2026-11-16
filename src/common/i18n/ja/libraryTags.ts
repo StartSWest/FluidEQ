@@ -231,16 +231,33 @@ const libraryTags = {
   'library.tags.selection.fix': '修正',
   'library.tags.fix.empty': '空',
   'library.tags.fix.albums': '{count} アルバム',
-  'library.tags.fix.albumNothing': '直すところなし',
   'library.tags.fix.albumChanges': '{count} 件の変更',
   'library.tags.fix.albumChangesOne': '1 件の変更',
   'library.tags.fix.nothingFound':
     'FluidEQ はこれらの曲に修正する点を見つけませんでした。',
+  'library.tags.fix.noPicture':
+    'アルバムのフォルダーの画像は使えませんでした。',
   'library.tags.fix.filled':
     'FluidEQ が足りない情報を補いました。変更箇所は色付きで、元の値は横に取り消し線で表示されます。確認して保存するか、破棄してください。',
   'library.tags.fix.fixAlbum': '修正',
   'library.tags.fix.openAlbum': '開く',
   'library.tags.fix.editByHand': 'すべて手で編集',
+  'library.tags.fix.albumComplete': '完了',
+  'library.tags.changes.title': '変更',
+  'library.tags.changes.none':
+    'まだ変更はありません。変更した内容は保存する前にここに一覧表示されます。',
+  'library.tags.changes.album': 'アルバム全体',
+  'library.tags.changes.songs': '曲ごと',
+  'library.tags.changes.removed': '削除',
+  'library.tags.changes.cover': 'ジャケット',
+  'library.tags.changes.coverNew': '新しい画像',
+  'library.tags.changes.coverRemoved': '削除',
+  'library.tags.cover.useOne': '1 枚をすべての曲に使う',
+  'library.tags.cover.useThis': 'このジャケットをすべての曲に使う',
+  'library.tags.write.undoAsk': '{count} 個のファイルのタグを元に戻しますか？',
+  'library.tags.write.undoAskOne': '1 個のファイルのタグを元に戻しますか？',
+  'library.tags.write.undoKeep': 'いいえ',
+  'library.tags.write.undoConfirm': '元に戻す',
 };
 
 export default libraryTags;

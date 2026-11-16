@@ -236,16 +236,33 @@ const libraryTags = {
   'library.tags.selection.fix': 'Исправить',
   'library.tags.fix.empty': 'пусто',
   'library.tags.fix.albums': 'Альбомов: {count}',
-  'library.tags.fix.albumNothing': 'Исправлять нечего',
   'library.tags.fix.albumChanges': 'Изменений: {count}',
   'library.tags.fix.albumChangesOne': '1 изменение',
   'library.tags.fix.nothingFound':
     'FluidEQ не нашёл в этих песнях ничего, что нужно исправить.',
+  'library.tags.fix.noPicture':
+    'Не удалось использовать изображение из папки альбома.',
   'library.tags.fix.filled':
     'FluidEQ дополнил недостающее. Изменённое выделено цветом, старое значение зачёркнуто рядом: проверьте и сохраните или отмените.',
   'library.tags.fix.fixAlbum': 'Исправить',
   'library.tags.fix.openAlbum': 'Открыть',
   'library.tags.fix.editByHand': 'Править всё вручную',
+  'library.tags.fix.albumComplete': 'Готово',
+  'library.tags.changes.title': 'Изменения',
+  'library.tags.changes.none':
+    'Изменений пока нет. Всё, что вы измените, появится здесь до сохранения.',
+  'library.tags.changes.album': 'Для всего альбома',
+  'library.tags.changes.songs': 'По песням',
+  'library.tags.changes.removed': 'удаляется',
+  'library.tags.changes.cover': 'Обложка',
+  'library.tags.changes.coverNew': 'Новое изображение',
+  'library.tags.changes.coverRemoved': 'Удаляется',
+  'library.tags.cover.useOne': 'Одну для всех песен',
+  'library.tags.cover.useThis': 'Эту обложку для всех песен',
+  'library.tags.write.undoAsk': 'Вернуть прежние теги файлов: {count}?',
+  'library.tags.write.undoAskOne': 'Вернуть прежние теги 1 файла?',
+  'library.tags.write.undoKeep': 'Нет',
+  'library.tags.write.undoConfirm': 'Отменить',
 };
 
 export default libraryTags;

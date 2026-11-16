@@ -47,6 +47,7 @@ import {
   withCell,
   withShared,
 } from './tagSetModel';
+import { pendingChangesOf } from './tagChanges';
 import { useEditorFix } from './useEditorFix';
 import { useTagSheets } from './useTagSheets';
 
@@ -80,7 +81,8 @@ const WandGlyph = () => (
  */
 const LibraryTagSetEditor = () => {
   const { t } = useTranslation();
-  const { view, close, write, openFix, setPageHasChanges } = useTagEditor();
+  const { view, close, write, openFix, setPageHasChanges, setPageChanges } =
+    useTagEditor();
   const ids = useMemo(() => (view?.kind === 'set' ? view.ids : []), [view]);
   const sheets = useTagSheets(ids);
   const tracks = useLibraryTracks(ids);
@@ -128,6 +130,11 @@ const LibraryTagSetEditor = () => {
     setPageHasChanges(hasChanges);
   }, [hasChanges, setPageHasChanges]);
   useEffect(() => () => setPageHasChanges(false), [setPageHasChanges]);
+  // The side column lists what a Save would do, in place of Up Next.
+  useEffect(() => {
+    setPageChanges(pendingChangesOf(state, ordered, changes));
+  }, [state, ordered, changes, setPageChanges]);
+  useEffect(() => () => setPageChanges(undefined), [setPageChanges]);
   if (view?.kind !== 'set') {
     return null;
   }
@@ -226,9 +233,11 @@ const LibraryTagSetEditor = () => {
           >
             <WandGlyph />
             <span>
-              {fix.note === 'filled'
-                ? t('library.tags.fix.filled')
-                : t('library.tags.fix.nothingFound')}
+              {fix.note === 'nothing'
+                ? t('library.tags.fix.nothingFound')
+                : t('library.tags.fix.filled')}
+              {fix.note === 'noPicture' &&
+                ` ${t('library.tags.fix.noPicture')}`}
             </span>
           </p>
         )}
@@ -267,7 +276,7 @@ const LibraryTagSetEditor = () => {
             }
           />
         )}
-        {ordered.length > 0 && !fix.isChoosing && (
+        {ordered.length > 0 && !fix.isChoosing && !fix.isPending && (
           <>
             <div className="library-tags-album">
               <LibraryTagSetCover

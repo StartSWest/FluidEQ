@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import type { ISheetGroup } from './tagGroups';
 
@@ -48,7 +49,10 @@ const LibraryTagFixAlbumList = ({
         {t('library.tags.fix.albums', { count: albums.length })}
       </h3>
       {albums.map(({ group, changes }) => (
-        <div key={group.key} className="library-tags-fix-albums__row">
+        <div
+          key={group.key}
+          className={`library-tags-fix-albums__row${changes === 0 ? ' is-complete' : ''}`}
+        >
           <div className="library-tags-fix-albums__name">
             <b>{group.label}</b>
             <span>
@@ -60,7 +64,12 @@ const LibraryTagFixAlbumList = ({
           <span
             className={`library-tags-fix-albums__state${changes === 0 ? ' is-none' : ''}`}
           >
-            {changes === 0 && t('library.tags.fix.albumNothing')}
+            {changes === 0 && (
+              <>
+                <MenuIcon name="check" />
+                {t('library.tags.fix.albumComplete')}
+              </>
+            )}
             {changes === 1 && t('library.tags.fix.albumChangesOne')}
             {changes > 1 &&
               t('library.tags.fix.albumChanges', { count: changes })}

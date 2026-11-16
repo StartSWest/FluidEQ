@@ -52,8 +52,132 @@ $tags-panel-width: 392px;
   }
 }
 
-.library-workspace.has-tag-panel .library-side {
+.library-workspace.has-tag-panel .library-side,
+.library-workspace.has-changes-panel .library-side {
   border-left: 1px solid $studio-hair;
+}
+
+// Where Up Next is a sheet over the shelf (`has-up-next-floating`), a tag
+// panel still stands beside the page: laid over it, the list of changes
+// covered the very fields it describes, and drew through them. Under a
+// tablet's width the panel is the sheet below instead.
+@container library (min-width: #{$bp-md}) {
+  .library-workspace.has-up-next-floating:is(.has-tag-panel, .has-changes-panel)
+    .library-side {
+    position: relative;
+    inset: auto;
+    grid-column: 3;
+    grid-row: 1;
+    overflow: visible;
+    border-left: 1px solid $studio-hair;
+    pointer-events: auto;
+  }
+}
+
+// Up Next gives the column up at once to a tag panel: folding, it slid out
+// over the panel sliding in, and the two stood together for a moment. Kept
+// mounted, it comes back exactly as it was.
+.library-workspace.has-tag-panel .library-up-next,
+.library-workspace.has-changes-panel .library-up-next {
+  display: none;
+}
+
+// *** What a Save would do, beside the album page *****************************
+
+.library-tags-changes {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 4px 16px 16px;
+
+  section {
+    display: grid;
+  }
+
+  .library-tags__group {
+    margin: 14px 0 6px;
+  }
+}
+
+.library-tags-changes__none {
+  margin: 16px 0 0;
+  color: $studio-t3;
+  font-size: $studio-text-tree;
+  line-height: 1.5;
+}
+
+.library-tags-changes__row {
+  display: grid;
+  // A fixed last column: each row is its own grid, and "1 canción" beside
+  // "8 canciones" moved the values of one row off the others'.
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) 88px;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 7px 0;
+  box-shadow: inset 0 -1px 0 $studio-hair;
+  font-size: $studio-text-tree;
+
+  &.is-song {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr);
+    padding: 4px 0;
+    box-shadow: none;
+  }
+}
+
+.library-tags-changes__field {
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+  @include truncate;
+}
+
+.library-tags-changes__songs {
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.library-tags-changes__value {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  overflow-wrap: anywhere;
+
+  del {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+  }
+
+  ins {
+    color: $secondary-light;
+    text-decoration: none;
+
+    // What fills an empty field: an addition, in green.
+    &.is-added {
+      color: $analogous-2;
+    }
+  }
+}
+
+.library-tags-changes__gone {
+  color: $amber;
+  font-size: $studio-text-meta;
+}
+
+.library-tags-changes__song {
+  display: grid;
+  padding: 8px 0;
+  box-shadow: inset 0 -1px 0 $studio-hair;
+
+  > b {
+    margin-bottom: 2px;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
+    @include truncate;
+  }
 }
 
 // Under a tablet's width the panel is the whole card, as a sheet over the
@@ -71,6 +195,13 @@ $tags-panel-width: 392px;
 
   .library-tags-panel {
     width: 100%;
+  }
+
+  // The list of changes has no room beside a page this narrow, and as a
+  // sheet it would cover the page it describes: the page's own colours and
+  // struck values say the same there.
+  .library-workspace.has-changes-panel:not(.has-tag-panel) .library-side {
+    display: none;
   }
 }
 
@@ -299,6 +430,37 @@ $tags-panel-width: 392px;
   .library-tags__cover-button:focus-visible &,
   .library-tags__cover-button[aria-expanded='true'] & {
     opacity: 1;
+  }
+}
+
+// The songs' own covers in the cover menu, one press to give one to all.
+.library-tags__cover-choices {
+  display: grid;
+  grid-template-columns: repeat(4, 56px);
+  gap: 6px;
+  padding: 2px 6px 6px;
+}
+
+.library-list__menu .library-tags__cover-choice {
+  display: block;
+  overflow: hidden;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: $radius-m;
+  background: $studio-raise;
+  box-shadow: inset 0 0 0 1px $studio-hair;
+
+  .library-cover-art,
+  .library-cover-art img {
+    width: 100%;
+    height: 100%;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: $studio-raise;
+    box-shadow: 0 0 0 2px $secondary-default;
   }
 }
 

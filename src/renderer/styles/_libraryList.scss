@@ -709,11 +709,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include menu-surface;
   z-index: 1000;
   display: grid;
-  // Widened from 190px when this stopped being a one-item menu. "Remove from
-  // Favourites" and a playlist called after an album both have to fit on one
-  // line; past that a name is truncated rather than allowed to wrap, because
-  // a menu whose rows are two lines tall stops scanning as a list.
-  width: 232px;
+  // As wide as its longest entry, from 232px: "Editar etiquetas de 14
+  // canciones…" beside its Ctrl+I was cut to "Editar etiquetas de 1…" in a
+  // menu with room to spare (Ivan, 2026-11-16: "show completely, no
+  // ellipsis"). Past 420px, or the window, a name is truncated rather than
+  // allowed to wrap, because a menu whose rows are two lines tall stops
+  // scanning as a list.
+  width: max-content;
+  min-width: 232px;
+  max-width: min(420px, calc(100vw - 24px));
   padding: 5px;
 
   // Nothing in here may make the menu wider than the menu.

@@ -48,6 +48,7 @@ import { type TLibrarySteps } from './useLibrarySteps';
 import { useLibraryAnswer, useShelfCounts } from './useLibraryAnswer';
 import { useTagEditor } from './tags/TagEditorContext';
 import LibraryTagSongPanel from './tags/LibraryTagSongPanel';
+import LibraryTagChangesPanel from './tags/LibraryTagChangesPanel';
 import LibraryTagProblemsPanel from './tags/LibraryTagProblemsPanel';
 import LibraryTagWriteCard from './tags/LibraryTagWriteCard';
 import LibraryTagSetEditor from './tags/LibraryTagSetEditor';
@@ -187,6 +188,12 @@ const LibraryWorkspaceView = ({
     tagEditor.isProblemsOpen || tagEditor.view?.kind === 'song';
   /** An album, folder or selection being edited: the page is the editor. */
   const isTagPage = tagEditor.view?.kind === 'set';
+  /** Beside that page, what a Save would do — in Up Next's place. */
+  const isChangesPanelOpen = isTagPage && !tagEditor.isProblemsOpen;
+  /** Up Next gives the column up at once to a tag panel, and takes it back
+   * as it was when the panel goes (Ivan, 2026-11-16: the two stood together
+   * while one slid in and the other out). */
+  const isUpNextDisplaced = isTagPanelOpen || isChangesPanelOpen;
   const hasLibrary = roots.length > 0;
   const shownTotals = useLibraryAnswer(
     hasLibrary && !isHidden && shownTracksQuery !== undefined
@@ -304,7 +311,7 @@ const LibraryWorkspaceView = ({
           : ''
       }${rail.isResizing ? ' is-resizing-rail' : ''}${
         isTagPanelOpen ? ' has-tag-panel' : ''
-      }`}
+      }${isChangesPanelOpen ? ' has-changes-panel' : ''}`}
       ref={cardRef}
       aria-label={t('tabs.library')}
       aria-hidden={isHidden}
@@ -487,17 +494,21 @@ const LibraryWorkspaceView = ({
                 )}
               </div>
             )}
-            {/* A tag write, from its first file to its result. */}
-            <LibraryTagWriteCard />
-            {/* Pinned under the bar rather than a modal: the scan is
-                backgroundable by leaving the tab. */}
-            {isScanning && progress && !isScanNoticeHidden && (
-              <LibraryScanProgress
-                progress={progress}
-                onCancel={cancelScan}
-                onHide={hideScanNotice}
-              />
-            )}
+            {/* The corner the long jobs float in, over the shelf rather
+                than pushing it down: a tag write, from its first file to its
+                result, over a scan when both run (Ivan, 2026-11-16: "it makes
+                the ui to push down ... make that one floating on the corner
+                like the lib scan"). */}
+            <div className="library-corner">
+              <LibraryTagWriteCard />
+              {isScanning && progress && !isScanNoticeHidden && (
+                <LibraryScanProgress
+                  progress={progress}
+                  onCancel={cancelScan}
+                  onHide={hideScanNotice}
+                />
+              )}
+            </div>
             {/* Only once the index has been read: it starts empty, and gated
                 on the count alone this greeted a full library with "no music
                 yet" every time the tab opened. */}
@@ -548,7 +559,8 @@ const LibraryWorkspaceView = ({
           {!tagEditor.isProblemsOpen && tagEditor.view?.kind === 'song' && (
             <LibraryTagSongPanel />
           )}
-          {!isTagPanelOpen && !isUpNextCollapsed && (
+          {isChangesPanelOpen && <LibraryTagChangesPanel />}
+          {!isUpNextDisplaced && !isUpNextCollapsed && (
             <div className="library-up-next__splitter">
               <KaraokePaneSplitter
                 orientation="vertical"
@@ -580,7 +592,7 @@ const LibraryWorkspaceView = ({
             </div>
           )}
           <LibraryRightPane
-            isCollapsed={isUpNextCollapsed || isTagPanelOpen}
+            isCollapsed={isUpNextCollapsed || isUpNextDisplaced}
             canSurprise={trackCount > 0 && !videoTrackId}
             head={
               isUpNextDrawer && (

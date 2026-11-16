@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 @use 'themeMixins' as *;
 @use 'libraryTokens' as *;
+@use 'motion' as *;
 
 // *** The tag editor: writing *************************************************
 //
@@ -50,21 +51,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A card in the Library's corner (`.library-corner`), the scan card's
+// face: flat, opaque over the shelf, its edge parting it from the rows.
+@mixin corner-card {
+  color: $text-primary;
+  animation: library-scan-progress-in $motion-base $ease-out;
+  background: $surface-panel;
+  border: 1px solid $card-edge;
+  border-top-color: rgba($edge-tint, 0.22);
+  border-radius: $card-radius;
+}
+
 .library-tags-card {
   display: grid;
-  max-width: 640px;
-  margin: 10px $library-gutter 4px;
   gap: 8px;
-  padding: 12px 14px;
-  border-radius: $radius-m;
-  background: $studio-surface;
+  padding: 11px 12px;
   font-size: $studio-text-tree;
+  @include corner-card;
 
+  // The result: what came of it beside its mark, the answers under it.
   &.is-settled {
-    max-width: none;
-    grid-template-columns: 20px minmax(0, 1fr) auto;
+    grid-template-columns: 20px minmax(0, 1fr);
     align-items: center;
-    gap: 12px;
+    gap: 8px 10px;
+
+    .library-tags-card__actions {
+      grid-column: 1 / -1;
+    }
   }
 }
 
@@ -111,6 +124,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Undo's question, in the card's own row of answers.
+.library-tags-card__ask {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 8px;
+  color: $text-primary;
+  font-size: $studio-text-meta;
+}
+
 .library-tags-card__failed {
   color: $amber;
 }
@@ -137,28 +162,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@container library (max-width: #{$bp-md}) {
-  .library-tags-card.is-settled {
-    grid-template-columns: 20px minmax(0, 1fr);
-
-    .library-tags-card__actions {
-      grid-column: 1 / -1;
-      justify-content: flex-start;
-    }
-  }
-}
-
-// In the background: one line at the foot of the shelf.
+// In the background: the card folded to one row in the same corner.
 .library-tags-line {
   display: flex;
-  min-height: 34px;
+  min-height: 40px;
   align-items: center;
   gap: 10px;
-  padding: 0 $library-gutter;
-  background: $studio-rail;
-  box-shadow: inset 0 1px 0 $studio-hair;
+  padding: 4px 6px 4px 12px;
   color: $studio-t2;
   font-size: $studio-text-meta;
+  @include corner-card;
 }
 
 .library-tags-line__text {

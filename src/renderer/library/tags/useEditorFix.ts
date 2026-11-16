@@ -33,8 +33,9 @@ import type { ISheetGroup } from './tagGroups';
 import type { ISetState } from './tagSetModel';
 import { coverOfferOf, useTagFolders } from './useTagFolders';
 
-/** What the last Fix did: typed proposals in, or found nothing to type. */
-export type TFixNote = 'filled' | 'nothing' | undefined;
+/** What the last Fix did: typed proposals in, found nothing to type, or
+ * typed them in but could not use the folder's picture. */
+export type TFixNote = 'filled' | 'nothing' | 'noPicture' | undefined;
 
 interface IEditorFixArgs {
   ids: readonly string[];
@@ -67,6 +68,10 @@ export const useEditorFix = ({
   const [note, setNote] = useState<TFixNote>(undefined);
   const [isChoosing, setIsChoosing] = useState(false);
   const hasRun = useRef(false);
+  // Opened by Fix, the editor draws nothing of the album until Fix has run:
+  // drawn first, the songs' own values and cover showed for a frame and
+  // were then replaced ("a glitch showing the album art", 2026-11-16).
+  const [hasFilled, setHasFilled] = useState(false);
 
   const albums = useMemo<IAlbumToFix[]>(
     () =>
@@ -95,7 +100,9 @@ export const useEditorFix = ({
     if (offer) {
       loadCover(offer)
         .then((cover) => {
-          if (cover !== 'refused') {
+          if (cover === 'refused') {
+            setNote('noPicture');
+          } else {
             // A cover picked by hand meanwhile stays.
             setState((current) =>
               current.cover === undefined ? { ...current, cover } : current,
@@ -120,10 +127,12 @@ export const useEditorFix = ({
     ) {
       hasRun.current = true;
       run();
+      setHasFilled(true);
     }
   }, [isFixOpen, isComplete, isRead, ordered.length, run]);
 
   return {
+    isPending: isFixOpen && !hasFilled,
     note,
     clearNote: () => setNote(undefined),
     run,

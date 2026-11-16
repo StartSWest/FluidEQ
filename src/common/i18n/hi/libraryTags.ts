@@ -233,16 +233,32 @@ const libraryTags = {
   'library.tags.selection.fix': 'ठीक करें',
   'library.tags.fix.empty': 'खाली',
   'library.tags.fix.albums': '{count} एल्बम',
-  'library.tags.fix.albumNothing': 'ठीक करने को कुछ नहीं',
   'library.tags.fix.albumChanges': '{count} बदलाव',
   'library.tags.fix.albumChangesOne': '1 बदलाव',
   'library.tags.fix.nothingFound':
     'FluidEQ को इन गानों में ठीक करने लायक कुछ नहीं मिला।',
+  'library.tags.fix.noPicture': 'एल्बम फ़ोल्डर की तस्वीर इस्तेमाल नहीं हो सकी।',
   'library.tags.fix.filled':
     'FluidEQ ने जो कमी थी उसे भर दिया। बदला हुआ रंग में है, पुराना मान बगल में कटा हुआ: जाँचें और सहेजें, या छोड़ दें।',
   'library.tags.fix.fixAlbum': 'ठीक करें',
   'library.tags.fix.openAlbum': 'खोलें',
   'library.tags.fix.editByHand': 'सब हाथ से बदलें',
+  'library.tags.fix.albumComplete': 'पूरा',
+  'library.tags.changes.title': 'बदलाव',
+  'library.tags.changes.none':
+    'अभी कोई बदलाव नहीं। आप जो भी बदलेंगे, सहेजने से पहले यहाँ दिखेगा।',
+  'library.tags.changes.album': 'पूरे एल्बम के लिए',
+  'library.tags.changes.songs': 'गाना दर गाना',
+  'library.tags.changes.removed': 'हटाया जाएगा',
+  'library.tags.changes.cover': 'कवर',
+  'library.tags.changes.coverNew': 'नई तस्वीर',
+  'library.tags.changes.coverRemoved': 'हटाया जाएगा',
+  'library.tags.cover.useOne': 'एक को सभी गानों के लिए इस्तेमाल करें',
+  'library.tags.cover.useThis': 'यह कवर सभी गानों के लिए इस्तेमाल करें',
+  'library.tags.write.undoAsk': '{count} फ़ाइलों के पुराने टैग वापस लाएँ?',
+  'library.tags.write.undoAskOne': '1 फ़ाइल के पुराने टैग वापस लाएँ?',
+  'library.tags.write.undoKeep': 'नहीं',
+  'library.tags.write.undoConfirm': 'पहले जैसा करें',
 };
 
 export default libraryTags;

@@ -16,7 +16,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { isPlaceholderName } from '../../../common/library/tagFix';
 import type { ITrackTagSheet } from '../../../common/library/tagFields';
+
+/**
+ * A song's album and album artist as grouping reads them: "<Desconocido>"
+ * names no album, so a song still carrying it after its folder was fixed
+ * joins that folder's album instead of standing as an album of its own.
+ */
+const albumOf = (sheet: ITrackTagSheet): string => {
+  const album = sheet.fields.album ?? '';
+  return isPlaceholderName(album) ? '' : album;
+};
+
+const albumArtistOf = (sheet: ITrackTagSheet): string => {
+  const artist = sheet.fields.albumArtist ?? '';
+  return isPlaceholderName(artist) ? '' : artist;
+};
 
 export interface ISheetGroup {
   key: string;
@@ -34,14 +50,12 @@ export const groupsOf = (
     return [{ key: 'all', sheets: [...ordered] }];
   }
   const albumKey = (sheet: ITrackTagSheet) =>
-    `${(sheet.fields.albumArtist ?? '').toLocaleLowerCase()}\u001f${(
-      sheet.fields.album ?? ''
-    ).toLocaleLowerCase()}`;
+    `${albumArtistOf(sheet).toLocaleLowerCase()}\u001f${albumOf(sheet).toLocaleLowerCase()}`;
   // The albums each folder holds: an untagged song in a folder of one album
   // is that album's, or Fix could never fill it from the album's majority.
   const albumsByFolder = new Map<string, Set<string>>();
   ordered.forEach((sheet) => {
-    if ((sheet.fields.album ?? '') !== '') {
+    if (albumOf(sheet) !== '') {
       const held = albumsByFolder.get(sheet.folder) ?? new Set<string>();
       held.add(albumKey(sheet));
       albumsByFolder.set(sheet.folder, held);
@@ -54,7 +68,7 @@ export const groupsOf = (
     // album joins its folder's one album, or stands with its folder.
     const folderAlbums = albumsByFolder.get(sheet.folder);
     let key = albumKey(sheet);
-    if ((sheet.fields.album ?? '') === '') {
+    if (albumOf(sheet) === '') {
       key =
         folderAlbums?.size === 1
           ? [...folderAlbums][0]
@@ -67,10 +81,15 @@ export const groupsOf = (
   // Named after a song that carries the album, whichever song came first.
   return [...groups.values()].map((group) => {
     const named =
-      group.sheets.find((sheet) => (sheet.fields.album ?? '') !== '') ??
-      group.sheets[0];
+      group.sheets.find((sheet) => albumOf(sheet) !== '') ?? group.sheets[0];
     const label =
-      [named.fields.albumArtist || named.fields.artist, named.fields.album]
+      [
+        albumArtistOf(named) ||
+          (isPlaceholderName(named.fields.artist ?? '')
+            ? ''
+            : named.fields.artist),
+        albumOf(named),
+      ]
         .filter(Boolean)
         // A folder of untagged songs is named by its own folder, not its path.
         .join(' — ') ||

@@ -24,6 +24,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * in-main fallback is (`scanHost.ts`), so webpack gives it a chunk of its own.
  */
 
-export { readTrackTagSheet } from './tagRead';
+export { readTrackCover, readTrackTagSheet } from './tagRead';
 export { createTagJobs } from './tagJobs';
 export { guardTagWriteRequest } from './tagRequestGuard';

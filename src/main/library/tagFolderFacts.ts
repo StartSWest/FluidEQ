@@ -28,7 +28,12 @@ import {
   MAX_COVER_BYTES,
   type TTagCoverPick,
 } from '../../common/library/tagFields';
-import { pickCueFile, pickFolderCover } from '../../common/library/tagFolder';
+import {
+  type IFolderPicture,
+  isFolderPicture,
+  pickCueFile,
+  pickFolderCover,
+} from '../../common/library/tagFolder';
 
 /**
  * An album folder's own files, for Fix tags: its CUE sheet, read and
@@ -62,6 +67,27 @@ const sizeWithin = async (
   }
 };
 
+/** The folder's pictures with their sizes, for the album picture's pick. */
+const picturesIn = async (
+  folder: string,
+  names: readonly string[],
+): Promise<IFolderPicture[]> => {
+  const pictures = await Promise.all(
+    names.filter(isFolderPicture).map(async (name) => ({
+      name,
+      size: (await sizeWithin(path.join(folder, name), MAX_COVER_BYTES)) ?? 0,
+    })),
+  );
+  return pictures.filter((picture) => picture.size > 0);
+};
+
+/** The album picture's file name, picked as the window will be told. */
+const coverNameIn = async (
+  folder: string,
+  names: readonly string[],
+): Promise<string | undefined> =>
+  pickFolderCover(await picturesIn(folder, names), path.basename(folder));
+
 export const readFolderFacts = async (
   folder: string,
 ): Promise<ITagFolderFacts> => {
@@ -81,7 +107,7 @@ export const readFolderFacts = async (
       }
     }
   }
-  const coverName = pickFolderCover(names);
+  const coverName = await coverNameIn(folder, names);
   if (coverName !== undefined) {
     const bytes = await sizeWithin(
       path.join(folder, coverName),
@@ -99,7 +125,7 @@ export const readFolderFacts = async (
 export const readFolderCover = async (
   folder: string,
 ): Promise<TTagCoverPick> => {
-  const coverName = pickFolderCover(await filesIn(folder));
+  const coverName = await coverNameIn(folder, await filesIn(folder));
   if (coverName === undefined) {
     return { state: 'refused' };
   }

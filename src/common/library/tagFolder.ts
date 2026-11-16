@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { FOLDER_ART_EXTENSIONS, findFolderArt } from './folderArt';
 import { stripJunk } from './tagText';
 
 /** Where a value read from the folders came from. */
@@ -209,13 +210,11 @@ export const readFolderTags = (folder: string): IFolderTags => {
 export const isVariousArtists = (name: string): boolean =>
   VARIOUS_NAMES.has(nameKey(name));
 
-/**
- * The names album pictures are saved under, best first: what Windows Media
- * Player, iTunes, foobar2000, EAC and most rips write beside the songs.
- */
-const COVER_STEMS = ['folder', 'cover', 'front', 'albumart', 'album'];
-
-const COVER_EXTENSIONS = ['jpg', 'jpeg', 'png'];
+/** A picture in an album folder: its name and size in bytes. */
+export interface IFolderPicture {
+  name: string;
+  size: number;
+}
 
 const splitName = (name: string): { stem: string; ext: string } => {
   const dot = name.lastIndexOf('.');
@@ -227,32 +226,43 @@ const splitName = (name: string): { stem: string; ext: string } => {
     : { stem: name.toLocaleLowerCase(), ext: '' };
 };
 
+/** True for a file name the folder picture can be read from. */
+export const isFolderPicture = (name: string): boolean =>
+  FOLDER_ART_EXTENSIONS.includes(splitName(name).ext);
+
 /**
- * The album picture among a folder's file names: a known name first
- * ("folder.jpg" before "cover.jpg"), then Windows Media Player's large
- * "AlbumArt_{…}_Large.jpg", then the folder's only picture if it has just
- * one. `undefined` where nothing reads as the album's cover — a folder of
- * scans or photos is not guessed from.
+ * The album picture among a folder's pictures, as the Library finds it
+ * first ("cover.jpg", "folder.jpg"… — `findFolderArt`), so Fix offers the
+ * picture the Library already draws. Past the Library's names: Windows
+ * Media Player's large "AlbumArt_{…}_Large.jpg", a picture named after the
+ * folder or the album ("Goodbye Lullaby.jpg"), then the largest picture —
+ * a front scan is the usual one, and the offer is looked at before it is
+ * written.
  */
 export const pickFolderCover = (
-  names: readonly string[],
+  pictures: readonly IFolderPicture[],
+  folderName: string,
 ): string | undefined => {
-  const pictures = names.filter((name) =>
-    COVER_EXTENSIONS.includes(splitName(name).ext),
-  );
-  const byStem = COVER_STEMS.map((stem) =>
-    pictures.find((name) => splitName(name).stem === stem),
-  ).find((name) => name !== undefined);
-  if (byStem) {
-    return byStem;
+  const names = pictures.map((picture) => picture.name);
+  const library = findFolderArt(names);
+  if (library !== undefined) {
+    return library;
   }
-  const mediaPlayer = pictures.find((name) =>
+  const mediaPlayer = names.find((name) =>
     /^albumart_.+_large$/.test(splitName(name).stem),
   );
   if (mediaPlayer) {
     return mediaPlayer;
   }
-  return pictures.length === 1 ? pictures[0] : undefined;
+  const folderKey = nameKey(folderName);
+  const named = names.find((name) => {
+    const key = nameKey(splitName(name).stem);
+    return key !== '' && (folderKey === key || folderKey.endsWith(` - ${key}`));
+  });
+  if (named) {
+    return named;
+  }
+  return [...pictures].sort((a, b) => b.size - a.size)[0]?.name;
 };
 
 /** The folder's CUE sheet: the first by name where a rip left several. */

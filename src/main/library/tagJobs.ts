@@ -59,7 +59,30 @@ export interface ITagJobDeps {
   /** The Library changed: the window asks again for what it shows. */
   announce: () => void;
   send: (state: ITagJobState) => void;
+  /**
+   * Lets go of a file FluidEQ's own player holds open but is not playing —
+   * the next track, readied for a gapless start — so its tags can be
+   * written, and answers what puts it back afterwards. Without it the file
+   * read as "open in another program" (Ivan, 2026-11-16).
+   */
+  releaseFile?: (filePath: string) => Promise<() => Promise<void>>;
 }
+
+/** The player's hold let go around one write, and given back after it. */
+const withReleased = async <T>(
+  deps: ITagJobDeps,
+  filePath: string,
+  write: () => Promise<T>,
+): Promise<T> => {
+  const putBack = deps.releaseFile
+    ? await deps.releaseFile(filePath).catch(() => undefined)
+    : undefined;
+  try {
+    return await write();
+  } finally {
+    await putBack?.().catch(() => undefined);
+  }
+};
 
 interface IJobItem extends ITagJobItem {
   /** For a write; an undo job's items carry `entry` instead. */
@@ -168,15 +191,17 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
       return;
     }
     setState(job, item, 'writing');
-    const outcome = await writeTagsToFile({
-      filePath,
-      format: source.format,
-      edit: source.edit,
-      durationMs: source.track.durationMs,
-      undoFolder: job.undoFolder,
-      undoName: `${job.items.indexOf(item)}`,
-      makeWritable: item.makeWritable,
-    });
+    const outcome = await withReleased(deps, filePath, () =>
+      writeTagsToFile({
+        filePath,
+        format: source.format,
+        edit: source.edit,
+        durationMs: source.track.durationMs,
+        undoFolder: job.undoFolder,
+        undoName: `${job.items.indexOf(item)}`,
+        makeWritable: item.makeWritable,
+      }),
+    );
     if (outcome.state !== 'written') {
       setState(job, item, outcome.state);
       return;
@@ -208,14 +233,11 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
       setState(job, item, 'failed');
       return;
     }
-    const outcome = await restoreFromUndo(
-      filePath,
-      entry.piece,
-      source.undoFolder,
-      {
+    const outcome = await withReleased(deps, filePath, () =>
+      restoreFromUndo(filePath, entry.piece, source.undoFolder, {
         size: entry.writtenSize,
         mtimeMs: entry.writtenMtimeMs,
-      },
+      }),
     );
     if (outcome.state === 'restored') {
       source.undo.delete(item.trackId);

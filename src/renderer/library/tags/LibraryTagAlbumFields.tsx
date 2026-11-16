@@ -22,6 +22,7 @@ import {
   type ITrackTagSheet,
   type TTagFieldKey,
 } from '../../../common/library/tagFields';
+import { isPlaceholderName } from '../../../common/library/tagFix';
 import { useTranslation } from '../../utils/I18nContext';
 import { LibraryTagInput, PutBackGlyph } from './LibraryTagField';
 import { FIELD_LABEL_KEYS } from './tagLabels';
@@ -51,8 +52,16 @@ const useShared = (
   // What the songs said before an edit, struck under it where they agreed
   // on something: "<Desconocido>" gone, "Goodbye Lullaby" in its place.
   const was = !isMixed ? (values[0]?.value ?? '') : '';
-  const showsWas = isEdited && was !== '' && was !== value;
-  return { values, isMixed, isEdited, value, was, showsWas };
+  // Every song had nothing here: the value is an addition, shown in green
+  // with nothing struck.
+  const isAdded =
+    isEdited &&
+    value !== '' &&
+    values.every(
+      (entry) => entry.value === '' || isPlaceholderName(entry.value),
+    );
+  const showsWas = isEdited && !isAdded && was !== '' && was !== value;
+  return { values, isMixed, isEdited, isAdded, value, was, showsWas };
 };
 
 /**
@@ -106,13 +115,17 @@ export const LibraryTagAlbumTitle = ({
 }: ISharedProps) => {
   const { t } = useTranslation();
   const id = useId();
-  const { isMixed, isEdited, value, was, showsWas } = useShared(
+  const { isMixed, isEdited, isAdded, value, was, showsWas } = useShared(
     fieldKey,
     sheets,
     state,
   );
   return (
-    <div className={`library-tags-album__title${isEdited ? ' is-edited' : ''}`}>
+    <div
+      className={`library-tags-album__title${isEdited ? ' is-edited' : ''}${
+        isAdded ? ' is-added' : ''
+      }`}
+    >
       <label htmlFor={id}>
         {t(FIELD_LABEL_KEYS[fieldKey])}
         {' · '}
@@ -172,13 +185,17 @@ export const LibraryTagAlbumField = ({
 }) => {
   const { t } = useTranslation();
   const id = useId();
-  const { isMixed, isEdited, value, was, showsWas } = useShared(
+  const { isMixed, isEdited, isAdded, value, was, showsWas } = useShared(
     fieldKey,
     sheets,
     state,
   );
   return (
-    <div className={`library-tags-album__field${isEdited ? ' is-edited' : ''}`}>
+    <div
+      className={`library-tags-album__field${isEdited ? ' is-edited' : ''}${
+        isAdded ? ' is-added' : ''
+      }`}
+    >
       <label htmlFor={id}>{t(FIELD_LABEL_KEYS[fieldKey])}</label>
       <LibraryTagInput
         id={id}

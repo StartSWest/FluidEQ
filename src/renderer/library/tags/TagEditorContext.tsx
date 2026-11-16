@@ -46,6 +46,7 @@ import type {
   TTagItemAnswer,
 } from '../../../common/library/tagFields';
 import { useLibraryPlayerSessionIfAny } from '../player/LibraryPlayerContext';
+import type { IPendingChanges } from './tagChanges';
 import { type ITagDraft, isDraftEmpty, requestOfDrafts } from './tagDrafts';
 
 export type TTagSetScope = 'album' | 'folder' | 'selection';
@@ -101,6 +102,10 @@ interface ITagEditorContextValue {
   answerLeave: (discard: boolean) => void;
   /** The page says whether it holds unsaved edits. */
   setPageHasChanges: (hasChanges: boolean) => void;
+  /** What a Save on the album page would do, for the side column's list;
+   * absent with no page open. */
+  pageChanges: IPendingChanges | undefined;
+  setPageChanges: (changes: IPendingChanges | undefined) => void;
   drafts: ReadonlyMap<string, ITagDraft>;
   setDraft: (trackId: string, draft: ITagDraft) => void;
   discardDrafts: (trackIds?: readonly string[]) => void;
@@ -341,6 +346,9 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
   const setPageHasChanges = useCallback((hasChanges: boolean) => {
     pageHasChanges.current = hasChanges;
   }, []);
+  const [pageChanges, setPageChanges] = useState<IPendingChanges | undefined>(
+    undefined,
+  );
 
   const value = useMemo<ITagEditorContextValue>(
     () => ({
@@ -376,6 +384,8 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
       isLeaveAsked: waitingLeave !== undefined,
       answerLeave,
       setPageHasChanges,
+      pageChanges,
+      setPageChanges,
       drafts,
       setDraft,
       discardDrafts,
@@ -398,6 +408,7 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
       waitingLeave,
       answerLeave,
       setPageHasChanges,
+      pageChanges,
       drafts,
       setDraft,
       discardDrafts,

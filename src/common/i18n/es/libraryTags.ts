@@ -233,16 +233,35 @@ const libraryTags = {
   'library.tags.selection.fix': 'Corregir',
   'library.tags.fix.empty': 'vacío',
   'library.tags.fix.albums': '{count} álbumes',
-  'library.tags.fix.albumNothing': 'Nada que corregir',
   'library.tags.fix.albumChanges': '{count} cambios',
   'library.tags.fix.albumChangesOne': '1 cambio',
   'library.tags.fix.nothingFound':
     'FluidEQ no encontró nada que corregir en estas canciones.',
+  'library.tags.fix.noPicture':
+    'La imagen de la carpeta del álbum no se pudo usar.',
   'library.tags.fix.filled':
     'FluidEQ completó lo que faltaba. Lo cambiado está en color, con lo viejo tachado al lado: revísalo y guarda, o descártalo.',
   'library.tags.fix.fixAlbum': 'Corregir',
   'library.tags.fix.openAlbum': 'Abrir',
   'library.tags.fix.editByHand': 'Editar todo a mano',
+  'library.tags.fix.albumComplete': 'Completo',
+  'library.tags.changes.title': 'Cambios',
+  'library.tags.changes.none':
+    'Todavía no hay cambios. Lo que cambies se lista aquí antes de guardar.',
+  'library.tags.changes.album': 'Para todo el álbum',
+  'library.tags.changes.songs': 'Canción por canción',
+  'library.tags.changes.removed': 'se quita',
+  'library.tags.changes.cover': 'Portada',
+  'library.tags.changes.coverNew': 'Imagen nueva',
+  'library.tags.changes.coverRemoved': 'Se quita',
+  'library.tags.cover.useOne': 'Usar una en todas las canciones',
+  'library.tags.cover.useThis': 'Usar esta portada en todas las canciones',
+  'library.tags.write.undoAsk':
+    '¿Devolver las etiquetas anteriores a {count} archivos?',
+  'library.tags.write.undoAskOne':
+    '¿Devolver las etiquetas anteriores a 1 archivo?',
+  'library.tags.write.undoKeep': 'No',
+  'library.tags.write.undoConfirm': 'Deshacer',
 };
 
 export default libraryTags;

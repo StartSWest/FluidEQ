@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 @use 'themeMixins' as *;
 @use 'libraryTokens' as *;
+@use 'motion' as *;
 
 // *** An album, a folder or a selection: the album page, writable ************
 //
@@ -36,6 +37,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 auto;
   flex-direction: column;
   color: $text-primary;
+  // The page arrives instead of appearing (Ivan, 2026-11-16: "show a nice
+  // animation so it's not suddenly glitchy"): it fades up from just below,
+  // and the album and the album list do the same once Fix has filled them.
+  @include animate(library-tags-page-in, 240ms);
+}
+
+.library-tags-album,
+.library-tags-fix-albums,
+.library-tags-set__fixed {
+  @include animate(library-tags-page-in, 260ms);
+}
+
+@keyframes library-tags-page-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
 }
 
 .library-tags-set__scroll {
@@ -43,6 +61,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 auto;
   padding: 18px $library-gutter 24px;
   overflow: auto;
+  // The page's own width decides its columns: beside the list of changes
+  // it is narrower than the Library's card says.
+  container: tag-page / inline-size;
   @include slim-scrollbar;
 }
 
@@ -223,6 +244,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: $secondary-light;
     }
   }
+
+  // Filled where every song had nothing: an addition, in green.
+  &.is-added {
+    > label {
+      color: $analogous-2;
+    }
+
+    .library-tags__box {
+      background: color-mix(in srgb, $analogous-2 11%, transparent);
+    }
+
+    .library-tags__box input {
+      color: $analogous-2;
+    }
+  }
 }
 
 // What the songs said before, struck under the new value.
@@ -239,6 +275,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-tags-album__title.is-edited .library-tags-album__title-box input {
   color: $secondary-light;
+}
+
+.library-tags-album__title.is-added .library-tags-album__title-box input {
+  color: $analogous-2;
 }
 
 // "Varies: 2009 · 2011 · 2014 and 2 more", each value a press.
@@ -508,10 +548,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@container library (max-width: #{$bp-lg}) {
+@container tag-page (max-width: 820px) {
   .library-tags-album__facts,
   .library-tags-album__more-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container tag-page (max-width: 540px) {
+  .library-tags-album {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .library-tags-album__facts,
+  .library-tags-album__more-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

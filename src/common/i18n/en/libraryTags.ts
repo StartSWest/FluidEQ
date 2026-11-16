@@ -242,16 +242,33 @@ const libraryTags = {
   'library.tags.selection.fix': 'Fix',
   'library.tags.fix.empty': 'empty',
   'library.tags.fix.albums': '{count} albums',
-  'library.tags.fix.albumNothing': 'Nothing to fix',
   'library.tags.fix.albumChanges': '{count} changes',
   'library.tags.fix.albumChangesOne': '1 change',
   'library.tags.fix.nothingFound':
     'FluidEQ found nothing to fix in these songs.',
+  'library.tags.fix.noPicture':
+    "The picture in the album's folder could not be used.",
   'library.tags.fix.filled':
     'FluidEQ filled in what was missing. What changed is in colour, the old value struck through beside it: look it over and save, or discard it.',
   'library.tags.fix.fixAlbum': 'Fix',
   'library.tags.fix.openAlbum': 'Open',
   'library.tags.fix.editByHand': 'Edit all by hand',
+  'library.tags.fix.albumComplete': 'Complete',
+  'library.tags.changes.title': 'Changes',
+  'library.tags.changes.none':
+    'No changes yet. Whatever you change is listed here before you save.',
+  'library.tags.changes.album': 'For the whole album',
+  'library.tags.changes.songs': 'Song by song',
+  'library.tags.changes.removed': 'removed',
+  'library.tags.changes.cover': 'Cover',
+  'library.tags.changes.coverNew': 'New picture',
+  'library.tags.changes.coverRemoved': 'Removed',
+  'library.tags.cover.useOne': 'Use one for every song',
+  'library.tags.cover.useThis': 'Use this cover for every song',
+  'library.tags.write.undoAsk': 'Put back the old tags of {count} files?',
+  'library.tags.write.undoAskOne': 'Put back the old tags of 1 file?',
+  'library.tags.write.undoKeep': 'No',
+  'library.tags.write.undoConfirm': 'Undo',
 };
 
 export default libraryTags;

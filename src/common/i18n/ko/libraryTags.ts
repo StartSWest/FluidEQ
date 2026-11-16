@@ -227,16 +227,32 @@ const libraryTags = {
   'library.tags.selection.fix': '수정',
   'library.tags.fix.empty': '비어 있음',
   'library.tags.fix.albums': '앨범 {count}개',
-  'library.tags.fix.albumNothing': '고칠 것 없음',
   'library.tags.fix.albumChanges': '변경 {count}개',
   'library.tags.fix.albumChangesOne': '변경 1개',
   'library.tags.fix.nothingFound':
     'FluidEQ가 이 곡들에서 고칠 것을 찾지 못했습니다.',
+  'library.tags.fix.noPicture': '앨범 폴더의 이미지를 사용할 수 없습니다.',
   'library.tags.fix.filled':
     'FluidEQ가 빠진 정보를 채웠습니다. 바뀐 값은 색으로, 이전 값은 옆에 취소선으로 표시됩니다. 확인 후 저장하거나 취소하세요.',
   'library.tags.fix.fixAlbum': '고치기',
   'library.tags.fix.openAlbum': '열기',
   'library.tags.fix.editByHand': '모두 직접 편집',
+  'library.tags.fix.albumComplete': '완료',
+  'library.tags.changes.title': '변경 사항',
+  'library.tags.changes.none':
+    '아직 변경 사항이 없습니다. 바꾼 내용은 저장하기 전에 여기에 표시됩니다.',
+  'library.tags.changes.album': '앨범 전체',
+  'library.tags.changes.songs': '곡별',
+  'library.tags.changes.removed': '삭제됨',
+  'library.tags.changes.cover': '커버',
+  'library.tags.changes.coverNew': '새 이미지',
+  'library.tags.changes.coverRemoved': '삭제됨',
+  'library.tags.cover.useOne': '하나를 모든 곡에 사용',
+  'library.tags.cover.useThis': '이 커버를 모든 곡에 사용',
+  'library.tags.write.undoAsk': '{count}개 파일의 이전 태그를 되돌릴까요?',
+  'library.tags.write.undoAskOne': '파일 1개의 이전 태그를 되돌릴까요?',
+  'library.tags.write.undoKeep': '아니요',
+  'library.tags.write.undoConfirm': '되돌리기',
 };
 
 export default libraryTags;

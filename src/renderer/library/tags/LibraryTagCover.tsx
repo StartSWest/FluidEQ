@@ -44,6 +44,12 @@ interface ILibraryTagCoverProps {
   canRemove: boolean;
   /** The stack of differing covers an album shows, in place of one. */
   stack?: ReactNode;
+  /**
+   * The covers the songs carry today, one per picture, offered in the menu
+   * so one of them can be given to every song (Ivan, 2026-11-16: "4
+   * portadas distintas ... poder escoger ... y que se cambien en todas").
+   */
+  choices?: ReadonlyArray<{ trackId: string; artId: string }>;
   size: 'panel' | 'set';
 }
 
@@ -62,6 +68,7 @@ const LibraryTagCover = ({
   caption,
   canRemove,
   stack,
+  choices = [],
   size,
 }: ILibraryTagCoverProps) => {
   const { t } = useTranslation();
@@ -136,6 +143,19 @@ const LibraryTagCover = ({
       .catch(() => setRefusal(t('library.tags.cover.refused')));
   };
 
+  const takeSongCover = (trackId: string) => {
+    setIsMenuOpen(false);
+    window.electron.ipcRenderer
+      .readLibraryTagTrackCover(trackId)
+      .then((picked) =>
+        picked.state === 'ok'
+          ? readCoverBlob(new Blob([new Uint8Array(picked.bytes)]))
+          : { state: 'refused' as const },
+      )
+      .then(take)
+      .catch(() => setRefusal(t('library.tags.cover.refused')));
+  };
+
   const paste = () => {
     setIsMenuOpen(false);
     readCoverFromClipboard()
@@ -202,6 +222,28 @@ const LibraryTagCover = ({
         className="library-list__menu"
         ariaLabel={t('library.tags.cover.change')}
       >
+        {choices.length > 1 && (
+          <>
+            <p className="library-list__menu-subject">
+              {t('library.tags.cover.useOne')}
+            </p>
+            <div className="library-tags__cover-choices">
+              {choices.map((choice) => (
+                <button
+                  key={choice.artId}
+                  type="button"
+                  className="library-tags__cover-choice"
+                  aria-label={t('library.tags.cover.useThis')}
+                  title={t('library.tags.cover.useThis')}
+                  onClick={() => takeSongCover(choice.trackId)}
+                >
+                  <LibraryCoverArt artId={choice.artId} label="" size="cover" />
+                </button>
+              ))}
+            </div>
+            <div className="library-list__menu-rule" role="none" />
+          </>
+        )}
         <button type="button" onClick={choose}>
           <MenuIcon name="folder" className="library-list__menu-icon" />
           <span>{t('library.tags.cover.chooseImage')}</span>

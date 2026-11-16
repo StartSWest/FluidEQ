@@ -234,16 +234,35 @@ const libraryTags = {
   'library.tags.selection.fix': 'Corriger',
   'library.tags.fix.empty': 'vide',
   'library.tags.fix.albums': '{count} albums',
-  'library.tags.fix.albumNothing': 'Rien à corriger',
   'library.tags.fix.albumChanges': '{count} modifications',
   'library.tags.fix.albumChangesOne': '1 modification',
   'library.tags.fix.nothingFound':
     'FluidEQ n’a rien trouvé à corriger dans ces chansons.',
+  'library.tags.fix.noPicture':
+    'L’image du dossier de l’album n’a pas pu être utilisée.',
   'library.tags.fix.filled':
     'FluidEQ a complété ce qui manquait. Ce qui change est en couleur, l’ancienne valeur barrée à côté : vérifiez puis enregistrez, ou annulez.',
   'library.tags.fix.fixAlbum': 'Corriger',
   'library.tags.fix.openAlbum': 'Ouvrir',
   'library.tags.fix.editByHand': 'Tout modifier à la main',
+  'library.tags.fix.albumComplete': 'Complet',
+  'library.tags.changes.title': 'Modifications',
+  'library.tags.changes.none':
+    'Aucune modification pour l’instant. Ce que vous modifiez s’affiche ici avant l’enregistrement.',
+  'library.tags.changes.album': 'Pour tout l’album',
+  'library.tags.changes.songs': 'Chanson par chanson',
+  'library.tags.changes.removed': 'retiré',
+  'library.tags.changes.cover': 'Pochette',
+  'library.tags.changes.coverNew': 'Nouvelle image',
+  'library.tags.changes.coverRemoved': 'Retirée',
+  'library.tags.cover.useOne': 'En utiliser une pour toutes les chansons',
+  'library.tags.cover.useThis':
+    'Utiliser cette pochette pour toutes les chansons',
+  'library.tags.write.undoAsk':
+    'Remettre les anciens tags de {count} fichiers ?',
+  'library.tags.write.undoAskOne': 'Remettre les anciens tags de 1 fichier ?',
+  'library.tags.write.undoKeep': 'Non',
+  'library.tags.write.undoConfirm': 'Annuler',
 };
 
 export default libraryTags;

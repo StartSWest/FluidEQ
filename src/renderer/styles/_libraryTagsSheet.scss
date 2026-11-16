@@ -112,6 +112,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $secondary-light;
   }
 
+  // A value where the file had none: an addition, in the green the Studio's
+  // code view marks added lines with.
+  td.is-added .library-tags-sheet__cell {
+    background: color-mix(in srgb, $analogous-2 11%, transparent);
+    color: $analogous-2;
+  }
+
   td.is-empty .library-tags-sheet__cell::placeholder {
     color: $amber;
     opacity: 0.8;
@@ -182,25 +189,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   pointer-events: none;
   transform: translateY(-50%);
 
-  mark {
-    padding: 1px 0;
-    border-radius: 3px;
-    background: color-mix(in srgb, $secondary-default 32%, transparent);
-    color: $secondary-light;
-  }
-
+  // A match struck alone is a deletion ("Replace with" empty); beside its
+  // replacement the two read as one piece.
   del {
     padding: 1px 0;
-    border-radius: 3px 0 0 3px;
+    border-radius: 3px;
     background: color-mix(in srgb, $red 18%, transparent);
     color: color-mix(in srgb, $red 45%, $white);
     text-decoration: line-through;
     text-decoration-thickness: 1.5px;
   }
 
+  del + ins {
+    margin-left: 1px;
+  }
+
   ins {
     padding: 1px 2px;
-    border-radius: 0 3px 3px 0;
+    border-radius: 3px;
     background: color-mix(in srgb, $secondary-default 26%, transparent);
     color: $secondary-light;
     text-decoration: none;

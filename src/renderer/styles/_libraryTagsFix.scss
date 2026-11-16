@@ -136,12 +136,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-tags-fix-albums__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: $secondary-light;
   font-size: $studio-text-meta;
 
+  // Nothing left to fix: the album is done, said in the additions' green so
+  // a folder worked through album by album shows which are finished.
   &.is-none {
-    color: $studio-t3;
+    color: $analogous-2;
+    font-weight: $weight-semibold;
   }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.library-tags-fix-albums__row.is-complete .library-tags-fix-albums__name b {
+  color: $studio-t2;
 }
 
 @container library (max-width: #{$bp-md}) {

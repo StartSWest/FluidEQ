@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * exactly where "already checked" stops being a fact and becomes an assumption.
  */
 import { BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
 import log from 'electron-log';
 import { IDspDiagnosticEvent } from '../../common/dsp/diagnostics';
 import {
@@ -53,6 +54,73 @@ export interface IDspHostIpcDeps {
  * ceremony around a singleton that is already a singleton.
  */
 let supervisor: DspHostSupervisor | undefined;
+
+/**
+ * What main last told the host its two decks hold, as it passes the window's
+ * orders on: the deck being heard, the file on each, and the next track
+ * named for the free deck. Only `releaseDspHostFile` reads it.
+ */
+const decks: {
+  heard: 0 | 1;
+  paths: [string | undefined, string | undefined];
+  spare: { path: string; seconds: number } | undefined;
+} = { heard: 0, paths: [undefined, undefined], spare: undefined };
+
+const sameFile = (a: string, b: string): boolean => {
+  const left = path.resolve(a);
+  const right = path.resolve(b);
+  return process.platform === 'win32'
+    ? left.toLowerCase() === right.toLowerCase()
+    : left === right;
+};
+
+/**
+ * Lets go of a file the host holds open but is not playing — the next
+ * track, readied on the free deck for a gapless start, or a track left on
+ * it — so a tag write can replace the file, and answers what readies it
+ * again afterwards. The deck being heard is never touched: the song playing
+ * is held until it ends (`heldTrackIds`). Emptying the free deck also drops
+ * the host's wish to ready the next track there (`unload_deck`), so it is
+ * not opened again in the middle of the write. A tag write over the next
+ * track used to fail as "open in another program" (Ivan, 2026-11-16: "make
+ * the engine free the file when updating the labels").
+ */
+export const releaseDspHostFile = async (
+  filePath: string,
+): Promise<() => Promise<void>> => {
+  const host = supervisor;
+  const nothing = async () => undefined;
+  if (!host || host.getState() !== 'ready') {
+    return nothing;
+  }
+  const free = decks.heard === 0 ? 1 : 0;
+  const spare =
+    decks.spare && sameFile(decks.spare.path, filePath)
+      ? decks.spare
+      : undefined;
+  const onFree = decks.paths[free];
+  if (spare === undefined && !(onFree && sameFile(onFree, filePath))) {
+    return nothing;
+  }
+  await host.unloadDeck(free).catch(() => false);
+  decks.paths[free] = undefined;
+  decks.spare = undefined;
+  return async () => {
+    // Readied again only if nothing newer was named meanwhile.
+    if (
+      spare === undefined ||
+      decks.spare !== undefined ||
+      supervisor !== host ||
+      host.getState() !== 'ready'
+    ) {
+      return;
+    }
+    decks.spare = spare;
+    await host
+      .loadDeckFor('spare', spare.path, spare.seconds)
+      .catch(() => undefined);
+  };
+};
 
 /**
  * Whether the host is currently pushing audio at a device.
@@ -464,21 +532,39 @@ export const registerDspHostIpc = ({
           case 'pause':
             isHostPlaying = false;
             return await supervisor.setPlaying(false);
-          case 'select':
-            return await supervisor.selectDeck(slot);
+          case 'select': {
+            const selected = await supervisor.selectDeck(slot);
+            if (selected) {
+              decks.heard = slot === 0 ? 0 : 1;
+            }
+            return selected;
+          }
           case 'unload':
             // An unload while playing is a stop by another name; the renderer
             // does not always pause first.
             isHostPlaying = false;
+            decks.paths[slot === 0 ? 0 : 1] = undefined;
+            // The host drops the next track it was asked to ready too.
+            decks.spare = undefined;
             return await supervisor.unloadDeck(slot);
           case 'seek':
             return isFiniteNumber(value)
               ? await supervisor.seekDeck(slot, value)
               : false;
-          case 'crossfade':
-            return isFiniteNumber(value) && Number.isInteger(extra)
-              ? await supervisor.crossfade(slot, value, extra as number)
-              : false;
+          case 'crossfade': {
+            if (!isFiniteNumber(value) || !Number.isInteger(extra)) {
+              return false;
+            }
+            const faded = await supervisor.crossfade(
+              slot,
+              value,
+              extra as number,
+            );
+            if (faded) {
+              decks.heard = slot === 0 ? 0 : 1;
+            }
+            return faded;
+          }
           case 'volume':
             // Clamped again in the host; a renderer is the half of this app
             // that loads remote content.
@@ -537,7 +623,9 @@ export const registerDspHostIpc = ({
         return false;
       }
       try {
-        return await supervisor.loadDeck(slot, mediaPath);
+        const loaded = await supervisor.loadDeck(slot, mediaPath);
+        decks.paths[slot === 0 ? 0 : 1] = loaded ? mediaPath : undefined;
+        return loaded;
       } catch {
         return false;
       }
@@ -575,6 +663,16 @@ export const registerDspHostIpc = ({
           : 0;
       try {
         const deck = await supervisor.loadDeckFor(purpose, mediaPath, start);
+        if (purpose === 'spare') {
+          decks.spare = { path: mediaPath, seconds: start };
+        } else {
+          if (deck === 0 || deck === 1) {
+            decks.paths[deck] = mediaPath;
+          }
+          if (decks.spare && sameFile(decks.spare.path, mediaPath)) {
+            decks.spare = undefined;
+          }
+        }
         // Held to the two decks there are, whatever the host said.
         return deck === 0 || deck === 1 ? deck : null;
       } catch {

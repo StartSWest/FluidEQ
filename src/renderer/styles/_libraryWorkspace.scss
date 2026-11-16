@@ -661,6 +661,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The corner the Library's long jobs float in: a tag write over a scan, each
+// a card of its own, the corner keeping the scan card's place and width. It
+// takes no clicks itself, so an empty corner never covers a row.
+.library-corner {
+  position: absolute;
+  z-index: 40;
+  right: $spacing-l + 12px;
+  bottom: $spacing-l;
+  display: flex;
+  width: min(420px, calc(100% - #{$spacing-m} * 2));
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+
+  > .library-scan-progress {
+    position: static;
+    width: auto;
+  }
+}
+
 // Two rows: what is being read with the way to put the notice away at its
 // end, then the bar with Stop at its end, as the bar's own key. Stop after
 // a bar spanning both columns used to fall to a row of its own and stretch

@@ -18,10 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { parseFile } from 'music-metadata';
 import { ILibraryTrack } from '../../common/library/types';
-import {
-  libraryBaseName,
-  libraryFileExtension,
-} from '../../common/library/files';
 
 export type ILibraryFileFacts = Partial<
   Pick<
@@ -166,35 +162,8 @@ export const readLibraryTags = async (
   }
 };
 
-/** Conventional cover-art file names, in the order a folder is searched. */
-export const FOLDER_ART_NAMES = [
-  'cover',
-  'folder',
-  'front',
-  'album',
-  'artwork',
-] as const;
-
-const FOLDER_ART_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
-
-/**
- * Finds a cover image beside a track, for files whose tags carry none.
- *
- * Walks `FOLDER_ART_NAMES` in order and returns the first directory entry
- * that matches — order of the names decides, not order of the listing. A
- * directory listing's order is the filesystem's business and differs between
- * machines, so a folder with both `folder.jpg` and `cover.jpg` must not pick
- * a different one depending on which computer scans it.
- */
-export const findFolderArt = (
-  entries: readonly string[],
-): string | undefined => {
-  const matchForName = (name: string): string | undefined =>
-    entries.find(
-      (entry) =>
-        libraryBaseName(entry) === name &&
-        FOLDER_ART_EXTENSIONS.includes(libraryFileExtension(entry)),
-    );
-  const matches = FOLDER_ART_NAMES.map(matchForName);
-  return matches.find((match): match is string => match !== undefined);
-};
+// The folder picture rule is shared with Fix tags (`common/library/folderArt.ts`).
+export {
+  FOLDER_ART_NAMES,
+  findFolderArt,
+} from '../../common/library/folderArt';
