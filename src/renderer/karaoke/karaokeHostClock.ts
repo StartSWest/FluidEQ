@@ -32,6 +32,16 @@ import {
  * look-ahead and a device period. And it never went backwards while playing;
  * a reading that would step back by less than a frame's jitter holds where it
  * was instead, so the lane does not shiver.
+ *
+ * PAUSE AND PLAY LEAVE THE NOTES WHERE THEY ARE (Ivan, 2026-11-16: "when I
+ * press stop and play they move forward and back instead of starting exactly
+ * where they stopped"). Two things moved them, and the seek bar with them.
+ * The output's delay was taken off only while playing, so pausing stepped
+ * the lane forward by it and playing stepped it back; it is taken off
+ * always now, paused or not. And a press of play read forward from the last
+ * frame at once, while the host had not started yet, and the next frame,
+ * still at the same place, pulled it back. The reading runs ahead only once
+ * two frames say the deck is moving.
  */
 export interface IKaraokeHostFrame {
   deckState: number;
@@ -89,6 +99,8 @@ export const createKaraokeHostClock = (): IKaraokeHostClock => {
   let delaySeconds = 0;
   let pending: IPendingSeek | undefined;
   let lastReadMs: number | undefined;
+  /** The last frame's position was past the one before it. */
+  let isMoving = false;
 
   return {
     take: (frame, now) => {
@@ -96,6 +108,9 @@ export const createKaraokeHostClock = (): IKaraokeHostClock => {
         pending = undefined;
         lastReadMs = undefined;
       }
+      isMoving =
+        positionSeconds !== undefined &&
+        frame.deckPositionSeconds > positionSeconds;
       positionSeconds = frame.deckPositionSeconds;
       at = now;
       state = frame.deckState;
@@ -107,10 +122,12 @@ export const createKaraokeHostClock = (): IKaraokeHostClock => {
       at = now;
       state = DECK_READY;
       lastReadMs = undefined;
+      isMoving = false;
     },
     seek: (positionMs) => {
       pending = holdSeek(Math.max(0, positionMs));
       lastReadMs = undefined;
+      isMoving = false;
       return pending;
     },
     answered: (asked, applied) => {
@@ -128,9 +145,10 @@ export const createKaraokeHostClock = (): IKaraokeHostClock => {
         return 0;
       }
       const running = playing && state === DECK_READY;
-      const ahead = running ? Math.min(MAX_READ_AHEAD_MS, now - at) : 0;
+      const ahead =
+        running && isMoving ? Math.min(MAX_READ_AHEAD_MS, now - at) : 0;
       const raw = positionSeconds * 1_000 + Math.max(0, ahead);
-      const heard = Math.max(0, raw - (running ? delaySeconds * 1_000 : 0));
+      const heard = Math.max(0, raw - delaySeconds * 1_000);
       const bounded = duration > 0 ? Math.min(duration * 1_000, heard) : heard;
       if (
         running &&
