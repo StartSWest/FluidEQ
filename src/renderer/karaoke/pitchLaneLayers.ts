@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { PLOT_LEFT } from './karaokePitchGeometry';
 import { readAccent, readAccentLight } from '../utils/theme';
-import { drawRoundedRect } from './makerCanvasGeometry';
 import {
   karaokeMakerNoteIsActive,
   karaokeMakerNoteProgress,
@@ -27,6 +26,15 @@ import { midiToNoteName } from '../../common/karaoke/pitch';
 import { type IKaraokeToken } from '../../common/karaoke/types';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import { LYRIC_FONT_FAMILY } from './karaokeLyricText';
+import {
+  drawnNoteRange,
+  freeNoteEdge,
+  NOTE_STRENGTH,
+  noteBoxHeight,
+  paintNoteBox,
+  paintNoteName,
+  unsungNoteFill,
+} from './pitchNoteBox';
 import {
   type IJudgedNoteBox,
   paintVerdictChips,
@@ -37,9 +45,10 @@ import { type IKaraokeLaneVerdict } from './useKaraokeScore';
 // The pitch lane's grid and note blocks, in the order the lane stacks them:
 // the pitch grid, then the note blocks with their verdicts' chips once sung
 // (`pitchLaneVerdicts.ts`); the singer's line goes over both
-// (`pitchLaneTrace.ts`). Every size and colour is the E mockup's
-// ("Veredicto por nota"; Ivan, 2026-11-16: "it is not at all like the
-// mockups"), on the slim strip under the chords that the K1 mockup set out.
+// (`pitchLaneTrace.ts`). Each box is the one the Maker draws too
+// (`pitchNoteBox.ts`). Every size and colour is the E mockup's ("Veredicto
+// por nota"; Ivan, 2026-11-16: "it is not at all like the mockups"), on the
+// slim strip under the chords that the K1 mockup set out.
 
 interface IPaintPitchGridInput {
   context: CanvasRenderingContext2D;
@@ -128,34 +137,6 @@ interface IPaintNoteBlocksInput {
   now: number;
 }
 
-// Flat with a 2px corner, and the note under the playhead filling with a
-// pale light from its left as it is sung, a ring standing off it. Nothing
-// else marks the note being sung: it no longer turns light while the voice
-// is in tune, nor carries a line at the playhead inside it; the singer's
-// own line through it says that.
-const NOTE_CORNER = 2;
-const NOTE_RING_GAP = 2.5;
-const NOTE_STRENGTH = 0.85;
-const ACCENT_FALLBACK = 'rgba(27, 222, 231, .85)';
-/** The sung part of the note under the playhead, the mockup's own pale. */
-const NOTE_SUNG = '#e8fffd';
-const NAME_ACTIVE = 'rgba(245, 255, 254, .98)';
-const NAME_IDLE = '#cfe7ee';
-/** The rest drawn between one syllable's box and the next. */
-const NOTE_GAP_MS = 40;
-
-/**
- * A note's box spans its whole syllable less a short rest, as the mockup
- * draws it. It used to take the guide melody's articulation, which ends each
- * note at 74-88% of its syllable at random: the singer's line, sung through
- * the syllable, ran off the end of every box. Half a syllable at most goes
- * to the rest, so a very short one keeps a box.
- */
-const drawnNoteRange = (startMs: number, endMs: number) => ({
-  startMs,
-  endMs: endMs - Math.min(NOTE_GAP_MS, Math.max(0, endMs - startMs) / 2),
-});
-
 /** The target's notes, each wearing its verdict once it has ended. */
 export const paintNoteBlocks = ({
   visibleNotes,
@@ -172,99 +153,51 @@ export const paintNoteBlocks = ({
   visibleNotes.forEach((note) => {
     const shape = drawnNoteRange(note.startMs as number, note.endMs as number);
     const midi = note.targetMidi as number;
+    const kind = note.kind ?? 'normal';
     const left = xForSongTime(shape.startMs);
     const right = Math.max(left + 5, xForSongTime(shape.endMs));
-    const noteHeight = Math.max(8, semitoneHeight * 0.8);
-    const top = yForMidi(midi) - noteHeight / 2;
-    const isGolden = note.kind === 'golden';
-    const isFree = note.kind === 'free';
+    const height = noteBoxHeight(semitoneHeight);
+    const top = yForMidi(midi) - height / 2;
     const active = karaokeMakerNoteIsActive(
       shape.startMs,
       shape.endMs,
       synchronizedPlayheadMs,
     );
-
-    let fill = readAccent(NOTE_STRENGTH, ACCENT_FALLBACK);
-    if (isGolden) {
-      fill = '#ffd25a';
-    } else if (isFree) {
-      fill = readAccent(0.24, 'rgba(27, 222, 231, .24)');
-    }
     // Once it has ended and been judged, the note wears its verdict.
-    const judged = isFree ? undefined : readVerdict?.(note);
+    const judged = kind === 'free' ? undefined : readVerdict?.(note);
     if (judged) {
-      fill = verdictColour(judged.verdict, NOTE_STRENGTH);
       judgedBoxes.push({ left, right, top, judged });
     }
-    context.save();
-    context.fillStyle = fill;
-    drawRoundedRect(context, left, top, right - left, noteHeight, NOTE_CORNER);
-    context.fill();
-    if (isFree) {
-      // Hollow: a note sung to no pitch.
-      context.setLineDash([4, 3]);
-      context.lineWidth = 1.6;
-      context.strokeStyle = readAccent(NOTE_STRENGTH, ACCENT_FALLBACK);
-      context.stroke();
-      context.setLineDash([]);
-    }
-    if (active) {
-      const progressRight =
-        left +
-        (right - left) *
-          karaokeMakerNoteProgress(
+    paintNoteBox(context, {
+      left,
+      right,
+      top,
+      height,
+      kind,
+      fill: judged
+        ? verdictColour(judged.verdict, NOTE_STRENGTH)
+        : unsungNoteFill(kind),
+      freeEdge: freeNoteEdge(),
+      progress: active
+        ? karaokeMakerNoteProgress(
             shape.startMs,
             shape.endMs,
             synchronizedPlayheadMs,
-          );
-      context.save();
-      drawRoundedRect(
-        context,
+          )
+        : undefined,
+      ringed: active,
+    });
+    // A judged note's chip stands where its name was.
+    if (!judged) {
+      paintNoteName(context, {
+        midi,
         left,
+        right,
         top,
-        right - left,
-        noteHeight,
-        NOTE_CORNER,
-      );
-      context.clip();
-      context.fillStyle = isGolden ? '#fff0a8' : NOTE_SUNG;
-      context.fillRect(
-        left,
-        top,
-        Math.max(1, progressRight - left),
-        noteHeight,
-      );
-      context.restore();
-      // The ring round the note, apart from it by a hair.
-      context.lineWidth = 1.5;
-      context.strokeStyle = isGolden
-        ? 'rgba(255, 240, 168, .95)'
-        : readAccentLight(0.95, 'rgba(161, 252, 255, .95)');
-      drawRoundedRect(
-        context,
-        left - NOTE_RING_GAP,
-        top - NOTE_RING_GAP,
-        right - left + NOTE_RING_GAP * 2,
-        noteHeight + NOTE_RING_GAP * 2,
-        NOTE_CORNER + NOTE_RING_GAP,
-      );
-      context.stroke();
+        ringed: active,
+        bold: active,
+      });
     }
-    context.restore();
-    if (judged) {
-      // Its verdict's chip stands where its name was.
-      return;
-    }
-    // Each note's name over it, lifted clear of the ring when there is one.
-    context.fillStyle = active ? NAME_ACTIVE : NAME_IDLE;
-    context.font = `${active ? 700 : 600} 9px ${LYRIC_FONT_FAMILY}`;
-    context.textAlign = 'center';
-    context.textBaseline = 'alphabetic';
-    context.fillText(
-      midiToNoteName(midi),
-      left + (right - left) / 2,
-      top - 4 - (active ? NOTE_RING_GAP + 1 : 0),
-    );
   });
   // After every note, so a neighbour's body never covers a chip.
   paintVerdictChips({

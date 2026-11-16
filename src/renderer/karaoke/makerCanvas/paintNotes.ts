@@ -17,7 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { IKaraokeMakerProject } from '../../../common/karaoke/makerProject';
-import { karaokeLeadNoteShape } from '../../../common/karaoke/melodyArticulation';
+import {
+  drawnNoteRange,
+  freeNoteEdge,
+  noteBoxHeight,
+  paintNoteBox,
+  paintNoteName,
+  unsungNoteFill,
+} from '../pitchNoteBox';
 import {
   karaokeMakerNoteIsActive,
   karaokeMakerNoteProgress,
@@ -30,7 +37,6 @@ import {
   TMakerDragBehavior,
   drawRoundedRect,
 } from '../makerCanvasGeometry';
-import { midiToNoteName } from '../../../common/karaoke/pitch';
 import { ICanvasLyricWord } from '../makerCanvasTypes';
 import {
   readAccent,
@@ -38,11 +44,6 @@ import {
   readSurface,
   readSurfaceAlpha,
 } from '../../utils/theme';
-
-/** A note's corner: a small one, flat, never the pill it was. */
-const NOTE_CORNER = 2;
-/** How far the ring of a selected or sung note stands off its edge. */
-const NOTE_RING_GAP = 2.5;
 
 export interface IPaintNotesInput {
   plot: IMakerPlot;
@@ -110,7 +111,10 @@ export const paintNotes = (
   );
   orderedNotes.slice(1).forEach((note, index) => {
     const previousNote = orderedNotes[index];
-    const previousShape = karaokeLeadNoteShape(previousNote);
+    const previousShape = drawnNoteRange(
+      previousNote.startMs,
+      previousNote.endMs,
+    );
     const previousWordId = previousNote.tokenId
       ? lyricWordIdByTokenId.get(previousNote.tokenId)
       : undefined;
@@ -151,14 +155,15 @@ export const paintNotes = (
     ) {
       return;
     }
-    // The drawn extent, not the audible cue's: the cue caps itself at 1.45
-    // seconds so a synth tone cannot drone, and a block that inherited that
-    // ceiling showed a four-second held note as a short one. An editor whose
-    // blocks disagree with the timing it is editing is the wrong tool.
-    const shape = karaokeLeadNoteShape(note);
+    // The player's box (Ivan, 2026-11-16: "tiene que puntearse de la misma
+    // forma que el player"): the whole syllable less a short rest. It took
+    // the guide melody's articulation, which ends a note at 74-88% of its
+    // syllable at random, so the editor drew notes shorter than the timing
+    // it edits, and shorter than the player then showed them.
+    const shape = drawnNoteRange(note.startMs, note.endMs);
     const left = Math.max(plotLeft, timeX(shape.startMs));
     const right = Math.min(plotRight, Math.max(left + 5, timeX(shape.endMs)));
-    const noteHeight = Math.max(8, semitoneHeight * 0.8);
+    const noteHeight = noteBoxHeight(semitoneHeight);
     /*
      * A NOTE IS DRAWN INSIDE THE PITCH GRID OR NOT AT ALL.
      *
@@ -204,124 +209,47 @@ export const paintNotes = (
       shape.endMs,
       visualPlayheadMs,
     );
-    const noteProgress = active
-      ? karaokeMakerNoteProgress(shape.startMs, shape.endMs, visualPlayheadMs)
-      : 0;
     // A free note is sung to no pitch — the scoring skips it and the export
     // writes it as `F`. It was drawn as a plain note, so choosing "Free" left
     // the editor pixel-identical and the only way to tell was to press the
     // note again and read the picker. Hollow says what it is: still a note,
     // still where it is, with nothing to hit.
     const isFree = note.kind === 'free';
-    // FLAT, as the rest of the Maker is (Ivan, 2026-11-15: "make notes look
-    // flat too, less rounded"): one colour, no glow, a small corner. They
-    // were pills lit from above with a coloured glow round each.
-    let noteFill = readAccent(0.85, 'rgba(88, 191, 215, .85)');
-    if (selected) {
+    // The player's colours, and the selection lit on top of them: the one
+    // thing the editor shows that the player has no use for.
+    let noteFill = unsungNoteFill(note.kind);
+    if (selected && note.kind === 'normal') {
       noteFill = readAccentLight(1, '#bffff7');
+    } else if (selected && isFree) {
+      noteFill = readAccentLight(0.26, 'rgba(191, 255, 247, .26)');
     }
-    if (note.kind === 'golden') {
-      noteFill = '#ffd25a';
-    } else if (isFree) {
-      noteFill = selected
-        ? readAccentLight(0.26, 'rgba(191, 255, 247, .26)')
-        : readAccent(0.24, 'rgba(88, 191, 215, .24)');
-    }
-    context.save();
-    context.fillStyle = noteFill;
-    drawRoundedRect(
-      context,
+    // A ring round a selected note as round the one being sung (Ivan,
+    // 2026-11-15: "fix the note highlight, lighter, and a border so it is
+    // more visible").
+    const ringed = selected || active;
+    paintNoteBox(context, {
       left,
-      centerY - noteHeight / 2,
-      right - left,
-      noteHeight,
-      NOTE_CORNER,
-    );
-    context.fill();
-    if (isFree) {
-      // The outline, dashed, over the shape that was just filled faintly.
-      // Drawn inside the same save block so it keeps the note's own glow.
-      context.save();
-      context.setLineDash([4, 3]);
-      context.lineWidth = 1.6;
-      context.strokeStyle = selected
+      right,
+      top: centerY - noteHeight / 2,
+      height: noteHeight,
+      kind: note.kind,
+      fill: noteFill,
+      freeEdge: selected
         ? readAccentLight(0.95, 'rgba(191, 255, 247, .95)')
-        : readAccent(0.85, 'rgba(88, 191, 215, .85)');
-      context.stroke();
-      context.restore();
-    }
-    if (active) {
-      const progressRight = left + (right - left) * noteProgress;
-      context.save();
-      drawRoundedRect(
-        context,
-        left,
-        centerY - noteHeight / 2,
-        right - left,
-        noteHeight,
-        NOTE_CORNER,
-      );
-      context.clip();
-      // The sung part in the light accent, flat as the note under it.
-      context.fillStyle =
-        note.kind === 'golden' ? '#fff0a8' : readAccentLight(1, '#e8fffd');
-      context.fillRect(
-        left,
-        centerY - noteHeight / 2,
-        Math.max(1, progressRight - left),
-        noteHeight,
-      );
-      context.restore();
-
-      const playbackX = Math.max(left, Math.min(right, progressRight));
-      context.save();
-      context.strokeStyle =
-        note.kind === 'golden' ? '#fff7a3' : readAccentLight(1, '#effffc');
-      context.lineWidth = 1.2;
-      context.beginPath();
-      context.moveTo(playbackX, centerY - noteHeight / 2 + 1);
-      context.lineTo(playbackX, centerY + noteHeight / 2 - 1);
-      context.stroke();
-      context.restore();
-    }
-    if (selected || active) {
-      // A RING ROUND THE NOTE, apart from it by a hair of the grid (Ivan,
-      // 2026-11-15: "fix the note highlight, lighter, and a border so it is
-      // more visible"). The edge used to be stroked on the note itself in
-      // the light accent the sung part is filled with, so the sung note
-      // read as one pale block with no edge at all; a ring standing off it
-      // shows against the dark grid whatever the note is filled with.
-      context.lineWidth = 1.5;
-      context.strokeStyle =
-        note.kind === 'golden'
-          ? 'rgba(255, 240, 168, .95)'
-          : readAccentLight(0.95, 'rgba(191, 255, 247, .95)');
-      drawRoundedRect(
-        context,
-        left - NOTE_RING_GAP,
-        centerY - noteHeight / 2 - NOTE_RING_GAP,
-        right - left + NOTE_RING_GAP * 2,
-        noteHeight + NOTE_RING_GAP * 2,
-        NOTE_CORNER + NOTE_RING_GAP,
-      );
-      context.stroke();
-    }
-    context.restore();
-    context.fillStyle =
-      selected || active
-        ? 'rgba(245, 255, 254, .98)'
-        : readAccentLight(1, '#cfe7ee');
-    context.font = `${active ? 700 : 600} 9px system-ui, sans-serif`;
-    context.textAlign = 'center';
-    context.fillText(
-      midiToNoteName(note.targetMidi),
-      left + (right - left) / 2,
-      // Lifted clear of the ring when there is one.
-      centerY -
-        noteHeight / 2 -
-        4 -
-        (selected || active ? NOTE_RING_GAP + 1 : 0),
-    );
+        : freeNoteEdge(),
+      progress: active
+        ? karaokeMakerNoteProgress(shape.startMs, shape.endMs, visualPlayheadMs)
+        : undefined,
+      ringed,
+    });
+    paintNoteName(context, {
+      midi: note.targetMidi,
+      left,
+      right,
+      top: centerY - noteHeight / 2,
+      ringed,
+      bold: active,
+    });
     if (controlLinkMode && selected) {
       const indicatorX = Math.max(left + 6, Math.min(right - 6, right - 7));
       context.save();

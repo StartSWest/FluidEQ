@@ -29,6 +29,12 @@ import {
   INotePaintDraft,
 } from '../makerCanvasTypes';
 import { readAccent, readAccentLight } from '../../utils/theme';
+import {
+  noteBoxHeight,
+  paintNoteBox,
+  paintNoteName,
+  unsungNoteFill,
+} from '../pitchNoteBox';
 
 export interface IPaintOverlaysInput {
   plot: IMakerPlot;
@@ -97,31 +103,36 @@ export const paintOverlays = (
     );
     // On the row the note will be committed to (`makerPitchAtY`), so the
     // draft shows its pitch rather than wherever the press happened to be.
-    const noteHeight = Math.max(8, semitoneHeight * 0.8);
-    const centerY = Math.max(
-      plotTop + noteHeight / 2,
-      Math.min(
-        plotBottom - noteHeight / 2,
-        noteY(makerPitchAtY(plot, notePaintDraft.y)),
-      ),
-    );
-    context.save();
-    context.fillStyle = readAccent(0.34, 'rgba(58, 242, 222, .34)');
-    context.strokeStyle = readAccentLight(1, '#a2fff7');
-    context.lineWidth = 1.5;
-    context.shadowColor = readAccent(1, '#20e6d4');
-    context.shadowBlur = 12;
-    drawRoundedRect(
-      context,
+    const draftMidi = makerPitchAtY(plot, notePaintDraft.y);
+    const noteHeight = noteBoxHeight(semitoneHeight);
+    const top =
+      Math.max(
+        plotTop + noteHeight / 2,
+        Math.min(plotBottom - noteHeight / 2, noteY(draftMidi)),
+      ) -
+      noteHeight / 2;
+    // The note being written is the note it will be, the player's box with
+    // its ring and its name (Ivan, 2026-11-16: "tiene que puntearse de la
+    // misma forma que el player"). It was a glowing pill while the pen was
+    // down and turned into a flat box on release.
+    const draftRight = Math.max(left + 5, right);
+    paintNoteBox(context, {
       left,
-      centerY - noteHeight / 2,
-      Math.max(5, right - left),
-      noteHeight,
-      noteHeight / 2,
-    );
-    context.fill();
-    context.stroke();
-    context.restore();
+      right: draftRight,
+      top,
+      height: noteHeight,
+      kind: 'normal',
+      fill: unsungNoteFill('normal'),
+      ringed: true,
+    });
+    paintNoteName(context, {
+      midi: draftMidi,
+      left,
+      right: draftRight,
+      top,
+      ringed: true,
+      bold: false,
+    });
   }
 
   const selectionBox = selectionBoxRef.current;
