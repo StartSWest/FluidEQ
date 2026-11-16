@@ -288,8 +288,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 14px;
-  min-height: 54px;
-  padding: 5px 12px;
+  min-height: 50px;
+  // Tight above and below (Ivan, 2026-11-15: "reduce padding on top").
+  padding: 3px 12px;
   // FLAT, AS THE LIBRARY IS (Ivan, 2026-11-15: "fix the karaoke UI to look
   // like the library ... nicer and flat", then of the mockups, "get rid of
   // the wrapper panes, we want to simplify this"): the bar is the page's own

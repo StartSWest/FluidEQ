@@ -28,8 +28,11 @@ import type { IMakerPitchWindow } from './makerPitchView';
  * They were loose constants beside the component's unrelated ones; the paint
  * and the hit-testing both measure against them, so they belong with the rest
  * of the geometry.
+ *
+ * The first band starts 4 px down, against the toolbar's hairline: it was 9,
+ * an empty strip above the waves (Ivan, 2026-11-15: "reduce padding on top").
  */
-export const WAVEFORM_TOP = 9;
+export const WAVEFORM_TOP = 4;
 /**
  * Tall enough for three readable rows — the mix, the backing track and the
  * voice a separation produces — at ~25 px each. It was 27 px, sized for one
