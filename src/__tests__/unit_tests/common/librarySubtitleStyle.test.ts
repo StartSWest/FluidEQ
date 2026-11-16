@@ -25,9 +25,26 @@ describe('a kept caption style', () => {
       colour: 'yellow',
       background: 'box',
       opacity: 0.5,
+      edge: 'thick',
       position: { x: 0.25, y: 0.1 },
     };
     expect(parseSubtitleStyle(JSON.stringify(kept))).toEqual(kept);
+  });
+
+  it('keeps the outline’s thick edge, and reads the thin one otherwise', () => {
+    const kept = (edge: unknown) =>
+      parseSubtitleStyle(JSON.stringify({ background: 'outline', edge }));
+    // The control: a thick edge kept is read back thick.
+    expect(kept('thick').edge).toBe('thick');
+    expect(kept('thin').edge).toBe('thin');
+    // A style kept before the edge existed, or an edge no build offers.
+    expect(parseSubtitleStyle(JSON.stringify({ colour: 'cyan' }))).toEqual({
+      ...DEFAULT_SUBTITLE_STYLE,
+      colour: 'cyan',
+    });
+    expect(DEFAULT_SUBTITLE_STYLE.edge).toBe('thin');
+    expect(kept('heavy').edge).toBe('thin');
+    expect(kept(2).edge).toBe('thin');
   });
 
   it('is the default with nothing kept, or with text that is not a style', () => {

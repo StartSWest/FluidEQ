@@ -43,10 +43,22 @@ jest.mock('renderer/library/useLibraryList', () => ({
     };
   },
 }));
-// The hero's facts (totals, the album a folder holds) say nothing about the
-// folder's shape, which is what this file is about: nothing answered.
+// The hero's facts say nothing about the folder's shape, which is what this
+// file is about: no totals, and no album inside. The panel waits for that
+// last answer before it draws anything (the record header waiting for its
+// data), so it is given at once: a page with no album in it.
 jest.mock('renderer/library/useLibraryAnswer', () => ({
-  useLibraryAnswer: () => undefined,
+  useLibraryAnswer: (request: { type: string } | undefined) =>
+    request?.type === 'page'
+      ? {
+          total: 0,
+          nearCount: 0,
+          markedCount: 0,
+          offset: 0,
+          items: [],
+          version: 1,
+        }
+      : undefined,
 }));
 jest.mock('renderer/library/PlaylistContext', () => ({
   usePlaylists: () => ({ playlists: [], isFavorite: () => false }),
@@ -111,13 +123,22 @@ describe('an opened folder', () => {
     expect(header()).toHaveTextContent('Album');
   });
 
-  it('keeps the header up from one record to the next, with no blink between', () => {
+  // Another record waits for its own answers and then appears whole, never
+  // the last record's header standing in for it (Ivan, 2026-11-15: "when no
+  // actual final element loaded it shows a preview").
+  it('draws the next record only once it is known, never the last one in its place', () => {
     const view = render(panel('D:/Music/Rock/One'));
     mockPlace = { isLoaded: true, count: 9 };
     mockChildren = { isLoaded: true, count: 0 };
     view.rerender(panel('D:/Music/Rock/One'));
+    // The control: the first record, known, has its header.
+    expect(header()).toHaveTextContent('One');
     mockPlace = { isLoaded: false, count: 9 };
     mockChildren = { isLoaded: false, count: 0 };
+    view.rerender(panel('D:/Music/Rock/Two'));
+    expect(header()).toBeNull();
+    mockPlace = { isLoaded: true, count: 4 };
+    mockChildren = { isLoaded: true, count: 0 };
     view.rerender(panel('D:/Music/Rock/Two'));
     expect(header()).toHaveTextContent('Two');
   });

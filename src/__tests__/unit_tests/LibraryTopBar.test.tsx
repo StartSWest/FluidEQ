@@ -75,21 +75,29 @@ describe('the library top bar', () => {
     expect(props.onViewMode).toHaveBeenCalledWith('coverflow');
   });
 
-  // The Videos shelf is its own section and reads none of these. The three
-  // lit up there, stayed lit, and changed nothing at all.
-  it('offers no way to lay out a shelf that has one layout', () => {
-    // The positive control: they are there on every other shelf.
-    const { unmount } = bar();
-    expect(screen.getByRole('button', { name: 'Cover Flow' })).toBeVisible();
-    unmount();
-
-    bar({ browseMode: 'video' });
+  // The Videos shelf reads in all three views like any other (Ivan,
+  // 2026-11-15: "we can show by folders, list etc similar to music", and of
+  // Cover Flow, "we want it there also, definitely").
+  it('offers the three views on the Videos shelf too, and says which is on', async () => {
+    const { props } = bar({ browseMode: 'video', viewMode: 'grid' });
+    const views = screen.getByRole('group', {
+      name: 'How the library is shown',
+    });
     expect(
-      screen.queryByRole('button', { name: 'Cover Flow' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Details' }),
-    ).not.toBeInTheDocument();
+      Array.from(views.querySelectorAll('button')).map((view) =>
+        view.textContent?.trim(),
+      ),
+    ).toEqual(['Details', 'Grid', 'Cover Flow']);
+    expect(screen.getByRole('button', { name: 'Grid' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'Details' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Cover Flow' }));
+    expect(props.onViewMode).toHaveBeenCalledWith('coverflow');
   });
 
   // A shelf of artists, genres or folders has a name, a count and a date and

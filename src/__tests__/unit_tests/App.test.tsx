@@ -928,7 +928,10 @@ describe('App', () => {
     await waitFor(() => expect(workspace).not.toHaveClass('is-app-full'));
   });
 
-  it('turns a guest video double-click into graph fullscreen', async () => {
+  // A double-click on the film is the film's own full screen, never the
+  // graph's (Ivan, 2026-11-15: "when I double click the YouTube video it
+  // shows the graphs always, even if it is off, and it turns it on").
+  it('turns a guest video double-click into the video’s own full screen', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
     await pressTab('Online Media', 'video');
@@ -947,14 +950,19 @@ describe('App', () => {
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
     );
-    expect(container.querySelector('.center-workspace')).toHaveClass(
-      'is-graph-full',
+    expect(container.querySelector('.app-workspace')).toHaveClass(
+      'is-app-full',
+      'is-media-full',
     );
     expect(container.querySelector('.video-browser')).toHaveClass(
-      'is-playback-backdrop',
+      'is-fullscreen',
+    );
+    // The graph is neither switched on nor taken full screen over the film.
+    expect(container.querySelector('.center-workspace')).not.toHaveClass(
+      'is-graph-full',
     );
     expect(container.querySelector('.video-browser')).not.toHaveClass(
-      'is-fullscreen',
+      'is-playback-backdrop',
     );
 
     fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });

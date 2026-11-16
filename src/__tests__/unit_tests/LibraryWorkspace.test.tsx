@@ -99,6 +99,10 @@ const PlayerProbe = () => {
   );
 };
 
+/** A film on the stage asks main for the subtitle files beside it; main's
+ * answer for a film with none. */
+const noSubtitles = () => Promise.resolve({ files: [], looked: [] });
+
 /**
  * The Library tab over a store holding `roots` and `tracks` — main's own
  * store and questions, so every shelf on screen is what the app would draw.
@@ -117,6 +121,7 @@ const renderWorkspace = ({
     ...opened.channels,
     addLibraryRoot,
     cancelLibraryScan,
+    libraryTrackSubtitles: noSubtitles,
     ...createSourceAnalysisBridge(),
   });
   render(
@@ -404,6 +409,10 @@ describe('a browse mode remembered from last time', () => {
     // If a future refactor ever drops 'video' from that list again, this is
     // the test that has to catch it.
     window.localStorage.setItem('fluideq.library.browseMode', 'video');
+    // In the grid, whose empty shelf says so in words: Videos read in all
+    // three views now, and the default, Cover Flow, turns them as it turns
+    // songs.
+    window.localStorage.setItem('fluideq.library.viewMode', 'grid');
     renderWorkspace({
       roots: [MUSIC],
       tracks: [track({ title: 'Blue', album: 'Kind', artist: 'Miles' })],
@@ -467,13 +476,14 @@ describe('handing a click off to the player', () => {
 
     await userEvent.click(await screen.findByText('Live at the Roxy'));
 
-    // The stage's own way back is the only thing here with this label, so its
-    // presence is proof the click actually reached `playTracks`. It used to
-    // be the full-screen button; that went when full screen became the
-    // double-click and Ctrl+F, which every video player already answers to.
-    expect(
-      await screen.findByRole('button', { name: 'Back' }),
-    ).toBeInTheDocument();
+    // The stage's picture is proof the click actually reached `playTracks`.
+    // In the tab it carries no Back of its own - the Library's bar leads out
+    // of the film - so the stage itself is what is looked for.
+    await waitFor(() =>
+      expect(
+        document.querySelector('.library-video-stage video'),
+      ).not.toBeNull(),
+    );
     // The SHELF is replaced by the picture — see the `!videoTrackId` guard on
     // `LibraryVideoSection` in `LibraryWorkspace`. The toolbar above it is
     // not: browse, view and search stay reachable while a video plays.
@@ -506,6 +516,7 @@ describe('handing a click off to the player', () => {
       ...opened.channels,
       addLibraryRoot: jest.fn(() => Promise.resolve(opened.summary())),
       cancelLibraryScan,
+      libraryTrackSubtitles: noSubtitles,
       ...createSourceAnalysisBridge(),
     });
     const tree = (isFullScreen: boolean) => (
@@ -527,7 +538,13 @@ describe('handing a click off to the player', () => {
     expect(card()).not.toHaveClass('is-video-full');
 
     await userEvent.click(await screen.findByText('Live at the Roxy'));
-    await screen.findByRole('button', { name: 'Back' });
+    // The picture's own Back, drawn in full screen; the bar's back arrow of
+    // the same name is still in the tree, hidden by the stylesheet.
+    await waitFor(() =>
+      expect(
+        container.querySelector('.library-video-stage__back'),
+      ).not.toBeNull(),
+    );
     expect(container.querySelector('.library-video-stage')).toHaveClass(
       'is-fullscreen',
     );

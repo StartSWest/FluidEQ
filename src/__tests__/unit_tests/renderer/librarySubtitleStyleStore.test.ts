@@ -20,6 +20,10 @@ type TTesting = typeof import('@testing-library/react');
  */
 const freshWindow = (): { store: TStore; testing: TTesting } => {
   let loaded: { store: TStore; testing: TTesting } | undefined;
+  // Loaded inside a case, the testing library would register its automatic
+  // cleanup as an `afterEach` there, which Jest refuses ("Hooks cannot be
+  // defined inside tests"); every case here unmounts what it renders.
+  process.env.RTL_SKIP_AUTO_CLEANUP = 'true';
   jest.isolateModules(() => {
     loaded = {
       // eslint-disable-next-line global-require -- a fresh module per window, which only `isolateModules` gives
@@ -28,6 +32,7 @@ const freshWindow = (): { store: TStore; testing: TTesting } => {
       testing: require('@testing-library/react') as TTesting,
     };
   });
+  delete process.env.RTL_SKIP_AUTO_CLEANUP;
   if (loaded === undefined) {
     throw new Error('the window did not load');
   }

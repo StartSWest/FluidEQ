@@ -104,18 +104,29 @@ describe("a video's Subtitles tab", () => {
     expect(libraryTrackLyrics).not.toHaveBeenCalled();
   });
 
-  it('names each file by language, never by file, and marks the one in use', async () => {
+  // Each row is the language over the file's own name, with its kind (Ivan,
+  // 2026-11-15: "also show the sub name in the list").
+  it('names each file by language over its own name, and marks the one in use', async () => {
     subtitles = THREE_FILES;
     await show(item('pier-names', 'video'));
-    const rows = screen.getAllByRole('radio', { name: /./ });
-    const names = rows
-      .filter((row) => row.closest('.library-subtitles__files') !== null)
-      .map((row) => row.textContent);
-    expect(names).toEqual(['Subtitles 1', 'Subtitles 2', 'español']);
-    expect(
-      screen.queryByText(/TAYLOR SWIFT/, { selector: 'button' }),
-    ).toBeNull();
-    const inUse = screen.getByRole('radio', { name: 'español' });
+    const list = screen.getByRole('radiogroup', { name: 'Subtitle files' });
+    const rows = Array.from(list.querySelectorAll('[role="radio"]'));
+    const read = (selector: string) =>
+      rows.map((row) => row.querySelector(selector)?.textContent);
+    expect(read('.library-subtitles__file-language')).toEqual([
+      'Subtitles 1',
+      'Subtitles 2',
+      'español',
+    ]);
+    expect(read('.library-subtitles__file-name')).toEqual(
+      THREE_FILES.files.map((file) => file.fileName),
+    );
+    expect(read('.library-subtitles__file-kind')).toEqual([
+      'SRT',
+      'SRT',
+      'SRT',
+    ]);
+    const inUse = screen.getByRole('radio', { name: /^español/ });
     expect(inUse).toHaveAttribute('aria-checked', 'true');
     expect(inUse).toHaveClass('is-active');
     // The file it is stays reachable, in its tooltip.
@@ -128,7 +139,7 @@ describe("a video's Subtitles tab", () => {
   it('puts another file in use on a press, and asks main for it', async () => {
     subtitles = THREE_FILES;
     await show(item('pier-pick', 'video'));
-    fireEvent.click(screen.getByRole('radio', { name: 'Subtitles 2' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Subtitles 2/ }));
     await act(async () => {
       await Promise.resolve();
     });

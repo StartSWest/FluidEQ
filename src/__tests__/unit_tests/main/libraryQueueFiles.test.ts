@@ -135,17 +135,25 @@ describe('music dropped on the queue', () => {
     const loose = path.join(music, 'Loose');
     fs.mkdirSync(path.join(loose, 'Disc 2'));
     fs.writeFileSync(path.join(loose, 'Disc 2', 'c.wav'), 'x');
+    // An UltraStar chart beside a song makes it the Karaoke tab's.
     fs.writeFileSync(path.join(loose, 'karaoke.mp3'), 'x');
-    fs.writeFileSync(path.join(loose, 'karaoke.lrc'), '[00:00]Lyrics');
+    fs.writeFileSync(
+      path.join(loose, 'karaoke.txt'),
+      '#TITLE:Song\n#BPM:200\n: 0 4 0 Hel~\n',
+    );
+    // A song's own .lrc is its lyrics, never a karaoke chart: it is queued.
+    fs.writeFileSync(path.join(loose, 'sung.mp3'), 'x');
+    fs.writeFileSync(path.join(loose, 'sung.lrc'), '[00:00]Lyrics');
     const queued = await queueLibraryFiles(store, [loose], scanRoots);
     expect(new Set(queued.trackIds)).toEqual(
       new Set([
         trackIdForPath(path.join(loose, 'a.mp3')),
         trackIdForPath(path.join(loose, 'b.flac')),
         trackIdForPath(path.join(loose, 'Disc 2', 'c.wav')),
+        trackIdForPath(path.join(loose, 'sung.mp3')),
       ]),
     );
-    expect(store.trackCount()).toBe(3);
+    expect(store.trackCount()).toBe(4);
     expect(store.roots().map((root) => root.path)).toEqual([loose]);
   });
 

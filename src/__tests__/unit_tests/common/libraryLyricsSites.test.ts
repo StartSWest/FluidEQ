@@ -100,7 +100,11 @@ describe('lyrics site searches', () => {
       } else {
         query = decodeURIComponent(url.pathname.replace(/^\/search\//, ''));
       }
-      expect(query).toBe('Ünder ⁄ Ñame Why? #1 & 50% off/on');
+      // The cleaned query (`lyricsSearchQuery` turns a search box's syntax
+      // marks such as "?" into spaces), every other character arriving
+      // whole: "#", "&", "%" and "/" each change an address unencoded.
+      expect(query).toBe(lyricsSearchQuery(tricky));
+      expect(query).toBe('Ünder ⁄ Ñame Why #1 & 50% off/on');
       // Genius and Musixmatch: `/search` and their one parameter. LRCLIB:
       // `/search/` and one segment, with no parameters at all.
       const shape = {

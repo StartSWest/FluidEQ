@@ -185,7 +185,9 @@ const createFakeLibraryStore = (
       },
       onLibraryScanProgress: () => () => undefined,
       queryLibrary: (request) => ask(() => answer(request)),
-      libraryTrackSubtitles: () => Promise.resolve(undefined),
+      // Answered with the rest, inside `act`: answered on the spot, the
+      // captions set their state after the case had moved on.
+      libraryTrackSubtitles: () => ask(() => undefined),
     },
     setTracks: (next) => {
       tracks = [...next];

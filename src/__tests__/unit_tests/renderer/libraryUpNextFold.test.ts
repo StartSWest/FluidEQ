@@ -37,8 +37,20 @@ describe('how the Up next panel folds', () => {
     expect(declarations('.library-up-next.is-collapsed', 'visibility')).toEqual(
       ['hidden'],
     );
+    // It slides from its edge at its full width, never easing the width
+    // itself: a width eased over the move re-laid the shelf every frame and
+    // the cover grid counted its columns again each time (Ivan, 2026-11-15:
+    // "it seems like the grid is trying to figure out how many columns").
     const [opening] = declarations('.library-up-next', 'transition');
-    expect(opening).toMatch(/width var\(--up-next-move\)/);
+    expect(opening).toMatch(/translate var\(--up-next-move\)/);
+    expect(opening).not.toMatch(/width/);
+    // Folding, the width goes in one step once the slide is over.
+    const [folding] = declarations(
+      '.library-up-next.is-collapsed',
+      'transition',
+    );
+    expect(folding).toMatch(/translate var\(--up-next-move\)/);
+    expect(folding).toMatch(/width 0s linear var\(--up-next-move\)/);
     // The arrival-only slide the unmounted panel had is gone with it.
     expect(css).not.toContain('@keyframes up-next-in');
   });

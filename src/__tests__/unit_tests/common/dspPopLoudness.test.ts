@@ -75,16 +75,21 @@ describe('Pop source loudness', () => {
     expect(settings.dimension.decorrelation).toBe(0);
   });
 
-  it('resets both adaptive level stages on every factory selection', () => {
+  // The Normalizer is the listener's, beside the presets (Ivan, 2026-11-15:
+  // "es independiente"): a pick keeps it as it was, and resets the chain's
+  // own adaptive stage, the Master's maximizer.
+  it('resets the chain’s adaptive level stage and keeps the Normalizer on every factory selection', () => {
     const previous = {
       ...pop(),
       normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'loudness' as const },
       master: { ...DSP_DEFAULTS.master, enabled: true, loudnessMaximize: true },
     };
+    // The control: the listener's Normalizer is not the default one.
+    expect(previous.normalizer).not.toEqual(DSP_DEFAULTS.normalizer);
     expect(DSP_PRESETS).toHaveLength(118);
     DSP_PRESETS.forEach(({ id, settings }) => {
       const next = dspPresetSettings(id, previous);
-      expect(next?.normalizer).toEqual(DSP_DEFAULTS.normalizer);
+      expect(next?.normalizer).toEqual(previous.normalizer);
       expect(next?.master.enabled).toBe(false);
       expect(next?.maximizer).toEqual(settings.maximizer);
     });

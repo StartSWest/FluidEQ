@@ -113,10 +113,13 @@ let store: IFakeLibraryStore;
  * stage so a real `<video>` element exists to assert on — the same pairing
  * `App.tsx` mounts, `LibraryPlayerProvider` and `LibraryVideoStage` side by
  * side under it. */
-const Harness = () => {
+const Harness = ({ isFullScreen }: { isFullScreen: boolean }) => {
   latestPlayer = useLibraryPlayer();
   return (
-    <LibraryVideoStage isFullScreen={false} onToggleFullScreen={() => {}} />
+    <LibraryVideoStage
+      isFullScreen={isFullScreen}
+      onToggleFullScreen={() => {}}
+    />
   );
 };
 
@@ -174,12 +177,12 @@ afterEach(async () => {
  * summary first, without which no song is looked up at all, and then
  * whatever that answer leads to.
  */
-const renderHarness = async () => {
+const renderHarness = async ({ isFullScreen = false } = {}) => {
   const view = render(
     <I18nProvider>
       <LibraryProvider>
         <LibraryPlayerProvider>
-          <Harness />
+          <Harness isFullScreen={isFullScreen} />
         </LibraryPlayerProvider>
       </LibraryProvider>
     </I18nProvider>,
@@ -398,10 +401,26 @@ describe('the Back button over a video', () => {
    * closing was added, the position written on the way out was nought. Both
    * are asserted against here: the stage must leave, the element must be
    * paused and NOT rewound, and the stored position must be the real one.
+   *
+   * The button is drawn on the picture only in full screen, where the
+   * Library's bar is not; in the tab the bar's own back arrow leads out.
    */
+  it('is drawn on the picture in full screen only', async () => {
+    const tab = await renderHarness();
+    await playTracks([videoTrack.id], videoTrack.id);
+    expect(document.querySelector('video')).not.toBeNull();
+    expect(tab.queryByRole('button', { name: 'Back' })).toBeNull();
+    tab.unmount();
+
+    // The control: the same film in full screen has it.
+    const full = await renderHarness({ isFullScreen: true });
+    await playTracks([videoTrack.id], videoTrack.id);
+    expect(full.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+  });
+
   it('closes the picture, pauses in place and remembers where it was', async () => {
     window.localStorage.removeItem('fluideq.library.videoPositions');
-    const { getByRole } = await renderHarness();
+    const { getByRole } = await renderHarness({ isFullScreen: true });
     await playTracks([videoTrack.id, audioTrack.id], videoTrack.id);
     const videoElement = document.querySelector('video');
     expect(videoElement).not.toBeNull();
@@ -434,7 +453,7 @@ describe('the Back button over a video', () => {
   });
 
   it('shows the same video again when it is picked again', async () => {
-    const { getByRole } = await renderHarness();
+    const { getByRole } = await renderHarness({ isFullScreen: true });
     await playTracks([videoTrack.id], videoTrack.id);
     act(() => {
       getByRole('button', { name: 'Back' }).click();
@@ -451,7 +470,7 @@ describe('the Back button over a video', () => {
   });
 
   it('brings the picture back when the closed video is asked to play', async () => {
-    const { getByRole } = await renderHarness();
+    const { getByRole } = await renderHarness({ isFullScreen: true });
     await playTracks([videoTrack.id], videoTrack.id);
     act(() => {
       getByRole('button', { name: 'Back' }).click();
