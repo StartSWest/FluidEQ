@@ -287,8 +287,6 @@ const karaoke = {
   'karaoke.maker.pendingWords': '{count} 待定',
   'karaoke.maker.artist': '藝術家',
   'karaoke.maker.songPosition': '歌曲位置',
-  'karaoke.maker.previousView': '上一節',
-  'karaoke.maker.nextView': '下一節',
   'karaoke.maker.resetZoom': '雙擊以適應定時歌詞',
   'karaoke.maker.pitchRange': '音域',
   'karaoke.maker.pitchHint':

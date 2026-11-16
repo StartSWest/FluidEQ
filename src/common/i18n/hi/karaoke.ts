@@ -322,8 +322,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.pendingWords': '{count} लंबित',
   'karaoke.maker.artist': 'कलाकार',
   'karaoke.maker.songPosition': 'गीत में स्थान',
-  'karaoke.maker.previousView': 'पिछला भाग',
-  'karaoke.maker.nextView': 'अगला भाग',
   'karaoke.maker.resetZoom': 'गीत फिट करने के लिए डबल-क्लिक करें',
   'karaoke.maker.pitchRange': 'पिच रेंज',
   'karaoke.maker.pitchHint':

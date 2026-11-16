@@ -305,8 +305,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.pendingWords': '待处理 {count} 个',
   'karaoke.maker.artist': '歌手',
   'karaoke.maker.songPosition': '歌曲位置',
-  'karaoke.maker.previousView': '上一段',
-  'karaoke.maker.nextView': '下一段',
   'karaoke.maker.resetZoom': '双击以显示全部定时歌词',
   'karaoke.maker.pitchRange': '音域',
   'karaoke.maker.pitchHint':

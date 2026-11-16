@@ -13,13 +13,7 @@ import {
 } from 'react';
 import { IKaraokeMakerNote } from '../../common/karaoke/makerProject';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
-import { KaraokeTransportIcon } from './KaraokeTransport';
-import {
-  readAccent,
-  readAccentLight,
-  readSurface,
-  readSurfaceAlpha,
-} from '../utils/theme';
+import { readAccent, readAccentLight } from '../utils/theme';
 
 interface IKaraokeMakerNavigatorProps {
   durationMs: number;
@@ -32,8 +26,6 @@ interface IKaraokeMakerNavigatorProps {
   maximumViewportMs: number;
   follow: boolean;
   positionLabel: string;
-  previousLabel: string;
-  nextLabel: string;
   followLabel: string;
   resetZoomLabel: string;
   onMove: (startMs: number) => void;
@@ -132,8 +124,6 @@ const KaraokeMakerNavigator = ({
   maximumViewportMs,
   follow,
   positionLabel,
-  previousLabel,
-  nextLabel,
   followLabel,
   resetZoomLabel,
   onMove,
@@ -167,23 +157,9 @@ const KaraokeMakerNavigator = ({
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
 
-    const background = context.createLinearGradient(0, 0, 0, height);
-    // The plot colour, like the editor above it.
-    background.addColorStop(0, readSurface('--surface-panel', '#1a3a4e'));
-    background.addColorStop(1, readSurface('--surface-panel', '#1a3a4e'));
-    context.fillStyle = background;
-    context.roundRect(0.5, 0.5, width - 1, height - 1, 8);
-    context.fill();
-
-    context.strokeStyle = readAccent(0.1, 'rgba(99, 168, 186, .1)');
-    context.lineWidth = 1;
-    for (let section = 1; section < 8; section += 1) {
-      const x = (section / 8) * width;
-      context.beginPath();
-      context.moveTo(x, 4);
-      context.lineTo(x, height - 4);
-      context.stroke();
-    }
+    // No floor and no section lines (Ivan, 2026-11-15: "improve this too,
+    // no background"): the wave and the notes stand on the Maker's own card,
+    // as the pitch strip's notes do.
 
     if (waveform?.length) {
       const middle = height * 0.47;
@@ -257,18 +233,20 @@ const KaraokeMakerNavigator = ({
       viewportStartMs,
       viewportDurationMs,
     );
-    context.fillStyle = readSurfaceAlpha(
-      '--surface-base',
-      0.46,
-      'rgba(13, 32, 48, 0.46)',
-    );
-    context.fillRect(0, 2, viewportLeft, height - 4);
+    // What is off screen is faded, not veiled: a veil over no floor would
+    // paint one. Taking alpha away from what is already drawn fades it on
+    // whatever stands behind the canvas.
+    context.save();
+    context.globalCompositeOperation = 'destination-out';
+    context.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    context.fillRect(0, 0, viewportLeft, height);
     context.fillRect(
       viewportLeft + viewportWidth,
-      2,
+      0,
       Math.max(0, width - viewportLeft - viewportWidth),
-      height - 4,
+      height,
     );
+    context.restore();
 
     const viewportGradient = context.createLinearGradient(
       viewportLeft,
@@ -518,16 +496,6 @@ const KaraokeMakerNavigator = ({
           )}
         </strong>
       </div>
-      <button
-        type="button"
-        className="karaoke-maker-nav__step"
-        onClick={() => onMove(viewportStartMs - viewportDurationMs * 0.75)}
-        disabled={viewportStartMs <= 0}
-        aria-label={previousLabel}
-        data-tooltip={previousLabel}
-      >
-        <KaraokeTransportIcon name="previous" />
-      </button>
       <canvas
         ref={canvasRef}
         className="karaoke-maker-nav__overview"
@@ -549,16 +517,6 @@ const KaraokeMakerNavigator = ({
         onKeyDown={onKeyDown}
         onDoubleClick={onResetZoom}
       />
-      <button
-        type="button"
-        className="karaoke-maker-nav__step"
-        onClick={() => onMove(viewportStartMs + viewportDurationMs * 0.75)}
-        disabled={viewportStartMs >= maximumStartMs}
-        aria-label={nextLabel}
-        data-tooltip={nextLabel}
-      >
-        <KaraokeTransportIcon name="next" />
-      </button>
       <button
         type="button"
         className={`karaoke-maker-nav__follow${follow ? ' is-active' : ''}`}

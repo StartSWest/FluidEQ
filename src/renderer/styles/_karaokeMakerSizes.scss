@@ -323,7 +323,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .karaoke-maker-nav {
-    grid-template-columns: auto minmax(110px, 1fr) auto auto;
+    grid-template-columns: minmax(110px, 1fr) auto;
     gap: 4px;
     padding-inline: 5px;
   }

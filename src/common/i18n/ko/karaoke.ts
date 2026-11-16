@@ -309,8 +309,6 @@ const karaoke = {
   'karaoke.maker.pendingWords': '{count} 보류 중',
   'karaoke.maker.artist': '아티스트',
   'karaoke.maker.songPosition': '노래 위치',
-  'karaoke.maker.previousView': '이전 섹션',
-  'karaoke.maker.nextView': '다음 섹션',
   'karaoke.maker.resetZoom': '시간에 맞춰 가사를 맞추려면 두 번 클릭하세요.',
   'karaoke.maker.pitchRange': '음역',
   'karaoke.maker.pitchHint':

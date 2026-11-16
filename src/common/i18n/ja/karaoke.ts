@@ -329,8 +329,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.pendingWords': '{count} 語が未処理',
   'karaoke.maker.artist': 'アーティスト',
   'karaoke.maker.songPosition': '曲内の位置',
-  'karaoke.maker.previousView': '前の区間',
-  'karaoke.maker.nextView': '次の区間',
   'karaoke.maker.resetZoom': 'ダブルクリックで歌詞全体を表示',
   'karaoke.maker.pitchRange': '音域',
   'karaoke.maker.pitchHint':
