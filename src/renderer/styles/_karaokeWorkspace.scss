@@ -763,5 +763,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .app-workspace.is-app-full:not(.has-top-bar)
   .karaoke-workspace.is-fullscreen
   > .karaoke-workspace__player {
-  padding-top: calc(#{$title-bar-height} + 8px);
+  // The same 16px under the header as at the playlist's left and foot
+  // (Ivan, 2026-11-16: "with the header showing it has to have the same
+  // padding as the left").
+  padding-top: calc(#{$title-bar-height} + 16px);
 }

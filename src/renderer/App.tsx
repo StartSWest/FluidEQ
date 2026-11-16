@@ -467,6 +467,11 @@ const AppContent = () => {
     setWasAnyFullScreen(isAnyFullScreen);
     setTopPaneOpen(false);
     setRightPaneOpen(false);
+  } else if (isAnyFullScreen && (topPaneOpen || rightPaneOpen)) {
+    // Nor opened while there, by a key on a hidden opener or a panel left
+    // open from before this rule.
+    setTopPaneOpen(false);
+    setRightPaneOpen(false);
   }
   const isSoundPaneShown = isSoundPaneOverPage
     ? rightPaneOpen

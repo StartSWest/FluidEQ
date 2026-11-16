@@ -208,8 +208,24 @@ const isInBottomChromeSurface = (event: PointerEvent): boolean =>
 const isInBottomZone = (event: PointerEvent): boolean =>
   event.clientY >= window.innerHeight - bottomWakeEdge();
 
+/**
+ * The header's edge over a full-screen picture: the window's last few
+ * pixels, as the transport's is outside it. The 120px band belongs to the
+ * graph's strip in a pane; in full screen it covered the Karaoke playlist's
+ * head, so reaching its fold opened the header, which pushed the list down
+ * and the button out from under the pointer (Ivan, 2026-11-16: "when you go
+ * down to the playlist I want to reach its collapse without the header
+ * opening").
+ */
+const FULL_SCREEN_TOP_WAKE_EDGE_PX = 10;
+
+const topWakeEdge = (): number =>
+  document.querySelector('.app-workspace.is-app-full')
+    ? FULL_SCREEN_TOP_WAKE_EDGE_PX
+    : TOP_WAKE_EDGE_PX;
+
 const isInTopZone = (event: PointerEvent): boolean =>
-  event.clientY <= TOP_WAKE_EDGE_PX;
+  event.clientY <= topWakeEdge();
 
 const isInWakeZone = (event: PointerEvent): boolean =>
   isInBottomZone(event) || isInTopZone(event);
@@ -229,12 +245,17 @@ const TOOLBAR_APPROACH_PX = 24;
  * transparent to the pointer, so the target test in `isTopChrome` cannot see
  * it either. Measured only while the chrome is away, on a move.
  */
-const isOverFadedToolbar = (event: PointerEvent): boolean => {
-  const strip = document.querySelector('.live-output-controls');
-  if (!strip) {
-    return false;
-  }
-  return Array.from(strip.children).some((control) => {
+// The Karaoke stage's row of options fades with the chrome too, and is
+// found the same way, without bringing the header (Ivan, 2026-11-16).
+const FADING_STRIPS = '.live-output-controls, .karaoke-stage-bar';
+
+const isOverFadedToolbar = (event: PointerEvent): boolean =>
+  Array.from(document.querySelectorAll(FADING_STRIPS)).some((strip) =>
+    isOverStrip(strip, event),
+  );
+
+const isOverStrip = (strip: Element, event: PointerEvent): boolean =>
+  Array.from(strip.children).some((control) => {
     const box = control.getBoundingClientRect();
     return (
       box.width > 0 &&
@@ -244,7 +265,6 @@ const isOverFadedToolbar = (event: PointerEvent): boolean => {
       event.clientY <= box.bottom + TOOLBAR_APPROACH_PX
     );
   });
-};
 
 /**
  * Whether the pointer has gone to the window's top or bottom edge.

@@ -134,10 +134,19 @@ const useKaraokeWorkspaceStage = ({
   const layoutMode: TKaraokeLayoutMode = isFullScreen ? 'fullscreen' : 'normal';
   const [layouts, setLayouts] = useState<
     Record<TKaraokeLayoutMode, IKaraokeLayoutSettings>
-  >(() => ({
-    normal: readKaraokeLayout('normal'),
-    fullscreen: readKaraokeLayout('fullscreen'),
-  }));
+  >(() => {
+    const normal = readKaraokeLayout('normal');
+    // Whether the playlist is folded is one choice for both views (Ivan,
+    // 2026-11-16: "if it is closed it is closed, and if it is open it is
+    // open"); the window's view is what was last saved for it.
+    return {
+      normal,
+      fullscreen: {
+        ...readKaraokeLayout('fullscreen'),
+        playlistCollapsed: normal.playlistCollapsed,
+      },
+    };
+  });
   const layoutsRef = useRef(layouts);
   const playlistResizeStartRef = useRef(0);
   const cancelCountInCuesRef = useRef<(() => void) | undefined>(undefined);
@@ -533,14 +542,22 @@ const useKaraokeWorkspaceStage = ({
         ...layoutsRef.current[layoutMode],
         ...patch,
       };
-      const nextLayouts = {
-        ...layoutsRef.current,
-        [layoutMode]: nextLayout,
+      // The fold travels to the other view; sizes stay each view's own.
+      const otherMode: TKaraokeLayoutMode =
+        layoutMode === 'fullscreen' ? 'normal' : 'fullscreen';
+      const otherLayout = {
+        ...layoutsRef.current[otherMode],
+        playlistCollapsed: nextLayout.playlistCollapsed,
       };
+      const nextLayouts = {
+        [layoutMode]: nextLayout,
+        [otherMode]: otherLayout,
+      } as Record<TKaraokeLayoutMode, IKaraokeLayoutSettings>;
       layoutsRef.current = nextLayouts;
       setLayouts(nextLayouts);
       if (persist) {
         writeKaraokeLayout(layoutMode, nextLayout);
+        writeKaraokeLayout(otherMode, otherLayout);
       }
     },
     [layoutMode],
