@@ -113,7 +113,6 @@ const eq: Partial<Dictionary> = {
   'graph.view.normal': 'दृश्य',
   'graph.view.fullscreen': 'पूर्ण स्क्रीन',
   'graph.scene.resetView': 'दृश्य रीसेट करें',
-  'graph.showing': 'दिखाया जा रहा है: {content}',
   'graph.contents.everything': 'सब कुछ',
   'graph.contents.layers': 'तरंग के ऊपर परतें',
   'graph.contents.curves': 'केवल कर्व',

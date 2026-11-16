@@ -111,7 +111,6 @@ const eq = {
   'graph.view.normal': 'View',
   'graph.view.fullscreen': 'Full screen',
   'graph.scene.resetView': 'Reset view',
-  'graph.showing': 'Showing: {content}',
   'graph.contents.everything': 'Everything',
   'graph.contents.layers': 'Layers over wave',
   'graph.contents.curves': 'Curves only',

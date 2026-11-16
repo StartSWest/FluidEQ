@@ -29,11 +29,9 @@ import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
-  GRAPH_CONTENTS_LABEL,
   MIN_GRAPH_WAVE_HEIGHT,
   toggleGraphBandLabels,
   useGraphBandLabelsHidden,
-  TGraphContents,
   TGraphCurve,
   TGraphView,
   TWaveOrientation,
@@ -84,15 +82,6 @@ interface IGraphViewMenuProps {
   curveToggles: readonly { curve: TGraphCurve; label: string }[];
   hiddenCurves: readonly TGraphCurve[];
   onToggleCurve: (curve: TGraphCurve) => void;
-  /**
-   * Which of the five arrangements the plot is in, so the row can say so.
-   *
-   * One of them quiets the EQ curve, which no switch below reaches, so this row
-   * is the only way in and had to stop being anonymous.
-   */
-  contents: TGraphContents;
-  /** Walks the five states the switches below only partly add up to. */
-  onCycleContents: () => void;
   isGridHidden: boolean;
   onToggleGrid: () => void;
   isCoverageHidden: boolean;
@@ -161,8 +150,6 @@ const GraphViewMenu = ({
   curveToggles,
   hiddenCurves,
   onToggleCurve,
-  contents,
-  onCycleContents,
   isGridHidden,
   onToggleGrid,
   isCoverageHidden,
@@ -339,95 +326,55 @@ const GraphViewMenu = ({
             // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
             {...groupProps('picture')}
           >
-            {/* The key that walks the group, given a row of its own.
-
-              Ctrl+W moves between five arrangements of the switches under it, so
-              printing it beside any one of them would promise it did only that
-              — and leaving it off the menu entirely, which is what happened
-              before, left the app's most-used graph shortcut written down
-              nowhere.
-
-              It names the state it is in rather than only the action, and that
-              is not decoration. One of the five — "Layers over wave" — cannot
-              be built out of the switches below at all; it quiets the EQ curve,
-              and nothing else in the app has a control for that. So this row is
-              the only way to reach it, and a row reading "Cycle what is shown"
-              gave no hint that there was anywhere to get to.
-
-              It does not close the menu, unlike the mode rows above. Five
-              states walked one press at a time is the same comparing gesture
-              the style rows make, and closing after each would mean reopening
-              the menu four times to see the fourth one. */}
-            <button
-              type="button"
-              disabled={!isResponseAvailable}
-              onClick={onCycleContents}
+            {/* ONE ROW FOR THE CURVES (Ivan, 2026-11-16: "simplify ... the
+              other curves part, too many options"). Each curve the plot draws
+              - the headphone correction, the preset, the EQ's response, the
+              final output - and the EQ's labels is a chip, lit while it is
+              drawn; a press turns it on or off and leaves the menu open for
+              the next. They were five rows of "Hide ..." and a sixth that
+              walked their arrangements (Ctrl+W), which the keyboard still does.
+              Data-driven like the strip above the graph, in the order APO
+              applies the layers, so a layer appearing or bypassed changes both
+              surfaces together. */}
+            <div
+              className="graph-view-menu__curves"
+              role="group"
+              aria-label={t('graph.curves')}
             >
-              <Icon>
-                <path d="M13.5 6.5A5.5 5.5 0 1 0 14 9" />
-                <path d="M13.8 2.6v4h-4" />
-              </Icon>
-              <span>
-                {t('graph.showing', {
-                  content: t(GRAPH_CONTENTS_LABEL[contents]),
-                })}
+              <span className="graph-view-menu__curves-name">
+                <Icon>
+                  <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
+                </Icon>
+                <span>{t('graph.curves')}</span>
               </span>
-              <kbd>Ctrl+W</kbd>
-            </button>
-
-            {/* The same response switches as the strip above the graph, in the
-              same order APO applies them. Keeping the menu data-driven means
-              an appearing or bypassed layer changes both surfaces together. */}
-            {curveToggles.map(({ curve, label }) => {
-              const isHidden = hiddenCurves.includes(curve);
-              return (
+              <span className="graph-view-menu__chips">
+                {curveToggles.map(({ curve, label }) => {
+                  const isShown = !hiddenCurves.includes(curve);
+                  return (
+                    <button
+                      type="button"
+                      key={curve}
+                      className={`graph-view-menu__chip${isShown ? ' is-on' : ''}`}
+                      aria-pressed={isShown}
+                      disabled={!isResponseAvailable}
+                      onClick={() => onToggleCurve(curve)}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
                 <button
                   type="button"
-                  role="menuitemcheckbox"
-                  aria-checked={isHidden}
+                  className={`graph-view-menu__chip${bandLabelsHidden ? '' : ' is-on'}`}
+                  aria-pressed={!bandLabelsHidden}
                   disabled={!isResponseAvailable}
-                  key={curve}
-                  onClick={choose(() => onToggleCurve(curve))}
+                  onClick={toggleGraphBandLabels}
                 >
-                  <Icon>
-                    <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
-                  </Icon>
-                  <span>
-                    {t(isHidden ? 'graph.show' : 'graph.hide', { item: label })}
-                  </span>
+                  {t('graph.item.eqLabels')}
                 </button>
-              );
-            })}
-
-            {/* No `is-on` on the drawing switches below, unlike the modes above.
-              Their labels already flip — "Hide the wave" becomes "Show the
-              wave" — so colouring them as well states the same thing twice, and
-              it picked out rows in a colour the rest of the menu never uses for
-              no reason a reader could work out. The modes keep it because their
-              labels do *not* change and something has to say which of the two
-              you are in.
-
-              Solo — the wave with every curve dropped — had a row here and no
-              longer does. It is the last stop of the cycle above, one press
-              away, and as a switch of its own it was the odd one out: the other
-              two say which single drawing they take away, where solo took away
-              five of them and was named for the one it kept. */}
-            <button
-              type="button"
-              role="menuitemcheckbox"
-              aria-checked={bandLabelsHidden}
-              disabled={!isResponseAvailable}
-              onClick={choose(toggleGraphBandLabels)}
-            >
-              <Icon>
-                <path d="M2 2.5h12v7H9l-3 3v-3H2zM5 5h6M5 7h4" />
-              </Icon>
-              <span>
-                {t(bandLabelsHidden ? 'graph.show' : 'graph.hide', {
-                  item: t('graph.item.eqLabels'),
-                })}
               </span>
-            </button>
+            </div>
+
             <button
               type="button"
               role="menuitemcheckbox"

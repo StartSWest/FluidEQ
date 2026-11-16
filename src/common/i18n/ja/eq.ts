@@ -115,7 +115,6 @@ const eq: Partial<Dictionary> = {
   'graph.view.normal': '表示',
   'graph.view.fullscreen': '全画面',
   'graph.scene.resetView': '視点をリセット',
-  'graph.showing': '表示中：{content}',
   'graph.contents.everything': 'すべて',
   'graph.contents.layers': '波形上のレイヤー',
   'graph.contents.curves': '曲線のみ',

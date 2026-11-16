@@ -96,7 +96,6 @@ const eq = {
   'graph.view.normal': '보기',
   'graph.view.fullscreen': '전체 화면',
   'graph.scene.resetView': '보기 재설정',
-  'graph.showing': '표시: {content}',
   'graph.contents.everything': '전체',
   'graph.contents.layers': '파형 위 레이어',
   'graph.contents.curves': '곡선만',

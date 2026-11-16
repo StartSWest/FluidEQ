@@ -113,7 +113,6 @@ const eq: Partial<Dictionary> = {
   'graph.view.normal': 'Vista',
   'graph.view.fullscreen': 'Schermo intero',
   'graph.scene.resetView': 'Ripristina vista',
-  'graph.showing': 'Visualizzazione: {content}',
   'graph.contents.everything': 'Tutto',
   'graph.contents.layers': 'Livelli sopra l’onda',
   'graph.contents.curves': 'Solo curve',

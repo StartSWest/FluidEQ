@@ -372,6 +372,63 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-column: 3;
 }
 
+// The curves' row (`GraphViewMenu`): its name where every row's is, and
+// the chips wrapping under it at the menu's width, each a curve or the EQ's
+// labels, lit while drawn.
+.graph-view-menu__curves {
+  display: grid;
+  gap: 6px;
+  padding: 6px 10px 8px;
+}
+
+.graph-view-menu__curves-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: $text-muted;
+}
+
+.graph-view-menu__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.graph-view-menu__chip {
+  min-height: 26px;
+  padding: 0 10px;
+  color: $text-muted;
+  border: 1px solid $menu-edge;
+  border-radius: $radius-pill;
+  background: none;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+    border-color: $border-field-hover;
+  }
+
+  &.is-on {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
 .graph-view-menu__snap {
   position: absolute;
   top: 50%;
