@@ -345,8 +345,8 @@ const KaraokeWorkspaceView = ({
       }${isRestoring ? ' is-restoring' : ''}${isFullScreen ? ' is-fullscreen' : ''}${
         isGraphOverlay && !isMakerOpen ? ' is-graph-overlay' : ''
       }${isMakerOpen ? ' is-maker-open' : ''}${
-        song ? ' has-song' : ' is-empty'
-      }`}
+        isMakerShown ? ' is-maker-shown' : ''
+      }${song ? ' has-song' : ' is-empty'}`}
       aria-labelledby={isFullScreen ? undefined : 'karaoke-workspace-title'}
       aria-label={isFullScreen ? t('karaoke.title') : undefined}
       aria-hidden={isHidden}

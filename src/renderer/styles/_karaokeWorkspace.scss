@@ -232,6 +232,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include tracking(0.01em);
 }
 
+// One surface or the other, never both (Ivan, 2026-11-15: "it loads the
+// karaoke and then the Maker on top; we just need to show one or the
+// other"). The Maker fades in over 190 ms whenever it mounts, and coming
+// back to this tab mounts it afresh over a player drawn in the same frame,
+// so the player showed through the fade. While the Maker is up, what it
+// covers is not painted; the audio plays on regardless.
+.karaoke-workspace.is-maker-shown > :not(.karaoke-maker) {
+  visibility: hidden;
+}
+
 @keyframes karaoke-maker-surface-enter {
   from {
     opacity: 0;
