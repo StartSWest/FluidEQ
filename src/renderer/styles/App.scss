@@ -1297,7 +1297,13 @@ select option {
 // halves keeping their own state fills and giving up their own edges, so the
 // pair reads as two targets without a second border being drawn round each.
 .titlebar-instrument {
-  @include field-surface;
+  // FLAT, as the Library is (Ivan, 2026-11-15: "these icons on top need the
+  // flat look too"): no fill, the Library's hairline drawn inside. It wore a
+  // field's fill and edge, a raised box at the top of a flat window.
+  color: $text-primary;
+  border: 0;
+  background: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 12%, transparent);
   display: flex;
   flex-shrink: 0;
   align-items: stretch;
@@ -1319,6 +1325,16 @@ select option {
     // The hairline of light along its top belongs to a raised control.
     &::before {
       display: none;
+    }
+
+    // Flat in the flat capsule: the glyph without its glow and the light
+    // without its halo, the colour alone saying the state.
+    svg {
+      filter: none;
+    }
+
+    .status-dot {
+      box-shadow: none;
     }
 
     &:hover:not(:disabled),
