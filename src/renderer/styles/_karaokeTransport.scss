@@ -149,42 +149,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       border: 1px solid color-mix(in srgb, $secondary-light 38%, transparent);
       border-radius: 50%;
     }
-
-    &[data-tooltip]::after {
-      position: absolute;
-      bottom: calc(100% + 9px);
-      left: 50%;
-      z-index: 30;
-      padding: 6px 8px;
-      // A menu's floor and edge, in the window's palette. It was a fixed
-      // teal on near-black, the same under every theme and every accent.
-      color: $text-primary;
-      font-size: $text-lead;
-      font-weight: $weight-bold;
-      line-height: 1;
-      white-space: nowrap;
-      pointer-events: none;
-      visibility: hidden;
-      background: $surface-menu-floor;
-      border: 1px solid $border-menu;
-      border-radius: $radius-xs;
-      box-shadow: $tooltip-lift;
-      opacity: 0;
-      transform: translate(-50%, 3px);
-      transition:
-        opacity 120ms ease,
-        transform 120ms ease,
-        visibility 120ms;
-      content: attr(data-tooltip);
-    }
-
-    &[data-tooltip]:hover::after,
-    &[data-tooltip]:focus-visible::after {
-      visibility: visible;
-      opacity: 1;
-      transform: translate(-50%, 0);
-      transition-delay: 280ms;
-    }
   }
 
   .karaoke-transport__play {

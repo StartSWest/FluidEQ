@@ -401,71 +401,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 15px;
     height: 15px;
   }
-
-  &::after {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 50%;
-    z-index: 40;
-    padding: 5px 7px;
-    color: $text-muted;
-    font-size: $text-body;
-    font-weight: $weight-bold;
-    white-space: nowrap;
-    pointer-events: none;
-    visibility: hidden;
-    @include floating-surface($tooltip-lift);
-    opacity: 0;
-    transform: translate(-50%, -3px);
-    transition:
-      opacity 120ms ease,
-      transform 120ms ease,
-      visibility 120ms;
-    content: attr(data-tooltip);
-  }
-
-  &:hover::after,
-  &:focus-visible::after {
-    visibility: visible;
-    opacity: 1;
-    transform: translate(-50%, 0);
-    transition-delay: 320ms;
-  }
-}
-
-// The Apply explanation is sentence-length. Anchor the last two header
-// tooltips to the right edge and allow wrapping so they never leave a laptop
-// viewport or cover the transport from edge to edge.
-.karaoke-maker__header-actions > :nth-last-child(-n + 2)::after {
-  right: 0;
-  left: auto;
-  width: max-content;
-  max-width: min(310px, calc(100vw - 24px));
-  line-height: 1.35;
-  white-space: normal;
-  transform: translateY(-3px);
-}
-
-.karaoke-maker__header-actions > :nth-last-child(-n + 2):hover::after,
-.karaoke-maker__header-actions > :nth-last-child(-n + 2):focus-visible::after {
-  transform: translateY(0);
-}
-
-// Same reason as the two above, mirrored. The back arrow's tooltip is one word
-// most of the time and a sentence while a model is running; centred on a
-// button that sits against the left edge, that sentence left the window.
-.karaoke-maker__header-back::after {
-  left: 0;
-  width: max-content;
-  max-width: min(310px, calc(100vw - 24px));
-  line-height: 1.35;
-  white-space: normal;
-  transform: translateY(-3px);
-}
-
-.karaoke-maker__header-back:hover::after,
-.karaoke-maker__header-back:focus-visible::after {
-  transform: translateY(0);
 }
 
 // A HEADER BUTTON THAT IS OFF HAS TO LOOK OFF.
@@ -665,42 +600,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: $secondary-default;
     border-radius: 50%;
     content: '';
-  }
-
-  &::after {
-    position: absolute;
-    top: calc(100% + 9px);
-    left: 50%;
-    z-index: 30;
-    max-width: 210px;
-    padding: 6px 8px;
-    color: $text-muted;
-    font-size: $text-lead;
-    font-weight: $weight-bold;
-    line-height: 1.2;
-    white-space: nowrap;
-    pointer-events: none;
-    visibility: hidden;
-    @include floating-surface($tooltip-lift);
-    opacity: 0;
-    transform: translate(-50%, -3px);
-    transition:
-      opacity 120ms ease,
-      transform 120ms ease,
-      visibility 120ms;
-    content: attr(data-tooltip);
-  }
-
-  &:hover:not(:disabled)::after,
-  &:focus-visible::after {
-    visibility: visible;
-    opacity: 1;
-    transform: translate(-50%, 0);
-    transition-delay: 360ms;
-  }
-
-  &.is-active::after {
-    display: none;
   }
 
   &.is-danger:hover:not(:disabled),
