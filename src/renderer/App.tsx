@@ -827,7 +827,12 @@ const AppContent = () => {
               <FrequencyResponseChart
                 isVisible
                 hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
-                hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
+                // The Library's picture as well as the Karaoke's: both stay under
+                // a scene, so both get the see-through and blur controls.
+                hasPlaybackBackdrop={
+                  mounts.showsKaraokeGraphBackdrop ||
+                  mounts.showsLibraryGraphBackdrop
+                }
                 backdropControls={
                   activeWorkspaceTab === 'karaoke' &&
                   karaokeBackground === 'graph' ? (

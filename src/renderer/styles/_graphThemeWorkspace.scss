@@ -921,6 +921,14 @@ it under the terms of the GNU General Public License version 3 or later.
   )
   > .graph-wrapper.has-playback-backdrop {
   backdrop-filter: none;
+}
+
+// Over the Karaoke's stage or the Library's picture alike, a scene on the
+// graph follows the see-through slider, so the picture under it shows (Ivan,
+// 2026-11-16: "on the library ... show the cover and the see-through and
+// everything"). The Library keeps the graph's own blur; the Karaoke blurs its
+// scenery itself (above).
+.center-workspace.is-graph-full > .graph-wrapper.has-playback-backdrop {
   --graph-scene-opacity: var(--graph-overlay-opacity, 1);
   --graph-scene-visibility: var(--graph-overlay-scene-visibility, visible);
 }

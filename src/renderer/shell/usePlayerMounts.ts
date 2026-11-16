@@ -84,10 +84,14 @@ const usePlayerMounts = ({
    * here for the same rule: it has no page to be opened from.
    */
   const pageOwner = PAGE_PICTURE[activeWorkspaceTab];
+  // The Karaoke and the Library keep their picture under a scene too, with
+  // the see-through and the blur to show it (Ivan, 2026-11-16: "on the
+  // library, when I go full screen, show the cover and the see-through and
+  // everything"); only a video gives way to a scene, which then plays alone.
   const graphBackdropOwner =
     isGraphBackdropMode &&
     pageOwner !== undefined &&
-    (pageOwner === 'karaoke' || !isSceneOnGraph)
+    (pageOwner !== 'media' || !isSceneOnGraph)
       ? pageOwner
       : undefined;
   const showsMediaGraphBackdrop = graphBackdropOwner === 'media';
