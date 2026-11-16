@@ -155,8 +155,7 @@ body {
 // the root, and nothing else that styles it carries an id.
 //
 // Nothing in full screen is drawn differently from the window: the title bar
-// and the transport bar are what they are in the window — the floor, or the
-// Backdrop's glass while a scene is the window's (`SceneCover.scss`) — and
+// and the transport bar are what they are in the window — the floor — and
 // the graph's strip of controls is the quiet pill it is everywhere (Ivan,
 // 2026-09-26: "fix play bar and head in fullscreen needs to be same color as
 // normal no distinction", and then of the strip, the head and the play bar:
@@ -2669,9 +2668,7 @@ $tab-bar-inset: 8px;
 // The card is the panel, not `.middle-content` around it. The divider's split
 // counts that pane without margins (`paneSizes.ts`), so a gutter on the pane
 // would come out of the graph, and with the graph at its floor push it under
-// the column's foot. And under the Backdrop the pane is what carries the
-// veil (`SceneCover.scss`): the gutter round a card inside it stays veiled,
-// where a gutter round the pane itself would be a frame of bare scene.
+// the column's foot.
 //
 // The players too: every page's content stands in a card, as EQ Presets'
 // does (Ivan, 2026-09-27: "make sure ... that our main content always in a
@@ -2798,12 +2795,11 @@ $graph-card-pages: list.join(
     margin-bottom: 10px;
   }
 
-  // A Plus visualizer, behind the head and the graph (the column's layer) or
-  // behind the whole window (the Backdrop), stands in the same card as every
-  // other look's drawing does, the picture its face (Ivan, 2026-09-27: "make
-  // the card wrapper also for plus viz same way as in standard", "same case
-  // for mode backdrop"), so the card lays no face of its own over it.
-  :root:is(.is-scene-column, .is-scene-backdrop) & {
+  // A Plus visualizer behind the head and the graph (the column's layer)
+  // stands in the same card as every other look's drawing does, the picture
+  // its face (Ivan, 2026-09-27: "make the card wrapper also for plus viz same
+  // way as in standard"), so the card lays no face of its own over it.
+  :root.is-scene-column & {
     > .center-head,
     > .graph-wrapper {
       background: none;
@@ -2814,8 +2810,7 @@ $graph-card-pages: list.join(
   // card stands, its corners the card's less that pixel, so the picture never
   // runs under or past the edge ("the engine always inside inner borders").
   // It is measured from its own top to the graph's inside foot
-  // (`SceneColumnLayer.tsx`). Under the Backdrop it holds no picture and
-  // veils what is round it instead (`SceneCover.scss`).
+  // (`SceneColumnLayer.tsx`).
   > .scene-column-layer {
     top: 9px;
     right: 11px;
@@ -2839,13 +2834,6 @@ $graph-card-pages: list.join(
   @include section-card;
   width: auto;
   margin: 0 10px 10px;
-
-  // Under the Backdrop the picture behind the window is the card's face, at
-  // full strength, and the floor round it is veiled like every pane's
-  // (`SceneCover.scss`).
-  :root.is-scene-backdrop & {
-    background: none;
-  }
 }
 
 // The five EQ pages start with the section rail, and it sits on the card's own

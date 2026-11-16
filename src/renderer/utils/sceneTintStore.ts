@@ -45,14 +45,12 @@ import {
  * What a scene does to the window: nothing — the theme as it is — its
  * colours, its colours with the window beating along with it
  * (`ScenePulse.tsx`) and its elements around it — Ambient — or all of that
- * with the scene itself behind the whole window, the graph still its frame:
- * the Backdrop (`SceneCover.tsx`).
+ * with the scene itself behind the window: the Backdrop.
  *
- * The Backdrop is no longer a mode anybody picks. The scene stands behind
- * the window whenever the Transparency slider is above 0 (`useIsBackdrop`),
- * whatever the window's colours (Ivan, 2026-11-16: "instead of having a
- * backdrop mode is just transparency and blur"), so the three below are the
- * choice, and `cover` is only what the window is in while the amp holds it.
+ * The Backdrop is no longer anybody's choice in the full app, which has none
+ * (Ivan, 2026-11-16: "I didn't like the scene backdrop experiment so remove
+ * that"), so the three below are the choice, and `cover` is only what the
+ * window is in while the amp holds it (`useIsBackdrop`).
  */
 export const SCENE_TINT_MODES = ['off', 'tint', 'pulse', 'cover'] as const;
 export type TSceneTintMode = (typeof SCENE_TINT_MODES)[number];
@@ -117,9 +115,8 @@ export const SCENE_TINT_LEGACY_KEY = 'fluideq.sceneTint';
  * keeps the colours: the new mode starts as the old switch left it.
  *
  * A Backdrop chosen when it was a mode is read as Ambient, which is what the
- * Backdrop was besides the scene behind the window; the scene itself stays,
- * because its Transparency was kept for it (`backdropVeil.ts`). Read so and
- * never written back, so that reading in either order finds the old word.
+ * Backdrop was besides the scene behind the window. Read so and never
+ * written back, so that reading in either order finds the old word.
  */
 const createModeSetting = (
   key: string,
@@ -157,10 +154,9 @@ const createModeSetting = (
 };
 
 /**
- * Ambient from the start, and the Backdrop with it: a fresh install's
- * Transparency is above 0 (`backdropVeil.ts`), so the visualizer stands
- * behind the whole window with Ambient's colours and light around it (Ivan,
- * 2026-09-29: "when the user selects a Plus viz the settings are Backdrop").
+ * Ambient from the start: the visualizer's colours and light around the
+ * window (Ivan, 2026-09-29: "when the user selects a Plus viz the settings
+ * are Backdrop", from when the Backdrop was the full app's too).
  * Choosing a Plus visualizer is choosing how the app looks, and somebody who
  * has just become a member should see everything a scene does without first
  * finding the control that turns it on. Only a profile that never chose

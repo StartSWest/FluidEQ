@@ -5,8 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import AppIconTintSwitch from '../graph/AppIconTintSwitch';
-import BackdropBlurSlider from '../graph/BackdropBlurSlider';
-import BackdropVeilSlider from '../graph/BackdropVeilSlider';
 import DaylightSourceChoice from '../graph/DaylightSourceChoice';
 import PointerSparksSwitch from '../graph/PointerSparksSwitch';
 import RainbowSwitch from '../graph/RainbowSwitch';
@@ -27,8 +25,7 @@ import useIsSceneLook from '../utils/useIsSceneLook';
  *
  * With a Plus visualizer: the window's colours (Original, Colours or
  * Ambient), Brightness, the app's own colour while the window is Original,
- * Transparency — the scene behind the whole window above 0, unloaded at 0 —
- * and Blur, the scene's time of day and what it follows, and the switches;
+ * the scene's time of day and what it follows, and the switches;
  * under them, while the window wears the scene's colours, those three
  * colours themselves. With a standard look, which has no colours or picture
  * of its own: Brightness, the colour, Rainbow and the icon.
@@ -44,8 +41,6 @@ const WindowLookSection = () => {
         {(!isSceneLook || mode === 'off') && <WindowTintSlider />}
         {isSceneLook && (
           <>
-            <BackdropVeilSlider />
-            <BackdropBlurSlider />
             <SceneDaylightSlider />
             <DaylightSourceChoice />
           </>

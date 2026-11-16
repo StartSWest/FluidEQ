@@ -218,7 +218,7 @@ import './SceneAmbient.scss';
 // What a scene throws from the hand, over its picture and under the app's
 // glass: beside the window's own scene layers, before the Backdrop's.
 import './ScenePointerLayer.scss';
-import './SceneCover.scss';
+import './SceneColumn.scss';
 import './EngineTroubleNotice.scss';
 import './EngineUpdateNotice.scss';
 import './AudioEngineDialog.scss';

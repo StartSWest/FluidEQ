@@ -165,8 +165,6 @@ const eq: Partial<Dictionary> = {
     '標準のルックでのウィンドウの色。ダブルクリックで元の色に戻ります。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': 'パネル越しにシーンがどれだけ見えるか',
-  'graph.backdropBlur': 'ぼかし',
-  'graph.backdropBlurHint': 'パネルの奥のシーンをどれだけぼかすか',
   'graph.sceneTint.brightness': '明るさ',
   'graph.sceneTint.rainbow': 'カラフルモード',
   'graph.sceneTint.rainbowHint':

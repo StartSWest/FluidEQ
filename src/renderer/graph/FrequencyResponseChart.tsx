@@ -624,8 +624,8 @@ const FrequencyResponseChart = ({
   const isPlayerWindowRef = useRef(windowMode === 'player');
   isPlayerWindowRef.current = windowMode === 'player';
   // Whether a Plus visualizer may be drawn on a layer of the window with this
-  // plot as its frame — the window's back in the Backdrop (`SceneCover.tsx`),
-  // the EQ column's otherwise (`SceneColumnLayer`) — which is where the plot
+  // plot as its frame — the EQ column's (`SceneColumnLayer`) — which is
+  // where the plot
   // is one part of the window: as an overlay (full screen, or expanded over
   // a picture) the graph is the window already, and the player's window
   // shows its own deck, not this

@@ -88,7 +88,10 @@ import type { TPlayerPage } from './player/PlayerTitleStrip';
 import { usePlayerVisFull } from './player/playerLayout';
 import { setWindowMode, useWindowMode } from './player/windowModeStore';
 import { applyThemeScope } from './utils/theme';
-import { applyBackdropVeilScope } from './utils/backdropVeil';
+import {
+  applyBackdropVeilScope,
+  useBackdropVeilOnRoot,
+} from './utils/backdropVeil';
 import { applySceneDaylightScope } from './utils/sceneDaylightSetting';
 import { applySliderHandleScope } from './utils/sliderHandle';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
@@ -100,7 +103,6 @@ import RemoteAudioProvider from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
 import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
-import SceneCover from './graph/SceneCover';
 import SceneColumnLayer from './graph/SceneColumnLayer';
 import GraphScene from './graph/GraphScene';
 import SceneTint from './components/SceneTint';
@@ -234,6 +236,8 @@ const AppContent = () => {
     applySliderHandleScope(scope);
     applySceneDaylightScope(scope);
   }, [windowMode]);
+  // The amp's Transparency on the root, for its glass (`_miniPlayerShell`).
+  useBackdropVeilOnRoot();
   const openPageFromPlayer = useCallback(
     (page: TPlayerPage) => {
       let tab: TWorkspaceTab = page === 'plus' ? 'community' : lastEqTab;
@@ -888,9 +892,6 @@ export default function App() {
             <RainbowSource />
             {/* The taskbar button in the window's colours. Renders nothing. */}
             <TaskbarIconSource />
-            {/* The back of the window, where that visualizer is drawn while
-                Transparency is above 0; an empty layer otherwise. */}
-            <SceneCover />
             {/* The window beating with that visualizer, when its mode asks
                 for it; nothing in the page otherwise. */}
             <ScenePulse />

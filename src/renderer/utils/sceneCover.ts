@@ -12,7 +12,6 @@ import { useSyncExternalStore } from 'react';
  * The layers a Plus visualizer can be drawn on instead of its own plot, for
  * the graph's scene to be drawn into, the plot still its frame:
  *
- * - the Backdrop (`SceneCover.tsx`), at the back of the whole window;
  * - the column (`SceneColumnLayer.tsx`), behind the EQ pages' head and their
  *   graph, so the scene runs up under the section pills and the title
  *   instead of stopping in a straight line at the plot's top (Ivan,
@@ -49,11 +48,7 @@ const createLayerStore = () => {
   return { publish, useHost };
 };
 
-const backdrop = createLayerStore();
 const column = createLayerStore();
-
-export const publishSceneCoverHost = backdrop.publish;
-export const useSceneCoverHost = backdrop.useHost;
 
 export const publishSceneColumnHost = column.publish;
 export const useSceneColumnHost = column.useHost;

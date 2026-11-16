@@ -1,0 +1,53 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE GRAPH'S SCENE OFF ITS PLOT, and only up its own column. The full
+// app's Backdrop - the scene behind the whole window, the panes veiled and
+// blurred over it, with Transparency and Blur in the actions menu - was taken
+// out (Ivan, 2026-11-16: "I didn't like the scene backdrop experiment so
+// remove that"). A scene plays on the graph, in the Karaoke's lyric window
+// and on the Video page, each in its own place; the amp keeps its own glass
+// (`_miniPlayerShell.scss`).
+
+// The EQ head over the picture: the section pills and the title stand on the
+// scene itself, which runs up under them to the top of the column (Ivan,
+// 2026-09-25: "fill up to the top the graph only when plus viz"). Lifted over
+// the layer it stands on; inside it the controls keep their own faces.
+//
+// Over the graph's 2 as well, never between the two: the head and the graph
+// do not overlap, but what hangs out of the head does — the Smart EQ bubble
+// under its button — and at 1 the plot painted over it.
+@mixin head-over-scene {
+  position: relative;
+  z-index: 3;
+}
+
+// How much of the floor veils the amp's panes over its scene: the amp's
+// Transparency, written on the root (`backdropVeil.ts`), and until then its
+// default.
+:root {
+  --backdrop-veil: 50%;
+}
+
+// The column's layer (`SceneColumnLayer.tsx`): behind an EQ page's head and
+// its graph, as tall as the two together (measured), and under both. The
+// graph stands at 2 in the column; the head is lifted to 1 while a scene is
+// drawn here, which it has to be — positioned at 0, the layer would paint
+// over a head that is not positioned at all.
+.scene-column-layer {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+:root.is-scene-column .center-workspace.is-graph-first > .center-head {
+  @include head-over-scene;
+}

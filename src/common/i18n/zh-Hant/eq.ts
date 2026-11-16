@@ -137,8 +137,6 @@ const eq = {
   'graph.windowTintHint': '標準外觀開啟時視窗的顏色。雙擊原始顏色。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': '場景透過面板顯示了多少內容',
-  'graph.backdropBlur': '模糊',
-  'graph.backdropBlurHint': '面板後方場景的模糊程度',
   'graph.sceneTint.brightness': '亮度',
   'graph.sceneTint.rainbow': '多彩模式',
   'graph.sceneTint.rainbowHint':

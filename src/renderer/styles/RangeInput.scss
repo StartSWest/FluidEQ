@@ -22,8 +22,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 
 // The round cap's body: the field's colour as the theme paints it, taken on
-// the root. Under the Backdrop the panes wear a veiled, see-through field
-// (`SceneCover.scss`), and a cap made of it let the picture show through.
+// the root, so a pane that wears a see-through field (the amp's glass) never
+// lets the picture show through a cap made of it.
 :root {
   --range-cap-body: var(--surface-field);
 }

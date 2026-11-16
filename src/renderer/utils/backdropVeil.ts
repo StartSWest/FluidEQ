@@ -11,9 +11,10 @@ import { readStored, writeStored } from './graphStorage';
 import { SCENE_TINT_LEGACY_KEY, SCENE_TINT_MODE_KEY } from './sceneTintStore';
 
 /**
- * How much of the window's floor stands over the Backdrop's scene behind the
- * panes, in percent: the panes' veil and every surface on them
- * (`SceneCover.scss`, `--backdrop-veil`). On a dark theme that is how dark
+ * How much of the window's floor stands over the amp's scene behind its
+ * panes, in percent (`--backdrop-veil`, `_miniPlayerShell.scss`). The full
+ * app's own was its Backdrop's, taken out on 2026-11-16; its stored value is
+ * still what the mini player inside the app's window reads. On a dark theme that is how dark
  * the window sits over the picture (Ivan, 2026-09-25: "add slider for
  * transparent and how dark is the UI").
  *
@@ -147,18 +148,6 @@ export const useBackdropVeilScope = () =>
     subscribe,
     () => scope,
     () => 'app' as const,
-  );
-
-/**
- * Whether the full app's Transparency is above 0, which is what puts the
- * scene behind its window — the app's own, whichever window holds the
- * screen, because the app's scene is the graph's and the amp keeps its own.
- */
-export const useAppBackdropOn = () =>
-  useSyncExternalStore(
-    subscribe,
-    () => chosen.app < BACKDROP_VEIL_OFF,
-    () => false,
   );
 
 /**

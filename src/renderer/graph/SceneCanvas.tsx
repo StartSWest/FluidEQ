@@ -322,34 +322,20 @@ export default function SceneCanvas({
   useLayoutEffect(() => () => publishGraphSceneRun(undefined), []);
 
   // The root marked with the layer the scene is drawn on while it is there
-  // (`data-scene-layer`, `sceneCover.ts`): `is-scene-backdrop` veils the
-  // panes' surfaces (`SceneCover.scss`), and the drawings that read their
-  // colours from the root (`readSurface`, the level meter's wells) are told
-  // by its class, which is what their cache of those colours watches;
-  // `is-scene-column` lifts the EQ head over the picture.
-  //
-  // The Backdrop's only once this canvas has drawn a picture. The mark turns
-  // every pane to glass and floats it, and the layer under the glass holds
-  // nothing but the floor until the scene's first frame: marked at once, the
-  // window showed its glass over a flat dark ground for as long as the scene
-  // took to compile, then the picture (Ivan, 2026-09-29: "jump straight to
-  // the visualizer graphics so we don't see this"). Unmarked, the layer
-  // stands under the root's floor, out of sight, and the scene draws there
-  // all the same; the window stays as it was and takes the Backdrop whole
-  // with the picture in it. Any look's first frame counts: the next look is
-  // handed to this same canvas, so changing looks inside the Backdrop does
-  // not take the glass away while the next one compiles.
+  // (`data-scene-layer`, `sceneCover.ts`): `is-scene-column` lifts the EQ
+  // head over the picture, and the drawings that read their colours from the
+  // root (`readSurface`, the level meter's wells) are told by its class,
+  // which is what their cache of those colours watches.
   const layerName = target.dataset.sceneLayer;
-  const isLayerReady = layerName !== 'backdrop' || drawnIdentity !== undefined;
   useLayoutEffect(() => {
-    if (!layerName || !isLayerReady) {
+    if (!layerName) {
       return undefined;
     }
     const mark = `is-scene-${layerName}`;
     const root = document.documentElement;
     root.classList.add(mark);
     return () => root.classList.remove(mark);
-  }, [layerName, isLayerReady]);
+  }, [layerName]);
 
   // On a layer, the layer's size and where the plot's panel stands on it.
   // Measured whenever either box changes: the graph moving down the column
@@ -461,10 +447,9 @@ export default function SceneCanvas({
         container,
       )}
       {/* What it throws from the mouse, while the Window colours menu's
-          switch allows. On a layer behind the whole window - the Backdrop -
-          beside the picture, under the app's glass, following the mouse
-          anywhere over the window; on the plot, over its panel, following
-          the hands the plot gives the scene. */}
+          switch allows. On the column's layer beside the picture, following
+          the mouse anywhere over the window; on the plot, over its panel,
+          following the hands the plot gives the scene. */}
       {sparks &&
         drawnPack?.pointer &&
         (layer

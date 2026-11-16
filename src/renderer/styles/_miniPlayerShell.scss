@@ -167,10 +167,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   --player-shelf-tabs: 41px;
   --player-shelf-least: 77px;
 
-  // In the Backdrop the panes are the full app's glass, at exactly the
-  // strength Transparency leaves the app's own panes (`SceneCover.scss`): the
-  // picture is the window's, and it is meant to be seen through all of it
-  // (Ivan, 2026-10-25: "the app is too opaque").
+  // In the Backdrop the panes are glass, at exactly the strength the amp's
+  // Transparency leaves them (`backdropVeil.ts`): the picture is the
+  // window's, and it is meant to be seen through all of it (Ivan,
+  // 2026-10-25: "the app is too opaque").
   &.is-backdrop {
     --player-pane: color-mix(
       in srgb,

@@ -154,8 +154,6 @@ const eq: Partial<Dictionary> = {
   'graph.windowTintHint': '使用标准外观时窗口的颜色。双击恢复原来的颜色。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': '透过面板能看到多少场景',
-  'graph.backdropBlur': '模糊',
-  'graph.backdropBlurHint': '面板后方场景的模糊程度',
   'graph.sceneTint.brightness': '亮度',
   'graph.sceneTint.rainbow': '多彩模式',
   'graph.sceneTint.rainbowHint':

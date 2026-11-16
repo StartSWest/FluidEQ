@@ -170,9 +170,6 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': 'Transparence',
   'graph.backdropVeilHint':
     'Quelle part de la scène transparaît à travers les panneaux',
-  'graph.backdropBlur': 'Flou',
-  'graph.backdropBlurHint':
-    'À quel point la scène est floue derrière les panneaux',
   'graph.sceneTint.brightness': 'Luminosité',
   'graph.sceneTint.rainbow': 'Mode coloré',
   'graph.sceneTint.rainbowHint':

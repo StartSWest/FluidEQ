@@ -146,8 +146,6 @@ const eq = {
     '표준 모양이 켜져 있는 동안의 창 색상입니다. 원래 색상을 보려면 두 번 클릭하세요.',
   'graph.backdropVeil': '투명성',
   'graph.backdropVeilHint': '패널을 통해 표시되는 장면의 양',
-  'graph.backdropBlur': '흐림',
-  'graph.backdropBlurHint': '패널 뒤의 장면이 얼마나 흐려지는지',
   'graph.sceneTint.brightness': '밝기',
   'graph.sceneTint.rainbow': '컬러풀 모드',
   'graph.sceneTint.rainbowHint':

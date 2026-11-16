@@ -347,10 +347,10 @@ $surface-block: var(--surface-block);
 // accent lit the corner like a lamp.
 //
 // Translucent on purpose: every pane stands on the floor now, so over the
-// floor it is one colour everywhere, and over the Backdrop's scene it lets
-// the scene through as the veiled panes do (`SceneCover.scss`) instead of
-// standing opaque in a see-through window. What must hide what scrolls under
-// it lays it over the floor (`.studio-ship-card`).
+// floor it is one colour everywhere, and over the amp's scene it lets the
+// scene through as its glass does instead of standing opaque in a
+// see-through window. What must hide what scrolls under it lays it over the
+// floor (`.studio-ship-card`).
 //
 // A third of the pane's depth, and the glow a twentieth: at half of it the
 // Library's listing was a lighter slab across the tab, and every card with it
@@ -386,10 +386,8 @@ $card-glow: radial-gradient(
 // it with the pane. Flat, no glow: the corner glow is the card's, and on a
 // stretch the height of a page it would be a gradient across it.
 //
-// Translucent, for the card's reason: over the Backdrop's scene it lets the
-// scene through as the veiled panes do (`SceneCover.scss`), and is mixed
-// from their veiled pane colour there, where an opaque section would stand
-// as a slab across the picture.
+// Translucent, for the card's reason: over a scene it lets the scene
+// through, where an opaque section would stand as a slab across the picture.
 $surface-section: color-mix(in srgb, $surface-panel 85%, transparent);
 
 // The radius Windows 11 clips a frameless window's corners to, and therefore

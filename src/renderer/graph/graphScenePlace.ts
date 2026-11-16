@@ -12,15 +12,13 @@ import type { ISceneInteraction } from './sceneInteraction';
  * the graph tell each other.
  *
  * The graph used to run its scene itself, on a canvas made for the place it
- * stood in — the plot, the EQ column's layer or the window's back
- * (`sceneCover.ts`) — and keyed on that place, because a canvas in a React
+ * stood in — the plot or the EQ column's layer (`sceneCover.ts`) — and
+ * keyed on that place, because a canvas in a React
  * portal cannot change containers without being made again. So every change
  * of place built the scene from nothing, a new worker, a new GPU context and
- * the program compiled again: Colours to Backdrop, normal to full screen, an
- * EQ page to another page with the graph. And the graph leaving the screen
- * with its page took the Backdrop's picture with it, because the graph was
- * what ran it (Ivan, 2026-09-26: "when switching between color, ambient and
- * bg not to reload the viz because at the end it is the same").
+ * the program compiled again: normal to full screen, an EQ page to another
+ * page with the graph (Ivan, 2026-09-26: "when switching between color,
+ * ambient and bg not to reload the viz because at the end it is the same").
  *
  * Now one renderer above the pages keeps it (`GraphScene`), and its canvas is
  * one element moved between those places (`useMovableContainer`). Never a
@@ -60,14 +58,7 @@ export interface IGraphSceneRun {
 export interface IGraphScenePlaces {
   /** Whether a scene is chosen and the graph draws it (`isGraphWaveDrawn`). */
   drawsScene: boolean;
-  /**
-   * Whether the scene stands behind the whole window: a Plus visualizer and
-   * the app's Transparency above 0 (`useIsAppBackdrop`), on every page.
-   */
-  isBackdrop: boolean;
   plot: IScenePlot | undefined;
-  /** The window's back layer (`SceneCover`). */
-  backdrop: HTMLElement | null;
   /** The layer behind an EQ page's head and graph (`SceneColumnLayer`). */
   column: HTMLElement | null;
 }
@@ -75,44 +66,33 @@ export interface IGraphScenePlaces {
 /**
  * Where the graph's scene is drawn, or nowhere.
  *
- * With the plot on screen, the plot decides: a layer of the window while it
- * is one part of it — the back in the Backdrop, the EQ column's otherwise,
- * where there is one — and the plot itself everywhere else.
+ * With the plot on screen: the EQ column's layer while the plot is one part
+ * of the window and the page has one, and the plot itself everywhere else.
  *
- * With no plot — the graph closed on this page, or still loading — only the
- * Backdrop has anywhere to put it: the scene is the window's there, and goes
- * on behind every page (Ivan, 2026-09-26: "when I have a viz on the graph and
- * I switch to another page we need to keep same viz on"), the same canvas
- * from page to page, never built again (Ivan, 2026-11-16: "it doesn't reload
- * the scene on switching ui ... it runs on for the whole app and stays
- * there"). Without the Backdrop nothing would show it, so it is let go and
- * its memory with it, and the window keeps the colours measured for it
- * (`SceneTint`) without it running: Transparency 0 unloads the scene, and
- * moving it up loads it again.
+ * With no plot — the graph closed on this page, or still loading — nothing
+ * shows it, so it is let go and its memory with it, and the window keeps the
+ * colours measured for it (`SceneTint`) without it running. It went on
+ * behind every page while the full app had the Backdrop, which was taken out
+ * (Ivan, 2026-11-16: "I didn't like the scene backdrop experiment so remove
+ * that").
  */
 export const graphScenePlace = ({
   drawsScene,
-  isBackdrop,
   plot,
-  backdrop,
   column,
 }: IGraphScenePlaces): HTMLElement | undefined => {
-  if (!drawsScene) {
+  if (!drawsScene || !plot) {
     return undefined;
   }
-  const layer = isBackdrop ? backdrop : column;
-  if (!plot) {
-    return isBackdrop ? (backdrop ?? undefined) : undefined;
-  }
-  return (plot.isPartOfWindow ? layer : null) ?? plot.slot;
+  return (plot.isPartOfWindow ? column : null) ?? plot.slot;
 };
 
 /**
  * Whether the graph draws its wave, which is what a scene is drawn as: not in
  * Clean, and not with the wave switched off — unless the equaliser cannot be
  * heard, when the wave is the graph and is drawn whatever the switch says.
- * One rule for the graph and for its scene off the graph, so the Backdrop
- * never draws a scene the graph beside it has put away.
+ * One rule for the graph and for its scene on the column's layer, so the
+ * layer never draws a scene the graph beside it has put away.
  */
 export const isGraphWaveDrawn = ({
   isClean,
