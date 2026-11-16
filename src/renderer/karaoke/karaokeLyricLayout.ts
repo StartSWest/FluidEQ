@@ -239,7 +239,15 @@ export const fitKaraokeLyricLayout = (
  * A phrase's size away from the centre. The next phrase rests larger than
  * the one already sung, so it can be read ahead; a narrow stage caps both
  * low enough that a resting phrase never competes with the sung one.
+ *
+ * Past the neighbours each step further out is smaller again, by the same
+ * share, and continuously with the glide (Ivan, 2026-11-15: "the ones not in
+ * view need to scale from big to less"): every resting phrase on a side was
+ * one size, so the line after next stood as large as the next.
  */
+const RESTING_STEP_SHARE = 0.82;
+const RESTING_FLOOR_PX = 12;
+
 export const karaokeLyricRestingSize = (
   preferredSize: number,
   offset: number,
@@ -254,11 +262,13 @@ export const karaokeLyricRestingSize = (
   if (width < 500) {
     ceiling = 23;
   }
-  return clamp(
+  const neighbour = clamp(
     preferredSize * (isUpcoming ? 0.52 : 0.45),
     isUpcoming ? 18 : 16,
     ceiling,
   );
+  const stepsOut = Math.max(0, Math.abs(offset) - 1);
+  return Math.max(RESTING_FLOOR_PX, neighbour * RESTING_STEP_SHARE ** stepsOut);
 };
 
 /** The space between two phrases, tighter on a short or a narrow stage. */
