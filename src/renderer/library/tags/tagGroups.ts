@@ -72,7 +72,10 @@ export const groupsOf = (
     const label =
       [named.fields.albumArtist || named.fields.artist, named.fields.album]
         .filter(Boolean)
-        .join(' — ') || named.folder;
+        // A folder of untagged songs is named by its own folder, not its path.
+        .join(' — ') ||
+      named.folder.split(/[\\/]/).pop() ||
+      named.folder;
     return { ...group, label };
   });
 };

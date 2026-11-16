@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * "Fix this album": the changes proposed for a set of songs, as a list of
  * before → after lines, each saying where it came from.
  *
- * Everything here works from the songs' own tags and file names — nothing
+ * Everything here works from the songs' own tags, file names and folders — nothing
  * goes online. A line is proposed only where a rule is sure: a title that is
  * its file name, one written all in one case, junk a download left; a value
  * most of the album already agrees on; a total the album's own count gives.
@@ -28,6 +28,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import type { TTagFieldKey, TTagFields } from './tagFields';
+import {
+  type IFolderValue,
+  isVariousArtists,
+  readFolderTags,
+  type TFolderSource,
+} from './tagFolder';
 import {
   baseNameOf,
   countValues,
@@ -41,7 +47,15 @@ import {
 export type TFixKind = 'online' | 'clean' | 'unify' | 'fill' | 'cover';
 
 export type TFixSource =
-  'fileName' | 'capitals' | 'junk' | 'majority' | 'count' | 'spelling' | 'hand';
+  | 'fileName'
+  | 'capitals'
+  | 'junk'
+  | 'majority'
+  | 'count'
+  | 'spelling'
+  | 'hand'
+  | 'artistInTitle'
+  | TFolderSource;
 
 /** One proposed change: the same before and after for every song it names. */
 export interface IFixLine {
@@ -58,6 +72,8 @@ export interface IFixLine {
 export interface IFixSong {
   trackId: string;
   fileName: string;
+  /** The folder the file sits in: an untagged album's name and artist. */
+  folder?: string;
   fields: TTagFields;
 }
 
@@ -158,6 +174,59 @@ const stripTyped = (text: string, strip: readonly string[]): string =>
     .replace(/\s+/g, ' ')
     .trim();
 
+/**
+ * What rippers and players write where they know nothing: "<Desconocido>",
+ * "Unknown Artist", "[Unknown]". Read as empty, so the album's folders and
+ * majorities can fill the field, and cleared where nothing does (Ivan's
+ * Avril Lavigne folder, 2026-11-16, said "<Desconocido>" on every song).
+ */
+const PLACEHOLDER_NAMES = new Set([
+  'unknown',
+  'unknown artist',
+  'unknown album',
+  'unknown genre',
+  'desconocido',
+  'desconocida',
+  'artista desconocido',
+  'album desconocido',
+  'genero desconocido',
+  'inconnu',
+  'artiste inconnu',
+  'album inconnu',
+  'unbekannt',
+  'unbekannter kunstler',
+  'unbekanntes album',
+  'sconosciuto',
+  'artista sconosciuto',
+  'album sconosciuto',
+  'desconhecido',
+  'artista desconhecido',
+  'album desconhecido',
+  'no artist',
+  'no album',
+]);
+
+/** The fields a placeholder stands in for; a title is the song's own. */
+const PLACEHOLDER_FIELDS: readonly TTagFieldKey[] = [
+  'artist',
+  'albumArtist',
+  'album',
+  'genre',
+  'composer',
+];
+
+export const isPlaceholderName = (value: string): boolean =>
+  PLACEHOLDER_NAMES.has(
+    value
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .replace(/^[\s<[(]+|[\s>\])]+$/g, '')
+      .toLocaleLowerCase(),
+  );
+
+/** "Avril Lavigne - Black Star": the artist, then the title. */
+const ARTIST_TITLE = /^(.+?)\s+[-–—]\s+(.+)$/;
+
 /** Fields that belong to the album, where most songs agreeing is evidence. */
 const ALBUM_FIELDS: readonly TTagFieldKey[] = [
   'album',
@@ -229,8 +298,18 @@ export const proposeFixes = (
   rules: IFixRules,
 ): IFixLine[] => {
   const drafts: ILineDraft[] = [];
+  // Placeholders read as empty from the start; each line's "before" is
+  // given back its placeholder at the end.
   const current = new Map(
-    songs.map((song) => [song.trackId, { ...song.fields }]),
+    songs.map((song) => {
+      const fields = { ...song.fields };
+      PLACEHOLDER_FIELDS.forEach((field) => {
+        if (isPlaceholderName(fields[field] ?? '')) {
+          fields[field] = '';
+        }
+      });
+      return [song.trackId, fields];
+    }),
   );
   const add = (draft: ILineDraft) => {
     drafts.push(draft);
@@ -372,6 +451,92 @@ export const proposeFixes = (
     });
   });
 
+  // An album none of whose songs name it, read from its folders (Ivan,
+  // 2026-11-16: "poner las etiquetas de acuerdo al nombre de la carpeta").
+  // Only where every song shares one folder and the field is empty on all of
+  // them: a field some songs fill is the majority's to settle, below.
+  const folders = new Set(songs.map((song) => song.folder ?? ''));
+  const [folder] = [...folders];
+  if (folders.size === 1 && folder !== undefined && folder !== '') {
+    const read = readFolderTags(folder);
+    const fillAll = (field: TTagFieldKey, value: IFolderValue | undefined) => {
+      if (
+        value === undefined ||
+        songs.some((song) => (current.get(song.trackId)?.[field] ?? '') !== '')
+      ) {
+        return;
+      }
+      songs.forEach((song) =>
+        add({
+          kind: 'fill',
+          field,
+          trackId: song.trackId,
+          before: '',
+          after: value.value,
+          source: value.source,
+        }),
+      );
+    };
+    fillAll('album', read.album);
+    if (read.artist && !isVariousArtists(read.artist.value)) {
+      fillAll('artist', read.artist);
+    }
+    fillAll('albumArtist', read.artist);
+    fillAll('year', read.year);
+    fillAll('genre', read.genre);
+    fillAll('discNo', read.discNo);
+  }
+
+  // Titles that start with their artist: "Avril Lavigne - Black Star". When
+  // every title starts with the same name and no song names an artist, that
+  // name is the artist; wherever a title starts with its song's artist, the
+  // artist comes off it.
+  const splits = songs.map((song) =>
+    ARTIST_TITLE.exec(current.get(song.trackId)?.title ?? ''),
+  );
+  const prefixes = new Set(
+    splits.map((split) => (split ? spellingKey(split[1]) : '')),
+  );
+  const [prefix] = [...prefixes];
+  const firstSplit = splits[0];
+  if (
+    songs.length > 1 &&
+    prefixes.size === 1 &&
+    prefix !== '' &&
+    firstSplit &&
+    songs.every((song) => (current.get(song.trackId)?.artist ?? '') === '')
+  ) {
+    songs.forEach((song) =>
+      add({
+        kind: 'fill',
+        field: 'artist',
+        trackId: song.trackId,
+        before: '',
+        after: firstSplit[1],
+        source: 'artistInTitle',
+      }),
+    );
+  }
+  songs.forEach((song, index) => {
+    const split = splits[index];
+    const fields = current.get(song.trackId);
+    const artist = fields?.artist || fields?.albumArtist || '';
+    if (
+      split &&
+      artist !== '' &&
+      spellingKey(split[1]) === spellingKey(artist)
+    ) {
+      add({
+        kind: 'clean',
+        field: 'title',
+        trackId: song.trackId,
+        before: song.fields.title ?? '',
+        after: split[2],
+        source: 'artistInTitle',
+      });
+    }
+  });
+
   // Album fields most of the album agrees on: differing values unified,
   // missing ones filled.
   if (songs.length > 1) {
@@ -455,6 +620,34 @@ export const proposeFixes = (
       });
     }
   }
+
+  songs.forEach((song) =>
+    PLACEHOLDER_FIELDS.forEach((field) => {
+      const was = song.fields[field] ?? '';
+      if (!isPlaceholderName(was)) {
+        return;
+      }
+      const touched = drafts.filter(
+        (draft) => draft.trackId === song.trackId && draft.field === field,
+      );
+      touched.forEach((draft) => {
+        if (draft.before === '') {
+          // eslint-disable-next-line no-param-reassign -- this function's own drafts, given back what the file says
+          draft.before = was;
+        }
+      });
+      if (touched.length === 0) {
+        drafts.push({
+          kind: 'clean',
+          field,
+          trackId: song.trackId,
+          before: was,
+          after: '',
+          source: 'junk',
+        });
+      }
+    }),
+  );
 
   return mergeLines(drafts);
 };

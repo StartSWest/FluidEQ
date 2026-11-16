@@ -38,7 +38,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   table {
     width: 100%;
-    min-width: 860px;
+    min-width: 480px;
     border-collapse: separate;
     border-spacing: 0;
     font-size: $studio-text-tree;
@@ -49,22 +49,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 30px;
   }
 
-  col.is-no,
-  col.is-disc,
-  col.is-time {
+  col.is-no {
     width: 64px;
   }
 
+  // "Duración", "Длительность": the heading is wider than any time.
+  col.is-time {
+    width: 112px;
+  }
+
   col.is-artist {
-    width: 20%;
-  }
-
-  col.is-year {
-    width: 76px;
-  }
-
-  col.is-file {
-    width: 24%;
+    width: 34%;
   }
 
   th {
@@ -126,6 +121,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: inset 0 0 0 1px $amber;
   }
 
+  // A title find & replace would change: the preview stands over the cell
+  // while the caret is elsewhere; typing in the cell shows the cell itself.
+  td.is-found {
+    position: relative;
+
+    &:not(:focus-within) .library-tags-sheet__cell {
+      color: transparent;
+    }
+
+    &:focus-within .library-tags-sheet__preview {
+      display: none;
+    }
+  }
+
   tr.is-dragging td {
     opacity: 0.4;
   }
@@ -154,6 +163,46 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:focus {
     box-shadow: inset 0 0 0 1px $border-field-focus;
+  }
+}
+
+// Laid exactly over the cell's text: the same 2px cell inset and 8px padding.
+.library-tags-sheet__preview {
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  left: 2px;
+  overflow: hidden;
+  padding: 0 8px;
+  color: $text-primary;
+  line-height: 30px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+
+  mark {
+    padding: 1px 0;
+    border-radius: 3px;
+    background: color-mix(in srgb, $secondary-default 32%, transparent);
+    color: $secondary-light;
+  }
+
+  del {
+    padding: 1px 0;
+    border-radius: 3px 0 0 3px;
+    background: color-mix(in srgb, $red 18%, transparent);
+    color: color-mix(in srgb, $red 45%, $white);
+    text-decoration: line-through;
+    text-decoration-thickness: 1.5px;
+  }
+
+  ins {
+    padding: 1px 2px;
+    border-radius: 0 3px 3px 0;
+    background: color-mix(in srgb, $secondary-default 26%, transparent);
+    color: $secondary-light;
+    text-decoration: none;
   }
 }
 

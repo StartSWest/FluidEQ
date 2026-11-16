@@ -33,13 +33,7 @@ import {
   type TTagFieldKey,
   type TTagFields,
 } from '../../../common/library/tagFields';
-import {
-  countValues,
-  isFileNameTitle,
-  isOneCase,
-  titleCase,
-  titleFromFileName,
-} from '../../../common/library/tagText';
+import { countValues } from '../../../common/library/tagText';
 import type { IDraftCover } from './tagDrafts';
 
 /** The fields shown above the sheet, for every song at once. */
@@ -61,8 +55,6 @@ export const SHEET_FIELDS: readonly TTagFieldKey[] = [
   'trackNo',
   'title',
   'artist',
-  'year',
-  'discNo',
 ];
 
 export type TVersionChoice = 'keep' | 3 | 4;
@@ -275,45 +267,46 @@ export const renumbered = (
     state,
   );
 
-/** Titles from file names, for the songs whose title is empty or is its
- * file name; a track number is taken too where the song has none. */
-export const titledFromFileNames = (
-  state: ISetState,
-  sheets: readonly ITrackTagSheet[],
-): ISetState =>
-  sheets.reduce((acc, sheet) => {
-    const title = effectiveValue(acc, sheet, 'title');
-    if (title !== '' && !isFileNameTitle(title, sheet.fileName)) {
-      return acc;
-    }
-    const read = titleFromFileName(sheet.fileName);
-    if (read === undefined || read.title === '') {
-      return acc;
-    }
-    let next = withCell(acc, sheet, 'title', read.title);
-    if (
-      read.trackNo !== undefined &&
-      effectiveValue(next, sheet, 'trackNo') === ''
-    ) {
-      next = withCell(next, sheet, 'trackNo', read.trackNo);
-    }
-    return next;
-  }, state);
+export interface IFindPart {
+  text: string;
+  isMatch: boolean;
+}
 
-/** Fix capitals: titles written all in one case get title case; a title
- * cased by hand is left as it is. */
-export const capitalsFixed = (
-  state: ISetState,
-  sheets: readonly ITrackTagSheet[],
-): ISetState =>
-  sheets.reduce((acc, sheet) => {
-    const title = effectiveValue(acc, sheet, 'title');
-    return isOneCase(title)
-      ? withCell(acc, sheet, 'title', titleCase(title))
-      : acc;
-  }, state);
+/**
+ * A title cut where `find` occurs, case aside: "avril" finds "Avril". What
+ * the sheet lights up while it is typed, and what Replace all replaces —
+ * one rule, so nothing lit is left alone and nothing unlit is changed.
+ */
+export const findParts = (text: string, find: string): IFindPart[] => {
+  if (find === '') {
+    return [{ text, isMatch: false }];
+  }
+  const parts: IFindPart[] = [];
+  const haystack = text.toLocaleLowerCase();
+  const needle = find.toLocaleLowerCase();
+  // Lower-casing keeps each character's place in every script these titles
+  // use, except a few letters ("İ"); a length change there would cut a title
+  // in the wrong place, so such a title is left unmatched.
+  if (haystack.length !== text.length || needle.length !== find.length) {
+    return [{ text, isMatch: false }];
+  }
+  let from = 0;
+  let at = haystack.indexOf(needle, from);
+  while (at !== -1) {
+    if (at > from) {
+      parts.push({ text: text.slice(from, at), isMatch: false });
+    }
+    parts.push({ text: text.slice(at, at + find.length), isMatch: true });
+    from = at + find.length;
+    at = haystack.indexOf(needle, from);
+  }
+  if (from < text.length) {
+    parts.push({ text: text.slice(from), isMatch: false });
+  }
+  return parts;
+};
 
-/** Find & replace in titles, as typed, every occurrence. */
+/** Find & replace in titles, every occurrence, case aside. */
 export const titlesReplaced = (
   state: ISetState,
   sheets: readonly ITrackTagSheet[],
@@ -323,8 +316,15 @@ export const titlesReplaced = (
   find === ''
     ? state
     : sheets.reduce((acc, sheet) => {
-        const title = effectiveValue(acc, sheet, 'title');
-        return title.includes(find)
-          ? withCell(acc, sheet, 'title', title.split(find).join(replace))
+        const parts = findParts(effectiveValue(acc, sheet, 'title'), find);
+        return parts.some((part) => part.isMatch)
+          ? withCell(
+              acc,
+              sheet,
+              'title',
+              parts
+                .map((part) => (part.isMatch ? replace : part.text))
+                .join(''),
+            )
           : acc;
       }, state);

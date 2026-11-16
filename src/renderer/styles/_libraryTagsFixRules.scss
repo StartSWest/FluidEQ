@@ -113,10 +113,3 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     text-decoration: none;
   }
 }
-
-@container library (max-width: #{$bp-lg}) {
-  // The changes right after the lead; the rules follow them.
-  .library-tags-fix__rules {
-    order: 1;
-  }
-}

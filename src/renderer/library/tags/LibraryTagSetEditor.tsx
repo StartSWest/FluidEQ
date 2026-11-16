@@ -16,24 +16,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  type KeyboardEvent,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type KeyboardEvent, useEffect, useMemo, useState } from 'react';
+import { isPlaceholderName } from '../../../common/library/tagFix';
+import type { TTagFieldKey } from '../../../common/library/tagFields';
 import { useTranslation } from '../../utils/I18nContext';
 import { useLibraryPlayerSessionIfAny } from '../player/LibraryPlayerContext';
 import { useLibraryTracks } from '../useLibraryTracks';
+import {
+  LibraryTagAlbumField,
+  LibraryTagAlbumTitle,
+} from './LibraryTagAlbumFields';
+import LibraryTagBack from './LibraryTagBack';
 import LibraryTagSetCover from './LibraryTagSetCover';
-import LibraryTagSharedFields from './LibraryTagSharedFields';
+import LibraryTagSetTools, { type IFindReplace } from './LibraryTagSetTools';
 import LibraryTagSheet from './LibraryTagSheet';
+import { FIELD_LABEL_KEYS } from './tagLabels';
 import { groupsOf } from './tagGroups';
-import LibraryTagSetTools from './LibraryTagSetTools';
 import { useTagEditor } from './TagEditorContext';
 import {
   changedFields,
+  effectiveValue,
+  fieldValues,
+  findParts,
   initialSetState,
   isSetValid,
   type ISetState,
@@ -44,29 +48,47 @@ import {
 } from './tagSetModel';
 import { useTagSheets } from './useTagSheets';
 
+/** Beside the cover, what most albums need. */
+const MAIN_FIELDS: readonly TTagFieldKey[] = ['albumArtist', 'year', 'genre'];
+
+/** Folded under "More fields": what fewer albums need. */
+const MORE_FIELDS: readonly TTagFieldKey[] = [
+  'artist',
+  'trackTotal',
+  'discNo',
+  'publisher',
+  'composer',
+  'comment',
+];
+
+const WandGlyph = () => (
+  <svg viewBox="0 0 16 16" aria-hidden="true" fill="none">
+    <path d="M2.5 13.5 10.5 5.5M9.5 2.5v2M12.5 3.5l-1.4 1.4M13.5 6.5h-2M7 2.8l.6.9" />
+  </svg>
+);
+
 /**
- * AN ALBUM, A FOLDER OR A SELECTION, edited on the page itself (the mockup's
- * section 3): the shared fields and one cover above, a spreadsheet of the
- * songs below. Nothing is written until Save; a write then runs from the
- * shelf with its progress there, and the editor closes.
+ * AN ALBUM, A FOLDER OR A SELECTION, edited as the album page itself (the
+ * 2026-11-16 mockup's design A, Ivan's pick): Back and Fix tags
+ * automatically on one line; the cover (a press for a menu) beside the
+ * album's name typed over the big title, its artist, year and genre, and the
+ * rest folded; then the songs, with find & replace on their own line.
+ * Nothing is written until Save, which shows only once there is something
+ * to save; a write then runs from the shelf and the editor closes.
  */
 const LibraryTagSetEditor = () => {
   const { t } = useTranslation();
-  const {
-    view,
-    close,
-    write,
-    leavePage,
-    isLeaveAsked,
-    answerLeave,
-    setPageHasChanges,
-  } = useTagEditor();
+  const { view, close, write, leavePage, openFix, setPageHasChanges } =
+    useTagEditor();
   const ids = useMemo(() => (view?.kind === 'set' ? view.ids : []), [view]);
   const sheets = useTagSheets(ids);
   const tracks = useLibraryTracks(ids);
   const session = useLibraryPlayerSessionIfAny();
   const [state, setState] = useState<ISetState>(() => initialSetState(ids));
-  const leaveRef = useRef<HTMLDivElement>(null);
+  const [finding, setFinding] = useState<IFindReplace>({
+    find: '',
+    replace: '',
+  });
   const [didRefuse, setDidRefuse] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -87,18 +109,11 @@ const LibraryTagSetEditor = () => {
     [state, ordered, changes],
   );
   const hasChanges = summary.changeCount > 0;
-  // A view or shelf pressed while there are edits asks here before leaving.
+  // A view or shelf pressed while there are edits asks before leaving.
   useEffect(() => {
     setPageHasChanges(hasChanges);
   }, [hasChanges, setPageHasChanges]);
   useEffect(() => () => setPageHasChanges(false), [setPageHasChanges]);
-  // The question stands at the head of the page, which may be scrolled away
-  // when a view is pressed at the foot of a long album.
-  useEffect(() => {
-    if (isLeaveAsked) {
-      leaveRef.current?.scrollIntoView({ block: 'nearest' });
-    }
-  }, [isLeaveAsked]);
   if (view?.kind !== 'set') {
     return null;
   }
@@ -106,15 +121,14 @@ const LibraryTagSetEditor = () => {
   const groups = groupsOf(ordered, isFolder);
   const canSave =
     hasChanges && sheets.isComplete && isSetValid(changes) && !isSaving;
-
-  const saveLabel = () => {
-    if (summary.fileCount === 0) {
-      return t('library.tags.save');
-    }
-    return summary.fileCount === 1
-      ? t('library.tags.set.saveToOne')
-      : t('library.tags.set.saveTo', { count: summary.fileCount });
-  };
+  const found =
+    finding.find === ''
+      ? 0
+      : ordered.filter((sheet) =>
+          findParts(effectiveValue(state, sheet, 'title'), finding.find).some(
+            (part) => part.isMatch,
+          ),
+        ).length;
 
   const save = () => {
     if (!canSave) {
@@ -137,31 +151,28 @@ const LibraryTagSetEditor = () => {
       });
   };
 
-  const titles = ordered.map((sheet) => sheet.fields.title || sheet.fileName);
-  let { title } = view;
-  if (title === '') {
-    if (titles.length > 2) {
-      title = t('library.tags.set.selectionTitle', {
-        first: titles[0],
-        second: titles[1],
-        count: titles.length - 2,
-      });
-    } else {
-      title = titles.join(' · ');
-    }
-  }
-  const scopeName = {
-    album: t('library.tags.set.album'),
-    folder: t('library.tags.set.folder'),
-    selection: t('library.tags.set.selection'),
-  }[view.scope];
+  const onShared = (key: TTagFieldKey, value: string | undefined) =>
+    setState((current) => withShared(current, key, value));
+  // What most of the songs' artist says, when more than half agree on it.
+  const [topArtist] = fieldValues(ordered, 'artist');
+  const majorityArtist =
+    topArtist &&
+    topArtist.value !== '' &&
+    !isPlaceholderName(topArtist.value) &&
+    topArtist.count * 2 > ordered.length
+      ? topArtist.value
+      : undefined;
   const unreadable = sheets.readCount - ordered.length;
+  const moreLabel = MORE_FIELDS.map((key) => t(FIELD_LABEL_KEYS[key])).join(
+    ', ',
+  );
+  const fixLabel = t('library.tags.set.fixAuto');
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Ctrl+S saves from whichever field or cell has the caret
     <section
       className="library-tags-set"
-      aria-label={title}
+      aria-label={view.title}
       onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
         if (
           (event.ctrlKey || event.metaKey) &&
@@ -173,57 +184,19 @@ const LibraryTagSetEditor = () => {
       }}
     >
       <div className="library-tags-set__scroll">
-        <header className="library-tags-set__head">
-          <div className="library-tags-set__heading">
-            <div className="library-tags-set__eyebrow">
-              <b>
-                {ids.length === 1
-                  ? t('library.trackCountOne')
-                  : t('library.trackCount', { count: ids.length })}
-              </b>
-              {' · '}
-              {scopeName}
-              {view.place ? ` · ${view.place}` : ''}
-            </div>
-            <h2>{title}</h2>
-          </div>
-          <div className="library-tags-set__head-side">
-            {isLeaveAsked ? (
-              <div
-                className="library-tags-set__leave"
-                role="alert"
-                ref={leaveRef}
-              >
-                <span>{t('library.tags.set.leaveAsk')}</span>
-                <button
-                  type="button"
-                  className="button small subtle"
-                  onClick={() => answerLeave(false)}
-                >
-                  {t('library.tags.set.keepEditing')}
-                </button>
-                <button
-                  type="button"
-                  className="button small danger"
-                  onClick={() => answerLeave(true)}
-                >
-                  {t('library.tags.set.discard')}
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => leavePage()}
-              >
-                {t('library.tags.set.back')}
-              </button>
-            )}
-            <p className="library-tags__note">
-              {t('library.tags.set.mixedNote')}
-            </p>
-          </div>
-        </header>
+        <div className="library-tags-set__top">
+          <LibraryTagBack />
+          <button
+            type="button"
+            className="button small subtle library-tags-set__fix"
+            onClick={() =>
+              leavePage(() => openFix(view.scope, ids, view.title, view.place))
+            }
+          >
+            <WandGlyph />
+            {fixLabel}
+          </button>
+        </div>
         {!sheets.isComplete && (
           <div className="library-tags-set__reading" role="status">
             <span>
@@ -248,7 +221,7 @@ const LibraryTagSetEditor = () => {
         )}
         {ordered.length > 0 && (
           <>
-            <div className="library-tags-set__shared">
+            <div className="library-tags-album">
               <LibraryTagSetCover
                 sheets={ordered}
                 tracks={tracks}
@@ -257,26 +230,58 @@ const LibraryTagSetEditor = () => {
                   setState((current) => ({ ...current, cover }))
                 }
               />
-              <LibraryTagSharedFields
-                sheets={ordered}
-                state={state}
-                onShared={(key, value) =>
-                  setState((current) => withShared(current, key, value))
-                }
-                onVersion={(version) =>
-                  setState((current) => ({ ...current, version }))
-                }
-              />
+              <div className="library-tags-album__side">
+                <LibraryTagAlbumTitle
+                  fieldKey="album"
+                  sheets={ordered}
+                  state={state}
+                  onShared={onShared}
+                />
+                <div className="library-tags-album__facts">
+                  {MAIN_FIELDS.map((key) => (
+                    <LibraryTagAlbumField
+                      key={key}
+                      fieldKey={key}
+                      sheets={ordered}
+                      state={state}
+                      onShared={onShared}
+                      suggestion={
+                        key === 'albumArtist' ? majorityArtist : undefined
+                      }
+                    />
+                  ))}
+                </div>
+                <details className="library-tags-album__more">
+                  <summary>
+                    {t('library.tags.set.moreFields', { fields: moreLabel })}
+                  </summary>
+                  <div className="library-tags-album__more-grid">
+                    {MORE_FIELDS.map((key) => (
+                      <LibraryTagAlbumField
+                        key={key}
+                        fieldKey={key}
+                        sheets={ordered}
+                        state={state}
+                        onShared={onShared}
+                      />
+                    ))}
+                  </div>
+                </details>
+              </div>
             </div>
             <LibraryTagSetTools
               groups={groups}
               ordered={ordered}
+              finding={finding}
+              onFinding={setFinding}
+              found={found}
               onState={(update) => setState((current) => update(current))}
             />
             <LibraryTagSheet
               groups={groups}
               state={state}
               tracks={tracks}
+              finding={finding}
               onCell={(sheet, key, value) =>
                 setState((current) => withCell(current, sheet, key, value))
               }
@@ -294,54 +299,47 @@ const LibraryTagSetEditor = () => {
           </>
         )}
       </div>
-      <footer className="library-tags-set__foot">
-        <div className="library-tags-set__what" aria-live="polite">
-          {hasChanges ? (
-            <>
-              <b>
-                {summary.changeCount === 1
-                  ? t('library.tags.set.changesOne')
-                  : t('library.tags.set.changes', {
-                      count: summary.changeCount,
-                    })}
-              </b>
-              <span>
-                {summary.fileCount === 1
-                  ? t('library.tags.set.filesOne')
-                  : t('library.tags.set.files', { count: summary.fileCount })}
-              </span>
-            </>
-          ) : (
-            <>
-              <b>{t('library.tags.foot.none')}</b>
-              <span>{t('library.tags.set.noChanges')}</span>
-            </>
-          )}
-          {didRefuse && (
-            <span className="library-tags__note is-warning" role="alert">
-              {t('library.tags.saveFailed')}
+      {(hasChanges || didRefuse) && (
+        <footer className="library-tags-set__foot">
+          <div className="library-tags-set__what" aria-live="polite">
+            <b>
+              {summary.changeCount === 1
+                ? t('library.tags.set.changesOne')
+                : t('library.tags.set.changes', {
+                    count: summary.changeCount,
+                  })}
+            </b>
+            <span>
+              {summary.fileCount === 1
+                ? t('library.tags.set.filesOne')
+                : t('library.tags.set.files', { count: summary.fileCount })}
             </span>
-          )}
-        </div>
-        <div className="library-tags-set__actions">
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={!hasChanges}
-            onClick={() => setState(initialSetState(ids))}
-          >
-            {t('library.tags.set.discard')}
-          </button>
-          <button
-            type="button"
-            className="button small"
-            disabled={!canSave}
-            onClick={save}
-          >
-            {saveLabel()}
-          </button>
-        </div>
-      </footer>
+            {didRefuse && (
+              <span className="library-tags__note is-warning" role="alert">
+                {t('library.tags.saveFailed')}
+              </span>
+            )}
+          </div>
+          <div className="library-tags-set__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={!hasChanges}
+              onClick={() => setState(initialSetState(ids))}
+            >
+              {t('library.tags.set.discard')}
+            </button>
+            <button
+              type="button"
+              className="button small"
+              disabled={!canSave}
+              onClick={save}
+            >
+              {t('library.tags.save')}
+            </button>
+          </div>
+        </footer>
+      )}
     </section>
   );
 };

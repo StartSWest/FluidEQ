@@ -16,112 +16,108 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useState } from 'react';
 import type { ITrackTagSheet } from '../../../common/library/tagFields';
 import { useTranslation } from '../../utils/I18nContext';
 import { LibraryTagInput } from './LibraryTagField';
 import type { ISheetGroup } from './tagGroups';
-import {
-  capitalsFixed,
-  type ISetState,
-  renumbered,
-  titledFromFileNames,
-  titlesReplaced,
-} from './tagSetModel';
+import { type ISetState, renumbered, titlesReplaced } from './tagSetModel';
+
+export interface IFindReplace {
+  find: string;
+  replace: string;
+}
 
 interface ILibraryTagSetToolsProps {
   groups: readonly ISheetGroup[];
   ordered: readonly ITrackTagSheet[];
+  finding: IFindReplace;
+  onFinding: (finding: IFindReplace) => void;
+  /** Songs whose title holds what is searched for. */
+  found: number;
   onState: (update: (state: ISetState) => ISetState) => void;
 }
 
 /**
- * The sheet's tools, offline and undoable by Discard: number by the order on
- * screen, titles out of file names, capitals fixed with Spanish and English
- * in mind, and find & replace across the titles.
+ * The songs' own line, all on one row (Ivan, 2026-11-16: "aligned in the
+ * same line, the left and right"): the heading, find and replace across the
+ * titles with how many songs it found, and Renumber at the far end. The
+ * titles show what is found, and what replaces it, as it is typed
+ * (`LibraryTagSheet`). Everything here is undone by Discard.
  */
 const LibraryTagSetTools = ({
   groups,
   ordered,
+  finding,
+  onFinding,
+  found,
   onState,
 }: ILibraryTagSetToolsProps) => {
   const { t } = useTranslation();
-  const [isReplacing, setIsReplacing] = useState(false);
-  const [find, setFind] = useState('');
-  const [replace, setReplace] = useState('');
+  let foundText = '';
+  if (finding.find !== '') {
+    if (found === 0) {
+      foundText = t('library.tags.set.foundNone');
+    } else {
+      foundText =
+        found === 1
+          ? t('library.tags.set.foundOne')
+          : t('library.tags.set.found', { count: found });
+    }
+  }
   return (
     <div className="library-tags-set__tools">
-      <div className="library-tags-set__tool-row">
-        <span className="library-tags__group is-inline">
-          {t('library.tags.set.songs')}
-        </span>
+      <span className="library-tags__group is-inline">
+        {t('library.tags.set.songs')}
+      </span>
+      <div className="library-tags-set__replace">
+        <LibraryTagInput
+          value={finding.find}
+          onChange={(find) => onFinding({ ...finding, find })}
+          isEdited={false}
+          placeholder={t('library.tags.set.find')}
+          ariaLabel={t('library.tags.set.find')}
+        />
+        <LibraryTagInput
+          value={finding.replace}
+          onChange={(replace) => onFinding({ ...finding, replace })}
+          isEdited={false}
+          placeholder={t('library.tags.set.replaceWith')}
+          ariaLabel={t('library.tags.set.replaceWith')}
+        />
         <button
           type="button"
-          className="button small subtle"
-          onClick={() =>
+          className="button small"
+          disabled={found === 0}
+          onClick={() => {
             onState((state) =>
-              renumbered(
-                state,
-                groups.map((group) => group.sheets),
-              ),
-            )
-          }
+              titlesReplaced(state, ordered, finding.find, finding.replace),
+            );
+            onFinding({ find: '', replace: '' });
+          }}
         >
-          {t('library.tags.set.renumber')}
+          {t('library.tags.set.replaceAll')}
         </button>
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() =>
-            onState((state) => titledFromFileNames(state, ordered))
-          }
+        <span
+          className={`library-tags-set__found${found === 0 ? ' is-none' : ''}`}
+          aria-live="polite"
         >
-          {t('library.tags.set.fromFileNames')}
-        </button>
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => onState((state) => capitalsFixed(state, ordered))}
-        >
-          {t('library.tags.set.fixCapitals')}
-        </button>
-        <button
-          type="button"
-          className={`button small subtle${isReplacing ? ' is-on' : ''}`}
-          aria-expanded={isReplacing}
-          onClick={() => setIsReplacing((open) => !open)}
-        >
-          {t('library.tags.set.findReplace')}
-        </button>
+          {foundText}
+        </span>
       </div>
-      {isReplacing && (
-        <div className="library-tags-set__replace">
-          <LibraryTagInput
-            value={find}
-            onChange={setFind}
-            isEdited={false}
-            placeholder={t('library.tags.set.find')}
-            ariaLabel={t('library.tags.set.find')}
-          />
-          <LibraryTagInput
-            value={replace}
-            onChange={setReplace}
-            isEdited={false}
-            placeholder={t('library.tags.set.replaceWith')}
-            ariaLabel={t('library.tags.set.replaceWith')}
-          />
-          <button
-            type="button"
-            className="button small"
-            disabled={find === ''}
-            onClick={() =>
-              onState((state) => titlesReplaced(state, ordered, find, replace))
-            }
-          >
-            {t('library.tags.set.replaceAll')}
-          </button>
-        </div>
-      )}
+      <button
+        type="button"
+        className="button small subtle library-tags-set__renumber"
+        onClick={() =>
+          onState((state) =>
+            renumbered(
+              state,
+              groups.map((group) => group.sheets),
+            ),
+          )
+        }
+      >
+        {t('library.tags.set.renumber')}
+      </button>
     </div>
   );
 };

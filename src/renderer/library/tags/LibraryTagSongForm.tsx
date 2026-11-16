@@ -158,6 +158,7 @@ const LibraryTagSongForm = ({
       <div className="library-tags__who">
         <LibraryTagCover
           artId={track?.artId}
+          folderOf={sheet.trackId}
           label={title}
           draft={current.cover}
           size="panel"

@@ -22,10 +22,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'themeMixins' as *;
 @use 'libraryTokens' as *;
 
-// *** An album, a folder or a selection: the page as the editor ****************
+// *** An album, a folder or a selection: the album page, writable ************
 //
-// The mockup's section 3: shared fields and one cover over a spreadsheet of
-// the songs, on the shelf's own floor, with the shelf's gutters.
+// Design A of the 2026-11-16 mockup: Back and Fix automatically on one line,
+// the cover beside the album's name typed over the big title, its artist,
+// year and genre under it and the rest folded, then the songs with find &
+// replace on their own line. Save shows only once there is something to
+// save. On the shelf's own floor, with the shelf's gutters.
 
 .library-tags-set {
   display: flex;
@@ -43,26 +46,50 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include slim-scrollbar;
 }
 
-.library-tags-set__head {
+.library-tags-set__top {
   display: flex;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
-.library-tags-set__heading {
-  min-width: 0;
+.library-tags-set__fix {
+  gap: 6px;
 
-  h2 {
-    margin: 2px 0 0;
-    font-size: 1.375rem;
-    font-weight: $weight-bold;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    overflow-wrap: anywhere;
+  svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
+}
+
+// Back stands first at the top left of every tag page (`LibraryTagBack`).
+.library-tags-back {
+  gap: 4px;
+  padding-left: 6px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.library-tags-back__ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: $studio-t2;
+  font-size: $studio-text-tree;
 }
 
 .library-tags-set__eyebrow {
@@ -76,28 +103,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.library-tags-set__head-side {
-  display: grid;
-  max-width: 320px;
-  justify-items: end;
-  gap: 6px;
-
-  .library-tags__note {
-    margin: 0;
-    text-align: right;
-  }
-}
-
-.library-tags-set__leave {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  color: $studio-t2;
-  font-size: $studio-text-tree;
-}
-
 .library-tags-set__reading {
   display: grid;
   max-width: 420px;
@@ -107,12 +112,223 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $studio-text-meta;
 }
 
-.library-tags-set__shared {
+// *** The album ******************************************************************
+
+.library-tags-album {
   display: grid;
   grid-template-columns: 168px minmax(0, 1fr);
-  gap: 20px;
-  padding-bottom: 20px;
+  align-items: start;
+  gap: 24px;
+  padding-bottom: 22px;
   box-shadow: inset 0 -1px 0 $studio-hair;
+}
+
+.library-tags-album__side {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+}
+
+// The album's name on the page's own big title, a box only under the
+// pointer and the caret — the Library's hero, writable.
+.library-tags-album__title {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  > label {
+    color: $studio-t2;
+    font-size: $studio-text-tree;
+  }
+}
+
+.library-tags-album__title-box {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  margin: 0 -8px;
+  padding: 0 4px 0 8px;
+  border-radius: $radius-m;
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: box-shadow 130ms ease;
+
+  &:hover {
+    box-shadow: inset 0 0 0 1px $studio-hair;
+  }
+
+  &:focus-within {
+    @include quiet-field-focus;
+  }
+
+  input {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    flex: 1 1 auto;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: none;
+    color: $text-primary;
+    font: inherit;
+    font-size: 1.875rem;
+    font-weight: $weight-bold;
+    letter-spacing: -0.015em;
+    text-overflow: ellipsis;
+
+    &::placeholder {
+      color: $studio-t3;
+      font-weight: $weight-semibold;
+    }
+
+    &[aria-invalid='true'] {
+      color: $amber;
+    }
+  }
+}
+
+.library-tags-album__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 12px 16px;
+}
+
+.library-tags-album__field {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+
+  > label {
+    color: $studio-t3;
+    font-size: $studio-text-label;
+    font-weight: $weight-bold;
+    @include tracking(0.06em);
+    text-transform: uppercase;
+  }
+
+  &.is-edited > label {
+    color: $secondary-light;
+  }
+}
+
+// "Varies: 2009 · 2011 · 2014 and 2 more", each value a press.
+.library-tags-album__varies {
+  display: flex;
+  margin: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+
+  .library-tags-album__value {
+    display: inline-flex;
+    min-width: 0;
+    max-width: 100%;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  button {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $studio-t2;
+    font: inherit;
+    font-weight: $weight-semibold;
+    @include truncate;
+    cursor: pointer;
+
+    &:hover {
+      color: $secondary-light;
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+.library-tags-album__more {
+  min-width: 0;
+
+  > summary {
+    display: inline-flex;
+    max-width: 100%;
+    min-height: 28px;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px 0 6px;
+    margin-left: -6px;
+    border-radius: $radius-xs;
+    color: $studio-t2;
+    font-size: $studio-text-tree;
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      width: 6px;
+      height: 6px;
+      flex: none;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
+      content: '';
+      transform: rotate(-45deg);
+      transition: transform 130ms ease;
+    }
+
+    &:hover {
+      background: $studio-surface;
+      color: $text-primary;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &[open] > summary::before {
+    transform: rotate(45deg);
+  }
+}
+
+.library-tags-album__more-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 16px;
+  padding-top: 10px;
+}
+
+// The suggestion inside a box: "Use Inna".
+.library-tags__values {
+  display: inline-flex;
+  height: 24px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: $studio-surface;
+  color: $studio-t2;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: $studio-raise;
+    color: $text-primary;
+  }
 }
 
 .library-tags-set__cover-caption {
@@ -175,123 +391,55 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: none;
 }
 
-.library-tags-set__fields {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start;
-  gap: 0 24px;
-
-  .library-tags__row {
-    grid-template-columns: 96px minmax(0, 1fr);
-  }
-
-  .library-tags__row.is-wide {
-    grid-column: 1 / -1;
-  }
-}
-
-.library-tags__pair.is-wrapping {
-  flex-wrap: wrap;
-  row-gap: 6px;
-}
-
-.library-tags__all {
-  flex: 0 0 auto;
-}
-
-// "3 values": the songs' own values behind a Mixed field.
-.library-tags__values {
-  display: inline-flex;
-  height: 24px;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 4px;
-  padding: 0 6px 0 8px;
-  border: 0;
-  border-radius: $radius-xs;
-  background: $studio-surface;
-  color: $studio-t2;
-  font-size: $studio-text-label;
-  font-weight: $weight-bold;
-  white-space: nowrap;
-  cursor: pointer;
-
-  svg {
-    width: 12px;
-    height: 12px;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  &:hover,
-  &[aria-expanded='true'] {
-    background: $studio-raise;
-    color: $text-primary;
-  }
-}
-
-.library-tags__suggestions.is-values {
-  right: 0;
-  left: auto;
-  width: min(268px, 100%);
-
-  .is-empty {
-    color: $studio-t3;
-  }
-
-  .library-tags__suggestion svg {
-    width: 14px;
-    height: 14px;
-    flex: 0 0 auto;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-}
-
-.library-tags__suggestions-rule {
-  height: 1px;
-  margin: 4px 6px;
-  background: color-mix(in srgb, $secondary-light 14%, transparent);
-}
-
-// *** Tools ************************************************************************
+// *** The songs' line ************************************************************
+//
+// One row, the heading and find & replace on the left and Renumber on the
+// right (Ivan, 2026-11-16: "aligned in the same line"); it wraps whole
+// pieces, never a box under its own label.
 
 .library-tags-set__tools {
-  display: grid;
-  margin: 18px 0 10px;
-  gap: 8px;
-}
-
-.library-tags-set__tool-row {
   display: flex;
+  margin: 18px 0 10px;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 8px 14px;
 
   .library-tags__group.is-inline {
-    margin: 0 auto 0 0;
+    margin: 0;
 
     &::after {
       display: none;
     }
   }
-
-  .button.is-on {
-    border-color: $secondary-default;
-    color: $secondary-light;
-  }
 }
 
 .library-tags-set__replace {
-  display: grid;
-  max-width: 640px;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  gap: 6px;
+  display: flex;
+  min-width: 0;
+  flex: 1 1 520px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+
+  .library-tags__box {
+    width: 220px;
+    max-width: 100%;
+    flex: 0 1 220px;
+  }
+}
+
+.library-tags-set__found {
+  color: $secondary-light;
+  font-size: $studio-text-meta;
+  white-space: nowrap;
+
+  &.is-none {
+    color: $amber;
+  }
+}
+
+.library-tags-set__renumber {
+  margin-left: auto;
 }
 
 // *** The foot ****************************************************************
@@ -332,8 +480,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+@container library (max-width: #{$bp-lg}) {
+  .library-tags-album__facts,
+  .library-tags-album__more-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @container library (max-width: #{$bp-md}) {
-  .library-tags-set__shared {
+  .library-tags-album {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .library-tags-album__title-box input {
+    font-size: 1.5rem;
+  }
+
+  .library-tags-album__facts,
+  .library-tags-album__more-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -367,19 +532,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .library-tags-set__fields {
-    grid-template-columns: minmax(0, 1fr);
+  // Each box takes the line; the button and the count share the next.
+  .library-tags-set__replace .library-tags__box {
+    width: 100%;
+    flex: 1 1 100%;
   }
 
-  .library-tags-set__head-side {
-    justify-items: start;
-
-    .library-tags__note {
-      text-align: left;
-    }
-  }
-
-  .library-tags-set__replace {
-    grid-template-columns: minmax(0, 1fr);
+  .library-tags-set__renumber {
+    margin-left: 0;
   }
 }

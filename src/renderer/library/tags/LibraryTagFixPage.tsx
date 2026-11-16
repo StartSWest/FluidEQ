@@ -16,71 +16,70 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   fieldsOfLines,
   type IFixLine,
   type IFixRules,
+  isPlaceholderName,
   proposeFixes,
-  type TFixKind,
 } from '../../../common/library/tagFix';
 import {
   cleanTagValue,
   type ITagEdit,
+  type TTagFieldKey,
 } from '../../../common/library/tagFields';
-import type { TranslationKey } from '../../../common/i18n';
 import { useTranslation } from '../../utils/I18nContext';
 import { useLibraryPlayerSessionIfAny } from '../player/LibraryPlayerContext';
-import LibraryTagFixRow from './LibraryTagFixRow';
+import LibraryTagBack from './LibraryTagBack';
+import LibraryTagFixAlbum, { type IFixEntry } from './LibraryTagFixAlbum';
+import LibraryTagFixAlbumList, {
+  type IAlbumLines,
+} from './LibraryTagFixAlbumList';
 import LibraryTagFixRules from './LibraryTagFixRules';
+import LibraryTagFixSongs, { type IFixSongRow } from './LibraryTagFixSongs';
 import { useTagEditor } from './TagEditorContext';
-import { groupsOf, type ISheetGroup } from './tagGroups';
+import { groupsOf } from './tagGroups';
 import { readFixRules, writeFixRules } from './tagFixPrefs';
 import { useTagSheets } from './useTagSheets';
 
-type TFilter = 'all' | TFixKind;
+/** A proposal as shown: `proposed` is its value before any typing, which
+ * keeps a row's identity while its box is being typed into. */
+type IShownLine = IFixLine & { proposed: string };
 
-const GROUPS: Array<{
-  kind: TFixKind;
-  title: TranslationKey;
-  sub: TranslationKey;
-  filter: TranslationKey;
-}> = [
-  {
-    kind: 'clean',
-    title: 'library.tags.fix.group.clean',
-    sub: 'library.tags.fix.group.cleanSub',
-    filter: 'library.tags.fix.kind.clean',
-  },
-  {
-    kind: 'unify',
-    title: 'library.tags.fix.group.unify',
-    sub: 'library.tags.fix.group.unifySub',
-    filter: 'library.tags.fix.kind.unify',
-  },
-  {
-    kind: 'fill',
-    title: 'library.tags.fix.group.fill',
-    sub: 'library.tags.fix.group.fillSub',
-    filter: 'library.tags.fix.kind.fill',
-  },
-];
-
-interface IAlbumLines {
-  group: ISheetGroup;
-  lines: IFixLine[];
+interface IShownAlbum extends IAlbumLines {
+  lines: IShownLine[];
 }
 
+/** The album card's order: what an album is called first. */
+const ALBUM_ORDER: readonly TTagFieldKey[] = [
+  'album',
+  'artist',
+  'albumArtist',
+  'year',
+  'genre',
+  'discNo',
+  'trackTotal',
+];
+
+const orderOf = (field: TTagFieldKey): number => {
+  const index = ALBUM_ORDER.indexOf(field);
+  return index === -1 ? ALBUM_ORDER.length : index;
+};
+
 /**
- * "FIX THIS ALBUM" (the mockup's section 4): one list of before → after,
- * grouped by kind, every line ticked and saying where it came from, every
- * new value open to a correction by hand. Nothing is written until the
- * primary "Write N changes". A folder is one album at a time, each listed
- * with what it would change, and one write for all of them.
+ * "FIX TAGS": what FluidEQ would write, read from the songs' own tags, file
+ * names and folders, as two plain cards — the album's values, then each
+ * song's number and title — every value already in a box to correct by
+ * hand. Nothing is written until Save. The rules the proposals follow (how
+ * a file name reads, capitals, text to take out) wait folded at the foot.
+ *
+ * It replaced a page of filters, groups and word diffs that Ivan could not
+ * read ("no entiendo nada", 2026-11-16).
  */
 const LibraryTagFixPage = () => {
   const { t } = useTranslation();
-  const { view, close, write } = useTagEditor();
+  const { view, close, write, leavePage, setPageHasChanges } = useTagEditor();
   const session = useLibraryPlayerSessionIfAny();
   const ids = useMemo(() => (view?.kind === 'fix' ? view.ids : []), [view]);
   const sheets = useTagSheets(ids);
@@ -89,7 +88,6 @@ const LibraryTagFixPage = () => {
   const [hand, setHand] = useState<ReadonlyMap<string, string>>(
     () => new Map(),
   );
-  const [filter, setFilter] = useState<TFilter>('all');
   const [albumKey, setAlbumKey] = useState<string | undefined>(undefined);
   const [didRefuse, setDidRefuse] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -103,7 +101,7 @@ const LibraryTagFixPage = () => {
     [ids, sheets.results],
   );
   const isFolder = view?.kind === 'fix' && view.scope === 'folder';
-  const albums = useMemo<IAlbumLines[]>(
+  const albums = useMemo<IShownAlbum[]>(
     () =>
       groupsOf(ordered, isFolder).map((group) => ({
         group,
@@ -111,19 +109,25 @@ const LibraryTagFixPage = () => {
           group.sheets.map((sheet) => ({
             trackId: sheet.trackId,
             fileName: sheet.fileName,
+            folder: sheet.folder,
             fields: sheet.fields,
           })),
           rules,
-        ).map((line) => {
+        ).map((line): IShownLine => {
           // A value changed by hand is the line's new value and source.
           const typed = hand.get(line.id);
           return typed === undefined
-            ? line
-            : { ...line, after: typed, source: 'hand' };
+            ? { ...line, proposed: line.after }
+            : { ...line, after: typed, source: 'hand', proposed: line.after };
         }),
       })),
     [ordered, isFolder, rules, hand],
   );
+  // Only what was typed by hand is lost by leaving; proposals come back.
+  useEffect(() => {
+    setPageHasChanges(hand.size > 0);
+  }, [hand, setPageHasChanges]);
+  useEffect(() => () => setPageHasChanges(false), [setPageHasChanges]);
 
   if (view?.kind !== 'fix') {
     return null;
@@ -132,6 +136,30 @@ const LibraryTagFixPage = () => {
     setRules(next);
     writeFixRules(next);
   };
+  const isOff = (line: IFixLine) => off.has(line.id);
+  const toggle = (lines: readonly IFixLine[], isOn: boolean) =>
+    setOff((current) => {
+      const next = new Set(current);
+      lines.forEach((line) =>
+        isOn ? next.delete(line.id) : next.add(line.id),
+      );
+      return next;
+    });
+  const edit = (lines: readonly IFixLine[], value: string) => {
+    setHand((current) => {
+      const next = new Map(current);
+      lines.forEach((line) => next.set(line.id, value));
+      return next;
+    });
+    toggle(lines, true);
+  };
+  const putBack = (lines: readonly IFixLine[]) =>
+    setHand((current) => {
+      const next = new Map(current);
+      lines.forEach((line) => next.delete(line.id));
+      return next;
+    });
+
   const allLines = albums.flatMap((album) => album.lines);
   const ticked = allLines.filter((line) => !off.has(line.id));
   const fileCount = new Set(ticked.flatMap((line) => line.trackIds)).size;
@@ -145,48 +173,79 @@ const LibraryTagFixPage = () => {
       : albums;
   const showsAlbumList =
     isFolder && albumKey === undefined && albums.length > 1;
-  const shownLines = shown.flatMap((album) => album.lines);
-  const sheetsById = new Map(ordered.map((sheet) => [sheet.trackId, sheet]));
 
-  const songsOf = (line: IFixLine, group: ISheetGroup): string => {
-    if (
-      line.trackIds.length === group.sheets.length &&
-      group.sheets.length > 1
-    ) {
-      return t('library.tags.fix.songsAll', { count: group.sheets.length });
-    }
-    return line.trackIds
-      .map(
-        (id) =>
-          sheetsById.get(id)?.fields.trackNo ??
-          String(group.sheets.findIndex((s) => s.trackId === id) + 1),
-      )
-      .join(' · ');
-  };
-
-  const toggle = (lineIds: readonly string[], isOn: boolean) =>
-    setOff((current) => {
-      const next = new Set(current);
-      lineIds.forEach((id) => (isOn ? next.delete(id) : next.add(id)));
-      return next;
-    });
+  // One row per value: "Artist → Marea Alta" for song 4 (a spelling) and
+  // for song 8 (missing) is one decision, not two rows of the same name.
+  const albumEntries: IFixEntry[] = shown
+    .flatMap((album) => {
+      const rows = new Map<string, IShownLine[]>();
+      album.lines
+        .filter((line) => line.field !== 'title' && line.field !== 'trackNo')
+        .forEach((line) => {
+          const key = JSON.stringify([
+            album.group.key,
+            line.field,
+            line.proposed,
+          ]);
+          rows.set(key, [...(rows.get(key) ?? []), line]);
+        });
+      return [...rows.entries()].map(([key, lines]): IFixEntry => {
+        const ids = new Set(lines.flatMap((line) => line.trackIds));
+        if (ids.size === album.group.sheets.length) {
+          return { key, lines };
+        }
+        const numbers = album.group.sheets
+          .flatMap((sheet, index) =>
+            ids.has(sheet.trackId)
+              ? [sheet.fields.trackNo ?? String(index + 1)]
+              : [],
+          )
+          .join(' · ');
+        return {
+          key,
+          lines,
+          songs:
+            ids.size === 1
+              ? t('library.tags.fix.onlySong', { songs: numbers })
+              : t('library.tags.fix.onlySongs', { songs: numbers }),
+        };
+      });
+    })
+    .sort((a, b) => orderOf(a.lines[0].field) - orderOf(b.lines[0].field));
+  const songRows: IFixSongRow[] = shown.flatMap((album) =>
+    album.group.sheets.flatMap((sheet) => {
+      const own = album.lines.filter(
+        (line) =>
+          line.trackIds.length === 1 && line.trackIds[0] === sheet.trackId,
+      );
+      const title = own.find((line) => line.field === 'title');
+      const trackNo = own.find((line) => line.field === 'trackNo');
+      return title || trackNo ? [{ sheet, title, trackNo }] : [];
+    }),
+  );
+  const spellingLines = shown
+    .flatMap((album) => album.lines)
+    .filter(
+      (line) =>
+        line.kind === 'unify' &&
+        (line.field === 'artist' ||
+          line.field === 'albumArtist' ||
+          line.field === 'composer'),
+    );
 
   const save = () => {
     if (ticked.length === 0 || isSaving || !isValid) {
       return;
     }
     const edits: ITagEdit[] = [...fieldsOfLines(ticked).entries()].map(
-      ([trackId, fields]) => ({
-        trackId,
-        fields,
-      }),
+      ([trackId, fields]) => ({ trackId, fields }),
     );
     const playing = session?.track?.id;
     setIsSaving(true);
     write({
       edits,
       heldTrackIds:
-        playing !== undefined && edits.some((edit) => edit.trackId === playing)
+        playing !== undefined && edits.some((e) => e.trackId === playing)
           ? [playing]
           : [],
     })
@@ -205,17 +264,6 @@ const LibraryTagFixPage = () => {
       });
   };
 
-  const countOf = (kind: TFilter) =>
-    shownLines.filter(
-      (line) => (kind === 'all' || line.kind === kind) && !off.has(line.id),
-    ).length;
-  const spellingLines = shownLines.filter(
-    (line) =>
-      line.kind === 'unify' &&
-      (line.field === 'artist' ||
-        line.field === 'albumArtist' ||
-        line.field === 'composer'),
-  );
   const lead = () => {
     if (!sheets.isComplete) {
       return t('library.tags.set.reading', {
@@ -226,196 +274,89 @@ const LibraryTagFixPage = () => {
     if (allLines.length === 0) {
       return t('library.tags.fix.leadNone');
     }
-    return allLines.length === 1
-      ? t('library.tags.fix.leadOne')
-      : t('library.tags.fix.lead', { count: allLines.length });
+    return t('library.tags.fix.intro');
   };
+  // "<Desconocido>" names nothing: the album's folder says more.
+  const folderName = ordered[0]?.folder.split(/[\\/]/).pop() ?? '';
+  const title =
+    view.title !== '' && !isPlaceholderName(view.title)
+      ? view.title
+      : folderName;
 
   return (
-    <section
-      className="library-tags-set library-tags-fix"
-      aria-label={view.title}
-    >
+    <section className="library-tags-set library-tags-fix" aria-label={title}>
       <div className="library-tags-set__scroll">
-        <header className="library-tags-set__head">
-          <div className="library-tags-set__heading">
+        <div className="library-tags-fix__page">
+          <div className="library-tags-fix__top">
+            <LibraryTagBack />
+            {isFolder && albumKey !== undefined && albums.length > 1 && (
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() => setAlbumKey(undefined)}
+              >
+                {t('library.tags.fix.allAlbums')}
+              </button>
+            )}
+          </div>
+          <header className="library-tags-fix__head">
             <div className="library-tags-set__eyebrow">
               <b>{t('library.tags.hero.fix')}</b>
-              {view.place ? ` · ${view.place}` : ''}
+              {' · '}
+              {ids.length === 1
+                ? t('library.trackCountOne')
+                : t('library.trackCount', { count: ids.length })}
             </div>
-            <h2>{view.title || ordered[0]?.fields.album || ''}</h2>
-            <p className="library-tags-fix__lead">
-              <b>{lead()}</b>
-              {sheets.isComplete && (
-                <span>{t('library.tags.fix.offline')}</span>
-              )}
-            </p>
-          </div>
-          {isFolder && albumKey !== undefined && albums.length > 1 && (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => setAlbumKey(undefined)}
-            >
-              {t('library.tags.fix.allAlbums')}
-            </button>
-          )}
-        </header>
-        {!sheets.isComplete && (
-          <div className="library-tags-set__reading" role="status">
-            <span className="library-tags__bar">
+            <h2>{title}</h2>
+            <p className="library-tags-fix__lead">{lead()}</p>
+          </header>
+          {!sheets.isComplete && (
+            <span className="library-tags__bar library-tags-fix__reading">
               <i
                 style={{
                   width: `${(sheets.readCount / Math.max(1, ids.length)) * 100}%`,
                 }}
               />
             </span>
-          </div>
-        )}
+          )}
 
-        {showsAlbumList ? (
-          <div className="library-tags-fix__albums">
-            <p className="library-tags__group">
-              {t('library.tags.fix.albums', { count: albums.length })}
-            </p>
-            {albums.map((album) => {
-              const on = album.lines.filter((line) => !off.has(line.id)).length;
-              return (
-                <div key={album.group.key} className="library-tags-fix__album">
-                  <div className="library-tags-fix__album-name">
-                    <b>{album.group.label}</b>
-                    <span>
-                      {album.group.sheets.length === 1
-                        ? t('library.trackCountOne')
-                        : t('library.trackCount', {
-                            count: album.group.sheets.length,
-                          })}
-                    </span>
-                  </div>
-                  <span className="library-tags-fix__album-state">
-                    {on === 0 && t('library.tags.fix.albumNothing')}
-                    {on === 1 && t('library.tags.fix.albumChangesOne')}
-                    {on > 1 &&
-                      t('library.tags.fix.albumChanges', { count: on })}
-                  </span>
-                  {album.lines.length > 0 && (
-                    <button
-                      type="button"
-                      className="button small subtle"
-                      onClick={() => setAlbumKey(album.group.key)}
-                    >
-                      {t('library.tags.fix.review')}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <>
-            <span
-              className="segmented library-tags-fix__filters"
-              role="radiogroup"
-            >
-              {(['all', 'clean', 'unify', 'fill'] as TFilter[]).map((kind) => (
-                <button
-                  key={kind}
-                  type="button"
-                  role="radio"
-                  aria-checked={filter === kind}
-                  className={`segmented__option${filter === kind ? ' is-selected' : ''}`}
-                  onClick={() => setFilter(kind)}
-                >
-                  {t(
-                    kind === 'all'
-                      ? 'library.tags.fix.kind.all'
-                      : (GROUPS.find((g) => g.kind === kind)?.filter ??
-                          'library.tags.fix.kind.all'),
-                  )}
-                  <span className="library-tags-fix__filter-count">
-                    {countOf(kind)}
-                  </span>
-                </button>
-              ))}
-            </span>
-            <div className="library-tags-fix__grid">
+          {showsAlbumList && (
+            <LibraryTagFixAlbumList
+              albums={albums}
+              isOff={isOff}
+              onReview={setAlbumKey}
+            />
+          )}
+          {!showsAlbumList && albumEntries.length > 0 && (
+            <LibraryTagFixAlbum
+              entries={albumEntries}
+              isOff={isOff}
+              onToggle={toggle}
+              onEdit={edit}
+              onPutBack={putBack}
+            />
+          )}
+          {!showsAlbumList && songRows.length > 0 && (
+            <LibraryTagFixSongs
+              rows={songRows}
+              isOff={isOff}
+              onToggle={toggle}
+              onEdit={edit}
+              onPutBack={putBack}
+            />
+          )}
+          {!showsAlbumList && sheets.isComplete && (
+            <details className="library-tags-fix__settings">
+              <summary>{t('library.tags.fix.settings')}</summary>
               <LibraryTagFixRules
                 rules={rules}
                 onRules={changeRules}
                 sheets={shown.flatMap((album) => album.group.sheets)}
                 spellingLines={spellingLines}
               />
-              <div className="library-tags-fix__diff">
-                {GROUPS.filter(
-                  (group) => filter === 'all' || filter === group.kind,
-                ).map((group) => {
-                  const entries = shown.flatMap((album) =>
-                    album.lines
-                      .filter((line) => line.kind === group.kind)
-                      .map((line) => ({ line, album })),
-                  );
-                  if (entries.length === 0) {
-                    return null;
-                  }
-                  const on = entries.filter(
-                    ({ line }) => !off.has(line.id),
-                  ).length;
-                  const title = t(group.title);
-                  return (
-                    <div key={group.kind} className="library-tags-fix__group">
-                      <div className="library-tags-fix__group-head">
-                        <input
-                          type="checkbox"
-                          checked={on === entries.length}
-                          ref={(box) => {
-                            if (box) {
-                              // eslint-disable-next-line no-param-reassign -- a DOM property React has no attribute for
-                              box.indeterminate = on > 0 && on < entries.length;
-                            }
-                          }}
-                          aria-label={t('library.tags.fix.applyGroup', {
-                            group: title,
-                          })}
-                          onChange={() =>
-                            toggle(
-                              entries.map(({ line }) => line.id),
-                              on !== entries.length,
-                            )
-                          }
-                        />
-                        <h4>{title}</h4>
-                        <span className="library-tags-fix__group-sub">
-                          {t(group.sub)}
-                        </span>
-                        <span className="library-tags-fix__group-count">
-                          {t('library.tags.fix.groupCount', {
-                            on,
-                            count: entries.length,
-                          })}
-                        </span>
-                      </div>
-                      {entries.map(({ line, album }) => (
-                        <LibraryTagFixRow
-                          key={line.id}
-                          line={line}
-                          isOn={!off.has(line.id)}
-                          songs={songsOf(line, album.group)}
-                          onToggle={() => toggle([line.id], off.has(line.id))}
-                          onEdit={(value) => {
-                            setHand((current) =>
-                              new Map(current).set(line.id, value),
-                            );
-                            toggle([line.id], true);
-                          }}
-                        />
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </>
-        )}
+            </details>
+          )}
+        </div>
       </div>
       <footer className="library-tags-set__foot">
         <div className="library-tags-set__what" aria-live="polite">
@@ -445,7 +386,11 @@ const LibraryTagFixPage = () => {
           )}
         </div>
         <div className="library-tags-set__actions">
-          <button type="button" className="button small subtle" onClick={close}>
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => leavePage()}
+          >
             {t('library.tags.fix.cancel')}
           </button>
           <button

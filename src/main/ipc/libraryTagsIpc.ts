@@ -16,15 +16,24 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BrowserWindow, ipcMain } from 'electron';
+import {
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  type OpenDialogOptions,
+} from 'electron';
+import fs from 'fs';
 import path from 'path';
-import type {
-  TTagItemAnswer,
-  TTagReadResult,
+import {
+  MAX_COVER_BYTES,
+  type TTagCoverPick,
+  type TTagItemAnswer,
+  type TTagReadResult,
 } from '../../common/library/tagFields';
 import type { ILibraryStore } from '../library/libraryStore';
 import { storeArtwork } from '../library/libraryArtwork';
 import type { ITagJobs } from '../library/tagJobs';
+import mainText from '../mainText';
 
 /** Songs one read may ask for; the window reads a folder in pages. */
 const MAX_READ_IDS = 50;
@@ -141,5 +150,48 @@ export const registerLibraryTagsIpc = ({
 
   ipcMain.handle('library-tags-undo', (_event, rawJobId: unknown) =>
     isId(rawJobId) ? jobs?.undo(rawJobId) : undefined,
+  );
+
+  // Choose… for a cover opens in the song's own folder, where an album's
+  // folder.jpg or front.jpg already sits (Ivan, 2026-11-16: "make sure this
+  // explorer opens on the album folder"). A file input cannot be told where
+  // to start, so the dialog is main's, and main reads the file it returns.
+  ipcMain.handle(
+    'library-tags-cover-pick',
+    async (_event, rawTrackId: unknown): Promise<TTagCoverPick> => {
+      const track = isId(rawTrackId) ? store.track(rawTrackId) : undefined;
+      const window = getMainWindow();
+      const options: OpenDialogOptions = {
+        defaultPath: track ? path.dirname(track.path) : undefined,
+        properties: ['openFile'],
+        filters: [
+          {
+            name: mainText('files.type.pictures'),
+            extensions: ['jpg', 'jpeg', 'png'],
+          },
+        ],
+      };
+      const result = window
+        ? await dialog.showOpenDialog(window, options)
+        : await dialog.showOpenDialog(options);
+      const [file] = result.filePaths;
+      if (result.canceled || file === undefined) {
+        return { state: 'canceled' };
+      }
+      try {
+        const { size } = await fs.promises.stat(file);
+        if (size === 0 || size > MAX_COVER_BYTES) {
+          return { state: 'refused' };
+        }
+        return {
+          state: 'ok',
+          bytes: new Uint8Array(await fs.promises.readFile(file)),
+        };
+      } catch (error) {
+        // eslint-disable-next-line no-console -- context-rich error before it is dropped; the window says the picture could not be used
+        console.error(`Could not read the picked cover ${file}`, error);
+        return { state: 'refused' };
+      }
+    },
   );
 };

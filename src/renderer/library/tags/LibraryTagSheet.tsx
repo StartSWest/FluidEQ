@@ -27,7 +27,13 @@ import type { ILibraryTrack } from '../../../common/library/types';
 import { useTranslation } from '../../utils/I18nContext';
 import { FIELD_LABEL_KEYS } from './tagLabels';
 import { formatDuration } from './tagTime';
-import { effectiveValue, type ISetState, SHEET_FIELDS } from './tagSetModel';
+import type { IFindReplace } from './LibraryTagSetTools';
+import {
+  effectiveValue,
+  findParts,
+  type ISetState,
+  SHEET_FIELDS,
+} from './tagSetModel';
 import type { ISheetGroup } from './tagGroups';
 
 interface ILibraryTagSheetProps {
@@ -37,6 +43,8 @@ interface ILibraryTagSheetProps {
   onCell: (sheet: ITrackTagSheet, key: TTagFieldKey, value: string) => void;
   /** A row dropped before another, by id; within its group only. */
   onMove: (fromId: string, beforeId: string) => void;
+  /** What find & replace is looking for, lit in the titles as it is typed. */
+  finding: IFindReplace;
 }
 
 const GripGlyph = () => (
@@ -54,8 +62,8 @@ const CaretGlyph = ({ isOpen }: { isOpen: boolean }) => (
 );
 
 /**
- * The songs as a spreadsheet, for what is each song's own: number, title,
- * artist, year, disc. Enter moves down and Shift+Enter up, Tab right, Ctrl+D
+ * The songs as a spreadsheet, for what is each song's own: number, title
+ * and artist. Enter moves down and Shift+Enter up, Tab right, Ctrl+D
  * copies the cell above; a row's grip drags it to a new place, and Renumber
  * then numbers by the new order. A changed cell wears the accent; an empty
  * one says it is missing.
@@ -66,6 +74,7 @@ const LibraryTagSheet = ({
   tracks,
   onCell,
   onMove,
+  finding,
 }: ILibraryTagSheetProps) => {
   const { t } = useTranslation();
   const tableRef = useRef<HTMLTableElement | null>(null);
@@ -114,12 +123,18 @@ const LibraryTagSheet = ({
     if (value === '') {
       emptyHint = isNumber ? '—' : t('library.tags.set.missingCell');
     }
+    // What find & replace would do to this title, drawn over the cell while
+    // the caret is elsewhere: the match lit, or struck through with its
+    // replacement beside it (Ivan, 2026-11-16: "highlight lo que está
+    // encontrando ... como un tachado").
+    const parts = key === 'title' ? findParts(value, finding.find) : [];
+    const isFound = parts.some((part) => part.isMatch);
     return (
       <td
         key={key}
         className={`${isNumber ? 'is-number' : ''}${isChanged ? ' is-changed' : ''}${
           value === '' ? ' is-empty' : ''
-        }${isInvalid ? ' is-invalid' : ''}`}
+        }${isInvalid ? ' is-invalid' : ''}${isFound ? ' is-found' : ''}`}
       >
         <input
           className="library-tags-sheet__cell"
@@ -134,6 +149,26 @@ const LibraryTagSheet = ({
           onChange={(event) => onCell(sheet, key, event.target.value)}
           onKeyDown={(event) => onKeyDown(event, rowIndex, sheet, key)}
         />
+        {isFound && (
+          <span className="library-tags-sheet__preview" aria-hidden="true">
+            {parts.map((part, index) => {
+              // The pieces of one title, in order: their place is their key.
+              const partKey = `${index}-${part.text}`;
+              if (!part.isMatch) {
+                return <span key={partKey}>{part.text}</span>;
+              }
+              if (finding.replace === '') {
+                return <mark key={partKey}>{part.text}</mark>;
+              }
+              return (
+                <span key={partKey}>
+                  <del>{part.text}</del>
+                  <ins>{finding.replace}</ins>
+                </span>
+              );
+            })}
+          </span>
+        )}
       </td>
     );
   };
@@ -147,10 +182,7 @@ const LibraryTagSheet = ({
           <col className="is-no" />
           <col className="is-title" />
           <col className="is-artist" />
-          <col className="is-year" />
-          <col className="is-disc" />
           <col className="is-time" />
-          <col className="is-file" />
         </colgroup>
         <thead>
           <tr>
@@ -158,10 +190,7 @@ const LibraryTagSheet = ({
             <th className="is-number">{t('library.tags.set.col.no')}</th>
             <th>{t(FIELD_LABEL_KEYS.title)}</th>
             <th>{t(FIELD_LABEL_KEYS.artist)}</th>
-            <th className="is-number">{t(FIELD_LABEL_KEYS.year)}</th>
-            <th className="is-number">{t(FIELD_LABEL_KEYS.discNo)}</th>
             <th className="is-number">{t('library.tags.set.col.time')}</th>
-            <th>{t('library.tags.set.col.file')}</th>
           </tr>
         </thead>
         <tbody>
@@ -173,7 +202,7 @@ const LibraryTagSheet = ({
                   key={`group-${group.key}`}
                   className="library-tags-sheet__group"
                 >
-                  <td colSpan={8}>
+                  <td colSpan={5}>
                     <button
                       type="button"
                       aria-expanded={!isFolded}
@@ -255,13 +284,13 @@ const LibraryTagSheet = ({
                           <GripGlyph />
                         </td>
                         {SHEET_FIELDS.map((key) => cell(sheet, index, key))}
-                        <td className="is-number is-fact">
+                        <td
+                          className="is-number is-fact"
+                          title={sheet.fileName}
+                        >
                           {track?.durationMs
                             ? formatDuration(track.durationMs)
                             : ''}
-                        </td>
-                        <td className="is-fact" title={sheet.fileName}>
-                          {sheet.fileName}
                         </td>
                       </tr>
                     );

@@ -97,6 +97,7 @@ const LibraryTagSetCover = ({
   return (
     <LibraryTagCover
       artId={distinct[0]}
+      folderOf={sheets[0]?.trackId}
       label={sheets[0]?.fields.album ?? ''}
       draft={cover}
       size="set"

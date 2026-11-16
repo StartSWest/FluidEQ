@@ -20,6 +20,7 @@ import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type {
   ITagJobState,
   ITagWriteRequest,
+  TTagCoverPick,
   TTagItemAnswer,
   TTagReadResult,
 } from '../common/library/tagFields';
@@ -68,6 +69,13 @@ const releaseLibraryTagItem = (jobId: string, trackId: string) =>
 const undoLibraryTagJob = (jobId: string) =>
   ipcRenderer.invoke('library-tags-undo', jobId) as Promise<string | undefined>;
 
+/** The system's file dialog for a cover, opened in the song's folder. */
+const pickLibraryTagCover = (trackId: string | undefined) =>
+  ipcRenderer.invoke(
+    'library-tags-cover-pick',
+    trackId,
+  ) as Promise<TTagCoverPick>;
+
 const onLibraryTagJob = (listener: (state: ITagJobState) => void) => {
   const wrapped = (_event: IpcRendererEvent, state: ITagJobState) =>
     listener(state);
@@ -84,6 +92,7 @@ const libraryTagsBridge = {
   answerLibraryTagItem,
   releaseLibraryTagItem,
   undoLibraryTagJob,
+  pickLibraryTagCover,
   onLibraryTagJob,
 };
 

@@ -207,6 +207,13 @@ export const MAX_COVER_BYTES = 20 * 1024 * 1024;
 
 export type TTagCoverMime = 'image/jpeg' | 'image/png';
 
+/** A cover picked through the system's own file dialog, read by main. */
+export type TTagCoverPick =
+  | { state: 'ok'; bytes: Uint8Array }
+  /** Empty, unreadable, or past `MAX_COVER_BYTES`. */
+  | { state: 'refused' }
+  | { state: 'canceled' };
+
 /** A change to one song's tags. Only what changed is carried. */
 export interface ITagEdit {
   trackId: string;

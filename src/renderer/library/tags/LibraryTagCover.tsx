@@ -16,9 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { type DragEvent, type ReactNode, useRef, useState } from 'react';
+import { type DragEvent, type ReactNode, useEffect, useState } from 'react';
 import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
+import AnchoredMenu, { isInsideAnchoredMenu } from '../../widgets/AnchoredMenu';
 import LibraryCoverArt from '../LibraryCoverArt';
 import {
   coverFileOfDrop,
@@ -31,6 +32,8 @@ import type { IDraftCover } from './tagDrafts';
 interface ILibraryTagCoverProps {
   /** The Library's thumbnail of what the file carries now. */
   artId?: string;
+  /** A song whose folder the file dialog opens in: the album's own. */
+  folderOf: string | undefined;
   label: string;
   /** A picture chosen and not written yet; `null` for one being removed. */
   draft: IDraftCover | null | undefined;
@@ -46,11 +49,13 @@ interface ILibraryTagCoverProps {
 
 /**
  * The cover as the editor shows it: the picture (the new one while it is
- * waiting to be written), a drop target over it, and Choose, Paste and
- * Remove. What a pick refused is said under the buttons, not swallowed.
+ * waiting to be written), a drop target, and one press on it for a menu of
+ * Choose, Paste and Remove. Three buttons stacked under the picture read as
+ * clutter (Ivan, 2026-11-16). What a pick refused is said under it.
  */
 const LibraryTagCover = ({
   artId,
+  folderOf,
   label,
   draft,
   onPick,
@@ -60,9 +65,33 @@ const LibraryTagCover = ({
   size,
 }: ILibraryTagCoverProps) => {
   const { t } = useTranslation();
-  const fileInput = useRef<HTMLInputElement | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [refusal, setRefusal] = useState<string | undefined>(undefined);
+  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Closes on a press elsewhere and on Escape, as the Library's menus do.
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return undefined;
+    }
+    const onDown = (event: MouseEvent) => {
+      if (!isInsideAnchoredMenu(event.target) && event.target !== anchor) {
+        setIsMenuOpen(false);
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [isMenuOpen, anchor]);
 
   const take = (read: TCoverRead) => {
     if (read.state === 'ok') {
@@ -84,6 +113,32 @@ const LibraryTagCover = ({
     // Taken here: the card's own drop would read an image as a folder.
     event.preventDefault();
     readCoverBlob(file)
+      .then(take)
+      .catch(() => undefined);
+  };
+
+  const pickInFolder = async (): Promise<TCoverRead> => {
+    const picked =
+      await window.electron.ipcRenderer.pickLibraryTagCover(folderOf);
+    if (picked.state === 'ok') {
+      return readCoverBlob(new Blob([new Uint8Array(picked.bytes)]));
+    }
+    // A cancelled dialog says nothing; a refused file says why.
+    return picked.state === 'refused'
+      ? { state: 'refused' }
+      : { state: 'none' };
+  };
+
+  const choose = () => {
+    setIsMenuOpen(false);
+    pickInFolder()
+      .then((read) => (read.state === 'none' ? undefined : take(read)))
+      .catch(() => setRefusal(t('library.tags.cover.refused')));
+  };
+
+  const paste = () => {
+    setIsMenuOpen(false);
+    readCoverFromClipboard()
       .then(take)
       .catch(() => undefined);
   };
@@ -121,69 +176,60 @@ const LibraryTagCover = ({
         onDragLeave={() => setIsDragOver(false)}
         onDrop={onDrop}
       >
-        {picture()}
+        <button
+          ref={setAnchor}
+          type="button"
+          className="library-tags__cover-button"
+          aria-haspopup="menu"
+          aria-expanded={isMenuOpen}
+          aria-label={t('library.tags.cover.change')}
+          onClick={() => setIsMenuOpen((open) => !open)}
+        >
+          {picture()}
+          <span className="library-tags__cover-change" aria-hidden="true">
+            <MenuIcon name="image" />
+            {t('library.tags.cover.changeShort')}
+          </span>
+        </button>
         <span className="library-tags__cover-drop" aria-hidden="true">
           <MenuIcon name="image" />
           {t('library.tags.cover.dropHint')}
         </span>
       </div>
-      <div className="library-tags__cover-side">
-        {caption}
-        <div className="library-tags__cover-actions">
+      <AnchoredMenu
+        anchor={anchor}
+        isOpen={isMenuOpen}
+        className="library-list__menu"
+        ariaLabel={t('library.tags.cover.change')}
+      >
+        <button type="button" onClick={choose}>
+          <MenuIcon name="folder" className="library-list__menu-icon" />
+          <span>{t('library.tags.cover.chooseImage')}</span>
+        </button>
+        <button type="button" onClick={paste}>
+          <MenuIcon name="copyText" className="library-list__menu-icon" />
+          <span>{t('library.tags.cover.pasteImage')}</span>
+        </button>
+        {(canRemove || draft) && draft !== null && (
           <button
             type="button"
-            className="button small subtle"
-            onClick={() => fileInput.current?.click()}
-          >
-            {t(
-              // Replace what is there; choose where there is nothing yet.
-              canRemove || draft
-                ? 'library.tags.cover.replace'
-                : 'library.tags.cover.choose',
-            )}
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
             onClick={() => {
-              readCoverFromClipboard()
-                .then(take)
-                .catch(() => undefined);
+              setIsMenuOpen(false);
+              onPick(null);
             }}
           >
-            {t('library.tags.cover.paste')}
+            <MenuIcon name="trash" className="library-list__menu-icon" />
+            <span>{t('library.tags.cover.removeCover')}</span>
           </button>
-          {(canRemove || draft) && draft !== null && (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => onPick(null)}
-            >
-              {t('library.tags.cover.remove')}
-            </button>
-          )}
-        </div>
+        )}
+      </AnchoredMenu>
+      <div className="library-tags__cover-side">
+        {caption}
         {refusal && (
           <p className="library-tags__note is-warning" role="alert">
             {refusal}
           </p>
         )}
-        <input
-          ref={fileInput}
-          type="file"
-          accept="image/jpeg,image/png"
-          hidden
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            // eslint-disable-next-line no-param-reassign -- the same file picked twice must still change
-            event.target.value = '';
-            if (file) {
-              readCoverBlob(file)
-                .then(take)
-                .catch(() => undefined);
-            }
-          }}
-        />
       </div>
     </div>
   );
