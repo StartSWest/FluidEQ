@@ -373,10 +373,7 @@ export default function SceneCanvas({
       const next: ICoverFrame = {
         width: Math.round(canvas.width),
         height: Math.round(canvas.height),
-        // The Karaoke stage is the scene's whole frame: no plot stands on it,
-        // and the plot's last place on another page would push the picture
-        // off the stage's middle. The plot's frame is kept for coming back.
-        view: layerName === 'karaoke' ? FULL_VIEW : viewRef.current,
+        view: viewRef.current,
       };
       setCover((previous) => (isSameCover(previous, next) ? previous : next));
     };
@@ -387,7 +384,7 @@ export default function SceneCanvas({
     }
     observer.observe(layer);
     return () => observer.disconnect();
-  }, [layer, layerName, panel]);
+  }, [layer, panel]);
   // Only the layer's own: the render that moves the canvas onto the plot
   // still holds the last layer's box until the effect above clears it.
   const frame = layer ? cover : undefined;

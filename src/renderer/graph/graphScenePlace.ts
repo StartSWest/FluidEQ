@@ -58,9 +58,7 @@ export interface IGraphSceneRun {
 }
 
 export interface IGraphScenePlaces {
-  /** Whether a scene is chosen and no other player stands in for it. */
-  isChosen: boolean;
-  /** Whether, chosen, the graph draws it too (`isGraphWaveDrawn`). */
+  /** Whether a scene is chosen and the graph draws it (`isGraphWaveDrawn`). */
   drawsScene: boolean;
   /**
    * Whether the scene stands behind the whole window: a Plus visualizer and
@@ -72,8 +70,6 @@ export interface IGraphScenePlaces {
   backdrop: HTMLElement | null;
   /** The layer behind an EQ page's head and graph (`SceneColumnLayer`). */
   column: HTMLElement | null;
-  /** The Karaoke stage, while its background is the scene. */
-  karaoke: HTMLElement | null;
 }
 
 /**
@@ -93,30 +89,15 @@ export interface IGraphScenePlaces {
  * its memory with it, and the window keeps the colours measured for it
  * (`SceneTint`) without it running: Transparency 0 unloads the scene, and
  * moving it up loads it again.
- *
- * The Karaoke stage, with the scene for its background and no Backdrop to
- * show it through the page's glass, comes before all of them: the karaoke is
- * the page on screen then, and the scene is moved into its content area and
- * nowhere else (Ivan, 2026-11-16: "only the app one stays ... the content
- * window only"). Under the Backdrop the stage publishes no place and shows
- * the window's scene through, as the Library does. It used to start a second
- * player of the same scene, over the Backdrop's copy behind it. It asks for
- * the scene by its own switch, so the graph's wave being off or Clean does
- * not take it away.
  */
 export const graphScenePlace = ({
-  isChosen,
   drawsScene,
   isBackdrop,
   plot,
   backdrop,
   column,
-  karaoke,
 }: IGraphScenePlaces): HTMLElement | undefined => {
-  if (isChosen && karaoke) {
-    return karaoke;
-  }
-  if (!isChosen || !drawsScene) {
+  if (!drawsScene) {
     return undefined;
   }
   const layer = isBackdrop ? backdrop : column;

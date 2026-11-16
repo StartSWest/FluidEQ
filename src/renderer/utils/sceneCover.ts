@@ -16,11 +16,7 @@ import { useSyncExternalStore } from 'react';
  * - the column (`SceneColumnLayer.tsx`), behind the EQ pages' head and their
  *   graph, so the scene runs up under the section pills and the title
  *   instead of stopping in a straight line at the plot's top (Ivan,
- *   2026-09-25: "fill up to the top the graph only when plus viz");
- * - the Karaoke stage (`KaraokeGraphBackground.tsx`), while its background
- *   is the scene: the app's own scene moved there, never a second one beside
- *   it (Ivan, 2026-11-16: "instead of loading 2 viz make sure only the app
- *   one stays", in "the content window only").
+ *   2026-09-25: "fill up to the top the graph only when plus viz").
  *
  * Each is one element, made once where it has to stand and published here,
  * rather than a canvas the graph makes for itself: the graph is several
@@ -55,13 +51,9 @@ const createLayerStore = () => {
 
 const backdrop = createLayerStore();
 const column = createLayerStore();
-const karaoke = createLayerStore();
 
 export const publishSceneCoverHost = backdrop.publish;
 export const useSceneCoverHost = backdrop.useHost;
 
 export const publishSceneColumnHost = column.publish;
 export const useSceneColumnHost = column.useHost;
-
-export const publishSceneKaraokeHost = karaoke.publish;
-export const useSceneKaraokeHost = karaoke.useHost;

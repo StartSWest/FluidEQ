@@ -11,10 +11,13 @@ import { useEffect, useSyncExternalStore } from 'react';
  * at the same time").
  *
  * The graph's scene (`GraphScene`) is one canvas for the whole window, moved
- * rather than copied. One player stands in for it while it is up, and it
+ * rather than copied. Two players stand in for it while they are up, and it
  * steps aside: the Video page's own scene behind the chat in its full screen
  * (`VideoSceneBackdrop`), where the graph's copy went on drawing under a page
- * that covered it - the same scene twice, one of them seen by nobody.
+ * that covered it - the same scene twice, one of them seen by nobody; and
+ * the Karaoke's own scene in its lyric window (`KaraokeGraphBackground`),
+ * played with its own See through and Blur, while the Backdrop's copy
+ * behind the page went on drawing (Ivan, 2026-11-16).
  *
  * Not the Studio's stage. It stood in once, so the graph's scene would not
  * run behind the Studio under the Backdrop, and it stopped as well the graph
