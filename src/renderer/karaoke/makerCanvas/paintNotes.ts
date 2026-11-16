@@ -39,6 +39,9 @@ import {
   readSurfaceAlpha,
 } from '../../utils/theme';
 
+/** A note's corner: a small one, flat, never the pill it was. */
+const NOTE_CORNER = 2;
+
 export interface IPaintNotesInput {
   plot: IMakerPlot;
   project: IKaraokeMakerProject;
@@ -197,48 +200,29 @@ export const paintNotes = (
     // note again and read the picker. Hollow says what it is: still a note,
     // still where it is, with nothing to hit.
     const isFree = note.kind === 'free';
-    let noteShadowColor = readAccent(0.54, 'rgba(43, 216, 255, .54)');
-    let noteShadowBlur = 4;
-    let noteGradientTop = readAccent(1, '#58bfd7');
-    let noteGradientBottom = '#316f9f';
+    // FLAT, as the rest of the Maker is (Ivan, 2026-11-15: "make notes look
+    // flat too, less rounded"): one colour, no glow, a small corner. They
+    // were pills lit from above with a coloured glow round each.
+    let noteFill = readAccent(0.85, 'rgba(88, 191, 215, .85)');
     if (selected) {
-      noteShadowColor = '#f5fb73';
-      noteShadowBlur = 13;
-      noteGradientTop = readAccentLight(1, '#bffff7');
-      noteGradientBottom = readAccent(1, '#39e5d3');
+      noteFill = readAccentLight(1, '#bffff7');
+    }
+    if (note.kind === 'golden') {
+      noteFill = '#ffd25a';
+    } else if (isFree) {
+      noteFill = selected
+        ? readAccentLight(0.26, 'rgba(191, 255, 247, .26)')
+        : readAccent(0.24, 'rgba(88, 191, 215, .24)');
     }
     context.save();
-    context.shadowColor = noteShadowColor;
-    context.shadowBlur = noteShadowBlur;
-    const noteGradient = context.createLinearGradient(
-      0,
-      centerY - noteHeight / 2,
-      0,
-      centerY + noteHeight / 2,
-    );
-    if (note.kind === 'golden') {
-      noteGradient.addColorStop(0, '#fff484');
-      noteGradient.addColorStop(1, '#ffb52d');
-    } else if (isFree) {
-      noteGradient.addColorStop(
-        0,
-        selected
-          ? readAccentLight(0.26, 'rgba(191, 255, 247, .26)')
-          : readAccent(0.24, 'rgba(88, 191, 215, .24)'),
-      );
-      noteGradient.addColorStop(1, 'rgba(49, 111, 159, .2)');
-    } else {
-      noteGradient.addColorStop(0, noteGradientTop);
-      noteGradient.addColorStop(1, noteGradientBottom);
-    }
-    context.fillStyle = noteGradient;
+    context.fillStyle = noteFill;
     drawRoundedRect(
       context,
       left,
       centerY - noteHeight / 2,
       right - left,
       noteHeight,
-      noteHeight / 2,
+      NOTE_CORNER,
     );
     context.fill();
     if (isFree) {
@@ -255,20 +239,6 @@ export const paintNotes = (
     }
     if (active) {
       const progressRight = left + (right - left) * noteProgress;
-      const progressGradient = context.createLinearGradient(
-        0,
-        centerY - noteHeight / 2,
-        0,
-        centerY + noteHeight / 2,
-      );
-      progressGradient.addColorStop(
-        0,
-        note.kind === 'golden' ? '#fffde0' : readAccentLight(1, '#e8fffd'),
-      );
-      progressGradient.addColorStop(
-        1,
-        note.kind === 'golden' ? '#ffc743' : readAccent(1, '#27ead8'),
-      );
       context.save();
       drawRoundedRect(
         context,
@@ -276,13 +246,12 @@ export const paintNotes = (
         centerY - noteHeight / 2,
         right - left,
         noteHeight,
-        noteHeight / 2,
+        NOTE_CORNER,
       );
       context.clip();
-      context.fillStyle = progressGradient;
-      context.shadowColor =
-        note.kind === 'golden' ? '#ffe571' : readAccent(1, '#45fff0');
-      context.shadowBlur = 14;
+      // The sung part in the light accent, flat as the note under it.
+      context.fillStyle =
+        note.kind === 'golden' ? '#fff0a8' : readAccentLight(1, '#e8fffd');
       context.fillRect(
         left,
         centerY - noteHeight / 2,
@@ -299,32 +268,10 @@ export const paintNotes = (
       context.stroke();
 
       const playbackX = Math.max(left, Math.min(right, progressRight));
-      const shine = context.createLinearGradient(
-        playbackX - 10,
-        0,
-        playbackX + 4,
-        0,
-      );
-      shine.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      shine.addColorStop(0.72, 'rgba(255, 255, 255, .68)');
-      shine.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      context.fillStyle = shine;
-      context.beginPath();
-      context.roundRect(
-        Math.max(left, playbackX - 10),
-        centerY - noteHeight / 2,
-        Math.min(14, right - Math.max(left, playbackX - 10)),
-        noteHeight,
-        noteHeight / 2,
-      );
-      context.fill();
       context.save();
       context.strokeStyle =
         note.kind === 'golden' ? '#fff7a3' : readAccentLight(1, '#effffc');
       context.lineWidth = 1.2;
-      context.shadowColor =
-        note.kind === 'golden' ? '#ffe571' : readAccent(1, '#4affef');
-      context.shadowBlur = 8;
       context.beginPath();
       context.moveTo(playbackX, centerY - noteHeight / 2 + 1);
       context.lineTo(playbackX, centerY + noteHeight / 2 - 1);

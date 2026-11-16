@@ -155,12 +155,8 @@ export const paintMakerCanvas = ({
   // measured — and it is the only layer that reports no hit regions back.
   paintBackdrop(context, {
     plot,
-    width,
     height,
     headerHeight,
-    lyricSectionTop,
-    lyricLaneHeight,
-    translationLaneHeight: translationRow?.laneHeight ?? 0,
     project,
     canvasSectionGroups,
     stemWaveforms,
@@ -176,6 +172,16 @@ export const paintMakerCanvas = ({
   // Boundary handles are kept apart and appended after the wider word and
   // underline regions, because hit-testing takes the first match and a handle
   // has to win against the region drawn behind it.
+  //
+  // Words and notes are drawn inside the plot's own width, which is where the
+  // waveform above them starts and ends (Ivan, 2026-11-15: the wave and the
+  // notes "not aligning"): a word centred on a time near the left edge ran
+  // into the gutter past the wave's start. The octave names in that gutter
+  // were drawn with the backdrop, before this clip.
+  context.save();
+  context.beginPath();
+  context.rect(plot.left, 0, plot.right - plot.left, height);
+  context.clip();
   const lyricPaint = paintLyrics(context, {
     plot,
     lyricSectionTop,
@@ -210,6 +216,7 @@ export const paintMakerCanvas = ({
       visualPlayheadMs,
     }),
   );
+  context.restore();
 
   // Last, and on top: the gesture in flight and the playhead. None of it is
   // part of the project, and none of it is grabbable — it reads the regions

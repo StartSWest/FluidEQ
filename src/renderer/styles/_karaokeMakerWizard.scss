@@ -102,16 +102,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px 12px;
   padding: 11px 12px;
   color: $text-primary;
-  // Solid, the menus' face: the card's fill is a third opaque, and over the
-  // editor the notes ran through the progress words (Ivan, 2026-11-15: "the
-  // modals that have bad transparency"). Inside the lyrics dialog it stands
-  // on the dialog, where the same face reads as a panel.
-  @include menu-face;
-  border-radius: $radius-l;
+  // FLAT, AS THE LIBRARY'S SCAN NOTICE IS (Ivan, 2026-11-15: "this type of
+  // modal needs to be flat like the scan on the Library"): the panel's own
+  // opaque colour, the cards' edge lit a little along the top, the cards'
+  // corner and no shadow; what it says on top, then the bar with Cancel at
+  // its end as the bar's own key. Cancel used to be a full-width slab under
+  // the bar.
+  background: $surface-panel;
+  border: 1px solid $card-edge;
+  border-top-color: rgba($edge-tint, 0.22);
+  border-radius: $card-radius;
+  box-shadow: none;
+  backdrop-filter: none;
+
+  > :not(.karaoke-maker__analysis-progress-bar):not(button) {
+    grid-column: 1 / -1;
+  }
+
+  > .karaoke-maker__analysis-progress-bar {
+    grid-column: 1;
+    align-self: center;
+  }
 
   > button {
     min-height: 30px;
-    grid-column: 1 / -1;
+    grid-column: 2;
+    align-self: center;
   }
 }
 
@@ -185,15 +201,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 5px;
   grid-column: 1 / -1;
   overflow: hidden;
-  background: color-mix(in srgb, $track-well 17%, transparent);
+  // The Library scan's bar: the well, and a flat accent fill with no glow.
+  background: $track-well;
   border-radius: $radius-pill;
 
   > span {
     position: absolute;
     inset: 0 auto 0 0;
-    background: linear-gradient(90deg, $secondary-default, $secondary-light);
+    background: $secondary-default;
     border-radius: inherit;
-    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 36%, transparent);
     transition: width 180ms ease;
   }
 

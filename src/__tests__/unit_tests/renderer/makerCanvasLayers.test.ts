@@ -139,12 +139,8 @@ describe('the Maker canvas layers', () => {
     const context = recordingContext();
     const result = paintBackdrop(context, {
       plot: plot(),
-      width: 800,
       height: 400,
       headerHeight: 40,
-      lyricSectionTop: 120,
-      lyricLaneHeight: 26,
-      translationLaneHeight: 0,
       project: createKaraokeMakerProject(song()),
       canvasSectionGroups: [],
       viewStartMs: 0,

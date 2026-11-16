@@ -17,10 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { IKaraokeMakerProject } from '../../../common/karaoke/makerProject';
-import {
-  IKaraokeMakerSectionGroup,
-  KARAOKE_MAKER_LYRIC_LANE_COUNT,
-} from '../makerCanvasLayout';
+import { IKaraokeMakerSectionGroup } from '../makerCanvasLayout';
 import formatClock from '../makerFormat';
 import {
   IMakerPlot,
@@ -30,26 +27,14 @@ import {
   SECTION_GROUP_TOP,
   WAVEFORM_HEIGHT,
   WAVEFORM_TOP,
-  lyricSectionHeight,
 } from '../makerCanvasGeometry';
 import { midiToNoteName } from '../../../common/karaoke/pitch';
-import {
-  readTextInk,
-  readAccent,
-  readSurface,
-  readSurfaceAlpha,
-} from '../../utils/theme';
+import { readTextInk, readAccent, readSurfaceAlpha } from '../../utils/theme';
 
 export interface IPaintBackdropInput {
   plot: IMakerPlot;
-  width: number;
   height: number;
   headerHeight: number;
-  lyricSectionTop: number;
-  /** How tall one original lane is this frame — see useMakerCanvasModel.ts. */
-  lyricLaneHeight: number;
-  /** 0 when no translation row is showing. */
-  translationLaneHeight: number;
   project: IKaraokeMakerProject;
   canvasSectionGroups: IKaraokeMakerSectionGroup[];
   stemWaveforms?: {
@@ -83,12 +68,8 @@ export const paintBackdrop = (
   context: CanvasRenderingContext2D,
   {
     plot,
-    width,
     height,
     headerHeight,
-    lyricSectionTop,
-    lyricLaneHeight,
-    translationLaneHeight,
     project,
     canvasSectionGroups,
     stemWaveforms,
@@ -106,34 +87,19 @@ export const paintBackdrop = (
     timeX,
     noteY,
   } = plot;
-  const lyricSectionHeightPx = lyricSectionHeight(
-    KARAOKE_MAKER_LYRIC_LANE_COUNT,
-    lyricLaneHeight,
-    translationLaneHeight,
-  );
 
-  // The window's floor, flat: the editor is a well in the Maker's card, as a
-  // plot is on every page. It was the pane colour, a step LIGHTER than the
-  // card round it, and the lyric lanes on it the block colour, lighter again
-  // (Ivan, 2026-09-26: "karaoke maker color … make pane but darker like some
-  // others we have"). Before that it was a ramp of two near-black blues,
-  // darker than anything else in the window; the floor is neither.
-  context.fillStyle = readSurface('--surface-base', '#0d2030');
-  context.fillRect(0, 0, width, height);
-
-  // The lyric band is a card on the plot: the pane colour, part through, one
-  // step up from the floor — the step the window's cards take.
-  context.fillStyle = readSurfaceAlpha(
-    '--surface-panel',
-    0.72,
-    'rgba(26, 58, 78, 0.72)',
-  );
-  context.fillRect(
-    plotLeft,
-    lyricSectionTop - 3,
-    plotWidth,
-    lyricSectionHeightPx + 6,
-  );
+  // NO FLOOR OF ITS OWN: the editor is drawn straight on the Maker's card, one
+  // tone with the bars and the foot, as the Library's shelf stands on its
+  // card (Ivan, 2026-11-15: "it needs to be like the Library, fully opaque and
+  // all flat, the entire window"). It was the window's floor, a darker well
+  // in the card (2026-09-26), and read as a slab cut out of the page. The
+  // canvas is cleared before this, so the card shows through.
+  //
+  // FEW LINES (Ivan, 2026-11-15: "reduce the amount of dividers and lines to
+  // make the UI simpler to the eye", "still a lot of lines"): the lyric band
+  // is not lifted on a card nor ruled off, and its lanes and the translation
+  // row are parted by their own spacing. What stays: the faint note rows and
+  // a faint line per time mark.
   if (canvasSectionGroups.length) {
     context.fillStyle = readSurfaceAlpha(
       '--surface-panel',
@@ -211,38 +177,9 @@ export const paintBackdrop = (
       context.restore();
     });
     context.restore();
-    context.strokeStyle = readAccent(0.2, 'rgba(44, 226, 211, .2)');
-    context.beginPath();
-    context.moveTo(plotLeft, lyricSectionTop - 3);
-    context.lineTo(plotRight, lyricSectionTop - 3);
-    context.stroke();
   }
-  for (let lane = 1; lane < KARAOKE_MAKER_LYRIC_LANE_COUNT; lane += 1) {
-    const laneY = lyricSectionTop + lane * lyricLaneHeight;
-    context.strokeStyle = readAccent(0.085, 'rgba(76, 151, 174, .085)');
-    context.beginPath();
-    context.moveTo(plotLeft, laneY);
-    context.lineTo(plotRight, laneY);
-    context.stroke();
-  }
-  if (translationLaneHeight > 0) {
-    // One more divider, in the same style as the ones above: the boundary
-    // between the last original lane and the translated row underneath it.
-    const translationTop =
-      lyricSectionTop + KARAOKE_MAKER_LYRIC_LANE_COUNT * lyricLaneHeight;
-    context.strokeStyle = readAccent(0.085, 'rgba(76, 151, 174, .085)');
-    context.beginPath();
-    context.moveTo(plotLeft, translationTop);
-    context.lineTo(plotRight, translationTop);
-    context.stroke();
-  }
-  context.strokeStyle = readAccent(0.18, 'rgba(44, 226, 211, .18)');
-  context.beginPath();
-  context.moveTo(plotLeft, headerHeight - 1);
-  context.lineTo(plotRight, headerHeight - 1);
-  context.stroke();
 
-  context.strokeStyle = 'rgba(71, 116, 151, .13)';
+  context.strokeStyle = 'rgba(71, 116, 151, .07)';
   context.lineWidth = 1;
   let majorStep = 15_000;
   if (visibleViewDurationMs <= 10_000) {
@@ -266,17 +203,20 @@ export const paintBackdrop = (
     context.textAlign = 'center';
     context.fillText(formatClock(tick), x, height - 10);
   }
-  for (let midi = MIN_NOTE_MIDI; midi <= MAX_NOTE_MIDI; midi += 3) {
+  // A line for every note, barely there, and a little more for each octave
+  // (Ivan, 2026-11-15: "we need subtle lines for each note"); the C labels
+  // stay at the left. It was a row every three semitones, ruled loud.
+  for (let midi = MIN_NOTE_MIDI; midi <= MAX_NOTE_MIDI; midi += 1) {
     const y = noteY(midi);
-    context.strokeStyle =
-      midi % 12 === 0
-        ? readAccent(0.16, 'rgba(65, 218, 203, .16)')
-        : 'rgba(71, 116, 151, .08)';
+    const isOctave = midi % 12 === 0;
+    context.strokeStyle = isOctave
+      ? readAccent(0.09, 'rgba(65, 218, 203, .09)')
+      : 'rgba(71, 116, 151, .045)';
     context.beginPath();
     context.moveTo(plotLeft, y);
     context.lineTo(plotRight, y);
     context.stroke();
-    if (midi % 12 === 0) {
+    if (isOctave) {
       context.fillStyle = 'rgb(160, 244, 112)';
       context.textAlign = 'right';
       context.fillText(midiToNoteName(midi), plotLeft - 8, y + 3);
@@ -289,7 +229,6 @@ export const paintBackdrop = (
     laneTop: number,
     laneHeight: number,
     fill: string,
-    stroke: string,
   ) => {
     context.save();
     context.beginPath();
@@ -319,13 +258,8 @@ export const paintBackdrop = (
       const halfHeight = Math.max(0.6, amplitude * (laneHeight / 2 - 1));
       context.rect(x, centerY - halfHeight, 1, halfHeight * 2);
     }
+    // The shape alone: a centre line under it ruled the strip end to end.
     context.fill();
-    context.strokeStyle = stroke;
-    context.lineWidth = 1;
-    context.beginPath();
-    context.moveTo(plotLeft, laneTop + laneHeight / 2);
-    context.lineTo(plotRight, laneTop + laneHeight / 2);
-    context.stroke();
     context.restore();
   };
 
@@ -347,27 +281,24 @@ export const paintBackdrop = (
         peaks: waveform,
         label: stemWaveforms.labels.mix,
         fill: readAccent(0.16, 'rgba(22, 211, 198, .16)'),
-        stroke: readAccent(0.26, 'rgba(72, 246, 230, .26)'),
         text: readAccent(1, '#6ffff3'),
       },
       {
         peaks: stemWaveforms.instrumental,
         label: stemWaveforms.labels.backing,
         fill: 'rgba(94, 158, 255, .2)',
-        stroke: 'rgba(126, 180, 255, .28)',
         text: 'rgb(158, 199, 255)',
       },
       {
         peaks: stemWaveforms.vocals,
         label: stemWaveforms.labels.voice,
         fill: 'rgba(255, 176, 92, .3)',
-        stroke: 'rgba(255, 200, 128, .3)',
         text: 'rgb(255, 210, 150)',
       },
     ];
     lanes.forEach((lane, index) => {
       const laneTop = WAVEFORM_TOP + index * (laneHeight + laneGap);
-      paintWaveLane(lane.peaks, laneTop, laneHeight, lane.fill, lane.stroke);
+      paintWaveLane(lane.peaks, laneTop, laneHeight, lane.fill);
       context.save();
       context.font = '700 9px system-ui, sans-serif';
       context.textAlign = 'left';
@@ -382,7 +313,6 @@ export const paintBackdrop = (
       WAVEFORM_TOP,
       WAVEFORM_HEIGHT,
       readAccent(0.18, 'rgba(22, 211, 198, .18)'),
-      readAccent(0.32, 'rgba(72, 246, 230, .32)'),
     );
   }
 };

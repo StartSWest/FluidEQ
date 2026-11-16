@@ -11,7 +11,7 @@ import { IKaraokeSong } from '../../common/karaoke/types';
 import KaraokeLyrics from './KaraokeLyrics';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { rainbowColourAt } from '../utils/rainbowPalette';
-import { readAccent, readSurfaceAlpha } from '../utils/theme';
+import { readAccent } from '../utils/theme';
 
 interface IKaraokeMakerPreviewProps {
   song: IKaraokeSong;
@@ -81,16 +81,9 @@ const KaraokeMakerPreviewNotes = ({
     // the playhead used to end on was still set when the next paint filled
     // the strip, and bled through the see-through strip as a magenta band.
     context.shadowBlur = 0;
-    context.fillStyle = readSurfaceAlpha(
-      '--surface-base',
-      0.68,
-      'rgba(13, 32, 48, 0.68)',
-    );
-    context.beginPath();
-    context.roundRect(0.5, 0.5, width - 1, height - 1, height / 2);
-    context.fill();
-    context.strokeStyle = readAccent(0.14, 'rgba(102, 184, 202, .14)');
-    context.stroke();
+    // No track round the notes: they and the playhead stand on the page, as
+    // everything in the flat Maker does (Ivan, 2026-11-15: "fix this line
+    // too"). It was a darker pill with an accent edge.
 
     const windowMs = 8_000;
     const windowStartMs = playheadMs - windowMs / 2;

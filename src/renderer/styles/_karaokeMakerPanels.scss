@@ -67,13 +67,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-column: 1 / -1;
   gap: 7px;
   min-width: 292px;
-  padding: 9px;
+  padding: 10px 0 0;
   margin-top: 3px;
   color: $text-muted;
-  // The window's filled card in the menu's floor (Ivan, 2026-09-26, of this
-  // box: "some this pane too"). It was a block-coloured slab under an accent
-  // rim, the lightest thing in the tools menu.
-  @include card-surface;
+  // On the menu itself, under one hairline: no card, and no box inside it for
+  // the models either (Ivan, 2026-11-15: "fix this mess", boxes in boxes in
+  // the tools menu). It was the window's filled card (2026-09-26).
+  border-top: 1px solid $studio-hair;
 }
 
 // One row per model the Maker can load. The same dot, name and state as the
@@ -83,11 +83,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 9px 0 2px;
-  padding: 8px 9px;
+  margin: 6px 0 2px;
+  padding: 0;
   list-style: none;
-  border: 1px solid color-mix(in srgb, $secondary-default 11%, transparent);
-  border-radius: $radius-xs;
 
   li {
     display: grid;
@@ -104,8 +102,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &.is-ready {
       background: $secondary-default;
-      box-shadow: 0 0 8px
-        color-mix(in srgb, $secondary-default 55%, transparent);
     }
   }
 
@@ -242,22 +238,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-transform: uppercase;
 }
 
+// The three answers as the app's buttons that keep their words on one line: equal
+// thirds broke "Liberar automáticamente" in two; each takes its own width and
+// the row wraps whole pills where the menu is too narrow for three.
 .karaoke-maker__memory-options {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 
   button {
     min-height: 28px;
-    flex: 1;
-    padding: 0 9px;
+    flex: 0 0 auto;
+    padding: 0 12px;
+    white-space: nowrap;
     color: $text-muted;
     font-size: $text-body;
     font-weight: $weight-semibold;
     // A segmented choice in the quiet face, the chosen one lit and edged:
     // three block-coloured slabs were a row of lighter tiles.
-    background: $surface-control;
-    border: 1px solid $border-field;
+    background: transparent;
+    border: 1px solid $studio-hair;
     border-radius: $radius-xs;
     box-shadow: none;
     transition:
@@ -274,8 +275,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &.is-active {
       color: $secondary-light;
       font-weight: $weight-semibold;
-      background: color-mix(in srgb, $secondary-default 18%, transparent);
-      border-color: color-mix(in srgb, $secondary-light 46%, transparent);
+      background: $studio-select;
+      border-color: color-mix(in srgb, $secondary-default 45%, transparent);
     }
   }
 }
@@ -365,8 +366,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   accent-color: $secondary-default;
 }
 
-// Two pills on the panel, not a track in a well: the one in use in the
-// Library's tint and the accent's ink.
+// Two buttons on the panel, not a track in a well, in the app's own corner:
+// the one in use in the Library's tint and the accent's ink.
 .karaoke-maker__timing-scope {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -375,7 +376,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   button {
     min-height: 27px;
     font-size: $text-lead;
-    border-radius: $radius-pill;
+    border-radius: $radius-xs;
   }
 }
 
@@ -409,8 +410,51 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   font-size: $text-lead;
 
-  input {
-    accent-color: $secondary-default;
+  // The toggles' face on a box (Ivan, 2026-11-15: "the borders of this check,
+  // make it look like the toggles"): the switch's well and hairline at rest,
+  // its accent edge and fill when on, the same small corner.
+  input[type='checkbox'] {
+    display: grid;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    flex: 0 0 auto;
+    place-items: center;
+    appearance: none;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-2xs;
+    background: $track-well;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &::after {
+      width: 5px;
+      height: 9px;
+      margin-top: -2px;
+      border: solid $surface-base;
+      border-width: 0 2px 2px 0;
+      opacity: 0;
+      transform: rotate(45deg);
+      content: '';
+    }
+
+    &:hover {
+      border-color: $secondary-light;
+    }
+
+    &:checked {
+      border-color: $secondary-default;
+      background: $secondary-default;
+
+      &::after {
+        opacity: 1;
+      }
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+      outline: none;
+    }
   }
 }
 
@@ -558,11 +602,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   margin: 0;
   overflow: hidden;
-  // No pane round it: the editor runs edge to edge on the page's tone, as
-  // the Library's shelf does, and a hairline parts it from what is under it
-  // (Ivan, 2026-11-15: "get rid of the wrapper panes, we want to simplify
-  // this"). It was the app's card (`section-card`) from 2026-09-27.
-  border-bottom: 1px solid $studio-hair;
+  // No pane round it and no line under it: the editor runs edge to edge on
+  // the page's tone, as the Library's shelf does (Ivan, 2026-11-15: "get rid
+  // of the wrapper panes", "reduce the amount of dividers and lines"). The
+  // preview's grip under it is the one line there. It was the app's card
+  // (`section-card`) from 2026-09-27.
 }
 
 .karaoke-maker__canvas {

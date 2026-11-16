@@ -349,11 +349,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: repeat(2, minmax(125px, 1fr));
   align-items: end;
   gap: 5px 12px;
-  padding: 6px 9px;
-  // The window's filled card: a block-coloured slab was the lightest thing
-  // in the word editor.
-  @include card-surface;
-  border-radius: $radius-m;
+  // On the panel, no card round it: boxes inside the floating panel made it
+  // a stack of slabs (Ivan, 2026-11-15, the Maker's panels made flat).
+  padding: 2px 0;
 
   label {
     display: grid;

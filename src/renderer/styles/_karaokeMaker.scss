@@ -45,16 +45,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   animation: karaoke-maker-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
     both;
   overflow: hidden;
-  // The window's floor, flat and opaque — the stage and the transport are
-  // underneath it — as it was before the card was tried over it (Ivan,
-  // 2026-09-27: "bg need to be as it was"). The toolbar above and the command
-  // dock below stand in the pane colour instead, as the titlebar and the
-  // transport bar do over the app's own floor, so the editing surface reads
-  // as the floor between two bars. Square and with no frame of its own
-  // ("no rounder border like that").
+  // THE PAGE'S CARD, AS THE LIBRARY STANDS IN (Ivan, 2026-11-15: "it needs to
+  // have the same background as in the Library"): the Maker lies over the
+  // Karaoke page's own card (`$section-card-pages`) and wears that card's
+  // face - its fill, its edge and its corners - so the flat bars and the
+  // editor stand on the one surface the Library's rail, shelf and queue do.
+  // Opaque, as it must be: the stage and the transport are underneath, and
+  // the card's fill is 85% - so it is laid over the window's floor, which is
+  // exactly what the Library's card is seen over. It was the window's floor
+  // alone, square (2026-09-27), and with the bars made flat the whole Maker
+  // read as a darker slab cut out of the page.
   color: $text-muted;
-  background: $surface-base;
-  border-radius: 0;
+  @include section-card;
+  background:
+    linear-gradient($surface-section, $surface-section), $surface-base;
 
   #{$maker-own-button},
   input,
@@ -133,6 +137,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // and transport at the top after entering full screen.
     position: fixed;
     z-index: 96;
+    // The window is the frame in full screen: no card edge or corner.
+    border: 0;
     border-radius: 0;
     // NOTHING HERE MAY TOUCH `animation`, AND THAT IS THE FIX.
     //
@@ -783,6 +789,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 22px 48px color-mix(in srgb, $surface-base 48%, transparent)
   );
   background: $surface-menu-floor;
+  // The cards' corner, as every menu wears it: `floating-surface` gives a
+  // tooltip's near-square one (Ivan, 2026-11-15: "squared again").
+  border-radius: $card-radius;
   transform: translateX(-50%);
   // Pops out of the button it hangs under. A pop, not the menus' fold: the
   // fold is a `transform`, and this one's transform is what centres it. The

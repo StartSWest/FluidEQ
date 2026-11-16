@@ -33,7 +33,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 6px;
   min-height: 52px;
   padding: 5px 8px;
-  border-top: 1px solid $studio-hair;
 }
 
 .karaoke-maker-nav__summary {
@@ -256,10 +255,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       text-transform: none;
     }
   }
-
-  &.is-open > header {
-    border-bottom: 1px solid rgba(69, 146, 170, 0.16);
-  }
 }
 
 .karaoke-maker-preview__splitter {
@@ -275,14 +270,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   cursor: ns-resize;
   outline: 0;
 
-  // The preview's top edge is the hairline itself; the grip shows only
-  // under the pointer, where it is the thing being held.
+  // The preview's top edge is the hairline itself, the one line between the
+  // editor and the preview, and the grip always shows on it, as the
+  // Library's splitters show theirs (Ivan, 2026-11-15: "the splitter needs to
+  // always show the handle like in the Library").
   border-top: 1px solid $studio-hair;
 
   > span {
     width: 54px;
     height: 3px;
-    background: transparent;
+    background: rgba($edge-tint, 0.18);
     border-radius: $radius-pill;
     transition:
       width 140ms ease,

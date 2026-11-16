@@ -37,12 +37,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-sizing: border-box;
   padding: 16px 16px 12px;
   color: $text-primary;
-  // SOLID, the menus' face (`menu-face`): the dialogs' glass let the notes and
-  // the playhead show through the words, and a panel over a moving canvas
-  // read as a smear (Ivan, 2026-11-15: "the modals that have bad
-  // transparency"). Under the Backdrop a menu is glass on purpose, and these
-  // follow it there.
-  @include menu-face;
+  // SOLID (`solid-panel-face`): the dialogs' glass let the notes and the
+  // playhead show through the words, and a panel over a moving canvas read
+  // as a smear (Ivan, 2026-11-15: "the modals that have bad transparency").
+  @include solid-panel-face;
   box-shadow: 0 20px 54px rgba($black, 0.54);
   will-change: transform;
 
@@ -148,7 +146,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 25px 48px 15px 18px;
   color: $text-primary;
   // Solid, as the capture panel above.
-  @include menu-face;
+  @include solid-panel-face;
   box-shadow: 0 20px 54px rgba($black, 0.54);
   will-change: transform;
 

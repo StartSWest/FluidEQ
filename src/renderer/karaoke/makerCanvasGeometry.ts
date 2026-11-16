@@ -86,8 +86,10 @@ export const COMPACT_LYRIC_LANE_HEIGHT = 22;
 // does that.
 export const TRANSLATION_LANE_HEIGHT = LYRIC_LANE_HEIGHT;
 
-/** Room for the piano keys down the left edge. */
-const PLOT_LEFT = 54;
+/** Room for the octave names down the left edge, and no more (Ivan,
+ * 2026-11-15: "less left padding"): "C7" right-aligned 8px short of the plot
+ * needs about 30px. It was 54, from when piano keys stood there. */
+const PLOT_LEFT = 34;
 
 /** A margin on the right, so the last note is not flush against the frame. */
 const PLOT_RIGHT_INSET = 18;
