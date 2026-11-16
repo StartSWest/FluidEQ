@@ -58,6 +58,7 @@ import { placeTrail } from './LibraryPlaceBar';
 import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
 import { formatCount } from './libraryFormat';
 import { useLibraryAnswer } from './useLibraryAnswer';
+import LibraryFolderTagMenu from './tags/LibraryFolderTagMenu';
 
 /**
  * Folders asked for under one parent at once — the store's page ceiling. A
@@ -119,6 +120,8 @@ interface ITreeContext {
   locale: string;
   /** The tree pattern's keys, handled by the row that has the focus. */
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
+  /** A right-click on a folder: its menu (edit the tags of its songs). */
+  onContextMenu: (anchor: HTMLElement, folder: ILibraryFolderItem) => void;
 }
 
 /**
@@ -197,6 +200,10 @@ const FolderNode = ({
           context.open(path);
         }}
         onFocus={() => context.focus(path)}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          context.onContextMenu(event.currentTarget, folder);
+        }}
       >
         {folder.hasFolders === true ? (
           <span
@@ -361,7 +368,13 @@ const LibraryFolderTree = ({
     [onOpenFolder],
   );
 
+  const [folderMenu, setFolderMenu] = useState<
+    { anchor: HTMLElement; folder: ILibraryFolderItem } | undefined
+  >(undefined);
+  const closeFolderMenu = useCallback(() => setFolderMenu(undefined), []);
+
   const context: ITreeContext = {
+    onContextMenu: (anchor, folder) => setFolderMenu({ anchor, folder }),
     selected: openFolderPath,
     // Tab lands on the lit folder, or the first root when none is.
     focused: focused ?? openFolderPath ?? rootFolders[0]?.id,
@@ -459,6 +472,17 @@ const LibraryFolderTree = ({
           context={context}
         />
       ))}
+      {/* Portalled to the body, so where it is written changes nothing. */}
+      <LibraryFolderTagMenu
+        anchor={folderMenu?.anchor ?? null}
+        folder={folderMenu?.folder}
+        label={
+          folderMenu
+            ? (labels.get(folderMenu.folder.id) ?? folderMenu.folder.name)
+            : ''
+        }
+        onClose={closeFolderMenu}
+      />
     </ul>
   );
 };
