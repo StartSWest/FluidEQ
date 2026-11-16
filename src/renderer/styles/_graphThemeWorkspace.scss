@@ -617,13 +617,16 @@ it under the terms of the GNU General Public License version 3 or later.
   z-index: -1;
   top: -100vh;
   right: -100vw;
-  bottom: -26px;
+  bottom: -10px;
   left: -100vw;
+  // Dark and crisp, not a soft wash (Ivan, 2026-11-15: "make this darker and
+  // sharper, not that soft crap"): nearly opaque down to the row's foot and
+  // gone within a few pixels under it.
   background: linear-gradient(
     to top,
     transparent 0,
-    color-mix(in srgb, $surface-base 52%, transparent) 26px,
-    color-mix(in srgb, $surface-base 72%, transparent) 100%
+    color-mix(in srgb, $surface-base 90%, transparent) 6px,
+    color-mix(in srgb, $surface-base 92%, transparent) 100%
   );
   content: '';
   pointer-events: none;
