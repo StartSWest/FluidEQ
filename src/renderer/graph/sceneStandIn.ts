@@ -17,7 +17,9 @@ import { useEffect, useSyncExternalStore } from 'react';
  * that covered it - the same scene twice, one of them seen by nobody; and
  * the Karaoke's own scene in its lyric window (`KaraokeGraphBackground`),
  * played with its own See through and Blur, while the Backdrop's copy
- * behind the page went on drawing (Ivan, 2026-11-16).
+ * behind the page went on drawing (Ivan, 2026-11-16). And the Karaoke Maker,
+ * which draws no scene at all and takes the stand-in so nothing plays behind
+ * it (Ivan, 2026-11-16: "the Maker cannot show the scene behind").
  *
  * Not the Studio's stage. It stood in once, so the graph's scene would not
  * run behind the Studio under the Backdrop, and it stopped as well the graph

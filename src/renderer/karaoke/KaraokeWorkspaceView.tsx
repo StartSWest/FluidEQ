@@ -28,6 +28,7 @@ import Spinner from '../icons/Spinner';
 import karaokeMicrophoneImage from '../../../assets/karaoke-microphone.png';
 import MenuIcon from '../icons/MenuIcon';
 import KaraokeMaker from './KaraokeMaker';
+import { useStandInForGraphScene } from '../graph/sceneStandIn';
 import { importedFileIdentity } from './karaokeWorkspaceRestore';
 import { setKaraokeHostSource } from './karaokeMediaPath';
 import { karaokeMakerProjectToSong } from '../../common/karaoke/makerProject';
@@ -167,6 +168,12 @@ const KaraokeWorkspaceView = ({
     makerAudio,
     isMakerShown,
   } = songs;
+  // No scene behind the Maker, the Karaoke's or the window's (Ivan,
+  // 2026-11-16: "it is very slow ... the Maker cannot show the scene
+  // behind"): its own backdrop is not mounted while it is open, and taking
+  // the stand-in stops the graph's scene, which would otherwise have taken
+  // over the moment the Karaoke's let it go.
+  useStandInForGraphScene(!isHidden && isMakerOpen);
   const addFiles = useCallback(
     () => fileInputRef.current?.click(),
     [fileInputRef],

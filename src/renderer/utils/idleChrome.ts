@@ -169,21 +169,13 @@ const startIdleClock = () => {
  * approach to the edge without stealing the last part of those panels.
  */
 const TOP_WAKE_EDGE_PX = 120;
+//
+// Full screen keeps the same ten pixels. It had ninety, on the theory that
+// nothing ends above the transport there; the Karaoke's line-by-line score
+// does, and reaching a line to practise it brought the bar up and pushed the
+// rows away from the pointer (Ivan, 2026-11-16: "the bottom has too much
+// detection area, I cannot reach the karaoke's lines").
 export const BOTTOM_WAKE_EDGE_PX = 10;
-
-/**
- * The same band in full screen, where the reason for ten pixels does not
- * apply: nothing ends above the transport there — the plot is the window — so
- * there are no controls near the foot to steal. Ten pixels of a 1440px screen
- * is a target you have to aim at, and the bar reads as missing rather than
- * hidden.
- */
-const FULL_SCREEN_BOTTOM_WAKE_EDGE_PX = 90;
-
-const bottomWakeEdge = (): number =>
-  document.querySelector('.app-workspace.is-app-full')
-    ? FULL_SCREEN_BOTTOM_WAKE_EDGE_PX
-    : BOTTOM_WAKE_EDGE_PX;
 
 /**
  * Panels shortened by the floating transport become part of its interaction
@@ -206,7 +198,7 @@ const isInBottomChromeSurface = (event: PointerEvent): boolean =>
   event.target.closest(BOTTOM_CHROME_HOLD_SELECTOR) !== null;
 
 const isInBottomZone = (event: PointerEvent): boolean =>
-  event.clientY >= window.innerHeight - bottomWakeEdge();
+  event.clientY >= window.innerHeight - BOTTOM_WAKE_EDGE_PX;
 
 /**
  * The header's edge over a full-screen picture: the window's last few
