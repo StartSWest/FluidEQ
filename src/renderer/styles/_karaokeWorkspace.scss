@@ -44,6 +44,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-workspace {
+  // The box the restoring spinner covers (`_karaokePlaylist.scss`).
+  position: relative;
   display: flex;
   min-width: 0;
   min-height: 0;

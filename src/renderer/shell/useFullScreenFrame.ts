@@ -96,6 +96,23 @@ const useFullScreenFrame = ({
     setFrameShown(isActive && isShown);
   }, [isActive, isShown]);
 
+  // Leaving full screen puts the frame's panels away: left open, they came
+  // back as the narrow layout's drawers and left their backdrop over the page
+  // (Ivan, 2026-11-16: "leaving the Library in full screen the backdrop
+  // stays"). Only on the way out, never on the way in.
+  const putAway = useEffectEvent(() => {
+    if (isShown) {
+      setShown(false);
+    }
+  });
+  const wasActive = useRef(isActive);
+  useEffect(() => {
+    if (wasActive.current && !isActive) {
+      putAway();
+    }
+    wasActive.current = isActive;
+  }, [isActive]);
+
   const toggle = useEffectEvent(() => setShown(!isShown));
 
   const arm = () => {

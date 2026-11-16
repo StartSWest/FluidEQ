@@ -438,6 +438,15 @@ const KaraokeWorkspaceView = ({
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <audio key="karaoke-audio" ref={session.audioRef} preload="metadata" />
       {karaokeTransportPortal}
+      {/* Over the whole Karaoke page, playlist and all, so it stands at the
+          page's centre whatever the playlist takes (Ivan, 2026-11-16: "it
+          needs to centre on the whole Karaoke content"); inside the stage it
+          sat off centre whenever the playlist was open. */}
+      {isRestoring && !song && (
+        <div className="karaoke-workspace__restoring" role="status">
+          <Spinner />
+        </div>
+      )}
       <input
         ref={fileInputRef}
         className="karaoke-workspace__file-input"
@@ -636,11 +645,7 @@ const KaraokeWorkspaceView = ({
                the tab opens, and for that moment this drew a microphone and
                "drop a folder here" over a library that was about to appear.
                Same as the library tab's own empty panel. */
-            (isRestoring && (
-              <div className="karaoke-workspace__restoring" role="status">
-                <Spinner />
-              </div>
-            )) || (
+            !isRestoring && (
               <div className="karaoke-workspace__empty">
                 <img
                   className="karaoke-workspace__microphone-art"

@@ -2133,6 +2133,14 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     box-shadow: none;
   }
 
+  // The Library keeps its card's colour, as the Karaoke does, so the header
+  // and the transport, which are the floor, read as apart from it (Ivan,
+  // 2026-11-16: "put the Library's colour in full screen so it stands apart
+  // from the top and bottom bars, as we did for Karaoke").
+  .workspace-tab-panel--library {
+    background: $surface-section;
+  }
+
   // Online players request HTML fullscreen from inside a `<webview>`. App
   // immediately cancels that top-layer state and puts this shared shell full
   // screen instead. The controlled class gives the picture the whole pane.

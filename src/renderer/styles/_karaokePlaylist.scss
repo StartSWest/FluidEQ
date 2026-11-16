@@ -320,10 +320,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // nothing else: the empty state's own words would be wrong, and its picture
 // would be the wrong picture.
 //
-// Over the whole stage, toolbar included, so the spinner stands at the
-// stage's centre (Ivan, 2026-11-16: "it doesn't come out centred in the
-// view"): in the stage's flow under the toolbar it centred in what was left
-// and stood 26px under the middle.
+// Over the whole Karaoke page, so the spinner stands at its centre (Ivan,
+// 2026-11-16: "it doesn't come out centred in the view", then "centre on the
+// whole Karaoke content"): under the stage's toolbar it stood 26px low, and
+// over the stage alone it moved aside with the playlist.
 .karaoke-workspace__restoring {
   position: absolute;
   z-index: 2;
