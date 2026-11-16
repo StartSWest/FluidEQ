@@ -22,8 +22,17 @@ it under the terms of the GNU General Public License version 3 or later.
 // The About panel on the dialog frame (`DialogFrame`): FluidEQ, its version,
 // the mascot and the two ways to find it in the rail; the licence and the
 // notices the law asks for on the right.
+// Wider than the other dialogs, and its rail too (Ivan, 2026-11-15: "make
+// this modal a bit wider so the support fits, also that side pane"): at the
+// frame's 16.5rem rail the support card ran past the rail's foot.
 .dialog-frame.about {
-  @include dialog.size(1000px, 860px);
+  @include dialog.size(1180px, 900px);
+
+  // Beside the body only: on a narrow window the frame stacks the rail over
+  // the body, and this must not undo that.
+  @media not all and (max-width: $bp-md) {
+    grid-template-columns: 20rem minmax(0, 1fr);
+  }
 }
 
 // Legal text is read, not scanned: the body's own size and measure, links in
