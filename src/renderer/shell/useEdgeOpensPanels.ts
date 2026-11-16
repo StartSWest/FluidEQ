@@ -31,15 +31,17 @@ const cancelWait = (armed: RefObject<IEdgeWait | undefined>) => {
 export const EDGE_OPENS_PX = 16;
 
 /**
- * How long the pointer has to stay at an edge before its panel opens (Ivan,
- * 2026-11-16: "a second in the corner before the side panels come out ...
- * if I'm moving the mouse to another screen I don't want the panel"). The
- * one duration here is the request itself, not a guess at when something is
- * ready: it is waited on as an animation of the document on the page's own
- * timeline (`Element.animate`, its `finished`), cancelled the moment the
- * pointer leaves the edge or the window.
+ * How long the pointer has to stay at an edge before its panel opens, and
+ * away from an open panel before it shuts (Ivan, 2026-11-16: "a second in the
+ * corner before the side panels come out ... if I'm moving the mouse to
+ * another screen I don't want the panel", then "half a second ... until the
+ * mouse has left, half a second"). The durations here are the request
+ * itself, not a guess at when something is ready: each is waited on as an
+ * animation of the document on the page's own timeline (`Element.animate`,
+ * its `finished`), cancelled the moment the pointer goes back.
  */
-export const EDGE_DWELL_MS = 1000;
+export const EDGE_DWELL_MS = 500;
+export const PANEL_LEAVE_MS = 500;
 
 /**
  * How far past an open panel's edge the pointer may stray before it shuts:
@@ -106,34 +108,49 @@ const useEdgeOpensPanels = ({
   setLeftOpen,
   setRightOpen,
 }: IEdgePanels) => {
-  // The edge being waited at, and the wait itself.
+  // The edge being waited at to open, and the panel being waited away from
+  // to shut, each with its wait.
   const armed = useRef<IEdgeWait>(undefined);
+  const leaving = useRef<IEdgeWait>(undefined);
   const disarm = () => cancelWait(armed);
+  const stayLeaving = () => cancelWait(leaving);
 
-  const arm = (side: TEdge) => {
-    if (armed.current?.side === side) {
+  const setOpen = (side: TEdge, open: boolean) => {
+    if (side === 'left') {
+      setLeftOpen(open);
+    } else {
+      setRightOpen(open);
+    }
+  };
+
+  /** After `duration` on the same side, unless cancelled, opens or shuts it. */
+  const waitThen = (
+    slot: RefObject<IEdgeWait | undefined>,
+    side: TEdge,
+    duration: number,
+    open: boolean,
+  ) => {
+    if (slot.current?.side === side) {
       return;
     }
-    disarm();
-    const wait = document.documentElement.animate([{}, {}], {
-      duration: EDGE_DWELL_MS,
-    });
-    armed.current = { side, wait };
+    cancelWait(slot);
+    const wait = document.documentElement.animate([{}, {}], { duration });
+    const entry: IEdgeWait = { side, wait };
+    slot.current = entry;
     wait.finished
       .then(() => {
-        if (armed.current?.wait === wait) {
-          armed.current = undefined;
-          if (side === 'left') {
-            setLeftOpen(true);
-          } else {
-            setRightOpen(true);
-          }
+        if (slot.current === entry) {
+          slot.current = undefined;
+          setOpen(side, open);
         }
         return undefined;
       })
-      // Cancelled: the pointer left the edge, which is the answer "no".
+      // Cancelled: the pointer went back, which is the answer "no".
       .catch(() => undefined);
   };
+
+  const arm = (side: TEdge) => waitThen(armed, side, EDGE_DWELL_MS, true);
+  const leave = (side: TEdge) => waitThen(leaving, side, PANEL_LEAVE_MS, false);
 
   const onMove = useEffectEvent((event: PointerEvent) => {
     if (event.pointerType === 'touch') {
@@ -156,20 +173,21 @@ const useEdgeOpensPanels = ({
       return;
     }
     disarm();
-    if (event.buttons !== 0) {
-      return;
-    }
     if (
-      event.target instanceof Element &&
-      event.target.closest(FLOATING_SURFACES)
+      event.buttons !== 0 ||
+      (event.target instanceof Element &&
+        event.target.closest(FLOATING_SURFACES))
     ) {
+      stayLeaving();
       return;
     }
-    if (isLeftOpen && hasLeft(leftPanel(), event, 'left')) {
-      setLeftOpen(false);
-    }
-    if (isRightOpen && hasLeft(rightPanel(), event, 'right')) {
-      setRightOpen(false);
+    const isAway =
+      (isLeftOpen && hasLeft(leftPanel(), event, 'left') && 'left') ||
+      (isRightOpen && hasLeft(rightPanel(), event, 'right') && 'right');
+    if (isAway) {
+      leave(isAway);
+    } else {
+      stayLeaving();
     }
   });
 
@@ -181,7 +199,10 @@ const useEdgeOpensPanels = ({
     // The pointer gone off the window (to another screen) sends no more
     // moves, so its leaving is what cancels the wait.
     const root = document.documentElement;
-    const stop = () => cancelWait(armed);
+    const stop = () => {
+      cancelWait(armed);
+      cancelWait(leaving);
+    };
     window.addEventListener('pointermove', listener, { passive: true });
     root.addEventListener('pointerleave', stop);
     window.addEventListener('blur', stop);
