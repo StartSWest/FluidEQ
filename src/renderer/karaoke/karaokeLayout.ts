@@ -38,13 +38,16 @@ const MIN_PITCH_HEIGHT = 56;
 const MAX_PITCH_HEIGHT = 360;
 
 const DEFAULTS: Record<TKaraokeLayoutMode, IKaraokeLayoutSettings> = {
+  // Narrower than the 27% and 22% it started at (Ivan, 2026-11-16: "after
+  // resetting all settings the karaoke list is too wide"): a fifth of the
+  // page, about the Library rail's width on an ordinary window.
   normal: {
-    playlistShare: 0.27,
+    playlistShare: 0.2,
     playlistCollapsed: false,
     pitchHeight: 96,
   },
   fullscreen: {
-    playlistShare: 0.22,
+    playlistShare: 0.17,
     playlistCollapsed: false,
     pitchHeight: 132,
   },

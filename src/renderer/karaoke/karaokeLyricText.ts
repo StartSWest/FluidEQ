@@ -103,6 +103,19 @@ export const MAX_LYRIC_TEXT_SIZE = 300;
  */
 export const LYRIC_TEXT_SIZE_MARKS: readonly number[] = [100, 150, 200, 250];
 
+/** How near a mark the thumb falls onto it, in percent of the text size. */
+const LYRIC_TEXT_SIZE_SNAP = 8;
+
+/**
+ * A size dragged near a mark lands on it ("the steps at 100, 150 ..."), as
+ * Brightness falls into its quarters (`percentSnaps.ts`); further away it is
+ * free.
+ */
+export const snapLyricTextSize = (size: number): number =>
+  LYRIC_TEXT_SIZE_MARKS.find(
+    (mark) => Math.abs(size - mark) <= LYRIC_TEXT_SIZE_SNAP,
+  ) ?? size;
+
 export const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
 

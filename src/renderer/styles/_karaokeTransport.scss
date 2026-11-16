@@ -582,9 +582,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 14px;
 
+  // The volume's own icon column and gap (`.now-playing-bar__volume`): at
+  // 22px and 6px the 28px icon overran its column and a fader at 0 stood
+  // against it (Ivan, 2026-11-16: "so the slider at zero isn't so stuck to
+  // the icon, like the volume one").
   > .karaoke-transport__volume {
-    grid-template-columns: 22px minmax(60px, 96px);
-    gap: 6px;
+    grid-template-columns: 26px minmax(60px, 96px);
+    gap: 7px;
     padding: 0;
     border: 0;
     background: none;

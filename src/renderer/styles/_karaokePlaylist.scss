@@ -307,11 +307,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The stage while last session's playlist is being read back. A spinner and
 // nothing else: the empty state's own words would be wrong, and its picture
 // would be the wrong picture.
+//
+// Over the whole stage, toolbar included, so the spinner stands at the
+// stage's centre (Ivan, 2026-11-16: "it doesn't come out centred in the
+// view"): in the stage's flow under the toolbar it centred in what was left
+// and stood 26px under the middle.
 .karaoke-workspace__restoring {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
   display: grid;
-  flex: 1 1 auto;
   place-items: center;
-  padding: 40px 0;
+  pointer-events: none;
 }
 
 .karaoke-workspace__microphone-art {

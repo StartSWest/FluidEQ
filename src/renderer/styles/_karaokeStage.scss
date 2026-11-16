@@ -268,12 +268,43 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   // The track in a box of its own, for the marks at 100, 150, 200 and 250
-  // to stand on it (`graph-view-menu__snap`, the Brightness slider's).
+  // to stand on it, each a hair through the track with its number under it.
+  // The first marks were the Brightness slider's 5px hairs, and the track
+  // here is 6px of well drawn over them: there, and seen by nobody (Ivan,
+  // 2026-11-16: "you didn't do the karaoke zoom steps at 100, 150").
   .karaoke-stage-bar__text-size-track {
     position: relative;
     display: flex;
     min-width: 0;
     align-items: center;
+    padding-bottom: 16px;
+  }
+
+  // At the value's fraction of the thumb's travel: half the 10px thumb in
+  // from each end, where the thumb's centre lands. The hair stands 4px past
+  // the track above and below, behind the input, so the thumb covers it on
+  // its own mark.
+  .karaoke-stage-bar__text-size-mark {
+    position: absolute;
+    // Under the 16px input, its hair reaching back up through the track.
+    top: 19px;
+    left: calc(5px + var(--snap-frac, 0) * (100% - 10px));
+    color: $studio-t3;
+    font-size: $studio-text-label;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    pointer-events: none;
+    transform: translateX(-50%);
+
+    &::before {
+      position: absolute;
+      top: -17px;
+      left: 50%;
+      width: 1px;
+      height: 12px;
+      background: color-mix(in srgb, $studio-t2 55%, transparent);
+      content: '';
+    }
   }
 
   input[type='range'] {
@@ -281,6 +312,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
     position: relative;
     width: 100%;
     min-width: 0;
+  }
+
+  // The numbers sit under the hairs; the row's two As and its value stay
+  // on the track's line, the input's 16px.
+  > span,
+  output {
+    align-self: start;
+    line-height: 16px;
   }
 
   output {
@@ -327,13 +366,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 6px;
 }
 
+// Big enough to read at a glance from where one sings (Ivan, 2026-11-16:
+// "those little letters don't read well, make them a bit bigger"): the
+// lead size, where they were the meta size, 12px.
 .karaoke-chords__chip {
-  min-width: 34px;
-  padding: 3px 8px;
+  min-width: 40px;
+  padding: 4px 10px;
   color: $studio-t2;
   border-radius: $radius-s;
   background: $studio-surface;
-  font-size: $studio-text-meta;
+  font-size: $studio-text-lead;
   font-weight: $weight-bold;
   text-align: center;
   font-variant-numeric: tabular-nums;

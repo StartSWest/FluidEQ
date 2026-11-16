@@ -33,6 +33,7 @@ import {
   LYRIC_TEXT_SIZE_MARKS,
   MAX_LYRIC_TEXT_SIZE,
   MIN_LYRIC_TEXT_SIZE,
+  snapLyricTextSize,
 } from './karaokeLyricText';
 import { snapFraction } from '../utils/percentSnaps';
 import { type useKaraokeMicrophoneInput } from './useKaraokeMicrophone';
@@ -316,9 +317,9 @@ const KaraokeStageToolbar = ({
           </span>
           <span className="karaoke-stage-bar__text-size-track">
             {LYRIC_TEXT_SIZE_MARKS.map((mark) => (
-              <i
+              <span
                 key={mark}
-                className="graph-view-menu__snap"
+                className="karaoke-stage-bar__text-size-mark"
                 style={
                   {
                     '--snap-frac': snapFraction(
@@ -329,7 +330,9 @@ const KaraokeStageToolbar = ({
                   } as CSSProperties
                 }
                 aria-hidden
-              />
+              >
+                {mark}
+              </span>
             ))}
             <input
               id={lyricTextSizeId}
@@ -345,7 +348,9 @@ const KaraokeStageToolbar = ({
                 MIN_LYRIC_TEXT_SIZE,
                 MAX_LYRIC_TEXT_SIZE,
               )}
-              onChange={(event) => onLyricTextSize(Number(event.target.value))}
+              onChange={(event) =>
+                onLyricTextSize(snapLyricTextSize(Number(event.target.value)))
+              }
             />
           </span>
           <span className="is-large" aria-hidden="true">
