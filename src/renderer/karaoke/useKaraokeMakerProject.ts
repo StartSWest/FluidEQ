@@ -284,9 +284,28 @@ const useKaraokeMakerProject = ({
           return undefined;
         }
         if (restoreSavedDraft) {
+          // A DRAFT WITH NO WORDS NEVER TAKES THE SONG'S. A draft of
+          // "Aquí Voy" saved in August, before the song had its .lrc, held
+          // no lyrics at all, and adopting it whole replaced the 273 timed
+          // words the song had just brought, 22 ms after the Maker opened
+          // with them (Ivan, 2026-11-15: "import lyric in the Maker is
+          // failing, however I go back to the list and it is there"). The
+          // draft's own work - notes, stems, analysis - is kept, under the
+          // song's words, and stamped so the draft on disk takes them too.
+          const songLyrics = projectRef.current.lyrics;
+          const draftHasWords = saved.lyrics.lines.some(
+            (line) => line.tokens.length > 0,
+          );
+          const songHasWords = songLyrics.lines.some(
+            (line) => line.tokens.length > 0,
+          );
+          const adopted =
+            !draftHasWords && songHasWords
+              ? touchKaraokeMakerProject({ ...saved, lyrics: songLyrics })
+              : saved;
           persistedDraftUpdatedAtRef.current = saved.updatedAt;
-          setProject(saved);
-          onProjectAdopted(saved);
+          setProject(adopted);
+          onProjectAdopted(adopted);
           setAdoptedDraft(true);
           if (!fromLibrary) {
             setRestoreToast(t('karaoke.maker.draftRestored'));
