@@ -1,0 +1,168 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+@use 'karaokeScoreTokens' as *;
+
+// The lines under the pitch strip and the running score at their end; the
+// verdicts' colours and what both halves share are in
+// _karaokeScoreTokens.scss.
+
+// A counting figure: tabular, at the width of the widest it will show
+// (`KaraokeCountUp`), so nothing beside it moves while it counts.
+.karaoke-count {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+// *** Line by line, under the strip *******************************************
+
+// Lined up with the strip's plot, right of its note names (`PLOT_LEFT`).
+.karaoke-score {
+  container: karaoke-score / inline-size;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 6px 0 0 34px;
+}
+
+.karaoke-score__lines {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The whole row is the way back to its line: a press sings it again.
+.karaoke-score__line {
+  display: grid;
+  width: calc(100% + 12px);
+  min-width: 0;
+  gap: 6px;
+  margin: -4px -6px;
+  padding: 4px 6px;
+  color: inherit;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: $studio-raise;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.karaoke-score__cells {
+  display: flex;
+  height: 10px;
+  gap: 3px;
+}
+
+.karaoke-score__cell {
+  min-width: 2px;
+  flex-basis: 0;
+  border-radius: 2px;
+  background: $score-well;
+  box-shadow: inset 0 0 0 1px $score-well-edge;
+  transition:
+    background-color $motion-fast ease,
+    box-shadow $motion-fast ease;
+
+  &.is-now {
+    box-shadow: inset 0 0 0 1.5px $secondary-light;
+  }
+
+  &[data-verdict]:not([data-verdict='skipped']) {
+    box-shadow: none;
+  }
+
+  @include verdict-colours;
+}
+
+.karaoke-score__label {
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: 8px;
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  white-space: nowrap;
+
+  b {
+    overflow: hidden;
+    font-weight: $weight-semibold;
+    text-overflow: ellipsis;
+    @include tone-ink;
+  }
+}
+
+.karaoke-score__total {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  text-align: right;
+}
+
+.karaoke-score__points {
+  color: $text-primary;
+  font-size: 1.375rem;
+  font-weight: $weight-display;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.karaoke-score__sub {
+  display: flex;
+  gap: 10px;
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  white-space: nowrap;
+}
+
+.karaoke-score__streak .karaoke-count {
+  color: $secondary-light;
+  font-weight: $weight-bold;
+  text-align: left;
+}
+
+// Two lines where three do not fit (the one closed and the one sung), and
+// the one being sung alone in the narrowest strip.
+@container karaoke-score (max-width: 620px) {
+  .karaoke-score__lines {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > li:nth-child(3) {
+      display: none;
+    }
+  }
+}
+
+@container karaoke-score (max-width: 400px) {
+  .karaoke-score__lines {
+    grid-template-columns: minmax(0, 1fr);
+
+    > li:not(.is-current) {
+      display: none;
+    }
+  }
+}

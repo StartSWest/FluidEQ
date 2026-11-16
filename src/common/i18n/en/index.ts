@@ -40,6 +40,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * Placeholders are `{name}` and are substituted positionally by name.
  */
 import karaoke from './karaoke';
+import karaokeScore from './karaokeScore';
 import eq from './eq';
 import app from './app';
 import look from './look';
@@ -97,6 +98,7 @@ import libraryTags from './libraryTags';
 
 const en = {
   ...karaoke,
+  ...karaokeScore,
   ...eq,
   ...app,
   ...look,

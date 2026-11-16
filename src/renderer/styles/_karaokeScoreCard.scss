@@ -1,0 +1,400 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+@use 'karaokeScoreTokens' as *;
+
+// The card at the end of a sung song: the summary beside the song's map.
+
+.karaoke-score-card-backdrop {
+  @include dialog.backdrop(4100);
+}
+
+.karaoke-score-card {
+  @include dialog.surface(1040px, 900px);
+  container: karaoke-score-card / inline-size;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.karaoke-score-card__body {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+  overflow-y: auto;
+}
+
+.karaoke-score-card__pane {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 18px;
+  padding: 22px 24px 24px;
+
+  & + & {
+    border-top: dialog.$seam;
+  }
+}
+
+// Side by side where both fit at their reading width, as the mockup lays
+// its two cards.
+@container karaoke-score-card (min-width: 840px) {
+  .karaoke-score-card__body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .karaoke-score-card__pane + .karaoke-score-card__pane {
+    border-top: 0;
+    border-left: dialog.$seam;
+  }
+}
+
+// Clear of the close button in the card's corner.
+.karaoke-score-card__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding-right: 32px;
+}
+
+.karaoke-score-card__kicker {
+  @include kicker;
+}
+
+.karaoke-score-card__song {
+  min-width: 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+}
+
+.karaoke-score-card__score-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 6px 18px;
+}
+
+.karaoke-score-card__big {
+  margin: 0;
+  color: $text-primary;
+  font-size: 3.375rem;
+  font-weight: $weight-display;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+
+  small {
+    margin-left: 6px;
+    color: $studio-t3;
+    font-size: 0.9375rem;
+    font-weight: $weight-semibold;
+    letter-spacing: 0;
+  }
+}
+
+.karaoke-score-card__grade {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 4px;
+
+  b {
+    color: $text-primary;
+    font-size: 1.25rem;
+    font-weight: $weight-bold;
+    @include tone-ink;
+  }
+}
+
+.karaoke-score-card__best {
+  width: max-content;
+  max-width: 100%;
+  padding: 2px 9px;
+  color: $studio-t2;
+  border: 1px solid $studio-hair;
+  border-radius: 999px;
+  font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
+
+  &[data-best='new'] {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
+  }
+
+  &[data-best='behind'] {
+    color: $score-near;
+    border-color: color-mix(in srgb, $score-near 45%, transparent);
+  }
+}
+
+.karaoke-score-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+
+  > div {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    gap: 2px;
+    padding-top: 10px;
+    border-top: 1px solid $studio-hair;
+  }
+
+  dt {
+    @include kicker;
+    @include tracking(0.06em);
+    font-weight: $weight-semibold;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: 1.375rem;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+
+    &.is-note {
+      color: $studio-t2;
+      font-size: $studio-text-meta;
+      font-weight: $weight-regular;
+    }
+  }
+}
+
+.karaoke-score-card__of {
+  color: $studio-t3;
+  font-size: 0.9375rem;
+  font-weight: $weight-semibold;
+}
+
+@container karaoke-score-card (max-width: 460px) {
+  .karaoke-score-card__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .karaoke-score-card__big {
+    font-size: 2.75rem;
+  }
+}
+
+.karaoke-score-card__split-block {
+  display: grid;
+  gap: 10px;
+}
+
+.karaoke-score-card__split {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  gap: 2px;
+  border-radius: 4px;
+
+  i {
+    display: block;
+    height: 100%;
+    flex-basis: 0;
+    @include verdict-colours;
+  }
+}
+
+.karaoke-score-card__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  i {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    @include verdict-colours;
+  }
+}
+
+.karaoke-score-card__block {
+  display: grid;
+  gap: 8px;
+
+  h3 {
+    @include kicker;
+  }
+
+  p {
+    margin: 0;
+    color: $studio-t2;
+    font-size: $studio-text-tree;
+    line-height: 1.45;
+  }
+}
+
+.karaoke-score-card__tip {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: $radius-m;
+  background: $studio-surface;
+
+  h3 {
+    @include kicker;
+  }
+
+  p {
+    margin: 0;
+    color: $text-primary;
+    font-size: $studio-text-tree;
+    line-height: 1.45;
+  }
+}
+
+.karaoke-score-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.karaoke-score-card__map {
+  display: block;
+  width: 100%;
+  height: 120px;
+}
+
+// Every line, each one a way back to it; the long songs scroll here rather
+// than stretching the card.
+.karaoke-score-card__lines {
+  max-height: 216px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+
+  button {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto 4ch;
+    align-items: baseline;
+    gap: 14px;
+    padding: 8px 6px;
+    color: inherit;
+    border: 0;
+    border-top: 1px solid $studio-hair;
+    background: none;
+    font: inherit;
+    font-size: $studio-text-tree;
+    text-align: left;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover {
+      background: $studio-raise;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  b {
+    color: $studio-t2;
+    font-weight: $weight-bold;
+    white-space: nowrap;
+    @include tone-ink;
+  }
+
+  em {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+    font-style: normal;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+
+    &[data-trend='up'] {
+      color: $secondary-light;
+    }
+
+    &[data-trend='down'] {
+      color: $score-near;
+    }
+  }
+}
+
+.karaoke-score-card__line-name {
+  overflow: hidden;
+  color: $studio-t2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.karaoke-score-card__history {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    display: grid;
+    min-width: 0;
+    align-content: end;
+    justify-items: center;
+    gap: 5px;
+  }
+
+  i {
+    display: block;
+    width: 100%;
+    border-radius: 3px 3px 0 0;
+    background: color-mix(in srgb, $secondary-default 22%, transparent);
+  }
+
+  .is-best i {
+    background: color-mix(in srgb, $secondary-default 45%, transparent);
+  }
+
+  .is-now i {
+    background: $secondary-default;
+  }
+}
+
+.karaoke-score-card__history-value,
+.karaoke-score-card__history-when {
+  overflow: hidden;
+  max-width: 100%;
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.karaoke-score-card__history-value {
+  font-variant-numeric: tabular-nums;
+
+  .is-now & {
+    color: $text-primary;
+    font-weight: $weight-bold;
+  }
+}
+
+.is-now .karaoke-score-card__history-when {
+  color: $secondary-light;
+  font-weight: $weight-semibold;
+}

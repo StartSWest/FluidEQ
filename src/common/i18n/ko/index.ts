@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /** Complete interface dictionary, assembled from the English feature modules. */
 import { Dictionary } from '../en';
 import karaoke from './karaoke';
+import karaokeScore from './karaokeScore';
 import eq from './eq';
 import app from './app';
 import look from './look';
@@ -76,6 +77,7 @@ import libraryTags from './libraryTags';
 
 const ko: Dictionary = {
   ...karaoke,
+  ...karaokeScore,
   ...eq,
   ...app,
   ...look,

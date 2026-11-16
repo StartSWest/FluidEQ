@@ -30,7 +30,9 @@ import {
   KARAOKE_CANONICAL_CENTER_MIDI,
   karaokePitchViewportForTargets,
 } from '../../common/karaoke/pitch';
-import { TKaraokePitchTarget } from '../../common/karaoke/types';
+import { IKaraokeToken, TKaraokePitchTarget } from '../../common/karaoke/types';
+import { VERDICT_KEYS } from './karaokeScoreFormat';
+import { type IKaraokeLaneVerdict } from './useKaraokeScore';
 import MenuIcon from '../icons/MenuIcon';
 import observeShown from '../utils/observeShown';
 import {
@@ -80,6 +82,8 @@ interface IKaraokePitchLaneProps {
   onScrubStart?: () => void;
   onScrub?: (timeMs: number) => void;
   onScrubEnd?: (timeMs: number) => void;
+  /** The singer's verdict on each note that has ended, while scored. */
+  readVerdict?: (note: IKaraokeToken) => IKaraokeLaneVerdict | undefined;
 }
 
 interface IKaraokePitchViewportState {
@@ -110,6 +114,7 @@ const KaraokePitchLane = ({
   onScrubStart,
   onScrub,
   onScrubEnd,
+  readVerdict,
 }: IKaraokePitchLaneProps) => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -175,6 +180,10 @@ const KaraokePitchLane = ({
     }
 
     let animationFrame: number | undefined;
+    const verdictLabel = ({ verdict, octave }: IKaraokeLaneVerdict) =>
+      octave
+        ? t('karaoke.score.octaveMark', { verdict: t(VERDICT_KEYS[verdict]) })
+        : t(VERDICT_KEYS[verdict]);
     // 30ms, down from 45. The curve is drawn through the points this
     // produces, so the sampling interval is the resolution of the line
     // itself — at 45ms it was twenty-two points a second and a fast run
@@ -362,6 +371,9 @@ const KaraokePitchLane = ({
         synchronizedPlayheadMs,
         yForMidi,
         context,
+        readVerdict,
+        verdictLabel,
+        now,
       });
 
       // The playhead, a plain accent line through the whole strip.
@@ -438,6 +450,7 @@ const KaraokePitchLane = ({
     isMicrophoneLive,
     isPlaying,
     readSongTimeMs,
+    readVerdict,
     target,
     t,
   ]);

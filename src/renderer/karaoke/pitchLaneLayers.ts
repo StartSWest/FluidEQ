@@ -41,11 +41,19 @@ import {
 } from '../../common/karaoke/pitch';
 import { karaokeLeadNoteShape } from '../../common/karaoke/melodyArticulation';
 import { type IKaraokeToken } from '../../common/karaoke/types';
+import { prefersReducedMotion } from '../utils/bandReveal';
+import {
+  type IJudgedNoteBox,
+  paintVerdictChips,
+  verdictColour,
+} from './pitchLaneVerdicts';
+import { type IKaraokeLaneVerdict } from './useKaraokeScore';
 
 // The pitch lane's layers, each painted by one function in the order the
-// lane stacks them: the pitch grid, the note blocks and the singer's trace. Called from the lane's frame with what that frame
-// measured. The lane is the slim strip under the chords that the K1 mockup
-// draws (Ivan, 2026-11-15, "fix the pitch as you promised"): the words
+// lane stacks them: the pitch grid, the note blocks (with their verdicts'
+// chips once sung, `pitchLaneVerdicts.ts`) and the singer's trace. Called
+// from the lane's frame with what that frame measured. The lane is the slim
+// strip under the chords that the K1 mockup draws (Ivan, 2026-11-15, "fix the pitch as you promised"): the words
 // band over it, the note names, the semitone labels, the seconds ruler,
 // the review strip and the legend were all taken off it.
 
@@ -114,6 +122,10 @@ interface IPaintNoteBlocksInput {
   synchronizedPlayheadMs: number;
   yForMidi: (midi: number) => number;
   context: CanvasRenderingContext2D;
+  /** The verdict on a note that has ended, where the singer is scored. */
+  readVerdict?: (note: IKaraokeToken) => IKaraokeLaneVerdict | undefined;
+  verdictLabel: (judged: IKaraokeLaneVerdict) => string;
+  now: number;
 }
 
 // The Maker's note, drawn the same here (Ivan, 2026-11-16: "fix the pitch
@@ -133,7 +145,11 @@ export const paintNoteBlocks = ({
   synchronizedPlayheadMs,
   yForMidi,
   context,
+  readVerdict,
+  verdictLabel,
+  now,
 }: IPaintNoteBlocksInput) => {
+  const judgedBoxes: IJudgedNoteBox[] = [];
   visibleNotes.forEach((note) => {
     const startMs = note.startMs as number;
     const shape = karaokeLeadNoteShape({
@@ -175,6 +191,13 @@ export const paintNoteBlocks = ({
       fill = '#ffd25a';
     } else if (isFree) {
       fill = readAccent(0.24, 'rgba(88, 191, 215, .24)');
+    }
+    // Once it has ended and been judged, the note wears its verdict, as it
+    // wore the light accent while it was sung in tune.
+    const judged = isFree ? undefined : readVerdict?.(note);
+    if (judged) {
+      fill = verdictColour(judged.verdict, 0.88);
+      judgedBoxes.push({ left, right, top, judged });
     }
     context.save();
     context.fillStyle = fill;
@@ -241,6 +264,10 @@ export const paintNoteBlocks = ({
       context.stroke();
     }
     context.restore();
+    if (judged) {
+      // Its verdict's chip stands where its name was.
+      return;
+    }
     // Each note's name over it, as the Maker prints it, lifted clear of
     // the ring when there is one.
     context.fillStyle = active
@@ -254,6 +281,14 @@ export const paintNoteBlocks = ({
       left + (right - left) / 2,
       top - 4 - (active ? NOTE_RING_GAP + 1 : 0),
     );
+  });
+  // After every note, so a neighbour's body never covers a chip.
+  paintVerdictChips({
+    context,
+    boxes: judgedBoxes,
+    labelOf: verdictLabel,
+    now,
+    reducedMotion: prefersReducedMotion(),
   });
 };
 

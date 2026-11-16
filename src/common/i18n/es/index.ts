@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /** Every key of this language, by feature. Partial by design — see `../en`. */
 import { Dictionary } from '../en';
 import karaoke from './karaoke';
+import karaokeScore from './karaokeScore';
 import eq from './eq';
 import app from './app';
 import look from './look';
@@ -76,6 +77,7 @@ import libraryTags from './libraryTags';
 
 const es: Partial<Dictionary> = {
   ...karaoke,
+  ...karaokeScore,
   ...eq,
   ...app,
   ...look,

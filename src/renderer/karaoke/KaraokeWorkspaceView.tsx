@@ -23,7 +23,7 @@ import KaraokePaneSplitter from './KaraokePaneSplitter';
 import KaraokeBackdrop, { karaokeBackdropKind } from './KaraokeBackdrop';
 import KaraokeChordGuide from './KaraokeChordGuide';
 import KaraokeLyrics from './KaraokeLyrics';
-import KaraokePitchLane from './KaraokePitchLane';
+import KaraokePitchScore from './KaraokePitchScore';
 import Spinner from '../icons/Spinner';
 import karaokeMicrophoneImage from '../../../assets/karaoke-microphone.png';
 import MenuIcon from '../icons/MenuIcon';
@@ -137,6 +137,7 @@ const KaraokeWorkspaceView = ({
     handleSeek,
     handleStopPlayback,
     handleSelectLyric,
+    handleRestart,
     handlePitchScrubStart,
     handlePitchScrub,
     handlePitchScrubEnd,
@@ -601,28 +602,20 @@ const KaraokeWorkspaceView = ({
                     />
                   )}
                   {guides === 'pitch' && (
-                    // No playhead here: the lane reads the element itself
-                    // every frame, and re-renders only for the pitch it
-                    // prints.
-                    <KaraokeLiveValue value={microphone.livePitch}>
-                      {(pitch) => (
-                        <KaraokePitchLane
-                          isActive={!isHidden && !isMakerShown}
-                          isPlaying={status === 'playing'}
-                          pitch={pitch}
-                          analysisStatus={microphone.pitchAnalysisStatus}
-                          microphoneStatus={microphone.status}
-                          onToggleMicrophone={microphone.toggle}
-                          target={song.pitch}
-                          durationMs={session.durationMs}
-                          readPlayheadMs={session.readPlayheadMs}
-                          onPracticeIssue={practicePitchIssue}
-                          onScrubStart={handlePitchScrubStart}
-                          onScrub={handlePitchScrub}
-                          onScrubEnd={handlePitchScrubEnd}
-                        />
-                      )}
-                    </KaraokeLiveValue>
+                    <KaraokePitchScore
+                      song={song}
+                      status={status}
+                      microphone={microphone}
+                      isActive={!isHidden && !isMakerShown}
+                      durationMs={session.durationMs}
+                      readPlayheadMs={session.readPlayheadMs}
+                      onPracticeIssue={practicePitchIssue}
+                      onScrubStart={handlePitchScrubStart}
+                      onScrub={handlePitchScrub}
+                      onScrubEnd={handlePitchScrubEnd}
+                      onSingFrom={handleSelectLyric}
+                      onSingAgain={handleRestart}
+                    />
                   )}
                 </div>
               )}
