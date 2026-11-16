@@ -603,6 +603,32 @@ it under the terms of the GNU General Public License version 3 or later.
   transition: top $motion-base ease;
 }
 
+// THE BAND UNDER THE OPTIONS, over a graph that has the window (expanded or
+// full screen): a shade from the top edge down to just past the row, so its
+// words read over a bright film or stage art (Ivan, 2026-11-15: "since we
+// hide the options when the mouse is quiet, we can show an under-header band
+// to show the options so they are more visible"). It goes and comes with the
+// row itself, which leaves when the pointer rests. Behind the row's own
+// children (the row is a stacking context at z-index 3) and over the plot;
+// it reaches past every side and the graph's own box cuts it, as the
+// full-screen shade below does with the window's.
+.center-workspace.is-graph-full .live-output-controls::before {
+  position: absolute;
+  z-index: -1;
+  top: -100vh;
+  right: -100vw;
+  bottom: -26px;
+  left: -100vw;
+  background: linear-gradient(
+    to top,
+    transparent 0,
+    color-mix(in srgb, $surface-base 52%, transparent) 26px,
+    color-mix(in srgb, $surface-base 72%, transparent) 100%
+  );
+  content: '';
+  pointer-events: none;
+}
+
 // In full screen the same shade, across the whole window and from its top
 // edge — behind the header, so there is no gap between it and the options
 // (Ivan, 2026-09-27: "same on fullscreen and make the whole line darker, not
