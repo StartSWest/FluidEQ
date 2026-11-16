@@ -527,18 +527,18 @@ const everythingAsLabelled = (): TGraphContents =>
  * announcement moved out here, where the one caller that needs it is.
  */
 /**
- * The stops Ctrl+W walks forwards and Ctrl+S back: everything, the curves
- * alone, the wave alone, clean (Ivan, 2026-11-16: "we only need a few there
- * that make sense, in the right order"). The labels have a switch of their own
- * now, so they are no stop, and the quieted EQ line (`layers`) was a stop for
- * one line's weight. Either of those, reached from the View menu or stored,
- * counts as everything here.
+ * The stops Ctrl+W walks forwards and Ctrl+S back: the wave alone, the wave
+ * with the curves, the curves alone (Ivan, 2026-11-16: "we only need a few
+ * that make sense, in the right order", then "remove clean, it doesn't make
+ * sense: waves only, then waves with curves, then curves only"). The labels
+ * have a switch of their own, so they are no stop; any other arrangement,
+ * reached from the View menu or stored, counts as the wave with the curves.
  */
-const CYCLE_STOPS = ['everything', 'curves', 'wave', 'clean'] as const;
+const CYCLE_STOPS = ['wave', 'everything', 'curves'] as const;
 
 const stopOf = (contents: TGraphContents): number => {
   const at = (CYCLE_STOPS as readonly TGraphContents[]).indexOf(contents);
-  return at < 0 ? 0 : at;
+  return at < 0 ? 1 : at;
 };
 
 export const cycleGraphContents = (direction: 1 | -1 = 1) => {
