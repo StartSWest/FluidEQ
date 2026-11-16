@@ -101,6 +101,20 @@ import './styles/WaveformVisualizer.scss';
 /** The spectrum's bands every style reads: as many as the pane can show. */
 const FLAT_BAND_COUNT = 64;
 
+/**
+ * The styles drawn over a background of their own — a grid of unlit dots or
+ * cells, or cells lit only by loudness — which fill the meter top to bottom,
+ * under the label row, instead of starting below it (Ivan, 2026-11-16: "the
+ * ones with bg needs to cover full height"). A grid that stopped short of the
+ * top left an empty band under the dB reading and the pill.
+ */
+const FULL_HEIGHT_STYLES: ReadonlySet<WaveformStyle> = new Set([
+  'dots',
+  'segments',
+  'heat',
+  'waterfall',
+]);
+
 type TWaveformCycleStyle = WaveformStyle | 'off';
 
 /** The held peak at its widest: it is let go below `SILENCE_DB`, -70. */
@@ -709,7 +723,11 @@ const WaveformVisualizer = () => {
         // bitmap.
         className={`waveform-visualizer waveform-visualizer--${style}${isActive && !isOff ? ' is-active' : ''}${
           isPaused && !isOff ? ' is-paused' : ''
-        }${isOverloading && !isOff ? ' is-clipping' : ''}${isOff ? ' is-off' : ''}`}
+        }${isOverloading && !isOff ? ' is-clipping' : ''}${isOff ? ' is-off' : ''}${
+          !isOff && FULL_HEIGHT_STYLES.has(drawableStyle)
+            ? ' is-full-height'
+            : ''
+        }`}
         // Says what pressing it does AND which style is currently drawn — the
         // second half is the only place the choice is legible now that the
         // meter has eleven of them, and hovering is the fastest way to tell

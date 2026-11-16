@@ -283,6 +283,14 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The styles with a background of their own fill the meter top to bottom,
+// under the label row (`FULL_HEIGHT_STYLES` in `WaveformVisualizer.tsx`).
+.waveform-visualizer.is-full-height {
+  .waveform-visualizer__stage {
+    inset: 2px;
+  }
+}
+
 // *** The trace ************************************************************
 //
 // Nothing here. `.waveform-visualizer__canvas` is a canvas, and its box is set
