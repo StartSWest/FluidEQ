@@ -118,6 +118,15 @@ export const usePictureRect = (
       return undefined;
     }
     const measure = () => {
+      // Until the film's own size is known there is no picture to place a
+      // caption on: measured against the whole element, the caption stood
+      // at the stage's foot and jumped to the picture's once the metadata
+      // came (Ivan, 2026-11-15: "they need to show in that position, not
+      // animate to go there"). Unknown, nothing is drawn.
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        setRect(undefined);
+        return;
+      }
       const box = { width: video.clientWidth, height: video.clientHeight };
       const picture = containedPicture(
         box,
