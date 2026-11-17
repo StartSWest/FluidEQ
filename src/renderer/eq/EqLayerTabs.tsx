@@ -8,7 +8,6 @@ import { type KeyboardEvent, type ReactNode, useRef } from 'react';
 import type { TranslationKey } from '../../common/i18n/en';
 import ClearEqButton from '../components/ClearEqButton';
 import '../styles/EqLayers.scss';
-import OutputRate from '../components/OutputRate';
 import {
   NONE_CHAIN_ID,
   activeDspPresetId,
@@ -140,8 +139,6 @@ const EqLayerTabs = ({
           </button>
         ))}
       </div>
-      {/* The output's rate stays where the page's title used to show it. */}
-      <OutputRate />
       <div className="eq-layer-tabs__tools">
         {tools}
         <span className="eq-layer-tabs__rule" aria-hidden="true" />

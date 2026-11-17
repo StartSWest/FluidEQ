@@ -8,8 +8,7 @@ import { useMemo } from 'react';
 import type { ScaleLinear, ScaleLogarithmic } from 'd3';
 import GridLine from '../graph/GridLine';
 import {
-  FREQUENCY_MAJOR_TICKS,
-  FREQUENCY_MINOR_TICKS,
+  frequencyGridFor,
   MINOR_RULE_INK,
   liveLevelTicksFor,
 } from '../graph/graphPaper';
@@ -42,6 +41,8 @@ const PlayerPaper = ({
   // Every level rule but the one along the panel's top edge, which read as a
   // line ruled across the panel under the keys (Ivan, 2026-10-25: "don't
   // show a top line on the graph").
+  const [low, high] = frequency.domain().map(Number);
+  const grid = frequencyGridFor(low, high);
   const levelTicks = useMemo(
     () => liveLevelTicksFor(level).filter((tick) => level(tick) > 1),
     [level],
@@ -59,7 +60,7 @@ const PlayerPaper = ({
           <GridLine
             type="vertical"
             scale={frequency}
-            tickValues={FREQUENCY_MAJOR_TICKS}
+            tickValues={grid.major}
             size={height}
             transform={`translate(0, ${height})`}
             disableAnimation
@@ -70,7 +71,7 @@ const PlayerPaper = ({
           <GridLine
             type="vertical"
             scale={frequency}
-            tickValues={FREQUENCY_MINOR_TICKS}
+            tickValues={grid.minor}
             size={Math.max(0, height - 10)}
             transform={`translate(0, ${height - 10})`}
             color={MINOR_RULE_INK}

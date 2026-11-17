@@ -2743,6 +2743,16 @@ $graph-card-pages: list.join(
   }
 }
 
+// The EQ page's card out to the column's sides with the graph switched off
+// as well as on (fac6ae87b put it there under the graph): 10px in from both
+// sides it was 20px narrower, and the bands, which share the card's width
+// (`bandPlacement.ts`), moved and stretched every time the graph was
+// switched (Ivan, 2026-11-16: "I notice when I toggle the graph on and off
+// they stretch").
+.center-workspace > .middle-content > .workspace-tab-panel--eq {
+  margin-inline: 0;
+}
+
 // Between a section card and the graph the divider is a strip of floor, its
 // grip in the middle and no line (Ivan, 2026-09-27: "remove the graph
 // division splitter line and add a gap so the rounded pane separated from

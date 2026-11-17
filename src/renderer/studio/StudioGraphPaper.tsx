@@ -10,8 +10,7 @@ import Axis from '../graph/Axis';
 import { frequencyTickFormat, gainTickFormat } from '../graph/ChartController';
 import GridLine from '../graph/GridLine';
 import {
-  FREQUENCY_MAJOR_TICKS,
-  FREQUENCY_MINOR_TICKS,
+  frequencyGridFor,
   GAIN_GRID_TICKS,
   levelTickFormat,
   MINOR_RULE_INK,
@@ -32,6 +31,8 @@ import type { IStudioPaper } from './studioPaper';
 export default function StudioGraphPaper({ paper }: { paper: IStudioPaper }) {
   const { margins, padding, width, height, frequency, gain, level } = paper;
   const plotWidth = Math.max(width - padding.left - padding.right, 0);
+  const [low, high] = frequency.domain().map(Number);
+  const grid = frequencyGridFor(low, high);
   return (
     <svg
       className="studio-paper"
@@ -45,7 +46,7 @@ export default function StudioGraphPaper({ paper }: { paper: IStudioPaper }) {
       <GridLine
         type="vertical"
         scale={frequency}
-        tickValues={FREQUENCY_MAJOR_TICKS}
+        tickValues={grid.major}
         size={height - padding.bottom}
         transform={`translate(0, ${height - padding.bottom})`}
         disableAnimation
@@ -53,7 +54,7 @@ export default function StudioGraphPaper({ paper }: { paper: IStudioPaper }) {
       <GridLine
         type="vertical"
         scale={frequency}
-        tickValues={FREQUENCY_MINOR_TICKS}
+        tickValues={grid.minor}
         size={height - padding.bottom - 20}
         transform={`translate(0, ${height - padding.bottom - 10})`}
         color={MINOR_RULE_INK}
@@ -94,6 +95,7 @@ export default function StudioGraphPaper({ paper }: { paper: IStudioPaper }) {
       />
       <Axis
         type="bottom"
+        className="chart-axis--inside-bottom"
         scale={frequency}
         transform={`translate(0, ${height - padding.bottom})`}
         tickValues={paper.frequencyLabels}

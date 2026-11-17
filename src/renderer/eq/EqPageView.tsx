@@ -75,7 +75,6 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
     isContinuousRunning,
     frequencySortedFilters,
     density,
-    bandLayout,
     bandsElement,
     attachBands,
     canScrollBands,
@@ -254,7 +253,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
             >
               <div
                 ref={attachBands}
-                className={`bands bands--${density} bands--${bandLayout}${
+                className={`bands bands--${density}${
                   isPlaced ? ' is-placed' : ''
                 }`}
                 onPointerDown={handleBandsPointerDown}

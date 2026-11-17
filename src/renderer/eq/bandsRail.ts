@@ -19,11 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import heightProperty from '../utils/heightProperty';
 import { watchBandsPaneNeed } from '../utils/bandsPaneNeed';
-import {
-  IBandPlacement,
-  IPlotGeometry,
-  placeBandsEvenly,
-} from '../graph/plotGeometry';
+import { IBandPlacement, placeBandsInRail } from './bandPlacement';
 
 // The EQ page's band rail: its measured height, what the pane under the
 // graph needs for a full track, and the bands' places written onto the row.
@@ -48,7 +44,6 @@ export const attachRail = (rail: HTMLDivElement | null) => {
  * appear to fit, then stop fitting once placed, repeating on every resize. */
 export const measureBandPlacement = (
   bands: HTMLElement,
-  plot: IPlotGeometry,
   count: number,
 ): IBandPlacement | undefined => {
   const rail = bands.closest('.bands-rail');
@@ -56,7 +51,6 @@ export const measureBandPlacement = (
     return undefined;
   }
   const box = rail.getBoundingClientRect();
-  const offset = plot.element.getBoundingClientRect().left - box.left;
   let visible = { left: 0, right: box.width };
   const scroller = bands.closest('.workspace-tab-panel__scroll');
   if (scroller instanceof HTMLElement) {
@@ -67,14 +61,14 @@ export const measureBandPlacement = (
       right: Math.min(box.width, left + scroller.clientWidth),
     };
   }
-  return placeBandsEvenly(count, plot, offset, visible);
+  return placeBandsInRail(count, visible);
 };
 
 /**
  * The bands' places, written onto the row (`.bands.is-placed` in
- * MainContent.scss reads them): the slot every band is, the first band's
+ * `_mainContentGrid.scss` reads them): the slot every band is, the first band's
  * lead from the row's edge and the lead between each band and the one
- * before it, which `placeBandsEvenly` makes the same for every band after
+ * before it, which `placeBandsInRail` makes the same for every band after
  * the first. On the row rather than on each band, so bands that trade
  * places or arrive need nothing written again.
  */

@@ -60,8 +60,7 @@ import ScenePlot from './ScenePlot';
 import SceneTroubleState from './SceneTroubleState';
 import { useSceneTrouble } from './sceneTrouble';
 import {
-  FREQUENCY_MAJOR_TICKS,
-  FREQUENCY_MINOR_TICKS,
+  frequencyGridFor,
   frequencyLabelTicksFor,
   gainAxisTicksFor,
   GAIN_GRID_TICKS,
@@ -258,6 +257,9 @@ const Chart = ({
     [liveLevelScale],
   );
   const gainTickValues = useMemo(() => gainAxisTicksFor(yScaleEq), [yScaleEq]);
+  // Every step of every decade on screen, from the range the plot shows.
+  const [frequencyLow, frequencyHigh] = xScaleFreq.domain().map(Number);
+  const frequencyGrid = frequencyGridFor(frequencyLow, frequencyHigh);
   const frequencyLabelTicks = useMemo(
     () => frequencyLabelTicksFor(xScaleFreq),
     [xScaleFreq],
@@ -543,14 +545,14 @@ const Chart = ({
           <GridLine
             type="vertical"
             scale={xScaleFreq}
-            tickValues={FREQUENCY_MAJOR_TICKS}
+            tickValues={frequencyGrid.major}
             size={svgHeight - padding.bottom}
             transform={`translate(0, ${svgHeight - padding.bottom})`}
           />
           <GridLine
             type="vertical"
             scale={xScaleFreq}
-            tickValues={FREQUENCY_MINOR_TICKS}
+            tickValues={frequencyGrid.minor}
             size={svgHeight - padding.bottom - 20}
             transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
             color={MINOR_RULE_INK}
@@ -699,8 +701,11 @@ const Chart = ({
               disableAnimation
             />
           ) : null}
+          {/* Inside the plot's foot, as the side scales are inside its edges
+            (Ivan, 2026-11-16: "too much spacing there"). */}
           <Axis
             type="bottom"
+            className="chart-axis--inside-bottom"
             scale={xScaleFreq}
             transform={`translate(0, ${svgHeight - padding.bottom})`}
             tickValues={frequencyLabelTicks}

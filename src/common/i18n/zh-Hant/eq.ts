@@ -669,6 +669,8 @@ const eq = {
   'eq.bandCount': '{count} 頻段',
   'eq.selected': '所選頻段',
   'eq.selectedCount': '{count} 條帶',
+  'eq.popover.title': '頻段 {index} · {frequency}',
+  'eq.popover.close': '關閉頻段設定',
   'eq.tabs.aria': '等化層',
   'eq.tabs.bands': '你的 EQ',
   'eq.tabs.preset': '預設組',
@@ -677,8 +679,6 @@ const eq = {
   'eq.tone.reset': '重設音色',
   'eq.tone.note':
     '低音、中音和高音是獨立的一層，在圖上畫成音色線。你的頻段維持你設定的樣子。',
-  'eq.band.none':
-    '在圖上或下方選擇一個頻段，即可編輯它的濾波器、頻率、增益和 Q。',
   'eq.preset.groups': '預設組分類',
   'eq.preset.results': '搜尋結果',
   'eq.preset.count': '{count} 個預設組',

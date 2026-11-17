@@ -700,6 +700,8 @@ const eq = {
   'eq.bandCount': '{count} 밴드',
   'eq.selected': '선택한 밴드',
   'eq.selectedCount': '{count} 밴드',
+  'eq.popover.title': '밴드 {index} · {frequency}',
+  'eq.popover.close': '밴드 설정 닫기',
   'eq.tabs.aria': 'EQ 레이어',
   'eq.tabs.bands': '내 EQ',
   'eq.tabs.preset': '프리셋',
@@ -708,8 +710,6 @@ const eq = {
   'eq.tone.reset': '톤 초기화',
   'eq.tone.note':
     '저음, 중음, 고음은 별도의 레이어로, 그래프에 톤 선으로 그려집니다. 밴드는 설정한 그대로 유지됩니다.',
-  'eq.band.none':
-    '그래프나 아래에서 밴드를 선택하면 필터, 주파수, 게인, Q를 편집할 수 있습니다.',
   'eq.preset.groups': '프리셋 그룹',
   'eq.preset.results': '검색 결과',
   'eq.preset.count': '프리셋 {count}개',

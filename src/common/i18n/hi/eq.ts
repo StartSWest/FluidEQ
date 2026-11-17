@@ -725,6 +725,8 @@ const eq: Partial<Dictionary> = {
   'eq.bandCount': '{count} बैंड',
   'eq.selected': 'चुना हुआ बैंड',
   'eq.selectedCount': '{count} बैंड',
+  'eq.popover.title': 'बैंड {index} · {frequency}',
+  'eq.popover.close': 'बैंड की सेटिंग बंद करें',
   'eq.tabs.aria': 'EQ परतें',
   'eq.tabs.bands': 'आपका EQ',
   'eq.tabs.preset': 'प्रीसेट',
@@ -733,8 +735,6 @@ const eq: Partial<Dictionary> = {
   'eq.tone.reset': 'टोन रीसेट करें',
   'eq.tone.note':
     'बास, मिड और ट्रेबल अपनी अलग परत हैं, जो ग्राफ़ पर टोन रेखा के रूप में दिखती है। आपके बैंड वैसे ही रहते हैं जैसे आपने सेट किए।',
-  'eq.band.none':
-    'किसी बैंड का फ़िल्टर, फ़्रीक्वेंसी, गेन और Q बदलने के लिए ग्राफ़ पर या नीचे उसे चुनें।',
   'eq.preset.groups': 'प्रीसेट समूह',
   'eq.preset.results': 'खोज के नतीजे',
   'eq.preset.count': '{count} प्रीसेट',

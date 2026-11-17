@@ -346,6 +346,23 @@ const useDialGesture = ({
     event.preventDefault();
   };
 
+  /**
+   * A double-click puts the dial home too, as Ctrl+click does (Ivan,
+   * 2026-11-16: the band popover's dials, "reset on double-click"). The two
+   * presses before it start and end a drag that moved nothing, so the value
+   * is where it was until this lands.
+   */
+  const onDoubleClick = () => {
+    if (isDisabled) {
+      return;
+    }
+    if (onReset) {
+      onReset();
+    } else if (defaultValue !== undefined) {
+      updateValue(defaultValue);
+    }
+  };
+
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const gesture = drag.current;
     if (!gesture) {
@@ -381,6 +398,7 @@ const useDialGesture = ({
     /** On the box around the dial, which is what the hand lands on. */
     dialProps: {
       onWheel,
+      onDoubleClick,
       onPointerDown,
       onPointerMove,
       onPointerUp: endDrag,

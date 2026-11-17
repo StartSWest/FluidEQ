@@ -38,6 +38,20 @@ it under the terms of the GNU General Public License version 3 or later.
   transform: translateY(calc(0.4em + 3px));
 }
 
+// The frequency names inside the plot's foot, in the side scales' face. The
+// axis stands on the plot's floor and d3 puts a bottom axis's names under
+// it (9px down, then 0.71em to the baseline); lifted by that and a line, so
+// each name's foot stands 5px above the floor, on the compressed band no
+// band reaches (`graphPaper.ts`, `GRID_AXIS_PADDING`).
+.chart-axis--inside-bottom text {
+  fill: $text-muted;
+  stroke: rgba(2, 8, 15, 0.75);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  transform: translateY(calc(-1em - 14px));
+}
+
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
 // confidence — so "still listening" has a visible reason.

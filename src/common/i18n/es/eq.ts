@@ -742,6 +742,8 @@ const eq: Partial<Dictionary> = {
   'eq.bandCount': '{count} bandas',
   'eq.selected': 'Banda seleccionada',
   'eq.selectedCount': '{count} bandas',
+  'eq.popover.title': 'Banda {index} · {frequency}',
+  'eq.popover.close': 'Cerrar los ajustes de la banda',
   'eq.tabs.aria': 'Capas del EQ',
   'eq.tabs.bands': 'Tu EQ',
   'eq.tabs.preset': 'Preset',
@@ -750,8 +752,6 @@ const eq: Partial<Dictionary> = {
   'eq.tone.reset': 'Restablecer tono',
   'eq.tone.note':
     'Graves, Medios y Agudos son una capa propia, dibujada como la línea de Tono en la gráfica. Tus bandas se quedan como las dejaste.',
-  'eq.band.none':
-    'Selecciona una banda en la gráfica o abajo para editar su filtro, frecuencia, ganancia y Q.',
   'eq.preset.groups': 'Grupos de presets',
   'eq.preset.results': 'Resultados de la búsqueda',
   'eq.preset.count': '{count} presets',

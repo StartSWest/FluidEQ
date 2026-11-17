@@ -743,6 +743,8 @@ const eq: Partial<Dictionary> = {
   'eq.bandCount': '{count} Bänder',
   'eq.selected': 'Gewähltes Band',
   'eq.selectedCount': '{count} Bänder',
+  'eq.popover.title': 'Band {index} · {frequency}',
+  'eq.popover.close': 'Bandeinstellungen schließen',
   'eq.tabs.aria': 'EQ-Ebenen',
   'eq.tabs.bands': 'Ihr EQ',
   'eq.tabs.preset': 'Preset',
@@ -751,8 +753,6 @@ const eq: Partial<Dictionary> = {
   'eq.tone.reset': 'Klang zurücksetzen',
   'eq.tone.note':
     'Bass, Mitten und Höhen sind eine eigene Ebene, im Diagramm als Klang-Linie gezeichnet. Ihre Bänder bleiben, wie Sie sie eingestellt haben.',
-  'eq.band.none':
-    'Wählen Sie ein Band im Diagramm oder darunter, um Filter, Frequenz, Verstärkung und Q zu bearbeiten.',
   'eq.preset.groups': 'Preset-Gruppen',
   'eq.preset.results': 'Suchergebnisse',
   'eq.preset.count': '{count} Presets',

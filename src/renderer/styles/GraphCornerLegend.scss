@@ -12,13 +12,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // THE CURVES' NAMES IN THE PLOT'S TOP-LEFT CORNER (`GraphCornerLegend`).
 //
 // Hung from the options row, at its left end — on a ruled plot that is just
-// inside the gain scale, the row's own 58px (`App.scss`) — and under the
-// row's band (`--view-bar-foot`, 14px under the row here, as on every page),
-// so it never stands in the band beside the tools and moves down with the
-// row when the row folds onto two lines.
+// inside the gain scale, the row's own 58px (`App.scss`) — and level with its
+// top, the +60 dB label's line (Ivan, 2026-11-16: "push the legend more to
+// the top"): it fills the compressed +20 to +60 dB band at the plot's top,
+// where no curve goes, rather than standing under the row's band over the
+// ±20 dB the curves are drawn in. The row's tools are right-aligned and stop
+// short of it at every width; on a graph short enough for them to come near
+// it is the folded key, a few dots wide.
 .live-output-controls > .graph-corner-legend {
   position: absolute;
-  top: calc(100% + var(--view-bar-foot, 0px) + 6px);
+  top: 0;
   left: 0;
   font-size: $text-small;
 }

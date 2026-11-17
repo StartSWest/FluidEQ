@@ -736,6 +736,8 @@ const eq: Partial<Dictionary> = {
   'eq.bandCount': '{count} bande',
   'eq.selected': 'Banda selezionata',
   'eq.selectedCount': '{count} bande',
+  'eq.popover.title': 'Banda {index} · {frequency}',
+  'eq.popover.close': 'Chiudi le impostazioni della banda',
   'eq.tabs.aria': 'Livelli dell’EQ',
   'eq.tabs.bands': 'Il tuo EQ',
   'eq.tabs.preset': 'Preset',
@@ -744,8 +746,6 @@ const eq: Partial<Dictionary> = {
   'eq.tone.reset': 'Azzera il tono',
   'eq.tone.note':
     'Bassi, medi e alti sono un livello a sé, disegnato sul grafico come la linea del Tono. Le tue bande restano come le hai impostate.',
-  'eq.band.none':
-    'Seleziona una banda sul grafico o qui sotto per modificarne filtro, frequenza, guadagno e Q.',
   'eq.preset.groups': 'Gruppi di preset',
   'eq.preset.results': 'Risultati della ricerca',
   'eq.preset.count': '{count} preset',

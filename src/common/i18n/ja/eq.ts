@@ -728,6 +728,8 @@ const eq: Partial<Dictionary> = {
   'eq.bandCount': '{count} バンド',
   'eq.selected': '選択中のバンド',
   'eq.selectedCount': '{count} バンド',
+  'eq.popover.title': 'バンド {index} · {frequency}',
+  'eq.popover.close': 'バンドの設定を閉じる',
   'eq.tabs.aria': 'EQ のレイヤー',
   'eq.tabs.bands': 'あなたの EQ',
   'eq.tabs.preset': 'プリセット',
@@ -736,8 +738,6 @@ const eq: Partial<Dictionary> = {
   'eq.tone.reset': 'トーンをリセット',
   'eq.tone.note':
     '低音・中音・高音は独立したレイヤーで、グラフにはトーンの線として描かれます。バンドは設定したまま変わりません。',
-  'eq.band.none':
-    'グラフ上か下のバンドを選ぶと、フィルター・周波数・ゲイン・Q を編集できます。',
   'eq.preset.groups': 'プリセットのグループ',
   'eq.preset.results': '検索結果',
   'eq.preset.count': '{count} 件のプリセット',

@@ -105,9 +105,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // cannot. With no band to stand on, it falls back to those paddings.
 .eq-scale {
   top: anchor(--eq-travel top, 22px);
-  right: 0;
+  // Beside the first band across too, 8px off its ticks: the bands stand
+  // centred where the rail is wider than they need (`bandPlacement.ts`), and a
+  // scale held at the column's edge stood a third of a 2804px window away
+  // from the band it numbers. With no band, at the column's edge.
+  right: anchor(--eq-travel left, 0px);
   bottom: anchor(--eq-travel bottom, 20px);
-  left: 0;
+  width: max-content;
+  margin-right: 8px;
   color: $text-muted;
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
@@ -173,15 +178,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // With no floor set the tracks are an even share of the viewport, so this
   // resolves to exactly the viewport and nothing scrolls.
   width: max-content;
-  // And never narrower than its bands at their floor (below), even where a
-  // layout sets its width to the viewport's (`.bands--wide`): tracks run past
+  // And never narrower than its bands at their floor (below), even where the
+  // row is stretched to the viewport's width: tracks run past
   // a box that stays put, and nothing watching the box saw the overflow, so
   // the arrow that scrolls to the rest never came (the row at 1366px, 31
   // bands: 1240px of bands in a 1098px box).
   min-width: max(100%, calc(var(--band-count) * var(--band-min-width, 40px)));
   padding: 0;
   // An even share, never under the width a band still reads at (40px,
-  // `MIN_BAND_SLOT` in plotGeometry.ts, where placing the bands gives way to
+  // `MIN_BAND_SLOT` in bandPlacement.ts, where placing the bands gives way to
   // this row): past that the row runs off the edge and the arrow scrolls it.
   // The floor used to apply only under 940px, so above it thirty-one bands
   // squeezed to 22px each, their frequencies cut to "31.!" (Ivan,
@@ -216,20 +221,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include stagger-in($count: 31, $step: 10ms);
 }
 
-// Small layouts read better as a centred group; past ten bands use the full
-// width so the controls stay comfortably wide.
-.bands--centered {
-  width: min(100%, calc(var(--band-count) * 84px));
-  justify-self: center;
-}
-
-.bands--wide {
-  width: 100%;
-  justify-self: stretch;
-}
-
-// The bands in fixed places across the graph above (layout A; `placed` by
-// `placeBandsEvenly` in plotGeometry.ts). A flex row of bands one slot
+// The bands in fixed places across the rail, at most `MAX_BAND_PITCH` apart
+// and centred where that leaves room (`placeBandsInRail` in bandPlacement.ts;
+// Ivan 2026-11-16). A flex row of bands one slot
 // wide, the first held off the row's edge by its lead and each after it off
 // the one before by theirs — so the row keeps the height its bands give it,
 // and the marquee and the glow still find the bands in their frequency

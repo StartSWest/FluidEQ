@@ -30,7 +30,7 @@ import { Color } from 'renderer/styles/color';
  * edges with room to see what the cuts and the analyser do beyond it. An
  * octave past 20 kHz as well (40 kHz) left a band of empty plot on the right
  * on every 48 kHz output, where there is no sound to draw. The labels
- * run 20 Hz to 16 kHz (`FREQUENCY_MAJOR_TICKS`), with unlabelled lines at
+ * run 20 Hz to 16 kHz (`frequencyLabelTicksFor`), with unlabelled lines at
  * 10 Hz and 20 kHz. Ivan, 2026-11-16: the graph reaches the sides with its
  * scales drawn over it ("display the 16k instead of 20k"), then "make it
  * more compressed so I see more on each side ... keep it with freq". It was

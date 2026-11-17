@@ -318,10 +318,10 @@ const AppContent = () => {
   /**
    * The EQ page puts its graph ABOVE the page (layout A, the open floor,
    * Ivan 2026-09-25): the section pills and the Bands title row on top, the
-   * graph under them, then the bands — each standing under the point on the
-   * graph it moves (`MainContent`, `plotGeometry`). Only while there is a
-   * graph beside the page to put there; off, or filling the column, the page
-   * keeps its pills and its title as it always has.
+   * graph under them, then the bands across the page (`bandPlacement.ts`).
+   * Only while there is a graph beside the page to put there; off, or
+   * filling the column, the page keeps its pills and its title as it always
+   * has.
    *
    * Every other page keeps its graph underneath, the EQ group's other pills
    * included (Ivan, 2026-09-29: "only the one on the EQ page goes on top, the

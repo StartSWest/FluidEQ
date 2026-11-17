@@ -743,6 +743,8 @@ const eq = {
   'eq.bandCount': '{count} Band',
   'eq.selected': 'Selected band',
   'eq.selectedCount': '{count} bands',
+  'eq.popover.title': 'Band {index} · {frequency}',
+  'eq.popover.close': 'Close the band settings',
   'eq.tabs.aria': 'EQ layers',
   'eq.tabs.bands': 'Your EQ',
   'eq.tabs.preset': 'Preset',
@@ -751,8 +753,6 @@ const eq = {
   'eq.tone.reset': 'Reset Tone',
   'eq.tone.note':
     'Bass, Mid and Treble are a layer of their own, drawn as the Tone line on the graph. Your bands stay as you set them.',
-  'eq.band.none':
-    'Select a band on the graph or below to edit its filter, frequency, gain and Q.',
   'eq.preset.groups': 'Preset groups',
   'eq.preset.results': 'Search results',
   'eq.preset.count': '{count} presets',

@@ -733,6 +733,8 @@ const eq: Partial<Dictionary> = {
   'eq.bandCount': '{count} полос',
   'eq.selected': 'Выбранная полоса',
   'eq.selectedCount': 'Полос: {count}',
+  'eq.popover.title': 'Полоса {index} · {frequency}',
+  'eq.popover.close': 'Закрыть настройки полосы',
   'eq.tabs.aria': 'Слои эквалайзера',
   'eq.tabs.bands': 'Ваш EQ',
   'eq.tabs.preset': 'Пресет',
@@ -741,8 +743,6 @@ const eq: Partial<Dictionary> = {
   'eq.tone.reset': 'Сбросить тембр',
   'eq.tone.note':
     'Низкие, средние и высокие — отдельный слой, на графике это линия тембра. Ваши полосы остаются такими, как вы их настроили.',
-  'eq.band.none':
-    'Выберите полосу на графике или ниже, чтобы изменить её фильтр, частоту, усиление и Q.',
   'eq.preset.groups': 'Группы пресетов',
   'eq.preset.results': 'Результаты поиска',
   'eq.preset.count': 'Пресетов: {count}',

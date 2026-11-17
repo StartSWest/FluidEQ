@@ -692,6 +692,8 @@ const eq: Partial<Dictionary> = {
   'eq.bandCount': '{count} 段',
   'eq.selected': '选中的频段',
   'eq.selectedCount': '{count} 个频段',
+  'eq.popover.title': '频段 {index} · {frequency}',
+  'eq.popover.close': '关闭频段设置',
   'eq.tabs.aria': '均衡层',
   'eq.tabs.bands': '你的均衡',
   'eq.tabs.preset': '预设',
@@ -700,8 +702,6 @@ const eq: Partial<Dictionary> = {
   'eq.tone.reset': '重置音色',
   'eq.tone.note':
     '低音、中音和高音是独立的一层，在图上画作音色线。你的频段保持你设定的样子。',
-  'eq.band.none':
-    '在图上或下方选择一个频段，即可编辑它的滤波器、频率、增益和 Q。',
   'eq.preset.groups': '预设分组',
   'eq.preset.results': '搜索结果',
   'eq.preset.count': '{count} 个预设',

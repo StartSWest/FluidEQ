@@ -36,7 +36,6 @@ import { selectionModeFromEvent } from 'common/bandSelection';
 import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { labelledFilterOptions } from '../icons/FilterTypeIcon';
-import { useIsEqGraphAbove } from '../utils/eqGraphAbove';
 import { useSmartEqRun, useSmartEqStatus } from '../utils/smartEqRun';
 import { useContinuousEq } from '../utils/continuousEq';
 import {
@@ -54,12 +53,7 @@ import useBubblePlacement from './useBubblePlacement';
 import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { sortHelper, useLatestCall } from '../utils/utils';
 import { useOverflowScroll } from '../utils/useOverflowScroll';
-import {
-  getPlotGeometry,
-  IBandPlacement,
-  isSamePlacement,
-  subscribePlotGeometry,
-} from '../graph/plotGeometry';
+import { IBandPlacement, isSamePlacement } from './bandPlacement';
 import { applyBandPlacement, measureBandPlacement } from './bandsRail';
 import {
   bandGainEdits,
@@ -94,9 +88,6 @@ const useEqPageBands = () => {
   } = useFluidEqContext();
   const { t } = useTranslation();
   const filterOptions = useMemo(() => labelledFilterOptions(t), [t]);
-  // The bands stand under the graph's points only while the graph is above
-  // them (`eqGraphAbove.ts`).
-  const isGraphAbove = useIsEqGraphAbove();
   /**
    * What Smart EQ is doing, read from where it is actually happening.
    *
@@ -256,7 +247,6 @@ const useEqPageBands = () => {
     }
     return 'dense';
   }, [frequencySortedFilters.length]);
-  const bandLayout = frequencySortedFilters.length <= 10 ? 'centered' : 'wide';
 
   /**
    * The band the editor below is showing, or nothing at all.
@@ -383,9 +373,31 @@ const useEqPageBands = () => {
       }
       setSelectedFilterIds([]);
     };
+    // And Escape, which closes the band's popover with its selection
+    // (`EqBandEditor`), from anywhere on the page or from nothing focused —
+    // the filter list open inside it closes with it. Not one something else
+    // has already answered (`defaultPrevented`), and not one meant for a
+    // dialog standing over the page.
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        event.key !== 'Escape' ||
+        event.defaultPrevented ||
+        !(
+          target === document.body ||
+          target?.closest?.('.workspace-tab-panel--eq')
+        )
+      ) {
+        return;
+      }
+      setSelectedFilterIds([]);
+    };
     document.addEventListener('pointerdown', onPointerDown, true);
-    return () =>
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
       document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, [selectedFilterIds.length, setSelectedFilterIds]);
 
   // The bands as they are right now, not as they were when this render's
@@ -410,32 +422,31 @@ const useEqPageBands = () => {
   const canScrollBands = useOverflowScroll(frequencySortedFilters.length);
 
   /**
-   * The bands in fixed places across the width of the graph above them
-   * (layout A, Ivan 2026-09-25; `placeBandsEvenly`) — only while the graph
-   * stands directly above the row (`isGraphAbove`). Measured against where
-   * the plot and the
-   * row actually are; too many to fit, the row scrolls instead.
+   * The bands in fixed places across the rail, low to high, at most
+   * `MAX_BAND_PITCH` apart and centred where that leaves room
+   * (`bandPlacement.ts`, Ivan 2026-11-16); too many to fit at the narrowest a
+   * band reads at, the row scrolls instead. Measured against the rail, which
+   * is the page's width whether or not the graph is above it.
    *
    * Keyed on how many bands there are and nothing about them: a frequency
    * dragged on the graph moves no slider (Ivan, 2026-09-26), and neither a
-   * gain drag nor a frequency drag re-reads two boxes on every step. Two
-   * bands that pass each other trade places because the row is drawn in
-   * frequency order.
+   * gain drag nor a frequency drag re-reads a box on every step. Two bands
+   * that pass each other trade places because the row is drawn in frequency
+   * order.
    *
    * Whether the bands are placed is the one thing about it the page renders
    * from. Where they stand is written onto the row itself
-   * (`applyBandPlacement`), and the graph's width is heard without a render
-   * (`subscribePlotGeometry`): both change on every frame of a window being
+   * (`applyBandPlacement`): it changes on every frame of a window being
    * resized, and as state each change rendered the page again — the
-   * thirty-one bands, the Tone's dials and the graph's points — twice a
-   * frame, once for the plot's width and once for the places it gave (Ivan,
-   * 2026-09-27: "improve app resizing so it doesnt over calculate").
+   * thirty-one bands, the Tone's dials and the graph's points — on every
+   * frame (Ivan, 2026-09-27: "improve app resizing so it doesnt over
+   * calculate").
    */
   const bandCount = frequencySortedFilters.length;
   const [isPlaced, setIsPlaced] = useState(false);
   useLayoutEffect(() => {
     const bands = bandsElement;
-    if (!isGraphAbove || !bands || bandCount === 0) {
+    if (!bands || bandCount === 0) {
       setIsPlaced(false);
       return undefined;
     }
@@ -452,18 +463,10 @@ const useEqPageBands = () => {
     // decision and could alternate placed/scrolling forever at a fixed width.
     const rail = bands.closest('.bands-rail');
     const scroller = bands.closest('.workspace-tab-panel__scroll');
-    const place = () => {
-      const plot = getPlotGeometry();
-      if (!plot) {
-        settle(undefined);
-        return;
-      }
-      settle(measureBandPlacement(bands, plot, bandCount));
-    };
+    const place = () => settle(measureBandPlacement(bands, bandCount));
     place();
-    const stopHearing = subscribePlotGeometry(place);
     if (typeof ResizeObserver === 'undefined') {
-      return stopHearing;
+      return undefined;
     }
     const observer = new ResizeObserver(place);
     if (rail) {
@@ -472,11 +475,8 @@ const useEqPageBands = () => {
     if (scroller) {
       observer.observe(scroller);
     }
-    return () => {
-      stopHearing();
-      observer.disconnect();
-    };
-  }, [isGraphAbove, bandsElement, bandCount]);
+    return () => observer.disconnect();
+  }, [bandsElement, bandCount]);
   const [selectionBox, setSelectionBox] = useState<
     | { startX: number; startY: number; currentX: number; currentY: number }
     | undefined
@@ -667,7 +667,6 @@ const useEqPageBands = () => {
     modeNote,
     frequencySortedFilters,
     density,
-    bandLayout,
     selectedFilter,
     isSelectedGainDisabled,
     selectedFilters,

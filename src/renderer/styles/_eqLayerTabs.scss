@@ -20,10 +20,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: stretch;
   gap: 4px 10px;
   border-bottom: 1px solid $border-subtle;
-
-  > .title-rate {
-    align-self: center;
-  }
 }
 
 .eq-layer-tabs__list {
@@ -199,130 +195,157 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// *** Your EQ: the selected band on a strip over the bands ********************
+// *** Your EQ: the selected band's popover on its slider *********************
 
-// THE SELECTED BAND ON ONE LINE UNDER THE TAB ROW (Ivan, 2026-11-16: "I
-// really don't like the band settings on the side"; option 2 of the board,
-// "A strip under the tab row"). It stood in a column of its own at the
-// rail's right, which took the rail off the graph's width and the bands off
-// the graph's points. On a strip the rail is the page's whole width again,
-// so the bands stand under their points (`measureBandPlacement`), and the
-// band being shaped is right under the graph, where the eye already is: the
-// band, its filter, frequency, gain and Q — each a small dial with its
-// reading beside it, dragged or typed as on every dial — then Active and
-// the bin at the strip's end.
+// THE SELECTED BAND'S SETTINGS IN A POPOVER ON ITS SLIDER (Ivan, 2026-11-16:
+// "el 4, el pop over", option 4 of the board as it was drawn): placed in the
+// panel beside the band's handle (`useBandPopoverPlace`), its point at the
+// handle's height, on a menu's own face. The head says which band, its
+// filter and the way out; the frequency, gain and Q dials with their
+// readings under them; then in or out of the chain and the bin. The bands
+// keep the whole panel: nothing stands over or under the rail any more.
 .workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content {
-  // The strip, then the bands. 186px is still the floor of a band.
-  grid-template-rows: auto minmax(186px, 378px);
+  position: relative;
+  // One row, the bands': the popover takes none.
+  grid-template-rows: minmax(186px, 378px);
 
-  // The hairline that parted the bands from the row under them: nothing
-  // stands under them now.
+  // The hairline that parted the bands from a row under them.
   &::before {
     display: none;
   }
+}
 
-  > .eq-flat-editor {
-    grid-row: 1;
-    grid-column: 1 / -1;
+.eq-flat-editor.eq-flat-editor--popover {
+  position: absolute;
+  z-index: 6;
+  // Placed against the panel itself, not a grid cell: an absolute grid
+  // child with a cell is placed in that cell (`_mainContentGrid.scss` gives
+  // the editor row 2), and the measured place is in the panel's box.
+  grid-row: auto;
+  grid-column: auto;
+  display: grid;
+  width: 300px;
+  max-width: none;
+  // One column of three rows, not the pane row's seven columns
+  // (`_mainContentBandEditor.scss`) it would otherwise take.
+  grid-template-columns: minmax(0, 1fr);
+  justify-self: auto;
+  box-sizing: border-box;
+  margin: 0;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  @include menu-face;
+  // The dials, smaller than a pane's: three of them in a popover's width.
+  --dial-size: 40px;
+
+  // The point, at the handle's height, on the side the slider is.
+  &::before {
+    position: absolute;
+    top: calc(var(--popover-arrow, 50%) - 6px);
+    width: 12px;
+    height: 12px;
+    box-sizing: border-box;
+    border: inherit;
+    background: inherit;
+    content: '';
+    pointer-events: none;
   }
 
-  > .bands-rail,
-  > .eq-scale {
-    grid-row: 2;
+  &.is-right::before {
+    left: -7px;
+    border-top: 0;
+    border-right: 0;
+    transform: rotate(45deg);
+  }
+
+  &.is-left::before {
+    right: -7px;
+    border-bottom: 0;
+    border-left: 0;
+    transform: rotate(45deg);
   }
 }
 
-.eq-flat-editor.eq-flat-editor--strip {
+.eq-band-popover__head {
   display: flex;
-  width: auto;
-  max-width: none;
-  // No min-height: a stated one is what the page's grid sizes this row by
-  // when the column is short, and a strip folded onto two lines on a 900px
-  // window then ran its second line over the band captions. Its 38px controls
-  // and the padding make it 48px on one line.
-  box-sizing: border-box;
-  margin: 0;
-  flex-wrap: wrap;
+  min-width: 0;
   align-items: center;
-  justify-self: stretch;
-  gap: 6px 18px;
-  padding: 5px 6px 5px 12px;
-  border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 5%, transparent);
-  --dial-size: 28px;
+  gap: 8px;
+}
 
-  // Each field on one line: its caption, then its control.
-  > .eq-flat-editor__identity,
+.eq-band-popover__title {
+  @include truncate;
+  min-width: 0;
+  flex: 1 1 auto;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+.eq-band-popover__filter {
+  width: 112px;
+  flex: none;
+
+  .dropdown,
+  .dropdown > [role='menu'] {
+    width: 100%;
+  }
+}
+
+.eq-band-popover__close {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  color: $text-muted;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    background: rgba($edge-tint, 0.1);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// The three dials across, each its caption over it and its reading under.
+.eq-band-popover__dials {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+
   > .eq-flat-editor__control {
+    justify-items: center;
+  }
+}
+
+// In or out of the chain on the left, the bin on the right.
+.eq-band-popover__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  > .eq-flat-editor__control--active {
     display: flex;
-    min-width: 0;
     align-items: center;
     gap: 8px;
   }
 
-  // Each caption whole: the filter's was squeezed to "FIL…" by its select.
-  > .eq-flat-editor__identity > span,
-  > .eq-flat-editor__control > span:first-child {
-    flex: none;
-    white-space: nowrap;
-  }
-
-  > .eq-flat-editor__identity strong {
-    height: auto;
-    color: $white;
-  }
-
-  > .eq-flat-editor__control--filter {
-    min-width: 170px;
-
-    > :last-child {
-      min-width: 0;
-      flex: 1 1 auto;
-    }
-  }
-
-  // The dial and its reading side by side, the reading the field typed into.
-  .knob-readout {
-    flex-direction: row;
-    align-items: center;
-    gap: 2px;
-  }
-
-  // Active and the bin at the strip's end.
-  > .eq-flat-editor__control--active {
-    margin-inline-start: auto;
-  }
-
   > .eq-flat-editor__delete-cell {
-    align-self: center;
     margin-top: 0;
-  }
-
-  // Nothing selected: how to fill it, on the strip's line.
-  &.is-empty {
-    justify-content: center;
-  }
-}
-
-.eq-flat-editor__empty {
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-small;
-}
-
-// A narrow page: the band's frequency speaks for itself without "Selected
-// band" beside it, the switch keeps its name for a screen reader and its
-// tooltip without "Active", and the fields stand closer, so the strip keeps
-// to one line on a 900px window (820px of page, measured: it needed 831);
-// narrower, it folds onto a second (no min-height above).
-@container eq-panel (max-width: #{$bp-lg}) {
-  .eq-flat-editor.eq-flat-editor--strip {
-    column-gap: 12px;
-
-    > .eq-flat-editor__identity > span,
-    > .eq-flat-editor__control--active > span {
-      display: none;
-    }
   }
 }

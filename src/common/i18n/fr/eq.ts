@@ -746,6 +746,8 @@ const eq: Partial<Dictionary> = {
   'eq.bandCount': '{count} bandes',
   'eq.selected': 'Bande sélectionnée',
   'eq.selectedCount': '{count} bandes',
+  'eq.popover.title': 'Bande {index} · {frequency}',
+  'eq.popover.close': 'Fermer les réglages de la bande',
   'eq.tabs.aria': 'Couches de l’égaliseur',
   'eq.tabs.bands': 'Votre égaliseur',
   'eq.tabs.preset': 'Préréglage',
@@ -754,8 +756,6 @@ const eq: Partial<Dictionary> = {
   'eq.tone.reset': 'Réinitialiser la tonalité',
   'eq.tone.note':
     'Graves, médiums et aigus forment une couche à part, tracée sur le graphique comme la ligne Tonalité. Vos bandes restent telles que vous les avez réglées.',
-  'eq.band.none':
-    'Sélectionnez une bande sur le graphique ou en dessous pour modifier son filtre, sa fréquence, son gain et son Q.',
   'eq.preset.groups': 'Groupes de préréglages',
   'eq.preset.results': 'Résultats de la recherche',
   'eq.preset.count': '{count} préréglages',

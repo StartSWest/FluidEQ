@@ -132,6 +132,13 @@ const useSteppedDialGesture = ({
   /** Where the drag began, which setting it began on, and the one it is on. */
   const drag = useRef<{ y: number; from: number; at: number } | null>(null);
 
+  // A double-click puts it home too, as on every dial (`dialGesture.ts`).
+  const onDoubleClick = () => {
+    if (!isDisabled && defaultValue !== undefined) {
+      turnTo(nearestStop(stops, defaultValue));
+    }
+  };
+
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (isDisabled || event.button !== 0) {
       return;
@@ -197,6 +204,7 @@ const useSteppedDialGesture = ({
     typeValue: (typed: number) => turnTo(nearestStop(stops, typed)),
     dialProps: {
       onWheel,
+      onDoubleClick,
       onPointerDown,
       onPointerMove,
       onPointerUp: endDrag,

@@ -62,21 +62,13 @@ import {
 } from '../utils/enginePreamp';
 import Chart, { ChartDimensions } from './Chart';
 import {
-  frequencyScale,
-  graphFrequencyRange,
   IChartPointData,
   IEditableChartPoint,
   ILiveCurveData,
 } from './ChartController';
-import { getAxisPadding } from './graphPaper';
 import { getLineGainAtFrequency } from './utils';
 import bellGainAt from './bellDrag';
 import { GRID_BOTTOM_MARGIN, plotTopMargin } from './plotMargins';
-import {
-  BAND_SPAN_HZ,
-  publishPlotGeometry,
-  withdrawPlotGeometry,
-} from './plotGeometry';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
@@ -1173,38 +1165,6 @@ const FrequencyResponseChart = ({
     observer.observe(element);
     return () => observer.disconnect();
   }, [updateDimensions]);
-
-  // Where the plot is, for the band row that stands under it on the EQ pages
-  // (layout A): `plotGeometry.ts` shares 20 Hz to 20 kHz of this width out
-  // between the bands. The frequency axis is the one `Chart` draws, built
-  // from the same three pieces (`useController`): the grid's padding, the
-  // range the grid shows, and the plot's width.
-  useEffect(() => {
-    const element = ref.current;
-    if (element && width > 0) {
-      const padding = getAxisPadding(isGridHidden, !areHandlesHidden);
-      const x = frequencyScale(
-        width,
-        padding.left,
-        padding.right,
-        graphFrequencyRange(isGridHidden),
-      );
-      publishPlotGeometry({
-        element,
-        width,
-        bandSpan: { left: x(BAND_SPAN_HZ[0]), right: x(BAND_SPAN_HZ[1]) },
-      });
-    }
-  }, [width, isGridHidden, areHandlesHidden]);
-
-  useEffect(() => {
-    const element = ref.current;
-    return () => {
-      if (element) {
-        withdrawPlotGeometry(element);
-      }
-    };
-  }, []);
 
   useLayoutEffect(() => {
     // Compute dimensions on initial render, when graph view is toggled, when

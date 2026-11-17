@@ -52,17 +52,13 @@ const GRID_AXIS_PADDING: IMarginLike = {
    * programme's own peak.
    */
   right: 0,
-  // The frequency labels and nothing under them: they end 21px below the
-  // bottom rule (7 of tick padding and the line of text), and 7px more puts
-  // them in the middle between that rule and the divider's line, which is
-  // the graph's bottom edge now that the divider takes no room (Ivan,
-  // 2026-09-25: "no bg separation from the splitter line"). At 30, with the
-  // plot's own 10px margin below, the graph ended 19px under its labels and
-  // the divider's strip 6px after that: a band of empty picture between the
-  // graph and the bands ("pega más el gráfico abajo para que no exista
-  // gap"). Still more than `HANDLE_INSET`, so a band at -20 dB keeps its
-  // whole handle.
-  bottom: 28,
+  // None: the frequency names stand inside the plot's foot, over the
+  // compressed -20 to -60 dB band, as the side scales stand inside its edges
+  // (`.chart-axis--inside-bottom`, Ivan 2026-11-16: "too much spacing there").
+  // They had a 28px gutter under the plot, and with the divider under that a
+  // scene's picture ended 40px above the tabs. A band's handle never reaches
+  // the foot: bands stop at -20 dB, a tenth of the plot above it.
+  bottom: 0,
 };
 
 /**
@@ -131,24 +127,61 @@ export const getDrawingPadding = (
 // the whole plot on every render.
 
 /**
- * The labels along the bottom: the 1-2-5 series every professional analyser
- * and equaliser draws, a fixed scale rather than the bands' own frequencies,
- * which their sliders and handles already carry (Ivan, 2026-09-23: "should the
- * follow the eq band settings or they should have an standard grahp freq
- * numbers"). 16 kHz is the last label, standing for the top octave (Ivan,
- * 2026-11-16: "display the 16k instead of 20k"); 10 Hz and 20 kHz are lines
- * of their own (`FREQUENCY_MINOR_TICKS`), inside the plot's edges
- * (`GRAPH_START`, `GRAPH_END`).
+ * THE FREQUENCY AXIS AS A PRO ANALYSER DRAWS IT (Ivan, 2026-11-16: "we need
+ * to show the frequencies and the distances between them, so it is like the
+ * pro ones"). A line at every step of every decade the plot shows — 20, 30
+ * … 90, 100, 200 … 900, 1k … — so the log spacing can be seen, the 1-2-5
+ * steps a shade stronger, and names on a readable set of them. Built from
+ * the range on screen, never a fixed list: the plot spans 10 Hz to 20 kHz now
+ * and may be given another span (`graphFrequencyRange`). The plot's own two
+ * edges are its border, and draw no line.
  */
-export const FREQUENCY_MAJOR_TICKS = [
-  20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 16000,
-];
+export interface IFrequencyGrid {
+  /** The 1-2-5 steps, the stronger lines. */
+  major: number[];
+  /** Every other step of each decade, the fainter lines. */
+  minor: number[];
+}
 
-/** Between the decades, at half their ink and unlabelled. */
-export const FREQUENCY_MINOR_TICKS = [
-  10, 40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600, 1800,
-  4000, 6000, 8000, 12000, 14000, 18000, 20000,
-];
+const isOneTwoFive = (step: number) => step === 1 || step === 2 || step === 5;
+
+/** Every step of every decade strictly inside `[low, high]`. */
+const decadeSteps = (low: number, high: number) => {
+  const steps: Array<{ hz: number; step: number }> = [];
+  for (
+    let decade = 10 ** Math.floor(Math.log10(low));
+    decade < high;
+    decade *= 10
+  ) {
+    for (let step = 1; step <= 9; step += 1) {
+      // Rounded, or 3 × 10^-x arithmetic leaves 30.000000000000004.
+      const hz = Math.round(step * decade * 1e6) / 1e6;
+      if (hz > low && hz < high) {
+        steps.push({ hz, step });
+      }
+    }
+  }
+  return steps;
+};
+
+// One grid per span: the rules list their ticks in an effect's dependencies,
+// and a list rebuilt each render re-ruled the whole plot on every render.
+const grids = new Map<string, IFrequencyGrid>();
+
+export const frequencyGridFor = (low: number, high: number): IFrequencyGrid => {
+  const key = `${low}-${high}`;
+  const known = grids.get(key);
+  if (known) {
+    return known;
+  }
+  const steps = decadeSteps(low, high);
+  const grid = {
+    major: steps.filter(({ step }) => isOneTwoFive(step)).map(({ hz }) => hz),
+    minor: steps.filter(({ step }) => !isOneTwoFive(step)).map(({ hz }) => hz),
+  };
+  grids.set(key, grid);
+  return grid;
+};
 
 /**
  * The minor lines, a step under the decades, at the opacity the theme solves
@@ -347,25 +380,59 @@ export const gainAxisTicksFor = (
 const FREQUENCY_LABEL_SPACING = 52;
 
 /**
- * The labelled decades that fit side by side along `frequency`'s width, kept
- * from the left. A narrow panel ran "20 Hz100 Hz200 Hz" together into one
- * smear; the lines stay on every decade, only their names thin out.
+ * How far in from each end of the plot a frequency name may stand. The names
+ * are inside the plot's foot now, on the line the corner figures of the side
+ * scales stand on ("−60 dB" on the left, "−80 dB" on the right, about 45px
+ * each and 9px in), and a name at the very edge sat on the card's border.
+ */
+const FREQUENCY_LABEL_EDGE = 60;
+
+/**
+ * The names along the foot: the 1-2-5 steps first, the series every pro
+ * analyser names (Ivan, 2026-09-23: "standard grahp freq numbers" rather than
+ * the bands' own), with 16 kHz standing for the top octave wherever 20 kHz is
+ * the plot's edge (Ivan, 2026-11-16: "display the 16k instead of 20k"); then
+ * the 3s and 4s — 30, 40, 300 — only where the room is there. Thinned by
+ * pixels, never by a list per width: a narrow panel ran "20 Hz100 Hz200 Hz"
+ * together into one smear; the lines stay on every step, only names go.
  */
 export const frequencyLabelTicksFor = (
   frequency: ScaleLogarithmic<number, number>,
 ): number[] => {
+  const [low, high] = frequency.domain().map(Number);
+  const [left, right] = frequency.range().map(Number);
+  const steps = decadeSteps(low, high);
+  const named = steps
+    .filter(({ step }) => isOneTwoFive(step))
+    .map(({ hz }) => hz);
+  if (high <= 20000 && low < 16000) {
+    named.push(16000);
+  }
+  const extra = steps
+    .filter(({ step }) => step === 3 || step === 4)
+    .map(({ hz }) => hz);
+  const fits = (x: number) =>
+    x - left >= FREQUENCY_LABEL_EDGE && right - x >= FREQUENCY_LABEL_EDGE;
   const kept: number[] = [];
-  let last = -Infinity;
-  FREQUENCY_MAJOR_TICKS.forEach((tick) => {
-    const x = Number(frequency(tick));
-    if (x - last >= FREQUENCY_LABEL_SPACING) {
-      kept.push(tick);
-      last = x;
+  const isClear = (x: number) =>
+    kept.every(
+      (hz) => Math.abs(Number(frequency(hz)) - x) >= FREQUENCY_LABEL_SPACING,
+    );
+  [...named]
+    .sort((a, b) => a - b)
+    .forEach((hz) => {
+      const x = Number(frequency(hz));
+      if (fits(x) && isClear(x)) {
+        kept.push(hz);
+      }
+    });
+  extra.forEach((hz) => {
+    const x = Number(frequency(hz));
+    if (fits(x) && isClear(x)) {
+      kept.push(hz);
     }
   });
-  return kept.length === FREQUENCY_MAJOR_TICKS.length
-    ? FREQUENCY_MAJOR_TICKS
-    : kept;
+  return kept.sort((a, b) => a - b);
 };
 
 /**
