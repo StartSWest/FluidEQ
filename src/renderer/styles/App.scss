@@ -3582,12 +3582,19 @@ $graph-card-pages: list.join(
 }
 
 // Its button, on a row of its own at the top: the rail keeps it there when
-// the rest is folded away.
+// the rest is folded away. The button stands on the line of the page's top
+// row - the EQ card's section tabs and the engine strip, whose middle is 29px
+// under the card's top (measured, 2026-11-17) - and the first section follows
+// 6px under it (Ivan: "align the button with the line ... and raise the panel
+// below a little, it is too far from the button"). It was centred in a 44px
+// row, 2px above that line and 14px over the panel.
+$sound-pane-key-top: 13px;
+
 .right-content__head {
   display: flex;
-  align-items: center;
-  height: $sound-pane-head;
-  padding: 0 $sound-pane-fold-inset;
+  align-items: flex-start;
+  height: calc(#{$sound-pane-key-top} + #{$sound-pane-fold});
+  padding: $sound-pane-key-top $sound-pane-fold-inset 0;
 }
 
 // A quiet square, the Plus rail's own fold button in shape: the panel glyph,
@@ -3605,7 +3612,8 @@ $graph-card-pages: list.join(
     color $motion-fast $ease-out,
     background $motion-fast $ease-out,
     opacity $motion-base ease;
-  @include button-plain;
+  // No tint in any state, only its ink (Ivan, 2026-11-17: "remove the hover").
+  @include button-plain-bare;
 
   svg {
     width: 17px;
@@ -3740,7 +3748,11 @@ $graph-card-pages: list.join(
         2
     );
     height: calc(#{$sound-pane-head} + #{$drop});
-    padding-top: $drop;
+    // The row starts its button at its top now, so the half of the old row's
+    // air the button was centred in goes into the padding: the same place.
+    padding-top: calc(
+      #{$drop} + (#{$sound-pane-head} - #{$sound-pane-fold}) / 2
+    );
   }
 }
 
@@ -3778,7 +3790,7 @@ $graph-controls-past-fold: calc(
   min-height: 0;
   align-content: start;
   gap: 8px;
-  padding: 8px 0;
+  padding: 6px 0 8px;
   grid-auto-rows: max-content;
   overflow-x: hidden;
   overflow-y: auto;

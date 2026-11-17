@@ -310,6 +310,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include button-common-states;
 }
 
+// The plain tier with no tint under the pointer: only its ink brightens. For
+// a key that stands alone at the window's edge with nothing to frame it, where
+// a tint reads as a box appearing from nowhere (Ivan, 2026-11-17, the sound
+// pane's fold key: "remove the hover").
+@mixin button-plain-bare {
+  @include button-plain;
+
+  // No tint in any state: under the pointer, held, or open (an open pane's
+  // key is `aria-expanded`), only the ink says it.
+  &:hover:not([aria-disabled='true'], :disabled),
+  &:active:not([aria-disabled='true'], :disabled),
+  &[aria-pressed='true'],
+  &[aria-expanded='true'],
+  &[aria-pressed='true']:hover:not([aria-disabled='true'], :disabled),
+  &[aria-expanded='true']:hover:not([aria-disabled='true'], :disabled) {
+    background: none;
+  }
+}
+
 // The plain tier with the accent's light for ink at rest: a way somewhere in
 // running text ("Use FluidEQ Engine"), and the player's transport keys,
 // which are the player's instrument. Under the pointer it is plain.
