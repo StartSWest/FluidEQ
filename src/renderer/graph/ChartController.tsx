@@ -46,8 +46,11 @@ import { Color } from 'renderer/styles/color';
  * never reaches 0 Hz; an octave below 20 Hz shows the cut's slope, the
  * analyser's measurement of it, and the rumble it takes out.
  */
-export const GRAPH_START = 5;
-export const GRAPH_END = 24000;
+//
+// 10 Hz to 20 kHz since 2026-11-16 (Ivan: "10 Hz to 20k only"): an octave
+// under 20 Hz for the low cut and the rumble, and nothing past 20 kHz.
+export const GRAPH_START = 10;
+export const GRAPH_END = 20000;
 
 /**
  * The range with the grid off, when the plot is a picture drawn edge to edge:
