@@ -2964,10 +2964,16 @@ $graph-card-pages: list.join(
     // band a little different colour, lighter or darker"): the floor laid at
     // 35% over the card's face. Over a scene the row has its own band
     // (below).
+    //
+    // The card's own colour a step darker rather than the floor's: the floor
+    // is the window's navy, and under a teal look it read as a strip of
+    // another colour laid across the card (Ivan, 2026-11-17: "a colour that
+    // goes better with the standard looks"). Darkening the card keeps its
+    // hue whatever the window's colours are.
     > .eq-layer-tabs {
       border-bottom-color: transparent;
       box-shadow: none;
-      background: color-mix(in srgb, #{$surface-base} 35%, transparent);
+      background: color-mix(in srgb, #{$surface-section} 84%, #{$black});
     }
   }
 
