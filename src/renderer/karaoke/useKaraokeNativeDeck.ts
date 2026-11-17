@@ -206,7 +206,9 @@ export const useKaraokeNativeDeck = ({
   useEffect(() => () => setKaraokeWantsHost(false), []);
 
   const settings = usePlaybackDspSettings();
-  const controller = useNativeBackend(settings, holds && wantsHost, 'karaoke');
+  // Engaged while it also holds the host; the want alone keeps a host the
+  // Library lets go of running for it (`hostResidency.ts`).
+  const controller = useNativeBackend(settings, wantsHost, 'karaoke');
   useNativeDeviceGeneration(controller);
 
   useEffect(() => {

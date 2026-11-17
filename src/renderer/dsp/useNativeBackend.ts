@@ -31,7 +31,14 @@ import {
   INativeMirrorOptions,
   INativeMirrorState,
 } from './nativeMirrorTypes';
-import type { THostClient } from './hostLease';
+import { THostClient, useHostClient } from './hostLease';
+import {
+  holdHost,
+  hostWantedAfter,
+  quietenFor,
+  takesHostOver,
+  wantHost,
+} from './hostResidency';
 import {
   INativeTransportFrame,
   quantizeTransportPosition,
@@ -89,14 +96,24 @@ export const hasNativeHostBridge = (): boolean => bridgeOf() !== undefined;
  * branch rather than a flag it has to remember to check — there is nothing to
  * call, so nothing can be called by mistake.
  *
- * `client` drives the host (`hostLease.ts`); only the Library's is handed the
- * Library's track gains and noise floor, its analysis of its own tracks.
+ * `wantsHost` is whether `client` has something for the host to play; it
+ * engages only while it also holds the host (`hostLease.ts`). The two are
+ * kept apart because the want alone is what decides whether a host the
+ * other player lets go of stays running for this one (`hostResidency.ts`).
+ * Only the Library's is handed the Library's track gains and noise floor,
+ * its analysis of its own tracks.
  */
 export const useNativeBackend = (
   settings: IDspSettings,
-  hasLibraryAudioTrack = true,
+  wantsHost = true,
   client: THostClient = 'library',
 ): INativeBackendController | undefined => {
+  const holdsHost = useHostClient() === client;
+  const drivesHost = wantsHost && holdsHost;
+  useEffect(
+    () => (wantsHost && bridgeOf() ? wantHost(client) : undefined),
+    [wantsHost, client],
+  );
   const nativeState = useDspNativeState();
   // The rack as this player may run it: switched off at the root while the
   // FluidEQ Engine is off, the one case the player's copy stands aside for
@@ -119,7 +136,7 @@ export const useNativeBackend = (
   toneRef.current = tone;
 
   useEffect(() => {
-    if (!hasLibraryAudioTrack) {
+    if (!drivesHost) {
       /**
        * Having a track, not playing one. See `usePlayerEngine`.
        *
@@ -173,6 +190,17 @@ export const useNativeBackend = (
     controller.watchLetGo = (listener) => onDspPlacementLetGo(client, listener);
     let isCurrent = true;
     controllerRef.current = controller;
+    // Taking a running host over from the other player, the player's media
+    // element stays quiet until the host has the track, and for as long as
+    // the engine holds it (`useMuteWhileEngaging`). Ended in one commit with
+    // the state below.
+    const endQuiet = takesHostOver(client)
+      ? quietenFor(client)
+      : () => undefined;
+    let endHold = (): void => undefined;
+    // Who holds the host next is asked from inside the queue, once the
+    // commit that let go of it has run every effect (`disengage`).
+    const handOver = () => hostWantedAfter(client);
     controller
       .engage(settingsRef.current, toneRef.current)
       .then(async (ready) => {
@@ -181,15 +209,18 @@ export const useNativeBackend = (
           // endpoint. The old continuation must not overwrite `idle` with a
           // stale failure or leave a late-ready process running unowned.
           if (ready) {
-            await controller.disengage();
+            await controller.disengage(handOver);
           }
           return ready;
         }
-        if (!ready) {
+        if (ready) {
+          endHold = holdHost(client);
+        } else {
           // The supervisor has already reported why. Dropping the controller
           // rather than retrying keeps a host that cannot start from being
           // asked again on every settings change.
           controllerRef.current = undefined;
+          endQuiet();
         }
         // Both outcomes reported, and the failure is the one that matters: it
         // keeps browser playback audible instead of muting it for an engine
@@ -202,6 +233,7 @@ export const useNativeBackend = (
           return;
         }
         controllerRef.current = undefined;
+        endQuiet();
         // `failed`, not `idle`: a rejected start is a host that was asked for
         // and did not arrive, which is exactly what the notice is for. Idle
         // means nothing has been attempted.
@@ -214,10 +246,17 @@ export const useNativeBackend = (
         .finishPlayback?.(controller.transport.pause())
         .catch(() => undefined);
       controllerRef.current = undefined;
+      endQuiet();
       setDspNativeState('idle');
-      controller.disengage().catch(() => undefined);
+      // Held until the let-go has run: the player taking over meanwhile
+      // knows it is taking a running host (`takesHostOver`).
+      const letGo = endHold;
+      controller
+        .disengage(handOver)
+        .catch(() => undefined)
+        .finally(letGo);
     };
-  }, [hasLibraryAudioTrack, client]);
+  }, [drivesHost, client]);
 
   useEffect(() => {
     controllerRef.current?.update(hostSettings, tone).catch(() => undefined);

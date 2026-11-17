@@ -4,7 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useEffect } from 'react';
 import { claimDspNativeSource } from './store';
+
+/** Each element's own `muted`, while `useMuteWhileEngaging` holds it down. */
+const quietBefore = new WeakMap<HTMLMediaElement, boolean>();
 
 /**
  * The player's media elements while the native host makes the sound: muted
@@ -38,7 +42,8 @@ export const muteForMirror = (
 ): IMirrorElements => {
   const muted = new Map<HTMLMediaElement, boolean>();
   elements.forEach((element) => {
-    muted.set(element, element.muted);
+    // What it was before `useMuteWhileEngaging` silenced it, not that.
+    muted.set(element, quietBefore.get(element) ?? element.muted);
     // eslint-disable-next-line no-param-reassign -- the element IS the subject.
     element.muted = true;
   });
@@ -116,4 +121,47 @@ export const muteForMirror = (
       stoodDown.clear();
     },
   };
+};
+
+/**
+ * Keep the elements quiet from the moment the player's engine starts engaging
+ * until it lets go, and give them back exactly as they were.
+ *
+ * The Library starts its element at a press of Play, and its engine engages
+ * when that press takes the host from the Karaoke (`hostLease.ts`). Until the
+ * mirror existed the element was the sound — unprocessed, for the second the
+ * host used to take to restart, then cut off while the host took the track
+ * over. Muted here from the first render that knows the host is coming, the
+ * element keeps its clock running and is heard only if the host never comes.
+ *
+ * Held through the engagement rather than handed to the mirror at the moment
+ * it arrives: letting go there would unmute and the mirror re-mute in one
+ * commit, and Chromium applies each to the playing element on its own media
+ * thread. The mirror reads what the element was before this (`quietBefore`),
+ * so whichever of the two gives the sound back gives the same thing back —
+ * and a mirror handing a refused track back to the element is heard at once,
+ * this having muted it once and not again.
+ */
+export const useMuteWhileEngaging = (
+  elements: readonly HTMLMediaElement[],
+  hostComing: boolean,
+): void => {
+  useEffect(() => {
+    if (!hostComing) {
+      return undefined;
+    }
+    const before = elements.map((element) => element.muted);
+    elements.forEach((element, index) => {
+      quietBefore.set(element, before[index] ?? false);
+      // eslint-disable-next-line no-param-reassign -- the element IS the subject.
+      element.muted = true;
+    });
+    return () => {
+      elements.forEach((element, index) => {
+        quietBefore.delete(element);
+        // eslint-disable-next-line no-param-reassign -- the element IS the subject.
+        element.muted = before[index] ?? false;
+      });
+    };
+  }, [elements, hostComing]);
 };

@@ -32,7 +32,8 @@ import {
   seekSettled,
 } from './pendingSeek';
 import { MIN_LEAD_IN_TRIM_MS } from './playerContract';
-import { useHostClient } from '../../dsp/hostLease';
+import { useQuietWhileEngaging } from '../../dsp/hostResidency';
+import { useMuteWhileEngaging } from '../../dsp/mirrorElements';
 import {
   useNativeBackend,
   useNativeDeviceGeneration,
@@ -122,13 +123,14 @@ export const usePlayerEngine = (options: {
    * it while it plays, or while its tab is in front with a song and nothing
    * of the Library's is playing (`hostLease.ts`). Lent, the engine lets go
    * exactly as it does when the track goes away; given back, it engages and
-   * cues the track again where the host had left it.
+   * cues the track again where the host had left it. The lease is the hook's
+   * to read: the want alone, apart from it, is what keeps the host running
+   * across the handover (`hostResidency.ts`).
    */
-  const hostClient = useHostClient();
-  const nativeBackend = useNativeBackend(
-    dspSettings,
-    track?.kind === 'audio' && hostClient === 'library',
-  );
+  const nativeBackend = useNativeBackend(dspSettings, track?.kind === 'audio');
+  // The element a press of Play starts while the host is still being handed
+  // over from the Karaoke stays quiet until the host has the track.
+  useMuteWhileEngaging(audioElements, useQuietWhileEngaging('library'));
   // And the mirror re-cues when the host moves to a different endpoint.
   useNativeDeviceGeneration(nativeBackend);
   /**

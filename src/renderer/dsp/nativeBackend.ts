@@ -95,8 +95,13 @@ export interface INativeBackendController {
    * Maximizer to limit through (`presetTone.ts`).
    */
   engage: (settings: IDspSettings, tone?: IPresetTone) => Promise<boolean>;
-  /** Release the endpoint, decoder decks, and native process. */
-  disengage: () => Promise<void>;
+  /**
+   * Empty the decks and stop the transport, then release the endpoint and
+   * the native process — unless `handOver`, asked once the decks are empty,
+   * says the other player is about to engage. The host is then left running
+   * with its device open for that player's `engage` (`residentHost`).
+   */
+  disengage: (handOver?: () => boolean) => Promise<void>;
   /**
    * Push the chain again, for a knob that moved.
    *
@@ -220,6 +225,54 @@ const serialize = <T>(work: () => Promise<T>): Promise<T> => {
   return next;
 };
 
+/**
+ * The host one player let go of for the other, still running with its device
+ * open and nothing on its decks, until that player engages it — or the bridge
+ * to close it with if nobody does.
+ *
+ * WHY A SWITCH BETWEEN THE KARAOKE AND THE LIBRARY TOOK A SECOND AND A GAP
+ * (Ivan, 2026-11-16): handing the host from one player to the other ran the
+ * outgoing player's whole teardown — device closed, process shut down — and
+ * the incoming player's whole startup: a new process, its settings replayed,
+ * the voice model and the rack built again, the device opened again. Measured
+ * in main.log at 17:11:23.581 → 24.665, 1.08 s, for a host that was never
+ * meant to go anywhere. The Library's song played out of its own media element,
+ * untouched by the rack, for all of that second, and went quiet while the
+ * host took it over: the "loads for about a second, then a micro-silence".
+ * Closing the device also ended the stream the FluidEQ Engine was processing,
+ * so Windows locked its effect afresh when the new one opened.
+ *
+ * Kept only while the player holding the host wants it (`hostResidency.ts`):
+ * a device held open plays silence into the endpoint, which keeps the
+ * hardware awake (`stop_device` in the host), so a host nobody comes for is
+ * released by `releaseResidentHost` as soon as that is known.
+ */
+let residentHost: INativeBackendBridge | undefined;
+
+/** Whether a host is waiting, running, for the player about to engage it. */
+export const hasResidentHost = (): boolean => residentHost !== undefined;
+
+/**
+ * Close a resident host unless `keep` says the player holding it is still
+ * coming for it. Queued behind whatever the host is doing, so it is decided
+ * after any handover queued before it, and an `engage` queued before it has
+ * already taken the host.
+ */
+export const releaseResidentHost = (keep: () => boolean): Promise<void> =>
+  serialize(async () => {
+    const bridge = residentHost;
+    if (bridge === undefined || keep()) {
+      return;
+    }
+    residentHost = undefined;
+    try {
+      await bridge.closeDspHostDevice();
+    } catch {
+      // The process going is what matters; it releases the endpoint too.
+    }
+    await bridge.stopDspHost();
+  });
+
 /** The newest settings asked for, and everyone waiting to hear about them. */
 interface IPendingPush {
   settings: IDspSettings;
@@ -280,6 +333,13 @@ export const createNativeBackendController = (
     engage: (settings, tone) => {
       barrier();
       return serialize(async () => {
+        // A host left running by the other player is this one's now. Each step
+        // below is then a cheap acknowledgement: the process is reused, the
+        // chain it already holds is not rebuilt — which would load the voice
+        // model and prepare a Room again ahead of the song's load
+        // (`chainHeld` in main's supervisor) — and a second START keeps the
+        // open device (`start_device` in the host).
+        residentHost = undefined;
         const status = await bridge.startDspHost();
         if (status.state !== 'ready') {
           /**
@@ -304,7 +364,7 @@ export const createNativeBackendController = (
       });
     },
 
-    disengage: () => {
+    disengage: (handOver) => {
       barrier();
       return serialize(async () => {
         if (!engaged) {
@@ -322,6 +382,14 @@ export const createNativeBackendController = (
         await settle(() => bridge.unloadDspHostDeck(0));
         await settle(() => bridge.unloadDspHostDeck(1));
         await settle(bridge.pauseDspHost);
+        // Asked here, inside the queue, and not when the disengage was asked
+        // for: a player lets go in the same commit that hands the host over,
+        // and who holds it next is only settled once that commit's effects
+        // have all run.
+        if (handOver?.() === true) {
+          residentHost = bridge;
+          return;
+        }
         await settle(bridge.closeDspHostDevice);
         // The Library provider now has a short off-tab lease of its own. Once
         // that expires there is no UI or playback left to justify a resident

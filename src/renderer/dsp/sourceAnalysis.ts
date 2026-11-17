@@ -83,7 +83,28 @@ const publish = (): void => {
  */
 let libraryRecord: ISourceAnalysisUpdate | undefined;
 
-/** Which player's sound the source describes. See `libraryRecord`. */
+/**
+ * Which player's sound the source describes. See `libraryRecord`.
+ *
+ * The one place the epoch still moves, and keeping it would not keep the
+ * engine's graph warm: the Karaoke's source names no track and the engine
+ * reads it as its plain live source (`source_for_endpoint`, no epoch at all),
+ * while the Library's is `kind=library` with the rack the engine's; the kind
+ * and the owner differ, and `Graph::adopt_state` starts a graph cold on
+ * either, whatever the epoch. Nothing is heard of it. Into the Library, the
+ * Library prepares its start (`prepareDspSourceStart`) on a host still
+ * paused — kept running across the switch, decks emptied (`residentHost` in
+ * `nativeBackend.ts`) — and plays only once the engine reports the new graph
+ * adopted, its level and limiter the output's remembered ones. Into the
+ * Karaoke, the cold graph is the one this publish asks for, built while the
+ * Library's song is being paused by the Karaoke's claim; the Karaoke's own
+ * start then only takes the rack off the engine, which keeps the live source
+ * and crosses over (`start_crossing`) rather than starting cold. The
+ * Karaoke's start does not wait for that graph — the engine reports every
+ * live source as epoch and revision 0, so there is nothing to wait on — and
+ * an engine that reported the revision its live graph was built from would
+ * let it.
+ */
 export const setDspSourceClient = (client: 'library' | 'karaoke'): void => {
   if (client === 'karaoke') {
     if (libraryRecord !== undefined) {

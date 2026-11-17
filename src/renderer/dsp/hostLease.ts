@@ -10,7 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * There is one host process (`ipc/dspHost.ts` holds one supervisor) with two
  * decks, and every command a player sends assumes those decks are its own:
  * the Library's mirror cues its track on the deck the host chooses and makes
- * it the one heard; its teardown empties both decks and stops the process.
+ * it the one heard; its teardown empties both decks and pauses the transport,
+ * and stops the process unless the other player is taking the host over — then
+ * the process and its open device are handed on (`residentHost` in
+ * `nativeBackend.ts`).
  * Two players engaged at once would cut each other's songs off — a Library
  * restored on mounting, paused, cueing its track over a karaoke song in mid
  * verse, or pausing the whole transport under it — and each would read the
@@ -23,7 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * one never loses the host to a tab change. The player that loses the host
  * lets it go the way the Library always has when its track went away: the
  * mirror hands the sound back to its media element, at the host's position,
- * and empties the decks.
+ * and empties the decks — on a host that keeps running for the other player.
  *
  * A module store rather than a context, for the reason `playbackOwner.ts`
  * gives: the two players sit in different branches of the tree.
@@ -51,7 +54,8 @@ export const setKaraokeWantsHost = (wanted: boolean): void => {
   listeners.forEach((listener) => listener());
 };
 
-const subscribe = (listener: () => void) => {
+/** Heard whenever the host changes hands. Returns the unsubscribe. */
+export const onHostClientChange = (listener: () => void): (() => void) => {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
@@ -59,4 +63,4 @@ const subscribe = (listener: () => void) => {
 };
 
 export const useHostClient = (): THostClient =>
-  useSyncExternalStore(subscribe, readHostClient, readHostClient);
+  useSyncExternalStore(onHostClientChange, readHostClient, readHostClient);

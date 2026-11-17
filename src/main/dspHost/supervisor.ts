@@ -141,12 +141,29 @@ export class DspHostSupervisor extends DspHostProcess {
 
   async applyChain(values: readonly number[]): Promise<boolean> {
     this.lastChain = values;
+    const spawn = this.spawnGeneration;
+    if (
+      this.state === 'ready' &&
+      this.chainHeld?.spawn === spawn &&
+      this.chainHeld.values.length === values.length &&
+      this.chainHeld.values.every((value, index) =>
+        Object.is(value, values[index]),
+      )
+    ) {
+      return true;
+    }
     const ack = await this.send(HOST_COMMANDS.applyChain, {
       parameterId: values.length,
       payload: encodeChainPayload(values),
     });
-    return ack.status === HOST_STATUS.applied;
+    const applied = ack.status === HOST_STATUS.applied;
+    this.chainHeld =
+      applied && this.spawnGeneration === spawn ? { spawn, values } : undefined;
+    return applied;
   }
+
+  /** What this spawn last applied, all the host keeps (renderer `engage`). */
+  private chainHeld: { spawn: number; values: readonly number[] } | undefined;
 
   /**
    * The measured floor for the track now playing, or undefined to clear it.

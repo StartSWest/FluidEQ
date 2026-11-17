@@ -160,6 +160,11 @@ export abstract class DspHostProcess {
 
   private generation = 0;
 
+  /** Which spawn the process is: a new number for each, never a reused pid. */
+  protected get spawnGeneration(): number {
+    return this.generation;
+  }
+
   /**
    * The host's own memory and CPU, cleared with the process it described.
    *
