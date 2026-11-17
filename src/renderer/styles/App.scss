@@ -2895,16 +2895,20 @@ $graph-card-pages: list.join(
     height: 0;
     margin: 0;
 
+    // Its 12px strip centred 2px under the graph's foot, so the 3px grip
+    // stands on the seam itself, clear of the frequency names over it (Ivan,
+    // 2026-11-17: "separate the splitter a bit from the numbers"); at -9px it
+    // floated among them.
     > .karaoke-pane-splitter.is-horizontal {
       position: absolute;
-      top: -9px;
+      top: -4px;
       left: 0;
     }
   }
 
   // The frequency names and the corner figures on the fade, 4px over the
   // foot as the mockup sets them: 2px over the row's place elsewhere
-  // (`_graphThemeChart.scss`), the grip floating just under them.
+  // (`_graphThemeChart.scss`), the grip on the seam under them.
   > .graph-wrapper .chart-axis--inside-bottom text {
     transform: translateY(calc(-0.71em - 16px));
   }
