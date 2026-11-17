@@ -388,9 +388,39 @@ const BELOW_GRAPH_DEFAULT_HEIGHT = 344;
  * always nice visible on small laptops"); the graph then takes what is left,
  * never under `PANE_MIN_HEIGHT`. A divider somebody has moved keeps where they
  * put it.
+ *
+ * And the pane opens tall enough for a ceiling-length track where the room
+ * allows (Ivan, 2026-11-17: "the EQ needs to grow a bit more while keeping a
+ * reasonable height"), so the bands are the same height with the graph on as
+ * with it off, where they always reach the ceiling: on his 2560x1392 window
+ * 38.2% gave a 283px track and the ceiling is 340. That outweighs the golden
+ * ratio there (the graph stands about 1.35 times the page instead), but never
+ * past half the room, so the graph is never the smaller pane by default.
  */
 const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2;
 const BELOW_GRAPH_ROOM_SHARE = 1 / (1 + GOLDEN_RATIO);
+/**
+ * `$band-track-ceiling` in `_mainContentTokens.scss`, in pixels: change the
+ * two together. The bands' need is measured for an 80px track
+ * (`bandsPaneNeed.ts`), so the pane for a ceiling-length one is that need
+ * plus the difference.
+ */
+const BAND_TRACK_CEILING = 340;
+const NEED_TRACK = 80;
+const BELOW_GRAPH_MOST_SHARE = 0.5;
+
+const belowGraphDefaultHeight = () => {
+  const need = getBandsPaneNeed() ?? BELOW_GRAPH_DEFAULT_HEIGHT;
+  const forCeiling = Math.min(
+    need + BAND_TRACK_CEILING - NEED_TRACK,
+    cachedSplittable.room * BELOW_GRAPH_MOST_SHARE,
+  );
+  return Math.max(
+    cachedSplittable.room * BELOW_GRAPH_ROOM_SHARE,
+    need,
+    forCeiling,
+  );
+};
 
 const editorShareForTab = (tab: string) => {
   const stored = editorSharesByTab[tab];
@@ -401,10 +431,7 @@ const editorShareForTab = (tab: string) => {
     return GRAPH_STRIP_SHARE;
   }
   return tab.endsWith(BELOW_GRAPH_SUFFIX)
-    ? Math.max(
-        cachedSplittable.room * BELOW_GRAPH_ROOM_SHARE,
-        getBandsPaneNeed() ?? BELOW_GRAPH_DEFAULT_HEIGHT,
-      ) / Math.max(1, cachedSplittable.base)
+    ? belowGraphDefaultHeight() / Math.max(1, cachedSplittable.base)
     : defaultEditorShare;
 };
 
