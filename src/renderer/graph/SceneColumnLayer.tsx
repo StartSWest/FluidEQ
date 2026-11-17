@@ -45,14 +45,33 @@ export default function SceneColumnLayer() {
             (graph.offsetHeight - graph.clientHeight - graph.clientTop)
           : top;
       layer.style.height = `${Math.max(0, bottom - top)}px`;
+      // The graph's foot fade, which the layer ends at: its picture fades out
+      // by the chart's own curve (`footFade.ts`, `App.scss`).
+      layer.style.setProperty(
+        '--graph-foot-mask',
+        graph instanceof HTMLElement
+          ? graph.style.getPropertyValue('--graph-foot-mask') || 'none'
+          : 'none',
+      );
     };
     measure();
     const observer = new ResizeObserver(measure);
     // The column for the window, its children for the split: a drag moves
     // the graph's foot without changing the column's size.
     observer.observe(column);
+    // The graph's own style says when its fade changes without its size
+    // doing so: the grid switched off moves the −20 dB line it stops at.
+    const graphStyle = new MutationObserver(measure);
     const watch = () => {
       Array.from(column.children).forEach((child) => observer.observe(child));
+      graphStyle.disconnect();
+      const graph = column.querySelector(':scope > .graph-wrapper');
+      if (graph) {
+        graphStyle.observe(graph, {
+          attributes: true,
+          attributeFilter: ['style'],
+        });
+      }
     };
     watch();
     // A graph switched on or off, or the head arriving with the EQ pages.
@@ -64,6 +83,7 @@ export default function SceneColumnLayer() {
     return () => {
       observer.disconnect();
       children.disconnect();
+      graphStyle.disconnect();
     };
   }, [layer]);
 

@@ -67,6 +67,7 @@ import {
 import { getLineGainAtFrequency } from './utils';
 import bellGainAt from './bellDrag';
 import qualityWheelEdits from './qualityWheel';
+import { footFadeMaskImage } from './footFade';
 import { GRID_BOTTOM_MARGIN, plotTopMargin } from './plotMargins';
 import {
   useLiveAudioCapture,
@@ -394,9 +395,8 @@ interface IFrequencyResponseChartProps {
   hasPlaybackBackdrop?: boolean;
   backdropControls?: ReactNode;
   /**
-   * Over the EQ page's tab row: the graph's foot eases into the page's
-   * card (`ChartFootFade`). Never in full screen, never with the graph
-   * elsewhere.
+   * Over the EQ page's tab row: the graph's drawing fades out at its foot
+   * (`footFade.ts`). Never in full screen, never with the graph elsewhere.
    */
   hasFootFade?: boolean;
 }
@@ -1341,6 +1341,9 @@ const FrequencyResponseChart = ({
     setSelectedFilterIds,
   ]);
 
+  // How tall the foot's fade is, as the chart worked it out from its scale.
+  const [footFade, setFootFade] = useState(0);
+
   const dimensions: ChartDimensions = {
     width,
     height,
@@ -1551,6 +1554,10 @@ const FrequencyResponseChart = ({
           // compositing layer re-composited every frame to change nothing.
           '--graph-overlay-filter':
             overlayBlur > 0 ? `blur(${overlayBlur}px)` : 'none',
+          // The foot's fade for what is drawn outside the chart's svg: its
+          // canvases, and the scene's layer, which copies it from here
+          // (`SceneColumnLayer`).
+          '--graph-foot-mask': footFadeMaskImage(footFade),
         } as CSSProperties
       }
     >
@@ -1908,6 +1915,7 @@ const FrequencyResponseChart = ({
             isLiveOutputForeground={isLiveOutputForeground}
             isPlotPartOfWindow={isPlotPartOfWindow}
             hasFootFade={hasFootFade}
+            onFootFade={setFootFade}
             // This plot fills the screen on a double-click (see `Chart`).
             onPlotDoubleClick={() =>
               setGraphView(viewAfterPlotDoubleClick(getGraphView()))

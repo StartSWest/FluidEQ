@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   PointerEvent,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -50,7 +51,8 @@ import {
 } from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
 import CoverageOverlay from './CoverageOverlay';
-import ChartFootFade from './ChartFootFade';
+import ChartFootMask from './ChartFootMask';
+import { footFadeHeight } from './footFade';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import BandLabels from './BandLabels';
@@ -134,10 +136,12 @@ interface IChartProps {
    */
   onPlotDoubleClick?: (toWindow: boolean) => void;
   /**
-   * The EQ page's graph over its tab row: its foot eases into the page's
-   * card (`ChartFootFade`).
+   * The EQ page's graph over its tab row: its drawing fades out at its foot
+   * (`footFade.ts`).
    */
   hasFootFade?: boolean;
+  /** How tall that fade is, for the layers drawn outside the svg. */
+  onFootFade?: (height: number) => void;
 }
 
 const Chart = ({
@@ -151,6 +155,7 @@ const Chart = ({
   isPlotPartOfWindow = false,
   onPlotDoubleClick,
   hasFootFade = false,
+  onFootFade,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
   // This chart's own ids for its clips and its spectrum (`chartIds.ts`).
@@ -221,6 +226,18 @@ const Chart = ({
       drawingPadding,
       frequencyRange: graphFrequencyRange(isGridHidden, frequencyRangeChoice),
     });
+
+  // The foot's fade: over the compressed band under −20 dB, shortened to it
+  // on a short graph (`footFade.ts`). Told upwards for the canvases and the
+  // scene's layer, which are masked by the same curve outside the svg.
+  const footFade = hasFootFade
+    ? footFadeHeight(svgHeight, Number(yScaleEq(MIN_GAIN)))
+    : 0;
+  const footMask =
+    footFade > 0 ? `url(#${idOf('chart-foot-mask')})` : undefined;
+  useEffect(() => {
+    onFootFade?.(footFade);
+  }, [footFade, onFootFade]);
 
   const scene = useSceneLook();
   const sceneTrouble = useSceneTrouble();
@@ -595,39 +612,44 @@ const Chart = ({
           and foot of the plot (Ivan, 2026-09-26: "remove grid bg too"). The
           ±20 rule and the compressed labels still say where the scale
           changes. */}
-        <g className="chart-grid">
-          <GridLine
-            type="vertical"
-            scale={xScaleFreq}
-            tickValues={frequencyGrid.major}
-            size={svgHeight - padding.bottom}
-            transform={`translate(0, ${svgHeight - padding.bottom})`}
-          />
-          <GridLine
-            type="vertical"
-            scale={xScaleFreq}
-            tickValues={frequencyGrid.minor}
-            size={svgHeight - padding.bottom - 20}
-            transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
-            color={MINOR_RULE_INK}
-          />
-          <GridLine
-            type="horizontal"
-            scale={yScaleEq}
-            tickValues={GAIN_GRID_TICKS}
-            size={plotWidth}
-            transform={`translate(${padding.left}, 0)`}
-          />
-          <GridLine
-            type="horizontal"
-            scale={yScaleEq}
-            tickValues={UNITY_TICKS}
-            size={plotWidth}
-            color={UNITY_RULE_INK}
-            transform={`translate(${padding.left}, 0)`}
-          />
-        </g>
-        {/* Drawn only while a measurement is running, and subscribed to that
+        {footFade > 0 && <ChartFootMask foot={svgHeight} height={footFade} />}
+        {/* The drawing, faded out at the graph's foot (`footFade.ts`); the
+          selection box, the pins, the labels, the handles and the scales are
+          drawn outside the mask and stay whole. */}
+        <g mask={footMask}>
+          <g className="chart-grid">
+            <GridLine
+              type="vertical"
+              scale={xScaleFreq}
+              tickValues={frequencyGrid.major}
+              size={svgHeight - padding.bottom}
+              transform={`translate(0, ${svgHeight - padding.bottom})`}
+            />
+            <GridLine
+              type="vertical"
+              scale={xScaleFreq}
+              tickValues={frequencyGrid.minor}
+              size={svgHeight - padding.bottom - 20}
+              transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
+              color={MINOR_RULE_INK}
+            />
+            <GridLine
+              type="horizontal"
+              scale={yScaleEq}
+              tickValues={GAIN_GRID_TICKS}
+              size={plotWidth}
+              transform={`translate(${padding.left}, 0)`}
+            />
+            <GridLine
+              type="horizontal"
+              scale={yScaleEq}
+              tickValues={UNITY_TICKS}
+              size={plotWidth}
+              color={UNITY_RULE_INK}
+              transform={`translate(${padding.left}, 0)`}
+            />
+          </g>
+          {/* Drawn only while a measurement is running, and subscribed to that
           measurement itself rather than handed it — see the component.
 
           And only where the curves are. Somebody who has taken the response
@@ -636,12 +658,13 @@ const Chart = ({
           whole point of that mode is to be left with the one thing. The
           measurement carries on regardless; it is only the picture of it that
           waits. */}
-        <CoverageOverlay
-          xScale={xScaleFreq}
-          top={drawingPadding.top}
-          plotHeight={drawingFloor}
-          isResponseHidden={isLiveOutputForeground}
-        />
+          <CoverageOverlay
+            xScale={xScaleFreq}
+            top={drawingPadding.top}
+            plotHeight={drawingFloor}
+            isResponseHidden={isLiveOutputForeground}
+          />
+        </g>
         {selectionBox && (
           <rect
             className="chart-selection-box"
@@ -656,27 +679,26 @@ const Chart = ({
           The orientations — hanging, mirrored, centred — belong to the live
           trace alone and are applied on the canvas, where the geometry they
           reflect is drawn. */}
-        {data.map((e: IChartCurveData) =>
-          e.id === OUTPUT_CURVE_ID && outputOffset ? (
-            <LiveOutputCurve
-              key={e.id}
-              data={e}
-              xScale={xScaleFreq}
-              yScale={yScaleEq}
-              offset={outputOffset}
-            />
-          ) : (
-            <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleEq} />
-          ),
-        )}
-        {/* Over everything drawn so far, under everything read or grabbed. */}
-        {hasFootFade && (
-          <ChartFootFade
-            width={svgWidth}
-            foot={svgHeight}
-            top={Number(yScaleEq(MIN_GAIN))}
-          />
-        )}
+        <g mask={footMask}>
+          {data.map((e: IChartCurveData) =>
+            e.id === OUTPUT_CURVE_ID && outputOffset ? (
+              <LiveOutputCurve
+                key={e.id}
+                data={e}
+                xScale={xScaleFreq}
+                yScale={yScaleEq}
+                offset={outputOffset}
+              />
+            ) : (
+              <Curve
+                key={e.id}
+                data={e}
+                xScale={xScaleFreq}
+                yScale={yScaleEq}
+              />
+            ),
+          )}
+        </g>
         {/* A genre's pins on its Preset line: over the lines, under the
           band handles, so a handle standing on a pin can still be dragged.
           With the grid off too, wherever the line itself is drawn: they

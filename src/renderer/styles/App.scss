@@ -2884,8 +2884,8 @@ $graph-card-pages: list.join(
   }
 
   // THE SEAM (Ivan, 2026-11-17, "T2 + mínima"): no band and no line between
-  // the graph and the tab row. The graph's foot eases into the page's card
-  // (`ChartFootFade`, coloured below) and the divider takes no room — it was
+  // the graph and the tab row. The graph's drawing fades out at its foot
+  // (`footFade.ts`, the mask below) and the divider takes no room — it was
   // a 12px band of card — its grip floating on the fade 1-4px over the
   // graph's foot, still taking a drag along the whole width. With no height
   // of its own the split counts it as nothing (`measureSeam`), so the graph
@@ -2913,14 +2913,25 @@ $graph-card-pages: list.join(
     transform: translateY(calc(-0.32em - 7px));
   }
 
-  // The fade lands on the card exactly: the window's floor first, then the
-  // card's translucent face over it, as the card itself is seen.
-  > .graph-wrapper .chart-foot-fade__floor {
-    color: $surface-base;
+  // THE FOOT FADES THE CONTENT, NEVER THE SURFACE (Ivan, 2026-11-17: "just
+  // the fading, don't show anything else"; "the colour bleeds onto the
+  // viz"). The graph and the page under it stand on one surface, the card's
+  // face once over the window's floor: the graph's card and the page's card
+  // are the same face side by side, and under a Plus scene the graph's card
+  // lays none (above) and the scene's layer carries it instead, under the
+  // picture. Over the graph's last 56px what is drawn fades out by alpha
+  // (`footFade.ts`): the chart's svg through its own mask, and here the
+  // canvas a standard look draws on and the scene's picture, by the same
+  // curve the chart hands up (`--graph-foot-mask`). Nothing is painted over
+  // anything, so an empty graph is the same colour above and below the fade,
+  // and a scene keeps its own colours down to where it is gone.
+  > .graph-wrapper .chart-live-canvas,
+  > .scene-column-layer > * {
+    mask-image: var(--graph-foot-mask, none);
   }
 
-  > .graph-wrapper .chart-foot-fade__card {
-    color: $surface-section;
+  :root.is-scene-column & > .scene-column-layer {
+    background: $surface-section;
   }
 
   > .middle-content > .workspace-tab-panel--eq {
