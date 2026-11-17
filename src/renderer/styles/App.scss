@@ -3006,12 +3006,13 @@ $graph-card-pages: list.join(
     // under it, in balance with every other panel (Ivan, 2026-11-17, after a
     // dark strip, a glass one and a see-through darker one: "it does not make
     // a good contrast with the app, it must keep the balance with the whole
-    // application").
+    // application"). It is the face every strip over a picture now wears
+    // (`$surface-strip`).
     > .middle-content
       > .workspace-tab-panel--eq
       > .workspace-tab-panel__row
       > .eq-layer-tabs {
-      background: $surface-scene-panel;
+      background: $surface-strip;
     }
 
     // And the pills' row lays no face of its own over the picture: the

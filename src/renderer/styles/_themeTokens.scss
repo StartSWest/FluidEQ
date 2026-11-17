@@ -409,6 +409,16 @@ $surface-scene-panel: color-mix(
   transparent
 );
 
+// A STRIP OVER A PICTURE: every band of chrome laid across a scene, a film or
+// a full-screen stage — the header and the transport over a full screen,
+// each page's options row (`ViewBar`), the EQ page's tab row and the graph's
+// legend over a Plus scene. One face for all of them (Ivan, 2026-11-17:
+// "always that background colour and that same transparency"), and that face
+// is the EQ tab row's, which he approved the same day: the section card's,
+// thinned by the Transparency chosen in the View menu, so every strip
+// follows that one choice. Change it here, never per strip.
+$surface-strip: $surface-scene-panel;
+
 // The radius Windows 11 clips a frameless window's corners to, and therefore
 // the radius the window's own edge is drawn at (`body::after` in App.scss).
 // The system's number, not a taste: drawn larger the edge's corners fall

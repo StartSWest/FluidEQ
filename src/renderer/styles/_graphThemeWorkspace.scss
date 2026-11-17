@@ -554,6 +554,55 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: auto;
 }
 
+// THE HEADER OVER A FULL SCREEN wears the face every strip over a picture
+// wears (`$surface-strip`; Ivan, 2026-11-17: "always that background colour
+// and that same transparency"), never the window's opaque floor.
+//
+// Its own face only while the page's row is away, which over a full screen
+// is only when the header is pinned. While the row is out its band already
+// runs from the window's top behind the header (`ViewBar.scss`), so the
+// header lays nothing of its own: two layers of a see-through face are a
+// darker one, and the header would stand as a darker block on top of the row
+// it is the head of. It lost the opaque floor's subpixel text for it, as the
+// row and the EQ's tab row already had.
+.window-titlebar:has(~ .app-workspace.is-app-full) {
+  background: $surface-strip;
+}
+
+#root:not(.is-chrome-idle)
+  > .window-titlebar:has(~ .app-workspace.is-app-full) {
+  background: transparent;
+}
+
+// The strips' words take the outline the EQ page's take once a quarter of the
+// picture comes through their face (`has-scene-panel-ink`, `scenePanels.ts`),
+// so a strip thinned by the one Transparency still reads as the EQ's row
+// does. Inherited, so the container is enough.
+:root.has-scene-panel-ink {
+  .window-titlebar:has(~ .app-workspace.is-app-full),
+  .app-workspace.is-app-full .view-bar,
+  .now-playing-bar.is-floating {
+    @include over-picture-text;
+  }
+
+  // Not the wordmark: its letters are painted by a gradient through a clear
+  // fill, so a shadow under them shows through and greys "FluidEQ" out. Its
+  // own pulse glow is an animation, which this does not touch.
+  .window-titlebar .signal-name {
+    text-shadow: none;
+  }
+}
+
+// And the row arrives and leaves on the header's and the transport's time,
+// both ways: its band is the header's face here, and the band lingering the
+// row's usual half second after the header's words had gone read as a strip
+// left behind (Ivan, 2026-11-17: "always all together").
+.app-workspace.is-app-full .view-bar,
+.app-workspace.is-app-full .view-bar.is-idle {
+  transition-duration: $motion-base;
+  transition-timing-function: $ease-out;
+}
+
 // The padding goes either way, and the bar floats.
 //
 // It used to go only when the bar was hidden, so keeping the bar meant the

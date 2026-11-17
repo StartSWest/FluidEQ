@@ -34,10 +34,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // THE BAND UNDER THE ROW, so its words read over a bright scene, cover or
   // film, coming and going with it (Ivan, 2026-11-15, the graph's; 2026-11-16,
   // "show that same bg for the options on the karaoke, with the same
-  // behaviour"). Flat, the app's own floor at 72%, with a hard edge
-  // (2026-11-16: "flat like the application, no gradient", "make that band
-  // more transparent"). Behind the row's own children: every view makes the
-  // row a stacking context.
+  // behaviour"). Flat, with a hard edge (2026-11-16: "flat like the
+  // application, no gradient"), and the face every strip over a picture
+  // wears, the EQ tab row's (2026-11-17: "always that background colour and
+  // that same transparency"); it was the floor at 72%, a darker band than the
+  // header and the transport beside it. Behind the row's own children: every
+  // view makes the row a stacking context.
   //
   // 55px tall on every page (2026-11-16: "the bar the same height
   // everywhere"): each view sets the foot under its row that makes it so.
@@ -48,7 +50,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     right: 0;
     bottom: calc(-1 * var(--view-bar-foot, 0px));
     left: 0;
-    background: color-mix(in srgb, $surface-base 72%, transparent);
+    background: $surface-strip;
     content: '';
     pointer-events: none;
   }

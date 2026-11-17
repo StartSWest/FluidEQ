@@ -31,6 +31,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * milliseconds would be one fading while the other did not, which is worse than
  * either behaviour on its own.
  *
+ * ONE STATE FOR THE WHOLE FRAME (Ivan, 2026-11-17: "whether I move up or
+ * down, always all together, so both panels open"). Over a full-screen
+ * picture the header, the page's options row under it and the transport
+ * come out together from either edge and go together. The header and the
+ * transport had an edge each for a day (2026-11-16), and the row, which
+ * answered the clock alone, came out with either — so going up or down
+ * showed two of the three and never the same two.
+ *
  * The same shape as the other small stores here: a module-level value, a set of
  * listeners, and a `useSyncExternalStore` hook so anything reading it
  * re-renders when it moves.
@@ -143,8 +151,6 @@ const startIdleClock = () => {
     }
     if (now - lastActiveAt >= CHROME_IDLE_MS) {
       idleFrame = undefined;
-      setNearTop(false);
-      setNearBottom(false);
       // The side tabs otherwise have no way back down: they follow the
       // pointer, and a pointer that has left for a second monitor sends no
       // more moves. Five still seconds is what takes the rest of the chrome
@@ -227,10 +233,11 @@ const isInBottomZone = (event: PointerEvent): boolean =>
 // where the pointer stops, so the edge is as easy to find at four.
 const FULL_SCREEN_TOP_WAKE_EDGE_PX = 4;
 
+const isAppFullScreen = (): boolean =>
+  document.querySelector('.app-workspace.is-app-full') !== null;
+
 const topWakeEdge = (): number =>
-  document.querySelector('.app-workspace.is-app-full')
-    ? FULL_SCREEN_TOP_WAKE_EDGE_PX
-    : TOP_WAKE_EDGE_PX;
+  isAppFullScreen() ? FULL_SCREEN_TOP_WAKE_EDGE_PX : TOP_WAKE_EDGE_PX;
 
 const isInTopZone = (event: PointerEvent): boolean =>
   event.clientY <= topWakeEdge();
@@ -254,10 +261,19 @@ const TOOLBAR_APPROACH_PX = 24;
  * it either. Measured only while the chrome is away, on a move.
  */
 // Every page's row of options fades with the chrome (`ViewBar`), and each
-// is found the same way, without bringing the header (Ivan, 2026-11-16).
+// is found the same way.
+//
+// Not in full screen. There the row, the header and the transport come and go
+// as one (Ivan, 2026-11-17: "whether I move up or down, always all together"),
+// so finding the faded row would bring the header and the transport too — and
+// the row stands under the window's top where the Karaoke playlist's fold
+// does, which is why the full-screen top edge is four pixels at all. The top
+// of a full-screen window is where the pointer stops, so the edge is found
+// without it.
 const FADING_STRIPS = '.view-bar';
 
 const isOverFadedToolbar = (event: PointerEvent): boolean =>
+  !isAppFullScreen() &&
   Array.from(document.querySelectorAll(FADING_STRIPS)).some((strip) =>
     isOverStrip(strip, event),
   );
@@ -273,69 +289,6 @@ const isOverStrip = (strip: Element, event: PointerEvent): boolean =>
       event.clientY <= box.bottom + TOOLBAR_APPROACH_PX
     );
   });
-
-/**
- * Whether the pointer has gone to the window's top or bottom edge.
- *
- * EACH EDGE BRINGS ITS OWN BAR (Ivan, 2026-11-16: "when I go down the bottom
- * one comes out and when I go up the top one does"): the top the header, the
- * bottom the transport. They used to answer either edge together.
- *
- * Entering an edge reveals its bar. Leaving starts the same clock as the rest
- * of the chrome; it does not make a bar snap shut under a pointer travelling
- * to a neighbouring control.
- */
-let isNearTop = false;
-const topListeners = new Set<() => void>();
-
-const setNearTop = (next: boolean) => {
-  if (next === isNearTop) {
-    return;
-  }
-  isNearTop = next;
-  topListeners.forEach((listener) => listener());
-};
-
-const subscribeNearTop = (listener: () => void) => {
-  topListeners.add(listener);
-  return () => {
-    topListeners.delete(listener);
-  };
-};
-
-/** True while the pointer has the header out: at the top edge. */
-export const useIsPointerNearTop = () =>
-  useSyncExternalStore(
-    subscribeNearTop,
-    () => isNearTop,
-    () => false,
-  );
-
-let isNearBottom = false;
-const bottomListeners = new Set<() => void>();
-
-const setNearBottom = (next: boolean) => {
-  if (next === isNearBottom) {
-    return;
-  }
-  isNearBottom = next;
-  bottomListeners.forEach((listener) => listener());
-};
-
-const subscribeNearBottom = (listener: () => void) => {
-  bottomListeners.add(listener);
-  return () => {
-    bottomListeners.delete(listener);
-  };
-};
-
-/** True while the pointer has the transport out: at the bottom edge. */
-export const useIsPointerNearChrome = () =>
-  useSyncExternalStore(
-    subscribeNearBottom,
-    () => isNearBottom,
-    () => false,
-  );
 
 /**
  * The side edges, where the drawer tabs live.
@@ -437,13 +390,10 @@ const handleActivity = (event?: Event) => {
       : null;
   }
   // Using a page's options row keeps the row, and whatever else is out,
-  // where it is; it never brings the header. The header is the top edge's
-  // alone, as on the Karaoke's row from the first (Ivan, 2026-11-16: "it
-  // doesn't hide the header ... I want the Karaoke's behaviour"): the graph's
-  // strip brought it whenever the pointer was on it, so unpinning the header
-  // from there left it standing until a click on the picture put it away.
-  // And a pointer on one of the row's controls is never at the top edge,
-  // however close the row stands to it, so reaching a button never moves it.
+  // where it is. The row is only out with the rest of the chrome, so nothing
+  // arrives here that was not already on screen, and a pointer on one of the
+  // row's controls is never at the top edge, however close the row stands to
+  // it, so reaching a button never moves it.
   if (isUsingTopChrome()) {
     setIdle(false);
     startIdleClock();
@@ -454,17 +404,13 @@ const handleActivity = (event?: Event) => {
   if (event?.type === 'pointermove') {
     const move = event as PointerEvent;
     isInBottomSurface = isInBottomChromeSurface(move);
-    // A protected editor surface may HOLD a bar that the bottom edge already
-    // revealed, but it must never reveal one itself. Treating the whole panel
-    // as `nearBottom` made a pointer in the middle of the screen summon the
-    // transport — exactly the opposite of the ten-pixel wake target.
-    bottomSurfaceHoldsOpen = isInBottomSurface && isNearBottom && !isIdle;
-    if (isInBottomZone(move)) {
-      setNearBottom(true);
-    }
-    if (isInTopZone(move)) {
-      setNearTop(true);
-    }
+    // A protected editor surface may HOLD a bar that is already out, but it
+    // must never reveal one itself. Treating the whole panel as a wake zone
+    // made a pointer in the middle of the screen summon the transport —
+    // exactly the opposite of the ten-pixel wake target. Full screen only,
+    // where the bar floats: docked under a pane it pushes nothing, and a hand
+    // resting on it there would keep the graph's strip up for good.
+    bottomSurfaceHoldsOpen = isInBottomSurface && !isIdle && isAppFullScreen();
   }
   // Keys and the wheel are deliberate by nature and wake it at once. The
   // pointer has to be where the chrome is — see `isInWakeZone`.
@@ -536,26 +482,22 @@ export const setChromeHeld = (next: boolean) => {
 };
 
 /**
- * Put the chrome away now, if any of it is out.
+ * Put the chrome away now, if it is out.
  *
  * Bound to a click on the drawing. Waiting out the timer is the right answer
  * for a person who has simply stopped moving, and a strange thing to ask of
- * one who has just said what they want. It brings nothing back: the header
- * comes from the top edge and the transport from the bottom, each alone.
+ * one who has just said what they want. It brings nothing back: the chrome
+ * comes from the window's edges (Ivan, 2026-11-16: "don't make both open at
+ * the same time on a click").
+ *
+ * Full screen only, as both callers say: in a pane a click on the plot is
+ * editing, and the strip there is not the frame of a picture.
  */
 export const toggleChromeNow = () => {
-  if (!isWatching || isKeptUp()) {
-    return;
-  }
-  // A click puts away whatever bar is out and brings none: each bar is its
-  // own edge's (Ivan, 2026-11-16: "don't make both open at the same time on
-  // a click").
-  if (isIdle || (!isNearTop && !isNearBottom)) {
+  if (!isWatching || isKeptUp() || isIdle || !isAppFullScreen()) {
     return;
   }
   clearTimer();
-  setNearTop(false);
-  setNearBottom(false);
   setIdle(true);
 };
 
@@ -602,8 +544,6 @@ export const watchChromeIdle = (next: boolean) => {
     window.removeEventListener(event, handleActivity),
   );
   clearTimer();
-  setNearTop(false);
-  setNearBottom(false);
   setNearSide(false);
   // A dismissal belongs to the mode it was made in. Carrying it out would mean
   // the next time this mode opened, the toolbar was already hidden and no

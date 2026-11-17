@@ -79,7 +79,6 @@ const WorkspacePlayers = ({
     isMediaFullScreen,
     isAppFullScreen,
     isChromeIdle,
-    isPointerNearChrome,
     hasFullScreenTopBar,
     toggleFullScreenTopBar,
     hasFullScreenBottomBar,
@@ -90,10 +89,7 @@ const WorkspacePlayers = ({
   // own toolbar waits, from the same store, so the two cannot disagree about
   // when to go.
   // Never while it is pinned (`useFullScreenBottomBar`).
-  const isBarIdle =
-    isAppFullScreen &&
-    !hasFullScreenBottomBar &&
-    (!isPointerNearChrome || isChromeIdle);
+  const isBarIdle = isAppFullScreen && !hasFullScreenBottomBar && isChromeIdle;
   return (
     <>
       {mounts.hasOpenedVideo && mounts.keepVideoMounted && (

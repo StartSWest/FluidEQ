@@ -94,6 +94,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // anything behind it for the blur to soften.
 }
 
+// Floating over a full-screen picture it is a strip over that picture, and
+// wears their one face (`$surface-strip`; Ivan, 2026-11-17: "always that
+// background colour and that same transparency"), as the header and the
+// page's row above it do. The opaque floor's subpixel text goes with it here
+// and only here: docked, the bar keeps the floor.
+.now-playing-bar.is-floating {
+  background-color: $surface-strip;
+}
+
 // Out of the way, once full screen has been still for two seconds.
 //
 // Slid down as well as faded: a bar that only fades leaves its shadow over the

@@ -51,7 +51,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // is chosen, for the compositing it costs; the words take the outline they
   // wear on the picture once a quarter of it comes through.
   :root.is-scene-column & {
-    background: $surface-scene-panel;
+    background: $surface-strip;
   }
 
   :root.is-scene-column.has-scene-panel-blur & {
