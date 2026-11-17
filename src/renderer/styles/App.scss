@@ -2820,6 +2820,20 @@ $graph-card-pages: list.join(
       background: linear-gradient($surface-section, $surface-section) bottom /
         100% calc(100% - #{$eq-row-height}) no-repeat;
     }
+
+    // Over the scene the row lays a band after all: the page's own face,
+    // half see-through, so the picture shows through it in the window's
+    // colours (which a tinting scene sets) and the scene above and the page
+    // below meet in the row rather than at a hard edge (Ivan, 2026-11-17: "a
+    // semi-transparent band, more or less the scene's colour, so the window
+    // and the scene match"). Flat: no blur, no gradient. Bare, the row's
+    // words were lost on a bright picture.
+    > .middle-content
+      > .workspace-tab-panel--eq
+      > .workspace-tab-panel__row
+      > .eq-layer-tabs {
+      background: color-mix(in srgb, #{$surface-section} 62%, transparent);
+    }
   }
 
   // The divider takes no room (it was a 12px band of card) and the split
