@@ -14,12 +14,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // *** The tab row ************************************************************
 
 // ONE LINE OF 40PX GLUED UNDER THE GRAPH (Ivan, 2026-11-17, B1 "grouped by
-// job", set as the mockup's "T2 + mínima"): the tabs on the left, the open
-// one underlined on the row's foot; then the open tab's tools, flat, each
-// group's name inline before its tools; Smart EQ filled at the end. As the
-// room narrows the group names go, then what each tab holds, then the tools'
-// words (`useToolRowFit`, `data-fit` below); it never wraps and never runs
-// off.
+// job", set as the mockup's "T2 + mínima"): the tabs on the left, each its
+// glyph, its word and what it holds, the open one underlined on the row's
+// foot; then the open tab's tools, flat, each group's name inline before its
+// tools; Smart EQ filled at the end. As the room narrows the group names go,
+// then what each tab holds, then the tools' words, then the tabs' (`useToolRowFit`,
+// `data-fit` below); it never wraps and never runs off.
 //
 // The flat tools are the app's current ones, the options bars' (`ViewBar`'s
 // `.view-bar__icon`, the Karaoke stage bar's segments): the studio inks
@@ -201,7 +201,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   // What a tool is set to reads in the text's own ink, bold: the count, the
   // EQ mode's state. Those two are their value alone, with no glyph before
-  // it, until the row is down to glyphs (`data-fit='icons'` below).
+  // it, until the row is down to glyphs (`data-fit` below).
   .band-designs__current,
   .eq-mode-trigger__summary {
     color: $text-primary;
@@ -236,25 +236,46 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Narrower (`useToolRowFit`): the group names first; then what each tab
-// holds, the tabs keeping their names; then every tool's word but Smart
-// EQ's, each tool left its glyph and its tooltip. The two that are only a
-// glyph then are square.
+// Narrower (`useToolRowFit`), each level keeping what the ones before it
+// gave up: the group names first; then what each tab holds, the tabs
+// keeping their names; then every tool's word but Smart EQ's, each tool
+// left its glyph and its tooltip; last the tabs' words, each tab its glyph
+// and its tooltip, its word kept for a screen reader. The tools that are
+// only a glyph then are square.
 .eq-layer-tabs:is(
     [data-fit='uncaptioned'],
     [data-fit='bare-tabs'],
-    [data-fit='icons']
+    [data-fit='icons'],
+    [data-fit='icon-tabs']
   )
   .eq-tool-group__caption {
   display: none;
 }
 
-.eq-layer-tabs:is([data-fit='bare-tabs'], [data-fit='icons'])
+.eq-layer-tabs:is(
+    [data-fit='bare-tabs'],
+    [data-fit='icons'],
+    [data-fit='icon-tabs']
+  )
   .eq-layer-tabs__meta {
   display: none;
 }
 
-.eq-layer-tabs[data-fit='icons'] .eq-layer-tabs__tools {
+.eq-layer-tabs[data-fit='icon-tabs'] {
+  .eq-layer-tabs__word {
+    @include words-hidden;
+  }
+
+  // A glyph alone is a small thing to aim at: the tab keeps a square of
+  // the tools' size round it, the underline under the square.
+  .eq-layer-tabs__tab {
+    min-width: 32px;
+    justify-content: center;
+  }
+}
+
+.eq-layer-tabs:is([data-fit='icons'], [data-fit='icon-tabs'])
+  .eq-layer-tabs__tools {
   .eq-toolbar__word,
   .eq-mode-trigger__summary {
     @include words-hidden;

@@ -13,6 +13,7 @@ import {
   useDspPresetCatalog,
 } from '../dsp/dspPresetCatalog';
 import { useDspSettings } from '../dsp/store';
+import MenuIcon from '../icons/MenuIcon';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { EQ_LAYER_TABS, setEqLayerTab, type TEqLayerTab } from './eqLayerTab';
@@ -22,6 +23,14 @@ const TAB_LABEL: Record<TEqLayerTab, TranslationKey> = {
   bands: 'eq.tabs.bands',
   preset: 'eq.tabs.preset',
   tone: 'eq.tone',
+};
+
+// The glyphs they had before the row went flat (Ivan, 2026-11-17: "add
+// icons there"): the bands, the preset's tag, the Tone's speaker.
+const TAB_ICON: Record<TEqLayerTab, 'eqBars' | 'genre' | 'waveform'> = {
+  bands: 'eqBars',
+  preset: 'genre',
+  tone: 'waveform',
 };
 
 /** The id each tab's page carries, for `aria-controls`. */
@@ -126,8 +135,12 @@ const EqLayerTabs = ({
             tabIndex={tab === active ? 0 : -1}
             onClick={() => setEqLayerTab(tab)}
             onKeyDown={onKeyDown}
+            // Named where the row leaves it its glyph alone (`useToolRowFit`);
+            // its word stays in the button for a screen reader then.
+            title={t(TAB_LABEL[tab])}
           >
-            <span>{t(TAB_LABEL[tab])}</span>
+            <MenuIcon name={TAB_ICON[tab]} className="eq-toolbar__icon" />
+            <span className="eq-layer-tabs__word">{t(TAB_LABEL[tab])}</span>
             <span
               className={`eq-layer-tabs__meta${
                 tab === 'tone' && !isToneOn ? ' is-off' : ''

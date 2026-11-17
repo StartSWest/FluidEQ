@@ -10,11 +10,20 @@ import { type RefObject, useLayoutEffect } from 'react';
  * How much of the row's wording is shown, most first: everything; the
  * groups' captions given up; then what each tab holds ("15", the preset's
  * name, Off), the tabs keeping their names; then the tools' words too, each
- * left its glyph and its tooltip (Smart EQ keeps its word at every width).
- * The tabs' chips go before the tools' words because a tool without its word
- * is a glyph to learn, and a tab without its chip still says what it is.
+ * left its glyph and its tooltip (Smart EQ keeps its word at every width);
+ * last, the tabs' own words, each tab its glyph and its tooltip, the open
+ * one still underlined. The tabs' chips go before the tools' words because a
+ * tool without its word is a glyph to learn, and a tab without its chip
+ * still says what it is; the tabs' words go last because they are where the
+ * page is.
  */
-const FITS = ['full', 'uncaptioned', 'bare-tabs', 'icons'] as const;
+const FITS = [
+  'full',
+  'uncaptioned',
+  'bare-tabs',
+  'icons',
+  'icon-tabs',
+] as const;
 
 /**
  * THE TOOL ROW NEVER WRAPS AND NEVER RUNS OFF (Ivan, 2026-11-17, B1): the
