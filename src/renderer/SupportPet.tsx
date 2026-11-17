@@ -25,8 +25,10 @@ import {
 } from 'react';
 import {
   useLiveAudioControl,
-  useLiveAudioFrame,
+  useLiveAudioFrameListener,
+  useLiveAudioFrames,
 } from './audio/LiveAudioContext';
+import type { ILiveAudioFrame } from './audio/liveFrameStore';
 import { amplitudeToDb, type IOutputLevel } from './graph/outputLevel';
 import { prefersReducedMotion } from './utils/bandReveal';
 import { PetArt } from './PetArt';
@@ -178,31 +180,43 @@ const PetLevelPump = ({
   onLevel: (level: number) => void;
   onHearingChange: (isHearing: boolean) => void;
 }) => {
-  const { waveform, outputLevels } = useLiveAudioFrame();
+  const frames = useLiveAudioFrames();
   const publishedRef = useRef(-1);
   const heardRef = useRef<number[] | undefined>(undefined);
   const feed = useHearingGate(isCapturing && !isPaused, onHearingChange);
 
-  useEffect(() => {
-    // Pausing freezes the analyser mid-frame, so the last waveform sits there
-    // reading as music. Paused is zero, or the ears stay stretched on a frame
-    // that stopped being true.
-    const level = isPaused ? 0 : getPetLevel(waveform);
-    feed(level, outputLevels);
-    // Once per frame: the dance counts frames, and this runs again with the
-    // same one whenever anything else it reads changes.
-    if (heardRef.current !== waveform) {
-      heardRef.current = waveform;
-      onLevel(level);
-    }
+  // Each frame handed straight here, never through a render: the pump renders
+  // nothing, and as a frame's subscriber it was rendered thirty times a
+  // second to write one quantised style.
+  const hear = useCallback(
+    ({ waveform, outputLevels }: ILiveAudioFrame) => {
+      // Pausing freezes the analyser mid-frame, so the last waveform sits there
+      // reading as music. Paused is zero, or the ears stay stretched on a frame
+      // that stopped being true.
+      const level = isPaused ? 0 : getPetLevel(waveform);
+      feed(level, outputLevels);
+      // Once per frame: the dance counts frames, and this runs again with the
+      // same one whenever anything else it reads changes.
+      if (heardRef.current !== waveform) {
+        heardRef.current = waveform;
+        onLevel(level);
+      }
 
-    const stepped = Math.round(level * LEVEL_STEPS) / LEVEL_STEPS;
-    if (stepped === publishedRef.current || !target.current) {
-      return;
-    }
-    publishedRef.current = stepped;
-    target.current.style.setProperty('--pet-level', String(stepped));
-  }, [feed, isPaused, onLevel, outputLevels, target, waveform]);
+      const stepped = Math.round(level * LEVEL_STEPS) / LEVEL_STEPS;
+      if (stepped === publishedRef.current || !target.current) {
+        return;
+      }
+      publishedRef.current = stepped;
+      target.current.style.setProperty('--pet-level', String(stepped));
+    },
+    [feed, isPaused, onLevel, target],
+  );
+  useLiveAudioFrameListener(hear);
+  // And again with the frame there is now whenever anything else it reads
+  // changes - pausing reads as zero at once, not at the next frame.
+  useEffect(() => {
+    hear(frames.read());
+  }, [frames, hear]);
 
   return null;
 };

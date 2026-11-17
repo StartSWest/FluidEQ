@@ -21,12 +21,14 @@ import { IKaraokeMakerToken } from '../../common/karaoke/makerProject';
 import { useTranslation } from '../utils/I18nContext';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import formatClock from './makerFormat';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 
 interface IKaraokeMakerWordInspectorProps {
   /** Undefined shows the empty state rather than nothing. */
   selectedToken?: IKaraokeMakerToken;
   tokens: IKaraokeMakerToken[];
-  playheadMs: number;
+  /** Read when a button sets a time from it; never rendered. */
+  playhead: IKaraokeLiveValue<number>;
   /** Disables the controls while a detection run owns the lyrics. */
   isProcessing: boolean;
   /** Prefix for the label/input pairs, so two editors on screen stay distinct. */
@@ -61,7 +63,7 @@ interface IKaraokeMakerWordInspectorProps {
 const KaraokeMakerWordInspector = ({
   selectedToken,
   tokens,
-  playheadMs,
+  playhead,
   isProcessing,
   controlId,
   onMoveSelection,
@@ -123,7 +125,7 @@ const KaraokeMakerWordInspector = ({
         </button>
         <button
           type="button"
-          onClick={() => onTimingChange({ startMs: playheadMs })}
+          onClick={() => onTimingChange({ startMs: playhead.read() })}
         >
           <KaraokeMakerToolIcon name="timing" />
           {t('karaoke.maker.usePlayhead')}

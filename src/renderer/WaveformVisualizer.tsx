@@ -73,7 +73,9 @@ import { type IWaveGate, createWaveGate } from './waveformGate';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
-  useLiveAudioFrame,
+  useLiveAudioFrameListener,
+  useLiveAudioFrames,
+  useLiveAudioFrameSelector,
 } from './audio/LiveAudioContext';
 import EuphoriaPillFaces from './components/EuphoriaPillFaces';
 import LiveFigure from './components/LiveFigure';
@@ -171,10 +173,12 @@ const WaveformVisualizer = () => {
   // The switch's own state, apart from the look: the game's streak can light
   // the rainbow for a while without the switch being on.
   const isRainbowOn = useIsEuphoriaEnabled();
-  // `points` is the FFT frequency-domain reading the graph panel draws,
-  // read here so the `spectrum` style can build real spectrum bars off it
-  // rather than the time-domain envelope every other style uses.
-  const { isClipping, points, waveform } = useLiveAudioFrame();
+  // The one reading this component prints itself, re-rendering it only when
+  // it turns. The frames go straight to the canvas (below): rendered, they
+  // woke this component - the pill and its faces with it - with every block
+  // of audio, 59 times a second measured in the running window.
+  const isClipping = useLiveAudioFrameSelector((frame) => frame.isClipping);
+  const frames = useLiveAudioFrames();
   // `togglePaused` is deliberately not taken. Clicking cycles the meter style
   // now, so pausing has no trigger here — the analyser is still pausable
   // through the control context, it simply is not this button any more, and
@@ -303,11 +307,12 @@ const WaveformVisualizer = () => {
   isEuphoricRef.current = isEuphoric;
   const isPausedRef = useRef(isPaused);
   isPausedRef.current = isPaused;
-  // The freq-domain points, kept in a ref so the frame loop reads whatever
-  // the analyser last published without waking up on each new frame — the
-  // loop is already scheduled by the wave-samples effect.
-  const pointsRef = useRef<IChartPointData[]>(points);
-  pointsRef.current = points;
+  // The freq-domain points the graph panel draws, so the `spectrum` style
+  // builds real spectrum bars rather than the time-domain envelope every
+  // other style uses. Kept in a ref so the frame loop reads whatever the
+  // analyser last published without waking up on each new frame — the loop
+  // is already scheduled by each new waveform (below).
+  const pointsRef = useRef<IChartPointData[]>(frames.read().points);
   // The spectrum's bands, reused across frames.
   const spectrumMagnitudesRef = useRef<number[]>([]);
   // What the styles remember between frames (`waveformFlatState.ts`), and how
@@ -624,18 +629,6 @@ const WaveformVisualizer = () => {
     return () => observer.disconnect();
   }, [kickFrames]);
 
-  // A new measurement is a new target, and a reason to start moving again.
-  useEffect(() => {
-    if (isOff) {
-      return;
-    }
-    targetRef.current = waveform;
-    // The block's own arrival, which is what dates it when the drawing cannot
-    // read the capture's audio clock.
-    arrivedAtRef.current = performance.now();
-    kickFrames();
-  }, [isOff, kickFrames, waveform]);
-
   // Held peak, so the number is readable instead of a blur of digits.
   // Back in state because the readout is DOM again: it sits in the meta
   // row above the stage, where it can hug the top of the pane with no
@@ -660,18 +653,43 @@ const WaveformVisualizer = () => {
   // peak last stepped down — see the release in `drawFrame`.
   const restReleaseMsRef = useRef(0);
 
+  // A new measurement is a new target, and a reason to start moving again;
+  // and a step of the held peak, which renders only when its figure changes.
+  const takeWaveform = useCallback(
+    (waveform: number[]) => {
+      if (isOffRef.current) {
+        return;
+      }
+      targetRef.current = waveform;
+      // The block's own arrival, which is what dates it when the drawing
+      // cannot read the capture's audio clock.
+      arrivedAtRef.current = performance.now();
+      kickFrames();
+      // A published frame is a step of its own; the rest clock counts from it.
+      restReleaseMsRef.current = 0;
+      const shown = nextHeldPeak(heldPeakRef.current, peakDbOf(waveform));
+      if (shown !== heldPeakRef.current) {
+        heldPeakRef.current = shown;
+        setHeldPeak(shown);
+      }
+    },
+    [kickFrames],
+  );
+  const takenWaveformRef = useRef<number[] | undefined>(undefined);
+  useLiveAudioFrameListener(({ points, waveform }) => {
+    pointsRef.current = points;
+    if (waveform !== takenWaveformRef.current) {
+      takenWaveformRef.current = waveform;
+      takeWaveform(waveform);
+    }
+  });
+  // Switched back on, the meter takes the reading there is now: the ones that
+  // arrived while it was off were not taken.
   useEffect(() => {
-    if (isOff) {
-      return;
+    if (!isOff) {
+      takeWaveform(frames.read().waveform);
     }
-    // A published frame is a step of its own; the rest clock counts from it.
-    restReleaseMsRef.current = 0;
-    const shown = nextHeldPeak(heldPeakRef.current, peakDbOf(waveform));
-    if (shown !== heldPeakRef.current) {
-      heldPeakRef.current = shown;
-      setHeldPeak(shown);
-    }
-  }, [isOff, waveform]);
+  }, [frames, isOff, takeWaveform]);
 
   // The capture's own verdict, from railed samples — the app's one
   // definition of clipping, and the same one the sidebar meter uses.

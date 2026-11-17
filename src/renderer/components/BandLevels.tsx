@@ -7,8 +7,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import {
   useLiveAudioCapture,
-  useLiveAudioFrame,
+  useLiveAudioFrameListener,
 } from '../audio/LiveAudioContext';
+import type { IChartPointData } from '../graph/ChartController';
 import { getBandLevel } from '../utils/bandLevel';
 
 interface IBand {
@@ -45,7 +46,6 @@ const BandLevels = ({
   row: HTMLElement | null;
 }) => {
   useLiveAudioCapture();
-  const { graphPoints } = useLiveAudioFrame();
   const bands = useRef<IBand[]>([]);
 
   // Read again whenever the row's bands change — one added or removed, a new
@@ -83,7 +83,14 @@ const BandLevels = ({
     };
   }, [row]);
 
-  useEffect(() => {
+  // Each frame handed straight here: as a render it was this component thirty
+  // times a second, to write a style on the bands whose step changed.
+  const lastPointsRef = useRef<IChartPointData[] | undefined>(undefined);
+  useLiveAudioFrameListener(({ graphPoints }) => {
+    if (graphPoints === lastPointsRef.current) {
+      return;
+    }
+    lastPointsRef.current = graphPoints;
     // No spectrum is silence, or no capture: every core goes back to its
     // resting light rather than holding whatever the music was doing when
     // it stopped.
@@ -99,7 +106,7 @@ const BandLevels = ({
         band.element.style.setProperty('--band-level', String(level));
       }
     }
-  }, [graphPoints]);
+  });
 
   return null;
 };

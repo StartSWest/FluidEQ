@@ -77,7 +77,7 @@ import { publishPlotGeometry, withdrawPlotGeometry } from './plotGeometry';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
-  useLiveAudioFrame,
+  useLiveAudioFrameSelector,
 } from '../audio/LiveAudioContext';
 import { SILENT_WAVEFORM } from './liveSpectrumFrames';
 import { getBandColor } from '../utils/bandColors';
@@ -427,13 +427,12 @@ const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
  * The clip indication.
  *
  * Reads `isClipping` and only `isClipping` — a boolean that is true for a few
- * hundred milliseconds after the output rails and false the rest of the time, so
- * this renders the same nothing on almost every frame and React has nothing to
- * do with it.
+ * hundred milliseconds after the output rails and false the rest of the time,
+ * so it renders when that turns and on no other frame.
  */
 const LiveClipWarning = () => {
   const { t } = useTranslation();
-  const { isClipping } = useLiveAudioFrame();
+  const isClipping = useLiveAudioFrameSelector((frame) => frame.isClipping);
   return isClipping ? (
     <span className="graph-clip-warning" role="status">
       {t('graph.clip')}
@@ -474,11 +473,19 @@ const SilenceWatch = ({
 }: {
   onChange: (hasRecentAudio: boolean) => void;
 }) => {
-  const { points, waveform } = useLiveAudioFrame();
+  // Two answers read off every frame, rendering this only when one turns.
+  const hasFrame = useLiveAudioFrameSelector(
+    (frame) => frame.points.length > 0,
+  );
+  const waveformState = useLiveAudioFrameSelector(({ waveform }) => {
+    if (waveform === SILENT_WAVEFORM) {
+      return 'rest';
+    }
+    return waveform.length === 0 ? 'empty' : 'moving';
+  });
   const { error } = useLiveAudioControl();
-  const hasFrame = points.length > 0;
   const isAtRest =
-    waveform === SILENT_WAVEFORM || (waveform.length === 0 && error !== '');
+    waveformState === 'rest' || (waveformState === 'empty' && error !== '');
 
   useEffect(() => {
     if (hasFrame) {

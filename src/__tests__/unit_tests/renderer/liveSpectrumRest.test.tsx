@@ -23,7 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { act, render } from '@testing-library/react';
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import {
   SILENT_WAVEFORM,
   UPDATE_INTERVAL_MS,
@@ -63,7 +63,10 @@ function Probe() {
   const spectrum = useLiveOutputSpectrum();
   control = spectrum.control;
   const { claim } = spectrum.control;
-  const { waveform, outputLevels } = spectrum.frame;
+  const { waveform, outputLevels } = useSyncExternalStore(
+    spectrum.frame.subscribe,
+    spectrum.frame.read,
+  );
   useEffect(() => claim('display'), [claim]);
   useEffect(() => {
     published.push({ atMs: performance.now(), waveform, outputLevels });

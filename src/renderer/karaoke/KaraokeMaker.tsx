@@ -8,6 +8,7 @@ import { RefObject } from 'react';
 import { IKaraokeMakerProject } from '../../common/karaoke/makerProject';
 import { IKaraokeSong } from '../../common/karaoke/types';
 import { IKaraokeAudioClock } from './karaokeAudioClock';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 import useKaraokeMakerEditor from './useKaraokeMakerEditor';
 import useKaraokeMakerTools from './useKaraokeMakerTools';
 import KaraokeMakerView from './KaraokeMakerView';
@@ -21,7 +22,14 @@ import {
 export interface IKaraokeMakerProps {
   song: IKaraokeSong;
   audioFile: File;
-  playheadMs: number;
+  /**
+   * The playhead as it moves, never a number: the Maker is a whole editor,
+   * and handed the playhead as a prop it rendered all of itself on every
+   * tick of it, twenty times a second while a song played. What draws it
+   * reads it here - the canvas in its own repaint, the navigator and the
+   * preview each in a subscriber of its own (`karaokeLiveValue.ts`).
+   */
+  playhead: IKaraokeLiveValue<number>;
   durationMs: number;
   isPlaying: boolean;
   restoreSavedDraft: boolean;
@@ -73,7 +81,7 @@ export interface IKaraokeMakerProps {
 const KaraokeMaker = ({
   song,
   audioFile,
-  playheadMs,
+  playhead,
   durationMs,
   isPlaying,
   restoreSavedDraft,
@@ -109,7 +117,7 @@ const KaraokeMaker = ({
     onPause,
     onPlay,
     onSeek,
-    playheadMs,
+    playhead,
     readPlayheadMs,
     restoreSavedDraft,
     song,
@@ -130,7 +138,7 @@ const KaraokeMaker = ({
     onPlay,
     onSeek,
     onStems,
-    playheadMs,
+    playhead,
     readPlayheadMs,
     song,
   });
@@ -151,7 +159,7 @@ const KaraokeMaker = ({
       onSeek={onSeek}
       onToggleFullScreen={onToggleFullScreen}
       onVocalLevel={onVocalLevel}
-      playheadMs={playheadMs}
+      playhead={playhead}
       songSave={libraryOrigin === undefined ? undefined : songSave}
       stemFocus={stemFocus}
       vocalLevel={vocalLevel}

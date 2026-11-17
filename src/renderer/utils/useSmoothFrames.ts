@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
-import { displayTickMs, isFrameDue } from './framePace';
+import { displayTickMs, isFrameDue, WINDOW_DRAWING_PACE_MS } from './framePace';
 import observeShown from './observeShown';
 
 /**
@@ -39,11 +39,13 @@ import observeShown from './observeShown';
  * nobody can see that element — the titlebar's wave faded out in full screen,
  * the meter in a drawer parked off the side — and starts again when they can.
  *
- * Every frame the display offers is drawn, in Rainbow or out of it
- * (`THIRTY_A_SECOND_MS` says why there is no cap). `minFrameMs` is a
- * consumer's own pace, read every frame: a scene's, which is the rate the
- * listener chose for it or the thirty its ladder or a rest in silence asks
- * for (`useSceneRunner.ts`).
+ * Every frame the display offers is drawn up to 200 Hz, in Rainbow or out of
+ * it, and every other frame of a faster one (`WINDOW_DRAWING_PACE_MS` has
+ * the measurements). A loop waking from rest draws on its first frame
+ * whatever the pace, so a new reading is never held back a frame.
+ * `minFrameMs` is a consumer's own pace instead, read every frame: a
+ * scene's, which is the rate the listener chose for it or the thirty its
+ * ladder or a rest in silence asks for (`useSceneRunner.ts`).
  */
 const useSmoothFrames = (
   onFrame: (deltaMs: number) => boolean,
@@ -131,6 +133,7 @@ const useSmoothFrames = (
     // what a pace is judged against as well as its own length (`framePace.ts`).
     let lastTickAt: number | undefined;
     let tickMs = 1000 / 60;
+    let isFirstFrame = true;
 
     const tick = (now: number) => {
       if (document.hidden || !enabledRef.current || !shownRef.current) {
@@ -147,13 +150,17 @@ const useSmoothFrames = (
       // negative age that indexed past its bands and threw.
       const elapsed = Math.max(0, now - lastDrawRef.current);
       const pace = paceRef.current;
-      if (pace && !isFrameDue(elapsed, pace(), tickMs)) {
+      const isDue = pace
+        ? isFrameDue(elapsed, pace(), tickMs)
+        : isFirstFrame || isFrameDue(elapsed, WINDOW_DRAWING_PACE_MS, tickMs);
+      if (!isDue) {
         // Too soon for the consumer's pace. Still queued, so the next frame
         // is considered — skipping is how a pace is held without a timer.
         frameRef.current = requestAnimationFrame(tick);
         return;
       }
       lastDrawRef.current = now;
+      isFirstFrame = false;
       // CLEARED BEFORE THE FRAME IS DRAWN, never after. This handle has
       // already fired, and a draw that throws would otherwise leave it set:
       // every later kick then returns at the first line of `kick` and the

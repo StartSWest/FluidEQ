@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { MutableRefObject, useMemo } from 'react';
+import { MutableRefObject, useCallback, useMemo } from 'react';
 import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
@@ -20,6 +20,10 @@ import { TSelection } from './useKaraokeMakerSelection';
 import { DEFAULT_VIEW_MS } from './useKaraokeMakerEditorView';
 import useMediaQuery from '../utils/useMediaQuery';
 import {
+  type IKaraokeLiveValue,
+  useKaraokeLiveSelector,
+} from './karaokeLiveValue';
+import {
   BASE_LYRIC_SECTION_TOP,
   COMPACT_LYRIC_LANE_HEIGHT,
   LYRIC_LANE_HEIGHT,
@@ -29,6 +33,7 @@ import {
   lyricSectionHeight,
 } from './makerCanvasGeometry';
 import {
+  type IKaraokeMakerLyricFocus,
   KARAOKE_MAKER_LYRIC_LANE_COUNT,
   groupKaraokeMakerWordSyllables,
   karaokeMakerLyricFocus,
@@ -40,6 +45,14 @@ import {
   IMakerCanvasTranslationLine,
   IMakerCanvasTranslationRow,
 } from './makerCanvasTypes';
+
+/** One focus is another when it is on the same line and the same word. */
+const isSameLyricFocus = (
+  previous: IKaraokeMakerLyricFocus | undefined,
+  next: IKaraokeMakerLyricFocus | undefined,
+) =>
+  previous?.lineIndex === next?.lineIndex &&
+  previous?.tokenId === next?.tokenId;
 
 /** The tightest the view may be zoomed, so a word never fills the screen. */
 const MIN_VIEW_MS = 650;
@@ -73,7 +86,12 @@ export interface IMakerCanvasModelParams {
   /** The audio's length, which bounds everything else here. */
   durationMs: number;
   viewDurationMs: number;
-  visualPlayheadMs: number;
+  /**
+   * The playhead as it moves, and where a scrub audition holds it while one
+   * plays: the focus is taken from the second while there is one.
+   */
+  playhead: IKaraokeLiveValue<number>;
+  scrubAuditionAnchorMs: number | undefined;
   /** The language the Maker is showing underneath the original (Task 7). */
   translationLanguage: string;
   t: Translate;
@@ -97,7 +115,8 @@ export const useMakerCanvasModel = ({
   tokens,
   translationLanguage,
   viewDurationMs,
-  visualPlayheadMs,
+  playhead,
+  scrubAuditionAnchorMs,
   wordFocusAnimationRef,
 }: IMakerCanvasModelParams) => {
   const effectiveDurationMs = Math.max(
@@ -338,29 +357,39 @@ export const useMakerCanvasModel = ({
           left.startMs - right.startMs || left.lineIndex - right.lineIndex,
       );
   }, [canvasLyricTokens]);
-  const activeLyricFocus = useMemo(
+  const timedLyricTokens = useMemo(
     () =>
-      karaokeMakerLyricFocus(
-        canvasLyricTokens.flatMap(
-          ({ token, lineIndex, lineStartMs, lineEndMs, isSection }) =>
-            isSection ||
-            token.startMs === undefined ||
-            token.endMs === undefined
-              ? []
-              : [
-                  {
-                    id: token.id,
-                    lineIndex,
-                    lineStartMs,
-                    lineEndMs,
-                    startMs: token.startMs,
-                    endMs: token.endMs,
-                  },
-                ],
-        ),
-        visualPlayheadMs,
+      canvasLyricTokens.flatMap(
+        ({ token, lineIndex, lineStartMs, lineEndMs, isSection }) =>
+          isSection || token.startMs === undefined || token.endMs === undefined
+            ? []
+            : [
+                {
+                  id: token.id,
+                  lineIndex,
+                  lineStartMs,
+                  lineEndMs,
+                  startMs: token.startMs,
+                  endMs: token.endMs,
+                },
+              ],
       ),
-    [canvasLyricTokens, visualPlayheadMs],
+    [canvasLyricTokens],
+  );
+  // The word in focus, re-rendering the editor when it changes and not on
+  // every tick of the playhead it is read from.
+  const focusAt = useCallback(
+    (playheadMs: number) =>
+      karaokeMakerLyricFocus(
+        timedLyricTokens,
+        scrubAuditionAnchorMs ?? playheadMs,
+      ),
+    [scrubAuditionAnchorMs, timedLyricTokens],
+  );
+  const activeLyricFocus = useKaraokeLiveSelector(
+    playhead,
+    focusAt,
+    isSameLyricFocus,
   );
   const activeLyricWordId = useMemo(
     () =>

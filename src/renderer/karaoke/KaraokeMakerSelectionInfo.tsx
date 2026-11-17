@@ -18,6 +18,7 @@ import formatClock from './makerFormat';
 import { replaceNote, syllablesAtCutPoints } from './makerProjectEdits';
 import { ISyllableSplitDraft } from './useMakerNoteEditing';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 
 /**
  * The inspector beside the canvas: what is selected, and what can be done to it.
@@ -38,7 +39,8 @@ export interface IKaraokeMakerSelectionInfoProps extends Pick<
 > {
   /** Prefix for the ids that tie each control to its label. */
   controlId: string;
-  playheadMs: number;
+  /** Read when a button sets a time from it; never rendered. */
+  playhead: IKaraokeLiveValue<number>;
   noteAudition: ReturnType<typeof useKaraokeNoteAudition>;
 
   selectedToken: IKaraokeMakerToken | undefined;
@@ -84,7 +86,7 @@ const KaraokeMakerSelectionInfo = ({
   detachSelectedNotes,
   noteAudition,
   noteKindLabel,
-  playheadMs,
+  playhead,
   project,
   renderTimingSliders,
   selectedNote,
@@ -353,7 +355,9 @@ const KaraokeMakerSelectionInfo = ({
         <div className="karaoke-maker__word-inspector-actions">
           <button
             type="button"
-            onClick={() => updateSelectedTokenTiming({ startMs: playheadMs })}
+            onClick={() =>
+              updateSelectedTokenTiming({ startMs: playhead.read() })
+            }
           >
             <KaraokeMakerToolIcon name="timing" />
             {t('karaoke.maker.usePlayhead')}

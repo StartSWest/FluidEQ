@@ -20,6 +20,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import useKaraokeMakerProject from './useKaraokeMakerProject';
 import { TSelection } from './useKaraokeMakerSelection';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 
 /** How far through arming a guided capture the user is. */
 export type TLineEntrySession = 'setup' | 'countdown' | 'active';
@@ -82,7 +83,7 @@ export interface IMakerLineCaptureParams extends Pick<
 
   /** Transport, because every decision here is made against the playhead. */
   isPlaying: boolean;
-  playheadMs: number;
+  playhead: IKaraokeLiveValue<number>;
   readPlayheadMs?: () => number;
   onPlay: () => void;
   onPause: () => void;
@@ -117,7 +118,7 @@ export const useMakerLineCapture = ({
   onPause,
   onPlay,
   onSeek,
-  playheadMs,
+  playhead,
   readPlayheadMs,
   selectedLyricLineId,
   setFollowViewport,
@@ -190,7 +191,7 @@ export const useMakerLineCapture = ({
       setNotice(t('karaoke.maker.lineTimingComplete'));
       return;
     }
-    const now = Math.max(0, readPlayheadMs?.() ?? playheadMs);
+    const now = Math.max(0, readPlayheadMs?.() ?? playhead.read());
     const timedTokens = line.tokens.filter(
       (token) => token.startMs !== undefined && token.endMs !== undefined,
     );
@@ -270,7 +271,7 @@ export const useMakerLineCapture = ({
     lyricLines,
     lineEntryIndex,
     readPlayheadMs,
-    playheadMs,
+    playhead,
     lineEntryCapture,
     commit,
     setSelection,
@@ -297,7 +298,7 @@ export const useMakerLineCapture = ({
     if (boundaries.length >= line.tokens.length - 1) {
       return;
     }
-    const now = Math.max(0, readPlayheadMs?.() ?? playheadMs);
+    const now = Math.max(0, readPlayheadMs?.() ?? playhead.read());
     const previousBoundaryMs = boundaries[boundaries.length - 1];
     if (
       now <= lineEntryCapture.startMs + 20 ||
@@ -322,7 +323,7 @@ export const useMakerLineCapture = ({
     lineEntryIndex,
     lineEntrySession,
     lyricLines,
-    playheadMs,
+    playhead,
     readPlayheadMs,
     setSelection,
   ]);
@@ -430,7 +431,7 @@ export const useMakerLineCapture = ({
       } else if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
         event.preventDefault();
         event.stopImmediatePropagation();
-        const now = readPlayheadMs?.() ?? playheadMs;
+        const now = readPlayheadMs?.() ?? playhead.read();
         const seekStepMs = event.shiftKey ? 1_000 : 2_000;
         const nextMs = Math.max(
           0,
@@ -473,7 +474,7 @@ export const useMakerLineCapture = ({
     markNextGuidedWord,
     onPause,
     onPlay,
-    playheadMs,
+    playhead,
     readPlayheadMs,
     recordLineEntry,
     seekGuidedTimeline,
@@ -510,7 +511,7 @@ export const useMakerLineCapture = ({
         ? lyricLines.findIndex((line) => line.id === selectedLyricLineId)
         : -1;
       if (currentIndex < 0) {
-        const now = Math.max(0, readPlayheadMs?.() ?? playheadMs);
+        const now = Math.max(0, readPlayheadMs?.() ?? playhead.read());
         currentIndex = lyricLines.findIndex((line) => {
           const range = karaokeMakerTimedLineRange(line);
           return range && now >= range.startMs && now <= range.endMs;
@@ -552,7 +553,7 @@ export const useMakerLineCapture = ({
     setPreviewOpen,
     lineEntryMode,
     lyricLines,
-    playheadMs,
+    playhead,
     readPlayheadMs,
     selectedLyricLineId,
     setSelection,

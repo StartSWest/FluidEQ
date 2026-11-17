@@ -38,6 +38,7 @@ import useKaraokeNoteAudition from './useKaraokeNoteAudition';
 import { flattenTokens } from './makerProjectEdits';
 import { TWhenPlayheadReaches } from './karaokeMediaCue';
 import makerPointerMove from './makerPointerMove';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 
 /** How fast a wheel zooms, per pixel of turn; the time zoom's rate. */
 const WHEEL_ZOOM_RATE = 0.002;
@@ -94,7 +95,7 @@ export interface IMakerCanvasPointerParams
   panPitch: ReturnType<typeof useMakerPitchView>['panPitch'];
 
   /** Transport, so a drag can scrub and audition against real playback. */
-  playheadMs: number;
+  playhead: IKaraokeLiveValue<number>;
   readPlayheadMs?: () => number;
   onPlay: () => void;
   onPause: () => void;
@@ -149,7 +150,7 @@ export const useMakerCanvasPointer = ({
   onSeek,
   panPitch,
   pitchWindow,
-  playheadMs,
+  playhead,
   project,
   projectRef,
   pushHistory,
@@ -314,7 +315,10 @@ export const useMakerCanvasPointer = ({
     setViewStartMs(
       Math.max(
         0,
-        Math.min(maximumViewStartMs, playheadMs - visibleViewDurationMs * 0.2),
+        Math.min(
+          maximumViewStartMs,
+          playhead.read() - visibleViewDurationMs * 0.2,
+        ),
       ),
     );
   };
@@ -338,7 +342,7 @@ export const useMakerCanvasPointer = ({
     const focusMs =
       selected !== undefined
         ? (selected.startMs + selected.endMs) / 2
-        : playheadMs;
+        : playhead.read();
     if (context) {
       context.font = '650 13px Inter, system-ui, sans-serif';
     }
@@ -385,7 +389,7 @@ export const useMakerCanvasPointer = ({
     effectiveDurationMs,
     headerHeight,
     minimumViewDurationMs,
-    playheadMs,
+    playhead,
     selection,
     viewStartMs,
     visibleViewDurationMs,
@@ -393,7 +397,7 @@ export const useMakerCanvasPointer = ({
 
   const onCanvasPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const point = canvasPoint(event);
-    const playheadX = plotAt(point).timeX(playheadMs);
+    const playheadX = plotAt(point).timeX(playhead.read());
     const grabbedPlayhead = Math.abs(point.x - playheadX) <= 9;
     const hit = [...gesture.hitRegions.current]
       .reverse()
@@ -598,7 +602,7 @@ export const useMakerCanvasPointer = ({
       noteIds: hit.kind === 'note' ? [...activeNoteIds] : undefined,
       audioAnchorMs:
         hit.kind === 'word'
-          ? Math.max(0, readPlayheadMs?.() ?? playheadMs)
+          ? Math.max(0, readPlayheadMs?.() ?? playhead.read())
           : undefined,
     };
   };

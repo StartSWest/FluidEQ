@@ -12,12 +12,25 @@ import { type Translate } from '../../common/i18n';
 
 interface IMakerCaptureGuideInput {
   lineEntryCapture: IGuidedLineCapture | undefined;
-  playheadMs: number;
+  /**
+   * Whether the playhead is within the last 650 ms before the line's
+   * estimated end (`isLineCaptureReadyAt`): the one thing asked of it, so the
+   * tools render when that turns and not on every tick.
+   */
+  isNearEstimatedEnd: boolean;
   lineEntryMode: boolean;
   lyricLines: IKaraokeMakerLine[];
   lineEntryIndex: number;
   t: Translate;
 }
+
+/** The end of a line being captured is ready this close to its estimate. */
+export const isLineCaptureReadyAt = (
+  lineEntryCapture: IGuidedLineCapture | undefined,
+  playheadMs: number,
+) =>
+  lineEntryCapture !== undefined &&
+  playheadMs >= lineEntryCapture.estimatedEndMs - 650;
 
 /**
  * Where line recording stands on the line being captured: whether its
@@ -27,7 +40,7 @@ interface IMakerCaptureGuideInput {
  */
 const makerCaptureGuide = ({
   lineEntryCapture,
-  playheadMs,
+  isNearEstimatedEnd,
   lineEntryMode,
   lyricLines,
   lineEntryIndex,
@@ -35,8 +48,7 @@ const makerCaptureGuide = ({
 }: IMakerCaptureGuideInput) => {
   let lineCaptureState: 'armed' | 'ready' | undefined;
   if (lineEntryCapture) {
-    lineCaptureState =
-      playheadMs >= lineEntryCapture.estimatedEndMs - 650 ? 'ready' : 'armed';
+    lineCaptureState = isNearEstimatedEnd ? 'ready' : 'armed';
   }
   const captureGuideLine = lineEntryMode
     ? lyricLines[lineEntryIndex]

@@ -20,6 +20,7 @@ import {
   replaceNote,
   syllablesAtCutPoints,
 } from './makerProjectEdits';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 
 /** A word being cut into syllables, with the cuts the user has placed so far. */
 export interface ISyllableSplitDraft {
@@ -68,7 +69,7 @@ export interface IMakerNoteEditingParams
   >;
 
   /** Where a paste lands, and how far it may reach. */
-  playheadMs: number;
+  playhead: IKaraokeLiveValue<number>;
   readPlayheadMs?: () => number;
   effectiveDurationMs: number;
 
@@ -82,7 +83,7 @@ export const useMakerNoteEditing = ({
   copiedNotes,
   effectiveDurationMs,
   lineEntryMode,
-  playheadMs,
+  playhead,
   project,
   readPlayheadMs,
   selectedNote,
@@ -176,6 +177,7 @@ export const useMakerNoteEditing = ({
     if (!selectedNote) {
       return;
     }
+    const playheadMs = playhead.read();
     const splitAt =
       playheadMs > selectedNote.startMs + 40 &&
       playheadMs < selectedNote.endMs - 40
@@ -297,7 +299,7 @@ export const useMakerNoteEditing = ({
     }
     const anchorMs = Math.max(
       0,
-      Math.min(effectiveDurationMs, readPlayheadMs?.() ?? playheadMs),
+      Math.min(effectiveDurationMs, readPlayheadMs?.() ?? playhead.read()),
     );
     const sourceStartMs = Math.min(...copiedNotes.map((note) => note.startMs));
     const pastedNotes = copiedNotes.flatMap((note) => {
@@ -346,7 +348,7 @@ export const useMakerNoteEditing = ({
     commit,
     copiedNotes,
     effectiveDurationMs,
-    playheadMs,
+    playhead,
     readPlayheadMs,
     setNotice,
     setSelectedNoteIds,

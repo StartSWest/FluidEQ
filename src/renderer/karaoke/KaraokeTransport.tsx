@@ -25,11 +25,15 @@ import {
   useRef,
   useState,
 } from 'react';
-import { formatKaraokeTime } from '../../common/karaoke/clock';
 import { useTranslation } from '../utils/I18nContext';
 import useMediaQuery from '../utils/useMediaQuery';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { TKaraokePlaybackStatus } from './useKaraokeSession';
+import {
+  type IKaraokeLiveValue,
+  useKaraokeLiveSelector,
+} from './karaokeLiveValue';
+import KaraokeTransportPosition from './KaraokeTransportPosition';
 import KaraokeMakerToolIcon, {
   TKaraokeMakerToolIcon,
 } from './KaraokeMakerToolIcon';
@@ -71,7 +75,11 @@ export interface IKaraokeTransportLevel {
 
 interface IKaraokeTransportProps {
   status: TKaraokePlaybackStatus;
-  playheadMs: number;
+  /**
+   * Where the song is, as it moves: read by the seek line, which renders on
+   * its ticks (`KaraokeTransportPosition`), and by the keys when pressed.
+   */
+  playhead: IKaraokeLiveValue<number>;
   durationMs: number;
   levels: readonly IKaraokeTransportLevel[];
   appearanceControls?: ReactNode;
@@ -375,7 +383,7 @@ const KaraokeTransportLevel = ({
 
 const KaraokeTransport = ({
   status,
-  playheadMs,
+  playhead,
   durationMs,
   levels,
   appearanceControls,
@@ -425,12 +433,8 @@ const KaraokeTransport = ({
   const [mixMenuAnchor, setMixMenuAnchor] = useState<HTMLElement | null>(null);
   const isPlaying = status === 'playing';
   const canPlay = !['empty', 'loading'].includes(status);
-  const isStopped = canPlay && !isPlaying && playheadMs <= 0;
-  const progress =
-    durationMs > 0 ? Math.min(100, (playheadMs / durationMs) * 100) : 0;
-  const progressStyle = {
-    '--karaoke-range-progress': `${progress}%`,
-  } as CSSProperties;
+  const isAtStart = useKaraokeLiveSelector(playhead, (ms) => ms <= 0);
+  const isStopped = canPlay && !isPlaying && isAtStart;
 
   useEffect(() => {
     if (!mixMenuAnchor) {
@@ -478,33 +482,13 @@ const KaraokeTransport = ({
    * that does fit is not long enough to aim at.
    */
   const positionRow = (
-    <div className="karaoke-transport__position">
-      <time className="karaoke-transport__time">
-        {formatKaraokeTime(playheadMs)}
-      </time>
-      <label
-        className="karaoke-transport__timeline"
-        htmlFor={`${controlId}-position`}
-      >
-        <span className="karaoke-transport__sr-label">
-          {t('karaoke.transport.seek')}
-        </span>
-        <input
-          id={`${controlId}-position`}
-          type="range"
-          min={0}
-          max={Math.max(1, durationMs)}
-          step={100}
-          value={Math.min(playheadMs, Math.max(1, durationMs))}
-          style={progressStyle}
-          onChange={(event) => onSeek(Number(event.target.value))}
-          disabled={!canPlay || durationMs <= 0}
-        />
-      </label>
-      <time className="karaoke-transport__time">
-        -{formatKaraokeTime(Math.max(0, durationMs - playheadMs))}
-      </time>
-    </div>
+    <KaraokeTransportPosition
+      controlId={controlId}
+      playhead={playhead}
+      durationMs={durationMs}
+      canPlay={canPlay}
+      onSeek={onSeek}
+    />
   );
 
   return (
@@ -536,7 +520,7 @@ const KaraokeTransport = ({
             <button
               type="button"
               className="button small subtle karaoke-transport__control"
-              onClick={() => onSeek(Math.max(0, playheadMs - seekStepMs))}
+              onClick={() => onSeek(Math.max(0, playhead.read() - seekStepMs))}
               disabled={!canPlay}
               aria-disabled={!canPlay}
               aria-label={t('karaoke.maker.seekBack', {
@@ -577,7 +561,7 @@ const KaraokeTransport = ({
               type="button"
               className="button small subtle karaoke-transport__control"
               onClick={() =>
-                onSeek(Math.min(durationMs, playheadMs + seekStepMs))
+                onSeek(Math.min(durationMs, playhead.read() + seekStepMs))
               }
               disabled={!canPlay}
               aria-disabled={!canPlay}

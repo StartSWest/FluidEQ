@@ -19,7 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { forEachGraphPoint } from '../graph/EditablePoint';
-import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import { useLiveAudioFrameListener } from '../audio/LiveAudioContext';
+import type { IChartPointData } from '../graph/ChartController';
 import { getBandLevel } from '../utils/bandLevel';
 import { RAINBOW_TOKENS } from '../utils/rainbowPalette';
 import { useRhythmRun } from '../utils/rhythmRun';
@@ -114,8 +115,6 @@ const publishSelectedPointLevels = (
  * takes a value, so a frame writes one property or none.
  */
 const EuphoriaLevel = () => {
-  const { graphPoints } = useLiveAudioFrame();
-
   // The graph's selected handles, each lit by its own band.
   //
   // No re-query and no staleness check: the handles put themselves into a
@@ -128,9 +127,16 @@ const EuphoriaLevel = () => {
   // Driven by the frame and not by the selection, which is the same thing here:
   // a selection made while music is playing is picked up within one frame of
   // being made, and a selection made in silence has nothing to be lit by.
-  useEffect(() => {
-    publishSelectedPointLevels(graphPoints);
-  }, [graphPoints]);
+  //
+  // Handed each frame without rendering: as a render it was this component
+  // thirty times a second, to write one property or none.
+  const lastPointsRef = useRef<IChartPointData[] | undefined>(undefined);
+  useLiveAudioFrameListener(({ graphPoints }) => {
+    if (graphPoints !== lastPointsRef.current) {
+      lastPointsRef.current = graphPoints;
+      publishSelectedPointLevels(graphPoints);
+    }
+  });
 
   // Off means off. The stylesheet's rules go with the root class, but the
   // property is an inline style and would sit on the handle until it happened

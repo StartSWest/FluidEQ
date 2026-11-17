@@ -10,6 +10,14 @@ import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { KaraokeTransportIcon } from './KaraokeTransport';
 import { readAccent } from '../utils/theme';
 import rangeFill from '../utils/rangeFill';
+import {
+  createKaraokeLiveValue,
+  type IKaraokeLiveValue,
+  KaraokeLiveValue,
+} from './karaokeLiveValue';
+
+/** The playhead of a panel shown with none: the start, for good. */
+const STILL_PLAYHEAD: IKaraokeLiveValue<number> = createKaraokeLiveValue(0);
 
 /**
  * One stem drawn as a waveform.
@@ -131,8 +139,12 @@ interface IKaraokeMakerStemsProps {
   onVocalLevel?: (level: number) => void;
   /** The chosen format travels with the file; the panel does not encode. */
   onSave: (file: File, format: 'wav' | 'mp3') => void;
-  /** Playhead and duration of the one transport all waves follow. */
-  playheadMs?: number;
+  /**
+   * Playhead and duration of the one transport all waves follow. The
+   * playhead as it moves: each wave subscribes to it, and the panel renders
+   * only for what it holds.
+   */
+  playhead?: IKaraokeLiveValue<number>;
   durationMs?: number;
   onSeek?: (positionMs: number) => void;
   isPlaying?: boolean;
@@ -166,7 +178,7 @@ const KaraokeMakerStems = ({
   vocalLevel,
   onVocalLevel,
   onSave,
-  playheadMs = 0,
+  playhead = STILL_PLAYHEAD,
   durationMs = 0,
   onSeek,
   isPlaying = false,
@@ -288,15 +300,21 @@ const KaraokeMakerStems = ({
                   </button>
                 ))}
               </span>
-              <StemWave
-                file={track.file as File}
-                playheadFraction={durationMs > 0 ? playheadMs / durationMs : 0}
-                onSeekFraction={
-                  onSeek && durationMs > 0
-                    ? (fraction) => onSeek(fraction * durationMs)
-                    : undefined
-                }
-              />
+              <KaraokeLiveValue value={playhead}>
+                {(playheadMs) => (
+                  <StemWave
+                    file={track.file as File}
+                    playheadFraction={
+                      durationMs > 0 ? playheadMs / durationMs : 0
+                    }
+                    onSeekFraction={
+                      onSeek && durationMs > 0
+                        ? (fraction) => onSeek(fraction * durationMs)
+                        : undefined
+                    }
+                  />
+                )}
+              </KaraokeLiveValue>
             </li>
           ))}
       </ul>

@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLiveAudioControl, useLiveAudioFrame } from './LiveAudioContext';
+import {
+  useLiveAudioControl,
+  useLiveAudioFrameSelector,
+} from './LiveAudioContext';
 import { useSceneAudio, type ISceneAudio } from './SceneAudioContext';
 import { useTransportSources } from './transportSource';
 import createPublishDemoAudio from '../studio/publishDemoAudio';
@@ -59,10 +62,11 @@ export default function useQuietDemoAudio(listening = true): {
   const playerPlays = Object.values(sources).some(
     (source) => source?.isPlaying === true,
   );
-  const { outputLevels } = useLiveAudioFrame();
+  const isLoud = useLiveAudioFrameSelector(({ outputLevels }) =>
+    outputLevels.some(({ peakDb }) => peakDb > MUSIC_DB),
+  );
   const anything = !live.isPaused && live.points.length > 0;
-  const plain =
-    anything && outputLevels.some(({ peakDb }) => peakDb > MUSIC_DB);
+  const plain = anything && isLoud;
   // Kept between renders, and set while rendering when it changes, so the
   // music and the demo never disagree for a render.
   const [heard, setHeard] = useState(false);

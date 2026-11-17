@@ -35,7 +35,10 @@ import {
   captureSystemOutput,
 } from './liveSpectrumFrames';
 import { type ILiveFrame, type ILiveFrameReader } from './liveFrameReader';
-import { IOutputLevel } from './outputLevel';
+import {
+  createLiveFrameStore,
+  type ILiveFrameStore,
+} from '../audio/liveFrameStore';
 
 /**
  * The live capture, handed out so other features can tap it.
@@ -72,12 +75,15 @@ const useLiveOutputSpectrum = () => {
   const [capture, setCapture] = useState<ICaptureGraph | undefined>(undefined);
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState('');
-  const [points, setPoints] = useState<IChartPointData[]>([]);
-  // The same frames across a graph's whole width (`liveGraphBand.ts`).
-  const [graphPoints, setGraphPoints] = useState<IChartPointData[]>([]);
-  const [waveform, setWaveform] = useState<number[]>([]);
-  const [isClipping, setIsClipping] = useState(false);
   /**
+   * What every block of audio becomes - the points, the graphs' own points
+   * across a graph's whole width (`liveGraphBand.ts`), the waveform, the
+   * meter and whether anything clipped - held outside React
+   * (`liveFrameStore.ts`).
+   *
+   * The meter's part of it is the real output level, per channel, in real
+   * dBFS.
+   *
    * The real output level, per channel, in real dBFS.
    *
    * Nothing to do with `points`, and deliberately so. The trace is referenced to
@@ -91,7 +97,15 @@ const useLiveOutputSpectrum = () => {
    * be the right: a meter that invents a channel is worse than one that admits
    * it only has the one.
    */
-  const [outputLevels, setOutputLevels] = useState<IOutputLevel[]>(NO_LEVELS);
+  const [frameStore] = useState(() =>
+    createLiveFrameStore({
+      graphPoints: NO_POINTS,
+      isClipping: false,
+      outputLevels: NO_LEVELS,
+      points: NO_POINTS,
+      waveform: NO_WAVEFORM,
+    }),
+  );
   const isClippingRef = useRef(false);
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | undefined>(undefined);
@@ -217,16 +231,18 @@ const useLiveOutputSpectrum = () => {
     isPausedRef.current = false;
     setIsPaused(false);
     isClippingRef.current = false;
-    setIsClipping(false);
     pointsRef.current = NO_POINTS;
-    setPoints(NO_POINTS);
-    setGraphPoints(NO_POINTS);
-    setWaveform(NO_WAVEFORM);
-    // Emptied rather than left at the floor. A meter pinned at silence says
-    // "nothing is playing"; there being no capture at all is a different fact,
-    // and the strip is taken off the graph to say it.
-    setOutputLevels(NO_LEVELS);
-  }, []);
+    // The meter emptied rather than left at the floor. A meter pinned at
+    // silence says "nothing is playing"; there being no capture at all is a
+    // different fact, and the strip is taken off the graph to say it.
+    frameStore.publish({
+      graphPoints: NO_POINTS,
+      isClipping: false,
+      outputLevels: NO_LEVELS,
+      points: NO_POINTS,
+      waveform: NO_WAVEFORM,
+    });
+  }, [frameStore]);
 
   /**
    * Whether anything currently justifies holding the output endpoint open.
@@ -433,11 +449,7 @@ const useLiveOutputSpectrum = () => {
         pointsRef,
         isClippingRef,
         frameReaderRef,
-        setPoints,
-        setGraphPoints,
-        setWaveform,
-        setOutputLevels,
-        setIsClipping,
+        publish: frameStore.publish,
       });
 
       // On the capture context's audio clock, not a timer and not animation
@@ -523,7 +535,7 @@ const useLiveOutputSpectrum = () => {
     } finally {
       isStartingRef.current = false;
     }
-  }, [isCaptureWanted, restartCapture, stop]);
+  }, [frameStore, isCaptureWanted, restartCapture, stop]);
 
   /**
    * `start`, with the promise kept while it is in flight — see
@@ -794,20 +806,10 @@ const useLiveOutputSpectrum = () => {
     };
   }, [isCaptureWanted, scheduleStart, stop]);
 
-  // Split by publication rate, not by topic. `frame` is replaced ~22 times a
-  // second; `control` only when the capture starts, stops, pauses or fails.
-  // Handed out as one object they were indistinguishable to React, so a
-  // consumer reading nothing but `isActive` still re-rendered at frame rate.
-  const frame = useMemo(
-    () => ({
-      graphPoints,
-      isClipping,
-      outputLevels,
-      points,
-      waveform,
-    }),
-    [graphPoints, isClipping, outputLevels, points, waveform],
-  );
+  // Split by publication rate, not by topic. The frames move with every
+  // block of audio and are a store nothing renders on (`liveFrameStore.ts`);
+  // `control` changes only when the capture starts, stops, pauses or fails.
+  const frame: ILiveFrameStore = frameStore;
 
   const control = useMemo(
     () => ({

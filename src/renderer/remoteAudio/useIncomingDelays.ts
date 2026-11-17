@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TRemoteAudioMeterListener } from './meter';
 import { createSteadyReadout, type ISteadyReadout } from './steadyReadout';
 
@@ -25,6 +25,14 @@ const useIncomingDelays = (
   arrivingIds: readonly string[],
 ): Readonly<Record<string, number>> => {
   const [delays, setDelays] = useState<Readonly<Record<string, number>>>({});
+  // What was last published, compared here rather than inside an updater,
+  // for the reason `useIncomingSounding` gives: an updater handing back the
+  // state it was given still renders the provider whenever one is queued.
+  const publishedRef = useRef<Readonly<Record<string, number>>>(delays);
+  const publish = useCallback((next: Readonly<Record<string, number>>) => {
+    publishedRef.current = next;
+    setDelays(next);
+  }, []);
   const readouts = useRef(new Map<string, ISteadyReadout>());
   // Peer ids never contain a newline: they are the transport's own tokens.
   const key = [...arrivingIds].sort().join('\n');
@@ -38,14 +46,15 @@ const useIncomingDelays = (
         readouts.current.delete(id);
       }
     });
-    setDelays((previous) =>
-      Object.keys(previous).every((id) => ids.includes(id))
-        ? previous
-        : Object.fromEntries(
-            Object.entries(previous).filter(([id]) => ids.includes(id)),
-          ),
-    );
-  }, [key]);
+    const previous = publishedRef.current;
+    if (!Object.keys(previous).every((id) => ids.includes(id))) {
+      publish(
+        Object.fromEntries(
+          Object.entries(previous).filter(([id]) => ids.includes(id)),
+        ),
+      );
+    }
+  }, [key, publish]);
 
   useEffect(
     () =>
@@ -64,11 +73,11 @@ const useIncomingDelays = (
           readouts.current.set(id, readout);
         }
         const shown = readout.next(meter.bufferedMs, performance.now());
-        if (shown !== undefined) {
-          setDelays((previous) => ({ ...previous, [id]: shown }));
+        if (shown !== undefined && publishedRef.current[id] !== shown) {
+          publish({ ...publishedRef.current, [id]: shown });
         }
       }),
-    [subscribeMeter],
+    [publish, subscribeMeter],
   );
 
   return delays;

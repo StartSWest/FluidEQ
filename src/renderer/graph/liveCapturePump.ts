@@ -16,7 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import type { Dispatch, SetStateAction } from 'react';
+import type {
+  ILiveAudioFrame,
+  ILiveFrameStoreWriter,
+} from '../audio/liveFrameStore';
 import { announceOutputSignal, createSignalEdge } from '../audio/outputSignal';
 import {
   createAxisCells,
@@ -72,11 +75,8 @@ export interface ICapturePumpDeps {
   isClippingRef: IBox<boolean>;
   /** Where the drawing's reader is put, and read from on every block. */
   frameReaderRef: IBox<ILiveFrameReader | undefined>;
-  setPoints: Dispatch<SetStateAction<IChartPointData[]>>;
-  setGraphPoints: Dispatch<SetStateAction<IChartPointData[]>>;
-  setWaveform: Dispatch<SetStateAction<number[]>>;
-  setOutputLevels: Dispatch<SetStateAction<IOutputLevel[]>>;
-  setIsClipping: Dispatch<SetStateAction<boolean>>;
+  /** Where each block's frame goes, once per block (`liveFrameStore.ts`). */
+  publish: ILiveFrameStoreWriter['publish'];
 }
 
 /**
@@ -95,11 +95,7 @@ const createCapturePump = ({
   pointsRef,
   isClippingRef,
   frameReaderRef,
-  setPoints,
-  setGraphPoints,
-  setWaveform,
-  setOutputLevels,
-  setIsClipping,
+  publish,
 }: ICapturePumpDeps) => {
   const frequencyData = new Float32Array(analyser.frequencyBinCount);
   const axis = createFrequencyAxis(context.sampleRate);
@@ -141,16 +137,16 @@ const createCapturePump = ({
   // clipped. The meter already owns discrete float samples, so those are
   // the only honest source for both the channel warning and the global OR.
   const meterClipUntilMs = meterAnalysers.map(() => 0);
-  // Published in pairs for the same reason the points are: React needs a
-  // changed identity to re-render, so the frame it is holding must not be
+  // Published in pairs for the same reason the points are: a reader compares
+  // identities to see a new frame, so the frame it is holding must not be
   // the one being overwritten. Two channels of two numbers is not much to
   // allocate, but it would be allocated thirty times a second forever.
   //
   // The waveform's pair and these share `levelSlot`, which says which one
   // React holds and flips only when a frame is published. Resting in
   // silence publishes nothing, so flipping every tick would have written
-  // the first loud frame into the array React already held and handed it
-  // back under the same identity: no render, and sound returning unseen.
+  // the first loud frame into the array a reader already held and handed it
+  // back under the same identity: nothing redrawn, and sound returning unseen.
   let levelSlot = 0;
   let isMeterResting = false;
   const meterFrames: [IOutputLevel[], IOutputLevel[]] = [
@@ -178,6 +174,9 @@ const createCapturePump = ({
     if (isHiddenRef.current || isPausedRef.current) {
       return;
     }
+    // Everything this block changes, published together at its end: one
+    // notification for every reader, however many parts of the frame moved.
+    const patch: Partial<ILiveAudioFrame> = {};
 
     analyser.getFloatFrequencyData(frequencyData);
     readAbsoluteLevels(frequencyData, cells, levelBuffer);
@@ -207,14 +206,14 @@ const createCapturePump = ({
       reference = trackReference.current;
     }
 
-    // Alternate buffers: React needs a changed identity to re-render, so
-    // the frame it is holding must not be the one being overwritten.
+    // Alternate buffers: a reader needs a changed identity to see a new
+    // frame, so the frame it is holding must not be the one being overwritten.
     bufferSlot = bufferSlot === 0 ? 1 : 0;
     if (reference === undefined) {
       if (pointsRef.current.length > 0) {
         pointsRef.current = NO_POINTS;
-        setPoints(pointsRef.current);
-        setGraphPoints(NO_POINTS);
+        patch.points = NO_POINTS;
+        patch.graphPoints = NO_POINTS;
       }
     } else {
       pointsRef.current = writeFrequencyPoints(
@@ -223,7 +222,7 @@ const createCapturePump = ({
         levelBuffer,
         reference,
       );
-      setPoints(pointsRef.current);
+      patch.points = pointsRef.current;
       // The drawing's own reading of this block, copied because the
       // reader reuses its frame. It used to be measured here a second
       // time, with a long window of its own: two 16384-point transforms
@@ -233,14 +232,14 @@ const createCapturePump = ({
       // the one it drew.
       const drawn = frameReaderRef.current?.read().graphPoints ?? NO_POINTS;
       if (drawn.length === 0) {
-        setGraphPoints(NO_POINTS);
+        patch.graphPoints = NO_POINTS;
       } else {
         const target = graphBuffers.points[bufferSlot];
         drawn.forEach(({ x, y }, index) => {
           target[index].x = x;
           target[index].y = y;
         });
-        setGraphPoints(target);
+        patch.graphPoints = target;
       }
     }
     /*
@@ -290,7 +289,7 @@ const createCapturePump = ({
     }
     if (anyChannelClipping !== isClippingRef.current) {
       isClippingRef.current = anyChannelClipping;
-      setIsClipping(anyChannelClipping);
+      patch.isClipping = anyChannelClipping;
     }
     const waveformFrame = writeChannelWaveformPoints(
       buffers.waveform[nextLevelSlot],
@@ -312,10 +311,11 @@ const createCapturePump = ({
     const isAtRest = isMeterAtRest(waveformFrame, meterFrame);
     if (!isAtRest || !isMeterResting) {
       levelSlot = nextLevelSlot;
-      setWaveform(isAtRest ? SILENT_WAVEFORM : waveformFrame);
-      setOutputLevels(meterFrame);
+      patch.waveform = isAtRest ? SILENT_WAVEFORM : waveformFrame;
+      patch.outputLevels = meterFrame;
     }
     isMeterResting = isAtRest;
+    publish(patch);
   };
   return pump;
 };

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ReactNode, useSyncExternalStore } from 'react';
+import { useStoreSelector } from '../utils/useStoreSelector';
 
 /**
  * A reading that moves faster than the karaoke workspace can afford to render:
@@ -53,6 +54,22 @@ export const createKaraokeLiveValue = <T>(
 
 export const useKaraokeLiveValue = <T>(value: IKaraokeLiveValue<T>): T =>
   useSyncExternalStore(value.subscribe, value.read, value.read);
+
+/**
+ * What a component makes of the reading, re-rendering it only when that
+ * changes: the word the playhead is on rather than the playhead, which moves
+ * twenty times a second while the word moves a few.
+ *
+ * `select` may be a new function on every render, closing over that render's
+ * props; it is asked again when it or the reading changes, and an answer
+ * `isEqual` to the last one hands back the last one, so React sees nothing
+ * new. A component that prints the reading itself wants `useKaraokeLiveValue`.
+ */
+export const useKaraokeLiveSelector = <T, S>(
+  value: IKaraokeLiveValue<T>,
+  select: (current: T) => S,
+  isEqual?: (previous: S, next: S) => boolean,
+): S => useStoreSelector(value, select, isEqual);
 
 /**
  * `children`, drawn with the reading as it is now — and the only thing a tick

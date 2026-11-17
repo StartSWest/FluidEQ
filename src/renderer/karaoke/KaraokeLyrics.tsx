@@ -35,6 +35,7 @@ import {
   DEFAULT_LYRIC_TEXT_SIZE,
   EUPHORIA_SWEEP_TIME_MS,
   LYRIC_FONT_FAMILY,
+  SONG_LYRIC_ENTRANCE_TIME_MS,
   WHEEL_STEP_THRESHOLD,
   clamp,
   glideLyricsToward,
@@ -49,7 +50,12 @@ import {
   useKaraokeLyricsTranslationSelection,
 } from './karaokeLyricsTranslation';
 import { rainbowColourAt } from '../utils/rainbowPalette';
-import { readAccent, readAccentLight } from '../utils/theme';
+import { readAccent, readAccentLight, subscribeRoot } from '../utils/theme';
+import {
+  displayTickMs,
+  isFrameDue,
+  WINDOW_DRAWING_PACE_MS,
+} from '../utils/framePace';
 import {
   fitKaraokeLyricLayout,
   IKaraokeLyricLayout,
@@ -187,6 +193,8 @@ const KaraokeLyrics = ({
   const [shell, setShell] = useState<HTMLDivElement | null>(null);
   const lineHitRegionsRef = useRef<ILyricHitRegion[]>([]);
   const motionStateRef = useRef<ILyricMotionState | undefined>(undefined);
+  /** Wakes the drawing loop; nothing while it is not running. */
+  const kickLyricsRef = useRef<() => void>(() => undefined);
   const entranceStateRef = useRef<ILyricEntranceState>({
     songId: song.id,
     startedAtMs: performance.now(),
@@ -330,6 +338,15 @@ const KaraokeLyrics = ({
 
     let animationFrame: number | undefined;
     const hitRegions = lineHitRegionsRef.current;
+    // The canvas's size, as the resize observer last reported it. Measured on
+    // every frame instead, it forced a layout in the middle of every frame's
+    // drawing: 5% of the main thread on its own in the running window.
+    const size = { width: 0, height: 0 };
+    // Asked once: `matchMedia` on every frame was a new query object a frame.
+    const motionQuery =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)')
+        : undefined;
     const layoutCache = new Map<
       number,
       {
@@ -339,7 +356,8 @@ const KaraokeLyrics = ({
         scaled?: { key: string; layout: IKaraokeLyricLayout };
       }
     >();
-    const draw = (frameTimeMs: number) => {
+    /** Paints the words, and says whether anything is still moving. */
+    const draw = (frameTimeMs: number): boolean => {
       const {
         song: currentSong,
         playheadMs: currentPlayheadMs,
@@ -347,9 +365,14 @@ const KaraokeLyrics = ({
         centerIndex: targetCenterIndex,
         translationTextById: currentTranslationTextById,
       } = drawStateRef.current;
-      const bounds = canvas.getBoundingClientRect();
-      const width = Math.max(1, bounds.width);
-      const height = Math.max(1, bounds.height);
+      if (size.width === 0 && size.height === 0) {
+        // Before the observer's first report: measured once.
+        const bounds = canvas.getBoundingClientRect();
+        size.width = bounds.width;
+        size.height = bounds.height;
+      }
+      const width = Math.max(1, size.width);
+      const height = Math.max(1, size.height);
       // Preserve native text resolution on common 125–250% Windows scaling
       // without allowing an unusually large DPR to create a huge surface.
       const pixelRatio = Math.min(window.devicePixelRatio || 1, 2.5);
@@ -362,7 +385,7 @@ const KaraokeLyrics = ({
 
       const context = canvas.getContext('2d');
       if (!context) {
-        return;
+        return false;
       }
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       context.clearRect(0, 0, width, height);
@@ -370,9 +393,7 @@ const KaraokeLyrics = ({
       context.textRendering = 'optimizeLegibility';
 
       const previousMotion = motionStateRef.current;
-      const reducedMotion = window.matchMedia?.(
-        '(prefers-reduced-motion: reduce)',
-      ).matches;
+      const reducedMotion = motionQuery?.matches === true;
       const songEntranceOpacity = reducedMotion
         ? 1
         : karaokeLyricEntranceOpacity(
@@ -400,6 +421,17 @@ const KaraokeLyrics = ({
       }
       const animatedCenter = glide.center;
       motionStateRef.current = { ...glide, frameTimeMs };
+      // What moves between two renders: the glide to a new line (it comes to
+      // rest exactly on its target), a new song fading in, and Euphoria's
+      // travelling colour. The word being sung moves with the playhead, and
+      // each of its ticks renders this component, which draws again.
+      const isMoving =
+        glide.velocity !== 0 ||
+        glide.center !== targetCenterIndex ||
+        (!reducedMotion &&
+          (frameTimeMs - entranceStateRef.current.startedAtMs <
+            SONG_LYRIC_ENTRANCE_TIME_MS ||
+            isEuphoric));
 
       const textScale = textSizeRef.current / 100;
       const preferredSize = clamp(width * 0.066, 28, 64) * textScale;
@@ -759,14 +791,69 @@ const KaraokeLyrics = ({
           context.restore();
         }
       }
+      return isMoving;
     };
 
+    // Drawn while something moves, at the window's drawing pace
+    // (`WINDOW_DRAWING_PACE_MS`), and once for each render otherwise. It
+    // drew every frame the display offered for as long as it was on screen,
+    // paused or playing: 240 times a second on Ivan's screen, measuring the
+    // canvas each time, for words that move twenty times a second.
+    let isShown = false;
+    let lastDrawnAt: number | undefined;
+    let lastTickAt: number | undefined;
+    let tickMs = 1000 / 60;
     const animate = (frameTimeMs: number) => {
-      draw(frameTimeMs);
+      animationFrame = undefined;
+      tickMs = displayTickMs(frameTimeMs, lastTickAt, tickMs);
+      lastTickAt = frameTimeMs;
+      if (
+        lastDrawnAt !== undefined &&
+        !isFrameDue(frameTimeMs - lastDrawnAt, WINDOW_DRAWING_PACE_MS, tickMs)
+      ) {
+        animationFrame = requestAnimationFrame(animate);
+        return;
+      }
+      lastDrawnAt = frameTimeMs;
+      if (draw(frameTimeMs)) {
+        animationFrame = requestAnimationFrame(animate);
+      } else {
+        lastDrawnAt = undefined;
+        lastTickAt = undefined;
+      }
+    };
+    const kick = () => {
+      if (!isShown || animationFrame !== undefined) {
+        return;
+      }
+      // The glide rested since its last frame, so its clock starts now: from
+      // that frame's time the first step of the next move would be the 50 ms
+      // a stall is allowed, a visible jump where the move should start soft.
+      if (motionStateRef.current) {
+        motionStateRef.current = {
+          ...motionStateRef.current,
+          frameTimeMs: performance.now(),
+        };
+      }
       animationFrame = requestAnimationFrame(animate);
     };
-    const observer = new ResizeObserver(() => draw(performance.now()));
+    kickLyricsRef.current = kick;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[entries.length - 1];
+      const box = entry?.borderBoxSize?.[0];
+      if (box) {
+        size.width = box.inlineSize;
+        size.height = box.blockSize;
+      } else if (entry) {
+        size.width = entry.contentRect.width;
+        size.height = entry.contentRect.height;
+      }
+      draw(performance.now());
+    });
     observer.observe(canvas);
+    // The window's colours and Euphoria's class live on the root: a change of
+    // either is drawn though nothing else moved.
+    const stopWatchingRoot = subscribeRoot(kick);
     // Drawn only while it can be seen. Mounted is not seen: the amp hides the
     // whole app with `display: none` and the words stayed mounted under it,
     // redrawing every frame for nobody for as long as the amp was up.
@@ -777,18 +864,26 @@ const KaraokeLyrics = ({
     // window has always stopped every frame loop, and still resumes mid-glide.
     let finishGlideOnReturn = false;
     const stopWatching = observeShown(canvas, (shown) => {
-      if (!shown && animationFrame !== undefined) {
-        cancelAnimationFrame(animationFrame);
-        animationFrame = undefined;
+      isShown = shown;
+      if (!shown) {
+        if (animationFrame !== undefined) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = undefined;
+        }
+        lastDrawnAt = undefined;
+        lastTickAt = undefined;
         finishGlideOnReturn = !document.hidden;
-      } else if (shown && animationFrame === undefined) {
+      } else {
         if (finishGlideOnReturn) {
           motionStateRef.current = undefined;
+          finishGlideOnReturn = false;
         }
-        animationFrame = requestAnimationFrame(animate);
+        kick();
       }
     });
     return () => {
+      kickLyricsRef.current = () => undefined;
+      stopWatchingRoot();
       stopWatching();
       if (animationFrame !== undefined) {
         cancelAnimationFrame(animationFrame);
@@ -797,6 +892,12 @@ const KaraokeLyrics = ({
       hitRegions.length = 0;
     };
   }, [captureLineId, captureLineState, isActive, song.lines.length]);
+
+  // Every render is something new to draw - a tick of the playhead, a new
+  // song, a size of text - and the loop above rests between them.
+  useEffect(() => {
+    kickLyricsRef.current();
+  });
 
   const browseLyrics = (direction: -1 | 1) => {
     setManualCenterIndex((current) =>

@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react';
 import KaraokeSceneAppearanceControls from '../../../renderer/karaoke/KaraokeSceneAppearanceControls';
 import KaraokeTransport from '../../../renderer/karaoke/KaraokeTransport';
+import { createKaraokeLiveValue } from '../../../renderer/karaoke/karaokeLiveValue';
 import {
   setKaraokeSceneBlur,
   setKaraokeSceneOpacity,
@@ -63,7 +64,7 @@ it('shares scene controls between View and Mix without changing graph settings o
       </section>
       <KaraokeTransport
         status="paused"
-        playheadMs={0}
+        playhead={createKaraokeLiveValue(0)}
         durationMs={1000}
         levels={[
           { id: 'master', label: 'Volume', value: 0.8, onChange: jest.fn() },

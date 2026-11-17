@@ -74,7 +74,7 @@ const useKaraokeMakerEditor = ({
   onPause,
   onPlay,
   onSeek,
-  playheadMs,
+  playhead,
   readPlayheadMs,
   restoreSavedDraft,
   song,
@@ -89,7 +89,7 @@ const useKaraokeMakerEditor = ({
   | 'onPause'
   | 'onPlay'
   | 'onSeek'
-  | 'playheadMs'
+  | 'playhead'
   | 'readPlayheadMs'
   | 'restoreSavedDraft'
   | 'song'
@@ -177,8 +177,10 @@ const useKaraokeMakerEditor = ({
     isActive: true,
     isPlaying,
     target: makerMelodyTarget,
-    playheadMs,
-    readPlayheadMs,
+    // The playhead as it is when the tone asks, never as it was at the last
+    // render: the editor no longer renders on its ticks.
+    playheadMs: playhead.read(),
+    readPlayheadMs: readPlayheadMs ?? playhead.read,
   });
   // Read once, here, because two things seed from it: the selection below and
   // the view state the hook owns. Two reads that have to agree is one more than
@@ -279,7 +281,6 @@ const useKaraokeMakerEditor = ({
   const [isCanvasPanning, setIsCanvasPanning] = useState(false);
   const [isCanvasScrubbing, setIsCanvasScrubbing] = useState(false);
   const [scrubAuditionAnchorMs, setScrubAuditionAnchorMs] = useState<number>();
-  const visualPlayheadMs = scrubAuditionAnchorMs ?? playheadMs;
   const [lineEntryIndex, setLineEntryIndex] = useState(0);
   const lineEntryIndexRef = useRef(lineEntryIndex);
   lineEntryIndexRef.current = lineEntryIndex;
@@ -332,8 +333,6 @@ const useKaraokeMakerEditor = ({
   const analysisAbortRef = useRef<AbortController | undefined>(undefined);
   const prepareAfterWhisperRef = useRef(false);
   const lyricsWorkflowActiveRef = useRef(false);
-  const playheadMsRef = useRef(playheadMs);
-  playheadMsRef.current = playheadMs;
   const wordFocusAnimationRef = useRef<{
     tokenId?: string;
     startedAt: number;
@@ -410,7 +409,8 @@ const useKaraokeMakerEditor = ({
     tokens,
     translationLanguage,
     viewDurationMs,
-    visualPlayheadMs,
+    playhead,
+    scrubAuditionAnchorMs,
     wordFocusAnimationRef,
   });
 
@@ -480,7 +480,7 @@ const useKaraokeMakerEditor = ({
     isPlaying,
     followViewport,
     viewStartMs,
-    playheadMs,
+    playhead,
     effectiveDurationMs,
   });
 
@@ -517,7 +517,8 @@ const useKaraokeMakerEditor = ({
     viewStartMs,
     visibleViewDurationMs,
     pitchWindow,
-    visualPlayheadMs,
+    playhead,
+    scrubAuditionAnchorMs,
     wordFocusAnimationRef,
   });
 
@@ -551,7 +552,7 @@ const useKaraokeMakerEditor = ({
     onSeek,
     panPitch,
     pitchWindow,
-    playheadMs,
+    playhead,
     project,
     projectRef,
     pushHistory,
@@ -661,7 +662,7 @@ const useKaraokeMakerEditor = ({
     setIsCanvasPanning,
     isCanvasScrubbing,
     setIsCanvasScrubbing,
-    visualPlayheadMs,
+    scrubAuditionAnchorMs,
     lineEntryIndex,
     setLineEntryIndex,
     lineEntryIndexRef,

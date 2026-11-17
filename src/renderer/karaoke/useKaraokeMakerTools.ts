@@ -18,7 +18,8 @@ import { useMakerToolModes } from './useMakerToolModes';
 import { useMakerAnalysisRun } from './useMakerAnalysisRun';
 import makerLyricsReplace from './makerLyricsReplace';
 import useMakerJobControls from './useMakerJobControls';
-import makerCaptureGuide from './makerCaptureGuide';
+import makerCaptureGuide, { isLineCaptureReadyAt } from './makerCaptureGuide';
+import { useKaraokeLiveSelector } from './karaokeLiveValue';
 import { type IKaraokeMakerProps } from './KaraokeMaker';
 import { type TKaraokeMakerEditor } from './useKaraokeMakerEditor';
 
@@ -38,7 +39,7 @@ const useKaraokeMakerTools = (
     onPlay,
     onSeek,
     onStems,
-    playheadMs,
+    playhead,
     readPlayheadMs,
     song,
   }: Pick<
@@ -50,7 +51,7 @@ const useKaraokeMakerTools = (
     | 'onPlay'
     | 'onSeek'
     | 'onStems'
-    | 'playheadMs'
+    | 'playhead'
     | 'readPlayheadMs'
     | 'song'
   >,
@@ -191,7 +192,7 @@ const useKaraokeMakerTools = (
     onPause,
     onPlay,
     onSeek,
-    playheadMs,
+    playhead,
     readPlayheadMs,
     selectedLyricLineId,
     setFollowViewport,
@@ -224,7 +225,7 @@ const useKaraokeMakerTools = (
     copiedNotes,
     effectiveDurationMs,
     lineEntryMode,
-    playheadMs,
+    playhead,
     project,
     readPlayheadMs,
     selectedNote,
@@ -319,7 +320,7 @@ const useKaraokeMakerTools = (
     onPause,
     onPlay,
     onSeek,
-    playheadMs,
+    playhead,
     selectedToken,
     setSelection,
     setViewStartMs,
@@ -463,6 +464,11 @@ const useKaraokeMakerTools = (
     analysisProgress,
     onModelWorkChange,
   });
+  // The playhead asked one question, re-rendering the tools when its answer
+  // turns rather than on every tick.
+  const isNearEstimatedEnd = useKaraokeLiveSelector(playhead, (playheadMs) =>
+    isLineCaptureReadyAt(lineEntryCapture, playheadMs),
+  );
   const {
     lineCaptureState,
     captureGuideLine,
@@ -472,7 +478,7 @@ const useKaraokeMakerTools = (
     captureGuideInstruction,
   } = makerCaptureGuide({
     lineEntryCapture,
-    playheadMs,
+    isNearEstimatedEnd,
     lineEntryMode,
     lyricLines,
     lineEntryIndex,

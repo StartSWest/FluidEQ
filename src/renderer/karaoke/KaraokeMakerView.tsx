@@ -36,6 +36,7 @@ import { type TKaraokeMakerEditor } from './useKaraokeMakerEditor';
 import { type TKaraokeMakerTools } from './useKaraokeMakerTools';
 import { type useMakerSongSave } from './useMakerLibrarySong';
 import KaraokeMakerSongReplaceDialog from './KaraokeMakerSongReplaceDialog';
+import { KaraokeLiveValue } from './karaokeLiveValue';
 
 interface IKaraokeMakerViewProps extends Pick<
   IKaraokeMakerProps,
@@ -52,7 +53,7 @@ interface IKaraokeMakerViewProps extends Pick<
   | 'onSeek'
   | 'onToggleFullScreen'
   | 'onVocalLevel'
-  | 'playheadMs'
+  | 'playhead'
   | 'stemFocus'
   | 'vocalLevel'
 > {
@@ -84,7 +85,7 @@ const KaraokeMakerView = ({
   onSeek,
   onToggleFullScreen,
   onVocalLevel,
-  playheadMs,
+  playhead,
   stemFocus,
   vocalLevel,
   songSave,
@@ -150,7 +151,7 @@ const KaraokeMakerView = ({
     setIsPitchPanReady,
     isCanvasPanning,
     isCanvasScrubbing,
-    visualPlayheadMs,
+    scrubAuditionAnchorMs,
     lineEntryIndex,
     lineEntryCapture,
     setLineEntryCapture,
@@ -283,7 +284,7 @@ const KaraokeMakerView = ({
     <KaraokeMakerWordInspector
       selectedToken={selectedToken}
       tokens={tokens}
-      playheadMs={playheadMs}
+      playhead={playhead}
       isProcessing={lyricsProcessing}
       controlId={controlId}
       onMoveSelection={moveLyricsEditorSelection}
@@ -304,7 +305,7 @@ const KaraokeMakerView = ({
       detachSelectedNotes={detachSelectedNotes}
       noteAudition={noteAudition}
       noteKindLabel={noteKindLabel}
-      playheadMs={playheadMs}
+      playhead={playhead}
       project={project}
       renderTimingSliders={renderSelectedWordTimingSliders}
       selectedNote={selectedNote}
@@ -355,7 +356,7 @@ const KaraokeMakerView = ({
       <KaraokeMakerStems
         instrumental={effectiveInstrumental}
         vocals={stemVocalsFile}
-        playheadMs={playheadMs}
+        playhead={playhead}
         durationMs={effectiveDurationMs}
         onSeek={onSeek}
         isPlaying={isPlaying}
@@ -604,24 +605,28 @@ const KaraokeMakerView = ({
             onFit={fitPitch}
           />
         </div>
-        <KaraokeMakerNavigator
-          durationMs={effectiveDurationMs}
-          viewportStartMs={viewStartMs}
-          viewportDurationMs={visibleViewDurationMs}
-          playheadMs={visualPlayheadMs}
-          waveform={project.analysis.waveform}
-          notes={project.melody.notes}
-          minimumViewportMs={minimumViewDurationMs}
-          maximumViewportMs={maximumViewDurationMs}
-          follow={followViewport}
-          positionLabel={t('karaoke.maker.songPosition')}
-          followLabel={t('karaoke.lyrics.follow')}
-          resetZoomLabel={t('karaoke.maker.resetZoom')}
-          onMove={moveViewport}
-          onResize={resizeViewport}
-          onFollow={followPlayhead}
-          onResetZoom={resetLyricZoom}
-        />
+        <KaraokeLiveValue value={playhead}>
+          {(playheadMs) => (
+            <KaraokeMakerNavigator
+              durationMs={effectiveDurationMs}
+              viewportStartMs={viewStartMs}
+              viewportDurationMs={visibleViewDurationMs}
+              playheadMs={scrubAuditionAnchorMs ?? playheadMs}
+              waveform={project.analysis.waveform}
+              notes={project.melody.notes}
+              minimumViewportMs={minimumViewDurationMs}
+              maximumViewportMs={maximumViewDurationMs}
+              follow={followViewport}
+              positionLabel={t('karaoke.maker.songPosition')}
+              followLabel={t('karaoke.lyrics.follow')}
+              resetZoomLabel={t('karaoke.maker.resetZoom')}
+              onMove={moveViewport}
+              onResize={resizeViewport}
+              onFollow={followPlayhead}
+              onResetZoom={resetLyricZoom}
+            />
+          )}
+        </KaraokeLiveValue>
       </div>
 
       <KaraokeMakerCaptureCoach
@@ -743,41 +748,49 @@ const KaraokeMakerView = ({
         </KaraokeMakerFloatingPanel>
       )}
 
-      <KaraokeMakerPreview
-        song={previewSong}
-        playheadMs={visualPlayheadMs}
-        textSize={previewTextSize}
-        height={previewHeight}
-        open={previewOpen}
-        followRequestKey={lyricFollowRequestKey}
-        title={t('karaoke.maker.livePreview')}
-        showLabel={t('karaoke.maker.showPreview')}
-        hideLabel={t('karaoke.maker.hidePreview')}
-        resizeLabel={t('karaoke.maker.previewResize')}
-        textSizeLabel={t('karaoke.lyrics.textSize')}
-        centerLineId={
-          lineEntryMode ? lyricLines[lineEntryIndex]?.id : selectedLyricLineId
-        }
-        activeLineId={
-          lineEntryMode ? lyricLines[lineEntryIndex]?.id : selectedLyricLineId
-        }
-        captureState={
-          lineEntrySession === 'active' ? lineCaptureState : undefined
-        }
-        captureLineState={
-          lineEntryMode && lineEntrySession === 'active' && captureGuideLine
-            ? captureGuideVisualState
-            : undefined
-        }
-        // The toolbar's own translation picker, so the preview's row shows
-        // exactly the sheet the toolbar has selected -- see
-        // KaraokeMakerPreview.tsx's own doc comment.
-        translationLanguage={translationLanguage}
-        onSeek={onSeek}
-        onTextSize={setPreviewTextSize}
-        onHeight={setPreviewHeight}
-        onToggle={() => setPreviewOpen((current) => !current)}
-      />
+      <KaraokeLiveValue value={playhead}>
+        {(playheadMs) => (
+          <KaraokeMakerPreview
+            song={previewSong}
+            playheadMs={scrubAuditionAnchorMs ?? playheadMs}
+            textSize={previewTextSize}
+            height={previewHeight}
+            open={previewOpen}
+            followRequestKey={lyricFollowRequestKey}
+            title={t('karaoke.maker.livePreview')}
+            showLabel={t('karaoke.maker.showPreview')}
+            hideLabel={t('karaoke.maker.hidePreview')}
+            resizeLabel={t('karaoke.maker.previewResize')}
+            textSizeLabel={t('karaoke.lyrics.textSize')}
+            centerLineId={
+              lineEntryMode
+                ? lyricLines[lineEntryIndex]?.id
+                : selectedLyricLineId
+            }
+            activeLineId={
+              lineEntryMode
+                ? lyricLines[lineEntryIndex]?.id
+                : selectedLyricLineId
+            }
+            captureState={
+              lineEntrySession === 'active' ? lineCaptureState : undefined
+            }
+            captureLineState={
+              lineEntryMode && lineEntrySession === 'active' && captureGuideLine
+                ? captureGuideVisualState
+                : undefined
+            }
+            // The toolbar's own translation picker, so the preview's row shows
+            // exactly the sheet the toolbar has selected -- see
+            // KaraokeMakerPreview.tsx's own doc comment.
+            translationLanguage={translationLanguage}
+            onSeek={onSeek}
+            onTextSize={setPreviewTextSize}
+            onHeight={setPreviewHeight}
+            onToggle={() => setPreviewOpen((current) => !current)}
+          />
+        )}
+      </KaraokeLiveValue>
 
       <div className="karaoke-maker__command-dock">
         <div className="karaoke-maker__command-primary">

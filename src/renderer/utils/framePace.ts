@@ -23,6 +23,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 const JITTER_SHARE = 0.25;
 
+/**
+ * The fastest the window's own drawings are redrawn: the meters, the
+ * titlebar wave, the graph's trace, the karaoke words and the ambient layer.
+ * A scene keeps the rate its listener chose (`useSceneRunner.ts`).
+ *
+ * Every display up to 200 Hz is drawn on every frame it offers, as before:
+ * `isFrameDue` lets a frame through once the pace less a quarter of a frame
+ * has gone by, so 165 Hz (6.06 ms) and 200 Hz (5 ms, due from 4.81) pass.
+ * A 240 Hz display (4.17 ms, due from 5.02) is drawn on every other frame,
+ * 120 a second, and 360 Hz on every other, 180. Measured in the running
+ * window on Ivan's 240 Hz screen with music playing (2026-11-16): the main
+ * thread was 96% busy and reached 75 to 93 frames a second, each frame
+ * repainting five canvases - the ambient layer alone the whole 2560 by 1391
+ * window, screened over everything, which kept the graphics process at 94%.
+ * A 120 Hz step is nothing an eye follows in a meter's ease or a drifting
+ * petal; a frame that costs half the window's time is.
+ *
+ * Not the thirty-a-second cap Ivan took out on 2026-09-27
+ * (`THIRTY_A_SECOND_MS`): that held a 60 Hz screen to half its rate and was
+ * visibly stepped; this changes nothing on any screen of 200 Hz or less.
+ */
+export const WINDOW_DRAWING_PACE_MS = 1000 / 165;
+
 /** Faster than 250 Hz or slower than 10 Hz is a measurement error, not a display. */
 const SHORTEST_TICK_MS = 4;
 const LONGEST_TICK_MS = 100;

@@ -19,6 +19,7 @@ import {
   karaokeMakerSectionGroups,
 } from './makerCanvasLayout';
 import { IMakerPitchWindow } from './makerPitchView';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 
 /**
  * Painting the canvas, and every reason to paint it again.
@@ -65,7 +66,12 @@ export interface IMakerCanvasRenderParams {
   visibleViewDurationMs: number;
   /** The pitch the note grid shows; see `useMakerPitchView.ts`. */
   pitchWindow: IMakerPitchWindow;
-  visualPlayheadMs: number;
+  /**
+   * The playhead as it moves, read in each repaint and repainted on each of
+   * its ticks without React; and where a scrub audition holds it instead.
+   */
+  playhead: IKaraokeLiveValue<number>;
+  scrubAuditionAnchorMs: number | undefined;
   effectiveDurationMs: number;
   headerHeight: number;
   lyricSectionTop: number;
@@ -111,7 +117,8 @@ export const useMakerCanvasRender = ({
   translationRow,
   viewStartMs,
   visibleViewDurationMs,
-  visualPlayheadMs,
+  playhead,
+  scrubAuditionAnchorMs,
   wordFocusAnimationRef,
 }: IMakerCanvasRenderParams) => {
   const renderCanvas = useCallback(() => {
@@ -162,7 +169,7 @@ export const useMakerCanvasRender = ({
       viewStartMs,
       visibleViewDurationMs,
       pitchWindow,
-      visualPlayheadMs,
+      visualPlayheadMs: scrubAuditionAnchorMs ?? playhead.read(),
       effectiveDurationMs,
       hitRegionsRef: gesture.hitRegions,
       selectionBoxRef: gesture.selectionBox,
@@ -190,7 +197,8 @@ export const useMakerCanvasRender = ({
     lyricSectionTop,
     pitchWindow,
     translationRow,
-    visualPlayheadMs,
+    playhead,
+    scrubAuditionAnchorMs,
     project,
     hoveredEditHandle,
     selection,
@@ -200,6 +208,14 @@ export const useMakerCanvasRender = ({
   ]);
 
   renderCanvasRef.current = renderCanvas;
+
+  // Each tick of the playhead repaints the canvas and nothing else. It used
+  // to be a prop of the whole Maker, which rendered every component of the
+  // editor twenty times a second to move this one line.
+  useEffect(
+    () => playhead.subscribe(() => renderCanvasRef.current()),
+    [playhead, renderCanvasRef],
+  );
 
   useEffect(() => {
     if (!activeLyricWordId) {

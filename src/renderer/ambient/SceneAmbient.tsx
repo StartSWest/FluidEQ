@@ -18,6 +18,11 @@ import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
 import { useLiveAudioControl } from '../audio/LiveAudioContext';
 import type { TDrawableScene } from '../graph/SceneCanvas';
 import { NO_POINTS } from '../graph/liveSpectrumFrames';
+import {
+  displayTickMs,
+  isFrameDue,
+  WINDOW_DRAWING_PACE_MS,
+} from '../utils/framePace';
 import { useSceneLook } from '../utils/graphStyle';
 import {
   loadMemberScene,
@@ -258,10 +263,26 @@ export default function SceneAmbient() {
     window.addEventListener('resize', onResize);
 
     let animation = 0;
-    // Every frame the display offers, as the graph beside it draws: this
-    // layer was held to thirty with the graph whenever Rainbow was off, and
-    // that cap is gone (`THIRTY_A_SECOND_MS`).
+    // The display's frame, measured from this loop's own frames, which the
+    // pace is judged against (`framePace.ts`).
+    let lastTickAt: number | undefined;
+    let tickMs = 1000 / 60;
+    // Every frame the display offers up to 200 Hz, as the graph beside it
+    // draws, and every other frame of a faster screen: this canvas is the
+    // whole window, screened over everything, and on a 240 Hz screen it was
+    // repainted and composited 240 times a second (`WINDOW_DRAWING_PACE_MS`).
+    // It was once held to thirty with the graph whenever Rainbow was off,
+    // and that cap is gone (`THIRTY_A_SECOND_MS`).
     const draw = (now: number) => {
+      tickMs = displayTickMs(now, lastTickAt, tickMs);
+      lastTickAt = now;
+      if (
+        last !== undefined &&
+        !isFrameDue(now - last, WINDOW_DRAWING_PACE_MS, tickMs)
+      ) {
+        animation = requestAnimationFrame(draw);
+        return;
+      }
       const elapsed = last === undefined ? 16 : now - last;
       last = now;
       const wanted = wantedRef.current;

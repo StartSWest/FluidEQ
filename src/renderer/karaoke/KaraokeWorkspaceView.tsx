@@ -284,89 +284,83 @@ const KaraokeWorkspaceView = ({
   })();
 
   const karaokeControls = song ? (
-    <KaraokeLiveValue value={playhead}>
-      {(playheadMs) => (
-        <KaraokeTransport
-          status={status}
-          playheadMs={playheadMs}
-          durationMs={session.durationMs}
-          levels={[
-            // The computer's volume, the same fader the Library and the Media
-            // tab draw. First in the row and the one on the bar by default,
-            // because every other tab's bar opens on the volume and karaoke's
-            // opening on a stem made the same window a different shape. The
-            // three below it are a MIX — how the parts sit against each other
-            // — and none of them answers "how loud is this". Only once Windows
-            // has said what its level is: with no helper to ask there is no
-            // master row, rather than one that moves nothing.
-            ...(fader.level !== undefined
-              ? [
-                  {
-                    id: 'master',
-                    label: t('library.volume'),
-                    value: fader.level,
-                    valueText: `${Math.round((fader.confirmedLevel ?? fader.level) * 100)}%`,
-                    onBeginChange: fader.beginChange,
-                    onKeyDown: fader.onKeyDown,
-                    onCommit: fader.endChange,
-                    onChange: fader.setLevel,
-                    // The master has a real output mute. Zeroing a stem and
-                    // restoring its level cannot release that separate mute.
-                    pressed: fader.isMuted,
-                    onToggle: fader.toggleMute,
-                    toggleLabel: t(
-                      fader.isMuted ? 'library.unmute' : 'library.mute',
-                    ),
-                  },
-                ]
-              : []),
-            {
-              id: 'melody',
-              label: t('karaoke.pitch.toneVolume'),
-              value: melodyTone.volume,
-              channel: 'melody',
-              disabled: !melodyTone.isAvailable || !melodyTone.enabled,
-              toggleDisabled: !melodyTone.isAvailable,
-              pressed: melodyTone.enabled,
-              onToggle: () => melodyTone.toggle().catch(() => undefined),
-              onChange: melodyTone.setVolume,
-            },
-            {
-              id: 'backing',
-              label: t('karaoke.maker.stemBacking'),
-              value: backingLevel,
-              channel: 'backing',
-              onChange: changeBackingLevel,
-            },
-            ...(canMixVocals
-              ? [
-                  {
-                    id: 'vocal',
-                    label: t('karaoke.transport.vocalLevel'),
-                    value: vocalLevel,
-                    valueText:
-                      vocalLevel === 0
-                        ? t('karaoke.transport.vocalOff')
-                        : `${Math.round(vocalLevel * 100)}%`,
-                    channel: 'vocal' as const,
-                    onChange: setVocalLevel,
-                  },
-                ]
-              : []),
-          ]}
-          appearanceControls={
-            background === 'graph' ? (
-              <KaraokeSceneAppearanceControls />
-            ) : undefined
-          }
-          onTogglePlayback={handleTogglePlayback}
-          onStop={handleStopPlayback}
-          onJumpToStart={() => handleSeek(0)}
-          onJumpToEnd={() => handleSeek(session.durationMs)}
-          onSeek={handleSeek}
-        />
-      )}
-    </KaraokeLiveValue>
+    <KaraokeTransport
+      status={status}
+      playhead={playhead}
+      durationMs={session.durationMs}
+      levels={[
+        // The computer's volume, the same fader the Library and the Media
+        // tab draw. First in the row and the one on the bar by default,
+        // because every other tab's bar opens on the volume and karaoke's
+        // opening on a stem made the same window a different shape. The
+        // three below it are a MIX — how the parts sit against each other
+        // — and none of them answers "how loud is this". Only once Windows
+        // has said what its level is: with no helper to ask there is no
+        // master row, rather than one that moves nothing.
+        ...(fader.level !== undefined
+          ? [
+              {
+                id: 'master',
+                label: t('library.volume'),
+                value: fader.level,
+                valueText: `${Math.round((fader.confirmedLevel ?? fader.level) * 100)}%`,
+                onBeginChange: fader.beginChange,
+                onKeyDown: fader.onKeyDown,
+                onCommit: fader.endChange,
+                onChange: fader.setLevel,
+                // The master has a real output mute. Zeroing a stem and
+                // restoring its level cannot release that separate mute.
+                pressed: fader.isMuted,
+                onToggle: fader.toggleMute,
+                toggleLabel: t(
+                  fader.isMuted ? 'library.unmute' : 'library.mute',
+                ),
+              },
+            ]
+          : []),
+        {
+          id: 'melody',
+          label: t('karaoke.pitch.toneVolume'),
+          value: melodyTone.volume,
+          channel: 'melody',
+          disabled: !melodyTone.isAvailable || !melodyTone.enabled,
+          toggleDisabled: !melodyTone.isAvailable,
+          pressed: melodyTone.enabled,
+          onToggle: () => melodyTone.toggle().catch(() => undefined),
+          onChange: melodyTone.setVolume,
+        },
+        {
+          id: 'backing',
+          label: t('karaoke.maker.stemBacking'),
+          value: backingLevel,
+          channel: 'backing',
+          onChange: changeBackingLevel,
+        },
+        ...(canMixVocals
+          ? [
+              {
+                id: 'vocal',
+                label: t('karaoke.transport.vocalLevel'),
+                value: vocalLevel,
+                valueText:
+                  vocalLevel === 0
+                    ? t('karaoke.transport.vocalOff')
+                    : `${Math.round(vocalLevel * 100)}%`,
+                channel: 'vocal' as const,
+                onChange: setVocalLevel,
+              },
+            ]
+          : []),
+      ]}
+      appearanceControls={
+        background === 'graph' ? <KaraokeSceneAppearanceControls /> : undefined
+      }
+      onTogglePlayback={handleTogglePlayback}
+      onStop={handleStopPlayback}
+      onJumpToStart={() => handleSeek(0)}
+      onJumpToEnd={() => handleSeek(session.durationMs)}
+      onSeek={handleSeek}
+    />
   ) : undefined;
   const karaokeTransportPortal =
     transportSlot && karaokeControls
@@ -721,96 +715,92 @@ const KaraokeWorkspaceView = ({
       </div>
 
       {isMakerShown && song && makerAudio && (
-        <KaraokeLiveValue value={playhead}>
-          {(playheadMs) => (
-            <KaraokeMaker
-              // Apply replaces only this song's in-memory normalized timing,
-              // so it deliberately keeps the same editor. A different audio
-              // item gets a fresh Maker instance and restores its own saved
-              // draft.
-              // A press of the Library's "Open in Karaoke" is a fresh editor
-              // even on the song already open: it brings that song's words.
-              key={`${importedFileIdentity(makerAudio.file)}#${
-                library.libraryEntry?.nonce ?? 0
-              }`}
-              song={song}
-              audioFile={makerAudio.file}
-              playheadMs={playheadMs}
-              durationMs={session.durationMs}
-              isPlaying={status === 'playing'}
-              restoreSavedDraft={restoreMakerDraft}
-              readPlayheadMs={session.readPlayheadMs}
-              audioRef={session.audioRef}
-              audioClock={audioClock}
-              vocalLevel={canMixVocals ? vocalLevel : undefined}
-              onVocalLevel={canMixVocals ? setVocalLevel : undefined}
-              stemFocus={stemFocus}
-              onFocusStem={focusStem}
-              backingBlend={backingBlend}
-              onBackingBlend={changeBackingBlend}
-              onSeek={session.seek}
-              onPlay={handleEditorPlay}
-              onPause={handleEditorPause}
-              onModelWorkChange={setIsMakerWorking}
-              onStems={({ vocals, instrumental }) => {
-                // Both stems join the song as their own roles; the audio
-                // asset stays exactly as imported — the Maker is keyed on it,
-                // and an earlier version that swapped it remounted the open
-                // editor.
-                //
-                // Onto disk first, so a refresh recovers them with the
-                // workspace — and because the Library's native player opens
-                // a file by its path, and a stem only has one once main has
-                // written it. Joined to the song either way: a save that
-                // failed leaves the song playing on the page's own element.
-                Promise.all([vocals.arrayBuffer(), instrumental.arrayBuffer()])
-                  .then(([vocalBytes, instrumentalBytes]) =>
-                    window.electron.ipcRenderer.saveKaraokeStems(
-                      song.id,
-                      vocalBytes,
-                      instrumentalBytes,
-                    ),
-                  )
-                  .then(
-                    () => {
-                      setKaraokeHostSource(vocals, {
-                        kind: 'stem',
-                        key: song.id,
-                        role: 'vocals',
-                      });
-                      setKaraokeHostSource(instrumental, {
-                        kind: 'stem',
-                        key: song.id,
-                        role: 'instrumental',
-                      });
-                      return undefined;
-                    },
-                    () => undefined,
-                  )
-                  .then(() => applyStemsToSong(song, vocals, instrumental))
-                  .catch(() => undefined);
-              }}
-              onApply={(project) => {
-                session.applySong(
-                  karaokeMakerProjectToSong(project, makerAudio, song.assets),
-                );
-                setLyricsFollowRequestKey((request) => request + 1);
-              }}
-              onClose={() => {
-                // Solo listening must not outlive the editor: leaving with
-                // the voice soloed kept the backing scaled to its blend —
-                // often zero — and the player looked broken at any master
-                // volume.
-                focusStem('backing');
-                setIsMakerOpen(false);
-              }}
-              isFullScreen={isFullScreen}
-              onToggleFullScreen={onToggleFullScreen}
-              libraryOrigin={library.libraryOrigin}
-              libraryEntry={library.libraryEntry}
-            />
-          )}
-        </KaraokeLiveValue>
+        <KaraokeMaker
+          // Apply replaces only this song's in-memory normalized timing,
+          // so it deliberately keeps the same editor. A different audio
+          // item gets a fresh Maker instance and restores its own saved
+          // draft.
+          // A press of the Library's "Open in Karaoke" is a fresh editor
+          // even on the song already open: it brings that song's words.
+          key={`${importedFileIdentity(makerAudio.file)}#${
+            library.libraryEntry?.nonce ?? 0
+          }`}
+          song={song}
+          audioFile={makerAudio.file}
+          playhead={playhead}
+          durationMs={session.durationMs}
+          isPlaying={status === 'playing'}
+          restoreSavedDraft={restoreMakerDraft}
+          readPlayheadMs={session.readPlayheadMs}
+          audioRef={session.audioRef}
+          audioClock={audioClock}
+          vocalLevel={canMixVocals ? vocalLevel : undefined}
+          onVocalLevel={canMixVocals ? setVocalLevel : undefined}
+          stemFocus={stemFocus}
+          onFocusStem={focusStem}
+          backingBlend={backingBlend}
+          onBackingBlend={changeBackingBlend}
+          onSeek={session.seek}
+          onPlay={handleEditorPlay}
+          onPause={handleEditorPause}
+          onModelWorkChange={setIsMakerWorking}
+          onStems={({ vocals, instrumental }) => {
+            // Both stems join the song as their own roles; the audio
+            // asset stays exactly as imported — the Maker is keyed on it,
+            // and an earlier version that swapped it remounted the open
+            // editor.
+            //
+            // Onto disk first, so a refresh recovers them with the
+            // workspace — and because the Library's native player opens
+            // a file by its path, and a stem only has one once main has
+            // written it. Joined to the song either way: a save that
+            // failed leaves the song playing on the page's own element.
+            Promise.all([vocals.arrayBuffer(), instrumental.arrayBuffer()])
+              .then(([vocalBytes, instrumentalBytes]) =>
+                window.electron.ipcRenderer.saveKaraokeStems(
+                  song.id,
+                  vocalBytes,
+                  instrumentalBytes,
+                ),
+              )
+              .then(
+                () => {
+                  setKaraokeHostSource(vocals, {
+                    kind: 'stem',
+                    key: song.id,
+                    role: 'vocals',
+                  });
+                  setKaraokeHostSource(instrumental, {
+                    kind: 'stem',
+                    key: song.id,
+                    role: 'instrumental',
+                  });
+                  return undefined;
+                },
+                () => undefined,
+              )
+              .then(() => applyStemsToSong(song, vocals, instrumental))
+              .catch(() => undefined);
+          }}
+          onApply={(project) => {
+            session.applySong(
+              karaokeMakerProjectToSong(project, makerAudio, song.assets),
+            );
+            setLyricsFollowRequestKey((request) => request + 1);
+          }}
+          onClose={() => {
+            // Solo listening must not outlive the editor: leaving with
+            // the voice soloed kept the backing scaled to its blend —
+            // often zero — and the player looked broken at any master
+            // volume.
+            focusStem('backing');
+            setIsMakerOpen(false);
+          }}
+          isFullScreen={isFullScreen}
+          onToggleFullScreen={onToggleFullScreen}
+          libraryOrigin={library.libraryOrigin}
+          libraryEntry={library.libraryEntry}
+        />
       )}
     </section>
   );

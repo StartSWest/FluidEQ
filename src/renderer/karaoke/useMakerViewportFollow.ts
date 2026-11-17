@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { type Dispatch, type SetStateAction, useEffect, useRef } from 'react';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 
 interface IMakerViewportFollowInput {
   viewDurationMs: number;
@@ -15,7 +16,8 @@ interface IMakerViewportFollowInput {
   isPlaying: boolean;
   followViewport: boolean;
   viewStartMs: number;
-  playheadMs: number;
+  /** Watched rather than rendered: a page turns a few times a minute. */
+  playhead: IKaraokeLiveValue<number>;
   effectiveDurationMs: number;
 }
 
@@ -52,6 +54,9 @@ interface IPageGlide {
  * keeps moving during the glide, so it lands exactly where a jump would
  * have. A seek behind the page or past it still lands at once: that is the
  * reader asking to be somewhere else, not the song moving on.
+ *
+ * The playhead is watched, never rendered: each of its ticks is checked
+ * against the page here, and the editor renders only when the view moves.
  */
 const useMakerViewportFollow = ({
   viewDurationMs,
@@ -62,7 +67,7 @@ const useMakerViewportFollow = ({
   isPlaying,
   followViewport,
   viewStartMs,
-  playheadMs,
+  playhead,
   effectiveDurationMs,
 }: IMakerViewportFollowInput) => {
   useEffect(() => {
@@ -80,12 +85,8 @@ const useMakerViewportFollow = ({
 
   // What the glide's frames read: the render that scheduled a frame is
   // already stale by the time it runs.
-  const liveRef = useRef({
-    playheadMs,
-    visibleViewDurationMs,
-    effectiveDurationMs,
-  });
-  liveRef.current = { playheadMs, visibleViewDurationMs, effectiveDurationMs };
+  const liveRef = useRef({ visibleViewDurationMs, effectiveDurationMs });
+  liveRef.current = { visibleViewDurationMs, effectiveDurationMs };
   const glideRef = useRef<IPageGlide | undefined>(undefined);
   const frameRef = useRef(0);
 
@@ -108,45 +109,54 @@ const useMakerViewportFollow = ({
   useEffect(() => {
     if (!isPlaying || !followViewport) {
       stopGlide();
-      return;
+      return undefined;
     }
-    if (glideRef.current) {
-      return;
-    }
-    const viewportEnd = viewStartMs + visibleViewDurationMs;
-    if (playheadMs < viewStartMs || playheadMs > viewportEnd) {
-      setViewStartMs(landingFor(playheadMs));
-      return;
-    }
-    if (playheadMs <= viewStartMs + visibleViewDurationMs * PAGE_TURN_AT) {
-      return;
-    }
-    const glide: IPageGlide = { from: viewStartMs, startedAt: undefined };
-    glideRef.current = glide;
-    const step = (now: number) => {
-      if (glideRef.current !== glide) {
+    const follow = () => {
+      if (glideRef.current) {
         return;
       }
-      glide.startedAt ??= now;
-      const progress = Math.min(1, (now - glide.startedAt) / PAGE_GLIDE_MS);
-      const to = landingFor(liveRef.current.playheadMs);
-      setViewStartMs(glide.from + (to - glide.from) * easeInOutCubic(progress));
-      if (progress < 1) {
-        frameRef.current = requestAnimationFrame(step);
-      } else {
-        frameRef.current = 0;
-        glideRef.current = undefined;
+      const playheadMs = playhead.read();
+      const viewportEnd = viewStartMs + visibleViewDurationMs;
+      if (playheadMs < viewStartMs || playheadMs > viewportEnd) {
+        setViewStartMs(landingFor(playheadMs));
+        return;
       }
+      if (playheadMs <= viewStartMs + visibleViewDurationMs * PAGE_TURN_AT) {
+        return;
+      }
+      const glide: IPageGlide = { from: viewStartMs, startedAt: undefined };
+      glideRef.current = glide;
+      const step = (now: number) => {
+        if (glideRef.current !== glide) {
+          return;
+        }
+        glide.startedAt ??= now;
+        const progress = Math.min(1, (now - glide.startedAt) / PAGE_GLIDE_MS);
+        const to = landingFor(playhead.read());
+        setViewStartMs(
+          glide.from + (to - glide.from) * easeInOutCubic(progress),
+        );
+        if (progress < 1) {
+          frameRef.current = requestAnimationFrame(step);
+        } else {
+          frameRef.current = 0;
+          glideRef.current = undefined;
+        }
+      };
+      frameRef.current = requestAnimationFrame(step);
     };
-    frameRef.current = requestAnimationFrame(step);
+    follow();
+    // Letting go of the playhead leaves a glide running: its steps are the
+    // animation frames', and each one runs this again (`viewStartMs`).
+    return playhead.subscribe(follow);
     // `landingFor` and `stopGlide` read refs only; listing them would restart
     // this on every render for nothing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    playhead,
     setViewStartMs,
     followViewport,
     isPlaying,
-    playheadMs,
     visibleViewDurationMs,
     viewStartMs,
   ]);

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TRemoteAudioMeterListener } from './meter';
 
 /**
@@ -47,6 +47,17 @@ const useIncomingSounding = (
   const [sounding, setSounding] = useState<Readonly<Record<string, boolean>>>(
     {},
   );
+  // What was last published, compared here rather than inside an updater.
+  // An updater that hands back the state it was given still has React render
+  // the component to find that out whenever an update is already queued, and
+  // this one is the provider that shares this computer's sound: measured in
+  // the running window, it rendered 30 times a second with nothing changing,
+  // once for each meter reading.
+  const publishedRef = useRef<Readonly<Record<string, boolean>>>(sounding);
+  const publish = useCallback((next: Readonly<Record<string, boolean>>) => {
+    publishedRef.current = next;
+    setSounding(next);
+  }, []);
   const lastSound = useRef(new Map<string, number>());
   // Peer ids never contain a newline: they are the transport's own tokens.
   const key = [...arrivingIds].sort().join('\n');
@@ -60,14 +71,15 @@ const useIncomingSounding = (
         lastSound.current.delete(id);
       }
     });
-    setSounding((previous) =>
-      Object.keys(previous).every((id) => ids.includes(id))
-        ? previous
-        : Object.fromEntries(
-            Object.entries(previous).filter(([id]) => ids.includes(id)),
-          ),
-    );
-  }, [key]);
+    const previous = publishedRef.current;
+    if (!Object.keys(previous).every((id) => ids.includes(id))) {
+      publish(
+        Object.fromEntries(
+          Object.entries(previous).filter(([id]) => ids.includes(id)),
+        ),
+      );
+    }
+  }, [key, publish]);
 
   useEffect(
     () =>
@@ -82,13 +94,12 @@ const useIncomingSounding = (
         }
         const heard = lastSound.current.get(id);
         const isSounding = heard !== undefined && now - heard < SILENCE_HOLD_MS;
-        setSounding((previous) =>
-          (previous[id] ?? false) === isSounding
-            ? previous
-            : { ...previous, [id]: isSounding },
-        );
+        const previous = publishedRef.current;
+        if ((previous[id] ?? false) !== isSounding) {
+          publish({ ...previous, [id]: isSounding });
+        }
       }),
-    [subscribeMeter],
+    [publish, subscribeMeter],
   );
 
   return sounding;

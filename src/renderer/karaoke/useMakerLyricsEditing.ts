@@ -20,6 +20,7 @@ import {
   moveKaraokeMakerWord,
   replaceToken,
 } from './makerProjectEdits';
+import type { IKaraokeLiveValue } from './karaokeLiveValue';
 
 /**
  * Editing one word: its text, its timing, and moving between words.
@@ -41,7 +42,7 @@ export interface IMakerLyricsEditingParams extends Pick<
   setSelection: Dispatch<SetStateAction<TSelection>>;
 
   /** Transport, for auditioning the word that was just changed. */
-  playheadMs: number;
+  playhead: IKaraokeLiveValue<number>;
   onPlay: () => void;
   onPause: () => void;
   onSeek: (positionMs: number) => void;
@@ -71,7 +72,7 @@ export const useMakerLyricsEditing = ({
   onPause,
   onPlay,
   onSeek,
-  playheadMs,
+  playhead,
   selectedToken,
   setSelection,
   setViewStartMs,
@@ -153,7 +154,7 @@ export const useMakerLyricsEditing = ({
           : undefined;
       const lineRange = line ? karaokeMakerTimedLineRange(line) : undefined;
       return replaceToken(nextProject, selectedToken.id, (token) => {
-        const currentStart = token.startMs ?? Math.max(0, playheadMs);
+        const currentStart = token.startMs ?? Math.max(0, playhead.read());
         const currentEnd = token.endMs ?? currentStart + 400;
         const requestedStart = Number.isFinite(update.startMs)
           ? update.startMs

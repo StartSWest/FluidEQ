@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import KaraokeTransport from '../../renderer/karaoke/KaraokeTransport';
+import { createKaraokeLiveValue } from '../../renderer/karaoke/karaokeLiveValue';
 
 describe('KaraokeTransport', () => {
   it('uses app-style icon controls and keeps every transport action wired', () => {
@@ -31,7 +32,7 @@ describe('KaraokeTransport', () => {
     const { container } = render(
       <KaraokeTransport
         status="paused"
-        playheadMs={12_000}
+        playhead={createKaraokeLiveValue(12_000)}
         durationMs={60_000}
         levels={[
           {
@@ -93,7 +94,7 @@ describe('KaraokeTransport', () => {
     const transport = (playheadMs: number) => (
       <KaraokeTransport
         status="paused"
-        playheadMs={playheadMs}
+        playhead={createKaraokeLiveValue(playheadMs)}
         durationMs={60_000}
         levels={[]}
         onTogglePlayback={() => {}}
@@ -116,7 +117,7 @@ describe('KaraokeTransport', () => {
     const { container } = render(
       <KaraokeTransport
         status="paused"
-        playheadMs={12_000}
+        playhead={createKaraokeLiveValue(12_000)}
         durationMs={60_000}
         levels={[
           {
@@ -217,7 +218,7 @@ describe('KaraokeTransport', () => {
       render(
         <KaraokeTransport
           status="paused"
-          playheadMs={0}
+          playhead={createKaraokeLiveValue(0)}
           durationMs={60_000}
           levels={levels}
           onTogglePlayback={() => {}}
@@ -247,7 +248,7 @@ describe('KaraokeTransport', () => {
       render(
         <KaraokeTransport
           status="paused"
-          playheadMs={0}
+          playhead={createKaraokeLiveValue(0)}
           durationMs={60_000}
           levels={[
             {

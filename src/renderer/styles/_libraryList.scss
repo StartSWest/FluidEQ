@@ -561,58 +561,77 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
 }
 
-// The drawing's frame (`LibraryTrackRow.tsx`). The bars are SVG shapes, and
-// an SVG shape that moves is laid out again on every frame it moves, on the
-// main thread. Straight in the mark, the drawing was an item of the title's
-// flex row, and a flex item is never laid out on its own: every frame of the
-// song took the list's layout with it. A block in a block, with its size and
-// its layout contained, is laid out alone — and this one is the mark's own
-// 14 by 12, so containing it changes nothing about where it stands.
+// The drawing's frame (`LibraryTrackRow.tsx`). Straight in the mark, the
+// drawing was an item of the title's flex row, and a flex item is never laid
+// out on its own: every frame of the song took the list's layout with it. A
+// block in a block, with its size and its layout contained, is laid out
+// alone — and this one is the mark's own 14 by 12, so containing it changes
+// nothing about where it stands.
 .library-list__playing-frame {
   display: block;
   width: 100%;
   height: 100%;
   contain: size layout style;
+}
 
-  svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    // The bars' glow (below), once over the four rather than once on each:
-    // four filters were four shadow passes on every frame of the song, for
-    // one halo around the same bars.
-    filter: drop-shadow(
-      0 0 3px color-mix(in srgb, $secondary-default 55%, transparent)
-    );
-  }
+// The four bars' box, the frame's own size; each bar stands in it where the
+// drawing's 14 by 12 grid put it (below), so the mark keeps its proportions
+// in any frame of that shape. The bars' glow, once over the four rather than
+// once on each: four filters were four shadow passes on every frame of the
+// song, for one halo around the same bars.
+.library-list__playing-bars {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, $secondary-default 55%, transparent)
+  );
 }
 
 // Solid, and lit. The bars used to be a 32% wash because a curve was drawn
 // over them and an opaque bar would have swallowed it; with the curve gone
 // the wash only made the mark faint. The glow is what carries it at two
 // pixels wide — without it the bars read as punctuation in the title.
-.library-list__playing-bars rect {
-  fill: $secondary-light;
+//
+// Elements of the page moved by `scale` alone, which the compositor runs
+// without the main thread (`LibraryPlayingBars.tsx` has the measurements of
+// the SVG shapes this replaced). Each bar is 2.2 of the grid's 14 across and
+// 10 of its 12 down from 1, its ends rounded to half its width: the drawing's
+// numbers, as shares of the frame.
+.library-list__playing-bars > span {
+  position: absolute;
+  top: calc(100% / 12);
+  display: block;
+  width: calc(100% * 2.2 / 14);
+  height: calc(100% * 10 / 12);
+  border-radius: 50% / 11%;
+  background: $secondary-light;
   animation: library-playing-bar 1000ms ease-in-out infinite;
-  transform-box: fill-box;
   transform-origin: bottom;
+}
+
+.library-list__playing-bars > span:nth-child(1) {
+  left: calc(100% * 0.5 / 14);
 }
 
 // Four periods that do not divide into each other, so the bars never fall
 // back into step. Delays alone drift back together on a shared period and the
 // mark starts pulsing as one block, which is what a level meter never does.
-.library-list__playing-bars rect:nth-child(2) {
+.library-list__playing-bars > span:nth-child(2) {
+  left: calc(100% * 4.1 / 14);
   animation-duration: 1300ms;
   animation-delay: 120ms;
 }
 
-.library-list__playing-bars rect:nth-child(3) {
+.library-list__playing-bars > span:nth-child(3) {
+  left: calc(100% * 7.7 / 14);
   animation-duration: 880ms;
   animation-delay: 260ms;
 }
 
-.library-list__playing-bars rect:nth-child(4) {
+.library-list__playing-bars > span:nth-child(4) {
+  left: calc(100% * 11.3 / 14);
   animation-duration: 1170ms;
   animation-delay: 60ms;
 }
@@ -636,27 +655,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Paused, where the mark stays (the folder tree keeps it on the song's
 // folders while it is paused): the bars stop where they are.
-.library-list__playing-frame.is-held .library-list__playing-bars rect {
+.library-list__playing-frame.is-held .library-list__playing-bars > span {
   animation-play-state: paused;
 }
 
 // Held at four different heights rather than one, so the mark still reads as
 // a level meter standing still instead of four identical ticks.
 @media (prefers-reduced-motion: reduce) {
-  .library-list__playing-bars rect {
+  .library-list__playing-bars > span {
     animation: none;
     scale: 1 0.55;
   }
 
-  .library-list__playing-bars rect:nth-child(2) {
+  .library-list__playing-bars > span:nth-child(2) {
     scale: 1 1;
   }
 
-  .library-list__playing-bars rect:nth-child(3) {
+  .library-list__playing-bars > span:nth-child(3) {
     scale: 1 0.72;
   }
 
-  .library-list__playing-bars rect:nth-child(4) {
+  .library-list__playing-bars > span:nth-child(4) {
     scale: 1 0.86;
   }
 }

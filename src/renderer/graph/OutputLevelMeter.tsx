@@ -49,7 +49,9 @@ import { useTranslation } from '../utils/I18nContext';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
-  useLiveAudioFrame,
+  useLiveAudioFrameListener,
+  useLiveAudioFrames,
+  useLiveAudioFrameSelector,
 } from '../audio/LiveAudioContext';
 import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
 import { useRhythmRun } from '../utils/rhythmRun';
@@ -62,6 +64,7 @@ import {
   createLevelFollower,
   levelFraction,
   levelZone,
+  type IOutputLevel,
 } from './outputLevel';
 import { readTextInk, readSurface, useLiveSurface } from '../utils/theme';
 import {
@@ -181,12 +184,19 @@ interface IOutputLevelMeterProps {
 }
 
 const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
-  const { isClipping, outputLevels } = useLiveAudioFrame();
+  // The two things this component prints, re-rendering it only when one of
+  // them turns. The levels themselves go straight to the canvas's targets
+  // (below): rendered, they woke this component thirty times a second.
+  const isClipping = useLiveAudioFrameSelector((frame) => frame.isClipping);
+  const isIdle = useLiveAudioFrameSelector(
+    (frame) => frame.outputLevels.length === 0,
+  );
+  const frames = useLiveAudioFrames();
   const onReadingRef = useRef(onReading);
   onReadingRef.current = onReading;
   const lastReadingRef = useRef('');
   const isIdleRef = useRef(true);
-  isIdleRef.current = outputLevels.length === 0;
+  isIdleRef.current = isIdle;
   const { readFrame } = useLiveAudioControl();
   const readFrameRef = useRef(readFrame);
   readFrameRef.current = readFrame;
@@ -288,25 +298,25 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
   const followersRef = useRef([createLevelFollower(), createLevelFollower()]);
   const railedRef = useRef<boolean[]>([]);
 
-  useEffect(() => {
-    if (isOff) {
+  const takeLevels = useCallback((outputLevels: IOutputLevel[]) => {
+    if (isOffRef.current) {
       return;
     }
-    const isIdle = outputLevels.length === 0;
-    const channels = isIdle
-      ? [
-          {
-            levelDb: LEVEL_FLOOR_DB,
-            peakDb: LEVEL_FLOOR_DB,
-            isClipping: false,
-          },
-          {
-            levelDb: LEVEL_FLOOR_DB,
-            peakDb: LEVEL_FLOOR_DB,
-            isClipping: false,
-          },
-        ]
-      : outputLevels;
+    const channels =
+      outputLevels.length === 0
+        ? [
+            {
+              levelDb: LEVEL_FLOOR_DB,
+              peakDb: LEVEL_FLOOR_DB,
+              isClipping: false,
+            },
+            {
+              levelDb: LEVEL_FLOOR_DB,
+              peakDb: LEVEL_FLOOR_DB,
+              isClipping: false,
+            },
+          ]
+        : outputLevels;
     targetsRef.current = channels.map((channel, index) => {
       const level = levelFraction(channel.levelDb);
       const peak = levelFraction(channel.peakDb);
@@ -336,7 +346,7 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
     if (easedRef.current.length !== targetsRef.current.length) {
       easedRef.current = targetsRef.current.map((channel) => ({ ...channel }));
     }
-  }, [isOff, outputLevels]);
+  }, []);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -635,14 +645,34 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
   const unlitInk = useLiveSurface('--meter-unlit', '#1a3a4e');
   const scaleInk = useLiveSurface('--text-faint', '#bfd3e3');
 
-  // Kick the loop on new frames and on state that changes the drawing.
+  // Each new reading becomes the canvas's targets and wakes its loop, with no
+  // render between them. Only a new set of levels counts: a frame whose
+  // spectrum moved and whose meter rests leaves the targets where they are.
+  const takenLevelsRef = useRef<IOutputLevel[] | undefined>(undefined);
+  useLiveAudioFrameListener(({ outputLevels }) => {
+    if (outputLevels === takenLevelsRef.current) {
+      return;
+    }
+    takenLevelsRef.current = outputLevels;
+    takeLevels(outputLevels);
+    kickFrames();
+  });
+  // Switched back on, the meter takes the reading there is now: the ones that
+  // arrived while it was off were not taken.
+  useEffect(() => {
+    if (!isOff) {
+      takeLevels(frames.read().outputLevels);
+    }
+  }, [frames, isOff, takeLevels]);
+
+  // Kick the loop on state that changes the drawing.
   useEffect(() => {
     kickFrames();
   }, [
     isClipping,
     isEuphoric,
+    isOff,
     kickFrames,
-    outputLevels,
     style,
     wellInk,
     unlitInk,
@@ -653,7 +683,6 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
     return null;
   }
 
-  const isIdle = outputLevels.length === 0;
   const styleName = t(METER_STYLE_NAME_KEYS[style]);
   return (
     <button
