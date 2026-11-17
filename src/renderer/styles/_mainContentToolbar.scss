@@ -145,16 +145,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 300px;
   align-items: center;
   padding: 5px 10px 5px 7px;
-  border: 1px solid $border-menu;
+  border: 1px solid var(--menu-edge, #{$menu-edge});
   // A rounded rectangle rather than a pill: a pill radius on a box that is
   // sometimes two lines tall turns into a lozenge, which is what it did.
   border-radius: $radius-s;
-  // The same material as an open menu, opaque (`$surface-floating`). It was
+  // The same material as an open menu, opaque (`$surface-menu-floor`). It was
   // cyan at a quarter alpha with a glow around it, which over the graph came
   // out as a lit slab with a tail in a different tone: the tail was a second
   // wash at half the alpha, so where the two overlapped the seam showed. One
   // opaque colour on both and there is no seam to show.
-  background: $surface-floating;
+  background: $surface-menu-floor;
   // Every tooltip's lift (`$tooltip-lift`): a hard pixel, no blur. Nothing
   // else in this row casts one — the buttons under it are flat — and 6px of
   // soft shade round it was still a cloud in a flat window.
@@ -183,11 +183,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     left: calc(var(--bubble-tail, calc(100% - 16px)) - 4px);
     width: 8px;
     height: 8px;
-    border-right: 1px solid $border-menu;
-    border-bottom: 1px solid $border-menu;
+    border-right: 1px solid var(--menu-edge, #{$menu-edge});
+    border-bottom: 1px solid var(--menu-edge, #{$menu-edge});
     // Softens the point, so it reads as drawn rather than as a clipped square.
     border-bottom-right-radius: 2px;
-    background: $surface-floating;
+    background: $surface-menu-floor;
     content: '';
     transform: rotate(45deg);
   }
@@ -226,10 +226,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-below::before {
     top: -5px;
     bottom: auto;
-    border-top: 1px solid $border-menu;
+    border-top: 1px solid var(--menu-edge, #{$menu-edge});
     border-right: 0;
     border-bottom: 0;
-    border-left: 1px solid $border-menu;
+    border-left: 1px solid var(--menu-edge, #{$menu-edge});
     border-radius: 0;
     border-top-left-radius: 2px;
   }
@@ -249,7 +249,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     left: calc(var(--bubble-tail, calc(100% - 16px)) - 0.5px);
     width: 1px;
     height: var(--bubble-stem, 0px);
-    background: $border-menu;
+    background: var(--menu-edge, #{$menu-edge});
     content: '';
   }
 
@@ -411,7 +411,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:hover,
     &:focus-visible {
-      background: color-mix(in srgb, $secondary-default 18%, transparent);
+      background: $fill-hover;
       outline: none;
 
       .eq-mode__menu-name {

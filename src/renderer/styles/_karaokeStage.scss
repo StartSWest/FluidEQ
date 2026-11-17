@@ -665,7 +665,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &:hover:not(:disabled),
   &:focus-visible {
-    background: $studio-surface;
+    background: $fill-hover;
     outline: none;
   }
 

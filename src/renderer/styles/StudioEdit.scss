@@ -486,9 +486,8 @@ $edit-z: #5aa9ff;
   display: grid;
   gap: 1px;
   padding: 4px;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-2xs;
-  background: $surface-well;
+  // Every menu's face (`menu-face`): it sat in a well with a grey edge.
+  @include menu-face;
 
   button {
     display: flex;

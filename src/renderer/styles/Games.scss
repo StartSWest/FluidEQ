@@ -688,7 +688,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &:hover,
   &:focus-visible {
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
+    background: $fill-hover;
   }
 
   &.is-danger .gaming-save__label,

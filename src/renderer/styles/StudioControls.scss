@@ -423,7 +423,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover,
   &:focus-visible {
     color: $text-primary;
-    background: rgba($white, 0.06);
+    background: $fill-hover;
   }
 
   &:focus-visible {

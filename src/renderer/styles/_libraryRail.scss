@@ -239,7 +239,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition: $transition-control;
 
   &:hover {
-    background: color-mix(in srgb, $edge-tint 4%, transparent);
+    background: $fill-hover;
     color: $text-primary;
   }
 

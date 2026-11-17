@@ -575,16 +575,22 @@ $border-control-hover: $edge-hover;
 // hovered to a cyan gradient, the menu rows to cyan at 0.09, the list rows to
 // cyan at 0.2 and the pills to white at 0.05, four answers to one question.
 //
-// `$lift-rest` is the resting state of a surface that will lift: a header, a
-// list head. The same tint as `lifted-surface` so a box and a bar that both
-// stand on a well are the same colour until touched.
-$lift-rest: rgba($edge-tint, 0.04);
+// ROWS ANSWER THE POINTER WITH THE CONTROL SET'S OWN FILLS (2026-11-17, the
+// one control theme: "one fill each for rest, hover and selected"). A menu
+// row, a list row, a header that will lift: nothing at rest, the hover tint
+// under the pointer, the lit tint when chosen - the same three a button
+// wears, so a menu opened from a pick reads as part of it. They were steps of
+// the edge tint (4%, 6%, 8%, 11%), a second set beside the buttons' (Ivan,
+// 2026-09-27, had asked for that neutral set because the accent at 8% and
+// 16% came out olive in Rainbow mode's violet; the set's tints are what every
+// button already wears in every mode).
+//
+// `$lift-rest` is the resting state of a surface that will lift: nothing.
+$lift-rest: transparent;
 
-// Two ways a thing answers the pointer, and a row that opens something (a
-// folding section, a tab) uses neither: its text goes to the accent instead,
-// so the surface under it stays put. `$hover-lift` is for a neutral surface
-// that is itself the thing being pressed; `$hover-accent` for a choice.
-$hover-lift: rgba($edge-tint, 0.08);
+// A row that opens something (a folding section, a tab) may still answer by
+// its text alone, so the surface under it stays put.
+$hover-lift: $fill-hover;
 
 // The one step up from a pane. Nothing inside a pane is ever darker than
 // the pane: a block (a section, a sidebar card, the face the bands stand on,
@@ -596,19 +602,11 @@ $hover-lift: rgba($edge-tint, 0.08);
 // step — it is the block's own colour with an edge round it.
 $block-lift: $surface-block;
 
-//
-// Both are a step of the edge tint, in the card's own hue, and the accent is
-// in the chosen thing's text. They were a tint of the accent, 8% and 16%,
-// which is a colour of its own only where the accent and the card share a
-// hue: in Rainbow mode's violet, the lime came out olive — the chosen stage
-// on the DSP rail, the chosen role on Share Audio, the highlighted row in
-// every menu (Ivan, 2026-09-27: "this mess sucks ... all go same").
-$hover-accent: rgba($edge-tint, 0.06);
+$hover-accent: $fill-hover;
 
-// Selected is the same step held twice as strong, under accent text, with no
-// frame. At 0.18 with a cyan border the chosen row was a teal block that read
-// as a button dropped into the list; a row in a menu is a row, not a button.
-$selected-accent: rgba($edge-tint, 0.11);
+// Selected is the lit tint under accent text, with no frame: a row in a menu
+// is a row, not a button (at 0.18 with a cyan border it read as one).
+$selected-accent: $fill-lit;
 
 $selected-border: transparent;
 

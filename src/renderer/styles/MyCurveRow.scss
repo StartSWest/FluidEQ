@@ -172,10 +172,9 @@
   display: grid;
   min-width: 180px;
   padding: 4px;
-  border: 1px solid $card-edge;
-  border-radius: $radius-m;
-  background: $surface-panel;
-  box-shadow: none;
+  // Every menu's face (`menu-face`): it had the card's edge and the pane's
+  // own slab.
+  @include menu-face;
 
   // Each entry is its glyph and its words, the glyph in the accent's quiet
   // tone so a column of them reads as one list.
@@ -200,7 +199,7 @@
 
     &:hover,
     &:focus-visible {
-      background: color-mix(in srgb, $secondary-default 12%, transparent);
+      background: $fill-hover;
 
       .my-curve__menu-icon {
         color: $secondary-light;
@@ -215,7 +214,7 @@
 
   .my-curve__delete:hover,
   .my-curve__delete:focus-visible {
-    background: color-mix(in srgb, $red 12%, transparent);
+    background: tone-fill-hover($red);
 
     .my-curve__menu-icon {
       color: $red;

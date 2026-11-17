@@ -275,7 +275,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover {
-    background: color-mix(in srgb, $secondary-default 18%, transparent);
+    background: $fill-hover;
     color: $white;
   }
 }

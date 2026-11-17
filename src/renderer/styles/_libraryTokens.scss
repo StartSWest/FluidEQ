@@ -104,8 +104,10 @@ $library-gutter: 12px;
   box-shadow: none;
 }
 
-// The chosen folder, the playing row: the accent, faint.
-$studio-select: color-mix(in srgb, $secondary-default 12%, transparent);
+// The chosen folder, the playing row: the control set's lit tint, as every
+// chosen thing in the app wears it (it was the accent at 12%, a fourth
+// shade of it).
+$studio-select: $fill-lit;
 
 // THE ONE MARK FOR "HERE" across the Library: the shelf open in the rail,
 // the folder in the tree, the line being sung, the row last opened - a
@@ -180,7 +182,7 @@ $studio-rail-folded: 56px;
   transition: $transition-control;
 
   &:hover {
-    background: color-mix(in srgb, $edge-tint 4%, transparent);
+    background: $fill-hover;
     color: $text-primary;
   }
 

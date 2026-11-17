@@ -321,16 +321,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 1px;
   text-align: left;
 
-  &:hover,
-  &:focus-visible {
-    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-    outline: none;
+  // A row of the menu: the hover tint, the lit tint when it is the folder
+  // searched, no edge of its own.
+  &:hover {
+    background: $fill-hover;
   }
 
   &.is-active {
-    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    color: $secondary-light;
+    background: $fill-lit;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 

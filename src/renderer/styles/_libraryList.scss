@@ -750,7 +750,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:hover,
     &:focus-visible {
       color: $white;
-      background: color-mix(in srgb, $secondary-default 18%, transparent);
+      background: $fill-hover;
       outline: none;
     }
 

@@ -95,7 +95,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         &:focus,
         &:focus-visible,
         &:focus-within {
-          background: color-mix(in srgb, $secondary-default 22%, transparent);
+          background-color: $fill-lit;
+          background-image: linear-gradient($fill-hover, $fill-hover);
         }
       }
 
