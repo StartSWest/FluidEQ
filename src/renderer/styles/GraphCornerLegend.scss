@@ -41,15 +41,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   border-radius: $radius-s;
   background: $surface-section;
 
-  // Over a Plus scene the key shows the picture through it, blurred, rather
-  // than standing on it as a solid patch of the window's colour (Ivan,
-  // 2026-11-17: "it can't be that dark in this case; it should always show
-  // the background, more or less a blur of whatever scene is there"): the
-  // card's face at 38% over a 24px blur of what is behind it ("still a
-  // little more", "more blur in the legend").
+  // Over a Plus scene the key shows the picture through it rather than
+  // standing on it as a solid patch of the window's colour (Ivan,
+  // 2026-11-17: "it should always show the background"; then "no blur on
+  // the legend either"): the card's face at 38%, see-through, no blur.
   :root.is-scene-column & {
     background: color-mix(in srgb, #{$surface-section} 38%, transparent);
-    backdrop-filter: blur(24px);
   }
 }
 
