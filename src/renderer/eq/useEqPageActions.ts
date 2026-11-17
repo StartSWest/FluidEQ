@@ -17,7 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  PointerEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   DEFAULT_QUALITY,
   FilterTypeEnum,
@@ -45,6 +52,7 @@ import {
 import { FilterActionEnum, useFluidEqLayers } from '../utils/FluidEqContext';
 import useTone from './useTone';
 import { clearEqCuts, cutCorners, isToneInUse } from './toneCuts';
+import { bandLayoutDefaults } from './bandLayoutDefaults';
 import { hasTone } from '../../common/tone';
 import { clamp } from '../utils/utils';
 import { BAND_MENU_EVENT } from '../components/BandMenu';
@@ -269,7 +277,7 @@ const useEqPageActions = (bands: TEqPageBands) => {
   } = useTone();
   // The Tone tab's cuts, which it counts as Tone (`toneCuts.ts`), so Reset
   // Tone puts them back to none with the three dials.
-  const { eqCuts, refreshState } = useFluidEqLayers();
+  const { eqCuts, refreshState, eqBandDesign } = useFluidEqLayers();
   const isToneTabInUse = isToneInUse(tone, eqCuts);
   const resetToneTab = async () => {
     try {
@@ -279,6 +287,52 @@ const useEqPageActions = (bands: TEqPageBands) => {
     }
     await refreshState();
   };
+
+  // Where the band layout put each band (`bandLayoutDefaults.ts`), for the
+  // resets on its frequency and its Q (Ivan, 2026-11-16: "if I Ctrl+click on
+  // the frequency it restores it to the band design's default").
+  const layoutDefaults = useMemo(
+    () => bandLayoutDefaults(Object.values(filters), eqBandDesign),
+    [filters, eqBandDesign],
+  );
+  const writeEdits = async (edits: IFilterEdit[]) => {
+    if (edits.length === 0) {
+      return;
+    }
+    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+    try {
+      await setFilterValues(edits);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+  /** One band back to its layout's frequency; none for a band Add band made. */
+  const resetBandFrequency = (id: string) => {
+    const band = filters[id];
+    const home = layoutDefaults.get(id)?.frequency;
+    if (!band || home === undefined || home === band.frequency) {
+      return;
+    }
+    writeEdits([{ id, frequency: home }]).catch(() => undefined);
+  };
+  // The same, for every band's caption: one function for the life of the
+  // page, so a band handed it draws again only when it changes (`memo`).
+  const latestFrequencyReset = useRef(resetBandFrequency);
+  latestFrequencyReset.current = resetBandFrequency;
+  const handleBandFrequencyReset = useCallback(
+    (id: string) => latestFrequencyReset.current(id),
+    [],
+  );
+  /** The selection's Q back to the layout's, each band its own. */
+  const resetSelectedQuality = async () =>
+    writeEdits(
+      selectedFilters.flatMap((band) => {
+        const home = layoutDefaults.get(band.id)?.quality;
+        return home === undefined || home === band.quality
+          ? []
+          : [{ id: band.id, quality: home }];
+      }),
+    );
 
   // The one control that sets rather than nudges — a group of Peak bands asked
   // to become Low Shelf all become Low Shelf.
@@ -668,6 +722,10 @@ const useEqPageActions = (bands: TEqPageBands) => {
     deleteLabel,
     deleteSelectedFilter,
     resetSelectedGain,
+    layoutDefaults,
+    resetBandFrequency,
+    handleBandFrequencyReset,
+    resetSelectedQuality,
     tone,
     isToneDisabled,
     turnTone,

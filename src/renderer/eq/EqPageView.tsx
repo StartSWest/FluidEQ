@@ -90,6 +90,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
     handleBandsPointerMove,
     finishBandSelection,
     isToneDisabled,
+    handleBandFrequencyReset,
     resetToneTab,
     isToneTabInUse,
     toneCutCorners,
@@ -305,6 +306,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
                     }
                     onGainChange={handleBandGainChange}
                     onGainPreview={handleBandGainPreview}
+                    onResetFrequency={handleBandFrequencyReset}
                   />
                 ))}
               </div>

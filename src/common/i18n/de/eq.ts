@@ -31,9 +31,9 @@ const eq: Partial<Dictionary> = {
     'Designs speichern Bandfrequenzen, jeden Q-Wert und das Q-Verhalten. Verstärkung und Stärke bleiben getrennt.',
   'eq.layouts.qHint':
     'Neue Layouts beginnen mit demselben Q für alle Bänder. Mehr Bänder verwenden schmalere Bandbreiten.',
-  'eq.layouts.resetQ': 'Band-Q zurücksetzen',
-  'eq.layouts.resetQHint':
-    'Einen empfohlenen Q-Wert für alle Glockenfilter wiederherstellen. Frequenzen, Verstärkung und Q-Verhalten beibehalten.',
+  'eq.layouts.resetBands': 'Frequenzen und Q zurücksetzen',
+  'eq.layouts.resetBandsHint':
+    'Setzt jedes Band auf Frequenz und Q seines Layouts zurück. Die Verstärkungen bleiben.',
   'eq.mode.mainQHint':
     'Nur die Bänder des Haupt-EQs. Konstant hält Q bei Gain-Änderungen gleich. Proportional und Asymmetrisch passen Q an den Gain an.',
   'graph.item.eqLabels': 'EQ-Beschriftungen',
@@ -762,6 +762,8 @@ const eq: Partial<Dictionary> = {
   'eq.selectedCount': '{count} Bänder',
   'eq.popover.title': 'Band {index} · {frequency}',
   'eq.popover.close': 'Bandeinstellungen schließen',
+  'eq.popover.previous': 'Vorheriges Band (Umschalt+Tab)',
+  'eq.popover.next': 'Nächstes Band (Tab)',
   'eq.tabs.aria': 'EQ-Ebenen',
   'eq.tabs.bands': 'Ihr EQ',
   'eq.tabs.preset': 'Preset',
@@ -908,6 +910,8 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Audiogerät',
   'autoeq.targetAria': 'Zielfrequenzgang',
   'eq.band.edit': '{frequency}-Hz-Band bearbeiten',
+  'eq.band.frequencyReset':
+    'Strg+Klick oder Doppelklick: zurück zur Frequenz des Layouts',
   'eq.band.gainSlider': 'Verstärkung {frequency}',
   'graph.handle.label':
     '{band}, {frequency}. Ziehen Sie, um Frequenz und Verstärkung zu ändern; Strg+Mausrad ändert die Güte (Q).',

@@ -29,9 +29,9 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.empty':
     '设计会保存频率、每个频段的Q值及Q模式。增益和强度单独设置。',
   'eq.layouts.qHint': '新布局的所有频段使用相同的初始Q值。频段越多，带宽越窄。',
-  'eq.layouts.resetQ': '重置频段Q值',
-  'eq.layouts.resetQHint':
-    '将所有钟形频段恢复为推荐Q值。保留频率、增益和Q模式。',
+  'eq.layouts.resetBands': '重置频率和Q值',
+  'eq.layouts.resetBandsHint':
+    '把每个频段恢复到其布局的频率和Q值。增益保持不变。',
   'eq.mode.mainQHint':
     '仅适用于主EQ频段。恒定模式下Q值不随增益改变；比例和非对称模式下Q值随增益调整。',
   'graph.item.eqLabels': 'EQ标签',
@@ -708,6 +708,8 @@ const eq: Partial<Dictionary> = {
   'eq.selectedCount': '{count} 个频段',
   'eq.popover.title': '频段 {index} · {frequency}',
   'eq.popover.close': '关闭频段设置',
+  'eq.popover.previous': '上一个频段 (Shift+Tab)',
+  'eq.popover.next': '下一个频段 (Tab)',
   'eq.tabs.aria': '均衡层',
   'eq.tabs.bands': '你的均衡',
   'eq.tabs.preset': '预设',
@@ -843,6 +845,7 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': '音频设备',
   'autoeq.targetAria': '目标频率响应',
   'eq.band.edit': '编辑 {frequency} Hz 频段',
+  'eq.band.frequencyReset': 'Ctrl+单击或双击：恢复为布局的频率',
   'eq.band.gainSlider': '{frequency} 增益',
   'graph.handle.label':
     '{band}，{frequency}。拖动可改变频率和增益；Ctrl+滚轮可改变 Q。',

@@ -224,7 +224,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   grid-row: auto;
   grid-column: auto;
   display: grid;
-  width: 300px;
+  // Room for the band's name between its two steps, the filter and the
+  // close on one line: at 300px the name was cut to "Band 3 ·…".
+  width: 340px;
   max-width: none;
   // One column of three rows, not the pane row's seven columns
   // (`_mainContentBandEditor.scss`) it would otherwise take.
@@ -264,6 +266,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
     border-left: 0;
     transform: rotate(45deg);
   }
+
+  // Standing past the neighbouring band's column, a hairline leads back to
+  // the handle across it, at the point's height (`--popover-reach`, zero
+  // beside the handle). It takes no press: the neighbour under it is the
+  // band this placement keeps within reach.
+  &::after {
+    position: absolute;
+    top: var(--popover-arrow, 50%);
+    width: var(--popover-reach, 0px);
+    height: 1px;
+    background: color-mix(in srgb, $secondary-light 55%, transparent);
+    content: '';
+    pointer-events: none;
+  }
+
+  &.is-right::after {
+    right: 100%;
+  }
+
+  &.is-left::after {
+    left: 100%;
+  }
 }
 
 .eq-band-popover__head {
@@ -289,6 +313,48 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .dropdown,
   .dropdown > [role='menu'] {
     width: 100%;
+  }
+}
+
+// The band before and after, either side of the title, in the close
+// button's quiet face.
+.eq-band-popover__step {
+  display: grid;
+  width: 24px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $white;
+    background: rgba($edge-tint, 0.1);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 }
 

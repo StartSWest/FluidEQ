@@ -13,9 +13,9 @@ const eq = {
     '디자인에는 밴드 주파수, 각 Q 값, Q 동작 방식이 저장됩니다. 게인과 강도는 별도로 유지됩니다.',
   'eq.layouts.qHint':
     '새로운 레이아웃은 모든 밴드를 동일한 Q로 시작합니다. 더 많은 밴드가 더 좁은 폭을 사용합니다.',
-  'eq.layouts.resetQ': '밴드 Q 재설정',
-  'eq.layouts.resetQHint':
-    '모든 벨 밴드에 대해 권장 Q를 1개 복원합니다. 주파수, 게인 및 Q 동작을 유지합니다.',
+  'eq.layouts.resetBands': '주파수와 Q 재설정',
+  'eq.layouts.resetBandsHint':
+    '모든 밴드를 레이아웃의 주파수와 Q로 되돌립니다. 게인은 그대로 둡니다.',
   'eq.mode.mainQHint':
     '메인 EQ 밴드만 해당됩니다. 게인이 이동함에 따라 상수는 Q를 변경하지 않고 유지합니다. 비례 및 비대칭은 게인으로 Q를 조정합니다.',
   'graph.item.eqLabels': 'EQ 라벨',
@@ -717,6 +717,8 @@ const eq = {
   'eq.selectedCount': '{count} 밴드',
   'eq.popover.title': '밴드 {index} · {frequency}',
   'eq.popover.close': '밴드 설정 닫기',
+  'eq.popover.previous': '이전 밴드 (Shift+Tab)',
+  'eq.popover.next': '다음 밴드 (Tab)',
   'eq.tabs.aria': 'EQ 레이어',
   'eq.tabs.bands': '내 EQ',
   'eq.tabs.preset': '프리셋',
@@ -860,6 +862,8 @@ const eq = {
   'autoeq.deviceAria': '오디오 장치',
   'autoeq.targetAria': '목표 주파수 응답',
   'eq.band.edit': '{frequency}Hz 대역 편집',
+  'eq.band.frequencyReset':
+    'Ctrl+클릭 또는 더블클릭: 레이아웃의 주파수로 되돌리기',
   'eq.band.gainSlider': '{frequency} 게인',
   'graph.handle.label':
     '{band}, {frequency}. 주파수와 게인을 변경하려면 드래그하세요. Ctrl+스크롤하면 Q가 변경됩니다.',

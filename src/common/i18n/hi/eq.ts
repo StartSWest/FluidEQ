@@ -30,9 +30,9 @@ const eq: Partial<Dictionary> = {
     'डिज़ाइन में बैंड की फ़्रीक्वेंसी, हर Q मान और Q का व्यवहार सहेजा जाता है। गेन और तीव्रता अलग रहते हैं।',
   'eq.layouts.qHint':
     'नए लेआउट में सभी बैंड एक ही Q से शुरू होते हैं। अधिक बैंड होने पर उनकी चौड़ाई कम होती है।',
-  'eq.layouts.resetQ': 'बैंड Q रीसेट करें',
-  'eq.layouts.resetQHint':
-    'सभी बेल बैंड के लिए अनुशंसित Q बहाल करें। फ़्रीक्वेंसी, गेन और Q का व्यवहार बनाए रखें।',
+  'eq.layouts.resetBands': 'फ़्रीक्वेंसी और Q रीसेट करें',
+  'eq.layouts.resetBandsHint':
+    'हर बैंड को उसके लेआउट की फ़्रीक्वेंसी और Q पर लौटाएँ। गेन जैसे हैं वैसे रहते हैं।',
   'eq.mode.mainQHint':
     'केवल मुख्य EQ बैंड। स्थिर मोड में गेन बदलने पर Q नहीं बदलता। आनुपातिक और असममित मोड में Q गेन के अनुसार बदलता है।',
   'graph.item.eqLabels': 'EQ लेबल',
@@ -743,6 +743,8 @@ const eq: Partial<Dictionary> = {
   'eq.selectedCount': '{count} बैंड',
   'eq.popover.title': 'बैंड {index} · {frequency}',
   'eq.popover.close': 'बैंड की सेटिंग बंद करें',
+  'eq.popover.previous': 'पिछला बैंड (Shift+Tab)',
+  'eq.popover.next': 'अगला बैंड (Tab)',
   'eq.tabs.aria': 'EQ परतें',
   'eq.tabs.bands': 'आपका EQ',
   'eq.tabs.preset': 'प्रीसेट',
@@ -887,6 +889,8 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'ऑडियो डिवाइस',
   'autoeq.targetAria': 'लक्ष्य आवृत्ति प्रतिक्रिया',
   'eq.band.edit': '{frequency} Hz बैंड संपादित करें',
+  'eq.band.frequencyReset':
+    'Ctrl+क्लिक या डबल-क्लिक: लेआउट की फ़्रीक्वेंसी पर लौटें',
   'eq.band.gainSlider': '{frequency} गेन',
   'graph.handle.label':
     '{band}, {frequency}. इसकी फ़्रीक्वेंसी और गेन बदलने के लिए खींचें; Ctrl+स्क्रॉल इसका Q बदलता है।',

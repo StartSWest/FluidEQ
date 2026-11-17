@@ -30,9 +30,9 @@ const eq: Partial<Dictionary> = {
     'デザインには各バンドの周波数、Q値、Qの動作を保存します。ゲインと強度は別に設定します。',
   'eq.layouts.qHint':
     '新しいレイアウトでは全バンドが同じQで始まります。バンド数が多いほど帯域幅が狭くなります。',
-  'eq.layouts.resetQ': 'バンドQをリセット',
-  'eq.layouts.resetQHint':
-    'すべてのベル型バンドを推奨Qに戻します。周波数、ゲイン、Qの動作は維持します。',
+  'eq.layouts.resetBands': '周波数とQをリセット',
+  'eq.layouts.resetBandsHint':
+    '各バンドをレイアウトの周波数とQに戻します。ゲインはそのままです。',
   'eq.mode.mainQHint':
     'メインEQのバンドのみ。一定ではゲインを変えてもQは変わりません。比例と非対称ではゲインに応じてQが変わります。',
   'graph.item.eqLabels': 'EQラベル',
@@ -745,6 +745,8 @@ const eq: Partial<Dictionary> = {
   'eq.selectedCount': '{count} バンド',
   'eq.popover.title': 'バンド {index} · {frequency}',
   'eq.popover.close': 'バンドの設定を閉じる',
+  'eq.popover.previous': '前のバンド (Shift+Tab)',
+  'eq.popover.next': '次のバンド (Tab)',
   'eq.tabs.aria': 'EQ のレイヤー',
   'eq.tabs.bands': 'あなたの EQ',
   'eq.tabs.preset': 'プリセット',
@@ -889,6 +891,8 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'オーディオデバイス',
   'autoeq.targetAria': '目標周波数応答',
   'eq.band.edit': '{frequency} Hz のバンドを編集',
+  'eq.band.frequencyReset':
+    'Ctrl+クリックまたはダブルクリック: レイアウトの周波数に戻す',
   'eq.band.gainSlider': '{frequency} のゲイン',
   'graph.handle.label':
     '{band}、{frequency}。ドラッグで周波数とゲインを変更、Ctrl+ホイールで Q を変更します。',

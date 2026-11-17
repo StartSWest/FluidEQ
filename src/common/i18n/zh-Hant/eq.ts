@@ -12,9 +12,9 @@ const eq = {
   'eq.layouts.empty':
     '設計可儲存頻段頻率、每個 Q 值和 Q 行為。增益和力量是分開的。',
   'eq.layouts.qHint': '新佈局以相同的 Q 開始每個頻段。更多頻段使用較窄的寬度。',
-  'eq.layouts.resetQ': '重設頻段 Q',
-  'eq.layouts.resetQHint':
-    '為所有響鈴頻段恢復一個建議的 Q。保持頻率、增益和 Q 行為。',
+  'eq.layouts.resetBands': '重設頻率與 Q',
+  'eq.layouts.resetBandsHint':
+    '將每個頻段恢復為其版面配置的頻率與 Q。增益保持不變。',
   'eq.mode.mainQHint':
     '僅主要 EQ 頻段。隨著增益的變化，常數使 Q 值保持不變。比例與非對稱調整 Q 與增益。',
   'graph.item.eqLabels': 'EQ 標籤',
@@ -685,6 +685,8 @@ const eq = {
   'eq.selectedCount': '{count} 條帶',
   'eq.popover.title': '頻段 {index} · {frequency}',
   'eq.popover.close': '關閉頻段設定',
+  'eq.popover.previous': '上一個頻段 (Shift+Tab)',
+  'eq.popover.next': '下一個頻段 (Tab)',
   'eq.tabs.aria': '等化層',
   'eq.tabs.bands': '你的 EQ',
   'eq.tabs.preset': '預設組',
@@ -820,6 +822,7 @@ const eq = {
   'autoeq.deviceAria': '音訊裝置',
   'autoeq.targetAria': '目標頻率響應',
   'eq.band.edit': '編輯 {frequency} Hz 頻段',
+  'eq.band.frequencyReset': 'Ctrl+按一下或按兩下：恢復為版面配置的頻率',
   'eq.band.gainSlider': '{frequency} 增益',
   'graph.handle.label':
     '{band}、{frequency}。拖動可改變其頻率和增益； Ctrl+捲動更改其 Q。',

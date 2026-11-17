@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { FilterTypeEnum, FIXED_BAND_SIZES } from '../../common/constants';
-import { qualityForMainRack } from '../../common/bandQuality';
+import { FIXED_BAND_SIZES } from '../../common/constants';
+import { bandLayoutResetEdits } from '../eq/bandLayoutDefaults';
 import {
   IBandDesign,
   MAX_BAND_DESIGN_NAME,
@@ -46,15 +46,11 @@ export default function BandLayoutMenu() {
   const [name, setName] = useState('');
   const [failed, setFailed] = useState(false);
   const count = Object.keys(filters).length;
-  const recommendedQ = qualityForMainRack(
-    Object.values(filters).map((filter) => filter.frequency),
-  );
-  const qReset = Object.values(filters)
-    .filter(
-      (filter) =>
-        filter.type === FilterTypeEnum.PK && filter.quality !== recommendedQ,
-    )
-    .map((filter) => ({ id: filter.id, quality: recommendedQ }));
+  // Every band back at its layout's frequency and Q, gains kept (Ivan,
+  // 2026-11-16: "reset bands' Q and frequencies ... the same button does
+  // everything"; `bandLayoutDefaults.ts`). It reset the Q alone, to one
+  // value worked out from wherever the bands had been moved to.
+  const bandsReset = bandLayoutResetEdits(Object.values(filters), eqBandDesign);
   const duplicate = designs.some(
     (design) =>
       design.name.toLocaleLowerCase() === name.trim().toLocaleLowerCase(),
@@ -222,12 +218,12 @@ export default function BandLayoutMenu() {
           <button
             type="button"
             className="button small subtle"
-            title={t('eq.layouts.resetQHint')}
-            disabled={busy || qReset.length === 0}
-            onClick={() => perform(() => setFilterValues(qReset), true)}
+            title={t('eq.layouts.resetBandsHint')}
+            disabled={busy || bandsReset.length === 0}
+            onClick={() => perform(() => setFilterValues(bandsReset), true)}
           >
             <MenuIcon name="reset" className="eq-toolbar__icon" />
-            {t('eq.layouts.resetQ')}
+            {t('eq.layouts.resetBands')}
           </button>
           <h3>{t('eq.layouts.saved')}</h3>
           <p className="band-designs__hint">{t('eq.layouts.empty')}</p>

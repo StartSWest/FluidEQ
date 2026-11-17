@@ -30,9 +30,9 @@ const eq: Partial<Dictionary> = {
     'Les modèles enregistrent les fréquences, chaque valeur Q et son comportement. Le gain et l’intensité restent séparés.',
   'eq.layouts.qHint':
     'Les nouvelles dispositions utilisent le même Q pour chaque bande. Plus de bandes donnent des bandes plus étroites.',
-  'eq.layouts.resetQ': 'Réinitialiser le Q des bandes',
-  'eq.layouts.resetQHint':
-    'Rétablir un Q recommandé pour toutes les bandes en cloche. Conserver les fréquences, les gains et le comportement du Q.',
+  'eq.layouts.resetBands': 'Réinitialiser fréquences et Q',
+  'eq.layouts.resetBandsHint':
+    'Remet chaque bande à la fréquence et au Q de sa disposition. Les gains restent tels quels.',
   'eq.mode.mainQHint':
     'Bandes de l’EQ principal uniquement. Constant conserve le Q quand le gain change. Proportionnel et Asymétrique adaptent le Q au gain.',
   'graph.item.eqLabels': 'étiquettes de l’EQ',
@@ -765,6 +765,8 @@ const eq: Partial<Dictionary> = {
   'eq.selectedCount': '{count} bandes',
   'eq.popover.title': 'Bande {index} · {frequency}',
   'eq.popover.close': 'Fermer les réglages de la bande',
+  'eq.popover.previous': 'Bande précédente (Maj+Tab)',
+  'eq.popover.next': 'Bande suivante (Tab)',
   'eq.tabs.aria': 'Couches de l’égaliseur',
   'eq.tabs.bands': 'Votre égaliseur',
   'eq.tabs.preset': 'Préréglage',
@@ -910,6 +912,8 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Périphérique audio',
   'autoeq.targetAria': 'Réponse en fréquence cible',
   'eq.band.edit': 'Modifier la bande de {frequency} Hz',
+  'eq.band.frequencyReset':
+    'Ctrl+clic ou double-clic : revenir à la fréquence de la disposition',
   'eq.band.gainSlider': 'Gain à {frequency}',
   'graph.handle.label':
     '{band}, {frequency}. Faites glisser pour changer sa fréquence et son gain ; Ctrl+molette change son Q.',

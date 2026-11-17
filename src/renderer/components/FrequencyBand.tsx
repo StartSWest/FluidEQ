@@ -75,6 +75,8 @@ interface IFrequencyBandProps {
   onGainChange?: (filterId: string, newValue: number) => Promise<void>;
   /** A drag's step in the store alone, before the engine has it. */
   onGainPreview?: (filterId: string, newValue: number) => void;
+  /** Its frequency back to the band layout's (`bandLayoutDefaults.ts`). */
+  onResetFrequency?: (filterId: string) => void;
 }
 
 const FrequencyBand = forwardRef(
@@ -92,6 +94,7 @@ const FrequencyBand = forwardRef(
       colorProgress = 0,
       onGainChange,
       onGainPreview,
+      onResetFrequency,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
@@ -332,6 +335,23 @@ const FrequencyBand = forwardRef(
             className="band-frequency-caption"
             tabIndex={-1}
             aria-label={t('eq.band.edit', { frequency: filter.frequency })}
+            title={onResetFrequency ? t('eq.band.frequencyReset') : undefined}
+            // Ctrl+click on the frequency puts it back where the band layout
+            // had it (Ivan, 2026-11-16), and so does a double-click, as on
+            // every dial. Kept from the band's own press, where Ctrl+click
+            // adds the band to the selection.
+            onPointerDown={(event) => {
+              if (
+                event.button === 0 &&
+                (event.ctrlKey || event.metaKey) &&
+                onResetFrequency
+              ) {
+                event.stopPropagation();
+                event.preventDefault();
+                onResetFrequency(filter.id);
+              }
+            }}
+            onDoubleClick={() => onResetFrequency?.(filter.id)}
             // Only a keyboard activation: a pointer press already reached the
             // wrapper above, and answering the click as well toggled a
             // Ctrl-click twice, which put the band straight back in the

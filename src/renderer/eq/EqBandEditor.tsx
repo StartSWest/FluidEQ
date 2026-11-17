@@ -15,7 +15,7 @@ import {
   MIN_NUM_FILTERS,
   MIN_QUALITY,
 } from 'common/constants';
-import { CSSProperties, useRef } from 'react';
+import { CSSProperties, useEffect, useRef } from 'react';
 import Dropdown from '../widgets/Dropdown';
 import Knob from '../widgets/Knob';
 import Switch from '../widgets/Switch';
@@ -66,6 +66,9 @@ const EqBandEditor = ({
     deleteLabel,
     deleteSelectedFilter,
     resetSelectedGain,
+    layoutDefaults,
+    resetBandFrequency,
+    resetSelectedQuality,
     setSelectedType,
     setFiltersEnabled,
   } = actions;
@@ -76,11 +79,58 @@ const EqBandEditor = ({
     selectedFilter?.id,
     `${selectedFilter?.gain}|${selectedFilter?.frequency}|${frequencySortedFilters.length}`,
   );
+  const at = frequencySortedFilters.findIndex(
+    ({ id }) => id === selectedFilter?.id,
+  );
+  /**
+   * The band beside the selected one, low to high, selected in its place —
+   * the popover moves to it — and brought into view where the row scrolls.
+   * Stops at either end rather than wrapping round: Tab past the last band
+   * goes on to the next control, so the keyboard is never held in here.
+   */
+  const step = (by: -1 | 1) => {
+    const target = frequencySortedFilters[at + by];
+    if (at < 0 || !target) {
+      return false;
+    }
+    setSelectedFilterIds([target.id]);
+    popover.current?.offsetParent
+      ?.querySelector(`.bandWrapper[data-filter-id="${CSS.escape(target.id)}"]`)
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    return true;
+  };
+  const stepRef = useRef(step);
+  stepRef.current = step;
+  // Tab and Shift+Tab inside the popover go to the next and the previous
+  // band (Ivan, 2026-11-16: "Tab changes to the next band"), the focus
+  // staying on the control it was on, now the next band's. Not while the
+  // filter list is open: its keys are its own.
+  useEffect(() => {
+    const element = popover.current;
+    if (!element) {
+      return undefined;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key !== 'Tab' ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        (event.target as HTMLElement | null)?.closest?.('.dropdown--open')
+      ) {
+        return;
+      }
+      if (stepRef.current(event.shiftKey ? -1 : 1)) {
+        event.preventDefault();
+      }
+    };
+    element.addEventListener('keydown', onKeyDown);
+    return () => element.removeEventListener('keydown', onKeyDown);
+  }, [selectedFilter?.id]);
   if (!selectedFilter) {
     return null;
   }
-  const index =
-    frequencySortedFilters.findIndex(({ id }) => id === selectedFilter.id) + 1;
+  const index = at + 1;
   return (
     <div
       ref={popover}
@@ -103,6 +153,7 @@ const EqBandEditor = ({
               left: place.left,
               top: place.top,
               '--popover-arrow': `${place.arrow}px`,
+              '--popover-reach': `${place.reach}px`,
             } as CSSProperties)
           : { visibility: 'hidden' }
       }
@@ -111,6 +162,20 @@ const EqBandEditor = ({
         so naming one frequency would be a lie about what the dials are
         about to do — its filter, and the way out. */}
       <div className="eq-band-popover__head">
+        {/* The band before and after it, low to high: the popover stands
+          over neighbours, and these reach them (Ivan, 2026-11-16). */}
+        <button
+          type="button"
+          className="eq-band-popover__step"
+          aria-label={t('eq.popover.previous')}
+          title={t('eq.popover.previous')}
+          disabled={at <= 0}
+          onClick={() => step(-1)}
+        >
+          <svg viewBox="0 0 16 16" aria-hidden>
+            <path d="M10 3.5l-4 4.5 4 4.5" />
+          </svg>
+        </button>
         <strong className="eq-band-popover__title">
           {isGroupEdit
             ? t('eq.selectedCount', { count: selectedCount })
@@ -119,6 +184,18 @@ const EqBandEditor = ({
                 frequency: frequencyText(selectedFilter.frequency),
               })}
         </strong>
+        <button
+          type="button"
+          className="eq-band-popover__step"
+          aria-label={t('eq.popover.next')}
+          title={t('eq.popover.next')}
+          disabled={at >= frequencySortedFilters.length - 1}
+          onClick={() => step(1)}
+        >
+          <svg viewBox="0 0 16 16" aria-hidden>
+            <path d="M6 3.5l4 4.5-4 4.5" />
+          </svg>
+        </button>
         <div className="eq-band-popover__filter" title={t('eq.filter')}>
           <Dropdown
             name="selected-band-filter-type"
@@ -172,6 +249,13 @@ const EqBandEditor = ({
             // is written in.
             step={1}
             unit="Hz"
+            // Ctrl+click or a double-click: back to the frequency the band
+            // layout gave it. A band Add band made has none, and keeps its own.
+            onReset={
+              layoutDefaults.get(selectedFilter.id)?.frequency === undefined
+                ? undefined
+                : () => resetBandFrequency(selectedFilter.id)
+            }
             handleChange={(newValue) =>
               updateSelectedGroup('frequency', newValue)
             }
@@ -234,9 +318,15 @@ const EqBandEditor = ({
             isDisabled={false}
             step={0.01}
             unit="Q"
-            // Ctrl+click puts the band back to the width every band
-            // starts at.
-            defaultValue={DEFAULT_QUALITY}
+            // Ctrl+click or a double-click puts every selected band back to
+            // its layout's Q, each its own (`bandLayoutDefaults.ts`); it was
+            // one fixed width whatever the layout.
+            defaultValue={
+              layoutDefaults.get(selectedFilter.id)?.quality ?? DEFAULT_QUALITY
+            }
+            onReset={() => {
+              resetSelectedQuality().catch(() => undefined);
+            }}
             handleChange={(newValue) =>
               updateSelectedGroup('quality', newValue)
             }

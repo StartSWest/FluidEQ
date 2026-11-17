@@ -28,9 +28,9 @@ const eq = {
     'Designs save band frequencies, each Q value, and Q behavior. Gains and strength stay separate.',
   'eq.layouts.qHint':
     'New layouts start every band at the same Q. More bands use narrower widths.',
-  'eq.layouts.resetQ': 'Reset band Q',
-  'eq.layouts.resetQHint':
-    'Restore one recommended Q for all bell bands. Keep frequencies, gains and Q behavior.',
+  'eq.layouts.resetBands': 'Reset frequencies and Q',
+  'eq.layouts.resetBandsHint':
+    'Put every band back at its layout’s frequency and Q. Gains stay as they are.',
   'eq.mode.mainQHint':
     'Main EQ bands only. Constant keeps Q unchanged as gain moves. Proportional and Asymmetric adjust Q with gain.',
   'graph.item.eqLabels': 'EQ labels',
@@ -762,6 +762,8 @@ const eq = {
   'eq.selectedCount': '{count} bands',
   'eq.popover.title': 'Band {index} · {frequency}',
   'eq.popover.close': 'Close the band settings',
+  'eq.popover.previous': 'Previous band (Shift+Tab)',
+  'eq.popover.next': 'Next band (Tab)',
   'eq.tabs.aria': 'EQ layers',
   'eq.tabs.bands': 'Your EQ',
   'eq.tabs.preset': 'Preset',
@@ -908,6 +910,8 @@ const eq = {
   'autoeq.deviceAria': 'Audio device',
   'autoeq.targetAria': 'Target frequency response',
   'eq.band.edit': 'Edit {frequency} Hz band',
+  'eq.band.frequencyReset':
+    'Ctrl+click or double-click: back to the layout’s frequency',
   // A band's gain slider, as assistive tech names it (and its arrows).
   'eq.band.gainSlider': '{frequency} gain',
   // A band's handle on the graph: its name for assistive tech, and the

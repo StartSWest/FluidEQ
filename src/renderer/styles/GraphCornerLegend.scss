@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'motion' as *;
 @use 'theme' as *;
-@use 'libraryTokens' as *;
 
 // THE CURVES' NAMES IN THE PLOT'S TOP-LEFT CORNER (`GraphCornerLegend`).
 //
@@ -26,15 +25,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-size: $text-small;
 }
 
-// One entry per line, the swatch and the name, on the band's own face: the
-// floor at 72%, flat, the app's quiet hairline round it, so the names read
-// over the wave and a scene alike. The folded key wears the same face.
+// One entry per line, the swatch and the name, on the graph's own face (Ivan,
+// 2026-11-16: "the legend's background colour needs to be the same as the
+// graph's background, not that dark"): the card the plot stands in
+// (`section-card`, `$surface-section`), so the block reads as a clear patch of
+// the graph that the lines pass behind, and over a scene as the card's colour
+// the names stay legible on. It was the options band's face, the floor at 72%,
+// a dark box on the plot. No edge, like the strip's chips it replaced; the
+// border stays, transparent, so the folded key keeps its size when it lights.
+// The folded key wears the same face.
 .graph-corner-legend__list,
 .live-output-controls .graph-corner-legend__key {
   box-sizing: border-box;
-  border: 1px solid $studio-hair;
+  border: 1px solid transparent;
   border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-base 72%, transparent);
+  background: $surface-section;
 }
 
 .graph-corner-legend__list {

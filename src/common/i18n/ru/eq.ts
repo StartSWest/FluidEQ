@@ -30,9 +30,9 @@ const eq: Partial<Dictionary> = {
     'Схемы сохраняют частоты, Q каждой полосы и режим Q. Усиление и интенсивность задаются отдельно.',
   'eq.layouts.qHint':
     'В новых схемах начальный Q одинаков для всех полос. Чем больше полос, тем они уже.',
-  'eq.layouts.resetQ': 'Сбросить Q полос',
-  'eq.layouts.resetQHint':
-    'Установить рекомендованный Q для всех колоколообразных полос. Сохранить частоты, усиление и режим Q.',
+  'eq.layouts.resetBands': 'Сбросить частоты и Q',
+  'eq.layouts.resetBandsHint':
+    'Возвращает каждую полосу к частоте и Q её раскладки. Усиление остаётся прежним.',
   'eq.mode.mainQHint':
     'Только полосы основного EQ. Постоянный Q не меняется при изменении усиления. Пропорциональный и асимметричный режимы меняют Q в зависимости от усиления.',
   'graph.item.eqLabels': 'подписи EQ',
@@ -752,6 +752,8 @@ const eq: Partial<Dictionary> = {
   'eq.selectedCount': 'Полос: {count}',
   'eq.popover.title': 'Полоса {index} · {frequency}',
   'eq.popover.close': 'Закрыть настройки полосы',
+  'eq.popover.previous': 'Предыдущая полоса (Shift+Tab)',
+  'eq.popover.next': 'Следующая полоса (Tab)',
   'eq.tabs.aria': 'Слои эквалайзера',
   'eq.tabs.bands': 'Ваш EQ',
   'eq.tabs.preset': 'Пресет',
@@ -895,6 +897,8 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Аудиоустройство',
   'autoeq.targetAria': 'Целевая АЧХ',
   'eq.band.edit': 'Изменить полосу {frequency} Гц',
+  'eq.band.frequencyReset':
+    'Ctrl+щелчок или двойной щелчок: вернуть частоту раскладки',
   'eq.band.gainSlider': 'Усиление {frequency}',
   'graph.handle.label':
     '{band}, {frequency}. Перетаскивайте, чтобы менять частоту и усиление; Ctrl+колесо меняет добротность (Q).',

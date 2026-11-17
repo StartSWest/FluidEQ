@@ -30,9 +30,9 @@ const eq: Partial<Dictionary> = {
     'Los diseños guardan las frecuencias, el Q de cada banda y su comportamiento. La ganancia y la intensidad se guardan por separado.',
   'eq.layouts.qHint':
     'Los diseños nuevos empiezan con el mismo Q en todas las bandas. Más bandas usan anchos menores.',
-  'eq.layouts.resetQ': 'Restablecer Q de bandas',
-  'eq.layouts.resetQHint':
-    'Aplicar un Q recomendado a todas las bandas de campana. Conservar frecuencias, ganancias y comportamiento del Q.',
+  'eq.layouts.resetBands': 'Restablecer frecuencias y Q',
+  'eq.layouts.resetBandsHint':
+    'Devuelve cada banda a la frecuencia y la Q de su diseño. Las ganancias se mantienen.',
   'eq.mode.mainQHint':
     'Solo las bandas del EQ principal. Constante mantiene el Q al mover la ganancia. Proporcional y Asimétrico lo ajustan según la ganancia.',
   'graph.item.eqLabels': 'etiquetas del EQ',
@@ -761,6 +761,8 @@ const eq: Partial<Dictionary> = {
   'eq.selectedCount': '{count} bandas',
   'eq.popover.title': 'Banda {index} · {frequency}',
   'eq.popover.close': 'Cerrar los ajustes de la banda',
+  'eq.popover.previous': 'Banda anterior (Mayús+Tab)',
+  'eq.popover.next': 'Banda siguiente (Tab)',
   'eq.tabs.aria': 'Capas del EQ',
   'eq.tabs.bands': 'Tu EQ',
   'eq.tabs.preset': 'Preset',
@@ -907,6 +909,8 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Dispositivo de audio',
   'autoeq.targetAria': 'Respuesta de frecuencia objetivo',
   'eq.band.edit': 'Editar la banda de {frequency} Hz',
+  'eq.band.frequencyReset':
+    'Ctrl+clic o doble clic: vuelve a la frecuencia del diseño',
   'eq.band.gainSlider': 'Ganancia de {frequency}',
   'graph.handle.label':
     '{band}, {frequency}. Arrastra para cambiar su frecuencia y su ganancia; Ctrl+rueda cambia su Q.',
