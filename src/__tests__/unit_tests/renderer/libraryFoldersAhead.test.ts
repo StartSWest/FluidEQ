@@ -73,6 +73,7 @@ const listOf = (
   nearCount: 0,
   markedCount: 0,
   isLoaded: true,
+  hasAnswer: true,
   at: (index) => items[index],
   want: jest.fn<void, [number, number]>(),
   indexOf: (id) => items.findIndex((item) => idOf(item) === id),

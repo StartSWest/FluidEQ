@@ -444,6 +444,17 @@ const useLibraryWorkspaceShelf = ({
   const [openPlaylistId, setOpenPlaylistId] = useState<string | undefined>(() =>
     readPersistedText(OPEN_PLAYLIST_KEY),
   );
+  /**
+   * Under a search on the Folders shelf, the folder the reader stands in was
+   * OPENED from a result, not only stood in, so it is drawn as its panel.
+   * The folder is both readings on that shelf, and a search answers the
+   * standing one from the shelf; a result pressed there only moved where
+   * the search's own matches go first, and the folder never opened (Ivan,
+   * 2026-11-17). Read through `isResultFolderOpen` in the navigation, which
+   * holds it to a search on the Folders shelf. Not kept across a restart,
+   * which keeps no search either.
+   */
+  const [isFolderOpened, setIsFolderOpened] = useState(false);
 
   useEffect(
     () => writePersistedText(OPEN_PLAYLIST_KEY, openPlaylistId),
@@ -917,6 +928,8 @@ const useLibraryWorkspaceShelf = ({
     setOpenGenreId,
     openPlaylistId,
     setOpenPlaylistId,
+    isFolderOpened,
+    setIsFolderOpened,
     drillInDrivenMode,
     revealTrack,
     revealRow,

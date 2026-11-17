@@ -49,6 +49,15 @@ export interface ILibraryList {
   /** The list asked for has answered at least once. */
   readonly isLoaded: boolean;
   /**
+   * The rows drawn are an answer: the list asked for, or, while it is read,
+   * the one before it that stays on screen. What is drawn OVER those rows —
+   * a search's section headings — goes by this and never by `isLoaded`,
+   * which turns false at every new ask while the old rows are still there:
+   * the headings vanished for that moment and everything under them jumped
+   * up and back at each cover pressed under a search (Ivan, 2026-11-17).
+   */
+  readonly hasAnswer: boolean;
+  /**
    * Rows ahead of the query's own (a folder's folders before its songs,
    * `libraryFoldersAhead`): a position the store gives for the query is
    * this much further down the list. Absent, the list is the query's alone.
@@ -268,6 +277,7 @@ export const useLibraryList = (
       nearCount: shown.nearCount,
       markedCount: shown.markedCount,
       isLoaded: stateRef.current.isLoaded,
+      hasAnswer: shown.isLoaded,
       at,
       want,
       indexOf,

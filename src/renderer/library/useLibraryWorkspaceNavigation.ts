@@ -72,6 +72,8 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     setOpenGenreId,
     openPlaylistId,
     setOpenPlaylistId,
+    isFolderOpened,
+    setIsFolderOpened,
     drillInDrivenMode,
     revealRow,
     isSearching,
@@ -240,6 +242,9 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
         // reader had not been.
         revealRow(anchor.id);
       }
+      // A search on the new shelf is answered by the shelf: nothing comes
+      // across opened from a result.
+      setIsFolderOpened(false);
       // The effect below closes the drill-in on every mode change it did not
       // cause itself; this is one it did not cause but must not undo.
       drillInDrivenMode.current = mode;
@@ -251,6 +256,7 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
       revealRow,
       drillInDrivenMode,
       setBrowseMode,
+      setIsFolderOpened,
       setOpenAlbumId,
       setOpenArtistId,
       setOpenFolderPath,
@@ -258,14 +264,28 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     ],
   );
 
+  /**
+   * A folder row, tile or cover pressed, or a folder inside an open panel:
+   * that folder OPENS, under a search as well — its panel, its songs to play,
+   * what the search names in it lit first, as an album pressed under a
+   * search opens (`LibraryDetail`'s `mark`). The search stays in the box and
+   * Back returns to its results (`isResultFolderOpen` is part of the place).
+   */
   const handleOpenFolder = useCallback(
     (folderPath: string) => {
       setOpenAlbumId(undefined);
       setOpenArtistId(undefined);
       setOpenGenreId(undefined);
       setOpenFolderPath(folderPath);
+      setIsFolderOpened(true);
     },
-    [setOpenAlbumId, setOpenArtistId, setOpenFolderPath, setOpenGenreId],
+    [
+      setIsFolderOpened,
+      setOpenAlbumId,
+      setOpenArtistId,
+      setOpenFolderPath,
+      setOpenGenreId,
+    ],
   );
 
   const handleOpenPlaylist = useCallback(
@@ -293,6 +313,8 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
       }
       if (browseMode === 'folder') {
         setOpenFolderPath(openId);
+        // Opened here is opened in the list and the grid too.
+        setIsFolderOpened(openId !== undefined);
         return;
       }
       if (browseMode === 'playlist') {
@@ -303,6 +325,7 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     },
     [
       browseMode,
+      setIsFolderOpened,
       setOpenAlbumId,
       setOpenArtistId,
       setOpenFolderPath,
@@ -323,12 +346,8 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
   const shelfPlaylistId =
     browseMode === 'playlist' ? openPlaylistId : undefined;
 
-  /**
-   * A record is open beneath wherever the reader stands: an album, an
-   * artist, a genre or a playlist. The folder is not one — it is where they
-   * stand (`scopedTracks`) — and Back closes a record before it moves them.
-   */
-  const hasOpenRecord = Boolean(
+  /** An album, artist, genre or playlist is open on this shelf. */
+  const hasNamedRecord = Boolean(
     openAlbumId ||
     openArtistId ||
     shelfGenreId !== undefined ||
@@ -336,19 +355,42 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
   );
 
   /**
+   * Under a search on the Folders shelf, the folder the reader stands in
+   * was opened from a result (`handleOpenFolder`): drawn as its panel, as
+   * a record pressed under a search is, and closed by Back like one.
+   */
+  const isResultFolderOpen =
+    isFolderOpened &&
+    isSearching &&
+    browseMode === 'folder' &&
+    openFolderPath !== undefined;
+
+  /**
+   * A record is open beneath wherever the reader stands: an album, an
+   * artist, a genre, a playlist, or a folder opened from a search's
+   * results. The folder otherwise is not one — it is where they stand
+   * (`scopedTracks`) — and Back closes a record before it moves them.
+   */
+  const hasOpenRecord = hasNamedRecord || isResultFolderOpen;
+
+  /**
+   * The folder the reader stands in is drawn as its own panel: on the
+   * Folders shelf with nothing searched, or opened from a search's results.
+   * Everywhere else it is where the reader is standing, and the shelf goes
+   * on drawing albums or artists — the ones inside it. A search from inside
+   * it is answered by the shelf, that folder's matches first and the rest
+   * after (`libraryShelfQuery.ts`), until one of them is opened.
+   */
+  const isFolderPanel =
+    openFolderPath !== undefined &&
+    browseMode === 'folder' &&
+    (!isSearching || isResultFolderOpen);
+
+  /**
    * A drill-in is open, so the list the toolbar steers is not the thing on
    * screen.
-   *
-   * A folder counts only on the Folders shelf, and only while nothing is
-   * searched. Everywhere else it is not a drill-in at all: it is where the
-   * reader is standing, and the shelf goes on drawing albums or artists — the
-   * ones inside it. And a search from inside it is answered by the shelf,
-   * that folder's matches first and the rest after (`libraryShelfQuery.ts`),
-   * not by the folder's own panel, which would show only the first half.
    */
-  const isDrilledIn =
-    hasOpenRecord ||
-    (openFolderPath !== undefined && browseMode === 'folder' && !isSearching);
+  const isDrilledIn = hasOpenRecord || isFolderPanel;
 
   const placeRecord = useLibraryPlaceRecord({
     albumId: openAlbumId,
@@ -377,6 +419,9 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
       setQuery(next);
       // A new search hands the ranking back to relevance — see `viewSort`.
       setIsSortChosen(false);
+      // And asks for results again: a folder opened from the last search's
+      // results goes back to being where this one stands.
+      setIsFolderOpened(false);
       if (next.trim().length === 0) {
         return;
       }
@@ -386,6 +431,7 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
       setOpenPlaylistId(undefined);
     },
     [
+      setIsFolderOpened,
       setIsSortChosen,
       setOpenAlbumId,
       setOpenArtistId,
@@ -448,7 +494,14 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     setOpenArtistId(undefined);
     setOpenGenreId(undefined);
     setOpenPlaylistId(undefined);
-  }, [setOpenAlbumId, setOpenArtistId, setOpenGenreId, setOpenPlaylistId]);
+    setIsFolderOpened(false);
+  }, [
+    setIsFolderOpened,
+    setOpenAlbumId,
+    setOpenArtistId,
+    setOpenGenreId,
+    setOpenPlaylistId,
+  ]);
 
   /**
    * ONE STEP UP THE TRAIL THE PLACE BAR DRAWS — the Library's only Back.
@@ -531,13 +584,9 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
         direction: 'asc',
       };
     }
-    // The folder open on its own shelf, exactly as its panel lists it: its
-    // own files, in path order, and not the ones in the folders below it.
-    if (
-      openFolderPath !== undefined &&
-      browseMode === 'folder' &&
-      !isSearching
-    ) {
+    // The folder open as its panel, exactly as the panel lists it: its own
+    // files, in path order, and not the ones in the folders below it.
+    if (isFolderPanel && openFolderPath !== undefined) {
       return {
         shelf: 'tracks',
         scope: { folder: openFolderPath },
@@ -554,7 +603,7 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     playlists,
     openFolderPath,
     browseMode,
-    isSearching,
+    isFolderPanel,
   ]);
   const shelfTracksQuery = useMemo(
     () => shelfTracksQueryFor(shelfState, shelfQuery),
@@ -572,12 +621,7 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
    * alone would say "3 songs" over a folder of three hundred in subfolders.
    */
   const shownTracksQuery = useMemo((): ILibraryListQuery | undefined => {
-    if (
-      openFolderPath !== undefined &&
-      browseMode === 'folder' &&
-      !isSearching &&
-      !hasOpenRecord
-    ) {
+    if (isFolderPanel && openFolderPath !== undefined && !hasNamedRecord) {
       return {
         shelf: 'tracks',
         scope: { beneath: openFolderPath },
@@ -586,9 +630,8 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     }
     return recordQueueQuery ?? shelfTracksQuery;
   }, [
-    browseMode,
-    hasOpenRecord,
-    isSearching,
+    hasNamedRecord,
+    isFolderPanel,
     openFolderPath,
     recordQueueQuery,
     shelfTracksQuery,
@@ -656,6 +699,8 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     shelfGenreId,
     shelfPlaylistId,
     hasOpenRecord,
+    isResultFolderOpen,
+    isFolderPanel,
     isDrilledIn,
     placeRecord,
     handleQuery,

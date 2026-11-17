@@ -60,6 +60,7 @@ const useLibrarySteps = (
     setOpenGenreId,
     openPlaylistId,
     setOpenPlaylistId,
+    setIsFolderOpened,
     drillInDrivenMode,
   } = shelf;
   const {
@@ -74,6 +75,7 @@ const useLibrarySteps = (
     handleAllMusic,
     handlePlaceFolder,
     hasOpenRecord,
+    isResultFolderOpen,
   } = navigation;
 
   const current = useMemo(
@@ -84,6 +86,10 @@ const useLibrarySteps = (
       artistId: openArtistId,
       genreId: openGenreId,
       playlistId: openPlaylistId,
+      // What it does on screen, never the bare flag: outside a search the
+      // flag changes nothing, and a step that differs only by it would cost
+      // Back a press that moves nothing.
+      isFolderOpened: isResultFolderOpen,
     }),
     [
       browseMode,
@@ -92,6 +98,7 @@ const useLibrarySteps = (
       openArtistId,
       openGenreId,
       openPlaylistId,
+      isResultFolderOpen,
     ],
   );
 
@@ -112,11 +119,13 @@ const useLibrarySteps = (
       setOpenArtistId(place.artistId);
       setOpenGenreId(place.genreId);
       setOpenPlaylistId(place.playlistId);
+      setIsFolderOpened(place.isFolderOpened);
     },
     [
       browseMode,
       drillInDrivenMode,
       setBrowseMode,
+      setIsFolderOpened,
       setOpenAlbumId,
       setOpenArtistId,
       setOpenFolderPath,

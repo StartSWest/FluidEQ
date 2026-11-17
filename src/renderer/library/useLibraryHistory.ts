@@ -43,6 +43,11 @@ export interface ILibraryPlace {
   artistId: string | undefined;
   genreId: string | undefined;
   playlistId: string | undefined;
+  /**
+   * Under a search, the folder was opened from a result rather than only
+   * stood in, so Back from it is the results (`isResultFolderOpen`).
+   */
+  isFolderOpened: boolean;
 }
 
 /** Steps kept each way. Enough for an afternoon's browsing, never a leak. */
@@ -54,7 +59,8 @@ const samePlace = (left: ILibraryPlace, right: ILibraryPlace): boolean =>
   left.albumId === right.albumId &&
   left.artistId === right.artistId &&
   left.genreId === right.genreId &&
-  left.playlistId === right.playlistId;
+  left.playlistId === right.playlistId &&
+  left.isFolderOpened === right.isFolderOpened;
 
 export interface ILibraryHistory {
   /** Call before a move: the place being left becomes Back's. */

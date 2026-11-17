@@ -77,10 +77,13 @@ export const librarySectionsOf = (list: ILibraryList): ISectionAt[] => {
         ]
       : [{ before: 0, section: 'folders', count: list.lead }];
   }
+  // `query`, `count` and `nearCount` are the rows on screen, so the headings
+  // are theirs too: held over the old rows while the next list is read,
+  // never taken away for that moment (`hasAnswer`).
   if (
     query?.near === undefined ||
     (query.search ?? '').trim() === '' ||
-    !list.isLoaded
+    !list.hasAnswer
   ) {
     return [];
   }

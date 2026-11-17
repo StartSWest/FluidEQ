@@ -31,6 +31,7 @@ const libraryFoldersAhead = (
     nearCount: songs.nearCount,
     markedCount: songs.markedCount,
     isLoaded: folders.isLoaded && songs.isLoaded,
+    hasAnswer: folders.hasAnswer && songs.hasAnswer,
     lead,
     at: (index) => (index < lead ? folders.at(index) : songs.at(index - lead)),
     want: (start, end) => {

@@ -63,7 +63,6 @@ const LibraryShelfViews = ({
     openPlaylistId,
     revealTrack,
     offlineRootIds,
-    isSearching,
     viewSort,
     listResetKey,
     shelfList,
@@ -75,6 +74,7 @@ const LibraryShelfViews = ({
     shelfGenreId,
     shelfPlaylistId,
     isDrilledIn,
+    isFolderPanel,
     handleBack,
     handlePlayTrack,
     handleRestartTrack,
@@ -164,12 +164,11 @@ const LibraryShelfViews = ({
         albumId={openAlbumId}
         artistId={openArtistId}
         genreId={browseMode === 'genre' ? openGenreId : undefined}
-        // Only the Folders shelf draws a folder as a panel. On the others the
-        // same folder is where the shelf is being read, and a panel would be
-        // a second answer to what the list is already answering.
-        folderPath={
-          browseMode === 'folder' && !isSearching ? openFolderPath : undefined
-        }
+        // Only the Folders shelf draws a folder as a panel, and under a
+        // search only one opened from its results. On the others the same
+        // folder is where the shelf is being read, and a panel would be a
+        // second answer to what the list is already answering.
+        folderPath={isFolderPanel ? openFolderPath : undefined}
         playlistId={browseMode === 'playlist' ? openPlaylistId : undefined}
         // How a panel closes ITSELF (an orphan, a deleted playlist): not a
         // step the reader took, so not one Back should walk back onto.

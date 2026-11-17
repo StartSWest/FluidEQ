@@ -708,7 +708,11 @@ const LibraryCoverFlow = ({
     !isPlaylists &&
     nearQuery?.near !== undefined &&
     (nearQuery.search ?? '').trim() !== '' &&
-    list?.isLoaded === true;
+    // The row on screen, which is the one before while the next is read: a
+    // cover pressed under a search moves the folder the search stands in,
+    // and gated on the new row this line went for that moment and took the
+    // letters, the row and the songs up with it (Ivan, 2026-11-17).
+    list?.hasAnswer === true;
   let centreSection: 'near' | 'nearEmpty' | 'elsewhere' | undefined;
   if (isSectioned && list !== undefined) {
     if (list.nearCount === 0) {
