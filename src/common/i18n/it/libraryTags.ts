@@ -254,6 +254,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': 'Correggi',
   'library.tags.fix.openAlbum': 'Apri',
   'library.tags.fix.editByHand': 'Modifica tutto a mano',
+  'library.tags.folders.eyebrow': 'Cartella grande',
+  'library.tags.folders.count': '{count} cartelle con brani',
+  'library.tags.folders.lead':
+    'Troppi brani da modificare insieme. Scegli una cartella: si apre da sola nell’editor, e Indietro o Salva ti riportano qui, con la cartella segnata.',
+  'library.tags.folders.saved': 'Salvato',
+  'library.tags.folders.edit': 'Modifica',
+  'library.tags.set.cancelReading': 'Annulla',
   'library.tags.fix.albumComplete': 'Completo',
   'library.tags.changes.title': 'Modifiche',
   'library.tags.changes.none':

@@ -257,6 +257,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': 'Korrigieren',
   'library.tags.fix.openAlbum': 'Öffnen',
   'library.tags.fix.editByHand': 'Alles von Hand bearbeiten',
+  'library.tags.folders.eyebrow': 'Großer Ordner',
+  'library.tags.folders.count': '{count} Ordner mit Songs',
+  'library.tags.folders.lead':
+    'Zu viele Songs, um sie auf einmal zu bearbeiten. Wählen Sie einen Ordner: Er öffnet sich allein im Editor, und Zurück oder Speichern bringt Sie hierher zurück, der Ordner markiert.',
+  'library.tags.folders.saved': 'Gespeichert',
+  'library.tags.folders.edit': 'Bearbeiten',
+  'library.tags.set.cancelReading': 'Abbrechen',
   'library.tags.fix.albumComplete': 'Vollständig',
   'library.tags.changes.title': 'Änderungen',
   'library.tags.changes.none':

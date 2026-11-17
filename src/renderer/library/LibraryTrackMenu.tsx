@@ -50,6 +50,21 @@ interface ILibraryTrackMenuProps {
   /** The playlist being read, when one is open. Adds the one item that only
    * makes sense there, and never appears anywhere else. */
   openPlaylistId?: string;
+  /** Play what the menu is about from its first song, or from one drawn at
+   * random with the player's shuffle on: a folder's menu in the Folders
+   * tree, which has no header of its own with those buttons. */
+  onPlay?: () => void;
+  /** What the count is of, named before it: a folder's "Avril Lavigne (the
+   * best damn thing) · 13 songs". */
+  heading?: string;
+  /**
+   * How many songs the subject holds when `trackIds` stops short of it: a
+   * folder past what one menu acts on. The heading and the edit item say
+   * this, and filing — Up Next, Favourites, a playlist — is not offered,
+   * because it would file the first of them and say it filed the folder.
+   */
+  songCount?: number;
+  onShuffle?: () => void;
   /** Put this song after what is playing. Optional the way the view's other
    * outward callbacks are: a caller with no player attached has no queue to
    * append to, and the item is then not drawn at all. */
@@ -101,6 +116,10 @@ const LibraryTrackMenu = ({
   trackIds,
   track,
   openPlaylistId,
+  onPlay,
+  heading,
+  songCount,
+  onShuffle,
   onQueueTracks,
   onReveal,
   onRevealFolder,
@@ -137,6 +156,8 @@ const LibraryTrackMenu = ({
   }
 
   const isOne = trackIds.length === 1;
+  const count = Math.max(songCount ?? 0, trackIds.length);
+  const isPart = count > trackIds.length;
   // ALL of them, so the label says what the press will do. A record where
   // four of twelve are starred is not "in Favourites", and offering to remove
   // it would take away the eight that are not there while leaving the four
@@ -183,7 +204,9 @@ const LibraryTrackMenu = ({
           things to a library. */}
       {!isOne && (
         <p className="library-list__menu-subject">
-          {countText(t, 'library.trackCount', trackIds.length)}
+          {heading
+            ? `${heading} · ${countText(t, 'library.trackCount', count)}`
+            : countText(t, 'library.trackCount', count)}
         </p>
       )}
       {/* FIRST, and above the two that file the song away.
@@ -193,7 +216,31 @@ const LibraryTrackMenu = ({
           header queues a whole album, folder or playlist and Cover Flow
           queues a cover, so a single song was the case with no control at
           all. */}
-      {onQueueTracks && (
+      {onPlay && (
+        <button
+          type="button"
+          onClick={() => {
+            onPlay();
+            onClose();
+          }}
+        >
+          <MenuIcon name="play" className="library-list__menu-icon" />
+          <span>{t('library.play')}</span>
+        </button>
+      )}
+      {onShuffle && (
+        <button
+          type="button"
+          onClick={() => {
+            onShuffle();
+            onClose();
+          }}
+        >
+          <MenuIcon name="shuffle" className="library-list__menu-icon" />
+          <span>{t('library.shuffle')}</span>
+        </button>
+      )}
+      {onQueueTracks && !isPart && (
         <button
           type="button"
           onClick={() => {
@@ -210,59 +257,67 @@ const LibraryTrackMenu = ({
           them out of what a screen reader walks — the grouping is a reading
           aid for the eye, and a menu that announces two extra separators is
           slower to hear, not clearer. */}
-      {onQueueTracks && <div className="library-list__menu-rule" role="none" />}
-      <button
-        type="button"
-        onClick={() => {
-          // `addTracks` skips what is already there, so a part-starred record
-          // adds its remainder rather than double-filing anything.
-          if (areAllFavorited) {
-            removeTracks(FAVORITES_PLAYLIST_ID, trackIds);
-          } else {
-            addTracks(FAVORITES_PLAYLIST_ID, trackIds);
-          }
-          onClose();
-        }}
-      >
-        <MenuIcon
-          name="star"
-          className={`library-list__menu-icon${
-            areAllFavorited ? ' library-list__menu-icon--on' : ''
-          }`}
-        />
-        <span>
-          {t(
-            areAllFavorited
-              ? 'library.playlist.removeFromFavorites'
-              : 'library.playlist.addToFavorites',
-          )}
-        </span>
-      </button>
-      <button
-        type="button"
-        aria-haspopup="menu"
-        onClick={() => setPage('playlists')}
-      >
-        <MenuIcon name="playlistAdd" className="library-list__menu-icon" />
-        <span>{t('library.playlist.addTo')}</span>
-        <span className="library-list__menu-more" aria-hidden="true">
-          ›
-        </span>
-      </button>
-      {/* Only inside a playlist. On the album shelf there is no "this
+      {/* Part of a folder files nothing, so the next group's own rule is
+          the only one wanted between playing and editing. */}
+      {!isPart && (onQueueTracks || onPlay || onShuffle) && (
+        <div className="library-list__menu-rule" role="none" />
+      )}
+      {!isPart && (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              // `addTracks` skips what is already there, so a part-starred record
+              // adds its remainder rather than double-filing anything.
+              if (areAllFavorited) {
+                removeTracks(FAVORITES_PLAYLIST_ID, trackIds);
+              } else {
+                addTracks(FAVORITES_PLAYLIST_ID, trackIds);
+              }
+              onClose();
+            }}
+          >
+            <MenuIcon
+              name="star"
+              className={`library-list__menu-icon${
+                areAllFavorited ? ' library-list__menu-icon--on' : ''
+              }`}
+            />
+            <span>
+              {t(
+                areAllFavorited
+                  ? 'library.playlist.removeFromFavorites'
+                  : 'library.playlist.addToFavorites',
+              )}
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-haspopup="menu"
+            onClick={() => setPage('playlists')}
+          >
+            <MenuIcon name="playlistAdd" className="library-list__menu-icon" />
+            <span>{t('library.playlist.addTo')}</span>
+            <span className="library-list__menu-more" aria-hidden="true">
+              ›
+            </span>
+          </button>
+          {/* Only inside a playlist. On the album shelf there is no "this
           playlist" for it to mean, and an item whose subject has to be
           guessed at is worse than one that is not there. */}
-      {openPlaylistId !== undefined && (
-        <button
-          type="button"
-          onClick={() => {
-            removeTracks(openPlaylistId, trackIds);
-            onClose();
-          }}
-        >
-          <MenuIcon name="clear" className="library-list__menu-icon" />
-          <span>{t('library.playlist.removeFrom')}</span>
-        </button>
+          {openPlaylistId !== undefined && (
+            <button
+              type="button"
+              onClick={() => {
+                removeTracks(openPlaylistId, trackIds);
+                onClose();
+              }}
+            >
+              <MenuIcon name="clear" className="library-list__menu-icon" />
+              <span>{t('library.playlist.removeFrom')}</span>
+            </button>
+          )}
+        </>
       )}
       {/* The song's own words: its tags, edited in the side panel for one,
           on the editor page for a set. Ctrl+I opens the same from a row. */}
@@ -281,9 +336,7 @@ const LibraryTrackMenu = ({
               {editTagsLabel ??
                 (isOne
                   ? t('library.tags.menu.edit')
-                  : t('library.tags.menu.editMany', {
-                      count: trackIds.length,
-                    }))}
+                  : t('library.tags.menu.editMany', { count }))}
             </span>
             <span className="library-list__menu-key" aria-hidden="true">
               {t('library.tags.menu.shortcut')}

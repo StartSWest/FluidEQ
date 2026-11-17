@@ -139,13 +139,132 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// What is being read, its bar, and Cancel at the bar's end.
 .library-tags-set__reading {
   display: grid;
-  max-width: 420px;
+  max-width: 520px;
   margin-bottom: 14px;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
   color: $studio-t2;
   font-size: $studio-text-meta;
+
+  > span:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+// *** A folder too big to edit at once: its folders ***************************
+
+.library-tags-folders__head {
+  display: grid;
+  max-width: 900px;
+  margin-bottom: 14px;
+  gap: 2px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: $weight-bold;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    max-width: 62ch;
+    margin: 4px 0 0;
+    color: $studio-t2;
+    font-size: $studio-text-tree;
+    line-height: 1.5;
+  }
+}
+
+.library-tags-folders__list {
+  display: grid;
+  max-width: 900px;
+}
+
+.library-tags-folders__row {
+  display: grid;
+  min-height: 56px;
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  box-shadow: inset 0 -1px 0 $studio-hair;
+
+  &.is-done .library-tags-folders__name b {
+    color: $studio-t2;
+  }
+}
+
+.library-tags-folders__cover {
+  display: block;
+  overflow: hidden;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-xs;
+  background: $studio-raise;
+
+  .library-cover-art,
+  .library-cover-art img {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.library-tags-folders__name {
+  display: grid;
+  min-width: 0;
+  font-size: $studio-text-tree;
+
+  b {
+    font-weight: $weight-semibold;
+    @include truncate;
+  }
+
+  span {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+    @include truncate;
+  }
+}
+
+// Saved from this list this session: the additions' green.
+.library-tags-folders__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $analogous-2;
+  font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.library-tags-folders__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.library-tags-folders__foot {
+  height: 1px;
+}
+
+@container tag-page (max-width: 540px) {
+  .library-tags-folders__row {
+    grid-template-columns: 40px minmax(0, 1fr);
+
+    .library-tags-folders__done,
+    .library-tags-folders__actions {
+      grid-column: 2;
+    }
+  }
 }
 
 // *** The album ******************************************************************

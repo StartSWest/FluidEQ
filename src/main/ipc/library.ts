@@ -24,6 +24,7 @@ import {
   shell,
 } from 'electron';
 import fs from 'fs';
+import path from 'path';
 import type { ILibrarySummary } from '../../common/library/query';
 import type { ILibraryNormalizationAnalysis } from '../../common/library/types';
 import { createLibraryQueries } from '../library/libraryQuery';
@@ -369,6 +370,36 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
       shell.showItemInFolder(trackPath);
     }
   });
+
+  // A folder of the Folders tree opened in Explorer. The folder is named
+  // by the tree, so it is opened only when a song the library knows lies
+  // beneath it: the window can name a folder of music, never any directory.
+  ipcMain.handle(
+    'library-reveal-folder',
+    async (_event, rawFolderId: unknown, rawTrackId: unknown) => {
+      if (typeof rawFolderId !== 'string' || typeof rawTrackId !== 'string') {
+        return;
+      }
+      const trackPath = store.trackPath(rawTrackId);
+      if (trackPath === undefined) {
+        return;
+      }
+      const folder = path.resolve(rawFolderId);
+      const relative = path.relative(folder, trackPath);
+      if (
+        relative === '' ||
+        relative.startsWith('..') ||
+        path.isAbsolute(relative)
+      ) {
+        return;
+      }
+      const failure = await shell.openPath(folder);
+      if (failure !== '') {
+        // eslint-disable-next-line no-console -- context-rich error; the press simply opened nothing
+        console.error(`Could not open the folder ${folder}: ${failure}`);
+      }
+    },
+  );
 
   // The Details pane's facts about one song, read from its file. By id
   // only, like Show in Explorer: the window never names a path to read.

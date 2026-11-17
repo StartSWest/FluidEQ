@@ -255,6 +255,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': 'Corrigir',
   'library.tags.fix.openAlbum': 'Abrir',
   'library.tags.fix.editByHand': 'Editar tudo à mão',
+  'library.tags.folders.eyebrow': 'Pasta grande',
+  'library.tags.folders.count': '{count} pastas com músicas',
+  'library.tags.folders.lead':
+    'Músicas demais para editar de uma vez. Escolha uma pasta: ela abre sozinha no editor, e Voltar ou Salvar trazem você de volta aqui, com a pasta marcada.',
+  'library.tags.folders.saved': 'Salvo',
+  'library.tags.folders.edit': 'Editar',
+  'library.tags.set.cancelReading': 'Cancelar',
   'library.tags.fix.albumComplete': 'Completo',
   'library.tags.changes.title': 'Alterações',
   'library.tags.changes.none':

@@ -249,6 +249,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': '고치기',
   'library.tags.fix.openAlbum': '열기',
   'library.tags.fix.editByHand': '모두 직접 편집',
+  'library.tags.folders.eyebrow': '큰 폴더',
+  'library.tags.folders.count': '곡이 있는 폴더 {count}개',
+  'library.tags.folders.lead':
+    '한 번에 편집하기에는 곡이 너무 많습니다. 폴더를 고르면 그 폴더만 편집기에서 열리고, 뒤로 또는 저장을 누르면 여기로 돌아와 폴더에 표시됩니다.',
+  'library.tags.folders.saved': '저장됨',
+  'library.tags.folders.edit': '편집',
+  'library.tags.set.cancelReading': '취소',
   'library.tags.fix.albumComplete': '완료',
   'library.tags.changes.title': '변경 사항',
   'library.tags.changes.none':

@@ -265,6 +265,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': 'Fix',
   'library.tags.fix.openAlbum': 'Open',
   'library.tags.fix.editByHand': 'Edit all by hand',
+  'library.tags.folders.eyebrow': 'Large folder',
+  'library.tags.folders.count': '{count} folders with songs',
+  'library.tags.folders.lead':
+    'Too many songs to edit at once. Pick a folder: it opens in the editor on its own, and Back or Save brings you back here, the folder marked.',
+  'library.tags.folders.saved': 'Saved',
+  'library.tags.folders.edit': 'Edit',
+  'library.tags.set.cancelReading': 'Cancel',
   'library.tags.fix.albumComplete': 'Complete',
   'library.tags.changes.title': 'Changes',
   'library.tags.changes.none':

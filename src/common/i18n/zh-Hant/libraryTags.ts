@@ -238,6 +238,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': '修正',
   'library.tags.fix.openAlbum': '開啟',
   'library.tags.fix.editByHand': '全部手動編輯',
+  'library.tags.folders.eyebrow': '大型資料夾',
+  'library.tags.folders.count': '{count} 個含歌曲的資料夾',
+  'library.tags.folders.lead':
+    '歌曲太多，無法一次編輯。選擇一個資料夾：它會單獨在編輯器中開啟，返回或儲存後回到這裡，並標記該資料夾。',
+  'library.tags.folders.saved': '已儲存',
+  'library.tags.folders.edit': '編輯',
+  'library.tags.set.cancelReading': '取消',
   'library.tags.fix.albumComplete': '已完整',
   'library.tags.changes.title': '變更',
   'library.tags.changes.none': '還沒有變更。您做的變更會在儲存前列在這裡。',

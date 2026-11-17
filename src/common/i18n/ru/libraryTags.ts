@@ -259,6 +259,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': 'Исправить',
   'library.tags.fix.openAlbum': 'Открыть',
   'library.tags.fix.editByHand': 'Править всё вручную',
+  'library.tags.folders.eyebrow': 'Большая папка',
+  'library.tags.folders.count': 'Папок с песнями: {count}',
+  'library.tags.folders.lead':
+    'Слишком много песен, чтобы править всё сразу. Выберите папку: она откроется в редакторе одна, а «Назад» или «Сохранить» вернут вас сюда с отмеченной папкой.',
+  'library.tags.folders.saved': 'Сохранено',
+  'library.tags.folders.edit': 'Изменить',
+  'library.tags.set.cancelReading': 'Отмена',
   'library.tags.fix.albumComplete': 'Готово',
   'library.tags.changes.title': 'Изменения',
   'library.tags.changes.none':

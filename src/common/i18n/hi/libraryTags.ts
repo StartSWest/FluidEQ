@@ -255,6 +255,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': 'ठीक करें',
   'library.tags.fix.openAlbum': 'खोलें',
   'library.tags.fix.editByHand': 'सब हाथ से बदलें',
+  'library.tags.folders.eyebrow': 'बड़ा फ़ोल्डर',
+  'library.tags.folders.count': 'गानों वाले {count} फ़ोल्डर',
+  'library.tags.folders.lead':
+    'एक साथ बदलने के लिए गाने बहुत ज़्यादा हैं। एक फ़ोल्डर चुनें: वह अकेला एडिटर में खुलेगा, और वापस या सहेजें आपको यहीं लौटाएगा, फ़ोल्डर पर निशान के साथ।',
+  'library.tags.folders.saved': 'सहेजा गया',
+  'library.tags.folders.edit': 'बदलें',
+  'library.tags.set.cancelReading': 'रद्द करें',
   'library.tags.fix.albumComplete': 'पूरा',
   'library.tags.changes.title': 'बदलाव',
   'library.tags.changes.none':

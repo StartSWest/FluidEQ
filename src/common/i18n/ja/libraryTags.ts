@@ -254,6 +254,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': '修正',
   'library.tags.fix.openAlbum': '開く',
   'library.tags.fix.editByHand': 'すべて手で編集',
+  'library.tags.folders.eyebrow': '大きなフォルダー',
+  'library.tags.folders.count': '曲のあるフォルダー {count} 件',
+  'library.tags.folders.lead':
+    '一度に編集するには曲が多すぎます。フォルダーを選ぶとそれだけがエディターで開き、戻るか保存するとここに戻ってそのフォルダーに印が付きます。',
+  'library.tags.folders.saved': '保存済み',
+  'library.tags.folders.edit': '編集',
+  'library.tags.set.cancelReading': 'キャンセル',
   'library.tags.fix.albumComplete': '完了',
   'library.tags.changes.title': '変更',
   'library.tags.changes.none':

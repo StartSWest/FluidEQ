@@ -238,6 +238,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': '修正',
   'library.tags.fix.openAlbum': '打开',
   'library.tags.fix.editByHand': '全部手动编辑',
+  'library.tags.folders.eyebrow': '大文件夹',
+  'library.tags.folders.count': '{count} 个含歌曲的文件夹',
+  'library.tags.folders.lead':
+    '歌曲太多，无法一次编辑。选择一个文件夹：它会单独在编辑器中打开，返回或保存后回到这里，并标记该文件夹。',
+  'library.tags.folders.saved': '已保存',
+  'library.tags.folders.edit': '编辑',
+  'library.tags.set.cancelReading': '取消',
   'library.tags.fix.albumComplete': '已完整',
   'library.tags.changes.title': '更改',
   'library.tags.changes.none': '还没有更改。您做的更改会在保存前列在这里。',

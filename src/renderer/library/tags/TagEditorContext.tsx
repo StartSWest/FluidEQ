@@ -51,9 +51,29 @@ import { type ITagDraft, isDraftEmpty, requestOfDrafts } from './tagDrafts';
 
 export type TTagSetScope = 'album' | 'folder' | 'selection';
 
+/**
+ * A folder too big to edit at once: its folders listed from the Library's
+ * index — nothing read from the files, a page at a time — each opened in the
+ * editor on its own (Ivan, 2026-11-17, over his whole MUSIC folder: "we need
+ * a better way to handle this type of request", "save ram so it doesn't load
+ * all in memory").
+ */
+export interface ITagFoldersView {
+  kind: 'folders';
+  /** The folder, as the Folders shelf names it (forward slashes). */
+  folderId: string;
+  title: string;
+  /** Which button opened it: each folder offers both, this one first. */
+  mode: 'edit' | 'fix';
+}
+
+/** More songs than this in one folder, and the folder is listed instead. */
+export const LARGE_FOLDER_SONGS = 300;
+
 export type TTagEditorView =
   /** One song in the side panel; ‹ › walks `ids`. */
   | { kind: 'song'; ids: string[]; index: number }
+  | ITagFoldersView
   /** An album, a folder or a selection: the page becomes the editor. */
   | {
       kind: 'set';
@@ -69,6 +89,8 @@ export type TTagEditorView =
       title: string;
       /** The folder an album or folder lives in, for the eyebrow. */
       place?: string;
+      /** Opened from a big folder's list: Back and Save return to it. */
+      back?: ITagFoldersView;
     };
 
 interface ITagEditorContextValue {
@@ -80,6 +102,17 @@ interface ITagEditorContextValue {
     title: string,
     place?: string,
   ) => void;
+  /** One folder of a big folder's list in the editor, Back returning to
+   * the list. */
+  openFromFolders: (
+    list: ITagFoldersView,
+    folderId: string,
+    title: string,
+    ids: readonly string[],
+    fix: boolean,
+  ) => void;
+  /** Folders saved from a big folder's list this session, for its marks. */
+  doneFolders: ReadonlySet<string>;
   /** "Fix tags": the same editor, opened with Fix's proposals filled in. */
   openFix: (
     scope: TTagSetScope,
@@ -317,6 +350,11 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
 
   const leavePage = useCallback(
     (then?: () => void) => {
+      if (view?.kind === 'folders') {
+        setView(undefined);
+        then?.();
+        return;
+      }
       if (view?.kind !== 'set') {
         then?.();
         return;
@@ -325,7 +363,9 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
         setWaitingLeave({ go: then });
         return;
       }
-      setView(undefined);
+      // Back alone returns to the big folder's list it came from; a view,
+      // a shelf or a folder pressed elsewhere leaves for that place.
+      setView(then === undefined ? view.back : undefined);
       then?.();
     },
     [view],
@@ -336,11 +376,20 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
       setWaitingLeave(undefined);
       if (discard) {
         pageHasChanges.current = false;
-        setView(undefined);
-        waitingLeave?.go?.();
+        const go = waitingLeave?.go;
+        setView((current) =>
+          go === undefined && current?.kind === 'set'
+            ? current.back
+            : undefined,
+        );
+        go?.();
       }
     },
     [waitingLeave],
+  );
+
+  const [doneFolders, setDoneFolders] = useState<ReadonlySet<string>>(
+    () => new Set(),
   );
 
   const setPageHasChanges = useCallback((hasChanges: boolean) => {
@@ -364,12 +413,44 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
       },
       openSet: (scope, ids, title, place) => {
         setWaitingLeave(undefined);
-        setView({ kind: 'set', scope, ids: [...ids], title, place });
+        setView(
+          scope === 'folder' &&
+            place !== undefined &&
+            ids.length > LARGE_FOLDER_SONGS
+            ? { kind: 'folders', folderId: place, title, mode: 'edit' }
+            : { kind: 'set', scope, ids: [...ids], title, place },
+        );
       },
       openFix: (scope, ids, title, place) => {
         setWaitingLeave(undefined);
-        setView({ kind: 'set', fix: true, scope, ids: [...ids], title, place });
+        setView(
+          scope === 'folder' &&
+            place !== undefined &&
+            ids.length > LARGE_FOLDER_SONGS
+            ? { kind: 'folders', folderId: place, title, mode: 'fix' }
+            : {
+                kind: 'set',
+                fix: true,
+                scope,
+                ids: [...ids],
+                title,
+                place,
+              },
+        );
       },
+      openFromFolders: (list, folderId, title, ids, fix) => {
+        setWaitingLeave(undefined);
+        setView({
+          kind: 'set',
+          fix,
+          scope: 'folder',
+          ids: [...ids],
+          title,
+          place: folderId,
+          back: list,
+        });
+      },
+      doneFolders,
       walkTo: (index) =>
         setView((current) =>
           current?.kind === 'song' && index >= 0 && index < current.ids.length
@@ -378,6 +459,13 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
         ),
       close: () => {
         setWaitingLeave(undefined);
+        // Saved from a big folder's list: marked done there, and back to it.
+        if (view?.kind === 'set' && view.back && view.place) {
+          const saved = view.place;
+          setDoneFolders((done) => new Set(done).add(saved));
+          setView(view.back);
+          return;
+        }
         setView(undefined);
       },
       leavePage,
@@ -409,6 +497,7 @@ export const TagEditorProvider = ({ children }: { children: ReactNode }) => {
       answerLeave,
       setPageHasChanges,
       pageChanges,
+      doneFolders,
       drafts,
       setDraft,
       discardDrafts,

@@ -58,7 +58,7 @@ import { placeTrail } from './LibraryPlaceBar';
 import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
 import { formatCount } from './libraryFormat';
 import { useLibraryAnswer } from './useLibraryAnswer';
-import LibraryFolderTagMenu from './tags/LibraryFolderTagMenu';
+import LibraryFolderMenu from './LibraryFolderMenu';
 
 /**
  * Folders asked for under one parent at once — the store's page ceiling. A
@@ -473,7 +473,7 @@ const LibraryFolderTree = ({
         />
       ))}
       {/* Portalled to the body, so where it is written changes nothing. */}
-      <LibraryFolderTagMenu
+      <LibraryFolderMenu
         anchor={folderMenu?.anchor ?? null}
         folder={folderMenu?.folder}
         label={

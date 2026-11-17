@@ -83,8 +83,15 @@ const WandGlyph = () => (
  */
 const LibraryTagSetEditor = () => {
   const { t } = useTranslation();
-  const { view, close, write, openFix, setPageHasChanges, setPageChanges } =
-    useTagEditor();
+  const {
+    view,
+    close,
+    write,
+    openFix,
+    leavePage,
+    setPageHasChanges,
+    setPageChanges,
+  } = useTagEditor();
   const ids = useMemo(() => (view?.kind === 'set' ? view.ids : []), [view]);
   const sheets = useTagSheets(ids);
   const tracks = useLibraryTracks(ids);
@@ -290,6 +297,14 @@ const LibraryTagSetEditor = () => {
                 }}
               />
             </span>
+            {/* Leaving stops the reading; nothing was written. */}
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => leavePage()}
+            >
+              {t('library.tags.set.cancelReading')}
+            </button>
           </div>
         )}
         {unreadable > 0 && (

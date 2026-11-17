@@ -256,6 +256,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': 'Corregir',
   'library.tags.fix.openAlbum': 'Abrir',
   'library.tags.fix.editByHand': 'Editar todo a mano',
+  'library.tags.folders.eyebrow': 'Carpeta grande',
+  'library.tags.folders.count': '{count} carpetas con canciones',
+  'library.tags.folders.lead':
+    'Demasiadas canciones para editarlas a la vez. Elige una carpeta: se abre sola en el editor, y Volver o Guardar te traen de vuelta aquí, con la carpeta marcada.',
+  'library.tags.folders.saved': 'Guardado',
+  'library.tags.folders.edit': 'Editar',
+  'library.tags.set.cancelReading': 'Cancelar',
   'library.tags.fix.albumComplete': 'Completo',
   'library.tags.changes.title': 'Cambios',
   'library.tags.changes.none':

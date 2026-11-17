@@ -49,6 +49,7 @@ import { useLibraryAnswer, useShelfCounts } from './useLibraryAnswer';
 import { useTagEditor } from './tags/TagEditorContext';
 import LibraryTagSongPanel from './tags/LibraryTagSongPanel';
 import LibraryTagChangesPanel from './tags/LibraryTagChangesPanel';
+import LibraryTagFoldersPage from './tags/LibraryTagFoldersPage';
 import LibraryTagProblemsPanel from './tags/LibraryTagProblemsPanel';
 import LibraryTagWriteCard from './tags/LibraryTagWriteCard';
 import LibraryTagSetEditor from './tags/LibraryTagSetEditor';
@@ -187,9 +188,11 @@ const LibraryWorkspaceView = ({
   const isTagPanelOpen =
     tagEditor.isProblemsOpen || tagEditor.view?.kind === 'song';
   /** An album, folder or selection being edited: the page is the editor. */
-  const isTagPage = tagEditor.view?.kind === 'set';
+  const isTagPage =
+    tagEditor.view?.kind === 'set' || tagEditor.view?.kind === 'folders';
   /** Beside that page, what a Save would do — in Up Next's place. */
-  const isChangesPanelOpen = isTagPage && !tagEditor.isProblemsOpen;
+  const isChangesPanelOpen =
+    tagEditor.view?.kind === 'set' && !tagEditor.isProblemsOpen;
   /** Up Next gives the column up at once to a tag panel, and takes it back
    * as it was when the panel goes (Ivan, 2026-11-16: the two stood together
    * while one slid in and the other out). */
@@ -525,6 +528,9 @@ const LibraryWorkspaceView = ({
             )}
             {/* An album, a folder or a selection being edited: the page is
                 the editor until it is saved or left. */}
+            {tagEditor.view?.kind === 'folders' && (
+              <LibraryTagFoldersPage key={tagEditor.view.folderId} />
+            )}
             {tagEditor.view?.kind === 'set' && (
               <LibraryTagSetEditor
                 key={`${tagEditor.view.ids.join('|')}${tagEditor.view.fix ? '|fix' : ''}`}

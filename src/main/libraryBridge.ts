@@ -133,6 +133,15 @@ const onLibraryChanged = (listener: (summary: ILibrarySummary) => void) => {
 const revealLibraryTrack = (trackId: string) =>
   ipcRenderer.invoke('library-reveal', trackId) as Promise<void>;
 
+/** Opens a Folders-tree folder in Explorer; main opens it only when the
+ * song named lies beneath it. */
+const revealLibraryFolder = (folderId: string, trackId: string) =>
+  ipcRenderer.invoke(
+    'library-reveal-folder',
+    folderId,
+    trackId,
+  ) as Promise<void>;
+
 /** The Details pane's facts about a song, read from its file by id. */
 const libraryTrackFacts = (trackId: string) =>
   ipcRenderer.invoke('library-track-facts', trackId) as Promise<
@@ -345,6 +354,7 @@ const libraryBridge = {
   onLibraryScanProgress,
   onLibraryChanged,
   revealLibraryTrack,
+  revealLibraryFolder,
   noteLibraryTrackPlayed,
   libraryTrackFacts,
   libraryTrackLyrics,

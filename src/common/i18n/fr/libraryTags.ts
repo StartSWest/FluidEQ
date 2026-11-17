@@ -257,6 +257,13 @@ const libraryTags = {
   'library.tags.fix.fixAlbum': 'Corriger',
   'library.tags.fix.openAlbum': 'Ouvrir',
   'library.tags.fix.editByHand': 'Tout modifier à la main',
+  'library.tags.folders.eyebrow': 'Grand dossier',
+  'library.tags.folders.count': '{count} dossiers avec des chansons',
+  'library.tags.folders.lead':
+    'Trop de chansons pour les modifier d’un coup. Choisissez un dossier : il s’ouvre seul dans l’éditeur, et Retour ou Enregistrer vous ramène ici, le dossier marqué.',
+  'library.tags.folders.saved': 'Enregistré',
+  'library.tags.folders.edit': 'Modifier',
+  'library.tags.set.cancelReading': 'Annuler',
   'library.tags.fix.albumComplete': 'Complet',
   'library.tags.changes.title': 'Modifications',
   'library.tags.changes.none':
