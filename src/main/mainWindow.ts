@@ -43,6 +43,7 @@ import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 import { isAppQuitting } from './tray';
 import { applyWindowBackdrop, windowFloorColour } from './windowBackdrop';
 import { installWindowRecovery } from './crashRecovery';
+import isSupersededNavigation from './navigationAbort';
 import { macWindowOptions } from './macWindowChrome';
 import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
@@ -708,6 +709,11 @@ export const createMainWindowFactory = ({
     // request until the bundle is built — so there is nothing to wait for
     // here. This used to poll the server every 100 ms for up to two minutes.
     const firstLoad = created.loadURL(appUrl()).catch((error) => {
+      // Replaced by a newer navigation, which loads the page itself.
+      if (isSupersededNavigation(error)) {
+        log.info('Initial window load replaced by a newer navigation');
+        return undefined;
+      }
       log.error('Initial window load failed; handing it to recovery', error);
       return recoverWindow();
     });

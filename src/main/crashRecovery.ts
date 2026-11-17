@@ -6,6 +6,7 @@ import { translate } from '../common/i18n';
 import { PRODUCT_NAME } from '../common/branding';
 import { keepDeepErrorStacks } from '../common/errorStacks';
 import { flushPendingWrites } from './asyncWriter';
+import isSupersededNavigation from './navigationAbort';
 import { crashDumpFolder } from './crashDumps';
 import { getTrayLocale, isAppQuitting } from './tray';
 import onWindowMessage from './ipc/windowMessages';
@@ -235,6 +236,12 @@ export const installWindowRecovery = (
         await contents.loadURL(appUrl());
       }
     } catch (error) {
+      // Replaced by a newer navigation, which loads the page itself: not a
+      // failure to report or to stop retrying for (`navigationAbort.ts`).
+      if (isSupersededNavigation(error)) {
+        log.info('Window recovery load replaced by a newer navigation');
+        return;
+      }
       log.error('Window recovery failed; automatic retry stopped', error);
       recordFailure(
         'Window recovery failed; automatic retry stopped',
