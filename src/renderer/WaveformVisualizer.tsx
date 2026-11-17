@@ -79,6 +79,7 @@ import {
 } from './audio/LiveAudioContext';
 import EuphoriaPillFaces from './components/EuphoriaPillFaces';
 import LiveFigure from './components/LiveFigure';
+import writeLiveText from './utils/liveText';
 import type { IChartPointData } from './graph/ChartController';
 import {
   SILENT_WAVEFORM,
@@ -125,6 +126,10 @@ type TWaveformCycleStyle = WaveformStyle | 'off';
 
 /** The held peak at its widest: it is let go below `SILENCE_DB`, -70. */
 export const PEAK_WIDEST = ['-00.0 dB', '—'];
+
+/** The held peak as the readout prints it, a dash before there is one. */
+const heldPeakText = (held: number | undefined) =>
+  held === undefined ? '—' : `${held.toFixed(1)} dB`;
 
 /** The keyframes that hold the style's name up (WaveformVisualizer.scss). */
 const ANNOUNCEMENT_HOLD = 'waveform-visualizer-announcement-hold';
@@ -490,7 +495,7 @@ const WaveformVisualizer = () => {
       }
       if (held !== heldPeakRef.current) {
         heldPeakRef.current = held;
-        setHeldPeak(held);
+        writeLiveText(peakTextRef.current, heldPeakText(held));
       }
       moving = moving || held !== undefined;
     }
@@ -629,17 +634,15 @@ const WaveformVisualizer = () => {
     return () => observer.disconnect();
   }, [kickFrames]);
 
-  // Held peak, so the number is readable instead of a blur of digits.
-  // Back in state because the readout is DOM again: it sits in the meta
-  // row above the stage, where it can hug the top of the pane with no
-  // padding of its own while only the waveform underneath is inset.
+  // Held peak, so the number is readable instead of a blur of digits. The
+  // readout is DOM: it sits in the meta row above the stage, where it can
+  // hug the top of the pane with no padding of its own while only the
+  // waveform underneath is inset.
   //
   // THE ONLY THING OUTSIDE THE CANVAS THAT MOVES, and it is quantised so
   // it moves as rarely as it can. The full-precision peak changes on
-  // every published frame, and setting state on each one re-rendered this
-  // component about thirty times a second to write a string that was
-  // usually identical. The displayed figure carries one decimal, so the
-  // reading is rounded to one decimal FIRST and state is only touched
+  // every published frame; the displayed figure carries one decimal, so the
+  // reading is rounded to one decimal FIRST and the text is only touched
   // when that rounded number actually differs — the float underneath can
   // drift as much as it likes for free.
   //
@@ -647,8 +650,14 @@ const WaveformVisualizer = () => {
   // bars and the glow are all pixels in the canvas, which is a resource
   // update rather than a style invalidation. That is the whole reason
   // this pane is a bitmap.
-  const [heldPeak, setHeldPeak] = useState<number | undefined>(undefined);
+  //
+  // Written straight into the figure's text, never through React
+  // (`writeLiveText`): with music the rounded figure still changes on most
+  // frames, and as state it rendered this whole component - the pill and its
+  // six faces with it - 39 times a second, measured in the running window
+  // (2026-11-16).
   const heldPeakRef = useRef<number | undefined>(undefined);
+  const peakTextRef = useRef<HTMLSpanElement>(null);
   // How long the loop has drawn the capture's resting frame since the held
   // peak last stepped down — see the release in `drawFrame`.
   const restReleaseMsRef = useRef(0);
@@ -670,7 +679,7 @@ const WaveformVisualizer = () => {
       const shown = nextHeldPeak(heldPeakRef.current, peakDbOf(waveform));
       if (shown !== heldPeakRef.current) {
         heldPeakRef.current = shown;
-        setHeldPeak(shown);
+        writeLiveText(peakTextRef.current, heldPeakText(shown));
       }
     },
     [kickFrames],
@@ -772,8 +781,9 @@ const WaveformVisualizer = () => {
               <LiveFigure
                 className="waveform-visualizer__peak"
                 widest={PEAK_WIDEST}
+                textRef={peakTextRef}
               >
-                {heldPeak === undefined ? '—' : `${heldPeak.toFixed(1)} dB`}
+                {heldPeakText(heldPeakRef.current)}
               </LiveFigure>
             </span>
           </span>
