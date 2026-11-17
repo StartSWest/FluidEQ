@@ -16,13 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { PLOT_LEFT } from './karaokePitchGeometry';
+import { type IKaraokePitchPoint, PLOT_LEFT } from './karaokePitchGeometry';
 import { readAccent, readAccentLight } from '../utils/theme';
 import {
   karaokeMakerNoteIsActive,
   karaokeMakerNoteProgress,
 } from './makerCanvasLayout';
-import { midiToNoteName } from '../../common/karaoke/pitch';
+import {
+  midiToNoteName,
+  type TKaraokePitchOctavePolicy,
+} from '../../common/karaoke/pitch';
 import { type IKaraokeToken } from '../../common/karaoke/types';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import { LYRIC_FONT_FAMILY } from './karaokeLyricText';
@@ -40,6 +43,11 @@ import {
   paintVerdictChips,
   verdictColour,
 } from './pitchLaneVerdicts';
+import {
+  passedNoteFill,
+  paintSungFill,
+  sungRunsOverNote,
+} from './pitchNoteFill';
 import { type IKaraokeLaneVerdict } from './useKaraokeScore';
 
 // The pitch lane's grid and note blocks, in the order the lane stacks them:
@@ -126,6 +134,16 @@ export const paintPitchGrid = ({
 
 interface IPaintNoteBlocksInput {
   visibleNotes: IKaraokeToken[];
+  /**
+   * The attempt behind the playhead, whose colours fill each note as it is
+   * sung. Absent while nobody sings (no microphone): the note then fills
+   * with the plain pale as the playhead crosses it, a guide to follow.
+   */
+  sung?: {
+    trace: readonly IKaraokePitchPoint[];
+    centerMidi: number;
+    octavePolicy: TKaraokePitchOctavePolicy;
+  };
   xForSongTime: (timeMs: number) => number;
   semitoneHeight: number;
   synchronizedPlayheadMs: number;
@@ -135,11 +153,17 @@ interface IPaintNoteBlocksInput {
   readVerdict?: (note: IKaraokeToken) => IKaraokeLaneVerdict | undefined;
   verdictLabel: (judged: IKaraokeLaneVerdict) => string;
   now: number;
+  plotWidth: number;
 }
 
-/** The target's notes, each wearing its verdict once it has ended. */
+/**
+ * The target's notes. While somebody sings, each fills with the voice's own
+ * colours as it is sung and keeps them once it has ended, under the chip
+ * that names its verdict (`pitchNoteFill.ts`).
+ */
 export const paintNoteBlocks = ({
   visibleNotes,
+  sung,
   xForSongTime,
   semitoneHeight,
   synchronizedPlayheadMs,
@@ -148,8 +172,17 @@ export const paintNoteBlocks = ({
   readVerdict,
   verdictLabel,
   now,
+  plotWidth,
 }: IPaintNoteBlocksInput) => {
   const judgedBoxes: IJudgedNoteBox[] = [];
+  const plotRight = PLOT_LEFT + plotWidth;
+  context.save();
+  // Held to the plot, as the singer's line is: a note scrolling out at the
+  // left used to run on under the gutter and cover the note names there,
+  // its chip with it.
+  context.beginPath();
+  context.rect(PLOT_LEFT, 0, plotWidth, context.canvas.height);
+  context.clip();
   visibleNotes.forEach((note) => {
     const shape = drawnNoteRange(note.startMs as number, note.endMs as number);
     const midi = note.targetMidi as number;
@@ -163,36 +196,68 @@ export const paintNoteBlocks = ({
       shape.endMs,
       synchronizedPlayheadMs,
     );
-    // Once it has ended and been judged, the note wears its verdict.
+    // A name or a chip stands over the part of the note in view.
+    const shownLeft = Math.max(left, PLOT_LEFT);
+    const shownRight = Math.max(shownLeft, Math.min(right, plotRight));
     const judged = kind === 'free' ? undefined : readVerdict?.(note);
     if (judged) {
-      judgedBoxes.push({ left, right, top, judged });
+      judgedBoxes.push({ left: shownLeft, right: shownRight, top, judged });
     }
-    paintNoteBox(context, {
-      left,
-      right,
-      top,
-      height,
-      kind,
-      fill: judged
-        ? verdictColour(judged.verdict, NOTE_STRENGTH)
-        : unsungNoteFill(kind),
-      freeEdge: freeNoteEdge(),
-      progress: active
-        ? karaokeMakerNoteProgress(
-            shape.startMs,
-            shape.endMs,
-            synchronizedPlayheadMs,
-          )
-        : undefined,
-      ringed: active,
-    });
+    const box = { left, right, top, height, kind, ringed: active };
+    if (sung && kind !== 'free') {
+      // The voice fills the note; silence leaves the part crossed unsung.
+      paintNoteBox(context, {
+        ...box,
+        fill: passedNoteFill(context, {
+          left,
+          right,
+          passedX: xForSongTime(synchronizedPlayheadMs),
+          unsung: unsungNoteFill(kind),
+          golden: kind === 'golden',
+        }),
+      });
+      paintSungFill(context, {
+        left,
+        right,
+        top,
+        height,
+        // Gold on gold says nothing until the voice starts covering it.
+        goldEdge: kind === 'golden' && synchronizedPlayheadMs >= shape.startMs,
+        runs: sungRunsOverNote({
+          trace: sung.trace,
+          startMs: shape.startMs,
+          endMs: shape.endMs,
+          playheadMs: synchronizedPlayheadMs,
+          targetMidi: midi,
+          centerMidi: sung.centerMidi,
+          octavePolicy: sung.octavePolicy,
+          xForSongTime,
+        }),
+      });
+    } else {
+      // Nobody singing, or a free note: a guide, the pale following the
+      // playhead, and a judged note in its verdict's colour.
+      paintNoteBox(context, {
+        ...box,
+        fill: judged
+          ? verdictColour(judged.verdict, NOTE_STRENGTH)
+          : unsungNoteFill(kind),
+        freeEdge: freeNoteEdge(),
+        progress: active
+          ? karaokeMakerNoteProgress(
+              shape.startMs,
+              shape.endMs,
+              synchronizedPlayheadMs,
+            )
+          : undefined,
+      });
+    }
     // A judged note's chip stands where its name was.
     if (!judged) {
       paintNoteName(context, {
         midi,
-        left,
-        right,
+        left: shownLeft,
+        right: shownRight,
         top,
         ringed: active,
         bold: active,
@@ -207,4 +272,5 @@ export const paintNoteBlocks = ({
     now,
     reducedMotion: prefersReducedMotion(),
   });
+  context.restore();
 };

@@ -12,10 +12,11 @@ import { drawRoundedRect } from './makerCanvasGeometry';
 // One note box, drawn the same on the player's pitch strip and in the
 // Maker's grid (Ivan, 2026-11-16: "tiene que puntearse de la misma forma que
 // el player"), every size and colour the E mockup's ("Veredicto por nota").
-// Each surface decides where the box goes and what fills it - a verdict on
-// the strip, the selection in the Maker - and hands the rest to this.
+// Each surface decides where the box goes and what fills it - the singer's
+// voice on the strip (`pitchNoteFill.ts`), the selection in the Maker - and
+// hands the rest to this.
 
-const NOTE_CORNER = 2;
+export const NOTE_CORNER = 2;
 /** How far the ring of a sung or selected note stands off its edge. */
 export const NOTE_RING_GAP = 2.5;
 /** An unsung note's accent, and every verdict's, at this strength. */
@@ -74,7 +75,8 @@ interface IPaintNoteBoxInput {
   top: number;
   height: number;
   kind: TNoteBoxKind;
-  fill: string;
+  /** A colour, or the strip's split between the part sung and the rest. */
+  fill: string | CanvasGradient;
   /** The free note's dashed edge; only a free note has one. */
   freeEdge?: string;
   /** How much of the note the playhead has crossed, while it is under it. */
@@ -84,9 +86,11 @@ interface IPaintNoteBoxInput {
 }
 
 /**
- * The box: flat, a 2px corner, the sung part filling with a pale light from
- * its left while the playhead crosses it, and a ring standing off it. Nothing
- * else marks the note being sung - no line at the playhead inside it.
+ * The box: flat, a 2px corner, and a ring standing off it. Given `progress`,
+ * the part the playhead has crossed fills with a pale light from its left -
+ * the Maker, and the strip with nobody singing; a singer's strip paints the
+ * voice over the box instead. Nothing else marks the note being sung - no
+ * line at the playhead inside it.
  */
 export const paintNoteBox = (
   context: CanvasRenderingContext2D,

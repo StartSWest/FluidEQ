@@ -358,8 +358,13 @@ const KaraokePitchLane = ({
           )
         : liveTrace;
 
+      // The voice fills the notes while somebody sings, and wherever an
+      // attempt was sung; with no microphone the notes stay a guide.
+      const isSinging =
+        hasTargets && (isMicrophoneLive || trace.some((point) => point.voiced));
       paintNoteBlocks({
         visibleNotes,
+        sung: isSinging ? { trace, centerMidi, octavePolicy } : undefined,
         xForSongTime,
         semitoneHeight,
         synchronizedPlayheadMs,
@@ -368,6 +373,7 @@ const KaraokePitchLane = ({
         readVerdict,
         verdictLabel,
         now,
+        plotWidth,
       });
 
       // The playhead, a plain accent line through the whole strip, a shade

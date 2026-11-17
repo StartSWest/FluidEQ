@@ -11,14 +11,15 @@ import { type IKaraokeLaneVerdict } from './useKaraokeScore';
 
 // The verdict over every note as it ends, the strip of the E mockup (Ivan,
 // 2026-11-16, "E · Veredicto por nota"; sent back the same day as "not at
-// all like the mockups", so every number here is the mockup's own): the
-// note takes its verdict's colour and a small chip pops above it with the
-// word. Flat, as the strip is: a tinted chip with a hairline, no shadow and
-// no glow.
+// all like the mockups", so every number here is the mockup's own): a small
+// chip pops above the note with the word, over the colours the voice left
+// in it (`pitchNoteFill.ts`) - or, with nobody singing, over the note in its
+// verdict's colour. A tinted chip with a hairline, no shadow and no glow.
 
 // The mockup's three tuning colours, which the singer's line wears too
-// (`pitchLaneTrace.ts`) and the rows under the strip are written in
-// (`$score-on`, `$score-near`, `$score-off` in `_karaokeScoreTokens.scss`).
+// (`pitchLaneTrace.ts`), and the notes it fills, and which the rows under
+// the strip are written in (`$score-on`, `$score-near`, `$score-off` in
+// `_karaokeScoreTokens.scss`).
 // Not the accent: green for in tune is what makes a note sung right stand
 // apart from a note still to sing, which is accent-coloured.
 const ON: readonly [number, number, number] = [141, 245, 184];
