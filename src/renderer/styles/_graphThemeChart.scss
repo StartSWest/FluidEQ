@@ -35,11 +35,20 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .chart-axis--inside text {
   fill: $text-muted;
-  stroke: rgba(2, 8, 15, 0.75);
-  stroke-width: 3px;
-  stroke-linejoin: round;
-  paint-order: stroke;
   transform: translateY(calc(-0.32em - 3px));
+}
+
+// The figures, the frequency names and the slope's label are plain text on a
+// standard look, and over a Plus scene read as text on a photograph
+// (`over-picture-shape`, as SVG text takes it). They wore a 3px stroke of the
+// floor on every look (Ivan, 2026-11-17: "the change you made, for the dB
+// too, for everything ... when it is standard, the text is normal").
+:root.is-scene-column {
+  .chart-axis--inside text,
+  .chart-axis--inside-bottom text,
+  .chart-slope-line text {
+    @include over-picture-shape;
+  }
 }
 
 // The highest figure hangs under its line: above it was cut off by the
@@ -69,10 +78,6 @@ it under the terms of the GNU General Public License version 3 or later.
 // (`graphPaper.ts`, `GRID_AXIS_PADDING`).
 .chart-axis--inside-bottom text {
   fill: $text-muted;
-  stroke: rgba(2, 8, 15, 0.75);
-  stroke-width: 3px;
-  stroke-linejoin: round;
-  paint-order: stroke;
   transform: translateY(calc(-0.71em - 14px));
 }
 
@@ -573,10 +578,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   text {
     fill: $analogous-2;
-    stroke: rgba(2, 8, 15, 0.75);
-    stroke-width: 3px;
-    stroke-linejoin: round;
-    paint-order: stroke;
     font-family: $font-ui;
     font-size: $text-small;
     font-weight: $weight-bold;

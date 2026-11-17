@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-@use 'sass:color' as sass-color;
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
@@ -70,6 +69,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Placed at the end of the EQ group's section row by
 // `.workspace-section-header > .eq-engine-label` in App.scss.
+//
+// The engine's name in the words' own ink, as the pills beside it are (Ivan,
+// 2026-11-17: "fix FluidEQ Engine, change that text too, it can't be in
+// little colours like that"). It wore a cyan-and-violet gradient through the
+// letters, a rainbow in Colourful mode and the scene's accent under a tint;
+// over a picture it read as a smear of colour rather than a name. Its states
+// below still colour it: muted while asking, amber when partly working, dark
+// when it is not reaching the output.
 .eq-engine-label {
   flex: 0 0 auto;
   max-width: 100%;
@@ -77,73 +84,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-title;
   font-weight: $weight-bold;
   text-align: center;
-  color: transparent;
-  background: linear-gradient(
-    90deg,
-    $neon-cyan,
-    sass-color.mix(white, $neon-cyan, 85%),
-    $neon-cyan,
-    sass-color.mix($neon-cyan, $neon-purple, 75%),
-    $neon-cyan
-  );
-  background-size: 200% 100%;
-  // Keep the clip in every state. The background shorthand resets it; a
-  // scene tint added afterwards would then paint a rectangle at startup.
-  background-clip: text;
-  // One pass, and then the name rests lit, which is what the working state
-  // says it does (`FluidEngineLabel.tsx`). It drifted for ever: a background
-  // moving under `background-clip: text` is repainted on the main thread
-  // every frame, so the name cost a paint a frame for as long as the EQ was
-  // open, and went on under `visibility: hidden` while the graph was
-  // expanded over it. The pass ends where it began — the image is twice the
-  // box, so -200% is one whole image along — and stopping leaves no jump.
-  animation: eq-engine-flow 4s linear;
-
-  // Rainbow mode's palette (`Rainbow.scss`): Lagoon, or the Plus visualizer's.
-  .is-euphoric & {
-    background-image: linear-gradient(90deg, var(--rainbow-stops));
-  }
-
-  // A scene lending the window its colours takes this cyan with it: with a
-  // Plus scene tinting everything else, the label was the one resting cyan
-  // left on the page. The rainbow still wins, and without a tint the label
-  // keeps the cyan that is the app's own signature at rest - the rule the
-  // titlebar wave and the level meter already follow (`sceneAccentRamp.ts`).
-  // Not for Equalizer APO's name, which never borrowed this gradient, and not
-  // under forced colours, where the system paints the text itself.
-  @media (forced-colors: none) {
-    :root[data-scene-tint]:not(.is-euphoric) &:not(.eq-engine-label--apo) {
-      background-image: linear-gradient(
-        90deg,
-        var(--accent),
-        color-mix(in srgb, white 70%, var(--accent)),
-        var(--accent),
-        var(--accent-dark),
-        var(--accent)
-      );
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
+  color: $text-primary;
 
   @media (forced-colors: active) {
     color: CanvasText;
-    background-image: none;
-  }
-
-  // APO names the selected engine without borrowing FluidEQ's rainbow identity.
-  &.eq-engine-label--apo {
-    color: $text-primary;
-    background-image: none;
-    animation: none;
-  }
-}
-
-@keyframes eq-engine-flow {
-  to {
-    background-position: -200% 0;
   }
 }
 
@@ -224,20 +168,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /*
  * The wave the name arrives on.
  *
- * A crest travelling through the whole line, not one span per letter: the
- * name is the rainbow clipped to its own text, and a transformed child of
- * that is composited separately — which leaves the letters transparent, so
- * they vanish for exactly as long as they move. A mask moves nothing.
- *
- * `eq-engine-flow` has to be named again here because a second `animation`
- * declaration replaces the first, and losing it would stop the rainbow
- * drifting for the length of the arrival. Timed exactly as the base rule's:
- * an animation kept by name keeps running when the arrival's class comes off,
- * so the one pass started here finishes there and the name comes to rest.
+ * A crest travelling through the whole line, not one span per letter: a
+ * mask moves nothing, so the letters never leave their place while it
+ * passes.
  */
 .eq-engine-label.is-riding {
   animation:
-    eq-engine-flow 4s linear,
     eq-engine-arrive 640ms cubic-bezier(0.22, 1, 0.36, 1) both,
     eq-engine-crest 760ms ease-out both;
   mask-image: linear-gradient(

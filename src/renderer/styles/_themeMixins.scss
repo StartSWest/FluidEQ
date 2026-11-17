@@ -25,6 +25,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'themeTokens' as *;
 @use 'buttonFaces' as *;
 
+// Words and glyphs standing straight on a Plus scene's picture read the way
+// text on a photograph does: a soft shadow under the letters, never a hard
+// edge (Ivan, 2026-11-17: a 3px stroke "black edge" read as grey words in
+// black blobs over a bright sky). Only over a picture: on a standard look
+// the same words are the app's plain text ("when it is standard, the text is
+// normal"). HTML text takes the text shadow; SVG text, glyphs and words
+// painted through a gradient take the same shadow as a filter.
+@mixin over-picture-text {
+  text-shadow:
+    0 0 1px rgba(2, 8, 15, 0.55),
+    0 1px 3px rgba(2, 8, 15, 0.5);
+}
+
+@mixin over-picture-shape {
+  filter: drop-shadow(0 0 1px rgba(2, 8, 15, 0.55))
+    drop-shadow(0 1px 2px rgba(2, 8, 15, 0.5));
+}
+
 // *** Mixins *****************************************************************
 
 // Focus (`focus-ring`), unavailable (`control-disabled`) and every button
