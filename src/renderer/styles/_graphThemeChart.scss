@@ -32,6 +32,12 @@ it under the terms of the GNU General Public License version 3 or later.
   transform: translateY(calc(-0.32em - 3px));
 }
 
+// The highest figure hangs under its line: above it was cut off by the
+// graph's top edge (measured in the running window, 2026-11-16).
+.chart-axis--inside .tick.is-top text {
+  transform: translateY(calc(0.4em + 3px));
+}
+
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
 // confidence — so "still listening" has a visible reason.

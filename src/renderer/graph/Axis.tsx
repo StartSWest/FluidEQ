@@ -98,6 +98,17 @@ const Axis = ({
         .attr('opacity', 1)
         .attr('color', GrayScaleEnum.WHITE)
         .attr('font-size', '0.75rem');
+      // A vertical scale's highest tick, for a label that stands above its
+      // line everywhere but there, where above is off the plot
+      // (`_graphThemeChart.scss`).
+      if (type !== 'bottom') {
+        const top = Math.min(
+          ...tickValues.map((value) => Number(scale(value))),
+        );
+        axisGroup
+          .selectAll<SVGGElement, d3.NumberValue>('.tick')
+          .classed('is-top', (value) => Number(scale(value)) === top);
+      }
     }
   }, [scale, tickValues, tickFormat, disableAnimation, type]);
 

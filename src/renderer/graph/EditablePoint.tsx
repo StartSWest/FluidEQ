@@ -176,7 +176,7 @@ const EditablePoint = ({
       return {
         x: Math.round(
           // A band goes where the EQ can put one, not to the plot's
-          // edges: the plot runs an octave past 10 Hz and 20 kHz.
+          // edges: the plot runs past 10 Hz and 20 kHz.
           Math.max(BAND_LOWEST_HZ, Math.min(MAX_FREQUENCY, invertX(xPixel))),
         ),
         y:

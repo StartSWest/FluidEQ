@@ -25,9 +25,11 @@ import { Color } from 'renderer/styles/color';
 
 /**
  * The frequency range the plot covers with its grid on, edge to edge of the
- * graph: 5 Hz at its left edge and 40 kHz at its right, an octave past 10 Hz
- * and 20 kHz on each side, so the audible band stands in from both edges
- * with room to see what the cuts and the analyser do beyond it. The labels
+ * graph: 5 Hz at its left edge, an octave under 10 Hz, and 24 kHz at its
+ * right, the top of a 48 kHz output, so the audible band stands in from both
+ * edges with room to see what the cuts and the analyser do beyond it. An
+ * octave past 20 kHz as well (40 kHz) left a band of empty plot on the right
+ * on every 48 kHz output, where there is no sound to draw. The labels
  * run 20 Hz to 16 kHz (`FREQUENCY_MAJOR_TICKS`), with unlabelled lines at
  * 10 Hz and 20 kHz. Ivan, 2026-11-16: the graph reaches the sides with its
  * scales drawn over it ("display the 16k instead of 20k"), then "make it
@@ -45,7 +47,7 @@ import { Color } from 'renderer/styles/color';
  * analyser's measurement of it, and the rumble it takes out.
  */
 export const GRAPH_START = 5;
-export const GRAPH_END = 40000;
+export const GRAPH_END = 24000;
 
 /**
  * The range with the grid off, when the plot is a picture drawn edge to edge:
