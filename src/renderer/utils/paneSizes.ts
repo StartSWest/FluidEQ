@@ -375,20 +375,22 @@ export const belowGraphPaneKey = (tab: string) => `${tab}${BELOW_GRAPH_SUFFIX}`;
 const BELOW_GRAPH_DEFAULT_HEIGHT = 344;
 
 /**
- * And never less than this share of the page, on a window with room to spare:
- * the graph a little over half, the page with its tabs the rest (Ivan,
- * 2026-11-16: "the graph should take more space - fix that in the default
- * setting too"). It was 0.56 from 2026-10-25 ("more on the EQ band sliders
- * than in the graph"), and 0.4 before that. With the page's tabs under the
- * graph the bands share their pane with the tab row and the band editor
- * stands beside them rather than under them, so they need less of it: at
- * 0.48 a 1280x800 window's page holds the selected band's column whole,
- * dials and their readings, and the graph is a fifth taller than at 0.56. The
- * need still wins where it is the larger — a laptop, where a share alone
- * would put the tracks under their floor and scroll the page. A divider
- * somebody has moved keeps where they put it.
+ * On a window with room to spare the graph and the page divide it in the
+ * golden ratio, the graph the larger part (Ivan, 2026-11-16: "lets try the
+ * 1.66 aspect for eq vs graph, graph bigger, to golden ratio"): the page
+ * keeps 1 / (1 + φ), 38.2% of the room the two panes share. Of the room, not
+ * of `base`, so the proportion on screen is the ratio whether or not the
+ * transport's strip is there. It was 0.48 of `base` earlier the same day,
+ * 0.56 from 2026-10-25 and 0.4 before that.
+ *
+ * The bands' need wins where it is the larger — a laptop, where 38% would put
+ * the tracks under their floor and scroll the page ("make sure that the EQ is
+ * always nice visible on small laptops"); the graph then takes what is left,
+ * never under `PANE_MIN_HEIGHT`. A divider somebody has moved keeps where they
+ * put it.
  */
-const BELOW_GRAPH_DEFAULT_SHARE = 0.48;
+const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2;
+const BELOW_GRAPH_ROOM_SHARE = 1 / (1 + GOLDEN_RATIO);
 
 const editorShareForTab = (tab: string) => {
   const stored = editorSharesByTab[tab];
@@ -400,18 +402,39 @@ const editorShareForTab = (tab: string) => {
   }
   return tab.endsWith(BELOW_GRAPH_SUFFIX)
     ? Math.max(
-        BELOW_GRAPH_DEFAULT_SHARE,
-        (getBandsPaneNeed() ?? BELOW_GRAPH_DEFAULT_HEIGHT) /
-          Math.max(1, cachedSplittable.base),
-      )
+        cachedSplittable.room * BELOW_GRAPH_ROOM_SHARE,
+        getBandsPaneNeed() ?? BELOW_GRAPH_DEFAULT_HEIGHT,
+      ) / Math.max(1, cachedSplittable.base)
     : defaultEditorShare;
 };
 
 const editorListeners = new Set<() => void>();
 const cachedEditorHeights = new Map<string, number>();
 
+/**
+ * The least a pane may be. The bands under the graph never go under what they
+ * need to fit with nothing scrolling (Ivan, 2026-11-16: "the EQ should have a
+ * nice min height so it fits, no scroll"): dragged lower, the divider stops
+ * there, and a share saved lower than that opens there. Only the graph's own
+ * floor is stronger — on a window too short for both, the graph keeps
+ * `PANE_MIN_HEIGHT` and the bands scroll, because there is no room to give.
+ */
+const floorForTab = (tab: string) =>
+  tab.endsWith(BELOW_GRAPH_SUFFIX)
+    ? Math.max(
+        PANE_MIN_HEIGHT,
+        getBandsPaneNeed() ?? BELOW_GRAPH_DEFAULT_HEIGHT,
+      )
+    : PANE_MIN_HEIGHT;
+
 const calculateEditorHeight = (tab: string) =>
-  clampToWindow(Math.round(cachedSplittable.base * editorShareForTab(tab)));
+  Math.min(
+    ceilingForSinglePane(),
+    Math.max(
+      floorForTab(tab),
+      Math.round(cachedSplittable.base * editorShareForTab(tab)),
+    ),
+  );
 
 const refreshEditorHeightCache = () => {
   const measured = measureSplittableHeight();
@@ -457,7 +480,7 @@ export const getEditorHeight = (tab = 'default') => {
  * apart are the same divider position and are not worth a re-render.
  */
 export const setEditorHeight = (next: number, tab = 'default') => {
-  const value = clampToMinimum(next);
+  const value = Math.max(floorForTab(tab), clampToMinimum(next));
   if (value === getEditorHeight(tab)) {
     return;
   }
