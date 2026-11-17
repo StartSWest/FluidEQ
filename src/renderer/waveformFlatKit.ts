@@ -12,6 +12,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { WaveformStyle } from 'common/waveformStyles';
 import type { IFlatMeterState } from './waveformFlatState';
 
+/** Every style but the recorder, which keeps its own pixels (`waveformRecorder.ts`). */
+export type TFlatWaveformStyle = Exclude<WaveformStyle, 'recorder'>;
+
 export interface IFlatMeterBox {
   x: number;
   y: number;
@@ -20,7 +23,7 @@ export interface IFlatMeterBox {
 }
 
 export interface IFlatMeterInput {
-  style: WaveformStyle;
+  style: TFlatWaveformStyle;
   box: IFlatMeterBox;
   /** Device pixels per CSS pixel. */
   ratio: number;

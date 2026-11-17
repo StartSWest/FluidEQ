@@ -871,6 +871,8 @@ const eq: Partial<Dictionary> = {
   'waveform.live': 'ライブ出力',
   'waveform.signal': 'オーディオ信号',
   'waveform.clip': 'クリップ',
+  'waveform.recorderHint':
+    '直近数秒の波形です。赤はクリップしたサンプルを示します。LUFSは直近3秒のラウドネスです',
   'autoeq.deviceAria': 'オーディオデバイス',
   'autoeq.targetAria': '目標周波数応答',
   'eq.band.edit': '{frequency} Hz のバンドを編集',

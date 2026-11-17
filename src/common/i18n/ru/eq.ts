@@ -875,6 +875,8 @@ const eq: Partial<Dictionary> = {
   'waveform.live': 'ВЫХОД В РЕАЛЬНОМ ВРЕМЕНИ',
   'waveform.signal': 'АУДИОСИГНАЛ',
   'waveform.clip': 'ПЕРЕГРУЗКА',
+  'waveform.recorderHint':
+    'форма волны за последние секунды; красным отмечен перегруженный сэмпл; LUFS — громкость за последние 3 секунды',
   'autoeq.deviceAria': 'Аудиоустройство',
   'autoeq.targetAria': 'Целевая АЧХ',
   'eq.band.edit': 'Изменить полосу {frequency} Гц',

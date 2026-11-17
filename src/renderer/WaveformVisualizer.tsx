@@ -99,6 +99,7 @@ import { useTranslation } from './utils/I18nContext';
 import { readSurface } from './utils/theme';
 import { rainbowGradientStops } from './utils/rainbowPalette';
 import paintFlatMeter from './waveformFlatPaint';
+import { type IRecorderView, createRecorderView } from './waveformRecorderView';
 import { advanceFlatMeter, createFlatMeterState } from './waveformFlatState';
 import './styles/WaveformVisualizer.scss';
 
@@ -140,6 +141,20 @@ const WAVEFORM_CYCLE: readonly TWaveformCycleStyle[] = [
 ];
 
 const LEGACY_WAVE_OFF_MIGRATION_KEY = 'fluideq.waveOffStateMigrated';
+/**
+ * Set once the recorder has been handed to this window as its meter (Ivan,
+ * 2026-11-16: "on the top wave we need a true waveform"): a style chosen
+ * before it existed is replaced by it once, Off excepted, and every click
+ * after that is somebody's own choice again.
+ */
+const RECORDER_INTRODUCED_KEY = 'fluideq.waveRecorderIntroduced';
+
+/** The loudness figure at its widest. */
+const LOUDNESS_WIDEST = ['-00.0 LUFS', '— LUFS'];
+
+/** The loudness figure as the readout prints it. */
+const loudnessText = (lufs: number | undefined) =>
+  lufs === undefined ? '— LUFS' : `${lufs.toFixed(1)} LUFS`;
 
 const isWaveformCycleStyle = (
   value: string | null,
@@ -228,16 +243,23 @@ const WaveformVisualizer = () => {
       // visible Off state instead of needing an invisible click target.
       if (
         getTitlebarWaveHidden() &&
-        stored === WAVEFORM_STYLES[0] &&
+        stored === 'line' &&
         window.localStorage.getItem(LEGACY_WAVE_OFF_MIGRATION_KEY) !== 'true'
       ) {
         window.localStorage.setItem(LEGACY_WAVE_OFF_MIGRATION_KEY, 'true');
         window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'off');
         return 'off';
       }
-      return isWaveformCycleStyle(stored) ? stored : 'fluid';
+      if (window.localStorage.getItem(RECORDER_INTRODUCED_KEY) !== 'true') {
+        window.localStorage.setItem(RECORDER_INTRODUCED_KEY, 'true');
+        if (stored !== 'off') {
+          window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'recorder');
+          return 'recorder';
+        }
+      }
+      return isWaveformCycleStyle(stored) ? stored : 'recorder';
     } catch {
-      return 'fluid';
+      return 'recorder';
     }
   });
   const isOff = style === 'off';
@@ -324,6 +346,11 @@ const WaveformVisualizer = () => {
   // long since the last moment was kept.
   const flatStateRef = useRef(createFlatMeterState());
   const sinceHistoryRef = useRef({ value: 0 });
+  // The recorder (`waveformRecorderView.ts`), which keeps its own pixels
+  // between frames, and whether the canvas holds them now.
+  const loudnessTextRef = useRef<HTMLSpanElement | null>(null);
+  const recorderRef = useRef<IRecorderView | undefined>(undefined);
+  const isRecorderDrawnRef = useRef(false);
 
   // One drawn frame, painted straight onto the canvas.
   //
@@ -361,11 +388,20 @@ const WaveformVisualizer = () => {
       canvas.width = backingWidth;
       canvas.height = backingHeight;
     }
-    // Cleared in device pixels, so the rounding above cannot leave a seam of
-    // last frame's drawing along an edge.
-    context.setTransform(1, 0, 0, 1, 0, 0);
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    // The recorder keeps what it drew and moves it; everything else is drawn
+    // whole each frame.
+    const isRecorder = !isOffRef.current && styleRef.current === 'recorder';
+    if (!isRecorder) {
+      if (isRecorderDrawnRef.current) {
+        isRecorderDrawnRef.current = false;
+        recorderRef.current?.clear();
+      }
+      // Cleared in device pixels, so the rounding above cannot leave a seam
+      // of last frame's drawing along an edge.
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
 
     const smoothed = smoothedRef.current;
     // The capture as it is at this frame, not at the pump's last tick — see
@@ -500,6 +536,42 @@ const WaveformVisualizer = () => {
       moving = moving || held !== undefined;
     }
 
+    if (isRecorder) {
+      recorderRef.current ??= createRecorderView((lufs) =>
+        writeLiveText(loudnessTextRef.current, loudnessText(lufs)),
+      );
+      if (!isRecorderDrawnRef.current) {
+        isRecorderDrawnRef.current = true;
+        recorderRef.current.invalidate();
+      }
+      // One colour: the accent, or in Colourful the mode's palette as one
+      // gradient from the centre line out.
+      const accent = readSurface('--accent', '#00c5ff');
+      const stops = isEuphoricRef.current
+        ? rainbowGradientStops()
+        : [
+            { offset: 0, colour: accent },
+            { offset: 1, colour: accent },
+          ];
+      return (
+        recorderRef.current.draw(context, {
+          box: pane,
+          ratio,
+          palette: {
+            stops,
+            unlit,
+            paused: PAUSED_STROKE,
+            hot: CLIP_STROKE,
+          },
+          isPaused: isPausedRef.current,
+          fresh,
+          published: targetRef.current,
+          publishedAt: arrivedAtRef.current,
+          now: performance.now(),
+        }) || moving
+      );
+    }
+
     // The held marks, the last moments and the two channels (Peaks, Echo,
     // Waterfall, Level). The channels are each one's loudest sample as the
     // capture read it; without a fresh read — paused, another PC's audio —
@@ -553,7 +625,7 @@ const WaveformVisualizer = () => {
     }
 
     paintFlatMeter(context, {
-      style: styleRef.current,
+      style: styleRef.current as Exclude<WaveformStyle, 'recorder'>,
       box: pane,
       ratio,
       wave: smoothed,
@@ -729,6 +801,12 @@ const WaveformVisualizer = () => {
   const pillRef = useRef<HTMLButtonElement | null>(null);
   useMeterLabelFit(shellRef, signalRef, pillRef, !isOff);
 
+  // The recorder says how to read it: which half is which channel, what the
+  // red is, what the new figure measures.
+  const styleLabel = `${t('waveform.style')} — ${style}${
+    style === 'recorder' ? `: ${t('waveform.recorderHint')}` : ''
+  }`;
+
   return (
     // A wrapper, so the pill can be a real button.
     //
@@ -757,8 +835,8 @@ const WaveformVisualizer = () => {
         // keys ('line', 'spectrum', …) are technical identifiers rather than
         // prose, so they pass through the label as-is rather than each
         // needing an entry in every registered locale.
-        aria-label={`${t('waveform.style')} — ${style}`}
-        title={`${t('waveform.style')} — ${style}`}
+        aria-label={styleLabel}
+        title={styleLabel}
         onClick={cycleStyle}
       >
         {/* The meta row, in DOM and outside the stage so it can sit flush
@@ -777,6 +855,15 @@ const WaveformVisualizer = () => {
                 <span className="waveform-visualizer__clip">
                   {t('waveform.clip')}
                 </span>
+              )}
+              {style === 'recorder' && (
+                <LiveFigure
+                  className="waveform-visualizer__loudness"
+                  widest={LOUDNESS_WIDEST}
+                  textRef={loudnessTextRef}
+                >
+                  {loudnessText(undefined)}
+                </LiveFigure>
               )}
               <LiveFigure
                 className="waveform-visualizer__peak"

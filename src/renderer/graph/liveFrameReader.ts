@@ -80,6 +80,14 @@ export interface ILiveFrame {
    */
   channelPeaks: number[];
   /**
+   * Each real channel's newest samples, the window `channelPeaks` was read
+   * from, ending at `audioMs`. Overwritten by the next read: the recorder
+   * meter takes the part that is new (`waveformSampleCursor.ts`) at once.
+   */
+  channelSamples?: readonly Float32Array[];
+  /** The capture's sample rate, for counting those samples against time. */
+  sampleRate?: number;
+  /**
    * Where the music stands between the speakers (`stereoImage.ts`): balance
    * -1..1 and width 0..1. Undefined unless the capture has two channels.
    */
@@ -176,6 +184,8 @@ export const createLiveFrameReader = ({
     waveform: buffers.waveform[0],
     audioMs: 0,
     channelPeaks: channelAnalysers.map(() => 0),
+    channelSamples,
+    sampleRate: analyser.context.sampleRate,
     ...(channelAnalysers.length >= 2 ? { stereo: [0, 0] } : {}),
     ...(sound ? { sound } : {}),
   };
