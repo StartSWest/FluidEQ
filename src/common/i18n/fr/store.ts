@@ -134,7 +134,6 @@ const store: Partial<Dictionary> = {
   'store.official.fine':
     'Fait partie de la collection FluidEQ : à vous pour toujours dès que vous l’obtenez.',
   'store.like.ownersOnly': '{count} j’aime. Obtenez la scène pour l’aimer.',
-  'store.scene.free': 'Gratuite pour tous',
   'store.error.termsOutdated':
     'Les conditions ont changé. Mettez FluidEQ à jour pour lire la nouvelle version avant d’acheter des crédits.',
 };

@@ -45,7 +45,7 @@ import type { TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
 import SceneTaste from './SceneTaste';
 import SceneVersions from './SceneVersions';
-import { useOwnsLook, useSceneStore } from './sceneStore';
+import { useOwnsLook } from './sceneStore';
 
 /** Cards under "More by": one row on a wide pane, two on a narrow one. */
 const MORE_BY = 4;
@@ -105,7 +105,6 @@ export default function ScenePage({
   const { t, locale } = useTranslation();
   const scene = useGalleryScene(opened);
   const owned = useOwnsLook(scene.lookId);
-  const free = useSceneStore().store?.free?.includes(scene.sceneId) ?? false;
   const adding = useAddingScenes().has(scene.lookId);
   const localById = useGalleryLocalScenes();
   const local = localById.get(scene.lookId);
@@ -493,7 +492,7 @@ export default function ScenePage({
         {scene.official && (
           <p className="gallery-included">
             <Glyph name={owned ? 'check' : 'credit'} />
-            {officialLine(t, owned, free)}
+            {officialLine(t, owned)}
           </p>
         )}
 

@@ -40,7 +40,6 @@ const base = {
   owned: [],
   packs: [],
   published: [],
-  free: [],
   everything: false,
   halfCredit: false,
   unpublished: [],

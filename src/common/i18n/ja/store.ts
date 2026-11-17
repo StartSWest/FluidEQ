@@ -132,7 +132,6 @@ const store: Partial<Dictionary> = {
     'FluidEQ コレクションの一部：入手すればずっとあなたのものです。',
   'store.like.ownersOnly':
     'いいね：{count} 件。シーンを入手すると、いいねできます。',
-  'store.scene.free': 'すべての人に無料',
   'store.error.termsOutdated':
     '利用条件が変わりました。クレジットを購入する前に、FluidEQ を更新して新しい版をお読みください。',
 };

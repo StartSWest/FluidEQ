@@ -20,7 +20,7 @@ import { claimCardClip, releaseCardClip, useCardClip } from './cardClip';
 import GalleryCardClip from './GalleryCardClip';
 import type { IMakerRef } from './plusNavigation';
 import SceneGet, { officialLine } from './SceneGet';
-import { useOwnsLook, useSceneStore } from './sceneStore';
+import { useOwnsLook } from './sceneStore';
 
 interface IGalleryCardProps {
   scene: IGalleryScene;
@@ -56,8 +56,7 @@ export default function GalleryCard({
   const owned = useOwnsLook(scene.lookId);
   // FluidEQ's own count no adds (`ScenePage`), so their line says whether
   // the scene is this account's or what getting it does.
-  const free = useSceneStore().store?.free?.includes(scene.sceneId) ?? false;
-  const officialLabel = officialLine(t, owned, free);
+  const officialLabel = officialLine(t, owned);
   const adding = useAddingScenes().has(scene.lookId);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;

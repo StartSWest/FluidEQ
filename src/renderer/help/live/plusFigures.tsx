@@ -431,7 +431,7 @@ export const SceneDrawing = () => {
               </dl>
               <p className="gallery-included">
                 <Glyph name="check" />
-                {officialLine(t, true, false)}
+                {officialLine(t, true)}
               </p>
               <div className="gallery-scene__actions">
                 <button type="button" className="button small">

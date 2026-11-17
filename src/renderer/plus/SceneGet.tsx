@@ -59,20 +59,12 @@ export default function SceneGet({ scene, name, className }: ISceneGetProps) {
 }
 
 /**
- * The line a FluidEQ scene's card and page say beside it: free for everyone
- * when the admin made it so, yours once it is, and otherwise what getting it
- * does.
+ * The line a FluidEQ scene's card and page say beside it: yours once it is,
+ * and otherwise what getting it does. No scene is free for everyone
+ * (Ivan, 2026-11-17), so there is no third line.
  */
-export const officialLine = (
-  t: Translate,
-  owned: boolean,
-  free: boolean,
-): string => {
-  if (free) {
-    return t('store.scene.free');
-  }
-  return t(owned ? 'store.scene.yours' : 'store.scene.keep');
-};
+export const officialLine = (t: Translate, owned: boolean): string =>
+  t(owned ? 'store.scene.yours' : 'store.scene.keep');
 
 /**
  * Over a scene's stage once its taste is over, or when there was none to

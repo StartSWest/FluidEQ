@@ -133,7 +133,6 @@ const store: Partial<Dictionary> = {
     'जो सीन आप पाते हैं, वह आपके अकाउंट में हमेशा के लिए आपका है। कोई उसे दोबारा नहीं बेच सकता।',
   'store.official.fine': 'FluidEQ संग्रह का हिस्सा: पाते ही हमेशा के लिए आपका।',
   'store.like.ownersOnly': '{count} पसंद। पसंद करने के लिए सीन पाएँ।',
-  'store.scene.free': 'सबके लिए मुफ़्त',
   'store.error.termsOutdated':
     'शर्तें बदल गई हैं। क्रेडिट ख़रीदने से पहले नया संस्करण पढ़ने के लिए FluidEQ अपडेट करें।',
 };

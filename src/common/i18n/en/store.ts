@@ -125,7 +125,6 @@ const store = {
   'store.official.fine':
     'Part of the FluidEQ collection: yours for good once you get it.',
   'store.like.ownersOnly': '{count} likes. Get the scene to like it.',
-  'store.scene.free': 'Free for everyone',
   'store.error.termsOutdated':
     'The terms have changed. Update FluidEQ to read the new version before buying credits.',
 };

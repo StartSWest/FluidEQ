@@ -48,11 +48,6 @@ export interface ISceneStore {
    * which said nothing either way.
    */
   published?: string[];
-  /**
-   * FluidEQ's scenes the admin made free for every account (premium 0061),
-   * by scene id. Absent from a server before 0061.
-   */
-  free?: string[];
   /** This account is the admin, who owns every scene there is (0061). */
   everything?: boolean;
   /**
@@ -236,7 +231,11 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     const pack = readPack(row);
     return pack ? [pack] : [];
   });
-  const { published, free, everything, halfCredit } = value;
+  // A server before premium 0115 still sends `free`, the FluidEQ scenes the
+  // admin had made free for every account. That is gone (Ivan, 2026-11-17:
+  // "no free scenes, we already give 3 free credits"): the list is not read,
+  // so a gallery scene costs its credit whatever an older server says.
+  const { published, everything, halfCredit } = value;
   const unpublished = Array.isArray(value.unpublished)
     ? value.unpublished.flatMap((row: unknown): IUnpublishedScene[] => {
         const scene = readUnpublished(row);
@@ -250,7 +249,6 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     owned.length !== value.owned.length ||
     packs.length !== value.packs.length ||
     (published !== undefined && !isSceneIdList(published)) ||
-    (free !== undefined && !isSceneIdList(free)) ||
     (everything !== undefined && typeof everything !== 'boolean') ||
     (halfCredit !== undefined && typeof halfCredit !== 'boolean') ||
     (value.unpublished !== undefined &&
@@ -265,7 +263,6 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     owned,
     packs,
     ...(published === undefined ? {} : { published }),
-    ...(free === undefined ? {} : { free }),
     ...(everything === true ? { everything } : {}),
     ...(halfCredit === true ? { halfCredit } : {}),
     ...(unpublished && unpublished.length > 0 ? { unpublished } : {}),
@@ -285,7 +282,6 @@ export const isSceneStore = (value: unknown): value is ISceneStore =>
   Array.isArray(value.owned) &&
   value.owned.every(isOwnedLookId) &&
   (value.published === undefined || isSceneIdList(value.published)) &&
-  (value.free === undefined || isSceneIdList(value.free)) &&
   (value.everything === undefined || value.everything === true) &&
   (value.halfCredit === undefined || value.halfCredit === true) &&
   (value.unpublished === undefined ||
@@ -372,9 +368,9 @@ export const formatPackPrice = (priceCents: number, locale: string): string =>
  * scene on the graph until it is done, and publishes it to earn from it
  * (Ivan, 2026-10-21: "no need to publish to run on grahp", "they will publish
  * to earn money when the scene is fully done and tested in the grahp"; this
- * replaces 2026-10-18's "necesitan publicar para poder ver"); a FluidEQ scene
- * the admin made free; and any other scene bought, or any while Plus lasts.
- * A member's scene is never free for anyone but its maker.
+ * replaces 2026-10-18's "necesitan publicar para poder ver"); and any other
+ * scene bought or given, or any while Plus lasts. No scene is free for
+ * everyone (Ivan, 2026-11-17): a gallery scene always costs its credit.
  */
 export const mayPlayLook = ({
   lookId,
@@ -394,9 +390,6 @@ export const mayPlayLook = ({
     return false;
   }
   if (store?.everything) {
-    return true;
-  }
-  if (isPremiumLookId(lookId) && store?.free?.includes(packIdOfLook(lookId))) {
     return true;
   }
   const member = parseMemberLookId(lookId);
@@ -433,5 +426,4 @@ export const mayPlayAnything = ({
     store?.everything === true ||
     (store?.owned.length ?? 0) > 0 ||
     (store?.published?.length ?? 0) > 0 ||
-    (store?.free?.length ?? 0) > 0 ||
     held.some((lookId) => mayPlayLook({ lookId, accountId, plus, store })));

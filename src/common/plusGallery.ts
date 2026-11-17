@@ -104,8 +104,8 @@ export interface IGalleryQuery {
   query?: string;
   sort: TGallerySort;
   /**
-   * Leave out what this member can already play — owned, their own, or free
-   * ("Not mine yet", Ivan 2026-11-12: free scenes count as yours too).
+   * Leave out what this member can already play — owned, given or their own
+   * ("Not mine yet", Ivan 2026-11-12).
    */
   notMine?: boolean;
   offset?: number;

@@ -180,8 +180,13 @@ describe('which scenes play', () => {
   const store = parseSceneStore(
     answer({ published: ['mine-out'] }),
   ) as ISceneStore;
-  const play = (lookId: string, plus: boolean, of = store) =>
-    mayPlayLook({ lookId, accountId: ME, plus, store: of });
+  const play = (
+    lookId: string,
+    plus: boolean,
+    of: ISceneStore | undefined = store,
+  ) => mayPlayLook({ lookId, accountId: ME, plus, store: of });
+  const anythingOf = (of: ISceneStore | undefined) =>
+    mayPlayAnything({ accountId: ME, plus: false, store: of, held: [] });
 
   it('plays nothing to somebody signed out, Plus or not', () => {
     expect(
@@ -222,21 +227,26 @@ describe('which scenes play', () => {
     expect(play(memberLookId(ADA, 'mine-draft'), false, older)).toBe(false);
   });
 
-  it('plays a FluidEQ scene made free for everyone signed in, and never a member scene by that list', () => {
-    const freed = { ...store, owned: [], free: ['aurora', 'other'] };
-    expect(play(premiumLookId('aurora'), false, freed)).toBe(true);
-    // The control: a FluidEQ scene not on the list still needs getting.
-    expect(play(premiumLookId('ember'), false, freed)).toBe(false);
-    // The list names FluidEQ's scenes; a member scene of the same id is not one.
-    expect(play(memberLookId(ADA, 'other'), false, freed)).toBe(false);
-    expect(
-      mayPlayLook({
-        lookId: premiumLookId('aurora'),
-        accountId: undefined,
-        plus: false,
-        store: freed,
+  // Ivan, 2026-11-17: "no free scenes, we already give 3 free credits". A
+  // server before premium 0115 still lists FluidEQ scenes made free for
+  // everyone; the app plays none of them for that, and keeps no list.
+  it('plays no FluidEQ scene for being on an older server’s free list', () => {
+    const older = parseSceneStore(
+      answer({ owned: [], free: ['aurora', 'alpine'] }),
+    );
+    expect(older).toBeDefined();
+    expect(older).not.toHaveProperty('free');
+    expect(play(premiumLookId('aurora'), false, older)).toBe(false);
+    expect(anythingOf(older)).toBe(false);
+    // The control: the same scene got with a credit plays.
+    const bought = parseSceneStore(
+      answer({
+        owned: [{ authorId: FLUIDEQ_CREATOR_ID, sceneId: 'aurora' }],
+        free: ['aurora', 'alpine'],
       }),
-    ).toBe(false);
+    );
+    expect(play(premiumLookId('aurora'), false, bought)).toBe(true);
+    expect(anythingOf(bought)).toBe(true);
   });
 
   it('plays every scene for the admin, other makers’ drafts included', () => {
@@ -278,7 +288,7 @@ describe('which scenes play', () => {
   // the gallery and its credits wait for the admin. The graph already played
   // it, while the lighting switch said no scene was theirs.
   it('lights the lamps for a maker whose only scene is their own, waiting for review', () => {
-    const nothing = { ...store, owned: [], published: [], free: [] };
+    const nothing = { ...store, owned: [], published: [] };
     expect(anything(false, nothing, [memberLookId(ME, 'in-review')])).toBe(
       true,
     );

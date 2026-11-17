@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { BrowserWindow } from 'electron';
 import type { IAccountConfig } from '../common/accountConfig';
 import type { IScenePack } from '../common/scenePacks';
-import type { TSceneStoreOutcome } from '../common/sceneStore';
 import type { IAccountSession } from './account/session';
 import type { TInspection } from './ipc/studioProjectTypes';
 import type { IMemberCopyMark } from './memberScenes/studioProjects';
@@ -39,7 +38,6 @@ export interface IMainAddonServices {
   openExternal: (url: string) => boolean;
   /** What the app holds that an add-on's work can make stale. */
   refresh: {
-    store: () => Promise<TSceneStoreOutcome>;
     blockList: () => Promise<void>;
     gallery: () => Promise<void>;
     reviewNews: () => Promise<void>;

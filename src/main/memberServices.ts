@@ -559,7 +559,6 @@ const registerMemberServices = ({
     },
     openExternal: openExternalIfSafe,
     refresh: {
-      store: () => sceneOwnership.refreshNow(),
       blockList: () => memberSharingIpc.refreshBlocked(),
       gallery: async () => {
         await plusGalleryIpc.refreshIfDue(true);

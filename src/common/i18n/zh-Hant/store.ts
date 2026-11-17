@@ -110,7 +110,6 @@ const store = {
   'store.scene.fine': '你得到的場景永遠屬於你，由你負責。沒有人可以轉售它。',
   'store.official.fine': 'FluidEQ 系列的一部分：一旦獲得，就永遠屬於您。',
   'store.like.ownersOnly': '{count} 讚。讓場景變得喜歡。',
-  'store.scene.free': '所有人免費',
   'store.error.termsOutdated':
     '條款已更改。更新 FluidEQ 以在購買點數之前閱讀新版本。',
 } satisfies Partial<Dictionary>;

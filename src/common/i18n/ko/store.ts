@@ -123,7 +123,6 @@ const store = {
   'store.official.fine':
     'FluidEQ 컬렉션의 일부: 일단 구입하면 영원히 사용할 수 있습니다.',
   'store.like.ownersOnly': '{count}가 좋아합니다. 장면을 좋아하게 만드세요.',
-  'store.scene.free': '모두에게 무료',
   'store.error.termsOutdated':
     '약관이 변경되었습니다. 크레딧을 구매하기 전에 새 버전을 읽으려면 FluidEQ를 업데이트하세요.',
 } satisfies Partial<Dictionary>;
