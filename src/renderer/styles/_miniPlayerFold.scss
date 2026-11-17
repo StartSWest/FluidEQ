@@ -253,8 +253,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The song's line along the foot: the app's one slider (`_ampSliders.scss`)
-// at its small size, because the fold's foot is all the room it has, its
-// handle showing only under the pointer, while dragged or focused, held in from each side and lifted so it stands clear of the
+// drawn small, because the fold's foot is all the room it has - a 4px line
+// and an 8 by 12 knob that shows only under the pointer, while dragged or
+// focused, held in from each side and lifted so it stands clear of the
 // window's foot and rounded corners (2026-10-25: "it needs to fully display
 // the knob"; 2026-10-26: "the bar not glowing").
 .player-fold__seek.player-range {
@@ -263,14 +264,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
   bottom: 4px;
   left: 12px;
   width: auto;
-  @include toggle-knob-slider-size(small);
+  height: 12px;
+
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+  }
 
   &::-webkit-slider-thumb {
+    width: 8px;
+    height: 12px;
+    margin-top: -4px;
     opacity: 0;
     transition:
       opacity $motion-fast $ease-out,
-      background-color $motion-fast ease,
-      border-color $motion-fast ease;
+      background-color 120ms ease;
   }
 
   &:hover::-webkit-slider-thumb,

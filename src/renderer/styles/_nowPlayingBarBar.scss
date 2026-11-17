@@ -827,8 +827,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .now-playing-bar__seek,
 .now-playing-bar__volume-slider {
-  // The one slider (`toggle-knob-slider`).
-  @include toggle-knob-slider(var(--now-playing-progress));
+  // The one slider (`toggle-knob-slider`), on the bar's own floor.
+  @include toggle-knob-slider(var(--now-playing-progress), $surface-base);
   width: 100%;
 }
 

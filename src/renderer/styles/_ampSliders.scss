@@ -12,12 +12,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // stylesheet so they stand in each amp's scope (`MiniPlayer.scss`).
 //
 // The app's one slider (`toggle-knob-slider`, Ivan 2026-11-15: "make all seek
-// or volume or zoom sliders look the same", "go with toggle knob"). The lit,
-// glowing line with a white thumb and the Rainbow volume scale were the
-// amp's alone.
+// or volume or zoom sliders look the same", "go with toggle knob"), its knob
+// ringed in the amp's own floor. The lit, glowing line with a white thumb and
+// the Rainbow volume scale were the amp's alone.
 @mixin sliders {
   .player-range {
-    @include toggle-knob-slider(var(--fill, 0%));
+    @include toggle-knob-slider(var(--fill, 0%), var(--player-floor));
     display: block;
     width: 100%;
   }

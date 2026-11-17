@@ -65,13 +65,10 @@ const Ring = ({ className, dash }: IRingProps) => (
  * the preamp, every DSP stage's, the band popover's, the player's tone (Ivan,
  * 2026-09-26: "I want you to update all nobs in the entire app").
  *
- * Built from the sliders' own parts (2026-11-17, the one control theme:
- * "and the circle knobs, and the sliders"): the travel is the sliders' well
- * bent into a ring, its hairline round it, the value laid in it in the solid
- * accent as a slider's fill is, and the body is a skirt with a cap on it -
- * the cap a handle's face, the skirt a quieter step of it, both cut out by
- * the handle's edge - with a line of the accent across both for the pointer.
- * Flat: it was a matte body on a
+ * Flat (2026-11-17, the one control theme): the travel is a well bent into
+ * a ring, its hairline round it, the value laid in it in the solid accent,
+ * and the body is a skirt with a cap on it, both cut out by the dial's edge,
+ * with a line of the accent across both for the pointer. Before that it was a matte body on a
  * side wall with a turned finish and a lit rim, the value a neon tube in four
  * layers of light round a glass channel, and a glowing pointer - the one
  * Ivan picked on 2026-09-27, until every other control in the app went flat

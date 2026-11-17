@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
-@use 'motion' as *;
 @use 'theme' as *;
 
 // THE EQUALIZER'S FADERS — the same in both amps (Ivan, 2026-09-28: "also the
@@ -259,58 +258,61 @@ $player-fader-around: 58px;
 
   // The cap, on the figure the lit part ends at, so the two cannot disagree.
   //
-  // THE APP'S OWN HANDLE, in whichever shape the window is set to (Ivan,
-  // 2026-09-26: "both circle and rec depending on the app setting") - the one
+  // THE EQ PAGE'S OWN HANDLE, in whichever shape the window is set to (Ivan,
+  // 2026-09-26: "both circle and rec depending on the app setting") — the one
   // setting, `data-slider-handle` on the root, chosen in the app's settings or
-  // the player's menu - from the one definition (`_sliderFaces.scss`), drawn
-  // upright here because this cap is not turned with its input. It was a disc
-  // lit from above with a black shadow and a glow of the band's colour, and a
-  // cap with a 14px glow, both its own copies of the EQ page's.
+  // the player's menu. Round: a disc of the field's colour lit from above, a
+  // lit centre and a ring in the band's colour, and its glow (`.range` in
+  // `RangeInput.scss`). The cap below it (`FrequencyBand.scss`).
   .player-band__cap {
     --cap-across: var(--player-fader-cap);
 
     position: absolute;
     top: var(--player-fader-top);
     left: 50%;
+    box-sizing: border-box;
     width: var(--cap-across);
     height: var(--player-fader-along);
     margin-top: calc(var(--player-fader-along) / -2);
     margin-left: calc(var(--cap-across) / -2);
-    @include handle-round(
-      var(--player-fader-colour),
-      round(calc(var(--player-fader-cap) * 0.15), 0.5px)
-    );
-    transition:
-      background-color $motion-fast ease,
-      border-color $motion-fast ease;
+    border-radius: 50%;
+    background:
+      radial-gradient(
+        circle,
+        var(--player-fader-colour) 0 calc(var(--player-fader-cap) * 0.17),
+        transparent calc(var(--player-fader-cap) * 0.17 + 1px)
+      ),
+      radial-gradient(circle at 50% 28%, rgba($white, 0.24), transparent 62%),
+      var(--surface-field);
+    box-shadow:
+      0 0 0 2px var(--player-fader-colour),
+      0 4px 10px rgba($black, 0.5),
+      0 0 12px color-mix(in srgb, var(--player-fader-colour) 45%, transparent);
     pointer-events: none;
   }
 
-  .player-band__input:hover:not(:disabled) + .player-band__cap {
-    @include handle-hover(var(--player-fader-colour));
-  }
-
-  .player-band__input:active:not(:disabled) + .player-band__cap {
-    @include handle-press(var(--player-fader-colour));
+  .player-band__input:hover + .player-band__cap {
+    box-shadow:
+      0 0 0 2px var(--player-fader-colour),
+      0 0 0 5px color-mix(in srgb, var(--player-fader-colour) 16%, transparent),
+      0 4px 10px rgba($black, 0.5),
+      0 0 16px color-mix(in srgb, var(--player-fader-colour) 55%, transparent);
   }
 
   .player-band__input:focus-visible + .player-band__cap {
-    @include handle-focus(round);
+    box-shadow:
+      0 0 0 2px var(--player-fader-colour),
+      0 0 0 4px var(--player-floor),
+      0 0 0 6px var(--player-ink-bright);
   }
 
-  .player-band__input:disabled + .player-band__cap {
-    @include handle-unavailable;
-  }
-
-  // THE FADER CAP, as wide as the band allows: it is held in from the
-  // travel's ends by its shorter side, so the fill below knows where its
-  // centre can reach.
+  // THE FADER CAP: a slate cap as wide as the band allows, a line across it in
+  // the band's colour between two grip lines, lit from above — the EQ page's
+  // own cap (`FrequencyBand.scss`), drawn upright here because this cap is not
+  // turned with its input.
   :scope[data-slider-handle='rect'] {
     .player-band {
-      --player-fader-along: round(
-        max(10px, calc(var(--player-fader-cap) * 0.72)),
-        2px
-      );
+      --player-fader-along: max(10px, calc(var(--player-fader-cap) * 0.72));
     }
 
     .player-band__cap {
@@ -318,22 +320,64 @@ $player-fader-around: 58px;
         28px,
         calc(var(--player-band-width, var(--player-fader-cap)) - 2px)
       );
+
+      border: 1px solid rgba($white, 0.12);
+      border-radius: $radius-2xs;
+      background:
+        linear-gradient(
+            180deg,
+            transparent calc(50% - 1px),
+            var(--player-fader-colour) calc(50% - 1px) calc(50% + 1px),
+            transparent calc(50% + 1px)
+          )
+          center / calc(100% - 4px) 100% no-repeat,
+        linear-gradient(
+            180deg,
+            transparent calc(50% - 3px),
+            color-mix(in srgb, var(--player-fader-colour) 30%, transparent)
+              calc(50% - 3px) calc(50% + 3px),
+            transparent calc(50% + 3px)
+          )
+          center / calc(100% - 2px) 100% no-repeat,
+        linear-gradient(
+            180deg,
+            transparent 2px,
+            rgba($white, 0.1) 2px 3px,
+            transparent 3px calc(100% - 3px),
+            rgba($white, 0.1) calc(100% - 3px) calc(100% - 2px),
+            transparent calc(100% - 2px)
+          )
+          center / calc(100% - 8px) 100% no-repeat,
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--surface-field), $white 16%),
+          var(--surface-field) 50%,
+          color-mix(in srgb, var(--surface-field), $black 28%)
+        );
+      box-shadow:
+        0 5px 12px rgba($black, 0.55),
+        0 0 14px color-mix(in srgb, var(--player-fader-colour) 28%, transparent);
     }
-  }
 
-  // The cap's face, under `:where()` so the states above outweigh it.
-  :where(:scope[data-slider-handle='rect']) .player-band__cap {
-    @include handle-rect(
-      var(--player-fader-colour),
-      var(--player-fader-along),
-      y
-    );
-  }
+    .player-band__input:hover + .player-band__cap {
+      border-color: color-mix(
+        in srgb,
+        var(--player-fader-colour) 60%,
+        transparent
+      );
+      box-shadow:
+        0 0 0 3px
+          color-mix(in srgb, var(--player-fader-colour) 14%, transparent),
+        0 5px 12px rgba($black, 0.55),
+        0 0 16px color-mix(in srgb, var(--player-fader-colour) 40%, transparent);
+    }
 
-  :where(:scope[data-slider-handle='rect'])
-    .player-band__input:focus-visible
-    + .player-band__cap {
-    @include handle-focus(rect);
+    .player-band__input:focus-visible + .player-band__cap {
+      box-shadow:
+        0 0 0 2px var(--player-floor),
+        0 0 0 4px var(--player-ink-bright),
+        0 5px 12px rgba($black, 0.55);
+    }
   }
 
   // The preamp's own key, over its fader: lit and reading AUTO while the app
@@ -408,6 +452,10 @@ $player-fader-around: 58px;
     opacity: 0.7;
 
     .player-band__fill {
+      box-shadow: none;
+    }
+
+    .player-band__cap {
       box-shadow: none;
     }
   }

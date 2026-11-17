@@ -10,11 +10,24 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'theme' as *;
 
+// The dial's faces, worked out where they are used from the pane under them,
+// so a scene's tint and every shade carry them: the cap a step over the pane,
+// the skirt halfway to it (a body that big in the cap's full lift was the
+// lightest thing on a page of dials), and the cut a step under it, so the
+// body is cut out of whatever it lies over.
+$dial-cap: oklch(from var(--surface-panel) calc(l + 0.17) calc(c * 1.05) h);
+$dial-skirt: oklch(from var(--surface-panel) calc(l + 0.08) calc(c * 1.05) h);
+$dial-cut: oklch(from var(--surface-panel) calc(l - 0.08) c h);
+
+// The cap tinted with the accent, opaque, for a dial that is held.
+@function dial-tint($share) {
+  @return color-mix(in oklab, #{$secondary-default} $share, #{$dial-cap});
+}
+
 // The app's one knob (`KnobDial`), wherever it is: the EQ page, the preamp,
-// every DSP stage, the band popover, the player's tone. The sliders' parts
-// bent into a dial (`_sliderFaces.scss`): the well with its hairline, the
-// value in the solid accent, a handle's face and cut for the body, and a line
-// of the accent on it for the pointer. Its size is the place's (the DSP
+// every DSP stage, the band popover, the player's tone. The well with its
+// hairline, the value in the solid accent, a skirt and a cap for the body,
+// and a line of the accent on it for the pointer. Its size is the place's (the DSP
 // cards' `--dsp-knob`, the tone's `--tone-knob-size`, the band editor's
 // `--dial-size`); everything inside scales with it.
 .knob {
@@ -70,12 +83,11 @@ it under the terms of the GNU General Public License version 3 or later.
     fill: rgba($edge-tint, 0.4);
   }
 
-  // The skirt a quieter step of a handle's face, so a row of dials is not a
-  // row of light discs, and the cap the face itself; each cut out by the
-  // handle's edge, a whole pixel at any size.
+  // The skirt and the cap, each cut out by the dial's edge, a whole pixel at
+  // any size.
   &__skirt,
   &__cap {
-    stroke: $handle-cut;
+    stroke: $dial-cut;
     stroke-width: 1px;
     vector-effect: non-scaling-stroke;
   }
@@ -85,7 +97,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &__cap {
-    fill: $handle-face;
+    fill: $dial-cap;
     transition: fill $motion-fast ease;
   }
 
@@ -109,14 +121,13 @@ it under the terms of the GNU General Public License version 3 or later.
   // Reached for: the ring it turns in takes the hover tint, and nothing
   // else (Ivan, 2026-09-27: "the hover needs to highlight the external arc";
   // lighting the body's edge and a ring round it as well "highlights all
-  // borders, not good"). Held, the cap takes the lit tint as a held slider
-  // handle does.
+  // borders, not good"). Held, the cap takes the lit tint.
   &:hover:not(.knob--disabled) .knob__well {
     stroke: color-mix(in oklab, #{$secondary-default} 32%, #{$track-well});
   }
 
   &:active:not(.knob--disabled) .knob__cap {
-    fill: handle-tint($secondary-default, 24%);
+    fill: dial-tint(24%);
   }
 
   // The dial is an SVG behind a transparent range input, so the focus line is
