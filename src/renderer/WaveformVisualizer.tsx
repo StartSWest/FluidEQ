@@ -541,14 +541,32 @@ const WaveformVisualizer = () => {
       recorderRef.current ??= createRecorderView((lufs) =>
         writeLiveText(loudnessTextRef.current, loudnessText(lufs)),
       );
-      // One colour, the accent, in either mode (Ivan, 2026-11-16: "just a
-      // normal waveform").
+      // One colour, the accent (Ivan, 2026-11-16: "just a normal
+      // waveform"), and in Colourful mode the mode's own rainbow across the
+      // pane, as every other style and the graph's analyser wear it there
+      // (2026-11-17: "top wave needs to be also colourful in that mode").
+      let recorderFill: string | CanvasGradient = readSurface(
+        '--accent',
+        '#00c5ff',
+      );
+      if (isEuphoricRef.current) {
+        const rainbow = context.createLinearGradient(
+          pane.x,
+          0,
+          pane.x + pane.width,
+          0,
+        );
+        rainbowGradientStops().forEach((stop) => {
+          rainbow.addColorStop(stop.offset, stop.colour);
+        });
+        recorderFill = rainbow;
+      }
       return (
         recorderRef.current.draw(context, {
           box: pane,
           ratio,
           palette: {
-            fill: readSurface('--accent', '#00c5ff'),
+            fill: recorderFill,
             paused: PAUSED_STROKE,
           },
           isPaused: isPausedRef.current,

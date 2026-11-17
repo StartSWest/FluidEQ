@@ -49,8 +49,8 @@ const FALL = 0.3;
 const MIN_CAPACITY = 1024;
 
 export interface IRecorderPalette {
-  /** The shape. */
-  fill: string;
+  /** The shape: the accent, or Colourful mode's rainbow across the pane. */
+  fill: string | CanvasGradient;
   /** The shape while the capture is paused. */
   paused: string;
 }
