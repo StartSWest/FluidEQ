@@ -2883,20 +2883,17 @@ $graph-card-pages: list.join(
     // band for an afternoon and came off it again (Ivan, 2026-11-17: "I do
     // not like the top band at all"): it reads by its words' own outline now
     // (`.center-head--eq`, below).
-    // The row over a scene is the bands' card's own colour, a shade darker,
-    // laid see-through with no blur (Ivan, 2026-11-17: a dark strip read as
-    // "not good"; then "no blur on that bar, only on the legend; leave it
-    // see-through and a little darker"): the card's face taken 15% towards
-    // black, at 62%.
+    // The row over a scene is the bands' card's own face, exactly: the
+    // picture ends at the row's top and the row reads as the head of the card
+    // under it, in balance with every other panel (Ivan, 2026-11-17, after a
+    // dark strip, a glass one and a see-through darker one: "it does not make
+    // a good contrast with the app, it must keep the balance with the whole
+    // application").
     > .middle-content
       > .workspace-tab-panel--eq
       > .workspace-tab-panel__row
       > .eq-layer-tabs {
-      background: color-mix(
-        in srgb,
-        color-mix(in srgb, #{$surface-panel} 85%, black) 62%,
-        transparent
-      );
+      background: $surface-section;
     }
 
     // And the pills' row lays no face of its own over the picture: the

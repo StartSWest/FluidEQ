@@ -39,15 +39,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   box-sizing: border-box;
   border: 1px solid transparent;
   border-radius: $radius-s;
+  // The same face over a Plus scene as on a standard look, and as the EQ tab
+  // row under the graph wears over a scene, so the two read as one family
+  // (Ivan, 2026-11-17: "and it must be the same colour for the legend").
   background: $surface-section;
-
-  // Over a Plus scene the key shows the picture through it rather than
-  // standing on it as a solid patch of the window's colour (Ivan,
-  // 2026-11-17: "it should always show the background"; then "no blur on
-  // the legend either"): the card's face at 38%, see-through, no blur.
-  :root.is-scene-column & {
-    background: color-mix(in srgb, #{$surface-section} 38%, transparent);
-  }
 }
 
 .graph-corner-legend__list {
