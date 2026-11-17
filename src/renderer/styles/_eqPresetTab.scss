@@ -223,13 +223,49 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 14px;
   padding-left: 18px;
   border-left: 1px solid $border-subtle;
+}
+
+// The scrollbars stand on the borders (Ivan, 2026-11-17: "both scrolls in
+// presets next to the borders"): the grid's on the rule before the notes,
+// out across the 18px gap, and the notes' on the card's edge, out across the
+// page's 10px inset. Each gives back as padding what it reaches out, less
+// the 8px bar, so nothing inside moves.
+$eq-preset-scrollbar: 8px;
+
+.eq-preset-tab__grid {
+  margin-right: -18px;
+  padding-right: 18px - $eq-preset-scrollbar;
+}
+
+.eq-preset-tab__detail {
+  margin-right: -10px;
+  padding-right: 10px - $eq-preset-scrollbar;
+}
+
+// One preset's words, faded in on its own (keyed in `EqPresetTab`): fast
+// enough to keep up with a pointer running down the grid.
+.eq-preset-tab__detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: eq-preset-detail-in 150ms $ease-out both;
 
   // A column that scrolls would otherwise squeeze its notes to fit.
   > * {
     flex-shrink: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes eq-preset-detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
 }
 
@@ -292,6 +328,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .eq-preset-tab {
     grid-template-columns: 150px minmax(0, 1fr);
     grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+  }
+
+  // The grid is the right-hand column now, so its bar goes to the card's
+  // edge as the notes' does.
+  .eq-preset-tab__grid {
+    margin-right: -10px;
+    padding-right: 10px - $eq-preset-scrollbar;
   }
 
   .eq-preset-tab__detail {

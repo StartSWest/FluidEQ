@@ -217,26 +217,32 @@ const EqPresetTab = () => {
       </div>
 
       <aside className="eq-preset-tab__detail" aria-live="polite">
-        {focused && genreNotesFor(focused.id) ? (
-          <GenreNotesPreview chainId={focused.id} closeMenu={keepOpen} />
-        ) : (
-          <div className="eq-preset-tab__about">
-            <strong>{aboutName}</strong>
-            {aboutHint && <span>{aboutHint}</span>}
-          </div>
-        )}
-        {stages.length > 0 && (
-          <div className="eq-preset-tab__stages">
-            <span className="eq-preset-tab__eyebrow">
-              {t('eq.preset.rack')}
-            </span>
-            <ul>
-              {stages.map((stage) => (
-                <li key={stage}>{stage}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {/* Keyed by the preset it describes, so each one comes in on its
+          own short fade rather than the words swapping in place (Ivan,
+          2026-11-17: "a smooth transition between one and the other, nicely
+          but fast"). */}
+        <div className="eq-preset-tab__detail-body" key={focused?.id ?? ''}>
+          {focused && genreNotesFor(focused.id) ? (
+            <GenreNotesPreview chainId={focused.id} closeMenu={keepOpen} />
+          ) : (
+            <div className="eq-preset-tab__about">
+              <strong>{aboutName}</strong>
+              {aboutHint && <span>{aboutHint}</span>}
+            </div>
+          )}
+          {stages.length > 0 && (
+            <div className="eq-preset-tab__stages">
+              <span className="eq-preset-tab__eyebrow">
+                {t('eq.preset.rack')}
+              </span>
+              <ul>
+                {stages.map((stage) => (
+                  <li key={stage}>{stage}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </aside>
     </div>
   );
