@@ -332,6 +332,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The plain tier with the accent's light for ink at rest: a way somewhere in
 // running text ("Use FluidEQ Engine"), and the player's transport keys,
 // which are the player's instrument. Under the pointer it is plain.
+// SOLID: the answer a confirmation asks for. The tone itself, flat (the
+// accent through `--control-fill`, so Rainbow mode keeps its span), its word
+// in the floor's colour, a step lighter under the pointer and back while
+// held. Inside a question that dims the window the lit tier's tint read as
+// muddy - red at 22% over the sheet came out maroon with a pink word - and
+// the quiet answer, holding the focus, was louder than it (Ivan, 2026-11-17:
+// "the color is ... weird with the contrast").
+@mixin button-solid($tone: $secondary-default, $fill: var(--control-fill)) {
+  color: $surface-base;
+  border: 1px solid transparent;
+  background: $tone $fill border-box;
+  box-shadow: none;
+  font-weight: $weight-semibold;
+  filter: none;
+
+  &:hover:not(:disabled, [aria-disabled='true']) {
+    color: $surface-base;
+    border-color: transparent;
+    background: color-mix(in srgb, #{$tone} 80%, #{$white});
+  }
+
+  &:active:not(:disabled, [aria-disabled='true']) {
+    color: $surface-base;
+    background: $tone;
+  }
+
+  &:focus-visible {
+    @include focus-outline(2px);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    @include control-disabled;
+  }
+}
+
 @mixin button-plain-accent {
   @include button-plain;
 

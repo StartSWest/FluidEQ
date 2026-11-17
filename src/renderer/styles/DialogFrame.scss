@@ -439,6 +439,21 @@ $on-the-window: ':where(:not(.help-live *))';
   overflow: hidden;
 }
 
+// A question grows to its size, and the copy it leaves when it is answered
+// shrinks back while the scrim under it fades (`leaveAsGhost`).
+.compact-frame[aria-modal='true'] {
+  --surface-motion: #{$compact-arrival};
+}
+
+[data-closing]:has(> .compact-frame) {
+  pointer-events: none;
+  @include surface-motion($scrim-leaving);
+
+  > .compact-frame {
+    --surface-motion: #{$compact-leaving};
+  }
+}
+
 // A notice floats over a live page with no scrim under it (not modal: the
 // engine's cards, the update, the review, the Maker's month), and the
 // sheet's last twentieth let the pane behind it read through its text. A
@@ -502,6 +517,25 @@ $on-the-window: ':where(:not(.help-live *))';
   justify-content: flex-end;
   gap: $spacing-s;
   margin-top: 8px;
+}
+
+// A question's own answer is solid (`button-solid`): the accent, or red
+// where the answer cannot be taken back. A notice that floats over the page
+// keeps the lit tier; it is not asking for anything.
+.compact-frame[aria-modal='true'] .compact-frame__actions {
+  .button:not(.subtle, .plain, .link-button) {
+    @include button-solid;
+  }
+
+  .button.danger:not(.subtle, .plain) {
+    @include button-solid($red, linear-gradient($red, $red));
+  }
+}
+
+// The strip's glyph on its tint alone: the tile's hairline in the tone made
+// the small square read muddy beside the question's words.
+.compact-frame__strip .dialog-frame__tile {
+  border-color: transparent;
 }
 
 // A small frame with no close button uses the room it would have taken.

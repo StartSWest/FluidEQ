@@ -16,8 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useCallback, useLayoutEffect, useRef } from 'react';
 import type { HTMLAttributes, ReactNode, Ref } from 'react';
 import DialogClose from './DialogClose';
+import leaveAsGhost from '../utils/leaveAsGhost';
 import '../styles/DialogFrame.scss';
 
 /**
@@ -66,9 +68,28 @@ export default function CompactFrame({
   className,
   ...surface
 }: ICompactFrameProps) {
+  const own = useRef<HTMLDivElement | null>(null);
+  const setFrame = useCallback(
+    (node: HTMLDivElement | null) => {
+      own.current = node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref],
+  );
+  // A question grows in (`compact-grow`) and, as it is unmounted, leaves a
+  // copy of itself that shrinks away (`leaveAsGhost`). Read at mount: the
+  // frame is the same element for its whole life.
+  useLayoutEffect(() => {
+    const frame = own.current;
+    return () => leaveAsGhost(frame);
+  }, []);
   return (
     <div
-      ref={ref}
+      ref={setFrame}
       className={`compact-frame${className ? ` ${className}` : ''}`}
       role="alertdialog"
       aria-modal="true"

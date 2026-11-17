@@ -165,6 +165,26 @@ $smart-eq-status-hold: 6s;
 
 // A small overshoot on the way in. Only for things that appear one at a time
 // in response to a click — a chip, a badge — never for a list.
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes compact-grow {
+  from {
+    opacity: 0;
+    scale: 0.66;
+  }
+}
+
+@keyframes compact-shrink {
+  to {
+    opacity: 0;
+    scale: 0.66;
+  }
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;
@@ -275,6 +295,14 @@ $smart-eq-status-hold: 6s;
 $menu-arrival: menu-in $motion-base $ease-out 0ms backwards;
 $menu-leaving: menu-out 120ms ease-in 0ms forwards;
 $dialog-arrival: pop-in $motion-base $ease-spring 0ms backwards;
+// A question growing to its size and shrinking back (`compact-grow`,
+// `compact-shrink`; the copy that plays the shrink is `leaveAsGhost`). From
+// two thirds, where pop-in's 0.88 read as a fade rather than as something
+// opening (Ivan, 2026-11-17: "expand to the size animation on closing and
+// opening"); leaving is quicker and plain, as pop-out is.
+$compact-arrival: compact-grow 260ms $ease-spring 0ms backwards;
+$compact-leaving: compact-shrink 170ms ease-in 0ms forwards;
+$scrim-leaving: fade-out 170ms ease-in 0ms forwards;
 
 // Not inherited: a surface's motion is its own. Inherited, a menu's arrival
 // would reach every element inside it that euphoria's rainbow edge dresses
