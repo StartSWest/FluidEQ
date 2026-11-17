@@ -49,9 +49,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-align: left;
 }
 
-// A panel like the cards beside it (Ivan, 2026-11-17, trying "the left
-// panel and the bottom bar as panels", version A: the right-side cards' face
-// and edge). Standing on the floor 8px from the window's edge and from the
+// A panel drawn by its edge alone (Ivan, 2026-11-17: "to give the UI some
+// variety, the engine's left panel with the border instead of the fill"):
+// the cards' edge and corner on the floor's own colour, beside the filled
+// centre and right-side cards. Standing on the floor 8px from the window's edge and from the
 // centre card, top level with the centre card's head (8px under the
 // titlebar) and its foot level with the EQ card's (10px over the bar). Not
 // over a full-screen picture, where the panel is a drawer of its own.
@@ -64,7 +65,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding-left: 10px;
   border: 1px solid $card-edge;
   border-radius: $radius-m;
-  background: $surface-section;
 }
 
 .side-bar__rule {
