@@ -2883,21 +2883,18 @@ $graph-card-pages: list.join(
     // band for an afternoon and came off it again (Ivan, 2026-11-17: "I do
     // not like the top band at all"): it reads by its words' own outline now
     // (`.center-head--eq`, below).
-    // Darker and closer to solid again (Ivan, 2026-11-17, over a lake scene:
-    // "that bar dark too, a little less see-through"): a tinting scene sets
-    // the window's surfaces to its own lighter blues, so the face is taken
-    // 35% of the way to black and laid at 94%.
-    $scene-row-band: color-mix(
-      in srgb,
-      color-mix(in srgb, #{$surface-base} 65%, black) 94%,
-      transparent
-    );
-
+    // The row over a scene is the bands' card's own colour seen as glass:
+    // the card's face at 72% over a 12px blur of the picture behind it, so
+    // it carries on the card under it and still shows the scene, softened
+    // (Ivan, 2026-11-17: a dark strip between the picture and the card read
+    // as "not good"; the corner legend asked the same, "always show the
+    // background, a blur of whatever scene is there").
     > .middle-content
       > .workspace-tab-panel--eq
       > .workspace-tab-panel__row
       > .eq-layer-tabs {
-      background: $scene-row-band;
+      background: color-mix(in srgb, #{$surface-panel} 72%, transparent);
+      backdrop-filter: blur(12px);
     }
 
     // And the pills' row lays no face of its own over the picture: the
