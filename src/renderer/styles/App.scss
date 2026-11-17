@@ -2821,18 +2821,25 @@ $graph-card-pages: list.join(
         100% calc(100% - #{$eq-row-height}) no-repeat;
     }
 
-    // Over the scene the row lays a band after all: the page's own face,
-    // half see-through, so the picture shows through it in the window's
-    // colours (which a tinting scene sets) and the scene above and the page
-    // below meet in the row rather than at a hard edge (Ivan, 2026-11-17: "a
-    // semi-transparent band, more or less the scene's colour, so the window
-    // and the scene match"). Flat: no blur, no gradient. Bare, the row's
-    // words were lost on a bright picture.
+    // Over the scene the row lays a band after all: the page's own face
+    // taken a fifth of the way to the floor, so the picture still shows
+    // through it in the window's colours (which a tinting scene sets) and the
+    // scene above and the page below meet in the row rather than at a hard
+    // edge (Ivan, 2026-11-17: "a semi-transparent band, more or less the
+    // scene's colour, so the window and the scene match"). Flat: no blur, no
+    // gradient. Bare, the row's words were lost on a bright picture; at the
+    // card's face at 62% (0.53 of the panel) they still were ("está todavía
+    // muy transparente ... que se vea mejor el texto"), so 0.88 of a face a
+    // step darker than the card.
     > .middle-content
       > .workspace-tab-panel--eq
       > .workspace-tab-panel__row
       > .eq-layer-tabs {
-      background: color-mix(in srgb, #{$surface-section} 62%, transparent);
+      background: color-mix(
+        in srgb,
+        color-mix(in srgb, #{$surface-panel} 80%, #{$surface-base}) 88%,
+        transparent
+      );
     }
   }
 
