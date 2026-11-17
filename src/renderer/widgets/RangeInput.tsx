@@ -270,7 +270,7 @@ const RangeInput = ({
       />
       {/* The groove and its lit core are drawn behind the input rather than
           as its track: the core brightens with the band's own level
-          (`--band-level`, `BandLevels`), and as an element of its own that is
+          (its opacity, written by `BandLevels`), and as an element of its own that is
           an opacity the compositor changes, where a track's background would
           be the slider repainted every time the music moved. The input keeps
           the fill and the handle, over them. */}

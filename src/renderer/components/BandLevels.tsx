@@ -13,6 +13,7 @@ import type { IChartPointData } from '../graph/ChartController';
 import { getBandLevel } from '../utils/bandLevel';
 
 interface IBand {
+  /** The band's lit core (`.range__glow`), whose opacity is the level. */
   element: HTMLElement;
   frequency: number;
   /** What it was last told; -1 until it has been told anything. */
@@ -23,11 +24,17 @@ interface IBand {
  * Each band's slider lit by its own frequency (Ivan, 2026-09-26: "no need
  * for the meters next to slider just blink the freq inside the slider").
  *
- * Every band in the row gets `--band-level`, the music at its frequency
- * (`getBandLevel`), and its track's core takes its light from that
- * (`.range__glow`). It used to be written only in euphoria, for a glow round
- * the track; it is the sliders' own now, so it is written whenever the bands
- * are on screen.
+ * Every band's lit core (`.range__glow`) is given the music at its frequency
+ * (`getBandLevel`) as its opacity. It used to be written only in euphoria,
+ * for a glow round the track; it is the sliders' own now, so it is written
+ * whenever the bands are on screen.
+ *
+ * On the core itself, not as `--band-level` on the band: a custom property
+ * written on the band restyled everything in it - the slider, its scale,
+ * its labels - each time the level stepped, about seventeen times a second
+ * a band, where the core's own opacity restyles one empty element and the
+ * compositor does the rest. Measured in the running window at 240 Hz
+ * (2026-11-16), with music on the EQ page.
  *
  * Its own component for the reason `EuphoriaGlow` split its audio half out:
  * the live frame re-renders its subscriber about twenty times a second, and
@@ -62,11 +69,18 @@ const BandLevels = ({
     const readRow = () => {
       bands.current = Array.from(
         row.querySelectorAll<HTMLElement>('.bandWrapper'),
-      ).map((element) => ({
-        element,
-        frequency: Number(element.dataset.frequency),
-        published: -1,
-      }));
+      ).flatMap((band) => {
+        const glow = band.querySelector<HTMLElement>('.range__glow');
+        return glow
+          ? [
+              {
+                element: glow,
+                frequency: Number(band.dataset.frequency),
+                published: -1,
+              },
+            ]
+          : [];
+      });
     };
     readRow();
     const watch = new MutationObserver(readRow);
@@ -78,7 +92,7 @@ const BandLevels = ({
     return () => {
       watch.disconnect();
       bands.current.forEach(({ element }) =>
-        element.style.removeProperty('--band-level'),
+        element.style.removeProperty('opacity'),
       );
     };
   }, [row]);
@@ -103,7 +117,7 @@ const BandLevels = ({
           : 0;
       if (level !== band.published) {
         band.published = level;
-        band.element.style.setProperty('--band-level', String(level));
+        band.element.style.opacity = String(level);
       }
     }
   });

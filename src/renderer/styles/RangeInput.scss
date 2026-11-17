@@ -111,7 +111,7 @@ $range-rail-width: 4px;
   // band lighting the line it is shaped by. At a little over half the band's
   // colour, so the fill laid over it — twice as wide, at full strength —
   // still reads as the gain; a crisp line and no bloom. Only its opacity
-  // follows the music, in the twelve steps `BandLevels` writes.
+  // follows the music, in the twelve steps `BandLevels` writes on it.
   //
   // No fade between steps. A 90 ms transition kept every glow on the page
   // mid-transition for as long as music played - the level steps about
@@ -125,7 +125,8 @@ $range-rail-width: 4px;
     width: $range-slot-width;
     margin-left: -$range-slot-width * 0.5;
     background: color-mix(in srgb, var(--slider-color) 55%, transparent);
-    opacity: var(--band-level, 0);
+    // Dark until `BandLevels` writes the band's level here, inline.
+    opacity: 0;
     will-change: opacity;
   }
 

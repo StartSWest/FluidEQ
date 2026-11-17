@@ -28,8 +28,8 @@ const HALF_SPAN_OCTAVES = 1 / 6;
 /**
  * How many values a band's level is allowed to take.
  *
- * Quantising it is the whole performance trick. Every element reading
- * `--band-level` has its style recalculated when that property changes, and a
+ * Quantising it is the whole performance trick. A band's core has its style
+ * recalculated whenever its level is written (`BandLevels`), and a
  * continuous value changes on literally every frame — thirty-one bands,
  * invalidated twenty-two times a second, for differences of a thousandth that
  * nobody can see.
