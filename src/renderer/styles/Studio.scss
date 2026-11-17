@@ -10,6 +10,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // The Studio: the main area of the Plus tab when its rail entry is on.
 //
@@ -391,6 +392,30 @@ $studio-room-under-chat: 380px;
     top: 0;
     bottom: 0;
     left: calc(-1 * (#{$spacing-m} + 12px) / 2);
+  }
+}
+
+// IN THE WINDOW THE CHAT IS THE LIBRARY'S SIDE COLUMN (Ivan, 2026-11-17:
+// "everything there needs to look like the Library"): Up Next's place in the
+// Library, so Up Next's frame - the card's own tone, parted from the work by
+// a hairline, out to the card's right edge and down to its foot, its divider
+// on that hairline. It was a card of its own standing inside the page's card,
+// 16px in from both its edges. The full screen lays the chat over the scene
+// and keeps its own surface (`StudioFullscreen.scss`).
+.studio-bench__grid:not(.is-full):not(.is-single) {
+  // The Library's 12px between a column's content and its hairline.
+  column-gap: 12px;
+
+  > .studio-bench__chat {
+    // Out through the Studio's own right inset (`Community.scss`, 16px) to
+    // the card's edge. At its foot the place keeps no inset of its own for
+    // the Studio (`PlusRail.scss`), and the bench takes back the Studio's.
+    margin-right: -16px;
+    border-left: 1px solid $studio-hair;
+
+    > .column-resizer {
+      left: -6px;
+    }
   }
 }
 

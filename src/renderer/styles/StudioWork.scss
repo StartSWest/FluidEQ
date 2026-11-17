@@ -11,6 +11,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // Layout A of the Studio (Ivan, 2026-09-27): the stage stays put, the work
 // changes under it in tabs, what the scene hears stands beside it, and the
@@ -38,7 +39,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 4px;
   min-width: 0;
-  border-bottom: 1px solid $menu-rule;
+  border-bottom: 1px solid $studio-hair;
 }
 
 // Tabs that do not fit scroll, fading into the edge they scroll past, with the
@@ -53,7 +54,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // Its own width while everything fits, so the pinned tabs follow the last
   // one rather than standing at the far end; less when it does not.
   flex: 0 1 auto;
-  gap: 4px;
+  gap: 14px;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -84,7 +85,9 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-work__pinned {
   display: flex;
   flex: none;
-  gap: 4px;
+  gap: 14px;
+  // The row's 4px and this make the tabs' own 14 to the last one before.
+  padding-left: 10px;
 }
 
 // After every tab, at the row's far end: the full screen's button that hides
@@ -96,46 +99,22 @@ it under the terms of the GNU General Public License version 3 or later.
   padding-left: 8px;
 }
 
+// The Library's tab (`studio-tab`, its right pane's): the Studio's work and
+// the Library's queue and lyrics are one kind of thing, a column's parts by
+// name, and they read alike (Ivan, 2026-11-17: "everything there needs to
+// look like the Library"). It was 15px in the faint ink with a rounded bar
+// inset 10px under it, beside a Library whose tabs are 12px words on one line.
 .studio-work__tab {
-  position: relative;
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 7px;
-  height: 40px;
-  padding: 0 12px;
-  color: $text-faint;
-  border: 0;
-  background: none;
-  font-size: $text-lead;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: color $motion-fast $ease-out;
+  gap: 6px;
+  // On the row's hairline, not over it as the Library's is: the tabs scroll
+  // (`overflow-x` above), and a scroller clips the pixel a tab hangs below it.
+  padding: 9px 6px 8px;
+  line-height: 1.5;
 
-  &:hover {
-    color: $text-primary;
-  }
-
-  &[aria-selected='true'] {
-    color: $text-primary;
-
-    &::after {
-      position: absolute;
-      right: 10px;
-      bottom: -1px;
-      left: 10px;
-      height: 2px;
-      content: '';
-      border-radius: 1px;
-      background: $secondary-default;
-    }
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline-offset: -2px;
-  }
+  @include studio-tab("[aria-selected='true']");
 }
 
 // A count after the name: the pictures a scene asks for, in the accent, and

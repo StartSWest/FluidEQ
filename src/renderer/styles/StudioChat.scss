@@ -10,6 +10,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // The Studio's chat with Claude (`studio/chat/`): a card the bench's whole
 // height beside the stage, its head and message box fixed and the
@@ -31,6 +32,38 @@ it under the terms of the GNU General Public License version 3 or later.
   .studio-work__panel & {
     height: 100%;
     min-height: 320px;
+  }
+}
+
+// In the window's side column (`Studio.scss`) the chat is the column, as Up
+// Next is the Library's: no card inside the card, its head named as the
+// Library's rails and panes name theirs - small spaced capitals in the
+// second ink - over a hairline, and what it runs on a step quieter under it.
+// The same where a narrow bench makes it the first tab under the stage: a
+// tab's panel is the page's surface too, never a card inside it.
+.studio-bench__grid:not(.is-full) > .studio-bench__chat > .studio-chat,
+.studio-work__panel .studio-chat {
+  border: 0;
+  border-radius: 0;
+  background: none;
+
+  .studio-chat__head {
+    padding: 2px 8px 10px 14px;
+    border-bottom-color: $studio-hair;
+  }
+
+  .studio-chat__name {
+    @include studio-rail-heading;
+  }
+
+  .studio-chat__where {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+
+    &:hover,
+    &[aria-pressed='true'] {
+      color: $text-primary;
+    }
   }
 }
 
@@ -446,15 +479,20 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 10px;
   padding: 12px 0;
-  color: $text-faint;
-  border: 1px solid $card-edge;
-  border-radius: $card-radius;
-  background: $surface-section;
+  // Folded, the side column's own strip: the card's tone behind the column's
+  // hairline (`Studio.scss`), the Library's quiet capitals turned on end -
+  // not a card of its own standing in the page's card.
+  color: $studio-t2;
+  border: 0;
+  border-radius: 0;
+  background: none;
   font: inherit;
-  font-size: $text-small;
-  font-weight: $weight-semibold;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
   cursor: pointer;
-  transition: color $motion-fast $ease-out;
+  transition: $transition-control;
 
   span {
     writing-mode: vertical-rl;
@@ -468,7 +506,9 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $text-accent;
   }
 
+  // The rail rows' own hover (`studio-rail-item`).
   &:hover {
+    background: color-mix(in srgb, $edge-tint 4%, transparent);
     color: $text-primary;
   }
 

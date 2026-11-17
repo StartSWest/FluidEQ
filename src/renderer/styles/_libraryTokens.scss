@@ -212,6 +212,42 @@ $studio-rail-folded: 56px;
   opacity: 0.8;
 }
 
+// A TAB AS THE LIBRARY DRAWS ONE: a word in the second ink, the chosen one in
+// the first with the accent's 2px drawn inside its foot, so it sits on the
+// row's hairline and nothing moves when it changes hands - the right pane's
+// tabs (`.library-pane__tab`) and the Studio's work under its stage.
+// `$active` names the chosen state as the caller's markup says it; what the
+// chosen tab adds goes in the content.
+@mixin studio-tab($active) {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  // The second step, not the third: at 44% the tabs not chosen read as
+  // switched off.
+  color: $studio-t2;
+  font-family: inherit;
+  font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(#{$active}) {
+    color: $text-primary;
+  }
+
+  &#{$active} {
+    box-shadow: inset 0 -2px 0 $secondary-default;
+    color: $text-primary;
+    @content;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
 // The mockup's type, in the app's rem: 14px rows and names, 13px trees and
 // crumbs, 12px meta, 11px labels. Bigger than the old 11.5px rows on purpose
 // — a long list is read at a glance only when its rows can be (the design's

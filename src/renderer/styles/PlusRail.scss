@@ -117,6 +117,13 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   border: 0;
   border-radius: 0;
   background: none;
+
+  // The Studio's work and chat run down to the card's foot, as the Library's
+  // shelf and queue do: each scrolls inside itself, and the 12px under them
+  // was a strip of nothing under the chat's side column.
+  &:has(> .studio) {
+    padding-bottom: 0;
+  }
 }
 
 // Under the pointer the edge follows the hand, not an ease behind it.

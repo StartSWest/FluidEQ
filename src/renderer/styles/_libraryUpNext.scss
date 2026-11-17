@@ -1019,36 +1019,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // drawn inside it so nothing moves when it changes hands.
   margin-bottom: -1px;
   padding: 9px 6px 8px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  // The second step, not the third: at 44% the tabs not chosen read as
-  // switched off.
-  color: $studio-t2;
-  font-family: inherit;
-  font-size: $studio-text-meta;
-  font-weight: $weight-semibold;
   line-height: 1.5;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
 
-  &:hover:not(.is-active) {
-    color: $text-primary;
-  }
-
-  &.is-active {
-    box-shadow: inset 0 -2px 0 $secondary-default;
-    color: $text-primary;
-
+  @include studio-tab('.is-active') {
     .library-pane__icon {
       color: $secondary-light;
     }
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
   }
 }
 
