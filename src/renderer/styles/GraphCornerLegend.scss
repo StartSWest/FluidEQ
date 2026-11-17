@@ -90,6 +90,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // The analyser's slope (`SlopeLine`): a row that names the slope, its swatch
 // the line itself, sloped. Not a switch: under the pointer it draws the line
 // across the plot, and nothing is pressed.
+// The line's own colour, the app's accent (`.chart-slope-line`), not the
+// live output's green its chip class gives the swatch (both classes, to
+// outrank `.graph-legend--live` wherever the two sheets land).
+.graph-legend--live.graph-corner-legend__slope {
+  --curve-color: #{$secondary-light};
+}
+
 .graph-corner-legend__slope {
   cursor: default;
 

@@ -556,8 +556,10 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // The analyser's slope for a moment after it changes, or the legend opens
-// (`SlopeLine`): the line the spectrum is tipped by, in the colour the
-// legend gives the live output, its pivot marked and its value at its end,
+// (`SlopeLine`): the line the spectrum is tipped by, in the app's accent,
+// whatever the window's colours (Ivan, 2026-11-17: "I hate the green slope
+// line, it must always be the app's colour"; it was the live output's fixed
+// green), its pivot marked and its value at its end,
 // keyed dark like the scales' figures so it reads over any drawing. Shown,
 // held, faded, all in its animation: it is taken away on that animation's
 // own end. Held up while the legend's slope row is under the pointer, then
@@ -567,17 +569,17 @@ it under the terms of the GNU General Public License version 3 or later.
   animation: chart-slope-line-show 2.6s linear forwards;
 
   line {
-    stroke: $analogous-2;
+    stroke: $secondary-light;
     stroke-width: 2px;
     stroke-linecap: round;
   }
 
   circle {
-    fill: $analogous-2;
+    fill: $secondary-light;
   }
 
   text {
-    fill: $analogous-2;
+    fill: $secondary-light;
     font-family: $font-ui;
     font-size: $text-small;
     font-weight: $weight-bold;
