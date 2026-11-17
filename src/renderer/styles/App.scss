@@ -2241,6 +2241,27 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
 // pills' rule (this 2px, then the strip's own 9px inside the plot).
 .center-head--eq {
   padding-bottom: 2px;
+
+  // Over the graph's picture the pills' row draws no rule under itself and no
+  // band behind it, and its words are read by the same dark outline the
+  // graph's own figures wear (`_graphThemeChart.scss`: a 3px stroke of the
+  // floor at 75%, painted under the letters) - Ivan, 2026-11-17: "remove the
+  // dividing line of the options on top ... and make the options with a
+  // black border, as we did the graph's, so they are more visible".
+  .workspace-section-header {
+    border-bottom: 0;
+  }
+
+  // The pills alone: the engine label beside them paints its words with a
+  // gradient through the text, which a stroke breaks into a smear.
+  .workspace-pill {
+    -webkit-text-stroke: 3px rgba(2, 8, 15, 0.75);
+    paint-order: stroke fill;
+  }
+
+  .workspace-pill__icon > svg {
+    filter: drop-shadow(0 0 1px rgba(2, 8, 15, 0.9));
+  }
 }
 
 .right-content {
@@ -2830,9 +2851,10 @@ $graph-card-pages: list.join(
     // gradient. Bare, the row's words were lost on a bright picture; at the
     // card's face at 62% (0.53 of the panel) they still were ("está todavía
     // muy transparente ... que se vea mejor el texto"), so 0.88 of a face a
-    // step darker than the card. The pills' row over the graph lays the same
-    // band (Ivan, 2026-11-17: "apply the same bar transparency style on the
-    // top"), one value for both so they cannot drift apart.
+    // step darker than the card. The pills' row over the graph laid the same
+    // band for an afternoon and came off it again (Ivan, 2026-11-17: "I do
+    // not like the top band at all"): it reads by its words' own outline now
+    // (`.center-head--eq`, below).
     $scene-row-band: color-mix(
       in srgb,
       color-mix(in srgb, #{$surface-panel} 80%, #{$surface-base}) 88%,
@@ -2842,9 +2864,16 @@ $graph-card-pages: list.join(
     > .middle-content
       > .workspace-tab-panel--eq
       > .workspace-tab-panel__row
-      > .eq-layer-tabs,
-    > .center-head {
+      > .eq-layer-tabs {
       background: $scene-row-band;
+    }
+
+    // And the pills' row lays no face of its own over the picture: the
+    // scene runs on behind it up to the card's top edge, and its words read
+    // by their outline (`.center-head--eq`). Its section card face stood there
+    // as a band.
+    > .center-head {
+      background: none;
     }
   }
 
