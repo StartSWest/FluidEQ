@@ -2852,9 +2852,15 @@ $graph-card-pages: list.join(
     // No rule over the row and none under it (Ivan, 2026-11-17, after the
     // top row lost its: "remove the divider of the menu below too, to see
     // how it looks"); the divider's grip alone marks the seam.
+    // And a band a shade darker than the card under it, so the row reads as
+    // its own strip without a line (Ivan, 2026-11-17: "the bottom menu's
+    // band a little different colour, lighter or darker"): the floor laid at
+    // 35% over the card's face. Over a scene the row has its own band
+    // (below).
     > .eq-layer-tabs {
       border-bottom-color: transparent;
       box-shadow: none;
+      background: color-mix(in srgb, #{$surface-base} 35%, transparent);
     }
   }
 
