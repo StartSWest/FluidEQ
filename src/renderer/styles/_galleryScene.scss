@@ -68,6 +68,17 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow: hidden;
   border: 1px solid $card-edge;
   border-radius: $radius-m;
+  // ROUNDED FROM THE FIRST FRAME, whatever is laid over the scene (Ivan,
+  // 2026-11-17: "while it's loading it shows a square border, then it shows
+  // the rounded one"). The wait's veil blurs what is behind it
+  // (`backdrop-filter`), and a frame rounded by `overflow` alone is not a
+  // backdrop root: the blur took in the page outside the corners and drew it
+  // into them, and on the GPU the blurred layer is not cut by an ancestor's
+  // rounded overflow at all, so the veil stood square over the corners until
+  // it left. The clip path is the same corner, applied to everything the
+  // frame paints at once - the veil, the tag, the taste's video, the scene's
+  // canvas - and it makes the frame the root the blur reads from.
+  clip-path: inset(0 round #{$radius-m});
   background: $surface-plot;
   // Flat, as every picture on the page stands: a 40px drop shadow under the
   // stage floated it off a page of flat cards ("the preview big card and

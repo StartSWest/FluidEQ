@@ -353,6 +353,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // lifted by a drop shadow under the pointer (Ivan, 2026-09-27: "visualizers
   // library cards as the music library card, I want that nice bg here too").
   @include card-surface;
+  // Rounded from the first frame, as the scene page's stage is
+  // (`.gallery-preview`): the picture fades in on a layer of its own and the
+  // tag over it blurs what is behind it, and neither is cut by an ancestor
+  // rounded by `overflow` alone while the GPU draws it - square corners until
+  // the fade was over. The clip path is the card's own corner.
+  clip-path: inset(0 round #{$radius-m});
   transition:
     border-color $motion-fast $ease-out,
     transform $motion-fast $ease-out;
