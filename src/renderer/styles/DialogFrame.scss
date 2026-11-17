@@ -141,15 +141,8 @@ $rail-width: 16.5rem;
 // same name. `tabular-nums` so a version that changed width between builds
 // would not shift the name.
 .dialog-frame__badge {
-  padding: 1px 6px;
-  color: $text-accent;
-  border: 1px solid $border-field;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
-  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
-  font-weight: $weight-bold;
-  @include tracking(0.02em);
+  @include badge;
 }
 
 .dialog-frame__description {

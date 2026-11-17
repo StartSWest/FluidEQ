@@ -196,18 +196,11 @@ it under the terms of the GNU General Public License version 3 or later.
     align-items: center;
     gap: 5px;
     padding: 5px 8px;
-    // The quiet control's face, not a wash of white. Every chip in the app
-    // that can be pressed wears this one.
-    @include field-interactive;
-    color: rgba($white, 0.84);
     font-size: $text-small;
     cursor: pointer;
-
-    &:hover,
-    &:focus-visible {
-      color: $secondary-light;
-      outline: none;
-    }
+    // The line tier, not a wash of white: every chip in the app that can be
+    // pressed wears it.
+    @include button-line;
 
     svg {
       width: 11px;

@@ -123,19 +123,12 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-work__badge {
   display: inline-grid;
   min-width: 18px;
-  height: 18px;
   place-items: center;
-  padding: 0 5px;
-  color: $text-accent;
-  border-radius: $radius-pill;
-  background: $selected-accent;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  font-variant-numeric: tabular-nums;
+  // A count (`badge-count`); red when it is an alert.
+  @include badge-count;
 
   &.is-alert {
-    color: $white;
-    background: color-mix(in srgb, $red 70%, transparent);
+    @include badge-count($red, $white);
   }
 }
 

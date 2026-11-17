@@ -285,26 +285,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-pane__drawer-head > .library-up-next__chip {
   height: 30px;
   padding: 0 10px;
-  border: 0;
   border-radius: $radius-m;
-  // Flat like the bar's other controls: a hairline round it, a faint fill
-  // under the pointer, the accent's edge and ink while the queue is open.
-  background: none;
-  box-shadow: inset 0 0 0 1px $studio-hair;
-  color: $studio-t2;
   font-size: $studio-text-meta;
-  font-weight: $weight-semibold;
-
-  &:hover {
-    background: $studio-surface;
-    color: $text-primary;
-  }
+  // The line tier, lit while the queue is open (`_buttonFaces.scss`): it
+  // drew the edge as an inset hairline of its own and the open edge as an
+  // inset shadow.
+  @include button-line;
 
   &.is-active {
-    background: none;
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, $secondary-default 55%, transparent);
-    color: $secondary-light;
+    @include button-lit;
   }
 
   .library-up-next__count {
@@ -409,42 +398,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 9px;
   gap: 5px;
   // Every control's face and edge, as the Media bar's pills now wear them.
-  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: $surface-control;
-  color: $text-muted;
   font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
-
-  &:hover {
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-    color: $secondary-light;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
-  }
+  @include button-line;
 
   // Chosen: the lit edge and the accent's label on a step lighter face,
   // never a tint of the accent under it.
   &.is-active {
-    border-color: $border-control-hover;
-    background: $surface-control-press;
-    color: $secondary-light;
-  }
-
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
-
-    &:hover {
-      border-color: rgba($edge-tint, 0.14);
-      color: $text-muted;
-    }
+    @include button-lit;
   }
 }
 

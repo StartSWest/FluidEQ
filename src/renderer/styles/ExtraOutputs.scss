@@ -243,13 +243,8 @@ it under the terms of the GNU General Public License version 3 or later.
 .extra-outputs__tag {
   display: inline-block;
   margin-left: 6px;
-  padding: 2px 6px;
   vertical-align: middle;
-  color: $secondary-light;
-  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
-  border-radius: $radius-2xs;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
+  @include badge;
 }
 
 // Why the chosen output cannot be used, and what to do about it. Warmer than

@@ -104,12 +104,13 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
   grid-template-columns: minmax(0, 1fr) auto;
   padding: 4px 5px 4px 9px;
-  border: 1px solid $border-field;
+  border: 1px solid $edge-rest;
   // The buttons' corner, not a pill: a capsule among square-cornered controls
   // read as a different kind of thing (Ivan, 2026-09-25: "applied filter pills
-  // can have less rounded too").
+  // can have less rounded too"). No fill: the label chip's (`label-chip`)
+  // edge alone.
   border-radius: $radius-xs;
-  background: $surface-control;
+  background: none;
   font-size: $text-small;
 }
 

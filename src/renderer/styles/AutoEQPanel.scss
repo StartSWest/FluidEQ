@@ -252,27 +252,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // How many curves are on the list: a pill with room round its digits, quiet
 // beside a tab that is not open and lit beside the one that is.
 .autoeq-panel__tab-count {
-  display: inline-grid;
   min-width: 22px;
-  height: 18px;
-  padding: 0 7px;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
-  color: $text-muted;
-  font-size: $text-micro;
-  font-weight: $weight-semibold;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  transition:
-    background $motion-fast $ease-out,
-    border-color $motion-fast $ease-out,
-    color $motion-fast $ease-out;
+  justify-content: center;
+  // A count (`badge-count`); quiet on a tab not chosen.
+  @include badge-count;
 
-  [aria-selected='true'] > & {
-    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
-    background: color-mix(in srgb, $secondary-default 22%, transparent);
-    color: $secondary-light;
+  [aria-selected='false'] > & {
+    background: none;
+    box-shadow: inset 0 0 0 1px $edge-rest;
+    color: $text-faint;
   }
 }

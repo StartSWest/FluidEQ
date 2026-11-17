@@ -142,13 +142,5 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .processes__tag {
   margin-left: 8px;
-  padding: 1px 6px;
-  border: 1px solid $border-field;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $secondary-default 16%, transparent);
-  color: $secondary-light;
-  font-size: $text-micro;
-  font-weight: $weight-medium;
-  text-transform: uppercase;
-  @include tracking(0.04em);
+  @include badge;
 }

@@ -226,14 +226,8 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 17px;
   height: 17px;
   margin-inline-start: 2px;
-  padding: 0 5px;
-  color: $white;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $red 78%, $surface-base);
-  font-size: $text-micro;
-  font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  @include badge-count($red, $white);
 }
 
 // Categories, and the category a scene is published under: pills, because
@@ -272,35 +266,16 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .gallery-chip {
   padding: 4px 11px;
-  color: $text-faint;
-  border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 3%, transparent);
   font: inherit;
   font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
+  @include button-line;
 
-  &:hover:not(:disabled) {
-    color: $text-primary;
-    border-color: color-mix(in srgb, $secondary-default 48%, transparent);
-  }
-
-  &[aria-pressed='true'],
   &[aria-checked='true'] {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
-    background: color-mix(in srgb, $secondary-default 18%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
+    @include button-face-lit;
   }
 }
 

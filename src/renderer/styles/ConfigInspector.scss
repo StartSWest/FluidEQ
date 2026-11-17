@@ -266,15 +266,8 @@ $name-column: 34ch;
 
 .config-card__badge {
   align-self: flex-start;
-  padding: 1px 7px;
-  border-radius: $radius-2xs;
   margin-top: 3px;
-  background: color-mix(in srgb, $active 10%, transparent);
-  color: $active;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.1em);
-  text-transform: uppercase;
+  @include badge($active, $active);
 }
 
 // *** One output ***************************************************************
@@ -675,27 +668,23 @@ $name-column: 34ch;
 
 .config-node__badge {
   flex: 0 0 auto;
-  padding: 1px 6px;
-  border-radius: $radius-2xs;
   // The first badge takes the slack, which is what holds every badge at the
   // right-hand end of its row. The layer pill used to do this with an auto end
   // margin, and that stopped being right the moment a row could carry two
   // pills — the gap landed in the middle of the pair instead of after it.
   margin-inline-start: auto;
-  background: color-mix(in srgb, $secondary-default 16%, transparent);
-  color: $secondary-light;
   font-family: inherit;
-  font-size: $text-micro;
+  @include badge;
 
   &--missing {
-    background: rgba($red, 0.18);
+    background: tone-fill-lit($red);
     color: $red;
   }
 
   // The one file here that is not going to be overwritten, and the badge is
   // most of how anybody learns that.
   &--custom {
-    background: rgba($neon-lime, 0.18);
+    background: tone-fill-lit($neon-lime);
     color: $neon-lime;
   }
 }

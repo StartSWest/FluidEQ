@@ -123,6 +123,64 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-inline: 1px solid $edge-rest;
 }
 
+// THE BADGE: a word that says a state ("Active", "New", "Failed") on a row,
+// a card or a key. Never pressed, so never a button's face: the lit tint of
+// its tone with the tone's light ink, 18px, the small corner, uppercase micro
+// letters (2026-11-17, the one control theme). Some fourteen badges each had
+// their own: solid fills with dark ink (the "Active" on the output picker,
+// the profile's "Act"), edges in five strengths, gradients, a pill.
+// `$tone` is the state's colour: the accent, `$active` for on, `$amber` for
+// a warning, `$red` for a failure.
+@mixin badge($tone: $secondary-default, $ink: $secondary-light) {
+  display: inline-flex;
+  min-height: 18px;
+  box-sizing: border-box;
+  align-items: center;
+  padding: 0 6px;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: tone-fill-lit($tone);
+  color: $ink;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  line-height: 1;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// A badge that only labels, with no state to say ("Default", a kind): the
+// controls' edge drawn inside and the faint ink, no fill.
+@mixin badge-quiet {
+  @include badge;
+  background: none;
+  box-shadow: inset 0 0 0 1px $edge-rest;
+  color: $text-faint;
+}
+
+// A label chip: words that describe, in sentence case at the small size,
+// inside the controls' edge with no fill (a feature on an offer, a scene's
+// kind). Never pressed; a chip you press is a line button.
+@mixin label-chip {
+  display: inline-flex;
+  box-sizing: border-box;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid $edge-rest;
+  border-radius: $radius-xs;
+  background: none;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+// A count: a badge holding a number, in the number's own case.
+@mixin badge-count($tone: $secondary-default, $ink: $secondary-light) {
+  @include badge($tone, $ink);
+  @include tracking(0);
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+}
+
 // A field you type into: NOTHING changes under the pointer — not the fill,
 // not the edge. Only focus lights it, because focus is where the typing goes.
 //

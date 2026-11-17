@@ -225,10 +225,7 @@ textarea.forum-editor__input {
   gap: 7px;
   height: $control-height-sm;
   padding: 0 14px 0 10px;
-  color: $text-faint;
-  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: $surface-control;
   font: inherit;
   font-size: reading($text-body);
   font-weight: $weight-medium;
@@ -238,34 +235,16 @@ textarea.forum-editor__input {
     border-color $motion-fast $ease-out,
     color $motion-fast $ease-out,
     box-shadow $motion-fast $ease-out;
+  @include button-line;
 
   svg {
     width: 16px;
     height: 16px;
   }
 
-  &:hover:not(:disabled),
-  &:focus-visible {
-    color: $text-primary;
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-    outline: none;
-  }
-
+  // The chosen board: lit (it was a pressed slab with a 14px glow).
   &.is-selected {
-    color: $white;
-    border-color: $secondary-default;
-    background: $surface-control-press;
-    box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 22%, transparent);
-
-    svg {
-      color: $secondary-light;
-    }
-  }
-
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
+    @include button-face-lit;
   }
 }
 

@@ -225,34 +225,23 @@
 .remote-audio__link-pill {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
   gap: 7px;
-  border: 1px solid color-mix(in srgb, $secondary-light 36%, transparent);
-  border-radius: $radius-pill;
-  background: color-mix(in srgb, $secondary-default 12%, transparent);
-  color: $secondary-light;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.1em);
-  text-transform: uppercase;
-  white-space: nowrap;
+  // The app's badge (`badge`); paused, the quiet one. It was a pill with
+  // an edge of its own and a dot that glowed.
+  @include badge;
 
   > span {
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: $secondary-default;
-    box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 60%, transparent);
   }
 
   &.is-paused {
-    border-color: $card-edge;
-    background: transparent;
-    color: $text-muted;
+    @include badge-quiet;
 
     > span {
       background: $text-faint;
-      box-shadow: none;
     }
   }
 }

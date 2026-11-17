@@ -312,15 +312,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .preset-attached {
     flex: 0 0 auto;
+    @include badge($active, $active);
     // The same chip as the ACTIVE badge on the output picker above it: one
     // lime "on", one size, one face.
-    padding: 1px 6px;
-    color: $surface-base;
-    border-radius: $radius-2xs;
-    background: $active;
-    font-size: $text-micro;
-    font-weight: $weight-bold;
-    @include tracking(0.04em);
   }
 
   // Revealed on hover/focus so the row stays calm at rest. `visibility`

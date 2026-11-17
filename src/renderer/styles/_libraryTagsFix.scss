@@ -40,22 +40,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 6px;
   padding: 0 8px 0 6px;
-  border: 0;
   border-radius: $radius-xs;
-  background: $studio-select;
-  color: $secondary-light;
   font-size: $studio-text-meta;
-  font-weight: $weight-semibold;
   vertical-align: middle;
   cursor: pointer;
-
-  &:hover {
-    background: color-mix(in srgb, $secondary-default 20%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+  // The suggested action beside the record's facts: the lit tier.
+  @include button-lit;
 }
 
 .library-hero__fix-icon {

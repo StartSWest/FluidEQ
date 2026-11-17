@@ -206,21 +206,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 5px;
     padding: 4px 7px;
-    color: rgba($white, 0.82);
-    border: 1px solid $border-subtle;
     border-radius: $radius-xs;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
     font-size: $text-micro;
     cursor: pointer;
     transition: $transition-control;
-
-    &:hover,
-    &:focus-visible {
-      color: $secondary-light;
-      border-color: color-mix(in srgb, $secondary-light 36%, transparent);
-      background: color-mix(in srgb, $secondary-default 12%, transparent);
-      outline: none;
-    }
+    @include button-line;
 
     svg {
       width: 11px;

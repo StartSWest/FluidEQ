@@ -144,10 +144,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // Kept by Claude Code, not FluidEQ: said, in the amber the app says
 // "this came from somewhere else" in.
 .studio-chat-past__tag {
-  padding: 1px 6px;
-  color: $amber;
-  border: 1px solid color-mix(in srgb, $amber 40%, transparent);
-  border-radius: $radius-pill;
+  @include badge($amber, $amber);
 }
 
 // The pin beside Delete wears the same quiet icon button; lit in the accent

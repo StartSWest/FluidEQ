@@ -268,17 +268,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .scene-window-colours__badge {
-  padding: 1px 7px;
-  color: $text-muted;
-  border: 1px solid $border-control;
-  border-radius: 999px;
-  font-size: $text-micro;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
+  // The app's quiet badge (`badge-quiet`); yours, in amber.
+  @include badge-quiet;
 
   &.is-yours {
-    color: $amber;
-    border-color: color-mix(in srgb, $amber 55%, transparent);
+    @include badge($amber, $amber);
   }
 }
 

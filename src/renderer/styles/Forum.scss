@@ -356,11 +356,8 @@ input.forum__search-input {
   padding: 0 4px;
   color: rgba($black, 0.86);
   border-radius: $radius-pill;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $white 22%, $neon-yellow),
-    $neon-yellow 55%
-  );
+  // Flat (2026-11-17): a top-lit ramp and a glow read as shine.
+  background: $neon-yellow;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
@@ -376,9 +373,7 @@ input.forum__search-input {
     z-index: 1;
     top: -4px;
     right: -5px;
-    box-shadow:
-      0 0 0 2px $surface-control,
-      0 0 10px color-mix(in srgb, $neon-yellow 45%, transparent);
+    box-shadow: 0 0 0 2px $surface-panel;
 
     // On the engine's button, where it stands in for Help's while the
     // titlebar is narrow, the engine's status dot is under that corner:
@@ -391,7 +386,6 @@ input.forum__search-input {
   // At the end of a menu row, level with the label it counts for.
   &--row {
     margin-left: auto;
-    box-shadow: 0 0 8px color-mix(in srgb, $neon-yellow 30%, transparent);
   }
 }
 

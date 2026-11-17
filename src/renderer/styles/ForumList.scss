@@ -256,10 +256,12 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 4px;
   padding: 1px 8px 1px 6px;
+  // The badges' faces (`badge-quiet`, `badge`) at the forum's reading size:
+  // the controls' edge and no fill, a state in its tone's tint.
   color: $text-faint;
-  border: 1px solid $border-subtle;
+  border: 1px solid $edge-rest;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 3%, transparent);
+  background: none;
   font: inherit;
   font-size: reading($text-micro);
   font-weight: $weight-medium;
@@ -273,8 +275,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &--answer {
     color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
+    border-color: transparent;
+    background: $fill-lit;
   }
 
   &--quiet {
@@ -286,13 +288,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // answer's, because it is a state and not a request for attention.
   &--issue {
     color: $neon-lime;
-    border-color: color-mix(in srgb, $neon-lime 40%, transparent);
-    background: color-mix(in srgb, $neon-lime 9%, transparent);
+    border-color: transparent;
+    background: tone-fill-lit($neon-lime);
 
     &.is-closed {
       color: color-mix(in srgb, $neon-purple 55%, $white);
-      border-color: color-mix(in srgb, $neon-purple 50%, transparent);
-      background: color-mix(in srgb, $neon-purple 12%, transparent);
+      background: tone-fill-lit($neon-purple);
     }
   }
 
@@ -309,14 +310,13 @@ it under the terms of the GNU General Public License version 3 or later.
   // and unfilled, so it reads apart from an answered topic's tinted chip.
   &--pinned {
     color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 35%, transparent);
-    background: transparent;
+    border-color: $edge-lit;
   }
 
   &--new {
-    color: $surface-base;
+    color: $secondary-light;
     border-color: transparent;
-    background: $secondary-light;
+    background: $fill-lit;
     font-weight: $weight-semibold;
   }
 
@@ -325,10 +325,12 @@ it under the terms of the GNU General Public License version 3 or later.
   &:is(button) {
     cursor: pointer;
 
-    &:hover,
+    &:hover {
+      border-color: $edge-hover;
+    }
+
     &:focus-visible {
-      border-color: $secondary-light;
-      outline: none;
+      @include focus-ring;
     }
   }
 }

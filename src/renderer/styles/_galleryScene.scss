@@ -632,13 +632,8 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .gallery-pill {
-  padding: 2px 9px;
-  color: $text-faint;
-  border: 1px solid $border-field;
-  border-radius: $radius-xs;
+  @include label-chip;
   // The quiet pill's face, not a wash of white.
-  background: $surface-control;
-  font-size: $text-micro;
 }
 
 // Three numbers side by side: label small over value large, the way a

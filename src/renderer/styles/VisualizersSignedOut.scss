@@ -306,12 +306,8 @@ it under the terms of the GNU General Public License version 3 or later.
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 11px;
-  color: $text-muted;
-  font-size: $text-small;
-  background: color-mix(in srgb, $surface-base 45%, transparent);
-  border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
+  // The app's label chip (`label-chip`): it was a pill on a dark wash.
+  @include label-chip;
 
   svg {
     width: 13px;
