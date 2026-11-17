@@ -3,6 +3,7 @@ import type { IScenePack } from 'common/scenePacks';
 import type { IWorldReport } from 'common/worldNotes';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
+import type { TSceneProbeRect } from './sceneHeadInk';
 
 /**
  * The frames the worker has put on the canvas: a running count and the
@@ -67,7 +68,12 @@ export type TSceneWorkerRequest =
    * The page's frame loop has stopped — hidden, out of sight, nothing to
    * draw — so the worker stops filling in frames until the next `draw`.
    */
-  | { kind: 'idle' };
+  | { kind: 'idle' }
+  /**
+   * Read how bright the picture is inside `rect` every few drawn frames and
+   * answer `probed` (`sceneProbe.ts`); null stops reading.
+   */
+  | { kind: 'probe'; rect: TSceneProbeRect | null };
 
 export type TSceneBuildResult =
   | {
@@ -116,6 +122,8 @@ export type TSceneWorkerReply =
       blamed: boolean;
     }
   | { kind: 'restored' }
+  /** The mean relative luminance of the probed strip, 0 to 1. */
+  | { kind: 'probed'; luminance: number }
   /** Nothing is linking and nothing is held: the worker may be ended. */
   | { kind: 'retired' }
   | { kind: 'error'; log: string };

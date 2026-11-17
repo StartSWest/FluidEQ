@@ -41,6 +41,7 @@ import type { ISceneDrawReport } from './sceneRunnerTypes';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
+import useSceneHeadInk from './useSceneHeadInk';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import { usePointerSparks } from '../utils/pointerSparksStore';
 import { createSceneInteraction } from './sceneInteraction';
@@ -360,6 +361,8 @@ export default function SceneCanvas({
   // Only the layer's own: the render that moves the canvas onto the plot
   // still holds the last layer's box until the effect above clears it.
   const frame = layer ? cover : undefined;
+  // On the EQ column, the head's words are inked for the picture behind them.
+  const headInk = useSceneHeadInk(layerName === 'column' ? frame : undefined);
 
   // The wave as the plot last drew it, carried on with the picture off the
   // graph; before any plot, the wave it is watched with where there is no
@@ -397,6 +400,7 @@ export default function SceneCanvas({
     onLoaded,
     interaction,
     placement: target,
+    ...(headInk ? { probe: headInk } : {}),
   });
 
   // On the plot, not on the scene's own layer, which takes no pointer: the

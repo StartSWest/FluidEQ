@@ -2285,6 +2285,101 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
       @include over-picture-shape;
     }
   }
+
+  // When the ink turns (below), it turns over a moment rather than in one
+  // frame. The tab's own 130ms for its pressed underline is kept.
+  .workspace-pill {
+    transition:
+      color $motion-base ease,
+      text-shadow $motion-base ease,
+      box-shadow 130ms ease;
+  }
+
+  .eq-engine-label,
+  .game-mode-switch__label,
+  .latency-readout__value {
+    transition:
+      color $motion-base ease,
+      text-shadow $motion-base ease;
+  }
+
+  .workspace-section-header svg {
+    transition: filter $motion-base ease;
+  }
+
+  // The bar keeps its slide, which reduced motion takes away as before.
+  @media (prefers-reduced-motion: no-preference) {
+    .workspace-tab-group__bar {
+      transition:
+        transform $motion-base $ease-out,
+        width $motion-base $ease-out,
+        background-color $motion-base ease;
+    }
+  }
+
+  // THE OTHER WAY ROUND OVER A BRIGHT PICTURE (Ivan, 2026-11-17: "can Fluid
+  // also detect when the scene is very bright and put them the other way
+  // round, black and white"). The scene's worker reads the strip behind the
+  // head on its own frames and a bright one marks the root
+  // (`useSceneHeadInk.ts`; where it turns is `sceneHeadInk.ts`): the words,
+  // the engine's name and the glyphs take the floor's dark, as print on a
+  // pale photograph does, and the soft shadow under them turns light. The
+  // floor is taken a quarter of the way to black so a window brightened by
+  // its slider still writes dark, and keeps the tint a scene lends the
+  // window. Only over a scene on the column: a standard look and a scene on
+  // the plot alone never mark it.
+  $head-dark-ink: color-mix(in oklab, #{$surface-base} 75%, black);
+
+  :root.is-scene-column[data-scene-head-ink='dark']
+    .center-workspace.is-graph-first
+    > & {
+    .workspace-pill,
+    .eq-engine-label,
+    .engine-strip .game-mode-switch__label {
+      @include over-bright-picture-text;
+    }
+
+    .workspace-section-header svg {
+      @include over-bright-picture-shape;
+    }
+
+    .workspace-pill {
+      color: color-mix(in srgb, #{$head-dark-ink} 85%, transparent);
+
+      &.is-active,
+      &:hover {
+        color: $head-dark-ink;
+      }
+    }
+
+    .eq-engine-label,
+    .engine-strip .game-mode-switch__label,
+    .engine-strip > .game-mode-switch:hover .game-mode-switch__label,
+    .engine-strip
+      > .latency-readout:hover:not(:disabled)
+      .latency-readout__value {
+      color: $head-dark-ink;
+    }
+
+    // Partly working keeps its caution colour, taken down far enough to
+    // read on a pale sky.
+    .eq-engine-line--partly .eq-engine-label {
+      color: color-mix(in oklab, #{$amber} 55%, black);
+    }
+
+    // The lit bar under the chosen page and the delay's figure, in the
+    // accent's deep step: still the accent, and a clear mark on a pale sky
+    // where its own step is as pale as the sky.
+    .workspace-tab-group__bar {
+      background: $secondary-darker;
+    }
+
+    .engine-strip .latency-readout__value {
+      @include over-bright-picture-text;
+
+      color: $secondary-darker;
+    }
+  }
 }
 
 .right-content {

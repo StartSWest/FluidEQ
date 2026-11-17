@@ -6,6 +6,7 @@ import type { IWorldReport } from 'common/worldNotes';
 import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFailureEntry, TSceneSurface } from 'common/sceneFailureLog';
 import type { ISceneFrame } from './sceneGl';
+import type { TSceneProbeRect } from './sceneHeadInk';
 import type { ISceneInteraction } from './sceneInteraction';
 import type { ISceneTuning } from './sceneTuner';
 import type { ISceneShownFrames } from './sceneWorkerMessages';
@@ -109,6 +110,12 @@ export interface ISceneSource {
    * reset costs it follow from this alone (`sceneRules.ts`).
    */
   madeBy: TSceneMaker;
+}
+
+/** A strip of the picture to read, and who hears how bright it is. */
+export interface ISceneRunnerProbe {
+  rect: TSceneProbeRect;
+  heard: (luminance: number) => void;
 }
 
 export interface ISceneRunnerOptions {
@@ -220,6 +227,12 @@ export interface ISceneRunnerOptions {
    * is pointed at by nobody and seen from where its author put the camera.
    */
   interaction?: ISceneInteraction;
+  /**
+   * A strip of the picture whose brightness is read every few drawn frames
+   * (`sceneProbe.ts`), and who hears each reading: the EQ head over the
+   * graph's scene (`useSceneHeadInk.ts`). Absent, nothing is read.
+   */
+  probe?: ISceneRunnerProbe;
   /**
    * Every frame the moment it is made, before the GPU is asked for it: what
    * the scene gets, what it heard before its response bent it, and the

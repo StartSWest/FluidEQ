@@ -21,6 +21,7 @@ import { createSceneDrawClock } from './sceneDrawClock';
 import { createScenePost, needsPresent, type IScenePost } from './scenePost';
 import sameSceneProgramInputs from './sceneProgramInputs';
 import { createSceneLossLedger } from './sceneLosses';
+import { createSceneProbing } from './sceneProbe';
 import type {
   TSceneBuildResult,
   TSceneWorkerReply,
@@ -88,6 +89,10 @@ let lastCostMs = 0;
  * changes, and a loss blamed on one must not follow the next.
  */
 let blamedSource: string | undefined;
+/** How bright the picture is behind the EQ head, while asked (`sceneProbe.ts`). */
+const probing = createSceneProbing((luminance) =>
+  scope.postMessage({ kind: 'probed', luminance }),
+);
 
 // The worker's own animation frames are the only thing that draws. The
 // page's frames are the model: each brings the newest sound and sizes, and
@@ -227,6 +232,7 @@ const freeFrameResources = () => {
   clock = undefined;
   post?.dispose();
   post = undefined;
+  probing.dispose();
 };
 
 /**
@@ -285,6 +291,7 @@ const attach = (target: OffscreenCanvas) => {
     // The context's objects went with it; the JavaScript side is let go too.
     clock = undefined;
     post = undefined;
+    probing.lost();
     if (blamed && pack) {
       blamedSource = pack.source;
     }
@@ -393,6 +400,7 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
     });
   }
   clock.end();
+  probing.drew(gl, shown.width, shown.height);
   shownFrames += 1;
   ledger.drew();
   shownAt = now;
@@ -473,6 +481,10 @@ scope.onmessage = ({ data }) => {
     // allocation and no compile.
     program?.rest?.();
     post?.shed();
+    return;
+  }
+  if (data.kind === 'probe') {
+    probing.ask(data.rect);
     return;
   }
   if (data.kind === 'load') {

@@ -145,6 +145,7 @@ export default function useSceneRunner({
   onWaiting,
   onUpdating,
   interaction,
+  probe,
 }: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
   const { points, waveform, isPaused, readFrame } = useSceneAudio();
   // The listener's frame rate and resolution, from this window's store unless
@@ -257,6 +258,8 @@ export default function useSceneRunner({
   drawnRef.current = onDrawn;
   const loadedRef = useRef(onLoaded);
   loadedRef.current = onLoaded;
+  const probeRef = useRef(probe);
+  probeRef.current = probe;
   const waitingCallbackRef = useRef(onWaiting);
   waitingCallbackRef.current = onWaiting;
   const waitingRef = useRef<boolean | undefined>(undefined);
@@ -867,6 +870,9 @@ export default function useSceneRunner({
       sourceRef.current.block();
     }
     rendererRef.current?.holdPicture(heldRef.current);
+    if (probeRef.current) {
+      rendererRef.current?.probe(probeRef.current.rect, probeRef.current.heard);
+    }
     return rendererRef.current;
   }, [dropProgram, kick, setWaiting, logFailure]);
 
@@ -1146,6 +1152,12 @@ export default function useSceneRunner({
       kick();
     }
   }, [held, kick]);
+
+  // The strip read on the renderer there is; a renderer started later is
+  // told by `startRenderer`.
+  useEffect(() => {
+    rendererRef.current?.probe(probe?.rect ?? null, probe?.heard);
+  }, [probe]);
 
   // Redraw the backing buffer when the panel's geometry changes.
   useEffect(() => {

@@ -43,6 +43,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     drop-shadow(0 1px 2px rgba(2, 8, 15, 0.5));
 }
 
+// The same over a BRIGHT picture, where the words turn dark (Ivan,
+// 2026-11-17: "put them the other way round, black and white"): the shadow
+// turns light, as dark print on a pale photograph lifts off it.
+@mixin over-bright-picture-text {
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.5),
+    0 1px 3px rgba(255, 255, 255, 0.42);
+}
+
+@mixin over-bright-picture-shape {
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5))
+    drop-shadow(0 1px 2px rgba(255, 255, 255, 0.45));
+}
+
 // *** Mixins *****************************************************************
 
 // Focus (`focus-ring`), unavailable (`control-disabled`) and every button

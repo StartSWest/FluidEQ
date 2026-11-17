@@ -3,6 +3,7 @@ import type { IScenePack } from 'common/scenePacks';
 import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
+import type { TSceneProbeRect } from './sceneHeadInk';
 import { sceneProgramKey, takeLinkTurn } from './sceneLinkTurns';
 import { reportError } from '../utils/logger';
 import type {
@@ -69,6 +70,14 @@ export interface ISceneWorkerClient {
    * after that — framed for where the graph has arrived (`graphArrival.ts`).
    */
   holdPicture(held: boolean): void;
+  /**
+   * Read how bright the picture is inside `rect` every few drawn frames, and
+   * hand each reading to `heard` (`sceneProbe.ts`); null stops reading.
+   */
+  probe(
+    rect: TSceneProbeRect | null,
+    heard: ((luminance: number) => void) | undefined,
+  ): void;
   dispose(): void;
 }
 
@@ -322,6 +331,7 @@ export const createSceneWorkerClient = (
     heldTurns.clear();
   };
   let shown: ((drawn: ISceneDrawn) => void) | undefined;
+  let probed: ((luminance: number) => void) | undefined;
   const loads = new Map<number, (result: TSceneBuildResult) => void>();
   const send = (request: TSceneWorkerRequest) => worker.postMessage(request);
   const cancelLoads = () => {
@@ -447,6 +457,8 @@ export const createSceneWorkerClient = (
       if (data.fatal) {
         failed(data.blamed ? 'gpu-reset' : 'context-lost');
       }
+    } else if (data.kind === 'probed') {
+      probed?.(data.luminance);
     } else if (data.kind === 'restored') {
       lost = false;
       // A restored context has live resources again; until its first frame
@@ -527,9 +539,21 @@ export const createSceneWorkerClient = (
       // frame sent from here on brings it back.
       hold();
     },
+    probe: (rect, heard) => {
+      probed = rect ? heard : undefined;
+      if (disposed) {
+        return;
+      }
+      try {
+        send({ kind: 'probe', rect });
+      } catch (error) {
+        fail(String(error));
+      }
+    },
     dispose: () => {
       disposed = true;
       shown = undefined;
+      probed = undefined;
       watchBox.disconnect();
       cancelLoads();
       releaseFrame(true);
