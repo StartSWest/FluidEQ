@@ -2789,10 +2789,17 @@ $graph-card-pages: list.join(
     @include section-card;
   }
 
-  // The card's top: 8px under the titlebar and 10px in from the column's
-  // sides, like the page's card, and open at its foot into the graph.
+  // The card's top: 8px under the titlebar and out to the column's sides,
+  // and open at its foot into the graph.
+  //
+  // Out to the sides, all of it - the head, the graph, the divider's band and
+  // the page's card under them: the graph reaches the column's edge, and the
+  // card it stands in goes with it (Ivan, 2026-11-16: "still a bit of gap" at
+  // the graph's right edge). It stood 10px in from both sides, which left a
+  // strip of floor between the graph and the sound panel; the plot itself
+  // already ran to the card's border (measured in the running window).
   > .center-head {
-    margin: 8px 10px 0;
+    margin: 8px 0 0;
     border-bottom: 0;
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
@@ -2802,10 +2809,14 @@ $graph-card-pages: list.join(
   // rounded corners from here (`.graph-plot` inherits the radius).
   > .graph-wrapper {
     width: auto;
-    margin: 0 10px;
+    margin: 0;
     border-top: 0;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
+  }
+
+  > .middle-content > :is(#{$section-card-pages}) {
+    margin-inline: 0;
   }
 
   // A Plus visualizer behind the head and the graph (the column's layer)
@@ -2826,8 +2837,8 @@ $graph-card-pages: list.join(
   // (`SceneColumnLayer.tsx`).
   > .scene-column-layer {
     top: 9px;
-    right: 11px;
-    left: 11px;
+    right: 1px;
+    left: 1px;
     border-radius: calc(#{$radius-m} - 1px);
   }
 }
@@ -2852,7 +2863,7 @@ $graph-card-pages: list.join(
   }
 
   > .pane-resizer {
-    margin: 0 10px;
+    margin: 0;
     border-inline: 1px solid $card-edge;
     background: $surface-section;
 
