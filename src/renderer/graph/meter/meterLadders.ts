@@ -15,6 +15,7 @@ import {
   zoneColour,
 } from './meterPaint';
 import type { IStrip } from './meterStrip';
+import { readEdge } from '../../utils/theme';
 
 /**
  * The styles that count the level in pieces: a panel of thin lamps, a
@@ -99,7 +100,7 @@ export const drawLeds = (strip: IStrip) => {
 };
 
 /** The unlit slabs' hairline, so an empty pile reads as blocks waiting. */
-const SLAB_RIM = 'rgba(214, 233, 247, 0.2)';
+const SLAB_RIM_ALPHA = 0.2;
 
 /**
  * Slabs piled up, leaning as though the pile is about to go over — and
@@ -149,7 +150,7 @@ export const drawStack = (strip: IStrip) => {
     const height = Math.max(pen.hair, pen.px(footAt(row)) - top);
     context.fillStyle = unlit;
     context.fillRect(x, top, rect.width, height);
-    context.strokeStyle = SLAB_RIM;
+    context.strokeStyle = readEdge(SLAB_RIM_ALPHA);
     context.lineWidth = pen.hair;
     context.strokeRect(
       x + pen.hair / 2,

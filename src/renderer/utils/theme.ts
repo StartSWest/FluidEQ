@@ -8,10 +8,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useSyncExternalStore } from 'react';
 import { readStored, writeStored } from './graphStorage';
+import { WINDOW_INK_ATTRIBUTE } from './themeInk';
 import {
   OCEAN_SHADE,
   THEME_SHADE_MIN,
   clampThemeShade,
+  isLightShade,
+  shadeOfDarkStep,
   themeShadeRule,
 } from './themeShade';
 
@@ -57,8 +60,36 @@ export type TThemeScope = 'app' | 'player';
  */
 const STORAGE_KEY = 'fluideq.theme';
 const PLAYER_STORAGE_KEY = 'fluideq.theme.player';
-/** Brightness on a new install, in either mode. */
-export const DEFAULT_SHADE = 50;
+/**
+ * Brightness on a new install, in either mode: half way along the dark walk,
+ * where 50 stood before the slider ran on into a light window.
+ */
+export const DEFAULT_SHADE = shadeOfDarkStep(50);
+
+/**
+ * The slider's scale, stored beside the choices. A Brightness stored before
+ * it ran on into a light window (scale 1) was a place on the dark walk alone,
+ * 0 to 100; it is moved onto the dark stretch once, so a window at 100 then -
+ * a dark window - opens on the same colours and not on white.
+ */
+const SCALE_KEY = 'fluideq.themeScale';
+const SCALE = '2';
+
+const moveOntoScale = () => {
+  if (readStored(SCALE_KEY) === SCALE) {
+    return;
+  }
+  [STORAGE_KEY, PLAYER_STORAGE_KEY].forEach((key) => {
+    const stored = readStored(key);
+    const value = stored === null ? Number.NaN : Number(stored);
+    if (Number.isFinite(value)) {
+      writeStored(key, String(shadeOfDarkStep(clampThemeShade(value))));
+    }
+  });
+  writeStored(SCALE_KEY, SCALE);
+};
+
+moveOntoScale();
 
 const SHADE_OF_THEME: Record<TTheme, number> = {
   black: THEME_SHADE_MIN,
@@ -107,6 +138,13 @@ const applyShade = (shade: number) => {
   }
   rule.textContent = themeShadeRule(shade);
   document.documentElement.setAttribute(SHADE_ATTRIBUTE, String(shade));
+  // Dark words on the light stretch. Named colours say this for themselves
+  // while they are worn, and repaint it after this (`sceneTintStore.ts`).
+  if (isLightShade(shade)) {
+    document.documentElement.setAttribute(WINDOW_INK_ATTRIBUTE, 'dark');
+  } else {
+    document.documentElement.removeAttribute(WINDOW_INK_ATTRIBUTE);
+  }
   // The window's backdrop material is no longer the theme's business. It used
   // to be — black wanted none, because a blur of the desktop under a true
   // black floor made it grey — and the floor is opaque now, so no theme can
@@ -191,6 +229,8 @@ export type TSurfaceName =
   | '--text-primary'
   | '--text-muted'
   | '--text-faint'
+  | '--edge-tint'
+  | '--ink'
   | '--meter-well'
   | '--meter-well-pulse'
   | '--meter-unlit'
@@ -356,6 +396,24 @@ export const readAccent = (alpha: number, fallback: string): string =>
   alpha >= 1
     ? readSurface('--accent', fallback)
     : readSurfaceAlpha('--accent', alpha, fallback);
+
+/**
+ * The window's strongest ink at an alpha, for what a drawing rules, frames
+ * and labels on the window's own ground — the DSP pages' grids, the
+ * analyser's scales: white on a dark window, a near-black of its hue on a
+ * light one (`--ink`, `themeInk.ts`). Written as white, every one of those
+ * vanished on a light window.
+ */
+export const readInk = (alpha: number): string =>
+  readSurfaceAlpha('--ink', alpha, `rgba(255, 255, 255, ${alpha})`);
+
+/**
+ * The hairlines' colour at an alpha (`--edge-tint`): the cool white a
+ * drawing's rims, ticks and quiet words were written in, and a deep ink on a
+ * light window.
+ */
+export const readEdge = (alpha: number): string =>
+  readSurfaceAlpha('--edge-tint', alpha, `rgba(214, 233, 247, ${alpha})`);
 
 export const readAccentLight = (alpha: number, fallback: string): string =>
   alpha >= 1

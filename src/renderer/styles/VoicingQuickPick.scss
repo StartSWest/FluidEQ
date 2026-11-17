@@ -147,7 +147,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba($red, 0.5);
   border-radius: $radius-xs;
   background: rgba($red, 0.16);
-  color: rgba($white, 0.92);
+  color: color-mix(in srgb, $ink 92%, transparent);
   font-size: $text-small;
   font-weight: $weight-bold;
   line-height: 1.3;

@@ -9,6 +9,7 @@ import { FilterTypeEnum } from '../../common/constants';
 import { IDimensionSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { fadeTrail, fadingContext } from '../utils/fadingCanvas';
+import { readInk } from '../utils/theme';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
 import {
   readDspCorrelation,
@@ -184,7 +185,7 @@ const DspDimensionGraph = ({
       const centreY = height / 2;
       const radius = Math.min(width, height) / 2 - 8;
 
-      context.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      context.strokeStyle = readInk(0.08);
       context.lineWidth = 1;
       context.beginPath();
       context.arc(centreX, centreY, radius, 0, Math.PI * 2);
@@ -237,7 +238,7 @@ const DspDimensionGraph = ({
       const xOf = (index: number) => (index / (columns - 1)) * width;
 
       // Zero correlation, which is where the guard begins to matter.
-      context.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      context.strokeStyle = readInk(0.08);
       context.lineWidth = 1;
       context.beginPath();
       context.moveTo(0, height / 2 + 0.5);
@@ -273,7 +274,7 @@ const DspDimensionGraph = ({
           context.lineTo(xOf(index), y);
         }
       }
-      context.strokeStyle = 'rgba(255, 255, 255, 0.34)';
+      context.strokeStyle = readInk(0.34);
       context.lineWidth = 1;
       context.stroke();
 
@@ -309,7 +310,7 @@ const DspDimensionGraph = ({
       const yOf = (value: number) => height - (value / MAX_WIDTH) * height;
       const unityY = yOf(1);
 
-      context.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      context.strokeStyle = readInk(0.06);
       context.lineWidth = 1;
       GRID_HZ.forEach((hz) => {
         const x = Math.round(xOf(hz)) + 0.5;
@@ -321,7 +322,7 @@ const DspDimensionGraph = ({
 
       // The unity line is the reading of this plot: above it the picture is
       // wider than the record already was, below it narrower.
-      context.strokeStyle = 'rgba(255, 255, 255, 0.26)';
+      context.strokeStyle = readInk(0.26);
       context.setLineDash([4, 4]);
       context.beginPath();
       context.moveTo(0, unityY + 0.5);
@@ -351,9 +352,7 @@ const DspDimensionGraph = ({
       points.forEach((point) => context.lineTo(point.x, point.y));
       context.lineTo(points[points.length - 1].x, unityY);
       context.closePath();
-      context.fillStyle = enabled
-        ? `rgba(${fieldInk()}, 0.16)`
-        : 'rgba(255, 255, 255, 0.05)';
+      context.fillStyle = enabled ? `rgba(${fieldInk()}, 0.16)` : readInk(0.05);
       context.fill();
 
       context.beginPath();
@@ -364,7 +363,7 @@ const DspDimensionGraph = ({
       );
       context.strokeStyle = enabled
         ? `rgba(${fieldInk()}, 0.92)`
-        : 'rgba(255, 255, 255, 0.24)';
+        : readInk(0.24);
       context.lineWidth = 2;
       context.stroke();
 
@@ -374,7 +373,7 @@ const DspDimensionGraph = ({
       // The corners, drawn where the filters actually cross. The same number as
       // the dial, but a marker placed from the setting would keep claiming to
       // be the corner if the crossover were ever retuned.
-      context.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      context.strokeStyle = readInk(0.18);
       context.lineWidth = 1;
       [settings.lowHz, settings.highHz].forEach((hz) => {
         const x = Math.round(xOf(hz)) + 0.5;

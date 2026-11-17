@@ -200,7 +200,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 1px;
   height: 10px;
   border-radius: 1px;
-  background: rgba($edge-tint, 0.32);
+  background: color-mix(in srgb, $edge-tint 32%, transparent);
   transform: translateY(-50%);
   pointer-events: none;
 }
@@ -302,7 +302,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 16px;
   height: 10px;
   border-radius: 3px;
-  box-shadow: inset 0 0 0 1px rgba($white, 0.2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 20%, transparent);
 }
 
 // The handles stand half outside the gradient at either end, so the strip
@@ -314,7 +314,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-s;
   background: var(--palette);
   box-shadow:
-    inset 0 0 0 1px rgba($white, 0.14),
+    inset 0 0 0 1px color-mix(in srgb, $edge-tint 14%, transparent),
     0 1px 0 rgba($black, 0.35);
   touch-action: none;
 
@@ -435,7 +435,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: block;
   height: 12px;
   border-radius: $radius-xs;
-  box-shadow: inset 0 0 0 1px rgba($white, 0.12);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 12%, transparent);
 }
 
 .studio-palette-presets__name {
@@ -499,7 +499,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 20px;
   border-radius: 4px;
   background: var(--colour);
-  box-shadow: inset 0 0 0 1px rgba($white, 0.2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 20%, transparent);
 }
 
 .studio-colour__hex {

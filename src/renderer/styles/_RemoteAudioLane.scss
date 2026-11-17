@@ -33,7 +33,7 @@
   grid-template-columns: subgrid;
 
   + .remote-audio__lane {
-    border-top: 1px solid rgba($edge-tint, 0.1);
+    border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   }
 }
 
@@ -199,7 +199,7 @@
 
 .remote-audio__lane.is-off {
   .remote-audio__lane-arrow {
-    background: rgba($edge-tint, 0.08);
+    background: color-mix(in srgb, $edge-tint 8%, transparent);
     color: $text-faint;
   }
 

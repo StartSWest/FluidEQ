@@ -97,7 +97,7 @@ $loop: 10s;
   display: inline-flex;
   flex-wrap: wrap;
   padding: calc(#{$u} * 0.18);
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-s;
   background: color-mix(in srgb, $surface-menu 84%, transparent);
   backdrop-filter: blur(8px);
@@ -122,12 +122,12 @@ $loop: 10s;
 
 .edit-visual__snap {
   margin-left: calc(#{$u} * 0.2);
-  border-left-color: rgba($edge-tint, 0.14);
+  border-left-color: color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: 0 $radius-xs $radius-xs 0;
 }
 
 .edit-visual__discard {
-  border-color: rgba($edge-tint, 0.2);
+  border-color: color-mix(in srgb, $edge-tint 20%, transparent);
 }
 
 .edit-visual__save {
@@ -416,7 +416,7 @@ $loop: 10s;
   img {
     width: 100%;
     aspect-ratio: 4 / 3;
-    border: 1px solid rgba($edge-tint, 0.14);
+    border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
     border-radius: $radius-xs;
     object-fit: cover;
   }
@@ -502,7 +502,7 @@ $loop: 10s;
   img {
     width: 100%;
     aspect-ratio: 16 / 9;
-    border: 1px solid rgba($edge-tint, 0.14);
+    border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
     border-radius: $radius-xs;
     object-fit: cover;
   }
@@ -548,7 +548,7 @@ $loop: 10s;
   img {
     width: 100%;
     aspect-ratio: 1;
-    border: 1px solid rgba($edge-tint, 0.14);
+    border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
     border-radius: $radius-xs;
     object-fit: cover;
   }
@@ -597,7 +597,7 @@ $loop: 10s;
 .watch-visual__night i {
   width: calc(#{$u} * 0.5);
   height: calc(#{$u} * 0.5);
-  border: 1px solid rgba($edge-tint, 0.3);
+  border: 1px solid color-mix(in srgb, $edge-tint 30%, transparent);
   border-radius: 50%;
   background: $black;
 }
@@ -804,7 +804,7 @@ $loop: 10s;
 
 .code-visual__file {
   overflow: hidden;
-  border: 1px solid rgba($edge-tint, 0.1);
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   border-radius: $radius-s;
   background: $surface-control;
 
@@ -854,7 +854,7 @@ $loop: 10s;
 .code-visual__code {
   display: grid;
   padding: calc(#{$u} * 0.2) 0 calc(#{$u} * 0.35);
-  border-top: 1px solid rgba($edge-tint, 0.08);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   background: color-mix(in srgb, $black 35%, transparent);
   font-family: $font-mono;
   font-size: calc(#{$u} * 0.6);

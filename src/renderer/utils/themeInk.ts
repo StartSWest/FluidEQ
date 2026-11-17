@@ -111,6 +111,39 @@ const DIM_SHARE_MIN = 0.38;
 export const EDGE_TINT = '#d6e9f7';
 
 /**
+ * WHICH WAY THE WINDOW'S INK RUNS. Every theme shade is a dark window with
+ * light ink. A light surface the listener or a scene picks (Ivan,
+ * 2026-11-17: "depending on the setting, the app needs to color white or
+ * dark") turns it round: the same inks, solved to the same contrasts, toward
+ * black instead of white (`pickedWindow.ts`). One set of names for both, on
+ * `:root`, so every stylesheet follows the switch without knowing about it.
+ *
+ * - `edge` is `$edge-tint`: what the hairlines, the mists, the dim tier and
+ *   the graph's rules are made of.
+ * - `ink` is `$ink`: the strongest ink, white on a dark window - a value, a
+ *   title, a glyph on a pane.
+ * - `text` are where each tier starts before it is moved, only as far as it
+ *   has to, to reach its contrast.
+ */
+export interface IInkSet {
+  readonly edge: string;
+  readonly ink: string;
+  readonly text: Readonly<Record<keyof typeof SHIPPED_TEXT, string>>;
+  readonly toward: 'white' | 'black';
+}
+
+/** The ink every theme shade wears: light, as it shipped. */
+export const LIGHT_INK: IInkSet = {
+  edge: EDGE_TINT,
+  ink: '#ffffff',
+  text: SHIPPED_TEXT,
+  toward: 'white',
+};
+
+/** What a light window wears on `:root`, beside the theme's own inks. */
+export const WINDOW_INK_ATTRIBUTE = 'data-window-ink';
+
+/**
  * The graph's ruled paper (`GridLine`, `graphPaper.ts`): the decades and the
  * ±10/±20 dB lines, and the lines between the decades at a lower step. They
  * were the edge tint at a fixed 12% and 6%, about 1.25:1 and 1.1:1 at every
@@ -123,13 +156,22 @@ const RULE_CONTRAST = {
   '--rule-minor': 1.22,
 } as const;
 
-export type TInkToken =
-  | keyof typeof TEXT_CONTRAST
-  | '--disabled-opacity'
-  | '--field-edge-share'
-  | '--field-edge-hover-share'
-  | '--text-dim-share'
-  | keyof typeof RULE_CONTRAST;
+/** Every ink `inkTokens` solves, in the order it writes them. */
+export const INK_TOKENS = [
+  '--text-primary',
+  '--text-muted',
+  '--text-faint',
+  '--disabled-opacity',
+  '--field-edge-share',
+  '--field-edge-hover-share',
+  '--text-dim-share',
+  '--rule-major',
+  '--rule-minor',
+  '--edge-tint',
+  '--ink',
+] as const;
+
+export type TInkToken = (typeof INK_TOKENS)[number];
 
 type TRgb = readonly [number, number, number];
 
@@ -185,10 +227,17 @@ export const cardHexOf = (floor: string, pane: string): string =>
  * own colour — the sound pane, the player's bar, the Studio's cards — came
  * out under their target there: 1.73:1 on Black for a 1.8 edge.
  */
-export const groundOf = (floor: string, pane: string): TRgb => {
+export const groundOf = (
+  floor: string,
+  pane: string,
+  ink: IInkSet['toward'] = 'white',
+): TRgb => {
   const card = cardOf(floor, pane);
   const own = rgbOf(pane);
-  return lumOf(own) > lumOf(card) ? own : card;
+  // Light ink is hardest to read on the lighter of the two, dark ink on the
+  // darker: whichever is the worst for this ink is the one solved on.
+  const ownIsLighter = lumOf(own) > lumOf(card);
+  return ownIsLighter === (ink === 'white') ? own : card;
 };
 
 /**
@@ -212,10 +261,15 @@ export const edgeOn = (
 ): string => rgbaFor(rgbOf(edge), ground, EDGE_CONTRAST[token]);
 
 /**
- * `shipped`, lifted toward white along its own hue only as far as it has to
- * go to reach `target` on `ground`; unchanged where it already does.
+ * `shipped`, moved along its own hue toward `toward` only as far as it has
+ * to go to reach `target` on `ground`; unchanged where it already does.
  */
-const textOn = (shipped: string, ground: TRgb, target: number): string => {
+const textOn = (
+  shipped: string,
+  ground: TRgb,
+  target: number,
+  toward: IInkSet['toward'] = 'white',
+): string => {
   const groundLum = lumOf(ground);
   const reach = (lab: ILab) =>
     contrast(lumOf(rgbOf(labToHex(lab))), groundLum) >= target;
@@ -223,49 +277,47 @@ const textOn = (shipped: string, ground: TRgb, target: number): string => {
   if (reach(start)) {
     return shipped;
   }
-  // Toward white: the colour thins as the lightness rises, so the top of the
-  // range is white itself rather than a tinted near-white out of gamut.
+  // The colour thins as the lightness nears the end it moves to, so the end
+  // of the range is white or black itself rather than a tinted near-white or
+  // near-black out of gamut.
+  const end = toward === 'white' ? 1 : 0;
   const at = (l: number): ILab => {
-    const keep = (1 - l) / Math.max(1 - start.l, 1e-6);
+    const keep = Math.abs(end - l) / Math.max(Math.abs(end - start.l), 1e-6);
     return { l, a: start.a * keep, b: start.b * keep };
   };
-  if (!reach(at(1))) {
-    return '#ffffff';
+  if (!reach(at(end))) {
+    return toward === 'white' ? '#ffffff' : '#000000';
   }
-  let low = start.l;
-  let high = 1;
+  // `near` never reaches, `far` always does; the answer is the reaching
+  // lightness closest to where the colour started.
+  let near = start.l;
+  let far = end;
   for (let step = 0; step < 24; step += 1) {
-    const middle = (low + high) / 2;
+    const middle = (near + far) / 2;
     if (reach(at(middle))) {
-      high = middle;
+      far = middle;
     } else {
-      low = middle;
+      near = middle;
     }
   }
-  return labToHex(at(high));
+  return labToHex(at(far));
 };
 
-/** Every ink that is not an edge, solved on `ground` (`groundOf`). */
+/**
+ * Every ink that is not an edge, solved on `ground` (`groundOf`), in the
+ * window's ink `set`: light for every theme shade, dark on a light window.
+ */
 export const inkTokens = (
   ground: TRgb,
   accentLight: string,
+  set: IInkSet = LIGHT_INK,
 ): Record<TInkToken, string> => {
+  const tier = (token: keyof typeof TEXT_CONTRAST) =>
+    textOn(set.text[token], ground, TEXT_CONTRAST[token], set.toward);
   const text = {
-    '--text-primary': textOn(
-      SHIPPED_TEXT['--text-primary'],
-      ground,
-      TEXT_CONTRAST['--text-primary'],
-    ),
-    '--text-muted': textOn(
-      SHIPPED_TEXT['--text-muted'],
-      ground,
-      TEXT_CONTRAST['--text-muted'],
-    ),
-    '--text-faint': textOn(
-      SHIPPED_TEXT['--text-faint'],
-      ground,
-      TEXT_CONTRAST['--text-faint'],
-    ),
+    '--text-primary': tier('--text-primary'),
+    '--text-muted': tier('--text-muted'),
+    '--text-faint': tier('--text-faint'),
   };
   const disabled = Math.min(
     DISABLED_OPACITY_MAX,
@@ -282,13 +334,11 @@ export const inkTokens = (
     FIELD_EDGE_HOVER_SHARE_MIN,
     opacityFor(rgbOf(accentLight), ground, FIELD_EDGE_HOVER_CONTRAST),
   );
-  const dim = Math.max(
-    DIM_SHARE_MIN,
-    opacityFor(rgbOf(EDGE_TINT), ground, DIM_CONTRAST),
-  );
+  const edge = rgbOf(set.edge);
+  const dim = Math.max(DIM_SHARE_MIN, opacityFor(edge, ground, DIM_CONTRAST));
   const percent = (share: number) => `${Number((share * 100).toFixed(1))}%`;
   const rule = (token: keyof typeof RULE_CONTRAST) =>
-    rgbaFor(rgbOf(EDGE_TINT), ground, RULE_CONTRAST[token]);
+    rgbaFor(edge, ground, RULE_CONTRAST[token]);
   return {
     ...text,
     '--disabled-opacity': String(Number(disabled.toFixed(3))),
@@ -297,5 +347,7 @@ export const inkTokens = (
     '--text-dim-share': percent(dim),
     '--rule-major': rule('--rule-major'),
     '--rule-minor': rule('--rule-minor'),
+    '--edge-tint': set.edge,
+    '--ink': set.ink,
   };
 };

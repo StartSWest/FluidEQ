@@ -638,7 +638,7 @@ $code-bar: 10px;
   margin: 2px 0;
   padding: 2px $code-pad-inline;
   color: $text-dim;
-  background: color-mix(in srgb, $white 3%, transparent);
+  background: color-mix(in srgb, $edge-tint 3%, transparent);
   font-family: inherit;
   font-size: $text-micro;
 }
@@ -648,7 +648,7 @@ $code-bar: 10px;
 }
 
 .studio-code__glsl--keyword {
-  color: color-mix(in srgb, $triadic-1 65%, $white);
+  color: color-mix(in srgb, $triadic-1 65%, $ink);
 }
 
 .studio-code__glsl--number {
@@ -656,7 +656,7 @@ $code-bar: 10px;
 }
 
 .studio-code__glsl--uniform {
-  color: color-mix(in srgb, $complementary 70%, $white);
+  color: color-mix(in srgb, $complementary 70%, $ink);
 }
 
 .studio-code__glsl--builtin {

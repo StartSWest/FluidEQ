@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import { floorInk } from '../../utils/windowInk';
 import { noteLegendPlace } from './legendPlace';
 import {
@@ -115,9 +116,10 @@ export const mateColours = (colours: readonly string[]): readonly string[] =>
 
 /**
  * The swatch of a mark rather than a reading — a peak hold, a high-water
- * mark — which is white on every view, as the marks themselves are.
+ * mark — in the window's strongest ink on every view, as the marks
+ * themselves are: white on a dark window, near-black on a light one.
  */
-export const MARK_KEY_INK = 'rgba(255, 255, 255, 0.95)';
+export const markKeyInk = (): string => readInk(0.95);
 
 /** How tall the legend's text is, and how much room the chip leaves round it. */
 const LEGEND_TEXT = 11;
@@ -201,7 +203,7 @@ export const paintLegend = (
   context.beginPath();
   context.roundRect(left, top, width, height, height / 2);
   context.fill();
-  context.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  context.strokeStyle = readInk(0.12);
   context.lineWidth = 1;
   context.stroke();
   let at = left + LEGEND_PAD + LEGEND_GAP / 2;
@@ -217,7 +219,7 @@ export const paintLegend = (
       2.5,
     );
     context.fill();
-    context.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    context.fillStyle = readInk(0.92);
     context.fillText(
       chip.label,
       at + LEGEND_SWATCH + LEGEND_GAP * 0.6,

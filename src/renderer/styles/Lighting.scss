@@ -441,7 +441,7 @@ $windows-blue: #8ec5ff;
   padding: 8px 10px;
   border: 1px solid transparent;
   border-radius: $radius-s;
-  background: rgba($white, 0.03);
+  background: color-mix(in srgb, $edge-tint 3%, transparent);
   transition: opacity $motion-fast $ease-out;
 
   &.is-muted {
@@ -489,7 +489,7 @@ $windows-blue: #8ec5ff;
   padding: 12px 14px;
   border: 1px solid $card-edge;
   border-radius: $radius-xs;
-  background: rgba($white, 0.025);
+  background: color-mix(in srgb, $edge-tint 2.5%, transparent);
 }
 
 .lighting-scene-bar__identity {
@@ -520,7 +520,7 @@ $windows-blue: #8ec5ff;
   flex: 0 0 auto;
   width: 40px;
   height: 40px;
-  border: 1px solid rgba($white, 0.18);
+  border: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
   border-radius: $radius-xs;
 }
 
@@ -586,7 +586,7 @@ $windows-blue: #8ec5ff;
   text-align: left;
   border: 1px solid $card-edge;
   border-radius: $radius-s;
-  background: rgba($white, 0.025);
+  background: color-mix(in srgb, $edge-tint 2.5%, transparent);
   cursor: pointer;
 
   svg {
@@ -603,7 +603,7 @@ $windows-blue: #8ec5ff;
     overflow-wrap: anywhere;
   }
   &:hover {
-    background: rgba($white, 0.055);
+    background: color-mix(in srgb, $edge-tint 5.5%, transparent);
   }
   &.is-selected {
     color: $text-primary;
@@ -728,7 +728,7 @@ $windows-blue: #8ec5ff;
   gap: 6px;
   padding: 2px 9px;
   color: $text-dim;
-  border: 1px solid rgba($white, 0.08);
+  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-xs;
   font-size: $text-micro;
   white-space: nowrap;

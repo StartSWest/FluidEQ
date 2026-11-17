@@ -85,7 +85,7 @@
   display: block;
   width: 132px;
   height: 40px;
-  border: 1px solid rgba($white, 0.06);
+  border: 1px solid color-mix(in srgb, $edge-tint 6%, transparent);
   border-radius: $radius-s;
   background: color-mix(in srgb, $surface-base 55%, transparent);
   color: $secondary-default;

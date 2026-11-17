@@ -13,7 +13,7 @@
 }
 
 .eq-curve-chart__grid {
-  stroke: rgba($white, 0.1);
+  stroke: color-mix(in srgb, $edge-tint 10%, transparent);
   stroke-dasharray: 2 4;
   stroke-width: 1;
 }

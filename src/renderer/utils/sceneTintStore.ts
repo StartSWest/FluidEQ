@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useSyncExternalStore } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IScenePack } from 'common/scenePacks';
+import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { readStored, writeStored } from './graphStorage';
 import {
   SCENE_SKY_MEASUREMENT,
@@ -20,10 +21,13 @@ import {
 } from './sceneTint';
 import { DARK_KNEE, darkenSurfaces } from './sceneTintDark';
 import { getThemeShade, subscribeTheme } from './theme';
+import pickedWindow from './pickedWindow';
+import { INK_TOKENS, WINDOW_INK_ATTRIBUTE } from './themeInk';
 import {
-  THEME_SHADE_MAX,
-  THEME_SHADE_MIN,
-  THEME_SHADE_TOKENS,
+  darkStepOf,
+  isLightShade,
+  shadeOfDarkStep,
+  themeActiveOf,
   themeShadeTokens,
 } from './themeShade';
 
@@ -507,6 +511,23 @@ export type TSkyTone = 'lent' | 'held' | 'follow';
 /** The sky the window should be in; undefined for the theme as it is. */
 let wanted: ISceneSky | undefined;
 let wantedTone: TSkyTone = 'follow';
+/**
+ * Colours somebody named, worn as named (`pickedWindow.ts`) rather than toned
+ * from the theme by their hue; `wanted` is then their sky, for what shows the
+ * window's colour in a glyph.
+ */
+let wantedPicked: ISceneWindowColours | undefined;
+
+const samePicked = (
+  left: ISceneWindowColours | undefined,
+  right: ISceneWindowColours | undefined,
+) =>
+  left === right ||
+  (left !== undefined &&
+    right !== undefined &&
+    left.surface === right.surface &&
+    left.accent === right.accent &&
+    left.glow === right.glow);
 
 /**
  * Where a held sky's 0 stands on the theme's walk: the darkest shade at which
@@ -518,13 +539,21 @@ let wantedTone: TSkyTone = 'follow';
  */
 const HELD_SHADE_FLOOR = 30;
 
-/** The theme's shade a sky of `tone` is toned against, at `shade`. */
+/** The dark walk's own scale, which `HELD_SHADE_FLOOR` was chosen on. */
+const DARK_STEPS = 100;
+
+/**
+ * The theme's shade a sky of `tone` is toned against, at `shade`. A held sky
+ * walks the dark stretch from `HELD_SHADE_FLOOR` up, measured on the dark
+ * walk's own scale; on the light stretch every tone is the shade itself, so
+ * the window turns light at the same place on the slider whatever lends it
+ * its colour.
+ */
 export const toneShadeOf = (tone: TSkyTone, shade: number) =>
-  tone === 'held'
-    ? Math.round(
+  tone === 'held' && !isLightShade(shade)
+    ? shadeOfDarkStep(
         HELD_SHADE_FLOOR +
-          ((shade - THEME_SHADE_MIN) / (THEME_SHADE_MAX - THEME_SHADE_MIN)) *
-            (THEME_SHADE_MAX - HELD_SHADE_FLOOR),
+          (darkStepOf(shade) / DARK_STEPS) * (DARK_STEPS - HELD_SHADE_FLOOR),
       )
     : shade;
 
@@ -555,11 +584,13 @@ export const toneShadeOf = (tone: TSkyTone, shade: number) =>
  */
 let painted: {
   sky: ISceneSky | undefined;
+  picked: ISceneWindowColours | undefined;
   tone: TSkyTone;
   shade: number;
   brightness: number;
 } = {
   sky: undefined,
+  picked: undefined,
   tone: 'follow',
   shade: getThemeShade(),
   brightness: getThemeShade(),
@@ -599,34 +630,13 @@ const sameSky = (left?: ISceneSky, right?: ISceneSky) =>
  * Measured on the window's 1,300 elements, that was one of the three style
  * passes a step cost, and the slider moved at 20 frames a second.
  *
- * The rest (`--active`) no shade changes, so it is read once, the same way.
- * A stylesheet edited under a running development window is not seen here
- * until it reloads.
+ * And `--active`, the colour for "on", which the theme moves only on its
+ * light stretch (`themeActiveOf`).
  */
-const SHADE_TOKENS: ReadonlySet<string> = new Set(THEME_SHADE_TOKENS);
-let fixedBase: Record<string, string> | undefined;
-
-const readFixedBase = () => {
-  if (fixedBase) {
-    return fixedBase;
-  }
-  const root = document.documentElement;
-  const fixed = SCENE_TINT_TOKENS.filter((token) => !SHADE_TOKENS.has(token));
-  const held = fixed.map(
-    (token) => [token, root.style.getPropertyValue(token)] as const,
-  );
-  held.forEach(([token]) => root.style.removeProperty(token));
-  const computed = getComputedStyle(root);
-  fixedBase = Object.fromEntries(
-    fixed.map((token) => [token, computed.getPropertyValue(token).trim()]),
-  );
-  held.forEach(([token, value]) => {
-    if (value) {
-      root.style.setProperty(token, value);
-    }
-  });
-  return fixedBase;
-};
+const baseOf = (shade: number) => ({
+  '--active': themeActiveOf(shade),
+  ...themeShadeTokens(shade),
+});
 
 let themeBase: { shade: number; values: Record<string, string> } | undefined;
 
@@ -634,7 +644,7 @@ const readThemeBase = (shade: number) => {
   if (themeBase?.shade !== shade) {
     themeBase = {
       shade,
-      values: { ...readFixedBase(), ...themeShadeTokens(shade) },
+      values: baseOf(shade),
     };
   }
   return themeBase.values;
@@ -651,7 +661,7 @@ const readKneeBase = (shade: number) => {
   if (kneeBase?.shade !== shade) {
     kneeBase = {
       shade,
-      values: { ...readFixedBase(), ...themeShadeTokens(shade) },
+      values: baseOf(shade),
     };
   }
   return kneeBase.values;
@@ -663,9 +673,26 @@ const readKneeBase = (shade: number) => {
  * old frame to be captured, and a change that lands at once in between would
  * otherwise be painted over by the older one.
  */
-const paint = () => {
-  const { style } = document.documentElement;
-  const shade = toneShadeOf(wantedTone, getThemeShade());
+/** Every token a paint may write on the root, and takes off when it does not. */
+const PAINTED_TOKENS = [...SCENE_TINT_TOKENS, ...INK_TOKENS] as const;
+
+/**
+ * Which way the window's ink runs, on `:root` (`WINDOW_INK_ATTRIBUTE`): `dark`
+ * on a light window, nothing on a dark one. The theme says it for its own
+ * shade (`theme.ts`); named colours say it for themselves, whatever the
+ * Brightness, and a sky lent or held takes the theme's.
+ */
+const showInk = (ink: 'light' | 'dark') => {
+  const root = document.documentElement;
+  if (ink === 'dark') {
+    root.setAttribute(WINDOW_INK_ATTRIBUTE, 'dark');
+  } else {
+    root.removeAttribute(WINDOW_INK_ATTRIBUTE);
+  }
+};
+
+/** The tokens for the sky wanted now, toned from the theme at `shade`. */
+const tonedPalette = (shade: number, brightness: number) => {
   const reach = wantedTone === 'lent' ? lentSkyReach(shade) : 1;
   // A lent sky at Black lends nothing, so the window is the theme's own there
   // — the knobs, the wave and the meter included, which take a scene's
@@ -677,20 +704,34 @@ const paint = () => {
   // A visualizer's colours, below the knee: every surface walks down from
   // the knee's colour (`darkenSurfaces`). A lent sky keeps its own walk,
   // which fades the colour out toward Black on purpose (`lentSkyReach`).
+  return palette && wanted && wantedTone !== 'lent' && brightness < DARK_KNEE
+    ? darkenSurfaces(
+        palette,
+        tintThemePalette(
+          readKneeBase(toneShadeOf(wantedTone, DARK_KNEE)),
+          wanted,
+          reach,
+        ),
+        brightness,
+      )
+    : palette;
+};
+
+/**
+ * The root, repainted to whatever is wanted at the moment it runs — never to
+ * what was wanted when a fade was asked for. A fade's update waits for the
+ * old frame to be captured, and a change that lands at once in between would
+ * otherwise be painted over by the older one.
+ */
+const paint = () => {
+  const { style } = document.documentElement;
+  const shade = toneShadeOf(wantedTone, getThemeShade());
   const brightness = getThemeShade();
-  const shown =
-    palette && wanted && wantedTone !== 'lent' && brightness < DARK_KNEE
-      ? darkenSurfaces(
-          palette,
-          tintThemePalette(
-            readKneeBase(toneShadeOf(wantedTone, DARK_KNEE)),
-            wanted,
-            reach,
-          ),
-          brightness,
-        )
-      : palette;
-  SCENE_TINT_TOKENS.forEach((token) => {
+  const picked = wantedPicked && pickedWindow(wantedPicked, brightness);
+  const shown: Readonly<Record<string, string>> | undefined = picked
+    ? picked.tokens
+    : tonedPalette(shade, brightness);
+  PAINTED_TOKENS.forEach((token) => {
     const value = shown?.[token];
     if (value) {
       style.setProperty(token, value);
@@ -698,18 +739,27 @@ const paint = () => {
       style.removeProperty(token);
     }
   });
+  const themeInk = isLightShade(brightness) ? 'dark' : 'light';
+  showInk(picked?.ink ?? themeInk);
   // For what keeps a resting look of its own and takes the scene's only while
   // it is lent — the knobs, the titlebar wave, the level meter — without each
   // of them guessing from the tokens.
   document.documentElement.toggleAttribute(
     'data-scene-tint',
-    palette !== undefined,
+    shown !== undefined,
   );
-  painted = { sky: wanted, tone: wantedTone, shade, brightness };
+  painted = {
+    sky: wanted,
+    picked: wantedPicked,
+    tone: wantedTone,
+    shade,
+    brightness,
+  };
 };
 
 const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
+  !samePicked(painted.picked, wantedPicked) ||
   painted.tone !== wantedTone ||
   (wanted !== undefined &&
     (painted.shade !== toneShadeOf(wantedTone, getThemeShade()) ||
@@ -777,10 +827,20 @@ const fadeToWanted = () => {
  * `fade` cross-fades when the window can; the first paint of a launch should
  * not, since there is no earlier colour to fade from.
  */
-const showSky = (sky: ISceneSky | undefined, tone: TSkyTone, fade: boolean) => {
-  if (!sameSky(sky, wanted) || tone !== wantedTone) {
+const showSky = (
+  sky: ISceneSky | undefined,
+  tone: TSkyTone,
+  fade: boolean,
+  picked?: ISceneWindowColours,
+) => {
+  if (
+    !sameSky(sky, wanted) ||
+    tone !== wantedTone ||
+    !samePicked(picked, wantedPicked)
+  ) {
     wanted = sky;
     wantedTone = tone;
+    wantedPicked = picked;
     wantedListeners.forEach((listener) => listener());
   }
   if (!needsPaint()) {
@@ -809,6 +869,19 @@ export const showSceneSky = (
  */
 export const lendSceneSky = (sky: ISceneSky, fade: boolean) =>
   showSky(sky, 'lent', fade);
+
+/**
+ * Put the window in colours somebody named - the listener's own for a scene,
+ * or the three its pack names - worn as named (`pickedWindow.ts`), light or
+ * dark by their surface. `sky` is the same colours as a sky, for the glyphs
+ * that show the window's colour.
+ */
+export const showWindowColours = (
+  colours: ISceneWindowColours,
+  sky: ISceneSky | undefined,
+  fade: boolean,
+  tone: Exclude<TSkyTone, 'lent'> = 'follow',
+) => showSky(sky, tone, fade, colours);
 
 /**
  * A Brightness move lands at once, in the same task as the theme's own rule:

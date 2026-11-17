@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../utils/theme';
 import { GRAPH_FONT } from './deEsserPlot';
 import {
   CENTRE_FROM,
@@ -16,7 +17,7 @@ import {
   line,
   noGlow,
   POINT_FONT,
-  POINT_INK,
+  pointInk,
   SPARE_DB,
 } from './deEsserLensKit';
 
@@ -54,7 +55,7 @@ export const drawCymbals = ({
   // The line a voice is cut from, across both.
   const threshold = Math.round(yOf(0)) + 0.5;
   context.setLineDash([3, 3]);
-  context.strokeStyle = 'rgba(255,255,255,0.45)';
+  context.strokeStyle = readInk(0.45);
   line(context, box.x + 8, threshold, box.x + box.width - 8, threshold);
   context.setLineDash([]);
   label(
@@ -96,14 +97,14 @@ export const drawCymbals = ({
   const cymbal = box.x + box.width * 0.62;
   const y = Math.round(yOf(spare)) + 0.5;
   glow(context, '255,255,255', 8);
-  context.strokeStyle = POINT_INK;
+  context.strokeStyle = pointInk();
   context.lineWidth = 2;
   line(context, cymbal - width / 2 - 14, y, cymbal + width / 2 + 14, y);
   context.lineWidth = 1;
   noGlow(context);
   context.font = POINT_FONT;
   const needs = labels.cymbalNeeds(distanceDb(spare));
-  label(context, needs, cymbal + width / 2 + 20, y, 'left', POINT_INK);
+  label(context, needs, cymbal + width / 2 + 20, y, 'left', pointInk());
   context.font = GRAPH_FONT;
 };
 
@@ -159,7 +160,7 @@ export const drawWhere = (
   context.lineWidth = 1;
 
   // The seat, the two sides, and two sounds.
-  context.fillStyle = 'rgba(255,255,255,0.7)';
+  context.fillStyle = readInk(0.7);
   context.beginPath();
   context.arc(cx, cy, 4, 0, Math.PI * 2);
   context.fill();
@@ -193,6 +194,6 @@ export const drawWhere = (
   });
   context.font = POINT_FONT;
   const title = centreOnly ? labels.centre : labels.everything;
-  label(context, title, box.x, box.y + 8, 'left', POINT_INK);
+  label(context, title, box.x, box.y + 8, 'left', pointInk());
   context.font = GRAPH_FONT;
 };

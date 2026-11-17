@@ -57,7 +57,7 @@ export default function StudioWindowColours({
             onChange={state.change}
             onCommit={state.commit}
           />
-          <WindowColoursPreview colours={colours} />
+          <WindowColoursPreview colours={colours} named={state.isNamed} />
         </>
       ) : (
         <p className="studio-window-colours__empty">

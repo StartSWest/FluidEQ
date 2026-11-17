@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import {
   ANALYSIS_RANGE_DB,
   placeLevel,
@@ -159,7 +160,7 @@ export const paintEnergyWords = (
     context.font = footWordFont(700, 10);
     context.textBaseline = line.baseline;
     context.globalAlpha = band.opacity * 0.85;
-    context.fillStyle = 'rgba(255, 255, 255, 0.82)';
+    context.fillStyle = readInk(0.82);
     context.fillText(labels[index], middle, line.y);
     const head = placeLevel(band, Math.max(bands[index], hold[index]));
     context.font = '600 11px system-ui, sans-serif';

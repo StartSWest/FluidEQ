@@ -18,20 +18,20 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 100%;
   height: auto;
   padding: calc(var(--tour-unit) * 0.6);
-  border: 1px solid rgba($edge-tint, 0.1);
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   border-radius: $radius-l;
   background: color-mix(in srgb, $surface-well 70%, transparent);
 }
 
 .tour-share__device {
-  fill: color-mix(in srgb, $surface-field-end 92%, $white);
-  stroke: rgba($edge-tint, 0.22);
+  fill: color-mix(in srgb, $surface-field-end 92%, $edge-tint);
+  stroke: color-mix(in srgb, $edge-tint 22%, transparent);
   stroke-width: 1.2;
 }
 
 .tour-share__screen {
   fill: $black;
-  stroke: rgba($edge-tint, 0.12);
+  stroke: color-mix(in srgb, $edge-tint 12%, transparent);
 }
 
 .tour-share__wave {
@@ -47,7 +47,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .tour-share__foot {
-  fill: rgba($edge-tint, 0.18);
+  fill: color-mix(in srgb, $edge-tint 18%, transparent);
 }
 
 // The sound travelling: short bright dashes running along each wire the way
@@ -135,20 +135,20 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .tour-art__panel {
-  fill: color-mix(in srgb, $surface-field-end 92%, $white);
-  stroke: rgba($edge-tint, 0.18);
+  fill: color-mix(in srgb, $surface-field-end 92%, $edge-tint);
+  stroke: color-mix(in srgb, $edge-tint 18%, transparent);
   stroke-width: 1.2;
 }
 
 .tour-art__screen {
   fill: $black;
-  stroke: rgba($edge-tint, 0.12);
+  stroke: color-mix(in srgb, $edge-tint 12%, transparent);
 }
 
 // Album tiles in three muted hues, so the grid reads as art and not as
 // six copies of the same box.
 .tour-art__tile {
-  stroke: rgba($edge-tint, 0.14);
+  stroke: color-mix(in srgb, $edge-tint 14%, transparent);
 
   &--0 {
     fill: color-mix(in srgb, $secondary-default 22%, $surface-well);
@@ -164,7 +164,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .tour-art__word {
-  fill: rgba($edge-tint, 0.18);
+  fill: color-mix(in srgb, $edge-tint 18%, transparent);
 }
 
 .tour-art__note {
@@ -172,23 +172,23 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .tour-art__bar {
-  fill: rgba($edge-tint, 0.3);
+  fill: color-mix(in srgb, $edge-tint 30%, transparent);
 }
 
 .tour-art__tick {
-  stroke: rgba($edge-tint, 0.14);
+  stroke: color-mix(in srgb, $edge-tint 14%, transparent);
   stroke-dasharray: 3 4;
 }
 
 .tour-art__track {
-  stroke: rgba($edge-tint, 0.18);
+  stroke: color-mix(in srgb, $edge-tint 18%, transparent);
   stroke-linecap: round;
   stroke-width: 3;
 }
 
 .tour-art__knob {
   fill: $surface-well;
-  stroke: rgba($edge-tint, 0.3);
+  stroke: color-mix(in srgb, $edge-tint 30%, transparent);
   stroke-width: 1.5;
 }
 
@@ -197,7 +197,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .tour-art__toggle-off {
-  fill: rgba($edge-tint, 0.18);
+  fill: color-mix(in srgb, $edge-tint 18%, transparent);
 }
 
 .tour-art__wave {

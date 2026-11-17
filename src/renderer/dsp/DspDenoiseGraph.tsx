@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { readTextInk } from '../utils/theme';
+import { readEdge, readInk, readTextInk } from '../utils/theme';
 import {
   IDenoiseClickSettings,
   IDenoiseHissSettings,
@@ -136,7 +136,6 @@ const GRID_HZ: [number, string][] = [
 
 const GRID_DB = [-30, -60, -90, -120];
 
-const SPECTRUM_INK = '255, 255, 255';
 /** Warm, matching the amber this app already uses for "pay attention". */
 const FLOOR_INK = '255, 176, 89';
 const HUM_INK = '84, 200, 255';
@@ -296,9 +295,9 @@ const DspDenoiseGraph = ({
       // in the card's colour it was still a pale band across the top of the
       // graph (Ivan, 2026-09-26: "dsp reduction graph header also fix",
       // "these too").
-      context.fillStyle = 'rgba(214, 233, 247, 0.04)';
+      context.fillStyle = readEdge(0.04);
       context.fillRect(0, 0, width, LANE_STRIP_H);
-      context.fillStyle = `rgba(${SPECTRUM_INK}, 0.07)`;
+      context.fillStyle = readInk(0.07);
       context.fillRect(0, LANE_STRIP_H - 1, width, 1);
       const laneLabel = laneLive
         ? t('dsp.denoise.graphClicksIn', {
@@ -317,7 +316,7 @@ const DspDenoiseGraph = ({
         PAD_L + 2 + context.measureText(laneLabel).width + LANE_LABEL_GAP,
       );
       const barsW = Math.max(1, PAD_L + plotW - barsX);
-      context.fillStyle = `rgba(${SPECTRUM_INK}, 0.04)`;
+      context.fillStyle = readInk(0.04);
       context.fillRect(barsX, LANE_PAD, barsW, LANE_H);
       if (laneLive) {
         const barW = Math.max(1, barsW / CLICK_BUCKETS - 1);
@@ -334,7 +333,7 @@ const DspDenoiseGraph = ({
       }
 
       /* ------------------------------------------------------------ grid */
-      context.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      context.strokeStyle = readInk(0.06);
       context.lineWidth = 1;
       context.fillStyle = textInk;
       context.textAlign = 'center';

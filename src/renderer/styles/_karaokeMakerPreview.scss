@@ -121,7 +121,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover:not(:disabled):not(.is-active),
   &:focus-visible:not(.is-active) {
-    color: $white !important;
+    color: $ink !important;
     background: $maker-quiet-hover !important;
   }
 }
@@ -214,7 +214,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     width: 54px;
     height: 3px;
-    background: rgba($edge-tint, 0.18);
+    background: color-mix(in srgb, $edge-tint 18%, transparent);
     border-radius: $radius-pill;
     transition:
       width 140ms ease,
@@ -281,7 +281,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover {
-    color: $white !important;
+    color: $ink !important;
     background: $studio-surface !important;
     border-color: color-mix(
       in srgb,
@@ -465,7 +465,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > strong {
     overflow: hidden;
-    color: $white;
+    color: $ink;
     font-size: 14px;
     line-height: 1.12;
     text-overflow: ellipsis;
@@ -651,7 +651,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   > strong {
-    color: $white;
+    color: $ink;
     font-size: clamp(15px, 1.3vw, 20px);
     line-height: 1.12;
   }

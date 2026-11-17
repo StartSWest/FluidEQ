@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useLiveSurface } from '../utils/theme';
 import { cardHexOf, EDGE_TINT } from '../utils/themeInk';
+import { inkForSurface } from '../utils/windowLight';
 import {
   buildGuestGlassCss,
   buildGuestTintCss,
@@ -192,6 +193,7 @@ export const useGuestTint = (
   const pane = useLiveSurface('--surface-panel', '#0c0e12');
   const accent = useLiveSurface('--accent-light', '#a1fcff');
   const fieldShare = useLiveSurface('--field-edge-share', '42%');
+  const edgeTint = useLiveSurface('--edge-tint', EDGE_TINT);
   // Only plain values go into another site's page: it has none of this
   // document's properties to resolve anything else against.
   const isPlain = HEX.test(floor) && HEX.test(pane);
@@ -200,13 +202,18 @@ export const useGuestTint = (
     isPlain && HEX.test(accent) && SHARE.test(fieldShare)
       ? {
           field: `color-mix(in srgb, ${accent} ${fieldShare}, transparent)`,
-          card: `color-mix(in srgb, ${pane} 94%, ${EDGE_TINT})`,
+          card: `color-mix(in srgb, ${pane} 94%, ${edgeTint})`,
         }
       : undefined;
-  const lift = EDGE_TINT;
+  const lift = HEX.test(edgeTint) ? edgeTint : EDGE_TINT;
   const site =
     siteId !== undefined && siteId in GUEST_TINT_SITES ? siteId : undefined;
-  const isActive = isEnabled && isGuestReady && site !== undefined;
+  // A site is tinted in its dark theme, with its own light words: on a light
+  // window (dark ink, `windowLight.ts`) its page keeps its own colours rather
+  // than set those words on white.
+  const isLightWindow = isPlain && inkForSurface(pane) === 'dark';
+  const isActive =
+    isEnabled && isGuestReady && site !== undefined && !isLightWindow;
   // Bumped when a page answers, so the stylesheet is built again from it.
   const [, setAnswers] = useState(0);
 

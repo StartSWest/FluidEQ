@@ -62,7 +62,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-width: 0;
     align-items: center;
     gap: 7px;
-    color: rgba($white, 0.88);
+    color: color-mix(in srgb, $ink 88%, transparent);
     font-size: $text-body;
 
     .menu-icon {
@@ -212,7 +212,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     strong {
-      color: rgba($white, 0.82);
+      color: color-mix(in srgb, $ink 82%, transparent);
       font-size: $text-body;
     }
 
@@ -240,7 +240,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 7px;
 
     strong {
-      color: rgba($white, 0.9);
+      color: color-mix(in srgb, $ink 90%, transparent);
       font-size: $text-body;
     }
 
@@ -335,7 +335,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &__title {
     @include truncate;
-    color: rgba($white, 0.86);
+    color: color-mix(in srgb, $ink 86%, transparent);
     font-size: $text-small;
     font-weight: $weight-semibold;
     @include tracking(0.02em);
@@ -412,7 +412,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     @include truncate;
-    color: rgba($white, 0.92);
+    color: color-mix(in srgb, $ink 92%, transparent);
     font-size: $text-body;
   }
 

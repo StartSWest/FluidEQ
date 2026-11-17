@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { TDeEsserMode } from '../../common/dsp/deEsser';
+import { readInk } from '../utils/theme';
 import { sampleCutCurve } from './deEsserCurve';
 
 /**
@@ -128,7 +129,7 @@ export const drawHistory = (
   context.lineWidth = 1;
 
   // The cut lane's floor and its deepest figure, which is the dial's.
-  context.strokeStyle = 'rgba(255,255,255,0.14)';
+  context.strokeStyle = readInk(0.14);
   const cutBase = isolate ? y + lanes : y;
   line(
     context,
@@ -137,7 +138,7 @@ export const drawHistory = (
     x + width,
     Math.round(cutBase) + 0.5,
   );
-  context.strokeStyle = 'rgba(255,255,255,0.05)';
+  context.strokeStyle = readInk(0.05);
   const cutFloor = isolate ? y : y + cutHeight;
   line(
     context,
@@ -157,7 +158,7 @@ export const drawHistory = (
   if (!isolate) {
     // Where the stage starts: the line every column is read against.
     context.setLineDash([3, 3]);
-    context.strokeStyle = 'rgba(255,255,255,0.32)';
+    context.strokeStyle = readInk(0.32);
     line(
       context,
       x,
@@ -224,7 +225,7 @@ export const drawHistory = (
   const labelY = y + height - 6;
   for (let second = 1; second <= 3; second += 1) {
     const at = x + width * (1 - second / 4);
-    context.strokeStyle = 'rgba(255,255,255,0.05)';
+    context.strokeStyle = readInk(0.05);
     line(context, Math.round(at) + 0.5, y, Math.round(at) + 0.5, y + lanes);
     context.fillText(`-${second}s`, at, labelY);
   }
@@ -305,7 +306,7 @@ export const drawTreble = (
   context.textAlign = 'center';
   FREQUENCY_GRID.forEach((hz) => {
     const at = Math.round(xOf(box, hz)) + 0.5;
-    context.strokeStyle = 'rgba(255,255,255,0.05)';
+    context.strokeStyle = readInk(0.05);
     line(context, at, y, at, plotBottom);
     context.fillStyle = inks.text;
     context.fillText(`${hz / 1000}k`, at, y + height - 6);
@@ -358,7 +359,7 @@ export const drawTreble = (
       // Where the stage starts on this band, brighter while Sensitivity is
       // the dial being turned.
       const marked = emphasis.thresholds;
-      context.strokeStyle = `rgba(255,255,255,${(0.55 + 0.45 * marked).toFixed(3)})`;
+      context.strokeStyle = readInk(Number((0.55 + 0.45 * marked).toFixed(3)));
       context.lineWidth = 1 + marked;
       const mark = Math.round(levelY(threshold)) + 0.5;
       line(context, left, mark, right, mark);
@@ -367,7 +368,7 @@ export const drawTreble = (
   }
 
   // The cut, hanging from zero, with room for the whole response.
-  context.strokeStyle = 'rgba(255,255,255,0.14)';
+  context.strokeStyle = readInk(0.14);
   line(
     context,
     x,

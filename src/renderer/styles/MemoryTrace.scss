@@ -31,7 +31,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0 8px;
   gap: 6px;
   color: $text-muted;
-  border: 1px dashed rgba($white, 0.24);
+  border: 1px dashed color-mix(in srgb, $edge-tint 24%, transparent);
   border-radius: $radius-s;
   background: transparent;
   font-size: $text-micro;
@@ -48,8 +48,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover {
-    color: $white;
-    border-color: rgba($white, 0.4);
+    color: $ink;
+    border-color: color-mix(in srgb, $edge-tint 40%, transparent);
   }
 
   // Recording is a state worth being unmistakable about, because a trace left

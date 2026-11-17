@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import {
   STILL_ENOUGH,
   clamp01,
@@ -49,10 +50,19 @@ export const PHASE_STEPS = 240;
 /** The needle's own smoothing before it is written down. */
 const SMOOTH_MS = 180;
 
-/** The half that cancels, the rules across the strip, and the zero rule. */
+/**
+ * The half that cancels, the rules across the strip, and the zero rule.
+ *
+ * The rules are alphas of the window's ink, read at paint time on the page
+ * canvas (`readInk`). The engine's look writes them into a shader once
+ * (`phaseLook.ts`) and cannot follow a live colour, so the constants it
+ * imports stay white.
+ */
 export const PHASE_TROUBLE_INK = 'rgba(255, 96, 112, 0.1)';
-export const PHASE_RULE_INK = 'rgba(255, 255, 255, 0.1)';
-export const PHASE_ZERO_INK = 'rgba(255, 255, 255, 0.28)';
+const PHASE_RULE_ALPHA = 0.1;
+const PHASE_ZERO_ALPHA = 0.28;
+export const PHASE_RULE_INK = `rgba(255, 255, 255, ${PHASE_RULE_ALPHA})`;
+export const PHASE_ZERO_INK = `rgba(255, 255, 255, ${PHASE_ZERO_ALPHA})`;
 export const PHASE_RULES = [-1, -0.5, 0, 0.5, 1] as const;
 
 /** How far the width band hangs off the line at full width, of the band. */
@@ -169,10 +179,10 @@ const drawPhaseView = (
     rules.moveTo(left, y);
     rules.lineTo(plot.right, y);
   });
-  context.strokeStyle = PHASE_RULE_INK;
+  context.strokeStyle = readInk(PHASE_RULE_ALPHA);
   context.lineWidth = 1;
   context.stroke(rules);
-  context.strokeStyle = PHASE_ZERO_INK;
+  context.strokeStyle = readInk(PHASE_ZERO_ALPHA);
   const middle = new Path2D();
   middle.moveTo(left, zero);
   middle.lineTo(plot.right, zero);
@@ -211,7 +221,7 @@ const drawPhaseView = (
 
   // Now, at the right-hand edge: a pip, so the eye knows which end is the
   // moment it is listening to.
-  context.fillStyle = '#fff';
+  context.fillStyle = readInk(1);
   context.beginPath();
   context.arc(
     plot.right - 1,

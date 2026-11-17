@@ -95,7 +95,7 @@ $chat: 30%;
   right: calc(#{$chat} + #{$u} * 0.5);
   display: inline-flex;
   padding: calc(#{$u} * 0.2);
-  border: 1px solid rgba($edge-tint, 0.16);
+  border: 1px solid color-mix(in srgb, $edge-tint 16%, transparent);
   border-radius: $radius-s;
   background: color-mix(in srgb, $surface-menu 80%, transparent);
   backdrop-filter: blur(8px);
@@ -138,7 +138,7 @@ $chat: 30%;
   height: 40%;
   align-content: start;
   padding: calc(#{$u} * 0.35) calc(#{$u} * 0.6) calc(#{$u} * 0.5);
-  border-top: 1px solid rgba($edge-tint, 0.16);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 16%, transparent);
   border-radius: $radius-m $radius-m 0 0;
   background: color-mix(in srgb, $surface-panel 92%, transparent);
   backdrop-filter: blur(10px);
@@ -174,7 +174,7 @@ $chat: 30%;
   width: calc(#{$u} * 2);
   height: 3px;
   border-radius: 2px;
-  background: rgba($edge-tint, 0.3);
+  background: color-mix(in srgb, $edge-tint 30%, transparent);
 }
 
 .fullscreen-visual__tabs {
@@ -202,7 +202,7 @@ $chat: 30%;
 .fullscreen-visual__row {
   height: 4px;
   border-radius: 2px;
-  background: rgba($edge-tint, 0.12);
+  background: color-mix(in srgb, $edge-tint 12%, transparent);
 
   i {
     display: block;
@@ -223,7 +223,7 @@ $chat: 30%;
   width: $chat;
   align-content: start;
   padding: calc(#{$u} * 0.55);
-  border-left: 1px solid rgba($edge-tint, 0.14);
+  border-left: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   background: color-mix(in srgb, $surface-panel 94%, transparent);
   backdrop-filter: blur(10px);
   gap: calc(#{$u} * 0.45);
@@ -300,7 +300,7 @@ $chat: 30%;
   flex-wrap: wrap;
   align-items: center;
   padding: calc(#{$u} * 0.22) calc(#{$u} * 0.45);
-  border-top: 1px solid rgba($edge-tint, 0.08);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   gap: calc(#{$u} * 0.25);
 }
 
@@ -308,7 +308,7 @@ $chat: 30%;
   @include pill;
 
   padding-block: calc(#{$u} * 0.08);
-  border-color: rgba($edge-tint, 0.16);
+  border-color: color-mix(in srgb, $edge-tint 16%, transparent);
   color: $text-muted;
   font-size: calc(#{$u} * 0.54);
 }

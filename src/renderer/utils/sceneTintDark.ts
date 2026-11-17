@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { labToHex, parseCssColour, rgbToLab } from './oklab';
 import { SCENE_TINT_SURFACES } from './sceneTintPalette';
-import { THEME_SHADE_MAX, THEME_SHADE_MIN } from './themeShade';
+import { shadeOfDarkStep, THEME_SHADE_MIN } from './themeShade';
 
 /**
  * THE SURFACES UNDER A SCENE'S COLOURS, BELOW THE KNEE OF THE BRIGHTNESS
@@ -30,9 +30,11 @@ import { THEME_SHADE_MAX, THEME_SHADE_MIN } from './themeShade';
 
 /**
  * Where the walk begins: from here up every surface is the toning in
- * `tintThemePalette`, unchanged.
+ * `tintThemePalette`, unchanged. The middle of the dark walk, which is no
+ * longer the middle of the slider since the slider runs on into a light
+ * window (`DARK_END_SHADE`).
  */
-export const DARK_KNEE = (THEME_SHADE_MIN + THEME_SHADE_MAX) / 2;
+export const DARK_KNEE = shadeOfDarkStep(50);
 
 /**
  * The floor's OKLab lightness at Brightness 0: near black, where the held

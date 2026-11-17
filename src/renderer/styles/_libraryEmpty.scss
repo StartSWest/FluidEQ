@@ -88,7 +88,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-empty__sleeve {
   width: 76px;
   height: 76px;
-  border: 1px solid rgba($edge-tint, 0.1);
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   border-radius: $radius-s;
   background: color-mix(in srgb, $edge-tint 5%, $surface-panel);
 }
@@ -108,8 +108,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 80px;
   height: 80px;
   place-items: center;
-  border-color: rgba($edge-tint, 0.14);
-  border-top-color: rgba($edge-tint, 0.32);
+  border-color: color-mix(in srgb, $edge-tint 14%, transparent);
+  border-top-color: color-mix(in srgb, $edge-tint 32%, transparent);
   color: $secondary-default;
   background: color-mix(in srgb, $edge-tint 9%, $surface-panel);
   transform: translateX(-50%);
@@ -129,7 +129,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 74px;
   height: 74px;
   border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba($edge-tint, 0.18);
+  box-shadow: 0 0 0 1px color-mix(in srgb, $edge-tint 18%, transparent);
   transform: translateX(-50%) translateX(2px);
   transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
@@ -218,7 +218,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   list-style: none;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: $spacing-m;
-  border-top: 1px solid rgba($edge-tint, 0.1);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
 }
 
 .library-empty__feature {
@@ -243,7 +243,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 380px;
   margin: $spacing-s 0 0;
   padding-top: $spacing-s;
-  border-top: 1px solid rgba($edge-tint, 0.12);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
   color: $text-faint;
   font-size: $text-micro;
   line-height: 1.5;

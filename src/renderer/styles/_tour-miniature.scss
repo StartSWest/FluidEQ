@@ -23,7 +23,7 @@ $tour-unit-size: clamp(11px, 0.78vw, 17px);
 
 // A capture's frame: the edge and the shadow the tour's real screenshots wear.
 @mixin framed {
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   box-shadow:
     0 22px 56px rgba($black, 0.55),
     0 0 42px color-mix(in srgb, $secondary-default 14%, transparent);
@@ -31,7 +31,7 @@ $tour-unit-size: clamp(11px, 0.78vw, 17px);
 
 // A miniature of one of the app's panels.
 @mixin panel {
-  border: 1px solid rgba($edge-tint, 0.1);
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   border-radius: $radius-l;
   background: $surface-panel;
   box-shadow: 0 16px 40px rgba($black, 0.4);
@@ -42,7 +42,7 @@ $tour-unit-size: clamp(11px, 0.78vw, 17px);
   display: inline-flex;
   align-items: center;
   padding: calc(#{$u} * 0.22) calc(#{$u} * 0.6);
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-xs;
   font-size: calc(#{$u} * 0.7);
   font-weight: $weight-semibold;

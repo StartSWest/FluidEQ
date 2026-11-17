@@ -75,8 +75,13 @@ export enum ColorEnum {
    * to be on the plot together.
    */
   HEADPHONE = '#ff0af5',
-  /** The sum of every layer, kept neutral so it reads as a result. */
-  TOTAL = '#dbe7ff',
+  /**
+   * The sum of every layer, kept neutral so it reads as a result: a
+   * near-white on a dark window and a deep grey on a light one, from
+   * `--curve-total` (`_shippedTheme.scss`). The SVG reads the property
+   * itself, as Chromium resolves one in a presentation attribute.
+   */
+  TOTAL = 'var(--curve-total)',
   /** The user's own custom APO commands. */
   CUSTOM = '#ff7a45',
   /**

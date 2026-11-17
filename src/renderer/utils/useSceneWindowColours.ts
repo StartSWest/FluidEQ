@@ -23,6 +23,12 @@ export interface ISceneWindowColourState {
    */
   declared?: ISceneWindowColours;
   /**
+   * The colours the scene's pack names, when it names them: worn as named,
+   * like the listener's own (`pickedWindow.ts`). Colours worked out from a
+   * palette are a measurement of the picture and are only lent their hue.
+   */
+  named?: ISceneWindowColours;
+  /**
    * What the editor starts from and "Use the scene's colours" goes back to:
    * the declared colours, else the measured sky's. Undefined for a scene that
    * has not been measured yet either.
@@ -60,6 +66,7 @@ export default function useSceneWindowColours(
     return {
       ...(listed ? { names: listed.names } : {}),
       ...(declared ? { declared } : {}),
+      ...(listed?.windowColours ? { named: listed.windowColours } : {}),
       ...(own ? { own } : {}),
       ...(chosen ? { chosen } : {}),
     };

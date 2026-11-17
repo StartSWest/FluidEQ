@@ -78,7 +78,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   b {
-    color: rgba($white, 0.9);
+    color: color-mix(in srgb, $ink 90%, transparent);
     font-family: $font-mono;
     font-variant-numeric: tabular-nums;
     font-weight: $weight-regular;

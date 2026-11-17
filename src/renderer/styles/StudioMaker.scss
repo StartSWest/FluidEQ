@@ -210,7 +210,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   border: 1px solid $card-edge;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 3%, transparent);
+  background: color-mix(in srgb, $edge-tint 3%, transparent);
   font: inherit;
   font-size: $text-small;
   cursor: pointer;
@@ -323,7 +323,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   border: 1px solid $card-edge;
   border-radius: 50%;
-  background: color-mix(in srgb, $white 3%, transparent);
+  background: color-mix(in srgb, $edge-tint 3%, transparent);
   transition:
     color $motion-fast $ease-out,
     border-color $motion-fast $ease-out,

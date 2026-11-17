@@ -135,7 +135,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 1;
   overflow: hidden;
   scrollbar-gutter: stable;
-  color: rgba($edge-tint, 0.81);
+  color: color-mix(in srgb, $edge-tint 81%, transparent);
   pointer-events: none;
   user-select: none;
 
@@ -353,14 +353,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       background 130ms ease;
 
     &:hover {
-      color: $white;
+      color: $ink;
       background: $studio-raise;
     }
 
     &.is-untimed {
       color: $text-faint;
       background: none;
-      border-color: rgba($edge-tint, 0.18);
+      border-color: color-mix(in srgb, $edge-tint 18%, transparent);
       border-style: dashed;
     }
 

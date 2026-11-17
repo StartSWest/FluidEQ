@@ -300,7 +300,7 @@ $enter: (
   justify-self: end;
   max-width: 92%;
   padding: calc(#{$u} * 0.35) calc(#{$u} * 0.5);
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-m;
   background: $surface-control;
   color: $text-primary;
@@ -342,7 +342,7 @@ $enter: (
   flex-wrap: wrap;
   align-items: center;
   padding: calc(#{$u} * 0.3) calc(#{$u} * 0.4);
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-s;
   color: $text-primary;
   font-size: calc(#{$u} * 0.58);
@@ -435,6 +435,9 @@ $enter: (
   height: calc(#{$u} * 0.7);
   flex: 0 0 auto;
   border-radius: 50%;
-  background: conic-gradient($amber 0 76%, rgba($edge-tint, 0.2) 76% 100%);
+  background: conic-gradient(
+    $amber 0 76%,
+    color-mix(in srgb, $edge-tint 20%, transparent) 76% 100%
+  );
   mask: radial-gradient(closest-side, transparent 58%, $black 60%);
 }

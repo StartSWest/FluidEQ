@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import {
   STILL_ENOUGH,
   advanceHold,
@@ -269,7 +270,7 @@ const paintChannel = (
   context.globalAlpha = band.opacity * strength * AVERAGE_CREST_ALPHA;
   context.setLineDash([AVERAGE_CREST_DASH, AVERAGE_CREST_DASH]);
   context.lineWidth = AVERAGE_CREST_WIDTH;
-  context.strokeStyle = '#fff';
+  context.strokeStyle = readInk(1);
   context.stroke(spectrumLine(frame, readings.crest));
   context.setLineDash([]);
   context.globalAlpha = 1;

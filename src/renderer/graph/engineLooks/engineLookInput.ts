@@ -45,6 +45,12 @@ export interface IEngineLookInput {
   mateInks: Float32Array;
   mateInkCount: number;
   /**
+   * The window's strongest ink, RGB 0..1 (`uWindowInk`, `--ink`): white on a
+   * dark window, near-black on a light one. What a measuring view rules its
+   * scale in (`inkGlsl`); the rest ignore it.
+   */
+  windowInk: Float32Array;
+  /**
    * How strongly the look's lit shapes bloom into the air around them, 0 for
    * none: the shader's `uLookPass` 1 draws those shapes on a small target that
    * is blurred and added back over the picture (`lookGl.ts`), as the 2D looks

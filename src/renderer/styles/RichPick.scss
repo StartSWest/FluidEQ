@@ -307,7 +307,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:hover,
     &:focus-visible {
       strong {
-        color: $white;
+        color: $ink;
       }
 
       .rich-pick__item-lock {
@@ -478,7 +478,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover,
   &:focus-visible {
-    color: $white;
+    color: $ink;
     background: $hover-accent;
     outline: none;
   }

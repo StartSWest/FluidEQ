@@ -28,8 +28,8 @@ import {
   type IAnalysisState,
 } from './analysisFrame';
 import {
-  MARK_KEY_INK,
   channelLegend,
+  markKeyInk,
   mateColours,
   paintLegend,
   type ILegendEntry,
@@ -421,7 +421,7 @@ const channelsOf = (reading: IAnalysisReading) =>
 /** The live reading and its peak hold, named. */
 const liveAndPeak = (reading: IAnalysisReading): readonly ILegendEntry[] => [
   { label: reading.legend.live, ink: rampRgba(reading.colours, 0.75, 1) },
-  { label: reading.legend.peak, ink: MARK_KEY_INK },
+  { label: reading.legend.peak, ink: markKeyInk() },
 ];
 
 /**
@@ -462,7 +462,7 @@ const LEGENDS: Record<
             label: reading.legend.average,
             ink: rampRgba(reading.colours, 0.5, 1),
           },
-          { label: reading.legend.max, ink: MARK_KEY_INK },
+          { label: reading.legend.max, ink: markKeyInk() },
         ],
   rta: (reading) =>
     reading.split ? channelsOf(reading) : liveAndPeak(reading),

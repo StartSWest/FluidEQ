@@ -24,7 +24,8 @@ import {
  * don't exist we need a deterministic algorithm").
  *
  * 1. The colours it names (`windowColours`, `common/sceneWindowColours.ts`),
- *    chosen by its maker's AI from the scene's own palette.
+ *    chosen by its maker's AI from the scene's own palette. These are worn
+ *    as named (`pickedWindow.ts`), like the listener's own.
  * 2. Failing those, colours worked out from the palette the scene is drawn
  *    in - the very stops Colourful mode wears (`sceneAppColours.ts`), so the
  *    panes and the rainbow never disagree, and a palette the listener changes

@@ -43,8 +43,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // faders' grooves. Dark whatever the picture behind is doing.
   --player-well: color-mix(in srgb, #{$black} 26%, transparent);
   // What is under the pointer on glass, and what is chosen.
-  --player-hover: color-mix(in srgb, #{$white} 10%, transparent);
-  --player-chosen: color-mix(in srgb, #{$white} 13%, transparent);
+  --player-hover: color-mix(in srgb, #{$edge-tint} 10%, transparent);
+  --player-chosen: color-mix(in srgb, #{$edge-tint} 13%, transparent);
   --player-text: #{$text-primary};
   --player-text-muted: color-mix(in srgb, #{$text-primary} 80%, transparent);
   --player-text-soft: color-mix(in srgb, #{$text-primary} 62%, transparent);
@@ -60,7 +60,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     0 1px 2px #{rgba($black, 0.6)}, 0 1px 12px #{rgba($black, 0.65)};
   // A pill on the glass: the page's own pickers and buttons, Smart EQ's key,
   // the chips — a wash of light and the glass's own hairline round it.
-  --player-key-wash: color-mix(in srgb, #{$white} 8%, transparent);
+  --player-key-wash: color-mix(in srgb, #{$edge-tint} 8%, transparent);
   --player-key-line: var(--player-glass-edge);
   --player-key-line-hover: color-mix(
     in srgb,

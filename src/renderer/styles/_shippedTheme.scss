@@ -31,6 +31,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   --text-primary: #{$text-primary-shipped};
   --text-muted: #{$text-muted-shipped};
   --text-faint: #{$text-faint-shipped};
+  --edge-tint: #{$edge-tint-shipped};
+  --ink: #{$white};
+  // The graph's output curve (`ColorEnum.TOTAL`), a near-white.
+  --curve-total: #dbe7ff;
   // The inks the theme's script solves for each shade (`themeInk.ts`), at
   // Ocean's values until it has run.
   --text-dim-share: 38.8%;
@@ -109,7 +113,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   --dsp-base-curve: #40d6c8;
   --dsp-contrast: #{$amber};
   // The spectrum a stage passes on, and what it actually did to the sound.
-  --dsp-output: #ffffff;
+  // The output is the window's strongest ink, white on a dark window and a
+  // near-black on a light one.
+  --dsp-output: var(--ink);
   --dsp-applied: #c58af9;
   // A stage's second series, and the Dimension page's stereo field.
   --dsp-sky: #54c8ff;

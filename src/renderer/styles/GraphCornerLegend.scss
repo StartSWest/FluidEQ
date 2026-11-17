@@ -86,8 +86,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &:hover:not(:disabled),
   &:focus-visible {
-    color: $white;
-    background: rgba($edge-tint, 0.12);
+    color: $ink;
+    background: color-mix(in srgb, $edge-tint 12%, transparent);
   }
 
   &.is-hidden {
@@ -134,7 +134,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   // Off: the wave flattens to a dashed rule, a stilled trace.
   .is-hidden > & {
-    stroke: rgba($edge-tint, 0.5);
+    stroke: color-mix(in srgb, $edge-tint 50%, transparent);
     stroke-dasharray: 2 2;
   }
 }

@@ -15,7 +15,7 @@ import {
   scopeHint,
   scopeTraces,
 } from '../analysis/scopeView';
-import { cssInkGlsl } from './analysisGlsl';
+import { cssInkGlsl, inkGlsl } from './analysisGlsl';
 import type { IEngineAnalysisLook } from './analysisLookTypes';
 import { setLookVector, sizeLookData } from './lookInput';
 
@@ -40,7 +40,8 @@ import { setLookVector, sizeLookData } from './lookInput';
 const f = (value: number) => value.toFixed(6);
 
 const GLSL = `
-const vec4 SCOPE_RULE = ${cssInkGlsl(SCOPE_RULE_INK)};
+// The window ink, which follows a light window (inkGlsl).
+#define SCOPE_RULE ${inkGlsl(SCOPE_RULE_INK)}
 const vec4 SCOPE_EDGE = ${cssInkGlsl(SCOPE_EDGE_INK)};
 
 float scopeSample(int trace, int k) {

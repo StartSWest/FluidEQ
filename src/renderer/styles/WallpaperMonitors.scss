@@ -22,12 +22,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // The layout's own ratio arrives inline (monitorLayout.ts places the tiles
   // in percentages of exactly that shape); this is only its widest.
   aspect-ratio: 3.2;
-  border: 1px solid rgba($white, 0.07);
+  border: 1px solid color-mix(in srgb, $edge-tint 7%, transparent);
   border-radius: $radius-m;
   background:
     radial-gradient(
         circle at 1px 1px,
-        rgba($edge-tint, 0.1) 1px,
+        color-mix(in srgb, $edge-tint 10%, transparent) 1px,
         transparent 1.5px
       )
       0 0 / 14px 14px,

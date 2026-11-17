@@ -233,7 +233,7 @@ it under the terms of the GNU General Public License version 3 or later.
   place-items: center;
   width: 26px;
   height: 26px;
-  border: 1px solid rgba($edge-tint, 0.18);
+  border: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
   border-radius: 50%;
   background: color-mix(in srgb, $surface-menu-top 82%, transparent);
   box-shadow: none;

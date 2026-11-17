@@ -376,7 +376,7 @@ $name-column: 34ch;
   // is still there and still yours; it is simply not in the chain, and that is
   // a different statement from being gone.
   &.is-off {
-    border-color: rgba($edge-tint, 0.16);
+    border-color: color-mix(in srgb, $edge-tint 16%, transparent);
     background: transparent;
     color: $text-faint;
 

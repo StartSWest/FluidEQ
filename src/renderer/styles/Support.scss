@@ -274,13 +274,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 6px;
   padding-top: 12px;
-  border-top: 1px dashed rgba($edge-tint, 0.14);
+  border-top: 1px dashed color-mix(in srgb, $edge-tint 14%, transparent);
 }
 
 .support-dialog__dev-reset {
   padding: 1px 7px;
   color: $text-faint;
-  border: 1px dashed rgba($edge-tint, 0.24);
+  border: 1px dashed color-mix(in srgb, $edge-tint 24%, transparent);
   border-radius: $radius-s;
   background: none;
   font-family: inherit;

@@ -22,7 +22,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // cut into, and a whisper of the edge tint on every other square.
 @mixin transparency-grid($cell) {
   background:
-    repeating-conic-gradient(rgba($edge-tint, 0.055) 0 25%, transparent 0 50%) 0
-      0 / #{$cell * 2} #{$cell * 2},
+    repeating-conic-gradient(
+        color-mix(in srgb, $edge-tint 5.5%, transparent) 0 25%,
+        transparent 0 50%
+      )
+      0 0 / #{$cell * 2} #{$cell * 2},
     color-mix(in srgb, $surface-well 70%, $surface-block);
 }

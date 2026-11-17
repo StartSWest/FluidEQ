@@ -52,7 +52,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 44px;
     height: 3px;
     border-radius: $radius-pill;
-    background: rgba($edge-tint, 0.18);
+    background: color-mix(in srgb, $edge-tint 18%, transparent);
     transition:
       background 140ms ease,
       width 140ms ease;

@@ -58,7 +58,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 0 6px;
   color: $text-faint;
   border-radius: $radius-2xs;
-  background: color-mix(in srgb, $white 6%, transparent);
+  background: color-mix(in srgb, $edge-tint 6%, transparent);
   font-size: $text-micro;
   font-weight: $weight-semibold;
   line-height: 18px;
@@ -186,9 +186,9 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 32px;
   object-fit: cover;
   border-radius: 50%;
-  background: color-mix(in srgb, $white 6%, transparent);
+  background: color-mix(in srgb, $edge-tint 6%, transparent);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, $white 12%, transparent),
+    0 0 0 1px color-mix(in srgb, $edge-tint 12%, transparent),
     0 2px 8px rgba($black, 0.35);
 
   &--rail {

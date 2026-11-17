@@ -21,6 +21,7 @@ import {
 } from './store';
 import {
   readTextInk,
+  readInk,
   readAccent,
   readAccentLight,
   readSurface,
@@ -357,6 +358,7 @@ const DspEqGraph = ({
         backingH,
         ratio,
         textInk,
+        readInk(1),
         readAccent(1, '#00e5cf'),
         readAccentLight(1, '#a1fcff'),
         readSurface('--surface-block', ''),
@@ -372,7 +374,7 @@ const DspEqGraph = ({
         overFrom.length !== overDrawn.length ||
         overFrom.some((value, index) => value !== overDrawn[index]);
       overDrawn = overFrom;
-      const underKey = `${backingW}x${backingH}@${ratio}|${textInk}`;
+      const underKey = `${backingW}x${backingH}@${ratio}|${textInk}|${readInk(1)}`;
 
       if (under.key !== underKey) {
         prepareCanvasLayer(under, backingW, backingH, ratio);
@@ -383,8 +385,7 @@ const DspEqGraph = ({
 
         GRID_DB.forEach((db) => {
           const y = Math.round(Y(db)) + 0.5;
-          pen.strokeStyle =
-            db === 0 ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.07)';
+          pen.strokeStyle = db === 0 ? readInk(0.22) : readInk(0.07);
           pen.lineWidth = 1;
           pen.beginPath();
           pen.moveTo(PAD_L, y);
@@ -408,7 +409,7 @@ const DspEqGraph = ({
         pen.textAlign = 'center';
         GRID_HZ.forEach(([hz, label]) => {
           const x = Math.round(X(hz)) + 0.5;
-          pen.strokeStyle = 'rgba(255,255,255,0.07)';
+          pen.strokeStyle = readInk(0.07);
           pen.beginPath();
           pen.moveTo(x, PAD_T);
           pen.lineTo(x, PAD_T + plotH(H));
@@ -520,7 +521,7 @@ const DspEqGraph = ({
           const isPick = index === pick;
           pen.strokeStyle = isPick
             ? readAccentLight(0.55, 'rgba(156,255,244,0.55)')
-            : 'rgba(255,255,255,0.15)';
+            : readInk(0.15);
           pen.lineWidth = isPick ? 1.5 : 1;
           pen.stroke();
         });
@@ -901,7 +902,7 @@ const DspEqGraph = ({
               );
           pen.fill();
           pen.strokeStyle = isPick
-            ? '#ffffff'
+            ? readInk(1)
             : readAccent(0.7, 'rgba(0,229,207,0.7)');
           pen.lineWidth = 2;
           pen.stroke();

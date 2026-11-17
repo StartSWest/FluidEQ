@@ -110,7 +110,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // the bar.
   background: $surface-panel;
   border: 1px solid $card-edge;
-  border-top-color: rgba($edge-tint, 0.22);
+  border-top-color: color-mix(in srgb, $edge-tint 22%, transparent);
   border-radius: $card-radius;
   box-shadow: none;
   backdrop-filter: none;

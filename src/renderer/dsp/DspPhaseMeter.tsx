@@ -18,7 +18,7 @@ import {
   setDspPhaseView,
   useDspPhaseView,
 } from './store';
-import { readTextInk, readAccent } from '../utils/theme';
+import { readTextInk, readAccent, readInk } from '../utils/theme';
 import { fadeTrail, fadingContext } from '../utils/fadingCanvas';
 
 /** Where the arc is marked, and what to write there. */
@@ -95,8 +95,7 @@ const drawDialScale = (context: CanvasRenderingContext2D, box: IBox): void => {
       pivotX + cos * (radius + reach),
       pivotY + sin * (radius + reach),
     );
-    context.strokeStyle =
-      label === '' ? 'rgba(255,255,255,0.26)' : 'rgba(255,255,255,0.5)';
+    context.strokeStyle = label === '' ? readInk(0.26) : readInk(0.5);
     context.lineWidth = label === '' ? 1 : 1.5;
     context.stroke();
     if (label !== '') {
@@ -127,8 +126,7 @@ const drawDialFigure = (
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.font = `600 19px ${FONT}`;
-  context.fillStyle =
-    value < 0 ? 'rgba(255,140,158,0.95)' : 'rgba(255,255,255,0.9)';
+  context.fillStyle = value < 0 ? 'rgba(255,140,158,0.95)' : readInk(0.9);
   context.fillText(value.toFixed(2), pivotX, pivotY - 15);
 };
 
@@ -154,13 +152,13 @@ const drawDialNeedle = (
     pivotX + Math.cos(angle) * (radius - 3),
     pivotY + Math.sin(angle) * (radius - 3),
   );
-  context.strokeStyle = warm ? 'rgba(255,140,158,0.95)' : '#ffffff';
+  context.strokeStyle = warm ? 'rgba(255,140,158,0.95)' : readInk(1);
   context.lineWidth = 2.5;
   context.lineCap = 'round';
   context.stroke();
   context.beginPath();
   context.arc(pivotX, pivotY, 5, 0, Math.PI * 2);
-  context.fillStyle = warm ? 'rgba(255,140,158,0.95)' : '#ffffff';
+  context.fillStyle = warm ? 'rgba(255,140,158,0.95)' : readInk(1);
   context.fill();
 };
 
@@ -207,7 +205,7 @@ const drawScope = (context: CanvasRenderingContext2D, box: IBox): void => {
   const midY = box.height / 2;
   const half = size / 2;
 
-  context.strokeStyle = 'rgba(255,255,255,0.12)';
+  context.strokeStyle = readInk(0.12);
   context.lineWidth = 1;
   context.beginPath();
   context.moveTo(midX, midY - half);
@@ -218,7 +216,7 @@ const drawScope = (context: CanvasRenderingContext2D, box: IBox): void => {
 
   // The single-channel diagonals, faint: a trace lying along one of them is a
   // signal in one channel only, worth recognising instantly.
-  context.strokeStyle = 'rgba(255,255,255,0.06)';
+  context.strokeStyle = readInk(0.06);
   context.beginPath();
   context.moveTo(midX - half, midY - half);
   context.lineTo(midX + half, midY + half);
@@ -299,7 +297,7 @@ const DspPhaseMeter = () => {
     const figure = createCanvasLayer();
     const drawDial = (box: IBox, value: number) => {
       const ratio = window.devicePixelRatio || 1;
-      const key = `${canvas.width}x${canvas.height}@${ratio}|${readTextInk()}|${readAccent(1, '')}`;
+      const key = `${canvas.width}x${canvas.height}@${ratio}|${readTextInk()}|${readAccent(1, '')}|${readInk(1)}`;
       layCanvasLayer(context, scale, key, ratio, (pen) =>
         drawDialScale(pen, box),
       );

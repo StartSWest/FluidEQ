@@ -107,7 +107,7 @@ $loop: 10s;
   min-width: 0;
   padding-bottom: calc(#{$u} * 0.35);
   overflow: hidden;
-  border-bottom: 1px solid rgba($edge-tint, 0.1);
+  border-bottom: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   color: $text-muted;
   font-size: calc(#{$u} * 0.62);
   font-weight: $weight-semibold;
@@ -244,7 +244,7 @@ $loop: 10s;
   i {
     width: calc(#{$u} * 0.62);
     height: calc(#{$u} * 0.62);
-    border: 1px solid rgba($white, 0.3);
+    border: 1px solid color-mix(in srgb, $edge-tint 30%, transparent);
     border-radius: 50%;
   }
 
@@ -563,7 +563,7 @@ $loop: 10s;
   flex: 0 0 auto;
   overflow: hidden;
   aspect-ratio: 1;
-  border: 1px solid rgba($edge-tint, 0.18);
+  border: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
   border-radius: $radius-s;
   background: $black;
 
@@ -774,7 +774,7 @@ $loop: 10s;
   display: flex;
   align-items: center;
   padding: calc(#{$u} * 0.3);
-  border: 1px solid rgba($edge-tint, 0.18);
+  border: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
   border-radius: $radius-m;
   background: color-mix(in srgb, $surface-menu 78%, transparent);
   gap: calc(#{$u} * 0.5);

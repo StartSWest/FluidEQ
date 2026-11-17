@@ -92,7 +92,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &[aria-pressed='true'] {
-    color: $white;
+    color: $ink;
     background: color-mix(in srgb, $secondary-default 12%, transparent);
     box-shadow: inset 2px 0 0 $secondary-default;
   }

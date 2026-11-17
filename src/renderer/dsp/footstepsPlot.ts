@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../utils/theme';
 import { GRAPH_FONT, IPlotBox } from './deEsserPlot';
 
 /**
@@ -77,7 +78,7 @@ export const drawFootsteps = (
   context.font = GRAPH_FONT;
   context.textBaseline = 'middle';
   context.lineWidth = 1;
-  context.strokeStyle = 'rgba(255,255,255,0.05)';
+  context.strokeStyle = readInk(0.05);
   context.fillStyle = inks.text;
   context.textAlign = 'left';
   GRID_DB.forEach((db) => {
@@ -153,7 +154,7 @@ export const drawFootsteps = (
 
   // The background the stage leaves alone: rain, wind, music.
   context.setLineDash([4, 4]);
-  context.strokeStyle = `rgba(255,255,255,${0.45 * dim})`;
+  context.strokeStyle = readInk(0.45 * dim);
   context.beginPath();
   let drawing = false;
   for (let index = 0; index < columns; index += 1) {

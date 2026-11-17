@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { readTextInk } from '../utils/theme';
+import { readInk, readTextInk } from '../utils/theme';
 import { appliedInk } from './dspInks';
 import { dynamicsResponseDb } from './dynamicsResponse';
 
@@ -56,7 +56,7 @@ export default function paintDynamicsGraph(
     context.beginPath();
     context.moveTo(left, y(db));
     context.lineTo(right, y(db));
-    context.strokeStyle = 'rgba(255,255,255,0.065)';
+    context.strokeStyle = readInk(0.065);
     context.lineWidth = 1;
     context.stroke();
   });
@@ -67,9 +67,7 @@ export default function paintDynamicsGraph(
       context.moveTo(x(hz), top);
       context.lineTo(x(hz), bottom);
       context.strokeStyle =
-        hz === 150 || hz === 4_000
-          ? 'rgba(255,255,255,0.16)'
-          : 'rgba(255,255,255,0.06)';
+        hz === 150 || hz === 4_000 ? readInk(0.16) : readInk(0.06);
       context.stroke();
       context.textAlign = index === 0 ? 'left' : 'center';
       if (index === ticks.length - 1) {

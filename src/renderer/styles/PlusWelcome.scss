@@ -47,7 +47,7 @@ it under the terms of the GNU General Public License version 3 or later.
   aspect-ratio: 16 / 9;
   margin: 0;
   overflow: hidden;
-  border: 1px solid rgba($white, 0.08);
+  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-m;
   background: $surface-plot;
   box-shadow: none;
@@ -106,7 +106,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .plus-welcome__title {
   margin: 0;
-  color: $white;
+  color: $ink;
   font-size: clamp(1.1rem, 2.6cqi, 1.55rem);
   font-weight: $weight-bold;
   line-height: 1.2;

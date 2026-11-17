@@ -24,7 +24,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 12px 14px 8px;
   border: 1px solid $card-edge;
   border-radius: $radius-l;
-  background: color-mix(in srgb, $white 2.5%, transparent);
+  background: color-mix(in srgb, $edge-tint 2.5%, transparent);
 
   // The opening post is the topic: a breath of the accent, with the accent
   // across its top rim so the eye lands there first.
@@ -56,12 +56,12 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 9px 12px 6px;
     border-color: transparent;
     border-radius: $radius-m;
-    background: color-mix(in srgb, $white 2%, transparent);
+    background: color-mix(in srgb, $edge-tint 2%, transparent);
     transition: background $motion-fast $ease-out;
 
     &:hover,
     &:focus-within {
-      background: color-mix(in srgb, $white 4%, transparent);
+      background: color-mix(in srgb, $edge-tint 4%, transparent);
     }
   }
 }

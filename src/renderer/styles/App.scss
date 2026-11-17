@@ -69,6 +69,14 @@ html {
   width: 100%;
   height: 100%;
   color-scheme: dark;
+
+  // A light window (`data-window-ink`, `themeInk.ts`): the native controls
+  // that are left - a date field, the caret, a select's own list - in light.
+  &[data-window-ink='dark'] {
+    color-scheme: light;
+    // The output curve, a near-white on a dark window, in the muted ink.
+    --curve-total: var(--text-muted);
+  }
   // No `scrollbar-color` and no `scrollbar-width` here, or anywhere.
   //
   // They were set on this element to give unstyled scrollbars the same cyan
@@ -1484,7 +1492,7 @@ select option {
 
     &:hover,
     &:focus-visible {
-      color: $white;
+      color: $ink;
       background: $hover-accent;
       outline: none;
     }
@@ -2631,7 +2639,7 @@ $tab-bar-inset: 8px;
   // for a moment it reads as the chosen place rather than as the one being
   // pointed at.
   &:hover:not(.is-active) {
-    color: rgba($edge-tint, 0.85);
+    color: color-mix(in srgb, $edge-tint 85%, transparent);
 
     &::after {
       position: absolute;
@@ -2647,7 +2655,7 @@ $tab-bar-inset: 8px;
 
   &:focus-visible {
     @include focus-ring;
-    color: $white;
+    color: $ink;
     outline: none;
   }
 
@@ -3480,7 +3488,7 @@ $graph-card-pages: list.join(
 
   &:hover,
   &:focus-visible {
-    color: $white;
+    color: $ink;
     border-color: $border-field-hover;
   }
 
@@ -3687,7 +3695,7 @@ $graph-card-pages: list.join(
   // The hover's own edge, once in a while: a hint, not a flash.
   91% {
     border-color: $border-field-hover;
-    color: $white;
+    color: $ink;
   }
 }
 
@@ -4120,11 +4128,11 @@ $graph-controls-past-fold: calc(
   transition: color 150ms ease;
 
   &:hover {
-    color: $white;
+    color: $ink;
   }
 
   &:focus-visible {
-    color: $white;
+    color: $ink;
     @include focus-ring;
   }
 }
@@ -4359,7 +4367,7 @@ button.graph-legend {
 
   &:hover,
   &:focus-visible {
-    background: rgba($edge-tint, 0.12);
+    background: color-mix(in srgb, $edge-tint 12%, transparent);
     outline: none;
   }
 
@@ -4417,7 +4425,7 @@ button.graph-legend {
 }
 
 .graph-legend--total {
-  --curve-color: #dbe7ff;
+  --curve-color: var(--curve-total);
 }
 
 .graph-legend--tone {
@@ -4442,7 +4450,7 @@ button.graph-legend {
   flex: 0 0 auto;
   place-items: center;
   color: $text-muted;
-  border: 1px solid rgba($edge-tint, 0.28);
+  border: 1px solid color-mix(in srgb, $edge-tint 28%, transparent);
   border-radius: 50%;
   font-size: $text-micro;
   font-weight: $weight-bold;

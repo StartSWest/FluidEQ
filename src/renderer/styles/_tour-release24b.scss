@@ -119,7 +119,7 @@ $loop: 10s;
   width: calc(#{$u} * 0.55);
   height: calc(#{$u} * 0.55);
   flex: 0 0 auto;
-  border: 2px solid rgba($edge-tint, 0.2);
+  border: 2px solid color-mix(in srgb, $edge-tint 20%, transparent);
   border-top-color: $secondary-light;
   border-radius: 50%;
   animation: ai-visual-spin 0.9s linear infinite;
@@ -224,7 +224,7 @@ $loop: 10s;
 .ai-visual__menu {
   display: grid;
   padding: calc(#{$u} * 0.45);
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-m;
   background: $surface-menu;
   box-shadow: 0 16px 40px rgba($black, 0.45);
@@ -401,7 +401,7 @@ $loop: 10s;
 
 @mixin unlit {
   color: $text-muted;
-  border-color: rgba($edge-tint, 0.14);
+  border-color: color-mix(in srgb, $edge-tint 14%, transparent);
   background: $surface-control;
 }
 
@@ -475,7 +475,7 @@ $loop: 10s;
 .controls-visual__swatch {
   width: calc(#{$u} * 1.6);
   height: calc(#{$u} * 0.9);
-  border: 1px solid rgba($white, 0.25);
+  border: 1px solid color-mix(in srgb, $edge-tint 25%, transparent);
   border-radius: $radius-xs;
   background: #ffe8a8;
   box-shadow: 0 0 calc(#{$u} * 0.6) rgba(#ffe8a8, 0.5);
@@ -807,7 +807,7 @@ $loop: 10s;
   position: absolute;
   top: calc(#{$u} * 0.5);
   right: calc(#{$u} * 0.5);
-  border-color: rgba($white, 0.25);
+  border-color: color-mix(in srgb, $edge-tint 25%, transparent);
   background: color-mix(in srgb, $surface-menu 78%, transparent);
   color: $text-primary;
   font-size: calc(#{$u} * 0.56);
@@ -842,7 +842,7 @@ $loop: 10s;
   place-items: center;
   min-width: calc(#{$u} * 2.6);
   padding: calc(#{$u} * 0.3) calc(#{$u} * 0.6);
-  border: 1px solid rgba($edge-tint, 0.25);
+  border: 1px solid color-mix(in srgb, $edge-tint 25%, transparent);
   border-radius: $radius-s;
   background: linear-gradient($surface-control, $surface-panel);
   box-shadow: 0 calc(#{$u} * 0.22) 0 #0b1118;
@@ -883,7 +883,7 @@ $loop: 10s;
   bottom: calc(#{$u} * 0.4);
   display: grid;
   padding: calc(#{$u} * 0.3) calc(#{$u} * 0.45);
-  border: 1px solid rgba($white, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-s;
   background: color-mix(in srgb, $surface-menu 76%, transparent);
   gap: calc(#{$u} * 0.15);

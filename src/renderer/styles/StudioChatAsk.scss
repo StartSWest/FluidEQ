@@ -96,7 +96,7 @@ $ask-mark-gap: 10px;
   color: $text-primary;
   border-left: 2px solid color-mix(in srgb, $text-accent 40%, transparent);
   border-radius: 0 $radius-xs $radius-xs 0;
-  background: color-mix(in srgb, $white 4%, transparent);
+  background: color-mix(in srgb, $edge-tint 4%, transparent);
   font-family: $font-mono;
   font-size: $text-small;
   line-height: 1.45;

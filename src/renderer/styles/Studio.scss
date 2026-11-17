@@ -117,7 +117,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover .studio-card__eyebrow--group,
   &:focus-visible .studio-card__eyebrow--group {
-    color: $white;
+    color: $ink;
   }
 
   // The first group's head opens the card body, which already has the
@@ -687,7 +687,7 @@ $studio-stage-floor: 148px;
 
   &:hover,
   &:focus-visible {
-    color: $white;
+    color: $ink;
   }
 }
 
@@ -729,7 +729,7 @@ $studio-stage-floor: 148px;
 }
 
 .studio-problem__where {
-  color: color-mix(in srgb, $red 60%, $white);
+  color: color-mix(in srgb, $red 60%, $ink);
   font-family: $font-mono;
   font-size: $text-micro;
 }

@@ -166,7 +166,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover:not(:disabled, [aria-disabled='true']) {
     color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
+    background: color-mix(in srgb, $edge-tint 6%, transparent);
   }
 }
 

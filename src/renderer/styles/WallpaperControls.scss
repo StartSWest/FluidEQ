@@ -79,7 +79,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 7px;
 
   &[aria-pressed='true']:not(:disabled) {
-    color: $white;
+    color: $ink;
     border-color: color-mix(in srgb, $secondary-light 70%, transparent);
     background: color-mix(in srgb, $secondary-default 18%, transparent);
   }
@@ -452,7 +452,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .wallpaper-dialog__error-monitor {
-  color: $white;
+  color: $ink;
   font-weight: $weight-semibold;
 }
 

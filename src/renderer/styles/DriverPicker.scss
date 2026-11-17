@@ -103,13 +103,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .driver-curve__grid {
   fill: none;
-  stroke: rgba($edge-tint, 0.09);
+  stroke: color-mix(in srgb, $edge-tint 9%, transparent);
   stroke-width: 1;
 }
 
 .driver-curve__zero {
   fill: none;
-  stroke: rgba($edge-tint, 0.2);
+  stroke: color-mix(in srgb, $edge-tint 20%, transparent);
   stroke-dasharray: 2 4;
   stroke-width: 1;
 }

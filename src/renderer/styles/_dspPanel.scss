@@ -298,7 +298,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     left: 0;
     width: 1px;
     height: $control-height;
-    background: rgba($white, 0.1);
+    background: color-mix(in srgb, $edge-tint 10%, transparent);
     content: '';
   }
 }
@@ -308,7 +308,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 9px;
   padding-left: 14px;
-  border-left: 1px solid rgba($white, 0.1);
+  border-left: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
 }
 
 // Said the way the caption beside it says "Game mode": faint, small, in
@@ -467,7 +467,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Clipped to its corners: the click lane along its top is painted in the
   // card's colour right to the edge (`DspDenoiseGraph.tsx`).
   overflow: hidden;
-  border: 1px solid rgba($white, 0.06);
+  border: 1px solid color-mix(in srgb, $edge-tint 6%, transparent);
   border-radius: $radius-s;
   background: $surface-plot;
 
@@ -726,7 +726,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   dd {
     min-height: 20px;
-    color: rgba($white, 0.82);
+    color: color-mix(in srgb, $ink 82%, transparent);
     font-family: $font-mono;
     font-size: $text-lead;
     font-variant-numeric: tabular-nums;

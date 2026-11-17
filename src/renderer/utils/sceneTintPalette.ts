@@ -24,53 +24,31 @@ import {
 import type { ISceneSky } from './sceneTint';
 import { edgeOn, groundOf } from './themeInk';
 import { OCEAN_SHADE } from './themeShade';
+import { inkForSurface } from './windowLight';
+import {
+  WINDOW_ACCENTS,
+  WINDOW_EDGES,
+  WINDOW_STATES,
+  WINDOW_SURFACES,
+} from './windowTokens';
 
 /**
  * The theme toned in a scene's colours (`sceneTint.ts` finds them): which
  * tokens, and what each becomes.
  */
 
-/** The surfaces a theme declares on `:root` that the sky recolours. */
-export const SCENE_TINT_SURFACES = [
-  '--surface-base',
-  '--surface-panel',
-  '--surface-block',
-  '--surface-field',
-  '--surface-field-end',
-  '--surface-menu',
-  '--surface-menu-top',
-  '--surface-menu-face',
-  '--surface-well',
-  '--track-well',
-] as const;
-
-/** The edges, which are a light colour at a whisper of alpha. */
-export const SCENE_TINT_EDGES = [
-  '--border-subtle',
-  '--border-panel',
-  '--border-menu',
-] as const;
-
 /**
- * The accent in its four strengths: the filled button, its hover and the
- * kickers, its pressed state, and the deepest one. Everything the app draws
- * in the accent — stylesheets through `$secondary-*`, drawings through
- * `readAccent` — reads these.
+ * The surfaces a theme declares on `:root` that the sky recolours, the edges
+ * (a colour at a whisper of alpha), the accent in its four strengths - the
+ * filled button, its hover and the kickers, its pressed state, the deepest -
+ * and what says a thing is on. Only that last: the rainbow the music is drawn
+ * in, and red and amber, which mean off and wait, keep their colours whatever
+ * is playing. The names are the window's (`windowTokens.ts`).
  */
-export const SCENE_TINT_ACCENTS = [
-  '--accent',
-  '--accent-light',
-  '--accent-dark',
-  '--accent-darker',
-] as const;
-
-/**
- * What says a thing is on — the attached profile, the live output, a project
- * that saves as it goes — a lime of its own in the theme. Only that: the
- * rainbow the music is drawn in, and red and amber, which mean off and wait,
- * keep their colours whatever is playing.
- */
-export const SCENE_TINT_STATES = ['--active'] as const;
+export const SCENE_TINT_SURFACES = WINDOW_SURFACES;
+export const SCENE_TINT_EDGES = WINDOW_EDGES;
+export const SCENE_TINT_ACCENTS = WINDOW_ACCENTS;
+export const SCENE_TINT_STATES = WINDOW_STATES;
 
 export const SCENE_TINT_TOKENS = [
   ...SCENE_TINT_SURFACES,
@@ -102,6 +80,20 @@ const SURFACE_CHROMA_PER_LIGHTNESS = 0.4;
  * being something to stand on and becomes something to look at.
  */
 const MAX_SURFACE_CHROMA = 0.07;
+/**
+ * The same ceiling on a light window (Brightness past `DARK_END_SHADE`).
+ * White holds far more colour than the slate does before it reads as a
+ * colour rather than a ground, and at the dark rungs' 0.07 every pane was a
+ * pastel; at this the panes read as white with the scene in them.
+ */
+const LIGHT_SURFACE_CHROMA = 0.025;
+
+/**
+ * "On" on a light window when the scene has no colour fit for it: a deep
+ * shade of its sky, where the dark rungs' pale light would vanish on white.
+ */
+const DEEP_ACTIVE_LIGHTNESS = 0.45;
+const DEEP_ACTIVE_CHROMA = 0.09;
 
 /**
  * The edges' chroma. They are drawn at six to twenty-two percent alpha, so
@@ -193,7 +185,11 @@ const accentLightnessShift = (
     next += ACCENT_LIGHTNESS_STEP
   ) {
     const colour = accentAt(accent.l - next, chroma, hue);
-    if (contrast(luminance(colour), label) < MIN_LABEL_CONTRAST) {
+    // Going darker only costs the label contrast while the label is the
+    // darker of the two; on a light window the label is the light floor, and
+    // every step down reads better.
+    const lum = luminance(colour);
+    if (label < lum && contrast(lum, label) < MIN_LABEL_CONTRAST) {
       return shift;
     }
     shift = next;
@@ -273,6 +269,7 @@ const activeUnder = (
   sky: ISceneSky,
   base: ILab,
   label: number,
+  isLight: boolean,
 ): string | undefined => {
   if (sceneAccentHue(sky) === undefined) {
     return undefined;
@@ -281,10 +278,14 @@ const activeUnder = (
     return turnFilled(base, label, sky.active.hue, MAX_ACTIVE_LIGHTNESS_SHIFT)
       .hex;
   }
+  // A pale light on a dark window; on a light one a deep shade, which the
+  // pale one would vanish against.
+  const lightness = isLight ? DEEP_ACTIVE_LIGHTNESS : PALE_ACTIVE_LIGHTNESS;
+  const chroma = isLight ? DEEP_ACTIVE_CHROMA : PALE_ACTIVE_CHROMA;
   return labToHex(
     toward(
-      { l: PALE_ACTIVE_LIGHTNESS, a: 0, b: 0 },
-      isGreySky(sky) ? 0 : PALE_ACTIVE_CHROMA,
+      { l: lightness, a: 0, b: 0 },
+      isGreySky(sky) ? 0 : chroma,
       sky.hue,
       1,
     ),
@@ -311,6 +312,10 @@ export const tintThemePalette = (
   // Under a grey sky the surfaces and edges lose the theme's own tone
   // instead of taking a colour.
   const grey = isGreySky(sky);
+  // A light window (the top of the Brightness) takes the sky as a whisper on
+  // white, and its ink and edges run dark (`windowLight.ts`).
+  const isLight = inkForSurface(base['--surface-panel'] ?? '') === 'dark';
+  const surfaceCeiling = isLight ? LIGHT_SURFACE_CHROMA : MAX_SURFACE_CHROMA;
   const palette: TSceneTintPalette = {};
   SCENE_TINT_SURFACES.forEach((token) => {
     const colour = parseCssColour(base[token] ?? '');
@@ -318,7 +323,7 @@ export const tintThemePalette = (
       const lab = rgbToLab(colour.rgb);
       const chroma = grey
         ? 0
-        : Math.min(MAX_SURFACE_CHROMA, SURFACE_CHROMA_PER_LIGHTNESS * lab.l);
+        : Math.min(surfaceCeiling, SURFACE_CHROMA_PER_LIGHTNESS * lab.l);
       palette[token] = labToHex(toward(lab, chroma, sky.hue, amount));
     }
   });
@@ -330,7 +335,7 @@ export const tintThemePalette = (
   const pane = palette['--surface-panel'] ?? base['--surface-panel'];
   const ground =
     floor && pane && parseCssColour(floor) && parseCssColour(pane)
-      ? groundOf(floor, pane)
+      ? groundOf(floor, pane, isLight ? 'black' : 'white')
       : undefined;
   SCENE_TINT_EDGES.forEach((token) => {
     const colour = parseCssColour(base[token] ?? '');
@@ -349,7 +354,7 @@ export const tintThemePalette = (
   const active = parseCssColour(base['--active'] ?? '');
   const activeColour =
     active && labelLuminance !== undefined
-      ? activeUnder(sky, rgbToLab(active.rgb), labelLuminance)
+      ? activeUnder(sky, rgbToLab(active.rgb), labelLuminance, isLight)
       : undefined;
   if (activeColour) {
     palette['--active'] = activeColour;

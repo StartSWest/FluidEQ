@@ -33,7 +33,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .lighting-visual__body {
   fill: color-mix(in srgb, $black 90%, $edge-tint);
-  stroke: rgba($edge-tint, 0.16);
+  stroke: color-mix(in srgb, $edge-tint 16%, transparent);
   stroke-width: 1;
 }
 
@@ -62,7 +62,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // The mouse's two buttons and its wheel, in the shell's own dark.
 .lighting-visual__seam {
   fill: none;
-  stroke: rgba($edge-tint, 0.14);
+  stroke: color-mix(in srgb, $edge-tint 14%, transparent);
   stroke-width: 1;
 }
 

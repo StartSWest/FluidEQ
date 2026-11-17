@@ -14,6 +14,7 @@ import {
   fillBetween,
   zoneColour,
 } from './meterPaint';
+import { readEdge } from '../../utils/theme';
 
 /**
  * One channel's strip as a style sees it: the slot, the inside of its
@@ -39,9 +40,10 @@ export interface IStrip {
 
 /**
  * The slot's edge and the hairlines drawn inside it. Quiet: the slot is
- * where the reading stands, and at 0.18 it competed with it.
+ * where the reading stands, and at 0.18 it competed with it. Read at each
+ * draw, so it turns dark with a light window (`readEdge`).
  */
-export const EDGE_INK = 'rgba(214, 233, 247, 0.12)';
+export const edgeInk = (): string => readEdge(0.12);
 
 /**
  * How much of the slot's and the unlit pieces' colour is laid down. The

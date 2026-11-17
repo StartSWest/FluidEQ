@@ -150,6 +150,8 @@ export const createLookGl = (
   // Only the measuring views declare the second ramp (`analysisGlsl.ts`).
   const mateInksAt = gl.getUniformLocation(program, 'uInkMate');
   const mateInkCountAt = gl.getUniformLocation(program, 'uInkMateCount');
+  // And the window's ink, which only the measuring views' rules use.
+  const windowInkAt = gl.getUniformLocation(program, 'uWindowInk');
   const passAt = gl.getUniformLocation(program, 'uLookPass');
   const bloomAt = gl.getUniformLocation(program, 'uLookBloom');
   const strengthAt = gl.getUniformLocation(program, 'uLookBloomStrength');
@@ -298,6 +300,9 @@ export const createLookGl = (
     if (mateInksAt) {
       gl.uniform3fv(mateInksAt, input.mateInks);
       gl.uniform1i(mateInkCountAt, input.mateInkCount);
+    }
+    if (windowInkAt) {
+      gl.uniform3fv(windowInkAt, input.windowInk);
     }
     if (input.history) {
       uploadHistory(input.history);

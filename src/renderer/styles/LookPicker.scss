@@ -196,7 +196,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &:hover,
   &:focus-visible {
-    color: $white;
+    color: $ink;
     background: $hover-accent;
     outline: none;
   }
@@ -231,8 +231,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
     bottom: 50%;
     left: 13px;
     width: 8px;
-    border-bottom: 1px solid color-mix(in srgb, $white 18%, transparent);
-    border-left: 1px solid color-mix(in srgb, $white 18%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
+    border-left: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
     border-bottom-left-radius: 5px;
     content: '';
     pointer-events: none;
@@ -253,8 +253,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: none;
   place-items: center;
   border-radius: $radius-xs - 2;
-  background: color-mix(in srgb, $white 4%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, $white 6%, transparent);
+  background: color-mix(in srgb, $edge-tint 4%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 6%, transparent);
 
   svg {
     width: 22px;

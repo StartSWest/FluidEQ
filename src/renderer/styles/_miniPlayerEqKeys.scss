@@ -215,7 +215,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     background: color-mix(in srgb, var(--player-curve-smart) 20%, transparent);
     box-shadow: inset 0 0 0 1px
       color-mix(in srgb, var(--player-curve-smart) 45%, transparent);
-    color: color-mix(in srgb, var(--player-curve-smart), #{$white} 70%);
+    color: color-mix(in srgb, var(--player-curve-smart), #{$ink} 70%);
 
     .player-led__lamp {
       background: var(--player-curve-smart);

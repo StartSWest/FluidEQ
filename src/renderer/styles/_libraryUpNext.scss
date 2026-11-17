@@ -844,9 +844,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: block;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, $white 4%, transparent) 0%,
-    color-mix(in srgb, $white 9%, transparent) 50%,
-    color-mix(in srgb, $white 4%, transparent) 100%
+    color-mix(in srgb, $edge-tint 4%, transparent) 0%,
+    color-mix(in srgb, $edge-tint 9%, transparent) 50%,
+    color-mix(in srgb, $edge-tint 4%, transparent) 100%
   );
   background-size: 200% 100%;
   animation: library-up-next-shimmer 1.6s linear infinite;

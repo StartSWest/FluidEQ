@@ -254,7 +254,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-width: 0;
   padding-block: 1px;
-  color: rgba($white, 0.92);
+  color: color-mix(in srgb, $ink 92%, transparent);
   font-size: $text-body;
   line-height: 1.45;
 }
@@ -278,7 +278,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   color: $text-muted;
-  border: 1px dashed rgba($edge-tint, 0.22);
+  border: 1px dashed color-mix(in srgb, $edge-tint 22%, transparent);
   border-radius: $radius-s;
   font-size: $text-small;
   font-style: italic;

@@ -11,7 +11,7 @@ import {
   ILensLabels,
   label,
   POINT_FONT,
-  POINT_INK,
+  pointInk,
   TDeEsserTune,
 } from './deEsserLensKit';
 import { drawCymbals, drawWhere } from './deEsserLensStage';
@@ -91,7 +91,7 @@ export const drawLens = (
         box.x,
         box.y + 8,
         'left',
-        POINT_INK,
+        pointInk(),
       );
       break;
     case 'attack':

@@ -34,7 +34,7 @@
   grid-template-columns: subgrid;
 }
 .remote-audio__peer-scroll > .remote-audio__lane:first-child {
-  border-top: 1px solid rgba($edge-tint, 0.1);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
 }
 .remote-audio__group-row {
   grid-template-areas: none;

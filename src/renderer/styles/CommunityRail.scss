@@ -222,7 +222,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover {
     color: $text-primary;
-    background: color-mix(in srgb, $white 5%, transparent);
+    background: color-mix(in srgb, $edge-tint 5%, transparent);
   }
 
   // The open row: tinted, with a short accent bar down its left edge, the
@@ -267,7 +267,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 28px;
   color: $text-faint;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 5%, transparent);
+  background: color-mix(in srgb, $edge-tint 5%, transparent);
   transition:
     background $motion-fast $ease-out,
     color $motion-fast $ease-out;

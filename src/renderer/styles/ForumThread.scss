@@ -213,7 +213,7 @@ it under the terms of the GNU General Public License version 3 or later.
     background: linear-gradient(
       180deg,
       color-mix(in srgb, $secondary-default 35%, transparent),
-      color-mix(in srgb, $white 7%, transparent)
+      color-mix(in srgb, $edge-tint 7%, transparent)
     );
   }
 

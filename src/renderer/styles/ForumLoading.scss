@@ -82,7 +82,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   max-width: 100%;
   border-radius: 6px;
-  background: color-mix(in srgb, $white 7.5%, transparent);
+  background: color-mix(in srgb, $edge-tint 7.5%, transparent);
 
   &--avatar {
     width: 36px;
@@ -98,7 +98,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &--line {
     height: 9px;
     margin-top: 4px;
-    background: color-mix(in srgb, $white 5%, transparent);
+    background: color-mix(in srgb, $edge-tint 5%, transparent);
   }
 
   &--chip {
@@ -132,12 +132,12 @@ it under the terms of the GNU General Public License version 3 or later.
   &--time {
     width: 58px;
     height: 9px;
-    background: color-mix(in srgb, $white 5%, transparent);
+    background: color-mix(in srgb, $edge-tint 5%, transparent);
   }
 
   &--text {
     height: 10px;
-    background: color-mix(in srgb, $white 5.5%, transparent);
+    background: color-mix(in srgb, $edge-tint 5.5%, transparent);
   }
 
   &--heading {
@@ -168,7 +168,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &--board-blurb {
     height: 8px;
     margin-top: 5px;
-    background: color-mix(in srgb, $white 5%, transparent);
+    background: color-mix(in srgb, $edge-tint 5%, transparent);
   }
 }
 

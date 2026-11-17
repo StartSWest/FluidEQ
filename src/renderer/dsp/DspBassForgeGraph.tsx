@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { readTextInk } from '../utils/theme';
+import { readInk, readTextInk } from '../utils/theme';
 import { ANALYSIS_BASS_FORGE_BANDS } from '../../common/dsp/analysisWire';
 import { IBassForgeSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
@@ -109,7 +109,6 @@ const GRAPH_FONT =
  * a generator: the meter cannot tell the two generators apart. See the header.
  */
 const HIGH_SIDE_INK = '255, 176, 89';
-const DRY_INK = '255, 255, 255';
 
 /** Smoothstep, so eight measured points read as a curve and not as a chain. */
 const ease = (t: number): number => t * t * (3 - 2 * t);
@@ -208,8 +207,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
       context.textBaseline = 'middle';
       GRID_DB.forEach((db) => {
         const line = Math.round(toY(db)) + 0.5;
-        context.strokeStyle =
-          db === 0 ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)';
+        context.strokeStyle = db === 0 ? readInk(0.12) : readInk(0.05);
         context.beginPath();
         context.moveTo(PAD_L, line);
         context.lineTo(width - PAD_R, line);
@@ -222,7 +220,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
       context.textBaseline = 'top';
       GRID_HZ.forEach(([hz, label]) => {
         const line = Math.round(toX(hz)) + 0.5;
-        context.strokeStyle = 'rgba(255,255,255,0.045)';
+        context.strokeStyle = readInk(0.045);
         context.beginPath();
         context.moveTo(line, PAD_T);
         context.lineTo(line, floorY);
@@ -313,7 +311,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
         if (!isolate) {
           // The dry run first and dim, because it is the reference the forged
           // one is read against rather than a second result.
-          context.strokeStyle = `rgba(${DRY_INK},0.3)`;
+          context.strokeStyle = readInk(0.3);
           context.lineWidth = 1.2;
           context.beginPath();
           for (let column = 0; column <= columns; column += 1) {
@@ -337,9 +335,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
       const splitX = Math.round(toX(splitHz)) + 0.5;
       context.save();
       context.setLineDash([3, 4]);
-      context.strokeStyle = enabled
-        ? 'rgba(255,255,255,0.5)'
-        : 'rgba(255,255,255,0.24)';
+      context.strokeStyle = enabled ? readInk(0.5) : readInk(0.24);
       context.lineWidth = 1.2;
       context.beginPath();
       context.moveTo(splitX, PAD_T);
@@ -352,7 +348,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
       const labelFlips = splitX > width - PAD_R - 40;
       context.textBaseline = 'top';
       context.textAlign = labelFlips ? 'right' : 'left';
-      context.fillStyle = enabled ? textInk : 'rgba(255,255,255,0.3)';
+      context.fillStyle = enabled ? textInk : readInk(0.3);
       context.fillText(
         `${Math.round(splitHz)} Hz`,
         splitX + (labelFlips ? -4 : 4),
@@ -393,7 +389,9 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark"
-            style={{ color: `rgba(${DRY_INK},0.4)` }}
+            style={{
+              color: 'color-mix(in srgb, var(--ink) 40%, transparent)',
+            }}
           />
           {t('dsp.eq.legend.input')}
         </li>

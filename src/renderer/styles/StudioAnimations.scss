@@ -182,7 +182,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   padding: 8px 8px 10px;
   color: inherit;
-  border: 1px solid rgba($white, 0.08);
+  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-s;
   background: color-mix(in srgb, $surface-well 60%, transparent);
   font: inherit;
@@ -669,7 +669,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 70px;
   padding: 4px;
   color: $text-faint;
-  border: 2px solid rgba($white, 0.08);
+  border: 2px solid color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-xs;
   background: color-mix(in srgb, $surface-well 70%, transparent);
   font: inherit;

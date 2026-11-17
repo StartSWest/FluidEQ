@@ -16,7 +16,7 @@
   &::after {
     position: absolute;
     inset: 0;
-    border: 1px solid rgba($white, 0.09);
+    border: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
     border-radius: inherit;
     content: '';
     pointer-events: none;

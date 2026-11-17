@@ -128,7 +128,7 @@ it under the terms of the GNU General Public License version 3 or later.
   @include badge-count;
 
   &.is-alert {
-    @include badge-count($red, $white);
+    @include badge-count($red, $ink);
   }
 }
 

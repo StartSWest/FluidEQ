@@ -94,18 +94,18 @@ $before: #ff6b6b;
 }
 
 .sound-visual__grid {
-  stroke: rgba($edge-tint, 0.14);
+  stroke: color-mix(in srgb, $edge-tint 14%, transparent);
   stroke-width: 1;
 }
 
 .sound-visual__floor {
-  stroke: rgba($edge-tint, 0.45);
+  stroke: color-mix(in srgb, $edge-tint 45%, transparent);
   stroke-dasharray: 3 3;
   stroke-width: 1;
 }
 
 .sound-visual__drawn {
-  stroke: rgba($white, 0.85);
+  stroke: color-mix(in srgb, $ink 85%, transparent);
   stroke-dasharray: 2 4;
   stroke-width: 1.2;
 }

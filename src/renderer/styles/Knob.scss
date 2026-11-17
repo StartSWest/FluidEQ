@@ -80,7 +80,7 @@ $dial-cut: oklch(from var(--surface-panel) calc(l - 0.08) c h);
 
   // The scale's own marks, at the strength of the EQ faders' long ticks.
   &__mark {
-    fill: rgba($edge-tint, 0.4);
+    fill: color-mix(in srgb, $edge-tint 40%, transparent);
   }
 
   // The skirt and the cap, each cut out by the dial's edge, a whole pixel at

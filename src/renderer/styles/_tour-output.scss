@@ -69,7 +69,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   width: calc(#{$u} * 1.6);
   height: calc(#{$u} * 0.85);
-  border: 1px solid rgba($edge-tint, 0.16);
+  border: 1px solid color-mix(in srgb, $edge-tint 16%, transparent);
   border-radius: $radius-pill;
   background: $track-well;
 
@@ -108,7 +108,7 @@ it under the terms of the GNU General Public License version 3 or later.
     display: flex;
     align-items: flex-start;
     padding: calc(#{$u} * 0.45) calc(#{$u} * 0.55);
-    border: 1px solid rgba($edge-tint, 0.08);
+    border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
     border-radius: $radius-m;
     background: $surface-field;
     gap: calc(#{$u} * 0.55);

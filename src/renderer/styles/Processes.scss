@@ -62,7 +62,7 @@ it under the terms of the GNU General Public License version 3 or later.
     // The body's top padding, so the heads hold at the scroll's edge.
     top: -26px;
     padding: 9px 12px;
-    border-bottom: 1px solid rgba($white, 0.09);
+    border-bottom: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
     color: $text-faint;
     // Opaque, so the rows scrolling under the heads do not show through.
     background: color-mix(in oklab, $surface-base 82%, $surface-panel);
@@ -75,7 +75,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   td {
     padding: 10px 12px;
-    border-bottom: 1px solid rgba($white, 0.09);
+    border-bottom: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
     // Top, not middle: the numbers belong beside the name they describe, and
     // centring them against a two-line cell floats them into the explanation.
     vertical-align: top;

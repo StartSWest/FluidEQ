@@ -459,7 +459,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 auto;
   flex-direction: column;
   padding: $spacing-s $spacing-s 0;
-  border-top: 1px solid rgba($edge-tint, 0.1);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   // Rises out of the seam it opens along, rather than appearing whole. The
   // stage above is still shrinking on its own 340ms as this arrives, so the
   // two read as one movement: the row lifts and the album comes up behind it.

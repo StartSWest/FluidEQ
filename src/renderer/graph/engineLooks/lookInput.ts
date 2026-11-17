@@ -43,6 +43,7 @@ export const createLookInput = (style: string): IEngineLookInput => ({
   inkCount: 1,
   mateInks: new Float32Array(LOOK_INKS * 3),
   mateInkCount: 1,
+  windowInk: Float32Array.of(1, 1, 1),
   bloom: 0,
   sprites: new Float32Array(0),
   spriteCount: 0,

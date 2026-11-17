@@ -146,7 +146,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 6px;
   overflow: hidden;
   border-radius: $radius-pill;
-  background: color-mix(in srgb, $white 8%, transparent);
+  background: color-mix(in srgb, $edge-tint 8%, transparent);
 
   span {
     display: block;

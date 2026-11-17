@@ -146,7 +146,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
       &:hover,
       &:focus-visible {
-        color: $white;
+        color: $ink;
         background: rgba($red, 0.24);
         outline: none;
       }
@@ -183,7 +183,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
       &:hover,
       &:focus-visible {
-        color: $white;
+        color: $ink;
         background: rgba($red, 0.24);
         outline: none;
       }
@@ -194,8 +194,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
       &:hover,
       &:focus-visible {
-        color: $white;
-        background: rgba($edge-tint, 0.14);
+        color: $ink;
+        background: color-mix(in srgb, $edge-tint 14%, transparent);
         outline: none;
       }
     }

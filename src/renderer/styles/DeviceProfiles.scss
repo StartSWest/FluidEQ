@@ -288,7 +288,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 7px;
   height: 7px;
   flex: 0 0 7px;
-  border: 1px solid rgba($edge-tint, 0.38);
+  border: 1px solid color-mix(in srgb, $edge-tint 38%, transparent);
   border-radius: 50%;
 
   &.active {

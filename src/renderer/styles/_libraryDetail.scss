@@ -202,7 +202,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 22px;
   place-items: center;
   color: $text-faint;
-  border: 1px solid rgba($edge-tint, 0.28);
+  border: 1px solid color-mix(in srgb, $edge-tint 28%, transparent);
   border-radius: $radius-2xs;
   background: color-mix(in srgb, $surface-menu-top 96%, transparent);
 }
@@ -436,7 +436,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 22px;
   place-items: center;
   color: $text-faint;
-  border: 1px solid rgba($edge-tint, 0.28);
+  border: 1px solid color-mix(in srgb, $edge-tint 28%, transparent);
   border-radius: $radius-2xs;
   background: color-mix(in srgb, $surface-menu-top 96%, transparent);
 }

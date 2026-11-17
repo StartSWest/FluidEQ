@@ -16,11 +16,21 @@ import {
 } from './oklab';
 import {
   EDGE_CONTRAST,
+  INK_TOKENS,
   cardHexOf,
   edgeOn,
   groundOf,
   inkTokens,
+  type TInkToken,
 } from './themeInk';
+import {
+  hueOf,
+  labOf,
+  lightSurfaces,
+  windowOn,
+  type IWindow,
+} from './windowLight';
+import { WINDOW_SURFACES } from './windowTokens';
 
 /**
  * The theme as one slider from Black to a lighter Ocean (Ivan, 2026-09-25:
@@ -47,10 +57,53 @@ export const THEME_SHADE_MIN = 0;
 export const THEME_SHADE_MAX = 100;
 
 /**
- * Where Ocean as it shipped stands: three quarters of the way, so somebody
- * who had picked Ocean opens on it and the last quarter lightens past it.
+ * FROM FULLY DARK TO FULLY WHITE (Ivan, 2026-11-17: "if user set brightness
+ * to 100% it turns it white", "so just grow the scale from 0 full dark to
+ * 100 fully white").
+ *
+ * The slider used to end at a lifted Ocean, still a dark window with light
+ * words. It now runs on into a light window with dark words: up to
+ * `DARK_END_SHADE` it is the dark walk it always was, squeezed into that
+ * stretch, and past it a light window from a soft grey to white panes
+ * (`windowLight.ts`).
+ *
+ * The two stretches meet with a step, on purpose. Between a lifted Ocean
+ * (surfaces near OKLab 0.5) and a soft grey (0.83) lie the mid-greys, where
+ * neither white nor black words reach the contrast the text tiers are held
+ * to - at the crossover neither gets past 4.6:1, short of the 7:1 the body
+ * text keeps on every shade. Walking through them would make every word in
+ * the window hard to read for a stretch of the slider; jumping them keeps
+ * every step readable.
+ *
+ * A stored Brightness from before the light stretch is moved onto the dark
+ * stretch once (`theme.ts`), so nobody's window turns light on the update.
  */
-export const OCEAN_SHADE = 75;
+export const DARK_END_SHADE = 76;
+
+/**
+ * The dark walk's own scale, 0 to 100, which every constant below it was
+ * tuned on (Black at 0, Ocean at 75, the lifted end at 100).
+ */
+const DARK_MAX = 100;
+const DARK_OCEAN = 75;
+
+/** Where `shade` stands on the dark walk's own scale. */
+export const darkStepOf = (shade: number) =>
+  (Math.min(shade, DARK_END_SHADE) / DARK_END_SHADE) * DARK_MAX;
+
+/** A slider position for a place on the dark walk's own scale. */
+export const shadeOfDarkStep = (step: number) =>
+  Math.round((step / DARK_MAX) * DARK_END_SHADE);
+
+/** Whether `shade` is on the light stretch: dark words on light surfaces. */
+export const isLightShade = (shade: number) =>
+  clampThemeShade(shade) > DARK_END_SHADE;
+
+/**
+ * Where Ocean as it shipped stands: three quarters of the dark walk, so
+ * somebody who had picked Ocean opens on it.
+ */
+export const OCEAN_SHADE = shadeOfDarkStep(DARK_OCEAN);
 
 /**
  * OKLab lightness Ocean's surfaces gain at the light end: 0.045 of the
@@ -126,18 +179,7 @@ const LIGHT_PANE_STEP = 0.052;
  */
 const FLOORS: readonly string[] = ['--surface-base'];
 
-const SURFACES = [
-  '--surface-base',
-  '--surface-panel',
-  '--surface-block',
-  '--surface-field',
-  '--surface-field-end',
-  '--surface-menu',
-  '--surface-menu-top',
-  '--surface-menu-face',
-  '--surface-well',
-  '--track-well',
-] as const;
+const SURFACES = WINDOW_SURFACES;
 
 /** Everything the two themes declared differently. */
 export const THEME_SHADE_TOKENS = [
@@ -288,10 +330,7 @@ const PANE_STEP =
 const paneStepAt = (shade: number) =>
   PANE_STEP +
   (LIGHT_PANE_STEP - PANE_STEP) *
-    Math.min(
-      1,
-      Math.max(0, (shade - THEME_SHADE_MAX / 2) / (THEME_SHADE_MAX / 2)),
-    );
+    Math.min(1, Math.max(0, (shade - DARK_MAX / 2) / (DARK_MAX / 2)));
 
 /** Taken to the card's own colour (`themeShadeTokens`). */
 const CARD_COLOURED: readonly TThemeShadeToken[] = [
@@ -364,9 +403,60 @@ const LIGHT_REACH = 0.6;
 
 /** Where `shade` stands on the scale the light end was built for. */
 const onLightScale = (shade: number) =>
-  shade <= OCEAN_SHADE
-    ? shade
-    : OCEAN_SHADE + (shade - OCEAN_SHADE) * LIGHT_REACH;
+  shade <= DARK_OCEAN ? shade : DARK_OCEAN + (shade - DARK_OCEAN) * LIGHT_REACH;
+
+/**
+ * The light stretch's soft grey end: its panes this much OKLab lightness
+ * under white at the first step past `DARK_END_SHADE`, white at 100.
+ */
+const LIGHT_WINDOW_DIM = 0.12;
+
+/** The green the theme says "on" in (`$analogous-2`, `_shippedTheme.scss`). */
+export const THEME_ACTIVE = '#54ff8a';
+
+let lightWindows: Map<number, IWindow> | undefined;
+
+/**
+ * The light stretch at `shade`: white panes on a soft floor leaning to
+ * Ocean's cyan, Ocean's accent and the theme's green moved only as far as
+ * their labels need (`windowOn`). Each shade once, since the slider and every
+ * tinted repaint ask for the same few again and again.
+ */
+export const lightWindowOf = (shade: number): IWindow | undefined => {
+  const at = clampThemeShade(shade);
+  if (at <= DARK_END_SHADE) {
+    return undefined;
+  }
+  lightWindows ??= new Map();
+  const known = lightWindows.get(at);
+  if (known) {
+    return known;
+  }
+  const accent = labOf(OCEAN_THEME['--accent']);
+  const glow = labOf(THEME_ACTIVE);
+  if (!accent || !glow) {
+    return undefined;
+  }
+  const lean = hueOf(accent);
+  const along =
+    (at - DARK_END_SHADE - 1) / (THEME_SHADE_MAX - DARK_END_SHADE - 1);
+  const surfaces = lightSurfaces(
+    { l: 1, a: 0, b: 0 },
+    lean,
+    LIGHT_WINDOW_DIM * (1 - along),
+  );
+  const built = windowOn(surfaces, accent, glow, lean);
+  lightWindows.set(at, built);
+  return built;
+};
+
+/**
+ * The colour the theme says "on" in at `shade`: its green, a light on a dark
+ * window, and on the light stretch moved until its label reads on it, like
+ * the accent.
+ */
+export const themeActiveOf = (shade: number): string =>
+  lightWindowOf(shade)?.tokens['--active'] ?? THEME_ACTIVE;
 
 /**
  * Every token the themes differ in, as the slider at `shade` paints it. The
@@ -374,18 +464,20 @@ const onLightScale = (shade: number) =>
  * reaches their contrast on this shade's card (`themeInk.ts`).
  */
 export const themeShadeTokens = (shade: number): TThemeTable => {
-  const at = onLightScale(clampThemeShade(shade));
+  const light = lightWindowOf(shade);
+  if (light) {
+    return Object.fromEntries(
+      THEME_SHADE_TOKENS.map((token) => [token, light.tokens[token]]),
+    ) as TThemeTable;
+  }
+  const at = onLightScale(darkStepOf(clampThemeShade(shade)));
   const table = Object.fromEntries(
     ENDS.map(({ token, black, ocean, light }) => [
       token,
       format(
-        at <= OCEAN_SHADE
-          ? between(black, ocean, at / OCEAN_SHADE)
-          : between(
-              ocean,
-              light,
-              (at - OCEAN_SHADE) / (THEME_SHADE_MAX - OCEAN_SHADE),
-            ),
+        at <= DARK_OCEAN
+          ? between(black, ocean, at / DARK_OCEAN)
+          : between(ocean, light, (at - DARK_OCEAN) / (DARK_MAX - DARK_OCEAN)),
       ),
     ]),
   ) as TThemeTable;
@@ -417,7 +509,13 @@ export const themeShadeTokens = (shade: number): TThemeTable => {
 };
 
 /** The inks at `shade` that are not surfaces or edges: text, disabled, fields. */
-export const themeInkTokens = (shade: number) => {
+export const themeInkTokens = (shade: number): Record<TInkToken, string> => {
+  const light = lightWindowOf(shade);
+  if (light) {
+    return Object.fromEntries(
+      INK_TOKENS.map((token) => [token, light.tokens[token]]),
+    ) as Record<TInkToken, string>;
+  }
   const table = themeShadeTokens(shade);
   return inkTokens(
     groundOf(table['--surface-base'], table['--surface-panel']),
@@ -440,9 +538,11 @@ export const themeInkTokens = (shade: number) => {
 export const themeShadeRule = (shade: number) => {
   const tokens = themeShadeTokens(shade);
   const inks = themeInkTokens(shade);
+  const active = lightWindowOf(shade) && themeActiveOf(shade);
   const declarations = [
     ...THEME_SHADE_TOKENS.map((token) => `${token}: ${tokens[token]};`),
     ...Object.entries(inks).map(([token, value]) => `${token}: ${value};`),
+    ...(active ? [`--active: ${active};`] : []),
     `--theme-accent: ${tokens['--accent']};`,
   ].join(' ');
   const accentShare = Math.round(

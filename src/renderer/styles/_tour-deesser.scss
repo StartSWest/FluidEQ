@@ -103,7 +103,7 @@ $strip-seconds: 4s;
 .deesser-visual__well {
   display: grid;
   padding: calc(#{$u} * 0.6) calc(#{$u} * 0.7) calc(#{$u} * 0.65);
-  border: 1px solid rgba($edge-tint, 0.08);
+  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-m;
   background: $surface-well;
   gap: calc(#{$u} * 0.55);
@@ -167,7 +167,7 @@ $strip-seconds: 4s;
 
 // What it let through: over the line, and not a voice.
 .deesser-visual__bar--hat {
-  fill: rgba($edge-tint, 0.42);
+  fill: color-mix(in srgb, $edge-tint 42%, transparent);
 }
 
 .deesser-visual__cut {
@@ -183,7 +183,7 @@ $strip-seconds: 4s;
 }
 
 .deesser-visual__floor {
-  stroke: rgba($edge-tint, 0.18);
+  stroke: color-mix(in srgb, $edge-tint 18%, transparent);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
@@ -241,7 +241,7 @@ $strip-seconds: 4s;
 }
 
 .deesser-visual__swatch--hat {
-  background: rgba($edge-tint, 0.42);
+  background: color-mix(in srgb, $edge-tint 42%, transparent);
 }
 
 .deesser-visual__swatch--cut {

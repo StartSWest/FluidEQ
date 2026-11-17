@@ -506,7 +506,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 0;
   place-items: center;
   padding: calc(var(--tour-unit) * 0.6);
-  border: 1px solid rgba($edge-tint, 0.1);
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   border-radius: $radius-l;
   background: color-mix(in srgb, $surface-well 70%, transparent);
 }

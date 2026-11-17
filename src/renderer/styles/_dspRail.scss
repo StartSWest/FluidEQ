@@ -134,7 +134,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // opaque square under the pointer read as a card appearing (2026-09-26).
   &:hover:not(:disabled) {
     background: $hover-lift;
-    color: rgba($white, 0.86);
+    color: color-mix(in srgb, $ink 86%, transparent);
   }
 }
 
@@ -230,7 +230,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   width: 7px;
   height: 7px;
-  border: 1px solid rgba($white, 0.1);
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   border-radius: 50%;
   background: $track-well;
   // Flat, like every lamp now: no halo round the dot.

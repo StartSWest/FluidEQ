@@ -90,7 +90,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: inherit;
   border: 1px solid $card-edge;
   border-radius: $radius-m;
-  background: color-mix(in srgb, $white 2.5%, transparent);
+  background: color-mix(in srgb, $edge-tint 2.5%, transparent);
   font: inherit;
   text-align: start;
   cursor: pointer;
@@ -131,7 +131,7 @@ it under the terms of the GNU General Public License version 3 or later.
     background: $hover-accent;
 
     .forum__topic-title {
-      color: $white;
+      color: $ink;
     }
   }
 
@@ -169,7 +169,7 @@ it under the terms of the GNU General Public License version 3 or later.
   transition: color $motion-fast $ease-out;
 
   .forum__topic:hover & {
-    color: $white;
+    color: $ink;
   }
 }
 
@@ -228,7 +228,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 2px 8px 2px 7px;
   color: $text-dim;
   border-radius: $radius-2xs;
-  background: color-mix(in srgb, $white 4%, transparent);
+  background: color-mix(in srgb, $edge-tint 4%, transparent);
   font-size: reading($text-small);
   font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
@@ -292,7 +292,7 @@ it under the terms of the GNU General Public License version 3 or later.
     background: tone-fill-lit($neon-lime);
 
     &.is-closed {
-      color: color-mix(in srgb, $neon-purple 55%, $white);
+      color: color-mix(in srgb, $neon-purple 55%, $ink);
       background: tone-fill-lit($neon-purple);
     }
   }

@@ -8,7 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { fillBetween, mirroredRamp, zoneColour } from './meterPaint';
 import {
-  EDGE_INK,
+  edgeInk,
   type IStrip,
   drawPeakRule,
   drawTip,
@@ -151,7 +151,7 @@ export const drawMercury = (strip: IStrip) => {
   context.save();
   glass();
   context.lineWidth = 1;
-  context.strokeStyle = EDGE_INK;
+  context.strokeStyle = edgeInk();
   context.stroke();
   context.restore();
   drawPeakRule(strip, tubeLeft, tubeLeft + tubeWidth);

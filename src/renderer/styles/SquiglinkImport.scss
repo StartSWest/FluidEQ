@@ -25,7 +25,7 @@
 
   h3 {
     margin: 2px 0 5px;
-    color: rgba($white, 0.95);
+    color: color-mix(in srgb, $ink 95%, transparent);
     font-size: 1rem;
   }
 
@@ -60,7 +60,7 @@
 
   &:hover,
   &:focus-visible {
-    color: $white;
+    color: $ink;
     border-color: $border-control-hover;
     background: $surface-control-hover;
   }
@@ -155,7 +155,7 @@
   gap: 8px;
 
   label {
-    color: rgba($white, 0.84);
+    color: color-mix(in srgb, $ink 84%, transparent);
     font-size: $text-body;
     font-weight: $weight-bold;
   }
@@ -175,7 +175,7 @@
     flex: 1 1 auto;
     resize: vertical;
     padding: 10px;
-    color: $white;
+    color: $ink;
     outline: 0;
     font-family: $font-mono;
     font-size: $text-small;
@@ -287,7 +287,7 @@
 
   strong {
     margin-top: 5px;
-    color: rgba($white, 0.9);
+    color: color-mix(in srgb, $ink 90%, transparent);
     font-size: $text-body;
   }
 
@@ -321,7 +321,7 @@
   color: $text-faint;
 
   i {
-    background: rgba($edge-tint, 0.46);
+    background: color-mix(in srgb, $edge-tint 46%, transparent);
     box-shadow: none;
   }
 }
@@ -441,7 +441,7 @@
   }
 
   strong {
-    color: rgba($white, 0.88);
+    color: color-mix(in srgb, $ink 88%, transparent);
     font-size: $text-body;
   }
 

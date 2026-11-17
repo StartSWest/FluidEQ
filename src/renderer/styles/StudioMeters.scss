@@ -41,7 +41,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 6px;
   overflow: hidden;
   border-radius: $radius-pill;
-  background: color-mix(in srgb, $white 7%, transparent);
+  background: color-mix(in srgb, $edge-tint 7%, transparent);
 }
 
 // Moved every frame by transform, never by width: a transform is composited,
@@ -64,7 +64,7 @@ it under the terms of the GNU General Public License version 3 or later.
   inset: 0;
   display: none;
   border-radius: inherit;
-  background: color-mix(in srgb, $white 22%, transparent);
+  background: color-mix(in srgb, $edge-tint 22%, transparent);
   transform: scaleX(0);
   transform-origin: left center;
 
@@ -102,7 +102,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &.is-heard {
     margin-left: 0;
-    background: color-mix(in srgb, $white 22%, transparent);
+    background: color-mix(in srgb, $edge-tint 22%, transparent);
   }
 }
 
@@ -160,7 +160,7 @@ it under the terms of the GNU General Public License version 3 or later.
   left: 50%;
   width: 1px;
   margin-left: -0.5px;
-  background: color-mix(in srgb, $white 28%, transparent);
+  background: color-mix(in srgb, $edge-tint 28%, transparent);
 }
 
 .studio-meter__half {
@@ -202,7 +202,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // beat a fade's length behind the music.
 .studio-clock__beat {
   border-radius: 2px;
-  background: color-mix(in srgb, $white 8%, transparent);
+  background: color-mix(in srgb, $edge-tint 8%, transparent);
 
   // The first beat of the bar, where the heaviest kick falls.
   &:first-child {
@@ -228,8 +228,8 @@ it under the terms of the GNU General Public License version 3 or later.
     left: -1px;
     width: 2px;
     border-radius: 1px;
-    background: $white;
-    box-shadow: 0 0 6px color-mix(in srgb, $white 60%, transparent);
+    background: $ink;
+    box-shadow: 0 0 6px color-mix(in srgb, $ink 60%, transparent);
   }
 }
 
@@ -265,7 +265,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: color-mix(in srgb, $white 12%, transparent);
+  background: color-mix(in srgb, $edge-tint 12%, transparent);
 }
 
 // Lit by its opacity alone, which the compositor moves without a repaint.
@@ -297,7 +297,7 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-self: end;
   width: 14px;
   height: 14px;
-  border: 1px solid color-mix(in srgb, $white 22%, transparent);
+  border: 1px solid color-mix(in srgb, $edge-tint 22%, transparent);
   border-radius: 50%;
 }
 

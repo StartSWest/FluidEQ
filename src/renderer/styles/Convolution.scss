@@ -277,7 +277,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
     strong {
       @include truncate;
-      color: $white;
+      color: $ink;
       font-size: $text-body;
     }
 
@@ -358,7 +358,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   strong {
     @include truncate;
-    color: rgba($white, 0.94);
+    color: color-mix(in srgb, $ink 94%, transparent);
     font-size: $text-lead;
   }
 }
@@ -405,7 +405,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   .status-dot.is-muted {
-    background: rgba($edge-tint, 0.34);
+    background: color-mix(in srgb, $edge-tint 34%, transparent);
     box-shadow: none;
   }
 }

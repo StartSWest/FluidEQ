@@ -28,7 +28,7 @@ import {
 } from '../analysis/loudnessPanel';
 import { advanceLoudness } from '../analysis/loudnessView';
 import { levelOfDb } from '../analysis/stereoReading';
-import { cssInkGlsl } from './analysisGlsl';
+import { cssInkGlsl, inkGlsl } from './analysisGlsl';
 import type { IEngineAnalysisLook } from './analysisLookTypes';
 import {
   LINE_FLOATS,
@@ -56,7 +56,7 @@ const f = (value: number) => value.toFixed(6);
 
 /** The dial's well, from its middle to its rim, as a GLSL function. */
 const wellGlsl = (): string => {
-  const inks = DIAL_WELL.map(([at, ink]) => [at, cssInkGlsl(ink)] as const);
+  const inks = DIAL_WELL.map(([at, ink]) => [at, inkGlsl(ink)] as const);
   const between = inks.slice(1).map(([at, ink], index) => {
     const [fromAt, fromInk] = inks[index];
     return `  if (u <= ${f(at)}) {
@@ -78,13 +78,14 @@ const GLSL = `
 uniform sampler2D uLookLines;
 
 const float RING_ALPHA = ${f(DIAL_RING_INK.alpha)};
-const vec4 ARM = ${cssInkGlsl(DIAL_ARM_INK)};
-const vec4 UPRIGHT = ${cssInkGlsl(DIAL_UPRIGHT_INK)};
-const vec4 TRACK = ${cssInkGlsl(SCALE_TRACK_INK)};
+// The window's ink, which follows a light window (inkGlsl).
+#define ARM ${inkGlsl(DIAL_ARM_INK)}
+#define UPRIGHT ${inkGlsl(DIAL_UPRIGHT_INK)}
+#define TRACK ${inkGlsl(SCALE_TRACK_INK)}
 const vec4 TROUBLE = ${cssInkGlsl(SCALE_TROUBLE_INK)};
-const vec4 BRACKET = ${cssInkGlsl(SCALE_BRACKET_INK)};
-const vec4 FAINT = ${cssInkGlsl(FAINT_INK)};
-const vec4 BAR_TRACK = ${cssInkGlsl(BAR_TRACK_INK.ink)};
+#define BRACKET ${inkGlsl(SCALE_BRACKET_INK)}
+#define FAINT ${inkGlsl(FAINT_INK)}
+#define BAR_TRACK ${inkGlsl(BAR_TRACK_INK.ink)}
 
 ${wellGlsl()}
 

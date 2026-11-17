@@ -104,7 +104,7 @@ $range-rail-width: 4px;
     bottom: 0;
     width: $range-slot-width;
     margin-left: -$range-slot-width * 0.5;
-    background: rgba($edge-tint, 0.24);
+    background: color-mix(in srgb, $edge-tint 24%, transparent);
   }
 
   // Down the rail, the band's own frequency (`BandLevels`): the music at that
@@ -239,7 +239,7 @@ $range-rail-width: 4px;
 
       &::-webkit-slider-thumb {
         background: var(--range-face-foot);
-        box-shadow: 0 0 0 2px rgba($edge-tint, 0.3);
+        box-shadow: 0 0 0 2px color-mix(in srgb, $edge-tint 30%, transparent);
         cursor: default;
         transform: none;
       }

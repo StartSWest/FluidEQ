@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readEdge, readInk } from '../../utils/theme';
 import {
   clamp01,
   type IAnalysisFrame,
@@ -124,7 +125,7 @@ const paintNoteRules = (frame: IAnalysisFrame): void => {
     rules.lineTo(x, foot + inward * (band.bottom - band.top));
   });
   context.globalAlpha = band.opacity * NOTE_RULE_ALPHA;
-  context.strokeStyle = '#fff';
+  context.strokeStyle = readInk(1);
   context.lineWidth = 1;
   context.stroke(rules);
   context.globalAlpha = 1;
@@ -136,7 +137,7 @@ const paintNoteRules = (frame: IAnalysisFrame): void => {
  * well clear of invisible — they were 9px at a fifth of white's strength.
  */
 const NOTE_WORD_SIZE = 10;
-const NOTE_WORD_INK = 'rgba(214, 233, 247, 0.8)';
+const NOTE_WORD_ALPHA = 0.8;
 
 /**
  * Each C's name along the foot, over whatever drew the view, on the row of
@@ -163,7 +164,7 @@ export const paintNoteWords = (frame: IAnalysisFrame): void => {
   context.globalAlpha = 1;
   noteMarks(frame).forEach(({ x, name }) => {
     if (placeFootWord(plot, placed, x, context.measureText(name).width)) {
-      paintKeyedWord(context, name, x, line.y, NOTE_WORD_INK);
+      paintKeyedWord(context, name, x, line.y, readEdge(NOTE_WORD_ALPHA));
     }
   });
   context.restore();

@@ -437,13 +437,13 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover {
     border-color: $border-control-hover;
     background: $surface-control-hover;
-    color: $white;
+    color: $ink;
   }
 
   // On, in white, on the same face and edge: a lit edge and a second tint
   // made it the one differently coloured box in the row.
   &.is-on {
-    color: $white;
+    color: $ink;
   }
 }
 
@@ -470,7 +470,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &.is-on:hover:not(:disabled) {
     border-color: color-mix(in srgb, $analogous-1 70%, transparent);
     background: color-mix(in srgb, $analogous-1 16%, transparent);
-    color: $white;
+    color: $ink;
 
     .graph-like__heart {
       fill: $analogous-1;

@@ -31,12 +31,12 @@ $notes-ink: $secondary-default;
 }
 
 .genre-curve__grid line {
-  stroke: rgba($edge-tint, 0.07);
+  stroke: color-mix(in srgb, $edge-tint 7%, transparent);
   stroke-width: 1;
 }
 
 .genre-curve__grid .genre-curve__zero {
-  stroke: rgba($edge-tint, 0.24);
+  stroke: color-mix(in srgb, $edge-tint 24%, transparent);
   stroke-dasharray: 3 3;
 }
 
@@ -375,12 +375,12 @@ $notes-ink: $secondary-default;
 }
 
 .genre-info-mark__glyph {
-  fill: $white;
+  fill: $ink;
 }
 
 .genre-info-mark__stem {
   fill: none;
-  stroke: $white;
+  stroke: $ink;
   stroke-linecap: round;
   stroke-width: 2;
 }
@@ -458,7 +458,7 @@ $notes-ink: $secondary-default;
   }
 
   &:focus-visible .genre-pin__badge {
-    stroke: $white;
+    stroke: $ink;
     stroke-width: 1.5;
   }
 }
@@ -512,7 +512,7 @@ $notes-ink: $secondary-default;
   }
 
   b {
-    color: color-mix(in srgb, $notes-ink 55%, $white);
+    color: color-mix(in srgb, $notes-ink 55%, $ink);
     font-variant-numeric: tabular-nums;
     font-weight: $weight-bold;
   }

@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { readTextInk } from '../utils/theme';
+import { readInk, readTextInk } from '../utils/theme';
 import { IBassPunchSettings } from '../../common/dsp/chain';
 import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
@@ -279,8 +279,7 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
       context.textAlign = 'right';
       LOW_GRID_DB.forEach((db) => {
         const line = Math.round(lowY(db)) + 0.5;
-        context.strokeStyle =
-          db === 0 ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.05)';
+        context.strokeStyle = db === 0 ? readInk(0.14) : readInk(0.05);
         context.beginPath();
         context.moveTo(PAD_L, line);
         context.lineTo(width - PAD_R, line);
@@ -290,8 +289,7 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
       });
       DUCK_GRID_DB.forEach((db) => {
         const line = Math.round(duckY(db)) + 0.5;
-        context.strokeStyle =
-          db === 0 ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.05)';
+        context.strokeStyle = db === 0 ? readInk(0.14) : readInk(0.05);
         context.beginPath();
         context.moveTo(PAD_L, line);
         context.lineTo(width - PAD_R, line);
@@ -306,7 +304,7 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
       for (let second = WINDOW_MS / 1_000 - 1; second >= 1; second -= 1) {
         const x = PAD_L + plotWidth * (1 - (second * 1_000) / WINDOW_MS);
         const line = Math.round(x) + 0.5;
-        context.strokeStyle = 'rgba(255,255,255,0.05)';
+        context.strokeStyle = readInk(0.05);
         context.beginPath();
         context.moveTo(line, PAD_T);
         context.lineTo(line, height - PAD_B);
@@ -380,7 +378,7 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
       // Over the traces rather than under them: unity is the line every one of
       // these three numbers is read against, and a filled area that covered it
       // would take away the thing being compared to.
-      context.strokeStyle = 'rgba(255,255,255,0.22)';
+      context.strokeStyle = readInk(0.22);
       context.lineWidth = 1;
       [lowCentreY, duckTopY].forEach((y) => {
         const line = Math.round(y) + 0.5;

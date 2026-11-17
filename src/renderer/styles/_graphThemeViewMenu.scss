@@ -97,7 +97,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .live-output-controls
   .dropdown.graph-auto-cycle:is(.is-on, .dropdown--open)
   > [role='menu'] {
-  color: $white;
+  color: $ink;
 
   .graph-auto-cycle__icon {
     opacity: 1;
@@ -168,7 +168,7 @@ it under the terms of the GNU General Public License version 3 or later.
     // as disabled — and `$primary-lighter` at any alpha is a muted blue-grey,
     // so every item still looked unavailable. Menu items are the content of a
     // menu; there is nothing for them to recede behind.
-    color: $white;
+    color: $ink;
     font-size: $text-small;
     gap: 8px;
     text-align: left;
@@ -180,7 +180,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
     &:hover {
       background: $hover-accent;
-      color: $white;
+      color: $ink;
     }
 
     // On, rather than merely hovered. The two sizes are exclusive and the tick
@@ -220,7 +220,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .graph-view-menu__divider {
   height: 1px;
   margin: 4px 2px;
-  background: rgba($edge-tint, 0.1);
+  background: color-mix(in srgb, $edge-tint 10%, transparent);
 }
 
 // What the rows under it are about. The same four groups, in the same order,
@@ -384,7 +384,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 1px;
   height: 5px;
   border-radius: 1px;
-  background: rgba($edge-tint, 0.32);
+  background: color-mix(in srgb, $edge-tint 32%, transparent);
   transform: translateY(-50%);
   pointer-events: none;
 }
@@ -525,7 +525,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .graph-view-menu kbd {
   flex: 0 0 auto;
   padding: 1px 5px;
-  border: 1px solid rgba($edge-tint, 0.16);
+  border: 1px solid color-mix(in srgb, $edge-tint 16%, transparent);
   border-radius: 4px;
   color: $text-muted;
   font-family: inherit;

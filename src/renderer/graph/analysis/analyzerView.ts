@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import {
   STILL_ENOUGH,
   advanceHold,
@@ -58,15 +59,15 @@ const HOLD_FALL = 0.085;
 const BLOOM_REACH = 0.012;
 
 /**
- * The mark is white, on every palette.
+ * The mark is the window's strongest ink, on every palette: white on a dark
+ * window, near-black on a light one (`readInk`).
  *
  * Drawn in the look's own hot end it disappeared exactly where it matters —
  * over the top of a level ramp, red on red — and shouted over the bass, where
  * the body is green. A mark's job is to be found, and nothing else on this
- * plot is white: the RTA's caps and the stereo meters' peaks are the same
- * decision, so the three views speak one language.
+ * plot wears that ink: the RTA's caps and the stereo meters' peaks are the
+ * same decision, so the three views speak one language.
  */
-const MARK_INK = '255, 255, 255';
 
 /** The hold's hairline: its width, and how solid it is within its figure. */
 export const HOLD_LINE_WIDTH = 1.25;
@@ -199,7 +200,7 @@ const paintHold = (
   context.globalAlpha = alpha;
   context.lineWidth = HOLD_LINE_WIDTH;
   context.lineJoin = 'round';
-  context.strokeStyle = `rgba(${MARK_INK}, ${HOLD_LINE_ALPHA})`;
+  context.strokeStyle = readInk(HOLD_LINE_ALPHA);
   context.stroke(line);
   context.globalAlpha = 1;
   // The high-water marks themselves: where the reading is still at its hold,
@@ -218,7 +219,7 @@ const paintHold = (
   }
   if (found) {
     context.globalAlpha = alpha * PIP_ALPHA;
-    context.fillStyle = `rgba(${MARK_INK}, 1)`;
+    context.fillStyle = readInk(1);
     context.fill(pips);
     context.globalAlpha = 1;
   }

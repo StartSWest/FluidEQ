@@ -126,7 +126,7 @@ textarea.forum-editor__input {
   gap: 2px 12px;
   padding: 5px 12px 6px;
   color: $text-dim;
-  border-top: 1px solid color-mix(in srgb, $white 4%, transparent);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 4%, transparent);
   font-size: reading($text-micro);
 }
 

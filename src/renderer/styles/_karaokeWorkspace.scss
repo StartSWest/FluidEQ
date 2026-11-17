@@ -673,7 +673,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > span {
     border-radius: $radius-pill;
-    background: rgba($edge-tint, 0.18);
+    background: color-mix(in srgb, $edge-tint 18%, transparent);
     transition:
       width 150ms ease,
       height 150ms ease,

@@ -212,7 +212,8 @@ $font-mono:
 //   1. shell    $surface-base   #0a1826   the floor the cards stand on
 //   2. card     $surface-panel  #142c3e   every panel, the titlebar, the bar
 //   3. field    $surface-field  #1c3a4e   inputs, selects, quiet buttons, knobs
-//   4. mist     $edge-tint      #d6e9f7   borders, lifts, secondary text (alpha)
+//   4. mist     $edge-tint      #d6e9f7   borders, lifts, secondary text (alpha);
+//                                         a deep ink on a light window
 //   5. text     $text-primary   #ecf5fb   names, values, titles
 //   +  accent   $secondary-*    cyan      the chosen thing, the live thing
 //
@@ -470,7 +471,23 @@ $surface-well: var(--surface-well);
 // Edges are a cool white, not the lavender `$primary-lighter`: at a tenth of
 // alpha over slate, lavender lands grey-violet and the whole window took on a
 // faint mauve outline that nobody had chosen.
-$edge-tint: #d6e9f7;
+//
+// A custom property, never a literal: on a light window (the top of the
+// Brightness, or a light surface somebody picked) it is a deep ink, so every
+// hairline, mist and dim word drawn from it turns dark with the switch on
+// `:root` (Ivan, 2026-11-17: "make sure this is done at global style, so
+// it's easy to switch the whole app"). Written at an alpha as
+// `color-mix(in srgb, $edge-tint N%, transparent)`, which is the same colour
+// as `rgba(#d6e9f7, N)`; `rgba()` cannot take a custom property. The
+// values are solved per shade with the text (`themeInk.ts`).
+$edge-tint: var(--edge-tint);
+
+// THE STRONGEST INK: what `$white` meant wherever it was written as words or
+// a glyph on the window's own surfaces - a value, a title, a lit icon. White
+// on a dark window, a near-black of the window's hue on a light one
+// (`--ink`, `themeInk.ts`). `$white` stays white for what stands on a
+// picture, a video or a filled colour, which keep their own ground.
+$ink: var(--ink);
 
 // THE EMPTY TRACK, everywhere one is drawn.
 //
@@ -663,6 +680,9 @@ $text-muted-shipped: #d6e9f7;
 
 $text-faint-shipped: #bfd3e3;
 
+// What `$edge-tint` and `$ink` are before the theme's script has run.
+$edge-tint-shipped: #d6e9f7;
+
 $text-primary: var(--text-primary);
 
 $text-muted: var(--text-muted);
@@ -815,7 +835,7 @@ $menu-edge: color-mix(in srgb, $surface-panel 80%, $edge-tint);
 // its groups, for every menu. They were the rows' hairline, solved to 1.8:1
 // against the card, and a menu of the card's own colour came out ruled into
 // boxes (Ivan, 2026-09-27: "reduce inner borders visibility").
-$menu-rule: rgba($edge-tint, 0.1);
+$menu-rule: color-mix(in srgb, $edge-tint 10%, transparent);
 
 // The scrollbar. There is one, and this is it.
 //

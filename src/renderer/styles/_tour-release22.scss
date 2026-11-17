@@ -179,7 +179,7 @@ $tray-u: miniature.$u;
   gap: calc(#{$tray-u} * 0.9);
   min-height: calc(#{$tray-u} * 3.2);
   padding-inline: calc(#{$tray-u} * 1.2);
-  border-top: 1px solid rgba($edge-tint, 0.1);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   background: color-mix(in srgb, $surface-base 92%, $black);
   color: $text-muted;
 }
@@ -287,9 +287,9 @@ $tray-u: miniature.$u;
     gap: calc(#{miniature.$u} * 0.4);
     padding: calc(#{miniature.$u} * 0.5) calc(#{miniature.$u} * 0.7);
     color: $text-muted;
-    border: 1px solid rgba($edge-tint, 0.1);
+    border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
     border-radius: $radius-s;
-    background: rgba($edge-tint, 0.03);
+    background: color-mix(in srgb, $edge-tint 3%, transparent);
     font-size: calc(#{miniature.$u} * 0.85);
     overflow-wrap: anywhere;
   }

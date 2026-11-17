@@ -107,7 +107,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   transition: $transition-control;
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, #{$white} 14%, transparent);
+    background: color-mix(in srgb, #{$edge-tint} 14%, transparent);
     color: var(--player-text);
   }
 

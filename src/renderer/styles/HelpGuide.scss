@@ -240,7 +240,7 @@
 
 .help-guide__chapter {
   padding: 32px 0 40px;
-  border-top: 1px solid rgba($white, 0.09);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
   figure {
     margin: 24px 0;
   }
@@ -262,7 +262,7 @@
   width: 100%;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba($white, 0.09);
+  border: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
   border-radius: $radius-m;
   background: $surface-base;
   cursor: zoom-in;
@@ -437,7 +437,7 @@ $help-film-line-room: calc(13px * 1.4 * 3 + 20px);
   margin: 24px auto 28px;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba($white, 0.09);
+  border: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
   border-radius: $radius-m;
   background: $surface-base;
   color: $text-primary;
@@ -752,9 +752,9 @@ figcaption.help-film__line {
     flex: 0 0 auto;
     padding: 1px 6px;
     color: $text-muted;
-    border: 1px solid rgba($white, 0.14);
+    border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
     border-radius: $radius-xs;
-    background: rgba($white, 0.04);
+    background: color-mix(in srgb, $edge-tint 4%, transparent);
     font-family: $font-mono;
     font-size: reading(11px);
     line-height: 1.5;

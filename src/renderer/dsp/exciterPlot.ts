@@ -9,6 +9,7 @@ import {
   exciterBandEdgesForIndex,
   organicBandEdges,
 } from '../../common/dsp/chain';
+import { readInk } from '../utils/theme';
 import { BASE_CURVE_CSS, SKY_CSS, baseCurveInk, skyInk } from './dspInks';
 import { IEdgeSpan, formatEdge, placeEdgeReadouts } from './exciterReadouts';
 
@@ -159,7 +160,7 @@ export const paintExciterPlot = (
   context.textBaseline = 'top';
   GRID_HZ.forEach(([hz, label]) => {
     const line = Math.round(toX(hz)) + 0.5;
-    context.strokeStyle = 'rgba(255, 255, 255, 0.045)';
+    context.strokeStyle = readInk(0.045);
     context.beginPath();
     context.moveTo(line, PAD_T);
     context.lineTo(line, floorY);
@@ -187,7 +188,7 @@ export const paintExciterPlot = (
     }
     context.lineTo(PAD_L + plotW, floorY);
     context.closePath();
-    context.fillStyle = 'rgba(255, 255, 255, 0.07)';
+    context.fillStyle = readInk(0.07);
     context.fill();
   }
 

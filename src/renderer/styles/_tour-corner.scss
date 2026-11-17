@@ -35,7 +35,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: inline-flex;
   align-items: center;
   padding: calc(#{$u} * 0.4) calc(#{$u} * 0.7);
-  border: 1px solid rgba($edge-tint, 0.1);
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   border-radius: $radius-l;
   background: $surface-base;
   box-shadow: 0 14px 34px rgba($black, 0.4);
@@ -62,7 +62,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: inline-flex;
   align-items: center;
   padding: calc(#{$u} * 0.16);
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-m;
   background: color-mix(in srgb, $surface-panel 72%, transparent);
   gap: calc(#{$u} * 0.12);

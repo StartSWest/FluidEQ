@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { readTextInk } from '../utils/theme';
+import { readInk, readTextInk } from '../utils/theme';
 import { IMaximizerSettings } from '../../common/dsp/chain';
 import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
@@ -273,8 +273,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         const offset = reach(db);
         [centreY - offset, centreY + offset].forEach((y, half) => {
           const line = Math.round(y) + 0.5;
-          context.strokeStyle =
-            db === 0 ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)';
+          context.strokeStyle = db === 0 ? readInk(0.14) : readInk(0.06);
           context.beginPath();
           context.moveTo(PAD_L, line);
           context.lineTo(width - PAD_R, line);
@@ -294,7 +293,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
       for (let second = WINDOW_MS / 1_000; second >= 1; second -= 1) {
         const x = PAD_L + plotWidth * (1 - (second * 1_000) / WINDOW_MS);
         const line = Math.round(x) + 0.5;
-        context.strokeStyle = 'rgba(255,255,255,0.05)';
+        context.strokeStyle = readInk(0.05);
         context.beginPath();
         context.moveTo(line, PAD_T);
         context.lineTo(line, height - PAD_B);
@@ -424,7 +423,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
        */
       const meterX = width - PAD_R + 14;
       const meterWidth = 16;
-      context.fillStyle = 'rgba(255,255,255,0.06)';
+      context.fillStyle = readInk(0.06);
       context.fillRect(meterX, PAD_T, meterWidth, plotHeight);
       const depthHeight =
         Math.min(1, heldDepth.current / GR_FULL_SCALE_DB) * plotHeight;

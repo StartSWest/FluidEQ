@@ -151,7 +151,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 5px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: rgba($edge-tint, 0.48);
+  background: color-mix(in srgb, $edge-tint 48%, transparent);
 }
 
 .is-active .waveform-visualizer__signal-dot {
@@ -214,7 +214,7 @@ it under the terms of the GNU General Public License version 3 or later.
   right: 12px;
   bottom: 5px;
   padding: 2px;
-  color: rgba($white, 0.94);
+  color: color-mix(in srgb, $ink 94%, transparent);
   border: 1px solid $border-field;
   border-radius: 3px;
   background: color-mix(in srgb, $panel-bottom 72%, transparent);

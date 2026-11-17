@@ -1,4 +1,4 @@
-import { readTextInk, readAccent } from '../utils/theme';
+import { readTextInk, readAccent, readInk } from '../utils/theme';
 import { baseCurveInk } from './dspInks';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
@@ -157,8 +157,7 @@ export const paintMasterLoudness = (
   GRID_FROM_TARGET.forEach((offset) => {
     const lufs = plot.targetLufs + offset;
     const y = Math.round(lufsY(lufs)) + 0.5;
-    context.strokeStyle =
-      offset === 0 ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)';
+    context.strokeStyle = offset === 0 ? readInk(0.16) : readInk(0.07);
     context.beginPath();
     context.moveTo(PAD_L, y);
     context.lineTo(width - PAD_R, y);
@@ -183,7 +182,7 @@ export const paintMasterLoudness = (
    * it; the line it hangs from is no reduction at all.
    */
   const laneLine = Math.round(laneTop) + 0.5;
-  context.strokeStyle = 'rgba(255,255,255,0.07)';
+  context.strokeStyle = readInk(0.07);
   context.lineWidth = 1;
   context.beginPath();
   context.moveTo(PAD_L, laneLine);

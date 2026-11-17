@@ -81,13 +81,13 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .ears-visual__grid {
-  stroke: rgba($edge-tint, 0.1);
+  stroke: color-mix(in srgb, $edge-tint 10%, transparent);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
 .ears-visual__zero {
-  stroke: rgba($edge-tint, 0.22);
+  stroke: color-mix(in srgb, $edge-tint 22%, transparent);
   stroke-dasharray: 3 3;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;

@@ -64,7 +64,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
     &:hover:not(:disabled) {
       border: 1px solid color-mix(in srgb, $secondary-light 65%, transparent);
-      color: $white;
+      color: $ink;
     }
 
     .graph-look-name {
@@ -96,7 +96,7 @@ it under the terms of the GNU General Public License version 3 or later.
   .dropdown--open > .look-picker__trigger {
     border-color: $secondary-light;
     background: color-mix(in srgb, $secondary-light 16%, transparent);
-    color: $white;
+    color: $ink;
 
     svg.arrow {
       opacity: 1;
@@ -283,7 +283,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover {
     border: none;
     background: none;
-    color: $white;
+    color: $ink;
   }
 }
 
@@ -313,7 +313,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &[aria-pressed='true']:hover,
   &[aria-pressed='false']:hover {
-    color: $white;
+    color: $ink;
   }
 }
 
@@ -334,7 +334,7 @@ it under the terms of the GNU General Public License version 3 or later.
   right: 14px;
   bottom: 10px;
   padding: 3px 7px;
-  color: rgba($white, 0.94);
+  color: color-mix(in srgb, $ink 94%, transparent);
   border: 1px solid $border-field;
   border-radius: 4px;
   background: color-mix(in srgb, $panel-bottom 78%, transparent);

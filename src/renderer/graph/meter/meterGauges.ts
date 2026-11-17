@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { fillBetween, zoneColour } from './meterPaint';
 import { type IStrip, drawPeakRule, drawTip, heightAt } from './meterStrip';
+import { readEdge } from '../../utils/theme';
 
 /**
  * The two styles that are instruments rather than columns: a pointer on a
@@ -15,7 +16,7 @@ import { type IStrip, drawPeakRule, drawTip, heightAt } from './meterStrip';
  */
 
 /** The scale's ink: the slot's hairline, a step stronger to read as print. */
-const TICK_INK = 'rgba(214, 233, 247, 0.32)';
+const TICK_ALPHA = 0.32;
 const TICKS = 20;
 
 /**
@@ -42,7 +43,7 @@ export const drawNeedle = (strip: IStrip) => {
     context.globalAlpha = 1;
   }
 
-  context.fillStyle = TICK_INK;
+  context.fillStyle = readEdge(TICK_ALPHA);
   for (let tick = 0; tick <= TICKS; tick += 1) {
     const y = pen.px(floor - (tick * inner.height) / TICKS);
     const length = inner.width * (tick % 5 === 0 ? 0.55 : 0.3);

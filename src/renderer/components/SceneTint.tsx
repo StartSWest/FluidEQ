@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { isMemberLookId } from 'common/memberScenes';
 import { isPremiumLookId } from 'common/scenePacks';
+import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import {
   measureSceneSky,
   measureStudioSky,
@@ -32,6 +33,7 @@ import {
   lendSceneSky,
   recallSceneSky,
   showSceneSky,
+  showWindowColours,
   studioSkyKey,
   useAmpHoldsWindow,
   useSceneTintEnabled,
@@ -39,6 +41,25 @@ import {
   useStudioTintSource,
 } from '../utils/sceneTintStore';
 import useIsBackdrop from '../utils/useIsBackdrop';
+
+/** How `ownColoursKey` marks colours to be worn as named. */
+const PICKED = 'picked';
+
+/**
+ * The colours a scene or a Studio project lends, as text the effect below
+ * compares by value: `named` (the listener's own, or what its pack names),
+ * worn as named, else `worked` out from its palette, which lends its hue.
+ */
+const ownColoursKey = (
+  named: ISceneWindowColours | undefined,
+  worked: ISceneWindowColours | undefined,
+): string | undefined => {
+  const colours = named ?? worked;
+  return (
+    colours &&
+    `${named ? PICKED : 'toned'} ${colours.surface} ${colours.accent} ${colours.glow}`
+  );
+};
 
 /**
  * Puts the whole window in the colour of a Plus scene. Renders nothing.
@@ -108,8 +129,10 @@ const SceneTint = () => {
   // are on the window as it is chosen, or the ones its palette gives as the
   // listener's choices leave it (`useSceneWindowColours`).
   const windowColours = useSceneWindowColours(isSceneLook ? lookId : '');
-  const wearing = windowColours.chosen ?? windowColours.declared;
-  const own = wearing && `${wearing.surface} ${wearing.accent} ${wearing.glow}`;
+  const own = ownColoursKey(
+    windowColours.chosen ?? windowColours.named,
+    windowColours.declared,
+  );
   const { version, swatch } = useMemo(() => {
     const scene = isPremiumLookId(lookId)
       ? scenes.find((entry) => entry.lookId === lookId)
@@ -121,12 +144,14 @@ const SceneTint = () => {
   }, [lookId, scenes, memberScenes]);
   // The Studio's project, as its pack names its colours or as the member
   // edits its palette on the bench.
-  const studioOwn = useMemo(() => {
-    const named = studio?.playing?.pack.windowColours;
-    const colours =
-      named ?? (studioStops ? windowColoursFromStops(studioStops) : undefined);
-    return colours && `${colours.surface} ${colours.accent} ${colours.glow}`;
-  }, [studio, studioStops]);
+  const studioOwn = useMemo(
+    () =>
+      ownColoursKey(
+        studio?.playing?.pack.windowColours,
+        studioStops ? windowColoursFromStops(studioStops) : undefined,
+      ),
+    [studio, studioStops],
+  );
 
   // A layout effect, so a launch's first frame is already in the remembered
   // colour instead of flashing the theme first.
@@ -153,13 +178,20 @@ const SceneTint = () => {
 
     // Colours a scene says it lends are shown as they are, and nothing is
     // drawn to second-guess them: the same on every computer, from the first
-    // frame.
-    const ownSky = (text: string) => {
-      const [surface, accent, glow] = text.split(' ');
-      return skyFromWindowColours({ surface, accent, glow });
+    // frame. Named ones are worn as named; ones worked out from a palette lend
+    // their hue (`ownColoursKey`).
+    const wearOwn = (text: string) => {
+      const [kind, surface, accent, glow] = text.split(' ');
+      const colours = { surface, accent, glow };
+      const sky = skyFromWindowColours(colours);
+      if (kind === PICKED) {
+        showWindowColours(colours, sky, fade, tone);
+      } else {
+        showSceneSky(sky, fade, tone);
+      }
     };
     if (studio && studioOwn) {
-      showSceneSky(ownSky(studioOwn), fade, tone);
+      wearOwn(studioOwn);
       return stop;
     }
     if (studio) {
@@ -203,7 +235,7 @@ const SceneTint = () => {
       return stop;
     }
     if (own) {
-      showSceneSky(ownSky(own), fade, tone);
+      wearOwn(own);
       return stop;
     }
     const remembered = recallSceneSky(lookId);

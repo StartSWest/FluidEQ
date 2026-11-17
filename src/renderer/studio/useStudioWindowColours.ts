@@ -135,5 +135,11 @@ export default function useStudioWindowColours(
     canChoosePalette,
     undo,
     canUndo: !same(named, atUndo),
+    /**
+     * Whether `colours` are worn as named (`pickedWindow.ts`): the pack names
+     * them, or the member is moving one, which names them the moment it
+     * lands. Worked out from the palette they only lend their hue.
+     */
+    isNamed: draft !== undefined || named !== undefined,
   };
 }

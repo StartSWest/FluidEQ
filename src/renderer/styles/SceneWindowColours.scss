@@ -57,7 +57,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 22px;
   border-radius: 4px;
   background: var(--swatch);
-  box-shadow: inset 0 0 0 1px rgba($white, 0.2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 20%, transparent);
 }
 
 .window-colour-swatch__name {
@@ -107,7 +107,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .window-colours-preview {
   display: grid;
   overflow: hidden;
-  border: 1px solid rgba($white, 0.08);
+  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-xs;
   background: var(--preview-floor);
   transition: background $motion-base $ease-out;

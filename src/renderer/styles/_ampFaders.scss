@@ -321,7 +321,7 @@ $player-fader-around: 58px;
         calc(var(--player-band-width, var(--player-fader-cap)) - 2px)
       );
 
-      border: 1px solid rgba($white, 0.12);
+      border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
       border-radius: $radius-2xs;
       background:
         linear-gradient(
@@ -342,9 +342,10 @@ $player-fader-around: 58px;
         linear-gradient(
             180deg,
             transparent 2px,
-            rgba($white, 0.1) 2px 3px,
+            color-mix(in srgb, $edge-tint 10%, transparent) 2px 3px,
             transparent 3px calc(100% - 3px),
-            rgba($white, 0.1) calc(100% - 3px) calc(100% - 2px),
+            color-mix(in srgb, $edge-tint 10%, transparent) calc(100% - 3px)
+              calc(100% - 2px),
             transparent calc(100% - 2px)
           )
           center / calc(100% - 8px) 100% no-repeat,

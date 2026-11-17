@@ -121,7 +121,7 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 0.1em 0.38em;
     color: $text-primary;
     border-radius: 5px;
-    background: color-mix(in srgb, $white 8%, transparent);
+    background: color-mix(in srgb, $edge-tint 8%, transparent);
     font-family: $font-mono;
     font-size: 0.88em;
   }
@@ -217,7 +217,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   th {
     color: $text-primary;
-    background: color-mix(in srgb, $white 4%, transparent);
+    background: color-mix(in srgb, $edge-tint 4%, transparent);
     font-weight: $weight-semibold;
   }
 

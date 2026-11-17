@@ -143,6 +143,6 @@ $seam: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 // box on the page (`lifted-surface`): a slab of the block colour inside a
 // card at 95% was a second, opaque card laid in the first.
 @mixin section-surface {
-  border: 1px solid rgba($white, 0.09);
+  border: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
   border-radius: $radius-l;
 }

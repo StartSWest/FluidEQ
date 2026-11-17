@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import {
   STILL_ENOUGH,
   advanceHold,
@@ -274,10 +275,11 @@ export const paintBarRows = (
       context.strokeStyle = spectrumInk(painted, row.bands);
       context.stroke(bodies);
     }
-    // The caps in white rather than the look's colour, because their job is
-    // to be found and nothing else on the plot is white.
+    // The caps in the window's strongest ink rather than the look's colour,
+    // because their job is to be found and nothing else on the plot wears it:
+    // white on a dark window, near-black on a light one.
     context.globalAlpha = band.opacity * row.strength * view.capAlpha;
-    context.fillStyle = '#fff';
+    context.fillStyle = readInk(1);
     context.fill(caps);
     context.globalAlpha = 1;
   });

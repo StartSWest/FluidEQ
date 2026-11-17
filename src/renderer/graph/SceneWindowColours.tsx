@@ -33,7 +33,7 @@ import useSceneWindowColours from '../utils/useSceneWindowColours';
 export default function SceneWindowColours() {
   const { t, locale } = useTranslation();
   const lookId = useSelectedLookId();
-  const { own, chosen, names } = useSceneWindowColours(lookId);
+  const { own, chosen, named, names } = useSceneWindowColours(lookId);
   const wearing = chosen ?? own;
   // What the picker shows while it moves: the small window follows it at
   // once, and the window itself takes the colour the picker settles on.
@@ -88,7 +88,12 @@ export default function SceneWindowColours() {
         onChange={change}
         onCommit={commit}
       />
-      <WindowColoursPreview colours={shown} />
+      <WindowColoursPreview
+        colours={shown}
+        named={
+          draft !== undefined || chosen !== undefined || named !== undefined
+        }
+      />
       <div className="scene-window-colours__actions">
         <button
           type="button"

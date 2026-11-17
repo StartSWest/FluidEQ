@@ -18,7 +18,7 @@ import {
   phaseRow,
   phaseSteps,
 } from '../analysis/phaseView';
-import { cssInkGlsl } from './analysisGlsl';
+import { cssInkGlsl, inkGlsl } from './analysisGlsl';
 import type { IEngineAnalysisLook } from './analysisLookTypes';
 import { setLookVector, sizeLookData } from './lookInput';
 
@@ -39,8 +39,9 @@ const f = (value: number) => value.toFixed(6);
 
 const GLSL = `
 const vec4 PHASE_TROUBLE = ${cssInkGlsl(PHASE_TROUBLE_INK)};
-const vec4 PHASE_RULE = ${cssInkGlsl(PHASE_RULE_INK)};
-const vec4 PHASE_ZERO = ${cssInkGlsl(PHASE_ZERO_INK)};
+// The window ink, which follows a light window (inkGlsl).
+#define PHASE_RULE ${inkGlsl(PHASE_RULE_INK)}
+#define PHASE_ZERO ${inkGlsl(PHASE_ZERO_INK)}
 
 vec4 sceneColour(vec2 uv) {
   vec2 p = lookPoint(uv);

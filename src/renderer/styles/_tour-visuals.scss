@@ -31,7 +31,7 @@ it under the terms of the GNU General Public License version 3 or later.
     align-items: center;
     padding: calc(var(--tour-unit) * 0.3) calc(var(--tour-unit) * 0.7);
     color: $text-muted;
-    border: 1px solid rgba($edge-tint, 0.14);
+    border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
     border-radius: $radius-xs;
     background: color-mix(in srgb, $surface-block 90%, transparent);
     font-size: calc(var(--tour-unit) * 0.74);
@@ -45,7 +45,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // A capture's frame: the edge and the shadow the tour's real screenshots wear.
 @mixin framed {
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   box-shadow:
     0 22px 56px rgba($black, 0.55),
     0 0 42px color-mix(in srgb, $secondary-default 14%, transparent);
@@ -71,8 +71,8 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   flex-direction: column;
   padding: calc(var(--tour-unit) * 0.9) calc(var(--tour-unit) * 0.55);
-  border-right: 1px solid rgba($edge-tint, 0.08);
-  background: rgba($white, 0.025);
+  border-right: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
+  background: color-mix(in srgb, $edge-tint 2.5%, transparent);
   gap: calc(var(--tour-unit) * 0.3);
 }
 
@@ -131,7 +131,7 @@ it under the terms of the GNU General Public License version 3 or later.
   place-items: center;
   color: $text-faint;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 5%, transparent);
+  background: color-mix(in srgb, $edge-tint 5%, transparent);
 
   svg {
     width: calc(var(--tour-unit) * 1.15);
@@ -170,7 +170,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-top: auto;
   padding: calc(var(--tour-unit) * 0.55) calc(var(--tour-unit) * 0.45) 0;
   color: $secondary-light;
-  border-top: 1px solid rgba($edge-tint, 0.08);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   font-size: calc(var(--tour-unit) * 0.7);
   font-weight: $weight-semibold;
   line-height: 1.25;
@@ -213,7 +213,7 @@ it under the terms of the GNU General Public License version 3 or later.
     display: grid;
     min-width: 0;
     overflow: hidden;
-    border: 1px solid rgba($edge-tint, 0.12);
+    border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
     border-radius: $radius-m;
     background: $surface-panel;
     @include stagger-in(5, 60ms, 200ms);
@@ -285,7 +285,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .visualizers-visual__stage {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-l;
   background: $black;
   box-shadow:
@@ -340,7 +340,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   padding: calc(var(--tour-unit) * 0.25) calc(var(--tour-unit) * 0.6);
   color: $white;
-  border: 1px solid rgba($edge-tint, 0.18);
+  border: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
   border-radius: $radius-s;
   background: color-mix(in srgb, $black 50%, transparent);
   backdrop-filter: blur(6px);
@@ -372,7 +372,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   li {
     overflow: hidden;
-    border: 1px solid rgba($edge-tint, 0.12);
+    border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
     border-radius: $radius-m;
     background: $black;
     box-shadow: 0 10px 24px rgba($black, 0.4);
@@ -437,7 +437,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .room-visual__ring {
   fill: none;
-  stroke: rgba($white, 0.1);
+  stroke: color-mix(in srgb, $edge-tint 10%, transparent);
   stroke-dasharray: 3 5;
 }
 
@@ -516,7 +516,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-m;
   background: $black;
   box-shadow:
-    0 0 0 1px rgba($edge-tint, 0.16),
+    0 0 0 1px color-mix(in srgb, $edge-tint 16%, transparent),
     0 22px 50px rgba($black, 0.55),
     0 0 46px color-mix(in srgb, $secondary-default 16%, transparent);
   aspect-ratio: 16 / 9;
@@ -604,7 +604,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 100%;
   padding: calc(var(--tour-unit) * 0.7) calc(var(--tour-unit) * 0.8)
     calc(var(--tour-unit) * 0.8);
-  border: 1px solid rgba($edge-tint, 0.1);
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
   border-radius: $radius-l;
   background: color-mix(in srgb, $surface-block 85%, transparent);
   gap: calc(var(--tour-unit) * 0.5);
@@ -623,7 +623,7 @@ it under the terms of the GNU General Public License version 3 or later.
     position: relative;
     flex: 0 1 28%;
     overflow: hidden;
-    border: 2px solid rgba($edge-tint, 0.2);
+    border: 2px solid color-mix(in srgb, $edge-tint 20%, transparent);
     border-radius: $radius-s;
     background: $black;
     aspect-ratio: 16 / 9;

@@ -108,7 +108,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // The positioning context for the multiplier hanging off its right edge.
 .rhythm-game__score {
   position: relative;
-  color: $white;
+  color: $ink;
   font-size: 3.2rem;
   font-weight: $weight-display;
   font-variant-numeric: tabular-nums;
@@ -257,7 +257,7 @@ it under the terms of the GNU General Public License version 3 or later.
     right: 0;
     left: 0;
     height: 1px;
-    background: rgba($edge-tint, 0.1);
+    background: color-mix(in srgb, $edge-tint 10%, transparent);
     content: '';
   }
 }

@@ -37,7 +37,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .account-form__tabs {
   display: flex;
   gap: $spacing-m;
-  border-bottom: 1px solid rgba($white, 0.08);
+  border-bottom: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 }
 
 .account-form__tab {

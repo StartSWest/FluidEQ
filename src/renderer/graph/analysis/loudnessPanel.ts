@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import {
   clamp01,
   rampRgba,
@@ -34,9 +35,27 @@ import { levelOfDb } from './stereoReading';
  * which reads its numbers from here).
  */
 
-export const TEXT_INK = 'rgba(255, 255, 255, 0.72)';
-export const FAINT_INK = 'rgba(255, 255, 255, 0.26)';
-const LABEL_INK = 'rgba(255, 255, 255, 0.92)';
+/**
+ * The inks the panel rules and writes in, as alphas of the window's ink.
+ *
+ * The page canvas reads them at paint time (`readInk`): white on a dark
+ * window, near-black on a light one. The engine's look writes the same
+ * alphas into a shader once (`loudnessLook.ts`), which cannot follow a
+ * live colour, so the constants it imports stay white.
+ */
+const TEXT_ALPHA = 0.72;
+const FAINT_ALPHA = 0.26;
+const LABEL_ALPHA = 0.92;
+const DIAL_WELL_LIGHT_ALPHA = 0.09;
+const DIAL_ARM_ALPHA = 0.4;
+const DIAL_UPRIGHT_ALPHA = 0.3;
+const SCALE_TRACK_ALPHA = 0.08;
+const SCALE_BRACKET_ALPHA = 0.22;
+const BAR_TRACK_ALPHA = 0.4;
+
+const whiteAt = (alpha: number): string => `rgba(255, 255, 255, ${alpha})`;
+
+export const FAINT_INK = whiteAt(FAINT_ALPHA);
 
 /** The decibel marks the bars are ticked at. */
 export const BAR_TICKS = [0, -6, -12, -20, -30, -45, -60] as const;
@@ -48,15 +67,18 @@ export const DIAL_RINGS = [0.33, 0.66, 1] as const;
 export const SCALE_MARKS = [-1, -0.5, 0, 0.5, 1] as const;
 
 /** The dial's well: from a faint light at the middle to nothing at the rim. */
-export const DIAL_WELL: readonly (readonly [at: number, ink: string])[] = [
-  [0, 'rgba(255, 255, 255, 0.09)'],
+const dialWellOf = (
+  light: string,
+): readonly (readonly [at: number, ink: string])[] => [
+  [0, light],
   [0.7, 'rgba(0, 0, 0, 0.26)'],
   [1, 'rgba(0, 0, 0, 0)'],
 ];
+export const DIAL_WELL = dialWellOf(whiteAt(DIAL_WELL_LIGHT_ALPHA));
 export const DIAL_RING_INK = { ramp: 0.5, alpha: 0.4 } as const;
-export const DIAL_ARM_INK = 'rgba(255, 255, 255, 0.4)';
+export const DIAL_ARM_INK = whiteAt(DIAL_ARM_ALPHA);
 export const DIAL_ARM_DASH: readonly [on: number, off: number] = [3, 4];
-export const DIAL_UPRIGHT_INK = 'rgba(255, 255, 255, 0.3)';
+export const DIAL_UPRIGHT_INK = whiteAt(DIAL_UPRIGHT_ALPHA);
 
 /**
  * The trace's three passes, widest first: a glow, a body and a hot core,
@@ -78,10 +100,10 @@ export const TRACE_PASSES: readonly {
  */
 export const TRACE_POINTS = 1200;
 
-export const SCALE_TRACK_INK = 'rgba(255, 255, 255, 0.08)';
+export const SCALE_TRACK_INK = whiteAt(SCALE_TRACK_ALPHA);
 export const SCALE_TROUBLE_INK = 'rgba(255, 96, 112, 0.3)';
-export const SCALE_BRACKET_INK = 'rgba(255, 255, 255, 0.22)';
-export const BAR_TRACK_INK = { alpha: 0.22, ink: 'rgba(255, 255, 255, 0.4)' };
+export const SCALE_BRACKET_INK = whiteAt(SCALE_BRACKET_ALPHA);
+export const BAR_TRACK_INK = { alpha: 0.22, ink: whiteAt(BAR_TRACK_ALPHA) };
 export const BAR_MARK_ALPHA = 0.9;
 export const BAR_TICK_ALPHA = 0.8;
 export const WIDTH_FILL = { ramp: 0.85, alpha: 0.95 } as const;
@@ -176,7 +198,9 @@ export const paintDial = (frame: IAnalysisFrame, panel: IPanel): void => {
     dialY,
     radius,
   );
-  DIAL_WELL.forEach(([at, ink]) => well.addColorStop(at, ink));
+  dialWellOf(readInk(DIAL_WELL_LIGHT_ALPHA)).forEach(([at, ink]) =>
+    well.addColorStop(at, ink),
+  );
   context.fillStyle = well;
   context.beginPath();
   context.arc(dialX, dialY, radius, 0, Math.PI * 2);
@@ -208,13 +232,13 @@ export const paintDial = (frame: IAnalysisFrame, panel: IPanel): void => {
   arms.moveTo(dialX + reach, dialY + reach);
   arms.lineTo(dialX - reach, dialY - reach);
   context.setLineDash([...DIAL_ARM_DASH]);
-  context.strokeStyle = DIAL_ARM_INK;
+  context.strokeStyle = readInk(DIAL_ARM_ALPHA);
   context.stroke(arms);
   context.setLineDash([]);
   const upright = new Path2D();
   upright.moveTo(dialX, dialY - radius);
   upright.lineTo(dialX, dialY + radius);
-  context.strokeStyle = DIAL_UPRIGHT_INK;
+  context.strokeStyle = readInk(DIAL_UPRIGHT_ALPHA);
   context.stroke(upright);
   context.globalAlpha = 1;
 };
@@ -227,7 +251,7 @@ export const paintDialWords = (frame: IAnalysisFrame, panel: IPanel): void => {
   context.globalAlpha = band.opacity;
   context.font = '600 10px system-ui, sans-serif';
   context.textBaseline = 'middle';
-  context.fillStyle = TEXT_INK;
+  context.fillStyle = readInk(TEXT_ALPHA);
   context.textAlign = 'right';
   context.fillText(channelLabels[0], dialX - reach - 4, dialY - reach - 2);
   context.textAlign = 'left';
@@ -321,7 +345,7 @@ export const paintCorrelation = (
   const { context, band } = frame;
   const { scaleLeft, scaleWidth, scaleTop, scaleHeight } = panel;
   context.globalAlpha = band.opacity;
-  context.fillStyle = SCALE_TRACK_INK;
+  context.fillStyle = readInk(SCALE_TRACK_ALPHA);
   context.beginPath();
   context.roundRect(
     scaleLeft,
@@ -345,7 +369,7 @@ export const paintCorrelation = (
   context.fill();
   // Where the needle has been lately, so a passage that dipped out of phase
   // leaves something behind to notice.
-  context.fillStyle = SCALE_BRACKET_INK;
+  context.fillStyle = readInk(SCALE_BRACKET_ALPHA);
   context.fillRect(
     scaleX(panel, from),
     scaleTop,
@@ -353,7 +377,7 @@ export const paintCorrelation = (
     scaleHeight,
   );
 
-  context.strokeStyle = FAINT_INK;
+  context.strokeStyle = readInk(FAINT_ALPHA);
   context.lineWidth = 1;
   const marks = new Path2D();
   SCALE_MARKS.forEach((value) => {
@@ -364,7 +388,7 @@ export const paintCorrelation = (
   context.stroke(marks);
 
   const needle = scaleX(panel, at);
-  context.fillStyle = '#fff';
+  context.fillStyle = readInk(1);
   context.beginPath();
   context.roundRect(needle - 1.5, scaleTop - 2, 3, scaleHeight + 4, 1.5);
   context.fill();
@@ -381,7 +405,7 @@ export const paintCorrelationWords = (
   context.globalAlpha = band.opacity;
   context.font = '600 9px system-ui, sans-serif';
   context.textBaseline = 'top';
-  context.fillStyle = TEXT_INK;
+  context.fillStyle = readInk(TEXT_ALPHA);
   context.textAlign = 'left';
   context.fillText('−1', scaleLeft, scaleTop + scaleHeight + 5);
   context.textAlign = 'center';
@@ -404,7 +428,7 @@ export const paintBar = (
   const { barLeft, barWidth, barHeight } = panel;
   const top = panel.rows[row];
   context.globalAlpha = band.opacity * BAR_TRACK_INK.alpha;
-  context.fillStyle = BAR_TRACK_INK.ink;
+  context.fillStyle = readInk(BAR_TRACK_ALPHA);
   context.beginPath();
   context.roundRect(barLeft, top, barWidth, barHeight, barHeight / 2);
   context.fill();
@@ -427,13 +451,13 @@ export const paintBar = (
 
   if (mark > 0.004) {
     context.globalAlpha = band.opacity * BAR_MARK_ALPHA;
-    context.fillStyle = '#fff';
+    context.fillStyle = readInk(1);
     context.fillRect(barLeft + barWidth * clamp01(mark) - 1, top, 2, barHeight);
   }
 
   // The scale, ticked under the bar so the two rows share one ruler.
   context.globalAlpha = band.opacity * BAR_TICK_ALPHA;
-  context.strokeStyle = FAINT_INK;
+  context.strokeStyle = readInk(FAINT_ALPHA);
   const ticks = new Path2D();
   BAR_TICKS.forEach((db) => {
     const x = barLeft + barWidth * levelOfDb(db);
@@ -460,13 +484,13 @@ export const paintBarWords = (
   context.font = '700 10px system-ui, sans-serif';
   context.textBaseline = 'middle';
   context.textAlign = 'right';
-  context.fillStyle = LABEL_INK;
+  context.fillStyle = readInk(LABEL_ALPHA);
   context.fillText(label, barLeft - 7, top + barHeight / 2);
   // The number: the reading somebody writes down.
   context.globalAlpha = band.opacity * BAR_TICK_ALPHA;
   context.font = '600 11px system-ui, sans-serif';
   context.textAlign = 'left';
-  context.fillStyle = TEXT_INK;
+  context.fillStyle = readInk(TEXT_ALPHA);
   const db = mark <= 0 ? -Infinity : (mark - 1) * 80;
   context.fillText(
     Number.isFinite(db) ? `${db.toFixed(1)} dB` : '— dB',
@@ -486,7 +510,7 @@ export const paintWidth = (
   const { barLeft, barWidth, barHeight } = panel;
   const top = panel.rows[2];
   context.globalAlpha = band.opacity * BAR_TRACK_INK.alpha;
-  context.fillStyle = BAR_TRACK_INK.ink;
+  context.fillStyle = readInk(BAR_TRACK_ALPHA);
   context.beginPath();
   context.roundRect(barLeft, top, barWidth, barHeight * 0.6, barHeight * 0.3);
   context.fill();
@@ -518,12 +542,12 @@ export const paintWidthWords = (
   context.font = '700 10px system-ui, sans-serif';
   context.textBaseline = 'middle';
   context.textAlign = 'right';
-  context.fillStyle = LABEL_INK;
+  context.fillStyle = readInk(LABEL_ALPHA);
   context.fillText(label, barLeft - 7, top + barHeight / 2);
   context.globalAlpha = band.opacity * WIDTH_FILL.alpha;
   context.font = '600 11px system-ui, sans-serif';
   context.textAlign = 'left';
-  context.fillStyle = TEXT_INK;
+  context.fillStyle = readInk(TEXT_ALPHA);
   context.fillText(
     `${Math.round(clamp01(width) * 100)}%`,
     barLeft + barWidth + 8,

@@ -75,7 +75,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .dsp-room-signal__line {
   margin: 0;
   padding: 6px 10px;
-  border: 1px solid rgba($white, 0.07);
+  border: 1px solid color-mix(in srgb, $edge-tint 7%, transparent);
   border-radius: $radius-xs;
   background: $surface-well;
   color: $text-faint;
@@ -437,7 +437,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: flex-start;
   gap: 10px;
   padding-top: 6px;
-  border-top: 1px solid rgba($white, 0.05);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 5%, transparent);
 }
 
 .dsp-room-check__text {
@@ -465,7 +465,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // the dashed ring of selection are told apart.
 .dsp-room-speaker:focus-visible .dsp-room-speaker-box,
 .dsp-room-sub:focus-visible .dsp-room-speaker-box {
-  stroke: $white;
+  stroke: $ink;
   stroke-width: 2;
 }
 

@@ -28,7 +28,7 @@ import {
   levelRamp,
   travellingStops,
 } from './meterPaint';
-import { EDGE_INK, type IStrip, SLOT_ALPHA, UNLIT_ALPHA } from './meterStrip';
+import { edgeInk, type IStrip, SLOT_ALPHA, UNLIT_ALPHA } from './meterStrip';
 
 const DRAW: Record<MeterStyle, (strip: IStrip) => void> = {
   bar: drawBar,
@@ -93,7 +93,7 @@ export const drawSlot = (
   pen.context.fillStyle =
     warnLevel > 0.001
       ? `rgba(${CLIP_RGB}, ${0.3 + 0.7 * warnLevel})`
-      : EDGE_INK;
+      : edgeInk();
   frame(pen, rect);
 };
 

@@ -9,6 +9,7 @@ import {
   IDeEsserSettings,
   TDeEsserMode,
 } from '../../common/dsp/deEsser';
+import { readInk } from '../utils/theme';
 import { sampleCutCurve } from './deEsserCurve';
 import { GRAPH_FONT, ITrebleNow } from './deEsserPlot';
 import {
@@ -20,7 +21,7 @@ import {
   line,
   noGlow,
   POINT_FONT,
-  POINT_INK,
+  pointInk,
   signed,
   xOfHz,
 } from './deEsserLensKit';
@@ -101,7 +102,7 @@ export const drawSensitivity = (
   const at = xOf(threshold);
 
   // The track, its cut zone right of where it starts.
-  context.fillStyle = 'rgba(255,255,255,0.06)';
+  context.fillStyle = readInk(0.06);
   context.beginPath();
   context.roundRect(left, trackTop, width, trackH, trackH / 2);
   context.fill();
@@ -120,7 +121,7 @@ export const drawSensitivity = (
   label(context, labels.cut, at + 8, trackY, 'left', `rgba(${inks.cut},1)`);
 
   // Every 6 dB under the track.
-  context.strokeStyle = 'rgba(255,255,255,0.12)';
+  context.strokeStyle = readInk(0.12);
   for (let db = fromDb; db <= toDb; db += 6) {
     const x = Math.round(xOf(db)) + 0.5;
     line(context, x, trackBottom + 3, x, trackBottom + 7);
@@ -138,7 +139,7 @@ export const drawSensitivity = (
 
   // Where it starts: the line the dial moves.
   glow(context, '255,255,255', 8);
-  context.strokeStyle = POINT_INK;
+  context.strokeStyle = pointInk();
   context.lineWidth = 2;
   line(context, at, trackTop - 6, at, trackBottom + 6);
   context.lineWidth = 1;
@@ -150,7 +151,7 @@ export const drawSensitivity = (
     Math.min(Math.max(at, left + 90), left + width - 90),
     box.y + box.height - 10,
     'center',
-    POINT_INK,
+    pointInk(),
   );
   context.font = GRAPH_FONT;
 
@@ -232,7 +233,7 @@ export const drawShape = (
   const baseline = yOf(0);
 
   // dB down the left, kHz under.
-  context.strokeStyle = 'rgba(255,255,255,0.06)';
+  context.strokeStyle = readInk(0.06);
   for (let db = 0; db >= curve.bottomDb; db -= 6) {
     const y = Math.round(yOf(db)) + 0.5;
     line(context, plot.x, y, plot.x + plot.width, y);
@@ -296,7 +297,7 @@ export const drawShape = (
   if (emphasis === 'depth') {
     const y = Math.round(yOf(-settings.rangeDb)) + 0.5;
     context.setLineDash([4, 4]);
-    context.strokeStyle = 'rgba(255,255,255,0.85)';
+    context.strokeStyle = readInk(0.85);
     line(context, plot.x, y, plot.x + plot.width, y);
     context.setLineDash([]);
     label(
@@ -305,7 +306,7 @@ export const drawShape = (
       plot.x + plot.width - 4,
       Math.min(bottom - 8, y + 12),
       'right',
-      POINT_INK,
+      pointInk(),
     );
   } else {
     // Where a neighbour gets half the S's cut: half the width either side.
@@ -314,7 +315,7 @@ export const drawShape = (
     const x1 = xOf(sHz * 2 ** half);
     const y = Math.round(yOf(-settings.rangeDb / 2)) + 0.5;
     glow(context, '255,255,255', 6);
-    context.strokeStyle = POINT_INK;
+    context.strokeStyle = pointInk();
     context.lineWidth = 1.5;
     line(context, x0, y, x1, y);
     line(context, x0, y - 5, x0, y + 5);
@@ -322,7 +323,7 @@ export const drawShape = (
     context.lineWidth = 1;
     noGlow(context);
     const width = `${settings.widthOct.toFixed(2)} oct`;
-    label(context, width, (x0 + x1) / 2, y + 14, 'center', POINT_INK);
+    label(context, width, (x0 + x1) / 2, y + 14, 'center', pointInk());
   }
   context.font = GRAPH_FONT;
 };

@@ -37,8 +37,8 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   align-content: start;
   padding: calc(#{$u} * 0.8);
-  border-right: 1px solid rgba($edge-tint, 0.08);
-  background: rgba($white, 0.02);
+  border-right: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
+  background: color-mix(in srgb, $edge-tint 2%, transparent);
   gap: calc(#{$u} * 0.55);
 }
 
@@ -127,7 +127,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 100%;
   align-content: start;
   padding: calc(#{$u} * 0.55);
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-m;
   background: $surface-panel;
   gap: calc(#{$u} * 0.4);
@@ -136,7 +136,7 @@ it under the terms of the GNU General Public License version 3 or later.
     display: block;
     height: calc(#{$u} * 0.45);
     border-radius: $radius-pill;
-    background: rgba($edge-tint, 0.14);
+    background: color-mix(in srgb, $edge-tint 14%, transparent);
   }
 
   .is-short {

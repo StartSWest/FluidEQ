@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IDeEsserSettings, TDeEsserMode } from '../../common/dsp/deEsser';
+import { readInk } from '../utils/theme';
 import { GRAPH_FONT } from './deEsserPlot';
 import type { IDeEsserInks, IPlotBox } from './deEsserPlot';
 
@@ -73,8 +74,11 @@ export const CUT_SLOPE = 5 / 6;
 export const CENTRE_FROM = 0.55;
 export const CENTRE_SURE = 0.9;
 
-/** The ink and the face the picture's own point is written in. */
-export const POINT_INK = 'rgba(255,255,255,0.95)';
+/**
+ * The ink and the face the picture's own point is written in. The ink is
+ * read at draw time, so it follows the window from white to near-black.
+ */
+export const pointInk = (): string => readInk(0.95);
 export const POINT_FONT = `600 ${GRAPH_FONT}`;
 
 export const line = (

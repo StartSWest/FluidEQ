@@ -301,7 +301,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &[data-enabled='true'] {
-    color: $white;
+    color: $ink;
     border-color: color-mix(in srgb, $secondary-light 36%, transparent);
     background: color-mix(in srgb, $secondary-default 12%, transparent);
   }

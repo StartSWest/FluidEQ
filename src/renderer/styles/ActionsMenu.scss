@@ -227,7 +227,7 @@
       rgba($red, 0.07);
 
     .actions-menu__engine-fix {
-      color: $white;
+      color: $ink;
       border-color: rgba($red, 0.75);
       background: rgba($red, 0.2);
     }
@@ -250,8 +250,8 @@
 // pulse — the same wait the Studio stage and a scene arriving on the graph
 // show, so it reads as a wait and not as a fault.
 .actions-menu__engine.is-checking {
-  border-color: rgba($edge-tint, 0.1);
-  background: rgba($edge-tint, 0.03);
+  border-color: color-mix(in srgb, $edge-tint 10%, transparent);
+  background: color-mix(in srgb, $edge-tint 3%, transparent);
 
   .actions-menu__badge {
     @include loading-ring($secondary-light, 34px);
@@ -347,7 +347,7 @@
   height: 1px;
   margin: 3px 0;
   grid-column: 1 / -1;
-  background: rgba($edge-tint, 0.09);
+  background: color-mix(in srgb, $edge-tint 9%, transparent);
 }
 
 .actions-menu__prefs .menu-preference__control {

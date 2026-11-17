@@ -84,7 +84,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover,
   &:focus-visible {
-    color: $white;
+    color: $ink;
     background:
       linear-gradient(
         color-mix(in srgb, $secondary-default 14%, transparent) 0 0
@@ -118,7 +118,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // "delete" for a button that only puts the panel away.
   color: $text-muted;
   background: $surface-plot;
-  border-color: rgba($edge-tint, 0.08);
+  border-color: color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-s;
 
   &:hover,
@@ -209,7 +209,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > strong {
     overflow: hidden;
-    color: $white;
+    color: $ink;
     font-size: 17px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -327,7 +327,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .is-primary {
     color: #032825;
     background: $secondary-default;
-    border-color: rgba($edge-tint, 0.67);
+    border-color: color-mix(in srgb, $edge-tint 67%, transparent);
   }
 }
 
@@ -398,7 +398,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &.is-active {
       color: $surface-base;
       background: $secondary-default;
-      border-color: rgba($edge-tint, 0.74);
+      border-color: color-mix(in srgb, $edge-tint 74%, transparent);
       box-shadow: 0 0 14px
         color-mix(in srgb, $secondary-default 20%, transparent);
     }
@@ -501,7 +501,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > strong {
     overflow: hidden;
-    color: $white;
+    color: $ink;
     font-size: clamp(17px, 1.45vw, 22px);
     line-height: 1.12;
     text-overflow: ellipsis;
@@ -650,7 +650,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       height: 24px;
       place-items: center;
       padding-inline: 6px;
-      color: rgba($white, 0.88);
+      color: color-mix(in srgb, $ink 88%, transparent);
       font-family: inherit;
       font-size: $text-lead;
       background: color-mix(in srgb, $surface-well 74%, transparent);
@@ -727,7 +727,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 25px;
     place-items: center;
     padding-inline: 6px;
-    color: $white;
+    color: $ink;
     font-family: inherit;
     font-size: $text-lead;
     font-weight: $weight-bold;
@@ -795,7 +795,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     cubic-bezier(0.2, 0.8, 0.2, 1);
 
   > strong {
-    color: $white;
+    color: $ink;
     font-size: clamp(42px, 7vw, 76px);
     line-height: 0.9;
     text-shadow:

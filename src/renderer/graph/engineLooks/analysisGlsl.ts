@@ -31,6 +31,7 @@ import { LOOK_INKS } from './engineLookInput';
  * here decides where a reading lands.
  */
 const ANALYSIS_GLSL = `
+uniform vec3 uWindowInk;
 uniform vec3 uInkMate[${LOOK_INKS}];
 uniform int uInkMateCount;
 
@@ -306,6 +307,23 @@ export const cssInkGlsl = (colour: string): string => {
   const parsed = parseCssColour(colour);
   const [red, green, blue] = parsed ? parsed.rgb : [1, 1, 1];
   return `vec4(${f(red)}, ${f(green)}, ${f(blue)}, ${f(parsed?.alpha ?? 1)})`;
+};
+
+/**
+ * `colour` as a GLSL vec4, with white read as the window's strongest ink
+ * (`uWindowInk`, written each frame from `--ink`): a scale's rules and
+ * tracks are white on a dark window and turn dark with a light one, as the
+ * 2D views' `readInk` does. An expression on a uniform, so it stands where a
+ * uniform may — a `#define` or inside a function, never a `const`. Any other
+ * colour is written as it is (`cssInkGlsl`).
+ */
+export const inkGlsl = (colour: string): string => {
+  const parsed = parseCssColour(colour);
+  const isWhite =
+    parsed !== undefined && parsed.rgb.every((channel) => channel >= 1);
+  return isWhite
+    ? `vec4(uWindowInk, ${(parsed?.alpha ?? 1).toFixed(6)})`
+    : cssInkGlsl(colour);
 };
 
 /**

@@ -92,7 +92,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // A picture ChatGPT made: on the checks an image editor shows behind a
 // transparent picture, so a cut-out reads as one and not as a black box.
 .studio-chat__seen.is-made {
-  --check: color-mix(in srgb, $white 11%, transparent);
+  --check: color-mix(in srgb, $edge-tint 11%, transparent);
   background:
     conic-gradient(
         var(--check) 25%,
@@ -200,7 +200,7 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 1px 2px 1px 10px;
     color: $text-faint;
     border-bottom: 1px solid $card-edge;
-    background: color-mix(in srgb, $white 3%, transparent);
+    background: color-mix(in srgb, $edge-tint 3%, transparent);
     font-family: $font-mono;
     font-size: $text-micro;
   }

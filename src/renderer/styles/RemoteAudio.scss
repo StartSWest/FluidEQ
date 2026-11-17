@@ -97,7 +97,7 @@ it under the terms of the GNU General Public License version 3 or later.
     }
 
     + li {
-      border-left: 1px solid rgba($edge-tint, 0.12);
+      border-left: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
     }
   }
 }
@@ -165,7 +165,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding-top: 10px;
   gap: 8px;
   color: $text-faint;
-  border-top: 1px solid rgba($edge-tint, 0.09);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
   font-size: $text-small;
   line-height: 1.45;
 

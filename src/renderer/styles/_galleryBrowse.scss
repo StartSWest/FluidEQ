@@ -227,7 +227,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 17px;
   margin-inline-start: 2px;
   font-variant-numeric: tabular-nums;
-  @include badge-count($red, $white);
+  @include badge-count($red, $ink);
 }
 
 // Categories, and the category a scene is published under: pills, because
@@ -678,9 +678,9 @@ it under the terms of the GNU General Public License version 3 or later.
   display: block;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, $white 4%, transparent) 0%,
-    color-mix(in srgb, $white 9%, transparent) 50%,
-    color-mix(in srgb, $white 4%, transparent) 100%
+    color-mix(in srgb, $edge-tint 4%, transparent) 0%,
+    color-mix(in srgb, $edge-tint 9%, transparent) 50%,
+    color-mix(in srgb, $edge-tint 4%, transparent) 100%
   );
   background-size: 200% 100%;
   animation: gallery-shimmer 1.6s linear infinite;
@@ -743,9 +743,9 @@ it under the terms of the GNU General Public License version 3 or later.
 .gallery-picture--loading {
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, $white 3%, $surface-plot) 0%,
-    color-mix(in srgb, $white 8%, $surface-plot) 50%,
-    color-mix(in srgb, $white 3%, $surface-plot) 100%
+    color-mix(in srgb, $edge-tint 3%, $surface-plot) 0%,
+    color-mix(in srgb, $edge-tint 8%, $surface-plot) 50%,
+    color-mix(in srgb, $edge-tint 3%, $surface-plot) 100%
   );
   background-size: 200% 100%;
   animation: gallery-shimmer 1.6s linear infinite;
@@ -804,7 +804,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &.is-on {
-    @include button-lit($analogous-1, $white);
+    @include button-lit($analogous-1, $ink);
 
     svg {
       fill: $analogous-1;

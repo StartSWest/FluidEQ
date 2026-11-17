@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../utils/theme';
 import { GRAPH_FONT } from './deEsserPlot';
 import {
   glow,
@@ -14,7 +15,7 @@ import {
   niceStep,
   noGlow,
   POINT_FONT,
-  POINT_INK,
+  pointInk,
 } from './deEsserLensKit';
 
 /** How long the drawn S holds, and its edges: a 15 ms rise, a 30 ms fall. */
@@ -79,9 +80,9 @@ const drawPane = (
   const value = isAttack ? settings.attackMs : settings.releaseMs;
   context.font = POINT_FONT;
   const title = `${name} · ${value.toFixed(isAttack ? 1 : 0)} ms`;
-  label(context, title, pane.x, box.y + 8, 'left', POINT_INK);
+  label(context, title, pane.x, box.y + 8, 'left', pointInk());
   context.font = GRAPH_FONT;
-  context.strokeStyle = 'rgba(255,255,255,0.08)';
+  context.strokeStyle = readInk(0.08);
   [top, bottom].forEach((y) => {
     const at = Math.round(y) + 0.5;
     line(context, pane.x, at, pane.x + pane.width, at);
@@ -140,7 +141,7 @@ const drawPane = (
   // The moment that matters on each: where the S arrives and how far ahead
   // the stage heard it; the time constant after it ends.
   context.setLineDash([3, 3]);
-  context.strokeStyle = 'rgba(255,255,255,0.4)';
+  context.strokeStyle = readInk(0.4);
   const zero = Math.round(xOf(0)) + 0.5;
   line(context, zero, top, zero, bottom);
   const marker =

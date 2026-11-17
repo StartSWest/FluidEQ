@@ -162,7 +162,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: 2px;
   @include transparency-grid(10px);
   box-shadow:
-    0 0 0 1px rgba($edge-tint, 0.08),
+    0 0 0 1px color-mix(in srgb, $edge-tint 8%, transparent),
     0 28px 80px rgba($black, 0.6);
   @include animate(fade-in, $motion-fast);
 

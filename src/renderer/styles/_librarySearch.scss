@@ -128,7 +128,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 11px;
     flex: 0 0 auto;
     fill: none;
-    stroke: rgba($edge-tint, 0.4);
+    stroke: color-mix(in srgb, $edge-tint 40%, transparent);
     stroke-linecap: round;
     stroke-width: 1.5;
   }
@@ -178,7 +178,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 12px;
   flex: 0 0 auto;
   fill: none;
-  stroke: rgba($edge-tint, 0.55);
+  stroke: color-mix(in srgb, $edge-tint 55%, transparent);
   stroke-linecap: round;
   stroke-width: 1.6;
 }

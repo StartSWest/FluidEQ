@@ -104,13 +104,13 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .bands-visual__grid {
-  stroke: rgba($edge-tint, 0.1);
+  stroke: color-mix(in srgb, $edge-tint 10%, transparent);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
 .bands-visual__zero {
-  stroke: rgba($edge-tint, 0.22);
+  stroke: color-mix(in srgb, $edge-tint 22%, transparent);
   stroke-dasharray: 3 3;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
@@ -166,7 +166,7 @@ it under the terms of the GNU General Public License version 3 or later.
   left: 0;
   display: grid;
   padding: calc(#{$u} * 0.18) calc(#{$u} * 0.35);
-  border: 1px solid rgba($edge-tint, 0.12);
+  border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
   border-radius: $radius-xs;
   background: color-mix(in srgb, $surface-panel 82%, transparent);
   color: $text-muted;
@@ -212,7 +212,7 @@ it under the terms of the GNU General Public License version 3 or later.
     width: calc(#{$u} * 1.05);
     height: calc(#{$u} * 1.05);
     place-items: center;
-    border: 1px solid rgba($edge-tint, 0.22);
+    border: 1px solid color-mix(in srgb, $edge-tint 22%, transparent);
     border-bottom-width: 2px;
     border-radius: $radius-2xs;
     background: $surface-control;

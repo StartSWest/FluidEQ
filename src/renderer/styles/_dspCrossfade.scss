@@ -58,7 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The curve is a graph and keeps the plot's ground; the controls beside it
 // are a box on the card (`dsp-box`).
 .dsp-crossfade-preview {
-  border: 1px solid rgba($white, 0.06);
+  border: 1px solid color-mix(in srgb, $edge-tint 6%, transparent);
   border-radius: $radius-s;
   background: $surface-plot;
 }
@@ -97,7 +97,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * the two curves, not a third curve competing with them.
  */
 .dsp-crossfade-sum {
-  stroke: rgba($white, 0.22);
+  stroke: color-mix(in srgb, $edge-tint 22%, transparent);
   stroke-width: 1;
   stroke-dasharray: 2 4;
 }
@@ -126,7 +126,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:focus-visible {
     outline: none;
-    fill: rgba($white, 0.9);
+    fill: color-mix(in srgb, $ink 90%, transparent);
   }
 
   &[aria-disabled='true'] {
@@ -162,7 +162,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // and without the rule the Save button read as a third control of the
   // switch beside it.
   padding-top: 12px;
-  border-top: 1px solid rgba($white, 0.1);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
 }
 
 .dsp-crossfade-library__actions {
@@ -208,7 +208,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
-  border: 1px solid rgba($white, 0.3);
+  border: 1px solid color-mix(in srgb, $edge-tint 30%, transparent);
   border-radius: 50%;
   // Applying a shape moves the fill from one pill to another. Fading both ends
   // of that move is what makes it read as one mark travelling across the row
@@ -264,12 +264,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .active-layer__name {
-    color: $white;
+    color: $ink;
   }
 }
 
 .dsp-crossfade-playhead {
-  stroke: rgba($white, 0.28);
+  stroke: color-mix(in srgb, $edge-tint 28%, transparent);
   stroke-width: 1;
   stroke-dasharray: 3 3;
   vector-effect: non-scaling-stroke;
@@ -290,7 +290,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-crossfade-grid {
-  stroke: rgba($white, 0.08);
+  stroke: color-mix(in srgb, $edge-tint 8%, transparent);
   stroke-width: 1;
 }
 
@@ -441,7 +441,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: block;
   overflow: hidden;
   height: 8px;
-  border: 1px solid rgba($white, 0.08);
+  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-pill;
   background: $track-well;
 }
@@ -477,5 +477,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   bottom: 0;
   left: 90.909%;
   width: 1px;
-  background: rgba($white, 0.48);
+  background: color-mix(in srgb, $edge-tint 48%, transparent);
 }

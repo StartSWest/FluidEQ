@@ -324,7 +324,7 @@ $stage-edge: $border-menu;
 
   // Calm is the stage away from the music: worn as a chosen button is.
   &.is-calm {
-    color: $white;
+    color: $ink;
     background: $selected-accent;
   }
 }
@@ -436,7 +436,7 @@ $stage-edge: $border-menu;
   color: $text-faint;
   border: 1px solid $card-edge;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 2%, transparent);
+  background: color-mix(in srgb, $edge-tint 2%, transparent);
   font: inherit;
   font-size: $text-micro;
   line-height: 1.2;
@@ -462,7 +462,7 @@ $stage-edge: $border-menu;
   &:hover:not(:disabled) {
     color: $text-primary;
     border-color: $border-panel;
-    background: color-mix(in srgb, $white 6%, transparent);
+    background: color-mix(in srgb, $edge-tint 6%, transparent);
   }
 
   // The chosen tile is the accent held, with its drawing lit in the accent's

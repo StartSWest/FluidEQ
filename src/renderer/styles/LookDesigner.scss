@@ -83,11 +83,11 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px 8px;
-  border-bottom: 1px solid rgba($white, 0.09);
+  border-bottom: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
 
   h2 {
     margin: 0;
-    color: $white;
+    color: $ink;
     font-size: $text-body;
     font-weight: $weight-bold;
     @include tracking(0.02em);
@@ -200,7 +200,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // These are milliseconds and counts somebody may want to reproduce on another
 // form, and a slider position is not something you can write down.
 .look-designer__value {
-  color: $white;
+  color: $ink;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
 }
@@ -255,7 +255,7 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
 
   &.is-on {
-    color: $white;
+    color: $ink;
     border-color: $secondary-light;
     background: color-mix(in srgb, $secondary-light 18%, transparent);
   }
@@ -339,7 +339,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // Barely there. The swatch IS a colour, and a bright edge round it competes
   // with the thing it is supposed to be showing — which matters most at the
   // dark end of a ramp, where a light border reads as part of the colour.
-  border: 1px solid rgba($edge-tint, 0.16);
+  border: 1px solid color-mix(in srgb, $edge-tint 16%, transparent);
   border-radius: $radius-xs;
   cursor: pointer;
 
@@ -375,14 +375,14 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 100%;
   height: 16px;
   padding: 0;
-  border: 1px solid rgba($edge-tint, 0.18);
+  border: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
   border-radius: 3px;
   cursor: pointer;
 
   &.is-on,
   &:hover,
   &:focus-visible {
-    border-color: $white;
+    border-color: $ink;
     outline: none;
   }
 }
@@ -399,7 +399,7 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
 
   &:hover {
-    color: $white;
+    color: $ink;
   }
 
   input[type='color'] {
@@ -417,7 +417,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 13px;
   height: 13px;
   padding: 0;
-  border: 1px solid rgba($edge-tint, 0.25);
+  border: 1px solid color-mix(in srgb, $edge-tint 25%, transparent);
   border-radius: 50%;
   background: $surface-panel;
   color: $text-muted;
@@ -435,7 +435,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &:hover {
-    color: $white;
+    color: $ink;
     border-color: rgba($red, 0.8);
   }
 }
@@ -466,7 +466,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // height.
 .look-designer__ramp {
   height: 30px;
-  border: 1px solid rgba($edge-tint, 0.12);
+  border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
   border-radius: $radius-xs;
 }
 
@@ -492,7 +492,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 100%;
   height: $control-height-xs;
   padding-inline: 8px;
-  color: $white;
+  color: $ink;
   font: inherit;
   font-size: $text-small;
 
@@ -549,7 +549,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &--danger:hover {
-    color: $white;
+    color: $ink;
     border-color: rgba($red, 0.85);
     background: rgba($red, 0.18);
   }
@@ -559,7 +559,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   gap: 6px;
   padding: 9px 12px 11px;
-  border-top: 1px solid rgba($white, 0.09);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
 }
 
 // Save is the app's own loud button (`button small`), taking the rest of the

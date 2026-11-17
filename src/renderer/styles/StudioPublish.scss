@@ -356,7 +356,7 @@ it under the terms of the GNU General Public License version 3 or later.
   position: relative;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  border: 1px solid rgba($white, 0.08);
+  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
   border-radius: $radius-m;
   background: $black;
   box-shadow: none;
@@ -488,7 +488,7 @@ it under the terms of the GNU General Public License version 3 or later.
   aspect-ratio: 16 / 9;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba($white, 0.12);
+  border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
   border-radius: $radius-s;
   background: $surface-well;
   cursor: pointer;
@@ -505,7 +505,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &:hover:not(:disabled) {
-    border-color: rgba($white, 0.34);
+    border-color: color-mix(in srgb, $edge-tint 34%, transparent);
   }
 
   &[aria-checked='true'] {
@@ -537,7 +537,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // A place a capture will go.
   &.is-empty {
     border-style: dashed;
-    border-color: rgba($white, 0.1);
+    border-color: color-mix(in srgb, $edge-tint 10%, transparent);
     background: none;
     cursor: default;
     animation: none;

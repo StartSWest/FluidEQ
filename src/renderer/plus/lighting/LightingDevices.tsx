@@ -14,6 +14,7 @@ import {
   type TLightingEffect,
 } from 'common/lighting/lightingProfiles';
 import { useTranslation } from '../../utils/I18nContext';
+import { readEdge } from '../../utils/theme';
 import Switch from '../../widgets/Switch';
 import type { IDeskColourFeed } from './deskColours';
 import { formOfDevice } from './deskGeometry';
@@ -55,9 +56,7 @@ const paintLamps = (
         }
       }
     }
-    context.fillStyle = lit
-      ? `rgb(${colour.join(', ')})`
-      : 'rgba(214, 233, 247, 0.08)';
+    context.fillStyle = lit ? `rgb(${colour.join(', ')})` : readEdge(0.08);
     context.beginPath();
     context.roundRect(
       cell * (cellWidth + gap) + edge / 2,
@@ -68,7 +67,7 @@ const paintLamps = (
     );
     context.fill();
     context.lineWidth = edge;
-    context.strokeStyle = 'rgba(214, 233, 247, 0.35)';
+    context.strokeStyle = readEdge(0.35);
     context.stroke();
   }
 };

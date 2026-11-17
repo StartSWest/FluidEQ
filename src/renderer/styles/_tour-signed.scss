@@ -48,8 +48,10 @@ $scene-loop: 27s;
 @keyframes signed-glow {
   50% {
     text-shadow:
-      0 0 calc(#{$u} * 0.9) color-mix(in srgb, $secondary-light 70%, transparent),
-      0 0 calc(#{$u} * 2.4) color-mix(in srgb, $secondary-light 35%, transparent);
+      0 0 calc(#{$u} * 0.9)
+        color-mix(in srgb, $secondary-light 70%, transparent),
+      0 0 calc(#{$u} * 2.4)
+        color-mix(in srgb, $secondary-light 35%, transparent);
   }
 }
 
@@ -264,7 +266,10 @@ $scene-loop: 27s;
 .signed-page__body {
   display: grid;
   align-items: start;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(#{$u} * 24)), 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, calc(#{$u} * 24)), 1fr)
+  );
   gap: calc(#{$u} * 1.4) calc(#{$u} * 2.2);
   @include animate(rise-in, $motion-slow, $ease-out, 80ms);
 }
@@ -329,7 +334,7 @@ $scene-loop: 27s;
     display: grid;
     align-items: start;
     padding: calc(#{$u} * 0.85) calc(#{$u} * 1);
-    border: 1px solid rgba($edge-tint, 0.1);
+    border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
     border-radius: $radius-l;
     background: $surface-panel;
     grid-template-columns: auto minmax(0, 1fr);

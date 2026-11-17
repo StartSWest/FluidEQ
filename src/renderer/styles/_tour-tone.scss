@@ -25,7 +25,7 @@ it under the terms of the GNU General Public License version 3 or later.
   position: relative;
   aspect-ratio: 2.3;
   overflow: hidden;
-  border: 1px solid rgba($edge-tint, 0.12);
+  border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
   border-radius: $radius-l;
   background: $surface-plot;
   box-shadow: 0 16px 40px rgba($black, 0.4);
@@ -45,7 +45,7 @@ it under the terms of the GNU General Public License version 3 or later.
   top: 0;
   bottom: 0;
   padding-top: calc(#{$u} * 0.55);
-  border-right: 1px dashed rgba($edge-tint, 0.14);
+  border-right: 1px dashed color-mix(in srgb, $edge-tint 14%, transparent);
   color: $text-muted;
   font-size: calc(#{$u} * 0.64);
   font-weight: $weight-bold;
@@ -74,7 +74,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .tone-visual__zero {
-  stroke: rgba($edge-tint, 0.2);
+  stroke: color-mix(in srgb, $edge-tint 20%, transparent);
   stroke-dasharray: 2 2;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
@@ -165,7 +165,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .tone-visual__cap {
   fill: $surface-block;
-  stroke: rgba($edge-tint, 0.22);
+  stroke: color-mix(in srgb, $edge-tint 22%, transparent);
   stroke-width: 1;
   filter: drop-shadow(0 2px 3px rgba($black, 0.4));
 }

@@ -128,7 +128,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding-bottom: 0;
     padding-right: 4px;
     border-bottom: 0;
-    border-right: 1px solid rgba($white, 0.09);
+    border-right: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
   }
 
   .dsp-rail-playback {
@@ -137,7 +137,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding-top: 0;
     padding-left: 4px;
     border-top: 0;
-    border-left: 1px solid rgba($white, 0.09);
+    border-left: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
   }
 
   .dsp-rail-group-label {
@@ -181,7 +181,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:hover:not(:disabled) {
       background: transparent;
-      color: rgba($white, 0.9);
+      color: color-mix(in srgb, $ink 90%, transparent);
       // The rail is a horizontal strip of icons here, not a vertical list.
       // The nudge on the wide layout leans toward the stage the tab opens;
       // there is no such direction in a row, and 2px of sideways travel

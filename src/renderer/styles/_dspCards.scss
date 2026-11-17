@@ -67,7 +67,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // would draw chips inside the chip.
   > span {
     padding: 3px 7px;
-    border: 1px solid rgba($white, 0.08);
+    border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
     border-radius: $radius-xs;
     background: $surface-plot;
     color: $text-faint;
@@ -121,7 +121,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 4px 9px;
     @include dsp-box;
     border-radius: $radius-xs;
-    color: rgba($white, 0.82);
+    color: color-mix(in srgb, $ink 82%, transparent);
     font-size: $text-body;
     font-variant-numeric: tabular-nums;
 
@@ -263,7 +263,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-card-header.has-toolbar .dsp-card-power {
   min-height: $control-height;
   padding-left: 16px;
-  border-left: 1px solid rgba($white, 0.1);
+  border-left: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
 }
 
 // `min-content` is the toolbar's widest single group — the preset picker and
@@ -321,7 +321,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   width: 100%;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba($white, 0.06);
+  border-bottom: 1px solid color-mix(in srgb, $edge-tint 6%, transparent);
 }
 
 .dsp-band {

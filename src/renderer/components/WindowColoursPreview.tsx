@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useMemo, type CSSProperties } from 'react';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { useTranslation } from '../utils/I18nContext';
+import pickedWindow from '../utils/pickedWindow';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { DARK_KNEE, darkenSurfaces } from '../utils/sceneTintDark';
 import { tintThemePalette } from '../utils/sceneTintPalette';
@@ -19,18 +20,33 @@ import { themeShadeTokens } from '../utils/themeShade';
  * Brightness it is at now (Ivan, 2026-11-14, the tuning mockup's "live mini
  * window"): its floor, a pane and a field from the scene's surface, the power
  * key, a filled button and the curve in its accent, a switch and a pill for
- * "on" in its glow. Worked out with the window's own toning
- * (`tintThemePalette`, `darkenSurfaces`), never a look-alike, so what it
- * shows is what pressing the colour will do.
+ * "on" in its glow. Worked out with the window's own rules, never a
+ * look-alike, so what it shows is what pressing the colour will do: colours
+ * somebody named are worn as named (`pickedWindow`), light or dark by their
+ * surface, and colours worked out from a palette lend their hue to the
+ * theme (`tintThemePalette`, `darkenSurfaces`).
  */
 export default function WindowColoursPreview({
   colours,
+  named,
 }: {
   colours: ISceneWindowColours;
+  /** Whether the window wears `colours` as named. */
+  named: boolean;
 }) {
   const { t } = useTranslation();
   const shade = useThemeShade();
   const style = useMemo(() => {
+    const worn = named ? pickedWindow(colours, shade) : undefined;
+    if (worn) {
+      return {
+        '--preview-floor': worn.tokens['--surface-base'],
+        '--preview-pane': worn.tokens['--surface-panel'],
+        '--preview-field': worn.tokens['--surface-field'],
+        '--preview-accent': worn.tokens['--accent'],
+        '--preview-active': worn.tokens['--active'],
+      } as CSSProperties;
+    }
     const sky = skyFromWindowColours(colours);
     if (!sky) {
       return undefined;
@@ -53,7 +69,7 @@ export default function WindowColoursPreview({
       '--preview-accent': token('--accent'),
       '--preview-active': palette['--active'] ?? 'var(--active)',
     } as CSSProperties;
-  }, [colours, shade]);
+  }, [colours, named, shade]);
   if (!style) {
     return null;
   }

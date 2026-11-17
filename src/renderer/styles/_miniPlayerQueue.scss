@@ -110,7 +110,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   transition: background 150ms ease;
 
   &:hover {
-    background: color-mix(in srgb, #{$white} 6%, transparent);
+    background: color-mix(in srgb, #{$edge-tint} 6%, transparent);
   }
 
   &:focus-visible {
@@ -196,7 +196,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 40px;
   overflow: hidden;
   border-radius: 11px;
-  box-shadow: 0 0 0 1px color-mix(in srgb, #{$white} 8%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #{$edge-tint} 8%, transparent);
 
   .library-cover-art {
     width: 100%;

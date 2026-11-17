@@ -86,7 +86,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // in its line (`figureBreak`), as a drawing's dimensions do.
 .dsp-room-measure {
   line {
-    stroke: rgba($white, 0.22);
+    stroke: color-mix(in srgb, $edge-tint 22%, transparent);
     stroke-width: 1;
   }
 
@@ -122,12 +122,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-room-ring {
   fill: none;
-  stroke: rgba($white, 0.08);
+  stroke: color-mix(in srgb, $edge-tint 8%, transparent);
   stroke-dasharray: 3 5;
 }
 
 .dsp-room-axis {
-  stroke: rgba($white, 0.06);
+  stroke: color-mix(in srgb, $edge-tint 6%, transparent);
 }
 
 // A cabinet: the floor's colour inside a sharp accent edge, its face filling
@@ -165,21 +165,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   pointer-events: none;
   .dsp-room-speaker-box {
     fill: transparent;
-    stroke: rgba($white, 0.22);
+    stroke: color-mix(in srgb, $edge-tint 22%, transparent);
     stroke-dasharray: 3 3;
   }
 
   .dsp-room-speaker-driver {
-    stroke: rgba($white, 0.22);
+    stroke: color-mix(in srgb, $edge-tint 22%, transparent);
     fill: transparent;
   }
 
   .dsp-room-speaker-tweeter {
-    fill: rgba($white, 0.22);
+    fill: color-mix(in srgb, $edge-tint 22%, transparent);
   }
 
   .dsp-room-speaker-name {
-    fill: rgba($white, 0.3);
+    fill: color-mix(in srgb, $edge-tint 30%, transparent);
   }
 }
 
@@ -204,7 +204,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-room-speaker.is-muted .dsp-room-speaker-box,
 .dsp-room-sub.is-muted .dsp-room-speaker-box {
-  stroke: rgba($white, 0.3);
+  stroke: color-mix(in srgb, $edge-tint 30%, transparent);
 }
 
 .dsp-room-speaker-select {
@@ -509,7 +509,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .is-chosen {
-    color: $white;
+    color: $ink;
     border-color: color-mix(in srgb, $secondary-light 45%, transparent);
     background: color-mix(in srgb, $secondary-default 26%, transparent);
     font-weight: $weight-semibold;
@@ -527,7 +527,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 0;
 
   & + & {
-    border-top: 1px solid rgba($white, 0.05);
+    border-top: 1px solid color-mix(in srgb, $edge-tint 5%, transparent);
   }
 }
 
@@ -566,7 +566,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-room-glyph__floor {
-  stroke: rgba($white, 0.12);
+  stroke: color-mix(in srgb, $edge-tint 12%, transparent);
   stroke-width: 1;
 }
 
@@ -585,20 +585,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-room-glyph__mark {
-  stroke: rgba($white, 0.35);
+  stroke: color-mix(in srgb, $edge-tint 35%, transparent);
   stroke-width: 1;
   stroke-dasharray: 2 2;
 }
 
 .dsp-room-glyph__ring {
   fill: none;
-  stroke: rgba($white, 0.12);
+  stroke: color-mix(in srgb, $edge-tint 12%, transparent);
   stroke-dasharray: 2 3;
 }
 
 .dsp-room-glyph__dot {
   fill: none;
-  stroke: rgba($white, 0.3);
+  stroke: color-mix(in srgb, $edge-tint 30%, transparent);
   stroke-width: 1;
   transition:
     fill 140ms ease,
@@ -623,7 +623,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-direction: column;
   gap: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgba($white, 0.08);
+  border-top: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 }
 
 .dsp-room-library__head {

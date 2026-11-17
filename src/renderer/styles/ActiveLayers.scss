@@ -143,7 +143,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .active-layer__name {
   @include truncate;
   min-width: 0;
-  color: rgba($white, 0.86);
+  color: color-mix(in srgb, $ink 86%, transparent);
 }
 
 // This layer is being kept measured right now.

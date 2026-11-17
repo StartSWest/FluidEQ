@@ -26,8 +26,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .player-menu--mark {
     --player-glass-lip: color-mix(in srgb, #{$white} 12%, transparent);
     --player-glass-edge: color-mix(in srgb, #{$edge-tint} 12%, transparent);
-    --player-hover: color-mix(in srgb, #{$white} 10%, transparent);
-    --player-chosen: color-mix(in srgb, #{$white} 13%, transparent);
+    --player-hover: color-mix(in srgb, #{$edge-tint} 10%, transparent);
+    --player-chosen: color-mix(in srgb, #{$edge-tint} 13%, transparent);
     --player-text: #{$text-primary};
     --player-text-muted: color-mix(in srgb, #{$text-primary} 80%, transparent);
     --player-text-soft: color-mix(in srgb, #{$text-primary} 62%, transparent);
@@ -91,7 +91,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     &:hover,
     &:focus-visible {
-      background: color-mix(in srgb, #{$white} 18%, transparent);
+      background: color-mix(in srgb, #{$edge-tint} 18%, transparent);
       outline: none;
     }
   }
@@ -160,7 +160,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     height: 36px;
     place-items: center;
     border-radius: 11px;
-    background: color-mix(in srgb, #{$white} 8%, transparent);
+    background: color-mix(in srgb, #{$edge-tint} 8%, transparent);
     color: var(--player-ink-bright);
 
     svg {
@@ -174,7 +174,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     height: 1px;
     margin: 2px 8px;
     border: 0;
-    background: color-mix(in srgb, #{$white} 10%, transparent);
+    background: color-mix(in srgb, #{$edge-tint} 10%, transparent);
   }
 
   // Fold to one line. It is the only way to fold: the header's double-click

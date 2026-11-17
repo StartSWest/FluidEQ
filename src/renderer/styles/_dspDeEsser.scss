@@ -47,7 +47,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // Shown for a moment after a loud sound the stage did not take for a voice
   // went by uncut: the one thing a de-esser is usually blamed for not doing.
   .is-spared {
-    border-color: rgba($white, 0.14);
+    border-color: color-mix(in srgb, $edge-tint 14%, transparent);
   }
 
   .is-hidden {
@@ -63,7 +63,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // The legend's dashed mark is the line every column is read against: drawn
 // in the plot's own pale white, not in a series colour.
 .dsp-de-esser-legend .dsp-eq-legend-mark.is-dashed {
-  color: rgba($white, 0.6);
+  color: color-mix(in srgb, $ink 60%, transparent);
 }
 
 // FOUR GROUPS ON ONE GRID, SO NEVER THREE OVER ONE AND EVERY ROW ON A LINE.

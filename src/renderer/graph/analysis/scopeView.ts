@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import {
   clamp01,
   rampRgba,
@@ -49,8 +50,16 @@ const SEARCH = 0.34;
 /** A sample smaller than this is silence and cannot trigger anything. */
 const QUIET = 0.0008;
 
-/** The rule silence sits on, and the two rows full scale reaches. */
-export const SCOPE_RULE_INK = 'rgba(255, 255, 255, 0.22)';
+/**
+ * The rule silence sits on, and the two rows full scale reaches.
+ *
+ * The rule is an alpha of the window's ink, read at paint time on the page
+ * canvas (`readInk`). The engine's look writes it into a shader once
+ * (`scopeLook.ts`) and cannot follow a live colour, so the constant it
+ * imports stays white.
+ */
+const SCOPE_RULE_ALPHA = 0.22;
+export const SCOPE_RULE_INK = `rgba(255, 255, 255, ${SCOPE_RULE_ALPHA})`;
 export const SCOPE_EDGE_INK = 'rgba(255, 96, 112, 0.28)';
 export const SCOPE_EDGE_DASH: readonly [on: number, off: number] = [3, 5];
 
@@ -243,7 +252,7 @@ const drawScopeView = (
   const rules = new Path2D();
   rules.moveTo(plot.left, middle);
   rules.lineTo(plot.right, middle);
-  context.strokeStyle = SCOPE_RULE_INK;
+  context.strokeStyle = readInk(SCOPE_RULE_ALPHA);
   context.lineWidth = 1;
   context.stroke(rules);
   const edges = new Path2D();
