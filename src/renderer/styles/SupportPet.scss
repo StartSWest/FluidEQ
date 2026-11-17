@@ -367,12 +367,21 @@ $pet-unit: 2.5cqw;
   animation: none;
 }
 
+// The ears' stretch with the music steps with each reading, in the titlebar.
+// It is a group inside the drawing - the only place a non-scaling stroke
+// keeps its width (`PetArt.tsx`) - and a transition there runs on the main
+// thread: --pet-level moves with every block of audio, so the ears were
+// always mid-transition, the drawing was laid out again on every frame and
+// its unbounded layer repainted the whole window with it. Measured in the
+// running window, 240 Hz, music playing (2026-11-16): 200 repaints of the
+// pet's drawing and 194 of the whole window a second; 13 and 63 without the
+// transition, and the window's compositor a quarter less busy. At 36 px the
+// whole stretch is 2.4 px, so its twelve steps (`LEVEL_STEPS`) are 0.2 px
+// each, which no eye follows; the hero keeps its ease below.
 .support-pet__ears {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  transition:
-    scale 90ms ease-out,
-    transform 90ms ease-out;
+  transition: transform 90ms ease-out;
 }
 
 .support-pet.is-celebrating .support-pet__ears {
@@ -644,6 +653,14 @@ $pet-unit: 2.5cqw;
   border: 0;
   cursor: default;
 
+  // Eased here, where the stretch is 9 px and a step of it is seen, and the
+  // dialog is open only while somebody looks at her.
+  .support-pet__ears {
+    transition:
+      scale 90ms ease-out,
+      transform 90ms ease-out;
+  }
+
   // The light behind her. Kept small on purpose.
   //
   // Two earlier attempts were both wrong in the same direction. An ellipse
@@ -907,6 +924,7 @@ $pet-unit: 2.5cqw;
   .support-pet__eyes,
   .support-pet__squint,
   .support-pet__ears,
+  .support-pet--hero .support-pet__ears,
   .support-pet.is-celebrating.is-dancing .support-pet__art,
   .support-pet.is-celebrating.is-dancing .support-pet__body,
   .support-pet.is-celebrating.is-dancing .support-pet__ears,

@@ -3,6 +3,7 @@ import { IEnginePreamp } from '../../common/enginePreamp';
 import { readKnownAudioDevices } from './equalizerApi';
 import { readOutputEditor } from './outputEditor';
 import { reportError } from './logger';
+import { displayTickMs, isFrameDue, WINDOW_DRAWING_PACE_MS } from './framePace';
 
 /**
  * How far the engine's automatic preamp has to move before the window hears.
@@ -77,8 +78,13 @@ type TReadEnginePreamp = (
 ) => Promise<IEnginePreamp | undefined>;
 
 /**
- * One engine read per frame while the window is on screen, following the
- * output being listened to. Returns how to stop it.
+ * One engine read per frame while the window is on screen, at the window's
+ * drawing pace (`WINDOW_DRAWING_PACE_MS`), following the output being
+ * listened to. Returns how to stop it.
+ *
+ * Each read is a round trip to main. At every frame a 240 Hz display offers
+ * that was 240 a second for a value only the graph's output curve draws,
+ * which is itself drawn at that pace.
  */
 const startReader = (read: TReadEnginePreamp): (() => void) => {
   let disposed = false;
@@ -87,11 +93,24 @@ const startReader = (read: TReadEnginePreamp): (() => void) => {
   let endpoint: string | undefined;
   // Said once per run of failures, not once a frame.
   let failing = false;
-  const paint = async () => {
+  let lastReadAt: number | undefined;
+  let lastTickAt: number | undefined;
+  let tickMs = 1000 / 60;
+  const paint = async (now: number) => {
     const current = generation;
     if (disposed || document.hidden || !endpoint) {
       return;
     }
+    tickMs = displayTickMs(now, lastTickAt, tickMs);
+    lastTickAt = now;
+    if (
+      lastReadAt !== undefined &&
+      !isFrameDue(now - lastReadAt, WINDOW_DRAWING_PACE_MS, tickMs)
+    ) {
+      animation = requestAnimationFrame(paint);
+      return;
+    }
+    lastReadAt = now;
     try {
       const next = await read(endpoint);
       if (disposed || current !== generation) {

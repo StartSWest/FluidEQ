@@ -4,7 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { MutableRefObject, RefObject, useCallback, useEffect } from 'react';
+import {
+  MutableRefObject,
+  RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { createFramePainter } from '../utils/framePainter';
 import { IKaraokeMakerProject } from '../../common/karaoke/makerProject';
 import { paintMakerCanvas } from './makerCanvasPaint';
 import {
@@ -207,15 +215,33 @@ export const useMakerCanvasRender = ({
     viewStartMs,
   ]);
 
-  renderCanvasRef.current = renderCanvas;
+  // Every reason to paint asks for a paint, and the painter paints once in
+  // the next frame that is due, with what is current then. The canvas used
+  // to be painted on the spot by each of them: a state change painted, then
+  // its resize observer was torn down and observed again, which reports at
+  // once and painted a second time; a playhead tick or each pointer move of
+  // a drag in the same frame painted again, the whole 2116 by 1055 editor
+  // each time. With the Maker open in the running window (2026-11-16) the
+  // graphics process was seen spending 752 ms of a second unpacking the
+  // window's canvas commands while the window waited on it for 605 ms, and
+  // every drawing in the app - and moving the view - stood behind it.
+  const paintRef = useRef(renderCanvas);
+  paintRef.current = renderCanvas;
+  const [painter] = useState(() =>
+    createFramePainter(() => paintRef.current()),
+  );
+  useEffect(() => () => painter.cancel(), [painter]);
+  renderCanvasRef.current = painter.request;
+
+  // Something it draws changed.
+  useEffect(() => {
+    painter.request();
+  }, [painter, renderCanvas]);
 
   // Each tick of the playhead repaints the canvas and nothing else. It used
   // to be a prop of the whole Maker, which rendered every component of the
   // editor twenty times a second to move this one line.
-  useEffect(
-    () => playhead.subscribe(() => renderCanvasRef.current()),
-    [playhead, renderCanvasRef],
-  );
+  useEffect(() => playhead.subscribe(painter.request), [painter, playhead]);
 
   useEffect(() => {
     if (!activeLyricWordId) {
@@ -223,23 +249,23 @@ export const useMakerCanvasRender = ({
     }
     let animationFrame = 0;
     const animateFocus = (now: number) => {
-      renderCanvasRef.current();
+      painter.request();
       if (now - wordFocusAnimationRef.current.startedAt < 180) {
         animationFrame = window.requestAnimationFrame(animateFocus);
       }
     };
     animationFrame = window.requestAnimationFrame(animateFocus);
     return () => window.cancelAnimationFrame(animationFrame);
-  }, [activeLyricWordId, renderCanvasRef, wordFocusAnimationRef]);
+  }, [activeLyricWordId, painter, wordFocusAnimationRef]);
 
+  // One observer for the life of the canvas, not one per render.
   useEffect(() => {
-    renderCanvas();
     const host = canvasHostRef.current;
     if (!host || typeof ResizeObserver === 'undefined') {
       return undefined;
     }
-    const observer = new ResizeObserver(renderCanvas);
+    const observer = new ResizeObserver(painter.request);
     observer.observe(host);
     return () => observer.disconnect();
-  }, [canvasHostRef, renderCanvas]);
+  }, [canvasHostRef, painter]);
 };
