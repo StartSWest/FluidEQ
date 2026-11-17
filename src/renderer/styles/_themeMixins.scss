@@ -45,7 +45,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // The same over a BRIGHT picture, where the words turn dark (Ivan,
 // 2026-11-17: "put them the other way round, black and white"): the shadow
-// turns light, as dark print on a pale photograph lifts off it.
+// turns light, as dark print on a pale photograph lifts off it. Which words
+// are over a bright picture is read on the scene's frames (`useSceneInk.ts`).
+//
+// Their ink is the floor taken a quarter of the way to black: a window
+// brightened by its slider still writes dark, and the words keep the tint
+// a scene lends the window.
+$over-bright-picture-ink: color-mix(in oklab, #{$surface-base} 75%, black);
+
 @mixin over-bright-picture-text {
   text-shadow:
     0 0 1px rgba(255, 255, 255, 0.5),

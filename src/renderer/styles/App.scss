@@ -2311,15 +2311,11 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   // also detect when the scene is very bright and put them the other way
   // round, black and white"). The scene's worker reads the strip behind the
   // head on its own frames and a bright one marks the root
-  // (`useSceneHeadInk.ts`; where it turns is `sceneHeadInk.ts`): the words,
-  // the engine's name and the glyphs take the floor's dark, as print on a
-  // pale photograph does, and the soft shadow under them turns light. The
-  // floor is taken a quarter of the way to black so a window brightened by
-  // its slider still writes dark, and keeps the tint a scene lends the
-  // window. Only over a scene on the column: a standard look and a scene on
-  // the plot alone never mark it.
-  $head-dark-ink: color-mix(in oklab, #{$surface-base} 75%, black);
-
+  // (`useSceneInk.ts`; where it turns is `sceneInk.ts`): the words, the
+  // engine's name and the glyphs take the floor's dark, as print on a pale
+  // photograph does, and the soft shadow under them turns light
+  // (`over-bright-picture-text`). Only over a scene on the column: a
+  // standard look and a scene on the plot alone never mark it.
   :root.is-scene-column[data-scene-head-ink='dark']
     .center-workspace.is-graph-first
     > & {
@@ -2334,11 +2330,11 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     }
 
     .workspace-pill {
-      color: color-mix(in srgb, #{$head-dark-ink} 85%, transparent);
+      color: color-mix(in srgb, #{$over-bright-picture-ink} 85%, transparent);
 
       &.is-active,
       &:hover {
-        color: $head-dark-ink;
+        color: $over-bright-picture-ink;
       }
     }
 
@@ -2348,7 +2344,7 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     .engine-strip
       > .latency-readout:hover:not(:disabled)
       .latency-readout__value {
-      color: $head-dark-ink;
+      color: $over-bright-picture-ink;
     }
 
     // Partly working keeps its caution colour, taken down far enough to
@@ -4268,6 +4264,53 @@ $graph-controls-past-fold: calc(
 .graph-wrapper:not(.is-gridless) > .live-output-controls {
   right: 56px;
   left: 58px;
+}
+
+// Over a bright part of a Plus scene the row's bare controls — the hint's
+// mark, the style arrows and switches, Auto, View and full screen — turn
+// dark with a light shadow, as the EQ head's words do (Ivan, 2026-11-17,
+// after the head turned: "we still need some stuff to do"). The row is
+// marked by the picture behind those controls (`useSceneInk.ts`). The style
+// picker and the legend keep their own faces; a disabled Auto keeps its
+// greyed box.
+:root.is-scene-column
+  .graph-wrapper
+  > .live-output-controls[data-scene-ink='dark'] {
+  .graph-edit-hint-mark,
+  .graph-look-step,
+  .graph-auto-cycle > [role='menu']:not([aria-disabled='true']),
+  .graph-solo,
+  .view-bar__icon {
+    @include over-bright-picture-text;
+
+    border-color: color-mix(
+      in srgb,
+      #{$over-bright-picture-ink} 35%,
+      transparent
+    );
+    color: $over-bright-picture-ink;
+
+    svg {
+      @include over-bright-picture-shape;
+    }
+
+    &:hover {
+      color: $secondary-darker;
+    }
+  }
+
+  // What says a switch is on keeps saying it, in the accent's deep step.
+  .graph-look-step--toggle[aria-pressed='true'],
+  .graph-auto-cycle:is(.is-on, .dropdown--open) > [role='menu'],
+  .graph-solo.is-on {
+    color: $secondary-darker;
+  }
+
+  // A borderless glyph keeps no edge.
+  .graph-look-step,
+  .view-bar__icon {
+    border-color: transparent;
+  }
 }
 
 // The bar stays put when the sound panel opens over it. From 2026-09-25 it

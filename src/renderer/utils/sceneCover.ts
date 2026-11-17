@@ -23,11 +23,11 @@ import { useSyncExternalStore } from 'react';
  * it stands. Each names itself with `data-scene-layer`, which is what the
  * scene marks the root with while it is drawn there (`SceneCanvas`).
  */
-const createLayerStore = <T>(same: (a: T, b: T) => boolean = Object.is) => {
-  let host: T | null = null;
+const createLayerStore = () => {
+  let host: HTMLElement | null = null;
   const listeners = new Set<() => void>();
-  const publish = (next: T | null) => {
-    if (next === host || (next !== null && host !== null && same(next, host))) {
+  const publish = (next: HTMLElement | null) => {
+    if (next === host) {
       return;
     }
     host = next;
@@ -48,33 +48,7 @@ const createLayerStore = <T>(same: (a: T, b: T) => boolean = Object.is) => {
   return { publish, useHost };
 };
 
-const column = createLayerStore<HTMLElement>();
+const column = createLayerStore();
 
 export const publishSceneColumnHost = column.publish;
 export const useSceneColumnHost = column.useHost;
-
-/**
- * Where the EQ head stands on the column's layer, in CSS pixels from the
- * layer's top-left corner: the strip of picture its words are read against
- * (`useSceneHeadInk.ts`). Measured by the layer (`SceneColumnLayer.tsx`),
- * which already watches the head and the graph for its own height.
- */
-export interface ISceneHeadBox {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-// Measured again on every resize of the column; a box that has not moved
-// wakes nobody.
-const head = createLayerStore<ISceneHeadBox>(
-  (a, b) =>
-    a.left === b.left &&
-    a.top === b.top &&
-    a.width === b.width &&
-    a.height === b.height,
-);
-
-export const publishSceneColumnHead = head.publish;
-export const useSceneColumnHead = head.useHost;

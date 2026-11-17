@@ -3,7 +3,7 @@ import type { IScenePack } from 'common/scenePacks';
 import type { IWorldReport } from 'common/worldNotes';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
-import type { TSceneProbeRect } from './sceneHeadInk';
+import type { TSceneProbeRect } from './sceneInk';
 
 /**
  * The frames the worker has put on the canvas: a running count and the
@@ -70,10 +70,11 @@ export type TSceneWorkerRequest =
    */
   | { kind: 'idle' }
   /**
-   * Read how bright the picture is inside `rect` every few drawn frames and
-   * answer `probed` (`sceneProbe.ts`); null stops reading.
+   * Read how bright the picture is inside each of `rects` every few drawn
+   * frames and answer `probed` with this `id` (`sceneProbe.ts`); none
+   * stops reading.
    */
-  | { kind: 'probe'; rect: TSceneProbeRect | null };
+  | { kind: 'probe'; id: number; rects: readonly TSceneProbeRect[] };
 
 export type TSceneBuildResult =
   | {
@@ -122,8 +123,11 @@ export type TSceneWorkerReply =
       blamed: boolean;
     }
   | { kind: 'restored' }
-  /** The mean relative luminance of the probed strip, 0 to 1. */
-  | { kind: 'probed'; luminance: number }
+  /**
+   * The mean relative luminance inside each place of the ask `id`, 0 to 1,
+   * in its order; NaN for a place off the canvas.
+   */
+  | { kind: 'probed'; id: number; luminances: number[] }
   /** Nothing is linking and nothing is held: the worker may be ended. */
   | { kind: 'retired' }
   | { kind: 'error'; log: string };

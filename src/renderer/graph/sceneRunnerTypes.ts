@@ -6,7 +6,7 @@ import type { IWorldReport } from 'common/worldNotes';
 import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFailureEntry, TSceneSurface } from 'common/sceneFailureLog';
 import type { ISceneFrame } from './sceneGl';
-import type { TSceneProbeRect } from './sceneHeadInk';
+import type { TSceneProbeRect } from './sceneInk';
 import type { ISceneInteraction } from './sceneInteraction';
 import type { ISceneTuning } from './sceneTuner';
 import type { ISceneShownFrames } from './sceneWorkerMessages';
@@ -112,10 +112,11 @@ export interface ISceneSource {
   madeBy: TSceneMaker;
 }
 
-/** A strip of the picture to read, and who hears how bright it is. */
+/** Places of the picture to read, and who hears how bright each is. */
 export interface ISceneRunnerProbe {
-  rect: TSceneProbeRect;
-  heard: (luminance: number) => void;
+  rects: readonly TSceneProbeRect[];
+  /** Each place's mean relative luminance, in the order of `rects`. */
+  heard: (luminances: readonly number[]) => void;
 }
 
 export interface ISceneRunnerOptions {
@@ -228,9 +229,10 @@ export interface ISceneRunnerOptions {
    */
   interaction?: ISceneInteraction;
   /**
-   * A strip of the picture whose brightness is read every few drawn frames
-   * (`sceneProbe.ts`), and who hears each reading: the EQ head over the
-   * graph's scene (`useSceneHeadInk.ts`). Absent, nothing is read.
+   * Places of the picture whose brightness is read every few drawn frames
+   * (`sceneProbe.ts`), and who hears each reading: the EQ head and the
+   * graph's figures over the graph's scene (`useSceneInk.ts`). Absent,
+   * nothing is read.
    */
   probe?: ISceneRunnerProbe;
   /**

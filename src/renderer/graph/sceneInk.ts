@@ -7,14 +7,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { toLinear } from '../utils/oklab';
 
 /**
- * Which ink the EQ head's words wear over a scene: near-white with a soft dark
- * shadow over most pictures, the floor's dark with a soft light shadow over a
- * bright one (Ivan, 2026-11-17: "can Fluid also detect when the scene is very
- * bright and put them the other way round, black and white"). Decided from
- * the mean relative luminance of the strip of picture behind the head, read
- * on the scene's own frames (`sceneProbe.ts`).
+ * Which ink the words standing on a scene wear — the EQ head's, and each of
+ * the graph's figures: near-white with a soft dark shadow over most
+ * pictures, the floor's dark with a soft light shadow over a bright one
+ * (Ivan, 2026-11-17: "can Fluid also detect when the scene is very bright
+ * and put them the other way round, black and white"; then the dB figures
+ * too). Decided for each from the mean relative luminance of the picture
+ * behind it, read on the scene's own frames (`sceneProbe.ts`).
  */
-export type THeadInk = 'light' | 'dark';
+export type TSceneInk = 'light' | 'dark';
 
 /**
  * The part of the scene's canvas to read: fractions of its width and height,
@@ -23,12 +24,13 @@ export type THeadInk = 'light' | 'dark';
 export type TSceneProbeRect = readonly [number, number, number, number];
 
 /**
- * Where the head turns to dark ink, and where it turns back: mean relative
- * luminance of the strip behind it, 0 for black and 1 for white.
+ * Where words turn to dark ink, and where they turn back: mean relative
+ * luminance of the picture behind them, 0 for black and 1 for white.
  *
- * The resting words are the primary ink at 82% (about 0.8 luminance where
- * they lie) and the dark ink is the floor (about 0.01), so the two read
- * equally well by WCAG contrast over a strip at 0.18. Light ink keeps the
+ * The head's resting words are the primary ink at 82% and the figures the
+ * muted ink, both about 0.8 luminance where they lie, and the dark ink is
+ * the floor (about 0.01), so the two read equally well by WCAG contrast over
+ * a picture at 0.18. Light ink keeps the
  * strip well past that because its shadow draws an edge of its own, so the
  * turn is set where light ink has truly run out: at 0.45 (a pale sky, about
  * #9ab6d4) the light words are at 1.7:1 and the dark ones at 8:1. Back below
@@ -38,8 +40,8 @@ export type TSceneProbeRect = readonly [number, number, number, number];
  * reported. The 0.11 between the two is a band, so a sky pulsing with the
  * beat, already smoothed below, stays on one side of it.
  */
-export const HEAD_INK_DARK_ABOVE = 0.45;
-export const HEAD_INK_LIGHT_BELOW = 0.34;
+export const SCENE_INK_DARK_ABOVE = 0.45;
+export const SCENE_INK_LIGHT_BELOW = 0.34;
 
 /**
  * How much of each new reading the followed level takes: a reading comes
@@ -47,7 +49,7 @@ export const HEAD_INK_LIGHT_BELOW = 0.34;
  * moves the level by a quarter of its size, and a whole change of picture —
  * a new scene, the camera turned to the sky — lands in a handful of readings.
  */
-export const HEAD_INK_SMOOTHING = 0.25;
+export const SCENE_INK_SMOOTHING = 0.25;
 
 /**
  * The mean relative luminance of `rgba`, bytes in sRGB as WebGL reads them.
@@ -70,17 +72,17 @@ export const meanRelativeLuminance = (rgba: Uint8Array): number => {
   return sum / pixels;
 };
 
-export interface IHeadInkFollower {
+export interface ISceneInkFollower {
   /** A new reading of the strip; answers the ink it now calls for. */
-  hear(luminance: number): THeadInk;
+  hear(luminance: number): TSceneInk;
   /** Forget the picture: the next reading is taken as it is. */
   reset(): void;
 }
 
 /** Follows the strip's readings and turns the ink only past the band. */
-export const createHeadInkFollower = (): IHeadInkFollower => {
+export const createSceneInkFollower = (): ISceneInkFollower => {
   let level: number | undefined;
-  let ink: THeadInk = 'light';
+  let ink: TSceneInk = 'light';
   return {
     hear: (luminance) => {
       if (!Number.isFinite(luminance)) {
@@ -89,10 +91,10 @@ export const createHeadInkFollower = (): IHeadInkFollower => {
       level =
         level === undefined
           ? luminance
-          : level + (luminance - level) * HEAD_INK_SMOOTHING;
-      if (ink === 'light' && level > HEAD_INK_DARK_ABOVE) {
+          : level + (luminance - level) * SCENE_INK_SMOOTHING;
+      if (ink === 'light' && level > SCENE_INK_DARK_ABOVE) {
         ink = 'dark';
-      } else if (ink === 'dark' && level < HEAD_INK_LIGHT_BELOW) {
+      } else if (ink === 'dark' && level < SCENE_INK_LIGHT_BELOW) {
         ink = 'light';
       }
       return ink;

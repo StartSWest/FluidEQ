@@ -871,7 +871,10 @@ export default function useSceneRunner({
     }
     rendererRef.current?.holdPicture(heldRef.current);
     if (probeRef.current) {
-      rendererRef.current?.probe(probeRef.current.rect, probeRef.current.heard);
+      rendererRef.current?.probe(
+        probeRef.current.rects,
+        probeRef.current.heard,
+      );
     }
     return rendererRef.current;
   }, [dropProgram, kick, setWaiting, logFailure]);
@@ -1153,10 +1156,10 @@ export default function useSceneRunner({
     }
   }, [held, kick]);
 
-  // The strip read on the renderer there is; a renderer started later is
+  // The places read on the renderer there is; a renderer started later is
   // told by `startRenderer`.
   useEffect(() => {
-    rendererRef.current?.probe(probe?.rect ?? null, probe?.heard);
+    rendererRef.current?.probe(probe?.rects ?? [], probe?.heard);
   }, [probe]);
 
   // Redraw the backing buffer when the panel's geometry changes.

@@ -3,7 +3,7 @@ import type { IScenePack } from 'common/scenePacks';
 import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
-import type { TSceneProbeRect } from './sceneHeadInk';
+import type { TSceneProbeRect } from './sceneInk';
 import { sceneProgramKey, takeLinkTurn } from './sceneLinkTurns';
 import { reportError } from '../utils/logger';
 import type {
@@ -72,11 +72,11 @@ export interface ISceneWorkerClient {
   holdPicture(held: boolean): void;
   /**
    * Read how bright the picture is inside `rect` every few drawn frames, and
-   * hand each reading to `heard` (`sceneProbe.ts`); null stops reading.
+   * hand each reading to `heard` (`sceneProbe.ts`); none stops reading.
    */
   probe(
-    rect: TSceneProbeRect | null,
-    heard: ((luminance: number) => void) | undefined,
+    rects: readonly TSceneProbeRect[],
+    heard: ((luminances: readonly number[]) => void) | undefined,
   ): void;
   dispose(): void;
 }
@@ -331,7 +331,12 @@ export const createSceneWorkerClient = (
     heldTurns.clear();
   };
   let shown: ((drawn: ISceneDrawn) => void) | undefined;
-  let probed: ((luminance: number) => void) | undefined;
+  /**
+   * Who hears the readings of the newest ask, and its id: a reading made for
+   * an earlier ask names places that may have moved since, and is dropped.
+   */
+  let probed: ((luminances: readonly number[]) => void) | undefined;
+  let probeId = 0;
   const loads = new Map<number, (result: TSceneBuildResult) => void>();
   const send = (request: TSceneWorkerRequest) => worker.postMessage(request);
   const cancelLoads = () => {
@@ -458,7 +463,9 @@ export const createSceneWorkerClient = (
         failed(data.blamed ? 'gpu-reset' : 'context-lost');
       }
     } else if (data.kind === 'probed') {
-      probed?.(data.luminance);
+      if (data.id === probeId) {
+        probed?.(data.luminances);
+      }
     } else if (data.kind === 'restored') {
       lost = false;
       // A restored context has live resources again; until its first frame
@@ -539,13 +546,14 @@ export const createSceneWorkerClient = (
       // frame sent from here on brings it back.
       hold();
     },
-    probe: (rect, heard) => {
-      probed = rect ? heard : undefined;
+    probe: (rects, heard) => {
+      probeId += 1;
+      probed = rects.length > 0 ? heard : undefined;
       if (disposed) {
         return;
       }
       try {
-        send({ kind: 'probe', rect });
+        send({ kind: 'probe', id: probeId, rects });
       } catch (error) {
         fail(String(error));
       }

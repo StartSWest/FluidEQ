@@ -7,10 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { useCallback, useLayoutEffect, useState } from 'react';
-import {
-  publishSceneColumnHead,
-  publishSceneColumnHost,
-} from '../utils/sceneCover';
+import { publishSceneColumnHost } from '../utils/sceneCover';
 
 /**
  * The layer behind an EQ page's head and its graph that a Plus visualizer is
@@ -45,18 +42,12 @@ export default function SceneColumnLayer() {
       // From the layer's own top to the graph's inside foot: the column's top
       // and the graph's foot, except where the head and the graph stand on a
       // card and the layer is cut to the card's inside edge (`App.scss`).
-      const { top, left } = layer.getBoundingClientRect();
+      const { top } = layer.getBoundingClientRect();
       const bottom =
         graph instanceof HTMLElement
           ? graph.getBoundingClientRect().bottom -
             (graph.offsetHeight - graph.clientHeight - graph.clientTop)
           : top;
-      // And where the head stands on it, for the ink its words wear over
-      // the picture (`useSceneHeadInk.ts`). Read before the height is
-      // written, which would make this read lay the page out again.
-      const head = column.querySelector(':scope > .center-head');
-      const box =
-        head instanceof HTMLElement ? head.getBoundingClientRect() : undefined;
       // And to the bands' card's inside foot, for the picture to carry on
       // under it while the View menu lets some of it through the card
       // (`scenePanels.ts`; the stylesheet picks which, `App.scss`). Only the
@@ -77,16 +68,6 @@ export default function SceneColumnLayer() {
         '--scene-column-full',
         `${Math.max(0, cardFoot - top)}px`,
       );
-      publishSceneColumnHead(
-        box
-          ? {
-              left: Math.round(box.left - left),
-              top: Math.round(box.top - top),
-              width: Math.round(box.width),
-              height: Math.round(box.height),
-            }
-          : null,
-      );
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -106,7 +87,6 @@ export default function SceneColumnLayer() {
     return () => {
       observer.disconnect();
       children.disconnect();
-      publishSceneColumnHead(null);
     };
   }, [layer]);
 

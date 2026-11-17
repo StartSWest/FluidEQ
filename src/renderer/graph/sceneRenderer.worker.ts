@@ -89,9 +89,9 @@ let lastCostMs = 0;
  * changes, and a loss blamed on one must not follow the next.
  */
 let blamedSource: string | undefined;
-/** How bright the picture is behind the EQ head, while asked (`sceneProbe.ts`). */
-const probing = createSceneProbing((luminance) =>
-  scope.postMessage({ kind: 'probed', luminance }),
+/** How bright the picture is behind the words on it, while asked (`sceneProbe.ts`). */
+const probing = createSceneProbing((id, luminances) =>
+  scope.postMessage({ kind: 'probed', id, luminances }),
 );
 
 // The worker's own animation frames are the only thing that draws. The
@@ -484,7 +484,7 @@ scope.onmessage = ({ data }) => {
     return;
   }
   if (data.kind === 'probe') {
-    probing.ask(data.rect);
+    probing.ask(data.id, data.rects);
     return;
   }
   if (data.kind === 'load') {

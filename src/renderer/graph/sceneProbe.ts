@@ -4,50 +4,65 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { meanRelativeLuminance, type TSceneProbeRect } from './sceneHeadInk';
+import { meanRelativeLuminance, type TSceneProbeRect } from './sceneInk';
 
 /**
- * How bright the picture is behind the EQ head, read on the scene worker's
- * own frames without ever making the worker wait for the GPU.
+ * How bright the picture is behind the words that stand on it — the EQ head,
+ * each of the graph's figures — read on the scene worker's own frames
+ * without ever making the worker wait for the GPU.
  *
- * The strip is shrunk on the GPU to `PROBE_WIDTH × PROBE_HEIGHT` by a linear
- * blit from the canvas's own picture, read into a pixel buffer behind a
- * fence, and collected on a later frame once the fence has signalled — a
- * kilobyte, never the frame. Reading a pixel straight back, which this
- * worker once did after every frame, made the GPU and the worker take turns
+ * Each place is shrunk on the GPU to a block of `BLOCK_WIDTH × BLOCK_HEIGHT`
+ * by a linear blit from the canvas's own picture, the blocks stacked in one
+ * small target, read into a pixel buffer behind a fence and collected on a
+ * later frame once the fence has signalled — a few kilobytes, never the
+ * frame. Reading a pixel straight back, which this worker once did after
+ * every frame, made the GPU and the worker take turns
  * (`sceneRenderer.worker.ts`); a pixel buffer behind a fence costs neither of
  * them a wait, and one read in flight at a time is all there ever is.
  *
  * NOT UNIT-TESTED for the reason `sceneGl.ts` gives: jsdom has no WebGL. The
- * arithmetic it hands on is `sceneHeadInk.ts`'s, which is.
+ * arithmetic it hands on is `sceneInk.ts`'s, which is.
  */
 
 /**
- * The strip shrunk to this many pixels. Each is a bilinear tap of four
- * pixels of the picture, so 256 of them read 1024 points spread over the
- * whole strip — a mean that a sky, a skyline or a sun in a corner moves, for
- * a kilobyte read back.
+ * Each place shrunk to this many pixels, every one a bilinear tap of four
+ * pixels of the picture: 512 points over the head's whole strip, and nearly
+ * every pixel behind a figure 40 by 16.
  */
-const PROBE_WIDTH = 64;
-const PROBE_HEIGHT = 4;
-const PROBE_BYTES = PROBE_WIDTH * PROBE_HEIGHT * 4;
+const BLOCK_WIDTH = 32;
+const BLOCK_HEIGHT = 4;
+const BLOCK_BYTES = BLOCK_WIDTH * BLOCK_HEIGHT * 4;
+
+/**
+ * The most places read at once: the head and the figures of three axes,
+ * with room to spare. More are left unread rather than grow the target.
+ */
+export const PROBE_MAX_PLACES = 48;
 
 /**
  * Drawn frames between reads. By frames, not by time: a read is a fraction
  * of a frame's own work wherever it lands, and what follows it smooths over
- * whatever rate the display runs at (`HEAD_INK_SMOOTHING`) — about seven
+ * whatever rate the display runs at (`SCENE_INK_SMOOTHING`) — about seven
  * reads a second at 60 Hz.
  */
 export const PROBE_EVERY_FRAMES = 8;
 
-export interface ISceneProbe {
+interface ISceneProbe {
   /**
-   * Starts a read of `rect` from the picture just drawn on the canvas's own
+   * Starts a read of `rects` from the picture just drawn on the canvas's own
    * framebuffer, `width × height` pixels, unless one is still in flight.
+   * Answers whether it started.
    */
-  read(rect: TSceneProbeRect, width: number, height: number): void;
-  /** The finished read's mean luminance, once its fence has signalled. */
-  collect(): number | undefined;
+  read(
+    rects: readonly TSceneProbeRect[],
+    width: number,
+    height: number,
+  ): boolean;
+  /**
+   * The finished read's mean luminance for each place, in the order asked —
+   * NaN for a place off the canvas — once its fence has signalled.
+   */
+  collect(): number[] | undefined;
   dispose(): void;
 }
 
@@ -82,7 +97,12 @@ const createSceneProbe = (
     return undefined;
   }
   gl.bindRenderbuffer(gl.RENDERBUFFER, target);
-  gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, PROBE_WIDTH, PROBE_HEIGHT);
+  gl.renderbufferStorage(
+    gl.RENDERBUFFER,
+    gl.RGBA8,
+    BLOCK_WIDTH,
+    BLOCK_HEIGHT * PROBE_MAX_PLACES,
+  );
   gl.bindRenderbuffer(gl.RENDERBUFFER, null);
   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer);
   gl.framebufferRenderbuffer(
@@ -99,40 +119,54 @@ const createSceneProbe = (
     return undefined;
   }
   gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buffer);
-  gl.bufferData(gl.PIXEL_PACK_BUFFER, PROBE_BYTES, gl.STREAM_READ);
+  gl.bufferData(
+    gl.PIXEL_PACK_BUFFER,
+    BLOCK_BYTES * PROBE_MAX_PLACES,
+    gl.STREAM_READ,
+  );
   gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
 
-  const pixels = new Uint8Array(PROBE_BYTES);
+  const pixels = new Uint8Array(BLOCK_BYTES * PROBE_MAX_PLACES);
   let fence: WebGLSync | null = null;
+  /** Which places the read in flight holds, by their place in the ask. */
+  let read: boolean[] = [];
 
   return {
-    read: (rect, width, height) => {
-      const box = pixelBox(rect, width, height);
-      if (fence || !box) {
-        return;
+    read: (rects, width, height) => {
+      if (fence) {
+        return false;
       }
+      const boxes = rects
+        .slice(0, PROBE_MAX_PLACES)
+        .map((rect) => pixelBox(rect, width, height));
+      read = boxes.map((box) => box !== undefined);
       // The blit is cut by the scissor like any draw; the frame's own
       // scissor goes back as it was found.
       const scissored = gl.isEnabled(gl.SCISSOR_TEST);
       gl.disable(gl.SCISSOR_TEST);
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer);
-      gl.blitFramebuffer(
-        ...box,
-        0,
-        0,
-        PROBE_WIDTH,
-        PROBE_HEIGHT,
-        gl.COLOR_BUFFER_BIT,
-        gl.LINEAR,
-      );
+      boxes.forEach((box, place) => {
+        if (box) {
+          const top = place * BLOCK_HEIGHT;
+          gl.blitFramebuffer(
+            ...box,
+            0,
+            top,
+            BLOCK_WIDTH,
+            top + BLOCK_HEIGHT,
+            gl.COLOR_BUFFER_BIT,
+            gl.LINEAR,
+          );
+        }
+      });
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebuffer);
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buffer);
       gl.readPixels(
         0,
         0,
-        PROBE_WIDTH,
-        PROBE_HEIGHT,
+        BLOCK_WIDTH,
+        BLOCK_HEIGHT * Math.max(1, boxes.length),
         gl.RGBA,
         gl.UNSIGNED_BYTE,
         0,
@@ -143,6 +177,7 @@ const createSceneProbe = (
         gl.enable(gl.SCISSOR_TEST);
       }
       fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+      return true;
     },
     collect: () => {
       // WebGL updates a fence's status only between tasks, so it is asked
@@ -155,10 +190,17 @@ const createSceneProbe = (
       }
       gl.deleteSync(fence);
       fence = null;
+      const bytes = BLOCK_BYTES * Math.max(1, read.length);
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buffer);
-      gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pixels);
+      gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pixels, 0, bytes);
       gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-      return meanRelativeLuminance(pixels);
+      return read.map((held, place) =>
+        held
+          ? meanRelativeLuminance(
+              pixels.subarray(place * BLOCK_BYTES, (place + 1) * BLOCK_BYTES),
+            )
+          : Number.NaN,
+      );
     },
     dispose: () => {
       if (fence) {
@@ -173,22 +215,27 @@ const createSceneProbe = (
 /**
  * The scene worker's side of it: what to read, when, and the probe on the
  * worker's current context. Asked after every drawn frame; reads every
- * `PROBE_EVERY_FRAMES` while a strip is asked for, and hands each finished
- * reading to `heard`.
+ * `PROBE_EVERY_FRAMES` while there are places to read, and hands each
+ * finished reading to `heard` with the id of the ask it was read for, so the
+ * page never pins a reading on places that have moved since.
  */
-export const createSceneProbing = (heard: (luminance: number) => void) => {
-  let rect: TSceneProbeRect | null = null;
+export const createSceneProbing = (
+  heard: (id: number, luminances: number[]) => void,
+) => {
+  let asked: { id: number; rects: readonly TSceneProbeRect[] } | undefined;
+  /** The ask the read in flight was made for. */
+  let inFlight = 0;
   let probe: ISceneProbe | null | undefined;
   let frames = 0;
   return {
-    /** The strip to read from now on; null stops reading. */
-    ask: (next: TSceneProbeRect | null) => {
-      rect = next;
+    /** The places to read from now on; none stops reading. */
+    ask: (id: number, rects: readonly TSceneProbeRect[]) => {
+      asked = rects.length > 0 ? { id, rects } : undefined;
       frames = 0;
     },
     /** A frame of `width × height` has just been drawn on the canvas. */
     drew: (gl: WebGL2RenderingContext, width: number, height: number) => {
-      if (!rect) {
+      if (!asked) {
         return;
       }
       // Made once per context; null once the context has refused it.
@@ -196,14 +243,17 @@ export const createSceneProbing = (heard: (luminance: number) => void) => {
       if (!probe) {
         return;
       }
-      const luminance = probe.collect();
-      if (luminance !== undefined) {
-        heard(luminance);
+      const luminances = probe.collect();
+      if (luminances) {
+        heard(inFlight, luminances);
       }
       frames += 1;
-      if (frames >= PROBE_EVERY_FRAMES) {
+      if (
+        frames >= PROBE_EVERY_FRAMES &&
+        probe.read(asked.rects, width, height)
+      ) {
         frames = 0;
-        probe.read(rect, width, height);
+        inFlight = asked.id;
       }
     },
     /** The context went, and its objects with it. */
