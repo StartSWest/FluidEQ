@@ -71,7 +71,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // control set: OFF is the line face - the edge at rest, no fill, the glyph in
 // the faint ink; ON is a disc of the solid accent with the glyph cut in the
 // floor's colour, the one filled control beside the players' play keys. A
-// hairline bezel 4px out gives it its make, and turns lit when on.
+// solid 3px bezel 3px out gives it its make, and turns lit when on. It was a
+// 1px hairline 4px out: a circle that thin anti-aliases into a dotted,
+// gnawed line at every scale (Ivan, 2026-11-17: "está muy fino y se ve como
+// carcomido con el aliasing"), and the key's own 1px edge the same.
 //
 // It was a domed radial-gradient disc on a cast shadow, with a 2px ring and
 // an inner highlight, and on: a three-colour dome with a lit rim; broken, a
@@ -81,10 +84,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   width: 62px;
   height: 62px;
-  margin-block: 5px 9px;
+  margin-block: 6px 10px;
   padding: 0;
   place-items: center;
-  border: 1px solid $edge-rest;
+  border: 2px solid $edge-rest;
   border-radius: 50%;
   background: none;
   box-shadow: none;
@@ -95,11 +98,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-color 160ms ease,
     background 160ms ease;
 
-  // The bezel: one hairline, 4px clear of the key.
+  // The bezel: a solid ring of the well, 3px clear of the key. Measured from
+  // the key's border box, so the 2px edge is inside the 3px gap's count.
   &::before {
     position: absolute;
-    inset: -5px;
-    border: 1px solid $card-edge;
+    inset: -8px;
+    border: 3px solid $track-well;
     border-radius: 50%;
     content: '';
     transition: border-color 160ms ease;
@@ -146,14 +150,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  // Keyboard focus is the bezel, crisp at 2px: a ring on the key itself
-  // would be lost on the lit disc.
+  // Keyboard focus is the bezel in the focus colour: a ring on the key
+  // itself would be lost on the lit disc.
   &:focus-visible {
     outline: none;
 
     &::before {
-      inset: -6px;
-      border: 2px solid $focus-edge;
+      border-color: $focus-edge;
     }
   }
 
