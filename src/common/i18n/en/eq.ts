@@ -888,8 +888,6 @@ const eq = {
   'waveform.live': 'LIVE OUTPUT',
   'waveform.signal': 'AUDIO SIGNAL',
   'waveform.clip': 'CLIP',
-  'waveform.recorderHint':
-    'the waveform of the last few seconds; red marks a clipped sample; LUFS is the loudness of the last 3 seconds',
   'autoeq.deviceAria': 'Audio device',
   'autoeq.targetAria': 'Target frequency response',
   'eq.band.edit': 'Edit {frequency} Hz band',

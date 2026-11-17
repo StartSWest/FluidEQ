@@ -842,8 +842,6 @@ const eq = {
   'waveform.live': '라이브 출력',
   'waveform.signal': '오디오 신호',
   'waveform.clip': '클립',
-  'waveform.recorderHint':
-    '최근 몇 초의 파형입니다. 빨간색은 클리핑된 샘플을 표시하며, LUFS는 최근 3초의 라우드니스입니다',
   'autoeq.deviceAria': '오디오 장치',
   'autoeq.targetAria': '목표 주파수 응답',
   'eq.band.edit': '{frequency}Hz 대역 편집',

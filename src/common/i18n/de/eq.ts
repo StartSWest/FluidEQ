@@ -888,8 +888,6 @@ const eq: Partial<Dictionary> = {
   'waveform.live': 'LIVE-AUSGABE',
   'waveform.signal': 'AUDIOSIGNAL',
   'waveform.clip': 'ÜBERSTEUERUNG',
-  'waveform.recorderHint':
-    'die Wellenform der letzten Sekunden; Rot markiert ein übersteuertes Sample; LUFS ist die Lautheit der letzten 3 Sekunden',
   'autoeq.deviceAria': 'Audiogerät',
   'autoeq.targetAria': 'Zielfrequenzgang',
   'eq.band.edit': '{frequency}-Hz-Band bearbeiten',

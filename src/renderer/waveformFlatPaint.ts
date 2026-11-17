@@ -19,15 +19,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * counted in device pixels, and a stretched box cannot say how wide one is.
  * The EQ graph's own forms still come from `createWaveformShape`.
  */
-import type {
-  IFlatMeterInput,
-  TFlatWaveformStyle,
-  TPainter,
-} from './waveformFlatKit';
+import type { WaveformStyle } from 'common/waveformStyles';
+import type { IFlatMeterInput, TPainter } from './waveformFlatKit';
 import CLASSIC_PAINTERS from './waveformFlatClassic';
 import NEW_PAINTERS from './waveformFlatNew';
 
-const PAINTERS: Record<TFlatWaveformStyle, TPainter> = {
+const PAINTERS: Record<WaveformStyle, TPainter> = {
   ...CLASSIC_PAINTERS,
   ...NEW_PAINTERS,
 };

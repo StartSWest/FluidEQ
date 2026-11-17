@@ -826,8 +826,6 @@ const eq: Partial<Dictionary> = {
   'waveform.live': '实时输出',
   'waveform.signal': '音频信号',
   'waveform.clip': '削波',
-  'waveform.recorderHint':
-    '最近几秒的波形；红色标出削波的采样；LUFS 为最近 3 秒的响度',
   'autoeq.deviceAria': '音频设备',
   'autoeq.targetAria': '目标频率响应',
   'eq.band.edit': '编辑 {frequency} Hz 频段',
