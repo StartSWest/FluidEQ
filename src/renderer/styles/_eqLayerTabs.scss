@@ -11,6 +11,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'mainContentTokens' as *;
 @use 'libraryTokens' as *;
 
+// The row's resting words and glyphs, a step brighter than the Library's
+// second and third inks they wore (68% and 44% of the primary): on the
+// graph's foot, over a scene or the plot, those read as grey (Ivan,
+// 2026-11-17: "the text a bit stronger, not so greyish, so those menus and
+// icons show better").
+$eq-row-ink: color-mix(in srgb, $text-primary 86%, transparent);
+$eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
+
 // *** The tab row ************************************************************
 
 // ONE LINE OF 40PX GLUED UNDER THE GRAPH (Ivan, 2026-11-17, B1 "grouped by
@@ -60,7 +68,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   gap: 8px;
   padding: 0;
-  color: $studio-t2;
+  color: $eq-row-ink;
   border: 0;
   background: none;
   font: inherit;
@@ -108,13 +116,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   @include truncate;
   max-width: 140px;
   padding: 2px 7px;
-  color: $studio-t2;
+  color: $eq-row-ink;
   border-radius: $radius-s;
   background: $studio-raise;
   font-size: $studio-text-meta;
 
   &.is-off {
-    color: $studio-t3;
+    color: $eq-row-ink-quiet;
   }
 }
 
@@ -153,7 +161,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .eq-tool-group__caption {
   margin: 0 4px 0 2px;
-  color: $studio-t3;
+  color: $eq-row-ink-quiet;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   @include tracking(0.12em);
@@ -176,7 +184,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     box-sizing: border-box;
     gap: 7px;
     padding: 0 10px;
-    color: $studio-t2;
+    color: $eq-row-ink;
     border: 0;
     border-radius: $radius-m;
     background: none;
