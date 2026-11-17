@@ -43,6 +43,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // row under the graph wears over a scene, so the two read as one family
   // (Ivan, 2026-11-17: "and it must be the same colour for the legend").
   background: $surface-section;
+
+  // Over a Plus scene behind the EQ page, as see-through and as blurred as
+  // the page's panels (`scenePanels.ts`, the View menu's Transparency and
+  // Blur): the card's face, thinned by the share chosen, so the legend stays
+  // one family with the tab row and the bands' card. The blur only while one
+  // is chosen, for the compositing it costs; the words take the outline they
+  // wear on the picture once a quarter of it comes through.
+  :root.is-scene-column & {
+    background: $surface-scene-panel;
+  }
+
+  :root.is-scene-column.has-scene-panel-blur & {
+    backdrop-filter: blur(var(--scene-panel-blur, 0px));
+  }
+
+  :root.is-scene-column.has-scene-panel-ink & {
+    @include over-picture-text;
+  }
 }
 
 .graph-corner-legend__list {

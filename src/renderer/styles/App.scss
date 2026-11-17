@@ -2980,9 +2980,12 @@ $graph-card-pages: list.join(
       height: calc(var(--scene-column-height, 0px) + #{$eq-row-height});
     }
 
+    // The bands' card's face from the row's foot down, as see-through as
+    // the View menu's Transparency for the page's panels says
+    // (`scenePanels.ts`; the card's own face at 0, where it starts).
     > .middle-content > .workspace-tab-panel--eq {
-      background: linear-gradient($surface-section, $surface-section) bottom /
-        100% calc(100% - #{$eq-row-height}) no-repeat;
+      background: linear-gradient($surface-scene-panel, $surface-scene-panel)
+        bottom / 100% calc(100% - #{$eq-row-height}) no-repeat;
     }
 
     // Over the scene the row lays a band after all: the page's own face
@@ -3008,7 +3011,7 @@ $graph-card-pages: list.join(
       > .workspace-tab-panel--eq
       > .workspace-tab-panel__row
       > .eq-layer-tabs {
-      background: $surface-section;
+      background: $surface-scene-panel;
     }
 
     // And the pills' row lays no face of its own over the picture: the
@@ -3018,6 +3021,46 @@ $graph-card-pages: list.join(
     > .center-head {
       background: none;
     }
+  }
+
+  // THE PANELS ARE GLASS AS FAR AS THE VIEW MENU SAYS (Ivan, 2026-11-17:
+  // "make the EQ band transparent, and have a setting for blur and
+  // transparency, for when those scenes are on"; `scenePanels.ts`).
+  // - While any of the scene comes through, the scene's layer runs on under
+  //   the bands' card to its inside foot (`--scene-column-full`, measured by
+  //   `SceneColumnLayer`), rounded as the card is there; at 0 it stops at the
+  //   row's foot as before, and no pixel under the card is drawn. The scene
+  //   keeps its framing on the plot (`sceneView.ts`), so the picture only
+  //   carries on downwards. The card stands over the layer already (the tab
+  //   panel is positioned at 1).
+  // - The blur is laid on the layer, over the picture from the graph's foot
+  //   down: a backdrop filter on the card itself would make it the box every
+  //   fixed pop-up inside it is placed in, and the band editor's dropdowns
+  //   are fixed.
+  // - From a quarter through, the card's and the row's words carry the
+  //   outline they wear on the picture.
+  :root.is-scene-column.has-scene-panel-glass & > .scene-column-layer {
+    height: var(
+      --scene-column-full,
+      calc(var(--scene-column-height, 0px) + #{$eq-row-height})
+    );
+    border-bottom-right-radius: calc(#{$radius-m} - 1px);
+    border-bottom-left-radius: calc(#{$radius-m} - 1px);
+  }
+
+  :root.is-scene-column.has-scene-panel-blur & > .scene-column-layer::after {
+    position: absolute;
+    z-index: 1;
+    inset: var(--scene-column-height, 0px) 0 0;
+    backdrop-filter: blur(var(--scene-panel-blur, 0px));
+    content: '';
+  }
+
+  :root.is-scene-column.has-scene-panel-ink
+    &
+    > .middle-content
+    > .workspace-tab-panel--eq {
+    @include over-picture-text;
   }
 
   // The divider takes no room (it was a 12px band of card) and the split

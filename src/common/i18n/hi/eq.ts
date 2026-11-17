@@ -388,6 +388,7 @@ const eq: Partial<Dictionary> = {
   'graph.family.scenes': 'सीन',
   'graph.seeThrough': 'पारदर्शिता',
   'graph.seeThroughHint': 'ग्राफ़ के आर-पार पृष्ठ कितना दिखाई दे',
+  'graph.scenePanelsHint': 'पृष्ठ के पैनलों के आर-पार सीन कितना दिखाई दे',
   'graph.blur': 'धुंधलापन',
   'graph.blurHint':
     'पीछे दिखने वाली चीज़ को धुंधला करें ताकि वह दूसरी तस्वीर की जगह रोशनी लगे',

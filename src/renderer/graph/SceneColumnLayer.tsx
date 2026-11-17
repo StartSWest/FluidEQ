@@ -57,9 +57,25 @@ export default function SceneColumnLayer() {
       const head = column.querySelector(':scope > .center-head');
       const box =
         head instanceof HTMLElement ? head.getBoundingClientRect() : undefined;
+      // And to the bands' card's inside foot, for the picture to carry on
+      // under it while the View menu lets some of it through the card
+      // (`scenePanels.ts`; the stylesheet picks which, `App.scss`). Only the
+      // EQ page has that card under its graph.
+      const card = column.querySelector(
+        ':scope > .middle-content > .workspace-tab-panel--eq',
+      );
+      const cardFoot =
+        card instanceof HTMLElement
+          ? card.getBoundingClientRect().bottom -
+            (card.offsetHeight - card.clientHeight - card.clientTop)
+          : bottom;
       layer.style.setProperty(
         '--scene-column-height',
         `${Math.max(0, bottom - top)}px`,
+      );
+      layer.style.setProperty(
+        '--scene-column-full',
+        `${Math.max(0, cardFoot - top)}px`,
       );
       publishSceneColumnHead(
         box

@@ -92,6 +92,7 @@ import {
   useBackdropVeilOnRoot,
 } from './utils/backdropVeil';
 import { applySceneDaylightScope } from './utils/sceneDaylightSetting';
+import { useScenePanelsOnRoot } from './utils/scenePanels';
 import { applySliderHandleScope } from './utils/sliderHandle';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
 import {
@@ -238,6 +239,8 @@ const AppContent = () => {
   }, [windowMode]);
   // The amp's Transparency on the root, for its glass (`_miniPlayerShell`).
   useBackdropVeilOnRoot();
+  // How much of a Plus scene comes through the EQ page's panels.
+  useScenePanelsOnRoot();
   const openPageFromPlayer = useCallback(
     (page: TPlayerPage) => {
       let tab: TWorkspaceTab = page === 'plus' ? 'community' : lastEqTab;

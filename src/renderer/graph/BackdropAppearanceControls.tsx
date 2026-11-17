@@ -1,7 +1,11 @@
 /* FluidEQ — GPL-3.0-or-later */
 import type { CSSProperties } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import { PERCENT_SNAPS, snapPercent } from '../utils/percentSnaps';
+import {
+  PERCENT_SNAPS,
+  snapFraction,
+  snapPercent,
+} from '../utils/percentSnaps';
 import { Icon } from './GraphViewMenuFrame';
 import rangeFill from '../utils/rangeFill';
 
@@ -26,6 +30,7 @@ export default function BackdropAppearanceControls({
   transparencyHint?: string;
 }) {
   const { t } = useTranslation();
+  const maxSeeThrough = Math.round((1 - minOpacity) * 100);
   return (
     <>
       <label
@@ -39,11 +44,18 @@ export default function BackdropAppearanceControls({
         </Icon>
         <span>{t('graph.seeThrough')}</span>
         <span className="graph-view-menu__track">
-          {PERCENT_SNAPS.map((snap) => (
+          {/* The quarters inside the travel: an opacity floor stops the
+              transparency short of 100 (the scene's panels at 50), and a
+              mark at or past the end has nothing to fall into. */}
+          {PERCENT_SNAPS.filter((snap) => snap < maxSeeThrough).map((snap) => (
             <i
               key={snap}
               className="graph-view-menu__snap"
-              style={{ '--snap-frac': snap / 100 } as CSSProperties}
+              style={
+                {
+                  '--snap-frac': snapFraction(snap, 0, maxSeeThrough),
+                } as CSSProperties
+              }
               aria-hidden
             />
           ))}
@@ -51,18 +63,17 @@ export default function BackdropAppearanceControls({
             id={`${idPrefix}-see-through`}
             type="range"
             aria-label={t('graph.seeThrough')}
-            min={minOpacity * 100}
-            max={100}
-            step={1}
             // Inverted, so right is more see-through. The stored value
             // is an opacity because that is what CSS wants; the slider
-            // is a transparency because that is what the label says.
+            // is a transparency because that is what the label says, so
+            // the opacity's floor is the transparency's ceiling. It was
+            // laid as the slider's floor, which only every caller's floor
+            // of 0 kept from showing.
+            min={0}
+            max={maxSeeThrough}
+            step={1}
             value={Math.round((1 - opacity) * 100)}
-            style={rangeFill(
-              Math.round((1 - opacity) * 100),
-              minOpacity * 100,
-              100,
-            )}
+            style={rangeFill(Math.round((1 - opacity) * 100), 0, maxSeeThrough)}
             onChange={(event) =>
               onChangeOpacity(1 - snapPercent(Number(event.target.value)) / 100)
             }

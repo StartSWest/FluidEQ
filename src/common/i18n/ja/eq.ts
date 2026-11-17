@@ -394,6 +394,7 @@ const eq: Partial<Dictionary> = {
   'graph.family.scenes': 'シーン',
   'graph.seeThrough': '透明度',
   'graph.seeThroughHint': 'グラフ越しにページが見える度合い',
+  'graph.scenePanelsHint': 'ページのパネル越しにシーンが見える度合い',
   'graph.blur': 'ぼかし',
   'graph.blurHint': '透ける背景をぼかし、別の画像ではなく光として見せます',
   'graph.curves': '曲線',

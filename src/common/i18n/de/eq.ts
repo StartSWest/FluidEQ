@@ -402,6 +402,8 @@ const eq: Partial<Dictionary> = {
   'graph.family.scenes': 'Szenen',
   'graph.seeThrough': 'Transparenz',
   'graph.seeThroughHint': 'Wie viel der Seite durch das Diagramm sichtbar ist',
+  'graph.scenePanelsHint':
+    'Wie viel der Szene durch die Felder der Seite sichtbar ist',
   'graph.blur': 'Unschärfe',
   'graph.blurHint':
     'Den Hintergrund weichzeichnen, damit er wie Licht statt wie ein zweites Bild wirkt',

@@ -51,6 +51,7 @@ import SceneResponseMenu from './SceneResponseMenu';
 import ScenePerformanceMenu from './ScenePerformanceMenu';
 import SceneCameraMenu from './SceneCameraMenu';
 import BackdropAppearanceControls from './BackdropAppearanceControls';
+import ScenePanelsControls from './ScenePanelsControls';
 import { PERCENT_SNAPS, snapPercent } from '../utils/percentSnaps';
 import rangeFill from '../utils/rangeFill';
 
@@ -261,6 +262,9 @@ const GraphViewMenu = ({
             </button>
 
             {backdropControls}
+            {/* The EQ page's panels over a Plus scene behind them: how much
+                of the picture comes through, and how blurred. */}
+            {view === 'normal' && sceneLookId && <ScenePanelsControls />}
             {view !== 'normal' && (
               <>
                 {/* The header's and the transport's pins are the row's own

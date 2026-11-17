@@ -396,6 +396,8 @@ const eq: Partial<Dictionary> = {
   'graph.family.scenes': 'Scene',
   'graph.seeThrough': 'Trasparenza',
   'graph.seeThroughHint': 'Quanto della pagina traspare attraverso il grafico',
+  'graph.scenePanelsHint':
+    'Quanto della scena traspare attraverso i pannelli della pagina',
   'graph.blur': 'Sfocatura',
   'graph.blurHint':
     'Sfoca ciò che traspare perché sembri luce anziché una seconda immagine',

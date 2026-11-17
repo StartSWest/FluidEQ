@@ -399,6 +399,16 @@ $card-glow: radial-gradient(
 // through, where an opaque section would stand as a slab across the picture.
 $surface-section: color-mix(in srgb, $surface-panel 85%, transparent);
 
+// The same face on the EQ page's panels over a Plus scene (the bands' card,
+// its tab row, the graph's legend), thinned by the Transparency chosen for
+// them in the View menu (`scenePanels.ts`, `--scene-panel-face`): the card's
+// own face at 0, which is where it starts.
+$surface-scene-panel: color-mix(
+  in srgb,
+  #{$surface-section} var(--scene-panel-face, 100%),
+  transparent
+);
+
 // The radius Windows 11 clips a frameless window's corners to, and therefore
 // the radius the window's own edge is drawn at (`body::after` in App.scss).
 // The system's number, not a taste: drawn larger the edge's corners fall

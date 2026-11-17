@@ -357,8 +357,9 @@ const eq = {
   'graph.family.bars': '바',
   'graph.family.points': '포인트',
   'graph.family.scenes': '장면',
-  'graph.seeThrough': '꿰뚫어보아라',
+  'graph.seeThrough': '투명도',
   'graph.seeThroughHint': '그래프를 통해 표시되는 페이지의 양',
+  'graph.scenePanelsHint': '페이지 패널을 통해 보이는 장면의 양',
   'graph.blur': '흐림',
   'graph.blurHint':
     '통해 보이는 것을 흐리게 하여 두 번째 그림이 아닌 빛으로 읽히게 합니다.',

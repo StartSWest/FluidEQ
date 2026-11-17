@@ -395,6 +395,7 @@ const eq: Partial<Dictionary> = {
   'graph.family.scenes': 'Сцены',
   'graph.seeThrough': 'Прозрачность',
   'graph.seeThroughHint': 'Насколько страница видна сквозь график',
+  'graph.scenePanelsHint': 'Насколько сцена видна сквозь панели страницы',
   'graph.blur': 'Размытие',
   'graph.blurHint':
     'Размыть фон, чтобы он выглядел как свет, а не второе изображение',

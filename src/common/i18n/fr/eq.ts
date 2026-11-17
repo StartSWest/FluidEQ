@@ -402,6 +402,8 @@ const eq: Partial<Dictionary> = {
   'graph.family.scenes': 'Scènes',
   'graph.seeThrough': 'Transparence',
   'graph.seeThroughHint': 'Part de la page visible à travers le graphique',
+  'graph.scenePanelsHint':
+    'Part de la scène visible à travers les panneaux de la page',
   'graph.blur': 'Flou',
   'graph.blurHint':
     'Floutez ce qui transparaît pour que cela ressemble à une lumière plutôt qu’à une seconde image',

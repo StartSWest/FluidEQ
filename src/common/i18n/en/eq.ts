@@ -405,6 +405,8 @@ const eq = {
   'graph.family.scenes': 'Scenes',
   'graph.seeThrough': 'See through',
   'graph.seeThroughHint': 'How much of the page shows through the graph',
+  'graph.scenePanelsHint':
+    "How much of the scene shows through the page's panels over it",
   'graph.blur': 'Blur',
   'graph.blurHint':
     'Blur what shows through, so it reads as light rather than as a second picture',

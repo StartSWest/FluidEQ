@@ -368,6 +368,7 @@ const eq: Partial<Dictionary> = {
   'graph.family.scenes': '场景',
   'graph.seeThrough': '透明度',
   'graph.seeThroughHint': '页面透过图表显示的程度',
+  'graph.scenePanelsHint': '场景透过页面面板显示的程度',
   'graph.blur': '模糊',
   'graph.blurHint': '模糊透出的内容，使其呈现为光而非第二幅图像',
   'graph.curves': '曲线',

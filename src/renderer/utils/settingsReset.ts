@@ -68,6 +68,9 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.standardPerformance',
   'fluideq.sceneResponse',
   'fluideq.sceneWaves',
+  // How much of a scene comes through the EQ page's panels, and how blurred.
+  'fluideq.scenePanelsBlur',
+  'fluideq.scenePanelsSeeThrough',
   // The window: colours, Colourful mode, Brightness, Transparency, the Tint, a
   // scene's own time of day, sparks, sliders, and how it is divided. Not the
   // language (Ivan, 2026-10-26, from the reset checklist): put back to
