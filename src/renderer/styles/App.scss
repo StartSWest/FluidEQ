@@ -2248,17 +2248,37 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     border-bottom: 0;
   }
 
+  // The pills in the tab row's own type (Ivan, 2026-11-17: "make the top
+  // menus' text a bit bigger, and the icons, the little game icon
+  // included"; "the same size as the menu below"): `$studio-text-row` and
+  // semibold, as `.eq-layer-tabs__tab`, and their glyphs and the game mode's
+  // from 14px to 16.
+  // And their ink and spacing too (Ivan: "the same type, both menus, the top
+  // and the bottom, the same"): the tab row's resting ink and its 8px
+  // between glyph and word.
+  .workspace-pill {
+    gap: 8px;
+    font-size: $studio-text-row;
+    font-weight: $weight-semibold;
+
+    &:not(.is-active) {
+      color: color-mix(in srgb, #{$text-primary} 86%, transparent);
+    }
+  }
+
+  .workspace-pill__icon > svg,
+  .engine-strip .game-mode-switch__icon {
+    width: 16px;
+    height: 16px;
+  }
+
   // Over a Plus scene its words, the engine's name and every glyph read as
-  // text on a photograph (`over-picture-text`), the resting words lifted
-  // towards white; on a standard look they are the app's plain text.
+  // text on a photograph (`over-picture-text`); on a standard look they are
+  // the app's plain text.
   :root.is-scene-column & {
     .workspace-pill,
     .eq-engine-label {
       @include over-picture-text;
-    }
-
-    .workspace-pill:not(.is-active) {
-      color: color-mix(in srgb, #{$text-primary} 82%, transparent);
     }
 
     .workspace-section-header svg {
