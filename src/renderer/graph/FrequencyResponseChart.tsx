@@ -68,11 +68,7 @@ import {
 } from './ChartController';
 import { getLineGainAtFrequency } from './utils';
 import bellGainAt from './bellDrag';
-import {
-  GRID_BOTTOM_MARGIN,
-  GRID_SIDE_MARGIN,
-  plotTopMargin,
-} from './plotMargins';
+import { GRID_BOTTOM_MARGIN, plotTopMargin } from './plotMargins';
 import { publishPlotGeometry, withdrawPlotGeometry } from './plotGeometry';
 import {
   useLiveAudioCapture,
@@ -1521,14 +1517,13 @@ const FrequencyResponseChart = ({
       // Almost none: the controls strip floats inside the plot rather than
       // over a band of its own (`plotTopMargin`).
       top: plotTopMargin(isDisplayedGridHidden),
-      // Air at the sides, so a curve running off the edge of the plot is not
-      // cut flush against the column. With the grid hidden there is nothing
-      // to read at the edges and the wave is better for having them.
-      right: isGridHidden ? 0 : GRID_SIDE_MARGIN,
+      // None at the sides: the graph reaches both edges, its scales drawn
+      // over it (`GRID_AXIS_PADDING`).
+      right: 0,
       // The frequency labels live down here, and with the grid hidden there is
       // nothing to leave room for.
       bottom: isDisplayedGridHidden ? 0 : GRID_BOTTOM_MARGIN,
-      left: isGridHidden ? 0 : GRID_SIDE_MARGIN,
+      left: 0,
     },
   };
 

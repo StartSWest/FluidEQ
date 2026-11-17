@@ -666,8 +666,10 @@ const Chart = ({
         {/* The scales, in the same group as the lines they label. A decibel axis
           beside a plot with no grid is a ruler with no marks on it. */}
         <g className="chart-grid">
+          {/* Inside the plot's left edge, reading rightward: the graph
+            reaches the side under it (`GRID_AXIS_PADDING`). */}
           <Axis
-            type="left"
+            type="right"
             scale={yScaleEq}
             transform={`translate(${padding.left}, 0)`}
             tickValues={gainTickValues}
@@ -687,7 +689,7 @@ const Chart = ({
             Curve stage) — when there is nothing on the plot it measures. */}
           {levelAxisSuitsLook(look.style) && liveCurves.length > 0 ? (
             <Axis
-              type="right"
+              type="left"
               scale={liveLevelScale}
               transform={`translate(${padding.left + plotWidth}, 0)`}
               tickValues={liveLevelTickValues}

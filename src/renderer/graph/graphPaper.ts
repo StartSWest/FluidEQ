@@ -26,10 +26,11 @@ import signedTick from './signedTick';
 /**
  * The gutters the scales live in, inside the chart's own box.
  *
- * Fifty pixels down the left for the decibel labels and thirty along the bottom
- * for the frequency marks; the ten at the top is half a line of headroom, since
- * axis labels are centred on their tick and the topmost one (+20 dB) would
- * otherwise be cut in half by the viewport.
+ * None at the sides: the graph reaches both edges and the gain and level
+ * scales are drawn over it, just inside them (Ivan, 2026-11-16: "make side
+ * numbers inside the graph itself so the graph fills the entire width").
+ * Thirty along the bottom for the frequency marks; the top is the handles'
+ * headroom.
  */
 // A band's handle is a 12px circle when it is selected, drawn centred on
 // the curve, and the plot clips at its edge: a band at +20 dB with less
@@ -40,18 +41,17 @@ import signedTick from './signedTick';
 const HANDLE_INSET = 14;
 
 const GRID_AXIS_PADDING: IMarginLike = {
-  left: 50,
+  left: 0,
   top: HANDLE_INSET,
   /**
-   * The level scale's gutter, and it was 0 while this plot had only one axis.
-   *
-   * Two quantities were sharing the left-hand numbers: the EQ response is dB
-   * of GAIN, while the live output area behind it is a LEVEL, and nothing on
-   * screen said so. A band of the trace sitting on the 0 dB line was being
-   * read as "0 dB" when it is really 20 dB below the programme's own peak.
-   * Wide enough for "-40 dB" at 0.75rem.
+   * The level scale is drawn inside the right edge, as the gain scale is
+   * inside the left (`Chart.tsx`). It is a scale of its own because two
+   * quantities were sharing the left-hand numbers: the EQ response is dB of
+   * GAIN, while the live output area behind it is a LEVEL, and a band of the
+   * trace on the 0 dB line was read as "0 dB" when it is 20 dB below the
+   * programme's own peak.
    */
-  right: 48,
+  right: 0,
   // The frequency labels and nothing under them: they end 21px below the
   // bottom rule (7 of tick padding and the line of text), and 7px more puts
   // them in the middle between that rule and the divider's line, which is
@@ -135,17 +135,18 @@ export const getDrawingPadding = (
  * and equaliser draws, a fixed scale rather than the bands' own frequencies,
  * which their sliders and handles already carry (Ivan, 2026-09-23: "should the
  * follow the eq band settings or they should have an standard grahp freq
- * numbers"). 10 Hz is the plot's left edge (`GRAPH_START`), labelled so the
- * octave under 20 Hz reads as part of it.
+ * numbers"). 10 Hz and 20 kHz are the plot's edges (`GRAPH_START`,
+ * `GRAPH_END`) and go unlabelled; 16 kHz is the last label, standing for
+ * the top octave (Ivan, 2026-11-16: "display the 16k instead of 20k").
  */
 export const FREQUENCY_MAJOR_TICKS = [
-  10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000,
+  20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 16000,
 ];
 
 /** Between the decades, at half their ink and unlabelled. */
 export const FREQUENCY_MINOR_TICKS = [
   40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600, 1800, 4000,
-  6000, 8000, 12000, 14000, 16000, 18000,
+  6000, 8000, 12000, 14000, 18000,
 ];
 
 /**

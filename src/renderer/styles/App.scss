@@ -2995,31 +2995,23 @@ $graph-card-pages: list.join(
 // the right of all"). With the bands scrolling as well as placed: there the
 // panel's 12 and a gutter for a scrollbar the page never shows stood the
 // scale 21px in.
+//
+// Up against the graph, grid or none: the page's first row is its tabs (Your
+// EQ, Preset, Tone), which stand straight under the divider's line. The 20px
+// of air above it (the panel's 10, the scroller's 10) held the bands off the
+// frequency labels when the bands were the first row; under the tabs it was
+// a band of empty page between the graph and the EQ (Ivan, 2026-11-16:
+// "reduce the gap between the graph and the EQ"). Gridless, it was taken
+// out on 2026-09-26 for the same reason ("when grid is off remove slider
+// gap").
 .workspace-tab-panel--eq:has(> .workspace-tab-panel__scroll) {
   padding-inline: 0;
-
-  > .workspace-tab-panel__scroll {
-    padding-inline: 10px;
-    scrollbar-gutter: auto;
-  }
-}
-
-// And up against the graph when the grid is off. The page's 20px of air
-// above its first row (the panel's 10, the scroller's 10) was there to hold
-// the bands off the frequency labels at the foot of a ruled plot; a gridless
-// plot has none, and its picture now stands on the divider's line
-// (`getDrawingPadding`), so the air was a strip of bare floor between the
-// picture and the sliders (Ivan, 2026-09-26: "when grid is off remove slider
-// gap"). What is left is the row's own 6px and each band's 4: a caption
-// 11px under the line, room for its hover and the selection's glow.
-.center-workspace:has(> .graph-wrapper.is-gridless)
-  .workspace-tab-panel--eq:has(
-    > .workspace-tab-panel__scroll .main-content.is-placed
-  ) {
   padding-top: 0;
 
   > .workspace-tab-panel__scroll {
+    padding-inline: 10px;
     padding-top: 0;
+    scrollbar-gutter: auto;
   }
 }
 
