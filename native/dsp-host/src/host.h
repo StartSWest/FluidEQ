@@ -337,6 +337,8 @@ void select_deck(HostState& state, const FeqWireCommandFrame& frame);
 void crossfade(HostState& state, const FeqWireCommandFrame& frame);
 bool set_crossfade_table(HostState& state, const FeqWireCommandFrame& frame);
 bool set_track_gains(HostState& state, const FeqWireCommandFrame& frame);
+void set_deck_gains(HostState& state, const FeqWireCommandFrame& frame);
+bool load_layer(HostState& state, const FeqWireCommandFrame& frame);
 
 }  // namespace feq_host
 

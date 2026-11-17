@@ -12,7 +12,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *  - `player_roles.cpp`, what any thread may ask: a cut, a fade, which deck
  *    is heard, answered as if every change asked for were already made;
  *  - `player_render.cpp`, the audio thread, which alone decides what is
- *    heard and carries out every change at the top of a block.
+ *    heard and carries out every change at the top of a block;
+ *  - `player_layers.cpp` and `player_layer_mix.cpp`, a deck's layer and its
+ *    two gains, the decoder's half and the audio thread's
+ *    (`player_layer.h`).
  */
 #ifndef FLUIDEQ_PLAYER_INTERNAL_H
 #define FLUIDEQ_PLAYER_INTERNAL_H
@@ -20,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/player.h"
 
 #include "fluideq/resampler.h"
+#include "player_layer.h"
 #include "ring.h"
 
 #include <atomic>
@@ -82,6 +86,17 @@ inline RoleRequest unpack_request(uint64_t word) {
 }
 
 inline uint32_t other_deck(uint32_t deck) { return deck == 0 ? 1u : 0u; }
+
+/** `channels` spans of `frames` in one allocation, and a pointer to each. */
+inline void plan_planar(std::vector<float>& storage,
+                        std::vector<float*>& pointers, uint32_t channels,
+                        uint32_t frames) {
+  storage.assign(static_cast<size_t>(channels) * frames, 0.0f);
+  pointers.assign(channels, nullptr);
+  for (uint32_t channel = 0; channel < channels; ++channel) {
+    pointers[channel] = storage.data() + static_cast<size_t>(channel) * frames;
+  }
+}
 
 struct Deck {
   void* handle = nullptr;
@@ -190,6 +205,10 @@ struct FeqPlayer {
   FeqDecoderOps ops{};
 
   feq_player::Deck decks[FEQ_PLAYER_DECKS];
+  /** Each deck's layer and gains (`player_layer.h`). */
+  feq_player::DeckLayer layers[FEQ_PLAYER_DECKS];
+  /** `kLayerGlideSeconds` at the device rate. */
+  uint32_t glide_frames = 0;
   /**
    * The deck heard, and the one a running fade is heading for.
    *
@@ -247,6 +266,10 @@ struct FeqPlayer {
   /** Audio-thread scratch for the two decks, allocated once. */
   std::vector<float> mix_storage[FEQ_PLAYER_DECKS];
   std::vector<float*> mix_pointers[FEQ_PLAYER_DECKS];
+  /** Audio-thread scratch for a block of a layer, and which frames it has. */
+  std::vector<float> layer_storage;
+  std::vector<float*> layer_pointers;
+  std::vector<uint8_t> layer_valid;
 };
 
 /* What the audio thread's two files both ask of a deck. Audio thread only. */

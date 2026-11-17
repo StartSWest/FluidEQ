@@ -24,9 +24,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * - A clock fine enough for a lyric wipe (`karaokeHostClock.ts`).
  * - Its faders: the backing fader is the host's volume, and a separated song
  *   is the backing track with its voice LAYERED on the same deck, each at its
- *   own gain (`nativeMirrorMix.ts`) — which no host does yet, so a separated
- *   song plays on the element until one does (`setDeckGain` in main's
- *   `wire.ts`).
+ *   own gain (`nativeMirrorMix.ts`). A host built before layers says so to
+ *   the probe (`setDeckGain` in main's `wire.ts`), and a separated song
+ *   plays on the element there.
  *
  * Off the host altogether, and on the element as before: while the Maker is
  * open — its auditions time themselves sample by sample on the element — on a

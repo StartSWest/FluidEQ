@@ -17,9 +17,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Three threads, and which one may call what is part of the contract:
  *
  *  - the audio callback calls `feq_player_render` and nothing else;
- *  - one decoder thread calls `load`, `seek`, `unload` and `pump`;
- *  - any thread may read the position and state, and ask for a cut or a
- *    fade (`select`, `start_crossfade`).
+ *  - one decoder thread calls `load`, `load_layer`, `seek`, `unload` and
+ *    `pump`;
+ *  - any thread may read the position and state, ask for a cut or a fade
+ *    (`select`, `start_crossfade`), and set a deck's two gains.
  *
  * Which deck is heard belongs to the audio thread. A cut or a fade is asked
  * for, and made at the top of the next block, the newest request replacing
@@ -165,7 +166,47 @@ uint32_t feq_player_pump(FeqPlayer* player);
  */
 uint64_t feq_player_frames_taken(const FeqPlayer* player);
 
+/**
+ * A deck's LAYER: a second file the deck plays sample-locked with its own,
+ * at a gain of its own — the Karaoke's backing track and its separated
+ * voice, under two faders. A null or empty path takes the layer off.
+ * Non-zero on success; taking it off always succeeds.
+ *
+ * Locked by construction rather than kept in step: the layer's read-ahead
+ * is indexed by the deck's own read cursor, so frame N of the layer can
+ * only ever be mixed with the deck frame it was decoded for. There is no
+ * second clock to drift, no resynchronising, and nothing for a seek, a
+ * pause or a fade to part — the Karaoke used to run the voice as a Web
+ * Audio buffer beside the element and pull it back whenever the two had
+ * drifted 120 ms apart.
+ *
+ * The layer joins at the frame the deck has reached (or where a seek or a
+ * load still on its way will put it), coming in over 20 ms unless it starts
+ * with the deck's own content; one replacing another starts after the old
+ * one has left, over the same 20 ms. Loading or unloading the deck takes its
+ * layer off and puts the layer's gain at 0, so a layer on a new track is
+ * silent until `feq_player_set_layer_gain`; a replacement keeps the gain. A
+ * seek moves the layer with the deck. A layer frame that has not been
+ * decoded yet, is past the layer's end, or belongs to a file that would not
+ * open is silence for that frame — the deck never waits for it.
+ *
+ * Refused (zero) on a deck with nothing loaded: there is nothing to lock to.
+ */
+int feq_player_load_layer(FeqPlayer* player, uint32_t deck, const char* path);
+
 /* ------------------------------------------------------ any thread ------ */
+
+/**
+ * The gain of a deck's own file, and of its layer: linear, 0 to 1, each
+ * gliding over 20 ms from wherever it had reached, so a dragged fader is a
+ * slope and never a step. A load or an unload puts the deck's own gain back
+ * to 1 at the frame the new content begins, and the layer's to 0.
+ */
+void feq_player_set_deck_gain(FeqPlayer* player, uint32_t deck, double gain);
+void feq_player_set_layer_gain(FeqPlayer* player, uint32_t deck, double gain);
+
+/** Non-zero while `deck` has a layer that opened. */
+int feq_player_has_layer(const FeqPlayer* player, uint32_t deck);
 
 void feq_player_set_playing(FeqPlayer* player, int playing);
 int feq_player_is_playing(const FeqPlayer* player);

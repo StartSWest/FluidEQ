@@ -53,17 +53,21 @@ inline int finish() {
  * so a test can name the exact frame it is looking at, which is what makes the
  * seek check possible at all; "dc:<rate>:<frames>:<level>" holds one value, so
  * a mix of tracks reads as the sum of their levels and says which is heard.
+ * Any of them prefixed "neg" is the same signal upside down, so a file
+ * layered over its own negative sums to exactly nothing while the two are
+ * in step, and to the drift between them when they are not.
  */
 struct Source {
   bool ramp = false;
   bool dc = false;
+  bool negated = false;
   uint32_t rate = 48000;
   uint64_t frames = 0;
   double hz = 0.0;
   uint64_t position = 0;
 };
 
-inline double sample_at(const Source& source, uint64_t frame) {
+inline double plain_sample_at(const Source& source, uint64_t frame) {
   if (source.ramp) {
     // One per frame, scaled so a whole track stays inside a float's exact
     // integer range and a test can read the frame number back out.
@@ -74,6 +78,11 @@ inline double sample_at(const Source& source, uint64_t frame) {
   }
   return std::sin((2.0 * kPi * source.hz * static_cast<double>(frame)) /
                   static_cast<double>(source.rate));
+}
+
+inline double sample_at(const Source& source, uint64_t frame) {
+  const double value = plain_sample_at(source, frame);
+  return source.negated ? -value : value;
 }
 
 /** Split on colons. Hand-rolled because MSVC rejects `sscanf` under /WX. */
@@ -98,10 +107,12 @@ inline void* decoder_open(void* /*user*/, const char* path,
     return nullptr;
   }
   auto* source = new Source();
-  source->ramp = parts[0] == "ramp";
-  source->dc = parts[0] == "dc";
+  source->negated = parts[0].rfind("neg", 0) == 0;
+  const std::string kind = source->negated ? parts[0].substr(3) : parts[0];
+  source->ramp = kind == "ramp";
+  source->dc = kind == "dc";
   if (!source->ramp &&
-      ((parts[0] != "tone" && parts[0] != "dc") || parts.size() < 4)) {
+      ((kind != "tone" && kind != "dc") || parts.size() < 4)) {
     delete source;
     return nullptr;
   }

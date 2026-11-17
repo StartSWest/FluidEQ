@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * may ask is `player_roles.cpp`'s.
  */
 
+#include "player_decode.h"
 #include "player_internal.h"
 
 using feq_player::Deck;
@@ -24,15 +25,6 @@ namespace {
  * file is open, short enough that pressing play still feels immediate.
  */
 constexpr double kPrimeSeconds = 0.25;
-
-void plan_buffers(std::vector<float>& storage, std::vector<float*>& pointers,
-                  uint32_t channels, uint32_t frames) {
-  storage.assign(static_cast<size_t>(channels) * frames, 0.0f);
-  pointers.assign(channels, nullptr);
-  for (uint32_t channel = 0; channel < channels; ++channel) {
-    pointers[channel] = storage.data() + static_cast<size_t>(channel) * frames;
-  }
-}
 
 /** The file's decoder goes; the frames it already decoded stay in the ring. */
 void release_decoder(FeqPlayer* player, Deck& deck) {
@@ -49,88 +41,35 @@ void release_decoder(FeqPlayer* player, Deck& deck) {
   deck.pending_at = 0;
 }
 
-/** Everything written from here on is the new content (`Deck::switch_to`). */
-void post_switch(FeqPlayer* player, Deck& deck) {
-  deck.switch_to.store(deck.ring.write_cursor(), std::memory_order_release);
+/**
+ * Everything written from here on is the new content (`Deck::switch_to`),
+ * and the deck's layer comes off at the same cursor.
+ */
+void post_switch(FeqPlayer* player, uint32_t index) {
+  Deck& deck = player->decks[index];
+  const uint64_t anchor = deck.ring.write_cursor();
   const uint64_t stamp =
       player->switch_counter.fetch_add(1, std::memory_order_acq_rel) + 1;
+  // Before the switch is posted, so a reader that takes it finds the layer
+  // gone and both gains back at 1 and 0 for the new content — stamped with
+  // it, so the old content's last block never glides toward them, and a
+  // fader set after this is not undone (`pack_gain`).
+  feq_player::reset_layer_gains(player->layers[index], stamp);
+  feq_player::layer_follows_switch(player, index, anchor);
+  deck.switch_to.store(anchor, std::memory_order_release);
   deck.switch_stamp.store(stamp, std::memory_order_release);
 }
 
 /**
- * Move one chunk from the decoder into the ring, converting on the way.
- *
- * Returns device-rate frames written. Zero means either the ring is full or
- * the file is finished — flushed to its last frame — and the caller
- * distinguishes them by `exhausted`. Never zero with room left and more of
- * the file to go: the decoder thread sleeps on a zero until the audio thread
- * takes frames. Recurses at most twice to keep that promise (a converter
- * window filled without output, then a file that ended on a chunk boundary).
+ * Move one chunk from the decoder into the ring, converting on the way
+ * (`decode_ahead`). Returns device-rate frames written; zero is a full ring
+ * or a finished file, never room left with the file unread.
  */
 uint32_t fill_deck(FeqPlayer* player, Deck& deck) {
-  if (deck.handle == nullptr || deck.resampler == nullptr) {
-    return 0;
-  }
-  const uint32_t room = deck.ring.space();
-  if (room == 0) {
-    return 0;
-  }
-
-  if (deck.pending_at >= deck.pending) {
-    if (deck.exhausted.load(std::memory_order_acquire) != 0) {
-      // The file is done, but half the resampler's window is still inside it.
-      // A fifth of a millisecond, which is inaudible alone and a click at the
-      // end of every track on a gapless album.
-      const uint32_t span = room < player->max_frames ? room : player->max_frames;
-      const uint32_t flushed = feq_resampler_flush(
-          deck.resampler, deck.converted_pointers.data(), span);
-      if (flushed == 0) {
-        return 0;
-      }
-      const auto* const* source =
-          reinterpret_cast<const float* const*>(deck.converted_pointers.data());
-      const uint32_t written = deck.ring.write(source, flushed);
-      deck.decoded.fetch_add(written, std::memory_order_acq_rel);
-      return written;
-    }
-    deck.pending =
-        player->ops.read(player->ops.user, deck.handle,
-                         deck.decoded_pointers.data(), FEQ_PLAYER_DECODE_CHUNK);
-    deck.pending_at = 0;
-    if (deck.pending < FEQ_PLAYER_DECODE_CHUNK) {
-      deck.exhausted.store(1, std::memory_order_release);
-    }
-    if (deck.pending == 0) {
-      // The file ended on a chunk boundary: straight on to the converter's
-      // flush above, rather than zero and a sleep with the tail still inside.
-      return fill_deck(player, deck);
-    }
-  }
-
-  const uint32_t span = room < player->max_frames ? room : player->max_frames;
-  // Held on the deck rather than built per call. This is not the audio thread,
-  // but a decoder that allocates on every chunk allocates a few thousand times
-  // a minute for a pointer array whose length never changes.
-  for (uint32_t channel = 0; channel < player->channels; ++channel) {
-    deck.source_pointers[channel] =
-        deck.decoded_pointers[channel] + deck.pending_at;
-  }
-  uint32_t consumed = 0;
-  const uint32_t produced = feq_resample(
-      deck.resampler, deck.source_pointers.data(),
-      deck.pending - deck.pending_at, deck.converted_pointers.data(), span,
-      &consumed);
-  deck.pending_at += consumed;
+  const uint32_t produced =
+      feq_player::decode_ahead(player, deck, deck.ring.space());
   if (produced == 0) {
-    /**
-     * Frames taken into the converter's window without one coming out: the
-     * tail of a chunk too short to centre the next output on, or the first
-     * half-window of a file. The next chunk finishes the job, so this is not
-     * "nothing to do" — and zero is what tells the decoder thread to sleep
-     * until the audio thread takes frames, with room in the ring and the
-     * file unfinished. It used to be rescued by the next 5 ms poll.
-     */
-    return consumed > 0 ? fill_deck(player, deck) : 0;
+    return 0;
   }
   const auto* const* converted =
       reinterpret_cast<const float* const*>(deck.converted_pointers.data());
@@ -169,26 +108,37 @@ FeqPlayer* feq_player_create(double output_rate,
    * them is a difference a listener would attribute to the DSP.
    */
   player->soft_start_frames = static_cast<uint32_t>(output_rate * 0.08);
+  player->glide_frames = static_cast<uint32_t>(
+      output_rate * feq_player::kLayerGlideSeconds);
   feq_crossfader_init(&player->fader);
 
   for (uint32_t index = 0; index < FEQ_PLAYER_DECKS; ++index) {
     Deck& deck = player->decks[index];
     deck.ring.reset(channels, player->read_ahead);
-    plan_buffers(deck.decoded_storage, deck.decoded_pointers, channels,
-                 FEQ_PLAYER_DECODE_CHUNK);
+    feq_player::plan_planar(deck.decoded_storage, deck.decoded_pointers,
+                            channels, FEQ_PLAYER_DECODE_CHUNK);
     // The converter can emit more frames than it consumes when upsampling, so
     // its output buffer is sized for the block rather than for the chunk.
-    plan_buffers(deck.converted_storage, deck.converted_pointers, channels,
-                 maximum_block_frames);
+    feq_player::plan_planar(deck.converted_storage, deck.converted_pointers,
+                            channels, maximum_block_frames);
     deck.source_pointers.assign(channels, nullptr);
     // A tail is one entry's length, the most any change plays out.
-    plan_buffers(deck.tail_storage, deck.tail_pointers, channels,
-                 player->soft_start_frames);
-    plan_buffers(player->mix_storage[index], player->mix_pointers[index],
-                 channels, maximum_block_frames);
+    feq_player::plan_planar(deck.tail_storage, deck.tail_pointers, channels,
+                            player->soft_start_frames);
+    feq_player::plan_planar(player->mix_storage[index],
+                            player->mix_pointers[index], channels,
+                            maximum_block_frames);
     player->level_published[index].store(index == 0 ? 1.0f : 0.0f,
                                          std::memory_order_release);
+    // The deck's own file at full level and no layer heard: what a load
+    // resets them to, for content stamped 0, which is none yet.
+    feq_player::reset_layer_gains(player->layers[index], 0);
+    player->layers[index].own.snap(1.0f);
+    player->layers[index].layer.snap(0.0f);
   }
+  feq_player::plan_planar(player->layer_storage, player->layer_pointers,
+                          channels, maximum_block_frames);
+  player->layer_valid.assign(maximum_block_frames, 0);
   return player;
 }
 
@@ -198,6 +148,9 @@ void feq_player_destroy(FeqPlayer* player) {
   }
   for (auto& deck : player->decks) {
     release_decoder(player, deck);
+  }
+  for (auto& layer : player->layers) {
+    feq_player::release_layer(player, layer);
   }
   delete player;
 }
@@ -222,7 +175,7 @@ int feq_player_load(FeqPlayer* player, uint32_t deck_index, const char* path) {
     // leaves under its tail rather than playing on to the end of the
     // read-ahead and stopping there.
     deck.state.store(FEQ_DECK_EMPTY, std::memory_order_release);
-    post_switch(player, deck);
+    post_switch(player, deck_index);
     return 0;
   }
   deck.info = info;
@@ -233,12 +186,12 @@ int feq_player_load(FeqPlayer* player, uint32_t deck_index, const char* path) {
   if (deck.resampler == nullptr) {
     release_decoder(player, deck);
     deck.state.store(FEQ_DECK_EMPTY, std::memory_order_release);
-    post_switch(player, deck);
+    post_switch(player, deck_index);
     return 0;
   }
   // Before any frame of the new file is written: this thread is the ring's
   // only writer, so everything after this cursor is the new file's.
-  post_switch(player, deck);
+  post_switch(player, deck_index);
   deck.state.store(FEQ_DECK_READY, std::memory_order_release);
   return 1;
 }
@@ -252,7 +205,7 @@ void feq_player_unload(FeqPlayer* player, uint32_t deck_index) {
   deck.state.store(FEQ_DECK_EMPTY, std::memory_order_release);
   // The read-ahead used to play on after an unload, up to two seconds of a
   // track that was meant to be gone. It goes now, under its tail.
-  post_switch(player, deck);
+  post_switch(player, deck_index);
 }
 
 int feq_player_seek(FeqPlayer* player, uint32_t deck_index, double seconds) {
@@ -281,7 +234,12 @@ int feq_player_seek(FeqPlayer* player, uint32_t deck_index, double seconds) {
   deck.decoded.store(0, std::memory_order_release);
   // Recorded BEFORE any post-seek frame is written, so the reader drops
   // exactly what was decoded for the old position and keeps what follows.
-  deck.flush_to.store(deck.ring.write_cursor(), std::memory_order_release);
+  const uint64_t flush_to = deck.ring.write_cursor();
+  // The layer moves first: a reader that takes the flush then hears the
+  // generation decoded for the new place, never what the layer had already
+  // decoded past `flush_to` for the old one (`layer_takes_seek`).
+  feq_player::layer_follows_seek(player, deck_index, flush_to, clamped);
+  deck.flush_to.store(flush_to, std::memory_order_release);
   deck.flush_request.fetch_add(1, std::memory_order_acq_rel);
   /**
    * The playhead has moved to a sample that is almost certainly not zero, and
@@ -312,8 +270,21 @@ uint32_t feq_player_pump(FeqPlayer* player) {
     return 0;
   }
   uint32_t total = 0;
-  for (auto& deck : player->decks) {
+  for (uint32_t index = 0; index < FEQ_PLAYER_DECKS; ++index) {
+    Deck& deck = player->decks[index];
+    /**
+     * The layer a block ahead of its deck at every step, never behind it.
+     *
+     * The audio thread reads a deck's frames the moment they are written, and
+     * a layer filled after its deck — the whole two seconds of it, after a
+     * seek — would be missing from the first frames played at the new place:
+     * the voice coming in late, over its entry, on every scrub. A
+     * `fill_deck` writes a block at most, so a layer filled to a block past
+     * the deck before each one is there first.
+     */
     for (;;) {
+      total += feq_player::fill_layer(
+          player, index, deck.ring.write_cursor() + player->max_frames);
       const uint32_t written = fill_deck(player, deck);
       if (written == 0) {
         break;

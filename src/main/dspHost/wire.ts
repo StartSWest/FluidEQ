@@ -124,9 +124,10 @@ export const HOST_COMMANDS = {
   /**
    * A deck's LAYER: a second file the deck plays in lockstep with its own,
    * each at a gain of its own — the Karaoke's backing track and its separated
-   * voice, under two faders. Not built into the host yet; the contract the
-   * native side has to meet is written down here, beside the numbers, so the
-   * two halves cannot be read apart.
+   * voice, under two faders. The host side is `feq_player_load_layer` and its
+   * neighbours in the native player (`player.h`), held by
+   * `player_layer_test.cpp`; the contract is written down here too, beside
+   * the numbers, so the two halves cannot be read apart.
    *
    * `setDeckGain` (24): `parameterIndex` the deck, `value` the linear gain of
    * the deck's own file, 0 to 1, gliding over 20 ms as the volume does. No
@@ -139,15 +140,18 @@ export const HOST_COMMANDS = {
    * `loadLayer` (25): `parameterIndex` the deck, `parameterId` the byte length
    * of the UTF-8 path that follows; zero bytes takes the layer off. Sent only
    * to a host that answered `setDeckGain` APPLIED. The layer is decoded by the
-   * deck's decoder thread into a read-ahead of its own and cued to the frame
-   * the deck's own file has reached, in the same command; every move of the
-   * deck afterwards (SEEK_DECK, a cue inside LOAD_DECK) moves the layer to the
-   * same frame in the same command; a LOAD_DECK or UNLOAD_DECK of the deck
-   * takes the layer off. The audio thread sums `own * deckGain + layer * layerGain`, and when
-   * either read-ahead is short of a block it renders that block silent and
-   * advances NEITHER — the two never part, which is the whole point of having
-   * the host mix them rather than two players. A layer shorter than its deck
-   * plays silence past its end; the deck's position, duration and state in
+   * deck's decoder thread into a read-ahead indexed by the DECK's own frame
+   * counter, so a layer frame can only ever be mixed with the deck frame it
+   * was decoded for: joined where the deck has reached (in over 20 ms) or
+   * from the first frame of a load or seek still on its way; moved by every
+   * SEEK_DECK of the deck in the same command; taken off by every LOAD_DECK or
+   * UNLOAD_DECK of it, which also puts the two gains back to 1 and 0. The
+   * audio thread sums `own * deckGain + layer * layerGain`. A layer frame not
+   * decoded yet, past the layer's end or of a file that would not open is
+   * silence for that frame, coming back in over 20 ms — the deck never waits
+   * for its layer, and the two never part, which is the whole point of having
+   * the host mix them rather than two players. Taken off or replaced, the
+   * layer leaves over 20 ms. The deck's position, duration and state in
    * telemetry stay the deck's own file's.
    *
    * `setLayerGain` (26): `parameterIndex` the deck, `value` the layer's gain,

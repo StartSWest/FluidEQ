@@ -6,11 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The decks' commands: loading, emptying, seeking, the cut and the fade that
- * put a deck on the path, the fade's drawn shape, and a track's gains.
+ * put a deck on the path, the fade's drawn shape, a track's gains, and a
+ * deck's layer with its two faders.
  */
 #include "host.h"
 
 #include <cmath>
+#include <cstdio>
 #include <mutex>
 #include <string>
 
@@ -51,6 +53,9 @@ bool load_deck(HostState& state, const FeqWireCommandFrame& frame) {
         // fade or the cut starts on the cue instead of after a load.
         loaded = std::fabs(note.cue_seconds - cue) < 1e-3 ||
                  feq_player_seek(state.player, deck, cue) != 0;
+        // A LOAD_DECK takes the deck's layer off, readied or not: the app
+        // forgets it on every load (`forgetLayerOn` in the renderer).
+        feq_player_load_layer(state.player, deck, nullptr);
       } else {
         loaded = feq_player_load(state.player, deck, path.c_str()) != 0;
         // Cued in the same command, before the deck can be heard: a
@@ -237,6 +242,70 @@ bool set_track_gains(HostState& state, const FeqWireCommandFrame& frame) {
   state.track_gains.publish(gains[0], gains[1], frame.parameter_id != 0);
   send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
            gains[0]);
+  return true;
+}
+
+/**
+ * SET_DECK_GAIN and SET_LAYER_GAIN: a deck's own file's gain, or its layer's.
+ *
+ * APPLIED for any deck that exists, a device open or not: the app reads the
+ * answer to the first one as whether this binary plays layers at all
+ * (`supportsLayers` in main's supervisor), and a host asked before its
+ * device started still does. A load resets both gains anyway, and the app
+ * sends them again after every load.
+ */
+void set_deck_gains(HostState& state, const FeqWireCommandFrame& frame) {
+  const auto deck = static_cast<uint32_t>(frame.parameter_index);
+  if (deck >= FEQ_PLAYER_DECKS) {
+    send_ack(frame.request_id, FEQ_WIRE_REJECTED, frame.settings_revision, 0,
+             0.0);
+    return;
+  }
+  const double wanted = frame.value;
+  const double clamped = !(wanted >= 0.0) ? 0.0 : (wanted > 1.0 ? 1.0 : wanted);
+  if (state.player != nullptr) {
+    if (frame.command == FEQ_CMD_SET_DECK_GAIN) {
+      feq_player_set_deck_gain(state.player, deck, clamped);
+    } else {
+      feq_player_set_layer_gain(state.player, deck, clamped);
+    }
+  }
+  send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+           clamped);
+}
+
+/** LOAD_LAYER: a second file on a deck, locked to it, or the layer off. */
+bool load_layer(HostState& state, const FeqWireCommandFrame& frame) {
+  // Read whatever happens next: a path left in the pipe would be read as the
+  // next frame, and every command after it with it.
+  if (!payload_within(frame.parameter_id, kMaxPathBytes, "layer path")) {
+    return false;
+  }
+  std::string path(frame.parameter_id, '\0');
+  if (frame.parameter_id > 0 && !read_exact(path.data(), path.size())) {
+    return false;
+  }
+  const auto deck = static_cast<uint32_t>(frame.parameter_index);
+  bool applied = false;
+  {
+    const std::lock_guard<std::mutex> held(state.decoder_mutex);
+    if (state.player != nullptr && deck < FEQ_PLAYER_DECKS) {
+      applied = feq_player_load_layer(state.player, deck,
+                                      path.empty() ? nullptr : path.c_str()) !=
+                0;
+    } else {
+      // No player is a deck with no layer on it already.
+      applied = path.empty() && deck < FEQ_PLAYER_DECKS;
+    }
+  }
+  if (!applied) {
+    std::fprintf(stderr, "FluidEQ-DSP: layer refused on deck %u\n", deck);
+  }
+  // Placed where the deck is and waiting to be decoded, which nothing the
+  // audio thread takes would say.
+  state.decoder_bell.ring();
+  send_ack(frame.request_id, applied ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+           frame.settings_revision, 0, 0.0);
   return true;
 }
 

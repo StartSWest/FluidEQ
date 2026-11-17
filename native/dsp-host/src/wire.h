@@ -231,7 +231,22 @@ enum FeqWireCommand {
    * doing nothing. A zero-length payload unloads.
    */
   FEQ_CMD_LOAD_VOICE_MODEL = 22,
-  FEQ_CMD_SET_RAW_SHARING = 23
+  FEQ_CMD_SET_RAW_SHARING = 23,
+  /**
+   * A deck's own file's gain: `parameter_index` the deck, `value` linear 0 to
+   * 1, gliding over 20 ms. No payload, on purpose: it is what the app probes
+   * for layers with, and a host built before them answers UNSUPPORTED and
+   * reads nothing more (`setDeckGain` in main's `wire.ts`).
+   */
+  FEQ_CMD_SET_DECK_GAIN = 24,
+  /**
+   * A second file on a deck, sample-locked to it (`feq_player_load_layer`):
+   * `parameter_index` the deck, `parameter_id` the byte length of the UTF-8
+   * path that follows. Zero bytes takes the layer off.
+   */
+  FEQ_CMD_LOAD_LAYER = 25,
+  /** The layer's gain, as SET_DECK_GAIN's. No payload. */
+  FEQ_CMD_SET_LAYER_GAIN = 26
 };
 
 /** Bands, then floor, fundamental and partial count, then the partials. */

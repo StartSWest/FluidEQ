@@ -154,6 +154,8 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/player_roles.cpp
   dsp-core/src/player_changes.cpp
   dsp-core/src/player_render.cpp
+  dsp-core/src/player_layers.cpp
+  dsp-core/src/player_layer_mix.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 # The ONNX Runtime C API header, vendored. Nothing is LINKED against it: the
@@ -470,6 +472,10 @@ add_test(NAME player COMMAND fluideq-player-test)
 add_executable(fluideq-player-handoff-test dsp-core/tests/player_handoff_test.cpp)
 target_link_libraries(fluideq-player-handoff-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME player-handoff COMMAND fluideq-player-handoff-test)
+
+add_executable(fluideq-player-layer-test dsp-core/tests/player_layer_test.cpp)
+target_link_libraries(fluideq-player-layer-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME player-layer COMMAND fluideq-player-layer-test)
 
 # Held to the final output of the TypeScript engine that the native rack
 # replaced. The frozen corpus is expanded by `build-native-dsp.ts --test`.

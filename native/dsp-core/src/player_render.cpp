@@ -79,6 +79,7 @@ void read_deck(FeqPlayer* player, Deck& deck, float* const* output,
    * it across. The old side holds the whole read-ahead, so in practice this
    * block is the old file's to the end.
    */
+  const auto index = static_cast<uint32_t>(&deck - player->decks);
   const uint64_t boundary = feq_player::switch_boundary(deck);
   const uint64_t request = deck.flush_request.load(std::memory_order_acquire);
   if (request != deck.flush_seen) {
@@ -86,16 +87,13 @@ void read_deck(FeqPlayer* player, Deck& deck, float* const* output,
     if (flush_to <= boundary) {
       deck.ring.discard_until(flush_to);
       deck.flush_seen = request;
+      feq_player::layer_takes_seek(player, index);
     }
   }
   const uint32_t ready = readable(deck);
   const uint32_t span = ready < frames ? ready : frames;
-  deck.ring.read(output, span);
-  for (uint32_t channel = 0; channel < player->channels; ++channel) {
-    for (uint32_t at = span; at < frames; ++at) {
-      output[channel][at] = 0.0f;
-    }
-  }
+  // The deck's own frames at its gain, its layer's at theirs, zeros after.
+  feq_player::take_with_layer(player, index, output, span, frames, true);
   if (deck.ring.available() == 0 &&
       deck.exhausted.load(std::memory_order_acquire) != 0 &&
       deck.state.load(std::memory_order_acquire) == FEQ_DECK_READY) {
@@ -194,6 +192,9 @@ void feq_player_render(FeqPlayer* player, float* const* channels,
     // that had already gone.
     for (auto& deck : player->decks) {
       deck.tail_at = deck.tail_length;
+    }
+    for (uint32_t deck = 0; deck < FEQ_PLAYER_DECKS; ++deck) {
+      feq_player::layer_idle(player, deck);
     }
     player->was_playing = false;
     publish(player);

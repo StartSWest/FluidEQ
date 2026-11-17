@@ -87,7 +87,12 @@ void snapshot_tail(FeqPlayer* player, Deck& deck, double level,
   while (done < take) {
     const uint32_t left = take - done;
     const uint32_t chunk = left < player->max_frames ? left : player->max_frames;
-    deck.ring.read(player->mix_pointers[0].data(), chunk);
+    // With its layer, at the levels both had reached: the tail is what was
+    // being heard, voice and all.
+    feq_player::take_with_layer(player,
+                                static_cast<uint32_t>(&deck - player->decks),
+                                player->mix_pointers[0].data(), chunk, chunk,
+                                false);
     for (uint32_t channel = 0; channel < player->channels; ++channel) {
       for (uint32_t index = 0; index < chunk; ++index) {
         deck.tail_pointers[channel][done + index] +=
@@ -149,6 +154,7 @@ void switch_content(FeqPlayer* player, uint32_t index, uint64_t to) {
   }
   deck.ring.discard_until(to);
   deck.entry_remaining = 0;
+  feq_player::layer_takes_switch(player, index);
   const uint32_t active = player->active.load(std::memory_order_relaxed);
   const uint32_t incoming = player->incoming.load(std::memory_order_relaxed);
   if (feq_player::fading_now(player) &&

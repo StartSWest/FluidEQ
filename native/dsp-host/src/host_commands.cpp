@@ -560,6 +560,14 @@ bool dispatch_command(HostState& state, IAudioOutputBackend& backend,
       return true;
     }
 
+    case FEQ_CMD_SET_DECK_GAIN:
+    case FEQ_CMD_SET_LAYER_GAIN:
+      set_deck_gains(state, frame);
+      return true;
+
+    case FEQ_CMD_LOAD_LAYER:
+      return load_layer(state, frame);
+
     case FEQ_CMD_SET_RAW_SHARING:
       state.raw_sharing.store(frame.parameter_id != 0,
                               std::memory_order_release);
