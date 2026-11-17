@@ -62,14 +62,21 @@ import {
 } from '../utils/enginePreamp';
 import Chart, { ChartDimensions } from './Chart';
 import {
+  frequencyScale,
+  graphFrequencyRange,
   IChartPointData,
   IEditableChartPoint,
   ILiveCurveData,
 } from './ChartController';
+import { getAxisPadding } from './graphPaper';
 import { getLineGainAtFrequency } from './utils';
 import bellGainAt from './bellDrag';
 import { GRID_BOTTOM_MARGIN, plotTopMargin } from './plotMargins';
-import { publishPlotGeometry, withdrawPlotGeometry } from './plotGeometry';
+import {
+  BAND_SPAN_HZ,
+  publishPlotGeometry,
+  withdrawPlotGeometry,
+} from './plotGeometry';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
@@ -125,6 +132,7 @@ import FullScreenToggles from '../widgets/FullScreenToggles';
 import ViewBar from '../widgets/ViewBar';
 import { setChromeHeld } from '../utils/idleChrome';
 import useIsGraphChromeIdle from './graphChromeIdle';
+import GraphCornerLegend, { ICurveChip } from './GraphCornerLegend';
 import viewAfterPlotDoubleClick from './plotDoubleClick';
 import {
   MAX_OVERLAY_BLUR,
@@ -307,123 +315,6 @@ const LookAnnouncement = () => {
  */
 
 /**
- * One legend chip: the name of a curve, its colour, and the switch that shows
- * or hides it.
- *
- * A component rather than six copies of the same markup because the pressed
- * state, the title and the class all move together — and because every one of
- * them subscribes to the same store, which is a line of hook per chip if they
- * are written out by hand.
- */
-const CurveLegend = ({
-  curve,
-  label,
-}: {
-  curve: TGraphCurve;
-  label: string;
-}) => {
-  const { t } = useTranslation();
-  const hiddenCurves = useHiddenCurves();
-  const isHidden = hiddenCurves.includes(curve);
-  return (
-    <button
-      type="button"
-      className={`graph-legend graph-legend--${curve}${
-        isHidden ? ' is-hidden' : ''
-      }`}
-      aria-pressed={!isHidden}
-      title={t(isHidden ? 'graph.show' : 'graph.hide', { item: label })}
-      onClick={() => toggleGraphCurve(curve)}
-    >
-      {label}
-    </button>
-  );
-};
-
-interface ICurveChip {
-  curve: TGraphCurve;
-  label: string;
-}
-
-/**
- * The curve switches, when the row is too narrow to hold them.
- *
- * Six chips is a hundred and eighty pixels more than the strip has in a
- * half-width window, and the row is right-aligned over the plot, so the
- * overflow does not simply stop at an edge — it pushes the picker and the menu
- * off the left of the card. Behind one button they cost the width of the word.
- *
- * The same `CurveLegend` inside, not a second rendering of the same idea: the
- * pressed state, the colour and the hidden styling are the chip's, and a menu
- * that reimplemented them would be a menu that drifts.
- */
-const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
-  const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const holder = useRef<HTMLSpanElement>(null);
-  // Folds back into the button when it closes, as every other menu does,
-  // rather than blinking out (`menu-out`).
-  const list = useRef<HTMLSpanElement>(null);
-  const exit = useExitAnimation(isOpen, 'menu-out', list);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-    const onPointerDown = (event: MouseEvent) => {
-      if (!holder.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('mousedown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isOpen]);
-
-  return (
-    <span className="graph-legend-menu" ref={holder}>
-      <button
-        type="button"
-        className={`graph-legend-menu__trigger${isOpen ? ' is-on' : ''}`}
-        aria-expanded={isOpen}
-        title={t('graph.curvesHint')}
-        onClick={() => setIsOpen((wasOpen) => !wasOpen)}
-      >
-        <svg viewBox="0 0 16 16" aria-hidden>
-          <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
-        </svg>
-        {t('graph.curves')}
-      </button>
-      {exit.present && (
-        <span
-          ref={list}
-          className="graph-legend-menu__list"
-          data-closing={exit.closing ? '' : undefined}
-          inert={exit.closing}
-          onAnimationEnd={exit.onAnimationEnd}
-        >
-          {chips.map((chip) => (
-            <CurveLegend
-              key={chip.curve}
-              curve={chip.curve}
-              label={chip.label}
-            />
-          ))}
-        </span>
-      )}
-    </span>
-  );
-};
-
-/**
  * The clip indication.
  *
  * Reads `isClipping` and only `isClipping` — a boolean that is true for a few
@@ -508,14 +399,6 @@ const SilenceWatch = ({
 interface IFrequencyResponseChartProps {
   /** Controlled visibility for the active workspace tab. */
   isVisible?: boolean;
-  /**
-   * The Bands page's applied layers are the "Curves" dropdown in the page's
-   * head (`CurvesPicker`, Ivan 2026-09-27: "make applied filters always on
-   * curves dropdown"), each row there naming its line with its colour, so the
-   * legend here keeps only the sum's chip. Showing or hiding a layer's line
-   * stays in the View menu.
-   */
-  hasLayersInHead?: boolean;
   /** The Karaoke stage remains behind the graph, including Plus looks. */
   hasPlaybackBackdrop?: boolean;
   backdropControls?: ReactNode;
@@ -533,7 +416,6 @@ const escapeInFront = new WeakMap<KeyboardEvent, 'menu' | 'dialog'>();
 
 const FrequencyResponseChart = ({
   isVisible,
-  hasLayersInHead = false,
   hasPlaybackBackdrop = false,
   backdropControls,
 }: IFrequencyResponseChartProps) => {
@@ -887,28 +769,18 @@ const FrequencyResponseChart = ({
       curve === 'total' ? ROW_ORDER.length : ROW_ORDER.indexOf(curve);
     curveChips.sort((a, b) => rank(a.curve) - rank(b.curve));
   }
-  // With the layers in the head's "Curves" their own rows name their lines,
-  // so the legend keeps only the sum's; the View menu still offers every one
-  // of them (`curveToggles`).
-  const legendChips = hasLayersInHead
-    ? curveChips.filter((chip) => chip.curve === 'total')
-    : curveChips;
-
   /**
-   * Whether the chips fit, measured rather than guessed at a breakpoint.
-   *
-   * A media query would have to assume how wide six of them are, and that
-   * changes with the layers in the chain and with the window: this row is
-   * right-aligned over the plot, and the plot is whatever is left after the
-   * sidebar. So the natural width is remembered from the last time they were
-   * laid out and compared against the room there is now — which is also what
-   * stops it oscillating, since the collapsed row is narrower than the
-   * threshold that collapsed it.
+   * Whether the look's cluster fits on the row, measured rather than guessed
+   * at a breakpoint: the row is right-aligned over the plot, and the plot is
+   * whatever is left after the sidebar. The natural width is remembered from
+   * the last time it was laid out on one line and compared against the room
+   * there is now — which is also what stops it oscillating, since the folded
+   * cluster is narrower than the threshold that folded it. The curves' names
+   * are not in it any more (`GraphCornerLegend`).
    */
   const legendGroup = useRef<HTMLSpanElement>(null);
   const naturalLegendWidth = useRef(0);
-  const [areChipsCollapsed, setAreChipsCollapsed] = useState(false);
-  const chipKey = legendChips.map((chip) => chip.curve).join(',');
+  const [isClusterFolded, setIsClusterFolded] = useState(false);
 
   useLayoutEffect(() => {
     const group = legendGroup.current;
@@ -917,20 +789,17 @@ const FrequencyResponseChart = ({
       return undefined;
     }
     const measure = () => {
-      if (!areChipsCollapsed) {
+      if (!isClusterFolded) {
         naturalLegendWidth.current = group.scrollWidth;
       }
-      setAreChipsCollapsed(naturalLegendWidth.current > row.clientWidth);
+      setIsClusterFolded(naturalLegendWidth.current > row.clientWidth);
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(row);
     observer.observe(group);
     return () => observer.disconnect();
-    // `chipKey` rather than the array: a new array every render would rebuild
-    // the observer every render, and what actually changes the width is which
-    // chips there are.
-  }, [areChipsCollapsed, chipKey]);
+  }, [isClusterFolded]);
   // Read by the window key handler, which is registered once and must not be
   // torn down and rebuilt every time a band moves.
   const filtersRef = useRef(filters);
@@ -1306,13 +1175,27 @@ const FrequencyResponseChart = ({
   }, [updateDimensions]);
 
   // Where the plot is, for the band row that stands under it on the EQ pages
-  // (layout A): `plotGeometry.ts` shares this width out between the bands.
+  // (layout A): `plotGeometry.ts` shares 20 Hz to 20 kHz of this width out
+  // between the bands. The frequency axis is the one `Chart` draws, built
+  // from the same three pieces (`useController`): the grid's padding, the
+  // range the grid shows, and the plot's width.
   useEffect(() => {
     const element = ref.current;
     if (element && width > 0) {
-      publishPlotGeometry({ element, width });
+      const padding = getAxisPadding(isGridHidden, !areHandlesHidden);
+      const x = frequencyScale(
+        width,
+        padding.left,
+        padding.right,
+        graphFrequencyRange(isGridHidden),
+      );
+      publishPlotGeometry({
+        element,
+        width,
+        bandSpan: { left: x(BAND_SPAN_HZ[0]), right: x(BAND_SPAN_HZ[1]) },
+      });
     }
-  }, [width]);
+  }, [width, isGridHidden, areHandlesHidden]);
 
   useEffect(() => {
     const element = ref.current;
@@ -1372,7 +1255,7 @@ const FrequencyResponseChart = ({
       }
       if (
         document.querySelector(
-          '.graph-view-menu__list, .graph-legend-menu__list, .workspace-header__menu, .dropdown--open',
+          '.graph-view-menu__list, .workspace-header__menu, .dropdown--open',
         )
       ) {
         escapeInFront.set(event, 'menu');
@@ -1735,109 +1618,51 @@ const FrequencyResponseChart = ({
         isIdle={isChromeIdle}
         label={t('graph.view.normal')}
       >
-        {/* One pane for the whole right-hand cluster.
-
-            The card used to be on the style picker alone, which left the
-            legends naming the curves — EQ response, Voicing, Driver — floating
-            on the grid beside it, so half the row had a surface and half did
-            not. They belong together: they are all captions and controls for
-            the same drawing. */}
-        {/* Folded, the cluster wraps (`GraphTheme.scss`): it is right-aligned
-            over the plot, so a row wider than the plot did not stop at an
-            edge — it ran off the graph's left, the first chip cut in half. */}
+        {/* The curves' names, in the plot's corner rather than along this
+            row (`GraphCornerLegend`). None in solo or without an engine: no
+            curve is drawn then, and a legend of lines that are not there
+            reads as lines that failed to draw. */}
+        <GraphCornerLegend
+          chips={isLiveOutputForeground ? [] : curveChips}
+          isWaveHidden={isDisplayedWaveHidden}
+          isWaveLocked={!isEngineUsable}
+        />
+        {/* One pane for the look's cluster. Folded, it wraps
+            (`GraphTheme.scss`): it is right-aligned over the plot, so a row
+            wider than the plot did not stop at an edge — it ran off the
+            graph's left. */}
         <span
-          className={`graph-legend-group${areChipsCollapsed ? ' is-folded' : ''}`}
+          className={`graph-legend-group${isClusterFolded ? ' is-folded' : ''}`}
           ref={legendGroup}
         >
-          {/* First in the cluster rather than alone at the left of the strip.
-
-              Out there it shared the corner with the creature in full screen
-              and the two were drawn over each other — and pushing one or the
-              other around by a fixed amount is a fix that lasts until something
-              else changes width. In the group it travels with the controls and
-              cannot collide with anything that is not in the group.
-
-              Only while there is something to drag: solo and a hidden EQ curve
-              both take the band handles off the plot, so every one of these
-              gestures does nothing, and instructions for controls that are not
-              on screen read as controls that have stopped working. */}
-          {!isLiveOutputForeground &&
-            !areHandlesHidden &&
-            !areChipsCollapsed && (
-              <span className="graph-edit-hint">{t('graph.editHint')}</span>
-            )}
-          {/* Every chip is its curve's switch.
-
-              The legend already had the two things a control needs — it names
-              the curve and it carries its colour — and it sat there inert while
-              the plot got to six lines. Six is a tangle, and the question being
-              asked of it is almost always about two of them.
-
-              This hides a drawing and nothing else. Taking a layer *out* is the
-              chip in the row above the editor, which rewrites the Equalizer APO
-              config and is audible; the two are deliberately at opposite ends of
-              the screen.
-
-              Behind one button when the strip runs out of room. The row is
-              right-aligned over the plot, so chips that do not fit do not stop
-              at an edge — they push the picker and the menu off the left of the
-              card. */}
-          {/* A menu of one chip is a detour to the chip: one stays itself. */}
-          {areChipsCollapsed && legendChips.length > 1 ? (
-            <CurveLegendMenu chips={legendChips} />
-          ) : (
-            legendChips.map((chip) => (
-              <CurveLegend
-                key={chip.curve}
-                curve={chip.curve}
-                label={chip.label}
-              />
-            ))
+          {/* How to edit on the plot, behind a mark rather than spelled out
+              along the row (Ivan, 2026-11-16, moving the legend: the drag
+              hint text went with it). Only while there is something to drag:
+              solo and a hidden EQ curve both take the band handles off the
+              plot, and instructions for controls that are not on screen read
+              as controls that have stopped working. */}
+          {!isLiveOutputForeground && !areHandlesHidden && (
+            <span
+              className="graph-edit-hint-mark"
+              role="img"
+              aria-label={t('graph.editHint')}
+              title={t('graph.editHint')}
+            >
+              ?
+            </span>
           )}
-          {/* The legend is the control.
-            
-            Clicking the plot itself drags bands, so the picker needed its own
-            place — and the label that already names the live output is the
-            honest one, because it says what the choice changes. Forty looks is
-            more than a cycle can reasonably walk, hence a searchable list. */}
+          {/* The picker needed its own place, since clicking the plot itself
+            drags bands. Forty looks is more than a cycle can reasonably walk,
+            hence a searchable list. Its caption, the live output's switch,
+            is the corner legend's last entry now. */}
           <span
             className={`graph-legend graph-legend--live graph-legend--picker${
               isDisplayedWaveHidden ? ' is-hidden' : ''
             }`}
           >
-            {/* The caption and the look it names, with the arrows either side
-                of the name: what the folded row never splits. Only the caption
-                may stand over the rest, and only on a row too narrow for all
-                of it. */}
+            {/* The arrows either side of the look's name: what the folded
+                row never splits. */}
             <span className="graph-look-walk">
-              {/* Named separately from the value so the two can look like what
-                they are: a caption, and the thing it captions. Run together they
-                read as one long legend nobody realises is clickable.
-
-                The caption is the switch, like every chip to its left — the one
-                curve on the plot that could not be turned off from the legend was
-                the only one that moves. Its swatch is a wave rather than a rule,
-                because a straight line is what all six other curves are drawn as
-                and this is the one that never is. */}
-              <button
-                type="button"
-                className="graph-legend__label"
-                aria-pressed={!isDisplayedWaveHidden}
-                title={t(isDisplayedWaveHidden ? 'graph.show' : 'graph.hide', {
-                  item: t('graph.item.wave'),
-                })}
-                disabled={!isEngineUsable}
-                onClick={toggleGraphWave}
-              >
-                <svg
-                  className="graph-legend__wave"
-                  viewBox="0 0 16 12"
-                  aria-hidden
-                >
-                  <path d="M1 6c1.4 0 1.4-4 2.8-4s1.4 8 2.8 8 1.4-8 2.8-8 1.4 4 2.8 4" />
-                </svg>
-                {t('graph.liveOutput')}
-              </button>
               {/* Arrows either side of the name, so walking the looks never
                   depends on where the keyboard is pointing.
 

@@ -124,6 +124,7 @@ const eq: Partial<Dictionary> = {
   'graph.item.wave': 'волну',
   // The View menu's switches name the drawing itself.
   'graph.switch.eqLabels': 'Подписи EQ',
+  'graph.switch.legend': 'Легенда',
   'graph.switch.wave': 'Волна',
   'graph.switch.grid': 'Сетка',
   'graph.switch.meter': 'Индикатор уровня',

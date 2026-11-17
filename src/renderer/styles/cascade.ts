@@ -166,6 +166,8 @@ import './SceneUpdateNotice.scss';
 import './GraphSceneRemove.scss';
 import './LookPicker.scss';
 import './GraphTheme.scss';
+// The curves' names in the plot's corner, over the strip's own button rule.
+import './GraphCornerLegend.scss';
 // Every page's options row (`ViewBar`): the graph's strip, the Karaoke's,
 // the films' in full screen. After the sheets that place each of them.
 import './ViewBar.scss';

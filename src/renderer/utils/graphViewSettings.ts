@@ -290,6 +290,28 @@ export const useGraphBandLabelsHidden = () =>
   );
 
 /**
+ * Whether the plot's corner legend, naming every curve it draws, is hidden
+ * (Ivan, 2026-11-16: "make a toggle setting for hiding it"). Per view mode
+ * like the EQ's labels beside it in the View menu: a graph left running as a
+ * visualiser in full screen wants neither, the editing pane wants both.
+ */
+const legendSetting = createPerViewSetting(
+  VIEW_KEYS.legend,
+  false,
+  parseFlag,
+  serializeFlag,
+);
+
+export const getGraphLegendHidden = () => legendSetting.get();
+export const toggleGraphLegend = () => legendSetting.set(!legendSetting.get());
+export const useGraphLegendHidden = () =>
+  useSyncExternalStore(
+    legendSetting.subscribe,
+    getGraphLegendHidden,
+    () => false,
+  );
+
+/**
  * Whether the graph shows only the live spectrum.
  *
  * With forty-six drawings to look at, the EQ response, the voicing layer, the

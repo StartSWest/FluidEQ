@@ -2285,6 +2285,16 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   }
 }
 
+// The EQ page's divider (`GraphPaneSplitter`): the Library's splitter in a
+// box the column can order and the split can measure (`paneSizes.ts`), on
+// the divider's layer, under a menu the graph has open.
+.center-workspace > .graph-pane-splitter {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: 0 0 auto;
+}
+
 // An EQ page with its graph above it (layout A, `isGraphFirst` in App.tsx):
 // the head — section pills and the Bands title row — then the graph, the
 // divider, and the page, whose bands stand under the graph's points.
@@ -2307,7 +2317,7 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     order: 1;
   }
 
-  > .pane-resizer {
+  > .graph-pane-splitter {
     order: 2;
   }
 
@@ -2850,9 +2860,11 @@ $graph-card-pages: list.join(
 // between them; now the graph's card stays open at its foot, the divider is
 // a band of the same card, and the page's card is open at its top, so the
 // pills, the graph, the tabs and their page read as one surface with one
-// edge round it. The divider still takes a drag along its whole width, and
-// its grip shows only under the pointer, while it is held, or while the
-// keyboard is on it (`PaneResizer.scss` lights it in those states).
+// edge round it. The divider is the Library's splitter (`GraphPaneSplitter`,
+// Ivan: "el splitter debe verse como el de la lib"): a 12px band of the same
+// card, taking a drag along its whole width, its grip there at rest and lit
+// under the pointer, while held or under the keyboard, all as
+// `_karaokeWorkspace.scss` draws it in the Library — nothing restyled here.
 .center-workspace.is-graph-first:not(.is-graph-full):has(
     > .middle-content > .workspace-tab-panel--eq
   ) {
@@ -2862,24 +2874,11 @@ $graph-card-pages: list.join(
     border-bottom-left-radius: 0;
   }
 
-  > .pane-resizer {
+  // Out to the column's sides with the card (`fac6ae87b`).
+  > .graph-pane-splitter {
     margin: 0;
     border-inline: 1px solid $card-edge;
     background: $surface-section;
-
-    span {
-      opacity: 0;
-      transition:
-        opacity 140ms ease,
-        background 140ms ease,
-        width 140ms ease;
-    }
-
-    &:hover span,
-    &:focus-visible span,
-    &.is-dragging span {
-      opacity: 1;
-    }
   }
 
   > .middle-content > .workspace-tab-panel--eq {
@@ -2897,12 +2896,6 @@ $graph-card-pages: list.join(
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
     mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .center-workspace.is-graph-first > .pane-resizer span {
-    transition: none;
   }
 }
 
@@ -4146,23 +4139,26 @@ button.graph-legend {
   --curve-color: #ff7a45;
 }
 
-// Inside the legend cluster, at its left, rather than alone at the far end of
-// the strip.
-//
-// Out there it shared the corner with the creature in full screen and the two
-// were drawn over each other. Pushing one of them along by a fixed amount is a
-// fix that lasts until something else changes width; travelling with the
-// controls means it cannot collide with anything outside the group.
-.graph-edit-hint {
-  @include truncate;
-  flex: 0 1 auto;
+// How to edit on the plot, as a mark at the head of the look's cluster: its
+// words in its tooltip and its accessible name, where they stood along the
+// row until the curves' names left it (`GraphCornerLegend`). Inside the
+// cluster, so it travels with the controls and cannot collide with anything
+// outside the group — out at the strip's far end it once shared the corner
+// with the creature in full screen. Round and as tall as the row's buttons'
+// glyphs, in the captions' muted ink: a note, not a control.
+.graph-edit-hint-mark {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  place-items: center;
   color: $text-muted;
+  border: 1px solid rgba($edge-tint, 0.28);
+  border-radius: 50%;
   font-size: $text-micro;
-  @include tracking(0.02em);
-  // Words, not a control: the strip floats inside the plot now
-  // (`plotTopMargin`), and a band handle under the hint must still take the
-  // press that grabs it.
-  pointer-events: none;
+  font-weight: $weight-bold;
+  line-height: 1;
+  cursor: help;
 }
 
 // Only appears when the output is actually railing, so it is allowed to be

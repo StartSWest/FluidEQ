@@ -122,6 +122,7 @@ const eq = {
   'graph.item.wave': 'the wave',
   // The View menu's switches name the drawing itself.
   'graph.switch.eqLabels': 'EQ labels',
+  'graph.switch.legend': 'Legend',
   'graph.switch.wave': 'Wave',
   'graph.switch.grid': 'Grid',
   'graph.switch.meter': 'Level meter',

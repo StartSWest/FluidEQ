@@ -39,7 +39,13 @@ export const eqLayerTabId = (tab: TEqLayerTab) => `eq-layer-tab-${tab}`;
 interface IEqLayerTabsProps {
   active: TEqLayerTab;
   bandCount: number;
+  /** Anything on the Tone tab in use: a dial, or a cut (`toneCuts.ts`). */
   isToneOn: boolean;
+  /**
+   * Where the cuts that are on stand ("20 Hz"), said instead of On when the
+   * cuts are all the Tone is doing.
+   */
+  toneCutCorners?: string;
   /** The open tab's own tools, before the one every tab has: Clear EQ. */
   tools: ReactNode;
 }
@@ -55,6 +61,7 @@ const EqLayerTabs = ({
   active,
   bandCount,
   isToneOn,
+  toneCutCorners,
   tools,
 }: IEqLayerTabsProps) => {
   const { t } = useTranslation();
@@ -70,7 +77,9 @@ const EqLayerTabs = ({
   const meta: Record<TEqLayerTab, string> = {
     bands: String(bandCount),
     preset: presetName,
-    tone: t(isToneOn ? 'eq.tabs.toneOn' : 'eq.tabs.toneOff'),
+    tone: isToneOn
+      ? (toneCutCorners ?? t('eq.tabs.toneOn'))
+      : t('eq.tabs.toneOff'),
   };
   const tabRefs = useRef<Partial<Record<TEqLayerTab, HTMLButtonElement>>>({});
 

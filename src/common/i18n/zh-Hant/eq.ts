@@ -103,6 +103,7 @@ const eq = {
   'graph.item.wave': '波形',
   // The View menu's switches name the drawing itself.
   'graph.switch.eqLabels': 'EQ 標籤',
+  'graph.switch.legend': '圖例',
   'graph.switch.wave': '波形',
   'graph.switch.grid': '網格',
   'graph.switch.meter': '電平表',

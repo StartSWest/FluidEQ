@@ -166,7 +166,11 @@ const measureHead = (column: HTMLElement) => {
  */
 const measureSeam = (column: HTMLElement) => {
   const gap = parseFloat(getComputedStyle(column).rowGap) || 0;
-  const divider = column.querySelector(':scope > .pane-resizer');
+  // The EQ page with its graph above divides with the Library's splitter
+  // (`GraphPaneSplitter`), every other page with `PaneResizer`.
+  const divider = column.querySelector(
+    ':scope > :is(.pane-resizer, .graph-pane-splitter)',
+  );
   if (!(divider instanceof HTMLElement)) {
     return gap * 2;
   }

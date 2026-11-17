@@ -568,10 +568,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // Keep the options bar as the visible way to change or leave Clean, but
   // remove the legends and editing instructions that describe a drawing which
   // is no longer there.
-  .graph-edit-hint,
-  .graph-legend-menu,
-  .graph-legend-group > .graph-legend:not(.graph-legend--picker),
-  .graph-look-walk > .graph-legend__label {
+  .graph-edit-hint-mark {
     display: none;
   }
 

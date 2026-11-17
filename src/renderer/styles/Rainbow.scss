@@ -170,8 +170,7 @@ html
     [role='alertdialog'],
     dialog,
     [data-anchored-menu],
-    [role='menu']:not(.dropdown > [role='menu']),
-    .graph-legend-menu__list
+    [role='menu']:not(.dropdown > [role='menu'])
   ):not(.karaoke-maker) {
   border: 1px solid $card-edge;
 }
@@ -186,11 +185,9 @@ html
 // (`--menu-edge`, `--menu-glass` in `App.scss`).
 html
   body
-  :is(
-    [data-anchored-menu],
-    [role='menu']:not(.dropdown > [role='menu']),
-    .graph-legend-menu__list
-  ):not(.karaoke-maker) {
+  :is([data-anchored-menu], [role='menu']:not(.dropdown > [role='menu'])):not(
+    .karaoke-maker
+  ) {
   border: 1px solid var(--menu-edge, #{$menu-edge});
   border-radius: $card-radius;
   backdrop-filter: var(--menu-glass, none);

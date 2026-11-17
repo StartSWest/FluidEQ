@@ -32,7 +32,9 @@ import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
   MIN_GRAPH_WAVE_HEIGHT,
   toggleGraphBandLabels,
+  toggleGraphLegend,
   useGraphBandLabelsHidden,
+  useGraphLegendHidden,
   TGraphCurve,
   TGraphView,
   TWaveOrientation,
@@ -162,6 +164,7 @@ const GraphViewMenu = ({
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
   const bandLabelsHidden = useGraphBandLabelsHidden();
+  const legendHidden = useGraphLegendHidden();
   // A Plus visualizer ignores the orientation, so a centred wave locks
   // nothing there.
   const isWavePositionLocked =
@@ -316,6 +319,19 @@ const GraphViewMenu = ({
                 isOn={!bandLabelsHidden}
                 isDisabled={!isResponseAvailable}
                 onToggle={toggleGraphBandLabels}
+              />
+            )}
+            {/* The corner block naming the curves (`GraphCornerLegend`), its
+              switch beside the EQ labels' (Ivan, 2026-11-16). */}
+            {curveToggles.length > 0 && (
+              <ViewMenuSwitch
+                icon={
+                  <path d="M2.5 4h2M2.5 8h2M2.5 12h2M7 4h6.5M7 8h6.5M7 12h6.5" />
+                }
+                name={t('graph.switch.legend')}
+                isOn={!legendHidden}
+                isDisabled={!isResponseAvailable}
+                onToggle={toggleGraphLegend}
               />
             )}
 

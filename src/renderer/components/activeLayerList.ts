@@ -37,6 +37,7 @@ import {
 } from '../utils/equalizerApi';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import { hasTone } from '../../common/tone';
+import { clearEqCuts, cutNames, isToneInUse } from '../eq/toneCuts';
 import switchPresetRackOff from '../dsp/presetRackOff';
 import type { MenuIconName } from '../icons/MenuIcon';
 import { TONE_CONTROLS } from '../eq/useTone';
@@ -121,6 +122,7 @@ export type TLayerListInputs = Pick<
   | 'setSmartEq'
   | 'tone'
   | 'setTone'
+  | 'eqCuts'
   | 'customFx'
   | 'refreshState'
 > & {
@@ -205,6 +207,7 @@ export const collectLayers = ({
   setSmartEq,
   tone,
   setTone,
+  eqCuts,
   modeName,
   setLayerStrength,
   isContinuousOn,
@@ -396,22 +399,33 @@ export const collectLayers = ({
    * without touching a band — which is also why the EQ chip's × above no
    * longer takes the tone with it. Named by the dials that are away from zero,
    * in the words the dials themselves carry.
+   *
+   * The cuts stand on the Tone tab with those dials, so the chip counts them
+   * too (Ivan, 2026-11-16: "the cuts need to also get on tone"), named after
+   * the dials and cleared by the same ×. Its switch is the three dials' layer
+   * alone: the cuts are a file with no layer to switch (`eqCuts.ts`), so a
+   * chip for the cuts by themselves has no switch rather than one that
+   * changes nothing.
    */
-  if (tone && hasTone(tone)) {
+  if (isToneInUse(tone, eqCuts)) {
     layers.push({
       key: 'tone',
       icon: 'configure',
       label: t('eq.tone'),
-      name: TONE_CONTROLS.filter(({ knob }) => tone[knob] !== 0)
-        .map(({ knob, labelKey }) => `${t(labelKey)} ${signedDb(tone[knob])}`)
-        .join(' · '),
+      name: [
+        ...TONE_CONTROLS.filter(({ knob }) => (tone?.[knob] ?? 0) !== 0).map(
+          ({ knob, labelKey }) =>
+            `${t(labelKey)} ${signedDb(tone?.[knob] ?? 0)}`,
+        ),
+        ...cutNames(eqCuts, t),
+      ].join(' · '),
       clearHint: t('eq.layers.clearTone'),
       onClear: async () => {
         setTone(undefined);
-        await setToneApi(null);
+        await Promise.all([setToneApi(null), clearEqCuts(eqCuts)]);
         await refreshState();
       },
-      feature: 'tone',
+      ...(hasTone(tone) ? { feature: 'tone' as const } : {}),
     });
   }
 

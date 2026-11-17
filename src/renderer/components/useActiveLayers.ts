@@ -78,6 +78,7 @@ const useActiveLayers = () => {
     setSmartEq,
     tone,
     setTone,
+    eqCuts,
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
@@ -258,6 +259,7 @@ const useActiveLayers = () => {
     setSmartEq,
     tone,
     setTone,
+    eqCuts,
     modeName,
     setLayerStrength,
     isContinuousOn,

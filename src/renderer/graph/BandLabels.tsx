@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { AxisScale, NumberValue } from 'd3';
 import type { IEditableChartPoint } from './ChartController';
 import { handleXInPlot } from './bandHandlePosition';
@@ -13,6 +13,11 @@ import {
   TLabelMemory,
 } from './bandLabelLayout';
 import { useGraphBandLabelsHidden } from '../utils/graphViewSettings';
+import {
+  cornerLegendBox,
+  isSameBox,
+  useCornerLegend,
+} from './cornerLegendPlace';
 import frequencyText from '../utils/frequencyText';
 import '../styles/BandLabels.scss';
 
@@ -68,6 +73,18 @@ export default function BandLabels({
   bandSetReplacement,
 }: IProps) {
   const hidden = useGraphBandLabelsHidden();
+  // The block naming the curves in the plot's corner (`GraphCornerLegend`),
+  // measured against this svg whenever it or the plot moves.
+  const group = useRef<SVGGElement>(null);
+  const legendElement = useCornerLegend();
+  const [cornerLegend, setCornerLegend] = useState<ILabelBox>();
+  useLayoutEffect(() => {
+    const next = cornerLegendBox(
+      legendElement.element,
+      group.current?.ownerSVGElement,
+    );
+    setCornerLegend((before) => (isSameBox(before, next) ? before : next));
+  }, [legendElement, bounds.left, bounds.top, bounds.right, bounds.bottom]);
   // The last layout and its memory: each label's home and where it stood, so
   // a drag carries its own label with its dot, a label in its way steps
   // aside only while it is, and nothing else moves (`bandLabelLayout.ts`).
@@ -108,6 +125,7 @@ export default function BandLabels({
       genrePinBox(Number(xScale(hz)), Number(yScale(db))),
     ),
     ...(legend ? [legend] : []),
+    ...(cornerLegend ? [cornerLegend] : []),
   ];
   // Laid out again only when something a label shows or stands on moved, or
   // the EQ was replaced. Hovering a band rebuilds the points it is handed,
@@ -157,7 +175,12 @@ export default function BandLabels({
   const { labels } = laidOut.current;
 
   return (
-    <g className="eq-band-labels" pointerEvents="none" aria-hidden="true">
+    <g
+      ref={group}
+      className="eq-band-labels"
+      pointerEvents="none"
+      aria-hidden="true"
+    >
       {labels.map(({ box, anchor }) => {
         const lineX = Math.max(
           box.x + 8,

@@ -119,6 +119,7 @@ import {
 } from './shell/workspaceGroups';
 import {
   GraphPaneResizer,
+  GraphPaneSplitter,
   MiddleContent,
   useGraphPaneResize,
 } from './shell/ShellPanes';
@@ -810,7 +811,16 @@ const AppContent = () => {
               already unmounts it, so its loops and its claim on the capture
               are known to stop and start cleanly. */}
           <Activity mode={behindAmp}>
-            {showsGraph && !isGraphFullScreen && (
+            {showsGraph && !isGraphFullScreen && isGraphFirst && (
+              <GraphPaneSplitter
+                paneKey={paneKey}
+                ariaLabel={t('graph.resize')}
+                onStart={resize.handleGraphResizeStart}
+                onDrag={resize.handleGraphResizeDrag}
+                onEnd={resize.handleGraphResizeEnd}
+              />
+            )}
+            {showsGraph && !isGraphFullScreen && !isGraphFirst && (
               <GraphPaneResizer
                 paneKey={paneKey}
                 ariaLabel={t('graph.resize')}
@@ -822,7 +832,6 @@ const AppContent = () => {
             {showsGraph && (
               <FrequencyResponseChart
                 isVisible
-                hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
                 // The Library's picture as well as the Karaoke's: both stay under
                 // a scene, so both get the see-through and blur controls.
                 hasPlaybackBackdrop={

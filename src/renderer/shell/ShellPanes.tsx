@@ -26,6 +26,7 @@ import {
   type ReactNode,
 } from 'react';
 import PaneResizer from '../components/PaneResizer';
+import KaraokePaneSplitter from '../karaoke/KaraokePaneSplitter';
 import {
   applyDspSettings,
   persistDspSettings,
@@ -166,6 +167,24 @@ export const useGraphPaneResize = (paneKey: string, isGraphFirst: boolean) => {
   };
 };
 
+interface IGraphDividerProps {
+  paneKey: string;
+  ariaLabel: string;
+  onStart: () => void;
+  onDrag: (deltaY: number) => void;
+  onEnd: () => void;
+}
+
+/**
+ * How much of the workspace the editor currently has, as a percentage. Only
+ * for the divider's `aria-valuenow` — a pixel height means nothing read out
+ * loud without also knowing how tall the window is.
+ */
+const useEditorSharePercent = (paneKey: string) =>
+  Math.round(
+    (useEditorHeight(paneKey) / Math.max(1, window.innerHeight)) * 100,
+  );
+
 /** The divider, reading the height it reports for itself — see above. */
 export const GraphPaneResizer = ({
   paneKey,
@@ -173,27 +192,38 @@ export const GraphPaneResizer = ({
   onStart,
   onDrag,
   onEnd,
-}: {
-  paneKey: string;
-  ariaLabel: string;
-  onStart: () => void;
-  onDrag: (deltaY: number) => void;
-  onEnd: () => void;
-}) => {
-  const editorHeight = useEditorHeight(paneKey);
-  // How much of the workspace the editor currently has, as a percentage. Only
-  // for the divider's `aria-valuenow` — a pixel height means nothing read out
-  // loud without also knowing how tall the window is.
-  const valuePercent = Math.round(
-    (editorHeight / Math.max(1, window.innerHeight)) * 100,
-  );
-  return (
-    <PaneResizer
+}: IGraphDividerProps) => (
+  <PaneResizer
+    ariaLabel={ariaLabel}
+    valuePercent={useEditorSharePercent(paneKey)}
+    onStart={onStart}
+    onDrag={onDrag}
+    onEnd={onEnd}
+  />
+);
+
+/**
+ * The divider of the EQ page with its graph above, which is one pane from
+ * its pills to its bands: the Library's own splitter, its grip, size,
+ * colours and states (Ivan, 2026-11-16: "el splitter debe verse como el de
+ * la lib"). The wrapper is the column's child that `App.scss` orders and
+ * paints as a band of the pane, and that `paneSizes.ts` measures.
+ */
+export const GraphPaneSplitter = ({
+  paneKey,
+  ariaLabel,
+  onStart,
+  onDrag,
+  onEnd,
+}: IGraphDividerProps) => (
+  <div className="graph-pane-splitter">
+    <KaraokePaneSplitter
+      orientation="horizontal"
       ariaLabel={ariaLabel}
-      valuePercent={valuePercent}
+      valuePercent={useEditorSharePercent(paneKey)}
       onStart={onStart}
       onDrag={onDrag}
       onEnd={onEnd}
     />
-  );
-};
+  </div>
+);

@@ -26,6 +26,16 @@ export interface IPlotGeometry {
   element: HTMLElement;
   /** Its width, which the row shares out. */
   width: number;
+  /**
+   * Where 20 Hz and 20 kHz stand on it, in its own pixels: the stretch the
+   * bands share. Every standard layout's bands are evenly spaced in log
+   * frequency across 20 Hz to 20 kHz (2/3 octave for fifteen, their centres
+   * at 25 Hz and 16 kHz), so shared evenly over this stretch each slider
+   * stands under its band's point; shared over the whole plot, which now
+   * runs an octave past both ends, the 25 Hz slider stood under 7 Hz.
+   * Absent, the whole width is shared, as before.
+   */
+  bandSpan?: { left: number; right: number };
 }
 
 /**
@@ -46,6 +56,9 @@ export interface IBandPlacement {
  */
 export const MIN_BAND_SLOT = 40;
 
+/** The stretch of frequency the bands share (`IPlotGeometry.bandSpan`). */
+export const BAND_SPAN_HZ = [20, 20000] as const;
+
 /** Widest a band is drawn: the even layout's own width per band. */
 export const MAX_BAND_SLOT = 64;
 
@@ -60,23 +73,23 @@ export const MAX_BAND_SLOT = 64;
  * gutter, and a band kept only inside the plot was cut in half there (Ivan,
  * 2026-09-25: "EQ never can get trim on the side").
  *
- * The stretch the plot and the page both cover is shared evenly: each band
+ * The stretch of the band span (the plot's whole width where none is given)
+ * that the page also shows is shared evenly: each band
  * centred in its share, as wide as the share allows up to `MAX_BAND_SLOT`.
  */
 export const placeBandsEvenly = (
   count: number,
-  geometry: Pick<IPlotGeometry, 'width'>,
+  geometry: Pick<IPlotGeometry, 'width' | 'bandSpan'>,
   offset: number,
   visible?: { left: number; right: number },
 ): IBandPlacement | undefined => {
   if (count <= 0 || geometry.width <= 0) {
     return undefined;
   }
-  const left = Math.max(offset, visible?.left ?? offset);
-  const right = Math.min(
-    offset + geometry.width,
-    visible?.right ?? offset + geometry.width,
-  );
+  const from = offset + (geometry.bandSpan?.left ?? 0);
+  const to = offset + (geometry.bandSpan?.right ?? geometry.width);
+  const left = Math.max(from, visible?.left ?? from);
+  const right = Math.min(to, visible?.right ?? to);
   const share = (right - left) / count;
   if (share < MIN_BAND_SLOT) {
     return undefined;
@@ -117,7 +130,12 @@ const listeners = new Set<() => void>();
  * when the plot has actually changed.
  */
 export const publishPlotGeometry = (next: IPlotGeometry | undefined) => {
-  if (next?.element === current?.element && next?.width === current?.width) {
+  if (
+    next?.element === current?.element &&
+    next?.width === current?.width &&
+    next?.bandSpan?.left === current?.bandSpan?.left &&
+    next?.bandSpan?.right === current?.bandSpan?.right
+  ) {
     return;
   }
   current = next;

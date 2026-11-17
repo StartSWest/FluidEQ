@@ -18,8 +18,8 @@ it under the terms of the GNU General Public License version 3 or later.
  * hard straight line along its foot ("some standard viz getting cutted").
  *
  * Handles under the strip stay reachable wherever the strip is not a control:
- * its container and its hint text let a press through to the plot
- * (`.live-output-controls`, `.graph-edit-hint`), and the pane sits against
+ * its container lets a press through to the plot
+ * (`.live-output-controls`), and the pane sits against
  * the right, clear of the gain scale.
  */
 

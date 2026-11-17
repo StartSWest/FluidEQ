@@ -107,6 +107,7 @@ const eq = {
   'graph.item.wave': '파형',
   // The View menu's switches name the drawing itself.
   'graph.switch.eqLabels': 'EQ 레이블',
+  'graph.switch.legend': '범례',
   'graph.switch.wave': '파형',
   'graph.switch.grid': '격자',
   'graph.switch.meter': '레벨 미터',

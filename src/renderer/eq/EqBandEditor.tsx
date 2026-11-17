@@ -65,14 +65,14 @@ const EqBandEditor = ({
   // to fill it.
   if (!selectedFilter) {
     return (
-      <div className="eq-flat-editor eq-flat-editor--column is-empty">
+      <div className="eq-flat-editor eq-flat-editor--strip is-empty">
         <p className="eq-flat-editor__empty">{t('eq.band.none')}</p>
       </div>
     );
   }
   return (
     <div
-      className="eq-flat-editor eq-flat-editor--column"
+      className="eq-flat-editor eq-flat-editor--strip"
       inert={isEqOff || undefined}
     >
       {/* Which band, or how many. A group edit moves everything
@@ -212,7 +212,10 @@ const EqBandEditor = ({
         Deriving it per band would make the control mean "flip each of
         these", and a switch nobody can predict the result of is worse
         than no switch. */}
-      <div className="eq-flat-editor__control eq-flat-editor__control--centred eq-flat-editor__control--active">
+      <div
+        className="eq-flat-editor__control eq-flat-editor__control--centred eq-flat-editor__control--active"
+        title={t('eq.active')}
+      >
         <span>{t('eq.active')}</span>
         <div className="eq-flat-editor__switch">
           <Switch

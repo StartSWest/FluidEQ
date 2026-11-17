@@ -42,8 +42,10 @@ import {
   removeEqualizerSlider,
   setFilterValues,
 } from '../utils/equalizerApi';
-import { FilterActionEnum } from '../utils/FluidEqContext';
+import { FilterActionEnum, useFluidEqLayers } from '../utils/FluidEqContext';
 import useTone from './useTone';
+import { clearEqCuts, cutCorners, isToneInUse } from './toneCuts';
+import { hasTone } from '../../common/tone';
 import { clamp } from '../utils/utils';
 import { BAND_MENU_EVENT } from '../components/BandMenu';
 import { type TEqPageBands } from './useEqPageBands';
@@ -265,6 +267,18 @@ const useEqPageActions = (bands: TEqPageBands) => {
     resetTone,
     resetAllTone,
   } = useTone();
+  // The Tone tab's cuts, which it counts as Tone (`toneCuts.ts`), so Reset
+  // Tone puts them back to none with the three dials.
+  const { eqCuts, refreshState } = useFluidEqLayers();
+  const isToneTabInUse = isToneInUse(tone, eqCuts);
+  const resetToneTab = async () => {
+    try {
+      await Promise.all([resetAllTone(), clearEqCuts(eqCuts)]);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+    await refreshState();
+  };
 
   // The one control that sets rather than nudges — a group of Peak bands asked
   // to become Low Shelf all become Low Shelf.
@@ -658,7 +672,11 @@ const useEqPageActions = (bands: TEqPageBands) => {
     isToneDisabled,
     turnTone,
     resetTone,
-    resetAllTone,
+    resetToneTab,
+    isToneTabInUse,
+    // The cuts by where they stand while they are all the Tone does; with a
+    // dial turned too, the tab says On.
+    toneCutCorners: hasTone(tone) ? undefined : cutCorners(eqCuts),
     setSelectedType,
     addFilter,
     addFilterBeside,

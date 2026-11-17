@@ -39,7 +39,6 @@ import { attachRail } from './bandsRail';
 import OverflowArrow from '../components/OverflowArrow';
 import FrequencyBand from '../components/FrequencyBand';
 import { EQ_SCALE_MARKS, eqScaleLabel, eqScaleMarkClass } from './eqScaleMarks';
-import { hasTone } from '../../common/tone';
 import { type TEqPageBands } from './useEqPageBands';
 import { type TEqPageActions } from './useEqPageActions';
 import { type TEqLayerTab } from './eqLayerTab';
@@ -91,9 +90,10 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
     handleBandsPointerDown,
     handleBandsPointerMove,
     finishBandSelection,
-    tone,
     isToneDisabled,
-    resetAllTone,
+    resetToneTab,
+    isToneTabInUse,
+    toneCutCorners,
     addFilter,
     addFilterBeside,
     setFiltersEnabled,
@@ -116,7 +116,6 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       ? selectedFilterIds.map((id) => filters[id]).filter(Boolean)
       : [bandMenuFilter];
   }
-  const isToneOn = hasTone(tone);
 
   // Each tab's own tools, before Clear EQ, which every tab has.
   const tools: Record<TEqLayerTab, ReactElement> = {
@@ -152,9 +151,11 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       <Button
         ariaLabel={t('eq.tone.reset')}
         title={t('eq.tone.reset')}
-        isDisabled={isToneDisabled || !isToneOn}
+        isDisabled={isToneDisabled || !isToneTabInUse}
         className="small subtle"
-        handleChange={resetAllTone}
+        handleChange={() => {
+          resetToneTab().catch(() => undefined);
+        }}
       >
         <MenuIcon name="reset" className="eq-toolbar__icon" />
         {/* Its word kept at every width: Clear EQ beside it is the same
@@ -203,7 +204,8 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       <EqLayerTabs
         active={tab}
         bandCount={frequencySortedFilters.length}
-        isToneOn={isToneOn}
+        isToneOn={isToneTabInUse}
+        toneCutCorners={toneCutCorners}
         tools={tools[tab]}
       />
       {tab === 'bands' && (
@@ -215,6 +217,11 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
             isEqOff ? ' is-eq-bypassed' : ''
           }${isPlaced ? ' is-placed' : ''}`}
         >
+          {/* The selected band on a strip over the bands (Ivan, 2026-11-16:
+              "I really don't like the band settings on the side"), first in
+              the panel so the keyboard reaches it before the thirty-one
+              sliders under it. */}
+          <EqBandEditor bands={bands} actions={actions} />
           {/* The rail scrolls when the bands stop fitting, with an arrow at
             each end — the same pair the workspace tabs use. Thirty-one bands
             in a narrow window were nine pixels each: a row of slivers with
@@ -331,10 +338,6 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
               </span>
             ))}
           </div>
-          {/* The selected band, beside the bands rather than under them: the
-              rail keeps the page's height and the editor a column of its own
-              (Ivan, 2026-11-16, "EQ · Your EQ tab"). */}
-          <EqBandEditor bands={bands} actions={actions} />
         </div>
       )}
       {tab === 'preset' && (
