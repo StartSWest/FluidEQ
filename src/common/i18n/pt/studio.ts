@@ -725,7 +725,7 @@ const studio = {
   'studio.brightness.hint':
     'O Brilho do app inteiro, o mesmo controle de Cores da janela. Com ele, toda cena vai da noite em 0 ao dia pleno em 100: teste a sua nos dois extremos antes de publicar.',
   'studio.tint.hint':
-    'Só aqui, enquanto você trabalha: as Cores da janela do gráfico continuam como você deixou. Tema mantém a janela como o app está; as outras dão a ela as cores desta cena, ou brilham suavemente ao redor dela com a música, para você ver e sentir como todos que a ouvirem.',
+    'Só aqui, enquanto você trabalha: as Cores da janela do gráfico continuam como você deixou. Tema mantém a janela como o app está; as outras dão a ela as cores desta cena, ou essas cores com os elementos dela voando ao redor da janela, para você ver e sentir como todos que a ouvirem.',
   'studio.grid.label': 'Mostrar a grade do gráfico',
   'studio.grid.hint':
     'As linhas de frequência e de nível do gráfico sobre a cena, com o espaço que ocupam nele, para medir onde a onda e cada parte da cena ficam.',

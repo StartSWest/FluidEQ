@@ -163,9 +163,9 @@ const eq = {
   'graph.sceneTint.mode.off': 'the app theme',
   'graph.sceneTint.mode.tint': "the scene's colours",
   'graph.sceneTint.mode.pulse':
-    "the scene's colours, with its light glowing around it",
+    "the scene's colours, with its elements flying around the window",
   'graph.sceneTint.mode.cover':
-    'the scene behind the whole window, with its light around it',
+    'the scene behind the whole window, with its elements flying around it',
   'graph.sceneTint.short.off': 'Original',
   'graph.sceneTint.short.tint': 'Colours',
   'graph.sceneTint.short.pulse': 'Ambient',
@@ -176,7 +176,7 @@ const eq = {
   'graph.sceneTint.about.off': 'The window in your theme.',
   'graph.sceneTint.about.tint': "The window in the scene's colours.",
   'graph.sceneTint.about.pulse':
-    'Its colours, with the window glowing to the music.',
+    'Its colours, with its elements flying around the window.',
   'graph.sceneTint.about.cover':
     'All of Ambient, with the scene behind the whole window.',
   // Over the plot while there are band points to drag.

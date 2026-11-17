@@ -27,11 +27,6 @@ jest.mock('renderer/plus/ScenePreview', () => ({
   },
 }));
 
-jest.mock('renderer/player/usePlayerScenePulse', () => ({
-  __esModule: true,
-  default: () => () => undefined,
-}));
-
 jest.mock('renderer/utils/graphStyle', () => ({
   ...jest.requireActual('renderer/utils/graphStyle'),
   cycleGraphLookUnattended: jest.fn(),

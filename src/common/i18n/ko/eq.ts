@@ -143,8 +143,9 @@ const eq = {
   'graph.autoSwitch.every': '자동: {seconds}초',
   'graph.sceneTint.mode.off': '앱 테마',
   'graph.sceneTint.mode.tint': '장면의 색상',
-  'graph.sceneTint.mode.pulse': '주변에서 빛이 빛나는 장면의 색상',
-  'graph.sceneTint.mode.cover': '전체 창 뒤에 있는 장면(주변에 빛 포함)',
+  'graph.sceneTint.mode.pulse': '장면의 색상과 창 주위를 떠다니는 장면의 요소',
+  'graph.sceneTint.mode.cover':
+    '전체 창 뒤에 있는 장면(주변에 장면의 요소 포함)',
   'graph.sceneTint.short.off': '원본',
   'graph.sceneTint.short.tint': '색상',
   'graph.sceneTint.short.pulse': '앰비언트',
@@ -152,8 +153,7 @@ const eq = {
   'graph.sceneTint.label': '창 색상',
   'graph.sceneTint.about.off': '테마의 창.',
   'graph.sceneTint.about.tint': '장면의 색상으로 표시된 창입니다.',
-  'graph.sceneTint.about.pulse':
-    '그 색상과 음악에 맞춰 빛나는 창문이 있습니다.',
+  'graph.sceneTint.about.pulse': '장면의 색상과 창 주위를 떠다니는 요소.',
   'graph.sceneTint.about.cover': '전체 창 뒤에 장면이 있는 모든 주변 환경.',
   'graph.editHint':
     '점 드래그 · Ctrl/Shift 선택 · Ctrl+스크롤: Q · Ctrl+드래그: 종',

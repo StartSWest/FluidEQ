@@ -163,9 +163,10 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.every': 'Auto: {seconds}s',
   'graph.sceneTint.mode.off': 'o tema do app',
   'graph.sceneTint.mode.tint': 'as cores da cena',
-  'graph.sceneTint.mode.pulse': 'as cores da cena, com sua luz ao redor',
+  'graph.sceneTint.mode.pulse':
+    'as cores da cena, com seus elementos voando ao redor da janela',
   'graph.sceneTint.mode.cover':
-    'a cena atrás de toda a janela, com sua luz ao redor',
+    'a cena atrás de toda a janela, com seus elementos ao redor',
   'graph.sceneTint.short.off': 'Original',
   'graph.sceneTint.short.tint': 'Cores',
   'graph.sceneTint.short.pulse': 'Ambiente',
@@ -174,7 +175,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.off': 'A janela no seu tema.',
   'graph.sceneTint.about.tint': 'A janela nas cores da cena.',
   'graph.sceneTint.about.pulse':
-    'As cores dele, com a janela brilhando junto com a música.',
+    'As cores dele, com os elementos dele voando ao redor da janela.',
   'graph.sceneTint.about.cover':
     'Tudo do Ambiente, com a cena atrás de toda a janela.',
   'graph.editHint':

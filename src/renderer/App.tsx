@@ -100,7 +100,6 @@ import {
 } from './audio/LiveAudioContext';
 import RemoteAudioProvider from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
-import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
 import SceneColumnLayer from './graph/SceneColumnLayer';
 import GraphScene from './graph/GraphScene';
@@ -928,11 +927,8 @@ export default function App() {
             <RainbowSource />
             {/* The taskbar button in the window's colours. Renders nothing. */}
             <TaskbarIconSource />
-            {/* The window beating with that visualizer, when its mode asks
-                for it; nothing in the page otherwise. */}
-            <ScenePulse />
             {/* That visualizer's own elements — birds, petals, stars — faintly
-                over the window in the same mode; nothing in the page otherwise. */}
+                over the window in Ambient; nothing in the page otherwise. */}
             <SceneAmbient />
             {/* Dynamic lighting's loop: renders nothing, and lights nothing
                 unless a Plus member switched it on. */}

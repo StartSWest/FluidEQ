@@ -6,8 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * Where visualizers stand in the window, for the Ambient mode to stay off
- * them: its birds, petals and stars (`SceneAmbient.tsx`) and its light
- * (`ScenePulse.tsx`) belong to the room around a visualizer, never over one.
+ * them: its birds, petals and stars (`SceneAmbient.tsx`) belong to the room
+ * around a visualizer, never over one.
  *
  * Every visualizer, not only the one lending the window its mode. Only that
  * one's box used to be kept clear, so a bird crossing the Visualizers page
@@ -132,26 +132,3 @@ export const visualizerBoxes = (
   });
   return boxes;
 };
-
-/**
- * `boxes` without those lying wholly inside another — a picture shown within
- * a preview's frame — for a cut that has to be one hole per place.
- */
-export const outermostBoxes = (boxes: readonly IVisualizerBox[]) =>
-  boxes.filter(
-    (box, index) =>
-      !boxes.some(
-        (other, otherIndex) =>
-          otherIndex !== index &&
-          other.left <= box.left &&
-          other.top <= box.top &&
-          other.left + other.width >= box.left + box.width &&
-          other.top + other.height >= box.top + box.height &&
-          // Of two identical boxes, the first one stays.
-          (otherIndex < index ||
-            other.left !== box.left ||
-            other.top !== box.top ||
-            other.width !== box.width ||
-            other.height !== box.height),
-      ),
-  );

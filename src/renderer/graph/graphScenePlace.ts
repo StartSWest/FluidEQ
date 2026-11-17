@@ -31,8 +31,8 @@ export interface IScenePlot {
   /** Where on the plot the canvas stands while the scene is drawn there. */
   slot: HTMLElement;
   /**
-   * The scene's panel: what it is framed by on a larger layer, what the
-   * pointer is read against, and where the window's pulse starts from.
+   * The scene's panel: what it is framed by on a larger layer and what the
+   * pointer is read against.
    */
   panel: HTMLElement;
   /** The full panel, including the toolbar and axis gutters. */

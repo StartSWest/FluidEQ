@@ -402,7 +402,7 @@ const help = {
   'help.graph.plusCaption': '有場景',
   'help.graph.tintName': '視窗顏色',
   'help.graph.tint':
-    '應用程式的主題、場景的顏色、燈光顏色（環境）或整個視窗後面的場景（背景）。',
+    '應用程式的主題、場景的顏色、它的顏色加上在視窗周圍飄動的元素（環境）或整個視窗後面的場景（背景）。',
   'help.graph.likeName': '喜歡',
   'help.graph.like':
     '喜歡播放的場景，這給了它的製作者分數。在您自己的場景中，它顯示了它有多少個讚。',

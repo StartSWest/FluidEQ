@@ -10,7 +10,6 @@ import { FULL_VIEW, sceneViewOf, type TSceneView } from '../graph/sceneView';
 import ScenePreview, { type TPreviewTrouble } from '../plus/ScenePreview';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import type { IGraphScenePack } from './useGraphScenePack';
-import usePlayerScenePulse from './usePlayerScenePulse';
 import { layoutBoxIn } from '../utils/layoutBox';
 
 interface IPlayerStageProps {
@@ -58,9 +57,6 @@ const PlayerStage = ({
   panel,
 }: IPlayerStageProps) => {
   const layerRef = useRef<HTMLDivElement>(null);
-  // The window's light beats with this picture in Ambient, as it does with
-  // the graph's in the full app.
-  const pulse = usePlayerScenePulse(scene !== undefined, layerRef);
   const viewRef = useRef<TSceneView>(FULL_VIEW);
   // Which scene has drawn its first frame: Auto counts a look's time on
   // screen from it, as the graph's canvas does (`SceneCanvas`), so a scene
@@ -69,16 +65,12 @@ const PlayerStage = ({
   const [drawnIdentity, setDrawnIdentity] = useState<string>();
   const drawnRef = useRef<string | undefined>(undefined);
   useHoldGraphAutoCycle(identity !== undefined && drawnIdentity !== identity);
-  const onDrawn = useCallback(
-    (frame: ISceneFrame) => {
-      pulse(frame);
-      if (identity !== undefined && drawnRef.current !== identity) {
-        drawnRef.current = identity;
-        setDrawnIdentity(identity);
-      }
-    },
-    [pulse, identity],
-  );
+  const onDrawn = useCallback(() => {
+    if (identity !== undefined && drawnRef.current !== identity) {
+      drawnRef.current = identity;
+      setDrawnIdentity(identity);
+    }
+  }, [identity]);
 
   useLayoutEffect(() => {
     const layer = layerRef.current;

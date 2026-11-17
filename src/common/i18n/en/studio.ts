@@ -743,7 +743,7 @@ const studio = {
   'studio.brightness.hint':
     'The whole app’s Brightness, the same slider as in Window colours. Every scene goes from night at 0 to full day at 100 with it: try yours at both ends before you publish.',
   'studio.tint.hint':
-    'Only here, while you work: the graph’s Window colours stay as you set them. Theme keeps the window as the app has it; the others give it this scene’s colours, or glow softly around it with the music, so you see and feel it as every listener will.',
+    'Only here, while you work: the graph’s Window colours stay as you set them. Theme keeps the window as the app has it; the others give it this scene’s colours, or its colours with its elements flying around the window, so you see and feel it as every listener will.',
   'studio.grid.label': 'Show the graph grid',
   'studio.grid.hint':
     'Its frequency and level lines over the scene, with the room they take on the graph, so you can measure where the wave and each part of the scene land.',

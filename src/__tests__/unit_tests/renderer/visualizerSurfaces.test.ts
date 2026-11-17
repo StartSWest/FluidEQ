@@ -5,17 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Where the visualizers stand, for the Ambient mode's elements and light to
- * stay off: every one on screen, only the part that is on screen, and read
- * again whenever asked, so a page that moved is answered where it is now.
+ * Where the visualizers stand, for the Ambient mode's elements to stay off:
+ * every one on screen, only the part that is on screen, and read again
+ * whenever asked, so a page that moved is answered where it is now.
  *
  * jsdom lays nothing out, so each box is given.
  */
 
-import {
-  outermostBoxes,
-  visualizerBoxes,
-} from '../../../renderer/ambient/visualizerSurfaces';
+import { visualizerBoxes } from '../../../renderer/ambient/visualizerSurfaces';
 
 const place = (
   element: Element,
@@ -95,14 +92,4 @@ it('leaves out a visualizer with no size, one scrolled wholly away, and one not 
   const hidden = surface('studio-stage', [10, 10, 100, 100]);
   Object.assign(hidden, { checkVisibility: () => false });
   expect(visualizerBoxes(1000, 800)).toEqual([]);
-});
-
-it('keeps one hole per place: a box inside another, or the same box twice, is one', () => {
-  const frame = { left: 0, top: 0, width: 400, height: 300 };
-  const inside = { left: 20, top: 20, width: 100, height: 50 };
-  const apart = { left: 500, top: 0, width: 100, height: 100 };
-  expect(outermostBoxes([inside, frame, apart, { ...frame }])).toEqual([
-    frame,
-    apart,
-  ]);
 });

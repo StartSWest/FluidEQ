@@ -125,8 +125,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   // THE WINDOW-COLOUR MODES STAY WHOLE: the amp wears the scene's colour,
-  // and in Ambient the window's light beats with the amp's own picture
-  // (`usePlayerScenePulse`) as it does with the graph's in the full app.
+  // and its elements drift over the amp as they do over the full app.
   #root,
   .now-playing-bar,
   .device-apo-notice,

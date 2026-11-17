@@ -423,7 +423,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': '使用场景时',
   'help.graph.tintName': '窗口颜色',
   'help.graph.tint':
-    '应用主题、场景的颜色、它的颜色加上环绕的光（“氛围”），或铺在整个窗口背后的场景（“背景”）。',
+    '应用主题、场景的颜色、它的颜色加上在窗口周围飘动的元素（“氛围”），或铺在整个窗口背后的场景（“背景”）。',
   'help.graph.likeName': '点赞',
   'help.graph.like':
     '为正在播放的场景点赞，作者会因此得分。在你自己的场景上，它显示获得了多少个赞。',

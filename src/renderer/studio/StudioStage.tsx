@@ -29,7 +29,6 @@ import useSceneRunner, {
 import { useTranslation } from '../utils/I18nContext';
 import StudioStageReading from './StudioStageReading';
 import StudioGraphPaper from './StudioGraphPaper';
-import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import StudioStageLoading from './StudioStageLoading';
 import StudioStageMotion from './StudioStageMotion';
@@ -328,32 +327,21 @@ export default function StudioStage({
 
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
-  // The element the scene draws in, once the runner has made it: where the
-  // window's pulse starts from.
-  const hostRef = useRef<RefObject<Element | null>>(undefined);
   const nameRef = useRef(pack.names.en);
   nameRef.current = pack.names.en;
   const onFrame = useCallback<TStageDrawn>(
     (frame, drawnScale, accent, heard, report) => {
-      // The window beats on the beats this stage is drawing, when the
-      // Studio's mode asks it to (`ScenePulse.tsx`).
-      reportSceneBeat('studio', frame, hostRef.current?.current);
-      // And the Processes dialog says what it is costing.
+      // The Processes dialog says what it is costing.
       reportSceneDraw('studio', nameRef.current, report);
       edit.heard(report.edit);
       drawnRef.current(frame, drawnScale, accent, heard, report);
     },
     [edit],
   );
-  // The window's light goes with the stage: the Studio closing, another
-  // project taking the bench, the stage stood down for a publish.
-  useEffect(
-    () => () => {
-      reportSceneLeft('studio');
-      forgetSceneDraw('studio');
-    },
-    [],
-  );
+  // Its line in the Processes dialog goes with the stage: the Studio
+  // closing, another project taking the bench, the stage stood down for a
+  // publish.
+  useEffect(() => () => forgetSceneDraw('studio'), []);
 
   const screen = useMemo(
     () => stageScreen(box, preview, plate),
@@ -429,7 +417,6 @@ export default function StudioStage({
     onUpdating: setUpdating,
     interaction,
   });
-  hostRef.current = sceneRef;
   // What "Attach the stage" takes: the picture as it stands on screen now.
   useEffect(() => {
     if (!captureRef) {

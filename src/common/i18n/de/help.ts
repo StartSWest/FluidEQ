@@ -470,7 +470,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Mit einer Szene',
   'help.graph.tintName': 'Fensterfarben',
   'help.graph.tint':
-    'Das App-Design, die Farben der Szene, ihre Farben mit Licht (Ambiente) oder die Szene hinter dem ganzen Fenster (Kulisse).',
+    'Das App-Design, die Farben der Szene, ihre Farben mit ihren Elementen, die ums Fenster fliegen (Ambiente), oder die Szene hinter dem ganzen Fenster (Kulisse).',
   'help.graph.likeName': '„Gefällt mir“',
   'help.graph.like':
     'Vergibt ein „Gefällt mir“ für die laufende Szene und bringt ihrem Autor Punkte. Bei einer eigenen Szene zeigt es, wie viele „Gefällt mir“ sie hat.',

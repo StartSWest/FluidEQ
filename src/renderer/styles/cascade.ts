@@ -218,7 +218,6 @@ import './MiniPlayer.scss';
 import './RemoteAudio.scss';
 import './RemoteAudioGroup.scss';
 import './Euphoria.scss';
-import './ScenePulse.scss';
 // A scene's window colours: under the Window colours menu and on the Tune tab.
 import './SceneWindowColours.scss';
 import './SceneAmbient.scss';

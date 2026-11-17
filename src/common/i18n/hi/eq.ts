@@ -160,9 +160,10 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.every': 'ऑटो: {seconds}से',
   'graph.sceneTint.mode.off': 'ऐप की थीम',
   'graph.sceneTint.mode.tint': 'सीन के रंग',
-  'graph.sceneTint.mode.pulse': 'सीन के रंग, उसके आसपास उसकी रोशनी के साथ',
+  'graph.sceneTint.mode.pulse':
+    'सीन के रंग, विंडो के आसपास उड़ते उसके तत्वों के साथ',
   'graph.sceneTint.mode.cover':
-    'पूरी विंडो के पीछे सीन, उसके आसपास उसकी रोशनी के साथ',
+    'पूरी विंडो के पीछे सीन, आसपास उसके तत्वों के साथ',
   'graph.sceneTint.short.off': 'मूल',
   'graph.sceneTint.short.tint': 'रंग',
   'graph.sceneTint.short.pulse': 'माहौल',
@@ -170,7 +171,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.label': 'विंडो के रंग',
   'graph.sceneTint.about.off': 'आपकी थीम में विंडो।',
   'graph.sceneTint.about.tint': 'सीन के रंगों में विंडो।',
-  'graph.sceneTint.about.pulse': 'उसके रंग, और संगीत के साथ चमकती विंडो।',
+  'graph.sceneTint.about.pulse': 'उसके रंग, और विंडो के आसपास उड़ते उसके तत्व।',
   'graph.sceneTint.about.cover':
     'माहौल का सब कुछ, पूरी विंडो के पीछे सीन के साथ।',
   'graph.editHint':

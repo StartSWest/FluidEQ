@@ -736,7 +736,7 @@ const studio = {
   'studio.brightness.hint':
     'La Luminosité de toute l’application, le même curseur que dans Couleurs de la fenêtre. Avec elle, chaque scène passe de la nuit à 0 au plein jour à 100 : essayez la vôtre aux deux extrêmes avant de la publier.',
   'studio.tint.hint':
-    'Ici seulement, pendant que vous travaillez : les Couleurs de la fenêtre du graphique restent comme vous les avez réglées. Thème laisse la fenêtre comme l’application l’a réglée ; les autres lui donnent les couleurs de cette scène, ou brillent doucement autour d’elle avec la musique, pour que vous la voyiez et la sentiez comme chaque auditeur.',
+    'Ici seulement, pendant que vous travaillez : les Couleurs de la fenêtre du graphique restent comme vous les avez réglées. Thème laisse la fenêtre comme l’application l’a réglée ; les autres lui donnent les couleurs de cette scène, ou ces couleurs avec ses éléments qui volent autour de la fenêtre, pour que vous la voyiez et la sentiez comme chaque auditeur.',
   'studio.grid.label': 'Afficher la grille du graphique',
   'studio.grid.hint':
     'Ses lignes de fréquence et de niveau sur la scène, avec la place qu’elles prennent sur le graphique, pour mesurer où tombent l’onde et chaque partie de la scène.',

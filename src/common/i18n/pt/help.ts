@@ -458,7 +458,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Com uma cena',
   'help.graph.tintName': 'Cores da janela',
   'help.graph.tint':
-    'O tema do app, as cores da cena, as cores dela com luz (Ambiente) ou a cena atrás de toda a janela (Pano de fundo).',
+    'O tema do app, as cores da cena, as cores dela com os elementos dela voando ao redor da janela (Ambiente) ou a cena atrás de toda a janela (Pano de fundo).',
   'help.graph.likeName': 'Curtir',
   'help.graph.like':
     'Curte a cena que está tocando e dá pontos a quem a criou. Numa cena sua, mostra quantas curtidas ela tem.',

@@ -41,7 +41,6 @@ import type { ISceneDrawReport } from './sceneRunnerTypes';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
-import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import { usePointerSparks } from '../utils/pointerSparksStore';
 import { createSceneInteraction } from './sceneInteraction';
@@ -228,11 +227,7 @@ export default function SceneCanvas({
   // The automatic switching counts a look's time from its first frame, not
   // from the moment it was chosen (`graphAutoCycle.ts`).
   useHoldGraphAutoCycle(drawnIdentity !== key);
-  // Where the window's pulse starts from: the plot's panel while there is
-  // one, the middle of the window while the scene is only the Backdrop.
   const panel = plot?.panel;
-  const panelRef = useRef(panel);
-  panelRef.current = panel;
   const onDrawn = useCallback(
     (
       frame: ISceneFrame,
@@ -245,24 +240,15 @@ export default function SceneCanvas({
         drawnRef.current = key;
         setDrawnIdentity(key);
       }
-      // The window beats on the beats this scene is drawing, when the
-      // graph's mode asks it to (`ScenePulse.tsx`).
-      reportSceneBeat('graph', frame, panelRef.current);
-      // And the Processes dialog says what it is costing.
+      // The Processes dialog says what it is costing.
       reportSceneDraw('graph', name, report);
     },
     [key, name],
   );
-  // The window's light goes with the graph's scene when it stops being drawn
+  // Its line in the Processes dialog goes when it stops being drawn
   // anywhere. Not when the look changes: the next scene is drawn in this same
-  // place and carries the light on.
-  useEffect(
-    () => () => {
-      reportSceneLeft('graph');
-      forgetSceneDraw('graph');
-    },
-    [],
-  );
+  // place and takes the line over.
+  useEffect(() => () => forgetSceneDraw('graph'), []);
 
   // The listener's own attack and release for this visualizer, from the
   // graph's menu, over the timing its pack came with.

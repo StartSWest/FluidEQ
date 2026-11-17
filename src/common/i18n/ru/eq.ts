@@ -162,8 +162,9 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.every': 'Авто: {seconds}с',
   'graph.sceneTint.mode.off': 'тема приложения',
   'graph.sceneTint.mode.tint': 'цвета сцены',
-  'graph.sceneTint.mode.pulse': 'цвета сцены и её свет вокруг',
-  'graph.sceneTint.mode.cover': 'сцена за всем окном и её свет вокруг',
+  'graph.sceneTint.mode.pulse':
+    'цвета сцены и её элементы, летающие вокруг окна',
+  'graph.sceneTint.mode.cover': 'сцена за всем окном и её элементы вокруг',
   'graph.sceneTint.short.off': 'Оригинал',
   'graph.sceneTint.short.tint': 'Цвета',
   // A soft hyphen: the Studio's tiles, four to a 248px card, leave the name
@@ -174,7 +175,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.label': 'Цвета окна',
   'graph.sceneTint.about.off': 'Окно в вашей теме.',
   'graph.sceneTint.about.tint': 'Окно в цветах сцены.',
-  'graph.sceneTint.about.pulse': 'Его цвета, и окно светится в такт музыке.',
+  'graph.sceneTint.about.pulse':
+    'Его цвета, и его элементы летают вокруг окна.',
   'graph.sceneTint.about.cover': 'Всё из «Атмосферы», и сцена за всем окном.',
   'graph.editHint':
     'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q · Ctrl+перетаскивание: колокол',

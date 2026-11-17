@@ -43,9 +43,15 @@ import {
 
 /**
  * What a scene does to the window: nothing — the theme as it is — its
- * colours, its colours with the window beating along with it
- * (`ScenePulse.tsx`) and its elements around it — Ambient — or all of that
- * with the scene itself behind the window: the Backdrop.
+ * colours, its colours with its elements drifting around the window
+ * (`SceneAmbient.tsx`) — Ambient — or all of that with the scene itself
+ * behind the window: the Backdrop.
+ *
+ * The window's surfaces stay flat in every mode. Ambient used to swell the
+ * scene's light over the panes once a bar, and the titlebar and the
+ * now-playing bar, which stand above that light, then showed as hard edges
+ * against the lit middle (Ivan, 2026-11-17: "it makes clear borders against
+ * the top and bottom bar"); it was taken out.
  *
  * The Backdrop is no longer anybody's choice in the full app, which has none
  * (Ivan, 2026-11-16: "I didn't like the scene backdrop experiment so remove
@@ -65,8 +71,8 @@ export const SCENE_TINT_CHOICES = ['off', 'tint', 'pulse'] as const;
 export type TSceneTintChoice = (typeof SCENE_TINT_CHOICES)[number];
 
 /**
- * Whether the window beats with the scene and wears its elements: Ambient,
- * and the Backdrop, which is Ambient with the scene behind the window too.
+ * Whether the window wears the scene's elements: Ambient, and the Backdrop,
+ * which is Ambient with the scene behind the window too.
  */
 export const isAmbientMode = (mode: TSceneTintMode): boolean =>
   mode === 'pulse' || mode === 'cover';
@@ -154,7 +160,7 @@ const createModeSetting = (
 };
 
 /**
- * Ambient from the start: the visualizer's colours and light around the
+ * Ambient from the start: the visualizer's colours and elements around the
  * window (Ivan, 2026-09-29: "when the user selects a Plus viz the settings
  * are Backdrop", from when the Backdrop was the full app's too).
  * Choosing a Plus visualizer is choosing how the app looks, and somebody who
@@ -319,8 +325,8 @@ export const useAmpHoldsWindow = () =>
  * The mode the window is in now: the Backdrop while the amp holds it, the
  * Studio's own while its project holds the window's colour — its bench on
  * screen and its choice not Theme — and the app's otherwise. What is drawn
- * round the window reads this (the glow, the scene's elements, the Studio's
- * own note on them); the app's Window colours menu shows and sets the app's
+ * round the window reads this (the scene's elements, the Studio's own note
+ * on them); the app's Window colours menu shows and sets the app's
  * alone.
  */
 export const useWindowTintMode = (): TSceneTintMode => {

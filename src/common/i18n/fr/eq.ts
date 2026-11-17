@@ -166,9 +166,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.mode.off': 'le thème de l’application',
   'graph.sceneTint.mode.tint': 'les couleurs de la scène',
   'graph.sceneTint.mode.pulse':
-    'les couleurs de la scène, avec sa lumière autour',
+    'les couleurs de la scène, avec ses éléments qui volent autour de la fenêtre',
   'graph.sceneTint.mode.cover':
-    'la scène derrière toute la fenêtre, avec sa lumière autour',
+    'la scène derrière toute la fenêtre, avec ses éléments autour',
   'graph.sceneTint.short.off': 'Original',
   'graph.sceneTint.short.tint': 'Couleurs',
   'graph.sceneTint.short.pulse': 'Ambiance',
@@ -177,7 +177,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.off': 'La fenêtre dans votre thème.',
   'graph.sceneTint.about.tint': 'La fenêtre aux couleurs de la scène.',
   'graph.sceneTint.about.pulse':
-    'Ses couleurs, et la fenêtre qui s’illumine avec la musique.',
+    'Ses couleurs, et ses éléments qui volent autour de la fenêtre.',
   'graph.sceneTint.about.cover':
     'Tout Ambiance, avec la scène derrière toute la fenêtre.',
   'graph.editHint':

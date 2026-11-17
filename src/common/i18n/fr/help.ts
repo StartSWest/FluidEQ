@@ -467,7 +467,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Avec une scène',
   'help.graph.tintName': 'Couleurs de la fenêtre',
   'help.graph.tint':
-    'Le thème de l’application, les couleurs de la scène, ses couleurs avec sa lumière (Ambiance), ou la scène derrière toute la fenêtre (Toile de fond).',
+    'Le thème de l’application, les couleurs de la scène, ses couleurs avec ses éléments qui volent autour de la fenêtre (Ambiance), ou la scène derrière toute la fenêtre (Toile de fond).',
   'help.graph.likeName': 'J’aime',
   'help.graph.like':
     'Aime la scène en cours, ce qui rapporte des points à son auteur. Sur une scène à vous, il montre combien de j’aime elle a.',

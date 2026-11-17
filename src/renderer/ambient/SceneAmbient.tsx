@@ -88,7 +88,7 @@ const prefersReducedMotion = () =>
  * from a small picture made once (`ambientSprites.ts`).
  *
  * One mode for the whole app decides whether it is drawn, and the same
- * precedence as the window's colour and light decides whose: the Studio's
+ * precedence as the window's colour decides whose: the Studio's
  * project while it owns the window, the graph's look otherwise.
  */
 export default function SceneAmbient() {

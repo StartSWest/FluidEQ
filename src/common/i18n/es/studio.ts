@@ -735,7 +735,7 @@ const studio = {
   'studio.brightness.hint':
     'El Brillo de toda la app, el mismo control que en Colores de la ventana. Con él, cada escena pasa de la noche en 0 al pleno día en 100: prueba la tuya en los dos extremos antes de publicarla.',
   'studio.tint.hint':
-    'Solo aquí, mientras trabajas: los Colores de la ventana de la gráfica siguen como los dejaste. Tema deja la ventana como la tiene la app; las demás le dan los colores de esta escena, o brillan suavemente a su alrededor con la música, para que la veas y la sientas como la verá quien la escuche.',
+    'Solo aquí, mientras trabajas: los Colores de la ventana de la gráfica siguen como los dejaste. Tema deja la ventana como la tiene la app; las demás le dan los colores de esta escena, o esos colores con sus elementos volando por la ventana, para que la veas y la sientas como la verá quien la escuche.',
   'studio.grid.label': 'Mostrar la cuadrícula de la gráfica',
   'studio.grid.hint':
     'Sus líneas de frecuencia y nivel sobre la escena, con el espacio que ocupan en la gráfica, para medir dónde caen la onda y cada parte de la escena.',

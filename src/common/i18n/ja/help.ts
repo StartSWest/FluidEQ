@@ -452,7 +452,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'シーンの場合',
   'help.graph.tintName': 'ウィンドウの色',
   'help.graph.tint':
-    'アプリのテーマ、シーンの色、その色と光（環境光）、またはウィンドウ全体の背後のシーン（背景）。',
+    'アプリのテーマ、シーンの色、その色とウィンドウの周りを舞う要素（環境光）、またはウィンドウ全体の背後のシーン（背景）。',
   'help.graph.likeName': 'いいね',
   'help.graph.like':
     '再生中のシーンにいいねし、作者にポイントが入ります。自分のシーンでは、いいねの数を表示します。',

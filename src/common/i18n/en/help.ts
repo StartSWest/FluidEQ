@@ -456,7 +456,7 @@ const help = {
   'help.graph.plusCaption': 'With a scene',
   'help.graph.tintName': 'Window colours',
   'help.graph.tint':
-    "The app's theme, the scene's colours, its colours with light (Ambient), or the scene behind the whole window (Backdrop).",
+    "The app's theme, the scene's colours, its colours with its elements flying around the window (Ambient), or the scene behind the whole window (Backdrop).",
   'help.graph.likeName': 'Like',
   'help.graph.like':
     'Likes the scene playing, which gives its maker points. On a scene of your own it shows how many likes it has.',

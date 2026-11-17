@@ -31,11 +31,6 @@ jest.mock('renderer/plus/ScenePreview', () => ({
   },
 }));
 
-jest.mock('renderer/player/usePlayerScenePulse', () => ({
-  __esModule: true,
-  default: () => () => undefined,
-}));
-
 /** The layout jsdom does not do: each part's offset box, by class. */
 interface IOffsets {
   parent: string | null;

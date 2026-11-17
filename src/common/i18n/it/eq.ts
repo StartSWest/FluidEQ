@@ -162,9 +162,10 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.every': 'Auto: {seconds}s',
   'graph.sceneTint.mode.off': 'il tema dell’app',
   'graph.sceneTint.mode.tint': 'i colori della scena',
-  'graph.sceneTint.mode.pulse': 'i colori della scena, con la sua luce intorno',
+  'graph.sceneTint.mode.pulse':
+    'i colori della scena, con i suoi elementi che volano intorno alla finestra',
   'graph.sceneTint.mode.cover':
-    'la scena dietro tutta la finestra, con la sua luce intorno',
+    'la scena dietro tutta la finestra, con i suoi elementi intorno',
   'graph.sceneTint.short.off': 'Originale',
   'graph.sceneTint.short.tint': 'Colori',
   'graph.sceneTint.short.pulse': 'Ambiente',
@@ -173,7 +174,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.off': 'La finestra con il tuo tema.',
   'graph.sceneTint.about.tint': 'La finestra con i colori della scena.',
   'graph.sceneTint.about.pulse':
-    'I suoi colori, con la finestra che si illumina con la musica.',
+    'I suoi colori, con i suoi elementi che volano intorno alla finestra.',
   'graph.sceneTint.about.cover':
     'Tutto Ambiente, con la scena dietro tutta la finestra.',
   'graph.editHint':

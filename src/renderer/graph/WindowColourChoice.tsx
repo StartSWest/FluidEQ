@@ -17,7 +17,7 @@ import {
  * What a Plus visualizer does to the window's colours, one row of three in
  * the actions menu's tray: Original, the theme, which the window's Tint
  * colours; Colours, the scene's; and Ambient, the scene's colours with its
- * light and its elements round the window (Ivan, 2026-11-16: "color =
+ * elements flying round the window (Ivan, 2026-11-16: "color =
  * original so they change the color via app color slider, then we want
  * scene color so they pick those scene colors, then scene colors plus
  * flaying things"). The scene behind the window is Transparency's, not a

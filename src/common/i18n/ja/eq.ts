@@ -161,8 +161,9 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.every': '自動: {seconds}秒',
   'graph.sceneTint.mode.off': 'アプリのテーマ',
   'graph.sceneTint.mode.tint': 'シーンの色',
-  'graph.sceneTint.mode.pulse': 'シーンの色と、周りに広がる光',
-  'graph.sceneTint.mode.cover': 'ウィンドウ全体の背後にシーン、周りに広がる光',
+  'graph.sceneTint.mode.pulse': 'シーンの色と、ウィンドウの周りを舞うその要素',
+  'graph.sceneTint.mode.cover':
+    'ウィンドウ全体の背後にシーン、周りを舞うその要素',
   'graph.sceneTint.short.off': 'オリジナル',
   'graph.sceneTint.short.tint': '色',
   'graph.sceneTint.short.pulse': '環境光',
@@ -171,7 +172,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.off': 'ウィンドウはテーマのまま。',
   'graph.sceneTint.about.tint': 'ウィンドウをシーンの色に。',
   'graph.sceneTint.about.pulse':
-    'その色で、ウィンドウが音楽に合わせて光ります。',
+    'その色で、ウィンドウの周りをその要素が舞います。',
   'graph.sceneTint.about.cover':
     '環境光に加えて、ウィンドウ全体の背後にシーン。',
   'graph.editHint':

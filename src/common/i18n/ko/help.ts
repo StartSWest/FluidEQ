@@ -430,7 +430,7 @@ const help = {
   'help.graph.plusCaption': '장면이 있는',
   'help.graph.tintName': '창 색상',
   'help.graph.tint':
-    '앱의 테마, 장면의 색상, 조명에 따른 색상(주변) 또는 전체 창 뒤의 장면(배경화면).',
+    '앱의 테마, 장면의 색상, 창 주위를 떠다니는 요소가 있는 장면의 색상(주변) 또는 전체 창 뒤의 장면(배경화면).',
   'help.graph.likeName': '좋아요',
   'help.graph.like':
     '제작자 포인트를 제공하는 장면 재생을 좋아합니다. 자신의 장면에서 좋아요 수를 보여줍니다.',

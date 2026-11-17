@@ -465,7 +465,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.plusCaption': 'Con una escena',
   'help.graph.tintName': 'Colores de la ventana',
   'help.graph.tint':
-    'El tema de la app, los colores de la escena, sus colores con luz (Ambiente) o la escena detrás de toda la ventana (Fondo).',
+    'El tema de la app, los colores de la escena, sus colores con sus elementos volando por la ventana (Ambiente) o la escena detrás de toda la ventana (Fondo).',
   'help.graph.likeName': 'Me gusta',
   'help.graph.like':
     'Da me gusta a la escena que suena y suma puntos a quien la hizo. En una escena tuya muestra cuántos me gusta tiene.',
