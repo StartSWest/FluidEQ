@@ -2243,38 +2243,34 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   padding-bottom: 2px;
 
   // Over the graph's picture the pills' row draws no rule under itself and no
-  // band behind it, and its words are read by the same dark outline the
-  // graph's own figures wear (`_graphThemeChart.scss`: a 3px stroke of the
-  // floor at 75%, painted under the letters) - Ivan, 2026-11-17: "remove the
-  // dividing line of the options on top ... and make the options with a
-  // black border, as we did the graph's, so they are more visible".
+  // band behind it (Ivan, 2026-11-17: "remove the dividing line of the
+  // options on top"). Its words, the engine's name and every glyph in the
+  // row read the way text on a photograph does: a soft shadow under the
+  // letters and the resting words lifted towards white, no hard edge. A 3px
+  // stroke like the graph's figures' was tried first and came out as grey
+  // words in black blobs over a bright sky ("this case I don't like at all
+  // ... do something with that black edge"): at the pills' 11px the stroke
+  // is as heavy as the letters.
   .workspace-section-header {
     border-bottom: 0;
   }
 
-  // The pills alone: the engine label beside them paints its words with a
-  // gradient through the text, which a stroke breaks into a smear.
   .workspace-pill {
-    -webkit-text-stroke: 3px rgba(2, 8, 15, 0.75);
-    paint-order: stroke fill;
+    text-shadow:
+      0 0 1px rgba(2, 8, 15, 0.55),
+      0 1px 3px rgba(2, 8, 15, 0.5);
+
+    &:not(.is-active) {
+      color: color-mix(in srgb, #{$text-primary} 82%, transparent);
+    }
   }
 
-  // Every glyph in the row, the pills' and the engine strip's, takes the
-  // engine name's edge below (Ivan: "the little icons need that black edge
-  // too"): a single 1px shadow left them faint on a bright picture.
+  // The engine's name paints its words with a gradient through the text,
+  // where a text shadow would show through the letters: the same soft
+  // shadow drawn round their shape instead. The glyphs likewise.
+  .eq-engine-label,
   .workspace-section-header svg {
-    filter: drop-shadow(0 0 0.75px rgba(2, 8, 15, 0.95))
-      drop-shadow(0 0 1.5px rgba(2, 8, 15, 0.75));
-  }
-
-  // The engine's name gets the same dark edge another way (Ivan: "put that
-  // little black thing there too, so it shows more"): its words are a
-  // gradient seen through the text, which a stroke smears, so the edge is a
-  // shadow drawn round the letters' own shape, tight and then a little wider
-  // - the stroke's 1.5px each side, at its 75%.
-  .eq-engine-label {
-    filter: drop-shadow(0 0 0.75px rgba(2, 8, 15, 0.95))
-      drop-shadow(0 0 1.5px rgba(2, 8, 15, 0.75));
+    filter: drop-shadow(0 1px 2px rgba(2, 8, 15, 0.55));
   }
 }
 
