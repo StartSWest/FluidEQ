@@ -2883,9 +2883,13 @@ $graph-card-pages: list.join(
     // band for an afternoon and came off it again (Ivan, 2026-11-17: "I do
     // not like the top band at all"): it reads by its words' own outline now
     // (`.center-head--eq`, below).
+    // Darker and closer to solid again (Ivan, 2026-11-17, over a lake scene:
+    // "that bar dark too, a little less see-through"): a tinting scene sets
+    // the window's surfaces to its own lighter blues, so the face is taken
+    // 35% of the way to black and laid at 94%.
     $scene-row-band: color-mix(
       in srgb,
-      color-mix(in srgb, #{$surface-panel} 80%, #{$surface-base}) 88%,
+      color-mix(in srgb, #{$surface-base} 65%, black) 94%,
       transparent
     );
 
