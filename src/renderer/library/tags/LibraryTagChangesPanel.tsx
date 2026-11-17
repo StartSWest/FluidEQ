@@ -58,7 +58,7 @@ const LibraryTagChangesPanel = () => {
   if (pageChanges === undefined) {
     return null;
   }
-  const { album, songs, cover, count } = pageChanges;
+  const { album, songs, cover, files, count } = pageChanges;
   return (
     <aside
       className="library-tags-panel is-changes"
@@ -136,6 +136,22 @@ const LibraryTagChangesPanel = () => {
                     <Change before={[field.before]} after={field.after} />
                   </div>
                 ))}
+              </div>
+            ))}
+          </section>
+        )}
+        {files.length > 0 && (
+          <section>
+            <h4 className="library-tags__group">
+              {t('library.tags.files.title')}
+            </h4>
+            {files.map((file) => (
+              <div
+                key={file.trackId}
+                className={`library-tags-changes__file${file.isClash ? ' is-clash' : ''}`}
+              >
+                <del title={file.before}>{file.before}</del>
+                <ins title={file.after}>{file.after}</ins>
               </div>
             ))}
           </section>

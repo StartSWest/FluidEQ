@@ -147,6 +147,28 @@ const libraryTags = {
   'library.tags.set.coverToAll': 'Pour les {count} chansons',
   'library.tags.set.songs': 'Chansons',
   'library.tags.set.renumber': 'Renuméroter dans l’ordre',
+  'library.tags.files.title': 'Noms de fichier',
+  'library.tags.files.keep': 'Ne pas changer',
+  'library.tags.files.custom': 'Personnalisé…',
+  'library.tags.files.pattern': 'Modèle du nom',
+  'library.tags.files.patternHint':
+    'Tapez, et ajoutez des tags avec les boutons',
+  'library.tags.files.addTag': 'Ajouter un tag',
+  'library.tags.files.token.track': 'N°',
+  'library.tags.files.token.title': 'Titre',
+  'library.tags.files.token.artist': 'Artiste',
+  'library.tags.files.token.albumArtist': 'Artiste de l’album',
+  'library.tags.files.token.album': 'Album',
+  'library.tags.files.token.year': 'Année',
+  'library.tags.files.token.disc': 'Disque',
+  'library.tags.files.count': '{count} fichiers changent de nom',
+  'library.tags.files.countOne': '1 fichier change de nom',
+  'library.tags.files.none': 'Tous les fichiers portent déjà ce nom',
+  'library.tags.files.clash':
+    '{count} chansons auraient le même nom. Distinguez-les pour enregistrer.',
+  'library.tags.files.clashOne':
+    'Une chanson prendrait le nom d’un autre fichier. Distinguez-les pour enregistrer.',
+  'library.tags.files.clashRow': 'Même nom qu’un autre fichier',
   'library.tags.set.fixAuto': 'Corriger automatiquement',
   'library.tags.set.moreFields': 'Plus de champs ({fields})',
   'library.tags.set.varies': 'Varie :',
@@ -233,6 +255,10 @@ const libraryTags = {
     'Ce dont Annuler a besoin n’a pas pu être gardé ; rien n’a été écrit. Le fichier est intact.',
   'library.tags.problems.failedPlace':
     'La copie écrite n’a pas pu prendre la place du fichier. Le fichier est intact. Si une synchronisation comme OneDrive s’en occupe, réessayez quand elle a fini.',
+  'library.tags.problems.failedTaken':
+    'Un autre fichier de son dossier porte déjà le nouveau nom, il a donc gardé le sien. Renommez ou déplacez l’autre fichier, puis réessayez.',
+  'library.tags.problems.failedRename':
+    'Le disque n’a pas accepté le nouveau nom, il a donc gardé le sien. Réessayez ; si une app de synchronisation comme OneDrive s’en occupe, attendez qu’elle ait fini.',
   'library.tags.problems.options': 'Options pour ce fichier',
   'library.tags.problems.openTags': 'Voir ses tags',
   'library.tags.problems.reveal': 'Afficher dans l’Explorateur',
@@ -286,6 +312,16 @@ const libraryTags = {
   'library.tags.write.undoAsk':
     'Remettre les anciens tags de {count} fichiers ?',
   'library.tags.write.undoAskOne': 'Remettre les anciens tags de 1 fichier ?',
+  'library.tags.write.doneNoteNamed':
+    'Les tags et les noms précédents sont conservés — Annuler les remet tous.',
+  'library.tags.write.undoneNoteNamed':
+    'Chaque fichier retrouve ses tags et son nom précédents, pochette comprise.',
+  'library.tags.write.stoppedNoteNamed':
+    'Les fichiers déjà écrits gardent leurs nouveaux tags et noms ; Annuler les remet.',
+  'library.tags.write.undoAskNamed':
+    'Remettre les tags et les noms précédents sur {count} fichiers ?',
+  'library.tags.write.undoAskOneNamed':
+    'Remettre les tags et le nom précédents sur 1 fichier ?',
   'library.tags.write.undoKeep': 'Non',
   'library.tags.write.undoConfirm': 'Annuler',
 };

@@ -143,6 +143,27 @@ const libraryTags = {
   'library.tags.set.coverToAll': 'सभी {count} गानों के लिए',
   'library.tags.set.songs': 'गाने',
   'library.tags.set.renumber': 'क्रम से दोबारा नंबर दें',
+  'library.tags.files.title': 'फ़ाइल के नाम',
+  'library.tags.files.keep': 'जैसे हैं वैसे रखें',
+  'library.tags.files.custom': 'अपना पैटर्न…',
+  'library.tags.files.pattern': 'नाम का पैटर्न',
+  'library.tags.files.patternHint': 'लिखें, और बटनों से टैग जोड़ें',
+  'library.tags.files.addTag': 'टैग जोड़ें',
+  'library.tags.files.token.track': 'क्रमांक',
+  'library.tags.files.token.title': 'शीर्षक',
+  'library.tags.files.token.artist': 'कलाकार',
+  'library.tags.files.token.albumArtist': 'एल्बम कलाकार',
+  'library.tags.files.token.album': 'एल्बम',
+  'library.tags.files.token.year': 'वर्ष',
+  'library.tags.files.token.disc': 'डिस्क',
+  'library.tags.files.count': '{count} फ़ाइलों का नाम बदलेगा',
+  'library.tags.files.countOne': '1 फ़ाइल का नाम बदलेगा',
+  'library.tags.files.none': 'सभी फ़ाइलों का नाम पहले से यही है',
+  'library.tags.files.clash':
+    '{count} गानों का नाम एक जैसा हो जाएगा। सहेजने के लिए उन्हें अलग करें।',
+  'library.tags.files.clashOne':
+    'एक गाने का नाम किसी दूसरी फ़ाइल जैसा हो जाएगा। सहेजने के लिए उन्हें अलग करें।',
+  'library.tags.files.clashRow': 'दूसरी फ़ाइल जैसा नाम',
   'library.tags.set.fixAuto': 'अपने आप ठीक करें',
   'library.tags.set.moreFields': 'और फ़ील्ड ({fields})',
   'library.tags.set.varies': 'अलग-अलग:',
@@ -232,6 +253,10 @@ const libraryTags = {
     'पहले जैसा करने के लिए ज़रूरी जानकारी नहीं रखी जा सकी, इसलिए कुछ नहीं लिखा गया। फ़ाइल वैसी ही है।',
   'library.tags.problems.failedPlace':
     'लिखी गई कॉपी फ़ाइल की जगह नहीं ले सकी। फ़ाइल वैसी ही है। अगर OneDrive जैसा सिंक ऐप उस पर काम कर रहा है, तो उसके ख़त्म होने पर फिर कोशिश करें।',
+  'library.tags.problems.failedTaken':
+    'इसके फ़ोल्डर में किसी दूसरी फ़ाइल का नाम पहले से नया नाम है, इसलिए इसने अपना नाम रखा। दूसरी फ़ाइल का नाम बदलें या उसे हटाएँ, फिर दोबारा कोशिश करें।',
+  'library.tags.problems.failedRename':
+    'ड्राइव ने नया नाम नहीं लिया, इसलिए इसने अपना नाम रखा। दोबारा कोशिश करें; अगर OneDrive जैसा कोई सिंक ऐप इस पर काम कर रहा है, तो उसके ख़त्म होने तक रुकें।',
   'library.tags.problems.options': 'इस फ़ाइल के विकल्प',
   'library.tags.problems.openTags': 'इसके टैग देखें',
   'library.tags.problems.reveal': 'एक्सप्लोरर में दिखाएँ',
@@ -282,6 +307,16 @@ const libraryTags = {
     'आपके ब्राउज़र में MusicBrainz पर एल्बम खोलता है। FluidEQ कुछ भी डाउनलोड नहीं करता।',
   'library.tags.write.undoAsk': '{count} फ़ाइलों के पुराने टैग वापस लाएँ?',
   'library.tags.write.undoAskOne': '1 फ़ाइल के पुराने टैग वापस लाएँ?',
+  'library.tags.write.doneNoteNamed':
+    'पिछले टैग और नाम रखे गए हैं — पूर्ववत करें सब वापस ले आएगा।',
+  'library.tags.write.undoneNoteNamed':
+    'हर फ़ाइल के पिछले टैग और नाम वापस आ गए हैं, कवर भी।',
+  'library.tags.write.stoppedNoteNamed':
+    'जो फ़ाइलें लिखी जा चुकी हैं, उनके नए टैग और नाम बने रहेंगे; पूर्ववत करें उन्हें वापस ले आएगा।',
+  'library.tags.write.undoAskNamed':
+    '{count} फ़ाइलों के पिछले टैग और नाम वापस लाएँ?',
+  'library.tags.write.undoAskOneNamed':
+    '1 फ़ाइल के पिछले टैग और नाम वापस लाएँ?',
   'library.tags.write.undoKeep': 'नहीं',
   'library.tags.write.undoConfirm': 'पहले जैसा करें',
 };

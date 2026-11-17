@@ -38,6 +38,7 @@ import { registerLibraryLyricsIpc } from './libraryLyricsIpc';
 import { registerLibrarySubtitlesIpc } from './librarySubtitlesIpc';
 import { releaseDspHostFile } from './dspHost';
 import { registerLibraryTagsIpc } from './libraryTagsIpc';
+import { moveLibraryPlaylistTracks } from './libraryPlaylists';
 import onWindowMessage from './windowMessages';
 
 /**
@@ -428,6 +429,12 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
     getMainWindow,
     announce,
     releaseFile: releaseDspHostFile,
+    // A renamed song is a new id: playlists keep it, and the window's queue
+    // and views are told which id became which.
+    onTracksMoved: (moves) => {
+      moveLibraryPlaylistTracks(moves);
+      getMainWindow()?.webContents.send('library-tracks-moved', moves);
+    },
   });
 
   // A video's subtitles, and subtitles the viewer keeps with it, by id.

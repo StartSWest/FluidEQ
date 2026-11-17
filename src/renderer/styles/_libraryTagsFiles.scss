@@ -1,0 +1,174 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The album editor's file names: the line that picks a pattern, the new
+// name under each song, and the same names in the side panel. Old names
+// are struck in the muted tone, new ones in the accent, a clash in red —
+// the marks the rest of the editor uses for a change.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+.library-tags-files {
+  display: flex;
+  margin: 0 0 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+
+  .library-tags__group.is-inline {
+    margin: 0;
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+.library-tags-files__pick {
+  width: 260px;
+  max-width: 100%;
+  flex: 0 1 260px;
+}
+
+// The open menu: each pattern, and what the first song would be called.
+.library-tags-files__menu {
+  min-width: 300px;
+}
+
+.library-tags-files__option {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+
+  small {
+    overflow: hidden;
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.library-tags-files__custom {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+
+  .library-tags__box {
+    width: 320px;
+    max-width: 100%;
+    flex: 0 1 320px;
+  }
+}
+
+.library-tags-files__tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.library-tags-files__status {
+  color: $secondary-light;
+  font-size: $studio-text-meta;
+
+  &.is-clash {
+    color: $red;
+  }
+}
+
+// Under a song's row: its name now, struck, and the name Save gives it.
+// One cell across the row, its text starting under the number: past the
+// grip's and the cover's columns (30 + 40px, `_libraryTagsSheet.scss`).
+.library-tags-sheet tr.library-tags-sheet__file td {
+  padding-top: 0;
+  padding-left: 70px;
+  border-top: 0;
+}
+
+.library-tags-sheet__file-name {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 8px 6px;
+  font-size: $studio-text-meta;
+
+  del,
+  ins {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  del {
+    // The old name gives way first: the new one is what is being decided.
+    min-width: 4em;
+    flex: 0 100 auto;
+    color: $studio-t3;
+    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+  }
+
+  > span {
+    flex: none;
+    color: $studio-t3;
+  }
+
+  ins {
+    flex: 0 1 auto;
+    color: $secondary-light;
+    text-decoration: none;
+  }
+
+  em {
+    flex: none;
+    color: $red;
+    font-family: inherit;
+    font-style: normal;
+  }
+
+  .is-clash & ins {
+    color: $red;
+  }
+}
+
+// The side panel: each file's old name over its new one.
+.library-tags-changes__file {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 6px 0;
+  border-top: 1px solid $studio-hair;
+  font-size: $studio-text-meta;
+
+  del,
+  ins {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  del {
+    color: $studio-t3;
+    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+  }
+
+  ins {
+    color: $secondary-light;
+    text-decoration: none;
+  }
+
+  &.is-clash ins {
+    color: $red;
+  }
+}

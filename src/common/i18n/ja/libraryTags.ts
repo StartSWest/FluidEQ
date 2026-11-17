@@ -144,6 +144,27 @@ const libraryTags = {
   'library.tags.set.coverToAll': '{count} 曲すべてに適用',
   'library.tags.set.songs': '曲',
   'library.tags.set.renumber': '並び順で番号を振り直す',
+  'library.tags.files.title': 'ファイル名',
+  'library.tags.files.keep': '変更しない',
+  'library.tags.files.custom': 'カスタム…',
+  'library.tags.files.pattern': 'ファイル名のパターン',
+  'library.tags.files.patternHint': '入力し、ボタンでタグを追加します',
+  'library.tags.files.addTag': 'タグを追加',
+  'library.tags.files.token.track': '番号',
+  'library.tags.files.token.title': 'タイトル',
+  'library.tags.files.token.artist': 'アーティスト',
+  'library.tags.files.token.albumArtist': 'アルバムアーティスト',
+  'library.tags.files.token.album': 'アルバム',
+  'library.tags.files.token.year': '年',
+  'library.tags.files.token.disc': 'ディスク',
+  'library.tags.files.count': '{count} 個のファイル名が変わります',
+  'library.tags.files.countOne': '1 個のファイル名が変わります',
+  'library.tags.files.none': 'すべてのファイルがすでにこの名前です',
+  'library.tags.files.clash':
+    '{count} 曲が同じ名前になります。保存するには区別してください。',
+  'library.tags.files.clashOne':
+    '1 曲が別のファイルと同じ名前になります。保存するには区別してください。',
+  'library.tags.files.clashRow': '別のファイルと同じ名前',
   'library.tags.set.fixAuto': '自動で修正',
   'library.tags.set.moreFields': 'その他の項目（{fields}）',
   'library.tags.set.varies': '曲ごとに異なる:',
@@ -230,6 +251,10 @@ const libraryTags = {
     '元に戻すのに必要な情報を保存できなかったため、何も書き込みませんでした。ファイルは元のままです。',
   'library.tags.problems.failedPlace':
     '書き込んだコピーで元のファイルを置き換えられませんでした。ファイルは元のままです。OneDrive などの同期が処理中なら、終わってから再試行してください。',
+  'library.tags.problems.failedTaken':
+    'フォルダー内の別のファイルがすでに新しい名前を使っているため、元の名前のままです。もう一方のファイルの名前を変えるか移動してから、再試行してください。',
+  'library.tags.problems.failedRename':
+    'ドライブが新しい名前を受け付けなかったため、元の名前のままです。再試行してください。OneDrive などの同期アプリが使用中なら、終わるまで待ってください。',
   'library.tags.problems.options': 'このファイルの操作',
   'library.tags.problems.openTags': 'タグを見る',
   'library.tags.problems.reveal': 'エクスプローラーで表示',
@@ -281,6 +306,16 @@ const libraryTags = {
     'ブラウザーで MusicBrainz のアルバムを開きます。FluidEQ は何もダウンロードしません。',
   'library.tags.write.undoAsk': '{count} 個のファイルのタグを元に戻しますか？',
   'library.tags.write.undoAskOne': '1 個のファイルのタグを元に戻しますか？',
+  'library.tags.write.doneNoteNamed':
+    '以前のタグと名前は保存されています。元に戻すとすべて戻ります。',
+  'library.tags.write.undoneNoteNamed':
+    '各ファイルは以前のタグと名前に戻りました（カバーも含む）。',
+  'library.tags.write.stoppedNoteNamed':
+    '書き込み済みのファイルは新しいタグと名前のままです。元に戻すと戻ります。',
+  'library.tags.write.undoAskNamed':
+    '{count} 個のファイルを以前のタグと名前に戻しますか？',
+  'library.tags.write.undoAskOneNamed':
+    '1 個のファイルを以前のタグと名前に戻しますか？',
   'library.tags.write.undoKeep': 'いいえ',
   'library.tags.write.undoConfirm': '元に戻す',
 };

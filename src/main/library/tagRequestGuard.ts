@@ -28,6 +28,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * a half-honoured write is worse than none.
  */
 
+import path from 'path';
+import { cleanFileName } from '../../common/library/fileNamePattern';
 import {
   cleanTagValue,
   isTagFieldKey,
@@ -55,6 +57,8 @@ export interface IGuardedItem {
   track: ILibraryTrack;
   format: TTagFormat;
   edit: IValidatedEdit;
+  /** The file's new name without its extension; absent keeps it. */
+  fileName?: string;
 }
 
 export interface IGuardedRequest {
@@ -172,6 +176,9 @@ export const guardTagWriteRequest = (
   }
   const items: IGuardedItem[] = [];
   const seen = new Set<string>();
+  /** New names by folder, without case: two songs given one name would
+   * have the second refused only once the first was renamed. */
+  const named = new Set<string>();
   for (let index = 0; index < edits.length; index += 1) {
     const edit: unknown = edits[index];
     if (!isRecord(edit) || typeof edit.trackId !== 'string') {
@@ -213,9 +220,32 @@ export const guardTagWriteRequest = (
     ) {
       return undefined;
     }
+    const { fileName } = edit;
+    if (fileName !== undefined) {
+      const target =
+        typeof fileName === 'string'
+          ? path
+              .join(
+                path.dirname(track.path),
+                `${fileName}${path.extname(track.path)}`,
+              )
+              .toLowerCase()
+          : undefined;
+      // The name exactly as the window previewed it, or nothing at all.
+      if (
+        typeof fileName !== 'string' ||
+        cleanFileName(fileName) !== fileName ||
+        target === undefined ||
+        named.has(target)
+      ) {
+        return undefined;
+      }
+      named.add(target);
+    }
     items.push({
       track,
       format,
+      ...(fileName === undefined ? {} : { fileName }),
       edit: {
         fields,
         extras,

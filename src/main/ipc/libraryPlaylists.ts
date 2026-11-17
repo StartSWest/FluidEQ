@@ -38,6 +38,7 @@ import {
   addTracksToPlaylist,
   emptyLibraryPlaylists,
   findPlaylist,
+  moveTracksInPlaylists,
   normalizePlaylistName,
   removeTracksFromPlaylist,
 } from '../../common/library/playlists';
@@ -107,9 +108,33 @@ const asTrackIds = (raw: unknown): string[] =>
     ? raw.filter((entry): entry is string => typeof entry === 'string')
     : [];
 
+/** Kept at registration, for the Library's own changes below. */
+let registered: ILibraryPlaylistsIpcDeps | undefined;
+
+/**
+ * Songs the tag editor renamed: every playlist, Favourites included, keeps
+ * them by their new ids, written and told to the window like any change.
+ */
+export const moveLibraryPlaylistTracks = (
+  moves: readonly { from: string; to: string }[],
+): void => {
+  if (registered === undefined || moves.length === 0) {
+    return;
+  }
+  ensureLoaded(registered.userDataDir);
+  const next = moveTracksInPlaylists(
+    current.playlists,
+    new Map(moves.map((move) => [move.from, move.to])),
+  );
+  if (next !== current.playlists) {
+    commit(registered, [...next]);
+  }
+};
+
 export const registerLibraryPlaylistsIpc = (
   deps: ILibraryPlaylistsIpcDeps,
 ): void => {
+  registered = deps;
   ipcMain.handle('library-playlists-get', () => {
     ensureLoaded(deps.userDataDir);
     return { playlists: current, wasReset };

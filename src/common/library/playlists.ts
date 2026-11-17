@@ -218,6 +218,35 @@ export const removeTracksFromPlaylist = (
       : touch(playlist, kept);
   });
 
+/**
+ * Songs known by new ids — a file renamed by the tag editor — kept in every
+ * playlist at the places they had, never twice. Answers the same array when
+ * no playlist held any of them, so nothing is written for nothing.
+ */
+export const moveTracksInPlaylists = (
+  playlists: readonly ILibraryPlaylist[],
+  moves: ReadonlyMap<string, string>,
+): readonly ILibraryPlaylist[] => {
+  let didMove = false;
+  const next = playlists.map((playlist) => {
+    if (!playlist.trackIds.some((trackId) => moves.has(trackId))) {
+      return playlist;
+    }
+    didMove = true;
+    const seen = new Set<string>();
+    const trackIds = playlist.trackIds.flatMap((trackId) => {
+      const id = moves.get(trackId) ?? trackId;
+      if (seen.has(id)) {
+        return [];
+      }
+      seen.add(id);
+      return [id];
+    });
+    return touch(playlist, trackIds);
+  });
+  return didMove ? next : playlists;
+};
+
 export const isTrackInPlaylist = (
   playlist: ILibraryPlaylist | undefined,
   trackId: string,

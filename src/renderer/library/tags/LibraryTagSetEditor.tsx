@@ -28,6 +28,7 @@ import {
   LibraryTagAlbumTitle,
 } from './LibraryTagAlbumFields';
 import LibraryTagBack from './LibraryTagBack';
+import LibraryTagFileNames from './LibraryTagFileNames';
 import LibraryTagFixAlbumList from './LibraryTagFixAlbumList';
 import LibraryTagSetCover from './LibraryTagSetCover';
 import LibraryTagSetTools, { type IFindReplace } from './LibraryTagSetTools';
@@ -49,6 +50,7 @@ import {
   withShared,
 } from './tagSetModel';
 import { pendingChangesOf } from './tagChanges';
+import { exampleNameOf, fileRenamesOf } from './tagFileNames';
 import { useEditorFix } from './useEditorFix';
 import { albumSearchUrl, openInBrowser } from './tagWebSearch';
 import { useTagSheets } from './useTagSheets';
@@ -116,9 +118,14 @@ const LibraryTagSetEditor = () => {
     () => changedFields(state, ordered),
     [state, ordered],
   );
+  const renames = useMemo(
+    () => fileRenamesOf(state, ordered),
+    [state, ordered],
+  );
+  const hasClash = renames.some((rename) => rename.isClash);
   const summary = useMemo(
-    () => summarise(state, ordered, changes),
-    [state, ordered, changes],
+    () => summarise(state, ordered, changes, renames),
+    [state, ordered, changes, renames],
   );
   const hasChanges = summary.changeCount > 0;
   const isFolder = view?.kind === 'set' && view.scope === 'folder';
@@ -141,14 +148,18 @@ const LibraryTagSetEditor = () => {
   useEffect(() => () => setPageHasChanges(false), [setPageHasChanges]);
   // The side column lists what a Save would do, in place of Up Next.
   useEffect(() => {
-    setPageChanges(pendingChangesOf(state, ordered, changes));
-  }, [state, ordered, changes, setPageChanges]);
+    setPageChanges(pendingChangesOf(state, ordered, changes, renames));
+  }, [state, ordered, changes, renames, setPageChanges]);
   useEffect(() => () => setPageChanges(undefined), [setPageChanges]);
   if (view?.kind !== 'set') {
     return null;
   }
   const canSave =
-    hasChanges && sheets.isComplete && isSetValid(changes) && !isSaving;
+    hasChanges &&
+    sheets.isComplete &&
+    isSetValid(changes) &&
+    !hasClash &&
+    !isSaving;
   const found =
     finding.find === ''
       ? 0
@@ -163,7 +174,7 @@ const LibraryTagSetEditor = () => {
       return;
     }
     setIsSaving(true);
-    write(requestOfSet(state, ordered, session?.track?.id))
+    write(requestOfSet(state, ordered, session?.track?.id, renames))
       .then((taken) => {
         setIsSaving(false);
         if (taken) {
@@ -393,11 +404,24 @@ const LibraryTagSetEditor = () => {
               found={found}
               onState={(update) => setState((current) => update(current))}
             />
+            <LibraryTagFileNames
+              pattern={state.fileNames}
+              onPattern={(fileNames) =>
+                setState((current) => ({ ...current, fileNames }))
+              }
+              renames={renames}
+              exampleOf={(pattern) =>
+                ordered[0] === undefined
+                  ? undefined
+                  : exampleNameOf(state, ordered[0], pattern)
+              }
+            />
             <LibraryTagSheet
               groups={groups}
               state={state}
               tracks={tracks}
               finding={finding}
+              renames={renames}
               onCell={(sheet, key, value) =>
                 setState((current) => withCell(current, sheet, key, value))
               }

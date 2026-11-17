@@ -146,6 +146,28 @@ const libraryTags = {
   'library.tags.set.coverToAll': 'Para las {count} canciones',
   'library.tags.set.songs': 'Canciones',
   'library.tags.set.renumber': 'Renumerar por orden',
+  'library.tags.files.title': 'Nombres de archivo',
+  'library.tags.files.keep': 'Sin cambiar',
+  'library.tags.files.custom': 'Personalizado…',
+  'library.tags.files.pattern': 'Patrón del nombre',
+  'library.tags.files.patternHint':
+    'Escribe, y añade etiquetas con los botones',
+  'library.tags.files.addTag': 'Añadir una etiqueta',
+  'library.tags.files.token.track': 'Nº',
+  'library.tags.files.token.title': 'Título',
+  'library.tags.files.token.artist': 'Artista',
+  'library.tags.files.token.albumArtist': 'Artista del álbum',
+  'library.tags.files.token.album': 'Álbum',
+  'library.tags.files.token.year': 'Año',
+  'library.tags.files.token.disc': 'Disco',
+  'library.tags.files.count': '{count} archivos cambian de nombre',
+  'library.tags.files.countOne': '1 archivo cambia de nombre',
+  'library.tags.files.none': 'Todos los archivos ya se llaman así',
+  'library.tags.files.clash':
+    '{count} canciones quedarían con el mismo nombre. Diferéncialas para guardar.',
+  'library.tags.files.clashOne':
+    'Una canción quedaría con el nombre de otro archivo. Diferéncialas para guardar.',
+  'library.tags.files.clashRow': 'Mismo nombre que otro archivo',
   'library.tags.set.fixAuto': 'Corregir automáticamente',
   'library.tags.set.moreFields': 'Más campos ({fields})',
   'library.tags.set.varies': 'Varía:',
@@ -232,6 +254,10 @@ const libraryTags = {
     'No se pudo guardar lo que necesita Deshacer, así que no se escribió nada. El archivo sigue igual.',
   'library.tags.problems.failedPlace':
     'La copia escrita no pudo ocupar el lugar del archivo. El archivo sigue igual. Si un programa de sincronización como OneDrive está trabajando con él, reinténtalo cuando termine.',
+  'library.tags.problems.failedTaken':
+    'Otro archivo de su carpeta ya tiene el nombre nuevo, así que conservó el suyo. Renombra o mueve el otro archivo y reinténtalo.',
+  'library.tags.problems.failedRename':
+    'La unidad no aceptó el nombre nuevo, así que conservó el suyo. Reinténtalo; si un programa de sincronización como OneDrive está trabajando con él, espera a que termine.',
   'library.tags.problems.options': 'Opciones de este archivo',
   'library.tags.problems.openTags': 'Ver sus etiquetas',
   'library.tags.problems.reveal': 'Mostrar en el Explorador',
@@ -285,6 +311,16 @@ const libraryTags = {
     '¿Devolver las etiquetas anteriores a {count} archivos?',
   'library.tags.write.undoAskOne':
     '¿Devolver las etiquetas anteriores a 1 archivo?',
+  'library.tags.write.doneNoteNamed':
+    'Las etiquetas y los nombres anteriores se guardan: Deshacer los devuelve todos.',
+  'library.tags.write.undoneNoteNamed':
+    'Cada archivo vuelve a tener sus etiquetas y su nombre anteriores, portada incluida.',
+  'library.tags.write.stoppedNoteNamed':
+    'Los archivos ya escritos conservan sus etiquetas y nombres nuevos; Deshacer los devuelve.',
+  'library.tags.write.undoAskNamed':
+    '¿Devolver las etiquetas y los nombres anteriores a {count} archivos?',
+  'library.tags.write.undoAskOneNamed':
+    '¿Devolver las etiquetas y el nombre anteriores a 1 archivo?',
   'library.tags.write.undoKeep': 'No',
   'library.tags.write.undoConfirm': 'Deshacer',
 };

@@ -136,6 +136,26 @@ const libraryTags = {
   'library.tags.set.coverToAll': '套用到全部 {count} 首歌曲',
   'library.tags.set.songs': '歌曲',
   'library.tags.set.renumber': '依順序重新編號',
+  'library.tags.files.title': '檔案名稱',
+  'library.tags.files.keep': '保持不變',
+  'library.tags.files.custom': '自訂…',
+  'library.tags.files.pattern': '檔案名稱格式',
+  'library.tags.files.patternHint': '輸入文字，並用按鈕加入標籤',
+  'library.tags.files.addTag': '加入標籤',
+  'library.tags.files.token.track': '序號',
+  'library.tags.files.token.title': '標題',
+  'library.tags.files.token.artist': '演出者',
+  'library.tags.files.token.albumArtist': '專輯演出者',
+  'library.tags.files.token.album': '專輯',
+  'library.tags.files.token.year': '年份',
+  'library.tags.files.token.disc': '碟',
+  'library.tags.files.count': '{count} 個檔案將更名',
+  'library.tags.files.countOne': '1 個檔案將更名',
+  'library.tags.files.none': '所有檔案已是這個名稱',
+  'library.tags.files.clash': '{count} 首歌曲會同名。請區分後再儲存。',
+  'library.tags.files.clashOne':
+    '有一首歌曲會與另一個檔案同名。請區分後再儲存。',
+  'library.tags.files.clashRow': '與另一個檔案同名',
   'library.tags.set.fixAuto': '自動修正',
   'library.tags.set.moreFields': '更多欄位（{fields}）',
   'library.tags.set.varies': '各不相同：',
@@ -215,6 +235,10 @@ const libraryTags = {
     '無法保留復原所需的內容，因此沒有寫入任何東西。檔案保持原樣。',
   'library.tags.problems.failedPlace':
     '寫入的副本無法取代原檔案。檔案保持原樣。如果 OneDrive 等同步程式正在處理它，請等它完成後重試。',
+  'library.tags.problems.failedTaken':
+    '資料夾中已有檔案使用新名稱，因此保留了原名。請重新命名或移走另一個檔案後重試。',
+  'library.tags.problems.failedRename':
+    '磁碟機不接受新名稱，因此保留了原名。請重試；如果 OneDrive 等同步應用程式正在處理它，請等它完成。',
   'library.tags.problems.options': '此檔案的選項',
   'library.tags.problems.openTags': '查看標籤',
   'library.tags.problems.reveal': '在檔案總管中顯示',
@@ -264,6 +288,16 @@ const libraryTags = {
     '在瀏覽器中開啟 MusicBrainz 上的專輯。FluidEQ 不會下載任何內容。',
   'library.tags.write.undoAsk': '要還原 {count} 個檔案之前的標籤嗎？',
   'library.tags.write.undoAskOne': '要還原 1 個檔案之前的標籤嗎？',
+  'library.tags.write.doneNoteNamed':
+    '之前的標籤和檔名已保留，復原可全部還原。',
+  'library.tags.write.undoneNoteNamed':
+    '每個檔案都還原了之前的標籤和檔名，封面也一樣。',
+  'library.tags.write.stoppedNoteNamed':
+    '已寫入的檔案保留新的標籤和檔名；復原可還原。',
+  'library.tags.write.undoAskNamed':
+    '要把 {count} 個檔案還原為之前的標籤和檔名嗎？',
+  'library.tags.write.undoAskOneNamed':
+    '要把 1 個檔案還原為之前的標籤和檔名嗎？',
   'library.tags.write.undoKeep': '不',
   'library.tags.write.undoConfirm': '復原',
 };

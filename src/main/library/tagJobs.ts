@@ -44,52 +44,25 @@ import type {
   TTagItemState,
   TTagJobKind,
 } from '../../common/library/tagFields';
-import type { ILibraryStore } from './libraryStore';
+import { trackIdForPath } from './libraryScanDiscovery';
+import { changesTags, type ITagJobDeps, withReleased } from './tagJobDeps';
 import type { IGuardedItem } from './tagRequestGuard';
-import { reindexTrack, type TStoreArtwork } from './tagReindex';
+import { reindexTrack } from './tagReindex';
+import { renameTrackFile } from './tagRename';
 import { type IUndoEntry, undoFilesOf } from './tagUndo';
 import { restoreFromUndo, writeTagsToFile } from './tagWrite';
 
 /** Jobs whose undo is kept; an older job's is let go. */
 const KEPT_UNDO_JOBS = 12;
 
-export interface ITagJobDeps {
-  store: ILibraryStore;
-  undoRoot: string;
-  storeArtwork: TStoreArtwork;
-  /** The Library changed: the window asks again for what it shows. */
-  announce: () => void;
-  send: (state: ITagJobState) => void;
-  /**
-   * Lets go of a file FluidEQ's own player holds open but is not playing —
-   * the next track, readied for a gapless start — so its tags can be
-   * written, and answers what puts it back afterwards. Without it the file
-   * read as "open in another program" (Ivan, 2026-11-16).
-   */
-  releaseFile?: (filePath: string) => Promise<() => Promise<void>>;
-}
-
-/** The player's hold let go around one write, and given back after it. */
-const withReleased = async <T>(
-  deps: ITagJobDeps,
-  filePath: string,
-  write: () => Promise<T>,
-): Promise<T> => {
-  const putBack = deps.releaseFile
-    ? await deps.releaseFile(filePath).catch(() => undefined)
-    : undefined;
-  try {
-    return await write();
-  } finally {
-    await putBack?.().catch(() => undefined);
-  }
-};
-
 interface IJobItem extends ITagJobItem {
   /** For a write; an undo job's items carry `entry` instead. */
   source?: IGuardedItem;
   entry?: IUndoEntry;
   makeWritable: boolean;
+  /** The tags are written (or put back): a retry after the rename failed
+   * only renames, and never writes over what the first pass kept. */
+  tagsDone?: boolean;
 }
 
 interface IJob {
@@ -100,6 +73,8 @@ interface IJob {
   /** What Undo puts back, by song. Empty for an undo job. */
   undo: Map<string, IUndoEntry>;
   undoFolder: string;
+  /** A file of this job was renamed, or named back. */
+  didRename: boolean;
 }
 
 export interface ITagJobs {
@@ -117,6 +92,8 @@ const isSettled = (job: IJob): boolean =>
   job.items.every(
     (item) => item.state !== 'queued' && item.state !== 'writing',
   );
+
+export type { ITagJobDeps };
 
 export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
   const jobs = new Map<string, IJob>();
@@ -138,12 +115,16 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
     isSettled: isSettled(job),
     isCancelled: job.isCancelled,
     canUndo: job.kind === 'write' && job.undo.size > 0,
+    didRename: job.didRename,
   });
 
   const tell = (job: IJob) => deps.send(stateOf(job));
 
   const removeUndoFiles = (job: IJob, entry: IUndoEntry) => {
-    undoFilesOf(entry.piece).forEach((name) => {
+    if (entry.tags === undefined) {
+      return;
+    }
+    undoFilesOf(entry.tags.piece).forEach((name) => {
       fs.promises
         .rm(path.join(job.undoFolder, name), { force: true })
         .catch(() => undefined);
@@ -189,6 +170,43 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
     tell(job);
   };
 
+  /**
+   * Renames the item's file to `fileName` and moves the song in the Library
+   * after it. Answers the song's id from here on, or `undefined` once the
+   * item has been told why it stopped.
+   */
+  const renameItem = async (
+    job: IJob,
+    item: IJobItem,
+    filePath: string,
+    fileName: string,
+  ): Promise<string | undefined> => {
+    const outcome = await withReleased(deps, filePath, () =>
+      renameTrackFile(filePath, fileName, deps.lyricsStoreDir),
+    );
+    if (outcome.state === 'failed') {
+      setState(job, item, 'failed', outcome.reason);
+      return undefined;
+    }
+    if (outcome.state !== 'renamed') {
+      setState(job, item, outcome.state);
+      return undefined;
+    }
+    const fromId = item.trackId;
+    if (outcome.newPath === filePath) {
+      return fromId;
+    }
+    const toId = trackIdForPath(outcome.newPath);
+    // eslint-disable-next-line no-param-reassign -- the job's own record
+    job.didRename = true;
+    deps.store.moveTrack(fromId, toId, outcome.newPath);
+    // eslint-disable-next-line no-param-reassign -- the job's own item, which the window names by the song's id
+    item.trackId = toId;
+    deps.onMoved([{ from: fromId, to: toId }]);
+    deps.announce();
+    return toId;
+  };
+
   const writeOne = async (job: IJob, item: IJobItem): Promise<void> => {
     const { source } = item;
     if (source === undefined) {
@@ -200,34 +218,59 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
       return;
     }
     setState(job, item, 'writing');
-    const outcome = await withReleased(deps, filePath, () =>
-      writeTagsToFile({
-        filePath,
-        format: source.format,
-        edit: source.edit,
-        durationMs: source.track.durationMs,
-        undoFolder: job.undoFolder,
-        undoName: `${job.items.indexOf(item)}`,
-        makeWritable: item.makeWritable,
-      }),
-    );
-    if (outcome.state === 'failed') {
-      setState(job, item, 'failed', outcome.reason);
-      return;
+    const fromId = item.trackId;
+    if (!item.tagsDone && changesTags(source.edit)) {
+      const outcome = await withReleased(deps, filePath, () =>
+        writeTagsToFile({
+          filePath,
+          format: source.format,
+          edit: source.edit,
+          durationMs: source.track.durationMs,
+          undoFolder: job.undoFolder,
+          undoName: `${job.items.indexOf(item)}`,
+          makeWritable: item.makeWritable,
+        }),
+      );
+      if (outcome.state === 'failed') {
+        setState(job, item, 'failed', outcome.reason);
+        return;
+      }
+      if (outcome.state !== 'written') {
+        setState(job, item, outcome.state);
+        return;
+      }
+      forgetOlderUndo(fromId, job);
+      job.undo.set(fromId, {
+        trackId: fromId,
+        tags: {
+          piece: outcome.piece,
+          writtenSize: outcome.writtenSize,
+          writtenMtimeMs: outcome.writtenMtimeMs,
+        },
+      });
+      item.tagsDone = true;
+      await reindexTrack(deps.store, fromId, deps.storeArtwork);
+      deps.announce();
     }
-    if (outcome.state !== 'written') {
-      setState(job, item, outcome.state);
-      return;
+    if (source.fileName !== undefined) {
+      // An older job's Undo would name the file back from under this one.
+      forgetOlderUndo(fromId, job);
+      const toId = await renameItem(job, item, filePath, source.fileName);
+      if (toId === undefined) {
+        return;
+      }
+      // Renamed even where the id stays: a change of case alone keeps it,
+      // the id being the lowercased path's, and Undo still names it back.
+      if (deps.store.trackPath(toId) !== filePath) {
+        const kept = job.undo.get(fromId);
+        job.undo.delete(fromId);
+        job.undo.set(toId, {
+          ...kept,
+          trackId: toId,
+          renamedFrom: path.basename(filePath),
+        });
+      }
     }
-    forgetOlderUndo(item.trackId, job);
-    job.undo.set(item.trackId, {
-      trackId: item.trackId,
-      piece: outcome.piece,
-      writtenSize: outcome.writtenSize,
-      writtenMtimeMs: outcome.writtenMtimeMs,
-    });
-    await reindexTrack(deps.store, item.trackId, deps.storeArtwork);
-    deps.announce();
     setState(job, item, 'written');
   };
 
@@ -240,33 +283,58 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
     }
     setState(job, item, 'writing');
     const source = [...jobs.values()].find(
-      (candidate) => candidate.undo.get(item.trackId) === entry,
+      (candidate) => candidate.undo.get(entry.trackId) === entry,
     );
     if (source === undefined) {
       setState(job, item, 'failed');
       return;
     }
-    const outcome = await withReleased(deps, filePath, () =>
-      restoreFromUndo(filePath, entry.piece, source.undoFolder, {
-        size: entry.writtenSize,
-        mtimeMs: entry.writtenMtimeMs,
-      }),
-    );
-    if (outcome.state === 'restored') {
-      source.undo.delete(item.trackId);
+    const { tags } = entry;
+    if (tags !== undefined && !item.tagsDone) {
+      const outcome = await withReleased(deps, filePath, () =>
+        restoreFromUndo(filePath, tags.piece, source.undoFolder, {
+          size: tags.writtenSize,
+          mtimeMs: tags.writtenMtimeMs,
+        }),
+      );
+      // Changed since by somebody else: put back over it would lose their
+      // edit.
+      if (outcome.state === 'failed') {
+        setState(job, item, 'failed', outcome.reason);
+        return;
+      }
+      if (outcome.state !== 'restored') {
+        setState(
+          job,
+          item,
+          outcome.state === 'changed' ? 'failed' : outcome.state,
+        );
+        return;
+      }
+      item.tagsDone = true;
       removeUndoFiles(source, entry);
-      tell(source);
       await reindexTrack(deps.store, item.trackId, deps.storeArtwork);
       deps.announce();
-      setState(job, item, 'written');
-      return;
+      // Only the name is left to put back: a later Undo of this job must
+      // not restore tags from the pieces just let go.
+      if (entry.renamedFrom !== undefined) {
+        const rest: IUndoEntry = {
+          trackId: entry.trackId,
+          renamedFrom: entry.renamedFrom,
+        };
+        source.undo.set(entry.trackId, rest);
+        item.entry = rest;
+      }
     }
-    // Changed since by somebody else: put back over it would lose their edit.
-    if (outcome.state === 'failed') {
-      setState(job, item, 'failed', outcome.reason);
-      return;
+    if (entry.renamedFrom !== undefined) {
+      const { name } = path.parse(entry.renamedFrom);
+      if ((await renameItem(job, item, filePath, name)) === undefined) {
+        return;
+      }
     }
-    setState(job, item, outcome.state === 'changed' ? 'failed' : outcome.state);
+    source.undo.delete(entry.trackId);
+    tell(source);
+    setState(job, item, 'written');
   };
 
   /** Queues one item on the chain; it runs when every earlier one is done. */
@@ -305,6 +373,7 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
         isCancelled: false,
         undo: new Map(),
         undoFolder: path.join(deps.undoRoot, jobId),
+        didRename: false,
         items: items.map((source) => ({
           trackId: source.track.id,
           fileName: path.basename(source.track.path),
@@ -397,6 +466,7 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
         isCancelled: false,
         undo: new Map(),
         undoFolder: source.undoFolder,
+        didRename: false,
         items: entries.map((entry) => {
           const filePath = deps.store.trackPath(entry.trackId) ?? '';
           return {

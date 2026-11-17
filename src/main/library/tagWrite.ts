@@ -65,7 +65,7 @@ export type TFileWriteOutcome =
  * Windows answers a rename over a file another program holds open with one
  * of these. EACCES is also read-only's answer, which is asked about first.
  */
-const isLockError = (error: unknown): boolean =>
+export const isLockError = (error: unknown): boolean =>
   error instanceof Error &&
   'code' in error &&
   (error.code === 'EBUSY' || error.code === 'EPERM' || error.code === 'EACCES');

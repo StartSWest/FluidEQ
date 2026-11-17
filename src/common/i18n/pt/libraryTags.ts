@@ -145,6 +145,27 @@ const libraryTags = {
   'library.tags.set.coverToAll': 'Para as {count} músicas',
   'library.tags.set.songs': 'Músicas',
   'library.tags.set.renumber': 'Renumerar pela ordem',
+  'library.tags.files.title': 'Nomes dos arquivos',
+  'library.tags.files.keep': 'Manter como estão',
+  'library.tags.files.custom': 'Personalizado…',
+  'library.tags.files.pattern': 'Padrão do nome',
+  'library.tags.files.patternHint': 'Digite e adicione tags com os botões',
+  'library.tags.files.addTag': 'Adicionar uma tag',
+  'library.tags.files.token.track': 'Nº',
+  'library.tags.files.token.title': 'Título',
+  'library.tags.files.token.artist': 'Artista',
+  'library.tags.files.token.albumArtist': 'Artista do álbum',
+  'library.tags.files.token.album': 'Álbum',
+  'library.tags.files.token.year': 'Ano',
+  'library.tags.files.token.disc': 'Disco',
+  'library.tags.files.count': '{count} arquivos mudam de nome',
+  'library.tags.files.countOne': '1 arquivo muda de nome',
+  'library.tags.files.none': 'Todos os arquivos já têm esse nome',
+  'library.tags.files.clash':
+    '{count} músicas ficariam com o mesmo nome. Diferencie-as para salvar.',
+  'library.tags.files.clashOne':
+    'Uma música ficaria com o nome de outro arquivo. Diferencie-as para salvar.',
+  'library.tags.files.clashRow': 'Mesmo nome de outro arquivo',
   'library.tags.set.fixAuto': 'Corrigir automaticamente',
   'library.tags.set.moreFields': 'Mais campos ({fields})',
   'library.tags.set.varies': 'Varia:',
@@ -231,6 +252,10 @@ const libraryTags = {
     'Não foi possível guardar o que Desfazer precisa, então nada foi gravado. O arquivo continua igual.',
   'library.tags.problems.failedPlace':
     'A cópia gravada não pôde ocupar o lugar do arquivo. O arquivo continua igual. Se um app de sincronização como o OneDrive estiver mexendo nele, tente de novo quando terminar.',
+  'library.tags.problems.failedTaken':
+    'Outro arquivo da pasta já tem o novo nome, então ele manteve o seu. Renomeie ou mova o outro arquivo e tente de novo.',
+  'library.tags.problems.failedRename':
+    'A unidade não aceitou o novo nome, então ele manteve o seu. Tente de novo; se um app de sincronização como o OneDrive estiver usando o arquivo, espere terminar.',
   'library.tags.problems.options': 'Opções deste arquivo',
   'library.tags.problems.openTags': 'Ver as tags',
   'library.tags.problems.reveal': 'Mostrar no Explorador',
@@ -283,6 +308,16 @@ const libraryTags = {
   'library.tags.write.undoAsk':
     'Restaurar as tags anteriores de {count} arquivos?',
   'library.tags.write.undoAskOne': 'Restaurar as tags anteriores de 1 arquivo?',
+  'library.tags.write.doneNoteNamed':
+    'As tags e os nomes anteriores ficam guardados: Desfazer devolve todos.',
+  'library.tags.write.undoneNoteNamed':
+    'Cada arquivo volta a ter as tags e o nome anteriores, capa incluída.',
+  'library.tags.write.stoppedNoteNamed':
+    'Os arquivos já gravados mantêm as novas tags e nomes; Desfazer devolve.',
+  'library.tags.write.undoAskNamed':
+    'Devolver as tags e os nomes anteriores a {count} arquivos?',
+  'library.tags.write.undoAskOneNamed':
+    'Devolver as tags e o nome anteriores a 1 arquivo?',
   'library.tags.write.undoKeep': 'Não',
   'library.tags.write.undoConfirm': 'Desfazer',
 };

@@ -46,6 +46,8 @@ const FAIL_KEYS: Record<TTagFailReason, TranslationKey> = {
   check: 'library.tags.problems.failedCheck',
   undo: 'library.tags.problems.failedUndo',
   place: 'library.tags.problems.failedPlace',
+  taken: 'library.tags.problems.failedTaken',
+  rename: 'library.tags.problems.failedRename',
 };
 
 /** States a file can be tried again from, or let go. */

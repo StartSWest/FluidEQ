@@ -83,6 +83,7 @@ import { useSurpriseAtEnd } from './useSurpriseAtEnd';
 import { useTrackAnalysis } from './useTrackAnalysis';
 import { useTransportControls } from './useTransportControls';
 import { useUpNext } from './useUpNext';
+import useQueueFollowsMoves from './useQueueFollowsMoves';
 import { useVideoElement } from './useVideoElement';
 import useTrackEnd from './useTrackEnd';
 import usePlayCounter from './usePlayCounter';
@@ -473,6 +474,7 @@ export const LibraryPlayerProvider = ({
     trackById,
     setQueue,
   });
+  useQueueFollowsMoves({ setQueue, setAddedIds });
   /**
    * Start, stop and suspend — the three commands that decide whether there
    * is anything playing at all. See `usePlaybackCommands`.

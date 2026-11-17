@@ -145,6 +145,28 @@ const libraryTags = {
   'library.tags.set.coverToAll': 'Für alle {count} Songs',
   'library.tags.set.songs': 'Songs',
   'library.tags.set.renumber': 'Nach Reihenfolge nummerieren',
+  'library.tags.files.title': 'Dateinamen',
+  'library.tags.files.keep': 'Unverändert lassen',
+  'library.tags.files.custom': 'Eigenes Muster…',
+  'library.tags.files.pattern': 'Muster für den Dateinamen',
+  'library.tags.files.patternHint':
+    'Tippen Sie und fügen Sie Tags mit den Schaltflächen ein',
+  'library.tags.files.addTag': 'Tag einfügen',
+  'library.tags.files.token.track': 'Nr.',
+  'library.tags.files.token.title': 'Titel',
+  'library.tags.files.token.artist': 'Interpret',
+  'library.tags.files.token.albumArtist': 'Albuminterpret',
+  'library.tags.files.token.album': 'Album',
+  'library.tags.files.token.year': 'Jahr',
+  'library.tags.files.token.disc': 'CD',
+  'library.tags.files.count': '{count} Dateien erhalten einen neuen Namen',
+  'library.tags.files.countOne': '1 Datei erhält einen neuen Namen',
+  'library.tags.files.none': 'Alle Dateien heißen bereits so',
+  'library.tags.files.clash':
+    '{count} Songs hätten denselben Namen. Unterscheiden Sie sie, um zu speichern.',
+  'library.tags.files.clashOne':
+    'Ein Song bekäme den Namen einer anderen Datei. Unterscheiden Sie sie, um zu speichern.',
+  'library.tags.files.clashRow': 'Gleicher Name wie eine andere Datei',
   'library.tags.set.fixAuto': 'Automatisch korrigieren',
   'library.tags.set.moreFields': 'Weitere Felder ({fields})',
   'library.tags.set.varies': 'Unterschiedlich:',
@@ -233,6 +255,10 @@ const libraryTags = {
     'Was Rückgängig braucht, ließ sich nicht sichern; es wurde nichts geschrieben. Die Datei ist unverändert.',
   'library.tags.problems.failedPlace':
     'Die geschriebene Kopie konnte den Platz der Datei nicht einnehmen. Die Datei ist unverändert. Arbeitet eine Synchronisierung wie OneDrive gerade daran, versuchen Sie es danach erneut.',
+  'library.tags.problems.failedTaken':
+    'Eine andere Datei im Ordner hat den neuen Namen bereits, daher behielt sie ihren. Benennen Sie die andere Datei um oder verschieben Sie sie, und versuchen Sie es erneut.',
+  'library.tags.problems.failedRename':
+    'Das Laufwerk nahm den neuen Namen nicht an, daher behielt sie ihren. Versuchen Sie es erneut; wenn eine Sync-App wie OneDrive damit beschäftigt ist, warten Sie, bis sie fertig ist.',
   'library.tags.problems.options': 'Optionen für diese Datei',
   'library.tags.problems.openTags': 'Tags anzeigen',
   'library.tags.problems.reveal': 'Im Explorer anzeigen',
@@ -286,6 +312,16 @@ const libraryTags = {
     'Die alten Tags von {count} Dateien wiederherstellen?',
   'library.tags.write.undoAskOne':
     'Die alten Tags von 1 Datei wiederherstellen?',
+  'library.tags.write.doneNoteNamed':
+    'Die bisherigen Tags und Namen bleiben erhalten – Rückgängig stellt alle wieder her.',
+  'library.tags.write.undoneNoteNamed':
+    'Jede Datei hat wieder ihre bisherigen Tags und ihren Namen, samt Cover.',
+  'library.tags.write.stoppedNoteNamed':
+    'Bereits geschriebene Dateien behalten ihre neuen Tags und Namen; Rückgängig stellt sie wieder her.',
+  'library.tags.write.undoAskNamed':
+    'Bisherige Tags und Namen für {count} Dateien wiederherstellen?',
+  'library.tags.write.undoAskOneNamed':
+    'Bisherige Tags und Namen für 1 Datei wiederherstellen?',
   'library.tags.write.undoKeep': 'Nein',
   'library.tags.write.undoConfirm': 'Rückgängig',
 };

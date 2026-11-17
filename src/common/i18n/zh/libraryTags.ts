@@ -136,6 +136,26 @@ const libraryTags = {
   'library.tags.set.coverToAll': '用于全部 {count} 首歌曲',
   'library.tags.set.songs': '歌曲',
   'library.tags.set.renumber': '按顺序重新编号',
+  'library.tags.files.title': '文件名',
+  'library.tags.files.keep': '保持不变',
+  'library.tags.files.custom': '自定义…',
+  'library.tags.files.pattern': '文件名格式',
+  'library.tags.files.patternHint': '输入文字，并用按钮添加标签',
+  'library.tags.files.addTag': '添加标签',
+  'library.tags.files.token.track': '序号',
+  'library.tags.files.token.title': '标题',
+  'library.tags.files.token.artist': '艺人',
+  'library.tags.files.token.albumArtist': '专辑艺人',
+  'library.tags.files.token.album': '专辑',
+  'library.tags.files.token.year': '年份',
+  'library.tags.files.token.disc': '碟',
+  'library.tags.files.count': '{count} 个文件将改名',
+  'library.tags.files.countOne': '1 个文件将改名',
+  'library.tags.files.none': '所有文件已是这个名称',
+  'library.tags.files.clash': '{count} 首歌曲会同名。请区分后再保存。',
+  'library.tags.files.clashOne':
+    '有一首歌曲会与另一个文件同名。请区分后再保存。',
+  'library.tags.files.clashRow': '与另一个文件同名',
   'library.tags.set.fixAuto': '自动修正',
   'library.tags.set.moreFields': '更多字段（{fields}）',
   'library.tags.set.varies': '各不相同：',
@@ -215,6 +235,10 @@ const libraryTags = {
     '无法保留撤销所需的内容，因此没有写入任何东西。文件保持原样。',
   'library.tags.problems.failedPlace':
     '写入的副本无法替换原文件。文件保持原样。如果 OneDrive 等同步程序正在处理它，请等它完成后重试。',
+  'library.tags.problems.failedTaken':
+    '文件夹中已有文件使用新名称，因此保留了原名。请重命名或移走另一个文件后重试。',
+  'library.tags.problems.failedRename':
+    '驱动器不接受新名称，因此保留了原名。请重试；如果 OneDrive 等同步应用正在处理它，请等它完成。',
   'library.tags.problems.options': '此文件的选项',
   'library.tags.problems.openTags': '查看标签',
   'library.tags.problems.reveal': '在资源管理器中显示',
@@ -264,6 +288,16 @@ const libraryTags = {
     '在浏览器中打开 MusicBrainz 上的专辑。FluidEQ 不会下载任何内容。',
   'library.tags.write.undoAsk': '要恢复 {count} 个文件之前的标签吗？',
   'library.tags.write.undoAskOne': '要恢复 1 个文件之前的标签吗？',
+  'library.tags.write.doneNoteNamed':
+    '之前的标签和文件名已保留，撤销可全部恢复。',
+  'library.tags.write.undoneNoteNamed':
+    '每个文件都恢复了之前的标签和文件名，封面也一样。',
+  'library.tags.write.stoppedNoteNamed':
+    '已写入的文件保留新的标签和文件名；撤销可恢复。',
+  'library.tags.write.undoAskNamed':
+    '要把 {count} 个文件恢复为之前的标签和文件名吗？',
+  'library.tags.write.undoAskOneNamed':
+    '要把 1 个文件恢复为之前的标签和文件名吗？',
   'library.tags.write.undoKeep': '不',
   'library.tags.write.undoConfirm': '撤销',
 };

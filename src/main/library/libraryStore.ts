@@ -102,6 +102,14 @@ export interface ILibraryStore {
    * (`usePlayCounter`). False for an id the library does not know.
    */
   readonly notePlayed: (trackId: string, at: number) => boolean;
+  /**
+   * A song whose file was renamed in its folder: the same row under the id
+   * of its new path (`trackIdForPath`), so the next scan finds it known and
+   * unchanged, with its plays, genres, loudness and place in every order
+   * kept. A row left at the new id by a file gone from there is dropped
+   * first. False when `fromId` is not a song the Library holds.
+   */
+  readonly moveTrack: (fromId: string, toId: string, toPath: string) => boolean;
   readonly close: () => void;
 }
 
@@ -385,6 +393,32 @@ export const createStore = (database: DatabaseSync): ILibraryStore => {
       if (Number(result.changes) === 0) {
         return false;
       }
+      changed();
+      return true;
+    },
+    moveTrack: (fromId, toId, toPath) => {
+      if (track(fromId) === undefined) {
+        return false;
+      }
+      inTransaction(database, () => {
+        // A new name differing only in case keeps the id (it is the
+        // lowercased path's), and only the path changes.
+        if (toId !== fromId) {
+          deleteTracks('id = ?', toId);
+          statement('DELETE FROM track_plays WHERE track_id = ?').run(toId);
+          statement(
+            'UPDATE track_genres SET track_id = ? WHERE track_id = ?',
+          ).run(toId, fromId);
+          statement(
+            'UPDATE track_plays SET track_id = ? WHERE track_id = ?',
+          ).run(toId, fromId);
+        }
+        statement('UPDATE tracks SET id = ?, path = ? WHERE id = ?').run(
+          toId,
+          toPath,
+          fromId,
+        );
+      });
       changed();
       return true;
     },

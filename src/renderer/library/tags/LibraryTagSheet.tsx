@@ -37,6 +37,7 @@ import {
   SHEET_FIELDS,
 } from './tagSetModel';
 import type { ISheetGroup } from './tagGroups';
+import type { IFileRename } from './tagFileNames';
 
 interface ILibraryTagSheetProps {
   groups: readonly ISheetGroup[];
@@ -47,6 +48,8 @@ interface ILibraryTagSheetProps {
   onMove: (fromId: string, beforeId: string) => void;
   /** What find & replace is looking for, lit in the titles as it is typed. */
   finding: IFindReplace;
+  /** Files Save renames: each shown under its song, old name struck. */
+  renames: readonly IFileRename[];
 }
 
 const GripGlyph = () => (
@@ -77,8 +80,10 @@ const LibraryTagSheet = ({
   onCell,
   onMove,
   finding,
+  renames,
 }: ILibraryTagSheetProps) => {
   const { t } = useTranslation();
+  const renameOf = new Map(renames.map((rename) => [rename.trackId, rename]));
   const tableRef = useRef<HTMLTableElement | null>(null);
   const [dragId, setDragId] = useState<string | undefined>(undefined);
   const [overId, setOverId] = useState<string | undefined>(undefined);
@@ -295,7 +300,8 @@ const LibraryTagSheet = ({
                     rowIndex += 1;
                     const index = rowIndex;
                     const track = tracks.get(sheet.trackId) ?? undefined;
-                    return (
+                    const rename = renameOf.get(sheet.trackId);
+                    return [
                       <tr
                         key={sheet.trackId}
                         className={`${dragId === sheet.trackId ? 'is-dragging' : ''}${
@@ -353,8 +359,25 @@ const LibraryTagSheet = ({
                             ? formatDuration(track.durationMs)
                             : ''}
                         </td>
-                      </tr>
-                    );
+                      </tr>,
+                      rename && (
+                        <tr
+                          key={`file-${sheet.trackId}`}
+                          className={`library-tags-sheet__file${rename.isClash ? ' is-clash' : ''}`}
+                        >
+                          <td colSpan={6}>
+                            <span className="library-tags-sheet__file-name">
+                              <del title={rename.before}>{rename.before}</del>
+                              <span aria-hidden="true">→</span>
+                              <ins title={rename.after}>{rename.after}</ins>
+                              {rename.isClash && (
+                                <em>{t('library.tags.files.clashRow')}</em>
+                              )}
+                            </span>
+                          </td>
+                        </tr>
+                      ),
+                    ];
                   })),
             ];
           })}

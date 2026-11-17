@@ -133,17 +133,35 @@ const LibraryTagWriteCard = () => {
   }
 
   const stopped = job.isCancelled && counts.skipped > 0;
+  const undoAskText = () => {
+    if (job.didRename) {
+      return counts.written === 1
+        ? t('library.tags.write.undoAskOneNamed')
+        : t('library.tags.write.undoAskNamed', { count: counts.written });
+    }
+    return counts.written === 1
+      ? t('library.tags.write.undoAskOne')
+      : t('library.tags.write.undoAsk', { count: counts.written });
+  };
   let title: string;
   let note: string;
   if (isUndo) {
     title = t('library.tags.write.undone');
-    note = t('library.tags.write.undoneNote');
+    note = t(
+      job.didRename
+        ? 'library.tags.write.undoneNoteNamed'
+        : 'library.tags.write.undoneNote',
+    );
   } else if (stopped) {
     title = t('library.tags.write.stopped', {
       done: counts.written,
       count: counts.total,
     });
-    note = t('library.tags.write.stoppedNote');
+    note = t(
+      job.didRename
+        ? 'library.tags.write.stoppedNoteNamed'
+        : 'library.tags.write.stoppedNote',
+    );
   } else if (needYou > 0) {
     title = t('library.tags.write.written', {
       done: counts.written,
@@ -155,7 +173,11 @@ const LibraryTagWriteCard = () => {
       counts.written === 1
         ? t('library.tags.write.doneOne')
         : t('library.tags.write.done', { count: counts.written });
-    note = t('library.tags.write.doneNote');
+    note = t(
+      job.didRename
+        ? 'library.tags.write.doneNoteNamed'
+        : 'library.tags.write.doneNote',
+    );
   }
 
   return (
@@ -204,11 +226,7 @@ const LibraryTagWriteCard = () => {
         )}
         {undoable !== undefined && !isUndo && isAskingUndo && (
           <span className="library-tags-card__ask" role="alert">
-            <span>
-              {counts.written === 1
-                ? t('library.tags.write.undoAskOne')
-                : t('library.tags.write.undoAsk', { count: counts.written })}
-            </span>
+            <span>{undoAskText()}</span>
             <button
               type="button"
               className="button small subtle"

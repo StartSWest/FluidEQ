@@ -26,6 +26,7 @@ import fs from 'fs';
 import path from 'path';
 import {
   type ITagFolderFacts,
+  type ITagTrackMove,
   MAX_COVER_BYTES,
   type TTagCoverPick,
   type TTagItemAnswer,
@@ -33,6 +34,7 @@ import {
 } from '../../common/library/tagFields';
 import type { ILibraryStore } from '../library/libraryStore';
 import { storeArtwork } from '../library/libraryArtwork';
+import { LYRICS_STORE_FOLDER } from '../library/libraryLyricsPlaces';
 import { readFolderCover, readFolderFacts } from '../library/tagFolderFacts';
 import type { ITagJobs } from '../library/tagJobs';
 import mainText from '../mainText';
@@ -52,6 +54,8 @@ export interface ILibraryTagsIpcDeps {
   announce: () => void;
   /** The player's hold on a file let go for a write (`releaseDspHostFile`). */
   releaseFile?: (filePath: string) => Promise<() => Promise<void>>;
+  /** Songs a write renamed: the playlists and the window follow them. */
+  onTracksMoved: (moves: readonly ITagTrackMove[]) => void;
 }
 
 const isId = (value: unknown): value is string =>
@@ -76,6 +80,7 @@ export const registerLibraryTagsIpc = ({
   getMainWindow,
   announce,
   releaseFile,
+  onTracksMoved,
 }: ILibraryTagsIpcDeps): void => {
   let engine: Promise<TTagEngine> | undefined;
   let jobs: ITagJobs | undefined;
@@ -97,6 +102,8 @@ export const registerLibraryTagsIpc = ({
         send: (state) =>
           getMainWindow()?.webContents.send('library-tags-job', state),
         releaseFile,
+        lyricsStoreDir: path.join(userDataDir, LYRICS_STORE_FOLDER),
+        onMoved: onTracksMoved,
       });
     return jobs;
   };

@@ -144,6 +144,27 @@ const libraryTags = {
   'library.tags.set.coverToAll': 'Per tutti i {count} brani',
   'library.tags.set.songs': 'Brani',
   'library.tags.set.renumber': 'Rinumera per ordine',
+  'library.tags.files.title': 'Nomi dei file',
+  'library.tags.files.keep': 'Lascia invariati',
+  'library.tags.files.custom': 'Personalizzato…',
+  'library.tags.files.pattern': 'Schema del nome',
+  'library.tags.files.patternHint': 'Scrivi e aggiungi tag con i pulsanti',
+  'library.tags.files.addTag': 'Aggiungi un tag',
+  'library.tags.files.token.track': 'N.',
+  'library.tags.files.token.title': 'Titolo',
+  'library.tags.files.token.artist': 'Artista',
+  'library.tags.files.token.albumArtist': 'Artista dell’album',
+  'library.tags.files.token.album': 'Album',
+  'library.tags.files.token.year': 'Anno',
+  'library.tags.files.token.disc': 'Disco',
+  'library.tags.files.count': '{count} file cambiano nome',
+  'library.tags.files.countOne': '1 file cambia nome',
+  'library.tags.files.none': 'Tutti i file hanno già questo nome',
+  'library.tags.files.clash':
+    '{count} brani avrebbero lo stesso nome. Distinguili per salvare.',
+  'library.tags.files.clashOne':
+    'Un brano prenderebbe il nome di un altro file. Distinguili per salvare.',
+  'library.tags.files.clashRow': 'Stesso nome di un altro file',
   'library.tags.set.fixAuto': 'Correggi automaticamente',
   'library.tags.set.moreFields': 'Altri campi ({fields})',
   'library.tags.set.varies': 'Varia:',
@@ -230,6 +251,10 @@ const libraryTags = {
     'Non è stato possibile conservare ciò che serve ad Annulla, quindi non è stato scritto nulla. Il file è com’era.',
   'library.tags.problems.failedPlace':
     'La copia scritta non ha potuto prendere il posto del file. Il file è com’era. Se un’app di sincronizzazione come OneDrive ci sta lavorando, riprova quando ha finito.',
+  'library.tags.problems.failedTaken':
+    'Un altro file nella sua cartella ha già il nuovo nome, quindi ha mantenuto il suo. Rinomina o sposta l’altro file e riprova.',
+  'library.tags.problems.failedRename':
+    'L’unità non ha accettato il nuovo nome, quindi ha mantenuto il suo. Riprova; se un’app di sincronizzazione come OneDrive lo sta usando, attendi che finisca.',
   'library.tags.problems.options': 'Opzioni per questo file',
   'library.tags.problems.openTags': 'Vedi i tag',
   'library.tags.problems.reveal': 'Mostra in Esplora file',
@@ -282,6 +307,16 @@ const libraryTags = {
   'library.tags.write.undoAsk':
     'Ripristinare i tag precedenti di {count} file?',
   'library.tags.write.undoAskOne': 'Ripristinare i tag precedenti di 1 file?',
+  'library.tags.write.doneNoteNamed':
+    'I tag e i nomi precedenti sono conservati: Annulla li ripristina tutti.',
+  'library.tags.write.undoneNoteNamed':
+    'Ogni file ha di nuovo i tag e il nome precedenti, copertina inclusa.',
+  'library.tags.write.stoppedNoteNamed':
+    'I file già scritti mantengono i nuovi tag e nomi; Annulla li ripristina.',
+  'library.tags.write.undoAskNamed':
+    'Ripristinare i tag e i nomi precedenti di {count} file?',
+  'library.tags.write.undoAskOneNamed':
+    'Ripristinare i tag e il nome precedenti di 1 file?',
   'library.tags.write.undoKeep': 'No',
   'library.tags.write.undoConfirm': 'Annulla',
 };

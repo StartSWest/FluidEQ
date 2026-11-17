@@ -68,6 +68,16 @@ export interface ISetState {
   /** `null` removes every cover; absent leaves them. */
   cover?: IDraftCover | null;
   version: TVersionChoice;
+  /** The pattern the files are renamed by (`fileNamePattern.ts`); absent
+   * keeps every name. */
+  fileNames?: string;
+}
+
+/** A song the write renames, in the order the renames must run. */
+export interface IRenameOrder {
+  trackId: string;
+  /** The new name without its extension. */
+  base: string;
 }
 
 export const initialSetState = (ids: readonly string[]): ISetState => ({
@@ -179,12 +189,15 @@ export const summarise = (
   state: ISetState,
   sheets: readonly ITrackTagSheet[],
   changes: ReadonlyMap<string, TTagFields>,
+  renames: readonly IRenameOrder[] = [],
 ): ISetSummary => {
   const files = new Set(changes.keys());
   let changeCount = [...changes.values()].reduce(
     (sum, fields) => sum + Object.keys(fields).length,
     0,
   );
+  renames.forEach((rename) => files.add(rename.trackId));
+  changeCount += renames.length;
   if (state.cover !== undefined) {
     changeCount += 1;
     sheets.forEach((sheet) => files.add(sheet.trackId));
@@ -208,8 +221,12 @@ export const requestOfSet = (
   state: ISetState,
   sheets: readonly ITrackTagSheet[],
   playingTrackId: string | undefined,
+  renames: readonly IRenameOrder[] = [],
 ): ITagWriteRequest => {
   const changes = changedFields(state, sheets);
+  const newNames = new Map(
+    renames.map((rename) => [rename.trackId, rename.base]),
+  );
   const edits: ITagEdit[] = [];
   sheets.forEach((sheet) => {
     const fields = changes.get(sheet.trackId);
@@ -223,7 +240,13 @@ export const requestOfSet = (
     } else if (state.cover !== undefined) {
       coverId = state.cover.id;
     }
-    if (fields === undefined && coverId === undefined && !moveVersion) {
+    const fileName = newNames.get(sheet.trackId);
+    if (
+      fields === undefined &&
+      coverId === undefined &&
+      !moveVersion &&
+      fileName === undefined
+    ) {
       return;
     }
     edits.push({
@@ -232,10 +255,27 @@ export const requestOfSet = (
       coverId,
       id3v2Version:
         moveVersion && state.version !== 'keep' ? state.version : undefined,
+      ...(fileName === undefined ? {} : { fileName }),
     });
   });
+  // The renames run in their own order (one onto a name another frees goes
+  // after it); every other song keeps its place in the sheet.
+  const byId = new Map(edits.map((edit) => [edit.trackId, edit]));
+  const renamed = renames.flatMap((rename) => {
+    const edit = byId.get(rename.trackId);
+    return edit === undefined ? [] : [edit];
+  });
+  let next = 0;
+  const ordered = edits.map((edit) => {
+    if (!newNames.has(edit.trackId)) {
+      return edit;
+    }
+    const placed = renamed[next] ?? edit;
+    next += 1;
+    return placed;
+  });
   return {
-    edits,
+    edits: ordered,
     covers: state.cover
       ? {
           [state.cover.id]: {
@@ -246,7 +286,7 @@ export const requestOfSet = (
       : {},
     heldTrackIds:
       playingTrackId !== undefined &&
-      edits.some((edit) => edit.trackId === playingTrackId)
+      ordered.some((edit) => edit.trackId === playingTrackId)
         ? [playingTrackId]
         : [],
   };

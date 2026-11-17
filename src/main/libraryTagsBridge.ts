@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type {
   ITagJobState,
+  ITagTrackMove,
   ITagFolderFacts,
   ITagWriteRequest,
   TTagCoverPick,
@@ -106,6 +107,18 @@ const onLibraryTagJob = (listener: (state: ITagJobState) => void) => {
   };
 };
 
+/** Songs a tag write renamed, or Undo named back: which id became which. */
+const onLibraryTracksMoved = (
+  listener: (moves: readonly ITagTrackMove[]) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, moves: readonly ITagTrackMove[]) =>
+    listener(moves);
+  ipcRenderer.on('library-tracks-moved', wrapped);
+  return () => {
+    ipcRenderer.removeListener('library-tracks-moved', wrapped);
+  };
+};
+
 const libraryTagsBridge = {
   readLibraryTags,
   writeLibraryTags,
@@ -118,6 +131,7 @@ const libraryTagsBridge = {
   readLibraryTagFolderCover,
   readLibraryTagTrackCover,
   onLibraryTagJob,
+  onLibraryTracksMoved,
 };
 
 export default libraryTagsBridge;

@@ -21,6 +21,7 @@ import type {
   TTagFieldKey,
   TTagFields,
 } from '../../../common/library/tagFields';
+import type { IFileRename } from './tagFileNames';
 import type { ISetState } from './tagSetModel';
 
 /** One value the album as a whole gets: from what, to what, for how many. */
@@ -49,6 +50,8 @@ export interface IPendingChanges {
   album: IAlbumChange[];
   songs: ISongChange[];
   cover?: { kind: 'new' | 'removed'; songs: number };
+  /** Files given a new name, in the order they are renamed. */
+  files: readonly IFileRename[];
   count: number;
 }
 
@@ -61,6 +64,7 @@ export const pendingChangesOf = (
   state: ISetState,
   sheets: readonly ITrackTagSheet[],
   changes: ReadonlyMap<string, TTagFields>,
+  files: readonly IFileRename[] = [],
 ): IPendingChanges => {
   const sharedKeys = Object.keys(state.shared) as TTagFieldKey[];
   const album = sharedKeys.flatMap((field): IAlbumChange[] => {
@@ -115,9 +119,11 @@ export const pendingChangesOf = (
     album,
     songs,
     cover,
+    files,
     count:
       album.length +
       songs.reduce((sum, song) => sum + song.fields.length, 0) +
-      (cover ? 1 : 0),
+      (cover ? 1 : 0) +
+      files.length,
   };
 };

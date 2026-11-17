@@ -141,6 +141,27 @@ const libraryTags = {
   'library.tags.set.coverToAll': '{count}곡 모두에 적용',
   'library.tags.set.songs': '곡',
   'library.tags.set.renumber': '순서대로 번호 다시 매기기',
+  'library.tags.files.title': '파일 이름',
+  'library.tags.files.keep': '그대로 두기',
+  'library.tags.files.custom': '직접 지정…',
+  'library.tags.files.pattern': '파일 이름 패턴',
+  'library.tags.files.patternHint': '입력하고 버튼으로 태그를 추가하세요',
+  'library.tags.files.addTag': '태그 추가',
+  'library.tags.files.token.track': '번호',
+  'library.tags.files.token.title': '제목',
+  'library.tags.files.token.artist': '아티스트',
+  'library.tags.files.token.albumArtist': '앨범 아티스트',
+  'library.tags.files.token.album': '앨범',
+  'library.tags.files.token.year': '연도',
+  'library.tags.files.token.disc': '디스크',
+  'library.tags.files.count': '파일 {count}개의 이름이 바뀝니다',
+  'library.tags.files.countOne': '파일 1개의 이름이 바뀝니다',
+  'library.tags.files.none': '모든 파일이 이미 이 이름입니다',
+  'library.tags.files.clash':
+    '{count}곡의 이름이 같아집니다. 저장하려면 서로 다르게 하세요.',
+  'library.tags.files.clashOne':
+    '한 곡이 다른 파일과 같은 이름이 됩니다. 저장하려면 서로 다르게 하세요.',
+  'library.tags.files.clashRow': '다른 파일과 같은 이름',
   'library.tags.set.fixAuto': '자동으로 고치기',
   'library.tags.set.moreFields': '더 많은 항목 ({fields})',
   'library.tags.set.varies': '곡마다 다름:',
@@ -226,6 +247,10 @@ const libraryTags = {
     '되돌리기에 필요한 내용을 저장할 수 없어 아무것도 쓰지 않았습니다. 파일은 그대로입니다.',
   'library.tags.problems.failedPlace':
     '쓴 복사본이 원래 파일 자리를 대신할 수 없었습니다. 파일은 그대로입니다. OneDrive 같은 동기화가 작업 중이면 끝난 뒤 다시 시도하세요.',
+  'library.tags.problems.failedTaken':
+    '폴더의 다른 파일이 이미 새 이름을 쓰고 있어 원래 이름을 유지했습니다. 다른 파일의 이름을 바꾸거나 옮긴 뒤 다시 시도하세요.',
+  'library.tags.problems.failedRename':
+    '드라이브가 새 이름을 받아들이지 않아 원래 이름을 유지했습니다. 다시 시도하세요. OneDrive 같은 동기화 앱이 사용 중이면 끝날 때까지 기다리세요.',
   'library.tags.problems.options': '이 파일 옵션',
   'library.tags.problems.openTags': '태그 보기',
   'library.tags.problems.reveal': '탐색기에서 보기',
@@ -276,6 +301,16 @@ const libraryTags = {
     '브라우저에서 MusicBrainz의 앨범을 엽니다. FluidEQ는 아무것도 내려받지 않습니다.',
   'library.tags.write.undoAsk': '{count}개 파일의 이전 태그를 되돌릴까요?',
   'library.tags.write.undoAskOne': '파일 1개의 이전 태그를 되돌릴까요?',
+  'library.tags.write.doneNoteNamed':
+    '이전 태그와 이름은 보관됩니다. 실행 취소하면 모두 되돌립니다.',
+  'library.tags.write.undoneNoteNamed':
+    '모든 파일이 표지를 포함해 이전 태그와 이름으로 돌아갔습니다.',
+  'library.tags.write.stoppedNoteNamed':
+    '이미 기록된 파일은 새 태그와 이름을 유지합니다. 실행 취소하면 되돌립니다.',
+  'library.tags.write.undoAskNamed':
+    '파일 {count}개를 이전 태그와 이름으로 되돌릴까요?',
+  'library.tags.write.undoAskOneNamed':
+    '파일 1개를 이전 태그와 이름으로 되돌릴까요?',
   'library.tags.write.undoKeep': '아니요',
   'library.tags.write.undoConfirm': '되돌리기',
 };

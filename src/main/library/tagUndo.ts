@@ -57,11 +57,17 @@ export type TUndoPiece =
   | { kind: 'whole'; copy: string };
 
 export interface IUndoEntry {
+  /** The song as it is now: its new id when the write renamed it. */
   trackId: string;
-  piece: TUndoPiece;
-  /** The file as written, so Undo can tell it has not changed since. */
-  writtenSize: number;
-  writtenMtimeMs: number;
+  /** What the tag write replaced; absent when only the name changed. */
+  tags?: {
+    piece: TUndoPiece;
+    /** The file as written, so Undo can tell it has not changed since. */
+    writtenSize: number;
+    writtenMtimeMs: number;
+  };
+  /** The file's name before the write renamed it, extension included. */
+  renamedFrom?: string;
 }
 
 const readAt = async (

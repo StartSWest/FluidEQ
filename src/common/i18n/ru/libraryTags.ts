@@ -149,6 +149,27 @@ const libraryTags = {
   'library.tags.set.coverToAll': 'Для всех песен ({count})',
   'library.tags.set.songs': 'Песни',
   'library.tags.set.renumber': 'Пронумеровать по порядку',
+  'library.tags.files.title': 'Имена файлов',
+  'library.tags.files.keep': 'Не менять',
+  'library.tags.files.custom': 'Свой шаблон…',
+  'library.tags.files.pattern': 'Шаблон имени',
+  'library.tags.files.patternHint': 'Введите текст и добавьте теги кнопками',
+  'library.tags.files.addTag': 'Добавить тег',
+  'library.tags.files.token.track': '№',
+  'library.tags.files.token.title': 'Название',
+  'library.tags.files.token.artist': 'Исполнитель',
+  'library.tags.files.token.albumArtist': 'Исполнитель альбома',
+  'library.tags.files.token.album': 'Альбом',
+  'library.tags.files.token.year': 'Год',
+  'library.tags.files.token.disc': 'Диск',
+  'library.tags.files.count': 'Новое имя получат файлов: {count}',
+  'library.tags.files.countOne': 'Новое имя получит 1 файл',
+  'library.tags.files.none': 'Все файлы уже так называются',
+  'library.tags.files.clash':
+    'Одинаковое имя получат песен: {count}. Сделайте их разными, чтобы сохранить.',
+  'library.tags.files.clashOne':
+    'Песня получит имя другого файла. Сделайте их разными, чтобы сохранить.',
+  'library.tags.files.clashRow': 'Такое же имя, как у другого файла',
   'library.tags.set.fixAuto': 'Исправить автоматически',
   'library.tags.set.moreFields': 'Другие поля ({fields})',
   'library.tags.set.varies': 'Разное:',
@@ -235,6 +256,10 @@ const libraryTags = {
     'Не удалось сохранить то, что нужно для отмены, поэтому ничего не записано. Файл не изменён.',
   'library.tags.problems.failedPlace':
     'Записанная копия не смогла занять место файла. Файл не изменён. Если с ним работает синхронизация вроде OneDrive, повторите, когда она закончит.',
+  'library.tags.problems.failedTaken':
+    'Другой файл в этой папке уже носит новое имя, поэтому файл сохранил своё. Переименуйте или переместите другой файл и повторите.',
+  'library.tags.problems.failedRename':
+    'Диск не принял новое имя, поэтому файл сохранил своё. Повторите; если с файлом работает программа синхронизации, например OneDrive, дождитесь её окончания.',
   'library.tags.problems.options': 'Действия с файлом',
   'library.tags.problems.openTags': 'Показать теги',
   'library.tags.problems.reveal': 'Показать в проводнике',
@@ -286,6 +311,15 @@ const libraryTags = {
     'Открывает альбом на MusicBrainz в браузере. FluidEQ ничего не скачивает.',
   'library.tags.write.undoAsk': 'Вернуть прежние теги файлов: {count}?',
   'library.tags.write.undoAskOne': 'Вернуть прежние теги 1 файла?',
+  'library.tags.write.doneNoteNamed':
+    'Прежние теги и имена сохранены — «Отменить» вернёт их все.',
+  'library.tags.write.undoneNoteNamed':
+    'У каждого файла снова прежние теги и имя, обложка тоже.',
+  'library.tags.write.stoppedNoteNamed':
+    'Уже записанные файлы сохраняют новые теги и имена; «Отменить» вернёт прежние.',
+  'library.tags.write.undoAskNamed':
+    'Вернуть прежние теги и имена файлам ({count})?',
+  'library.tags.write.undoAskOneNamed': 'Вернуть прежние теги и имя 1 файлу?',
   'library.tags.write.undoKeep': 'Нет',
   'library.tags.write.undoConfirm': 'Отменить',
 };

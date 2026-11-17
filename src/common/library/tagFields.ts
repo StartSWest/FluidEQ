@@ -238,6 +238,12 @@ export interface ITagEdit {
   id3v2Version?: 3 | 4;
   /** Absent keeps an ID3v1 tag where there is one and adds none. */
   keepId3v1?: boolean;
+  /**
+   * The file's new name, without its extension, in the same folder; exactly
+   * what `cleanFileName` makes of it (`fileNamePattern.ts`). Absent keeps
+   * the name. Written after the tags.
+   */
+  fileName?: string;
 }
 
 export interface ITagWriteRequest {
@@ -267,8 +273,11 @@ export type TTagItemState =
  * written through could not be made, its tags would not write (a damaged
  * or unusual file), the written copy did not read back as the same song,
  * what Undo needs could not be kept, or the copy could not take its place.
+ * A new name can be another file's already (`taken`), or be refused by
+ * the drive (`rename`).
  */
-export type TTagFailReason = 'copy' | 'tags' | 'check' | 'undo' | 'place';
+export type TTagFailReason =
+  'copy' | 'tags' | 'check' | 'undo' | 'place' | 'taken' | 'rename';
 
 export interface ITagJobItem {
   trackId: string;
@@ -290,6 +299,9 @@ export interface ITagJobState {
   isCancelled: boolean;
   /** True while Undo can put back what this job wrote. */
   canUndo: boolean;
+  /** Files were renamed (or, for an undo, named back): the card says names
+   * as well as tags. */
+  didRename: boolean;
 }
 
 export type TTagItemAnswer = 'retry' | 'skip' | 'make-writable';
@@ -308,3 +320,13 @@ export const countTagItems = (items: readonly ITagJobItem[]) => {
     skipped: count('skipped'),
   };
 };
+
+/**
+ * A song renamed by a tag write, or put back by Undo: the Library knows it
+ * by its new id from here on (`library-tracks-moved`), so the queue and the
+ * open views follow it.
+ */
+export interface ITagTrackMove {
+  from: string;
+  to: string;
+}

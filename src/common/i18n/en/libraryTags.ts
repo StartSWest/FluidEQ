@@ -152,6 +152,27 @@ const libraryTags = {
   'library.tags.set.coverToAll': 'To all {count} songs',
   'library.tags.set.songs': 'Songs',
   'library.tags.set.renumber': 'Renumber by order',
+  'library.tags.files.title': 'File names',
+  'library.tags.files.keep': 'Keep as they are',
+  'library.tags.files.custom': 'Custom…',
+  'library.tags.files.pattern': 'File name pattern',
+  'library.tags.files.patternHint': 'Type, and add tags with the buttons',
+  'library.tags.files.addTag': 'Add a tag',
+  'library.tags.files.token.track': 'No.',
+  'library.tags.files.token.title': 'Title',
+  'library.tags.files.token.artist': 'Artist',
+  'library.tags.files.token.albumArtist': 'Album artist',
+  'library.tags.files.token.album': 'Album',
+  'library.tags.files.token.year': 'Year',
+  'library.tags.files.token.disc': 'Disc',
+  'library.tags.files.count': '{count} files get a new name',
+  'library.tags.files.countOne': '1 file gets a new name',
+  'library.tags.files.none': 'Every file already has this name',
+  'library.tags.files.clash':
+    '{count} songs would share a name. Tell them apart to save.',
+  'library.tags.files.clashOne':
+    "A song would take another file's name. Tell them apart to save.",
+  'library.tags.files.clashRow': 'Same name as another file',
   'library.tags.set.fixAuto': 'Fix tags automatically',
   'library.tags.set.moreFields': 'More fields ({fields})',
   'library.tags.set.varies': 'Varies:',
@@ -239,6 +260,10 @@ const libraryTags = {
     'What Undo needs could not be kept, so nothing was written. The file is as it was.',
   'library.tags.problems.failedPlace':
     "The written copy could not take the file's place. The file is as it was. If a sync app such as OneDrive is busy with it, try again when it is done.",
+  'library.tags.problems.failedTaken':
+    'Another file in its folder already has the new name, so it kept its own. Rename or move the other file, then try again.',
+  'library.tags.problems.failedRename':
+    'The drive would not take the new name, so it kept its own. Try again; if a sync app such as OneDrive is busy with it, wait until it is done.',
   'library.tags.problems.options': 'Options for this file',
   'library.tags.problems.openTags': 'See its tags',
   'library.tags.problems.reveal': 'Show in Explorer',
@@ -292,6 +317,16 @@ const libraryTags = {
     'Opens the album on MusicBrainz in your browser. FluidEQ downloads nothing.',
   'library.tags.write.undoAsk': 'Put back the old tags of {count} files?',
   'library.tags.write.undoAskOne': 'Put back the old tags of 1 file?',
+  'library.tags.write.doneNoteNamed':
+    'The previous tags and names are kept — Undo puts them all back.',
+  'library.tags.write.undoneNoteNamed':
+    'Every file has its previous tags and name again, cover included.',
+  'library.tags.write.stoppedNoteNamed':
+    'The files already written keep their new tags and names; Undo puts them back.',
+  'library.tags.write.undoAskNamed':
+    'Put the previous tags and names back on {count} files?',
+  'library.tags.write.undoAskOneNamed':
+    'Put the previous tags and name back on 1 file?',
   'library.tags.write.undoKeep': 'No',
   'library.tags.write.undoConfirm': 'Undo',
 };
