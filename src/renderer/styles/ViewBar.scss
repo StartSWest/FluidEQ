@@ -41,8 +41,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // header and the transport beside it. Behind the row's own children: every
   // view makes the row a stacking context.
   //
-  // 55px tall on every page (2026-11-16: "the bar the same height
-  // everywhere"): each view sets the foot under its row that makes it so.
+  // One height on every page (2026-11-16: "the bar the same height
+  // everywhere"; `$view-bar-height`, 44px since 2026-11-17): each view sets
+  // the foot under its row that makes it so.
   &::before {
     position: absolute;
     z-index: -1;

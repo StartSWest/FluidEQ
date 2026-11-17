@@ -641,12 +641,11 @@ it under the terms of the GNU General Public License version 3 or later.
   top: calc(#{$title-bar-height} + #{$graph-strip-inset});
 }
 
-// With the header away the row stands where it does under the header, 13px
-// down a 55px band, its centre 27px under the band's top as the Karaoke row's
-// is (`_karaokeStage.scss`) — so the full-screen icons at the end of either
-// row are in the same place (Ivan, 2026-11-16: "those top options always at
-// the same level"). At the docked strip's 9px the band was 47px tall here
-// and 55 under the header.
+// With the header away the row stands where it does under the header, in the
+// middle of every page's band (`$view-bar-height`), its centre where the
+// Karaoke row's is (`_karaokeStage.scss`) — so the full-screen icons at the
+// end of either row are in the same place (Ivan, 2026-11-16: "those top
+// options always at the same level").
 .app-workspace.is-app-full .live-output-controls {
   top: $graph-strip-inset;
   transition:
@@ -659,10 +658,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // where the graph has the window: in its pane the strip lies over the top of
 // the plot, where the peaks go, and a shade there was taken off the same day
 // it arrived (2026-09-27: "I hate the dropshadow that shows when options pane
-// open, remove"). 14px under the strip's 28px row, which it stands 13px
-// under: 55px in all, as on every page.
+// open, remove"). Under the strip's row whatever of every page's band its
+// inset over the row leaves (`$view-bar-height`).
 .live-output-controls {
-  --view-bar-foot: 14px;
+  --view-bar-foot: #{$view-bar-height - $graph-strip-inset -
+    $graph-strip-button};
 }
 
 .graph-wrapper > .live-output-controls::before {

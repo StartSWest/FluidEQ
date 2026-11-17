@@ -649,8 +649,9 @@ $video-sign-out-said: 4s;
 // *** The page's row in full screen *****************************************
 
 // Every page's band across the top of the picture (`ViewBar`,
-// `VideoFullScreenRow`), as over a Library film: 55px, the row 11px down it,
-// 16px in from the window's edges. The stage already starts under the header
+// `VideoFullScreenRow`), as over a Library film: every page's height
+// (`$view-bar-height`), the row in the middle of it, 16px in from the
+// window's edges. The stage already starts under the header
 // when its pin is in (`.has-top-bar .workspace-tab-panel--video`, App.scss);
 // with the pin out the row comes down under the header while it is out.
 .video-browser__full-bar {
@@ -660,11 +661,11 @@ $video-sign-out-said: 4s;
   right: 0;
   left: 0;
   display: flex;
-  height: 55px;
+  height: $view-bar-height;
   box-sizing: border-box;
   align-items: center;
   gap: 8px;
-  padding: 11px 16px 12px;
+  padding: $view-bar-air 16px;
   transition:
     opacity $motion-base ease,
     top $motion-base $ease-out,
@@ -685,7 +686,7 @@ $video-sign-out-said: 4s;
 
   &.is-top {
     top: 0;
-    height: 55px;
+    height: $view-bar-height;
     transition: top $motion-base $ease-out;
   }
 

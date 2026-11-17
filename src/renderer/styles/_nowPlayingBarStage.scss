@@ -112,8 +112,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // THE FILM'S ROW IN FULL SCREEN (`ViewBar`): every page's band across the
-// top of the picture, the row 11px down it and 12px over its foot, 55px in
-// all as on every page, from the window's edge 16px in — the Karaoke
+// top of the picture, every page's height (`$view-bar-height`) with the row
+// in the middle of it, from the window's edge 16px in — the Karaoke
 // playlist card's own margin. Under the header while it is out or pinned:
 // pinned, the picture itself starts under it (`_libraryUpNext.scss`).
 .library-video-bar {
@@ -123,11 +123,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   right: 0;
   left: 0;
   display: flex;
-  height: 55px;
+  height: $view-bar-height;
   box-sizing: border-box;
   align-items: center;
   gap: 8px;
-  padding: 11px 16px 12px;
+  padding: $view-bar-air 16px;
   transition:
     opacity $motion-base ease,
     top $motion-base $ease-out,

@@ -2075,9 +2075,9 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   // Full-screen content lies behind the translucent FluidEQ titlebar. When
   // the shared graph/Karaoke preference keeps that bar visible, reserve only
   // its actual height; when it is hidden the stage reaches the top edge.
-  // 16px under it, as with the header floating and in the windowed view, so
-  // the band under the options is the graph strip's 55px everywhere (Ivan,
-  // 2026-11-16: "the bar the same height everywhere"); at 8px it was 47.
+  // 16px under it, as with the header floating and in the windowed view; the
+  // options row lifts out of it to every page's band height
+  // (`_karaokeStage.scss`, `$view-bar-height`).
   &.has-top-bar .karaoke-workspace.is-fullscreen {
     padding-top: calc(#{$title-bar-height} + 16px);
   }

@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+@use 'sass:math';
+
 $preset-bar-width: 340px;
 $sidebar-width: 164px;
 // The strip the titlebar reserves at the top of the window, not the bar
@@ -35,8 +37,18 @@ $title-bar-height: var(--title-bar-height);
 // The graph's row of buttons over a full-screen picture: how far under the
 // header it stands, and how tall a button in it is. The sound panel's button
 // lines up with that row (`App.scss`, `.right-content__head`).
-$graph-strip-inset: 13px;
 $graph-strip-button: 28px;
+
+// EVERY PAGE'S OPTIONS ROW STANDS IN A BAND THIS TALL (`ViewBar`): the
+// graph's strip, the Karaoke's row, a film's and an Online Media page's.
+// 44px, a 32px row with 6px of band over and under it (Ivan, 2026-11-17:
+// "make the option bar on the top a bit less tall"); it was 55, 11 over and
+// 12 under. Each row's own sheet splits it from here, never from a number of
+// its own, so the rows stay one height.
+$view-bar-height: 44px;
+$view-bar-row: 32px;
+$view-bar-air: math.div($view-bar-height - $view-bar-row, 2);
+$graph-strip-inset: math.div($view-bar-height - $graph-strip-button, 2);
 
 // Widths at which the workspace shell changes shape. The Electron window
 // cannot go below WINDOW_MIN_WIDTH (720px), so the three-column layout only

@@ -64,20 +64,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  // One band height everywhere, the graph strip's (Ivan, 2026-11-16: "the
-  // bar the same height everywhere ... the karaoke's is a bit tall at the
-  // bottom"): 55px, as the strip's 17px inset, 28px row and 10px foot. Here
-  // the row stands in the middle of it, 11px over its 32px buttons and 12px
-  // under (Ivan: "reduce the top padding a bit so it looks more centred in
-  // the band"); it was 16 over and 7 under.
+  // One band height everywhere (`$view-bar-height`; Ivan, 2026-11-16: "the
+  // bar the same height everywhere"), the row in the middle of it, as much
+  // over its 32px buttons as under (Ivan: "reduce the top padding a bit so it
+  // looks more centred in the band").
   min-height: 0;
-  padding: 11px 12px 0;
+  padding: $view-bar-air 12px 0;
   // The band under the row is every page's (`ViewBar.scss`): across the
   // stage column only, never over the playlist beside it, and in full screen
   // from the window's top across the whole window, where the playlist card,
-  // lifted over the stage, stands on top of it. 12px under the row's 32px,
-  // over which it stands 11px, in both views: 55px in all.
-  --view-bar-foot: 12px;
+  // lifted over the stage, stands on top of it. The same air under the row as
+  // over it, in both views.
+  --view-bar-foot: #{$view-bar-air};
 
   // In full screen the row stands on the line every page's options do, the
   // graph strip's (Ivan, 2026-11-16: "those top options always at the same
@@ -85,12 +83,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // 31px under it, so a row of 32px buttons with nothing above or below it
   // centres there.
   // Centred in its band in full screen too: the stage stands 16px under the
-  // header (the playlist card's own top), so the row lifts 5px of it, 11px
-  // over the buttons and a 12px foot under them (Ivan, 2026-11-16: "the top
-  // padding of the bar in full screen is too much").
+  // header (the playlist card's own top, `App.scss`), so the row lifts all
+  // but the band's air of it (Ivan, 2026-11-16: "the top padding of the bar
+  // in full screen is too much").
   .karaoke-workspace.is-fullscreen & {
-    min-height: 32px;
-    margin-top: -5px;
+    min-height: $view-bar-row;
+    margin-top: $view-bar-air - 16px;
     padding-block: 0;
   }
 }
