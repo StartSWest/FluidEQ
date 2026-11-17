@@ -116,18 +116,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-lyrics__translation-picker .dropdown > [role='menu'] {
   min-height: 28px;
   padding: 4px 9px;
-  color: $text-muted;
-  border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: $karaoke-chip-face;
-  box-shadow: none;
   font-size: $text-micro;
+  // Over the lyric lines: the pick on the menus' solid floor, as the
+  // follow button beside it is (`button-line-floating`).
+  background: $surface-menu;
 
-  &:hover:not([aria-disabled='true']),
-  &:focus-visible {
-    color: $secondary-light;
-    border-color: $border-field-hover;
-    background: $karaoke-chip-hover;
+  &:hover:not([aria-disabled='true']) {
+    background-color: $surface-menu;
+    background-image: linear-gradient($fill-hover, $fill-hover);
   }
 }
 

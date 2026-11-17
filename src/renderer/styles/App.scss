@@ -242,15 +242,14 @@ select {
   }
 }
 
-// A native select names a choice and is pressed like a button, so it is
-// labelled like the quiet button and lifts under the pointer like one.
+// A native select names a choice and is pressed like a button: the pick's
+// face (`choice-surface`), answering the pointer as a line button does.
 select {
-  color: $secondary-light;
-  font-weight: $weight-bold;
+  font-weight: $weight-semibold;
 
   &:hover:not(:disabled) {
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
+    border-color: $edge-hover;
+    background: $fill-hover;
   }
 }
 

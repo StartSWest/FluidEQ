@@ -40,18 +40,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 6px;
   padding: 0 3px 0 8px;
-  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: $surface-control;
   transition: $transition-control;
-
-  // Focus lights the EDGE, not the fill. A field that repaints when the
-  // caret lands in it is a field that changes colour for typing in — and it
-  // was a different colour from its own resting face, so two search boxes
-  // side by side looked like two kinds of control the moment one was used.
-  &:focus-within {
-    border-color: $border-field-focus;
-  }
+  @include field-surface;
+  @include field-focus;
 
   // A pill, open or shut.
   //

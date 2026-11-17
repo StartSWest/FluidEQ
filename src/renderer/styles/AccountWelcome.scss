@@ -276,15 +276,14 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   place-items: center;
   height: 52px;
-  color: $text-primary;
   font-size: 1.3rem;
   font-weight: $weight-bold;
-  background: $surface-field;
-  border: 1px solid $border-field;
   border-radius: $radius-m;
   transition:
     border-color 120ms,
     box-shadow 120ms;
+  @include field-surface;
+  @include field-focus;
 
   .code-boxes:focus-within &.is-next {
     border-color: $border-field-focus;

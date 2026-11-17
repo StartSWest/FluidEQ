@@ -650,16 +650,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 30px;
   height: $control-height;
   padding: 0;
-  border: 1px solid rgba($white, 0.09);
   border-radius: $radius-xs;
   // A well cut into its card: the shell colour, which is the one thing in
   // the palette that reads as "below". Black at 24% was a shade of nothing.
-  background: color-mix(in srgb, $surface-base 55%, transparent);
-  color: $text-faint;
   cursor: pointer;
   transition:
     background 130ms ease,
     color 130ms ease;
+  @include button-line;
 
   svg {
     width: 14px;
@@ -673,20 +671,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-linecap: round;
     stroke-linejoin: round;
   }
-
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
-    color: rgba($white, 0.9);
-  }
-
-  // The same 0.5 the `RichPick` trigger between them fades to. These three are
-  // sized and spaced to read as one control with a middle and two ends, so a
-  // dimmed field flanked by two arrows still lighting up under the pointer is
-  // one control disagreeing with itself about whether it can be used.
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
 }
 
 // In the EQ preset picker the field already supplies the shared surface. The
@@ -694,12 +678,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // arrow made three controls out of one picker.
 .dsp-eq-bar .dsp-eq-step {
   width: 24px;
-  border: 0;
-  background: transparent;
-
-  &:hover {
-    background: transparent;
-  }
+  @include button-plain;
 }
 
 // The preset menu's own width moved to `RichPick.scss` when the picker stopped

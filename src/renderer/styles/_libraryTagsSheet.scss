@@ -169,12 +169,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font: inherit;
   text-overflow: ellipsis;
 
+  // A cell shows it can be typed into with the field's edges, drawn inside
+  // so the table does not move: hover, then lit while typing.
   &:hover {
-    box-shadow: inset 0 0 0 1px $studio-hair;
+    box-shadow: inset 0 0 0 1px $edge-hover;
   }
 
   &:focus {
-    box-shadow: inset 0 0 0 1px $border-field-focus;
+    box-shadow: inset 0 0 0 1px $edge-lit;
   }
 }
 

@@ -26,10 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   width: 100%;
   height: 52px;
   padding: 0 14px;
-  border: 1px solid $card-edge;
   border-radius: $radius-m;
-  background: $surface-field;
-  color: $text-primary;
   font: inherit;
   font-size: $text-lead;
   font-weight: $weight-semibold;
@@ -37,16 +34,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   text-align: center;
   cursor: default;
   caret-color: transparent;
-  outline: none;
+  @include field-surface;
+  @include field-focus;
 
   &::placeholder {
     color: $text-faint;
     font-weight: $weight-regular;
-  }
-
-  &:focus-visible {
-    border-color: $border-field-focus;
-    box-shadow: none;
   }
 
   &.has-problem {

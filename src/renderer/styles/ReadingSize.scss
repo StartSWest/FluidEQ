@@ -27,43 +27,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .reading-size__steps {
-  display: inline-flex;
   flex: 0 0 auto;
-  align-items: stretch;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-xs;
-  overflow: hidden;
+  @include stepper-group;
 }
 
 .reading-size__step,
 .reading-size__value {
   display: grid;
   place-items: center;
-  height: 24px;
+  height: 22px;
   padding: 0;
-  color: $text-faint;
-  border: 0;
-  background: transparent;
   cursor: pointer;
   transition:
     background $motion-fast $ease-out,
     color $motion-fast $ease-out;
-
-  &:hover:not(:disabled),
-  &:focus-visible {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
-    outline: none;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.45;
-  }
+  @include stepper-key;
 }
 
 .reading-size__step {
@@ -75,15 +53,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .reading-size__value {
   min-width: 42px;
   padding: 0 4px;
-  border-inline: 1px solid $border-subtle;
+  @include stepper-divider;
   font: inherit;
   font-size: $text-micro;
   font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
 
+  // At 100% there is nothing to put back: the value reads on, unpressable.
   &:disabled {
     opacity: 1;
-    color: $text-dim;
   }
 }
 

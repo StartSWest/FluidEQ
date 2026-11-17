@@ -43,11 +43,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow: hidden;
 
     // No hover: a number is typed into, and a field you type into does not
-    // change under the pointer (see `field-static`).
-    &:focus-within {
-      border-color: $border-field-focus;
-      @include focus-ring;
-    }
+    // change under the pointer (see `field-static`). Typing lights its edge.
+    @include field-focus;
 
     &[aria-disabled='true'] {
       @include field-disabled;
@@ -84,13 +81,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:focus,
     &:focus-visible,
     &:disabled {
+      border: 0;
       background: none;
       box-shadow: none;
-    }
-
-    &:disabled {
-      color: $text-faint;
-      border: 0;
+      opacity: 1;
     }
   }
 

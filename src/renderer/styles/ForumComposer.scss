@@ -22,16 +22,12 @@ it under the terms of the GNU General Public License version 3 or later.
 .forum-editor {
   display: grid;
   min-width: 0;
-  border: 1px solid $border-field;
   border-radius: $radius-m;
-  background: $surface-control;
   transition:
     border-color $motion-fast $ease-out,
     box-shadow $motion-fast $ease-out;
-
-  &:focus-within {
-    border-color: $border-field-focus;
-  }
+  @include field-surface;
+  @include field-focus;
 
   &.is-disabled {
     opacity: 0.7;

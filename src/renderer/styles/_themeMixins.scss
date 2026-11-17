@@ -30,21 +30,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Focus (`focus-ring`), unavailable (`control-disabled`) and every button
 // face live in `_buttonFaces.scss`, the one definition of a control's face.
 
+// THE FIELD: the edge at rest and no fill (2026-11-17, the one control
+// theme: "fields with no fill, like the Library search"). It wore a slab of
+// its own (`$surface-control`), a third fill beside the buttons' none and
+// the Library's none; the Library's own fields had the edge as an inset
+// hairline. Now every box you type into or pick from is the line button's
+// outline holding a value.
 @mixin field-surface {
   color: $text-primary;
-  border: 1px solid $border-control;
+  border: 1px solid $edge-rest;
   border-radius: $radius-xs;
-  background: $surface-control;
+  background: none;
   box-shadow: none;
   transition: $transition-control;
 }
 
 // A field that names a choice rather than holding typed text: the closed
-// face of a select or a pick. Same surface, labelled like a button.
+// face of a select or a pick. The value in the text's own ink, semibold: it
+// was the accent's light in bold, so a picked value read as a link and
+// louder than a typed one beside it.
 @mixin choice-surface {
   @include field-surface;
-  color: $secondary-light;
-  font-weight: $weight-bold;
+  font-weight: $weight-semibold;
 }
 
 // Where a field shows it has the caret, or a pick that it is open: its own
@@ -60,17 +67,60 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// A control you press that is dressed as a field — a select, a pick, a chip:
-// it lifts under the pointer like the quiet button it sits beside.
+// A control you press that is dressed as a field — a select, a pick: it
+// answers the pointer as the line button beside it does, is lit while its
+// list is open, and takes the pressable controls' focus.
 @mixin field-interactive {
   @include field-surface;
 
-  &:hover:not(:disabled):not([aria-disabled='true']) {
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
+  &:hover:not(:disabled, [aria-disabled='true']) {
+    border-color: $edge-hover;
+    background: $fill-hover;
   }
 
-  @include field-focus;
+  &[aria-expanded='true'] {
+    border-color: $edge-lit;
+    background: $fill-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// A PICK, whole: the closed face of a select, a dropdown, a preset or look
+// picker. The field's outline holding a chosen value, answering the pointer
+// and lit while open as `field-interactive` is, at half light when it
+// cannot be used. Every picker in the app is this and nothing else.
+@mixin choice-interactive {
+  @include field-interactive;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+
+  &[aria-disabled='true'],
+  &:disabled {
+    @include control-disabled;
+  }
+}
+
+// A STEPPER: a field's outline holding a value with its − and + inside it,
+// each a plain key, divided from the value by the field's own edge
+// (`stepper-key`, `stepper-divider`). The reading size had a grey frame of
+// its own and white tints for its keys.
+@mixin stepper-group {
+  @include field-surface;
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+@mixin stepper-key {
+  @include button-plain;
+  border-radius: 0;
+}
+
+@mixin stepper-divider {
+  border-inline: 1px solid $edge-rest;
 }
 
 // A field you type into: NOTHING changes under the pointer — not the fill,
@@ -88,19 +138,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus,
   &:focus-visible {
     border-color: $border-field-focus;
-    background: $surface-control;
     outline: none;
     box-shadow: none;
   }
 }
 
-// Unavailable, not switched off at the wall.
-//
-// This kept the opaque `$surface-panel` backstop after `field-surface` lost it,
-// so a disabled control was the one thing in the window still painting a solid
-// colour — and a dark one, which made "you cannot use this yet" look like "this
-// is broken". Disabled should read as quieter than its neighbours, not as a
-// hole in the panel.
 // Unavailable: the control at half light (`control-disabled`).
 @mixin field-disabled {
   @include control-disabled;

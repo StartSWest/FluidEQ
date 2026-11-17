@@ -302,10 +302,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   gap: 8px;
   padding: 0 10px;
-  color: $text-muted;
-  border: 1px solid $border-subtle;
   border-radius: $radius-s;
-  background: $surface-control;
+  @include field-surface;
+  @include field-focus;
 
   input {
     min-width: 0;
@@ -316,10 +315,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     background: none;
     font: inherit;
     font-size: $studio-text-tree;
-  }
-
-  &:focus-within {
-    @include focus-ring;
   }
 }
 
@@ -467,12 +462,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: none;
   place-items: center;
   padding: 0;
-  color: $text-muted;
-  border: 0;
   border-radius: $radius-s;
-  background: none;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 14px;
@@ -482,21 +475,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.8;
-  }
-
-  &:hover:not(:disabled),
-  &:focus-visible {
-    color: $white;
-    background: rgba($edge-tint, 0.1);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &:disabled {
-    opacity: 0.35;
-    cursor: default;
   }
 }
 

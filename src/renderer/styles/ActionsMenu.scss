@@ -479,20 +479,11 @@
 .actions-menu__prefs .menu-preference__control .dropdown > [role='menu'] {
   min-height: 28px;
   padding: 4px 8px 4px 10px;
-  color: $text-primary;
-  border: 1px solid rgba($white, 0.09);
   border-radius: $radius-xs;
-  background: $track-well;
-  box-shadow: none;
   font-size: $text-body;
+  @include choice-interactive;
+  // Regular in the tray: set semibold, the language was its loudest word.
   font-weight: $weight-regular;
-
-  &:hover:not([aria-disabled='true']),
-  &:focus-visible {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
-    background: color-mix(in srgb, $secondary-default 16%, $track-well);
-  }
 
   .arrow {
     margin-left: 8px;

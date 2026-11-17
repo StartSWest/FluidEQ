@@ -50,43 +50,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  // The quiet button's face, like the selects it sits in a row with. It was
-  // half of `$primary-dark` — a violet near-black — so the one pick in the EQ
-  // toolbar was a dark hole between four lit controls.
-  @include choice-surface;
+  // The app's pick (`choice-interactive`), like the selects it sits in a row
+  // with: no face of its own, hover, open, focus and unavailable included
+  // (Ivan, 2026-09-27: "lets all be same as preset"). The name on it says
+  // which voicing is playing.
+  @include choice-interactive;
   font-size: $text-body;
   white-space: nowrap;
-  cursor: pointer;
   transition: $transition-control;
 
   .rich-pick__glyph {
     font-size: 15px;
   }
-
-  // The lift every control has. It was the accent's 14% over nothing, so
-  // under the pointer the pick went from the controls' face to a sixth of
-  // one, and over a scene it all but vanished.
-  &:hover:not(:disabled),
-  &[aria-expanded='true'] {
-    color: $white;
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-  }
-
-  &:focus-visible {
-    border-color: $secondary-light;
-    @include focus-ring;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
-
-  // No face of its own for a voicing that is on: this pick's lit face is
-  // what every control wears now (`$surface-control`, `$border-control`;
-  // Ivan, 2026-09-27: "lets all be same as preset"). The name on it says
-  // which voicing is playing.
 }
 
 // The name takes whatever width the trigger has over its contents, so the

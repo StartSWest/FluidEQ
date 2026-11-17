@@ -261,21 +261,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 26px;
   align-items: center;
   padding: 0 3px 0 8px;
-  border: 1px solid $border-control;
   // Matches the site pills rather than the nav buttons: this is the other end
   // of the same row, and 26px tall against a 999px radius is a capsule.
   border-radius: $radius-xs;
-  background: $surface-control;
   gap: 6px;
   transition: $transition-control;
-
-  // Focus lights the EDGE, not the fill. A field that repaints when the
-  // caret lands in it is a field that changes colour for typing in — and it
-  // was a different colour from its own resting face, so two search boxes
-  // side by side looked like two kinds of control the moment one was used.
-  &:focus-within {
-    border-color: $border-field-focus;
-  }
+  @include field-surface;
+  @include field-focus;
 
   // A pill, open or shut. The bottom corners used to square off while the
   // list was showing, on the reasoning that the two would read as one control
@@ -516,12 +508,11 @@ $video-sign-out-said: 4s;
   margin-left: auto;
   flex: 0 0 auto;
   padding: 0;
-  border: 1px solid transparent;
   border-radius: $radius-s;
-  background: transparent;
-  color: $text-muted;
   place-items: center;
   cursor: pointer;
+  // The plain tier (`_buttonFaces.scss`).
+  @include button-plain;
   transition:
     color 140ms ease,
     border-color 140ms ease,
@@ -535,23 +526,6 @@ $video-sign-out-said: 4s;
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.5;
-  }
-
-  // Under the pointer, the toolbar's control: its face and its lit edge.
-  &:hover:not(:disabled) {
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-    color: $secondary-light;
-  }
-
-  &:focus-visible {
-    border-color: $border-control-hover;
-    color: $secondary-light;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
   }
 
   // What it did, in the only currency a glyph has. Held for four seconds by

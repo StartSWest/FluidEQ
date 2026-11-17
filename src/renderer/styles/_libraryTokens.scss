@@ -91,18 +91,17 @@ $library-gutter: 12px;
 // inside, the field corner, and the accent's edge while it has the caret.
 // The Karaoke Maker's fields wear it too (Ivan, 2026-11-15: "no background,
 // same as the search in the Library", "inputs suck").
+// The Library's field is the app's field (`field-surface`): it drew the
+// same no-fill box with its edge as an inset hairline in a grey of its own.
 @mixin quiet-field {
-  color: $text-muted;
-  background: none;
-  border: 0;
+  @include field-surface;
   border-radius: $radius-m;
-  box-shadow: inset 0 0 0 1px $studio-hair;
   outline: 0;
-  transition: box-shadow 130ms ease;
 }
 
 @mixin quiet-field-focus {
-  box-shadow: inset 0 0 0 1px $border-field-focus;
+  border-color: $border-field-focus;
+  box-shadow: none;
 }
 
 // The chosen folder, the playing row: the accent, faint.

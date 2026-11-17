@@ -140,18 +140,13 @@
   width: 100%;
   min-height: 180px;
   padding: 10px 12px;
-  border: 1px solid $card-edge;
   border-radius: $radius-s;
-  background: $surface-field;
-  color: $text-primary;
   font-family: $font-mono;
   font-size: $text-small;
   line-height: 1.55;
   resize: vertical;
-  &:focus {
-    border-color: $secondary-default;
-    outline: none;
-  }
+  @include field-surface;
+  @include field-focus;
 }
 .my-curve-add__status {
   display: grid;
@@ -194,15 +189,10 @@
     width: 100%;
     height: $control-height-sm;
     padding: 0 10px;
-    border: 1px solid $card-edge;
     border-radius: $radius-s;
-    background: $surface-field;
-    color: $text-primary;
     font: inherit;
-    &:focus {
-      border-color: $secondary-default;
-      outline: none;
-    }
+    @include field-surface;
+    @include field-focus;
   }
 }
 .my-curve-add__provenance {

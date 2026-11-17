@@ -138,23 +138,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-height: 40vh;
   margin: 4px 6px 0;
   padding: 8px 10px;
-  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: $surface-control;
-  color: $text-primary;
   font-family: inherit;
   font-size: $studio-text-tree;
   line-height: 1.55;
   resize: vertical;
   transition: $transition-control;
+  @include field-surface;
+  @include field-focus;
 
   &::placeholder {
     color: $studio-t3;
-  }
-
-  &:focus {
-    border-color: $border-field-focus;
-    outline: none;
   }
 }
 

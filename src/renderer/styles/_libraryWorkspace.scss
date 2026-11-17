@@ -244,14 +244,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 32px;
     gap: 8px;
     padding: 0 6px 0 12px;
-    border: 0;
     border-radius: $radius-m;
-    background: none;
-    box-shadow: inset 0 0 0 1px $studio-hair;
-
-    &:focus-within {
-      box-shadow: inset 0 0 0 1px $border-field-focus;
-    }
+    @include field-surface;
+    @include field-focus;
 
     // Said through the field, as the field's own rule says it, or that rule
     // wins on order with the same weight.
@@ -394,19 +389,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dropdown > [role='menu'] {
     min-height: 30px;
     padding: 0 10px;
-    border: 0;
     border-radius: $radius-m;
-    background: none;
-    box-shadow: inset 0 0 0 1px $studio-hair;
-    color: $studio-t2;
     font-size: $studio-text-meta;
     font-weight: $weight-semibold;
     gap: 6px;
-
-    &:hover:not([aria-disabled='true']) {
-      background: $studio-surface;
-      color: $text-primary;
-    }
+    @include choice-interactive;
   }
 
   .dropdown .arrow {

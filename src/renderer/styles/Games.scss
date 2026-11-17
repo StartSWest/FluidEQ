@@ -870,9 +870,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 8px;
   height: $control-height-sm;
   padding: 0 4px 0 10px;
-  border: 1px solid $card-edge;
   border-radius: $radius-s;
-  background: $surface-field;
+  @include field-surface;
+  @include field-focus;
 
   > svg {
     width: 15px;
@@ -899,10 +899,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     &::-webkit-search-cancel-button {
       display: none;
     }
-  }
-
-  &:focus-within {
-    border-color: $secondary-default;
   }
 }
 

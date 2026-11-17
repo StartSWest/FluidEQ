@@ -35,8 +35,6 @@ $karaoke-cool: var(--karaoke-glow-cool);
 // 2026-09-26: "karaoke fix all those suck ui and no drop shadow").
 $karaoke-chip-face: linear-gradient($surface-card 0 0), $surface-base;
 
-$karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
-
 // The app's quiet face for a control (`.button.subtle`), and its hover, as
 // the Maker's controls wear them: the accent's faint fill. Slabs of the
 // block colour, a step lighter than every card, were the Maker's own face
