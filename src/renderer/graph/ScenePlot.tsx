@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useLayoutEffect, useRef } from 'react';
-import { publishScenePlot, useGraphSceneRun } from './graphScenePlace';
+import {
+  publishSceneFront,
+  publishScenePlot,
+  useGraphSceneRun,
+} from './graphScenePlace';
 import { sceneIdentityOf, type TDrawableScene } from './SceneCanvas';
 import SceneLoading from './SceneLoading';
 import SceneViewReset from './SceneViewReset';
@@ -61,6 +65,12 @@ export default function ScenePlot({
   }, [width, height, spectrumRect, isPartOfWindow]);
   useLayoutEffect(() => () => publishScenePlot(undefined), []);
 
+  const frontRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    publishSceneFront(frontRef.current ?? undefined);
+    return () => publishSceneFront(undefined);
+  }, []);
+
   const run = useGraphSceneRun();
 
   return (
@@ -84,6 +94,13 @@ export default function ScenePlot({
           style={{ display: 'contents' }}
         />
       </div>
+      {/* After the surface and before the drawing: what a page stands in
+          front of the scene goes here (`publishSceneFront`). */}
+      <div
+        ref={frontRef}
+        className="chart-scene-front"
+        style={{ display: 'contents' }}
+      />
       <div
         ref={panelRef}
         className="chart-scene-panel"

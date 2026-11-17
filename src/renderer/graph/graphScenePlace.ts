@@ -140,3 +140,16 @@ export const useScenePlot = plotStore.use;
 /** From the renderer (`SceneCanvas`), for the plot's loading and reset. */
 export const publishGraphSceneRun = runStore.publish;
 export const useGraphSceneRun = runStore.use;
+
+const frontStore = createValueStore<HTMLElement | undefined>(undefined);
+
+/**
+ * The place on the plot over its scene and under its drawing, while a scene
+ * is drawn there: for a page's own picture that stands in front of the scene
+ * rather than behind it — the Library's record (`LibraryStageArt`), as the
+ * Karaoke's words stand over its scene. Outside the scene's surface, so the
+ * see-through slider fades the scene and never the picture; inside the card,
+ * so the card's blur reaches only what lies behind the card.
+ */
+export const publishSceneFront = frontStore.publish;
+export const useSceneFront = frontStore.use;

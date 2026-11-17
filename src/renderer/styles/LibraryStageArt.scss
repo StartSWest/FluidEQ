@@ -46,6 +46,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   animation: library-stage-art-in $motion-slow $ease-out both;
 }
 
+// The record in front of a Plus scene, in the plot between the scene's
+// surface and the drawing (`chart-scene-front`), so the curves and the
+// controls still stand over it and the see-through and the blur never reach
+// it. Fixed, and so laid out against the graph's card, whose transform makes
+// it the containing block for fixed children: the card is pinned to the same
+// measured rectangle as the picture behind it (`has-stage-art`), so the
+// record lands exactly where it stands without a scene, and the plot's own
+// clip, which is not its containing block, does not cut it.
+.library-stage-art-front {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  animation: library-stage-art-in $motion-slow $ease-out both;
+}
+
 // Blown up past the edges and blurred. The scale is what keeps the blur from
 // showing a soft rim where the picture ends.
 .library-stage-art__wash {
@@ -134,7 +150,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .library-stage-art {
+  .library-stage-art,
+  .library-stage-art-front {
     animation: none;
   }
 }

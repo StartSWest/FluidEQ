@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { createPortal } from 'react-dom';
 import { libraryMediaUrl } from '../../common/library/mediaUrl';
+import { useSceneFront } from '../graph/graphScenePlace';
 import LibraryCoverArt from './LibraryCoverArt';
 import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import useStageArtFrame from './useStageArtFrame';
@@ -46,6 +47,16 @@ import '../styles/LibraryStageArt.scss';
  */
 const LibraryStageArt = () => {
   const { track, videoTrackId } = useLibraryPlayerSession();
+  /**
+   * With a Plus scene on the graph, the record stands in front of the scene,
+   * as the Karaoke's words do (Ivan, 2026-11-17: "I need the cover over the
+   * scene, and the see-through and all that is for the scene, not for the
+   * cover"). Under it, the scene's see-through faded the scene over the
+   * cover and the card's blur blurred the cover with everything else behind
+   * the card. The wash stays behind the card: it is what the see-through and
+   * the blur show through the scene.
+   */
+  const front = useSceneFront();
 
   useStageArtFrame();
 
@@ -66,21 +77,8 @@ const LibraryStageArt = () => {
   }
 
   const wash = track.artId ? libraryMediaUrl('art', track.artId) : undefined;
-
-  return createPortal(
-    <div className="library-stage-art" aria-hidden="true">
-      {/* The same picture twice: blown up and blurred to fill the screen, and
-          again at its own size in the middle. A cover is square and a screen
-          is not, so something has to fill the sides, and a wash of the record
-          itself is the only thing that always suits it. */}
-      {wash && (
-        <img
-          className="library-stage-art__wash"
-          src={wash}
-          alt=""
-          aria-hidden
-        />
-      )}
+  const record = (
+    <>
       <div className="library-stage-art__cover">
         <LibraryCoverArt artId={track.artId} label={track.title} size="cover" />
       </div>
@@ -89,8 +87,38 @@ const LibraryStageArt = () => {
         <p>{track.artist}</p>
         {track.album && <small>{track.album}</small>}
       </div>
-    </div>,
-    document.body,
+    </>
+  );
+
+  return (
+    <>
+      {createPortal(
+        <div className="library-stage-art" aria-hidden="true">
+          {/* The same picture twice: blown up and blurred to fill the
+              screen, and again at its own size in the middle. A cover is
+              square and a screen is not, so something has to fill the sides,
+              and a wash of the record itself is the only thing that always
+              suits it. */}
+          {wash && (
+            <img
+              className="library-stage-art__wash"
+              src={wash}
+              alt=""
+              aria-hidden
+            />
+          )}
+          {!front && record}
+        </div>,
+        document.body,
+      )}
+      {front &&
+        createPortal(
+          <div className="library-stage-art-front" aria-hidden="true">
+            {record}
+          </div>,
+          front,
+        )}
+    </>
   );
 };
 

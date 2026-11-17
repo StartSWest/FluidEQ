@@ -910,7 +910,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // graph follows the see-through slider, so the picture under it shows (Ivan,
 // 2026-11-16: "on the library ... show the cover and the see-through and
 // everything"). The Library keeps the graph's own blur; the Karaoke blurs its
-// scenery itself (above).
+// scenery itself (above). Under the Library's scene that picture is the
+// record's wash alone: the record itself stands in front of the scene
+// (`LibraryStageArt`, `chart-scene-front`), out of reach of both.
 .center-workspace.is-graph-full > .graph-wrapper.has-playback-backdrop {
   --graph-scene-opacity: var(--graph-overlay-opacity, 1);
   --graph-scene-visibility: var(--graph-overlay-scene-visibility, visible);
