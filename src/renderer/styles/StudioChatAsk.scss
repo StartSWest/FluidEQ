@@ -203,24 +203,13 @@ $ask-mark-gap: 10px;
   height: 20px;
   padding: 0;
   place-items: center;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 10px;
     height: 10px;
-  }
-
-  &:hover {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 

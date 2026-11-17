@@ -173,6 +173,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// PLAIN: no edge, no fill, the panel's faint ink, until pointed at. The
+// border is there and transparent, so a plain button is the same size as a
+// line one beside it. With a `$tone` (red, a bin) the ink is the tone's.
+@mixin button-face-plain($tone: null) {
+  border: 1px solid transparent;
+  background: none;
+  box-shadow: none;
+  filter: none;
+
+  @if $tone {
+    color: $tone;
+  } @else {
+    color: $text-faint;
+  }
+}
+
+// Under the pointer: the hover tint and the ink comes up. No edge: a row of
+// plain tools stays a row of words and glyphs.
+@mixin button-face-plain-hover($tone: null) {
+  border-color: transparent;
+
+  @if $tone {
+    color: $tone;
+    background: tone-fill-hover($tone);
+  } @else {
+    color: $text-primary;
+    background: $fill-hover;
+  }
+}
+
+// Pressed: the lit tint, for as long as it is held.
+@mixin button-face-plain-press($tone: null) {
+  @if $tone {
+    color: $tone;
+    background: tone-fill-lit($tone);
+  } @else {
+    color: $text-primary;
+    background: $fill-lit;
+  }
+}
+
 // *** Whole buttons **********************************************************
 // The faces with every state wired, for anything pressable that is not a
 // `.button` (the Library's album head, the Gallery's toolbar, the Karaoke
@@ -218,7 +259,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   // A line button that is a switch, switched on.
-  &[aria-pressed='true'] {
+  &[aria-pressed='true'],
+  &[aria-expanded='true'] {
     @include button-face-lit;
 
     &:hover:not([aria-disabled='true'], :disabled) {
@@ -231,6 +273,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   @include button-common-states;
+}
+
+// A plain button switched on, or whose menu is open: the lit tint and ink,
+// no edge, so a chosen tool or place in a row of plain ones stays in the row.
+// Named, for a state a component says with a class of its own (Help while
+// the forum it opened is showing).
+@mixin button-face-plain-on {
+  color: $secondary-light;
+  background: $fill-lit;
+
+  &:hover:not([aria-disabled='true'], :disabled) {
+    color: $secondary-light;
+    background-color: $fill-lit;
+    background-image: linear-gradient($fill-hover, $fill-hover);
+  }
+}
+
+// PLAIN, whole: tool rows, a glyph alone, close, "more", a row's own action.
+@mixin button-plain($tone: null) {
+  @include button-face-plain($tone);
+
+  &:hover:not([aria-disabled='true'], :disabled) {
+    @include button-face-plain-hover($tone);
+  }
+
+  &:active:not([aria-disabled='true'], :disabled) {
+    @include button-face-plain-press($tone);
+  }
+
+  &[aria-pressed='true'],
+  &[aria-expanded='true'] {
+    @include button-face-plain-on;
+  }
+
+  @include button-common-states;
+}
+
+// The plain tier with the accent's light for ink at rest: a way somewhere in
+// running text ("Use FluidEQ Engine"), and the player's transport keys,
+// which are the player's instrument. Under the pointer it is plain.
+@mixin button-plain-accent {
+  @include button-plain;
+
+  &:not([aria-pressed='true'], [aria-expanded='true']) {
+    color: $secondary-light;
+  }
+
+  &:hover:not([aria-disabled='true'], :disabled) {
+    color: $text-primary;
+  }
 }
 
 // A line button that floats over content - lyric lines, a picture - has to

@@ -151,33 +151,17 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 28px;
   height: 28px;
   padding: 0;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
   cursor: pointer;
   transition:
     color $motion-fast $ease-out,
     background $motion-fast $ease-out;
-
-  &:hover:not(:disabled) {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
-  }
+  @include button-plain;
 
   // A view it opened is showing (the past chats): lit until pressed again.
   &[aria-pressed='true'] {
     color: $text-accent;
     background: color-mix(in srgb, $text-accent 12%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.4;
   }
 }
 
@@ -188,10 +172,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 5px;
   flex: none;
   padding: 5px 8px;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
   font: inherit;
   font-size: $text-small;
   white-space: nowrap;
@@ -199,16 +180,7 @@ it under the terms of the GNU General Public License version 3 or later.
   transition:
     color $motion-fast $ease-out,
     background $motion-fast $ease-out;
-
-  &:hover,
-  &[aria-pressed='true'] {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+  @include button-plain;
 }
 
 .studio-chat__switch svg {

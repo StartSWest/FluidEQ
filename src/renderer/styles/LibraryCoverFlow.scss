@@ -162,12 +162,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 44px;
   place-items: center;
   padding: 0;
-  color: $text-muted;
-  border: 1px solid rgba($edge-tint, 0.16);
   border-radius: 50%;
   // The shell colour rather than a near-black of its own: this floats over
   // artwork, and it has to read as the app's own scrim, not as a hole.
-  background: color-mix(in srgb, $surface-base 55%, transparent);
   cursor: pointer;
   // Its own `translate` rather than a `transform`, so the hover nudge below
   // composes with the centring instead of replacing it.
@@ -179,6 +176,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow 160ms $ease-out,
     scale 160ms $ease-out,
     opacity 160ms $ease-out;
+  @include button-line-floating;
 
   svg {
     width: 20px;
@@ -191,26 +189,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover:not(:disabled) {
-    color: $secondary-light;
-    border-color: $edge-hover;
-    background: $fill-hover;
     scale: 1.08;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 
   &:active:not(:disabled) {
     scale: 0.96;
-  }
-
-  // At either end there is nowhere to go. Kept in place rather than removed:
-  // a control that vanishes takes its own affordance with it, and the reader
-  // is left wondering whether the row ended or the button broke.
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
   }
 
   &--back {
@@ -536,10 +519,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-coverflow__jump {
   min-width: 20px;
   padding: 2px 4px;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
-  color: $text-muted;
   font-size: $text-small;
   font-weight: $weight-bold;
   line-height: 1.4;
@@ -547,29 +527,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition:
     color 120ms ease,
     background 120ms ease;
+  @include button-plain;
 
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, $secondary-light 14%, transparent);
-    color: $secondary-light;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
-  }
-
-  // A letter nothing is filed under stays on the rail rather than
-  // disappearing: buttons that come and go are ones nobody can learn the
-  // position of, and the gap itself says something about the library.
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
-  }
-
-  // Where the row is standing right now.
+  // Where the row is standing right now: the plain tier switched on.
   &.is-current {
-    background: color-mix(in srgb, $secondary-light 18%, transparent);
-    color: $secondary-light;
+    @include button-face-plain-on;
   }
 }
 

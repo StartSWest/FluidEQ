@@ -160,24 +160,13 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 28px;
   height: 28px;
   padding: 0;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 14px;
     height: 14px;
-  }
-
-  &:hover {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 

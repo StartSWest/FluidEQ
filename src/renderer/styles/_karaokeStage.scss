@@ -506,35 +506,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 28px;
   place-items: center;
   padding: 0;
-  color: $studio-t2;
-  border: 0;
   border-radius: $radius-s;
-  background: none;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   .karaoke-button__icon {
     width: 15px;
     height: 15px;
   }
 
-  &:hover:not(:disabled) {
-    color: $text-primary;
-    background: $studio-raise;
-  }
-
+  // Listening: the plain tier switched on.
   &.is-live {
-    color: $secondary-light;
-    background: $studio-select;
-  }
-
-  &:disabled {
-    color: $text-faint;
-    cursor: not-allowed;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
+    @include button-face-plain-on;
   }
 }
 
@@ -606,12 +590,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: 0 0 28px;
   place-items: center;
   padding: 0;
-  color: $studio-t2;
-  border: 0;
   border-radius: $radius-s;
-  background: none;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 16px;
@@ -623,19 +605,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
     stroke-width: 1.7;
   }
 
-  &:hover {
-    color: $text-primary;
-    background: $studio-surface;
-  }
-
   &[aria-pressed='true'],
   &[aria-expanded='true'] {
     color: $secondary-light;
     background: $studio-select;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 
@@ -800,11 +773,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
     height: 22px;
     place-items: center;
     padding: 0;
-    color: $studio-t2;
-    border: 0;
     border-radius: $radius-s;
-    background: transparent;
     cursor: pointer;
+    @include button-plain;
 
     svg {
       width: 14px;
@@ -814,16 +785,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
       stroke-linecap: round;
       stroke-linejoin: round;
       stroke-width: 1.8;
-    }
-
-    &:hover:not(:disabled) {
-      color: $text-primary;
-      background: $studio-raise;
-    }
-
-    &:disabled {
-      opacity: $disabled-opacity;
-      cursor: default;
     }
   }
 }

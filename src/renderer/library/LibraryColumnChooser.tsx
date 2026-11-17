@@ -73,7 +73,7 @@ const LibraryColumnChooser = ({
       <button
         type="button"
         ref={anchorRef}
-        className={`library-list__chooser${isOpen ? ' is-open' : ''}`}
+        className="library-list__chooser"
         aria-label={t('library.columns.choose')}
         title={t('library.columns.choose')}
         aria-haspopup="menu"

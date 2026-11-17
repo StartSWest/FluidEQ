@@ -118,13 +118,11 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 18px;
   place-items: center;
   padding: 0;
-  color: $text-faint;
-  border: 0;
   border-radius: 50%;
-  background: transparent;
   cursor: pointer;
   transform: translateY(-50%);
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 9px;
@@ -133,13 +131,6 @@ it under the terms of the GNU General Public License version 3 or later.
     stroke: currentcolor;
     stroke-linecap: round;
     stroke-width: 1.8;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $secondary-light;
-    background: $hover-accent;
-    outline: none;
   }
 }
 

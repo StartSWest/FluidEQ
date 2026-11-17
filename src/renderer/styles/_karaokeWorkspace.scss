@@ -463,12 +463,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: none;
   place-items: center;
   padding: 0;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-2xs;
-  background: none;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 14px;
@@ -477,12 +475,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke: currentcolor;
     stroke-linecap: round;
     stroke-width: 1.8;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $text-primary;
-    background: $hover-lift;
   }
 }
 

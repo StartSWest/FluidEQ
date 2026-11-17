@@ -133,24 +133,13 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 18px;
   padding: 0;
   place-items: center;
-  color: $text-primary;
-  border: 1px solid $card-edge;
   border-radius: 50%;
-  background: $surface-well;
   cursor: pointer;
+  @include button-line-floating;
 
   svg {
     width: 10px;
     height: 10px;
-  }
-
-  &:hover {
-    color: $white;
-    background: color-mix(in srgb, $text-accent 30%, $surface-well);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 

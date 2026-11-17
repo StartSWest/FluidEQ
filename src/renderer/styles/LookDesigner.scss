@@ -473,19 +473,13 @@ it under the terms of the GNU General Public License version 3 or later.
 // Puts the stops back to what the palette paints on its own.
 .look-designer__reset {
   padding: 0;
-  border: 0;
-  background: none;
-  color: $text-accent;
   font: inherit;
   font-size: $text-eyebrow;
   font-weight: $weight-semibold;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
-
-  &:hover {
-    color: $white;
-  }
+  @include button-plain-accent;
 }
 
 .look-designer .switch {

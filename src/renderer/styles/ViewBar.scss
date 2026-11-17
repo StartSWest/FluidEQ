@@ -105,32 +105,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: 0 0 32px;
   place-items: center;
   padding: 0;
-  color: $studio-t2;
-  border: 0;
   border-radius: $radius-m;
-  background: none;
-  box-shadow: none;
   cursor: pointer;
   transition: $transition-control;
-
-  &:hover {
-    color: $text-primary;
-    border: 0;
-    background: $studio-surface;
-  }
+  @include button-plain;
 
   // A pin that is in, a menu that is open, a microphone that is live,
   // captions that show.
-  &[aria-pressed='true'],
-  &[aria-expanded='true'],
+  // Live, or on: the plain tier switched on, as pressed and open are.
   &.is-live,
   &.is-on {
-    color: $secondary-light;
-    background: $studio-select;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
+    @include button-face-plain-on;
   }
 }
 

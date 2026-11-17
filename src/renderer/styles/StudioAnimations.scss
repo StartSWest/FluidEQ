@@ -151,34 +151,26 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 28px;
   height: 28px;
   padding: 0;
-  color: $text-muted;
-  border: 1px solid $card-edge;
   border-radius: 999px;
-  background: color-mix(in srgb, $surface-menu 80%, transparent);
-  backdrop-filter: blur(8px);
   cursor: pointer;
   opacity: 0.7;
   transition:
     opacity $motion-fast $ease-out,
     color $motion-fast $ease-out,
     border-color $motion-fast $ease-out;
+  @include button-line-floating;
 
   svg {
     width: 16px;
     height: 16px;
   }
 
+  // Half there until the card or the key is pointed at, open or focused.
   .studio-animation-card:hover &,
   &:hover,
-  &[aria-expanded='true'] {
-    color: $text-primary;
-    border-color: $border-field-hover;
-    opacity: 1;
-  }
-
+  &[aria-expanded='true'],
   &:focus-visible {
     opacity: 1;
-    @include focus-ring;
   }
 }
 
@@ -318,19 +310,9 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 26px;
   height: 26px;
   padding: 0;
-  color: $text-faint;
-  border: 0;
   border-radius: 999px;
-  background: none;
   cursor: pointer;
-
-  &:hover {
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+  @include button-plain;
 
   svg {
     width: 14px;

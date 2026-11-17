@@ -525,21 +525,13 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
   margin: 0;
   padding: 4px 0;
-  color: $text-muted;
-  border: 0;
-  background: none;
   font: inherit;
   cursor: pointer;
   transition: $transition-control;
-
-  &:hover,
-  &[aria-expanded='true'] {
-    color: $text-primary;
-  }
+  @include button-plain;
 
   &:focus-visible {
     border-radius: $radius-s;
-    @include focus-ring;
   }
 }
 

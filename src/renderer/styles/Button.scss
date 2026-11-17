@@ -101,6 +101,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     @include button-line($red);
   }
 
+  // PLAIN, the third tier: no edge and no fill until pointed at. Tool rows,
+  // a glyph alone, close, "more", a row's own action.
+  &.plain {
+    @include button-plain;
+  }
+
+  &.plain.danger {
+    @include button-plain($red);
+  }
+
+  // A glyph alone: square, at the height its size gives it.
+  &.icon {
+    min-width: $control-height;
+    padding: 0;
+
+    &.small {
+      min-width: $control-height-sm;
+    }
+  }
+
   // Only the div needs this: nothing else stops a click reaching its handler.
   // A native disabled button is already inert, and taking its pointer events
   // away would also suppress the `title` — which on these is the sentence
@@ -136,15 +156,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // section happening to be on screen first.
 .link-button {
   padding: 7px 9px;
-  color: $secondary-light;
-  border: 0;
   border-radius: $radius-xs;
-  background: transparent;
   cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
-    outline: none;
-  }
+  // The plain tier in the accent's light ink (`button-plain-accent`).
+  @include button-plain-accent;
 }

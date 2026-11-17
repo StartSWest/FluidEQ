@@ -178,12 +178,10 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  color: $text-muted;
-  border: 0;
   border-radius: 50%;
-  background: transparent;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 8px;
@@ -194,16 +192,9 @@ it under the terms of the GNU General Public License version 3 or later.
     stroke-width: 1.6;
   }
 
-  &:hover:not(:disabled),
-  &:focus-visible:not(:disabled) {
-    color: $white;
-    background: rgba($red, 0.28);
-    outline: none;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
+  // It takes the layer away: red under the pointer.
+  &:hover:not(:disabled) {
+    @include button-face-plain-hover($red);
   }
 }
 

@@ -243,31 +243,17 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 44px;
   height: 44px;
   padding: 0;
-  color: $text-muted;
-  border: 1px solid rgba($edge-tint, 0.12);
   border-radius: 50%;
-  background: color-mix(in srgb, $surface-menu-top 86%, transparent);
-  box-shadow: none;
   cursor: pointer;
   transition:
     $transition-control,
     scale $motion-fast $ease-out;
+  @include button-line-floating;
 
   svg {
     width: 20px;
     height: 20px;
     transition: translate $motion-fast $ease-out;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
-    background: color-mix(in srgb, $secondary-default 16%, $surface-menu-top);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 
   &:active {

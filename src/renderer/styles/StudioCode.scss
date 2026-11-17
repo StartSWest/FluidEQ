@@ -147,13 +147,11 @@ $code-bar: 10px;
   min-width: 0;
   min-height: 28px;
   padding: 2px 6px 2px 4px;
-  color: $text-muted;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
   font: inherit;
   text-align: start;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     flex: 0 0 auto;
@@ -162,17 +160,8 @@ $code-bar: 10px;
     stroke-linejoin: round;
   }
 
-  &:hover,
-  &[aria-expanded='true'] {
-    color: $text-primary;
-  }
-
   &:hover .studio-code__chevron {
     stroke: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 

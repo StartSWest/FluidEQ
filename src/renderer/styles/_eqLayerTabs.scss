@@ -507,26 +507,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: none;
   place-items: center;
   padding: 0;
-  color: $text-muted;
-  border: 0;
   border-radius: 50%;
-  background: none;
   cursor: pointer;
   transition: $transition-control;
+  // The plain tier (`_buttonFaces.scss`).
+  @include button-plain;
 
   svg {
     width: 12px;
     height: 12px;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    background: rgba($edge-tint, 0.1);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 

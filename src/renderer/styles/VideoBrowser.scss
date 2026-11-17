@@ -340,11 +340,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: none;
   border-radius: 50%;
-  background: none;
-  color: $text-faint;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 8px;
@@ -354,39 +352,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-linecap: round;
     stroke-width: 1.8;
   }
-
-  &:hover {
-    background: rgba($white, 0.08);
-    color: $text-primary;
-  }
 }
 
 .video-search__go {
   flex: 0 0 auto;
   padding: 3px 10px;
-  border: none;
   border-radius: $radius-xs;
   // A step of mist inside the field, in the card's own hue: the accent's
   // light at 16% here was a green chip in Rainbow mode's violet field.
-  background: $hover-lift;
-  color: $secondary-light;
   font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
   transition:
     background 140ms ease,
     opacity 140ms ease;
-
-  &:hover:not(:disabled) {
-    background: rgba($edge-tint, 0.14);
-  }
-
-  // Dimmed rather than hidden: a button that appears as the first character is
-  // typed makes the whole box change width mid-word.
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
-  }
+  @include button-plain;
 }
 
 // *** What has been searched before ******************************************
@@ -475,11 +455,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   margin-right: 4px;
   padding: 0;
-  border: none;
   border-radius: 50%;
-  background: none;
-  color: $text-faint;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 8px;
@@ -489,28 +467,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-linecap: round;
     stroke-width: 1.8;
   }
-
-  &:hover {
-    background: rgba($white, 0.1);
-    color: $text-primary;
-  }
 }
 
 .video-search__forget-all {
   width: 100%;
   margin-top: 3px;
   padding: 5px 8px;
-  border: none;
-  border-top: 1px solid rgba($edge-tint, 0.08);
-  background: none;
-  color: $text-faint;
   font-size: $text-micro;
   text-align: left;
   cursor: pointer;
-
-  &:hover {
-    color: $secondary-light;
-  }
+  @include button-plain-accent;
+  // The menu's own rule above it, after the tier's edge so it stands.
+  border-top-color: $menu-rule;
 }
 
 // *** Sign out ***************************************************************
@@ -891,16 +859,9 @@ $video-sign-out-said: 4s;
   flex: 0 0 auto;
   padding: 0;
   place-items: center;
-  border: 1px solid rgba($edge-tint, 0.18);
   border-radius: $radius-xs;
-  background: transparent;
-  color: $text-muted;
   cursor: pointer;
-
-  &:hover {
-    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
-    color: $secondary-light;
-  }
+  @include button-plain;
 
   svg {
     width: 10px;

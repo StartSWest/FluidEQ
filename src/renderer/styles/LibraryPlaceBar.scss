@@ -113,10 +113,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   gap: 5px;
   padding: 2px 5px;
-  border: 0;
   border-radius: $radius-xs;
-  background: transparent;
-  color: $studio-t3;
   font: inherit;
   font-size: $studio-text-tree;
   white-space: nowrap;
@@ -124,15 +121,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   transition:
     background 140ms ease,
     color 140ms ease;
-
-  &:hover {
-    background: $studio-surface;
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+  @include button-plain;
 }
 
 .library-place__here {

@@ -44,15 +44,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 button.studio-edit__fold {
   cursor: pointer;
-
-  &:hover {
-    color: $white;
-    background: $hover-accent;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+  @include button-plain;
 }
 
 // The row of what the pointer rests on in the scene, and the other way.
@@ -898,24 +890,13 @@ $edit-z: #5aa9ff;
     align-items: center;
     justify-content: center;
     padding: 0;
-    color: $amber;
-    border: 0;
     border-radius: $radius-2xs;
-    background: none;
     cursor: pointer;
+    @include button-plain($amber);
 
     svg {
       width: 13px;
       height: 13px;
-    }
-
-    &:hover {
-      color: $white;
-      background: $hover-accent;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
     }
   }
 }
@@ -984,20 +965,13 @@ $edit-z: #5aa9ff;
     align-items: center;
     justify-content: center;
     padding: 0;
-    color: $text-muted;
-    border: 0;
     border-radius: 50%;
-    background: none;
     cursor: pointer;
+    @include button-plain;
 
     svg {
       width: 10px;
       height: 10px;
-    }
-
-    &:hover {
-      color: $white;
-      background: $hover-accent;
     }
   }
 }

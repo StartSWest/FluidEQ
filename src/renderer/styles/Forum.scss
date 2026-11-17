@@ -231,27 +231,17 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 28px;
   height: 28px;
   padding: 0;
-  color: $text-faint;
-  border: 1px solid transparent;
   border-radius: 50%;
-  background: transparent;
   cursor: pointer;
   transition:
     background $motion-fast $ease-out,
-    color $motion-fast $ease-out,
-    border-color $motion-fast $ease-out;
+    color $motion-fast $ease-out;
+  // The plain tier (`_buttonFaces.scss`).
+  @include button-plain;
 
   svg {
     width: 16px;
     height: 16px;
-  }
-
-  &:hover:not(:disabled),
-  &:focus-visible {
-    color: $text-primary;
-    border-color: $border-subtle;
-    background: color-mix(in srgb, $white 6%, transparent);
-    outline: none;
   }
 
   // Turning while a read is in flight: the button that asked says so.

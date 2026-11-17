@@ -54,10 +54,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 4px;
   min-width: 0;
   padding: 4px 10px 4px 4px;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-xs;
-  background: transparent;
   font: inherit;
   font-size: reading($text-body);
   font-weight: $weight-medium;
@@ -66,6 +63,7 @@ it under the terms of the GNU General Public License version 3 or later.
     background $motion-fast $ease-out,
     color $motion-fast $ease-out;
   @include truncate;
+  @include button-plain;
 
   svg {
     flex: 0 0 auto;
@@ -76,10 +74,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover,
   &:focus-visible {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
-    outline: none;
-
     svg {
       translate: -2px 0;
     }

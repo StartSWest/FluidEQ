@@ -92,15 +92,13 @@ $share-score-copied: 1.6s;
   // crowding the button's edge.
   margin-top: 4px;
   padding: 5px 14px;
-  color: $secondary-light;
-  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
   border-radius: $radius-xs;
-  background: transparent;
   font-size: $text-body;
   font-weight: $weight-bold;
   @include tracking(0.04em);
   cursor: pointer;
   transition: $transition-control;
+  @include button-line;
 
   // Two nodes linked to a third. Stroked for the links and filled for the
   // nodes, so it stays legible at 13px where a single-weight outline goes to
@@ -116,12 +114,6 @@ $share-score-copied: 1.6s;
     path {
       fill: none;
     }
-  }
-
-  &:hover {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
   }
 
   // With Colourful mode on it stops being an outline and is filled with the
@@ -142,7 +134,6 @@ $share-score-copied: 1.6s;
     // From the border's edge, or the sweep repeats under the transparent
     // border and draws a sliver of its first colour down the right side.
     background-origin: border-box;
-    box-shadow: 0 0 14px color-mix(in srgb, var(--rainbow-4) 40%, transparent);
 
     &:hover {
       color: $surface-well;

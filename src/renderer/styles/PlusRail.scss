@@ -192,26 +192,14 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   // the first place stands where the Library's first shelf does.
   margin-block: -6px;
   padding: 0;
-  border: 0;
   border-radius: $radius-m;
-  background: none;
-  color: $studio-t3;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 16px;
     height: 16px;
-  }
-
-  &:hover {
-    background: color-mix(in srgb, $edge-tint 4%, transparent);
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
   }
 }
 

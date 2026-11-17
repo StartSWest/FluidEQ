@@ -327,18 +327,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: block;
   width: 100%;
   padding: 4px 10px 4px calc(29px + var(--tree-level, 0) * 15px);
-  border: 0;
   border-radius: 7px;
-  background: none;
-  color: $studio-t3;
   font-family: inherit;
   font-size: $studio-text-label;
   text-align: left;
   cursor: pointer;
-
-  &:hover {
-    color: $secondary-light;
-  }
+  @include button-plain;
 }
 
 // *** Narrow: the rail keeps its glyphs ************************************

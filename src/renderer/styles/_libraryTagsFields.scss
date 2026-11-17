@@ -174,11 +174,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
-  color: $studio-t3;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 14px;
@@ -187,11 +185,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
-  }
-
-  &:hover {
-    background: $studio-surface;
-    color: $text-primary;
   }
 }
 
@@ -304,14 +297,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 8px;
   padding: 0 10px;
-  border: 0;
   border-radius: $radius-m;
-  background: none;
-  box-shadow: inset 0 0 0 1px $studio-hair;
-  color: $text-primary;
   font-size: $studio-text-tree;
   font-weight: $weight-semibold;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 14px;
@@ -325,10 +315,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &[aria-expanded='true'] svg {
     transform: rotate(90deg);
-  }
-
-  &:hover {
-    background: $studio-surface;
   }
 }
 

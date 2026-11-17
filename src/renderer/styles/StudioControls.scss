@@ -95,27 +95,12 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-settings__reset {
   flex: 0 0 auto;
   padding: 1px 4px;
-  color: $secondary-light;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
   font: inherit;
   font-size: $text-micro;
   font-weight: $weight-semibold;
   cursor: pointer;
-
-  &:hover:not(:disabled) {
-    color: $white;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &:disabled {
-    color: $text-dim;
-    cursor: default;
-  }
+  @include button-plain;
 }
 
 .studio-settings__lead {

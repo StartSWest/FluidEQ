@@ -450,28 +450,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 24px;
   place-items: center;
   padding: 0;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
-  color: $studio-t3;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 14px;
     height: 14px;
     fill: currentcolor;
-  }
-
-  &:hover,
-  &.is-open {
-    background: $studio-surface;
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
   }
 }
 
@@ -505,13 +492,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  border: 0;
   border-radius: $radius-xs;
   opacity: 0;
-  background: none;
-  color: $studio-t2;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 14px;
@@ -522,9 +507,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover,
   &:focus-visible {
     opacity: 1;
-    color: $text-primary;
-    background: $studio-surface;
-    outline: none;
   }
 
   .library-list__row:hover &,

@@ -60,30 +60,16 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 28px;
   height: 26px;
   padding: 0;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-xs;
-  background: transparent;
   cursor: pointer;
   transition:
     background $motion-fast $ease-out,
     color $motion-fast $ease-out;
+  @include button-plain;
 
   svg {
     width: 15px;
     height: 15px;
-  }
-
-  &:hover:not(:disabled),
-  &:focus-visible {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 8%, transparent);
-    outline: none;
-  }
-
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
   }
 }
 

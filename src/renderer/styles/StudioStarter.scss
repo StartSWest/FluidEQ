@@ -224,24 +224,13 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 24px;
   margin-inline-start: auto;
   place-items: center;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-2xs;
-  background: none;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 13px;
     height: 13px;
-  }
-
-  &:hover {
-    color: $text-primary;
-    background: $hover-accent;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 

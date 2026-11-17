@@ -152,17 +152,10 @@
   height: $control-height-sm;
   padding: 0;
   place-items: center;
-  border: 1px solid transparent;
   border-radius: $radius-s;
-  background: none;
-  color: $text-faint;
   cursor: pointer;
 
-  &:hover,
-  &[aria-expanded='true'] {
-    border-color: $card-edge;
-    color: $text-primary;
-  }
+  @include button-plain;
 
   svg {
     width: 15px;

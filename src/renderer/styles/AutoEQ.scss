@@ -87,29 +87,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 0 0 auto;
     place-items: center;
     padding: 0;
-    color: $text-muted;
-    border: 1px solid transparent;
     border-radius: $radius-xs;
-    background: transparent;
     cursor: pointer;
     transition: $transition-control;
+    @include button-plain;
+
+    // It takes the correction away: red under the pointer.
+    &:hover:not(:disabled) {
+      @include button-face-plain-hover($red);
+    }
 
     .menu-icon {
       width: 13px;
       height: 13px;
-    }
-
-    &:hover:not(:disabled),
-    &:focus-visible:not(:disabled) {
-      color: $white;
-      border-color: rgba($red, 0.42);
-      background: rgba($red, 0.2);
-      outline: none;
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: $disabled-opacity;
     }
   }
 

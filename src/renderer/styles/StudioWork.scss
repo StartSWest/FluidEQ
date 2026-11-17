@@ -249,10 +249,7 @@ it under the terms of the GNU General Public License version 3 or later.
     flex: none;
     align-items: center;
     padding: 0 8px;
-    color: $text-muted;
-    border: 0;
     border-radius: $radius-2xs;
-    background: none;
     font-size: $text-small;
     font-weight: $weight-semibold;
     white-space: nowrap;
@@ -261,6 +258,7 @@ it under the terms of the GNU General Public License version 3 or later.
     transition:
       color $motion-fast $ease-out,
       background $motion-fast $ease-out;
+    @include button-plain;
 
     svg {
       flex: none;
@@ -271,20 +269,6 @@ it under the terms of the GNU General Public License version 3 or later.
       stroke-linecap: round;
       stroke-linejoin: round;
       stroke-width: 1.4;
-    }
-
-    &:hover {
-      color: $white;
-      background: $hover-accent;
-    }
-
-    &[aria-pressed='true'] {
-      color: $white;
-      background: $selected-accent;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
     }
   }
 

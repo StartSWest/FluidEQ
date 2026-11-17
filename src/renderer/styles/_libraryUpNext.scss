@@ -751,24 +751,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 24px;
   place-items: center;
   padding: 0;
-  border: 0;
   // Square-cornered like every other Library button (2026-11-15).
   border-radius: $radius-xs;
-  background: none;
-  color: $studio-t2;
   cursor: pointer;
   opacity: 0;
   transform: translateY(-50%);
   transition: $transition-control;
-
-  &:hover {
-    color: $text-primary;
-    background: $studio-surface;
-  }
+  @include button-plain;
 
   &:focus-visible {
-    @include focus-ring;
-    outline: none;
     opacity: 1;
   }
 

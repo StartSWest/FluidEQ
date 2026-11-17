@@ -430,20 +430,13 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 24px;
   height: 24px;
   padding: 0;
-  color: $text-faint;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 13px;
     height: 13px;
-  }
-
-  &:hover {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
   }
 
   &.is-copied {
@@ -452,6 +445,5 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:focus-visible {
     opacity: 1;
-    @include focus-ring;
   }
 }

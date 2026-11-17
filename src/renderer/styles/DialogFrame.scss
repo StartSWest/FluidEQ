@@ -283,12 +283,11 @@ $rail-width: 16.5rem;
   height: 30px;
   place-items: center;
   padding: 0;
-  color: $text-muted;
-  border: 1px solid transparent;
   border-radius: $radius-s;
-  background: transparent;
   cursor: pointer;
   transition: $transition-control;
+  // The plain tier (`_buttonFaces.scss`).
+  @include button-plain;
 
   svg {
     width: 14px;
@@ -297,16 +296,6 @@ $rail-width: 16.5rem;
     stroke: currentColor;
     stroke-linecap: round;
     stroke-width: 1.6;
-  }
-
-  &:hover {
-    color: $white;
-    background: $hover-lift;
-  }
-
-  &:focus-visible {
-    color: $white;
-    @include focus-ring;
   }
 }
 

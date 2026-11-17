@@ -158,32 +158,16 @@ it under the terms of the GNU General Public License version 3 or later.
     height: 22px;
     padding: 0 4px;
     place-items: center;
-    color: $text-faint;
-    border: 0;
     border-radius: $radius-pill;
-    background: none;
     font: inherit;
     font-size: $text-micro;
     font-variant-numeric: tabular-nums;
     cursor: pointer;
+    @include button-plain;
 
     svg {
       width: 12px;
       height: 12px;
-    }
-
-    &:hover:not(:disabled) {
-      color: $text-primary;
-      background: color-mix(in srgb, $white 6%, transparent);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.4;
     }
   }
 

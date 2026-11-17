@@ -228,10 +228,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 5px;
   height: 26px;
   padding: 0 8px;
-  color: $text-dim;
-  border: 0;
   border-radius: $radius-xs;
-  background: transparent;
   font: inherit;
   font-size: reading($text-small);
   text-decoration: none;
@@ -239,28 +236,19 @@ it under the terms of the GNU General Public License version 3 or later.
   transition:
     background $motion-fast $ease-out,
     color $motion-fast $ease-out;
+  @include button-plain;
 
   svg {
     width: 14px;
     height: 14px;
   }
 
-  &:hover,
-  &:focus-visible {
-    color: $text-primary;
-    background: color-mix(in srgb, $white 6%, transparent);
-    outline: none;
-  }
-
-  &--answer:hover,
-  &--answer:focus-visible {
+  &--answer:hover {
     color: $secondary-light;
   }
 
-  &--danger:hover,
-  &--danger:focus-visible {
-    color: $red;
-    background: color-mix(in srgb, $red 12%, transparent);
+  &--danger:hover {
+    @include button-face-plain-hover($red);
   }
 
   &--end {

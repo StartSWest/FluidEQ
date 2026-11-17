@@ -913,21 +913,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   width: 24px;
   height: 24px;
   padding: 0;
-  border: 0;
   border-radius: $radius-pill;
-  background: none;
-  color: $text-faint;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 15px;
     height: 15px;
-  }
-
-  &:hover,
-  &:focus-visible {
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
-    color: $text-primary;
   }
 }
 

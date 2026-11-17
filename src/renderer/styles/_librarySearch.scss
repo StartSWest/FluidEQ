@@ -155,11 +155,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   margin-right: 4px;
   padding: 0;
-  border: none;
   border-radius: 50%;
-  background: none;
-  color: $text-faint;
   cursor: pointer;
+  @include button-plain;
 
   svg {
     width: 8px;
@@ -169,28 +167,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-linecap: round;
     stroke-width: 1.8;
   }
-
-  &:hover {
-    background: rgba($white, 0.1);
-    color: $text-primary;
-  }
 }
 
 .library-search__forget-all {
   width: 100%;
   margin-top: 3px;
   padding: 5px 8px;
-  border: none;
-  border-top: 1px solid rgba($edge-tint, 0.08);
-  background: none;
-  color: $text-faint;
   font-size: $text-micro;
   text-align: left;
   cursor: pointer;
-
-  &:hover {
-    color: $text-primary;
-  }
+  @include button-plain;
+  // The menu's own rule above it, after the tier's edge so it stands.
+  border-top-color: $menu-rule;
 }
 
 .library-search__icon {
@@ -243,19 +231,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  color: $text-muted;
-  border: 0;
   border-radius: 50%;
-  background: none;
   cursor: pointer;
   transition: $transition-control;
-
-  &:hover,
-  &:focus-visible {
-    color: $secondary-light;
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
-    outline: none;
-  }
+  @include button-plain;
 }
 
 .library-search__clear-icon {

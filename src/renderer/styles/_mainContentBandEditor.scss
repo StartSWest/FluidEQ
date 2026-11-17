@@ -350,29 +350,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The bin alone, in red, with no box round it (Ivan, 2026-09-27: "remove
   // the border also from the delete icon and make it nice red"). The border
   // stays, transparent, so the button is the same size as its neighbours.
-  color: $red;
-  border: 1px solid transparent;
   border-radius: $radius-s;
-  background: transparent;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
-
-  &:hover:not(:disabled) {
-    color: color-mix(in srgb, $red, $white 20%);
-    background: rgba($red, 0.14);
-  }
-
-  &:focus-visible {
-    color: color-mix(in srgb, $red, $white 20%);
-    background: rgba($red, 0.14);
-    @include focus-ring($red);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
+  @include button-plain($red);
 
   // Armed: the next press is the one that deletes.
   //

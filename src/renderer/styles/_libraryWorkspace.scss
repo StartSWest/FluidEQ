@@ -160,12 +160,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 0 0 auto;
     place-items: center;
     padding: 0;
-    color: $text-muted;
-    border: 1px solid transparent;
     border-radius: $radius-xs;
-    background: transparent;
     cursor: pointer;
     transition: $transition-control;
+    @include button-plain;
 
     svg {
       width: 11px;
@@ -174,14 +172,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       stroke: currentcolor;
       stroke-linecap: round;
       stroke-width: 1.5;
-    }
-
-    &:hover,
-    &:focus-visible {
-      color: $secondary-light;
-      border-color: color-mix(in srgb, $secondary-default 40%, transparent);
-      background: color-mix(in srgb, $secondary-default 12%, transparent);
-      outline: none;
     }
   }
 }
@@ -219,13 +209,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Flat: a hairline round it, a faint fill under the pointer (Ivan,
   // 2026-11-15, of the bar: "we also need to tune these to match the
   // style").
-  border: 0;
   border-radius: $radius-m;
-  background: none;
-  box-shadow: inset 0 0 0 1px $studio-hair;
-  color: $studio-t2;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 14px;
@@ -240,21 +227,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   svg.is-desc {
     transform: rotate(180deg);
-  }
-
-  &:hover:not(:disabled) {
-    background: $studio-surface;
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
-  }
-
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
   }
 }
 
@@ -582,12 +554,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  color: $text-muted;
-  border: 1px solid transparent;
   border-radius: $radius-xs;
-  background: transparent;
   cursor: pointer;
   transition: $transition-control;
+  @include button-plain;
 
   svg {
     width: 11px;
@@ -596,14 +566,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke: currentcolor;
     stroke-linecap: round;
     stroke-width: 1.5;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
-    outline: none;
   }
 }
 

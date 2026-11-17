@@ -329,16 +329,9 @@
 .squig-import__clear {
   flex: 0 0 auto;
   padding: 3px 0;
-  color: $text-muted;
-  border: 0;
-  background: transparent;
   cursor: pointer;
   font-size: $text-small;
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-  }
+  @include button-plain;
 }
 
 // Grid, axis labels and the base line weight live in EqCurveChart.scss, which

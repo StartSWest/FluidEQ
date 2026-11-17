@@ -116,27 +116,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 24px;
   place-items: center;
   padding: 0;
-  border: 0;
   border-radius: $radius-xs;
-  background: none;
-  color: $studio-t3;
   cursor: pointer;
   transition: $transition-control;
-
-  &:hover:not(:disabled) {
-    background: $studio-surface;
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
-  }
-
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
-  }
+  @include button-plain;
 }
 
 .library-status__icon {
