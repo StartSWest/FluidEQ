@@ -290,14 +290,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 20px;
   height: 18px;
   padding: 0;
-  border: 0;
-  border-radius: 5px;
-  background: none;
-  color: $text-faint;
-  cursor: pointer;
-  transition:
-    background 130ms ease,
-    color 130ms ease;
+  // A segment of the phase choice (`segmented-option`).
+  @include segmented-option;
 
   svg {
     width: 14px;
@@ -312,13 +306,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-linejoin: round;
   }
 
-  &:hover {
-    color: $text-muted;
-  }
-
   &.is-selected {
-    background: color-mix(in srgb, $secondary-default 18%, transparent);
-    color: $secondary-default;
+    @include segmented-option-chosen;
   }
 }
 

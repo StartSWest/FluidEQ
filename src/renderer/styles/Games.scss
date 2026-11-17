@@ -52,34 +52,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .gaming-lab__view {
   position: relative;
   padding: 10px 0 9px;
-  border: 0;
-  background: none;
-  color: $text-faint;
   font-size: $text-small;
-  font-weight: $weight-semibold;
-  @include tracking(0.08em);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: color 140ms ease;
-
-  &:hover {
-    color: $text-muted;
-  }
-
-  &.is-active {
-    color: $text-primary;
-
-    &::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      bottom: -1px;
-      left: 0;
-      height: 2px;
-      border-radius: 2px;
-      background: $secondary-default;
-    }
-  }
+  // The app's tab (`tab`): it was uppercase with tracking and its own bar.
+  @include tab('.is-active');
 }
 
 .gaming-lab__head-actions {
@@ -505,7 +480,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     // Tuned, a glyph alone still says so: a ring of the colour "tuned"
     // wears, where the word stood.
     > .dsp-rail-tab:has(.gaming-rail__tuned) .dsp-section-icon {
-      box-shadow: 0 0 0 1px $primary-lighter;
+      box-shadow: 0 0 0 1px $edge-lit;
     }
   }
 }

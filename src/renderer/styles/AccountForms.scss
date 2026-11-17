@@ -44,46 +44,9 @@ it under the terms of the GNU General Public License version 3 or later.
   position: relative;
   padding: 0 0 $spacing-xs;
   margin-bottom: -1px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  color: $text-faint;
   font-size: $text-lead;
-  font-weight: $weight-medium;
-  cursor: pointer;
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: 2px;
-    border-radius: 2px 2px 0 0;
-    background: transparent;
-    transition: background $motion-fast $ease-out;
-  }
-
-  &:hover:not(:disabled) {
-    color: $text-primary;
-  }
-
-  &--on {
-    color: $text-primary;
-
-    &::after {
-      background: $secondary-default;
-    }
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.6;
-  }
+  // The app's tab (`tab`); it drew its line as an `::after` of its own.
+  @include tab('.account-form__tab--on');
 }
 
 .account-field {

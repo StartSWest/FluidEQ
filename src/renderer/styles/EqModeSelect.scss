@@ -230,25 +230,23 @@
   overflow-wrap: anywhere;
   hyphens: auto;
 
-  &:focus-visible {
-    @include focus-ring;
-  }
-
   // The chosen segment is lit by `.segmented__option.is-selected`
-  // (`_dspEq.scss`), from the face every button wears (`_buttonFaces.scss`).
+  // (`_segmented.scss`), from the face every button wears (`_buttonFaces.scss`).
   // This panel's segments were where that face came from (Ivan, 2026-11-17);
   // the copy that stood here also carried a top highlight and a halo, which
   // the shared face leaves off (flat, as every button).
 
-  // The seam between two unlit neighbours, as the DSP cards draw it; beside
-  // the lit one its edge is the seam.
+  // The seam between two unlit neighbours, in the controls' edge; beside
+  // the lit one its edge is the seam. This panel is the one the faces came
+  // from (Ivan, 2026-11-17), and keeps the seam its tall two-line segments
+  // need to read as separate targets.
   & + .eq-mode-choice::before {
     position: absolute;
     top: 7px;
     bottom: 7px;
     left: 0;
     width: 1px;
-    background: rgba($white, 0.09);
+    background: $edge-rest;
     content: '';
   }
 

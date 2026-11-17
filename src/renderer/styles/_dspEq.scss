@@ -181,10 +181,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 26px;
   height: 26px;
   padding: 0;
-  border: 1px solid rgba($white, 0.09);
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
-  color: $text-faint;
   font-size: $text-body;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -196,11 +193,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color 130ms ease,
     border-color 130ms ease,
     box-shadow 130ms ease;
-
-  &:hover {
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
-    color: rgba($white, 0.85);
-  }
+  @include button-line;
 }
 
 // A band kept to one ear: the ear's letter beside its number, the tag its
@@ -231,9 +224,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-eq-pick.is-active {
-  border-color: color-mix(in srgb, $secondary-default 65%, transparent);
-  background: color-mix(in srgb, $secondary-default 22%, transparent);
-  color: $white;
+  @include button-lit;
 }
 
 .dsp-eq-pick.is-off {
@@ -250,8 +241,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-eq-pick.is-dynamic {
   position: relative;
   border-style: dashed;
-  border-color: color-mix(in srgb, $secondary-default 90%, transparent);
-  background: color-mix(in srgb, $secondary-default 16%, transparent);
+  border-color: $edge-lit;
+  background: $fill-hover;
 
   &::after {
     content: '';
@@ -688,82 +679,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // with it. A drag handle needs the placement to stop depending on the
 // measurement, not a CSS property.
 
-// A closed set of choices with all of them showing.
-//
-// The toolbar had seven dropdowns in a row and four of those were binary or
-// ternary: you could not see what you were choosing between without opening a
-// menu to find out. The three that stayed are the ones with long lists or long
-// labels, where a menu is still the right shape.
-// Every control's face and edge (`$surface-control`, `$border-control`), the
-// ones every select and quiet button beside it wears, with the chosen option
-// a step of mist lighter under the accent's label. It stood on the block
-// colour with the choice at 20% of the accent over it: a pale slab with a
-// paler one inside, the lightest thing on every card it was on (Ivan,
-// 2026-09-26: "not good, too light color", "all of those"); then on a tint
-// of the accent, which in Rainbow mode's violet was an olive track with an
-// olive chip in it (2026-09-27: "input colors this mess sucks").
-.segmented {
-  display: flex;
-  flex: 0 0 auto;
-  padding: 2px;
-  border: 1px solid $border-control;
-  border-radius: $radius-xs;
-  background: $surface-control;
-}
-
-// The options share whatever width the track is given and hold their words
-// in their middle. Sized to their words alone, a track set wider than them —
-// the hum filter's 260px — kept all three against its left end, with the
-// rest of it empty ("and centered").
-.segmented__option {
-  position: relative;
-  flex: 1 1 auto;
-  padding: 4px 10px;
-  border: 0;
-  border-radius: $radius-xs;
-  background: none;
-  color: $text-faint;
-  font-size: $text-body;
-  text-align: center;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background 130ms ease,
-    color 130ms ease;
-
-  &:hover:not(:disabled, .is-selected) {
-    color: $text-primary;
-    background: rgba($edge-tint, 0.05);
-  }
-
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
-  }
-
-  // The chosen option is lit as the suggested button is, from the same face
-  // (`_buttonFaces.scss`): the EQ mode panel's segments were the look Ivan
-  // chose for every button (2026-11-17), and a grey tint here was a second
-  // way of saying "this one" beside it.
-  &.is-selected {
-    @include button-face-lit($edge: inset, $weight: null);
-  }
-}
-
-// Keep the choices readable as separate targets even when neither neighbour
-// is selected. The one-pixel divider does not add another outer border or a
-// second capsule; it only marks the seam between adjacent DSP options.
-.dsp-card .segmented__option + .segmented__option {
-  &::before {
-    position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 0;
-    width: 1px;
-    background: $border-field;
-    content: '';
-  }
-}
+// The segmented control is its own sheet now (`_segmented.scss`).
 
 // Every DSP dialog — the EQ and chain imports, the saves, the room's fit and a
 // genre's notes — stands on this backdrop, over the rack, on the dialog frame

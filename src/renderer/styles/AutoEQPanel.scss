@@ -235,27 +235,9 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 8px;
   margin-bottom: -1px;
   padding: 8px 14px 9px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: $text-faint;
   font-size: $text-body;
-  font-weight: $weight-semibold;
-  cursor: pointer;
-  transition: color $motion-fast $ease-out;
-
-  &:hover {
-    color: $text-primary;
-  }
-
-  &[aria-selected='true'] {
-    border-bottom-color: $secondary-default;
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-outline(-2px);
-  }
+  // The app's tab (`tab`); its line was a border-bottom of its own.
+  @include tab;
 }
 
 // Squiglink's tab holds its import card as it is, a surface of its own, kept

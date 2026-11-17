@@ -382,26 +382,14 @@
   height: 28px;
   place-items: center;
   padding: 0;
-  color: $text-muted;
-  border: 1px solid rgba($white, 0.09);
   border-radius: $radius-xs;
-  background: $track-well;
   cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+  // The line tier, the chosen look lit (`_buttonFaces.scss`); it had a
+  // white hairline over the switches' well and a tint of its own.
+  @include button-line;
 
   &.is-on {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
-    background: color-mix(in srgb, $secondary-default 22%, $track-well);
+    @include button-lit;
   }
 }
 

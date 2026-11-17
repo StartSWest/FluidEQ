@@ -219,33 +219,14 @@ $studio-rail-folded: 56px;
 // tabs (`.library-pane__tab`) and the Studio's work under its stage.
 // `$active` names the chosen state as the caller's markup says it; what the
 // chosen tab adds goes in the content.
+// The app's tab (`tab`, `_buttonFaces.scss`) at the Library's size: the
+// Library's tab is where that one came from.
 @mixin studio-tab($active) {
-  border: 0;
-  border-radius: 0;
-  background: none;
-  // The second step, not the third: at 44% the tabs not chosen read as
-  // switched off.
-  color: $studio-t2;
   font-family: inherit;
   font-size: $studio-text-meta;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
 
-  &:hover:not(#{$active}) {
-    color: $text-primary;
-  }
-
-  &#{$active} {
-    box-shadow: inset 0 -2px 0 $secondary-default;
-    color: $text-primary;
+  @include tab($active) {
     @content;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
   }
 }
 

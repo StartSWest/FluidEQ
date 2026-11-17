@@ -395,10 +395,7 @@ $stage-edge: $border-menu;
 
 .studio-segment {
   padding: 4px 9px;
-  color: $text-faint;
-  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: $surface-control;
   font: inherit;
   font-size: $text-small;
   cursor: pointer;
@@ -406,28 +403,8 @@ $stage-edge: $border-menu;
     background $motion-fast $ease-out,
     color $motion-fast $ease-out,
     border-color $motion-fast $ease-out;
-
-  &:hover:not(:disabled) {
-    color: $text-primary;
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-  }
-
-  &[aria-pressed='true'] {
-    color: $secondary-light;
-    border-color: $border-control-hover;
-    background: $surface-control-press;
-  }
-
-  // Waiting for a scene, not broken: the choice still shows, unlit.
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
-
-  &:focus-visible {
-    @include focus-outline(1px);
-  }
+  // The line tier; pressed, lit (`_buttonFaces.scss`).
+  @include button-line;
 }
 
 // The test card's choices: tiles in four equal columns, a drawing of the

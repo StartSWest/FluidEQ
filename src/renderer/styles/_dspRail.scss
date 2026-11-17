@@ -175,9 +175,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 22px;
   height: 22px;
   padding: 2px;
-  border: 1px solid rgba($white, 0.045);
+  // The controls' edge at rest, no fill: it had a white hairline of its own
+  // round a dark well.
+  border: 1px solid $edge-rest;
   border-radius: $radius-xs;
-  background: $surface-plot;
+  background: none;
   transition:
     background 140ms ease,
     border-color 140ms ease,
@@ -210,8 +212,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-rail-tab.is-active .dsp-section-icon {
-  border-color: color-mix(in srgb, $secondary-default 20%, transparent);
-  background: $selected-accent;
+  border-color: $edge-lit;
   color: $secondary-default;
 }
 

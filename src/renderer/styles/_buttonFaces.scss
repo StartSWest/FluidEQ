@@ -341,6 +341,114 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// THE SEGMENTED CONTROL'S FACES (`_segmented.scss` draws `.segmented` with
+// them): the track is the field's outline with no fill, an option answers
+// the pointer with the hover tint, and the chosen one is lit inside its edge.
+// Here, so a row of choices that is not `.segmented` in its markup can wear
+// them from any sheet.
+@mixin segmented-track {
+  display: flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  border: 1px solid $edge-rest;
+  border-radius: $radius-xs;
+  background: none;
+}
+
+@mixin segmented-option {
+  position: relative;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+  color: $text-faint;
+  cursor: pointer;
+  transition:
+    background 130ms ease,
+    color 130ms ease;
+
+  &:hover:not(
+      :disabled,
+      .is-selected,
+      [aria-checked='true'],
+      [aria-pressed='true']
+    ) {
+    color: $text-primary;
+    background: $fill-hover;
+  }
+
+  &:disabled {
+    @include control-disabled;
+  }
+
+  // A segment has no edge to turn, so its focus is the edge drawn inside,
+  // 2px, in the focus colour.
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px $focus-edge;
+  }
+}
+
+// The chosen option. A segment passes `$weight: null` and keeps its track's
+// weight: a chosen word set heavier than its neighbours widens, and the row
+// shifts.
+@mixin segmented-option-chosen {
+  @include button-face-lit($edge: inset, $weight: null);
+}
+
+// THE TAB: a place within a page, chosen by its word. Sentence case,
+// semibold, the Library's second ink at rest and the text's own under the
+// pointer and when chosen, with a straight 2px line of the accent under the
+// chosen one, drawn inside so nothing moves (2026-11-17, the one control
+// theme). Five tab rows drew their own: uppercase micro letters with
+// tracking, a border-bottom, an `::after` bar, a tinted pill. `$underline:
+// false` for a row whose chosen line slides between the tabs on its own
+// element.
+@mixin tab($active: "[aria-selected='true']", $underline: true) {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: color-mix(in srgb, $text-primary 68%, transparent);
+  font-weight: $weight-semibold;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 130ms ease,
+    box-shadow 130ms ease;
+
+  &:hover:not(#{$active}) {
+    color: $text-primary;
+  }
+
+  &#{$active} {
+    color: $text-primary;
+
+    @if $underline {
+      box-shadow: inset 0 -2px 0 $secondary-default;
+    }
+
+    @content;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 1px $focus-edge;
+  }
+
+  @if $underline {
+    &#{$active}:focus-visible {
+      box-shadow:
+        inset 0 -2px 0 $secondary-default,
+        inset 0 0 0 1px $focus-edge;
+    }
+  }
+
+  &:disabled {
+    @include control-disabled;
+  }
+}
+
 // BUSY, for a button whose work goes on after the press: a small ring turns
 // where its icon was. It breathed a 22px glow before, the last glow on a
 // button; a turning ring says "working" without lighting anything. The

@@ -851,10 +851,11 @@ select option {
   @include tracking(0.012em);
 }
 
-// The bar, up here where the row is taller and the glow has further to carry.
+// The bar, up here where the row is taller. Flat, as every tab's line (it
+// glowed 16px).
 .window-titlebar .workspace-tabs__pill {
   height: 2px;
-  box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 80%, transparent);
+  box-shadow: none;
 
   // Nothing rises off it. There used to be a radial glow fading up behind the
   // chosen icon; with gradients gone from the chrome that became a solid
@@ -2412,7 +2413,8 @@ $tab-bar-inset: 8px;
   border: 0;
   border-radius: 2px;
   background: $secondary-default var(--accent-fill);
-  box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 75%, transparent);
+  // Flat: it glowed 12px.
+  box-shadow: none;
   pointer-events: none;
   transform: translateX(var(--tab-pill-x, 0));
   transition:
@@ -4780,7 +4782,8 @@ button.graph-legend {
   height: 2px;
   border-radius: 2px;
   background: $secondary-default var(--accent-fill);
-  box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 75%, transparent);
+  // Flat: it glowed 12px.
+  box-shadow: none;
   pointer-events: none;
   transform: translateX(var(--section-bar-x, 0));
   transition:
@@ -4804,31 +4807,11 @@ button.graph-legend {
   // size just reads as the titlebar's words shrunk.
   padding: 9px 14px 11px;
   gap: 5px;
-  border: 0;
-  background: none;
-  color: $text-faint;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.1em);
-  text-transform: uppercase;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover:not(.is-active) {
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
-  }
-
-  // Nothing but the colour: the bar under it is the mark, and a filled
-  // background as well would be the same answer given twice.
-  &.is-active {
-    color: $secondary-light;
-  }
+  font-size: $text-small;
+  // The app's tab (`tab`): sentence case, as every tab row now is. The bar
+  // that slides under the row (`.workspace-tab-group__bar`) is its mark,
+  // so the tab draws no line of its own.
+  @include tab('.is-active', $underline: false);
 }
 
 // The graph's row of options over a full-screen picture moves in from the

@@ -1,0 +1,54 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// THE SEGMENTED CONTROL: a closed set of choices with all of them showing.
+//
+// The toolbar had seven dropdowns in a row and four of those were binary or
+// ternary: you could not see what you were choosing between without opening
+// a menu to find out. The three that stayed are the ones with long lists or
+// long labels, where a menu is still the right shape.
+//
+// Its own sheet (2026-11-17, the one control theme): it lived in the DSP
+// page's EQ sheet, and every other page's segments reached into it. From the
+// control set: the track is the field's outline with no fill (it was the
+// controls' slab, before that a pale block colour and an olive tint in
+// Rainbow violet), an option answers the pointer with the hover tint, and
+// the chosen one is lit as the suggested button is, inside its edge so it
+// never grows (`button-face-lit`, inset). The DSP cards drew a hairline seam
+// between options of their own; no segment has one now.
+//
+// The faces themselves (`segmented-track`, `segmented-option`,
+// `segmented-option-chosen`) live in `_buttonFaces.scss`, for a row of
+// choices that is not `.segmented` in its markup.
+
+.segmented {
+  @include segmented-track;
+}
+
+// The options share whatever width the track is given and hold their words
+// in their middle. Sized to their words alone, a track set wider than them —
+// the hum filter's 260px — kept all three against its left end, with the
+// rest of it empty ("and centered").
+.segmented__option {
+  flex: 1 1 auto;
+  padding: 4px 10px;
+  font-size: $text-body;
+  text-align: center;
+  white-space: nowrap;
+  @include segmented-option;
+
+  &.is-selected {
+    @include segmented-option-chosen;
+  }
+
+  // Focus wins over the chosen face's own inset edge.
+  &.is-selected:focus-visible {
+    box-shadow: inset 0 0 0 2px $focus-edge;
+  }
+}
