@@ -42,9 +42,8 @@ function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
       // Bass, Mid and Treble, and the two cuts either side of them (Ivan,
       // 2026-09-29: "when resetting the EQ it reset the tones but not the low
       // cut and high cut"). The EQ chip's × clears the bands alone: the Tone
-      // is a layer with a chip of its own (`tone.ts`). A cut is FluidEQ's own
-      // setting, written for every output (`eqCuts.ts`), so only one that is
-      // on is written, each write reloading every output's engine.
+      // is a layer with a chip of its own (`tone.ts`). Only a cut that is on
+      // is written: each write saves the profile and reloads the engine.
       await clearGains();
       await setToneApi(null);
       await EQ_CUTS.filter((cut) => (eqCuts?.[cut] ?? 0) > 0).reduce(

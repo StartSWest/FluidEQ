@@ -42,8 +42,10 @@ import { FilterTypeEnum, IEqCuts, IFilter } from './constants';
  * the analog shape would already be down at 16 kHz. At 96 kHz and above the
  * two are the same.
  *
- * Written into every output's chain as plain `Filter:` lines in a file of
- * their own (`EQ_CUTS_FILENAME`), which Equalizer APO and every FluidEQ
+ * Each output's own, saved in its profile, and written into its chain as
+ * plain `Filter:` lines in a file of their own (`fluideq-<slug>-cuts.txt`,
+ * included by that output's device file and written in the same flush),
+ * which Equalizer APO and every FluidEQ
  * Engine already play as written: the file names no layer, so the engine
  * builds them on the cookbook. They are left out of the preamp: they only take
  * away, so the level the chain is sized for stays safe, and Auto normalize
@@ -70,8 +72,9 @@ export const EQ_CUT_FREQUENCIES: Readonly<Record<TEqCut, number>> = {
 };
 
 /**
- * Included by every output's device file while either cut is on, and swept
- * with the other generated files once neither is.
+ * The one file every output's device file included while the cuts were one
+ * setting for every output. Nothing writes it now; named so the sweep still
+ * takes it away and the config editor still recognises it as ours.
  */
 export const EQ_CUTS_FILENAME = 'fluideq-cuts.txt';
 
@@ -134,12 +137,12 @@ export const eqCutFilters = (cuts: IEqCuts | undefined): IFilter[] =>
   );
 
 /**
- * `EQ_CUTS_FILENAME` as written, in the grammar of the app's own layer
+ * One output's cuts file as written, in the grammar of the app's own layer
  * files. Pass and cut filters take no `Gain` in Equalizer APO's grammar.
  */
 export const eqCutsFileText = (cuts: IEqCuts): string =>
   [
-    '# Cuts: FluidEQ writes this file for every output. Changes are overwritten.',
+    "# Cuts: this output's low and high cut, written by FluidEQ. Changes are overwritten.",
     ...eqCutFilters(cuts).map(
       ({ type, frequency, quality }, index) =>
         `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Q ${quality}`,

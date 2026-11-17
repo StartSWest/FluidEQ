@@ -91,9 +91,16 @@ export const registerLayersIpc = ({
     await handleUpdate(event, ChannelEnum.RESET_EQ_MODE, false, true);
   });
 
-  // A cut's slope, from its dial on the Tone panel. FluidEQ's own setting
-  // rather than the profile's, so written for every output but saved into
-  // none: the profile write below is skipped.
+  // A cut's slope, from its dial on the Tone panel, saved into the output's
+  // profile like the Tone beside it.
+  //
+  // The cut went into the live state alone, and the engine never heard it:
+  // every flush renders an output from its saved profile, so the device file
+  // and its `-cuts.txt` followed whatever cut the profile last held, and the
+  // dial's turn reached them only when some other edit saved the whole profile
+  // (Ivan, 2026-11-16: "it's shut down unless I tune something"). This handler
+  // still treated the cuts as one setting for every output after they became
+  // each output's own (`eqCuts.ts`).
   onWindowMessage(ChannelEnum.SET_EQ_CUT, async (event, arg) => {
     const channel = ChannelEnum.SET_EQ_CUT;
     const [cut, slope] = Array.isArray(arg) ? arg : [];
@@ -103,7 +110,7 @@ export const registerLayersIpc = ({
     }
     const next = { ...(state.eqCuts ?? DEFAULT_EQ_CUTS), [cut]: slope };
     state.eqCuts = hasEqCut(next) ? next : undefined;
-    await handleUpdate(event, channel);
+    await handleUpdate(event, channel, false, true);
   });
 
   // The Tone panel's three dials, a layer of the profile's own (`tone.ts`).
