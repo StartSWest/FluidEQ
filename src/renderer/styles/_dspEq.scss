@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'dspTokens' as *;
+@use 'buttonFaces' as *;
 
 // The control, not a picture beside one. Handles are dragged directly, which
 // is the gesture every parametric EQ uses.
@@ -762,9 +763,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     cursor: default;
   }
 
+  // The chosen option is lit as the suggested button is, from the same face
+  // (`_buttonFaces.scss`): the EQ mode panel's segments were the look Ivan
+  // chose for every button (2026-11-17), and a grey tint here was a second
+  // way of saying "this one" beside it.
   &.is-selected {
-    background: rgba($edge-tint, 0.12);
-    color: $secondary-light;
+    @include button-face-lit($edge: inset, $weight: null);
   }
 }
 

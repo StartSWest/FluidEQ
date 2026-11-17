@@ -35,17 +35,6 @@
     }
   }
 
-  &__confirm.button {
-    color: $white;
-    background: color-mix(in srgb, $red 62%, $surface-base);
-    border-color: color-mix(in srgb, $red 70%, transparent);
-    box-shadow: none;
-    &:hover:not(:disabled) {
-      background: color-mix(in srgb, $red 78%, $surface-base);
-      color: $white;
-    }
-  }
-
   &__open {
     display: grid;
     place-items: center;

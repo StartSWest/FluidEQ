@@ -27,7 +27,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // and `$studio-select` with the accent's light while their menu is open, the
 // `$radius-m` corner, in the Library's type sizes — dressed so in this row
 // only, the components left boxed wherever else they stand. Smart EQ is the
-// suggested action's button (`button small`, the Deep primary).
+// suggested action's button (`button small`, the lit primary).
 .eq-layer-tabs {
   display: flex;
   min-width: 0;
@@ -230,9 +230,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     box-sizing: border-box;
     gap: 7px;
     padding: 0 14px;
-    border-radius: $radius-m;
     font-size: $studio-text-tree;
-    font-weight: $weight-bold;
   }
 }
 

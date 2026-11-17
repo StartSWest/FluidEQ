@@ -24,6 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'mainContentTokens' as *;
+@use 'buttonFaces' as *;
 
 // Smart EQ and its caret, drawn as one control.
 //
@@ -38,13 +39,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: stretch;
   // Keep both halves stationary, so hovering an edge cannot toggle hit testing.
 
-  // The caret lights with the half it ends, so the pair is one control. The
-  // filled main half takes the filled button's own hover (`Button.scss`):
-  // the dark ink this gave it was for the solid accent the primary had before
-  // the Deep primary, and on the Deep face it put dark letters on dark.
+  // The caret lights with the half it ends, so the pair is one control: the
+  // lit face's hover (`_buttonFaces.scss`), as the main half takes it.
   &:hover:not(.is-disabled) .eq-mode__caret:not(:disabled) {
-    color: $surface-base;
-    filter: brightness(1.1);
+    @include button-face-lit-hover;
   }
 
   // `.button.small` sets a radius of its own at the same specificity as
@@ -68,21 +66,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: 1px solid $border-field;
-    // The divider, and the only line between them.
-    border-left: 1px solid color-mix(in srgb, $surface-base 28%, transparent);
+    // The same face as the half it is attached to (`_buttonFaces.scss`),
+    // because it is not a second button — it is the end of this one (Ivan,
+    // 2026-09-27: "the dropdown arrow bg color needs to be the same color as
+    // the button"). Its left edge is the divider and the only line between
+    // them: the main half gives up its right edge.
+    @include button-face-lit;
     border-radius: 0 $radius-xs $radius-xs 0;
-    // The same fill and the same ink as the half it is attached to, because it
-    // is not a second button — it is the end of this one: the colour the main
-    // half's fill ends in (`--control-end`), so a fill runs on through the
-    // divider rather than starting again. Outside Rainbow mode that is the
-    // accent itself, the main half being flat: it was the span's azure end
-    // beside a flat half, a second colour on one pill (Ivan, 2026-09-27: "the
-    // dropdown arrow bg color needs to be the same color as the button"). No
-    // halo under it and no lit edge, like the button it ends.
-    background: var(--control-end, #{$secondary-default});
-    color: $surface-base;
-    box-shadow: none;
     cursor: pointer;
     transition: $transition-control;
 
@@ -97,10 +87,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transition: transform 150ms ease;
     }
 
-    &:hover:not(:disabled),
+    &:hover:not(:disabled) {
+      @include button-face-lit-hover;
+    }
+
     &:focus-visible:not(:disabled) {
-      filter: brightness(1.1);
-      outline: none;
+      @include button-face-focus;
     }
 
     // Unavailable the way the half it is attached to is unavailable: an
@@ -132,22 +124,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // main half, or a quiet half carries a bright end and the two read as two
 // controls stuck together.
 .eq-mode.is-subtle {
+  // The quiet face (`_buttonFaces.scss`), as its main half's.
   .eq-mode__caret {
-    color: $secondary-light;
-    border-color: $border-control;
-    border-left-color: $border-control;
-    // The face and edge every control has (`$surface-control`,
-    // `$border-control`), as its main half's.
-    background: $surface-control;
-    box-shadow: none;
+    @include button-face-quiet;
   }
 
   &:hover:not(.is-disabled) {
     .button.eq-mode__main:not([aria-disabled='true']),
     .eq-mode__caret:not(:disabled) {
-      color: $white;
-      border-color: $border-control-hover;
-      background: $surface-control-hover;
+      @include button-face-quiet-hover;
     }
   }
 }

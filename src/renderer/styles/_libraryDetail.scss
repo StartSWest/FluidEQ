@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
+@use 'buttonFaces' as *;
 
 // The tiles stand straight on the main column, as the table and the record's
 // hero do: no box round the set (Ivan, 2026-11-15: "the grid view has like a
@@ -585,47 +586,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // The bar's own control, square-cornered like Sort, Up next and the search
 // above it (Ivan, 2026-11-15: "these buttons need to be the same square we
-// use on the others"): 30px tall, a hairline drawn inside, quiet by default;
-// Play alone wears the accent, as the recommended action does everywhere in
-// the app. They were the mockup's pills, the only round buttons left in the
-// Library.
+// use on the others"): 30px tall, quiet by default; Play alone wears the
+// accent, as the recommended action does everywhere in the app. They were
+// the mockup's pills, the only round buttons left in the Library.
+//
+// Its two faces are the app's (`_buttonFaces.scss`): `.button.subtle` and
+// `.button` are painted from the same mixins, so this bar and every other
+// button agree by construction (Ivan, 2026-11-17). Only the size and the
+// corner are its own. The padding is 11px because the edge is a 1px border
+// now: 12px inside an inset hairline measured the same.
 .library-hero__button {
   display: inline-flex;
   height: 30px;
   box-sizing: border-box;
   align-items: center;
   gap: 6px;
-  padding: 0 12px;
-  border: 0;
+  padding: 0 11px;
+  @include button-face-quiet;
   border-radius: $radius-m;
-  background: none;
-  box-shadow: inset 0 0 0 1px $studio-hair;
-  color: $text-primary;
   font-family: inherit;
   font-size: $studio-text-tree;
-  font-weight: $weight-semibold;
   line-height: 1.5;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
 
   &:hover {
-    background: $studio-surface;
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 18%, transparent);
+    @include button-face-quiet-hover;
   }
 
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
+  &:active {
+    @include button-face-quiet-press;
   }
 
   &.is-go {
-    background: $secondary-default;
-    box-shadow: none;
-    color: $studio-on-accent;
+    @include button-face-lit;
 
     &:hover {
-      background: $secondary-light;
+      @include button-face-lit-hover;
+    }
+
+    &:active {
+      @include button-face-lit-press;
     }
   }
 
@@ -633,14 +635,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // tint and edge, the way the Library marks what is chosen, quieter than
   // Play's filled accent beside it.
   &.is-on {
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
     background: $studio-select;
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, $secondary-default 55%, transparent);
     color: $secondary-light;
 
     &:hover {
+      border-color: $secondary-default;
       background: color-mix(in srgb, $secondary-default 18%, transparent);
-      box-shadow: inset 0 0 0 1px $secondary-default;
     }
   }
 
@@ -654,6 +655,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       height: 15px;
       fill: currentcolor;
     }
+  }
+
+  // LAST: Play's face sets `box-shadow: none` at the same specificity, and
+  // while this stood above it the filled button showed no focus at all.
+  &:focus-visible {
+    @include button-face-focus;
   }
 }
 

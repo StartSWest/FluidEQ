@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'buttonFaces' as *;
 
 .button {
   display: flex;
@@ -28,19 +29,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 8px 13px;
-  // DEEP (Ivan, 2026-11-15, from four calmer primaries: "go on buttons with
-  // the recommended"): a dark teal fill, the accent's whole edge and light
-  // ink. It was the accent filled edge to edge with dark ink, the brightest
-  // slab in every panel it stood in; this is still plainly the one to press
-  // - its edge is the accent itself where the quiet button's is a pale
-  // hairline - without lighting the panel up. Flat: no glow, no bevel.
-  // Rainbow mode keeps the filled span (below).
-  color: $secondary-light;
-  border: 1px solid $secondary-default;
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 24%, $surface-base);
-  box-shadow: none;
-  font-weight: $weight-bold;
+  // The suggested action's face, the EQ mode panel's lit segment
+  // (`_buttonFaces.scss`): the accent's tint, its edge, light ink. `.subtle`
+  // below is the quiet one. The corner is the segmented track's.
+  @include button-face-lit;
+  border-radius: $radius-xs;
   line-height: 1.15;
   white-space: nowrap;
   cursor: pointer;
@@ -52,7 +45,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background 150ms ease,
     color 150ms ease;
 
-  // Filled glyphs take the dark ink of the button. A path that says it is
+  // Filled glyphs take the button's ink. A path that says it is
   // NOT filled — an outline drawn with a stroke, like the restore arrow —
   // keeps saying so: the rule used to override the attribute and paint the
   // inside of every outlined icon near-black, so a stroked arrow on a quiet
@@ -67,23 +60,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     fill: none;
   }
 
-  // Hover and press light and dim the same fill rather than swapping it, and
-  // nothing round it: the halo under the pointer was a glow on a flat face.
+  // Nothing round it under the pointer: the halo was a glow on a flat face.
   &:hover:not([aria-disabled='true']):not(:disabled) {
-    color: $white;
-    background: color-mix(in srgb, $secondary-default 34%, $surface-base);
-    box-shadow: none;
+    @include button-face-lit-hover;
   }
 
   &:active:not([aria-disabled='true']):not(:disabled) {
-    color: $white;
-    background: color-mix(in srgb, $secondary-default 18%, $surface-base);
+    @include button-face-lit-press;
   }
 
   &.small {
     min-height: $control-height-sm;
     padding: 6px 10px;
-    border-radius: $radius-xs;
     font-size: $text-body;
   }
 
@@ -91,13 +79,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: $spacing-s $spacing-m;
   }
 
-  // Secondary action: reads as an outline against the panel.
+  // Secondary action: the segmented track's frame and no fill, an outline on
+  // the floor it stands on (`_buttonFaces.scss`).
   &.subtle {
-    color: $secondary-light;
-    // Every pressed control's edge (`$border-control`), the preset picker's.
-    border-color: $border-control;
-    background: $surface-control;
-    box-shadow: none;
+    @include button-face-quiet;
 
     // NO glyph rule of its own. One was here for a day: it painted every
     // filled path in the label colour, meant for the DSP reset arrow, whose
@@ -111,22 +96,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // The filled button's hover and press filters are its own: an outline
     // lit or dimmed as a whole read as flicker.
     &:hover:not([aria-disabled='true']):not(:disabled) {
-      color: $white;
-      border-color: $border-control-hover;
-      background: $surface-control-hover;
-      box-shadow: none;
-      filter: none;
+      @include button-face-quiet-hover;
     }
 
     &:active:not([aria-disabled='true']):not(:disabled) {
-      background: $surface-control-press;
-      filter: none;
+      @include button-face-quiet-press;
     }
   }
 
   // The answer that cannot be taken back, once the question has been asked:
-  // delete, refuse, sign out. Filled, because at that moment it is the answer
-  // being given; red, because of what it does.
+  // delete, refuse, sign out. The suggested action's lit face, because at
+  // that moment it is the answer being given; in red, because of what it
+  // does, with white ink, which reads on the red tint where the accent's
+  // light ink would not.
   //
   // It was `.gallery-danger` in `Gallery.scss` until the Account panel's
   // sign-out needed it too: a page that draws with a class has to be able to
@@ -138,23 +120,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // off every red button; and the base hover, outranking it, turned its label
   // near-black and lit a cyan glow on the red. It sets both itself now.
   &.danger {
-    color: $white;
-    border-color: color-mix(in srgb, $red 70%, transparent);
-    background: color-mix(in srgb, $red 62%, $surface-base);
-    box-shadow: none;
+    @include button-face-lit($red, $white);
 
     &:hover:not([aria-disabled='true']):not(:disabled) {
-      color: $white;
-      border-color: $red;
-      background: color-mix(in srgb, $red 78%, $surface-base);
-      box-shadow: none;
-      filter: none;
+      @include button-face-lit-hover($red, $white);
     }
 
     &:active:not([aria-disabled='true']):not(:disabled) {
-      color: $white;
-      background: color-mix(in srgb, $red 54%, $surface-base);
-      filter: none;
+      @include button-face-lit-press($red);
     }
 
     // Busy breathes in its own colour: the accent's glow on a red button
@@ -201,7 +174,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // cannot be clipped, so focus stays unmistakable on a button pressed against
   // the edge of a scrolling list.
   &:focus-visible {
-    @include focus-ring($white);
+    @include button-face-focus;
   }
 
   // Only the div needs this: nothing else stops a click reaching its handler.
@@ -279,51 +252,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus-visible {
     background: color-mix(in srgb, $secondary-default 8%, transparent);
     outline: none;
-  }
-}
-
-// Rainbow mode draws the Deep primary too, its edge in the mode's span: the
-// accent between the palette's greener and bluer ends (`--control-fill`, set
-// on `:root.is-euphoric`), laid under the dark fill and showing only through
-// the transparent border. Keeping the old filled span here left every primary
-// as bright as before for anyone in Rainbow mode (Ivan, 2026-11-15: "and the
-// buttons?", in Rainbow mode, after the Deep primary had shipped).
-//
-// The colour under the span is the Deep fill, never the accent: the button's
-// background transitions, and with the accent there the switch out of Rainbow
-// mode dropped the span at once and then faded the accent - hidden under it
-// until then - down to the Deep fill, a bright flash on every primary (Ivan,
-// 2026-11-15: "they light up for a millisecond and go dark again").
-:root.is-euphoric .button:not(.subtle, .danger) {
-  border-color: transparent;
-  background:
-    linear-gradient(
-        color-mix(in srgb, $secondary-default 24%, $surface-base),
-        color-mix(in srgb, $secondary-default 24%, $surface-base)
-      )
-      padding-box,
-    color-mix(in srgb, $secondary-default 24%, $surface-base)
-      var(--control-fill) border-box;
-
-  &:hover:not([aria-disabled='true']):not(:disabled) {
-    background:
-      linear-gradient(
-          color-mix(in srgb, $secondary-default 34%, $surface-base),
-          color-mix(in srgb, $secondary-default 34%, $surface-base)
-        )
-        padding-box,
-      color-mix(in srgb, $secondary-default 34%, $surface-base)
-        var(--control-fill) border-box;
-  }
-
-  &:active:not([aria-disabled='true']):not(:disabled) {
-    background:
-      linear-gradient(
-          color-mix(in srgb, $secondary-default 18%, $surface-base),
-          color-mix(in srgb, $secondary-default 18%, $surface-base)
-        )
-        padding-box,
-      color-mix(in srgb, $secondary-default 18%, $surface-base)
-        var(--control-fill) border-box;
   }
 }

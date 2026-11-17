@@ -234,19 +234,11 @@
     @include focus-ring;
   }
 
-  // Lit, not filled: the one chosen segment of each row carries the accent,
-  // as a key lit from inside, and the rest of the panel stays quiet.
-  &.is-selected {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, $secondary-default 30%, transparent),
-      color-mix(in srgb, $secondary-default 18%, transparent)
-    );
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, $secondary-default 55%, transparent),
-      inset 0 1px 0 rgba($white, 0.12),
-      0 0 10px color-mix(in srgb, $secondary-default 22%, transparent);
-  }
+  // The chosen segment is lit by `.segmented__option.is-selected`
+  // (`_dspEq.scss`), from the face every button wears (`_buttonFaces.scss`).
+  // This panel's segments were where that face came from (Ivan, 2026-11-17);
+  // the copy that stood here also carried a top highlight and a halo, which
+  // the shared face leaves off (flat, as every button).
 
   // The seam between two unlit neighbours, as the DSP cards draw it; beside
   // the lit one its edge is the seam.

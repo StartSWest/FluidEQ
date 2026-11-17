@@ -24,6 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 @use 'karaokeTokens' as *;
 @use 'libraryTokens' as *;
+@use 'buttonFaces' as *;
 
 // Karaoke Maker is a single Canvas-backed editing surface. The DOM here is
 // deliberately limited to stable controls and inspectors; notes, words,
@@ -66,10 +67,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font: inherit;
   }
 
-  // The app's own two faces (`Button.scss`): the quiet outline at rest and
-  // the accent fill for the one suggested action. The Maker had a slab of its
-  // own, a darker gradient up to the block colour, which made every control
-  // in it a lighter tile than the same control anywhere else.
+  // The app's own two faces (`_buttonFaces.scss`, the ones `.button` wears):
+  // the quiet outline at rest and the lit face for the one suggested
+  // action and for a switch that is on. The Maker had a slab of its own, a darker gradient up to the
+  // block colour, which made every control in it a lighter tile than the same
+  // control anywhere else.
   #{$maker-own-button} {
     min-height: 30px;
     padding: 0 11px;
@@ -79,60 +81,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // 16px, wrapped to two lines and dwarfed the toolbar (Ivan, 2026-11-15).
     font-size: $text-lead;
     white-space: nowrap;
-    color: $secondary-light;
-    background: $surface-control;
-    border: 1px solid $border-field;
-    border-radius: $radius-s;
-    box-shadow: none;
+    @include button-face-quiet;
+    border-radius: $radius-xs;
     cursor: pointer;
     transition:
       border-color 150ms ease,
       background-color 150ms ease,
       box-shadow 150ms ease,
-      color 150ms ease;
+      color 150ms ease,
+      filter 150ms ease;
 
-    &:hover:not(:disabled),
+    &:hover:not(:disabled) {
+      @include button-face-quiet-hover;
+    }
+
+    // A switch that is on wears the lit face, as the chosen segment of a
+    // segmented track does (`_buttonFaces.scss`).
     &.is-active {
-      color: $white;
-      border-color: $border-field-hover;
-      background: $surface-control-hover;
-      box-shadow: none;
+      @include button-face-lit;
     }
 
-    &.is-active {
-      color: $surface-base;
-      font-weight: $weight-bold;
-      background: $secondary-default var(--control-fill) border-box;
-      border-color: transparent;
-      box-shadow: inset 0 1px 0 rgba($white, 0.24);
-    }
-
-    // The app's Deep primary (`Button.scss`): dark teal, the accent's edge,
-    // light ink (Ivan, 2026-11-15).
+    // The app's primary (`_buttonFaces.scss`).
     &.is-primary {
-      color: $secondary-light;
-      font-weight: $weight-bold;
-      background: color-mix(in srgb, $secondary-default 24%, $surface-base);
-      border-color: $secondary-default;
-      box-shadow: none;
-    }
-
-    &.is-primary {
+      @include button-face-lit;
       // One line always: at narrow widths this wrapped to "Use in /
       // player", the most prominent button in the editor torn in half.
       white-space: nowrap;
       flex: none;
     }
 
-    // The Deep primary's own hover (`Button.scss`): a deeper teal, white
-    // ink. Said here because the generic hover above outranks `.is-primary`.
+    // Its own hover and press, said here because the generic hover above
+    // outranks `.is-primary`.
     &.is-primary:hover:not(:disabled),
-    &.is-primary:focus-visible {
-      color: $white;
-      background: color-mix(in srgb, $secondary-default 34%, $surface-base);
-      border-color: $secondary-default;
-      filter: none;
-      box-shadow: none;
+    &.is-active:hover:not(:disabled) {
+      @include button-face-lit-hover;
+    }
+
+    &.is-primary:active:not(:disabled),
+    &.is-active:active:not(:disabled) {
+      @include button-face-lit-press;
+    }
+
+    &:focus-visible {
+      @include button-face-focus;
     }
 
     &:disabled {

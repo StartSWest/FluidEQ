@@ -1,5 +1,6 @@
 @use 'color' as *;
 @use 'theme' as *;
+@use 'buttonFaces' as *;
 
 // The same panel as the headphone one above it, and nothing else.
 //
@@ -245,16 +246,12 @@
     align-items: center;
     gap: 6px;
     padding: 5px 11px;
-    // The quiet button's face and edge (`.button.subtle`), which these had
+    // The quiet button's face and edge (`_buttonFaces.scss`), which these had
     // written again in a tint and an edge of their own.
-    color: $secondary-light;
-    border: 1px solid $border-control;
-    border-radius: $radius-xs;
-    background: $surface-control;
-    box-shadow: none;
     font: inherit;
+    @include button-face-quiet;
+    border-radius: $radius-xs;
     font-size: $text-small;
-    font-weight: $weight-bold;
     transition: $transition-control;
 
     .menu-icon {
@@ -263,14 +260,16 @@
       flex: 0 0 auto;
     }
 
-    &:hover:not([aria-disabled='true']),
-    &:focus-visible {
-      color: $white;
-      border-color: $border-control-hover;
-      background: $surface-control-hover;
-      box-shadow: none;
-      outline: none;
+    &:hover:not([aria-disabled='true']) {
+      @include button-face-quiet-hover;
       transform: none;
+    }
+
+    // Its own ring: the face above sets `box-shadow: none` at a specificity
+    // `.button:focus-visible` cannot reach, and it used to share the hover's
+    // rule, which took the ring off.
+    &:focus-visible {
+      @include button-face-focus;
     }
 
     &[aria-disabled='true'] {

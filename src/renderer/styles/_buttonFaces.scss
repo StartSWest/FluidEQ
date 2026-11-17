@@ -1,0 +1,137 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// THE APP'S BUTTON FACES, defined once, from the EQ mode panel's lit segment
+// (Ivan, 2026-11-17, pointing at Intensity / Band Q / Phase / Treble: "so for
+// buttons I'm more inclined to this type of buttons"). `.button`, the
+// segmented tracks' chosen option (`.segmented__option.is-selected`), the
+// Library album header's actions and the Karaoke Maker's own buttons are all
+// painted from these mixins, so none of them can drift from the others.
+// Faces only - colour, edge, weight and their states; each control keeps
+// its own size and corner.
+//
+// They replace the Deep primary of 2026-11-15 (the accent at 24% over the
+// floor inside the accent's whole edge), and the filled-accent Play the
+// Library header had, which this direction turned down.
+//
+// FLAT. The segment carried an inner top highlight and a 10px halo; on one
+// key in a panel of quiet ones they read as "lit", on every suggested action
+// across the app they were the bevel and the glow taken off the buttons on
+// 2026-09-25 ("I want a clean design"). The tint and the edge are what say
+// "this one".
+//
+// The edge is a real 1px border, never an inset shadow: a button's
+// box-shadow is spoken for by its focus ring and its busy glow, and a
+// hairline drawn as a shadow vanished under either.
+
+// A face lit in one tone: a tint of the tone from the top down, a crisp edge
+// of it, light ink. The suggested action is the accent; the answer that
+// cannot be taken back is red (`.button.danger`), on the same face.
+//
+// `$edge: inset` draws the same edge inside instead, for a segment: a
+// segmented track's options have no border, and one that gained a border
+// when chosen grew by two pixels and moved its neighbours on every pick.
+// A segment passes `$weight: null` too and keeps its track's weight: a
+// chosen word set heavier than its neighbours widens, and the row shifts.
+@mixin button-face-lit(
+  $tone: $secondary-default,
+  $ink: $secondary-light,
+  $edge: border,
+  $weight: $weight-semibold
+) {
+  color: $ink;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $tone 30%, transparent),
+    color-mix(in srgb, $tone 18%, transparent)
+  );
+  font-weight: $weight;
+
+  @if $edge == inset {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, $tone 55%, transparent);
+  } @else {
+    border: 1px solid color-mix(in srgb, $tone 55%, transparent);
+    box-shadow: none;
+  }
+}
+
+// Under the pointer: more of the tone, its whole edge.
+@mixin button-face-lit-hover(
+  $tone: $secondary-default,
+  $ink: $secondary-light
+) {
+  color: $ink;
+  border-color: $tone;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $tone 40%, transparent),
+    color-mix(in srgb, $tone 26%, transparent)
+  );
+  box-shadow: none;
+  filter: none;
+}
+
+// Pressed: less of it, the edge kept.
+@mixin button-face-lit-press($tone: $secondary-default) {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $tone 22%, transparent),
+    color-mix(in srgb, $tone 12%, transparent)
+  );
+  filter: none;
+}
+
+// Everything else: the segmented track's frame (`$border-control`) and no
+// fill, so it reads as an outline on whatever floor it stands on, in the
+// muted ink the panel's own words use.
+@mixin button-face-quiet {
+  color: $text-muted;
+  border: 1px solid $border-control;
+  background: none;
+  box-shadow: none;
+  font-weight: $weight-semibold;
+}
+
+// Under the pointer it takes the lit face's tint, not its edge: pointing at
+// a quiet button shows where a press lands without making it the
+// suggested one.
+@mixin button-face-quiet-hover {
+  color: $text-primary;
+  border-color: $border-control-hover;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $secondary-default 18%, transparent),
+    color-mix(in srgb, $secondary-default 10%, transparent)
+  );
+  box-shadow: none;
+  filter: none;
+}
+
+@mixin button-face-quiet-press {
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  filter: none;
+}
+
+// Focus is a ring in white on every face: the accent's ring disappeared into
+// the accent edge it surrounded.
+@mixin button-face-focus {
+  @include focus-ring($white);
+}
