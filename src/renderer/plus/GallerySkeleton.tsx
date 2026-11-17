@@ -120,10 +120,8 @@ export default function GallerySkeleton({
               <span className="gallery-ghost-bar gallery-ghost-bar--short" />
             </span>
             <span className="gallery-card__foot">
-              <span className="gallery-card__adds">
-                <span className="gallery-ghost-bar gallery-ghost-bar--short" />
-              </span>
               <span className="gallery-card__controls">
+                <span className="button small subtle gallery-ghost-control gallery-ghost-control--heart" />
                 <span className="button small subtle gallery-ghost-control" />
               </span>
             </span>

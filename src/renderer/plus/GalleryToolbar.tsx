@@ -147,10 +147,10 @@ export default function GalleryToolbar({
         <span className="gallery-toolbar__own">
           <button
             type="button"
-            className="button small subtle"
+            className="library-hero__button"
             onClick={onMine}
           >
-            <Glyph name="upload" />
+            <Glyph name="upload" className="library-hero__glyph" />
             {t('plus.gallery.mine')}
           </button>
         </span>

@@ -10,6 +10,7 @@ import { PLACES } from '../../community/CommunityPanel';
 import Avatar from '../../community/Avatar';
 import Glyph from '../../community/Glyph';
 import { identityStyle } from '../../community/identity';
+import PlaceHead from '../../community/PlaceHead';
 import BrandMark from '../../icons/BrandMark';
 import GalleryCard from '../../plus/GalleryCard';
 import GalleryList from '../../plus/GalleryList';
@@ -257,18 +258,11 @@ export const PlusTab = ({
 const VisualizersHead = () => {
   const { t } = useTranslation();
   return (
-    <header className="community__head gallery-head">
-      <span className="community__head-mark" aria-hidden="true">
-        <Glyph name="looks" />
-      </span>
-      <span className="community__head-text">
-        <span className="community__head-name">
-          {t('plus.visualizers.title')}
-        </span>
-        <span className="community__head-description">
-          {t('plus.visualizers.description')}
-        </span>
-      </span>
+    <PlaceHead
+      className="gallery-head"
+      title={t('plus.visualizers.title')}
+      description={t('plus.visualizers.description')}
+    >
       <div className="wallpaper-status wallpaper-status--running">
         <span className="wallpaper-status__mark" aria-hidden="true">
           <Glyph name="monitor" />
@@ -283,7 +277,7 @@ const VisualizersHead = () => {
           {t('wallpaper.stop')}
         </button>
       </div>
-    </header>
+    </PlaceHead>
   );
 };
 
@@ -366,7 +360,7 @@ export const SceneDrawing = () => {
         <VisualizersHead />
         <div className="gallery-visualizers">
           <div className="gallery-pagebar">
-            <button type="button" className="gallery-back">
+            <button type="button" className="library-hero__button gallery-back">
               <svg viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M10 3.5 5.5 8l4.5 4.5" />
               </svg>
@@ -470,8 +464,11 @@ export const SceneDrawing = () => {
             </aside>
 
             <section className="gallery-scene__more">
-              <h4 className="gallery-section-title">
-                {t('plus.scene.moreBy', { name: 'FluidEQ' })}
+              <h4 className="library-section gallery-section-title">
+                <span className="library-section__label">
+                  {t('plus.scene.moreBy', { name: 'FluidEQ' })}
+                </span>
+                <span className="library-section__rule" aria-hidden="true" />
               </h4>
               <div className="gallery-grid gallery-grid--row">
                 {others.map((entry) => (

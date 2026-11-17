@@ -12,22 +12,26 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'galleryTokens' as *;
+@use 'libraryTokens' as *;
 
+// A maker's page heads as a Library record does (`.library-hero`): no card,
+// their picture where the cover stands, their name in the hero's title in
+// their own colour, the handle in its second ink and the figures between
+// the Library's hairlines, all on the page's floor (Ivan, 2026-11-17:
+// "everything there needs to look like the Library"). It was a card with a
+// wash of the maker's colour over a page of cards.
 .gallery-maker__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-m;
-  padding: $spacing-m;
-  border: 1px solid $card-edge;
-  border-radius: $radius-l;
-  background:
-    radial-gradient(
-      120% 150% at 0% 0%,
-      hsl(var(--identity-hue, 170deg) 70% 45% / 18%),
-      transparent 58%
-    ),
-    $block-lift;
+  align-items: flex-end;
+  gap: $spacing-m 20px;
+  padding: 2px 0 $spacing-s;
+
+  > .community__avatar {
+    width: 72px;
+    height: 72px;
+    font-size: $text-title;
+  }
 }
 
 .gallery-maker__who {
@@ -43,8 +47,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .gallery-maker__name {
   margin: 0;
-  font-size: $text-title;
+  font-size: $studio-text-title;
   font-weight: $weight-bold;
+  @include tracking(-0.015em);
+  line-height: 1.1;
   @include truncate;
 }
 
@@ -54,10 +60,6 @@ it under the terms of the GNU General Public License version 3 or later.
   // number.
   grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
   max-width: 480px;
-
-  div {
-    background: color-mix(in srgb, $black 22%, transparent);
-  }
 }
 
 // ---------------------------------------------------------------- yours

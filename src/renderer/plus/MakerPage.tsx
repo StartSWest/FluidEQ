@@ -97,9 +97,7 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
         list={list}
         onMore={loadMore}
         onRetry={reload}
-        empty={
-          <p className="community__empty-title">{t('plus.maker.empty')}</p>
-        }
+        empty={<h2>{t('plus.maker.empty')}</h2>}
       >
         {list.scenes.map((scene) => (
           <GalleryCard

@@ -64,6 +64,24 @@ it under the terms of the GNU General Public License version 3 or later.
   border-bottom: 1px solid $menu-rule;
 }
 
+// A Scenes place's head (`PlaceHead`): the Library hero's title and its
+// line under it (`.library-hero__title`, `.library-hero__who`), on the
+// card's floor with no rule beneath - the Library starts what follows its
+// hero 14px under it, and the toolbar's own hairlines part the rest. What
+// stands at its end (the desktop's status, the toasts) sits on its baseline.
+.community__head.place-head {
+  align-items: flex-end;
+  gap: $spacing-m;
+  padding: 0 0 14px;
+  border-bottom: 0;
+}
+
+.place-head__text {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .community__head-mark {
   display: grid;
   place-items: center;

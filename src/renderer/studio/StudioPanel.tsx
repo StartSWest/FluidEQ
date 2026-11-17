@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import Glyph from '../community/Glyph';
+import PlaceHead from '../community/PlaceHead';
 import { useTranslation } from '../utils/I18nContext';
 import { holdDaylightToBrightness } from '../utils/sceneDaylightSetting';
 import StudioBench from './StudioBench';
@@ -44,17 +44,10 @@ export default function StudioPanel({
 
   return (
     <>
-      <header className="community__head">
-        <span className="community__head-mark" aria-hidden="true">
-          <Glyph name="studio" />
-        </span>
-        <span className="community__head-text">
-          <span className="community__head-name">{t('studio.title')}</span>
-          <span className="community__head-description">
-            {t('studio.description')}
-          </span>
-        </span>
-      </header>
+      <PlaceHead
+        title={t('studio.title')}
+        description={t('studio.description')}
+      />
       <div className="studio">{body}</div>
     </>
   );

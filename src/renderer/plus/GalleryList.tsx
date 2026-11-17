@@ -1,8 +1,8 @@
 import { useRef, type ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
+import GalleryEmpty from './GalleryEmpty';
 import GalleryListNotice from './GalleryListNotice';
 import GallerySkeleton from './GallerySkeleton';
 import type { IGalleryList, TGalleryListFailure } from './galleryStore';
@@ -79,12 +79,7 @@ export default function GalleryList({
         !list.loading &&
         !list.error &&
         list.scenes.length === 0 && (
-          <div className="community__empty gallery-empty">
-            <span className="community__empty-mark" aria-hidden="true">
-              <Glyph name="plus" />
-            </span>
-            {empty}
-          </div>
+          <GalleryEmpty glyph="looks">{empty}</GalleryEmpty>
         )}
 
       {list.more && list.scenes.length > 0 && (

@@ -93,9 +93,7 @@ export default function GalleryView({ me }: IGalleryViewProps) {
         onRetry={reload}
         empty={
           <>
-            <p className="community__empty-title">
-              {t(empty.title, { query: asked })}
-            </p>
+            <h2>{t(empty.title, { query: asked })}</h2>
             {empty.showAll && (
               <button
                 type="button"
@@ -107,7 +105,7 @@ export default function GalleryView({ me }: IGalleryViewProps) {
             )}
             {empty.body && (
               <>
-                <p className="community__empty-hint">{t(empty.body)}</p>
+                <p>{t(empty.body)}</p>
                 <button
                   type="button"
                   className="button small"

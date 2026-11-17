@@ -548,15 +548,20 @@ export default function ScenePage({
 
       {others.length > 0 && (
         <section className="gallery-scene__more">
-          <h4 className="gallery-section-title">
-            {own
-              ? t('plus.scene.moreByYou')
-              : t('plus.scene.moreBy', {
-                  name:
-                    scene.authorName ??
-                    scene.authorHandle ??
-                    t('plus.card.anonymous'),
-                })}
+          {/* The Library's section heading: the name, then a rule that fades
+              out across the page, in place of a line over the whole row. */}
+          <h4 className="library-section gallery-section-title">
+            <span className="library-section__label">
+              {own
+                ? t('plus.scene.moreByYou')
+                : t('plus.scene.moreBy', {
+                    name:
+                      scene.authorName ??
+                      scene.authorHandle ??
+                      t('plus.card.anonymous'),
+                  })}
+            </span>
+            <span className="library-section__rule" aria-hidden="true" />
           </h4>
           <div className="gallery-grid gallery-grid--row">
             {others.map((entry) => (

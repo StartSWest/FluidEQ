@@ -12,6 +12,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'galleryTokens' as *;
+@use 'libraryTokens' as *;
 
 // The stage takes the width; who made it and what to do with it stand in a
 // column beside it, and fold under it when the pane is narrow.
@@ -455,13 +456,15 @@ it under the terms of the GNU General Public License version 3 or later.
 // a category pill beside the maker, a status pill a grid had stretched into
 // something that looked like an empty field — with nothing saying where the
 // panel started or which line mattered.
+// No card: the scene's words and actions stand on the page's floor beside
+// its stage, as a Library record's stand beside its cover (`.library-hero`,
+// Ivan, 2026-11-17: "everything there needs to look like the Library").
 .gallery-scene__info {
   display: grid;
   align-content: start;
   gap: 14px;
   min-width: 0;
-  padding: 14px 16px 16px;
-  @include card-surface;
+  padding: 2px 4px 4px;
 }
 
 .gallery-scene__head {
@@ -472,17 +475,27 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The category, as the kicker over the name: every panel in the app names its
 // subject this way, and as a pill it competed with the maker for the same row.
-.gallery-scene__kicker {
-  text-transform: uppercase;
+// The Library hero's kind (`.library-hero__kind`): the second ink, a line
+// of words, never the spaced capitals of an eyebrow.
+.gallery-scene__kicker.eyebrow {
+  color: $studio-t2;
+  font-size: $studio-text-tree;
+  font-weight: $weight-regular;
+  @include tracking(0em);
+  line-height: 1.5;
+  text-transform: none;
   @include truncate;
 }
 
+// The Library hero's title (`.library-hero__title`), wrapping where the
+// column is narrower than a long name instead of cutting it.
 .gallery-scene__name {
   margin: 0;
-  color: $white;
-  font-size: $text-title;
+  color: $text-primary;
+  font-size: $studio-text-title;
   font-weight: $weight-bold;
-  line-height: 1.25;
+  @include tracking(-0.015em);
+  line-height: 1.1;
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
@@ -611,14 +624,15 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // FluidEQ's page wears the logo at the size a member's podium disc has.
+// The size a maker's picture heads their page at (`_galleryRows.scss`).
 .gallery-maker__head .gallery-maker__brand {
-  width: 48px;
-  height: 48px;
-  border-radius: $radius-m;
+  width: 72px;
+  height: 72px;
+  border-radius: $radius-l;
 
   svg {
-    width: 30px;
-    height: 30px;
+    width: 44px;
+    height: 44px;
   }
 }
 
@@ -648,17 +662,28 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
   margin: 0;
 
+  // Facts between the Library's hairlines rather than three boxes: each
+  // name in the quietest ink over its number in the first.
+  padding: 10px 0;
+  border-block: 1px solid $studio-hair;
+
   div {
     display: grid;
     gap: 1px;
-    padding: 8px 10px;
-    border: 1px solid $card-edge;
-    border-radius: $radius-s;
+    padding: 0 10px;
+
+    + div {
+      border-left: 1px solid $studio-hair;
+    }
+
+    &:first-child {
+      padding-left: 0;
+    }
   }
 
   dt {
-    color: $text-dim;
-    font-size: $text-micro;
+    color: $studio-t3;
+    font-size: $studio-text-label;
     @include truncate;
   }
 
@@ -768,12 +793,12 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Its heading carries its own rule (`.library-section__rule`).
 .gallery-scene__more {
   display: grid;
   grid-column: 1 / -1;
   gap: $spacing-s;
   padding-top: $spacing-s;
-  border-top: 1px solid $border-subtle;
 }
 
 // ---------------------------------------------------------------- maker

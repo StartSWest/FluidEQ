@@ -17,6 +17,7 @@ import {
   lightingProfile,
 } from 'common/lighting/lightingProfiles';
 import Glyph from '../../community/Glyph';
+import PlaceHead from '../../community/PlaceHead';
 import { setLightingSettings, useLighting } from '../../lighting/lightingStore';
 import { useTranslation } from '../../utils/I18nContext';
 import { useSceneLook } from '../../utils/graphStyle';
@@ -79,17 +80,10 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
   }, [feed, state.devices, state.settings]);
 
   const head = (
-    <header className="community__head">
-      <span className="community__head-mark" aria-hidden="true">
-        <Glyph name="lighting" />
-      </span>
-      <span className="community__head-text">
-        <span className="community__head-name">{t('lighting.title')}</span>
-        <span className="community__head-description">
-          {t('lighting.description')}
-        </span>
-      </span>
-    </header>
+    <PlaceHead
+      title={t('lighting.title')}
+      description={t('lighting.description')}
+    />
   );
 
   if (!loaded) {

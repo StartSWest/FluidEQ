@@ -65,6 +65,9 @@ export default function GalleryCard({
   const adds = new Intl.NumberFormat(locale, { notation: 'compact' }).format(
     scene.adds,
   );
+  const addsLine = scene.official
+    ? officialLabel
+    : t('plus.card.adds', { count: adds });
   // This card's token for the one playing slot, and whether the pointer or
   // the keyboard is on its picture.
   const [card] = useState(() => Symbol(scene.lookId));
@@ -183,13 +186,14 @@ export default function GalleryCard({
               {t('plus.version.youHave', { version: String(local.version) })}
             </span>
           )}
+          {/* The facts on one line, as a Library tile has its year, songs
+              and length: at the foot beside the heart and Add, the count
+              was cut to "1,2 mil la añadie…" on every card. */}
+          <span className="gallery-card__adds" title={addsLine}>
+            {addsLine}
+          </span>
         </span>
         <div className="gallery-card__foot">
-          <span className="gallery-card__adds">
-            {scene.official
-              ? officialLabel
-              : t('plus.card.adds', { count: adds })}
-          </span>
           <span className="gallery-card__controls">
             <SceneHeart scene={scene} name={name} own={own} />
             {!owned && (

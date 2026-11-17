@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { resolveSceneName } from 'common/scenePacks';
 import { useAccount } from '../account/accountStore';
-import Glyph from '../community/Glyph';
+import PlaceHead from '../community/PlaceHead';
 import { useTranslation } from '../utils/I18nContext';
 import { WallpaperStatus } from '../wallpaper/WallpaperControls';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
@@ -41,7 +41,11 @@ function PageBar({
   }
   return (
     <div className="gallery-pagebar">
-      <button type="button" className="gallery-back" onClick={goBackInGallery}>
+      <button
+        type="button"
+        className="library-hero__button gallery-back"
+        onClick={goBackInGallery}
+      >
         <svg viewBox="0 0 16 16" aria-hidden="true">
           <path d="M10 3.5 5.5 8l4.5 4.5" />
         </svg>
@@ -111,18 +115,11 @@ export default function VisualizersView({
 
   return (
     <>
-      <header className="community__head gallery-head">
-        <span className="community__head-mark" aria-hidden="true">
-          <Glyph name="looks" />
-        </span>
-        <span className="community__head-text">
-          <span className="community__head-name">
-            {t('plus.visualizers.title')}
-          </span>
-          <span className="community__head-description">
-            {t('plus.visualizers.description')}
-          </span>
-        </span>
+      <PlaceHead
+        className="gallery-head"
+        title={t('plus.visualizers.title')}
+        description={t('plus.visualizers.description')}
+      >
         <WallpaperStatus />
         {/* Under the head, which stays put: Add and the heart are pressed
             on cards far down the list, where a line at its top is not. */}
@@ -130,7 +127,7 @@ export default function VisualizersView({
           sources={{ gallery: notice }}
           text={(entry) => t(entry.key, entry.vars)}
         />
-      </header>
+      </PlaceHead>
       <div
         ref={scrollRef}
         className="gallery-visualizers"
