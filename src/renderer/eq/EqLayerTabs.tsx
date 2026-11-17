@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { type KeyboardEvent, type ReactNode, useRef } from 'react';
 import type { TranslationKey } from '../../common/i18n/en';
-import ClearEqButton from '../components/ClearEqButton';
 import '../styles/EqLayers.scss';
 import {
   NONE_CHAIN_ID,
@@ -14,21 +13,15 @@ import {
   useDspPresetCatalog,
 } from '../dsp/dspPresetCatalog';
 import { useDspSettings } from '../dsp/store';
-import MenuIcon from '../icons/MenuIcon';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { EQ_LAYER_TABS, setEqLayerTab, type TEqLayerTab } from './eqLayerTab';
+import useToolRowFit from './useToolRowFit';
 
 const TAB_LABEL: Record<TEqLayerTab, TranslationKey> = {
   bands: 'eq.tabs.bands',
   preset: 'eq.tabs.preset',
   tone: 'eq.tone',
-};
-
-const TAB_ICON: Record<TEqLayerTab, 'eqBars' | 'genre' | 'waveform'> = {
-  bands: 'eqBars',
-  preset: 'genre',
-  tone: 'waveform',
 };
 
 /** The id each tab's page carries, for `aria-controls`. */
@@ -45,7 +38,7 @@ interface IEqLayerTabsProps {
    * cuts are all the Tone is doing.
    */
   toneCutCorners?: string;
-  /** The open tab's own tools, before the one every tab has: Clear EQ. */
+  /** The open tab's tools, Clear EQ among them (`EqPageView`). */
   tools: ReactNode;
 }
 
@@ -53,8 +46,12 @@ interface IEqLayerTabsProps {
  * The row under the EQ page's divider (Ivan, 2026-11-16, "One pane, inset
  * cards"): the three tabs on the left, each with what it holds now — how many
  * bands, which preset, whether the Tone is on — and on the right the open
- * tab's tools, then Clear EQ, which undoes all three. It replaces the title
- * row that stood above the graph with the same tools in it.
+ * tab's tools. It replaces the title row that stood above the graph with the
+ * same tools in it.
+ *
+ * The tools are flat, a glyph and a word with no edge (Ivan, 2026-11-17, B1:
+ * "grouped by job"), and the row is one line at every width: as it narrows
+ * the groups' captions go, then the tools' words (`useToolRowFit`).
  */
 const EqLayerTabs = ({
   active,
@@ -81,6 +78,10 @@ const EqLayerTabs = ({
       : t('eq.tabs.toneOff'),
   };
   const tabRefs = useRef<Partial<Record<TEqLayerTab, HTMLButtonElement>>>({});
+  const row = useRef<HTMLDivElement>(null);
+  const slot = useRef<HTMLDivElement>(null);
+  const toolBox = useRef<HTMLDivElement>(null);
+  useToolRowFit(row, slot, toolBox);
 
   // The arrows walk the tabs and open the one they land on, as every tab row
   // does; Home and End go to either end.
@@ -104,7 +105,7 @@ const EqLayerTabs = ({
   };
 
   return (
-    <div className="eq-layer-tabs">
+    <div className="eq-layer-tabs" ref={row}>
       <div
         className="eq-layer-tabs__list"
         role="tablist"
@@ -126,7 +127,6 @@ const EqLayerTabs = ({
             onClick={() => setEqLayerTab(tab)}
             onKeyDown={onKeyDown}
           >
-            <MenuIcon name={TAB_ICON[tab]} className="eq-layer-tabs__icon" />
             <span>{t(TAB_LABEL[tab])}</span>
             <span
               className={`eq-layer-tabs__meta${
@@ -139,11 +139,12 @@ const EqLayerTabs = ({
           </button>
         ))}
       </div>
-      <div className="eq-layer-tabs__tools">
-        {tools}
-        <span className="eq-layer-tabs__rule" aria-hidden="true" />
-        {/* Last: the one tool that undoes everything the others did. */}
-        <ClearEqButton />
+      {/* The room the tabs leave, and the tools at its end, as wide as
+          their content: the two widths are what the fit compares. */}
+      <div className="eq-layer-tabs__slot" ref={slot}>
+        <div className="eq-layer-tabs__tools" ref={toolBox}>
+          {tools}
+        </div>
       </div>
     </div>
   );

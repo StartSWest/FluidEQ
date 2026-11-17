@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
+import Chevron from '../../icons/Chevron';
 import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import {
@@ -36,10 +37,10 @@ const PinnedEqModeTrigger = () => {
         disabled={disabled}
         onClick={revealEqModeCard}
       >
-        <EqModeTriggerFace
-          customized={customized}
-          end={<MenuIcon name="pin" className="eq-mode-trigger__pin" />}
-        />
+        {/* The chevron, as unpinned (Ivan, 2026-11-17, B1: the pin goes
+            inside the menu): the face is "Normal ▾" either way, and the
+            card it opens says it is pinned, with its own way to unpin. */}
+        <EqModeTriggerFace customized={customized} end={<Chevron />} />
       </button>
     </div>
   );

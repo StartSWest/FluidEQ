@@ -23,7 +23,14 @@ import MenuIcon from '../icons/MenuIcon';
 import ConfirmIcon from '../icons/ConfirmIcon';
 import '../styles/BandLayoutMenu.scss';
 
-export default function BandLayoutMenu() {
+/**
+ * The band count and its layouts. `formatLabel` is what the trigger says for
+ * a count with no saved design on: "15 Band" by default, the bare number
+ * under the EQ page's BANDS caption, which already says what it counts.
+ */
+export default function BandLayoutMenu({
+  formatLabel,
+}: { formatLabel?: (count: number) => string } = {}) {
   const {
     filters,
     eqBandDesign,
@@ -179,7 +186,8 @@ export default function BandLayoutMenu() {
       >
         <MenuIcon name="layout" className="eq-toolbar__icon" />
         <span className="band-designs__current" title={eqBandDesign?.name}>
-          {eqBandDesign?.name ?? t('eq.bandCount', { count })}
+          {eqBandDesign?.name ??
+            (formatLabel ? formatLabel(count) : t('eq.bandCount', { count }))}
         </span>
         <Chevron />
       </button>

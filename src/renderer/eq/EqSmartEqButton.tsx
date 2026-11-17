@@ -57,8 +57,11 @@ const EqSmartEqButton = ({ bands }: { bands: TEqPageBands }) => {
   const isSmartEqActive =
     isBalancing || (isContinuousMode(smartEqMode) && isContinuousOn);
   return (
+    // The row's one filled button (Ivan, 2026-11-17, B1): the action the
+    // page recommends, after the flat tools. It was quiet like the others
+    // from 2026-09-27, when every tool in the row still had a box.
     <span
-      className={`eq-mode is-subtle${isModeMenuOpen ? ' is-open' : ''}`}
+      className={`eq-mode${isModeMenuOpen ? ' is-open' : ''}`}
       ref={modeMenuHolder}
     >
       <button
@@ -74,7 +77,7 @@ const EqSmartEqButton = ({ bands }: { bands: TEqPageBands }) => {
         // on the graph's loopback, which is not what it listens to.
         // Running gets the breathing outline and nothing else. It keeps
         // the Smart EQ button's own look, because it is that button.
-        className={`button small subtle eq-mode__main${isBalancing || isContinuousRunning ? ' is-running' : ''}`}
+        className={`button small eq-mode__main${isBalancing || isContinuousRunning ? ' is-running' : ''}`}
         // Nothing here runs the measurement — it asks the host that owns
         // it to. That indirection is what lets a run outlive this panel:
         // the button is a way of reaching the measurement, not the place

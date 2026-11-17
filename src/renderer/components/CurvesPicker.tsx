@@ -78,6 +78,8 @@ const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
         className="button small subtle eq-mode__main active-layers__trigger"
         aria-expanded={isOpen}
         aria-haspopup="menu"
+        // Named where the row leaves it its dots alone (`useToolRowFit`).
+        title={t('graph.curves')}
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
       >
         <span className="active-layers__dots" aria-hidden>
@@ -93,7 +95,7 @@ const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
             />
           ))}
         </span>
-        {t('graph.curves')}
+        <span className="eq-toolbar__word">{t('graph.curves')}</span>
         <Chevron />
       </button>
       <AnchoredMenu

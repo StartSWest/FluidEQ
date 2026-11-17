@@ -393,6 +393,12 @@ interface IFrequencyResponseChartProps {
   /** The Karaoke stage remains behind the graph, including Plus looks. */
   hasPlaybackBackdrop?: boolean;
   backdropControls?: ReactNode;
+  /**
+   * Over the EQ page's tab row: the graph's foot eases into the page's
+   * card (`ChartFootFade`). Never in full screen, never with the graph
+   * elsewhere.
+   */
+  hasFootFade?: boolean;
 }
 
 /**
@@ -409,6 +415,7 @@ const FrequencyResponseChart = ({
   isVisible,
   hasPlaybackBackdrop = false,
   backdropControls,
+  hasFootFade = false,
 }: IFrequencyResponseChartProps) => {
   const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
@@ -1900,6 +1907,7 @@ const FrequencyResponseChart = ({
             liveCurves={liveCurves}
             isLiveOutputForeground={isLiveOutputForeground}
             isPlotPartOfWindow={isPlotPartOfWindow}
+            hasFootFade={hasFootFade}
             // This plot fills the screen on a double-click (see `Chart`).
             onPlotDoubleClick={() =>
               setGraphView(viewAfterPlotDoubleClick(getGraphView()))

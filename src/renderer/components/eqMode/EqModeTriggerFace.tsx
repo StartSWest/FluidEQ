@@ -18,7 +18,7 @@ const EqModeTriggerFace = ({
   end,
 }: {
   customized: boolean;
-  /** The menu's chevron, or the pin of the card it shows instead. */
+  /** What stands at its end: the chevron, pinned or not. */
   end: ReactNode;
 }) => {
   const { t } = useTranslation();

@@ -34,6 +34,7 @@ import SongEqSaveSwitch from '../components/SongEqSaveSwitch';
 import EqPageModeSelect from '../components/eqMode/EqPageModeSelect';
 import BandLayoutMenu from '../components/BandLayoutMenu';
 import CurvesPicker from '../components/CurvesPicker';
+import ClearEqButton from '../components/ClearEqButton';
 import BandLevels from '../components/BandLevels';
 import { attachRail } from './bandsRail';
 import OverflowArrow from '../components/OverflowArrow';
@@ -44,6 +45,7 @@ import { type TEqPageActions } from './useEqPageActions';
 import { type TEqLayerTab } from './eqLayerTab';
 import EqLayerTabs, { eqLayerPanelId, eqLayerTabId } from './EqLayerTabs';
 import EqSmartEqButton from './EqSmartEqButton';
+import EqToolGroup from './EqToolGroup';
 import {
   EqBandPopoverOnBand,
   EqBandPopoverOnGraph,
@@ -125,51 +127,72 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       : [bandMenuFilter];
   }
 
-  // Each tab's own tools, before Clear EQ, which every tab has.
+  // Each tab's tools, flat (Ivan, 2026-11-17, B1 "grouped by job"). Your
+  // EQ's are in two groups under captions — BANDS: how many, add one, clear
+  // them; VIEW: the curves the graph draws, the EQ mode — and Smart EQ alone
+  // at the end, the one filled button, the action the page recommends. Clear
+  // EQ undoes every tab's work and stands at the end of the other two.
+  const rule = <span className="eq-layer-tabs__rule" aria-hidden="true" />;
   const tools: Record<TEqLayerTab, ReactElement> = {
     bands: (
       <>
-        <EqSmartEqButton bands={bands} />
+        <EqToolGroup caption={t('eq.tools.bands')}>
+          {/* How many, and the layout menu with its reset. */}
+          <BandLayoutMenu formatLabel={String} />
+          <Button
+            ariaLabel={t('eq.addBandAria')}
+            title={t('eq.addBandAria')}
+            isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
+            className="small subtle eq-toolbar__add"
+            handleChange={addFilter}
+          >
+            <MenuIcon name="plus" className="eq-toolbar__icon" />
+            <span className="eq-toolbar__word">{t('eq.tools.add')}</span>
+          </Button>
+          <ClearEqButton label={t('eq.tools.clear')} />
+        </EqToolGroup>
+        {rule}
+        <EqToolGroup caption={t('eq.tools.view')}>
+          {/* Every line the graph draws besides the bands, behind one
+            dropdown (Ivan, 2026-09-27: "make applied filters always on
+            curves dropdown"). */}
+          <CurvesPicker />
+          <EqPageModeSelect />
+        </EqToolGroup>
         {/* Only while an automatic mode is actually measuring. Saving a song
           means filing the Smart EQ layer being refined for it, and nothing
           but that measurement ever writes one — so with the loop stopped
           the switch was a promise the app had no way to keep. */}
         {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
-        <EqPageModeSelect />
-        {/* The band count and its plus, as one "15 bands, +". */}
-        <BandLayoutMenu />
-        <Button
-          ariaLabel={t('eq.addBandAria')}
-          title={t('eq.addBandAria')}
-          isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
-          className="small subtle eq-toolbar__add"
-          handleChange={addFilter}
-        >
-          <MenuIcon name="plus" className="eq-toolbar__icon" />
-          <span className="eq-toolbar__word">{t('eq.addBand')}</span>
-        </Button>
-        {/* Every line the graph draws besides the bands, behind one
-          dropdown (Ivan, 2026-09-27: "make applied filters always on
-          curves dropdown"). */}
-        <CurvesPicker />
+        <EqSmartEqButton bands={bands} />
       </>
     ),
-    preset: <EqPresetSearch />,
+    preset: (
+      <>
+        <EqPresetSearch />
+        {rule}
+        <ClearEqButton label={t('eq.clear')} />
+      </>
+    ),
     tone: (
-      <Button
-        ariaLabel={t('eq.tone.reset')}
-        title={t('eq.tone.reset')}
-        isDisabled={isToneDisabled || !isToneTabInUse}
-        className="small subtle"
-        handleChange={() => {
-          resetToneTab().catch(() => undefined);
-        }}
-      >
-        <MenuIcon name="reset" className="eq-toolbar__icon" />
-        {/* Its word kept at every width: Clear EQ beside it is the same
+      <>
+        <Button
+          ariaLabel={t('eq.tone.reset')}
+          title={t('eq.tone.reset')}
+          isDisabled={isToneDisabled || !isToneTabInUse}
+          className="small subtle"
+          handleChange={() => {
+            resetToneTab().catch(() => undefined);
+          }}
+        >
+          <MenuIcon name="reset" className="eq-toolbar__icon" />
+          {/* Its word kept at every width: Clear EQ beside it is the same
             glyph, and two bare arrows side by side say nothing apart. */}
-        <span>{t('eq.tone.reset')}</span>
-      </Button>
+          <span>{t('eq.tone.reset')}</span>
+        </Button>
+        {rule}
+        <ClearEqButton label={t('eq.clear')} />
+      </>
     ),
   };
 

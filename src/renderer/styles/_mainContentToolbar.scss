@@ -38,18 +38,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: stretch;
   // Keep both halves stationary, so hovering an edge cannot toggle hit testing.
 
-  // And either half lights both, for the same reason: hovering one end of a
-  // control should not make the other end look like a separate one that is not
-  // being hovered.
-  //
-  // Lit by the same filter as a lone filled button, so each half keeps its
-  // fill (`--control-fill`) under the pointer instead of being swapped.
-  &:hover:not(.is-disabled) {
-    .button.eq-mode__main:not([aria-disabled='true']),
-    .eq-mode__caret:not(:disabled) {
-      color: $surface-base;
-      filter: brightness(1.1);
-    }
+  // The caret lights with the half it ends, so the pair is one control. The
+  // filled main half takes the filled button's own hover (`Button.scss`):
+  // the dark ink this gave it was for the solid accent the primary had before
+  // the Deep primary, and on the Deep face it put dark letters on dark.
+  &:hover:not(.is-disabled) .eq-mode__caret:not(:disabled) {
+    color: $surface-base;
+    filter: brightness(1.1);
   }
 
   // `.button.small` sets a radius of its own at the same specificity as
@@ -130,11 +125,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The quiet version of the toolbar's controls. Smart EQ was the one filled
-// button in the row until Ivan asked for it like
-// the others (2026-09-27: "make smart eq button same as the others, no
-// fill"). The caret follows its main half, or a quiet half carries a bright
-// end and the two read as two controls stuck together.
+// The quiet version of the toolbar's controls: the band count, the curves,
+// a DSP rack's picker. Smart EQ was quiet too from 2026-09-27 ("make smart eq
+// button same as the others, no fill") and is the row's one filled button
+// again since the tools went flat (2026-11-17, B1). The caret follows its
+// main half, or a quiet half carries a bright end and the two read as two
+// controls stuck together.
 .eq-mode.is-subtle {
   .eq-mode__caret {
     color: $secondary-light;

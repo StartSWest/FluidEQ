@@ -76,6 +76,7 @@ export default function EqModeSelect({
         type="button"
         className="eq-mode-trigger"
         aria-label={t('eq.mode')}
+        title={t('eq.mode')}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         disabled={choices.disabled}

@@ -2867,14 +2867,13 @@ $graph-card-pages: list.join(
 // integrated view, no division like that, the split needs to be seamless",
 // "like the lib"). On the EQ page the head and the graph's card and the
 // page's card under it were two cards with the divider's strip of floor
-// between them; now the graph's card stays open at its foot, the divider is
-// a band of the same card, and the page's card is open at its top, so the
-// pills, the graph, the tabs and their page read as one surface with one
-// edge round it. The divider is the Library's splitter (`GraphPaneSplitter`,
-// Ivan: "el splitter debe verse como el de la lib"): a 12px band of the same
-// card, taking a drag along its whole width, its grip there at rest and lit
-// under the pointer, while held or under the keyboard, all as
-// `_karaokeWorkspace.scss` draws it in the Library — nothing restyled here.
+// between them; now the graph's card stays open at its foot and the page's
+// card is open at its top, so the pills, the graph, the tabs and their page
+// read as one surface with one edge round it. The divider is the Library's
+// splitter (`GraphPaneSplitter`, Ivan: "el splitter debe verse como el de
+// la lib"), its grip at rest and lit under the pointer, while held or under
+// the keyboard as `_karaokeWorkspace.scss` draws it in the Library; since
+// 2026-11-17 it takes no room of its own (the seam below).
 .center-workspace.is-graph-first:not(.is-graph-full):has(
     > .middle-content > .workspace-tab-panel--eq
   ) {
@@ -2884,11 +2883,44 @@ $graph-card-pages: list.join(
     border-bottom-left-radius: 0;
   }
 
-  // Out to the column's sides with the card (`fac6ae87b`).
+  // THE SEAM (Ivan, 2026-11-17, "T2 + mínima"): no band and no line between
+  // the graph and the tab row. The graph's foot eases into the page's card
+  // (`ChartFootFade`, coloured below) and the divider takes no room — it was
+  // a 12px band of card — its grip floating on the fade 1-4px over the
+  // graph's foot, still taking a drag along the whole width. With no height
+  // of its own the split counts it as nothing (`measureSeam`), so the graph
+  // and the page share the 12px it gave back.
   > .graph-pane-splitter {
+    z-index: 5;
+    height: 0;
     margin: 0;
-    border-inline: 1px solid $card-edge;
-    background: $surface-section;
+
+    > .karaoke-pane-splitter.is-horizontal {
+      position: absolute;
+      top: -9px;
+      left: 0;
+    }
+  }
+
+  // The frequency names and the corner figures on the fade, 4px over the
+  // foot as the mockup sets them: 2px over the row's place elsewhere
+  // (`_graphThemeChart.scss`), the grip floating just under them.
+  > .graph-wrapper .chart-axis--inside-bottom text {
+    transform: translateY(calc(-0.71em - 16px));
+  }
+
+  > .graph-wrapper .chart-axis--inside .tick.is-floor text {
+    transform: translateY(calc(-0.32em - 7px));
+  }
+
+  // The fade lands on the card exactly: the window's floor first, then the
+  // card's translucent face over it, as the card itself is seen.
+  > .graph-wrapper .chart-foot-fade__floor {
+    color: $surface-base;
+  }
+
+  > .graph-wrapper .chart-foot-fade__card {
+    color: $surface-section;
   }
 
   > .middle-content > .workspace-tab-panel--eq {

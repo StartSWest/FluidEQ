@@ -32,15 +32,6 @@
     font-size: $text-small;
   }
 
-  // Pinned, the chevron's place holds the pin: the button shows the card
-  // beside the graph instead of opening a menu.
-  &__pin {
-    width: 12px;
-    height: 12px;
-    flex: 0 0 auto;
-    color: $secondary-default;
-  }
-
   &:focus-visible {
     @include focus-ring;
   }

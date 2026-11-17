@@ -25,6 +25,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { MIN_GAIN } from 'common/constants';
 import { levelAxisSuitsLook } from 'common/graphAnalysis';
 import Axis from './Axis';
 import { ChartIdsContext, TChartIdOf } from './chartIds';
@@ -49,6 +50,7 @@ import {
 } from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
 import CoverageOverlay from './CoverageOverlay';
+import ChartFootFade from './ChartFootFade';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import BandLabels from './BandLabels';
@@ -131,6 +133,11 @@ interface IChartProps {
    * nothing.
    */
   onPlotDoubleClick?: (toWindow: boolean) => void;
+  /**
+   * The EQ page's graph over its tab row: its foot eases into the page's
+   * card (`ChartFootFade`).
+   */
+  hasFootFade?: boolean;
 }
 
 const Chart = ({
@@ -143,6 +150,7 @@ const Chart = ({
   outputOffset,
   isPlotPartOfWindow = false,
   onPlotDoubleClick,
+  hasFootFade = false,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
   // This chart's own ids for its clips and its spectrum (`chartIds.ts`).
@@ -660,6 +668,14 @@ const Chart = ({
           ) : (
             <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleEq} />
           ),
+        )}
+        {/* Over everything drawn so far, under everything read or grabbed. */}
+        {hasFootFade && (
+          <ChartFootFade
+            width={svgWidth}
+            foot={svgHeight}
+            top={Number(yScaleEq(MIN_GAIN))}
+          />
         )}
         {/* A genre's pins on its Preset line: over the lines, under the
           band handles, so a handle standing on a pin can still be dragged.

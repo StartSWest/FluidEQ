@@ -832,6 +832,8 @@ const AppContent = () => {
             {showsGraph && (
               <FrequencyResponseChart
                 isVisible
+                // The EQ page's graph over its tabs: no edge between the two.
+                hasFootFade={isGraphFirst}
                 // The Library's picture as well as the Karaoke's: both stay under
                 // a scene, so both get the see-through and blur controls.
                 hasPlaybackBackdrop={

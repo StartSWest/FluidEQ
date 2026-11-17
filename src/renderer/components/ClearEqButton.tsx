@@ -120,7 +120,13 @@ function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function ClearEqButton() {
+/**
+ * Clear EQ, and its confirmation. `label` is the word beside the glyph: the
+ * full "Clear EQ" where it stands alone, a shorter one under the EQ page's
+ * BANDS caption, which already says what it clears. The tooltip is always
+ * the full name.
+ */
+export default function ClearEqButton({ label }: { label?: string } = {}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
@@ -134,7 +140,7 @@ export default function ClearEqButton() {
         <MenuIcon name="reset" className="eq-toolbar__icon" />
         {/* Hidden, never removed, where the toolbar stands in the EQ page's
           head: the glyph is the button there and the word still names it. */}
-        <span className="eq-toolbar__word">{t('eq.clear')}</span>
+        <span className="eq-toolbar__word">{label ?? t('eq.clear')}</span>
       </button>
       {open && <ClearEqConfirmation onClose={() => setOpen(false)} />}
     </>

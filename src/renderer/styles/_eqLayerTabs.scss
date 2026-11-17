@@ -9,61 +9,91 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'mainContentTokens' as *;
+@use 'libraryTokens' as *;
 
 // *** The tab row ************************************************************
 
+// ONE LINE OF 40PX GLUED UNDER THE GRAPH (Ivan, 2026-11-17, B1 "grouped by
+// job", set as the mockup's "T2 + mínima"): the tabs on the left, the open
+// one underlined on the row's foot; then the open tab's tools, flat, each
+// group's name inline before its tools; Smart EQ filled at the end. As the
+// room narrows the group names go, then what each tab holds, then the tools'
+// words (`useToolRowFit`, `data-fit` below); it never wraps and never runs
+// off.
+//
+// The flat tools are the app's current ones, the options bars' (`ViewBar`'s
+// `.view-bar__icon`, the Karaoke stage bar's segments): the studio inks
+// (`$studio-t2`), no edge and no face, `$studio-surface` under the pointer
+// and `$studio-select` with the accent's light while their menu is open, the
+// `$radius-m` corner, in the Library's type sizes — dressed so in this row
+// only, the components left boxed wherever else they stand. Smart EQ is the
+// suggested action's button (`button small`, the Deep primary).
 .eq-layer-tabs {
   display: flex;
   min-width: 0;
+  height: 40px;
   flex: 0 0 auto;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 4px 10px;
-  border-bottom: 1px solid $border-subtle;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 16px;
+  // 22px and 16px from the card's edges with the panel's own 10px.
+  padding: 0 6px 0 12px;
+  border-bottom: 1px solid $studio-hair;
 }
 
 .eq-layer-tabs__list {
   display: flex;
   min-width: 0;
+  height: 40px;
+  flex: 0 1 auto;
   align-items: stretch;
-  gap: 4px;
+  gap: 22px;
 }
 
-// A tab: its glyph, its name and what it holds now, on the row's rule with
-// the accent under the open one, as the header's places are marked.
+// A tab: its name and what it holds now; the open one's line on the row's
+// foot.
 .eq-layer-tabs__tab {
+  position: relative;
   display: inline-flex;
   min-width: 0;
-  min-height: 40px;
   align-items: center;
   gap: 8px;
-  padding: 0 12px;
-  color: $text-muted;
+  padding: 0;
+  color: $studio-t2;
   border: 0;
   background: none;
-  box-shadow: inset 0 -2px 0 transparent;
   font: inherit;
-  font-size: $text-body;
+  font-size: $studio-text-row;
   font-weight: $weight-semibold;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
+
+  &::after {
+    position: absolute;
+    right: -2px;
+    bottom: 0;
+    left: -2px;
+    height: 2px;
+    border-radius: 2px;
+    background: transparent;
+    content: '';
+  }
 
   &:hover {
     color: $text-primary;
   }
 
   &[aria-selected='true'] {
-    color: $white;
-    box-shadow: inset 0 -2px 0 $secondary-default;
+    color: $text-primary;
 
-    .eq-layer-tabs__icon {
-      color: $secondary-light;
+    &::after {
+      background: $secondary-default;
     }
 
     .eq-layer-tabs__meta {
       color: $secondary-light;
-      background: color-mix(in srgb, $secondary-default 16%, transparent);
+      background: $studio-select;
     }
   }
 
@@ -72,62 +102,182 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-.eq-layer-tabs__icon {
-  width: 15px;
-  height: 15px;
-  flex: none;
-}
-
 // What the tab holds now: the band count, the preset's name, On or Off.
 .eq-layer-tabs__meta {
   @include truncate;
   max-width: 140px;
-  padding: 1px 6px;
-  color: $text-muted;
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $edge-tint 8%, transparent);
-  font-size: $text-small;
+  padding: 2px 7px;
+  color: $studio-t2;
+  border-radius: $radius-s;
+  background: $studio-raise;
+  font-size: $studio-text-meta;
 
   &.is-off {
-    color: $text-faint;
+    color: $studio-t3;
   }
 }
 
-// The open tab's tools and Clear EQ, at the row's end, with the faces they
-// had in the title row above the graph they stood in before.
-.eq-layer-tabs__tools {
+// The room the tabs leave, and the tools at its end: the slot takes what is
+// left and the tools are as wide as their content, the two widths the fit
+// compares.
+.eq-layer-tabs__slot {
   display: flex;
   min-width: 0;
-  flex-wrap: wrap;
+  flex: 1 1 0;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px 10px;
-  margin-inline-start: auto;
-  padding-block: 4px;
-
-  .eq-mode-trigger {
-    min-height: $control-height-sm;
-    padding-block: 0;
-  }
-
-  .button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
 }
 
+.eq-layer-tabs__tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 16px;
+}
+
+// Between the groups, and before Clear EQ on the other two tabs: the
+// stronger of the two rules, where the row's foot is the fainter.
 .eq-layer-tabs__rule {
   width: 1px;
-  height: 18px;
+  height: 20px;
+  flex: none;
   background: $border-subtle;
 }
 
-// The Preset tab's search, a field of the toolbar's height.
+// One job's tools, its name inline before them.
+.eq-tool-group {
+  display: flex;
+  align-items: center;
+}
+
+.eq-tool-group__caption {
+  margin: 0 4px 0 2px;
+  color: $studio-t3;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.eq-tool-group__tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+// The flat tools, as the options bars draw theirs.
+.eq-layer-tabs__tools {
+  .button.small.subtle,
+  .eq-mode-trigger {
+    min-height: 32px;
+    height: 32px;
+    box-sizing: border-box;
+    gap: 7px;
+    padding: 0 10px;
+    color: $studio-t2;
+    border: 0;
+    border-radius: $radius-m;
+    background: none;
+    box-shadow: none;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
+  }
+
+  .button.small.subtle:hover:not([aria-disabled='true']):not(:disabled),
+  .eq-mode-trigger:hover:not(:disabled),
+  .eq-mode.is-subtle:hover:not(.is-disabled)
+    .button.eq-mode__main:not([aria-disabled='true']) {
+    color: $text-primary;
+    border: 0;
+    background: $studio-surface;
+  }
+
+  .button.small.subtle[aria-expanded='true'],
+  .eq-mode-trigger[aria-expanded='true'] {
+    color: $secondary-light;
+    background: $studio-select;
+  }
+
+  // What a tool is set to reads in the text's own ink, bold: the count, the
+  // EQ mode's state. Those two are their value alone, with no glyph before
+  // it, until the row is down to glyphs (`data-fit='icons'` below).
+  .band-designs__current,
+  .eq-mode-trigger__summary {
+    color: $text-primary;
+    font-size: inherit;
+    font-weight: $weight-bold;
+  }
+
+  .quick-layouts__trigger .eq-toolbar__icon,
+  .eq-mode-trigger .eq-toolbar__icon {
+    display: none;
+  }
+
+  // The EQ mode's own name says what the VIEW name and its glyph already do;
+  // the button is its state, "Normal ▾", and keeps the name for a screen
+  // reader and its tooltip.
+  .eq-mode-trigger .eq-toolbar__word {
+    @include words-hidden;
+  }
+
+  // Smart EQ, the suggested action's button at the flat tools' height and
+  // corner. Its own slot (`EqSmartEqButton`), so what comes after it — Auto
+  // EQ — can take the place whole.
+  .button.small.eq-mode__main:not(.subtle) {
+    min-height: 32px;
+    height: 32px;
+    box-sizing: border-box;
+    gap: 7px;
+    padding: 0 14px;
+    border-radius: $radius-m;
+    font-size: $studio-text-tree;
+    font-weight: $weight-bold;
+  }
+}
+
+// Narrower (`useToolRowFit`): the group names first; then what each tab
+// holds, the tabs keeping their names; then every tool's word but Smart
+// EQ's, each tool left its glyph and its tooltip. The two that are only a
+// glyph then are square.
+.eq-layer-tabs:is(
+    [data-fit='uncaptioned'],
+    [data-fit='bare-tabs'],
+    [data-fit='icons']
+  )
+  .eq-tool-group__caption {
+  display: none;
+}
+
+.eq-layer-tabs:is([data-fit='bare-tabs'], [data-fit='icons'])
+  .eq-layer-tabs__meta {
+  display: none;
+}
+
+.eq-layer-tabs[data-fit='icons'] .eq-layer-tabs__tools {
+  .eq-toolbar__word,
+  .eq-mode-trigger__summary {
+    @include words-hidden;
+  }
+
+  .clear-eq-trigger,
+  .eq-toolbar__add {
+    justify-content: center;
+    width: 32px;
+    padding-inline: 0;
+  }
+
+  // The EQ mode, its state gone, is its glyph again.
+  .eq-mode-trigger .eq-toolbar__icon {
+    display: block;
+  }
+}
+
+// The Preset tab's search, a field of the tools' height.
 .eq-preset-search {
   display: flex;
   width: 220px;
-  height: $control-height-sm;
+  height: 32px;
   box-sizing: border-box;
   align-items: center;
   gap: 8px;
@@ -145,7 +295,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     outline: none;
     background: none;
     font: inherit;
-    font-size: $text-body;
+    font-size: $studio-text-tree;
   }
 
   &:focus-within {
@@ -153,45 +303,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Short of a wide page: the tools keep their glyphs and drop their words, as
-// they did above the graph, each still named for a screen reader and a
-// tooltip; the two that are only a glyph then are square. With their words,
-// the Your EQ tab's tools wrapped under the tabs on a 1280px window and took
-// a line from the bands.
-@container eq-panel (max-width: #{$bp-xl}) {
-  .eq-layer-tabs__tools {
-    .eq-toolbar__word {
-      @include words-hidden;
-    }
-
-    .clear-eq-trigger,
-    .eq-toolbar__add {
-      justify-content: center;
-      width: $control-height-sm;
-      padding-inline: 0;
-    }
-
-    // The plus leans on the band count before it, as one "15 bands, +".
-    .quick-layouts + .eq-toolbar__add {
-      margin-inline-start: -4px;
-    }
-  }
-}
-
 @container eq-panel (max-width: #{$bp-lg}) {
   .eq-preset-search {
     width: 160px;
-  }
-}
-
-// Narrower still, the tabs keep their names and give up what they hold.
-@container eq-panel (max-width: #{$bp-md}) {
-  .eq-layer-tabs__meta {
-    display: none;
-  }
-
-  .eq-layer-tabs__tab {
-    padding-inline: 10px;
   }
 }
 
