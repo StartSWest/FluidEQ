@@ -139,6 +139,15 @@ export interface ILegendEntry {
 const LEGEND_FLOOR = 20;
 
 /**
+ * How far in from the plot's left edge the key starts: clear of the gain
+ * scale's figures, which are drawn inside that edge since the graph reaches
+ * the sides (`Chart.tsx`) - 9px in and about 40px wide at "−60 dB". At 10px
+ * in, the key sat on "−20 dB". 60 is where it stood when the scale had a
+ * gutter of its own (50px, then 10).
+ */
+const LEGEND_INSET = 60;
+
+/**
  * The legend: a swatch and a word for each reading, on the plot.
  *
  * On the plot rather than beside it because this canvas is the whole drawing
@@ -177,7 +186,7 @@ export const paintLegend = (
     widths.reduce((total, one) => total + one, 0) +
     LEGEND_GAP * 2 +
     LEGEND_PAD * 2;
-  const left = plot.left + 10;
+  const left = plot.left + LEGEND_INSET;
   const top = plot.bottom - LEGEND_FLOOR - height;
   // For the band labels, which keep off it (`legendPlace.ts`).
   noteLegendPlace(context.canvas, { x: left, y: top, width, height });
