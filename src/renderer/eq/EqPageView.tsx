@@ -25,6 +25,7 @@ import {
   MIN_NUM_FILTERS,
 } from 'common/constants';
 import { CSSProperties, type ReactElement } from 'react';
+import { createPortal } from 'react-dom';
 import Spinner from '../icons/Spinner';
 import BandMenu from '../components/BandMenu';
 import OutputEditingNotice from '../OutputEditingNotice';
@@ -44,6 +45,7 @@ import { type TEqPageBands } from './useEqPageBands';
 import { type TEqPageActions } from './useEqPageActions';
 import { type TEqLayerTab } from './eqLayerTab';
 import EqLayerTabs, { eqLayerPanelId, eqLayerTabId } from './EqLayerTabs';
+import { useEqRowSlot } from './eqRowSlot';
 import EqSmartEqButton from './EqSmartEqButton';
 import EqToolGroup from './EqToolGroup';
 import {
@@ -66,14 +68,16 @@ type TEqPageViewProps = {
  * pane, inset cards"): the row of three tabs — Your EQ, Preset, Tone — with
  * the open tab's tools, and that tab's page. Your EQ is the band rail with
  * its scale and the selected band's editor beside it; Preset browses the
- * presets; Tone holds the cuts and the three dials. Holds no state and runs
- * no hooks; everything it shows comes from the bands, the actions and the
- * tab.
+ * presets; Tone holds the cuts and the three dials. Holds no state of its
+ * own; everything it shows comes from the bands, the actions and the tab.
  */
 const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
   // Whether the band popover is up and on which anchor, decided once for
   // the slider's and the graph's (`useBandPopoverState`).
   const popover = useBandPopoverState(bands);
+  // On the EQ page the row stands above the scrolling page, on the graph's
+  // surface (`eqRowSlot.ts`); elsewhere it stays inline over the bands.
+  const rowSlot = useEqRowSlot();
   const {
     filters,
     isLoading,
@@ -195,6 +199,15 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       </>
     ),
   };
+  const row = (
+    <EqLayerTabs
+      active={tab}
+      bandCount={frequencySortedFilters.length}
+      isToneOn={isToneTabInUse}
+      toneCutCorners={toneCutCorners}
+      tools={tools[tab]}
+    />
+  );
 
   return isLoading ? (
     <div className="center full row">
@@ -235,13 +248,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       {/* The same popover beside a handle on the graph, whichever layer tab is
           open: the graph's handles are the bands on every one of them. */}
       <EqBandPopoverOnGraph bands={bands} actions={actions} popover={popover} />
-      <EqLayerTabs
-        active={tab}
-        bandCount={frequencySortedFilters.length}
-        isToneOn={isToneTabInUse}
-        toneCutCorners={toneCutCorners}
-        tools={tools[tab]}
-      />
+      {rowSlot === undefined ? row : rowSlot && createPortal(row, rowSlot)}
       {tab === 'bands' && (
         <div
           id={eqLayerPanelId('bands')}

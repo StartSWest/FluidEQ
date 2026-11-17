@@ -17,7 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Activity, Suspense, type ReactNode, type SyntheticEvent } from 'react';
+import {
+  Activity,
+  Suspense,
+  useState,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react';
+import { EqRowSlotContext } from '../eq/eqRowSlot';
 import FluidEngineLabel from '../components/FluidEngineLabel';
 import ListenedLatency from '../components/ListenedLatency';
 import WorkspaceSectionTabs from '../components/WorkspaceSectionTabs';
@@ -91,6 +98,32 @@ export const EqGroupPills = ({
   );
 };
 
+/**
+ * The page of an equaliser panel, scrolling inside it, and above it on the
+ * EQ page the place its tab row stands, outside the scroll (`eqRowSlot.ts`).
+ */
+const EqPanelPages = ({ activeTab }: { activeTab: TWorkspaceTab }) => {
+  const [rowSlot, setRowSlot] = useState<HTMLDivElement | null>(null);
+  return (
+    <EqRowSlotContext.Provider value={rowSlot}>
+      {activeTab === 'eq' && (
+        <div ref={setRowSlot} className="workspace-tab-panel__row" />
+      )}
+      <div key={activeTab} className="workspace-tab-panel__scroll">
+        {/* Only met by a page drawn before its code arrived,
+          which `selectTopWorkspaceTab` never does: the pills
+          stay, and the page follows a moment later. */}
+        <Suspense fallback={null}>
+          {activeTab === 'eq' && <MainContent />}
+          {activeTab === 'presets' && <PresetsPage.Page />}
+          {activeTab === 'convolution' && <ConvolutionPage.Page />}
+          {activeTab === 'config' && <ConfigPage.Page />}
+        </Suspense>
+      </div>
+    </EqRowSlotContext.Provider>
+  );
+};
+
 export interface IWorkspacePagesProps {
   activeTab: TWorkspaceTab;
   /** Asleep behind the amp (`behindAmp`). */
@@ -139,17 +172,7 @@ const WorkspacePages = ({
         onFocus={onEqPillApproach}
       >
         {!isGraphFirst && eqGroupPills}
-        <div key={activeTab} className="workspace-tab-panel__scroll">
-          {/* Only met by a page drawn before its code arrived,
-            which `selectTopWorkspaceTab` never does: the pills
-            stay, and the page follows a moment later. */}
-          <Suspense fallback={null}>
-            {activeTab === 'eq' && <MainContent />}
-            {activeTab === 'presets' && <PresetsPage.Page />}
-            {activeTab === 'convolution' && <ConvolutionPage.Page />}
-            {activeTab === 'config' && <ConfigPage.Page />}
-          </Suspense>
-        </div>
+        <EqPanelPages activeTab={activeTab} />
       </div>
     )}
     {/* A place of its own beside the equaliser: each game's whole sound is

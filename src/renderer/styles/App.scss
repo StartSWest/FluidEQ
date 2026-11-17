@@ -40,6 +40,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'shippedTheme' as *;
+@use 'libraryTokens' as *;
+@use 'mainContentTokens' as *;
 
 // *** Document ***************************************************************
 
@@ -2777,7 +2779,8 @@ $graph-card-pages: list.join(
 // splitter (`GraphPaneSplitter`, Ivan: "el splitter debe verse como el de
 // la lib"), its grip at rest and lit under the pointer, while held or under
 // the keyboard as `_karaokeWorkspace.scss` draws it in the Library; since
-// 2026-11-17 it takes no room of its own (the seam below).
+// 2026-11-17 it takes no room of its own (THE ROW STANDS ON THE GRAPH,
+// below).
 .center-workspace.is-graph-first:not(.is-graph-full):has(
     > .middle-content > .workspace-tab-panel--eq
   ) {
@@ -2787,59 +2790,77 @@ $graph-card-pages: list.join(
     border-bottom-left-radius: 0;
   }
 
-  // THE SEAM (Ivan, 2026-11-17, "T2 + mínima"): no band and no line between
-  // the graph and the tab row. The graph's drawing fades out at its foot
-  // (`footFade.ts`, the mask below) and the divider takes no room — it was
-  // a 12px band of card — its grip floating on the fade 1-4px over the
-  // graph's foot, still taking a drag along the whole width. With no height
-  // of its own the split counts it as nothing (`measureSeam`), so the graph
-  // and the page share the 12px it gave back.
+  // THE ROW STANDS ON THE GRAPH (Ivan, 2026-11-17, J2: "keep the same, just
+  // instead of the fade, put that bar as a transparent bar, similar to what
+  // we did for the options on top"). The tab row is the graph's foot, on the
+  // graph's own surface, so the graph and its tools read as one block:
+  // - No fade anywhere. The plot stops crisp at its floor, and the row
+  //   starts on one faint rule there, as faint as the mockup draws it.
+  // - The row lays no band of its own, as the graph's top bar lays none
+  //   (read in his window: no face, no edge, no padding; only its controls
+  //   carry faces). With a standard look the graph's card and the page's are
+  //   one face, so the row is already on the graph's; under a Plus scene the
+  //   picture runs on under the row (below) and the page lays its face only
+  //   from the row's foot down.
+  // - One quiet hairline under the row parts it from the bands, the
+  //   mockup's stronger rule, and the divider's grip lies on it.
+  // The row stands above the scrolling page (`eqRowSlot.ts`), so it never
+  // rides away from the graph with a long Preset page.
+  > .middle-content > .workspace-tab-panel--eq > .workspace-tab-panel__row {
+    // Over the scene's layer, which runs under it and is positioned: the
+    // row's own controls are not.
+    position: relative;
+    z-index: 1;
+
+    > .eq-layer-tabs {
+      border-bottom-color: $eq-row-hairline;
+      box-shadow: inset 0 1px 0 $studio-hair;
+    }
+  }
+
+  :root.is-scene-column & {
+    > .scene-column-layer {
+      height: calc(var(--scene-column-height, 0px) + #{$eq-row-height});
+    }
+
+    > .middle-content > .workspace-tab-panel--eq {
+      background: linear-gradient($surface-section, $surface-section) bottom /
+        100% calc(100% - #{$eq-row-height}) no-repeat;
+    }
+  }
+
+  // The divider takes no room (it was a 12px band of card) and the split
+  // counts it as nothing (`measureSeam`). Its strip hangs from the graph's
+  // foot down onto the hairline under the row, the grip lying on that line,
+  // and still takes a drag along the whole width. The strip starts 1px
+  // above the hairline, clear of the tools' 32px faces, which end 3px above
+  // it, so only the tabs' last 2px are shared with it.
   > .graph-pane-splitter {
     z-index: 5;
     height: 0;
     margin: 0;
 
-    // Its 12px strip centred 2px under the graph's foot, so the 3px grip
-    // stands on the seam itself, clear of the frequency names over it (Ivan,
-    // 2026-11-17: "separate the splitter a bit from the numbers"); at -9px it
-    // floated among them.
     > .karaoke-pane-splitter.is-horizontal {
       position: absolute;
-      top: -4px;
+      top: calc(#{$eq-row-height} - 2px);
       left: 0;
+      height: 10px;
+
+      .karaoke-pane-splitter__handle {
+        align-items: flex-start;
+      }
     }
   }
 
-  // The frequency names and the corner figures on the fade, 4px over the
-  // foot as the mockup sets them: 2px over the row's place elsewhere
-  // (`_graphThemeChart.scss`), the grip on the seam under them.
+  // The frequency names and the corner figures on the plot's foot, 4px over
+  // the faint rule the row starts on: 2px over their place elsewhere
+  // (`_graphThemeChart.scss`).
   > .graph-wrapper .chart-axis--inside-bottom text {
     transform: translateY(calc(-0.71em - 16px));
   }
 
   > .graph-wrapper .chart-axis--inside .tick.is-floor text {
     transform: translateY(calc(-0.32em - 7px));
-  }
-
-  // THE FOOT FADES THE CONTENT, NEVER THE SURFACE (Ivan, 2026-11-17: "just
-  // the fading, don't show anything else"; "the colour bleeds onto the
-  // viz"). The graph and the page under it stand on one surface, the card's
-  // face once over the window's floor: the graph's card and the page's card
-  // are the same face side by side, and under a Plus scene the graph's card
-  // lays none (above) and the scene's layer carries it instead, under the
-  // picture. Over the graph's last 56px what is drawn fades out by alpha
-  // (`footFade.ts`): the chart's svg through its own mask, and here the
-  // canvas a standard look draws on and the scene's picture, by the same
-  // curve the chart hands up (`--graph-foot-mask`). Nothing is painted over
-  // anything, so an empty graph is the same colour above and below the fade,
-  // and a scene keeps its own colours down to where it is gone.
-  > .graph-wrapper .chart-live-canvas,
-  > .scene-column-layer > * {
-    mask-image: var(--graph-foot-mask, none);
-  }
-
-  :root.is-scene-column & > .scene-column-layer {
-    background: $surface-section;
   }
 
   > .middle-content > .workspace-tab-panel--eq {
@@ -2850,11 +2871,10 @@ $graph-card-pages: list.join(
   }
 
   // Under a Plus visualizer the picture is the graph's face and ends at the
-  // graph's foot, where the pane goes on: square there, so it does not round
-  // off into the pane like a card set inside it. It runs whole to that foot,
-  // flat: its last 48px used to fade into the pane, a soft edge that dimmed
-  // the foot row and read as old-fashioned (Ivan, 2026-11-17: "remove the
-  // soft gradient edge on graph when Plus is displayed").
+  // row's foot, where the page goes on: square there, so it does not round
+  // off into the page like a card set inside it. It runs whole to that foot,
+  // flat (Ivan, 2026-11-17: "remove the soft gradient edge on graph when Plus
+  // is displayed").
   > .scene-column-layer {
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
@@ -3029,8 +3049,15 @@ $graph-card-pages: list.join(
   min-height: 0;
   gap: 10px;
 
-  .workspace-tab-panel__scroll > .eq-layer-tabs {
+  // The tab row's place, above the scrolling page (`eqRowSlot.ts`), across
+  // the card's whole width so its hairline runs edge to edge; the row is
+  // 22px and 16px in from those edges.
+  > .workspace-tab-panel__row {
     flex: 0 0 auto;
+
+    > .eq-layer-tabs {
+      padding: 0 16px 0 22px;
+    }
   }
 
   // Content-sized. It used to absorb every spare pixel in the panel, which

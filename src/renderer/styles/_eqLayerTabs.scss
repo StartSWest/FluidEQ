@@ -31,12 +31,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .eq-layer-tabs {
   display: flex;
   min-width: 0;
-  height: 40px;
+  height: $eq-row-height;
   flex: 0 0 auto;
   box-sizing: border-box;
   align-items: center;
   gap: 16px;
-  // 22px and 16px from the card's edges with the panel's own 10px.
+  // Inline, over the Gaming Lab's bands. On the EQ page the row stands
+  // across the card and is 22px and 16px in from its edges (`App.scss`).
   padding: 0 6px 0 12px;
   border-bottom: 1px solid $studio-hair;
 }
@@ -44,7 +45,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .eq-layer-tabs__list {
   display: flex;
   min-width: 0;
-  height: 40px;
+  height: $eq-row-height;
   flex: 0 1 auto;
   align-items: stretch;
   gap: 22px;

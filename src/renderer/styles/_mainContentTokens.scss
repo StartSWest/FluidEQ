@@ -58,3 +58,13 @@ $eq-bubble-applied-hold: 1.5s;
 // nothing there. Short of a sweep that is a reach across the screen. A pane
 // too short for it gives way to the floor.
 $band-track-ceiling: 340px;
+
+// The EQ page's tab row (`_eqLayerTabs.scss`): one line, never two. The graph
+// above it runs its surface and a scene's picture on under this much
+// (`App.scss`, THE ROW STANDS ON THE GRAPH), so the two read the same number.
+$eq-row-height: 40px;
+
+// The quiet hairline under that row, parting the graph's block from the
+// bands: the J2 mockup's stronger rule, the divider's grip lying on it. The
+// faint rule the row starts on is the Library's `$studio-hair`.
+$eq-row-hairline: color-mix(in srgb, $edge-tint 18%, transparent);

@@ -43,6 +43,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   top: 0;
   right: 0;
   left: 0;
+  // Measured (`SceneColumnLayer.tsx`); the EQ page adds its tab row
+  // (`App.scss`).
+  height: var(--scene-column-height, 0);
   overflow: hidden;
   pointer-events: none;
   contain: strict;

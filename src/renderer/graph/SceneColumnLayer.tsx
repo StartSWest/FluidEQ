@@ -19,7 +19,11 @@ import { publishSceneColumnHost } from '../utils/sceneCover';
  * As tall as the head and the graph together, measured, because the two are
  * separate items of the column and the page and the divider under them are
  * sized by the split: a layer reaching past the graph's foot would stand over
- * the page, which is painted before it.
+ * the page, which is painted before it. The measure is handed to the
+ * stylesheet as `--scene-column-height` rather than set as the height: on the
+ * EQ page the tab row stands on the graph's surface as its foot, and the
+ * stylesheet runs the picture on under it (`App.scss`, THE ROW STANDS ON THE
+ * GRAPH), from the moment the row is there, which nothing here is told.
  */
 export default function SceneColumnLayer() {
   const [layer, setLayer] = useState<HTMLDivElement | null>(null);
@@ -44,14 +48,9 @@ export default function SceneColumnLayer() {
           ? graph.getBoundingClientRect().bottom -
             (graph.offsetHeight - graph.clientHeight - graph.clientTop)
           : top;
-      layer.style.height = `${Math.max(0, bottom - top)}px`;
-      // The graph's foot fade, which the layer ends at: its picture fades out
-      // by the chart's own curve (`footFade.ts`, `App.scss`).
       layer.style.setProperty(
-        '--graph-foot-mask',
-        graph instanceof HTMLElement
-          ? graph.style.getPropertyValue('--graph-foot-mask') || 'none'
-          : 'none',
+        '--scene-column-height',
+        `${Math.max(0, bottom - top)}px`,
       );
     };
     measure();
@@ -59,19 +58,8 @@ export default function SceneColumnLayer() {
     // The column for the window, its children for the split: a drag moves
     // the graph's foot without changing the column's size.
     observer.observe(column);
-    // The graph's own style says when its fade changes without its size
-    // doing so: the grid switched off moves the −20 dB line it stops at.
-    const graphStyle = new MutationObserver(measure);
     const watch = () => {
       Array.from(column.children).forEach((child) => observer.observe(child));
-      graphStyle.disconnect();
-      const graph = column.querySelector(':scope > .graph-wrapper');
-      if (graph) {
-        graphStyle.observe(graph, {
-          attributes: true,
-          attributeFilter: ['style'],
-        });
-      }
     };
     watch();
     // A graph switched on or off, or the head arriving with the EQ pages.
@@ -83,7 +71,6 @@ export default function SceneColumnLayer() {
     return () => {
       observer.disconnect();
       children.disconnect();
-      graphStyle.disconnect();
     };
   }, [layer]);
 
