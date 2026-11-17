@@ -46,6 +46,8 @@ import './RangeInput.scss';
 import './Slider.scss';
 import './FrequencyBand.scss';
 import './MainContent.scss';
+// The EQ page's tabs under its graph, over the page's own rules.
+import './EqLayers.scss';
 import './MultiSelect.scss';
 import './Spinner.scss';
 import './Button.scss';

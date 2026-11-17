@@ -256,9 +256,15 @@ const useEqPageActions = (bands: TEqPageBands) => {
     }
   };
 
-  // Bass, Mid and Treble, a layer of their own laid over the bands, shown
-  // when nothing is selected — shared with the compact player's Tone face.
-  const { tone, isDisabled: isToneDisabled, turnTone, resetTone } = useTone();
+  // Bass, Mid and Treble, a layer of their own laid over the bands, on the
+  // Tone tab — shared with the compact player's Tone face.
+  const {
+    tone,
+    isDisabled: isToneDisabled,
+    turnTone,
+    resetTone,
+    resetAllTone,
+  } = useTone();
 
   // The one control that sets rather than nudges — a group of Peak bands asked
   // to become Low Shelf all become Low Shelf.
@@ -652,6 +658,7 @@ const useEqPageActions = (bands: TEqPageBands) => {
     isToneDisabled,
     turnTone,
     resetTone,
+    resetAllTone,
     setSelectedType,
     addFilter,
     addFilterBeside,

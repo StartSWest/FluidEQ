@@ -23,11 +23,13 @@ import './styles/MultiSelect.scss';
 import useEqPageBands from './eq/useEqPageBands';
 import useEqPageActions from './eq/useEqPageActions';
 import EqPageView from './eq/EqPageView';
+import { useEqLayerTab } from './eq/eqLayerTab';
 
 const MainContent = () => {
   const bands = useEqPageBands();
   const actions = useEqPageActions(bands);
-  return <EqPageView bands={bands} actions={actions} />;
+  const tab = useEqLayerTab();
+  return <EqPageView bands={bands} actions={actions} tab={tab} />;
 };
 
 export default MainContent;

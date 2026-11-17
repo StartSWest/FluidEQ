@@ -132,7 +132,7 @@
   margin-left: auto;
 }
 // The glyph clear of the word, as on every button of the toolbar the menu
-// opens from (`.main-content-title > .eq-toolbar .button`). Flush against it,
+// opens from (`.eq-layer-tabs__tools .button`). Flush against it,
 // the arrow read as part of the word.
 .eq-mode-choices__reset {
   gap: $spacing-xs + $spacing-xxs;

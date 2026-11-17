@@ -84,6 +84,9 @@ const useTone = () => {
     turnTone: (knob: keyof ITone, value: number) =>
       write({ ...shown, [knob]: value }),
     resetTone: (knob: keyof ITone) => write({ ...shown, [knob]: 0 }),
+    /** All three back to flat in one write: three resets in a row would each
+     * start from the values shown before the last one landed. */
+    resetAllTone: () => write(FLAT_TONE),
   };
 };
 

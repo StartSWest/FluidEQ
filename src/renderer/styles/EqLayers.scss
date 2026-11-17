@@ -1,0 +1,22 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE EQ PAGE'S THREE TABS UNDER ITS GRAPH (Ivan, 2026-11-16, "One pane,
+// inset cards"): the tab row with the open tab's tools, then Your EQ (the
+// bands and the selected band beside them), Preset (the presets to browse)
+// or Tone (the cuts and the three dials). `EqLayerTabs`, `EqPageView`.
+
+@use 'eqLayerTabs';
+@use 'eqPresetTab';
+@use 'eqToneTab';
+
+@media (prefers-reduced-motion: reduce) {
+  .eq-layer-tabs__tab,
+  .eq-preset-tab__group,
+  .eq-preset-tab__tile {
+    transition: none;
+  }
+}

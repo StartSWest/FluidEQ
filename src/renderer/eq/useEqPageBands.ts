@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  ReactElement,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -26,7 +25,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import {
   IFilter,
   IFilterEdit,
@@ -38,7 +36,7 @@ import { selectionModeFromEvent } from 'common/bandSelection';
 import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { labelledFilterOptions } from '../icons/FilterTypeIcon';
-import { useEqTitleSlot } from '../utils/eqTitleSlot';
+import { useIsEqGraphAbove } from '../utils/eqGraphAbove';
 import { useSmartEqRun, useSmartEqStatus } from '../utils/smartEqRun';
 import { useContinuousEq } from '../utils/continuousEq';
 import {
@@ -96,12 +94,9 @@ const useEqPageBands = () => {
   } = useFluidEqContext();
   const { t } = useTranslation();
   const filterOptions = useMemo(() => labelledFilterOptions(t), [t]);
-  // Above the graph while the graph stands between the title and the bands
-  // (`eqTitleSlot.ts`); here, above the bands, otherwise.
-  const titleSlot = useEqTitleSlot();
-  const isTitleInHead = titleSlot !== null;
-  const placeTitle = (title: ReactElement) =>
-    titleSlot ? createPortal(title, titleSlot) : title;
+  // The bands stand under the graph's points only while the graph is above
+  // them (`eqGraphAbove.ts`).
+  const isGraphAbove = useIsEqGraphAbove();
   /**
    * What Smart EQ is doing, read from where it is actually happening.
    *
@@ -417,8 +412,8 @@ const useEqPageBands = () => {
   /**
    * The bands in fixed places across the width of the graph above them
    * (layout A, Ivan 2026-09-25; `placeBandsEvenly`) — only while the graph
-   * stands directly above the row, which is exactly when the title has gone
-   * up above the graph (`titleSlot`). Measured against where the plot and the
+   * stands directly above the row (`isGraphAbove`). Measured against where
+   * the plot and the
    * row actually are; too many to fit, the row scrolls instead.
    *
    * Keyed on how many bands there are and nothing about them: a frequency
@@ -440,7 +435,7 @@ const useEqPageBands = () => {
   const [isPlaced, setIsPlaced] = useState(false);
   useLayoutEffect(() => {
     const bands = bandsElement;
-    if (!titleSlot || !bands || bandCount === 0) {
+    if (!isGraphAbove || !bands || bandCount === 0) {
       setIsPlaced(false);
       return undefined;
     }
@@ -481,7 +476,7 @@ const useEqPageBands = () => {
       stopHearing();
       observer.disconnect();
     };
-  }, [titleSlot, bandsElement, bandCount]);
+  }, [isGraphAbove, bandsElement, bandCount]);
   const [selectionBox, setSelectionBox] = useState<
     | { startX: number; startY: number; currentX: number; currentY: number }
     | undefined
@@ -653,8 +648,6 @@ const useEqPageBands = () => {
     bypassed,
     t,
     filterOptions,
-    isTitleInHead,
-    placeTitle,
     isBalancing,
     balanceStatus,
     isContinuousOn,

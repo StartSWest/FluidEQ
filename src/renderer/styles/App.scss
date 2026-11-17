@@ -2326,30 +2326,13 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   min-width: 0;
   padding: 0 12px 10px;
   gap: 0;
-
-  // The title row keeps the 10px the page's scroller put above it, and the
-  // width container the page's scroller gives it (`eq-panel`): the row
-  // stacks by that width (`MainContent.scss`), and up here it is the head's.
-  > .center-head__title {
-    container: eq-panel / inline-size;
-  }
-
-  > .center-head__title:not(:empty) {
-    padding-top: 10px;
-  }
 }
 
 // The Bands page's head is closer set (Ivan, 2026-09-27: "less gap so things
-// are more close vertically"): its title and tools stand 8px under the pills'
-// rule (the rule's own 4px, then this 4) and the graph's options 11px under
-// them (this 2px, then the strip's own 9px inside the plot), where the gaps
-// were 14 and 19.
+// are more close vertically"): the graph's options stand 11px under the
+// pills' rule (this 2px, then the strip's own 9px inside the plot).
 .center-head--eq {
   padding-bottom: 2px;
-
-  > .center-head__title:not(:empty) {
-    padding-top: 4px;
-  }
 }
 
 .right-content {
@@ -3025,7 +3008,7 @@ $graph-card-pages: list.join(
   min-height: 0;
   gap: 10px;
 
-  .workspace-tab-panel__scroll > .main-content-title {
+  .workspace-tab-panel__scroll > .eq-layer-tabs {
     flex: 0 0 auto;
   }
 

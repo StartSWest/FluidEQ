@@ -1,0 +1,268 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+
+// *** Preset: the groups, the presets of one, and what one does ****************
+
+.eq-preset-tab {
+  display: grid;
+  min-width: 0;
+  padding-bottom: 12px;
+  grid-template-columns: 176px minmax(0, 1fr) minmax(240px, 290px);
+  align-items: start;
+  gap: 18px;
+}
+
+.eq-preset-tab--game {
+  display: flex;
+  justify-content: center;
+  padding-top: 24px;
+}
+
+.eq-preset-tab__groups {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eq-preset-tab__group {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  box-shadow: inset 2px 0 0 transparent;
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    color: $text-primary;
+    background: color-mix(in srgb, $edge-tint 5%, transparent);
+  }
+
+  &[aria-pressed='true'] {
+    color: $white;
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+    box-shadow: inset 2px 0 0 $secondary-default;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.eq-preset-tab__count {
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-regular;
+}
+
+.eq-preset-tab__list {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eq-preset-tab__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: $text-muted;
+  font-size: $text-small;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+}
+
+.eq-preset-tab__grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  gap: 8px;
+}
+
+// A preset: its glyph, its name and what it does, the one playing on the
+// accent's tint with the accent round it.
+.eq-preset-tab__tile {
+  display: flex;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  color: $text-primary;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, $edge-tint 26%, transparent);
+    background: color-mix(in srgb, $edge-tint 5%, transparent);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $secondary-default;
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+    strong {
+      color: $secondary-light;
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: $disabled-opacity;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.eq-preset-tab__glyph {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.eq-preset-tab__words {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  line-height: 1.25;
+
+  strong {
+    @include truncate;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    @include truncate;
+    color: $text-muted;
+    font-size: $text-small;
+  }
+}
+
+.eq-preset-tab__empty {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+// What the pointed-at preset does, or the one playing: its notes where it
+// has them (`GenreNotesPreview`), its name and line otherwise, and the
+// rack's stages as chips.
+.eq-preset-tab__detail {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+  padding-left: 18px;
+  border-left: 1px solid $border-subtle;
+}
+
+.eq-preset-tab__about {
+  display: grid;
+  gap: 4px;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-title;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.45;
+  }
+}
+
+.eq-preset-tab__stages {
+  display: grid;
+  gap: 7px;
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    padding: 3px 8px;
+    color: $text-muted;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-xs;
+    font-size: $text-small;
+  }
+}
+
+.eq-preset-tab__eyebrow {
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+}
+
+// A narrow page: what a preset does goes under the grid.
+@container eq-panel (max-width: #{$bp-lg}) {
+  .eq-preset-tab {
+    grid-template-columns: 150px minmax(0, 1fr);
+  }
+
+  .eq-preset-tab__detail {
+    padding-top: 14px;
+    padding-left: 0;
+    grid-column: 1 / -1;
+    border-top: 1px solid $border-subtle;
+    border-left: 0;
+  }
+}
+
+// Narrower still, the groups run as a row over the grid.
+@container eq-panel (max-width: #{$bp-md}) {
+  .eq-preset-tab {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .eq-preset-tab__groups {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .eq-preset-tab__group {
+    box-shadow: none;
+  }
+}

@@ -1,0 +1,60 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+
+// *** Tone: the cuts and the three dials across the tab ************************
+
+.eq-tone-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 0 12px;
+}
+
+// The five dials on one line at the tab's middle, larger than they stood in
+// the editor's row: they are the whole of this tab.
+.eq-tone-tab .eq-flat-editor.eq-flat-editor--tone {
+  width: fit-content;
+  margin: 0;
+  justify-self: center;
+  grid-template-columns: repeat(5, minmax(96px, max-content));
+  gap: 28px;
+  --dial-size: 84px;
+}
+
+.eq-tone-tab__note {
+  display: flex;
+  max-width: 640px;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// The Tone line's own colour (`ColorEnum.TONE`, `.graph-legend--tone`).
+.eq-tone-tab__swatch {
+  width: 14px;
+  height: 2px;
+  flex: none;
+  border-radius: 1px;
+  background: #ddff1a;
+}
+
+@container eq-panel (max-width: #{$bp-md}) {
+  .eq-tone-tab .eq-flat-editor.eq-flat-editor--tone {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    --dial-size: 60px;
+  }
+}

@@ -1,0 +1,337 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+
+// *** The tab row ************************************************************
+
+.eq-layer-tabs {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 4px 10px;
+  border-bottom: 1px solid $border-subtle;
+
+  > .title-rate {
+    align-self: center;
+  }
+}
+
+.eq-layer-tabs__list {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  gap: 4px;
+}
+
+// A tab: its glyph, its name and what it holds now, on the row's rule with
+// the accent under the open one, as the header's places are marked.
+.eq-layer-tabs__tab {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  color: $text-muted;
+  border: 0;
+  background: none;
+  box-shadow: inset 0 -2px 0 transparent;
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &[aria-selected='true'] {
+    color: $white;
+    box-shadow: inset 0 -2px 0 $secondary-default;
+
+    .eq-layer-tabs__icon {
+      color: $secondary-light;
+    }
+
+    .eq-layer-tabs__meta {
+      color: $secondary-light;
+      background: color-mix(in srgb, $secondary-default 16%, transparent);
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.eq-layer-tabs__icon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+// What the tab holds now: the band count, the preset's name, On or Off.
+.eq-layer-tabs__meta {
+  @include truncate;
+  max-width: 140px;
+  padding: 1px 6px;
+  color: $text-muted;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $edge-tint 8%, transparent);
+  font-size: $text-small;
+
+  &.is-off {
+    color: $text-faint;
+  }
+}
+
+// The open tab's tools and Clear EQ, at the row's end, with the faces they
+// had in the title row above the graph they stood in before.
+.eq-layer-tabs__tools {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 10px;
+  margin-inline-start: auto;
+  padding-block: 4px;
+
+  .eq-mode-trigger {
+    min-height: $control-height-sm;
+    padding-block: 0;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.eq-layer-tabs__rule {
+  width: 1px;
+  height: 18px;
+  background: $border-subtle;
+}
+
+// The Preset tab's search, a field of the toolbar's height.
+.eq-preset-search {
+  display: flex;
+  width: 220px;
+  height: $control-height-sm;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: $surface-control;
+
+  input {
+    min-width: 0;
+    flex: 1 1 auto;
+    color: $text-primary;
+    border: 0;
+    outline: none;
+    background: none;
+    font: inherit;
+    font-size: $text-body;
+  }
+
+  &:focus-within {
+    @include focus-ring;
+  }
+}
+
+// Short of a wide page: the tools keep their glyphs and drop their words, as
+// they did above the graph, each still named for a screen reader and a
+// tooltip; the two that are only a glyph then are square. With their words,
+// the Your EQ tab's tools wrapped under the tabs on a 1280px window and took
+// a line from the bands.
+@container eq-panel (max-width: #{$bp-xl}) {
+  .eq-layer-tabs__tools {
+    .eq-toolbar__word {
+      @include words-hidden;
+    }
+
+    .clear-eq-trigger,
+    .eq-toolbar__add {
+      justify-content: center;
+      width: $control-height-sm;
+      padding-inline: 0;
+    }
+
+    // The plus leans on the band count before it, as one "15 bands, +".
+    .quick-layouts + .eq-toolbar__add {
+      margin-inline-start: -4px;
+    }
+  }
+}
+
+@container eq-panel (max-width: #{$bp-lg}) {
+  .eq-preset-search {
+    width: 160px;
+  }
+}
+
+// Narrower still, the tabs keep their names and give up what they hold.
+@container eq-panel (max-width: #{$bp-md}) {
+  .eq-layer-tabs__meta {
+    display: none;
+  }
+
+  .eq-layer-tabs__tab {
+    padding-inline: 10px;
+  }
+}
+
+// *** Your EQ: the bands, and the selected band beside them ********************
+
+// The editor takes a column of its own at the rail's right, the rail's
+// height; the hairline that parted the rail from the editor's row goes with
+// the row.
+.workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content {
+  grid-template-columns: 20px minmax(0, 1fr) minmax(250px, 300px);
+  grid-template-rows: minmax(186px, 378px);
+
+  &::before {
+    display: none;
+  }
+
+  > .eq-flat-editor {
+    grid-row: 1;
+    grid-column: 3;
+  }
+}
+
+.eq-flat-editor.eq-flat-editor--column {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 4px 0 4px 16px;
+  align-self: stretch;
+  align-content: start;
+  justify-self: stretch;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    'identity identity identity'
+    'filter filter active'
+    'frequency gain quality'
+    'delete delete delete';
+  gap: 14px 8px;
+  border-left: 1px solid $border-subtle;
+  --dial-size: 56px;
+
+  > .eq-flat-editor__identity {
+    grid-area: identity;
+    grid-template-rows: 14px auto;
+
+    strong {
+      height: auto;
+    }
+  }
+
+  > .eq-flat-editor__control--filter {
+    grid-area: filter;
+  }
+
+  > .eq-flat-editor__control--active {
+    grid-area: active;
+  }
+
+  > .eq-flat-editor__control--filter,
+  > .eq-flat-editor__control--active {
+    grid-template-rows: 14px auto;
+  }
+
+  > .eq-flat-editor__control--frequency {
+    grid-area: frequency;
+  }
+
+  > .eq-flat-editor__control--gain {
+    grid-area: gain;
+  }
+
+  > .eq-flat-editor__control--quality {
+    grid-area: quality;
+  }
+
+  > .eq-flat-editor__delete-cell {
+    justify-content: flex-end;
+    margin-top: 0;
+    grid-area: delete;
+  }
+
+  // Nothing selected: the column says how to fill it, on its middle.
+  &.is-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.eq-flat-editor__empty {
+  max-width: 220px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+  text-align: center;
+}
+
+// A narrow page: the editor goes under the bands again, one line of its
+// controls in the order they read across, the band's name first.
+@container eq-panel (max-width: #{$bp-lg}) {
+  .workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content {
+    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-rows: minmax(186px, 378px) auto;
+
+    > .eq-flat-editor {
+      grid-row: 2;
+      grid-column: 1 / -1;
+    }
+  }
+
+  .eq-flat-editor.eq-flat-editor--column {
+    padding: 10px 0 0;
+    grid-template-columns:
+      minmax(90px, max-content) minmax(140px, 1fr)
+      repeat(3, minmax(60px, max-content)) minmax(52px, max-content)
+      $control-height;
+    grid-template-areas: 'identity filter frequency gain quality active delete';
+    border-top: 1px solid $border-subtle;
+    border-left: 0;
+
+    > .eq-flat-editor__delete-cell {
+      align-self: center;
+    }
+
+    &.is-empty {
+      min-height: 64px;
+    }
+  }
+}
+
+@container eq-panel (max-width: #{$bp-md}) {
+  .eq-flat-editor.eq-flat-editor--column {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas:
+      'identity identity identity identity'
+      'filter filter filter active'
+      'frequency gain quality delete';
+  }
+}

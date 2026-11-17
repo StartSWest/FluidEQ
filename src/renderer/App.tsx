@@ -75,7 +75,7 @@ import useCaptureBridge from './audio/useCaptureBridge';
 import usePageMark from './utils/usePageMark';
 import { useNoticeClaim } from './utils/noticeTurn';
 import { shortWindowPaneKey, belowGraphPaneKey } from './utils/paneSizes';
-import { EqTitleSlotContext } from './utils/eqTitleSlot';
+import { EqGraphAboveContext } from './utils/eqGraphAbove';
 import useWorkspaceAxis from './utils/workspaceAxis';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import eqReachesSound from './utils/eqReachesSound';
@@ -341,7 +341,6 @@ const AppContent = () => {
   const isGraphOverlay = isGraphFullScreen;
   const isGraphFirst =
     activeWorkspaceTab === 'eq' && showsGraph && !isGraphOverlay;
-  const [eqTitleSlot, setEqTitleSlot] = useState<HTMLElement | null>(null);
   const eqGroupPills = (
     <EqGroupPills
       activeTab={activeWorkspaceTab}
@@ -725,8 +724,8 @@ const AppContent = () => {
           }}
         >
           {/* The EQ page's head, above its graph (`isGraphFirst`): the
-              section pills, and a slot the Bands page's title row is
-              portalled into. First in the column's DOM as well as on screen,
+              section pills; the page's own tools are in its tab row under
+              the graph (`EqLayerTabs`). First in the column's DOM as well as on screen,
               so the keyboard reaches it before the page. The graph and the
               page are put in order by the stylesheet rather than by moving
               them here — reordering the page's element moves every panel kept
@@ -744,12 +743,9 @@ const AppContent = () => {
               }`}
             >
               {eqGroupPills}
-              <div className="center-head__title" ref={setEqTitleSlot} />
             </div>
           )}
-          <EqTitleSlotContext.Provider
-            value={isGraphFirst ? eqTitleSlot : null}
-          >
+          <EqGraphAboveContext.Provider value={isGraphFirst}>
             <MiddleContent
               paneKey={paneKey}
               isSized={showsGraph && !isGraphFullScreen}
@@ -806,7 +802,7 @@ const AppContent = () => {
                 curve changes: a preset, its chip, the EQ mode menu. */}
               <PresetToneFeed />
             </MiddleContent>
-          </EqTitleSlotContext.Provider>
+          </EqGraphAboveContext.Provider>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing
               above the graph, so there is nothing to divide. */}

@@ -27,95 +27,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Panel heading and toolbar **********************************************
 
-// One row, read across (Ivan, 2026-09-27: "Parametric EQ title back on the
-// left of the EQ toolbar row"): the page's name and its output's rate on the
-// left, its tools against the right edge, the path's delay and Game mode
-// among them. The applied layers are the "Curves" dropdown at the end of the
-// section pills' line (`CurvesPicker`), so the row that listed them, and the
-// second row the delay stood on, are gone and the graph has their height.
-//
-// A flex line that wraps, not a grid with a breakpoint: where the tools do
-// not fit beside the name they take the next line, still against the right
-// edge, at whatever width the language gives them. The breakpoint it replaces
-// (990px, "the Spanish tools are the widest") was a guess at those widths.
-//
-// No surface and no inner padding: the page's own 12px inset is the one every
-// tab's heading keeps.
-.main-content-title {
-  display: flex;
-  flex-wrap: wrap;
-  min-width: 0;
-  align-items: center;
-  gap: 8px 24px;
-  margin: 0;
-  padding: 0;
-
-  > div:first-child {
-    position: relative;
-    min-width: 0;
-    margin-inline-end: auto;
-  }
-
-  > .eq-toolbar {
-    flex: 0 1 auto;
-    justify-content: flex-end;
-    margin-inline-start: auto;
-  }
-
-  // Matches the intro `h2` sizing on every other tab (Presets, Voicing,
-  // Convolution, Karaoke), so switching tabs does not resize the page title.
-  h2 {
-    margin: 1px 0 4px;
-    font-size: 1.22rem;
-  }
-}
-
-// The heading: the page's name and the output's rate.
-.main-content-title__heading {
-  display: flex;
-  align-items: center;
-  margin: 1px 0 4px;
-
-  > h2 {
-    margin: 0;
-
-    // The output's rate, on the title's baseline as on the DSP page, and
-    // never parted from its unit when the title wraps.
-    > .title-rate {
-      margin-inline-start: 8px;
-    }
-  }
-}
-
-// Above the graph (`is-in-head`) the row is the head's second line: no
-// eyebrow, the name on the tools' middle, and the words gone where a glyph
-// already says it — Clear, Add band, "EQ mode" — so the name and the tools
-// share one line in a window with its side panel open. Each keeps its name
-// for a screen reader, and a tooltip.
-.main-content-title.is-in-head {
-  .main-content-title__heading,
-  h2 {
-    margin: 0;
-  }
-
-  .eq-toolbar__word {
-    @include words-hidden;
-  }
-
-  // Square, the glyph centred: the two that are only a glyph here.
-  .clear-eq-trigger,
-  .eq-toolbar__add {
-    justify-content: center;
-    width: $control-height-sm;
-    padding-inline: 0;
-  }
-
-  // The plus leans on the band count before it, as one "15 bands, +".
-  .quick-layouts + .eq-toolbar__add {
-    margin-inline-start: -4px;
-  }
-}
-
 // Game mode and the path's delay, on the section pills' line after the
 // engine's name (`App.tsx`, Ivan 2026-09-27: "put game engine next to fluid
 // engine on the top menu right"): its glyph, its switch and the figure, the
@@ -439,30 +350,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   gap: 7px;
-}
-
-// A little more air between the buttons than inside the quick-layout cluster,
-// so the row reads as groups of related controls rather than eleven equals.
-.main-content-title > .eq-toolbar {
-  row-gap: 8px;
-  column-gap: 10px;
-
-  // The EQ mode's trigger is a field (`choice-surface`), and fields are
-  // `$control-height` — 38px between buttons 32px tall, the one thing in the
-  // row standing proud of it (Ivan, 2026-09-25: "this button is taller now").
-  // Here it is a button among buttons, and takes their height.
-  .eq-mode-trigger {
-    min-height: $control-height-sm;
-    padding-block: 0;
-  }
-
-  // Icon and label are one control. Every button in this row is a verb, and a
-  // glyph makes it findable without reading four words in a row.
-  .button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
 }
 
 .eq-toolbar__icon {

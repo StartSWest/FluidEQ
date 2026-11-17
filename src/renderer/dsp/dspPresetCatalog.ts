@@ -111,14 +111,16 @@ export const dspPresetCatalog = (t: Translate): IDspCatalogEntry[] =>
   catalogOf(t, readUserDspPresets());
 
 /**
- * What a chain does, in the names of its stages. Its tone counts as EQ
- * wherever it plays: a preset whose curve moved to the main EQ still shapes
- * the sound with one, and the list saying otherwise would be wrong about it.
+ * What a chain does, in the names of its stages, in rack order: the EQ
+ * page's Preset tab shows them as chips, a picker's row joins them into its
+ * hint. Its tone counts as EQ wherever it plays: a preset whose curve moved
+ * to the main EQ still shapes the sound with one, and the list saying
+ * otherwise would be wrong about it.
  */
-export const dspPresetHint = (
+export const dspPresetStages = (
   { settings, curve }: Pick<IDspCatalogEntry, 'settings' | 'curve'>,
   t: Translate,
-): string =>
+): string[] =>
   [
     settings.normalizer.mode !== 'off' ? t('dsp.normalizer.title') : '',
     settings.denoise.enabled ? t('dsp.denoise.title') : '',
@@ -132,9 +134,12 @@ export const dspPresetHint = (
     settings.dimension.enabled ? t('dsp.dimension.title') : '',
     settings.maximizer.enabled ? t('dsp.maximizer.title') : '',
     settings.master.enabled ? t('dsp.master.title') : '',
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  ].filter(Boolean);
+
+export const dspPresetHint = (
+  entry: Pick<IDspCatalogEntry, 'settings' | 'curve'>,
+  t: Translate,
+): string => dspPresetStages(entry, t).join(' · ');
 
 /**
  * The line under a chain in a preset list. A genre's says what the genre is,
