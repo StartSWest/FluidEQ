@@ -73,8 +73,8 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   --rail-settle: #{$motion-base};
 
   // The page's card, where the Library's own stands: the panel keeps the
-  // 8px under the titlebar and the 10px at the sides that every page card
-  // keeps (`$section-card-pages`), and this is the one surface inside it.
+  // 8px under the titlebar and out to the column's sides, as every page card
+  // stands (`$section-card-pages`), and this is the one surface inside it.
   @include section-card;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);

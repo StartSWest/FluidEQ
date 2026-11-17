@@ -2673,9 +2673,15 @@ $graph-card-pages: list.join(
   $separator: comma
 );
 
+// Out to the column's sides on every page, as the EQ page's card already
+// stood (Ivan, 2026-11-17: "fix all the pages, the EQ one is right; on the
+// others the left is pushed in a bit more, more padding against the
+// engine's side"): 10px in from both sides, every other page's card began
+// 10px further from the left column than the EQ's, and changing page moved
+// the card's edge.
 #{$section-card-pages} {
   @include section-card;
-  margin: 0 10px 10px;
+  margin: 0 0 10px;
 
   // At the head of the column, with no graph above it, the card stands 8px
   // under the titlebar, the gutter the sound panel keeps between its cards:
@@ -2684,16 +2690,6 @@ $graph-card-pages: list.join(
   .center-workspace:not(.is-graph-first) > .middle-content > & {
     margin-top: 8px;
   }
-}
-
-// The EQ page's card out to the column's sides with the graph switched off
-// as well as on (fac6ae87b put it there under the graph): 10px in from both
-// sides it was 20px narrower, and the bands, which share the card's width
-// (`bandPlacement.ts`), moved and stretched every time the graph was
-// switched (Ivan, 2026-11-16: "I notice when I toggle the graph on and off
-// they stretch").
-.center-workspace > .middle-content > .workspace-tab-panel--eq {
-  margin-inline: 0;
 }
 
 // Between a section card and the graph the divider is a strip of floor, its
@@ -2975,7 +2971,8 @@ $graph-card-pages: list.join(
   > .graph-wrapper {
   @include section-card;
   width: auto;
-  margin: 0 10px 10px;
+  // Out to the column's sides with the page's card above it (2026-11-17).
+  margin: 0 0 10px;
 }
 
 // The five EQ pages start with the section rail, and it sits on the card's own
@@ -3222,10 +3219,12 @@ $graph-card-pages: list.join(
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  // Their cards where every page's card stands: 8px under the titlebar and
-  // 10px in from the column's sides and foot, so the graph's card under them
-  // (`$graph-card-pages`) lines up with their edges.
-  padding: 8px 10px 10px;
+  // Their cards where every page's card stands: 8px under the titlebar,
+  // out to the column's sides and 10px over its foot, so the graph's card
+  // under them (`$graph-card-pages`) lines up with their edges. 10px in at
+  // the sides, the Gallery stood further from the engine's column than every
+  // other page (Ivan, 2026-11-17).
+  padding: 8px 0 10px;
   // No room kept for a scrollbar: the panel never scrolls, and the 8px the
   // shared rule keeps for one stood the cards that much further from the
   // column's right edge than from its left, and short of the graph's card.
