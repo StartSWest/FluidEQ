@@ -68,31 +68,9 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .engine-dialog__radio {
-  position: relative;
-  width: 18px;
-  height: 18px;
-  margin-top: 1px;
-  border: 1.5px solid color-mix(in srgb, $edge-tint 42%, transparent);
-  border-radius: 50%;
-  transition: border-color $motion-fast $ease-out;
-
-  &::after {
-    position: absolute;
-    inset: 3px;
-    border-radius: 50%;
-    background: $secondary-default;
-    content: '';
-    transform: scale(0);
-    transition: transform $motion-fast $ease-spring;
-  }
-
-  [aria-checked='true'] > & {
-    border-color: $secondary-light;
-
-    &::after {
-      transform: scale(1);
-    }
-  }
+  margin-top: 3px;
+  // The app's radio (`radio-mark`).
+  @include radio-mark("[aria-checked='true'] > &");
 }
 
 .engine-dialog__option-body {

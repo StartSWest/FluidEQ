@@ -98,13 +98,13 @@ $switch-height: 22px;
   height: 0;
   opacity: 0;
 
-  &:focus-visible + .switch-label {
-    border-color: $secondary-light;
-    @include focus-ring;
-  }
-
+  // On: the lit tint over the well, the lit edge, the block in the solid
+  // accent - the control set's lit face with its value mark. It was only the
+  // block and the edge that changed, over the same grey well, so on and off
+  // were told apart mostly by where the block stood.
   &:checked + .switch-label {
-    border-color: $secondary-default;
+    border-color: $edge-lit;
+    background: linear-gradient($fill-lit, $fill-lit), $track-well;
 
     .switch-button {
       // The inner width less the block and its 2px of air: half the track.
@@ -114,7 +114,7 @@ $switch-height: 22px;
   }
 
   &:not(:disabled) + .switch-label:hover {
-    border-color: $border-field-hover;
+    border-color: $edge-hover;
 
     .switch-button {
       background: $text-primary;
@@ -122,20 +122,20 @@ $switch-height: 22px;
   }
 
   &:checked:not(:disabled) + .switch-label:hover {
-    border-color: $secondary-light;
+    border-color: $edge-lit;
 
     .switch-button {
       background: $secondary-light;
     }
   }
 
+  // Unavailable: the same switch at half light (`control-disabled`).
   &:disabled + .switch-label {
-    border-color: $border-subtle;
-    cursor: default;
-    opacity: 0.6;
+    @include control-disabled;
+  }
 
-    .switch-button {
-      background: color-mix(in srgb, $edge-tint 18%, transparent);
-    }
+  // Last, so focus wins over every state above.
+  &:focus-visible + .switch-label {
+    @include focus-ring;
   }
 }

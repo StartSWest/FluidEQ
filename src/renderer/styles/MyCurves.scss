@@ -241,14 +241,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   border-radius: $radius-m;
   cursor: pointer;
 
+  // Chosen: the lit edge and the hover tint, a card picked rather than a
+  // button pressed.
   &.is-selected {
-    border-color: $secondary-default;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    border-color: $edge-lit;
+    background: $fill-hover;
   }
 
   input {
     margin: 3px 0 0;
-    accent-color: $secondary-default;
   }
 }
 

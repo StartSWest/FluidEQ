@@ -794,15 +794,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .gaming-pick__radio {
-  flex: 0 0 auto;
-  width: 15px;
-  height: 15px;
-  border: 1.5px solid $text-dim;
-  border-radius: $radius-pill;
-
-  .is-chosen > & {
-    border: 4.5px solid $secondary-default;
-  }
+  // The app's radio (`radio-mark`).
+  @include radio-mark('.is-chosen > &');
 }
 
 // Beside the game's name, as two lines of its own — "Starts from" over the

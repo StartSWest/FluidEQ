@@ -224,6 +224,12 @@ button {
   @include checkbox-face;
 }
 
+// And every radio the one radio (`radio-face`): they were the browser's own,
+// coloured with `accent-color`.
+:where(input[type='radio']) {
+  @include radio-face;
+}
+
 // Boxes you type into take no hover at all — see `field-static` in
 // _theme.scss for why, and why nothing may add one back.
 input:where(:not([type='range'], [type='checkbox'], [type='radio'])),

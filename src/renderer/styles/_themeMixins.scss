@@ -458,7 +458,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover:not(:disabled) {
-    border-color: $secondary-light;
+    border-color: $edge-hover;
   }
 
   &:checked {
@@ -471,7 +471,91 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:disabled {
-    cursor: default;
+    @include control-disabled;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// The radio drawn on a span, for a choice whose real control is a row: the
+// same face, chosen when `$on` (a selector naming the row's state) holds.
+@mixin radio-mark($on) {
+  display: grid;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  border: 1px solid $edge-rest;
+  border-radius: 50%;
+  background: $track-well;
+  transition: $transition-control;
+
+  &::after {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $secondary-default;
+    opacity: 0;
+    content: '';
+  }
+
+  #{$on} {
+    border-color: $edge-lit;
+    background: linear-gradient($fill-lit, $fill-lit), $track-well;
+
+    &::after {
+      opacity: 1;
+    }
+  }
+}
+
+// THE ONE RADIO: the checkbox's 14px, round, on the same well and edge;
+// chosen, the lit edge and tint round a dot in the solid accent. Three
+// dialogs drew their own (15, 18 and 18px, in three edges).
+@mixin radio-face {
+  $size: 14px;
+  $centre: calc((1lh - #{$size}) / 2);
+
+  display: inline-grid;
+  width: $size;
+  height: $size;
+  margin: calc(#{$centre} + 0.08em) 0 calc(#{$centre} - 0.08em);
+  flex: 0 0 auto;
+  align-self: flex-start;
+  place-items: center;
+  appearance: none;
+  border: 1px solid $edge-rest;
+  border-radius: 50%;
+  background: $track-well;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &::after {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $secondary-default;
+    opacity: 0;
+    content: '';
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $edge-hover;
+  }
+
+  &:checked {
+    border-color: $edge-lit;
+    background: linear-gradient($fill-lit, $fill-lit), $track-well;
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  &:disabled {
+    @include control-disabled;
   }
 
   &:focus-visible {

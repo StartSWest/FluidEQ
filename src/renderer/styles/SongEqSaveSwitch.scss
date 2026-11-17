@@ -59,12 +59,13 @@ $song-eq-status-line: 12px;
   grid-template-columns: $song-eq-lead minmax(0, 1fr);
   grid-template-rows: $song-eq-label-line $song-eq-status-line;
 
+  // The line button's hover (`_buttonFaces.scss`).
   &:hover {
-    border-color: $border-field-hover;
-    background: $surface-control-hover;
+    border-color: $edge-hover;
+    background: $fill-hover;
 
     .song-eq-save__label {
-      color: $white;
+      color: $text-primary;
     }
   }
 
@@ -83,12 +84,13 @@ $song-eq-status-line: 12px;
   display: contents;
 }
 
-// Labelled like every other choice in the row: the quiet face's cyan, bold.
+// Labelled like every other control in the row: the line face's ink,
+// semibold.
 .song-eq-save__label {
-  color: $secondary-light;
+  color: $text-muted;
   // The small button's own size, so the label sits level with "Target".
   font-size: $text-body;
-  font-weight: $weight-bold;
+  font-weight: $weight-semibold;
   line-height: $song-eq-label-line;
   white-space: nowrap;
   cursor: pointer;
@@ -124,12 +126,11 @@ $song-eq-status-line: 12px;
   width: 132px;
 }
 
+// On: the switch inside says so; the chip keeps the line face, its words up
+// to the text's own ink.
 .song-eq-save.is-on {
-  border-color: $border-field-hover;
-  background: $surface-control-press;
-
   .song-eq-save__label {
-    color: $white;
+    color: $text-primary;
   }
 
   .song-eq-save__status {
@@ -137,10 +138,10 @@ $song-eq-status-line: 12px;
   }
 }
 
-// Lit, flat: the border and the fill go to the bright cyan and nothing glows.
+// About to keep the song's sound: the lit face (`button-face-lit`).
 .song-eq-save.is-will-save {
-  border-color: color-mix(in srgb, $secondary-light 55%, transparent);
-  background: color-mix(in srgb, $secondary-default 18%, transparent);
+  border-color: $edge-lit;
+  background: $fill-lit;
 
   .song-eq-save__fill {
     background: $secondary-light;

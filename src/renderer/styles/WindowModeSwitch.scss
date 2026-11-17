@@ -25,11 +25,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   width: 58px;
   height: 26px;
   padding: 2px;
-  // The toggles' well and edge (`Switch.scss`), flat: it was a recessed
-  // gradient with an inner shadow (Ivan, 2026-11-15: "flat look").
-  border: 1px solid $border-subtle;
+  // A segmented pair of glyphs (2026-11-17, the one control theme): the
+  // segmented track's edge and no fill, the chosen side lit as a chosen
+  // segment is. It was a well with a grey edge and a slider filled solid
+  // with the accent, a face no other control had.
+  border: 1px solid $edge-rest;
   border-radius: $radius-xs;
-  background: $track-well;
+  background: none;
   box-shadow: none;
   color: $text-faint;
   cursor: pointer;
@@ -46,9 +48,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
     left: 2px;
     width: calc(50% - 2px);
     border-radius: $radius-2xs;
-    // One flat accent, as the toggle's lit knob: no gradient, no glow.
-    background: $secondary-default;
-    box-shadow: none;
+    // The chosen segment's face (`button-face-lit`, inset).
+    background: $fill-lit;
+    box-shadow: inset 0 0 0 1px $edge-lit;
     content: '';
     transition: transform 260ms cubic-bezier(0.3, 1.4, 0.5, 1);
   }
@@ -58,7 +60,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &:hover {
-    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    border-color: $edge-hover;
   }
 
   &:focus-visible {
@@ -82,10 +84,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// The side under the lit slider takes the dark ink the filled buttons use.
+// The side under the lit slider takes the lit face's ink.
 .window-mode-switch:not(.is-player) .window-mode-switch__side--app,
 .window-mode-switch.is-player .window-mode-switch__side--player {
-  color: $surface-base;
+  color: $secondary-light;
 }
 
 @media (prefers-reduced-motion: reduce) {

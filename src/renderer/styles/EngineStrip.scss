@@ -66,9 +66,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // figures, so a delay counting up does not shove the capsule's edge.
   .game-mode-switch__label,
   .latency-readout__name {
-    color: $secondary-light;
+    color: $text-muted;
     font-size: $text-body;
-    font-weight: $weight-bold;
+    font-weight: $weight-semibold;
   }
 
   .game-mode-switch__icon {
@@ -85,12 +85,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
     font-variant-numeric: tabular-nums;
   }
 
-  // Under the pointer, each half as a quiet button is: the label goes white.
+  // Under the pointer, each half as a line button is: the words come up.
   > .game-mode-switch:hover,
   > .latency-readout:hover:not(:disabled) {
     .game-mode-switch__label,
     .latency-readout__value {
-      color: $white;
+      color: $text-primary;
     }
   }
 
@@ -105,9 +105,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
     border-left: 1px solid $border-field;
     border-radius: 0 $radius-xs $radius-xs 0;
 
-    &:hover:not(:disabled),
+    &:hover:not(:disabled) {
+      background: $fill-hover;
+    }
+
     &[aria-expanded='true'] {
-      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      background: $fill-lit;
     }
   }
 

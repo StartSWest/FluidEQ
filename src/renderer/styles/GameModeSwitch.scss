@@ -1,22 +1,21 @@
 @use 'color' as *;
 @use 'theme' as *;
 
+// A switch and its name, with no box round them (2026-11-17, the one
+// control theme): it stood in a field's frame of its own, lit when on, so
+// the switch's edge sat inside a second edge. The switch says on.
 .game-mode-switch {
-  @include field-interactive;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
   gap: 10px;
-  padding: 4px 8px 4px 10px;
-  border-radius: $radius-xs;
+  padding: 4px 0;
   color: $text-muted;
   font-size: $text-small;
   font-weight: $weight-semibold;
 
   &.is-on {
-    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
-    background: color-mix(in srgb, $secondary-default 9%, transparent);
-    color: $secondary-default;
+    color: $text-primary;
   }
 
   &__label {

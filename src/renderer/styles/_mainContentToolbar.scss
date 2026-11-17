@@ -478,16 +478,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   white-space: nowrap;
   cursor: pointer;
 
+  // The app's checkbox (`checkbox-face`, from the global base): it was a
+  // native 13px box in the accent's colour.
   input {
-    width: 13px;
-    height: 13px;
     margin: 0;
-    accent-color: $secondary-default;
-    cursor: pointer;
   }
 
   &:hover {
-    color: rgba($white, 0.9);
+    color: $text-primary;
   }
 
   span {

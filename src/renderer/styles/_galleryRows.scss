@@ -370,37 +370,8 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .gallery-report-dialog__radio {
-  display: grid;
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  box-sizing: border-box;
-  place-items: center;
-  border: 1.6px solid color-mix(in srgb, $secondary-light 45%, transparent);
-  border-radius: 50%;
-  transition: $transition-control;
-
-  &::after {
-    content: '';
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: $secondary-default;
-    opacity: 0;
-    transform: scale(0.4);
-    transition:
-      opacity $motion-fast $ease-out,
-      transform $motion-fast $ease-out;
-  }
-
-  :checked ~ & {
-    border-color: $secondary-default;
-
-    &::after {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
+  // The app's radio (`radio-mark`).
+  @include radio-mark(':checked ~ &');
 }
 
 // The review pane's decision (`ReviewDecision`): its reasons, bordered each.
@@ -424,7 +395,6 @@ it under the terms of the GNU General Public License version 3 or later.
   input {
     flex: 0 0 auto;
     margin: 0;
-    accent-color: $secondary-default;
   }
 
   &:hover {
