@@ -305,15 +305,16 @@
   grid-template-columns: 13px minmax(0, 1fr) auto;
   // As far from the last command as one group of commands is from the next.
   margin-top: 8px;
-  // 10px in from the left, like a row's glyph above the tray.
-  padding: 3px 6px 3px 10px;
+  // Its 13px glyphs centred on the commands' 16px ones above (measured: at
+  // 10px they stood 4px left of that line, which the well's edge used to
+  // hide).
+  padding: 3px 6px 3px 14px;
+  // On the menu's own face, no well under it (Ivan, 2026-11-17: "remove the
+  // dark bg on it"): the menu is 98% opaque now, so nothing reads through,
+  // and the two columns already part the settings from the commands. The
+  // recessed tray put a darker box round the look's column and again under
+  // Animations and Language.
   border-radius: $radius-s;
-  // Solid: the menu itself is glass, and a tray of settings read through it
-  // is a tray of settings with the graph's numbers under the names.
-  background: color-mix(in srgb, $surface-well 60%, $surface-menu);
-  box-shadow:
-    inset 0 1px 3px rgba($black, 0.22),
-    inset 0 0 0 1px rgba($edge-tint, 0.06);
 }
 
 // Each picker is one row of the tray's grid rather than a box inside it.
