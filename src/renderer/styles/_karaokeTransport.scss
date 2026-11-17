@@ -471,8 +471,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-transport input[type='range'],
 .karaoke-transport__mix-popover input[type='range'] {
-  // The one slider (`toggle-knob-slider`), on the transport's floor.
-  @include toggle-knob-slider(var(--karaoke-range-progress), $surface-base);
+  // The one slider (`toggle-knob-slider`).
+  @include toggle-knob-slider(var(--karaoke-range-progress));
   width: 100%;
 }
 

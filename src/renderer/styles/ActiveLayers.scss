@@ -317,22 +317,10 @@ button.active-layer__body {
 // Painted from `--fill` for the same reason the panel's slider is: a range input
 // gives no way to style the two halves of its track apart.
 //
-// The app's one slider (`toggle-knob-slider`), drawn chip-sized: a 4px line
-// and an 8 by 12 knob, so the chip stays the height of every other one.
+// The app's one slider (`toggle-knob-slider`) at its small size, so the
+// chip stays the height of every other one.
 .active-layer__strength {
-  @include toggle-knob-slider(var(--fill, 100%));
+  @include toggle-knob-slider(var(--fill, 100%), small);
   width: 58px;
-  height: 12px;
   flex: 0 0 auto;
-
-  &::-webkit-slider-runnable-track {
-    height: 4px;
-    border-radius: 2px;
-  }
-
-  &::-webkit-slider-thumb {
-    width: 8px;
-    height: 12px;
-    margin-top: -4px;
-  }
 }

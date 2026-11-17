@@ -1,0 +1,289 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'themeTokens' as *;
+@use 'buttonFaces' as *;
+
+// THE SLIDERS' OWN FACES (2026-11-17, the one control theme): the well a
+// value runs in, and the handle that sets it, in the two shapes the window
+// can be set to (`data-slider-handle`, `SliderHandlePicker`: `rect`, the
+// default, and `round`). Every slider family draws from here - the EQ's band
+// faders, the amps' faders, the one horizontal slider (`toggle-knob-slider`)
+// and everything built on it - and none keeps a face of its own.
+//
+// Measured before: five handle faces in six files. The round handle was a
+// disc lit from the side with a black drop shadow and a 12-16px glow in the
+// band's colour; the EQ's cap a gradient face, a darker frame round its line
+// and grip lines at 45%; the amps' cap the same again with a 14px glow; the
+// horizontal slider a solid block of the accent ringed in its floor; and a
+// pressed round handle grew by 12%, which put it on half pixels while it was
+// dragged. Focus was a triple ring on one, a double ring on two others.
+//
+// Flat, with whole-pixel edges and nothing soft: a face a step over the
+// pane, a hard 1px cut round it, and the mark (the accent, or a band's own
+// colour) as the ring and centre of the round handle and the line across the
+// cap. The steps are the control set's: the face takes the hover tint under
+// the pointer and the lit tint while held, the cap's edge turns the mark's
+// under the pointer, and focus is a 1px line 2px clear (`focus-outline`).
+
+// The face: a step lighter than the pane, so a handle reads as standing on
+// its track. Worked out where it is used, from the pane under it, so a
+// scene's tint and every shade carry it (and the amps, whose pane is the
+// window's).
+$handle-face: oklch(from var(--surface-panel) calc(l + 0.17) calc(c * 1.05) h);
+
+// The cut round every handle: a step DARKER than the pane, so the face is cut
+// out of whatever it lies over, the lit fill included - a handle of the
+// accent's colour on a fill of the accent's colour had to be ringed in its
+// floor to be seen at all.
+$handle-cut: oklch(from var(--surface-panel) calc(l - 0.08) c h);
+
+// A dial's skirt, under its cap (`KnobDial`): halfway from the pane to the
+// face. A dial is a handle many times the size of a slider's, and a body that
+// big in the face's full lift was the lightest thing on a page of dials.
+$dial-skirt: oklch(from var(--surface-panel) calc(l + 0.08) calc(c * 1.05) h);
+
+// A grip line: the cut, faint.
+$handle-grip: color-mix(in oklab, #{$handle-cut} 70%, transparent);
+
+// The face tinted with the mark: the control set's two fills, made opaque so
+// the track never shows through a handle.
+@function handle-tint($mark, $share) {
+  @return color-mix(in oklab, #{$mark} $share, #{$handle-face});
+}
+
+// *** The well ***************************************************************
+
+// The line a value runs in: the track's well, its hairline drawn over it so a
+// fill laid inside keeps an edge, and the fill in the mark (`$fill` is an
+// image, or `none`).
+@mixin slider-well($thickness, $fill: none) {
+  height: $thickness;
+  border: 0;
+  border-radius: $thickness * 0.5;
+  background: $fill, $track-well;
+  box-shadow: inset 0 0 0 1px $border-subtle;
+}
+
+// *** The round handle *******************************************************
+
+// A disc of the face, ringed 2px in the mark with the cut outside the ring,
+// and a dot of the mark at its centre - a ring alone reads as a hole in the
+// track. `$dot` is the dot's radius; its 0.75px edge is the edge of a circle
+// drawn on pixels, not a blur.
+@mixin handle-round($mark, $dot) {
+  box-sizing: border-box;
+  border: 2px solid $mark;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, $mark 0 $dot, transparent calc(#{$dot} + 0.75px)),
+    $handle-face;
+  box-shadow: 0 0 0 1px $handle-cut;
+}
+
+// *** The cap ****************************************************************
+
+// A cap of the face cut out by its edge, with a 2px line of the mark across
+// its middle and, on a cap long enough to hold them (18px along its travel
+// and up), a grip line either side. `$axis` is the travel's direction in the
+// handle's own box: `x` for a range input's thumb (an upright fader's input
+// is turned a quarter, so that is every thumb), `y` for a cap drawn upright.
+// `$along` is the cap's size along the travel.
+@mixin handle-rect($mark, $along, $axis: x) {
+  // The lines run across the travel, held 4px in from the cap's long sides.
+  // Grips only where they clear the edge and the line by 3px each: zero
+  // across, and so not painted, on a shorter cap.
+  $grips-on: clamp(0px, (#{$along} - 17px) * 1000, calc(100% - 8px));
+  $angle: 90deg;
+  $line-size: 100% calc(100% - 8px);
+  $grip-size: 100% $grips-on;
+
+  @if $axis == y {
+    $angle: 180deg;
+    $line-size: calc(100% - 8px) 100%;
+    $grip-size: $grips-on 100%;
+  }
+
+  box-sizing: border-box;
+  border: 1px solid $handle-cut;
+  border-radius: $radius-2xs;
+  background:
+    linear-gradient(
+        $angle,
+        transparent calc(50% - 1px),
+        $mark calc(50% - 1px) calc(50% + 1px),
+        transparent calc(50% + 1px)
+      )
+      center / #{$line-size} no-repeat,
+    linear-gradient(
+        $angle,
+        transparent calc(50% - 6px),
+        $handle-grip calc(50% - 6px) calc(50% - 5px),
+        transparent calc(50% - 5px) calc(50% + 5px),
+        $handle-grip calc(50% + 5px) calc(50% + 6px),
+        transparent calc(50% + 6px)
+      )
+      center / #{$grip-size} no-repeat,
+    $handle-face;
+  box-shadow: none;
+}
+
+// *** States (either shape) **************************************************
+
+// Under the pointer: the hover tint, and the cap's edge in the mark (the
+// round handle's ring already is).
+@mixin handle-hover($mark) {
+  border-color: $mark;
+  background-color: handle-tint($mark, 12%);
+}
+
+// Held: the lit tint. Never a scale, which moves the edges off whole pixels.
+@mixin handle-press($mark) {
+  border-color: $mark;
+  background-color: handle-tint($mark, 24%);
+}
+
+// Keyboard focus: the app's one focus line, 2px clear of the handle. The
+// round handle keeps its cut, which `focus-outline` would take off.
+@mixin handle-focus($shape) {
+  @include focus-outline(2px);
+
+  @if $shape == round {
+    box-shadow: 0 0 0 1px $handle-cut;
+  }
+}
+
+// A handle that cannot be moved: the mark leaves it, the dot and the line
+// with it, and the face stays. The control around it is at half light.
+@mixin handle-unavailable {
+  border-color: $handle-cut;
+  background-image: none;
+}
+
+// *** THE ONE HORIZONTAL SLIDER **********************************************
+
+// For seeking, volume, zoom and any value set by dragging along a line (Ivan,
+// 2026-11-15, choosing "Toggle knob" from the slider mockups: "make all seek
+// or volume or zoom sliders look the same"): the well with its hairline, the
+// set part in the accent, and the window's handle in either shape - a 10 by
+// 16 cap, or a 14px disc. The amps' and the EQ's faders are upright, and
+// their handles are the same two from the same mixins.
+//
+// `$fill` is where the accent stops, a percentage the slider's component keeps
+// in a custom property (a WebKit range has no fill of its own). It ends at the
+// value's share of the whole width rather than at the handle's centre: the
+// two differ by at most 2.5px, at a quarter and three quarters, and the
+// handle covers it. `--handle-mark` sets the handle's mark where the accent
+// is not the right one (the hue slider's handle stands on every colour).
+// `$size` is `regular` or `small` (`toggle-knob-slider-size`).
+//
+// The round shape is chosen under `:where()`, which weighs nothing: the
+// disc then replaces the cap by coming after it, and every state below still
+// outweighs whichever shape is drawn - a weightier shape rule put the dot
+// back on an unavailable handle.
+@mixin toggle-knob-slider($fill: var(--fill, 0%), $size: regular) {
+  $mark: var(--handle-mark, #{$secondary-default});
+
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    @include slider-well(
+      6px,
+      linear-gradient($secondary-default, $secondary-default) 0 0 / #{$fill}
+        100% no-repeat
+    );
+  }
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    @include handle-rect($mark, 0px);
+    transition:
+      background-color $motion-fast ease,
+      border-color $motion-fast ease;
+  }
+
+  :where(:root[data-slider-handle='round']) &::-webkit-slider-thumb {
+    @include handle-round($mark, var(--handle-dot));
+  }
+
+  @include toggle-knob-slider-size($size);
+
+  &:hover:not(:disabled)::-webkit-slider-thumb {
+    @include handle-hover($mark);
+  }
+
+  &:active:not(:disabled)::-webkit-slider-thumb {
+    @include handle-press($mark);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible::-webkit-slider-thumb {
+    @include handle-focus(rect);
+  }
+
+  :where(:root[data-slider-handle='round'])
+    &:focus-visible::-webkit-slider-thumb {
+    @include handle-focus(round);
+  }
+
+  &:disabled {
+    @include control-disabled;
+  }
+
+  &:disabled::-webkit-slider-thumb {
+    @include handle-unavailable;
+  }
+}
+
+// The slider's sizes, for one already carrying it that has to be smaller (a
+// chip, the folded amp's foot): `small` is a 4px well under an 8 by 12 cap or
+// a 10px disc. Whole pixels throughout, and every handle an even number
+// across a well of the same parity, so it centres on the line exactly.
+@mixin toggle-knob-slider-size($size) {
+  $well: 6px;
+  $cap-across: 10px;
+  $cap-along: 16px;
+  $disc: 14px;
+  $dot: 2px;
+
+  @if $size == small {
+    $well: 4px;
+    $cap-across: 8px;
+    $cap-along: 12px;
+    $disc: 10px;
+    $dot: 1.5px;
+  }
+
+  --handle-dot: #{$dot};
+
+  height: $cap-along;
+
+  &::-webkit-slider-runnable-track {
+    height: $well;
+    border-radius: $well * 0.5;
+  }
+
+  &::-webkit-slider-thumb {
+    width: $cap-across;
+    height: $cap-along;
+    margin-top: ($well - $cap-along) * 0.5;
+  }
+
+  :where(:root[data-slider-handle='round']) &::-webkit-slider-thumb {
+    width: $disc;
+    height: $disc;
+    margin-top: ($well - $disc) * 0.5;
+  }
+}

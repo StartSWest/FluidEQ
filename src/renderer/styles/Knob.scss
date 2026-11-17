@@ -7,27 +7,17 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // The app's one knob (`KnobDial`), wherever it is: the EQ page, the preamp,
-// every DSP stage, the player's tone. A matte body with the value lit round
-// it as neon. Every colour is worked out from the pane under it or is the
-// accent, so it follows the theme's shade and a scene's tint.
+// every DSP stage, the band popover, the player's tone. The sliders' parts
+// bent into a dial (`_sliderFaces.scss`): the well with its hairline, the
+// value in the solid accent, a handle's face and cut for the body, and a line
+// of the accent on it for the pointer. Its size is the place's (the DSP
+// cards' `--dsp-knob`, the tone's `--tone-knob-size`, the band editor's
+// `--dial-size`); everything inside scales with it.
 .knob {
-  // The body and its edges, from the pane's own colour, and no dark line
-  // anywhere: the body is cut out by an edge a step LIGHTER than the pane, the
-  // tube lies in the shallowest of channels and its glass is clear (Ivan,
-  // 2026-09-27, of the neon knob: "make sure we dont do so dark borders" — the
-  // lightest of the three strengths shown). A dark edge two steps under the
-  // pane, a black channel and a black side wall read as a black ring round
-  // every knob.
-  --knob-edge: oklch(from var(--surface-panel) calc(l + 0.07) calc(c * 0.9) h);
-  --knob-body-lit: oklch(from var(--surface-panel) calc(l + 0.01) c h);
-  --knob-body-foot: oklch(from var(--surface-panel) calc(l - 0.05) c h);
-  --knob-wall: oklch(from var(--surface-panel) calc(l - 0.06) c h);
-  --knob-channel: oklch(from var(--surface-panel) calc(l - 0.025) c h);
-  --knob-glass: #{rgba($edge-tint, 0.14)};
-
   cursor: ns-resize;
   touch-action: none;
   position: relative;
@@ -44,133 +34,63 @@ it under the terms of the GNU General Public License version 3 or later.
     overflow: visible;
   }
 
-  &__stop--body-lit {
-    stop-color: var(--knob-body-lit);
-  }
-
-  &__stop--body-foot {
-    stop-color: var(--knob-body-foot);
-  }
-
-  &__stop--rim {
-    stop-color: $white;
-    stop-opacity: 0.36;
-  }
-
-  &__stop--turned {
-    stop-color: $white;
-    stop-opacity: 0.055;
-  }
-
-  // The tube: the channel it lies in, its glass, and a glint along the
-  // glass. No transition on anything drawn along it, the light included: the
-  // light is a dash whose offset is where it starts and whose length is how
+  // No transition on anything drawn along the ring, the value included: the
+  // value is a dash whose offset is where it starts and whose length is how
   // far it runs, and on a dial grown from the centre a value below zero
-  // starts at the value and ends at zero — an offset eased under a length
+  // starts at the value and ends at zero - an offset eased under a length
   // that changes at once moved the zero end with every turn (Ivan,
   // 2026-09-23: "como que el 0 se mueve también").
-  &__channel,
-  &__glass,
-  &__glass-line,
-  &__neon {
+  &__well-edge,
+  &__well,
+  &__fill {
     fill: none;
     stroke-linecap: round;
   }
 
-  &__channel {
-    stroke: var(--knob-channel);
-    stroke-width: 7.4;
+  // The well 4 wide inside a hairline 1 wide, as the sliders' 6px well; the
+  // value fills the well and not the hairline, as a slider's fill does.
+  &__well-edge {
+    stroke: $border-subtle;
+    stroke-width: 6;
   }
 
-  &__glass {
-    stroke: var(--knob-glass);
-    stroke-width: 3.2;
+  &__well {
+    stroke: $track-well;
+    stroke-width: 4;
+    transition: stroke $motion-fast ease;
   }
 
-  &__glass-line {
-    stroke: rgba($white, 0.12);
-    stroke-width: 0.5;
-  }
-
-  // The light, from the widest and faintest to the white core.
-  &__neon {
+  &__fill {
     stroke: $secondary-default;
+    stroke-width: 4;
   }
 
-  // A step down from the first neon shown (Ivan, 2026-09-27: "reduce neon
-  // a bit"): the far light 0.17 to 0.11, the near 0.36 to 0.24, the core
-  // less white.
-  &__neon--far {
-    stroke-width: 12.5;
-    stroke-opacity: 0.11;
+  // The scale's own marks, at the strength of the EQ faders' long ticks.
+  &__mark {
+    fill: rgba($edge-tint, 0.4);
   }
 
-  &__neon--near {
-    stroke-width: 7.2;
-    stroke-opacity: 0.24;
+  // The skirt a quieter step of a handle's face, so a row of dials is not a
+  // row of light discs, and the cap the face itself; each cut out by the
+  // handle's edge, a whole pixel at any size.
+  &__skirt,
+  &__cap {
+    stroke: $handle-cut;
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
   }
 
-  &__neon--tube {
-    stroke-width: 3.7;
-    stroke-opacity: 0.88;
+  &__skirt {
+    fill: $dial-skirt;
   }
 
-  &__neon--core {
-    stroke: color-mix(in srgb, $secondary-light 50%, $white);
-    stroke-width: 1.5;
-  }
-
-  &__bead {
-    fill: rgba($edge-tint, 0.26);
-    stroke: rgba($white, 0.22);
-    stroke-width: 0.4;
-  }
-
-  // The body standing on its side wall, the light on its upper rim, and an
-  // outline with no hard line in it (Ivan, 2026-09-27: "make borders using
-  // dropshadow with same color so they are smoother", "make sure the border
-  // is not edgy"): a band of the edge's colour at half strength on the
-  // body's edge, and the same colour feathered outwards under the body and
-  // the wall. A one-pixel line at full strength, with a second ring inside
-  // it, read as a hard, stepped circle. Painted like the light: a filter
-  // would be repainted with every pixel of a drag.
-  &__wall {
-    fill: var(--knob-wall);
-  }
-
-  &__edge,
-  &__edge-glow,
-  &__rim {
-    fill: none;
-  }
-
-  &__edge {
-    stroke: var(--knob-edge);
-    stroke-width: 1.5;
-    stroke-opacity: 0.55;
-  }
-
-  &__edge-glow {
-    stroke: var(--knob-edge);
-    stroke-width: 3.6;
-    stroke-opacity: 0.3;
-  }
-
-  &__rim {
-    stroke-width: 1.1;
-  }
-
-  &__pointer-glow {
-    fill: $secondary-default;
-    fill-opacity: 0.24;
+  &__cap {
+    fill: $handle-face;
+    transition: fill $motion-fast ease;
   }
 
   &__pointer {
     fill: $secondary-default;
-  }
-
-  &__pointer-core {
-    fill: color-mix(in srgb, $secondary-light 50%, $white);
   }
 
   // Kept for focus and the arrow keys only. A range input maps its own width
@@ -186,40 +106,28 @@ it under the terms of the GNU General Public License version 3 or later.
     pointer-events: none;
   }
 
-  // The dial is an SVG behind a transparent range input, so the focus ring
-  // has to be drawn on the wrapper.
-  &:has(.knob__input:focus-visible) {
-    border-radius: 50%;
-    @include focus-ring;
+  // Reached for: the ring it turns in takes the hover tint, and nothing
+  // else (Ivan, 2026-09-27: "the hover needs to highlight the external arc";
+  // lighting the body's edge and a ring round it as well "highlights all
+  // borders, not good"). Held, the cap takes the lit tint as a held slider
+  // handle does.
+  &:hover:not(.knob--disabled) .knob__well {
+    stroke: color-mix(in oklab, #{$secondary-default} 32%, #{$track-well});
   }
 
-  // Reached for: the ring round it lights — its glass takes the accent and
-  // its light comes up, with the pointer's — and nothing on the body changes
-  // (Ivan, 2026-09-27: "the hover needs to highlight the external arc").
-  // Lighting the body's edge, the side wall and a ring round it as well lit
-  // every border of the knob at once ("it highlights all borders, not good").
-  &:hover,
+  &:active:not(.knob--disabled) .knob__cap {
+    fill: handle-tint($secondary-default, 24%);
+  }
+
+  // The dial is an SVG behind a transparent range input, so the focus line is
+  // drawn on the wrapper: the app's one focus line, round, a pixel outside
+  // the box, which is already a step clear of the ring and its marks.
   &:has(.knob__input:focus-visible) {
-    .knob__glass {
-      stroke: color-mix(in srgb, $secondary-default 34%, transparent);
-    }
-
-    .knob__neon--far {
-      stroke-opacity: 0.2;
-    }
-
-    .knob__neon--near {
-      stroke-opacity: 0.4;
-    }
-
-    .knob__pointer-glow {
-      fill-opacity: 0.45;
-    }
+    @include focus-outline(1px);
   }
 
   &--disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
+    @include control-disabled;
   }
 }
 
@@ -234,9 +142,9 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 2px;
   justify-self: center;
 
-  // A button, quiet until it is reached for: under the pointer it wears the
-  // face every field in the app has (`field-surface`: the faint edge and
-  // fill), and pressed it keeps that face with the caret in it. No bright
+  // A button, quiet until it is reached for: under the pointer it wears a
+  // field's hover (the control set's hover edge and tint), and pressed the
+  // face every field has (`field-surface`) with the caret in it. No bright
   // edge and no ring while typing — the caret and the selection already say
   // where the keys go, and a full-accent outline under a 12px number was the
   // loudest thing on the row ("the borders needs to be more discrete").
@@ -260,8 +168,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
     &:hover:not(:disabled),
     &:focus-visible {
-      border-color: $border-field;
-      background: color-mix(in srgb, $secondary-default 7%, transparent);
+      border-color: $edge-hover;
+      background: $fill-hover;
     }
 
     &:focus-visible {

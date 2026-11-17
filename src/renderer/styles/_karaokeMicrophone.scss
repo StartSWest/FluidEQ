@@ -216,11 +216,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   input[type='range'] {
     --karaoke-gain-position: 50%;
-    // The one slider (`toggle-knob-slider`), ringed in the menu's floor.
-    @include toggle-knob-slider(
-      var(--karaoke-gain-position),
-      $surface-menu-floor
-    );
+    // The one slider (`toggle-knob-slider`).
+    @include toggle-knob-slider(var(--karaoke-gain-position));
     width: 100%;
     min-width: 0;
   }

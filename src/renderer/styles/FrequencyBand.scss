@@ -486,12 +486,15 @@ button.band-frequency-caption {
 }
 
 // The fader cap (Ivan, 2026-09-26: "rec and circles for the sliders"),
-// chosen in the titlebar menu's settings (`SliderHandlePicker`): a slate cap as wide
-// as the column allows, a line across it in the band's colour between two
-// grip lines, lit from above. Written in the input's own terms, which are a
-// quarter turn from the screen's — see the note at the head of
+// chosen in the titlebar menu's settings (`SliderHandlePicker`): the one cap
+// (`handle-rect` in `_sliderFaces.scss`), as wide as the column allows, the
+// band's colour as the line across it. Written in the input's own terms,
+// which are a quarter turn from the screen's - see the note at the head of
 // `RangeInput.scss`: its width is the cap's height on screen, and a line
-// across the cap is a line down the input.
+// across the cap is a line down the input. It had a face lit from above, a
+// frame darker than the face round its line and grip lines at 45%; earlier
+// still 14px of black shadow and a glow of the band's colour (Ivan,
+// 2026-09-27: "dropshadow ... que no son estándares").
 :root[data-slider-handle='rect'] {
   .range {
     --range-thumb: 20px;
@@ -506,73 +509,22 @@ button.band-frequency-caption {
     --range-thumb: 14px;
     --handle-across: 22px;
   }
+}
 
-  .range input[type='range'] {
-    // A flat cap lit from above in the handle's colours (`--range-face-*`,
-    // `RangeInput.scss`), cut out of the panel by a crisp edge darker than
-    // it, with nothing under it: it had 14px of black shadow and a glow in
-    // the band's colour, the softest thing on a page of flat controls (Ivan,
-    // 2026-09-27: "dropshadow ... que no son estándares"). The line in the
-    // band's colour across it is set in a frame, darker than the face and
-    // lighter than the edge ("sliders knob needs border inside for that led
-    // to pop", then "too dark inner border"): 5.5:1 and more for the line.
-    // The two grip lines at its ends are the edge's colour, faint.
-    &::-webkit-slider-thumb {
-      height: var(--handle-across);
-      margin-top: calc((8px - var(--handle-across)) / 2);
-      border: 1px solid var(--range-edge);
-      border-radius: $radius-2xs;
-      background:
-        linear-gradient(
-            90deg,
-            transparent calc(50% - 1px),
-            var(--slider-color) calc(50% - 1px) calc(50% + 1px),
-            transparent calc(50% + 1px)
-          )
-          center / 100% calc(100% - 12px) no-repeat,
-        linear-gradient(
-            90deg,
-            transparent calc(50% - 3px),
-            var(--range-frame) calc(50% - 3px) calc(50% + 3px),
-            transparent calc(50% + 3px)
-          )
-          center / 100% calc(100% - 8px) no-repeat,
-        linear-gradient(
-            90deg,
-            transparent 2px,
-            color-mix(in oklab, var(--range-edge) 45%, transparent) 2px 3px,
-            transparent 3px calc(100% - 3px),
-            color-mix(in oklab, var(--range-edge) 45%, transparent)
-              calc(100% - 3px) calc(100% - 2px),
-            transparent calc(100% - 2px)
-          )
-          center / 100% calc(100% - 10px) no-repeat,
-        linear-gradient(90deg, var(--range-face-foot), var(--range-face-top));
-      box-shadow: none;
-    }
-
-    &:focus-visible::-webkit-slider-thumb {
-      box-shadow:
-        0 0 0 2px $surface-base,
-        0 0 0 4px $secondary-light;
-    }
-
-    &:disabled::-webkit-slider-thumb {
-      border-color: rgba($edge-tint, 0.2);
-      background: var(--range-face-foot);
-      box-shadow: none;
-    }
+// The cap's face, chosen under `:where()` so it weighs no more than the round
+// handle it replaces (`RangeInput.scss`, earlier in the cascade): the
+// states there - under the pointer, held, unavailable - then outweigh
+// either shape, and only focus, which the cap draws without the disc's cut,
+// is restated.
+:where(:root[data-slider-handle='rect']) .range input[type='range'] {
+  &::-webkit-slider-thumb {
+    height: var(--handle-across);
+    margin-top: calc((8px - var(--handle-across)) / 2);
+    @include handle-rect(var(--slider-color), var(--range-thumb));
   }
 
-  // Under the pointer anywhere on the slider's column, as the round handle
-  // (`RangeInput.scss`): the edge in the band's colour and a crisp ring of
-  // it, not a haze.
-  .range:hover input[type='range']:not(:disabled, :focus-visible) {
-    &::-webkit-slider-thumb {
-      border-color: var(--slider-color);
-      box-shadow: 0 0 0 2px
-        color-mix(in srgb, var(--slider-color) 28%, transparent);
-    }
+  &:focus-visible::-webkit-slider-thumb {
+    @include handle-focus(rect);
   }
 }
 
@@ -581,13 +533,16 @@ button.band-frequency-caption {
 // than the count: thirty-one bands across a 2560px window stand 51px apart,
 // and the dense count's 16px was a dot there (Ivan, 2026-09-26: "I dont even
 // see the nobs"). Last, so it outranks the count's own sizes above.
+//
+// Rounded to an even number of pixels: a handle 19.3px across centres its
+// line and its dot on a third of a pixel, and they were drawn soft.
 .bands.is-placed .range {
-  --range-thumb: clamp(16px, calc(var(--band-slot) * 0.56), 24px);
+  --range-thumb: round(clamp(16px, calc(var(--band-slot) * 0.56), 24px), 2px);
 }
 
 :root[data-slider-handle='rect'] .bands.is-placed .range {
-  --range-thumb: clamp(14px, calc(var(--band-slot) * 0.4), 20px);
-  --handle-across: clamp(20px, calc(var(--band-slot) - 14px), 36px);
+  --range-thumb: round(clamp(14px, calc(var(--band-slot) * 0.4), 20px), 2px);
+  --handle-across: round(clamp(20px, calc(var(--band-slot) - 14px), 36px), 2px);
 }
 
 @media (max-width: 760px) {

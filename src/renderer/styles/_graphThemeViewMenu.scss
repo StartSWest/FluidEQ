@@ -340,10 +340,9 @@ it under the terms of the GNU General Public License version 3 or later.
     overflow-wrap: break-word;
   }
 
-  // The one slider (`toggle-knob-slider`), ringed in the menu's floor; its
-  // fill from `rangeFill`.
+  // The one slider (`toggle-knob-slider`), its fill from `rangeFill`.
   input[type='range'] {
-    @include toggle-knob-slider(var(--fill, 0%), $surface-menu-floor);
+    @include toggle-knob-slider(var(--fill, 0%));
     width: 100%;
     flex: 0 0 auto;
   }
@@ -401,9 +400,9 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The window's Tint (`WindowTintSlider`): the colour wheel along the track,
 // every hue at one lightness and strength so no part of it shouts - the
-// colour under the knob is the value, so there is nothing to fill - the knob
-// white so it reads on any of them, and the colour itself where the other
-// rows put a number.
+// colour under the handle is the value, so there is nothing to fill - the
+// handle's mark in the text's ink so it reads on any of them, and the colour
+// itself where the other rows put a number.
 .graph-view-menu__slider--hue {
   input[type='range']::-webkit-slider-runnable-track {
     background: linear-gradient(
@@ -420,8 +419,8 @@ it under the terms of the GNU General Public License version 3 or later.
     );
   }
 
-  input[type='range']::-webkit-slider-thumb {
-    background: $white;
+  input[type='range'] {
+    --handle-mark: #{$text-primary};
   }
 }
 

@@ -289,7 +289,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .knob--disabled {
     opacity: 1;
 
-    // The lit tube is layers of light (`KnobDial`), so it is dimmed as one.
+    // The value's arc alone, dimmed as one.
     .knob__value {
       opacity: 0.55;
     }
