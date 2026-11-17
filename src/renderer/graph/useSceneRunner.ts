@@ -53,6 +53,7 @@ import sameSceneProgramInputs from './sceneProgramInputs';
 import { logSceneFailure } from '../utils/sceneFailureLog';
 import type { ISceneDrawReport, ISceneRunnerOptions } from './sceneRunnerTypes';
 import { createStereoFollower } from './stereoImage';
+import { noteGraphFrame } from './graphLabelInk';
 import {
   createSceneWorkerClient,
   warmSceneProgram,
@@ -652,6 +653,8 @@ export default function useSceneRunner({
             ...(result.edit ? { edit: result.edit } : {}),
           };
           drawnRef.current?.(frame, scale, result.accent, shaped, report);
+          // A scene or an engine look behind the graph's scale labels.
+          noteGraphFrame();
         },
       );
       return true;

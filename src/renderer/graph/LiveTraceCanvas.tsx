@@ -99,6 +99,7 @@ import { useIsRootEuphoric } from '../utils/euphoriaMode';
 
 import createSceneStates from './liveTraceSceneStates';
 import drawLiveTraceFrame from './drawLiveTraceFrame';
+import { noteGraphFrame } from './graphLabelInk';
 
 interface ILiveTraceCanvasProps {
   /**
@@ -520,6 +521,8 @@ const LiveTraceCanvas = ({
         legendPlaceRef.current = frame.place;
         onLegendPlaceRef.current?.(frame.place);
       }
+      // The scale labels are read against what this frame drew.
+      noteGraphFrame();
       return moved;
     },
     // `channels` is the per-channel reader, whose identity never changes —

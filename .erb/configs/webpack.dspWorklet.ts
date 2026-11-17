@@ -76,6 +76,13 @@ export const dspWorkletConfig = (
       webpackPaths.srcRendererPath,
       'remoteAudio/senderSpectrum.worker.ts',
     ),
+    // Reads the picture behind the graph's scale labels back from the GPU,
+    // which would otherwise hold the window while it waits
+    // (`graph/graphLabelInk.ts`).
+    'label-ink': path.join(
+      webpackPaths.srcRendererPath,
+      'graph/graphLabelInk.worker.ts',
+    ),
     'dsp-worklet': path.join(
       webpackPaths.srcRendererPath,
       'dsp/worklets/dspProcessor.worklet.ts',

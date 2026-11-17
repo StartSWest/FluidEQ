@@ -48,26 +48,36 @@ it under the terms of the GNU General Public License version 3 or later.
   .chart-axis--inside-bottom text,
   .chart-slope-line text {
     @include over-picture-shape;
-
-    transition:
-      fill $motion-base ease,
-      filter $motion-base ease;
-
-    // Over a bright part of the picture each figure turns dark on its own,
-    // as the EQ head's words do (`useSceneInk.ts`): a scale runs from the
-    // sky at the plot's top to the ground at its foot (Ivan, 2026-11-17,
-    // circling "+10 dB" over a pale sky after the head had turned).
-    &[data-scene-ink='dark'] {
-      @include over-bright-picture-shape;
-
-      fill: $over-bright-picture-ink;
-    }
   }
+}
 
-  // The slope's figure keeps the accent, in its deep step.
-  .chart-slope-line text[data-scene-ink='dark'] {
-    fill: $secondary-darker;
+// Over a bright part of what is behind it each figure turns dark on its own,
+// as the EQ head's words do: a scale runs from the sky at the plot's top to
+// the ground at its foot (Ivan, 2026-11-17, circling "+10 dB" over a pale
+// sky after the head had turned), and on a standard look from a tall bar to
+// the empty plot above it ("the detector must also detect the label: if it
+// is very bright, over the bars, on the standard look"). The mark is the
+// same whoever reads the picture: the column's scene (`useSceneInk.ts`), or
+// the graph's own drawing — a look's bars, an engine look, a scene on the
+// plot alone (`graphLabelInk.ts`). After the scene rule above, which it
+// outranks at the same weight.
+.chart-axis--inside text,
+.chart-axis--inside-bottom text,
+.chart-slope-line text {
+  transition:
+    fill $motion-base ease,
+    filter $motion-base ease;
+
+  &[data-scene-ink='dark'] {
+    @include over-bright-picture-shape;
+
+    fill: $over-bright-picture-ink;
   }
+}
+
+// The slope's figure keeps the accent, in its deep step.
+.chart-slope-line text[data-scene-ink='dark'] {
+  fill: $secondary-darker;
 }
 
 // The highest figure hangs under its line: above it was cut off by the

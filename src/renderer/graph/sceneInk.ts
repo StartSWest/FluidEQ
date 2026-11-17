@@ -79,8 +79,30 @@ export interface ISceneInkFollower {
   reset(): void;
 }
 
+/** Where the ink turns: dark above the first, light again below the second. */
+export interface ISceneInkTurns {
+  darkAbove: number;
+  lightBelow: number;
+}
+
+/**
+ * Plain figures on a standard look carry no shadow, so they turn sooner:
+ * light ink at 82% is down to 2.4:1 at 0.30 where dark is 5.9:1, and at the
+ * scene's 0.45 "-60 dB" over a pale-blue bar top (0.44) stayed light and
+ * unread. Over a scene the figures wear the soft shadow and keep 0.45/0.34.
+ */
+export const PLAIN_TEXT_INK_TURNS: ISceneInkTurns = {
+  darkAbove: 0.3,
+  lightBelow: 0.22,
+};
+
 /** Follows the strip's readings and turns the ink only past the band. */
-export const createSceneInkFollower = (): ISceneInkFollower => {
+export const createSceneInkFollower = (
+  turns: ISceneInkTurns = {
+    darkAbove: SCENE_INK_DARK_ABOVE,
+    lightBelow: SCENE_INK_LIGHT_BELOW,
+  },
+): ISceneInkFollower => {
   let level: number | undefined;
   let ink: TSceneInk = 'light';
   return {
@@ -92,9 +114,9 @@ export const createSceneInkFollower = (): ISceneInkFollower => {
         level === undefined
           ? luminance
           : level + (luminance - level) * SCENE_INK_SMOOTHING;
-      if (ink === 'light' && level > SCENE_INK_DARK_ABOVE) {
+      if (ink === 'light' && level > turns.darkAbove) {
         ink = 'dark';
-      } else if (ink === 'dark' && level < SCENE_INK_LIGHT_BELOW) {
+      } else if (ink === 'dark' && level < turns.lightBelow) {
         ink = 'light';
       }
       return ink;

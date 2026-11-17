@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   PointerEvent,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -79,6 +80,7 @@ import {
 } from './graphPaper';
 import { graphLevelTickFormat } from './liveGraphBand';
 import axisLabelWidth from './axisLabelWidth';
+import { registerGraphLabels } from './graphLabelInk';
 
 export interface ChartDimensions {
   height: number;
@@ -315,6 +317,12 @@ const Chart = ({
     data.find((curve) => curve.id === 'EQ Response')?.line.gradientStops || [];
 
   const svgRef = useRef<SVGSVGElement>(null);
+  // The scale labels take dark ink where what is drawn behind them is bright
+  // (`graphLabelInk.ts`).
+  useEffect(() => {
+    const svg = svgRef.current;
+    return svg ? registerGraphLabels(svg) : undefined;
+  }, []);
   // Which canvas to mount for the live trace. Null is the ordinary look and
   // every way a premium scene can fail; see `useSceneLook`.
   const selectionRef = useRef<
