@@ -2259,8 +2259,12 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     paint-order: stroke fill;
   }
 
-  .workspace-pill__icon > svg {
-    filter: drop-shadow(0 0 1px rgba(2, 8, 15, 0.9));
+  // Every glyph in the row, the pills' and the engine strip's, takes the
+  // engine name's edge below (Ivan: "the little icons need that black edge
+  // too"): a single 1px shadow left them faint on a bright picture.
+  .workspace-section-header svg {
+    filter: drop-shadow(0 0 0.75px rgba(2, 8, 15, 0.95))
+      drop-shadow(0 0 1.5px rgba(2, 8, 15, 0.75));
   }
 
   // The engine's name gets the same dark edge another way (Ivan: "put that
