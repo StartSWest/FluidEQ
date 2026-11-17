@@ -111,8 +111,14 @@ $range-rail-width: 4px;
   // band lighting the line it is shaped by. At a little over half the band's
   // colour, so the fill laid over it — twice as wide, at full strength —
   // still reads as the gain; a crisp line and no bloom. Only its opacity
-  // follows the music, and the short fade keeps a stepped level reading as a
-  // blink rather than as a flicker.
+  // follows the music, in the twelve steps `BandLevels` writes.
+  //
+  // No fade between steps. A 90 ms transition kept every glow on the page
+  // mid-transition for as long as music played - the level steps about
+  // seventeen times a second a band - and the browser ticked all 31 of them
+  // on the main thread: measured in the running window at 240 Hz (2026-11-16),
+  // 4,200 restyles a second, and the EQ page's main thread 74% busy against
+  // 56% without the fade.
   &__glow {
     top: 0;
     bottom: 0;
@@ -120,7 +126,6 @@ $range-rail-width: 4px;
     margin-left: -$range-slot-width * 0.5;
     background: color-mix(in srgb, var(--slider-color) 55%, transparent);
     opacity: var(--band-level, 0);
-    transition: opacity 90ms linear;
     will-change: opacity;
   }
 
