@@ -900,6 +900,7 @@ const eq: Partial<Dictionary> = {
   'graph.handle.off': 'オフ',
   'graph.handle.select': 'クリックで選択',
   'graph.handle.quality': 'Ctrl+ホイールで Q を変更',
+  'graph.handle.popover': 'Shift+クリックで設定を表示',
   'eq.layers.apoEdit': 'Equalizer APO での編集',
   'convolution.entryDetail': '{provider} · 最小位相 · {rate} kHz WAV',
   'eq.refused.bandLimit':

@@ -872,6 +872,7 @@ const eq = {
   'graph.handle.off': '끔',
   'graph.handle.select': '선택하려면 클릭하세요.',
   'graph.handle.quality': 'Ctrl+스크롤 Q 변경',
+  'graph.handle.popover': 'Shift+클릭으로 설정 표시',
   'eq.layers.apoEdit': 'Equalizer APO 편집',
   'convolution.entryDetail': '{provider} · 최소 위상 · {rate} kHz WAV',
   'eq.refused.bandLimit':

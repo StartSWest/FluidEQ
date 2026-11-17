@@ -830,6 +830,7 @@ const eq = {
   'graph.handle.off': '關閉',
   'graph.handle.select': '點選選擇',
   'graph.handle.quality': 'Ctrl+捲動更改 Q',
+  'graph.handle.popover': 'Shift+點按顯示設定',
   'eq.layers.apoEdit': 'Equalizer APO 編輯',
   'convolution.entryDetail': '{provider} · 最小相位 · {rate} kHz WAV',
   'eq.refused.bandLimit': '您已經擁有最多可應用的頻段 FluidEQ ({max})。',

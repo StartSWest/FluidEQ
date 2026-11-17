@@ -44,7 +44,7 @@ import { type TEqPageActions } from './useEqPageActions';
 import { type TEqLayerTab } from './eqLayerTab';
 import EqLayerTabs, { eqLayerPanelId, eqLayerTabId } from './EqLayerTabs';
 import EqSmartEqButton from './EqSmartEqButton';
-import EqBandEditor from './EqBandEditor';
+import { EqBandPopoverOnBand, EqBandPopoverOnGraph } from './EqBandPopovers';
 import EqPresetTab, { EqPresetSearch } from './EqPresetTab';
 import EqToneTab from './EqToneTab';
 
@@ -83,6 +83,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
     handleBandGainChange,
     handleBandGainPreview,
     handleBandSelect,
+    handleBandQualityWheel,
     handleBandHover,
   } = bands;
   const {
@@ -201,6 +202,9 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
         />
       )}
       <OutputEditingNotice />
+      {/* The same popover over a handle on the graph, whichever layer tab is
+          open: the graph's handles are the bands on every one of them. */}
+      <EqBandPopoverOnGraph bands={bands} actions={actions} />
       <EqLayerTabs
         active={tab}
         bandCount={frequencySortedFilters.length}
@@ -217,11 +221,10 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
             isEqOff ? ' is-eq-bypassed' : ''
           }${isPlaced ? ' is-placed' : ''}`}
         >
-          {/* The selected band on a strip over the bands (Ivan, 2026-11-16:
-              "I really don't like the band settings on the side"), first in
-              the panel so the keyboard reaches it before the thirty-one
-              sliders under it. */}
-          <EqBandEditor bands={bands} actions={actions} />
+          {/* The band popover against its slider, while Shift holds it
+              (`bandPopover.ts`), first in the panel so the keyboard reaches
+              it before the thirty-one sliders under it. */}
+          <EqBandPopoverOnBand bands={bands} actions={actions} />
           {/* The rail scrolls when the bands stop fitting, with an arrow at
             each end — the same pair the workspace tabs use. Thirty-one bands
             in a narrow window were nine pixels each: a row of slivers with
@@ -299,6 +302,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
                     isSelected={selectedFilterIds.includes(filter.id)}
                     ear={filter.channel}
                     onSelect={handleBandSelect}
+                    onQualityWheel={handleBandQualityWheel}
                     isHovered={hoveredFilterId === filter.id}
                     onHover={handleBandHover}
                     isMinSliderCount={

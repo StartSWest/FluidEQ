@@ -351,16 +351,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // height less the 114px of caption, arrows and readout around it. Whatever the
 // row below turns out to be, the bands give way and the page does not scroll.
 //
-// The floor and the ceiling are the ones this rule has always had. Past 264px
-// a longer track is not a finer drag, it is a longer reach for the same
-// gesture; whatever is left on a tall pane stays at the foot of the card,
-// where every other tab leaves it.
+// ONE CEILING, GRAPH ON OR OFF, AND THE BANDS CENTRED IN WHAT IS LEFT (Ivan,
+// 2026-11-17: "I want the EQ bands to be centred vertically too, in case they
+// only want the bands"; "make sure they have a nice height, because showing
+// the graph or hiding it should [not] modify the default height they have").
+// The ceiling was 264px of track under the graph and 520px with the graph
+// switched off, so on his 2560x1392 window the same bands measured 240px
+// with the graph dragged small and 470px with it off, at the top of the pane
+// both times, with 450-550px of nothing under them. Now one track length is
+// the most they take, `$band-track-ceiling`: what the default split already
+// gives them on that window (`_mainContentTokens.scss`). A pane that cannot
+// hold it gives
+// way to the floor as before (`bandsPaneNeed.ts` keeps the pane from going
+// under that); a pane taller than it leaves its room above and below the
+// row, which `align-content` centres, rather than in the tracks.
 .workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content {
   min-height: 0;
   flex: 1 0 0;
-  align-content: start;
-  // 114px around a track: 186 is a floor-length band, 378 a ceiling-length one.
-  grid-template-rows: minmax(186px, 378px) auto;
+  align-content: center;
+  // One row, the bands' — the band popover is placed over the panel and
+  // takes none. 114px around a track: 186 is a floor-length band.
+  grid-template-rows: minmax(186px, #{$band-track-ceiling + 114px});
 }
 
 // Size-contained, so its height is the grid row's and not its content's; the
@@ -378,8 +389,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .bandWrapper .range {
   --range-length: clamp(
     72px,
-    calc(var(--bands-rail-height, 264px) - 114px),
-    264px
+    calc(var(--bands-rail-height, #{$band-track-ceiling}) - 114px),
+    #{$band-track-ceiling}
   );
 }
 
@@ -387,38 +398,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // sliders into the room it gave back. It has a tab of its own now, so the EQ
 // panel is bands and nothing else and there is no fold to react to.
 
-// With the response graph hidden (App.tsx marks the root `minimized`) the EQ
-// owns the whole workspace column, and the tracks take the height the column
-// has left for them — the same measured arrangement as above, with room for a
-// much longer fader.
-//
-// They used to be worked out from the window instead: `100vh` less an
-// estimate of everything on screen that is not track, capped at 264px. The
-// estimate cannot be right for every layout — the toolbar wraps in a narrow
-// window and in a long language, the applied-layer row comes and goes, the
-// Tone row takes a second line below 940px — so the cap was kept low and the
-// room left over sat empty at the foot of the card: 135px of it under the Tone
-// dials on a 1022px window (Ivan, 2026-09-23: "fix eq bands bit taller on this
-// screen").
-//
-// The floor is the one both rules have always had. The ceiling is twice the
-// other one: long enough to use a 1080 window's room, and short of a fader so
-// long that a full sweep is a reach across the screen.
-// Only the two numbers differ from the docked case above, which already grows
-// the grid to the panel and measures the rail.
-#root.minimized {
-  .workspace-tab-panel__scroll > .main-content {
-    grid-template-rows: minmax(246px, 634px) auto;
-  }
-
-  .bandWrapper .range {
-    --range-length: clamp(
-      132px,
-      calc(var(--bands-rail-height, 520px) - 114px),
-      520px
-    );
-  }
-}
+// With the response graph hidden the EQ owns the whole workspace column, and
+// the bands keep the same ceiling and centre in it (above): they had one of
+// their own, twice as long, and the graph switch changed their height.
 
 .bands__selection-box {
   position: absolute;

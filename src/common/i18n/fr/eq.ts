@@ -922,6 +922,7 @@ const eq: Partial<Dictionary> = {
   'graph.handle.off': 'désactivée',
   'graph.handle.select': 'Cliquez pour la sélectionner',
   'graph.handle.quality': 'Ctrl+molette change le Q',
+  'graph.handle.popover': 'Maj+clic affiche ses réglages',
   'eq.layers.apoEdit': 'Modification dans Equalizer APO',
   'convolution.entryDetail': '{provider} · phase minimale · WAV {rate} kHz',
   'eq.refused.bandLimit':

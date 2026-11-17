@@ -853,6 +853,7 @@ const eq: Partial<Dictionary> = {
   'graph.handle.off': '已关闭',
   'graph.handle.select': '点击选择',
   'graph.handle.quality': 'Ctrl+滚轮改变 Q',
+  'graph.handle.popover': 'Shift+单击显示设置',
   'eq.layers.apoEdit': 'Equalizer APO 中的编辑',
   'convolution.entryDetail': '{provider} · 最小相位 · {rate} kHz WAV',
   'eq.refused.bandLimit': '频段数已达 FluidEQ 能应用的上限（{max}）。',

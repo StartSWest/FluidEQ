@@ -34,8 +34,10 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
+import useCtrlWheel from 'renderer/widgets/useCtrlWheel';
 import { useLatestCall } from 'renderer/utils/utils';
 import frequencyText from 'renderer/utils/frequencyText';
 import { useTranslation } from 'renderer/utils/I18nContext';
@@ -47,6 +49,15 @@ import '../styles/FrequencyBand.scss';
 import '../styles/EqChannels.scss';
 
 type TGainAction = { kind: 'set'; value: number } | { kind: 'reset' };
+
+/** What a selecting press or key says: its modifiers, and which it was. */
+export interface IBandSelectEvent {
+  ctrlKey: boolean;
+  metaKey: boolean;
+  shiftKey: boolean;
+  /** "pointerdown" for a press, which is still down when it arrives. */
+  type: string;
+}
 
 /** How much of a band's own chrome fits: the row gets denser as it fills. */
 export type TBandDensity = 'full' | 'compact' | 'dense';
@@ -62,14 +73,9 @@ interface IFrequencyBandProps {
   ear?: TBandChannel;
   // Both told the band's id, so the row can hand every band the same two
   // callbacks and a band whose props have not changed does not draw again.
-  onSelect?: (
-    filterId: string,
-    event: {
-      ctrlKey: boolean;
-      metaKey: boolean;
-      shiftKey: boolean;
-    },
-  ) => void;
+  onSelect?: (filterId: string, event: IBandSelectEvent) => void;
+  /** A Ctrl+scroll notch over the band: 1 sharper, -1 wider. */
+  onQualityWheel?: (filterId: string, direction: 1 | -1) => void;
   onHover?: (filterId: string, isHovered: boolean) => void;
   colorProgress?: number;
   onGainChange?: (filterId: string, newValue: number) => Promise<void>;
@@ -95,6 +101,7 @@ const FrequencyBand = forwardRef(
       onGainChange,
       onGainPreview,
       onResetFrequency,
+      onQualityWheel,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
@@ -221,9 +228,33 @@ const FrequencyBand = forwardRef(
     // per window size, which is what actually drives the track length.
     const sliderHeight = '132px';
 
+    // The column, for its Ctrl+scroll, and the row's ref to it as well.
+    const column = useRef<HTMLDivElement | null>(null);
+    const attachColumn = useCallback(
+      (node: HTMLDivElement | null) => {
+        column.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref],
+    );
+    // Ctrl+scroll anywhere on the column tunes the band's Q, as it does on
+    // its handle in the graph (Ivan, 2026-11-17); a plain scroll still moves
+    // the gain (`RangeInput`).
+    useCtrlWheel(column, (direction) => {
+      if (!onQualityWheel) {
+        return false;
+      }
+      onQualityWheel(filter.id, direction);
+      return true;
+    });
+
     return (
       <div
-        ref={ref}
+        ref={attachColumn}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}`}
         data-filter-id={filter.id}
         // What its slider's lit core answers to (`BandLevels`).

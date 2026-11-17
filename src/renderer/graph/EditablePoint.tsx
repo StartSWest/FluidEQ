@@ -21,6 +21,8 @@ import {
 import { MAX_FREQUENCY, MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { selectionModeFromEvent } from 'common/bandSelection';
 import { requestBandMenu } from '../components/BandMenu';
+import { openBandPopover } from '../eq/bandPopover';
+import useCtrlWheel from '../widgets/useCtrlWheel';
 import { useTranslation } from '../utils/I18nContext';
 import frequencyText from '../utils/frequencyText';
 import { EAR_LETTER_KEYS, EAR_NAME_KEYS } from '../eq/earNames';
@@ -188,6 +190,17 @@ const EditablePoint = ({
     [svgRef, xScale, yScale],
   );
 
+  // Shift with the press, or with Enter: the band's popover over this handle,
+  // in the graph's card, held while Shift is (`bandPopover.ts`). The press
+  // still selects and drags as a plain one does; Shift adds nothing to a
+  // drag (Ctrl is the bell's).
+  const openPopover = (byPointer: boolean) => {
+    const card = groupRef.current?.closest('.graph-wrapper');
+    if (card instanceof HTMLElement) {
+      openBandPopover({ kind: 'graph', card }, byPointer);
+    }
+  };
+
   const handlePointerDown = (event: PointerEvent<SVGCircleElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -213,6 +226,9 @@ const EditablePoint = ({
       selectionModeFromEvent(event),
       getPointFromEvent(event) ?? { x: data.x, y: data.y },
     );
+    if (event.shiftKey) {
+      openPopover(true);
+    }
   };
 
   const handlePointerMove = (event: PointerEvent<SVGCircleElement>) => {
@@ -236,20 +252,23 @@ const EditablePoint = ({
     point.onCommit();
   };
 
-  const handleWheel = (event: React.WheelEvent<SVGCircleElement>) => {
-    if (!selected || !event.ctrlKey) {
-      return;
+  // Ctrl+scroll on the selected handle: its Q, by the step the band sliders
+  // use too (`qualityWheel.ts`). On a handle not selected it is a plain
+  // scroll, as it always was.
+  useCtrlWheel(groupRef, (direction) => {
+    if (!selected) {
+      return false;
     }
-    event.preventDefault();
-    event.stopPropagation();
-    point.onQualityWheel(event.deltaY < 0 ? 1 : -1);
-  };
+    point.onQualityWheel(direction);
+    return true;
+  });
 
   return (
     <g
       ref={groupRef}
       className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}`}
       transform={`translate(${scaledX}, ${scaledY})`}
+      data-filter-id={point.id}
       role="slider"
       tabIndex={point.isLocked ? -1 : 0}
       aria-disabled={point.isLocked || undefined}
@@ -268,6 +287,9 @@ const EditablePoint = ({
         ...(point.isEnabled ? [] : [t('graph.handle.off')]),
         ...(point.ear ? [t(EAR_NAME_KEYS[point.ear])] : []),
         t(selected ? 'graph.handle.quality' : 'graph.handle.select'),
+        // The popover is only up while Shift is held: said here, or nothing
+        // on screen says it is there at all.
+        t('graph.handle.popover'),
       ].join(' · ')}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -283,7 +305,6 @@ const EditablePoint = ({
         event.stopPropagation();
         requestBandMenu(point.id, event.clientX, event.clientY);
       }}
-      onWheel={handleWheel}
       onKeyDown={(event) => {
         // Focus can still be here from before the layer was switched off.
         if (point.isLocked) {
@@ -294,6 +315,9 @@ const EditablePoint = ({
           event.stopPropagation();
           point.onSelect(selectionModeFromEvent(event), data);
           point.onCommit();
+          if (event.shiftKey) {
+            openPopover(false);
+          }
           return;
         }
         if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {

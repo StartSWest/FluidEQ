@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   DEFAULT_QUALITY,
   FilterTypeEnum,
+  IFilter,
   MAX_FREQUENCY,
   MAX_GAIN,
   MAX_QUALITY,
@@ -15,7 +16,13 @@ import {
   MIN_NUM_FILTERS,
   MIN_QUALITY,
 } from 'common/constants';
-import { CSSProperties, useEffect, useRef } from 'react';
+import {
+  type AnimationEvent,
+  CSSProperties,
+  RefObject,
+  useEffect,
+  useRef,
+} from 'react';
 import Dropdown from '../widgets/Dropdown';
 import Knob from '../widgets/Knob';
 import Switch from '../widgets/Switch';
@@ -23,26 +30,58 @@ import TrashIcon from '../icons/TrashIcon';
 import ConfirmIcon from '../icons/ConfirmIcon';
 import { type TEqPageBands } from './useEqPageBands';
 import { type TEqPageActions } from './useEqPageActions';
-import useBandPopoverPlace from './useBandPopoverPlace';
+import { type IBandPopoverPlace } from './useBandPopoverPlace';
+import { closeBandPopover } from './bandPopover';
 import frequencyText from '../utils/frequencyText';
 
+/** The keys that step a held popover from a band slider or a graph handle. */
+const STEP_KEYS: Record<string, -1 | 1 | undefined> = {
+  Tab: -1,
+  ArrowLeft: -1,
+  ArrowRight: 1,
+};
+
+/** A band slider or a graph handle with the keyboard on it, if that is so. */
+const focusedBandControl = (target: EventTarget | null) => {
+  if (!(target instanceof Element)) {
+    return undefined;
+  }
+  if (target instanceof HTMLInputElement && target.closest('.bandWrapper')) {
+    return 'band';
+  }
+  return target.closest('.graph-edit-point') ? 'graph' : undefined;
+};
+
 /**
- * The selected band's settings, in a popover on its slider (Ivan,
- * 2026-11-16: "el 4, el pop over" — option 4 of the board): which band and
- * its filter with the way out at its head, its frequency, gain and Q on
- * dials, then in or out of the chain and the bin. It opens when a band is
- * selected and goes with the selection: a press elsewhere, Escape (the
- * panel's, `EqPageView`) or its own close empty it. Placed beside the
- * handle, never over it (`useBandPopoverPlace`), and in the panel's own
- * markup rather than portalled, so the keyboard reaches it after the tab row
- * and before the sliders.
+ * The selected band's settings, in a popover against its slider or over its
+ * handle on the graph (Ivan, 2026-11-16: "el 4, el pop over" — option 4 of
+ * the board): which band and its filter with the way out at its head, its
+ * frequency, gain and Q on dials, then in or out of the chain and the bin.
+ *
+ * Up only while Shift is held (`bandPopover.ts`), so the keys it answers are
+ * the ones a held Shift leaves: its ‹ and › and Shift+Tab inside it, and from
+ * a band slider or a graph handle Shift+Tab and Shift+← → step to the band
+ * before and after, the keyboard going with it. Escape and its close button
+ * put it away and keep the selection. Placed by whoever draws it
+ * (`EqBandPopovers`): `place`, and `band`, the band it shows — the selected
+ * one, or while it leaves after the selection emptied, the last one.
  */
 const EqBandEditor = ({
   bands,
   actions,
+  popover,
+  place,
+  band: selectedFilter,
+  isClosing,
+  onAnimationEnd,
 }: {
   bands: TEqPageBands;
   actions: TEqPageActions;
+  popover: RefObject<HTMLDivElement | null>;
+  place: IBandPopoverPlace | undefined;
+  band: IFilter;
+  isClosing: boolean;
+  onAnimationEnd: (event: AnimationEvent) => void;
 }) => {
   const {
     t,
@@ -50,7 +89,6 @@ const EqBandEditor = ({
     isBlockingError,
     filterOptions,
     frequencySortedFilters,
-    selectedFilter,
     isSelectedGainDisabled,
     selectedFilters,
     selectedCount,
@@ -73,30 +111,37 @@ const EqBandEditor = ({
     setFiltersEnabled,
   } = actions;
   const isEqOff = bypassed.includes('eq');
-  const popover = useRef<HTMLDivElement>(null);
-  const place = useBandPopoverPlace(
-    popover,
-    selectedFilter?.id,
-    `${selectedFilter?.gain}|${selectedFilter?.frequency}|${frequencySortedFilters.length}`,
-  );
   const at = frequencySortedFilters.findIndex(
-    ({ id }) => id === selectedFilter?.id,
+    ({ id }) => id === selectedFilter.id,
   );
   /**
-   * The band beside the selected one, low to high, selected in its place —
-   * the popover moves to it — and brought into view where the row scrolls.
-   * Stops at either end rather than wrapping round: Tab past the last band
-   * goes on to the next control, so the keyboard is never held in here.
+   * The band beside the shown one, low to high, selected in its place — the
+   * popover moves to it — and brought into view where the row scrolls. A
+   * band slider or a graph handle with the keyboard on it hands the keyboard
+   * to the same control of the new band. Stops at either end rather than
+   * wrapping round: Tab past the last band goes on to the next control, so
+   * the keyboard is never held in here.
    */
   const step = (by: -1 | 1) => {
     const target = frequencySortedFilters[at + by];
     if (at < 0 || !target) {
       return false;
     }
+    const focused = focusedBandControl(document.activeElement);
     setSelectedFilterIds([target.id]);
-    popover.current?.offsetParent
-      ?.querySelector(`.bandWrapper[data-filter-id="${CSS.escape(target.id)}"]`)
-      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const id = CSS.escape(target.id);
+    const column = document.querySelector(
+      `.bandWrapper[data-filter-id="${id}"]`,
+    );
+    column?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const control =
+      focused === 'band'
+        ? column?.querySelector('input[type="range"]')
+        : focused === 'graph' &&
+          document.querySelector(`.graph-edit-point[data-filter-id="${id}"]`);
+    if (control instanceof HTMLElement || control instanceof SVGElement) {
+      control.focus({ preventScroll: true });
+    }
     return true;
   };
   const stepRef = useRef(step);
@@ -126,17 +171,49 @@ const EqBandEditor = ({
     };
     element.addEventListener('keydown', onKeyDown);
     return () => element.removeEventListener('keydown', onKeyDown);
-  }, [selectedFilter?.id]);
-  if (!selectedFilter) {
-    return null;
-  }
+  }, [popover]);
+  // From a band slider or a graph handle, the keys a held Shift leaves:
+  // Shift+Tab back and Shift+← → either way (plain Tab cannot be pressed
+  // without letting Shift go, which closes it); and Escape from anywhere on
+  // the page puts it away ahead of the page's own Escape, which would empty
+  // the selection. Captured at the window: the slider's own keys (a range
+  // input moves on ← →) never see a step.
+  useEffect(() => {
+    if (isClosing) {
+      return undefined;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+      if (event.key === 'Escape') {
+        const target = event.target as HTMLElement | null;
+        if (target?.closest?.('.dropdown--open, .dropdown-menu-layer')) {
+          return;
+        }
+        event.preventDefault();
+        closeBandPopover();
+        return;
+      }
+      if (!event.shiftKey || !focusedBandControl(event.target)) {
+        return;
+      }
+      const by = STEP_KEYS[event.key];
+      if ((by === 1 || by === -1) && stepRef.current(by)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [isClosing]);
   const index = at + 1;
   return (
     <div
       ref={popover}
       className={`eq-flat-editor eq-flat-editor--popover is-${
         place?.side ?? 'right'
-      }`}
+      }${isClosing ? ' is-closing' : ''}`}
       role="dialog"
       aria-label={
         isGroupEdit
@@ -146,14 +223,16 @@ const EqBandEditor = ({
               frequency: frequencyText(selectedFilter.frequency),
             })
       }
-      inert={isEqOff || undefined}
+      // Leaving, it takes no press and no key: the band it names is no
+      // longer the one being edited.
+      inert={isEqOff || isClosing || undefined}
+      onAnimationEnd={onAnimationEnd}
       style={
         place
           ? ({
               left: place.left,
               top: place.top,
               '--popover-arrow': `${place.arrow}px`,
-              '--popover-reach': `${place.reach}px`,
             } as CSSProperties)
           : { visibility: 'hidden' }
       }
@@ -213,7 +292,7 @@ const EqBandEditor = ({
           className="eq-band-popover__close"
           aria-label={t('eq.popover.close')}
           title={t('eq.popover.close')}
-          onClick={() => setSelectedFilterIds([])}
+          onClick={closeBandPopover}
         >
           <ConfirmIcon variant="cancel" />
         </button>

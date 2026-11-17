@@ -198,16 +198,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // *** Your EQ: the selected band's popover on its slider *********************
 
 // THE SELECTED BAND'S SETTINGS IN A POPOVER ON ITS SLIDER (Ivan, 2026-11-16:
-// "el 4, el pop over", option 4 of the board as it was drawn): placed in the
-// panel beside the band's handle (`useBandPopoverPlace`), its point at the
-// handle's height, on a menu's own face. The head says which band, its
+// "el 4, el pop over", option 4 of the board as it was drawn), up while
+// Shift is held (`bandPopover.ts`): placed in the panel against the band's
+// handle (`useBandPopoverPlace`), its point at the handle's height, or on the
+// graph's card over or under the band's handle there
+// (`useGraphPopoverPlace`), on a menu's own face. The head says which band, its
 // filter and the way out; the frequency, gain and Q dials with their
 // readings under them; then in or out of the chain and the bin. The bands
 // keep the whole panel: nothing stands over or under the rail any more.
 .workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content {
   position: relative;
-  // One row, the bands': the popover takes none.
-  grid-template-rows: minmax(186px, 378px);
 
   // The hairline that parted the bands from a row under them.
   &::before {
@@ -267,26 +267,63 @@ SPDX-License-Identifier: GPL-3.0-or-later
     transform: rotate(45deg);
   }
 
-  // Standing past the neighbouring band's column, a hairline leads back to
-  // the handle across it, at the point's height (`--popover-reach`, zero
-  // beside the handle). It takes no press: the neighbour under it is the
-  // band this placement keeps within reach.
-  &::after {
-    position: absolute;
-    top: var(--popover-arrow, 50%);
-    width: var(--popover-reach, 0px);
-    height: 1px;
-    background: color-mix(in srgb, $secondary-light 55%, transparent);
-    content: '';
-    pointer-events: none;
+  // Over or under a handle on the graph (`useGraphPopoverPlace`): the point
+  // on the edge that faces it, at the handle's x.
+  &.is-above::before,
+  &.is-below::before {
+    left: calc(var(--popover-arrow, 50%) - 6px);
+    transform: rotate(45deg);
   }
 
-  &.is-right::after {
-    right: 100%;
+  &.is-above::before {
+    top: auto;
+    bottom: -7px;
+    border-top: 0;
+    border-left: 0;
   }
 
-  &.is-left::after {
-    left: 100%;
+  &.is-below::before {
+    top: -7px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  // IT GROWS OUT OF ITS BAND AND SHRINKS BACK INTO IT (Ivan, 2026-11-17:
+  // "make sure it animates open and close"): the app's pop (`_motion.scss`),
+  // a scale and a fade, so the compositor plays it alone, from the point that
+  // touches the band. It is taken away on the way out's own `animationend`
+  // (`useExitAnimation`), never on a clock. Under reduced motion both are cut
+  // to 1ms, never to none, the way `:root[data-motion='reduced']` cuts every
+  // animation in the window: a duration of none fires no `animationend`, and
+  // the popover would never leave. One path whichever way motion is set.
+  transform-origin: 0 var(--popover-arrow, 50%);
+  // Not the `animate` mixin: it switches the animation off under reduced
+  // motion, where this one is cut short instead.
+  animation: pop-in 150ms $ease-out backwards;
+
+  &.is-left {
+    transform-origin: 100% var(--popover-arrow, 50%);
+  }
+
+  &.is-above {
+    transform-origin: var(--popover-arrow, 50%) 100%;
+  }
+
+  &.is-below {
+    transform-origin: var(--popover-arrow, 50%) 0;
+  }
+
+  // Held at the last frame while it leaves: `pop-out` ends invisible, which
+  // the popover is not otherwise.
+  &.is-closing {
+    animation: pop-out 120ms $ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    &.is-closing {
+      animation-duration: 1ms;
+    }
   }
 }
 

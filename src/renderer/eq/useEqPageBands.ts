@@ -63,7 +63,12 @@ import {
   TBandField,
 } from './bandEdits';
 import { setFilterValues } from '../utils/equalizerApi';
-import { type TBandDensity } from '../components/FrequencyBand';
+import {
+  type IBandSelectEvent,
+  type TBandDensity,
+} from '../components/FrequencyBand';
+import qualityWheelEdits from '../graph/qualityWheel';
+import { openBandPopover } from './bandPopover';
 
 /**
  * The EQ page's bands: the filters and their layout, the band row's size
@@ -621,13 +626,36 @@ const useEqPageBands = () => {
     [gainEdits, showGroupEdits],
   );
 
+  // Selects as it always did; with Shift it opens the band's popover too,
+  // held open while Shift is (`bandPopover.ts`). A press opened it, or the
+  // keyboard: a press is still down, and the hold waits for it.
   const handleBandSelect = useCallback(
-    (
-      filterId: string,
-      event: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean },
-    ) =>
-      toggleFilterSelectionRef.current(filterId, selectionModeFromEvent(event)),
+    (filterId: string, event: IBandSelectEvent) => {
+      toggleFilterSelectionRef.current(filterId, selectionModeFromEvent(event));
+      if (event.shiftKey) {
+        openBandPopover({ kind: 'band' }, event.type === 'pointerdown');
+      }
+    },
     [],
+  );
+
+  // Ctrl+scroll over a band: its Q, or the selection's when it is in it, by
+  // the graph's own step (`qualityWheel.ts`).
+  const handleBandQualityWheel = useCallback(
+    (filterId: string, direction: 1 | -1) => {
+      const edits = qualityWheelEdits(
+        filtersRef.current,
+        selectedFilterIdsRef.current,
+        filterId,
+        direction,
+      );
+      if (edits.length === 0) {
+        return;
+      }
+      showGroupEdits(edits);
+      groupFlush(edits).catch(() => undefined);
+    },
+    [groupFlush, showGroupEdits],
   );
 
   const handleBandHover = useCallback(
@@ -684,6 +712,7 @@ const useEqPageBands = () => {
     handleBandGainChange,
     handleBandGainPreview,
     handleBandSelect,
+    handleBandQualityWheel,
     handleBandHover,
   };
 };

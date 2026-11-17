@@ -49,3 +49,11 @@ $eq-bubble-applied-face: color-mix(in srgb, $active 8%, $surface-floating);
 
 // And how long that moment is. Long enough to catch, short enough to miss.
 $eq-bubble-applied-hold: 1.5s;
+
+// The longest a band's track gets, the graph on or off (`_mainContentGrid`).
+// 280px is what the bands' pane holds at the default split on a 2560x1392
+// window (measured: 283px), so switching the graph off there changes nothing;
+// at 320px they still grew by 37px when it went. Short of a sweep that is a
+// reach across the screen, too. A pane too short for it gives way to the
+// floor.
+$band-track-ceiling: 280px;

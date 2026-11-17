@@ -923,6 +923,7 @@ const eq = {
   'graph.handle.off': 'off',
   'graph.handle.select': 'Click to select',
   'graph.handle.quality': 'Ctrl+scroll changes Q',
+  'graph.handle.popover': 'Shift+click shows its settings',
   'eq.layers.apoEdit': 'Equalizer APO edit',
   'convolution.entryDetail': '{provider} · minimum phase · {rate} kHz WAV',
   'eq.refused.bandLimit':

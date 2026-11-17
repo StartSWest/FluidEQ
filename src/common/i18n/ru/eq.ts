@@ -907,6 +907,7 @@ const eq: Partial<Dictionary> = {
   'graph.handle.off': 'выключена',
   'graph.handle.select': 'Щёлкните, чтобы выбрать',
   'graph.handle.quality': 'Ctrl+колесо меняет Q',
+  'graph.handle.popover': 'Shift+щелчок показывает настройки',
   'eq.layers.apoEdit': 'Правка в Equalizer APO',
   'convolution.entryDetail': '{provider} · минимальная фаза · WAV {rate} кГц',
   'eq.refused.bandLimit':

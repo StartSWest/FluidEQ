@@ -467,26 +467,10 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     [setSelectedFilterIds],
   );
 
-  // The band a shift-click ranges from: wherever the last click without
-  // shift landed, as in a file manager. A ref, because it is consulted only
-  // inside a click and changing it must not re-render anything.
-  const selectionAnchorRef = useRef<string | undefined>(undefined);
-
   const nextFilterSelection = useCallback(
-    (id: string, mode: SelectionMode = 'replace') => {
-      const nextIds = nextBandSelection(
-        filters,
-        selectedFilterIds,
-        id,
-        mode,
-        selectionAnchorRef.current,
-      );
-      if (mode !== 'range') {
-        selectionAnchorRef.current = id;
-      }
-      return nextIds;
-    },
-    [filters, selectedFilterIds],
+    (id: string, mode: SelectionMode = 'replace') =>
+      nextBandSelection(selectedFilterIds, id, mode),
+    [selectedFilterIds],
   );
 
   const toggleFilterSelection = useCallback(

@@ -23,10 +23,8 @@ import {
   isBandEnabled,
   MAX_FREQUENCY,
   MAX_GAIN,
-  MAX_QUALITY,
   MIN_FREQUENCY,
   MIN_GAIN,
-  MIN_QUALITY,
   NO_GAIN_FILTER_TYPES,
   TApoLayer,
 } from 'common/constants';
@@ -68,6 +66,7 @@ import {
 } from './ChartController';
 import { getLineGainAtFrequency } from './utils';
 import bellGainAt from './bellDrag';
+import qualityWheelEdits from './qualityWheel';
 import { GRID_BOTTOM_MARGIN, plotTopMargin } from './plotMargins';
 import {
   useLiveAudioCapture,
@@ -1016,31 +1015,13 @@ const FrequencyResponseChart = ({
 
   const handlePointQualityWheel = useCallback(
     (filterId: string, direction: number) => {
-      const filter = filters[filterId];
-      if (!filter) {
-        return;
-      }
-      let step = 1;
-      if (filter.quality < 1) {
-        step = 0.05;
-      } else if (filter.quality < 10) {
-        step = 0.1;
-      }
-      const ids = selectedFilterIds.includes(filterId)
-        ? selectedFilterIds
-        : [filterId];
-      ids.forEach((id) => {
-        const selectedFilter = filters[id];
-        if (!selectedFilter) {
-          return;
-        }
-        const quality =
-          Math.round(
-            Math.max(
-              MIN_QUALITY,
-              Math.min(MAX_QUALITY, selectedFilter.quality + direction * step),
-            ) * 100,
-          ) / 100;
+      // The step and the range are the band sliders' too (`qualityWheel.ts`).
+      qualityWheelEdits(
+        filters,
+        selectedFilterIds,
+        filterId,
+        direction,
+      ).forEach(({ id, quality }) => {
         dispatchFilter({
           type: FilterActionEnum.QUALITY,
           id,
