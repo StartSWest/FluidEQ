@@ -560,6 +560,12 @@ $fill-lit: tone-fill-lit($secondary-default);
 // on it has to read as a change.
 $focus-edge: $secondary-light;
 
+// The cut that parts a handle or the solid key from whatever it lies over:
+// a step darker than the pane, so a face of the accent's colour on a fill of
+// the accent's colour is still cut out of it (`_sliderFaces.scss`,
+// `button-solid`).
+$control-cut: oklch(from var(--surface-panel) calc(l - 0.08) c h);
+
 // The names the app grew before the set, kept as the set's own values so
 // nothing that still says them can drift from it.
 $border-field: $edge-rest;

@@ -76,99 +76,67 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // ============================================================= the keys ====
 //
-// WHAT "ON" LOOKS LIKE ANYWHERE IN THE AMP: the accent under it, its edge
-// taken up to the accent and its word in the accent's light — the way the
-// app's own quiet buttons say they are on. The one filled key is Play.
+// WHAT "ON" LOOKS LIKE ANYWHERE IN THE AMP: the app's lit face
+// (`button-face-lit`), on the edge every key already has, so a key that
+// lights never grows. The one filled key is Play (`button-solid`).
 @mixin player-key-on {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent);
-  color: var(--player-ink-bright);
+  @include button-face-lit;
 }
 
-// A PILL ON THE GLASS: every control that carries words — the page's own
-// pickers, Smart EQ's key, the queue's way to the Library — as the approved
-// Stage draws them. Its size and type are here because every one of them is
-// the same size; a row that needs a quieter one uses `player-plain`.
+// A KEY THAT CARRIES WORDS — the page's own pickers, Smart EQ's key, the
+// queue's way to the Library: the line tier (`button-line`) at the
+// toolbar's height and the control corner, its word in the amp's own ink.
+// It was a pill of the glass's wash with an edge of its own; a row that
+// needs a quieter one uses `player-plain`.
 @mixin player-pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 32px;
+  min-height: $control-height-sm;
   padding: 0 12px;
-  border: 0;
-  border-radius: $radius-pill;
-  background: var(--player-key-wash);
-  box-shadow: inset 0 0 0 1px var(--player-glass-edge);
-  color: var(--player-text);
+  border-radius: $radius-xs;
   font-size: 12px;
   font-weight: $weight-semibold;
   white-space: nowrap;
-  cursor: pointer;
   transition: $transition-control;
-
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, #{$white} 14%, transparent);
-    color: var(--player-text);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.4;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+  @include button-line;
+  color: var(--player-text);
 }
 
 // The same control with nothing drawn round it until the pointer is on it:
 // what sits along the foot of a page, under the thing the page is for.
 @mixin player-plain {
-  @include player-pill;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: $control-height-sm;
   padding: 0 10px;
-  background: none;
-  box-shadow: none;
-  color: var(--player-text-muted);
+  border-radius: $radius-xs;
+  font-size: 12px;
   font-weight: $weight-medium;
-
-  &:hover:not(:disabled) {
-    background: var(--player-hover);
-  }
+  white-space: nowrap;
+  transition: $transition-control;
+  @include button-plain;
+  color: var(--player-text-muted);
 }
 
-// A key that says what it does with its glyph alone: round, bare on the
-// glass, lit under the pointer.
-@mixin player-round($size: 30px, $glyph: 16px) {
+// A key that says what it does with its glyph alone: the plain tier, square
+// at the bar's key height, bare on the glass until the pointer is on it.
+@mixin player-round($size: $control-height-xs, $glyph: 16px) {
   display: inline-grid;
   flex: none;
   width: $size;
   height: $size;
   place-items: center;
   padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  color: var(--player-text-muted);
-  cursor: pointer;
+  border-radius: $radius-xs;
   transition: $transition-control;
+  @include button-plain;
+  color: var(--player-text-muted);
 
   .player-icon {
     width: $glyph;
     height: $glyph;
-  }
-
-  &:hover:not(:disabled) {
-    background: var(--player-hover);
-    color: var(--player-text);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.35;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 

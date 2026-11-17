@@ -313,6 +313,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The plain tier with the accent's light for ink at rest: a way somewhere in
 // running text ("Use FluidEQ Engine"), and the player's transport keys,
 // which are the player's instrument. Under the pointer it is plain.
+// SOLID: Play, and nothing else (Ivan, 2026-11-17: play stays the one solid
+// control). The accent itself - flat outside Rainbow mode (`--control-fill`)
+// - cut out of what it stands on by the controls' cut, its glyph in the
+// floor's colour; the accent's light under the pointer and the accent's dark
+// while held. Its size and its corner are the player's. There were four,
+// each its own: a disc with a computed edge, a disc brightened by a filter,
+// a 14px-cornered slab on a gradient with a 22px glow that shrank when
+// pressed, and a soft wash.
+@mixin button-solid {
+  color: $surface-base;
+  border: 1px solid $control-cut;
+  background: $secondary-default var(--control-fill) border-box;
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+
+  &:hover:not(:disabled, [aria-disabled='true']) {
+    color: $surface-base;
+    background: $secondary-light;
+  }
+
+  &:active:not(:disabled, [aria-disabled='true']) {
+    color: $surface-base;
+    background: $secondary-dark;
+  }
+
+  &:focus-visible {
+    @include focus-outline(2px);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    @include control-disabled;
+  }
+}
+
 @mixin button-plain-accent {
   @include button-plain;
 

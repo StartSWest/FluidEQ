@@ -552,18 +552,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   svg {
     width: 17px;
     height: 17px;
-    filter: drop-shadow(0 0 6px transparent);
-    transition:
-      filter 150ms ease,
-      transform 150ms ease;
   }
 
-  // Flat: under the pointer the Library's quiet surface, and a tool that is
-  // on wears its tint and the accent's ink - no gradient, no glow.
-  &:hover:not(:disabled),
-  &:focus-visible {
+  // The plain tier's steps: under the pointer the hover tint, a tool that is
+  // on the lit tint and the accent's ink; focus is the app's focus line. The
+  // marks below outrank the Maker's own button reset.
+  &:hover:not(:disabled) {
     color: $text-primary !important;
-    background: $studio-surface !important;
+    background: $fill-hover !important;
+  }
+
+  &:focus-visible {
+    @include focus-outline(2px);
   }
 
   &.is-active {
@@ -582,12 +582,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     content: '';
   }
 
-  &.is-danger:hover:not(:disabled),
-  &.is-danger:focus-visible {
-    color: $amber !important;
-    background: rgba($red, 0.32) !important;
-    border-color: rgba(255, 103, 126, 0.4) !important;
-    box-shadow: inset 0 0 14px rgba($red, 0.08) !important;
+  // Red on the same steps, never a glow of its own.
+  &.is-danger:hover:not(:disabled) {
+    color: $red !important;
+    background: tone-fill-hover($red) !important;
   }
 }
 

@@ -540,51 +540,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The suggested action, so the lit tier (`button-lit`) at a form's height.
+// It was a solid slab of the accent on a 5px lip of dark teal with a 27px
+// halo, lifted a pixel and haloed to 36px under the pointer - the loudest
+// thing in the app outside Play.
 .karaoke-maker__capture-coach-start {
   display: inline-flex;
-  min-height: 42px;
+  min-height: $control-height;
   align-items: center;
   justify-content: center;
   gap: 9px;
   padding: 0 14px;
-  color: #032a27;
   font-size: 13px;
   font-weight: $weight-bold;
-  background: $secondary-default;
-  border: 1px solid rgba($white, 0.82);
-  border-radius: $radius-l;
-  box-shadow:
-    0 5px 0 rgba(#08766d, 0.78),
-    0 0 27px color-mix(in srgb, $secondary-default 29%, transparent);
-
-  &:hover,
-  &:focus-visible {
-    color: #021f1d;
-    transform: translateY(-1px);
-    box-shadow:
-      0 6px 0 rgba(#08766d, 0.72),
-      0 0 36px color-mix(in srgb, $secondary-default 42%, transparent);
-  }
+  border-radius: $radius-xs;
+  @include button-lit;
 
   svg {
     width: 21px;
     height: 21px;
   }
 
+  // The key it answers to, as a quiet label inside the key (`label-chip`).
   kbd {
     display: inline-grid;
     min-width: 46px;
-    height: 25px;
+    height: $control-height-2xs;
     place-items: center;
     padding-inline: 7px;
-    color: rgba(#032a27, 0.86);
     font-family: inherit;
     font-size: $text-lead;
-    font-weight: $weight-bold;
-    background: rgba($white, 0.28);
-    border: 1px solid rgba(#064d47, 0.22);
-    border-radius: $radius-xs;
-    box-shadow: inset 0 -2px rgba(#064d47, 0.12);
+    @include label-chip;
   }
 }
 
@@ -604,20 +590,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-family: inherit;
   font-size: 11px;
   font-weight: $weight-bold;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $track-well 88%, transparent),
-    rgba(#073331, 0.92)
-  );
-  border: 1px solid color-mix(in srgb, $secondary-light 48%, transparent);
-  border-radius: $radius-s;
-  box-shadow: inset 0 -2px rgba(#012523, 0.35);
+  // A key drawn flat: the controls' edge and no fill, not a keycap on a lip.
+  background: transparent;
+  border: 1px solid $edge-hover;
+  border-radius: $radius-xs;
+  box-shadow: none;
 }
 
 .karaoke-maker__capture-coach.is-end .karaoke-maker__capture-coach-enter {
-  color: #fff1c8;
-  background: linear-gradient(180deg, rgba(#76541e, 0.9), rgba(#3c2a0d, 0.94));
-  border-color: rgba($amber, 0.5);
+  color: $amber;
+  background: tone-fill-hover($amber);
+  border-color: tone-edge-lit($amber);
 }
 
 .karaoke-maker__capture-coach-controls {

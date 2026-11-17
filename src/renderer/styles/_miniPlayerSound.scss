@@ -15,34 +15,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // amp draws them (Ivan, 2026-10-25): small rounded keys on the pane, edged
 // in the theme's own hairline.
 
-// A key on the pane: the preset, Smart EQ, the band layout, EQ mode, Clear EQ.
-@mixin sound-key($height: 30px) {
+// A key on the pane: the preset, Smart EQ, the band layout, EQ mode, Clear
+// EQ. The line tier at the dense bar's height, its word in the amp's ink; it
+// was a slab of the field's colour with a 9px corner.
+@mixin sound-key($height: $control-height-xs) {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   min-height: $height;
   height: $height;
   padding: 0 10px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 9px;
-  background: var(--surface-field);
-  box-shadow: none;
-  color: var(--player-text);
+  border-radius: $radius-xs;
   font-size: 12.5px;
   font-weight: $weight-semibold;
   white-space: nowrap;
-  cursor: pointer;
   transition: $transition-control;
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    background: var(--surface-field);
-    color: var(--player-text);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
+  @include button-line;
+  color: var(--player-text);
 }
 
 // Its own height, whatever the window's: the picture and the queue share the
@@ -75,10 +64,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: none;
   align-items: center;
   gap: 7px;
-  min-height: 30px;
+  min-height: $control-height-xs;
   padding: 0 6px 0 4px;
   border: 0;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   background: none;
   color: var(--player-text);
   font-size: 13.5px;
@@ -231,49 +220,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     .player-led__lamp {
       background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
       opacity: 1;
     }
   }
 }
 
-// FluidEQ on or off, as the power sign: lit in the accent while on.
+// FluidEQ on or off, as the power sign: the line tier, square at the bar's
+// key height, lit while on (`button-line` lights a pressed key itself).
 .player-sound__power {
   display: grid;
   flex: none;
-  width: 32px;
-  height: 30px;
+  width: $control-height-xs;
+  height: $control-height-xs;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: 9px;
-  background: transparent;
-  color: var(--player-text-soft);
-  cursor: pointer;
+  border-radius: $radius-xs;
   transition: $transition-control;
+  @include button-line;
+
+  &:not([aria-pressed='true']) {
+    color: var(--player-text-soft);
+  }
 
   .player-icon {
     width: 15px;
     height: 15px;
-  }
-
-  &[aria-pressed='true'] {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    color: var(--accent);
-  }
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent) 70%, transparent);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.4;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 
@@ -389,7 +360,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
 
   .is-off > & {
     background: var(--player-text-soft);
@@ -466,7 +436,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 12px;
+  border-radius: $radius-xs;
   background: color-mix(in srgb, var(--player-text) 9%, transparent);
   color: var(--player-text-muted);
   cursor: pointer;

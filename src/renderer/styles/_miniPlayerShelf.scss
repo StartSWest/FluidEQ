@@ -21,8 +21,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   background: var(--player-pane);
 }
 
-// A small key on the page: Save as playlist, a playlist's Play.
-@mixin shelf-key($height: 28px) {
+// A small key on the page: Save as playlist, a playlist's Play. The line
+// tier at the dense bar's height, its word in the amp's own ink.
+@mixin shelf-key($height: $control-height-xs) {
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -30,30 +31,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: $height;
   min-height: $height;
   padding: 0 10px;
-  border: 1px solid var(--border-subtle);
-  border-radius: $radius-m;
-  background: transparent;
-  box-shadow: none;
-  color: var(--player-text-muted);
+  border-radius: $radius-xs;
   font-size: 12px;
   font-weight: $weight-semibold;
   white-space: nowrap;
-  cursor: pointer;
   transition: $transition-control;
+  @include button-line;
+  color: var(--player-text-muted);
 
   &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    background: transparent;
     color: var(--player-text);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.4;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 
@@ -145,7 +132,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
       height: 2px;
       border-radius: 1px;
       background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
       content: '';
       transition: opacity 220ms ease;
     }
@@ -190,12 +176,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .player-shelf__key {
   display: grid;
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: $control-height-xs;
+  height: $control-height-xs;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   background: none;
   color: var(--player-text-soft);
   cursor: pointer;

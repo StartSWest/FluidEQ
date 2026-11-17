@@ -129,22 +129,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 44px;
     min-height: 44px;
     margin: -4px 1px;
-    color: $surface-base;
-    border-color: transparent;
     border-radius: 50%;
-    // The filled button's face, flat outside Rainbow mode (`--control-fill`).
-    background: $secondary-default var(--control-fill) border-box;
-
-    &:hover:not([aria-disabled='true'], :disabled) {
-      color: $surface-base;
-      background: $secondary-default var(--control-fill) border-box;
-      filter: brightness(1.1);
-    }
-
-    &:active:not([aria-disabled='true'], :disabled) {
-      color: $surface-base;
-      background: $secondary-default var(--control-fill) border-box;
-    }
+    @include button-solid;
 
     // A disc filled with the accent shows its focus 2px clear.
     &:focus-visible {

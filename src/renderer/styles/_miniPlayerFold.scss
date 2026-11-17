@@ -105,22 +105,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Play: a soft key — the accent's wash, its edge and an accent glyph — so
-// the song leads the line rather than the key.
+// Play: the one solid key (`button-solid`), small enough that the song
+// still leads the line. It was a soft key of the accent's wash, the one Play
+// in the app that was not solid.
 .player-fold__play {
   display: grid;
   flex: none;
   width: 36px;
-  height: 32px;
+  height: $control-height-sm;
   place-items: center;
   padding: 0;
-  border: 0;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);
-  color: var(--accent-light);
-  cursor: pointer;
-  transition: background $motion-fast $ease-out;
+  border-radius: $radius-xs;
+  @include button-solid;
 
   .player-icon {
     width: 14px;

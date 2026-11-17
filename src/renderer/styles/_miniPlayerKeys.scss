@@ -33,13 +33,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 6px;
   border-radius: 50%;
   background: var(--player-lamp-off);
-  transition:
-    background 160ms ease,
-    box-shadow 160ms ease;
+  transition: background 160ms ease;
 
+  // Lit, never glowing: a lamp is a dot of its colour, as every status dot.
   [aria-pressed='true']:not(:disabled) > & {
     background: var(--player-lamp);
-    box-shadow: 0 0 7px var(--player-lamp);
   }
 }
 
@@ -62,13 +60,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
     position: absolute;
     inset: 0 auto 0 0;
     background: var(--player-lamp);
-    box-shadow: 0 0 6px var(--player-lamp);
   }
 }
 
 .button.is-saving .player-led__lamp {
   background: var(--player-lamp-warm);
-  box-shadow: 0 0 6px var(--player-lamp-warm);
 }
 
 // ========================================================== glyph keys =====

@@ -110,23 +110,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 10px;
 }
 
+// The line tier, square at a form's height, its glyph in the amp's ink. It
+// was a slab lit from above with a 10px corner.
 .player-dock__key {
   display: grid;
   flex: none;
-  width: 38px;
-  height: 36px;
+  width: $control-height;
+  height: $control-height;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: $radius-l;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface-field), #{$white} 4%),
-    var(--surface-field)
-  );
-  color: var(--player-text-muted);
-  cursor: pointer;
+  border-radius: $radius-xs;
   transition: $transition-control;
+  @include button-line;
+  color: var(--player-text-muted);
 
   .player-icon {
     width: 16px;
@@ -134,64 +130,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
     color: var(--player-text);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.4;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 
-// Play: the one filled key on the amp, in the accent with its glow round it.
+// Play: the one solid key (`button-solid`), at the big control height. It
+// was a gradient slab with a 22-28px glow under it that shrank when pressed.
 .player-dock__play {
   display: grid;
   flex: none;
   width: 58px;
-  height: 46px;
+  height: $control-height-lg;
   place-items: center;
   padding: 0;
-  border: 0;
-  border-radius: 14px;
-  background: linear-gradient(180deg, var(--accent-light), var(--accent));
-  box-shadow:
-    0 6px 22px color-mix(in srgb, var(--accent) 40%, transparent),
-    inset 0 0 0 1px rgba($white, 0.35);
-  color: color-mix(in srgb, var(--surface-base), #{$black} 40%);
-  cursor: pointer;
-  transition:
-    transform 140ms ease,
-    box-shadow 160ms ease;
+  border-radius: $radius-xs;
+  @include button-solid;
 
   .player-icon {
     width: 20px;
     height: 20px;
-  }
-
-  &:hover:not(:disabled) {
-    box-shadow:
-      0 6px 28px color-mix(in srgb, var(--accent) 60%, transparent),
-      inset 0 0 0 1px rgba($white, 0.45);
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.96);
-  }
-
-  // Nothing to play yet: the same key with its light turned down.
-  &:disabled {
-    cursor: default;
-    opacity: 0.45;
-    box-shadow: none;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 
@@ -265,26 +222,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
     flex: none;
     align-items: center;
     gap: 6px;
-    height: 30px;
+    height: $control-height-sm;
     padding: 0 9px 0 8px;
-    border: 1px solid var(--border-subtle);
-    border-radius: $radius-l;
-    background: var(--surface-field);
-    box-shadow: none;
-    color: var(--player-text);
+    border-radius: $radius-xs;
     font-size: 12.5px;
     font-weight: $weight-semibold;
     white-space: nowrap;
-    cursor: pointer;
     transition: $transition-control;
-
-    &:hover:not(:disabled) {
-      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
+    @include button-line;
+    color: var(--player-text);
 
     .arrow {
       width: 9px;
@@ -294,8 +240,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   .dropdown--open > .look-picker__trigger {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    background: var(--player-chosen);
+    @include button-face-lit;
   }
 
   .graph-look-option {

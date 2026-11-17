@@ -219,7 +219,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     .player-led__lamp {
       background: var(--player-curve-smart);
-      box-shadow: 0 0 7px var(--player-curve-smart);
     }
   }
 
@@ -252,14 +251,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: none;
   gap: 2px;
   padding: 3px;
-  border-radius: $radius-pill;
+  // A track at the toolbar's height: its faces are 26 inside 3px of it.
+  border-radius: $radius-xs;
 }
 
 .player-eq__face {
-  height: 26px;
+  height: calc(#{$control-height-sm} - 6px);
   padding: 0 12px;
   border: 0;
-  border-radius: $radius-pill;
+  border-radius: $radius-2xs;
   background: none;
   color: var(--player-text-soft);
   font-size: 12px;

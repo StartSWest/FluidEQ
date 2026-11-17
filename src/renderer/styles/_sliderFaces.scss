@@ -41,7 +41,7 @@ $handle-face: oklch(from var(--surface-panel) calc(l + 0.17) calc(c * 1.05) h);
 // out of whatever it lies over, the lit fill included - a handle of the
 // accent's colour on a fill of the accent's colour had to be ringed in its
 // floor to be seen at all.
-$handle-cut: oklch(from var(--surface-panel) calc(l - 0.08) c h);
+$handle-cut: $control-cut;
 
 // A dial's skirt, under its cap (`KnobDial`): halfway from the pane to the
 // face. A dial is a handle many times the size of a slider's, and a body that

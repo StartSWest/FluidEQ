@@ -17,14 +17,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // Stage's glass is a slot sunk into the 2.0 amp's deck.
 $player-fader-around: 58px;
 
-// A key that is on, as both amps draw one: the accent under it and its word
-// in the accent's light.
-@mixin key-on {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent);
-  color: var(--player-ink-bright);
-}
-
 @mixin faders($groove-fill, $groove-shadow) {
   // ============================================================ the faders ===
   //
@@ -339,32 +331,20 @@ $player-fader-around: 58px;
   // The preamp's own key, over its fader: lit and reading AUTO while the app
   // sets the preamp, quiet and reading PRE once the listener has it back, and
   // a press moves between the two.
+  //
+  // The line tier, lit while on, at a tag's size because it stands where a
+  // band's name does.
   .player-band__auto {
     padding: 0 4px;
-    border: 1px solid var(--player-key-line);
-    border-radius: 4px;
-    background: var(--player-key-wash);
-    color: inherit;
+    border-radius: $radius-2xs;
     font: inherit;
     line-height: 11px;
     text-transform: uppercase;
-    cursor: pointer;
+    @include button-line;
+    color: inherit;
 
     &.is-on {
-      @include key-on;
-    }
-
-    &:hover:not(:disabled) {
-      border-color: var(--player-key-line-hover);
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.6;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
+      @include button-face-lit;
     }
   }
 
