@@ -24,6 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'mainContentTokens' as *;
+@use 'buttonFaces' as *;
 
 // *** Equalizer grid *********************************************************
 
@@ -48,7 +49,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: minmax(min-content, 1fr) auto;
   // Each page's scale finds its own row's first band, whatever other band
   // rows are kept alive in the document (`.eq-scale`).
-  anchor-scope: --eq-travel;
+  anchor-scope: --eq-travel, --eq-first-band;
 
   // No face under the sliders: on the open floor (layout A, Ivan 2026-09-25)
   // the band row stands on the page like everything else, and what it had as
@@ -105,19 +106,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // cannot. With no band to stand on, it falls back to those paddings.
 .eq-scale {
   top: anchor(--eq-travel top, 22px);
-  // Beside the first band across too, 8px off its ticks: the bands stand
+  // Beside the first band across too, 6px off its column: the bands stand
   // centred where the rail is wider than they need (`bandPlacement.ts`), and a
   // scale held at the column's edge stood a third of a 2804px window away
-  // from the band it numbers. With no band, at the column's edge.
-  right: anchor(--eq-travel left, 0px);
+  // from the band it numbers. Off the column rather than its ticks, so the
+  // band's hover face stays off the numbers (`--eq-first-band`).
+  //
+  // Only while the bands are placed (`.is-placed`, below): on a row that
+  // scrolls, the anchor is read at the row's unscrolled place, so once the
+  // arrow back came in front of the row the scale was shoved onto the arrow
+  // (Ivan, 2026-11-17: "the left scroll of the bands can't be seen").
+  right: 0;
   bottom: anchor(--eq-travel bottom, 20px);
   width: max-content;
-  margin-right: 8px;
   color: $text-muted;
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   // Its height is the travel, so the fives can ask whether they fit.
   container: eq-scale / size;
+
+  // Placed, the bands may stand centred far from the column, and the scale
+  // goes with them (Ivan, 2026-11-17: "they should centre with them too").
+  .main-content.is-placed > & {
+    right: calc(anchor(--eq-first-band left, -6px) + 6px);
+  }
 }
 
 .eq-scale__mark {
@@ -156,6 +168,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   align-items: center;
   gap: 6px;
+}
+
+// The arrows to the bands past either end, where the row scrolls: a tall
+// outlined key at the rail's end, the quiet outline every secondary button
+// wears. The shared arrow is a plain 22px glyph with no face, and beside
+// thirty sliders it was not seen at all (Ivan, 2026-11-17: "the left scroll
+// of the bands can't be seen either when there are many bands").
+.bands-rail > .overflow-arrow {
+  width: 24px;
+  min-width: 24px;
+  height: 72px;
+  @include button-line;
+  color: $text-primary;
 }
 
 .bands-rail__viewport {

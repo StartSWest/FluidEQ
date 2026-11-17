@@ -275,6 +275,14 @@ $range-ticks-short: repeating-linear-gradient(
     anchor-name: --eq-travel;
   }
 
+  // And the first band's whole column is what the scale stands beside, so
+  // the band's hover face (its edge and wash, the width of the column) never
+  // lands on the numbers. Beside the ticks, the scale sat inside that column
+  // and the face lit up under it (Ivan, 2026-11-17).
+  .bands > &:nth-child(1 of .bandWrapper) {
+    anchor-name: --eq-first-band;
+  }
+
   // The nudge arrows come out when the band is reached for — hovered,
   // selected or tabbed into — and are gone at rest, so the row reads as its
   // sliders rather than as thirty sliders between sixty triangles. Still
