@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { MenuIconName } from '../icons/MenuIcon';
 import {
   LEGACY_WORKSPACE_TABS,
   WORKSPACE_TABS,
@@ -53,6 +54,18 @@ export const EQ_GROUP_LABEL_KEYS = {
   convolution: 'tabs.convolution',
   config: 'tabs.config',
 } as const;
+
+/**
+ * The glyph before each of their words (Ivan, 2026-11-17: "add icons for each
+ * one of the options"), the same each page wears elsewhere: the bands the EQ
+ * row's own Bands tab draws, the convolution the active-layer chip's.
+ */
+export const EQ_GROUP_ICONS = {
+  eq: 'eqBars',
+  presets: 'genre',
+  convolution: 'convolution',
+  config: 'settings',
+} as const satisfies Record<keyof typeof EQ_GROUP_LABEL_KEYS, MenuIconName>;
 
 /**
  * The width below which the media tab is named in one word instead of two.

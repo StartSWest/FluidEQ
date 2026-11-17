@@ -19,7 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { CSSProperties, ReactNode } from 'react';
 import { useSlidingIndicator } from '../utils/useSlidingIndicator';
 
-export type TSectionTab = { id: string; label: string };
+/** A tab, and the glyph before its word, which says what the page is for
+ * before the word is read. */
+export type TSectionTab = { id: string; label: string; icon?: ReactNode };
 
 /**
  * The sections inside a page — today, the equaliser's five.
@@ -73,6 +75,11 @@ const WorkspaceSectionTabs = ({
             className={`workspace-pill${activeId === tab.id ? ' is-active' : ''}`}
             onClick={() => onSelect(tab.id)}
           >
+            {tab.icon && (
+              <span className="workspace-pill__icon" aria-hidden="true">
+                {tab.icon}
+              </span>
+            )}
             {tab.label}
           </button>
         ))}

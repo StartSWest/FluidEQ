@@ -41,7 +41,9 @@ import {
 } from '../workspacePages';
 import { resolveWorkspaceTab, type TWorkspaceTab } from '../workspaceTabs';
 import { DspPage } from './ShellPanes';
+import MenuIcon from '../icons/MenuIcon';
 import {
+  EQ_GROUP_ICONS,
   EQ_GROUP_LABEL_KEYS,
   EQ_GROUP_TABS,
   isEqGroupTab,
@@ -74,10 +76,14 @@ export const EqGroupPills = ({
     <WorkspaceSectionTabs
       label={t('tabs.eq')}
       activeId={activeTab}
-      tabs={EQ_GROUP_TABS.map((tab) => ({
-        id: tab,
-        label: t(EQ_GROUP_LABEL_KEYS[tab as keyof typeof EQ_GROUP_LABEL_KEYS]),
-      }))}
+      tabs={EQ_GROUP_TABS.map((tab) => {
+        const group = tab as keyof typeof EQ_GROUP_LABEL_KEYS;
+        return {
+          id: tab,
+          label: t(EQ_GROUP_LABEL_KEYS[group]),
+          icon: <MenuIcon name={EQ_GROUP_ICONS[group]} />,
+        };
+      })}
       onSelect={(id) => {
         const next = resolveWorkspaceTab(id);
         if (next) {

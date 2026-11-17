@@ -2830,16 +2830,21 @@ $graph-card-pages: list.join(
     // gradient. Bare, the row's words were lost on a bright picture; at the
     // card's face at 62% (0.53 of the panel) they still were ("está todavía
     // muy transparente ... que se vea mejor el texto"), so 0.88 of a face a
-    // step darker than the card.
+    // step darker than the card. The pills' row over the graph lays the same
+    // band (Ivan, 2026-11-17: "apply the same bar transparency style on the
+    // top"), one value for both so they cannot drift apart.
+    $scene-row-band: color-mix(
+      in srgb,
+      color-mix(in srgb, #{$surface-panel} 80%, #{$surface-base}) 88%,
+      transparent
+    );
+
     > .middle-content
       > .workspace-tab-panel--eq
       > .workspace-tab-panel__row
-      > .eq-layer-tabs {
-      background: color-mix(
-        in srgb,
-        color-mix(in srgb, #{$surface-panel} 80%, #{$surface-base}) 88%,
-        transparent
-      );
+      > .eq-layer-tabs,
+    > .center-head {
+      background: $scene-row-band;
     }
   }
 
@@ -4848,6 +4853,17 @@ button.graph-legend {
   // that slides under the row (`.workspace-tab-group__bar`) is its mark,
   // so the tab draws no line of its own.
   @include tab('.is-active', $underline: false);
+}
+
+// The page's glyph before its word, in the tab's own ink so it lights with it.
+.workspace-pill__icon {
+  display: inline-grid;
+  flex: none;
+
+  > svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 // The graph's row of options over a full-screen picture moves in from the
