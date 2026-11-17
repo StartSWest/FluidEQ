@@ -313,16 +313,25 @@ export default function SceneCanvas({
   // head over the picture, and the drawings that read their colours from the
   // root (`readSurface`, the level meter's wells) are told by its class,
   // which is what their cache of those colours watches.
+  //
+  // Only once the canvas has drawn its first frame, which is where the
+  // scene's own fade starts: marked at mount, the head, the tab row and the
+  // legend took their over-the-picture faces while the scene was still
+  // compiling, so the top bar changed first and the picture came in after it
+  // (Ivan, 2026-11-17: "it all has to paint together, with a fade"). Kept
+  // while the next look is handed to this same canvas, so a change of scene
+  // does not take the faces off and put them back.
   const layerName = target.dataset.sceneLayer;
+  const hasDrawn = drawnIdentity !== undefined;
   useLayoutEffect(() => {
-    if (!layerName) {
+    if (!layerName || !hasDrawn) {
       return undefined;
     }
     const mark = `is-scene-${layerName}`;
     const root = document.documentElement;
     root.classList.add(mark);
     return () => root.classList.remove(mark);
-  }, [layerName]);
+  }, [layerName, hasDrawn]);
 
   // On a layer, the layer's size and where the plot's panel stands on it.
   // Measured whenever either box changes: the graph moving down the column
