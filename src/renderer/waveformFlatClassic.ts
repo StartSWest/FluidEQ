@@ -62,21 +62,15 @@ const CLASSIC_PAINTERS: Record<
     stroke(context, input, 1.25);
   },
 
+  // One solid body, no seam down the middle (Ivan, 2026-11-17: "REMOVE center
+  // line on ribbon").
   ribbon(context, input) {
-    const { box, ratio } = input;
-    const { upper, lower, centre } = mirroredEdges(input, 0.9);
+    const { upper, lower } = mirroredEdges(input, 0.9);
     context.beginPath();
     traceCurve(context, upper);
     traceCurve(context, [...lower].reverse(), true);
     context.closePath();
     tint(context, input, 0.8);
-    // A hairline seam down the middle, in the bar's own colour: the body
-    // reads as a ribbon rather than a blot.
-    context.save();
-    context.globalCompositeOperation = 'destination-out';
-    context.globalAlpha = 0.5;
-    context.fillRect(box.x, snap(centre, ratio), box.width, 1 / ratio);
-    context.restore();
   },
 
   bars(context, input) {

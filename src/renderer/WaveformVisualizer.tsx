@@ -495,10 +495,15 @@ const WaveformVisualizer = () => {
     };
     const unlit = readSurface('--meter-unlit', 'rgba(200, 240, 245, 0.08)');
     if (isOffRef.current) {
+      // Centred in the meter under the label row, where every live style's
+      // centre is, not in the whole stage: Off's stage runs to the top of the
+      // pane (`.is-off`), and its line sat in the label row's lower half
+      // (Ivan, 2026-11-17: "starting but off").
+      const meterTop = pane.y + sizeRef.current.meterOffset;
       context.fillStyle = unlit;
       context.fillRect(
         pane.x,
-        Math.round((pane.y + pane.height / 2) * ratio) / ratio,
+        Math.round(((meterTop + pane.y + pane.height) / 2) * ratio) / ratio,
         pane.width,
         1 / ratio,
       );
