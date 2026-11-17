@@ -18,21 +18,22 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { MAX_FREQUENCY, MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { selectionModeFromEvent } from 'common/bandSelection';
 import { requestBandMenu } from '../components/BandMenu';
 import { useTranslation } from '../utils/I18nContext';
 import frequencyText from '../utils/frequencyText';
 import { EAR_LETTER_KEYS, EAR_NAME_KEYS } from '../eq/earNames';
 import { handleXInPlot } from './bandHandlePosition';
-import {
-  GRAPH_END,
-  GRAPH_START,
-  IEditableChartPoint,
-  IChartPointData,
-} from './ChartController';
+import { IEditableChartPoint, IChartPointData } from './ChartController';
 
 export { handleXInPlot } from './bandHandlePosition';
+
+/**
+ * The lowest a dragged band goes: the graph's left edge it used to stop at,
+ * before the plot ran an octave further down (`GRAPH_START`).
+ */
+const BAND_LOWEST_HZ = 10;
 
 /**
  * What a handle has to say about itself to something outside React.
@@ -174,7 +175,9 @@ const EditablePoint = ({
       ).invert;
       return {
         x: Math.round(
-          Math.max(GRAPH_START, Math.min(GRAPH_END, invertX(xPixel))),
+          // A band goes where the EQ can put one, not to the plot's
+          // edges: the plot runs an octave past 10 Hz and 20 kHz.
+          Math.max(BAND_LOWEST_HZ, Math.min(MAX_FREQUENCY, invertX(xPixel))),
         ),
         y:
           Math.round(

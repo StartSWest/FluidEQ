@@ -39,6 +39,8 @@ interface IAxisProps {
   transform?: string;
   tickFormat?: (domainValue: d3.NumberValue) => string;
   disableAnimation?: boolean;
+  /** A class for the group, for where its labels stand (`_graphThemeChart.scss`). */
+  className?: string;
 }
 
 const Axis = ({
@@ -48,6 +50,7 @@ const Axis = ({
   transform,
   tickFormat,
   disableAnimation,
+  className,
 }: IAxisProps) => {
   const ref = useRef<SVGGElement>(null);
 
@@ -98,7 +101,14 @@ const Axis = ({
     }
   }, [scale, tickValues, tickFormat, disableAnimation, type]);
 
-  return <g name="axis-frequency" ref={ref} transform={transform} />;
+  return (
+    <g
+      name="axis-frequency"
+      className={className}
+      ref={ref}
+      transform={transform}
+    />
+  );
 };
 
 export default Axis;

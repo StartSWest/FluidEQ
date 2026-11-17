@@ -25,12 +25,15 @@ import { Color } from 'renderer/styles/color';
 
 /**
  * The frequency range the plot covers with its grid on, edge to edge of the
- * graph: 10 Hz at its left edge and 20 kHz at its right, neither labelled -
- * the labels run 20 Hz to 16 kHz inside them (`FREQUENCY_MAJOR_TICKS`).
- * Ivan, 2026-11-16: the graph reaches the sides with its scales drawn over
- * it, "display the 16k instead of 20k and assume that 20k is on the reach of
- * the right", and the same for 10 Hz on the left. The top was 25 kHz, with
- * the plot between two gutters for the scales.
+ * graph: 5 Hz at its left edge and 40 kHz at its right, an octave past 10 Hz
+ * and 20 kHz on each side, so the audible band stands in from both edges
+ * with room to see what the cuts and the analyser do beyond it. The labels
+ * run 20 Hz to 16 kHz (`FREQUENCY_MAJOR_TICKS`), with unlabelled lines at
+ * 10 Hz and 20 kHz. Ivan, 2026-11-16: the graph reaches the sides with its
+ * scales drawn over it ("display the 16k instead of 20k"), then "make it
+ * more compressed so I see more on each side ... keep it with freq". It was
+ * 10 Hz to 20 kHz edge to edge for an hour, and 10 Hz to 25 kHz between two
+ * gutters for the scales before that.
  *
  * A whole octave below 20 Hz, as professional equalisers draw it (Pro-Q starts
  * at 10 Hz), and not the matched pair it was. 16 Hz and 25 kHz put 20 Hz and
@@ -41,8 +44,8 @@ import { Color } from 'renderer/styles/color';
  * never reaches 0 Hz; an octave below 20 Hz shows the cut's slope, the
  * analyser's measurement of it, and the rumble it takes out.
  */
-export const GRAPH_START = 10;
-export const GRAPH_END = 20000;
+export const GRAPH_START = 5;
+export const GRAPH_END = 40000;
 
 /**
  * The range with the grid off, when the plot is a picture drawn edge to edge:

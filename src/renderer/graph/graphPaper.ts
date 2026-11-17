@@ -135,9 +135,10 @@ export const getDrawingPadding = (
  * and equaliser draws, a fixed scale rather than the bands' own frequencies,
  * which their sliders and handles already carry (Ivan, 2026-09-23: "should the
  * follow the eq band settings or they should have an standard grahp freq
- * numbers"). 10 Hz and 20 kHz are the plot's edges (`GRAPH_START`,
- * `GRAPH_END`) and go unlabelled; 16 kHz is the last label, standing for
- * the top octave (Ivan, 2026-11-16: "display the 16k instead of 20k").
+ * numbers"). 16 kHz is the last label, standing for the top octave (Ivan,
+ * 2026-11-16: "display the 16k instead of 20k"); 10 Hz and 20 kHz are lines
+ * of their own (`FREQUENCY_MINOR_TICKS`), inside the plot's edges
+ * (`GRAPH_START`, `GRAPH_END`).
  */
 export const FREQUENCY_MAJOR_TICKS = [
   20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 16000,
@@ -145,8 +146,8 @@ export const FREQUENCY_MAJOR_TICKS = [
 
 /** Between the decades, at half their ink and unlabelled. */
 export const FREQUENCY_MINOR_TICKS = [
-  40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600, 1800, 4000,
-  6000, 8000, 12000, 14000, 18000,
+  10, 40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600, 1800,
+  4000, 6000, 8000, 12000, 14000, 18000, 20000,
 ];
 
 /**

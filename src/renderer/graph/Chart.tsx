@@ -670,6 +670,7 @@ const Chart = ({
             reaches the side under it (`GRID_AXIS_PADDING`). */}
           <Axis
             type="right"
+            className="chart-axis--inside"
             scale={yScaleEq}
             transform={`translate(${padding.left}, 0)`}
             tickValues={gainTickValues}
@@ -690,6 +691,7 @@ const Chart = ({
           {levelAxisSuitsLook(look.style) && liveCurves.length > 0 ? (
             <Axis
               type="left"
+              className="chart-axis--inside"
               scale={liveLevelScale}
               transform={`translate(${padding.left + plotWidth}, 0)`}
               tickValues={liveLevelTickValues}

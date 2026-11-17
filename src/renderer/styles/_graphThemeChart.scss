@@ -12,6 +12,26 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// The gain and level scales drawn inside the plot's edges (`Chart.tsx`): each
+// figure stands on its line, 3px clear of it, instead of being struck through
+// by it (Ivan, 2026-11-16: "put the db numbers above the lines not on top").
+// The axis centres a label on its tick with `dy: 0.32em`; this lifts it by
+// that and the gap.
+//
+// Over the drawing now, so a step softer than white and keyed in dark, the
+// stroke painted under the fill, so a figure reads over a bright analyser
+// fill, a scene or a light theme's paper alike ("a bit less white ... black
+// text borders so they can be seen on light or dark themes"). The key is the
+// one the karaoke words wear over a scene.
+.chart-axis--inside text {
+  fill: $text-muted;
+  stroke: rgba(2, 8, 15, 0.75);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  transform: translateY(calc(-0.32em - 3px));
+}
+
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
 // confidence — so "still listening" has a visible reason.
