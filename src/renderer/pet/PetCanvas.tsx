@@ -31,8 +31,8 @@ import { type IPetFrame, paintPet } from './petPaint';
 const SIZE = 36;
 /**
  * Room around the square for what reaches past it: the sway's shift and
- * lean, and the streak's glow - a 30 px drop shadow fades out about 45 px
- * from her edge.
+ * lean. She is drawn flat, with no glow (Ivan, 2026-11-17: "remove glow from
+ * pet", "all needs to look flat and modern").
  */
 const PAD = 46;
 /** The steps `--pet-level` was held to (`SupportPet.tsx`), kept here too. */
@@ -129,8 +129,7 @@ export default function PetCanvas({
         : undefined;
     const born = performance.now();
     let ratio = 1;
-    let toneTop = '#7ef7e6';
-    let toneBottom = '#17a5c4';
+    let tone = '#4ad3dc';
     let joyTarget = 0;
     let isHovered = false;
     let isPressed = false;
@@ -146,24 +145,16 @@ export default function PetCanvas({
     let isShown = false;
     let danceEnded = false;
 
-    const glow = document.createElement('canvas');
-    const glowContext = glow.getContext('2d');
-    const art = document.createElement('canvas');
-    const artContext = art.getContext('2d');
-
     const fit = () => {
       ratio = window.devicePixelRatio || 1;
       const side = Math.round((SIZE + PAD * 2) * ratio);
-      [canvas, glow, art].forEach((each) => {
-        if (each.width !== side) {
-          each.width = side;
-          each.height = side;
-        }
-      });
+      if (canvas.width !== side) {
+        canvas.width = side;
+        canvas.height = side;
+      }
     };
     const readRoot = () => {
-      toneTop = resolveColour(probe, '--pet-tone-top', '#7ef7e6');
-      toneBottom = resolveColour(probe, '--pet-tone-bottom', '#17a5c4');
+      tone = resolveColour(probe, '--pet-tone', '#4ad3dc');
       const joy = Number.parseFloat(
         getComputedStyle(document.documentElement).getPropertyValue(
           '--pet-joy',
@@ -254,8 +245,7 @@ export default function PetCanvas({
         starScale: (0.4 + 0.6 * shownStar) * twinkleScale,
         starDeg: twinkleDeg,
         starBob: bob,
-        toneTop,
-        toneBottom,
+        tone,
       };
       // Still moving: always, but for somebody who asked for less motion,
       // whose pet only eases to where she is told to be.
@@ -267,59 +257,11 @@ export default function PetCanvas({
       return [pet, !reduced || settling];
     };
 
-    /**
-     * The badge's glow and the streak's two, each a drop shadow of what the
-     * one before it drew, as the stylesheet's single `filter` chained them.
-     */
-    const shadows = (joy: number, isCelebrating: boolean) => {
-      const list: [number, string][] = [];
-      if (isCelebrating) {
-        list.push([6, 'rgba(255, 230, 109, 0.45)']);
-      }
-      if (joy > 0.001) {
-        list.push([
-          14 * joy,
-          readAccentLight(joy * 0.9, 'rgba(126, 245, 232, 0)'),
-        ]);
-        list.push([
-          30 * joy,
-          readAccentLight(joy * 0.55, 'rgba(126, 245, 232, 0)'),
-        ]);
-      }
-      return list;
-    };
-
     const draw = (now: number) => {
       const elapsed = lastAt === undefined ? 16 : now - lastAt;
       lastAt = now;
       const [pet, moving] = build(now, elapsed);
-      const list = shadows(pet.joy, stateRef.current.isCelebrating);
-      if (list.length === 0 || !artContext || !glowContext) {
-        paintPet(context, pet, ratio);
-        return moving;
-      }
-      paintPet(artContext, pet, ratio);
-      let source: HTMLCanvasElement = art;
-      list.forEach(([blur, colour], index) => {
-        const isLast = index === list.length - 1;
-        const target = isLast ? context : glowContext;
-        const targetCanvas = isLast ? canvas : glow;
-        target.setTransform(1, 0, 0, 1, 0, 0);
-        target.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
-        target.shadowBlur = blur * ratio;
-        target.shadowColor = colour;
-        target.drawImage(source, 0, 0);
-        target.shadowBlur = 0;
-        target.shadowColor = 'transparent';
-        if (!isLast) {
-          // The next shadow is of this one: copied back so the two canvases
-          // never draw onto themselves.
-          artContext.setTransform(1, 0, 0, 1, 0, 0);
-          artContext.clearRect(0, 0, art.width, art.height);
-          artContext.drawImage(glow, 0, 0);
-          source = art;
-        }
-      });
+      paintPet(context, pet, ratio);
       return moving;
     };
 

@@ -61,7 +61,7 @@ export interface IPetFrame {
   /** The eyes: the blink's height, the streak's squint. */
   blink: number;
   squint: number;
-  /** The streak, 0 to 1: the grin, the waves in the eyes, the glow. */
+  /** The streak, 0 to 1: the grin and the waves in the eyes. */
   joy: number;
   /** The wave's travel across the pupil, 0 to 1 of a period. */
   waveTravel: number;
@@ -72,8 +72,8 @@ export interface IPetFrame {
   starScale: number;
   starDeg: number;
   starBob: number;
-  toneTop: string;
-  toneBottom: string;
+  /** Her one flat colour (`--pet-tone`). */
+  tone: string;
 }
 
 const radians = (degrees: number) => (degrees * Math.PI) / 180;
@@ -100,15 +100,13 @@ const strokeUnscaled = (
   build: () => void,
   widthPx: number,
   ratio: number,
-  ink: (matrix: DOMMatrix) => string | CanvasGradient,
+  ink: string,
 ) => {
-  const matrix = context.getTransform();
   context.beginPath();
   build();
   context.save();
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
-  const style = ink(matrix);
-  context.strokeStyle = style;
+  context.strokeStyle = ink;
   context.lineWidth = widthPx;
   context.lineCap = 'round';
   context.lineJoin = 'round';
@@ -117,27 +115,6 @@ const strokeUnscaled = (
 };
 
 /** A gradient between two points of the drawing, placed in CSS px. */
-const toneBetween = (
-  context: CanvasRenderingContext2D,
-  matrix: DOMMatrix,
-  ratio: number,
-  from: readonly [number, number],
-  to: readonly [number, number],
-  frame: IPetFrame,
-) => {
-  const start = matrix.transformPoint(new DOMPoint(from[0], from[1]));
-  const end = matrix.transformPoint(new DOMPoint(to[0], to[1]));
-  const gradient = context.createLinearGradient(
-    start.x / ratio,
-    start.y / ratio,
-    end.x / ratio,
-    end.y / ratio,
-  );
-  gradient.addColorStop(0, frame.toneTop);
-  gradient.addColorStop(1, frame.toneBottom);
-  return gradient;
-};
-
 const paintEars = (
   context: CanvasRenderingContext2D,
   frame: IPetFrame,
@@ -159,7 +136,6 @@ const paintEars = (
     context.scale(1, 1 - 0.06 * press);
   });
   EARS.forEach((points) => {
-    const top = Math.min(...points.map(([, y]) => y));
     strokeUnscaled(
       context,
       () => {
@@ -169,8 +145,7 @@ const paintEars = (
       },
       3,
       ratio,
-      (matrix) =>
-        toneBetween(context, matrix, ratio, [20, top], [20, 12], frame),
+      frame.tone,
     );
   });
   context.restore();
@@ -248,10 +223,7 @@ const paintBody = (
   });
   context.save();
   context.scale(unit, unit);
-  const body = context.createLinearGradient(0, 11.5, 0, 36.5);
-  body.addColorStop(0, frame.toneTop);
-  body.addColorStop(1, frame.toneBottom);
-  context.fillStyle = body;
+  context.fillStyle = frame.tone;
   context.beginPath();
   context.arc(20, 24, 12.5, 0, Math.PI * 2);
   context.fill();
@@ -264,7 +236,7 @@ const paintBody = (
     },
     1.8,
     ratio,
-    () => INK,
+    INK,
   );
   context.restore();
   paintEyes(context, frame);

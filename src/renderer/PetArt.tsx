@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useId } from 'react';
 import type { CSSProperties } from 'react';
 import './styles/SupportPet.scss';
 
@@ -79,21 +78,6 @@ const EyeWave = ({ centreX }: { centreX: number }) => (
 );
 
 /**
- * Its colours come from two tokens (`SupportPet.scss`): its own mint at rest,
- * the scene's colours while a Plus scene tints the window. A copy in each
- * layer that paints with it, under an id of its own drawing's, so no layer's
- * colour depends on another element being drawn.
- */
-const PetTone = ({ id }: { id: string }) => (
-  <defs>
-    <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" className="support-pet__tone-top" />
-      <stop offset="1" className="support-pet__tone-bottom" />
-    </linearGradient>
-  </defs>
-);
-
-/**
  * The creature itself. Shared by the titlebar button, the dialog's hero and
  * the EQ bubble, so none of them can drift apart.
  *
@@ -119,16 +103,8 @@ const PetTone = ({ id }: { id: string }) => (
  * the hero.
  */
 export function PetArt() {
-  // Ids per drawing. She is on screen up to three times at once, a reference
-  // resolves to the first element with its id in the document, and Chromium
-  // paints nothing for a gradient in a hidden subtree: with every copy saying
-  // `pet-body`, the titlebar's copy, hidden when the titlebar is crowded, took
-  // the body's colour away from every copy after it in the document. The
-  // separators `useId` puts around its counter are not legal in a URL.
-  const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const earsTone = `pet-ears-tone-${uid}`;
-  const bodyTone = `pet-body-tone-${uid}`;
-
+  // One flat colour, `--pet-tone` (`SupportPet.scss`), set by class: no
+  // gradient, so no id a hidden copy of her could take away from the others.
   return (
     <span className="support-pet__frame">
       <span className="support-pet__art" aria-hidden="true">
@@ -147,12 +123,11 @@ export function PetArt() {
             viewBox={VIEW_BOX}
             focusable="false"
           >
-            <PetTone id={earsTone} />
             <g className="support-pet__ears">
               <path
                 d="M11 12 L14 6 L17 12"
                 fill="none"
-                stroke={`url(#${earsTone})`}
+                className="support-pet__tone-stroke"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -161,7 +136,7 @@ export function PetArt() {
               <path
                 d="M23 12 L26 8 L29 12"
                 fill="none"
-                stroke={`url(#${earsTone})`}
+                className="support-pet__tone-stroke"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -177,8 +152,7 @@ export function PetArt() {
             viewBox={VIEW_BOX}
             focusable="false"
           >
-            <PetTone id={bodyTone} />
-            <circle cx="20" cy="24" r="12.5" fill={`url(#${bodyTone})`} />
+            <circle className="support-pet__tone" cx="20" cy="24" r="12.5" />
             <path
               className="support-pet__mouth"
               d="M16.6 28.4 Q20 31.4 23.4 28.4"
