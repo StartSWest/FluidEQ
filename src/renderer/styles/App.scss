@@ -2829,9 +2829,12 @@ $graph-card-pages: list.join(
     position: relative;
     z-index: 1;
 
+    // No rule over the row and none under it (Ivan, 2026-11-17, after the
+    // top row lost its: "remove the divider of the menu below too, to see
+    // how it looks"); the divider's grip alone marks the seam.
     > .eq-layer-tabs {
-      border-bottom-color: $eq-row-hairline;
-      box-shadow: inset 0 1px 0 $studio-hair;
+      border-bottom-color: transparent;
+      box-shadow: none;
     }
   }
 

@@ -63,8 +63,3 @@ $band-track-ceiling: 340px;
 // above it runs its surface and a scene's picture on under this much
 // (`App.scss`, THE ROW STANDS ON THE GRAPH), so the two read the same number.
 $eq-row-height: 40px;
-
-// The quiet hairline under that row, parting the graph's block from the
-// bands: the J2 mockup's stronger rule, the divider's grip lying on it. The
-// faint rule the row starts on is the Library's `$studio-hair`.
-$eq-row-hairline: color-mix(in srgb, $edge-tint 18%, transparent);
