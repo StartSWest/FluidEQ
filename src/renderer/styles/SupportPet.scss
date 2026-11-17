@@ -277,6 +277,25 @@ $pet-unit: 2.5cqw;
   display: block;
 }
 
+// The titlebar's pet, drawn (`PetCanvas.tsx`): her 36px square with 46px of
+// room all round for her sway and her glow, centred on the button and taking
+// no pointer, so the button under it is still what is pressed and hovered.
+.support-pet__canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 128px;
+  height: 128px;
+  pointer-events: none;
+  translate: -50% -50%;
+}
+
+// Where her colour tokens are resolved to colours a canvas can paint with.
+.support-pet__probe {
+  display: none;
+}
+
 // The square the layers stack in (`PetArt.tsx`).
 .support-pet__art {
   position: relative;

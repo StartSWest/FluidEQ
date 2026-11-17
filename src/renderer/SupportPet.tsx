@@ -32,6 +32,7 @@ import type { ILiveAudioFrame } from './audio/liveFrameStore';
 import { amplitudeToDb, type IOutputLevel } from './graph/outputLevel';
 import { prefersReducedMotion } from './utils/bandReveal';
 import { PetArt } from './PetArt';
+import PetCanvas from './pet/PetCanvas';
 import { useTranslation } from './utils/I18nContext';
 import './styles/SupportPet.scss';
 
@@ -318,7 +319,11 @@ const useOccasionalDance = (
     };
   }, [setDancing, target]);
 
-  return { isDancing, hear };
+  // The titlebar's pet is drawn on a canvas, with no animation to end: it
+  // says when its last sway is over (`PetCanvas`).
+  const endDance = useCallback(() => setDancing(false), [setDancing]);
+
+  return { isDancing, hear, endDance };
 };
 
 /**
@@ -333,10 +338,20 @@ const usePetAudio = (
 ) => {
   const { isActive, isPaused } = useLiveAudioControl();
   const [isListening, setIsListening] = useState(false);
-  const { isDancing, hear } = useOccasionalDance(
+  const { isDancing, hear, endDance } = useOccasionalDance(
     target,
     hasContributed,
     isListening,
+  );
+  // The level as it arrives, for a pet drawn on a canvas, which reads it in
+  // its own frames rather than from `--pet-level`.
+  const levelRef = useRef(0);
+  const onLevel = useCallback(
+    (level: number) => {
+      levelRef.current = level;
+      hear(level);
+    },
+    [hear],
   );
 
   const pump = (
@@ -344,12 +359,12 @@ const usePetAudio = (
       target={target}
       isCapturing={isActive}
       isPaused={isPaused}
-      onLevel={hear}
+      onLevel={onLevel}
       onHearingChange={setIsListening}
     />
   );
 
-  return { pump, isListening, isDancing };
+  return { pump, isListening, isDancing, levelRef, endDance };
 };
 
 interface ISupportPetProps {
@@ -398,7 +413,10 @@ export default function SupportPet({
   onOpen,
 }: ISupportPetProps) {
   const ref = useRef<HTMLButtonElement>(null);
-  const { pump, isListening, isDancing } = usePetAudio(ref, hasContributed);
+  const { pump, isListening, isDancing, levelRef, endDance } = usePetAudio(
+    ref,
+    hasContributed,
+  );
 
   const { t } = useTranslation();
   const title = hasContributed
@@ -417,7 +435,14 @@ export default function SupportPet({
       onClick={onOpen}
     >
       {pump}
-      <PetArt />
+      <PetCanvas
+        host={ref}
+        level={levelRef}
+        isCelebrating={hasContributed}
+        isListening={isListening}
+        isDancing={isDancing}
+        onDanceEnd={endDance}
+      />
     </button>
   );
 }
