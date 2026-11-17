@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'mainContentTokens' as *;
+@use 'libraryTokens' as *;
 
 // *** Panel heading and toolbar **********************************************
 
@@ -81,8 +82,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   max-width: 100%;
   margin: 0;
-  font-size: $text-title;
-  font-weight: $weight-bold;
+  // The pills' own type, so the name and the four pages read as one row
+  // (Ivan, 2026-11-17: the engine's name was not like the others). It was
+  // the title size in bold, a step bigger and heavier than the pills.
+  font-size: $studio-text-row;
+  font-weight: $weight-semibold;
   text-align: center;
   color: $text-primary;
 

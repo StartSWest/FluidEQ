@@ -697,15 +697,6 @@ const Chart = ({
             bottom: plotHeight - 4,
           }}
         />
-        {editablePoints.map((point) => (
-          <EditablePoint
-            key={point.id}
-            point={point}
-            svgRef={svgRef}
-            xScale={xScaleFreq}
-            yScale={yScaleEq}
-          />
-        ))}
         <clipPath id={idOf('chart-clip-path')}>
           <rect x={padding.left} y={0} width={plotWidth} height={plotHeight} />
         </clipPath>
@@ -768,6 +759,19 @@ const Chart = ({
             tickFormat={xTickFormat}
           />
         </g>
+        {/* The band handles last, over the scales: a handle dragged to the
+          plot's edge stood under "−40 dB" and its number read through it
+          (Ivan, 2026-11-17: "the graph's nodes have to go above the dB
+          labels"). */}
+        {editablePoints.map((point) => (
+          <EditablePoint
+            key={point.id}
+            point={point}
+            svgRef={svgRef}
+            xScale={xScaleFreq}
+            yScale={yScaleEq}
+          />
+        ))}
       </svg>
     </ChartIdsContext.Provider>
   );
