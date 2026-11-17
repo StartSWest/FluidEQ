@@ -131,6 +131,23 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': 'Onde',
   'graph.switch.grid': 'Grille',
   'graph.switch.meter': 'Indicateur de niveau',
+  'graph.frequencyRange': 'Plage de fréquences',
+  'graph.frequencyRange.extendedHint':
+    'Étendue, de 10 Hz à 20 kHz : une octave sous l’audible, où se voient le coupe-bas et le grondement',
+  'graph.frequencyRange.standardHint':
+    'Standard, de 20 Hz à 20 kHz : la plage de l’audition',
+  'graph.frequencyRange.wideHint':
+    'Large, de 10 Hz à 30 kHz, comme la tracent les égaliseurs professionnels. Une sortie à 48 kHz n’a aucun son au-dessus de 24 kHz',
+  'graph.frequencyRange.musicHint':
+    'Musique, de 20 Hz à 16 kHz : là où les enregistrements ont du son',
+  'graph.frequencyRange.gridOffHint':
+    'Sans grille, le graphique est une image de 20 Hz à 16 kHz',
+  'graph.analyserSlope': 'Pente de l’analyseur',
+  'graph.analyserSlopeHint':
+    "Décibels par octave. Redresse l'affichage vers les aigus : un mixage équilibré apparaît plat.",
+  'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.analyserSlopeLookHint':
+    'Seuls les styles Analyse dessinent un spectre que l’on peut incliner',
   'graph.item.grid': 'la grille',
   'graph.item.meter': 'l’indicateur de niveau',
   'graph.waveHeight': 'Hauteur de l’onde',

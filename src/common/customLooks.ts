@@ -44,7 +44,6 @@ import {
   isTextureImage,
 } from './graphTextures';
 import { type TGraphChannels, isGraphChannels } from './graphChannels';
-import { MAX_GRAPH_TILT, MIN_GRAPH_TILT, getGraphTilt } from './graphAnalysis';
 import { PRODUCT_NAME } from './branding';
 
 /**
@@ -155,13 +154,9 @@ export interface ILookTuning {
   textureImage?: string;
   /** One figure for both channels, or one for each. */
   channels: TGraphChannels;
-  /**
-   * How far the spectrum views tip up toward the treble, in dB per octave.
-   *
-   * A display slope, never a filter: it moves the drawing and nothing else.
-   * See `graphAnalysis.ts` for why a measuring view has one at all.
-   */
-  tilt: number;
+  // No slope: it was here until 2026-11-16 and is now the graph's own, in
+  // its View menu beside the frequency range (`graphScaleSettings.ts`). A
+  // look saved with one is read without it (`normalizeTuning`).
 }
 
 export interface ICustomLook {
@@ -392,7 +387,6 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     // noise inside a reading.
     texture: 'none',
     channels: 'joined',
-    tilt: getGraphTilt(),
   };
 };
 
@@ -488,12 +482,6 @@ export const normalizeTuning = (
     channels: isGraphChannels(source.channels)
       ? source.channels
       : defaults.channels,
-    tilt: readNumber(
-      source.tilt,
-      MIN_GRAPH_TILT,
-      MAX_GRAPH_TILT,
-      defaults.tilt,
-    ),
   };
 };
 

@@ -28,6 +28,7 @@ import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
 import ViewMenuSwitch from './ViewMenuSwitch';
+import GraphScaleChoices from './GraphScaleChoices';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
   MIN_GRAPH_WAVE_HEIGHT,
@@ -356,6 +357,12 @@ const GraphViewMenu = ({
               name={t('graph.switch.grid')}
               isOn={!isGridHidden}
               onToggle={onToggleGrid}
+            />
+            {/* The scale the grid is drawn to, under the grid's own switch:
+              the frequency range and the analyser's slope. */}
+            <GraphScaleChoices
+              isGridHidden={isGridHidden}
+              hasScene={Boolean(sceneLookId)}
             />
 
             {/* The meter is not on the plot, and it is here anyway.

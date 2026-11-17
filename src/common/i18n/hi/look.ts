@@ -37,10 +37,6 @@ const look: Partial<Dictionary> = {
   'look.texture.tooBig':
     'यह तस्वीर सहेजने के लिए बहुत बड़ी है। कोई छोटी आज़माएँ।',
   'look.texture.unreadable': 'यह फ़ाइल तस्वीर के रूप में नहीं पढ़ी जा सकी।',
-  'look.tilt': 'ढलान',
-  'look.tiltHint':
-    'प्रति ऑक्टेव डेसिबल। प्रदर्शन को ट्रेबल की ओर झुकाता है, ताकि संतुलित मिक्स सपाट दिखे।',
-  'look.tiltValue': '{value} dB/ऑक्टेव',
   'look.channels': 'चैनल',
   'look.channels.joined': 'एक साथ',
   'look.channels.split': 'बायाँ और दायाँ',

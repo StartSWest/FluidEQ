@@ -126,6 +126,23 @@ const eq = {
   'graph.switch.wave': 'Wave',
   'graph.switch.grid': 'Grid',
   'graph.switch.meter': 'Level meter',
+  'graph.frequencyRange': 'Frequency range',
+  'graph.frequencyRange.extendedHint':
+    'Extended, 10 Hz to 20 kHz: an octave below hearing, where the low cut and rumble show',
+  'graph.frequencyRange.standardHint':
+    'Standard, 20 Hz to 20 kHz: the range of hearing',
+  'graph.frequencyRange.wideHint':
+    'Wide, 10 Hz to 30 kHz, as professional equalizers draw it. A 48 kHz output has no sound above 24 kHz',
+  'graph.frequencyRange.musicHint':
+    'Music, 20 Hz to 16 kHz: where records have sound',
+  'graph.frequencyRange.gridOffHint':
+    'With the grid off the graph is a picture, from 20 Hz to 16 kHz',
+  'graph.analyserSlope': 'Analyzer slope',
+  'graph.analyserSlopeHint':
+    'Decibels per octave. Tips the display up toward the treble, so a balanced mix reads level.',
+  'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.analyserSlopeLookHint':
+    'Only the Analysis looks draw a spectrum this can tip',
   'graph.item.grid': 'grid',
   'graph.item.meter': 'level meter',
   'graph.waveHeight': 'Wave height',

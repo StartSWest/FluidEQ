@@ -132,6 +132,23 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': 'Welle',
   'graph.switch.grid': 'Raster',
   'graph.switch.meter': 'Pegelanzeige',
+  'graph.frequencyRange': 'Frequenzbereich',
+  'graph.frequencyRange.extendedHint':
+    'Erweitert, 10 Hz bis 20 kHz: eine Oktave unter der Hörgrenze, wo Tiefenfilter und Rumpeln sichtbar sind',
+  'graph.frequencyRange.standardHint':
+    'Standard, 20 Hz bis 20 kHz: der Hörbereich',
+  'graph.frequencyRange.wideHint':
+    'Weit, 10 Hz bis 30 kHz, wie professionelle Equalizer ihn zeichnen. Ein Ausgang mit 48 kHz hat über 24 kHz keinen Klang',
+  'graph.frequencyRange.musicHint':
+    'Musik, 20 Hz bis 16 kHz: wo Aufnahmen Klang haben',
+  'graph.frequencyRange.gridOffHint':
+    'Ohne Raster ist der Graph ein Bild von 20 Hz bis 16 kHz',
+  'graph.analyserSlope': 'Analyzer-Neigung',
+  'graph.analyserSlopeHint':
+    'Dezibel pro Oktave. Kippt die Anzeige zu den Höhen, damit eine ausgewogene Mischung gerade erscheint.',
+  'graph.analyserSlopeValue': '{value} dB/Okt',
+  'graph.analyserSlopeLookHint':
+    'Nur die Analyse-Darstellungen zeichnen ein Spektrum, das sich neigen lässt',
   'graph.item.grid': 'Raster',
   'graph.item.meter': 'Pegelanzeige',
   'graph.waveHeight': 'Wellenhöhe',

@@ -31,7 +31,7 @@ export { handleXInPlot } from './bandHandlePosition';
 
 /**
  * The lowest a dragged band goes: the graph's left edge it used to stop at,
- * before the plot ran an octave further down (`GRAPH_START`).
+ * before the plot ran an octave further down (`SPECTRUM_START`).
  */
 const BAND_LOWEST_HZ = 10;
 

@@ -38,10 +38,6 @@ const look: Partial<Dictionary> = {
     'Dieses Bild ist zu groß zum Speichern. Wählen Sie ein kleineres.',
   'look.texture.unreadable':
     'Diese Datei konnte nicht als Bild gelesen werden.',
-  'look.tilt': 'Neigung',
-  'look.tiltHint':
-    'Dezibel pro Oktave. Kippt die Anzeige zu den Höhen, damit eine ausgewogene Mischung gerade erscheint.',
-  'look.tiltValue': '{value} dB/Okt',
   'look.channels': 'Kanäle',
   'look.channels.joined': 'Zusammen',
   'look.channels.split': 'Links & rechts',

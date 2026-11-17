@@ -57,6 +57,7 @@ import drawSceneView, {
 import { readLookInput } from './engineLooks/lookInput';
 import { type ILookTuning, type IResolvedLook } from '../../common/customLooks';
 import { type IChartPointData } from './ChartController';
+import { getGraphAnalyserSlope } from '../utils/graphScaleSettings';
 import { type IAnalysisChannels } from './analysis/useAnalysisChannels';
 import { type IEngineLookInput } from './engineLooks/engineLookInput';
 import { type GraphLookTransition } from './graphLookTransition';
@@ -187,6 +188,7 @@ export const drawMeasuringFrame = ({
     deltaMs: motionDeltaMs,
     playing: playingRef.current,
     tuning,
+    tilt: getGraphAnalyserSlope(),
     colours: viewColours,
     mateColours:
       lookRef.current.colours.length === 0

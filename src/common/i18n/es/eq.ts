@@ -128,6 +128,23 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': 'Onda',
   'graph.switch.grid': 'Cuadrícula',
   'graph.switch.meter': 'Medidor de nivel',
+  'graph.frequencyRange': 'Rango de frecuencias',
+  'graph.frequencyRange.extendedHint':
+    'Ampliado, de 10 Hz a 20 kHz: una octava por debajo de lo audible, donde se ven el corte de graves y el retumbe',
+  'graph.frequencyRange.standardHint':
+    'Estándar, de 20 Hz a 20 kHz: el rango del oído',
+  'graph.frequencyRange.wideHint':
+    'Amplio, de 10 Hz a 30 kHz, como lo dibujan los ecualizadores profesionales. Una salida a 48 kHz no tiene sonido por encima de 24 kHz',
+  'graph.frequencyRange.musicHint':
+    'Música, de 20 Hz a 16 kHz: donde los discos tienen sonido',
+  'graph.frequencyRange.gridOffHint':
+    'Sin cuadrícula, la gráfica es una imagen de 20 Hz a 16 kHz',
+  'graph.analyserSlope': 'Pendiente del analizador',
+  'graph.analyserSlopeHint':
+    'Decibelios por octava. Inclina la vista hacia los agudos, para que una mezcla equilibrada se vea plana.',
+  'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.analyserSlopeLookHint':
+    'Solo los estilos de Análisis dibujan un espectro que se pueda inclinar',
   'graph.item.grid': 'la cuadrícula',
   'graph.item.meter': 'el medidor de nivel',
   'graph.waveHeight': 'Altura de la onda',

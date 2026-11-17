@@ -37,10 +37,6 @@ const look: Partial<Dictionary> = {
   'look.texture.tooBig':
     'Esa imagen es demasiado grande para guardarla. Prueba con una más pequeña.',
   'look.texture.unreadable': 'No se pudo leer ese archivo como imagen.',
-  'look.tilt': 'Pendiente',
-  'look.tiltHint':
-    'Decibelios por octava. Inclina la vista hacia los agudos, para que una mezcla equilibrada se vea plana.',
-  'look.tiltValue': '{value} dB/oct',
   'look.channels': 'Canales',
   'look.channels.joined': 'Unidos',
   'look.channels.split': 'Izquierdo y derecho',

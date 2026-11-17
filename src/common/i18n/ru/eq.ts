@@ -128,6 +128,23 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': 'Волна',
   'graph.switch.grid': 'Сетка',
   'graph.switch.meter': 'Индикатор уровня',
+  'graph.frequencyRange': 'Диапазон частот',
+  'graph.frequencyRange.extendedHint':
+    'Расширенный, от 10 Гц до 20 кГц: на октаву ниже слышимого, где видны срез низов и гул',
+  'graph.frequencyRange.standardHint':
+    'Стандартный, от 20 Гц до 20 кГц: диапазон слуха',
+  'graph.frequencyRange.wideHint':
+    'Широкий, от 10 Гц до 30 кГц, как его рисуют профессиональные эквалайзеры. На выходе 48 кГц звука выше 24 кГц нет',
+  'graph.frequencyRange.musicHint':
+    'Музыка, от 20 Гц до 16 кГц: где в записях есть звук',
+  'graph.frequencyRange.gridOffHint':
+    'Без сетки график становится картинкой от 20 Гц до 16 кГц',
+  'graph.analyserSlope': 'Наклон анализатора',
+  'graph.analyserSlopeHint':
+    'Децибелы на октаву. Наклоняет отображение к верхам: сбалансированный микс выглядит ровным.',
+  'graph.analyserSlopeValue': '{value} дБ/окт',
+  'graph.analyserSlopeLookHint':
+    'Наклонить можно только спектр, который рисуют оформления «Анализ»',
   'graph.item.grid': 'сетку',
   'graph.item.meter': 'индикатор уровня',
   'graph.waveHeight': 'Высота волны',

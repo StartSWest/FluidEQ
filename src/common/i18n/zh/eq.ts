@@ -124,6 +124,20 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': '波形',
   'graph.switch.grid': '网格',
   'graph.switch.meter': '电平表',
+  'graph.frequencyRange': '频率范围',
+  'graph.frequencyRange.extendedHint':
+    '扩展，10 Hz 至 20 kHz：比可听范围低一个倍频程，可看到低切和隆隆声',
+  'graph.frequencyRange.standardHint': '标准，20 Hz 至 20 kHz：人耳可听范围',
+  'graph.frequencyRange.wideHint':
+    '宽，10 Hz 至 30 kHz，与专业均衡器的显示一致。48 kHz 输出在 24 kHz 以上没有声音',
+  'graph.frequencyRange.musicHint': '音乐，20 Hz 至 16 kHz：录音中有声音的范围',
+  'graph.frequencyRange.gridOffHint':
+    '关闭网格时，图表是一幅 20 Hz 至 16 kHz 的画面',
+  'graph.analyserSlope': '分析器斜率',
+  'graph.analyserSlopeHint':
+    '每倍频程的分贝数。把显示向高频抬起，平衡的混音看起来就是平的。',
+  'graph.analyserSlopeValue': '{value} dB/倍频程',
+  'graph.analyserSlopeLookHint': '只有分析外观会绘制可倾斜的频谱',
   'graph.item.grid': '网格',
   'graph.item.meter': '电平表',
   'graph.waveHeight': '波形高度',

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { GRAPH_END, GRAPH_START } from './ChartController';
+import { SPECTRUM_START } from './graphFrequencyRanges';
 import { POINT_COUNT } from './liveSpectrumFrames';
 
 /**
@@ -68,19 +68,28 @@ const TIMING_FLOOR_BINS = 6;
 const MAX_TIMING_DB = 40;
 const MAX_TIMING = 10 ** (MAX_TIMING_DB / 10);
 
+/** Where the DSP pages' spectra end, as their plots do. */
+const DSP_PAGE_TOP_HZ = 20000;
+
 /** One bin at the analyser's floor, so an empty span divides as silence. */
 const EMPTY_POWER = 1e-10;
 
 /**
- * `points` log-spaced points from the plot's left edge to its right edge, or
- * to Nyquist where that comes first: past Nyquist there is no sound to show.
+ * `points` log-spaced points from 10 Hz to `top`, or to Nyquist where that
+ * comes first: past Nyquist there is no sound to show.
+ *
+ * `top` is 20 kHz, the DSP pages' edge (`dspEqGraphScale.ts`), unless the
+ * reader feeds the main graph: that one reads to `SPECTRUM_END`, the top of
+ * the widest range its View menu offers, so every range is filled to its
+ * edge and a range change rebuilds no analyser.
  */
 export const createGraphFrequencyAxis = (
   sampleRate: number,
   points: number = POINT_COUNT,
+  top: number = DSP_PAGE_TOP_HZ,
 ): number[] => {
-  const logMin = Math.log10(GRAPH_START);
-  const logMax = Math.log10(Math.min(GRAPH_END, sampleRate / 2));
+  const logMin = Math.log10(SPECTRUM_START);
+  const logMax = Math.log10(Math.min(top, sampleRate / 2));
   return Array.from(
     { length: points },
     (_value, index) =>
@@ -190,6 +199,8 @@ export interface IGraphBandOptions {
   detailOctaves?: number;
   /** How many points the axis has. */
   points?: number;
+  /** Where the axis ends (`createGraphFrequencyAxis`). */
+  top?: number;
 }
 
 /**
@@ -208,9 +219,10 @@ export const createGraphBandLayout = (
     lowBins = lowFftSize / 2,
     detailOctaves = DETAIL_OCTAVES,
     points = POINT_COUNT,
+    top = DSP_PAGE_TOP_HZ,
   }: IGraphBandOptions = {},
 ): IGraphBandLayout => {
-  const axis = createGraphFrequencyAxis(sampleRate, points);
+  const axis = createGraphFrequencyAxis(sampleRate, points, top);
   const fastBinHz = sampleRate / fastFftSize;
   const lowBinHz = sampleRate / lowFftSize;
   // The fast window reads a point alone from where a slice holds its three
@@ -335,8 +347,9 @@ export const createGraphSliceReader = (
   sampleRate: number,
   fftSize: number,
   points: number = POINT_COUNT,
+  top: number = DSP_PAGE_TOP_HZ,
 ): IGraphSliceReader => {
-  const axis = createGraphFrequencyAxis(sampleRate, points);
+  const axis = createGraphFrequencyAxis(sampleRate, points, top);
   const binHz = sampleRate / fftSize;
   const edges = new Float64Array(axis.length * 2);
   axis.forEach((frequency, index) => {

@@ -6,14 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IFiltersMap } from 'common/constants';
 import {
-  GRAPH_END,
-  GRAPH_START,
   IChartCurveData,
   IChartGradientStop,
   IChartPointData,
   OUTPUT_CURVE_ID,
   VOICING_CURVE_ID,
 } from './ChartController';
+import { SPECTRUM_END, SPECTRUM_START } from './graphFrequencyRanges';
 import { Color, ColorEnum } from '../styles/color';
 import { getBandColor } from '../utils/bandColors';
 import type { useTranslation } from '../utils/I18nContext';
@@ -45,11 +44,11 @@ export const eqGradientStops = (
   const sorted = Object.values(filters).sort(
     (a, b) => a.frequency - b.frequency,
   );
-  const logSpan = Math.log(GRAPH_END / GRAPH_START);
+  const logSpan = Math.log(SPECTRUM_END / SPECTRUM_START);
   return [
     { offset: 0, color: getBandColor(0, rainbow).color },
     ...sorted.map((filter, index) => ({
-      offset: Math.log(filter.frequency / GRAPH_START) / logSpan,
+      offset: Math.log(filter.frequency / SPECTRUM_START) / logSpan,
       color: getBandColor(
         sorted.length > 1 ? index / (sorted.length - 1) : 0,
         rainbow,

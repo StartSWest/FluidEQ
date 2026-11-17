@@ -70,12 +70,13 @@ export const VIEW_KEYS = {
   // `<stem>.families` marks that the copy from before the split was made
   // (`getGraphLookFamily`).
   //
-  // Four are still flat, and each says why where it is used: the meter and the
+  // Six are still flat, and each says why where it is used: the meter and the
   // titlebar wave are not on the plot at all, the orientation is a property of
-  // the drawing rather than of how much screen it has, and the view is the
-  // thing the rest are indexed by. Wave height and position are per-view: a
-  // low wave over a film and a tall one in the editing pane are independent
-  // arrangements.
+  // the drawing rather than of how much screen it has, the frequency range and
+  // the analyser's slope are the measurement's scale, the same in every view
+  // (`graphScaleSettings.ts`), and the view is the thing the rest are indexed
+  // by. Wave height and position are per-view: a low wave over a film and a
+  // tall one in the editing pane are independent arrangements.
   wave: 'fluideq.graphWaveHidden',
   quietEq: 'fluideq.graphQuietEq',
   bandLabels: 'fluideq.graphBandLabelsHidden',
@@ -89,6 +90,8 @@ export const VIEW_KEYS = {
   waveHeight: 'fluideq.graphWaveHeight',
   wavePosition: 'fluideq.graphWavePosition',
   orientation: 'fluideq.waveOrientation',
+  frequencyRange: 'fluideq.graphFrequencyRange',
+  analyserSlope: 'fluideq.graphAnalyserSlope',
   view: 'fluideq.graphView',
 };
 

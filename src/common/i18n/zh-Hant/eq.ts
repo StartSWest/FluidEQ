@@ -107,6 +107,20 @@ const eq = {
   'graph.switch.wave': '波形',
   'graph.switch.grid': '網格',
   'graph.switch.meter': '電平表',
+  'graph.frequencyRange': '頻率範圍',
+  'graph.frequencyRange.extendedHint':
+    '延伸，10 Hz 至 20 kHz：比可聽範圍低一個八度，可看到低切與隆隆聲',
+  'graph.frequencyRange.standardHint': '標準，20 Hz 至 20 kHz：人耳可聽範圍',
+  'graph.frequencyRange.wideHint':
+    '寬，10 Hz 至 30 kHz，與專業等化器的顯示相同。48 kHz 輸出在 24 kHz 以上沒有聲音',
+  'graph.frequencyRange.musicHint': '音樂，20 Hz 至 16 kHz：錄音中有聲音的範圍',
+  'graph.frequencyRange.gridOffHint':
+    '關閉網格時，圖表是一幅 20 Hz 至 16 kHz 的畫面',
+  'graph.analyserSlope': '分析器坡度',
+  'graph.analyserSlopeHint':
+    '每八度的分貝數。將顯示器向上傾斜至高音，以便平衡的混音讀取電平。',
+  'graph.analyserSlopeValue': '{value} dB/八倍頻',
+  'graph.analyserSlopeLookHint': '只有分析外觀會繪製可傾斜的頻譜',
   'graph.item.grid': '網格',
   'graph.item.meter': '電平表',
   'graph.waveHeight': '波形高度',

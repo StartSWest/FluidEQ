@@ -111,6 +111,21 @@ const eq = {
   'graph.switch.wave': '파형',
   'graph.switch.grid': '격자',
   'graph.switch.meter': '레벨 미터',
+  'graph.frequencyRange': '주파수 범위',
+  'graph.frequencyRange.extendedHint':
+    '확장, 10Hz~20kHz: 가청 범위보다 한 옥타브 아래까지, 저역 컷과 럼블이 보입니다',
+  'graph.frequencyRange.standardHint': '표준, 20Hz~20kHz: 가청 범위',
+  'graph.frequencyRange.wideHint':
+    '넓게, 10Hz~30kHz: 전문 이퀄라이저처럼 그립니다. 48kHz 출력에는 24kHz 위로 소리가 없습니다',
+  'graph.frequencyRange.musicHint': '음악, 20Hz~16kHz: 음반에 소리가 있는 범위',
+  'graph.frequencyRange.gridOffHint':
+    '격자를 끄면 그래프는 20Hz~16kHz의 그림이 됩니다',
+  'graph.analyserSlope': '분석기 경사',
+  'graph.analyserSlopeHint':
+    '옥타브당 데시벨입니다. 디스플레이를 고음쪽으로 기울여 균형 잡힌 믹스가 레벨을 읽을 수 있도록 합니다.',
+  'graph.analyserSlopeValue': '{value}dB/oct',
+  'graph.analyserSlopeLookHint':
+    '기울일 수 있는 스펙트럼은 분석 스타일만 그립니다',
   'graph.item.grid': '그리드',
   'graph.item.meter': '레벨 미터',
   'graph.waveHeight': '파형 높이',

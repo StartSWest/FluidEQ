@@ -36,10 +36,6 @@ const look: Partial<Dictionary> = {
   'look.texture.replace': '更换图片',
   'look.texture.tooBig': '这张图片太大，无法保存。请换一张小一些的。',
   'look.texture.unreadable': '无法将该文件读取为图片。',
-  'look.tilt': '斜率',
-  'look.tiltHint':
-    '每倍频程的分贝数。把显示向高频抬起，平衡的混音看起来就是平的。',
-  'look.tiltValue': '{value} dB/倍频程',
   'look.channels': '声道',
   'look.channels.joined': '合并',
   'look.channels.split': '左右分开',

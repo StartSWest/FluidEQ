@@ -130,6 +130,21 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': '波形',
   'graph.switch.grid': 'グリッド',
   'graph.switch.meter': 'レベルメーター',
+  'graph.frequencyRange': '周波数範囲',
+  'graph.frequencyRange.extendedHint':
+    '拡張、10 Hz〜20 kHz：可聴域より1オクターブ下まで。ローカットと低域ノイズが見えます',
+  'graph.frequencyRange.standardHint': '標準、20 Hz〜20 kHz：可聴域',
+  'graph.frequencyRange.wideHint':
+    'ワイド、10 Hz〜30 kHz：プロ用イコライザーと同じ表示。48 kHz の出力には 24 kHz より上の音はありません',
+  'graph.frequencyRange.musicHint': '音楽、20 Hz〜16 kHz：録音に音がある範囲',
+  'graph.frequencyRange.gridOffHint':
+    'グリッドがオフのとき、グラフは 20 Hz〜16 kHz の絵になります',
+  'graph.analyserSlope': 'アナライザーの傾き',
+  'graph.analyserSlopeHint':
+    'オクターブあたりのデシベル。表示を高域側へ持ち上げ、バランスの取れたミックスが水平に見えるようにします。',
+  'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.analyserSlopeLookHint':
+    '傾けられるスペクトルを描くのは解析の表示だけです',
   'graph.item.grid': 'グリッド',
   'graph.item.meter': 'レベルメーター',
   'graph.waveHeight': '波形の高さ',

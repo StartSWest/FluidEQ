@@ -6,7 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { NumberValue } from 'd3';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import { GRAPH_END, IChartPointData } from './ChartController';
+import { IChartPointData } from './ChartController';
+import { SPECTRUM_END } from './graphFrequencyRanges';
 import {
   createGraphBandLayout,
   createGraphFrequencyAxis,
@@ -94,8 +95,8 @@ export const lowBandFftSize = (sampleRate: number): number =>
  * axis: a figure that rests on the floor rather than leaving the graph.
  */
 export const GRAPH_SILENT_POINTS: readonly IChartPointData[] = Object.freeze(
-  createGraphFrequencyAxis(GRAPH_END * 2).map((frequency) =>
-    Object.freeze({ x: frequency, y: MIN_GAIN }),
+  createGraphFrequencyAxis(SPECTRUM_END * 2, undefined, SPECTRUM_END).map(
+    (frequency) => Object.freeze({ x: frequency, y: MIN_GAIN }),
   ),
 );
 
@@ -131,6 +132,7 @@ export const createLiveGraphBand = (
       context.sampleRate,
       fastFftSize,
       lowAnalyser.fftSize,
+      { top: SPECTRUM_END },
     ),
     lowAnalyser,
     lowData: new Float32Array(lowAnalyser.frequencyBinCount),

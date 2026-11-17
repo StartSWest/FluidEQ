@@ -30,8 +30,6 @@ import Axis from './Axis';
 import { ChartIdsContext, TChartIdOf } from './chartIds';
 import GridLine from './GridLine';
 import useController, {
-  GRAPH_END,
-  GRAPH_START,
   graphFrequencyRange,
   IChartCurveData,
   IChartGradientStop,
@@ -42,6 +40,8 @@ import useController, {
   OUTPUT_CURVE_ID,
 } from './ChartController';
 import LiveOutputCurve from './LiveOutputCurve';
+import { SPECTRUM_END, SPECTRUM_START } from './graphFrequencyRanges';
+import { useGraphFrequencyRange } from '../utils/graphScaleSettings';
 import {
   useGraphGridHidden,
   useGraphLook,
@@ -163,6 +163,7 @@ const Chart = ({
   // bottom for the frequency marks, all empty, all taken out of the drawing.
   // The wave runs edge to edge instead.
   const isGridHidden = useGraphGridHidden();
+  const frequencyRangeChoice = useGraphFrequencyRange();
   // The genre pins as drawn, and where a measuring view's key stands, for
   // the band labels to keep clear of.
   const genrePins = useGenrePinSpots(data, isLiveOutputForeground);
@@ -195,8 +196,8 @@ const Chart = ({
     [svgHeight, padding],
   );
 
-  // The whole spectrum with the grid on, trimmed to where records have sound
-  // with it off (`graphFrequencyRange`).
+  // The range the View menu names with the grid on, trimmed to where records
+  // have sound with it off (`graphFrequencyRange`).
   // Two gain axes: the EQ's own (`yScaleEq`), which compresses what is past
   // ±20 dB into the plot's ends so an output curve carried down by the
   // preamp is drawn whole, and the plain ±20 one the analyser and the scenes
@@ -207,7 +208,7 @@ const Chart = ({
       height: svgHeight,
       padding,
       drawingPadding,
-      frequencyRange: graphFrequencyRange(isGridHidden),
+      frequencyRange: graphFrequencyRange(isGridHidden, frequencyRangeChoice),
     });
 
   const scene = useSceneLook();
@@ -495,8 +496,8 @@ const Chart = ({
           <linearGradient
             id={idOf('chart-eq-spectrum-gradient')}
             gradientUnits="userSpaceOnUse"
-            x1={xScaleFreq(GRAPH_START)}
-            x2={xScaleFreq(GRAPH_END)}
+            x1={xScaleFreq(SPECTRUM_START)}
+            x2={xScaleFreq(SPECTRUM_END)}
             y1={0}
             y2={0}
           >

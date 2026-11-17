@@ -18,23 +18,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { FilterTypeEnum, IFilter, IGraphicEqPoint } from 'common/constants';
 import { range } from 'renderer/utils/utils';
-import {
-  IChartPointData,
-  IChartLineDataPointsById,
-  GRAPH_START,
-  GRAPH_END,
-} from './ChartController';
+import { IChartPointData, IChartLineDataPointsById } from './ChartController';
+import { SPECTRUM_END, SPECTRUM_START } from './graphFrequencyRanges';
 
 /**
  * The rate a cookbook band is drawn at while the output's own is not known:
  * high enough that the bilinear squeeze sits above the graph's range.
  */
 const SAMPLE_FREQUENCY = 96000;
-const NUM_STEPS = 1000;
 
-const logStart = Math.log10(GRAPH_START);
-const logEnd = Math.log10(GRAPH_END);
-const step = (logEnd - logStart) / NUM_STEPS;
+/**
+ * Points per decade a curve is sampled at: the density of the 1000 steps it
+ * took across 10 Hz to 20 kHz, kept across the wider span every range of the
+ * plot is drawn from (`SPECTRUM_START` to `SPECTRUM_END`), so no range draws
+ * a coarser curve than the graph always did.
+ */
+const STEPS_PER_DECADE = 1000 / Math.log10(20000 / 10);
+
+const logStart = Math.log10(SPECTRUM_START);
+const logEnd = Math.log10(SPECTRUM_END);
+const step =
+  (logEnd - logStart) / Math.ceil((logEnd - logStart) * STEPS_PER_DECADE);
 const SAMPLE_FREQUENCIES = range(logStart, logEnd + step, step).map(
   (p) => 10 ** p,
 );

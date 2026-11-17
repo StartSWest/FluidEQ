@@ -19,10 +19,6 @@ const look = {
   'look.texture.replace': '更改圖片',
   'look.texture.tooBig': '那張照片太大了，無法保留。嘗試較小的一個。',
   'look.texture.unreadable': '該檔案無法作為圖片讀取。',
-  'look.tilt': '坡度',
-  'look.tiltHint':
-    '每八度的分貝數。將顯示器向上傾斜至高音，以便平衡的混音讀取電平。',
-  'look.tiltValue': '{value} dB/八倍頻',
   'look.channels': '頻道',
   'look.channels.joined': '合併',
   'look.channels.split': '左、右',

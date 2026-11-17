@@ -29,7 +29,6 @@ import {
   resolveGraphPalette,
 } from 'common/graphStyles';
 import { GRAPH_CHANNELS } from 'common/graphChannels';
-import { GRAPH_TILTS, hasGraphTilt } from 'common/graphAnalysis';
 import {
   ICustomLook,
   ILookTuning,
@@ -687,45 +686,6 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
               tune({ texture, textureImage })
             }
           />
-        ) : null}
-
-        {/* The display slope. Only on the measuring views, because it tips a
-            frequency display and the others do not draw one — offered on a
-            scene it would be a control that visibly does nothing. */}
-        {hasGraphTilt(style) ? (
-          <div className="look-designer__row">
-            <span className="look-designer__caption">
-              <span>{t('look.tilt')}</span>
-              <small>{t('look.tiltHint')}</small>
-            </span>
-            <div
-              className="look-designer__choice"
-              role="group"
-              aria-label={t('look.tilt')}
-            >
-              {GRAPH_TILTS.map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className={`look-designer__pill${
-                    tuning.tilt === choice ? ' is-on' : ''
-                  }`}
-                  aria-pressed={tuning.tilt === choice}
-                  // Five pills each carrying "dB/oct" overflowed the panel
-                  // and cut the last one in half, so the unit is said once
-                  // in the hint and spelled out for a reader here.
-                  aria-label={
-                    choice === 0
-                      ? t('look.off')
-                      : t('look.tiltValue', { value: choice })
-                  }
-                  onClick={() => tune({ tilt: choice })}
-                >
-                  {choice === 0 ? t('look.off') : String(choice)}
-                </button>
-              ))}
-            </div>
-          </div>
         ) : null}
 
         {/* One figure or two. Left above the line and right below it, which

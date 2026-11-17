@@ -22,35 +22,35 @@ import * as d3 from 'd3';
 import { MAX_GAIN, MIN_GAIN, type TBandChannel } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
 import { Color } from 'renderer/styles/color';
+import {
+  DEFAULT_GRAPH_FREQUENCY_RANGE,
+  GRAPH_FREQUENCY_SPANS,
+  type TGraphFrequencyRange,
+} from './graphFrequencyRanges';
 
 /**
- * The frequency range the plot covers with its grid on, edge to edge of the
- * graph: 5 Hz at its left edge, an octave under 10 Hz, and 24 kHz at its
- * right, the top of a 48 kHz output, so the audible band stands in from both
- * edges with room to see what the cuts and the analyser do beyond it. An
- * octave past 20 kHz as well (40 kHz) left a band of empty plot on the right
- * on every 48 kHz output, where there is no sound to draw. The labels
- * run 20 Hz to 16 kHz (`frequencyLabelTicksFor`), with unlabelled lines at
- * 10 Hz and 20 kHz. Ivan, 2026-11-16: the graph reaches the sides with its
- * scales drawn over it ("display the 16k instead of 20k"), then "make it
- * more compressed so I see more on each side ... keep it with freq". It was
- * 10 Hz to 20 kHz edge to edge for an hour, and 10 Hz to 25 kHz between two
- * gutters for the scales before that.
+ * The frequencies the plot covers with its grid on are the listener's
+ * choice, in the View menu (`graphFrequencyRanges.ts`): 10 Hz to 20 kHz
+ * unless they pick another. The history of that default: 5 Hz to 24 kHz
+ * between two gutters for the scales, then 10 Hz to 25 kHz, then edge to
+ * edge with the scales drawn over it (Ivan, 2026-11-16: "display the 16k
+ * instead of 20k", "make it more compressed so I see more on each side ...
+ * keep it with freq"), and 10 Hz to 20 kHz the same day ("10 Hz to 20k
+ * only"): an octave under 20 Hz for the low cut and the rumble, and nothing
+ * past 20 kHz. An octave past 20 kHz as well (40 kHz) left a band of empty
+ * plot on the right on every 48 kHz output, where there is no sound to draw.
+ * The grid's lines and names follow whichever range is chosen
+ * (`frequencyGridFor`, `frequencyLabelTicksFor`).
  *
  * A whole octave below 20 Hz, as professional equalisers draw it (Pro-Q starts
- * at 10 Hz), and not the matched pair it was. 16 Hz and 25 kHz put 20 Hz and
- * 20 kHz the same distance from their edges, which balanced the drawing; the
- * Tone panel's low cut then did its work in the third of an octave left below
- * 20 Hz, and Ivan asked to see the whole spectrum down there (2026-09-23: "can
- * we show 0 hz in the grahp too ... so we see the full espectrum"). A log axis
- * never reaches 0 Hz; an octave below 20 Hz shows the cut's slope, the
- * analyser's measurement of it, and the rumble it takes out.
+ * at 10 Hz). The Tone panel's low cut did its work in the third of an octave
+ * left below 20 Hz on a 16 Hz edge, and Ivan asked to see the whole spectrum
+ * down there (2026-09-23: "can we show 0 hz in the grahp too ... so we see
+ * the full espectrum"). A log axis never reaches 0 Hz; an octave below 20 Hz
+ * shows the cut's slope, the analyser's measurement of it, and the rumble it
+ * takes out.
  */
-//
-// 10 Hz to 20 kHz since 2026-11-16 (Ivan: "10 Hz to 20k only"): an octave
-// under 20 Hz for the low cut and the rumble, and nothing past 20 kHz.
-export const GRAPH_START = 10;
-export const GRAPH_END = 20000;
+const DEFAULT_RANGE = GRAPH_FREQUENCY_SPANS[DEFAULT_GRAPH_FREQUENCY_RANGE];
 
 /**
  * The range with the grid off, when the plot is a picture drawn edge to edge:
@@ -58,22 +58,25 @@ export const GRAPH_END = 20000;
  * off I like to show grahp 16k so we dont show empty space on the right when
  * showing the grahp in full screen no grid", "I mean trim the sides"). Most
  * masters, and every MP3, are empty above 16 kHz, and nothing below 20 Hz is
- * heard.
+ * heard. Whatever range the grid is set to: a picture has no scale to read a
+ * range from, and every range holds this one, so the choice would only ever
+ * add empty plot to the picture's sides.
  */
 export const PICTURE_START = 20;
 export const PICTURE_END = 16000;
 
-const FULL_RANGE = [GRAPH_START, GRAPH_END] as const;
 const PICTURE_RANGE = [PICTURE_START, PICTURE_END] as const;
 
 /**
- * The frequencies the plot spans, as one of two constants: a range rebuilt
+ * The frequencies the plot spans, as one of the frozen pairs: a range rebuilt
  * each render would rebuild the scale, and every axis handed it would restart
  * its transition.
  */
 export const graphFrequencyRange = (
   isGridHidden: boolean,
-): readonly [number, number] => (isGridHidden ? PICTURE_RANGE : FULL_RANGE);
+  range: TGraphFrequencyRange = DEFAULT_GRAPH_FREQUENCY_RANGE,
+): readonly [number, number] =>
+  isGridHidden ? PICTURE_RANGE : GRAPH_FREQUENCY_SPANS[range];
 
 export const INIT_ANIMATE_DURATION = 750;
 export const GRAPH_ANIMATE_DURATION = 100;
@@ -261,13 +264,13 @@ interface IChartControllerProps {
 
 /**
  * The plot's frequency axis across a box `width` wide, inside its gutters,
- * over the grid's whole spectrum unless `range` trims it.
+ * over the default range unless `range` names another.
  */
 export const frequencyScale = (
   width: number,
   left: number,
   right: number,
-  range: readonly [number, number] = FULL_RANGE,
+  range: readonly [number, number] = DEFAULT_RANGE,
 ) =>
   d3
     .scaleLog()

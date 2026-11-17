@@ -128,6 +128,22 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': 'तरंग',
   'graph.switch.grid': 'ग्रिड',
   'graph.switch.meter': 'लेवल मीटर',
+  'graph.frequencyRange': 'फ़्रीक्वेंसी रेंज',
+  'graph.frequencyRange.extendedHint':
+    'विस्तृत, 10 Hz से 20 kHz: सुनाई देने से एक ऑक्टेव नीचे, जहाँ लो कट और गड़गड़ाहट दिखती है',
+  'graph.frequencyRange.standardHint': 'मानक, 20 Hz से 20 kHz: सुनने की सीमा',
+  'graph.frequencyRange.wideHint':
+    'चौड़ा, 10 Hz से 30 kHz, जैसे पेशेवर इक्वलाइज़र दिखाते हैं। 48 kHz आउटपुट में 24 kHz से ऊपर कोई ध्वनि नहीं होती',
+  'graph.frequencyRange.musicHint':
+    'संगीत, 20 Hz से 16 kHz: जहाँ रिकॉर्डिंग में ध्वनि होती है',
+  'graph.frequencyRange.gridOffHint':
+    'ग्रिड बंद होने पर ग्राफ़ 20 Hz से 16 kHz तक का एक चित्र होता है',
+  'graph.analyserSlope': 'एनालाइज़र ढलान',
+  'graph.analyserSlopeHint':
+    'प्रति ऑक्टेव डेसिबल। प्रदर्शन को ट्रेबल की ओर झुकाता है, ताकि संतुलित मिक्स सपाट दिखे।',
+  'graph.analyserSlopeValue': '{value} dB/ऑक्टेव',
+  'graph.analyserSlopeLookHint':
+    'केवल विश्लेषण वाले रूप ही ऐसा स्पेक्ट्रम बनाते हैं जिसे झुकाया जा सके',
   'graph.item.grid': 'ग्रिड',
   'graph.item.meter': 'स्तर मीटर',
   'graph.waveHeight': 'तरंग की ऊँचाई',

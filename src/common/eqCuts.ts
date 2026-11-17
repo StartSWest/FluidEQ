@@ -21,7 +21,7 @@ import { FilterTypeEnum, IEqCuts, IFilter } from './constants';
  * octave below the graph's left edge, where the curve could not show it
  * (Ivan, 2026-09-23: "not seeing the low cut in the grahp"); at 20 Hz it
  * mirrors the high cut. The plot has since been opened down to 10 Hz
- * (`GRAPH_START`), so the cut's own slope is drawn — which is what that
+ * (`SPECTRUM_START`), so the cut's own slope is drawn — which is what that
  * request was really after, and the reason the corner stays at 20 Hz is now
  * the mirror alone.
  *

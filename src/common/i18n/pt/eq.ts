@@ -129,6 +129,23 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': 'Onda',
   'graph.switch.grid': 'Grade',
   'graph.switch.meter': 'Medidor de nível',
+  'graph.frequencyRange': 'Faixa de frequências',
+  'graph.frequencyRange.extendedHint':
+    'Estendida, de 10 Hz a 20 kHz: uma oitava abaixo do audível, onde aparecem o corte de graves e o ronco',
+  'graph.frequencyRange.standardHint':
+    'Padrão, de 20 Hz a 20 kHz: a faixa da audição',
+  'graph.frequencyRange.wideHint':
+    'Ampla, de 10 Hz a 30 kHz, como os equalizadores profissionais a desenham. Uma saída de 48 kHz não tem som acima de 24 kHz',
+  'graph.frequencyRange.musicHint':
+    'Música, de 20 Hz a 16 kHz: onde as gravações têm som',
+  'graph.frequencyRange.gridOffHint':
+    'Sem a grade, o gráfico é uma imagem de 20 Hz a 16 kHz',
+  'graph.analyserSlope': 'Inclinação do analisador',
+  'graph.analyserSlopeHint':
+    'Decibéis por oitava. Inclina a exibição para os agudos, para que uma mistura equilibrada fique plana.',
+  'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.analyserSlopeLookHint':
+    'Só os visuais de Análise desenham um espectro que dá para inclinar',
   'graph.item.grid': 'a grade',
   'graph.item.meter': 'o medidor de nível',
   'graph.waveHeight': 'Altura da onda',

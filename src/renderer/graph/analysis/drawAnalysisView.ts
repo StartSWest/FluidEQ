@@ -93,6 +93,8 @@ export interface IAnalysisReadRequest {
   deltaMs: number;
   playing: boolean;
   tuning: ILookTuning;
+  /** The graph's display slope in dB per octave, from its View menu. */
+  tilt: number;
   colours: readonly string[];
   /**
    * The second reading's colours, where the window has a second colour to
@@ -172,7 +174,7 @@ const asFraction = (gain: number) => (gain - MIN_GAIN) / (MAX_GAIN - MIN_GAIN);
 export const readAnalysisView = (
   request: IAnalysisReadRequest,
 ): IAnalysisRead | undefined => {
-  const { state, points, live, columns, tuning, style } = request;
+  const { state, points, live, columns, tuning, tilt, style } = request;
   const size = points.length;
   if (size < 2 || columns.length < size || live.length < size) {
     return undefined;
@@ -193,7 +195,6 @@ export const readAnalysisView = (
    * before-curve and the EQ's own response all move together, or the
    * comparison between them stops meaning anything.
    */
-  const { tilt } = tuning;
   const slope = (frequency: number) =>
     tilt === 0
       ? 0

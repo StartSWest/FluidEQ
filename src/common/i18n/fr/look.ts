@@ -37,10 +37,6 @@ const look: Partial<Dictionary> = {
   'look.texture.tooBig':
     'Cette image est trop lourde pour être conservée. Essayez-en une plus petite.',
   'look.texture.unreadable': 'Ce fichier n’a pas pu être lu comme une image.',
-  'look.tilt': 'Pente',
-  'look.tiltHint':
-    "Décibels par octave. Redresse l'affichage vers les aigus : un mixage équilibré apparaît plat.",
-  'look.tiltValue': '{value} dB/oct',
   'look.channels': 'Canaux',
   'look.channels.joined': 'Joints',
   'look.channels.split': 'Gauche & droite',

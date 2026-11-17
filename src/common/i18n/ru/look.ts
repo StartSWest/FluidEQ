@@ -37,10 +37,6 @@ const look: Partial<Dictionary> = {
   'look.texture.tooBig':
     'Эта картинка слишком большая, чтобы её сохранить. Выберите поменьше.',
   'look.texture.unreadable': 'Не удалось прочитать этот файл как картинку.',
-  'look.tilt': 'Наклон',
-  'look.tiltHint':
-    'Децибелы на октаву. Наклоняет отображение к верхам: сбалансированный микс выглядит ровным.',
-  'look.tiltValue': '{value} дБ/окт',
   'look.channels': 'Каналы',
   'look.channels.joined': 'Вместе',
   'look.channels.split': 'Левый и правый',

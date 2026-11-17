@@ -35,10 +35,6 @@ const look = {
   'look.texture.tooBig':
     'That picture is too large to keep. Try a smaller one.',
   'look.texture.unreadable': 'That file could not be read as a picture.',
-  'look.tilt': 'Slope',
-  'look.tiltHint':
-    'Decibels per octave. Tips the display up toward the treble, so a balanced mix reads level.',
-  'look.tiltValue': '{value} dB/oct',
   'look.channels': 'Channels',
   'look.channels.joined': 'Joined',
   'look.channels.split': 'Left & right',

@@ -15,6 +15,7 @@ import {
   type IGraphSliceReader,
 } from '../graph/graphSlices';
 import { followGraphReference, writeGraphPoints } from '../graph/liveGraphBand';
+import { SPECTRUM_END } from '../graph/graphFrequencyRanges';
 import {
   advanceLevel,
   amplitudeToDb,
@@ -132,6 +133,8 @@ const useSenderSpectrum = (
         graphSlices = createGraphSliceReader(
           data.sampleRate,
           SENDER_SPECTRUM_SIZE,
+          undefined,
+          SPECTRUM_END,
         );
       }
       const graphLevels = graphSlices.read(data.frequency);

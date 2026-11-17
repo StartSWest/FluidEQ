@@ -20,10 +20,6 @@ const look = {
   'look.texture.tooBig':
     '사진이 너무 커서 보관할 수 없습니다. 더 작은 것을 시도해 보세요.',
   'look.texture.unreadable': '해당 파일을 그림으로 읽을 수 없습니다.',
-  'look.tilt': '경사',
-  'look.tiltHint':
-    '옥타브당 데시벨입니다. 디스플레이를 고음쪽으로 기울여 균형 잡힌 믹스가 레벨을 읽을 수 있도록 합니다.',
-  'look.tiltValue': '{value}dB/oct',
   'look.channels': '채널',
   'look.channels.joined': '합치기',
   'look.channels.split': '왼쪽 & 오른쪽',

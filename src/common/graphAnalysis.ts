@@ -75,17 +75,19 @@ export const isAnalysisStyle = (style: GraphStyle): style is TAnalysisStyle =>
  * somebody has been taught to read: the untilted picture is the one that
  * matches what a listener expects to see, a spectrum that falls away toward
  * the treble, and the slope is there for the people who came looking for it.
+ *
+ * One slope for the whole graph, chosen in its View menu beside the
+ * frequency range (`graphScaleSettings.ts`); it was each look's own until
+ * 2026-11-16, set in the look designer, where nobody found it.
  */
-export const DEFAULT_ANALYSIS_TILT = 4.5;
-
-/** The slope a form is drawn at when nobody has said otherwise. */
-export const getGraphTilt = (): number => 0;
-
-/** The slopes the editor offers, in dB per octave. */
 export const GRAPH_TILTS = [0, 1.5, 3, 4.5, 6] as const;
 
-export const MIN_GRAPH_TILT = 0;
-export const MAX_GRAPH_TILT = 6;
+export type TGraphTilt = (typeof GRAPH_TILTS)[number];
+
+export const DEFAULT_GRAPH_TILT: TGraphTilt = 0;
+
+export const isGraphTilt = (value: number): value is TGraphTilt =>
+  GRAPH_TILTS.some((tilt) => tilt === value);
 
 /**
  * Whether the slope control says anything on this form.
