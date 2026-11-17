@@ -2262,6 +2262,16 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   .workspace-pill__icon > svg {
     filter: drop-shadow(0 0 1px rgba(2, 8, 15, 0.9));
   }
+
+  // The engine's name gets the same dark edge another way (Ivan: "put that
+  // little black thing there too, so it shows more"): its words are a
+  // gradient seen through the text, which a stroke smears, so the edge is a
+  // shadow drawn round the letters' own shape, tight and then a little wider
+  // - the stroke's 1.5px each side, at its 75%.
+  .eq-engine-label {
+    filter: drop-shadow(0 0 0.75px rgba(2, 8, 15, 0.95))
+      drop-shadow(0 0 1.5px rgba(2, 8, 15, 0.75));
+  }
 }
 
 .right-content {
