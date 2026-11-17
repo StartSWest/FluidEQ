@@ -143,6 +143,7 @@ const eq: Partial<Dictionary> = {
   'graph.analyserSlopeHint':
     'オクターブあたりのデシベル。表示を高域側へ持ち上げ、バランスの取れたミックスが水平に見えるようにします。',
   'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.legend.slope': '傾き {value} dB/oct',
   'graph.analyserSlopeLookHint':
     '傾けられるスペクトルを描くのは解析の表示だけです',
   'graph.item.grid': 'グリッド',

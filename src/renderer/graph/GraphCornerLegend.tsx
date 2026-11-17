@@ -4,15 +4,20 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { hasGraphTilt } from 'common/graphAnalysis';
 import { useTranslation } from '../utils/I18nContext';
 import {
   TGraphCurve,
   toggleGraphCurve,
   toggleGraphWave,
   useGraphLegendHidden,
+  useGraphLook,
   useHiddenCurves,
+  useSceneLook,
 } from '../utils/graphStyle';
+import { useGraphAnalyserSlope } from '../utils/graphScaleSettings';
+import { holdSlopeLine, playSlopeLine } from './slopeLineStore';
 import {
   noteCornerLegendMoved,
   setCornerLegendElement,
@@ -90,6 +95,30 @@ const GraphCornerLegend = ({
   const [isFolded, setIsFolded] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  // The analyser's slope, while one is set and the drawing is one it tips
+  // (Ivan, 2026-11-17: "perhaps we can show the line too when the legend
+  // opens"): the legend gets a row for it, and showing or opening the legend
+  // plays the slope's line once (`SlopeLine`).
+  const slope = useGraphAnalyserSlope();
+  const look = useGraphLook();
+  const scene = useSceneLook();
+  const hasSlope = slope !== 0 && !scene && hasGraphTilt(look.style);
+  const isListShown = isShown && (!isFolded || isOpen);
+  const wasListShown = useRef(isListShown);
+  useEffect(() => {
+    if (isListShown && !wasListShown.current && hasSlope) {
+      playSlopeLine();
+    }
+    wasListShown.current = isListShown;
+  }, [isListShown, hasSlope]);
+  // The row going away under the pointer lets the line go too.
+  useEffect(() => {
+    if (!hasSlope || !isShown) {
+      holdSlopeLine(false);
+    }
+    return () => holdSlopeLine(false);
+  }, [hasSlope, isShown]);
+
   // The block, for the band labels to keep off it (`cornerLegendPlace.ts`),
   // and word whenever its box may have moved: its own size, or the row it
   // hangs from folding onto a second line. And whether the graph is too
@@ -137,6 +166,13 @@ const GraphCornerLegend = ({
       }`}
       role="group"
       aria-label={t('graph.switch.legend')}
+      // Folded, the names open under the pointer as well (the stylesheet's
+      // hover): that is the legend opening too.
+      onPointerEnter={() => {
+        if (isFolded && !isOpen && hasSlope) {
+          playSlopeLine();
+        }
+      }}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node)) {
           setIsOpen(false);
@@ -192,6 +228,25 @@ const GraphCornerLegend = ({
           </svg>
           {t('graph.liveOutput')}
         </button>
+        {/* The slope the analyser is tipped by: a sloped dash in the live
+            output's colour and its value. Under the pointer its line is
+            drawn across the plot for as long as it stays. */}
+        {hasSlope && (
+          <span
+            className="graph-legend graph-legend--live graph-corner-legend__slope"
+            onPointerEnter={() => holdSlopeLine(true)}
+            onPointerLeave={() => holdSlopeLine(false)}
+          >
+            <svg
+              className="graph-corner-legend__wave"
+              viewBox="0 0 16 12"
+              aria-hidden
+            >
+              <path d="M1.5 10.5l13-9" />
+            </svg>
+            {t('graph.legend.slope', { value: String(slope) })}
+          </span>
+        )}
       </div>
     </div>
   );

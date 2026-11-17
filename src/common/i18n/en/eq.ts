@@ -141,6 +141,7 @@ const eq = {
   'graph.analyserSlopeHint':
     'Decibels per octave. Tips the display up toward the treble, so a balanced mix reads level.',
   'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.legend.slope': 'Slope {value} dB/oct',
   'graph.analyserSlopeLookHint':
     'Only the Analysis looks draw a spectrum this can tip',
   'graph.item.grid': 'grid',

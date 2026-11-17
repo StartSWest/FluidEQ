@@ -120,6 +120,7 @@ const eq = {
   'graph.analyserSlopeHint':
     '每八度的分貝數。將顯示器向上傾斜至高音，以便平衡的混音讀取電平。',
   'graph.analyserSlopeValue': '{value} dB/八倍頻',
+  'graph.legend.slope': '坡度 {value} dB/八倍頻',
   'graph.analyserSlopeLookHint': '只有分析外觀會繪製可傾斜的頻譜',
   'graph.item.grid': '網格',
   'graph.item.meter': '電平表',

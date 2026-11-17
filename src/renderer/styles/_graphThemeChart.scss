@@ -549,3 +549,79 @@ it under the terms of the GNU General Public License version 3 or later.
 .graph-wrapper.is-handles-hidden .graph-edit-point {
   display: none;
 }
+
+// The analyser's slope for a moment after it changes, or the legend opens
+// (`SlopeLine`): the line the spectrum is tipped by, in the colour the
+// legend gives the live output, its pivot marked and its value at its end,
+// keyed dark like the scales' figures so it reads over any drawing. Shown,
+// held, faded, all in its animation: it is taken away on that animation's
+// own end. Held up while the legend's slope row is under the pointer, then
+// let go quickly. Under reduced motion both are cut to 1ms, never to none,
+// so the end still comes and the line is still taken away.
+.chart-slope-line {
+  animation: chart-slope-line-show 2.6s linear forwards;
+
+  line {
+    stroke: $analogous-2;
+    stroke-width: 2px;
+    stroke-linecap: round;
+  }
+
+  circle {
+    fill: $analogous-2;
+  }
+
+  text {
+    fill: $analogous-2;
+    stroke: rgba(2, 8, 15, 0.75);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    font-family: $font-ui;
+    font-size: $text-small;
+    font-weight: $weight-bold;
+  }
+
+  &.is-held {
+    animation: none;
+  }
+
+  &.is-leaving {
+    animation: chart-slope-line-leave 320ms ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    &.is-leaving {
+      animation-duration: 1ms;
+    }
+  }
+}
+
+@keyframes chart-slope-line-show {
+  0% {
+    opacity: 0;
+  }
+
+  6% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes chart-slope-line-leave {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}

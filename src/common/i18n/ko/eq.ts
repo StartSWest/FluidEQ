@@ -124,6 +124,7 @@ const eq = {
   'graph.analyserSlopeHint':
     '옥타브당 데시벨입니다. 디스플레이를 고음쪽으로 기울여 균형 잡힌 믹스가 레벨을 읽을 수 있도록 합니다.',
   'graph.analyserSlopeValue': '{value}dB/oct',
+  'graph.legend.slope': '경사 {value}dB/oct',
   'graph.analyserSlopeLookHint':
     '기울일 수 있는 스펙트럼은 분석 스타일만 그립니다',
   'graph.item.grid': '그리드',

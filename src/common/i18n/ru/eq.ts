@@ -143,6 +143,7 @@ const eq: Partial<Dictionary> = {
   'graph.analyserSlopeHint':
     'Децибелы на октаву. Наклоняет отображение к верхам: сбалансированный микс выглядит ровным.',
   'graph.analyserSlopeValue': '{value} дБ/окт',
+  'graph.legend.slope': 'Наклон {value} дБ/окт',
   'graph.analyserSlopeLookHint':
     'Наклонить можно только спектр, который рисуют оформления «Анализ»',
   'graph.item.grid': 'сетку',

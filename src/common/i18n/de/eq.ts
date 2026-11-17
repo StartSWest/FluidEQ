@@ -147,6 +147,7 @@ const eq: Partial<Dictionary> = {
   'graph.analyserSlopeHint':
     'Dezibel pro Oktave. Kippt die Anzeige zu den Höhen, damit eine ausgewogene Mischung gerade erscheint.',
   'graph.analyserSlopeValue': '{value} dB/Okt',
+  'graph.legend.slope': 'Neigung {value} dB/Okt',
   'graph.analyserSlopeLookHint':
     'Nur die Analyse-Darstellungen zeichnen ein Spektrum, das sich neigen lässt',
   'graph.item.grid': 'Raster',

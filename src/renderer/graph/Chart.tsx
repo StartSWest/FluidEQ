@@ -52,6 +52,7 @@ import {
 import { toggleChromeNow } from '../utils/idleChrome';
 import CoverageOverlay from './CoverageOverlay';
 import ChartFootMask from './ChartFootMask';
+import SlopeLine from './SlopeLine';
 import { footFadeHeight } from './footFade';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
@@ -699,6 +700,15 @@ const Chart = ({
             ),
           )}
         </g>
+        {/* The analyser's slope, for a moment after it changes: over the
+          curves, under the pins and the handles (`SlopeLine`). */}
+        <SlopeLine
+          xScale={xScaleFreq}
+          levelScale={liveLevelScale}
+          pivotY={Number(yScaleEq(0))}
+          left={padding.left}
+          right={padding.left + plotWidth}
+        />
         {/* A genre's pins on its Preset line: over the lines, under the
           band handles, so a handle standing on a pin can still be dragged.
           With the grid off too, wherever the line itself is drawn: they

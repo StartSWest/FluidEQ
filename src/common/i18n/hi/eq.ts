@@ -142,6 +142,7 @@ const eq: Partial<Dictionary> = {
   'graph.analyserSlopeHint':
     'प्रति ऑक्टेव डेसिबल। प्रदर्शन को ट्रेबल की ओर झुकाता है, ताकि संतुलित मिक्स सपाट दिखे।',
   'graph.analyserSlopeValue': '{value} dB/ऑक्टेव',
+  'graph.legend.slope': 'ढलान {value} dB/ऑक्टेव',
   'graph.analyserSlopeLookHint':
     'केवल विश्लेषण वाले रूप ही ऐसा स्पेक्ट्रम बनाते हैं जिसे झुकाया जा सके',
   'graph.item.grid': 'ग्रिड',

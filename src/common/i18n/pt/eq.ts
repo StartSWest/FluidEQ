@@ -144,6 +144,7 @@ const eq: Partial<Dictionary> = {
   'graph.analyserSlopeHint':
     'Decibéis por oitava. Inclina a exibição para os agudos, para que uma mistura equilibrada fique plana.',
   'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.legend.slope': 'Inclinação {value} dB/oct',
   'graph.analyserSlopeLookHint':
     'Só os visuais de Análise desenham um espectro que dá para inclinar',
   'graph.item.grid': 'a grade',

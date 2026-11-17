@@ -137,6 +137,7 @@ const eq: Partial<Dictionary> = {
   'graph.analyserSlopeHint':
     '每倍频程的分贝数。把显示向高频抬起，平衡的混音看起来就是平的。',
   'graph.analyserSlopeValue': '{value} dB/倍频程',
+  'graph.legend.slope': '斜率 {value} dB/倍频程',
   'graph.analyserSlopeLookHint': '只有分析外观会绘制可倾斜的频谱',
   'graph.item.grid': '网格',
   'graph.item.meter': '电平表',

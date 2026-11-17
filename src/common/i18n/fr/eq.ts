@@ -146,6 +146,7 @@ const eq: Partial<Dictionary> = {
   'graph.analyserSlopeHint':
     "Décibels par octave. Redresse l'affichage vers les aigus : un mixage équilibré apparaît plat.",
   'graph.analyserSlopeValue': '{value} dB/oct',
+  'graph.legend.slope': 'Pente {value} dB/oct',
   'graph.analyserSlopeLookHint':
     'Seuls les styles Analyse dessinent un spectre que l’on peut incliner',
   'graph.item.grid': 'la grille',

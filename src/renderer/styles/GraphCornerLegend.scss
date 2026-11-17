@@ -84,6 +84,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: none;
 }
 
+// The analyser's slope (`SlopeLine`): a row that names the slope, its swatch
+// the line itself, sloped. Not a switch: under the pointer it draws the line
+// across the plot, and nothing is pressed.
+.graph-corner-legend__slope {
+  cursor: default;
+
+  &::before {
+    display: none;
+  }
+}
+
 .graph-corner-legend__wave {
   width: 13px;
   height: 11px;

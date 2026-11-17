@@ -143,6 +143,7 @@ const eq: Partial<Dictionary> = {
   'graph.analyserSlopeHint':
     'Decibel per ottava. Inclina la visualizzazione verso gli acuti, così un mix equilibrato appare piatto.',
   'graph.analyserSlopeValue': '{value} dB/ott',
+  'graph.legend.slope': 'Pendenza {value} dB/ott',
   'graph.analyserSlopeLookHint':
     'Solo gli aspetti Analisi disegnano uno spettro che si può inclinare',
   'graph.item.grid': 'la griglia',
