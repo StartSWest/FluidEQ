@@ -46,6 +46,7 @@ import { useGraphView } from '../utils/graphStyle';
 import { sendRequest, simpleResponseHandler } from '../utils/ipcRequest';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import VideoSearch from './VideoSearch';
+import VideoFullScreenRow from './VideoFullScreenRow';
 import { FULL_LEVEL } from '../library/player/usePlayerDecks';
 import VideoSiteIcon from './VideoSiteIcon';
 import GuestTintToggle from './GuestTintToggle';
@@ -754,6 +755,14 @@ const VideoBrowser = ({
           allowpopups="true"
           webpreferences={VIDEO_WEB_PREFERENCES}
         />
+        {/* In full screen, where the toolbar above is not drawn, the page's
+            row, as every page has one. */}
+        {!isHidden && isFullScreen && (
+          <VideoFullScreenRow
+            siteName={activeSite?.name}
+            onExit={onToggleVideoFullScreen}
+          />
+        )}
         {!isHidden && downloadUpdate && (
           <div
             className={`video-browser__download is-${downloadUpdate.phase}`}

@@ -542,7 +542,7 @@ describe('handing a click off to the player', () => {
     // the same name is still in the tree, hidden by the stylesheet.
     await waitFor(() =>
       expect(
-        container.querySelector('.library-video-stage__back'),
+        container.querySelector('.library-video-bar__back'),
       ).not.toBeNull(),
     );
     expect(container.querySelector('.library-video-stage')).toHaveClass(

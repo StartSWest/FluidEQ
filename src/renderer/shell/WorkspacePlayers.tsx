@@ -23,10 +23,7 @@ import { LibraryProvider } from '../library/LibraryContext';
 import LibraryStageArt from '../library/LibraryStageArt';
 import { LibraryPlayerProvider } from '../library/player/LibraryPlayerContext';
 import { PlaylistProvider } from '../library/PlaylistContext';
-import {
-  exitGraphFullScreen,
-  toggleFullScreenTopBar,
-} from '../utils/graphStyle';
+import { exitGraphFullScreen } from '../utils/graphStyle';
 import { KaraokePage, LibraryPage, MediaPage } from '../workspacePages';
 import type { TWorkspaceTab } from '../workspaceTabs';
 import {
@@ -84,6 +81,7 @@ const WorkspacePlayers = ({
     isChromeIdle,
     isPointerNearChrome,
     hasFullScreenTopBar,
+    toggleFullScreenTopBar,
     hasFullScreenBottomBar,
     applyMediaFullScreen,
   } = fullScreen;

@@ -294,27 +294,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // in the strip. What they are is the shortcut, for when the shortcut cannot
 // reach — click the video and focus is in the guest, so Space belongs to the
 // page from then on.
-// Scoped under the strip for the same reason as the stepper below: the
-// `.live-output-controls button` rule hands every button here a ghost pill,
-// and the full-screen exit wants to be a glyph rather than a labelled control.
-.live-output-controls .graph-fullscreen-exit {
-  display: inline-flex;
-  width: 30px;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin-left: 2px;
-
-  svg {
-    width: 15px;
-    height: 15px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
+// The full-screen icons at the row's end are every page's 32px targets
+// (`ViewBar.scss`), in a row whose buttons are 28: they stand 2px into the
+// band above and below it rather than making the row, and the band, taller.
+.live-output-controls .view-bar__icon {
+  margin-block: -2px;
 }
 
 // Scoped under the strip, and not for tidiness: `.live-output-controls button`

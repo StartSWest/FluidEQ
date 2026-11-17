@@ -1,0 +1,183 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// EVERY PAGE'S OPTIONS ROW (`ViewBar`): the graph's strip, the Karaoke
+// stage's row, and the rows over a Library film and an Online Media page in
+// full screen (Ivan, 2026-11-16: "the same container bar with the few icons,
+// and then each view puts its own stuff in that container"). What they share
+// is here — the band, the fade, the icons at the row's end. Where each
+// stands, and how its own controls are laid out, stay in its own sheet.
+
+.view-bar {
+  // Only the controls take a press. Between them a press reaches what is
+  // under the row — a band handle on the plot, the stage, the film — and the
+  // idle store counts the pointer as using the row only while it is on one of
+  // them (`idleChrome.ts`), so a pointer resting on the empty band does not
+  // hold the header and the transport up.
+  pointer-events: none;
+  // Slower out than in: coming back is something being reached for, going
+  // must not catch the eye.
+  transition: opacity $motion-base ease;
+
+  > * {
+    pointer-events: auto;
+  }
+
+  // THE BAND UNDER THE ROW, so its words read over a bright scene, cover or
+  // film, coming and going with it (Ivan, 2026-11-15, the graph's; 2026-11-16,
+  // "show that same bg for the options on the karaoke, with the same
+  // behaviour"). Flat, the app's own floor at 72%, with a hard edge
+  // (2026-11-16: "flat like the application, no gradient", "make that band
+  // more transparent"). Behind the row's own children: every view makes the
+  // row a stacking context.
+  //
+  // 55px tall on every page (2026-11-16: "the bar the same height
+  // everywhere"): each view sets the foot under its row that makes it so.
+  &::before {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 0;
+    bottom: calc(-1 * var(--view-bar-foot, 0px));
+    left: 0;
+    background: color-mix(in srgb, $surface-base 72%, transparent);
+    content: '';
+    pointer-events: none;
+  }
+
+  // Away with the rest of the chrome when the pointer rests, in place.
+  &.is-idle {
+    opacity: 0;
+    // Nothing invisible takes a press — and nothing inside it either: its
+    // controls ask for `auto` above, and so do some of theirs (the crumb's
+    // name, the graph's look picker), which would keep catching presses at
+    // opacity 0.
+    pointer-events: none;
+    transition-duration: 520ms;
+
+    * {
+      pointer-events: none;
+    }
+  }
+}
+
+// In full screen the band runs from the window's top edge across the whole
+// window, behind the header, so there is no gap between the header and the
+// row and no end of it over the picture at either side (Ivan, 2026-09-27:
+// "leave no gap between the header and the options"; 2026-11-16, the
+// Karaoke's, "you haven't fixed the full-screen option bar"). The window's
+// own edges cut it.
+.app-workspace.is-app-full .view-bar::before {
+  top: -100vh;
+  right: -100vw;
+  left: -100vw;
+}
+
+// *** The icons at the row's end *********************************************
+
+// The header's pin, the transport's and full screen (`FullScreenToggles`):
+// one set, drawn closer together than the row's other controls, so it reads
+// as one and costs the row less width.
+.view-bar__toggles {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+// 32px targets, with the row's quiet face and the chosen tint for a pin that
+// is in. Two classes, because the graph strip hands every button in it a
+// ghost pill and 28px (`.live-output-controls button`), which outranks one.
+.view-bar .view-bar__icon {
+  display: grid;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  padding: 0;
+  color: $studio-t2;
+  border: 0;
+  border-radius: $radius-m;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    color: $text-primary;
+    border: 0;
+    background: $studio-surface;
+  }
+
+  // A pin that is in, a menu that is open, a microphone that is live,
+  // captions that show.
+  &[aria-pressed='true'],
+  &[aria-expanded='true'],
+  &.is-live,
+  &.is-on {
+    color: $secondary-light;
+    background: $studio-select;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.view-bar__glyph {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+// Where the row is a view's crumb — the page, then what is on it — as the
+// Karaoke's first said it.
+.view-bar__crumb {
+  display: flex;
+  min-width: 0;
+  // Whatever the row leaves, and as little as 112px — "Karaoke ›" and the
+  // first letters of the song — before the row folds its labels or wraps.
+  flex: 1 1 112px;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: $studio-t3;
+  font-size: $studio-text-tree;
+  // Words, not a control: the pointer resting on them is resting on the
+  // band. The name keeps its own hover, for the full name it cuts short.
+  pointer-events: none;
+
+  > span {
+    flex: 0 0 auto;
+  }
+
+  strong {
+    overflow: hidden;
+    color: $text-primary;
+    font-weight: $weight-semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-bar {
+    transition: none;
+  }
+}

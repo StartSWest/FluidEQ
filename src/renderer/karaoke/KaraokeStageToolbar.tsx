@@ -15,13 +15,10 @@ import { isLockedLookId } from 'common/scenePacks';
 import { requestAccountPanel } from '../account/accountPanel';
 import LookPicker from '../graph/LookPicker';
 import MenuIcon from '../icons/MenuIcon';
-import {
-  setGraphLook,
-  toggleFullScreenBottomBar,
-  useFullScreenBottomBar,
-  useSelectedLookId,
-} from '../utils/graphStyle';
+import { setGraphLook, useSelectedLookId } from '../utils/graphStyle';
 import AnchoredMenu from '../widgets/AnchoredMenu';
+import FullScreenToggles from '../widgets/FullScreenToggles';
+import ViewBar from '../widgets/ViewBar';
 import rangeFill from '../utils/rangeFill';
 import { useTranslation } from '../utils/I18nContext';
 import { type TranslationKey } from '../../common/i18n';
@@ -139,7 +136,6 @@ const KaraokeStageToolbar = ({
 }: IKaraokeStageToolbarProps) => {
   const { t } = useTranslation();
   const selectedLookId = useSelectedLookId();
-  const hasBottomBar = useFullScreenBottomBar();
   const hasStill = song ? hasKaraokeStageStill(song) : false;
   const hasVideo = song ? hasKaraokeStageVideo(song) : false;
   // A background pressed again is the bare stage: three choices and "none"
@@ -156,16 +152,16 @@ const KaraokeStageToolbar = ({
   };
 
   return (
-    <div
-      // Goes with the pointer at rest, or a click on the words, in every view,
-      // as the graph's strip does (Ivan, 2026-11-16: "same behaviour
-      // everywhere").
-      className={`karaoke-stage-bar${isChromeIdle ? ' is-idle' : ''}`}
-      role="toolbar"
-      aria-label={t('karaoke.actions')}
+    // Goes with the pointer at rest, or a click on the words, in every view,
+    // as the graph's strip does (Ivan, 2026-11-16: "same behaviour
+    // everywhere"): the one row every page has (`ViewBar`).
+    <ViewBar
+      className="karaoke-stage-bar"
+      isIdle={isChromeIdle}
+      label={t('karaoke.actions')}
     >
       {leading}
-      <p className="karaoke-stage-bar__crumb">
+      <p className="view-bar__crumb">
         <span>{t('tabs.karaoke')}</span>
         {song && (
           <>
@@ -263,7 +259,7 @@ const KaraokeStageToolbar = ({
           <button
             ref={textSizeButtonRef}
             type="button"
-            className="karaoke-stage-bar__icon"
+            className="view-bar__icon"
             aria-label={t('karaoke.lyrics.textSize')}
             title={t('karaoke.lyrics.textSize')}
             aria-haspopup="dialog"
@@ -279,7 +275,7 @@ const KaraokeStageToolbar = ({
       <button
         ref={microphoneMenuButtonRef}
         type="button"
-        className={`karaoke-stage-bar__icon${
+        className={`view-bar__icon${
           microphone.status === 'live' ? ' is-live' : ''
         }`}
         aria-label={t('karaoke.mic.settings')}
@@ -290,83 +286,12 @@ const KaraokeStageToolbar = ({
       >
         <MenuIcon name="microphoneSettings" className="karaoke-button__icon" />
       </button>
-      {isFullScreen && (
-        <button
-          type="button"
-          className="karaoke-stage-bar__icon"
-          aria-label={t(
-            hasFullScreenTopBar
-              ? 'karaoke.fullscreen.hideHeader'
-              : 'karaoke.fullscreen.showHeader',
-          )}
-          title={t(
-            hasFullScreenTopBar
-              ? 'karaoke.fullscreen.hideHeader'
-              : 'karaoke.fullscreen.showHeader',
-          )}
-          aria-pressed={hasFullScreenTopBar}
-          onClick={onToggleFullScreenTopBar}
-        >
-          <svg
-            className="karaoke-button__icon"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="M4 4.5h16v15H4zM4 9h16" />
-          </svg>
-        </button>
-      )}
-      {/* The transport's pin, beside the header's and drawn as its mirror. */}
-      {isFullScreen && (
-        <button
-          type="button"
-          className="karaoke-stage-bar__icon"
-          aria-label={t(
-            hasBottomBar
-              ? 'karaoke.fullscreen.unpinBar'
-              : 'karaoke.fullscreen.pinBar',
-          )}
-          title={t(
-            hasBottomBar
-              ? 'karaoke.fullscreen.unpinBar'
-              : 'karaoke.fullscreen.pinBar',
-          )}
-          aria-pressed={hasBottomBar}
-          onClick={toggleFullScreenBottomBar}
-        >
-          <svg
-            className="karaoke-button__icon"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="M4 4.5h16v15H4zM4 15h16" />
-          </svg>
-        </button>
-      )}
-      <button
-        type="button"
-        className="karaoke-stage-bar__icon"
-        aria-label={t(
-          isFullScreen ? 'karaoke.fullscreen.exit' : 'karaoke.fullscreen.enter',
-        )}
-        title={t(
-          isFullScreen ? 'karaoke.fullscreen.exit' : 'karaoke.fullscreen.enter',
-        )}
-        aria-pressed={isFullScreen}
-        onClick={onToggleFullScreen}
-      >
-        <svg
-          className="karaoke-button__icon"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          {isFullScreen ? (
-            <path d="M9 4v5H4m11-5v5h5M9 20v-5H4m11 5v-5h5" />
-          ) : (
-            <path d="M9 4H4v5m11-5h5v5M9 20H4v-5m11 5h5v-5" />
-          )}
-        </svg>
-      </button>
+      <FullScreenToggles
+        isFullScreen={isFullScreen}
+        hasTopBar={hasFullScreenTopBar}
+        onToggleTopBar={onToggleFullScreenTopBar}
+        onToggleFullScreen={onToggleFullScreen}
+      />
       <AnchoredMenu
         anchor={textSizeButtonRef.current}
         isOpen={isTextSizeOpen && Boolean(song)}
@@ -441,7 +366,7 @@ const KaraokeStageToolbar = ({
           )}
         </KaraokeLiveValue>
       </AnchoredMenu>
-    </div>
+    </ViewBar>
   );
 };
 

@@ -895,72 +895,6 @@ export const useHiddenCurves = () =>
   );
 
 /**
- * Whether full screen keeps FluidEQ's own top bar.
- *
- * On by default. The mode maximises the window rather than taking the screen,
- * so the titlebar belongs there: it is a maximised window, and a maximised
- * window with no chrome is a window with a piece missing.
- *
- * One switch rather than one per element. The bar is a single row and the parts
- * of it are not independently useful: a waveform with no creature beside it is
- * the same bar with a hole in it.
- *
- * Not persisted, like the modes it sits beside.
- */
-let hasFullScreenTopBar = true;
-
-const topBarListeners = new Set<() => void>();
-
-export const toggleFullScreenTopBar = () => {
-  hasFullScreenTopBar = !hasFullScreenTopBar;
-  topBarListeners.forEach((listener) => listener());
-};
-
-const subscribeTopBar = (listener: () => void) => {
-  topBarListeners.add(listener);
-  return () => {
-    topBarListeners.delete(listener);
-  };
-};
-
-export const useFullScreenTopBar = () =>
-  useSyncExternalStore(
-    subscribeTopBar,
-    () => hasFullScreenTopBar,
-    () => false,
-  );
-
-/**
- * Whether full screen keeps the transport on screen, pinned, rather than
- * letting it go with the pointer at rest (Ivan, 2026-11-16: "the icons to pin
- * the header and all ... in full screen"). Off by default: the bar comes from
- * the bottom edge and goes after three still seconds. Not persisted, like
- * the top bar's.
- */
-let hasFullScreenBottomBar = false;
-
-const bottomBarListeners = new Set<() => void>();
-
-export const toggleFullScreenBottomBar = () => {
-  hasFullScreenBottomBar = !hasFullScreenBottomBar;
-  bottomBarListeners.forEach((listener) => listener());
-};
-
-const subscribeBottomBar = (listener: () => void) => {
-  bottomBarListeners.add(listener);
-  return () => {
-    bottomBarListeners.delete(listener);
-  };
-};
-
-export const useFullScreenBottomBar = () =>
-  useSyncExternalStore(
-    subscribeBottomBar,
-    () => hasFullScreenBottomBar,
-    () => false,
-  );
-
-/**
  * Moving between the three modes. `TGraphView` and `view` itself are at the top
  * of the file, above the settings that index themselves by them; what is left
  * here is everything that only runs once somebody presses something.
@@ -974,7 +908,7 @@ const fullScreenListeners = new Set<() => void>();
  *
  * Full screen and not maximised: the point of the mode is that nothing of
  * Windows is left on screen, so a video or a spectrum has the glass to
- * itself. FluidEQ's own header stays — see `hasFullScreenTopBar` — because
+ * itself. FluidEQ's own header stays — see `useFullScreenTopBar` — because
  * that is the app's, not the system's.
  */
 let applyWindowFullScreen: ((next: boolean) => void) | undefined;

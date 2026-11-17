@@ -77,8 +77,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // that would be the column and not the window, and the card above would be
   // a different box from the picture below it in expanded mode.
   //
-  // Its own controls go with it. A Back and a full-screen button floating
-  // over a graph belong to neither of them.
   &.is-behind-graph:not(.is-fullscreen) {
     position: fixed;
     z-index: 0;
@@ -89,11 +87,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 100%;
     height: var(--stage-art-height, 100vh);
     border-radius: 0;
-
-    > .library-video-stage__back,
-    > .library-video-stage__tools {
-      display: none;
-    }
   }
 }
 
@@ -118,99 +111,39 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The one control on the picture, in the corner karaoke puts its own way back
-// — top left, 12px in, the same place `.karaoke-playlist__expand` stands.
-//
-// `button small` for its bones — the height, the radius, the weight, the
-// focus ring — and the header's glass for its face. NOT `subtle`: that is the
-// quiet outline for a control standing on a panel, and its cyan label on a
-// cyan hairline read as a piece of the equaliser's UI stuck to a film. A
-// control on a picture belongs to the picture's own chrome, which in this app
-// means the two bars that float over a full screen: a white label on the
-// panel colour, blurred, with a neutral hairline. Same material as the
-// titlebar it sits under and the queue it sits opposite — one idea, three
-// places.
-//
-// Written from inside `.library-video-stage` and compounded with `.button`,
-// because `.button` states its own colour, fill, border and shadow at one
-// class and its hover at three: a rule of one class merely ties with the
-// first and loses to the second, and a tie is settled by whichever stylesheet
-// the bundler happened to put last. Two classes here, and four on the hover,
-// so the answer does not depend on that.
-.library-video-stage {
-  .library-video-stage__back {
-    position: absolute;
-    z-index: 2;
-    top: 12px;
-    left: 12px;
-    gap: 6px;
-  }
+// THE FILM'S ROW IN FULL SCREEN (`ViewBar`): every page's band across the
+// top of the picture, the row 11px down it and 12px over its foot, 55px in
+// all as on every page, from the window's edge 16px in — the Karaoke
+// playlist card's own margin. Under the header while it is out or pinned:
+// pinned, the picture itself starts under it (`_libraryUpNext.scss`).
+.library-video-bar {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  height: 55px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px 12px;
+  transition:
+    opacity $motion-base ease,
+    top $motion-base $ease-out,
+    right $motion-base $ease-out,
+    left $motion-base $ease-out;
+}
 
-  // Full screen's header switch and exit, in the corner opposite Back.
-  .library-video-stage__tools {
-    position: absolute;
-    z-index: 2;
-    top: 12px;
-    right: 12px;
-    display: flex;
-    gap: 6px;
-  }
+.library-video-bar__back {
+  flex: 0 0 auto;
+  gap: 6px;
+  white-space: nowrap;
 
-  .library-video-stage__tool {
-    justify-content: center;
-    aspect-ratio: 1;
-    padding: 0;
-  }
-
-  :is(.library-video-stage__back, .library-video-stage__tool) {
-    svg {
-      width: 15px;
-      height: 15px;
-      flex: 0 0 auto;
-      fill: none;
-      stroke: currentcolor;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-width: 1.6;
-    }
-  }
-
-  // The header's glass, from App.scss: `blur(22px) saturate(130%)` over the
-  // panel colour. The reasoning there applies exactly — the picture runs
-  // under this control, so an opaque fill is a chip of shell laid on the
-  // film, and a translucent one with no blur is worse because the frame
-  // carries on legibly underneath the word. Blurred, it is a pane over the
-  // picture and the picture stays whole behind it. Quieter than the queue on
-  // purpose: this is a way out, the queue is something to read.
-  :is(.library-video-stage__back, .library-video-stage__tool).button {
-    color: $text-primary;
-    border-color: rgba($edge-tint, 0.16);
-    background: color-mix(in srgb, $surface-panel 55%, transparent);
-    box-shadow: none;
-    backdrop-filter: blur(22px) saturate(130%);
-    -webkit-backdrop-filter: blur(22px) saturate(130%);
-    font-weight: $weight-semibold;
-
-    // `.button` inks every path that does not say `fill="none"` in the dark
-    // shade that reads on a cyan face. This chevron is an open stroke, and
-    // that ink would close it into a dark wedge behind the line.
-    path {
-      fill: none;
-    }
-
-    &:hover:not([aria-disabled='true']):not(:disabled) {
-      color: $white;
-      border-color: rgba($edge-tint, 0.3);
-      background: color-mix(in srgb, $surface-menu-top 80%, transparent);
-      box-shadow: none;
-      transform: none;
-      filter: none;
-    }
-
-    &:active:not([aria-disabled='true']):not(:disabled) {
-      color: $white;
-      background: color-mix(in srgb, $surface-menu-top 92%, transparent);
-    }
+  // `.button` inks every path that does not say `fill="none"`; the chevron
+  // is an open stroke.
+  path {
+    fill: none;
   }
 }
 

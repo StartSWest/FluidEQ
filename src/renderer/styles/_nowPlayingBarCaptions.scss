@@ -161,8 +161,3 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     transition: none;
   }
 }
-
-// The captions' quick switch, in the corner tools: lit while they show.
-.library-video-stage .library-video-stage__tool.is-on.button {
-  color: $secondary-light;
-}

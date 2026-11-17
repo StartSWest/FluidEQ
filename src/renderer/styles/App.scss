@@ -3713,6 +3713,17 @@ $graph-card-pages: list.join(
     background: none;
   }
 
+  // And closed it takes no press. Its button is not drawn over a full-screen
+  // picture (below), but the rail's head still stood there, 36px wide under
+  // the header's strip, invisible and catching every press: the right end of
+  // a page's options row — full screen's way out, last on every row — lay
+  // under it, so half the button did nothing (Ivan, 2026-11-16: "the exit
+  // full screen button is still not easy to click"). The keyboard still
+  // reaches the button; a press needs the panel open.
+  &:not(.is-open):not(.is-sliding) {
+    pointer-events: none;
+  }
+
   // Its button on the line of the graph's own buttons across the top of the
   // picture, centre to centre, as the last of them (Ivan, 2026-09-27: "align
   // the toogle ... vertically with other bar butons"): that row stands

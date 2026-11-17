@@ -95,7 +95,6 @@ import {
   toggleGraphFullScreen,
   toggleGraphMeter,
   toggleGraphGrid,
-  toggleFullScreenTopBar,
   cycleGraphContents,
   setGraphContents,
   useGraphContents,
@@ -114,7 +113,6 @@ import {
   useGraphWavePosition,
   useWaveOrientation,
   useGraphView,
-  useFullScreenTopBar,
   useLiveOutputSolo,
   useGraphLook,
   useGraphPalette,
@@ -123,6 +121,12 @@ import {
   useSelectedSceneLookId,
   useSelectedLookId,
 } from '../utils/graphStyle';
+import {
+  toggleFullScreenTopBar,
+  useFullScreenTopBar,
+} from '../utils/fullScreenPins';
+import FullScreenToggles from '../widgets/FullScreenToggles';
+import ViewBar from '../widgets/ViewBar';
 import { setChromeHeld } from '../utils/idleChrome';
 import useIsGraphChromeIdle from './graphChromeIdle';
 import viewAfterPlotDoubleClick from './plotDoubleClick';
@@ -1731,7 +1735,11 @@ const FrequencyResponseChart = ({
       {drawnScene && <GraphUpdateNotice />}
       {/* Its shade is its own `::before` (`GraphTheme.scss`), so it is as
           tall as its rows and comes and goes with them. */}
-      <div className={`live-output-controls${isChromeIdle ? ' is-idle' : ''}`}>
+      <ViewBar
+        className="live-output-controls"
+        isIdle={isChromeIdle}
+        label={t('graph.view.normal')}
+      >
         {/* One pane for the whole right-hand cluster.
 
             The card used to be on the style picker alone, which left the
@@ -2052,23 +2060,28 @@ const FrequencyResponseChart = ({
               onChangeOverlayBlur={setOverlayBlur}
               minOverlayOpacity={MIN_OVERLAY_OPACITY}
               maxOverlayBlur={MAX_OVERLAY_BLUR}
-              hasTopBar={hasTopBar}
-              onToggleTopBar={toggleFullScreenTopBar}
               sceneLookId={drawnScene?.lookId}
               hasPlaybackBackdrop={hasPlaybackBackdrop}
               backdropControls={backdropControls}
             />
           </span>
-          {/* No way out here any more. Full screen keeps the app's own top
-              bar, and the window's restore button in it says "restore" and
-              does exactly this — two controls for the same thing, a hand's
-              width apart. Escape still leaves, and so does double-clicking
-              the plot. */}
+          {/* The row's end on every page (`FullScreenToggles`): the
+              header's pin and the transport's in full screen, and full
+              screen itself, in and out (Ivan, 2026-11-16: "the toggles ...
+              the same as the Karaoke, with the same icons"). The window's
+              restore button in the header still leaves too, and Escape, and
+              a double-click on the plot. */}
+          <FullScreenToggles
+            isFullScreen={graphView === 'fullscreen'}
+            hasTopBar={hasTopBar}
+            onToggleTopBar={toggleFullScreenTopBar}
+            onToggleFullScreen={toggleGraphFullScreen}
+          />
         </span>
         {/* Its own subscriber, so that a badge which is absent almost all of the
             time does not wake the graph up to say so. */}
         <LiveClipWarning />
-      </div>
+      </ViewBar>
       {/* Its own subscriber, in the wrapper rather than the control strip:
           the strip's height sets the plot's headroom, and a badge that comes
           and goes must not be able to move the drawing. */}

@@ -31,9 +31,7 @@ import ViewMenuSwitch from './ViewMenuSwitch';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
   MIN_GRAPH_WAVE_HEIGHT,
-  toggleFullScreenBottomBar,
   toggleGraphBandLabels,
-  useFullScreenBottomBar,
   useGraphBandLabelsHidden,
   TGraphCurve,
   TGraphView,
@@ -111,9 +109,6 @@ interface IGraphViewMenuProps {
   onChangeOverlayBlur: (next: number) => void;
   minOverlayOpacity: number;
   maxOverlayBlur: number;
-  /** Whether full screen keeps FluidEQ's own top bar. Full screen only. */
-  hasTopBar: boolean;
-  onToggleTopBar: () => void;
   /**
    * The Plus visualizer on the plot, if one is: the menu then carries its
    * attack and release, and the wave's height and position in every mode, and
@@ -132,11 +127,6 @@ const ORIENTATION_LABEL: Record<TWaveOrientation, TranslationKey> = {
   down: 'graph.orientation.mirror',
   mirrored: 'graph.orientation.centre',
   centred: 'graph.orientation.up',
-};
-
-const VIEW_LABEL: Record<TGraphView, TranslationKey> = {
-  normal: 'graph.view.normal',
-  fullscreen: 'graph.view.fullscreen',
 };
 
 const GraphViewMenu = ({
@@ -166,15 +156,12 @@ const GraphViewMenu = ({
   onChangeOverlayBlur,
   minOverlayOpacity,
   maxOverlayBlur,
-  hasTopBar,
-  onToggleTopBar,
   sceneLookId,
   hasPlaybackBackdrop = false,
   backdropControls,
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
   const bandLabelsHidden = useGraphBandLabelsHidden();
-  const hasBottomBar = useFullScreenBottomBar();
   // A Plus visualizer ignores the orientation, so a centred wave locks
   // nothing there.
   const isWavePositionLocked =
@@ -215,15 +202,19 @@ const GraphViewMenu = ({
 
   return (
     <div className="graph-view-menu" ref={rootRef}>
+      {/* "View" in every mode: whether the graph has the screen is the
+          row's own full-screen icon now (`FullScreenToggles`), so the menu's
+          name no longer turns into "Full screen" while it does (Ivan,
+          2026-11-16: "the same as the Karaoke"). */}
       <button
         type="button"
-        className={`graph-solo${view !== 'normal' ? ' is-on' : ''}`}
+        className="graph-solo"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
         title={t('graph.view.title')}
       >
-        {t(VIEW_LABEL[view])}
+        {t('graph.view.normal')}
         <svg className="arrow" viewBox="0 0 10 6" aria-hidden>
           <path d="M1 1l4 4 4-4" />
         </svg>
@@ -268,40 +259,10 @@ const GraphViewMenu = ({
             {backdropControls}
             {view !== 'normal' && (
               <>
-                {/* One switch for the whole bar rather than one per piece. The
-                  parts of it are not independently useful — a waveform with no
-                  creature beside it is the same bar with a hole in it.
-
-                  Full screen alone, this one: it is the mode that takes the
-                  app's own chrome away, so it is the only one with a top bar to
-                  argue about. */}
-                {view === 'fullscreen' && (
-                  <ViewMenuSwitch
-                    icon={
-                      <>
-                        <path d="M2.5 2.5h11v11h-11z" />
-                        <path d="M2.5 6h11" />
-                      </>
-                    }
-                    name={t('graph.switch.topBar')}
-                    isOn={hasTopBar}
-                    onToggle={onToggleTopBar}
-                  />
-                )}
-                {view === 'fullscreen' && (
-                  <ViewMenuSwitch
-                    icon={
-                      <>
-                        <path d="M2.5 2.5h11v11h-11z" />
-                        <path d="M2.5 10h11" />
-                      </>
-                    }
-                    name={t('graph.switch.bottomBar')}
-                    isOn={hasBottomBar}
-                    onToggle={toggleFullScreenBottomBar}
-                  />
-                )}
-
+                {/* The header's and the transport's pins are the row's own
+                    icons now, beside full screen (`FullScreenToggles`), as on
+                    every page; they were two switches here, in this menu
+                    alone. */}
                 {/* Karaoke keeps its independent scenery behind every look.
                     Elsewhere a Plus scene plays alone, so there is no picture
                     behind it to see through to or blur. */}

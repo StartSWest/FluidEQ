@@ -67,15 +67,23 @@ const ACTIVITY_EVENTS = [
   'focusout',
 ];
 
-// Dropdown lists are portalled out of the toolbar. Both surfaces must hold
-// its controls open while a look or interval is being chosen.
+// Every page's options row (`ViewBar`), and the menus portalled out of one:
+// the graph's look and interval lists, and every anchored menu (the
+// Karaoke's text size and microphone, a film's captions). Each holds the row
+// up while it is in use.
 const TOP_CHROME_SELECTOR =
-  '.live-output-controls, .graph-look-menu, .graph-auto-cycle-menu';
+  '.view-bar, .graph-look-menu, .graph-auto-cycle-menu, [data-anchored-menu]';
 const isTopChrome = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest(TOP_CHROME_SELECTOR) !== null;
 let topPointerTarget: Element | null = null;
+// The keyboard's place counts as using the row only while the keyboard is
+// what is being used: a button keeps the focus after a click, and as a hold
+// that kept the row up after every press on it, until a press somewhere else
+// took the focus away.
+let isKeyboardInput = false;
 const isUsingTopChrome = () =>
-  !!topPointerTarget?.isConnected || isTopChrome(document.activeElement);
+  !!topPointerTarget?.isConnected ||
+  (isKeyboardInput && isTopChrome(document.activeElement));
 
 let isIdle = false;
 let isWatching = false;
@@ -209,7 +217,15 @@ const isInBottomZone = (event: PointerEvent): boolean =>
  * down to the playlist I want to reach its collapse without the header
  * opening").
  */
-const FULL_SCREEN_TOP_WAKE_EDGE_PX = 10;
+//
+// Four pixels, not ten: every page's row stands 7-11px under the window's top
+// in full screen with the header away, so the last of a reach for its
+// buttons — full screen's way out among them — landed in a ten-pixel edge,
+// brought the header, and the header pushed the row and the button down out
+// from under the pointer (Ivan, 2026-11-16: "the exit full screen button is
+// still not easy to click"). The top of a full-screen window is the screen's,
+// where the pointer stops, so the edge is as easy to find at four.
+const FULL_SCREEN_TOP_WAKE_EDGE_PX = 4;
 
 const topWakeEdge = (): number =>
   document.querySelector('.app-workspace.is-app-full')
@@ -237,9 +253,9 @@ const TOOLBAR_APPROACH_PX = 24;
  * transparent to the pointer, so the target test in `isTopChrome` cannot see
  * it either. Measured only while the chrome is away, on a move.
  */
-// The Karaoke stage's row of options fades with the chrome too, and is
-// found the same way, without bringing the header (Ivan, 2026-11-16).
-const FADING_STRIPS = '.live-output-controls, .karaoke-stage-bar';
+// Every page's row of options fades with the chrome (`ViewBar`), and each
+// is found the same way, without bringing the header (Ivan, 2026-11-16).
+const FADING_STRIPS = '.view-bar';
 
 const isOverFadedToolbar = (event: PointerEvent): boolean =>
   Array.from(document.querySelectorAll(FADING_STRIPS)).some((strip) =>
@@ -407,6 +423,11 @@ const handleActivity = (event?: Event) => {
       : null;
     setNearSide(isInSideWakeZone(event as PointerEvent));
   }
+  if (event?.type === 'keydown') {
+    isKeyboardInput = true;
+  } else if (event?.type === 'pointerdown' || event?.type === 'pointermove') {
+    isKeyboardInput = false;
+  }
   if (event?.type === 'pointerdown' && !isTopChrome(event.target)) {
     return;
   }
@@ -415,8 +436,15 @@ const handleActivity = (event?: Event) => {
       ? (event.target as Element)
       : null;
   }
+  // Using a page's options row keeps the row, and whatever else is out,
+  // where it is; it never brings the header. The header is the top edge's
+  // alone, as on the Karaoke's row from the first (Ivan, 2026-11-16: "it
+  // doesn't hide the header ... I want the Karaoke's behaviour"): the graph's
+  // strip brought it whenever the pointer was on it, so unpinning the header
+  // from there left it standing until a click on the picture put it away.
+  // And a pointer on one of the row's controls is never at the top edge,
+  // however close the row stands to it, so reaching a button never moves it.
   if (isUsingTopChrome()) {
-    setNearTop(true);
     setIdle(false);
     startIdleClock();
     return;
@@ -582,6 +610,7 @@ export const watchChromeIdle = (next: boolean) => {
   // amount of moving the mouse would explain why. A hold is dropped for the
   // same reason: whatever was asking for it is gone with the mode.
   isHeld = false;
+  isKeyboardInput = false;
   topPointerTarget = null;
   sidePointerTarget = null;
   setIdle(false);

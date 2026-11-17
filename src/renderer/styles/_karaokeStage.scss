@@ -72,84 +72,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // the band"); it was 16 over and 7 under.
   min-height: 0;
   padding: 11px 12px 0;
-  transition: opacity $motion-base ease;
-
-  // THE BAND UNDER THE OPTIONS, the graph strip's own
-  // (`_graphThemeWorkspace.scss`), so the row reads over a bright scene or
-  // cover and comes and goes with it (Ivan, 2026-11-16: "show that same bg
-  // for the options on the karaoke, with the same behaviour"). Across the
-  // stage column only, never over the playlist beside it; from the window's
-  // top in full screen, where the stage starts under the header.
-  &::before {
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    right: 0;
-    bottom: -12px;
-    left: 0;
-    // Flat, as the graph's (Ivan, 2026-11-16: "flat like the application"),
-    // and as see-through (`_graphThemeWorkspace.scss`).
-    background: color-mix(in srgb, $surface-base 72%, transparent);
-    content: '';
-    pointer-events: none;
-  }
-
-  // In full screen from the window's top and across the whole window, as
-  // the graph's: within the stage column it stopped at the stage's 12px
-  // insets and left the scene showing at both ends (Ivan, 2026-11-16: "you
-  // haven't fixed the full-screen option bar in the karaoke"). The playlist
-  // card, lifted over the stage, stands on top of it.
-  .karaoke-workspace.is-fullscreen &::before {
-    top: -100vh;
-    right: -100vw;
-    // 11px over the row in full screen (the stage's 16px, less the row's 5px
-    // lift), so the foot is 12px, as in the windowed view: 55px in all.
-    bottom: -12px;
-    left: -100vw;
-  }
-
-  // Fades with the rest of the chrome when the pointer rests, in place.
-  &.is-idle {
-    opacity: 0;
-    pointer-events: none;
-    transition-duration: 480ms;
-  }
+  // The band under the row is every page's (`ViewBar.scss`): across the
+  // stage column only, never over the playlist beside it, and in full screen
+  // from the window's top across the whole window, where the playlist card,
+  // lifted over the stage, stands on top of it. 12px under the row's 32px,
+  // over which it stands 11px, in both views: 55px in all.
+  --view-bar-foot: 12px;
 
   // In full screen the row stands on the line every page's options do, the
   // graph strip's (Ivan, 2026-11-16: "those top options always at the same
   // level"): the stage starts 16px under the header and the strip's centre is
-  // 31px under it, so a 30px row with nothing above or below it centres there.
+  // 31px under it, so a row of 32px buttons with nothing above or below it
+  // centres there.
   // Centred in its band in full screen too: the stage stands 16px under the
   // header (the playlist card's own top), so the row lifts 5px of it, 11px
   // over the buttons and a 12px foot under them (Ivan, 2026-11-16: "the top
   // padding of the bar in full screen is too much").
   .karaoke-workspace.is-fullscreen & {
-    min-height: 30px;
+    min-height: 32px;
     margin-top: -5px;
     padding-block: 0;
-  }
-}
-
-.karaoke-stage-bar__crumb {
-  display: flex;
-  min-width: 0;
-  flex: 1 1 140px;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  color: $studio-t3;
-  font-size: $studio-text-tree;
-
-  > span {
-    flex: 0 0 auto;
-  }
-
-  strong {
-    overflow: hidden;
-    color: $text-primary;
-    font-weight: $weight-semibold;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 }
 
@@ -259,43 +201,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   white-space: nowrap;
 }
 
-.karaoke-stage-bar__icon {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  place-items: center;
-  padding: 0;
-  color: $studio-t2;
-  border: 0;
-  border-radius: $radius-m;
-  background: none;
-  cursor: pointer;
-  transition: $transition-control;
-
-  .karaoke-button__icon {
-    stroke-width: 1.7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  &:hover {
-    color: $text-primary;
-    background: $studio-surface;
-  }
-
-  &[aria-pressed='true'],
-  &[aria-expanded='true'],
-  &.is-live {
-    color: $secondary-light;
-    background: $studio-select;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-}
-
 // "Aa": the text size's own glyph, the small A beside the large one.
 .karaoke-stage-bar__glyph {
   display: inline-flex;
@@ -311,8 +216,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // A narrow stage: the two labelled buttons fold to their icons before the
 // bar wraps. With the folded playlist's button in the bar as well, a window
-// of 900px put the last two icons on a row of their own.
-@container karaoke-stage-bar (max-width: 900px) {
+// of 900px put the last two icons on a row of their own; and with full
+// screen's three icons at the row's end a song's whole row asks about 1020px
+// with both labels (the crumb at its 112px), so a full-screen window of
+// 1280 put the three on a row of their own until the labels folded at the
+// standard 1024.
+@container karaoke-stage-bar (max-width: #{$bp-lg}) {
   .karaoke-stage-bar__maker,
   .karaoke-playlist__expand {
     padding-inline: 8px;
@@ -336,7 +245,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // row above the name. The switches after the name are wider than that room,
 // so they still start the next row.
 @container karaoke-stage-bar (max-width: 560px) {
-  .karaoke-stage-bar__crumb {
+  .karaoke-stage-bar .view-bar__crumb {
     flex: 1 0 calc(100% - 44px);
   }
 }

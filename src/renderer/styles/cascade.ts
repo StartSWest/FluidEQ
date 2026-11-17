@@ -164,6 +164,9 @@ import './SceneUpdateNotice.scss';
 import './GraphSceneRemove.scss';
 import './LookPicker.scss';
 import './GraphTheme.scss';
+// Every page's options row (`ViewBar`): the graph's strip, the Karaoke's,
+// the films' in full screen. After the sheets that place each of them.
+import './ViewBar.scss';
 // The ear tags on a band's handle and strip, over the graph's own rules.
 import './EqChannels.scss';
 import './PresetsBar.scss';

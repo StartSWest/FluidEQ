@@ -129,8 +129,6 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': '波形',
   'graph.switch.grid': 'グリッド',
   'graph.switch.meter': 'レベルメーター',
-  'graph.switch.topBar': '上部バー',
-  'graph.switch.bottomBar': '下部バー',
   'graph.item.grid': 'グリッド',
   'graph.item.meter': 'レベルメーター',
   'graph.waveHeight': '波形の高さ',

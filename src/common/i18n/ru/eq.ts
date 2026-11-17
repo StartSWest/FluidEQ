@@ -127,8 +127,6 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': 'Волна',
   'graph.switch.grid': 'Сетка',
   'graph.switch.meter': 'Индикатор уровня',
-  'graph.switch.topBar': 'Верхняя панель',
-  'graph.switch.bottomBar': 'Нижняя панель',
   'graph.item.grid': 'сетку',
   'graph.item.meter': 'индикатор уровня',
   'graph.waveHeight': 'Высота волны',

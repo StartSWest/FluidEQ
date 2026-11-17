@@ -30,9 +30,14 @@ import {
   getGraphView,
   onWindowFullScreenChange,
   toggleGraphFullScreen,
+} from '../utils/graphStyle';
+import {
+  toggleFilmFullScreenTopBar,
+  toggleFullScreenTopBar,
+  useFilmFullScreenTopBar,
   useFullScreenBottomBar,
   useFullScreenTopBar,
-} from '../utils/graphStyle';
+} from '../utils/fullScreenPins';
 import {
   useIsChromeIdle,
   useIsPointerNearChrome,
@@ -91,17 +96,24 @@ const useShellFullScreen = ({
   // the mode alone, so "full screen" and "full screen with the bar" cannot end
   // up disagreeing about which pieces are on screen.
   //
-  // Never over a film: a Library or Online Media video gone full screen is the
-  // picture alone, header and all (Ivan, 2026-11-15: "it is a video full
-  // screen so don't show the app header; only when clicking on the graph we
-  // do, and we already have options there for hiding it"). The graph's full
-  // screen, Karaoke's and the stage's keep the reader's choice.
+  // A film keeps a pin of its own, off until it is pressed on the film's row:
+  // a Library or Online Media video gone full screen is the picture alone,
+  // header and all (Ivan, 2026-11-15: "it is a video full screen so don't
+  // show the app header"), and its row carries the same pin as every other
+  // page's (2026-11-16: "the same base bar for all the screens"). The graph's
+  // full screen, Karaoke's and the stage's share the other.
+  const isFilmFullScreen =
+    mediaFullScreenOwner === 'library' || mediaFullScreenOwner === 'video';
   const prefersFullScreenTopBar = useFullScreenTopBar();
+  const prefersFilmTopBar = useFilmFullScreenTopBar();
   const hasFullScreenBottomBar = useFullScreenBottomBar();
-  const hasFullScreenTopBar =
-    prefersFullScreenTopBar &&
-    mediaFullScreenOwner !== 'library' &&
-    mediaFullScreenOwner !== 'video';
+  const hasFullScreenTopBar = isFilmFullScreen
+    ? prefersFilmTopBar
+    : prefersFullScreenTopBar;
+  /** The pin of the full screen on screen, for its row's header icon. */
+  const toggleTopBar = isFilmFullScreen
+    ? toggleFilmFullScreenTopBar
+    : toggleFullScreenTopBar;
   const isChromeHidden =
     (isGraphAppFullScreen || isMediaFullScreen) && !hasFullScreenTopBar;
   /**
@@ -515,6 +527,7 @@ const useShellFullScreen = ({
     /** As large as it goes, by either route. */
     isWindowFilled: isWindowMaximized || isAppFullScreen,
     hasFullScreenTopBar,
+    toggleFullScreenTopBar: toggleTopBar,
     hasFullScreenBottomBar,
     isChromeHidden,
     isChromeIdle,

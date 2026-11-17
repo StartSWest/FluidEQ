@@ -97,16 +97,15 @@ const CaptionsMenu = ({ track }: { track: ILibraryTrack }) => {
       <button
         ref={anchorRef}
         type="button"
-        className={`button small library-video-stage__tool${
-          style.enabled ? ' is-on' : ''
-        }`}
+        // One of the film's row's icons (`ViewBar`), lit while they show.
+        className={`view-bar__icon${style.enabled ? ' is-on' : ''}`}
         aria-label={t('library.subtitles.menu')}
         title={t('library.subtitles.menu')}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
       >
-        <MenuIcon name="subtitles" />
+        <MenuIcon name="subtitles" className="view-bar__glyph" />
       </button>
       <AnchoredMenu
         anchor={anchorRef.current}

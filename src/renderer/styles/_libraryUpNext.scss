@@ -275,47 +275,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Under the optional titlebar the window keeps in full screen, the picture's
-// Back and its two tools stand on the line every page's options do, the
-// graph strip's, at its buttons' height (Ivan, 2026-11-16: "those top options
-// always at the same level").
-.app-workspace.is-app-full.is-media-full.has-top-bar
-  .library-workspace.is-video-full {
-  :is(.library-video-stage__back, .library-video-stage__tools) {
-    top: calc(#{$title-bar-height} + #{$graph-strip-inset});
-  }
-
-  :is(.library-video-stage__back, .library-video-stage__tool) {
-    height: $graph-strip-button;
-    min-height: $graph-strip-button;
-  }
+// The header over a full-screen film, when its pin is in (`FullScreenToggles`
+// on the film's row): the picture starts under it, as the Karaoke's stage
+// and the graph's row do, so nothing of the film is behind it.
+.app-workspace.is-app-full.has-top-bar
+  .library-workspace.is-video-full
+  .library-video-stage {
+  top: $title-bar-height;
 }
 
-// *** The chrome over a full-screen picture goes together **********************
-//
-// The picture's Back and its tools leave with the window's chrome when the
-// pointer rests, and come back with it — one gesture, never pieces.
-.library-workspace.is-video-full {
-  :is(.library-video-stage__back, .library-video-stage__tools) {
-    transition:
-      opacity $motion-base $ease-out,
-      transform $motion-base $ease-out;
-  }
+// With the pin out the header floats, and the film's row comes down under it
+// while it is out and goes back up with it, on the header's own flag (Ivan,
+// 2026-11-16: "the options at the top too").
+#root:not(.is-chrome-idle)
+  .app-workspace.is-app-full:not(.has-top-bar)
+  .library-video-bar {
+  top: $title-bar-height;
 }
 
-#root.is-chrome-idle .library-workspace.is-video-full {
-  :is(.library-video-stage__back, .library-video-stage__tools) {
-    opacity: 0;
-    transform: translateY(calc(-100% - #{$title-bar-height}));
-    pointer-events: none;
-  }
+// A panel opened over the full screen pushes the row in from its side, as it
+// does the Karaoke's and the graph's, so neither panel covers its controls
+// (Ivan, 2026-11-16: "on the right pane push the options on top too").
+.app-workspace.is-app-full:has(> .right-content.is-open) .library-video-bar {
+  right: $sound-panel-width;
+}
+
+.app-workspace.is-app-full:has(> .side-bar.is-open) .library-video-bar {
+  left: min(#{$side-bar-width-compact}, 86vw);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .library-workspace.is-video-full {
-    :is(.library-video-stage__back, .library-video-stage__tools) {
-      transition: none;
-    }
+  .library-video-bar {
+    transition: none;
   }
 }
 

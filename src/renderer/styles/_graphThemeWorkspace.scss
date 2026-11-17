@@ -357,18 +357,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // in it, and `justify-content: flex-end` keeps it against the same edge in
 // every mode. One rule instead of two that had to agree.
 
-// Not scoped to a mode, because there is no longer a mode to scope to.
-//
-// These used to sit under `.app-workspace.is-app-full`, so the toolbar only
-// ever faded once the window itself had gone full screen. It fades in every
-// view now: the strip lies across the top of the plot, which is where the peaks
-// go, and it holds controls you reach for occasionally and then look past for
-// minutes.
-//
-// Whether it may fade at all is the store's question, not the cascade's —
-// `is-idle` is only ever applied while it is watching. Two things deciding the
-// same question is how they come to disagree, and here they did.
-.live-output-controls,
+// The graph's strip fades in every view, as every page's row does
+// (`ViewBar.scss`): it lies across the top of the plot, where the peaks go,
+// and holds controls reached for occasionally and then looked past for
+// minutes. Whether it may fade at all is the store's question (`is-idle`).
 .fullscreen-chrome {
   // Slower out than in. Coming back should feel immediate — the pointer has
   // just moved and something is being reached for — while leaving should not
@@ -376,7 +368,6 @@ it under the terms of the GNU General Public License version 3 or later.
   transition: opacity 320ms ease;
 }
 
-.live-output-controls.is-idle,
 .fullscreen-chrome.is-idle {
   opacity: 0;
   // Nothing invisible takes a click. Without this the strip is still there to
@@ -601,53 +592,45 @@ it under the terms of the GNU General Public License version 3 or later.
   top: calc(#{$title-bar-height} + #{$graph-strip-inset});
 }
 
+// With the header away the row stands where it does under the header, 13px
+// down a 55px band, its centre 27px under the band's top as the Karaoke row's
+// is (`_karaokeStage.scss`) — so the full-screen icons at the end of either
+// row are in the same place (Ivan, 2026-11-16: "those top options always at
+// the same level"). At the docked strip's 9px the band was 47px tall here
+// and 55 under the header.
 .app-workspace.is-app-full .live-output-controls {
-  transition: top $motion-base ease;
+  top: $graph-strip-inset;
+  transition:
+    opacity $motion-base ease,
+    top $motion-base ease;
 }
 
-// THE BAND UNDER THE OPTIONS, over a graph that has the window (expanded or
-// full screen): a shade from the top edge down to just past the row, so its
-// words read over a bright film or stage art (Ivan, 2026-11-15: "since we
-// hide the options when the mouse is quiet, we can show an under-header band
-// to show the options so they are more visible"). It goes and comes with the
-// row itself, which leaves when the pointer rests. Behind the row's own
-// children (the row is a stacking context at z-index 3) and over the plot;
-// it reaches past every side and the graph's own box cuts it, as the
-// full-screen shade below does with the window's.
-.center-workspace.is-graph-full .live-output-controls::before {
-  position: absolute;
-  z-index: -1;
+// THE BAND UNDER THE OPTIONS is every page's (`ViewBar.scss`), from the
+// window's top across the whole window in full screen. Over the graph only
+// where the graph has the window: in its pane the strip lies over the top of
+// the plot, where the peaks go, and a shade there was taken off the same day
+// it arrived (2026-09-27: "I hate the dropshadow that shows when options pane
+// open, remove"). 14px under the strip's 28px row, which it stands 13px
+// under: 55px in all, as on every page.
+.live-output-controls {
+  --view-bar-foot: 14px;
+}
+
+.graph-wrapper > .live-output-controls::before {
+  content: none;
+}
+
+.center-workspace.is-graph-full .graph-wrapper > .live-output-controls::before {
   top: -100vh;
   right: -100vw;
-  bottom: -10px;
   left: -100vw;
-  // Flat, the app's own floor at 72%, with a hard edge (Ivan, 2026-11-16:
-  // "flat like the application, no gradient", then "make that band more
-  // transparent"). It was a near-opaque gradient that faded out over its
-  // last 6px, then the floor solid.
-  background: color-mix(in srgb, $surface-base 72%, transparent);
   content: '';
-  pointer-events: none;
-}
-
-// In full screen the same shade, across the whole window and from its top
-// edge — behind the header, so there is no gap between it and the options
-// (Ivan, 2026-09-27: "same on fullscreen and make the whole line darker, not
-// just under the options", "leave no gap between the header and the
-// options"). The graph is the window there, so a reach past every side is
-// cut by the window's own edges; the strip's insets move with the header and
-// the side panel, and chasing each of them would leave a sliver somewhere.
-.app-workspace.is-app-full .live-output-controls::before {
-  top: -100vh;
-  right: -100vw;
-  left: -100vw;
 }
 
 .app-workspace.is-app-full.has-top-bar .live-output-controls {
   // Where it ends across is the sound panel's rail's to say (`App.scss`).
-  // Karaoke's own fullscreen toolbar sits 9px inside a stage that starts 8px
-  // below the titlebar. Use the same combined inset so swapping the Karaoke
-  // toolbar for the graph toolbar does not move the controls or alter the gap
+  // Under the header the same 13px as with it away, so swapping the
+  // Karaoke's row for the graph's does not move the controls or alter the gap
   // beneath them.
   top: calc(#{$title-bar-height} + #{$graph-strip-inset});
 }

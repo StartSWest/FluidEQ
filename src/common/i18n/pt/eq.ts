@@ -128,8 +128,6 @@ const eq: Partial<Dictionary> = {
   'graph.switch.wave': 'Onda',
   'graph.switch.grid': 'Grade',
   'graph.switch.meter': 'Medidor de nível',
-  'graph.switch.topBar': 'Barra superior',
-  'graph.switch.bottomBar': 'Barra inferior',
   'graph.item.grid': 'a grade',
   'graph.item.meter': 'o medidor de nível',
   'graph.waveHeight': 'Altura da onda',

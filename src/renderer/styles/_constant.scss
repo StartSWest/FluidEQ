@@ -35,7 +35,7 @@ $title-bar-height: var(--title-bar-height);
 // The graph's row of buttons over a full-screen picture: how far under the
 // header it stands, and how tall a button in it is. The sound panel's button
 // lines up with that row (`App.scss`, `.right-content__head`).
-$graph-strip-inset: 17px;
+$graph-strip-inset: 13px;
 $graph-strip-button: 28px;
 
 // Widths at which the workspace shell changes shape. The Electron window

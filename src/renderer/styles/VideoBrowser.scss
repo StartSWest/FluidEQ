@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -724,6 +725,80 @@ $video-sign-out-said: 4s;
 .video-browser__scene + .video-browser__view {
   position: relative;
   z-index: 1;
+}
+
+// *** The page's row in full screen *****************************************
+
+// Every page's band across the top of the picture (`ViewBar`,
+// `VideoFullScreenRow`), as over a Library film: 55px, the row 11px down it,
+// 16px in from the window's edges. The stage already starts under the header
+// when its pin is in (`.has-top-bar .workspace-tab-panel--video`, App.scss);
+// with the pin out the row comes down under the header while it is out.
+.video-browser__full-bar {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  height: 55px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px 12px;
+  transition:
+    opacity $motion-base ease,
+    top $motion-base $ease-out,
+    right $motion-base $ease-out,
+    left $motion-base $ease-out;
+}
+
+// What this document keeps over a full-screen page, which swallows every
+// move of the pointer (`VideoFullScreenRow`): the row's band, so moving
+// where its controls stand brings them back, and the window's foot, the
+// transport's ten pixels (`BOTTOM_WAKE_EDGE_PX`). Under the row, over the
+// page; nothing to see.
+.video-browser__edge {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  left: 0;
+
+  &.is-top {
+    top: 0;
+    height: 55px;
+    transition: top $motion-base $ease-out;
+  }
+
+  &.is-bottom {
+    bottom: 0;
+    height: 10px;
+  }
+}
+
+#root:not(.is-chrome-idle)
+  .app-workspace.is-app-full:not(.has-top-bar)
+  :is(.video-browser__full-bar, .video-browser__edge.is-top) {
+  top: $title-bar-height;
+}
+
+// A panel opened over the full screen pushes the row in from its side, as it
+// does the Karaoke's and the graph's, so neither panel covers its controls
+// (Ivan, 2026-11-16: "on the right pane push the options on top too").
+.app-workspace.is-app-full:has(> .right-content.is-open)
+  .video-browser__full-bar {
+  right: $sound-panel-width;
+}
+
+.app-workspace.is-app-full:has(> .side-bar.is-open) .video-browser__full-bar {
+  left: min(#{$side-bar-width-compact}, 86vw);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-browser__full-bar,
+  .video-browser__edge.is-top {
+    transition: none;
+  }
 }
 
 // *** Explicit web downloads ************************************************

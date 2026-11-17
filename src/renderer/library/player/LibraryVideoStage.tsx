@@ -27,6 +27,13 @@ import {
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
 import { useGraphFullScreen } from '../../utils/graphStyle';
+import {
+  toggleFilmFullScreenTopBar,
+  useFilmFullScreenTopBar,
+} from '../../utils/fullScreenPins';
+import { useIsChromeIdle } from '../../utils/idleChrome';
+import FullScreenToggles from '../../widgets/FullScreenToggles';
+import ViewBar from '../../widgets/ViewBar';
 import { setCaptionsMoving, useCaptionsMoving } from '../subtitleStyleStore';
 import { useLibraryPlayerSession } from './LibraryPlayerContext';
 import LibraryVideoCaptions from './LibraryVideoCaptions';
@@ -99,6 +106,9 @@ const LibraryVideoStage = ({
    * the graph is drawn over the thing that is actually moving.
    */
   const isBehindGraph = useGraphFullScreen();
+  /** The full-screen row goes with the chrome when the pointer rests. */
+  const isChromeIdle = useIsChromeIdle();
+  const hasTopBar = useFilmFullScreenTopBar();
 
   /**
    * Registration, keyed on the DOM node itself rather than on a `useEffect`.
@@ -299,37 +309,6 @@ const LibraryVideoStage = ({
           isFullScreen={isFullScreen}
         />
       )}
-      {/* The way out, and the only control drawn on the picture.
-          Without it a video owned the whole tab until the queue happened to
-          move off it — and a video-only queue at its own end never does, so
-          the tab stayed that video until the app was relaunched. Stopping
-          rather than merely hiding the stage: the queue holds only videos, so
-          leaving it playing behind a closed pane would be sound with no
-          picture and no obvious way back to it.
-
-          THERE IS NO FULL-SCREEN BUTTON. Full screen is the double-click on
-          the picture and Ctrl+F, which is what every video player on this
-          machine already answers to — a button in the corner is a third
-          spelling of a command nobody was looking for one for, and it cost
-          the top-right corner of every video to say it. */}
-      {/* Only in full screen, where the bar is not drawn; in the tab the
-          bar's own back arrow and place bar lead out of the film. */}
-      {!isHidden && isFullScreen && (
-        <button
-          type="button"
-          className="button small library-video-stage__back"
-          aria-label={t('library.back')}
-          title={t('library.back')}
-          // Out of full screen as well: `useVideoFullScreenExit` takes the
-          // window down whenever the film leaves.
-          onClick={closeVideo}
-        >
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M12 4l-6 6 6 6" />
-          </svg>
-          <span>{t('library.back')}</span>
-        </button>
-      )}
       {/* On the side it skipped toward, as a big arrow with the seconds
           under it, flat on the picture (Ivan, 2026-11-15: "make it more our
           flat style and show a big arrow, next and previous, to each side"). */}
@@ -366,26 +345,55 @@ const LibraryVideoStage = ({
           </span>
         </div>
       )}
-      {/* The way out of full screen with the film still on, opposite Back.
-          No header switch: a film's full screen is the picture alone, and
-          the graph's full screen has its own (Ivan, 2026-11-15). */}
+      {/* In full screen, where the transport floats and the place bar is not
+          drawn, the film's row, as every page has one (`ViewBar`; Ivan,
+          2026-11-16: "the same base bar for all the screens"): the way back
+          out of the film, what it is, the captions' quick switch, and the
+          full-screen icons. In the tab the bar's own back arrow and place
+          bar lead out of the film, the pane beside it holds the captions,
+          and full screen is the double-click and Ctrl+F, as on every video
+          player on this machine: nothing is drawn on the picture there.
+
+          Back stops the film rather than hiding the stage: the queue may
+          hold only videos, and one left playing behind a closed pane would
+          be sound with no picture and no obvious way back to it. */}
       {!isHidden && isFullScreen && (
-        <div className="library-video-stage__tools">
-          {/* The captions' quick switch, where the Subtitles tab is out of
-              sight. In the tab the pane beside the film holds all of it. */}
-          <LibraryVideoCaptionsMenu track={videoTrack} />
+        <ViewBar
+          className="library-video-bar"
+          isIdle={isChromeIdle}
+          label={t('tabs.library')}
+        >
           <button
             type="button"
-            className="button small library-video-stage__tool"
-            aria-label={t('karaoke.fullscreen.exit')}
-            title={t('karaoke.fullscreen.exit')}
-            onClick={onToggleFullScreen}
+            className="button small subtle library-video-bar__back"
+            aria-label={t('library.back')}
+            title={t('library.back')}
+            // Out of full screen as well: `useVideoFullScreenExit` takes the
+            // window down whenever the film leaves.
+            onClick={closeVideo}
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+            <svg className="view-bar__glyph" viewBox="0 0 20 20" aria-hidden>
+              <path d="M12 4l-6 6 6 6" />
             </svg>
+            <span>{t('library.back')}</span>
           </button>
-        </div>
+          <p className="view-bar__crumb">
+            <span>{t('tabs.library')}</span>
+            {videoTrack && (
+              <>
+                <span aria-hidden="true">›</span>
+                <strong title={videoTrack.title}>{videoTrack.title}</strong>
+              </>
+            )}
+          </p>
+          <LibraryVideoCaptionsMenu track={videoTrack} />
+          <FullScreenToggles
+            isFullScreen
+            hasTopBar={hasTopBar}
+            onToggleTopBar={toggleFilmFullScreenTopBar}
+            onToggleFullScreen={onToggleFullScreen}
+          />
+        </ViewBar>
       )}
     </div>
   );
