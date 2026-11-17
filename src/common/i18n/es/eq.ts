@@ -906,6 +906,8 @@ const eq: Partial<Dictionary> = {
   'waveform.live': 'SALIDA EN DIRECTO',
   'waveform.signal': 'SEÑAL DE AUDIO',
   'waveform.clip': 'SATURACIÓN',
+  'waveform.recorderHint':
+    'la forma de onda de los últimos 9 segundos; LUFS es la sonoridad de los últimos 3 segundos',
   'autoeq.deviceAria': 'Dispositivo de audio',
   'autoeq.targetAria': 'Respuesta de frecuencia objetivo',
   'eq.band.edit': 'Editar la banda de {frequency} Hz',

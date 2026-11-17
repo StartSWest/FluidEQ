@@ -178,6 +178,16 @@ it under the terms of the GNU General Public License version 3 or later.
   text-align: right;
 }
 
+// The recorder's short-term loudness, beside the held peak and quieter than
+// it: the peak is the warning, this is the reading.
+.waveform-visualizer__loudness {
+  color: color-mix(in srgb, $text-muted 92%, transparent);
+  font-size: $text-eyebrow;
+  font-variant-numeric: tabular-nums;
+  @include tracking(0.04em);
+  text-align: right;
+}
+
 .is-clipping .waveform-visualizer__peak {
   color: $red;
 }
@@ -320,9 +330,10 @@ it under the terms of the GNU General Public License version 3 or later.
     padding-inline: 10px;
   }
 
-  // The number is the first thing to go when the pane gets tight; the trace
-  // and the clip light carry more information per pixel.
-  .waveform-visualizer__peak {
+  // The numbers are the first thing to go when the pane gets tight; the
+  // trace and the clip light carry more information per pixel.
+  .waveform-visualizer__peak,
+  .waveform-visualizer__loudness {
     display: none;
   }
 }
@@ -359,6 +370,15 @@ it under the terms of the GNU General Public License version 3 or later.
 // named nowhere else on screen, though Ctrl+E still turns it on.
 .waveform-visualizer__signal[data-cramped] {
   visibility: hidden;
+}
+
+// The loudness figure goes before the peak: 330 is where it comes within
+// 8px of the centred pill (figure 52px, gap 6, peak 40, padding 14, pill
+// half 44 — measured in the running window, 2026-11-16).
+@container wave-meter (max-width: 330px) {
+  .waveform-visualizer__loudness {
+    display: none;
+  }
 }
 
 @container wave-meter (max-width: 222px) {

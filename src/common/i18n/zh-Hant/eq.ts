@@ -819,6 +819,7 @@ const eq = {
   'waveform.live': '現場輸出',
   'waveform.signal': '音訊訊號',
   'waveform.clip': '剪輯',
+  'waveform.recorderHint': '最近 9 秒的波形；LUFS 為最近 3 秒的響度',
   'autoeq.deviceAria': '音訊裝置',
   'autoeq.targetAria': '目標頻率響應',
   'eq.band.edit': '編輯 {frequency} Hz 頻段',

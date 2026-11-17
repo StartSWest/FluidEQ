@@ -886,6 +886,8 @@ const eq: Partial<Dictionary> = {
   'waveform.live': 'लाइव आउटपुट',
   'waveform.signal': 'ऑडियो सिग्नल',
   'waveform.clip': 'क्लिप',
+  'waveform.recorderHint':
+    'पिछले 9 सेकंड की तरंग; LUFS पिछले 3 सेकंड की लाउडनेस है',
   'autoeq.deviceAria': 'ऑडियो डिवाइस',
   'autoeq.targetAria': 'लक्ष्य आवृत्ति प्रतिक्रिया',
   'eq.band.edit': '{frequency} Hz बैंड संपादित करें',

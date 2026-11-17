@@ -49,10 +49,10 @@ export interface ILoudnessMeasurement {
 export const dbFromMagnitude = (magnitude: number): number =>
   magnitude > 0 ? 20 * Math.log10(magnitude) : SILENCE_DB;
 
-const loudnessFromEnergy = (energy: number): number =>
+export const loudnessFromEnergy = (energy: number): number =>
   energy > 0 ? LOUDNESS_OFFSET + 10 * Math.log10(energy) : SILENCE_DB;
 
-const processOne = (
+export const processOne = (
   state: IBiquadState,
   sample: number,
   { b0, b1, b2, a1, a2 }: IBiquadCoefficients,
@@ -99,7 +99,7 @@ const SHELF_BANDWIDTH_EXPONENT = 0.499666774155;
 const HIGHPASS_HZ = 38.13547087602444;
 const HIGHPASS_QUALITY = 0.5003270373238773;
 
-const kWeighting = (sampleRate: number) => {
+export const kWeighting = (sampleRate: number) => {
   const shelfK = Math.tan((Math.PI * SHELF_HZ) / sampleRate);
   const shelfHigh = 10 ** (SHELF_GAIN_DB / 20);
   const shelfBand = shelfHigh ** SHELF_BANDWIDTH_EXPONENT;

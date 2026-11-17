@@ -17,7 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * Twenty-one ways to draw the same measurements: the first eleven are also
+ * Twenty-two ways to draw the same measurements. `recorder`, first and the
+ * default, is the real waveform scrolling past (`waveformRecorder.ts`). Of
+ * the rest, the first eleven are also
  * built here as path data, which the EQ graph's forms draw from; the ten
  * added on 2026-11-16 are the title bar's alone and are painted there
  * (`waveformFlatPaint.ts`), as are the first eleven now.
@@ -35,6 +37,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 export type WaveformStyle =
+  | 'recorder'
   | 'line'
   | 'filled'
   | 'bars'
@@ -59,6 +62,7 @@ export type WaveformStyle =
 
 /** In cycle order, which is the order clicking walks them. */
 export const WAVEFORM_STYLES: WaveformStyle[] = [
+  'recorder',
   'line',
   'filled',
   'bars',

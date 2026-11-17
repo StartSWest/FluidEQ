@@ -23,7 +23,9 @@ import {
   WAVEFORM_POINT_COUNT,
 } from 'renderer/graph/liveSpectrumFrames';
 import { WAVEFORM_BLEED, WAVEFORM_STYLE_KEY } from 'renderer/waveformPaint';
-import WaveformVisualizer from 'renderer/WaveformVisualizer';
+import WaveformVisualizer, {
+  RECORDER_INTRODUCED_KEY,
+} from 'renderer/WaveformVisualizer';
 
 const mockAudio = {
   frame: {
@@ -38,6 +40,11 @@ const mockAudio = {
 };
 
 jest.mock('renderer/audio/LiveAudioContext', () => ({
+  ...jest
+    .requireActual<typeof import('../../utils/liveFrameHooks')>(
+      '../../utils/liveFrameHooks',
+    )
+    .liveFrameHooks(() => mockAudio.frame),
   useLiveAudioFrame: () => mockAudio.frame,
   useLiveAudioControl: () => ({
     isActive: true,
@@ -147,6 +154,10 @@ beforeEach(() => {
   frames.length = 0;
   mockAudio.capturePoints = [];
   window.localStorage.clear();
+  // The styles these cases were written for, with the recorder already
+  // introduced: it would otherwise replace them on first render.
+  window.localStorage.setItem(RECORDER_INTRODUCED_KEY, 'true');
+  window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'fluid');
   jest
     .spyOn(HTMLCanvasElement.prototype, 'getContext')
     .mockReturnValue(context as unknown as CanvasRenderingContext2D);
@@ -286,5 +297,40 @@ describe('the titlebar bars on a voice trailing off', () => {
       advance(50);
     }
     expect(tallest()).toBeLessThan(standing * 0.5);
+  });
+});
+
+describe('the recorder as the new default', () => {
+  const styleOf = (container: HTMLElement) =>
+    container
+      .querySelector('.waveform-visualizer')
+      ?.className.match(/waveform-visualizer--([a-z-]+)/)?.[1];
+
+  it('replaces a style chosen before it existed, once', () => {
+    window.localStorage.removeItem(RECORDER_INTRODUCED_KEY);
+    window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'bars');
+    const first = render(<WaveformVisualizer />);
+    expect(styleOf(first.container)).toBe('recorder');
+    expect(window.localStorage.getItem(WAVEFORM_STYLE_KEY)).toBe('recorder');
+    // Its loudness figure stands beside the peak.
+    expect(
+      first.container.querySelector('.waveform-visualizer__loudness'),
+    ).not.toBeNull();
+    first.unmount();
+
+    // Chosen again afterwards, the choice stands, and the figure is gone.
+    window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'bars');
+    const again = render(<WaveformVisualizer />);
+    expect(styleOf(again.container)).toBe('bars');
+    expect(
+      again.container.querySelector('.waveform-visualizer__loudness'),
+    ).toBeNull();
+  });
+
+  it('leaves Off alone', () => {
+    window.localStorage.removeItem(RECORDER_INTRODUCED_KEY);
+    window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'off');
+    const { container } = render(<WaveformVisualizer />);
+    expect(styleOf(container)).toBe('off');
   });
 });

@@ -194,7 +194,13 @@ describe('every style', () => {
     };
   };
 
-  it.each(WAVEFORM_STYLES)('%s paints, and leaves the alpha at 1', (style) => {
+  // The recorder keeps its own pixels (`waveformRecorder.ts`); every other
+  // style is painted whole by `paintFlatMeter`.
+  const FLAT_STYLES = WAVEFORM_STYLES.filter(
+    (style): style is IFlatMeterInput['style'] => style !== 'recorder',
+  );
+
+  it.each(FLAT_STYLES)('%s paints, and leaves the alpha at 1', (style) => {
     const { context, fills } = recordingContext();
     paintFlatMeter(
       context as unknown as CanvasRenderingContext2D,
@@ -211,9 +217,10 @@ describe('every style', () => {
     );
   });
 
-  it('has the ten new styles in the cycle after the eleven', () => {
-    expect(WAVEFORM_STYLES).toHaveLength(21);
-    expect(WAVEFORM_STYLES.slice(11)).toEqual([
+  it('has the recorder first, then the ten new styles after the eleven', () => {
+    expect(WAVEFORM_STYLES).toHaveLength(22);
+    expect(WAVEFORM_STYLES[0]).toBe('recorder');
+    expect(WAVEFORM_STYLES.slice(12)).toEqual([
       'peaks',
       'segments',
       'steps',

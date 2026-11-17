@@ -24,7 +24,10 @@ import {
   UPDATE_INTERVAL_MS,
   WAVEFORM_POINT_COUNT,
 } from 'renderer/graph/liveSpectrumFrames';
-import WaveformVisualizer from 'renderer/WaveformVisualizer';
+import { WAVEFORM_STYLE_KEY } from 'renderer/waveformPaint';
+import WaveformVisualizer, {
+  RECORDER_INTRODUCED_KEY,
+} from 'renderer/WaveformVisualizer';
 
 const mockAudio = {
   frame: {
@@ -36,6 +39,11 @@ const mockAudio = {
 };
 
 jest.mock('renderer/audio/LiveAudioContext', () => ({
+  ...jest
+    .requireActual<typeof import('../../utils/liveFrameHooks')>(
+      '../../utils/liveFrameHooks',
+    )
+    .liveFrameHooks(() => mockAudio.frame),
   useLiveAudioFrame: () => mockAudio.frame,
   useLiveAudioControl: () => ({
     isActive: true,
@@ -90,6 +98,10 @@ beforeEach(() => {
   jest.useFakeTimers();
   mockAudio.isPaused = false;
   window.localStorage.clear();
+  // The styles these cases were written for, with the recorder already
+  // introduced: it would otherwise replace them on first render.
+  window.localStorage.setItem(RECORDER_INTRODUCED_KEY, 'true');
+  window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'fluid');
   jest
     .spyOn(HTMLCanvasElement.prototype, 'getContext')
     .mockReturnValue(context as unknown as CanvasRenderingContext2D);
