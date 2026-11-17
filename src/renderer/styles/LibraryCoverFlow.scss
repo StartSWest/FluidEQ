@@ -190,14 +190,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-width: 2;
   }
 
-  &:hover:not(:disabled),
-  &:focus-visible {
+  &:hover:not(:disabled) {
     color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
-    box-shadow: 0 0 22px color-mix(in srgb, $secondary-default 28%, transparent);
+    border-color: $edge-hover;
+    background: $fill-hover;
     scale: 1.08;
-    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 
   &:active:not(:disabled) {

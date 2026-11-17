@@ -426,8 +426,7 @@ $stage-edge: $border-menu;
   }
 
   &:focus-visible {
-    outline: 2px solid $secondary-light;
-    outline-offset: 1px;
+    @include focus-outline(1px);
   }
 }
 
@@ -510,8 +509,7 @@ $stage-edge: $border-menu;
   }
 
   &:focus-visible {
-    outline: 2px solid $secondary-light;
-    outline-offset: 1px;
+    @include focus-outline(1px);
   }
 }
 

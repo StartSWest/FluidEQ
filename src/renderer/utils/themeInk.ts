@@ -81,24 +81,24 @@ const DISABLED_OPACITY_MIN = 0.45;
 const DISABLED_OPACITY_MAX = 0.8;
 
 /**
- * Every control's edge — a field, a button, a select, a switch's track, any
- * outline the hand acts on: the accent's light at a share of full
- * (`$border-field`, and `$border-control` is the same line). Never under the
- * preset picker's 42%, which every control was asked to match (Ivan,
- * 2026-09-27: "same color as preset select"); more only where a light shade
- * needs it to reach 2.2:1. It was a floor of 13% here while the shared
- * mixins drew a fixed 42%, so one page's controls came in two edges.
+ * Every control's edge at rest — a field, a button, a select, a switch's
+ * track, any outline the hand acts on: the accent's light at a share of full
+ * (`$edge-rest`). 24% on Ocean, 2.0:1 against the card, softer than the 42%
+ * every control used to wear (Ivan, 2026-11-17, choosing the one control
+ * theme): at 42% a row of quiet controls was as loud as the lit one beside
+ * it, whose edge is the accent at 62%. More only where a light shade needs
+ * it to reach 2.0:1.
  */
-const FIELD_EDGE_CONTRAST = 2.2;
-const FIELD_EDGE_SHARE_MIN = 0.42;
+const FIELD_EDGE_CONTRAST = 2;
+const FIELD_EDGE_SHARE_MIN = 0.24;
 
 /**
- * The same edge under the pointer (`$border-field-hover`): the preset
- * picker's 70%, or the share that reaches 3.2:1 where a light shade needs
+ * The same edge under the pointer (`$edge-hover`): half the accent's light,
+ * 4.5:1 on Ocean, or the share that reaches 3.2:1 where a light shade needs
  * more — a clear step over the edge at rest at every shade.
  */
 const FIELD_EDGE_HOVER_CONTRAST = 3.2;
-const FIELD_EDGE_HOVER_SHARE_MIN = 0.7;
+const FIELD_EDGE_HOVER_SHARE_MIN = 0.5;
 
 /**
  * The dim tier, for what is decorative or a unit beside a value (`$text-dim`):

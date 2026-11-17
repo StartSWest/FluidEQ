@@ -408,7 +408,7 @@ $player-fader-around: 58px;
     }
 
     &:focus-visible {
-      @include focus-ring($white);
+      @include focus-ring;
     }
   }
 

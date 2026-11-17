@@ -121,9 +121,9 @@
   align-items: center;
   gap: 6px;
 
+  // Armed, the next press applies: that press is now the suggested one.
   .button.is-armed {
-    border-color: $amber;
-    color: $amber;
+    @include button-lit;
   }
 }
 

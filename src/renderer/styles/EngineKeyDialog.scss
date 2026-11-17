@@ -45,9 +45,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &:focus-visible {
-    border-color: $secondary-default;
-    box-shadow: 0 0 0 3px
-      color-mix(in srgb, $secondary-default 22%, transparent);
+    border-color: $border-field-focus;
+    box-shadow: none;
   }
 
   &.has-problem {

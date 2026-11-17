@@ -23,7 +23,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
-@use 'buttonFaces' as *;
 
 // The tiles stand straight on the main column, as the table and the record's
 // hero do: no box round the set (Ivan, 2026-11-15: "the grid view has like a
@@ -602,7 +601,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 6px;
   padding: 0 11px;
-  @include button-face-quiet;
   border-radius: $radius-m;
   font-family: inherit;
   font-size: $studio-text-tree;
@@ -610,39 +608,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
+  @include button-line;
 
-  &:hover {
-    @include button-face-quiet-hover;
-  }
-
-  &:active {
-    @include button-face-quiet-press;
-  }
-
-  &.is-go {
-    @include button-face-lit;
-
-    &:hover {
-      @include button-face-lit-hover;
-    }
-
-    &:active {
-      @include button-face-lit-press;
-    }
-  }
-
-  // A switch that is on (Shuffle while the player shuffles): the accent's
-  // tint and edge, the way the Library marks what is chosen, quieter than
-  // Play's filled accent beside it.
+  // Play, the suggested action, and a switch that is on (Shuffle while the
+  // player shuffles) wear the lit tier. Shuffle had a tint and an edge of
+  // its own for "on", a third face beside the two.
+  &.is-go,
   &.is-on {
-    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
-    background: $studio-select;
-    color: $secondary-light;
-
-    &:hover {
-      border-color: $secondary-default;
-      background: color-mix(in srgb, $secondary-default 18%, transparent);
-    }
+    @include button-lit;
   }
 
   &.is-icon {
@@ -655,12 +628,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       height: 15px;
       fill: currentcolor;
     }
-  }
-
-  // LAST: Play's face sets `box-shadow: none` at the same specificity, and
-  // while this stood above it the filled button showed no focus at all.
-  &:focus-visible {
-    @include button-face-focus;
   }
 }
 

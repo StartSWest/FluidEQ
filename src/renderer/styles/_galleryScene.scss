@@ -341,7 +341,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &:focus-visible {
-    @include focus-ring($white);
+    @include focus-ring;
   }
 }
 
@@ -788,8 +788,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:focus-visible {
     border-radius: 3px;
-    outline: 2px solid $secondary-light;
-    outline-offset: 2px;
+    @include focus-outline(2px);
   }
 }
 

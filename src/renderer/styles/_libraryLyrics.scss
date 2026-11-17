@@ -144,10 +144,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Back to the song, after the reader scrolled away: floated over the lines'
-// faded foot. The quiet outline (`button small subtle`) has no fill, so it
-// takes a menu's surface and its soft shadow, as anything floating over
-// content does here — over a lyric line, a clear button read as one more
-// line drawn through the words.
+// faded foot, on the floating line button's floor (`button-line-floating`):
+// over a lyric line, a clear button read as one more line drawn through the
+// words.
 //
 // From the lines' own box, above the tab's foot and its hairline (Ivan,
 // 2026-11-15: "put this button above the line"): measured 44px from the
@@ -157,14 +156,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: absolute;
   z-index: 1;
   bottom: 12px;
-  background: $surface-menu;
-  box-shadow: none;
   left: 50%;
   max-width: calc(100% - 24px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   transform: translateX(-50%);
+  @include button-line-floating;
 }
 
 // Plain words, to read: the reading size, the full ink, the file's own lines.

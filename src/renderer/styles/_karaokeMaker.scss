@@ -24,7 +24,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 @use 'karaokeTokens' as *;
 @use 'libraryTokens' as *;
-@use 'buttonFaces' as *;
 
 // Karaoke Maker is a single Canvas-backed editing surface. The DOM here is
 // deliberately limited to stable controls and inspectors; notes, words,
@@ -81,54 +80,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // 16px, wrapped to two lines and dwarfed the toolbar (Ivan, 2026-11-15).
     font-size: $text-lead;
     white-space: nowrap;
-    @include button-face-quiet;
     border-radius: $radius-xs;
     cursor: pointer;
     transition:
       border-color 150ms ease,
       background-color 150ms ease,
-      box-shadow 150ms ease,
-      color 150ms ease,
-      filter 150ms ease;
+      color 150ms ease;
+    @include button-line;
 
-    &:hover:not(:disabled) {
-      @include button-face-quiet-hover;
-    }
-
-    // A switch that is on wears the lit face, as the chosen segment of a
-    // segmented track does (`_buttonFaces.scss`).
-    &.is-active {
-      @include button-face-lit;
-    }
-
-    // The app's primary (`_buttonFaces.scss`).
+    // A switch that is on, and the one suggested action, wear the lit tier
+    // (`_buttonFaces.scss`).
+    &.is-active,
     &.is-primary {
-      @include button-face-lit;
-      // One line always: at narrow widths this wrapped to "Use in /
-      // player", the most prominent button in the editor torn in half.
-      white-space: nowrap;
+      @include button-lit;
+    }
+
+    // One line always: at narrow widths this wrapped to "Use in / player",
+    // the most prominent button in the editor torn in half.
+    &.is-primary {
       flex: none;
-    }
-
-    // Its own hover and press, said here because the generic hover above
-    // outranks `.is-primary`.
-    &.is-primary:hover:not(:disabled),
-    &.is-active:hover:not(:disabled) {
-      @include button-face-lit-hover;
-    }
-
-    &.is-primary:active:not(:disabled),
-    &.is-active:active:not(:disabled) {
-      @include button-face-lit-press;
-    }
-
-    &:focus-visible {
-      @include button-face-focus;
-    }
-
-    &:disabled {
-      opacity: $disabled-opacity;
-      cursor: default;
     }
   }
 

@@ -477,36 +477,92 @@ $border-subtle: var(--border-subtle);
 
 $border-panel: var(--border-panel);
 
-// THE CONTROL'S EDGE: every button, field, select, pick and box you type into
-// — one line, the accent's light, because the edge is where a control's
-// colour lives (Ivan, 2026-09-27: "button and inputs have almost same color
-// as the card bg color with nice colored borders"). There were two: the
-// preset picker's 42% on the shared mixins and a solved 26% on the 112 fields
-// and buttons a component drew for itself, so a row of controls on one page
-// came in two strengths ("input colors this mess").
+// *** THE CONTROL SET ********************************************************
 //
-// At the preset picker's 42% (Ivan, 2026-09-27: "same color as preset
-// select"), and 70% under the pointer — or more wherever a light shade needs
-// it to reach 2.2:1 and 3.2:1 on the card (`--field-edge-share`,
-// `--field-edge-hover-share`, `themeInk.ts`): 13% had measured 1.3:1 on Black
-// and at 100%, a box nobody could see.
-$border-field: color-mix(
+// Every control in the app — buttons of all three tiers, fields, selects,
+// segments, switches, checkboxes, steppers, chips — draws its edge and its
+// fill from these six and nothing else (Ivan, 2026-11-17: "because I want
+// consistent border colours and backgrounds"). Measured that day across the
+// controls' own rules: 131 distinct border colours and 210 distinct fills,
+// most of them the accent at one more transparency (the edge alone at 14
+// shares between 10% and 70%). Three edges, three fills:
+//
+//   rest   `$edge-rest`  no fill
+//   hover  `$edge-hover` `$fill-hover`
+//   lit    `$edge-lit`   `$fill-lit` - the suggested action, the chosen
+//          option, the field being typed into, a menu that is open
+//
+// All six are the accent's, so Colourful mode, a scene's tint and the window
+// colours move every control at once. Red (`.button.danger`) is the same
+// faces with the tone swapped, never colours of its own. Unavailable is the
+// control at `$disabled-opacity`, never colours of its own either.
+
+// The edge at rest: the accent's light at a share solved per shade
+// (`--field-edge-share`, `themeInk.ts`): 24% on Ocean, more where a light
+// shade needs it to reach 2.0:1 on the card. It was 42% for every control
+// (2026-09-27, "same color as preset select"); beside the lit edge that made
+// a row of quiet controls as loud as the suggested one.
+$edge-rest: color-mix(
   in srgb,
   $secondary-light var(--field-edge-share),
   transparent
 );
 
-$border-field-hover: color-mix(
+// Under the pointer: half the accent's light, or the share a light shade
+// needs for 3.2:1 (`--field-edge-hover-share`).
+$edge-hover: color-mix(
   in srgb,
   $secondary-light var(--field-edge-hover-share),
   transparent
 );
 
-$border-field-focus: $secondary-light;
+// The lit edge and the two fills are shares of a tone, written once here so
+// a tone other than the accent (red, a like's pink) lands on the same steps
+// (`button-lit($red, …)` in `_buttonFaces.scss`).
+@function tone-edge-lit($tone) {
+  @return color-mix(in srgb, $tone 62%, transparent);
+}
 
-$border-control: $border-field;
+@function tone-fill-lit($tone) {
+  @return color-mix(in srgb, $tone 22%, transparent);
+}
 
-$border-control-hover: $border-field-hover;
+@function tone-fill-hover($tone) {
+  @return color-mix(in srgb, $tone 10%, transparent);
+}
+
+// Lit: the accent itself at 62%, 4.8:1 on Ocean's card. The suggested
+// action, the chosen option, the field the caret is in.
+$edge-lit: tone-edge-lit($secondary-default);
+
+// The fills. None at rest — every control lets its panel show through, as
+// the Library's do. The tint under the pointer says where a press lands; the
+// lit tint is what is chosen. Flat: the lit face was a gradient from 30% to
+// 18% for a while, and on every suggested action across the app a top-lit
+// ramp read as shine.
+$fill-hover: tone-fill-hover($secondary-default);
+
+$fill-lit: tone-fill-lit($secondary-default);
+
+// Keyboard focus is an edge, never a halo (Ivan, 2026-11-17: "I don't like
+// the glow thing much"): the control's own edge turns the accent's light
+// and doubles inward to 2px (`focus-ring`). The accent's light rather than
+// the lit edge because the lit button already wears the lit edge, and focus
+// on it has to read as a change.
+$focus-edge: $secondary-light;
+
+// The names the app grew before the set, kept as the set's own values so
+// nothing that still says them can drift from it.
+$border-field: $edge-rest;
+
+$border-field-hover: $edge-hover;
+
+// A field being typed into wears the lit edge (`field-focus`).
+$border-field-focus: $edge-lit;
+
+$border-control: $edge-rest;
+
+$border-control-hover: $edge-hover;
 
 // *** Interactive states *****************************************************
 

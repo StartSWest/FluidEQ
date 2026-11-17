@@ -23,31 +23,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'motion' as *;
 @use 'themeTokens' as *;
+@use 'buttonFaces' as *;
 
 // *** Mixins *****************************************************************
 
-// Cyan focus ring shared by every focusable surface. Using one ring keeps
-// keyboard navigation legible without each component inventing its own.
-// Two rings, and the inner one is the one that always survives.
-//
-// The halo is drawn OUTSIDE the control, so any ancestor that clips — a
-// scrolling list, a card with rounded corners, a pane with `overflow: hidden`
-// — cuts it off, and a control sitting flush against that edge showed a ring
-// on two sides and nothing on the other two. That is worse than no ring: it
-// reads as a rendering fault rather than as focus. Which ancestors clip is
-// not knowable from here and changes with every layout, so the indicator
-// cannot depend on room being available outside the box.
-//
-// So focus is said twice: a hairline just inside the control's own edge,
-// which nothing can clip, and the soft halo around it for the controls that
-// have the room. Both are the accent, so together they read as one ring
-// rather than as two.
-@mixin focus-ring($color: $secondary-default) {
-  outline: none;
-  box-shadow:
-    inset 0 0 0 1px rgba($color, 0.75),
-    0 0 0 3px rgba($color, 0.22);
-}
+// Focus (`focus-ring`), unavailable (`control-disabled`) and every button
+// face live in `_buttonFaces.scss`, the one definition of a control's face.
 
 @mixin field-surface {
   color: $text-primary;
@@ -66,12 +47,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
 }
 
-// Where a field shows it has the caret: the edge and the ring.
+// Where a field shows it has the caret, or a pick that it is open: its own
+// edge turns lit, 1px, and nothing round it (Ivan, 2026-11-17, of the halo
+// round a field being typed into: "I don't like the glow thing much"). The
+// field is the thing in use, so it wears the lit edge like any chosen thing.
 @mixin field-focus {
   &:focus-visible,
   &:focus-within {
+    outline: none;
     border-color: $border-field-focus;
-    @include focus-ring;
+    box-shadow: none;
   }
 }
 
@@ -105,7 +90,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-color: $border-field-focus;
     background: $surface-control;
     outline: none;
-    @include focus-ring;
+    box-shadow: none;
   }
 }
 
@@ -116,24 +101,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // colour — and a dark one, which made "you cannot use this yet" look like "this
 // is broken". Disabled should read as quieter than its neighbours, not as a
 // hole in the panel.
+// Unavailable: the control at half light (`control-disabled`).
 @mixin field-disabled {
-  // The app's own dim ink and hairline, not the lavender the old palette
-  // left here: `$primary-lighter` is a violet-white from the purple family
-  // nothing else in the window uses any more, and on a cool black it was
-  // the one warm edge on the page.
-  color: $text-dim;
-  border-color: $border-subtle;
-  // No fill: an unavailable field is the outline of one, with dim ink.
-  //
-  // It was the plot's opaque face, which on the open floor was a slab of the
-  // pane's slate — lighter than the live fields beside it, so the two
-  // controls that could not be used were the loudest on the row (Ivan,
-  // 2026-09-26: "fix … disabled input colors"). Before that it was 40% of a
-  // colour, which came out different on every surface. Nothing at all is the
-  // same on every surface and is quieter than anything that can be used.
-  background: transparent;
-  box-shadow: none;
-  cursor: default;
+  @include control-disabled;
 }
 
 // Floating menu surface: dropdown lists, the titlebar tool menu, popovers.
@@ -464,38 +434,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Quiet, outline-only button (titlebar actions, graph overlay controls).
+// The line face (`.button.subtle`) for a button that is not a `.button`:
+// titlebar actions, graph overlay controls. It was a fourth face of its own,
+// light accent ink on a filled control slab, beside the lit, quiet and
+// danger ones.
 @mixin ghost-button {
-  // The quiet button, everywhere: the same face as `.button.subtle` and as
-  // every select, so a titlebar tool and a graph overlay control are the same
-  // control as `Clear EQ` rather than a pill from a different kit.
-  color: $secondary-light;
-  border: 1px solid $border-control;
+  @include button-face-line;
   border-radius: $radius-xs;
-  background: $surface-control;
   font: inherit;
   cursor: pointer;
   transition: $transition-control;
 
-  &:hover:not(:disabled),
-  &:focus-visible {
-    color: $white;
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-    outline: none;
+  &:hover:not(:disabled) {
+    @include button-face-line-hover;
   }
 
-  // Focus said as focus, not as hover. These carried the hover face and
-  // nothing else, so arriving by keyboard looked exactly like the pointer
-  // resting somewhere — and on a row of them there was no way to tell which
-  // one Enter would press.
+  &:active:not(:disabled) {
+    @include button-face-line-press;
+  }
+
   &:focus-visible {
     @include focus-ring;
   }
 
   &:disabled {
-    cursor: not-allowed;
-    opacity: $disabled-opacity;
+    @include control-disabled;
   }
 }
 

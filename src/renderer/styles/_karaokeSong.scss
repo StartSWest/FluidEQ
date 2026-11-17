@@ -66,14 +66,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 5;
   bottom: 8px;
   left: 50%;
-  min-height: 28px !important;
   gap: 5px;
-  padding: 4px 9px !important;
-  border-color: $border-field !important;
-  background: $karaoke-chip-face !important;
-  box-shadow: none;
-  font-size: 0.6rem !important;
   transform: translateX(-50%);
+  // Over the lyric lines: the floating line button (`_buttonFaces.scss`).
+  @include button-line-floating;
+
+  &.button.small {
+    min-height: 28px;
+    padding: 4px 9px;
+    font-size: 0.6rem;
+  }
 
   // The shared button style lifts controls on hover and clears the transform
   // again while pressed. This control uses its transform to remain centred,
@@ -83,13 +85,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.button:focus-visible,
   &.button:active:not([aria-disabled='true']) {
     transform: translateX(-50%);
-  }
-
-  &.button:hover:not([aria-disabled='true']),
-  &.button:focus-visible {
-    color: $secondary-light;
-    border-color: $border-field-hover !important;
-    background: $karaoke-chip-hover !important;
   }
 }
 

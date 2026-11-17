@@ -411,23 +411,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: $control-height;
   padding: 0;
   place-items: center;
-  color: $text-primary;
-  border: 1px solid rgba($edge-tint, 0.22);
   border-radius: $radius-s;
-  background: rgba($edge-tint, 0.06);
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
-
-  &:hover {
-    color: $white;
-    border-color: rgba($edge-tint, 0.4);
-    background: rgba($edge-tint, 0.13);
-  }
-
-  &:focus-visible {
-    @include focus-ring($white);
-  }
+  // The line tier (`_buttonFaces.scss`); it had a grey edge and slab of
+  // its own.
+  @include button-line;
 }
 
 .eq-flat-editor__keep-icon {

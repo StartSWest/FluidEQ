@@ -253,7 +253,7 @@ export default function StudioEditThing({
                 locked ? 'studio.edit.lockedHint' : 'studio.edit.unlockedHint',
               )}
               keepWord={locked}
-              className={locked ? 'studio-edit__unlock' : ''}
+              loud={locked}
               onClick={() => store.lockPicked(!locked)}
             />
             <Action
@@ -295,7 +295,7 @@ export default function StudioEditThing({
               label={t('studio.edit.delete')}
               hint={allLocked ? t('studio.edit.lockedWhy') : undefined}
               disabled={allLocked}
-              className="studio-edit__delete"
+              className="danger"
               onClick={store.remove}
             />
           </>

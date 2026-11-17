@@ -469,25 +469,15 @@ $name-column: 34ch;
   margin-top: 8px;
   gap: $spacing-s;
 
+  // The line tier (`_buttonFaces.scss`).
   button {
     padding: 5px 11px;
-    border: 1px solid $border-field;
     border-radius: $radius-xs;
-    background: $surface-control;
-    color: $secondary-light;
     font: inherit;
     font-size: $text-small;
-    font-weight: $weight-bold;
     cursor: pointer;
     transition: $transition-control;
-
-    &:hover,
-    &:focus-visible {
-      border-color: color-mix(in srgb, $secondary-light 55%, transparent);
-      background: color-mix(in srgb, $secondary-default 18%, transparent);
-      color: $white;
-      outline: none;
-    }
+    @include button-line;
   }
 }
 
@@ -763,19 +753,11 @@ $name-column: 34ch;
 .config-node__actions button {
   flex: 0 0 auto;
   padding: 3px 10px;
-  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 12%, transparent);
-  color: $secondary-light;
   cursor: pointer;
   font-size: $text-micro;
-  font-weight: $weight-bold;
   transition: $transition-control;
-
-  &:hover {
-    background: color-mix(in srgb, $secondary-default 24%, transparent);
-    color: $white;
-  }
+  @include button-line;
 }
 
 .config-node__editor {

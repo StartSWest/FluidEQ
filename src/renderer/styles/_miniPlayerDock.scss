@@ -144,7 +144,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &:focus-visible {
-    @include focus-ring($white);
+    @include focus-ring;
   }
 }
 
@@ -191,7 +191,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &:focus-visible {
-    @include focus-ring($white);
+    @include focus-ring;
   }
 }
 
@@ -283,7 +283,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
 
     &:focus-visible {
-      @include focus-ring($white);
+      @include focus-ring;
     }
 
     .arrow {

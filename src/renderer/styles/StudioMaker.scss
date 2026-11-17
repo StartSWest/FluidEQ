@@ -232,8 +232,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &:focus-visible {
-    outline: 2px solid $secondary-light;
-    outline-offset: 1px;
+    @include focus-outline(1px);
   }
 }
 
@@ -263,8 +262,7 @@ it under the terms of the GNU General Public License version 3 or later.
   @include slim-scrollbar;
 
   &:focus-visible {
-    outline: 2px solid $secondary-light;
-    outline-offset: 1px;
+    @include focus-outline(1px);
   }
 }
 

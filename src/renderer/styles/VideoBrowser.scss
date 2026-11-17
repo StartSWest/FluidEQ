@@ -163,15 +163,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 0;
-  // The toolbar's controls wear every control's face and edge
-  // (`$surface-control`, `$border-control`). They had a tint and a hairline
-  // of their own, a third kind of button beside the app's two.
-  border: 1px solid $border-control;
+  // The line tier (`_buttonFaces.scss`). They had a tint and a hairline of
+  // their own, a third kind of button beside the app's two. Dimmed rather
+  // than hidden when unavailable: a back button that vanishes at the start
+  // of history makes the row jump every time somebody navigates.
   border-radius: $radius-s;
-  background: $surface-control;
-  color: $text-primary;
   cursor: pointer;
   transition: $transition-control;
+  @include button-line;
 
   svg {
     width: 13px;
@@ -181,19 +180,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.7;
-  }
-
-  &:hover:not(:disabled) {
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-    color: $secondary-light;
-  }
-
-  // Dimmed rather than hidden: a back button that vanishes at the start of
-  // history makes the row jump every time somebody navigates.
-  &:disabled {
-    opacity: $disabled-opacity;
-    cursor: default;
   }
 }
 
@@ -223,26 +209,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   padding: 0 9px;
   gap: 5px;
-  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: $surface-control;
-  color: $text-muted;
   font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
+  // The line tier; the site being shown is chosen, so lit, as every chosen
+  // option is (2026-11-17, the one control theme).
+  @include button-line;
 
-  &:hover {
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-    color: $secondary-light;
-  }
-
-  // The site being shown says so in white, on the face and edge every
-  // control has, as a chosen control does in the graph's row: a lit edge and
-  // a pressed face made it the one differently coloured box in the bar.
   &.is-active {
-    color: $white;
+    @include button-lit;
   }
 }
 
@@ -897,19 +874,13 @@ $video-sign-out-said: 4s;
   flex: 0 0 auto;
   gap: 6px;
 
+  // The lit tier (`_buttonFaces.scss`); it glowed 14px under the pointer.
   button {
     padding: 6px 9px;
-    border: 1px solid color-mix(in srgb, $secondary-light 46%, transparent);
     border-radius: $radius-s;
-    background: color-mix(in srgb, $secondary-light 12%, transparent);
-    color: $secondary-light;
     font-size: $text-small;
     cursor: pointer;
-
-    &:hover {
-      background: color-mix(in srgb, $secondary-light 22%, transparent);
-      box-shadow: 0 0 14px color-mix(in srgb, $secondary-light 12%, transparent);
-    }
+    @include button-lit;
   }
 }
 
@@ -1004,16 +975,10 @@ $video-sign-out-said: 4s;
   button {
     flex: 0 0 auto;
     padding: 5px 10px;
-    border: 1px solid color-mix(in srgb, $secondary-light 50%, transparent);
     border-radius: $radius-s;
-    background: color-mix(in srgb, $secondary-light 14%, transparent);
-    color: $secondary-light;
     font-size: $text-small;
     cursor: pointer;
-
-    &:hover {
-      background: color-mix(in srgb, $secondary-light 24%, transparent);
-    }
+    @include button-lit;
   }
 }
 

@@ -17,40 +17,78 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
-@use 'theme' as *;
+@use 'themeTokens' as *;
 
-// THE APP'S BUTTON FACES, defined once, from the EQ mode panel's lit segment
-// (Ivan, 2026-11-17, pointing at Intensity / Band Q / Phase / Treble: "so for
-// buttons I'm more inclined to this type of buttons"). `.button`, the
-// segmented tracks' chosen option (`.segmented__option.is-selected`), the
-// Library album header's actions and the Karaoke Maker's own buttons are all
-// painted from these mixins, so none of them can drift from the others.
-// Faces only - colour, edge, weight and their states; each control keeps
-// its own size and corner.
+// THE CONTROL FACES, defined once (Ivan, 2026-11-17: "make sure it gets
+// applied globally, so we reuse the style as we should"). Forwarded by
+// `theme`, so `@use 'theme' as *` brings them. Every pressable control is
+// painted from here and from the control set in `_themeTokens.scss` (three
+// edges, three fills); nothing paints a button face of its own.
 //
-// They replace the Deep primary of 2026-11-15 (the accent at 24% over the
-// floor inside the accent's whole edge), and the filled-accent Play the
-// Library header had, which this direction turned down.
+// Three tiers, from the EQ mode panel's lit segment (2026-11-17, Ivan,
+// pointing at Intensity / Band Q / Phase / Treble: "so for buttons I'm more
+// inclined to this type of buttons"):
 //
-// FLAT. The segment carried an inner top highlight and a 10px halo; on one
-// key in a panel of quiet ones they read as "lit", on every suggested action
-// across the app they were the bevel and the glow taken off the buttons on
-// 2026-09-25 ("I want a clean design"). The tint and the edge are what say
-// "this one".
+//   LIT   `button-lit`   the lit tint, the lit edge, the accent's light ink.
+//                        The suggested action, one per place.
+//   LINE  `button-line`  the edge at rest and no fill: the ordinary button.
+//   PLAIN `button-plain` neither until pointed at: tool rows, icons, row
+//                        actions.
 //
-// The edge is a real 1px border, never an inset shadow: a button's
-// box-shadow is spoken for by its focus ring and its busy glow, and a
-// hairline drawn as a shadow vanished under either.
+// A button that is a switch (`aria-pressed`) wears the lit face when on, in
+// any tier. Red is the same faces with the tone swapped (`$tone: $red`).
+//
+// FLAT. No gradient that reads as light, no glow, no inner highlight: the
+// tint and the edge are what say "this one". The edge is a real 1px border,
+// never a shadow, because a shadow is spoken for by focus.
 
-// A face lit in one tone: a tint of the tone from the top down, a crisp edge
-// of it, light ink. The suggested action is the accent; the answer that
-// cannot be taken back is red (`.button.danger`), on the same face.
+// KEYBOARD FOCUS, for every focusable control: the control's own edge turns
+// `$focus-edge` and doubles inward, a crisp 2px line where it has a border
+// and 1px where it has none. Nothing is drawn outside it (Ivan, 2026-11-17:
+// "I don't like the glow thing much"): the soft 3px halo this carried was
+// the last glow on the controls, and anything drawn outside the box is also
+// cut by whatever ancestor clips — a scrolling list, a rounded card — so a
+// control flush against that edge showed a ring on two sides only. Inside
+// the edge nothing can clip it.
 //
-// `$edge: inset` draws the same edge inside instead, for a segment: a
-// segmented track's options have no border, and one that gained a border
-// when chosen grew by two pixels and moved its neighbours on every pick.
-// A segment passes `$weight: null` too and keeps its track's weight: a
-// chosen word set heavier than its neighbours widens, and the row shifts.
+// `$color` is for a control whose face is already the focus colour (a red
+// field in error keeps red).
+@mixin focus-ring($color: $focus-edge) {
+  outline: none;
+  border-color: $color;
+  box-shadow: inset 0 0 0 1px $color;
+}
+
+// The same focus for what is not a control with an edge of its own: a card,
+// a picture, a tile, a link in running text. A 1px line 2px clear of it,
+// crisp and in the same colour; never a halo. They used 2px outlines in four
+// colours (the accent, its light, white, the Lighting accent) and glows.
+@mixin focus-outline($offset: 2px) {
+  outline: 1px solid $focus-edge;
+  outline-offset: $offset;
+  box-shadow: none;
+}
+
+// Unavailable is the same control at half light, with no colours of its own
+// (2026-11-17): it was a dim ink and the grey hairline, a second palette
+// beside the set, and before that the plot's opaque face, which made the two
+// controls that could not be used the loudest on the row (Ivan, 2026-09-26:
+// "fix … disabled input colors"). Dimming the whole control keeps every
+// tier and red recognisable and quieter than anything that can be used.
+@mixin control-disabled {
+  opacity: $disabled-opacity;
+  box-shadow: none;
+  cursor: default;
+}
+
+// *** Faces ******************************************************************
+// Colour, edge and weight only; each control keeps its own size and corner.
+
+// LIT. `$edge: inset` draws the edge inside, for a segment: a segmented
+// track's options have no border, and one that gained a border when chosen
+// grew by two pixels and moved its neighbours on every pick. A segment
+// passes `$weight: null` too and keeps its track's weight: a chosen word set
+// heavier than its neighbours widens, and the row shifts.
 @mixin button-face-lit(
   $tone: $secondary-default,
   $ink: $secondary-light,
@@ -58,80 +96,182 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   $weight: $weight-semibold
 ) {
   color: $ink;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $tone 30%, transparent),
-    color-mix(in srgb, $tone 18%, transparent)
-  );
+  background: tone-fill-lit($tone);
   font-weight: $weight;
+  filter: none;
 
   @if $edge == inset {
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, $tone 55%, transparent);
+    box-shadow: inset 0 0 0 1px tone-edge-lit($tone);
   } @else {
-    border: 1px solid color-mix(in srgb, $tone 55%, transparent);
+    border: 1px solid tone-edge-lit($tone);
     box-shadow: none;
   }
 }
 
-// Under the pointer: more of the tone, its whole edge.
+// Under the pointer the hover tint is laid over the lit one: no colour the
+// set does not have.
 @mixin button-face-lit-hover(
   $tone: $secondary-default,
   $ink: $secondary-light
 ) {
   color: $ink;
-  border-color: $tone;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $tone 40%, transparent),
-    color-mix(in srgb, $tone 26%, transparent)
+  background-color: tone-fill-lit($tone);
+  background-image: linear-gradient(
+    tone-fill-hover($tone),
+    tone-fill-hover($tone)
   );
-  box-shadow: none;
-  filter: none;
 }
 
-// Pressed: less of it, the edge kept.
+// Pressed: the lit tint lets go to the hover one.
 @mixin button-face-lit-press($tone: $secondary-default) {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $tone 22%, transparent),
-    color-mix(in srgb, $tone 12%, transparent)
-  );
-  filter: none;
+  background: tone-fill-hover($tone);
 }
 
-// Everything else: the segmented track's frame (`$border-control`) and no
-// fill, so it reads as an outline on whatever floor it stands on, in the
-// muted ink the panel's own words use.
-@mixin button-face-quiet {
-  color: $text-muted;
-  border: 1px solid $border-control;
+// LINE: the edge at rest, no fill, the panel's own muted ink. With a `$tone`
+// (red, for a quiet Delete beside quiet neighbours) the ink and the edge are
+// the tone's, on the same steps.
+@mixin button-face-line($tone: null) {
   background: none;
   box-shadow: none;
   font-weight: $weight-semibold;
-}
-
-// Under the pointer it takes the lit face's tint, not its edge: pointing at
-// a quiet button shows where a press lands without making it the
-// suggested one.
-@mixin button-face-quiet-hover {
-  color: $text-primary;
-  border-color: $border-control-hover;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $secondary-default 18%, transparent),
-    color-mix(in srgb, $secondary-default 10%, transparent)
-  );
-  box-shadow: none;
   filter: none;
+
+  @if $tone {
+    color: $tone;
+    border: 1px solid color-mix(in srgb, $tone 36%, transparent);
+  } @else {
+    color: $text-muted;
+    border: 1px solid $edge-rest;
+  }
 }
 
-@mixin button-face-quiet-press {
-  background: color-mix(in srgb, $secondary-default 8%, transparent);
-  filter: none;
+// Under the pointer: the hover tint and edge, and the ink comes up. It takes
+// the tint, not the lit edge: pointing at a quiet button shows where a press
+// lands without making it the suggested one.
+@mixin button-face-line-hover($tone: null) {
+  @if $tone {
+    color: $tone;
+    border-color: tone-edge-lit($tone);
+    background: tone-fill-hover($tone);
+  } @else {
+    color: $text-primary;
+    border-color: $edge-hover;
+    background: $fill-hover;
+  }
 }
 
-// Focus is a ring in white on every face: the accent's ring disappeared into
-// the accent edge it surrounded.
-@mixin button-face-focus {
-  @include focus-ring($white);
+// Pressed: the lit edge, for as long as the button is held.
+@mixin button-face-line-press($tone: null) {
+  @if $tone {
+    color: $tone;
+    border-color: tone-edge-lit($tone);
+    background: tone-fill-hover($tone);
+  } @else {
+    color: $text-primary;
+    border-color: $edge-lit;
+    background: $fill-hover;
+  }
+}
+
+// *** Whole buttons **********************************************************
+// The faces with every state wired, for anything pressable that is not a
+// `.button` (the Library's album head, the Gallery's toolbar, the Karaoke
+// Maker): a variant is a named one here, never a local copy.
+
+// What every tier shares: disabled, in both spellings (`Button` is a
+// `div role="button"`, which can only say `aria-disabled`), and focus. LAST
+// in each tier, because both have to win over the faces above them.
+@mixin button-common-states {
+  &[aria-disabled='true'],
+  &:disabled {
+    @include control-disabled;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+@mixin button-lit($tone: $secondary-default, $ink: $secondary-light) {
+  @include button-face-lit($tone, $ink);
+
+  &:hover:not([aria-disabled='true'], :disabled) {
+    @include button-face-lit-hover($tone, $ink);
+  }
+
+  &:active:not([aria-disabled='true'], :disabled) {
+    @include button-face-lit-press($tone);
+  }
+
+  @include button-common-states;
+}
+
+@mixin button-line($tone: null) {
+  @include button-face-line($tone);
+
+  &:hover:not([aria-disabled='true'], :disabled) {
+    @include button-face-line-hover($tone);
+  }
+
+  &:active:not([aria-disabled='true'], :disabled) {
+    @include button-face-line-press($tone);
+  }
+
+  // A line button that is a switch, switched on.
+  &[aria-pressed='true'] {
+    @include button-face-lit;
+
+    &:hover:not([aria-disabled='true'], :disabled) {
+      @include button-face-lit-hover;
+    }
+
+    &:active:not([aria-disabled='true'], :disabled) {
+      @include button-face-lit-press;
+    }
+  }
+
+  @include button-common-states;
+}
+
+// A line button that floats over content - lyric lines, a picture - has to
+// be read on its own, so it stands on the menus' solid floor, with the hover
+// tint laid over that floor. Nothing else changes (Library's and Karaoke's
+// "back to the song", which had a floor and hover of their own each, the
+// Karaoke one forced with `!important`).
+@mixin button-line-floating {
+  @include button-line;
+  background: $surface-menu;
+
+  &:hover:not([aria-disabled='true'], :disabled),
+  &:active:not([aria-disabled='true'], :disabled) {
+    background-color: $surface-menu;
+    background-image: linear-gradient($fill-hover, $fill-hover);
+  }
+}
+
+// BUSY, for a button whose work goes on after the press: a small ring turns
+// where its icon was. It breathed a 22px glow before, the last glow on a
+// button; a turning ring says "working" without lighting anything. The
+// `control-spin` keyframes live in `Button.scss`, a sheet every page loads.
+@mixin button-busy {
+  > svg:first-child {
+    display: none;
+  }
+
+  &::before {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    box-sizing: border-box;
+    margin-right: 6px;
+    border: 1.5px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    content: '';
+    animation: control-spin 0.9s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
 }

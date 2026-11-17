@@ -750,11 +750,6 @@ $edit-z: #5aa9ff;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-
-  .button[aria-pressed='true'] {
-    color: $white;
-    background: $selected-accent;
-  }
 }
 
 // Every action wears its picture beside its word.
@@ -800,19 +795,9 @@ $edit-z: #5aa9ff;
   }
 }
 
-// Unlocking is what a locked thing asks of the hand first.
-.button.small.subtle.studio-edit__unlock {
-  border-color: color-mix(in srgb, $secondary-light 55%, transparent);
-}
-
-.button.small.subtle.studio-edit__delete {
-  color: $red;
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-}
+// Unlocking is what a locked thing asks of the hand first, so a locked
+// thing's Unlock is the loud action; Delete is the line tier in red
+// (`.button.subtle.danger`).
 
 .studio-edit__field.is-locked input {
   color: $text-muted;

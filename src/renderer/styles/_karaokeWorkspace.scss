@@ -695,11 +695,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: color-mix(in srgb, $secondary-light 82%, transparent);
     box-shadow: none;
   }
-
-  &:focus-visible > span {
-    box-shadow: 0 0 0 3px
-      color-mix(in srgb, $secondary-default 18%, transparent);
-  }
 }
 
 .karaoke-pane-splitter.is-vertical {

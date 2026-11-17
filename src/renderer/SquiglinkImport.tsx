@@ -373,7 +373,7 @@ const SquiglinkImport = () => {
               disabled={isBlockingError || isImporting}
             />
             <Button
-              className="small squig-import__file-button"
+              className="small subtle squig-import__file-button"
               ariaLabel={t('squigImport.fileAria')}
               title={fileName || t('squigImport.chooseFile')}
               isDisabled={isBlockingError || isImporting}
@@ -393,7 +393,7 @@ const SquiglinkImport = () => {
               disabled={isBlockingError || isImporting}
             />
             <Button
-              className="small squig-import__apply"
+              className="small subtle squig-import__apply"
               ariaLabel={t('squigImport.applyAria')}
               title={applyButtonLabel}
               isDisabled={isBlockingError || isImporting || !text.trim()}
@@ -403,7 +403,7 @@ const SquiglinkImport = () => {
               <span className="squig-import__label">{applyButtonLabel}</span>
             </Button>
             <Button
-              className="small squig-import__apply"
+              className="small subtle squig-import__apply"
               ariaLabel={t('squigImport.applyCurve')}
               title={t('squigImport.applyCurve')}
               isDisabled={isBlockingError || isImporting || !text.trim()}

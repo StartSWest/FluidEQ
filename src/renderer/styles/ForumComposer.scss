@@ -31,8 +31,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:focus-within {
     border-color: $border-field-focus;
-    box-shadow: 0 0 0 3px
-      color-mix(in srgb, $secondary-default 16%, transparent);
   }
 
   &.is-disabled {

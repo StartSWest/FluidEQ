@@ -24,7 +24,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'mainContentTokens' as *;
-@use 'buttonFaces' as *;
 
 // Smart EQ and its caret, drawn as one control.
 //
@@ -70,11 +69,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // because it is not a second button — it is the end of this one (Ivan,
     // 2026-09-27: "the dropdown arrow bg color needs to be the same color as
     // the button"). Its left edge is the divider and the only line between
-    // them: the main half gives up its right edge.
-    @include button-face-lit;
+    // them: the main half gives up its right edge. Unavailable the way the
+    // half it is attached to is (`control-disabled`), so the pair never
+    // draws two halves by two rules.
     border-radius: 0 $radius-xs $radius-xs 0;
     cursor: pointer;
     transition: $transition-control;
+    @include button-lit;
 
     svg {
       width: 11px;
@@ -85,30 +86,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       stroke-linejoin: round;
       stroke-width: 2;
       transition: transform 150ms ease;
-    }
-
-    &:hover:not(:disabled) {
-      @include button-face-lit-hover;
-    }
-
-    &:focus-visible:not(:disabled) {
-      @include button-face-focus;
-    }
-
-    // Unavailable the way the half it is attached to is unavailable: an
-    // outline and dim ink, nothing filled. It used to keep its accent fill and
-    // only fade, while a disabled Button goes to the outline — so for the
-    // second after launch, before the live capture opens, the pair drew as a
-    // dark "Target" with a lit chevron stuck to it, and then snapped whole. It
-    // read as the wrong theme loading first, and it was: two halves of one
-    // control following two different rules for the same state.
-    &:disabled {
-      border-color: $border-subtle;
-      border-left-color: $border-subtle;
-      background: transparent;
-      color: $text-dim;
-      box-shadow: none;
-      cursor: default;
     }
   }
 
@@ -124,15 +101,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // main half, or a quiet half carries a bright end and the two read as two
 // controls stuck together.
 .eq-mode.is-subtle {
-  // The quiet face (`_buttonFaces.scss`), as its main half's.
+  // The line tier (`_buttonFaces.scss`), as its main half's.
   .eq-mode__caret {
-    @include button-face-quiet;
+    @include button-line;
   }
 
   &:hover:not(.is-disabled) {
     .button.eq-mode__main:not([aria-disabled='true']),
     .eq-mode__caret:not(:disabled) {
-      @include button-face-quiet-hover;
+      @include button-face-line-hover;
     }
   }
 }

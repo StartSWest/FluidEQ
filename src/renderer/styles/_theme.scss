@@ -23,9 +23,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // component. This partial emits no CSS on its own; App.scss owns the one
 // global base layer that applies these surfaces to native controls.
 //
-// Its variables are in _themeTokens.scss and its mixins in _themeMixins.scss
-// (one file of 1,180 lines until 2026-09-28); this module forwards both, so
-// every stylesheet keeps using `theme` and nothing else.
+// Its variables are in _themeTokens.scss, its mixins in _themeMixins.scss
+// (one file of 1,180 lines until 2026-09-28) and the controls' faces, focus
+// and unavailable state in _buttonFaces.scss; this module forwards all
+// three, so every stylesheet keeps using `theme` and nothing else.
 
 @forward 'themeTokens';
 @forward 'themeMixins';
+@forward 'buttonFaces';

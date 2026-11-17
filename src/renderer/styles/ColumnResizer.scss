@@ -41,9 +41,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     span {
       height: 60px;
-      background: $secondary-light;
-      box-shadow: 0 0 0 3px
-        color-mix(in srgb, $secondary-light 25%, transparent);
+      background: $focus-edge;
     }
   }
 

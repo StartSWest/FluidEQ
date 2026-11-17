@@ -57,7 +57,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &:focus-visible {
-    box-shadow: inset 0 0 0 1px $secondary-default;
+    @include focus-ring;
   }
 
   &:disabled {

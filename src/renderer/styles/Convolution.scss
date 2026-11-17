@@ -73,8 +73,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &:focus-visible {
-    outline: 1px solid color-mix(in srgb, $secondary-light 65%, transparent);
-    outline-offset: 2px;
+    @include focus-outline(2px);
   }
 }
 
@@ -321,41 +320,21 @@ it under the terms of the GNU General Public License version 3 or later.
 .convolution-button {
   min-height: $control-height-sm;
   padding: 7px 11px;
-  color: $surface-base;
-  border: 1px solid color-mix(in srgb, $secondary-light 42%, transparent);
   border-radius: $radius-xs;
-  background: $secondary-default;
   font-size: $text-body;
-  font-weight: $weight-bold;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
+  // The lit tier, and `--quiet` the line one (`_buttonFaces.scss`). It was
+  // the one button in the app filled solid with the accent.
+  @include button-lit;
 
-  &:hover:not(:disabled) {
-    background: $secondary-light;
-  }
-
-  &:focus-visible {
-    @include focus-ring($white);
-    outline: none;
-  }
-
-  &:disabled,
-  &.is-applied {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
-
-  // The quiet button's face and edge (`.button.subtle`).
   &--quiet {
-    color: $secondary-light;
-    border-color: $border-control;
-    background: $surface-control;
+    @include button-line;
+  }
 
-    &:hover:not(:disabled) {
-      border-color: $border-control-hover;
-      background: $surface-control-hover;
-    }
+  &.is-applied {
+    @include control-disabled;
   }
 }
 

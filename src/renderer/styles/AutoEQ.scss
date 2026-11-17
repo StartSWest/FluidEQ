@@ -21,7 +21,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'constant' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
-@use 'buttonFaces' as *;
 
 // The AutoEQ row reflows against the width of the EQ card, not the viewport:
 // the card can be narrow on a wide screen (multi-column shell) and wide on a
@@ -483,18 +482,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Applying has no visible effect inside this panel — the result lands in the
-// bands below — so the button reports its own outcome. Muted rather than
-// greyed: it is finished, not unavailable. The quiet button's face
-// (`_buttonFaces.scss`) rather than a tint of the accent that came out olive
-// wherever the accent is not the card's hue.
+// bands below — so the button reports its own outcome: once applied it is
+// the line tier (`subtle`, set by the picker), finished rather than
+// unavailable, and pressing it again changes nothing.
 .auto-eq .button.is-applied {
-  @include button-face-quiet;
   cursor: default;
-  opacity: 1;
-
-  // The face's flat shadow outranked the focus ring, which is a shadow too:
-  // reached by Tab, the button showed no sign of holding the keyboard.
-  &:focus-visible {
-    @include button-face-focus;
-  }
 }

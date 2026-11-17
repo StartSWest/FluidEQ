@@ -184,10 +184,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 4px;
   height: 24px;
   padding: 0 9px 0 6px;
-  color: $text-faint;
-  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: $surface-control;
   font: inherit;
   font-size: reading($text-small);
   font-weight: $weight-semibold;
@@ -204,23 +201,16 @@ it under the terms of the GNU General Public License version 3 or later.
     transition: translate $motion-fast $ease-spring;
   }
 
-  &:hover:not(.is-static),
-  &:focus-visible {
-    color: $text-primary;
-    border-color: $border-control-hover;
-    background: $surface-control-hover;
-    outline: none;
+  // The line tier, and a vote given is it switched on (`_buttonFaces.scss`):
+  // it was filled solid with the accent and glowed 12px.
+  @include button-line;
 
-    svg {
-      translate: 0 -1px;
-    }
+  &:hover:not(.is-static) svg {
+    translate: 0 -1px;
   }
 
   &.is-on {
-    color: $surface-base;
-    border-color: $secondary-default;
-    background: $secondary-default;
-    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 40%, transparent);
+    @include button-lit;
 
     svg {
       fill: currentColor;

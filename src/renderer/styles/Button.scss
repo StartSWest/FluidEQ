@@ -20,8 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
-@use 'buttonFaces' as *;
 
+// The app's button. Its faces are the three tiers in `_buttonFaces.scss`:
+// `.button` is LIT, the suggested action; `.subtle` is LINE, the ordinary
+// one. This sheet adds only what is a button's own: size, corner, the
+// glyph's ink, busy.
 .button {
   display: flex;
   min-width: max-content;
@@ -29,10 +32,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 8px 13px;
-  // The suggested action's face, the EQ mode panel's lit segment
-  // (`_buttonFaces.scss`): the accent's tint, its edge, light ink. `.subtle`
-  // below is the quiet one. The corner is the segmented track's.
-  @include button-face-lit;
   border-radius: $radius-xs;
   line-height: 1.15;
   white-space: nowrap;
@@ -40,8 +39,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Keep the hit target still: lifting it on hover makes its lower edge
   // repeatedly enter/leave hover beneath a stationary pointer.
   transition:
-    filter 150ms ease,
-    box-shadow 150ms ease,
+    border-color 150ms ease,
     background 150ms ease,
     color 150ms ease;
 
@@ -60,15 +58,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     fill: none;
   }
 
-  // Nothing round it under the pointer: the halo was a glow on a flat face.
-  &:hover:not([aria-disabled='true']):not(:disabled) {
-    @include button-face-lit-hover;
-  }
-
-  &:active:not([aria-disabled='true']):not(:disabled) {
-    @include button-face-lit-press;
-  }
-
   &.small {
     min-height: $control-height-sm;
     padding: 6px 10px;
@@ -79,11 +68,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: $spacing-s $spacing-m;
   }
 
-  // Secondary action: the segmented track's frame and no fill, an outline on
-  // the floor it stands on (`_buttonFaces.scss`).
-  &.subtle {
-    @include button-face-quiet;
+  // The faces come after the sizes and before busy. Each tier mixin ends
+  // with unavailable and focus, so both still win over its own faces: a
+  // native `<button className="button" disabled>` went inert while still
+  // painting the full accent once, and `.button.subtle` tied with
+  // `.button:focus-visible` and showed no focus at all. The lit face sits on
+  // `.button` itself, at the class's own weight, so a page that sizes or
+  // places a button with one class of its own still does.
+  @include button-lit;
 
+  &.subtle {
     // NO glyph rule of its own. One was here for a day: it painted every
     // filled path in the label colour, meant for the DSP reset arrow, whose
     // bowl the base rule above was inking black. But a stroked icon that
@@ -92,89 +86,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // reset arrow too and filled them solid — Clear EQ and Add band became
     // cyan discs. The arrow's real defect was that ITS svg did not say
     // `fill="none"`, and that is fixed where it lives.
-
-    // The filled button's hover and press filters are its own: an outline
-    // lit or dimmed as a whole read as flicker.
-    &:hover:not([aria-disabled='true']):not(:disabled) {
-      @include button-face-quiet-hover;
-    }
-
-    &:active:not([aria-disabled='true']):not(:disabled) {
-      @include button-face-quiet-press;
-    }
+    @include button-line;
   }
 
   // The answer that cannot be taken back, once the question has been asked:
-  // delete, refuse, sign out. The suggested action's lit face, because at
-  // that moment it is the answer being given; in red, because of what it
-  // does, with white ink, which reads on the red tint where the accent's
-  // light ink would not.
-  //
-  // It was `.gallery-danger` in `Gallery.scss` until the Account panel's
-  // sign-out needed it too: a page that draws with a class has to be able to
-  // rely on the sheet that defines it, and this is the one every page has
-  // (the `.link-button` note below is the same story). Above the unavailable
-  // and focus blocks, so both still win over it. In the running window the
-  // old rule loaded some fifteen hundred rules after `.button:focus-visible`,
-  // at the same specificity, so its `box-shadow: none` took the focus ring
-  // off every red button; and the base hover, outranking it, turned its label
-  // near-black and lit a cyan glow on the red. It sets both itself now.
+  // delete, refuse, sign out. The lit face in red, with white ink, which
+  // reads on the red tint where the accent's light ink would not.
   &.danger {
-    @include button-face-lit($red, $white);
-
-    &:hover:not([aria-disabled='true']):not(:disabled) {
-      @include button-face-lit-hover($red, $white);
-    }
-
-    &:active:not([aria-disabled='true']):not(:disabled) {
-      @include button-face-lit-press($red);
-    }
-
-    // Busy breathes in its own colour: the accent's glow on a red button
-    // read as a second control lighting up beside it.
-    &.is-running:not([aria-disabled='true']):not(:disabled) {
-      animation-name: button-running-danger;
-    }
+    @include button-lit($red, $white);
   }
 
-  // Unavailable, in the two spellings this class has to answer to.
-  //
-  // `Button` is a `div role="button"`, which can only say `aria-disabled`;
-  // every raw `<button className="button">` in the app uses the native
-  // attribute instead. Only the first was styled, so a native one went inert
-  // while still painting the full accent — the DSP preset bar's Reset, Save,
-  // Export and Import sat lit above the line saying "DSP starts when music is
-  // playing from Library" and did nothing when pressed.
-  //
-  // AFTER `&.subtle`, and that placement is the second half of the same bug:
-  // `.button[aria-disabled='true']` and `.button.subtle` have identical
-  // specificity, so while this block came first every outline button in the
-  // app kept its cyan even with the state set correctly. Adding a rule above
-  // `.subtle` here looks right and changes nothing on screen.
-  &[aria-disabled='true'],
-  &:disabled {
-    // An outline and dim text, nothing filled: unavailable is the quiet
-    // button with the light off, not a grey slab beside the lit ones.
-    color: $text-dim;
-    border-color: $border-subtle;
-    background: transparent;
-    box-shadow: none;
-    cursor: default;
-  }
-
-  // LAST, and for the same reason the block above had to move: every variant
-  // here sets `box-shadow`, and `.button.subtle` ties with `.button:focus-visible`
-  // on specificity — so while this sat at the top, the quiet buttons, which are
-  // most of the buttons in the app, showed no focus at all. Nothing below it
-  // may set a shadow.
-  //
-  // The ring only. An offset outline is drawn clear of the button, where any
-  // ancestor that clips cuts it, and a hard line sliced down one side is the
-  // loudest possible way to show a rendering fault. The mixin's inner hairline
-  // cannot be clipped, so focus stays unmistakable on a button pressed against
-  // the edge of a scrolling list.
-  &:focus-visible {
-    @include button-face-focus;
+  // A quiet Delete among quiet neighbours: the line tier in red.
+  &.subtle.danger {
+    @include button-line($red);
   }
 
   // Only the div needs this: nothing else stops a click reaching its handler.
@@ -185,48 +109,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     pointer-events: none;
   }
 
-  // Switched on, for the buttons that are switches rather than actions.
-  //
-  // Lit rather than merely darker: these sit in a row of things that only
-  // respond to a press, so "this one is currently doing something" has to read
-  // without hovering it. The outline carries it, since the label does not
-  // change — the word is the name of the mode either way.
-  //
-  // Cyan, not white. Every label in this toolbar is cyan and a white one reads
-  // as a different kind of control rather than as the same control switched on.
-  // Working, for the buttons that keep working after they are pressed.
-  //
-  // The glow and nothing else. An earlier version recoloured the button as
-  // well, and that was the mistake: it took a control out of the row's own
-  // palette to say something the row already had a way of saying. A button that
-  // changes colour reads as a different kind of control; one that breathes
-  // reads as the same control, busy.
-  &.is-running:not([aria-disabled='true']):not(:disabled) {
-    animation: button-running 2.4s ease-in-out infinite;
+  // Working, for the buttons that keep working after they are pressed: a
+  // ring turns where the icon was (`button-busy`).
+  &.is-running:not([aria-disabled='true'], :disabled) {
+    @include button-busy;
   }
 }
 
-// Breathing rather than blinking: a blink is an alert and wants dealing with,
-// and this will be on screen for hours.
-@keyframes button-running {
-  0%,
-  100% {
-    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 12%, transparent);
-  }
-
-  50% {
-    box-shadow: 0 0 22px color-mix(in srgb, $secondary-default 42%, transparent);
-  }
-}
-
-@keyframes button-running-danger {
-  0%,
-  100% {
-    box-shadow: 0 0 8px color-mix(in srgb, $red 14%, transparent);
-  }
-
-  50% {
-    box-shadow: 0 0 22px color-mix(in srgb, $red 44%, transparent);
+// The busy ring's turn (`button-busy`), here because every page loads this
+// sheet.
+@keyframes control-spin {
+  to {
+    transform: rotate(1turn);
   }
 }
 

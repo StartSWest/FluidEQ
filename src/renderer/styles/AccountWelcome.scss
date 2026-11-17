@@ -208,8 +208,6 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-content: center;
   font-size: $text-lead;
   font-weight: $weight-bold;
-  box-shadow: 0 10px 28px
-    color-mix(in srgb, $secondary-default 40%, transparent);
 }
 
 // Email's way in, under Google's: quiet, the form's full width.
@@ -289,9 +287,7 @@ it under the terms of the GNU General Public License version 3 or later.
     box-shadow 120ms;
 
   .code-boxes:focus-within &.is-next {
-    border-color: $secondary-light;
-    box-shadow: 0 0 0 3px
-      color-mix(in srgb, $secondary-default 22%, transparent);
+    border-color: $border-field-focus;
   }
 
   .code-boxes__input[aria-invalid='true'] + .code-boxes__row & {

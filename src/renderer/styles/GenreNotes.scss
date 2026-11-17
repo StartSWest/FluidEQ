@@ -343,8 +343,7 @@ $notes-ink: $secondary-default;
     }
 
     &:focus-visible {
-      outline: 2px solid $secondary-light;
-      outline-offset: 2px;
+      @include focus-outline(2px);
     }
   }
 }
@@ -386,13 +385,10 @@ $notes-ink: $secondary-default;
   stroke-width: 2;
 }
 
-// Under the pointer the light comes up, as a lit toggle's does.
+// Under the pointer the mark comes up to the accent's light: a colour,
+// never the 4px glow it carried.
 :is(button, .button):hover:not(:disabled) > .genre-info-mark,
 :is(button, .button):focus-visible > .genre-info-mark {
-  filter: drop-shadow(
-    0 0 4px color-mix(in srgb, $secondary-default 85%, transparent)
-  );
-
   .genre-info-mark__disc {
     stroke: $secondary-light;
   }

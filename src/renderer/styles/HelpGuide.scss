@@ -489,17 +489,15 @@ $help-film-line-room: calc(13px * 1.4 * 3 + 20px);
     filter: brightness(0.7) saturate(1);
   }
 
+  // The play key grows a step under the pointer; it carried an 8px ring
+  // and a 40px glow as well.
   &:hover .help-video__play,
   &:focus-visible .help-video__play {
     transform: translate(-50%, -50%) scale(1.06);
-    box-shadow:
-      0 0 0 8px color-mix(in srgb, $secondary-default 22%, transparent),
-      0 10px 40px color-mix(in srgb, $secondary-default 55%, transparent);
   }
 
   &:focus-visible {
-    outline: 2px solid $secondary-light;
-    outline-offset: 2px;
+    @include focus-outline;
   }
 }
 

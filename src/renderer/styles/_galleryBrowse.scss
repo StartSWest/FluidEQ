@@ -13,7 +13,6 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 @use 'galleryTokens' as *;
 @use 'libraryTokens' as *;
-@use 'buttonFaces' as *;
 
 // Visualizers, in the Plus tab: the gallery of scenes members publish, a
 // scene's page, a maker's page and the member's own published scenes.
@@ -318,34 +317,11 @@ it under the terms of the GNU General Public License version 3 or later.
     box-sizing: border-box;
     align-items: center;
     padding: 0 11px;
-    @include button-face-quiet;
     border-radius: $radius-m;
     font-size: $studio-text-meta;
     line-height: 1.5;
-
-    &:hover:not(:disabled) {
-      @include button-face-quiet-hover;
-    }
-
-    &:active:not(:disabled) {
-      @include button-face-quiet-press;
-    }
-
-    &[aria-pressed='true'] {
-      @include button-face-lit;
-
-      &:hover {
-        @include button-face-lit-hover;
-      }
-
-      &:active {
-        @include button-face-lit-press;
-      }
-    }
-
-    &:focus-visible {
-      @include button-face-focus;
-    }
+    // The line tier; the chosen category is it switched on.
+    @include button-line;
   }
 
   // The switch keeps saying it is not a category: its edge dashed while off.
@@ -454,8 +430,7 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
 
   &:focus-visible {
-    outline: 2px solid $secondary-light;
-    outline-offset: -2px;
+    @include focus-outline(-2px);
   }
 }
 
@@ -518,8 +493,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:focus-visible {
     border-radius: 3px;
-    outline: 2px solid $secondary-light;
-    outline-offset: 1px;
+    @include focus-outline(1px);
   }
 }
 
@@ -839,31 +813,23 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 5px;
   min-height: 24px;
   padding: 2px 9px;
-  color: $secondary-light;
-  border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: $surface-control;
   font: inherit;
   font-size: $text-small;
-  font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition: $transition-control;
+  // The line tier, and a like given is the lit one in the like's own pink
+  // (`_buttonFaces.scss`, a tone swap like red), its heart filled.
+  @include button-line;
 
   svg {
     width: 13px;
     height: 13px;
   }
 
-  &:hover {
-    color: $white;
-    border-color: color-mix(in srgb, $analogous-1 55%, transparent);
-  }
-
   &.is-on {
-    color: $white;
-    border-color: color-mix(in srgb, $analogous-1 70%, transparent);
-    background: color-mix(in srgb, $analogous-1 16%, transparent);
+    @include button-lit($analogous-1, $white);
 
     svg {
       fill: $analogous-1;
@@ -871,17 +837,12 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 
+  // A count nobody can press: the line face with no answer to the pointer.
   &.is-count {
     color: $text-faint;
+    border-color: $edge-rest;
+    background: none;
     cursor: default;
-
-    &:hover {
-      border-color: $border-field;
-    }
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }
 

@@ -187,14 +187,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  // Opaque and lit: this floats over the artwork, and a translucent grey pill
-  // with grey text disappeared into any grey picture. The card colour under
-  // the accent's own label, like the queue chip over a library video.
-  color: $secondary-light;
-  border: 1px solid $border-field;
-  background: $karaoke-chip-face;
-  box-shadow: none;
+  // Opaque: this floats over the artwork, and a translucent grey pill with
+  // grey text disappeared into any grey picture. The floating line button
+  // (`_buttonFaces.scss`).
   transition: $transition-control;
+  @include button-line-floating;
 
   svg {
     width: 15px;
@@ -204,15 +201,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.7;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $secondary-light;
-    border-color: $border-field-hover;
-    background: $karaoke-chip-hover;
-    box-shadow: none;
-    outline: none;
   }
 }
 
