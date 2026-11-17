@@ -18,7 +18,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // Every Plus place stands in the app's own card (`section-card`), beside the
 // rail's card and like every other page's content (Ivan, 2026-09-27: "put a
 // wrapper card for all plus"). It stood on the bare floor between the rail
-// and the sound panel, the one page whose content had no card.
+// and the sound panel, the one page whose content had no card. The Forum's
+// still does; the Plus tab's places now stand on the tab's one card beside a
+// rail laid out as the Library's (`PlusRail.scss`).
 .community__main {
   @include section-card;
   display: flex;

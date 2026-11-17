@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { type CSSProperties, useEffect } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount, useAccountKnown } from '../account/accountStore';
@@ -20,7 +20,14 @@ import {
   usePlusNavigation,
   type TPlusPlace,
 } from '../plus/plusNavigation';
-import { setPlusRailPinned, usePlusRailPinned } from '../plus/plusRail';
+import {
+  PLUS_RAIL_WIDTH_KEY,
+  setPlusRailPinned,
+  usePlusRailPinned,
+} from '../plus/plusRail';
+import LibraryRailSplitter, {
+  useRailWidth,
+} from '../library/LibraryRailSplitter';
 import VisualizersSignedOut from '../plus/VisualizersSignedOut';
 import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
@@ -95,6 +102,7 @@ export default function CommunityPanel({
   const signedIn = account.status === 'signed-in';
   const { place: view } = usePlusNavigation();
   const pinned = usePlusRailPinned();
+  const rail = useRailWidth(PLUS_RAIL_WIDTH_KEY);
   const accountId = signedIn ? account.identity?.id : undefined;
 
   useEffect(() => {
@@ -158,7 +166,10 @@ export default function CommunityPanel({
 
   return (
     <div
-      className={`community community--plus${pinned ? '' : ' community--rail-folded'}`}
+      className={`community community--plus${pinned ? '' : ' community--rail-folded'}${
+        rail.isResizing ? ' is-resizing-rail' : ''
+      }`}
+      style={{ '--rail-width': `${rail.width}px` } as CSSProperties}
     >
       {/* The slot keeps the rail's room in the grid; the rail stands in it,
           and when folded opens over the place instead of pushing it. */}
@@ -187,6 +198,9 @@ export default function CommunityPanel({
                   type="button"
                   className={`community__channel${isActive ? ' is-active' : ''}`}
                   aria-current={isActive ? 'true' : undefined}
+                  // What the place is for: the row is one line now, as the
+                  // Library's shelves are, and this was its second.
+                  title={t(entry.blurb)}
                   onClick={() => openPlace(entry.place)}
                 >
                   <span className="community__channel-mark">
@@ -265,6 +279,9 @@ export default function CommunityPanel({
           </div>
         </nav>
       </div>
+      {/* The rail's edge, dragged as the Library's is; only while the rail
+          is pinned, since a folded one has no width of its own to give. */}
+      {pinned && <LibraryRailSplitter rail={rail} />}
 
       <section className="community__main">
         <VisualsNewsNotice />

@@ -22,25 +22,33 @@ const clampRail = (width: number) =>
 export interface ILibraryRailWidth {
   width: number;
   isResizing: boolean;
+  /** Where the width is remembered: each page's rail keeps its own. */
+  storageKey: string;
   setWidth: (width: number) => void;
   setIsResizing: (isResizing: boolean) => void;
 }
 
 /**
- * The shelf rail's width: dragged at its edge, remembered for the next
- * session, and a flag the card wears while the drag is on so the rail's own
- * width transition stands still under the pointer.
+ * A studio rail's width: dragged at its edge, remembered for the next
+ * session under `storageKey`, and a flag the page wears while the drag is on
+ * so the rail's own width transition stands still under the pointer. The
+ * Library's shelves and the Scenes tab's places are one rail design, so one
+ * width rule; each remembers its own.
  */
-export const useLibraryRailWidth = (): ILibraryRailWidth => {
+export const useRailWidth = (storageKey: string): ILibraryRailWidth => {
   const [width, setWidth] = useState(() => {
-    const stored = Number(readPersistedText(RAIL_WIDTH_KEY));
+    const stored = Number(readPersistedText(storageKey));
     return Number.isFinite(stored) && stored > 0
       ? clampRail(stored)
       : RAIL_DEFAULT_WIDTH;
   });
   const [isResizing, setIsResizing] = useState(false);
-  return { width, isResizing, setWidth, setIsResizing };
+  return { width, isResizing, storageKey, setWidth, setIsResizing };
 };
+
+/** The shelf rail's width (`useRailWidth`), kept as the Library's. */
+export const useLibraryRailWidth = (): ILibraryRailWidth =>
+  useRailWidth(RAIL_WIDTH_KEY);
 
 interface ILibraryRailSplitterProps {
   rail: ILibraryRailWidth;
@@ -51,7 +59,8 @@ interface ILibraryRailSplitterProps {
  * splitter here", over a folder tree whose names were cut). The karaoke
  * panes' and the queue's splitter, so the three drag and step alike: a
  * delta from where the drag began, arrows by the keyboard. Dragging right
- * widens the rail, which is anchored left.
+ * widens the rail, which is anchored left. The Scenes tab's rail wears it
+ * too, placed by its own page's stylesheet (`PlusRail.scss`).
  */
 export default function LibraryRailSplitter({
   rail,
@@ -83,7 +92,7 @@ export default function LibraryRailSplitter({
         }}
         onEnd={() => {
           rail.setIsResizing(false);
-          writePersistedText(RAIL_WIDTH_KEY, String(draggedToRef.current));
+          writePersistedText(rail.storageKey, String(draggedToRef.current));
         }}
       />
     </div>

@@ -133,6 +133,85 @@ $studio-mark-air: 6px;
   box-shadow: none;
 }
 
+// THE STUDIO RAIL: a column of places down a page's left side, on the
+// page's own card and parted from what is open beside it by a hairline -
+// the Library's shelves (`_libraryRail.scss`) and the Scenes tab's places
+// (`PlusRail.scss`), one design (Ivan, 2026-11-17: "redesign the gallery the
+// same way as in the Library"). Its width before it is dragged, and the
+// column it folds to: a row's 10px inset on both sides of a 16px glyph, with
+// the 10px of the list's own inset round that.
+$studio-rail-width: 236px;
+
+$studio-rail-folded: 56px;
+
+// The rail's name over its places: small spaced capitals a step under the
+// rows' ink, so it reads as the rail's label and never as one of its places
+// (Ivan, 2026-11-17, of the Scenes heading: "less white, so it is distinct
+// from the options").
+@mixin studio-rail-heading {
+  color: $studio-t2;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// A place in the rail: a glyph and a name on one line, no tile and no box.
+// The caller's states go in the content, ahead of the focus ring: the mark
+// clears the box shadow the ring is drawn with, and the ring must win.
+@mixin studio-rail-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  // The theme's muted text, not the studio's second step: at 68% of the
+  // primary the shelves and the folders read as switched off (Ivan,
+  // 2026-11-15: "that text looks like disabled, we need more contrast").
+  color: $text-muted;
+  font-family: inherit;
+  font-size: $studio-text-row;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: color-mix(in srgb, $edge-tint 4%, transparent);
+    color: $text-primary;
+  }
+
+  @content;
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// The place being read: the Library's one mark (`studio-mark`). Its glyph,
+// named by the caller, takes the accent.
+@mixin studio-rail-item-active($icon) {
+  @include studio-mark;
+  color: $text-primary;
+
+  #{$icon} {
+    color: $secondary-light;
+    opacity: 1;
+  }
+}
+
+@mixin studio-rail-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
+
 // The mockup's type, in the app's rem: 14px rows and names, 13px trees and
 // crumbs, 12px meta, 11px labels. Bigger than the old 11.5px rows on purpose
 // — a long list is read at a glance only when its rows can be (the design's

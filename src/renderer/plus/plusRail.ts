@@ -13,5 +13,13 @@ const pinnedSetting = createFlagSetting('fluideq.plusRailPinned', true);
 
 export const setPlusRailPinned = (next: boolean) => pinnedSetting.set(next);
 
+/**
+ * Where the pinned rail's width is remembered once it has been dragged at its
+ * edge (`useRailWidth`): the Library's rail and splitter, with a width of its
+ * own (Ivan, 2026-11-17: "redesign the gallery the same way as in the
+ * Library").
+ */
+export const PLUS_RAIL_WIDTH_KEY = 'fluideq.plusRailWidth';
+
 export const usePlusRailPinned = () =>
   useSyncExternalStore(pinnedSetting.subscribe, pinnedSetting.get, () => true);

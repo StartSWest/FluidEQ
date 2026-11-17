@@ -28,7 +28,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-rail {
   display: flex;
   // Dragged at its edge (`LibraryRailSplitter`), 236px until it is.
-  width: var(--rail-width, 236px);
+  width: var(--rail-width, #{$studio-rail-width});
   min-height: 0;
   grid-column: 1;
   // The full height, foot included: the status line belongs to the content
@@ -103,17 +103,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The second step, not the 44% third: the heading read as switched off
   // (Ivan, 2026-11-15: "this header I don't like, make it bolder and more
   // toward the top").
-  color: $studio-t2;
+  @include studio-rail-heading;
 
   // The first one sits at the rail's top, not 26px down it.
   &:first-child {
     padding-top: 2px;
   }
-  font-size: $studio-text-label;
-  font-weight: $weight-bold;
-  @include tracking(0.12em);
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 
 // The Playlists heading is the way to the shelf of every playlist.
@@ -161,57 +156,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-rail__item {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  // The theme's muted text, not the studio's second step: at 68% of the
-  // primary the shelves and the folders read as switched off (Ivan,
-  // 2026-11-15: "that text looks like disabled, we need more contrast").
-  color: $text-muted;
-  font-family: inherit;
-  font-size: $studio-text-row;
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover {
-    background: color-mix(in srgb, $edge-tint 4%, transparent);
-    color: $text-primary;
-  }
-
-  // Where the reader is: the Library's one mark (`studio-mark`).
-  &.is-active {
-    @include studio-mark;
-    color: $text-primary;
-
-    .library-rail__icon {
-      color: $secondary-light;
-      opacity: 1;
+  @include studio-rail-item {
+    // Where the reader is: the Library's one mark (`studio-mark`).
+    &.is-active {
+      @include studio-rail-item-active('.library-rail__icon');
     }
-  }
 
-  &.is-open {
-    background: $studio-raise;
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-    outline: none;
+    &.is-open {
+      background: $studio-raise;
+      color: $text-primary;
+    }
   }
 }
 
 .library-rail__icon {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 auto;
-  opacity: 0.8;
+  @include studio-rail-icon;
 }
 
 .library-rail__label {
@@ -390,7 +349,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // breadcrumb and the folder rows still walk the folders.
 @container library (max-width: #{$bp-lg}) {
   .library-rail {
-    width: 56px;
+    width: $studio-rail-folded;
   }
 
   // Folded to its glyphs it has no width to give, so no edge to drag.
