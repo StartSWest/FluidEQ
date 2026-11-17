@@ -225,6 +225,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'Пропустить',
   'library.tags.problems.makeWritable': 'Разрешить запись и записать',
   'library.tags.problems.skipAll': 'Пропустить все',
+  'library.tags.problems.failedCopy':
+    'Не удалось создать рядом копию, через которую идёт запись. Файл не изменён. Повторите; если диск заполнен или занят, сначала освободите его.',
+  'library.tags.problems.failedTags':
+    'Не удалось записать теги: файл может быть повреждён или необычен. Он не изменён. Повторите или откройте его в другом редакторе тегов.',
+  'library.tags.problems.failedCheck':
+    'При проверке записанная копия не читалась как та же песня, поэтому не была использована. Файл не изменён.',
+  'library.tags.problems.failedUndo':
+    'Не удалось сохранить то, что нужно для отмены, поэтому ничего не записано. Файл не изменён.',
+  'library.tags.problems.failedPlace':
+    'Записанная копия не смогла занять место файла. Файл не изменён. Если с ним работает синхронизация вроде OneDrive, повторите, когда она закончит.',
+  'library.tags.problems.options': 'Действия с файлом',
+  'library.tags.problems.openTags': 'Показать теги',
+  'library.tags.problems.reveal': 'Показать в проводнике',
   'library.tags.problems.nothingToDo': 'Ничего делать не нужно.',
   'library.tags.problems.everythingElse': 'Всё остальное записано',
   'library.tags.problems.undoCovers': '«Отменить» действует и на них',

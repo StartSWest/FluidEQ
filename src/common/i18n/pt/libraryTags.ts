@@ -221,6 +221,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'Pular',
   'library.tags.problems.makeWritable': 'Permitir gravação e gravar',
   'library.tags.problems.skipAll': 'Pular todos',
+  'library.tags.problems.failedCopy':
+    'Não foi possível criar ao lado a cópia usada para gravar. O arquivo continua igual. Tente de novo; se o disco estiver cheio ou ocupado, libere-o antes.',
+  'library.tags.problems.failedTags':
+    'Não foi possível gravar as tags: o arquivo pode estar danificado ou ser incomum. Ele continua igual. Tente de novo ou abra-o em outro editor de tags.',
+  'library.tags.problems.failedCheck':
+    'Na verificação, a cópia gravada não era lida como a mesma música, então não foi usada. O arquivo continua igual.',
+  'library.tags.problems.failedUndo':
+    'Não foi possível guardar o que Desfazer precisa, então nada foi gravado. O arquivo continua igual.',
+  'library.tags.problems.failedPlace':
+    'A cópia gravada não pôde ocupar o lugar do arquivo. O arquivo continua igual. Se um app de sincronização como o OneDrive estiver mexendo nele, tente de novo quando terminar.',
+  'library.tags.problems.options': 'Opções deste arquivo',
+  'library.tags.problems.openTags': 'Ver as tags',
+  'library.tags.problems.reveal': 'Mostrar no Explorador',
   'library.tags.problems.nothingToDo': 'Nada a fazer.',
   'library.tags.problems.everythingElse': 'Todo o resto foi gravado',
   'library.tags.problems.undoCovers': 'Desfazer também vale para estes',

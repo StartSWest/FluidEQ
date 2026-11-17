@@ -222,6 +222,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'Omitir',
   'library.tags.problems.makeWritable': 'Permitir escritura y escribir',
   'library.tags.problems.skipAll': 'Omitir todos',
+  'library.tags.problems.failedCopy':
+    'No se pudo hacer la copia junto a él con la que se escribe. El archivo sigue igual. Reinténtalo; si el disco está lleno u ocupado, libéralo antes.',
+  'library.tags.problems.failedTags':
+    'No se pudieron escribir sus etiquetas: el archivo puede estar dañado o ser poco común. Sigue igual. Reinténtalo, o ábrelo con otro editor de etiquetas.',
+  'library.tags.problems.failedCheck':
+    'Al comprobarla, la copia escrita no se leía como la misma canción, así que no se usó. El archivo sigue igual.',
+  'library.tags.problems.failedUndo':
+    'No se pudo guardar lo que necesita Deshacer, así que no se escribió nada. El archivo sigue igual.',
+  'library.tags.problems.failedPlace':
+    'La copia escrita no pudo ocupar el lugar del archivo. El archivo sigue igual. Si un programa de sincronización como OneDrive está trabajando con él, reinténtalo cuando termine.',
+  'library.tags.problems.options': 'Opciones de este archivo',
+  'library.tags.problems.openTags': 'Ver sus etiquetas',
+  'library.tags.problems.reveal': 'Mostrar en el Explorador',
   'library.tags.problems.nothingToDo': 'No hay nada que hacer.',
   'library.tags.problems.everythingElse': 'Todo lo demás está escrito',
   'library.tags.problems.undoCovers': 'Deshacer también los incluye',

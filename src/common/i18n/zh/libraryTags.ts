@@ -205,6 +205,19 @@ const libraryTags = {
   'library.tags.problems.skip': '跳过',
   'library.tags.problems.makeWritable': '设为可写并写入',
   'library.tags.problems.skipAll': '全部跳过',
+  'library.tags.problems.failedCopy':
+    '无法在旁边创建用于写入的副本。文件保持原样。请重试；如果磁盘已满或忙碌，请先腾出空间。',
+  'library.tags.problems.failedTags':
+    '无法写入标签：文件可能已损坏或格式特殊。它保持原样。请重试，或用其他标签编辑器打开。',
+  'library.tags.problems.failedCheck':
+    '检查时，写入的副本无法读作同一首歌曲，因此没有使用。文件保持原样。',
+  'library.tags.problems.failedUndo':
+    '无法保留撤销所需的内容，因此没有写入任何东西。文件保持原样。',
+  'library.tags.problems.failedPlace':
+    '写入的副本无法替换原文件。文件保持原样。如果 OneDrive 等同步程序正在处理它，请等它完成后重试。',
+  'library.tags.problems.options': '此文件的选项',
+  'library.tags.problems.openTags': '查看标签',
+  'library.tags.problems.reveal': '在资源管理器中显示',
   'library.tags.problems.nothingToDo': '无需操作。',
   'library.tags.problems.everythingElse': '其余文件都已写入',
   'library.tags.problems.undoCovers': '撤销也包括这些文件',

@@ -39,6 +39,7 @@ import { randomBytes } from 'crypto';
 import type {
   ITagJobItem,
   ITagJobState,
+  TTagFailReason,
   TTagItemAnswer,
   TTagItemState,
   TTagJobKind,
@@ -128,10 +129,11 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
   const stateOf = (job: IJob): ITagJobState => ({
     jobId: job.jobId,
     kind: job.kind,
-    items: job.items.map(({ trackId, fileName, state }) => ({
+    items: job.items.map(({ trackId, fileName, state, reason }) => ({
       trackId,
       fileName,
       state,
+      ...(state === 'failed' && reason ? { reason } : {}),
     })),
     isSettled: isSettled(job),
     isCancelled: job.isCancelled,
@@ -174,9 +176,16 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
       });
   };
 
-  const setState = (job: IJob, item: IJobItem, state: TTagItemState) => {
+  const setState = (
+    job: IJob,
+    item: IJobItem,
+    state: TTagItemState,
+    reason?: TTagFailReason,
+  ) => {
     // eslint-disable-next-line no-param-reassign -- the job's own item, owned here
     item.state = state;
+    // eslint-disable-next-line no-param-reassign -- see above
+    item.reason = state === 'failed' ? reason : undefined;
     tell(job);
   };
 
@@ -202,6 +211,10 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
         makeWritable: item.makeWritable,
       }),
     );
+    if (outcome.state === 'failed') {
+      setState(job, item, 'failed', outcome.reason);
+      return;
+    }
     if (outcome.state !== 'written') {
       setState(job, item, outcome.state);
       return;
@@ -249,6 +262,10 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
       return;
     }
     // Changed since by somebody else: put back over it would lose their edit.
+    if (outcome.state === 'failed') {
+      setState(job, item, 'failed', outcome.reason);
+      return;
+    }
     setState(job, item, outcome.state === 'changed' ? 'failed' : outcome.state);
   };
 
@@ -327,9 +344,14 @@ export const createTagJobs = (deps: ITagJobDeps): ITagJobs => {
 
     answer: (jobId, trackId, answer) => {
       const found = findItem(jobId, trackId);
+      // A file that failed can be tried again or let go as well: a damaged
+      // tag that a second pass writes, or a copy that could not be made
+      // while the drive was busy.
       if (
         found === undefined ||
-        (found.item.state !== 'locked' && found.item.state !== 'read-only')
+        (found.item.state !== 'locked' &&
+          found.item.state !== 'read-only' &&
+          found.item.state !== 'failed')
       ) {
         return;
       }

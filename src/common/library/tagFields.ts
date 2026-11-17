@@ -261,10 +261,21 @@ export type TTagItemState =
   | 'failed'
   | 'skipped';
 
+/**
+ * Why a file could not be written, said on its line so it can be acted on
+ * (Ivan, 2026-11-17: "need a way to resolve conflicts"): the copy it is
+ * written through could not be made, its tags would not write (a damaged
+ * or unusual file), the written copy did not read back as the same song,
+ * what Undo needs could not be kept, or the copy could not take its place.
+ */
+export type TTagFailReason = 'copy' | 'tags' | 'check' | 'undo' | 'place';
+
 export interface ITagJobItem {
   trackId: string;
   fileName: string;
   state: TTagItemState;
+  /** Set on a `failed` item. */
+  reason?: TTagFailReason;
 }
 
 export type TTagJobKind = 'write' | 'undo';

@@ -209,16 +209,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The file itself is the button to its options: its tags, Explorer, Retry,
+// Skip.
 .library-tags-problem__top {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
+  width: calc(100% + 12px);
+  margin: -6px;
+  grid-template-columns: 40px minmax(0, 1fr) 16px;
   align-items: center;
   gap: 12px;
+  padding: 6px;
+  border: 0;
+  border-radius: $radius-m;
+  background: none;
+  color: $text-primary;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 130ms ease;
 
   .library-cover-art {
     width: 40px;
     height: 40px;
   }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    background: $studio-surface;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.library-tags-problem__more {
+  width: 16px;
+  height: 16px;
+  color: $studio-t3;
 }
 
 .library-tags-problem__name {

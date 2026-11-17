@@ -223,6 +223,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'Ignorer',
   'library.tags.problems.makeWritable': 'Rendre modifiable et écrire',
   'library.tags.problems.skipAll': 'Tout ignorer',
+  'library.tags.problems.failedCopy':
+    'La copie par laquelle il est écrit n’a pas pu être créée à côté. Le fichier est intact. Réessayez ; si le disque est plein ou occupé, libérez-le d’abord.',
+  'library.tags.problems.failedTags':
+    'Ses tags n’ont pas pu être écrits : le fichier est peut-être abîmé ou inhabituel. Il est intact. Réessayez, ou ouvrez-le dans un autre éditeur de tags.',
+  'library.tags.problems.failedCheck':
+    'À la vérification, la copie écrite ne se lisait plus comme le même morceau ; elle n’a pas été utilisée. Le fichier est intact.',
+  'library.tags.problems.failedUndo':
+    'Ce dont Annuler a besoin n’a pas pu être gardé ; rien n’a été écrit. Le fichier est intact.',
+  'library.tags.problems.failedPlace':
+    'La copie écrite n’a pas pu prendre la place du fichier. Le fichier est intact. Si une synchronisation comme OneDrive s’en occupe, réessayez quand elle a fini.',
+  'library.tags.problems.options': 'Options pour ce fichier',
+  'library.tags.problems.openTags': 'Voir ses tags',
+  'library.tags.problems.reveal': 'Afficher dans l’Explorateur',
   'library.tags.problems.nothingToDo': 'Rien à faire.',
   'library.tags.problems.everythingElse': 'Tout le reste est écrit',
   'library.tags.problems.undoCovers': 'Annuler s’applique aussi à ceux-ci',

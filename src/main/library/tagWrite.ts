@@ -35,7 +35,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import { randomBytes } from 'crypto';
-import type { TTagFormat } from '../../common/library/tagFields';
+import type {
+  TTagFailReason,
+  TTagFormat,
+} from '../../common/library/tagFields';
 import { applyTagEdit, type IValidatedEdit } from './tagApply';
 import { openTagFile } from './tagFormats';
 import { keepForUndo, rebuildFromUndo, type TUndoPiece } from './tagUndo';
@@ -55,7 +58,8 @@ export type TFileWriteOutcome =
       writtenSize: number;
       writtenMtimeMs: number;
     }
-  | { state: 'locked' | 'read-only' | 'missing' | 'failed' };
+  | { state: 'locked' | 'read-only' | 'missing' }
+  | { state: 'failed'; reason: TTagFailReason };
 
 /**
  * Windows answers a rename over a file another program holds open with one
@@ -157,7 +161,7 @@ export const writeTagsToFile = async (
     }
     // eslint-disable-next-line no-console -- context-rich error before the item says it failed
     console.error(`Could not copy ${filePath} to tag it`, error);
-    return { state: 'failed' };
+    return { state: 'failed', reason: 'copy' };
   }
   let piece: TUndoPiece | undefined;
   try {
@@ -172,7 +176,7 @@ export const writeTagsToFile = async (
     }
     if (!(await checkWritten(request, temporary, stats.size))) {
       await removeQuietly(temporary);
-      return { state: 'failed' };
+      return { state: 'failed', reason: 'check' };
     }
     piece = await keepForUndo(
       filePath,
@@ -182,13 +186,13 @@ export const writeTagsToFile = async (
     );
     if (piece === undefined) {
       await removeQuietly(temporary);
-      return { state: 'failed' };
+      return { state: 'failed', reason: 'undo' };
     }
   } catch (error) {
     await removeQuietly(temporary);
     // eslint-disable-next-line no-console -- context-rich error before the item says it failed
     console.error(`Could not write the tags of ${filePath}`, error);
-    return { state: 'failed' };
+    return { state: 'failed', reason: 'tags' };
   }
   try {
     if (wasReadOnly) {
@@ -208,7 +212,7 @@ export const writeTagsToFile = async (
       `Could not put the tagged copy of ${filePath} in place`,
       error,
     );
-    return { state: 'failed' };
+    return { state: 'failed', reason: 'place' };
   }
   if (wasReadOnly) {
     // Writable for this write only, as the question said.
@@ -227,7 +231,8 @@ export type TFileRestoreOutcome =
   | { state: 'restored' }
   /** Changed since the write, by somebody else: not put back over. */
   | { state: 'changed' }
-  | { state: 'locked' | 'read-only' | 'missing' | 'failed' };
+  | { state: 'locked' | 'read-only' | 'missing' }
+  | { state: 'failed'; reason: TTagFailReason };
 
 /** Puts a written file back as it was before, from what Undo kept. */
 export const restoreFromUndo = async (
@@ -260,6 +265,6 @@ export const restoreFromUndo = async (
     }
     // eslint-disable-next-line no-console -- context-rich error before the item says it failed
     console.error(`Could not put back the tags of ${filePath}`, error);
-    return { state: 'failed' };
+    return { state: 'failed', reason: 'place' };
   }
 };

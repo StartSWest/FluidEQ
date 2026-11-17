@@ -222,6 +222,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'छोड़ें',
   'library.tags.problems.makeWritable': 'लिखने योग्य बनाकर लिखें',
   'library.tags.problems.skipAll': 'सब छोड़ें',
+  'library.tags.problems.failedCopy':
+    'लिखने के लिए इसके बगल में कॉपी नहीं बन सकी। फ़ाइल वैसी ही है। फिर से कोशिश करें; ड्राइव भरी या व्यस्त हो तो पहले उसे खाली करें।',
+  'library.tags.problems.failedTags':
+    'इसके टैग नहीं लिखे जा सके: फ़ाइल ख़राब या असामान्य हो सकती है। यह वैसी ही है। फिर कोशिश करें, या किसी दूसरे टैग एडिटर में खोलें।',
+  'library.tags.problems.failedCheck':
+    'जाँच में लिखी गई कॉपी उसी गाने के रूप में नहीं पढ़ी गई, इसलिए उसका इस्तेमाल नहीं हुआ। फ़ाइल वैसी ही है।',
+  'library.tags.problems.failedUndo':
+    'पहले जैसा करने के लिए ज़रूरी जानकारी नहीं रखी जा सकी, इसलिए कुछ नहीं लिखा गया। फ़ाइल वैसी ही है।',
+  'library.tags.problems.failedPlace':
+    'लिखी गई कॉपी फ़ाइल की जगह नहीं ले सकी। फ़ाइल वैसी ही है। अगर OneDrive जैसा सिंक ऐप उस पर काम कर रहा है, तो उसके ख़त्म होने पर फिर कोशिश करें।',
+  'library.tags.problems.options': 'इस फ़ाइल के विकल्प',
+  'library.tags.problems.openTags': 'इसके टैग देखें',
+  'library.tags.problems.reveal': 'एक्सप्लोरर में दिखाएँ',
   'library.tags.problems.nothingToDo': 'कुछ करने की ज़रूरत नहीं।',
   'library.tags.problems.everythingElse': 'बाकी सब लिखा जा चुका है',
   'library.tags.problems.undoCovers': 'पूर्ववत करें इन पर भी लागू होता है',

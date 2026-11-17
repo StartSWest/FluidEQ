@@ -220,6 +220,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'スキップ',
   'library.tags.problems.makeWritable': '書き込み可能にして書き込む',
   'library.tags.problems.skipAll': 'すべてスキップ',
+  'library.tags.problems.failedCopy':
+    '書き込みに使うコピーを横に作れませんでした。ファイルは元のままです。再試行してください。ドライブがいっぱいか使用中なら先に空けてください。',
+  'library.tags.problems.failedTags':
+    'タグを書き込めませんでした。ファイルが壊れているか特殊な形式かもしれません。元のままです。再試行するか、別のタグ編集ソフトで開いてください。',
+  'library.tags.problems.failedCheck':
+    '確認の結果、書き込んだコピーが同じ曲として読めなかったため使いませんでした。ファイルは元のままです。',
+  'library.tags.problems.failedUndo':
+    '元に戻すのに必要な情報を保存できなかったため、何も書き込みませんでした。ファイルは元のままです。',
+  'library.tags.problems.failedPlace':
+    '書き込んだコピーで元のファイルを置き換えられませんでした。ファイルは元のままです。OneDrive などの同期が処理中なら、終わってから再試行してください。',
+  'library.tags.problems.options': 'このファイルの操作',
+  'library.tags.problems.openTags': 'タグを見る',
+  'library.tags.problems.reveal': 'エクスプローラーで表示',
   'library.tags.problems.nothingToDo': '操作は不要です。',
   'library.tags.problems.everythingElse': 'ほかはすべて書き込み済み',
   'library.tags.problems.undoCovers': '元に戻すはこれらにも適用されます',

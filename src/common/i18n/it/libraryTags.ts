@@ -220,6 +220,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'Salta',
   'library.tags.problems.makeWritable': 'Rendi scrivibile e scrivi',
   'library.tags.problems.skipAll': 'Salta tutti',
+  'library.tags.problems.failedCopy':
+    'Non è stato possibile creare accanto la copia con cui si scrive. Il file è com’era. Riprova; se l’unità è piena o occupata, liberala prima.',
+  'library.tags.problems.failedTags':
+    'Non è stato possibile scrivere i tag: il file potrebbe essere danneggiato o insolito. È com’era. Riprova, oppure aprilo con un altro editor di tag.',
+  'library.tags.problems.failedCheck':
+    'Al controllo, la copia scritta non risultava lo stesso brano, quindi non è stata usata. Il file è com’era.',
+  'library.tags.problems.failedUndo':
+    'Non è stato possibile conservare ciò che serve ad Annulla, quindi non è stato scritto nulla. Il file è com’era.',
+  'library.tags.problems.failedPlace':
+    'La copia scritta non ha potuto prendere il posto del file. Il file è com’era. Se un’app di sincronizzazione come OneDrive ci sta lavorando, riprova quando ha finito.',
+  'library.tags.problems.options': 'Opzioni per questo file',
+  'library.tags.problems.openTags': 'Vedi i tag',
+  'library.tags.problems.reveal': 'Mostra in Esplora file',
   'library.tags.problems.nothingToDo': 'Niente da fare.',
   'library.tags.problems.everythingElse': 'Tutto il resto è scritto',
   'library.tags.problems.undoCovers': 'Annulla vale anche per questi',

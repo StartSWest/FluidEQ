@@ -205,6 +205,19 @@ const libraryTags = {
   'library.tags.problems.skip': '略過',
   'library.tags.problems.makeWritable': '設為可寫入並寫入',
   'library.tags.problems.skipAll': '全部略過',
+  'library.tags.problems.failedCopy':
+    '無法在旁邊建立用於寫入的副本。檔案保持原樣。請重試；如果磁碟已滿或忙碌，請先騰出空間。',
+  'library.tags.problems.failedTags':
+    '無法寫入標籤：檔案可能已損壞或格式特殊。它保持原樣。請重試，或用其他標籤編輯器開啟。',
+  'library.tags.problems.failedCheck':
+    '檢查時，寫入的副本無法讀作同一首歌曲，因此沒有使用。檔案保持原樣。',
+  'library.tags.problems.failedUndo':
+    '無法保留復原所需的內容，因此沒有寫入任何東西。檔案保持原樣。',
+  'library.tags.problems.failedPlace':
+    '寫入的副本無法取代原檔案。檔案保持原樣。如果 OneDrive 等同步程式正在處理它，請等它完成後重試。',
+  'library.tags.problems.options': '此檔案的選項',
+  'library.tags.problems.openTags': '查看標籤',
+  'library.tags.problems.reveal': '在檔案總管中顯示',
   'library.tags.problems.nothingToDo': '不需要任何操作。',
   'library.tags.problems.everythingElse': '其餘檔案都已寫入',
   'library.tags.problems.undoCovers': '復原也包括這些檔案',

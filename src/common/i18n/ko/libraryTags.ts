@@ -216,6 +216,19 @@ const libraryTags = {
   'library.tags.problems.skip': '건너뛰기',
   'library.tags.problems.makeWritable': '쓰기 가능하게 하고 쓰기',
   'library.tags.problems.skipAll': '모두 건너뛰기',
+  'library.tags.problems.failedCopy':
+    '쓰기에 쓰는 복사본을 옆에 만들 수 없었습니다. 파일은 그대로입니다. 다시 시도하세요. 드라이브가 가득 찼거나 사용 중이면 먼저 비우세요.',
+  'library.tags.problems.failedTags':
+    '태그를 쓸 수 없었습니다. 파일이 손상되었거나 특이한 형식일 수 있습니다. 그대로입니다. 다시 시도하거나 다른 태그 편집기로 여세요.',
+  'library.tags.problems.failedCheck':
+    '확인해 보니 쓴 복사본이 같은 곡으로 읽히지 않아 사용하지 않았습니다. 파일은 그대로입니다.',
+  'library.tags.problems.failedUndo':
+    '되돌리기에 필요한 내용을 저장할 수 없어 아무것도 쓰지 않았습니다. 파일은 그대로입니다.',
+  'library.tags.problems.failedPlace':
+    '쓴 복사본이 원래 파일 자리를 대신할 수 없었습니다. 파일은 그대로입니다. OneDrive 같은 동기화가 작업 중이면 끝난 뒤 다시 시도하세요.',
+  'library.tags.problems.options': '이 파일 옵션',
+  'library.tags.problems.openTags': '태그 보기',
+  'library.tags.problems.reveal': '탐색기에서 보기',
   'library.tags.problems.nothingToDo': '할 일이 없습니다.',
   'library.tags.problems.everythingElse': '나머지는 모두 썼습니다',
   'library.tags.problems.undoCovers': '실행 취소는 이 파일에도 적용됩니다',

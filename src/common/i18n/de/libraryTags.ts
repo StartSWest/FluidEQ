@@ -223,6 +223,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'Überspringen',
   'library.tags.problems.makeWritable': 'Schreibbar machen und schreiben',
   'library.tags.problems.skipAll': 'Alle überspringen',
+  'library.tags.problems.failedCopy':
+    'Die Kopie, über die geschrieben wird, ließ sich daneben nicht anlegen. Die Datei ist unverändert. Versuchen Sie es erneut; ist das Laufwerk voll oder beschäftigt, schaffen Sie zuerst Platz.',
+  'library.tags.problems.failedTags':
+    'Die Tags ließen sich nicht schreiben: Die Datei ist vielleicht beschädigt oder ungewöhnlich. Sie ist unverändert. Versuchen Sie es erneut oder öffnen Sie sie in einem anderen Tag-Editor.',
+  'library.tags.problems.failedCheck':
+    'Beim Prüfen ließ sich die geschriebene Kopie nicht als derselbe Song lesen; sie wurde nicht verwendet. Die Datei ist unverändert.',
+  'library.tags.problems.failedUndo':
+    'Was Rückgängig braucht, ließ sich nicht sichern; es wurde nichts geschrieben. Die Datei ist unverändert.',
+  'library.tags.problems.failedPlace':
+    'Die geschriebene Kopie konnte den Platz der Datei nicht einnehmen. Die Datei ist unverändert. Arbeitet eine Synchronisierung wie OneDrive gerade daran, versuchen Sie es danach erneut.',
+  'library.tags.problems.options': 'Optionen für diese Datei',
+  'library.tags.problems.openTags': 'Tags anzeigen',
+  'library.tags.problems.reveal': 'Im Explorer anzeigen',
   'library.tags.problems.nothingToDo': 'Nichts zu tun.',
   'library.tags.problems.everythingElse': 'Alles andere ist geschrieben',
   'library.tags.problems.undoCovers': 'Rückgängig gilt auch für diese',

@@ -229,6 +229,19 @@ const libraryTags = {
   'library.tags.problems.skip': 'Skip',
   'library.tags.problems.makeWritable': 'Make writable and write',
   'library.tags.problems.skipAll': 'Skip all',
+  'library.tags.problems.failedCopy':
+    'The copy it is written through could not be made beside it. The file is as it was. Try again; if the drive is full or busy, free it first.',
+  'library.tags.problems.failedTags':
+    'Its tags could not be written: the file may be damaged or unusual. It is as it was. Try again, or open it in another tag editor.',
+  'library.tags.problems.failedCheck':
+    'After writing, the copy did not read back as the same song, so it was not used. The file is as it was.',
+  'library.tags.problems.failedUndo':
+    'What Undo needs could not be kept, so nothing was written. The file is as it was.',
+  'library.tags.problems.failedPlace':
+    "The written copy could not take the file's place. The file is as it was. If a sync app such as OneDrive is busy with it, try again when it is done.",
+  'library.tags.problems.options': 'Options for this file',
+  'library.tags.problems.openTags': 'See its tags',
+  'library.tags.problems.reveal': 'Show in Explorer',
   'library.tags.problems.nothingToDo': 'Nothing to do.',
   'library.tags.problems.everythingElse': 'Everything else is written',
   'library.tags.problems.undoCovers': 'Undo covers these too',
