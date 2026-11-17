@@ -59,10 +59,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // add a bg remove it and also the borders and radius"). It used to be a
   // well a shade under the bar with a lit rim, and a rainbow rim in euphoria.
   // The border stays as a transparent pixel so the arithmetic above still
-  // holds and nothing inside moves; only keyboard focus draws it. The corners
+  // holds and nothing inside moves. The corners
   // came back the next day, the app's own (Ivan, 2026-09-26: "add our border
   // radius to the top wave wrapper too"): the drawing is clipped to them
-  // (`__stage`), and the focus ring follows them. And that evening a subtle
+  // (`__stage`). And that evening a subtle
   // edge came back too (Ivan: "add subtle border on the top wave too"), and
   // it is the cards' own (`$card-edge`): the pane a hair toward the edge tint,
   // opaque (2026-09-27: "to the top wave border color add border color that
@@ -71,8 +71,7 @@ it under the terms of the GNU General Public License version 3 or later.
   //
   // And then flat (Ivan, 2026-11-16, the meter styles' mockup: "do all of
   // them, flat"): no outline either, as the Library has no card in a card.
-  // The pixel stays, transparent, for the arithmetic above and for the focus
-  // ring below.
+  // The pixel stays, transparent, for the arithmetic above.
   border: 1px solid transparent;
   border-radius: $radius-m;
   background: transparent;
@@ -87,9 +86,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // the height it was meant to carry is: the pane grew over seven hundred
   // milliseconds and then dropped back in one frame. On the base rule it eases
   // both ways.
-  transition:
-    border-color 180ms ease,
-    height 700ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition: height 700ms cubic-bezier(0.32, 0.72, 0, 1);
 
   // The trace goes flat and grey here too, but that is not this file's to say
   // any more — see the note at the bottom. The pane's own dimming still is.
@@ -101,9 +98,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // It is said by the readout instead: the CLIP badge and the held peak in
   // red (`.is-clipping .waveform-visualizer__peak` below).
 
-  // A keyboard needs to see where it is; a pointer over the pane does not.
+  // No focus ring (Ivan, 2026-11-17: "remove the focus line on the wave
+  // wrapper"). It lit on every Ctrl+click, the click that walks the styles
+  // back, because Chromium reads a held modifier as keyboard use.
   &:focus-visible {
-    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
     outline: none;
   }
 }
