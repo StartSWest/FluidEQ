@@ -391,7 +391,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
           id={eqLayerPanelId('preset')}
           role="tabpanel"
           aria-labelledby={eqLayerTabId('preset')}
-          className="eq-layer-panel"
+          className="eq-layer-panel eq-layer-panel--preset"
         >
           <EqPresetTab />
         </div>

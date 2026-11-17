@@ -12,13 +12,43 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** Preset: the groups, the presets of one, and what one does ****************
 
+// The tab takes the pane it is given, whatever the splitter makes of it, and
+// its columns scroll each on its own: the groups, the grid under its heading,
+// and what a preset does. It used to be as tall as its tallest column inside
+// the page's one scroller, so the notes beside the grid decided the page's
+// height: pointing at a preset with longer notes put the page's scrollbar up,
+// which narrowed the grid, which moved another tile under the pointer, whose
+// shorter notes took the bar away again - the panel flickering between a
+// scrollbar and none - and scrolling down to the thirteenth preset carried
+// its notes off the top (Ivan, 2026-11-17). Now nothing in a column's
+// content reaches the page's height, and the notes stay beside the grid.
+.eq-layer-panel--preset {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+}
+
 .eq-preset-tab {
   display: grid;
   min-width: 0;
-  padding-bottom: 12px;
+  min-height: 0;
+  flex: 1 1 auto;
   grid-template-columns: 176px minmax(0, 1fr) minmax(240px, 290px);
-  align-items: start;
+  grid-template-rows: minmax(0, 1fr);
   gap: 18px;
+}
+
+// What scrolls inside the tab: its air at the foot goes inside the scroller,
+// so the last row still travels up to the card's edge, and the gutter is
+// always kept, so a bar coming or going never narrows what is beside it.
+%eq-preset-tab-scroller {
+  min-height: 0;
+  box-sizing: border-box;
+  padding-bottom: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .eq-preset-tab--game {
@@ -28,10 +58,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .eq-preset-tab__groups {
+  @extend %eq-preset-tab-scroller;
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 2px;
+  // A bar here narrows only the groups' own buttons; nothing beside them moves.
+  scrollbar-gutter: auto;
 }
 
 .eq-preset-tab__group {
@@ -75,9 +108,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-weight: $weight-regular;
 }
 
+// The heading stays and the grid under it scrolls.
 .eq-preset-tab__list {
   display: flex;
   min-width: 0;
+  min-height: 0;
   flex-direction: column;
   gap: 10px;
 }
@@ -97,9 +132,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .eq-preset-tab__grid {
+  @extend %eq-preset-tab-scroller;
   display: grid;
   min-width: 0;
+  flex: 1 1 auto;
   grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  align-content: start;
   gap: 8px;
 }
 
@@ -181,12 +219,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // has them (`GenreNotesPreview`), its name and line otherwise, and the
 // rack's stages as chips.
 .eq-preset-tab__detail {
+  @extend %eq-preset-tab-scroller;
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 14px;
   padding-left: 18px;
   border-left: 1px solid $border-subtle;
+
+  // A column that scrolls would otherwise squeeze its notes to fit.
+  > * {
+    flex-shrink: 0;
+  }
 }
 
 .eq-preset-tab__about {
@@ -236,10 +280,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
   text-transform: uppercase;
 }
 
-// A narrow page: what a preset does goes under the grid.
+// A narrow page: what a preset does goes under the grid, in a share of the
+// tab's height that its notes never change (two fifths), so pointing at a
+// preset moves nothing. Under a pane too short to give both a usable share,
+// the tab keeps a floor and the page's scroller takes the rest.
 @container eq-panel (max-width: #{$bp-lg}) {
+  .eq-layer-panel--preset {
+    min-height: 260px;
+  }
+
   .eq-preset-tab {
     grid-template-columns: 150px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
   }
 
   .eq-preset-tab__detail {
@@ -253,13 +305,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // Narrower still, the groups run as a row over the grid.
 @container eq-panel (max-width: #{$bp-md}) {
+  .eq-layer-panel--preset {
+    min-height: 320px;
+  }
+
   .eq-preset-tab {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 3fr) minmax(0, 2fr);
   }
 
   .eq-preset-tab__groups {
+    padding-bottom: 0;
     flex-direction: row;
     flex-wrap: wrap;
+    overflow: visible;
+    scrollbar-gutter: auto;
   }
 
   .eq-preset-tab__group {

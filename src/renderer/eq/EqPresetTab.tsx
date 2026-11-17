@@ -66,7 +66,7 @@ const EqPresetTab = () => {
   const status = useKnownAudioEngineStatus();
   const isApo = status?.engine === 'apo';
   const query = useEqPresetQuery().trim().toLocaleLowerCase();
-  const { apply, selecting } = useDspPresetSelection(
+  const { apply } = useDspPresetSelection(
     settings,
     applyDspSettings,
     persistDspSettings,
@@ -105,7 +105,11 @@ const EqPresetTab = () => {
     ).values(),
   ).filter((preset) => preset.name.toLocaleLowerCase().includes(query));
   const shown = query ? searched : members[group];
-  const isDisabled = isBlockingError || !isEnabled || selecting;
+  // Not while a preset is being put on: disabling every tile for that half
+  // second dimmed the whole grid and brought it back, which read as every
+  // preset blinking at each press (Ivan, 2026-11-17). A second press needs
+  // no guard either: `apply` counts its presses and only the last one lands.
+  const isDisabled = isBlockingError || !isEnabled;
 
   const focused = catalog.find(
     (preset) => preset.id === (pointedAt ?? activeId),
