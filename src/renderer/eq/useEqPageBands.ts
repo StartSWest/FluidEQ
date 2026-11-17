@@ -68,7 +68,6 @@ import {
   type TBandDensity,
 } from '../components/FrequencyBand';
 import qualityWheelEdits from '../graph/qualityWheel';
-import { openBandPopover } from './bandPopover';
 
 /**
  * The EQ page's bands: the filters and their layout, the band row's size
@@ -626,16 +625,9 @@ const useEqPageBands = () => {
     [gainEdits, showGroupEdits],
   );
 
-  // Selects as it always did; with Shift it opens the band's popover too,
-  // held open while Shift is (`bandPopover.ts`). A press opened it, or the
-  // keyboard: a press is still down, and the hold waits for it.
   const handleBandSelect = useCallback(
-    (filterId: string, event: IBandSelectEvent) => {
-      toggleFilterSelectionRef.current(filterId, selectionModeFromEvent(event));
-      if (event.shiftKey) {
-        openBandPopover({ kind: 'band' }, event.type === 'pointerdown');
-      }
-    },
+    (filterId: string, event: IBandSelectEvent) =>
+      toggleFilterSelectionRef.current(filterId, selectionModeFromEvent(event)),
     [],
   );
 

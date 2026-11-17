@@ -201,11 +201,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // "el 4, el pop over", option 4 of the board as it was drawn), up while
 // Shift is held (`bandPopover.ts`): placed in the panel against the band's
 // handle (`useBandPopoverPlace`), its point at the handle's height, or on the
-// graph's card over or under the band's handle there
-// (`useGraphPopoverPlace`), on a menu's own face. The head says which band, its
-// filter and the way out; the frequency, gain and Q dials with their
-// readings under them; then in or out of the chain and the bin. The bands
-// keep the whole panel: nothing stands over or under the rail any more.
+// graph's card beside the band's handle there the same way, on a menu's own
+// face. The head says which band, its filter and the way out; the
+// frequency, gain and Q dials with their readings under them; then in or
+// out of the chain and the bin. The bands keep the whole panel: nothing
+// stands over or under the rail any more.
 .workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content {
   position: relative;
 
@@ -267,27 +267,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     transform: rotate(45deg);
   }
 
-  // Over or under a handle on the graph (`useGraphPopoverPlace`): the point
-  // on the edge that faces it, at the handle's x.
-  &.is-above::before,
-  &.is-below::before {
-    left: calc(var(--popover-arrow, 50%) - 6px);
-    transform: rotate(45deg);
-  }
-
-  &.is-above::before {
-    top: auto;
-    bottom: -7px;
-    border-top: 0;
-    border-left: 0;
-  }
-
-  &.is-below::before {
-    top: -7px;
-    border-right: 0;
-    border-bottom: 0;
-  }
-
   // IT GROWS OUT OF ITS BAND AND SHRINKS BACK INTO IT (Ivan, 2026-11-17:
   // "make sure it animates open and close"): the app's pop (`_motion.scss`),
   // a scale and a fade, so the compositor plays it alone, from the point that
@@ -303,14 +282,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &.is-left {
     transform-origin: 100% var(--popover-arrow, 50%);
-  }
-
-  &.is-above {
-    transform-origin: var(--popover-arrow, 50%) 100%;
-  }
-
-  &.is-below {
-    transform-origin: var(--popover-arrow, 50%) 0;
   }
 
   // Held at the last frame while it leaves: `pop-out` ends invisible, which

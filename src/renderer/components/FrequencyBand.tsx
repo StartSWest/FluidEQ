@@ -50,13 +50,10 @@ import '../styles/EqChannels.scss';
 
 type TGainAction = { kind: 'set'; value: number } | { kind: 'reset' };
 
-/** What a selecting press or key says: its modifiers, and which it was. */
+/** What a selecting press or key says: Ctrl (or Cmd) adds or takes away. */
 export interface IBandSelectEvent {
   ctrlKey: boolean;
   metaKey: boolean;
-  shiftKey: boolean;
-  /** "pointerdown" for a press, which is still down when it arrives. */
-  type: string;
 }
 
 /** How much of a band's own chrome fits: the row gets denser as it fills. */
@@ -257,6 +254,10 @@ const FrequencyBand = forwardRef(
         ref={attachColumn}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}`}
         data-filter-id={filter.id}
+        // Focusable by a press anywhere on the column, not only on its
+        // slider: a band with the keyboard is what the band popover opens on
+        // while Shift is held (`EqBandPopovers`). Never a Tab stop.
+        tabIndex={-1}
         // What its slider's lit core answers to (`BandLevels`).
         data-frequency={filter.frequency}
         // Its place along the row, while the row shares the graph's width out

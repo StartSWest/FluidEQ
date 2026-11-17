@@ -44,7 +44,11 @@ import { type TEqPageActions } from './useEqPageActions';
 import { type TEqLayerTab } from './eqLayerTab';
 import EqLayerTabs, { eqLayerPanelId, eqLayerTabId } from './EqLayerTabs';
 import EqSmartEqButton from './EqSmartEqButton';
-import { EqBandPopoverOnBand, EqBandPopoverOnGraph } from './EqBandPopovers';
+import {
+  EqBandPopoverOnBand,
+  EqBandPopoverOnGraph,
+  useBandPopoverState,
+} from './EqBandPopovers';
 import EqPresetTab, { EqPresetSearch } from './EqPresetTab';
 import EqToneTab from './EqToneTab';
 
@@ -65,6 +69,9 @@ type TEqPageViewProps = {
  * tab.
  */
 const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
+  // Whether the band popover is up and on which anchor, decided once for
+  // the slider's and the graph's (`useBandPopoverState`).
+  const popover = useBandPopoverState(bands);
   const {
     filters,
     isLoading,
@@ -202,9 +209,9 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
         />
       )}
       <OutputEditingNotice />
-      {/* The same popover over a handle on the graph, whichever layer tab is
+      {/* The same popover beside a handle on the graph, whichever layer tab is
           open: the graph's handles are the bands on every one of them. */}
-      <EqBandPopoverOnGraph bands={bands} actions={actions} />
+      <EqBandPopoverOnGraph bands={bands} actions={actions} popover={popover} />
       <EqLayerTabs
         active={tab}
         bandCount={frequencySortedFilters.length}
@@ -224,7 +231,11 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
           {/* The band popover against its slider, while Shift holds it
               (`bandPopover.ts`), first in the panel so the keyboard reaches
               it before the thirty-one sliders under it. */}
-          <EqBandPopoverOnBand bands={bands} actions={actions} />
+          <EqBandPopoverOnBand
+            bands={bands}
+            actions={actions}
+            popover={popover}
+          />
           {/* The rail scrolls when the bands stop fitting, with an arrow at
             each end — the same pair the workspace tabs use. Thirty-one bands
             in a narrow window were nine pixels each: a row of slivers with

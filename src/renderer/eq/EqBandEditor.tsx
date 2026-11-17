@@ -31,7 +31,7 @@ import ConfirmIcon from '../icons/ConfirmIcon';
 import { type TEqPageBands } from './useEqPageBands';
 import { type TEqPageActions } from './useEqPageActions';
 import { type IBandPopoverPlace } from './useBandPopoverPlace';
-import { closeBandPopover } from './bandPopover';
+import { dismissBandPopover } from './bandPopover';
 import frequencyText from '../utils/frequencyText';
 
 /** The keys that step a held popover from a band slider or a graph handle. */
@@ -58,7 +58,8 @@ const focusedBandControl = (target: EventTarget | null) => {
  * the board): which band and its filter with the way out at its head, its
  * frequency, gain and Q on dials, then in or out of the chain and the bin.
  *
- * Up only while Shift is held (`bandPopover.ts`), so the keys it answers are
+ * Up while Shift is held with a selected band focused (`useBandPopoverState`),
+ * so the keys it answers are
  * the ones a held Shift leaves: its ‹ and › and Shift+Tab inside it, and from
  * a band slider or a graph handle Shift+Tab and Shift+← → step to the band
  * before and after, the keyboard going with it. Escape and its close button
@@ -192,7 +193,7 @@ const EqBandEditor = ({
           return;
         }
         event.preventDefault();
-        closeBandPopover();
+        dismissBandPopover();
         return;
       }
       if (!event.shiftKey || !focusedBandControl(event.target)) {
@@ -215,6 +216,10 @@ const EqBandEditor = ({
         place?.side ?? 'right'
       }${isClosing ? ' is-closing' : ''}`}
       role="dialog"
+      // A press anywhere on it keeps the keyboard in it, between its
+      // controls as on them: the popover having the keyboard is one of the
+      // things that keep it up.
+      tabIndex={-1}
       aria-label={
         isGroupEdit
           ? t('eq.selectedCount', { count: selectedCount })
@@ -292,7 +297,7 @@ const EqBandEditor = ({
           className="eq-band-popover__close"
           aria-label={t('eq.popover.close')}
           title={t('eq.popover.close')}
-          onClick={closeBandPopover}
+          onClick={dismissBandPopover}
         >
           <ConfirmIcon variant="cancel" />
         </button>
