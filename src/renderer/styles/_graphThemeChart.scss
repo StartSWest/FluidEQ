@@ -48,14 +48,23 @@ it under the terms of the GNU General Public License version 3 or later.
   transform: translateY(calc(0.4em + 3px));
 }
 
+// The figures on the floor ("−60 dB", "−80 dB") stand 5px over it rather than
+// 3px, with the frequency names on their line below: at 3px the row's
+// descenders and its dark key read as touching the card's foot (Ivan,
+// 2026-11-17: "add 2 more px to the bottom graph padding so the numbers show
+// less in the bottom edge").
+.chart-axis--inside .tick.is-floor text {
+  transform: translateY(calc(-0.32em - 5px));
+}
+
 // The frequency names inside the plot's foot, in the side scales' face and
 // on their baseline: one row with "−60 dB" and "−80 dB" at its ends (Ivan,
 // 2026-11-17: "make sure they show either on same line or above those dB
 // numbers"). A side figure's baseline is its tick less 3px (its 0.32em
 // `dy` taken back above, then the gap), and the corner figures' ticks are
 // the floor. The axis stands on the floor and d3 puts a bottom axis's
-// baseline 9px + 0.71em under it, so lifting by that and 3px more lands the
-// names on the same line. Set by eye at 1em + 14px, they stood 6px over the
+// baseline 9px + 0.71em under it, so lifting by that and 5px more lands the
+// names on the same line, 5px over the floor (`.is-floor` above). Set by eye at 1em + 14px, they stood 6px over the
 // corner figures at every size. On the compressed band no band reaches
 // (`graphPaper.ts`, `GRID_AXIS_PADDING`).
 .chart-axis--inside-bottom text {
@@ -64,7 +73,7 @@ it under the terms of the GNU General Public License version 3 or later.
   stroke-width: 3px;
   stroke-linejoin: round;
   paint-order: stroke;
-  transform: translateY(calc(-0.71em - 12px));
+  transform: translateY(calc(-0.71em - 14px));
 }
 
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency

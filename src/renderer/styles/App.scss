@@ -2900,12 +2900,13 @@ $graph-card-pages: list.join(
 
   // Under a Plus visualizer the picture is the graph's face and ends at the
   // graph's foot, where the pane goes on: square there, so it does not round
-  // off into the pane like a card set inside it, and its last 48px fade into
-  // the pane, so the picture's foot is not a line drawn across it.
+  // off into the pane like a card set inside it. It runs whole to that foot,
+  // flat: its last 48px used to fade into the pane, a soft edge that dimmed
+  // the foot row and read as old-fashioned (Ivan, 2026-11-17: "remove the
+  // soft gradient edge on graph when Plus is displayed").
   > .scene-column-layer {
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
   }
 }
 

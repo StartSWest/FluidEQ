@@ -99,15 +99,18 @@ const Axis = ({
         .attr('color', GrayScaleEnum.WHITE)
         .attr('font-size', '0.75rem');
       // A vertical scale's highest tick, for a label that stands above its
-      // line everywhere but there, where above is off the plot
-      // (`_graphThemeChart.scss`).
+      // line everywhere but there, where above is off the plot, and the tick
+      // on the plot's floor, whose label stands on the foot row with the
+      // frequency names (`_graphThemeChart.scss`).
       if (type !== 'bottom') {
         const top = Math.min(
           ...tickValues.map((value) => Number(scale(value))),
         );
+        const floor = Math.max(...scale.range().map(Number));
         axisGroup
           .selectAll<SVGGElement, d3.NumberValue>('.tick')
-          .classed('is-top', (value) => Number(scale(value)) === top);
+          .classed('is-top', (value) => Number(scale(value)) === top)
+          .classed('is-floor', (value) => Number(scale(value)) === floor);
       }
     }
   }, [scale, tickValues, tickFormat, disableAnimation, type]);
