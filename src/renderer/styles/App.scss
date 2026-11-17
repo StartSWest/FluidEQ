@@ -1733,6 +1733,9 @@ body::after {
 // stage, which pads its own foot while the bar is up and takes it back when
 // the bar fades. Reserving it here would shorten the picture as well.
 #root.has-now-playing:not(.is-floating-bar) {
+  // The strip the bar takes from the window's foot, measured to its top, so
+  // the 8px it stands off the foot as a panel (`_nowPlayingBarBar.scss`) is
+  // already in it.
   padding-bottom: var(--now-playing-bar-height, 86px);
 }
 

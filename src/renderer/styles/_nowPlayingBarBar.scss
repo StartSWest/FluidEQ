@@ -94,6 +94,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // anything behind it for the blur to soften.
 }
 
+// A panel like the cards above it (Ivan, 2026-11-17, version A of "the left
+// panel and the bottom bar as panels"): 8px in from the window's sides and
+// foot, the cards' edge and corner, and their face made opaque - the card's
+// translucent face over the floor, mixed - for the subpixel text the bar
+// keeps (above). Not while it floats over a full-screen picture.
+// The bar is portalled beside #root, which carries the floating flag.
+:root:not(:has(#root.is-floating-bar)) .now-playing-bar {
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background-color: color-mix(in srgb, #{$surface-panel} 85%, #{$surface-base});
+}
+
 // Out of the way, once full screen has been still for two seconds.
 //
 // Slid down as well as faded: a bar that only fades leaves its shadow over the
