@@ -356,19 +356,36 @@ export const createSceneWorkerClient = (
    * capture never saw it, because the canvas reaches the screen past it.
    *
    * Two animation frames: the first is the frame the removal is painted in,
-   * and by the second that frame has gone to the screen. A hidden page paints
-   * nothing, so there is nothing to wait for there — and rAF does not run in
-   * one, which would have kept an unseen scene's worker, and its GPU memory,
-   * alive until somebody looked again.
+   * and by the second that frame has gone to the screen.
+   *
+   * A hidden page waits too, for longer: it paints nothing, so the last frame
+   * it painted — canvas and all — is the one Windows puts back on the screen
+   * the moment the window is restored, before the page has drawn anything.
+   * Ended at once there, the worker took that frame's picture with it and
+   * every restore opened on a white graph (Ivan, 2026-11-17). So the wait is
+   * for the window to be shown again and then the same two frames; the
+   * worker has already freed all it holds but its context by then
+   * (`dispose` retires it first while hidden), and the context is what keeps
+   * the picture on screen.
    */
   const terminateOnceUnseen = () => {
-    if (document.hidden) {
-      worker.terminate();
+    const afterTwoFrames = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => worker.terminate());
+      });
+    };
+    if (!document.hidden) {
+      afterTwoFrames();
       return;
     }
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => worker.terminate());
-    });
+    const whenShown = () => {
+      if (document.hidden) {
+        return;
+      }
+      document.removeEventListener('visibilitychange', whenShown);
+      afterTwoFrames();
+    };
+    document.addEventListener('visibilitychange', whenShown);
   };
   const fail = (log: string) => {
     if (disposed) {
@@ -520,7 +537,10 @@ export const createSceneWorkerClient = (
       // context would take that link down on the GPU process's main thread
       // and freeze every scene in the window until the compile finished; so
       // it gives the load up, waits for the link and says when it may go.
-      if (heldTurns.size > 0 && !lost) {
+      // A hidden window retires it too: the worker then waits for the window
+      // to be seen again (`terminateOnceUnseen`), and frees its program and
+      // passes meanwhile rather than holding them through the wait.
+      if ((heldTurns.size > 0 || document.hidden) && !lost) {
         retiring = true;
         send({ kind: 'retire' });
         return;

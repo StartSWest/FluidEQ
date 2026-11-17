@@ -716,31 +716,55 @@ export default function useSceneRunner({
       }
     };
     /**
-     * A scene nobody can see gives its worker back, GPU context and all.
+     * A scene nobody can see in the page gives its worker back, GPU context
+     * and all.
      *
      * Stopping the frame loop alone was what hiding used to do, and the worker,
      * its WebGL context, the compiled program and every texture stayed held for
      * as long as the component stayed mounted — under the expanded graph,
-     * behind the Studio's full stage, scrolled out of a gallery, with the
-     * window minimised. The pack is kept, so coming back into view compiles
-     * it again beside nothing and fades it in.
+     * behind the Studio's full stage, scrolled out of a gallery. The pack is
+     * kept, so coming back into view compiles it again beside nothing and
+     * fades it in.
      */
+    const shelve = () => {
+      // A pack that arrived while the scene was unseen is already waiting
+      // here (`build`), and it is newer than the one drawn.
+      shelvedRef.current =
+        shelvedRef.current ?? wantedRef.current ?? packRef.current;
+      generationRef.current += 1;
+      buildingRef.current = false;
+      dropProgram();
+      packRef.current = null;
+      // The canvas went with the worker; the next picture is a whole build
+      // away, and the stage says it is loading rather than sitting black.
+      if (shelvedRef.current) {
+        setWaiting(true);
+      }
+    };
+    /**
+     * A hidden WINDOW keeps its scene: idle, its last picture on the canvas.
+     *
+     * Minimised, covered by another window (Windows calls FluidEQ hidden
+     * then too) or on another desktop, the page paints no frame, so the last
+     * frame it painted is the one Windows shows again the moment the window
+     * comes back — before the page has run a line. That frame holds the
+     * canvas, and the canvas's picture lives in the worker: a scene shelved
+     * while hidden had ended its worker, and every restore showed the graph
+     * solid white until the page's first new frame replaced it, then the
+     * loading backdrop, then a whole compile and a fade (Ivan, 2026-11-17:
+     * "the white bg that shows in the graph's canvas when I restore the
+     * app"). Kept, the restore shows the scene as it was left and the loop
+     * picks it up on its next frame. What the next frame can make again is
+     * still given back while hidden (`idle` below: the scene's passes and
+     * the finishing chain), so what is held is the program and the context.
+     */
+    let keptThroughHide = false;
     const stopObserving = observeShown(host, (shown) => {
       const active = shown || (captureFrames && !document.hidden);
       shownRef.current = active;
-      if (!active && rendererRef.current) {
-        shelvedRef.current = wantedRef.current ?? packRef.current;
-        generationRef.current += 1;
-        buildingRef.current = false;
-        dropProgram();
-        packRef.current = null;
-        // The canvas went with the worker; the next picture is a whole build
-        // away. Windows calls FluidEQ hidden whenever another window covers
-        // it, so this is where the Studio stage is while the member's AI saves
-        // from the window in front — and it sat black, saying nothing.
-        if (shelvedRef.current) {
-          setWaiting(true);
-        }
+      keptThroughHide = !active && document.hidden && !!rendererRef.current;
+      if (!active && rendererRef.current && !document.hidden) {
+        shelve();
       } else if (active && shelvedRef.current) {
         const pack = shelvedRef.current;
         shelvedRef.current = null;
@@ -754,9 +778,22 @@ export default function useSceneRunner({
     // The frame loop stops itself when the window hides, without a last
     // frame to say so; the worker is told here, or it would keep drawing
     // frames of its own into a window nobody can see.
+    //
+    // A window coming back into a page that hides the scene some other way
+    // (the expanded graph over it, say) is not reported by `observeShown`,
+    // whose answer was "not shown" before and still is: the scene kept
+    // through the hide is shelved here, now that the page paints again and
+    // the canvas can leave the screen before its worker goes. Registered
+    // after `observeShown`'s own listener, so `shownRef` is already current.
     const hidden = () => {
       if (document.hidden) {
         rendererRef.current?.idle();
+      } else if (keptThroughHide) {
+        keptThroughHide = false;
+        if (!shownRef.current && rendererRef.current) {
+          shelve();
+          measure();
+        }
       }
     };
     document.addEventListener('visibilitychange', hidden);
