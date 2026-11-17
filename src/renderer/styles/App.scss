@@ -1933,11 +1933,14 @@ $sound-pane-rail-shift: calc(
   #{$sound-pane-fold-inset} - (#{$sound-pane-rail} - #{$sound-pane-fold}) / 2
 );
 // Beside a page, what reads as the rail is the strip from the page's cards to
-// the window's edge: the rail and the page's own margin before it (the EQ
-// page's scroller, 10px). Its button stands in the middle of that strip
-// (Ivan, 2026-09-27: "center the icon on the space when closed"); centred in
-// the rail alone it stood 19.5px from the cards and 9.5px from the edge.
-$sound-pane-page-inset: 10px;
+// the window's edge (Ivan, 2026-09-27: "center the icon on the space when
+// closed"). The page's cards used to stop 10px short of the rail (the EQ
+// page's scroller), and the button was centred across that margin too; the
+// cards now run out to the column's edge (`fac6ae87b`), so the strip is the
+// rail alone. Kept at 10px, the button stood 3px over the graph's card and
+// its hover tint painted on the graph (Ivan, 2026-11-17: "the hover overflows
+// on the graph").
+$sound-pane-page-inset: 0px;
 $sound-pane-strip-shift: calc(
   #{$sound-pane-fold-inset} -
     (#{$sound-pane-rail} - #{$sound-pane-fold} - #{$sound-pane-page-inset}) / 2
