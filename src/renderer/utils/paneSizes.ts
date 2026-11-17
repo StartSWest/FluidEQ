@@ -372,15 +372,19 @@ const BELOW_GRAPH_DEFAULT_HEIGHT = 344;
 
 /**
  * And never less than this share of the page, on a window with room to spare:
- * the bands a little over half, the graph the rest (Ivan, 2026-10-25, with a
- * screenshot of the split he wanted: "more on the EQ band sliders than in the
- * graph", measured off it at 0.56 of this base — about three fifths of what the
- * graph and the bands share). It was 0.4 from 2026-09-29 ("like 40% of the
- * height"), and the graph stood over sliders drawn short. The need still wins
- * where it is the larger — a 1440x852 laptop, where a share alone would put
- * the tracks under their floor and scroll the page.
+ * the graph a little over half, the page with its tabs the rest (Ivan,
+ * 2026-11-16: "the graph should take more space - fix that in the default
+ * setting too"). It was 0.56 from 2026-10-25 ("more on the EQ band sliders
+ * than in the graph"), and 0.4 before that. With the page's tabs under the
+ * graph the bands share their pane with the tab row and the band editor
+ * stands beside them rather than under them, so they need less of it: at
+ * 0.48 a 1280x800 window's page holds the selected band's column whole,
+ * dials and their readings, and the graph is a fifth taller than at 0.56. The
+ * need still wins where it is the larger — a laptop, where a share alone
+ * would put the tracks under their floor and scroll the page. A divider
+ * somebody has moved keeps where they put it.
  */
-const BELOW_GRAPH_DEFAULT_SHARE = 0.56;
+const BELOW_GRAPH_DEFAULT_SHARE = 0.48;
 
 const editorShareForTab = (tab: string) => {
   const stored = editorSharesByTab[tab];

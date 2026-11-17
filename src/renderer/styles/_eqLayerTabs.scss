@@ -227,14 +227,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-content: start;
   justify-self: stretch;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  // Three rows, the bin on the band's name's line: with the graph given more
+  // of the page by default, a fourth row for the bin put the dials past the
+  // foot of a 1280x800 window's page.
   grid-template-areas:
-    'identity identity identity'
+    'identity identity delete'
     'filter filter active'
-    'frequency gain quality'
-    'delete delete delete';
-  gap: 14px 8px;
+    'frequency gain quality';
+  gap: 8px;
   border-left: 1px solid $border-subtle;
-  --dial-size: 56px;
+  --dial-size: 52px;
 
   > .eq-flat-editor__identity {
     grid-area: identity;
@@ -271,6 +273,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   > .eq-flat-editor__delete-cell {
+    align-self: center;
     justify-content: flex-end;
     margin-top: 0;
     grid-area: delete;

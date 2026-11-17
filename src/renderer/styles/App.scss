@@ -2832,6 +2832,69 @@ $graph-card-pages: list.join(
   }
 }
 
+// ONE PANE, AS THE LIBRARY'S IS (Ivan, 2026-11-16: "remember this is a full
+// integrated view, no division like that, the split needs to be seamless",
+// "like the lib"). On the EQ page the head and the graph's card and the
+// page's card under it were two cards with the divider's strip of floor
+// between them; now the graph's card stays open at its foot, the divider is
+// a band of the same card, and the page's card is open at its top, so the
+// pills, the graph, the tabs and their page read as one surface with one
+// edge round it. The divider still takes a drag along its whole width, and
+// its grip shows only under the pointer, while it is held, or while the
+// keyboard is on it (`PaneResizer.scss` lights it in those states).
+.center-workspace.is-graph-first:not(.is-graph-full):has(
+    > .middle-content > .workspace-tab-panel--eq
+  ) {
+  > .graph-wrapper {
+    border-bottom: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  > .pane-resizer {
+    margin: 0 10px;
+    border-inline: 1px solid $card-edge;
+    background: $surface-section;
+
+    span {
+      opacity: 0;
+      transition:
+        opacity 140ms ease,
+        background 140ms ease,
+        width 140ms ease;
+    }
+
+    &:hover span,
+    &:focus-visible span,
+    &.is-dragging span {
+      opacity: 1;
+    }
+  }
+
+  > .middle-content > .workspace-tab-panel--eq {
+    margin-top: 0;
+    border-top: 0;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+  }
+
+  // Under a Plus visualizer the picture is the graph's face and ends at the
+  // graph's foot, where the pane goes on: square there, so it does not round
+  // off into the pane like a card set inside it, and its last 48px fade into
+  // the pane, so the picture's foot is not a line drawn across it.
+  > .scene-column-layer {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .center-workspace.is-graph-first > .pane-resizer span {
+    transition: none;
+  }
+}
+
 // A graph under a page's card (DSP, Share Audio) stands on a card of its
 // own too, the same card as the EQ pages' above theirs, in from the column's
 // sides and foot as the page's card is and parted from it by the divider's

@@ -25,11 +25,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 /**
- * The rail at which the sliders are 96px: the track is the rail less 114px
- * (`--range-length` in `MainContent.scss`), and 96px is the length the
- * first-run height was chosen for.
+ * The rail at which the sliders are 80px: the track is the rail less 114px
+ * (`--range-length` in `MainContent.scss`). It was 96px until the graph was
+ * given more of the page by default (Ivan, 2026-11-16: "the graph should take
+ * more space - fix that in the default setting too"); 80 keeps the sliders
+ * above their 72px floor, so a first run never opens on the cramped bands
+ * the 96 was chosen to avoid.
  */
-const RAIL_FOR_FULL_TRACK = 96 + 114;
+const RAIL_FOR_FULL_TRACK = 80 + 114;
 
 let need: number | undefined;
 const listeners = new Set<() => void>();
