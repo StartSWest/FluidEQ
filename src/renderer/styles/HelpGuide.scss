@@ -17,7 +17,7 @@
 .help-menu__trigger.workspace-header__tools-trigger {
   width: auto;
   min-width: 48px;
-  height: 30px;
+  height: $control-height-xs;
   font-weight: $weight-semibold;
   @include button-plain;
 

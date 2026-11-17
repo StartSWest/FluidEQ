@@ -238,7 +238,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // chosen, the drawing and the word in the ink of the text beside them.
   button {
     display: inline-flex;
-    height: 28px;
+    height: $control-height-xs;
     flex: none;
     align-items: center;
     padding: 0 8px;

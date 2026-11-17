@@ -596,12 +596,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // now: 12px inside an inset hairline measured the same.
 .library-hero__button {
   display: inline-flex;
-  height: 30px;
+  height: $control-height-sm;
   box-sizing: border-box;
   align-items: center;
   gap: 6px;
   padding: 0 11px;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   font-family: inherit;
   font-size: $studio-text-tree;
   line-height: 1.5;
@@ -659,8 +659,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   // The bar's search, flat: no fill, a hairline round it.
   .library-search__field {
-    height: 30px;
-    border-radius: $radius-m;
+    height: $control-height-sm;
+    border-radius: $radius-xs;
     @include field-surface;
     @include field-focus;
   }

@@ -112,8 +112,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-status__action {
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   place-items: center;
   padding: 0;
   border-radius: $radius-xs;

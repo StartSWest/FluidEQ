@@ -113,7 +113,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: $spacing-s;
   min-width: 0;
-  min-height: 30px;
+  min-height: $control-height-sm;
   padding: 4px 8px 4px 10px;
   color: $text-primary;
   border: 0;

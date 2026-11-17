@@ -90,10 +90,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .button.karaoke-transport__control {
     position: relative;
     display: grid;
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
-    min-height: 34px;
+    width: $control-height-sm;
+    min-width: $control-height-sm;
+    height: $control-height-sm;
+    min-height: $control-height-sm;
     place-items: center;
     padding: 0;
     border-radius: 50%;
@@ -249,8 +249,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-transport button.karaoke-transport__volume-toggle,
 .karaoke-transport__mix-popover button.karaoke-transport__volume-toggle {
-  min-width: 28px;
-  min-height: 28px;
+  min-width: $control-height-xs;
+  min-height: $control-height-xs;
   padding: 0;
   border-radius: 50%;
   cursor: pointer;
@@ -337,10 +337,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-transport__volume button.karaoke-transport__mix-trigger {
   display: grid;
-  width: 22px;
-  min-width: 22px;
-  height: 22px;
-  min-height: 22px;
+  width: $control-height-2xs;
+  min-width: $control-height-2xs;
+  height: $control-height-2xs;
+  min-height: $control-height-2xs;
   place-items: center;
   padding: 0;
   border-radius: 50%;

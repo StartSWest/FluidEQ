@@ -446,8 +446,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The column chooser at the header's end (the mockup's `th.pick`).
 .library-list__chooser {
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   place-items: center;
   padding: 0;
   border-radius: $radius-xs;
@@ -487,8 +487,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The row's own menu, in the chooser's column, on the row under the pointer.
 .library-list__row-menu {
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;

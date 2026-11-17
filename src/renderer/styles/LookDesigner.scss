@@ -249,7 +249,7 @@ it under the terms of the GNU General Public License version 3 or later.
   @include ghost-button;
 
   flex: 1 1 0;
-  height: 24px;
+  height: $control-height-2xs;
   padding-inline: 8px;
   font-size: $text-micro;
   font-weight: $weight-semibold;
@@ -490,7 +490,7 @@ it under the terms of the GNU General Public License version 3 or later.
   @include field-surface;
 
   width: 100%;
-  height: 26px;
+  height: $control-height-xs;
   padding-inline: 8px;
   color: $white;
   font: inherit;
@@ -513,7 +513,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   display: inline-flex;
   width: 28px;
-  height: 26px;
+  height: $control-height-xs;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;

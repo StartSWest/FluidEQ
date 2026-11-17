@@ -327,7 +327,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: block;
   width: 100%;
   padding: 4px 10px 4px calc(29px + var(--tree-level, 0) * 15px);
-  border-radius: 7px;
+  border-radius: $radius-xs;
   font-family: inherit;
   font-size: $studio-text-label;
   text-align: left;

@@ -82,8 +82,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // a small, reversible thing and should not look like a warning.
   .autoeq-applied__clear {
     display: grid;
-    width: 22px;
-    height: 22px;
+    width: $control-height-2xs;
+    height: $control-height-2xs;
     flex: 0 0 auto;
     place-items: center;
     padding: 0;

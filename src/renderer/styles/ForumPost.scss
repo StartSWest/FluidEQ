@@ -182,7 +182,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 24px;
+  height: $control-height-2xs;
   padding: 0 9px 0 6px;
   border-radius: $radius-xs;
   font: inherit;
@@ -226,7 +226,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 26px;
+  height: $control-height-xs;
   padding: 0 8px;
   border-radius: $radius-xs;
   font: inherit;

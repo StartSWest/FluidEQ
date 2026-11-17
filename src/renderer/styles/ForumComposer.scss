@@ -54,7 +54,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   place-items: center;
   width: 28px;
-  height: 26px;
+  height: $control-height-xs;
   padding: 0;
   border-radius: $radius-xs;
   cursor: pointer;

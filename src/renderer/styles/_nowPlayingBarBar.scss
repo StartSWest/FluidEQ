@@ -571,10 +571,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .now-playing-bar__control {
   display: grid;
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  min-height: 34px;
+  width: $control-height-sm;
+  min-width: $control-height-sm;
+  height: $control-height-sm;
+  min-height: $control-height-sm;
   place-items: center;
   padding: 0;
   border-radius: 50%;
@@ -658,10 +658,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .now-playing-bar__toggle {
   position: relative;
   display: grid;
-  width: 30px;
-  min-width: 30px;
-  height: 30px;
-  min-height: 30px;
+  width: $control-height-xs;
+  min-width: $control-height-xs;
+  height: $control-height-xs;
+  min-height: $control-height-xs;
   place-items: center;
   padding: 0;
   // Bare at rest, like the transport keys beside it (`button-plain-accent`).
@@ -749,8 +749,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // border.
 .now-playing-bar__volume-icon {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: $control-height-xs;
+  height: $control-height-xs;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;

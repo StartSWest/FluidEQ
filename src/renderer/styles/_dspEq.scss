@@ -178,8 +178,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-eq-pick {
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
+  width: $control-height-xs;
+  height: $control-height-xs;
   padding: 0;
   border-radius: $radius-xs;
   font-size: $text-body;

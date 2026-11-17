@@ -458,8 +458,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-workspace__notice-close {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   flex: none;
   place-items: center;
   padding: 0;

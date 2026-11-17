@@ -874,8 +874,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   padding: 0;
   border-radius: $radius-pill;
   cursor: pointer;

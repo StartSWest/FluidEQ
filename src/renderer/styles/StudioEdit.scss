@@ -469,7 +469,7 @@ $edit-z: #5aa9ff;
 .studio-edit__rename,
 .studio-edit__number input {
   min-width: 0;
-  height: 26px;
+  height: $control-height-xs;
   padding: 0 8px;
   border-radius: $radius-2xs;
   font: inherit;
@@ -491,7 +491,7 @@ $edit-z: #5aa9ff;
 
   button {
     display: flex;
-    height: 26px;
+    height: $control-height-xs;
     align-items: center;
     gap: 8px;
     padding: 0 8px;
@@ -550,7 +550,7 @@ $edit-z: #5aa9ff;
 .studio-edit__name {
   display: flex;
   min-width: 0;
-  height: 26px;
+  height: $control-height-xs;
   flex: 1;
   align-items: baseline;
   gap: 6px;
@@ -880,8 +880,8 @@ $edit-z: #5aa9ff;
 
   button {
     display: inline-flex;
-    width: 24px;
-    height: 24px;
+    width: $control-height-2xs;
+    height: $control-height-2xs;
     align-items: center;
     justify-content: center;
     padding: 0;
@@ -960,7 +960,7 @@ $edit-z: #5aa9ff;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border-radius: 50%;
+    border-radius: $radius-xs;
     cursor: pointer;
     @include button-plain;
 

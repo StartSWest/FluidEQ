@@ -98,14 +98,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // ghost pill and 28px (`.live-output-controls button`), which outranks one.
 .view-bar .view-bar__icon {
   display: grid;
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
-  min-height: 32px;
+  width: $control-height-sm;
+  min-width: $control-height-sm;
+  height: $control-height-sm;
+  min-height: $control-height-sm;
   flex: 0 0 32px;
   place-items: center;
   padding: 0;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   cursor: pointer;
   transition: $transition-control;
   @include button-plain;

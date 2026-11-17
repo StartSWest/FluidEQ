@@ -36,7 +36,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // window rather than guessed: this capsule was 32 tall and one pixel wider
   // on the left, which is exactly enough to read as "nearly the same" and
   // therefore as wrong.
-  height: 26px;
+  height: $control-height-xs;
   align-items: center;
   gap: 6px;
   padding: 0 3px 0 8px;
@@ -147,7 +147,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   margin-right: 4px;
   padding: 0;
-  border-radius: 50%;
+  border-radius: $radius-xs;
   cursor: pointer;
   @include button-plain;
 
@@ -223,7 +223,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  border-radius: 50%;
+  border-radius: $radius-xs;
   cursor: pointer;
   transition: $transition-control;
   @include button-plain;

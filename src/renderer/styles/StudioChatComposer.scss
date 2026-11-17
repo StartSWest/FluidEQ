@@ -133,7 +133,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 18px;
   padding: 0;
   place-items: center;
-  border-radius: 50%;
+  border-radius: $radius-xs;
   cursor: pointer;
   @include button-line-floating;
 

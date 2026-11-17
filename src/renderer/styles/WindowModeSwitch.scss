@@ -23,7 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   grid-template-columns: 1fr 1fr;
   align-items: center;
   width: 58px;
-  height: 26px;
+  height: $control-height-xs;
   padding: 2px;
   // A segmented pair of glyphs (2026-11-17, the one control theme): the
   // segmented track's edge and no fill, the chosen side lit as a chosen

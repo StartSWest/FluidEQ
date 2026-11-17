@@ -95,7 +95,7 @@ $library-gutter: 12px;
 // same no-fill box with its edge as an inset hairline in a grey of its own.
 @mixin quiet-field {
   @include field-surface;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   outline: 0;
 }
 

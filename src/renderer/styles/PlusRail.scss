@@ -184,8 +184,8 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 
 .community--plus .community__rail-pin {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: $control-height-xs;
+  height: $control-height-xs;
   flex: 0 0 auto;
   place-items: center;
   // The square is the target; the line keeps the heading's own height, so

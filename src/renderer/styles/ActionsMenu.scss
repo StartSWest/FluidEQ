@@ -371,7 +371,7 @@
 .menu-preference__choice {
   display: grid;
   width: 36px;
-  height: 28px;
+  height: $control-height-xs;
   place-items: center;
   padding: 0;
   border-radius: $radius-xs;
@@ -457,7 +457,7 @@
 // and radius. Regular weight: a field's value is set bold, and in the tray
 // that made the language the loudest word in it.
 .actions-menu__prefs .menu-preference__control .dropdown > [role='menu'] {
-  min-height: 28px;
+  min-height: $control-height-xs;
   padding: 4px 8px 4px 10px;
   border-radius: $radius-xs;
   font-size: $text-body;

@@ -220,8 +220,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .studio-start__close {
   display: inline-grid;
-  width: 24px;
-  height: 24px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   margin-inline-start: auto;
   place-items: center;
   border-radius: $radius-2xs;

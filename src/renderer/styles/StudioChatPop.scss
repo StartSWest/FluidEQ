@@ -155,7 +155,7 @@ it under the terms of the GNU General Public License version 3 or later.
   button {
     display: inline-grid;
     min-width: 24px;
-    height: 22px;
+    height: $control-height-2xs;
     padding: 0 4px;
     place-items: center;
     border-radius: $radius-pill;
@@ -194,7 +194,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: none;
   align-items: center;
   gap: 5px;
-  height: 26px;
+  height: $control-height-xs;
   padding: 0 7px 0 5px;
   color: $text-faint;
   border: 0;

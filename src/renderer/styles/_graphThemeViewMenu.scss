@@ -44,7 +44,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // strip's `button` rule, measured off the View button in the running window.
 .live-output-controls .dropdown.graph-auto-cycle > [role='menu'] {
   @include ghost-button;
-  min-height: 28px;
+  min-height: $control-height-xs;
   gap: 5px;
   padding: 5px 9px;
   border-radius: $radius-xs;

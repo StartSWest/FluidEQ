@@ -155,8 +155,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   button {
     display: grid;
-    width: 24px;
-    height: 24px;
+    width: $control-height-2xs;
+    height: $control-height-2xs;
     flex: 0 0 auto;
     place-items: center;
     padding: 0;
@@ -201,15 +201,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The nav arrows and the order's direction: one square, as the mockup has it.
 .library-top__arrow {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: $control-height-sm;
+  height: $control-height-sm;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
   // Flat: a hairline round it, a faint fill under the pointer (Ivan,
   // 2026-11-15, of the bar: "we also need to tune these to match the
   // style").
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   cursor: pointer;
   transition: $transition-control;
   @include button-plain;
@@ -241,10 +241,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // still lights an edge, drawn inside so the field does not grow.
   .library-search__field {
     // Flat: no fill, a hairline round it and the accent's while typing.
-    height: 32px;
+    height: $control-height-sm;
     gap: 8px;
     padding: 0 6px 0 12px;
-    border-radius: $radius-m;
+    border-radius: $radius-xs;
     @include field-surface;
     @include field-focus;
 
@@ -283,9 +283,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // (`.library-pane__drawer-head`), so the two are one rule.
 .library-top__controls > .library-up-next__chip,
 .library-pane__drawer-head > .library-up-next__chip {
-  height: 30px;
+  height: $control-height-sm;
   padding: 0 10px;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   font-size: $studio-text-meta;
   // The line tier, lit while the queue is open (`_buttonFaces.scss`): it
   // drew the edge as an inset hairline of its own and the open edge as an
@@ -353,9 +353,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-top__sort,
 .library-lyrics__language {
   .dropdown > [role='menu'] {
-    min-height: 30px;
+    min-height: $control-height-sm;
     padding: 0 10px;
-    border-radius: $radius-m;
+    border-radius: $radius-xs;
     font-size: $studio-text-meta;
     font-weight: $weight-semibold;
     gap: 6px;
@@ -477,8 +477,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // above, reused rather than redrawn for a second "take this away" control.
 .library-folders-menu__remove {
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;

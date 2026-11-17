@@ -427,8 +427,8 @@ it under the terms of the GNU General Public License version 3 or later.
   display: inline-grid;
   flex: none;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   padding: 0;
   border-radius: $radius-xs;
   cursor: pointer;

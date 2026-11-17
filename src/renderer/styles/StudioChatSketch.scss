@@ -45,8 +45,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
   button {
     display: grid;
-    width: 30px;
-    height: 30px;
+    width: $control-height-xs;
+    height: $control-height-xs;
     padding: 0;
     place-items: center;
     border-radius: $radius-xs;
@@ -98,8 +98,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
   button {
     display: grid;
-    width: 28px;
-    height: 28px;
+    width: $control-height-xs;
+    height: $control-height-xs;
     padding: 0;
     place-items: center;
     border-radius: $radius-xs;

@@ -53,7 +53,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The name on the headings' 6px edge, so the column reads as one.
   padding: 8px 6px;
   border: 0;
-  border-radius: 8px;
+  border-radius: $radius-xs;
   background: none;
   color: $text-primary;
   font-family: inherit;

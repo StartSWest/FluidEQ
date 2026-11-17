@@ -747,8 +747,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   top: 50%;
   right: 6px;
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
   place-items: center;
   padding: 0;
   // Square-cornered like every other Library button (2026-11-15).

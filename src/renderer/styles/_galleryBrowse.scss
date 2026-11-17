@@ -128,7 +128,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 8px;
   max-width: 460px;
-  height: 32px;
+  height: $control-height-sm;
   padding: 0 6px 0 12px;
   @include quiet-field;
 
@@ -288,11 +288,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
   .gallery-chip {
     display: inline-flex;
-    height: 28px;
+    height: $control-height-xs;
     box-sizing: border-box;
     align-items: center;
     padding: 0 11px;
-    border-radius: $radius-m;
+    border-radius: $radius-xs;
     font-size: $studio-text-meta;
     line-height: 1.5;
     // The line tier; the chosen category is it switched on.
@@ -786,7 +786,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   align-items: center;
   gap: 5px;
-  min-height: 24px;
+  min-height: $control-height-2xs;
   padding: 2px 9px;
   border-radius: $radius-xs;
   font: inherit;

@@ -25,11 +25,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Geometry ***************************************************************
 
-// Interactive controls share three heights so rows line up without per-panel
-// pixel nudging.
+// Interactive controls share four heights so rows line up without per-panel
+// pixel nudging (2026-11-17, the one control theme): 38 a form's buttons and
+// fields, 32 a toolbar's text buttons, fields and selects, 28 a square icon
+// key in a bar and the controls of a dense one, 24 a chip, a stepper or a
+// close key inside a row or a notice. Measured that day, the same roles stood
+// at 22, 26, 30, 34, 36, 40 and 44 besides; a player's transport and the
+// arrows laid over a picture keep their own round sizes.
 $control-height: 38px;
 
 $control-height-sm: 32px;
+
+$control-height-xs: 28px;
+
+$control-height-2xs: 24px;
 
 $control-height-lg: 46px;
 
