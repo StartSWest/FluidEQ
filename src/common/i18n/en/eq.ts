@@ -878,8 +878,8 @@ const eq = {
     'Unable to capture the processed system output.',
   'eq.smart.presence.ignoredBelow': 'ignored below {db} dB',
   'eq.smart.presence.trustedAbove': 'trusted above {db} dB',
-  'convolution.eyebrow': 'APO impulse responses',
-  'convolution.eyebrow.fluid': 'Impulse responses',
+  'convolution.eyebrow': 'APO IMPULSE RESPONSES',
+  'convolution.eyebrow.fluid': 'IMPULSE RESPONSES',
   'convolution.title': 'Convolution library',
   'convolution.intro':
     'Download a verified, minimum-phase headphone impulse and apply it before your parametric EQ. The shared response graph keeps both curves visible.',

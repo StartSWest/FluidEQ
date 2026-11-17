@@ -127,6 +127,7 @@ import useShellEngine from './shell/useShellEngine';
 import useShellFullScreen from './shell/useShellFullScreen';
 import usePlayerMounts from './shell/usePlayerMounts';
 import useTabGraph from './shell/useTabGraph';
+import useSectionRuleFade from './shell/useSectionRuleFade';
 import useShellDialogs from './shell/useShellDialogs';
 import AppTitlebar from './shell/AppTitlebar';
 import SoundPanel from './shell/SoundPanel';
@@ -341,6 +342,10 @@ const AppContent = () => {
   const isGraphOverlay = isGraphFullScreen;
   const isGraphFirst =
     activeWorkspaceTab === 'eq' && showsGraph && !isGraphOverlay;
+  const { isRuleLeaving, isRuleArriving } = useSectionRuleFade(
+    activeWorkspaceTab,
+    isGraphFirst,
+  );
   const eqGroupPills = (
     <EqGroupPills
       activeTab={activeWorkspaceTab}
@@ -740,7 +745,7 @@ const AppContent = () => {
             <div
               className={`center-head center-head--${activeWorkspaceTab}${
                 !isEqReachingSound ? ' is-engine-disabled' : ''
-              }`}
+              }${isRuleLeaving ? ' is-rule-leaving' : ''}`}
             >
               {eqGroupPills}
             </div>
@@ -757,6 +762,7 @@ const AppContent = () => {
                 behindAmp={behindAmp}
                 isEqReachingSound={isEqReachingSound}
                 isGraphFirst={isGraphFirst}
+                isRuleArriving={isRuleArriving}
                 eqGroupPills={eqGroupPills}
                 onEqPillApproach={preloadEqPillOnApproach}
                 onOpenEngineDialog={engine.handleOpenEngineDialog}

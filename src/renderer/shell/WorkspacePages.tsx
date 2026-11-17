@@ -138,6 +138,9 @@ export interface IWorkspacePagesProps {
   isEqReachingSound: boolean;
   /** The EQ pages' pills stand above the graph rather than in the page. */
   isGraphFirst: boolean;
+  /** The pills came into the page from the head, whose rule fades in
+   * (`useSectionRuleFade`). */
+  isRuleArriving: boolean;
   /** The equaliser's section pills, built once by the shell. */
   eqGroupPills: ReactNode;
   onEqPillApproach: (event: SyntheticEvent<HTMLElement>) => void;
@@ -158,6 +161,7 @@ const WorkspacePages = ({
   behindAmp,
   isEqReachingSound,
   isGraphFirst,
+  isRuleArriving,
   eqGroupPills,
   onEqPillApproach,
   onOpenEngineDialog,
@@ -172,7 +176,7 @@ const WorkspacePages = ({
       // keyed.
       <div
         key="eq-workspace"
-        className={`workspace-tab-panel workspace-tab-panel--${activeTab}${!isEqReachingSound ? ' is-engine-disabled' : ''}`}
+        className={`workspace-tab-panel workspace-tab-panel--${activeTab}${!isEqReachingSound ? ' is-engine-disabled' : ''}${isRuleArriving ? ' is-rule-arriving' : ''}`}
         aria-disabled={activeTab === 'config' ? undefined : !isEqReachingSound}
         onPointerOver={onEqPillApproach}
         onFocus={onEqPillApproach}

@@ -43,6 +43,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'libraryTokens' as *;
 @use 'mainContentTokens' as *;
 
+// The window's scrollbars, across and down (`::-webkit-scrollbar`).
+$scrollbar-size: 8px;
+
+// The equaliser's section pills (`.workspace-pill`): the room at either side
+// of a pill's glyph and word, which is how far in from the row's edge the
+// first glyph stands, and the rule drawn under the row on the pages that
+// keep one.
+$workspace-pill-inline: 14px;
+$section-rule: color-mix(in srgb, $secondary-light 10%, transparent);
+
 // *** Document ***************************************************************
 
 *,
@@ -265,8 +275,8 @@ select option {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: $scrollbar-size;
+  height: $scrollbar-size;
 }
 
 // Nothing behind the bar. These sit on the workspace, on cards and on panels
@@ -2240,36 +2250,16 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
 // are more close vertically"): the graph's options stand 11px under the
 // pills' rule (this 2px, then the strip's own 9px inside the plot).
 .center-head--eq {
-  padding-bottom: 2px;
+  // 1px less than the 2 it was, for the rule's 1px kept in the layout below.
+  padding-bottom: 1px;
 
   // The pills' row draws no rule under itself (Ivan, 2026-11-17: "remove the
-  // dividing line of the options on top").
+  // dividing line of the options on top"). The rule's 1px stays, in no
+  // colour, so the pills stand at the same height on all four pages and the
+  // rule can fade rather than jump (Ivan, same day: "keep the bar ... but
+  // make it appear smoothly").
   .workspace-section-header {
-    border-bottom: 0;
-  }
-
-  // The pills in the tab row's own type (Ivan, 2026-11-17: "make the top
-  // menus' text a bit bigger, and the icons, the little game icon
-  // included"; "the same size as the menu below"): `$studio-text-row` and
-  // semibold, as `.eq-layer-tabs__tab`, and their glyphs and the game mode's
-  // from 14px to 16.
-  // And their ink and spacing too (Ivan: "the same type, both menus, the top
-  // and the bottom, the same"): the tab row's resting ink and its 8px
-  // between glyph and word.
-  .workspace-pill {
-    gap: 8px;
-    font-size: $studio-text-row;
-    font-weight: $weight-semibold;
-
-    &:not(.is-active) {
-      color: color-mix(in srgb, #{$text-primary} 86%, transparent);
-    }
-  }
-
-  .workspace-pill__icon > svg,
-  .engine-strip .game-mode-switch__icon {
-    width: 16px;
-    height: 16px;
+    border-bottom-color: transparent;
   }
 
   // Over a Plus scene its words, the engine's name and every glyph read as
@@ -2379,6 +2369,36 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
 
       color: $secondary-darker;
     }
+  }
+}
+
+// The rule under the pills fades when they move between the head, which has
+// none, and an EQ page, which keeps it (`useSectionRuleFade`). The two are
+// separate elements, so each fades from the other's colour as it appears.
+.center-head--eq.is-rule-leaving .workspace-section-header {
+  animation: section-rule-leave $motion-base $ease-unfold;
+}
+
+.workspace-tab-panel.is-rule-arriving > .workspace-section-header {
+  animation: section-rule-arrive $motion-base $ease-unfold;
+}
+
+@keyframes section-rule-leave {
+  from {
+    border-bottom-color: $section-rule;
+  }
+}
+
+@keyframes section-rule-arrive {
+  from {
+    border-bottom-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .center-head--eq.is-rule-leaving .workspace-section-header,
+  .workspace-tab-panel.is-rule-arriving > .workspace-section-header {
+    animation: none;
   }
 }
 
@@ -3171,6 +3191,26 @@ $graph-card-pages: list.join(
     padding-top: 0;
     scrollbar-gutter: auto;
   }
+}
+
+// EQ Presets, Convolution and Config: the page's words on the pills' lines
+// (Ivan, 2026-11-17: "fix the margins of all those pages ... the texts at the
+// top aren't"). A gutter on both edges stood the title 6px left of the first
+// pill's glyph and the right-hand notes 8px short of the engine's name. The
+// page now starts at the glyph, a pill's own inset in from the row, and its
+// gutter is on the right alone, out in the card's 12px padding with the
+// scrollbar on the card's edge (as Share Audio's, below), so the last text
+// ends where the engine's name does and a scrollbar arriving moves nothing.
+.workspace-tab-panel:is(
+    .workspace-tab-panel--presets,
+    .workspace-tab-panel--convolution,
+    .workspace-tab-panel--config
+  )
+  > .workspace-tab-panel__scroll {
+  margin-right: -12px;
+  padding-right: 12px - $scrollbar-size;
+  padding-left: $workspace-pill-inline;
+  scrollbar-gutter: stable;
 }
 
 // The player is a tab like the others, and was the only one without the card.
@@ -4918,7 +4958,7 @@ button.graph-legend {
   align-items: center;
   gap: 6px 20px;
   min-width: 0;
-  border-bottom: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
+  border-bottom: 1px solid $section-rule;
   margin-bottom: $spacing-xs;
 
   > .eq-engine-label {
@@ -5001,24 +5041,38 @@ button.graph-legend {
   // place is chosen. The uppercase is what does most of the work: at this size
   // it reads as a rail of labels at a glance, where sentence case at the same
   // size just reads as the titlebar's words shrunk.
-  padding: 9px 14px 11px;
-  gap: 5px;
-  font-size: $text-small;
+  padding: 9px $workspace-pill-inline 11px;
   // The app's tab (`tab`): sentence case, as every tab row now is. The bar
   // that slides under the row (`.workspace-tab-group__bar`) is its mark,
   // so the tab draws no line of its own.
   @include tab('.is-active', $underline: false);
+  // In the EQ tab row's own type, on all four pages (Ivan, 2026-11-17: "the
+  // top menu the same size as the menu below", "the same type, both menus
+  // the same"; then "better fix the other pages ... the font changes"):
+  // `$studio-text-row`, semibold, its resting ink and its 8px between glyph
+  // and word, as `.eq-layer-tabs__tab`. Set here and not in a page's head, so
+  // changing page never changes the pills. Hovered and chosen still take the
+  // full ink from `tab`, whose rules for them are more specific than this.
+  gap: 8px;
+  font-size: $studio-text-row;
+  color: color-mix(in srgb, #{$text-primary} 86%, transparent);
 }
 
 // The page's glyph before its word, in the tab's own ink so it lights with it.
+// 16px, as the tab row's, and the game mode's beside the engine's name too.
 .workspace-pill__icon {
   display: inline-grid;
   flex: none;
 
   > svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
+}
+
+.workspace-section-header .engine-strip .game-mode-switch__icon {
+  width: 16px;
+  height: 16px;
 }
 
 // The graph's row of options over a full-screen picture moves in from the
