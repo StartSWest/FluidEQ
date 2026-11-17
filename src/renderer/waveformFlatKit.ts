@@ -101,41 +101,52 @@ export const slots = (
   return pieces;
 };
 
-/**
- * `count` rows on whole device pixels with an even `gap` between each,
- * spanning the box top to bottom, the bottom row first: a background grid's
- * rows (Ivan, 2026-11-16: "for the bg ones you are still missing bit of the
- * top"). Rows of one fixed pitch stacked up from the floor left whatever
- * part of a pitch the box's height did not divide into, up to a whole row,
- * as an empty band under the label row. The pixels left over go one each to
- * rows spread evenly up the grid instead, as `slots` does across.
- */
-export const rowsSpanning = (
-  box: IFlatMeterBox,
-  ratio: number,
-  count: number,
-  gap: number,
-) =>
-  slots({ x: box.y, y: 0, width: box.height, height: 0 }, ratio, count, gap)
-    .reverse()
-    .map(({ x, width }) => ({ y: x, height: width }));
+/** An LED cell's height, whatever the meter's: 4px, as the 54px bar draws it. */
+export const LED_CELL = 4;
 
 /**
- * How many rows the grid over the whole box needs so that the bottom
- * `inMeter` of them fit between `meterTop` and the floor: never fewer, so a
- * row is never taller than the meter's own would be and the lit rows never
- * rise above the meter's top.
+ * Rows of LED cells `cell` tall, bottom row first, spanning the box from
+ * floor to top: as many as fit, never squeezed to fit a count (Ivan,
+ * 2026-11-17: "fix the led ones so they dont compress nor its bg"). A fixed
+ * count of rows made every cell a sliver under 3px, and a hairline in the
+ * short window's 40px bar. The pixels a whole row would not fill go one each
+ * to gaps spread evenly up the column, so the grid still reaches the box's
+ * top (2026-11-16: "for the bg ones you are still missing bit of the top")
+ * and every cell keeps its height on whole device pixels.
  */
-export const gridRowsFor = (
+export const ledRows = (
   box: IFlatMeterBox,
-  meterTop: number,
-  inMeter: number,
+  ratio: number,
+  cell: number,
   gap: number,
 ) => {
-  const floor = box.y + box.height;
-  const meterPitch = Math.max(1e-6, (floor - meterTop + gap) / inMeter);
-  return Math.max(inMeter, Math.ceil((box.height + gap) / meterPitch - 1e-9));
+  const deviceCell = Math.max(1, Math.round(cell * ratio));
+  const deviceGap = Math.max(1, Math.round(gap * ratio));
+  const span = Math.round(box.height * ratio);
+  const count = Math.max(
+    1,
+    Math.floor((span + deviceGap) / (deviceCell + deviceGap)),
+  );
+  const gaps = count - 1;
+  const spare = Math.max(0, span - count * deviceCell - gaps * deviceGap);
+  const rows: { y: number; height: number }[] = [];
+  let bottom = Math.round((box.y + box.height) * ratio);
+  for (let index = 0; index < count; index += 1) {
+    const top = bottom - deviceCell;
+    rows.push({ y: top / ratio, height: deviceCell / ratio });
+    const grows =
+      gaps > 0
+        ? Math.floor(((index + 1) * spare) / gaps) -
+          Math.floor((index * spare) / gaps)
+        : 0;
+    bottom = top - deviceGap - grows;
+  }
+  return rows;
 };
+
+/** How many of `rows` (bottom first) stand wholly inside the meter. */
+export const rowsInMeter = (rows: readonly { y: number }[], meterTop: number) =>
+  Math.max(1, rows.filter(({ y }) => y >= meterTop - 1e-6).length);
 
 /** The bands resampled to `count` pieces, each the loudest band it covers. */
 export const resample = (bands: readonly number[], count: number): number[] => {

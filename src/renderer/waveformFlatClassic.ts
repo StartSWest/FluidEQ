@@ -12,8 +12,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   type TPainter,
   BODY_TINT,
+  LED_CELL,
   across,
   countFor,
+  ledRows,
   mirroredEdges,
   resample,
   silhouette,
@@ -179,22 +181,20 @@ const CLASSIC_PAINTERS: Record<
     const { box, ratio } = input;
     const row = slots(box, ratio, countFor(box, 10, 20, 56), 3);
     const values = resample(input.bands, row.length);
-    const gap = snap(2, ratio);
-    const rungs = 7;
-    const rung = snap((box.height - gap * (rungs - 1)) / rungs, ratio);
-    const floor = box.y + box.height;
+    // Rungs of one height, as many as the box holds (`ledRows`).
+    const rungs = ledRows(box, ratio, LED_CELL, 2);
     const bodies = new Path2D();
     const tops = new Path2D();
     row.forEach(({ x, width }, index) => {
-      const lit = Math.max(1, Math.round(values[index] * rungs));
+      const lit = Math.max(1, Math.round(values[index] * rungs.length));
       for (let level = 0; level < lit; level += 1) {
-        const top = snap(floor - (level + 1) * rung - level * gap, ratio);
+        const { y, height } = rungs[level];
         // The top lit rung carries the light, as a held value does.
         (level === lit - 1 && lit > 1 ? tops : bodies).rect(
           x,
-          top,
+          y,
           width,
-          rung,
+          height,
         );
       }
     });

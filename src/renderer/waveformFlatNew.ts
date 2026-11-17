@@ -13,10 +13,11 @@ import {
   HOT,
   WARM,
   across,
+  LED_CELL,
   countFor,
-  gridRowsFor,
+  ledRows,
   resample,
-  rowsSpanning,
+  rowsInMeter,
   silhouette,
   slots,
   snap,
@@ -25,6 +26,14 @@ import {
   tint,
   traceCurve,
 } from './waveformFlatKit';
+import { FLAT_HISTORY_LENGTH } from './waveformFlatState';
+
+/**
+ * The fewest LED rows that get an amber one under the red: in the short
+ * window's bar the meter holds three, and two of them warm read as a meter
+ * always in the red.
+ */
+const WARM_FROM_ROWS = 5;
 
 const NEW_PAINTERS: Record<
   | 'peaks'
@@ -73,15 +82,10 @@ const NEW_PAINTERS: Record<
     const { box, ratio } = input;
     const row = slots(box, ratio, countFor(box, 13, 16, 44), 3);
     const values = resample(input.bands, row.length);
-    const cells = 8;
-    const gap = snap(2, ratio);
-    // Eight cells in the meter; the grid carries on, unlit, to the box's top.
-    const grid = rowsSpanning(
-      box,
-      ratio,
-      gridRowsFor(box, input.meterTop, cells, gap),
-      gap,
-    );
+    // Cells of one height; as many as the meter holds light, and the grid
+    // carries on, unlit, to the box's top.
+    const grid = ledRows(box, ratio, LED_CELL, 2);
+    const cells = rowsInMeter(grid, input.meterTop);
     const groups = {
       unlit: new Path2D(),
       body: new Path2D(),
@@ -95,7 +99,7 @@ const NEW_PAINTERS: Record<
         if (level < lit) {
           if (level === cells - 1) {
             group = 'hot';
-          } else if (level === cells - 2) {
+          } else if (level === cells - 2 && cells >= WARM_FROM_ROWS) {
             group = 'warm';
           } else {
             group = 'body';
@@ -217,16 +221,12 @@ const NEW_PAINTERS: Record<
   waterfall(context, input) {
     const { box, ratio } = input;
     const row = slots(box, ratio, countFor(box, 8.5, 24, 64), 2);
-    const rows = 8;
-    const gap = snap(2, ratio);
-    // Eight rows of the past in the meter, the bottom eight of the grid and
-    // newest at their top; the grid carries on, unlit, above it to the box's
-    // top.
-    const grid = rowsSpanning(
-      box,
-      ratio,
-      gridRowsFor(box, input.meterTop, rows, gap),
-      gap,
+    // A row of the past for every LED row the meter holds, newest at their
+    // top; the grid carries on, unlit, above it to the box's top.
+    const grid = ledRows(box, ratio, LED_CELL, 2);
+    const rows = Math.min(
+      FLAT_HISTORY_LENGTH,
+      rowsInMeter(grid, input.meterTop),
     );
     context.fillStyle = input.unlit;
     grid.slice(rows).forEach(({ y, height }) => {
