@@ -582,6 +582,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color 180ms ease,
     background 180ms ease,
     box-shadow 180ms ease;
+}
+
+// Every key but Play is the plain tier in the accent. Play is not on it at
+// all: the tier's ink rule carries a :not() and so outweighed Play's own, and
+// the glyph came out in the accent's light - white on the light disc (Ivan,
+// 2026-11-17: "the icon ... is white. It doesn't look right").
+.now-playing-bar__control:not(.now-playing-bar__play) {
   @include button-plain-accent;
 }
 
@@ -607,16 +614,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: $secondary-default;
   // Flat (2026-11-17): the lit pixel along its top read as shine.
   box-shadow: none;
+  cursor: pointer;
 
   &:hover:not(:disabled) {
-    color: $surface-base;
     background: $secondary-light;
+  }
+
+  // A disc filled with the accent shows its focus 2px clear.
+  &:focus-visible {
+    @include focus-outline(2px);
   }
 
   // The same disc at half light, as every unavailable control.
   &:disabled {
-    color: $surface-base;
-    background: $secondary-default;
+    @include control-disabled;
   }
 }
 

@@ -100,9 +100,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     transition:
       color 180ms ease,
       background 180ms ease;
-    // The player's transport keys (`button-plain-accent`), as the Library
-    // player's are.
-    @include button-plain-accent;
 
     small {
       position: absolute;
@@ -120,6 +117,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       border: 1px solid $edge-lit;
       border-radius: 50%;
     }
+  }
+
+  // The player's transport keys (`button-plain-accent`), as the Library
+  // player's are - all but Play, which is not on the tier at all: its ink
+  // rule carries a :not() and outweighed Play's own, so the glyph came out
+  // in the accent's light on the accent (Ivan, 2026-11-17: "the icon ... is
+  // white").
+  .button.karaoke-transport__control:not(.karaoke-transport__play) {
+    @include button-plain-accent;
   }
 
   // Play: the one solid key, as the Library player's.
