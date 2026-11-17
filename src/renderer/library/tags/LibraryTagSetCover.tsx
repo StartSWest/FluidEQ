@@ -29,6 +29,8 @@ interface ILibraryTagSetCoverProps {
   tracks: ReadonlyMap<string, ILibraryTrack | null>;
   cover: IDraftCover | null | undefined;
   onCover: (cover: IDraftCover | null | undefined) => void;
+  /** The album and its artist as the page has them, for a cover search. */
+  search?: { artist?: string; album?: string };
 }
 
 /**
@@ -41,6 +43,7 @@ const LibraryTagSetCover = ({
   tracks,
   cover,
   onCover,
+  search,
 }: ILibraryTagSetCoverProps) => {
   const { t } = useTranslation();
   const artIds = sheets.map((sheet) => tracks.get(sheet.trackId)?.artId);
@@ -102,6 +105,7 @@ const LibraryTagSetCover = ({
       draft={cover}
       size="set"
       stack={stack}
+      search={search}
       choices={distinct.flatMap((artId) => {
         const sheet = sheets.find(
           (each) =>

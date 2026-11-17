@@ -257,6 +257,12 @@ const libraryTags = {
   'library.tags.cover.useOne': 'En utiliser une pour toutes les chansons',
   'library.tags.cover.useThis':
     'Utiliser cette pochette pour toutes les chansons',
+  'library.tags.cover.searchWeb': 'Chercher la pochette sur Internet…',
+  'library.tags.cover.searchHint':
+    'Dans le navigateur, copiez l’image voulue puis choisissez Coller, ou faites-la glisser sur la pochette.',
+  'library.tags.set.searchWeb': 'Chercher l’album sur Internet',
+  'library.tags.set.searchWebNote':
+    'Ouvre l’album sur MusicBrainz dans votre navigateur. FluidEQ ne télécharge rien.',
   'library.tags.write.undoAsk':
     'Remettre les anciens tags de {count} fichiers ?',
   'library.tags.write.undoAskOne': 'Remettre les anciens tags de 1 fichier ?',

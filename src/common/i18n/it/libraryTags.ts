@@ -253,6 +253,12 @@ const libraryTags = {
   'library.tags.changes.coverRemoved': 'Rimossa',
   'library.tags.cover.useOne': 'Usane una per tutti i brani',
   'library.tags.cover.useThis': 'Usa questa copertina per tutti i brani',
+  'library.tags.cover.searchWeb': 'Cerca la copertina su Internet…',
+  'library.tags.cover.searchHint':
+    'Nel browser, copia l’immagine che vuoi e scegli Incolla, oppure trascinala sulla copertina.',
+  'library.tags.set.searchWeb': 'Cerca l’album su Internet',
+  'library.tags.set.searchWebNote':
+    'Apre l’album su MusicBrainz nel browser. FluidEQ non scarica nulla.',
   'library.tags.write.undoAsk':
     'Ripristinare i tag precedenti di {count} file?',
   'library.tags.write.undoAskOne': 'Ripristinare i tag precedenti di 1 file?',

@@ -248,6 +248,12 @@ const libraryTags = {
   'library.tags.changes.coverRemoved': '삭제됨',
   'library.tags.cover.useOne': '하나를 모든 곡에 사용',
   'library.tags.cover.useThis': '이 커버를 모든 곡에 사용',
+  'library.tags.cover.searchWeb': '인터넷에서 커버 찾기…',
+  'library.tags.cover.searchHint':
+    '브라우저에서 원하는 이미지를 복사해 붙여넣기를 선택하거나 커버 위로 끌어다 놓으세요.',
+  'library.tags.set.searchWeb': '인터넷에서 앨범 찾기',
+  'library.tags.set.searchWebNote':
+    '브라우저에서 MusicBrainz의 앨범을 엽니다. FluidEQ는 아무것도 내려받지 않습니다.',
   'library.tags.write.undoAsk': '{count}개 파일의 이전 태그를 되돌릴까요?',
   'library.tags.write.undoAskOne': '파일 1개의 이전 태그를 되돌릴까요?',
   'library.tags.write.undoKeep': '아니요',

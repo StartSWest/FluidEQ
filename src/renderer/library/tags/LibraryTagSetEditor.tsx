@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { type KeyboardEvent, useEffect, useMemo, useState } from 'react';
 import { isPlaceholderName } from '../../../common/library/tagFix';
 import type { TTagFieldKey } from '../../../common/library/tagFields';
+import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import { useLibraryPlayerSessionIfAny } from '../player/LibraryPlayerContext';
 import { useLibraryTracks } from '../useLibraryTracks';
@@ -49,6 +50,7 @@ import {
 } from './tagSetModel';
 import { pendingChangesOf } from './tagChanges';
 import { useEditorFix } from './useEditorFix';
+import { albumSearchUrl, openInBrowser } from './tagWebSearch';
 import { useTagSheets } from './useTagSheets';
 
 /** Beside the cover, what most albums need. */
@@ -181,6 +183,22 @@ const LibraryTagSetEditor = () => {
     topArtist.count * 2 > ordered.length
       ? topArtist.value
       : undefined;
+  // The album as the page has it now, typed or read, for a search opened
+  // in the browser: a value the songs share, never a placeholder.
+  const sharedValue = (key: TTagFieldKey): string | undefined => {
+    const typed = state.shared[key];
+    if (typed !== undefined) {
+      return typed;
+    }
+    const [top] = fieldValues(ordered, key);
+    return top && top.value !== '' && !isPlaceholderName(top.value)
+      ? top.value
+      : undefined;
+  };
+  const search = {
+    artist: sharedValue('albumArtist') ?? sharedValue('artist'),
+    album: sharedValue('album'),
+  };
   const unreadable = sheets.readCount - ordered.length;
   const moreLabel = MORE_FIELDS.map((key) => t(FIELD_LABEL_KEYS[key])).join(
     ', ',
@@ -212,6 +230,22 @@ const LibraryTagSetEditor = () => {
               onClick={fix.stopChoosing}
             >
               {t('library.tags.fix.editByHand')}
+            </button>
+          )}
+          {!fix.isChoosing && (
+            <button
+              type="button"
+              className="button small subtle library-tags-set__web"
+              disabled={
+                search.album === undefined && search.artist === undefined
+              }
+              title={t('library.tags.set.searchWebNote')}
+              onClick={() =>
+                openInBrowser(albumSearchUrl(search.artist, search.album))
+              }
+            >
+              <MenuIcon name="external" />
+              {t('library.tags.set.searchWeb')}
             </button>
           )}
           {!fix.isChoosing && (
@@ -283,6 +317,7 @@ const LibraryTagSetEditor = () => {
                 sheets={ordered}
                 tracks={tracks}
                 cover={state.cover}
+                search={search}
                 onCover={(cover) =>
                   setState((current) => ({ ...current, cover }))
                 }

@@ -264,6 +264,12 @@ const libraryTags = {
   'library.tags.changes.coverRemoved': 'Removed',
   'library.tags.cover.useOne': 'Use one for every song',
   'library.tags.cover.useThis': 'Use this cover for every song',
+  'library.tags.cover.searchWeb': 'Search for the cover online…',
+  'library.tags.cover.searchHint':
+    'In your browser, copy the picture you want and press Paste, or drag it onto the cover.',
+  'library.tags.set.searchWeb': 'Look up the album online',
+  'library.tags.set.searchWebNote':
+    'Opens the album on MusicBrainz in your browser. FluidEQ downloads nothing.',
   'library.tags.write.undoAsk': 'Put back the old tags of {count} files?',
   'library.tags.write.undoAskOne': 'Put back the old tags of 1 file?',
   'library.tags.write.undoKeep': 'No',

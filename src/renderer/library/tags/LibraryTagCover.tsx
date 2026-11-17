@@ -28,6 +28,7 @@ import {
   type TCoverRead,
 } from './tagCover';
 import type { IDraftCover } from './tagDrafts';
+import { coverSearchUrl, openInBrowser } from './tagWebSearch';
 
 interface ILibraryTagCoverProps {
   /** The Library's thumbnail of what the file carries now. */
@@ -50,6 +51,8 @@ interface ILibraryTagCoverProps {
    * portadas distintas ... poder escoger ... y que se cambien en todas").
    */
   choices?: ReadonlyArray<{ trackId: string; artId: string }>;
+  /** The album and its artist, for a cover search opened in the browser. */
+  search?: { artist?: string; album?: string };
   size: 'panel' | 'set';
 }
 
@@ -69,11 +72,14 @@ const LibraryTagCover = ({
   canRemove,
   stack,
   choices = [],
+  search,
   size,
 }: ILibraryTagCoverProps) => {
   const { t } = useTranslation();
   const [isDragOver, setIsDragOver] = useState(false);
   const [refusal, setRefusal] = useState<string | undefined>(undefined);
+  // After a search opened in the browser: how a picture found there comes in.
+  const [isSearchHintShown, setIsSearchHintShown] = useState(false);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -103,6 +109,7 @@ const LibraryTagCover = ({
   const take = (read: TCoverRead) => {
     if (read.state === 'ok') {
       setRefusal(undefined);
+      setIsSearchHintShown(false);
       onPick(read.cover);
     } else if (read.state === 'refused') {
       setRefusal(t('library.tags.cover.refused'));
@@ -252,6 +259,19 @@ const LibraryTagCover = ({
           <MenuIcon name="copyText" className="library-list__menu-icon" />
           <span>{t('library.tags.cover.pasteImage')}</span>
         </button>
+        {search && (
+          <button
+            type="button"
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsSearchHintShown(true);
+              openInBrowser(coverSearchUrl(search.artist, search.album));
+            }}
+          >
+            <MenuIcon name="external" className="library-list__menu-icon" />
+            <span>{t('library.tags.cover.searchWeb')}</span>
+          </button>
+        )}
         {(canRemove || draft) && draft !== null && (
           <button
             type="button"
@@ -270,6 +290,11 @@ const LibraryTagCover = ({
         {refusal && (
           <p className="library-tags__note is-warning" role="alert">
             {refusal}
+          </p>
+        )}
+        {isSearchHintShown && !refusal && (
+          <p className="library-tags__note" role="status">
+            {t('library.tags.cover.searchHint')}
           </p>
         )}
       </div>

@@ -72,8 +72,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-bottom: 18px;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+
+  // Back alone at the left; whatever follows it stands together at the
+  // right.
+  > :nth-child(2) {
+    margin-left: auto;
+  }
+}
+
+// Opens the album's page in the browser: the app itself fetches nothing.
+.library-tags-set__web {
+  gap: 6px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .library-tags-set__fix {

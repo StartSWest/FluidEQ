@@ -253,6 +253,12 @@ const libraryTags = {
   'library.tags.changes.coverRemoved': '削除',
   'library.tags.cover.useOne': '1 枚をすべての曲に使う',
   'library.tags.cover.useThis': 'このジャケットをすべての曲に使う',
+  'library.tags.cover.searchWeb': 'ジャケットをネットで探す…',
+  'library.tags.cover.searchHint':
+    'ブラウザーで好きな画像をコピーして「貼り付け」を選ぶか、ジャケットの上にドラッグしてください。',
+  'library.tags.set.searchWeb': 'アルバムをネットで調べる',
+  'library.tags.set.searchWebNote':
+    'ブラウザーで MusicBrainz のアルバムを開きます。FluidEQ は何もダウンロードしません。',
   'library.tags.write.undoAsk': '{count} 個のファイルのタグを元に戻しますか？',
   'library.tags.write.undoAskOne': '1 個のファイルのタグを元に戻しますか？',
   'library.tags.write.undoKeep': 'いいえ',

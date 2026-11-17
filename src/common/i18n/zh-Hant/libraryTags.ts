@@ -236,6 +236,12 @@ const libraryTags = {
   'library.tags.changes.coverRemoved': '移除',
   'library.tags.cover.useOne': '選一張用於所有歌曲',
   'library.tags.cover.useThis': '將此封面用於所有歌曲',
+  'library.tags.cover.searchWeb': '在網路上搜尋封面…',
+  'library.tags.cover.searchHint':
+    '在瀏覽器中複製想要的圖片，然後選擇貼上，或把它拖到封面上。',
+  'library.tags.set.searchWeb': '在網路上查找專輯',
+  'library.tags.set.searchWebNote':
+    '在瀏覽器中開啟 MusicBrainz 上的專輯。FluidEQ 不會下載任何內容。',
   'library.tags.write.undoAsk': '要還原 {count} 個檔案之前的標籤嗎？',
   'library.tags.write.undoAskOne': '要還原 1 個檔案之前的標籤嗎？',
   'library.tags.write.undoKeep': '不',

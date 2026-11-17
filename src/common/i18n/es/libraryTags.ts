@@ -255,6 +255,12 @@ const libraryTags = {
   'library.tags.changes.coverRemoved': 'Se quita',
   'library.tags.cover.useOne': 'Usar una en todas las canciones',
   'library.tags.cover.useThis': 'Usar esta portada en todas las canciones',
+  'library.tags.cover.searchWeb': 'Buscar portada en internet…',
+  'library.tags.cover.searchHint':
+    'En el navegador, copia la imagen que quieras y pulsa Pegar, o arrástrala sobre la portada.',
+  'library.tags.set.searchWeb': 'Buscar el álbum en internet',
+  'library.tags.set.searchWebNote':
+    'Abre el álbum en MusicBrainz, en tu navegador. FluidEQ no descarga nada.',
   'library.tags.write.undoAsk':
     '¿Devolver las etiquetas anteriores a {count} archivos?',
   'library.tags.write.undoAskOne':

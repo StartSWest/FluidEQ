@@ -254,6 +254,12 @@ const libraryTags = {
   'library.tags.changes.coverRemoved': 'हटाया जाएगा',
   'library.tags.cover.useOne': 'एक को सभी गानों के लिए इस्तेमाल करें',
   'library.tags.cover.useThis': 'यह कवर सभी गानों के लिए इस्तेमाल करें',
+  'library.tags.cover.searchWeb': 'इंटरनेट पर कवर खोजें…',
+  'library.tags.cover.searchHint':
+    'ब्राउज़र में अपनी पसंद की तस्वीर कॉपी करें और चिपकाएँ चुनें, या उसे कवर पर खींचकर छोड़ें।',
+  'library.tags.set.searchWeb': 'इंटरनेट पर एल्बम खोजें',
+  'library.tags.set.searchWebNote':
+    'आपके ब्राउज़र में MusicBrainz पर एल्बम खोलता है। FluidEQ कुछ भी डाउनलोड नहीं करता।',
   'library.tags.write.undoAsk': '{count} फ़ाइलों के पुराने टैग वापस लाएँ?',
   'library.tags.write.undoAskOne': '1 फ़ाइल के पुराने टैग वापस लाएँ?',
   'library.tags.write.undoKeep': 'नहीं',

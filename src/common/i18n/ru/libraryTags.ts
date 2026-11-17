@@ -258,6 +258,12 @@ const libraryTags = {
   'library.tags.changes.coverRemoved': 'Удаляется',
   'library.tags.cover.useOne': 'Одну для всех песен',
   'library.tags.cover.useThis': 'Эту обложку для всех песен',
+  'library.tags.cover.searchWeb': 'Найти обложку в интернете…',
+  'library.tags.cover.searchHint':
+    'В браузере скопируйте нужное изображение и выберите «Вставить» или перетащите его на обложку.',
+  'library.tags.set.searchWeb': 'Найти альбом в интернете',
+  'library.tags.set.searchWebNote':
+    'Открывает альбом на MusicBrainz в браузере. FluidEQ ничего не скачивает.',
   'library.tags.write.undoAsk': 'Вернуть прежние теги файлов: {count}?',
   'library.tags.write.undoAskOne': 'Вернуть прежние теги 1 файла?',
   'library.tags.write.undoKeep': 'Нет',

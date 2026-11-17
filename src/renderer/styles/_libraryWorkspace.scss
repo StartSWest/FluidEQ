@@ -683,6 +683,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     position: static;
     width: auto;
   }
+
+  // Over a tag page with its Save line, the corner stands above that line:
+  // laid over it, the write's card hid Save (Ivan, 2026-11-16: "move this
+  // on top of the save button so it doesn't hide it").
+  .library-workspace:has(.library-tags-set__foot) & {
+    bottom: $spacing-l + 64px;
+  }
 }
 
 // Two rows: what is being read with the way to put the notice away at its

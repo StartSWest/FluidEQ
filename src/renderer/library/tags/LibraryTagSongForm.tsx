@@ -159,6 +159,10 @@ const LibraryTagSongForm = ({
         <LibraryTagCover
           artId={track?.artId}
           folderOf={sheet.trackId}
+          search={{
+            artist: value('albumArtist') || value('artist'),
+            album: value('album') || title,
+          }}
           label={title}
           draft={current.cover}
           size="panel"
