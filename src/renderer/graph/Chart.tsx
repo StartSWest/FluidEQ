@@ -60,8 +60,10 @@ import ScenePlot from './ScenePlot';
 import SceneTroubleState from './SceneTroubleState';
 import { useSceneTrouble } from './sceneTrouble';
 import {
+  FOOT_ROW_REACH,
   frequencyGridFor,
   frequencyLabelTicksFor,
+  SIDE_LABEL_INSET,
   gainAxisTicksFor,
   GAIN_GRID_TICKS,
   getAxisPadding,
@@ -75,6 +77,7 @@ import {
   UNITY_TICKS,
 } from './graphPaper';
 import { graphLevelTickFormat } from './liveGraphBand';
+import axisLabelWidth from './axisLabelWidth';
 
 export interface ChartDimensions {
   height: number;
@@ -261,10 +264,52 @@ const Chart = ({
   // Every step of every decade on screen, from the range the plot shows.
   const [frequencyLow, frequencyHigh] = xScaleFreq.domain().map(Number);
   const frequencyGrid = frequencyGridFor(frequencyLow, frequencyHigh);
-  const frequencyLabelTicks = useMemo(
-    () => frequencyLabelTicksFor(xScaleFreq),
-    [xScaleFreq],
-  );
+  // The right-hand level scale, where it is drawn (see its `Axis` below).
+  const showsLevelAxis =
+    levelAxisSuitsLook(look.style) && liveCurves.length > 0;
+  const levelFormat = hasScene ? levelTickFormat : graphLevelTickFormat;
+  // The foot's row is shared: each side scale's lowest figures stand on it,
+  // on the same baseline as the frequency names (`_graphThemeChart.scss`).
+  // The names keep clear of whichever of those figures are drawn there, by
+  // their widths in the font on screen (`frequencyLabelTicksFor`).
+  const frequencyLabelTicks = useMemo(() => {
+    const floor = svgHeight - padding.bottom;
+    const onFootRow = (y: number) => Math.abs(floor - y) < FOOT_ROW_REACH;
+    const reservedBy = (
+      values: readonly number[],
+      scale: (value: number) => number,
+      format: (value: number) => string,
+    ) => {
+      const widest = Math.max(
+        0,
+        ...values
+          .filter((value) => onFootRow(Number(scale(value))))
+          .map((value) => axisLabelWidth(format(value))),
+      );
+      return SIDE_LABEL_INSET + widest;
+    };
+    return frequencyLabelTicksFor(xScaleFreq, {
+      nameWidth: (hz) => axisLabelWidth(xTickFormat(hz)),
+      reserved: [
+        reservedBy(gainTickValues, yScaleEq, yTickFormat),
+        showsLevelAxis
+          ? reservedBy(liveLevelTickValues, liveLevelScale, levelFormat)
+          : SIDE_LABEL_INSET,
+      ],
+    });
+  }, [
+    xScaleFreq,
+    svgHeight,
+    padding.bottom,
+    gainTickValues,
+    yScaleEq,
+    yTickFormat,
+    xTickFormat,
+    showsLevelAxis,
+    liveLevelTickValues,
+    liveLevelScale,
+    levelFormat,
+  ]);
   const eqGradientStops: IChartGradientStop[] =
     data.find((curve) => curve.id === 'EQ Response')?.line.gradientStops || [];
 
@@ -691,14 +736,14 @@ const Chart = ({
             is bottom up ... matching those?"). Absent too while no wave is
             drawn — hidden, or a chart of the layers alone (the Gaming Lab's
             Curve stage) — when there is nothing on the plot it measures. */}
-          {levelAxisSuitsLook(look.style) && liveCurves.length > 0 ? (
+          {showsLevelAxis ? (
             <Axis
               type="left"
               className="chart-axis--inside"
               scale={liveLevelScale}
               transform={`translate(${padding.left + plotWidth}, 0)`}
               tickValues={liveLevelTickValues}
-              tickFormat={hasScene ? levelTickFormat : graphLevelTickFormat}
+              tickFormat={levelFormat}
               disableAnimation
             />
           ) : null}

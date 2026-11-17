@@ -23,6 +23,16 @@ it under the terms of the GNU General Public License version 3 or later.
 // fill, a scene or a light theme's paper alike ("a bit less white ... black
 // text borders so they can be seen on light or dark themes"). The key is the
 // one the karaoke words wear over a scene.
+// In the window's own face. d3 writes `font-family="sans-serif"` on every
+// axis it draws, and the figures were set in the browser's generic sans —
+// Arial on Windows, DejaVu on Linux — beside controls in Segoe UI, Ubuntu or
+// San Francisco: the one place in the window drawn in another face. A rule
+// on the axis's own group outranks the attribute.
+.chart-axis--inside,
+.chart-axis--inside-bottom {
+  font-family: $font-ui;
+}
+
 .chart-axis--inside text {
   fill: $text-muted;
   stroke: rgba(2, 8, 15, 0.75);
@@ -38,18 +48,23 @@ it under the terms of the GNU General Public License version 3 or later.
   transform: translateY(calc(0.4em + 3px));
 }
 
-// The frequency names inside the plot's foot, in the side scales' face. The
-// axis stands on the plot's floor and d3 puts a bottom axis's names under
-// it (9px down, then 0.71em to the baseline); lifted by that and a line, so
-// each name's foot stands 5px above the floor, on the compressed band no
-// band reaches (`graphPaper.ts`, `GRID_AXIS_PADDING`).
+// The frequency names inside the plot's foot, in the side scales' face and
+// on their baseline: one row with "−60 dB" and "−80 dB" at its ends (Ivan,
+// 2026-11-17: "make sure they show either on same line or above those dB
+// numbers"). A side figure's baseline is its tick less 3px (its 0.32em
+// `dy` taken back above, then the gap), and the corner figures' ticks are
+// the floor. The axis stands on the floor and d3 puts a bottom axis's
+// baseline 9px + 0.71em under it, so lifting by that and 3px more lands the
+// names on the same line. Set by eye at 1em + 14px, they stood 6px over the
+// corner figures at every size. On the compressed band no band reaches
+// (`graphPaper.ts`, `GRID_AXIS_PADDING`).
 .chart-axis--inside-bottom text {
   fill: $text-muted;
   stroke: rgba(2, 8, 15, 0.75);
   stroke-width: 3px;
   stroke-linejoin: round;
   paint-order: stroke;
-  transform: translateY(calc(-1em - 14px));
+  transform: translateY(calc(-0.71em - 12px));
 }
 
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency

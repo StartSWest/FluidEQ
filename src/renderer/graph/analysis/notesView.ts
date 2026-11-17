@@ -17,6 +17,12 @@ import {
   type IBarView,
 } from './barRows';
 import { readFractionalBands } from './octaveBands';
+import {
+  footWordFont,
+  footWordLine,
+  paintKeyedWord,
+  placeFootWord,
+} from './footWords';
 
 /**
  * The Note spectrum: the same sound, cut into semitones.
@@ -124,19 +130,41 @@ const paintNoteRules = (frame: IAnalysisFrame): void => {
   context.globalAlpha = 1;
 };
 
-/** Each C's name along the foot, over whatever drew the view. */
+/**
+ * How the Cs are lettered: a step quieter than the frequency names (0.75rem
+ * at full muted white) so the two rows read as a scale and its notes, and
+ * well clear of invisible — they were 9px at a fifth of white's strength.
+ */
+const NOTE_WORD_SIZE = 10;
+const NOTE_WORD_INK = 'rgba(214, 233, 247, 0.8)';
+
+/**
+ * Each C's name along the foot, over whatever drew the view, on the row of
+ * its own above the frequency names (`footWords.ts`). A C whose name cannot
+ * stand clear of the side scales or of the C before it is left unnamed; its
+ * rule still stands.
+ */
 export const paintNoteWords = (frame: IAnalysisFrame): void => {
-  const { context, band } = frame;
-  const foot = band.flipped ? band.top : band.bottom;
-  const inward = band.flipped ? 1 : -1;
+  const { context, band, plot } = frame;
+  // At full strength on any copy that shows at all, as the scales' figures
+  // are, never at the copy's own: the live wave is drawn back to the
+  // supporting curves' strength whenever the EQ is the foreground
+  // (`SUPPORTING_CURVE_OPACITY`), and the Cs went back with it, to a ghost
+  // between the bars. They are a scale, not part of the figure.
+  if (band.opacity <= 0) {
+    return;
+  }
+  const line = footWordLine(band);
+  const placed: { from: number; to: number }[] = [];
   context.save();
-  context.font = '600 9px system-ui, sans-serif';
+  context.font = footWordFont(600, NOTE_WORD_SIZE);
   context.textAlign = 'center';
-  context.textBaseline = band.flipped ? 'top' : 'bottom';
-  context.globalAlpha = band.opacity * 0.5;
-  context.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  context.textBaseline = line.baseline;
+  context.globalAlpha = 1;
   noteMarks(frame).forEach(({ x, name }) => {
-    context.fillText(name, x, foot + inward * 3);
+    if (placeFootWord(plot, placed, x, context.measureText(name).width)) {
+      paintKeyedWord(context, name, x, line.y, NOTE_WORD_INK);
+    }
   });
   context.restore();
   context.globalAlpha = 1;

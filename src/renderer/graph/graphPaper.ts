@@ -374,18 +374,48 @@ export const gainAxisTicksFor = (
 };
 
 /**
- * Room each frequency label needs: "10k Hz" at 0.75rem is about forty pixels,
- * and a label hard against the next one reads as a single word.
+ * Air between two frequency names, and between a name and a side scale's
+ * figure on the same row: a name hard against the next reads as one word
+ * ("20 Hz100 Hz"), and one hard against "−80 dB" as one figure.
  */
-const FREQUENCY_LABEL_SPACING = 52;
+const FREQUENCY_LABEL_AIR = 12;
 
 /**
- * How far in from each end of the plot a frequency name may stand. The names
- * are inside the plot's foot now, on the line the corner figures of the side
- * scales stand on ("−60 dB" on the left, "−80 dB" on the right, about 45px
- * each and 9px in), and a name at the very edge sat on the card's border.
+ * How far in from the plot's edge a side scale's figures start: d3's tick
+ * (6px) and its padding (3px). `Axis` takes the tick line away and the text
+ * keeps its place.
  */
-const FREQUENCY_LABEL_EDGE = 60;
+export const SIDE_LABEL_INSET = 9;
+
+/**
+ * How near the foot a side scale's tick has to be for its figure to share
+ * the frequency names' row: the figure stands 3px over its tick and is about
+ * 12px tall, so a tick within one line and its air of the floor puts the
+ * figure across the names.
+ */
+export const FOOT_ROW_REACH = 16;
+
+/**
+ * What a name's room is judged by: how wide each name is drawn, and how much
+ * of the foot's row each side scale's figures already take, from the plot's
+ * edge. Measured by the chart in the font on screen (`axisLabelWidth.ts`).
+ */
+export interface IFrequencyLabelRoom {
+  nameWidth: (hz: number) => number;
+  reserved: readonly [number, number];
+}
+
+/**
+ * The room a caller that measures nothing gets: every name forty pixels wide
+ * ("10k Hz" at 0.75rem) and forty kept clear at each end, which is the rule
+ * the names were placed by before the chart measured them — a name's centre
+ * 60px from either edge and 52px from the next. The Studio's paper still
+ * places its names by it (`studioPaper.ts`).
+ */
+const ESTIMATED_ROOM: IFrequencyLabelRoom = {
+  nameWidth: () => 40,
+  reserved: [40, 40],
+};
 
 /**
  * The names along the foot: the 1-2-5 steps first, the series every pro
@@ -395,9 +425,18 @@ const FREQUENCY_LABEL_EDGE = 60;
  * the 3s and 4s — 30, 40, 300 — only where the room is there. Thinned by
  * pixels, never by a list per width: a narrow panel ran "20 Hz100 Hz200 Hz"
  * together into one smear; the lines stay on every step, only names go.
+ *
+ * A name is kept only if its whole box clears the side scales' figures on
+ * its row and the names already kept, by `FREQUENCY_LABEL_AIR`; one that
+ * cannot is dropped, never squeezed. The edge used to be judged from the
+ * name's centre, 60px in, while d3 centres a bottom axis's text on its tick:
+ * "16k Hz" reached 40px from the right edge and "−80 dB" took 54, so at
+ * 2560px the two ran into each other (Ivan, 2026-11-17: "things not good on
+ * those numbers").
  */
 export const frequencyLabelTicksFor = (
   frequency: ScaleLogarithmic<number, number>,
+  room: IFrequencyLabelRoom = ESTIMATED_ROOM,
 ): number[] => {
   const [low, high] = frequency.domain().map(Number);
   const [left, right] = frequency.range().map(Number);
@@ -411,28 +450,30 @@ export const frequencyLabelTicksFor = (
   const extra = steps
     .filter(({ step }) => step === 3 || step === 4)
     .map(({ hz }) => hz);
-  const fits = (x: number) =>
-    x - left >= FREQUENCY_LABEL_EDGE && right - x >= FREQUENCY_LABEL_EDGE;
-  const kept: number[] = [];
-  const isClear = (x: number) =>
-    kept.every(
-      (hz) => Math.abs(Number(frequency(hz)) - x) >= FREQUENCY_LABEL_SPACING,
-    );
-  [...named]
-    .sort((a, b) => a - b)
-    .forEach((hz) => {
-      const x = Number(frequency(hz));
-      if (fits(x) && isClear(x)) {
-        kept.push(hz);
-      }
-    });
-  extra.forEach((hz) => {
+  const boxOf = (hz: number) => {
     const x = Number(frequency(hz));
-    if (fits(x) && isClear(x)) {
-      kept.push(hz);
+    const half = room.nameWidth(hz) / 2;
+    return { from: x - half, to: x + half };
+  };
+  const fits = ({ from, to }: { from: number; to: number }) =>
+    from - left >= room.reserved[0] + FREQUENCY_LABEL_AIR &&
+    right - to >= room.reserved[1] + FREQUENCY_LABEL_AIR;
+  const kept: { hz: number; from: number; to: number }[] = [];
+  const isClear = ({ from, to }: { from: number; to: number }) =>
+    kept.every(
+      (other) =>
+        from >= other.to + FREQUENCY_LABEL_AIR ||
+        to <= other.from - FREQUENCY_LABEL_AIR,
+    );
+  const offer = (hz: number) => {
+    const box = boxOf(hz);
+    if (fits(box) && isClear(box)) {
+      kept.push({ hz, ...box });
     }
-  });
-  return kept.sort((a, b) => a - b);
+  };
+  [...named].sort((a, b) => a - b).forEach(offer);
+  extra.forEach(offer);
+  return kept.map(({ hz }) => hz).sort((a, b) => a - b);
 };
 
 /**

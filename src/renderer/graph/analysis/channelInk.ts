@@ -132,11 +132,14 @@ export interface ILegendEntry {
 }
 
 /**
- * Room left under the legend: clear of the names two views print along the
- * floor — the octave Cs of the note spectrum, the bands of the energy view —
- * which stand in the fourteen pixels above it.
+ * Room left under the legend: clear of the graph's frequency names, which
+ * stand inside the plot's foot, and of the row two views print above them —
+ * the octave Cs of the note spectrum, the bands of the energy view — whose
+ * baseline is 17px up and whose letters reach about 25 (`footWords.ts`). At
+ * 20 the key stood on those letters. The same on every view, so the key
+ * does not jump when the look changes.
  */
-const LEGEND_FLOOR = 20;
+const LEGEND_FLOOR = 30;
 
 /**
  * How far in from the plot's left edge the key starts: clear of the gain

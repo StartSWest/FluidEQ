@@ -18,6 +18,7 @@ import {
   type IBarView,
 } from './barRows';
 import { readNamedBands } from './octaveBands';
+import { footWordFont, footWordLine } from './footWords';
 
 /**
  * Energy bands: the whole record as five meters.
@@ -146,18 +147,20 @@ export const paintEnergyWords = (
   const front = rows[rows.length - 1];
   const { bands, hold } = front;
   const labels = energyBandLabels(bands.length);
-  const foot = band.flipped ? band.top : band.bottom;
   const inward = band.flipped ? 1 : -1;
+  // The band names on the measuring views' word row, over the frequency
+  // names rather than across them (`footWords.ts`).
+  const line = footWordLine(band);
   context.save();
   context.textAlign = 'center';
   for (let index = 0; index < bands.length; index += 1) {
     const { left, width } = front.columnAt(index);
     const middle = left + width / 2;
-    context.font = '700 10px system-ui, sans-serif';
-    context.textBaseline = band.flipped ? 'top' : 'bottom';
+    context.font = footWordFont(700, 10);
+    context.textBaseline = line.baseline;
     context.globalAlpha = band.opacity * 0.85;
     context.fillStyle = 'rgba(255, 255, 255, 0.82)';
-    context.fillText(labels[index], middle, foot + inward * 4);
+    context.fillText(labels[index], middle, line.y);
     const head = placeLevel(band, Math.max(bands[index], hold[index]));
     context.font = '600 11px system-ui, sans-serif';
     context.textBaseline = band.flipped ? 'top' : 'bottom';
