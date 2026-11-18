@@ -15,6 +15,9 @@ export interface ILiveSlider<T = number> {
   set: (next: T) => void;
   /** Apply the newest value now: the control has settled. */
   flush: () => void;
+  /** Forget the value still waiting, applying nothing: the control was
+   * cancelled and what it set is being put back by its owner. */
+  drop: () => void;
 }
 
 /**
@@ -117,7 +120,17 @@ const useLiveSlider = <T = number>(
     setDraft(undefined);
   }, []);
 
-  return { shown: draft === undefined ? value : draft.value, set, flush };
+  const drop = useCallback(() => {
+    waiting.current = undefined;
+    setDraft(undefined);
+  }, []);
+
+  return {
+    shown: draft === undefined ? value : draft.value,
+    set,
+    flush,
+    drop,
+  };
 };
 
 export default useLiveSlider;

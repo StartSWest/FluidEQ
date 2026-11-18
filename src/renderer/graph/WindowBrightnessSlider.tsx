@@ -18,6 +18,12 @@ import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
 import useLiveSlider from '../utils/useLiveSlider';
 import rangeFill from '../utils/rangeFill';
 
+// Painted frames between two of the window's restyles while Brightness is
+// dragged (useLiveSlider): each one restyles the whole window, and one a
+// frame apart left the thumb stepping behind the hand (Ivan, 2026-11-18:
+// "when doing the Brightness slider, also like that, so it moves smoother").
+const BRIGHTNESS_REST_FRAMES = 3;
+
 /**
  * How light the window stands, beside Transparency at the head of the
  * window-colours menu and in the actions menu's tray — the two things either
@@ -37,11 +43,16 @@ import rangeFill from '../utils/rangeFill';
  * the two rows read as two different kinds of control (Ivan: "I dont like
  * that bring slider").
  */
+
 const WindowBrightnessSlider = () => {
   const { t } = useTranslation();
   // The thumb under the pointer, the window's restyle a frame behind it
   // (`useLiveSlider`).
-  const { shown: shade, set } = useLiveSlider(useThemeShade(), setThemeShade);
+  const { shown: shade, set } = useLiveSlider(
+    useThemeShade(),
+    setThemeShade,
+    BRIGHTNESS_REST_FRAMES,
+  );
   const id = useId();
   return (
     <label

@@ -15,6 +15,7 @@ import {
 } from 'react';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { useTranslation } from '../utils/I18nContext';
+import useLiveSlider from '../utils/useLiveSlider';
 import {
   hexOfHsv,
   hsvOfHex,
@@ -30,6 +31,18 @@ type TEyeDropperConstructor = new () => IEyeDropper;
 
 const eyeDropperOf = (): TEyeDropperConstructor | undefined =>
   (window as unknown as { EyeDropper?: TEyeDropperConstructor }).EyeDropper;
+
+/**
+ * Painted frames between two of the window's restyles while a handle is
+ * dragged: what a colour paints is often the whole window, one long frame
+ * each, and the handle stuttered behind the pointer (Ivan, 2026-11-18:
+ * "improve this component to be faster while dragging"). The field, the
+ * hue bar, the hex and the new swatch move with every pointer step; the
+ * window follows every few painted frames, and Accept or Cancel settle it
+ * at once. Counted in frames the window paints (`useLiveSlider`), never in
+ * milliseconds.
+ */
+const RESTYLE_REST_FRAMES = 4;
 
 /** How far one arrow key moves a handle, and with Shift held. */
 const STEP = 0.01;
@@ -94,15 +107,38 @@ export default function ColourPickerPopover({
   }, [isOpen, value]);
 
   const current = hexOfHsv(hsv);
+  const live = useLiveSlider<string | undefined>(
+    undefined,
+    (hex) => {
+      if (hex !== undefined) {
+        onChange(hex);
+      }
+    },
+    RESTYLE_REST_FRAMES,
+  );
+  const { set: follow, flush, drop } = live;
   const move = useCallback(
     (next: IHsv) => {
       setHsv(next);
       const hex = hexOfHsv(next);
       setHexText(hex);
-      onChange(hex);
+      follow(hex);
     },
-    [onChange],
+    [follow],
   );
+  // Accept lands the newest colour now; Cancel forgets any still waiting,
+  // so it cannot arrive after the colour it opened with is put back.
+  const accept = useCallback(
+    (hex: string) => {
+      flush();
+      onAccept(hex);
+    },
+    [flush, onAccept],
+  );
+  const cancel = useCallback(() => {
+    drop();
+    onCancel();
+  }, [drop, onCancel]);
 
   // A press anywhere else, or Escape, is Cancel; neither reaches the menu
   // underneath, which would close too.
@@ -115,12 +151,12 @@ export default function ColourPickerPopover({
       if (anchor?.contains(target) || isInsideAnchoredMenu(target)) {
         return;
       }
-      onCancel();
+      cancel();
     };
     const key = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
-        onCancel();
+        cancel();
       }
     };
     document.addEventListener('mousedown', press, true);
@@ -129,7 +165,7 @@ export default function ColourPickerPopover({
       document.removeEventListener('mousedown', press, true);
       document.removeEventListener('keydown', key, true);
     };
-  }, [isOpen, anchor, onCancel]);
+  }, [isOpen, anchor, cancel]);
 
   const dragField = (event: PointerEvent<HTMLDivElement>) => {
     if (event.buttons !== 1) {
@@ -192,7 +228,7 @@ export default function ColourPickerPopover({
     const hex = readHexColour(text);
     if (hex) {
       setHsv(hsvOfHex(hex));
-      onChange(hex);
+      follow(hex);
     }
   };
 
@@ -290,24 +326,20 @@ export default function ColourPickerPopover({
             onChange={(event) => typeHex(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' && readHexColour(hexText)) {
-                onAccept(current);
+                accept(current);
               }
             }}
           />
         </label>
       </div>
       <div className="colour-picker__actions">
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={onCancel}
-        >
+        <button type="button" className="button small subtle" onClick={cancel}>
           {t('graph.sceneColours.cancel')}
         </button>
         <button
           type="button"
           className="button small"
-          onClick={() => onAccept(current)}
+          onClick={() => accept(current)}
         >
           {t('graph.sceneColours.accept')}
         </button>

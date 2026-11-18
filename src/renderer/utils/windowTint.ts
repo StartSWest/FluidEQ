@@ -127,6 +127,37 @@ export const setWindowTintSecondary = (next: string | undefined) => {
   announce();
 };
 
+/** The Tint as it stands, so a colour picker can put it back on Cancel. */
+export interface IWindowTintSnapshot {
+  tint: number | undefined;
+  colour: string | undefined;
+  secondary: string | undefined;
+}
+
+export const windowTintSnapshot = (): IWindowTintSnapshot => ({
+  tint,
+  colour,
+  secondary,
+});
+
+/** Puts the Tint back exactly as `snapshot` held it. */
+export const restoreWindowTint = (snapshot: IWindowTintSnapshot) => {
+  tint = snapshot.tint;
+  if (tint === undefined) {
+    removeStored(STORAGE_KEY);
+  } else {
+    writeStored(STORAGE_KEY, String(tint));
+  }
+  storeColour(snapshot.colour);
+  secondary = snapshot.secondary;
+  if (secondary === undefined) {
+    removeStored(SECONDARY_KEY);
+  } else {
+    writeStored(SECONDARY_KEY, secondary);
+  }
+  announce();
+};
+
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
   return () => {

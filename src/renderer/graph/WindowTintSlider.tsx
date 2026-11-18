@@ -4,7 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useId, useRef, type CSSProperties } from 'react';
+import { useId, useRef, useState, type CSSProperties } from 'react';
+import ColourPickerPopover from '../components/ColourPickerPopover';
 import { useTranslation } from '../utils/I18nContext';
 import useLiveSlider from '../utils/useLiveSlider';
 import { hueOf, labOf } from '../utils/windowLight';
@@ -15,74 +16,70 @@ import {
   setWindowTintSecondary,
   useWindowTint,
   useWindowTintColour,
+  restoreWindowTint,
   useWindowTintSecondary,
   windowPrimaryColour,
+  windowTintSnapshot,
+  type IWindowTintSnapshot,
 } from '../utils/windowTint';
 
 /** The wheel's colour at `hue`, as the track and its thumb draw it. */
 const wheelColour = (hue: number) => `oklch(0.72 0.13 ${hue})`;
 
-/**
- * Painted frames between two restyles while a picker moves: the window
- * recoloured whole is a long frame, and every one of them kept the picker
- * from following the hand.
- */
-const PICKER_REST_FRAMES = 6;
-
 interface ITintSwatchProps {
   /** The colour shown and the picker's opening value, `#rrggbb`. */
   colour: string;
-  /** The colour picked, once the window can take it. */
+  /** Every colour the picker moves to, already paced by the picker. */
   onPick: (colour: string) => void;
   label: string;
   className: string;
 }
 
 /**
- * A round swatch that opens the system's colour picker. The colour under the
- * pointer is on the swatch at once, the window restyled with it only every
- * few painted frames (`useLiveSlider`), so the picker keeps up with the hand;
- * the newest colour lands the moment the picker settles (its own `change`).
+ * A round swatch that opens FluidEQ's own colour picker, the Studio's
+ * (`ColourPickerPopover`, Ivan 2026-11-18: "use the same colour picker we
+ * did for the Studio in the app settings, with the Accept and Cancel"). The
+ * window follows the picker while it moves, paced by the picker itself;
+ * Accept keeps the colour, and Cancel, Escape or a press elsewhere puts the
+ * Tint back exactly as it stood when the picker opened.
  */
 const TintSwatch = ({ colour, onPick, label, className }: ITintSwatchProps) => {
-  const id = useId();
-  const live = useLiveSlider<string | undefined>(
-    undefined,
-    (value) => {
-      if (value !== undefined) {
-        onPick(value);
-      }
-    },
-    PICKER_REST_FRAMES,
-  );
-  const pickerRef = useRef<HTMLInputElement>(null);
-  const { flush } = live;
-  useEffect(() => {
-    const element = pickerRef.current;
-    if (!element) {
-      return undefined;
-    }
-    element.addEventListener('change', flush);
-    return () => element.removeEventListener('change', flush);
-  }, [flush]);
-  const shown = live.shown ?? colour;
+  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const [opened, setOpened] = useState<IWindowTintSnapshot>();
+  const close = () => setOpened(undefined);
   return (
-    <label
-      htmlFor={id}
-      className={className}
-      style={{ '--swatch': shown } as CSSProperties}
-      title={label}
-    >
-      <input
-        ref={pickerRef}
-        id={id}
-        type="color"
-        className="graph-view-menu__swatch-input"
+    <>
+      <button
+        ref={setAnchor}
+        type="button"
+        className={className}
+        style={{ '--swatch': colour } as CSSProperties}
+        title={label}
         aria-label={label}
-        value={shown}
-        onChange={(event) => live.set(event.target.value.toLowerCase())}
+        aria-haspopup="dialog"
+        aria-expanded={opened !== undefined}
+        onClick={() =>
+          setOpened((was) => (was === undefined ? windowTintSnapshot() : was))
+        }
       />
-    </label>
+      <ColourPickerPopover
+        anchor={anchor}
+        isOpen={opened !== undefined}
+        title={label}
+        value={colour}
+        onChange={onPick}
+        onAccept={(next) => {
+          onPick(next);
+          close();
+        }}
+        onCancel={() => {
+          if (opened) {
+            restoreWindowTint(opened);
+          }
+          close();
+        }}
+      />
+    </>
   );
 };
 
