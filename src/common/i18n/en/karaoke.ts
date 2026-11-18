@@ -83,7 +83,7 @@ const karaoke = {
   'karaoke.stage.show': 'What the stage shows',
   'karaoke.stage.pitch': 'Pitch',
   'karaoke.stage.chords': 'Chords',
-  'karaoke.stage.wordsOnly': 'Words only',
+  'karaoke.stage.none': 'None',
   'karaoke.stage.background': 'Background',
   'karaoke.stage.scene': 'Scene',
   'karaoke.stage.art': 'Art',

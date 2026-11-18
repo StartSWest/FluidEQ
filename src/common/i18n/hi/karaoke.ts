@@ -80,7 +80,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.show': 'मंच पर क्या दिखे',
   'karaoke.stage.pitch': 'सुर',
   'karaoke.stage.chords': 'कॉर्ड',
-  'karaoke.stage.wordsOnly': 'सिर्फ़ बोल',
+  'karaoke.stage.none': 'कोई नहीं',
   'karaoke.stage.background': 'पृष्ठभूमि',
   'karaoke.stage.scene': 'दृश्य',
   'karaoke.stage.art': 'कवर',

@@ -80,7 +80,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.show': 'ステージの表示',
   'karaoke.stage.pitch': 'ピッチ',
   'karaoke.stage.chords': 'コード',
-  'karaoke.stage.wordsOnly': '歌詞のみ',
+  'karaoke.stage.none': 'なし',
   'karaoke.stage.background': '背景',
   'karaoke.stage.scene': 'シーン',
   'karaoke.stage.art': 'カバー',

@@ -597,24 +597,26 @@ const KaraokeWorkspaceView = ({
                 )}
               </KaraokeLiveValue>
               {/* Under the words, as the K1 mockup draws them: the chords as a
-                  row of chips over the slim pitch lane, the chords alone, or
-                  neither (the toolbar's Pitch, Chords, Words only). */}
-              {guides !== 'words' && (
+                  row of chips over the slim pitch lane, each the toolbar's
+                  own toggle. */}
+              {(guides.chords || guides.pitch) && (
                 <div className="karaoke-stage__guides" style={pitchStyle}>
-                  <KaraokeLiveValue value={playhead}>
-                    {(playheadMs) => (
-                      <KaraokeChordGuide
-                        status={chordAnalysis.status}
-                        chords={chordAnalysis.chords}
-                        progress={chordAnalysis.progress}
-                        playheadMs={playheadMs}
-                      />
-                    )}
-                  </KaraokeLiveValue>
+                  {guides.chords && (
+                    <KaraokeLiveValue value={playhead}>
+                      {(playheadMs) => (
+                        <KaraokeChordGuide
+                          status={chordAnalysis.status}
+                          chords={chordAnalysis.chords}
+                          progress={chordAnalysis.progress}
+                          playheadMs={playheadMs}
+                        />
+                      )}
+                    </KaraokeLiveValue>
+                  )}
                   {/* The strip's handle, under the chords and over the strip
                       it sizes (Ivan, 2026-11-16: "move the resizer below
                       the chords"). */}
-                  {guides === 'pitch' && (
+                  {guides.pitch && (
                     <KaraokePaneSplitter
                       orientation="horizontal"
                       ariaLabel={t('karaoke.pitch.resize')}
@@ -624,7 +626,7 @@ const KaraokeWorkspaceView = ({
                       onEnd={commitLayout}
                     />
                   )}
-                  {guides === 'pitch' && (
+                  {guides.pitch && (
                     <KaraokePitchScore
                       song={song}
                       status={status}

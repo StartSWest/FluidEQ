@@ -31,6 +31,7 @@ import {
 } from './KaraokeStageMedia';
 import {
   type TKaraokeBackground,
+  type TKaraokeStageGuide,
   type TKaraokeStageGuides,
   writeKaraokeBackground,
   writeKaraokeStageGuides,
@@ -70,10 +71,9 @@ interface IKaraokeStageToolbarProps {
   onToggleFullScreen: () => void;
 }
 
-const GUIDES: readonly [TKaraokeStageGuides, TranslationKey][] = [
+const GUIDES: readonly [TKaraokeStageGuide, TranslationKey][] = [
   ['pitch', 'karaoke.stage.pitch'],
   ['chords', 'karaoke.stage.chords'],
-  ['words', 'karaoke.stage.wordsOnly'],
 ];
 
 /** One part of a two- or three-way switch, as the mockup's `.seg` draws it. */
@@ -146,10 +146,13 @@ const KaraokeStageToolbar = ({
       writeKaraokeBackground(next);
       return next;
     });
-  const chooseGuides = (choice: TKaraokeStageGuides) => {
-    writeKaraokeStageGuides(choice);
-    setGuides(choice);
-  };
+  // Each its own toggle, both off included: the words alone.
+  const toggleGuide = (guide: TKaraokeStageGuide) =>
+    setGuides((current) => {
+      const next = { ...current, [guide]: !current[guide] };
+      writeKaraokeStageGuides(next);
+      return next;
+    });
 
   return (
     // Goes with the pointer at rest, or a click on the words, in every view,
@@ -180,8 +183,8 @@ const KaraokeStageToolbar = ({
             {GUIDES.map(([choice, key]) => (
               <Segment
                 key={choice}
-                isOn={guides === choice}
-                onClick={() => chooseGuides(choice)}
+                isOn={guides[choice]}
+                onClick={() => toggleGuide(choice)}
               >
                 {t(key)}
               </Segment>
@@ -218,6 +221,15 @@ const KaraokeStageToolbar = ({
               onClick={() => chooseBackground('video')}
             >
               {t('karaoke.stage.video')}
+            </Segment>
+            {/* The bare stage, said with a button of its own (Ivan,
+                2026-11-18: "also scene, add a none one too"); pressing a
+                chosen background again still leaves the stage bare. */}
+            <Segment
+              isOn={background === 'none'}
+              onClick={() => chooseBackground('none')}
+            >
+              {t('karaoke.stage.none')}
             </Segment>
           </div>
           {/* The scene behind the words, changed where it is seen (Ivan,

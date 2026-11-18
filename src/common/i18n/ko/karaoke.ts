@@ -61,7 +61,7 @@ const karaoke = {
   'karaoke.stage.show': '무대에 표시할 내용',
   'karaoke.stage.pitch': '음정',
   'karaoke.stage.chords': '코드',
-  'karaoke.stage.wordsOnly': '가사만',
+  'karaoke.stage.none': '없음',
   'karaoke.stage.background': '배경',
   'karaoke.stage.scene': '장면',
   'karaoke.stage.art': '커버',

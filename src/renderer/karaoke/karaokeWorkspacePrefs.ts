@@ -26,7 +26,10 @@ const STAGE_ART_VISIBILITY_KEY = 'fluideq-karaoke-stage-art-visible';
 
 const STAGE_BACKGROUND_KEY = 'fluideq-karaoke-stage-background';
 
+/** The one choice of three the guides were before they were toggles. */
 const STAGE_GUIDES_KEY = 'fluideq-karaoke-stage-guides';
+
+const STAGE_GUIDES_SHOWN_KEY = 'fluideq-karaoke-stage-guides-shown';
 
 /**
  * What stands behind the words: the app's scene, the song's picture, the
@@ -37,11 +40,28 @@ const STAGE_GUIDES_KEY = 'fluideq-karaoke-stage-guides';
 export type TKaraokeBackground = 'cover' | 'video' | 'graph' | 'none';
 
 /**
- * What the stage draws under the words: the chords over the pitch lane, the
- * chords alone, or neither. One choice, as the toolbar's three-way switch
- * shows it.
+ * What the stage shows under the words: the pitch lane and the chords, each
+ * on or off by itself (Ivan, 2026-11-18: "make these buttons toggles so they
+ * can choose which to see"). They were one choice of three - the chords over
+ * the lane, the chords alone, or neither. The words are not a choice: "it is
+ * a karaoke".
  */
-export type TKaraokeStageGuides = 'pitch' | 'chords' | 'words';
+export const STAGE_GUIDES = ['pitch', 'chords'] as const;
+export type TKaraokeStageGuide = (typeof STAGE_GUIDES)[number];
+export type TKaraokeStageGuides = Readonly<Record<TKaraokeStageGuide, boolean>>;
+
+const ALL_GUIDES: TKaraokeStageGuides = { pitch: true, chords: true };
+
+/** What the old one choice showed under the words. */
+const guidesOfChoice = (choice: string | null): TKaraokeStageGuides => {
+  if (choice === 'chords') {
+    return { pitch: false, chords: true };
+  }
+  if (choice === 'words') {
+    return { pitch: false, chords: false };
+  }
+  return ALL_GUIDES;
+};
 
 export const readKaraokePlaylistFolderGrouping = (): boolean => {
   try {
@@ -59,25 +79,43 @@ export const writeKaraokePlaylistFolderGrouping = (enabled: boolean): void => {
   }
 };
 
+/**
+ * The guides shown, written as the names of those on (`pitch,chords`; an
+ * empty list is both off). Read from the old one choice where there
+ * is nothing newer, and before that from the pitch guide's switch.
+ */
 export const readKaraokeStageGuides = (): TKaraokeStageGuides => {
   try {
-    const saved = window.localStorage.getItem(STAGE_GUIDES_KEY);
-    if (saved === 'pitch' || saved === 'chords' || saved === 'words') {
-      return saved;
+    const shown = window.localStorage.getItem(STAGE_GUIDES_SHOWN_KEY);
+    if (shown !== null) {
+      const names = shown.split(',');
+      return {
+        pitch: names.includes('pitch'),
+        chords: names.includes('chords'),
+      };
+    }
+    const choice = window.localStorage.getItem(STAGE_GUIDES_KEY);
+    if (choice !== null) {
+      return guidesOfChoice(choice);
     }
     // The pitch guide's old switch: a lane switched off kept the chords,
     // which were always drawn.
-    return window.localStorage.getItem(PITCH_GUIDE_VISIBILITY_KEY) === 'false'
-      ? 'chords'
-      : 'pitch';
+    return guidesOfChoice(
+      window.localStorage.getItem(PITCH_GUIDE_VISIBILITY_KEY) === 'false'
+        ? 'chords'
+        : 'pitch',
+    );
   } catch {
-    return 'pitch';
+    return ALL_GUIDES;
   }
 };
 
 export const writeKaraokeStageGuides = (guides: TKaraokeStageGuides): void => {
   try {
-    window.localStorage.setItem(STAGE_GUIDES_KEY, guides);
+    window.localStorage.setItem(
+      STAGE_GUIDES_SHOWN_KEY,
+      STAGE_GUIDES.filter((guide) => guides[guide]).join(','),
+    );
   } catch {
     // Keep the live preference when storage is unavailable.
   }

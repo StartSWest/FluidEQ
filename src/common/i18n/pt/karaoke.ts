@@ -84,7 +84,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.show': 'O que o palco mostra',
   'karaoke.stage.pitch': 'Afinação',
   'karaoke.stage.chords': 'Acordes',
-  'karaoke.stage.wordsOnly': 'Só a letra',
+  'karaoke.stage.none': 'Nenhum',
   'karaoke.stage.background': 'Fundo',
   'karaoke.stage.scene': 'Cena',
   'karaoke.stage.art': 'Capa',

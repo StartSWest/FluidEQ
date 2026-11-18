@@ -74,7 +74,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.show': '舞台显示内容',
   'karaoke.stage.pitch': '音高',
   'karaoke.stage.chords': '和弦',
-  'karaoke.stage.wordsOnly': '仅歌词',
+  'karaoke.stage.none': '无',
   'karaoke.stage.background': '背景',
   'karaoke.stage.scene': '场景',
   'karaoke.stage.art': '封面',

@@ -54,7 +54,7 @@ const karaoke = {
   'karaoke.stage.show': '舞台顯示內容',
   'karaoke.stage.pitch': '音高',
   'karaoke.stage.chords': '和弦',
-  'karaoke.stage.wordsOnly': '僅歌詞',
+  'karaoke.stage.none': '無',
   'karaoke.stage.background': '背景',
   'karaoke.stage.scene': '場景',
   'karaoke.stage.art': '封面',
