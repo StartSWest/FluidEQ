@@ -736,6 +736,7 @@ const studio = {
     'La Luminosità di tutta l’app, lo stesso cursore di Colori della finestra. Con essa ogni scena passa dalla notte a 0 al pieno giorno a 100: prova la tua a entrambi gli estremi prima di pubblicarla.',
   'studio.tint.hint':
     'Solo qui, mentre lavori: i Colori della finestra del grafico restano come li hai impostati. Tema lascia la finestra come ce l’ha l’app; gli altri le danno i colori di questa scena, o quei colori con i suoi elementi che volano intorno alla finestra, così la vedi e la senti come chi la ascolterà.',
+  'studio.tint.short': 'Solo qui, mentre lavori.',
   'studio.grid.label': 'Mostra la griglia del grafico',
   'studio.grid.hint':
     'Le sue linee di frequenza e di livello sopra la scena, con lo spazio che occupano sul grafico, per misurare dove cadono l’onda e ogni parte della scena.',

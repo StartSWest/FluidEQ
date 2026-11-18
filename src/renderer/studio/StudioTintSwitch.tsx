@@ -21,6 +21,7 @@ import {
   useStudioTintMode,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
+import StudioInfo from './StudioInfo';
 import { useStudio } from './studioStore';
 
 /**
@@ -72,9 +73,14 @@ export default function StudioTintSwitch() {
     : undefined;
   return (
     <div className="studio-tint" style={swatch}>
-      <span className="studio-card__eyebrow" id={titleId}>
-        {t('studio.tint.label')}
-      </span>
+      <div className="studio-tune__head">
+        <span className="studio-card__eyebrow" id={titleId}>
+          {t('studio.tint.label')}
+        </span>
+        <StudioInfo
+          text={`${t('studio.tint.hint')} ${t('studio.brightness.hint')}`}
+        />
+      </div>
       <div
         className="studio-tiles studio-tiles--tint"
         role="group"
@@ -112,9 +118,7 @@ export default function StudioTintSwitch() {
           </button>
         ))}
       </div>
-      <span className="studio-test__hint studio-tint__hint">
-        {t('studio.tint.hint')}
-      </span>
+      <span className="studio-tune__lead">{t('studio.tint.short')}</span>
     </div>
   );
 }

@@ -57,8 +57,14 @@ export default function StudioChatColumn({
           className="studio-chat__rail"
           onClick={() => fold(false)}
         >
-          <Glyph name="studio" />
-          <span>{t('studioChat.unfold')}</span>
+          {/* The open column's head band, hairline and all, so the rail
+              starts where the open chat's head does and keeps its edge. */}
+          <span className="studio-chat__rail-cap">
+            <Glyph name="studio" />
+          </span>
+          <span className="studio-chat__rail-name">
+            {t('studioChat.unfold')}
+          </span>
         </button>
       </aside>
     );

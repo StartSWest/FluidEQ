@@ -283,31 +283,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** On the Studio's Tune tab ************************************************
 
-.studio-window-colours {
-  display: grid;
-  gap: 10px;
-}
-
-.studio-window-colours__head {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.studio-window-colours__source,
-.studio-window-colours__note,
 .studio-window-colours__empty {
   margin: 0;
   color: $text-muted;
   font-size: $text-small;
+  line-height: 1.5;
 }
 
+.studio-window-colours__failed {
+  margin: 0;
+  color: $amber;
+  font-size: $text-micro;
+  line-height: 1.45;
+}
+
+// Under the colours, from the block's start like every other row of it.
 .studio-window-colours__actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
   gap: 6px;
 }

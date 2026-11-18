@@ -71,6 +71,15 @@ it under the terms of the GNU General Public License version 3 or later.
   border-top: 1px solid $studio-hair;
 }
 
+// Under the stage's tabs the sections stand on space alone (Ivan,
+// 2026-11-17: "get rid of some division, we need flat nice screen"): the
+// tab row carries no rule either, so a hairline over each section was the
+// only line left on the panel, drawn once per card across every column.
+.studio-work__panel .studio-card {
+  padding-top: 0;
+  border-top: 0;
+}
+
 .studio-card__eyebrow {
   @include studio-rail-heading;
 }
@@ -419,6 +428,13 @@ $studio-stage-floor: 148px;
     // the Studio (`PlusRail.scss`), and the bench takes back the Studio's.
     margin-right: -16px;
     border-left: 1px solid $studio-hair;
+
+    // Folded, its track is the rail's own 40px: the column was 40 wide in
+    // all, so the inset it reaches through left the grid a 24px track for
+    // it and the rail sat 16px tighter than it measured.
+    &.is-folded {
+      width: calc(#{$studio-chat-rail} + 16px);
+    }
 
     > .column-resizer {
       left: -6px;

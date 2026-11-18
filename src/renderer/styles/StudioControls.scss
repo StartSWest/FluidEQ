@@ -25,69 +25,25 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- settings
 
-// A section of the card that tries the scene, between the picture and how it
-// is drawn — not a card of its own any more, so the rhythm between its groups
-// and the two lines under them belongs to the section itself.
-.studio-settings {
-  container: settings / inline-size;
-  display: grid;
-  gap: 12px;
-  min-width: 0;
-
-  // Nothing on the stage: the sliders wait where they will be, unlit, as the
-  // card around them does.
-  &.is-idle {
+// The scene's settings on the Tune tab. Its wrappers do not box the groups
+// there (`StudioWork.scss`): each group is a block of the tab's even columns,
+// with nothing ruled between them.
+.studio-settings.is-idle {
+  // Nothing on the stage: the sliders wait where they will be, unlit. On the
+  // groups, because the section itself draws no box to dim.
+  .studio-settings__group,
+  .studio-settings__foot {
     opacity: $disabled-opacity;
   }
 }
 
-// Wide enough, the scene's controls and its response sit side by side.
-.studio-settings__groups {
-  display: grid;
-  gap: 12px;
-  min-width: 0;
-
-  @container settings (min-width: 440px) {
-    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-    gap: $spacing-l;
-
-    .studio-settings__group + .studio-settings__group {
-      padding-top: 0;
-      border-top: 0;
-    }
-  }
-}
-
-// A group: its title and reset on one line, what it does under them, then
-// its sliders. Groups are parted by a hairline, not boxed: they are two
-// halves of one card.
+// A group: its heading and reset on one line (`.studio-tune__head`), then its
+// sliders, a row apart.
 .studio-settings__group {
   display: grid;
-  // Side by side, the shorter group is stretched to its neighbour's height;
-  // its rows stay packed at the top instead of spreading into the gap.
   align-content: start;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
-
-  & + & {
-    padding-top: 12px;
-    border-top: 1px solid $border-subtle;
-  }
-}
-
-.studio-settings__group-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: $spacing-s;
-  min-width: 0;
-}
-
-.studio-settings__group-title {
-  min-width: 0;
-  color: $text-primary;
-  font-size: $text-small;
-  font-weight: $weight-semibold;
 }
 
 // A reset is a small thing next to a title, so it reads as a word, not a
@@ -101,12 +57,6 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
   cursor: pointer;
   @include button-plain;
-}
-
-.studio-settings__lead {
-  color: $text-dim;
-  font-size: $text-micro;
-  line-height: 1.5;
 }
 
 .studio-setting {
@@ -205,6 +155,13 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
+// Whether the last change saved, then where Reset goes, on one line.
+.studio-settings__foot {
+  margin: 0;
+  font-size: $text-micro;
+  line-height: 1.45;
+}
+
 .studio-settings__saved {
   color: $text-dim;
   font-size: $text-micro;
@@ -215,18 +172,13 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Under the saved line and quieter than it: where Reset goes is worth knowing
-// before it is pressed, but it is not news the way a save is.
-// Under the saved line, and no louder than it: where Reset goes is worth
+// After the saved line, and no louder than it: where Reset goes is worth
 // knowing before it is pressed, but it is not news the way a save is.
 //
 // `$text-dim` and not `$text-faint`: faint is the third step of the scale and
-// dim the fourth, so asking for "faint" made this the brightest of the three
-// small lines in the card instead of the quietest — louder than the saved
-// line above it and louder than the lead under every group title, which are
-// both dim. Measured in the window: it read #bfd3e3 against their 38% white.
+// dim the fourth, so asking for "faint" made this louder than the saved line
+// before it. Measured in the window: it read #bfd3e3 against its 38% white.
 .studio-settings__resets {
-  margin-top: -4px;
   color: $text-dim;
   font-size: $text-micro;
   line-height: 1.45;

@@ -28,18 +28,16 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: 0;
 }
 
-// The rail of names, ruled off from the panel by the quiet rule the Plus
-// menu parts an add-on's places with (Ivan, 2026-09-27: "make the menu divider
-// less visible"), the chosen one underlined in the accent as the workspace's
-// tabs are: the accent is what says which, and the rule only where. The rule
-// is the row's, under the arrows too, so it runs the panel's whole width.
+// The rail of names, the chosen one underlined in the accent as the
+// workspace's tabs are. No rule under the row any more (Ivan, 2026-11-17:
+// "get rid of some division, we need flat nice screen"): the accent says
+// which tab, and the panel's own space says where the names end.
 .studio-work__tab-row {
   display: flex;
   flex: none;
   align-items: center;
   gap: 4px;
   min-width: 0;
-  border-bottom: 1px solid $studio-hair;
 }
 
 // Tabs that do not fit scroll, fading into the edge they scroll past, with the
@@ -157,35 +155,102 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- tune
 
-// The three groups across the whole panel, one row of cards as tall as each
-// other: the window's colours and the wave a share each, the visualizer's
-// two groups of settings twice that. It was an auto-filled grid of 260px
-// tracks, each card as tall as its own contents: across a wide panel the
-// three stopped short with an empty track after them, three heights in one
-// row (Ivan, 2026-09-27: "fix all this crap"). Two to a row when the panel
-// is narrower, the visualizer under them the whole width; one to a row in
-// the narrowest.
+// THE EVEN GRID (Ivan, 2026-11-17: "a lot of waste", then his pick of the
+// mockups' layout A): every block - the window's look, its colours, the
+// wave, and each of the scene's own groups - flows down columns of one width,
+// as many as the panel holds: one on the narrow bench, two at a 1280 window,
+// three at 2048, five at 2560. A slider is then never under 300px nor over
+// ~420px, and its name stays on one line. Columns rather than a grid,
+// because the blocks are as tall as their sliders (seven controls against
+// two wave sliders): a grid's rows stretched the short ones over empty
+// space, columns balance them. Flat, with no hairlines over the blocks:
+// their headings and the gap say where one ends.
 .studio-tune {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  column-width: 300px;
+  column-gap: 40px;
 
-  @container studio-work (min-width: #{$bp-md}) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @container studio-work (min-width: #{$bp-xl}) {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+  // The scene's settings are one component with its own wrappers; here they
+  // must not box its groups, or the whole scene would be one block in one
+  // column - the crammed column this replaced.
+  .studio-settings,
+  .studio-settings__groups {
+    display: contents;
   }
 }
 
-.studio-tune__box--visualizer {
-  @container studio-work (min-width: #{$bp-md}) {
-    grid-column: 1 / -1;
+.studio-tune__box,
+.studio-tune .studio-settings__group {
+  margin-bottom: 30px;
+  break-inside: avoid;
+}
+
+// Across every column, under the last block.
+.studio-tune .studio-settings__foot {
+  column-span: all;
+}
+
+// A block's heading: the quiet capitals, the "i" with the rest of what it
+// does (`StudioInfo`), and Reset at the far end where it has one.
+.studio-tune__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  // Onto a second line rather than cut: German's "Wie sie auf die Musik
+  // antwortet" is wider than a 300px column with its "i" and Reset.
+  > .studio-card__eyebrow {
+    min-width: 0;
+    white-space: normal;
   }
 
-  @container studio-work (min-width: #{$bp-xl}) {
-    grid-column: auto;
+  > .studio-settings__reset {
+    margin-left: auto;
+  }
+}
+
+// One short line under a heading, where the heading needs one: what a choice
+// is for, or a state the member has to see (the elements resting until the
+// window's look is Ambient). Anything longer is the "i"'s.
+.studio-tune__lead {
+  color: $studio-t3;
+  font-size: $text-micro;
+  line-height: 1.45;
+}
+
+// The "i": a small ring in the quiet edge, the second ink in it, brighter
+// under the pointer or the keyboard. Its text is its title, which the app's
+// tooltip shows on both.
+.studio-info {
+  display: inline-grid;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, $edge-tint 24%, transparent);
+  border-radius: 50%;
+  background: none;
+  color: $studio-t2;
+  cursor: help;
+  transition:
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: currentcolor;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: color-mix(in srgb, $edge-tint 48%, transparent);
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 

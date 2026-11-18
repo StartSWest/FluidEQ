@@ -54,9 +54,6 @@ export default function StudioBrightness() {
         }
         snaps={SHADE_SNAPS}
       />
-      <span className="studio-test__hint studio-brightness__hint">
-        {t('studio.brightness.hint')}
-      </span>
     </div>
   );
 }

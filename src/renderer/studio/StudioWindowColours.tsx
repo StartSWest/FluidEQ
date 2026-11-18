@@ -9,6 +9,7 @@ import type { TranslationKey } from 'common/i18n';
 import WindowColourSwatches from '../components/WindowColourSwatches';
 import WindowColoursPreview from '../components/WindowColoursPreview';
 import { useTranslation } from '../utils/I18nContext';
+import StudioInfo from './StudioInfo';
 import type useStudioWindowColours from './useStudioWindowColours';
 import type { TWindowColoursSource } from './useStudioWindowColours';
 
@@ -40,14 +41,13 @@ export default function StudioWindowColours({
       className="studio-card studio-tune__box studio-window-colours"
       aria-labelledby={titleId}
     >
-      <div className="studio-window-colours__head">
+      <div className="studio-tune__head">
         <span className="studio-card__eyebrow" id={titleId}>
           {t('studio.windowColours.title')}
         </span>
-        <span className="studio-window-colours__source">
-          {t(SOURCE[state.source])}
-        </span>
+        <StudioInfo text={t('studio.windowColours.note')} />
       </div>
+      <span className="studio-tune__lead">{t(SOURCE[state.source])}</span>
       {colours ? (
         <>
           <WindowColourSwatches
@@ -82,11 +82,13 @@ export default function StudioWindowColours({
           {t('studio.windowColours.undo')}
         </button>
       </div>
-      <p className="studio-window-colours__note">
-        {state.saving === 'failed'
-          ? t('studio.windowColours.failed')
-          : t('studio.windowColours.note')}
-      </p>
+      {/* The note that the colours travel with the scene is the "i"'s; only
+          a save that failed is news worth a line of its own. */}
+      {state.saving === 'failed' && (
+        <p className="studio-window-colours__failed" role="alert">
+          {t('studio.windowColours.failed')}
+        </p>
+      )}
     </section>
   );
 }

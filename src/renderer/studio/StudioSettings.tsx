@@ -18,6 +18,7 @@ import {
 } from '../utils/responseSlider';
 import { isAmbientMode, useWindowTintMode } from '../utils/sceneTintStore';
 import StudioAmbientIcon from './StudioAmbientIcon';
+import StudioInfo from './StudioInfo';
 import StudioPalette from './StudioPalette';
 import StudioColour from './StudioColour';
 import SceneChoice from '../graph/SceneChoice';
@@ -135,13 +136,17 @@ export function Setting({
 function Group({
   title,
   lead,
+  note,
   canReset,
   resetsTo,
   onReset,
   children,
 }: {
   title: string;
+  /** What the group does: behind the "i" beside its heading. */
   lead: string;
+  /** Something about its state the member has to see, under the heading. */
+  note?: string | undefined;
   canReset: boolean;
   /** Where Reset puts these, said on the button so it is read before it is pressed. */
   resetsTo: string;
@@ -151,8 +156,9 @@ function Group({
   const { t } = useTranslation();
   return (
     <section className="studio-settings__group">
-      <div className="studio-settings__group-head">
-        <span className="studio-settings__group-title">{title}</span>
+      <div className="studio-tune__head">
+        <span className="studio-card__eyebrow">{title}</span>
+        <StudioInfo text={lead} />
         <button
           type="button"
           className="studio-settings__reset"
@@ -163,7 +169,7 @@ function Group({
           {t('studio.settings.reset')}
         </button>
       </div>
-      <span className="studio-settings__lead">{lead}</span>
+      {note && <span className="studio-tune__lead">{note}</span>}
       {children}
     </section>
   );
@@ -349,14 +355,22 @@ export default function StudioSettings({
             on its own, beside its name, so there is no group-wide Reset. */}
         {(shownPalettes.length > 0 || shownColours.length > 0) && (
           <section className="studio-settings__group">
-            <div className="studio-settings__group-head">
-              <span className="studio-settings__group-title">
+            <div className="studio-tune__head">
+              <span className="studio-card__eyebrow">
                 {t('studioPalette.group')}
               </span>
+              {/* What the colours are, how a strip is used and which palette
+                  the window's own colours follow (`sceneAppColours.ts`),
+                  said once behind the "i" rather than in three grey lines. */}
+              <StudioInfo
+                text={[
+                  t('studioPalette.lead'),
+                  ...(shownPalettes.length > 0
+                    ? [t('studioPalette.hint'), t('studioPalette.appColours')]
+                    : []),
+                ].join(' ')}
+              />
             </div>
-            <span className="studio-settings__lead">
-              {t('studioPalette.lead')}
-            </span>
             {colours &&
               shownColours.map((colour) => (
                 <StudioColour
@@ -385,21 +399,6 @@ export default function StudioSettings({
                   onReset={() => palettes.onReset(palette.id)}
                 />
               ))}
-            {/* Said once, under every palette: how a strip is used is the
-                same on each, and under each it was the same line twice. */}
-            {shownPalettes.length > 0 && (
-              <span className="studio-settings__lead">
-                {t('studioPalette.hint')}
-              </span>
-            )}
-            {/* Which of a scene's palettes the window's own colours follow
-                (`sceneAppColours.ts`): with two, the author has to know it
-                is the first. */}
-            {shownPalettes.length > 0 && (
-              <span className="studio-settings__lead">
-                {t('studioPalette.appColours')}
-              </span>
-            )}
           </section>
         )}
 
@@ -435,11 +434,8 @@ export default function StudioSettings({
         {ambient && ambient.params.length > 0 && (
           <Group
             title={t('studio.settings.ambient')}
-            lead={
-              ambientShows
-                ? t('studio.settings.ambientLead')
-                : `${t('studio.settings.ambientLead')} ${t('studio.settings.ambientOff')}`
-            }
+            lead={t('studio.settings.ambientLead')}
+            note={ambientShows ? undefined : t('studio.settings.ambientOff')}
             canReset={ambient.canReset && !idle}
             resetsTo={resetsTo}
             onReset={ambient.reset}
@@ -474,15 +470,17 @@ export default function StudioSettings({
         )}
       </div>
 
-      <span
-        className={`studio-settings__saved${saved === 'failed' ? ' is-failed' : ''}`}
-        role="status"
-      >
-        {saved ? t(SAVED_KEYS[saved]) : t('studio.settings.carries')}
-      </span>
-      {/* Said once, under all three groups: the same Reset serves them all,
-          and where it goes is the thing worth knowing before pressing it. */}
-      <span className="studio-settings__resets">{resetsTo}</span>
+      {/* One line under every block, across the whole tab: whether it saved,
+          then - quieter, since it is not news - where every Reset goes. */}
+      <p className="studio-settings__foot">
+        <span
+          className={`studio-settings__saved${saved === 'failed' ? ' is-failed' : ''}`}
+          role="status"
+        >
+          {saved ? t(SAVED_KEYS[saved]) : t('studio.settings.carries')}
+        </span>{' '}
+        <span className="studio-settings__resets">{resetsTo}</span>
+      </p>
     </section>
   );
 }

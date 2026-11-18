@@ -4,9 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useId, type ReactNode } from 'react';
-import { SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
-import { useTranslation } from '../utils/I18nContext';
+import type { ReactNode } from 'react';
 import StudioBrightness from './StudioBrightness';
 import StudioTintSwitch from './StudioTintSwitch';
 import StudioWaveControls from './StudioWaveControls';
@@ -32,12 +30,17 @@ interface IStudioTuneProps {
 }
 
 /**
- * The Tune tab: what the whole app does with the scene while it is made,
- * where its wave stands on the graph, and the visualizer's own settings,
- * side by side under the stage instead of down a 248px column. The picture
- * and the visualizer keep the headings the graph's View menu gives them
- * (`common/settingsGroups.ts`), so a setting found here is found there by
- * the same name.
+ * The Tune tab: what the whole app does with the scene while it is made, the
+ * colours it lends the window, where its wave stands on the graph, and the
+ * scene's own groups of settings - every one a block of its own, flowing in
+ * even columns across the panel (Ivan, 2026-11-17: "a lot of waste", his pick
+ * of the even grid). It was three cards on a 1fr 1fr 2fr grid: the wave took
+ * the 2fr track and stretched two sliders to 900px, and the whole scene fell
+ * into a 1fr track on the next row, three groups of 140px sliders crammed
+ * side by side under two nearly empty cards. The scene's groups join the
+ * flow themselves (`StudioSettings`'s wrappers do not box them,
+ * `StudioWork.scss`), so a scene with seven controls and one with none
+ * both fill the width.
  */
 export default function StudioTune({
   wave,
@@ -49,23 +52,14 @@ export default function StudioTune({
   windowColours,
   settings,
 }: IStudioTuneProps) {
-  const { t } = useTranslation();
-  const pictureId = useId();
-  const visualizerId = useId();
   return (
     <div className={`studio-tune${idle ? ' is-idle' : ''}`}>
-      <section className="studio-card studio-tune__box">
+      <div className="studio-card studio-tune__box">
         <StudioTintSwitch />
         <StudioBrightness />
-      </section>
+      </div>
       {windowColours}
-      <section
-        className="studio-card studio-tune__box"
-        aria-labelledby={pictureId}
-      >
-        <span className="studio-card__eyebrow" id={pictureId}>
-          {t(SETTINGS_GROUP_TITLE.picture)}
-        </span>
+      <div className="studio-card studio-tune__box">
         <StudioWaveControls
           wave={wave}
           onWave={onWave}
@@ -74,16 +68,8 @@ export default function StudioTune({
           canReset={canResetWave}
           idle={idle}
         />
-      </section>
-      <section
-        className="studio-card studio-tune__box studio-tune__box--visualizer"
-        aria-labelledby={visualizerId}
-      >
-        <span className="studio-card__eyebrow" id={visualizerId}>
-          {t(SETTINGS_GROUP_TITLE.visualizer)}
-        </span>
-        {settings}
-      </section>
+      </div>
+      {settings}
     </div>
   );
 }

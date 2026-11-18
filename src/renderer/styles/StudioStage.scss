@@ -534,23 +534,12 @@ $stage-edge: $border-menu;
   line-height: 1.45;
 }
 
-// The graph's wave height and position, tried on the stage: a section of the
-// card with its title and reset on one line and the two sliders the scene's
-// settings use under it.
+// The graph's wave height and position, tried on the stage: a block of the
+// Tune tab with its heading and reset on one line (`.studio-tune__head`) and
+// the two sliders the scene's settings use under it.
 .studio-wave {
   display: grid;
-  gap: 9px;
-}
-
-.studio-wave__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-s;
-}
-
-.studio-wave__hint {
-  margin-top: -2px;
+  gap: 12px;
 }
 
 // What is playing, read first: its name, and what it is, on a bar of the
@@ -618,23 +607,13 @@ $stage-edge: $border-menu;
   }
 }
 
-.studio-tint__hint {
-  margin-top: 0;
-}
-
-// The app's Brightness under the window's colours, split from them by the
-// hairline the card's other parts are ruled off with (`.studio-cost`): the
-// tiles say whose colours the window wears, this how light it stands.
+// The app's Brightness under the window's colours, parted from them by
+// space alone (Ivan, 2026-11-17: "get rid of some division, we need flat
+// nice screen"): the tiles say whose colours the window wears, this how light
+// it stands.
 .studio-brightness {
   display: grid;
-  gap: 9px;
-  margin-top: 3px;
-  padding-top: 11px;
-  border-top: 1px solid $border-subtle;
-}
-
-.studio-brightness__hint {
-  margin-top: -2px;
+  margin-top: 6px;
 }
 
 // How well it keeps up, under the controls that test it: a hairline above,

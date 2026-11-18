@@ -12,6 +12,7 @@ import {
   snapPercent,
 } from '../utils/percentSnaps';
 import { useTranslation } from '../utils/I18nContext';
+import StudioInfo from './StudioInfo';
 import { Setting } from './StudioSettings';
 import { STUDIO_WAVE_MIN_HEIGHT, type IStudioWave } from './studioWave';
 
@@ -60,13 +61,11 @@ export default function StudioWaveControls({
 
   return (
     <section className="studio-wave" aria-label={t('studio.wave.title')}>
-      {/* Titled as the visualizer's groups beside it are, under the card's
-          one eyebrow: a second eyebrow here stacked two small capitals
-          headings over two sliders. */}
-      <div className="studio-wave__head">
-        <span className="studio-settings__group-title">
-          {t('studio.wave.title')}
-        </span>
+      {/* Headed as every block of the Tune tab is: the quiet capitals, its
+          longer note behind the "i", Reset at the far end. */}
+      <div className="studio-tune__head">
+        <span className="studio-card__eyebrow">{t('studio.wave.title')}</span>
+        <StudioInfo text={t('studio.wave.hint')} />
         <button
           type="button"
           className="studio-settings__reset"
@@ -107,9 +106,6 @@ export default function StudioWaveControls({
           onWave({ ...wave, position: Math.round(position * 100) / 100 })
         }
       />
-      <span className="studio-test__hint studio-wave__hint">
-        {t('studio.wave.hint')}
-      </span>
     </section>
   );
 }

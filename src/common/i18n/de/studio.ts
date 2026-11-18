@@ -746,6 +746,7 @@ const studio = {
     'Die Helligkeit der ganzen App, derselbe Regler wie unter Fensterfarben. Mit ihr geht jede Szene von Nacht bei 0 bis zum hellen Tag bei 100: Probieren Sie Ihre an beiden Enden aus, bevor Sie sie veröffentlichen.',
   'studio.tint.hint':
     'Nur hier, solange Sie arbeiten: Die Fensterfarben im Diagramm bleiben, wie Sie sie eingestellt haben. Design zeigt das Fenster so, wie die App eingestellt ist; die anderen geben ihm die Farben dieser Szene oder dazu ihre Elemente, die ums Fenster fliegen – so sehen und spüren Sie sie, wie alle Hörer sie erleben.',
+  'studio.tint.short': 'Nur hier, solange Sie arbeiten.',
   'studio.grid.label': 'Raster des Diagramms zeigen',
   'studio.grid.hint':
     'Seine Frequenz- und Pegellinien über der Szene, mit dem Platz, den sie im Diagramm einnehmen – so messen Sie, wo die Welle und jeder Teil der Szene liegen.',

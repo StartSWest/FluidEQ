@@ -12,6 +12,11 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
+// The head's band in the window's side column: its two lines and its 30px
+// buttons came to 42px, and the folded rail's cap (`.studio-chat__rail-cap`)
+// is held to the same so the two hairlines are one line across a fold.
+$studio-chat-head-height: 42px;
+
 // The Studio's chat with Claude (`studio/chat/`): a card the bench's whole
 // height beside the stage, its head and message box fixed and the
 // conversation scrolling between them — or the first tab under the stage in
@@ -48,6 +53,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: none;
 
   .studio-chat__head {
+    min-height: $studio-chat-head-height;
     padding: 2px 8px 10px 14px;
     border-bottom-color: $studio-hair;
   }
@@ -449,8 +455,8 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 1 1 auto;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 12px 0;
+  gap: 12px;
+  padding: 0 0 12px;
   // Folded, the side column's own strip: the card's tone behind the column's
   // hairline (`Studio.scss`), the Library's quiet capitals turned on end -
   // not a card of its own standing in the page's card.
@@ -465,12 +471,6 @@ it under the terms of the GNU General Public License version 3 or later.
   text-transform: uppercase;
   cursor: pointer;
   transition: $transition-control;
-
-  span {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    white-space: nowrap;
-  }
 
   svg {
     width: 16px;
@@ -487,6 +487,25 @@ it under the terms of the GNU General Public License version 3 or later.
   &:focus-visible {
     @include focus-ring;
   }
+}
+
+// The open column's head, band and hairline (Ivan, 2026-11-17, of the folded
+// rail: "that one doesn't have the top border"): the rail's glyph stands in
+// a band as tall as the open head, ruled off under it as the head is, so the
+// side column keeps its top edge folded or open, as the Library's does.
+.studio-chat__rail-cap {
+  display: grid;
+  flex: none;
+  align-self: stretch;
+  height: $studio-chat-head-height;
+  place-items: center;
+  border-bottom: 1px solid $studio-hair;
+}
+
+.studio-chat__rail-name {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
 }
 
 // The bar's lamp while Claude works on the scene (`StudioBench`).
