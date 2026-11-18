@@ -195,7 +195,11 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   border-radius: $radius-m;
   cursor: pointer;
   transition: $transition-control;
-  @include button-plain;
+  // Bare: only its ink says pinned or pointed at (Ivan, 2026-11-17: "fix
+  // this mess"). Pinned, the plain tier lit its 28px square, which reaches
+  // down to the first place's row, and the two lit boxes stood stacked in
+  // the glyphs' column, the pin read as a second chosen place over Gallery.
+  @include button-plain-bare;
 
   svg {
     width: 16px;
