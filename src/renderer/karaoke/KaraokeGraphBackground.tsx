@@ -11,6 +11,7 @@ import { useStandInForGraphScene } from '../graph/sceneStandIn';
 import usePlayerTrace from '../player/playerTrace';
 import useGraphScenePack from '../player/useGraphScenePack';
 import ScenePreview from '../plus/ScenePreview';
+import { useKaraokeSceneAppearance } from './karaokeSceneAppearance';
 
 /**
  * The Karaoke's own scene, played inside its lyric window with its own See
@@ -25,6 +26,9 @@ export default function KaraokeGraphBackground() {
   const frame = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
   const scene = useGraphScenePack();
+  // The blur laid over this backdrop (`KaraokeBackdrop`): the scene is drawn
+  // at no more pixels than survive it, the more blur the fewer.
+  const { blur } = useKaraokeSceneAppearance();
   const [failedIdentity, setFailedIdentity] = useState<string>();
   useLiveAudioCapture(true);
   const { curves, xScale, yScale } = usePlayerTrace(box.width, box.height);
@@ -67,6 +71,7 @@ export default function KaraokeGraphBackground() {
           label={scene.label}
           tuning={scene.tuning}
           wave={scene.wave}
+          blurPx={blur}
           onTrouble={() => setFailedIdentity(scene.identity)}
         />
       )}

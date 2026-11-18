@@ -66,6 +66,7 @@ import {
   fillWaveformTexels,
   parseAccent,
 } from './sceneUniforms';
+import { blurredScale } from './sceneBlurScale';
 
 export type { ISceneRunnerOptions, ISceneSource } from './sceneRunnerTypes';
 export type { ISceneTuning } from './sceneTuner';
@@ -135,6 +136,7 @@ export default function useSceneRunner({
   tuning,
   daylight,
   performance: chosenPerformance,
+  blurPx,
   asleep,
   held,
   captureFrames = false,
@@ -155,6 +157,9 @@ export default function useSceneRunner({
   const performance = chosenPerformance ?? storedPerformance;
   const performanceRef = useRef(performance);
   performanceRef.current = performance;
+  // Read every frame: a blur dragged up draws fewer pixels at once.
+  const blurPxRef = useRef(blurPx ?? 0);
+  blurPxRef.current = blurPx ?? 0;
   // How often frames are actually being drawn: the budget a frame's GPU
   // cost is judged against.
   const cadenceRef = useRef(createFrameCadence());
@@ -447,6 +452,15 @@ export default function useSceneRunner({
       if (sizeRef.current.captureSize) {
         scale = Math.max(1, scale);
       }
+      // Under a blur, no more pixels than survive it (`sceneBlurScale.ts`).
+      // What the ladder chose stays its own: the held and proven sizes below
+      // are the ladder's, never a size the blur asked for.
+      const ladderScale = scale;
+      const blurCap = sizeRef.current.captureSize
+        ? 1
+        : blurredScale(blurPxRef.current, ratio * pixelCap);
+      const isBlurred = blurCap < 1;
+      scale = Math.min(scale, blurCap);
       const drawn = {
         width: Math.max(1, Math.round(output.width * scale)),
         height: Math.max(1, Math.round(output.height * scale)),
@@ -460,8 +474,10 @@ export default function useSceneRunner({
       const finish = {
         // The plain scaler for good once the FSR passes have proved too dear
         // for this GPU at this size (`SCENE_FINISH_SHARE`).
-        fsr: upscaler === 'fsr' && !ladderRef.current.cheapFinish(),
-        fxaa: smoothing !== 'off' && !supersampled,
+        // Neither under a blur: it takes away the edges both work on.
+        fsr:
+          !isBlurred && upscaler === 'fsr' && !ladderRef.current.cheapFinish(),
+        fxaa: !isBlurred && smoothing !== 'off' && !supersampled,
       };
 
       const heardGapMs =
@@ -624,15 +640,18 @@ export default function useSceneRunner({
           drawnAccentRef.current = result.accent;
           // A size held for a run of frames is one this program draws: the
           // next ladder made for it starts there, not from the bottom.
-          if (scale === heldScaleRef.current) {
+          if (ladderScale === heldScaleRef.current) {
             heldFramesRef.current += 1;
           } else {
-            heldScaleRef.current = scale;
+            heldScaleRef.current = ladderScale;
             heldFramesRef.current = 1;
           }
           const key = ladderProgramRef.current;
           if (key !== undefined && heldFramesRef.current >= PROVEN_FRAMES) {
-            provenScales.set(key, Math.max(provenScales.get(key) ?? 0, scale));
+            provenScales.set(
+              key,
+              Math.max(provenScales.get(key) ?? 0, ladderScale),
+            );
           }
           // Its first frame with anything in it: a fade still at zero is black.
           if (drawnGeneration === generationRef.current && frame.fade > 0) {

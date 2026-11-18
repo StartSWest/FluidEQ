@@ -68,6 +68,8 @@ interface IScenePreviewProps {
    * picks there.
    */
   daylight?: () => number;
+  /** The blur laid over the preview, in CSS pixels (`ISceneRunnerOptions`). */
+  blurPx?: number;
   /**
    * The look this scene is, where it plays one of the listener's looks: a
    * version of it that will not compile then gives way to the last one that
@@ -109,6 +111,7 @@ export default function ScenePreview({
   captureSize,
   wave: listenerWave,
   daylight,
+  blurPx,
   look,
   surface = 'preview',
 }: IScenePreviewProps) {
@@ -233,6 +236,7 @@ export default function ScenePreview({
     shapeFrame,
     ...(tuning ? { tuning } : {}),
     ...(daylight ? { daylight } : {}),
+    ...(blurPx ? { blurPx } : {}),
     onDrawn: drawn,
     interaction,
   });

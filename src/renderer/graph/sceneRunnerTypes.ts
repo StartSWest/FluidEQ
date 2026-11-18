@@ -164,6 +164,13 @@ export interface ISceneRunnerOptions {
    */
   performance?: IScenePerformance;
   /**
+   * The blur, in CSS pixels, laid over the picture where it is shown - the
+   * Karaoke's backdrop. Detail finer than the blur is never seen, so the
+   * scene is drawn at no more pixels than survive it (`blurredScale`) and
+   * without the sharpening and smoothing passes.
+   */
+  blurPx?: number;
+  /**
    * Stop drawing, and keep everything built and the last frame where it is.
    * The desktop's own pause: a background on a monitor no part of whose
    * desktop is in sight draws nothing, reads no music and costs no GPU time,
