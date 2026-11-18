@@ -29,7 +29,11 @@ it under the terms of the GNU General Public License version 3 or later.
   flex-direction: column;
   gap: $spacing-m;
   min-height: 0;
-  padding: $spacing-m 4px $spacing-s;
+  // Its first row, the project picker, on the Gallery's search line: 2px
+  // under the card's own top inset, where the 16px under the title it no
+  // longer has left it hanging low (Ivan, 2026-11-18: "put the Studio's
+  // select more to the top, like in the Gallery").
+  padding: 2px 4px $spacing-s;
   // Never sideways: a line a few pixels too wide put a horizontal scrollbar
   // along the page's foot.
   overflow-x: hidden;
