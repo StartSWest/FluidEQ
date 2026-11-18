@@ -300,31 +300,25 @@ describe('the titlebar bars on a voice trailing off', () => {
   });
 });
 
-describe('the recorder as the new default', () => {
+describe('Fluid as the first-run style', () => {
   const styleOf = (container: HTMLElement) =>
     container
       .querySelector('.waveform-visualizer')
       ?.className.match(/waveform-visualizer--([a-z-]+)/)?.[1];
 
-  it('replaces a style chosen before it existed, once', () => {
+  it('opens on Fluid when nothing is stored', () => {
+    window.localStorage.removeItem(RECORDER_INTRODUCED_KEY);
+    window.localStorage.removeItem(WAVEFORM_STYLE_KEY);
+    const { container } = render(<WaveformVisualizer />);
+    expect(styleOf(container)).toBe('fluid');
+  });
+
+  it('keeps a style chosen before, where the recorder used to replace it', () => {
     window.localStorage.removeItem(RECORDER_INTRODUCED_KEY);
     window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'bars');
-    const first = render(<WaveformVisualizer />);
-    expect(styleOf(first.container)).toBe('recorder');
-    expect(window.localStorage.getItem(WAVEFORM_STYLE_KEY)).toBe('recorder');
-    // Its loudness figure stands beside the peak.
-    expect(
-      first.container.querySelector('.waveform-visualizer__loudness'),
-    ).not.toBeNull();
-    first.unmount();
-
-    // Chosen again afterwards, the choice stands, and the figure is gone.
-    window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'bars');
-    const again = render(<WaveformVisualizer />);
-    expect(styleOf(again.container)).toBe('bars');
-    expect(
-      again.container.querySelector('.waveform-visualizer__loudness'),
-    ).toBeNull();
+    const { container } = render(<WaveformVisualizer />);
+    expect(styleOf(container)).toBe('bars');
+    expect(window.localStorage.getItem(WAVEFORM_STYLE_KEY)).toBe('bars');
   });
 
   it('leaves Off alone', () => {
