@@ -260,6 +260,29 @@ $eq-preset-scrollbar: 8px;
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
+
+  // Pointed at, not chosen: the notes stay away for half a second and only
+  // then fade in, so a pointer passing over the tiles shows nothing and one
+  // that rests shows the preset it rests on (Ivan, 2026-11-18: "the panel is
+  // blinking, it may cause problems for people who don't support blinking;
+  // only when they stand half a second on a preset, show it"). Each tile
+  // keys a new body, so moving on starts the wait again and the last notes
+  // are gone at once. Waited on in the animation's own delay, never a
+  // timer. Under reduced motion the wait stays and the fade goes: the notes
+  // step in whole after it.
+  &.is-pointed {
+    animation-delay: 500ms;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: eq-preset-detail-wait 1ms linear 500ms both;
+    }
+  }
+}
+
+@keyframes eq-preset-detail-wait {
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes eq-preset-detail-in {

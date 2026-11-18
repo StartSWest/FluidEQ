@@ -221,7 +221,17 @@ const EqPresetTab = () => {
           own short fade rather than the words swapping in place (Ivan,
           2026-11-17: "a smooth transition between one and the other, nicely
           but fast"). */}
-        <div className="eq-preset-tab__detail-body" key={focused?.id ?? ''}>
+        {/* A preset only pointed at waits half a second before its notes
+          show (`is-pointed`): running the pointer down the grid flashed a
+          new panel at every tile, which a reader sensitive to flashing
+          should not be shown (Ivan, 2026-11-18). The panel keeps its place
+          all the while. */}
+        <div
+          className={`eq-preset-tab__detail-body${
+            pointedAt === undefined ? '' : ' is-pointed'
+          }`}
+          key={focused?.id ?? ''}
+        >
           {focused && genreNotesFor(focused.id) ? (
             <GenreNotesPreview chainId={focused.id} closeMenu={keepOpen} />
           ) : (
