@@ -50,11 +50,42 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
 }
 
-// Holds what the gallery says back (`PlusToastStack`), hanging below it over
-// the list. Above the cards' own raised controls, which sit at 2.
-.gallery-head {
-  position: relative;
+// The place's name, for screen readers only: the rail beside the page shows
+// it, and a 30px title over the search only pushed the scenes down (Ivan,
+// 2026-11-17).
+.gallery-place-name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// The bar that stays on top while the cards scroll under it: the search on
+// the front page, the way back on a scene's, a maker's or one's own (Ivan,
+// 2026-11-17: "make search stick on top"). It wears the card's own face so
+// the cards pass behind it, and reaches up through the scroller's top
+// padding so nothing shows above it. What the gallery says back
+// (`PlusToastStack`, the wallpaper status) hangs from it, so a heart pressed
+// far down the list still answers where it is seen. Above the cards' own
+// raised controls, which sit at 2.
+.gallery-pinned {
+  position: sticky;
   z-index: 3;
+  top: calc(-1 * #{$spacing-m});
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: calc(-1 * #{$spacing-m});
+  padding: $spacing-m 0 10px;
+  background: $surface-section;
+
+  > .gallery-toolbar,
+  > .gallery-pagebar {
+    flex: 1 1 auto;
+  }
 }
 
 .gallery-fine {

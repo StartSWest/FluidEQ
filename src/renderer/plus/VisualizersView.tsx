@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { resolveSceneName } from 'common/scenePacks';
 import { useAccount } from '../account/accountStore';
-import PlaceHead from '../community/PlaceHead';
 import { useTranslation } from '../utils/I18nContext';
 import { WallpaperStatus } from '../wallpaper/WallpaperControls';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
@@ -92,7 +91,22 @@ export default function VisualizersView({
     }
   }, [pageKey]);
 
-  let content = <GalleryView me={me} />;
+  // What the gallery says back, under the bar that stays on top: the search
+  // on the front page, the way back on the others.
+  const notices = (
+    <>
+      <WallpaperStatus />
+      {/* Hung from the pinned bar, which stays put: Add and the heart are
+          pressed on cards far down the list, where a line at its top is
+          not. */}
+      <PlusToastStack<IGalleryNotice>
+        sources={{ gallery: notice }}
+        text={(entry) => t(entry.key, entry.vars)}
+      />
+    </>
+  );
+
+  let content = <GalleryView me={me} notices={notices} />;
   if (page.kind === 'scene') {
     content = (
       <ScenePage
@@ -114,30 +128,25 @@ export default function VisualizersView({
   }
 
   return (
-    <>
-      <PlaceHead
-        className="gallery-head"
-        title={t('plus.visualizers.title')}
-        description={t('plus.visualizers.description')}
-      >
-        <WallpaperStatus />
-        {/* Under the head, which stays put: Add and the heart are pressed
-            on cards far down the list, where a line at its top is not. */}
-        <PlusToastStack<IGalleryNotice>
-          sources={{ gallery: notice }}
-          text={(entry) => t(entry.key, entry.vars)}
-        />
-      </PlaceHead>
-      <div
-        ref={scrollRef}
-        className="gallery-visualizers"
-        onScroll={(event) =>
-          rememberGalleryScroll(pageKey, event.currentTarget.scrollTop)
-        }
-      >
-        {page.kind !== 'browse' && <PageBar page={page} />}
-        {content}
-      </div>
-    </>
+    // No big "Gallery" title over the page (Ivan, 2026-11-17: "not even sure
+    // we need the Gallery title there like that"): the rail beside it names
+    // the place, and the head pushed the search and the scenes down. The
+    // name stays for screen readers.
+    <div
+      ref={scrollRef}
+      className="gallery-visualizers"
+      onScroll={(event) =>
+        rememberGalleryScroll(pageKey, event.currentTarget.scrollTop)
+      }
+    >
+      <h2 className="gallery-place-name">{t('plus.visualizers.title')}</h2>
+      {page.kind !== 'browse' && (
+        <div className="gallery-pinned">
+          <PageBar page={page} />
+          {notices}
+        </div>
+      )}
+      {content}
+    </div>
   );
 }

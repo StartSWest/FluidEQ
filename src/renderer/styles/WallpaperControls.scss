@@ -486,16 +486,9 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- the status
 
-// Beside the Visualizers title while any monitor has a background. The head
-// wraps it onto its own line before squeezing the title's description.
-.gallery-head:has(> .wallpaper-status) {
-  flex-wrap: wrap;
-
-  > .community__head-text {
-    flex: 1 1 220px;
-  }
-}
-
+// At the end of the gallery's pinned bar while any monitor has a background
+// (`.gallery-pinned`, which wraps it onto its own line before squeezing the
+// search).
 .wallpaper-status {
   display: flex;
   flex: 0 1 auto;
