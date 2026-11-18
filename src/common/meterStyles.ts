@@ -53,3 +53,12 @@ export const METER_STYLES: MeterStyle[] = [
 
 /** Where the chosen meter style is remembered. */
 export const METER_STYLE_KEY = 'fluideq-meter-style';
+
+/**
+ * Where a light window's meter style is remembered, apart from the dark
+ * window's: a light window opens on `segments`, the lamps unlit and lit
+ * showing (Ivan's pick B, "Consola", 2026-11-18), where the dark window's
+ * `fluid` was two tall blocks of saturated colour on white.
+ */
+export const METER_STYLE_LIGHT_KEY = 'fluideq-meter-style.light';
+export const LIGHT_WINDOW_METER_STYLE: MeterStyle = 'segments';

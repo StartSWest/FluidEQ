@@ -32,26 +32,33 @@ $filter-dropdown-width: 56px;
 // detent's own mark (`.range::before`).
 $range-ticks-long: linear-gradient(
   to bottom,
-  color-mix(in srgb, $edge-tint 40%, transparent) 0,
-  color-mix(in srgb, $edge-tint 40%, transparent) 1px,
+  color-mix(in srgb, $edge-tint var(--range-tick-long, 40%), transparent) 0,
+  color-mix(in srgb, $edge-tint var(--range-tick-long, 40%), transparent) 1px,
   transparent 1px,
   transparent calc(25% - 0.5px),
-  color-mix(in srgb, $edge-tint 40%, transparent) calc(25% - 0.5px),
-  color-mix(in srgb, $edge-tint 40%, transparent) calc(25% + 0.5px),
+  color-mix(in srgb, $edge-tint var(--range-tick-long, 40%), transparent)
+    calc(25% - 0.5px),
+  color-mix(in srgb, $edge-tint var(--range-tick-long, 40%), transparent)
+    calc(25% + 0.5px),
   transparent calc(25% + 0.5px),
   transparent calc(75% - 0.5px),
-  color-mix(in srgb, $edge-tint 40%, transparent) calc(75% - 0.5px),
-  color-mix(in srgb, $edge-tint 40%, transparent) calc(75% + 0.5px),
+  color-mix(in srgb, $edge-tint var(--range-tick-long, 40%), transparent)
+    calc(75% - 0.5px),
+  color-mix(in srgb, $edge-tint var(--range-tick-long, 40%), transparent)
+    calc(75% + 0.5px),
   transparent calc(75% + 0.5px),
   transparent calc(100% - 1px),
-  color-mix(in srgb, $edge-tint 40%, transparent) calc(100% - 1px)
+  color-mix(in srgb, $edge-tint var(--range-tick-long, 40%), transparent)
+    calc(100% - 1px)
 );
 $range-ticks-mid: repeating-linear-gradient(
   to bottom,
   transparent 0,
   transparent calc(12.5% - 0.5px),
-  color-mix(in srgb, $edge-tint 27%, transparent) calc(12.5% - 0.5px),
-  color-mix(in srgb, $edge-tint 27%, transparent) calc(12.5% + 0.5px),
+  color-mix(in srgb, $edge-tint var(--range-tick-mid, 27%), transparent)
+    calc(12.5% - 0.5px),
+  color-mix(in srgb, $edge-tint var(--range-tick-mid, 27%), transparent)
+    calc(12.5% + 0.5px),
   transparent calc(12.5% + 0.5px),
   transparent 25%
 );
@@ -59,8 +66,10 @@ $range-ticks-short: repeating-linear-gradient(
   to bottom,
   transparent 0,
   transparent calc(6.25% - 0.5px),
-  color-mix(in srgb, $edge-tint 15%, transparent) calc(6.25% - 0.5px),
-  color-mix(in srgb, $edge-tint 15%, transparent) calc(6.25% + 0.5px),
+  color-mix(in srgb, $edge-tint var(--range-tick-short, 15%), transparent)
+    calc(6.25% - 0.5px),
+  color-mix(in srgb, $edge-tint var(--range-tick-short, 15%), transparent)
+    calc(6.25% + 0.5px),
   transparent calc(6.25% + 0.5px),
   transparent 12.5%
 );
@@ -491,6 +500,17 @@ button.band-frequency-caption {
     width: 15px;
     height: 15px;
   }
+}
+
+// On a light window the fader cap stands one crisp pixel off the white card
+// (`RangeInput.scss` has its colours): a white cap with no step under it read
+// as part of the card. Ahead of the cap's own rules below, so the pointer's
+// ring and the keyboard's focus, as specific and later, still win. To the
+// cap's left, which is the screen's below (the input is turned).
+:root[data-window-ink='dark'][data-slider-handle='rect']
+  .range
+  input[type='range']::-webkit-slider-thumb {
+  box-shadow: -1px 0 1px color-mix(in srgb, $black 18%, transparent);
 }
 
 // The fader cap (Ivan, 2026-09-26: "rec and circles for the sliders"),

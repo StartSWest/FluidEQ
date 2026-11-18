@@ -10,14 +10,17 @@ import { useSyncExternalStore } from 'react';
 import { paletteLinear, type IScenePaletteValue } from 'common/scenePalette';
 import type { ISceneColour, ISceneSky } from './sceneTint';
 import {
+  contrast,
   hueDistance,
   intoGamut,
+  luminance,
   parseCssColour,
   rgbToLab,
   toByte,
   toGamma,
   type ILab,
 } from './oklab';
+import { isLightWindow, subscribeWindowSide } from './windowSide';
 
 /**
  * RAINBOW MODE'S COLOURS: A PALETTE, NOT THE SPECTRUM.
@@ -274,8 +277,72 @@ export const turnedPalette = (
     return toHex(fromLch({ ...lch, h: (((lch.h + by) % 360) + 360) % 360 }));
   });
 
+// *** The palette on a light window *******************************************
+
+/**
+ * What a stop has to keep on a light window: a 2px line in it, the analyser's
+ * edge, a fader's lit mark, the meter's ramp, reads on the white panes at
+ * 3:1, the contrast a graphical object needs (WCAG 1.4.11).
+ */
+const LINE_ON_WHITE = 3;
+const WHITE_LUMINANCE = 1;
+
+const readsOnWhite = (lab: ILab): boolean =>
+  contrast(luminance(intoGamut(lab)), WHITE_LUMINANCE) >= LINE_ON_WHITE;
+
+/**
+ * `hex` taken down in OKLab lightness, its hue kept and its chroma kept as far
+ * as the screen can show it, to the lightest step that still reads on white;
+ * a stop that already reads is returned as it is.
+ *
+ * Every palette was built for a dark window - Lagoon is held between 0.70 and
+ * 0.88 so a thin mark stands out of a floor near black - and on a white window
+ * the same stops were neon pastel on white, 1.2 to 1.9:1, which Ivan read as
+ * garish (2026-11-18, "we need to look professional for the light theme").
+ * A transform of whatever palette is chosen, never a palette of its own, so a
+ * scene's colours, the listener's pick and the tint keep their hues on both
+ * sides of the Brightness. Sixteen halvings land within a 65,000th of the
+ * step.
+ */
+export const stopOnWhite = (hex: string): string => {
+  const parsedHex = parseCssColour(hex);
+  if (!parsedHex) {
+    return hex;
+  }
+  const lab = rgbToLab(parsedHex.rgb);
+  if (readsOnWhite(lab)) {
+    return hex;
+  }
+  let reads = 0;
+  let fails = lab.l;
+  for (let step = 0; step < 16; step += 1) {
+    const middle = (reads + fails) / 2;
+    if (readsOnWhite({ ...lab, l: middle })) {
+      reads = middle;
+    } else {
+      fails = middle;
+    }
+  }
+  return toHex({ ...lab, l: reads });
+};
+
+/** Each palette's light-window copy, made once per palette. */
+const onWhite = new WeakMap<readonly string[], readonly string[]>();
+const paletteOnWhite = (palette: readonly string[]): readonly string[] => {
+  const known = onWhite.get(palette);
+  if (known) {
+    return known;
+  }
+  const made = palette.map(stopOnWhite);
+  onWhite.set(palette, made);
+  return made;
+};
+
 // *** The palette in use ******************************************************
 
+/** The palette chosen, before the window's side has a say. */
+let chosen: readonly string[] = LAGOON;
+/** What is worn: the chosen palette, or its copy on a light window. */
 let stops: readonly string[] = LAGOON;
 const listeners = new Set<() => void>();
 
@@ -304,8 +371,19 @@ const paintRoot = () => {
   });
 };
 
-/** The seven stops in use now. */
+/** The seven stops in use now, as worn on this side of the Brightness. */
 export const getRainbowStops = (): readonly string[] => stops;
+
+/** Wear the chosen palette as this side of the window wants it. */
+const wear = () => {
+  const next = isLightWindow() ? paletteOnWhite(chosen) : chosen;
+  if (next === stops) {
+    return;
+  }
+  stops = next;
+  paintRoot();
+  listeners.forEach((listener) => listener());
+};
 
 /**
  * Put `next` in use — Lagoon for undefined — on the root and for every
@@ -316,14 +394,17 @@ export const setRainbowStops = (next: readonly string[] | undefined) => {
   const wanted = next ?? LAGOON;
   if (
     wanted.length !== RAINBOW_STOP_COUNT ||
-    wanted.every((stop, index) => stop === stops[index])
+    wanted.every((stop, index) => stop === chosen[index])
   ) {
     return;
   }
-  stops = wanted;
-  paintRoot();
-  listeners.forEach((listener) => listener());
+  chosen = wanted;
+  wear();
 };
+
+// A window that opens light has said so before the first palette is chosen.
+wear();
+subscribeWindowSide(wear);
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);

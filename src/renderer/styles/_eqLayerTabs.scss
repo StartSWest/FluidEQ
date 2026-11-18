@@ -132,6 +132,46 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
   }
 }
 
+// On a light window the tabs are a sunken selector and the open one a key
+// raised out of it, its count filled in the accent (Ivan's pick B,
+// "Consola", 2026-11-18). An underline on white read as one more hairline
+// among the card's; a raised key reads as the one that is in. The key is
+// the card's face over a 1px card edge and a 1px shadow: on white a face
+// alone is invisible, and anything softer than a crisp step is the kind of
+// shadow taken off the faders ("que no son estándares", 2026-09-27).
+:root[data-window-ink='dark'] {
+  .eq-layer-tabs__list {
+    height: 30px;
+    align-self: center;
+    gap: 2px;
+    padding: 2px;
+    border-radius: $radius-xs;
+    background: color-mix(in srgb, $edge-tint 7%, transparent);
+    box-shadow: inset 0 1px 2px color-mix(in srgb, $black 9%, transparent);
+  }
+
+  .eq-layer-tabs__tab {
+    padding: 0 10px;
+    border-radius: $radius-2xs;
+
+    &::after {
+      display: none;
+    }
+
+    &[aria-selected='true'] {
+      background: $surface-panel;
+      box-shadow:
+        0 0 0 1px $card-edge,
+        0 1px 2px color-mix(in srgb, $black 14%, transparent);
+
+      .eq-layer-tabs__meta {
+        color: $surface-base;
+        background: $secondary-default;
+      }
+    }
+  }
+}
+
 // The room the tabs leave, and the tools at its end: the slot takes what is
 // left and the tools are as wide as their content, the two widths the fit
 // compares.

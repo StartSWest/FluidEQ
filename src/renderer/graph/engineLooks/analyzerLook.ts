@@ -9,6 +9,8 @@ import {
   ANALYZER_FIGURES,
   HOLD_LINE_ALPHA,
   HOLD_LINE_WIDTH,
+  LIGHT_WINDOW_FILL_SHARE,
+  LIGHT_WINDOW_HOLD_DASH,
   PIP_ALPHA,
   PIP_RADIUS,
   advanceAnalyzer,
@@ -49,15 +51,30 @@ vec4 analyzerFigure(vec4 picture, vec2 p, vec4 band, int row, int seg, bool mate
     picture = lookOver(picture, lookPaint(glow, 0.16 * halo * lookStroke(d.x, haloWidth)));
     picture = lookOver(picture, lookPaint(glow, 0.26 * halo * lookStroke(d.x, anEdgeWidth() + 4.0 * halo)));
   }
+  // A light window wears dark ink (\`windowSide.ts\`): its body is a flat wash
+  // at a share of the fill and its hold is dashed (LIGHT_WINDOW_FILL_SHARE).
+  bool onWhite = dot(uWindowInk, vec3(0.2126, 0.7152, 0.0722)) < 0.5;
   if (lookFilled()) {
-    picture = anBody(picture, p, band, mate, energy, anFillOpacity() * figure.x, anBodyCover(p, band, at.x, d.x));
+    float cover = anBodyCover(p, band, at.x, d.x);
+    if (onWhite) {
+      float alpha = anFillOpacity() * figure.x * ${LIGHT_WINDOW_FILL_SHARE.toFixed(3)};
+      if (cover > 0.0 && alpha > 0.0) {
+        picture = lookOver(picture, anFillPaint(p, band, mate, energy, alpha) * cover);
+      }
+    } else {
+      picture = anBody(picture, p, band, mate, energy, anFillOpacity() * figure.x, cover);
+    }
   }
   if (figure.y > 0.0) {
     picture = lookOver(picture, lookPaint(anEdgeInk(p, band, mate, energy), figure.y * lookStroke(d.x, figure.z)));
   }
-  // The hold, and a pip wherever the reading still touches it: white on
-  // every palette, because nothing else on the plot is.
-  picture = lookOver(picture, lookPaint(vec3(1.0), figure.w * ${HOLD_LINE_ALPHA.toFixed(3)} * lookStroke(d.y, ${HOLD_LINE_WIDTH.toFixed(3)})));
+  // The hold, and a pip wherever the reading still touches it, in the
+  // window's strongest ink as the 2D view draws them (\`readInk\`): white on
+  // a dark window, near-black on a light one, where white was invisible.
+  float dash = onWhite
+    ? step(fract(p.x / ${(LIGHT_WINDOW_HOLD_DASH * 2).toFixed(1)}), 0.5)
+    : 1.0;
+  picture = lookOver(picture, lookPaint(uWindowInk, dash * figure.w * ${HOLD_LINE_ALPHA.toFixed(3)} * lookStroke(d.y, ${HOLD_LINE_WIDTH.toFixed(3)})));
   float pip = 0.0;
   for (int j = seg - 2; j <= seg + 3; j++) {
     vec4 point = anPoint(j, row);
@@ -65,7 +82,7 @@ vec4 analyzerFigure(vec4 picture, vec2 p, vec4 band, int row, int seg, bool mate
       pip = max(pip, lookFill(length(p - point.xz) - ${PIP_RADIUS.toFixed(3)}));
     }
   }
-  return lookOver(picture, lookPaint(vec3(1.0), figure.w * ${PIP_ALPHA.toFixed(3)} * pip));
+  return lookOver(picture, lookPaint(uWindowInk, figure.w * ${PIP_ALPHA.toFixed(3)} * pip));
 }
 
 vec4 sceneColour(vec2 uv) {

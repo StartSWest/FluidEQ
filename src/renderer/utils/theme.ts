@@ -10,6 +10,7 @@ import { useSyncExternalStore } from 'react';
 import { readStored, removeStored, writeStored } from './graphStorage';
 import { shadeForPickedSurface } from './pickedWindow';
 import { WINDOW_INK_ATTRIBUTE } from './themeInk';
+import { setLightWindow } from './windowSide';
 import {
   OCEAN_SHADE,
   THEME_SHADE_MIN,
@@ -162,6 +163,7 @@ applyShade(current);
 // showed light words on white panes.
 if (isLightShade(current)) {
   document.documentElement.setAttribute(WINDOW_INK_ATTRIBUTE, 'dark');
+  setLightWindow(true);
 }
 
 const notify = () => listeners.forEach((listener) => listener());

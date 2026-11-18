@@ -273,3 +273,23 @@ $range-rail-width: 4px;
     fill: var(--slider-color);
   }
 }
+
+// ON A LIGHT WINDOW the fader is a console's (Ivan's pick B, "Consola",
+// 2026-11-18): the rail a recessed well, the cap lit from above and cut out
+// by an edge you can see. Worked out from the panel as above, which on a
+// light window is white: lit from above it had nothing to step up to, so the
+// face, its foot and the panel were one white and its edge (0.84) a ghost.
+// The well's shadow is on its left and top, the light's other side.
+:root[data-window-ink='dark'] .range {
+  --range-face-top: var(--surface-panel);
+  --range-face-foot: oklch(from var(--surface-panel) calc(l - 0.07) c h);
+  --range-edge: oklch(from var(--surface-panel) calc(l - 0.32) c h);
+  --range-frame: oklch(from var(--surface-panel) calc(l - 0.12) c h);
+
+  .range__groove {
+    width: 6px;
+    margin-left: -3px;
+    background: color-mix(in srgb, $edge-tint 11%, $surface-panel);
+    box-shadow: inset 1px 1px 2px color-mix(in srgb, $black 16%, transparent);
+  }
+}

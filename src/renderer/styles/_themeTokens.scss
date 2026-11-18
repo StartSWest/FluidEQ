@@ -818,7 +818,16 @@ $tooltip-lift: 0 1px 0 rgba($black, 0.22);
 // card, a box inside one, a group, a plot, the rule between a card's parts
 // (Ivan, 2026-09-27: "nice pane borders subtle one ... once we fix this one
 // all go same"). A control's edge is the other one (`$border-control`).
-$card-edge: color-mix(in srgb, $surface-panel 94%, $edge-tint);
+//
+// How much of the edge tint it carries is `--card-edge-share` (`App.scss`):
+// 6% on a dark window, more on a light one, where a white card on a pale
+// floor needs a defined line to stand as a card at all (Ivan's pick B,
+// "Consola", 2026-11-18).
+$card-edge: color-mix(
+  in srgb,
+  $edge-tint var(--card-edge-share, 6%),
+  $surface-panel
+);
 
 $card-radius: $radius-m;
 

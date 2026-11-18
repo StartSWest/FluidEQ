@@ -176,7 +176,7 @@ export const engineAnalysisStep = (
  * Bumped when a look's shader changes, so a program the engine keeps by its
  * source is built again rather than taken from a cache under the old one.
  */
-const LOOK_PACK_VERSION = 1;
+const LOOK_PACK_VERSION = 2;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

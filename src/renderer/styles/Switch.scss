@@ -139,3 +139,50 @@ $switch-height: 22px;
     @include focus-ring;
   }
 }
+
+// ON A LIGHT WINDOW a switch is a key in a slot (Ivan's pick B, "Consola",
+// 2026-11-18): off, a white knob in a grey slot; on, the slot filled with the
+// accent and the knob the floor's ink on it, as a chosen segment is
+// (`_buttonFaces.scss`). The dark window's faces read the other way on
+// white: off was a near-black knob in a grey well, the heaviest mark in the
+// header, and on a pale tint barely different from off.
+:root[data-window-ink='dark'] {
+  .switch-label {
+    border-color: transparent;
+    background: color-mix(in srgb, $edge-tint 16%, $surface-panel);
+
+    .switch-button {
+      background: $surface-panel;
+      box-shadow:
+        0 0 0 1px $card-edge,
+        0 1px 1px color-mix(in srgb, $black 18%, transparent);
+    }
+  }
+
+  .switch-checkbox:checked + .switch-label {
+    border-color: transparent;
+    background: $secondary-default;
+
+    .switch-button {
+      background: $surface-base;
+      box-shadow: 0 1px 1px color-mix(in srgb, $black 22%, transparent);
+    }
+  }
+
+  .switch-checkbox:not(:disabled) + .switch-label:hover {
+    border-color: $edge-hover;
+
+    .switch-button {
+      background: $surface-panel;
+    }
+  }
+
+  .switch-checkbox:checked:not(:disabled) + .switch-label:hover {
+    border-color: transparent;
+    background: $secondary-dark;
+
+    .switch-button {
+      background: $surface-base;
+    }
+  }
+}

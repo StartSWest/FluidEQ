@@ -21,6 +21,7 @@ import {
 } from './sceneTint';
 import { DARK_KNEE, darkenSurfaces } from './sceneTintDark';
 import { getThemeShade, subscribeTheme } from './theme';
+import { setLightWindow } from './windowSide';
 import pickedWindow from './pickedWindow';
 import {
   INK_TOKENS,
@@ -699,6 +700,7 @@ const showInk = (ink: 'light' | 'dark') => {
   } else {
     root.removeAttribute(WINDOW_INK_ATTRIBUTE);
   }
+  setLightWindow(ink === 'dark');
 };
 
 /**

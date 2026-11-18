@@ -372,6 +372,8 @@ export const paintSpectrum = (
     edgeAlpha: number;
     edgeWidth?: number;
     textured?: boolean;
+    /** One opacity from peak to floor: no fade toward the foot. */
+    flat?: boolean;
   },
 ): void => {
   const { context, tuning, edge } = frame;
@@ -380,7 +382,7 @@ export const paintSpectrum = (
     context.globalAlpha = 1;
     context.fillStyle = spectrumFill(frame, levels, options.fillAlpha);
     context.fill(body);
-    if (frame.palette !== 'level') {
+    if (frame.palette !== 'level' && options.flat !== true) {
       fadeTowardFoot(frame, body);
     }
     if (options.textured !== false) {

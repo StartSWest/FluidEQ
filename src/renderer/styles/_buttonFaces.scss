@@ -448,6 +448,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // shifts.
 @mixin segmented-option-chosen {
   @include button-face-lit($edge: inset, $weight: null);
+
+  // On a light window the chosen segment is the accent itself with the
+  // floor's ink on it, the contrast the accent is solved for (`windowLight.ts`,
+  // LABEL_CONTRAST 4.5): the lit tint, 22% with a 62% ring, was a pale smudge
+  // on white (Ivan's pick B, "Consola", 2026-11-18).
+  :root[data-window-ink='dark'] & {
+    color: $surface-base;
+    background: $secondary-default;
+    box-shadow: none;
+  }
 }
 
 // THE TAB: a place within a page, chosen by its word. Sentence case,

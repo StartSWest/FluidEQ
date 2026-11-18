@@ -82,6 +82,18 @@ html {
     // Light under its dark words.
     --ink-halo:
       0 0 1px rgba(255, 255, 255, 0.5), 0 1px 3px rgba(255, 255, 255, 0.42);
+    // THE LIGHT WINDOW IS AN INSTRUMENT (Ivan's pick B, "Consola",
+    // 2026-11-18: "we need to look professional for the light theme"):
+    // defined edges and no shadows, a scale you can read. The card's edge
+    // at 17% of the ink is #d9d9d9 on white, 1.4:1, where the dark window's
+    // 6% (#f1f1f1 on a #ececec floor) left white cards with no edge at all.
+    --card-edge-share: 17%;
+    // The faders' scale (`FrequencyBand.scss`): 40%, 27% and 15% of the ink
+    // were 2.4:1, 1.6:1 and 1.2:1 on white, a pale comb. Now 6.3:1, 3.4:1
+    // and 2:1, the long marks reading as a printed scale.
+    --range-tick-long: 72%;
+    --range-tick-mid: 52%;
+    --range-tick-short: 34%;
   }
   // No `scrollbar-color` and no `scrollbar-width` here, or anywhere.
   //
@@ -3041,6 +3053,22 @@ $graph-card-pages: list.join(
       box-shadow: none;
       background: color-mix(in srgb, #{$surface-section} 84%, #{$black});
     }
+  }
+
+  // On a light window the card's own face between two of the card's edges,
+  // the tabs a sunken selector on it (`_eqLayerTabs.scss`). The step darker
+  // was a flat mid-grey band on white (rgb 208 at 87%), unrelated to the
+  // cards around it (Ivan's pick B, "Consola", 2026-11-18). Over a scene the
+  // row keeps its strip face (below).
+  :root[data-window-ink='dark']:not(.is-scene-column)
+    &
+    > .middle-content
+    > .workspace-tab-panel--eq
+    > .workspace-tab-panel__row
+    > .eq-layer-tabs {
+    border-top: 1px solid $card-edge;
+    border-bottom: 1px solid $card-edge;
+    background: none;
   }
 
   :root.is-scene-column & {

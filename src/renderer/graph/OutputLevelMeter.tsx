@@ -44,7 +44,13 @@ import {
 } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { getEaseFactor } from 'common/smoothing';
-import { METER_STYLES, MeterStyle, METER_STYLE_KEY } from 'common/meterStyles';
+import {
+  LIGHT_WINDOW_METER_STYLE,
+  METER_STYLES,
+  MeterStyle,
+  METER_STYLE_KEY,
+  METER_STYLE_LIGHT_KEY,
+} from 'common/meterStyles';
 import { useTranslation } from '../utils/I18nContext';
 import {
   useLiveAudioCapture,
@@ -56,6 +62,7 @@ import {
 import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
 import { useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
+import { useLightWindow } from '../utils/windowSide';
 import useSmoothFrames from '../utils/useSmoothFrames';
 import {
   LEVEL_FLOOR_DB,
@@ -212,7 +219,7 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
   // opens on, so the two visualisers agree about what the app looks like
   // before anybody has chosen anything.
   const migratedLegacyOffRef = useRef(false);
-  const [style, setStyle] = useState<TMeterCycleStyle>(() => {
+  const [darkStyle, setDarkStyle] = useState<TMeterCycleStyle>(() => {
     try {
       const stored = window.localStorage.getItem(METER_STYLE_KEY);
       if (
@@ -230,6 +237,18 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
       return 'fluid';
     }
   });
+  // A light window keeps a style of its own (`METER_STYLE_LIGHT_KEY`), so a
+  // walk across the Brightness gives each side back the meter chosen there.
+  const isLight = useLightWindow();
+  const [lightStyle, setLightStyle] = useState<TMeterCycleStyle>(() => {
+    try {
+      const stored = window.localStorage.getItem(METER_STYLE_LIGHT_KEY);
+      return isMeterCycleStyle(stored) ? stored : LIGHT_WINDOW_METER_STYLE;
+    } catch {
+      return LIGHT_WINDOW_METER_STYLE;
+    }
+  });
+  const style = isLight ? lightStyle : darkStyle;
   const isOff = style === 'off';
   const drawableStyle: MeterStyle = isOff ? 'fluid' : style;
   const styleRef = useRef<MeterStyle>(drawableStyle);
@@ -256,7 +275,9 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
   const cycleStyle = useCallback(
     (event: ReactMouseEvent<HTMLButtonElement>) => {
       const goingBack = event.ctrlKey || event.metaKey;
-      setStyle((current) => {
+      const setSide = isLight ? setLightStyle : setDarkStyle;
+      const key = isLight ? METER_STYLE_LIGHT_KEY : METER_STYLE_KEY;
+      setSide((current) => {
         const at = METER_CYCLE.indexOf(current);
         const direction = goingBack ? -1 : 1;
         const next =
@@ -264,14 +285,14 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
             (at + direction + METER_CYCLE.length) % METER_CYCLE.length
           ] ?? 'fluid';
         try {
-          window.localStorage.setItem(METER_STYLE_KEY, next);
+          window.localStorage.setItem(key, next);
         } catch {
           // Not worth failing a click over.
         }
         return next;
       });
     },
-    [],
+    [isLight],
   );
 
   // The buffered channel state, eased frame-to-frame so the meter carries

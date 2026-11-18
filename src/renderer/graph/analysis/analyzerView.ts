@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { readInk } from '../../utils/theme';
+import { isLightWindow } from '../../utils/windowSide';
 import {
   STILL_ENOUGH,
   advanceHold,
@@ -72,6 +73,23 @@ const BLOOM_REACH = 0.012;
 /** The hold's hairline: its width, and how solid it is within its figure. */
 export const HOLD_LINE_WIDTH = 1.25;
 export const HOLD_LINE_ALPHA = 0.9;
+
+/**
+ * ON A LIGHT WINDOW the analyser is a measurement on paper (Ivan's pick B,
+ * "Consola", 2026-11-18): the body a flat wash, the look's fill times this
+ * share - the Analyzer's own 0.85 lands at 0.14 - from its peak to the floor,
+ * and the hold a dashed line in the window's ink.
+ *
+ * At the dark window's 0.85, faded toward the foot, the body was a solid
+ * mountain of colour over half the plot on white, and the fade read as a
+ * grey gradient laid across the graph ("a big blot rather than a
+ * measurement"). On a dark floor the same fill is light on dark and stays.
+ * The GPU copy (`engineLooks/analyzerLook.ts`) does the same, told the side
+ * by the window's ink.
+ */
+export const LIGHT_WINDOW_FILL_SHARE = 0.165;
+/** The hold's dash on a light window, in CSS pixels: on, then off. */
+export const LIGHT_WINDOW_HOLD_DASH = 3;
 
 /** A high-water pip's radius, and how solid it is within its figure. */
 export const PIP_RADIUS = 1.6;
@@ -201,7 +219,11 @@ const paintHold = (
   context.lineWidth = HOLD_LINE_WIDTH;
   context.lineJoin = 'round';
   context.strokeStyle = readInk(HOLD_LINE_ALPHA);
+  if (isLightWindow()) {
+    context.setLineDash([LIGHT_WINDOW_HOLD_DASH, LIGHT_WINDOW_HOLD_DASH]);
+  }
   context.stroke(line);
+  context.setLineDash([]);
   context.globalAlpha = 1;
   // The high-water marks themselves: where the reading is still at its hold,
   // a bright pip. Drawn as one path so the whole row costs a single fill.
@@ -233,11 +255,16 @@ const paintFigure = (
   figure: IAnalyzerFigure,
   textured: boolean,
 ): void => {
+  const onWhite = isLightWindow();
   paintSpectrum(frame, levels, {
-    fillAlpha: frame.tuning.fillOpacity * figure.fill,
+    fillAlpha:
+      frame.tuning.fillOpacity *
+      figure.fill *
+      (onWhite ? LIGHT_WINDOW_FILL_SHARE : 1),
     edgeAlpha: figure.edge,
     edgeWidth: figureEdgeWidth(frame, figure),
     textured,
+    flat: onWhite,
   });
   paintHold(frame, hold, figure.hold);
 };
