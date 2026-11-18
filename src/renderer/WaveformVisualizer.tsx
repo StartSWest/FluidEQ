@@ -130,6 +130,9 @@ const WAVEFORM_CYCLE: readonly TWaveformCycleStyle[] = [
 ];
 
 const LEGACY_WAVE_OFF_MIGRATION_KEY = 'fluideq.waveOffStateMigrated';
+
+/** The title bar's style on a first run, and after a reset of every setting. */
+const DEFAULT_TITLEBAR_STYLE: TWaveformCycleStyle = 'fluid';
 /**
  * Set once the recorder has been handed to this window as its meter (Ivan,
  * 2026-11-16: "on the top wave we need a true waveform"): a style chosen
@@ -233,8 +236,8 @@ const WaveformVisualizer = () => {
   const waveGateRef = useRef<IWaveGate | undefined>(undefined);
   // Remembered across launches: which one somebody likes is a preference, and
   // being handed back a different meter every morning is not charming. The
-  // first-run default is `spectrum` — the site's signal-deck look, and the
-  // one this pane is designed around; other styles are behind clicks.
+  // first-run default is `fluid` (Ivan, 2026-11-18: "the default meter on
+  // top is Fluid, put that, not the wave"); other styles are behind clicks.
   const [style, setStyle] = useState<TWaveformCycleStyle>(() => {
     try {
       const stored = window.localStorage.getItem(WAVEFORM_STYLE_KEY);
@@ -251,16 +254,13 @@ const WaveformVisualizer = () => {
         window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'off');
         return 'off';
       }
-      if (window.localStorage.getItem(RECORDER_INTRODUCED_KEY) !== 'true') {
-        window.localStorage.setItem(RECORDER_INTRODUCED_KEY, 'true');
-        if (stored !== 'off') {
-          window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'recorder');
-          return 'recorder';
-        }
-      }
-      return isWaveformCycleStyle(stored) ? stored : 'recorder';
+      // The recorder was once handed to everybody on first sight of it; the
+      // first-run style is Fluid now, so nothing is handed over any more and
+      // a style somebody chose stays theirs.
+      window.localStorage.setItem(RECORDER_INTRODUCED_KEY, 'true');
+      return isWaveformCycleStyle(stored) ? stored : DEFAULT_TITLEBAR_STYLE;
     } catch {
-      return 'recorder';
+      return DEFAULT_TITLEBAR_STYLE;
     }
   });
   const isOff = style === 'off';
