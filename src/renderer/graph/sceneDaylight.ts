@@ -18,25 +18,20 @@ import {
   useSceneDaylightSetting,
 } from '../utils/sceneDaylightSetting';
 import { getThemeShade, useThemeShade } from '../utils/theme';
-import { DARK_MAX, darkStepOf } from '../utils/themeShade';
+import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
 
 /**
  * The time of day the window's Brightness asks of a scene
- * (`common/sceneDaylight.ts`): Black is full night, the top of the dark
- * stretch full day, and every step between is that share of the way; the
- * light stretch, a white window, is full day all along.
- *
- * Walked on the dark stretch's own scale (`darkStepOf`). It was the whole
- * slider's 0 to 100, and when the slider ran on into a light window
- * (2026-11-17) every dark window lost the last quarter of its day: a stored
- * Brightness of 100 moved to 76 to stay dark, and a scene that followed it
- * fell from full day to 76% of it, the full day only coming back with the
- * window turned white.
+ * (`common/sceneDaylight.ts`): the same number as the Brightness, 0 full
+ * night to 100 full day (Ivan, 2026-11-17: "the same as the brightness").
+ * For a few hours it walked the dark stretch's own scale, full day at 76
+ * where the window turns white, and Brightness 50 read as 66% day beside it
+ * in the same menu, which looked like a fault.
  */
 export const daylightOfShade = (shade: number): number =>
   clampDaylight(
     SCENE_DAYLIGHT_MIN +
-      (darkStepOf(shade) / DARK_MAX) *
+      ((shade - THEME_SHADE_MIN) / (THEME_SHADE_MAX - THEME_SHADE_MIN)) *
         (SCENE_DAYLIGHT_MAX - SCENE_DAYLIGHT_MIN),
   );
 
