@@ -59,7 +59,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   :root.is-scene-column.has-scene-panel-ink & {
-    @include over-picture-text;
+    @include window-ink-halo;
   }
 }
 

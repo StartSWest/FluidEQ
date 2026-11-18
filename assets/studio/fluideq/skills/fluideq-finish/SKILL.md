@@ -29,12 +29,12 @@ ones. With palettes, take them from the first palette's stops as shown.
 
 - `surface`: the colour covering most of the picture - its sky, water or
   night, never its brightest detail. A neon skyline's is the violet behind
-  the signs, not the signs. FluidEQ wears it as the window's own colour: a
-  dark one makes a dark window with light words, a light one (a snowfield,
-  a white marble) a light window with dark words. One in between is moved
-  to whichever side keeps the words readable, so pick it as dark or as
-  light as the picture really is. A grey (`#3a3a3a`) is right for a scene
-  that is mostly grey, like polished metal.
+  the signs, not the signs. FluidEQ wears it as the window's own colour on
+  the side the listener's Brightness is on: a dark one is a dark window's
+  floor exactly, a light one (a snowfield, a white marble) a light window's
+  panes exactly, and on the other side it lends only its hue. So pick it as
+  dark or as light as the picture really is. A grey (`#3a3a3a`) is right for
+  a scene that is mostly grey, like polished metal.
 - `accent`: the scene's second colour, in front of its sky - the signs,
   the lit windows, the fish, the flame. Buttons and switches point with it.
   Clearly a different hue from `surface` (about 50 degrees round the wheel

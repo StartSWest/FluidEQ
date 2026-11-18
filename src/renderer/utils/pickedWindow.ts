@@ -7,8 +7,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { labToHex, type ILab } from './oklab';
 import { clearsWarningHues } from './sceneTint';
-import { DARK_KNEE, darkenSurfaces } from './sceneTintDark';
-import { DARK_END_SHADE, themeShadeTokens } from './themeShade';
+import { darkenSurfaces } from './sceneTintDark';
+import {
+  LIGHT_SURFACE_CHROMA,
+  MAX_SURFACE_CHROMA,
+  SURFACE_CHROMA_PER_LIGHTNESS,
+} from './sceneTintPalette';
+import {
+  DARK_END_SHADE,
+  THEME_SHADE_MAX,
+  isLightShade,
+  lightDimOf,
+  themeShadeTokens,
+} from './themeShade';
 import {
   atL,
   chromaOf,
@@ -34,28 +45,30 @@ import { WINDOW_SURFACES, type TWindowSurface } from './windowTokens';
  * (`tintThemePalette`): a picture's busiest colour is a mid-tone nobody
  * chose, and the theme's own lightness is what keeps the words readable on
  * it. Colours a person named - the listener's own in the Window colours menu,
- * or the three a scene's pack names (`windowColours`) - went through that
- * same rule, so a white surface came out as the theme's dark grey and a deep
- * violet accent as the lilac the scene already gave: the editor said one
- * thing and the window did another. Named colours are worn here as named:
+ * or the three a scene's pack names (`windowColours`) - are worn here as
+ * named:
  *
- * - The surface is the panes of a light window (dark ink) or the floor of a
- *   dark one (light ink, the panes a step up as every theme shade has them),
- *   whichever it is by its own luminance (`inkForSurface`).
  * - The accent and the glow are worn at their own colour, moved only as far
  *   as a filled control's label needs to read on them (`windowOn`).
+ * - The surface is worn as named when it stands on the side of the line the
+ *   Brightness is on: the panes of a light window (Brightness past
+ *   `DARK_END_SHADE`), or the floor of a dark one, the panes a step up as
+ *   every theme shade has them.
  *
- * The Brightness moves it below the middle of its dark travel
- * (`DARK_KNEE`): a dark window walks down toward black as a scene's colours
- * do (`darkenSurfaces`), a light one toward a soft grey and never back to
- * dark. From the knee up the colours are exactly as picked.
+ * THE BRIGHTNESS ALONE SAYS LIGHT OR DARK (Ivan, 2026-11-17, approving the one
+ * colour model: option A). A surface on the other side of the line lends its
+ * hue and nothing else, as a measured sky does. Named colours used to decide
+ * the side by their own surface: Crystal's white made a light window at
+ * Brightness 10, a pack's dark surface kept a dark one at 100, and a scene
+ * with no named colours followed the slider - three answers at one
+ * Brightness. The editor keeps "picking white turns it white" by moving the
+ * Brightness across when a surface is picked on the other side
+ * (`shadeForPickedSurface`).
+ *
+ * The Brightness walks each side as it walks the theme: a dark window down
+ * toward black below the middle of its dark travel (`darkenSurfaces`), a
+ * light one from white at 100 to the soft grey at the line (`lightDimOf`).
  */
-
-/**
- * How far a light window walks down at Brightness 0, in OKLab lightness: a
- * soft grey, still plainly light with dark words.
- */
-const LIGHT_DIM = 0.12;
 
 /**
  * THE MID-GREYS ARE NOBODY'S WINDOW. Between a dark surface and a light one
@@ -111,6 +124,42 @@ const darkSurfaces = (
   return out;
 };
 
+/** `lab`'s hue at lightness `l`, its chroma held under `ceiling`. */
+const hueAt = (lab: ILab, l: number, ceiling: number): ILab => {
+  const chroma = chromaOf(lab);
+  const share = chroma > 0 ? Math.min(chroma, ceiling) / chroma : 0;
+  return { l, a: lab.a * share, b: lab.b * share };
+};
+
+/**
+ * A light surface on a dark window: the theme's own surfaces at `brightness`,
+ * in the surface's hue as a scene's tint colours them
+ * (`SURFACE_CHROMA_PER_LIGHTNESS`), grey for a surface with no colour.
+ */
+const lentDarkSurfaces = (
+  surface: ILab,
+  brightness: number,
+  lean: number | undefined,
+): Record<TWindowSurface, string> => {
+  const theme = themeShadeTokens(brightness);
+  const grey = chromaOf(surface) < GREY_CHROMA;
+  const out = {} as Record<TWindowSurface, string>;
+  WINDOW_SURFACES.forEach((token) => {
+    const own = labOf(theme[token]);
+    const l = own?.l ?? 0;
+    out[token] = labToHex(
+      grey
+        ? greyRung(l, lean)
+        : hueAt(
+            surface,
+            l,
+            Math.min(MAX_SURFACE_CHROMA, SURFACE_CHROMA_PER_LIGHTNESS * l),
+          ),
+    );
+  });
+  return out;
+};
+
 /**
  * Every token the window wears for `colours` at `brightness` (the theme
  * shade, 0 to 100), or undefined when one of them cannot be read.
@@ -126,11 +175,17 @@ const pickedWindow = (
     return undefined;
   }
   const lean = leanOf(surface, accent);
-  const below = Math.max(0, 1 - Math.max(0, brightness) / DARK_KNEE);
+  const isLightSurface = inkForSurface(colours.surface) === 'dark';
   let surfaces: Record<TWindowSurface, string>;
-  if (inkForSurface(colours.surface) === 'dark') {
-    const panes = atL(surface, Math.max(surface.l, LIGHT_PANE_FLOOR));
-    surfaces = lightSurfaces(panes, lean, LIGHT_DIM * below);
+  if (isLightShade(brightness)) {
+    // White with the surface's colour in it when it is a dark one: as a
+    // scene's tint whispers on a light window.
+    const panes = isLightSurface
+      ? atL(surface, Math.max(surface.l, LIGHT_PANE_FLOOR))
+      : hueAt(surface, 1, LIGHT_SURFACE_CHROMA);
+    surfaces = lightSurfaces(panes, lean, lightDimOf(brightness));
+  } else if (isLightSurface) {
+    surfaces = lentDarkSurfaces(surface, brightness, lean);
   } else {
     const asPicked = darkSurfaces(surface, lean);
     // Handed them as their own knee, so the walk starts from exactly them.
@@ -144,6 +199,25 @@ const pickedWindow = (
   const glowUsable =
     chromaOf(glow) >= GREY_CHROMA && clearsWarningHues(hueOf(glow));
   return windowOn(surfaces, accent, glowUsable ? glow : accent, lean);
+};
+
+/**
+ * Where the Brightness goes when `surface` is picked at `shade`: unchanged
+ * while the surface stands on the Brightness's side of the line; across it
+ * otherwise, to where the surface is worn exactly as picked - white panes at
+ * 100 for a light one, the top of the dark travel for a dark one, which is
+ * past the knee the dark walk starts from. So picking white in the editor
+ * still turns the window white, and only the Brightness ever does it.
+ */
+export const shadeForPickedSurface = (
+  surface: string,
+  shade: number,
+): number => {
+  const isLightSurface = inkForSurface(surface) === 'dark';
+  if (isLightSurface === isLightShade(shade)) {
+    return shade;
+  }
+  return isLightSurface ? THEME_SHADE_MAX : DARK_END_SHADE;
 };
 
 export default pickedWindow;

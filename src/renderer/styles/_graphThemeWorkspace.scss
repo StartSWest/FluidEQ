@@ -574,15 +574,16 @@ it under the terms of the GNU General Public License version 3 or later.
   background: transparent;
 }
 
-// The strips' words take the outline the EQ page's take once a quarter of the
+// The strips' words take the halo the EQ page's take once a quarter of the
 // picture comes through their face (`has-scene-panel-ink`, `scenePanels.ts`),
 // so a strip thinned by the one Transparency still reads as the EQ's row
-// does. Inherited, so the container is enough.
+// does: the window's own words, lifted by a halo running the other way to
+// them (`window-ink-halo`). Inherited, so the container is enough.
 :root.has-scene-panel-ink {
   .window-titlebar:has(~ .app-workspace.is-app-full),
   .app-workspace.is-app-full .view-bar,
   .now-playing-bar.is-floating {
-    @include over-picture-text;
+    @include window-ink-halo;
   }
 
   // Not the wordmark: its letters are painted by a gradient through a clear

@@ -69,6 +69,9 @@ html {
   width: 100%;
   height: 100%;
   color-scheme: dark;
+  // The halo under the window's own words where they stand on a face over a
+  // picture (`window-ink-halo`): dark under light words.
+  --ink-halo: 0 0 1px rgba(2, 8, 15, 0.55), 0 1px 3px rgba(2, 8, 15, 0.5);
 
   // A light window (`data-window-ink`, `themeInk.ts`): the native controls
   // that are left - a date field, the caret, a select's own list - in light.
@@ -76,6 +79,9 @@ html {
     color-scheme: light;
     // The output curve, a near-white on a dark window, in the muted ink.
     --curve-total: var(--text-muted);
+    // Light under its dark words.
+    --ink-halo:
+      0 0 1px rgba(255, 255, 255, 0.5), 0 1px 3px rgba(255, 255, 255, 0.42);
   }
   // No `scrollbar-color` and no `scrollbar-width` here, or anywhere.
   //
@@ -2270,17 +2276,58 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     border-bottom-color: transparent;
   }
 
-  // Over a Plus scene its words, the engine's name and every glyph read as
-  // text on a photograph (`over-picture-text`); on a standard look they are
-  // the app's plain text.
-  :root.is-scene-column & {
+  // Over a Plus scene its words, the engine's name and every glyph stand on
+  // the picture and wear the picture's light ink, as text on a photograph
+  // does (`$picture-ink-light`, `over-picture-text`), whichever way the
+  // window's own words run; on a standard look they are the app's plain text.
+  // They inherited the window's ink, which on a light window is near-black:
+  // on a night sky the head was gone (1.1:1). A bright picture turns them
+  // dark (below).
+  :root.is-scene-column:not([data-scene-head-ink='dark'])
+    .center-workspace.is-graph-first
+    > & {
     .workspace-pill,
-    .eq-engine-label {
+    .eq-engine-label,
+    .engine-strip .game-mode-switch__label {
       @include over-picture-text;
     }
 
     .workspace-section-header svg {
       @include over-picture-shape;
+    }
+
+    .workspace-pill {
+      color: color-mix(in srgb, #{$picture-ink-light} 85%, transparent);
+
+      &.is-active,
+      &:hover {
+        color: $picture-ink-light;
+      }
+    }
+
+    .eq-engine-label,
+    .engine-strip .game-mode-switch__label,
+    .engine-strip > .game-mode-switch:hover .game-mode-switch__label,
+    .engine-strip
+      > .latency-readout:hover:not(:disabled)
+      .latency-readout__value {
+      color: $picture-ink-light;
+    }
+
+    .eq-engine-line--partly .eq-engine-label {
+      color: $amber;
+    }
+
+    // The lit bar under the chosen page and the delay's figure keep the
+    // accent, as it marks things on a picture.
+    .workspace-tab-group__bar {
+      background: $picture-accent-light;
+    }
+
+    .engine-strip .latency-readout__value {
+      @include over-picture-text;
+
+      color: $picture-accent-light;
     }
   }
 
@@ -2320,8 +2367,8 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   // round, black and white"). The scene's worker reads the strip behind the
   // head on its own frames and a bright one marks the root
   // (`useSceneInk.ts`; where it turns is `sceneInk.ts`): the words, the
-  // engine's name and the glyphs take the floor's dark, as print on a pale
-  // photograph does, and the soft shadow under them turns light
+  // engine's name and the glyphs take the picture's dark ink, as print on a
+  // pale photograph does, and the soft shadow under them turns light
   // (`over-bright-picture-text`). Only over a scene on the column: a
   // standard look and a scene on the plot alone never mark it.
   :root.is-scene-column[data-scene-head-ink='dark']
@@ -2338,11 +2385,11 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     }
 
     .workspace-pill {
-      color: color-mix(in srgb, #{$over-bright-picture-ink} 85%, transparent);
+      color: color-mix(in srgb, #{$picture-ink-dark} 85%, transparent);
 
       &.is-active,
       &:hover {
-        color: $over-bright-picture-ink;
+        color: $picture-ink-dark;
       }
     }
 
@@ -2352,7 +2399,7 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     .engine-strip
       > .latency-readout:hover:not(:disabled)
       .latency-readout__value {
-      color: $over-bright-picture-ink;
+      color: $picture-ink-dark;
     }
 
     // Partly working keeps its caution colour, taken down far enough to
@@ -3048,8 +3095,12 @@ $graph-card-pages: list.join(
   //   down: a backdrop filter on the card itself would make it the box every
   //   fixed pop-up inside it is placed in, and the band editor's dropdowns
   //   are fixed.
-  // - From a quarter through, the card's and the row's words carry the
-  //   outline they wear on the picture.
+  // - From a quarter through, the card's and the row's words carry a halo
+  //   running the other way to the window's ink (`window-ink-halo`).
+  // - The face never thins past what keeps the card's words readable on the
+  //   picture behind it at that moment (`--scene-panel-floor`,
+  //   `useSceneInk.ts`): a light window over a night sky, or a dark one over
+  //   a pale sky, otherwise fell into the mid-greys at 50%.
   :root.is-scene-column.has-scene-panel-glass & > .scene-column-layer {
     height: var(
       --scene-column-full,
@@ -3071,7 +3122,7 @@ $graph-card-pages: list.join(
     &
     > .middle-content
     > .workspace-tab-panel--eq {
-    @include over-picture-text;
+    @include window-ink-halo;
   }
 
   // The divider takes no room (it was a 12px band of card) and the split
@@ -4287,6 +4338,44 @@ $graph-controls-past-fold: calc(
 // marked by the picture behind those controls (`useSceneInk.ts`). The style
 // picker and the legend keep their own faces; a disabled Auto keeps its
 // greyed box.
+//
+// Otherwise they stand on the picture in its light ink, whichever way the
+// window's words run: they wore the window's, which on a light window put
+// dark glyphs on a night sky.
+:root.is-scene-column
+  .graph-wrapper
+  > .live-output-controls:not([data-scene-ink='dark']) {
+  .graph-edit-hint-mark,
+  .graph-look-step,
+  .graph-auto-cycle > [role='menu']:not([aria-disabled='true']),
+  .graph-solo,
+  .view-bar__icon {
+    @include over-picture-text;
+
+    border-color: color-mix(in srgb, #{$picture-ink-light} 35%, transparent);
+    color: $picture-ink-light;
+
+    svg {
+      @include over-picture-shape;
+    }
+
+    &:hover {
+      color: $picture-accent-light;
+    }
+  }
+
+  .graph-look-step--toggle[aria-pressed='true'],
+  .graph-auto-cycle:is(.is-on, .dropdown--open) > [role='menu'],
+  .graph-solo.is-on {
+    color: $picture-accent-light;
+  }
+
+  .graph-look-step,
+  .view-bar__icon {
+    border-color: transparent;
+  }
+}
+
 :root.is-scene-column
   .graph-wrapper
   > .live-output-controls[data-scene-ink='dark'] {
@@ -4297,12 +4386,8 @@ $graph-controls-past-fold: calc(
   .view-bar__icon {
     @include over-bright-picture-text;
 
-    border-color: color-mix(
-      in srgb,
-      #{$over-bright-picture-ink} 35%,
-      transparent
-    );
-    color: $over-bright-picture-ink;
+    border-color: color-mix(in srgb, #{$picture-ink-dark} 35%, transparent);
+    color: $picture-ink-dark;
 
     svg {
       @include over-bright-picture-shape;

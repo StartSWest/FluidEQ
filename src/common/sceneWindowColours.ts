@@ -9,10 +9,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the agent to give those colours"): `"windowColours": { "surface":
  * "#1d2b4f", "accent": "#5fd4ff", "glow": "#ff8fd0" }` in `pack.json`.
  *
- * - `surface` is the window's own colour, worn as named: a dark one is the
- *   floor of a dark window, a light one the panes of a light window with
- *   dark words, and one in between is moved to the readable side
- *   (`renderer/utils/pickedWindow.ts`, 2026-11-17).
+ * - `surface` is the window's own colour, worn as named on the side of the
+ *   line the listener's Brightness is on: a dark one is the floor of a dark
+ *   window, a light one the panes of a light window with dark words, one in
+ *   between is moved to the readable side, and on the other side of the line
+ *   it lends only its hue (`renderer/utils/pickedWindow.ts`, 2026-11-17).
  * - `accent` is what the buttons, the switches and the kickers point with:
  *   the scene's second colour, the one in front of its sky.
  * - `glow` is the colour for "on" and the window's ambient glow: a third

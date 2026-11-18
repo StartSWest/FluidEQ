@@ -25,13 +25,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'themeTokens' as *;
 @use 'buttonFaces' as *;
 
-// Words and glyphs standing straight on a Plus scene's picture read the way
-// text on a photograph does: a soft shadow under the letters, never a hard
-// edge (Ivan, 2026-11-17: a 3px stroke "black edge" read as grey words in
-// black blobs over a bright sky). Only over a picture: on a standard look
-// the same words are the app's plain text ("when it is standard, the text is
-// normal"). HTML text takes the text shadow; SVG text, glyphs and words
-// painted through a gradient take the same shadow as a filter.
+// WORDS STANDING ON A PICTURE WEAR THE PICTURE'S INKS, NEVER THE WINDOW'S
+// (Ivan, 2026-11-17, approving the one colour model). The EQ head, the
+// graph's figures and its options row over a Plus scene, and a figure over a
+// look's bars, stand on whatever is drawn there, which has nothing to do with
+// whether the window is light or dark. They used to inherit the window's
+// words: on a light window that was near-black on a night sky (1.1:1), and
+// the dark ink for a bright picture, worked out from the window's floor, came
+// out as a mid-grey (OKLab 0.71, 2:1 on a pale sky) because a light window's
+// floor is near-white.
+//
+// Two inks, the same on every window, each a breath of the floor's colour so
+// the words keep the tint a scene lends the window; which one a word wears is
+// read from the picture behind it (`useSceneInk.ts`, `graphLabelInk.ts`):
+// - light, the figures at 82% as they always stood over a scene
+//   (`sceneInk.ts` turns on that), with a soft dark halo under it;
+// - dark, with a soft light halo, as dark print on a pale photograph.
+$picture-ink-light: color-mix(in oklab, #{$surface-base} 8%, #f4f8fb);
+$picture-ink-light-muted: color-mix(
+  in srgb,
+  #{$picture-ink-light} 82%,
+  transparent
+);
+$picture-ink-dark: color-mix(in oklab, #{$surface-base} 12%, #0b1114);
+
+// The accent where it marks something on the picture - the chosen page's bar,
+// a switch that is on, the slope's figure - beside the light ink: its light
+// step taken half way to that ink, the same on every window. A light window's
+// accent is deepened for its own white floor, and on a night sky it read as a
+// mark in the dark.
+$picture-accent-light: color-mix(
+  in oklab,
+  #{$secondary-light} 50%,
+  #{$picture-ink-light}
+);
+
+// The halo under light ink: text on a photograph reads by a soft shadow under
+// the letters, never a hard edge (Ivan, 2026-11-17: a 3px stroke "black edge"
+// read as grey words in black blobs over a bright sky). Only over a picture:
+// on a standard look the same words are the app's plain text ("when it is
+// standard, the text is normal"). HTML text takes the text shadow; SVG text,
+// glyphs and words painted through a gradient take the same shadow as a
+// filter.
 @mixin over-picture-text {
   text-shadow:
     0 0 1px rgba(2, 8, 15, 0.55),
@@ -43,16 +78,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     drop-shadow(0 1px 2px rgba(2, 8, 15, 0.5));
 }
 
-// The same over a BRIGHT picture, where the words turn dark (Ivan,
-// 2026-11-17: "put them the other way round, black and white"): the shadow
-// turns light, as dark print on a pale photograph lifts off it. Which words
-// are over a bright picture is read on the scene's frames (`useSceneInk.ts`).
-//
-// Their ink is the floor taken a quarter of the way to black: a window
-// brightened by its slider still writes dark, and the words keep the tint
-// a scene lends the window.
-$over-bright-picture-ink: color-mix(in oklab, #{$surface-base} 75%, black);
-
+// The halo under dark ink (Ivan, 2026-11-17: "put them the other way round,
+// black and white"): light, as dark print on a pale photograph lifts off it.
 @mixin over-bright-picture-text {
   text-shadow:
     0 0 1px rgba(255, 255, 255, 0.5),
@@ -62,6 +89,16 @@ $over-bright-picture-ink: color-mix(in oklab, #{$surface-base} 75%, black);
 @mixin over-bright-picture-shape {
   filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5))
     drop-shadow(0 1px 2px rgba(255, 255, 255, 0.45));
+}
+
+// WORDS ON A FACE OVER A PICTURE keep the window's ink, and the halo that
+// lifts them runs the other way to it: dark under a dark window's light
+// words, light under a light window's dark ones (`--ink-halo`, App.scss).
+// Every strip over a picture and the EQ page's panels, once the picture comes
+// through their face (`has-scene-panel-ink`). The dark halo under a light
+// window's dark words read as a smudge round every letter.
+@mixin window-ink-halo {
+  text-shadow: var(--ink-halo);
 }
 
 // *** Mixins *****************************************************************

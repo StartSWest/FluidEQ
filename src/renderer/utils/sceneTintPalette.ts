@@ -72,21 +72,21 @@ export type TSceneTintPalette = Partial<Record<TSceneTintToken, string>>;
  * night the skyline stands in. 0.4 keeps that and stops short of the panes
  * competing with the scene for attention.
  */
-const SURFACE_CHROMA_PER_LIGHTNESS = 0.4;
+export const SURFACE_CHROMA_PER_LIGHTNESS = 0.4;
 /**
  * The ceiling on that, for the lighter rungs. The ocean theme's panes stand
  * around 0.33, where the proportion above would give a violet as saturated
  * as a button, and the track wells higher still; past this a surface stops
  * being something to stand on and becomes something to look at.
  */
-const MAX_SURFACE_CHROMA = 0.07;
+export const MAX_SURFACE_CHROMA = 0.07;
 /**
  * The same ceiling on a light window (Brightness past `DARK_END_SHADE`).
  * White holds far more colour than the slate does before it reads as a
  * colour rather than a ground, and at the dark rungs' 0.07 every pane was a
  * pastel; at this the panes read as white with the scene in them.
  */
-const LIGHT_SURFACE_CHROMA = 0.025;
+export const LIGHT_SURFACE_CHROMA = 0.025;
 
 /**
  * "On" on a light window when the scene has no colour fit for it: a deep

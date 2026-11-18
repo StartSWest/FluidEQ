@@ -403,10 +403,15 @@ $surface-section: color-mix(in srgb, $surface-panel 85%, transparent);
 // The same face on the EQ page's panels over a Plus scene (the bands' card,
 // its tab row, the graph's legend), thinned by the Transparency chosen for
 // them in the View menu (`scenePanels.ts`, `--scene-panel-face`): the card's
-// own face at 0, which is where it starts.
+// own face at 0, which is where it starts. And never thinner than the floor
+// that keeps the window's words readable on the picture behind it, read on
+// the scene's frames (`--scene-panel-floor`, `useSceneInk.ts`): the
+// Transparency is a cap, and the picture comes through as far as the words
+// allow. With nothing read, no floor.
 $surface-scene-panel: color-mix(
   in srgb,
-  #{$surface-section} var(--scene-panel-face, 100%),
+  #{$surface-section}
+    max(var(--scene-panel-face, 100%), var(--scene-panel-floor, 0%)),
   transparent
 );
 

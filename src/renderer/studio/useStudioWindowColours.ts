@@ -11,6 +11,7 @@ import type {
   TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
 import { sceneWindowColours } from '../utils/sceneOwnColours';
+import { followPickedSurface } from '../utils/theme';
 import type { IStudioBaseline } from './useStudioBaseline';
 
 /** Who the colours on the card are by. */
@@ -106,6 +107,9 @@ export default function useStudioWindowColours(
     (role: TSceneWindowColourRole, value: string) => {
       if (saved && saved[role] !== value) {
         write({ ...saved, [role]: value });
+        if (role === 'surface') {
+          followPickedSurface(value);
+        }
       }
     },
     [saved, write],

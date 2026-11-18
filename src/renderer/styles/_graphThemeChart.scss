@@ -39,11 +39,32 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // The figures, the frequency names and the slope's label are plain text on a
-// standard look, and over a Plus scene read as text on a photograph
-// (`over-picture-shape`, as SVG text takes it). They wore a 3px stroke of the
-// floor on every look (Ivan, 2026-11-17: "the change you made, for the dB
-// too, for everything ... when it is standard, the text is normal").
+// standard look, and over a Plus scene stand on the picture: they wear the
+// picture's light ink and read as text on a photograph (`over-picture-shape`,
+// as SVG text takes it), whichever way the window's own words run. They wore
+// a 3px stroke of the floor on every look (Ivan, 2026-11-17: "the change you
+// made, for the dB too, for everything ... when it is standard, the text is
+// normal"), and later the window's muted ink, which on a light window is a
+// near-black on a night sky.
+.chart-axis--inside text,
+.chart-axis--inside-bottom text,
+.chart-slope-line text {
+  transition:
+    fill $motion-base ease,
+    filter $motion-base ease;
+}
+
 :root.is-scene-column {
+  .chart-axis--inside text,
+  .chart-axis--inside-bottom text {
+    fill: $picture-ink-light-muted;
+  }
+
+  // The slope's figure keeps the accent, as it marks things on a picture.
+  .chart-slope-line text {
+    fill: $picture-accent-light;
+  }
+
   .chart-axis--inside text,
   .chart-axis--inside-bottom text,
   .chart-slope-line text {
@@ -51,33 +72,41 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Over a bright part of what is behind it each figure turns dark on its own,
-// as the EQ head's words do: a scale runs from the sky at the plot's top to
-// the ground at its foot (Ivan, 2026-11-17, circling "+10 dB" over a pale
-// sky after the head had turned), and on a standard look from a tall bar to
-// the empty plot above it ("the detector must also detect the label: if it
-// is very bright, over the bars, on the standard look"). The mark is the
-// same whoever reads the picture: the column's scene (`useSceneInk.ts`), or
-// the graph's own drawing — a look's bars, an engine look, a scene on the
-// plot alone (`graphLabelInk.ts`). After the scene rule above, which it
-// outranks at the same weight.
-.chart-axis--inside text,
-.chart-axis--inside-bottom text,
-.chart-slope-line text {
-  transition:
-    fill $motion-base ease,
-    filter $motion-base ease;
+// Each figure wears the ink the picture behind it asks for, light or dark:
+// a scale runs from the sky at the plot's top to the ground at its foot
+// (Ivan, 2026-11-17, circling "+10 dB" over a pale sky after the head had
+// turned), and on a standard look from a tall bar to the empty plot above it
+// ("the detector must also detect the label: if it is very bright, over the
+// bars, on the standard look"). The mark is the same whoever reads the
+// picture: the column's scene (`useSceneInk.ts`), or the graph's own drawing
+// - a look's bars, an engine look, a scene on the plot alone
+// (`graphLabelInk.ts`) - and it always says which, never "the window's":
+// a light window's figure over a dark bar turns light as a dark window's
+// over a bright one turns dark. Written under both roots so it outranks the
+// scene rule above, which a bare attribute selector does not.
+:root,
+:root.is-scene-column {
+  .chart-axis--inside text,
+  .chart-axis--inside-bottom text {
+    // No halo of its own: over a scene the rule above lays it, and on a
+    // standard look the figures are plain text.
+    &[data-scene-ink='light'] {
+      fill: $picture-ink-light-muted;
+    }
 
-  &[data-scene-ink='dark'] {
+    &[data-scene-ink='dark'] {
+      @include over-bright-picture-shape;
+
+      fill: $picture-ink-dark;
+    }
+  }
+
+  // The slope's figure keeps the accent, in its deep step on a pale ground.
+  .chart-slope-line text[data-scene-ink='dark'] {
     @include over-bright-picture-shape;
 
-    fill: $over-bright-picture-ink;
+    fill: $secondary-darker;
   }
-}
-
-// The slope's figure keeps the accent, in its deep step.
-.chart-slope-line text[data-scene-ink='dark'] {
-  fill: $secondary-darker;
 }
 
 // The highest figure hangs under its line: above it was cut off by the

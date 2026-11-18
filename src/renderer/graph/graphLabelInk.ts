@@ -5,11 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { reportError } from '../utils/logger';
+import { readSurface } from '../utils/theme';
+import { cardHexOf } from '../utils/themeInk';
 import type { ILabelInkReply, ILabelInkRequest } from './graphLabelInkMessages';
 import {
   createSceneInkFollower,
   PLAIN_TEXT_INK_TURNS,
   type ISceneInkFollower,
+  type TSceneInk,
 } from './sceneInk';
 
 /**
@@ -18,10 +21,13 @@ import {
  * read from what is drawn behind that label (Ivan, 2026-11-17: "the detector
  * must also detect the label: if it is very bright, over the bars, on the
  * standard look"). A label over a bright bar, a bright engine look or a pale
- * scene on the plot turns to the floor's dark with a soft light shadow; it
- * is the mark and the turns the column's scene uses for the same figures
- * (`data-scene-ink="dark"`, `useSceneInk.ts`, `sceneInk.ts`), so one rule
- * draws both (`_graphThemeChart.scss`). While a scene is drawn on the EQ
+ * scene on the plot turns to the picture's dark ink with a soft light
+ * shadow, and over a dark one to its light ink: every label read is marked
+ * one or the other (`data-scene-ink`), never left to the window's own words,
+ * because those run dark on a light window and a figure over a deep bar
+ * there went unread. It is the mark and the turns the column's scene uses
+ * for the same figures (`useSceneInk.ts`, `sceneInk.ts`), so one rule draws
+ * both (`_graphThemeChart.scss`). While a scene is drawn on the EQ
  * column that hook reads the figures from the scene's own frames and this
  * steps aside, taking its marks off first: two readers would mark the same
  * text against each other.
@@ -66,7 +72,7 @@ const INK_ATTRIBUTE = 'data-scene-ink';
 
 const charts = new Set<SVGSVGElement>();
 let followers = new WeakMap<Element, ISceneInkFollower>();
-/** The figures this has marked dark, to take its marks off when it stops. */
+/** The figures this has marked, to take its marks off when it stops. */
 const marked = new Set<Element>();
 /** Whether the column's scene has the figures and this has stepped aside. */
 let aside = false;
@@ -80,22 +86,22 @@ let reads = 0;
 /** The chart read last, so several take turns. */
 let turn = 0;
 
-const setInk = (label: Element, dark: boolean) => {
-  if (marked.has(label) === dark) {
-    return;
-  }
-  if (dark) {
-    label.setAttribute(INK_ATTRIBUTE, 'dark');
-    marked.add(label);
-  } else {
+/** `label` in `ink`, or back in the window's own words for undefined. */
+const setInk = (label: Element, ink: TSceneInk | undefined) => {
+  if (ink === undefined) {
     label.removeAttribute(INK_ATTRIBUTE);
     marked.delete(label);
+    return;
   }
+  if (label.getAttribute(INK_ATTRIBUTE) !== ink) {
+    label.setAttribute(INK_ATTRIBUTE, ink);
+  }
+  marked.add(label);
 };
 
 const forget = (svg: SVGSVGElement) => {
   svg.querySelectorAll(LABEL_SELECTOR).forEach((label) => {
-    setInk(label, false);
+    setInk(label, undefined);
     followers.get(label)?.reset();
   });
 };
@@ -177,7 +183,7 @@ const applyRead = ({ data }: MessageEvent<ILabelInkReply>): void => {
       follower = createSceneInkFollower(PLAIN_TEXT_INK_TURNS);
       followers.set(label, follower);
     }
-    setInk(label, follower.hear(luminance) === 'dark');
+    setInk(label, follower.hear(luminance));
   });
   // Figures gone from the page take their marks with them.
   marked.forEach((label) => {
@@ -238,7 +244,7 @@ const beginChart = (svg: SVGSVGElement): boolean => {
   const behind = canvasesBehind(svg, box);
   if (behind.length === 0) {
     placed.forEach(({ text }) => {
-      setInk(text, false);
+      setInk(text, undefined);
       followers.get(text)?.reset();
     });
     return false;
@@ -251,7 +257,14 @@ const beginChart = (svg: SVGSVGElement): boolean => {
   if (!drawing) {
     return false;
   }
-  drawing.clearRect(0, 0, width, height);
+  // On the card's own colour, which is what shows through wherever the
+  // canvases draw nothing: read as clear, the empty plot came out black, and
+  // a light window's figures over white were turned light.
+  drawing.fillStyle = cardHexOf(
+    readSurface('--surface-base', '#050608'),
+    readSurface('--surface-panel', '#0c0e12'),
+  );
+  drawing.fillRect(0, 0, width, height);
   drawing.imageSmoothingQuality = 'medium';
   behind.forEach(({ canvas: source, box: at }) => {
     drawing.drawImage(

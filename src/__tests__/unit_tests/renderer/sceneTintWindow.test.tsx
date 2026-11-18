@@ -20,6 +20,7 @@ import {
   SCENE_SKY_MEASUREMENT,
   type ISceneSky,
 } from '../../../renderer/utils/sceneTint';
+import { themeShadeTokens } from '../../../renderer/utils/themeShade';
 
 let mockLookId = 'premium:bloom';
 // The colours of the scene's picker icon, which every scene the list offers
@@ -72,6 +73,17 @@ const sky = (hue: number): ISceneSky => ({
   },
   active: null,
 });
+
+/** Two colours a byte apart at most in every channel: one colour, written twice. */
+const sameColour = (left: string, right: string) => {
+  const a = parseCssColour(left);
+  const b = parseCssColour(right);
+  return (
+    a !== undefined &&
+    b !== undefined &&
+    a.rgb.every((channel, at) => Math.abs(channel - b.rgb[at]) <= 1 / 255)
+  );
+};
 
 type TStore = typeof import('../../../renderer/utils/sceneTintStore');
 let library: typeof TestingLibrary | undefined;
@@ -325,21 +337,36 @@ describe('the graph’s visualizer', () => {
   // Black is the window with no colour in it: the sky lent with no visualizer
   // fades out toward it (Ivan, 2026-09-27: "moving toward the 0 make it no
   // tinting so is pure black / dark gray"), while a visualizer's own colour
-  // stays there, darkened (2026-09-25: "is not black is ambient color").
-  it('lends no Lagoon at Black, and still a visualizer’s colour there', () => {
+  // stays there, darkened (2026-09-25: "is not black is ambient color"). It is
+  // still painted there, lending no colour: left off at 0, everything that
+  // takes a lent colour while `data-scene-tint` says so - the arrows, the
+  // pet, the DSP's curves - jumped to colours of its own between 1 and 0.
+  it('lends Lagoon no colour at Black and still paints it, and a visualizer’s colour there', () => {
     mockLookId = 'look:signal';
     const lent = mount();
-    expect(root).not.toHaveAttribute('data-scene-tint');
-    expect(root.style.getPropertyValue('--surface-base')).toBe('');
+    expect(root).toHaveAttribute('data-scene-tint');
+    // The theme's own Black floor, with nothing of Lagoon in it.
+    expect(
+      sameColour(
+        root.style.getPropertyValue('--surface-base'),
+        themeShadeTokens(0)['--surface-base'],
+      ),
+    ).toBe(true);
     lent.fresh.cleanup();
     root.removeAttribute('style');
+    root.removeAttribute('data-scene-tint');
 
     // POSITIVE CONTROL: a visualizer at the same Black keeps its colour.
     mockLookId = 'premium:bloom';
     remember([['premium:bloom', '3', sky(300)]]);
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
-    expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
+    expect(
+      sameColour(
+        root.style.getPropertyValue('--surface-base'),
+        themeShadeTokens(0)['--surface-base'],
+      ),
+    ).toBe(false);
   });
 
   // A Plus visualizer's colours hold in Colours and Ambient however low the
@@ -412,5 +439,120 @@ describe('the Studio’s project', () => {
 
     fresh.act(() => store.setStudioTintSource(undefined));
     expect(root.style.getPropertyValue('--surface-base')).toBe(graphSurface);
+  });
+});
+
+// THE ONE COLOUR MODEL (Ivan, 2026-11-17, option A): the Brightness alone
+// says light or dark, and the painter that writes the window's colours is
+// the one that writes which way its words run, with them.
+describe('light or dark', () => {
+  type TTheme = typeof import('../../../renderer/utils/theme');
+
+  const mountWithTheme = () => {
+    let theme: TTheme | undefined;
+    let SceneTint: (() => ReactElement | null) | undefined;
+    jest.isolateModules(() => {
+      /* eslint-disable global-require */
+      library = require('@testing-library/react/pure');
+      theme = require('../../../renderer/utils/theme');
+      SceneTint = require('../../../renderer/components/SceneTint').default;
+      /* eslint-enable global-require */
+    });
+    if (!theme || !SceneTint || !library) {
+      throw new Error('the tint did not load');
+    }
+    const Tint = SceneTint;
+    library.render(<Tint />);
+    return { theme, fresh: library };
+  };
+
+  const lum = (colour: string) => {
+    const parsed = parseCssColour(colour);
+    if (!parsed) {
+      throw new Error(`not a colour: ${colour}`);
+    }
+    const [red, green, blue] = parsed.rgb.map((channel) =>
+      channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+    );
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  };
+
+  // Brightness on the slider's own scale: stored without it, a value is
+  // moved onto the dark stretch once (`theme.ts`), and 100 would open dark.
+  beforeEach(() => {
+    window.localStorage.setItem('fluideq.themeScale', '2');
+  });
+
+  afterEach(() => {
+    root.removeAttribute('data-window-ink');
+  });
+
+  it('follows the Brightness with colours a scene names, white ones included', () => {
+    mockWindowColours = {
+      surface: '#ffffff',
+      accent: '#342942',
+      glow: '#342942',
+    };
+    window.localStorage.setItem('fluideq.theme', '20');
+    const { theme, fresh } = mountWithTheme();
+    // A white surface on the dark side: a dark window, light words.
+    expect(root).not.toHaveAttribute('data-window-ink');
+    expect(lum(root.style.getPropertyValue('--surface-panel'))).toBeLessThan(
+      0.1,
+    );
+    // CONTROL: past the line the same colours are the white they name.
+    fresh.act(() => theme.setThemeShade(100));
+    expect(root).toHaveAttribute('data-window-ink', 'dark');
+    expect(root.style.getPropertyValue('--surface-panel')).toBe('#ffffff');
+  });
+
+  it('writes the words with the colours, the inks included', () => {
+    mockLookId = 'look:signal';
+    window.localStorage.setItem('fluideq.theme', '40');
+    const { theme, fresh } = mountWithTheme();
+    expect(root).not.toHaveAttribute('data-window-ink');
+    expect(lum(root.style.getPropertyValue('--text-primary'))).toBeGreaterThan(
+      0.7,
+    );
+    fresh.act(() => theme.setThemeShade(90));
+    expect(root).toHaveAttribute('data-window-ink', 'dark');
+    expect(lum(root.style.getPropertyValue('--text-primary'))).toBeLessThan(
+      0.05,
+    );
+    // And back: the theme no longer writes it, so the painter must.
+    fresh.act(() => theme.setThemeShade(40));
+    expect(root).not.toHaveAttribute('data-window-ink');
+  });
+
+  it('leans a light window’s words to the scene’s colour, not the theme’s cyan', () => {
+    const inkOf = (hue: number) => {
+      remember([['premium:bloom', '3', sky(hue)]]);
+      window.localStorage.setItem('fluideq.theme', '100');
+      const shown = mountWithTheme();
+      const ink = parseCssColour(root.style.getPropertyValue('--text-primary'));
+      shown.fresh.cleanup();
+      root.removeAttribute('style');
+      root.removeAttribute('data-scene-tint');
+      return ink?.rgb ?? [0, 0, 0];
+    };
+    const [rosyRed, , rosyBlue] = inkOf(0);
+    expect(rosyRed).toBeGreaterThan(rosyBlue);
+    // CONTROL: a cyan sky's words lean the other way.
+    const [cyanRed, , cyanBlue] = inkOf(220);
+    expect(cyanBlue).toBeGreaterThan(cyanRed);
+  });
+
+  it('forgets the per-mode Brightness nothing has read since 2026-09-25', () => {
+    window.localStorage.setItem(
+      'fluideq.sceneTintBrightness',
+      '{"tint":0,"pulse":-50,"cover":50}',
+    );
+    // CONTROL: a key the theme does keep survives the same load.
+    window.localStorage.setItem('fluideq.theme', '40');
+    mountWithTheme();
+    expect(window.localStorage.getItem('fluideq.sceneTintBrightness')).toBe(
+      null,
+    );
+    expect(window.localStorage.getItem('fluideq.theme')).toBe('40');
   });
 });

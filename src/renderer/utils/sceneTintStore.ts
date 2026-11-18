@@ -14,6 +14,7 @@ import { readStored, writeStored } from './graphStorage';
 import {
   SCENE_SKY_MEASUREMENT,
   SCENE_TINT_TOKENS,
+  isGreySky,
   lentSkyReach,
   tintThemePalette,
   type ISceneColour,
@@ -22,7 +23,14 @@ import {
 import { DARK_KNEE, darkenSurfaces } from './sceneTintDark';
 import { getThemeShade, subscribeTheme } from './theme';
 import pickedWindow from './pickedWindow';
-import { INK_TOKENS, WINDOW_INK_ATTRIBUTE } from './themeInk';
+import {
+  INK_TOKENS,
+  LIGHT_INK,
+  WINDOW_INK_ATTRIBUTE,
+  groundOf,
+  inkTokens,
+} from './themeInk';
+import { darkInkSet, inkForSurface } from './windowLight';
 import {
   darkStepOf,
   isLightShade,
@@ -678,9 +686,11 @@ const PAINTED_TOKENS = [...SCENE_TINT_TOKENS, ...INK_TOKENS] as const;
 
 /**
  * Which way the window's ink runs, on `:root` (`WINDOW_INK_ATTRIBUTE`): `dark`
- * on a light window, nothing on a dark one. The theme says it for its own
- * shade (`theme.ts`); named colours say it for themselves, whatever the
- * Brightness, and a sky lent or held takes the theme's.
+ * on a light window, nothing on a dark one. Written here and nowhere else
+ * after the first frame (`theme.ts`), in the same paint as the colours it
+ * belongs to, so the two can never disagree - not even for the length of a
+ * fade. The Brightness alone decides it, for the theme, a sky and named
+ * colours alike (`pickedWindow.ts`).
  */
 const showInk = (ink: 'light' | 'dark') => {
   const root = document.documentElement;
@@ -691,30 +701,63 @@ const showInk = (ink: 'light' | 'dark') => {
   }
 };
 
+/**
+ * `palette` with every ink solved on the ground it paints (`inkTokens`), not
+ * on the theme's: the words stand on these panes. A light window's inks lean
+ * to the sky's hue as the theme's own lean to Ocean's (`darkInkSet`); a rose
+ * tint used to keep the theme's cyan-black words. A dark window keeps the
+ * shipped light inks, only solved on its own ground.
+ */
+const withInks = (
+  palette: Readonly<Record<string, string>>,
+  base: Readonly<Record<string, string>>,
+  sky: ISceneSky,
+): Record<string, string> => {
+  const floor = palette['--surface-base'] ?? base['--surface-base'];
+  const pane = palette['--surface-panel'] ?? base['--surface-panel'];
+  const accentLight = palette['--accent-light'] ?? base['--accent-light'];
+  if (!floor || !pane || !accentLight) {
+    return { ...palette };
+  }
+  const set =
+    inkForSurface(pane) === 'dark'
+      ? darkInkSet(isGreySky(sky) ? undefined : sky.hue)
+      : LIGHT_INK;
+  return {
+    ...palette,
+    ...inkTokens(groundOf(floor, pane, set.toward), accentLight, set),
+  };
+};
+
 /** The tokens for the sky wanted now, toned from the theme at `shade`. */
 const tonedPalette = (shade: number, brightness: number) => {
+  if (!wanted) {
+    return undefined;
+  }
+  // A lent sky at Black lends no colour to the surfaces (`lentSkyReach`), and
+  // is still painted: left off there, the knobs, the wave, the meter, the
+  // arrows and the DSP's curves - which take a scene's colours while
+  // `data-scene-tint` says one is lent - jumped to colours of their own
+  // between Brightness 1 and 0.
   const reach = wantedTone === 'lent' ? lentSkyReach(shade) : 1;
-  // A lent sky at Black lends nothing, so the window is the theme's own there
-  // — the knobs, the wave and the meter included, which take a scene's
-  // colours only while `data-scene-tint` says one is lent.
-  const palette =
-    wanted && reach > 0
-      ? tintThemePalette(readThemeBase(shade), wanted, reach)
-      : undefined;
+  const base = readThemeBase(shade);
+  const palette = tintThemePalette(base, wanted, reach);
   // A visualizer's colours, below the knee: every surface walks down from
   // the knee's colour (`darkenSurfaces`). A lent sky keeps its own walk,
   // which fades the colour out toward Black on purpose (`lentSkyReach`).
-  return palette && wanted && wantedTone !== 'lent' && brightness < DARK_KNEE
-    ? darkenSurfaces(
-        palette,
-        tintThemePalette(
-          readKneeBase(toneShadeOf(wantedTone, DARK_KNEE)),
-          wanted,
-          reach,
-        ),
-        brightness,
-      )
-    : palette;
+  const walked =
+    wantedTone !== 'lent' && brightness < DARK_KNEE
+      ? darkenSurfaces(
+          palette,
+          tintThemePalette(
+            readKneeBase(toneShadeOf(wantedTone, DARK_KNEE)),
+            wanted,
+            reach,
+          ),
+          brightness,
+        )
+      : palette;
+  return withInks(walked, base, wanted);
 };
 
 /**
@@ -739,8 +782,7 @@ const paint = () => {
       style.removeProperty(token);
     }
   });
-  const themeInk = isLightShade(brightness) ? 'dark' : 'light';
-  showInk(picked?.ink ?? themeInk);
+  showInk(isLightShade(brightness) ? 'dark' : 'light');
   // For what keeps a resting look of its own and takes the scene's only while
   // it is lent — the knobs, the titlebar wave, the level meter — without each
   // of them guessing from the tokens.
@@ -761,7 +803,10 @@ const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
   !samePicked(painted.picked, wantedPicked) ||
   painted.tone !== wantedTone ||
-  (wanted !== undefined &&
+  // The side of the line, with nothing painted too: this paint is the one
+  // writer of which way the words run (`showInk`).
+  isLightShade(painted.brightness) !== isLightShade(getThemeShade()) ||
+  ((wanted !== undefined || wantedPicked !== undefined) &&
     (painted.shade !== toneShadeOf(wantedTone, getThemeShade()) ||
       painted.brightness !== getThemeShade()));
 
@@ -873,7 +918,7 @@ export const lendSceneSky = (sky: ISceneSky, fade: boolean) =>
 /**
  * Put the window in colours somebody named - the listener's own for a scene,
  * or the three its pack names - worn as named (`pickedWindow.ts`), light or
- * dark by their surface. `sky` is the same colours as a sky, for the glyphs
+ * dark by the Brightness. `sky` is the same colours as a sky, for the glyphs
  * that show the window's colour.
  */
 export const showWindowColours = (

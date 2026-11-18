@@ -13,6 +13,7 @@ import type {
 import WindowColourSwatches from '../components/WindowColourSwatches';
 import WindowColoursPreview from '../components/WindowColoursPreview';
 import { useSelectedLookId } from '../utils/graphStyle';
+import { followPickedSurface } from '../utils/theme';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearChosenWindowColours,
@@ -57,6 +58,9 @@ export default function SceneWindowColours() {
     (role: TSceneWindowColourRole, value: string) => {
       if (wearing) {
         setChosenWindowColours(lookId, { ...wearing, [role]: value }, own);
+        if (role === 'surface') {
+          followPickedSurface(value);
+        }
       }
     },
     [lookId, wearing, own],

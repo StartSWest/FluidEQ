@@ -55,7 +55,7 @@ export const EDGE_CONTRAST = {
 } as const;
 
 /** The three tiers of text: what is read, what explains, what hints. */
-const TEXT_CONTRAST = {
+export const TEXT_CONTRAST = {
   '--text-primary': 7,
   '--text-muted': 5.8,
   '--text-faint': 4.8,

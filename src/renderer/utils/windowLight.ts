@@ -238,7 +238,7 @@ export const lightSurfaces = (
 };
 
 /** The ink set a light window wears: deep inks leaning to its hue. */
-const darkInkSet = (lean: number | undefined): IInkSet => {
+export const darkInkSet = (lean: number | undefined): IInkSet => {
   const tier = (l: number) => labToHex(leaning(l, DARK_TEXT_CHROMA, lean));
   return {
     edge: labToHex(leaning(DARK_EDGE_LIGHTNESS, EDGE_CHROMA, lean)),

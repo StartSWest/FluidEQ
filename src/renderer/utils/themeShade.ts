@@ -84,7 +84,7 @@ export const DARK_END_SHADE = 76;
  * The dark walk's own scale, 0 to 100, which every constant below it was
  * tuned on (Black at 0, Ocean at 75, the lifted end at 100).
  */
-const DARK_MAX = 100;
+export const DARK_MAX = 100;
 const DARK_OCEAN = 75;
 
 /** Where `shade` stands on the dark walk's own scale. */
@@ -411,6 +411,22 @@ const onLightScale = (shade: number) =>
  */
 const LIGHT_WINDOW_DIM = 0.12;
 
+/**
+ * How far below white a light window's panes stand at `shade`: the soft grey
+ * at the first step of the light stretch, none at 100, 0 on the dark one.
+ * The theme's own light window and colours somebody named walk it alike
+ * (`pickedWindow.ts`), so the Brightness means the same on both.
+ */
+export const lightDimOf = (shade: number): number => {
+  const at = clampThemeShade(shade);
+  if (at <= DARK_END_SHADE) {
+    return 0;
+  }
+  const along =
+    (at - DARK_END_SHADE - 1) / (THEME_SHADE_MAX - DARK_END_SHADE - 1);
+  return LIGHT_WINDOW_DIM * (1 - along);
+};
+
 /** The green the theme says "on" in (`$analogous-2`, `_shippedTheme.scss`). */
 export const THEME_ACTIVE = '#54ff8a';
 
@@ -438,13 +454,7 @@ export const lightWindowOf = (shade: number): IWindow | undefined => {
     return undefined;
   }
   const lean = hueOf(accent);
-  const along =
-    (at - DARK_END_SHADE - 1) / (THEME_SHADE_MAX - DARK_END_SHADE - 1);
-  const surfaces = lightSurfaces(
-    { l: 1, a: 0, b: 0 },
-    lean,
-    LIGHT_WINDOW_DIM * (1 - along),
-  );
+  const surfaces = lightSurfaces({ l: 1, a: 0, b: 0 }, lean, lightDimOf(at));
   const built = windowOn(surfaces, accent, glow, lean);
   lightWindows.set(at, built);
   return built;

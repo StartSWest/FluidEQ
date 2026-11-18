@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useMemo, type CSSProperties } from 'react';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { useTranslation } from '../utils/I18nContext';
-import pickedWindow from '../utils/pickedWindow';
+import pickedWindow, { shadeForPickedSurface } from '../utils/pickedWindow';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { DARK_KNEE, darkenSurfaces } from '../utils/sceneTintDark';
 import { tintThemePalette } from '../utils/sceneTintPalette';
@@ -22,9 +22,10 @@ import { themeShadeTokens } from '../utils/themeShade';
  * key, a filled button and the curve in its accent, a switch and a pill for
  * "on" in its glow. Worked out with the window's own rules, never a
  * look-alike, so what it shows is what pressing the colour will do: colours
- * somebody named are worn as named (`pickedWindow`), light or dark by their
- * surface, and colours worked out from a palette lend their hue to the
- * theme (`tintThemePalette`, `darkenSurfaces`).
+ * somebody named are worn as named (`pickedWindow`), light or dark by the
+ * Brightness the pick leaves the window at, and colours worked out from a
+ * palette lend their hue to the theme (`tintThemePalette`,
+ * `darkenSurfaces`).
  */
 export default function WindowColoursPreview({
   colours,
@@ -37,7 +38,11 @@ export default function WindowColoursPreview({
   const { t } = useTranslation();
   const shade = useThemeShade();
   const style = useMemo(() => {
-    const worn = named ? pickedWindow(colours, shade) : undefined;
+    // At the Brightness the pick would leave the window at, so the small
+    // window shows what letting go of the picker will do.
+    const worn = named
+      ? pickedWindow(colours, shadeForPickedSurface(colours.surface, shade))
+      : undefined;
     if (worn) {
       return {
         '--preview-floor': worn.tokens['--surface-base'],

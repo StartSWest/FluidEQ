@@ -7,10 +7,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   createSceneInkFollower,
+  SCENE_INK_SMOOTHING,
   type ISceneInkFollower,
   type TSceneProbeRect,
 } from './sceneInk';
+import { scenePanelFloor } from './scenePanelFloor';
 import type { ISceneRunnerProbe } from './sceneRunnerTypes';
+import { readSurface } from '../utils/theme';
+import { TEXT_CONTRAST } from '../utils/themeInk';
 
 /**
  * The ink the words standing on the graph's scene wear, while the scene is
@@ -27,7 +31,11 @@ import type { ISceneRunnerProbe } from './sceneRunnerTypes';
  *   plot to the ground at its foot, and one ink for the whole column would
  *   be wrong at one end of it;
  * - the graph's options row, by the same mark on the row, read behind its
- *   bare controls together (`App.scss`, `.live-output-controls`).
+ *   bare controls together (`App.scss`, `.live-output-controls`);
+ * - and while the EQ page's panels let the picture through
+ *   (`has-scene-panel-glass`), the picture behind the bands' card, which sets
+ *   how thin their face may go and keep the window's words readable
+ *   (`--scene-panel-floor`, `scenePanelFloor.ts`).
  *
  * Written straight to the DOM from the reading, never through a render, and
  * taken off again with the scene, the column or the layer. Nothing is read
@@ -37,6 +45,46 @@ import type { ISceneRunnerProbe } from './sceneRunnerTypes';
  * so the places follow a resize, a scale that changes its figures and a
  * graph switched on or off, at the pace the scene is read and no faster.
  */
+
+/** The bands' card, measured while its face lets the picture through. */
+const PANEL = ':scope > .middle-content > .workspace-tab-panel--eq';
+
+/** Where the card's face floor is written for the stylesheet (`_themeTokens.scss`). */
+const PANEL_FLOOR = '--scene-panel-floor';
+
+/**
+ * The card's words: the window's primary ink at its own contrast, and the
+ * muted ink that labels its bands at WCAG AA, which over a moving picture is
+ * the honest bar rather than the solid card's 5.8.
+ */
+const MUTED_ON_GLASS_CONTRAST = 4.5;
+
+/** The floor's step, in percent of the face. */
+const PANEL_FLOOR_STEP = 2;
+
+/**
+ * The floor for the card's face over a picture of mean relative luminance
+ * `picture`, as the stylesheet takes it. In steps of two: a face that moved
+ * by a hair on every reading would restyle the window seven times a second
+ * for nothing.
+ */
+const panelFloorOf = (picture: number): string => {
+  const floor = scenePanelFloor(
+    picture,
+    readSurface('--surface-panel', '#0c0e12'),
+    [
+      {
+        colour: readSurface('--text-primary', '#ecf5fb'),
+        contrast: TEXT_CONTRAST['--text-primary'],
+      },
+      {
+        colour: readSurface('--text-muted', '#d6e9f7'),
+        contrast: MUTED_ON_GLASS_CONTRAST,
+      },
+    ],
+  );
+  return `${Math.ceil(floor / PANEL_FLOOR_STEP) * PANEL_FLOOR_STEP}%`;
+};
 
 /** The graph's figures that stand straight on the picture. */
 const FIGURES =
@@ -56,7 +104,8 @@ const BARE_OPTIONS =
  * The head as a whole, marked on the root; or one element marked on itself —
  * a figure, or the options row.
  */
-type TInkTarget = { kind: 'head' } | { kind: 'element'; element: Element };
+type TInkTarget =
+  { kind: 'head' } | { kind: 'panel' } | { kind: 'element'; element: Element };
 
 interface IInkPlaces {
   /** Each place's box on the layer, rounded to pixels: what moved, at a glance. */
@@ -98,6 +147,14 @@ const measurePlaces = (layer: HTMLElement): IInkPlaces | undefined => {
   const head = column.querySelector(':scope > .center-head');
   if (head) {
     found.push([{ kind: 'head' }, head.getBoundingClientRect()]);
+  }
+  const panel = document.documentElement.classList.contains(
+    'has-scene-panel-glass',
+  )
+    ? column.querySelector(PANEL)
+    : null;
+  if (panel) {
+    found.push([{ kind: 'panel' }, panel.getBoundingClientRect()]);
   }
   const options = column.querySelector(OPTIONS);
   if (options) {
@@ -158,6 +215,8 @@ export default function useSceneInk(
   const [head] = useState(createSceneInkFollower);
   const elementsRef = useRef(new WeakMap<Element, ISceneInkFollower>());
   const markedRef = useRef(new Set<Element>());
+  /** The picture behind the bands' card, smoothed as the inks' readings are. */
+  const panelLevelRef = useRef<number | undefined>(undefined);
   /** Measures again on the next frame; set while there is a layer. */
   const remeasureRef = useRef<(() => void) | undefined>(undefined);
 
@@ -204,6 +263,8 @@ export default function useSceneInk(
       // The words' own ink comes back with the scene gone from the column,
       // and the next scene starts from it.
       delete document.documentElement.dataset.sceneHeadInk;
+      document.documentElement.style.removeProperty(PANEL_FLOOR);
+      panelLevelRef.current = undefined;
       marked.forEach((element) => element.removeAttribute('data-scene-ink'));
       marked.clear();
       head.reset();
@@ -216,11 +277,32 @@ export default function useSceneInk(
       return undefined;
     }
     const { targets, rects } = places;
+    const root = document.documentElement;
+    if (!targets.some((target) => target.kind === 'panel')) {
+      // The face lets nothing through, or there is no card: no floor.
+      root.style.removeProperty(PANEL_FLOOR);
+      panelLevelRef.current = undefined;
+    }
     const heard = (luminances: readonly number[]) => {
       targets.forEach((target, at) => {
         const luminance = luminances[at];
+        if (target.kind === 'panel') {
+          if (!Number.isFinite(luminance)) {
+            return;
+          }
+          const previous = panelLevelRef.current;
+          const level =
+            previous === undefined
+              ? luminance
+              : previous + (luminance - previous) * SCENE_INK_SMOOTHING;
+          panelLevelRef.current = level;
+          const floor = panelFloorOf(level);
+          if (root.style.getPropertyValue(PANEL_FLOOR) !== floor) {
+            root.style.setProperty(PANEL_FLOOR, floor);
+          }
+          return;
+        }
         if (target.kind === 'head') {
-          const root = document.documentElement;
           const dark = head.hear(luminance) === 'dark';
           if (dark !== (root.dataset.sceneHeadInk === 'dark')) {
             if (dark) {

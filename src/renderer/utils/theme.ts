@@ -7,7 +7,8 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { useSyncExternalStore } from 'react';
-import { readStored, writeStored } from './graphStorage';
+import { readStored, removeStored, writeStored } from './graphStorage';
+import { shadeForPickedSurface } from './pickedWindow';
 import { WINDOW_INK_ATTRIBUTE } from './themeInk';
 import {
   OCEAN_SHADE,
@@ -91,6 +92,13 @@ const moveOntoScale = () => {
 
 moveOntoScale();
 
+/**
+ * A Brightness of each Window colours mode's own, kept from 2026-09-25 until
+ * that day's two sliders made the Brightness one (a95a75008); nothing has
+ * read it since, and it sat in every window that ever moved one.
+ */
+removeStored('fluideq.sceneTintBrightness');
+
 const SHADE_OF_THEME: Record<TTheme, number> = {
   black: THEME_SHADE_MIN,
   ocean: OCEAN_SHADE,
@@ -138,13 +146,6 @@ const applyShade = (shade: number) => {
   }
   rule.textContent = themeShadeRule(shade);
   document.documentElement.setAttribute(SHADE_ATTRIBUTE, String(shade));
-  // Dark words on the light stretch. Named colours say this for themselves
-  // while they are worn, and repaint it after this (`sceneTintStore.ts`).
-  if (isLightShade(shade)) {
-    document.documentElement.setAttribute(WINDOW_INK_ATTRIBUTE, 'dark');
-  } else {
-    document.documentElement.removeAttribute(WINDOW_INK_ATTRIBUTE);
-  }
   // The window's backdrop material is no longer the theme's business. It used
   // to be — black wanted none, because a blur of the desktop under a true
   // black floor made it grey — and the floor is opaque now, so no theme can
@@ -154,6 +155,14 @@ const applyShade = (shade: number) => {
 };
 
 applyShade(current);
+// Which way the window's words run, for the first frame only. From here on
+// the window's painter is its one writer (`sceneTintStore.ts`), together with
+// the colours it paints: written here on every Brightness step as well, the
+// two disagreed for the length of a colour fade, and a drag across the line
+// showed light words on white panes.
+if (isLightShade(current)) {
+  document.documentElement.setAttribute(WINDOW_INK_ATTRIBUTE, 'dark');
+}
 
 const notify = () => listeners.forEach((listener) => listener());
 
@@ -191,6 +200,19 @@ export const setThemeShade = (next: number) => {
   current = shade;
   applyShade(shade);
   notify();
+};
+
+/**
+ * A window surface was picked in a Window colours editor: the Brightness
+ * moves across the line when the surface stands on the other side of it, so
+ * picking white still turns the window white while the Brightness stays the
+ * one thing that says light or dark (`shadeForPickedSurface`).
+ */
+export const followPickedSurface = (surface: string) => {
+  const next = shadeForPickedSurface(surface, current);
+  if (next !== current) {
+    setThemeShade(next);
+  }
 };
 
 /** One of the two named places on the slider: the tour's "try" buttons. */
