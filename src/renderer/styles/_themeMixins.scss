@@ -225,6 +225,25 @@ $picture-accent-light: color-mix(
   white-space: nowrap;
 }
 
+// "On" as a badge: the output in use (ACTIVE), the profile on it (ON), the
+// configuration Windows plays. On a dark window the lit tint, its words the
+// colour lit halfway to the text's own ink: in the colour alone they stood
+// at 2.3:1 inside a chosen row once "on" could be a deep first colour (a
+// teal picked in the Tint). On a light window the colour itself with the
+// floor's ink on it, which is the contrast "on" is solved for
+// (`windowLight.ts`, `filledOn`): its own words on a 22% tint of it came out
+// a pale chip, and inside a chosen row, whose fill sits under the chip's,
+// they fell to 2.6:1 (Ivan, 2026-11-18: "fix the white icons", of the Output
+// card on white).
+@mixin badge-on {
+  @include badge($active, color-mix(in oklab, $active, $text-primary));
+
+  :root[data-window-ink='dark'] & {
+    background: $active;
+    color: $surface-base;
+  }
+}
+
 // A badge that only labels, with no state to say ("Default", a kind): the
 // controls' edge drawn inside and the faint ink, no fill.
 @mixin badge-quiet {

@@ -142,7 +142,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // lavender label in a red frame.
 .default-badge {
   flex: 0 0 auto;
-  @include badge($active, $active);
+  @include badge-on;
 }
 
 .apo-badge {

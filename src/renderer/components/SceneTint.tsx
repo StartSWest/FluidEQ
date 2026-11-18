@@ -29,7 +29,10 @@ import {
   tintedLagoon,
   useWindowTint,
   useWindowTintColour,
+  useWindowTintSecondary,
 } from '../utils/windowTint';
+import { isUsableGlow } from '../utils/pickedWindow';
+import { labOf } from '../utils/windowLight';
 import { skyFromSwatch } from '../utils/sceneTint';
 import {
   skyFromWindowColours,
@@ -111,6 +114,7 @@ const SceneTint = () => {
   const isEnabled = useSceneTintEnabled() || isAmp;
   const tint = useWindowTint();
   const tintColour = useWindowTintColour();
+  const tintSecond = useWindowTintSecondary();
   const studio = useStudioTintSource();
   const lookId = useSelectedLookId();
   const scenes = useUsableScenes();
@@ -151,6 +155,20 @@ const SceneTint = () => {
   // picture's (`useSceneWindowColours`) - blended at the scene's hour.
   const windowColours = useSceneWindowColours(isSceneLook ? lookId : '');
   const own = paintKey(windowColours.sides, daylight);
+  // "On" while the window wears its own colours (`IOwnOn`): the Tint's
+  // second colour where the listener gave one. With a scene on Original and
+  // the Tint left as it came, the scene's glow of the hour, as its colours
+  // draw the stops there too (`RainbowSource`, the same rule); a glow that
+  // cannot say "on" (`isUsableGlow`) is passed over. Otherwise none, and
+  // "on" is the first colour itself.
+  const isTintTouched =
+    tint !== undefined || tintColour !== undefined || tintSecond !== undefined;
+  const sceneGlow =
+    isSceneLook && !isTintTouched ? own?.split(' ')[3] : undefined;
+  const sceneGlowLab = sceneGlow === undefined ? undefined : labOf(sceneGlow);
+  const ownSecond =
+    tintSecond ??
+    (sceneGlowLab && isUsableGlow(sceneGlowLab) ? sceneGlow : undefined);
   const { version, swatch } = useMemo(() => {
     const scene = isPremiumLookId(lookId)
       ? scenes.find((entry) => entry.lookId === lookId)
@@ -286,19 +304,30 @@ const SceneTint = () => {
       // held at every Brightness as Colours holds a scene's: a colour picked
       // by hand that faded away toward Black left the controls untinted
       // there ("when brightness is zero it's not tinting the controls").
+      // "On" is the first colour, or the second where there is one
+      // (`IOwnOn`), whichever way the first is worn.
+      const on = { second: ownSecond };
       if (tint !== undefined && tintColour !== undefined) {
         // A colour picked whole (`windowTint.ts`): worn as picked, the
         // buttons and the curve in exactly it, black included on a white
-        // window; the panes and the glow are Lagoon's turned to its hue.
+        // window; the panes are Lagoon's turned to its hue. The glow is
+        // "on" as `on` says, so the glyphs drawn from this sky show it too.
         const colours = {
           ...windowColoursOfSky(tintedLagoon(tint)),
           accent: tintColour,
+          glow: ownSecond ?? tintColour,
         };
-        showWindowColours(colours, skyFromWindowColours(colours), fade, 'held');
+        showWindowColours(
+          colours,
+          skyFromWindowColours(colours),
+          fade,
+          'held',
+          on,
+        );
       } else if (tint === undefined) {
-        lendSceneSky(LAGOON_SKY, fade);
+        lendSceneSky(LAGOON_SKY, fade, on);
       } else {
-        showSceneSky(tintedLagoon(tint), fade, 'held');
+        showSceneSky(tintedLagoon(tint), fade, 'held', on);
       }
       return;
     }
@@ -330,6 +359,7 @@ const SceneTint = () => {
     tone,
     tint,
     tintColour,
+    ownSecond,
     subject,
   ]);
 

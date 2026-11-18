@@ -72,7 +72,7 @@ export const drawTip = (strip: IStrip, y: number) => {
   if (inner.y + inner.height - y < 3) {
     return;
   }
-  pen.context.fillStyle = zoneColour(channel.zone);
+  pen.context.fillStyle = zoneColour(pen, channel.zone);
   fillBetween(pen, inner.x, y, inner.x + inner.width, y + 2);
 };
 
@@ -92,6 +92,6 @@ export const drawPeakRule = (
     return;
   }
   const y = heightAt(strip, channel.peak);
-  pen.context.fillStyle = zoneColour(channel.peakZone);
+  pen.context.fillStyle = zoneColour(pen, channel.peakZone);
   fillBetween(pen, left, y, right, y + 2);
 };

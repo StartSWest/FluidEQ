@@ -191,6 +191,18 @@ const clearOf = (
 };
 
 /**
+ * `colour` as a filled control wears it on a window whose floor is `floor`:
+ * moved in lightness only, away from the floor, as far as the floor's ink
+ * written on it needs (`LABEL_CONTRAST`) - darker on a light window, lighter
+ * on a dark one. How the accent and "on" are both worn.
+ */
+export const filledOn = (
+  colour: ILab,
+  floor: string,
+  isLight: boolean,
+): string => clearOf(colour, floor, LABEL_CONTRAST, isLight);
+
+/**
  * The hue a window's greys and inks lean to: the accent's when it has one,
  * else the surface's, else none.
  */
@@ -305,7 +317,7 @@ export const windowOn = (
 
   // Filled controls carry the floor as their label: the accent and the glow
   // move away from it, darker on a light window and lighter on a dark one.
-  const accentHex = clearOf(accentPicked, floor, LABEL_CONTRAST, isLight);
+  const accentHex = filledOn(accentPicked, floor, isLight);
   const accent = labOf(accentHex) ?? accentPicked;
   const accentLight = isLight
     ? clearOf(accent, groundHex, ACCENT_INK_CONTRAST, true)
@@ -327,7 +339,7 @@ export const windowOn = (
       '--accent-light': accentLight,
       '--accent-dark': labToHex(atL(accent, accent.l - ACCENT_DARK_STEP)),
       '--accent-darker': labToHex(atL(accent, accent.l - ACCENT_DARKER_STEP)),
-      '--active': clearOf(glowPicked, floor, LABEL_CONTRAST, isLight),
+      '--active': filledOn(glowPicked, floor, isLight),
       ...inkTokens(ground, accentLight, set),
     },
   };

@@ -267,7 +267,7 @@ $name-column: 34ch;
 .config-card__badge {
   align-self: flex-start;
   margin-top: 3px;
-  @include badge($active, $active);
+  @include badge-on;
 }
 
 // *** One output ***************************************************************

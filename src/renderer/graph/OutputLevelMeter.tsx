@@ -60,7 +60,7 @@ import {
 } from '../audio/LiveAudioContext';
 import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
-import { useLightWindow } from '../utils/windowSide';
+import { isLightWindow, useLightWindow } from '../utils/windowSide';
 import useSmoothFrames from '../utils/useSmoothFrames';
 import {
   LEVEL_FLOOR_DB,
@@ -76,6 +76,7 @@ import {
   drawChannel,
   drawClipCap,
   drawSlot,
+  unlitLuminance,
   meterStyleMoves,
   standsInSlot,
 } from './meter/meterDraw';
@@ -83,6 +84,7 @@ import {
   type IChannelLevel,
   type IChannelRect,
   createPen,
+  meterInks,
   ladderRows,
 } from './meter/meterPaint';
 import { type IMeterPrint, drawMeterPrint } from './meter/meterPrint';
@@ -419,6 +421,16 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
         '#2e4f63',
       );
       const unlitColour = readSurface('--meter-unlit', '#1a3a4e');
+      // Every lit colour is held to read against an unlit lamp as this rail
+      // paints it (`meterInks`); the rail is the window's floor.
+      const inks = meterInks(
+        unlitLuminance(
+          readSurface('--surface-base', '#0b0f14'),
+          wellColour,
+          unlitColour,
+        ),
+        isLightWindow(),
+      );
       const fall = getEaseFactor(deltaMs, LEVEL_RELEASE_MS);
       const peakFall = getEaseFactor(deltaMs, PEAK_RELEASE_MS);
       let moving = false;
@@ -510,7 +522,7 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
       const footBand = 28;
       const rectY = labelBand;
       const rectHeight = Math.max(1, boxHeight - labelBand - footBand);
-      const pen = createPen(context, ratio, performance.now());
+      const pen = createPen(context, ratio, performance.now(), inks);
 
       for (let i = 0; i < channelCount; i += 1) {
         const rect: IChannelRect = {
@@ -569,6 +581,7 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
           ? undefined
           : t(METER_STYLE_NAME_KEYS[styleRef.current]).toUpperCase(),
         ink: textInk,
+        ceiling: inks.zones.over,
       };
       const printKey = `${backingWidth}x${backingHeight}@${ratio} ${JSON.stringify(print)}`;
       if (printKey !== printKeyRef.current) {

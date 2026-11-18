@@ -306,26 +306,70 @@ export const rainbowBetween = (from: string, to: string): string[] => {
  * edge, a fader's lit mark, the meter's ramp, reads on the white panes at
  * 3:1, the contrast a graphical object needs (WCAG 1.4.11).
  */
-const LINE_ON_WHITE = 3;
+export const LINE_ON_WHITE = 3;
 const WHITE_LUMINANCE = 1;
 
-const readsOnWhite = (lab: ILab): boolean =>
-  contrast(luminance(intoGamut(lab)), WHITE_LUMINANCE) >= LINE_ON_WHITE;
-
-/** The same, of a colour as it is written. */
-const hexReadsOnWhite = (hex: string): boolean => {
-  const parsedHex = parseCssColour(hex);
-  return (
-    parsedHex !== undefined &&
-    contrast(luminance(parsedHex.rgb.map(toLinear)), WHITE_LUMINANCE) >=
-      LINE_ON_WHITE
-  );
+/**
+ * `colour` (any colour `parseCssColour` reads) moved in OKLab lightness -
+ * down when `darker`, up otherwise - its hue kept and its chroma kept as far
+ * as the screen can show it, to the nearest step that stands at `target`
+ * against a ground of `groundLuminance` (WCAG relative luminance); a colour
+ * that already does is returned as it is, and one that cannot be read too.
+ * Sixteen halvings land within a 65,000th of the step.
+ */
+export const clearedFor = (
+  colour: string,
+  groundLuminance: number,
+  target: number,
+  darker: boolean,
+): string => {
+  const parsed = parseCssColour(colour);
+  if (!parsed) {
+    return colour;
+  }
+  const reads = (lab: ILab) =>
+    contrast(luminance(intoGamut(lab)), groundLuminance) >= target;
+  const lab = rgbToLab(parsed.rgb);
+  if (reads(lab)) {
+    return colour;
+  }
+  // `reached` always reads (the end of the range, as near as it gets),
+  // `fails` never does.
+  let reached = darker ? 0 : 1;
+  let fails = lab.l;
+  for (let step = 0; step < 16; step += 1) {
+    const middle = (reached + fails) / 2;
+    if (reads({ ...lab, l: middle })) {
+      reached = middle;
+    } else {
+      fails = middle;
+    }
+  }
+  // Written in whole bytes, the step that reads can round a hair past itself:
+  // Lagoon's lightest stop came out at 2.985:1 on white. Moved on a 512th of
+  // lightness at a time until the colour as written reads as well.
+  const writtenReads = (hex: string): boolean => {
+    const written = parseCssColour(hex);
+    return (
+      written !== undefined &&
+      contrast(luminance(written.rgb.map(toLinear)), groundLuminance) >= target
+    );
+  };
+  const end = darker ? 0 : 1;
+  let out = toHex({ ...lab, l: reached });
+  while (!writtenReads(out) && reached !== end) {
+    reached = darker
+      ? Math.max(0, reached - 1 / 512)
+      : Math.min(1, reached + 1 / 512);
+    out = toHex({ ...lab, l: reached });
+  }
+  return out;
 };
 
 /**
  * `hex` taken down in OKLab lightness, its hue kept and its chroma kept as far
  * as the screen can show it, to the lightest step that still reads on white;
- * a stop that already reads is returned as it is.
+ * a stop that already reads is returned as it is (`deepenedFor`).
  *
  * Every palette was built for a dark window - Lagoon is held between 0.70 and
  * 0.88 so a thin mark stands out of a floor near black - and on a white window
@@ -333,38 +377,10 @@ const hexReadsOnWhite = (hex: string): boolean => {
  * garish (2026-11-18, "we need to look professional for the light theme").
  * A transform of whatever palette is chosen, never a palette of its own, so a
  * scene's colours, the listener's pick and the tint keep their hues on both
- * sides of the Brightness. Sixteen halvings land within a 65,000th of the
- * step.
+ * sides of the Brightness.
  */
-export const stopOnWhite = (hex: string): string => {
-  const parsedHex = parseCssColour(hex);
-  if (!parsedHex) {
-    return hex;
-  }
-  const lab = rgbToLab(parsedHex.rgb);
-  if (readsOnWhite(lab)) {
-    return hex;
-  }
-  let reads = 0;
-  let fails = lab.l;
-  for (let step = 0; step < 16; step += 1) {
-    const middle = (reads + fails) / 2;
-    if (readsOnWhite({ ...lab, l: middle })) {
-      reads = middle;
-    } else {
-      fails = middle;
-    }
-  }
-  // Written in whole bytes, the step that reads can round a hair lighter than
-  // itself: Lagoon's lightest stop came out at 2.985:1. Taken down a 512th of
-  // lightness at a time until the colour as written reads as well.
-  let out = toHex({ ...lab, l: reads });
-  while (!hexReadsOnWhite(out) && reads > 0) {
-    reads = Math.max(0, reads - 1 / 512);
-    out = toHex({ ...lab, l: reads });
-  }
-  return out;
-};
+export const stopOnWhite = (hex: string): string =>
+  clearedFor(hex, WHITE_LUMINANCE, LINE_ON_WHITE, true);
 
 /** Each palette's light-window copy, made once per palette. */
 const onWhite = new WeakMap<readonly string[], readonly string[]>();

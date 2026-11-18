@@ -51,7 +51,7 @@ export const drawNeedle = (strip: IStrip) => {
   }
 
   drawPeakRule(strip);
-  const ink = zoneColour(channel.zone);
+  const ink = zoneColour(pen, channel.zone);
   context.fillStyle = ink;
   fillBetween(pen, inner.x, pointer, right, pointer + 2);
   const head = Math.max(3, inner.width * 0.45);
@@ -89,7 +89,7 @@ export const drawPulse = (strip: IStrip) => {
   const lit = floor - top;
   const speed = 0.00045 + channel.level * 0.0011;
   const pulse = floor - lit * ((pen.now * speed) % 1);
-  const glint = zoneColour('safe');
+  const glint = zoneColour(pen, 'safe');
 
   for (let row = 0; row < rows; row += 1) {
     const lineBottom = pen.px(floor - row * pitch);

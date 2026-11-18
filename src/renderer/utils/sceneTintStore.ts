@@ -30,7 +30,7 @@ import {
   groundOf,
   inkTokens,
 } from './themeInk';
-import { darkInkSet, inkForSurface } from './windowLight';
+import { darkInkSet, filledOn, inkForSurface, labOf } from './windowLight';
 import {
   darkStepOf,
   isLightShade,
@@ -527,6 +527,32 @@ let wantedTone: TSkyTone = 'follow';
  */
 let wantedPicked: ISceneWindowColours | undefined;
 
+/**
+ * "ON" IN THE WINDOW'S OWN COLOURS (Ivan, 2026-11-18: "the secondary on
+ * elements needs to be the same as the primary unless the user defines it").
+ * While the window wears its own colours - a standard look, or a scene on
+ * Original - `--active`, what the switches, the ON and ACTIVE pills, the lit
+ * marks and the DSP's curves say "on" in, is the second colour where one is
+ * given (the Tint's, `windowTint.ts`), and the accent itself where none is:
+ * the first colour exactly as the window wears it, solved for its label as
+ * the accent is. It was a colour of its own, Lagoon's periwinkle turned to
+ * the tint's hue, which nobody had picked: on a dark grey picked as the
+ * first colour, every "on" in the window was a slate blue (#526d8b).
+ *
+ * Undefined while a scene lends the window its colours: then a scene's own
+ * glow says "on", as it always has.
+ */
+export interface IOwnOn {
+  /** The second colour, `#rrggbb`, or undefined for the first. */
+  second: string | undefined;
+}
+
+let wantedOn: IOwnOn | undefined;
+
+const sameOn = (left: IOwnOn | undefined, right: IOwnOn | undefined) =>
+  left === right ||
+  (left !== undefined && right !== undefined && left.second === right.second);
+
 const samePicked = (
   left: ISceneWindowColours | undefined,
   right: ISceneWindowColours | undefined,
@@ -594,12 +620,14 @@ export const toneShadeOf = (tone: TSkyTone, shade: number) =>
 let painted: {
   sky: ISceneSky | undefined;
   picked: ISceneWindowColours | undefined;
+  on: IOwnOn | undefined;
   tone: TSkyTone;
   shade: number;
   brightness: number;
 } = {
   sky: undefined,
   picked: undefined,
+  on: undefined,
   tone: 'follow',
   shade: getThemeShade(),
   brightness: getThemeShade(),
@@ -760,6 +788,28 @@ const tonedPalette = (shade: number, brightness: number) => {
 };
 
 /**
+ * `tokens` with "on" in the window's own colours (`IOwnOn`): the second
+ * colour worn as a filled control wears it on this floor (`filledOn`, the
+ * accent's own rule), or the accent exactly as `tokens` paint it. A light
+ * window's toned palette leaves the surfaces to the theme, so the floor is
+ * the theme's at `shade` there.
+ */
+const withOwnOn = (
+  tokens: Readonly<Record<string, string>>,
+  on: IOwnOn,
+  shade: number,
+  isLight: boolean,
+): Record<string, string> => {
+  const theme = (token: string): string | undefined =>
+    tokens[token] ?? readThemeBase(shade)[token];
+  const second = on.second === undefined ? undefined : labOf(on.second);
+  const floor = theme('--surface-base');
+  const active =
+    second && floor ? filledOn(second, floor, isLight) : theme('--accent');
+  return active ? { ...tokens, '--active': active } : { ...tokens };
+};
+
+/**
  * The root, repainted to whatever is wanted at the moment it runs — never to
  * what was wanted when a fade was asked for. A fade's update waits for the
  * old frame to be captured, and a change that lands at once in between would
@@ -770,9 +820,13 @@ const paint = () => {
   const shade = toneShadeOf(wantedTone, getThemeShade());
   const brightness = getThemeShade();
   const picked = wantedPicked && pickedWindow(wantedPicked, brightness);
-  const shown: Readonly<Record<string, string>> | undefined = picked
+  const worn: Readonly<Record<string, string>> | undefined = picked
     ? picked.tokens
     : tonedPalette(shade, brightness);
+  const shown =
+    worn && wantedOn
+      ? withOwnOn(worn, wantedOn, shade, isLightShade(brightness))
+      : worn;
   PAINTED_TOKENS.forEach((token) => {
     const value = shown?.[token];
     if (value) {
@@ -792,6 +846,7 @@ const paint = () => {
   painted = {
     sky: wanted,
     picked: wantedPicked,
+    on: wantedOn,
     tone: wantedTone,
     shade,
     brightness,
@@ -801,6 +856,7 @@ const paint = () => {
 const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
   !samePicked(painted.picked, wantedPicked) ||
+  !sameOn(painted.on, wantedOn) ||
   painted.tone !== wantedTone ||
   // The side of the line, with nothing painted too: this paint is the one
   // writer of which way the words run (`showInk`).
@@ -875,7 +931,8 @@ const showSky = (
   sky: ISceneSky | undefined,
   tone: TSkyTone,
   fade: boolean,
-  picked?: ISceneWindowColours,
+  picked: ISceneWindowColours | undefined,
+  on: IOwnOn | undefined,
 ) => {
   if (
     !sameSky(sky, wanted) ||
@@ -886,6 +943,10 @@ const showSky = (
     wantedTone = tone;
     wantedPicked = picked;
     wantedListeners.forEach((listener) => listener());
+  }
+  // Only the paint reads it: nothing that listens for the sky shows "on".
+  if (!sameOn(on, wantedOn)) {
+    wantedOn = on;
   }
   if (!needsPaint()) {
     return;
@@ -899,33 +960,38 @@ const showSky = (
 
 /**
  * A visualizer's own sky: `held` in Colours and Ambient, `follow` under the
- * Backdrop (`TSkyTone`).
+ * Backdrop (`TSkyTone`). `on` where the sky is the window's own colours
+ * rather than a scene's (`IOwnOn`).
  */
 export const showSceneSky = (
   sky: ISceneSky | undefined,
   fade: boolean,
-  tone: Exclude<TSkyTone, 'lent'> = 'follow',
-) => showSky(sky, tone, fade);
+  tone: Exclude<TSkyTone, 'lent'>,
+  on?: IOwnOn,
+) => showSky(sky, tone, fade, undefined, on);
 
 /**
  * Lend the window `sky` as its own, with no visualizer chosen: toned like a
- * visualizer's, except that it fades out toward Black (`lentSkyReach`).
+ * visualizer's, except that it fades out toward Black (`lentSkyReach`), with
+ * "on" in the window's own colours (`IOwnOn`).
  */
-export const lendSceneSky = (sky: ISceneSky, fade: boolean) =>
-  showSky(sky, 'lent', fade);
+export const lendSceneSky = (sky: ISceneSky, fade: boolean, on: IOwnOn) =>
+  showSky(sky, 'lent', fade, undefined, on);
 
 /**
  * Put the window in colours somebody named - the listener's own for a scene,
  * or the three its pack names - worn as named (`pickedWindow.ts`), light or
  * dark by the Brightness. `sky` is the same colours as a sky, for the glyphs
- * that show the window's colour.
+ * that show the window's colour. `on` where they are the window's own
+ * colours rather than a scene's (`IOwnOn`).
  */
 export const showWindowColours = (
   colours: ISceneWindowColours,
   sky: ISceneSky | undefined,
   fade: boolean,
-  tone: Exclude<TSkyTone, 'lent'> = 'follow',
-) => showSky(sky, tone, fade, colours);
+  tone: Exclude<TSkyTone, 'lent'>,
+  on?: IOwnOn,
+) => showSky(sky, tone, fade, colours, on);
 
 /**
  * A Brightness move lands at once, in the same task as the theme's own rule:

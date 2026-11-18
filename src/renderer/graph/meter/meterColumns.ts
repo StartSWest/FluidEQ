@@ -93,7 +93,7 @@ export const drawFluid = (strip: IStrip) => {
   }
   context.lineWidth = 1.5;
   context.lineJoin = 'round';
-  context.strokeStyle = zoneColour(channel.zone);
+  context.strokeStyle = zoneColour(pen, channel.zone);
   context.stroke();
   context.restore();
   drawPeakRule(strip);
@@ -143,7 +143,7 @@ export const drawMercury = (strip: IStrip) => {
   context.arc(centre, bulbCentre, bulbRadius + 1, 0, Math.PI * 2);
   context.fill();
   if (bulbCentre - top >= 3) {
-    context.fillStyle = zoneColour(channel.zone);
+    context.fillStyle = zoneColour(pen, channel.zone);
     fillBetween(pen, tubeLeft, top, tubeLeft + tubeWidth, top + 2);
   }
   context.restore();
@@ -173,17 +173,17 @@ export const drawCenter = (strip: IStrip) => {
   const upper = pen.px(middle - reach);
   const lower = pen.px(middle + reach);
   if (lower - upper > 0) {
-    context.fillStyle = mirroredRamp(context, inner, bodyStops);
+    context.fillStyle = mirroredRamp(pen, inner, bodyStops);
     fillBetween(pen, inner.x, upper, right, lower);
   }
   if (reach >= 3) {
-    context.fillStyle = zoneColour(channel.zone);
+    context.fillStyle = zoneColour(pen, channel.zone);
     fillBetween(pen, inner.x, upper, right, upper + 2);
     fillBetween(pen, inner.x, lower - 2, right, lower);
   }
   if (channel.peak - channel.level >= 0.012) {
     const peakReach = (inner.height / 2) * Math.min(1, channel.peak);
-    context.fillStyle = zoneColour(channel.peakZone);
+    context.fillStyle = zoneColour(pen, channel.peakZone);
     fillBetween(
       pen,
       inner.x,

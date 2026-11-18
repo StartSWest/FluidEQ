@@ -394,6 +394,12 @@ select option {
   font-weight: $weight-bold;
   @include tracking(0.16em);
   text-shadow: 0 0 16px color-mix(in srgb, $secondary-default 35%, transparent);
+
+  // A glow is a light on a dark window; on a light one it is a coloured
+  // smudge round dark letters (the Output card's "Profiles", 2026-11-18).
+  :root[data-window-ink='dark'] & {
+    text-shadow: none;
+  }
 }
 
 // Bands uses an inline eyebrow. These paragraph eyebrows inherited browser

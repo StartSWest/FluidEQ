@@ -7,7 +7,6 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { LEVEL_FLOOR_DB, LEVEL_HOT_DB, levelFraction } from '../outputLevel';
-import { ZONE_COLOURS } from './meterPaint';
 
 /**
  * What the meter prints round its strips — the scale, the channel letters,
@@ -36,6 +35,7 @@ const drawScale = (
   frame: { x: number; y: number; height: number },
   side: 'left' | 'right',
   ink: string,
+  ceiling: string,
   // A ladder's lamp count: the marks then sit on the lamp nearest each
   // value rather than between two.
   rows?: number,
@@ -71,7 +71,7 @@ const drawScale = (
     context.lineTo(frame.x + direction * (isMajor ? 5 : 3), y);
     context.stroke();
     context.globalAlpha = db === 0 ? 0.95 : 0.6;
-    context.fillStyle = db === 0 ? ZONE_COLOURS.over : ink;
+    context.fillStyle = db === 0 ? ceiling : ink;
     context.fillText(db === 0 ? '0' : String(db), frame.x + direction * 8, y);
   });
   context.restore();
@@ -134,6 +134,8 @@ export interface IMeterPrint {
   /** Absent while the meter is off. */
   styleName: string | undefined;
   ink: string;
+  /** The ceiling's colour: the over zone's, as this window draws it. */
+  ceiling: string;
 }
 
 /**
@@ -155,6 +157,7 @@ export const drawMeterPrint = (
       },
       'left',
       print.ink,
+      print.ceiling,
       rows,
     );
     drawScale(
@@ -166,6 +169,7 @@ export const drawMeterPrint = (
       },
       'right',
       print.ink,
+      print.ceiling,
       rows,
     );
   }

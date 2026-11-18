@@ -167,6 +167,14 @@ const lentDarkSurfaces = (
 };
 
 /**
+ * Whether a scene's glow can say "on": not on the red or the amber that say
+ * off and wait, and not a grey, which says nothing. Where it cannot, the
+ * accent stands in for it.
+ */
+export const isUsableGlow = (glow: ILab): boolean =>
+  chromaOf(glow) >= GREY_CHROMA && clearsWarningHues(hueOf(glow));
+
+/**
  * Every token the window wears for `colours` at `brightness` (the theme
  * shade, 0 to 100), or undefined when one of them cannot be read.
  */
@@ -198,11 +206,7 @@ const pickedWindow = (
       string
     >;
   }
-  // A glow on the red or the amber that say off and wait is not used for
-  // "on", and a grey one says nothing: the accent stands in for it.
-  const glowUsable =
-    chromaOf(glow) >= GREY_CHROMA && clearsWarningHues(hueOf(glow));
-  return windowOn(surfaces, accent, glowUsable ? glow : accent, lean);
+  return windowOn(surfaces, accent, isUsableGlow(glow) ? glow : accent, lean);
 };
 
 /**

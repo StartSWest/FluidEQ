@@ -9,7 +9,6 @@ it under the terms of the GNU General Public License version 3 or later.
 import {
   SEGMENT_ROWS,
   STACK_ROWS,
-  ZONE_COLOURS,
   fillBetween,
   ledRows,
   zoneColour,
@@ -42,7 +41,7 @@ const lampPaint = (
     return strip.lamps;
   }
   if (row === counts.peak) {
-    return zoneColour(strip.channel.peakZone);
+    return zoneColour(strip.pen, strip.channel.peakZone);
   }
   return strip.unlit;
 };
@@ -91,7 +90,7 @@ export const drawLeds = (strip: IStrip) => {
   for (let row = 0; row < rows; row += 1) {
     context.fillStyle =
       row === rows - 1 && channel.peakZone === 'clip'
-        ? ZONE_COLOURS.clip
+        ? pen.inks.zones.clip
         : lampPaint(strip, row, counts);
     context.beginPath();
     context.arc(centre, floor - (row + 0.5) * pitch, radius, 0, Math.PI * 2);

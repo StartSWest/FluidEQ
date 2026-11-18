@@ -20,15 +20,16 @@ import {
   type IChannelLevel,
   type IChannelRect,
   type IMeterPen,
-  ZONE_COLOURS,
   bodyStops,
   fillBetween,
   innerOf,
   lampStops,
   levelRamp,
+  litStops,
   travellingStops,
 } from './meterPaint';
 import { edgeInk, type IStrip, SLOT_ALPHA, UNLIT_ALPHA } from './meterStrip';
+import { luminance, toLinear } from '../../utils/oklab';
 
 const DRAW: Record<MeterStyle, (strip: IStrip) => void> = {
   bar: drawBar,
@@ -43,9 +44,6 @@ const DRAW: Record<MeterStyle, (strip: IStrip) => void> = {
   center: drawCenter,
 };
 
-/** The clip warning's red, as channels for its fading alpha. */
-const CLIP_RGB = '255, 90, 110';
-
 /**
  * A theme colour laid down at part strength. `color-mix` because the token
  * can arrive as anything CSS writes — a hex, or a mix of its own under a
@@ -53,6 +51,49 @@ const CLIP_RGB = '255, 90, 110';
  */
 const faded = (colour: string, alpha: number) =>
   `color-mix(in srgb, ${colour} ${Math.round(alpha * 100)}%, transparent)`;
+
+/** The last unlit lamp worked out, by the colours it was laid down from. */
+let unlitSample: { key: string; luminance: number | undefined } | undefined;
+let sampleCanvas: HTMLCanvasElement | undefined;
+
+/**
+ * An unlit lamp's relative luminance as the meter paints it on `floor`: the
+ * slot's well at `SLOT_ALPHA` (`drawSlot`), the unlit colour over it at
+ * `UNLIT_ALPHA` (`drawChannel`). Laid down on a one-pixel canvas and read
+ * back, because the tokens arrive as anything CSS writes - the unlit colour
+ * is a `color-mix` - and a canvas composites them exactly as the meter's
+ * own does. Worked out again only when one of the three changes.
+ * Undefined where no canvas can be read back.
+ */
+export const unlitLuminance = (
+  floor: string,
+  well: string,
+  unlit: string,
+): number | undefined => {
+  const key = `${floor} ${well} ${unlit}`;
+  if (unlitSample?.key === key) {
+    return unlitSample.luminance;
+  }
+  if (!sampleCanvas) {
+    sampleCanvas = document.createElement('canvas');
+    sampleCanvas.width = 1;
+    sampleCanvas.height = 1;
+  }
+  const context = sampleCanvas.getContext('2d', { willReadFrequently: true });
+  let sampled: number | undefined;
+  if (context) {
+    [floor, faded(well, SLOT_ALPHA), faded(unlit, UNLIT_ALPHA)].forEach(
+      (paint) => {
+        context.fillStyle = paint;
+        context.fillRect(0, 0, 1, 1);
+      },
+    );
+    const [red, green, blue] = context.getImageData(0, 0, 1, 1).data;
+    sampled = luminance([red, green, blue].map((byte) => toLinear(byte / 255)));
+  }
+  unlitSample = { key, luminance: sampled };
+  return sampled;
+};
 
 /** A one-device-pixel frame just inside a box, drawn as four fills. */
 const frame = (pen: IMeterPen, box: IChannelRect) => {
@@ -92,7 +133,7 @@ export const drawSlot = (
   fillBetween(pen, rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
   pen.context.fillStyle =
     warnLevel > 0.001
-      ? `rgba(${CLIP_RGB}, ${0.3 + 0.7 * warnLevel})`
+      ? faded(pen.inks.zones.clip, 0.3 + 0.7 * warnLevel)
       : edgeInk();
   frame(pen, rect);
 };
@@ -111,7 +152,7 @@ export const drawClipCap = (
     return;
   }
   const inner = innerOf(pen, rect);
-  pen.context.fillStyle = ZONE_COLOURS.clip;
+  pen.context.fillStyle = pen.inks.zones.clip;
   pen.context.globalAlpha = warnLevel;
   fillBetween(pen, inner.x, inner.y, inner.x + inner.width, inner.y + 3);
   pen.context.globalAlpha = 1;
@@ -127,7 +168,7 @@ export const drawChannel = (
   unlit: string,
 ) => {
   const inner = innerOf(pen, rect);
-  const stops = bodyStops(isRainbow);
+  const stops = litStops(pen.inks, bodyStops(isRainbow));
   // The two ladders carry one travelling colour in Rainbow mode rather than
   // the whole rainbow up an eighteen-pixel strip.
   const travels = isRainbow && (style === 'segments' || style === 'leds');
@@ -139,12 +180,15 @@ export const drawChannel = (
     channel,
     isRainbow,
     unlit: faded(unlit, UNLIT_ALPHA),
-    body: levelRamp(pen.context, inner, stops),
+    body: levelRamp(pen, inner, stops),
     bodyStops: stops,
     lamps: levelRamp(
-      pen.context,
+      pen,
       inner,
-      travels ? travellingStops(pen.now) : lampStops(isRainbow),
+      litStops(
+        pen.inks,
+        travels ? travellingStops(pen.now) : lampStops(isRainbow),
+      ),
     ),
   });
   pen.context.restore();

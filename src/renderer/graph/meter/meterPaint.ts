@@ -10,6 +10,8 @@ import type { MeterStyle } from 'common/meterStyles';
 import { LEVEL_HOT_DB, LEVEL_OVER_DB, levelFraction } from '../outputLevel';
 import { readSurface, type TSurfaceName } from '../../utils/theme';
 import {
+  LINE_ON_WHITE,
+  clearedFor,
   rainbowColourAt,
   rainbowGradientStops,
 } from '../../utils/rainbowPalette';
@@ -60,17 +62,97 @@ export interface IRampStop {
 export const HOT_FRACTION = levelFraction(LEVEL_HOT_DB);
 export const OVER_FRACTION = levelFraction(LEVEL_OVER_DB);
 
+type TWarnZone = Exclude<TZone, 'safe'>;
+
 /**
  * The zones' colours, held out of the mode — a clipped peak stays red in
  * Rainbow mode too, because the warning is what the colour means.
  */
-export const ZONE_COLOURS = {
+export const ZONE_COLOURS: Readonly<Record<TWarnZone, string>> = {
   hot: '#ffd24a',
   // Near the ceiling is caution, not proof of clipped samples: a correctly
   // limited -1 dBTP master must not wear the red of a signal on the rail.
   over: '#ff9d4a',
   clip: '#ff5a6e',
-} as const;
+};
+
+/**
+ * The same three on a light window: a deep gold, a burnt orange and a red,
+ * the warning hues a white page writes in. The dark window's are lamps lit
+ * on a night floor - amber at OKLab 0.88 - and on white they were a pale
+ * yellow and a pastel orange on pale grey cells, 1.2:1 and 1.6:1 against
+ * an unlit lamp (Ivan, 2026-11-18: "the meter's peak colours are too light,
+ * they don't look good").
+ */
+export const LIGHT_ZONE_COLOURS: Readonly<Record<TWarnZone, string>> = {
+  hot: '#9a6700',
+  over: '#b54700',
+  clip: '#cf222e',
+};
+
+/**
+ * What a lit lamp keeps against an unlit one: the 3:1 a graphical object
+ * needs (WCAG 1.4.11), the line the window's palette is already held to on
+ * white (`LINE_ON_WHITE`).
+ */
+const LIT_ON_UNLIT = LINE_ON_WHITE;
+
+/**
+ * The colours one frame of the meter is drawn in. Every lit colour - the
+ * ramp's stops, the zones, safe's crest - is moved in lightness, its hue
+ * kept, until it stands at `LIT_ON_UNLIT` against the unlit lamp it is read
+ * beside (`clearedFor`): down on a light window, up on a dark one, and not
+ * at all where it already does. On white the window's palette is held at
+ * 3:1 on the page, and against the grey of an unlit cell that was 2:1; on a
+ * dark window a dark first colour (a deep teal picked in the Tint) drew the
+ * ladder's foot at 1.05:1, lamps that were on and looked off. Solved against
+ * the cell as it is painted, so the soft grey end of the Brightness moves
+ * them further and pure white less; Lagoon on a dark window moves nothing.
+ */
+export interface IMeterInks {
+  /** A lit colour as this frame draws it. */
+  lit: (colour: string) => string;
+  zones: Readonly<Record<TWarnZone, string>>;
+  /** Safe's reading: the primary's light, the crest of its ramp. */
+  safe: string;
+}
+
+const asWritten = (colour: string) => colour;
+
+/**
+ * `ground` is the unlit lamp's relative luminance (undefined where it
+ * cannot be read, and nothing moves), `isLight` the window's side.
+ */
+export const meterInks = (
+  ground: number | undefined,
+  isLight: boolean,
+): IMeterInks => {
+  const safe = readSurface('--accent-light', '#c8fff8');
+  const written = isLight ? LIGHT_ZONE_COLOURS : ZONE_COLOURS;
+  if (ground === undefined) {
+    return { lit: asWritten, zones: written, safe };
+  }
+  const lit = (colour: string) =>
+    clearedFor(colour, ground, LIT_ON_UNLIT, isLight);
+  return {
+    lit,
+    zones: {
+      hot: lit(written.hot),
+      over: lit(written.over),
+      clip: lit(written.clip),
+    },
+    safe: lit(safe),
+  };
+};
+
+/** `stops` as this frame draws them (`IMeterInks`). */
+export const litStops = (
+  inks: IMeterInks,
+  stops: readonly IRampStop[],
+): readonly IRampStop[] =>
+  inks.lit === asWritten
+    ? stops
+    : stops.map((stop) => ({ ...stop, colour: inks.lit(stop.colour) }));
 
 /**
  * A reading's colour — a peak line, a pointer, a held lamp, a tip — by zone:
@@ -79,10 +161,8 @@ export const ZONE_COLOURS = {
  * so on a theme or a visualizer's colours the one thing to read on the
  * meter was the one colour not the window's.
  */
-export const zoneColour = (zone: TZone): string =>
-  zone === 'safe'
-    ? readSurface('--accent-light', '#c8fff8')
-    : ZONE_COLOURS[zone];
+export const zoneColour = (pen: IMeterPen, zone: TZone): string =>
+  zone === 'safe' ? pen.inks.safe : pen.inks.zones[zone];
 
 /**
  * Normal mode's ramp: the primary's own walk, its dark at the foot. It
@@ -150,11 +230,12 @@ export const travellingStops = (nowMs: number): readonly IRampStop[] => {
  * is in and nothing about how close the sound is to the ceiling.
  */
 export const levelRamp = (
-  context: CanvasRenderingContext2D,
+  pen: IMeterPen,
   rect: IChannelRect,
   stops: readonly IRampStop[],
 ): CanvasGradient => {
-  const gradient = context.createLinearGradient(
+  const { zones } = pen.inks;
+  const gradient = pen.context.createLinearGradient(
     0,
     rect.y + rect.height,
     0,
@@ -163,10 +244,10 @@ export const levelRamp = (
   stops.forEach((stop) => {
     gradient.addColorStop(stop.offset * HOT_FRACTION, stop.colour);
   });
-  gradient.addColorStop(HOT_FRACTION, ZONE_COLOURS.hot);
-  gradient.addColorStop(OVER_FRACTION, ZONE_COLOURS.hot);
-  gradient.addColorStop(OVER_FRACTION, ZONE_COLOURS.over);
-  gradient.addColorStop(1, ZONE_COLOURS.over);
+  gradient.addColorStop(HOT_FRACTION, zones.hot);
+  gradient.addColorStop(OVER_FRACTION, zones.hot);
+  gradient.addColorStop(OVER_FRACTION, zones.over);
+  gradient.addColorStop(1, zones.over);
   return gradient;
 };
 
@@ -179,11 +260,12 @@ export const levelRamp = (
  * added in increasing position rather than as one loop.
  */
 export const mirroredRamp = (
-  context: CanvasRenderingContext2D,
+  pen: IMeterPen,
   rect: IChannelRect,
   stops: readonly IRampStop[],
 ): CanvasGradient => {
-  const gradient = context.createLinearGradient(
+  const { zones } = pen.inks;
+  const gradient = pen.context.createLinearGradient(
     0,
     rect.y,
     0,
@@ -191,10 +273,10 @@ export const mirroredRamp = (
   );
   const above = (distance: number) => 0.5 - distance / 2;
   const below = (distance: number) => 0.5 + distance / 2;
-  gradient.addColorStop(above(1), ZONE_COLOURS.over);
-  gradient.addColorStop(above(OVER_FRACTION), ZONE_COLOURS.over);
-  gradient.addColorStop(above(OVER_FRACTION), ZONE_COLOURS.hot);
-  gradient.addColorStop(above(HOT_FRACTION), ZONE_COLOURS.hot);
+  gradient.addColorStop(above(1), zones.over);
+  gradient.addColorStop(above(OVER_FRACTION), zones.over);
+  gradient.addColorStop(above(OVER_FRACTION), zones.hot);
+  gradient.addColorStop(above(HOT_FRACTION), zones.hot);
   for (let index = stops.length - 1; index >= 0; index -= 1) {
     const stop = stops[index];
     gradient.addColorStop(above(stop.offset * HOT_FRACTION), stop.colour);
@@ -202,10 +284,10 @@ export const mirroredRamp = (
   stops.forEach((stop) => {
     gradient.addColorStop(below(stop.offset * HOT_FRACTION), stop.colour);
   });
-  gradient.addColorStop(below(HOT_FRACTION), ZONE_COLOURS.hot);
-  gradient.addColorStop(below(OVER_FRACTION), ZONE_COLOURS.hot);
-  gradient.addColorStop(below(OVER_FRACTION), ZONE_COLOURS.over);
-  gradient.addColorStop(below(1), ZONE_COLOURS.over);
+  gradient.addColorStop(below(HOT_FRACTION), zones.hot);
+  gradient.addColorStop(below(OVER_FRACTION), zones.hot);
+  gradient.addColorStop(below(OVER_FRACTION), zones.over);
+  gradient.addColorStop(below(1), zones.over);
   return gradient;
 };
 
@@ -245,17 +327,21 @@ export interface IMeterPen {
   hair: number;
   /** The clock, for the styles whose drawing moves on its own. */
   now: number;
+  /** The colours this frame is drawn in, as this window can show them. */
+  inks: IMeterInks;
 }
 
 export const createPen = (
   context: CanvasRenderingContext2D,
   ratio: number,
   now: number,
+  inks: IMeterInks,
 ): IMeterPen => ({
   context,
   px: (value) => Math.round(value * ratio) / ratio,
   hair: 1 / ratio,
   now,
+  inks,
 });
 
 /**

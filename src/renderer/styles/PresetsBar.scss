@@ -251,11 +251,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: transparent;
 
   // The Library's mark, with the app's small corner kept (Ivan: "stop doing
-  // square things").
+  // square things"), and the Library's words on it: the text's own ink, as
+  // every chosen Library row has it. It kept the list's accent light, which
+  // on the mark's accent tint stood at under 4:1 on a light window.
   &.selected {
     @include studio-mark;
     border-color: transparent;
     border-radius: $radius-xs;
+    color: $text-primary;
   }
 
   &:has(.preset-rename),
@@ -312,9 +315,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .preset-attached {
     flex: 0 0 auto;
-    @include badge($active, $active);
     // The same chip as the ACTIVE badge on the output picker above it: one
-    // lime "on", one size, one face.
+    // "on", one size, one face.
+    @include badge-on;
   }
 
   // Revealed on hover/focus so the row stays calm at rest. `visibility`
@@ -325,17 +328,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: $spacing-s;
     visibility: hidden;
 
+    // The window's inks, which the glyphs draw in (`currentColor`): they
+    // were painted white, and on a light window the pencil and the cross
+    // were white on white, and white on the chosen row's pale tint.
     .iconButton {
       outline: none;
+      color: $text-muted;
       cursor: pointer;
 
-      &:hover svg path,
-      &:focus-visible:not([aria-disabled='true']) path {
-        fill: $edge-tint;
+      &:hover,
+      &:focus-visible:not([aria-disabled='true']) {
+        color: $ink;
       }
 
-      &:active svg path {
-        fill: $surface-field;
+      &:active {
+        color: $secondary-light;
       }
 
       &[aria-disabled='true'] {
