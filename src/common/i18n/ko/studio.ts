@@ -783,6 +783,10 @@ const studio = {
   'studio.windowColours.sourceAi': '내 AI가 선택',
   'studio.windowColours.sourceYou': '내가 선택',
   'studio.windowColours.automatic': '자동',
+  'studio.windowColours.automaticHint':
+    '이 시간대의 색을 FluidEQ가 장면에서 직접 고릅니다',
+  'studio.windowColours.resetHint':
+    '이 시간대의 색을 장면을 게시할 때의 색으로 되돌립니다',
   'studio.problem.bad-world':
     '3D 세계에는 이 버전에서 그릴 수 있는 것이 없습니다. 노드, 재료 및 공식을 확인하십시오.',
   'studio.problem.bad-model':

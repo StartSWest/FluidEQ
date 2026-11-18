@@ -811,6 +811,10 @@ const studio = {
   'studio.windowColours.sourceAi': 'あなたの AI が選択',
   'studio.windowColours.sourceYou': 'あなたが選択',
   'studio.windowColours.automatic': '自動',
+  'studio.windowColours.automaticHint':
+    'この時間帯の色を FluidEQ がシーン自体から選びます',
+  'studio.windowColours.resetHint':
+    'この時間帯の色を、シーンを公開したときの色に戻します',
   'studio.problem.bad-world':
     'この 3D ワールドには、このバージョンで描けるものがありません。ノード、マテリアル、数式を確認してください。',
   'studio.problem.bad-model':

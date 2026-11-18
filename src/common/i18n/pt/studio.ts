@@ -809,6 +809,10 @@ const studio = {
   'studio.windowColours.sourceAi': 'Escolhidas pela sua IA',
   'studio.windowColours.sourceYou': 'Escolhidas por você',
   'studio.windowColours.automatic': 'Automático',
+  'studio.windowColours.automaticHint':
+    'Deixe o FluidEQ escolher estas cores na própria cena, para este momento do dia',
+  'studio.windowColours.resetHint':
+    'Volte às cores com que a cena foi publicada, para este momento do dia',
   'studio.problem.bad-world':
     'O mundo 3D não tem nada que esta versão consiga desenhar. Confira nós, materiais e fórmulas.',
   'studio.problem.bad-model':

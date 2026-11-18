@@ -798,6 +798,10 @@ const studio = {
   'studio.windowColours.sourceAi': 'आपके AI ने चुने',
   'studio.windowColours.sourceYou': 'आपने चुने',
   'studio.windowColours.automatic': 'अपने आप',
+  'studio.windowColours.automaticHint':
+    'इस समय के लिए FluidEQ ये रंग सीन से ही चुन ले',
+  'studio.windowColours.resetHint':
+    'इस समय के लिए वे रंग वापस लाएँ जिनके साथ सीन प्रकाशित हुआ था',
   'studio.problem.bad-world':
     'इस 3D दुनिया में ऐसा कुछ नहीं है जिसे यह संस्करण बना सके। इसके नोड, सामग्री और सूत्र जाँचें।',
   'studio.problem.bad-model':

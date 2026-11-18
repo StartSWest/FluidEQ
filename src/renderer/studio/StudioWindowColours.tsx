@@ -58,6 +58,7 @@ export default function StudioWindowColours({
             type="button"
             className="studio-settings__reset"
             disabled={idle || !state.canAutomatic}
+            data-tooltip={t('studio.windowColours.automaticHint')}
             onClick={state.automatic}
           >
             {t('studio.windowColours.automatic')}
@@ -66,6 +67,7 @@ export default function StudioWindowColours({
             type="button"
             className="studio-settings__reset"
             disabled={idle || !state.canReset}
+            data-tooltip={t('studio.windowColours.resetHint')}
             onClick={state.reset}
           >
             {t('studio.settings.reset')}
