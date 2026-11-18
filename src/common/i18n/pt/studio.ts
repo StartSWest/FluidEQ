@@ -166,6 +166,9 @@ const studio = {
   'studio.publish.yourMusic': 'Sua música',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Capturar este momento',
+  'studio.publish.nightToDay': 'Da noite ao dia',
+  'studio.publish.nightToDayHint':
+    'O vídeo de pré-visualização vai da noite ao dia pleno em seus dez segundos. Desligado, é gravado na hora do dia acima.',
   'studio.publish.timeOfDay': 'Hora do dia',
   'studio.publish.timeOfDayHint':
     'A hora do dia em que as capas e o vídeo da prévia são feitos, da noite ao dia pleno. Mudá-la grava a prévia de novo; a Luz do dia do app continua como está.',

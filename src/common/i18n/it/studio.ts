@@ -168,6 +168,9 @@ const studio = {
   'studio.publish.yourMusic': 'La tua musica',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Cattura questo momento',
+  'studio.publish.nightToDay': 'Dalla notte al giorno',
+  'studio.publish.nightToDayHint':
+    'Il video di anteprima va dalla notte al pieno giorno nei suoi dieci secondi. Se disattivato, viene girato all’ora del giorno qui sopra.',
   'studio.publish.timeOfDay': 'Ora del giorno',
   'studio.publish.timeOfDayHint':
     'L’ora del giorno in cui vengono scattate le copertine e il video di anteprima, dalla notte al pieno giorno. Cambiarla registra di nuovo l’anteprima; la Luce del giorno dell’app resta com’è.',

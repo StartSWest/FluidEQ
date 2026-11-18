@@ -171,6 +171,9 @@ const studio = {
   'studio.publish.yourMusic': 'Votre musique',
   'studio.publish.demo': 'Démo',
   'studio.publish.capture': 'Capturer ce moment',
+  'studio.publish.nightToDay': 'De la nuit au jour',
+  'studio.publish.nightToDayHint':
+    'La vidéo d’aperçu passe de la nuit au plein jour en dix secondes. Désactivée, elle est filmée à l’heure du jour ci-dessus.',
   'studio.publish.timeOfDay': 'Moment de la journée',
   'studio.publish.timeOfDayHint':
     'Le moment de la journée où les couvertures et la vidéo d’aperçu sont prises, de la nuit au plein jour. Le changer enregistre à nouveau l’aperçu ; la Lumière du jour de l’application ne change pas.',

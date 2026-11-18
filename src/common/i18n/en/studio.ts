@@ -175,6 +175,9 @@ const studio = {
   'studio.publish.yourMusic': 'Your music',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Capture this moment',
+  'studio.publish.nightToDay': 'Night to day',
+  'studio.publish.nightToDayHint':
+    'The preview video runs from night to full day across its ten seconds. Off, it is shot at the time of day above.',
   'studio.publish.timeOfDay': 'Time of day',
   'studio.publish.timeOfDayHint':
     "The time of day the covers and the preview video are shot at, from night to full day. Changing it records the preview again; the app's own Daylight stays as it is.",

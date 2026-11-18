@@ -170,6 +170,9 @@ const studio = {
   'studio.publish.yourMusic': 'Ihre Musik',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Diesen Moment festhalten',
+  'studio.publish.nightToDay': 'Von Nacht zu Tag',
+  'studio.publish.nightToDayHint':
+    'Das Vorschauvideo läuft in seinen zehn Sekunden von der Nacht bis zum vollen Tag. Aus wird es zur Tageszeit darüber aufgenommen.',
   'studio.publish.timeOfDay': 'Tageszeit',
   'studio.publish.timeOfDayHint':
     'Die Tageszeit, zu der die Titelbilder und das Vorschauvideo aufgenommen werden, von Nacht bis voller Tag. Eine Änderung nimmt die Vorschau neu auf; das Tageslicht der App bleibt, wie es ist.',

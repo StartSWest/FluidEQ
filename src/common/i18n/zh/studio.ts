@@ -150,6 +150,9 @@ const studio = {
   'studio.publish.yourMusic': '你的音乐',
   'studio.publish.demo': '演示',
   'studio.publish.capture': '捕捉这一刻',
+  'studio.publish.nightToDay': '从夜到昼',
+  'studio.publish.nightToDayHint':
+    '预览视频在十秒内从夜晚过渡到白昼。关闭时，按上方的时间拍摄。',
   'studio.publish.timeOfDay': '时段',
   'studio.publish.timeOfDayHint':
     '拍摄封面和预览视频时的时段，从夜晚到白天。更改后会重新录制预览；应用本身的时段设置不变。',

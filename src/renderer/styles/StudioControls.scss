@@ -87,6 +87,13 @@ it under the terms of the GNU General Public License version 3 or later.
   font-variant-numeric: tabular-nums;
 }
 
+// A setting that is a switch (`NightToDaySwitch`): the name and the switch
+// on one line, centred on each other rather than on a baseline the switch
+// does not have.
+.studio-setting--switch > .studio-setting__head {
+  align-items: center;
+}
+
 // With what it moves beside it: the picture stands to the left of the name
 // and the slider both, and the two keep one column right of it.
 .studio-setting--icon {

@@ -25,6 +25,11 @@ import { createMomentRecorder } from './momentRecorder';
 import StudioPublishVideo from './StudioPublishVideo';
 import StudioPublishDaylightIcon from './StudioPublishDaylightIcon';
 import { Setting } from './StudioSettings';
+import {
+  NightToDaySwitch,
+  useDaylightSweep,
+  useNightToDay,
+} from './StudioPublishSweep';
 import usePublishVideo, { type IPublishPreview } from './usePublishVideo';
 import { previewCaptureSize } from './previewVideo';
 import createPublishDemoAudio from './publishDemoAudio';
@@ -104,7 +109,7 @@ export default function StudioPublishCamera({
   const [daylight, setDaylight] = useState(() => Math.round(pageDaylight()));
   const daylightRef = useRef(daylight);
   daylightRef.current = daylight;
-  const readDaylight = useCallback(() => daylightRef.current, []);
+  const nightToDay = useNightToDay(pack);
   // The hour the preview video is shot at, set when the slider is let go: a
   // clip shot at another hour is not the one asked for, so it is recorded
   // again — once, not at every step of the drag.
@@ -142,7 +147,7 @@ export default function StudioPublishCamera({
     cancel: videoCancel,
     retry: videoRetry,
   } = usePublishVideo(
-    `${source}\n${signal}\n${videoDaylight}`,
+    `${source}\n${signal}\n${nightToDay.sweeping ? 'night-to-day' : videoDaylight}`,
     t('studio.publish.videoWatermark'),
     previewChanged,
   );
@@ -303,6 +308,11 @@ export default function StudioPublishCamera({
     setShape(next);
   };
   const recording = shape === 'normal' && isTakeRunning(videoState.phase);
+  const readDaylight = useDaylightSweep(
+    nightToDay.sweeping && recording,
+    videoState,
+    daylightRef,
+  );
 
   return (
     <div className="studio-publish__camera">
@@ -472,6 +482,11 @@ export default function StudioPublishCamera({
         onCommit={() => setVideoDaylight(daylightRef.current)}
         snaps={DAYLIGHT_SNAPS}
         icon={<StudioPublishDaylightIcon daylight={daylight} />}
+      />
+      <NightToDaySwitch
+        choice={nightToDay}
+        disabled={locked || trouble !== undefined}
+        hint={lockedHint}
       />
       <StudioPublishVideo
         initialFocusRef={initialFocusRef}

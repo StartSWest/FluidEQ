@@ -166,6 +166,9 @@ const studio = {
   'studio.publish.yourMusic': 'あなたの音楽',
   'studio.publish.demo': 'デモ',
   'studio.publish.capture': 'この瞬間をキャプチャ',
+  'studio.publish.nightToDay': '夜から昼へ',
+  'studio.publish.nightToDayHint':
+    'プレビュー動画は10秒で夜から真昼まで移り変わります。オフにすると、上の時刻で撮影されます。',
   'studio.publish.timeOfDay': '時間帯',
   'studio.publish.timeOfDayHint':
     'カバーとプレビュー動画を撮る時間帯です。夜から真昼まで選べます。変更するとプレビューを録り直します。アプリ本体の時間帯の設定は変わりません。',

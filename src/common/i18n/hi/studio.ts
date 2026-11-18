@@ -166,6 +166,9 @@ const studio = {
   'studio.publish.yourMusic': 'आपका संगीत',
   'studio.publish.demo': 'डेमो',
   'studio.publish.capture': 'यह पल कैप्चर करें',
+  'studio.publish.nightToDay': 'रात से दिन',
+  'studio.publish.nightToDayHint':
+    'पूर्वावलोकन वीडियो अपने दस सेकंड में रात से पूरे दिन तक चलता है। बंद होने पर यह ऊपर दिए दिन के समय पर बनता है।',
   'studio.publish.timeOfDay': 'दिन का समय',
   'studio.publish.timeOfDayHint':
     'कवर और प्रीव्यू वीडियो किस समय के दिखें, रात से पूरे दिन तक। इसे बदलने पर प्रीव्यू फिर से रिकॉर्ड होता है; ऐप का अपना दिन का उजाला वैसा ही रहता है।',

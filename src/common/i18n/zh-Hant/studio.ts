@@ -150,6 +150,9 @@ const studio = {
   'studio.publish.yourMusic': '你的音樂',
   'studio.publish.demo': '示範',
   'studio.publish.capture': '捕捉這一刻',
+  'studio.publish.nightToDay': '從夜到晝',
+  'studio.publish.nightToDayHint':
+    '預覽影片在十秒內從夜晚過渡到白晝。關閉時，按上方的時間拍攝。',
   'studio.publish.timeOfDay': '時段',
   'studio.publish.timeOfDayHint':
     '拍攝封面和預覽影片時的時段，從夜晚到白天。變更後會重新錄製預覽；應用程式本身的日光設定不變。',

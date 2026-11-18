@@ -163,6 +163,9 @@ const studio = {
   'studio.publish.yourMusic': '당신의 음악',
   'studio.publish.demo': '데모',
   'studio.publish.capture': '이 순간 캡처',
+  'studio.publish.nightToDay': '밤에서 낮으로',
+  'studio.publish.nightToDayHint':
+    '미리보기 영상이 10초 동안 밤에서 한낮으로 바뀝니다. 끄면 위의 시간대로 촬영됩니다.',
   'studio.publish.timeOfDay': '시간대',
   'studio.publish.timeOfDayHint':
     '표지와 미리 보기 동영상을 촬영할 시간대로, 밤부터 한낮까지입니다. 바꾸면 미리 보기를 다시 녹화하며, 앱 자체의 일광 설정은 그대로입니다.',
