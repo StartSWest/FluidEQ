@@ -135,7 +135,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Nothing left to fix: the album is done, said in the additions' green so
   // a folder worked through album by album shows which are finished.
   &.is-none {
-    color: $analogous-2;
+    color: $ink-added;
     font-weight: $weight-semibold;
   }
 

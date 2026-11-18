@@ -32,6 +32,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $tags-panel-width: 392px;
 
+// *** On a light window *******************************************************
+//
+// The changed and added states as tints of their ink (`$tags-changed-fill`,
+// `$tags-added-fill`): 8% of each on white, where the dark window's 16% of
+// the accent and 11% of the green were washes the inks read at 3.8 to 4.2:1
+// on; at 8% the accent's ink is 4.7:1 and the green's 5.1:1, and a changed
+// row still reads as lit. An album field Fix typed into, and the file's
+// accent chip, wear that tint too: the chosen-row fill they wear on a dark
+// window (22%) took their words to 3.8:1 on white. "missing" drops the softening the dark window gives its
+// amber light: the deep amber is the word itself.
+:root[data-window-ink='dark'] {
+  --tags-changed-share: 8%;
+  --tags-added-share: 8%;
+
+  // The quiet inks (`$studio-t2`, `$studio-t3`: the sheet's headings, the
+  // counts, the times, the placeholders): 44% of the ink was #999 on white,
+  // 2.8:1, where the same share reads 4.1:1 on the dark window. 62% is
+  // #717171, 4.8:1 on a pane and 4.5:1 on the sheet's heading row, and t2
+  // moves with it (72%, 6.8:1) so the two stay a step apart. On the
+  // editor's own surfaces only: the rest of the Library and the app still
+  // wear the shipped shares on white.
+  .library-tags-set,
+  .library-tags-panel,
+  .library-tags-card,
+  .library-tags-line {
+    --studio-t2-share: 72%;
+    --studio-t3-share: 62%;
+  }
+
+  // An added field is edited too, and keeps its green. The line Fix puts
+  // over the album says it wears the changed fields' colour, and does.
+  .library-tags-album__field.is-edited:not(.is-added) .library-tags__box,
+  .library-tags__chip.is-accent,
+  .library-tags-set__fixed:not(.is-nothing) {
+    background: $tags-changed-fill;
+  }
+
+  .library-tags-sheet td.is-empty .library-tags-sheet__cell::placeholder {
+    opacity: 1;
+  }
+}
+
 // *** The side panel: one song, or the files a write could not finish ********
 
 .library-tags-panel {
@@ -148,7 +190,7 @@ $tags-panel-width: 392px;
   del {
     color: $studio-t3;
     font-size: $studio-text-meta;
-    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+    text-decoration-color: color-mix(in srgb, $ink-removed 70%, transparent);
   }
 
   ins {
@@ -157,13 +199,13 @@ $tags-panel-width: 392px;
 
     // What fills an empty field: an addition, in green.
     &.is-added {
-      color: $analogous-2;
+      color: $ink-added;
     }
   }
 }
 
 .library-tags-changes__gone {
-  color: $amber;
+  color: $ink-caution;
   font-size: $studio-text-meta;
 }
 

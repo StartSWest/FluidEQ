@@ -80,3 +80,15 @@ $red: #ff647c;
 // three meanings; they read as one meaning drawn carelessly. #ffb059 is the
 // middle of what was there and the one the graph already uses.
 $amber: #ffb059;
+
+// THE STATE INKS AS WORDS: added, caution, removed, in the shade that reads
+// on the window they stand on. The three above are lights for a dark window;
+// on a white one they measured 1.3:1 (#54ff8a), 1.8:1 (#ffb059) and 2.9:1
+// (#ff647c) - the tag editor's proposals, its "missing" and its struck
+// values could hardly be seen (Ivan, 2026-11-18, the tag editor on white).
+// A light window (`data-window-ink`, App.scss) sets each to a deep ink of the
+// same meaning at 5 to 6:1 on white; a dark window keeps the light itself,
+// so nothing changes there. A custom property, so mix it with `color-mix()`.
+$ink-added: var(--ink-added, #{$analogous-2});
+$ink-caution: var(--ink-caution, #{$amber});
+$ink-removed: var(--ink-removed, #{$red});

@@ -112,24 +112,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   td.is-changed .library-tags-sheet__cell {
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    background: $tags-changed-fill;
     color: $secondary-light;
   }
 
   // A value where the file had none: an addition, in the green the Studio's
   // code view marks added lines with.
   td.is-added .library-tags-sheet__cell {
-    background: color-mix(in srgb, $analogous-2 11%, transparent);
-    color: $analogous-2;
+    background: $tags-added-fill;
+    color: $ink-added;
   }
 
+  // "missing": the caution ink, softened on a dark window where the amber
+  // is a light; on a light window at full strength, the deep amber being
+  // only 5.9:1 there to begin with (`_libraryTags.scss`).
   td.is-empty .library-tags-sheet__cell::placeholder {
-    color: $amber;
+    color: $ink-caution;
     opacity: 0.8;
   }
 
   td.is-invalid .library-tags-sheet__cell {
-    box-shadow: inset 0 0 0 1px $amber;
+    box-shadow: inset 0 0 0 1px $ink-caution;
   }
 
   // A title find & replace would change, or a cell changed from the file:
@@ -208,7 +211,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   // The new cover where the song had none: an addition, in green.
   .is-added & {
-    box-shadow: 0 0 0 2px $analogous-2;
+    box-shadow: 0 0 0 2px $ink-added;
   }
 
   .is-changed & {
@@ -218,7 +221,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Taken off: the frame left empty, in red.
   .is-removed & {
     background: none;
-    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, $red 70%, transparent);
+    box-shadow: inset 0 0 0 1.5px
+      color-mix(in srgb, $ink-removed 70%, transparent);
+  }
+}
+
+// No cover: a quiet note on the raised step inside the row's hairline, the
+// album's empty cover in small (`.library-tags__cover-none`).
+.library-tags-sheet__no-cover {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px $studio-hair;
+  color: $studio-t3;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 1.6;
   }
 }
 
@@ -242,8 +264,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   del {
     padding: 1px 0;
     border-radius: 3px;
-    background: color-mix(in srgb, $red 18%, transparent);
-    color: color-mix(in srgb, $red 45%, $ink);
+    background: color-mix(in srgb, $ink-removed 18%, transparent);
+    color: color-mix(in srgb, $ink-removed 45%, $ink);
     text-decoration: line-through;
     text-decoration-thickness: 1.5px;
   }
@@ -273,7 +295,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       background: none;
       color: $studio-t3;
       font-size: $studio-text-meta;
-      text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+      text-decoration-color: color-mix(in srgb, $ink-removed 70%, transparent);
       text-decoration-thickness: 1px;
     }
 

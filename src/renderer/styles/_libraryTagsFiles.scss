@@ -14,26 +14,38 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
+// A group in the songs' toolbar (`.library-tags-set__tools`): its name in
+// small quiet words before the choice, since "Keep as they are" alone does
+// not say what it keeps, and what the choice will do after it.
 .library-tags-files {
   display: flex;
-  margin: 0 0 10px;
+  min-width: 0;
+  flex: 0 1 auto;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 14px;
+  gap: 6px 8px;
+}
 
-  .library-tags__group.is-inline {
-    margin: 0;
-
-    &::after {
-      display: none;
-    }
-  }
+.library-tags-files__label {
+  color: $studio-t2;
+  font-size: $studio-text-meta;
+  white-space: nowrap;
 }
 
 .library-tags-files__pick {
-  width: 260px;
+  width: 200px;
+  min-width: 150px;
   max-width: 100%;
-  flex: 0 1 260px;
+  flex: 0 1 200px;
+
+  // The toolbar's height: the boxes and the buttons beside it are the small
+  // control, and the field's own 40px stood a head taller than them. Named
+  // with `.dropdown` to outweigh the field's own rule wherever it loads.
+  &.dropdown > [role='menu'] {
+    min-height: $control-height-sm;
+    padding-block: 4px;
+    font-size: $studio-text-tree;
+  }
 }
 
 // The open menu: each pattern, and what the first song would be called.
@@ -56,10 +68,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// The pattern typed by hand: a line of its own under the whole toolbar
+// (`order`), never between the choice and Renumber.
 .library-tags-files__custom {
   display: flex;
   min-width: 0;
   flex: 1 1 100%;
+  order: 1;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
@@ -82,7 +97,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-size: $studio-text-meta;
 
   &.is-clash {
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -116,7 +131,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     min-width: 4em;
     flex: 0 100 auto;
     color: $studio-t3;
-    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+    text-decoration-color: color-mix(in srgb, $ink-removed 70%, transparent);
   }
 
   > span {
@@ -132,13 +147,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   em {
     flex: none;
-    color: $red;
+    color: $ink-removed;
     font-family: inherit;
     font-style: normal;
   }
 
   .is-clash & ins {
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -160,7 +175,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   del {
     color: $studio-t3;
-    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+    text-decoration-color: color-mix(in srgb, $ink-removed 70%, transparent);
   }
 
   ins {
@@ -169,6 +184,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &.is-clash ins {
-    color: $red;
+    color: $ink-removed;
   }
 }

@@ -403,17 +403,19 @@ const LibraryTagSetEditor = () => {
               onFinding={setFinding}
               found={found}
               onState={(update) => setState((current) => update(current))}
-            />
-            <LibraryTagFileNames
-              pattern={state.fileNames}
-              onPattern={(fileNames) =>
-                setState((current) => ({ ...current, fileNames }))
-              }
-              renames={renames}
-              exampleOf={(pattern) =>
-                ordered[0] === undefined
-                  ? undefined
-                  : exampleNameOf(state, ordered[0], pattern)
+              fileNames={
+                <LibraryTagFileNames
+                  pattern={state.fileNames}
+                  onPattern={(fileNames) =>
+                    setState((current) => ({ ...current, fileNames }))
+                  }
+                  renames={renames}
+                  exampleOf={(pattern) =>
+                    ordered[0] === undefined
+                      ? undefined
+                      : exampleNameOf(state, ordered[0], pattern)
+                  }
+                />
               }
             />
             <LibraryTagSheet

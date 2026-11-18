@@ -94,6 +94,13 @@ html {
     --range-tick-long: 72%;
     --range-tick-mid: 52%;
     --range-tick-short: 34%;
+    // The state inks as words (`$ink-added` and its two, _color.scss): a
+    // green held apart from the accent's teal (hue 110 against 185), an
+    // amber and a red, each 5 to 6:1 on white and over 4.5:1 on its own 8%
+    // tint, where the dark window's lights measured 1.3, 1.8 and 2.9:1.
+    --ink-added: #2a7420;
+    --ink-caution: #8f5600;
+    --ink-removed: #b42b2b;
   }
   // No `scrollbar-color` and no `scrollbar-width` here, or anywhere.
   //

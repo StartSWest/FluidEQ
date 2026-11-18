@@ -236,7 +236,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: $analogous-2;
+  color: $ink-added;
   font-size: $studio-text-meta;
   font-weight: $weight-semibold;
   white-space: nowrap;
@@ -338,7 +338,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     &[aria-invalid='true'] {
-      color: $amber;
+      color: $ink-caution;
     }
   }
 }
@@ -364,7 +364,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   // An edited value wears the accent the changed cells below wear, so what
-  // Fix typed in reads as changed at a glance.
+  // Fix typed in reads as changed at a glance. On white its fill is the
+  // cells' tint instead (`_libraryTags.scss`).
   &.is-edited {
     > label {
       color: $secondary-light;
@@ -382,15 +383,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Filled where every song had nothing: an addition, in green.
   &.is-added {
     > label {
-      color: $analogous-2;
+      color: $ink-added;
     }
 
     .library-tags__box {
-      background: color-mix(in srgb, $analogous-2 11%, transparent);
+      background: $tags-added-fill;
     }
 
     .library-tags__box input {
-      color: $analogous-2;
+      color: $ink-added;
     }
   }
 }
@@ -403,7 +404,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include truncate;
 
   del {
-    text-decoration-color: color-mix(in srgb, $red 70%, transparent);
+    text-decoration-color: color-mix(in srgb, $ink-removed 70%, transparent);
   }
 }
 
@@ -412,7 +413,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-tags-album__title.is-added .library-tags-album__title-box input {
-  color: $analogous-2;
+  color: $ink-added;
 }
 
 // "Varies: 2009 · 2011 · 2014 and 2 more", each value a press.
@@ -595,49 +596,65 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** The songs' line ************************************************************
 //
-// One row, the heading and find & replace on the left and Renumber on the
-// right (Ivan, 2026-11-16: "aligned in the same line"); it wraps whole
-// pieces, never a box under its own label.
+// One toolbar over the table: find & replace, the file names' choice, and
+// Renumber at the right (Ivan, 2026-11-16: "aligned in the same line";
+// 2026-11-18: "to be responsive and in the same line"). It was two rows
+// under two spaced-capital headings, the file names' choice alone on the
+// second. Every control is the small height, so the row has one line to
+// stand on. Narrower, the boxes give way first (to 100px each), then
+// Renumber takes the next line at the right, then the file names, then
+// Replace all drops under its boxes: whole groups, never a clipped box.
 
 .library-tags-set__tools {
   display: flex;
   margin: 18px 0 10px;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 14px;
-
-  .library-tags__group.is-inline {
-    margin: 0;
-
-    &::after {
-      display: none;
-    }
-  }
+  gap: 8px 16px;
 }
 
 .library-tags-set__replace {
+  position: relative;
   display: flex;
   min-width: 0;
-  flex: 1 1 520px;
+  flex: 1 1 320px;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
 
   .library-tags__box {
-    width: 220px;
-    max-width: 100%;
-    flex: 0 1 220px;
+    width: auto;
+    min-width: 100px;
+    max-width: 240px;
+    flex: 1 1 140px;
   }
 }
 
+// The count at the find box's end, where a box's code stands
+// (`.library-tags__code`): the accent while something is found, the caution
+// ink at none.
 .library-tags-set__found {
+  flex: 0 0 auto;
+  padding-right: 6px;
   color: $secondary-light;
   font-size: $studio-text-meta;
+  font-weight: $weight-semibold;
   white-space: nowrap;
 
   &.is-none {
-    color: $amber;
+    color: $ink-caution;
   }
+}
+
+// The same count as a sentence, for a screen reader alone: out of the
+// toolbar's flow, so it takes no room on the line.
+.library-tags-set__found-said {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .library-tags-set__renumber {
@@ -746,13 +763,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  // Each box takes the line; the button and the count share the next.
+  // A box alone on its line takes the line, rather than stopping at its
+  // wide-page cap beside a box that stretches under it.
   .library-tags-set__replace .library-tags__box {
-    width: 100%;
-    flex: 1 1 100%;
-  }
-
-  .library-tags-set__renumber {
-    margin-left: 0;
+    max-width: none;
   }
 }

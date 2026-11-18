@@ -39,8 +39,8 @@ interface ILibraryTagFileNamesProps {
 }
 
 /**
- * The songs' file names, on a line of their own under the songs' tools
- * (Ivan, 2026-11-17: "rename the files too to have better format"): keep
+ * The songs' file names, a group in the songs' toolbar (`LibraryTagSetTools`;
+ * Ivan, 2026-11-17: "rename the files too to have better format"): keep
  * them, one of four patterns, or one typed with the tags as words. Each
  * song shows its new name under its row (`LibraryTagSheet`), the side
  * panel lists them, and Save renames after it writes the tags. A name two
@@ -103,37 +103,49 @@ const LibraryTagFileNames = ({
     }
   }
 
+  // The choice and what it will do stay together; the pattern typed by hand
+  // takes a line of its own under the toolbar, the width a pattern needs.
   return (
-    <div className="library-tags-files">
-      <span className="library-tags__group is-inline">
-        {t('library.tags.files.title')}
-      </span>
-      <Dropdown
-        name="library-tags-file-names"
-        className="library-tags-files__pick"
-        menuClassName="library-tags-files__menu"
-        isDisabled={false}
-        value={choice}
-        options={[
-          option(KEEP, t('library.tags.files.keep')),
-          ...FILE_NAME_PRESETS.map((preset) =>
-            option(preset, wordsOf(preset), exampleOf(preset)),
-          ),
-          option(CUSTOM, t('library.tags.files.custom')),
-        ]}
-        handleChange={(value) => {
-          if (value === KEEP) {
-            setIsCustom(false);
-            onPattern(undefined);
-          } else if (value === CUSTOM) {
-            setIsCustom(true);
-            onPattern(pattern ?? FILE_NAME_PRESETS[0]);
-          } else {
-            setIsCustom(false);
-            onPattern(value);
-          }
-        }}
-      />
+    <>
+      <div className="library-tags-files">
+        <span className="library-tags-files__label">
+          {t('library.tags.files.title')}
+        </span>
+        <Dropdown
+          name="library-tags-file-names"
+          className="library-tags-files__pick"
+          menuClassName="library-tags-files__menu"
+          isDisabled={false}
+          value={choice}
+          options={[
+            option(KEEP, t('library.tags.files.keep')),
+            ...FILE_NAME_PRESETS.map((preset) =>
+              option(preset, wordsOf(preset), exampleOf(preset)),
+            ),
+            option(CUSTOM, t('library.tags.files.custom')),
+          ]}
+          handleChange={(value) => {
+            if (value === KEEP) {
+              setIsCustom(false);
+              onPattern(undefined);
+            } else if (value === CUSTOM) {
+              setIsCustom(true);
+              onPattern(pattern ?? FILE_NAME_PRESETS[0]);
+            } else {
+              setIsCustom(false);
+              onPattern(value);
+            }
+          }}
+        />
+        {status !== '' && (
+          <span
+            className={`library-tags-files__status${clashes > 0 ? ' is-clash' : ''}`}
+            role={clashes > 0 ? 'alert' : 'status'}
+          >
+            {status}
+          </span>
+        )}
+      </div>
       {isTyping && (
         <div className="library-tags-files__custom">
           <LibraryTagInput
@@ -166,15 +178,7 @@ const LibraryTagFileNames = ({
           </span>
         </div>
       )}
-      {status !== '' && (
-        <span
-          className={`library-tags-files__status${clashes > 0 ? ' is-clash' : ''}`}
-          role={clashes > 0 ? 'alert' : 'status'}
-        >
-          {status}
-        </span>
-      )}
-    </div>
+    </>
   );
 };
 

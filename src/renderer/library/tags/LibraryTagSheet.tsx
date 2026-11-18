@@ -25,6 +25,7 @@ import {
 } from '../../../common/library/tagFields';
 import { isPlaceholderName } from '../../../common/library/tagFix';
 import type { ILibraryTrack } from '../../../common/library/types';
+import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import LibraryCoverArt from '../LibraryCoverArt';
 import { FIELD_LABEL_KEYS } from './tagLabels';
@@ -228,6 +229,15 @@ const LibraryTagSheet = ({
       if (!hadCover) {
         mark = ' is-folder';
       }
+    } else if (mark === '') {
+      // No cover at all: the note the album's own empty cover shows, small
+      // and quiet, so the square reads as "no picture" and not as one that
+      // failed to load (an empty grey box, on white).
+      picture = (
+        <span className="library-tags-sheet__no-cover" aria-hidden="true">
+          <MenuIcon name="song" />
+        </span>
+      );
     }
     return (
       <td className={`library-tags-sheet__cover${mark}`}>

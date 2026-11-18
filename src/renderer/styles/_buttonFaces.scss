@@ -245,6 +245,58 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   @include button-common-states;
+  @include button-lit-on-light($tone);
+}
+
+// THE SUGGESTED ACTION ON A LIGHT WINDOW: the tone itself with the floor's
+// colour for its word, as the chosen segment and the "on" badge already are
+// there (Ivan's pick B, "Consola", 2026-11-18). The lit tint was built for a
+// dark window: the accent at 22% over white is #c5dfe0, and its word on it
+// measured 3.8:1, so Save, Fix and Replace all read as switched off beside
+// the quiet outlines next to them (Ivan, 2026-11-18, the tag editor on
+// white). The accent is solved for exactly this (`windowLight.ts`,
+// LABEL_CONTRAST 4.5); red takes its deep ink (`$ink-removed`: the white
+// window's floor on it is 5.7:1), its light being 2.9:1 there. Any other tone keeps its tint, having
+// no ink solved for white.
+//
+// Only inside the tag editor for now (`$tag-editor`): whether every loud
+// button in the app goes solid on a white window is Ivan's call, still open
+// (2026-11-18), and this is the one place he asked for it to read.
+//
+// Inside `:where()`, so the rule weighs only what the button's own selector
+// weighs and sits after its faces: `.button.subtle` and every state the
+// tiers draw still win over it, as they win over the lit face itself.
+// The tag editor's own surfaces: its pages, panels, sheet and write card.
+$tag-editor: "[class*='library-tags']";
+
+@mixin button-lit-on-light($tone) {
+  $fill: null;
+  @if $tone == $secondary-default {
+    $fill: $secondary-default;
+  } @else if $tone == $red {
+    $fill: $ink-removed;
+  }
+
+  @if $fill {
+    :where(:root[data-window-ink='dark'] #{$tag-editor}) & {
+      color: $surface-base;
+      border-color: transparent;
+      background: $fill;
+    }
+
+    // A step darker under the pointer and darker again held: lighter would
+    // take the word's contrast down on a light window.
+    :where(:root[data-window-ink='dark'] #{$tag-editor})
+      &:hover:not([aria-disabled='true'], :disabled) {
+      color: $surface-base;
+      background: color-mix(in oklab, #{$fill} 86%, #{$black});
+    }
+
+    :where(:root[data-window-ink='dark'] #{$tag-editor})
+      &:active:not([aria-disabled='true'], :disabled) {
+      background: color-mix(in oklab, #{$fill} 74%, #{$black});
+    }
+  }
 }
 
 @mixin button-line($tone: null) {

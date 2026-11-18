@@ -108,7 +108,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $secondary-default;
 
   .has-failed & {
-    color: $amber;
+    color: $ink-caution;
   }
 }
 
@@ -137,7 +137,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-tags-card__failed {
-  color: $amber;
+  color: $ink-caution;
 }
 
 .library-tags-card__actions {
@@ -279,11 +279,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 15px;
     flex: 0 0 auto;
     margin-top: 2px;
-    color: $amber;
+    color: $ink-caution;
   }
 
   &.is-bad svg {
-    color: $red;
+    color: $ink-removed;
   }
 }
 

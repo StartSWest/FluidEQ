@@ -252,9 +252,36 @@ $studio-text-lead: 0.9375rem;
 // theme and a Plus scene's colours carry them as they carry t1; the shipped
 // muted and faint inks are lighter than the mockup's t2 and t3 by more than a
 // step, and a long list read flat with them.
-$studio-t2: color-mix(in srgb, $text-primary 68%, transparent);
+// The shares are custom properties because a light window needs more of the
+// ink to reach the same reading: the tag editor takes more there
+// (`_libraryTags.scss`).
+$studio-t2: color-mix(
+  in srgb,
+  $text-primary var(--studio-t2-share, 68%),
+  transparent
+);
 
-$studio-t3: color-mix(in srgb, $text-primary 44%, transparent);
+$studio-t3: color-mix(
+  in srgb,
+  $text-primary var(--studio-t3-share, 44%),
+  transparent
+);
+
+// THE TAG EDITOR'S CHANGED AND ADDED VALUES: the ink of the state on a tint
+// of it. 16% of the accent and 11% of the green on a dark window; on a light
+// one (`_libraryTags.scss`) 8% of each, where 16% and 11% were pale washes
+// that took the inks on them under 4.5:1.
+$tags-changed-fill: color-mix(
+  in srgb,
+  $secondary-default var(--tags-changed-share, 16%),
+  transparent
+);
+
+$tags-added-fill: color-mix(
+  in srgb,
+  $ink-added var(--tags-added-share, 11%),
+  transparent
+);
 
 // Ink on the accent: the filled button's own (`.button`), the window's floor.
 $studio-on-accent: $surface-base;
