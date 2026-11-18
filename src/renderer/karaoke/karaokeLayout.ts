@@ -41,17 +41,19 @@ const DEFAULTS: Record<TKaraokeLayoutMode, IKaraokeLayoutSettings> = {
   // Narrower than the 27% and 22% it started at (Ivan, 2026-11-16: "after
   // resetting all settings the karaoke list is too wide"): a fifth of the
   // page, about the Library rail's width on an ordinary window.
-  // The pitch strip a third taller than the slim 96 and 132 it opened at
-  // (Ivan, 2026-11-17: "make the pitch lane default a little bit taller").
+  // The pitch strip opens near its tallest, every note row readable (Ivan,
+  // 2026-11-18, after a reset left it at 128: "it's too compressed ... like
+  // the picture is fine", his strip at 360). It was 96 and 132, then 128
+  // and 172 (2026-11-17, "a little bit taller").
   normal: {
     playlistShare: 0.2,
     playlistCollapsed: false,
-    pitchHeight: 128,
+    pitchHeight: 340,
   },
   fullscreen: {
     playlistShare: 0.17,
     playlistCollapsed: false,
-    pitchHeight: 172,
+    pitchHeight: 360,
   },
 };
 
