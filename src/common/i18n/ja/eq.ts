@@ -220,10 +220,10 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.surfaceUnused': 'ウィンドウが白いあいだは使われません',
   'graph.sceneColours.glowUnused':
     '赤に近すぎます：「オン」には FluidEQ の色を使います',
-  'graph.sceneColours.glowAbout': '「オン」とグロー',
+  'graph.sceneColours.glowAbout': 'オンになっているもの',
   'graph.sceneColours.accentAbout': 'ボタンとカーブ',
   'graph.sceneColours.surfaceAbout': 'パネルとフィールド',
-  'graph.sceneColours.glow': 'グロー',
+  'graph.sceneColours.glow': '2番目の色',
   'graph.sceneColours.accent': 'アクセント',
   'graph.sceneColours.surface': 'サーフェス',
   'graph.sceneColours.yours': 'あなたの色',

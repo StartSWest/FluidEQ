@@ -228,10 +228,10 @@ const eq: Partial<Dictionary> = {
     'Inutilisée tant que la fenêtre est blanche',
   'graph.sceneColours.glowUnused':
     'Trop proche du rouge : FluidEQ garde son « activé »',
-  'graph.sceneColours.glowAbout': '« Activé » et la lueur',
+  'graph.sceneColours.glowAbout': 'Ce qui est activé',
   'graph.sceneColours.accentAbout': 'Boutons et courbe',
   'graph.sceneColours.surfaceAbout': 'Panneaux et champs',
-  'graph.sceneColours.glow': 'Lueur',
+  'graph.sceneColours.glow': 'Deuxième couleur',
   'graph.sceneColours.accent': 'Accent',
   'graph.sceneColours.surface': 'Surface',
   'graph.sceneColours.yours': 'Les vôtres',

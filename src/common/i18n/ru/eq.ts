@@ -223,10 +223,10 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.surfaceUnused': 'Не используется, пока окно белое',
   'graph.sceneColours.glowUnused':
     'Слишком близко к красному: FluidEQ оставит своё «вкл.»',
-  'graph.sceneColours.glowAbout': '«Вкл.» и свечение',
+  'graph.sceneColours.glowAbout': 'То, что включено',
   'graph.sceneColours.accentAbout': 'Кнопки и кривая',
   'graph.sceneColours.surfaceAbout': 'Панели и поля',
-  'graph.sceneColours.glow': 'Свечение',
+  'graph.sceneColours.glow': 'Второй цвет',
   'graph.sceneColours.accent': 'Акцент',
   'graph.sceneColours.surface': 'Фон',
   'graph.sceneColours.yours': 'Ваши',

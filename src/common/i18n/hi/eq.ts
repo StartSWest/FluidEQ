@@ -220,10 +220,10 @@ const eq: Partial<Dictionary> = {
     'विंडो सफ़ेद रहने तक इसका उपयोग नहीं होता',
   'graph.sceneColours.glowUnused':
     'लाल के बहुत करीब: “चालू” के लिए FluidEQ अपना रंग रखता है',
-  'graph.sceneColours.glowAbout': '“चालू” और आभा',
+  'graph.sceneColours.glowAbout': 'जो चालू है',
   'graph.sceneColours.accentAbout': 'बटन और कर्व',
   'graph.sceneColours.surfaceAbout': 'पैनल और फ़ील्ड',
-  'graph.sceneColours.glow': 'आभा',
+  'graph.sceneColours.glow': 'दूसरा रंग',
   'graph.sceneColours.accent': 'एक्सेंट',
   'graph.sceneColours.surface': 'सतह',
   'graph.sceneColours.yours': 'आपके',

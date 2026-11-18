@@ -232,10 +232,10 @@ const eq = {
   'graph.sceneColours.surfaceUnused': 'Not used while the window is white',
   'graph.sceneColours.glowUnused':
     'Too close to red: FluidEQ keeps its own “on”',
-  'graph.sceneColours.glowAbout': '“On” and the glow',
+  'graph.sceneColours.glowAbout': 'What is switched on',
   'graph.sceneColours.accentAbout': 'Buttons and the curve',
   'graph.sceneColours.surfaceAbout': 'Panes and fields',
-  'graph.sceneColours.glow': 'Glow',
+  'graph.sceneColours.glow': 'Second colour',
   'graph.sceneColours.accent': 'Accent',
   'graph.sceneColours.surface': 'Surface',
   'graph.sceneColours.yours': 'Yours',
