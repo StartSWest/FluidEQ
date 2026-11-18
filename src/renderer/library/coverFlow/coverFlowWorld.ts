@@ -78,6 +78,8 @@ export interface ICoverFlowWorld {
   halo: THREE.ShaderMaterial;
   /** How much of their reflections the covers show; eased by the scene. */
   reflectionStrength: { value: number };
+  /** 1 on a white window, 0 on a dark one: set by the scene each frame. */
+  light: { value: number };
   /** An empty sleeve, for a cover whose picture has not come yet. */
   sleeve: THREE.Texture;
   makeCard: () => ICard;
@@ -100,6 +102,7 @@ export const createCoverFlowWorld = (host: HTMLElement): ICoverFlowWorld => {
 
   const world = new THREE.Scene();
   const glow = accent.clone();
+  const light = { value: 0 };
 
   const halo = new THREE.ShaderMaterial({
     vertexShader: HALO_VERTEX,
@@ -108,6 +111,7 @@ export const createCoverFlowWorld = (host: HTMLElement): ICoverFlowWorld => {
       uGlow: { value: glow },
       uAspect: { value: 1 },
       uAnchor: { value: 0.58 },
+      uLight: light,
     },
     transparent: true,
     premultipliedAlpha: true,
@@ -123,7 +127,7 @@ export const createCoverFlowWorld = (host: HTMLElement): ICoverFlowWorld => {
   const floor = new THREE.ShaderMaterial({
     vertexShader: FLOOR_VERTEX,
     fragmentShader: FLOOR_FRAGMENT,
-    uniforms: { uGlow: { value: glow } },
+    uniforms: { uGlow: { value: glow }, uLight: light },
     transparent: true,
     premultipliedAlpha: true,
     depthWrite: false,
@@ -151,6 +155,7 @@ export const createCoverFlowWorld = (host: HTMLElement): ICoverFlowWorld => {
         uRing: { value: 0 },
         uRingColour: { value: ringColour },
         uRadius: { value: CORNER },
+        uLight: light,
       },
       transparent: true,
       premultipliedAlpha: true,
@@ -163,6 +168,7 @@ export const createCoverFlowWorld = (host: HTMLElement): ICoverFlowWorld => {
         uShade: { value: 1 },
         uRadius: { value: CORNER },
         uStrength: reflectionStrength,
+        uLight: light,
       },
       transparent: true,
       premultipliedAlpha: true,
@@ -186,6 +192,7 @@ export const createCoverFlowWorld = (host: HTMLElement): ICoverFlowWorld => {
     artColours,
     halo,
     reflectionStrength,
+    light,
     sleeve,
     makeCard,
     dispose: () => {

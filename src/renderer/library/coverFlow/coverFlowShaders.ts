@@ -54,6 +54,7 @@ export const COVER_FRAGMENT = /* glsl */ `
   uniform float uRing;
   uniform vec3 uRingColour;
   uniform float uRadius;
+  uniform float uLight;
   ${ROUNDED}
   void main() {
     vec4 texel = texture2D(uMap, vUv);
@@ -62,7 +63,12 @@ export const COVER_FRAGMENT = /* glsl */ `
     colour = mix(vec3(luma), colour, uSaturation);
     float facing = clamp(dot(normalize(vNormal), normalize(vView)), 0.0, 1.0);
     float band = exp(-pow((vUv.x + vUv.y * 0.55) - (0.75 + uSheen * 0.9), 2.0) * 18.0);
-    colour = colour * mix(0.42, 1.0, facing) * uShade + vec3(band * 0.12 * facing);
+    // On a white window a cover turned away or far off pales toward the
+    // page instead of sinking into shade: dark sides on white read as
+    // smudges (Ivan, 2026-11-18, Cover Flow on the light theme).
+    vec3 shaded = colour * mix(0.42, 1.0, facing) * uShade;
+    vec3 paled = mix(colour * mix(0.82, 1.0, facing), vec3(1.0), (1.0 - uShade) * 0.55);
+    colour = mix(shaded, paled, uLight) + vec3(band * 0.12 * facing);
     float d = sleeveDistance(vUv, uRadius);
     float pixel = max(fwidth(d), 1e-5);
     float inside = -d / pixel;
@@ -86,13 +92,14 @@ export const REFLECTION_FRAGMENT = /* glsl */ `
   uniform float uShade;
   uniform float uRadius;
   uniform float uStrength;
+  uniform float uLight;
   ${ROUNDED}
   void main() {
     vec4 texel = texture2D(uMap, vUv);
     float d = sleeveDistance(vUv, uRadius);
     float pixel = max(fwidth(d), 1e-5);
     float fade = 1.0 - smoothstep(0.0, 0.62, vUv.y);
-    float alpha = (1.0 - smoothstep(-pixel, pixel, d)) * texel.a * fade * 0.3 * uShade * uStrength;
+    float alpha = (1.0 - smoothstep(-pixel, pixel, d)) * texel.a * fade * 0.3 * uShade * uStrength * mix(1.0, 0.55, uLight);
     if (alpha < 0.003) discard;
     gl_FragColor = vec4(texel.rgb * 0.85, alpha);
     #include <colorspace_fragment>
@@ -128,13 +135,16 @@ export const HALO_FRAGMENT = /* glsl */ `
   uniform vec3 uGlow;
   uniform float uAspect;
   uniform float uAnchor;
+  uniform float uLight;
   void main() {
     vec2 p = vUv - vec2(0.5, uAnchor);
     p.x *= uAspect;
     float halo = exp(-dot(p, p) * 8.0);
     // Full below the centre, gone a quarter of the stage above it.
     float below = 1.0 - smoothstep(uAnchor - 0.05, uAnchor + 0.25, vUv.y);
-    gl_FragColor = vec4(uGlow, halo * below * 0.1);
+    // No coloured light behind the row on a white window: it tinted the
+    // page round the covers.
+    gl_FragColor = vec4(uGlow, halo * below * 0.1 * (1.0 - uLight));
     #include <colorspace_fragment>
     gl_FragColor.rgb *= gl_FragColor.a;
   }
@@ -153,12 +163,17 @@ export const FLOOR_VERTEX = /* glsl */ `
 export const FLOOR_FRAGMENT = /* glsl */ `
   varying vec3 vWorld;
   uniform vec3 uGlow;
+  uniform float uLight;
   void main() {
     float d = length(vec2(vWorld.x * 0.45, vWorld.z + 0.6));
     float pool = exp(-d * d * 0.9);
     float reach = smoothstep(-9.0, -2.0, vWorld.z) * (1.0 - smoothstep(2.5, 5.5, vWorld.z));
-    float alpha = (0.16 + pool * 0.1) * reach;
-    vec3 colour = mix(vec3(0.0), uGlow, pool * 0.5);
+    // On a white window the floor is a soft grey shadow and nothing more:
+    // at 0.16 black with a pool of the cover's colour it was a dark band
+    // with a coloured stain across a white page (Ivan, 2026-11-18: "the
+    // shadow is too dark, and too colourful on the floor").
+    float alpha = mix(0.16 + pool * 0.1, 0.035 + pool * 0.03, uLight) * reach;
+    vec3 colour = mix(mix(vec3(0.0), uGlow, pool * 0.5), vec3(0.0), uLight);
     gl_FragColor = vec4(colour, alpha);
     #include <colorspace_fragment>
     gl_FragColor.rgb *= gl_FragColor.a;

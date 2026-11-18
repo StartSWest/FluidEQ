@@ -128,6 +128,7 @@ export const createCoverFlowScene = (
     artColours,
     halo,
     reflectionStrength,
+    light,
     sleeve,
     makeCard,
     dispose: disposeWorld,
@@ -301,6 +302,12 @@ export const createCoverFlowScene = (
     } else {
       glow.lerp(wanted, 1 - Math.exp(-seconds * 6));
     }
+    // The window's side, read as it is drawn: a light window pales the row
+    // instead of shading it, and lays a grey shadow, not a coloured one.
+    light.value =
+      document.documentElement.getAttribute('data-window-ink') === 'dark'
+        ? 1
+        : 0;
     renderer.render(world, camera);
     // Handed over only once the centre cover wears its own picture (or has
     // none to wait for): the still picture under the canvas shows it until
