@@ -455,45 +455,40 @@ $sweep-pale: color-mix(in oklab, $secondary-light 60%, $text-primary);
   }
 }
 
-// *** On a white window: flat ***********************************************
+// *** Flat, on every window ************************************************
 //
-// The light window's brand is flat (Ivan, 2026-11-18: "fix this crap, it
-// needs to look awesome and flat, and the logo"): the tile a solid face of
-// the accent with the wave in white, no lit edge and no glow under it, and
-// the name in the text's own ink with "EQ" in the accent. On white the
-// sweep ran from near-black into a pale accent, and "EQ"'s two glowing
-// copies add their light (plus-lighter), which on white adds nothing: the
-// name read as grey letters and a washed-out "EQ" beside a white tile.
-:root[data-window-ink='dark'] {
-  .brand-mark {
-    border-color: transparent;
-    background: $secondary-default;
-    box-shadow: none;
+// The name is flat (Ivan, 2026-11-18: "it needs to look awesome and flat",
+// then "fix the title for dark too, no flows or crap"): the text's own ink
+// with "EQ" in the accent, still. On white the sweep ran from near-black
+// into a pale accent and "EQ"'s glowing copies (plus-lighter) added nothing;
+// on the dark window the same sweep and the glow were the flows. The
+// letters still rise at launch: an arrival, not a loop. The icon beside it
+// is the app's icon and stays exactly as it is ("don't modify my icon,
+// keep the same icon").
+// `:nth-child(n)` to outrank the sweep's per-letter stretches above.
+.signal-name > .signal-name__letter:nth-child(n) {
+  color: $text-primary;
+  background: none;
+}
 
-    path {
-      stroke: $white;
-      filter: none;
-    }
+.signal-name__suffix {
+  color: $secondary-default;
+
+  &::before,
+  &::after {
+    display: none;
   }
 
-  .signal-name > .signal-name__letter {
-    color: $text-primary;
-    background: none;
-  }
-
-  .signal-name__suffix {
+  // Its letters are clear so the copies above showed through; with the
+  // copies gone they carry the colour themselves, and do not glow.
+  .signal-name__letter,
+  .signal-name__letter--glow {
     color: $secondary-default;
-
-    &::before,
-    &::after {
-      display: none;
-    }
-
-    // Its letters are clear so the copies above show through; with the
-    // copies gone they carry the colour themselves.
-    .signal-name__letter,
-    .signal-name__letter--glow {
-      color: $secondary-default;
-    }
+    filter: none;
   }
+}
+
+.signal-name__letter--glow {
+  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
+  animation-delay: calc(700ms + var(--letter-index) * 45ms);
 }
