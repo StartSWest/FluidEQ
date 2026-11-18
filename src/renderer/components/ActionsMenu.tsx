@@ -16,6 +16,7 @@ import {
 } from 'react';
 import { LATEST_RELEASE_URL, PRODUCT_NAME } from 'common/branding';
 import type { TranslationKey } from 'common/i18n/en';
+import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import Chevron from '../icons/Chevron';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -213,10 +214,15 @@ const ActionsMenu = ({
       // The language list is portalled to the body so the menu cannot clip
       // it, and it still belongs here: closing on its option's pointerdown
       // unmounted the picker before the click chose anything.
+      // So is a colour picker opened from its rows (`ColourPickerPopover`,
+      // an AnchoredMenu on the body): a press on its colours closed the
+      // whole menu, the picker with it, as the hand moved over the field
+      // (Ivan, 2026-11-18).
       if (
         target instanceof Element &&
         (root.current?.contains(target) ||
-          target.closest('.language-picker-menu'))
+          target.closest('.language-picker-menu') ||
+          isInsideAnchoredMenu(target))
       ) {
         return;
       }
