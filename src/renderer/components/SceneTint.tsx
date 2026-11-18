@@ -32,7 +32,7 @@ import {
   useWindowTintSecondary,
 } from '../utils/windowTint';
 import { isUsableGlow } from '../utils/pickedWindow';
-import { labOf } from '../utils/windowLight';
+import { isHueless, labOf, withoutHue } from '../utils/windowLight';
 import { skyFromSwatch } from '../utils/sceneTint';
 import {
   skyFromWindowColours,
@@ -312,8 +312,17 @@ const SceneTint = () => {
         // buttons and the curve in exactly it, black included on a white
         // window; the panes are Lagoon's turned to its hue. The glow is
         // "on" as `on` says, so the glyphs drawn from this sky show it too.
+        // A colour with no hue (black, grey, white) has no hue to turn the
+        // panes to: they took the picker's slider's leftover hue, and black
+        // picked put the window on a brown floor (Ivan, 2026-11-18). There
+        // the panes are Lagoon's at their own lightness, in grey, and the
+        // window is monochrome (`filledOn`).
+        const lent = windowColoursOfSky(tintedLagoon(tint));
         const colours = {
-          ...windowColoursOfSky(tintedLagoon(tint)),
+          ...lent,
+          surface: isHueless(tintColour)
+            ? withoutHue(lent.surface)
+            : lent.surface,
           accent: tintColour,
           glow: ownSecond ?? tintColour,
         };

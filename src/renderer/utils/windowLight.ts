@@ -111,6 +111,14 @@ const GREY_SURFACE_CHROMA = 0.008;
 const LABEL_CONTRAST = 4.5;
 
 /**
+ * Where a colour with no hue stands as a filled control (`filledOn`), in
+ * OKLab lightness: the window's ink, a step off pure black and white so a
+ * thumb or a switch still has an edge against the words beside it.
+ */
+const MONO_ON_LIGHT_LIGHTNESS = 0.24;
+const MONO_ON_DARK_LIGHTNESS = 0.93;
+
+/**
  * The accent as ink and edge on a light window (`--accent-light`: the
  * kickers, the lit controls' words, the control edges): AA for words on the
  * panes. On a dark window it is the pale light every theme's is.
@@ -146,6 +154,18 @@ const lumOf = (hex: string) => {
 };
 
 export const chromaOf = (lab: ILab) => Math.hypot(lab.a, lab.b);
+
+/** Whether `hex` has no hue to speak of: black, a grey, white. */
+export const isHueless = (hex: string): boolean => {
+  const lab = labOf(hex);
+  return lab !== undefined && chromaOf(lab) < GREY_CHROMA;
+};
+
+/** `hex` at its own lightness with its hue taken out: the grey it stands at. */
+export const withoutHue = (hex: string): string => {
+  const lab = labOf(hex);
+  return lab ? labToHex({ l: lab.l, a: 0, b: 0 }) : hex;
+};
 
 export const hueOf = (lab: ILab) =>
   ((Math.atan2(lab.b, lab.a) * 180) / Math.PI + 360) % 360;
@@ -195,12 +215,27 @@ const clearOf = (
  * moved in lightness only, away from the floor, as far as the floor's ink
  * written on it needs (`LABEL_CONTRAST`) - darker on a light window, lighter
  * on a dark one. How the accent and "on" are both worn.
+ *
+ * A colour with no hue (black, a grey, white) is worn as monochrome: the
+ * window's own ink, near black on a light window and near white on a dark
+ * one. Moved only as far as its label needs, black on a dark window stopped
+ * at a dead mid grey, and every switch and thumb went the colour of nothing
+ * (Ivan, 2026-11-18, black picked with the Brightness down: "what should we
+ * do instead"). A colour with a hue keeps it and moves as before.
  */
 export const filledOn = (
   colour: ILab,
   floor: string,
   isLight: boolean,
-): string => clearOf(colour, floor, LABEL_CONTRAST, isLight);
+): string => {
+  if (chromaOf(colour) < GREY_CHROMA) {
+    const l = isLight
+      ? Math.min(colour.l, MONO_ON_LIGHT_LIGHTNESS)
+      : Math.max(colour.l, MONO_ON_DARK_LIGHTNESS);
+    return clearOf({ l, a: 0, b: 0 }, floor, LABEL_CONTRAST, isLight);
+  }
+  return clearOf(colour, floor, LABEL_CONTRAST, isLight);
+};
 
 /**
  * The hue a window's greys and inks lean to: the accent's when it has one,
