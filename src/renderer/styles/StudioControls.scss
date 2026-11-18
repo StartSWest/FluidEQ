@@ -140,6 +140,26 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 100%;
 }
 
+// On a white window the picture is the window's own, as the elements over
+// it are (`SceneAmbient.scss`): a pale square instead of a square of night,
+// and the elements turned to greys and inverted, a light flake drawn dark, so
+// the icon shows what the window will (Ivan, 2026-11-18: "fix those icons to
+// work on both themes"). A square of night sat as a dark block on a white
+// card.
+:root[data-window-ink='dark'] .studio-ambient-icon {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, #{$black} 4%, #{$white}),
+    color-mix(in srgb, #{$black} 10%, #{$white})
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #{$black} 12%, transparent);
+
+  > .studio-ambient-icon__canvas {
+    filter: grayscale(1) invert(1);
+    mix-blend-mode: multiply;
+  }
+}
+
 .studio-setting__track {
   position: relative;
   display: grid;

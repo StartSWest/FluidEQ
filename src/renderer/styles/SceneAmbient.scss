@@ -28,3 +28,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
   contain: strict;
   mix-blend-mode: screen;
 }
+
+// On a white window, screen lifts nothing: white is already as light as it
+// gets, so every element vanished (Ivan, 2026-11-18: "the flying things in
+// the window need to work for the light theme too; right now I don't see
+// them; I want them like grey things, so it's subtle"). There the layer is
+// turned to greys and inverted, a light flake becoming a dark one, and
+// multiplied faintly: a shape can only darken what is under it towards
+// grey, the mirror of what screen does on a dark window, so a word under a
+// bird stays the word.
+:root[data-window-ink='dark'] .scene-ambient {
+  mix-blend-mode: multiply;
+  opacity: 0.32;
+  filter: grayscale(1) invert(1);
+}
