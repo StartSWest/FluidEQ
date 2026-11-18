@@ -821,13 +821,12 @@ const studio = {
   'studio.windowColours.note':
     'Saved into the scene, so everyone who plays it sees these colours.',
   'studio.windowColours.undo': 'Undo my changes',
-  'studio.windowColours.fromPalette': 'Choose them from the palette',
   'studio.windowColours.none':
-    'This scene has no palette to take colours from yet. Ask your AI to choose its window colours.',
-  'studio.windowColours.byYou': 'Changed by you',
-  'studio.windowColours.byPalette': 'Worked out by FluidEQ from the palette',
-  'studio.windowColours.byAi': 'Chosen by your AI from the scene',
+    "FluidEQ works this scene's colours out from its picture once it plays. Ask your AI to choose them if you want your own.",
   'studio.windowColours.title': 'Window colours',
+  'studio.windowColours.sourceAi': 'Chosen by your AI',
+  'studio.windowColours.sourceYou': 'Chosen by you',
+  'studio.windowColours.automatic': 'Back to automatic',
   'studio.problem.bad-world':
     'The 3D world has nothing this version can draw. Check its nodes, materials and formulas.',
   'studio.problem.bad-model':

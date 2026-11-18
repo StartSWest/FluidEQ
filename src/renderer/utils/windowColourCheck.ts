@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { hueDistance, parseCssColour, rgbToLab } from './oklab';
+import { blendWindowColours } from './sceneDayColours';
 import { clearsWarningHues } from './sceneTint';
 
 /**
@@ -129,4 +130,35 @@ export const windowColourFaults = (
     faults.push('glow-like-accent');
   }
   return faults;
+};
+
+/** The hours the blend is checked at: every tenth of the way through the day. */
+const DAY_CHECK_STEPS = 10;
+
+export interface IDayColourFault {
+  /** The first hour, 0 night to 100 day, where the blend makes a bad window. */
+  daylight: number;
+  faults: TWindowColourFault[];
+}
+
+/**
+ * Where the blend of `night` and `day` first makes a bad window, or
+ * undefined when it never does. Two good sets can still make a bad one
+ * between them: an accent and a glow that trade hues from night to day turn
+ * through each other at dusk and are one colour there - Aurora's first day
+ * set, green and pink by night against blue and green by day, failed from
+ * Daylight 30 to 85.
+ */
+export const windowColourFaultsThroughDay = (
+  night: ISceneWindowColours,
+  day: ISceneWindowColours,
+): IDayColourFault | undefined => {
+  for (let step = 0; step <= DAY_CHECK_STEPS; step += 1) {
+    const daylight = (step / DAY_CHECK_STEPS) * 100;
+    const faults = windowColourFaults(blendWindowColours(night, day, daylight));
+    if (faults.length > 0) {
+      return { daylight, faults };
+    }
+  }
+  return undefined;
 };

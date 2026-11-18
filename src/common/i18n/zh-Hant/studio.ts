@@ -706,13 +706,12 @@ const studio = {
   'studio.windowColours.failed': '無法儲存顏色。請再試一次。',
   'studio.windowColours.note': '儲存在場景中，所有播放它的人都會看到這些顏色。',
   'studio.windowColours.undo': '復原我的修改',
-  'studio.windowColours.fromPalette': '從調色盤選擇',
   'studio.windowColours.none':
-    '此場景還沒有可取色的調色盤。請讓你的 AI 選擇視窗顏色。',
-  'studio.windowColours.byYou': '由你修改',
-  'studio.windowColours.byPalette': '由 FluidEQ 根據調色盤算出',
-  'studio.windowColours.byAi': '由你的 AI 從場景中選出',
+    '場景播放後，FluidEQ 會從畫面中算出它的顏色。想用自己的顏色，就讓你的 AI 來選。',
   'studio.windowColours.title': '視窗顏色',
+  'studio.windowColours.sourceAi': '由你的 AI 選出',
+  'studio.windowColours.sourceYou': '由你選擇',
+  'studio.windowColours.automatic': '恢復自動',
   'studio.problem.bad-world':
     '3D世界沒有這個版本可以畫的東西。檢查它的節點、材料和公式。',
   'studio.problem.bad-model':

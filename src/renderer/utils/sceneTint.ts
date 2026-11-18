@@ -108,9 +108,12 @@ export {
  * from another measurement are thrown away and the scenes measured again.
  * 2 added the accent, 3 the colour for "on", 4 grey skies, 5 the palette, 6
  * the colours a scene names or its palette gives (`sceneOwnColours.ts`)
- * ahead of any drawing, and drawings in the theme's own accent.
+ * ahead of any drawing, and drawings in the theme's own accent, 7 the
+ * night's sky drawn at Daylight 0 under the look's own id and the day's at
+ * 100 under its day key (`sceneDayColours.ts`); the night's was drawn at
+ * whatever time of day its author left the scene at.
  */
-export const SCENE_SKY_MEASUREMENT = 6;
+export const SCENE_SKY_MEASUREMENT = 7;
 
 /** Ten degrees a bin. */
 const HUE_BINS = 36;

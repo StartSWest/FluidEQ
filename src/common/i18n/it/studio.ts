@@ -813,13 +813,12 @@ const studio = {
   'studio.windowColours.note':
     'Salvati nella scena, così chiunque la riproduca vede questi colori.',
   'studio.windowColours.undo': 'Annulla le mie modifiche',
-  'studio.windowColours.fromPalette': 'Sceglili dalla tavolozza',
   'studio.windowColours.none':
-    'Questa scena non ha ancora una tavolozza da cui prendere i colori. Chiedi alla tua IA di sceglierne i colori della finestra.',
-  'studio.windowColours.byYou': 'Modificati da te',
-  'studio.windowColours.byPalette': 'Calcolati da FluidEQ dalla tavolozza',
-  'studio.windowColours.byAi': 'Scelti dalla tua IA dalla scena',
+    'FluidEQ ricava i colori di questa scena dalla sua immagine quando parte. Chiedi alla tua IA di sceglierli se vuoi i tuoi.',
   'studio.windowColours.title': 'Colori della finestra',
+  'studio.windowColours.sourceAi': 'Scelti dalla tua IA',
+  'studio.windowColours.sourceYou': 'Scelti da te',
+  'studio.windowColours.automatic': 'Torna ad automatici',
   'studio.problem.bad-world':
     'Il mondo 3D non contiene nulla che questa versione possa disegnare. Controlla nodi, materiali e formule.',
   'studio.problem.bad-model':

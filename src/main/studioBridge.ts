@@ -269,6 +269,8 @@ const writeStudioSettings = (settings: {
   wave?: ISceneWave | null;
   /** The colours it lends the window; `null` takes them out. */
   windowColours?: ISceneWindowColours | null;
+  /** The colours it lends the window by day; `null` takes them out. */
+  windowColoursDay?: ISceneWindowColours | null;
 }) =>
   ipcRenderer.invoke(
     'studio-write-settings',

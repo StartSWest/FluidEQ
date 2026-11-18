@@ -74,6 +74,8 @@ export interface IMemberSceneSummary {
    * scene has loaded.
    */
   windowColours?: ISceneWindowColours;
+  /** And by day, when the pack names those too (`windowColoursDay`). */
+  windowColoursDay?: ISceneWindowColours;
   /**
    * From the store: built on this computer by the account it is stored
    * under, rather than installed or sent. Through `visibleScenes`: made by
@@ -351,6 +353,9 @@ export const createMemberSceneStore = ({
       ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
       ...(pack.wave ? { wave: pack.wave } : {}),
       ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
+      ...(pack.windowColoursDay
+        ? { windowColoursDay: pack.windowColoursDay }
+        : {}),
       own: !imported,
       ...(imported ? { authorName: imported.authorName } : {}),
     };

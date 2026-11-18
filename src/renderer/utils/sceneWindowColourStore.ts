@@ -10,6 +10,7 @@ import {
   type ISceneWindowColours,
 } from 'common/sceneWindowColours';
 import { readStored, removeStored, writeStored } from './graphStorage';
+import { dayKeyOf, timeKeyOf, type TWindowTime } from './sceneDayColours';
 
 /**
  * The window colours a listener chose for a scene, by look id (Ivan,
@@ -17,7 +18,9 @@ import { readStored, removeStored, writeStored } from './graphStorage';
  * that scene only, like its sliders (`sceneParamStore.ts`), and worn in place
  * of the scene's own until "Use the scene's colours" forgets them. Always all
  * three: changing one keeps the scene's other two beside it, so a scene that
- * later names different colours still shows exactly what was chosen.
+ * later names different colours still shows exactly what was chosen. The
+ * night's and the day's are kept apart (`sceneDayColours.ts`): choosing one
+ * leaves the other as the scene has it.
  */
 
 const STORAGE_KEY = 'fluideq.sceneWindowColours';
@@ -71,30 +74,38 @@ const save = () => {
 /** The colours the listener chose for `lookId`, or undefined for its own. */
 export const getChosenWindowColours = (lookId: string) => all().get(lookId);
 
-/** Chooses `colours` for `lookId`; the scene's own again when they match it. */
+/**
+ * Chooses `colours` for `lookId` at `time` - the night's under the look's id,
+ * the day's under its day key (`sceneDayColours.ts`) - and the scene's own
+ * again when they match it.
+ */
 export const setChosenWindowColours = (
   lookId: string,
   colours: ISceneWindowColours,
   own: ISceneWindowColours | undefined,
+  time: TWindowTime = 'night',
 ) => {
+  const key = timeKeyOf(lookId, time);
   const same =
     own !== undefined &&
     own.surface === colours.surface &&
     own.accent === colours.accent &&
     own.glow === colours.glow;
   if (same) {
-    if (all().delete(lookId)) {
+    if (all().delete(key)) {
       save();
     }
     return;
   }
-  all().set(lookId, colours);
+  all().set(key, colours);
   save();
 };
 
-/** Back to the scene's own colours. */
+/** Back to the scene's own colours, night and day. */
 export const clearChosenWindowColours = (lookId: string) => {
-  if (all().delete(lookId)) {
+  const night = all().delete(lookId);
+  const day = all().delete(dayKeyOf(lookId));
+  if (night || day) {
     save();
   }
 };

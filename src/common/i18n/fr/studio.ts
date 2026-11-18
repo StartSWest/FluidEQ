@@ -818,14 +818,12 @@ const studio = {
   'studio.windowColours.note':
     'Enregistrées dans la scène : tous ceux qui la lancent voient ces couleurs.',
   'studio.windowColours.undo': 'Annuler mes modifications',
-  'studio.windowColours.fromPalette': 'Les choisir dans la palette',
   'studio.windowColours.none':
-    'Cette scène n’a pas encore de palette d’où tirer des couleurs. Demandez à votre IA de choisir ses couleurs de fenêtre.',
-  'studio.windowColours.byYou': 'Modifiées par vous',
-  'studio.windowColours.byPalette':
-    'Calculées par FluidEQ à partir de la palette',
-  'studio.windowColours.byAi': 'Choisies par votre IA dans la scène',
+    'FluidEQ tire les couleurs de cette scène de son image dès qu’elle joue. Demandez à votre IA de les choisir si vous voulez les vôtres.',
   'studio.windowColours.title': 'Couleurs de la fenêtre',
+  'studio.windowColours.sourceAi': 'Choisies par votre IA',
+  'studio.windowColours.sourceYou': 'Choisies par vous',
+  'studio.windowColours.automatic': 'Revenir à l’automatique',
   'studio.problem.bad-world':
     'Le monde 3D ne contient rien que cette version puisse dessiner. Vérifiez ses nœuds, matériaux et formules.',
   'studio.problem.bad-model':

@@ -80,6 +80,8 @@ export interface IScenePackSummary {
    * scene has loaded.
    */
   windowColours?: ISceneWindowColours;
+  /** And by day, when the pack names those too (`windowColoursDay`). */
+  windowColoursDay?: ISceneWindowColours;
 }
 
 /** One row of the server's listing — the envelope, plus what the cache compares. */
@@ -291,6 +293,9 @@ export const createScenePackStore = ({
     ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
     ...(pack.wave ? { wave: pack.wave } : {}),
     ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
+    ...(pack.windowColoursDay
+      ? { windowColoursDay: pack.windowColoursDay }
+      : {}),
   });
 
   /** Both names a pack can be stored under; see `packPath`. */

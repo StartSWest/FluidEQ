@@ -804,14 +804,12 @@ const studio = {
   'studio.windowColours.note':
     'Salvas na cena, então todos que a tocarem verão estas cores.',
   'studio.windowColours.undo': 'Desfazer minhas alterações',
-  'studio.windowColours.fromPalette': 'Escolher da paleta',
   'studio.windowColours.none':
-    'Esta cena ainda não tem uma paleta de onde tirar cores. Peça à sua IA para escolher as cores da janela.',
-  'studio.windowColours.byYou': 'Alteradas por você',
-  'studio.windowColours.byPalette':
-    'Calculadas pelo FluidEQ a partir da paleta',
-  'studio.windowColours.byAi': 'Escolhidas pela sua IA a partir da cena',
+    'O FluidEQ tira as cores desta cena da imagem dela quando ela toca. Peça à sua IA que as escolha se quiser as suas.',
   'studio.windowColours.title': 'Cores da janela',
+  'studio.windowColours.sourceAi': 'Escolhidas pela sua IA',
+  'studio.windowColours.sourceYou': 'Escolhidas por você',
+  'studio.windowColours.automatic': 'Voltar ao automático',
   'studio.problem.bad-world':
     'O mundo 3D não tem nada que esta versão consiga desenhar. Confira nós, materiais e fórmulas.',
   'studio.problem.bad-model':

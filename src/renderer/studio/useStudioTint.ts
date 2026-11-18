@@ -54,6 +54,10 @@ import {
  */
 const LAUNCH = String(performance.timeOrigin);
 
+/** The key `project`'s build `serial` is measured and remembered under. */
+export const studioBuildKey = (project: string, serial: number) =>
+  `${LAUNCH}:${project}#${serial}`;
+
 export default function useStudioTint(
   pack: IScenePack | undefined,
   project: string | undefined,
@@ -77,7 +81,7 @@ export default function useStudioTint(
     setStudioTintSource({
       project,
       ...(playing && pack
-        ? { playing: { build: `${LAUNCH}:${project}#${serial}`, pack } }
+        ? { playing: { build: studioBuildKey(project, serial), pack } }
         : {}),
     });
   }, [isOn, isShown, playing, pack, project, serial]);

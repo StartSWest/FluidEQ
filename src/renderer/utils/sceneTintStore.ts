@@ -355,11 +355,12 @@ export const useWindowTintMode = (): TSceneTintMode => {
 
 const SKIES_KEY = 'fluideq.sceneTint.skies';
 /**
- * Every Plus look and a Studio's worth of member scenes. Past this the one
- * measured longest ago is forgotten; measuring it again is a second of GPU
- * work the next time it is chosen.
+ * Every Plus look and a Studio's worth of member scenes, each at night and
+ * by day (`sceneDayColours.ts`). Past this the one measured longest ago is
+ * forgotten; measuring it again is a second of GPU work the next time it is
+ * chosen.
  */
-const MAX_REMEMBERED_SKIES = 64;
+const MAX_REMEMBERED_SKIES = 128;
 
 export interface IRememberedSky {
   /** The scene version it was measured from. */

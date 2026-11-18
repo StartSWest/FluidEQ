@@ -10,65 +10,86 @@ import { isPremiumLookId, type TLocalizedName } from 'common/scenePacks';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { useUsableMemberScenes } from './memberScenes';
 import { useSceneColourControls } from './sceneAppColours';
+import {
+  dayKeyOf,
+  resolveDayColours,
+  type IResolvedDayColours,
+  type TWindowTime,
+} from './sceneDayColours';
 import { sceneWindowColours, windowColoursOfSky } from './sceneOwnColours';
 import { useListenerParams } from './sceneParamStore';
 import { useUsableScenes } from './scenePacks';
 import { useRememberedSceneSky } from './sceneTintStore';
 import { useChosenWindowColours } from './sceneWindowColourStore';
 
-export interface ISceneWindowColourState {
-  /**
-   * The scene's own: the colours it names, else those its palette gives as
-   * the listener's choices leave it. Undefined for a scene that says neither.
-   */
-  declared?: ISceneWindowColours;
-  /**
-   * The colours the scene's pack names, when it names them: worn as named,
-   * like the listener's own (`pickedWindow.ts`). Colours worked out from a
-   * palette are a measurement of the picture and are only lent their hue.
-   */
-  named?: ISceneWindowColours;
-  /**
-   * What the editor starts from and "Use the scene's colours" goes back to:
-   * the declared colours, else the measured sky's. Undefined for a scene that
-   * has not been measured yet either.
-   */
-  own?: ISceneWindowColours;
-  /** What the listener chose instead, when they did. */
-  chosen?: ISceneWindowColours;
+export interface ISceneWindowColourState extends IResolvedDayColours {
+  /** What the listener chose instead, per time, when they did. */
+  chosen: Partial<Record<TWindowTime, ISceneWindowColours>>;
   /** The scene's names, from its listing, for the editor's heading. */
   names?: TLocalizedName;
 }
 
-/** The window colours of the scene `lookId`, as the window should wear them. */
+const EMPTY: ISceneWindowColourState = {
+  sides: {},
+  own: {},
+  chosen: {},
+  measured: [],
+};
+
+/**
+ * The window colours of the scene `lookId`, night and day
+ * (`sceneDayColours.ts`): the listener's own for either time, else what its
+ * pack names, else its palette's, else its picture's as measured at that
+ * hour (`graph/sceneSky.ts`, which `SceneTint` asks for the times listed in
+ * `measured`).
+ */
 export default function useSceneWindowColours(
   lookId: string,
 ): ISceneWindowColourState {
   const isScene = isPremiumLookId(lookId) || isMemberLookId(lookId);
+  const key = isScene ? lookId : '';
   const scenes = useUsableScenes();
   const memberScenes = useUsableMemberScenes();
-  const controls = useSceneColourControls(isScene ? lookId : '');
+  const controls = useSceneColourControls(key);
   const params = useListenerParams(lookId);
-  const measured = useRememberedSceneSky(isScene ? lookId : '');
-  const chosen = useChosenWindowColours(isScene ? lookId : '');
+  const nightSky = useRememberedSceneSky(key);
+  const daySky = useRememberedSceneSky(key && dayKeyOf(key));
+  const chosenNight = useChosenWindowColours(key);
+  const chosenDay = useChosenWindowColours(key && dayKeyOf(key));
   return useMemo(() => {
     if (!isScene) {
-      return {};
+      return EMPTY;
     }
     const listed = isPremiumLookId(lookId)
       ? scenes.find((entry) => entry.lookId === lookId)
       : memberScenes.find((entry) => entry.lookId === lookId);
-    const declared =
-      listed?.windowColours ??
-      (controls &&
-        sceneWindowColours(controls, params ? { params } : undefined));
-    const own = declared ?? (measured && windowColoursOfSky(measured));
+    // The palette's colours as the listener's choices leave it; never the
+    // pack's named ones, which stand for one time of day each.
+    const palette =
+      controls &&
+      sceneWindowColours(
+        { ...controls, windowColours: undefined },
+        params ? { params } : undefined,
+      );
+    const chosen = {
+      ...(chosenNight ? { night: chosenNight } : {}),
+      ...(chosenDay ? { day: chosenDay } : {}),
+    };
     return {
+      ...resolveDayColours({
+        named: {
+          ...(listed?.windowColours ? { night: listed.windowColours } : {}),
+          ...(listed?.windowColoursDay ? { day: listed.windowColoursDay } : {}),
+        },
+        ...(palette ? { palette } : {}),
+        measured: {
+          ...(nightSky ? { night: windowColoursOfSky(nightSky) } : {}),
+          ...(daySky ? { day: windowColoursOfSky(daySky) } : {}),
+        },
+        chosen,
+      }),
+      chosen,
       ...(listed ? { names: listed.names } : {}),
-      ...(declared ? { declared } : {}),
-      ...(listed?.windowColours ? { named: listed.windowColours } : {}),
-      ...(own ? { own } : {}),
-      ...(chosen ? { chosen } : {}),
     };
   }, [
     isScene,
@@ -77,7 +98,9 @@ export default function useSceneWindowColours(
     memberScenes,
     controls,
     params,
-    measured,
-    chosen,
+    nightSky,
+    daySky,
+    chosenNight,
+    chosenDay,
   ]);
 }

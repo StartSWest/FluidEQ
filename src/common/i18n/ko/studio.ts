@@ -778,13 +778,12 @@ const studio = {
   'studio.windowColours.note':
     '장면에 저장되므로 재생하는 모든 사람이 이 색을 봅니다.',
   'studio.windowColours.undo': '내 변경 취소',
-  'studio.windowColours.fromPalette': '팔레트에서 고르기',
   'studio.windowColours.none':
-    '이 장면에는 아직 색을 가져올 팔레트가 없습니다. AI에게 창 색을 골라 달라고 하세요.',
-  'studio.windowColours.byYou': '내가 바꿨습니다',
-  'studio.windowColours.byPalette': 'FluidEQ가 팔레트에서 정했습니다',
-  'studio.windowColours.byAi': 'AI가 장면에서 골랐습니다',
+    '장면이 재생되면 FluidEQ가 그림에서 색을 뽑아냅니다. 직접 정하고 싶다면 AI에게 골라 달라고 하세요.',
   'studio.windowColours.title': '창 색',
+  'studio.windowColours.sourceAi': '내 AI가 선택',
+  'studio.windowColours.sourceYou': '내가 선택',
+  'studio.windowColours.automatic': '자동으로 되돌리기',
   'studio.problem.bad-world':
     '3D 세계에는 이 버전에서 그릴 수 있는 것이 없습니다. 노드, 재료 및 공식을 확인하십시오.',
   'studio.problem.bad-model':

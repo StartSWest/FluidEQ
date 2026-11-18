@@ -288,6 +288,8 @@ export const MEASURING_ACCENT: [number, number, number] = [0.5, 0.5, 0.5];
  */
 export const sampleSceneInWorker = async (
   pack: IScenePack,
+  /** The time of day to draw it at; absent, the one its author set. */
+  daylight?: number,
 ): Promise<Uint8Array | undefined> => {
   await afterLinkTurns(sceneProgramKey(pack));
   return (
@@ -295,7 +297,7 @@ export const sampleSceneInWorker = async (
       kind: 'sample',
       pack,
       accent: MEASURING_ACCENT,
-      daylight: authoredDaylight(pack),
+      daylight: daylight ?? authoredDaylight(pack),
     })
   )?.pixels;
 };

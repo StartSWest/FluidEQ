@@ -8,6 +8,7 @@ import type { ISceneWindowColours } from '../../common/sceneWindowColours';
 import {
   lchOf,
   windowColourFaults,
+  windowColourFaultsThroughDay,
   type TWindowColourFault,
 } from '../../renderer/utils/windowColourCheck';
 
@@ -48,25 +49,70 @@ const faultLine = (
   }
 };
 
+const nameOf = (colours: ISceneWindowColours) =>
+  `surface ${colours.surface}, accent ${colours.accent}, glow ${colours.glow}`;
+
+/** What is wrong with one set, as sentences; [] when nothing. */
+const setLines = (label: string, colours: ISceneWindowColours): string[] => {
+  const faults = windowColourFaults(colours);
+  return faults.length === 0
+    ? []
+    : [
+        `${label} (${nameOf(colours)}):`,
+        ...faults.map((fault) => faultLine(fault, colours)),
+      ];
+};
+
+/**
+ * The Window colours check for the night's set (`windowColours`) and the
+ * day's (`windowColoursDay`), and for the blend between them, which the
+ * window wears at every hour in between.
+ */
 const windowColourLines = (
-  colours: ISceneWindowColours | undefined,
+  night: ISceneWindowColours | undefined,
+  day?: ISceneWindowColours,
 ): string[] => {
-  if (!colours) {
+  if (!night && !day) {
     return [
-      'Window colours check: MISSING. pack.json names no windowColours, so FluidEQ works them out by a fixed rule that never sees the picture. Choose them from what you see (the fluideq-finish skill says how), save, and look again.',
+      'Window colours check: MISSING. pack.json names no windowColours (the night, Daylight 0) and no windowColoursDay (the day, Daylight 100), so FluidEQ works them out from the picture by a fixed rule. Choose them from what you see at each hour (the fluideq-finish skill says how), save, and look again.',
     ];
   }
-  const named = `surface ${colours.surface}, accent ${colours.accent}, glow ${colours.glow}`;
-  const faults = windowColourFaults(colours);
-  if (faults.length === 0) {
-    return [`Window colours check: PASSES (${named}).`];
+  const problems = [
+    ...(night ? setLines('windowColours, the night', night) : []),
+    ...(day ? setLines('windowColoursDay, the day', day) : []),
+  ];
+  const crossing =
+    night && day ? windowColourFaultsThroughDay(night, day) : undefined;
+  if (crossing && problems.length === 0) {
+    problems.push(
+      `Between night and day, at Daylight ${crossing.daylight}, the blend the window wears fails: ${crossing.faults.join(', ')}. Each set is fine alone, so they turn through each other: keep the accent on its side of the wheel and the glow on its own at both hours, rather than trading hues from night to day.`,
+    );
+  }
+  // A set not named is worked out by the app, which is allowed: said, so
+  // the AI names it when the scene's hour changes its colours.
+  let missing = '';
+  if (!night) {
+    missing =
+      ' The night (windowColours) is not named: FluidEQ works it out from the picture at Daylight 0.';
+  } else if (!day) {
+    missing =
+      ' The day (windowColoursDay) is not named: FluidEQ works it out from the picture at Daylight 100; name it if the scene by day has colours of its own.';
+  }
+  if (problems.length === 0) {
+    const shown = [
+      night && `night ${nameOf(night)}`,
+      day && `day ${nameOf(day)}`,
+    ]
+      .filter(Boolean)
+      .join('; ');
+    return [`Window colours check: PASSES (${shown}).${missing}`];
   }
   return [
     [
-      `Window colours check: NOT YET (${named}).`,
-      ...faults.map((fault) => faultLine(fault, colours)),
-      "Fix windowColours in pack.json from the scene's own colours and look again. Do not tell the member the scene is finished until this passes.",
-    ].join(' '),
+      'Window colours check: NOT YET.',
+      ...problems,
+      "Fix them in pack.json from the scene's own colours and look again. Do not tell the member the scene is finished until this passes.",
+    ].join(' ') + missing,
   ];
 };
 

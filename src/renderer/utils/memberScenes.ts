@@ -35,6 +35,8 @@ export interface IUsableMemberScene {
   wave?: ISceneWave;
   /** The colours it lends the window, when its pack names them. */
   windowColours?: IScenePack['windowColours'];
+  /** And by day, when its pack names those too. */
+  windowColoursDay?: IScenePack['windowColoursDay'];
   own: boolean;
   /** Who sent it, for a scene another member made. */
   authorName?: string | null;
@@ -87,6 +89,9 @@ const recompute = () => {
           ...(scene.wave ? { wave: scene.wave } : {}),
           ...(scene.windowColours
             ? { windowColours: scene.windowColours }
+            : {}),
+          ...(scene.windowColoursDay
+            ? { windowColoursDay: scene.windowColoursDay }
             : {}),
         }))
     : [];

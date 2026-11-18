@@ -806,13 +806,12 @@ const studio = {
   'studio.windowColours.note':
     'シーンに保存されるので、再生する人全員にこの色が表示されます。',
   'studio.windowColours.undo': '変更を元に戻す',
-  'studio.windowColours.fromPalette': 'パレットから選ぶ',
   'studio.windowColours.none':
-    'このシーンには色を取れるパレットがまだありません。AI にウィンドウの色を選んでもらってください。',
-  'studio.windowColours.byYou': 'あなたが変更しました',
-  'studio.windowColours.byPalette': 'FluidEQ がパレットから決めました',
-  'studio.windowColours.byAi': 'AI がシーンから選びました',
+    'シーンが再生されると、FluidEQ がその画像から色を割り出します。自分の色にしたい場合は AI に選ばせてください。',
   'studio.windowColours.title': 'ウィンドウの色',
+  'studio.windowColours.sourceAi': 'あなたの AI が選択',
+  'studio.windowColours.sourceYou': 'あなたが選択',
+  'studio.windowColours.automatic': '自動に戻す',
   'studio.problem.bad-world':
     'この 3D ワールドには、このバージョンで描けるものがありません。ノード、マテリアル、数式を確認してください。',
   'studio.problem.bad-model':

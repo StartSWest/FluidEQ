@@ -58,9 +58,20 @@ answer measures it for you.
   or sunset, take what else is there - the night sky's blue, a jet, the
   planet, moonlight - or a pale cream spark with only a little yellow.
 
+Do it twice: `windowColours` for the scene's night (`look_at_scene` with
+`sliders: { "daylight": 0 }`) and `windowColoursDay`, in the same shape,
+for its day (`daylight: 100`). The window blends the two by the scene's
+hour - an aurora green at night and blue by day turns teal at dusk on its
+own. The same rules hold at each hour, and one more between them: the
+accent keeps its side of the wheel and the glow its own at both hours.
+Trade them - a green accent and a pink glow at night, a blue accent and a
+green glow by day - and they turn through each other at dusk and are one
+colour there. A scene whose colours do not change with the hour gives the
+same three twice.
+
 Then read the **Window colours check** of your next `look_at_scene`: it
-must say PASSES. NOT YET names what is wrong and how far; fix it in
-`pack.json` and look again.
+must say PASSES, for both hours and the blend. NOT YET names what is wrong,
+where and how far; fix it in `pack.json` and look again.
 
 If the change touched light, colour, sky, fog or materials: `look_at_scene`
 with `sliders: { "daylight": 0 }` and `sound: "silence"`, and read its

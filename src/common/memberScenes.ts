@@ -195,7 +195,8 @@ export type TMemberProblemCode =
   // No control answering to the time of day (`sceneDaylight.ts`).
   | 'no-daylight'
   | 'bad-ambient'
-  // `windowColours` (`sceneWindowColours.ts`) that are not three #rrggbb
+  // `windowColours` or `windowColoursDay` (`sceneWindowColours.ts`) that are
+  // not three #rrggbb
   // colours. None at all is no problem anywhere, publishing included (Ivan:
   // "in case they don't exist we need a deterministic algorithm"): the
   // window takes colours from the scene's own palette.
@@ -505,7 +506,10 @@ export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
     add('bad-swatch');
   }
   // Absent is fine here: a build plays with colours of the app's choosing.
-  if (windowColoursProblem(raw.windowColours) === 'bad') {
+  if (
+    windowColoursProblem(raw.windowColours) === 'bad' ||
+    windowColoursProblem(raw.windowColoursDay) === 'bad'
+  ) {
     add('bad-window-colours');
   }
   if (raw.artwork !== undefined && !normalizeSceneArtwork(raw.artwork)) {

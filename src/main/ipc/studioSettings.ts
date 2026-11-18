@@ -113,16 +113,22 @@ const readSettings = (raw: unknown): IProjectSettings => {
   }
   // `null` takes the scene's window colours out; anything else is three
   // #rrggbb colours or not written at all.
-  let windowColours: ISceneWindowColours | null | undefined;
-  if (raw.windowColours === null) {
-    windowColours = null;
-  } else if (raw.windowColours !== undefined) {
-    windowColours = readSceneWindowColours(raw.windowColours);
-  }
+  // The day's set the same way, on its own (`windowColoursDay`).
+  const coloursOf = (
+    value: unknown,
+  ): ISceneWindowColours | null | undefined => {
+    if (value === null) {
+      return null;
+    }
+    return value === undefined ? undefined : readSceneWindowColours(value);
+  };
+  const windowColours = coloursOf(raw.windowColours);
+  const windowColoursDay = coloursOf(raw.windowColoursDay);
   return {
     ...(params ? { params } : {}),
     ...(ambient ? { ambient } : {}),
     ...(windowColours !== undefined ? { windowColours } : {}),
+    ...(windowColoursDay !== undefined ? { windowColoursDay } : {}),
     ...(palettes && Object.keys(palettes).length ? { palettes } : {}),
     ...(colours && Object.keys(colours).length ? { colours } : {}),
     ...(response !== undefined ? { response } : {}),

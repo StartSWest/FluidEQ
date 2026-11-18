@@ -67,6 +67,9 @@ export const restoredManifest = (pack: IScenePack) =>
       ...(pack.framing ? { framing: pack.framing } : {}),
       ...(pack.pointer ? { pointer: pack.pointer } : {}),
       ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
+      ...(pack.windowColoursDay
+        ? { windowColoursDay: pack.windowColoursDay }
+        : {}),
     },
     null,
     2,

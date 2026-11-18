@@ -37,6 +37,8 @@ export interface IUsableScene {
   wave?: ISceneWave;
   /** The colours it lends the window, when its pack names them. */
   windowColours?: IScenePack['windowColours'];
+  /** And by day, when its pack names those too. */
+  windowColoursDay?: IScenePack['windowColoursDay'];
 }
 
 /**
@@ -90,6 +92,9 @@ const recompute = () => {
           ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
           ...(pack.wave ? { wave: pack.wave } : {}),
           ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
+          ...(pack.windowColoursDay
+            ? { windowColoursDay: pack.windowColoursDay }
+            : {}),
         }))
     : [];
   locked = canDraw

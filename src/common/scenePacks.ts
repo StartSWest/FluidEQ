@@ -179,6 +179,14 @@ export interface IScenePack {
    * rule, or from its picture where it declares none.
    */
   windowColours?: ISceneWindowColours;
+  /**
+   * The colours it lends the window by day (Daylight 100), `windowColours`
+   * being its night's; the window blends the two by the scene's time of day.
+   * Absent, the day's are worked out as the night's are. A key of its own
+   * beside `windowColours`, so a FluidEQ older than it reads the night's and
+   * nothing else, and either can be named without the other.
+   */
+  windowColoursDay?: ISceneWindowColours;
 }
 
 /**
@@ -365,6 +373,7 @@ export const normalizeScenePack = (given: unknown): IScenePack | null => {
   // All three colours or none, never refused: without them the window takes
   // colours of its own from the scene.
   const windowColours = readSceneWindowColours(raw.windowColours);
+  const windowColoursDay = readSceneWindowColours(raw.windowColoursDay);
   return {
     schema: raw.schema,
     id: raw.id,
@@ -387,6 +396,7 @@ export const normalizeScenePack = (given: unknown): IScenePack | null => {
     ...(framing ? { framing } : {}),
     ...(pointer ? { pointer } : {}),
     ...(windowColours ? { windowColours } : {}),
+    ...(windowColoursDay ? { windowColoursDay } : {}),
   };
 };
 

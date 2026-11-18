@@ -67,7 +67,7 @@ import useStudioReading from './useStudioReading';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
 import useStudioPreviewFile from './useStudioPreviewFile';
 import useStudioAppColours from './useStudioAppColours';
-import useStudioTint from './useStudioTint';
+import useStudioTint, { studioBuildKey } from './useStudioTint';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
 import useFullscreenPanes from './useFullscreenPanes';
@@ -157,7 +157,12 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
   const [publications, setPublications] = useState(0);
   const baseline = useStudioBaseline(state.activeId, publications);
   const tuner = useStudioTuning(pack, state.activeId, baseline);
-  const windowColours = useStudioWindowColours(pack, state.activeId, baseline);
+  const windowColours = useStudioWindowColours(
+    pack,
+    state.activeId,
+    baseline,
+    pack && state.activeId ? studioBuildKey(state.activeId, serial) : undefined,
+  );
   const ambient = useStudioAmbientTuning(pack, state.activeId, baseline);
   const colourControls: IStudioColours = {
     params: tuner.colourParams,

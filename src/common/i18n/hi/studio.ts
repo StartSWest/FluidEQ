@@ -793,13 +793,12 @@ const studio = {
   'studio.windowColours.note':
     'सीन में सेव होते हैं, इसलिए इसे चलाने वाले सभी लोग ये रंग देखते हैं।',
   'studio.windowColours.undo': 'मेरे बदलाव वापस लें',
-  'studio.windowColours.fromPalette': 'पैलेट से चुनें',
   'studio.windowColours.none':
-    'इस सीन में अभी रंग लेने के लिए कोई पैलेट नहीं है। अपने AI से विंडो के रंग चुनने को कहें।',
-  'studio.windowColours.byYou': 'आपने बदले',
-  'studio.windowColours.byPalette': 'FluidEQ ने पैलेट से तय किए',
-  'studio.windowColours.byAi': 'आपके AI ने सीन से चुने',
+    'सीन चलने पर FluidEQ उसकी तस्वीर से उसके रंग निकाल लेता है। अपने रंग चाहिए तो अपने AI से उन्हें चुनने को कहें।',
   'studio.windowColours.title': 'विंडो के रंग',
+  'studio.windowColours.sourceAi': 'आपके AI ने चुने',
+  'studio.windowColours.sourceYou': 'आपने चुने',
+  'studio.windowColours.automatic': 'फिर से अपने आप',
   'studio.problem.bad-world':
     'इस 3D दुनिया में ऐसा कुछ नहीं है जिसे यह संस्करण बना सके। इसके नोड, सामग्री और सूत्र जाँचें।',
   'studio.problem.bad-model':

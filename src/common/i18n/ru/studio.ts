@@ -803,13 +803,12 @@ const studio = {
   'studio.windowColours.note':
     'Сохраняются в сцене: все, кто её запустит, увидят эти цвета.',
   'studio.windowColours.undo': 'Отменить мои изменения',
-  'studio.windowColours.fromPalette': 'Взять из палитры',
   'studio.windowColours.none':
-    'У этой сцены пока нет палитры, из которой можно взять цвета. Попросите ИИ выбрать цвета окна.',
-  'studio.windowColours.byYou': 'Изменены вами',
-  'studio.windowColours.byPalette': 'Подобраны FluidEQ по палитре',
-  'studio.windowColours.byAi': 'Выбраны вашим ИИ по сцене',
+    'FluidEQ берёт цвета этой сцены из её изображения, когда она играет. Попросите ИИ выбрать их, если хотите свои.',
   'studio.windowColours.title': 'Цвета окна',
+  'studio.windowColours.sourceAi': 'Выбраны вашим ИИ',
+  'studio.windowColours.sourceYou': 'Выбраны вами',
+  'studio.windowColours.automatic': 'Снова автоматически',
   'studio.problem.bad-world':
     'В 3D-мире нет ничего, что эта версия может нарисовать. Проверьте узлы, материалы и формулы.',
   'studio.problem.bad-model':

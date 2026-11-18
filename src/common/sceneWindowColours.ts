@@ -19,6 +19,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * - `glow` is the colour for "on" and the window's ambient glow: a third
  *   colour of the scene, clearly apart from the accent.
  *
+ * `windowColoursDay` beside it, in the same shape and read by the same
+ * reader, names the colours by day (Daylight 100), and `windowColours` is
+ * then the night's: the window blends the two by the scene's time of day
+ * (Ivan, 2026-11-18: "allow users to pick two colours too"). Either can be
+ * named without the other; the one not named is worked out by the app. A
+ * key of its own rather than a field inside `windowColours`, so a FluidEQ
+ * older than it reads the night's colours and nothing else.
+ *
  * Until this existed the window measured a scene by drawing it, which is a
  * guess made differently on every computer, with a scene's settings left
  * at their defaults, and after the scene had already appeared in its swatch's

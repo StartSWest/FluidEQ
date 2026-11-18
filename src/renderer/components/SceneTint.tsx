@@ -6,17 +6,24 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { isMemberLookId } from 'common/memberScenes';
 import { isPremiumLookId } from 'common/scenePacks';
-import type { ISceneWindowColours } from 'common/sceneWindowColours';
+import { usePageDaylight } from '../graph/sceneDaylight';
 import {
   measureSceneSky,
   measureStudioSky,
   sceneSkyVersion,
-  type TSkyMeasurement,
 } from '../graph/sceneSky';
+import useStudioDayColours from '../studio/useStudioDayColours';
 import { useSelectedLookId } from '../utils/graphStyle';
+import {
+  dayColoursAt,
+  isWornAsNamed,
+  timeKeyOf,
+  WINDOW_TIMES,
+  type TSceneDayColours,
+} from '../utils/sceneDayColours';
 import { LAGOON_SKY } from '../utils/rainbowPalette';
 import { tintedLagoon, useWindowTint } from '../utils/windowTint';
 import { skyFromSwatch } from '../utils/sceneTint';
@@ -42,22 +49,24 @@ import {
 } from '../utils/sceneTintStore';
 import useIsBackdrop from '../utils/useIsBackdrop';
 
-/** How `ownColoursKey` marks colours to be worn as named. */
+/** How `paintKey` marks colours to be worn as named. */
 const PICKED = 'picked';
 
 /**
- * The colours a scene or a Studio project lends, as text the effect below
- * compares by value: `named` (the listener's own, or what its pack names),
- * worn as named, else `worked` out from its palette, which lends its hue.
+ * The colours a scene or a Studio project lends at `daylight`, as text the
+ * effect below compares by value: its night's and day's blended at that hour
+ * (`sceneDayColours.ts`), worn as named when either is somebody's choice -
+ * the listener's or the pack's - else lending their hue, as colours the app
+ * worked out from a palette or a picture always have.
  */
-const ownColoursKey = (
-  named: ISceneWindowColours | undefined,
-  worked: ISceneWindowColours | undefined,
+const paintKey = (
+  sides: TSceneDayColours,
+  daylight: number,
 ): string | undefined => {
-  const colours = named ?? worked;
+  const colours = dayColoursAt(sides, daylight);
   return (
     colours &&
-    `${named ? PICKED : 'toned'} ${colours.surface} ${colours.accent} ${colours.glow}`
+    `${isWornAsNamed(sides) ? PICKED : 'toned'} ${colours.surface} ${colours.accent} ${colours.glow}`
   );
 };
 
@@ -124,15 +133,18 @@ const SceneTint = () => {
   // or for a scene that is not usable.
   const chosen = useListenerParams(lookId);
   const studioStops = useStudioAppColours();
+  // The hour the scene is played at, whole: the window's colours step with
+  // it, which in a morning or an evening on the clock is once every minute
+  // or two, and while the Brightness is dragged once per step of the slider
+  // - a repaint the drag already causes - never once a frame.
+  const daylight = Math.round(usePageDaylight());
   // The colours the listener chose for this scene in the Window colours
-  // menu, else the scene's own: the ones it names, from its listing, so they
-  // are on the window as it is chosen, or the ones its palette gives as the
-  // listener's choices leave it (`useSceneWindowColours`).
+  // menu, else the scene's own, for its night and its day: the ones it
+  // names, from its listing, so they are on the window as it is chosen, the
+  // ones its palette gives as the listener's choices leave it, or its
+  // picture's (`useSceneWindowColours`) - blended at the scene's hour.
   const windowColours = useSceneWindowColours(isSceneLook ? lookId : '');
-  const own = ownColoursKey(
-    windowColours.chosen ?? windowColours.named,
-    windowColours.declared,
-  );
+  const own = paintKey(windowColours.sides, daylight);
   const { version, swatch } = useMemo(() => {
     const scene = isPremiumLookId(lookId)
       ? scenes.find((entry) => entry.lookId === lookId)
@@ -142,44 +154,90 @@ const SceneTint = () => {
       swatch: scene?.swatch.join(' '),
     };
   }, [lookId, scenes, memberScenes]);
-  // The Studio's project, as its pack names its colours or as the member
-  // edits its palette on the bench.
-  const studioOwn = useMemo(
-    () =>
-      ownColoursKey(
-        studio?.playing?.pack.windowColours,
-        studioStops ? windowColoursFromStops(studioStops) : undefined,
-      ),
-    [studio, studioStops],
+  // The Studio's project, as its pack names its colours, as the member edits
+  // its palette on the bench, or as its picture was measured.
+  const studioPalette = useMemo(
+    () => (studioStops ? windowColoursFromStops(studioStops) : undefined),
+    [studioStops],
   );
+  const studioColours = useStudioDayColours(
+    studio?.project,
+    studio?.playing?.pack,
+    studioPalette,
+  );
+  const studioOwn = studio
+    ? paintKey(studioColours.sides, daylight)
+    : undefined;
+
+  // The pictures the colours come from where nothing else says them: each
+  // time of day the scene names nothing for is drawn at that hour, once per
+  // version (`graph/sceneSky.ts`), and lands in the remembered skies the
+  // colours above are read from. Apart from the painting below, so a new
+  // hour never asks for a drawing.
+  const studioMeasured = studioColours.measured.join(' ');
+  const lookMeasured = windowColours.measured.join(' ');
+  useEffect(() => {
+    if (studio) {
+      const { playing } = studio;
+      if (!playing) {
+        return;
+      }
+      WINDOW_TIMES.forEach((time) => {
+        const key = timeKeyOf(studioSkyKey(studio.project), time);
+        if (
+          studioMeasured.includes(time) &&
+          recallSceneSky(key)?.version !== playing.build
+        ) {
+          measureStudioSky(studio.project, playing.build, playing.pack, time);
+        }
+      });
+      return;
+    }
+    if (!isSceneLook || !isEnabled || version === undefined) {
+      return;
+    }
+    // Measured for the choices the listener made in it, which can swap the
+    // palette it is drawn in, and remembered under them.
+    const wanted = sceneSkyVersion(lookId, version, chosen);
+    WINDOW_TIMES.forEach((time) => {
+      if (
+        lookMeasured.includes(time) &&
+        recallSceneSky(timeKeyOf(lookId, time))?.version !== wanted
+      ) {
+        measureSceneSky(lookId, version, chosen, time);
+      }
+    });
+  }, [
+    studio,
+    studioMeasured,
+    isSceneLook,
+    isEnabled,
+    lookId,
+    version,
+    chosen,
+    lookMeasured,
+  ]);
+
+  // What the window is in the colours of; only a change of it fades. A new
+  // hour of the same scene, or a colour changed in an editor, is the same
+  // window a step on, painted at once: faded, every step of a Brightness
+  // drag queued a fade behind the last one.
+  const subject = studio
+    ? `studio:${studio.project}`
+    : `${isSceneLook && isEnabled ? `look:${lookId}` : 'window'} ${tone} ${tint ?? ''}`;
+  const paintedSubject = useRef<string | undefined>(undefined);
 
   // A layout effect, so a launch's first frame is already in the remembered
   // colour instead of flashing the theme first.
   useLayoutEffect(() => {
-    const fade = hasPainted.current;
+    const fade = hasPainted.current && paintedSubject.current !== subject;
     hasPainted.current = true;
-    let isCurrent = true;
-    // A scene that could not be measured lends nothing either: holding the
-    // last scene's colour past this point would be keeping a colour that
-    // belongs to something no longer on screen.
-    const showMeasured = (measuring: Promise<TSkyMeasurement>) => {
-      measuring
-        .then((sky) => {
-          if (isCurrent) {
-            showSceneSky(sky ?? undefined, true, tone);
-          }
-          return undefined;
-        })
-        .catch(() => undefined);
-    };
-    const stop = () => {
-      isCurrent = false;
-    };
+    paintedSubject.current = subject;
 
     // Colours a scene says it lends are shown as they are, and nothing is
     // drawn to second-guess them: the same on every computer, from the first
-    // frame. Named ones are worn as named; ones worked out from a palette lend
-    // their hue (`ownColoursKey`).
+    // frame. Named ones are worn as named; ones worked out from a palette or a
+    // picture lend their hue (`paintKey`).
     const wearOwn = (text: string) => {
       const [kind, surface, accent, glow] = text.split(' ');
       const colours = { surface, accent, glow };
@@ -192,7 +250,7 @@ const SceneTint = () => {
     };
     if (studio && studioOwn) {
       wearOwn(studioOwn);
-      return stop;
+      return;
     }
     if (studio) {
       // The project's own colour straight away, as last measured — and the
@@ -201,12 +259,7 @@ const SceneTint = () => {
       // keeps its colour until the new build is measured.
       const remembered = recallSceneSky(studioSkyKey(studio.project));
       showSceneSky(remembered?.sky ?? undefined, fade, tone);
-      const { playing } = studio;
-      const build = playing?.build;
-      if (playing && build && remembered?.version !== build) {
-        showMeasured(measureStudioSky(studio.project, build, playing.pack));
-      }
-      return stop;
+      return;
     }
 
     // Original under a Plus visualizer is the app's own colour too, the one
@@ -232,44 +285,36 @@ const SceneTint = () => {
       } else {
         showSceneSky(tintedLagoon(tint), fade, 'held');
       }
-      return stop;
+      return;
     }
     if (own) {
       wearOwn(own);
-      return stop;
+      return;
     }
+    // Measured as nothing - a picture with no colour to lend - the theme: a
+    // scene that could not lend a colour keeps none of the last scene's.
     const remembered = recallSceneSky(lookId);
     if (remembered) {
       showSceneSky(remembered.sky ?? undefined, fade, tone);
-    } else {
-      // Never measured: its swatch's colour as it is chosen, not the last
-      // scene's held until this one has loaded and been measured.
-      const provisional = swatch ? skyFromSwatch(swatch.split(' ')) : undefined;
-      if (provisional) {
-        showSceneSky(provisional, fade, tone);
-      }
+      return;
     }
-    // Measured for the choices the listener made in it, which can swap the
-    // palette it is drawn in, and remembered under them.
-    if (
-      version !== undefined &&
-      remembered?.version !== sceneSkyVersion(lookId, version, chosen)
-    ) {
-      showMeasured(measureSceneSky(lookId, version, chosen));
+    // Never measured: its swatch's colour as it is chosen, not the last
+    // scene's held until this one has loaded and been measured.
+    const provisional = swatch ? skyFromSwatch(swatch.split(' ')) : undefined;
+    if (provisional) {
+      showSceneSky(provisional, fade, tone);
     }
-    return stop;
   }, [
     studio,
     studioOwn,
     isEnabled,
     isSceneLook,
     lookId,
-    version,
     swatch,
     own,
-    chosen,
     tone,
     tint,
+    subject,
   ]);
 
   return null;

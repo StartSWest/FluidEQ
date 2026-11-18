@@ -68,6 +68,12 @@ export interface IProjectSettings {
    * out: the window then works them out from the scene's palette.
    */
   windowColours?: ISceneWindowColours | null;
+  /**
+   * The colours it lends the window by day (`windowColoursDay`), which the
+   * window blends with the night's by the scene's time of day. `null` takes
+   * them out: the window then works the day's out by itself.
+   */
+  windowColoursDay?: ISceneWindowColours | null;
 }
 
 export type TSettingsWrite = 'written' | 'unchanged' | 'failed';
@@ -199,16 +205,19 @@ const writeSettings = async (
     }
   }
 
-  if (settings.windowColours === null) {
-    delete manifest.windowColours;
-  } else if (settings.windowColours !== undefined) {
-    // A set that is not three colours is written as nothing at all: the
-    // scene keeps what it had rather than losing its colours to a slip.
-    const windowColours = readSceneWindowColours(settings.windowColours);
-    if (windowColours) {
-      manifest.windowColours = { ...windowColours };
+  (['windowColours', 'windowColoursDay'] as const).forEach((key) => {
+    const value = settings[key];
+    if (value === null) {
+      delete manifest[key];
+    } else if (value !== undefined) {
+      // A set that is not three colours is written as nothing at all: the
+      // scene keeps what it had rather than losing its colours to a slip.
+      const colours = readSceneWindowColours(value);
+      if (colours) {
+        manifest[key] = { ...colours };
+      }
     }
-  }
+  });
 
   if (settings.response !== undefined) {
     const response =

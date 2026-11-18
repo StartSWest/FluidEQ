@@ -32,6 +32,8 @@ export interface ISceneSettings {
   wave?: ISceneWave;
   /** Absent for a scene that names no window colours (`sceneWindowColours.ts`). */
   windowColours?: ISceneWindowColours;
+  /** Absent for a scene that names no day colours of its own. */
+  windowColoursDay?: ISceneWindowColours;
 }
 
 const valuesOf = (
@@ -62,4 +64,5 @@ export const settingsOfPack = (pack: IScenePack): ISceneSettings => ({
     : {}),
   ...(pack.wave && !isDefaultSceneWave(pack.wave) ? { wave: pack.wave } : {}),
   ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
+  ...(pack.windowColoursDay ? { windowColoursDay: pack.windowColoursDay } : {}),
 });

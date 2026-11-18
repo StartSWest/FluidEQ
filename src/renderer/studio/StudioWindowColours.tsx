@@ -6,7 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useId } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import WindowColourDayStrip from '../components/WindowColourDayStrip';
 import WindowColourSwatches from '../components/WindowColourSwatches';
+import WindowColourTimes from '../components/WindowColourTimes';
 import WindowColoursPreview from '../components/WindowColoursPreview';
 import { useTranslation } from '../utils/I18nContext';
 import StudioInfo from './StudioInfo';
@@ -14,17 +16,19 @@ import type useStudioWindowColours from './useStudioWindowColours';
 import type { TWindowColoursSource } from './useStudioWindowColours';
 
 const SOURCE: Record<TWindowColoursSource, TranslationKey> = {
-  ai: 'studio.windowColours.byAi',
-  palette: 'studio.windowColours.byPalette',
-  member: 'studio.windowColours.byYou',
+  ai: 'studio.windowColours.sourceAi',
+  member: 'studio.windowColours.sourceYou',
+  palette: 'graph.sceneColours.sourcePalette',
+  auto: 'graph.sceneColours.sourceAuto',
 };
 
 /**
  * The Tune tab's Window colours card (Ivan, 2026-11-14: "implement that",
- * the tuning mockup): who chose the colours on it, the three of them, a small
- * window painted in them, "Choose them from the palette" and "Undo my
- * changes". What is chosen here is written into the scene, so it is what the
- * scene publishes with.
+ * the tuning mockup; 2026-11-18, the night and day editing mockup): the
+ * night's colours and the day's, who chose each, the three of the open one,
+ * the two through the day, a small window painted in the open set, "Back to
+ * automatic" and "Undo my changes". What is chosen here is written into the
+ * scene, so it is what the scene publishes with.
  */
 export default function StudioWindowColours({
   state,
@@ -35,7 +39,7 @@ export default function StudioWindowColours({
 }) {
   const { t } = useTranslation();
   const titleId = useId();
-  const { colours } = state;
+  const { colours, night, day } = state;
   return (
     <section
       className="studio-card studio-tune__box studio-window-colours"
@@ -47,9 +51,15 @@ export default function StudioWindowColours({
         </span>
         <StudioInfo text={t('studio.windowColours.note')} />
       </div>
-      <span className="studio-tune__lead">{t(SOURCE[state.source])}</span>
-      {colours ? (
+      {colours && night && day ? (
         <>
+          <WindowColourTimes
+            sides={state.sides}
+            editing={state.editing}
+            sourceLabel={(time) => t(SOURCE[state.sourceOf(time)])}
+            disabled={idle}
+            onEdit={state.setEditing}
+          />
           <WindowColourSwatches
             colours={colours}
             own={state.own}
@@ -57,6 +67,7 @@ export default function StudioWindowColours({
             onChange={state.change}
             onCommit={state.commit}
           />
+          <WindowColourDayStrip night={night} day={day} />
           <WindowColoursPreview colours={colours} named={state.isNamed} />
         </>
       ) : (
@@ -68,10 +79,10 @@ export default function StudioWindowColours({
         <button
           type="button"
           className="button small subtle"
-          disabled={idle || !state.canChoosePalette}
-          onClick={state.choosePalette}
+          disabled={idle || !state.canAutomatic}
+          onClick={state.automatic}
         >
-          {t('studio.windowColours.fromPalette')}
+          {t('studio.windowColours.automatic')}
         </button>
         <button
           type="button"

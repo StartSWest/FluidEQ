@@ -151,6 +151,9 @@ const buildRawPack = async (folder: string, drafts = NO_DRAFTS) => {
       ...(manifest.windowColours === undefined
         ? {}
         : { windowColours: manifest.windowColours }),
+      ...(manifest.windowColoursDay === undefined
+        ? {}
+        : { windowColoursDay: manifest.windowColoursDay }),
     },
     artworkHash,
   };

@@ -10,12 +10,31 @@ import type {
   ISceneWindowColours,
   TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
+import { measureStudioSky } from '../graph/sceneSky';
+import {
+  isWornAsNamed,
+  timeKeyOf,
+  WINDOW_TIMES,
+  type TWindowTime,
+} from '../utils/sceneDayColours';
 import { sceneWindowColours } from '../utils/sceneOwnColours';
+import { recallSceneSky, studioSkyKey } from '../utils/sceneTintStore';
 import { followPickedSurface } from '../utils/theme';
 import type { IStudioBaseline } from './useStudioBaseline';
+import useStudioDayColours from './useStudioDayColours';
 
-/** Who the colours on the card are by. */
-export type TWindowColoursSource = 'ai' | 'palette' | 'member';
+/** Who a time's colours on the card are by. */
+export type TWindowColoursSource = 'ai' | 'member' | 'palette' | 'auto';
+
+/** Where each time's colours are kept in `pack.json`. */
+const KEY = {
+  night: 'windowColours',
+  day: 'windowColoursDay',
+} as const satisfies Record<TWindowTime, string>;
+
+type TColourWrite = Partial<
+  Record<(typeof KEY)[TWindowTime], ISceneWindowColours | null>
+>;
 
 const same = (left?: ISceneWindowColours, right?: ISceneWindowColours) =>
   left === right ||
@@ -25,66 +44,107 @@ const same = (left?: ISceneWindowColours, right?: ISceneWindowColours) =>
     left.accent === right.accent &&
     left.glow === right.glow);
 
+const otherTime = (time: TWindowTime): TWindowTime =>
+  time === 'night' ? 'day' : 'night';
+
 /**
  * The colours the open scene lends the window, on the Studio's Tune tab
- * (Ivan, 2026-11-14: "implement that", the tuning mockup): what its AI chose,
- * the member's changes to them written into the scene as every setting is,
- * "Choose them from the palette" for the colours FluidEQ works out by itself,
- * and "Undo my changes" back to the scene as it was published, else as the
- * project was opened. A scene that names none shows the palette's colours,
- * which is what it plays in, until the member or the AI chooses some.
+ * (Ivan, 2026-11-14: "implement that", the tuning mockup), for its night and
+ * its day (2026-11-18: "allow users to pick two colours too, and the app
+ * preselects colours automatically"): what its AI chose for each, the
+ * member's changes written into the scene as every setting is, "Back to
+ * automatic" for the open time, and "Undo my changes" back to the scene as
+ * it was published, else as the project was opened. A time the scene names
+ * nothing for shows the colours the app works out for it - its palette's,
+ * or its picture's measured at that hour for `build` - which is what it
+ * plays in until the member or the AI chooses some.
  */
 export default function useStudioWindowColours(
   pack: IScenePack | undefined,
   project: string | undefined,
   baseline: IStudioBaseline,
+  build: string | undefined,
 ) {
   // The colours the project had when it was opened, taken in the render that
   // first sees it: taken in an effect, the first frame had none, and called
   // the AI's own colours the member's.
   const [kept, setKept] = useState<{
     project?: string;
-    colours?: ISceneWindowColours;
+    night?: ISceneWindowColours;
+    day?: ISceneWindowColours;
   }>({});
   const opened =
     pack && kept.project !== project
-      ? { project, colours: pack.windowColours }
+      ? { project, night: pack.windowColours, day: pack.windowColoursDay }
       : kept;
   if (opened !== kept) {
     setKept(opened);
   }
+  const [editing, setEditing] = useState<TWindowTime>('night');
   // The colours the picker shows while it moves, before they are written.
   const [draft, setDraft] = useState<ISceneWindowColours>();
   const [saving, setSaving] = useState<'saving' | 'saved' | 'failed'>();
   // A new build carries what was written; the draft has done its job.
-  useEffect(() => setDraft(undefined), [pack, project]);
+  useEffect(() => setDraft(undefined), [pack, project, editing]);
 
-  const fromPalette = useMemo(
+  const palette = useMemo(
     () =>
       pack
         ? sceneWindowColours({ ...pack, windowColours: undefined })
         : undefined,
     [pack],
   );
-  const named = pack?.windowColours;
-  const colours = draft ?? named ?? fromPalette;
-  const atUndo = baseline.settings
-    ? baseline.settings.windowColours
-    : opened.colours;
-  let source: TWindowColoursSource = 'ai';
-  if (!named) {
-    source = 'palette';
-  } else if (!same(named, atUndo)) {
-    source = 'member';
-  }
+  const resolved = useStudioDayColours(project, pack, palette);
 
-  const write = useCallback((next: ISceneWindowColours | null) => {
+  // The times only the scene's picture can give colours for, drawn at that
+  // hour for this build, so the card shows the automatic colours even while
+  // the Studio's tint is off and nothing else is measuring.
+  const measuredKey = resolved.measured.join(' ');
+  useEffect(() => {
+    if (!pack || !project || !build) {
+      return;
+    }
+    WINDOW_TIMES.forEach((time) => {
+      if (
+        measuredKey.includes(time) &&
+        recallSceneSky(timeKeyOf(studioSkyKey(project), time))?.version !==
+          build
+      ) {
+        measureStudioSky(project, build, pack, time);
+      }
+    });
+  }, [pack, project, build, measuredKey]);
+
+  const named = useMemo(
+    () => ({ night: pack?.windowColours, day: pack?.windowColoursDay }),
+    [pack],
+  );
+  const atUndo = baseline.settings
+    ? {
+        night: baseline.settings.windowColours,
+        day: baseline.settings.windowColoursDay,
+      }
+    : { night: opened.night, day: opened.day };
+  const sourceOf = (time: TWindowTime): TWindowColoursSource => {
+    const colours = named[time];
+    if (colours) {
+      return same(colours, atUndo[time]) ? 'ai' : 'member';
+    }
+    return resolved.own[time]?.source === 'palette' ? 'palette' : 'auto';
+  };
+
+  const wearing =
+    resolved.sides[editing]?.colours ??
+    resolved.sides[otherTime(editing)]?.colours;
+  const colours = draft ?? wearing;
+
+  const write = useCallback((next: TColourWrite) => {
     const send = window.electron?.ipcRenderer?.writeStudioSettings;
     if (!send) {
       return;
     }
     setSaving('saving');
-    send({ windowColours: next })
+    send(next)
       .then((outcome) => {
         setSaving(outcome.written === 'failed' ? 'failed' : 'saved');
         return undefined;
@@ -100,50 +160,61 @@ export default function useStudioWindowColours(
     },
     [colours],
   );
-  // Against what the scene holds, never the draft: by the time the picker
-  // settles, the draft already shows the colour it settled on.
-  const saved = named ?? fromPalette;
+  // Against what the scene holds for the open time, never the draft: by the
+  // time the picker settles, the draft already shows the colour it settled
+  // on. Changing one colour names the whole set, the other two as shown.
   const commit = useCallback(
     (role: TSceneWindowColourRole, value: string) => {
-      if (saved && saved[role] !== value) {
-        write({ ...saved, [role]: value });
+      if (wearing && wearing[role] !== value) {
+        write({ [KEY[editing]]: { ...wearing, [role]: value } });
         if (role === 'surface') {
           followPickedSurface(value);
         }
       }
     },
-    [saved, write],
+    [wearing, editing, write],
   );
-  // Only over colours the scene names: one that names none already plays in
-  // its palette's.
-  const canChoosePalette =
-    fromPalette !== undefined &&
-    named !== undefined &&
-    !same(fromPalette, named);
-  const choosePalette = useCallback(() => {
-    if (canChoosePalette && fromPalette) {
-      write(fromPalette);
-    }
-  }, [canChoosePalette, fromPalette, write]);
-  const undo = useCallback(() => write(atUndo ?? null), [atUndo, write]);
+  const automatic = useCallback(
+    () => write({ [KEY[editing]]: null }),
+    [editing, write],
+  );
+  const undo = useCallback(
+    () =>
+      write({
+        windowColours: atUndo.night ?? null,
+        windowColoursDay: atUndo.day ?? null,
+      }),
+    [atUndo.night, atUndo.day, write],
+  );
+
+  // The strip follows the picker on the open time.
+  const night =
+    editing === 'night' ? colours : (resolved.sides.night?.colours ?? colours);
+  const day =
+    editing === 'day' ? colours : (resolved.sides.day?.colours ?? night);
 
   return {
     colours,
+    sides: resolved.sides,
+    night,
+    day,
+    editing,
+    setEditing,
+    sourceOf,
     /** What a dot on a swatch is measured against. */
-    own: atUndo ?? fromPalette,
-    source,
+    own: atUndo[editing] ?? resolved.own[editing]?.colours,
     saving,
     change,
     commit,
-    choosePalette,
-    canChoosePalette,
+    automatic,
+    canAutomatic: named[editing] !== undefined,
     undo,
-    canUndo: !same(named, atUndo),
+    canUndo: !same(named.night, atUndo.night) || !same(named.day, atUndo.day),
     /**
      * Whether `colours` are worn as named (`pickedWindow.ts`): the pack names
-     * them, or the member is moving one, which names them the moment it
-     * lands. Worked out from the palette they only lend their hue.
+     * either time's, or the member is moving one, which names them the
+     * moment it lands. Worked out by the app, they only lend their hue.
      */
-    isNamed: draft !== undefined || named !== undefined,
+    isNamed: draft !== undefined || isWornAsNamed(resolved.sides),
   };
 }

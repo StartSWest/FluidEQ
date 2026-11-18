@@ -111,6 +111,171 @@ SPDX-License-Identifier: GPL-3.0-or-later
   cursor: inherit;
 }
 
+// *** Night and day ***********************************************************
+
+// The two sets side by side, the one being edited pressed (Ivan, 2026-11-18,
+// the night and day editing mockup).
+.window-colour-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.window-colour-time {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  color: $text-primary;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover:not(:disabled) {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $secondary-default;
+    background: $surface-control-press;
+    box-shadow: inset 0 0 0 1px $secondary-default;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+.window-colour-time__glyph {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  color: $text-muted;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.4;
+  }
+}
+
+.window-colour-time[aria-pressed='true'] .window-colour-time__glyph {
+  color: $secondary-default;
+}
+
+.window-colour-time__text {
+  display: grid;
+  min-width: 0;
+}
+
+.window-colour-time__name {
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// Who chose the set; the app's own choice marked with a small spark, a
+// person's in amber like every "yours" in this menu.
+.window-colour-time__source {
+  overflow: hidden;
+  color: $text-muted;
+  font-size: $text-micro;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.is-auto::before {
+    color: $secondary-default;
+    content: '✦ ';
+  }
+
+  &.is-yours {
+    color: $amber;
+  }
+}
+
+.window-colour-time__dots {
+  display: flex;
+  gap: 2px;
+
+  span {
+    width: 7px;
+    height: 16px;
+    border-radius: 2px;
+    background: var(--dot);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 20%, transparent);
+  }
+}
+
+// The three through the day: a lane each, night at the start and day at the
+// end, and a mark where the scene's hour stands.
+.window-colour-day {
+  display: grid;
+  gap: 3px;
+}
+
+.window-colour-day__lanes {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+}
+
+.window-colour-day__lane {
+  height: 6px;
+  border-radius: 2px;
+
+  &.is-surface {
+    height: 10px;
+  }
+}
+
+.window-colour-day__now {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: calc(3px + (100% - 6px) * var(--hour) / 100);
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: $text-primary;
+  box-shadow: 0 0 0 1px color-mix(in srgb, $surface-base 70%, transparent);
+}
+
+.window-colour-day__legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  color: $text-muted;
+  font-size: $text-micro;
+
+  span:nth-child(2) {
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 // *** The small window ********************************************************
 
 // Its colours come in as properties from the window's own toning
