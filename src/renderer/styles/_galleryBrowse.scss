@@ -62,25 +62,26 @@ it under the terms of the GNU General Public License version 3 or later.
   white-space: nowrap;
 }
 
-// The bar that stays on top while the cards scroll under it: the search on
-// the front page, the way back on a scene's, a maker's or one's own (Ivan,
-// 2026-11-17: "make search stick on top"). It wears the card's own face so
-// the cards pass behind it, and reaches up through the scroller's top
-// padding so nothing shows above it. What the gallery says back
-// (`PlusToastStack`, the wallpaper status) hangs from it, so a heart pressed
-// far down the list still answers where it is seen. Above the cards' own
-// raised controls, which sit at 2.
+// The bar at the page's top, above the scroller, which stays put while the
+// cards scroll under it: the search on the front page, the way back on a
+// scene's, a maker's or one's own (Ivan, 2026-11-17: "move the search to the
+// top"). No face and not pinned inside the scroller: a see-through bar
+// over the cards repainted them on every frame of a scroll ("that
+// see-through thing is making the gallery scroll slow"). What the gallery
+// says back (`PlusToastStack`, the wallpaper status) hangs from it over the
+// list, above the cards' own raised controls, which sit at 2. The scroller's
+// own side insets (`Community.scss`), so the search stands over the cards'
+// left edge.
 .gallery-pinned {
-  position: sticky;
+  position: relative;
   z-index: 3;
-  top: calc(-1 * #{$spacing-m});
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin-top: calc(-1 * #{$spacing-m});
-  padding: $spacing-m 0 10px;
-  background: $surface-section;
+  margin-right: 16px;
+  padding: 2px 4px 0;
 
   > .gallery-toolbar,
   > .gallery-pagebar {
@@ -468,9 +469,11 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   border: 1px solid rgba($white, 0.1);
   border-radius: $radius-2xs;
-  background: rgba($black, 0.55);
+  // Solid enough to read on any picture, and no blur behind it: a backdrop
+  // filter on two labels of every card blurred sixty pictures on every
+  // frame of a scroll (Ivan, 2026-11-17: "the gallery scroll is slow").
+  background: rgba($black, 0.72);
   font-size: $text-micro;
-  backdrop-filter: blur(6px);
 }
 
 // A column, never wider than the card, with the foot on the card's floor. As
@@ -533,11 +536,11 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 2px 8px;
   border: 1px solid color-mix(in srgb, $secondary-default 55%, transparent);
   border-radius: $radius-2xs;
-  background: color-mix(in srgb, $black 55%, transparent);
+  // No blur behind it, as the category tag above.
+  background: color-mix(in srgb, $black 72%, transparent);
   color: $secondary-default;
   font-size: $text-micro;
   font-weight: $weight-semibold;
-  backdrop-filter: blur(6px);
 }
 
 .gallery-card__version {

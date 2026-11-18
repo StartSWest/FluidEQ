@@ -1,11 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene } from 'common/plusGallery';
 import { useTranslation } from '../utils/I18nContext';
 import useGalleryLocalScenes from './useGalleryLocalScenes';
 import GalleryCard from './GalleryCard';
 import GalleryList from './GalleryList';
-import GalleryToolbar from './GalleryToolbar';
 import { browseQuery, useGalleryList } from './galleryStore';
 import { markGallerySeen } from './gallerySeen';
 import {
@@ -18,8 +17,6 @@ import StarterCard from './StarterCard';
 
 interface IGalleryViewProps {
   me: string | undefined;
-  /** What the gallery says back (status, toasts), pinned under the search. */
-  notices?: ReactNode;
 }
 
 /**
@@ -31,7 +28,7 @@ interface IGalleryViewProps {
  * the moment it lands the latest text is asked. The network sets the pace,
  * not a guess at how fast somebody types.
  */
-export default function GalleryView({ me, notices }: IGalleryViewProps) {
+export default function GalleryView({ me }: IGalleryViewProps) {
   const { t } = useTranslation();
   // Kept with the rest of where the member is, so a scene's page and back
   // finds the gallery sorted and filtered as it was left.
@@ -79,18 +76,6 @@ export default function GalleryView({ me, notices }: IGalleryViewProps) {
 
   return (
     <div className="gallery-page gallery-gallery">
-      {/* The search stays on top while the cards scroll, and what the
-          gallery says back hangs from it (Ivan, 2026-11-17: "make search
-          stick on top, and that message ... below the search"). */}
-      <div className="gallery-pinned">
-        <GalleryToolbar
-          filters={filters}
-          onFilters={setBrowseFilters}
-          onMine={() => openGalleryPage({ kind: 'mine' })}
-          signedIn={me !== undefined}
-        />
-        {notices}
-      </div>
       {/* The starter credits, while they wait to be claimed: where they
           are spent (`StarterCard`). */}
       {me !== undefined && <StarterCard accountId={me} />}

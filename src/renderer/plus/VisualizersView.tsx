@@ -5,6 +5,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { WallpaperStatus } from '../wallpaper/WallpaperControls';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
 import { refreshGalleryOnShow } from './galleryStore';
+import GalleryToolbar from './GalleryToolbar';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
 import PlusToastStack from './PlusToastStack';
@@ -12,7 +13,9 @@ import {
   galleryPageKey,
   galleryScrollOf,
   goBackInGallery,
+  openGalleryPage,
   rememberGalleryScroll,
+  setBrowseFilters,
   usePlusNavigation,
   type TGalleryPage,
 } from './plusNavigation';
@@ -67,7 +70,7 @@ export default function VisualizersView({
   onShowGraph,
 }: IVisualizersViewProps) {
   const { t } = useTranslation();
-  const { page } = usePlusNavigation();
+  const { page, filters } = usePlusNavigation();
   const account = useAccount();
   const notice = useGalleryNotice();
   const me = account.identity?.id;
@@ -91,22 +94,7 @@ export default function VisualizersView({
     }
   }, [pageKey]);
 
-  // What the gallery says back, under the bar that stays on top: the search
-  // on the front page, the way back on the others.
-  const notices = (
-    <>
-      <WallpaperStatus />
-      {/* Hung from the pinned bar, which stays put: Add and the heart are
-          pressed on cards far down the list, where a line at its top is
-          not. */}
-      <PlusToastStack<IGalleryNotice>
-        sources={{ gallery: notice }}
-        text={(entry) => t(entry.key, entry.vars)}
-      />
-    </>
-  );
-
-  let content = <GalleryView me={me} notices={notices} />;
+  let content = <GalleryView me={me} />;
   if (page.kind === 'scene') {
     content = (
       <ScenePage
@@ -128,25 +116,44 @@ export default function VisualizersView({
   }
 
   return (
-    // No big "Gallery" title over the page (Ivan, 2026-11-17: "not even sure
-    // we need the Gallery title there like that"): the rail beside it names
-    // the place, and the head pushed the search and the scenes down. The
-    // name stays for screen readers.
-    <div
-      ref={scrollRef}
-      className="gallery-visualizers"
-      onScroll={(event) =>
-        rememberGalleryScroll(pageKey, event.currentTarget.scrollTop)
-      }
-    >
-      <h2 className="gallery-place-name">{t('plus.visualizers.title')}</h2>
-      {page.kind !== 'browse' && (
-        <div className="gallery-pinned">
+    <>
+      {/* The bar over the page, which stays put while the cards scroll: the
+          search on the front page, the way back on the others, and what
+          the gallery says back hanging from it, so a heart pressed far down
+          the list still answers where it is seen. No big "Gallery" title
+          over it (Ivan, 2026-11-17: "not even sure we need the Gallery
+          title there like that", "move the search to the top"): the rail
+          beside it names the place; the name stays for screen readers.
+          Above the scroller rather than pinned inside it, with no face of
+          its own: a see-through bar laid over the cards made every frame of
+          a scroll repaint the cards under it. */}
+      <div className="gallery-pinned">
+        <h2 className="gallery-place-name">{t('plus.visualizers.title')}</h2>
+        {page.kind === 'browse' ? (
+          <GalleryToolbar
+            filters={filters}
+            onFilters={setBrowseFilters}
+            onMine={() => openGalleryPage({ kind: 'mine' })}
+            signedIn={me !== undefined}
+          />
+        ) : (
           <PageBar page={page} />
-          {notices}
-        </div>
-      )}
-      {content}
-    </div>
+        )}
+        <WallpaperStatus />
+        <PlusToastStack<IGalleryNotice>
+          sources={{ gallery: notice }}
+          text={(entry) => t(entry.key, entry.vars)}
+        />
+      </div>
+      <div
+        ref={scrollRef}
+        className="gallery-visualizers"
+        onScroll={(event) =>
+          rememberGalleryScroll(pageKey, event.currentTarget.scrollTop)
+        }
+      >
+        {content}
+      </div>
+    </>
   );
 }
