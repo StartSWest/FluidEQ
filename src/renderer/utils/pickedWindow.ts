@@ -9,7 +9,6 @@ import { labToHex, type ILab } from './oklab';
 import { clearsWarningHues } from './sceneTint';
 import { darkenSurfaces } from './sceneTintDark';
 import {
-  LIGHT_SURFACE_CHROMA,
   MAX_SURFACE_CHROMA,
   SURFACE_CHROMA_PER_LIGHTNESS,
 } from './sceneTintPalette';
@@ -21,7 +20,6 @@ import {
   themeShadeTokens,
 } from './themeShade';
 import {
-  atL,
   chromaOf,
   GREY_CHROMA,
   greyRung,
@@ -50,14 +48,20 @@ import { WINDOW_SURFACES, type TWindowSurface } from './windowTokens';
  *
  * - The accent and the glow are worn at their own colour, moved only as far
  *   as a filled control's label needs to read on them (`windowOn`).
- * - The surface is worn as named when it stands on the side of the line the
- *   Brightness is on: the panes of a light window (Brightness past
- *   `DARK_END_SHADE`), or the floor of a dark one, the panes a step up as
- *   every theme shade has them.
+ * - A dark surface is worn as named as a dark window's floor, the panes a
+ *   step up as every theme shade has them.
+ *
+ * THE LIGHT WINDOW STAYS WHITE (Ivan, 2026-11-17: "en el brillo white no se
+ * pinta la ventana con el tema, se deja white siempre para que el acento se
+ * pueda ver"). Past `DARK_END_SHADE` no surface tints the panes, named or
+ * measured, and the greys, edges and words lean to no hue: the accent and
+ * the glow are the only colour there, which is what lets them be seen. A
+ * light named surface (a marble, a snowfield) used to be worn as the panes
+ * and a dark one whispered its hue into them.
  *
  * THE BRIGHTNESS ALONE SAYS LIGHT OR DARK (Ivan, 2026-11-17, approving the one
- * colour model: option A). A surface on the other side of the line lends its
- * hue and nothing else, as a measured sky does. Named colours used to decide
+ * colour model: option A). A light surface on a dark window lends its hue
+ * and nothing else, as a measured sky does. Named colours used to decide
  * the side by their own surface: Crystal's white made a light window at
  * Brightness 10, a pack's dark surface kept a dark one at 100, and a scene
  * with no named colours followed the slider - three answers at one
@@ -76,13 +80,15 @@ import { WINDOW_SURFACES, type TWindowSurface } from './windowTokens';
  * text tiers keep (at the crossover neither gets past 4.6:1); the theme's
  * Brightness jumps it (`DARK_END_SHADE`), and a named colour standing in it
  * is moved out of it, keeping its hue and colour: a dark window's panes no
- * lighter than the theme's own lightest (OKLab 0.52, `themeShade.ts`), a
- * light window's panes no darker than this. Scenes published while only a
- * surface's hue was taken named skies of every lightness, and a violet at
- * 0.45 worn as it was would have set the whole window's words at 4:1.
+ * lighter than the theme's own lightest (OKLab 0.52, `themeShade.ts`).
+ * Scenes published while only a surface's hue was taken named skies of every
+ * lightness, and a violet at 0.45 worn as it was would have set the whole
+ * window's words at 4:1.
  */
 const DARK_PANE_CEILING = 0.52;
-const LIGHT_PANE_FLOOR = 0.82;
+
+/** The light window's panes, whatever the colours (see above). */
+const WHITE: ILab = { l: 1, a: 0, b: 0 };
 
 /**
  * The dark window's surfaces: the floor exactly `surface`, every other one
@@ -174,16 +180,14 @@ const pickedWindow = (
   if (!surface || !accent || !glow) {
     return undefined;
   }
-  const lean = leanOf(surface, accent);
+  const isLight = isLightShade(brightness);
+  // The light window leans to no hue at all: white panes, neutral greys,
+  // edges and words, and the colour only where the accent and glow are.
+  const lean = isLight ? undefined : leanOf(surface, accent);
   const isLightSurface = inkForSurface(colours.surface) === 'dark';
   let surfaces: Record<TWindowSurface, string>;
-  if (isLightShade(brightness)) {
-    // White with the surface's colour in it when it is a dark one: as a
-    // scene's tint whispers on a light window.
-    const panes = isLightSurface
-      ? atL(surface, Math.max(surface.l, LIGHT_PANE_FLOOR))
-      : hueAt(surface, 1, LIGHT_SURFACE_CHROMA);
-    surfaces = lightSurfaces(panes, lean, lightDimOf(brightness));
+  if (isLight) {
+    surfaces = lightSurfaces(WHITE, undefined, lightDimOf(brightness));
   } else if (isLightSurface) {
     surfaces = lentDarkSurfaces(surface, brightness, lean);
   } else {

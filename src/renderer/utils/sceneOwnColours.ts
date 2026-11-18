@@ -139,8 +139,8 @@ export const windowColoursFromStops = (
 const FLOOR_LIGHTNESS = 0.24;
 /**
  * From here up a busiest colour is a light ground - a snowfield, a white
- * marble - and is kept as a light window's panes (`pickedWindow.ts` moves a
- * named light surface no darker than this either).
+ * marble - and is kept: a dark window takes its hue, and a light window
+ * stays white whatever the surface (`pickedWindow.ts`).
  */
 const LIGHT_GROUND_LIGHTNESS = 0.82;
 

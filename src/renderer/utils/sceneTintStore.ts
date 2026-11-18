@@ -14,7 +14,6 @@ import { readStored, writeStored } from './graphStorage';
 import {
   SCENE_SKY_MEASUREMENT,
   SCENE_TINT_TOKENS,
-  isGreySky,
   lentSkyReach,
   tintThemePalette,
   type ISceneColour,
@@ -704,14 +703,13 @@ const showInk = (ink: 'light' | 'dark') => {
 /**
  * `palette` with every ink solved on the ground it paints (`inkTokens`), not
  * on the theme's: the words stand on these panes. A light window's inks lean
- * to the sky's hue as the theme's own lean to Ocean's (`darkInkSet`); a rose
- * tint used to keep the theme's cyan-black words. A dark window keeps the
+ * to no hue, as nothing else on it does: it stays white so its accent can be
+ * seen (Ivan, 2026-11-17, `pickedWindow.ts`). A dark window keeps the
  * shipped light inks, only solved on its own ground.
  */
 const withInks = (
   palette: Readonly<Record<string, string>>,
   base: Readonly<Record<string, string>>,
-  sky: ISceneSky,
 ): Record<string, string> => {
   const floor = palette['--surface-base'] ?? base['--surface-base'];
   const pane = palette['--surface-panel'] ?? base['--surface-panel'];
@@ -720,9 +718,7 @@ const withInks = (
     return { ...palette };
   }
   const set =
-    inkForSurface(pane) === 'dark'
-      ? darkInkSet(isGreySky(sky) ? undefined : sky.hue)
-      : LIGHT_INK;
+    inkForSurface(pane) === 'dark' ? darkInkSet(undefined) : LIGHT_INK;
   return {
     ...palette,
     ...inkTokens(groundOf(floor, pane, set.toward), accentLight, set),
@@ -757,7 +753,7 @@ const tonedPalette = (shade: number, brightness: number) => {
           brightness,
         )
       : palette;
-  return withInks(walked, base, wanted);
+  return withInks(walked, base);
 };
 
 /**

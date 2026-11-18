@@ -23,13 +23,7 @@ import {
   inkTokens,
   type TInkToken,
 } from './themeInk';
-import {
-  hueOf,
-  labOf,
-  lightSurfaces,
-  windowOn,
-  type IWindow,
-} from './windowLight';
+import { labOf, lightSurfaces, windowOn, type IWindow } from './windowLight';
 import { WINDOW_SURFACES } from './windowTokens';
 
 /**
@@ -433,10 +427,13 @@ export const THEME_ACTIVE = '#54ff8a';
 let lightWindows: Map<number, IWindow> | undefined;
 
 /**
- * The light stretch at `shade`: white panes on a soft floor leaning to
- * Ocean's cyan, Ocean's accent and the theme's green moved only as far as
- * their labels need (`windowOn`). Each shade once, since the slider and every
- * tinted repaint ask for the same few again and again.
+ * The light stretch at `shade`: white panes on a soft grey floor, Ocean's
+ * accent and the theme's green moved only as far as their labels need
+ * (`windowOn`). Nothing in it leans to a hue - not the greys, the edges or
+ * the words - because the light window stays white so its accent can be seen
+ * (Ivan, 2026-11-17, `pickedWindow.ts`); it leaned to Ocean's cyan. Each
+ * shade once, since the slider and every tinted repaint ask for the same few
+ * again and again.
  */
 export const lightWindowOf = (shade: number): IWindow | undefined => {
   const at = clampThemeShade(shade);
@@ -453,9 +450,12 @@ export const lightWindowOf = (shade: number): IWindow | undefined => {
   if (!accent || !glow) {
     return undefined;
   }
-  const lean = hueOf(accent);
-  const surfaces = lightSurfaces({ l: 1, a: 0, b: 0 }, lean, lightDimOf(at));
-  const built = windowOn(surfaces, accent, glow, lean);
+  const surfaces = lightSurfaces(
+    { l: 1, a: 0, b: 0 },
+    undefined,
+    lightDimOf(at),
+  );
+  const built = windowOn(surfaces, accent, glow, undefined);
   lightWindows.set(at, built);
   return built;
 };

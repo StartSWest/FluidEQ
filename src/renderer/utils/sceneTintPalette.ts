@@ -80,13 +80,6 @@ export const SURFACE_CHROMA_PER_LIGHTNESS = 0.4;
  * being something to stand on and becomes something to look at.
  */
 export const MAX_SURFACE_CHROMA = 0.07;
-/**
- * The same ceiling on a light window (Brightness past `DARK_END_SHADE`).
- * White holds far more colour than the slate does before it reads as a
- * colour rather than a ground, and at the dark rungs' 0.07 every pane was a
- * pastel; at this the panes read as white with the scene in them.
- */
-export const LIGHT_SURFACE_CHROMA = 0.025;
 
 /**
  * "On" on a light window when the scene has no colour fit for it: a deep
@@ -312,18 +305,19 @@ export const tintThemePalette = (
   // Under a grey sky the surfaces and edges lose the theme's own tone
   // instead of taking a colour.
   const grey = isGreySky(sky);
-  // A light window (the top of the Brightness) takes the sky as a whisper on
-  // white, and its ink and edges run dark (`windowLight.ts`).
+  // A light window (the top of the Brightness) stays white: its surfaces and
+  // edges keep the theme's own, and the sky reaches only the accent and "on"
+  // (Ivan, 2026-11-17, `pickedWindow.ts`). It used to take the sky as a
+  // whisper on white.
   const isLight = inkForSurface(base['--surface-panel'] ?? '') === 'dark';
-  const surfaceCeiling = isLight ? LIGHT_SURFACE_CHROMA : MAX_SURFACE_CHROMA;
   const palette: TSceneTintPalette = {};
-  SCENE_TINT_SURFACES.forEach((token) => {
+  (isLight ? [] : SCENE_TINT_SURFACES).forEach((token) => {
     const colour = parseCssColour(base[token] ?? '');
     if (colour) {
       const lab = rgbToLab(colour.rgb);
       const chroma = grey
         ? 0
-        : Math.min(surfaceCeiling, SURFACE_CHROMA_PER_LIGHTNESS * lab.l);
+        : Math.min(MAX_SURFACE_CHROMA, SURFACE_CHROMA_PER_LIGHTNESS * lab.l);
       palette[token] = labToHex(toward(lab, chroma, sky.hue, amount));
     }
   });
@@ -337,7 +331,7 @@ export const tintThemePalette = (
     floor && pane && parseCssColour(floor) && parseCssColour(pane)
       ? groundOf(floor, pane, isLight ? 'black' : 'white')
       : undefined;
-  SCENE_TINT_EDGES.forEach((token) => {
+  (isLight ? [] : SCENE_TINT_EDGES).forEach((token) => {
     const colour = parseCssColour(base[token] ?? '');
     if (colour) {
       const tinted = intoGamut(

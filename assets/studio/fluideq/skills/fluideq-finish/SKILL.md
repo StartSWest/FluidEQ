@@ -36,8 +36,8 @@ answer measures it for you.
 - `surface`: the hue of what covers most of the picture - its sky, water
   or night, never its brightest detail. A neon skyline's is the violet
   behind the signs, not the signs. FluidEQ wears it as the floor of a dark
-  window and lends its hue to a light one, as the listener's Brightness
-  says. Take it down to a night's floor, lightness 0.18 to 0.28, keeping
+  window; a light window (the top of the listener's Brightness) stays white,
+  so there only `accent` and `glow` carry the scene. Take it down to a night's floor, lightness 0.18 to 0.28, keeping
   some of its colour (`#1d2b4f`, `#241737`, `#0d1936`), even for a day
   scene: a desert's is a dark sand, a pink sky's a deep plum. Only a picture
   that is truly light - snow, white marble - may keep a light one, 0.85 or
