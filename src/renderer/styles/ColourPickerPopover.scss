@@ -1,0 +1,215 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// FluidEQ's colour picker (`ColourPickerPopover.tsx`), on the menus' own
+// material so it arrives, looks and leaves as every menu does (Ivan,
+// 2026-11-18: "que maché con el estilo de Fluid, los bordes redondeados").
+
+.colour-picker {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: min(248px, calc(100vw - 16px));
+  gap: 10px;
+  padding: 12px;
+}
+
+.colour-picker__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.colour-picker__title {
+  overflow: hidden;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The colour it opened with beside the new one, as one pill.
+.colour-picker__compare {
+  display: flex;
+  overflow: hidden;
+  flex: none;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 25%, transparent);
+
+  span {
+    width: 22px;
+    height: 14px;
+  }
+}
+
+// Saturation across, brightness up: white into the hue along the top, and
+// black over all of it toward the bottom - the colour model itself, not a
+// theme colour.
+.colour-picker__field {
+  position: relative;
+  height: 148px;
+  border-radius: $radius-xs;
+  background:
+    linear-gradient(to top, $black, transparent),
+    linear-gradient(to right, $white, var(--hue));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 18%, transparent);
+  cursor: crosshair;
+  touch-action: none;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.colour-picker__mark {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid $white;
+  border-radius: 50%;
+  background: var(--mark);
+  box-shadow:
+    0 0 0 1px rgba($black, 0.45),
+    0 2px 6px rgba($black, 0.35);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.colour-picker__hue {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #f00 0%,
+    #ff0 16.67%,
+    #0f0 33.33%,
+    #0ff 50%,
+    #00f 66.67%,
+    #f0f 83.33%,
+    #f00 100%
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 18%, transparent);
+  cursor: pointer;
+  touch-action: none;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.colour-picker__hue-mark {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border: 2px solid $white;
+  border-radius: 50%;
+  background: var(--mark);
+  box-shadow:
+    0 0 0 1px rgba($black, 0.45),
+    0 2px 6px rgba($black, 0.35);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.colour-picker__row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+// The system's eyedropper: a colour from anywhere on the screen.
+.colour-picker__dropper {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  padding: 0;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  color: $text-primary;
+  cursor: pointer;
+  place-items: center;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.3;
+  }
+}
+
+.colour-picker__hex {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  height: 30px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+
+  span {
+    color: $text-muted;
+    font-size: $text-micro;
+  }
+
+  input {
+    min-width: 0;
+    flex: 1 1 auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $text-primary;
+    font-family: $font-mono;
+    font-size: $text-small;
+    outline: none;
+
+    &[aria-invalid='true'] {
+      color: $amber;
+    }
+  }
+
+  &:focus-within {
+    @include focus-ring;
+  }
+}
+
+// The quiet way out first, the loud way in last: Accept is what the picker
+// is opened for.
+.colour-picker__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}

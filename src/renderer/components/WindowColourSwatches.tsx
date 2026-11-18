@@ -4,13 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useId, useRef, type CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   SCENE_WINDOW_COLOUR_ROLES,
   type ISceneWindowColours,
   type TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
+import ColourPickerPopover from './ColourPickerPopover';
 import { useTranslation } from '../utils/I18nContext';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { useThemeShade } from '../utils/theme';
@@ -45,10 +46,10 @@ interface ISwatchProps {
 
 /**
  * One of the three: the colour on a button the width of its column, with its
- * name, what it paints and its hex, which opens the system's colour picker -
- * the Studio's single-colour control (`StudioColour.tsx`) laid out for three
- * side by side. The window follows the picker as it moves; the colour is
- * kept when the picker settles.
+ * name, what it paints and its hex, which opens FluidEQ's colour picker
+ * (`ColourPickerPopover.tsx`, Ivan, 2026-11-18). The window follows the
+ * picker as it moves; Accept keeps the colour, Cancel puts back the one it
+ * opened with.
  */
 function Swatch({
   role,
@@ -61,20 +62,15 @@ function Swatch({
   onCommit,
 }: ISwatchProps) {
   const { t } = useTranslation();
-  const picker = useRef<HTMLInputElement>(null);
-  const id = useId();
-
-  // The picker's own `change` is the moment the colour is settled; its
-  // `input` (React's onChange) follows it while it is chosen.
-  useEffect(() => {
-    const element = picker.current;
-    if (!element) {
-      return undefined;
+  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  // The colour it opened with, while it is open: Cancel goes back to it.
+  const [opened, setOpened] = useState<string>();
+  const cancel = () => {
+    if (opened !== undefined) {
+      onChange(role, opened);
     }
-    const settle = () => onCommit(role, element.value.toLowerCase());
-    element.addEventListener('change', settle);
-    return () => element.removeEventListener('change', settle);
-  }, [onCommit, role]);
+    setOpened(undefined);
+  };
 
   const name = t(ROLE_NAME[role]);
   if (fixed !== undefined) {
@@ -94,29 +90,42 @@ function Swatch({
       </div>
     );
   }
+  const isOpen = opened !== undefined;
   return (
-    <label
-      htmlFor={id}
-      className={`window-colour-swatch${changed ? ' is-changed' : ''}`}
-      style={{ '--swatch': value } as CSSProperties}
-    >
-      <span className="window-colour-swatch__well" aria-hidden />
-      <span className="window-colour-swatch__name">{name}</span>
-      <span className="window-colour-swatch__about">
-        {note ?? t(ROLE_ABOUT[role])}
-      </span>
-      <span className="window-colour-swatch__hex">{value.toUpperCase()}</span>
-      <input
-        ref={picker}
-        id={id}
-        type="color"
-        className="window-colour-swatch__input"
-        value={value}
+    <>
+      <button
+        ref={setAnchor}
+        type="button"
+        className={`window-colour-swatch${changed ? ' is-changed' : ''}${isOpen ? ' is-open' : ''}`}
+        style={{ '--swatch': value } as CSSProperties}
         disabled={disabled}
         aria-label={t('graph.sceneColours.pick', { role: name })}
-        onChange={(event) => onChange(role, event.target.value.toLowerCase())}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        // A second press on it while it is open is Cancel, as a press
+        // anywhere else is.
+        onClick={() => (isOpen ? cancel() : setOpened(value))}
+      >
+        <span className="window-colour-swatch__well" aria-hidden />
+        <span className="window-colour-swatch__name">{name}</span>
+        <span className="window-colour-swatch__about">
+          {note ?? t(ROLE_ABOUT[role])}
+        </span>
+        <span className="window-colour-swatch__hex">{value.toUpperCase()}</span>
+      </button>
+      <ColourPickerPopover
+        anchor={anchor}
+        isOpen={isOpen}
+        title={name}
+        value={opened ?? value}
+        onChange={(next) => onChange(role, next)}
+        onAccept={(next) => {
+          setOpened(undefined);
+          onCommit(role, next);
+        }}
+        onCancel={cancel}
       />
-    </label>
+    </>
   );
 }
 

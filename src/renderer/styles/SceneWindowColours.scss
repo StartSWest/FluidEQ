@@ -21,8 +21,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 6px;
 }
 
-// The whole swatch is the picker, as the Studio's single colour is
-// (`.studio-colour__pick`): the system's colour input lies over it unseen.
+// The whole swatch is a button that opens FluidEQ's colour picker
+// (`ColourPickerPopover.tsx`) under it.
 .window-colour-swatch {
   position: relative;
   display: grid;
@@ -33,21 +33,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
   border: 1px solid $border-control;
   border-radius: $radius-xs;
   background: $surface-control;
+  color: inherit;
+  font: inherit;
+  text-align: start;
   cursor: pointer;
   transition:
     border-color $motion-fast $ease-out,
     background $motion-fast $ease-out;
 
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: $border-control-hover;
     background: $surface-control-hover;
   }
 
-  &:has(:focus-visible) {
+  &:focus-visible {
     @include focus-ring;
   }
 
-  &:has(:disabled) {
+  // Open: the one the picker below it belongs to.
+  &.is-open {
+    border-color: $secondary-default;
+    box-shadow: inset 0 0 0 1px $secondary-default;
+  }
+
+  &:disabled {
     cursor: default;
     opacity: $disabled-opacity;
   }
@@ -100,15 +109,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-size: $text-micro;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.window-colour-swatch__input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: inherit;
 }
 
 // *** Night and day ***********************************************************
@@ -474,9 +474,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   line-height: 1.45;
 }
 
-// Under the colours, from the block's start like every other row of it.
-.studio-window-colours__actions {
+// The head's two word buttons, pushed to its far end as a lone Reset is
+// (`.studio-tune__head > .studio-settings__reset`), Automatic to its left.
+.studio-window-colours__resets {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex: 0 0 auto;
+  gap: 4px;
+  margin-left: auto;
 }

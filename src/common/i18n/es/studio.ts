@@ -811,13 +811,12 @@ const studio = {
     'No se pudieron guardar los colores. Vuelve a intentarlo.',
   'studio.windowColours.note':
     'Se guardan en la escena, así que todos los que la reproducen ven estos colores.',
-  'studio.windowColours.undo': 'Deshacer mis cambios',
   'studio.windowColours.none':
     'FluidEQ saca los colores de esta escena de su imagen cuando se reproduce. Pide a tu IA que los elija si quieres los tuyos.',
   'studio.windowColours.title': 'Colores de la ventana',
   'studio.windowColours.sourceAi': 'Elegidos por tu IA',
   'studio.windowColours.sourceYou': 'Elegidos por ti',
-  'studio.windowColours.automatic': 'Volver a automáticos',
+  'studio.windowColours.automatic': 'Automático',
   'studio.problem.bad-world':
     'El mundo 3D no tiene nada que esta versión pueda dibujar. Revisa sus nodos, materiales y fórmulas.',
   'studio.problem.bad-model':

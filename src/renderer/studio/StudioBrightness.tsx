@@ -4,15 +4,19 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import WindowTimeGlyph from '../components/WindowTimeGlyph';
 import {
   PERCENT_SNAPS,
   snapFraction,
   snapPercent,
 } from '../utils/percentSnaps';
 import { useTranslation } from '../utils/I18nContext';
+import { WINDOW_TIMES } from '../utils/sceneDayColours';
 import { setThemeShade, useThemeShade } from '../utils/theme';
 import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
+import { useNearerTime } from '../utils/useEditedTime';
 import useLiveSlider from '../utils/useLiveSlider';
+import TIME_NAME from '../utils/windowTimeNames';
 import { Setting } from './StudioSettings';
 
 const SHADE_SPAN = THEME_SHADE_MAX - THEME_SHADE_MIN;
@@ -41,6 +45,7 @@ export default function StudioBrightness() {
   const { t } = useTranslation();
   // The thumb under the pointer, the window's restyle a frame behind it.
   const { shown: shade, set } = useLiveSlider(useThemeShade(), setThemeShade);
+  const now = useNearerTime();
   return (
     <div className="studio-brightness">
       <Setting
@@ -54,6 +59,19 @@ export default function StudioBrightness() {
         }
         snaps={SHADE_SNAPS}
       />
+      {/* What each end of the track is, for the eye: the slider's own value
+          already says where it stands. */}
+      <div className="studio-brightness__times" aria-hidden="true">
+        {WINDOW_TIMES.map((time) => (
+          <span
+            key={time}
+            className={`studio-brightness__time${time === now ? ' is-now' : ''}`}
+          >
+            <WindowTimeGlyph time={time} />
+            {t(TIME_NAME[time])}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

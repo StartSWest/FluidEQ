@@ -128,10 +128,13 @@ export default function useStudioWindowColours(
     : { night: opened.night, day: opened.day };
   const sourceOf = (time: TWindowTime): TWindowColoursSource => {
     const colours = named[time];
-    if (colours) {
-      return same(colours, atUndo[time]) ? 'ai' : 'member';
+    const automatic = resolved.automatic[time];
+    // Written by publishing for a time left to the app, they are still the
+    // app's: automatic, not the AI's or the member's.
+    if (!colours || same(colours, automatic?.colours)) {
+      return automatic?.source === 'palette' ? 'palette' : 'auto';
     }
-    return resolved.own[time]?.source === 'palette' ? 'palette' : 'auto';
+    return same(colours, atUndo[time]) ? 'ai' : 'member';
   };
 
   const wearing =
@@ -179,13 +182,31 @@ export default function useStudioWindowColours(
     () => write({ [KEY[editing]]: null }),
     [editing, write],
   );
-  const undo = useCallback(
-    () =>
-      write({
-        windowColours: atUndo.night ?? null,
-        windowColoursDay: atUndo.day ?? null,
-      }),
-    [atUndo.night, atUndo.day, write],
+  // A time the member left to the app is written into the scene, as the app
+  // works it out, before it is published (Ivan, 2026-11-18: "si el usuario
+  // no lo hace, el programa lo hace ... en la escena como tal siempre están
+  // ahí"): the published scene carries both, and every listener's window
+  // wears exactly what the maker saw, never a measurement of its own.
+  const fillAutomatic = useCallback(() => {
+    const next: TColourWrite = {};
+    WINDOW_TIMES.forEach((time) => {
+      const automaticColours = resolved.automatic[time]?.colours;
+      if (!named[time] && automaticColours) {
+        next[KEY[time]] = automaticColours;
+      }
+    });
+    if (Object.keys(next).length > 0) {
+      write(next);
+    }
+  }, [named, resolved.automatic, write]);
+  // Reset, like every other block on the Tune tab, and for the open time
+  // alone (Ivan, 2026-11-18: "any changes I do on night or in day separated
+  // ... reset it to the previous thing"): back to what the scene had at that
+  // time when it was published, else when it was opened.
+  const resetTime = atUndo[editing];
+  const reset = useCallback(
+    () => write({ [KEY[editing]]: resetTime ?? null }),
+    [editing, resetTime, write],
   );
 
   // The strip follows the picker on the open time.
@@ -208,9 +229,10 @@ export default function useStudioWindowColours(
     change,
     commit,
     automatic,
-    canAutomatic: named[editing] !== undefined,
-    undo,
-    canUndo: !same(named.night, atUndo.night) || !same(named.day, atUndo.day),
+    canAutomatic: sourceOf(editing) === 'ai' || sourceOf(editing) === 'member',
+    fillAutomatic,
+    reset,
+    canReset: !same(named[editing], atUndo[editing]),
     /**
      * Whether `colours` are worn as named (`pickedWindow.ts`): the pack names
      * either time's, or the member is moving one, which names them the

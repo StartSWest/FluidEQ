@@ -12,6 +12,11 @@ import type { TWindowTime } from './sceneDayColours';
 /** From here up the scene's hour is nearer its day than its night. */
 const DAY_FROM = (SCENE_DAYLIGHT_MIN + SCENE_DAYLIGHT_MAX) / 2;
 
+/** The time the scene's hour is nearer now: its night's or its day's. */
+export function useNearerTime(): TWindowTime {
+  return usePageDaylight() >= DAY_FROM ? 'day' : 'night';
+}
+
 /**
  * Which time's colours a window colour editor has open (Ivan, 2026-11-18:
  * "que el slider también seleccione el card de colores de día si paso a día
@@ -25,7 +30,7 @@ export default function useEditedTime(): [
   TWindowTime,
   (time: TWindowTime) => void,
 ] {
-  const nearer: TWindowTime = usePageDaylight() >= DAY_FROM ? 'day' : 'night';
+  const nearer = useNearerTime();
   const [editing, setEditing] = useState<TWindowTime>(nearer);
   const [followed, setFollowed] = useState<TWindowTime>(nearer);
   // Adjusted while rendering, as React has state follow a prop: in an

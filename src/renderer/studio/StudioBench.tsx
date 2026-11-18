@@ -229,6 +229,17 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
   // The Publish dialog plays the scene itself, so the stage behind it stops:
   // two copies of one scene would halve what a slow machine can give either.
   const pausedForPublish = publishing.draft !== undefined;
+  // The Publish dialog open and nothing sent yet: the window colours the
+  // member left to the app are written into the scene first, so the clip it
+  // records and the scene it publishes both carry them. Never once sending
+  // has begun: a change to the scene then would make the clip stale.
+  const { fillAutomatic } = windowColours;
+  const isPublishing = publishing.publishing;
+  useEffect(() => {
+    if (pausedForPublish && !isPublishing) {
+      fillAutomatic();
+    }
+  }, [pausedForPublish, isPublishing, fillAutomatic]);
   // Held here as well as by whichever stage is playing, because the stage and
   // the dialog's hand over in one commit, releases before claims: without
   // this the capture would close and reopen, and the dialog's scene would

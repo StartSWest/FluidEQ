@@ -825,13 +825,12 @@ const studio = {
     'Die Farben konnten nicht gespeichert werden. Versuchen Sie es erneut.',
   'studio.windowColours.note':
     'In der Szene gespeichert, damit alle, die sie abspielen, diese Farben sehen.',
-  'studio.windowColours.undo': 'Meine Änderungen zurücknehmen',
   'studio.windowColours.none':
     'FluidEQ ermittelt die Farben dieser Szene aus ihrem Bild, sobald sie läuft. Bitten Sie Ihre KI, sie zu wählen, wenn Sie eigene möchten.',
   'studio.windowColours.title': 'Fensterfarben',
   'studio.windowColours.sourceAi': 'Von Ihrer KI gewählt',
   'studio.windowColours.sourceYou': 'Von Ihnen gewählt',
-  'studio.windowColours.automatic': 'Zurück zu automatisch',
+  'studio.windowColours.automatic': 'Automatisch',
   'studio.problem.bad-world':
     'Die 3D-Welt enthält nichts, was diese Version zeichnen kann. Prüfen Sie Knoten, Materialien und Formeln.',
   'studio.problem.bad-model':

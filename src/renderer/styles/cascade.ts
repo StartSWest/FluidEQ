@@ -220,6 +220,8 @@ import './RemoteAudioGroup.scss';
 import './Euphoria.scss';
 // A scene's window colours: under the Window colours menu and on the Tune tab.
 import './SceneWindowColours.scss';
+// FluidEQ's colour picker, opened from those swatches.
+import './ColourPickerPopover.scss';
 import './SceneAmbient.scss';
 // What a scene throws from the hand, over its picture and under the app's
 // glass: beside the window's own scene layers, before the Backdrop's.

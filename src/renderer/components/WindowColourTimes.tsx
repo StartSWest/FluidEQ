@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { CSSProperties } from 'react';
-import type { TranslationKey } from 'common/i18n';
 import {
   WINDOW_TIMES,
   type TSceneDayColours,
@@ -13,25 +12,8 @@ import {
   type TWindowTime,
 } from '../utils/sceneDayColours';
 import { useTranslation } from '../utils/I18nContext';
-
-const TIME_NAME: Record<TWindowTime, TranslationKey> = {
-  night: 'graph.sceneColours.night',
-  day: 'graph.sceneColours.day',
-};
-
-/** A crescent and a sun, in the line weight of the app's own glyphs. */
-function TimeGlyph({ time }: { time: TWindowTime }) {
-  return time === 'night' ? (
-    <svg viewBox="0 0 16 16" aria-hidden focusable="false">
-      <path d="M10.6 2.2a6 6 0 1 0 3.2 9.6A5 5 0 0 1 10.6 2.2Z" />
-    </svg>
-  ) : (
-    <svg viewBox="0 0 16 16" aria-hidden focusable="false">
-      <circle cx="8" cy="8" r="3" />
-      <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
-    </svg>
-  );
-}
+import TIME_NAME from '../utils/windowTimeNames';
+import WindowTimeGlyph from './WindowTimeGlyph';
 
 interface IWindowColourTimesProps {
   sides: TSceneDayColours;
@@ -79,7 +61,7 @@ export default function WindowColourTimes({
             onClick={() => onEdit(time)}
           >
             <span className="window-colour-time__glyph">
-              <TimeGlyph time={time} />
+              <WindowTimeGlyph time={time} />
             </span>
             <span className="window-colour-time__text">
               <span className="window-colour-time__name">

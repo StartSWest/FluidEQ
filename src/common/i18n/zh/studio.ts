@@ -722,13 +722,12 @@ const studio = {
     'pack.json 中的 windowColours 需要 surface、accent 和 glow，每项都是类似 #00e5cf 的颜色。',
   'studio.windowColours.failed': '无法保存颜色。请重试。',
   'studio.windowColours.note': '保存在场景中，所有播放它的人都会看到这些颜色。',
-  'studio.windowColours.undo': '撤销我的修改',
   'studio.windowColours.none':
     '场景播放后，FluidEQ 会从画面中算出它的颜色。想用自己的颜色，就让你的 AI 来选。',
   'studio.windowColours.title': '窗口颜色',
   'studio.windowColours.sourceAi': '由你的 AI 选出',
   'studio.windowColours.sourceYou': '由你选择',
-  'studio.windowColours.automatic': '恢复自动',
+  'studio.windowColours.automatic': '自动',
   'studio.problem.bad-world':
     '这个 3D 世界里没有此版本能绘制的内容。请检查它的节点、材质和公式。',
   'studio.problem.bad-model':

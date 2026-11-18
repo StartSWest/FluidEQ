@@ -805,13 +805,12 @@ const studio = {
     '色を保存できませんでした。もう一度お試しください。',
   'studio.windowColours.note':
     'シーンに保存されるので、再生する人全員にこの色が表示されます。',
-  'studio.windowColours.undo': '変更を元に戻す',
   'studio.windowColours.none':
     'シーンが再生されると、FluidEQ がその画像から色を割り出します。自分の色にしたい場合は AI に選ばせてください。',
   'studio.windowColours.title': 'ウィンドウの色',
   'studio.windowColours.sourceAi': 'あなたの AI が選択',
   'studio.windowColours.sourceYou': 'あなたが選択',
-  'studio.windowColours.automatic': '自動に戻す',
+  'studio.windowColours.automatic': '自動',
   'studio.problem.bad-world':
     'この 3D ワールドには、このバージョンで描けるものがありません。ノード、マテリアル、数式を確認してください。',
   'studio.problem.bad-model':

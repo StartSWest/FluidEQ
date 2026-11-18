@@ -11,6 +11,7 @@ import {
   dayKeyOf,
   resolveDayColours,
   type IResolvedDayColours,
+  type TSceneDayColours,
 } from '../utils/sceneDayColours';
 import { windowColoursOfSky } from '../utils/sceneOwnColours';
 import { studioSkyKey, useRememberedSceneSky } from '../utils/sceneTintStore';
@@ -26,24 +27,36 @@ export default function useStudioDayColours(
   project: string | undefined,
   pack: IScenePack | undefined,
   palette: ISceneWindowColours | undefined,
-): IResolvedDayColours {
+): IResolvedDayColours & {
+  /**
+   * What the app works out for each time with nothing named: the palette's,
+   * or the picture's as measured. What publishing writes into a scene for a
+   * time the member left to the app, and how the card tells such colours
+   * from chosen ones once they are written.
+   */
+  automatic: TSceneDayColours;
+} {
   const key = project ? studioSkyKey(project) : '';
   const nightSky = useRememberedSceneSky(key);
   const daySky = useRememberedSceneSky(key && dayKeyOf(key));
-  return useMemo(
-    () =>
-      resolveDayColours({
+  return useMemo(() => {
+    const sources = {
+      ...(palette ? { palette } : {}),
+      measured: {
+        ...(nightSky ? { night: windowColoursOfSky(nightSky) } : {}),
+        ...(daySky ? { day: windowColoursOfSky(daySky) } : {}),
+      },
+      chosen: {},
+    };
+    return {
+      ...resolveDayColours({
+        ...sources,
         named: {
           ...(pack?.windowColours ? { night: pack.windowColours } : {}),
           ...(pack?.windowColoursDay ? { day: pack.windowColoursDay } : {}),
         },
-        ...(palette ? { palette } : {}),
-        measured: {
-          ...(nightSky ? { night: windowColoursOfSky(nightSky) } : {}),
-          ...(daySky ? { day: windowColoursOfSky(daySky) } : {}),
-        },
-        chosen: {},
       }),
-    [pack, palette, nightSky, daySky],
-  );
+      automatic: resolveDayColours({ ...sources, named: {} }).own,
+    };
+  }, [pack, palette, nightSky, daySky]);
 }

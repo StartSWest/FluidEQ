@@ -613,7 +613,49 @@ $stage-edge: $border-menu;
 // it stands.
 .studio-brightness {
   display: grid;
+  gap: 4px;
   margin-top: 6px;
+}
+
+// The two ends of the track named, a crescent under its start and a sun
+// under its end (Ivan, 2026-11-18: "poner algo como día y noche para que se
+// vea también en el slider"), the time the scene's hour is nearer lit as the
+// Window colours tab of that time is pressed. Each glyph's middle sits under
+// where the 14px thumb's middle stops.
+.studio-brightness__times {
+  display: flex;
+  justify-content: space-between;
+  gap: $spacing-s;
+  padding: 0 1px;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.3;
+}
+
+.studio-brightness__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  transition: color $motion-fast $ease-out;
+
+  svg {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.4;
+  }
+
+  &.is-now {
+    color: $text-primary;
+
+    svg {
+      color: $secondary-default;
+    }
+  }
 }
 
 // How well it keeps up, under the controls that test it: a hairline above,

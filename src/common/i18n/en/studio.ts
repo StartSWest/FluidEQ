@@ -820,13 +820,12 @@ const studio = {
   'studio.windowColours.failed': 'The colours could not be saved. Try again.',
   'studio.windowColours.note':
     'Saved into the scene, so everyone who plays it sees these colours.',
-  'studio.windowColours.undo': 'Undo my changes',
   'studio.windowColours.none':
     "FluidEQ works this scene's colours out from its picture once it plays. Ask your AI to choose them if you want your own.",
   'studio.windowColours.title': 'Window colours',
   'studio.windowColours.sourceAi': 'Chosen by your AI',
   'studio.windowColours.sourceYou': 'Chosen by you',
-  'studio.windowColours.automatic': 'Back to automatic',
+  'studio.windowColours.automatic': 'Automatic',
   'studio.problem.bad-world':
     'The 3D world has nothing this version can draw. Check its nodes, materials and formulas.',
   'studio.problem.bad-model':

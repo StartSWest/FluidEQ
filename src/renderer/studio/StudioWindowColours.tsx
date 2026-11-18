@@ -26,9 +26,9 @@ const SOURCE: Record<TWindowColoursSource, TranslationKey> = {
  * The Tune tab's Window colours card (Ivan, 2026-11-14: "implement that",
  * the tuning mockup; 2026-11-18, the night and day editing mockup): the
  * night's colours and the day's, who chose each, the three of the open one,
- * the two through the day, a small window painted in the open set, "Back to
- * automatic" and "Undo my changes". What is chosen here is written into the
- * scene, so it is what the scene publishes with.
+ * the two through the day, a small window painted in the open set, and in
+ * the head "Automatic" and "Reset" for the open time. What is chosen here is
+ * written into the scene, so it is what the scene publishes with.
  */
 export default function StudioWindowColours({
   state,
@@ -50,6 +50,27 @@ export default function StudioWindowColours({
           {t('studio.windowColours.title')}
         </span>
         <StudioInfo text={t('studio.windowColours.note')} />
+        {/* At the far end, as every block on the Tune tab has its Reset:
+            Automatic gives the open time back to the app, Reset puts back
+            what it had (Ivan, 2026-11-18). */}
+        <span className="studio-window-colours__resets">
+          <button
+            type="button"
+            className="studio-settings__reset"
+            disabled={idle || !state.canAutomatic}
+            onClick={state.automatic}
+          >
+            {t('studio.windowColours.automatic')}
+          </button>
+          <button
+            type="button"
+            className="studio-settings__reset"
+            disabled={idle || !state.canReset}
+            onClick={state.reset}
+          >
+            {t('studio.settings.reset')}
+          </button>
+        </span>
       </div>
       {colours && night && day ? (
         <>
@@ -75,24 +96,6 @@ export default function StudioWindowColours({
           {t('studio.windowColours.none')}
         </p>
       )}
-      <div className="studio-window-colours__actions">
-        <button
-          type="button"
-          className="button small subtle"
-          disabled={idle || !state.canAutomatic}
-          onClick={state.automatic}
-        >
-          {t('studio.windowColours.automatic')}
-        </button>
-        <button
-          type="button"
-          className="button small subtle"
-          disabled={idle || !state.canUndo}
-          onClick={state.undo}
-        >
-          {t('studio.windowColours.undo')}
-        </button>
-      </div>
       {/* The note that the colours travel with the scene is the "i"'s; only
           a save that failed is news worth a line of its own. */}
       {state.saving === 'failed' && (
