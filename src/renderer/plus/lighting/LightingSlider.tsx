@@ -80,7 +80,6 @@ export default function LightingSlider({
       max,
     ]),
   ];
-  const labelStep = max - min > 2 ? 0.5 : 0.25;
   return (
     <div className="studio-setting lighting-slider">
       <div className="studio-setting__head">
@@ -118,12 +117,11 @@ export default function LightingSlider({
             className={`lighting-slider__mark${mark === min ? ' is-first' : ''}${mark === max ? ' is-last' : ''}`}
             style={{ left: `${((mark - min) / (max - min)) * 100}%` }}
           >
-            {(mark === min ||
-              mark === max ||
-              (mark - min >= labelStep * 0.5 &&
-                max - mark >= labelStep * 0.5 &&
-                Math.abs(mark / labelStep - Math.round(mark / labelStep)) <
-                  1e-8)) &&
+            {/* Named only at the ends and at 100%, the lamp's own
+                level: a figure under every tick was a row of nine numbers
+                under each slider (Ivan, 2026-11-18: "make it clean"). The
+                ticks stay. */}
+            {(mark === min || mark === max || mark === 1) &&
               `${Math.round(mark * 100)}%`}
           </span>
         ))}

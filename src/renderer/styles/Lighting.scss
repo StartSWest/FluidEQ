@@ -402,6 +402,16 @@ $windows-blue: #8ec5ff;
 
 // ---------------------------------------------------------------- cards
 
+// FLAT (Ivan, 2026-11-18, of this page: "fix the spacing and remove some of
+// the lines, make it clean"), as the Studio's Tune tab is: the two columns
+// stand on space under the desk, with no hairline over each, and the
+// sections inside them (master, fine tuning, when music stops) are parted
+// by space alone.
+.lighting-columns > .studio-card {
+  padding-top: 0;
+  border-top: 0;
+}
+
 .lighting-columns {
   display: flex;
   flex-wrap: wrap;
@@ -532,9 +542,7 @@ $windows-blue: #8ec5ff;
 .lighting-master {
   display: grid;
   gap: 14px;
-  padding-top: 18px;
-  margin-top: 14px;
-  border-top: 1px solid $border-subtle;
+  margin-top: 24px;
 }
 .lighting-editor__head {
   align-items: flex-start;
@@ -627,8 +635,7 @@ $windows-blue: #8ec5ff;
   flex: 1 1 auto;
 }
 .lighting-fine {
-  padding-top: 12px;
-  border-top: 1px solid $border-subtle;
+  padding-top: 6px;
 }
 .lighting-fine summary {
   color: $text-faint;
@@ -650,8 +657,7 @@ $windows-blue: #8ec5ff;
 .lighting-idle {
   display: grid;
   gap: 16px;
-  padding-top: 16px;
-  border-top: 1px solid $border-subtle;
+  padding-top: 10px;
 }
 .lighting-idle__choices {
   display: flex;
