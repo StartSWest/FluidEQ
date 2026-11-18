@@ -1175,9 +1175,9 @@ select option {
   background:
     linear-gradient(160deg, #101722, #080b11 50%, #030508) padding-box,
     linear-gradient(135deg, $lagoon) border-box;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, $white 8%, transparent),
-    0 8px 22px color-mix(in srgb, #27b8ff 18%, transparent);
+  // No glow outside the tile (Ivan, 2026-11-18: "just remove the drop
+  // shadow of glow that it has externally"); the face's own top light stays.
+  box-shadow: inset 0 1px 0 color-mix(in srgb, $white 8%, transparent);
 
   svg {
     width: 30px;
