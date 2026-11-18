@@ -177,6 +177,7 @@ const eq: Partial<Dictionary> = {
     'माहौल का सब कुछ, पूरी विंडो के पीछे सीन के साथ।',
   'graph.editHint':
     'पॉइंट खींचें · Ctrl/Shift से चुनें · Ctrl+स्क्रॉल: Q · Ctrl+खींचें: बेल',
+  'graph.windowTintPick': 'कोई भी रंग चुनें',
   'graph.windowTint': 'रंगत',
   'graph.windowTintHint':
     'स्टैंडर्ड लुक में विंडो का रंग। मूल रंग पर लौटने के लिए डबल-क्लिक करें।',

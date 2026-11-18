@@ -25,11 +25,16 @@ import {
   type TSceneDayColours,
 } from '../utils/sceneDayColours';
 import { LAGOON_SKY } from '../utils/rainbowPalette';
-import { tintedLagoon, useWindowTint } from '../utils/windowTint';
+import {
+  tintedLagoon,
+  useWindowTint,
+  useWindowTintColour,
+} from '../utils/windowTint';
 import { skyFromSwatch } from '../utils/sceneTint';
 import {
   skyFromWindowColours,
   windowColoursFromStops,
+  windowColoursOfSky,
 } from '../utils/sceneOwnColours';
 import { useStudioAppColours } from '../utils/sceneAppColours';
 import { useListenerParams } from '../utils/sceneParamStore';
@@ -105,6 +110,7 @@ const SceneTint = () => {
   const isAmp = useAmpHoldsWindow();
   const isEnabled = useSceneTintEnabled() || isAmp;
   const tint = useWindowTint();
+  const tintColour = useWindowTintColour();
   const studio = useStudioTintSource();
   const lookId = useSelectedLookId();
   const scenes = useUsableScenes();
@@ -224,7 +230,7 @@ const SceneTint = () => {
   // drag queued a fade behind the last one.
   const subject = studio
     ? `studio:${studio.project}`
-    : `${isSceneLook && isEnabled ? `look:${lookId}` : 'window'} ${tone} ${tint ?? ''}`;
+    : `${isSceneLook && isEnabled ? `look:${lookId}` : 'window'} ${tone} ${tint ?? ''} ${tintColour ?? ''}`;
   const paintedSubject = useRef<string | undefined>(undefined);
 
   // A layout effect, so a launch's first frame is already in the remembered
@@ -280,7 +286,16 @@ const SceneTint = () => {
       // held at every Brightness as Colours holds a scene's: a colour picked
       // by hand that faded away toward Black left the controls untinted
       // there ("when brightness is zero it's not tinting the controls").
-      if (tint === undefined) {
+      if (tint !== undefined && tintColour !== undefined) {
+        // A colour picked whole (`windowTint.ts`): worn as picked, the
+        // buttons and the curve in exactly it, black included on a white
+        // window; the panes and the glow are Lagoon's turned to its hue.
+        const colours = {
+          ...windowColoursOfSky(tintedLagoon(tint)),
+          accent: tintColour,
+        };
+        showWindowColours(colours, skyFromWindowColours(colours), fade, 'held');
+      } else if (tint === undefined) {
         lendSceneSky(LAGOON_SKY, fade);
       } else {
         showSceneSky(tintedLagoon(tint), fade, 'held');
@@ -314,6 +329,7 @@ const SceneTint = () => {
     own,
     tone,
     tint,
+    tintColour,
     subject,
   ]);
 

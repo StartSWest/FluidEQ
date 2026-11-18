@@ -180,6 +180,7 @@ const eq: Partial<Dictionary> = {
     'Tutto Ambiente, con la scena dietro tutta la finestra.',
   'graph.editHint':
     'Trascina i punti · Ctrl/Maiusc per selezionare · Ctrl+rotellina: Q · Ctrl+trascina: campana',
+  'graph.windowTintPick': 'Scegli qualsiasi colore',
   'graph.windowTint': 'Tinta',
   'graph.windowTintHint':
     'Il colore della finestra con un aspetto standard. Doppio clic per tornare al colore originale.',

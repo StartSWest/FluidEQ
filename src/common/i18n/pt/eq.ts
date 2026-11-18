@@ -181,6 +181,7 @@ const eq: Partial<Dictionary> = {
     'Tudo do Ambiente, com a cena atrás de toda a janela.',
   'graph.editHint':
     'Arraste os pontos · Ctrl/Shift seleciona · Ctrl+roda: Q · Ctrl+arrastar: sino',
+  'graph.windowTintPick': 'Escolher qualquer cor',
   'graph.windowTint': 'Tom',
   'graph.windowTintHint':
     'A cor da janela com um visual padrão. Clique duas vezes para voltar à cor original.',

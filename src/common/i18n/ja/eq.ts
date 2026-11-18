@@ -178,6 +178,7 @@ const eq: Partial<Dictionary> = {
     '環境光に加えて、ウィンドウ全体の背後にシーン。',
   'graph.editHint':
     'ポイントをドラッグ · Ctrl/Shiftで選択 · Ctrl+ホイール: Q · Ctrl+ドラッグ: ベル',
+  'graph.windowTintPick': '好きな色を選ぶ',
   'graph.windowTint': '色合い',
   'graph.windowTintHint':
     '標準のルックでのウィンドウの色。ダブルクリックで元の色に戻ります。',

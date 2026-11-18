@@ -185,6 +185,7 @@ const eq = {
     'Drag points · Ctrl/Shift select · Ctrl+scroll: Q · Ctrl+drag: bell',
   // The window-colours menu's sliders. The Backdrop's: how much of the scene
   // shows through the panes.
+  'graph.windowTintPick': 'Pick any colour',
   'graph.windowTint': 'Tint',
   'graph.windowTintHint':
     "The window's colour while a standard look is on. Double-click for the original colour.",

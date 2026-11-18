@@ -32,23 +32,81 @@ const parse = (raw: string | null): number | undefined => {
   return Number.isFinite(value) ? wrapHue(value) : undefined;
 };
 
+/**
+ * A colour picked whole from the swatch's colour picker (Ivan, 2026-11-18:
+ * "when the user selects the round colour on the right, open the colour
+ * picker, so they can choose better colours and more variety; the slider is
+ * limited to those colours and that brightness"). The slider only turns
+ * Lagoon's accent round the wheel at Lagoon's own lightness and strength; a
+ * picked colour is worn as picked, the buttons and the curve in exactly it
+ * (`SceneTint`, through the named colours' path), and the slider stands at
+ * its hue. Moving the slider again goes back to the wheel.
+ */
+const COLOUR_KEY = 'fluideq.windowTintColour';
+const HEX = /^#[0-9a-f]{6}$/;
+
+const parseColour = (raw: string | null): string | undefined =>
+  raw !== null && HEX.test(raw) ? raw : undefined;
+
 let tint = parse(readStored(STORAGE_KEY));
+let colour = parseColour(readStored(COLOUR_KEY));
 const listeners = new Set<() => void>();
 
-/** The hue chosen, in degrees, or undefined for Lagoon as it is. */
+const announce = () => listeners.forEach((listener) => listener());
+
+const storeColour = (next: string | undefined) => {
+  colour = next;
+  if (next === undefined) {
+    removeStored(COLOUR_KEY);
+  } else {
+    writeStored(COLOUR_KEY, next);
+  }
+};
+
+/** The hue chosen, in degrees, or undefined for Lagoon as it is. A hue set
+ * here lets go of a colour picked whole. */
 export const setWindowTint = (next: number | undefined) => {
   const value = next === undefined ? undefined : wrapHue(Math.round(next));
-  if (value === tint) {
+  if (value === tint && colour === undefined) {
     return;
   }
   tint = value;
+  storeColour(undefined);
   if (value === undefined) {
     removeStored(STORAGE_KEY);
   } else {
     writeStored(STORAGE_KEY, String(value));
   }
-  listeners.forEach((listener) => listener());
+  announce();
 };
+
+/** A colour picked whole (`#rrggbb`), standing at `hue` on the slider. */
+export const setWindowTintColour = (next: string, hue: number) => {
+  const value = next.toLowerCase();
+  if (!HEX.test(value)) {
+    return;
+  }
+  const at = wrapHue(Math.round(hue));
+  if (value === colour && at === tint) {
+    return;
+  }
+  tint = at;
+  writeStored(STORAGE_KEY, String(at));
+  storeColour(value);
+  announce();
+};
+
+export const useWindowTintColour = () =>
+  useSyncExternalStore(
+    (listener) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    () => colour,
+    () => undefined,
+  );
 
 export const useWindowTint = () =>
   useSyncExternalStore(

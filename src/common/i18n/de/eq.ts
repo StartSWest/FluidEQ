@@ -184,6 +184,7 @@ const eq: Partial<Dictionary> = {
     'Alles von Ambiente, mit der Szene hinter dem ganzen Fenster.',
   'graph.editHint':
     'Punkte ziehen · Strg/Umschalt wählt aus · Strg+Mausrad: Q · Strg+Ziehen: Glocke',
+  'graph.windowTintPick': 'Beliebige Farbe wählen',
   'graph.windowTint': 'Farbton',
   'graph.windowTintHint':
     'Die Farbe des Fensters bei einem Standard-Look. Doppelklick für die ursprüngliche Farbe.',

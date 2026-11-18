@@ -183,6 +183,7 @@ const eq: Partial<Dictionary> = {
     'Tout Ambiance, avec la scène derrière toute la fenêtre.',
   'graph.editHint':
     'Faites glisser les points · Ctrl/Maj pour sélectionner · Ctrl+molette : Q · Ctrl+glisser : cloche',
+  'graph.windowTintPick': 'Choisir n’importe quelle couleur',
   'graph.windowTint': 'Teinte',
   'graph.windowTintHint':
     'La couleur de la fenêtre avec un aspect standard. Double-cliquez pour revenir à la couleur d’origine.',

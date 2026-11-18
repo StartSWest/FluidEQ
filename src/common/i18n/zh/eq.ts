@@ -167,6 +167,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.pulse': '它的颜色，元素在窗口周围飘动。',
   'graph.sceneTint.about.cover': '包含“氛围”的一切，并把场景铺在整个窗口背后。',
   'graph.editHint': '拖动点 · Ctrl/Shift 选择 · Ctrl+滚轮：Q · Ctrl+拖动：钟形',
+  'graph.windowTintPick': '选择任意颜色',
   'graph.windowTint': '色调',
   'graph.windowTintHint': '使用标准外观时窗口的颜色。双击恢复原来的颜色。',
   'graph.backdropVeil': '透明度',

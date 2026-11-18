@@ -181,6 +181,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover': 'Всё из «Атмосферы», и сцена за всем окном.',
   'graph.editHint':
     'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q · Ctrl+перетаскивание: колокол',
+  'graph.windowTintPick': 'Выбрать любой цвет',
   'graph.windowTint': 'Оттенок',
   'graph.windowTintHint':
     'Цвет окна при стандартном виде. Двойной щелчок возвращает исходный цвет.',

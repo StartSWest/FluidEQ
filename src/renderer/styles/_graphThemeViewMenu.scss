@@ -401,9 +401,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The window's Tint (`WindowTintSlider`): the colour wheel along the track,
 // every hue at one lightness and strength so no part of it shouts - the
-// colour under the knob is the value, so there is nothing to fill - the knob
-// white so it reads on any of them, and the colour itself where the other
-// rows put a number.
+// colour under the knob is the value, so there is nothing to fill - and the
+// colour itself where the other rows put a number. The knob is the menu's
+// own, as on Brightness above it (Ivan, 2026-11-18: "it is not the same
+// slider as the others, it has to be the same"): it was painted white, which
+// vanished on a white window.
 .graph-view-menu__slider--hue {
   input[type='range']::-webkit-slider-runnable-track {
     background: linear-gradient(
@@ -420,8 +422,13 @@ it under the terms of the GNU General Public License version 3 or later.
     );
   }
 
-  input[type='range']::-webkit-slider-thumb {
-    background: $white;
+  // The row is a group, not one label: the name, the track and the swatch
+  // each answer for themselves (the swatch opens the colour picker).
+  > label:not(.graph-view-menu__swatch) {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+    cursor: pointer;
   }
 }
 
@@ -438,12 +445,34 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .graph-view-menu__slider > .graph-view-menu__swatch {
+  position: relative;
   justify-self: end;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: oklch(0.72 0.13 var(--tint-hue, 200));
-  box-shadow: inset 0 0 0 1px rgba($white, 0.25);
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 35%, transparent);
+  cursor: pointer;
+  transition: box-shadow $motion-fast $ease-out;
+
+  // Pressable: a ring of the accent under the pointer and the keyboard.
+  &:hover,
+  &:has(:focus-visible) {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, $edge-tint 35%, transparent),
+      0 0 0 2px $secondary-light;
+  }
+}
+
+// The system's colour picker, over the swatch and unseen: the swatch is what
+// shows, the picker is what a press opens.
+.graph-view-menu__swatch-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 // Rainbow mode's row (`RainbowSwitch`): a switch where the sliders' track and

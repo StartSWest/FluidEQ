@@ -158,6 +158,7 @@ const eq = {
   'graph.sceneTint.about.cover': '전체 창 뒤에 장면이 있는 모든 주변 환경.',
   'graph.editHint':
     '점 드래그 · Ctrl/Shift 선택 · Ctrl+스크롤: Q · Ctrl+드래그: 종',
+  'graph.windowTintPick': '원하는 색 고르기',
   'graph.windowTint': '색조',
   'graph.windowTintHint':
     '표준 모양이 켜져 있는 동안의 창 색상입니다. 원래 색상을 보려면 두 번 클릭하세요.',

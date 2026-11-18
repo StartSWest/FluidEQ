@@ -150,6 +150,7 @@ const eq = {
   'graph.sceneTint.about.pulse': '它的顏色，元素在視窗周圍飄動。',
   'graph.sceneTint.about.cover': '整個 Ambient，場景位於整個視窗後面。',
   'graph.editHint': '拖曳點 · Ctrl/Shift 選擇 · Ctrl+捲動：Q · Ctrl+拖曳：響鈴',
+  'graph.windowTintPick': '選擇任意顏色',
   'graph.windowTint': '色調',
   'graph.windowTintHint': '標準外觀開啟時視窗的顏色。雙擊原始顏色。',
   'graph.backdropVeil': '透明度',
