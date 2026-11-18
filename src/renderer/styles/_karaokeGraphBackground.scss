@@ -4,6 +4,9 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+@use 'color' as *;
+@use 'theme' as *;
+
 // The background has its own visualizer, so graph visibility, grid and
 // contents never decide whether there is scenery behind the words.
 .karaoke-graph-background {
@@ -39,4 +42,39 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // keyed (`overPicture` in `KaraokeWorkspaceView.tsx`).
 :root[data-window-ink='dark'] .karaoke-graph-background {
   opacity: var(--karaoke-scene-opacity, 1);
+}
+
+// What else stands on the picture reads over it the same way (Ivan,
+// 2026-11-18: "fix the chords too, they can't be seen with no smart
+// treatment"). The window's dark inks on a 5% plate vanished into a dark
+// scene. Each chord is a dark glass plate with a light letter, the one
+// sounding filled with the accent; the strip's small words are a light face
+// keyed in the dark ink, as the lyrics are. With no picture they keep the
+// window's own.
+:root[data-window-ink='dark'] .karaoke-workspace__stage.has-picture {
+  .karaoke-chords__chip {
+    color: rgba($white, 0.94);
+    border: 1px solid rgba($white, 0.18);
+    background: rgba(12, 16, 20, 0.58);
+
+    &.is-current {
+      color: $white;
+      border-color: transparent;
+      background: $secondary-default;
+    }
+  }
+
+  .karaoke-chords.is-analyzing,
+  .karaoke-chords__empty,
+  .karaoke-pitch__hint,
+  .karaoke-pitch__readout {
+    color: rgba($white, 0.94);
+    paint-order: stroke fill;
+    -webkit-text-stroke: 2.5px $text-primary;
+  }
+
+  .karaoke-chords__scan {
+    border-color: rgba($white, 0.3);
+    border-top-color: $white;
+  }
 }
