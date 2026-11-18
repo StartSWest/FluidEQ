@@ -31,11 +31,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // 2026-11-18, of a snow scene drawn at 0.32 over the white panel: "scene bg
 // or even cover art doesn't mean we need to white it too, it is too light").
 // The 0.32 is how far a dark window's floor dims it; over white the same
-// number washed it out. On a white window it stands nearly whole, and See
-// through fades it toward the white floor, as on a dark window it fades it
-// toward the dark one ("the see through needs to move toward white if white
-// theme, not toward dark"). The words over it are the dark stage's while
-// the picture leads (`overPicture` in `KaraokeWorkspaceView.tsx`).
+// number washed it out. On a white window See through at 0 shows it whole,
+// and from there fades it toward the white floor, as on a dark window it
+// fades it toward the dark one ("the see through needs to move toward white
+// if white theme, not toward dark"; "at see through 0 show it fully, not a
+// white shutter, and start to shut toward 100%"). The words over it are
+// keyed (`overPicture` in `KaraokeWorkspaceView.tsx`).
 :root[data-window-ink='dark'] .karaoke-graph-background {
-  opacity: calc(0.85 * var(--karaoke-scene-opacity, 1));
+  opacity: var(--karaoke-scene-opacity, 1);
 }
