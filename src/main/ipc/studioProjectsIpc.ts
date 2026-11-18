@@ -343,10 +343,24 @@ export const registerStudioProjectsIpc = ({
     }),
   );
 
+  // Choosing a project reads it afresh from its folder, every time, the one
+  // already open included (Ivan, 2026-11-18: "when loading a project in the
+  // Studio, refresh everything so it always loads any new change"). Its
+  // pack.json and code are edited outside the app - by the member's editor,
+  // by their AI, by a script writing through a temp file and a rename - and
+  // choosing the open project again used to change nothing, so an edit the
+  // watcher had not been told of stayed unread until FluidEQ restarted.
+  // A switch starts the bench through `adopt`; a reselect restarts it here.
+  // The names on the list are read again too.
   ipcMain.handle('studio-select-project', (_event, id: unknown) => {
     const wanted = projects.projects.find((project) => project.id === id);
     if (typeof id === 'string' && usable(wanted)) {
+      const reselect = id === projects.active;
       adopt(withActive(projects, id, Date.now()));
+      if (reselect) {
+        bench.start();
+      }
+      bench.refreshNames().catch(() => undefined);
     }
     return studioState();
   });
