@@ -1,75 +1,224 @@
 @use 'constant' as *;
-@use 'dialog' as dialog;
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
 @use 'theme' as *;
 
-// The publish dialog's three views (`StudioPublishShapes`) and the name the
-// gallery needs (`StudioPublishName`), and the dialog's narrow head.
+// The publish dialog's stage (`StudioPublishCamera`): the bar over it, the
+// one frame its three views (`StudioPublishShapes`) are fitted into, the
+// clip over it and what is pressed under it; the name the gallery needs
+// (`ProfileNameForm`), and the dialog's narrow head.
 
-// The switch above the scene, its note beside it while there is room.
-.studio-publish__shapes {
+// ---------------------------------------------------------------- bar
+
+// The clip's tabs on the left, the views on the right, wrapping under each
+// other only when the column is too narrow for both.
+.studio-publish__stage-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 14px;
+  justify-content: space-between;
+  gap: 8px 16px;
   min-width: 0;
 }
 
-.studio-publish__shapes-hint {
+.studio-publish__view-tabs {
+  display: flex;
+  gap: 18px;
   min-width: 0;
-  color: $text-dim;
-  font-size: $text-small;
-  line-height: 1.35;
 }
 
-// Each view's own shape. Normal is the 16:9 the covers and the clip are
-// taken from (the frame's own rule); Ultra wide the ultra-wide window to a
-// band's height round the graph, as the stage shows it (`ULTRA_WIDE_SHOWN`:
-// 3440 by 1234), as wide as the column.
+// The tabs themselves, sized to the bar, are `StudioPublish.scss`'s.
+
+.segmented.studio-publish__shapes,
+.segmented.studio-publish__hears {
+  flex-wrap: wrap;
+}
+
+.studio-publish__shapes .segmented__option,
+.studio-publish__hears .segmented__option {
+  flex: 0 0 auto;
+}
+
+// ---------------------------------------------------------------- frame
+
+// ONE FRAME FOR EVERY VIEW (Ivan, 2026-11-18). The Normal view's 16:9 — the
+// picture the covers and the clip are taken from, so it fills the frame —
+// at the column's width, whatever view is chosen. Each view's picture is
+// fitted inside by `--ratio`, centred on the dialog's own ground, a well of
+// the window's ink so the frame keeps its shape round a narrow picture:
+// Ultra wide is letterboxed, the Amp's column stands in the middle. The Amp
+// used to be as tall as the dialog allowed (up to 966px) and Ultra wide a
+// third of the Normal height, so everything under the frame jumped at each
+// switch and the Amp's pushed it out of the dialog.
+.studio-publish__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $edge-tint 5%, transparent);
+  container-type: size;
+}
+
+// Black behind the scene, not the dialog's colour: a scene is drawn to sit
+// on the graph's dark, and a lighter ground would show through its edges
+// while it fades in.
+.studio-publish__viewfinder {
+  --ratio: calc(16 / 9);
+
+  position: relative;
+  width: min(100cqw, calc(100cqh * var(--ratio)));
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: $radius-l;
+  background: $black;
+  isolation: isolate;
+}
+
+// Ultra wide: the ultra-wide window to a band's height round the graph, as
+// the stage shows it (`ULTRA_WIDE_SHOWN`: 3440 by 1234).
 .studio-publish__viewfinder--ultra {
+  --ratio: calc(3440 / 1234);
+
   aspect-ratio: 3440 / 1234;
+  border-radius: $radius-m;
 }
 
-// The Compact player's whole column, 480 by 966, upright in the middle of
-// the column: as tall as the dialog leaves room for, up to its real height,
-// and never so short that the player cannot be judged.
+// Amp: the Compact player's whole column, 480 by 966.
 .studio-publish__viewfinder--amp {
-  justify-self: center;
-  width: auto;
-  height: clamp(440px, calc(100vh - 360px), 966px);
+  --ratio: calc(480 / 966);
+
   aspect-ratio: 480 / 966;
+  border-radius: $radius-m;
 }
+
+// The recorded preview, over the whole frame on its tab: the clip is the
+// Normal view's 16:9, the frame's own shape, so it fills it exactly over
+// whichever view is live underneath.
+.studio-publish__recorded {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-l;
+  background: $black;
+  object-fit: contain;
+}
+
+// The shutter's answer: the frame blinks white for a moment.
+.studio-publish__flash {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: $white;
+  opacity: 0;
+  pointer-events: none;
+  animation: studio-publish-flash 380ms $ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 1ms;
+  }
+}
+
+@keyframes studio-publish-flash {
+  from {
+    opacity: 0.6;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+// Nothing is heard: said over the scene, which is at rest anyway, with the
+// way out of it. Always on the scene's dark, so its words keep the dark's
+// inks on the white window too.
+.studio-publish__quiet {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: $spacing-m;
+  color: rgba($white, 0.72);
+  background: radial-gradient(
+    ellipse at center,
+    rgba($black, 0.72),
+    rgba($black, 0.4) 75%
+  );
+  font-size: $text-small;
+  line-height: 1.45;
+  text-align: center;
+  @include animate(fade-in, $motion-base);
+
+  strong {
+    color: $white;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  .button {
+    margin-top: 8px;
+  }
+}
+
+// The scene cannot play here: said in the frame itself, across its width,
+// whatever view was chosen.
+.studio-publish__trouble {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: $spacing-l;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+  text-align: center;
+}
+
+// ---------------------------------------------------------------- under
+
+.studio-publish__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+// Time of day and, for a scene that has one, Night to day beside it: one
+// row while the column holds both, the switch under the slider once not.
+.studio-publish__hour {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 28px;
+  min-width: 0;
+
+  > .studio-setting {
+    flex: 1 1 320px;
+  }
+
+  > .studio-setting--switch {
+    flex: 0 0 auto;
+  }
+}
+
+// ---------------------------------------------------------------- name
 
 // The name across the top while the account has none: the gallery credits
-// a scene with it, and nothing is sent without one.
-.studio-publish__body--named {
-  grid-template-areas:
-    'name name'
-    'camera covers'
-    'camera category'
-    'camera .'
-    'note note';
-  grid-template-rows: auto auto auto 1fr auto;
-
-  // Its own row: the size is placed by number, not by area.
-  .studio-publish-size {
-    grid-row: 4;
-  }
-
-  @container publish (max-width: 1000px) {
-    grid-template-areas:
-      'name'
-      'camera'
-      'covers'
-      'category'
-      'note';
-    grid-template-rows: none;
-
-    .studio-publish-size {
-      grid-row: auto;
-    }
-  }
-}
-
+// a scene with it, and nothing is sent without one. Its row is the body's
+// (`StudioPublish.scss`, `.studio-publish__body--named`).
 .studio-publish__name {
   grid-area: name;
   min-width: 0;
@@ -90,8 +239,7 @@
     .dialog-frame__rail {
       gap: 8px;
       padding: 16px 52px 12px 18px;
-      border-right: 0;
-      border-bottom: dialog.$seam;
+      border-bottom: 0;
     }
 
     .dialog-frame__identity {
@@ -106,6 +254,12 @@
 
     .studio-ticks {
       display: none;
+    }
+
+    // The close button is in the head now, so the body no longer starts
+    // below its corner.
+    .dialog-frame__body {
+      padding: 20px 20px 18px;
     }
   }
 }

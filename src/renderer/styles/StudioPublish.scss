@@ -17,14 +17,65 @@ it under the terms of the GNU General Public License version 3 or later.
 // means in the rail; the scene playing, to catch its cover from, and what
 // publishing asks beside it. Wide, because the scene is the thing being judged
 // and a thumbnail of it judges nothing; the two columns fold into one wherever
-// the dialog is narrower than both need.
+// the dialog is narrower than both need. The stage itself, and its three
+// views, are `StudioPublishShapes.scss`.
+//
+// FLAT, GROUPED BY SPACE (Ivan, 2026-11-18: "clean, with a new style, fewer
+// dividers"). Nothing in the body is boxed or ruled: each part is a quiet
+// eyebrow over what it holds, and the parts stand apart by one rhythm —
+// `$part-gap` between parts, `$label-gap` under a name — so the eye finds
+// them by the space round them. The hairline between the rail and the body
+// goes as well, the rail's own ground already says where it ends, and the
+// one over the foot is drawn only while there is more above it to scroll to.
+$part-gap: 26px;
+$label-gap: 10px;
+// The bar over the stage, and the space under it (`StudioPublishShapes`):
+// the side column starts lower by what it takes to put the covers' top on
+// the stage's top, so the two pictures stand on one line.
+$stage-bar: 32px;
+$stage-gap: 14px;
+$eyebrow-line: 1.2;
+// Two columns while the scene keeps a frame worth judging beside them; at a
+// 1100px window the frame was 470px wide and the Amp's column in it 130.
+$fold: 1180px;
+
 .dialog-frame.studio-publish {
   // As large as the window allows up to a big monitor's worth: the scene is
   // judged here in three views, and the Compact player's column is tall
   // (Ivan, 2026-11-12: "make it bigger and responsive to allow to show the 3
   // modes").
   @include dialog.size(1640px, 1000px);
+  // As tall as it may be, never as tall as what it holds: sized to its
+  // content and centred, it stood up and sat down by half of every line
+  // that came and went — a take's bar, a status that wrapped — and the
+  // stage moved with it.
+  height: min(1000px, calc(100vh - #{dialog.$edge} * 2));
   container: publish / inline-size;
+  timeline-scope: --publish-body;
+
+  .dialog-frame__rail {
+    border-right: 0;
+  }
+
+  // The top clears the close button (10px down, 30px tall) and no more:
+  // the frame's 48px was set for a field that runs under the corner, and
+  // here the right-hand column starts with a short eyebrow.
+  .dialog-frame__body {
+    padding: 40px 32px 20px;
+    scroll-timeline: --publish-body block;
+  }
+
+  // The hairline over the foot says one thing: there is more above it. It
+  // is drawn only while the body has more to scroll to (the body's scroll
+  // timeline; with nothing to scroll the timeline is inactive and the line
+  // stays clear). A fade at the body's edges was tried and taken out: a mask
+  // over the body composites the live scene through it on every frame.
+  .dialog-frame__foot {
+    padding-top: 12px;
+    border-top: 1px solid transparent;
+    animation: studio-publish-more-below linear both;
+    animation-timeline: --publish-body;
+  }
 
   // The Studio's own spacing for a glyph in a button: the dialog is drawn
   // outside the Studio's tree, so its rule does not reach in here.
@@ -37,11 +88,18 @@ it under the terms of the GNU General Public License version 3 or later.
       height: 15px;
     }
   }
+
+  // Every part's name: the frame's own eyebrow, so a gap and a word do the
+  // work a box did.
+  .dialog-frame__section-title {
+    display: block;
+    line-height: $eyebrow-line;
+  }
 }
 
-// The scene on the left and what it becomes on the right: the covers caught
-// from it, then the category. The spare height of a scene taller than both
-// goes under the category, so the covers keep their place at the top.
+// The scene on the left; what goes out on the right — the cover, the clip,
+// the categories, the weight — on one rhythm, its own column so a status
+// line that wraps there never moves the stage.
 //
 // The note crosses both columns, under them. It is the only thing here that
 // is WRITTEN — everything else is a picture to catch or a chip to press — and
@@ -57,54 +115,186 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-publish__body {
   display: grid;
   grid-template-areas:
-    'camera covers'
-    'camera category'
-    'camera .'
+    'camera side'
     'note note';
   grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr auto;
   align-items: start;
-  gap: $spacing-m $spacing-l;
+  gap: $part-gap 36px;
   min-width: 0;
 
-  @container publish (max-width: 1000px) {
+  @container publish (max-width: #{$fold}) {
     grid-template-areas:
       'camera'
-      'covers'
-      'category'
+      'side'
       'note';
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: none;
   }
 }
 
-.studio-publish__camera,
-.studio-publish__covers,
-.studio-publish__category {
-  display: grid;
-  align-content: start;
-  min-width: 0;
+// The name across the top while the account has none (`ProfileNameForm`).
+.studio-publish__body--named {
+  grid-template-areas:
+    'name name'
+    'camera side'
+    'note note';
+
+  @container publish (max-width: #{$fold}) {
+    grid-template-areas:
+      'name'
+      'camera'
+      'side'
+      'note';
+  }
 }
 
 .studio-publish__camera {
+  display: grid;
   grid-area: camera;
-  gap: 10px;
+  align-content: start;
+  gap: $stage-gap;
+  min-width: 0;
 }
 
+.studio-publish__stage-bar {
+  min-height: $stage-bar;
+}
+
+// The app's tab: a place within the frame, chosen by its word. Its own box
+// is the bar's height, so the bar is that height on every platform's font.
+.studio-publish__view-tab {
+  padding: 6px 0;
+  font: inherit;
+  font-size: $text-body;
+  line-height: $stage-bar - 12px;
+  @include tab("[aria-pressed='true']");
+}
+
+.studio-publish__side {
+  display: grid;
+  grid-area: side;
+  align-content: start;
+  gap: $part-gap;
+  min-width: 0;
+  padding-top: calc(
+    #{$stage-bar + $stage-gap - $label-gap} - #{$eyebrow-line} *
+      #{$text-eyebrow}
+  );
+
+  @container publish (max-width: #{$fold}) {
+    padding-top: 0;
+  }
+}
+
+// The clip's place among the side's parts (`usePortalSlot`): its host and
+// the element moved into it both stand aside, so the section is one of the
+// column's own children and keeps its rhythm.
+.studio-publish__video-slot,
+.studio-publish__video-place {
+  display: contents;
+}
+
+.studio-publish__covers,
+.studio-publish__category,
 .studio-publish__video {
   display: grid;
-  gap: $spacing-s;
+  align-content: start;
+  gap: $label-gap;
   min-width: 0;
+}
 
-  p {
-    margin: 0;
-    font-size: $text-small;
-    line-height: 1.4;
+// Under a part's name, before what it holds: one quiet line, pulled up to
+// its name so the two read as one heading.
+.studio-publish__category-hint,
+.studio-publish__video-hint,
+.studio-publish__covers-hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.studio-publish__category-hint,
+.studio-publish__video-hint {
+  margin-top: -4px;
+}
+
+// ---------------------------------------------------------------- video
+
+.studio-publish__video-status {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// The take's count, or a sweep while the clip is being finished and
+// nothing can be counted: a slim track of the window's own well, the
+// accent filling it.
+.studio-publish__video progress {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border: 0;
+  border-radius: $radius-pill;
+  background: $track-well;
+  appearance: none;
+
+  &::-webkit-progress-bar {
+    border-radius: $radius-pill;
+    background: $track-well;
   }
-  progress {
-    width: 100%;
-    accent-color: $secondary-default;
+
+  &::-webkit-progress-value {
+    border-radius: $radius-pill;
+    background: $secondary-default;
+    transition: width 140ms ease-out;
   }
+
+  &:not([value]) {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, $secondary-default 75%, transparent),
+        transparent
+      )
+      no-repeat $track-well;
+    background-size: 40% 100%;
+    animation: studio-publish-video-sweep 1.2s ease-in-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      background: color-mix(in srgb, $secondary-default 45%, $track-well);
+      animation: none;
+    }
+  }
+}
+
+// Along the body's scroll: the seam while there is more below, gone at the
+// end, where nothing is hidden under the foot any more.
+@keyframes studio-publish-more-below {
+  0%,
+  98% {
+    border-top-color: color-mix(in srgb, $edge-tint 8%, transparent);
+  }
+
+  100% {
+    border-top-color: transparent;
+  }
+}
+
+@keyframes studio-publish-video-sweep {
+  from {
+    background-position: -40% 0;
+  }
+
+  to {
+    background-position: 140% 0;
+  }
+}
+
+.studio-publish__video-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
 }
 
 // Time of day's picture: the element tile's sky (`--sky`, which the tile
@@ -137,34 +327,7 @@ it under the terms of the GNU General Public License version 3 or later.
   fill: color-mix(in srgb, $primary-dark 82%, var(--sky));
 }
 
-.studio-publish__video-hint {
-  color: $text-dim;
-}
-
-.studio-publish__video-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-s;
-}
-
-.studio-publish__covers {
-  grid-area: covers;
-  gap: 8px;
-}
-
-.studio-publish__category {
-  grid-area: category;
-  gap: 8px;
-}
-
-// Under the label, before the chips: that there may be two, and which one the
-// card shows.
-.studio-publish__category-hint {
-  margin-top: -4px;
-  color: $text-dim;
-  font-size: $text-micro;
-  line-height: 1.4;
-}
+// ---------------------------------------------------------------- category
 
 // Which of two chosen chips is first: a small number in the chip's own ink,
 // so the order reads without a second row of controls.
@@ -183,51 +346,7 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1;
 }
 
-// One line about what changed in this version: what the scene's page and the
-// notice to listeners show. The count is the field's own limit, so nothing
-// typed is cut on the way.
-.studio-publish__note {
-  display: grid;
-  grid-area: note;
-  align-content: start;
-  gap: 6px;
-  min-width: 0;
-
-  textarea {
-    width: 100%;
-    // Two lines at the dialog's full width hold the whole of what may be
-    // typed — a note at the limit is one line across and two when the dialog
-    // is in its single column — so a finished note is read back rather than
-    // scrolled through, without a band of empty field under it.
-    min-height: 62px;
-    resize: vertical;
-    line-height: 1.5;
-
-    // The same red a refused name gets in the app's own fields
-    // (`TextInput.scss`), on the same signal: nothing is marked until a press
-    // has found it empty, and it clears the moment anything is typed.
-    &[aria-invalid='true'] {
-      border-color: $red;
-
-      &:focus-visible {
-        @include focus-ring($red);
-      }
-    }
-  }
-}
-
-// Beside the label, before anything has gone wrong: an update carries a line
-// saying what changed, and knowing that up front is what stops the red one
-// below ever being needed.
-.studio-publish__note-needed {
-  margin-inline-end: auto;
-  margin-inline-start: $spacing-xs;
-  color: $text-dim;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  text-transform: uppercase;
-  @include tracking(0.1em);
-}
+// ---------------------------------------------------------------- foot
 
 // What still holds Send (`StudioPublishHeld`): a line of its own over the
 // footer's buttons, ending over the one it holds, every missing part a way
@@ -319,156 +438,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.studio-publish__note-wrong {
-  margin: 0;
-  color: $red;
-  font-size: $text-small;
-  line-height: 1.35;
-}
-
-.studio-publish__note-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: $spacing-s;
-}
-
-.studio-publish__note-count {
-  color: $text-dim;
-  font-size: $text-micro;
-  font-variant-numeric: tabular-nums;
-}
-
-// At the limit the field takes no more letters and says nothing about it, so
-// the count says it: amber rather than red, because a full note is finished,
-// not wrong.
-.studio-publish__note-count--full {
-  color: $amber;
-  font-weight: $weight-bold;
-}
-
-// ---------------------------------------------------------------- stage
-
-// Black behind the scene, not the dialog's colour: a scene is drawn to sit
-// on the graph's dark, and a lighter ground would show through its edges
-// while it fades in.
-.studio-publish__viewfinder {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
-  border-radius: $radius-m;
-  background: $black;
-  box-shadow: none;
-  isolation: isolate;
-}
-
-// The recorded preview, in the stage's own frame on its tab: the same 16:9
-// box, so switching between the live scene and the clip moves nothing.
-.studio-publish__recorded {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: $black;
-}
-
-// Live scene / Preview video, the Studio's own segments laid over the
-// frame's top corner on a dark glass so they read on any scene.
-.studio-publish__view-tabs {
-  position: absolute;
-  z-index: 3;
-  top: 8px;
-  left: 8px;
-  padding: 3px;
-  border-radius: $radius-s;
-  background: rgba($black, 0.55);
-  backdrop-filter: blur(8px);
-}
-
-// The shutter's answer: the frame blinks white for a moment.
-.studio-publish__flash {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  background: $white;
-  opacity: 0;
-  pointer-events: none;
-  animation: studio-publish-flash 380ms $ease-out;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation-duration: 1ms;
-  }
-}
-
-@keyframes studio-publish-flash {
-  from {
-    opacity: 0.6;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
-// Nothing is heard: said over the scene, which is at rest anyway, with the
-// way out of it.
-.studio-publish__quiet {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: $spacing-m;
-  color: $text-muted;
-  background: radial-gradient(
-    ellipse at center,
-    rgba($black, 0.72),
-    rgba($black, 0.4) 75%
-  );
-  font-size: $text-small;
-  line-height: 1.45;
-  text-align: center;
-  @include animate(fade-in, $motion-base);
-
-  strong {
-    color: $white;
-    font-size: $text-body;
-    font-weight: $weight-semibold;
-  }
-
-  .button {
-    margin-top: 8px;
-  }
-}
-
-.studio-publish__trouble {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  margin: 0;
-  padding: $spacing-l;
-  color: $text-muted;
-  font-size: $text-small;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.studio-publish__controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-s;
-  min-width: 0;
-}
-
 // ---------------------------------------------------------------- covers
 
 .studio-publish__shots {
@@ -477,111 +446,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 8px;
 
   // Four to a row once the columns fold, where the covers have the width.
-  @container publish (max-width: 1000px) {
+  @container publish (max-width: #{$fold}) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-.studio-publish__shot {
-  position: relative;
-  display: block;
-  aspect-ratio: 16 / 9;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
-  border-radius: $radius-s;
-  background: $surface-well;
-  cursor: pointer;
-  transition:
-    border-color $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
-  @include animate(fade-in, $motion-base);
-
-  img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, $edge-tint 34%, transparent);
-  }
-
-  &[aria-checked='true'] {
-    border-color: $secondary-default;
-    box-shadow:
-      0 0 0 1px $secondary-default,
-      0 0 18px color-mix(in srgb, $secondary-default 32%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &:disabled {
-    cursor: default;
-  }
-
-  &.is-drawing {
-    display: grid;
-    place-items: center;
-    cursor: default;
-
-    .gallery-preview__spinner {
-      width: 18px;
-      height: 18px;
-    }
-  }
-
-  // A place a capture will go.
-  &.is-empty {
-    border-style: dashed;
-    border-color: color-mix(in srgb, $edge-tint 10%, transparent);
-    background: none;
-    cursor: default;
-    animation: none;
-  }
-}
-
-.studio-publish__shot-tag {
-  position: absolute;
-  bottom: 5px;
-  left: 5px;
-  padding: 1px 7px;
-  color: $text-muted;
-  border-radius: $radius-2xs;
-  background: rgba($black, 0.62);
-  font-size: $text-micro;
-  font-weight: $weight-semibold;
-}
-
-.studio-publish__shot-check {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  color: $black;
-  border-radius: 50%;
-  background: $secondary-default;
-  box-shadow: none;
-
-  svg {
-    width: 12px;
-    height: 12px;
-    stroke-width: 2.4;
-  }
-}
-
-.studio-publish__covers-hint {
-  color: $text-faint;
-  font-size: $text-small;
-  line-height: 1.45;
-
-  &.is-missed {
-    color: $amber;
   }
 }

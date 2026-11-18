@@ -149,7 +149,7 @@ export default function StudioPublishNote({
   return (
     <div className="studio-publish__note" data-publish-part="note">
       <span className="studio-publish__note-head">
-        <span className="gallery-dialog__label" id={`${mineId}-label`}>
+        <span className="dialog-frame__section-title" id={`${mineId}-label`}>
           {t(words.label)}
         </span>
         {/* Said before the press as well as after it: the quiet word is

@@ -1,0 +1,114 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// The Publish dialog's covers (`StudioPublishCovers`): the one it opened
+// with, every capture as it is drawn, and the places still free. How many
+// stand in a row is the layout's (`StudioPublish.scss`).
+
+// A cover is its picture and nothing round it: the chosen one alone wears
+// the accent's ring, a free place is a soft hollow of the window's own ink
+// rather than a dashed outline.
+.studio-publish__shot {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: $radius-m;
+  background: $surface-well;
+  cursor: pointer;
+  transition:
+    box-shadow $motion-fast $ease-out,
+    opacity $motion-fast $ease-out;
+  @include animate(fade-in, $motion-base);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover:not(:disabled, [aria-checked='true']) {
+    box-shadow: 0 0 0 1px color-mix(in srgb, $edge-tint 34%, transparent);
+  }
+
+  &[aria-checked='true'] {
+    box-shadow:
+      0 0 0 2px $secondary-default,
+      0 0 18px color-mix(in srgb, $secondary-default 28%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &.is-drawing {
+    display: grid;
+    place-items: center;
+    cursor: default;
+
+    .gallery-preview__spinner {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  // A place a capture will go.
+  &.is-empty {
+    background: color-mix(in srgb, $edge-tint 5%, transparent);
+    cursor: default;
+    animation: none;
+  }
+}
+
+// Always on the picture, so in the picture's own inks on either window: the
+// muted ink it wore went dark on its dark chip on the white window.
+.studio-publish__shot-tag {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  padding: 1px 7px;
+  color: $white;
+  border-radius: $radius-2xs;
+  background: rgba($black, 0.62);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+}
+
+.studio-publish__shot-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  // The floor's ink on the accent, as a chosen segment wears it: dark on
+  // the dark window's bright accent, white on the white window's deep one.
+  color: $surface-base;
+  border-radius: 50%;
+  background: $secondary-default;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.4;
+  }
+}
+
+.studio-publish__covers-hint.is-missed {
+  color: $amber;
+}

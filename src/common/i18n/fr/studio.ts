@@ -140,6 +140,10 @@ const studio = {
     'Enregistrement de l’aperçu · {seconds} / 10 s',
   'studio.publish.videoPaused':
     'En pause pendant le silence · {seconds} / 10 s',
+  'studio.publish.videoWaitingView':
+    'La vidéo d’aperçu s’enregistre dans la vue normale.',
+  'studio.publish.videoHeldView':
+    'En pause dans cette vue · {seconds} / 10 s. Elle reprend dans la vue normale.',
   'studio.publish.videoEncoding': 'Finalisation de la vidéo…',
   'studio.publish.videoChecking': 'Vérification de la lecture…',
   'studio.publish.videoReady':

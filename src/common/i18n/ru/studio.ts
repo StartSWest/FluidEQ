@@ -133,6 +133,10 @@ const studio = {
   'studio.publish.videoPreparing': 'Подготовка сцены к записи…',
   'studio.publish.videoRecording': 'Запись предпросмотра · {seconds} / 10 с',
   'studio.publish.videoPaused': 'Пауза, пока тихо · {seconds} / 10 с',
+  'studio.publish.videoWaitingView':
+    'Видео предпросмотра записывается в обычном виде.',
+  'studio.publish.videoHeldView':
+    'Пауза в этом виде · {seconds} / 10 с. Запись продолжится в обычном виде.',
   'studio.publish.videoEncoding': 'Завершение видео…',
   'studio.publish.videoChecking': 'Проверка воспроизведения…',
   'studio.publish.videoReady':

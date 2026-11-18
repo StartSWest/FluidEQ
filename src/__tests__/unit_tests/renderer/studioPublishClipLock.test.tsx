@@ -179,6 +179,7 @@ describe("the clip's own buttons while it is published", () => {
     const { rerender } = render(
       <StudioPublishVideo
         state={ready}
+        away={false}
         locked
         onCancel={jest.fn()}
         onRetry={jest.fn()}
@@ -192,6 +193,7 @@ describe("the clip's own buttons while it is published", () => {
     rerender(
       <StudioPublishVideo
         state={ready}
+        away={false}
         locked={false}
         onCancel={jest.fn()}
         onRetry={jest.fn()}

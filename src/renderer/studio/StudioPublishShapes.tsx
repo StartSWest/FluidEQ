@@ -49,37 +49,89 @@ export const viewOfShape = (shape: TPublishShape): TSceneView | undefined => {
   return shape === 'amp' ? PLAYER_PANEL_VIEW : undefined;
 };
 
-/** The switch, above the scene so nothing on the scene covers it. */
+/**
+ * The switch, above the scene so nothing on the scene covers it: the app's
+ * segmented control, one choice of three. What the views are for is its
+ * tooltip; the line of text it stood beside crowded the bar it now shares
+ * with the clip's tabs, and Capture and the clip's status each say in place
+ * that they are the Normal view's. Held, never hidden, while the scene
+ * cannot play: hidden, the bar's going lifted the frame under it.
+ */
 export function StudioPublishShapeSwitch({
   shape,
+  disabled,
   onShape,
 }: {
   shape: TPublishShape;
+  disabled: boolean;
   onShape: (shape: TPublishShape) => void;
 }) {
   const { t } = useTranslation();
   return (
-    <div className="studio-publish__shapes">
-      <div
-        className="studio-segments"
-        role="group"
-        aria-label={t('studio.publish.shapeChoice')}
+    <div
+      className="segmented studio-publish__shapes"
+      role="group"
+      aria-label={t('studio.publish.shapeChoice')}
+      title={t('studio.publish.shapeHint')}
+    >
+      {SHAPES.map((entry) => (
+        <button
+          key={entry.shape}
+          type="button"
+          className={`segmented__option${shape === entry.shape ? ' is-selected' : ''}`}
+          aria-pressed={shape === entry.shape}
+          disabled={disabled}
+          onClick={() => onShape(entry.shape)}
+        >
+          {t(entry.key)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * What the frame shows: the scene live, in the chosen view, or the clip just
+ * recorded. Tabs on the bar over the frame, never laid on the picture: in
+ * Normal they covered a corner of what is judged, they were hidden in the
+ * other views — so the clip could not be watched from them — and on the
+ * white window their quiet word went dark on the dark glass they sat on.
+ */
+export function StudioPublishViewTabs({
+  showsRecorded,
+  hasRecording,
+  onLive,
+  onRecorded,
+}: {
+  showsRecorded: boolean;
+  hasRecording: boolean;
+  onLive: () => void;
+  onRecorded: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="studio-publish__view-tabs"
+      role="group"
+      aria-label={t('studio.publish.viewChoice')}
+    >
+      <button
+        type="button"
+        className="studio-publish__view-tab"
+        aria-pressed={!showsRecorded}
+        onClick={onLive}
       >
-        {SHAPES.map((entry) => (
-          <button
-            key={entry.shape}
-            type="button"
-            className="studio-segment"
-            aria-pressed={shape === entry.shape}
-            onClick={() => onShape(entry.shape)}
-          >
-            {t(entry.key)}
-          </button>
-        ))}
-      </div>
-      <span className="studio-publish__shapes-hint">
-        {t('studio.publish.shapeHint')}
-      </span>
+        {t('studio.publish.viewLive')}
+      </button>
+      <button
+        type="button"
+        className="studio-publish__view-tab"
+        aria-pressed={showsRecorded}
+        disabled={!hasRecording}
+        onClick={onRecorded}
+      >
+        {t('studio.publish.viewRecorded')}
+      </button>
     </div>
   );
 }

@@ -112,6 +112,7 @@ const open = (phase = 'waiting') => {
         onCapture={jest.fn()}
         source="src"
         onPreview={jest.fn()}
+        videoSlot={document.createElement('div')}
       />
     </SceneAudioProvider>,
   );
@@ -223,6 +224,7 @@ describe('what the camera tells the dialog about a take', () => {
           onCapture={jest.fn()}
           source="src"
           onPreview={jest.fn()}
+          videoSlot={document.createElement('div')}
           onRecording={onRecording}
         />
       </SceneAudioProvider>,

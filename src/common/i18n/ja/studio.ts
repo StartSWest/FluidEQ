@@ -135,6 +135,9 @@ const studio = {
   'studio.publish.videoPreparing': 'シーンの録画を準備中…',
   'studio.publish.videoRecording': 'プレビューを録画中 · {seconds} / 10 秒',
   'studio.publish.videoPaused': '無音の間は一時停止 · {seconds} / 10 秒',
+  'studio.publish.videoWaitingView': 'プレビュー動画は通常表示で録画されます。',
+  'studio.publish.videoHeldView':
+    'この表示では一時停止 · {seconds} / 10 秒。通常表示で続きを録画します。',
   'studio.publish.videoEncoding': '動画を仕上げています…',
   'studio.publish.videoChecking': '動画の再生を確認中…',
   'studio.publish.videoReady':

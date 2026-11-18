@@ -140,6 +140,10 @@ const studio = {
     'Vorschau wird aufgenommen · {seconds} / 10 s',
   'studio.publish.videoPaused':
     'Pausiert, solange es still ist · {seconds} / 10 s',
+  'studio.publish.videoWaitingView':
+    'Das Vorschauvideo wird in der normalen Ansicht aufgenommen.',
+  'studio.publish.videoHeldView':
+    'In dieser Ansicht pausiert · {seconds} / 10 s. Es geht in der normalen Ansicht weiter.',
   'studio.publish.videoEncoding': 'Video wird fertiggestellt…',
   'studio.publish.videoChecking': 'Videowiedergabe wird geprüft…',
   'studio.publish.videoReady':

@@ -15,7 +15,80 @@ it under the terms of the GNU General Public License version 3 or later.
 // 2026-11-12, approved picture): the member's own language and English on
 // show, each under its own name, the other languages folded away, and what
 // the scene's chat is doing with them said in words beside a moving bar.
-// The box itself and its count are `StudioPublish.scss`'s.
+
+// One line about what changed in this version: what the scene's page and the
+// notice to listeners show. The count is the field's own limit, so nothing
+// typed is cut on the way.
+.studio-publish__note {
+  display: grid;
+  grid-area: note;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+
+  textarea {
+    width: 100%;
+    // Two lines at the dialog's full width hold the whole of what may be
+    // typed — a note at the limit is one line across and two when the dialog
+    // is in its single column — so a finished note is read back rather than
+    // scrolled through, without a band of empty field under it.
+    min-height: 62px;
+    resize: vertical;
+    line-height: 1.5;
+
+    // The same red a refused name gets in the app's own fields
+    // (`TextInput.scss`), on the same signal: nothing is marked until a press
+    // has found it empty, and it clears the moment anything is typed.
+    &[aria-invalid='true'] {
+      border-color: $red;
+
+      &:focus-visible {
+        @include focus-ring($red);
+      }
+    }
+  }
+}
+
+// Beside the name, before anything has gone wrong: an update carries a line
+// saying what changed, and knowing that up front is what stops the red one
+// below ever being needed.
+.studio-publish__note-needed {
+  margin-inline-end: auto;
+  margin-inline-start: $spacing-xs;
+  color: $text-dim;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.1em);
+}
+
+.studio-publish__note-wrong {
+  margin: 0;
+  color: $red;
+  font-size: $text-small;
+  line-height: 1.35;
+}
+
+.studio-publish__note-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-s;
+}
+
+.studio-publish__note-count {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+// At the limit the field takes no more letters and says nothing about it, so
+// the count says it: amber rather than red, because a full note is finished,
+// not wrong.
+.studio-publish__note-count--full {
+  color: $amber;
+  font-weight: $weight-bold;
+}
 
 .studio-publish__note-field {
   display: grid;
@@ -48,18 +121,23 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
 }
 
-// The other languages: a quiet line until opened, then one row each.
+// The other languages: a quiet line until opened, then one row each. No box
+// round it (2026-11-18, the flat pass): the disclosure's own marker and its
+// words say it opens.
 .studio-publish__note-more {
-  border: 1px solid $card-edge;
-  border-radius: $radius-m;
-
   > summary {
-    padding: $spacing-xs $spacing-s;
+    width: fit-content;
+    padding: 2px 0;
     color: $text-dim;
     font-size: $text-small;
     cursor: pointer;
 
+    &:hover {
+      color: $text-primary;
+    }
+
     &:focus-visible {
+      border-radius: $radius-2xs;
       @include focus-ring;
     }
   }
@@ -68,7 +146,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-publish__note-rows {
   display: grid;
   gap: $spacing-xs;
-  padding: 0 $spacing-s $spacing-s;
+  padding: $spacing-xs 0 0;
 }
 
 // The language's name in a column of its own beside its line, stacked on a

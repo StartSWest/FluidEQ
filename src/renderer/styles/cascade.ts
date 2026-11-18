@@ -112,6 +112,7 @@ import './StudioStageLight.scss';
 import './StudioUltraWideFrame.scss';
 import './StudioPublish.scss';
 import './StudioPublishNote.scss';
+import './StudioPublishCovers.scss';
 import './StudioPublishSize.scss';
 import './StudioPublishShapes.scss';
 import './StudioPictures.scss';

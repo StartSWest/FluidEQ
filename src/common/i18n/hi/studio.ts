@@ -136,6 +136,10 @@ const studio = {
     'प्रीव्यू रिकॉर्ड हो रहा है · {seconds} / 10 सेकंड',
   'studio.publish.videoPaused':
     'आवाज़ न होने पर रुका है · {seconds} / 10 सेकंड',
+  'studio.publish.videoWaitingView':
+    'प्रीव्यू वीडियो सामान्य व्यू में रिकॉर्ड होता है।',
+  'studio.publish.videoHeldView':
+    'इस व्यू में रुका है · {seconds} / 10 सेकंड। यह सामान्य व्यू में आगे बढ़ेगा।',
   'studio.publish.videoEncoding': 'वीडियो तैयार किया जा रहा है…',
   'studio.publish.videoChecking': 'वीडियो का प्लेबैक जाँचा जा रहा है…',
   'studio.publish.videoReady':

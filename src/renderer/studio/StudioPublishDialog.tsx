@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
+import type { TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
 import { scenePackSize } from 'common/scenePackSize';
 import { versionToPublish, type TVersionNotes } from 'common/sceneVersionNote';
@@ -19,11 +19,12 @@ import usePublishNoteSend from './usePublishNoteSend';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneTuning } from '../graph/useSceneRunner';
 import MenuIcon from '../icons/MenuIcon';
-import { categoryKey } from '../plus/GalleryParts';
 import { refreshAddons, useAddonCapabilities } from '../addons';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
+import usePortalSlot from '../utils/usePortalSlot';
 import StudioPublishCamera from './StudioPublishCamera';
+import StudioPublishCategories from './StudioPublishCategories';
 import StudioPublishCovers from './StudioPublishCovers';
 import StudioPublishHeld from './StudioPublishHeld';
 import StudioPublishSize from './StudioPublishSize';
@@ -173,6 +174,8 @@ export default function StudioPublishDialog({
   }, [me]);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLButtonElement>(null);
+  // The clip's status sits with the covers, though its take is the camera's.
+  const videoSlot = usePortalSlot('studio-publish__video-place');
   const [categories, setCategories] = useState<TPlusCategory[]>(() =>
     [draft.published?.category, draft.published?.category2].flatMap((entry) =>
       entry ? [entry] : [],
@@ -420,55 +423,30 @@ export default function StudioPublishDialog({
             source={source}
             onPreview={setPreview}
             onRecording={setRecording}
+            videoSlot={videoSlot.target}
           />
 
-          <StudioPublishCovers
-            shots={draft.shots}
-            chosen={draft.chosen}
-            missed={draft.missed}
-            locked={running}
-            onChoose={onChoose}
-          />
-
-          <div
-            className="studio-publish__category"
-            data-publish-part="category"
-          >
-            <span
-              className="gallery-dialog__label"
-              id="studio-publish-category"
-            >
-              {t('studio.publish.category')}
-            </span>
-            <span className="studio-publish__category-hint">
-              {t('studio.publish.categoryHint')}
-            </span>
+          {/* What goes out, on one rhythm: the cover, the clip, where it is
+              filed and what it weighs. */}
+          <div className="studio-publish__side">
+            <StudioPublishCovers
+              shots={draft.shots}
+              chosen={draft.chosen}
+              missed={draft.missed}
+              locked={running}
+              onChoose={onChoose}
+            />
             <div
-              className="gallery-chips"
-              role="group"
-              aria-labelledby="studio-publish-category"
-            >
-              {PLUS_CATEGORIES.map((entry) => (
-                <button
-                  key={entry}
-                  type="button"
-                  aria-pressed={categories.includes(entry)}
-                  className="gallery-chip"
-                  disabled={running}
-                  onClick={() => pick(entry)}
-                >
-                  {t(categoryKey(entry))}
-                  {categories.length === 2 && categories.includes(entry) && (
-                    <span className="studio-publish__order" aria-hidden="true">
-                      {categories.indexOf(entry) + 1}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+              ref={videoSlot.attach}
+              className="studio-publish__video-slot"
+            />
+            <StudioPublishCategories
+              chosen={categories}
+              locked={running}
+              onPick={pick}
+            />
+            <StudioPublishSize size={size} />
           </div>
-
-          <StudioPublishSize size={size} />
 
           <StudioPublishNote
             words={update ? UPDATE_NOTE_WORDS : FIRST_NOTE_WORDS}

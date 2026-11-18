@@ -2,6 +2,7 @@ import { useId } from 'react';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { MAX_SHOTS, type IPublishShot } from './useStudioPublish';
+import '../styles/StudioPublishCovers.scss';
 
 interface IStudioPublishCoversProps {
   shots: readonly IPublishShot[];
@@ -31,7 +32,7 @@ export default function StudioPublishCovers({
 
   return (
     <div className="studio-publish__covers">
-      <span className="gallery-dialog__label" id={labelId}>
+      <span className="dialog-frame__section-title" id={labelId}>
         {t('studio.publish.cover')}
       </span>
       <div

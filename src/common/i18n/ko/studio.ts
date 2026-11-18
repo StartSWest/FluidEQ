@@ -133,6 +133,10 @@ const studio = {
   'studio.publish.videoPreparing': '장면 녹화 준비 중…',
   'studio.publish.videoRecording': '미리 보기 녹화 중 · {seconds} / 10초',
   'studio.publish.videoPaused': '조용한 동안 일시 정지 · {seconds} / 10초',
+  'studio.publish.videoWaitingView':
+    '미리 보기 동영상은 일반 보기에서 녹화됩니다.',
+  'studio.publish.videoHeldView':
+    '이 보기에서는 일시 정지 · {seconds} / 10초. 일반 보기에서 이어집니다.',
   'studio.publish.videoEncoding': '동영상 마무리 중…',
   'studio.publish.videoChecking': '동영상 재생 확인 중…',
   'studio.publish.videoReady':

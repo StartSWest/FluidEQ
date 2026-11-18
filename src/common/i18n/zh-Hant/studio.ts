@@ -124,6 +124,9 @@ const studio = {
   'studio.publish.videoPreparing': '正在準備錄製場景…',
   'studio.publish.videoRecording': '正在錄製預覽 · {seconds} / 10 秒',
   'studio.publish.videoPaused': '靜音時暫停 · {seconds} / 10 秒',
+  'studio.publish.videoWaitingView': '預覽影片在一般檢視中錄製。',
+  'studio.publish.videoHeldView':
+    '在此檢視中暫停 · {seconds} / 10 秒。回到一般檢視後繼續。',
   'studio.publish.videoEncoding': '正在完成影片…',
   'studio.publish.videoChecking': '正在檢查影片播放…',
   'studio.publish.videoReady': '預覽已就緒。在上方的「預覽影片」分頁中播放。',

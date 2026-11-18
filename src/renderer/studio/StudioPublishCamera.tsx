@@ -6,24 +6,22 @@ import {
   useState,
   type RefObject,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { SCENE_DAYLIGHT_MIN } from 'common/sceneDaylight';
 import type { IScenePack } from 'common/scenePacks';
 import Glyph from '../community/Glyph';
 import { pageDaylight } from '../graph/sceneDaylight';
 import { snapPercent } from '../utils/percentSnaps';
-import {
-  SceneAudioProvider,
-  useSceneAudio,
-  type ISceneAudio,
-} from '../audio/SceneAudioContext';
+import { SceneAudioProvider } from '../audio/SceneAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
+import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
 import type { ISceneTuning } from '../graph/useSceneRunner';
 import ScenePreview, { type TPreviewTrouble } from '../plus/ScenePreview';
 import { useTranslation } from '../utils/I18nContext';
-import { reportError } from '../utils/logger';
 import { createMomentRecorder } from './momentRecorder';
 import StudioPublishVideo from './StudioPublishVideo';
 import StudioPublishDaylightIcon from './StudioPublishDaylightIcon';
+import StudioPublishHears from './StudioPublishHears';
 import { Setting } from './StudioSettings';
 import {
   NightToDaySwitch,
@@ -31,13 +29,14 @@ import {
   useNightToDay,
 } from './StudioPublishSweep';
 import usePublishVideo, { type IPublishPreview } from './usePublishVideo';
+import usePublishSignal, { useDemoEndsWithTake } from './usePublishSignal';
 import { previewCaptureSize } from './previewVideo';
-import createPublishDemoAudio from './publishDemoAudio';
 import {
   isTakeHolding,
   isTakeRunning,
   StudioPublishShapeOver,
   StudioPublishShapeSwitch,
+  StudioPublishViewTabs,
   viewOfShape,
   type TPublishShape,
 } from './StudioPublishShapes';
@@ -47,7 +46,6 @@ import {
   MAX_FRAME_MS,
   QUIET_LEVEL,
   QUIET_MS,
-  SIGNALS,
   TROUBLE_KEYS,
   type TCameraSignal,
 } from './publishCameraSettings';
@@ -71,6 +69,13 @@ interface IStudioPublishCameraProps {
    * for the music is not one — nothing happens until it plays.
    */
   onRecording?: (recording: boolean) => void;
+  /**
+   * Where the clip's status and its button go: the dialog's side column,
+   * under the covers, with the rest of what is published. Made once, before
+   * the camera first renders, so the button there can take the dialog's
+   * first focus (`usePortalSlot`).
+   */
+  videoSlot: HTMLElement;
   initialFocusRef?: RefObject<HTMLButtonElement | null>;
 }
 
@@ -94,10 +99,10 @@ export default function StudioPublishCamera({
   source,
   onPreview,
   onRecording,
+  videoSlot,
   initialFocusRef,
 }: IStudioPublishCameraProps) {
   const { t } = useTranslation();
-  const [signal, setSignal] = useState<TCameraSignal>('live');
   const [trouble, setTrouble] = useState<TPreviewTrouble>();
   const [ready, setReady] = useState(false);
   const [quiet, setQuiet] = useState(false);
@@ -119,20 +124,10 @@ export default function StudioPublishCamera({
   const lockedHint = locked ? t('studio.publish.clipLocked') : undefined;
   // Drawn at the size the clip is recorded at (1280x720 where VP9 records).
   const captureSize = useMemo(previewCaptureSize, []);
-  const liveAudio = useSceneAudio();
-  const demo = useRef<ReturnType<typeof createPublishDemoAudio> | undefined>(
-    undefined,
-  );
-  const stopDemo = useCallback(() => {
-    const playing = demo.current;
-    demo.current = undefined;
-    playing
-      ?.stop()
-      .catch((error: unknown) =>
-        reportError('Stopping the preview demo', error),
-      );
-  }, []);
-  useEffect(() => stopDemo, [stopDemo]);
+  // A demo that cannot play fails the take; the take is made below, keyed on
+  // what the scene hears, so the failure reaches it through this.
+  const failTake = useRef<() => void>(() => undefined);
+  const hearing = usePublishSignal(() => failTake.current());
   const previewChanged = useCallback(
     (preview: IPublishPreview | undefined) => {
       onPreview(preview ? { ...preview, source } : undefined);
@@ -147,21 +142,14 @@ export default function StudioPublishCamera({
     cancel: videoCancel,
     retry: videoRetry,
   } = usePublishVideo(
-    `${source}\n${signal}\n${nightToDay.sweeping ? 'night-to-day' : videoDaylight}`,
+    `${source}\n${hearing.signal}\n${nightToDay.sweeping ? 'night-to-day' : videoDaylight}`,
     t('studio.publish.videoWatermark'),
     previewChanged,
   );
-  useEffect(() => {
-    const playing = demo.current;
-    playing?.setPaused(liveAudio.isPaused).catch(() => {
-      if (demo.current === playing) {
-        stopDemo();
-        videoFail();
-      }
-    });
-  }, [signal, liveAudio.isPaused, stopDemo, videoFail]);
+  failTake.current = videoFail;
+  useDemoEndsWithTake(hearing, videoState.phase);
   // What the frame shows: the scene playing, or the clip just recorded, on
-  // two tabs in the frame itself (Ivan, 2026-11-07: under the buttons the
+  // two tabs over the frame (Ivan, 2026-11-07: under the buttons the
   // finished clip sat below everything else). A new clip opens on its own
   // tab; Live is the member's choice for that clip only.
   const takeBusy =
@@ -180,26 +168,6 @@ export default function StudioPublishCamera({
     [videoFail],
   );
 
-  const signalRef = useRef(signal);
-  signalRef.current = signal;
-  const audioRef = useRef(liveAudio);
-  audioRef.current = liveAudio;
-  const selectedAudio = useMemo<ISceneAudio>(
-    () => ({
-      points: signal === 'live' ? liveAudio.points : [],
-      waveform: signal === 'live' ? liveAudio.waveform : [],
-      isPaused: liveAudio.isPaused,
-      readFrame: () =>
-        signalRef.current === 'live'
-          ? audioRef.current.readFrame()
-          : (demo.current?.readFrame() ?? {
-              points: [],
-              waveform: [],
-              sound: undefined,
-            }),
-    }),
-    [signal, liveAudio.points, liveAudio.waveform, liveAudio.isPaused],
-  );
   // The view the scene is played in. The covers and the preview video are
   // the Normal view's alone: in the others the clip waits and Capture rests,
   // because each is drawn on a canvas of its own shape.
@@ -207,35 +175,19 @@ export default function StudioPublishCamera({
   const shapeRef = useRef(shape);
   shapeRef.current = shape;
   const viewfinderRef = useRef<HTMLDivElement>(null);
+  const { livePaused } = hearing;
   const shapeFrame = useCallback(
     (frame: ISceneFrame) => {
       const normal = shapeRef.current === 'normal';
-      videoInput(
-        normal && frame.playing === true && !audioRef.current.isPaused,
-      );
+      videoInput(normal && frame.playing === true && !livePaused());
       const view = viewOfShape(shapeRef.current);
       return view ? { ...frame, view } : frame;
     },
-    [videoInput],
+    [videoInput, livePaused],
   );
   const selectSignal = (next: TCameraSignal) => {
-    stopDemo();
     videoInput(false);
-    setSignal(next);
-    if (next === 'showcase') {
-      try {
-        const playing = createPublishDemoAudio(liveAudio.isPaused);
-        demo.current = playing;
-        playing.ready.catch(() => {
-          if (demo.current === playing) {
-            stopDemo();
-            videoFail();
-          }
-        });
-      } catch {
-        videoFail();
-      }
-    }
+    hearing.select(next);
   };
 
   // Counted on drawn frames, and state set only when it flips, so nothing
@@ -244,14 +196,28 @@ export default function StudioPublishCamera({
   const quietRef = useRef(false);
   const readyRef = useRef(false);
   const onDrawn = useCallback(
-    (frame: ISceneFrame, canvas?: HTMLCanvasElement) => {
-      const normal = shapeRef.current === 'normal';
+    (
+      frame: ISceneFrame,
+      canvas?: HTMLCanvasElement,
+      report?: ISceneDrawReport,
+    ) => {
+      // A frame of the Normal view by what it was drawn as, not by the view
+      // chosen now: on the way back from another view the first frames are
+      // still that view's, at its size, and one of them kept would be a
+      // squashed frame in the clip.
+      const normal = shapeRef.current === 'normal' && frame.view === undefined;
       if (normal) {
         recorder.record(frame);
       }
       // The runner's fade approaches one asymptotically. Capture once its
       // real rendered frame is visible, so the video's opening is the scene.
-      if (normal && canvas && frame.fade >= 0.99) {
+      if (
+        normal &&
+        canvas &&
+        frame.fade >= 0.99 &&
+        report?.outputWidth === captureSize.width &&
+        report.outputHeight === captureSize.height
+      ) {
         videoFrame(canvas);
       }
       if (!readyRef.current) {
@@ -268,7 +234,7 @@ export default function StudioPublishCamera({
         setQuiet(nowQuiet);
       }
     },
-    [recorder, videoFrame],
+    [recorder, videoFrame, captureSize],
   );
 
   const shoot = () => {
@@ -284,27 +250,20 @@ export default function StudioPublishCamera({
     videoRetry();
   };
 
-  // A take holds the canvas at the clip's size while it records, so it runs
-  // in the Normal view only: one under way when another view is chosen is
-  // let go, and taken again on the way back (a take still waiting for music
-  // holds nothing and simply waits). The views are never locked behind the
-  // clip: with nothing playing it waits for good.
-  const retakeOnNormal = useRef(false);
+  // A VIEW NEVER COSTS THE CLIP (Ivan, 2026-11-18: "We need to keep the
+  // video displayed ... when I select between Amp, Ultra wide, it's a
+  // mess"). Leaving Normal used to cancel a take under way and start it
+  // again from nothing on the way back, so a look at Amp mid-take threw the
+  // recording away and the footer asked for a preview video again. A take
+  // now waits in the other views exactly as it waits through a quiet moment
+  // — `shapeFrame` tells it nothing is playing there — and carries on from
+  // the same second in Normal; a finished clip is never touched, and its tab
+  // plays it from any view. Choosing a view shows that view live.
   const chooseShape = (next: TPublishShape) => {
     if (next === shape) {
       return;
     }
-    if (next !== 'normal') {
-      // The clip is the Normal view's: another view shows the scene live.
-      setLiveOver(recordedUrl);
-      if (isTakeHolding(videoState.phase)) {
-        videoCancel();
-        retakeOnNormal.current = true;
-      }
-    } else if (retakeOnNormal.current) {
-      retakeOnNormal.current = false;
-      videoRetry();
-    }
+    setLiveOver(recordedUrl);
     setShape(next);
   };
   const recording = shape === 'normal' && isTakeRunning(videoState.phase);
@@ -316,44 +275,82 @@ export default function StudioPublishCamera({
 
   return (
     <div className="studio-publish__camera">
-      {!trouble && (
-        <StudioPublishShapeSwitch shape={shape} onShape={chooseShape} />
-      )}
-      <div
-        ref={viewfinderRef}
-        className={`studio-publish__viewfinder studio-publish__viewfinder--${shape}`}
-      >
+      <div className="studio-publish__stage-bar">
+        <StudioPublishViewTabs
+          showsRecorded={showsRecorded}
+          hasRecording={recordedUrl !== undefined}
+          onLive={() => setLiveOver(recordedUrl)}
+          onRecorded={() => setLiveOver(undefined)}
+        />
+        <StudioPublishShapeSwitch
+          shape={shape}
+          disabled={trouble !== undefined}
+          onShape={chooseShape}
+        />
+      </div>
+      {/* ONE FRAME FOR EVERY VIEW. Each view's picture is fitted inside it
+          on the dialog's own ground; the Amp's column used to make the
+          frame up to 966px tall and Ultra wide a third of that, so every
+          control under it jumped at each switch and the Amp's pushed them
+          out of the dialog (Ivan, 2026-11-18). */}
+      <div className="studio-publish__stage">
         {trouble ? (
           <p className="studio-publish__trouble" role="status">
             {t(TROUBLE_KEYS[trouble])}
           </p>
         ) : (
-          <SceneAudioProvider value={selectedAudio}>
-            <ScenePreview
-              // Paused too: a stage scrolled out of sight would give its
-              // canvas back, and the take holding it could not carry on.
-              captureFrames={recording}
-              // The clip's size is the Normal view's canvas; the others are
-              // drawn at the shape they show.
-              captureSize={shape === 'normal' ? captureSize : undefined}
-              // The member's own work, on its way to the gallery.
-              madeBy="listener"
-              identity={`publish:${identity}`}
-              pack={pack}
-              label={t('studio.stage.label', { name })}
-              onTrouble={stageTrouble}
-              onDrawn={onDrawn}
-              shapeFrame={shapeFrame}
-              tuning={tuning}
-              daylight={readDaylight}
-            />
-          </SceneAudioProvider>
+          <div
+            ref={viewfinderRef}
+            className={`studio-publish__viewfinder studio-publish__viewfinder--${shape}`}
+          >
+            <SceneAudioProvider value={hearing.audio}>
+              <ScenePreview
+                // Paused too: a stage scrolled out of sight would give its
+                // canvas back, and the take holding it could not carry on.
+                captureFrames={recording}
+                // The clip's size is the Normal view's canvas; the others are
+                // drawn at the shape they show.
+                captureSize={shape === 'normal' ? captureSize : undefined}
+                // The member's own work, on its way to the gallery.
+                madeBy="listener"
+                identity={`publish:${identity}`}
+                pack={pack}
+                label={t('studio.stage.label', { name })}
+                onTrouble={stageTrouble}
+                onDrawn={onDrawn}
+                shapeFrame={shapeFrame}
+                tuning={tuning}
+                daylight={readDaylight}
+              />
+            </SceneAudioProvider>
+            <StudioPublishShapeOver shape={shape} frameRef={viewfinderRef} />
+            {flashes > 0 && (
+              <span
+                key={flashes}
+                className="studio-publish__flash"
+                aria-hidden="true"
+              />
+            )}
+            {!locked &&
+              !showsRecorded &&
+              quiet &&
+              hearing.signal === 'live' && (
+                <div className="studio-publish__quiet" role="status">
+                  <strong>{t('studio.publish.quietTitle')}</strong>
+                  <span>{t('studio.publish.quietBody')}</span>
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    onClick={() => selectSignal('showcase')}
+                  >
+                    {t('studio.publish.useDemo')}
+                  </button>
+                </div>
+              )}
+          </div>
         )}
-
-        {!trouble && (
-          <StudioPublishShapeOver shape={shape} frameRef={viewfinderRef} />
-        )}
-
+        {/* The clip is the Normal view's 16:9, the frame's own shape, so it
+            fills the frame over whichever view is live under it. */}
         {showsRecorded && (
           <video
             key={recordedUrl}
@@ -367,85 +364,16 @@ export default function StudioPublishCamera({
             aria-label={t('studio.publish.videoPlay')}
           />
         )}
-
-        {/* The clip is the Normal view's, so its tab is too: over the
-            player's title or the ultra-wide band it covered what is judged. */}
-        {!trouble && shape === 'normal' && (
-          <div
-            className="studio-segments studio-publish__view-tabs"
-            role="group"
-            aria-label={t('studio.publish.viewChoice')}
-          >
-            <button
-              type="button"
-              className="studio-segment"
-              aria-pressed={!showsRecorded}
-              onClick={() => setLiveOver(recordedUrl)}
-            >
-              {t('studio.publish.viewLive')}
-            </button>
-            <button
-              type="button"
-              className="studio-segment"
-              aria-pressed={showsRecorded}
-              disabled={recordedUrl === undefined}
-              onClick={() => {
-                setLiveOver(undefined);
-                setShape('normal');
-              }}
-            >
-              {t('studio.publish.viewRecorded')}
-            </button>
-          </div>
-        )}
-
-        {flashes > 0 && (
-          <span
-            key={flashes}
-            className="studio-publish__flash"
-            aria-hidden="true"
-          />
-        )}
-
-        {!trouble &&
-          !locked &&
-          !showsRecorded &&
-          quiet &&
-          signal === 'live' && (
-            <div className="studio-publish__quiet" role="status">
-              <strong>{t('studio.publish.quietTitle')}</strong>
-              <span>{t('studio.publish.quietBody')}</span>
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => selectSignal('showcase')}
-              >
-                {t('studio.publish.useDemo')}
-              </button>
-            </div>
-          )}
       </div>
 
       <div className="studio-publish__controls">
-        <div
-          className="studio-segments"
-          role="group"
-          aria-label={t('studio.publish.hears')}
-        >
-          {SIGNALS.map((entry) => (
-            <button
-              key={entry.signal}
-              type="button"
-              className="studio-segment"
-              aria-pressed={signal === entry.signal}
-              disabled={locked || trouble !== undefined}
-              title={lockedHint}
-              onClick={() => selectSignal(entry.signal)}
-            >
-              {t(entry.key)}
-            </button>
-          ))}
-        </div>
+        <StudioPublishHears
+          signal={hearing.signal}
+          demoPlaying={hearing.demoPlaying}
+          disabled={locked || trouble !== undefined}
+          hint={lockedHint}
+          onSelect={selectSignal}
+        />
         <button
           type="button"
           className="button small subtle"
@@ -466,35 +394,41 @@ export default function StudioPublishCamera({
           {t('studio.publish.capture')}
         </button>
       </div>
-      <Setting
-        label={t('studio.publish.timeOfDay')}
-        hint={lockedHint ?? t('studio.publish.timeOfDayHint')}
-        value={t('studio.settings.percent', { percent: daylight })}
-        position={(daylight - SCENE_DAYLIGHT_MIN) / DAYLIGHT_SPAN}
-        disabled={locked || trouble !== undefined}
-        onPosition={(position) =>
-          setDaylight(
-            snapPercent(
-              Math.round(SCENE_DAYLIGHT_MIN + position * DAYLIGHT_SPAN),
-            ),
-          )
-        }
-        onCommit={() => setVideoDaylight(daylightRef.current)}
-        snaps={DAYLIGHT_SNAPS}
-        icon={<StudioPublishDaylightIcon daylight={daylight} />}
-      />
-      <NightToDaySwitch
-        choice={nightToDay}
-        disabled={locked || trouble !== undefined}
-        hint={lockedHint}
-      />
-      <StudioPublishVideo
-        initialFocusRef={initialFocusRef}
-        state={videoState}
-        locked={locked}
-        onCancel={videoCancel}
-        onRetry={retryVideo}
-      />
+      <div className="studio-publish__hour">
+        <Setting
+          label={t('studio.publish.timeOfDay')}
+          hint={lockedHint ?? t('studio.publish.timeOfDayHint')}
+          value={t('studio.settings.percent', { percent: daylight })}
+          position={(daylight - SCENE_DAYLIGHT_MIN) / DAYLIGHT_SPAN}
+          disabled={locked || trouble !== undefined}
+          onPosition={(position) =>
+            setDaylight(
+              snapPercent(
+                Math.round(SCENE_DAYLIGHT_MIN + position * DAYLIGHT_SPAN),
+              ),
+            )
+          }
+          onCommit={() => setVideoDaylight(daylightRef.current)}
+          snaps={DAYLIGHT_SNAPS}
+          icon={<StudioPublishDaylightIcon daylight={daylight} />}
+        />
+        <NightToDaySwitch
+          choice={nightToDay}
+          disabled={locked || trouble !== undefined}
+          hint={lockedHint}
+        />
+      </div>
+      {createPortal(
+        <StudioPublishVideo
+          initialFocusRef={initialFocusRef}
+          state={videoState}
+          away={shape !== 'normal'}
+          locked={locked}
+          onCancel={videoCancel}
+          onRetry={retryVideo}
+        />,
+        videoSlot,
+      )}
     </div>
   );
 }

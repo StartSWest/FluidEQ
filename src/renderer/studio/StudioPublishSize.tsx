@@ -48,7 +48,10 @@ export default function StudioPublishSize({ size }: { size: IScenePackSize }) {
       tabIndex={-1}
     >
       <div className="studio-publish-size__head">
-        <span className="gallery-dialog__label" id="studio-publish-size-label">
+        <span
+          className="dialog-frame__section-title"
+          id="studio-publish-size-label"
+        >
           {t('studio.publish.size')}
         </span>
         <span className="studio-publish-size__total">

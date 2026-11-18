@@ -137,6 +137,10 @@ const studio = {
   'studio.publish.videoRecording': 'Grabando vista previa · {seconds} / 10 s',
   'studio.publish.videoPaused':
     'En pausa mientras hay silencio · {seconds} / 10 s',
+  'studio.publish.videoWaitingView':
+    'El vídeo de vista previa se graba en la vista Normal.',
+  'studio.publish.videoHeldView':
+    'En pausa en esta vista · {seconds} / 10 s. Continúa en la vista Normal.',
   'studio.publish.videoEncoding': 'Finalizando el vídeo…',
   'studio.publish.videoChecking': 'Comprobando la reproducción…',
   'studio.publish.videoReady':

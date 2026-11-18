@@ -11,21 +11,14 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The scene's weight on the publish screen (`StudioPublishSize.tsx`). In the
-// right column's free cell under the categories while the screen has two
-// columns; at the end, by the Publish button, when it has one.
+// The scene's weight on the publish screen (`StudioPublishSize.tsx`): the
+// last of what goes out, in the side column under the categories, on the
+// column's rhythm (`StudioPublish.scss`).
 .studio-publish-size {
   display: grid;
-  grid-row: 3;
-  grid-column: 2;
   align-self: start;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
-
-  @container publish (max-width: 1000px) {
-    grid-row: auto;
-    grid-column: 1;
-  }
 }
 
 .studio-publish-size__head {
@@ -51,11 +44,10 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-publish-size__bar {
   position: relative;
   display: flex;
-  height: 8px;
+  height: 6px;
   overflow: hidden;
-  border-radius: 999px;
-  background: $surface-well;
-  box-shadow: inset 0 0 0 1px $card-edge;
+  border-radius: $radius-pill;
+  background: $track-well;
 }
 
 .studio-publish-size__part {

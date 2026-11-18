@@ -136,6 +136,10 @@ const studio = {
   'studio.publish.videoRecording': 'Gravando prévia · {seconds} / 10 s',
   'studio.publish.videoPaused':
     'Pausado enquanto está em silêncio · {seconds} / 10 s',
+  'studio.publish.videoWaitingView':
+    'O vídeo da prévia é gravado na visualização Normal.',
+  'studio.publish.videoHeldView':
+    'Pausado nesta visualização · {seconds} / 10 s. Continua na visualização Normal.',
   'studio.publish.videoEncoding': 'Finalizando o vídeo…',
   'studio.publish.videoChecking': 'Verificando a reprodução…',
   'studio.publish.videoReady':
