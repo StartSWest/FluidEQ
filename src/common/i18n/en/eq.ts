@@ -228,6 +228,7 @@ const eq = {
   'graph.sceneColours.preview': 'The window in these colours',
   'graph.sceneColours.reset': "Use the scene's colours",
   'graph.sceneColours.pick': 'Change the {role} colour',
+  'graph.sceneColours.surfaceUnused': 'Not used while the window is white',
   'graph.sceneColours.glowUnused':
     'Too close to red: FluidEQ keeps its own “on”',
   'graph.sceneColours.glowAbout': '“On” and the glow',

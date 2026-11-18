@@ -215,6 +215,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.preview': 'इन रंगों में विंडो',
   'graph.sceneColours.reset': 'सीन के रंग इस्तेमाल करें',
   'graph.sceneColours.pick': '{role} का रंग बदलें',
+  'graph.sceneColours.surfaceUnused':
+    'विंडो सफ़ेद रहने तक इसका उपयोग नहीं होता',
   'graph.sceneColours.glowUnused':
     'लाल के बहुत करीब: “चालू” के लिए FluidEQ अपना रंग रखता है',
   'graph.sceneColours.glowAbout': '“चालू” और चमक',

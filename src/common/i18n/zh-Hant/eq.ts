@@ -184,6 +184,7 @@ const eq = {
   'graph.sceneColours.preview': '使用這些顏色的視窗',
   'graph.sceneColours.reset': '使用場景的顏色',
   'graph.sceneColours.pick': '更改{role}',
+  'graph.sceneColours.surfaceUnused': '視窗為白色時不使用',
   'graph.sceneColours.glowUnused':
     '太接近紅色：「開啟」會使用 FluidEQ 自己的顏色',
   'graph.sceneColours.glowAbout': '「開啟」和光暈',

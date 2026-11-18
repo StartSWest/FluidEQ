@@ -219,6 +219,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.preview': 'Окно в этих цветах',
   'graph.sceneColours.reset': 'Вернуть цвета сцены',
   'graph.sceneColours.pick': 'Изменить цвет: {role}',
+  'graph.sceneColours.surfaceUnused': 'Не используется, пока окно белое',
   'graph.sceneColours.glowUnused':
     'Слишком близко к красному: FluidEQ оставит своё «вкл.»',
   'graph.sceneColours.glowAbout': '«Вкл.» и свечение',

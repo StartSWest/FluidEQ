@@ -201,6 +201,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.preview': '使用这些颜色的窗口',
   'graph.sceneColours.reset': '使用场景的颜色',
   'graph.sceneColours.pick': '更改{role}',
+  'graph.sceneColours.surfaceUnused': '窗口为白色时不使用',
   'graph.sceneColours.glowUnused':
     '太接近红色：“开启”将使用 FluidEQ 自己的颜色',
   'graph.sceneColours.glowAbout': '“开启”和光晕',

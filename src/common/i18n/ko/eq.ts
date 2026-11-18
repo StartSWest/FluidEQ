@@ -195,6 +195,7 @@ const eq = {
   'graph.sceneColours.preview': '이 색을 입힌 창',
   'graph.sceneColours.reset': '장면의 색 사용',
   'graph.sceneColours.pick': '{role} 색 바꾸기',
+  'graph.sceneColours.surfaceUnused': '창이 흰색인 동안에는 쓰이지 않습니다',
   'graph.sceneColours.glowUnused':
     "빨간색에 너무 가까움: '켜짐'은 FluidEQ 색을 씁니다",
   'graph.sceneColours.glowAbout': "'켜짐'과 빛",

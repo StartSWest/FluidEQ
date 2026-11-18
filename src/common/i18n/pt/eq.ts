@@ -220,6 +220,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.preview': 'A janela nessas cores',
   'graph.sceneColours.reset': 'Usar as cores da cena',
   'graph.sceneColours.pick': 'Mudar a cor de {role}',
+  'graph.sceneColours.surfaceUnused':
+    'Não é usada enquanto a janela está branca',
   'graph.sceneColours.glowUnused':
     'Perto demais do vermelho: o FluidEQ mantém o próprio “ligado”',
   'graph.sceneColours.glowAbout': '“Ligado” e o brilho',

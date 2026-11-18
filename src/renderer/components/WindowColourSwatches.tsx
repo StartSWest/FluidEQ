@@ -13,6 +13,8 @@ import {
 } from 'common/sceneWindowColours';
 import { useTranslation } from '../utils/I18nContext';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
+import { useThemeShade } from '../utils/theme';
+import { isLightShade } from '../utils/themeShade';
 
 const ROLE_NAME: Record<TSceneWindowColourRole, TranslationKey> = {
   surface: 'graph.sceneColours.surface',
@@ -119,6 +121,11 @@ export default function WindowColourSwatches({
 }: IWindowColourSwatchesProps) {
   const { t } = useTranslation();
   const glowUnused = skyFromWindowColours(colours)?.active === null;
+  // A white window keeps its panes white whatever the scene's surface is
+  // (`pickedWindow.ts`), so the surface paints nothing there and its swatch
+  // says so, held, rather than taking a colour nobody would see (Ivan,
+  // 2026-11-17: "make sure it disables the surface").
+  const surfaceUnused = isLightShade(useThemeShade());
   return (
     <div className="window-colour-swatches">
       {SCENE_WINDOW_COLOUR_ROLES.map((role) => (
@@ -128,11 +135,15 @@ export default function WindowColourSwatches({
           value={colours[role]}
           changed={own !== undefined && own[role] !== colours[role]}
           note={
-            role === 'glow' && glowUnused
-              ? t('graph.sceneColours.glowUnused')
-              : undefined
+            (role === 'glow' &&
+              glowUnused &&
+              t('graph.sceneColours.glowUnused')) ||
+            (role === 'surface' &&
+              surfaceUnused &&
+              t('graph.sceneColours.surfaceUnused')) ||
+            undefined
           }
-          disabled={disabled}
+          disabled={disabled || (role === 'surface' && surfaceUnused)}
           onChange={onChange}
           onCommit={onCommit}
         />

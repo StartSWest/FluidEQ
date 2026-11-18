@@ -13,7 +13,7 @@ import { DARK_KNEE, darkenSurfaces } from '../utils/sceneTintDark';
 import { tintThemePalette } from '../utils/sceneTintPalette';
 import { toneShadeOf } from '../utils/sceneTintStore';
 import { useThemeShade } from '../utils/theme';
-import { themeShadeTokens } from '../utils/themeShade';
+import { isLightShade, themeShadeTokens } from '../utils/themeShade';
 
 /**
  * A small window painted in `colours` the way the real one would be at the
@@ -40,9 +40,14 @@ export default function WindowColoursPreview({
   const style = useMemo(() => {
     // At the Brightness the pick would leave the window at, so the small
     // window shows what letting go of the picker will do.
-    const worn = named
-      ? pickedWindow(colours, shadeForPickedSurface(colours.surface, shade))
-      : undefined;
+    // On a white window the Brightness stays where it is: there the surface
+    // paints nothing (its swatch is held), so it moves nothing, and the
+    // small window is the white one the app is (Ivan, 2026-11-17: "make the
+    // inside white on the white theme").
+    const at = isLightShade(shade)
+      ? shade
+      : shadeForPickedSurface(colours.surface, shade);
+    const worn = named ? pickedWindow(colours, at) : undefined;
     if (worn) {
       return {
         '--preview-floor': worn.tokens['--surface-base'],
