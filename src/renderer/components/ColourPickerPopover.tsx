@@ -228,7 +228,10 @@ export default function ColourPickerPopover({
     const hex = readHexColour(text);
     if (hex) {
       setHsv(hsvOfHex(hex));
-      follow(hex);
+      // Typed, not dragged: one deliberate colour, applied at once, and
+      // anything a drag left waiting is dropped behind it.
+      drop();
+      onChange(hex);
     }
   };
 

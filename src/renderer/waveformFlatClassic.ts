@@ -11,7 +11,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import {
   type TPainter,
-  BODY_TINT,
   LED_CELL,
   across,
   countFor,
@@ -258,7 +257,7 @@ const CLASSIC_PAINTERS: Record<
     const values = resample(input.bands, row.length);
     const floor = box.y + box.height;
     // The spectrum behind the wave as one flat step of the trace's colour.
-    context.globalAlpha = BODY_TINT;
+    context.globalAlpha = input.body;
     context.fillStyle = input.ink;
     row.forEach(({ x, width }, index) => {
       const height = Math.max(

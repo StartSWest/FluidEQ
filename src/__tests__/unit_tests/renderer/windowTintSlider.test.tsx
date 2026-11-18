@@ -8,11 +8,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The Tint's two swatches (Ivan, 2026-11-18: "I need to be able to also
  * select the secondary colour in the picker, so I have control of both
  * colours"; "by default the primary and the secondary have the same colour,
- * and if the user changes it, the gradient is created"). The second follows
- * the first, drawn as a ring of it with a plus, until a colour is picked
- * there; then it is filled, with a small cross that gives back one colour.
- * Each picker updates the window on a painted frame's rest and at once when
- * it settles (`useLiveSlider`).
+ * and if the user changes it, the gradient is created"). Each opens FluidEQ's
+ * own colour picker, the Studio's, with Accept and Cancel ("use the same
+ * colour picker we did for the Studio in the app settings"). The second
+ * follows the first, drawn as a ring of it with a plus, until a colour is
+ * picked there; then it is filled, with a small cross that gives back one
+ * colour. Cancel puts the Tint back as it stood when the picker opened.
  */
 
 import '@testing-library/jest-dom';
@@ -20,7 +21,11 @@ import type * as TestingLibrary from '@testing-library/react';
 import type { ReactElement } from 'react';
 
 jest.mock('renderer/utils/I18nContext', () => ({
-  useTranslation: () => ({ locale: 'en', t: (key: string) => key }),
+  useTranslation: () => ({
+    locale: 'en',
+    t: (key: string, vars?: Record<string, string>) =>
+      vars ? `${key}:${Object.values(vars).join(',')}` : key,
+  }),
 }));
 
 /** The renderer of the last mount, to clean up after each case. */
@@ -49,16 +54,27 @@ const mount = (stored: Record<string, string> = {}) => {
   return rtl;
 };
 
-/** The swatch's picker settling on `hex`, as the system picker says it. */
-const settle = (
+/** The colour a swatch wears, as its own style says it. */
+const worn = (swatch: HTMLElement) => swatch.style.getPropertyValue('--swatch');
+
+/** Opens `swatch`'s picker, types `hex` into it and presses `button`. */
+const pick = (
   rtl: typeof TestingLibrary,
-  input: HTMLElement,
+  swatch: HTMLElement,
   hex: string,
+  button: 'accept' | 'cancel',
 ) => {
-  rtl.fireEvent.change(input, { target: { value: hex } });
-  rtl.act(() => {
-    input.dispatchEvent(new Event('change'));
-  });
+  rtl.fireEvent.click(swatch);
+  const picker = rtl.screen.getByRole('dialog');
+  rtl.fireEvent.change(
+    rtl.within(picker).getByLabelText('graph.sceneColours.hex'),
+    { target: { value: hex } },
+  );
+  rtl.fireEvent.click(
+    rtl.within(picker).getByRole('button', {
+      name: `graph.sceneColours.${button}`,
+    }),
+  );
 };
 
 afterEach(() => {
@@ -70,31 +86,31 @@ afterEach(() => {
 describe('the Tint’s second swatch', () => {
   it('follows the first colour until a colour is picked there', () => {
     const rtl = mount({ 'fluideq.windowTintColour': '#40c0a0' });
-    const second = rtl.screen.getByLabelText('graph.windowTintSecond');
-    expect(second).toHaveValue('#40c0a0');
-    expect(second.closest('label')).toHaveClass(
-      'graph-view-menu__swatch--follows',
-    );
+    const second = rtl.screen.getByRole('button', {
+      name: 'graph.windowTintSecond',
+    });
+    expect(worn(second)).toBe('#40c0a0');
+    expect(second).toHaveClass('graph-view-menu__swatch--follows');
     expect(
       rtl.screen.queryByRole('button', { name: 'graph.windowTintOneColour' }),
     ).toBeNull();
   });
 
-  it('keeps a colour picked there, filled, with a cross back to one colour', () => {
+  it('keeps a colour accepted there, filled, with a cross back to one colour', () => {
     const rtl = mount({ 'fluideq.windowTintColour': '#40c0a0' });
-    const second = rtl.screen.getByLabelText('graph.windowTintSecond');
-    settle(rtl, second, '#D03F8A');
+    const second = rtl.screen.getByRole('button', {
+      name: 'graph.windowTintSecond',
+    });
+    pick(rtl, second, '#D03F8A', 'accept');
     expect(window.localStorage.getItem('fluideq.windowTintSecondary')).toBe(
       '#d03f8a',
     );
-    expect(second).toHaveValue('#d03f8a');
-    expect(second.closest('label')).not.toHaveClass(
-      'graph-view-menu__swatch--follows',
-    );
+    expect(worn(second)).toBe('#d03f8a');
+    expect(second).not.toHaveClass('graph-view-menu__swatch--follows');
     // The first is left as it was.
-    expect(rtl.screen.getByLabelText('graph.windowTintPick')).toHaveValue(
-      '#40c0a0',
-    );
+    expect(
+      worn(rtl.screen.getByRole('button', { name: 'graph.windowTintPick' })),
+    ).toBe('#40c0a0');
 
     rtl.fireEvent.click(
       rtl.screen.getByRole('button', { name: 'graph.windowTintOneColour' }),
@@ -102,7 +118,24 @@ describe('the Tint’s second swatch', () => {
     expect(
       window.localStorage.getItem('fluideq.windowTintSecondary'),
     ).toBeNull();
-    expect(second).toHaveValue('#40c0a0');
+    expect(worn(second)).toBe('#40c0a0');
+  });
+
+  it('puts the Tint back as it stood when the picker is cancelled', () => {
+    const rtl = mount({ 'fluideq.windowTintColour': '#40c0a0' });
+    const second = rtl.screen.getByRole('button', {
+      name: 'graph.windowTintSecond',
+    });
+    pick(rtl, second, '#D03F8A', 'cancel');
+    expect(
+      window.localStorage.getItem('fluideq.windowTintSecondary'),
+    ).toBeNull();
+    expect(second).toHaveClass('graph-view-menu__swatch--follows');
+    // The control: Accept on the same colour keeps it.
+    pick(rtl, second, '#D03F8A', 'accept');
+    expect(window.localStorage.getItem('fluideq.windowTintSecondary')).toBe(
+      '#d03f8a',
+    );
   });
 
   it('keeps the second where it was put when the first colour moves', () => {
@@ -110,12 +143,17 @@ describe('the Tint’s second swatch', () => {
       'fluideq.windowTintColour': '#40c0a0',
       'fluideq.windowTintSecondary': '#d03f8a',
     });
-    settle(rtl, rtl.screen.getByLabelText('graph.windowTintPick'), '#ff8800');
+    pick(
+      rtl,
+      rtl.screen.getByRole('button', { name: 'graph.windowTintPick' }),
+      '#ff8800',
+      'accept',
+    );
     expect(window.localStorage.getItem('fluideq.windowTintColour')).toBe(
       '#ff8800',
     );
-    expect(rtl.screen.getByLabelText('graph.windowTintSecond')).toHaveValue(
-      '#d03f8a',
-    );
+    expect(
+      worn(rtl.screen.getByRole('button', { name: 'graph.windowTintSecond' })),
+    ).toBe('#d03f8a');
   });
 });

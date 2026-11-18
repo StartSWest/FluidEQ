@@ -40,6 +40,12 @@ export interface IFlatMeterInput {
   /** What an unlit cell or a track is painted. */
   unlit: string;
   /**
+   * How much of a body's colour a filled style keeps: `BODY_TINT` on a dark
+   * window, more on a white one (`LIGHT_BODY_TINT`), where 16% of a colour
+   * is a ghost.
+   */
+  body: number;
+  /**
    * Where the meter itself begins, as a y in the box. The styles with a
    * background grid draw that grid to the box's top, under the label row,
    * and light it only from here down (Ivan, 2026-11-16: "just the bg not the
@@ -55,6 +61,12 @@ export type TPainter = (
 
 /** How much of a body's colour a filled style keeps. */
 export const BODY_TINT = 0.16;
+/**
+ * The same on a white window (Ivan, 2026-11-18, of the title bar's Fluid
+ * on white: "too light, not visible"): the dark window's 16% of a colour
+ * over white read as a faint grey wash.
+ */
+export const LIGHT_BODY_TINT = 0.38;
 /** Amber and red for the top two cells of a loud band (Segments). */
 export const WARM = '#ffb35c';
 export const HOT = '#ff6b6b';
@@ -252,7 +264,7 @@ export const stroke = (
 export const tint = (
   context: CanvasRenderingContext2D,
   input: IFlatMeterInput,
-  alpha = BODY_TINT,
+  alpha = input.body,
 ) => {
   context.globalAlpha = alpha;
   context.fillStyle = input.ink;

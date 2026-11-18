@@ -88,6 +88,7 @@ import { useTranslation } from './utils/I18nContext';
 import { readSurface } from './utils/theme';
 import { rainbowGradientStops, useRainbowStops } from './utils/rainbowPalette';
 import paintFlatMeter from './waveformFlatPaint';
+import { BODY_TINT, LIGHT_BODY_TINT } from './waveformFlatKit';
 import { type IRecorderView, createRecorderView } from './waveformRecorderView';
 import { advanceFlatMeter, createFlatMeterState } from './waveformFlatState';
 import './styles/WaveformVisualizer.scss';
@@ -590,7 +591,13 @@ const WaveformVisualizer = () => {
     // together. Clipping outranks paused, as it always did: a paused
     // analyser that was clipping when it stopped keeps the warning.
     let ink: string | CanvasGradient = paneRamp(context, pane);
-    let light = 'rgba(255, 255, 255, 0.85)';
+    // A white window takes a deeper body and a dark peak: the dark window's
+    // faint wash and white peaks vanished on it (Ivan, 2026-11-18).
+    const isLightWindow =
+      document.documentElement.getAttribute('data-window-ink') === 'dark';
+    let light = isLightWindow
+      ? 'rgba(20, 26, 34, 0.72)'
+      : 'rgba(255, 255, 255, 0.85)';
     if (isOverloadingRef.current) {
       ink = CLIP_STROKE;
       light = CLIP_STROKE;
@@ -609,6 +616,7 @@ const WaveformVisualizer = () => {
       ink,
       light,
       unlit,
+      body: isLightWindow ? LIGHT_BODY_TINT : BODY_TINT,
       meterTop: FULL_HEIGHT_STYLES.has(styleRef.current)
         ? pane.y + sizeRef.current.meterOffset
         : pane.y,

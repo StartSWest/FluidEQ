@@ -12,7 +12,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { WAVEFORM_STYLES } from 'common/waveformStyles';
 import paintFlatMeter from 'renderer/waveformFlatPaint';
-import { type IFlatMeterInput, slots } from 'renderer/waveformFlatKit';
+import {
+  BODY_TINT,
+  type IFlatMeterInput,
+  slots,
+} from 'renderer/waveformFlatKit';
 import {
   FLAT_HISTORY_LENGTH,
   advanceFlatMeter,
@@ -190,6 +194,7 @@ describe('every style', () => {
       ink: 'INK',
       light: 'LIGHT',
       unlit: 'UNLIT',
+      body: BODY_TINT,
       meterTop,
     };
   };
@@ -258,6 +263,7 @@ describe('a background grid over the label row', () => {
       ink: 'INK',
       light: 'LIGHT',
       unlit: 'UNLIT',
+      body: BODY_TINT,
       meterTop,
     });
     const tops = (lit: boolean) =>
