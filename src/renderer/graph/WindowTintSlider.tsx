@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useId, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, type CSSProperties } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import useLiveSlider from '../utils/useLiveSlider';
 import { labToHex } from '../utils/oklab';
@@ -19,6 +19,13 @@ import {
 
 /** The wheel's colour at `hue`, as the track and the swatch draw it. */
 const wheelColour = (hue: number) => `oklch(0.72 0.13 ${hue})`;
+
+/**
+ * Painted frames between two restyles while the picker moves: the window
+ * recoloured whole is a long frame, and every one of them kept the picker
+ * from following the hand.
+ */
+const PICKER_REST_FRAMES = 6;
 
 /** The same colour as a hex, the colour picker's opening value. */
 const wheelHex = (hue: number) => {
@@ -53,12 +60,36 @@ const WindowTintSlider = () => {
   const { shown: hue, set } = useLiveSlider(tint ?? LAGOON_HUE, setWindowTint);
   const id = useId();
   const pickerId = useId();
-  const pick = (value: string) => {
-    const lab = labOf(value);
-    // A grey has no hue of its own: the slider stays where it stands.
-    const at = lab && Math.hypot(lab.a, lab.b) > 0.02 ? hueOf(lab) : hue;
-    setWindowTintColour(value, at);
-  };
+  const hueRef = useRef(hue);
+  hueRef.current = hue;
+  // The picker's colour under the pointer at once on the swatch, the window
+  // restyled with it only every few painted frames (`useLiveSlider`), so the
+  // picker keeps up with the hand; the newest colour lands the moment the
+  // picker settles (its own `change`).
+  const live = useLiveSlider<string | undefined>(
+    picked,
+    (value) => {
+      if (value === undefined) {
+        return;
+      }
+      const lab = labOf(value);
+      // A grey has no hue of its own: the slider stays where it stands.
+      const at =
+        lab && Math.hypot(lab.a, lab.b) > 0.02 ? hueOf(lab) : hueRef.current;
+      setWindowTintColour(value, at);
+    },
+    PICKER_REST_FRAMES,
+  );
+  const pickerRef = useRef<HTMLInputElement>(null);
+  const { flush } = live;
+  useEffect(() => {
+    const element = pickerRef.current;
+    if (!element) {
+      return undefined;
+    }
+    element.addEventListener('change', flush);
+    return () => element.removeEventListener('change', flush);
+  }, [flush]);
   return (
     <div
       className="graph-view-menu__slider graph-view-menu__slider--hue"
@@ -87,16 +118,17 @@ const WindowTintSlider = () => {
       <label
         htmlFor={pickerId}
         className="graph-view-menu__value graph-view-menu__swatch"
-        style={{ '--swatch': picked ?? wheelColour(hue) } as CSSProperties}
+        style={{ '--swatch': live.shown ?? wheelColour(hue) } as CSSProperties}
         title={t('graph.windowTintPick')}
       >
         <input
+          ref={pickerRef}
           id={pickerId}
           type="color"
           className="graph-view-menu__swatch-input"
           aria-label={t('graph.windowTintPick')}
-          value={picked ?? wheelHex(hue)}
-          onChange={(event) => pick(event.target.value)}
+          value={live.shown ?? wheelHex(hue)}
+          onChange={(event) => live.set(event.target.value.toLowerCase())}
         />
       </label>
     </div>

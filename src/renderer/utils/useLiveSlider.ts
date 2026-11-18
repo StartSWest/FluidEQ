@@ -8,11 +8,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export interface ILiveSlider {
+export interface ILiveSlider<T = number> {
   /** What the slider shows: the pointer's value while it leads the setting. */
-  shown: number;
+  shown: T;
   /** Hand every value the slider moves to here. */
-  set: (next: number) => void;
+  set: (next: T) => void;
+  /** Apply the newest value now: the control has settled. */
+  flush: () => void;
 }
 
 /**
@@ -32,25 +34,35 @@ export interface ILiveSlider {
  * frame of the drag and the thumb moves in all of them. A value still
  * waiting when the slider goes away (its menu closed mid-drag) is applied
  * then, so the last one is never lost.
+ *
+ * `restFrames` is how many painted frames follow an apply before the next:
+ * one for a slider, more for a control whose every value restyles the whole
+ * window in colour (the Tint's colour picker, Ivan 2026-11-18: "it updates
+ * the app very fast and gets slow; update less often so the user can move
+ * the picker better, and when they stop, apply quickly"). Counted in frames
+ * the window paints, never in milliseconds, so a slow machine is given more
+ * time and a fast one less. `flush` applies the newest value at once, for a
+ * control that says it has settled.
  */
-const useLiveSlider = (
-  value: number,
-  apply: (next: number) => void,
-): ILiveSlider => {
-  const [draft, setDraft] = useState<number>();
+const useLiveSlider = <T = number>(
+  value: T,
+  apply: (next: T) => void,
+  restFrames = 1,
+): ILiveSlider<T> => {
+  const [draft, setDraft] = useState<{ value: T }>();
   const applyRef = useRef(apply);
   applyRef.current = apply;
-  const waiting = useRef<number | undefined>(undefined);
+  const waiting = useRef<{ value: T } | undefined>(undefined);
   const frame = useRef(0);
-  const resting = useRef(false);
+  const resting = useRef(0);
 
   const tick = useCallback(() => {
     frame.current = 0;
     // The frame after an apply is the thumb's: its restyle has painted, and
     // this one paints only what moved since.
-    if (resting.current) {
-      resting.current = false;
-      if (waiting.current !== undefined) {
+    if (resting.current > 0) {
+      resting.current -= 1;
+      if (waiting.current !== undefined || resting.current > 0) {
         frame.current = requestAnimationFrame(tick);
       }
       return;
@@ -60,7 +72,7 @@ const useLiveSlider = (
       return;
     }
     waiting.current = undefined;
-    applyRef.current(next);
+    applyRef.current(next.value);
     // Nothing newer behind it: the slider shows the setting itself again, in
     // the same render as the setting's own change, so it never shows the old
     // value between the two; and a setting that clamped or ignored the value
@@ -68,14 +80,14 @@ const useLiveSlider = (
     if (waiting.current === undefined) {
       setDraft(undefined);
     }
-    resting.current = true;
+    resting.current = restFrames;
     frame.current = requestAnimationFrame(tick);
-  }, []);
+  }, [restFrames]);
 
   const set = useCallback(
-    (next: number) => {
-      setDraft(next);
-      waiting.current = next;
+    (next: T) => {
+      setDraft({ value: next });
+      waiting.current = { value: next };
       if (frame.current === 0) {
         frame.current = requestAnimationFrame(tick);
       }
@@ -88,14 +100,24 @@ const useLiveSlider = (
       cancelAnimationFrame(frame.current);
       frame.current = 0;
       if (waiting.current !== undefined) {
-        applyRef.current(waiting.current);
+        applyRef.current(waiting.current.value);
         waiting.current = undefined;
       }
     },
     [],
   );
 
-  return { shown: draft ?? value, set };
+  const flush = useCallback(() => {
+    const next = waiting.current;
+    if (next === undefined) {
+      return;
+    }
+    waiting.current = undefined;
+    applyRef.current(next.value);
+    setDraft(undefined);
+  }, []);
+
+  return { shown: draft === undefined ? value : draft.value, set, flush };
 };
 
 export default useLiveSlider;
