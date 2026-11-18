@@ -5,7 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
-import { labToHex, parseCssColour, rgbToLab } from './oklab';
+import {
+  hueDistance,
+  labToHex,
+  parseCssColour,
+  rgbToLab,
+  toward,
+} from './oklab';
 import {
   sceneAppColourStops,
   type ISceneColourControls,
@@ -17,6 +23,14 @@ import {
   type ISceneColour,
   type ISceneSky,
 } from './sceneTint';
+import {
+  isGreySky,
+  PALE_ACTIVE_CHROMA,
+  PALE_ACTIVE_LIGHTNESS,
+  sceneAccentHue,
+} from './sceneTintPalette';
+import { OCEAN_THEME, THEME_ACTIVE } from './themeShade';
+import { GLOW_HUE_APART } from './windowColourCheck';
 
 /**
  * THE COLOURS A SCENE LENDS THE WINDOW, FROM WHAT THE SCENE SAYS (Ivan,
@@ -113,27 +127,116 @@ export const windowColoursFromStops = (
     }
   });
   const sky = pixels.length > 0 ? findSceneSky(pixels) : undefined;
-  if (!sky) {
-    return undefined;
-  }
-  const accent = sky.accent ?? sky;
-  return {
-    surface: hexOf(sky),
-    accent: hexOf(accent),
-    glow: hexOf(sky.active ?? accent),
-  };
+  return sky ? windowColoursOfSky(sky) : undefined;
 };
 
 /**
- * A measured sky as the three colours, for a scene that names none and has
- * no palette: what the editors show as "the scene's own" and start from.
+ * The darkest a window's floor is taken from a scene's busiest colour. The
+ * window colours chosen by hand for the FluidEQ scenes sit at 0.20 to 0.25
+ * (OKLab): dark enough to be a night's floor, light enough to still carry
+ * the scene's hue.
+ */
+const FLOOR_LIGHTNESS = 0.24;
+/**
+ * From here up a busiest colour is a light ground - a snowfield, a white
+ * marble - and is kept as a light window's panes (`pickedWindow.ts` moves a
+ * named light surface no darker than this either).
+ */
+const LIGHT_GROUND_LIGHTNESS = 0.82;
+
+/** `colour` as the floor or the panes the window can wear it as. */
+const groundOf = (colour: ISceneColour): string =>
+  colour.lightness >= LIGHT_GROUND_LIGHTNESS
+    ? hexOf(colour)
+    : hexOf({
+        ...colour,
+        lightness: Math.min(colour.lightness, FLOOR_LIGHTNESS),
+      });
+
+/**
+ * The hue nearest `hue` that a glow can take: one that says neither off nor
+ * wait (`clearsWarningHues`) and, beside an accent of `accentHue`, stands
+ * apart from it. The measurement already keeps its colour for "on" clear of
+ * both, but judged on ten-degree bins, so the colour itself could still land
+ * a few degrees inside either (Nebula Heart's pink beside the red, Ocean's
+ * cyan beside its blue).
+ */
+const glowHueNear = (hue: number, accentHue?: number): number => {
+  const fits = (candidate: number) =>
+    clearsWarningHues(candidate) &&
+    (accentHue === undefined ||
+      hueDistance(candidate, accentHue) >= GLOW_HUE_APART);
+  for (let step = 0; step <= 180; step += 1) {
+    const found = [hue + step, hue - step]
+      .map((candidate) => (candidate + 360) % 360)
+      .find(fits);
+    if (found !== undefined) {
+      return found;
+    }
+  }
+  return hue;
+};
+
+/** `base` - one of the theme's filled colours - turned to `hue`. */
+const filledAt = (base: string, hue: number): string => {
+  const parsed = parseCssColour(base);
+  if (!parsed) {
+    return base;
+  }
+  const lab = rgbToLab(parsed.rgb);
+  return labToHex(
+    toward({ l: lab.l, a: 0, b: 0 }, Math.hypot(lab.a, lab.b), hue, 1),
+  );
+};
+
+/**
+ * THE DETERMINISTIC RULE: a scene's colours - measured from its picture, or
+ * read off its palette's stops - as three colours a window can wear, for a
+ * scene that names none. What the editors show as "the scene's own" and
+ * start from, what "Choose them from the palette" writes into a scene, and
+ * what a palette scene's window is tinted from. They pass the checks the
+ * Studio holds a scene's named colours to (`windowColourCheck.ts`).
+ *
+ * A scene's busiest colour is a mid-tone nobody chose, and its second colour
+ * as measured is too: a measurement gives hues, not colours. So:
+ *
+ * - the surface is the busiest colour's hue taken down to a night's floor,
+ *   or kept as it is when it is a light ground (`groundOf`);
+ * - the accent is the theme's own filled accent turned to the scene's
+ *   second colour, or to its sky's for a scene strong in one colour - the
+ *   very colour the window points with under a measured scene
+ *   (`tintThemePalette`) - and the theme's own where the sky is too grey or
+ *   faint to lend a hue (`sceneAccentHue`);
+ * - the glow is the theme's green turned to the scene's colour for "on", or
+ *   a pale light of its sky, moved off red and amber, which say off and wait.
+ *
+ * They used to be the measured colours as they were, the accent and glow
+ * falling back to the sky itself: a scene of one colour showed its busiest
+ * mid-tone three times - Crystal's #342942 as surface, accent and glow - and
+ * a listener starting from them had near-black buttons worn as named.
  */
 export const windowColoursOfSky = (sky: ISceneSky): ISceneWindowColours => {
-  const accent = sky.accent ?? sky;
+  const surface = groundOf(sky);
+  const accentHue = sceneAccentHue(sky);
+  if (accentHue === undefined) {
+    return { surface, accent: OCEAN_THEME['--accent'], glow: THEME_ACTIVE };
+  }
+  // A pale light may share the accent's hue: it reads as a light, not a
+  // second colour (`windowColourCheck.ts`).
+  const glow = sky.active
+    ? filledAt(THEME_ACTIVE, glowHueNear(sky.active.hue, accentHue))
+    : labToHex(
+        toward(
+          { l: PALE_ACTIVE_LIGHTNESS, a: 0, b: 0 },
+          isGreySky(sky) ? 0 : PALE_ACTIVE_CHROMA,
+          glowHueNear(sky.hue),
+          1,
+        ),
+      );
   return {
-    surface: hexOf(sky),
-    accent: hexOf(accent),
-    glow: hexOf(sky.active ?? accent),
+    surface,
+    accent: filledAt(OCEAN_THEME['--accent'], accentHue),
+    glow,
   };
 };
 

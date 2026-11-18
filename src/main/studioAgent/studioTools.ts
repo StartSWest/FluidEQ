@@ -22,6 +22,7 @@ import type { IMcpTool, IMcpToolResult } from './mcpProtocol';
 import { createViewsTool } from './viewsTool';
 import { createSongTool } from './songTool';
 import { createWatchTool, type IWatchPictures } from './watchTool';
+import windowColourLines from './windowColourLines';
 
 /**
  * The two tools the Studio's agent door offers: look at the scene, and hear
@@ -335,6 +336,7 @@ const describe = (
     slidersLine(pack, request.sliders),
     ...palettesLine(pack),
     ...coloursLine(pack),
+    ...windowColourLines(pack.windowColours),
     momentLine(answer.moment),
     cameraLine(pack, camera, request),
     costLine(answer.drawMs, answer.renderWidth, answer.renderHeight),
@@ -462,7 +464,7 @@ export const createStudioTools = ({
       name: 'look_at_scene',
       title: 'Look at the scene',
       description:
-        "Draws the member's FluidEQ Studio scene on this computer's GPU, exactly as FluidEQ plays it, and returns the picture - or, when it cannot play, FluidEQ's own reasons (pack.json problems, the member rules, the driver's compile errors). Call it when a save changed what can be seen, asking for the one moment, shape or slider that shows the change; the long checklist is for a new or rebuilt scene, once it is finished. Never call it again on a scene no save has changed. Judge the picture before telling the member anything is done. Shapes, silence, a moment in the music, slider values (daylight among them: 0 draws the scene's night, 100 its day), the wave position, the viewer's camera, pointer and a tap can be chosen for one picture without changing any file, and each answer says what the music was doing at that instant and how dark the picture measures - at daylight 0 in silence, whether it is dark enough to be a night (its Night check, which must pass).",
+        "Draws the member's FluidEQ Studio scene on this computer's GPU, exactly as FluidEQ plays it, and returns the picture - or, when it cannot play, FluidEQ's own reasons (pack.json problems, the member rules, the driver's compile errors). Call it when a save changed what can be seen, asking for the one moment, shape or slider that shows the change; the long checklist is for a new or rebuilt scene, once it is finished. Never call it again on a scene no save has changed. Judge the picture before telling the member anything is done. Shapes, silence, a moment in the music, slider values (daylight among them: 0 draws the scene's night, 100 its day), the wave position, the viewer's camera, pointer and a tap can be chosen for one picture without changing any file, and each answer says what the music was doing at that instant and how dark the picture measures - at daylight 0 in silence, whether it is dark enough to be a night (its Night check, which must pass) - and whether the window colours pack.json names make a good window (its Window colours check, which must pass too).",
       inputSchema: LOOK_SCHEMA,
       annotations: {
         readOnlyHint: true,

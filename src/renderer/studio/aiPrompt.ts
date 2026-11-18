@@ -186,8 +186,11 @@ pack.json:
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.
 - windowColours: always give them. The colours FluidEQ's window wears
-  round my scene, chosen from the scene's own (the fluideq-finish skill says
-  how). Choose them again whenever the scene's colours change.
+  round my scene: the hues of the scene's own colours at the lightness a
+  window needs - a dark floor, a bright accent, a lit glow (the
+  fluideq-finish skill says how). Every look_at_scene answer measures them
+  in its Window colours check, which must pass. Choose them again whenever
+  the scene's colours change.
 - params: the scene's own sliders, up to 8, which FluidEQ shows me by
   itself with the names you give them - and the Daylight control, which it
   sets itself (see DAY AND NIGHT). Add one for each thing my idea is

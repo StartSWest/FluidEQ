@@ -27,24 +27,40 @@ palette by a fixed rule that never sees the picture: always give your own.
 three, chosen from the scene's OWN colours as they are on screen, never new
 ones. With palettes, take them from the first palette's stops as shown.
 
-- `surface`: the colour covering most of the picture - its sky, water or
-  night, never its brightest detail. A neon skyline's is the violet behind
-  the signs, not the signs. FluidEQ wears it as the window's own colour on
-  the side the listener's Brightness is on: a dark one is a dark window's
-  floor exactly, a light one (a snowfield, a white marble) a light window's
-  panes exactly, and on the other side it lends only its hue. So pick it as
-  dark or as light as the picture really is. A grey (`#3a3a3a`) is right for
-  a scene that is mostly grey, like polished metal.
-- `accent`: the scene's second colour, in front of its sky - the signs,
-  the lit windows, the fish, the flame. Buttons and switches point with it.
-  Clearly a different hue from `surface` (about 50 degrees round the wheel
-  or more) and colourful enough to point with. A scene of truly one colour
-  takes a brighter, more saturated version of the surface's.
+Each one is the HUE of something in the picture, at the lightness a window
+needs - never a pixel copied as it is. A picture's colours are mid-tones;
+a window wears a dark floor and bright marks. Lightness below is OKLab's,
+0 black to 1 white; the Window colours check in every `look_at_scene`
+answer measures it for you.
+
+- `surface`: the hue of what covers most of the picture - its sky, water
+  or night, never its brightest detail. A neon skyline's is the violet
+  behind the signs, not the signs. FluidEQ wears it as the floor of a dark
+  window and lends its hue to a light one, as the listener's Brightness
+  says. Take it down to a night's floor, lightness 0.18 to 0.28, keeping
+  some of its colour (`#1d2b4f`, `#241737`, `#0d1936`), even for a day
+  scene: a desert's is a dark sand, a pink sky's a deep plum. Only a picture
+  that is truly light - snow, white marble - may keep a light one, 0.85 or
+  more. Nothing in between: a mid-tone is moved by FluidEQ, so it is not
+  what you chose. A dark grey (`#1e1e22`) is right for a scene that is
+  mostly grey, like polished metal.
+- `accent`: the hue of the scene's signature thing, in front of its sky -
+  the signs, the lit windows, the fish, the flame. Buttons, sliders and
+  switches point with it. Bright and colourful: lightness 0.70 to 0.85,
+  clearly coloured (`#5fd4ff`, `#f86ab5`, `#f88a3d`). Clearly a different
+  hue from `surface`, about 50 degrees round the wheel or more; a scene of
+  truly one colour takes the surface's hue far brighter.
 - `glow`: a third colour of the scene, for "on" and the window's glow - a
-  moon, a heart, a few sparks. Clearly apart from `accent`, and never a red,
-  a pink close to red, an orange or an amber: FluidEQ says off and waiting
-  with those, and leaves a glow near them unused. If the only third
-  colour is one of those, repeat the accent.
+  moon, a heart, a few sparks, a second neon. Lightness 0.70 to 0.92, at
+  least 50 degrees round the wheel from `accent`, and never a red, a pink
+  close to red, an orange, an amber or a gold: FluidEQ says off and
+  waiting with those, and never shows a glow near them. In a scene of fire
+  or sunset, take what else is there - the night sky's blue, a jet, the
+  planet, moonlight - or a pale cream spark with only a little yellow.
+
+Then read the **Window colours check** of your next `look_at_scene`: it
+must say PASSES. NOT YET names what is wrong and how far; fix it in
+`pack.json` and look again.
 
 If the change touched light, colour, sky, fog or materials: `look_at_scene`
 with `sliders: { "daylight": 0 }` and `sound: "silence"`, and read its

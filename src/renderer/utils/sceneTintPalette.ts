@@ -230,8 +230,8 @@ const MAX_ACTIVE_LIGHTNESS_SHIFT = 0.1;
  * all red and amber: a pale light of the sky's own hue, which looks lit
  * without saying "off" or "wait" beside the pills that do.
  */
-const PALE_ACTIVE_LIGHTNESS = 0.92;
-const PALE_ACTIVE_CHROMA = 0.045;
+export const PALE_ACTIVE_LIGHTNESS = 0.92;
+export const PALE_ACTIVE_CHROMA = 0.045;
 
 /**
  * `base`'s filled colour turned to `hue`: its own chroma, and only as much
