@@ -244,6 +244,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.sourcePalette': 'उसके पैलेट से',
   'graph.sceneColours.sourceAuto': 'अपने आप',
   'graph.sceneColours.throughDay': 'पूरे दिन · अभी {hour}',
+  'graph.sceneColours.dayStrip': 'ये रंग रात से दिन तक कैसे बदलते हैं',
+  'graph.sceneColours.nowAt': 'अभी {hour}%',
   'graph.member.mine': 'आपके बनाए',
   'graph.member.theirs': 'सदस्यों के बनाए',
   'graph.member.by': '{name} द्वारा',

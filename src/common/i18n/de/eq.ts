@@ -252,6 +252,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.sourcePalette': 'Aus ihrer Palette',
   'graph.sceneColours.sourceAuto': 'Automatisch',
   'graph.sceneColours.throughDay': 'Über den Tag · jetzt {hour}',
+  'graph.sceneColours.dayStrip': 'Wie diese Farben von Nacht zu Tag wechseln',
+  'graph.sceneColours.nowAt': 'Jetzt {hour} %',
   'graph.member.mine': 'Von Ihnen erstellt',
   'graph.member.theirs': 'Von Mitgliedern erstellt',
   'graph.member.by': 'von {name}',

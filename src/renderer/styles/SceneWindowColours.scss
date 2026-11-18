@@ -225,15 +225,72 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // The three through the day: a lane each, night at the start and day at the
 // end, and a mark where the scene's hour stands.
+// A picture, not a control: a title, each band named beside it, the hour
+// marked Now, and Night and Day under the ends. With none of that it was read
+// as a slider (Ivan, 2026-11-18: "I don't really understand this slider").
 .window-colour-day {
   display: grid;
-  gap: 3px;
+  gap: 4px;
+  min-width: 0;
+}
+
+// The title, and at its far end the hour the line stands at.
+.window-colour-day__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.window-colour-day__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-micro;
+  @include truncate;
+}
+
+.window-colour-day__now-tag {
+  flex: none;
+  color: $text-primary;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// The names in a column of their own width, the bands in the rest, row for
+// row: each name stands centred on its band.
+.window-colour-day__rows {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 6px;
+  align-items: stretch;
+}
+
+.window-colour-day__names {
+  display: grid;
+  grid-template-rows: 10px 8px 8px;
+  row-gap: 3px;
+  // The lanes' own padding and border, so each name meets its band.
+  padding: 4px 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1;
+
+  > span {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    white-space: nowrap;
+  }
 }
 
 .window-colour-day__lanes {
   position: relative;
   display: grid;
-  gap: 2px;
+  grid-template-rows: 10px 8px 8px;
+  row-gap: 3px;
   padding: 3px;
   border: 1px solid $border-control;
   border-radius: $radius-xs;
@@ -241,12 +298,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .window-colour-day__lane {
-  height: 6px;
   border-radius: 2px;
-
-  &.is-surface {
-    height: 10px;
-  }
 }
 
 .window-colour-day__now {
@@ -262,18 +314,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .window-colour-day__legend {
+  grid-column: 2;
   display: flex;
   justify-content: space-between;
   gap: 6px;
   color: $text-muted;
   font-size: $text-micro;
-
-  span:nth-child(2) {
-    overflow: hidden;
-    text-align: center;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
 
 // *** The small window ********************************************************

@@ -212,6 +212,8 @@ const eq = {
   'graph.sceneColours.sourcePalette': '來自調色盤',
   'graph.sceneColours.sourceAuto': '自動',
   'graph.sceneColours.throughDay': '一天之中 · 現在 {hour}',
+  'graph.sceneColours.dayStrip': '這些顏色從夜晚到白天如何變化',
+  'graph.sceneColours.nowAt': '現在 {hour}%',
   'graph.member.mine': '由你製作',
   'graph.member.theirs': '會員製作',
   'graph.member.by': '作者：{name}',

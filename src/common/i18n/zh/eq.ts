@@ -229,6 +229,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.sourcePalette': '来自调色板',
   'graph.sceneColours.sourceAuto': '自动',
   'graph.sceneColours.throughDay': '一天之中 · 现在 {hour}',
+  'graph.sceneColours.dayStrip': '这些颜色从夜晚到白天如何变化',
+  'graph.sceneColours.nowAt': '现在 {hour}%',
   'graph.member.mine': '你创作的',
   'graph.member.theirs': '会员创作',
   'graph.member.by': '作者：{name}',

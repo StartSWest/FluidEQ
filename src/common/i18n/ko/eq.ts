@@ -223,6 +223,8 @@ const eq = {
   'graph.sceneColours.sourcePalette': '팔레트에서',
   'graph.sceneColours.sourceAuto': '자동',
   'graph.sceneColours.throughDay': '하루 동안 · 지금 {hour}',
+  'graph.sceneColours.dayStrip': '이 색들이 밤에서 낮으로 바뀌는 모습',
+  'graph.sceneColours.nowAt': '지금 {hour}%',
   'graph.member.mine': '내가 만든',
   'graph.member.theirs': '회원이 만든',
   'graph.member.by': '작성자: {name}',

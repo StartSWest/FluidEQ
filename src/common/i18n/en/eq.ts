@@ -256,6 +256,8 @@ const eq = {
   'graph.sceneColours.sourcePalette': 'From its palette',
   'graph.sceneColours.sourceAuto': 'Automatic',
   'graph.sceneColours.throughDay': 'Through the day · now {hour}',
+  'graph.sceneColours.dayStrip': 'How these colours turn from night to day',
+  'graph.sceneColours.nowAt': 'Now {hour}%',
   'graph.member.theirs': 'Made by members',
   'graph.member.by': 'by {name}',
   // A member who sent a scene without a display name on their account.
