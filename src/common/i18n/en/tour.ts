@@ -98,12 +98,12 @@ const tour = {
   'tour.look.point2':
     '{windowColours} offers {original}, {colours}, {ambient} and {backdrop}, each with a line on what it does to the window.',
   'tour.look.point3':
-    'Dialogs and menus share one material, and {rainbow} runs through the icon’s colours, or a scene’s own.',
+    'Dialogs and menus share one material, and the bands and the lit controls take the icon’s colours, or a scene’s own.',
   'tour.look.how':
     'Move {brightness} in the menu behind the pulse icon at the top right. With a scene on the graph, open {windowColours} from the graph’s bar and choose {backdrop}.',
   'tour.look.open': 'Open EQ',
   'tour.look.imageAlt':
-    'FluidEQ in its own colours on the EQ page, the Analyzer drawing a song under the curves, and the menu behind the pulse icon open over its corner, with Brightness at half and Colourful mode on.',
+    'FluidEQ in its own colours on the EQ page, the Analyzer drawing a song under the curves, and the menu behind the pulse icon open over its corner, with Brightness at half.',
   'tour.gpu.kicker': 'A NEW SCENE ENGINE',
   'tour.gpu.title': 'Every scene on your graphics card',
   'tour.gpu.subtitle': "Forty looks at your screen's own speed, and 3D worlds",
@@ -131,9 +131,9 @@ const tour = {
   'tour.sparks.point2':
     "The Studio's stage always shows them, so a scene's maker can shape what it throws.",
   'tour.sparks.point3':
-    'One switch for every scene: {sparks}, in {windowColours} under {rainbow}.',
+    'One switch for every scene: {sparks}, in {windowColours}.',
   'tour.sparks.how':
-    'With a scene on the graph, move the mouse over it and click. {sparks} is in {windowColours}, under {rainbow}.',
+    'With a scene on the graph, move the mouse over it and click. {sparks} is in {windowColours}.',
   'tour.sparks.open': 'Open EQ',
   'tour.sparks.imageAlt':
     'An aurora scene with a trail of glowing sparks behind the pointer and a burst where it clicked, and {windowColours} with its {sparks} switch ringed.',

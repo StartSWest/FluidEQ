@@ -52,11 +52,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'O cabeçalho leva você de uma página do FluidEQ a outra e mostra o som enquanto ele toca. O painel da esquerda traz o interruptor geral do EQ, a pré-amplificação e o medidor de nível; o painel da direita acompanha sua saída e os perfis dela.',
   'help.window.steps':
-    'Abra uma página pelo cabeçalho: Cenas, Compartilhar áudio, Laboratório gamer, EQ, DSP, Biblioteca, Karaokê, Mídia online.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o medidor de nível para mudar como ele é desenhado, e Colorido, sobre o sinal, para ver as bandas, o título e os controles acesos numa paleta em vez de uma só cor.\nPara ligar ou desligar a partir de outro app, abra ≡ → Tecla liga/desliga e escolha uma combinação. Nenhuma vem atribuída; o aviso sobre as janelas confirma o estado do FluidEQ.\nEm Presets EQ, na Biblioteca de convolução e na Biblioteca, a busca ignora maiúsculas, acentos, espaços e pontuação: kpop encontra K-pop.',
+    'Abra uma página pelo cabeçalho: Cenas, Compartilhar áudio, Laboratório gamer, EQ, DSP, Biblioteca, Karaokê, Mídia online.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o medidor de nível para mudar como ele é desenhado. No menu ≡, dê ao Tom uma segunda cor para desenhar as bandas, o título e os controles acesos num degradê entre as duas.\nPara ligar ou desligar a partir de outro app, abra ≡ → Tecla liga/desliga e escolha uma combinação. Nenhuma vem atribuída; o aviso sobre as janelas confirma o estado do FluidEQ.\nEm Presets EQ, na Biblioteca de convolução e na Biblioteca, a busca ignora maiúsculas, acentos, espaços e pontuação: kpop encontra K-pop.',
   'help.window.tip':
-    'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de menu de três linhas ao lado dele reúne o cartão do motor, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows, Processos, que mostra o que cada parte do FluidEQ está usando, e Redefinir todas as configurações; na parte de baixo dele ficam Brilho, Tom, Modo colorido, Colorir o ícone (desligado no início; deixa o ícone da barra de tarefas, o da bandeja e o do menu dela nas cores da janela), os deslizantes do EQ, as animações, Iniciar com o Windows (o FluidEQ então inicia na bandeja e molda o seu som sem abrir nenhuma janela) e o idioma. O botão depois deles transforma a janela no Player compacto.',
+    'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de menu de três linhas ao lado dele reúne o cartão do motor, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows, Processos, que mostra o que cada parte do FluidEQ está usando, e Redefinir todas as configurações; na parte de baixo dele ficam Brilho, Tom (as duas amostras dele são a cor da janela e uma segunda cor para um degradê), Colorir o ícone (desligado no início; deixa o ícone da barra de tarefas, o da bandeja e o do menu dela nas cores da janela), os deslizantes do EQ, as animações, Iniciar com o Windows (o FluidEQ então inicia na bandeja e molda o seu som sem abrir nenhuma janela) e o idioma. O botão depois deles transforma a janela no Player compacto.',
   'help.window.keywords':
-    'interface, abas, navegação, tela principal, visão geral, barra superior, barra inferior, painel lateral, VU meter, preamp, modo colorido, arco-íris, tema, modo escuro, modo claro, tema escuro, tema claro, dark mode, idioma, língua, iniciar com o windows, iniciar automaticamente, inicialização automática, inicialização, busca, buscar, pesquisa, maiúsculas, minúsculas, acentos, espaços, pontuação, search, accents, spaces, punctuation, case insensitive',
+    'interface, abas, navegação, tela principal, visão geral, barra superior, barra inferior, painel lateral, VU meter, preamp, tom, cor, segunda cor, degradê, gradiente, tint, colour, color, second colour, gradient, tema, modo escuro, modo claro, tema escuro, tema claro, dark mode, idioma, língua, iniciar com o windows, iniciar automaticamente, inicialização automática, inicialização, busca, buscar, pesquisa, maiúsculas, minúsculas, acentos, espaços, pontuação, search, accents, spaces, punctuation, case insensitive',
   'help.window.headerLeftCaption': 'O cabeçalho, até o sinal',
   'help.window.headerRightCaption': 'O cabeçalho, depois do sinal',
   'help.window.railCaption': 'O painel da esquerda',
@@ -70,7 +70,7 @@ const help: Record<keyof typeof en, string> = {
     'Suas bandas, presets, correção de fones e a configuração do motor.',
   'help.window.waveName': 'Sinal de áudio',
   'help.window.wave':
-    'O que está tocando, enquanto toca, com o nível de pico. Colorido, no alto, liga ou desliga o Modo colorido; o menu Visualização do gráfico pode ocultá-lo.',
+    'O que está tocando, enquanto toca, com o nível de pico; o menu Visualização do gráfico pode ocultá-lo.',
   'help.window.dsp':
     'O rack de efeitos: presets, a Sala e cada estágio da cadeia.',
   'help.window.library':
@@ -82,7 +82,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Este guia, Novidades, Notas de versão completas, Fórum, a solução de problemas de áudio, Relatar um problema e Sobre o FluidEQ. As notas completas abrem diretamente. Sobre tem links para suas seções e, quando o link de apoio está disponível, um cartão do Buy Me a Coffee com código QR.',
   'help.window.actions':
-    'O motor, a importação de configurações de EQ, o reinício do áudio do Windows, Processos e Redefinir todas as configurações; Brilho, Tom, Modo colorido e Colorir o ícone, os deslizantes do EQ, as animações, Iniciar com o Windows e o idioma. Tecla liga/desliga… permite que você escolha um atalho para desligar e ligar todo o processamento do FluidEQ enquanto outro app está em primeiro plano. Nenhuma tecla vem atribuída. Um cartão sobre as outras janelas confirma cada mudança.',
+    'O motor, a importação de configurações de EQ, o reinício do áudio do Windows, Processos e Redefinir todas as configurações; Brilho, Tom e a segunda cor dele, e Colorir o ícone, os deslizantes do EQ, as animações, Iniciar com o Windows e o idioma. Tecla liga/desliga… permite que você escolha um atalho para desligar e ligar todo o processamento do FluidEQ enquanto outro app está em primeiro plano. Nenhuma tecla vem atribuída. Um cartão sobre as outras janelas confirma cada mudança.',
   'help.window.systemEq':
     'Liga ou desliga o processamento do FluidEQ para tudo o que o PC toca.',
   'help.window.preamp':
@@ -108,7 +108,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'O menu do player',
   'help.player.foldedCaption': 'Recolhido em uma linha',
   'help.player.menu':
-    'Voltar ao app completo ou a uma das páginas dele; o Brilho do próprio player, a Transparência ou o Tom, a Luz do dia de uma cena, o Modo colorido, Colorir o ícone e os deslizantes do EQ; Sempre visível e Recolher em uma linha.',
+    'Voltar ao app completo ou a uma das páginas dele; o Brilho do próprio player, a Transparência ou o Tom, a Luz do dia de uma cena, Colorir o ícone e os deslizantes do EQ; Sempre visível e Recolher em uma linha.',
   'help.player.pin': 'Mantém o player acima de todas as outras janelas.',
   'help.player.switch': 'Voltar ao app completo, na página em que você estava.',
   'help.player.clock': 'Tempo tocado. Clique nele para ver o tempo restante.',
@@ -136,7 +136,7 @@ const help: Record<keyof typeof en, string> = {
     'O que toca a seguir. Clique em uma música para tocá-la, arraste para mudá-la de lugar, ou solte arquivos de música aqui para adicioná-los no ponto em que você soltar.',
   'help.player.openIn': 'Abre o app completo em uma das páginas dele.',
   'help.player.theme':
-    'O Brilho do próprio player, separado do app completo; a Transparência sobre uma cena, ou o Tom da janela sobre um estilo padrão; a Luz do dia de uma cena; o Modo colorido; e Colorir o ícone, desligado no início, para o ícone da barra de tarefas, o da bandeja e o do menu dela nas cores da janela.',
+    'O Brilho do próprio player, separado do app completo; a Transparência sobre uma cena, ou o Tom da janela sobre um estilo padrão; a Luz do dia de uma cena; e Colorir o ícone, desligado no início, para o ícone da barra de tarefas, o da bandeja e o do menu dela nas cores da janela.',
   'help.player.fold': 'Recolhe o player em uma linha.',
   'help.player.unfold': 'Expande o player. A seta na outra ponta também.',
   'help.player.foldedPlaying': 'Reproduzir ou pausar.',

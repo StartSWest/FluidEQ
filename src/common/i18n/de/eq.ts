@@ -185,15 +185,15 @@ const eq: Partial<Dictionary> = {
   'graph.editHint':
     'Punkte ziehen · Strg/Umschalt wählt aus · Strg+Mausrad: Q · Strg+Ziehen: Glocke',
   'graph.windowTintPick': 'Beliebige Farbe wählen',
+  'graph.windowTintSecond':
+    'Zweite Farbe: Bänder, Titel und leuchtende Bedienelemente verlaufen von der ersten Farbe zu dieser',
+  'graph.windowTintOneColour': 'Zurück zu einer Farbe',
   'graph.windowTint': 'Farbton',
   'graph.windowTintHint':
     'Die Farbe des Fensters bei einem Standard-Look. Doppelklick für die ursprüngliche Farbe.',
   'graph.backdropVeil': 'Transparenz',
   'graph.backdropVeilHint': 'Wie viel von der Szene durch die Flächen scheint',
   'graph.sceneTint.brightness': 'Helligkeit',
-  'graph.sceneTint.rainbow': 'Bunter Modus',
-  'graph.sceneTint.rainbowHint':
-    'Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe – mit einer gewählten Szene in deren eigenen Farben.',
   'graph.sceneTint.appIcon': 'App-Symbol einfärben',
   'graph.sceneTint.appIconHint':
     'Die Taskleisten-Schaltfläche und das Symbol im Infobereich in den Farben des Fensters. Aus behält das FluidEQ-Symbol.',
@@ -928,7 +928,6 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Nur Ihre EQ-Bänder, nichts darüber',
   'voicing.strength': 'Stärke',
   'waveform.style': 'Stil der Anzeige wechseln',
-  'waveform.rainbow': 'Bunt',
   'waveform.live': 'LIVE-AUSGABE',
   'waveform.signal': 'AUDIOSIGNAL',
   'waveform.clip': 'ÜBERSTEUERUNG',

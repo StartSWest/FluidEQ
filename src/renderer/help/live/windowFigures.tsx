@@ -1,7 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { PRODUCT_VERSION } from 'common/branding';
-import EuphoriaPillFaces from '../../components/EuphoriaPillFaces';
 import LiveFigure from '../../components/LiveFigure';
 import SignalBrandMark from '../../components/SignalBrandMark';
 import SignalBrandName from '../../components/SignalBrandName';
@@ -81,14 +80,6 @@ const SignalStill = () => {
             }}
           />
         </span>
-      </button>
-      <button
-        type="button"
-        className="euphoria-pill waveform-visualizer__euphoria"
-        aria-pressed
-      >
-        {t('waveform.rainbow')}
-        <EuphoriaPillFaces label={t('waveform.rainbow')} />
       </button>
     </div>
   );

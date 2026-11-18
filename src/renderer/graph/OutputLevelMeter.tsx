@@ -42,7 +42,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { getStreakJoy } from 'common/rhythmGame';
 import { getEaseFactor } from 'common/smoothing';
 import {
   LIGHT_WINDOW_METER_STYLE,
@@ -60,8 +59,7 @@ import {
   useLiveAudioFrameSelector,
 } from '../audio/LiveAudioContext';
 import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
-import { useRhythmRun } from '../utils/rhythmRun';
-import { useIsEuphoric } from '../utils/euphoriaMode';
+import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { useLightWindow } from '../utils/windowSide';
 import useSmoothFrames from '../utils/useSmoothFrames';
 import {
@@ -209,7 +207,8 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
   readFrameRef.current = readFrame;
   const { t } = useTranslation();
   const isHidden = useGraphMeterHidden();
-  const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
+  // The colourful look, from the root as every painter reads it.
+  const isEuphoric = useIsRootEuphoric();
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;
 

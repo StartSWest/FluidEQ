@@ -46,7 +46,7 @@ import {
   useLiveAudioCapture,
 } from '../audio/LiveAudioContext';
 import { getRhythmRun, setRhythmRun, useRhythmRun } from '../utils/rhythmRun';
-import { useIsEuphoric } from '../utils/euphoriaMode';
+import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import ShareScoreCard from './ShareScoreCard';
@@ -338,15 +338,11 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
 
   useImperativeHandle(ref, () => ({ registerTap }), [registerTap]);
 
-  // Earned by the streak right now, or switched on by someone who earned it
-  // before. The panel has to agree with the rest of the window: the switch
-  // turned the whole interface rainbow, and a support panel still showing the
-  // ordinary badge — with no way to share the mode — reads as the two halves
-  // disagreeing about what is happening.
-  // Called unconditionally: behind a `||` it would be skipped whenever the
-  // streak already qualified, and a hook that runs on some renders and not
-  // others is exactly the thing React cannot survive.
-  const isEuphoric = useIsEuphoric(getStreakJoy(run.streak) >= EUPHORIA_AT);
+  // The window's colourful look, which is always on: the panel has to agree
+  // with the rest of the window, and a support panel showing the ordinary
+  // badge under a colourful window reads as the two halves disagreeing
+  // about what is happening.
+  const isEuphoric = useIsRootEuphoric();
   /**
    * What the card is about: this run, always.
    *

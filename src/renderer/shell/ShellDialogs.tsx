@@ -56,7 +56,6 @@ import SceneReportHost from '../plus/SceneReportHost';
 import PrereqMissingModal from '../PrereqMissingModal';
 import SupportDialog from '../SupportDialog';
 import { prereqBannerEngine } from '../utils/audioEngineApi';
-import { resetEuphoriaMode } from '../utils/euphoriaMode';
 import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { resetRhythmRun } from '../utils/rhythmRun';
@@ -356,17 +355,12 @@ const ShellDialogs = ({
           }}
           // Development only — the button that calls this is compiled out of
           // a release build. Both halves have to go: the badge is what gates
-          // the game, and a run left standing would keep the whole window in
-          // euphoria mode for a creature that no longer has anything to
-          // celebrate.
+          // the game, and a run left standing would carry its streak into an
+          // install that has just been reset to never having played.
           onResetContribution={() => {
             localStorage.removeItem(SUPPORT_CONTRIBUTED_KEY);
             dialogs.setHasContributed(false);
             resetRhythmRun();
-            // The unlock goes too. Leaving it would put a working euphoria
-            // switch on the titlebar of an install that has just been reset
-            // to never having earned one.
-            resetEuphoriaMode();
           }}
           onClose={() => dialogs.setShowSupportDialog(false)}
         />

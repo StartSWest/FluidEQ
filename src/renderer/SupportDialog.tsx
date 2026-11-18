@@ -36,7 +36,6 @@ import {
   toggleAdBlockRevealed,
   useIsAdBlockRevealed,
 } from './utils/adBlockReveal';
-import { winEuphoria } from './utils/euphoriaMode';
 import supportQrImage from '../../assets/support-qr.png';
 import DialogFrame from './components/DialogFrame';
 import MemoryTraceButton from './components/MemoryTraceButton';
@@ -448,15 +447,6 @@ export default function SupportDialog({
             labels are deliberately untranslated. */}
         {IS_DEV && (
           <div className="support-dialog__dev-row">
-            {/* Preview the look without inventing a score or a donation. */}
-            <button
-              type="button"
-              className="support-dialog__dev-reset"
-              title="Development build only — switches Rainbow mode on without playing for it"
-              onClick={winEuphoria}
-            >
-              dev: rainbow
-            </button>
             <button
               type="button"
               className="support-dialog__dev-reset"

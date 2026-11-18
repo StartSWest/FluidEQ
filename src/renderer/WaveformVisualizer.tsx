@@ -24,8 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * re-parses the whole string, re-lays-out the figure and re-rasterises the
  * region, and all four stages run again on the next frame. The meter draws at
  * thirty ordinarily and — this is the part that matters — at the display's full
- * rate for as long as euphoria is on, which is the mode somebody deliberately
- * leaves running. A canvas draw is a resource update instead: the pixels are
+ * rate in the window's colourful look, which is always on. A canvas draw is a resource update instead: the pixels are
  * replaced and nothing else in the document has an opinion about it.
  *
  * HOW IT IS DRAWN. Every style is painted flat at the pane's real size by
@@ -35,8 +34,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * scaled to the pane, and when silence becomes the flat line, is
  * `waveformGate.ts`.
  *
- * WHAT STAYS IN THE DOM. The pane, the labels, the held peak, the euphoria
- * pill. Those are text and controls; they change when the audio changes *state*
+ * WHAT STAYS IN THE DOM. The pane, the labels and the held peak. Those are text and controls; they change when the audio changes *state*
  * rather than when it moves, and they have to be hit-tested and read aloud.
  *
  * WHERE THE STYLESHEET WENT. A canvas has no cascade to appeal to, so every
@@ -52,7 +50,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { getStreakJoy } from 'common/rhythmGame';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import { WAVEFORM_STYLES, WaveformStyle } from 'common/waveformStyles';
@@ -64,7 +61,6 @@ import {
   advanceSpectrumBars,
   SPECTRUM_BAR_ATTACK_MS,
   SPECTRUM_BAR_RELEASE_MS,
-  traceWalkStops,
   WAVEFORM_BLEED,
   WAVEFORM_STYLE_KEY,
   peakDbOf,
@@ -77,7 +73,6 @@ import {
   useLiveAudioFrames,
   useLiveAudioFrameSelector,
 } from './audio/LiveAudioContext';
-import EuphoriaPillFaces from './components/EuphoriaPillFaces';
 import LiveFigure from './components/LiveFigure';
 import writeLiveText from './utils/liveText';
 import type { IChartPointData } from './graph/ChartController';
@@ -85,19 +80,13 @@ import {
   SILENT_WAVEFORM,
   UPDATE_INTERVAL_MS,
 } from './graph/liveSpectrumFrames';
-import { useRhythmRun } from './utils/rhythmRun';
 import useSmoothFrames from './utils/useSmoothFrames';
 import useMomentaryHold from './utils/useMomentaryHold';
 import useMeterLabelFit from './useMeterLabelFit';
-import {
-  toggleEuphoriaEnabled,
-  useIsEuphoriaEnabled,
-  useIsEuphoric,
-} from './utils/euphoriaMode';
 import { getTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import { readSurface } from './utils/theme';
-import { rainbowGradientStops } from './utils/rainbowPalette';
+import { rainbowGradientStops, useRainbowStops } from './utils/rainbowPalette';
 import paintFlatMeter from './waveformFlatPaint';
 import { type IRecorderView, createRecorderView } from './waveformRecorderView';
 import { advanceFlatMeter, createFlatMeterState } from './waveformFlatState';
@@ -162,6 +151,21 @@ const isWaveformCycleStyle = (
   value === 'off' || WAVEFORM_STYLES.includes(value as WaveformStyle);
 
 /**
+ * The stops in use across the pane, left to right and pinned to it rather
+ * than to the figure, so a frequency is the same colour loud or quiet.
+ */
+const paneRamp = (
+  context: CanvasRenderingContext2D,
+  pane: { x: number; width: number },
+): CanvasGradient => {
+  const ramp = context.createLinearGradient(pane.x, 0, pane.x + pane.width, 0);
+  rainbowGradientStops().forEach((stop) => {
+    ramp.addColorStop(stop.offset, stop.colour);
+  });
+  return ramp;
+};
+
+/**
  * The held peak one published frame later: up to a louder frame at once,
  * otherwise down by `PEAK_RELEASE_DB`, and gone below `SILENCE_DB`.
  *
@@ -187,12 +191,9 @@ const nextHeldPeak = (
 
 const WaveformVisualizer = () => {
   const { t } = useTranslation();
-  // Subscribed rather than read from the DOM class the shell sets, so this
-  // re-renders when the run changes instead of being told by a stylesheet.
-  const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
-  // The switch's own state, apart from the look: the game's streak can light
-  // the rainbow for a while without the switch being on.
-  const isRainbowOn = useIsEuphoriaEnabled();
+  // The stops the pane is drawn in, so a new colour is drawn at once through
+  // a quiet passage, when the loop is not running (below).
+  const stops = useRainbowStops();
   // The one reading this component prints itself, re-rendering it only when
   // it turns. The frames go straight to the canvas (below): rendered, they
   // woke this component - the pill and its faces with it - with every block
@@ -329,9 +330,7 @@ const WaveformVisualizer = () => {
   // The element's own box in CSS pixels, kept by the observer below rather than
   // measured in the frame, so drawing never asks layout a question.
   const sizeRef = useRef({ width: 0, height: 0, meterOffset: 0 });
-  // The three states that used to reach the trace as a class on an ancestor.
-  const isEuphoricRef = useRef(isEuphoric);
-  isEuphoricRef.current = isEuphoric;
+  // The two states that used to reach the trace as a class on an ancestor.
   const isPausedRef = useRef(isPaused);
   isPausedRef.current = isPaused;
   // The freq-domain points the graph panel draws, so the `spectrum` style
@@ -541,32 +540,16 @@ const WaveformVisualizer = () => {
       recorderRef.current ??= createRecorderView((lufs) =>
         writeLiveText(loudnessTextRef.current, loudnessText(lufs)),
       );
-      // One colour, the accent (Ivan, 2026-11-16: "just a normal
-      // waveform"), and in Colourful mode the mode's own rainbow across the
-      // pane, as every other style and the graph's analyser wear it there
-      // (2026-11-17: "top wave needs to be also colourful in that mode").
-      let recorderFill: string | CanvasGradient = readSurface(
-        '--accent',
-        '#00c5ff',
-      );
-      if (isEuphoricRef.current) {
-        const rainbow = context.createLinearGradient(
-          pane.x,
-          0,
-          pane.x + pane.width,
-          0,
-        );
-        rainbowGradientStops().forEach((stop) => {
-          rainbow.addColorStop(stop.offset, stop.colour);
-        });
-        recorderFill = rainbow;
-      }
+      // A plain waveform (Ivan, 2026-11-16: "just a normal waveform") in the
+      // window's colours across the pane, as every other style and the
+      // graph's analyser wear them (2026-11-17: "top wave needs to be also
+      // colourful"): one colour, or the Tint's gradient.
       return (
         recorderRef.current.draw(context, {
           box: pane,
           ratio,
           palette: {
-            fill: recorderFill,
+            fill: paneRamp(context, pane),
             paused: PAUSED_STROKE,
           },
           isPaused: isPausedRef.current,
@@ -602,26 +585,12 @@ const WaveformVisualizer = () => {
 
     // The trace's colours, left to right across the pane and pinned to it
     // rather than to the figure, so a frequency is the same colour loud or
-    // quiet: the mode's rainbow — Lagoon, or a Plus visualizer's — or the
-    // primary's walk in Normal mode. One rule for every style; the whole
-    // pane changes together. Clipping outranks paused, as it always did: a
-    // paused analyser that was clipping when it stopped keeps the warning.
-    const traceStops = isEuphoricRef.current
-      ? rainbowGradientStops()
-      : traceWalkStops();
-    const traceRamp = context.createLinearGradient(
-      pane.x,
-      0,
-      pane.x + pane.width,
-      0,
-    );
-    traceStops.forEach((stop) => {
-      traceRamp.addColorStop(stop.offset, stop.colour);
-    });
-    let ink: string | CanvasGradient = traceRamp;
-    let light = isEuphoricRef.current
-      ? 'rgba(255, 255, 255, 0.85)'
-      : readSurface('--accent-light', '#c8fff8');
+    // quiet: the stops in use — the window's colour or its Tint's gradient,
+    // or a scene's palette. One rule for every style; the whole pane changes
+    // together. Clipping outranks paused, as it always did: a paused
+    // analyser that was clipping when it stopped keeps the warning.
+    let ink: string | CanvasGradient = paneRamp(context, pane);
+    let light = 'rgba(255, 255, 255, 0.85)';
     if (isOverloadingRef.current) {
       ink = CLIP_STROKE;
       light = CLIP_STROKE;
@@ -798,14 +767,14 @@ const WaveformVisualizer = () => {
   // cannot depend on a value declared below it.
   useEffect(() => {
     kickFrames();
-  }, [isEuphoric, isOverloading, isPaused, kickFrames, style]);
+  }, [isOverloading, isPaused, kickFrames, stops, style]);
 
-  // LIVE OUTPUT steps aside where it would run into the Rainbow pill, in
-  // whatever language both are in (`useMeterLabelFit`).
+  // LIVE OUTPUT steps aside where it would run into the readouts, in
+  // whatever language it is in (`useMeterLabelFit`).
   const shellRef = useRef<HTMLDivElement | null>(null);
   const signalRef = useRef<HTMLSpanElement | null>(null);
-  const pillRef = useRef<HTMLButtonElement | null>(null);
-  useMeterLabelFit(shellRef, signalRef, pillRef, !isOff);
+  const readoutRef = useRef<HTMLSpanElement | null>(null);
+  useMeterLabelFit(shellRef, signalRef, readoutRef, !isOff);
 
   // The recorder says how to read it: which half is which channel, what the
   // red is, what the new figure measures.
@@ -854,7 +823,7 @@ const WaveformVisualizer = () => {
               <span className="waveform-visualizer__signal-dot" />
               {t(isActive ? 'waveform.live' : 'waveform.signal')}
             </span>
-            <span className="waveform-visualizer__readout">
+            <span ref={readoutRef} className="waveform-visualizer__readout">
               {/* Clipping outranks the number: once it is lit, the number is
                   the least interesting thing on the pane. */}
               {isOverloading && (
@@ -930,28 +899,6 @@ const WaveformVisualizer = () => {
         >
           {isOff ? style : announcedStyle}
         </span>
-      </button>
-      {/* Normal or Rainbow, from the wave itself (Ivan, 2026-09-26: "put back
-        the rainbow button to toggle on and off in the top wave"), as in the
-        window colours menu and the app menu (`RainbowSwitch`). A sibling of
-        the meter, not inside it: both are buttons, and a button inside a
-        button is unnested by the browser, which loses the inner click.
-        Lit when on, a quiet outline when off, both drawn from `aria-pressed`
-        alone (`Euphoria.scss`), so what it says and how it looks cannot
-        disagree. */}
-      <button
-        ref={pillRef}
-        type="button"
-        className="euphoria-pill waveform-visualizer__euphoria"
-        aria-pressed={isRainbowOn}
-        title={t('graph.sceneTint.rainbowHint')}
-        onClick={toggleEuphoriaEnabled}
-      >
-        {/* One word: the strip's readouts give way to it at widths measured
-            for a label this short (`WaveformVisualizer.scss`), and "Rainbow
-            mode" ran to 171px in Italian. The hint names the mode in full. */}
-        {t('waveform.rainbow')}
-        <EuphoriaPillFaces label={t('waveform.rainbow')} />
       </button>
     </div>
   );

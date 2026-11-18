@@ -81,12 +81,12 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '“{windowColours}”提供“{original}”“{colours}”“{ambient}”和“{backdrop}”，每一项都有一行说明它对窗口的作用。',
   'tour.look.point3':
-    '对话框和菜单使用同一种材质，“{rainbow}”会贯穿图标的颜色，或场景自己的颜色。',
+    '对话框和菜单使用同一种材质，频段和亮起的控件会采用图标的颜色，或场景自己的颜色。',
   'tour.look.how':
     '在右上角脉冲图标后的操作菜单中拖动“{brightness}”。图表上有场景时，从图表的工具栏打开“{windowColours}”并选择“{backdrop}”。',
   'tour.look.open': '打开均衡器',
   'tour.look.imageAlt':
-    '在“均衡器”页面上以自身配色显示的 FluidEQ：“频谱分析仪”在曲线下方描绘一首歌，角落上方打开了脉冲图标后的菜单，“亮度”在一半，“多彩模式”已开启。',
+    '在“均衡器”页面上以自身配色显示的 FluidEQ：“频谱分析仪”在曲线下方描绘一首歌，角落上方打开了脉冲图标后的菜单，“亮度”在一半。',
   'tour.gpu.kicker': '全新场景引擎',
   'tour.gpu.title': '所有场景都在你的显卡上运行',
   'tour.gpu.subtitle': '四十种样式跟上屏幕刷新率，还有 3D 世界',
@@ -112,10 +112,9 @@ const tour: Partial<Dictionary> = {
     '每个场景洒出的都不一样：冬景下雪，篝火飞出余烬，花园飘落花瓣。',
   'tour.sparks.point2':
     'Studio 的舞台总会显示它们，方便场景作者调整洒出的效果。',
-  'tour.sparks.point3':
-    '一个开关管所有场景：“{windowColours}”中“{rainbow}”下方的“{sparks}”。',
+  'tour.sparks.point3': '一个开关管所有场景：“{windowColours}”中的“{sparks}”。',
   'tour.sparks.how':
-    '图表上有场景时，把鼠标移到上面并点击。“{sparks}”在“{windowColours}”中，位于“{rainbow}”下方。',
+    '图表上有场景时，把鼠标移到上面并点击。“{sparks}”在“{windowColours}”中。',
   'tour.sparks.open': '打开均衡器',
   'tour.sparks.imageAlt':
     '一个极光场景，指针后拖着一道发光的火花轨迹，点击处迸出火花；以及“{windowColours}”，其中的“{sparks}”开关被圈出。',

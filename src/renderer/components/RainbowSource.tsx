@@ -27,14 +27,27 @@ import {
 import { dayColoursAt } from '../utils/sceneDayColours';
 import { useUsableScenes } from '../utils/scenePacks';
 import {
+  useAmpHoldsWindow,
   useRememberedSceneSky,
+  useSceneTintEnabled,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
 import useSceneWindowColours from '../utils/useSceneWindowColours';
-import { tintedLagoonStops, useWindowTint } from '../utils/windowTint';
+import {
+  useWindowTint,
+  useWindowTintColour,
+  useWindowTintSecondary,
+  windowPrimaryColour,
+  windowTintStops,
+} from '../utils/windowTint';
 
 /**
- * Chooses Rainbow mode's palette. Renders nothing.
+ * Chooses the stops the window draws its colourful marks in — the graph's
+ * curves, the faders, the meters, the wave. Renders nothing. Colourful mode
+ * has no switch any more (`euphoriaMode.ts`): this is simply what they wear.
+ *
+ * With a standard look, the window's own pair (`windowTint.ts`): one colour,
+ * or the Tint's gradient once the listener gives it a second colour.
  *
  * While the graph's look is a Plus visualizer — a Plus look or a scene a
  * member made — the palette is that scene's own colours (Ivan, 2026-09-26:
@@ -43,8 +56,9 @@ import { tintedLagoonStops, useWindowTint } from '../utils/windowTint';
  * viz"): the five read from its own frames (`findSceneSky`'s `palette`) once
  * it has been measured, since the visualizers know nothing about colours
  * ("read from the same viz automatically"), and the two to four its picker
- * icon is drawn in until then. Otherwise, and for a scene in greys, it is
- * Lagoon (`rainbowPalette.ts`).
+ * icon is drawn in until then. A scene in greys lends none and the window's
+ * own pair stands, and so does a Tint the listener touched while the window
+ * is set to Original (the rule is written beside the effect below).
  *
  * A scene that chose its colours says so first (`sceneAppColours.ts`): its
  * palette, or the single colour its choices show instead, as the listener's
@@ -60,9 +74,7 @@ import { tintedLagoonStops, useWindowTint } from '../utils/windowTint';
  * de la escena de día de noche"). The swatch and the measured colours are
  * what a scene with no window colours yet still hands over.
  *
- * Whatever the window's colours are set to: Theme, Colours, Ambient or the
- * Backdrop decide what the scene does to the panes, and the rainbow is the
- * mode's own. Mounted beside `SceneTint`, at the root, because the palette
+ * Mounted beside `SceneTint`, at the root, because the palette
  * belongs to the window and stays while the graph is on another tab.
  */
 const RainbowSource = () => {
@@ -125,24 +137,55 @@ const RainbowSource = () => {
     return colours && `${colours.accent} ${colours.glow}`;
   }, [studioSource, studioSides, sceneSides, daylight]);
 
+  // The window's own pair (`windowTint.ts`): its first colour alone, or a
+  // gradient to the second where the listener chose one — what a standard
+  // look draws in, so the graph and the faders follow the colour the window
+  // wears, and in one colour until a second is asked for.
+  const tint = useWindowTint();
+  const picked = useWindowTintColour();
+  const second = useWindowTintSecondary();
+  const ownStops = useMemo(
+    () => windowTintStops(windowPrimaryColour(tint, picked), second).join(' '),
+    [tint, picked, second],
+  );
+  // THE LISTENER'S OWN COLOURS OVER A SCENE'S, where they say so. With a
+  // scene on the graph the window wears the scene's colours unless it is
+  // set to Original (`SceneTint`: the switch off, and the amp not holding
+  // the window), where it wears the Tint instead; there a Tint the listener
+  // has touched — a hue, a colour picked whole, or a second colour — draws
+  // the stops as well, ahead of the scene's palette and its colours of the
+  // hour. A Tint left as it came still lets the scene's colours through.
+  // The Studio's bench is never overridden: a member there is judging their
+  // own scene.
+  const isSceneTintOn = useSceneTintEnabled();
+  const isAmp = useAmpHoldsWindow();
+  const isSceneWorn = isSceneTintOn || isAmp;
+  const isOwnOverScene =
+    isScene &&
+    !isSceneWorn &&
+    (tint !== undefined || picked !== undefined || second !== undefined);
+  const isStudio = studio !== undefined || studioSource !== undefined;
+  const isOwn = !isStudio && (!isScene || isOwnOverScene);
+
   // A layout effect, so the first frame a new scene is drawn in already has
   // its rainbow round it.
-  // With a standard look the rainbow is Lagoon's, turned to the window's
-  // tint where one is chosen (`windowTint.ts`), so the graph and the faders
-  // follow the colour the window wears.
-  const tint = useWindowTint();
   useLayoutEffect(() => {
     const fromTime = timeColours && rainbowFromColours(timeColours.split(' '));
-    if (chosenStops) {
+    const fromSwatch = swatch && rainbowFromColours(swatch.split(' '));
+    if (isOwn) {
+      setRainbowStops(ownStops.split(' '));
+    } else if (chosenStops) {
       setRainbowStops(chosenStops.split(' '));
     } else if (fromTime) {
       setRainbowStops(fromTime);
-    } else if (swatch) {
-      setRainbowStops(rainbowFromColours(swatch.split(' ')));
+    } else if (fromSwatch) {
+      setRainbowStops(fromSwatch);
     } else {
-      setRainbowStops(tint === undefined ? undefined : tintedLagoonStops(tint));
+      // A scene in greys lends no colour: the window's own, as with a
+      // standard look.
+      setRainbowStops(ownStops.split(' '));
     }
-  }, [chosenStops, timeColours, swatch, tint]);
+  }, [isOwn, ownStops, chosenStops, timeColours, swatch]);
 
   return null;
 };

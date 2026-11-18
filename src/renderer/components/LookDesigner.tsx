@@ -60,7 +60,6 @@ import {
 } from 'common/customLooks';
 import DialogClose from './DialogClose';
 import LookTextureRow from './LookTextureRow';
-import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import {
   useWindowColours,
   windowColours,
@@ -276,17 +275,6 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
       };
     });
   }, [editableColours]);
-
-  // Whether the mode the glow belongs to is actually running.
-  //
-  // Still the root class, the same single source of truth the drawing uses,
-  // rather than the euphoria store — which would need the rhythm streak passed
-  // in to answer, and this panel has no business knowing about that. Observed
-  // rather than read during render, though: switching the mode while the panel
-  // was open changed nothing here, because a DOM read is not something React
-  // re-runs, so these settings sat enabled over a mode that was off and
-  // disabled under one that was on.
-  const isEuphoric = useIsRootEuphoric();
 
   const { tuning, style } = draft;
   const isDiscrete = isDiscreteGraphStyle(style);
@@ -742,25 +730,9 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           />
         </SettingRow>
 
-        {/* What the mode does to this look, gathered under its own heading.
-
-            The border and its weight do nothing at all outside euphoria, and
-            scattered among the settings that always apply they read as broken
-            rather than as conditional. Under a heading in the mode's own
-            colour they read as what they are: a section that belongs to
-            something else.
-
-            Greyed rather than hidden when the mode is off, because a control
-            that vanishes takes its explanation with it — "why is there no
-            border setting" is a worse question than "why is this one
-            disabled", and the second answers itself in the hint underneath. */}
-        <p className="look-designer__group">{t('look.rainbow')}</p>
-
-        <div
-          className={`look-designer__row look-designer__row--switch${
-            isEuphoric ? '' : ' is-disabled'
-          }`}
-        >
+        {/* The border rings the graph in the window's colours, always:
+            it waited on Colourful mode, which has no switch any more. */}
+        <div className="look-designer__row look-designer__row--switch">
           <div className="look-designer__caption">
             <label htmlFor="look-designer-border">
               {t('look.rainbowBorder')}
@@ -769,12 +741,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
               id="look-designer-border"
               ariaLabel={t('look.rainbowBorder')}
               isOn={tuning.border}
-              isDisabled={!isEuphoric}
+              isDisabled={false}
               handleToggle={() => tune({ border: !tuning.border })}
             />
           </div>
           <span className="look-designer__hint">
-            {isEuphoric ? t('look.rainbowBorderHint') : t('look.needsRainbow')}
+            {t('look.rainbowBorderHint')}
           </span>
         </div>
 
@@ -782,14 +754,14 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           id="look-designer-border-width"
           label={t('look.borderWeight')}
           value={`${tuning.borderWidth} px`}
-          isDisabled={!isEuphoric || !tuning.border}
+          isDisabled={!tuning.border}
         >
           <SettingSlider
             id="look-designer-border-width"
             min={MIN_BORDER_WIDTH}
             max={MAX_BORDER_WIDTH}
             value={tuning.borderWidth}
-            isDisabled={!isEuphoric || !tuning.border}
+            isDisabled={!tuning.border}
             onChange={(borderWidth) => tune({ borderWidth })}
           />
         </SettingRow>

@@ -160,21 +160,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The heading over the settings that only euphoria uses.
-//
-// In the mode's own yellow, and the only colour in the panel that is not the
-// app's cyan — which is the whole job it does. The rows under it are inert
-// unless the mode is on, and a section that looks like it belongs to something
-// else is how somebody reads that without being told twice.
-.look-designer__group {
-  margin: 4px 0 0;
-  color: #ffcc4d;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.09em);
-  text-transform: uppercase;
-}
-
 // What went wrong with an import, said where the button is.
 .look-designer__error {
   margin: 0;

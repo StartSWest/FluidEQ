@@ -48,7 +48,6 @@ export function SparksSlide({ actions }: ISlideProps) {
       values={{
         sparks: t('graph.sceneTint.sparks'),
         windowColours: t('graph.sceneTint.label'),
-        rainbow: t('graph.sceneTint.rainbow'),
         ambient: t('graph.sceneTint.short.pulse'),
         backdrop: t('graph.sceneTint.short.cover'),
       }}

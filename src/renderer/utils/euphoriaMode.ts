@@ -17,158 +17,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * Euphoria mode: two flags, and they are not the same question.
+ * COLOURFUL MODE IS ALWAYS ON, AND HAS NO SWITCH (Ivan, 2026-11-18: "let's
+ * remove the Colourful mode from the top, there is no more of it: Colourful
+ * mode is always on"). It was a prize won in the rhythm game, then always on
+ * with a switch in the menus, a pill on the signal and Ctrl+E to turn it off.
+ * What it draws in is now the window's own pair of colours
+ * (`windowTint.ts`): one colour unless the listener gives the Tint a second,
+ * and then a gradient between the two — so "off" is simply both swatches the
+ * same colour.
  *
- *   ACHIEVED — unlocked through play or contribution? Persisted, one-way.
- *   ENABLED  — is the look switched on right now? Persisted preference.
- *
- * They were previously muddled together, and the muddle was a real bug: the
- * mode combined "the current streak is at the ceiling" with "the switch is on"
- * using OR. A streak does not reset when somebody stops playing, so after a
- * genuine run the first half stayed true forever and the switch could not turn
- * anything off. Whoever had just seen the mode for the first time was stuck in
- * it.
- *
- * Winning is therefore an EVENT, not a state to be read continuously. It flips
- * ACHIEVED on permanently and ENABLED on once. After that, ENABLED is the only
- * thing that decides what is painted, and the player owns it.
- *
- * Contribution confirmation uses the same unlock event without changing the
- * score. Neither flag depends on the development preview shortcut.
- *
- * NOTHING TO UNLOCK, AND ON UNLESS SWITCHED OFF (Ivan, 2026-09-26). It was
- * made always on ("rainbow mode is always on"), and the pill on the top wave,
- * the tour's slide and the Support dialog's offer went with the unlock; then
- * Normal came back beside it ("let's keep the normal mode and the rainbow
- * mode"), with a Plus visualizer lending its first two colours to Normal and
- * all five to Rainbow. So ACHIEVED is always true, and ENABLED is a plain
- * preference that starts on, switched from the Window colours menu and the
- * app menu (`RainbowSwitch`) — under a key of its own, so a choice somebody
- * made while the mode was a prize does not come back to switch it off.
+ * The root carries `is-euphoric` for good (`EuphoriaGlow`): the stylesheets
+ * and the canvas painters still key the look on it.
  */
 
 import { useSyncExternalStore } from 'react';
 
 /**
- * ACHIEVED, as older versions stored it: persisted and one-way, whether
- * unlocked through play or contribution. Only cleared now (the reset).
+ * What older versions stored the mode under: the unlock, the first switch and
+ * the last one. Read by nothing now, and forgotten on launch so a choice made
+ * while the mode could be switched off does not linger in the profile.
  */
-const ACHIEVED_KEY = 'fluideq-euphoria-reached';
-/** What an older version stored the switch under; cleared by the reset. */
-const RETIRED_ENABLED_KEY = 'fluideq-euphoria-enabled';
-const ENABLED_KEY = 'fluideq-rainbow';
+const RETIRED_KEYS = [
+  'fluideq-euphoria-reached',
+  'fluideq-euphoria-enabled',
+  'fluideq-rainbow',
+] as const;
 
-const listeners = new Set<() => void>();
-
-const emit = () => listeners.forEach((listener) => listener());
-
-const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-};
-
-// Nothing to unlock: won from the first frame, whatever was stored.
-const achieved = true;
-
-/**
- * ENABLED. On unless somebody switched it off.
- *
- * COSMETIC ONLY. This turns the look on and nothing else: no multiplier, no
- * points, no streak. The score measures how accurately somebody played, and a
- * switch that granted x10 would make it measure whether they found the switch.
- */
-let enabled = true;
-try {
-  enabled = window.localStorage.getItem(ENABLED_KEY) !== 'off';
-} catch {
-  // Storage can be unavailable: the mode is then on, its default.
-}
-
-export const isEuphoriaAchieved = () => achieved;
-export const isEuphoriaEnabled = () => enabled;
-
-export const setEuphoriaEnabled = (next: boolean) => {
-  if (enabled === next || !achieved) {
-    return;
-  }
-  enabled = next;
+export const forgetColourfulModeSwitch = () => {
   try {
-    window.localStorage.setItem(ENABLED_KEY, next ? 'on' : 'off');
+    RETIRED_KEYS.forEach((key) => window.localStorage.removeItem(key));
   } catch {
-    // The current session still follows the user's choice.
+    // Storage unavailable: there is nothing stored to forget either.
   }
-  emit();
-};
-
-export const toggleEuphoriaEnabled = () => setEuphoriaEnabled(!enabled);
-
-/**
- * A run hit the ceiling, or the user confirmed a contribution: the mode on,
- * so the moment of winning shows the thing that was won. Called on the
- * transition, never on the condition — see the note at the top of this file
- * for why that distinction is the whole design.
- */
-export const winEuphoria = () => setEuphoriaEnabled(true);
-
-// Two hooks returning two booleans, rather than one returning both.
-//
-// `useSyncExternalStore` compares snapshots by identity, so a getter that
-// builds `{ achieved, enabled }` returns a new object every call and re-renders
-// forever. Primitives are stable by definition, and most callers only care
-// about one of them anyway.
-
-/** Whether this install has unlocked Rainbow through play or contribution. */
-export const useIsEuphoriaAchieved = () =>
-  useSyncExternalStore(
-    subscribe,
-    () => achieved,
-    () => false,
-  );
-
-/** Whether the look is switched on right now. */
-export const useIsEuphoriaEnabled = () =>
-  useSyncExternalStore(
-    subscribe,
-    () => enabled,
-    () => false,
-  );
-
-/**
- * Is the app in euphoria? The one answer, for every part of the app.
- *
- * `isEarned` is whether the CURRENT run is at the ceiling, which only matters
- * before the mode has ever been won — that first arrival is the surprise the
- * whole thing is built around, and it has to light up on its own.
- *
- * Afterwards the switch decides and nothing else does. This is the fix for the
- * mode being impossible to turn off: the old rule was `isEarned || enabled`,
- * and since a streak does not reset when somebody stops playing, `isEarned`
- * stayed true forever and the OR held the rainbow on no matter what the switch
- * said.
- *
- * A hook rather than a plain function because both flags live in a store, and
- * a component reading them directly would never re-render when they changed.
- */
-export const useIsEuphoric = (isEarned: boolean): boolean => {
-  const isAchieved = useIsEuphoriaAchieved();
-  const isEnabled = useIsEuphoriaEnabled();
-  return isAchieved ? isEnabled : isEarned;
 };
 
 /**
- * Whether the app is drawing in euphoria right now, from the root class.
- *
- * That class is the single source of truth the drawing itself uses, and asking
- * it saves a caller from having to know about rhythm streaks — which is why a
- * panel of look settings reaches for it rather than for the two flags above.
- * Read directly during render, though, it is a DOM read React cannot see: the
- * class changes, nothing re-renders, and controls gated on it stay frozen in
- * whatever state they had when the panel opened.
- *
- * Observing the attribute makes the same answer reactive. The snapshot is a
- * boolean, so `useSyncExternalStore` compares it by value and settles.
+ * Whether the root carries the look, observed so a component re-renders when
+ * the class arrives — it is set by a layout effect at the root, after the
+ * first render of anything below it.
  */
 const subscribeToRootEuphoria = (onChange: () => void) => {
   if (typeof document === 'undefined') {
@@ -190,22 +76,3 @@ export const useIsRootEuphoric = () =>
       document.documentElement.classList.contains('is-euphoric'),
     () => false,
   );
-
-/**
- * Reset, for the development affordance that gives the badge back: what was
- * stored, this version's and the older keys alike, and the mode back to its
- * default, on.
- */
-export const resetEuphoriaMode = () => {
-  try {
-    [ACHIEVED_KEY, RETIRED_ENABLED_KEY, ENABLED_KEY].forEach((key) =>
-      window.localStorage.removeItem(key),
-    );
-  } catch {
-    // Nothing to undo if it was never written.
-  }
-  if (!enabled) {
-    enabled = true;
-    emit();
-  }
-};

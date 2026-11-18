@@ -126,7 +126,7 @@ const tour24 = {
   'tour.v24.heroes':
     '《暴雪英霸》有了更飽滿的專屬混音，可選廣闊的舞臺。遊戲濾鏡在凸顯提示音的同時讓音樂更平穩。',
   'tour.v24.graphSettings': '圖表為標準樣式和場景分別保存設定。',
-  'tour.v24.colourful': '多彩模式採用圖表上場景的顏色。',
+  'tour.v24.colourful': '波形、電平表和頻段採用圖表上場景的顏色。',
   'tour.v24.gallery': '畫廊開啟時顯示最新的場景。',
   'tour.v24.credits': '在瀏覽器購買的點數會自動入帳。',
   'tour.v24.sponsors':

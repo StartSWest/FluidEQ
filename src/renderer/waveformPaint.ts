@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import { GraphPalette, IGraphBallistics } from 'common/graphStyles';
-import { readSurface, type TSurfaceName } from './utils/theme';
 
 /**
  * The titlebar meter's numbers, and the spectrum bars the EQ graph's signal
@@ -416,28 +415,6 @@ export const PEAK_RELEASE_DB = 1.1;
 export const PAUSED_STROKE = 'rgba(216, 210, 255, 0.68)';
 /** Clipping: the trace itself turns the warning's red, flat. */
 export const CLIP_STROKE = '#ff5a6e';
-
-/**
- * The trace's colours in Normal mode, left to right across the pane: the
- * primary's dark at the ends through the primary to its light in the
- * middle — the walk it always made, now in the window's own colours. It
- * wore fixed cyans, which on another theme or under a Plus visualizer's
- * colours were the one cyan left in the window. In Rainbow mode the trace is
- * the mode's own palette (`rainbowGradientStops`).
- */
-const TRACE_WALK: readonly (readonly [number, TSurfaceName, string])[] = [
-  [0, '--accent-dark', '#0077a3'],
-  [0.28, '--accent', '#00c5ff'],
-  [0.52, '--accent-light', '#c8fff8'],
-  [0.76, '--accent', '#00e5cf'],
-  [1, '--accent-dark', '#005b7f'],
-];
-
-export const traceWalkStops = (): { offset: number; colour: string }[] =>
-  TRACE_WALK.map(([offset, token, fallback]) => ({
-    offset,
-    colour: readSurface(token, fallback),
-  }));
 
 /**
  * Canvas ignores an alpha outside 0..1 and keeps the last one, which is worse

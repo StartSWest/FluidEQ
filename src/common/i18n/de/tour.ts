@@ -87,12 +87,12 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '{windowColours} bietet {original}, {colours}, {ambient} und {backdrop}, jeweils mit einer Zeile dazu, was es mit dem Fenster macht.',
   'tour.look.point3':
-    'Dialoge und Menüs sind aus einem Material, und „{rainbow}“ läuft durch die Farben des Symbols oder die einer Szene.',
+    'Dialoge und Menüs sind aus einem Material, und die Bänder und leuchtenden Bedienelemente tragen die Farben des Symbols oder die einer Szene.',
   'tour.look.how':
     'Verschieben Sie {brightness} im Aktionsmenü hinter dem Puls-Symbol oben rechts. Mit einer Szene im Diagramm öffnen Sie {windowColours} über die Leiste des Diagramms und wählen {backdrop}.',
   'tour.look.open': 'EQ öffnen',
   'tour.look.imageAlt':
-    'FluidEQ in seinen eigenen Farben auf der EQ-Seite, der Analyzer zeichnet einen Song unter den Kurven, und das Menü hinter dem Puls-Symbol ist über seiner Ecke geöffnet, mit Helligkeit auf halber Höhe und eingeschaltetem „Bunter Modus“.',
+    'FluidEQ in seinen eigenen Farben auf der EQ-Seite, der Analyzer zeichnet einen Song unter den Kurven, und das Menü hinter dem Puls-Symbol ist über seiner Ecke geöffnet, mit Helligkeit auf halber Höhe.',
   'tour.gpu.kicker': 'EINE NEUE SZENEN-ENGINE',
   'tour.gpu.title': 'Jede Szene auf Ihrer Grafikkarte',
   'tour.gpu.subtitle':
@@ -121,9 +121,9 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point2':
     'Die Bühne des Studios zeigt sie immer, damit man beim Bauen einer Szene formen kann, was sie wirft.',
   'tour.sparks.point3':
-    'Ein Schalter für alle Szenen: {sparks}, in {windowColours} unter {rainbow}.',
+    'Ein Schalter für alle Szenen: {sparks}, in {windowColours}.',
   'tour.sparks.how':
-    'Fahren Sie mit einer Szene im Diagramm mit der Maus darüber und klicken Sie. {sparks} finden Sie in {windowColours} unter {rainbow}.',
+    'Fahren Sie mit einer Szene im Diagramm mit der Maus darüber und klicken Sie. {sparks} finden Sie in {windowColours}.',
   'tour.sparks.open': 'EQ öffnen',
   'tour.sparks.imageAlt':
     'Eine Polarlicht-Szene mit einer Spur leuchtender Funken hinter dem Mauszeiger und einem Funkenregen, wo geklickt wurde, dazu {windowColours} mit markiertem Schalter {sparks}.',

@@ -52,11 +52,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'El encabezado te lleva de una página de FluidEQ a otra y muestra el sonido mientras suena. El panel izquierdo tiene el interruptor general del EQ, la preamplificación y el medidor de nivel; el panel derecho sigue a tu salida y sus perfiles.',
   'help.window.steps':
-    'Abre una página desde la cabecera: Escenas, Compartir audio, Laboratorio gaming, EQ, DSP, Biblioteca, Karaoke, Multimedia en línea.\nActiva EQ del sistema en el panel izquierdo y deja Normalizar automáticamente activado, para que ningún realce sature.\nPulsa el medidor de nivel para cambiar cómo se dibuja, y Colorido, sobre la señal, para ver las bandas, el título y los controles encendidos en una paleta en lugar de un solo color.\nPara conmutar el procesamiento desde otra app, abre ≡ → Tecla de encendido/apagado y elige una combinación. No hay ninguna asignada al principio; un aviso sobre las ventanas confirma si FluidEQ está encendido o apagado.\nEn Presets EQ, la Biblioteca de convolución y Biblioteca, las búsquedas ignoran mayúsculas, tildes, espacios y puntuación: escribir kpop encuentra K-pop.',
+    'Abre una página desde la cabecera: Escenas, Compartir audio, Laboratorio gaming, EQ, DSP, Biblioteca, Karaoke, Multimedia en línea.\nActiva EQ del sistema en el panel izquierdo y deja Normalizar automáticamente activado, para que ningún realce sature.\nPulsa el medidor de nivel para cambiar cómo se dibuja. En el menú ≡, dale a Tono un segundo color para dibujar las bandas, el título y los controles encendidos en un degradado entre los dos.\nPara conmutar el procesamiento desde otra app, abre ≡ → Tecla de encendido/apagado y elige una combinación. No hay ninguna asignada al principio; un aviso sobre las ventanas confirma si FluidEQ está encendido o apagado.\nEn Presets EQ, la Biblioteca de convolución y Biblioteca, las búsquedas ignoran mayúsculas, tildes, espacios y puntuación: escribir kpop encuentra K-pop.',
   'help.window.tip':
-    'El menú Ayuda abre esta guía, Novedades, el solucionador de problemas de audio e Informar de un problema. El botón de menú de tres líneas que hay a su lado reúne la tarjeta del motor, la importación de ajustes de EQ o de una respuesta al impulso, el reinicio del audio de Windows, Procesos, que muestra qué está usando cada parte de FluidEQ, y Restablecer todos los ajustes; al pie del menú están Brillo, Tono, Modo colorido, Teñir el icono (desactivado al principio; pone el icono de la barra de tareas, el de la bandeja y el de su menú con los colores de la ventana), los deslizadores del EQ, las animaciones, Iniciar con Windows (FluidEQ arranca entonces en la bandeja y da forma a tu sonido sin abrir ninguna ventana) y el idioma. El interruptor que sigue a esos dos botones convierte la ventana en el Reproductor compacto.',
+    'El menú Ayuda abre esta guía, Novedades, el solucionador de problemas de audio e Informar de un problema. El botón de menú de tres líneas que hay a su lado reúne la tarjeta del motor, la importación de ajustes de EQ o de una respuesta al impulso, el reinicio del audio de Windows, Procesos, que muestra qué está usando cada parte de FluidEQ, y Restablecer todos los ajustes; al pie del menú están Brillo, Tono (sus dos muestras son el color de la ventana y un segundo color para un degradado), Teñir el icono (desactivado al principio; pone el icono de la barra de tareas, el de la bandeja y el de su menú con los colores de la ventana), los deslizadores del EQ, las animaciones, Iniciar con Windows (FluidEQ arranca entonces en la bandeja y da forma a tu sonido sin abrir ninguna ventana) y el idioma. El interruptor que sigue a esos dos botones convierte la ventana en el Reproductor compacto.',
   'help.window.keywords':
-    'interfaz, pestañas, cabecera, secciones, navegación, barra superior, barra inferior, barra de reproducción, panel lateral, botones, vúmetro, modo colorido, arcoíris, tour, donar, donaciones, tema, modo oscuro, modo claro, tema oscuro, tema claro, modo nocturno, idioma, lenguaje, cambiar idioma, iniciar con windows, arrancar con windows, inicio automático, arranque automático, al iniciar windows, buscar, búsqueda, mayúsculas, minúsculas, tildes, espacios, puntuación, search, accents, spaces, punctuation, case insensitive',
+    'interfaz, pestañas, cabecera, secciones, navegación, barra superior, barra inferior, barra de reproducción, panel lateral, botones, vúmetro, tono, color, segundo color, degradado, tint, colour, second colour, gradient, tour, donar, donaciones, tema, modo oscuro, modo claro, tema oscuro, tema claro, modo nocturno, idioma, lenguaje, cambiar idioma, iniciar con windows, arrancar con windows, inicio automático, arranque automático, al iniciar windows, buscar, búsqueda, mayúsculas, minúsculas, tildes, espacios, puntuación, search, accents, spaces, punctuation, case insensitive',
   'help.window.headerLeftCaption': 'El encabezado, hasta la señal',
   'help.window.headerRightCaption': 'El encabezado, después de la señal',
   'help.window.railCaption': 'El panel izquierdo',
@@ -70,7 +70,7 @@ const help: Record<keyof typeof en, string> = {
     'Tus bandas, presets, corrección de auriculares y la configuración del motor.',
   'help.window.waveName': 'Señal de audio',
   'help.window.wave':
-    'Lo que está sonando, mientras suena, con su nivel de pico. Colorido, en lo alto, activa o desactiva el Modo colorido; el menú Vista del gráfico puede ocultarla.',
+    'Lo que está sonando, mientras suena, con su nivel de pico; el menú Vista del gráfico puede ocultarla.',
   'help.window.dsp':
     'El rack de efectos: presets, la Sala y todas las etapas de la cadena.',
   'help.window.library':
@@ -83,7 +83,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Esta guía, Novedades, Notas de la versión completas, Foro, el diagnóstico de audio, Informar de un problema y Acerca de FluidEQ. Las notas completas se abren directamente. Acerca de incluye enlaces a sus secciones y, si el enlace de apoyo está disponible, una tarjeta de Buy Me a Coffee con código QR.',
   'help.window.actions':
-    'El motor, la importación de ajustes de EQ, el reinicio del audio de Windows, Procesos y Restablecer todos los ajustes; Brillo, Tono, Modo colorido y Teñir el icono, los deslizadores del EQ, las animaciones, Iniciar con Windows y el idioma. Tecla de encendido/apagado… te permite elegir un atajo para desactivar y activar todo el procesamiento de FluidEQ mientras usas otra app. Al principio no hay ninguna tecla asignada. Una tarjeta sobre las demás ventanas confirma cada cambio.',
+    'El motor, la importación de ajustes de EQ, el reinicio del audio de Windows, Procesos y Restablecer todos los ajustes; Brillo, Tono y su segundo color, y Teñir el icono, los deslizadores del EQ, las animaciones, Iniciar con Windows y el idioma. Tecla de encendido/apagado… te permite elegir un atajo para desactivar y activar todo el procesamiento de FluidEQ mientras usas otra app. Al principio no hay ninguna tecla asignada. Una tarjeta sobre las demás ventanas confirma cada cambio.',
   'help.window.systemEq':
     'Activa o desactiva el procesamiento de FluidEQ para todo lo que suena en el PC.',
   'help.window.preamp':
@@ -109,7 +109,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'El menú del reproductor',
   'help.player.foldedCaption': 'Plegado en una línea',
   'help.player.menu':
-    'Volver a la app completa o a una de sus páginas; el Brillo propio del reproductor, la Transparencia o el Tono, la Luz del día de una escena, el Modo colorido, Teñir el icono y los deslizadores del EQ; Siempre visible y Plegar en una línea.',
+    'Volver a la app completa o a una de sus páginas; el Brillo propio del reproductor, la Transparencia o el Tono, la Luz del día de una escena, Teñir el icono y los deslizadores del EQ; Siempre visible y Plegar en una línea.',
   'help.player.pin':
     'Mantiene el reproductor por encima de las demás ventanas.',
   'help.player.switch': 'Volver a la app completa, en la página que dejaste.',
@@ -140,7 +140,7 @@ const help: Record<keyof typeof en, string> = {
     'Lo que suena después. Haz clic en una canción para reproducirla, arrástrala para moverla, o suelta aquí archivos de música para añadirlos donde los sueltes.',
   'help.player.openIn': 'Abre la app completa en una de sus páginas.',
   'help.player.theme':
-    'El Brillo propio del reproductor, independiente del de la app completa; la Transparencia sobre una escena, o el Tono de la ventana sobre un estilo estándar; la Luz del día de una escena; el Modo colorido; y Teñir el icono, desactivado al principio, para el icono de la barra de tareas, el de la bandeja y el de su menú en los colores de la ventana.',
+    'El Brillo propio del reproductor, independiente del de la app completa; la Transparencia sobre una escena, o el Tono de la ventana sobre un estilo estándar; la Luz del día de una escena; y Teñir el icono, desactivado al principio, para el icono de la barra de tareas, el de la bandeja y el de su menú en los colores de la ventana.',
   'help.player.fold': 'Pliega el reproductor en una línea.',
   'help.player.unfold':
     'Despliega el reproductor. La flecha del otro extremo también.',

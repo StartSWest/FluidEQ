@@ -47,12 +47,12 @@ const tour = {
   'tour.look.point2':
     '{windowColours} 提供 {original}、{colours}、{ambient} 和 {backdrop}，每個都有一行說明其對視窗的作用。',
   'tour.look.point3':
-    '對話方塊和選單共享一種材質，{rainbow} 貫穿圖示的顏色或場景自己的顏色。',
+    '對話方塊和選單共享一種材質，頻段和點亮的控制元件採用圖示的顏色或場景自己的顏色。',
   'tour.look.how':
     '將選單中的 {brightness} 移至右上角脈衝圖示後面。對於圖形上的場景，從圖形欄中開啟 {windowColours} 並選擇 {backdrop}。',
   'tour.look.open': '開啟等化器',
   'tour.look.imageAlt':
-    'FluidEQ 在 EQ 頁面上有自己的顏色，分析器在曲線下繪製一首歌曲，脈衝圖示後面的選單在其一角開啟，亮度為一半，彩色模式開啟。',
+    'FluidEQ 在 EQ 頁面上有自己的顏色，分析器在曲線下繪製一首歌曲，脈衝圖示後面的選單在其一角開啟，亮度為一半。',
   'tour.gpu.kicker': '新的場景引擎',
   'tour.gpu.title': '顯示卡上的每個場景',
   'tour.gpu.subtitle': '四十看看你的螢幕本身的速度和 3D 世界',
@@ -79,9 +79,9 @@ const tour = {
   'tour.sparks.point2':
     '工作室的舞臺總是展示它們，因此場景製作者可以塑造它所拋出的內容。',
   'tour.sparks.point3':
-    '每個場景都有一個開關：{sparks}，位於 {windowColours} 下的 {rainbow} 中。',
+    '每個場景都有一個開關：{sparks}，位於 {windowColours} 中。',
   'tour.sparks.how':
-    '對於圖表上的場景，將滑鼠移到其上並單擊。 {sparks} 位於 {windowColours} 中的 {rainbow} 下。',
+    '對於圖表上的場景，將滑鼠移到其上並單擊。 {sparks} 位於 {windowColours} 中。',
   'tour.sparks.open': '開啟等化器',
   'tour.sparks.imageAlt':
     '極光場景的指標後面有一串發光的火花，點選時會發出一聲爆裂聲，{windowColours} 的 {sparks} 開關會響起。',

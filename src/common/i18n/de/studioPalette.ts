@@ -14,7 +14,7 @@ const studioPalette = {
   'studioPalette.hint':
     'Klicken Sie auf den Streifen, um eine Farbe hinzuzufügen. Ziehen Sie eine, um sie zu verschieben, klicken Sie darauf, um sie zu ändern, Rechtsklick oder vom Streifen ziehen entfernt sie. Eine Palette behält mindestens zwei.',
   'studioPalette.appColours':
-    'Im bunten Modus tragen FluidEQs Welle, Pegelanzeigen und Bänder die erste Palette, die diese Szene zeigt.',
+    'FluidEQs Welle, Pegelanzeigen und Bänder tragen die erste Palette, die diese Szene zeigt.',
   'studioPalette.preset.rainbow': 'Regenbogen',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

@@ -184,6 +184,9 @@ const eq: Partial<Dictionary> = {
   'graph.editHint':
     'Faites glisser les points · Ctrl/Maj pour sélectionner · Ctrl+molette : Q · Ctrl+glisser : cloche',
   'graph.windowTintPick': 'Choisir n’importe quelle couleur',
+  'graph.windowTintSecond':
+    'Deuxième couleur : les bandes, le titre et les commandes allumées vont de la première couleur à celle-ci',
+  'graph.windowTintOneColour': 'Revenir à une seule couleur',
   'graph.windowTint': 'Teinte',
   'graph.windowTintHint':
     'La couleur de la fenêtre avec un aspect standard. Double-cliquez pour revenir à la couleur d’origine.',
@@ -191,9 +194,6 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint':
     'Quelle part de la scène transparaît à travers les panneaux',
   'graph.sceneTint.brightness': 'Luminosité',
-  'graph.sceneTint.rainbow': 'Mode coloré',
-  'graph.sceneTint.rainbowHint':
-    'Les bandes, le titre et les commandes allumées dans une palette plutôt qu’une seule couleur — avec une scène choisie, dans ses propres couleurs.',
   'graph.sceneTint.appIcon': 'Teinter l’icône',
   'graph.sceneTint.appIconHint':
     'Le bouton de la barre des tâches et l’icône de la zone de notification aux couleurs de la fenêtre. Désactivé, l’icône de FluidEQ reste.',
@@ -929,7 +929,6 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Vos bandes d’égalisation seules, rien par-dessus',
   'voicing.strength': 'Intensité',
   'waveform.style': "Changer le style de l'indicateur",
-  'waveform.rainbow': 'Coloré',
   'waveform.live': 'SORTIE EN DIRECT',
   'waveform.signal': 'SIGNAL AUDIO',
   'waveform.clip': 'SATURATION',

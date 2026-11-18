@@ -52,11 +52,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'L’en-tête vous fait passer d’une page de FluidEQ à l’autre et montre le son en direct. La colonne de gauche contient l’interrupteur général de l’EQ, le préampli et l’indicateur de niveau ; la colonne de droite suit votre sortie et ses profils.',
   'help.window.steps':
-    'Ouvrez une page depuis l’en-tête : Scènes, Partager l’audio, Labo gaming, Égaliseur, DSP, Bibliothèque, Karaoké, Médias en ligne.\nActivez l’Égaliseur système dans la colonne de gauche et laissez la Normalisation auto activée, pour qu’aucune amplification ne sature.\nAppuyez sur l’indicateur de niveau pour changer la façon dont il est dessiné, et sur Coloré, sur le signal, pour afficher les bandes, le titre et les commandes allumées dans une palette plutôt qu’une seule couleur.\nPour commuter depuis une autre app, ouvrez ≡ → Touche marche/arrêt et choisissez une combinaison. Aucune n’est attribuée au départ ; la notification au-dessus des fenêtres confirme l’état de FluidEQ.\nDans les Préréglages EQ, la Bibliothèque de convolution et la Bibliothèque, la recherche ignore la casse, les accents, les espaces et la ponctuation : kpop trouve K-pop.',
+    'Ouvrez une page depuis l’en-tête : Scènes, Partager l’audio, Labo gaming, Égaliseur, DSP, Bibliothèque, Karaoké, Médias en ligne.\nActivez l’Égaliseur système dans la colonne de gauche et laissez la Normalisation auto activée, pour qu’aucune amplification ne sature.\nAppuyez sur l’indicateur de niveau pour changer la façon dont il est dessiné. Dans le menu ≡, donnez à la Teinte une deuxième couleur pour dessiner les bandes, le titre et les commandes allumées en dégradé entre les deux.\nPour commuter depuis une autre app, ouvrez ≡ → Touche marche/arrêt et choisissez une combinaison. Aucune n’est attribuée au départ ; la notification au-dessus des fenêtres confirme l’état de FluidEQ.\nDans les Préréglages EQ, la Bibliothèque de convolution et la Bibliothèque, la recherche ignore la casse, les accents, les espaces et la ponctuation : kpop trouve K-pop.',
   'help.window.tip':
-    'Le menu Aide mène à ce guide, à Nouveautés, au dépannage audio et à Signaler un problème. Le bouton de menu à trois traits, juste à côté, contient la carte du moteur, l’importation de réglages d’égalisation ou d’une réponse impulsionnelle, le redémarrage de l’audio de Windows, Processus, qui montre ce que chaque partie de FluidEQ utilise, et Réinitialiser tous les réglages ; tout en bas se trouvent Luminosité, Teinte, Mode coloré, Teinter l’icône (désactivé au départ ; met l’icône de la barre des tâches, celle de la zone de notification et celle de son menu aux couleurs de la fenêtre), les curseurs de l’EQ, les animations, Démarrer avec Windows (FluidEQ démarre alors dans la zone de notification et façonne votre son sans ouvrir de fenêtre) et la langue. Juste après ces deux boutons, un interrupteur transforme la fenêtre en Lecteur compact.',
+    'Le menu Aide mène à ce guide, à Nouveautés, au dépannage audio et à Signaler un problème. Le bouton de menu à trois traits, juste à côté, contient la carte du moteur, l’importation de réglages d’égalisation ou d’une réponse impulsionnelle, le redémarrage de l’audio de Windows, Processus, qui montre ce que chaque partie de FluidEQ utilise, et Réinitialiser tous les réglages ; tout en bas se trouvent Luminosité, Teinte (ses deux pastilles sont la couleur de la fenêtre et une deuxième couleur pour un dégradé), Teinter l’icône (désactivé au départ ; met l’icône de la barre des tâches, celle de la zone de notification et celle de son menu aux couleurs de la fenêtre), les curseurs de l’EQ, les animations, Démarrer avec Windows (FluidEQ démarre alors dans la zone de notification et façonne votre son sans ouvrir de fenêtre) et la langue. Juste après ces deux boutons, un interrupteur transforme la fenêtre en Lecteur compact.',
   'help.window.keywords':
-    'onglets, navigation, naviguer, interface, entête, barre de titre, barre d’outils, barre latérale, panneau latéral, barre du bas, barre de lecture, vu-mètre, mode coloré, arc-en-ciel, icônes, faire un don, donation, thème, mode sombre, mode clair, thème sombre, thème clair, mode nuit, langue, changer de langue, démarrer avec windows, démarrage automatique, lancer au démarrage, démarrage, recherche, chercher, casse, accents, espaces, ponctuation, search, accents, spaces, punctuation, case insensitive',
+    'onglets, navigation, naviguer, interface, entête, barre de titre, barre d’outils, barre latérale, panneau latéral, barre du bas, barre de lecture, vu-mètre, teinte, couleur, deuxième couleur, dégradé, tint, colour, color, second colour, gradient, icônes, faire un don, donation, thème, mode sombre, mode clair, thème sombre, thème clair, mode nuit, langue, changer de langue, démarrer avec windows, démarrage automatique, lancer au démarrage, démarrage, recherche, chercher, casse, accents, espaces, ponctuation, search, accents, spaces, punctuation, case insensitive',
   'help.window.headerLeftCaption': 'L’en-tête, jusqu’au signal',
   'help.window.headerRightCaption': 'L’en-tête, après le signal',
   'help.window.railCaption': 'La colonne de gauche',
@@ -70,7 +70,7 @@ const help: Record<keyof typeof en, string> = {
     'Vos bandes, vos préréglages, la correction du casque et la config du moteur.',
   'help.window.waveName': 'Signal audio',
   'help.window.wave':
-    'Ce qui est en lecture, en direct, avec son niveau de crête. Coloré, en haut, active ou désactive le Mode coloré ; le menu Affichage du graphique permet de le masquer.',
+    'Ce qui est en lecture, en direct, avec son niveau de crête ; le menu Affichage du graphique permet de le masquer.',
   'help.window.dsp':
     'Le rack d’effets : les préréglages, la Salle et chaque étage de la chaîne.',
   'help.window.library':
@@ -83,7 +83,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Ce guide, Nouveautés, Notes de version complètes, Forum, le dépannage audio, Signaler un problème et À propos de FluidEQ. Les notes complètes s’ouvrent directement. À propos propose des liens vers ses sections et, si le lien de soutien est disponible, une carte Buy Me a Coffee avec code QR.',
   'help.window.actions':
-    'Le moteur, l’importation de réglages d’égalisation, le redémarrage de l’audio de Windows, Processus et Réinitialiser tous les réglages ; Luminosité, Teinte, Mode coloré et Teinter l’icône, les curseurs de l’EQ, les animations, Démarrer avec Windows et la langue. Touche marche/arrêt… vous permet de choisir un raccourci pour couper et réactiver tout le traitement de FluidEQ lorsqu’une autre app est au premier plan. Aucune touche n’est attribuée au départ. Une carte au-dessus des autres fenêtres confirme chaque changement.',
+    'Le moteur, l’importation de réglages d’égalisation, le redémarrage de l’audio de Windows, Processus et Réinitialiser tous les réglages ; Luminosité, Teinte et sa deuxième couleur, et Teinter l’icône, les curseurs de l’EQ, les animations, Démarrer avec Windows et la langue. Touche marche/arrêt… vous permet de choisir un raccourci pour couper et réactiver tout le traitement de FluidEQ lorsqu’une autre app est au premier plan. Aucune touche n’est attribuée au départ. Une carte au-dessus des autres fenêtres confirme chaque changement.',
   'help.window.systemEq':
     'Active ou désactive le traitement de FluidEQ pour tout ce que joue le PC.',
   'help.window.preamp':
@@ -109,7 +109,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Le menu du lecteur',
   'help.player.foldedCaption': 'Replié sur une ligne',
   'help.player.menu':
-    'Revenir à l’application complète ou à l’une de ses pages ; la Luminosité propre au lecteur, la Transparence ou la Teinte, la Lumière du jour d’une scène, le Mode coloré, Teinter l’icône et les curseurs de l’EQ ; Toujours au premier plan et Replier sur une ligne.',
+    'Revenir à l’application complète ou à l’une de ses pages ; la Luminosité propre au lecteur, la Transparence ou la Teinte, la Lumière du jour d’une scène, Teinter l’icône et les curseurs de l’EQ ; Toujours au premier plan et Replier sur une ligne.',
   'help.player.pin':
     'Garde le lecteur au-dessus de toutes les autres fenêtres.',
   'help.player.switch':
@@ -140,7 +140,7 @@ const help: Record<keyof typeof en, string> = {
     'Ce qui joue ensuite. Cliquez sur un morceau pour le lire, faites-le glisser pour le déplacer, ou déposez ici des fichiers musicaux pour les ajouter à l’endroit où vous les lâchez.',
   'help.player.openIn': 'Ouvre l’application complète sur l’une de ses pages.',
   'help.player.theme':
-    'La Luminosité propre au lecteur, indépendante de celle de l’application complète ; la Transparence sur une scène, ou la Teinte de la fenêtre sur un style standard ; la Lumière du jour d’une scène ; le Mode coloré ; et Teinter l’icône, désactivé au départ, pour l’icône de la barre des tâches, celle de la zone de notification et celle de son menu aux couleurs de la fenêtre.',
+    'La Luminosité propre au lecteur, indépendante de celle de l’application complète ; la Transparence sur une scène, ou la Teinte de la fenêtre sur un style standard ; la Lumière du jour d’une scène ; et Teinter l’icône, désactivé au départ, pour l’icône de la barre des tâches, celle de la zone de notification et celle de son menu aux couleurs de la fenêtre.',
   'help.player.fold': 'Replie le lecteur sur une ligne.',
   'help.player.unfold': 'Déplie le lecteur. La flèche à l’autre bout aussi.',
   'help.player.foldedPlaying': 'Lecture ou pause.',

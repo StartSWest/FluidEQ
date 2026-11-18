@@ -56,11 +56,11 @@ const help = {
   'help.window.intro':
     'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
   'help.window.steps':
-    'Open a page from the header: Scenes, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, Online Media.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.\nTo switch processing from another app, open the ≡ menu → On/off key and choose your own key combination. No key is assigned at first; the confirmation above other windows says whether FluidEQ is on or off.\nIn EQ Presets, Convolution library and Library, searches ignore case, accents, spaces and punctuation: typing kpop matches K-pop.',
+    'Open a page from the header: Scenes, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, Online Media.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn. In the ≡ menu, give Tint a second colour to draw the bands, the title and the lit controls in a gradient between the two.\nTo switch processing from another app, open the ≡ menu → On/off key and choose your own key combination. No key is assigned at first; the confirmation above other windows says whether FluidEQ is on or off.\nIn EQ Presets, Convolution library and Library, searches ignore case, accents, spaces and punctuation: typing kpop matches K-pop.',
   'help.window.tip':
-    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint, Colourful mode, Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. The switch after them turns the window into the Compact player.',
+    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint (its two swatches are the window’s colour and a second one for a gradient), Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
-    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, colourful mode, colorful mode, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, search, find names, accents, spaces, punctuation, case insensitive',
+    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, tint, colour, color, second colour, gradient, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, search, find names, accents, spaces, punctuation, case insensitive',
   'help.window.headerLeftCaption': 'The header, up to the signal',
   'help.window.headerRightCaption': 'The header, after the signal',
   'help.window.railCaption': 'The left rail',
@@ -74,7 +74,7 @@ const help = {
     'Your bands, presets, headphone correction and the engine’s config.',
   'help.window.waveName': 'Audio signal',
   'help.window.wave':
-    'What is playing, as it plays, with its peak level. Colourful, at its top, turns Colourful mode on or off; the graph’s View menu can hide it.',
+    'What is playing, as it plays, with its peak level; the graph’s View menu can hide it.',
   'help.window.dsp':
     'The effects rack: presets, the Room and every stage of the chain.',
   'help.window.library': 'Your music files, albums and play queue.',
@@ -84,7 +84,7 @@ const help = {
   'help.window.help':
     'This guide, What’s new, Full release notes, Forum, the audio troubleshooter, Report a problem and About FluidEQ. Full release notes opens all the notes directly. About has links to its sections and, where the support link is available, a Buy Me a Coffee card with a QR code.',
   'help.window.actions':
-    'The engine, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.',
+    'The engine, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint and its second colour, and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':
@@ -110,7 +110,7 @@ const help = {
   'help.player.menuCaption': 'The player’s menu',
   'help.player.foldedCaption': 'Folded to one line',
   'help.player.menu':
-    'Back to the full app or to one of its pages; the player’s own Brightness, Transparency or Tint, a scene’s Daylight, Colourful mode, Tint app icon and the EQ sliders; Always on top and Fold to one line.',
+    'Back to the full app or to one of its pages; the player’s own Brightness, Transparency or Tint, a scene’s Daylight, Tint app icon and the EQ sliders; Always on top and Fold to one line.',
   'help.player.pin': 'Keeps the player above every other window.',
   'help.player.switch': 'Back to the full app, on the page you left.',
   'help.player.clock': 'Time played. Click it for the time left.',
@@ -138,7 +138,7 @@ const help = {
     'What plays next. Click a song to play it, drag it to move it, or drop music files here to add them where you let go.',
   'help.player.openIn': 'Opens the full app on one of its pages.',
   'help.player.theme':
-    'The player’s own Brightness, apart from the full app’s; Transparency over a scene, or the window’s Tint over a standard style; a scene’s Daylight; Colourful mode; and Tint app icon, off at first, for the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours.',
+    'The player’s own Brightness, apart from the full app’s; Transparency over a scene, or the window’s Tint over a standard style; a scene’s Daylight; and Tint app icon, off at first, for the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours.',
   'help.player.fold': 'Folds the player to one line.',
   'help.player.unfold':
     'Unfolds the player. The arrow at the other end does too.',

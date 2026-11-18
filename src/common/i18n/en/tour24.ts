@@ -136,7 +136,7 @@ const tour24 = {
   'tour.v24.graphSettings':
     'The graph keeps separate settings for standard looks and for scenes.',
   'tour.v24.colourful':
-    'Colourful mode takes the colours of the scene on the graph.',
+    'The wave, the meters and the bands take the colours of the scene on the graph.',
   'tour.v24.gallery': 'The Gallery opens on its newest scenes.',
   'tour.v24.credits': 'Credits you buy in the browser arrive by themselves.',
   'tour.v24.sponsors':

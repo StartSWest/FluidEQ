@@ -159,15 +159,15 @@ const eq = {
   'graph.editHint':
     '점 드래그 · Ctrl/Shift 선택 · Ctrl+스크롤: Q · Ctrl+드래그: 종',
   'graph.windowTintPick': '원하는 색 고르기',
+  'graph.windowTintSecond':
+    '두 번째 색상: 밴드, 제목 및 조명 컨트롤이 첫 번째 색상에서 이 색상으로 이어집니다',
+  'graph.windowTintOneColour': '한 가지 색상으로 돌아가기',
   'graph.windowTint': '색조',
   'graph.windowTintHint':
     '표준 모양이 켜져 있는 동안의 창 색상입니다. 원래 색상을 보려면 두 번 클릭하세요.',
   'graph.backdropVeil': '투명성',
   'graph.backdropVeilHint': '패널을 통해 표시되는 장면의 양',
   'graph.sceneTint.brightness': '밝기',
-  'graph.sceneTint.rainbow': '컬러풀 모드',
-  'graph.sceneTint.rainbowHint':
-    '하나의 색상 대신 팔레트의 밴드, 제목 및 조명 컨트롤(하나를 선택하는 동안 장면 고유의 색상)입니다.',
   'graph.sceneTint.appIcon': '앱 아이콘에 색조 적용',
   'graph.sceneTint.appIconHint':
     '창 색상의 작업 표시줄 버튼과 트레이 아이콘. Off는 FluidEQ의 자체 아이콘을 유지합니다.',
@@ -877,7 +877,6 @@ const eq = {
   'voicing.none.hint': 'EQ 밴드만 있고 그 위에 겹쳐진 것은 없습니다.',
   'voicing.strength': '강도',
   'waveform.style': '미터 스타일 변경',
-  'waveform.rainbow': '컬러풀',
   'waveform.live': '라이브 출력',
   'waveform.signal': '오디오 신호',
   'waveform.clip': '클립',

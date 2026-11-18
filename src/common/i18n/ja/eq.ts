@@ -179,15 +179,15 @@ const eq: Partial<Dictionary> = {
   'graph.editHint':
     'ポイントをドラッグ · Ctrl/Shiftで選択 · Ctrl+ホイール: Q · Ctrl+ドラッグ: ベル',
   'graph.windowTintPick': '好きな色を選ぶ',
+  'graph.windowTintSecond':
+    '2つ目の色：バンド、タイトル、点灯中のコントロールが最初の色からこの色へ移り変わります',
+  'graph.windowTintOneColour': '1色に戻す',
   'graph.windowTint': '色合い',
   'graph.windowTintHint':
     '標準のルックでのウィンドウの色。ダブルクリックで元の色に戻ります。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': 'パネル越しにシーンがどれだけ見えるか',
   'graph.sceneTint.brightness': '明るさ',
-  'graph.sceneTint.rainbow': 'カラフルモード',
-  'graph.sceneTint.rainbowHint':
-    'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。シーンの選択中はその色で表示します。',
   'graph.sceneTint.appIcon': 'アプリアイコンを着色',
   'graph.sceneTint.appIconHint':
     'タスクバーのボタンと通知領域のアイコンをウィンドウの色にします。オフにすると FluidEQ 本来のアイコンのままです。',
@@ -907,7 +907,6 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '自分の EQ バンドだけ。上に重ねるものはありません',
   'voicing.strength': '強さ',
   'waveform.style': 'メーターのスタイルを変更',
-  'waveform.rainbow': 'カラフル',
   'waveform.live': 'ライブ出力',
   'waveform.signal': 'オーディオ信号',
   'waveform.clip': 'クリップ',

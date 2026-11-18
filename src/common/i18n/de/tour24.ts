@@ -138,7 +138,7 @@ const tour24 = {
   'tour.v24.graphSettings':
     'Das Diagramm behält getrennte Einstellungen für Standardstile und für Szenen.',
   'tour.v24.colourful':
-    'Der Bunte Modus übernimmt die Farben der Szene im Diagramm.',
+    'Welle, Pegelanzeigen und Bänder übernehmen die Farben der Szene im Diagramm.',
   'tour.v24.gallery': 'Die Galerie öffnet sich mit ihren neuesten Szenen.',
   'tour.v24.credits': 'Im Browser gekaufte Credits kommen von selbst an.',
   'tour.v24.sponsors':

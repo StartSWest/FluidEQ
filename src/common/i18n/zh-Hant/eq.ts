@@ -151,14 +151,14 @@ const eq = {
   'graph.sceneTint.about.cover': '整個 Ambient，場景位於整個視窗後面。',
   'graph.editHint': '拖曳點 · Ctrl/Shift 選擇 · Ctrl+捲動：Q · Ctrl+拖曳：響鈴',
   'graph.windowTintPick': '選擇任意顏色',
+  'graph.windowTintSecond':
+    '第二種顏色：頻段、標題和點亮的控制元件從第一種顏色漸層到這種顏色',
+  'graph.windowTintOneColour': '恢復為單一顏色',
   'graph.windowTint': '色調',
   'graph.windowTintHint': '標準外觀開啟時視窗的顏色。雙擊原始顏色。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': '場景透過面板顯示了多少內容',
   'graph.sceneTint.brightness': '亮度',
-  'graph.sceneTint.rainbow': '多彩模式',
-  'graph.sceneTint.rainbowHint':
-    '調色盤中的條帶、標題和照明控製而不是一種顏色 - 選擇一種顏色時場景自己的顏色。',
   'graph.sceneTint.appIcon': '給應用程式圖示著色',
   'graph.sceneTint.appIconHint':
     '工作列按鈕和托盤圖示採用視窗顏色。關閉保留 FluidEQ 自己的圖示。',
@@ -838,7 +838,6 @@ const eq = {
   'voicing.none.hint': '僅您的 EQ 頻段，頂部沒有任何分層',
   'voicing.strength': '強度',
   'waveform.style': '變更儀表樣式',
-  'waveform.rainbow': '多彩',
   'waveform.live': '現場輸出',
   'waveform.signal': '音訊訊號',
   'waveform.clip': '剪輯',

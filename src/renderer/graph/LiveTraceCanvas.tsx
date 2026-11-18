@@ -94,8 +94,7 @@ import { useSilentFloor } from './silentFloor';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import { resolvePresentedStrokeWidth } from './liveTracePaint';
-
-import { useIsRootEuphoric } from '../utils/euphoriaMode';
+import { useRainbowStops } from '../utils/rainbowPalette';
 
 import createSceneStates from './liveTraceSceneStates';
 import drawLiveTraceFrame from './drawLiveTraceFrame';
@@ -289,7 +288,8 @@ const LiveTraceCanvas = ({
   hasKeyRef.current = hasKey;
   const ambient = hasGraphAmbientMotion(look.style);
   playingRef.current = ambient || !isPaused;
-  const isRainbow = useIsRootEuphoric();
+  // The window's colours: a new one repaints a trace that has settled.
+  const stops = useRainbowStops();
   const lookRef = useRef(look);
   lookRef.current = look;
 
@@ -715,11 +715,11 @@ const LiveTraceCanvas = ({
     height,
     isForeground,
     isGridHidden,
-    isRainbow,
     isPaused,
     kickFrames,
     look,
     points,
+    stops,
     waveform,
     width,
   ]);

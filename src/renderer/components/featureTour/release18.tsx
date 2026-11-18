@@ -52,7 +52,6 @@ export function LookSlide({ actions }: ISlideProps) {
         colours: t('graph.sceneTint.short.tint'),
         ambient: t('graph.sceneTint.short.pulse'),
         backdrop: t('graph.sceneTint.short.cover'),
-        rainbow: t('graph.sceneTint.rainbow'),
       }}
     />
   );

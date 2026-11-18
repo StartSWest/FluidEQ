@@ -168,14 +168,14 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover': '包含“氛围”的一切，并把场景铺在整个窗口背后。',
   'graph.editHint': '拖动点 · Ctrl/Shift 选择 · Ctrl+滚轮：Q · Ctrl+拖动：钟形',
   'graph.windowTintPick': '选择任意颜色',
+  'graph.windowTintSecond':
+    '第二种颜色：频段、标题和亮起的控件从第一种颜色渐变到这种颜色',
+  'graph.windowTintOneColour': '恢复为单一颜色',
   'graph.windowTint': '色调',
   'graph.windowTintHint': '使用标准外观时窗口的颜色。双击恢复原来的颜色。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': '透过面板能看到多少场景',
   'graph.sceneTint.brightness': '亮度',
-  'graph.sceneTint.rainbow': '多彩模式',
-  'graph.sceneTint.rainbowHint':
-    '频段、标题和亮起的控件使用调色板而不是单一颜色；选择场景时使用它自己的颜色。',
   'graph.sceneTint.appIcon': '为应用图标着色',
   'graph.sceneTint.appIconHint':
     '任务栏按钮和通知区域图标使用窗口的颜色。关闭时保留 FluidEQ 原来的图标。',
@@ -861,7 +861,6 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '只用你自己的频段，不叠加任何东西',
   'voicing.strength': '强度',
   'waveform.style': '更换指示器样式',
-  'waveform.rainbow': '多彩',
   'waveform.live': '实时输出',
   'waveform.signal': '音频信号',
   'waveform.clip': '削波',

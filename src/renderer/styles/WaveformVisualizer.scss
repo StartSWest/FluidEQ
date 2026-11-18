@@ -144,6 +144,9 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   align-items: center;
   gap: 6px;
+  // One line, so a label with no room runs past its box rather than folding
+  // in two, and `useMeterLabelFit` can read how far it would reach.
+  white-space: nowrap;
 }
 
 .waveform-visualizer__signal-dot {
@@ -200,12 +203,6 @@ it under the terms of the GNU General Public License version 3 or later.
   @include tracking(0.12em);
 }
 
-// Explicitly below the euphoria pill, which sits over the pane's top
-// edge at `z-index: 1`. The stage is a positioned box covering the whole
-// pane, so without a stated layer it competes with that pill for the
-// same strip of window and paints the wave over the "RAINBOW MODE"
-// label. Starting below the meta row is what gives the waveform its own
-// inset while the labels above stay flush with the top of the pane.
 // The name of the style just cycled into. Outside the stage and above
 // it, so it sits on the card rather than inside the clipped drawing.
 .waveform-visualizer__announcement {
@@ -339,47 +336,34 @@ it under the terms of the GNU General Public License version 3 or later.
 // THE TOP STRIP GIVES ITS READOUTS UP BY THE METER'S OWN WIDTH, NOT THE
 // WINDOW'S.
 //
-// Three things share that strip: the signal light with LIVE OUTPUT (78px
-// from the left edge), the held peak (34 at the right), and the centred
-// "RAINBOW MODE" pill (109). With the pane's 28px of inline padding they
-// need 265px between them, and the pane is not sized by the window alone —
-// the titlebar's grid squeezes it when the blocks either side grow, so a
-// window query cannot say when they stop fitting. The container can: the
-// shell carries a definite width (`App.scss`), which is what makes it a
-// size container without collapsing.
+// Two things share that strip: the signal light with LIVE OUTPUT at the left,
+// and the readouts at the right — the loudness figure and the held peak, 110px
+// with the pane's padding. The pane is not sized by the window alone — the
+// titlebar's grid squeezes it when the blocks either side grow, so a window
+// query cannot say when they stop fitting. The container can: the shell
+// carries a definite width (`App.scss`), which is what makes it a size
+// container without collapsing.
 //
-// Measured in the harness, 2026-09-22 — the width at which that pair first
-// touches, and not a pixel earlier: the strip keeps everything it can still
-// draw clear.
-//
-//   LIVE OUTPUT is not given a width here. It was (325, measured for
-//        English), and Spanish "SALIDA EN DIRECTO" ran under "COLORIDO" at
-//        widths English clears (Ivan, 2026-11-15): the component measures
-//        the label against the pill in the language on screen and marks it
-//        `data-cramped` (`useMeterLabelFit.ts`). Hidden, not removed, so the
-//        held peak keeps its place at the right.
-//   222  the held peak comes within the same 8px of the pill (at the left,
-//        where `App.scss` has removed the label below 1920 of window; at
-//        the right it clears a few pixels sooner).
-//   136  the pill no longer fits the pane at all.
-//
-// What goes, goes in that order: the label repeats what the trace says, the
-// number is the next most replaceable, and the pill last — its mode is
-// named nowhere else on screen, though Ctrl+E still turns it on.
+// What goes, goes in this order: the label repeats what the trace says, so
+// it goes first, the moment it would come within 8px of the readouts — the
+// component measures the two in the language on screen and marks the label
+// `data-cramped` (`useMeterLabelFit.ts`), because it is 99px from the
+// pane's edge in English and 203 in Russian. Hidden, not removed, so the
+// readouts keep their place at the right. Then the numbers, against the
+// signal light alone (23px in), 8px clear, measured in the harness on
+// 2026-11-18 once the Colourful pill that stood centred between them had
+// gone: the loudness figure under 141px of meter, the peak under 86.
 .waveform-visualizer__signal[data-cramped] {
   visibility: hidden;
 }
 
-// The loudness figure goes before the peak: 330 is where it comes within
-// 8px of the centred pill (figure 52px, gap 6, peak 40, padding 14, pill
-// half 44 — measured in the running window, 2026-11-16).
-@container wave-meter (max-width: 330px) {
+@container wave-meter (max-width: 150px) {
   .waveform-visualizer__loudness {
     display: none;
   }
 }
 
-@container wave-meter (max-width: 222px) {
+@container wave-meter (max-width: 90px) {
   .waveform-visualizer__peak {
     display: none;
   }

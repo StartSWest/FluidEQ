@@ -11,7 +11,6 @@ import SignalBrandMark from '../components/SignalBrandMark';
 import SliderHandlePicker from '../components/SliderHandlePicker';
 import DaylightSourceChoice from '../graph/DaylightSourceChoice';
 import LookColourSlider from '../graph/LookColourSlider';
-import RainbowSwitch from '../graph/RainbowSwitch';
 import AppIconTintSwitch from '../graph/AppIconTintSwitch';
 import SceneDaylightSlider from '../graph/SceneDaylightSlider';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
@@ -157,7 +156,6 @@ export const PlayerMarkMenuItems = ({
               <DaylightSourceChoice />
             </>
           )}
-          <RainbowSwitch />
           <AppIconTintSwitch />
         </div>
         <SliderHandlePicker />
@@ -184,8 +182,8 @@ export const PlayerMarkMenuItems = ({
  *
  * On the Stage's glass (Ivan, 2026-09-27), in the order it is used: the way
  * back to the full app, large; the app's seven pages behind the tab strip's
- * glyphs; the app's own settings tray — Brightness, Transparency, Rainbow
- * mode and the sliders' handles, the same components writing the same
+ * glyphs; the app's own settings tray — Brightness, Transparency or Tint
+ * and the sliders' handles, the same components writing the same
  * settings (Ivan, 2026-09-26: "add brightness and transparency same as in
  * app"), with Always on top under its hairline, where the app keeps how it
  * behaves; and the fold at the foot.

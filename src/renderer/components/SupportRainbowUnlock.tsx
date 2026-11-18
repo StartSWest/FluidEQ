@@ -4,10 +4,9 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import MenuIcon from '../icons/MenuIcon';
-import { useIsEuphoriaAchieved, winEuphoria } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
 
 export default function SupportRainbowUnlock({
@@ -18,22 +17,11 @@ export default function SupportRainbowUnlock({
   onContributed: () => void;
 }) {
   const { t } = useTranslation();
-  const isAchieved = useIsEuphoriaAchieved();
   const [isCelebrating, setIsCelebrating] = useState(false);
-  // Existing supporters also get the unlock. Rainbow mode is always on now
-  // (`euphoriaMode.ts`), so this records it and changes nothing on screen.
-  useEffect(() => {
-    if (hasContributed && !isAchieved) {
-      winEuphoria();
-    }
-  }, [hasContributed, isAchieved]);
-
   const confirmContribution = () => {
-    // Confirmation used to grant only the badge, leaving Rainbow behind ×10.
-    // Unlock on the click; a closing dialog or unfinished animation cannot
-    // lose the reward, and no unplayed points are added to the run.
+    // On the click, so a closing dialog or an unfinished animation cannot
+    // lose the badge, and no unplayed points are added to the run.
     onContributed();
-    winEuphoria();
     setIsCelebrating(true);
   };
 

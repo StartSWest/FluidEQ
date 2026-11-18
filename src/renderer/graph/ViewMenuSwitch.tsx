@@ -10,7 +10,7 @@ import Switch from '../widgets/Switch';
 /**
  * A drawing the View menu turns on or off, as a named row with the app's
  * switch at its end (Ivan, 2026-11-16: "all of them have to be toggle
- * buttons"): the same row the window-look switches are (`RainbowSwitch`). It
+ * buttons"): the same row the window-look switches are (`AppIconTintSwitch`). It
  * replaces the rows whose label flipped between "Hide …" and "Show …", which
  * read as an action to take rather than a state to see.
  */

@@ -178,15 +178,15 @@ const eq: Partial<Dictionary> = {
   'graph.editHint':
     'पॉइंट खींचें · Ctrl/Shift से चुनें · Ctrl+स्क्रॉल: Q · Ctrl+खींचें: बेल',
   'graph.windowTintPick': 'कोई भी रंग चुनें',
+  'graph.windowTintSecond':
+    'दूसरा रंग: बैंड, शीर्षक और जले हुए नियंत्रण पहले रंग से इस रंग तक ढलते हैं',
+  'graph.windowTintOneColour': 'वापस एक रंग पर',
   'graph.windowTint': 'रंगत',
   'graph.windowTintHint':
     'स्टैंडर्ड लुक में विंडो का रंग। मूल रंग पर लौटने के लिए डबल-क्लिक करें।',
   'graph.backdropVeil': 'पारदर्शिता',
   'graph.backdropVeilHint': 'पैनलों के पार सीन कितना दिखे',
   'graph.sceneTint.brightness': 'चमक',
-  'graph.sceneTint.rainbow': 'रंगीन मोड',
-  'graph.sceneTint.rainbowHint':
-    'बैंड, शीर्षक और जले हुए नियंत्रण एक रंग के बजाय एक पैलेट में — कोई सीन चुना हो तो उसी के रंगों में।',
   'graph.sceneTint.appIcon': 'ऐप आइकन रंगें',
   'graph.sceneTint.appIconHint':
     'टास्कबार बटन और ट्रे आइकन विंडो के रंगों में। बंद होने पर FluidEQ का अपना आइकन रहता है।',
@@ -906,7 +906,6 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'सिर्फ़ आपके EQ बैंड, ऊपर कुछ नहीं',
   'voicing.strength': 'मात्रा',
   'waveform.style': 'मीटर की शैली बदलें',
-  'waveform.rainbow': 'रंगीन',
   'waveform.live': 'लाइव आउटपुट',
   'waveform.signal': 'ऑडियो सिग्नल',
   'waveform.clip': 'क्लिप',

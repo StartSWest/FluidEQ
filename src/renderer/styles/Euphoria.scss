@@ -8,7 +8,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'color' as *;
 @use 'theme' as *;
-@use 'euphoriaPill' as pill;
 
 // Maximum multiplier. The whole application goes with it.
 //
@@ -67,9 +66,6 @@ it under the terms of the GNU General Public License version 3 or later.
   // The header's wave takes no rim here either. It had a rainbow one, and
   // Ivan took the pane's box off on 2026-09-25 — rim, fill and corners — so
   // the wave is drawn straight on the header; the rainbow is in the trace.
-
-  // The pill runs through the palette too, by faces it fades between rather
-  // than by `rainbow-cycle` (`_euphoriaPill.scss`).
 
   // The game's trace turns rainbow, and only here. Ordinarily it is the app's
   // cyan; the spectrum is what reaching the ceiling buys, so it cannot already
@@ -294,258 +290,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // colour, so it matches by construction rather than by two lists agreeing.
 }
 
-// No height override at narrow widths any more. Cutting the meter to 46px
-// there is half of why the rainbow pill and the "LIVE OUTPUT" label could not
-// share a line: the pill is centred over the top of the pane, and on a short,
-// narrow meter the two were painted across each other. The pane keeps the
-// 64px it has at every other width.
-
-// The moment Rainbow mode switches on: a prismatic shutter, built from the
-// same vertical language as the spectrum bars rather than expanding circles.
-// It crosses the whole window once, then the parent's own final animation event
-// removes the temporary layer. The moving pieces use only transform and opacity
-// so the one celebration does not stall the live graph underneath it.
-.euphoria-burst {
-  position: fixed;
-  z-index: 3000;
-  overflow: hidden;
-  isolation: isolate;
-  animation: euphoria-burst-life 1100ms linear forwards;
-  pointer-events: none;
-  inset: 0;
-
-  // A broad diagonal colour cut crosses behind the blades. It is light rather
-  // than an opaque sheet, so the app remains legible throughout the hit. In
-  // the palette in use (`Rainbow.scss`): it was cyan, green, yellow, pink and
-  // violet whatever colours the window wore (Ivan, 2026-10-25: "not use those
-  // fixed rainbow colors ... but to use current colorful color").
-  &::before {
-    position: absolute;
-    content: '';
-    pointer-events: none;
-  }
-
-  &::before {
-    top: -20%;
-    bottom: -20%;
-    left: -45%;
-    width: 56%;
-    background: linear-gradient(
-      105deg,
-      transparent 0%,
-      color-mix(in srgb, var(--rainbow-1) 12%, transparent) 14%,
-      color-mix(in srgb, var(--rainbow-3) 34%, transparent) 31%,
-      color-mix(in srgb, var(--rainbow-4) 48%, transparent) 48%,
-      color-mix(in srgb, var(--rainbow-5) 42%, transparent) 66%,
-      color-mix(in srgb, var(--rainbow-7) 18%, transparent) 84%,
-      transparent 100%
-    );
-    transform: skewX(-13deg) translate3d(-40vw, 0, 0);
-    animation: euphoria-prism-sweep 940ms cubic-bezier(0.16, 0.9, 0.3, 1)
-      forwards;
-  }
-}
-
-.euphoria-burst__blade {
-  position: absolute;
-  top: -24vh;
-  bottom: -24vh;
-  left: calc(var(--euphoria-blade-index) * 7.7vw - 4vw);
-  width: 12vw;
-  background: linear-gradient(
-    180deg,
-    transparent 4%,
-    color-mix(in srgb, var(--euphoria-blade-colour) 8%, transparent) 22%,
-    color-mix(in srgb, var(--euphoria-blade-colour) 52%, transparent) 50%,
-    color-mix(in srgb, var(--euphoria-blade-colour) 10%, transparent) 78%,
-    transparent 96%
-  );
-  opacity: 0;
-  transform: translate3d(0, 105vh, 0) skewX(-12deg) scaleY(0.22);
-  animation: euphoria-blade-rise 840ms cubic-bezier(0.12, 0.86, 0.24, 1)
-    forwards;
-  animation-delay: calc(var(--euphoria-blade-index) * 14ms);
-  will-change: transform, opacity;
-}
-
-@keyframes euphoria-burst-life {
-  0%,
-  88% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes euphoria-prism-sweep {
-  0% {
-    opacity: 0;
-    transform: skewX(-13deg) translate3d(-40vw, 0, 0);
-  }
-
-  18% {
-    opacity: 1;
-  }
-
-  72% {
-    opacity: 0.7;
-  }
-
-  100% {
-    opacity: 0;
-    transform: skewX(-13deg) translate3d(185vw, 0, 0);
-  }
-}
-
-@keyframes euphoria-blade-rise {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 105vh, 0) skewX(-12deg) scaleY(0.22);
-  }
-
-  24% {
-    opacity: 0.82;
-  }
-
-  66% {
-    opacity: 0.5;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate3d(0, -115vh, 0) skewX(-12deg) scaleY(0.42);
-  }
-}
-
-// The badge that names the mode, and its switch on the header's wave: on,
-// it runs through the palette in use; off, it is drained of colour but not
-// of presence, so it reads as a control that is there to be pressed.
-.euphoria-pill {
-  // A layer of its own, the faces it fades between included
-  // (`.euphoria-pill__face`): their fades composite here and repaint nothing
-  // around it.
-  will-change: transform;
-  padding: 2px 9px;
-  color: $surface-well;
-  border-radius: $radius-xs;
-  // Lifted toward white, so the dark label reads on every stop of the
-  // palette: its blue and indigo would lose it at their own lightness.
-  background: color-mix(in srgb, var(--rainbow-now) 68%, white);
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.14em);
-  text-transform: uppercase;
-  white-space: nowrap;
-
-  &:focus-visible {
-    @include focus-ring($surface-well);
-  }
-}
-
-// The meter and its pill, as one positioned box.
-//
-// The pill is a sibling rather than a child because both are buttons, and a
-// button inside a button is invalid markup that browsers fix by unnesting —
-// which quietly loses the inner click.
+// The meter, as one positioned box.
 .waveform-visualizer-shell {
   position: relative;
   display: flex;
   min-width: 0;
 }
-
-// The last thing to go from the meter's top strip, and only once the pane
-// cannot hold the pill at all: its label and the pane's 28px of inline
-// padding. The readouts that share the strip give way before it — see the
-// note in `WaveformVisualizer.scss`.
-@container wave-meter (max-width: 136px) {
-  .waveform-visualizer__euphoria {
-    display: none;
-  }
-}
-
-// Centred over the top of the meter, clear of the readouts at either end.
-.waveform-visualizer__euphoria {
-  position: absolute;
-  z-index: 1;
-  top: 2px;
-  left: 50%;
-  border: none;
-  translate: -50% 0;
-  cursor: pointer;
-  transition: $transition-control;
-
-  // On and off have to be told apart at a glance over a moving wave, in any
-  // palette the mode is given (Ivan, 2026-11-08: "fix rainbow mode button not
-  // showing well if on or off, increase borders"). Both used to be a dark chip
-  // with pale letters, on told from off only by a tint of the mode's colour:
-  // with a grey, pale or dark palette — which a scene's own colours can be —
-  // the two were the same chip, and a dark palette lost the label outright.
-  //
-  // So they now differ in shape and in light, not only in hue, the way the
-  // app's other switches do: on is lit — a glowing dot, a full ring and its
-  // letters in the mode's colour held to a lightness that reads on the dark
-  // chip whatever the palette — and off is a quiet outline, a hollow dot and
-  // faint letters. Still a dark chip when on, never the pale block the badge
-  // is elsewhere, which at the top of the window was the brightest thing in
-  // it and drew the eye from what was playing (Ivan, 2026-09-26: "arcoiris
-  // pull make darker so it doesnt focus attention to the view").
-  //
-  // The dot is a background image rather than a pseudo-element: the mode's
-  // colour is a registered property that does not inherit (see
-  // `--rainbow-now` below), so a `::before` would never see it sweep.
-  &[aria-pressed] {
-    padding-left: 21px;
-    background-repeat: no-repeat;
-    background-position: 8px 50%;
-    background-size: 9px 9px;
-  }
-
-  &[aria-pressed='true'] {
-    // How much of the mode's colour tints the face: more under the pointer.
-    --pill-tint: 24%;
-
-    @include pill.lit;
-    // Flat (Ivan, 2026-11-16, the meter styles' mockup): no ring and no glow.
-    // On still differs from off in light, not only in hue — a tinted face, a
-    // filled dot and lit letters against a dark face, a hollow dot and faint
-    // letters — which is what the 2026-11-08 report asked of the two.
-    box-shadow: none;
-
-    &:hover {
-      --pill-tint: 36%;
-    }
-  }
-
-  // A backing of the bar's own floor, so the wave never runs through the
-  // letters, and letters well under the lit ones: `$text-faint` alone is
-  // #bfd3e3 on Ocean, as bright as a grey palette's lit label, and the two
-  // states then differed by their dot alone.
-  &[aria-pressed='false'] {
-    color: color-mix(in srgb, $text-faint 62%, transparent);
-    background-color: color-mix(in srgb, $surface-base 72%, transparent);
-    // A thin ring, so the empty dot does not read as a letter O.
-    background-image: radial-gradient(
-      circle closest-side,
-      transparent 56%,
-      currentcolor 64%,
-      currentcolor 78%,
-      transparent 88%
-    );
-    // No outline (flat, 2026-11-16): the dark face alone, lifted under the
-    // pointer.
-    box-shadow: none;
-
-    &:hover {
-      color: $text-primary;
-      background-color: color-mix(in srgb, $surface-base 92%, $text-faint);
-    }
-  }
-}
-
-// The faces the lit pill fades between (`_euphoriaPill.scss`).
-@include pill.faces;
 
 // Registered so it can actually animate. Without the type the browser treats it
 // as an unparsed string and the sweep becomes six abrupt steps.
@@ -636,22 +386,6 @@ it under the terms of the GNU General Public License version 3 or later.
     &,
     .bandWrapper {
       animation: none;
-    }
-  }
-
-  .euphoria-burst {
-    background: linear-gradient(
-      105deg,
-      color-mix(in srgb, var(--rainbow-1) 8%, transparent),
-      color-mix(in srgb, var(--rainbow-4) 14%, transparent),
-      color-mix(in srgb, var(--rainbow-6) 10%, transparent)
-    );
-    animation-duration: 240ms;
-
-    &::before,
-    &::after,
-    .euphoria-burst__blade {
-      display: none;
     }
   }
 }

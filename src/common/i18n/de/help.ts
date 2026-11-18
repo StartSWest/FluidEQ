@@ -52,11 +52,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'Über die Kopfzeile wechseln Sie zwischen den Seiten von FluidEQ, und sie zeigt den Klang in Echtzeit. Die linke Leiste enthält den Schalter für den ganzen EQ, die Vorverstärkung und die Pegelanzeige; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen.',
   'help.window.steps':
-    'Öffnen Sie eine Seite über die Kopfleiste: Szenen, Audio teilen, Gaming-Labor, EQ, DSP, Bibliothek, Karaoke, Online-Medien.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf die Pegelanzeige, um zu ändern, wie sie gezeichnet wird, und auf „Bunt“ am Signal, damit Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe erscheinen.\nÖffnen Sie für einen Schalter aus anderen Apps ≡ → Ein/Aus-Taste und wählen Sie eine Tastenkombination. Anfangs ist keine belegt; der Hinweis über anderen Fenstern bestätigt Ein oder Aus.\nIn EQ-Presets, der Faltungsbibliothek und der Bibliothek ignoriert die Suche Groß- und Kleinschreibung, Akzente, Leer- und Satzzeichen: kpop findet K-pop.',
+    'Öffnen Sie eine Seite über die Kopfleiste: Szenen, Audio teilen, Gaming-Labor, EQ, DSP, Bibliothek, Karaoke, Online-Medien.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf die Pegelanzeige, um zu ändern, wie sie gezeichnet wird. Geben Sie im Menü ≡ dem Farbton eine zweite Farbe, um Bänder, Titel und leuchtende Bedienelemente in einem Verlauf zwischen beiden zu zeichnen.\nÖffnen Sie für einen Schalter aus anderen Apps ≡ → Ein/Aus-Taste und wählen Sie eine Tastenkombination. Anfangs ist keine belegt; der Hinweis über anderen Fenstern bestätigt Ein oder Aus.\nIn EQ-Presets, der Faltungsbibliothek und der Bibliothek ignoriert die Suche Groß- und Kleinschreibung, Akzente, Leer- und Satzzeichen: kpop findet K-pop.',
   'help.window.tip':
-    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Menüknopf mit den drei Linien daneben finden Sie die Karte der Engine, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio, Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt, und Alle Einstellungen zurücksetzen; ganz unten stehen Helligkeit, Farbton, Bunter Modus, App-Symbol einfärben (anfangs aus; färbt das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters), die EQ-Schieberegler, die Animationen, Mit Windows starten (FluidEQ startet dann im Infobereich und formt Ihren Klang, ohne ein Fenster zu öffnen) und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
+    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Menüknopf mit den drei Linien daneben finden Sie die Karte der Engine, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio, Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt, und Alle Einstellungen zurücksetzen; ganz unten stehen Helligkeit, Farbton (seine zwei Farbfelder sind die Farbe des Fensters und eine zweite für einen Verlauf), App-Symbol einfärben (anfangs aus; färbt das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters), die EQ-Schieberegler, die Animationen, Mit Windows starten (FluidEQ startet dann im Infobereich und formt Ihren Klang, ohne ein Fenster zu öffnen) und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
   'help.window.keywords':
-    'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, bunter modus, regenbogen, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, suche, suchen, großschreibung, kleinschreibung, akzente, leerzeichen, satzzeichen, search, accents, spaces, punctuation, case insensitive',
+    'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, farbton, farbe, zweite farbe, farbverlauf, verlauf, tint, colour, color, second colour, gradient, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, suche, suchen, großschreibung, kleinschreibung, akzente, leerzeichen, satzzeichen, search, accents, spaces, punctuation, case insensitive',
   'help.window.headerLeftCaption': 'Die Kopfzeile bis zum Signal',
   'help.window.headerRightCaption': 'Die Kopfzeile nach dem Signal',
   'help.window.railCaption': 'Die linke Leiste',
@@ -70,7 +70,7 @@ const help: Record<keyof typeof en, string> = {
     'Ihre Bänder, Presets, Kopfhörerkorrektur und die Config der Engine.',
   'help.window.waveName': 'Audiosignal',
   'help.window.wave':
-    'Was gerade läuft, in Echtzeit, mit dem Spitzenpegel. „Bunt“ oben auf der Anzeige schaltet „Bunter Modus“ ein oder aus; ausblenden lässt sie sich im Menü „Ansicht“ des Graphen.',
+    'Was gerade läuft, in Echtzeit, mit dem Spitzenpegel; ausblenden lässt sie sich im Menü „Ansicht“ des Graphen.',
   'help.window.dsp':
     'Das Effekt-Rack: Presets, der Raum und jede Stufe der Kette.',
   'help.window.library': 'Ihre Musikdateien, Alben und die Warteschlange.',
@@ -83,7 +83,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Dieser Leitfaden, Neuigkeiten, Vollständige Versionshinweise, Forum, die Audio-Fehlerbehebung, Problem melden und Über FluidEQ. Die vollständigen Hinweise öffnen sich direkt. Über FluidEQ bietet Sprunglinks zu seinen Abschnitten und, wenn der Unterstützungslink verfügbar ist, eine Buy-Me-a-Coffee-Karte mit QR-Code.',
   'help.window.actions':
-    'Die Engine, der Import von EQ-Einstellungen, der Neustart von Windows-Audio, Prozesse und Alle Einstellungen zurücksetzen; Helligkeit, Farbton, Bunter Modus und App-Symbol einfärben, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache. Ein/Aus-Taste… lässt Sie ein Tastenkürzel wählen, das die gesamte Verarbeitung von FluidEQ aus- und einschaltet, während eine andere App im Vordergrund ist. Anfangs ist keine Taste zugewiesen. Eine Karte über den anderen Fenstern bestätigt jeden Wechsel.',
+    'Die Engine, der Import von EQ-Einstellungen, der Neustart von Windows-Audio, Prozesse und Alle Einstellungen zurücksetzen; Helligkeit, Farbton und seine zweite Farbe, und App-Symbol einfärben, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache. Ein/Aus-Taste… lässt Sie ein Tastenkürzel wählen, das die gesamte Verarbeitung von FluidEQ aus- und einschaltet, während eine andere App im Vordergrund ist. Anfangs ist keine Taste zugewiesen. Eine Karte über den anderen Fenstern bestätigt jeden Wechsel.',
   'help.window.systemEq':
     'Schaltet die Verarbeitung von FluidEQ für alles, was der PC abspielt, ein oder aus.',
   'help.window.preamp':
@@ -109,7 +109,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Das Player-Menü',
   'help.player.foldedCaption': 'Auf eine Zeile eingeklappt',
   'help.player.menu':
-    'Zurück zur vollständigen App oder zu einer ihrer Seiten; die eigene Helligkeit des Players, Transparenz oder Farbton, das Tageslicht einer Szene, der Bunte Modus, App-Symbol einfärben und die EQ-Schieberegler; Immer im Vordergrund und Auf eine Zeile einklappen.',
+    'Zurück zur vollständigen App oder zu einer ihrer Seiten; die eigene Helligkeit des Players, Transparenz oder Farbton, das Tageslicht einer Szene, App-Symbol einfärben und die EQ-Schieberegler; Immer im Vordergrund und Auf eine Zeile einklappen.',
   'help.player.pin': 'Hält den Player über allen anderen Fenstern.',
   'help.player.switch':
     'Zurück zur vollständigen App, auf der Seite, die Sie verlassen haben.',
@@ -140,7 +140,7 @@ const help: Record<keyof typeof en, string> = {
     'Was als Nächstes läuft. Klicken Sie auf einen Song, um ihn abzuspielen, ziehen Sie ihn, um ihn zu verschieben, oder legen Sie Musikdateien hier ab, um sie an dieser Stelle einzufügen.',
   'help.player.openIn': 'Öffnet die vollständige App auf einer ihrer Seiten.',
   'help.player.theme':
-    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz über einer Szene oder der Farbton des Fensters über einem Standardstil; das Tageslicht einer Szene; der Bunte Modus; und App-Symbol einfärben, anfangs aus, für das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters.',
+    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz über einer Szene oder der Farbton des Fensters über einem Standardstil; das Tageslicht einer Szene; und App-Symbol einfärben, anfangs aus, für das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters.',
   'help.player.fold': 'Klappt den Player auf eine Zeile ein.',
   'help.player.unfold':
     'Klappt den Player wieder aus. Der Pfeil am anderen Ende tut das auch.',

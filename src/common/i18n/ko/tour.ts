@@ -47,12 +47,12 @@ const tour = {
   'tour.look.point2':
     '{windowColours}는 {original}, {colours}, {ambient} 및 {backdrop}를 제공하며 각각 창에 수행되는 작업에 대한 줄이 있습니다.',
   'tour.look.point3':
-    '대화 상자와 메뉴는 하나의 자료를 공유하며 {rainbow}는 아이콘의 색상이나 장면의 색상을 통해 실행됩니다.',
+    '대화 상자와 메뉴는 하나의 자료를 공유하며 밴드와 조명 컨트롤은 아이콘의 색상이나 장면의 색상을 따릅니다.',
   'tour.look.how':
     '오른쪽 상단 펄스 아이콘 뒤의 메뉴에서 {brightness}를 이동하세요. 그래프에 장면이 있는 경우 그래프 막대에서 {windowColours}를 열고 {backdrop}를 선택합니다.',
   'tour.look.open': '오픈 EQ',
   'tour.look.imageAlt':
-    'EQ 페이지에 자체 색상으로 표시된 FluidEQ, 곡선 아래에 노래를 그리는 분석기, 모서리 위에 열리는 펄스 아이콘 뒤의 메뉴, 밝기가 절반이고 컬러풀 모드가 켜져 있습니다.',
+    'EQ 페이지에 자체 색상으로 표시된 FluidEQ, 곡선 아래에 노래를 그리는 분석기, 모서리 위에 열리는 펄스 아이콘 뒤의 메뉴, 밝기가 절반입니다.',
   'tour.gpu.kicker': '새로운 장면 엔진',
   'tour.gpu.title': '그래픽 카드의 모든 장면',
   'tour.gpu.subtitle': '마흔은 화면 자체의 속도와 3D 세계를 살펴봅니다.',
@@ -80,9 +80,9 @@ const tour = {
   'tour.sparks.point2':
     '스튜디오의 무대에서는 항상 장면을 보여주므로 장면 제작자가 장면의 모양을 만들 수 있습니다.',
   'tour.sparks.point3':
-    '모든 장면에 대한 하나의 스위치: {sparks}, {rainbow} 아래의 {windowColours}.',
+    '모든 장면에 대한 하나의 스위치: {windowColours}의 {sparks}.',
   'tour.sparks.how':
-    '그래프의 장면에서 마우스를 해당 장면 위로 이동하고 클릭합니다. {sparks}는 {rainbow} 아래의 {windowColours}에 있습니다.',
+    '그래프의 장면에서 마우스를 해당 장면 위로 이동하고 클릭합니다. {sparks}는 {windowColours}에 있습니다.',
   'tour.sparks.open': '오픈 EQ',
   'tour.sparks.imageAlt':
     '포인터 뒤에 빛나는 불꽃의 흔적이 있고 클릭할 때 폭발하는 오로라 장면과 {sparks} 스위치가 울리는 {windowColours}.',

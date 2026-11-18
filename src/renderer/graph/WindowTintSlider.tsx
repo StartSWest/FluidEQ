@@ -7,76 +7,51 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useId, useRef, type CSSProperties } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import useLiveSlider from '../utils/useLiveSlider';
-import { labToHex } from '../utils/oklab';
 import { hueOf, labOf } from '../utils/windowLight';
 import {
   LAGOON_HUE,
   setWindowTint,
   setWindowTintColour,
+  setWindowTintSecondary,
   useWindowTint,
   useWindowTintColour,
+  useWindowTintSecondary,
+  windowPrimaryColour,
 } from '../utils/windowTint';
 
-/** The wheel's colour at `hue`, as the track and the swatch draw it. */
+/** The wheel's colour at `hue`, as the track and its thumb draw it. */
 const wheelColour = (hue: number) => `oklch(0.72 0.13 ${hue})`;
 
 /**
- * Painted frames between two restyles while the picker moves: the window
+ * Painted frames between two restyles while a picker moves: the window
  * recoloured whole is a long frame, and every one of them kept the picker
  * from following the hand.
  */
 const PICKER_REST_FRAMES = 6;
 
-/** The same colour as a hex, the colour picker's opening value. */
-const wheelHex = (hue: number) => {
-  const radians = (hue * Math.PI) / 180;
-  return labToHex({
-    l: 0.72,
-    a: 0.13 * Math.cos(radians),
-    b: 0.13 * Math.sin(radians),
-  });
-};
+interface ITintSwatchProps {
+  /** The colour shown and the picker's opening value, `#rrggbb`. */
+  colour: string;
+  /** The colour picked, once the window can take it. */
+  onPick: (colour: string) => void;
+  label: string;
+  className: string;
+}
 
 /**
- * The window's colour with a standard look, beside Brightness where
- * Transparency stands under a Plus visualizer (Ivan, 2026-10-25: "instead of
- * showing transparency disabled we show the tint"): the colour wheel along
- * the track, the thumb at the hue the window wears, and the colour itself in
- * the value's place. A double-click puts the window back in its original
- * colour (`windowTint.ts`), with the thumb back where that colour stands.
- *
- * The swatch opens the system's colour picker (Ivan, 2026-11-18: "when the
- * user selects the round colour on the right, open the colour picker, so they
- * can choose better colours and more variety"): the slider only turns the
- * accent round the wheel at one lightness and strength, the picker sets it to
- * any colour at all, black included, and the slider then stands at its hue.
+ * A round swatch that opens the system's colour picker. The colour under the
+ * pointer is on the swatch at once, the window restyled with it only every
+ * few painted frames (`useLiveSlider`), so the picker keeps up with the hand;
+ * the newest colour lands the moment the picker settles (its own `change`).
  */
-const WindowTintSlider = () => {
-  const { t } = useTranslation();
-  const tint = useWindowTint();
-  const picked = useWindowTintColour();
-  // The thumb under the pointer, the window's restyle a frame behind it
-  // (`useLiveSlider`), as Brightness beside it.
-  const { shown: hue, set } = useLiveSlider(tint ?? LAGOON_HUE, setWindowTint);
+const TintSwatch = ({ colour, onPick, label, className }: ITintSwatchProps) => {
   const id = useId();
-  const pickerId = useId();
-  const hueRef = useRef(hue);
-  hueRef.current = hue;
-  // The picker's colour under the pointer at once on the swatch, the window
-  // restyled with it only every few painted frames (`useLiveSlider`), so the
-  // picker keeps up with the hand; the newest colour lands the moment the
-  // picker settles (its own `change`).
   const live = useLiveSlider<string | undefined>(
-    picked,
+    undefined,
     (value) => {
-      if (value === undefined) {
-        return;
+      if (value !== undefined) {
+        onPick(value);
       }
-      const lab = labOf(value);
-      // A grey has no hue of its own: the slider stays where it stands.
-      const at =
-        lab && Math.hypot(lab.a, lab.b) > 0.02 ? hueOf(lab) : hueRef.current;
-      setWindowTintColour(value, at);
     },
     PICKER_REST_FRAMES,
   );
@@ -90,6 +65,74 @@ const WindowTintSlider = () => {
     element.addEventListener('change', flush);
     return () => element.removeEventListener('change', flush);
   }, [flush]);
+  const shown = live.shown ?? colour;
+  return (
+    <label
+      htmlFor={id}
+      className={className}
+      style={{ '--swatch': shown } as CSSProperties}
+      title={label}
+    >
+      <input
+        ref={pickerRef}
+        id={id}
+        type="color"
+        className="graph-view-menu__swatch-input"
+        aria-label={label}
+        value={shown}
+        onChange={(event) => live.set(event.target.value.toLowerCase())}
+      />
+    </label>
+  );
+};
+
+/**
+ * The window's colour, beside Brightness where Transparency stands under a
+ * Plus visualizer (Ivan, 2026-10-25: "instead of showing transparency
+ * disabled we show the tint"): the colour wheel along the track, the thumb at
+ * the hue the window wears, and the colours themselves in the value's place.
+ * A double-click on the track puts the window back in its original colour
+ * (`windowTint.ts`), with the thumb back where that colour stands.
+ *
+ * The first swatch opens the system's colour picker (Ivan, 2026-11-18: "when
+ * the user selects the round colour on the right, open the colour picker, so
+ * they can choose better colours and more variety"): the slider only turns
+ * the accent round the wheel at one lightness and strength, the picker sets
+ * it to any colour at all, black included, and the slider then stands at its
+ * hue.
+ *
+ * The second is the other end of the window's gradient (Ivan, 2026-11-18:
+ * "I need to be able to also select the secondary colour in the picker, so I
+ * have control of both colours"). Until it is picked it follows the first,
+ * drawn as a ring of it with a plus — a slot waiting, not a second copy of
+ * the same dot — and the window draws in one colour; picked, it is filled
+ * and the curves, faders and meters run from the first colour to it. Its ×
+ * makes it follow the first again. A button beside the swatch rather than a
+ * double-click on it: the first press of a double-click already opens the
+ * picker.
+ */
+const WindowTintSlider = () => {
+  const { t } = useTranslation();
+  const tint = useWindowTint();
+  const picked = useWindowTintColour();
+  const second = useWindowTintSecondary();
+  // The thumb under the pointer, the window's restyle a frame behind it
+  // (`useLiveSlider`), as Brightness beside it.
+  const { shown: hue, set } = useLiveSlider(tint ?? LAGOON_HUE, setWindowTint);
+  const id = useId();
+  const hueRef = useRef(hue);
+  hueRef.current = hue;
+  // The first colour as the window will wear it: the one picked whole, else
+  // the accent at the hue under the thumb.
+  const primary = windowPrimaryColour(hue, picked);
+  const isLinked = second === undefined;
+  const pickPrimary = (value: string) => {
+    const lab = labOf(value);
+    // A grey has no hue of its own: the slider stays where it stands.
+    const at =
+      lab && Math.hypot(lab.a, lab.b) > 0.02 ? hueOf(lab) : hueRef.current;
+    setWindowTintColour(value, at);
+  };
   return (
     <div
       className="graph-view-menu__slider graph-view-menu__slider--hue"
@@ -115,22 +158,37 @@ const WindowTintSlider = () => {
           onDoubleClick={() => setWindowTint(undefined)}
         />
       </span>
-      <label
-        htmlFor={pickerId}
-        className="graph-view-menu__value graph-view-menu__swatch"
-        style={{ '--swatch': live.shown ?? wheelColour(hue) } as CSSProperties}
-        title={t('graph.windowTintPick')}
-      >
-        <input
-          ref={pickerRef}
-          id={pickerId}
-          type="color"
-          className="graph-view-menu__swatch-input"
-          aria-label={t('graph.windowTintPick')}
-          value={live.shown ?? wheelHex(hue)}
-          onChange={(event) => live.set(event.target.value.toLowerCase())}
+      <span className="graph-view-menu__value graph-view-menu__swatches">
+        <TintSwatch
+          colour={primary}
+          onPick={pickPrimary}
+          label={t('graph.windowTintPick')}
+          className="graph-view-menu__swatch"
         />
-      </label>
+        <span className="graph-view-menu__second">
+          <TintSwatch
+            colour={second ?? primary}
+            onPick={setWindowTintSecondary}
+            label={t('graph.windowTintSecond')}
+            className={`graph-view-menu__swatch${
+              isLinked ? ' graph-view-menu__swatch--follows' : ''
+            }`}
+          />
+          {!isLinked && (
+            <button
+              type="button"
+              className="graph-view-menu__swatch-clear"
+              aria-label={t('graph.windowTintOneColour')}
+              title={t('graph.windowTintOneColour')}
+              onClick={() => setWindowTintSecondary(undefined)}
+            >
+              <svg viewBox="0 0 8 8" aria-hidden>
+                <path d="M2 2l4 4M6 2l-4 4" />
+              </svg>
+            </button>
+          )}
+        </span>
+      </span>
     </div>
   );
 };

@@ -136,12 +136,6 @@ export default function SparksVisual() {
         <span className="sparks-visual__menu-title">
           {t('graph.sceneTint.label')}
         </span>
-        <span className="sparks-visual__row">
-          <span className="sparks-visual__label">
-            {t('graph.sceneTint.rainbow')}
-          </span>
-          <span className="sparks-visual__switch" />
-        </span>
         <span className="sparks-visual__row is-ringed">
           <span className="sparks-visual__label">
             {t('graph.sceneTint.sparks')}

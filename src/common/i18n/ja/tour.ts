@@ -87,12 +87,12 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '「{windowColours}」には「{original}」「{colours}」「{ambient}」「{backdrop}」があり、それぞれウィンドウへの効果が一行で書かれています。',
   'tour.look.point3':
-    'ダイアログとメニューは同じ素材になり、「{rainbow}」はアイコンの色、またはシーン自身の色で流れます。',
+    'ダイアログとメニューは同じ素材になり、バンドと点灯中のコントロールはアイコンの色、またはシーン自身の色になります。',
   'tour.look.how':
     '右上のパルスアイコンの「オーディオ操作」メニューで「{brightness}」を動かします。グラフにシーンがあるときは、グラフのバーから「{windowColours}」を開き、「{backdrop}」を選びます。',
   'tour.look.open': 'EQ を開く',
   'tour.look.imageAlt':
-    'EQ ページで自分の色の FluidEQ。カーブの下に曲を描く「アナライザー」と、角の上に開いたパルスアイコンのメニュー。「明るさ」は半分、「カラフルモード」はオンです。',
+    'EQ ページで自分の色の FluidEQ。カーブの下に曲を描く「アナライザー」と、角の上に開いたパルスアイコンのメニュー。「明るさ」は半分です。',
   'tour.gpu.kicker': '新しいシーンエンジン',
   'tour.gpu.title': 'すべてのシーンをグラフィックカードで',
   'tour.gpu.subtitle': '40 の表示を画面の速さで、そして 3D の世界',
@@ -119,9 +119,9 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point2':
     'Studio のステージでは常に表示されるので、シーンの作者は飛ばすものを作り込めます。',
   'tour.sparks.point3':
-    'すべてのシーンに共通のスイッチ一つ：「{windowColours}」の「{rainbow}」の下にある「{sparks}」。',
+    'すべてのシーンに共通のスイッチ一つ：「{windowColours}」にある「{sparks}」。',
   'tour.sparks.how':
-    'グラフにシーンがあるときに、その上でマウスを動かしてクリックします。「{sparks}」は「{windowColours}」の「{rainbow}」の下にあります。',
+    'グラフにシーンがあるときに、その上でマウスを動かしてクリックします。「{sparks}」は「{windowColours}」にあります。',
   'tour.sparks.open': 'EQ を開く',
   'tour.sparks.imageAlt':
     'オーロラのシーン。ポインターの後に光る火花の軌跡があり、クリックした場所で火花がはじけています。また、「{sparks}」スイッチを丸で囲んだ「{windowColours}」。',

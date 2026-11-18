@@ -692,19 +692,10 @@ select option {
   // titlebar the shell above already IS the width — whatever the two ends do
   // not need — so those two were a second opinion about it: measured at 1543px
   // wide the shell came to 634 and the drawing inside it stopped at 420, with
-  // 214px of empty bar after it and the mode badge centred on the drawing well
-  // left of the middle.
+  // 214px of empty bar after it.
   width: 100%;
   min-width: 0;
   flex: 1 1 auto;
-}
-
-// The one button in the middle track, given back to the pointer. Everything
-// around it in here is a drag handle, and Windows subtracts a `no-drag`
-// rectangle from that region rather than layering it — so this is what keeps
-// the Rainbow switch pressable on a bar you can also pick the window up by.
-.titlebar-nav .waveform-visualizer__euphoria {
-  -webkit-app-region: no-drag;
 }
 
 // Nothing here strips the meter: it has no box to strip. Its fill, its rim,

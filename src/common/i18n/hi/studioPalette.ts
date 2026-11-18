@@ -14,7 +14,7 @@ const studioPalette = {
   'studioPalette.hint':
     'रंग जोड़ने के लिए पट्टी पर क्लिक करें। खिसकाने के लिए खींचें, बदलने के लिए क्लिक करें, हटाने के लिए राइट-क्लिक करें या पट्टी से बाहर खींचें। पैलेट में कम से कम दो रंग रहते हैं।',
   'studioPalette.appColours':
-    'रंगीन मोड में FluidEQ की अपनी तरंग, मीटर और बैंड इस दृश्य में दिखने वाले पहले पैलेट के रंग पहनते हैं।',
+    'FluidEQ की अपनी तरंग, मीटर और बैंड इस दृश्य में दिखने वाले पहले पैलेट के रंग पहनते हैं।',
   'studioPalette.preset.rainbow': 'इंद्रधनुष',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

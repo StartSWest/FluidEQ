@@ -86,12 +86,12 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '{windowColours} offre {original}, {colours}, {ambient} e {backdrop}, ognuno con una riga su cosa fa alla finestra.',
   'tour.look.point3':
-    'Finestre di dialogo e menu condividono un unico materiale, e la {rainbow} percorre i colori dell’icona, o quelli di una scena.',
+    'Finestre di dialogo e menu condividono un unico materiale, e le bande e i controlli accesi prendono i colori dell’icona, o quelli di una scena.',
   'tour.look.how':
     'Sposta {brightness} nel menu delle azioni dietro l’icona a impulso in alto a destra. Con una scena sul grafico, apri {windowColours} dalla barra del grafico e scegli {backdrop}.',
   'tour.look.open': 'Apri l’EQ',
   'tour.look.imageAlt':
-    'FluidEQ nei suoi colori nella pagina EQ, l’Analizzatore che disegna un brano sotto le curve, e il menu dietro l’icona a impulso aperto sul suo angolo, con la Luminosità a metà e la Modalità colorata attiva.',
+    'FluidEQ nei suoi colori nella pagina EQ, l’Analizzatore che disegna un brano sotto le curve, e il menu dietro l’icona a impulso aperto sul suo angolo, con la Luminosità a metà.',
   'tour.gpu.kicker': 'UN NUOVO MOTORE PER LE SCENE',
   'tour.gpu.title': 'Ogni scena sulla tua scheda grafica',
   'tour.gpu.subtitle': 'Quaranta stili al ritmo del tuo schermo, e mondi 3D',
@@ -119,9 +119,9 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point2':
     'Il palco dello Studio le mostra sempre, così chi crea una scena può dare forma a ciò che lancia.',
   'tour.sparks.point3':
-    'Un solo interruttore per tutte le scene: {sparks}, in {windowColours} sotto {rainbow}.',
+    'Un solo interruttore per tutte le scene: {sparks}, in {windowColours}.',
   'tour.sparks.how':
-    'Con una scena sul grafico, passa il mouse sopra e fai clic. {sparks} è in {windowColours}, sotto {rainbow}.',
+    'Con una scena sul grafico, passa il mouse sopra e fai clic. {sparks} è in {windowColours}.',
   'tour.sparks.open': 'Apri l’EQ',
   'tour.sparks.imageAlt':
     'Una scena con un’aurora, una scia di scintille luminose dietro il puntatore e un’esplosione dove ha fatto clic, e {windowColours} con l’interruttore {sparks} cerchiato.',

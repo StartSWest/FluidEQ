@@ -87,12 +87,12 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '{windowColours} oferece {original}, {colours}, {ambient} e {backdrop}, cada um com uma linha sobre o que faz com a janela.',
   'tour.look.point3':
-    'Diálogos e menus compartilham o mesmo material, e o {rainbow} percorre as cores do ícone, ou as de uma cena.',
+    'Diálogos e menus compartilham o mesmo material, e as bandas e os controles acesos usam as cores do ícone, ou as de uma cena.',
   'tour.look.how':
     'Mova {brightness} no menu de ações no ícone de pulso do canto superior direito. Com uma cena no gráfico, abra {windowColours} pela barra do gráfico e escolha {backdrop}.',
   'tour.look.open': 'Abrir EQ',
   'tour.look.imageAlt':
-    'O FluidEQ nas próprias cores na página do EQ, o Analisador desenhando uma música sob as curvas, e o menu do ícone de pulso aberto sobre o canto, com o Brilho na metade e o Modo colorido ligado.',
+    'O FluidEQ nas próprias cores na página do EQ, o Analisador desenhando uma música sob as curvas, e o menu do ícone de pulso aberto sobre o canto, com o Brilho na metade.',
   'tour.gpu.kicker': 'UM NOVO MOTOR DE CENAS',
   'tour.gpu.title': 'Todas as cenas na sua placa de vídeo',
   'tour.gpu.subtitle': 'Quarenta estilos no ritmo da sua tela, e mundos 3D',
@@ -120,9 +120,9 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point2':
     'O palco do Studio sempre mostra as faíscas, para quem cria uma cena dar forma ao que ela lança.',
   'tour.sparks.point3':
-    'Um só botão para todas as cenas: {sparks}, em {windowColours} abaixo de {rainbow}.',
+    'Um só botão para todas as cenas: {sparks}, em {windowColours}.',
   'tour.sparks.how':
-    'Com uma cena no gráfico, passe o mouse sobre ela e clique. {sparks} fica em {windowColours}, abaixo de {rainbow}.',
+    'Com uma cena no gráfico, passe o mouse sobre ela e clique. {sparks} fica em {windowColours}.',
   'tour.sparks.open': 'Abrir EQ',
   'tour.sparks.imageAlt':
     'Uma cena de aurora com um rastro de faíscas brilhantes atrás do ponteiro e uma explosão onde ele clicou, e {windowColours} com o botão {sparks} destacado.',

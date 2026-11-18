@@ -28,13 +28,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * So the flag is here, and the player reads it whenever it does mount. Nothing
  * has to be kept alive to hold an answer.
  *
- * The same shape as `euphoriaMode`: a module-level value, a set of listeners
+ * The same shape as `windowTint`: a module-level value, a set of listeners
  * and a `useSyncExternalStore` hook, so that a component reading it re-renders
  * when it moves.
  */
 
 import { useSyncExternalStore } from 'react';
-import { isEuphoriaEnabled } from './euphoriaMode';
 import playChime from './chime';
 import {
   VIDEO_AD_BLOCK_REVEAL_STORAGE_KEY,
@@ -77,22 +76,6 @@ export const isAdBlockRevealed = () => revealed;
  * working would be the one behaviour this whole design exists to avoid.
  */
 export const toggleAdBlockRevealed = () => {
-  // Euphoria mode has to be on before this can be turned on.
-  //
-  // A second lock in front of the first, and the point of it is who ends up
-  // with the switch. The chord alone is a thing that can be stumbled into or
-  // read about; euphoria has to be won, or at least deliberately turned on by
-  // somebody who has already won it once. Anyone holding both has gone looking
-  // twice, which is exactly the audience this is for.
-  //
-  // Only the way *on* is gated. Somebody whose euphoria has since gone off must
-  // still be able to put the switch away — a control that cannot be undone
-  // because an unrelated setting moved is a trap, and the whole design here is
-  // that hidden and off go together.
-  if (!revealed && !isEuphoriaEnabled()) {
-    return;
-  }
-
   revealed = !revealed;
   try {
     window.localStorage.setItem(

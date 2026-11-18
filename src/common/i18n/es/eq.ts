@@ -181,15 +181,15 @@ const eq: Partial<Dictionary> = {
   'graph.editHint':
     'Arrastra los puntos · Ctrl/Mayús selecciona · Ctrl+rueda: Q · Ctrl+arrastrar: campana',
   'graph.windowTintPick': 'Elegir cualquier color',
+  'graph.windowTintSecond':
+    'Segundo color: las bandas, el título y los controles encendidos van del primer color a este',
+  'graph.windowTintOneColour': 'Volver a un solo color',
   'graph.windowTint': 'Tono',
   'graph.windowTintHint':
     'El color de la ventana con un aspecto estándar. Doble clic para volver al color original.',
   'graph.backdropVeil': 'Transparencia',
   'graph.backdropVeilHint': 'Cuánto de la escena se ve a través de los paneles',
   'graph.sceneTint.brightness': 'Brillo',
-  'graph.sceneTint.rainbow': 'Modo colorido',
-  'graph.sceneTint.rainbowHint':
-    'Las bandas, el título y los controles encendidos en una paleta en lugar de un solo color; con una escena elegida, en sus propios colores.',
   'graph.sceneTint.appIcon': 'Teñir el icono',
   'graph.sceneTint.appIconHint':
     'El botón de la barra de tareas y el icono de la bandeja con los colores de la ventana. Desactivado, queda el icono de FluidEQ.',
@@ -925,7 +925,6 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Solo tus bandas de EQ, sin nada encima',
   'voicing.strength': 'Intensidad',
   'waveform.style': 'Cambia el estilo del medidor',
-  'waveform.rainbow': 'Colorido',
   'waveform.live': 'SALIDA EN DIRECTO',
   'waveform.signal': 'SEÑAL DE AUDIO',
   'waveform.clip': 'SATURACIÓN',

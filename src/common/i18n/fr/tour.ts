@@ -87,12 +87,12 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '{windowColours} propose {original}, {colours}, {ambient} et {backdrop}, chacun avec une ligne sur ce qu’il fait à la fenêtre.',
   'tour.look.point3':
-    'Les boîtes de dialogue et les menus partagent une même matière, et le {rainbow} parcourt les couleurs de l’icône, ou celles d’une scène.',
+    'Les boîtes de dialogue et les menus partagent une même matière, et les bandes et les commandes allumées prennent les couleurs de l’icône, ou celles d’une scène.',
   'tour.look.how':
     'Déplacez {brightness} dans le menu des actions derrière l’icône d’impulsion en haut à droite. Avec une scène sur le graphique, ouvrez {windowColours} depuis la barre du graphique et choisissez {backdrop}.',
   'tour.look.open': 'Ouvrir l’Égaliseur',
   'tour.look.imageAlt':
-    'FluidEQ dans ses propres couleurs sur la page Égaliseur, l’Analyseur dessinant un morceau sous les courbes, et le menu derrière l’icône d’impulsion ouvert au-dessus de son coin, avec la Luminosité à moitié et le Mode coloré activé.',
+    'FluidEQ dans ses propres couleurs sur la page Égaliseur, l’Analyseur dessinant un morceau sous les courbes, et le menu derrière l’icône d’impulsion ouvert au-dessus de son coin, avec la Luminosité à moitié.',
   'tour.gpu.kicker': 'UN NOUVEAU MOTEUR DE SCÈNES',
   'tour.gpu.title': 'Toutes les scènes sur votre carte graphique',
   'tour.gpu.subtitle':
@@ -121,9 +121,9 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point2':
     'La scène du Studio les montre toujours, pour que le créateur d’une scène façonne ce qu’elle lance.',
   'tour.sparks.point3':
-    'Un seul interrupteur pour toutes les scènes : {sparks}, dans {windowColours} sous {rainbow}.',
+    'Un seul interrupteur pour toutes les scènes : {sparks}, dans {windowColours}.',
   'tour.sparks.how':
-    'Avec une scène sur le graphique, passez la souris dessus et cliquez. {sparks} se trouve dans {windowColours}, sous {rainbow}.',
+    'Avec une scène sur le graphique, passez la souris dessus et cliquez. {sparks} se trouve dans {windowColours}.',
   'tour.sparks.open': 'Ouvrir l’Égaliseur',
   'tour.sparks.imageAlt':
     'Une scène d’aurore avec une traînée d’étincelles lumineuses derrière le pointeur et une gerbe là où il a cliqué, et {windowColours} avec son interrupteur {sparks} entouré.',

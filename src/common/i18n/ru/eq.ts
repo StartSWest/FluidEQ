@@ -182,15 +182,15 @@ const eq: Partial<Dictionary> = {
   'graph.editHint':
     'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q · Ctrl+перетаскивание: колокол',
   'graph.windowTintPick': 'Выбрать любой цвет',
+  'graph.windowTintSecond':
+    'Второй цвет: полосы, заголовок и включённые элементы переходят от первого цвета к этому',
+  'graph.windowTintOneColour': 'Вернуться к одному цвету',
   'graph.windowTint': 'Оттенок',
   'graph.windowTintHint':
     'Цвет окна при стандартном виде. Двойной щелчок возвращает исходный цвет.',
   'graph.backdropVeil': 'Прозрачность',
   'graph.backdropVeilHint': 'Насколько сцена видна сквозь панели',
   'graph.sceneTint.brightness': 'Яркость',
-  'graph.sceneTint.rainbow': 'Цветной режим',
-  'graph.sceneTint.rainbowHint':
-    'Полосы, заголовок и включённые элементы — палитрой вместо одного цвета; с выбранной сценой — её собственными цветами.',
   'graph.sceneTint.appIcon': 'Окрасить значок',
   'graph.sceneTint.appIconHint':
     'Кнопка на панели задач и значок в области уведомлений в цветах окна. Если выключено, остаётся значок FluidEQ.',
@@ -914,7 +914,6 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Только ваши полосы, ничего сверху',
   'voicing.strength': 'Сила',
   'waveform.style': 'Сменить стиль индикатора',
-  'waveform.rainbow': 'Цветной',
   'waveform.live': 'ВЫХОД В РЕАЛЬНОМ ВРЕМЕНИ',
   'waveform.signal': 'АУДИОСИГНАЛ',
   'waveform.clip': 'ПЕРЕГРУЗКА',

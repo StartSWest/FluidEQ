@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useSyncExternalStore } from 'react';
 import { readStored, removeStored, writeStored } from './graphStorage';
-import { LAGOON, LAGOON_SKY, turnedPalette } from './rainbowPalette';
+import { LAGOON_SKY, rainbowBetween, sceneColourHex } from './rainbowPalette';
 import type { ISceneColour, ISceneSky } from './sceneTint';
 
 /**
@@ -48,8 +48,21 @@ const HEX = /^#[0-9a-f]{6}$/;
 const parseColour = (raw: string | null): string | undefined =>
   raw !== null && HEX.test(raw) ? raw : undefined;
 
+/**
+ * THE SECOND COLOUR (Ivan, 2026-11-18: "I need to be able to also select
+ * the secondary colour in the picker, so I have control of both colours",
+ * "by default the primary and the secondary have the same colour, and if
+ * the user changes it, the gradient is created"). Unset, it is the first
+ * colour, whatever that is, and what the window draws in its stops is that
+ * one colour; set, the stops run from the first to this one
+ * (`windowTintStops`). Kept apart from the first, so moving the slider or
+ * picking a new first colour keeps the second where the listener put it.
+ */
+const SECONDARY_KEY = 'fluideq.windowTintSecondary';
+
 let tint = parse(readStored(STORAGE_KEY));
 let colour = parseColour(readStored(COLOUR_KEY));
+let secondary = parseColour(readStored(SECONDARY_KEY));
 const listeners = new Set<() => void>();
 
 const announce = () => listeners.forEach((listener) => listener());
@@ -96,26 +109,48 @@ export const setWindowTintColour = (next: string, hue: number) => {
   announce();
 };
 
+/** The second colour (`#rrggbb`), or undefined for the first colour again. */
+export const setWindowTintSecondary = (next: string | undefined) => {
+  const value = next?.toLowerCase();
+  if (value !== undefined && !HEX.test(value)) {
+    return;
+  }
+  if (value === secondary) {
+    return;
+  }
+  secondary = value;
+  if (value === undefined) {
+    removeStored(SECONDARY_KEY);
+  } else {
+    writeStored(SECONDARY_KEY, value);
+  }
+  announce();
+};
+
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+
+export const useWindowTintSecondary = () =>
+  useSyncExternalStore(
+    subscribe,
+    () => secondary,
+    () => undefined,
+  );
+
 export const useWindowTintColour = () =>
   useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe,
     () => colour,
     () => undefined,
   );
 
 export const useWindowTint = () =>
   useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe,
     () => tint,
     () => undefined,
   );
@@ -124,14 +159,6 @@ const turned = (colour: ISceneColour, by: number): ISceneColour => ({
   ...colour,
   hue: wrapHue(colour.hue + by),
 });
-
-/**
- * Lagoon's rainbow turned with it, for what Rainbow mode draws — the graph's
- * curves and the faders — so a tinted window keeps its rainbow, in the
- * colour chosen.
- */
-export const tintedLagoonStops = (hue: number): string[] =>
-  turnedPalette(LAGOON, hue - LAGOON_HUE);
 
 /** Lagoon turned round the wheel until its accent stands at `hue`. */
 export const tintedLagoon = (hue: number): ISceneSky => {
@@ -142,3 +169,31 @@ export const tintedLagoon = (hue: number): ISceneSky => {
     active: LAGOON_SKY.active && turned(LAGOON_SKY.active, by),
   };
 };
+
+/**
+ * The first colour as the window wears it (`SceneTint`): the colour picked
+ * whole, else Lagoon's accent turned to the hue, else Lagoon's own accent.
+ * What the swatch shows and where the stops start.
+ */
+export const windowPrimaryColour = (
+  hue: number | undefined,
+  picked: string | undefined,
+): string => {
+  if (picked !== undefined) {
+    return picked;
+  }
+  const accent = tintedLagoon(hue ?? LAGOON_HUE).accent ?? LAGOON_SKY;
+  return sceneColourHex(accent);
+};
+
+/**
+ * What the window draws in its stops — the graph's curves, the faders, the
+ * meters, the wave — with its own colours: the first colour alone, or a
+ * gradient from it to the second where the listener chose one. It replaced
+ * Lagoon's seven-hue rainbow turned to the tint, which drew a rainbow
+ * nobody had asked for once Colourful mode could no longer be switched off.
+ */
+export const windowTintStops = (
+  primary: string,
+  second: string | undefined,
+): string[] => rainbowBetween(primary, second ?? primary);

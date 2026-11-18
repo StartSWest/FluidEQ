@@ -6,16 +6,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The meter's LIVE OUTPUT label steps aside when it would run into the
- * Rainbow pill centred over the same strip.
+ * readouts at the right of the same strip.
  *
- * The strip used to drop the label at a fixed meter width, 325px, measured
- * for English. Every other language is a different length on both sides of
- * that sum: Spanish "SALIDA EN DIRECTO" against "COLORIDO" ran its last
- * word under the pill at widths English clears (Ivan, 2026-11-15). So the
- * two are measured where they actually stand, in whatever language is on
- * screen, every time either of them or the meter changes size — the label's
- * text changes between LIVE OUTPUT and SIGNAL, and the language can change
- * under a running window.
+ * Measured where the two actually stand, in whatever language is on screen,
+ * every time either of them or the meter changes size: the label is 99px
+ * from the pane's edge in English and 203 in Russian, so no one width of the
+ * meter can say when it stops fitting (it was the Colourful pill it ran
+ * into until that pill went, 2026-11-18; Spanish "SALIDA EN DIRECTO" ran
+ * under it at widths English cleared). The label's text changes between
+ * LIVE OUTPUT and SIGNAL, the readouts with the style and a clip, and the
+ * language can change under a running window.
  *
  * The label is hidden with `visibility`, not removed, so its own width is
  * still there to measure: a label taken out of the layout would read as
@@ -23,30 +23,36 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { type RefObject, useLayoutEffect } from 'react';
 
-/** Room kept between the label and the pill, as the strip's other gaps. */
+/** Room kept between the label and the readouts, as the strip's other gaps. */
 const CLEARANCE_PX = 8;
 
 const useMeterLabelFit = (
   shellRef: RefObject<HTMLElement | null>,
   labelRef: RefObject<HTMLElement | null>,
-  pillRef: RefObject<HTMLElement | null>,
+  readoutRef: RefObject<HTMLElement | null>,
   /** The label is mounted at all (the meter switched off has none). */
   isLabelShown: boolean,
 ): void => {
   useLayoutEffect(() => {
     const shell = shellRef.current;
     const label = labelRef.current;
-    const pill = pillRef.current;
-    if (!shell || !label || !pill) {
+    const readout = readoutRef.current;
+    if (!shell || !label || !readout) {
       return undefined;
     }
     const measure = () => {
-      const pillBox = pill.getBoundingClientRect();
-      // No pill drawn (the strip is too narrow for it, `Euphoria.scss`):
-      // nothing to run into, and the meter's own width rules decide.
-      const isCramped =
-        pillBox.width > 0 &&
-        label.getBoundingClientRect().right + CLEARANCE_PX > pillBox.left;
+      const readoutBox = readout.getBoundingClientRect();
+      // Nothing in the readouts (every figure given up to the meter's
+      // width, `WaveformVisualizer.scss`): the pane's own edge is what it
+      // would run past.
+      const limit =
+        readoutBox.width > 0
+          ? readoutBox.left
+          : shell.getBoundingClientRect().right;
+      // Where its text reaches, not where its box ends: the box shrinks with
+      // the strip and the text runs on past it.
+      const reach = label.getBoundingClientRect().left + label.scrollWidth;
+      const isCramped = reach + CLEARANCE_PX > limit;
       if (isCramped) {
         label.dataset.cramped = '';
       } else {
@@ -57,9 +63,9 @@ const useMeterLabelFit = (
     const observer = new ResizeObserver(measure);
     observer.observe(shell);
     observer.observe(label);
-    observer.observe(pill);
+    observer.observe(readout);
     return () => observer.disconnect();
-  }, [shellRef, labelRef, pillRef, isLabelShown]);
+  }, [shellRef, labelRef, readoutRef, isLabelShown]);
 };
 
 export default useMeterLabelFit;

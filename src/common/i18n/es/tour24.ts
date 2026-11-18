@@ -144,7 +144,7 @@ const tour24 = {
   'tour.v24.graphSettings':
     'La gráfica guarda ajustes distintos para los estilos estándar y para las escenas.',
   'tour.v24.colourful':
-    'El Modo colorido toma los colores de la escena que hay en la gráfica.',
+    'La onda, los medidores y las bandas toman los colores de la escena que hay en la gráfica.',
   'tour.v24.gallery': 'La Galería se abre en sus escenas más nuevas.',
   'tour.v24.credits': 'Los créditos que compras en el navegador llegan solos.',
   'tour.v24.sponsors':

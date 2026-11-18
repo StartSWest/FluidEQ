@@ -27,13 +27,14 @@ import { isLightWindow, subscribeWindowSide } from './windowSide';
  *
  * The mode painted red, orange, yellow, green, blue and violet in that order,
  * and in that order it is a flag (Ivan, 2026-09-26: "que podemos hacer para
- * que no se parezca al LGBT"). It paints Lagoon now — seven cold hues from
+ * que no se parezca al LGBT"). Then it painted Lagoon — seven cold hues from
  * aqua through the original cyan to a soft azure, the colours of the app's
- * own icon (Ivan, 2026-09-26: "wave lagoon", picked over Aurora, which ran on
- * into violet and pink, because he wanted it "more close to our original
- * cyan") — and, while a Plus visualizer is chosen, a palette made from that
- * scene's own colours ("different rainbow modes depending on the current plus
- * viz"), so every scene has a rainbow of its own (`RainbowSource.tsx`).
+ * own icon, which the icon still wears (`LAGOON`). Since the mode lost its
+ * switch (2026-11-18, `euphoriaMode.ts`) a standard look paints the window's
+ * own pair: one colour, or the Tint's gradient to a second
+ * (`rainbowBetween`); while a Plus visualizer is chosen, a palette made from
+ * that scene's own colours ("different rainbow modes depending on the current
+ * plus viz", `RainbowSource.tsx`).
  *
  * Always seven stops. The stylesheets read them from the root as
  * `--rainbow-1` … `--rainbow-7`: the sweeps are gradients through them and
@@ -259,23 +260,43 @@ export const sceneColourHex = ({ lightness, chroma, hue }: ISceneColour) =>
   toHex(fromLch({ l: lightness, c: chroma, h: hue }));
 
 /**
- * `palette` turned round the colour wheel by `by` degrees, every stop's
- * lightness and chroma kept: Lagoon's rainbow in the listener's own tint
- * (`windowTint.ts`), still a rainbow but of the colour chosen (Ivan,
- * 2026-10-25: "make sure the graph and sliders also tint, keeping a rainbow
- * effect if rainbow is on").
+ * Seven stops from `from` to `to`, the window's own pair of colours
+ * (`windowTint.ts`): lightness and chroma in a straight line and the hue the
+ * short way round the wheel, in OKLCH, so a cyan to a violet passes through
+ * blue and never back through green and yellow. The two ends are the colours
+ * as given, every stop of them, so one colour twice is that colour seven
+ * times and nothing reads as a gradient. A grey has no hue of its own and
+ * takes the other end's, so the way to it is a fade of one colour rather
+ * than a turn through whatever hue its rounding left it.
  */
-export const turnedPalette = (
-  palette: readonly string[],
-  by: number,
-): string[] =>
-  palette.map((hex) => {
+export const rainbowBetween = (from: string, to: string): string[] => {
+  const labOf = (hex: string) => {
     const parsedHex = parseCssColour(hex);
-    const lch = toLch(
-      parsedHex ? rgbToLab(parsedHex.rgb) : { l: 0, a: 0, b: 0 },
+    return toLch(parsedHex ? rgbToLab(parsedHex.rgb) : { l: 0, a: 0, b: 0 });
+  };
+  const start = labOf(from);
+  const end = labOf(to);
+  const startHue = start.c < GREY_CHROMA ? end.h : start.h;
+  const endHue = end.c < GREY_CHROMA ? startHue : end.h;
+  const turn = ((endHue - startHue + 540) % 360) - 180;
+  const last = RAINBOW_STOP_COUNT - 1;
+  return Array.from({ length: RAINBOW_STOP_COUNT }, (_, index) => {
+    if (index === 0 || from === to) {
+      return from;
+    }
+    if (index === last) {
+      return to;
+    }
+    const amount = index / last;
+    return toHex(
+      fromLch({
+        l: start.l + (end.l - start.l) * amount,
+        c: start.c + (end.c - start.c) * amount,
+        h: (startHue + turn * amount + 360) % 360,
+      }),
     );
-    return toHex(fromLch({ ...lch, h: (((lch.h + by) % 360) + 360) % 360 }));
   });
+};
 
 // *** The palette on a light window *******************************************
 

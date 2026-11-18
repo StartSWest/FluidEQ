@@ -444,9 +444,19 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.graph-view-menu__slider > .graph-view-menu__swatch {
-  position: relative;
+// The Tint's two colours, where the other rows put a number: the window's
+// colour and the other end of its gradient. Both in the value's column, so
+// the track keeps the place and length every other row gives it.
+.graph-view-menu__slider > .graph-view-menu__swatches {
+  display: flex;
+  align-items: center;
   justify-self: end;
+  gap: 5px;
+}
+
+.graph-view-menu__swatch {
+  position: relative;
+  flex: none;
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -464,6 +474,66 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The second colour while it follows the first: a ring of the first with a
+// plus inside, a slot to fill rather than the same dot twice. Its own colour
+// fills it once picked.
+.graph-view-menu__swatch--follows {
+  background:
+    linear-gradient(var(--swatch), var(--swatch)) center / 8px 2px no-repeat,
+    linear-gradient(var(--swatch), var(--swatch)) center / 2px 8px no-repeat;
+  box-shadow: inset 0 0 0 2px var(--swatch);
+
+  &:hover,
+  &:has(:focus-visible) {
+    box-shadow:
+      inset 0 0 0 2px var(--swatch),
+      0 0 0 2px $secondary-light;
+  }
+}
+
+// The second swatch and the way back to one colour, pinned to its corner.
+.graph-view-menu__second {
+  position: relative;
+  display: flex;
+}
+
+.graph-view-menu__swatch-clear {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  display: grid;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  place-items: center;
+  color: $text-muted;
+  border: none;
+  border-radius: 50%;
+  background: $surface-menu-floor;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 45%, transparent);
+  cursor: pointer;
+  transition:
+    color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  svg {
+    width: 7px;
+    height: 7px;
+    opacity: 1;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    outline: none;
+    box-shadow: inset 0 0 0 1px $secondary-light;
+  }
+}
+
 // The system's colour picker, over the swatch and unseen: the swatch is what
 // shows, the picker is what a press opens.
 .graph-view-menu__swatch-input {
@@ -475,8 +545,9 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
 }
 
-// Rainbow mode's row (`RainbowSwitch`): a switch where the sliders' track and
-// value stand, at the right, the name wrapping as the sliders' names do. Its
+// A switch row (`AppIconTintSwitch`, the sparks, the View menu's): a switch
+// where the sliders' track and value stand, at the right, the name wrapping
+// as the sliders' names do. Its
 // own three columns, the glyph's as wide as the sliders' so the names line
 // up: a switch has no track to align, and "Daylight follows Brightness" in a
 // name column sized to leave the track its 96px broke onto two lines.

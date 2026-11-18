@@ -14,7 +14,7 @@ const studioPalette = {
   'studioPalette.hint':
     '點按色帶新增顏色。拖曳色標可移動，點按可變更顏色，按右鍵或拖出色帶可刪除。調色盤至少保留兩種顏色。',
   'studioPalette.appColours':
-    '在多彩模式下，FluidEQ 的波形、電平表和頻段會採用此場景顯示的第一個調色盤。',
+    'FluidEQ 的波形、電平表和頻段會採用此場景顯示的第一個調色盤。',
   'studioPalette.preset.rainbow': '彩虹',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

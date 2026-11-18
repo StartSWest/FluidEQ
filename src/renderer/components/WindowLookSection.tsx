@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import AppIconTintSwitch from '../graph/AppIconTintSwitch';
 import DaylightSourceChoice from '../graph/DaylightSourceChoice';
 import PointerSparksSwitch from '../graph/PointerSparksSwitch';
-import RainbowSwitch from '../graph/RainbowSwitch';
 import SceneDaylightSlider from '../graph/SceneDaylightSlider';
 import SceneWindowColours from '../graph/SceneWindowColours';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
@@ -28,7 +27,7 @@ import useIsSceneLook from '../utils/useIsSceneLook';
  * the scene's time of day and what it follows, and the switches;
  * under them, while the window wears the scene's colours, those three
  * colours themselves. With a standard look, which has no colours or picture
- * of its own: Brightness, the colour, Rainbow and the icon.
+ * of its own: Brightness, the colour and its second one, and the icon.
  */
 const WindowLookSection = () => {
   const isSceneLook = useIsSceneLook();
@@ -45,7 +44,6 @@ const WindowLookSection = () => {
             <DaylightSourceChoice />
           </>
         )}
-        <RainbowSwitch />
         {isSceneLook && <PointerSparksSwitch />}
         <AppIconTintSwitch />
       </div>

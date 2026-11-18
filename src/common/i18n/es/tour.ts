@@ -88,12 +88,12 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '{windowColours} ofrece {original}, {colours}, {ambient} y {backdrop}, cada uno con una línea sobre lo que hace con la ventana.',
   'tour.look.point3':
-    'Los diálogos y los menús comparten un mismo material, y el {rainbow} recorre los colores del icono, o los de una escena.',
+    'Los diálogos y los menús comparten un mismo material, y las bandas y los controles encendidos toman los colores del icono, o los de una escena.',
   'tour.look.how':
     'Mueve {brightness} en el menú de acciones (el icono de pulso, arriba a la derecha). Con una escena en la gráfica, abre {windowColours} desde la barra de la gráfica y elige {backdrop}.',
   'tour.look.open': 'Abrir EQ',
   'tour.look.imageAlt':
-    'FluidEQ con sus propios colores en la página del EQ, el Analizador dibujando una canción bajo las curvas, y el menú del icono de pulso abierto sobre su esquina, con el Brillo a la mitad y el Modo colorido activado.',
+    'FluidEQ con sus propios colores en la página del EQ, el Analizador dibujando una canción bajo las curvas, y el menú del icono de pulso abierto sobre su esquina, con el Brillo a la mitad.',
   'tour.gpu.kicker': 'UN NUEVO MOTOR DE ESCENAS',
   'tour.gpu.title': 'Todas las escenas en tu tarjeta gráfica',
   'tour.gpu.subtitle': 'Cuarenta estilos al ritmo de tu pantalla, y mundos 3D',
@@ -121,9 +121,9 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point2':
     'El escenario del Studio siempre las muestra, para que quien crea una escena pueda dar forma a lo que lanza.',
   'tour.sparks.point3':
-    'Un interruptor para todas las escenas: {sparks}, en {windowColours} bajo {rainbow}.',
+    'Un interruptor para todas las escenas: {sparks}, en {windowColours}.',
   'tour.sparks.how':
-    'Con una escena en la gráfica, pasa el ratón por encima y haz clic. {sparks} está en {windowColours}, bajo {rainbow}.',
+    'Con una escena en la gráfica, pasa el ratón por encima y haz clic. {sparks} está en {windowColours}.',
   'tour.sparks.open': 'Abrir EQ',
   'tour.sparks.imageAlt':
     'Una escena de aurora con una estela de chispas brillantes tras el puntero y un estallido donde hizo clic, y {windowColours} con su interruptor {sparks} marcado.',

@@ -126,7 +126,7 @@ const tour24 = {
   'tour.v24.heroes':
     'Heroes of the Storm 有了更饱满的专属混音，可选宽舞台；游戏滤镜在突出提示音的同时让音乐更平稳。',
   'tour.v24.graphSettings': '图表为标准样式和场景分别保存设置。',
-  'tour.v24.colourful': '多彩模式采用图表上场景的颜色。',
+  'tour.v24.colourful': '波形、电平表和频段采用图表上场景的颜色。',
   'tour.v24.gallery': '图库打开时显示最新的场景。',
   'tour.v24.credits': '在浏览器里购买的积分会自动到账。',
   'tour.v24.sponsors':
