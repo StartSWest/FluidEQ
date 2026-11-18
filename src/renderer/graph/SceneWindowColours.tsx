@@ -27,6 +27,7 @@ import {
   clearChosenWindowColours,
   setChosenWindowColours,
 } from '../utils/sceneWindowColourStore';
+import useEditedTime from '../utils/useEditedTime';
 import useSceneWindowColours from '../utils/useSceneWindowColours';
 
 /** Whose colours each time's are, as the listener reads it here. */
@@ -56,7 +57,7 @@ export default function SceneWindowColours() {
   const { t, locale } = useTranslation();
   const lookId = useSelectedLookId();
   const { sides, own, chosen, names } = useSceneWindowColours(lookId);
-  const [editing, setEditing] = useState<TWindowTime>('night');
+  const [editing, setEditing] = useEditedTime();
   // A time with no colours yet starts from the other time's.
   const wearing = sides[editing]?.colours ?? sides[otherTime(editing)]?.colours;
   const ownSet = own[editing]?.colours ?? own[otherTime(editing)]?.colours;

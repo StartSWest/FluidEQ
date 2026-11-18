@@ -20,6 +20,7 @@ import {
 import { sceneWindowColours } from '../utils/sceneOwnColours';
 import { recallSceneSky, studioSkyKey } from '../utils/sceneTintStore';
 import { followPickedSurface } from '../utils/theme';
+import useEditedTime from '../utils/useEditedTime';
 import type { IStudioBaseline } from './useStudioBaseline';
 import useStudioDayColours from './useStudioDayColours';
 
@@ -80,7 +81,7 @@ export default function useStudioWindowColours(
   if (opened !== kept) {
     setKept(opened);
   }
-  const [editing, setEditing] = useState<TWindowTime>('night');
+  const [editing, setEditing] = useEditedTime();
   // The colours the picker shows while it moves, before they are written.
   const [draft, setDraft] = useState<ISceneWindowColours>();
   const [saving, setSaving] = useState<'saving' | 'saved' | 'failed'>();
