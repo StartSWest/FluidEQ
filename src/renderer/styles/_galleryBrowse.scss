@@ -225,6 +225,17 @@ it under the terms of the GNU General Public License version 3 or later.
       background: none;
     }
   }
+
+  // The chosen order is a word with a line under it, on a white window too:
+  // the segmented choice's light-window face (a solid accent block, 95e0ee921)
+  // reached these orders, which only borrow `.segmented` for its keyboard,
+  // and Newest stood as a filled button (Ivan, 2026-11-18: "not good in the
+  // Gallery, no background, just an underline").
+  :root[data-window-ink='dark'] & .segmented__option.is-selected {
+    color: $text-primary;
+    background: none;
+    box-shadow: inset 0 -2px 0 $secondary-default;
+  }
 }
 
 // A segment that opens a family of orders (`GallerySortMenu`): the chevron
