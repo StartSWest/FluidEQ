@@ -8,21 +8,23 @@ import type { ReactNode } from 'react';
 
 interface IPlaceHeadProps {
   title: string;
+  /** What the place is for: read out after its name, never drawn. */
   description: string;
-  /** Classes of the place's own, beside the head's. */
+  /** Classes of the place's own, on the row it draws for `children`. */
   className?: string;
-  /** What stands at the head's end: a status, the toasts. */
+  /** What stands at the page's top: a status, the toasts. */
   children?: ReactNode;
 }
 
 /**
- * A Scenes place's head - the Gallery's, the Studio's, Dynamic lighting's -
- * set as the Library sets a record's (`.library-hero`): the name in its
- * 30px title over what the place is for in its second ink, with no tile
- * beside it, since the rail beside the page already carries the place's
- * glyph (Ivan, 2026-11-17: "everything there needs to look like the
- * Library"). It was a 15px name beside a tinted glyph tile over a rule,
- * which read as one more card's caption on a page of cards.
+ * A Scenes place's name - the Studio's, Dynamic lighting's - for screen
+ * readers only. There is no big title over the page (Ivan, 2026-11-17, of
+ * the Studio and Dynamic lighting: "remove the Studio header and all that,
+ * make it like the Gallery"): the rail beside the page names the place,
+ * and a 30px title with a line under it pushed the work down. It was the
+ * Library hero's title and line, and before that a 15px name beside a
+ * tinted glyph tile over a rule. Whatever a place hangs at its top
+ * (`children`) still gets a row of its own.
  */
 export default function PlaceHead({
   title,
@@ -31,14 +33,16 @@ export default function PlaceHead({
   children,
 }: IPlaceHeadProps) {
   return (
-    <header
-      className={`community__head place-head${className ? ` ${className}` : ''}`}
-    >
-      <span className="place-head__text">
-        <h2 className="library-hero__title">{title}</h2>
-        <span className="library-hero__who">{description}</span>
-      </span>
-      {children}
-    </header>
+    <>
+      <h2 className="place-head__name">
+        {title}
+        <span>{`. ${description}`}</span>
+      </h2>
+      {children !== undefined && (
+        <div className={`place-head${className ? ` ${className}` : ''}`}>
+          {children}
+        </div>
+      )}
+    </>
   );
 }

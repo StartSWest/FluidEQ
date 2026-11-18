@@ -64,22 +64,28 @@ it under the terms of the GNU General Public License version 3 or later.
   border-bottom: 1px solid $menu-rule;
 }
 
-// A Scenes place's head (`PlaceHead`): the Library hero's title and its
-// line under it (`.library-hero__title`, `.library-hero__who`), on the
-// card's floor with no rule beneath - the Library starts what follows its
-// hero 14px under it, and the toolbar's own hairlines part the rest. What
-// stands at its end (the desktop's status, the toasts) sits on its baseline.
-.community__head.place-head {
-  align-items: flex-end;
-  gap: $spacing-m;
-  padding: 0 0 14px;
-  border-bottom: 0;
+// A Scenes place's name (`PlaceHead`), for screen readers only: the rail
+// beside the page shows it (Ivan, 2026-11-17).
+.place-head__name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.place-head__text {
-  display: grid;
-  flex: 1 1 auto;
-  min-width: 0;
+// What a place hangs at its top (`PlaceHead`'s children): a row, its end
+// on the right, positioned for the toasts that hang from it.
+.place-head {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-m;
+  padding: 0 4px 10px;
 }
 
 .community__head-mark {
