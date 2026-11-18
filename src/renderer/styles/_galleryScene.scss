@@ -783,3 +783,23 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // ---------------------------------------------------------------- maker
+
+// A scene's page arrives rather than appearing (Ivan, 2026-11-17: "add an
+// animation to the gallery preview page, when I open one it shows the page
+// suddenly"): the stage grows in from a touch smaller, and the panel beside
+// it slides in a beat after, so the eye lands on the picture first. Both
+// end on their own resting style; nothing under reduced motion (`animate`).
+@keyframes gallery-stage-in {
+  from {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+.gallery-scene > .gallery-scene__main {
+  @include animate(gallery-stage-in, $motion-slow, $ease-out);
+}
+
+.gallery-scene > .gallery-scene__info {
+  @include animate(slide-in-right, $motion-slow, $ease-out, 70ms);
+}
