@@ -34,11 +34,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
 import { MIN_GAIN } from 'common/constants';
+import { IChartPointData } from 'renderer/graph/ChartController';
 import {
-  GRAPH_END,
-  GRAPH_START,
-  IChartPointData,
-} from 'renderer/graph/ChartController';
+  SPECTRUM_END,
+  SPECTRUM_START,
+} from 'renderer/graph/graphFrequencyRanges';
 import {
   MAX_FREQUENCY,
   MIN_FREQUENCY,
@@ -129,9 +129,11 @@ describe('the visualizer with nothing playing', () => {
     GRAPH_SILENT_POINTS.forEach((point) => {
       expect(point.y).toBe(MIN_GAIN);
     });
-    expect(GRAPH_SILENT_POINTS[0].x).toBeCloseTo(GRAPH_START, 6);
+    // Across every range the plot can be set to, so a pick moves the scale
+    // and never has to redraw the floor (2026-11-16).
+    expect(GRAPH_SILENT_POINTS[0].x).toBeCloseTo(SPECTRUM_START, 6);
     expect(GRAPH_SILENT_POINTS[GRAPH_SILENT_POINTS.length - 1].x).toBeCloseTo(
-      GRAPH_END,
+      SPECTRUM_END,
       6,
     );
   });

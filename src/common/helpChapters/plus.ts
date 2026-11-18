@@ -81,7 +81,10 @@ const PLUS_CHAPTERS = [
             text: 'help.gallery.card',
           },
           {
-            target: '.gallery-toolbar__own .button',
+            // Any button there: it took the Library hero's face on
+            // 2026-11-17 and its `.button` class with it, and a callout
+            // named by that class pointed at nothing.
+            target: '.gallery-toolbar__own button',
             name: 'plus.gallery.mine',
             text: 'help.gallery.mine',
           },

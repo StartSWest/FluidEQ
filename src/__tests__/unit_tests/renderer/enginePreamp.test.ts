@@ -55,11 +55,16 @@ describe('final output preamp display', () => {
     });
   });
 
+  // A 60 Hz display's frames. The reader keeps to the window's drawing pace
+  // since 2026-11-16 (`WINDOW_DRAWING_PACE_MS`), so frames handed it at one
+  // moment are one frame: the clock moves with every tick.
+  let clock = 0;
   const tick = async () => {
     await act(async () => {
       const callback = paint;
       paint = undefined;
-      callback?.(0);
+      clock += 1000 / 60;
+      callback?.(clock);
     });
   };
 

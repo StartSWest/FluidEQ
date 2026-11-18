@@ -4,8 +4,16 @@ import type { TGraphView } from 'renderer/utils/graphViewSettings';
 import { forgetSettings } from 'renderer/utils/settingsReset';
 
 type TViewSettings = typeof import('renderer/utils/graphViewSettings');
-const MODES: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
+const MODES: TGraphView[] = ['normal', 'fullscreen'];
 const LABELS_KEY = 'fluideq.graphBandLabelsHidden';
+
+/**
+ * What a view shows when it is entered with nothing else asked: the pane
+ * everything without labels, and full screen the wave alone, since it opens
+ * on the first of Ctrl+W's stops (2026-11-16). The labels stay hidden in both.
+ */
+const contentsOn = (mode: TGraphView) =>
+  mode === 'fullscreen' ? 'wave' : 'unlabelled';
 
 const load = (): TViewSettings => {
   // Filled inside the callback, which control flow cannot follow into.
@@ -27,7 +35,7 @@ it('starts every graph view with labels hidden without saving an implicit choice
   MODES.forEach((mode) => {
     settings.setGraphView(mode);
     expect(settings.getGraphBandLabelsHidden()).toBe(true);
-    expect(settings.getGraphContents()).toBe('unlabelled');
+    expect(settings.getGraphContents()).toBe(contentsOn(mode));
     expect(window.localStorage.getItem(`${LABELS_KEY}.${mode}`)).toBeNull();
   });
 });
@@ -99,7 +107,7 @@ it('Reset All clears legacy and per-view choices and reloads with labels hidden'
   MODES.forEach((mode) => {
     restarted.setGraphView(mode);
     expect(restarted.getGraphBandLabelsHidden()).toBe(true);
-    expect(restarted.getGraphContents()).toBe('unlabelled');
+    expect(restarted.getGraphContents()).toBe(contentsOn(mode));
   });
 });
 

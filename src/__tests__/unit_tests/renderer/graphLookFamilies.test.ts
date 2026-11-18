@@ -39,7 +39,7 @@ const load = (): IStores => {
   return loaded.stores;
 };
 
-const MODES: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
+const MODES: TGraphView[] = ['normal', 'fullscreen'];
 const GRID_STEM = 'fluideq.graphGridHidden';
 const PLUS_LOOK = 'premium:aurora';
 const STANDARD_LOOK = 'analyzer-auto';
@@ -64,7 +64,7 @@ describe('one set of graph settings per family of look', () => {
 
   it('keeps each family’s wave height and hidden wave its own, across a restart', () => {
     let { style, storage } = load();
-    style.setGraphView('expanded');
+    style.setGraphView('fullscreen');
     storage.setGraphLookFamily('standard');
     style.setGraphWaveHeight(0.4);
     style.toggleGraphWave();
@@ -84,9 +84,6 @@ describe('one set of graph settings per family of look', () => {
     window.localStorage.setItem(`${GRID_STEM}.fullscreen`, 'false');
     const { style, storage } = load();
     MODES.forEach((mode) => {
-      if (mode === 'expanded') {
-        return;
-      }
       style.setGraphView(mode);
       storage.setGraphLookFamily('standard');
       const standard = style.getGraphGridHidden();
@@ -107,11 +104,14 @@ describe('one set of graph settings per family of look', () => {
 
   it('leaves a mode nothing was stored for on the default in both', () => {
     const { style, storage } = load();
-    style.setGraphView('expanded');
+    // Full screen, whose grid starts hidden: the standard side shows it, and
+    // the Plus side, never written, stays on that default.
+    style.setGraphView('fullscreen');
     storage.setGraphLookFamily('standard');
     style.toggleGraphGrid();
-    storage.setGraphLookFamily('plus');
     expect(style.getGraphGridHidden()).toBe(false);
+    storage.setGraphLookFamily('plus');
+    expect(style.getGraphGridHidden()).toBe(true);
   });
 
   it('follows the look chosen, a Plus scene to a standard look and back', () => {

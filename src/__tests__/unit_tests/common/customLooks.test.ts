@@ -27,7 +27,7 @@ import {
   isFilledGraphStyle,
 } from 'common/graphStyles';
 import { ACCENT_STYLES, hasGraphAccent } from 'common/graphShapes';
-import { MAX_GRAPH_TILT, MIN_GRAPH_TILT } from 'common/graphAnalysis';
+import { DEFAULT_GRAPH_TILT, isGraphTilt } from 'common/graphAnalysis';
 import {
   CUSTOM_LOOK_PREFIX,
   DEFAULT_ACCENT_WIDTH,
@@ -152,7 +152,6 @@ describe('normalizeTuning', () => {
       texture: 'none',
       textureImage: undefined,
       channels: 'joined',
-      tilt: 0,
     });
   });
 
@@ -389,7 +388,8 @@ describe('the stored list', () => {
     expect(look.tuning.texture).toBe('none');
     expect(look.tuning.textureImage).toBeUndefined();
     expect(look.tuning.channels).toBe('joined');
-    expect(look.tuning.tilt).toBe(0);
+    // The slope is the graph's since 2026-11-16, never a look's.
+    expect(look.tuning).not.toHaveProperty('tilt');
   });
 
   it('round-trips', () => {
@@ -744,16 +744,24 @@ describe('every stored setting is validated', () => {
     );
   });
 
-  it('takes only a slope the panel offers', () => {
-    // The row is a set of pills, so a stored value outside the range is a
-    // hand edit or a downgrade, and the display would tip off the plot.
-    expect(normalizeTuning({ tilt: 4.5 }, 'analyzer').tilt).toBe(4.5);
-    expect(normalizeTuning({ tilt: 99 }, 'analyzer').tilt).toBe(MAX_GRAPH_TILT);
-    expect(normalizeTuning({ tilt: -3 }, 'analyzer').tilt).toBe(MIN_GRAPH_TILT);
-    expect(normalizeTuning({ tilt: 'lots' }, 'analyzer').tilt).toBe(0);
-    // Off unless asked for: this app is not a mastering tool and the
-    // untilted picture is the one a listener expects to see.
-    expect(getDefaultTuning('analyzer').tilt).toBe(0);
+  // The analyser's slope moved out of each look into one graph-wide choice in
+  // the View menu on 2026-11-16, where people could find it.
+  it('reads a look saved with a slope without it', () => {
+    expect(normalizeTuning({ tilt: 4.5 }, 'analyzer')).not.toHaveProperty(
+      'tilt',
+    );
+    expect(getDefaultTuning('analyzer')).not.toHaveProperty('tilt');
+    // POSITIVE CONTROL: the same reading keeps a field the tuning does have.
+    expect(normalizeTuning({ columns: 40 }, 'analyzer').columns).toBe(40);
+  });
+
+  it('offers only the graph-wide slopes, off unless asked for', () => {
+    expect(isGraphTilt(4.5)).toBe(true);
+    expect(isGraphTilt(99)).toBe(false);
+    expect(isGraphTilt(-3)).toBe(false);
+    // This app is not a mastering tool: the untilted picture is the one a
+    // listener expects to see.
+    expect(DEFAULT_GRAPH_TILT).toBe(0);
   });
 
   it('covers every field of the tuning', () => {
@@ -775,9 +783,6 @@ describe('every stored setting is validated', () => {
       'texture',
       'textureImage',
       'channels',
-      // A number, but not one of the sliders: the measuring views' display
-      // slope, offered as a row of fixed choices and checked below.
-      'tilt',
     ]);
     Object.keys(getDefaultTuning('bars')).forEach((key) => {
       expect(covered.has(key)).toBe(true);

@@ -164,6 +164,11 @@ jest.mock('renderer/graph/Chart', () => ({
 jest.mock('renderer/audio/LiveAudioContext', () => ({
   ...jest.requireActual('renderer/audio/LiveAudioContext'),
   useLiveAudioFrame: () => ({ points: [], isClipping: false }),
+  // Read through a selector and the store since 2026-11-16: silence.
+  useLiveAudioFrameSelector: <S,>(
+    select: (frame: { points: never[]; isClipping: boolean }) => S,
+  ) => select({ points: [], isClipping: false }),
+  useLiveAudioFrameListener: () => undefined,
   // The plot owns the capture while it is drawn, and claiming reads the
   // control context — which refuses outside a provider for the same reason the
   // clip badge does. These cases render the chart alone, so the claim is a

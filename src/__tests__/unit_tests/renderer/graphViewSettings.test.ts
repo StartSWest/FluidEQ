@@ -53,7 +53,7 @@ type TGraphStyle = typeof import('renderer/utils/graphStyle');
 type TGraphOverlay = typeof import('renderer/utils/graphOverlay');
 
 /** All three, for the cases that have to check every one of them. */
-const MODES: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
+const MODES: TGraphView[] = ['normal', 'fullscreen'];
 
 interface IStores {
   style: TGraphStyle;
@@ -147,40 +147,40 @@ describe('one set of view settings per mode', () => {
     expect(restarted.getGraphBandLabelsHidden()).toBe(true);
   });
 
-  it('hides the grid in one mode and leaves the other two alone', () => {
+  it('hides the grid in one mode and leaves the other alone', () => {
     const { style } = load();
 
-    // Full screen starts without a grid and the other two start with one:
-    // full screen is where the graph stops being a measurement, which is the
-    // same argument that made this per-mode in the first place.
+    // Full screen starts without a grid and the pane starts with one: full
+    // screen is where the graph stops being a measurement, which is the same
+    // argument that made this per-mode in the first place.
     style.setGraphView('fullscreen');
     expect(style.getGraphGridHidden()).toBe(true);
     style.setGraphView('normal');
     expect(style.getGraphGridHidden()).toBe(false);
 
-    style.setGraphView('expanded');
     style.toggleGraphGrid();
     expect(style.getGraphGridHidden()).toBe(true);
-
-    style.setGraphView('normal');
-    expect(style.getGraphGridHidden()).toBe(false);
     style.setGraphView('fullscreen');
     expect(style.getGraphGridHidden()).toBe(true);
 
-    // And back, to be sure the mode that was set still has it rather than the
-    // getter simply answering with whatever was last written anywhere.
-    style.setGraphView('expanded');
+    // Full screen turned the other way: each mode now holds the opposite of
+    // its default, so a getter answering with whatever was last written
+    // anywhere could not pass.
+    style.toggleGraphGrid();
+    expect(style.getGraphGridHidden()).toBe(false);
+    style.setGraphView('normal');
     expect(style.getGraphGridHidden()).toBe(true);
+    style.setGraphView('fullscreen');
+    expect(style.getGraphGridHidden()).toBe(false);
   });
 
   it('writes one key per mode, named after the old flat one', () => {
     const { style } = load();
 
-    style.setGraphView('expanded');
+    style.setGraphView('normal');
     style.toggleGraphGrid();
 
-    expect(stored(`${GRID_STEM}.expanded`)).toBe('true');
-    expect(stored(`${GRID_STEM}.normal`)).toBeNull();
+    expect(stored(`${GRID_STEM}.normal`)).toBe('true');
     expect(stored(`${GRID_STEM}.fullscreen`)).toBeNull();
     // The stem itself is never a value again. Anything finding one there is
     // looking at storage written before the split.
@@ -196,18 +196,12 @@ describe('one set of view settings per mode', () => {
   it('keeps a wave height of its own for each mode', () => {
     const { style } = load();
 
-    style.setGraphView('expanded');
-    style.setGraphWaveHeight(0.65);
-    // Only the mode it was set in is written, so the others keep theirs.
-    expect(stored(`${WAVE_HEIGHT_STEM}.expanded`)).toBe('0.65');
-    expect(stored(`${WAVE_HEIGHT_STEM}.fullscreen`)).toBeNull();
-    expect(stored(`${WAVE_HEIGHT_STEM}.normal`)).toBeNull();
-
     style.setGraphView('fullscreen');
     expect(style.getGraphWaveHeight()).toBe(0.75);
     style.setGraphWaveHeight(0.5);
-    style.setGraphView('expanded');
-    expect(style.getGraphWaveHeight()).toBe(0.65);
+    // Only the mode it was set in is written, so the other keeps its own.
+    expect(stored(`${WAVE_HEIGHT_STEM}.fullscreen`)).toBe('0.5');
+    expect(stored(`${WAVE_HEIGHT_STEM}.normal`)).toBeNull();
 
     // The pane has one too, and that is the point: the menu offers these rows
     // there while a visualizer is on the plot, and they used to write a value
@@ -219,18 +213,19 @@ describe('one set of view settings per mode', () => {
     expect(style.getGraphWaveHeight()).toBe(1);
     style.setGraphWaveHeight(0.4);
     expect(stored(`${WAVE_HEIGHT_STEM}.normal`)).toBe('0.4');
+    style.setGraphView('fullscreen');
+    expect(style.getGraphWaveHeight()).toBe(0.5);
+    style.setGraphView('normal');
 
     // A desktop background is watched the way full screen is, so it takes
     // full screen's whichever mode the graph itself is in.
     expect(style.getWatchedGraphWave().height).toBe(0.5);
   });
 
-  it('starts the watching views at three quarters and the pane at full', () => {
+  it('starts the watching view at three quarters and the pane at full', () => {
     const { style } = load();
     style.setGraphView('normal');
     expect(style.getGraphWaveHeight()).toBe(1);
-    style.setGraphView('expanded');
-    expect(style.getGraphWaveHeight()).toBe(0.75);
     style.setGraphView('fullscreen');
     expect(style.getGraphWaveHeight()).toBe(0.75);
   });
@@ -239,44 +234,44 @@ describe('one set of view settings per mode', () => {
     // Written by any build from while the wave had three named sizes. Only
     // `compact` was a different HEIGHT — `normal` and `stretched` differed by
     // the plot's margins — so it is the only one that moves the slider.
-    window.localStorage.setItem(`${STRETCH_STEM}.fullscreen`, 'compact');
-    window.localStorage.setItem(`${STRETCH_STEM}.expanded`, 'stretched');
+    // Each against a default it is not: the pane starts full and full screen
+    // at three quarters.
+    window.localStorage.setItem(`${STRETCH_STEM}.normal`, 'compact');
+    window.localStorage.setItem(`${STRETCH_STEM}.fullscreen`, 'stretched');
 
     const { style } = load();
-    style.setGraphView('fullscreen');
+    style.setGraphView('normal');
     expect(style.getGraphWaveHeight()).toBe(0.5);
 
-    style.setGraphView('expanded');
+    style.setGraphView('fullscreen');
     expect(style.getGraphWaveHeight()).toBe(1);
 
     // And the old keys go, so the format cannot stay ambiguous.
+    expect(stored(`${STRETCH_STEM}.normal`)).toBeNull();
     expect(stored(`${STRETCH_STEM}.fullscreen`)).toBeNull();
-    expect(stored(`${STRETCH_STEM}.expanded`)).toBeNull();
   });
 
   it('keeps the see-through and the blur per mode', () => {
     const { style, overlay } = load();
 
-    style.setGraphView('expanded');
+    style.setGraphView('normal');
     overlay.setOverlayOpacity(0.25);
     overlay.setOverlayBlur(12);
 
+    // The mode not yet touched is still on its defaults, rather than on what
+    // was just set in the other one.
     style.setGraphView('fullscreen');
-    overlay.setOverlayOpacity(0);
-    overlay.setOverlayBlur(40);
-
     expect(overlay.getOverlayOpacity()).toBe(0);
+    expect(overlay.getOverlayBlur()).toBe(0);
+
+    overlay.setOverlayOpacity(0.6);
+    overlay.setOverlayBlur(40);
+    expect(overlay.getOverlayOpacity()).toBe(0.6);
     expect(overlay.getOverlayBlur()).toBe(40);
 
-    style.setGraphView('expanded');
+    style.setGraphView('normal');
     expect(overlay.getOverlayOpacity()).toBe(0.25);
     expect(overlay.getOverlayBlur()).toBe(12);
-
-    // The mode that was never touched is still on the defaults, rather than on
-    // whichever of the two was set last.
-    style.setGraphView('normal');
-    expect(overlay.getOverlayOpacity()).toBe(1);
-    expect(overlay.getOverlayBlur()).toBe(0);
   });
 
   it('still clamps, per mode', () => {
@@ -295,27 +290,31 @@ describe('one set of view settings per mode', () => {
     // did and then some: the arrangement wanted over a video is the one the
     // cycle exists to reach, and sharing it meant walking the cycle again in
     // both directions on every Ctrl+F.
+    //
+    // Written in the pane: full screen writes its own on the way in, since it
+    // opens on the wave (2026-11-16), so it is the neighbour that must not be
+    // touched only until it is entered.
     const { style } = load();
 
-    style.setGraphView('fullscreen');
+    style.setGraphView('normal');
     style.toggleGraphWave();
 
-    expect(stored(`${WAVE_STEM}.fullscreen`)).toBe('true');
-    expect(stored(`${WAVE_STEM}.normal`)).toBeNull();
+    expect(stored(`${WAVE_STEM}.normal`)).toBe('true');
+    expect(stored(`${WAVE_STEM}.fullscreen`)).toBeNull();
     expect(stored(WAVE_STEM)).toBeNull();
 
-    style.setGraphView('normal');
-    expect(style.getGraphWaveHidden()).toBe(false);
     style.setGraphView('fullscreen');
+    expect(style.getGraphWaveHidden()).toBe(false);
+    style.setGraphView('normal');
     expect(style.getGraphWaveHidden()).toBe(true);
 
     // Clean has a flag of its own. Reusing coverage here destroyed the user's
-    // independent wash choice every time the five-state cycle passed through
-    // its blank presentation.
+    // independent wash choice every time the cycle passed through its blank
+    // presentation.
     style.setGraphContents('clean');
-    expect(stored(`${CLEAN_STEM}.fullscreen`)).toBe('true');
-    expect(stored(`${CLEAN_STEM}.normal`)).toBeNull();
-    expect(stored(`${COVERAGE_STEM}.fullscreen`)).toBeNull();
+    expect(stored(`${CLEAN_STEM}.normal`)).toBe('true');
+    expect(stored(`${CLEAN_STEM}.fullscreen`)).not.toBe('true');
+    expect(stored(`${COVERAGE_STEM}.normal`)).toBeNull();
   });
 
   it('keeps the hidden curves per mode, still comma-joined', () => {
@@ -325,15 +324,15 @@ describe('one set of view settings per mode', () => {
     // to keep in step.
     const { style } = load();
 
-    style.setGraphView('expanded');
+    style.setGraphView('normal');
     style.toggleGraphCurve('voicing');
     style.toggleGraphCurve('driver');
 
-    expect(stored(`${CURVES_STEM}.expanded`)).toBe('voicing,driver');
-    expect(stored(`${CURVES_STEM}.normal`)).toBeNull();
+    expect(stored(`${CURVES_STEM}.normal`)).toBe('voicing,driver');
+    expect(stored(`${CURVES_STEM}.fullscreen`)).toBeNull();
 
     style.toggleGraphCurve('voicing');
-    expect(stored(`${CURVES_STEM}.expanded`)).toBe('driver');
+    expect(stored(`${CURVES_STEM}.normal`)).toBe('driver');
   });
 
   it('hides only the EQ curve from the View menu', () => {
@@ -385,9 +384,11 @@ describe('one set of view settings per mode', () => {
     style.setGraphView('fullscreen');
     style.toggleGraphWave();
 
+    // Full screen opened on the wave alone, its own solo, and hiding its wave
+    // dropped that solo: the rule did reach a solo, only the one in its mode.
     expect(stored(`${SOLO_STEM}.normal`)).toBe('true');
     expect(stored(`${WAVE_STEM}.fullscreen`)).toBe('true');
-    expect(stored(`${SOLO_STEM}.fullscreen`)).toBeNull();
+    expect(stored(`${SOLO_STEM}.fullscreen`)).toBe('false');
 
     style.setGraphView('normal');
     expect(style.getGraphContents()).toBe('wave');
@@ -409,28 +410,27 @@ describe('the settings that stay shared', () => {
 
     style.setGraphView('normal');
     expect(style.getGraphLookId()).toBe(chosen);
-    style.setGraphView('expanded');
-    expect(style.getGraphLookId()).toBe(chosen);
   });
 
   it('leaves the orientation, the meter and the titlebar wave flat', () => {
     // The three that stayed single, each for its own reason. Which way up the
     // trace is drawn is a property of the drawing rather than of how much room
     // it has, and the other two are not on the plot at all — a meter that came
-    // and went with Ctrl+F would only ever be surprising.
+    // and went with Ctrl+F would only ever be surprising. The titlebar wave
+    // has no hide switch since 2026-11-16 ("that one always shows"); its old
+    // stored value is still read, flat, once, by the wave's own migration.
+    window.localStorage.setItem('fluideq.titlebarWaveHidden', 'true');
     const { style } = load();
 
     style.setGraphView('fullscreen');
     style.cycleWaveOrientation();
     style.toggleGraphMeter();
-    style.toggleTitlebarWave();
 
     expect(stored('fluideq.waveOrientation')).toBe('down');
     expect(stored('fluideq.waveOrientation.fullscreen')).toBeNull();
     expect(stored('fluideq.graphMeterHidden')).toBe('true');
     expect(stored('fluideq.graphMeterHidden.fullscreen')).toBeNull();
-    expect(stored('fluideq.titlebarWaveHidden')).toBe('true');
-    expect(stored('fluideq.titlebarWaveHidden.fullscreen')).toBeNull();
+    expect(style.getTitlebarWaveHidden()).toBe(true);
 
     style.setGraphView('normal');
     expect(style.getGraphMeterHidden()).toBe(true);
@@ -461,21 +461,21 @@ describe('telling subscribers the mode moved', () => {
     const woken = jest.fn();
     const unsubscribe = setting.subscribe(woken);
 
-    style.setGraphView('expanded');
+    style.setGraphView('fullscreen');
     expect(woken).toHaveBeenCalledTimes(1);
 
-    style.setGraphView('fullscreen');
+    style.setGraphView('normal');
     expect(woken).toHaveBeenCalledTimes(2);
 
     unsubscribe();
-    style.setGraphView('normal');
+    style.setGraphView('fullscreen');
     expect(woken).toHaveBeenCalledTimes(2);
   });
 
   it('says nothing when the mode is set to the one it is already in', () => {
     const { style } = load();
 
-    style.setGraphView('expanded');
+    style.setGraphView('fullscreen');
     const setting = style.createPerViewSetting(
       'fluideq.test.probe',
       0,
@@ -485,8 +485,11 @@ describe('telling subscribers the mode moved', () => {
     const woken = jest.fn();
     setting.subscribe(woken);
 
-    style.setGraphView('expanded');
+    style.setGraphView('fullscreen');
     expect(woken).not.toHaveBeenCalled();
+    // Positive control: a real move wakes it.
+    style.setGraphView('normal');
+    expect(woken).toHaveBeenCalledTimes(1);
   });
 
   it('wakes only the setting that was set, when one is set', () => {
@@ -533,21 +536,29 @@ describe('telling subscribers the mode moved', () => {
     expect(solo.getSnapshot()).toBe(true);
     expect(curves.getSnapshot()).toEqual(['eq']);
 
+    // Full screen opens on the wave alone, which is the pane's state too, so
+    // it is given everything here: the way back then has a different answer
+    // to wake the listeners with.
+    style.setGraphView('fullscreen');
+    style.setGraphContents('everything');
+    expect(solo.getSnapshot()).toBe(false);
+    expect(curves.getSnapshot()).toEqual([]);
+
     wokenSolo.mockClear();
     wokenCurves.mockClear();
 
-    style.setGraphView('fullscreen');
+    style.setGraphView('normal');
     expect(wokenSolo).toHaveBeenCalled();
     expect(wokenCurves).toHaveBeenCalled();
-    expect(solo.getSnapshot()).toBe(false);
-    expect(curves.getSnapshot()).toEqual([]);
+    expect(solo.getSnapshot()).toBe(true);
+    expect(curves.getSnapshot()).toEqual(['eq']);
   });
 });
 
 describe('carrying an older install across', () => {
   beforeEach(() => window.localStorage.clear());
 
-  it('seeds all three modes from the one flat value', () => {
+  it('seeds both modes from the one flat value', () => {
     window.localStorage.setItem(GRID_STEM, 'true');
     window.localStorage.setItem(STRETCH_STEM, 'true');
     window.localStorage.setItem(OPACITY_STEM, '0.4');
@@ -581,7 +592,7 @@ describe('carrying an older install across', () => {
     });
   });
 
-  it("carries an older install's plot contents into all three modes", () => {
+  it("carries an older install's plot contents into both modes", () => {
     // The cycle's values were flat keys until this split, and an install that
     // had walked to a state should still be in it — in every mode, since
     // whatever was set was set with no notion of modes at all.
@@ -599,10 +610,13 @@ describe('carrying an older install across', () => {
     const { style } = load();
 
     MODES.forEach((mode) => {
-      style.setGraphView(mode);
-      expect(style.getGraphContents()).toBe('curves');
+      expect(stored(`${WAVE_STEM}.${mode}`)).toBe('true');
       expect(stored(`${CURVES_STEM}.${mode}`)).toBe('voicing,driver');
     });
+    // Read back in the pane. Full screen opens on the wave whatever it was
+    // left on (2026-11-16), so its carried flags are seen in storage above.
+    style.setGraphView('normal');
+    expect(style.getGraphContents()).toBe('curves');
 
     expect(stored(WAVE_STEM)).toBeNull();
     expect(stored(CURVES_STEM)).toBeNull();
@@ -623,37 +637,40 @@ describe('carrying an older install across', () => {
   });
 
   it('runs once, and does not undo what was done after it', () => {
-    window.localStorage.setItem(GRID_STEM, 'true');
+    // Grid shown, against full screen's own default of hidden, so the seed
+    // can be told from the default there.
+    window.localStorage.setItem(GRID_STEM, 'false');
 
     const { style: first } = load();
-    first.setGraphView('normal');
-    first.toggleGraphGrid();
+    first.setGraphView('fullscreen');
     expect(first.getGraphGridHidden()).toBe(false);
+    first.toggleGraphGrid();
+    expect(first.getGraphGridHidden()).toBe(true);
 
     // A restart. The flat key is gone, so there is nothing left to seed from
-    // and the three modes stand on their own — which is the point of deleting
+    // and the two modes stand on their own — which is the point of deleting
     // it rather than leaving it as a fallback. A fallback would still find
-    // `true` sitting there and put the grid back in all three.
+    // `false` sitting there and put the grid back in both.
     const { style: second } = load();
-    expect(second.getGraphGridHidden()).toBe(false);
-    second.setGraphView('expanded');
+    second.setGraphView('fullscreen');
     expect(second.getGraphGridHidden()).toBe(true);
+    second.setGraphView('normal');
+    expect(second.getGraphGridHidden()).toBe(false);
   });
 
   it('lets a flat key win if an older build ever writes one again', () => {
     // Only reachable by running an old build after a new one: it writes the
-    // flat key and knows nothing about the three. Its value is then the most
+    // flat key and knows nothing about the per-mode keys. Its value is then the most
     // recent thing the user actually asked for, so it takes over rather than
     // being ignored beside per-mode keys that are now stale.
     window.localStorage.setItem(`${GRID_STEM}.normal`, 'false');
-    window.localStorage.setItem(`${GRID_STEM}.expanded`, 'false');
     window.localStorage.setItem(`${GRID_STEM}.fullscreen`, 'false');
     window.localStorage.setItem(GRID_STEM, 'true');
 
     const { style } = load();
 
     expect(style.getGraphGridHidden()).toBe(true);
-    expect(stored(`${GRID_STEM}.expanded`)).toBe('true');
+    expect(stored(`${GRID_STEM}.fullscreen`)).toBe('true');
   });
 
   it('leaves a fresh install on the defaults and writes nothing', () => {
@@ -679,22 +696,20 @@ describe('carrying an older install across', () => {
     const { style: first } = load();
     first.setGraphView('fullscreen');
     first.toggleGraphGrid();
-    first.setGraphView('expanded');
     first.setGraphWaveHeight(0.4);
 
     const { style: second } = load();
     // The view is remembered too, so the reopened app is where it was left.
-    expect(second.getGraphView()).toBe('expanded');
+    expect(second.getGraphView()).toBe('fullscreen');
     expect(second.getGraphWaveHeight()).toBe(0.4);
-    expect(second.getGraphGridHidden()).toBe(false);
-    second.setGraphView('fullscreen');
     // Full screen hides the grid by default, so the toggle above turned it back
     // ON — and that is what has to survive. A default that came back after a
     // restart would look identical to a value that was remembered, which is
     // exactly the bug this test exists to catch.
     expect(second.getGraphGridHidden()).toBe(false);
-    // And the wave height is each mode's own as well: full screen reopens at
-    // its own starting three quarters rather than at what was set in expanded.
-    expect(second.getGraphWaveHeight()).toBe(0.75);
+    // And the wave height is each mode's own as well: the pane reopens at its
+    // own starting full height rather than at what was set in full screen.
+    second.setGraphView('normal');
+    expect(second.getGraphWaveHeight()).toBe(1);
   });
 });

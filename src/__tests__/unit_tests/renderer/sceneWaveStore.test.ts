@@ -37,7 +37,6 @@ const authored: ISceneWave = { height: 0.6, position: 0.2 };
 beforeEach(() => {
   window.localStorage.clear();
   clearListenerWave('aurora', 'normal');
-  clearListenerWave('aurora', 'expanded');
   clearListenerWave('aurora', 'fullscreen');
   clearListenerWave('bloom', 'fullscreen');
 });
@@ -156,7 +155,6 @@ describe(`a listener's wave for one scene`, () => {
     const carried = { height: 0.4, position: 0.1 };
     expect(stored().bloom).toEqual({
       normal: carried,
-      expanded: carried,
       fullscreen: carried,
     });
     expect(stored().aurora).toEqual({

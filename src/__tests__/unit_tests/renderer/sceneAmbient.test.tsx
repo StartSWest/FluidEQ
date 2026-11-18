@@ -104,12 +104,8 @@ it('flies the graph visualizer’s elements while the graph is in Ambient mode',
   expect(loadScenePack).toHaveBeenCalledWith('alpine');
 });
 
-it('flies them in the Backdrop too, which is Ambient with the scene behind the window', async () => {
-  jest.mocked(useSceneTintMode).mockReturnValue('cover');
-  render(<SceneAmbient />);
-  await waitFor(() => expect(layer()).toBeInTheDocument());
-  expect(loadScenePack).toHaveBeenCalledWith('alpine');
-});
+// The Backdrop, Ambient with the scene behind the window, was taken out on
+// 2026-11-16 (fffa25d92), and its case with it.
 
 it('shows nothing of the graph’s while the graph is not in Ambient mode', async () => {
   jest.mocked(useSceneTintMode).mockReturnValue('tint');

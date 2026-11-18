@@ -15,7 +15,6 @@ import useShellFullScreen from '../../../renderer/shell/useShellFullScreen';
 import useTabGraph from '../../../renderer/shell/useTabGraph';
 import {
   exitGraphFullScreen,
-  toggleGraphExpanded,
   toggleGraphFullScreen,
 } from '../../../renderer/utils/graphStyle';
 import {
@@ -27,7 +26,6 @@ jest.mock('../../../renderer/utils/graphStyle', () => ({
   getGraphView: () => 'normal',
   useFullScreenTopBar: () => true,
   onWindowFullScreenChange: jest.fn(),
-  toggleGraphExpanded: jest.fn(),
   toggleGraphFullScreen: jest.fn(),
   exitGraphFullScreen: jest.fn(),
 }));
@@ -82,7 +80,7 @@ afterEach(cleanup);
 function GraphSwitch({ page }: { page: TWorkspaceTab }) {
   const { showsGraph, setActiveTabGraphVisibility } = useTabGraph({
     activeWorkspaceTab: page,
-    graphView: 'expanded',
+    graphView: 'fullscreen',
     isGraphViewOn: true,
   });
   return (
@@ -133,19 +131,20 @@ it.each(WORKSPACE_TABS)(
     expect(shortcut('s').defaultPrevented).toBe(true);
     expect(shortcut('f').defaultPrevented).toBe(true);
     expect(enableGraph).not.toHaveBeenCalled();
-    expect(toggleGraphExpanded).not.toHaveBeenCalled();
     expect(toggleGraphFullScreen).not.toHaveBeenCalled();
   },
 );
 
+// Ctrl+S no longer reaches a view: the Expanded view it toggled was taken out
+// on 2026-11-16, and only Ctrl+F is the shell's on a page that shows its graph.
 it.each(['karaoke', 'library', 'video'] as const)(
-  'expands and takes the enabled %s graph fullscreen',
+  'takes the enabled %s graph fullscreen on Ctrl+F alone',
   async (page) => {
     await act(async () => {
       render(<Shell page={page} showsGraph />);
     });
-    expect(shortcut('s').defaultPrevented).toBe(true);
-    expect(toggleGraphExpanded).toHaveBeenCalledTimes(1);
+    shortcut('s');
+    expect(toggleGraphFullScreen).not.toHaveBeenCalled();
     expect(shortcut('f').defaultPrevented).toBe(true);
     expect(toggleGraphFullScreen).toHaveBeenCalledTimes(1);
   },

@@ -5,18 +5,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The EQ pages' open floor: the section pills and the Bands title row
- * ("FINE TUNE / Parametric EQ" and its toolbar) on top, the graph under them,
- * then the bands, each standing under the point on the graph it moves. Layout
- * A, which Ivan chose from three mockups on 2026-09-25 ("def A"): the page
- * reads title, graph, bands from the top down, because on these pages the
- * graph is the instrument the bands are edited on, not a monitor under them.
- * Every other page keeps its graph underneath.
+ * The EQ pages' open floor: the section pills on top, the graph under them,
+ * then the Bands page with its own tab row (Your EQ, Preset, Tone) and the
+ * bands. Layout A, which Ivan chose from three mockups on 2026-09-25 ("def
+ * A"): the page reads pills, graph, bands from the top down, because on these
+ * pages the graph is the instrument the bands are edited on, not a monitor
+ * under them. Every other page keeps its graph underneath. The title row that
+ * stood beside the pills ("Parametric EQ" and its toolbar) went on 2026-11-16,
+ * its tools to the page's tab row under the graph.
  *
  * Two mechanisms carry it, and a test of either alone passes with the other
- * broken. The title row is still the Bands page's own — its tools read and set
- * that page's state — and is portalled into a slot in the column's head, so
- * where it lands is markup, which jsdom can see. The graph standing above the
+ * broken. The pills are drawn in the column's head while the graph is above
+ * the page, and in the page otherwise, so where they land is markup, which
+ * jsdom can see. The graph standing above the
  * page is CSS `order`: the markup keeps the page first on purpose, because
  * moving the page's element moves every panel kept alive in it, and a web view
  * that is moved reloads (the Online Media player is one of them). jsdom lays
@@ -49,7 +50,7 @@ import { compileStylesheet, styleRules } from '__tests__/utils/stylesheetRules';
 const COLUMN_SHEETS = [
   'App.scss',
   'GraphTheme.scss',
-  'SceneCover.scss',
+  'SceneColumn.scss',
   'PaneResizer.scss',
 ];
 const RULES = COLUMN_SHEETS.flatMap((sheet) =>
@@ -79,9 +80,11 @@ const label = (element: Element) =>
 
 /** What stands in the column's flow, named as somebody looking at it would. */
 const PANES: readonly (readonly [selector: string, name: string])[] = [
-  ['.center-head', 'pills and title'],
+  ['.center-head', 'pills'],
   ['.graph-wrapper', 'graph'],
-  ['.pane-resizer', 'divider'],
+  // The EQ page's divider is the Library's splitter in a band of its own
+  // (2026-11-16); a page with its graph underneath keeps the plain one.
+  ['.pane-resizer, .graph-pane-splitter', 'divider'],
   ['.middle-content', 'page'],
 ];
 
@@ -184,17 +187,20 @@ const installMain = () => {
   });
 };
 
-const bandsTitle = () =>
-  screen.getByRole('heading', { level: 2, name: /Parametric EQ/ });
+/** The Bands page's own tab row: Your EQ, Preset, Tone. */
+const bandsTabs = () => screen.getByRole('tablist', { name: 'EQ layers' });
+
+/** The section pills: Bands, EQ Presets, DSP and the rest. */
+const pills = () => screen.getByRole('tablist', { name: 'EQ' });
 
 /** The shell, with the state answered and the Bands page past its spinner. */
 const renderShell = async () => {
   const rendered = render(<App />);
   // One turn for the request to go out and be answered, one for the answer
-  // to be drawn; the title is only there once both have happened.
+  // to be drawn; the tab row is only there once both have happened.
   await act(async () => Promise.resolve());
   await act(async () => Promise.resolve());
-  bandsTitle();
+  bandsTabs();
   return { ...rendered, column: columnOf(rendered.container) };
 };
 
@@ -241,79 +247,65 @@ afterEach(async () => {
 });
 
 describe('the Bands page with its graph on', () => {
-  it('puts the pills and the title row above the graph, and the bands under it', async () => {
+  it('puts the pills above the graph, and the bands under it', async () => {
     const { column } = await renderShell();
 
     expect(column).toHaveClass('is-graph-first');
-    expect(onScreen(column)).toEqual([
-      'pills and title',
-      'graph',
-      'divider',
-      'page',
-    ]);
+    expect(onScreen(column)).toEqual(['pills', 'graph', 'divider', 'page']);
   });
 
-  it('draws the title row, its toolbar and the pills in the head, not in the page', async () => {
+  it('draws the pills in the head, and the page’s tab row in the page under the graph', async () => {
     const { container } = await renderShell();
     const head = container.querySelector<HTMLElement>('.center-head');
-    const slot = container.querySelector<HTMLElement>('.center-head__title');
     const page = container.querySelector<HTMLElement>(
       '.workspace-tab-panel--eq',
     );
-    if (!head || !slot || !page) {
-      throw new Error('the head, its title slot or the Bands page is missing');
+    if (!head || !page) {
+      throw new Error('the head or the Bands page is missing');
     }
 
-    // One line beside the pills (option C, 2026-09-27): the page's name is
-    // kept for the outline, its eyebrow and its layers row are not drawn.
-    expect(within(slot).queryByText('FINE TUNE')).toBeNull();
-    expect(slot).toContainElement(bandsTitle());
-    expect(slot.querySelector('.main-content-title')).toHaveClass('is-in-head');
-    expect(slot.querySelector('.active-layers')).toBeNull();
-    expect(
-      within(slot).getByRole('button', { name: 'Add EQ band' }),
-    ).toBeInTheDocument();
-    expect(within(head).getByRole('tablist', { name: 'EQ' })).toContainElement(
+    expect(head).toContainElement(pills());
+    expect(pills()).toContainElement(
       screen.getByRole('tab', { name: 'Bands' }),
     );
-    // Drawn once, up there: nothing of the row is left behind in the page.
-    expect(page).not.toContainElement(bandsTitle());
+    // Drawn once, up there: the pills are not left behind in the page.
     expect(within(page).queryByRole('tablist', { name: 'EQ' })).toBeNull();
-    // POSITIVE CONTROL: the page those came from is mounted and holds its
-    // bands, so their absence from it is the portal, not an empty page.
+    // The page's own row stays the page's, under the graph, never the head's.
+    expect(page).toContainElement(bandsTabs());
+    expect(head).not.toContainElement(bandsTabs());
+    // POSITIVE CONTROL: the page is mounted and holds its bands, so the
+    // pills' absence from it is where they are drawn, not an empty page.
     expect(page.querySelector('.main-content')).toBeInTheDocument();
   });
 
-  it('names the page and keeps its tools on one row, with no row of layers on the page or the graph', async () => {
+  it('keeps the page’s tools on its tab row, with no row of layers on the page or the graph', async () => {
     const { container } = await renderShell();
     const strip = container.querySelector<HTMLElement>(
       '.graph-wrapper .live-output-controls',
     );
-    const row = container.querySelector<HTMLElement>(
-      '.center-head .main-content-title',
+    const tools = container.querySelector<HTMLElement>(
+      '.workspace-tab-panel--eq .eq-layer-tabs__tools',
     );
 
     // The applied layers are the Curves dropdown among the tools
-    // (`CurvesPicker`), never a row of chips — on the plot or in the head.
+    // (`CurvesPicker`), never a row of chips — on the plot or in the page.
     expect(container.querySelector('.active-layers')).toBeNull();
     // POSITIVE CONTROL: the strip and the row are drawn, so the absence is
-    // theirs, not a graph or a head that went away.
+    // theirs, not a graph or a page that went away.
     expect(strip).not.toBeNull();
-    expect(row).not.toBeNull();
-    // The page's name is on the row, with its tools.
-    expect(row).toContainElement(bandsTitle());
-    expect(row?.querySelector('.eq-toolbar')).not.toBeNull();
+    expect(tools).not.toBeNull();
+    // The title row's tools stand on the tab row now (2026-11-16).
+    expect(
+      within(tools ?? document.body).getByRole('button', {
+        name: 'Quick layouts',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('keeps the page first in the markup, so the graph is put above it by the stylesheet alone', async () => {
     const { column } = await renderShell();
 
-    expect(inMarkup(column)).toEqual([
-      'pills and title',
-      'page',
-      'divider',
-      'graph',
-    ]);
+    expect(inMarkup(column)).toEqual(['pills', 'page', 'divider', 'graph']);
     // What `order` is read against: a flex column, top to bottom, set once
     // and turned by no other rule at any window size.
     expect(
@@ -372,15 +364,13 @@ describe('the Bands page with its graph on', () => {
     // and come back, so its silence about the pages is theirs.
     expect(moved.some((node) => node.matches('.center-head'))).toBe(true);
     expect(moved.some((node) => node.matches('.graph-wrapper'))).toBe(true);
-    // And the row is back up there.
-    expect(container.querySelector('.center-head__title')).toContainElement(
-      bandsTitle(),
-    );
+    // And the pills are back up there.
+    expect(container.querySelector('.center-head')).toContainElement(pills());
   });
 });
 
 describe('where the graph is not above the page', () => {
-  it('keeps the pills and the title row in the Bands page while its graph is off', async () => {
+  it('keeps the pills and the tab row in the Bands page while its graph is off', async () => {
     window.localStorage.setItem(
       'fluideq.graphVisibilityByTab',
       JSON.stringify({ eq: false }),
@@ -396,48 +386,30 @@ describe('where the graph is not above the page', () => {
     expect(container.querySelector('.graph-wrapper')).toBeNull();
     expect(column).not.toHaveClass('is-graph-first');
     expect(container.querySelector('.center-head')).toBeNull();
-    // POSITIVE CONTROL for the head's absence: the row and the pills are
-    // drawn, in the page, the row above the bands.
-    expect(page).toContainElement(bandsTitle());
-    expect(within(page).getByText('FINE TUNE')).toBeVisible();
-    expect(page.querySelector('.main-content-title')).not.toHaveClass(
-      'is-in-head',
-    );
+    // POSITIVE CONTROL for the head's absence: the pills and the tab row are
+    // drawn, in the page.
+    expect(page).toContainElement(pills());
+    expect(page).toContainElement(bandsTabs());
     // The layers are the Curves dropdown here too, never a row of chips.
     expect(page.querySelector('.active-layers')).toBeNull();
-    expect(within(page).getByRole('tablist', { name: 'EQ' })).toBeVisible();
+    // The tab row stands above the bands it opens.
     expect(
       Array.from(
-        page.querySelectorAll('.main-content-title, .main-content'),
+        page.querySelectorAll('.eq-layer-tabs, .main-content'),
         (element) => element.classList[0],
       ),
-    ).toEqual(['main-content-title', 'main-content']);
+    ).toEqual(['eq-layer-tabs', 'main-content']);
   });
 
-  // Expanded on a page with no picture of its own, the graph grows in its own
-  // card and the page folds away under it; the head stays where it was (Ivan,
-  // 2026-10-18: "just expanding the graph and hiding the eq ... keeping the
-  // floating look"). It used to be the overlay, a square sheet over the whole
-  // column, head included.
-  it('grows the graph in its card when expanded, with the head kept over it', async () => {
+  // The Expanded view, the graph grown in its own card, was taken out on
+  // 2026-11-16 (Ivan: "get rid of Ctrl+S, the expanded mode, completely"), and
+  // its case with it; full screen is the one larger view.
+  it('keeps full screen the sheet over the whole column', async () => {
     const { container, column } = await renderShell();
-    expect(column).not.toHaveClass('is-graph-grown');
-
-    await act(async () => {
-      setGraphView('expanded');
-    });
-
-    expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
-    expect(column).toHaveClass('is-graph-grown');
-    expect(column).not.toHaveClass('is-graph-full');
+    // The pane first: the graph leads the column under the head.
     expect(column).toHaveClass('is-graph-first');
-    expect(container.querySelector('.center-head__title')).toContainElement(
-      bandsTitle(),
-    );
-  });
+    expect(column).not.toHaveClass('is-graph-full');
 
-  it('keeps full screen the sheet over the whole column, never the grown card', async () => {
-    const { container, column } = await renderShell();
     await act(async () => {
       setGraphView('fullscreen');
     });
@@ -446,13 +418,12 @@ describe('where the graph is not above the page', () => {
     // view's and not a graph that went missing.
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
     expect(column).toHaveClass('is-graph-full');
-    expect(column).not.toHaveClass('is-graph-grown');
     expect(column).not.toHaveClass('is-graph-first');
-    // The sheet covers the head, so the title goes back into the page.
+    // The sheet covers the head, so the pills go back into the page.
     expect(container.querySelector('.center-head')).toBeNull();
     expect(
       container.querySelector('.workspace-tab-panel--eq'),
-    ).toContainElement(bandsTitle());
+    ).toContainElement(pills());
   });
 
   // Only the Bands page opens with its graph (Ivan, 2026-09-29: "only on EQ

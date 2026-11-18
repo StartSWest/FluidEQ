@@ -9,8 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * divider: tall enough for the band sliders' full first-run track (Ivan,
  * 2026-09-26: "make sure the EQ default height also is enough"). A written
  * 344px was that at 1440x900 and left the tracks at their 72px floor at
- * 2560x1440, where the Tone row is 24px taller. The parts below are the ones
- * measured in the served window at those two sizes.
+ * 2560x1440, where the Tone row is 24px taller, so the need is measured.
  */
 
 import {
@@ -23,19 +22,21 @@ import {
   setEditorHeight,
 } from 'renderer/utils/paneSizes';
 
+// The need is for an 80px track since 2026-11-16 (it was 96), the rail that
+// gives it 194px (the track is the rail less 114).
 describe('what the bands pane needs', () => {
-  it('is the height it opened at where that already gave a full track', () => {
-    // 1440x900: the pane 344, the rail 210, a 96px track.
-    expect(bandsPaneNeedOf({ pane: 344, overflow: 0, rail: 210 })).toBe(344);
+  it('is the height it opened at where that already gave the track', () => {
+    // 1440x900: the pane 344, the rail 194, an 80px track.
+    expect(bandsPaneNeedOf({ pane: 344, overflow: 0, rail: 194 })).toBe(344);
   });
 
   it('is taller where the Tone row is taller', () => {
-    // 2560x1440: the same pane, the Tone at 100 instead of 76, the rail 186.
-    expect(bandsPaneNeedOf({ pane: 344, overflow: 0, rail: 186 })).toBe(368);
+    // The same pane with the Tone 24px taller, as at 2560x1440: the rail 170.
+    expect(bandsPaneNeedOf({ pane: 344, overflow: 0, rail: 170 })).toBe(368);
   });
 
   it('counts what already overflows the pane', () => {
-    expect(bandsPaneNeedOf({ pane: 300, overflow: 22, rail: 186 })).toBe(346);
+    expect(bandsPaneNeedOf({ pane: 300, overflow: 22, rail: 170 })).toBe(346);
   });
 
   // Opened at what it asks for, it asks for the same again, so the pane
@@ -61,18 +62,28 @@ describe('the pane under the graph', () => {
     expect(getEditorHeight(presets)).toBe(before + 24);
   });
 
-  // The control: a divider somebody has moved keeps where they put it.
+  // The control: a divider somebody has moved keeps where they put it, as
+  // long as that is no lower than the bands need (2026-11-17: a share saved
+  // lower opens at the need).
   it('keeps a height somebody chose', () => {
-    setEditorHeight(300, presets);
-    publishBandsPaneNeed(400);
-    expect(getEditorHeight(presets)).toBe(300);
-    expect(getEditorHeight(eq)).toBe(400);
+    publishBandsPaneNeed(300);
+    setEditorHeight(360, presets);
+    publishBandsPaneNeed(320);
+    expect(getEditorHeight(presets)).toBe(360);
+    expect(getEditorHeight(eq)).toBe(320);
   });
 
-  // No less than 56% of a page with room for it (Ivan, 2026-10-25: "more on
-  // the EQ band sliders than in the graph"); what the bands need still wins
-  // where it is more, as on a laptop.
-  it('opens at 56% of a tall page, or at what the bands need where that is more', () => {
+  it('opens no lower than the bands need, however low it was put', () => {
+    publishBandsPaneNeed(300);
+    setEditorHeight(200, presets);
+    expect(getEditorHeight(presets)).toBe(300);
+  });
+
+  // The page keeps the golden ratio's share of a tall window (2026-11-16),
+  // the bands' need wins where it is more, and the pane opens tall enough
+  // for a ceiling-length track (340px, 260 more than the need's 80) where
+  // that stays within half the room (2026-11-17).
+  it('opens for a ceiling-length track, within half a tall page and never under the golden ratio', () => {
     const { innerHeight } = window;
     Object.defineProperty(window, 'innerHeight', {
       configurable: true,
@@ -80,10 +91,14 @@ describe('the pane under the graph', () => {
     });
     window.dispatchEvent(new Event('resize'));
     try {
-      // Nothing laid out here, so the page is the window less the chrome's
-      // 200px: 1200, and 56% of it 672.
+      // Nothing laid out here, so the room is the window less the chrome's
+      // 200px: 1200; its 38.2% is 458, its half 600.
       publishBandsPaneNeed(300);
-      expect(getEditorHeight(eq)).toBe(672);
+      expect(getEditorHeight(eq)).toBe(560);
+      publishBandsPaneNeed(500);
+      expect(getEditorHeight(eq)).toBe(600);
+      publishBandsPaneNeed(100);
+      expect(getEditorHeight(eq)).toBe(458);
       publishBandsPaneNeed(720);
       expect(getEditorHeight(eq)).toBe(720);
     } finally {

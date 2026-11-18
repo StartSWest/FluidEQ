@@ -46,6 +46,7 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
     draw: mockDraw,
     idle: jest.fn(),
     holdPicture: jest.fn(),
+    probe: jest.fn(),
     dispose: jest.fn(),
   }),
 }));

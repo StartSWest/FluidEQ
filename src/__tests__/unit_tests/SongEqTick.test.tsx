@@ -112,8 +112,10 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
   // This factory replaces the whole module, so an export it does not list is
   // `undefined` — and the engine calls this one on every render.
   useLiveAudioCapture: () => undefined,
-  // The band row lights each band from the graph's own frame (`BandLevels`).
+  // The band row lights each band from the graph's own frame (`BandLevels`),
+  // handed to a listener since 2026-11-16; one never called is silence.
   useLiveAudioFrame: () => ({ points: [], graphPoints: [] }),
+  useLiveAudioFrameListener: () => undefined,
 }));
 
 jest.mock('renderer/utils/equalizerApi', () => ({

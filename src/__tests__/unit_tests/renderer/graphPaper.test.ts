@@ -22,7 +22,7 @@ import {
   gainScale,
 } from '../../../renderer/graph/ChartController';
 import {
-  FREQUENCY_MAJOR_TICKS,
+  frequencyGridFor,
   GAIN_AXIS_TICKS,
   UNITY_TICKS,
   frequencyLabelTicksFor,
@@ -131,23 +131,70 @@ describe('the gain labels', () => {
   });
 });
 
-describe('the frequency labels', () => {
-  it('names every decade when there is room', () => {
-    expect(frequencyLabelTicksFor(frequencyScale(1400, 50, 48))).toBe(
-      FREQUENCY_MAJOR_TICKS,
-    );
+/**
+ * The frequency axis as a pro analyser draws it (2026-11-16): a line at every
+ * step of every decade on screen, the 1-2-5 steps stronger, built from the
+ * range shown rather than a fixed list; names on the 1-2-5 steps, 16 kHz for
+ * the top octave where 20 kHz is the edge, then the 3s and 4s where there is
+ * room, each kept clear of the others and of both ends.
+ */
+const ONE_TWO_FIVE = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
+
+describe('the frequency grid', () => {
+  it('draws a line at every step inside the range, the 1-2-5 steps stronger', () => {
+    const { major, minor } = frequencyGridFor(10, 20000);
+    expect(major).toEqual(ONE_TWO_FIVE);
+    expect(minor).toContain(30);
+    expect(minor).toContain(9000);
+    expect(minor).not.toContain(20);
+    // The plot's own edges are its border, and draw no line.
+    expect([...major, ...minor]).not.toContain(10);
+    expect([...major, ...minor]).not.toContain(20000);
+    // 20 to 90, 100 to 900, 1k to 9k, and 10k under the 20k edge.
+    expect(major.length + minor.length).toBe(8 + 9 + 9 + 1);
   });
 
-  it('drops names that would run into the one before on a narrow plot', () => {
-    const narrow = frequencyScale(260, 50, 48);
+  it('follows the range on screen', () => {
+    const music = frequencyGridFor(20, 16000);
+    expect(music.major[0]).toBe(50);
+    expect(music.major[music.major.length - 1]).toBe(10000);
+    expect([...music.major, ...music.minor]).not.toContain(20);
+  });
+
+  it('hands back the same grid for the same span, so the rules are not redrawn', () => {
+    expect(frequencyGridFor(10, 20000)).toBe(frequencyGridFor(10, 20000));
+    expect(frequencyGridFor(10, 20000)).not.toBe(frequencyGridFor(20, 20000));
+  });
+});
+
+describe('the frequency labels', () => {
+  it('names the 1-2-5 steps and 16 kHz when there is room, and nothing else of theirs is lost', () => {
+    const wide = frequencyLabelTicksFor(frequencyScale(4000, 50, 48));
+    [...ONE_TWO_FIVE, 16000].forEach((hz) => expect(wide).toContain(hz));
+    // Only the steps the rule names: the 3s and 4s may join, nothing else.
+    wide.forEach((hz) => {
+      const step = hz / 10 ** Math.floor(Math.log10(hz));
+      expect(hz === 16000 || [1, 2, 3, 4, 5].includes(step)).toBe(true);
+    });
+  });
+
+  it('drops names that would run into another, or into an end, on a narrow plot', () => {
+    const narrow = frequencyScale(400, 50, 48);
     const kept = frequencyLabelTicksFor(narrow);
-    expect(kept.length).toBeLessThan(FREQUENCY_MAJOR_TICKS.length);
-    expect(kept[0]).toBe(FREQUENCY_MAJOR_TICKS[0]);
+    const all = frequencyLabelTicksFor(frequencyScale(4000, 50, 48));
+    expect(kept.length).toBeGreaterThan(0);
+    expect(kept.length).toBeLessThan(all.length);
+    // Forty pixels a name and twelve of air between two (`ESTIMATED_ROOM`).
     kept.slice(1).forEach((tick, index) => {
       expect(
         Number(narrow(tick)) - Number(narrow(kept[index])),
       ).toBeGreaterThanOrEqual(52);
     });
+    // And clear of the forty kept at each end, by the same air.
+    expect(Number(narrow(kept[0]))).toBeGreaterThanOrEqual(50 + 40 + 12 + 20);
+    expect(Number(narrow(kept[kept.length - 1]))).toBeLessThanOrEqual(
+      400 - 48 - 40 - 12 - 20,
+    );
   });
 });
 
@@ -168,11 +215,12 @@ describe("a scene's band on the graph", () => {
       width,
       height,
     });
-    // The gutters: 50 for the gain labels, 48 for the level labels, 28 for
-    // the frequency labels and 14 for a handle at +20 dB.
-    expect(left).toBeCloseTo((30 + 50) / 1200);
-    expect(right).toBeCloseTo((30 + drawnWidth - 48) / 1200);
-    expect(bottom).toBeCloseTo(1 - (54 + drawnHeight - 28) / 480);
+    // Only the 14 a handle at +20 dB needs on top: the gain, level and
+    // frequency figures stand inside the plot's edges and foot since
+    // 2026-11-16, so the scene reaches both sides and the foot.
+    expect(left).toBeCloseTo(30 / 1200);
+    expect(right).toBeCloseTo((30 + drawnWidth) / 1200);
+    expect(bottom).toBeCloseTo(1 - (54 + drawnHeight) / 480);
     expect(top).toBeCloseTo(1 - (54 + 14) / 480);
   });
 });

@@ -26,16 +26,10 @@ const renderMenuForSizing = (
       curveToggles={[]}
       hiddenCurves={[]}
       onToggleCurve={jest.fn()}
-      contents="everything"
-      onCycleContents={jest.fn()}
       isGridHidden={false}
       onToggleGrid={jest.fn()}
-      isCoverageHidden={false}
-      onToggleCoverage={jest.fn()}
       isMeterHidden={false}
       onToggleMeter={jest.fn()}
-      isTitlebarWaveHidden={false}
-      onToggleTitlebarWave={jest.fn()}
       waveHeight={1}
       onChangeWaveHeight={jest.fn()}
       wavePosition={0}
@@ -48,8 +42,6 @@ const renderMenuForSizing = (
       onChangeOverlayBlur={jest.fn()}
       minOverlayOpacity={0}
       maxOverlayBlur={40}
-      hasTopBar
-      onToggleTopBar={jest.fn()}
       // eslint-disable-next-line react/jsx-props-no-spreading -- a test's overrides of a thirty-prop component
       {...overrides}
     />,
@@ -91,13 +83,13 @@ describe('GraphViewMenu curve toggles', () => {
     const opacity = jest.fn();
     const blur = jest.fn();
     renderMenuForSizing({
-      view: 'expanded',
+      view: 'fullscreen',
       sceneLookId: 'premium:aurora',
       hasPlaybackBackdrop: true,
       onChangeOverlayOpacity: opacity,
       onChangeOverlayBlur: blur,
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Expanded' }));
+    fireEvent.click(screen.getByRole('button', { name: 'View' }));
     fireEvent.change(screen.getByRole('slider', { name: 'See through' }), {
       target: { value: '75' },
     });
@@ -153,16 +145,10 @@ describe('GraphViewMenu curve toggles', () => {
         curveToggles={curveToggles}
         hiddenCurves={['driver']}
         onToggleCurve={onToggleCurve}
-        contents="everything"
-        onCycleContents={jest.fn()}
         isGridHidden={false}
         onToggleGrid={jest.fn()}
-        isCoverageHidden={false}
-        onToggleCoverage={jest.fn()}
         isMeterHidden={false}
         onToggleMeter={jest.fn()}
-        isTitlebarWaveHidden={false}
-        onToggleTitlebarWave={jest.fn()}
         waveHeight={1}
         onChangeWaveHeight={jest.fn()}
         wavePosition={0}
@@ -175,39 +161,42 @@ describe('GraphViewMenu curve toggles', () => {
         onChangeOverlayBlur={jest.fn()}
         minOverlayOpacity={0}
         maxOverlayBlur={40}
-        hasTopBar
-        onToggleTopBar={jest.fn()}
       />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'View' }));
     const menu = screen.getByRole('menu');
-    const checkboxRows = within(menu).getAllByRole('menuitemcheckbox');
-    const curveRows = checkboxRows.slice(0, curveToggles.length);
-    expect(curveRows.map((row) => row.textContent)).toEqual([
-      'Hide Headset convolution',
-      'Show Driver',
-      'Hide Headphone',
-      'Hide EQ response',
-      'Hide Preset',
-      'Hide Smart EQ',
-      'Hide Custom FX',
-      'Hide Final output',
+    // Every drawing is a named switch since 2026-11-16, its state on the
+    // switch rather than a "Hide …"/"Show …" label; the top wave has none,
+    // as it always shows.
+    const switches = within(menu).getAllByRole('checkbox');
+    const name = (row: HTMLElement) => row.getAttribute('aria-label');
+    expect(switches.slice(0, curveToggles.length + 4).map(name)).toEqual([
+      'Headset convolution',
+      'Driver',
+      'Headphone',
+      'EQ response',
+      'Preset',
+      'Smart EQ',
+      'Custom FX',
+      'Final output',
+      'EQ labels',
+      'Legend',
+      'Wave',
+      'Grid',
     ]);
-    expect(checkboxRows[curveToggles.length]).toHaveTextContent(
-      'Show EQ labels',
-    );
-    expect(checkboxRows[curveToggles.length + 1]).toHaveTextContent(
-      'Hide the wave',
-    );
-    expect(checkboxRows[curveToggles.length + 2]).toHaveTextContent(
-      'Hide top wave',
+    expect(
+      switches
+        .slice(0, curveToggles.length)
+        .map((row) => (row as HTMLInputElement).checked),
+    ).toEqual(curveToggles.map(({ curve }) => curve !== 'driver'));
+    expect(within(menu).queryByRole('checkbox', { name: /top wave/i })).toBe(
+      null,
     );
 
-    fireEvent.click(
-      screen.getByRole('menuitemcheckbox', { name: 'Show Driver' }),
-    );
+    fireEvent.click(within(menu).getByRole('checkbox', { name: 'Driver' }));
     expect(onToggleCurve).toHaveBeenCalledWith('driver');
+    expect(onToggleCurve).toHaveBeenCalledTimes(1);
   });
 
   it('uses the menu natural height when the viewport has room', () => {
@@ -373,27 +362,18 @@ describe('GraphViewMenu wave sliders', () => {
   });
 });
 
+// The listening bands left the graph on 2026-11-16 (01afe84f6): no shaded
+// columns over the plot, and no switch for them in this menu.
 describe('GraphViewMenu listening bands', () => {
-  it('greys the listening bands while a Plus scene is on the plot, which never draws them', () => {
-    renderMenuForSizing({
-      sceneLookId: 'premium:alpine',
-      isCoverageHidden: true,
-    });
+  it('offers no switch for them any more', () => {
+    renderMenuForSizing();
     fireEvent.click(screen.getByRole('button', { name: 'View' }));
+    // The menu is open and has its switches, so the absence below is the
+    // row's and not a menu that never opened.
+    expect(screen.getByRole('checkbox', { name: 'Grid' })).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitemcheckbox', { name: /listening bands/ }),
-    ).toBeDisabled();
-  });
-
-  it('keeps them a switch on the graph itself', () => {
-    const onToggleCoverage = jest.fn();
-    renderMenuForSizing({ onToggleCoverage });
-    fireEvent.click(screen.getByRole('button', { name: 'View' }));
-    const bands = screen.getByRole('menuitemcheckbox', {
-      name: /listening bands/,
-    });
-    expect(bands).toBeEnabled();
-    fireEvent.click(bands);
-    expect(onToggleCoverage).toHaveBeenCalledTimes(1);
+      screen.queryByRole('checkbox', { name: /listening bands/i }),
+    ).toBeNull();
+    expect(screen.queryByText(/listening bands/i)).toBeNull();
   });
 });

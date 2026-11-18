@@ -13,18 +13,24 @@ import {
 const localFrame = { points: [{ x: 100, y: 3 }], waveform: [0.5] };
 let mockSenderFrame: object | undefined;
 
-jest.mock('../../../renderer/graph/useLiveOutputSpectrum', () => ({
-  __esModule: true,
-  default: () => ({
-    control: {
-      claim: () => () => undefined,
-      isPaused: false,
-      readFrame: () => localFrame,
-      retry: () => Promise.resolve(true),
-    },
-    frame: { points: [], waveform: [] },
-  }),
-}));
+// The frames are a store since 2026-11-16 (read and subscribe), so a frame
+// no longer re-renders the provider; this one never changes.
+jest.mock('../../../renderer/graph/useLiveOutputSpectrum', () => {
+  const shown = { points: [], waveform: [] };
+  const frames = { read: () => shown, subscribe: () => () => undefined };
+  return {
+    __esModule: true,
+    default: () => ({
+      control: {
+        claim: () => () => undefined,
+        isPaused: false,
+        readFrame: () => localFrame,
+        retry: () => Promise.resolve(true),
+      },
+      frame: frames,
+    }),
+  };
+});
 // The hook hands back the frame it shows and a read of the next one, which a
 // desktop background asks for while another PC is sending the music.
 jest.mock('../../../renderer/remoteAudio/useSenderSpectrum', () => ({

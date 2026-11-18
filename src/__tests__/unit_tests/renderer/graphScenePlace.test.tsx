@@ -7,12 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * One renderer for the graph's Plus visualizer, moved and never made again.
  *
- * The graph used to key its scene on the layer it stood in, so going from
- * Colours to the Backdrop, into full screen or from an EQ page to another
- * page with the graph each built it from nothing — a worker, a context, a
- * compile — and leaving the graph's page took the Backdrop's picture away.
- * Pinned by counting what a reload costs: workers started, programs built,
- * workers let go, and by the canvas's element staying the same node.
+ * The graph used to key its scene on the layer it stood in, so going into
+ * full screen or from an EQ page to another page with the graph each built it
+ * from nothing — a worker, a context, a compile. Pinned by counting what a
+ * reload costs: workers started, programs built, workers let go, and by the
+ * canvas's element staying the same node. Two places since the Backdrop went
+ * (2026-11-16): the EQ column's layer, or the plot.
  */
 
 import '@testing-library/jest-dom';
@@ -28,13 +28,10 @@ import {
   type IScenePlot,
 } from '../../../renderer/graph/graphScenePlace';
 import type { IUsableScene } from '../../../renderer/utils/scenePacks';
-import {
-  publishSceneColumnHost,
-  publishSceneCoverHost,
-} from '../../../renderer/utils/sceneCover';
+import { publishSceneColumnHost } from '../../../renderer/utils/sceneCover';
 import {
   setSceneTintMode,
-  type TSceneTintMode,
+  type TSceneTintChoice,
 } from '../../../renderer/utils/sceneTintStore';
 
 const mockCreate = jest.fn();
@@ -80,6 +77,7 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
       draw: jest.fn(),
       idle: jest.fn(),
       holdPicture: jest.fn(),
+      probe: jest.fn(),
       dispose: mockDispose,
     };
   },
@@ -147,7 +145,6 @@ const layer = (name: string) => {
   return element;
 };
 
-let backdrop: HTMLElement;
 let column: HTMLElement;
 let slot: HTMLElement;
 let panel: HTMLElement;
@@ -172,7 +169,6 @@ beforeEach(() => {
   mockDispose.mockClear();
   mockPlayed.mockReset();
   mockPlayed.mockResolvedValue(undefined);
-  backdrop = layer('backdrop');
   column = layer('column');
   const plotBox = document.createElement('div');
   plotBox.className = 'graph-plot';
@@ -181,7 +177,6 @@ beforeEach(() => {
   plotBox.append(panel, slot);
   document.body.appendChild(plotBox);
   act(() => {
-    publishSceneCoverHost(backdrop);
     publishSceneColumnHost(column);
   });
 });
@@ -189,7 +184,6 @@ beforeEach(() => {
 afterEach(() => {
   act(() => {
     publishScenePlot(undefined);
-    publishSceneCoverHost(null);
     publishSceneColumnHost(null);
   });
   document.body.innerHTML = '';
@@ -199,7 +193,6 @@ afterEach(() => {
 describe('where the graph’s scene is drawn', () => {
   const base = {
     drawsScene: true,
-    backdrop: document.createElement('div'),
     column: document.createElement('div'),
   };
   const plot = (isPartOfWindow: boolean) => ({
@@ -211,51 +204,27 @@ describe('where the graph’s scene is drawn', () => {
     isPartOfWindow,
   });
 
-  it('puts it on the window’s layer while the plot is one part of the window', () => {
+  it('puts it on the EQ column’s layer while the plot is one part of the window', () => {
     const onPlot = plot(true);
-    expect(graphScenePlace({ ...base, mode: 'cover', plot: onPlot })).toBe(
-      base.backdrop,
-    );
-    (['off', 'tint', 'pulse'] as const).forEach((mode) =>
-      expect(graphScenePlace({ ...base, mode, plot: onPlot })).toBe(
-        base.column,
-      ),
-    );
+    expect(graphScenePlace({ ...base, plot: onPlot })).toBe(base.column);
     // A page with no EQ column: the plot itself.
-    expect(
-      graphScenePlace({ ...base, column: null, mode: 'tint', plot: onPlot }),
-    ).toBe(onPlot.slot);
+    expect(graphScenePlace({ ...base, column: null, plot: onPlot })).toBe(
+      onPlot.slot,
+    );
   });
 
   it('keeps it on the plot while the graph is the window', () => {
     const full = plot(false);
-    expect(graphScenePlace({ ...base, mode: 'cover', plot: full })).toBe(
-      full.slot,
-    );
-    expect(graphScenePlace({ ...base, mode: 'pulse', plot: full })).toBe(
-      full.slot,
-    );
+    expect(graphScenePlace({ ...base, plot: full })).toBe(full.slot);
   });
 
-  it('keeps only the Backdrop’s with no graph on the page', () => {
-    expect(graphScenePlace({ ...base, mode: 'cover', plot: undefined })).toBe(
-      base.backdrop,
-    );
-    (['off', 'tint', 'pulse'] as const).forEach((mode) =>
-      expect(graphScenePlace({ ...base, mode, plot: undefined })).toBe(
-        undefined,
-      ),
-    );
+  it('puts it nowhere with no graph on the page', () => {
+    expect(graphScenePlace({ ...base, plot: undefined })).toBe(undefined);
   });
 
   it('draws nothing the graph itself would not draw', () => {
     expect(
-      graphScenePlace({
-        ...base,
-        drawsScene: false,
-        mode: 'cover',
-        plot: plot(true),
-      }),
+      graphScenePlace({ ...base, drawsScene: false, plot: plot(true) }),
     ).toBe(undefined);
     expect(
       isGraphWaveDrawn({
@@ -290,33 +259,29 @@ describe('where the graph’s scene is drawn', () => {
 });
 
 describe('the one renderer', () => {
-  it('moves between Colours, Ambient, the Backdrop and full screen without being made again', async () => {
+  it('moves between the column, full screen and the window’s colours without being made again', async () => {
     setSceneTintMode('tint');
     act(() => publishScenePlot(plotOf(true)));
-    render(<GraphScene page="eq" />);
+    render(<GraphScene />);
     await built();
     const host = canvasHost();
     const canvas = host?.querySelector('canvas');
     expect(host).not.toBeNull();
     expect(column).toContainElement(canvas ?? null);
+    // The worker here never draws, and the page takes its over-the-picture
+    // faces only from the scene's first drawn frame (2026-11-17).
+    expect(document.documentElement).not.toHaveClass('is-scene-column');
 
-    act(() => setSceneTintMode('cover'));
-    expect(backdrop).toContainElement(canvas ?? null);
-    // The worker here never draws, and the Backdrop takes the window only
-    // with a picture in it (`sceneBackdropFirstFrame.test.tsx`).
-    expect(document.documentElement).not.toHaveClass('is-scene-backdrop');
     act(() => setSceneTintMode('pulse'));
     expect(column).toContainElement(canvas ?? null);
-    expect(document.documentElement).not.toHaveClass('is-scene-backdrop');
     // Full screen: the graph is the window, and the scene is on its plot.
     act(() => publishScenePlot(plotOf(false)));
     expect(slot).toContainElement(canvas ?? null);
-    expect(document.documentElement).not.toHaveClass('is-scene-column');
-    act(() => setSceneTintMode('cover'));
+    act(() => setSceneTintMode('off'));
     expect(slot).toContainElement(canvas ?? null);
     // And back.
     act(() => publishScenePlot(plotOf(true)));
-    expect(backdrop).toContainElement(canvas ?? null);
+    expect(column).toContainElement(canvas ?? null);
 
     expect(canvasHost()).toBe(host);
     expect(mockCreate).toHaveBeenCalledTimes(1);
@@ -324,29 +289,14 @@ describe('the one renderer', () => {
     expect(mockDispose).not.toHaveBeenCalled();
   });
 
-  it('stays behind every page in the Backdrop when the graph is left', async () => {
-    setSceneTintMode('cover');
-    act(() => publishScenePlot(plotOf(true)));
-    render(<GraphScene page="eq" />);
-    await built();
-    const canvas = canvasHost()?.querySelector('canvas');
-
-    act(() => publishScenePlot(undefined));
-    expect(backdrop).toContainElement(canvas ?? null);
-    // And comes back to the graph's page as it was.
-    act(() => publishScenePlot(plotOf(true)));
-    expect(backdrop).toContainElement(canvas ?? null);
-    expect(mockCreate).toHaveBeenCalledTimes(1);
-    expect(mockBuild).toHaveBeenCalledTimes(1);
-    expect(mockDispose).not.toHaveBeenCalled();
-  });
-
-  it.each<TSceneTintMode>(['off', 'tint', 'pulse'])(
+  // Nothing keeps it behind the other pages since the Backdrop went
+  // (2026-11-16): off the graph it is let go in every mode, and its memory.
+  it.each<TSceneTintChoice>(['off', 'tint', 'pulse'])(
     'lets it go off the graph in %s, and builds it again on return',
     async (mode) => {
       setSceneTintMode(mode);
       act(() => publishScenePlot(plotOf(true)));
-      render(<GraphScene page="eq" />);
+      render(<GraphScene />);
       await built();
 
       act(() => publishScenePlot(undefined));
@@ -360,23 +310,18 @@ describe('the one renderer', () => {
     },
   );
 
-  it('lets it go when the Backdrop is left on a page without the graph', async () => {
-    setSceneTintMode('cover');
-    render(<GraphScene page="eq" />);
-    await built();
-    expect(backdrop).toContainElement(
-      canvasHost()?.querySelector('canvas') ?? null,
-    );
-
-    act(() => setSceneTintMode('pulse'));
-    expect(mockDispose).toHaveBeenCalledTimes(1);
+  it('makes none on a page without the graph', async () => {
+    setSceneTintMode('pulse');
+    render(<GraphScene />);
+    await act(async () => Promise.resolve());
     expect(canvasHost()).toBeNull();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 });
 
 describe('the plot', () => {
   it('says where it is, and the scene follows it to full screen and off the page', async () => {
-    setSceneTintMode('cover');
+    setSceneTintMode('pulse');
     // The chart's plot, at normal size or full screen.
     const Plot = ({ isPartOfWindow }: { isPartOfWindow: boolean }) => (
       <div className="graph-plot">
@@ -391,19 +336,20 @@ describe('the plot', () => {
       </div>
     );
     const graph = render(<Plot isPartOfWindow />);
-    const page = render(<GraphScene page="eq" />);
+    const page = render(<GraphScene />);
     await built();
     const canvas = canvasHost()?.querySelector('canvas');
-    expect(backdrop).toContainElement(canvas ?? null);
+    expect(column).toContainElement(canvas ?? null);
 
     graph.rerender(<Plot isPartOfWindow={false} />);
     const plotSlot = graph.container.querySelector('.chart-scene-slot');
     expect(plotSlot).toContainElement(canvas ?? null);
-
-    graph.unmount();
-    expect(backdrop).toContainElement(canvas ?? null);
     expect(mockCreate).toHaveBeenCalledTimes(1);
-    expect(mockDispose).not.toHaveBeenCalled();
+
+    // The plot gone, nothing shows the scene, and it is let go.
+    graph.unmount();
+    expect(mockDispose).toHaveBeenCalledTimes(1);
+    expect(canvasHost()).toBeNull();
     page.unmount();
     expect(mockDispose).toHaveBeenCalledTimes(1);
   });

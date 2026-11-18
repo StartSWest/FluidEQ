@@ -5,17 +5,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Smart EQ's lines on the graph are dragged with the pointer captured. A drag
- * used to end only when the pointer lifted, so one the system cancelled — a
- * touch turned into a scroll, the window losing the pointer — stayed armed,
- * and the next pass over the same strip moved the line with no button held.
+ * Smart EQ's progress on the graph is a strip of its regions along the foot,
+ * and nothing more. Its lines — the presence floor and ceiling and the
+ * correction limit, dragged with the pointer captured — left the plot on
+ * 2026-11-16 with the listening bands (01afe84f6), and the cases that held
+ * their drags with them: what is held now is that none is drawn to drag, and
+ * that the strip takes no pointer from the plot it lies on.
  */
 
-import { fireEvent, render } from '@testing-library/react';
-import { scaleLinear, scaleLog } from 'd3';
+import '@testing-library/jest-dom';
+import { render } from '@testing-library/react';
+import { scaleLog } from 'd3';
 import CoverageOverlay from '../../../renderer/graph/CoverageOverlay';
-import { setCorrectionLimit } from '../../../renderer/utils/correctionLimit';
-import { setPresenceLine } from '../../../renderer/utils/presenceThreshold';
 
 jest.mock('../../../renderer/audio/smartEqMeasurement', () => ({
   useSmartEqMeasurement: () => ({
@@ -38,114 +39,53 @@ jest.mock('../../../renderer/audio/smartEqMeasurement', () => ({
     presenceTypical: [],
   }),
 }));
-jest.mock('../../../renderer/utils/graphStyle', () => ({
-  useGraphCoverageHidden: () => false,
-}));
 jest.mock('../../../renderer/utils/presenceThreshold', () => ({
   getPresenceLine: (edge: string) => (edge === 'floor' ? -40 : -20),
-  hasCustomPresenceRange: () => false,
-  movePresenceRange: jest.fn(),
   presenceAllowance: () => 0.5,
-  resetPresenceRange: jest.fn(),
-  setPresenceLine: jest.fn(),
   usePresenceLines: () => undefined,
 }));
 jest.mock('../../../renderer/utils/smartEqMode', () => ({
   useSmartEqMode: () => undefined,
 }));
-jest.mock('../../../renderer/utils/correctionLimit', () => ({
-  DEFAULT_CORRECTION_LIMIT_DB: 6,
-  setCorrectionLimit: jest.fn(),
-  useCorrectionLimit: () => 6,
-}));
-jest.mock('../../../renderer/utils/I18nContext', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
 
-// The test DOM has no PointerEvent, so every pointer arrives without an id;
-// what is held here is only whether something is captured at all.
-const captured = new Set<number>();
-
-beforeAll(() => {
-  Object.defineProperties(Element.prototype, {
-    setPointerCapture: {
-      configurable: true,
-      value: (pointerId: number) => captured.add(pointerId),
-    },
-    hasPointerCapture: {
-      configurable: true,
-      value: (pointerId: number) => captured.has(pointerId),
-    },
-    releasePointerCapture: {
-      configurable: true,
-      value: (pointerId: number) => captured.delete(pointerId),
-    },
-  });
-});
-
-afterEach(() => {
-  captured.clear();
-  jest.clearAllMocks();
-});
-
-const showOverlay = () => {
-  const view = render(
+const showOverlay = (isResponseHidden = false) =>
+  render(
     <svg>
       <CoverageOverlay
         xScale={scaleLog().domain([20, 20000]).range([0, 1000])}
-        yScale={scaleLinear().domain([0, -80]).range([0, 400])}
-        eqScale={scaleLinear().domain([20, -20]).range([0, 400])}
         top={0}
         plotHeight={400}
-        isResponseHidden={false}
-        isOverScene={false}
+        isResponseHidden={isResponseHidden}
       />
     </svg>,
+  ).container;
+
+it('draws the measured region as a strip along the foot', () => {
+  const view = showOverlay();
+  const fill = view.querySelector('.chart-coverage__fill');
+  expect(fill).not.toBeNull();
+  // Half measured: half the region's width, 60 Hz to 250 Hz on the scale.
+  const width = Number(
+    view.querySelector('.chart-coverage__track')?.getAttribute('width'),
   );
-  const strip = (selector: string) => {
-    const found = view.container.querySelector(selector);
-    if (!found) {
-      throw new Error(`no ${selector} on the graph`);
-    }
-    return found;
-  };
-  return {
-    limit: strip('.chart-limit__grab'),
-    floor: strip('.chart-presence--floor .chart-presence__grab'),
-  };
-};
-
-describe.each([
-  ['cancelled', fireEvent.pointerCancel],
-  ['losing its capture', fireEvent.lostPointerCapture],
-])('a drag %s', (_name, end) => {
-  it('leaves the correction limit where it was left', () => {
-    const { limit } = showOverlay();
-    fireEvent.pointerDown(limit, { pointerId: 1, clientY: 100 });
-    fireEvent.pointerMove(limit, { pointerId: 1, clientY: 120 });
-    expect(setCorrectionLimit).toHaveBeenCalledTimes(1);
-    end(limit, { pointerId: 1 });
-    fireEvent.pointerMove(limit, { pointerId: 1, clientY: 160 });
-    expect(setCorrectionLimit).toHaveBeenCalledTimes(1);
-  });
-
-  it('leaves a presence line where it was left', () => {
-    const { floor } = showOverlay();
-    fireEvent.pointerDown(floor, { pointerId: 2, clientY: 200 });
-    fireEvent.pointerMove(floor, { pointerId: 2, clientY: 210 });
-    expect(setPresenceLine).toHaveBeenCalledTimes(1);
-    end(floor, { pointerId: 2 });
-    fireEvent.pointerMove(floor, { pointerId: 2, clientY: 260 });
-    expect(setPresenceLine).toHaveBeenCalledTimes(1);
-  });
+  expect(width).toBeGreaterThan(0);
+  expect(Number(fill?.getAttribute('width'))).toBeCloseTo(width / 2, 6);
+  expect(Number(fill?.getAttribute('y'))).toBe(400 - 6);
 });
 
-it('still ends a drag on the lift, and lets the pointer go', () => {
-  const { limit } = showOverlay();
-  fireEvent.pointerDown(limit, { pointerId: 3, clientY: 100 });
-  expect(captured.size).toBe(1);
-  fireEvent.pointerUp(limit, { pointerId: 3 });
-  expect(captured.size).toBe(0);
-  fireEvent.pointerMove(limit, { pointerId: 3, clientY: 160 });
-  expect(setCorrectionLimit).not.toHaveBeenCalled();
+it('draws no line to drag, and takes no pointer from the plot', () => {
+  const view = showOverlay();
+  // POSITIVE CONTROL: the overlay is drawn, so the absences are its own.
+  const strip = view.querySelector('.chart-coverage');
+  expect(strip).not.toBeNull();
+  expect(strip).toHaveAttribute('pointer-events', 'none');
+  expect(view.querySelector('.chart-limit__grab')).toBeNull();
+  expect(view.querySelector('.chart-presence__grab')).toBeNull();
+  expect(view.querySelector('.chart-presence')).toBeNull();
+});
+
+it('leaves with the response it belongs to', () => {
+  expect(showOverlay(true).querySelector('.chart-coverage')).toHaveClass(
+    'is-leaving',
+  );
 });

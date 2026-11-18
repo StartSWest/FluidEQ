@@ -71,16 +71,12 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
   useFluidEqContext: () => ({
     filters: mockEq.filters,
     headphone: undefined,
-    nextFilterSelection: (id: string, mode: 'replace' | 'toggle' | 'range') =>
+    // The selection alone decides it since Shift went to the band popover
+    // (2026-11-17): no range, so neither the bands nor an anchor is asked.
+    nextFilterSelection: (id: string, mode: 'replace' | 'toggle') =>
       jest
         .requireActual('common/bandSelection')
-        .nextBandSelection(
-          mockEq.filters,
-          mockEq.selected,
-          id,
-          mode,
-          undefined,
-        ),
+        .nextBandSelection(mockEq.selected, id, mode),
     isEqDoubleOn: false,
     bypassed: [],
     isAutoPreAmpOn: false,
@@ -128,6 +124,15 @@ jest.mock('renderer/graph/Chart', () => ({
 jest.mock('renderer/audio/LiveAudioContext', () => ({
   ...jest.requireActual('renderer/audio/LiveAudioContext'),
   useLiveAudioFrame: () => ({ points: [], waveform: [], isClipping: false }),
+  // Read through a selector and the store since 2026-11-16: silence.
+  useLiveAudioFrameSelector: <S,>(
+    select: (frame: {
+      points: never[];
+      waveform: never[];
+      isClipping: boolean;
+    }) => S,
+  ) => select({ points: [], waveform: [], isClipping: false }),
+  useLiveAudioFrameListener: () => undefined,
   useLiveAudioControl: () => ({
     error: '',
     isActive: true,

@@ -158,11 +158,13 @@ describe('the row under the EQ bands', () => {
     const grid =
       '.workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content';
     expect(declared(grid, 'flex')).toBe('1 0 0');
-    expect(declared(grid, 'align-content')).toBe('start');
-    // A floor-length band and a ceiling-length one, each with the 114px of
+    // A pane taller than the bands leaves its room above and below them, not
+    // in the tracks: the bands keep one height and centre (2026-11-17).
+    expect(declared(grid, 'align-content')).toBe('center');
+    // One row, the bands': the selected band's editor is a popover over the
+    // panel since 2026-11-16 and takes none. A floor-length band and a
+    // ceiling-length one (340px since 2026-11-17), each with the 114px of
     // caption, arrows and readout a band carries around its track.
-    expect(declared(grid, 'grid-template-rows')).toBe(
-      'minmax(186px, 378px) auto',
-    );
+    expect(declared(grid, 'grid-template-rows')).toBe('minmax(186px, 454px)');
   });
 });

@@ -99,9 +99,10 @@ it('names a handle by its band’s shape and frequency, and reads the band’s o
   );
   expect(handle).toHaveAttribute('aria-valuenow', '3.5');
   expect(handle).toHaveAttribute('aria-valuetext', '1.6 kHz, +3.5 dB');
+  // The tip names the band popover's way in too, since 2026-11-17.
   expect(handle).toHaveAttribute(
     'data-tooltip',
-    'Peak · 1.6 kHz · +3.5 dB · Click to select',
+    'Peak · 1.6 kHz · +3.5 dB · Click to select · Shift+click shows its settings',
   );
 });
 

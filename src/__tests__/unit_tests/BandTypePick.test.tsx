@@ -18,7 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { FilterTypeEnum, IFiltersMap } from 'common/constants';
 import MainContent from 'renderer/MainContent';
 import { setFilterValues } from 'renderer/utils/equalizerApi';
@@ -82,8 +82,10 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
     isActive: true,
   }),
   useLiveAudioCapture: () => undefined,
-  // The band row's level tracks read the live frame; silence lights none.
+  // The band row's level tracks read the live frame, handed to a listener
+  // since 2026-11-16; one never called is silence, which lights none.
   useLiveAudioFrame: () => ({ graphPoints: [] }),
+  useLiveAudioFrameListener: () => undefined,
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
   addEqualizerSlider: jest.fn(),
@@ -101,7 +103,26 @@ jest.mock('renderer/utils/equalizerApi', () => ({
 }));
 jest.mock('renderer/components/VoicingQuickPick', () => () => null);
 jest.mock('renderer/components/CurvesPicker', () => () => null);
-jest.mock('renderer/components/FrequencyBand', () => () => null);
+// The popover stays hidden until it is placed beside its handle, which is
+// measured, and jsdom measures nothing: a place of its own stands in.
+jest.mock('renderer/eq/useBandPopoverPlace', () => ({
+  ...jest.requireActual('renderer/eq/useBandPopoverPlace'),
+  __esModule: true,
+  default: () => ({ left: 0, top: 0, arrow: 0, side: 'right' }),
+}));
+// Only the band's column, which is what gives the popover its band: it is up
+// while Shift is held and a selected band has the keyboard (2026-11-17).
+jest.mock(
+  'renderer/components/FrequencyBand',
+  () =>
+    ({ filter }: { filter: { id: string } }) =>
+      jest.requireActual('react').createElement('div', {
+        className: 'bandWrapper',
+        'data-filter-id': filter.id,
+        'data-testid': `band-${filter.id}`,
+        tabIndex: -1,
+      }),
+);
 jest.mock('renderer/utils/bandReveal', () => ({
   planBandReveal: () => undefined,
   revealBands: jest.fn(),
@@ -111,8 +132,22 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+/**
+ * The selected band's editor is a popover since 2026-11-16, up while Shift
+ * is held and the band has the keyboard: its column focused, Shift down.
+ */
+const openPopover = () => {
+  act(() => screen.getByTestId('band-band-36').focus());
+  fireEvent.keyDown(window, { key: 'Shift' });
+};
+
 it('keeps the band selected while its type is picked, and saves the pick', () => {
   render(<MainContent />);
+  // Not up until it is asked for, so the menu below is the popover's.
+  expect(
+    screen.queryByRole('menu', { name: 'selected-band-filter-type' }),
+  ).toBeNull();
+  openPopover();
   fireEvent.click(
     screen.getByRole('menu', { name: 'selected-band-filter-type' }),
   );

@@ -33,7 +33,7 @@ import { LOCALES, loadLocale, translate } from 'common/i18n';
 
 const STATES = Object.keys(GRAPH_CONTENTS_LABEL) as TGraphContents[];
 
-const MODES: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
+const MODES: TGraphView[] = ['normal', 'fullscreen'];
 
 /**
  * The plot's contents are a state machine, and this is why.
@@ -50,7 +50,7 @@ const MODES: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
  * being false again.
  *
  * All five values are now kept once per view mode, so the machine is really
- * three machines that share one set of writers. That is where a careless read
+ * two machines, the pane's and full screen's, that share one set of writers. That is where a careless read
  * would show up: a state recognised from one mode's flags while another mode's
  * were being written would be the same contradiction as before, wearing a
  * different hat.
@@ -107,37 +107,55 @@ describe('what the plot is showing', () => {
     });
   });
 
-  it('visits all of them in order and comes back', () => {
-    setGraphContents('everything');
+  /**
+   * Ctrl+W walks three stops forwards and Ctrl+S back: the wave alone, the
+   * wave with the curves, the curves alone (Ivan, 2026-11-16: "waves only,
+   * then waves with curves, then curves only"). The other states are reached
+   * from the View menu, and the walk reads each of them as the middle stop.
+   */
+  const walk = (direction: 1 | -1, steps: number): TGraphContents[] => {
     const seen: TGraphContents[] = [];
-    for (let step = 0; step < STATES.length; step += 1) {
-      cycleGraphContents();
+    for (let step = 0; step < steps; step += 1) {
+      cycleGraphContents(direction);
       seen.push(getGraphContents());
     }
+    return seen;
+  };
 
-    // Every state exactly once, in the order the key walks them, ending where
-    // it started.
-    expect(seen).toEqual([
-      'unlabelled',
-      'layers',
-      'curves',
-      'clean',
-      'wave',
-      'everything',
-    ]);
+  it('walks its three stops forwards and back, ending where it started', () => {
+    setGraphContents('everything');
+    expect(walk(1, 3)).toEqual(['curves', 'wave', 'everything']);
+    expect(walk(-1, 3)).toEqual(['wave', 'curves', 'everything']);
   });
 
-  it('hides labels with the menu or first Ctrl+W stop and restores them on Everything', () => {
+  it.each(['layers', 'clean', 'unlabelled'] as const)(
+    'reads %s, which is no stop, as the wave with the curves',
+    (state) => {
+      setGraphContents(state);
+      cycleGraphContents();
+      expect(getGraphContents()).toBe('curves');
+      setGraphContents(state);
+      cycleGraphContents(-1);
+      expect(getGraphContents()).toBe('wave');
+    },
+  );
+
+  it('hides labels from their own switch, and the walk keeps them as it has them', () => {
     setGraphContents('everything');
     expect(getGraphBandLabelsHidden()).toBe(false);
     toggleGraphBandLabels();
     expect(getGraphContents()).toBe('unlabelled');
     expect(getGraphBandLabelsHidden()).toBe(true);
-    setGraphContents('everything');
-    cycleGraphContents();
+
+    // Round the walk and back to its middle stop: the labels are no stop, so
+    // they come back hidden, as the switch left them.
+    expect(walk(1, 3)).toEqual(['curves', 'wave', 'unlabelled']);
     expect(getGraphBandLabelsHidden()).toBe(true);
+
+    // Positive control: Everything named outright does show them.
     setGraphContents('everything');
     expect(getGraphBandLabelsHidden()).toBe(false);
+    expect(walk(1, 3)).toEqual(['curves', 'wave', 'everything']);
   });
 
   it('changes the coverage wash without changing the named graph state', () => {
@@ -153,21 +171,22 @@ describe('what the plot is showing', () => {
     expect(getGraphContents()).toBe('layers');
   });
 
-  it('leaves the coverage choice alone while the cycle visits clean', () => {
+  it('leaves the coverage choice alone while the walk leaves clean', () => {
     setGraphContents('everything');
     expect(getGraphCoverageHidden()).toBe(false);
 
     setGraphContents('clean');
     expect(getGraphCoverageHidden()).toBe(false);
 
-    // Clean is a presentation override. The independent wash preference stays
-    // where the user left it underneath, through both neighbours of the stop.
+    // Clean is a presentation override, no longer a stop. The independent
+    // wash preference stays where the user left it underneath, through the
+    // stops the walk goes on to.
     cycleGraphContents();
-    expect(getGraphContents()).toBe('wave');
+    expect(getGraphContents()).toBe('curves');
     expect(getGraphCoverageHidden()).toBe(false);
 
     cycleGraphContents();
-    expect(getGraphContents()).toBe('everything');
+    expect(getGraphContents()).toBe('wave');
     expect(getGraphCoverageHidden()).toBe(false);
   });
 
@@ -181,52 +200,51 @@ describe('what the plot is showing', () => {
    * is one nobody finishes learning.
    */
   it('holds a state per view mode', () => {
+    // Neither is the default, so a mode that read its neighbour's value, or
+    // none, could not pass. The Expanded view went on 2026-11-16, leaving two.
     setGraphView('normal');
-    setGraphContents('everything');
-    setGraphView('expanded');
     setGraphContents('layers');
     setGraphView('fullscreen');
-    setGraphContents('wave');
+    setGraphContents('curves');
+    expect(getGraphContents()).toBe('curves');
 
     setGraphView('normal');
-    expect(getGraphContents()).toBe('everything');
-    setGraphView('expanded');
     expect(getGraphContents()).toBe('layers');
-    setGraphView('fullscreen');
-    expect(getGraphContents()).toBe('wave');
   });
 
-  it('cycles the mode it is in and leaves the other two where they were', () => {
-    setGraphView('expanded');
-    setGraphContents('curves');
+  it('cycles the mode it is in and leaves the other one where it was', () => {
+    setGraphView('normal');
+    setGraphContents('layers');
+
     setGraphView('fullscreen');
+    cycleGraphContents();
+    expect(getGraphContents()).toBe('everything');
+
+    // The neighbour was mid-cycle when the key was pressed and is still
+    // exactly there. A press that walked both at once would be five
+    // settings pretending to be one again, which is the fault this whole
+    // machine exists to make impossible.
+    setGraphView('normal');
+    expect(getGraphContents()).toBe('layers');
+  });
+
+  /**
+   * Full screen opens on the first stop, the wave, whatever it was left on
+   * (Ivan, 2026-11-16: "when it turns full screen always show the wave, as if
+   * it resets the W / S cycle each time"): a stop of curves alone left there
+   * came back as a picture with no wave. The pane keeps what it was left on.
+   */
+  it('opens full screen on the wave, and leaves the pane as it was left', () => {
+    setGraphView('normal');
+    setGraphContents('curves');
+
+    setGraphView('fullscreen');
+    expect(getGraphContents()).toBe('wave');
     setGraphContents('clean');
 
     setGraphView('normal');
-    setGraphContents('everything');
-    cycleGraphContents();
-    expect(getGraphContents()).toBe('unlabelled');
-
-    // The neighbours were mid-cycle when the key was pressed and are still
-    // exactly there. A press that walked all three at once would be five
-    // settings pretending to be one again, which is the fault this whole
-    // machine exists to make impossible.
-    setGraphView('expanded');
     expect(getGraphContents()).toBe('curves');
     setGraphView('fullscreen');
-    expect(getGraphContents()).toBe('clean');
-  });
-
-  it('starts each mode from everything, rather than from its neighbour', () => {
-    // Switching mode changes the answer without anything being set, so the mode
-    // arrived in has to be showing what *it* was left showing — not what the
-    // one just left is showing, which is what a single shared value did.
-    setGraphView('normal');
-    setGraphContents('wave');
-
-    MODES.filter((mode) => mode !== 'normal').forEach((mode) => {
-      setGraphView(mode);
-      expect(getGraphContents()).toBe('everything');
-    });
+    expect(getGraphContents()).toBe('wave');
   });
 });

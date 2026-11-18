@@ -37,6 +37,9 @@ jest.mock('renderer/audio/nowPlayingIdentity', () => ({
 jest.mock('renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: () => undefined,
   useLiveAudioFrame: () => ({ graphPoints: [] }),
+  // The band row's lights take the frame through a listener since
+  // 2026-11-16; one never called is silence.
+  useLiveAudioFrameListener: () => undefined,
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
   setSmartEq: jest.fn(() => Promise.resolve()),
@@ -49,7 +52,6 @@ jest.mock('renderer/components/EqModeSelect', () => () => null);
 // The EQ page's own EQ mode button, pinned beside the graph at first.
 jest.mock('renderer/components/eqMode/EqPageModeSelect', () => () => null);
 jest.mock('renderer/components/BandLayoutMenu', () => () => null);
-jest.mock('renderer/components/OutputRate', () => () => null);
 
 const MENU = 'Choose how Smart EQ measures';
 const mockMeasureSource = jest.mocked(measureSource);
@@ -73,6 +75,23 @@ const renderToolbar = (bypassed: 'smart'[] = []) => {
       <MainContent />
     </FluidEqProviderWrapper>,
   );
+};
+
+/**
+ * Tab, as somebody would, until the Smart EQ button has the keyboard. The
+ * page's tab row stands before the tools since 2026-11-16, so the button is
+ * no longer the first stop; how many stops come first is not this suite's.
+ */
+const tabToMenu = async (user: ReturnType<typeof userEvent.setup>) => {
+  const button = screen.getByRole('button', { name: MENU });
+  for (
+    let step = 0;
+    step < 20 && document.activeElement !== button;
+    step += 1
+  ) {
+    // eslint-disable-next-line no-await-in-loop -- each Tab moves from where the last one left the focus
+    await user.tab();
+  }
 };
 
 const openModes = () => {
@@ -210,7 +229,7 @@ it('keeps Stop available for a continuous mode whose layer is bypassed', async (
 it('supports keyboard activation for the chooser, mode, and Stop', async () => {
   const user = userEvent.setup();
   renderToolbar();
-  await user.tab();
+  await tabToMenu(user);
   expect(screen.getByRole('button', { name: MENU })).toHaveFocus();
   await user.keyboard('{Enter}');
   expect(
@@ -232,7 +251,7 @@ it('focuses the remembered mode, wraps arrow navigation, and returns on Escape',
   setSmartEqMode('balance');
   setContinuousEq(false);
   renderToolbar();
-  await user.tab();
+  await tabToMenu(user);
   await user.keyboard('{ArrowDown}');
   const menu = within(screen.getByRole('menu', { name: MENU }));
   const smart = menu.getByRole('menuitemradio', { name: /^Smart EQ / });
@@ -259,7 +278,7 @@ it('focuses the remembered mode, wraps arrow navigation, and returns on Escape',
 it('keeps keyboard focus through a continuous run and a different mode afterward', async () => {
   const user = userEvent.setup();
   renderToolbar();
-  await user.tab();
+  await tabToMenu(user);
   await user.keyboard('{Enter}{ArrowDown} ');
   expect(getSmartEqMode()).toBe('detail');
   expect(screen.getByRole('button', { name: 'Stop Smart EQ' })).toHaveFocus();

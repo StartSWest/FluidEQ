@@ -64,9 +64,10 @@ describe("a measuring view's key", () => {
     // In the bottom half: the top of the plot is where the player's strip of
     // controls lives, and the key sat under the view picker's name there.
     expect(chip.y).toBeGreaterThan((44 + 300) / 2);
-    // Ending twenty pixels above the floor, where the note spectrum's Cs and
-    // the energy view's band names are printed.
-    expect(chip.y + chip.height).toBe(300 - 20);
+    // Ending thirty pixels above the floor, over the frequency names inside
+    // the plot's foot and the note spectrum's Cs and the energy view's band
+    // names printed above them, whose letters reach about 25 (2026-11-17).
+    expect(chip.y + chip.height).toBe(300 - 30);
   });
 
   it('is left out where the view plays behind another drawing', () => {
@@ -94,8 +95,10 @@ describe('the key’s place, for the band labels', () => {
     paintLegend(frameOn(context, true), ENTRIES);
     const [chip] = chips;
     const frame = takeLegendFrame(canvas);
+    // Sixty in from the left edge, clear of the gain figures drawn inside it
+    // since the graph reaches the sides (2026-11-16).
     expect(frame?.place).toMatchObject({
-      x: 10,
+      x: 60,
       y: chip.y,
       height: chip.height,
     });

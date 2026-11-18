@@ -157,16 +157,35 @@ it('takes its canvas away before the worker goes, so the backdrop shows and neve
   expect(shown).not.toHaveBeenCalled();
 });
 
-it('ends it at once in a hidden page, which paints no frame to wait for', () => {
-  // And where a frame never comes: waiting on one would have kept an unseen
-  // scene's worker, and its GPU memory, alive until the window was looked at.
+// A hidden window paints no frame, and Windows shows the last one it painted
+// again on restore: a canvas whose worker had been ended there came back
+// solid white. So a scene let go while hidden is retired first (everything
+// freed but its context) and ended only once the window is seen again and
+// two frames without its canvas are painted (2026-11-17, 477702c4a).
+it('retires it in a hidden page, and ends it two frames after the window is seen', () => {
+  let hidden = true;
   Object.defineProperty(document, 'hidden', {
     configurable: true,
-    get: () => true,
+    get: () => hidden,
   });
   try {
     const { client } = start();
     client?.dispose();
+    expect(worker.postMessage).toHaveBeenLastCalledWith({ kind: 'retire' });
+    expect(worker.terminate).not.toHaveBeenCalled();
+
+    // Retired, and still unseen: no frame can paint, so nothing is waited on.
+    reply({ kind: 'retired' });
+    paintFrame();
+    paintFrame();
+    expect(worker.terminate).not.toHaveBeenCalled();
+
+    // Seen again: two painted frames without the canvas, then it goes.
+    hidden = false;
+    document.dispatchEvent(new Event('visibilitychange'));
+    paintFrame();
+    expect(worker.terminate).not.toHaveBeenCalled();
+    paintFrame();
     expect(worker.terminate).toHaveBeenCalledTimes(1);
   } finally {
     delete (document as Partial<Document> & { hidden?: boolean }).hidden;

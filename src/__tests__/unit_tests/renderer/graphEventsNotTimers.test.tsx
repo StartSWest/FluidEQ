@@ -132,10 +132,21 @@ const mockAudio = {
   },
   error: '',
 };
+type TMockFrame = (typeof mockAudio)['frame'];
 
 jest.mock('renderer/audio/LiveAudioContext', () => ({
   ...jest.requireActual('renderer/audio/LiveAudioContext'),
   useLiveAudioFrame: () => mockAudio.frame,
+  // The chart reads what it needs of the frame through a selector, and the
+  // meter through the store, since 2026-11-16; both read the same frame,
+  // which each re-render here changes.
+  useLiveAudioFrameSelector: <S,>(select: (frame: TMockFrame) => S) =>
+    select(mockAudio.frame),
+  useLiveAudioFrameListener: () => undefined,
+  useLiveAudioFrames: () => ({
+    read: () => mockAudio.frame,
+    subscribe: () => () => undefined,
+  }),
   useLiveAudioControl: () => ({
     error: mockAudio.error,
     isActive: true,

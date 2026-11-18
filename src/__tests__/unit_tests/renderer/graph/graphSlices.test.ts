@@ -27,10 +27,10 @@ import {
   EQ_SPECTRUM_OCTAVES,
   EQ_SPECTRUM_POINTS,
 } from '../../../../renderer/dsp/dspEqSpectrum';
-import {
-  GRAPH_END,
-  GRAPH_START,
-} from '../../../../renderer/graph/ChartController';
+import { SPECTRUM_START } from '../../../../renderer/graph/graphFrequencyRanges';
+
+/** Where a DSP page's spectrum stops: 20 kHz, whatever the main graph spans. */
+const DSP_PAGE_TOP_HZ = 20000;
 
 const RATE = 48000;
 const SHORT = 2048;
@@ -213,7 +213,10 @@ describe("the DSP EQ page's reading of the engine's two windows", () => {
   it('lays as many points as asked across the same plot', () => {
     const axis = createGraphFrequencyAxis(RATE, EQ_SPECTRUM_POINTS);
     expect(axis).toHaveLength(EQ_SPECTRUM_POINTS);
-    expect(axis[0]).toBeCloseTo(GRAPH_START, 9);
-    expect(axis[axis.length - 1]).toBeCloseTo(Math.min(GRAPH_END, RATE / 2), 6);
+    expect(axis[0]).toBeCloseTo(SPECTRUM_START, 9);
+    expect(axis[axis.length - 1]).toBeCloseTo(
+      Math.min(DSP_PAGE_TOP_HZ, RATE / 2),
+      6,
+    );
   });
 });

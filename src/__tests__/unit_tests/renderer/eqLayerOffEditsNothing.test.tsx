@@ -22,11 +22,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import '@testing-library/jest-dom';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import ChannelEnum from 'common/channels';
 import { getDefaultState, TApoLayer } from 'common/constants';
 import { DISCLAIMER_ACCEPTED_KEY, buildAcceptance } from 'common/disclaimer';
 import App from 'renderer/App';
+import { setEqLayerTab } from 'renderer/eq/eqLayerTab';
 import { setGraphView } from 'renderer/utils/graphViewSettings';
 import { compileStylesheet, styleRules } from '__tests__/utils/stylesheetRules';
 
@@ -96,7 +103,9 @@ const renderShell = async (bypassed: TApoLayer[]) => {
   const rendered = render(<App />);
   await act(async () => Promise.resolve());
   await act(async () => Promise.resolve());
-  screen.getByRole('heading', { level: 2, name: /Parametric EQ/ });
+  // The page's own tab row: the Bands page has no title heading since its
+  // title row went (2026-11-16), and the row is drawn only past the spinner.
+  screen.getByRole('tablist', { name: 'EQ layers' });
   const part = (selector: string) => {
     const element = rendered.container.querySelector(selector);
     if (!element) {
@@ -107,10 +116,19 @@ const renderShell = async (bypassed: TApoLayer[]) => {
   return {
     labels: part('.eq-band-labels'),
     rail: part('.bands-rail'),
-    tone: part('.eq-flat-editor--tone'),
     handles: Array.from(
       rendered.container.querySelectorAll('.graph-edit-point'),
     ),
+    /**
+     * The Tone and its cuts, on a tab of their own beside Your EQ's since
+     * 2026-11-16: pressed open, as somebody would.
+     */
+    openTone: async () => {
+      await act(async () => {
+        fireEvent.click(screen.getByRole('tab', { name: /Tone/ }));
+      });
+      return part('.eq-flat-editor--tone');
+    },
   };
 };
 
@@ -136,6 +154,8 @@ afterEach(async () => {
     cleanup();
   });
   setGraphView('normal');
+  // The open tab is remembered past the storage being cleared, in the store.
+  setEqLayerTab('bands');
 });
 
 it('takes the bands off the keyboard, on the graph and in the row', async () => {
@@ -151,8 +171,9 @@ it('takes the bands off the keyboard, on the graph and in the row', async () => 
   expect(isDimmed(rail)).toBe(true);
 });
 
-it('leaves the Tone and the cuts beside the bands live and undimmed', async () => {
-  const { tone } = await renderShell(['eq']);
+it('leaves the Tone and the cuts on their tab live and undimmed', async () => {
+  const { openTone } = await renderShell(['eq']);
+  const tone = await openTone();
   expect(tone.closest('[inert]')).toBeNull();
   expect(isDimmed(tone)).toBe(false);
   // Every dial on it still turns.

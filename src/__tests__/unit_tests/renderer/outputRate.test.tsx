@@ -5,18 +5,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The output's rate beside the equaliser's name, as the DSP page has its own
- * (Ivan, 2026-09-22: "put the Hz also in the main EQ similar to DSP, the real
- * output thing"): the rate Windows runs the output being listened to at, read
- * again when the output changes and when the window is come back to.
+ * The rate Windows runs the output being edited at, read again when the
+ * output changes and when the window is come back to: the graph draws the
+ * cookbook bands at it (`useResponseCurves`). It also stood beside the
+ * equaliser's name until 2026-11-16, when the tab row lost it and its
+ * component (`OutputRate`) went; the DSP page keeps its own. Read here
+ * through the hook, written as that component and the DSP page write it.
  */
 
 import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
 import type { IAudioDevice } from '../../../common/constants';
-import OutputRate from '../../../renderer/components/OutputRate';
-import { formatRateKhz } from '../../../renderer/components/TitleRate';
+import TitleRate, {
+  formatRateKhz,
+} from '../../../renderer/components/TitleRate';
 import { getAudioDevices } from '../../../renderer/utils/equalizerApi';
+import useOutputRate from '../../../renderer/utils/useOutputRate';
+
+/** The rate of the output being edited, written out, or nothing. */
+const OutputRate = () => {
+  const rate = useOutputRate('editor');
+  return rate === undefined ? null : <TitleRate rate={rate} />;
+};
 
 jest.mock('../../../renderer/utils/equalizerApi', () => {
   const getAudioDevices = jest.fn();

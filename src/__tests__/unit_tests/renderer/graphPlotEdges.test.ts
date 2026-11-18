@@ -7,8 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * What the graph does at the edges of its plot: the wave widened to fill a
  * gridless card only where the sound stops short, a band's handle held
- * inside the plot, and the double-click between the pane and the larger
- * views.
+ * inside the plot, and the double-click between the pane and full screen.
  */
 
 import { traceStretch } from '../../../renderer/graph/traceStretch';
@@ -59,16 +58,14 @@ describe('a band’s handle', () => {
   });
 });
 
+// The Expanded view, and Ctrl+double-click into it, went on 2026-11-16: one
+// gesture into full screen and the same one out.
 describe('a double-click on the plot', () => {
-  it('fills the screen from the pane, and the window with Ctrl or ⌘', () => {
-    expect(viewAfterPlotDoubleClick('normal', false)).toBe('fullscreen');
-    expect(viewAfterPlotDoubleClick('normal', true)).toBe('expanded');
+  it('fills the screen from the pane', () => {
+    expect(viewAfterPlotDoubleClick('normal')).toBe('fullscreen');
   });
 
-  it('comes back to the pane from either larger view', () => {
-    expect(viewAfterPlotDoubleClick('fullscreen', false)).toBe('normal');
-    expect(viewAfterPlotDoubleClick('fullscreen', true)).toBe('normal');
-    expect(viewAfterPlotDoubleClick('expanded', false)).toBe('normal');
-    expect(viewAfterPlotDoubleClick('expanded', true)).toBe('normal');
+  it('comes back to the pane from full screen', () => {
+    expect(viewAfterPlotDoubleClick('fullscreen')).toBe('normal');
   });
 });

@@ -2,7 +2,10 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import BandLayoutMenu from 'renderer/components/BandLayoutMenu';
 import ClearEqButton from 'renderer/components/ClearEqButton';
-import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
+import {
+  FluidEqProviderWrapper,
+  type IFluidEqContext,
+} from 'renderer/utils/FluidEqContext';
 import defaultContext from '__tests__/utils/mockFluidEqProvider';
 import {
   FilterTypeEnum,
@@ -45,7 +48,7 @@ const design = {
 };
 const refreshState = jest.fn();
 const context = { ...defaultContext, refreshState, eqBandDesign: design };
-const mount = (value = context) =>
+const mount = (value: IFluidEqContext = context) =>
   render(
     <FluidEqProviderWrapper value={value}>
       <BandLayoutMenu />
@@ -78,23 +81,37 @@ beforeEach(() => {
 });
 
 describe('band layout menu', () => {
-  it('resets only bell Q with one batch and keeps frequencies, gains and mode out of the edit', async () => {
+  // One button for frequencies and Q together since 2026-11-16 ("the same
+  // button does everything"); it reset the Q alone.
+  it('resets frequencies and bell Q in one batch, and keeps gains and the shelf’s Q out of the edit', async () => {
     const filters = getDefaultFilters(FixedBandSizeEnum.SIX);
     const bands = Object.values(filters);
+    const home = bands[2].frequency;
     bands[0].type = FilterTypeEnum.LSC;
     bands.forEach((band) => {
       band.quality = 4;
       band.gain = 3;
     });
-    mount({ ...context, filters });
+    bands[2].frequency = home + 100;
+    // The built-in six's layout, not a saved design: its bells' Q is 0.35.
+    mount({ ...context, filters, eqBandDesign: undefined });
     await openMenu();
     await act(async () =>
-      fireEvent.click(screen.getByRole('button', { name: 'Reset band Q' })),
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Reset frequencies and Q' }),
+      ),
     );
     expect(setFilterValues).toHaveBeenCalledTimes(1);
     expect(setFilterValues).toHaveBeenCalledWith(
-      bands.slice(1).map((band) => ({ id: band.id, quality: 0.35 })),
+      bands
+        .slice(1)
+        .map((band, index) =>
+          index === 1
+            ? { id: band.id, frequency: home, quality: 0.35 }
+            : { id: band.id, quality: 0.35 },
+        ),
     );
+    // Written to the engine, never to the bands in hand.
     expect(bands.every((band) => band.gain === 3 && band.quality === 4)).toBe(
       true,
     );

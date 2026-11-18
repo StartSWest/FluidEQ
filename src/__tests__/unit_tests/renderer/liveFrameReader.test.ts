@@ -19,7 +19,7 @@ import {
   readGraphLevels,
   writeGraphPoints,
 } from '../../../renderer/graph/liveGraphBand';
-import { GRAPH_START } from '../../../renderer/graph/ChartController';
+import { SPECTRUM_START } from '../../../renderer/graph/graphFrequencyRanges';
 import { MAX_GAIN, MIN_GAIN } from '../../../common/constants';
 import { createAxisCells } from '../../../renderer/utils/autoBalanceCapture';
 
@@ -207,7 +207,8 @@ describe('the graphs’ own points', () => {
     // which is what everything but the graphs is tuned to.
     expect(points[0].x).toBeCloseTo(20, 6);
     expect(points[points.length - 1].x).toBeCloseTo(20000, 6);
-    expect(graphPoints[0].x).toBeCloseTo(GRAPH_START, 6);
+    // The graphs read across every range the plot can be set to (2026-11-16).
+    expect(graphPoints[0].x).toBeCloseTo(SPECTRUM_START, 6);
     expect(graphPoints[graphPoints.length - 1].x).toBeCloseTo(RATE / 2, 6);
   });
 
