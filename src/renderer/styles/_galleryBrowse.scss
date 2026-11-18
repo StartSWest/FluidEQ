@@ -81,7 +81,9 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 10px;
   margin-right: 16px;
-  padding: 2px 4px 0;
+  // Air under the search before the cards that scroll up to it (Ivan,
+  // 2026-11-17: "put padding below the search").
+  padding: 2px 4px 12px;
 
   > .gallery-toolbar,
   > .gallery-pagebar {
