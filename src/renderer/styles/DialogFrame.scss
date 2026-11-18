@@ -363,6 +363,14 @@ $rail-width: 16.5rem;
   color: color-mix(in srgb, var(--rainbow-now) 55%, white);
 }
 
+// Colourful is always on, so a white window meets the rule above too, and a
+// kicker lifted toward white was pale on a light dialog (2026-11-18). There
+// it is taken toward the ink instead: the stop already holds 3:1 on white,
+// and the ink takes the small caps past a text's 4.5:1.
+:root.is-euphoric[data-window-ink='dark'] .dialog-frame__eyebrow {
+  color: color-mix(in srgb, var(--rainbow-now) 70%, $text-primary);
+}
+
 // A narrow window, the 200% UI on a laptop included: the rail becomes the
 // head — tile beside the title — and what the rail held follows it, so
 // nothing is squeezed into a column a word wide. On the window, because every

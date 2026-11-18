@@ -166,7 +166,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   pointer-events: none;
 }
 
-.is-euphoric .karaoke-maker-preview__meta {
+// Colourful is always on now, so this is the rule every window meets; on a
+// white one the near-white words over the preview's light ground were gone
+// (2026-11-18), and they keep the plain inks above.
+:root.is-euphoric:not([data-window-ink='dark']) .karaoke-maker-preview__meta {
   span,
   strong {
     color: rgba($white, 0.88);
