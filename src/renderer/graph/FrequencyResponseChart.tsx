@@ -394,6 +394,8 @@ interface IFrequencyResponseChartProps {
   /** The Karaoke stage remains behind the graph, including Plus looks. */
   hasPlaybackBackdrop?: boolean;
   backdropControls?: ReactNode;
+  /** The app in full screen, any page's: the side bar and its meter hidden. */
+  isAppFullScreen?: boolean;
 }
 
 /**
@@ -410,6 +412,7 @@ const FrequencyResponseChart = ({
   isVisible,
   hasPlaybackBackdrop = false,
   backdropControls,
+  isAppFullScreen = false,
 }: IFrequencyResponseChartProps) => {
   const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
@@ -1818,6 +1821,7 @@ const FrequencyResponseChart = ({
               onToggleGrid={toggleGraphGrid}
               isMeterHidden={isMeterHidden}
               onToggleMeter={toggleGraphMeter}
+              isMeterOffered={!isAppFullScreen}
               waveHeight={waveHeight}
               onChangeWaveHeight={setWaveHeight}
               wavePosition={wavePosition}

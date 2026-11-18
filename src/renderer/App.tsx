@@ -846,6 +846,7 @@ const AppContent = () => {
                   mounts.showsKaraokeGraphBackdrop ||
                   mounts.showsLibraryGraphBackdrop
                 }
+                isAppFullScreen={isAnyFullScreen}
                 backdropControls={
                   activeWorkspaceTab === 'karaoke' &&
                   karaokeBackground === 'graph' ? (

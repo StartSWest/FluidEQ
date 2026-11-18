@@ -91,6 +91,11 @@ interface IGraphViewMenuProps {
   onToggleGrid: () => void;
   isMeterHidden: boolean;
   onToggleMeter: () => void;
+  /**
+   * Whether the level meter is on screen to be switched: never in full
+   * screen, which hides the side bar it stands in.
+   */
+  isMeterOffered?: boolean;
   waveHeight: number;
   onChangeWaveHeight: (next: number) => void;
   wavePosition: number;
@@ -147,6 +152,7 @@ const GraphViewMenu = ({
   onToggleGrid,
   isMeterHidden,
   onToggleMeter,
+  isMeterOffered = true,
   waveHeight,
   onChangeWaveHeight,
   wavePosition,
@@ -376,12 +382,17 @@ const GraphViewMenu = ({
               rather than per mode: the sidebar is the same in all three, so a
               control that came back on a mode change would only ever be
               surprising. */}
-            <ViewMenuSwitch
-              icon={<path d="M6 13.5V2.5h4v11zM6 8.5h4" />}
-              name={t('graph.switch.meter')}
-              isOn={!isMeterHidden}
-              onToggle={onToggleMeter}
-            />
+            {/* Not in full screen, where the meter is not shown (Ivan,
+                2026-11-18: "the level meter is not an option in full screen
+                on any view, because we don't show the meter there"). */}
+            {isMeterOffered && (
+              <ViewMenuSwitch
+                icon={<path d="M6 13.5V2.5h4v11zM6 8.5h4" />}
+                name={t('graph.switch.meter')}
+                isOn={!isMeterHidden}
+                onToggle={onToggleMeter}
+              />
+            )}
 
             {/* Continuous controls replace the three-stop Ctrl+B size mode. The
               old control mixed plot margins with wave amplitude, which made
