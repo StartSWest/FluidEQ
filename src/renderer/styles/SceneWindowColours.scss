@@ -51,6 +51,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
     cursor: default;
     opacity: $disabled-opacity;
   }
+
+  // What the window wears in a role whatever is picked (the white panes of
+  // a white window): drawn at full strength, but nothing to press, so no
+  // pointer, no hover and no edge that answers it.
+  &.is-fixed {
+    cursor: default;
+
+    &:hover {
+      border-color: $border-control;
+      background: $surface-control;
+    }
+  }
 }
 
 .window-colour-swatch__well {

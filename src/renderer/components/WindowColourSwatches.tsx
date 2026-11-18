@@ -14,7 +14,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { useThemeShade } from '../utils/theme';
-import { isLightShade } from '../utils/themeShade';
+import { lightWindowOf } from '../utils/themeShade';
 
 const ROLE_NAME: Record<TSceneWindowColourRole, TranslationKey> = {
   surface: 'graph.sceneColours.surface',
@@ -34,6 +34,11 @@ interface ISwatchProps {
   changed: boolean;
   note?: string;
   disabled: boolean;
+  /**
+   * What the window paints in this role whatever is picked, shown in place
+   * of the pick, with no picker: the white panes of a white window.
+   */
+  fixed?: string;
   onChange: (role: TSceneWindowColourRole, value: string) => void;
   onCommit: (role: TSceneWindowColourRole, value: string) => void;
 }
@@ -51,6 +56,7 @@ function Swatch({
   changed,
   note,
   disabled,
+  fixed,
   onChange,
   onCommit,
 }: ISwatchProps) {
@@ -71,6 +77,23 @@ function Swatch({
   }, [onCommit, role]);
 
   const name = t(ROLE_NAME[role]);
+  if (fixed !== undefined) {
+    // Not a held control faded out over a colour it does not paint: the
+    // colour the window really wears there, at full strength, and no way
+    // to pick another (Ivan, 2026-11-17, of a faded swatch: "is that your
+    // idea of disabled?").
+    return (
+      <div
+        className="window-colour-swatch is-fixed"
+        style={{ '--swatch': fixed } as CSSProperties}
+      >
+        <span className="window-colour-swatch__well" aria-hidden />
+        <span className="window-colour-swatch__name">{name}</span>
+        <span className="window-colour-swatch__about">{note}</span>
+        <span className="window-colour-swatch__hex">{fixed.toUpperCase()}</span>
+      </div>
+    );
+  }
   return (
     <label
       htmlFor={id}
@@ -125,7 +148,7 @@ export default function WindowColourSwatches({
   // (`pickedWindow.ts`), so the surface paints nothing there and its swatch
   // says so, held, rather than taking a colour nobody would see (Ivan,
   // 2026-11-17: "make sure it disables the surface").
-  const surfaceUnused = isLightShade(useThemeShade());
+  const whitePane = lightWindowOf(useThemeShade())?.tokens['--surface-panel'];
   return (
     <div className="window-colour-swatches">
       {SCENE_WINDOW_COLOUR_ROLES.map((role) => (
@@ -139,11 +162,12 @@ export default function WindowColourSwatches({
               glowUnused &&
               t('graph.sceneColours.glowUnused')) ||
             (role === 'surface' &&
-              surfaceUnused &&
+              whitePane !== undefined &&
               t('graph.sceneColours.surfaceUnused')) ||
             undefined
           }
-          disabled={disabled || (role === 'surface' && surfaceUnused)}
+          fixed={role === 'surface' ? whitePane : undefined}
+          disabled={disabled}
           onChange={onChange}
           onCommit={onCommit}
         />
