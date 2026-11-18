@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useId, useRef, useState, type CSSProperties } from 'react';
 import ColourPickerPopover from '../components/ColourPickerPopover';
 import { useTranslation } from '../utils/I18nContext';
+import { hsvOfHex } from '../utils/hsvColour';
 import useLiveSlider from '../utils/useLiveSlider';
 import { hueOf, labOf } from '../utils/windowLight';
 import {
@@ -33,6 +34,8 @@ interface ITintSwatchProps {
   onPick: (colour: string) => void;
   label: string;
   className: string;
+  /** The picker's hue bar while the colour is a grey (`ColourPickerPopover`). */
+  hueWhenGrey: number;
 }
 
 /**
@@ -43,7 +46,13 @@ interface ITintSwatchProps {
  * Accept keeps the colour, and Cancel, Escape or a press elsewhere puts the
  * Tint back exactly as it stood when the picker opened.
  */
-const TintSwatch = ({ colour, onPick, label, className }: ITintSwatchProps) => {
+const TintSwatch = ({
+  colour,
+  onPick,
+  label,
+  className,
+  hueWhenGrey,
+}: ITintSwatchProps) => {
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const [opened, setOpened] = useState<IWindowTintSnapshot>();
   const close = () => setOpened(undefined);
@@ -67,6 +76,7 @@ const TintSwatch = ({ colour, onPick, label, className }: ITintSwatchProps) => {
         isOpen={opened !== undefined}
         title={label}
         value={colour}
+        hueWhenGrey={hueWhenGrey}
         onChange={onPick}
         onAccept={(next) => {
           onPick(next);
@@ -122,6 +132,10 @@ const WindowTintSlider = () => {
   // The first colour as the window will wear it: the one picked whole, else
   // the accent at the hue under the thumb.
   const primary = windowPrimaryColour(hue, picked);
+  // The slider's hue as the picker's bar measures hue: a grey picked keeps
+  // the hue under the thumb (`pickPrimary`), and the picker opens on it so a
+  // move off the grey colours with that hue, not with red.
+  const pickerHue = hsvOfHex(windowPrimaryColour(hue, undefined)).h;
   const isLinked = second === undefined;
   const pickPrimary = (value: string) => {
     const lab = labOf(value);
@@ -161,12 +175,14 @@ const WindowTintSlider = () => {
           onPick={pickPrimary}
           label={t('graph.windowTintPick')}
           className="graph-view-menu__swatch"
+          hueWhenGrey={pickerHue}
         />
         <span className="graph-view-menu__second">
           <TintSwatch
             colour={second ?? primary}
             onPick={setWindowTintSecondary}
             label={t('graph.windowTintSecond')}
+            hueWhenGrey={pickerHue}
             className={`graph-view-menu__swatch${
               isLinked ? ' graph-view-menu__swatch--follows' : ''
             }`}

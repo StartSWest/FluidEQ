@@ -59,6 +59,17 @@ const shareOf = (element: HTMLElement, event: PointerEvent<HTMLElement>) => {
   };
 };
 
+/**
+ * `next`, keeping `previous`'s hue where `next` has none to say. Black, a grey
+ * and white read back from their hex with the hue at 0, so the bar jumped to
+ * red whenever one was opened, typed or taken from the screen, and moving off
+ * the grey into the field coloured it red, not with the hue the bar had stood
+ * at (Ivan, 2026-11-18: "don't reset the tint ... so if the user wants to go
+ * away from the start and into the colour zone, it tints on that colour").
+ */
+const keepingHue = (previous: IHsv, next: IHsv): IHsv =>
+  next.s === 0 || next.v === 0 ? { ...next, h: previous.h } : next;
+
 interface IColourPickerPopoverProps {
   /** The control it opens from. */
   anchor: HTMLElement | null;
@@ -71,8 +82,14 @@ interface IColourPickerPopoverProps {
   onChange: (value: string) => void;
   /** Accept: the colour is kept. */
   onAccept: (value: string) => void;
-  /** Cancel, Escape or a press elsewhere: the colour it opened with again. */
+  /** Cancel or Escape: the colour it opened with again. */
   onCancel: () => void;
+  /**
+   * Where the hue bar stands while the colour has no hue of its own (black,
+   * a grey, white), in degrees: the hue the window still holds for it. Absent,
+   * the bar keeps wherever it last stood.
+   */
+  hueWhenGrey?: number;
 }
 
 /**
@@ -93,18 +110,26 @@ export default function ColourPickerPopover({
   onChange,
   onAccept,
   onCancel,
+  hueWhenGrey,
 }: IColourPickerPopoverProps) {
   const { t } = useTranslation();
   const hexId = useId();
-  const [hsv, setHsv] = useState<IHsv>(() => hsvOfHex(value));
+  const [hsv, setHsv] = useState<IHsv>(() =>
+    keepingHue({ h: hueWhenGrey ?? 0, s: 1, v: 1 }, hsvOfHex(value)),
+  );
   const [hexText, setHexText] = useState(value);
   // Opened again, from wherever the colour now stands.
   useEffect(() => {
     if (isOpen) {
-      setHsv(hsvOfHex(value));
+      setHsv((previous) =>
+        keepingHue(
+          { ...previous, h: hueWhenGrey ?? previous.h },
+          hsvOfHex(value),
+        ),
+      );
       setHexText(value);
     }
-  }, [isOpen, value]);
+  }, [isOpen, value, hueWhenGrey]);
 
   const current = hexOfHsv(hsv);
   const live = useLiveSlider<string | undefined>(
@@ -140,8 +165,13 @@ export default function ColourPickerPopover({
     onCancel();
   }, [drop, onCancel]);
 
-  // A press anywhere else, or Escape, is Cancel; neither reaches the menu
-  // underneath, which would close too.
+  // Only Accept and Cancel close it (Ivan, 2026-11-18: "the colour picker
+  // closes by itself, this cannot happen, it only closes with Accept or
+  // Cancel"): a press anywhere else used to be Cancel, so a drag that started
+  // a hair outside the field, or a press beside it, threw the colour away.
+  // Now a press outside is held back from everything under it, the menu the
+  // picker opened from included, which would close and take it along.
+  // Escape is still Cancel, the same answer from the keyboard.
   useEffect(() => {
     if (!isOpen) {
       return undefined;
@@ -151,7 +181,8 @@ export default function ColourPickerPopover({
       if (anchor?.contains(target) || isInsideAnchoredMenu(target)) {
         return;
       }
-      cancel();
+      event.preventDefault();
+      event.stopPropagation();
     };
     const key = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -159,9 +190,13 @@ export default function ColourPickerPopover({
         cancel();
       }
     };
+    // Both: the menus underneath close on `pointerdown` (`ActionsMenu`,
+    // `RichPick`), others on `mousedown`.
+    document.addEventListener('pointerdown', press, true);
     document.addEventListener('mousedown', press, true);
     document.addEventListener('keydown', key, true);
     return () => {
+      document.removeEventListener('pointerdown', press, true);
       document.removeEventListener('mousedown', press, true);
       document.removeEventListener('keydown', key, true);
     };
@@ -215,7 +250,7 @@ export default function ColourPickerPopover({
       .then(({ sRGBHex }) => {
         const hex = readHexColour(sRGBHex);
         if (hex) {
-          move(hsvOfHex(hex));
+          move(keepingHue(hsv, hsvOfHex(hex)));
         }
         return undefined;
       })
@@ -227,7 +262,7 @@ export default function ColourPickerPopover({
     setHexText(text);
     const hex = readHexColour(text);
     if (hex) {
-      setHsv(hsvOfHex(hex));
+      setHsv((previous) => keepingHue(previous, hsvOfHex(hex)));
       // Typed, not dragged: one deliberate colour, applied at once, and
       // anything a drag left waiting is dropped behind it.
       drop();
