@@ -16,6 +16,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // verdicts' colours and what both halves share are in
 // _karaokeScoreTokens.scss.
 
+// The verdicts' colours on a white window (`_karaokeScoreTokens.scss`), the
+// values `karaokeCanvasInk.ts` takes the strip's own to: each hue down to
+// 3.4:1 on white for a cell, 5.3:1 for a word. Unset on a dark window.
+:root[data-window-ink='dark'] {
+  --karaoke-score-on: #2f9d65;
+  --karaoke-score-near: #a58800;
+  --karaoke-score-off: #ed5a4f;
+  --karaoke-score-on-ink: #007b49;
+  --karaoke-score-near-ink: #7f6900;
+  --karaoke-score-off-ink: #c7342f;
+}
+
 // A counting figure: tabular, at the width of the widest it will show
 // (`KaraokeCountUp`), so nothing beside it moves while it counts.
 .karaoke-count {

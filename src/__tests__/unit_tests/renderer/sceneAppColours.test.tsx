@@ -176,8 +176,18 @@ describe('a palette as the app’s rainbow', () => {
       themeShadeTokens(THEME_SHADE_MAX)['--surface-panel'],
     );
     expect(white).toBeCloseTo(1, 6);
-    expect(worstOn(chosen.map(stopOnWhite), white)).toBeGreaterThanOrEqual(3);
-    expect(worstOn(LAGOON.map(stopOnWhite), white)).toBeGreaterThanOrEqual(3);
+    expect(
+      worstOn(
+        chosen.map((stop) => stopOnWhite(stop)),
+        white,
+      ),
+    ).toBeGreaterThanOrEqual(3);
+    expect(
+      worstOn(
+        LAGOON.map((stop) => stopOnWhite(stop)),
+        white,
+      ),
+    ).toBeGreaterThanOrEqual(3);
     // CONTROL: as chosen, for a dark window, the same stops do not read there.
     expect(worstOn(chosen, white)).toBeLessThan(3);
   });

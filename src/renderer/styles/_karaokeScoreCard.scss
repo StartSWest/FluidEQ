@@ -130,7 +130,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &[data-best='behind'] {
-    color: $score-near;
+    color: $score-near-ink;
     border-color: color-mix(in srgb, $score-near 45%, transparent);
   }
 }
@@ -330,7 +330,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
 
     &[data-trend='down'] {
-      color: $score-near;
+      color: $score-near-ink;
     }
   }
 }

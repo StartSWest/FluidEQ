@@ -20,10 +20,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // accent for in tune: the notes still to sing are the accent, and a sung one
 // has to read apart from them (Ivan, 2026-11-16: "it is not at all like the
 // mockups").
-$score-on: #8df5b8;
+//
+// On a white window those pastels were 1.2 to 2:1, so there each is its own
+// hue taken down in lightness, as the strip's canvas takes them
+// (`karaokeCanvasInk.ts`): a cell to a mark's 3.4:1, a word to text's 5.3:1.
+// The custom properties are set only on a light window
+// (`_karaokeScore.scss`); unset, every value is the dark window's own.
+$score-on: var(--karaoke-score-on, #8df5b8);
 $score-good: color-mix(in srgb, $score-on 72%, transparent);
-$score-near: #f2d04f;
-$score-off: #ff6a5e;
+$score-near: var(--karaoke-score-near, #f2d04f);
+$score-off: var(--karaoke-score-off, #ff6a5e);
+// The same three as words.
+$score-on-ink: var(--karaoke-score-on-ink, #8df5b8);
+$score-near-ink: var(--karaoke-score-near-ink, #f2d04f);
+$score-off-ink: var(--karaoke-score-off-ink, #ff6a5e);
 $score-missed: color-mix(in srgb, $text-primary 26%, transparent);
 // A note not sung yet: the accent's faint well with its edge, so the colour
 // that lands in it reads.
@@ -55,15 +65,15 @@ $score-well-edge: color-mix(in srgb, $secondary-default 28%, transparent);
 
 @mixin tone-ink {
   &[data-tone='on'] {
-    color: $score-on;
+    color: $score-on-ink;
   }
 
   &[data-tone='near'] {
-    color: $score-near;
+    color: $score-near-ink;
   }
 
   &[data-tone='off'] {
-    color: $score-off;
+    color: $score-off-ink;
   }
 }
 

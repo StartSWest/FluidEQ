@@ -5,7 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { midiToNoteName } from '../../common/karaoke/pitch';
-import { readAccent, readAccentLight } from '../utils/theme';
+import { readAccent, readAccentLight, readSurface } from '../utils/theme';
+import { isLightWindow } from '../utils/windowSide';
+import { inkForSide, onWhite, TEXT_ON_WHITE } from './karaokeCanvasInk';
 import { LYRIC_FONT_FAMILY } from './karaokeLyricText';
 import { drawRoundedRect } from './makerCanvasGeometry';
 
@@ -28,6 +30,36 @@ const GOLDEN_SUNG = '#fff0a8';
 const GOLDEN_RING = 'rgba(255, 240, 168, .95)';
 const NAME_LIT = 'rgba(245, 255, 254, .98)';
 const NAME_IDLE = '#cfe7ee';
+const GOLDEN = '#ffd25a';
+
+/**
+ * The part of a note the playhead has crossed. On a dark window the pale
+ * light above; on a white one a pale fill is the note being erased, so the
+ * crossed part is inked in instead: the accent's deepest step, the golden
+ * note's gold at text depth.
+ */
+const sungFill = (kind: TNoteBoxKind) => {
+  if (!isLightWindow()) {
+    return kind === 'golden' ? GOLDEN_SUNG : NOTE_SUNG;
+  }
+  return kind === 'golden'
+    ? onWhite(GOLDEN, TEXT_ON_WHITE)
+    : readSurface('--accent-darker', '#00464a');
+};
+
+/**
+ * A note's name: on a white window the window's own text inks, the
+ * secondary one, and the strongest over the note being sung. The pale cyans
+ * were 1.2:1 there.
+ */
+const nameInk = (ringed: boolean) => {
+  if (!isLightWindow()) {
+    return ringed ? NAME_LIT : NAME_IDLE;
+  }
+  return ringed
+    ? readSurface('--text-primary', '#1b1b1b')
+    : readSurface('--text-muted', '#484848');
+};
 /** The rest drawn between one syllable's box and the next. */
 const NOTE_GAP_MS = 40;
 
@@ -53,7 +85,7 @@ export const noteBoxHeight = (semitoneHeight: number) =>
 /** The colour of a note nobody has sung or picked yet. */
 export const unsungNoteFill = (kind: TNoteBoxKind): string => {
   if (kind === 'golden') {
-    return '#ffd25a';
+    return inkForSide(GOLDEN);
   }
   return kind === 'free'
     ? readAccent(0.24, 'rgba(27, 222, 231, .24)')
@@ -66,7 +98,7 @@ export const freeNoteEdge = () => readAccent(NOTE_STRENGTH, ACCENT_FALLBACK);
 /** The ring round a sung or selected note. */
 const ringColour = (kind: TNoteBoxKind) =>
   kind === 'golden'
-    ? GOLDEN_RING
+    ? inkForSide(GOLDEN_RING)
     : readAccentLight(0.95, 'rgba(161, 252, 255, .95)');
 
 interface IPaintNoteBoxInput {
@@ -122,7 +154,7 @@ export const paintNoteBox = (
     context.save();
     drawRoundedRect(context, left, top, width, height, NOTE_CORNER);
     context.clip();
-    context.fillStyle = kind === 'golden' ? GOLDEN_SUNG : NOTE_SUNG;
+    context.fillStyle = sungFill(kind);
     context.fillRect(left, top, Math.max(1, width * progress), height);
     context.restore();
   }
@@ -153,18 +185,57 @@ interface IPaintNoteNameInput {
   bold: boolean;
 }
 
-/** The note's name over its box. */
+/** Where one name was painted, in the canvas's own pixels. */
+export interface INoteNamePlace {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/** A name's cap height at 9px, and the air kept round it. */
+const NAME_HEIGHT_PX = 9;
+const NAME_AIR_PX = 1;
+
+/**
+ * The note's name over its box.
+ *
+ * Given `placed` - the names already painted this frame - a name that would
+ * land on one of them is left out, so a run of short notes reads as names and
+ * not as a pile of letters ("C6C5", "EDDS", Ivan's Maker on 2026-11-18). The
+ * name over a ringed note, the one being sung or picked, is always painted.
+ */
 export const paintNoteName = (
   context: CanvasRenderingContext2D,
   { midi, left, right, top, ringed, bold }: IPaintNoteNameInput,
+  placed?: INoteNamePlace[],
 ) => {
-  context.fillStyle = ringed ? NAME_LIT : NAME_IDLE;
+  context.fillStyle = nameInk(ringed);
   context.font = `${bold ? 700 : 600} 9px ${LYRIC_FONT_FAMILY}`;
   context.textAlign = 'center';
   context.textBaseline = 'alphabetic';
-  context.fillText(
-    midiToNoteName(midi),
-    left + (right - left) / 2,
-    top - 4 - (ringed ? NOTE_RING_GAP + 1 : 0),
-  );
+  const name = midiToNoteName(midi);
+  const x = left + (right - left) / 2;
+  const y = top - 4 - (ringed ? NOTE_RING_GAP + 1 : 0);
+  if (placed) {
+    const halfWidth = context.measureText(name).width / 2 + NAME_AIR_PX;
+    const place = {
+      left: x - halfWidth,
+      right: x + halfWidth,
+      top: y - NAME_HEIGHT_PX - NAME_AIR_PX,
+      bottom: y + NAME_AIR_PX,
+    };
+    const crowded = placed.some(
+      (other) =>
+        place.left < other.right &&
+        place.right > other.left &&
+        place.top < other.bottom &&
+        place.bottom > other.top,
+    );
+    if (crowded && !ringed) {
+      return;
+    }
+    placed.push(place);
+  }
+  context.fillText(name, x, y);
 };

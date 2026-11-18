@@ -29,6 +29,43 @@ import {
 } from '../makerCanvasGeometry';
 import { midiToNoteName } from '../../../common/karaoke/pitch';
 import { readTextInk, readAccent, readSurfaceAlpha } from '../../utils/theme';
+import { isLightWindow } from '../../utils/windowSide';
+import {
+  glowForSide,
+  inkForSide,
+  onWhite,
+  TEXT_ON_WHITE,
+} from '../karaokeCanvasInk';
+
+/**
+ * The time marks' and the note rows' blue-grey. On a white window the same
+ * shares of it measured 1.03 to 1.05:1, rows nobody could follow a note
+ * along; there they are the same hue a step firmer, still the quietest
+ * lines on the card.
+ */
+const TIME_LINE = 'rgba(71, 116, 151, .07)';
+const NOTE_ROW_LINE = 'rgba(71, 116, 151, .045)';
+const TIME_LINE_ON_WHITE = 'rgba(71, 116, 151, .14)';
+const NOTE_ROW_LINE_ON_WHITE = 'rgba(71, 116, 151, .09)';
+const OCTAVE_NAME = 'rgb(160, 244, 112)';
+
+const gridLine = (dark: string, light: string) =>
+  isLightWindow() ? onWhite(light) : dark;
+
+/**
+ * How solid a stem's wave is on a white window. The dark window's washes
+ * (16-30%) are light on dark and read; on white the same washes of the deep
+ * colours were sage, lavender and peach ghosts (Ivan, 2026-11-18: "fix maker
+ * too notes, lyrics and waves on top"). At this share each wave is a clear
+ * shape of its colour, still a fill and never as heavy as a note.
+ */
+const WAVE_SHARE_ON_WHITE = 0.42;
+
+/** One stem's wave and its label, as each side of the Brightness wears them. */
+const stemInk = (fill: string, onWhiteFill: string, label: string) =>
+  isLightWindow()
+    ? { fill: onWhite(onWhiteFill), text: onWhite(label, TEXT_ON_WHITE) }
+    : { fill, text: label };
 
 /**
  * Zoomed in this far, every row gets its name, not only the Cs: a 10px name
@@ -174,7 +211,9 @@ export const paintBackdrop = (
       );
       context.clip();
       context.fillStyle = readAccent(0.94, 'rgba(111, 255, 243, .94)');
-      context.shadowColor = readAccent(0.48, 'rgba(36, 223, 207, .48)');
+      context.shadowColor = glowForSide(
+        readAccent(0.48, 'rgba(36, 223, 207, .48)'),
+      );
       context.shadowBlur = 7;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
@@ -184,7 +223,7 @@ export const paintBackdrop = (
     context.restore();
   }
 
-  context.strokeStyle = 'rgba(71, 116, 151, .07)';
+  context.strokeStyle = gridLine(TIME_LINE, TIME_LINE_ON_WHITE);
   context.lineWidth = 1;
   let majorStep = 15_000;
   if (visibleViewDurationMs <= 10_000) {
@@ -221,14 +260,16 @@ export const paintBackdrop = (
     const isOctave = midi % 12 === 0;
     context.strokeStyle = isOctave
       ? readAccent(0.09, 'rgba(65, 218, 203, .09)')
-      : 'rgba(71, 116, 151, .045)';
+      : gridLine(NOTE_ROW_LINE, NOTE_ROW_LINE_ON_WHITE);
     context.beginPath();
     context.moveTo(plotLeft, y);
     context.lineTo(plotRight, y);
     context.stroke();
     if (isOctave || plot.semitoneHeight >= NAME_EVERY_ROW_PX) {
       context.font = '10px system-ui, sans-serif';
-      context.fillStyle = isOctave ? 'rgb(160, 244, 112)' : textInk;
+      context.fillStyle = isOctave
+        ? inkForSide(OCTAVE_NAME, TEXT_ON_WHITE)
+        : textInk;
       context.textAlign = 'right';
       context.fillText(midiToNoteName(midi), OCTAVE_LABEL_RIGHT, y + 3);
     }
@@ -291,20 +332,29 @@ export const paintBackdrop = (
       {
         peaks: waveform,
         label: stemWaveforms.labels.mix,
-        fill: readAccent(0.16, 'rgba(22, 211, 198, .16)'),
+        fill: readAccent(
+          isLightWindow() ? WAVE_SHARE_ON_WHITE : 0.16,
+          'rgba(22, 211, 198, .16)',
+        ),
         text: readAccent(1, '#6ffff3'),
       },
       {
         peaks: stemWaveforms.instrumental,
         label: stemWaveforms.labels.backing,
-        fill: 'rgba(94, 158, 255, .2)',
-        text: 'rgb(158, 199, 255)',
+        ...stemInk(
+          'rgba(94, 158, 255, .2)',
+          `rgba(94, 158, 255, ${WAVE_SHARE_ON_WHITE})`,
+          'rgb(158, 199, 255)',
+        ),
       },
       {
         peaks: stemWaveforms.vocals,
         label: stemWaveforms.labels.voice,
-        fill: 'rgba(255, 176, 92, .3)',
-        text: 'rgb(255, 210, 150)',
+        ...stemInk(
+          'rgba(255, 176, 92, .3)',
+          `rgba(255, 176, 92, ${WAVE_SHARE_ON_WHITE})`,
+          'rgb(255, 210, 150)',
+        ),
       },
     ];
     lanes.forEach((lane, index) => {
@@ -323,7 +373,10 @@ export const paintBackdrop = (
       waveform,
       WAVEFORM_TOP,
       WAVEFORM_HEIGHT,
-      readAccent(0.18, 'rgba(22, 211, 198, .18)'),
+      readAccent(
+        isLightWindow() ? WAVE_SHARE_ON_WHITE : 0.18,
+        'rgba(22, 211, 198, .18)',
+      ),
     );
   }
 };

@@ -17,6 +17,8 @@ import {
 import { type TKaraokePitchOctavePolicy } from '../../common/karaoke/pitch';
 import { type IKaraokeToken } from '../../common/karaoke/types';
 import { prefersReducedMotion } from '../utils/bandReveal';
+import { readSurfaceAlpha } from '../utils/theme';
+import { isLightWindow } from '../utils/windowSide';
 import { pitchLineColour } from './pitchLaneVerdicts';
 
 // The singer's line as the E mockup draws it (Ivan, 2026-11-16, "the line
@@ -61,6 +63,15 @@ const GLOW_HALOS: readonly { extraPx: number; alpha: number }[] = [
  */
 const EDGE_EXTRA_PX = 1.6;
 const EDGE_COLOUR = 'rgba(3, 9, 16, 0.62)';
+/**
+ * On a white window the edge is the window's own light: the line is the deep
+ * copy of its colour there, and a near-black rim round it read as an outline
+ * drawn on the strip. A light rim still parts it from a fill of its colour.
+ */
+const edgeColour = () =>
+  isLightWindow()
+    ? readSurfaceAlpha('--surface-panel', 0.85, 'rgba(255, 255, 255, 0.85)')
+    : EDGE_COLOUR;
 const HEAD_RADIUS = 5;
 const HEAD_PULSE = 0.6;
 /** Radians a second of the head's breathing: the mockup's `sin(T * 7)`. */
@@ -174,7 +185,7 @@ const strokeRun = (
     });
   });
   context.restore();
-  context.strokeStyle = EDGE_COLOUR;
+  context.strokeStyle = edgeColour();
   context.lineWidth = widest + EDGE_EXTRA_PX;
   context.beginPath();
   run.forEach((_, index) => tracePiece(context, run, index));
@@ -288,7 +299,7 @@ const paintTrace = ({
       : Math.sin((now / 1000) * HEAD_PULSE_RATE) * HEAD_PULSE;
     context.beginPath();
     context.arc(head.x, head.y, HEAD_RADIUS + pulse, 0, Math.PI * 2);
-    context.strokeStyle = EDGE_COLOUR;
+    context.strokeStyle = edgeColour();
     context.lineWidth = 1.5 + EDGE_EXTRA_PX;
     context.stroke();
     context.strokeStyle = head.colour;

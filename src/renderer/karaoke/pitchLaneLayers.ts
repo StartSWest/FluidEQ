@@ -29,9 +29,11 @@ import {
 import { type IKaraokeToken } from '../../common/karaoke/types';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import { LYRIC_FONT_FAMILY } from './karaokeLyricText';
+import { inkForSide, TEXT_ON_WHITE } from './karaokeCanvasInk';
 import {
   drawnNoteRange,
   freeNoteEdge,
+  type INoteNamePlace,
   NOTE_STRENGTH,
   noteBoxHeight,
   paintNoteBox,
@@ -76,6 +78,14 @@ const NOTE_NAME_RIGHT = PLOT_LEFT - 6;
 const NAME_EVERY_ROW_PX = 15;
 /** A name this close to the lit one gives way to it rather than overlap. */
 const NAME_CLEARANCE_PX = 10;
+/**
+ * A semitone's line, and the Cs' green name. Both taken down for a white
+ * window (`inkForSide`): the green name was 1.3:1 there, and the line the
+ * same blue-grey at 12% over white was a stronger mark than over black, so
+ * its hue is kept and only its depth moves.
+ */
+const SEMITONE_LINE = 'rgba(120, 165, 200, .12)';
+const OCTAVE_NAME = 'rgb(160, 244, 112)';
 
 /**
  * A faint line for every note, the Cs a step stronger in the accent, and the
@@ -111,7 +121,7 @@ export const paintPitchGrid = ({
     // bright stage.
     context.strokeStyle = isOctave
       ? readAccent(0.24, 'rgba(65, 218, 203, .24)')
-      : 'rgba(120, 165, 200, .12)';
+      : inkForSide(SEMITONE_LINE);
     context.beginPath();
     context.moveTo(PLOT_LEFT, y);
     context.lineTo(PLOT_LEFT + plotWidth, y);
@@ -123,7 +133,7 @@ export const paintPitchGrid = ({
       if (isMark) {
         ink = readAccentLight(1, '#a1fcff');
       } else if (isOctave) {
-        ink = 'rgb(160, 244, 112)';
+        ink = inkForSide(OCTAVE_NAME, TEXT_ON_WHITE);
       }
       context.fillStyle = ink;
       context.font = `${isMark ? 700 : 400} 10px ${LYRIC_FONT_FAMILY}`;
@@ -183,6 +193,7 @@ export const paintNoteBlocks = ({
   context.beginPath();
   context.rect(PLOT_LEFT, 0, plotWidth, context.canvas.height);
   context.clip();
+  const namePlaces: INoteNamePlace[] = [];
   visibleNotes.forEach((note) => {
     const shape = drawnNoteRange(note.startMs as number, note.endMs as number);
     const midi = note.targetMidi as number;
@@ -254,14 +265,18 @@ export const paintNoteBlocks = ({
     }
     // A judged note's chip stands where its name was.
     if (!judged) {
-      paintNoteName(context, {
-        midi,
-        left: shownLeft,
-        right: shownRight,
-        top,
-        ringed: active,
-        bold: active,
-      });
+      paintNoteName(
+        context,
+        {
+          midi,
+          left: shownLeft,
+          right: shownRight,
+          top,
+          ringed: active,
+          bold: active,
+        },
+        namePlaces,
+      );
     }
   });
   // After every note, so a neighbour's body never covers a chip.

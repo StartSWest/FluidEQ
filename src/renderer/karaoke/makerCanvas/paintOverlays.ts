@@ -29,6 +29,7 @@ import {
   INotePaintDraft,
 } from '../makerCanvasTypes';
 import { readAccent, readAccentLight } from '../../utils/theme';
+import { glowForSide } from '../karaokeCanvasInk';
 import {
   noteBoxHeight,
   paintNoteBox,
@@ -158,7 +159,9 @@ export const paintOverlays = (
     context.strokeStyle = readAccentLight(0.88, 'rgba(126, 255, 244, .88)');
     context.lineWidth = 1.25;
     context.setLineDash([6, 4]);
-    context.shadowColor = readAccent(0.55, 'rgba(31, 226, 208, .55)');
+    context.shadowColor = glowForSide(
+      readAccent(0.55, 'rgba(31, 226, 208, .55)'),
+    );
     context.shadowBlur = 8;
     context.fillRect(
       left,
@@ -194,7 +197,7 @@ export const paintOverlays = (
       : readAccent(0.8, 'rgba(104, 241, 231, .8)');
     context.lineWidth = targetWord ? 2.2 : 1.5;
     context.setLineDash(targetWord ? [] : [7, 5]);
-    context.shadowColor = readAccent(1, '#20e6d4');
+    context.shadowColor = glowForSide(readAccent(1, '#20e6d4'));
     context.shadowBlur = targetWord ? 14 : 8;
     context.beginPath();
     context.moveTo(noteLinkDrag.startX, noteLinkDrag.startY);

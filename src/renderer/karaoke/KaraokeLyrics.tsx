@@ -51,6 +51,13 @@ import {
 } from './karaokeLyricsTranslation';
 import { rainbowColourAt } from '../utils/rainbowPalette';
 import { readAccent, readAccentLight, subscribeRoot } from '../utils/theme';
+import { isLightWindow, subscribeWindowSide } from '../utils/windowSide';
+import {
+  EUPHORIA_LIFT_ON_WHITE,
+  lightLyricFill,
+  lightLyricHaloWidth,
+  readLightLyricInk,
+} from './karaokeLyricInk';
 import {
   displayTickMs,
   isFrameDue,
@@ -558,6 +565,10 @@ const KaraokeLyrics = ({
         karaokeLyricBlockGap(width, height),
       );
       let hitRegionCount = 0;
+      // On a light window the words wear the window's own inks, solid
+      // (`karaokeLyricInk.ts`); undefined on a dark one, drawn as before.
+      const lightInk = isLightWindow() ? readLightLyricInk() : undefined;
+      const euphoriaLift = lightInk ? EUPHORIA_LIFT_ON_WHITE : undefined;
       blocks.forEach(({ index, layout }, blockIndex) => {
         const position = positions[blockIndex];
         const alpha = position.opacity * songEntranceOpacity;
@@ -593,15 +604,15 @@ const KaraokeLyrics = ({
         if (euphoriaFill) {
           euphoriaFill.addColorStop(
             0,
-            rainbowColourAt(euphoriaHue / 360, 0.04),
+            rainbowColourAt(euphoriaHue / 360, euphoriaLift ?? 0.04),
           );
           euphoriaFill.addColorStop(
             0.48,
-            rainbowColourAt(euphoriaHue / 360 + 0.14, 0.05),
+            rainbowColourAt(euphoriaHue / 360 + 0.14, euphoriaLift ?? 0.05),
           );
           euphoriaFill.addColorStop(
             1,
-            rainbowColourAt(euphoriaHue / 360 + 0.28, 0.04),
+            rainbowColourAt(euphoriaHue / 360 + 0.28, euphoriaLift ?? 0.04),
           );
         }
         context.save();
@@ -617,45 +628,65 @@ const KaraokeLyrics = ({
           row.fragments.forEach((fragment) => {
             const { text, wordIndex } = fragment;
             const wordX = textLeft + fragment.x;
-            let red = isSection ? 96 : Math.round(225 + 17 * focusAmount);
-            let green = isSection ? 232 : Math.round(231 + 15 * focusAmount);
-            let blue = isSection ? 219 : Math.round(244 + 11 * focusAmount);
-            if (isCaptureStarted) {
-              red = 70;
-              green = 220;
-              blue = 214;
-            } else if (isCaptureComplete && !isEuphoric) {
-              red = 132;
-              green = 255;
-              blue = 247;
-            }
-            // A compact dark key plus the local, static stage veil keeps the
-            // same native glyphs readable over dark or bright scenes. Neither
-            // is applied to the visualizer, graph or surrounding controls.
-            // No halo round the words: a 20px glow in a fixed cyan ignored
-            // the window's palette (Ivan, 2026-09-26: "karaoke fix all those
-            // suck ui and no drop shadow"). Under Euphoria the thinner
-            // travelling colour on top of the key is the actual edge.
-            context.save();
-            context.lineJoin = 'round';
-            // A thin, soft key (Ivan, 2026-11-15, "K1": the player flat as
-            // the Library): enough to hold the words over a bright scene, no
-            // longer the heavy black outline that read as a sticker.
-            context.lineWidth = hasEuphoriaText
-              ? 0.7 + 2.5 * focusAmount
-              : 0.5 + 0.6 * focusAmount;
-            context.strokeStyle = 'rgba(2, 8, 15, 0.6)';
-            context.strokeText(text, wordX, y);
-            if (hasEuphoriaText) {
-              context.lineWidth = Math.max(0.7, 1.15 * focusAmount);
-              context.strokeStyle = `hsla(${(euphoriaHue + wordIndex * 11) % 360}, 96%, 70%, ${0.72 * focusAmount})`;
+            if (lightInk) {
+              // No key and no travelling edge on white: a dark outline round
+              // dark words is weight for nothing, and round light ones it was
+              // the whole of what showed. A soft light halo instead, which
+              // only shows where a drawing passes behind the words.
+              context.save();
+              context.lineJoin = 'round';
+              context.lineWidth = lightLyricHaloWidth(focusAmount);
+              context.strokeStyle = lightInk.halo;
               context.strokeText(text, wordX, y);
+              context.restore();
+              context.fillStyle = lightLyricFill(lightInk, {
+                isSection,
+                focusAmount,
+                isCaptureStarted,
+                isCaptureComplete: isCaptureComplete && !isEuphoric,
+              });
+            } else {
+              let red = isSection ? 96 : Math.round(225 + 17 * focusAmount);
+              let green = isSection ? 232 : Math.round(231 + 15 * focusAmount);
+              let blue = isSection ? 219 : Math.round(244 + 11 * focusAmount);
+              if (isCaptureStarted) {
+                red = 70;
+                green = 220;
+                blue = 214;
+              } else if (isCaptureComplete && !isEuphoric) {
+                red = 132;
+                green = 255;
+                blue = 247;
+              }
+              // A compact dark key plus the local, static stage veil keeps
+              // the same native glyphs readable over dark or bright scenes.
+              // Neither is applied to the visualizer, graph or surrounding
+              // controls. No halo round the words: a 20px glow in a fixed cyan
+              // ignored the window's palette (Ivan, 2026-09-26: "karaoke fix
+              // all those suck ui and no drop shadow"). Under Euphoria the
+              // thinner travelling colour on top of the key is the actual
+              // edge.
+              context.save();
+              context.lineJoin = 'round';
+              // A thin, soft key (Ivan, 2026-11-15, "K1": the player flat as
+              // the Library): enough to hold the words over a bright scene,
+              // no longer the heavy black outline that read as a sticker.
+              context.lineWidth = hasEuphoriaText
+                ? 0.7 + 2.5 * focusAmount
+                : 0.5 + 0.6 * focusAmount;
+              context.strokeStyle = 'rgba(2, 8, 15, 0.6)';
+              context.strokeText(text, wordX, y);
+              if (hasEuphoriaText) {
+                context.lineWidth = Math.max(0.7, 1.15 * focusAmount);
+                context.strokeStyle = `hsla(${(euphoriaHue + wordIndex * 11) % 360}, 96%, 70%, ${0.72 * focusAmount})`;
+                context.strokeText(text, wordX, y);
+              }
+              context.restore();
+              context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
             }
-            context.restore();
             // The block's position already fades context. Multiplying it by
             // a second text alpha made upcoming words look disabled before
             // their turn.
-            context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
             context.fillText(text, wordX, y);
             if (isTimingActive) {
               let progress = progressByWord.get(wordIndex);
@@ -854,6 +885,9 @@ const KaraokeLyrics = ({
     // The window's colours and Euphoria's class live on the root: a change of
     // either is drawn though nothing else moved.
     const stopWatchingRoot = subscribeRoot(kick);
+    // The side of the Brightness decides the words' inks, and is told to
+    // the drawings by its one writer the moment it flips.
+    const stopWatchingSide = subscribeWindowSide(kick);
     // Drawn only while it can be seen. Mounted is not seen: the amp hides the
     // whole app with `display: none` and the words stayed mounted under it,
     // redrawing every frame for nobody for as long as the amp was up.
@@ -884,6 +918,7 @@ const KaraokeLyrics = ({
     return () => {
       kickLyricsRef.current = () => undefined;
       stopWatchingRoot();
+      stopWatchingSide();
       stopWatching();
       if (animationFrame !== undefined) {
         cancelAnimationFrame(animationFrame);

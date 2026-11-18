@@ -11,6 +11,7 @@ import {
   placeKaraokeTraceSample,
   VISUAL_PITCH_SILENCE_HOLD_MS,
 } from './karaokePitchGeometry';
+import { inkForSide } from './karaokeCanvasInk';
 import { drawRoundedRect } from './makerCanvasGeometry';
 import { NOTE_CORNER } from './pitchNoteBox';
 import { pitchLineColour } from './pitchLaneVerdicts';
@@ -172,7 +173,7 @@ export const passedNoteFill = (
     golden: boolean;
   },
 ): string | CanvasGradient => {
-  const well = golden ? GOLDEN_PASSED_WELL : PASSED_WELL;
+  const well = inkForSide(golden ? GOLDEN_PASSED_WELL : PASSED_WELL);
   if (passedX <= left) {
     return unsung;
   }
@@ -263,7 +264,7 @@ export const paintSungFill = (
   if (goldEdge) {
     // Clipped to the box, so half of it shows: a 1px edge inside.
     context.lineWidth = 2;
-    context.strokeStyle = GOLDEN_EDGE;
+    context.strokeStyle = inkForSide(GOLDEN_EDGE);
     drawRoundedRect(context, left, top, right - left, height, NOTE_CORNER);
     context.stroke();
   }

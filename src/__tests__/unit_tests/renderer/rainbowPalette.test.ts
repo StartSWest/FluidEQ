@@ -239,12 +239,14 @@ describe('the palette on a light window', () => {
     expect(getRainbowStops()).toEqual(LAGOON);
     setLightWindow(true);
     try {
-      expect(getRainbowStops()).toEqual(LAGOON.map(stopOnWhite));
+      expect(getRainbowStops()).toEqual(
+        LAGOON.map((stop) => stopOnWhite(stop)),
+      );
       expect(getRainbowStops()).not.toEqual(LAGOON);
       // A palette chosen while light is worn light at once.
       const pair = rainbowBetween('#9ff0ff', '#ffb0e0');
       setRainbowStops(pair);
-      expect(getRainbowStops()).toEqual(pair.map(stopOnWhite));
+      expect(getRainbowStops()).toEqual(pair.map((stop) => stopOnWhite(stop)));
     } finally {
       setLightWindow(false);
     }

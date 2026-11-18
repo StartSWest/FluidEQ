@@ -20,6 +20,7 @@ import { IKaraokeMakerProject } from '../../../common/karaoke/makerProject';
 import {
   drawnNoteRange,
   freeNoteEdge,
+  type INoteNamePlace,
   noteBoxHeight,
   paintNoteBox,
   paintNoteName,
@@ -44,6 +45,18 @@ import {
   readSurface,
   readSurfaceAlpha,
 } from '../../utils/theme';
+import { isLightWindow } from '../../utils/windowSide';
+import { glowForSide } from '../karaokeCanvasInk';
+
+/**
+ * A selected note's fill. The light accent on a dark window; on a white one
+ * the light accent IS the accent every note wears, so a selected note looked
+ * like any other: it takes the accent's deepest step there.
+ */
+const selectedNoteFill = () =>
+  isLightWindow()
+    ? readSurface('--accent-darker', '#00464a')
+    : readAccentLight(1, '#bffff7');
 
 export interface IPaintNotesInput {
   plot: IMakerPlot;
@@ -139,7 +152,9 @@ export const paintNotes = (
     context.strokeStyle = readAccent(0.7, 'rgba(79, 231, 220, .7)');
     context.lineWidth = 2;
     context.lineCap = 'round';
-    context.shadowColor = readAccent(0.5, 'rgba(37, 226, 211, .5)');
+    context.shadowColor = glowForSide(
+      readAccent(0.5, 'rgba(37, 226, 211, .5)'),
+    );
     context.shadowBlur = 6;
     context.beginPath();
     context.moveTo(startX, startY);
@@ -148,6 +163,7 @@ export const paintNotes = (
     context.restore();
   });
 
+  const namePlaces: INoteNamePlace[] = [];
   project.melody.notes.forEach((note) => {
     if (
       note.endMs < viewStartMs ||
@@ -219,7 +235,7 @@ export const paintNotes = (
     // thing the editor shows that the player has no use for.
     let noteFill = unsungNoteFill(note.kind);
     if (selected && note.kind === 'normal') {
-      noteFill = readAccentLight(1, '#bffff7');
+      noteFill = selectedNoteFill();
     } else if (selected && isFree) {
       noteFill = readAccentLight(0.26, 'rgba(191, 255, 247, .26)');
     }
@@ -242,21 +258,25 @@ export const paintNotes = (
         : undefined,
       ringed,
     });
-    paintNoteName(context, {
-      midi: note.targetMidi,
-      left,
-      right,
-      top: centerY - noteHeight / 2,
-      ringed,
-      bold: active,
-    });
+    paintNoteName(
+      context,
+      {
+        midi: note.targetMidi,
+        left,
+        right,
+        top: centerY - noteHeight / 2,
+        ringed,
+        bold: active,
+      },
+      namePlaces,
+    );
     if (controlLinkMode && selected) {
       const indicatorX = Math.max(left + 6, Math.min(right - 6, right - 7));
       context.save();
       context.strokeStyle = readAccentLight(1, '#cafffa');
       context.lineWidth = 1.3;
       context.setLineDash([4, 3]);
-      context.shadowColor = readAccent(1, '#20e6d4');
+      context.shadowColor = glowForSide(readAccent(1, '#20e6d4'));
       context.shadowBlur = 10;
       drawRoundedRect(
         context,
@@ -286,7 +306,7 @@ export const paintNotes = (
     ) {
       const centerX = left + (right - left) / 2;
       context.save();
-      context.shadowColor = readAccent(1, '#22ead8');
+      context.shadowColor = glowForSide(readAccent(1, '#22ead8'));
       context.shadowBlur = 9;
       if (!note.tokenId) {
         [left, right].forEach((handleX) => {

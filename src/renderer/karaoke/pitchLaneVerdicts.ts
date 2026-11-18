@@ -5,6 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { type TKaraokeVerdict } from '../../common/karaoke/scoring';
+import { isLightWindow } from '../utils/windowSide';
+import { inkForSide, onWhite, TEXT_ON_WHITE } from './karaokeCanvasInk';
 import { LYRIC_FONT_FAMILY } from './karaokeLyricText';
 import { drawRoundedRect } from './makerCanvasGeometry';
 import { type IKaraokeLaneVerdict } from './useKaraokeScore';
@@ -31,10 +33,32 @@ const MISSED_STRENGTH = 0.44;
 /** A note sung well but not perfectly: the mockup's 0.6 against 0.85. */
 const GOOD_STRENGTH = 0.7;
 
+/**
+ * A tuning colour at an alpha. On a white window the mockup's neon pastels
+ * were 1.2 to 2:1, a green note hardly told from the floor; there each is
+ * taken down to a mark's contrast, hue kept (`karaokeCanvasInk.ts`), so the
+ * line, the fills and the score rows still speak the same three colours.
+ */
 const rgba = (
   [red, green, blue]: readonly [number, number, number],
   alpha: number,
-) => `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+) => inkForSide(`rgba(${red}, ${green}, ${blue}, ${alpha})`);
+
+/** A verdict's word in a chip: on a white window, at text's contrast. */
+const verdictWord = (verdict: TKaraokeVerdict, tone: string): string => {
+  if (!isLightWindow()) {
+    return tone;
+  }
+  let colour = MISSED;
+  if (verdict === 'perfect' || verdict === 'good') {
+    colour = ON;
+  } else if (verdict === 'late') {
+    colour = NEAR;
+  } else if (verdict === 'low' || verdict === 'high') {
+    colour = OFF;
+  }
+  return onWhite(`rgb(${colour.join(', ')})`, TEXT_ON_WHITE);
+};
 
 /** A verdict's colour at an alpha: green, green dimmer, yellow, red. */
 export const verdictColour = (
@@ -70,7 +94,7 @@ const LINE_FREE = 'rgba(236, 245, 251, 0.68)';
  */
 export const pitchLineColour = (cents: number | undefined): string => {
   if (cents === undefined || !Number.isFinite(cents)) {
-    return LINE_FREE;
+    return inkForSide(LINE_FREE);
   }
   const off = Math.abs(cents);
   if (off <= LINE_ON_CENTS) {
@@ -176,7 +200,7 @@ export const paintVerdictChips = ({
       CHIP_CORNER,
     );
     context.stroke();
-    context.fillStyle = tone;
+    context.fillStyle = verdictWord(ink, tone);
     context.fillText(label, 0, 0.5);
     context.restore();
   });

@@ -12,6 +12,7 @@ import KaraokeLyrics from './KaraokeLyrics';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { rainbowColourAt } from '../utils/rainbowPalette';
 import { readAccent } from '../utils/theme';
+import { inkForSide } from './karaokeCanvasInk';
 import rangeFill from '../utils/rangeFill';
 
 interface IKaraokeMakerPreviewProps {
@@ -111,7 +112,7 @@ const KaraokeMakerPreviewNotes = ({
       );
       let noteFill = readAccent(0.82, 'rgba(61, 225, 217, .82)');
       if (note.kind === 'golden') {
-        noteFill = 'rgba(255, 209, 84, .9)';
+        noteFill = inkForSide('rgba(255, 209, 84, .9)');
       } else if (note.kind === 'free') {
         // Faint here as well: the preview is what the singer sees, and a
         // note that cannot be missed should not look like one that can.

@@ -35,6 +35,7 @@ import {
 // project. The sibling that paints this same row in the player
 // (`karaokeLyricsTranslation.tsx`) already reaches for exactly this.
 import { LYRIC_FONT_FAMILY } from '../karaokeLyricText';
+import { inkForSide, TEXT_ON_WHITE } from '../karaokeCanvasInk';
 
 // The last original lane's boundary-drag hit region is a fixed touch
 // target (WORD_BOUNDARY_HANDLE_REACH, see makerCanvasGeometry.ts) — not a
@@ -140,7 +141,10 @@ export const paintLyricTranslationLine = (
   context.font = `${CANVAS_WEIGHT_SEMIBOLD} 10px ${LYRIC_FONT_FAMILY}`;
   const fitWidth = context.measureText(fitLabel).width;
   context.textAlign = 'left';
-  context.fillStyle = fitOk ? FIT_OK_COLOR : FIT_MISMATCH_COLOR;
+  context.fillStyle = inkForSide(
+    fitOk ? FIT_OK_COLOR : FIT_MISMATCH_COLOR,
+    TEXT_ON_WHITE,
+  );
   const fitLeft = Math.max(
     plotLeft + 2,
     Math.min(plotRight - fitWidth - 4, centerX + measuredWidth / 2 + 10),

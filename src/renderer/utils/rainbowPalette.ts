@@ -378,9 +378,13 @@ export const clearedFor = (
  * A transform of whatever palette is chosen, never a palette of its own, so a
  * scene's colours, the listener's pick and the tint keep their hues on both
  * sides of the Brightness.
+ *
+ * `ratio` is the contrast to reach: a line's 3:1 by default, and text's
+ * higher one where a drawing writes words in the colour (the Karaoke's note
+ * names and verdicts, `karaokeCanvasInk.ts`).
  */
-export const stopOnWhite = (hex: string): string =>
-  clearedFor(hex, WHITE_LUMINANCE, LINE_ON_WHITE, true);
+export const stopOnWhite = (hex: string, ratio = LINE_ON_WHITE): string =>
+  clearedFor(hex, WHITE_LUMINANCE, ratio, true);
 
 /** Each palette's light-window copy, made once per palette. */
 const onWhite = new WeakMap<readonly string[], readonly string[]>();
@@ -389,7 +393,8 @@ const paletteOnWhite = (palette: readonly string[]): readonly string[] => {
   if (known) {
     return known;
   }
-  const made = palette.map(stopOnWhite);
+  // Never `map(stopOnWhite)`: the index would arrive as the ratio.
+  const made = palette.map((stop) => stopOnWhite(stop));
   onWhite.set(palette, made);
   return made;
 };

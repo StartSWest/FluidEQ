@@ -14,6 +14,7 @@ import {
 import { IKaraokeMakerNote } from '../../common/karaoke/makerProject';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { readAccent, readAccentLight } from '../utils/theme';
+import { inkForSide } from './karaokeCanvasInk';
 
 interface IKaraokeMakerNavigatorProps {
   durationMs: number;
@@ -219,7 +220,7 @@ const KaraokeMakerNavigator = ({
       // stretch nobody is scored on should look like one.
       let tick = readAccent(0.68, 'rgba(54, 225, 213, .68)');
       if (note.kind === 'golden') {
-        tick = 'rgba(255, 207, 87, .78)';
+        tick = inkForSide('rgba(255, 207, 87, .78)');
       } else if (note.kind === 'free') {
         tick = readAccent(0.26, 'rgba(54, 225, 213, .26)');
       }

@@ -14,3 +14,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
     display: none;
   }
 }
+
+// On a white window a standard look drawn behind the words - the Analyzer's
+// wash, edge and dashed hold - is a dark drawing on white, the same way the
+// words now run, and at 0.32 it stood beside them as their equal (Ivan,
+// 2026-11-18, "fix karaoke, not good"). Quieter there, so the words lead. A
+// scene's own picture keeps its strength: at 0.32 over white its darkest
+// pixel is already a light grey that dark words read on at 9:1, and it is
+// the listener's picture. See through still scales both.
+:root[data-window-ink='dark']
+  .karaoke-graph-background:has(> canvas.chart-live-canvas) {
+  opacity: calc(0.2 * var(--karaoke-scene-opacity, 1));
+}

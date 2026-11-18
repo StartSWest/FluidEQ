@@ -39,6 +39,50 @@ import {
 } from '../makerCanvasTypes';
 import { TSelection } from '../useKaraokeMakerSelection';
 import { paintLyricTranslationRow } from './paintTranslation';
+import { readAccent, readSurface } from '../../utils/theme';
+import { isLightWindow } from '../../utils/windowSide';
+import {
+  glowForSide,
+  inkForSide,
+  onWhite,
+  TEXT_ON_WHITE,
+} from '../karaokeCanvasInk';
+
+const WORD_TOUCHED = 'rgba(128, 241, 194, .9)';
+const WORD_TOUCHED_DONE = 'rgba(172, 255, 220, .98)';
+
+/**
+ * A word's face. On a dark window the pale blue-white and mint written here;
+ * on a white one those were 1.2:1 (Ivan, 2026-11-18: "fix maker too notes,
+ * lyrics"), so a word is the window's strongest text ink, a word the
+ * listener has retimed the mint at text's contrast, and the selected one the
+ * window's own ink, its box already lit round it.
+ */
+const wordFace = (
+  userTouched: boolean,
+  wordComplete: boolean,
+  selected: boolean,
+): string => {
+  if (isLightWindow()) {
+    if (selected) {
+      return readSurface('--ink', '#0f0f0f');
+    }
+    return userTouched
+      ? onWhite(WORD_TOUCHED, TEXT_ON_WHITE)
+      : readSurface('--text-primary', '#1b1b1b');
+  }
+  if (selected) {
+    return '#f5fffe';
+  }
+  if (wordComplete) {
+    return userTouched ? WORD_TOUCHED_DONE : 'rgba(216, 234, 246, .9)';
+  }
+  return userTouched ? WORD_TOUCHED : 'rgb(214, 233, 247)';
+};
+
+/** The part of a word the playhead has sung: the accent on a white window. */
+const sungWordFace = () =>
+  isLightWindow() ? readAccent(1, '#00777d') : '#73fff3';
 
 export interface IPaintLyricsInput {
   plot: IMakerPlot;
@@ -219,14 +263,16 @@ export const paintLyrics = (
       context.translate(centerX, wordCenterY);
       context.scale(0.94 + eased * 0.06, 0.88 + eased * 0.12);
       context.translate(-centerX, -wordCenterY);
-      context.fillStyle = selected
-        ? 'rgba(44, 229, 213, .14)'
-        : 'rgba(45, 214, 203, .09)';
-      context.strokeStyle = selected
-        ? 'rgba(123, 255, 244, .72)'
-        : 'rgba(79, 238, 224, .28)';
+      context.fillStyle = inkForSide(
+        selected ? 'rgba(44, 229, 213, .14)' : 'rgba(45, 214, 203, .09)',
+      );
+      context.strokeStyle = inkForSide(
+        selected ? 'rgba(123, 255, 244, .72)' : 'rgba(79, 238, 224, .28)',
+      );
       context.lineWidth = selected ? 1.4 : 1;
-      context.shadowColor = selected ? '#20e6d4' : 'rgba(32, 230, 212, .5)';
+      context.shadowColor = glowForSide(
+        selected ? '#20e6d4' : 'rgba(32, 230, 212, .5)',
+      );
       context.shadowBlur = selected ? 12 : 7;
       drawRoundedRect(
         context,
@@ -248,7 +294,7 @@ export const paintLyrics = (
           7,
         );
         context.clip();
-        context.fillStyle = 'rgba(70, 244, 229, .2)';
+        context.fillStyle = inkForSide('rgba(70, 244, 229, .2)');
         context.fillRect(
           labelLeft - 3,
           wordCenterY - laneHalf,
@@ -271,9 +317,9 @@ export const paintLyrics = (
     // A continuous base with small junction nodes shows exactly where the
     // provider divided a readable word into editable sung syllables.
     context.save();
-    context.strokeStyle = userTouched
-      ? 'rgba(74, 232, 172, .34)'
-      : 'rgba(111, 151, 178, .25)';
+    context.strokeStyle = inkForSide(
+      userTouched ? 'rgba(74, 232, 172, .34)' : 'rgba(111, 151, 178, .25)',
+    );
     context.lineWidth = 1;
     context.beginPath();
     context.moveTo(timingLeft, wordCenterY + (laneHalf - 1));
@@ -304,7 +350,7 @@ export const paintLyrics = (
       if (syllableSelected) {
         timingStroke = '#88fff4';
       }
-      context.strokeStyle = timingStroke;
+      context.strokeStyle = inkForSide(timingStroke);
       context.lineWidth = syllableSelected ? 2.2 : 1.35;
       context.beginPath();
       context.moveTo(syllableLeft, wordCenterY + (laneHalf - 1));
@@ -315,9 +361,9 @@ export const paintLyrics = (
           plotLeft + 1.5,
           Math.min(plotRight - 1.5, syllableLeft),
         );
-        context.fillStyle = syllableSelected
-          ? '#a8fff7'
-          : 'rgba(73, 235, 220, .72)';
+        context.fillStyle = inkForSide(
+          syllableSelected ? '#a8fff7' : 'rgba(73, 235, 220, .72)',
+        );
         context.beginPath();
         context.arc(
           junctionX,
@@ -376,15 +422,19 @@ export const paintLyrics = (
             Math.min(plotRight - 2, handleX),
           );
           context.save();
-          context.strokeStyle = boundaryHovered ? '#cafffa' : '#64eadf';
+          context.strokeStyle = inkForSide(
+            boundaryHovered ? '#cafffa' : '#64eadf',
+          );
           context.lineWidth = boundaryHovered ? 2.2 : 1.35;
-          context.shadowColor = '#21e8d6';
+          context.shadowColor = glowForSide('#21e8d6');
           context.shadowBlur = boundaryHovered ? 10 : 5;
           context.beginPath();
           context.moveTo(visibleHandleX, wordCenterY + 5);
           context.lineTo(visibleHandleX, wordCenterY + 19);
           context.stroke();
-          context.fillStyle = boundaryHovered ? '#eafffd' : '#7cfff4';
+          context.fillStyle = inkForSide(
+            boundaryHovered ? '#eafffd' : '#7cfff4',
+          );
           [wordCenterY + 6, wordCenterY + 18].forEach((handleY) => {
             context.beginPath();
             context.arc(
@@ -440,18 +490,7 @@ export const paintLyrics = (
       }
     });
     context.restore();
-    let wordFill = userTouched
-      ? 'rgba(128, 241, 194, .9)'
-      : 'rgb(214, 233, 247)';
-    if (wordComplete) {
-      wordFill = userTouched
-        ? 'rgba(172, 255, 220, .98)'
-        : 'rgba(216, 234, 246, .9)';
-    }
-    if (selected) {
-      wordFill = '#f5fffe';
-    }
-    context.fillStyle = wordFill;
+    context.fillStyle = wordFace(userTouched, wordComplete, selected);
     context.save();
     context.beginPath();
     context.rect(
@@ -472,8 +511,8 @@ export const paintLyrics = (
         lyricLaneHeight + 2,
       );
       context.clip();
-      context.fillStyle = '#73fff3';
-      context.shadowColor = '#21e8d6';
+      context.fillStyle = sungWordFace();
+      context.shadowColor = glowForSide('#21e8d6');
       context.shadowBlur = wordActive ? 11 : 4;
       context.fillText(word.text, centerX, wordCenterY);
     }

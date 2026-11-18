@@ -31,6 +31,7 @@ import {
   resizePitchWindow,
 } from './makerPitchView';
 import { readAccent, readAccentLight } from '../utils/theme';
+import { inkForSide } from './karaokeCanvasInk';
 
 const FULL_SPAN = MAX_NOTE_MIDI - MIN_NOTE_MIDI;
 
@@ -180,7 +181,7 @@ const KaraokeMakerPitchScroller = ({
       const strength = isShown ? 1 : 0.4;
       let tick = readAccent(0.85 * strength, 'rgba(54, 225, 213, .85)');
       if (note.kind === 'golden') {
-        tick = `rgba(255, 207, 87, ${0.85 * strength})`;
+        tick = inkForSide(`rgba(255, 207, 87, ${0.85 * strength})`);
       } else if (note.kind === 'free') {
         tick = readAccent(0.3 * strength, 'rgba(54, 225, 213, .3)');
       }
