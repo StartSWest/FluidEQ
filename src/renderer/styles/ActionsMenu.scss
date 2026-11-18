@@ -469,8 +469,12 @@
 // a name cut short, and the next row's name stood beside them. At the tray's
 // width and never wider: their lines kept on one line pushed the whole menu
 // 90px wider whenever a scene was chosen, where the Window colours menu
-// wrapped them at its 300px.
-.actions-menu__prefs > .scene-window-colours {
+// wrapped them at its 300px. It stands inside the Studio's hold
+// (`.window-look__held`, display: contents): with only the direct child
+// named, the hold's wrapper put the card back in one column, squeezed to
+// stubs, and the next row beside it (2026-11-18).
+.actions-menu__prefs > .scene-window-colours,
+.actions-menu__prefs > .window-look__held > .scene-window-colours {
   width: 0;
   min-width: 100%;
   grid-column: 1 / -1;
