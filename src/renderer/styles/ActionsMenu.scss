@@ -440,6 +440,29 @@
   }
 }
 
+// What the Studio holds while it colours the window (`WindowLookSection`):
+// laid out as if the wrapper were not there, and dimmed so it reads as
+// switched off; `inert` takes the presses and the focus.
+.window-look__held {
+  display: contents;
+
+  &.is-held > * {
+    opacity: 0.4;
+    filter: grayscale(0.6);
+  }
+}
+
+.window-look__held-note {
+  grid-column: 1 / -1;
+  margin: 0 0 $spacing-xs;
+  padding: 6px 10px;
+  color: $text-muted;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
 // The scene's own three colours under the sliders (`WindowLookSection`),
 // across the whole tray as they stood across the Window colours menu they
 // came from: in one of the tray's columns the three tiles were squeezed to

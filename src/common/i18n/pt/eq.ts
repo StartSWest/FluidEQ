@@ -221,6 +221,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.preview': 'A janela nessas cores',
   'graph.sceneColours.reset': 'Usar as cores da cena',
   'graph.sceneColours.pick': 'Mudar a cor de {role}',
+  'graph.windowLook.heldByStudio':
+    'O Studio está colorindo a janela com a cena dele. Coloque-o em Tema para mudar isso aqui.',
   'graph.sceneColours.surfaceUnused':
     'Não é usada enquanto a janela está branca',
   'graph.sceneColours.glowUnused':

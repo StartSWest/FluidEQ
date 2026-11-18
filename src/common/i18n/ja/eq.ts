@@ -217,6 +217,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.preview': 'この色にしたウィンドウ',
   'graph.sceneColours.reset': 'シーンの色に戻す',
   'graph.sceneColours.pick': '{role} の色を変える',
+  'graph.windowLook.heldByStudio':
+    'Studio がシーンの色でウィンドウを塗っています。ここで変えるには Studio をテーマにしてください。',
   'graph.sceneColours.surfaceUnused': 'ウィンドウが白いあいだは使われません',
   'graph.sceneColours.glowUnused':
     '赤に近すぎます：「オン」には FluidEQ の色を使います',

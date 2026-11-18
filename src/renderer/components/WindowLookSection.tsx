@@ -12,7 +12,8 @@ import SceneWindowColours from '../graph/SceneWindowColours';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
 import WindowColourChoice from '../graph/WindowColourChoice';
 import WindowTintSlider from '../graph/WindowTintSlider';
-import { useSceneTintMode } from '../utils/sceneTintStore';
+import { useTranslation } from '../utils/I18nContext';
+import { useSceneTintMode, useStudioTintSource } from '../utils/sceneTintStore';
 import useIsSceneLook from '../utils/useIsSceneLook';
 
 /**
@@ -28,16 +29,36 @@ import useIsSceneLook from '../utils/useIsSceneLook';
  * under them, while the window wears the scene's colours, those three
  * colours themselves. With a standard look, which has no colours or picture
  * of its own: Brightness, the colour and its second one, and the icon.
+ *
+ * While the Studio colours the window with the scene on its bench (Colours
+ * or Ambient there, `useStudioTintSource`), the window's colours here are the
+ * graph's scene's and change nothing on screen, so they are held, with a line
+ * saying why (Ivan, 2026-11-18: "while I am on Ambient we should disable the
+ * root menu, because I am painting the window with Ambient in the Studio";
+ * on Theme the Studio paints nothing and they stay live). Brightness, the
+ * time of day and the switches are the Studio's too and stay live.
  */
 const WindowLookSection = () => {
+  const { t } = useTranslation();
   const isSceneLook = useIsSceneLook();
   const mode = useSceneTintMode();
+  const isHeldByStudio = useStudioTintSource() !== undefined;
+  const heldClass = `window-look__held${isHeldByStudio ? ' is-held' : ''}`;
   return (
     <>
+      {isHeldByStudio && (
+        <p className="window-look__held-note">
+          {t('graph.windowLook.heldByStudio')}
+        </p>
+      )}
       <div className="actions-menu__sliders">
-        {isSceneLook && <WindowColourChoice />}
+        <div className={heldClass} inert={isHeldByStudio}>
+          {isSceneLook && <WindowColourChoice />}
+        </div>
         <WindowBrightnessSlider />
-        {(!isSceneLook || mode === 'off') && <WindowTintSlider />}
+        <div className={heldClass} inert={isHeldByStudio}>
+          {(!isSceneLook || mode === 'off') && <WindowTintSlider />}
+        </div>
         {isSceneLook && (
           <>
             <SceneDaylightSlider />
@@ -47,7 +68,11 @@ const WindowLookSection = () => {
         {isSceneLook && <PointerSparksSwitch />}
         <AppIconTintSwitch />
       </div>
-      {isSceneLook && mode !== 'off' && <SceneWindowColours />}
+      {isSceneLook && mode !== 'off' && (
+        <div className={heldClass} inert={isHeldByStudio}>
+          <SceneWindowColours />
+        </div>
+      )}
     </>
   );
 };
