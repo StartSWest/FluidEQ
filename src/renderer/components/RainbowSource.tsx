@@ -9,6 +9,8 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useLayoutEffect, useMemo } from 'react';
 import { isMemberLookId } from 'common/memberScenes';
 import { isPremiumLookId } from 'common/scenePacks';
+import { usePageDaylight } from '../graph/sceneDaylight';
+import useStudioDayColours from '../studio/useStudioDayColours';
 import { useSelectedLookId } from '../utils/graphStyle';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import {
@@ -22,8 +24,13 @@ import {
   sceneColourHex,
   setRainbowStops,
 } from '../utils/rainbowPalette';
+import { dayColoursAt } from '../utils/sceneDayColours';
 import { useUsableScenes } from '../utils/scenePacks';
-import { useRememberedSceneSky } from '../utils/sceneTintStore';
+import {
+  useRememberedSceneSky,
+  useStudioTintSource,
+} from '../utils/sceneTintStore';
+import useSceneWindowColours from '../utils/useSceneWindowColours';
 import { tintedLagoonStops, useWindowTint } from '../utils/windowTint';
 
 /**
@@ -42,8 +49,16 @@ import { tintedLagoonStops, useWindowTint } from '../utils/windowTint';
  * A scene that chose its colours says so first (`sceneAppColours.ts`): its
  * palette, or the single colour its choices show instead, as the listener's
  * choices on the graph stand — and while the Studio's bench is on screen,
- * the project there, as the member is editing it. The swatch and the
- * measured colours are what a scene without either still hands over.
+ * the project there, as the member is editing it.
+ *
+ * A scene without a palette - every official one - hands over the colours
+ * it lends the window at its hour, its night's and its day's blended as the
+ * window blends them (`sceneDayColours.ts`): the accent and the glow. It
+ * used to hand over its picture's colours as measured at night, so on Alpine
+ * by day the wave and the meters stayed the aurora's cyan under a window in
+ * lavender (Ivan, 2026-11-18: "el Rainbow Color no está machando los colores
+ * de la escena de día de noche"). The swatch and the measured colours are
+ * what a scene with no window colours yet still hands over.
  *
  * Whatever the window's colours are set to: Theme, Colours, Ambient or the
  * Backdrop decide what the scene does to the panes, and the rainbow is the
@@ -91,6 +106,25 @@ const RainbowSource = () => {
     return scene?.swatch.join(' ');
   }, [isScene, measured, lookId, scenes, memberScenes]);
 
+  // The scene's window colours at its hour - the Studio's project while the
+  // bench lends the window its colours, else the graph's scene - as the
+  // accent and the glow the rainbow is made from. As text, compared by value.
+  const daylight = Math.round(usePageDaylight());
+  const studioSource = useStudioTintSource();
+  const studioSides = useStudioDayColours(
+    studioSource?.project,
+    studioSource?.playing?.pack,
+    undefined,
+  ).sides;
+  const sceneSides = useSceneWindowColours(isScene ? lookId : '').sides;
+  const timeColours = useMemo(() => {
+    const colours = dayColoursAt(
+      studioSource ? studioSides : sceneSides,
+      daylight,
+    );
+    return colours && `${colours.accent} ${colours.glow}`;
+  }, [studioSource, studioSides, sceneSides, daylight]);
+
   // A layout effect, so the first frame a new scene is drawn in already has
   // its rainbow round it.
   // With a standard look the rainbow is Lagoon's, turned to the window's
@@ -98,14 +132,17 @@ const RainbowSource = () => {
   // follow the colour the window wears.
   const tint = useWindowTint();
   useLayoutEffect(() => {
+    const fromTime = timeColours && rainbowFromColours(timeColours.split(' '));
     if (chosenStops) {
       setRainbowStops(chosenStops.split(' '));
+    } else if (fromTime) {
+      setRainbowStops(fromTime);
     } else if (swatch) {
       setRainbowStops(rainbowFromColours(swatch.split(' ')));
     } else {
       setRainbowStops(tint === undefined ? undefined : tintedLagoonStops(tint));
     }
-  }, [chosenStops, swatch, tint]);
+  }, [chosenStops, timeColours, swatch, tint]);
 
   return null;
 };

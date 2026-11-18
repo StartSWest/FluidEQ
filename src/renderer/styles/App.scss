@@ -1851,6 +1851,17 @@ textarea,
   --pet-tone: var(--accent);
 }
 
+// On a light window the accent is darkened until a filled control's white
+// label reads on it (`windowOn`'s `LABEL_CONTRAST`): a lavender #b699eb is
+// worn at OKLab 0.52, and the pet, which carries no label, came out a near
+// black blot (Ivan, 2026-11-18: "el bichito está oscuro ... no debería ser
+// así"). She wears the accent's hue and colour at the lightness of her own
+// mint instead (#4ad3dc, 0.80), which is the scene's accent as picked within
+// a step, and never darker than the accent already is.
+:root[data-scene-tint][data-window-ink='dark'] {
+  --pet-tone: oklch(from var(--accent) max(l, 0.8) c h);
+}
+
 // A Plus visualizer lending the window its colour (`sceneTintStore.ts`)
 // arrives as one captured frame fading into the live window.
 //
