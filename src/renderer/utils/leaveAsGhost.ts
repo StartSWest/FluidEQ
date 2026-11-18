@@ -43,13 +43,16 @@ export default function leaveAsGhost(frame: HTMLElement | null) {
   ghost.setAttribute('aria-hidden', 'true');
   ghost.dataset.closing = '';
   document.body.append(ghost);
-  const leaving = ghost
-    .getAnimations({ subtree: true })
-    .filter(
-      (animation) =>
-        animation instanceof CSSAnimation &&
-        animation.animationName === COMPACT_EXIT,
-    );
+  // Asked as `useExitAnimation` asks: where the document plays no
+  // animations at all (no `getAnimations`, no `CSSAnimation` - jsdom has
+  // neither), nothing is leaving and the copy goes at once. Calling either
+  // unguarded threw out of the frame's unmount, and every dialog's close
+  // with it.
+  const leaving = (ghost.getAnimations?.({ subtree: true }) ?? []).filter(
+    (animation) =>
+      'animationName' in animation &&
+      (animation as CSSAnimation).animationName === COMPACT_EXIT,
+  );
   if (leaving.length === 0) {
     ghost.remove();
     return;

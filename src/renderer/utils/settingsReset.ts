@@ -47,6 +47,8 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.graphFrequencyRange',
   'fluideq.graphGridHidden',
   'fluideq.graphHiddenCurves',
+  // The curves' names in the graph's corner, per view.
+  'fluideq.graphLegendHidden',
   'fluideq.graphMenuFold',
   'fluideq.graphMeterHidden',
   'fluideq.graphOverlayBlur',
@@ -71,8 +73,8 @@ export const SETTING_STEMS: readonly string[] = [
   // How much of a scene comes through the EQ page's panels, and how blurred.
   'fluideq.scenePanelsBlur',
   'fluideq.scenePanelsSeeThrough',
-  // The window: colours, Colourful mode, Brightness, Transparency, the Tint, a
-  // scene's own time of day, sparks, sliders, and how it is divided. Not the
+  // The window: colours, Brightness, Transparency, the Tint, a scene's own
+  // time of day, sparks, sliders, and how it is divided. Not the
   // language (Ivan, 2026-10-26, from the reset checklist): put back to
   // Windows' own, somebody who chose another one would be facing a language
   // they may not read.
@@ -80,16 +82,21 @@ export const SETTING_STEMS: readonly string[] = [
   // The window colours chosen for a scene, as its sliders are its own
   // (`sceneWindowColourStore.ts`): a reset wears each scene's colours again.
   'fluideq.sceneWindowColours',
-  'fluideq-rainbow',
   'fluideq.theme',
   'fluideq.backdropVeil',
   'fluideq.windowTint',
+  // The colours picked for the Tint beside its slider, the first and the
+  // second its gradient runs to (`windowTint.ts`).
+  'fluideq.windowTintColour',
+  'fluideq.windowTintSecondary',
   'fluideq.sceneDaylight',
   'fluideq.pointerSparks',
   // "Tint app icon": cleared is off, the installed icon (`appIconTint.ts`).
   'fluideq.appIconTint',
   'fluideq.sliderHandle',
   'fluideq.plusRailPinned',
+  // The Scenes rail's dragged width, as the Library's rail's.
+  'fluideq.plusRailWidth',
   'fluideq.editorShareByTab',
   'fluideq.soundPaneFolded',
   'fluideq.eqModePinned',
@@ -170,6 +177,8 @@ export const SETTING_STEMS: readonly string[] = [
   // playlists, queue and projects — is never touched.
   'fluideq.workspaceTab',
   'fluideq.dsp.openSection',
+  // The EQ page's open tab under its graph: the bands, the preset, the Tone.
+  'fluideq.eqLayerTab',
   'fluideq.plusPlace',
   'fluideq.studio.workTab',
   // Which files the Code tab has open in each project: where a page was
@@ -186,10 +195,20 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.library.folderTree',
   'fluideq.karaoke.maker-open',
   'fluideq.karaoke.maker-preview-open',
+  // The Maker preview's dragged height, kept for every song alike.
+  'fluideq.karaoke.maker-preview-height',
   'fluideq.karaoke.maker-editor-views.v1',
   // Where earlier versions kept some of the above. Each is read when the new
   // name is empty, so a reset that left one would bring back its old answer
-  // instead of the new install's.
+  // instead of the new install's. The same for the marks that move an older
+  // answer once: the Brightness onto its light-and-dark scale (`theme.ts`),
+  // whose Brightness of each Window colours mode is the one before that, and
+  // the top wave's style onto the recorder (`WaveformVisualizer.tsx`). Each
+  // finds nothing left to move after a reset. And Colourful mode's switch and
+  // unlock, read by nothing since the mode became always on (2026-11-18) and
+  // forgotten at launch too (`euphoriaMode.ts`).
+  'fluideq-rainbow',
+  'fluideq-euphoria-reached',
   'fluideq-euphoria-enabled',
   'fluideq.editorHeight',
   'fluideq.editorShare',
@@ -197,6 +216,9 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.studioWindowMode',
   'fluideq.meterOffStateMigrated',
   'fluideq.waveOffStateMigrated',
+  'fluideq.themeScale',
+  'fluideq.sceneTintBrightness',
+  'fluideq.waveRecorderIntroduced',
 ];
 
 /**
@@ -220,15 +242,14 @@ export const isSettingKey = (key: string) =>
 /**
  * What a reset sets rather than forgets: the few settings whose fresh install
  * answer is not the one a reset should give. Automatic visualizer switching
- * and Rainbow mode both start on for a new user, to show what the graph can
- * do; somebody resetting their settings has seen it and gets them off (Ivan,
- * 2026-10-25: "on reset setting auto change viz off by default", "also
- * rainbow mode off by default too"). Written as each store writes them
- * (`graphAutoCycle.ts`, `euphoriaMode.ts`).
+ * starts on for a new user, to show what the graph can do; somebody resetting
+ * their settings has seen it and gets it off (Ivan, 2026-10-25: "on reset
+ * setting auto change viz off by default"). Written as its store writes it
+ * (`graphAutoCycle.ts`). Rainbow mode was the other until Colourful mode
+ * became always on, with no switch to write (2026-11-18).
  */
 export const RESET_CHOICES: Readonly<Record<string, string>> = {
   'fluideq-graph-auto-cycle-seconds': '0',
-  'fluideq-rainbow': 'off',
 };
 
 /** Every setting in `storage` forgotten, and nothing else. */

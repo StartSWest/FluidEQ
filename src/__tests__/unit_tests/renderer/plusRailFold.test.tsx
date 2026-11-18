@@ -9,9 +9,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * The press and the memory are checked on the component; how the fold moves
  * — which jsdom neither lays out nor animates — on the compiled stylesheet,
- * where the three things that went wrong while it was built can be seen: a
- * narrow panel's strip of pills folding too, reduced motion making the width
- * jump, and a pass of the pointer on the way to the place opening the rail.
+ * where the things that went wrong while it was built can be seen: the fold
+ * reaching the Forum's rail, reduced motion making the width jump, and a
+ * pass of the pointer on the way to the place opening the rail.
  */
 
 import '@testing-library/jest-dom';
@@ -171,9 +171,22 @@ describe('the Plus rail', () => {
 describe('how the rail folds', () => {
   const css = compileStylesheet('PlusRail.scss');
   const rules = styleRules(css);
-  const PANEL_WITH_RAIL = '@container eq-panel (min-width: 601px)';
+  // A card as narrow as the Library's is when its rail keeps only glyphs:
+  // `$bp-lg` and the 10px the panel keeps at each side.
+  const NARROW_CARD = '@container eq-panel (max-width: 1044px)';
+  const slotWidth = (selector: string, within: string[]) =>
+    rules
+      .find(
+        (rule) =>
+          rule.selectors.includes(selector) &&
+          rule.within.join() === within.join(),
+      )
+      ?.declarations.get('width');
 
-  it('folds only a panel wide enough to have a rail, never the narrow strip of pills', () => {
+  it('folds at every width, said through the Scenes tab alone, never the Forum’s rail', () => {
+    // The narrow strip of pills is gone from the Scenes tab (2026-11-17): the
+    // rail folds to its glyphs as the Library's does, at every width, so the
+    // fold is no longer kept behind a wide panel's query.
     const moving = rules.filter(
       ({ selectors, declarations }) =>
         selectors.some((selector) =>
@@ -184,7 +197,29 @@ describe('how the rail folds', () => {
         (declarations.has('width') || declarations.has('transition')),
     );
     expect(moving.length).toBeGreaterThan(3);
-    moving.forEach(({ within }) => expect(within[0]).toBe(PANEL_WITH_RAIL));
+    expect(moving.some(({ within }) => within.length === 0)).toBe(true);
+    // The Forum borrows the rail's markup and keeps its own look: nothing
+    // here moves a rail that is not the Scenes tab's.
+    moving.forEach(({ selectors }) =>
+      selectors.forEach((selector) =>
+        expect(selector).toMatch(/community--plus|community--rail-folded/),
+      ),
+    );
+  });
+
+  it('folds by itself on a card too narrow for a rail, to the folded column', () => {
+    const folded = slotWidth(
+      '.community--rail-folded > .community__rail-slot',
+      [],
+    );
+    expect(folded).toMatch(/^\d+px$/);
+    expect(
+      slotWidth('.community--plus > .community__rail-slot', [NARROW_CARD]),
+    ).toBe(folded);
+    // The control: on a card with room, the slot is the rail's own width.
+    expect(slotWidth('.community--plus > .community__rail-slot', [])).toMatch(
+      /^var\(--rail-width/,
+    );
   });
 
   it('still slides under reduced motion, shorter, instead of jumping', () => {

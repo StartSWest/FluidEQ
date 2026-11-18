@@ -232,14 +232,23 @@ describe("a video's last used subtitles", () => {
     const { unmount } = await show(item('pier-memory', 'video'));
     fireEvent.click(screen.getByRole('radio', { name: /^Subtitles 2/ }));
     await settle();
-    expect(
-      JSON.parse(
-        window.localStorage.getItem('fluideq.library.subtitleByVideo') ?? '[]',
-      ),
-    ).toEqual([['pier-memory', 'TAYLOR SWIFT MISS AMERICANA [2020].2.srt']]);
+    // Read for this video alone: the choices are one store for the session
+    // (`subtitleChoice.ts`), so the earlier case's video is in it too.
+    const stored: unknown = JSON.parse(
+      window.localStorage.getItem('fluideq.library.subtitleByVideo') ?? '[]',
+    );
+    if (!Array.isArray(stored)) {
+      throw new Error('the choices are stored as a list of pairs');
+    }
+    expect(new Map(stored).get('pier-memory')).toBe(
+      'TAYLOR SWIFT MISS AMERICANA [2020].2.srt',
+    );
     unmount();
     libraryTrackSubtitles.mockClear();
-    await show(item('pier-memory', 'video'));
+    // The answer for the file the pick asked for is kept for the session
+    // (`useTrackSubtitles`), so the same video opened again unchanged asks
+    // nothing. Changed on disk since, it asks main again, with the pick.
+    await show({ ...item('pier-memory', 'video'), mtimeMs: 2 });
     expect(libraryTrackSubtitles).toHaveBeenCalledWith(
       'pier-memory',
       'TAYLOR SWIFT MISS AMERICANA [2020].2.srt',

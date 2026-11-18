@@ -19,7 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * export conditions and that one cannot read files.
  */
 
-import { compile } from 'sass';
+import { compile, compileString } from 'sass';
 import path from 'path';
 
 const STYLES_DIR = path.join(
@@ -37,14 +37,27 @@ const css = compile(path.join(STYLES_DIR, '_miniPlayerFold.scss'), {
   quietDeps: true,
 }).css.replace(/\s+/g, ' ');
 
+// The app's one slider, which the amps' `.player-range` is
+// (`_ampSliders.scss`), ringed in the amp's floor as the amps ring it.
+const SLIDER = compileString(
+  "@use 'themeMixins' as *;\n.one-slider { @include toggle-knob-slider(var(--fill, 0%), var(--player-floor)); }",
+  { loadPaths: [STYLES_DIR], quietDeps: true },
+).css.replace(/\s+/g, ' ');
+
+const rulesOf = (sheet: string) =>
+  [...sheet.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, selector, body]) => ({
+    selector: selector.trim(),
+    body,
+  }));
+
 /** Every rule whose selector list names the line, with its declarations. */
 const lineRules = () =>
-  [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-    .map(([, selector, body]) => ({ selector: selector.trim(), body }))
-    .filter(({ selector }) => selector.includes('.player-fold__seek'));
+  rulesOf(css).filter(({ selector }) =>
+    selector.includes('.player-fold__seek'),
+  );
 
-const bodyOf = (selector: string) =>
-  lineRules().find((rule) => rule.selector === selector)?.body ?? '';
+const bodyOf = (selector: string, sheet = css) =>
+  rulesOf(sheet).find((rule) => rule.selector === selector)?.body ?? '';
 
 describe('the folded strip’s song line', () => {
   // The positive control: the rules are found, or every "never" below holds
@@ -56,10 +69,20 @@ describe('the folded strip’s song line', () => {
     );
   });
 
-  it('switches the track’s glow and the knob’s halo off', () => {
-    const line = bodyOf('.player-fold__seek.player-range');
-    expect(line).toContain('--glow: 0');
-    expect(line).toContain('--thumb-halo: transparent');
+  it('lights no glow on its track and no halo round its knob', () => {
+    // The line is the app's one slider drawn small (2026-11-15), which has
+    // no glow to switch off: its knob wears a hard ring in the floor under
+    // it, and its track a hairline inside the well. The amp's own glowing
+    // line, and the variables that turned its glow off here, are gone.
+    const thumb = bodyOf('.one-slider::-webkit-slider-thumb', SLIDER);
+    expect(thumb).toMatch(/box-shadow: 0 0 0 \d+px /);
+    expect(
+      bodyOf('.one-slider::-webkit-slider-runnable-track', SLIDER),
+    ).toMatch(/box-shadow: inset 0 0 0 1px /);
+    // Nothing on the line itself brings one back.
+    lineRules().forEach(({ body }) => {
+      expect(body).not.toMatch(/--glow|--thumb-halo|box-shadow/);
+    });
   });
 
   it('casts no shadow round the line', () => {

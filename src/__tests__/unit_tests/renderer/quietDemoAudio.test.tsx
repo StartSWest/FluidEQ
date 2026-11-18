@@ -17,15 +17,21 @@ const mockControl = { isActive: true, error: '' };
 const mockMeter = { peakDb: -12 };
 jest.mock('renderer/audio/LiveAudioContext', () => ({
   useLiveAudioControl: () => mockControl,
-  useLiveAudioFrame: () => ({
-    outputLevels: [
-      {
-        levelDb: mockMeter.peakDb,
-        peakDb: mockMeter.peakDb,
-        isClipping: false,
-      },
-    ],
-  }),
+  // The hook selects the level from the frame store (729751e34), read here
+  // from the meter of the render it is in.
+  ...jest
+    .requireActual<typeof import('../../utils/liveFrameHooks')>(
+      '../../utils/liveFrameHooks',
+    )
+    .liveFrameHooks(() => ({
+      outputLevels: [
+        {
+          levelDb: mockMeter.peakDb,
+          peakDb: mockMeter.peakDb,
+          isClipping: false,
+        },
+      ],
+    })),
 }));
 
 let mockSources: Record<string, { isPlaying: boolean }> = {};

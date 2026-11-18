@@ -95,6 +95,9 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
       },
       idle: () => undefined,
       holdPicture: () => undefined,
+      // How bright the picture is under the EQ head's words (66428cad6):
+      // nothing here is read.
+      probe: () => undefined,
       // As the real client: a load still running is answered as given up.
       dispose: () => {
         client.disposed = true;
@@ -287,7 +290,11 @@ it('records full frames while scrolled away, then retires its worker when record
   expect(worker.disposed).toBe(true);
 });
 
-it('still stops a recording renderer when the document itself hides', async () => {
+// A hidden window keeps its scene's worker and last picture (477702c4a), so
+// a restore never shows the canvas white: the recording renderer stops
+// drawing while the document hides and is let go only once the window is
+// back with nothing showing it. It used to be ended on the hide itself.
+it('stops a recording renderer drawing while the document hides, and lets it go once it is back unseen', async () => {
   const source = {
     identity: 'capture-hidden',
     surface: 'graph' as const,
@@ -317,8 +324,13 @@ it('still stops a recording renderer when the document itself hides', async () =
   sendFrame();
   expect(newest().frames).toHaveLength(0);
   setVisible(false);
-  expect(newest().disposed).toBe(true);
+  // Kept through the hide: its picture is what Windows shows on a restore.
+  expect(newest().disposed).toBe(false);
   hidden.mockRestore();
+  act(() => {
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  expect(newest().disposed).toBe(true);
 });
 
 it('loads again when the covered window lets its worker go, through the save made meanwhile', async () => {

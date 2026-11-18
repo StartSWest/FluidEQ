@@ -107,7 +107,12 @@ describe('the groups "What it hears now" folds', () => {
 });
 
 describe('the Tune tab', () => {
-  it('reads across in the order the graph’s menu shares, the scene’s own settings last', () => {
+  // The tab flows its blocks down even columns, flat (2e08b9d4d, Ivan
+  // 2026-11-17: "a lot of waste", "we need flat nice screen"): what the app
+  // does with the scene, the window's colours, the wave on the graph, and the
+  // scene's own groups, which join the flow themselves. It was cards named
+  // after the View menu's groups on a 1fr 1fr 2fr grid.
+  it('flows the app’s own blocks first, the window’s colours second, the scene’s own settings last', () => {
     const { container } = render(
       <StudioTune
         wave={DEFAULT_STUDIO_WAVE}
@@ -122,25 +127,27 @@ describe('the Tune tab', () => {
         settings={<p>the settings of the scene</p>}
       />,
     );
-    // The graph's View menu and this tab name the same groups the same way
-    // (`common/settingsGroups.ts`).
+    const tune = container.querySelector('.studio-tune');
+    if (!tune) {
+      throw new Error('the Tune tab renders');
+    }
+    const blocks = [...tune.children].filter(
+      (block): block is HTMLElement => block instanceof HTMLElement,
+    );
+    expect(blocks).toHaveLength(4);
+    const [app, colours, wave, scene] = blocks;
+    // What the whole app does with the scene while it is made.
     expect(
-      screen.getByRole('region', { name: 'settings.group.picture' }),
+      within(app).getByRole('button', { name: 'studio.tint.theme' }),
     ).toBeInTheDocument();
-    const visualizer = screen.getByRole('region', {
-      name: 'settings.group.visualizer',
-    });
-    expect(
-      within(visualizer).getByText('the settings of the scene'),
-    ).toBeInTheDocument();
-    // The window's colours come after what the whole app does with the scene
-    // and before the picture.
-    const boxes = [...container.querySelectorAll('.studio-tune__box')];
-    expect(boxes).toHaveLength(4);
-    expect(boxes[1]).toBe(
+    expect(colours).toBe(
       screen.getByRole('region', { name: 'window colours' }),
     );
-    expect(boxes[3]).toBe(visualizer);
+    expect(
+      within(wave).getByRole('region', { name: 'studio.wave.title' }),
+    ).toBeInTheDocument();
+    // The scene's groups stand in the flow as given, with no box round them.
+    expect(scene).toBe(screen.getByText('the settings of the scene'));
   });
 });
 

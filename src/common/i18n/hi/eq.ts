@@ -220,10 +220,10 @@ const eq: Partial<Dictionary> = {
     'विंडो सफ़ेद रहने तक इसका उपयोग नहीं होता',
   'graph.sceneColours.glowUnused':
     'लाल के बहुत करीब: “चालू” के लिए FluidEQ अपना रंग रखता है',
-  'graph.sceneColours.glowAbout': '“चालू” और चमक',
+  'graph.sceneColours.glowAbout': '“चालू” और आभा',
   'graph.sceneColours.accentAbout': 'बटन और कर्व',
   'graph.sceneColours.surfaceAbout': 'पैनल और फ़ील्ड',
-  'graph.sceneColours.glow': 'चमक',
+  'graph.sceneColours.glow': 'आभा',
   'graph.sceneColours.accent': 'एक्सेंट',
   'graph.sceneColours.surface': 'सतह',
   'graph.sceneColours.yours': 'आपके',
@@ -410,7 +410,6 @@ const eq: Partial<Dictionary> = {
   'graph.blurHint':
     'पीछे दिखने वाली चीज़ को धुंधला करें ताकि वह दूसरी तस्वीर की जगह रोशनी लगे',
   'graph.curves': 'कर्व',
-  'graph.curvesHint': 'कौन से कर्व बनाए जाएँ',
   'graph.liveOutput': 'लाइव आउटपुट',
   'graph.clip': 'क्लिपिंग — प्रीएम्प घटाएँ',
   'graph.driverCurve': 'इस ड्राइवर सुधार की आवृत्ति प्रतिक्रिया',
@@ -874,8 +873,6 @@ const eq: Partial<Dictionary> = {
     'माप के दौरान आउटपुट फ़ॉर्मैट बदल गया। फिर से कोशिश करें।',
   'eq.smart.error.captureFailed':
     'प्रोसेस किया गया सिस्टम आउटपुट कैप्चर नहीं हो सका।',
-  'eq.smart.presence.ignoredBelow': '{db} dB से नीचे नहीं',
-  'eq.smart.presence.trustedAbove': '{db} dB से ऊपर भरोसा',
   'convolution.eyebrow': 'APO इंपल्स रिस्पॉन्स',
   'convolution.eyebrow.fluid': 'इंपल्स रिस्पॉन्स',
   'convolution.title': 'कन्वॉल्यूशन लाइब्रेरी',

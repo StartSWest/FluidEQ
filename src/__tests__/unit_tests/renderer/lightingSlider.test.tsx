@@ -19,8 +19,49 @@ it('drags freely between quarter marks and snaps only nearby values, including a
   fireEvent.change(slider, { target: { value: '1.73' } });
   expect(slider).toHaveAttribute('aria-valuetext', '175%');
   expect(slider).toHaveAttribute('step', 'any');
-  expect(screen.getByText('150%')).toBeInTheDocument();
-  expect(screen.getByText('200%')).toBeInTheDocument();
+});
+
+/** Every tick under a slider, and the figure each one prints. */
+const marksOf = (container: HTMLElement) =>
+  Array.from(container.querySelectorAll('.lighting-slider__mark')).map(
+    (mark) => mark.textContent ?? '',
+  );
+
+it('names only its ends and 100% under the slider, and keeps every quarter tick', () => {
+  // A figure under every tick was nine numbers under each slider (Ivan,
+  // 2026-11-18: "make it clean"); the ticks themselves stay.
+  const { container } = render(
+    <LightingSlider
+      label="Foreground"
+      value={1}
+      max={2}
+      onCommit={jest.fn()}
+    />,
+  );
+  expect(marksOf(container)).toEqual([
+    '0%',
+    '',
+    '',
+    '',
+    '100%',
+    '',
+    '',
+    '',
+    '200%',
+  ]);
+});
+
+it('names an off-grid range by its own ends, with no 100% it cannot reach', () => {
+  const { container } = render(
+    <LightingSlider
+      label="Brightness"
+      value={0.1}
+      min={0.1}
+      max={0.8}
+      onCommit={jest.fn()}
+    />,
+  );
+  expect(marksOf(container)).toEqual(['10%', '', '', '', '80%']);
 });
 
 it('steps through 25%, 50%, 75% from an off-grid minimum and preserves endpoints', () => {

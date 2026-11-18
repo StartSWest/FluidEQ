@@ -25,7 +25,7 @@ import {
   galleryServerViews,
   resetGalleryStore,
 } from 'renderer/plus/galleryStore';
-import GalleryView from 'renderer/plus/GalleryView';
+import VisualizersView from 'renderer/plus/VisualizersView';
 import {
   openNotMineYet,
   resetPlusNavigation,
@@ -103,12 +103,16 @@ const signIn = () => {
   [...mockListeners].forEach((listener) => listener());
 };
 
-/** The gallery as the Plus tab mounts it, following the navigation. */
+/**
+ * The gallery as the Scenes tab mounts it, following the navigation: with
+ * the bar over the scroller, which holds the filter chips since the search
+ * moved to the page's top (2026-11-17).
+ */
 function Gallery() {
   usePlusNavigation();
   return (
     <I18nProvider>
-      <GalleryView me={mockAccount.status === 'signed-in' ? ME : undefined} />
+      <VisualizersView onShowGraph={jest.fn()} />
     </I18nProvider>
   );
 }

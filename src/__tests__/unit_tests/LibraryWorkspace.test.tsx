@@ -102,6 +102,8 @@ const PlayerProbe = () => {
 /** A film on the stage asks main for the subtitle files beside it; main's
  * answer for a film with none. */
 const noSubtitles = () => Promise.resolve({ files: [], looked: [] });
+/** The tag editor's jobs, which the workspace listens for from the start. */
+const noTagJobs = () => () => {};
 
 /**
  * The Library tab over a store holding `roots` and `tracks` — main's own
@@ -122,6 +124,7 @@ const renderWorkspace = ({
     addLibraryRoot,
     cancelLibraryScan,
     libraryTrackSubtitles: noSubtitles,
+    onLibraryTagJob: noTagJobs,
     ...createSourceAnalysisBridge(),
   });
   render(
@@ -517,6 +520,7 @@ describe('handing a click off to the player', () => {
       addLibraryRoot: jest.fn(() => Promise.resolve(opened.summary())),
       cancelLibraryScan,
       libraryTrackSubtitles: noSubtitles,
+      onLibraryTagJob: noTagJobs,
       ...createSourceAnalysisBridge(),
     });
     const tree = (isFullScreen: boolean) => (

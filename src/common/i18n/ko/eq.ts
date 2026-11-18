@@ -380,7 +380,6 @@ const eq = {
   'graph.blurHint':
     '통해 보이는 것을 흐리게 하여 두 번째 그림이 아닌 빛으로 읽히게 합니다.',
   'graph.curves': '곡선',
-  'graph.curvesHint': '어떤 곡선이 그려지는지',
   'graph.liveOutput': '실시간 출력',
   'graph.clip': '클리핑 — 프리앰프 감소',
   'graph.driverCurve': '이 드라이버 보정의 주파수 응답',
@@ -845,8 +844,6 @@ const eq = {
   'eq.smart.error.formatChanged':
     '측정하는 동안 출력 형식이 변경되었습니다. 다시 시도해 보세요.',
   'eq.smart.error.captureFailed': '처리된 시스템 출력을 캡처할 수 없습니다.',
-  'eq.smart.presence.ignoredBelow': '{db} dB 미만에서는 무시됩니다.',
-  'eq.smart.presence.trustedAbove': '{db}dB 이상으로 신뢰할 수 있음',
   'convolution.eyebrow': 'APO 임펄스 응답',
   'convolution.eyebrow.fluid': '임펄스 응답',
   'convolution.title': '컨볼루션 라이브러리',

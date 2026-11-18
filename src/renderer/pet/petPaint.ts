@@ -32,12 +32,28 @@ const EARS: readonly (readonly [number, number])[][] = [
     [29, 12],
   ],
 ];
-const STAR_PATH = new Path2D(
-  'M31.5 8.2 L32.7 11 L35.6 11.3 L33.4 13.2 L34.1 16 L31.5 14.5 L28.9 16 L29.6 13.2 L27.4 11.3 L30.3 11 Z',
-);
-const WAVES = [LEFT_PUPIL_X, RIGHT_PUPIL_X].map(
-  (centreX) => [centreX, new Path2D(buildEyeWave(centreX, EYE_Y))] as const,
-);
+const STAR_OUTLINE =
+  'M31.5 8.2 L32.7 11 L35.6 11.3 L33.4 13.2 L34.1 16 L31.5 14.5 L28.9 16 L29.6 13.2 L27.4 11.3 L30.3 11 Z';
+
+interface IPetShapes {
+  star: Path2D;
+  waves: readonly (readonly [number, Path2D])[];
+}
+
+// Built at the first paint, never when the module loads: the titlebar, the
+// share card and the rhythm game import the pet, and a `Path2D` made at
+// import put a canvas API in front of every one of them - the whole App
+// failed to load wherever there is none (jsdom's tests had none).
+let shapes: IPetShapes | undefined;
+const petShapes = (): IPetShapes => {
+  shapes ??= {
+    star: new Path2D(STAR_OUTLINE),
+    waves: [LEFT_PUPIL_X, RIGHT_PUPIL_X].map(
+      (centreX) => [centreX, new Path2D(buildEyeWave(centreX, EYE_Y))] as const,
+    ),
+  };
+  return shapes;
+};
 
 /** Everything one frame of her needs, already sampled and eased. */
 export interface IPetFrame {
@@ -172,7 +188,7 @@ const paintEyes = (context: CanvasRenderingContext2D, frame: IPetFrame) => {
     });
   });
   if (frame.joy > 0) {
-    WAVES.forEach(([centreX, wave]) => {
+    petShapes().waves.forEach(([centreX, wave]) => {
       context.save();
       context.beginPath();
       context.ellipse(
@@ -258,7 +274,7 @@ const paintStar = (context: CanvasRenderingContext2D, frame: IPetFrame) => {
   });
   context.scale(unit, unit);
   context.fillStyle = STAR;
-  context.fill(STAR_PATH);
+  context.fill(petShapes().star);
   context.restore();
 };
 

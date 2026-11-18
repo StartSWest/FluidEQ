@@ -66,7 +66,6 @@ const karaoke: Partial<Dictionary> = {
     '两个歌词文件匹配同一首歌，因此都未使用：{files}。',
   'karaoke.warning.andMore': '以及其他 {count} 个',
   'karaoke.countdown.sing': '唱',
-  'karaoke.song.unknownArtist': '本地歌曲',
   'karaoke.stage.videoUnsupported': '此处无法播放 {format} 视频',
   'karaoke.stage.videoFailed': '此处无法解码 {format} 视频',
   'karaoke.stage.showGraph': '将图表的场景或样式用作背景',

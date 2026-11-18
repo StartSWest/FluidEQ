@@ -422,7 +422,6 @@ const eq: Partial<Dictionary> = {
   'graph.blurHint':
     'Desenfoca lo que se ve detrás para que parezca luz y no una segunda imagen',
   'graph.curves': 'Curvas',
-  'graph.curvesHint': 'Qué curvas se dibujan',
   'graph.liveOutput': 'Salida en directo',
   'graph.clip': 'SATURACIÓN — reduce la preamplificación',
   'graph.driverCurve':
@@ -893,8 +892,6 @@ const eq: Partial<Dictionary> = {
     'El formato de salida cambió durante la medición. Inténtalo otra vez.',
   'eq.smart.error.captureFailed':
     'No se pudo capturar la salida procesada del sistema.',
-  'eq.smart.presence.ignoredBelow': 'no cuenta bajo {db} dB',
-  'eq.smart.presence.trustedAbove': 'fiable sobre {db} dB',
   'convolution.eyebrow': 'RESPUESTAS AL IMPULSO DE APO',
   'convolution.eyebrow.fluid': 'RESPUESTAS AL IMPULSO',
   'convolution.title': 'Biblioteca de convolución',

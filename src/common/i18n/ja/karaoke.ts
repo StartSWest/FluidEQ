@@ -72,7 +72,6 @@ const karaoke: Partial<Dictionary> = {
     '2 つの歌詞ファイルが同じ曲に一致したため、どちらも使用しませんでした: {files}。',
   'karaoke.warning.andMore': 'ほか {count} 件',
   'karaoke.countdown.sing': '歌って',
-  'karaoke.song.unknownArtist': 'ローカル曲',
   'karaoke.stage.videoUnsupported': '{format} 動画はここでは再生できません',
   'karaoke.stage.videoFailed': '{format} 動画をここでデコードできませんでした',
   'karaoke.stage.showGraph': 'グラフのシーンかスタイルを背景にする',

@@ -418,7 +418,6 @@ const eq: Partial<Dictionary> = {
   'graph.blurHint':
     'Sfoca ciò che traspare perché sembri luce anziché una seconda immagine',
   'graph.curves': 'Curve',
-  'graph.curvesHint': 'Quali curve vengono disegnate',
   'graph.liveOutput': 'Uscita in tempo reale',
   'graph.clip': 'SATURAZIONE — riduci la preamplificazione',
   'graph.driverCurve': 'Risposta in frequenza di questa correzione del driver',
@@ -888,8 +887,6 @@ const eq: Partial<Dictionary> = {
     'Il formato dell’uscita è cambiato durante la misurazione. Riprova.',
   'eq.smart.error.captureFailed':
     'Impossibile catturare l’uscita di sistema elaborata.',
-  'eq.smart.presence.ignoredBelow': 'ignorato sotto {db} dB',
-  'eq.smart.presence.trustedAbove': 'affidabile sopra {db} dB',
   'convolution.eyebrow': 'RISPOSTE ALL’IMPULSO DI APO',
   'convolution.eyebrow.fluid': 'RISPOSTE ALL’IMPULSO',
   'convolution.title': 'Libreria di convoluzione',

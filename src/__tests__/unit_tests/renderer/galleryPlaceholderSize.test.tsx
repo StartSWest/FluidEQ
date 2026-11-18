@@ -135,13 +135,14 @@ it('builds a placeholder card from the rows of the card that replaces it', async
     throw new Error('both bodies render');
   }
   const cardParts = partsOf(card);
-  // The control: the card has the four rows and the foot's two halves, so an
-  // empty comparison cannot pass for a match.
+  // The control: the card has the four rows and the foot's controls, so an
+  // empty comparison cannot pass for a match. The add count left the foot
+  // for the facts line (2026-11-17), where it is no longer cut.
   expect(cardParts).toEqual([
     'gallery-card__name',
     'gallery-card__byline',
     'gallery-card__version',
-    { 'gallery-card__foot': ['gallery-card__adds', 'gallery-card__controls'] },
+    { 'gallery-card__foot': ['gallery-card__controls'] },
   ]);
   expect(partsOf(placeholder)).toEqual(cardParts);
 });

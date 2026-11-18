@@ -52,7 +52,6 @@ const karaoke = {
     '두 개의 가사 파일이 동일한 노래와 일치하므로 둘 다 사용되지 않았습니다: {files}.',
   'karaoke.warning.andMore': '그리고 {count} 더보기',
   'karaoke.countdown.sing': '노래하다',
-  'karaoke.song.unknownArtist': '지역 노래',
   'karaoke.stage.videoUnsupported':
     '{format} 비디오는 여기에서 재생할 수 없습니다',
   'karaoke.stage.videoFailed': '{format} 비디오는 여기서 디코딩할 수 없습니다.',

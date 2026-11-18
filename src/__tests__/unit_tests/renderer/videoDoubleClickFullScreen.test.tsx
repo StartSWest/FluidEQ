@@ -49,10 +49,6 @@ jest.mock('../../../renderer/library/LibraryStageArt', () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock('../../../renderer/library/SystemStageArt', () => ({
-  __esModule: true,
-  default: () => null,
-}));
 jest.mock('../../../renderer/library/LibraryContext', () => ({
   LibraryProvider: ({ children }: { children: ReactNode }) => children,
 }));

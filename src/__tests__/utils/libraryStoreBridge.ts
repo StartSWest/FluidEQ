@@ -44,6 +44,7 @@ export type TLibraryStoreChannels = Pick<
   | 'queryLibrary'
   | 'onLibraryChanged'
   | 'onLibraryScanProgress'
+  | 'onLibraryTracksMoved'
 >;
 
 export interface ILibraryStoreBridge {
@@ -151,6 +152,9 @@ export const openLibraryStoreBridge = ({
         progressListeners.delete(listener);
       };
     },
+    // Main sends moves only after the tag editor renames a song's file, which
+    // nothing here does; the player's queue still listens from the start.
+    onLibraryTracksMoved: () => () => {},
   };
 
   return {

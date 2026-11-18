@@ -60,6 +60,13 @@ const KEPT = [
   // Which Library song each karaoke came from, so the Maker can save its
   // timing back to that song: a fact about the songs, not a setting.
   'fluideq.karaoke.libraryOrigins.v1',
+  // What a Library song's karaoke is called and how long it is, for a
+  // playlist restored after a restart (`karaokeLibraryFacts.ts`): the same.
+  'fluideq.karaoke.libraryFacts',
+  // Fix tags' rules: the spellings and the text to take out are lists the
+  // reader typed, and the page they were typed on is gone (2026-11-16), so a
+  // reset would take them with nowhere to type them again.
+  'fluideq.library.tagFixRules',
   'fluideq.squiglink-import.text',
   'fluideq.studio.idea',
   // A new project's guide: the steps done, and closed for good once
@@ -71,6 +78,8 @@ const KEPT = [
   'fluideq.starterWelcome.',
   'fluideq-rhythm-best-multiplier',
   'fluideq-rhythm-high-score',
+  // Each song's sung scores, the best and the last six: won, like the above.
+  'fluideq-karaoke-score-history',
   // What is playing and where in it, and where Online Media was left — not
   // where each page was, which a reset puts back (Ivan, 2026-10-26).
   // Which forum topics have been read: a reset is not a reason to call
@@ -110,7 +119,6 @@ const KEPT = [
   // scenes from: a reset is not a reason to call the whole gallery new.
   'fluideq.gallery.seenAt',
   'fluideq.hasContributed',
-  'fluideq-euphoria-reached',
   // The Studio's door for an AI: a member who shut it keeps it shut.
   'fluideq.studio.agentAssistant',
   // Downloads and caches: fetched or measured again, at a cost.
@@ -269,12 +277,21 @@ describe('Reset all settings', () => {
       'fluideq.singlePlayer',
       'fluideq.gaming.gamesLayout',
       'fluideq-rainbow',
+      'fluideq.windowTintColour',
+      'fluideq.windowTintSecondary',
+      'fluideq.themeScale',
+      'fluideq.plusRailWidth',
+      'fluideq.graphLegendHidden.fullscreen',
+      'fluideq.waveRecorderIntroduced',
     ];
     const kept = [
       'fluideq.sceneTint.skies',
       'fluideq.dsp.userPresets.v1',
       'fluideq.disclaimerAccepted',
       'fluideq.games.profiles.v1',
+      'fluideq.karaoke.libraryFacts',
+      'fluideq-karaoke-score-history',
+      'fluideq.library.tagFixRules',
       'fluideq.library.sortDirectionless',
       'somebody-else',
     ];
@@ -298,6 +315,7 @@ describe('Reset all settings', () => {
     const places = [
       'fluideq.workspaceTab',
       'fluideq.dsp.openSection',
+      'fluideq.eqLayerTab',
       'fluideq.plusPlace',
       'fluideq.studio.workTab',
       'fluideq.library.openAlbum',
@@ -308,6 +326,7 @@ describe('Reset all settings', () => {
       'fluideq.library.folderTree',
       'fluideq.karaoke.maker-open',
       'fluideq.karaoke.maker-preview-open',
+      'fluideq.karaoke.maker-preview-height',
       'fluideq.karaoke.maker-editor-views.v1',
     ];
     const playing = [
@@ -343,30 +362,31 @@ describe('Reset all settings', () => {
     window.localStorage.clear();
   });
 
-  // Ivan, 2026-10-25: "on reset setting auto change viz off by default",
-  // "also rainbow mode off by default too".
-  it('leaves automatic switching and Rainbow mode off after a reset', () => {
+  // Ivan, 2026-10-25: "on reset setting auto change viz off by default".
+  // Rainbow mode was set off beside it until Colourful mode became always on
+  // with no switch (2026-11-18): a reset now forgets the old switch instead
+  // of writing it back for the next launch to sweep away.
+  it('leaves automatic switching off after a reset, and no Colourful switch behind', () => {
     window.localStorage.clear();
     window.localStorage.setItem('fluideq-graph-auto-cycle-seconds', '120');
     window.localStorage.setItem('fluideq-rainbow', 'on');
+    window.localStorage.setItem('fluideq-euphoria-reached', 'true');
     window.localStorage.setItem('fluideq.pointerSparks', 'stored');
 
     resetSettings(window.localStorage);
 
     // POSITIVE CONTROL: every other setting is still forgotten.
     expect(window.localStorage.getItem('fluideq.pointerSparks')).toBeNull();
+    expect(window.localStorage.getItem('fluideq-rainbow')).toBeNull();
+    expect(window.localStorage.getItem('fluideq-euphoria-reached')).toBeNull();
     let autoCycle: number | undefined;
-    let rainbow: boolean | undefined;
     jest.isolateModules(() => {
       /* eslint-disable global-require */
       autoCycle =
         require('../../../renderer/utils/graphAutoCycle').readGraphAutoCycle();
-      rainbow =
-        require('../../../renderer/utils/euphoriaMode').isEuphoriaEnabled();
       /* eslint-enable global-require */
     });
     expect(autoCycle).toBe(0);
-    expect(rainbow).toBe(false);
     window.localStorage.clear();
   });
 });

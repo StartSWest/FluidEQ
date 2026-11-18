@@ -18,6 +18,12 @@ import path from 'path';
 const ROOT = path.join(__dirname, '..', '..', '..');
 const STYLES_DIR = path.join(ROOT, 'src', 'renderer', 'styles');
 
+// The package's folder is found by resolving it rather than spelled under
+// this checkout: a git worktree has no install of its own and finds the main
+// checkout's by walking up, as Node does. Whichever entry the export
+// conditions pick, it sits in the package's own folder beside `sass.js`.
+const SASS_CLI = path.join(path.dirname(require.resolve('sass')), 'sass.js');
+
 /**
  * Compiles one of the renderer's stylesheets.
  *
@@ -29,7 +35,7 @@ export const compileStylesheet = (file: string): string =>
   execFileSync(
     process.execPath,
     [
-      path.join(ROOT, 'node_modules', 'sass', 'sass.js'),
+      SASS_CLI,
       '--no-source-map',
       `--load-path=${STYLES_DIR}`,
       path.join(STYLES_DIR, file),

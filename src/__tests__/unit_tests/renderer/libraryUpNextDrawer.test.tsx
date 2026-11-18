@@ -101,7 +101,12 @@ beforeEach(() => {
       }),
     ],
   });
-  installIpcRenderer({ ...bridge.channels, ...createSourceAnalysisBridge() });
+  installIpcRenderer({
+    ...bridge.channels,
+    // The tag editor's jobs, which the workspace listens for from the start.
+    onLibraryTagJob: () => () => {},
+    ...createSourceAnalysisBridge(),
+  });
 });
 
 afterEach(() => {

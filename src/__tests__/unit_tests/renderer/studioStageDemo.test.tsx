@@ -19,9 +19,14 @@ const mockControl = { isActive: true, error: '' };
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
   useLiveAudioControl: () => mockControl,
-  useLiveAudioFrame: () => ({
-    outputLevels: [{ levelDb: -12, peakDb: -12, isClipping: false }],
-  }),
+  // The demo's level is selected from the frame store (729751e34).
+  ...jest
+    .requireActual<typeof import('../../utils/liveFrameHooks')>(
+      '../../utils/liveFrameHooks',
+    )
+    .liveFrameHooks(() => ({
+      outputLevels: [{ levelDb: -12, peakDb: -12, isClipping: false }],
+    })),
 }));
 jest.mock('../../../renderer/audio/transportSource', () => ({
   useTransportSources: () => ({}),

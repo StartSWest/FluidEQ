@@ -425,7 +425,6 @@ const eq: Partial<Dictionary> = {
   'graph.blurHint':
     'Den Hintergrund weichzeichnen, damit er wie Licht statt wie ein zweites Bild wirkt',
   'graph.curves': 'Kurven',
-  'graph.curvesHint': 'Welche Kurven gezeichnet werden',
   'graph.liveOutput': 'Live-Ausgabe',
   'graph.clip': 'ÜBERSTEUERUNG — Vorverstärkung reduzieren',
   'graph.driverCurve': 'Frequenzgang dieser Treiberkorrektur',
@@ -896,8 +895,6 @@ const eq: Partial<Dictionary> = {
     'Das Ausgabeformat hat sich während der Messung geändert. Noch einmal versuchen.',
   'eq.smart.error.captureFailed':
     'Die verarbeitete Systemausgabe konnte nicht aufgenommen werden.',
-  'eq.smart.presence.ignoredBelow': 'unter {db} dB ignoriert',
-  'eq.smart.presence.trustedAbove': 'über {db} dB verlässlich',
   'convolution.eyebrow': 'APO-IMPULSANTWORTEN',
   'convolution.eyebrow.fluid': 'IMPULSANTWORTEN',
   'convolution.title': 'Faltungsbibliothek',

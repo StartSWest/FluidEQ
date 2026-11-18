@@ -414,7 +414,6 @@ const eq: Partial<Dictionary> = {
   'graph.blur': 'ぼかし',
   'graph.blurHint': '透ける背景をぼかし、別の画像ではなく光として見せます',
   'graph.curves': '曲線',
-  'graph.curvesHint': '描画する曲線',
   'graph.liveOutput': 'ライブ出力',
   'graph.clip': 'クリッピング — プリアンプを下げてください',
   'graph.driverCurve': 'このドライバー補正の周波数応答',
@@ -875,8 +874,6 @@ const eq: Partial<Dictionary> = {
     '測定中に出力フォーマットが変わりました。もう一度お試しください。',
   'eq.smart.error.captureFailed':
     '処理後のシステム出力をキャプチャできませんでした。',
-  'eq.smart.presence.ignoredBelow': '{db} dB 未満は無視',
-  'eq.smart.presence.trustedAbove': '{db} dB 以上は信頼',
   'convolution.eyebrow': 'APO インパルス応答',
   'convolution.eyebrow.fluid': 'インパルス応答',
   'convolution.title': 'コンボリューション ライブラリ',

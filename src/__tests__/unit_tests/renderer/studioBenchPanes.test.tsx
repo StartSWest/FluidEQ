@@ -45,6 +45,13 @@ jest.mock('../../../renderer/studio/StudioStageSound', () => ({
   ),
 }));
 
+// The Window colours card draws the build at night and at day to measure
+// its colours (`useStudioWindowColours`); jsdom has no worker to draw in.
+jest.mock('../../../renderer/graph/sceneSky', () => ({
+  ...jest.requireActual('../../../renderer/graph/sceneSky'),
+  measureStudioSky: () => Promise.resolve(undefined),
+}));
+
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
     locale: 'en',

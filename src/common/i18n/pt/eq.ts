@@ -225,10 +225,10 @@ const eq: Partial<Dictionary> = {
     'Não é usada enquanto a janela está branca',
   'graph.sceneColours.glowUnused':
     'Perto demais do vermelho: o FluidEQ mantém o próprio “ligado”',
-  'graph.sceneColours.glowAbout': '“Ligado” e o brilho',
+  'graph.sceneColours.glowAbout': '“Ligado” e o resplendor',
   'graph.sceneColours.accentAbout': 'Botões e a curva',
   'graph.sceneColours.surfaceAbout': 'Painéis e campos',
-  'graph.sceneColours.glow': 'Brilho',
+  'graph.sceneColours.glow': 'Resplendor',
   'graph.sceneColours.accent': 'Destaque',
   'graph.sceneColours.surface': 'Superfície',
   'graph.sceneColours.yours': 'Suas',
@@ -420,7 +420,6 @@ const eq: Partial<Dictionary> = {
   'graph.blurHint':
     'Desfoque o que aparece atrás para parecer luz, não uma segunda imagem',
   'graph.curves': 'Curvas',
-  'graph.curvesHint': 'Quais curvas são desenhadas',
   'graph.liveOutput': 'Saída ao vivo',
   'graph.clip': 'SATURAÇÃO — reduza a pré-amplificação',
   'graph.driverCurve': 'Resposta de frequência desta correção do driver',
@@ -888,8 +887,6 @@ const eq: Partial<Dictionary> = {
     'O formato da saída mudou durante a medição. Tente de novo.',
   'eq.smart.error.captureFailed':
     'Não foi possível capturar a saída processada do sistema.',
-  'eq.smart.presence.ignoredBelow': 'não conta abaixo de {db} dB',
-  'eq.smart.presence.trustedAbove': 'confiável acima de {db} dB',
   'convolution.eyebrow': 'RESPOSTAS AO IMPULSO DO APO',
   'convolution.eyebrow.fluid': 'RESPOSTAS AO IMPULSO',
   'convolution.title': 'Biblioteca de convolução',

@@ -203,6 +203,8 @@ beforeEach(() => {
           emptyLibraryAnswer(request),
         onLibraryScanProgress: () => () => {},
         onLibraryChanged: () => () => {},
+        onLibraryTracksMoved: () => () => {},
+        onLibraryTagJob: () => () => {},
       },
     }),
   });

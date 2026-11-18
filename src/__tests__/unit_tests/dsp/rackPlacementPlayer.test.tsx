@@ -157,18 +157,38 @@ describe('the player saying it is the sound', () => {
     isPlaying,
     positionMs: 0,
   });
+  // Made once, as the player hands them over: the mirror is rebuilt for a
+  // new controller or a new list of elements, so a fresh `[]` or controller
+  // on every render rebuilt it - and asked the host again - every render. A
+  // refusal that re-rendered the hook then looped, and the case after
+  // "while it plays" ran out its five seconds inside `act`.
+  const NO_ELEMENTS: readonly HTMLMediaElement[] = [];
+  const PLAYING = state(true);
+  const PAUSED = state(false);
 
-  it('while it plays through its own engine, and not after', async () => {
+  // Held through a pause, not following `isPlaying` (ce04b8984): a pause
+  // that handed the rack back to the engine rebuilt the engine's graph and
+  // the resume rebuilt it again, crossing over as the music came back. It
+  // goes back only when the player lets go of the track.
+  it('while it plays through its own engine, through a pause, and not once it lets go', async () => {
+    const pause = jest.fn(() => Promise.resolve(true));
+    const opening = {
+      transport: { ...hostThatOpens(true).transport, pause },
+    } as unknown as INativeBackendController;
     const { rerender, unmount } = renderHook(
       ({ playing }: { playing: boolean }) =>
-        useNativeMirror(hostThatOpens(true), [], state(playing)),
+        useNativeMirror(opening, NO_ELEMENTS, playing ? PLAYING : PAUSED),
       { initialProps: { playing: true } },
     );
     // Once the host has the track: until its load lands, the elements do.
     await waitFor(() => expect(readRackGate().libraryAudible).toBe(true));
 
     rerender({ playing: false });
-    await waitFor(() => expect(readRackGate().libraryAudible).toBe(false));
+    await waitFor(() => expect(pause).toHaveBeenCalled());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(readRackGate().libraryAudible).toBe(true);
 
     rerender({ playing: true });
     await waitFor(() => expect(readRackGate().libraryAudible).toBe(true));
@@ -187,7 +207,7 @@ describe('the player saying it is the sound', () => {
         },
       },
     } as unknown as INativeBackendController;
-    renderHook(() => useNativeMirror(refusing, [], state(true)));
+    renderHook(() => useNativeMirror(refusing, NO_ELEMENTS, PLAYING));
     // The host was asked and said no; the elements carry the sound with no
     // rack of their own, so the engine has to keep its copy.
     await waitFor(() => expect(loads).toHaveLength(1));
@@ -200,7 +220,7 @@ describe('the player saying it is the sound', () => {
   it('not while it plays through its media elements', () => {
     // A host that failed leaves the elements audible with no rack of their
     // own, so the engine must keep its copy.
-    renderHook(() => useNativeMirror(undefined, [], state(true)));
+    renderHook(() => useNativeMirror(undefined, NO_ELEMENTS, PLAYING));
     expect(readRackGate().libraryAudible).toBe(false);
   });
 });

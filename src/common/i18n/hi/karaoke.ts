@@ -72,7 +72,6 @@ const karaoke: Partial<Dictionary> = {
     'दो बोल फ़ाइलें एक ही गाने से मेल खाईं, इसलिए किसी का उपयोग नहीं हुआ: {files}।',
   'karaoke.warning.andMore': 'और {count} अन्य',
   'karaoke.countdown.sing': 'गाओ',
-  'karaoke.song.unknownArtist': 'स्थानीय गाना',
   'karaoke.stage.videoUnsupported': '{format} वीडियो यहाँ नहीं चल सकता',
   'karaoke.stage.videoFailed': '{format} वीडियो यहाँ डिकोड नहीं हो सका',
   'karaoke.stage.showGraph': 'ग्राफ़ के सीन या स्टाइल को पृष्ठभूमि बनाएँ',

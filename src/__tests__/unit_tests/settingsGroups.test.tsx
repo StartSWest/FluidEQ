@@ -39,16 +39,10 @@ const renderMenu = (
       curveToggles={[]}
       hiddenCurves={[]}
       onToggleCurve={jest.fn()}
-      contents="everything"
-      onCycleContents={jest.fn()}
       isGridHidden={false}
       onToggleGrid={jest.fn()}
-      isCoverageHidden={false}
-      onToggleCoverage={jest.fn()}
       isMeterHidden={false}
       onToggleMeter={jest.fn()}
-      isTitlebarWaveHidden={false}
-      onToggleTitlebarWave={jest.fn()}
       waveHeight={1}
       onChangeWaveHeight={jest.fn()}
       wavePosition={0}
@@ -61,8 +55,6 @@ const renderMenu = (
       onChangeOverlayBlur={jest.fn()}
       minOverlayOpacity={0}
       maxOverlayBlur={40}
-      hasTopBar
-      onToggleTopBar={jest.fn()}
       // eslint-disable-next-line react/jsx-props-no-spreading -- a test's overrides of a thirty-prop component
       {...overrides}
     />,
@@ -134,18 +126,21 @@ describe('the graph View menu', () => {
       en[OWN_GROUP_TITLE.graph],
       en[SETTINGS_GROUP_TITLE.picture],
       en[SETTINGS_GROUP_TITLE.visualizer],
-      `${en[SETTINGS_GROUP_TITLE.drawing]} · ${en['graph.picker.styles']}`,
+      `${en[SETTINGS_GROUP_TITLE.drawing]} · ${en['graph.family.scenes']}`,
     ]);
   });
 
-  it('identifies Plus drawing settings when a Plus visualizer is on the plot', () => {
+  it('names the drawing group for the scenes with a scene on the plot too', () => {
+    // The drawing choices are the GPU engine's, which draws the standard
+    // looks as well (Ivan, 2026-11-16: "how the scenes are drawn, not the
+    // styles"), so the heading no longer changes with the look.
     renderMenu({ sceneLookId: 'aurora' });
     openMenu();
     expect(headingsShown()).toEqual([
       en[OWN_GROUP_TITLE.graph],
       en[SETTINGS_GROUP_TITLE.picture],
       en[SETTINGS_GROUP_TITLE.visualizer],
-      `${en[SETTINGS_GROUP_TITLE.drawing]} · ${en['graph.scene.badge']}`,
+      `${en[SETTINGS_GROUP_TITLE.drawing]} · ${en['graph.family.scenes']}`,
     ]);
   });
 

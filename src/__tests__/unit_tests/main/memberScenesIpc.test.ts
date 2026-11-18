@@ -458,6 +458,34 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
+  // Ivan, 2026-11-18: "when loading a project in the Studio, refresh
+  // everything so it always loads any new change - when selecting or
+  // changing project" (3b1d7742c). Choosing the project already open used to
+  // change nothing, so an edit its watcher had not been told of stayed
+  // unread until FluidEQ restarted.
+  it('reads the open project afresh when it is chosen again', async () => {
+    const registration = setup();
+    chosen = await project();
+    const file = path.join(chosen, 'scene.frag');
+    await invoke<Promise<IStudioState>>('studio-open');
+    const linked = await link();
+    await sentOn('studio-source-changed');
+    sent = [];
+
+    const again = await invoke<Promise<IStudioState>>(
+      'studio-select-project',
+      linked.activeId,
+    );
+    expect(again.activeId).toBe(linked.activeId);
+    // The bench starts over: its first read hands the code pane the folder's
+    // text again, which only a watcher started afresh sends unasked.
+    await expect(sentOn('studio-source-changed')).resolves.toEqual({
+      file: 'scene.frag',
+      text: fs.readFileSync(file, 'utf8'),
+    });
+    registration.dispose();
+  });
+
   it('gives a signed-in account as many projects as it likes, owning nothing', async () => {
     owned = false;
     const registration = setup();

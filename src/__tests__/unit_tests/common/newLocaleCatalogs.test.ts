@@ -55,6 +55,37 @@ it('keeps known reference names while still detecting untranslated prose beside 
   ]);
 });
 
+// A keyboard chord is the keys' own names, which both catalogues keep as the
+// keyboard prints them (their `graph.scene.camera.key.*` say Ctrl, Alt and
+// Shift), as the note scale and product names stay unchanged.
+const KEY = String.raw`(?:Ctrl|Alt|Shift|Tab|Esc|Enter|Space|F\d{1,2}|[A-Z0-9])`;
+const KEY_CHORD = new RegExp(`^${KEY}(?:\\+${KEY})+$`);
+
+/** An English source handed back unchanged, as a whole translation. */
+const isCopiedProse = (source: string, translated: string): boolean => {
+  if (
+    source !== translated ||
+    /^(?:[A-G][♯♭]?\s*)+$/.test(source) ||
+    KEY_CHORD.test(source)
+  ) {
+    return false;
+  }
+  if (source === 'FluidEQ Audio Processing Engine') {
+    return false;
+  }
+  const words = source.replace(/\{\w+\}/g, '').match(/\b[A-Za-z]+\b/g) ?? [];
+  return words.length >= 3;
+};
+
+it('lets a keyboard chord stand as it is, and still catches a sentence round one', () => {
+  expect(isCopiedProse('Ctrl+Shift+I', 'Ctrl+Shift+I')).toBe(false);
+  // The control: the same chord inside English prose is copied prose.
+  expect(
+    isCopiedProse('Press Ctrl+Shift+I to fix', 'Press Ctrl+Shift+I to fix'),
+  ).toBe(true);
+  expect(isCopiedProse('Ctrl Shift Escape', 'Ctrl Shift Escape')).toBe(true);
+});
+
 describe.each(catalogs)('%s catalog contracts', (_code, dictionary) => {
   it('has exactly the canonical keys, including concurrently added features', () => {
     expect(Object.keys(dictionary).sort()).toEqual([...keys].sort());
@@ -88,19 +119,11 @@ describe.each(catalogs)('%s catalog contracts', (_code, dictionary) => {
 
   it('does not count copied English prose as a completed translation', () => {
     // A service can echo an entire batch while retaining every key and token.
-    // Product names and the musical note scale deliberately stay unchanged.
-    const copied = keys.filter((key) => {
-      const source = en[key];
-      if (source !== dictionary[key] || /^(?:[A-G][♯♭]?\s*)+$/.test(source)) {
-        return false;
-      }
-      if (source === 'FluidEQ Audio Processing Engine') {
-        return false;
-      }
-      const words =
-        source.replace(/\{\w+\}/g, '').match(/\b[A-Za-z]+\b/g) ?? [];
-      return words.length >= 3;
-    });
+    // Product names, the musical note scale and keyboard chords
+    // deliberately stay unchanged (`isCopiedProse`).
+    const copied = keys.filter((key) =>
+      isCopiedProse(en[key], dictionary[key]),
+    );
     expect(copied).toEqual([]);
   });
 

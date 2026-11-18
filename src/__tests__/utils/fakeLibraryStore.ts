@@ -39,6 +39,8 @@ export interface IFakeLibraryBridge {
   onLibraryScanProgress: (
     listener: (progress: ILibraryScanProgress) => void,
   ) => () => void;
+  /** Songs the tag editor renamed; this library renames none. */
+  onLibraryTracksMoved: Window['electron']['ipcRenderer']['onLibraryTracksMoved'];
   queryLibrary: (
     request: TLibraryRequest,
   ) => Promise<ILibraryAnswers[TLibraryRequest['type']]>;
@@ -184,6 +186,7 @@ const createFakeLibraryStore = (
         };
       },
       onLibraryScanProgress: () => () => undefined,
+      onLibraryTracksMoved: () => () => undefined,
       queryLibrary: (request) => ask(() => answer(request)),
       // Answered with the rest, inside `act`: answered on the spot, the
       // captions set their state after the case had moved on.

@@ -75,7 +75,6 @@ const karaoke = {
     'Two lyric files matched the same song, so neither was used: {files}.',
   'karaoke.warning.andMore': 'and {count} more',
   'karaoke.countdown.sing': 'Sing',
-  'karaoke.song.unknownArtist': 'Local song',
   'karaoke.stage.videoUnsupported': '{format} video cannot be played here',
   'karaoke.stage.videoFailed': '{format} video could not be decoded here',
   'karaoke.stage.showGraph': "Use the graph's scene or style as background",

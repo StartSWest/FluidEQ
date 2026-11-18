@@ -447,34 +447,32 @@ describe('opening and closing the actions menu', () => {
       screen.getByRole('menuitem', { name: 'Fix audio problems…' }),
     ).toHaveFocus();
 
-    fireEvent.keyDown(menu, { key: 'End' });
-    expect(language).toHaveFocus();
-
-    fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    expect(screen.getByRole('checkbox', { name: 'Animations' })).toHaveFocus();
-
-    // Each shape of the sliders' handle is a row of its own, walked from the
-    // last to the first on the way up.
+    // Two columns (2026-11-16): the commands and how the app behaves, then
+    // how it looks, so the walk ends on the look's last row. Each shape of
+    // the sliders' handle is a row of its own, walked from the last to the
+    // first on the way up.
     const shapes = within(
       screen.getByRole('group', { name: en['eq.sliders'] }),
     ).getAllByRole('menuitemradio');
-    [...shapes].reverse().forEach((shape) => {
-      fireEvent.keyDown(menu, { key: 'ArrowUp' });
-      expect(shape).toHaveFocus();
-    });
+    const lastShape = shapes[shapes.length - 1];
+    fireEvent.keyDown(menu, { key: 'End' });
+    expect(lastShape).toHaveFocus();
+    [...shapes]
+      .reverse()
+      .slice(1)
+      .forEach((shape) => {
+        fireEvent.keyDown(menu, { key: 'ArrowUp' });
+        expect(shape).toHaveFocus();
+      });
 
-    // "Tint app icon" under Colourful mode, off as a new install has it.
+    // "Tint app icon", off as a new install has it. Colourful mode's switch
+    // stood above it until the mode became always on (2026-11-18).
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
     const appIcon = screen.getByRole('checkbox', {
       name: en['graph.sceneTint.appIcon'],
     });
     expect(appIcon).toHaveFocus();
     expect(appIcon).not.toBeChecked();
-
-    fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    expect(
-      screen.getByRole('checkbox', { name: en['graph.sceneTint.rainbow'] }),
-    ).toHaveFocus();
 
     // The window's Tint beside Brightness, with a standard look on.
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
@@ -489,12 +487,20 @@ describe('opening and closing the actions menu', () => {
       }),
     ).toHaveFocus();
 
+    // Up out of the look's column into the foot of the first: the language,
+    // and the animations above it.
+    fireEvent.keyDown(menu, { key: 'ArrowUp' });
+    expect(language).toHaveFocus();
+
+    fireEvent.keyDown(menu, { key: 'ArrowUp' });
+    expect(screen.getByRole('checkbox', { name: 'Animations' })).toHaveFocus();
+
     fireEvent.keyDown(menu, { key: 'End' });
     fireEvent.keyDown(menu, { key: 'ArrowDown' });
     expect(card).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    expect(language).toHaveFocus();
+    expect(lastShape).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'Home' });
     expect(card).toHaveFocus();

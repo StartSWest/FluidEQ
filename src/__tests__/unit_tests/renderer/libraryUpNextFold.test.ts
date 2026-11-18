@@ -76,22 +76,30 @@ describe('how the Up next panel folds', () => {
     ).toEqual(['none']);
   });
 
-  it('keeps the full-screen slide in the panel’s own transitions rather than replacing them', () => {
-    const chrome = rules.filter(
-      ({ selectors, declarations: declared }) =>
-        declared.has('transition') &&
-        selectors.some((selector) =>
-          selector.startsWith('.library-workspace.is-video-full'),
-        ),
-    );
-    expect(chrome.length).toBeGreaterThan(0);
-    chrome.forEach(({ selectors }) =>
-      selectors.forEach((selector) =>
-        expect(selector).not.toMatch(/\.library-up-next$/),
+  it('leaves a full-screen film to the picture alone without replacing the panel’s own transitions', () => {
+    // A full-screen film is the film alone (2026-11-15): the panel's column
+    // goes with the rest of the card rather than sliding out of its way.
+    expect(
+      declarations(
+        '.library-workspace.has-video.is-video-full .library-side',
+        'display',
       ),
+    ).toEqual(['none']);
+    // Nothing said for full screen hands the panel a transition list of its
+    // own, which would replace the fold's.
+    const fullScreen = rules.filter(({ selectors }) =>
+      selectors.some((selector) => selector.includes('is-video-full')),
     );
+    expect(fullScreen.length).toBeGreaterThan(0);
+    const transitioned = fullScreen
+      .filter(({ declarations: declared }) => declared.has('transition'))
+      .flatMap(({ selectors }) => selectors);
+    expect(
+      transitioned.filter((selector) => /\.library-up-next$/.test(selector)),
+    ).toEqual([]);
+    // The control: the fold's own list is there to be replaced.
     const [opening] = declarations('.library-up-next', 'transition');
-    expect(opening).toMatch(/transform var\(--up-next-chrome\)/);
+    expect(opening).toMatch(/translate var\(--up-next-move\)/);
   });
 
   it('still folds under reduced motion, shorter, instead of jumping', () => {

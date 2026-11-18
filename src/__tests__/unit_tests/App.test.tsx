@@ -24,6 +24,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
 import * as accountConfig from '../../common/accountConfig';
@@ -236,6 +237,8 @@ describe('App', () => {
             emptyLibraryAnswer(request),
           onLibraryScanProgress: () => () => {},
           onLibraryChanged: () => () => {},
+          onLibraryTracksMoved: () => () => {},
+          onLibraryTagJob: () => () => {},
         },
       }),
     });
@@ -431,11 +434,10 @@ describe('App', () => {
     await pressTab('Karaoke', 'karaoke');
 
     expect(karaokeTab).toHaveAttribute('aria-selected', 'true');
+    // The stage's own row of actions; its big heading went with the K1
+    // layout (2026-11-16).
     expect(
-      screen.getByRole('heading', {
-        level: 2,
-        name: 'A stage built around your music',
-      }),
+      screen.getByRole('toolbar', { name: 'Karaoke actions' }),
     ).toBeVisible();
     expect(container.querySelector('.karaoke-workspace')).toHaveClass(
       'is-empty',
@@ -535,12 +537,21 @@ describe('App', () => {
     await act(async () => Promise.resolve());
     await pressTab('Karaoke', 'karaoke');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
+    // The stage's own row: the graph over it ends its row in the same icon
+    // (`FullScreenToggles`, on every page's row since 2026-11-16), and that
+    // one is the graph's full screen, not the media surface's.
+    const stageRow = () =>
+      within(screen.getByRole('toolbar', { name: 'Karaoke actions' }));
+    fireEvent.click(
+      stageRow().getByRole('button', { name: 'Enter full screen' }),
+    );
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
     );
     expect(getGraphView()).toBe('normal');
-    fireEvent.click(screen.getByRole('button', { name: 'Exit full screen' }));
+    fireEvent.click(
+      stageRow().getByRole('button', { name: 'Exit full screen' }),
+    );
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
     );
@@ -571,13 +582,13 @@ describe('App', () => {
         name: 'A stage built around your music',
       }),
     ).not.toBeInTheDocument();
-    // The graph's toolbar no longer carries a way out of its own: full
-    // screen keeps the app's top bar, and the window's own button in it says
-    // "restore" and does exactly that. Two controls for one thing, a hand's
-    // width apart, is what came out.
+    // The way out is the last icon of the row over the picture, in the same
+    // corner on every page (`FullScreenToggles`, 2026-11-16) — one of it,
+    // with the stage's row and the graph's over each other — and the
+    // window's own restore stays in the header the full screen keeps.
     expect(
-      screen.queryByRole('button', { name: 'Exit full screen' }),
-    ).not.toBeInTheDocument();
+      screen.getAllByRole('button', { name: 'Exit full screen' }),
+    ).toHaveLength(1);
     expect(
       screen.getByRole('button', { name: 'Restore FluidEQ' }),
     ).toBeVisible();
@@ -606,13 +617,12 @@ describe('App', () => {
     await act(async () => Promise.resolve());
     await pressTab('Scenes', 'community');
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
-    fireEvent.keyDown(window, { key: 's', ctrlKey: true });
-    expect(container.querySelector('.center-workspace')).toHaveClass(
-      'is-graph-grown',
-    );
     fireEvent.keyDown(window, { key: 'f', ctrlKey: true });
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
+    expect(container.querySelector('.center-workspace')).toHaveClass(
+      'is-graph-full',
     );
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
     fireEvent.keyDown(window, { key: 'Escape' });
@@ -701,7 +711,11 @@ describe('App', () => {
     ['karaoke', 'Karaoke', '.karaoke-workspace'],
     ['library', 'Library', '.library-workspace'],
   ] as const)(
-    'keeps Online Media hidden when %s owns the graph backdrop',
+    // The page you are on, not what is playing (94309b22e, Ivan 2026-11-16:
+    // "depending on where I click, I want to see that view, not whatever is
+    // playing"): it used to be the other way round, the player that played
+    // last taking the graph's backdrop over Online Media's own video.
+    'opens the graph over Online Media’s video while %s plays',
     async (owner, tabName, ownerSelector) => {
       window.localStorage.setItem(
         'fluideq.graphVisibilityByTab',
@@ -720,12 +734,19 @@ describe('App', () => {
 
       await waitFor(() =>
         expect(container.querySelector('.video-browser')).toHaveClass(
-          'is-hidden',
+          'is-playback-backdrop',
         ),
       );
-      expect(container.querySelector(ownerSelector)).toHaveClass(
-        owner === 'karaoke' ? 'is-graph-overlay' : 'is-playback-backdrop',
+      expect(container.querySelector('.video-browser')).not.toHaveClass(
+        'is-hidden',
       );
+      // The player that plays stays where it is, under nothing.
+      const playing = container.querySelector(ownerSelector);
+      expect(
+        playing?.classList.contains(
+          owner === 'karaoke' ? 'is-graph-overlay' : 'is-playback-backdrop',
+        ) ?? false,
+      ).toBe(false);
 
       fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
       await waitFor(() =>
@@ -765,41 +786,33 @@ describe('App', () => {
     );
   });
 
-  it.each([
-    ['expanded', 's', 'KeyS', 0],
-    ['fullscreen', 'f', 'KeyF', 2],
-  ] as const)(
-    'exits graph %s when the workspace tab changes',
-    async (_mode, key, code, expectedFullScreenCalls) => {
-      window.localStorage.setItem(
-        'fluideq.graphVisibilityByTab',
-        JSON.stringify({ video: true }),
-      );
-      const { container } = render(<App />);
-      await act(async () => Promise.resolve());
-      await pressTab('Online Media', 'video');
-      act(() => claimPlayback('media'));
+  // The graph's Expanded view, which Ctrl+S used to enter, was taken out
+  // (1b16af574): full screen is the one graph mode a tab change leaves.
+  it('exits graph fullscreen when the workspace tab changes', async () => {
+    window.localStorage.setItem(
+      'fluideq.graphVisibilityByTab',
+      JSON.stringify({ video: true }),
+    );
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    await pressTab('Online Media', 'video');
+    act(() => claimPlayback('media'));
 
-      fireEvent.keyDown(window, { key, code, ctrlKey: true });
-      await waitFor(() =>
-        expect(container.querySelector('.center-workspace')).toHaveClass(
-          'is-graph-full',
-        ),
-      );
+    fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
+    await waitFor(() =>
+      expect(container.querySelector('.center-workspace')).toHaveClass(
+        'is-graph-full',
+      ),
+    );
 
-      await pressTab('Library', 'library');
-      await waitFor(() =>
-        expect(container.querySelector('.center-workspace')).not.toHaveClass(
-          'is-graph-full',
-        ),
-      );
-      await waitFor(() =>
-        expect(setWindowFullScreen).toHaveBeenCalledTimes(
-          expectedFullScreenCalls,
-        ),
-      );
-    },
-  );
+    await pressTab('Library', 'library');
+    await waitFor(() =>
+      expect(container.querySelector('.center-workspace')).not.toHaveClass(
+        'is-graph-full',
+      ),
+    );
+    await waitFor(() => expect(setWindowFullScreen).toHaveBeenCalledTimes(2));
+  });
 
   /**
    * This used to assert the opposite for the three playback tabs — that a

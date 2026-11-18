@@ -416,7 +416,6 @@ const eq: Partial<Dictionary> = {
   'graph.blurHint':
     'Размыть фон, чтобы он выглядел как свет, а не второе изображение',
   'graph.curves': 'Кривые',
-  'graph.curvesHint': 'Какие кривые отображаются',
   'graph.liveOutput': 'Выход в реальном времени',
   'graph.clip': 'ПЕРЕГРУЗКА — уменьшите предусиление',
   'graph.driverCurve': 'АЧХ этой коррекции излучателя',
@@ -882,8 +881,6 @@ const eq: Partial<Dictionary> = {
     'Формат вывода изменился во время измерения. Попробуйте ещё раз.',
   'eq.smart.error.captureFailed':
     'Не удалось захватить обработанный системный вывод.',
-  'eq.smart.presence.ignoredBelow': 'ниже {db} дБ не считаем',
-  'eq.smart.presence.trustedAbove': 'выше {db} дБ доверяем',
   'convolution.eyebrow': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ APO',
   'convolution.eyebrow.fluid': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ',
   'convolution.title': 'Библиотека свёртки',

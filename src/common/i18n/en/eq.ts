@@ -427,7 +427,6 @@ const eq = {
   'graph.blurHint':
     'Blur what shows through, so it reads as light rather than as a second picture',
   'graph.curves': 'Curves',
-  'graph.curvesHint': 'Which curves are drawn',
   'graph.liveOutput': 'Live output',
   'graph.clip': 'CLIPPING — reduce preamp',
   'graph.driverCurve': 'Frequency response of this driver correction',
@@ -894,8 +893,6 @@ const eq = {
     'The output format changed while measuring. Try again.',
   'eq.smart.error.captureFailed':
     'Unable to capture the processed system output.',
-  'eq.smart.presence.ignoredBelow': 'ignored below {db} dB',
-  'eq.smart.presence.trustedAbove': 'trusted above {db} dB',
   'convolution.eyebrow': 'APO IMPULSE RESPONSES',
   'convolution.eyebrow.fluid': 'IMPULSE RESPONSES',
   'convolution.title': 'Convolution library',

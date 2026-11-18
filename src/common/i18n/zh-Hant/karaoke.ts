@@ -46,7 +46,6 @@ const karaoke = {
     '兩個歌詞檔案與同一首歌曲匹配，因此都沒有使用：{files}。',
   'karaoke.warning.andMore': '和 {count} 更多',
   'karaoke.countdown.sing': '唱歌',
-  'karaoke.song.unknownArtist': '本地歌曲',
   'karaoke.stage.videoUnsupported': '{format} 影片無法在此播放',
   'karaoke.stage.videoFailed': '{format} 影片無法在此處解碼',
   'karaoke.stage.showGraph': '使用圖表的場景或樣式作為背景',
