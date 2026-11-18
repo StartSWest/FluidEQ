@@ -108,6 +108,7 @@ import './LiveFigure.scss';
 import './StudioMeters.scss';
 import './StudioDialogs.scss';
 import './StudioStage.scss';
+import './StudioStageLight.scss';
 import './StudioUltraWideFrame.scss';
 import './StudioPublish.scss';
 import './StudioPublishNote.scss';
