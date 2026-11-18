@@ -581,6 +581,29 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
 }
 
+// The two marks stand on the picture, never on the window, so on a white
+// window they keep the dark plate's light words. Its inks are dark there: the
+// category was grey on black and the news deep teal on black, and while a
+// picture loaded over the card's white the plates were all that showed
+// (Ivan, 2026-11-18: "more visible even on the white theme"). A heavier
+// plate than the dark window's, because a loading card is white behind it.
+:root[data-window-ink='dark'] {
+  .gallery-card__tag,
+  .gallery-card__new {
+    background: rgba($black, 0.8);
+  }
+
+  .gallery-card__tag {
+    color: rgba($white, 0.86);
+    border-color: rgba($white, 0.16);
+  }
+
+  .gallery-card__new {
+    color: color-mix(in srgb, $secondary-default 40%, $white);
+    border-color: color-mix(in srgb, $secondary-default 45%, $white);
+  }
+}
+
 .gallery-card__version {
   display: block;
   min-width: 0;
