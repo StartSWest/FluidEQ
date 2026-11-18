@@ -269,7 +269,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // On the gallery's front page only: the Studio's publish dialog uses the same
 // pills, and a row rising inside a dialog that is itself arriving would move
 // twice.
-.gallery-gallery > .gallery-chips {
+.gallery-pinned > .gallery-chips {
   @include animate(rise-in, $motion-base, $ease-out, 80ms);
 }
 
@@ -313,29 +313,54 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// On the gallery's own page the categories wear the app's button faces
-// (`_buttonFaces.scss`): quiet, and the chosen one lit, at the Library's
-// square corner a step under its 30px buttons. They stood as filled pills
-// with a bright border, louder than the cards they choose.
-.gallery-gallery > .gallery-chips {
-  gap: 6px;
+// On the gallery's own page the categories are one segmented choice, the
+// app's toggle (`segmented-track`, `segmented-option`, as the Karaoke and
+// the DSP pages draw theirs): one quiet outline round the row and the chosen
+// category lit inside it (Ivan, 2026-11-17: "fix the filter buttons to be
+// like in the karaoke, a toggle"). Twelve outlined buttons in a row read as
+// twelve separate actions. On one line, scrolling sideways under the pointer
+// where the bar is too narrow, never wrapping into a second track. They live
+// in the pinned bar over the scroller now (`.gallery-pinned`); this rule
+// named the page they used to stand in, and stopped applying when they moved.
+.gallery-pinned > .gallery-chips {
+  @include segmented-track;
+  flex-wrap: nowrap;
+  gap: 2px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   .gallery-chip {
     display: inline-flex;
-    height: $control-height-xs;
+    flex: 0 0 auto;
+    height: calc(#{$control-height-xs} - 6px);
     box-sizing: border-box;
     align-items: center;
     padding: 0 11px;
-    border-radius: $radius-xs;
     font-size: $studio-text-meta;
     line-height: 1.5;
-    // The line tier; the chosen category is it switched on.
-    @include button-line;
+    @include segmented-option;
+
+    &[aria-pressed='true'] {
+      @include segmented-option-chosen;
+    }
   }
 
-  // The switch keeps saying it is not a category: its edge dashed while off.
-  .gallery-chip--switch:not([aria-pressed='true']) {
-    border-style: dashed;
+  // "Not mine yet" narrows whatever is chosen rather than being one more
+  // category: set apart at the track's end, its own dashed edge while off.
+  .gallery-chip--switch {
+    gap: 5px;
+    margin-left: 6px;
+    border: 1px dashed $edge-rest;
+
+    &[aria-pressed='true'] {
+      border-style: solid;
+    }
   }
 }
 
