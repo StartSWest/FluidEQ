@@ -6,10 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The one colour model (Ivan, 2026-11-17, option A): the Brightness alone
- * says light or dark, named colours across the line lend their hue, picking
- * a surface across it moves the Brightness, a scene's time of day walks the
- * dark stretch, and the EQ page's panels never thin into the mid-greys over
- * the picture behind them.
+ * says light or dark, a light window stays white whatever is named (only the
+ * accent and the glow carry colour there), picking a surface across the line
+ * moves the Brightness, a scene's time of day reads the Brightness's own
+ * number, and the EQ page's panels never thin into the mid-greys over the
+ * picture behind them.
  *
  * Each case stands beside a control that shows it is not passing by
  * returning one answer for everything.
@@ -75,13 +76,29 @@ describe('named colours under the Brightness', () => {
     );
   });
 
-  it('keep the colour of a dark surface lent to a light window, faintly', () => {
+  it('leave a light window white and grey, whatever surface is named', () => {
+    // Ivan, 2026-11-17: past the line the window stays white so the accent
+    // can be seen; no named surface, dark or light, tints the panes.
     const panel = parseCssColour(
       pickedWindow(PLUM, 90)?.tokens['--surface-panel'] ?? '',
     );
-    // Plum's hue in it: blue over green, red over green.
-    expect(panel?.rgb[2]).toBeGreaterThan(panel?.rgb[1] ?? 1);
-    expect(panel?.rgb[0]).toBeGreaterThan(panel?.rgb[1] ?? 1);
+    expect(panel?.rgb[0]).toBeCloseTo(panel?.rgb[1] ?? -1, 6);
+    expect(panel?.rgb[2]).toBeCloseTo(panel?.rgb[1] ?? -1, 6);
+    expect(pickedWindow(PLUM, THEME_SHADE_MAX)?.tokens['--surface-panel']).toBe(
+      '#ffffff',
+    );
+    // The accent is still the plum's own violet there: the colour lives in it.
+    const accent = parseCssColour(
+      pickedWindow(PLUM, 90)?.tokens['--accent'] ?? '',
+    );
+    expect(accent?.rgb[2]).toBeGreaterThan(accent?.rgb[1] ?? 1);
+    // CONTROL: on the dark side the same colours put Plum's hue in the panes,
+    // blue over green and red over green.
+    const dark = parseCssColour(
+      pickedWindow(PLUM, DARK_END_SHADE)?.tokens['--surface-panel'] ?? '',
+    );
+    expect(dark?.rgb[2]).toBeGreaterThan(dark?.rgb[1] ?? 1);
+    expect(dark?.rgb[0]).toBeGreaterThan(dark?.rgb[1] ?? 1);
   });
 
   it('walk a light window from the soft grey at the line to white at 100', () => {
@@ -112,16 +129,16 @@ describe('picking a surface in the editor', () => {
 });
 
 describe('a scene’s time of day following the Brightness', () => {
-  it('reaches full day at the top of the dark stretch, and stays there', () => {
+  it('reads the same number as the Brightness, night at 0 and day at 100', () => {
+    // Ivan, 2026-11-17: "why 66 and not 50 ... the same as the brightness".
     expect(daylightOfShade(0)).toBe(SCENE_DAYLIGHT_MIN);
-    expect(daylightOfShade(DARK_END_SHADE)).toBe(SCENE_DAYLIGHT_MAX);
     expect(daylightOfShade(THEME_SHADE_MAX)).toBe(SCENE_DAYLIGHT_MAX);
-    // CONTROL: half the dark stretch is half the day, not the whole slider's
-    // share of it, which put a dark window's top at 76% of the day.
-    expect(daylightOfShade(DARK_END_SHADE / 2)).toBeCloseTo(
-      (SCENE_DAYLIGHT_MIN + SCENE_DAYLIGHT_MAX) / 2,
-      5,
-    );
+    expect(daylightOfShade(50)).toBeCloseTo(50, 9);
+    expect(daylightOfShade(DARK_END_SHADE)).toBeCloseTo(DARK_END_SHADE, 9);
+    // CONTROL: not the dark stretch's own scale, which put full day at the
+    // line and Brightness 50 at 66% of the day beside it in the same menu.
+    expect(daylightOfShade(DARK_END_SHADE)).toBeLessThan(SCENE_DAYLIGHT_MAX);
+    expect(daylightOfShade(50)).toBeLessThan(60);
   });
 });
 

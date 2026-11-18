@@ -174,8 +174,10 @@ describe('painting the Maker canvas', () => {
   it('reports nothing to click when there is nothing on the timeline', () => {
     const { hitRegionsRef, context } = paint([]);
     expect(hitRegionsRef.current).toHaveLength(0);
-    // The stage is still drawn — an empty song is not a blank canvas.
-    expect(context.calls.some((call) => call.startsWith('fillRect'))).toBe(
+    // The stage is still drawn — an empty song is not a blank canvas: its
+    // lines and its ruler (flat on the card since 2026-11-15, no ground).
+    expect(context.calls.some((call) => call.startsWith('stroke'))).toBe(true);
+    expect(context.calls.some((call) => call.startsWith('fillText'))).toBe(
       true,
     );
   });

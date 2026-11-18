@@ -41,6 +41,28 @@ const ruleBody = (sheet: string, selector: string): string => {
   return sheet.slice(at, sheet.indexOf('}', at));
 };
 
+/**
+ * Every top-level rule whose selector is exactly `selector`, joined: Sass
+ * splits one rule wherever a mixin emits a nested block, so the first can be
+ * the layout alone.
+ */
+const ruleBodies = (sheet: string, selector: string): string => {
+  const bodies: string[] = [];
+  let from = 0;
+  for (;;) {
+    const at = `\n${sheet}`.indexOf(`\n${selector} {`, from);
+    if (at < 0) {
+      break;
+    }
+    bodies.push(sheet.slice(at, sheet.indexOf('}', at)));
+    from = at + 1;
+  }
+  if (bodies.length === 0) {
+    throw new Error(`no ${selector} rule`);
+  }
+  return bodies.join('\n');
+};
+
 describe('Lagoon, everywhere it is written', () => {
   it('is what the stylesheet puts on the root, stop for stop', () => {
     const root = ruleBody(css('Rainbow.scss'), ':root');
@@ -110,20 +132,37 @@ describe('the filled controls', () => {
     expect(rainbow).toContain('--control-end: var(--accent-end)');
     // Positive control: the span itself is still there for Rainbow to use.
     expect(root).toMatch(/--accent-fill: linear-gradient\(\s*100deg/);
-    expect(ruleBody(css('Button.scss'), '.button')).toContain(
-      'var(--control-fill)',
+    // A solid key is the filled face: the Karaoke's Play.
+    expect(
+      ruleBody(
+        css('Karaoke.scss'),
+        '.karaoke-transport__buttons .button.karaoke-transport__play',
+      ),
+    ).toContain('var(--control-fill)');
+    // The suggested action is the EQ mode panel's lit segment (Ivan,
+    // 2026-11-17: "for buttons I'm more inclined to this type of buttons"),
+    // a tint of the accent that Colourful mode leaves alone, as it leaves
+    // the segments.
+    const button = ruleBodies(css('Button.scss'), '.button');
+    expect(button).toContain(
+      'background: color-mix(in srgb, var(--accent) 22%, transparent)',
     );
+    expect(button).not.toContain('fill)');
     // A switch on is the accent itself, flat (`Switch.scss`): nothing of
     // Rainbow's span reaches it.
     expect(
       ruleBody(css('Switch.scss'), '.switch-checkbox:checked + .switch-label'),
     ).not.toContain('fill)');
+    // A split button's arrow wears its button's own face: one colour on one
+    // pill.
     expect(
       ruleBody(css('MainContent.scss'), '.eq-mode .eq-mode__caret'),
-    ).toContain('var(--control-end');
+    ).toContain(
+      'background: color-mix(in srgb, var(--accent) 22%, transparent)',
+    );
   });
 
-  // The control: the quiet button stays an outline, so the fill is the loud
+  // The control: the quiet button stays an outline, so the tint is the loud
   // one's alone.
   it('leave the quiet button its outline', () => {
     expect(ruleBody(css('Button.scss'), '.button.subtle')).not.toContain(

@@ -12,16 +12,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { getBandColor } from '../../../renderer/utils/bandColors';
-import { parseCssColour, rgbToLab } from '../../../renderer/utils/oklab';
+import {
+  contrast,
+  luminance,
+  parseCssColour,
+  rgbToLab,
+  toLinear,
+} from '../../../renderer/utils/oklab';
 import {
   LAGOON,
   RAINBOW_STOP_COUNT,
   RAINBOW_TOKENS,
   getRainbowStops,
+  rainbowBetween,
   rainbowColourAt,
   rainbowFromColours,
   setRainbowStops,
+  stopOnWhite,
 } from '../../../renderer/utils/rainbowPalette';
+import { setLightWindow } from '../../../renderer/utils/windowSide';
 
 const lchOf = (colour: string) => {
   const parsed = parseCssColour(colour);
@@ -146,5 +155,100 @@ describe('a visualizer’s colours', () => {
     deep.forEach((stop) => {
       expect(lchOf(stop).l).toBeGreaterThanOrEqual(0.69);
     });
+  });
+});
+
+/** A colour's contrast against the white panes of a light window. */
+const onWhite = (hex: string) => {
+  const parsed = parseCssColour(hex);
+  return parsed ? contrast(luminance(parsed.rgb.map(toLinear)), 1) : 0;
+};
+
+const hueApart = (left: number, right: number) => {
+  const apart = Math.abs(left - right) % 360;
+  return apart > 180 ? 360 - apart : apart;
+};
+
+/**
+ * The window's own pair (2026-11-18, `windowTint.ts`): one colour seven
+ * times, or a gradient from the first to the second the short way round the
+ * wheel, its ends exactly the two colours.
+ */
+describe('the stops between two colours', () => {
+  it('is one colour seven times when both are the same', () => {
+    expect(rainbowBetween('#3fa4d0', '#3fa4d0')).toEqual(
+      Array(RAINBOW_STOP_COUNT).fill('#3fa4d0'),
+    );
+  });
+
+  it('runs from one to the other the short way round, its ends exact', () => {
+    const stops = rainbowBetween('#00c8d0', '#7a5cff');
+    expect(stops).toHaveLength(RAINBOW_STOP_COUNT);
+    expect(stops[0]).toBe('#00c8d0');
+    expect(stops[RAINBOW_STOP_COUNT - 1]).toBe('#7a5cff');
+    const from = lchOf('#00c8d0').h;
+    const to = lchOf('#7a5cff').h;
+    stops.slice(1, -1).forEach((stop) => {
+      const { h } = lchOf(stop);
+      // Between the two on the short arc: never back through green.
+      expect(hueApart(h, from) + hueApart(h, to)).toBeLessThan(
+        hueApart(from, to) + 2,
+      );
+    });
+  });
+
+  it('fades a colour to a grey end in its own hue', () => {
+    const stops = rainbowBetween('#d03f8a', '#808080');
+    const hue = lchOf('#d03f8a').h;
+    stops.slice(1, -1).forEach((stop) => {
+      expect(hueApart(lchOf(stop).h, hue)).toBeLessThan(4);
+    });
+  });
+});
+
+/**
+ * Colourful mode on a light window (2026-11-18, "Consola"): every stop taken
+ * down in lightness until a 2px line in it reads on white at 3:1 (WCAG
+ * 1.4.11), its hue kept, a stop that reads already left alone.
+ */
+describe('the palette on a light window', () => {
+  it('takes a pastel down until it reads on white, keeping its hue', () => {
+    const pastel = '#9ff0ff';
+    expect(onWhite(pastel)).toBeLessThan(3);
+    const worn = stopOnWhite(pastel);
+    expect(onWhite(worn)).toBeGreaterThanOrEqual(3);
+    expect(hueApart(lchOf(worn).h, lchOf(pastel).h)).toBeLessThan(6);
+    // Only as far as it has to: well short of a dark ink.
+    expect(onWhite(worn)).toBeLessThan(3.2);
+  });
+
+  it('reads on white at every stop of Lagoon once worn there', () => {
+    LAGOON.forEach((stop) => {
+      expect([stop, onWhite(stopOnWhite(stop)) >= 3]).toEqual([stop, true]);
+    });
+  });
+
+  it('leaves a stop that already reads as it is, and takes a worn one no further', () => {
+    expect(stopOnWhite('#1d3a8a')).toBe('#1d3a8a');
+    const worn = stopOnWhite('#9ff0ff');
+    expect(stopOnWhite(worn)).toBe(worn);
+  });
+
+  it('wears the chosen palette on the side of the Brightness the window is on', () => {
+    setRainbowStops(LAGOON);
+    expect(getRainbowStops()).toEqual(LAGOON);
+    setLightWindow(true);
+    try {
+      expect(getRainbowStops()).toEqual(LAGOON.map(stopOnWhite));
+      expect(getRainbowStops()).not.toEqual(LAGOON);
+      // A palette chosen while light is worn light at once.
+      const pair = rainbowBetween('#9ff0ff', '#ffb0e0');
+      setRainbowStops(pair);
+      expect(getRainbowStops()).toEqual(pair.map(stopOnWhite));
+    } finally {
+      setLightWindow(false);
+    }
+    // CONTROL: back on the dark side, the palette as chosen.
+    expect(getRainbowStops()).toEqual(rainbowBetween('#9ff0ff', '#ffb0e0'));
   });
 });

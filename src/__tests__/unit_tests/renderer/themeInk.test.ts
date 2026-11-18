@@ -29,7 +29,9 @@ import {
   groundOf,
 } from 'renderer/utils/themeInk';
 import {
+  DARK_END_SHADE,
   OCEAN_SHADE,
+  THEME_SHADE_MAX,
   themeInkTokens,
   themeShadeTokens,
 } from 'renderer/utils/themeShade';
@@ -136,8 +138,11 @@ describe('the graph’s ruled paper', () => {
   });
 });
 
+// The one control theme (Ivan, 2026-11-17): every control's edge at rest is
+// the accent's light at 2.0:1 against the card, softer than the 42% every
+// control used to wear, and 3.2:1 under the pointer, never under half.
 describe('a control’s edge', () => {
-  it('stands over a card’s at rest and a clear step over that under the pointer', () => {
+  it('stands as clear as a card’s at rest and a clear step over that under the pointer', () => {
     SHADES.forEach((shade) => {
       const tokens = themeShadeTokens(shade);
       const inks = themeInkTokens(shade);
@@ -153,11 +158,17 @@ describe('a control’s edge', () => {
         ground,
         share(inks['--field-edge-hover-share']),
       );
-      expect(rest).toBeGreaterThanOrEqual(2.19);
-      expect(rest).toBeGreaterThan(measured(tokens['--border-panel'], ground));
+      expect(rest).toBeGreaterThanOrEqual(1.99);
+      // As clear as a card's edge at rest: both are 2.0:1 since the one
+      // control theme, apart by rounding alone.
+      expect(rest).toBeGreaterThanOrEqual(
+        measured(tokens['--border-panel'], ground) - 0.01,
+      );
       expect(hover).toBeGreaterThanOrEqual(3.19);
+      expect(hover).toBeGreaterThan(rest);
+      expect(share(inks['--field-edge-share'])).toBeGreaterThanOrEqual(0.24);
       expect(share(inks['--field-edge-hover-share'])).toBeGreaterThanOrEqual(
-        0.42,
+        0.5,
       );
     });
   });
@@ -190,13 +201,23 @@ describe('the text tiers', () => {
     });
   });
 
-  // The light end stops three fifths of the way to the end it was built
-  // toward (`themeShade.ts`, 2026-09-27: "lower the brightness"), where the
-  // shipped ink still reaches its contrast: nothing has to lift it to white.
-  it('keep the primary tier its shipped ink at the light end, which still reads', () => {
-    expect(themeInkTokens(100)['--text-primary']).toBe(
+  // The top of the dark window stops three fifths of the way to the end it
+  // was built toward (`themeShade.ts`, 2026-09-27: "lower the brightness"),
+  // where the shipped ink still reaches its contrast: nothing has to lift it
+  // to white. Past it the window is white (2026-11-17), and its words are a
+  // dark neutral ink solved to the same tiers.
+  it('keep the primary tier its shipped ink at the top of the dark window, and write dark ink on the white one', () => {
+    expect(themeInkTokens(DARK_END_SHADE)['--text-primary']).toBe(
       SHIPPED_TEXT['--text-primary'],
     );
+    const white = themeInkTokens(THEME_SHADE_MAX)['--text-primary'];
+    expect(measured(white, groundAt(THEME_SHADE_MAX))).toBeGreaterThanOrEqual(
+      7 - 0.01,
+    );
+    const ink = parseCssColour(white)?.rgb ?? [];
+    expect(Math.max(...ink) - Math.min(...ink)).toBeLessThanOrEqual(1 / 255);
+    // CONTROL: that is not the shipped light ink.
+    expect(white).not.toBe(SHIPPED_TEXT['--text-primary']);
   });
 
   // Only a lighter ground moves them: up to Ocean they are what shipped.

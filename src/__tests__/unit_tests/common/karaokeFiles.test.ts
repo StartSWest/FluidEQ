@@ -30,6 +30,7 @@ import {
   selectKaraokeStageMedia,
   setKaraokeRelativePath,
 } from '../../../common/karaoke/files';
+import { isKaraokeChordSheetFile } from '../../../common/karaoke/fileTypes';
 import { decodeKaraokeText } from '../../../common/karaoke/textEncoding';
 
 const file = (name: string, type = '') => new File(['fixture'], name, { type });
@@ -476,7 +477,9 @@ describe('Karaoke file picker accept list', () => {
     isKaraokeAudioFile(candidate) ||
     isKaraokeLyricFile(candidate) ||
     isKaraokeImageFile(candidate) ||
-    isKaraokeVideoFile(candidate);
+    isKaraokeVideoFile(candidate) ||
+    // A song's own chords (2026-11-16): a chord sheet beside the audio.
+    isKaraokeChordSheetFile(candidate);
 
   it('offers nothing the import will refuse, and offers artwork', () => {
     const accepted = KARAOKE_FILE_PICKER_ACCEPT.split(',');
@@ -494,7 +497,7 @@ describe('Karaoke file picker accept list', () => {
       expect(recognised(file(`song${extension}`))).toBe(true);
     });
 
-    // Positive control: a format this build cannot decode fails all four.
+    // Positive control: a format this build cannot decode fails all five.
     expect(recognised(file('song.wma'))).toBe(false);
   });
 

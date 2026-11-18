@@ -63,10 +63,17 @@ describe('the Maker note grid pitch window', () => {
     // The positive control for the round trip: a mapping that ignored the
     // window would round-trip perfectly too, and put C4 in the same place at
     // every zoom.
+    // The whole grid (24 to 96) is centred on C4, so the octave zoomed into
+    // stands off it, C4 two semitones from its top: centred on C4 as well,
+    // the two would agree there by the arithmetic alone.
     const whole = plotFor(FULL_PITCH_WINDOW);
-    const octave = plotFor({ lowMidi: 54, highMidi: 66 });
-    expect(whole.noteY(60)).not.toBeCloseTo(octave.noteY(60), 1);
-    expect(octave.noteY(60)).toBeCloseTo((octave.top + octave.bottom) / 2, 9);
+    const octave = plotFor({ lowMidi: 50, highMidi: 62 });
+    expect(whole.noteY(60)).toBeCloseTo((whole.top + whole.bottom) / 2, 9);
+    expect(octave.noteY(60)).toBeLessThan(whole.noteY(60) - 1);
+    expect(octave.noteY(60)).toBeCloseTo(
+      octave.top + octave.semitoneHeight * 2,
+      9,
+    );
     expect(octave.semitoneHeight).toBeCloseTo(whole.semitoneHeight * 6, 9);
   });
 

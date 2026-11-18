@@ -8,6 +8,7 @@ import {
   screen,
   within,
 } from '@testing-library/react';
+import { findSongTitle } from '../utils/karaokeSongTitle';
 import {
   SYSTEM_VOLUME_CHANGED,
   SYSTEM_VOLUME_CHANNEL,
@@ -144,15 +145,17 @@ describe('Karaoke workspace volume and scenery boundaries', () => {
         },
       },
     );
-    await screen.findByRole('heading', { name: 'painted song' });
+    await findSongTitle('painted song');
     const audio = container.querySelector('audio');
     expect(
       container.querySelector('.karaoke-stage-media__still'),
     ).toBeInTheDocument();
+    // Scene, in the stage bar's Background switch (the K1 mockup).
     fireEvent.click(
-      screen.getByRole('button', {
-        name: "Use the graph's scene or style as background",
-      }),
+      within(screen.getByRole('group', { name: 'Background' })).getByRole(
+        'button',
+        { name: 'Scene' },
+      ),
     );
     expect(
       container.querySelector('.karaoke-stage-media__still'),
@@ -173,7 +176,12 @@ describe('Karaoke workspace volume and scenery boundaries', () => {
       '--karaoke-scene-opacity': '0.25',
     });
     fireEvent.keyDown(window, { key: 'Escape' });
-    fireEvent.click(screen.getByRole('button', { name: 'Show cover art' }));
+    fireEvent.click(
+      within(screen.getByRole('group', { name: 'Background' })).getByRole(
+        'button',
+        { name: 'Art' },
+      ),
+    );
     expect(
       container.querySelector('.karaoke-stage-media__still'),
     ).toBeInTheDocument();
@@ -200,7 +208,7 @@ describe('Karaoke workspace volume and scenery boundaries', () => {
         },
       },
     );
-    await screen.findByRole('heading', { name: 'song' });
+    await findSongTitle('song');
     // The helper is fake; the workspace, transport and system fader are real.
     // This checks wiring, not physical playback or loudness.
     act(() =>

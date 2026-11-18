@@ -1,14 +1,22 @@
 /**
  * The window's Tint with a standard look (Ivan, 2026-10-25: "add a colour
  * tint option so they choose any colour with a slider"): Lagoon turned round
- * the colour wheel to the hue chosen, its rainbow with it, remembered.
+ * the colour wheel to the hue chosen, remembered; a colour picked whole from
+ * the swatch's picker; and a second colour that turns the window's marks into
+ * a gradient from the first (2026-11-18).
  */
 
 import type * as Tint from 'renderer/utils/windowTint';
-import { LAGOON, LAGOON_SKY } from 'renderer/utils/rainbowPalette';
+import {
+  LAGOON_SKY,
+  RAINBOW_STOP_COUNT,
+  sceneColourHex,
+} from 'renderer/utils/rainbowPalette';
 import { parseCssColour, rgbToLab } from 'renderer/utils/oklab';
 
 const STORAGE_KEY = 'fluideq.windowTint';
+const COLOUR_KEY = 'fluideq.windowTintColour';
+const SECONDARY_KEY = 'fluideq.windowTintSecondary';
 
 // Read once, when the module loads: each launch starts from its own storage.
 const launch = (stored?: string): typeof Tint => {
@@ -20,6 +28,32 @@ const launch = (stored?: string): typeof Tint => {
   jest.isolateModules(() => {
     // eslint-disable-next-line global-require, @typescript-eslint/no-require-imports -- a fresh copy per launch
     loaded = require('renderer/utils/windowTint') as typeof Tint;
+  });
+  if (!loaded) {
+    throw new Error('the module did not load');
+  }
+  return loaded;
+};
+
+type TRtl = typeof import('@testing-library/react/pure');
+
+/**
+ * A launch on `stored`, with a renderer from the same fresh registry: a hook
+ * of the store read through another copy of React is no hook at all.
+ */
+const launchWithHooks = (stored: Record<string, string> = {}) => {
+  window.localStorage.clear();
+  Object.entries(stored).forEach(([key, value]) =>
+    window.localStorage.setItem(key, value),
+  );
+  let loaded: { tint: typeof Tint; rtl: TRtl } | undefined;
+  jest.isolateModules(() => {
+    loaded = {
+      // eslint-disable-next-line global-require, @typescript-eslint/no-require-imports -- a fresh copy per launch
+      tint: require('renderer/utils/windowTint') as typeof Tint,
+      // eslint-disable-next-line global-require, @typescript-eslint/no-require-imports -- the same registry's React
+      rtl: require('@testing-library/react/pure') as TRtl,
+    };
   });
   if (!loaded) {
     throw new Error('the module did not load');
@@ -62,19 +96,33 @@ describe('the window’s Tint', () => {
     expect(pink.accent?.lightness).toBe(LAGOON_SKY.accent?.lightness);
   });
 
-  it('turns Lagoon’s rainbow with it, so the graph and faders keep a rainbow in the colour chosen', () => {
+  // The first colour as the window wears it: picked whole, else Lagoon's
+  // accent turned to the hue, else Lagoon's own accent (2026-11-18).
+  it('wears a colour picked whole as picked, and the hue’s Lagoon accent otherwise', () => {
     const tint = launch();
-    const stops = tint.tintedLagoonStops(tint.LAGOON_HUE + 120);
-    expect(stops).toHaveLength(LAGOON.length);
-    stops.forEach((stop, at) => {
-      expect(hueGap(hueOf(stop), hueOf(LAGOON[at]) + 120)).toBeLessThan(3);
-    });
-    // Unturned, the stops are Lagoon's own.
-    tint
-      .tintedLagoonStops(tint.LAGOON_HUE)
-      .forEach((stop, at) =>
-        expect(hueGap(hueOf(stop), hueOf(LAGOON[at]))).toBeLessThan(1),
-      );
+    const lagoonAccent = sceneColourHex(LAGOON_SKY.accent ?? LAGOON_SKY);
+    expect(tint.windowPrimaryColour(undefined, undefined)).toBe(lagoonAccent);
+    const turned = tint.windowPrimaryColour(tint.LAGOON_HUE + 120, undefined);
+    expect(hueGap(hueOf(turned), tint.LAGOON_HUE + 120)).toBeLessThan(2);
+    // Black included: a picked colour is never moved.
+    expect(tint.windowPrimaryColour(200, '#000000')).toBe('#000000');
+    expect(tint.windowPrimaryColour(undefined, '#ff8800')).toBe('#ff8800');
+  });
+
+  // One colour seven times by default; a gradient once a second is chosen,
+  // its ends exactly the two colours (Ivan, 2026-11-18: "by default the
+  // primary and the secondary have the same colour, and if the user changes
+  // it, the gradient is created").
+  it('draws one colour in every stop, and a gradient between two once a second is chosen', () => {
+    const tint = launch();
+    const one = tint.windowTintStops('#3fa4d0', undefined);
+    expect(one).toEqual(Array(RAINBOW_STOP_COUNT).fill('#3fa4d0'));
+    const two = tint.windowTintStops('#3fa4d0', '#d03f8a');
+    expect(two).toHaveLength(RAINBOW_STOP_COUNT);
+    expect(two[0]).toBe('#3fa4d0');
+    expect(two[RAINBOW_STOP_COUNT - 1]).toBe('#d03f8a');
+    // The control: the middle is neither end.
+    expect(new Set(two).size).toBeGreaterThan(2);
   });
 
   it('remembers the hue chosen as a whole degree on the wheel, and forgets it when set back', () => {
@@ -104,5 +152,55 @@ describe('the window’s Tint', () => {
     expect(removeItem).not.toHaveBeenCalled();
     setItem.mockRestore();
     removeItem.mockRestore();
+  });
+});
+
+describe('a colour picked whole for the Tint', () => {
+  it('is kept whole, standing at its hue on the slider, and let go by the slider', () => {
+    const tint = launch();
+    tint.setWindowTintColour('#FF8800', 32.6);
+    expect(window.localStorage.getItem(COLOUR_KEY)).toBe('#ff8800');
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBe('33');
+    // The slider moved again goes back to the wheel.
+    tint.setWindowTint(90);
+    expect(window.localStorage.getItem(COLOUR_KEY)).toBeNull();
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBe('90');
+  });
+
+  it('refuses what is not a colour, and opens on the one it was left at', () => {
+    const tint = launch();
+    tint.setWindowTintColour('orange', 30);
+    expect(window.localStorage.getItem(COLOUR_KEY)).toBeNull();
+
+    const reopened = launchWithHooks({ [COLOUR_KEY]: '#123456' });
+    const { result } = reopened.rtl.renderHook(() =>
+      reopened.tint.useWindowTintColour(),
+    );
+    expect(result.current).toBe('#123456');
+    reopened.rtl.cleanup();
+  });
+});
+
+describe('the Tint’s second colour', () => {
+  it('follows the first until one is chosen, is remembered, and goes back to one colour', () => {
+    const { tint, rtl } = launchWithHooks();
+    const { act } = rtl;
+    const { result } = rtl.renderHook(() => tint.useWindowTintSecondary());
+    expect(result.current).toBeUndefined();
+
+    act(() => tint.setWindowTintSecondary('#D03F8A'));
+    expect(result.current).toBe('#d03f8a');
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBe('#d03f8a');
+    // Not a colour: refused, the second kept.
+    act(() => tint.setWindowTintSecondary('not a colour'));
+    expect(result.current).toBe('#d03f8a');
+    // Moving the first colour keeps the second where it was put.
+    act(() => tint.setWindowTint(40));
+    expect(result.current).toBe('#d03f8a');
+
+    act(() => tint.setWindowTintSecondary(undefined));
+    expect(result.current).toBeUndefined();
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBeNull();
+    rtl.cleanup();
   });
 });

@@ -23,6 +23,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { findSongTitle } from '../utils/karaokeSongTitle';
 import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import { useTransportSources } from '../../renderer/audio/transportSource';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
@@ -174,7 +175,7 @@ describe('KaraokeWorkspace while a song moves', () => {
         },
       },
     );
-    expect(await screen.findByRole('heading', { name })).toBeVisible();
+    expect(await findSongTitle(name)).toBeVisible();
     const audio = view.container.querySelector('audio') as HTMLAudioElement;
     Object.defineProperty(audio, 'duration', {
       configurable: true,
@@ -205,7 +206,7 @@ describe('KaraokeWorkspace while a song moves', () => {
     // The control: an uncovered stage runs both loops.
     expect(mockStageLoops).toEqual({ lyrics: true, lane: true });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open in Maker' }));
     expect(
       await screen.findByRole('button', { name: 'Close maker' }),
     ).toBeVisible();
@@ -280,19 +281,25 @@ describe('KaraokeWorkspace while a song moves', () => {
       ).playheadMs;
 
     fireEvent.playing(audio);
+    expect(await screen.findByRole('button', { name: 'Pause' })).toBeVisible();
+    const seekLine = () =>
+      barSlot.querySelector(
+        '.karaoke-transport__timeline input[type="range"]',
+      ) as HTMLInputElement;
+    // The visible stage's own frames carry the playhead, and the place
+    // follows the playhead (2026-11-16): the element's `timeupdate` says
+    // nothing while the Library's native player has the song.
     audio.currentTime = 6.2;
-    fireEvent.timeUpdate(audio);
-    expect(place()).toBe(6_200);
+    await waitFor(() => expect(place()).toBe(6_200));
 
     // Within the same five seconds of the song: not written again.
     audio.currentTime = 8.9;
-    fireEvent.timeUpdate(audio);
+    await waitFor(() => expect(seekLine().value).toBe('8900'));
     expect(place()).toBe(6_200);
 
     // The next five: written.
     audio.currentTime = 10.1;
-    fireEvent.timeUpdate(audio);
-    expect(place()).toBe(10_100);
+    await waitFor(() => expect(place()).toBe(10_100));
 
     expect(saveKaraokeSession).toHaveBeenCalledTimes(saved);
   });

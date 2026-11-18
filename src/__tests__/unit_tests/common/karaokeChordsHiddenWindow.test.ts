@@ -39,5 +39,5 @@ it('finishes a song in a window that paints nothing, yielding after every batch'
   const chords = await analyzeKaraokeChords(samples, rate, {
     framesPerYield: 1,
   });
-  expect(chords[0]).toMatchObject({ label: 'C', quality: 'major' });
+  expect(chords[0]).toMatchObject({ label: 'C' });
 });

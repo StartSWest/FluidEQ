@@ -221,7 +221,6 @@ describe('what stands on the floor', () => {
     ['StudioMaker.scss', '.studio-maker'],
     ['RemoteAudio.scss', '.remote-audio__link-form'],
     ['RemoteAudio.scss', '.remote-audio__link'],
-    ['Karaoke.scss', '.karaoke-playlist'],
   ])('%s fills %s with the card', (sheet, selector) => {
     const card = declarationsOf(compiledCss(sheet), selector);
     expect(card).toContain(
@@ -240,6 +239,21 @@ describe('what stands on the floor', () => {
         .match(new RegExp(`(?:^|;)\\s*${property}:\\s*([^;]+)`))?.[1]
         ?.trim(),
     );
+
+  // The Karaoke's list is flush like the Library's rail (the K1 mockup,
+  // 2026-11-16: "the list is flush like its rail"): the page's card, parted
+  // from the stage by a hairline, and no card of its own.
+  it('stands the Karaoke playlist on the page’s card, like the Library’s rail', () => {
+    const list = declarationsOf(
+      compiledCss('Karaoke.scss'),
+      '.karaoke-playlist',
+    );
+    // The control: the rule read is the list's, with its layout in it.
+    expect(list).toContain('flex-direction: column');
+    expect(list).toContain('background: none');
+    expect(list).toContain('border-right: 1px solid');
+    expect(list).not.toContain('radial-gradient(');
+  });
 
   it('stands the whole Library on one panel, the rail on its tone', () => {
     const rail = declarationsOf(compiledCss('Library.scss'), '.library-rail');
@@ -311,14 +325,18 @@ describe('what stands on the floor', () => {
     expect(grid).not.toMatch(/(^|;)\s*background(-color)?:/);
   });
 
-  // A control's track is every control's face and edge, the ones each select
-  // and quiet button beside it wears — never the block's grey, and no tint
-  // of the accent: a pale slab with a paler choice in it (Ivan, 2026-09-26:
-  // "not good, too light color"), then an olive track in Rainbow mode's
-  // violet (2026-09-27: "input colors this mess sucks").
-  it('gives a segmented track the controls’ face, and its choice a step of mist', () => {
+  // A control's track is the field's outline holding the choices, with no
+  // fill (the one control theme's step 6, 2026-11-17) — never the block's
+  // grey, and no tint of the accent: a pale slab with a paler choice in it
+  // (Ivan, 2026-09-26: "not good, too light color"), then an olive track in
+  // Rainbow mode's violet (2026-09-27: "input colors this mess sucks"). The
+  // chosen option is lit inside its edge.
+  it('gives a segmented track the field’s outline and no fill, and lights its choice', () => {
     const track = declarationsOf(compiledCss('Dsp.scss'), '.segmented');
-    expect(track).toContain('background: var(--surface-control)');
+    expect(track).toContain('background: none');
+    expect(track).toContain(
+      'border: 1px solid color-mix(in srgb, var(--accent-light) var(--field-edge-share), transparent)',
+    );
     expect(track).not.toContain(BLOCK);
     expect(track).not.toContain('var(--accent)');
     // The EQ mode rows are the same track, with no fill of their own, in the
@@ -333,25 +351,47 @@ describe('what stands on the floor', () => {
       compiledCss('Dsp.scss'),
       '.segmented__option.is-selected',
     );
-    expect(chosen).toContain('background: rgba(214, 233, 247, 0.12)');
+    // CONTROL: the choice does carry a fill, the accent's lit tint, so the
+    // track's "none" is not every option's.
+    expect(chosen).toContain(
+      'background: color-mix(in srgb, var(--accent) 22%, transparent)',
+    );
     expect(chosen).toContain('color: var(--accent-light)');
   });
 
-  // What floats over the karaoke stage's picture keeps a fill, and it is the
-  // card laid over the floor — opaque, and the playlist's own material rather
-  // than the block's grey (Ivan, 2026-09-26: "karaoke fix all those suck ui").
+  // What floats over the karaoke stage's picture keeps an opaque fill, never
+  // the block's grey (Ivan, 2026-09-26: "karaoke fix all those suck ui"),
+  // each on the face the control set gives its kind (2026-11-16/17): the
+  // transport the card laid over the floor, the count-in the dialogs' solid
+  // panel, the folded playlist's pill the floating line button, and the
+  // lyric size inside the stage bar's popover on the menus' floor.
   it.each([
-    '.karaoke-chords',
-    '.karaoke-song__text-size',
-    '.karaoke-playlist__expand',
-    '.karaoke-count-in',
-    '.karaoke-transport',
-  ])('lays the card over the floor under %s', (selector) => {
-    const chip = declarationsOf(compiledCss('Karaoke.scss'), selector);
+    [
+      '.karaoke-transport',
+      'linear-gradient(color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 34%, transparent) 0 0), var(--surface-base)',
+    ],
+    ['.karaoke-count-in', 'var(--surface-base)'],
+    ['.karaoke-playlist__expand', 'background: var(--surface-menu)'],
+    ['.karaoke-stage-bar__popover', 'background: var(--surface-menu-floor)'],
+  ])('keeps an opaque face over the picture under %s', (selector, face) => {
+    const floater = declarationsOf(compiledCss('Karaoke.scss'), selector);
+    expect(floater).toContain(face);
+    expect(floater).not.toMatch(SLAB);
+  });
+
+  // The chords are the K1 mockup's chips over the pitch strip (2026-11-16):
+  // the Library's faint surface, the one sounding on the chosen tint, and no
+  // slab of their own.
+  it('draws the chord chips on the Library’s faint surface', () => {
+    const css = compiledCss('Karaoke.scss');
+    const chip = declarationsOf(css, '.karaoke-chords__chip');
     expect(chip).toContain(
-      'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 34%, transparent)',
+      'background: color-mix(in srgb, var(--edge-tint) 5%, transparent)',
     );
-    expect(chip).toContain('var(--surface-base)');
     expect(chip).not.toMatch(SLAB);
+    // CONTROL: the row itself paints nothing, so the chips are what is seen.
+    expect(declarationsOf(css, '.karaoke-chords')).not.toMatch(
+      /(?:^|;)\s*background(-color)?:/,
+    );
   });
 });

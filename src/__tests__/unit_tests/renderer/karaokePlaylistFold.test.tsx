@@ -34,6 +34,10 @@ const song = (title: string): IKaraokePlaylistItem => ({
 const playlist = (isCollapsed?: boolean) => (
   <KaraokePlaylist
     items={[song('First'), song('Second')]}
+    isBusy={false}
+    onAddFiles={jest.fn()}
+    onAddFolder={jest.fn()}
+    onClear={jest.fn()}
     onToggleFolderGrouping={jest.fn()}
     onSelect={jest.fn()}
     onActivate={jest.fn()}
@@ -47,12 +51,12 @@ const playlist = (isCollapsed?: boolean) => (
 describe('the folded playlist', () => {
   it('stays where it is while folded, out of reach, and comes back into reach when opened', () => {
     const { rerender } = render(playlist(true));
-    const list = screen.getByRole('complementary', { name: 'Playlist' });
+    const list = screen.getByRole('complementary', { name: /^Songs/ });
     expect(list).toHaveAttribute('inert');
 
     rerender(playlist(false));
 
-    expect(screen.getByRole('complementary', { name: 'Playlist' })).toBe(list);
+    expect(screen.getByRole('complementary', { name: /^Songs/ })).toBe(list);
     expect(list).not.toHaveAttribute('inert');
   });
 });
@@ -100,13 +104,18 @@ describe('how the playlist folds', () => {
   const FOLDED =
     '.karaoke-workspace__player.has-playlist.is-playlist-collapsed';
 
-  it('closes the column beside the stage track by track, so it moves instead of jumping', () => {
+  // The column holds its width while the list leaves and gives it to the
+  // stage at once, and opening takes it at once (2026-11-16): interpolated,
+  // the stage widened every frame and the bar's song name grew and was cut
+  // again as it crossed the width where the bar folds its labels.
+  it('holds the column while the list leaves, then hands it to the stage in one step', () => {
     const open = tracks(declared(OPEN, 'grid-template-columns', []));
     const folded = tracks(declared(FOLDED, 'grid-template-columns', []));
     expect(open).toHaveLength(3);
     expect(folded).toHaveLength(open.length);
-    expect(declared(OPEN, 'transition', [])).toMatch(
-      /grid-template-columns var\(--playlist-move\)/,
+    expect(declared(OPEN, 'transition', [])).toBe('none');
+    expect(declared(FOLDED, 'transition', [])).toBe(
+      'grid-template-columns 0s linear var(--playlist-move)',
     );
   });
 
@@ -162,6 +171,8 @@ describe('how the playlist folds', () => {
         'animation',
         [],
       ),
-    ).toMatch(/calc\(var\(--playlist-move\) \* 0\.6\)/);
+      // In the bar the moment the fold is over, at full size, never a width
+      // in between: its delay is the fold's own length.
+    ).toMatch(/^karaoke-playlist-pill-in .+ var\(--playlist-move\) backwards$/);
   });
 });

@@ -8,8 +8,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * COLOURFUL MODE PAINTS IN THE PALETTE IN USE, NEVER A FIXED SPECTRUM.
  *
  * The palette is the window's Tint, or the visualizer's colours, written on
- * the root as `--rainbow-1` … `--rainbow-7` (`rainbowPalette.ts`). The flash
- * the mode switches on with, the Support pet's bloom, the beat game's lit
+ * the root as `--rainbow-1` … `--rainbow-7` (`rainbowPalette.ts`).
+ * The Support pet's bloom, the beat game's lit
  * marks and its Share button each kept cyan, green, yellow, pink and violet
  * written in after the mode itself had stopped painting them (Ivan,
  * 2026-10-25: "not use those fixed rainbow colors ... but to use current
@@ -66,35 +66,8 @@ const tokensIn = (value: string) =>
     Number(match[1]),
   );
 
-describe('the flash Colourful mode switches on with', () => {
-  it('sweeps the palette in use across the window', () => {
-    const sweep = valueOf(
-      'Euphoria.scss',
-      '.euphoria-burst::before',
-      'background',
-    );
-    expect(sweep).not.toMatch(FIXED_COLOUR);
-    expect(tokensIn(sweep)).toEqual([1, 3, 4, 5, 7]);
-  });
-
-  it('lights each blade in the colour it is handed', () => {
-    const blade = valueOf(
-      'Euphoria.scss',
-      '.euphoria-burst__blade',
-      'background',
-    );
-    expect(blade).not.toMatch(FIXED_COLOUR);
-    expect(blade).toContain('var(--euphoria-blade-colour)');
-  });
-
-  it('keeps to the palette under reduced motion too', () => {
-    const still = valueOf('Euphoria.scss', '.euphoria-burst', 'background', [
-      '@media (prefers-reduced-motion: reduce)',
-    ]);
-    expect(still).not.toMatch(FIXED_COLOUR);
-    expect(tokensIn(still)).toEqual([1, 4, 6]);
-  });
-});
+// The flash Colourful mode switched on with went with its switch (2026-11-18:
+// the mode is always on), and with it the burst and its blades.
 
 describe('the Support card in Colourful mode', () => {
   it('blooms behind the creature in all seven stops, closed into a ring', () => {

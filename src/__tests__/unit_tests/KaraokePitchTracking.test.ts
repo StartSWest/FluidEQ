@@ -22,18 +22,14 @@ import {
 } from '../../common/karaoke/melodyArticulation';
 import { IKaraokeToken } from '../../common/karaoke/types';
 import {
-  buildKaraokeMelodyGuide,
   findKaraokePitchIssues,
   IKaraokePitchPoint,
   IKaraokeTraceAxis,
   karaokePitchSongTimeX,
   karaokeTraceBehindPlayhead,
   karaokeTraceSampleX,
-  PITCH_WORD_LANES,
-  pitchLaneLayout,
   PLOT_LEFT,
   singerTargetAtTime,
-  targetAtTime,
 } from '../../renderer/karaoke/karaokePitchGeometry';
 
 const PLOT_WIDTH = 1_000;
@@ -149,7 +145,6 @@ describe('karaoke note attachment', () => {
     // The control: the guide really does end first, so "still attached" is a
     // different answer and not the same one twice.
     expect(guideEndMs).toBeLessThan(3_900);
-    expect(targetAtTime(held, 3_900)).toBeUndefined();
     expect(singerTargetAtTime(held, 3_900)).toBe(62);
     expect(singerTargetAtTime(held, 2_000)).toBe(62);
   });
@@ -224,79 +219,5 @@ describe('karaoke lead note shape', () => {
     // Still separated from whatever comes next, rather than filling the note.
     expect(shape.endMs).toBeLessThan(held.endMs);
     expect(shape.startMs).toBe(held.startMs);
-  });
-
-  it('carries the melody guide through the whole of a held note', () => {
-    const guide = buildKaraokeMelodyGuide([
-      { text: 'aah', startsWord: true, ...held },
-    ]);
-    const lastPoint = guide[guide.length - 1];
-
-    expect(guide.length).toBeGreaterThan(1);
-    expect(lastPoint.songTimeMs).toBeGreaterThan(1_450);
-    expect(lastPoint.midi).toBe(62);
-  });
-});
-
-/**
- * What the lane gives up as it gets shorter.
- *
- * Measured on Ivan's 1440x852 view with the response graph docked under the
- * Karaoke page: the lane's canvas is 71px there, and the bands around the plot
- * wanted 104 of them — the plot came out a pixel tall with every semitone name
- * printed on one line (2026-09-23).
- */
-describe('the pitch lane at every height', () => {
-  const plot = (height: number, hasTargets: boolean) => {
-    const { plotTop, plotBottom } = pitchLaneLayout(height, hasTargets);
-    return height - plotTop - plotBottom;
-  };
-
-  it('gives a song with no target notes everything but the ruler', () => {
-    // Nothing writes words or a review for it, so nothing reserves room for
-    // them: 71px of canvas is a plot you can read a pitch off.
-    expect(plot(71, false)).toBeGreaterThan(35);
-    expect(pitchLaneLayout(71, false).wordLanes).toBe(0);
-    expect(pitchLaneLayout(71, false).showsReview).toBe(false);
-  });
-
-  it('keeps every band while the lane is tall', () => {
-    const tall = pitchLaneLayout(300, true);
-    expect(tall.wordLanes).toBe(PITCH_WORD_LANES);
-    expect(tall.showsReview).toBe(true);
-    expect(plot(300, true)).toBeGreaterThan(150);
-  });
-
-  it('spends the word lanes before the review, and the review before the last lane', () => {
-    const order = [300, 129, 96, 80, 60].map((height) => {
-      const { wordLanes, showsReview } = pitchLaneLayout(height, true);
-      return { wordLanes, showsReview };
-    });
-    // Never rising again as the lane shrinks, and the review outlasts all but
-    // the last lane: it is the only place a part to practise can be pressed.
-    order.slice(1).forEach((step, index) => {
-      expect(step.wordLanes).toBeLessThanOrEqual(order[index].wordLanes);
-    });
-    expect(order[0].showsReview).toBe(true);
-    expect(order[order.length - 1].showsReview).toBe(false);
-    expect(order.every((step) => step.showsReview || step.wordLanes <= 1)).toBe(
-      true,
-    );
-  });
-
-  it('leaves the notes two thirds of a lane too short for any band', () => {
-    // 14px is what a 1280x720 window with a docked graph hands it.
-    expect(plot(14, true)).toBeGreaterThanOrEqual(9);
-    expect(plot(40, true)).toBeGreaterThanOrEqual(26);
-    expect(pitchLaneLayout(14, true).showsReview).toBe(false);
-  });
-
-  it('never asks for more room than the lane has', () => {
-    for (let height = 1; height <= 320; height += 1) {
-      const { plotTop, plotBottom } = pitchLaneLayout(height, true);
-      expect(plotTop + plotBottom).toBeLessThanOrEqual(
-        Math.max(34, height - 1),
-      );
-    }
   });
 });

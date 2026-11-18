@@ -18,6 +18,7 @@ import {
   rgbToLab,
   toByte,
   toGamma,
+  toLinear,
   type ILab,
 } from './oklab';
 import { isLightWindow, subscribeWindowSide } from './windowSide';
@@ -311,6 +312,16 @@ const WHITE_LUMINANCE = 1;
 const readsOnWhite = (lab: ILab): boolean =>
   contrast(luminance(intoGamut(lab)), WHITE_LUMINANCE) >= LINE_ON_WHITE;
 
+/** The same, of a colour as it is written. */
+const hexReadsOnWhite = (hex: string): boolean => {
+  const parsedHex = parseCssColour(hex);
+  return (
+    parsedHex !== undefined &&
+    contrast(luminance(parsedHex.rgb.map(toLinear)), WHITE_LUMINANCE) >=
+      LINE_ON_WHITE
+  );
+};
+
 /**
  * `hex` taken down in OKLab lightness, its hue kept and its chroma kept as far
  * as the screen can show it, to the lightest step that still reads on white;
@@ -344,7 +355,15 @@ export const stopOnWhite = (hex: string): string => {
       fails = middle;
     }
   }
-  return toHex({ ...lab, l: reads });
+  // Written in whole bytes, the step that reads can round a hair lighter than
+  // itself: Lagoon's lightest stop came out at 2.985:1. Taken down a 512th of
+  // lightness at a time until the colour as written reads as well.
+  let out = toHex({ ...lab, l: reads });
+  while (!hexReadsOnWhite(out) && reads > 0) {
+    reads = Math.max(0, reads - 1 / 512);
+    out = toHex({ ...lab, l: reads });
+  }
+  return out;
 };
 
 /** Each palette's light-window copy, made once per palette. */

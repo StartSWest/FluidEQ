@@ -20,14 +20,12 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import KaraokePitchLane from '../../renderer/karaoke/KaraokePitchLane';
 import {
-  buildKaraokeMelodyGuide,
   easeKaraokeSingerTrace,
   findKaraokePitchIssues,
-  groupKaraokePitchWords,
   IKaraokePitchPoint,
-  karaokeNoteTimingState,
-  karaokePitchWordProgress,
   karaokePitchScrubTime,
+  PLOT_LEFT,
+  PLOT_RIGHT,
 } from '../../renderer/karaoke/karaokePitchGeometry';
 
 const fireTestPointer = (
@@ -81,51 +79,6 @@ describe('KaraokePitchLane', () => {
     expect(eased[4]).toBeGreaterThan(60);
   });
 
-  it('builds a smooth lead-melody guide and preserves real phrase gaps', () => {
-    const guide = buildKaraokeMelodyGuide([
-      {
-        text: 'sing',
-        startsWord: true,
-        startMs: 0,
-        endMs: 200,
-        targetMidi: 60,
-      },
-      {
-        text: 'ing',
-        startsWord: false,
-        startMs: 200,
-        endMs: 400,
-        targetMidi: 64,
-      },
-      {
-        text: 'three',
-        startsWord: true,
-        startMs: 600,
-        endMs: 800,
-        targetMidi: 67,
-      },
-    ]);
-
-    const joinedBoundary = guide.filter((point) => point.songTimeMs === 200);
-    expect(joinedBoundary).toHaveLength(1);
-    expect(joinedBoundary[0]).toMatchObject({
-      midi: 62,
-      startsPhrase: false,
-    });
-    expect(guide.find((point) => point.songTimeMs === 600)).toMatchObject({
-      midi: 67,
-      startsPhrase: true,
-    });
-  });
-
-  it('outlines a note as it approaches and when it reaches the playhead', () => {
-    expect(karaokeNoteTimingState(1_000, 1_500, 200)).toBe('idle');
-    expect(karaokeNoteTimingState(1_000, 1_500, 400)).toBe('approaching');
-    expect(karaokeNoteTimingState(1_000, 1_500, 1_000)).toBe('active');
-    expect(karaokeNoteTimingState(1_000, 1_500, 1_500)).toBe('active');
-    expect(karaokeNoteTimingState(1_000, 1_500, 1_501)).toBe('idle');
-  });
-
   it('scrubs the song by dragging the game lane and pauses on release', () => {
     const onScrubStart = jest.fn();
     const onScrub = jest.fn();
@@ -158,7 +111,13 @@ describe('KaraokePitchLane', () => {
 
     fireTestPointer(canvas, 'pointerdown', 7, 500);
     fireTestPointer(canvas, 'pointermove', 7, 400);
-    const expectedTime = karaokePitchScrubTime(4_000, -100, 940, 10_000);
+    // Over the plot's own width: the gutter and the right inset are not time.
+    const expectedTime = karaokePitchScrubTime(
+      4_000,
+      -100,
+      1_000 - PLOT_LEFT - PLOT_RIGHT,
+      10_000,
+    );
 
     expect(onScrubStart).toHaveBeenCalledTimes(1);
     expect(onScrub).toHaveBeenLastCalledWith(expectedTime);
@@ -167,79 +126,6 @@ describe('KaraokePitchLane', () => {
     fireTestPointer(canvas, 'pointerup', 7, 400);
     expect(onScrubEnd).toHaveBeenCalledWith(expectedTime);
     expect(canvas).not.toHaveClass('is-scrubbing');
-  });
-
-  it('joins timed syllables into complete display words', () => {
-    expect(
-      groupKaraokePitchWords([
-        { text: 'jun', startMs: 0, endMs: 100, targetMidi: 60 },
-        { text: 'gle', startMs: 100, endMs: 200, targetMidi: 62 },
-        { text: ' friend', startMs: 200, endMs: 400, targetMidi: 64 },
-      ]),
-    ).toEqual([
-      { text: 'jungle', startMs: 0, endMs: 200 },
-      { text: 'friend', startMs: 200, endMs: 400 },
-    ]);
-  });
-
-  it('fills each tuning-guide word progressively with its timing', () => {
-    expect(karaokePitchWordProgress(1_000, 2_000, 999)).toBe(0);
-    expect(karaokePitchWordProgress(1_000, 2_000, 1_250)).toBe(0.25);
-    expect(karaokePitchWordProgress(1_000, 2_000, 1_750)).toBe(0.75);
-    expect(karaokePitchWordProgress(1_000, 2_000, 2_000)).toBe(1);
-  });
-
-  it('matches each word span to all of its notes and melismas', () => {
-    expect(
-      groupKaraokePitchWords([
-        {
-          text: 'rou',
-          startsWord: true,
-          startMs: 0,
-          endMs: 100,
-          targetMidi: 60,
-        },
-        {
-          text: 'nd',
-          startsWord: false,
-          startMs: 100,
-          endMs: 240,
-          targetMidi: 62,
-        },
-        {
-          text: 'And',
-          startsWord: true,
-          startMs: 300,
-          endMs: 400,
-          targetMidi: 64,
-        },
-        {
-          text: 'A',
-          startsWord: true,
-          startMs: 500,
-          endMs: 600,
-          targetMidi: 65,
-        },
-        {
-          text: 'bout',
-          startsWord: false,
-          startMs: 600,
-          endMs: 720,
-          targetMidi: 67,
-        },
-        {
-          text: '',
-          startsWord: false,
-          startMs: 720,
-          endMs: 900,
-          targetMidi: 67,
-        },
-      ]),
-    ).toEqual([
-      { text: 'round', startMs: 0, endMs: 240 },
-      { text: 'And', startMs: 300, endMs: 400 },
-      { text: 'About', startMs: 500, endMs: 900 },
-    ]);
   });
 
   it('finds high, low, and missed regions in the latest vocal pass', () => {
@@ -328,10 +214,13 @@ describe('KaraokePitchLane', () => {
     ).toBeVisible();
   });
 
+  // A slim strip with no title of its own since the K1 mockup (2026-11-16):
+  // it is named for assistive technology, and says what fills it.
   it('explains how to start and exposes an accessible graph', () => {
     render(<KaraokePitchLane isActive analysisStatus="idle" playheadMs={0} />);
 
-    expect(screen.getByRole('heading', { name: 'Pitch lane' })).toBeVisible();
+    expect(screen.getByRole('article', { name: 'Pitch lane' })).toBeVisible();
+    expect(screen.queryByRole('heading')).toBeNull();
     expect(
       screen.getByRole('button', {
         name: 'Live microphone pitch and target-note lane',
@@ -342,11 +231,14 @@ describe('KaraokePitchLane', () => {
     ).toBeVisible();
   });
 
-  it('shows a live note and identifies imported UltraStar targets', () => {
+  // The note being sung and how far off it is, in the strip's corner beside
+  // the microphone's button, only while the microphone is on (K1, E mockup).
+  it('shows the live note beside the microphone while it is on', () => {
     const { container } = render(
       <KaraokePitchLane
         isActive
         analysisStatus="ready"
+        microphoneStatus="live"
         playheadMs={1_000}
         pitch={{
           frequencyHz: 440,
@@ -375,22 +267,41 @@ describe('KaraokePitchLane', () => {
       />,
     );
 
-    expect(screen.getByText('A4')).toBeVisible();
-    expect(screen.queryByText('Song note')).not.toBeInTheDocument();
-    expect(screen.getByText('+0 ¢ · 440.0 Hz')).toBeVisible();
-    expect(screen.getByText('singstar-xml')).toBeVisible();
-    expect(
-      container.querySelector('.karaoke-pitch__canvas canvas'),
-    ).toBeVisible();
+    const readout = container.querySelector('.karaoke-pitch__readout');
+    expect(readout).toHaveTextContent('A4');
+    expect(readout).toHaveTextContent('+0 ¢');
+    expect(container.querySelector('.karaoke-pitch')).toHaveClass(
+      'has-targets',
+    );
     expect(container.querySelector('.karaoke-pitch__syllables')).toBeNull();
-    expect(
-      screen.getByText(
-        'Blue blocks are the song notes; the thin live curve is the pitch coming from your microphone.',
-      ),
-    ).toBeVisible();
   });
 
-  it('offers the shared app-style microphone switch in the lane', () => {
+  it('shows no live note while the microphone is off', () => {
+    const { container } = render(
+      <KaraokePitchLane
+        isActive
+        analysisStatus="ready"
+        microphoneStatus="off"
+        playheadMs={1_000}
+        pitch={{
+          frequencyHz: 440,
+          midi: 69,
+          note: 'A4',
+          cents: 0,
+          confidence: 0.99,
+          rms: 0.2,
+          capturedAtMs: 12,
+          processingMs: 1,
+        }}
+      />,
+    );
+    expect(container.querySelector('.karaoke-pitch__readout')).toBeNull();
+    expect(screen.queryByText('A4')).toBeNull();
+  });
+
+  // The strip's own round key in its corner (the K1 mockup), pressed while
+  // the microphone is live.
+  it('offers the microphone switch in the strip’s corner', () => {
     const onToggleMicrophone = jest.fn();
     const { container, rerender } = render(
       <KaraokePitchLane
@@ -403,7 +314,9 @@ describe('KaraokePitchLane', () => {
     );
 
     const turnOn = screen.getByRole('button', { name: 'Turn on mic' });
-    expect(turnOn).toHaveClass('button', 'small', 'subtle');
+    expect(turnOn).toHaveClass('karaoke-pitch__mic');
+    expect(turnOn).toHaveAttribute('aria-pressed', 'false');
+    expect(turnOn.closest('.karaoke-pitch__corner')).not.toBeNull();
     fireEvent.click(turnOn);
     expect(onToggleMicrophone).toHaveBeenCalledTimes(1);
 
@@ -416,12 +329,13 @@ describe('KaraokePitchLane', () => {
         onToggleMicrophone={onToggleMicrophone}
       />,
     );
+    const turnOff = screen.getByRole('button', { name: 'Turn off mic' });
+    expect(turnOff).toHaveAttribute('aria-pressed', 'true');
+    expect(turnOff).toHaveClass('is-live');
+    // And it says what it hears beside it: nothing yet.
     expect(
-      screen.getByRole('button', { name: 'Turn off mic' }),
-    ).toHaveAttribute('aria-pressed', 'true');
-    expect(container.querySelector('.karaoke-pitch')).toHaveClass(
-      'is-microphone-live',
-    );
+      container.querySelector('.karaoke-pitch__readout'),
+    ).toBeInTheDocument();
   });
 
   it('keeps the melody-tone controls in the shared transport', () => {
@@ -487,10 +401,8 @@ describe('KaraokePitchLane', () => {
     ).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Notes' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Curve' })).toBeNull();
-    expect(
-      screen.getByText(
-        'Blue blocks are the song notes; the thin live curve is the pitch coming from your microphone.',
-      ),
-    ).toBeVisible();
+    // No legend under it since the K1 mockup: the strip is the notes and the
+    // voice, and nothing written round it.
+    expect(document.querySelector('.karaoke-pitch__legend')).toBeNull();
   });
 });

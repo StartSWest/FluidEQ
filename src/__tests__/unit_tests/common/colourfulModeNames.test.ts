@@ -5,93 +5,60 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * RAINBOW MODE IS COLOURFUL MODE, IN EVERY LANGUAGE, BY THE NAMES IVAN GAVE
- * (2026-10-25: "also change all ui that says rainbow to colorful mode"). The
- * keys keep their old names; what they say on screen is pinned here, and no
- * string the mode's switch, its pill, the Look designer or the Support card
- * shows may name a rainbow again.
+ * NO STRING NAMES A RAINBOW, IN ANY LANGUAGE (Ivan, 2026-10-25: "also change
+ * all ui that says rainbow to colorful mode"). Since 2026-11-18 Colourful
+ * mode is always on and has no name on screen at all: its switch, its pill
+ * on the signal and the Look designer's heading went with their strings. What
+ * still speaks of the window's colours - the Look designer's border, the
+ * Support card's share, the Help page - is pinned here, and the Help page is
+ * found by what replaced the mode: the Tint's second colour and its gradient.
  */
 
 import {
   loadLocale,
   LOCALES,
   translate,
-  type LocaleCode,
   type TranslationKey,
 } from 'common/i18n';
-
-const NAMES: Record<LocaleCode, string> = {
-  en: 'Colourful mode',
-  es: 'Modo colorido',
-  pt: 'Modo colorido',
-  de: 'Bunter Modus',
-  fr: 'Mode coloré',
-  it: 'Modalità colorata',
-  ru: 'Цветной режим',
-  ja: 'カラフルモード',
-  zh: '多彩模式',
-  'zh-Hant': '多彩模式',
-  ko: '컬러풀 모드',
-  hi: 'रंगीन मोड',
-};
-
-/** The one word the meter's pill and the Look designer's heading show. */
-const WORDS: Record<LocaleCode, string> = {
-  en: 'Colourful',
-  es: 'Colorido',
-  pt: 'Colorido',
-  de: 'Bunt',
-  fr: 'Coloré',
-  it: 'Colorata',
-  ru: 'Цветной',
-  ja: 'カラフル',
-  zh: '多彩',
-  'zh-Hant': '多彩',
-  ko: '컬러풀',
-  hi: 'रंगीन',
-};
 
 /** Each language's rainbow, as its strings used to write it. */
 const RAINBOW =
   /rainbow|arco[íi]ris|arco-íris|regenbogen|arc-en-ciel|arcobaleno|радуг|радуж|レインボー|虹|무지개|彩虹|इंद्रधनुष/i;
 
 const SHOWN: TranslationKey[] = [
-  'graph.sceneTint.rainbow',
-  'graph.sceneTint.rainbowHint',
-  'waveform.rainbow',
-  'look.rainbow',
-  'look.needsRainbow',
   'look.rainbowBorder',
   'look.rainbowBorderHint',
   'support.game.shareEuphoria',
+  'help.window.tip',
 ];
 
 const codes = LOCALES.map((locale) => locale.code);
 
 beforeAll(() => Promise.all(codes.map((code) => loadLocale(code))));
 
-describe('Colourful mode’s name', () => {
-  it('covers every registered language', () => {
-    expect([...codes].sort()).toEqual(Object.keys(NAMES).sort());
+describe('the window’s colours, as the strings say them', () => {
+  it('reads the old word as a rainbow (the control for the cases below)', () => {
+    expect('Rainbow mode').toMatch(RAINBOW);
+    expect('Modo arcoíris').toMatch(RAINBOW);
   });
 
-  it.each(codes)('is Ivan’s in %s', (code) => {
-    expect(translate(code, 'graph.sceneTint.rainbow')).toBe(NAMES[code]);
-    expect(translate(code, 'waveform.rainbow')).toBe(WORDS[code]);
-    expect(translate(code, 'look.rainbow')).toBe(WORDS[code]);
-  });
-
-  it.each(codes)('names no rainbow anywhere the mode shows, in %s', (code) => {
+  it.each(codes)('names no rainbow anywhere they show, in %s', (code) => {
     SHOWN.forEach((key) => {
-      expect(translate(code, key)).not.toMatch(RAINBOW);
+      expect([key, translate(code, key)]).toEqual([
+        key,
+        expect.not.stringMatching(RAINBOW),
+      ]);
     });
   });
 
-  it.each(codes)('finds the window’s Help page by it, in %s', (code) => {
-    // Searched for by the name on its switch; the old word stays beside it
-    // in the keywords for anybody who still remembers it.
-    expect(translate(code, 'help.window.keywords')).toMatch(
-      new RegExp(NAMES[code].toLowerCase()),
-    );
-  });
+  // Searched for by what the window offers now; the English words stay
+  // beside each language's own for anybody who searches in them.
+  it.each(codes)(
+    'finds the window’s Help page by the Tint’s second colour and gradient, in %s',
+    (code) => {
+      const keywords = translate(code, 'help.window.keywords').toLowerCase();
+      expect(keywords).toContain('second colour');
+      expect(keywords).toContain('gradient');
+    },
+  );
 });

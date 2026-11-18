@@ -7,6 +7,7 @@ import {
 } from '../../../main/windowBackdrop';
 import {
   THEME_SHADE_MIN,
+  shadeOfDarkStep,
   themeShadeTokens,
 } from '../../../renderer/utils/themeShade';
 
@@ -29,10 +30,14 @@ const fakeWindow = (isFullScreen: boolean) => {
 describe('what the window stands on', () => {
   // First, before any test states a floor: what a fresh install's window
   // shows until the renderer says its theme is the floor of the Brightness
-  // it opens at, half way (`theme.ts`), so nothing changes colour when it
-  // does. Black's floor stood here while Black was the default.
+  // it opens at, half way along the dark walk (`DEFAULT_SHADE`, `theme.ts`),
+  // so nothing changes colour when it does. Black's floor stood here while
+  // Black was the default, and Brightness 50's before the slider ran on into
+  // a light window (2026-11-17).
   it('is the default Brightness’s floor before the renderer states one', () => {
-    expect(windowFloorColour()).toBe(themeShadeTokens(50)['--surface-base']);
+    expect(windowFloorColour()).toBe(
+      themeShadeTokens(shadeOfDarkStep(50))['--surface-base'],
+    );
     // POSITIVE CONTROL: Black's is another colour, so the match is not luck.
     expect(windowFloorColour()).not.toBe(
       themeShadeTokens(THEME_SHADE_MIN)['--surface-base'],

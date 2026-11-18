@@ -205,8 +205,10 @@ describe("the karaoke stage's frame loops", () => {
       runFrame(nowMs);
     }
 
+    // What was heard is reviewed all the same: the strip now offers its
+    // issues to the keyboard. (`aria-disabled` says whether it can be
+    // scrubbed, which this strip with no seek to hand cannot.)
     expect(paints).not.toHaveBeenCalled();
-    expect(canvas).toHaveAttribute('aria-disabled', 'false');
     expect(canvas).toHaveAttribute('tabindex', '0');
   });
 
@@ -337,10 +339,12 @@ describe("the karaoke stage's frame loops", () => {
       const { rerender } = render(
         <KaraokeLyrics song={song} playheadMs={1_200} onSeek={jest.fn()} />,
       );
+      // The control: an uncovered stage asks for its frame. (Once the words
+      // have come to rest it asks for none until something moves them, since
+      // 2026-11-16, so it is asked before that first frame is run.)
+      expect(frames.size).toBe(1);
       frameZero = performance.now() + SONG_LYRIC_ENTRANCE_TIME_MS;
       runFrame(frameZero);
-      // The control: an uncovered stage draws, frame after frame.
-      expect(frames.size).toBe(1);
 
       rerender(
         <KaraokeLyrics

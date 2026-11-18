@@ -11,6 +11,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * ambient is on is not black is ambient color … dark to more lighter"), and
  * exactly as light as Original at every step (2026-09-26: "when I choose
  * tema is darker than when I choose colores … with same 100% brightness").
+ * Since the slider runs on into a light window (2026-11-17), that walk is
+ * the dark stretch, up to `DARK_END_SHADE`; past it the window is white.
  */
 
 import { parseCssColour, rgbToLab } from 'renderer/utils/oklab';
@@ -20,6 +22,7 @@ import {
   tintThemePalette,
 } from 'renderer/utils/sceneTintPalette';
 import {
+  DARK_END_SHADE,
   THEME_SHADE_MAX,
   THEME_SHADE_MIN,
   themeShadeTokens,
@@ -53,7 +56,7 @@ const tintedAt = (shade: number) =>
 
 describe('Brightness under a visualizer’s colours', () => {
   it('is as light as Original at every step, in the visualizer’s hue', () => {
-    [0, 25, 50, 75, 100].forEach((shade) => {
+    [0, 25, 50, DARK_END_SHADE].forEach((shade) => {
       const theme = themeShadeTokens(shade);
       const tinted = tintedAt(shade);
       SCENE_TINT_SURFACES.forEach((token) => {
@@ -71,8 +74,8 @@ describe('Brightness under a visualizer’s colours', () => {
       const { a, b } = labOf(hex);
       return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
     };
-    const tintedHue = hueOf(tintedAt(THEME_SHADE_MAX)['--surface-base']);
-    const themeHue = hueOf(themeShadeTokens(THEME_SHADE_MAX)['--surface-base']);
+    const tintedHue = hueOf(tintedAt(DARK_END_SHADE)['--surface-base']);
+    const themeHue = hueOf(themeShadeTokens(DARK_END_SHADE)['--surface-base']);
     expect(Math.abs(tintedHue - sky.hue)).toBeLessThan(
       Math.abs(themeHue - sky.hue),
     );
@@ -88,13 +91,13 @@ describe('Brightness under a visualizer’s colours', () => {
   });
 
   it('only gets lighter from left to right, and keeps its surfaces in order', () => {
-    const floors = [0, 25, 50, 75, 100].map(
+    const floors = [0, 25, 50, DARK_END_SHADE].map(
       (shade) => labOf(tintedAt(shade)['--surface-base']).l,
     );
     floors.slice(1).forEach((floor, at) => {
       expect(floor).toBeGreaterThan(floors[at]);
     });
-    const right = tintedAt(THEME_SHADE_MAX);
+    const right = tintedAt(DARK_END_SHADE);
     expect(labOf(right['--surface-base']).l).toBeLessThan(
       labOf(right['--surface-panel']).l,
     );
@@ -103,8 +106,31 @@ describe('Brightness under a visualizer’s colours', () => {
     );
   });
 
+  // Past the line the window stays white: a measured sky lends it no surface
+  // and the theme's own white panes and neutral greys stand (Ivan,
+  // 2026-11-17: "se deja white siempre para que el acento se pueda ver").
+  it('lends the light window no surface, and still its accent', () => {
+    [DARK_END_SHADE + 1, 90, THEME_SHADE_MAX].forEach((shade) => {
+      const tinted = tintedAt(shade);
+      SCENE_TINT_SURFACES.forEach((token) => {
+        const worn = tinted[token] ?? themeShadeTokens(shade)[token];
+        expect([shade, token, chromaOf(worn) < 0.005]).toEqual([
+          shade,
+          token,
+          true,
+        ]);
+      });
+      expect(chromaOf(tinted['--accent'])).toBeGreaterThan(0.05);
+    });
+    // CONTROL: on the dark side every surface takes the sky's colour.
+    const dark = tintedAt(DARK_END_SHADE);
+    SCENE_TINT_SURFACES.forEach((token) =>
+      expect(chromaOf(dark[token])).toBeGreaterThan(0.005),
+    );
+  });
+
   it('never stands a surface past where light text still reads', () => {
-    const right = tintedAt(THEME_SHADE_MAX);
+    const right = tintedAt(DARK_END_SHADE);
     // Positive control: every surface came back to be measured.
     expect(SCENE_TINT_SURFACES.every((token) => right[token])).toBe(true);
     SCENE_TINT_SURFACES.forEach((token) =>

@@ -33,16 +33,16 @@ const easedBlocks = (css: string, selector: string): string[] =>
   });
 
 describe('the dial arc', () => {
-  // The lit tube is drawn in layers of light (`KnobDial`), which take their
-  // dash from their group: neither the layers nor the group may ease.
+  // The lit arc is the value's ring (`KnobDial`, the slider's parts bent
+  // round since 2026-11-17), which takes its dash from its group: neither
+  // the ring nor the group may ease.
   it('eases nothing, so its zero end stays where zero is', () => {
     const { css } = compile(path.join(STYLES, 'Knob.scss'), {
       loadPaths: [STYLES],
       quietDeps: true,
     });
-    expect(css).toContain('.knob__neon');
-    expect(easedBlocks(css, '.knob__neon')).toEqual([]);
-    expect(easedBlocks(css, '.knob__neon--far')).toEqual([]);
+    expect(css).toContain('.knob__fill');
+    expect(easedBlocks(css, '.knob__fill')).toEqual([]);
     expect(easedBlocks(css, '.knob__value')).toEqual([]);
   });
 
@@ -54,12 +54,13 @@ describe('the dial arc', () => {
 });
 
 describe('the knob under the pointer', () => {
-  // Only the ring round it lights: its glass takes the accent and its light
-  // comes up, with the pointer's. Lighting the body's edge, the side wall and
+  // Only the ring round it lights: the well its arc runs in takes the hover
+  // tint (since 2026-11-17, when the glass and the pointer's glow went with
+  // the neon tube). Lighting the body's edge, the side wall and
   // a ring round the knob as well lit every border of it at once (Ivan,
   // 2026-09-27: "it highlights all borders, not good", "the hover needs to
   // highlight the external arc").
-  it('lights its ring and the pointer’s glow, nothing on its body', () => {
+  it('lights its ring, nothing on its body', () => {
     const { css } = compile(path.join(STYLES, 'Knob.scss'), {
       loadPaths: [STYLES],
       quietDeps: true,
@@ -71,9 +72,7 @@ describe('the knob under the pointer', () => {
       .flatMap((selectors) => selectors.split(',').map((one) => one.trim()));
     expect(hovered.length).toBeGreaterThan(0);
     hovered.forEach((selector) => {
-      expect(selector).toMatch(
-        /\.knob__(glass|neon--far|neon--near|pointer-glow)$/,
-      );
+      expect(selector).toMatch(/\.knob__well$/);
     });
   });
 });

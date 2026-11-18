@@ -41,9 +41,29 @@ describe('the "on" colour', () => {
     expect(root?.declarations.get('--active')).toBe(LIME);
   });
 
+  // A badge says "on" as the shared badge face does (2026-11-17, `badge` in
+  // `_themeMixins.scss`): the token's own ink over the token's lit tint.
   it.each([
-    ['DeviceProfiles.scss', '.default-badge', 'background'],
-    ['PresetsBar.scss', '.preset-attached', 'background'],
+    ['DeviceProfiles.scss', '.default-badge'],
+    ['PresetsBar.scss', '.preset-attached'],
+  ])('%s says "on" with the token in the badge %s', (file, selector) => {
+    const css = compileStylesheet(file);
+    const inks = valuesFor(css, selector, 'color');
+    const fills = valuesFor(css, selector, 'background');
+    expect(inks).toContain('var(--active)');
+    expect(fills.length).toBeGreaterThan(0);
+    fills.forEach((fill) => {
+      expect(fill).toMatch(
+        /^color-mix\(in srgb, var\(--active\) \d+%, transparent\)$/,
+      );
+    });
+    // CONTROL: the lime itself is written nowhere in it.
+    [...inks, ...fills].forEach((value) => {
+      expect(value.toLowerCase()).not.toContain(LIME);
+    });
+  });
+
+  it.each([
     ['Gallery.scss', '.gallery-preview__live', 'background'],
     ['Studio.scss', '.studio-projects__live', 'background'],
     ['StudioCode.scss', '.studio-code__dot', 'background'],

@@ -149,8 +149,11 @@ describe('the Maker canvas layers', () => {
     });
 
     expect(result).toBeUndefined();
-    // It painted a ground and a ruler rather than returning early.
-    expect(context.calls).toEqual(expect.arrayContaining(['fillRect(4)']));
+    // It painted its lines and a ruler rather than returning early. No ground
+    // of its own: the Maker is one flat card (2026-11-15), and the canvas
+    // lies on the card's colour.
+    expect(context.calls).toEqual(expect.arrayContaining(['stroke(0)']));
+    expect(context.calls).not.toEqual(expect.arrayContaining(['fillRect(4)']));
     expect(context.calls.some((call) => call.startsWith('fillText'))).toBe(
       true,
     );

@@ -14,10 +14,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { act, render } from '@testing-library/react';
-import SupportPet, {
-  DANCE_ANIMATION,
-  DANCE_LOUD_FRAMES,
-} from '../../../renderer/SupportPet';
+import { DANCE_SWAYS, sway } from '../../../renderer/pet/petMotion';
+import SupportPet, { DANCE_LOUD_FRAMES } from '../../../renderer/SupportPet';
 
 interface IFrame {
   waveform: number[];
@@ -27,15 +25,28 @@ interface IFrame {
 const mockListeners = new Set<() => void>();
 let mockFrame: IFrame = { waveform: [], outputLevels: [] };
 
+// The capture as the real context publishes it, a store: since 2026-11-16 the
+// pet hears each frame through a listener on it rather than by rendering.
 jest.mock('renderer/audio/LiveAudioContext', () => {
   const { useSyncExternalStore } = jest.requireActual('react');
+  const { useStoreListener, useStoreSelector } = jest.requireActual<
+    typeof import('../../../renderer/utils/useStoreSelector')
+  >('../../../renderer/utils/useStoreSelector');
   const subscribe = (listener: () => void) => {
     mockListeners.add(listener);
-    return () => mockListeners.delete(listener);
+    return () => {
+      mockListeners.delete(listener);
+    };
   };
+  const frames = { read: () => mockFrame, subscribe };
   return {
     useLiveAudioControl: () => ({ isActive: true, isPaused: false }),
-    useLiveAudioFrame: () => useSyncExternalStore(subscribe, () => mockFrame),
+    useLiveAudioFrames: () => frames,
+    useLiveAudioFrame: () => useSyncExternalStore(subscribe, frames.read),
+    useLiveAudioFrameSelector: <S,>(select: (frame: IFrame) => S) =>
+      useStoreSelector(frames, select),
+    useLiveAudioFrameListener: (listener: (frame: IFrame) => void) =>
+      useStoreListener(frames, listener),
   };
 });
 
@@ -159,25 +170,44 @@ describe('the dance', () => {
     expect(pet(container).classList.contains('is-dancing')).toBe(true);
   });
 
+  // The titlebar pet is drawn on a canvas (2026-11-16), so there is no CSS
+  // animation to end: the canvas says the dance is over once it has drawn
+  // its sixth sway (`PetCanvas`, `DANCE_SWAYS`).
   it('ends with its own last sway, and nothing else’s', () => {
     jest.spyOn(Math, 'random').mockReturnValue(0);
-    const { container } = render(
-      <SupportPet hasContributed onOpen={() => undefined} />,
-    );
-    startListening();
-    hearLoud(DANCE_LOUD_FRAMES);
-    expect(pet(container).classList.contains('is-dancing')).toBe(true);
+    const drawing: Record<string | symbol, unknown> = {};
+    const context = new Proxy(drawing, {
+      get: (target, property) =>
+        property in target ? target[property] : () => undefined,
+      set: (target, property, value) => Reflect.set(target, property, value),
+    });
+    jest
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue(context as unknown as CanvasRenderingContext2D);
+    Object.assign(globalThis, { Path2D: jest.fn(() => ({})) });
+    try {
+      const { container } = render(
+        <SupportPet hasContributed onOpen={() => undefined} />,
+      );
+      startListening();
+      hearLoud(DANCE_LOUD_FRAMES);
+      expect(pet(container).classList.contains('is-dancing')).toBe(true);
 
-    const art = container.querySelector('.support-pet__art');
-    if (!art) {
-      throw new Error('no drawing');
+      // The control: five sways and a half in, and another animation (the
+      // blink's, the twinkle's) ending on the pet, are not it.
+      act(() => {
+        jest.advanceTimersByTime(sway(true).durationMs * (DANCE_SWAYS - 0.5));
+      });
+      endAnimation(pet(container), 'pet-twinkle');
+      expect(pet(container).classList.contains('is-dancing')).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(sway(true).durationMs);
+      });
+      expect(pet(container).classList.contains('is-dancing')).toBe(false);
+    } finally {
+      Reflect.deleteProperty(globalThis, 'Path2D');
     }
-    // The control: the eyes' blink or the star's twinkle ending is not it.
-    endAnimation(art, 'pet-twinkle');
-    expect(pet(container).classList.contains('is-dancing')).toBe(true);
-
-    endAnimation(art, DANCE_ANIMATION);
-    expect(pet(container).classList.contains('is-dancing')).toBe(false);
   });
 
   it('never starts for somebody who asked for less motion', () => {

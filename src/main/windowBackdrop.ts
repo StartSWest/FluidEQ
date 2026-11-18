@@ -64,8 +64,10 @@ const WINDOW_BACKDROP_MATERIAL = 'acrylic' as const;
  * keeps doing that whether or not anything of it can be seen through the
  * fill.
  *
- * The default is the default Brightness's `--surface-base` (50, `theme.ts`:
- * `themeShadeTokens(50)`); the renderer states the theme's own on startup and
+ * The default is the default Brightness's `--surface-base` (half way along
+ * the dark walk, `DEFAULT_SHADE` in `theme.ts`: `themeShadeTokens(38)`
+ * since the slider runs on into a light window); the renderer states the
+ * theme's own on startup and
  * on every switch, because only the document knows it.
  */
 const DEFAULT_FLOOR = '#0a1722';

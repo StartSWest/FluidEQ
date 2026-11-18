@@ -290,7 +290,7 @@ describe('Open stage phrase geometry', () => {
 
 describe('Open stage real canvas behavior', () => {
   const previousObserver = window.ResizeObserver;
-  let draw: (() => void) | undefined;
+  let draw: ((entries: readonly unknown[]) => void) | undefined;
   let now = 0;
   let recording: ReturnType<typeof recordingContext>;
   const song: IKaraokeSong = {
@@ -342,7 +342,7 @@ describe('Open stage real canvas behavior', () => {
       });
     window.ResizeObserver = jest
       .fn()
-      .mockImplementation((callback: () => void) => {
+      .mockImplementation((callback: (entries: readonly unknown[]) => void) => {
         draw = callback;
         return {
           observe: () => undefined,
@@ -359,7 +359,15 @@ describe('Open stage real canvas behavior', () => {
   const paintFrame = (time: number) => {
     now = time;
     expect(draw).toBeDefined();
-    act(() => draw?.());
+    // The box as a ResizeObserver reports it, which the words are sized by.
+    act(() =>
+      draw?.([
+        {
+          borderBoxSize: [{ inlineSize: 420, blockSize: 520 }],
+          contentRect: { width: 420, height: 520 },
+        },
+      ]),
+    );
   };
 
   it('keeps the lyric sweep on the original timeline across wrapped rows and seeks every painted row', () => {

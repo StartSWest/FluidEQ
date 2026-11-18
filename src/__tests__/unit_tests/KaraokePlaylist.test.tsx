@@ -41,6 +41,10 @@ describe('KaraokePlaylist', () => {
       <KaraokePlaylist
         items={items}
         selectedId={items[0].id}
+        isBusy={false}
+        onAddFiles={jest.fn()}
+        onAddFolder={jest.fn()}
+        onClear={jest.fn()}
         onToggleFolderGrouping={jest.fn()}
         onSelect={onSelect}
         onActivate={jest.fn()}
@@ -50,7 +54,10 @@ describe('KaraokePlaylist', () => {
       />,
     );
 
-    expect(screen.getByRole('heading', { name: 'Playlist' })).toBeVisible();
+    // "Songs · n" since the K1 mockup (2026-11-16).
+    expect(screen.getByRole('heading', { name: /^Songs/ })).toHaveTextContent(
+      '2',
+    );
     expect(
       screen.getByRole('button', { name: 'Select First' }),
     ).toHaveAttribute('aria-current', 'true');
@@ -92,6 +99,10 @@ describe('KaraokePlaylist', () => {
         items={items}
         selectedId={first.id}
         groupByFolder={groupByFolder}
+        isBusy={false}
+        onAddFiles={jest.fn()}
+        onAddFolder={jest.fn()}
+        onClear={jest.fn()}
         onToggleFolderGrouping={onToggleFolderGrouping}
         onSelect={onSelect}
         onActivate={jest.fn()}
@@ -101,15 +112,19 @@ describe('KaraokePlaylist', () => {
       />
     );
     const { rerender } = render(playlist());
+    // The folders' headings, each a button that folds its folder. A row
+    // names its folder too, under its title, so the headings are asked for.
+    const folder = (name: string) =>
+      screen.queryByRole('button', { name: new RegExp(`^${name}`) });
 
-    expect(screen.queryByText('Artist')).not.toBeInTheDocument();
+    expect(folder('Artist')).toBeNull();
 
     rerender(playlist(true));
 
-    expect(screen.getByText('Artist')).toBeVisible();
-    expect(screen.getByText('Album')).toBeVisible();
-    expect(screen.getByText('Live')).toBeVisible();
-    expect(screen.getByText('Loose files')).toBeVisible();
+    expect(folder('Artist')).toBeVisible();
+    expect(folder('Album')).toBeVisible();
+    expect(folder('Live')).toBeVisible();
+    expect(folder('Loose files')).toBeVisible();
   });
 
   it('folds a folder to its heading, which says how many songs it holds', () => {
@@ -123,6 +138,10 @@ describe('KaraokePlaylist', () => {
         items={songs}
         selectedId={songs[0].id}
         groupByFolder
+        isBusy={false}
+        onAddFiles={jest.fn()}
+        onAddFolder={jest.fn()}
+        onClear={jest.fn()}
         onToggleFolderGrouping={jest.fn()}
         onSelect={jest.fn()}
         onActivate={jest.fn()}

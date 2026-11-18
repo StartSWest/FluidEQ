@@ -208,8 +208,10 @@ describe('the reading under a knob', () => {
 });
 
 describe('the marks round a knob', () => {
+  // The dial's marks just outside its ring (`knob__mark`, 2026-11-17: the
+  // dial built from the slider's parts; they were the neon tube's beads).
   const beads = (container: HTMLElement) =>
-    container.querySelectorAll('.knob__bead').length;
+    container.querySelectorAll('.knob__mark').length;
 
   it('are its two ends and where it rests, on a boost or cut', () => {
     expect(beads(mount({ min: -20, max: 20 }).container)).toBe(3);

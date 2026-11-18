@@ -78,8 +78,26 @@ describe('the Maker editor view', () => {
     expect(result.current.followViewport).toBe(false);
     expect(result.current.previewOpen).toBe(false);
     expect(result.current.previewTextSize).toBe(120);
-    expect(result.current.previewHeight).toBe(210);
+    // Not the song's: the preview's height is one preference for the Maker
+    // since 2026-11-15 ("the resize of the preview in the Maker also gets
+    // saved"), so a song's old record does not move it.
+    expect(result.current.previewHeight).toBe(DEFAULT_PREVIEW_HEIGHT);
     expect(result.current.timingScope).toBe('from-word');
+  });
+
+  it('opens the preview at the height it was last resized to, for every song', () => {
+    window.localStorage.setItem('fluideq.karaoke.maker-preview-height', '212');
+    const { result } = renderHook(() =>
+      useKaraokeMakerEditorView('another song', undefined),
+    );
+    expect(result.current.previewHeight).toBe(212);
+    // CONTROL: a height outside the splitter's range is not taken.
+    window.localStorage.setItem('fluideq.karaoke.maker-preview-height', '9000');
+    const outside = renderHook(() =>
+      useKaraokeMakerEditorView('another song', undefined),
+    );
+    expect(outside.result.current.previewHeight).toBe(DEFAULT_PREVIEW_HEIGHT);
+    window.localStorage.removeItem('fluideq.karaoke.maker-preview-height');
   });
 
   it('writes the view back under the song it belongs to when the window goes', () => {

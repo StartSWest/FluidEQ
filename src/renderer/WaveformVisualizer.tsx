@@ -711,11 +711,21 @@ const WaveformVisualizer = () => {
 
   // A new measurement is a new target, and a reason to start moving again;
   // and a step of the held peak, which renders only when its figure changes.
+  //
+  // Each published frame is taken once, whoever hands it over. The frame
+  // listener reads the current frame as it subscribes, and so does the
+  // switch-on effect below in the same commit: taking it twice stepped the
+  // held peak down once for a frame that was published once, so the figure
+  // opened a step (1.1 dB) under the music's own peak. Only a frame actually
+  // taken counts as taken, so the ones that arrive while the meter is off are
+  // still taken when it comes back on.
+  const takenWaveformRef = useRef<number[] | undefined>(undefined);
   const takeWaveform = useCallback(
     (waveform: number[]) => {
-      if (isOffRef.current) {
+      if (isOffRef.current || waveform === takenWaveformRef.current) {
         return;
       }
+      takenWaveformRef.current = waveform;
       targetRef.current = waveform;
       // The block's own arrival, which is what dates it when the drawing
       // cannot read the capture's audio clock.
@@ -731,13 +741,9 @@ const WaveformVisualizer = () => {
     },
     [kickFrames],
   );
-  const takenWaveformRef = useRef<number[] | undefined>(undefined);
   useLiveAudioFrameListener(({ points, waveform }) => {
     pointsRef.current = points;
-    if (waveform !== takenWaveformRef.current) {
-      takenWaveformRef.current = waveform;
-      takeWaveform(waveform);
-    }
+    takeWaveform(waveform);
   });
   // Switched back on, the meter takes the reading there is now: the ones that
   // arrived while it was off were not taken.

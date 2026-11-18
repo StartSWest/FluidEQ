@@ -99,7 +99,9 @@ describe('the DSP graphs’ colours', () => {
   it.each([
     ['--dsp-base-curve', '#40d6c8', 'var(--active)'],
     ['--dsp-contrast', '#ffb059', 'var(--active)'],
-    ['--dsp-output', '#ffffff', 'var(--active)'],
+    // The window's own ink at rest (2026-11-17): white on a dark window and
+    // dark on a light one, where a fixed white vanished.
+    ['--dsp-output', 'var(--ink)', 'var(--active)'],
     ['--dsp-applied', '#c58af9', 'var(--accent)'],
     ['--dsp-sky', '#54c8ff', 'var(--accent-light)'],
     ['--dsp-field', '#96cdff', 'var(--active)'],
@@ -115,47 +117,33 @@ describe('the DSP graphs’ colours', () => {
 
 describe('the knob', () => {
   const rules = styleRules(compileStylesheet('Knob.scss'));
-  const stopColour = (fragment: string, tinted: boolean) =>
-    rules
-      .find(({ selectors }) =>
-        selectors.some(
-          (selector) =>
-            selector.endsWith(fragment) &&
-            selector.startsWith(':root[data-scene-tint]') === tinted,
-        ),
-      )
-      ?.declarations.get('stop-color');
 
-  // The body, its edge, its side wall and the channel its light lies in are
-  // all worked out from the pane's own colour, which a scene's tint
-  // redefines on the root — so the knob follows a recoloured window through
-  // the variables alone, with no tinted copy of its own. It used to be three
-  // fixed navy blues with a tinted copy beside them, which is what made it
-  // the one blue disc in a green window.
+  // The body - its skirt, its cap and the cut round them - is worked out
+  // from the pane's own colour, which a scene's tint redefines on the root,
+  // so the knob follows a recoloured window through the variables alone,
+  // with no tinted copy of its own. It used to be three fixed navy blues
+  // with a tinted copy beside them, which is what made it the one blue disc
+  // in a green window. Since 2026-11-17 the dial is the slider's parts bent
+  // round (`KnobDial`): flat fills, no gradient stops.
   it('is built from the pane’s colour, so a scene’s tint reaches it by itself', () => {
-    expect(stopColour('.knob__stop--body-lit', false)).toBe(
-      'var(--knob-body-lit)',
-    );
-    expect(stopColour('.knob__stop--body-foot', false)).toBe(
-      'var(--knob-body-foot)',
-    );
-    const knob = rules.find(({ selectors }) =>
-      selectors.includes('.knob'),
-    )?.declarations;
-    [
-      '--knob-edge',
-      '--knob-body-lit',
-      '--knob-body-foot',
-      '--knob-wall',
-      '--knob-channel',
-    ].forEach((name) => {
-      expect([name, knob?.get(name)]).toEqual([
-        name,
-        expect.stringContaining('var(--surface-panel)'),
+    const declared = (selector: string, property: string) =>
+      rules
+        .filter(({ selectors }) => selectors.includes(selector))
+        .map(({ declarations }) => declarations.get(property))
+        .find((value) => value !== undefined);
+    ['.knob__skirt', '.knob__cap'].forEach((part) => {
+      expect([part, declared(part, 'fill')]).toEqual([
+        part,
+        expect.stringMatching(/^oklch\(from var\(--surface-panel\) /),
+      ]);
+      expect([part, declared(part, 'stroke')]).toEqual([
+        part,
+        expect.stringMatching(/^oklch\(from var\(--surface-panel\) /),
       ]);
     });
+    // The control: the value it shows is the accent's, not the pane's.
+    expect(declared('.knob__fill', 'stroke')).toBe('var(--accent)');
     // No rule of its own under the tint: the ones above are the ones that run.
-    expect(stopColour('.knob__stop--body-lit', true)).toBeUndefined();
     expect(
       rules.some(({ selectors }) =>
         selectors.some(

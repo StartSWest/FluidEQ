@@ -24,7 +24,9 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
+import { findSongTitle } from '../utils/karaokeSongTitle';
 import { setKaraokeRelativePath } from '../../common/karaoke/files';
 import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
@@ -78,6 +80,16 @@ const advanceAudioClock = async (seconds: number) => {
   await act(async () => {
     mockClockContext.advance(seconds);
   });
+};
+
+/** Puts the stage on the song's video (the stage bar's Background switch). */
+const chooseVideo = () => {
+  fireEvent.click(
+    within(screen.getByRole('group', { name: 'Background' })).getByRole(
+      'button',
+      { name: 'Video' },
+    ),
+  );
 };
 
 describe('KaraokeWorkspace imports and the stage', () => {
@@ -227,9 +239,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
         },
       },
     );
-    expect(
-      await screen.findByRole('heading', { name: 'Counting' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Counting')).toBeVisible();
     // Each beat was a `setTimeout` started when the one before it fired.
     const timers = jest.spyOn(window, 'setTimeout');
     const cue = () => container.querySelector('.karaoke-count-in strong');
@@ -262,7 +272,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
     }
   });
 
-  it('moves the redesigned pitch lane beside the mic in a compact window', async () => {
+  it('keeps the pitch strip on the stage in a compact window', async () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: jest.fn().mockReturnValue({
@@ -287,23 +297,18 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     });
 
-    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(await findSongTitle('compact')).toBeVisible();
+    // The strip stays on the stage in a compact window since the K1 mockup
+    // (2026-11-16); it used to leave it for the readiness row beside the
+    // microphone. One strip, never a second copy, and the transport under
+    // the stage rather than inside it.
+    expect(container.querySelectorAll('.karaoke-pitch')).toHaveLength(1);
     expect(
       container.querySelector('.karaoke-workspace__stage .karaoke-pitch'),
-    ).not.toBeInTheDocument();
+    ).toBeInTheDocument();
     expect(
       container.querySelector('.karaoke-workspace__readiness .karaoke-pitch'),
-    ).toBeVisible();
-    expect(
-      container.querySelector('.karaoke-workspace__stage'),
-    ).not.toHaveClass('has-stage-pitch');
-    const readiness = container.querySelector(
-      '.karaoke-workspace__readiness',
-    ) as HTMLElement;
-    const transport = container.querySelector(
-      '.karaoke-transport',
-    ) as HTMLElement;
-    expect(readiness.nextElementSibling).toBe(transport);
+    ).not.toBeInTheDocument();
     expect(
       container.querySelector('.karaoke-workspace__stage .karaoke-transport'),
     ).not.toBeInTheDocument();
@@ -323,7 +328,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     });
 
-    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(await findSongTitle('voice')).toBeVisible();
     expect(lyricNotice(container)).toHaveTextContent(
       'voice.lrc carries no timings FluidEQ could read. The audio remains available without timed lyrics.',
     );
@@ -351,7 +356,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     );
 
-    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(await findSongTitle('beatless')).toBeVisible();
     expect(lyricNotice(container)).toHaveTextContent(
       'beatless.txt declares no BPM, which an UltraStar file needs. The audio remains available without timed lyrics.',
     );
@@ -380,7 +385,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     );
 
-    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(await findSongTitle('broken')).toBeVisible();
     expect(lyricNotice(container)).toHaveTextContent(
       'broken.txt has a note row FluidEQ could not read. Line 6. The audio remains available without timed lyrics.',
     );
@@ -404,9 +409,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     );
 
-    expect(
-      await screen.findByRole('heading', { name: 'Sing Along' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Sing Along')).toBeVisible();
     expect(importNotice(container)).toHaveTextContent(
       'FluidEQ has no karaoke reader for these files yet, so they were set aside: CDG, SRT.',
     );
@@ -431,7 +434,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       );
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
     importSetAside(container);
-    await screen.findByRole('heading', { name: 'Sing Along' });
+    await findSongTitle('Sing Along');
 
     const notice = importNotice(container) as HTMLElement;
     animationEnd(notice, 'rise-in');
@@ -442,6 +445,9 @@ describe('KaraokeWorkspace imports and the stage', () => {
     importSetAside(container);
     fireEvent.click(await screen.findByRole('button', { name: 'Dismiss' }));
     expect(importNotice(container)).not.toBeInTheDocument();
+    // The second import's own work (the rows read each song's length as
+    // they are first seen) lands before the case ends, inside act.
+    await act(async () => undefined);
   });
 
   it('says two lyric files matched one song, so neither was used', async () => {
@@ -463,7 +469,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     );
 
-    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(await findSongTitle('Twin')).toBeVisible();
     expect(importNotice(container)).toHaveTextContent(
       'Two lyric files matched the same song, so neither was used: Twin.lrc, Twin.txt.',
     );
@@ -488,7 +494,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     );
 
-    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(await findSongTitle('Twin')).toBeVisible();
     expect(importNotice(container)).toHaveTextContent(
       'Two lyric files matched the same song, so neither was used: Twin.lrc, Twin.txt.',
     );
@@ -528,9 +534,10 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     );
 
-    expect(
-      await screen.findByRole('heading', { name: 'Retro Pack' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Retro Pack')).toBeVisible();
+    // A video is its own background since the K1 mockup (2026-11-16): Art
+    // is the picture alone, and the stage shows the video once Video is on.
+    chooseVideo();
     const notice = container.querySelector(
       '.karaoke-stage-media__unsupported',
     ) as HTMLElement;
@@ -543,9 +550,11 @@ describe('KaraokeWorkspace imports and the stage', () => {
       screen.getAllByRole('status').map((node) => node.textContent),
     ).toContain('AVI video cannot be played here');
     expect(container.querySelector('video')).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Hide cover art' }),
-    ).toBeEnabled();
+    // The control: Video is the background in use.
+    expect(screen.getByRole('button', { name: 'Video' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   it('lets a picture that will not decode step aside for the gradient', async () => {
@@ -564,9 +573,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     );
 
-    expect(
-      await screen.findByRole('heading', { name: 'Broken Art' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Broken Art')).toBeVisible();
     const still = container.querySelector(
       '.karaoke-stage-media__still',
     ) as HTMLImageElement;
@@ -601,9 +608,10 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     );
 
-    expect(
-      await screen.findByRole('heading', { name: 'Modern' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Modern')).toBeVisible();
+    // A video is its own background since the K1 mockup (2026-11-16): Art
+    // is the picture alone, and the stage shows the video once Video is on.
+    chooseVideo();
     // The extension says playable, so nothing is said until the decoder
     // disagrees — an HEVC or AC-3 MP4 gets this far and then errors.
     expect(
@@ -651,20 +659,26 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Folder First' }),
-    ).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'Playlist' })).toBeVisible();
-    expect(screen.getByText('2')).toBeVisible();
+    expect(await findSongTitle('Folder First')).toBeVisible();
+    // "Songs · 2": the two songs, and not the licence beside them.
+    expect(screen.getByRole('heading', { name: /^Songs/ })).toHaveTextContent(
+      '2',
+    );
     expect(screen.queryByText('License')).not.toBeInTheDocument();
-    const groupFolders = screen.getByRole('button', {
-      name: 'Group by folder',
-    });
-    expect(groupFolders).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.queryByText('Album')).not.toBeInTheDocument();
-    fireEvent.click(groupFolders);
-    expect(groupFolders).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText('Album')).toBeVisible();
+    // Grouping is in the list heading's + menu since the K1 mockup.
+    const groupFolders = () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Add songs' }));
+      return screen.getByRole('menuitemcheckbox', { name: 'Group by folder' });
+    };
+    const albumHeading = () => screen.queryByRole('button', { name: /^Album/ });
+    expect(groupFolders()).toHaveAttribute('aria-checked', 'false');
+    expect(albumHeading()).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('menuitemcheckbox', { name: 'Group by folder' }),
+    );
+    expect(albumHeading()).toBeVisible();
+    expect(groupFolders()).toHaveAttribute('aria-checked', 'true');
+    fireEvent.keyDown(window, { key: 'Escape' });
     expect(
       window.localStorage.getItem('fluideq-karaoke-playlist-group-by-folder'),
     ).toBe('true');
@@ -672,27 +686,21 @@ describe('KaraokeWorkspace imports and the stage', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'Select Artist Second' }),
     );
-    expect(
-      await screen.findByRole('heading', { name: 'Artist Second' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Artist Second')).toBeVisible();
     expect(createObjectURL).toHaveBeenLastCalledWith(secondAudio);
 
     fireEvent.click(
       screen.getByRole('button', { name: 'Select Artist First' }),
     );
-    expect(
-      await screen.findByRole('heading', { name: 'Folder First' }),
-    ).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    expect(await findSongTitle('Folder First')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Open in Maker' }));
     expect(screen.getByRole('textbox', { name: 'Song title' })).toHaveValue(
       'Folder First',
     );
     const audio = container.querySelector('audio') as HTMLAudioElement;
     fireEvent.playing(audio);
     fireEvent.ended(audio);
-    expect(
-      await screen.findByRole('heading', { name: 'Artist Second' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Artist Second')).toBeVisible();
     expect(screen.getByRole('textbox', { name: 'Song title' })).toHaveValue(
       'Artist Second',
     );
@@ -710,7 +718,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
       type: 'audio/mpeg',
     });
     fireEvent.change(fileInput, { target: { files: [audio] } });
-    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(await findSongTitle('Late Lyrics')).toBeVisible();
 
     const lyrics = new File(
       [
@@ -730,11 +738,15 @@ describe('KaraokeWorkspace imports and the stage', () => {
       },
     });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Lyrics Attached' }),
-    ).toBeVisible();
-    expect(screen.getByText('UltraStar · syllables + pitch')).toBeVisible();
-    expect(screen.getByText('ultrastar')).toBeVisible();
+    expect(await findSongTitle('Lyrics Attached')).toBeVisible();
+    // Its notes reach the pitch strip: the song now has targets to sing to.
+    // (The source's name was written in the song's title block, which went
+    // with the K1 mockup.)
+    await waitFor(() =>
+      expect(document.querySelector('.karaoke-pitch')).toHaveClass(
+        'has-targets',
+      ),
+    );
   });
 
   it('keeps song playback alive when another FluidEQ tab hides Karaoke', async () => {
@@ -749,7 +761,7 @@ describe('KaraokeWorkspace imports and the stage', () => {
         files: [new File(['audio'], 'persistent.wav', { type: 'audio/wav' })],
       },
     });
-    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(await findSongTitle('persistent')).toBeVisible();
     const audio = container.querySelector('audio') as HTMLAudioElement;
     fireEvent.playing(audio);
     const pausesBeforeTabChange = pause.mock.calls.length;
@@ -771,6 +783,12 @@ describe('KaraokeWorkspace imports and the stage', () => {
     ).toBeVisible();
     expect(screen.getByRole('button', { name: 'Stop' })).toBeVisible();
     audio.currentTime = 4;
+    // Playing, as jsdom's element never says by itself: Stop pauses only an
+    // element that is playing (`useKaraokeSession`'s pause).
+    Object.defineProperty(audio, 'paused', {
+      configurable: true,
+      get: () => false,
+    });
     const pausesBeforeStop = pause.mock.calls.length;
     fireEvent.click(screen.getByRole('button', { name: 'Stop' }));
     expect(pause).toHaveBeenCalledTimes(pausesBeforeStop + 1);

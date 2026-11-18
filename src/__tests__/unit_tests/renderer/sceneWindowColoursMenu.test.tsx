@@ -6,10 +6,16 @@
  * changeable for that scene on this computer, a dot on a changed one, the
  * badge saying whose they are, and "Use the scene's colours" back to the
  * scene's own, greyed out while there is nothing to undo.
+ *
+ * Each colour is a button that opens FluidEQ's own colour picker (Ivan,
+ * 2026-11-18: "que maché con el estilo de Fluid ... y que tenga un botón de
+ * aceptar"): the window follows the picker while it moves, Accept keeps the
+ * colour, and Cancel, Escape or a press outside put back the one it opened
+ * with.
  */
 
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import SceneWindowColours from 'renderer/graph/SceneWindowColours';
 import {
   clearChosenWindowColours,
@@ -51,13 +57,32 @@ jest.mock('renderer/utils/I18nContext', () => ({
   }),
 }));
 
-const picker = (role: string) =>
-  screen.getByLabelText(`graph.sceneColours.pick:graph.sceneColours.${role}`);
+const swatch = (role: string) =>
+  screen.getByRole('button', {
+    name: `graph.sceneColours.pick:graph.sceneColours.${role}`,
+  });
+
+/** The colour a swatch shows, as its hex line says it. */
+const shownOn = (role: string) =>
+  swatch(role).querySelector('.window-colour-swatch__hex')?.textContent;
+
+/** Opens `role`'s picker and types `hex` into it; the picker is returned. */
+const pickInto = (role: string, hex: string) => {
+  fireEvent.click(swatch(role));
+  const picker = screen.getByRole('dialog', {
+    name: `graph.sceneColours.${role}`,
+  });
+  fireEvent.change(within(picker).getByLabelText('graph.sceneColours.hex'), {
+    target: { value: hex },
+  });
+  return picker;
+};
 
 beforeEach(() => {
   mockLookId = LOOK;
   window.localStorage.clear();
   resetChosenWindowColoursForTesting();
+  Reflect.deleteProperty(window, 'EyeDropper');
 });
 
 it("shows the scene's own three, its badge, and nothing to undo", () => {
@@ -66,40 +91,81 @@ it("shows the scene's own three, its badge, and nothing to undo", () => {
     screen.getByText('graph.sceneColours.title:Aurora'),
   ).toBeInTheDocument();
   expect(screen.getByText('graph.sceneColours.own')).toBeInTheDocument();
-  expect((picker('surface') as HTMLInputElement).value).toBe(OWN.surface);
-  expect((picker('accent') as HTMLInputElement).value).toBe(OWN.accent);
-  expect((picker('glow') as HTMLInputElement).value).toBe(OWN.glow);
+  expect(shownOn('surface')).toBe(OWN.surface.toUpperCase());
+  expect(shownOn('accent')).toBe(OWN.accent.toUpperCase());
+  expect(shownOn('glow')).toBe(OWN.glow.toUpperCase());
   expect(
     screen.getByRole('button', { name: 'graph.sceneColours.reset' }),
   ).toBeDisabled();
 });
 
-it('keeps a colour the picker settles on for this scene, and marks it yours', () => {
+it('keeps the colour the picker is accepted on for this scene, and marks it yours', () => {
   render(<SceneWindowColours />);
-  const accent = picker('accent') as HTMLInputElement;
-  // The picker moving changes only what is shown; settling keeps it.
-  fireEvent.input(accent, { target: { value: '#ffd23f' } });
+  const picker = pickInto('accent', '#ffd23f');
+  // The picker moving changes only what is shown; Accept keeps it.
+  expect(shownOn('accent')).toBe('#FFD23F');
   expect(getChosenWindowColours(LOOK)).toBeUndefined();
-  act(() => {
-    accent.dispatchEvent(new Event('change'));
-  });
+  fireEvent.click(
+    within(picker).getByRole('button', { name: 'graph.sceneColours.accept' }),
+  );
   expect(getChosenWindowColours(LOOK)).toEqual({ ...OWN, accent: '#ffd23f' });
   expect(screen.getByText('graph.sceneColours.yours')).toBeInTheDocument();
-  expect(accent.closest('label')).toHaveClass('is-changed');
-  expect(picker('surface').closest('label')).not.toHaveClass('is-changed');
+  expect(swatch('accent')).toHaveClass('is-changed');
+  expect(swatch('surface')).not.toHaveClass('is-changed');
   // Kept across a launch, on this computer.
   expect(window.localStorage.getItem('fluideq.sceneWindowColours')).toContain(
     '#ffd23f',
   );
 });
 
+it.each([
+  [
+    'Cancel',
+    (picker: HTMLElement) =>
+      fireEvent.click(
+        within(picker).getByRole('button', {
+          name: 'graph.sceneColours.cancel',
+        }),
+      ),
+  ],
+  ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
+  ['a press outside', () => fireEvent.mouseDown(document.body)],
+])('puts back the colour it opened with on %s', (_name, leave) => {
+  render(<SceneWindowColours />);
+  const picker = pickInto('accent', '#ffd23f');
+  // The control: the swatch had followed the picker.
+  expect(shownOn('accent')).toBe('#FFD23F');
+  leave(picker);
+  expect(shownOn('accent')).toBe(OWN.accent.toUpperCase());
+  expect(getChosenWindowColours(LOOK)).toBeUndefined();
+  expect(screen.queryByRole('dialog')).toBeNull();
+});
+
+it('offers the screen’s eyedropper only where the window has one', () => {
+  render(<SceneWindowColours />);
+  fireEvent.click(swatch('glow'));
+  expect(
+    screen.queryByRole('button', { name: 'graph.sceneColours.dropper' }),
+  ).toBeNull();
+  fireEvent.keyDown(document, { key: 'Escape' });
+  // The control: with Chromium's EyeDropper there, it is offered.
+  Object.assign(window, {
+    EyeDropper: jest.fn(() => ({
+      open: () => Promise.resolve({ sRGBHex: '#123456' }),
+    })),
+  });
+  fireEvent.click(swatch('glow'));
+  expect(
+    screen.getByRole('button', { name: 'graph.sceneColours.dropper' }),
+  ).toBeInTheDocument();
+});
+
 it("goes back to the scene's own with one press", () => {
   render(<SceneWindowColours />);
-  const surface = picker('surface') as HTMLInputElement;
-  fireEvent.input(surface, { target: { value: '#402020' } });
-  act(() => {
-    surface.dispatchEvent(new Event('change'));
-  });
+  const picker = pickInto('surface', '#402020');
+  fireEvent.click(
+    within(picker).getByRole('button', { name: 'graph.sceneColours.accept' }),
+  );
   const reset = screen.getByRole('button', {
     name: 'graph.sceneColours.reset',
   });
@@ -107,14 +173,13 @@ it("goes back to the scene's own with one press", () => {
   fireEvent.click(reset);
   expect(getChosenWindowColours(LOOK)).toBeUndefined();
   expect(screen.getByText('graph.sceneColours.own')).toBeInTheDocument();
-  expect((picker('surface') as HTMLInputElement).value).toBe(OWN.surface);
+  expect(shownOn('surface')).toBe(OWN.surface.toUpperCase());
 });
 
 it('says when a glow is too close to red to mean "on"', () => {
   render(<SceneWindowColours />);
   expect(screen.queryByText('graph.sceneColours.glowUnused')).toBeNull();
-  const glow = picker('glow') as HTMLInputElement;
-  fireEvent.input(glow, { target: { value: '#ff3030' } });
+  pickInto('glow', '#ff3030');
   expect(screen.getByText('graph.sceneColours.glowUnused')).toBeInTheDocument();
 });
 

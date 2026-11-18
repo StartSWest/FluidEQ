@@ -11,10 +11,17 @@ import installFakeIpcRenderer from '../../utils/fakeIpcRenderer';
 
 // The real support UI renders against a silent audio boundary, without
 // starting capture or requiring the app's hardware/provider hierarchy.
+// The frame store's hooks too (`liveFrameHooks`): the pet reads its level
+// from the store since 2026-11-16, not from a rendered frame.
 jest.mock('renderer/audio/LiveAudioContext', () => {
   const frame = { waveform: [], points: [], outputLevels: undefined };
   const control = { isActive: false, isPaused: false };
   return {
+    ...jest
+      .requireActual<typeof import('../../utils/liveFrameHooks')>(
+        '../../utils/liveFrameHooks',
+      )
+      .liveFrameHooks(() => frame),
     useLiveAudioFrame: () => frame,
     useLiveAudioControl: () => control,
     useLiveAudioCapture: jest.fn(),

@@ -5,22 +5,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Transparency is live only while a Backdrop is drawn: the Backdrop chosen
- * and a Plus visualizer to draw in it. The mode is remembered across looks,
- * and on it alone the slider stayed live under a standard visualizer, with
- * nothing behind the window to see through to (2026-09-26).
+ * Transparency is live whenever a Plus visualizer is chosen, the only look
+ * with a picture to show through the panes, and dimmed with a standard one
+ * (Ivan, 2026-11-16: "instead of having a backdrop mode is just transparency
+ * and blur"). The window's colour mode no longer decides it: there is no
+ * Backdrop mode, and the full app's Backdrop was taken out the same day, so
+ * what is left is the amp's glass.
  */
 
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import BackdropVeilSlider from '../../../renderer/graph/BackdropVeilSlider';
 
-const state = { mode: 'cover', lookId: 'premium:bloom', isAmp: false };
+const state = { lookId: 'premium:bloom' };
 
-jest.mock('../../../renderer/utils/sceneTintStore', () => ({
-  useSceneTintMode: () => state.mode,
-  useAmpHoldsWindow: () => state.isAmp,
-}));
 jest.mock('../../../renderer/utils/graphStyle', () => ({
   useSelectedLookId: () => state.lookId,
 }));
@@ -33,28 +31,20 @@ const slider = () => {
   return screen.getByRole('slider', { name: 'graph.backdropVeil' });
 };
 
+beforeEach(() => {
+  window.localStorage.clear();
+  state.lookId = 'premium:bloom';
+});
+
 describe('the Transparency slider', () => {
-  it('is live under the Backdrop with a Plus visualizer drawn in it', () => {
-    // The control: the case where it has something to do.
+  it('is live with a Plus visualizer, whatever the window’s colours', () => {
+    window.localStorage.setItem('fluideq.sceneTintMode', 'pulse');
     expect(slider()).toBeEnabled();
   });
 
-  it('is off under the Backdrop with a standard visualizer', () => {
+  // The control: nothing behind the panes to see through to.
+  it('is off with a standard visualizer', () => {
     state.lookId = 'look:signal';
     expect(slider()).toBeDisabled();
-  });
-
-  it('is off in every other mode', () => {
-    state.lookId = 'premium:bloom';
-    state.mode = 'pulse';
-    expect(slider()).toBeDisabled();
-  });
-
-  // The amp has no colour modes: with a Plus visualizer it is always the
-  // Backdrop (Ivan, 2026-10-25: "always backdrop only on the amp ui").
-  it('is live in the amp with a Plus visualizer, whatever mode the full app is in', () => {
-    state.mode = 'pulse';
-    state.isAmp = true;
-    expect(slider()).toBeEnabled();
   });
 });

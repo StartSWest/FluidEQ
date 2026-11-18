@@ -64,43 +64,41 @@ it('keeps the ears and the star out of the breath, in the drawing’s order', ()
   expect(body?.querySelector('.support-pet__mouth')).not.toBeNull();
   expect(body?.contains(ears ?? null)).toBe(false);
   expect(body?.contains(star ?? null)).toBe(false);
-  // Ears under the head, the star over it.
+  // Ears under the head, the star over it. The ears ride a sway layer of
+  // their own around their drawing (2026-11-16: a turn and a shift on the
+  // compositor rather than a group's transform on the main thread).
   const layers: (Element | null)[] = [...(art?.children ?? [])];
-  expect(layers.indexOf(ears?.closest('svg') ?? null)).toBe(0);
+  expect(layers.indexOf(ears?.closest('.support-pet__ears-sway') ?? null)).toBe(
+    0,
+  );
   expect(layers.indexOf(body)).toBe(1);
   expect(layers.indexOf(star)).toBe(2);
 });
 
-it('gives every drawing its own ids, so one hidden copy cannot blank another', () => {
+// Two copies on one page (the titlebar's and the dialog's hero, a hidden one
+// among them) used to need ids of their own each, or one hidden copy's
+// gradient or clip blanked another. Drawn flat in one colour (2026-11-17)
+// with the pupils as windows of the page (2026-11-16), the drawing carries
+// no ids and points at none, so there is nothing for copies to share.
+it('draws every copy with no ids to share, so one hidden copy cannot blank another', () => {
   const { container } = render(
     <>
       <PetArt />
       <PetArt />
     </>,
   );
-  const ids = [...container.querySelectorAll('[id]')].map(
-    (element) => element.id,
-  );
-
-  expect(ids.length).toBeGreaterThan(0);
-  expect(new Set(ids).size).toBe(ids.length);
-  // Every reference finds its own drawing's element.
-  const unresolved: string[] = [];
-  let references = 0;
-  container.querySelectorAll('.support-pet__art').forEach((art) => {
-    art.querySelectorAll('*').forEach((shape) => {
-      ['clip-path', 'fill', 'stroke'].forEach((name) => {
-        const id = /url\(#([^)]+)\)/.exec(shape.getAttribute(name) ?? '')?.[1];
-        if (id !== undefined) {
-          references += 1;
-          if (!art.querySelector(`[id="${id}"]`)) {
-            unresolved.push(id);
-          }
-        }
-      });
-    });
+  const arts = container.querySelectorAll('.support-pet__art');
+  // The control: both drawings are there, whole.
+  expect(arts).toHaveLength(2);
+  arts.forEach((art) => {
+    expect(art.querySelector('.support-pet__body')).not.toBeNull();
+    expect(art.querySelectorAll('.support-pet__pupil')).toHaveLength(2);
   });
-  expect(unresolved).toEqual([]);
-  // Ears twice, the body, two pupils' clips, in each of the two.
-  expect(references).toBe(10);
+  expect(container.querySelectorAll('[id]')).toHaveLength(0);
+  const references = [...container.querySelectorAll('*')].filter((shape) =>
+    ['clip-path', 'fill', 'stroke', 'mask', 'filter'].some((name) =>
+      /url\(#/.test(shape.getAttribute(name) ?? ''),
+    ),
+  );
+  expect(references).toHaveLength(0);
 });

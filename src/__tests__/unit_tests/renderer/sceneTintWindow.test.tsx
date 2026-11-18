@@ -28,6 +28,8 @@ let mockLookId = 'premium:bloom';
 let mockSwatch: string[] = [];
 // The colours the scene names for the window, when a test gives it some.
 let mockWindowColours: Record<string, string> | undefined;
+// And for its day (2026-11-18), when a test gives it some.
+let mockWindowColoursDay: Record<string, string> | undefined;
 const mockMeasureScene = jest.fn();
 const mockMeasureStudio = jest.fn();
 
@@ -42,6 +44,9 @@ jest.mock('../../../renderer/utils/scenePacks', () => ({
       version: 3,
       swatch: mockSwatch,
       ...(mockWindowColours ? { windowColours: mockWindowColours } : {}),
+      ...(mockWindowColoursDay
+        ? { windowColoursDay: mockWindowColoursDay }
+        : {}),
     },
   ],
 }));
@@ -98,6 +103,7 @@ beforeEach(() => {
   mockLookId = 'premium:bloom';
   mockSwatch = [];
   mockWindowColours = undefined;
+  mockWindowColoursDay = undefined;
   mockMeasureScene.mockReset().mockResolvedValue(undefined);
   mockMeasureStudio.mockReset().mockResolvedValue(undefined);
   const style = document.createElement('style');
@@ -142,28 +148,45 @@ const mount = () => {
   return { store, fresh: library };
 };
 
-// A scene's colour is measured, and remembered, once per version, at the
-// time of day its author set it at (`sampleSceneInWorker`): the Brightness
-// tones the colour found and never chooses it (Ivan, 2026-10-14: "each scene
-// has their colors cant be like that due to day or night just darker or
-// lighter").
+// A scene's colour is measured, and remembered, once per version for each
+// time of day it names nothing for: its night (Daylight 0) under the look's
+// id, its day (100) under id@day (2026-11-18, `sceneDayColours.ts`). The
+// Brightness tones what was found and never chooses it (Ivan, 2026-10-14:
+// "each scene has their colors cant be like that due to day or night just
+// darker or lighter").
 describe('the graph’s visualizer', () => {
+  /** The times of day the scene was drawn to measure. */
+  const measuredTimes = () =>
+    mockMeasureScene.mock.calls.map((call: unknown[]) => call[3]);
+
+  const NIGHT = {
+    surface: '#1d2b4f',
+    accent: '#5fd4ff',
+    glow: '#7dffb0',
+  };
+
   // A scene that names its window colours (Ivan, 2026-11-14: "we want the
   // agent to give those colours") is shown in them as it is chosen, on every
   // computer the same, and never drawn to second-guess them.
   it('wears the colours a scene names at once, and never draws it to measure', () => {
-    mockWindowColours = {
-      surface: '#1d2b4f',
-      accent: '#5fd4ff',
-      glow: '#7dffb0',
-    };
+    mockWindowColours = NIGHT;
+    mockWindowColoursDay = { ...NIGHT, surface: '#1d3a4f' };
     // Even over a remembered measurement of another colour.
     remember([['premium:bloom', '3', sky(30)]]);
+    // At Black, whose hour is night: the night's set is what is worn.
     const { store } = mount();
     expect(root).toHaveAttribute('data-scene-tint');
     const shown = store.getShownSceneSky();
     expect(Math.abs((shown?.hue ?? 0) - 266.3)).toBeLessThan(1);
     expect(mockMeasureScene).not.toHaveBeenCalled();
+  });
+
+  // A scene published with its night's colours alone: the app works out its
+  // day from a drawing at that hour, and never redraws the night it names.
+  it('draws a scene naming only its night at its day alone', () => {
+    mockWindowColours = NIGHT;
+    mount();
+    expect(measuredTimes()).toEqual(['day']);
   });
 
   // The listener's own colours for a scene, from the Window colours menu,
@@ -188,21 +211,32 @@ describe('the graph’s visualizer', () => {
     // #3a1d12 is a red-brown, nowhere near the scene's own blue (266).
     const shown = store.getShownSceneSky();
     expect(shown?.hue).toBeLessThan(60);
-    expect(mockMeasureScene).not.toHaveBeenCalled();
+    // The night is the listener's and the scene's: never drawn for.
+    expect(measuredTimes()).not.toContain('night');
   });
 
-  it('control: a scene naming none is measured, as before', () => {
+  it('control: a scene naming none is measured, at night and at day', () => {
     remember([['premium:bloom', '2', sky(30)]]);
     mount();
     expect(mockMeasureScene).toHaveBeenCalledWith(
       'premium:bloom',
       '3',
       undefined,
+      'night',
+    );
+    expect(mockMeasureScene).toHaveBeenCalledWith(
+      'premium:bloom',
+      '3',
+      undefined,
+      'day',
     );
   });
 
   it('opens the window in the colour it was last measured, before anything is drawn', () => {
-    remember([['premium:bloom', '3', sky(300)]]);
+    remember([
+      ['premium:bloom', '3', sky(300)],
+      ['premium:bloom@day', '3', sky(300)],
+    ]);
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
@@ -221,6 +255,7 @@ describe('the graph’s visualizer', () => {
       'premium:bloom',
       '3',
       undefined,
+      'night',
     );
   });
 
@@ -232,17 +267,18 @@ describe('the graph’s visualizer', () => {
       'premium:bloom',
       '3',
       undefined,
+      'night',
     );
   });
 
   it('measures a version it has not seen, keeping the colour it had meanwhile', () => {
-    remember([['premium:bloom', '2', sky(300)]]);
+    remember([
+      ['premium:bloom', '2', sky(300)],
+      ['premium:bloom@day', '3', sky(300)],
+    ]);
     mount();
-    expect(mockMeasureScene).toHaveBeenCalledWith(
-      'premium:bloom',
-      '3',
-      undefined,
-    );
+    // The night's version is old; the day's is this one.
+    expect(measuredTimes()).toEqual(['night']);
   });
 
   // Brightness tones the colour; it is not a new measurement. Under the old
@@ -250,7 +286,10 @@ describe('the graph’s visualizer', () => {
   // from green to purple as it was dimmed.
   it('keeps the colour measured for a version at any Brightness', () => {
     window.localStorage.setItem('fluideq.theme', 'ocean');
-    remember([['premium:bloom', '3', sky(300)]]);
+    remember([
+      ['premium:bloom', '3', sky(300)],
+      ['premium:bloom@day', '3', sky(300)],
+    ]);
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(mockMeasureScene).not.toHaveBeenCalled();
@@ -264,74 +303,47 @@ describe('the graph’s visualizer', () => {
       'premium:bloom',
       '3',
       undefined,
+      'night',
     );
   });
 
-  it('puts the theme back when its mode is the theme', () => {
+  // Original under a Plus visualizer is the app's own colour, the one its
+  // Tint picks (Ivan, 2026-11-16: "color = original so they change the color
+  // via app color slider"), exactly as with no visualizer chosen: never the
+  // scene's.
+  it('puts the app’s own colour back when its mode is Original', () => {
     remember([['premium:bloom', '3', sky(300)]]);
     const { store, fresh } = mount();
     expect(root).toHaveAttribute('data-scene-tint');
+    const inScene = root.style.getPropertyValue('--surface-base');
     fresh.act(() => store.setSceneTintMode('off'));
-    expect(root).not.toHaveAttribute('data-scene-tint');
-    expect(root.style.getPropertyValue('--surface-base')).toBe('');
-  });
-
-  // Rainbow mode with no visualizer lends the window Lagoon, as a scene would
-  // lend its own colours (Ivan, 2026-09-26: "la interfaz ... debe también kind
-  // of match some of the aurora color when there is not plus viz"; the mode's
-  // palette is Lagoon since "wave lagoon").
-  it('lends the window Lagoon in Rainbow mode with no visualizer chosen', () => {
-    mockLookId = 'look:signal';
-    window.localStorage.setItem('fluideq.theme', 'ocean');
-    root.classList.add('is-euphoric');
-    try {
-      mount();
-      expect(root).toHaveAttribute('data-scene-tint');
-      expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
-    } finally {
-      root.classList.remove('is-euphoric');
-    }
-  });
-
-  // And outside the mode the same colours, to the digit: Rainbow changes what
-  // is drawn in its stops and never the panes or the floor (Ivan, 2026-09-27:
-  // "app or pane … need to be exactly the same with rainbow and no rainbow,
-  // and I want the one that rainbow on has now").
-  it('lends the window the same Lagoon with Rainbow mode off', () => {
-    mockLookId = 'look:signal';
-    window.localStorage.setItem('fluideq.theme', 'ocean');
-    root.classList.add('is-euphoric');
-    let inRainbow = '';
-    try {
-      mount();
-      inRainbow = root.style.getPropertyValue('--surface-base');
-    } finally {
-      root.classList.remove('is-euphoric');
-    }
+    const original = root.style.getPropertyValue('--surface-base');
     library?.cleanup();
     root.removeAttribute('style');
     root.removeAttribute('data-scene-tint');
 
+    mockLookId = 'look:signal';
     mount();
-    expect(root).toHaveAttribute('data-scene-tint');
-    expect(root.style.getPropertyValue('--surface-base')).toBe(inRainbow);
-    // POSITIVE CONTROL: that is a colour of its own, not the theme's floor.
-    expect(inRainbow).toMatch(/^#/);
-    expect(inRainbow).not.toBe('#0d2030');
+    expect(original).toBe(root.style.getPropertyValue('--surface-base'));
+    // CONTROL: that is not the scene's floor.
+    expect(original).not.toBe(inScene);
   });
 
-  // A visualizer chosen in Theme mode keeps the theme, Rainbow or not: the
-  // mode's own colours are the rainbow's, and the window's are the menu's.
-  it('keeps the theme for a visualizer in Theme mode, even in Rainbow mode', () => {
-    remember([['premium:bloom', '3', sky(300)]]);
-    window.localStorage.setItem('fluideq.sceneTintMode', 'off');
-    root.classList.add('is-euphoric');
-    try {
-      mount();
-      expect(root).not.toHaveAttribute('data-scene-tint');
-    } finally {
-      root.classList.remove('is-euphoric');
-    }
+  // With no visualizer chosen the window wears Lagoon, Colourful mode's own
+  // palette, as a scene would lend its own colours (Ivan, 2026-09-26: "la
+  // interfaz ... debe también kind of match some of the aurora color when
+  // there is not plus viz"). Colourful mode is always on since 2026-11-18,
+  // and was never what decided the panes (2026-09-27: "app or pane … need
+  // to be exactly the same with rainbow and no rainbow").
+  it('lends the window Lagoon with no visualizer chosen', () => {
+    mockLookId = 'look:signal';
+    window.localStorage.setItem('fluideq.theme', 'ocean');
+    mount();
+    expect(root).toHaveAttribute('data-scene-tint');
+    const floor = root.style.getPropertyValue('--surface-base');
+    // POSITIVE CONTROL: that is a colour of its own, not the theme's floor.
+    expect(floor).toMatch(/^#/);
+    expect(floor).not.toBe('#0d2030');
   });
 
   // Black is the window with no colour in it: the sky lent with no visualizer
@@ -524,22 +536,31 @@ describe('light or dark', () => {
     expect(root).not.toHaveAttribute('data-window-ink');
   });
 
-  it('leans a light window’s words to the scene’s colour, not the theme’s cyan', () => {
-    const inkOf = (hue: number) => {
+  // The light window stays white, and its words lean to no hue: the accent
+  // and the glow are the only colour on it (Ivan, 2026-11-17: "se deja white
+  // siempre para que el acento se pueda ver").
+  it('writes a light window’s words in neutral ink, whatever the scene’s colour', () => {
+    const inksOf = (hue: number) => {
       remember([['premium:bloom', '3', sky(hue)]]);
       window.localStorage.setItem('fluideq.theme', '100');
       const shown = mountWithTheme();
-      const ink = parseCssColour(root.style.getPropertyValue('--text-primary'));
+      const read = (name: string) =>
+        parseCssColour(root.style.getPropertyValue(name))?.rgb ?? [];
+      const inks = { text: read('--text-primary'), accent: read('--accent') };
       shown.fresh.cleanup();
       root.removeAttribute('style');
       root.removeAttribute('data-scene-tint');
-      return ink?.rgb ?? [0, 0, 0];
+      return inks;
     };
-    const [rosyRed, , rosyBlue] = inkOf(0);
-    expect(rosyRed).toBeGreaterThan(rosyBlue);
-    // CONTROL: a cyan sky's words lean the other way.
-    const [cyanRed, , cyanBlue] = inkOf(220);
-    expect(cyanBlue).toBeGreaterThan(cyanRed);
+    const rosy = inksOf(0);
+    const cyan = inksOf(220);
+    expect(rosy.text).toHaveLength(3);
+    const [red = 0, green = 1, blue = 0] = rosy.text;
+    expect(Math.abs(red - green)).toBeLessThanOrEqual(1 / 255);
+    expect(Math.abs(blue - green)).toBeLessThanOrEqual(1 / 255);
+    expect(cyan.text).toEqual(rosy.text);
+    // CONTROL: the scene's colour is still on the window, in its accent.
+    expect(cyan.accent).not.toEqual(rosy.accent);
   });
 
   it('forgets the per-mode Brightness nothing has read since 2026-09-25', () => {

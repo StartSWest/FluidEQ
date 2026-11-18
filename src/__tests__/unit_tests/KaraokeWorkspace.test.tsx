@@ -24,7 +24,9 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
+import { findSongTitle } from '../utils/karaokeSongTitle';
 import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
 import {
@@ -164,9 +166,12 @@ describe('KaraokeWorkspace', () => {
     });
   });
 
+  // The empty stage of the K1 mockup (2026-11-16): the microphone, "Your
+  // stage is ready", Open song and Add folder, and the microphone's settings
+  // in the stage's own bar. The readiness row with its own pitch lane went
+  // with the header row above the tab.
   it('offers real local import actions in the empty state', async () => {
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
-
     // Nothing about being empty until the question has been answered. Last
     // session's playlist is read back a moment after the tab opens, and for
     // that moment this drew a microphone and "drop a folder here" over a
@@ -180,29 +185,19 @@ describe('KaraokeWorkspace', () => {
       ).not.toBeInTheDocument(),
     );
 
-    const readiness = container.querySelector(
-      '.karaoke-workspace__readiness',
-    ) as HTMLElement;
-
     expect(container.querySelector('.karaoke-workspace')).toHaveClass(
       'is-empty',
     );
-    expect(readiness).toHaveClass('is-pitch-only');
     expect(
-      readiness.querySelector('.karaoke-microphone'),
+      screen.getByRole('heading', { level: 3, name: 'Your stage is ready' }),
+    ).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Open song' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Add folder' })).toBeVisible();
+    // No strip, chords or song switches without a song.
+    expect(container.querySelector('.karaoke-pitch')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('group', { name: 'What the stage shows' }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', {
-        level: 2,
-        name: 'A stage built around your music',
-      }),
-    ).toBeVisible();
-    expect(screen.getAllByRole('button', { name: 'Open song' })).toHaveLength(
-      2,
-    );
-    expect(
-      screen.getByRole('heading', { level: 3, name: 'Pitch lane' }),
-    ).toBeVisible();
     expect(
       screen.getByRole('button', { name: 'Enter full screen' }),
     ).toBeVisible();
@@ -212,9 +207,6 @@ describe('KaraokeWorkspace', () => {
     expect(
       container.querySelector('.karaoke-workspace__disc'),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Microphone settings' }),
-    ).toBeVisible();
 
     const input = container.querySelector('input[type="file"]');
     // Named members rather than the whole string: the accept list grows every
@@ -231,57 +223,65 @@ describe('KaraokeWorkspace', () => {
       screen.getByRole('dialog', { name: 'Microphone settings' }),
     ).toBeVisible();
     expect(
-      screen.getByRole('heading', { level: 3, name: 'Microphone' }),
-    ).toBeVisible();
-    expect(
       screen.getAllByRole('button', { name: 'Turn on mic' }),
     ).not.toHaveLength(0);
   });
 
-  it('lets the pitch guide be hidden and restored independently of the mic', async () => {
+  // The stage bar's Pitch / Chords / Words only (the K1 mockup), which
+  // replaced the pitch guide's own Hide and Show; the microphone is not
+  // touched by it.
+  it('shows the pitch strip, the chords alone or the words alone, and remembers which', async () => {
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
-    await act(async () => Promise.resolve());
-
-    const hideGuide = screen.getByRole('button', {
-      name: 'Hide pitch guide',
-    });
-    expect(hideGuide).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [new File(['audio'], 'bare-song.mp3', { type: 'audio/mpeg' })],
+        },
+      },
+    );
+    expect(await findSongTitle('bare song')).toBeVisible();
+    const shows = within(
+      screen.getByRole('group', { name: 'What the stage shows' }),
+    );
+    expect(shows.getByRole('button', { name: 'Pitch' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(container.querySelector('.karaoke-pitch')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { level: 3, name: 'Pitch lane' }),
-    ).toBeVisible();
+      screen.getByRole('separator', { name: 'Resize pitch lane' }),
+    ).toBeInTheDocument();
 
-    fireEvent.click(hideGuide);
-
+    fireEvent.click(shows.getByRole('button', { name: 'Words only' }));
+    expect(container.querySelector('.karaoke-pitch')).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { level: 3, name: 'Pitch lane' }),
-    ).not.toBeInTheDocument();
-    expect(
-      container.querySelector('.karaoke-workspace__readiness'),
+      container.querySelector('.karaoke-stage__guides'),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('separator', { name: 'Resize pitch lane' }),
     ).not.toBeInTheDocument();
+    expect(window.localStorage.getItem('fluideq-karaoke-stage-guides')).toBe(
+      'words',
+    );
+    // The microphone keeps its own switch.
     expect(
-      window.localStorage.getItem('fluideq-karaoke-pitch-guide-visible'),
-    ).toBe('false');
-
-    const showGuide = screen.getByRole('button', {
-      name: 'Show pitch guide',
-    });
-    expect(showGuide).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(showGuide);
-
-    expect(
-      screen.getByRole('heading', { level: 3, name: 'Pitch lane' }),
+      screen.getByRole('button', { name: 'Microphone settings' }),
     ).toBeVisible();
-    expect(
-      window.localStorage.getItem('fluideq-karaoke-pitch-guide-visible'),
-    ).toBe('true');
+
+    fireEvent.click(shows.getByRole('button', { name: 'Pitch' }));
+    expect(container.querySelector('.karaoke-pitch')).toBeInTheDocument();
+    expect(window.localStorage.getItem('fluideq-karaoke-stage-guides')).toBe(
+      'pitch',
+    );
   });
+
+  const background = () =>
+    within(screen.getByRole('group', { name: 'Background' }));
 
   // The positive control for the test below: without it, "no toggle did
   // anything" and "the stage never had artwork" look identical.
-  it('offers the cover art toggle disabled when the song has no artwork', async () => {
+  it('offers Art disabled when the song has no artwork', async () => {
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
 
     fireEvent.change(
@@ -292,16 +292,16 @@ describe('KaraokeWorkspace', () => {
         },
       },
     );
-    expect(
-      await screen.findByRole('heading', { name: 'bare song' }),
-    ).toBeVisible();
+    expect(await findSongTitle('bare song')).toBeVisible();
 
-    expect(
-      screen.getByRole('button', { name: 'This song has no cover art' }),
-    ).toBeDisabled();
-    expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
+    const art = background().getByRole('button', { name: 'Art' });
+    expect(art).toBeDisabled();
+    expect(art).toHaveAttribute('title', 'This song has no cover art');
+    // With nothing chosen the stage is flat: no lights of its own (K1).
+    expect(container.querySelector('.karaoke-stage-media')).toBeNull();
   });
 
+  // Pressing the lit one gives the bare stage (the K1 mockup).
   it('hides and restores cover art, and remembers which', async () => {
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
 
@@ -316,23 +316,20 @@ describe('KaraokeWorkspace', () => {
         },
       },
     );
-    expect(
-      await screen.findByRole('heading', { name: 'painted song' }),
-    ).toBeVisible();
+    expect(await findSongTitle('painted song')).toBeVisible();
     expect(container.querySelector('.karaoke-stage-media')).toBeInTheDocument();
 
-    const hideArt = screen.getByRole('button', { name: 'Hide cover art' });
-    expect(hideArt).toHaveAttribute('aria-pressed', 'true');
-    fireEvent.click(hideArt);
+    const art = background().getByRole('button', { name: 'Art' });
+    expect(art).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(art);
 
-    expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
+    expect(container.querySelector('.karaoke-stage-media')).toBeNull();
+    expect(art).toHaveAttribute('aria-pressed', 'false');
     expect(
       window.localStorage.getItem('fluideq-karaoke-stage-background'),
     ).toBe('none');
 
-    const showArt = screen.getByRole('button', { name: 'Show cover art' });
-    expect(showArt).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(showArt);
+    fireEvent.click(art);
 
     expect(container.querySelector('.karaoke-stage-media')).toBeInTheDocument();
     expect(
@@ -340,7 +337,7 @@ describe('KaraokeWorkspace', () => {
     ).toBe('cover');
   });
 
-  it('switches exclusively between cover, visualizer and ambient scenery', async () => {
+  it('switches exclusively between the art, the scene and a bare stage', async () => {
     const { container, rerender } = render(
       <KaraokeWorkspace isHidden={false} />,
     );
@@ -355,58 +352,51 @@ describe('KaraokeWorkspace', () => {
         },
       },
     );
-    await screen.findByRole('heading', { name: 'painted song' });
+    await findSongTitle('painted song');
     const audio = container.querySelector('audio');
     expect(
       container.querySelector('.karaoke-stage-media__still'),
     ).toBeInTheDocument();
+    const scene = () => background().getByRole('button', { name: 'Scene' });
+    const art = () => background().getByRole('button', { name: 'Art' });
 
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: "Use the graph's scene or style as background",
-      }),
+    expect(scene()).toHaveAttribute(
+      'title',
+      "Use the graph's scene or style as background",
     );
+    fireEvent.click(scene());
     expect(
       container.querySelector('.karaoke-stage-media__still'),
     ).not.toBeInTheDocument();
     expect(
       container.querySelector('.karaoke-graph-background'),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Show cover art' }),
-    ).toHaveAttribute('aria-pressed', 'false');
+    expect(art()).toHaveAttribute('aria-pressed', 'false');
+    expect(scene()).toHaveAttribute('aria-pressed', 'true');
     expect(
       window.localStorage.getItem('fluideq-karaoke-stage-background'),
     ).toBe('graph');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Show cover art' }));
+    fireEvent.click(art());
     expect(
       container.querySelector('.karaoke-stage-media__still'),
     ).toBeInTheDocument();
     expect(
       container.querySelector('.karaoke-graph-background'),
     ).not.toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: "Use the graph's scene or style as background",
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Turn off the scene background',
-      }),
-    );
-    expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
+    fireEvent.click(scene());
+    expect(scene()).toHaveAttribute('title', 'Turn off the scene background');
+    fireEvent.click(scene());
+    expect(container.querySelector('.karaoke-stage-media')).toBeNull();
+    expect(
+      container.querySelector('.karaoke-graph-background'),
+    ).not.toBeInTheDocument();
     expect(
       window.localStorage.getItem('fluideq-karaoke-stage-background'),
     ).toBe('none');
     expect(container.querySelector('audio')).toBe(audio);
 
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: "Use the graph's scene or style as background",
-      }),
-    );
+    fireEvent.click(scene());
     rerender(<KaraokeWorkspace isHidden={false} isFullScreen />);
     expect(
       container.querySelector('.karaoke-graph-background'),
@@ -420,7 +410,7 @@ describe('KaraokeWorkspace', () => {
       container.querySelector('.karaoke-graph-background'),
     ).toBeInTheDocument();
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Open in Maker' }));
     });
     expect(
       container.querySelector('.karaoke-graph-background'),
@@ -481,7 +471,7 @@ describe('KaraokeWorkspace', () => {
     const emptyToolbar = screen.getByRole('toolbar', {
       name: 'Karaoke actions',
     });
-    expect(emptyToolbar).toHaveClass('is-stage-toolbar');
+    expect(emptyToolbar).toHaveClass('karaoke-stage-bar');
     expect(emptyToolbar.parentElement).toHaveClass('karaoke-workspace__stage');
 
     fireEvent.click(
@@ -498,9 +488,7 @@ describe('KaraokeWorkspace', () => {
       },
     });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Full screen' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Full screen')).toBeVisible();
     const lyricToolbar = screen.getByRole('toolbar', {
       name: 'Karaoke actions',
     });

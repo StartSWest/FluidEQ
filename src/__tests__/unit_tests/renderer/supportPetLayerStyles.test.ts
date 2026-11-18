@@ -1,6 +1,3 @@
-/**
- * @jest-environment node
- */
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -13,19 +10,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * rendered can see a pivot, so it is held as the stylesheet's text, against
  * the numbers of the drawing.
  *
- * The node environment, because Sass resolves its browser build under jsdom's
- * export conditions and that one cannot read files.
+ * Under jsdom, with the stylesheet compiled by the Sass command line
+ * (`compileStylesheet`): `SupportPet` now reaches the titlebar pet's canvas
+ * (`PetCanvas`) and the window's theme, which paints the document as it
+ * loads, so the node environment this ran in can no longer import it.
  */
 
-import path from 'path';
-import { compile } from 'sass';
 import { DANCE_ANIMATION } from '../../../renderer/SupportPet';
+import { compileStylesheet } from '../../utils/stylesheetRules';
 
-const STYLES_DIR = path.join(__dirname, '..', '..', '..', 'renderer', 'styles');
-const { css } = compile(path.join(STYLES_DIR, 'SupportPet.scss'), {
-  loadPaths: [STYLES_DIR],
-  quietDeps: true,
-});
+const css = compileStylesheet('SupportPet.scss');
 
 /**
  * The body of the first rule opened by exactly `selector`, braces excluded:
@@ -91,10 +85,17 @@ it('squints inside the drawings, and lets a perfect tap replace it', () => {
   const squint = bodyOf('.support-pet__squint');
   expect(squint).toContain('transform-box: view-box');
   expect(squint).toContain('transform-origin: 20px 22px');
-  expect(squint).toContain('scale: 1 calc(1 - var(--pet-joy, 0) * 0.3)');
-  // Not on the layer too, or the streak would squeeze the eyes twice.
-  expect(bodyOf('.support-pet__eyes')).not.toContain('--pet-joy');
-  expect(bodyOf('.support-pet-tap.is-perfect .support-pet__squint')).toContain(
-    'scale: none',
-  );
+  // How far is `--pet-squint`, declared once on the eyes' layer so the
+  // drawings' squint and the pupils' windows read the same number
+  // (2026-11-16, the pet's motion moved to the compositor).
+  expect(squint).toContain('scale: 1 var(--pet-squint)');
+  const eyes = bodyOf('.support-pet__eyes');
+  expect(eyes).toContain('--pet-squint: calc(1 - var(--pet-joy, 0) * 0.3)');
+  // Not scaled on the layer too, or the streak would squeeze the eyes twice.
+  expect(eyes).not.toMatch(/(?:^|;)\s*scale:/);
+  // A perfect tap's squeeze replaces the streak's squint rather than
+  // multiplying it: the drawings are let go to 1 and the layer squeezes.
+  const perfect = bodyOf('.support-pet-tap.is-perfect .support-pet__eyes');
+  expect(perfect).toContain('--pet-squint: 1');
+  expect(perfect).toContain('scale: 1 0.55');
 });

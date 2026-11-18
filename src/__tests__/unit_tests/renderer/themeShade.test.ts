@@ -19,12 +19,15 @@ import path from 'path';
 import { parseCssColour, rgbToLab } from 'renderer/utils/oklab';
 import {
   BLACK_THEME,
+  DARK_END_SHADE,
   OCEAN_SHADE,
   OCEAN_THEME,
   THEME_SHADE_MAX,
   THEME_SHADE_MIN,
   THEME_SHADE_TOKENS,
   clampThemeShade,
+  isLightShade,
+  shadeOfDarkStep,
   themeShadeRule,
   themeShadeTokens,
 } from 'renderer/utils/themeShade';
@@ -35,6 +38,15 @@ const lightness = (colour: string) => {
     throw new Error(`not a colour: ${colour}`);
   }
   return rgbToLab(parsed.rgb).l;
+};
+
+const chroma = (hex: string) => {
+  const colour = parseCssColour(hex);
+  if (!colour) {
+    throw new Error(`not a colour: ${hex}`);
+  }
+  const { a, b } = rgbToLab(colour.rgb);
+  return Math.hypot(a, b);
 };
 
 const same = (left: string, right: string) =>
@@ -102,51 +114,72 @@ describe("the theme's slider", () => {
     });
   });
 
-  it("lifts Ocean's surfaces at its right end and keeps its accent", () => {
+  // The dark window's walk ends at `DARK_END_SHADE` since the slider runs on
+  // into a light window (2026-11-17); its top is what the right end used to
+  // be.
+  it("lifts Ocean's surfaces at the top of the dark window and keeps its accent", () => {
     // Measured from the slider's own Ocean. The light end was built 0.145
     // over it — the theme's own 0.045 and the 0.1 a visualizer's colours
     // used to add, which made Original the darker of the two at 100%
-    // (2026-09-26) — and the slider stops three fifths of the way there, so
-    // 100 is what 90 was (2026-09-27: "lower the brightness"); the panes
-    // keep their step over the floor all the way.
+    // (2026-09-26) — and the walk stops three fifths of the way there
+    // (2026-09-27: "lower the brightness"); the panes keep their step over
+    // the floor all the way.
     const ocean = themeShadeTokens(OCEAN_SHADE);
-    const right = themeShadeTokens(THEME_SHADE_MAX);
+    const top = themeShadeTokens(DARK_END_SHADE);
     const lift =
-      lightness(right['--surface-panel']) - lightness(ocean['--surface-panel']);
+      lightness(top['--surface-panel']) - lightness(ocean['--surface-panel']);
     expect(lift).toBeGreaterThan(0.11);
     expect(lift).toBeLessThan(0.12);
-    expect(right['--accent']).toBe(OCEAN_THEME['--accent']);
+    expect(top['--accent']).toBe(OCEAN_THEME['--accent']);
   });
 
   it('keeps Ocean’s colour as it lightens, never grey', () => {
     // Lifted with Ocean's chroma left as it was, the light end read as a
     // blue-grey (2026-09-26: "the light original is too not colored").
-    const chroma = (hex: string) => {
-      const colour = parseCssColour(hex);
-      if (!colour) {
-        throw new Error(`not a colour: ${hex}`);
-      }
-      const { a, b } = rgbToLab(colour.rgb);
-      return Math.hypot(a, b);
-    };
     const ocean = themeShadeTokens(OCEAN_SHADE);
-    const right = themeShadeTokens(THEME_SHADE_MAX);
+    const top = themeShadeTokens(DARK_END_SHADE);
     (['--surface-base', '--surface-panel'] as const).forEach((token) => {
       // Positive control: Ocean itself is a muted blue.
       expect(chroma(ocean[token])).toBeLessThan(0.056);
-      expect(chroma(right[token])).toBeGreaterThan(chroma(ocean[token]) * 1.3);
-      expect(chroma(right[token])).toBeLessThanOrEqual(0.081);
+      expect(chroma(top[token])).toBeGreaterThan(chroma(ocean[token]) * 1.3);
+      expect(chroma(top[token])).toBeLessThanOrEqual(0.081);
     });
   });
 
-  it('lifts no surface past where light text still reads', () => {
-    const right = themeShadeTokens(THEME_SHADE_MAX);
+  it('lifts no surface of the dark window past where light text still reads', () => {
+    const top = themeShadeTokens(DARK_END_SHADE);
     // Positive control: the track's well, Ocean's lightest surface, is one
     // the full lift would have taken past the ceiling.
     expect(lightness(OCEAN_THEME['--track-well']) + 0.145).toBeGreaterThan(
       0.53,
     );
-    expect(lightness(right['--track-well'])).toBeLessThanOrEqual(0.521);
+    expect(lightness(top['--track-well'])).toBeLessThanOrEqual(0.521);
+  });
+
+  // Past the line the window is light (Ivan, 2026-11-17: "Brightness runs
+  // from fully dark to fully white"), and it stays white so the accent can
+  // be seen: neutral greys walking from a soft grey at the line to white
+  // panes at 100, the accent the only colour.
+  it('turns into a white window past the line, with no hue in its surfaces', () => {
+    const top = themeShadeTokens(THEME_SHADE_MAX);
+    expect(top['--surface-panel']).toBe('#ffffff');
+    const atLine = themeShadeTokens(DARK_END_SHADE + 1);
+    expect(lightness(atLine['--surface-panel'])).toBeGreaterThan(0.8);
+    expect(lightness(atLine['--surface-panel'])).toBeLessThan(
+      lightness(top['--surface-panel']),
+    );
+    [DARK_END_SHADE + 1, 90, THEME_SHADE_MAX].forEach((shade) => {
+      const tokens = themeShadeTokens(shade);
+      (['--surface-base', '--surface-panel'] as const).forEach((token) => {
+        expect(chroma(tokens[token])).toBeLessThan(0.005);
+      });
+    });
+    // CONTROL: one step back over the line the window is the dark Ocean blue.
+    expect(
+      chroma(themeShadeTokens(DARK_END_SHADE)['--surface-panel']),
+    ).toBeGreaterThan(0.02);
+    expect(isLightShade(DARK_END_SHADE)).toBe(false);
+    expect(isLightShade(DARK_END_SHADE + 1)).toBe(true);
   });
 
   it('only ever gets lighter from left to right', () => {
@@ -206,6 +239,21 @@ describe('a theme chosen before the slider', () => {
     });
     return shade;
   };
+  /** The same, with the choice stored on today's scale. */
+  const openWithScale = (stored: string) => {
+    window.localStorage.clear();
+    window.localStorage.setItem('fluideq.themeScale', '2');
+    window.localStorage.setItem('fluideq.theme', stored);
+    let shade = -1;
+    jest.isolateModules(() => {
+      shade = jest
+        .requireActual<typeof import('renderer/utils/theme')>(
+          'renderer/utils/theme',
+        )
+        .getThemeShade();
+    });
+    return shade;
+  };
 
   afterEach(() => window.localStorage.clear());
 
@@ -214,11 +262,23 @@ describe('a theme chosen before the slider', () => {
     expect(openWith('ocean')).toBe(OCEAN_SHADE);
   });
 
-  // Half way is where a window with no choice opens (Ivan, 2026-09-28:
-  // "brightness default to 50%"); Black was the default before.
-  it('opens a shade where it was left, and anything else half way', () => {
-    expect(openWith('37')).toBe(37);
-    expect(openWith('purple')).toBe(50);
-    expect(openWith(null)).toBe(50);
+  // Half way along the dark walk is where a window with no choice opens
+  // (Ivan, 2026-09-28: "brightness default to 50%"), which is no longer 50
+  // on a slider that runs on into a light window (2026-11-17).
+  it('opens a shade where it was left, and anything else half way along the dark walk', () => {
+    expect(openWithScale('37')).toBe(37);
+    expect(openWith('purple')).toBe(shadeOfDarkStep(50));
+    expect(openWith(null)).toBe(shadeOfDarkStep(50));
+  });
+
+  // A Brightness stored before the slider ran on into a light window was a
+  // place on the dark walk alone; it is moved onto the dark stretch once, so
+  // a window left at 100 then - a dark window - does not open white.
+  it('moves a Brightness stored on the old scale onto the dark stretch, once', () => {
+    expect(openWith('100')).toBe(DARK_END_SHADE);
+    expect(openWith('37')).toBe(shadeOfDarkStep(37));
+    expect(window.localStorage.getItem('fluideq.themeScale')).toBe('2');
+    // CONTROL: on today's scale it is left where it is.
+    expect(openWithScale('100')).toBe(THEME_SHADE_MAX);
   });
 });

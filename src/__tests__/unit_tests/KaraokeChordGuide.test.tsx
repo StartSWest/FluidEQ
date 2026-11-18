@@ -21,30 +21,30 @@ import { render, screen } from '@testing-library/react';
 import KaraokeChordGuide from '../../renderer/karaoke/KaraokeChordGuide';
 import { createKaraokeLiveValue } from '../../renderer/karaoke/karaokeLiveValue';
 
+const chord = (startMs: number, label: string, confidence = 0.8) => ({
+  startMs,
+  endMs: startMs + 2_000,
+  label,
+  confidence,
+});
+
+// A row of chips over the pitch strip since the K1 mockup (Ivan,
+// 2026-11-15: "with the chords on top of it exactly as the mockups"): the
+// chord just played, the one sounding, tinted, and the next two. It was a
+// panel of labelled boxes with a countdown.
 describe('KaraokeChordGuide', () => {
-  it('shows the current and upcoming estimated guitar chords', () => {
-    render(
+  it('shows the chord just played, the one sounding and the next two', () => {
+    const { container } = render(
       <KaraokeChordGuide
         status="ready"
         progress={createKaraokeLiveValue(1)}
-        playheadMs={1_000}
+        playheadMs={3_000}
         chords={[
-          {
-            startMs: 0,
-            endMs: 2_000,
-            rootPitchClass: 0,
-            quality: 'major',
-            label: 'C',
-            confidence: 0.87,
-          },
-          {
-            startMs: 2_000,
-            endMs: 4_000,
-            rootPitchClass: 7,
-            quality: 'major',
-            label: 'G',
-            confidence: 0.81,
-          },
+          chord(0, 'Am'),
+          chord(2_000, 'C', 0.87),
+          chord(4_000, 'G'),
+          chord(6_000, 'D'),
+          chord(8_000, 'E'),
         ]}
       />,
     );
@@ -54,11 +54,36 @@ describe('KaraokeChordGuide', () => {
         name: 'Estimated guitar chords from the backing track',
       }),
     ).toBeVisible();
-    expect(screen.getByText('Estimated chord')).toBeVisible();
-    expect(screen.getByText('C')).toBeVisible();
-    expect(screen.getByText('Next')).toBeVisible();
-    expect(screen.getByText('G')).toBeVisible();
-    expect(screen.getByText('in 1.0s')).toBeVisible();
+    const chips = [...container.querySelectorAll('.karaoke-chords__chip')];
+    expect(chips.map((chip) => chip.textContent)).toEqual([
+      'Am',
+      'C',
+      'G',
+      'D',
+    ]);
+    const current = screen.getByText('C');
+    expect(current).toHaveClass('is-current');
+    expect(current).toHaveAttribute('title', 'Audio estimate confidence: 87%');
+    // The control: the one played and the ones coming are not tinted.
+    expect(screen.getByText('Am')).not.toHaveClass('is-current');
+    expect(screen.getByText('G')).toHaveClass('is-next');
+  });
+
+  it('shows the last chord and the next between two, with none sounding', () => {
+    const { container } = render(
+      <KaraokeChordGuide
+        status="ready"
+        progress={createKaraokeLiveValue(1)}
+        playheadMs={2_500}
+        chords={[{ ...chord(0, 'Am'), endMs: 2_000 }, chord(3_000, 'C')]}
+      />,
+    );
+    expect(
+      [...container.querySelectorAll('.karaoke-chords__chip')].map(
+        (chip) => chip.textContent,
+      ),
+    ).toEqual(['Am', 'C']);
+    expect(container.querySelector('.is-current')).toBeNull();
   });
 
   it('reports local analysis progress before chords are ready', () => {
@@ -72,5 +97,17 @@ describe('KaraokeChordGuide', () => {
     );
 
     expect(screen.getByText('Finding chords… 42%')).toBeVisible();
+  });
+
+  it('says so when no stable chord was found', () => {
+    render(
+      <KaraokeChordGuide
+        status="ready"
+        progress={createKaraokeLiveValue(1)}
+        playheadMs={0}
+        chords={[]}
+      />,
+    );
+    expect(screen.getByText('No stable chord found')).toBeVisible();
   });
 });

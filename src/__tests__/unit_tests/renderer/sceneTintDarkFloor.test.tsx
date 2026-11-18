@@ -5,10 +5,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The window's floor under a visualizer's colours below 50% Brightness: the
- * colour it has at 50%, darkened toward near black at 0, and nothing else
- * moved (Ivan, 2026-10-24/25: "just the bg color dont touch primary or sec",
- * "when I move to 0 it gets lost its color when on ambient or color mode").
+ * The window's surfaces under a visualizer's colours below the knee of the
+ * Brightness (`DARK_KNEE`, the middle of the dark walk): the colour they have
+ * at the knee, darkened toward near black at 0, and the edges and the accent
+ * left as the toning paints them (Ivan, 2026-10-24/25: "just the bg color
+ * dont touch primary or sec", "when I move to 0 it gets lost its color when
+ * on ambient or color mode"; 2026-11-14: "even on 0 brightness the green is
+ * too light on the panels"). Past the dark stretch the window stays white
+ * (2026-11-17: "se deja white siempre para que el acento se pueda ver").
+ *
+ * The knee used to be Brightness 50; since the slider runs on into a light
+ * window (2026-11-17) it is the middle of the dark stretch, and a stored
+ * Brightness is on that scale (`fluideq.themeScale`). A scene with no named
+ * colours lends the window the colours the app works out from its measured
+ * picture (`windowColoursOfSky`), all day while only its night is measured.
  *
  * The scene is never drawn here: its measurement is stood in for by a
  * remembered sky, as in `sceneTintWindow.test.tsx`.
@@ -21,8 +31,21 @@ import {
   SCENE_SKY_MEASUREMENT,
   type ISceneSky,
 } from '../../../renderer/utils/sceneTint';
+import {
+  skyFromWindowColours,
+  windowColoursOfSky,
+} from '../../../renderer/utils/sceneOwnColours';
+import {
+  DARK_FLOOR_LIGHTNESS,
+  DARK_KNEE,
+} from '../../../renderer/utils/sceneTintDark';
 import { tintThemePalette } from '../../../renderer/utils/sceneTintPalette';
-import { themeShadeTokens } from '../../../renderer/utils/themeShade';
+import { toneShadeOf } from '../../../renderer/utils/sceneTintStore';
+import {
+  DARK_END_SHADE,
+  THEME_SHADE_MAX,
+  themeShadeTokens,
+} from '../../../renderer/utils/themeShade';
 import { parseCssColour, rgbToLab } from '../../../renderer/utils/oklab';
 
 jest.mock('../../../renderer/utils/graphStyle', () => ({
@@ -46,9 +69,8 @@ jest.mock('../../../renderer/graph/sceneSky', () => ({
 const root = document.documentElement;
 
 /**
- * Fireflies as Ivan's window measured it: little of the frame, little colour,
- * so the toning lends the window a fifth of its hue — the scene the tint was
- * lost on.
+ * Fireflies as Ivan's window measured it: little of the frame, little colour
+ * — the scene the tint was lost on.
  */
 const FAINT: ISceneSky = {
   hue: 131,
@@ -58,6 +80,9 @@ const FAINT: ISceneSky = {
   accent: null,
   active: null,
 };
+
+/** The sky the window is toned by: the colours the app works out of FAINT. */
+const LENT = skyFromWindowColours(windowColoursOfSky(FAINT));
 
 const THEME = `:root { --surface-base: #0d2030; --surface-panel: #1a3a4e; --accent: #00e5cf; --active: #54ff8a; }`;
 
@@ -90,6 +115,8 @@ afterEach(() => {
 /** The window at `shade` in `mode`, and the theme module it reads. */
 const mount = (mode: string, shade: number) => {
   window.localStorage.setItem('fluideq.sceneTintMode', mode);
+  // A Brightness on today's scale, not one to be moved onto it.
+  window.localStorage.setItem('fluideq.themeScale', '2');
   window.localStorage.setItem('fluideq.theme', String(shade));
   let theme: TTheme | undefined;
   let SceneTint: (() => ReactElement | null) | undefined;
@@ -131,82 +158,117 @@ const hueOf = (hex: string) => {
   return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
 };
 
+const chromaOf = (hex: string) => {
+  const { a, b } = labOf(hex);
+  return Math.hypot(a, b);
+};
+
 const hueApart = (left: number, right: number) => {
   const apart = Math.abs(left - right) % 360;
   return apart > 180 ? 360 - apart : apart;
 };
 
-/** What the toning alone gives at the theme's `toneShade`. */
-const toned = (toneShade: number) =>
-  tintThemePalette(themeShadeTokens(toneShade), FAINT, 1);
+/** What the toning alone gives at the Brightness `shade`, as Colours holds it. */
+const toned = (shade: number) => {
+  if (!LENT) {
+    throw new Error('no sky to tone by');
+  }
+  return tintThemePalette(
+    themeShadeTokens(toneShadeOf('held', shade)),
+    LENT,
+    1,
+  );
+};
 
-// Colours and Ambient tone against a shorter walk: 30 at 0, 65 at 50
-// (`toneShadeOf`); the Backdrop against the Brightness itself.
-const heldShade = (brightness: number) => Math.round(30 + brightness * 0.7);
-
-describe('the floor below 50% Brightness', () => {
+describe('the window under a scene’s colours below the knee', () => {
   // Within 8 degrees: a near-black floor is written in whole bytes, and at
-  // #03090a one step of red turns the hue 6 degrees (measured, the Backdrop at
-  // 0); the drift this guards against was 55.
-  it('keeps the hue it has at 50% all the way to 0, in Colours, Ambient and the Backdrop', () => {
-    ['tint', 'pulse', 'cover'].forEach((mode) => {
-      const knee = hueOf(floorAt(mode, 50));
-      [0, 10, 25, 40].forEach((shade) => {
+  // #03090a one step of red turns the hue 6 degrees.
+  it('keeps the hue it has at the knee all the way to 0, in Colours and Ambient', () => {
+    ['tint', 'pulse'].forEach((mode) => {
+      const knee = hueOf(floorAt(mode, DARK_KNEE));
+      [0, 10, 25].forEach((shade) => {
         expect(hueApart(hueOf(floorAt(mode, shade)), knee)).toBeLessThan(8);
       });
     });
-    // POSITIVE CONTROL: the toning on its own, which the floor used to be,
-    // drifts well off that hue at 0 — the lost tint this test exists for.
+    // POSITIVE CONTROL: the theme's own floor at 0, which the window falls
+    // back to where the scene's colour is lost, is well off that hue.
     expect(
       hueApart(
-        hueOf(toned(0)['--surface-base'] ?? ''),
-        hueOf(toned(50)['--surface-base'] ?? ''),
+        hueOf(themeShadeTokens(0)['--surface-base']),
+        hueOf(floorAt('tint', DARK_KNEE)),
       ),
     ).toBeGreaterThan(20);
   });
 
-  it('is near black at 0 and darker at every step down', () => {
+  it('is near black at 0 and darker at every step down from the knee', () => {
     let previous = Number.POSITIVE_INFINITY;
-    [50, 40, 25, 10, 0].forEach((shade) => {
+    [DARK_KNEE, 30, 20, 10, 0].forEach((shade) => {
       const { l } = labOf(floorAt('tint', shade));
       expect(l).toBeLessThan(previous);
       previous = l;
     });
-    expect(previous).toBeCloseTo(0.13, 2);
+    expect(previous).toBeCloseTo(DARK_FLOOR_LIGHTNESS, 2);
   });
 
-  // The surfaces walk down with the floor (Ivan, 2026-11-14: "even on 0
-  // brightness the green is too light on the panels"); the edges and the
-  // accents keep their toning, as he asked of the floor's walk on 10-25
-  // ("dont touch primary or sec or any color").
-  it('darkens every surface and leaves the edges and accent their toning', () => {
+  it('darkens every surface and leaves the edges their toning', () => {
     mount('tint', 0);
-    const expected = toned(heldShade(0));
+    const expected = toned(0);
     ['--border-panel', '--border-subtle'].forEach((name) =>
       expect(token(name)).toBe(expected[name as keyof typeof expected]),
     );
     // POSITIVE CONTROL: the floor and the panes moved, and darker.
     ['--surface-base', '--surface-panel', '--surface-block'].forEach((name) => {
-      expect(token(name)).not.toBe(expected[name as keyof typeof expected]);
+      const own = expected[name as keyof typeof expected] ?? '';
+      expect(token(name)).not.toBe(own);
+      expect(labOf(token(name)).l).toBeLessThan(labOf(own).l);
     });
   });
 
-  it('leaves 50% and the light half exactly as the toning paints them', () => {
-    [50, 75, 100].forEach((shade) => {
-      expect(floorAt('tint', shade)).toBe(
-        toned(heldShade(shade))['--surface-base'],
-      );
-      expect(floorAt('cover', shade)).toBe(toned(shade)['--surface-base']);
+  it('leaves the knee and the rest of the dark stretch exactly as the toning paints them', () => {
+    [DARK_KNEE, 50, DARK_END_SHADE].forEach((shade) => {
+      expect(floorAt('tint', shade)).toBe(toned(shade)['--surface-base']);
     });
   });
 
-  // 1% and 2% tone against the same rounded shade (31), so a repaint keyed on
-  // that shade alone would leave the floor where 1% put it.
+  // The light window stays white: a scene's colour reaches its accent and
+  // its glow, never its panes or its greys (Ivan, 2026-11-17).
+  it('leaves the light window’s panes and floor without the scene’s hue', () => {
+    [DARK_END_SHADE + 1, 90, THEME_SHADE_MAX].forEach((shade) => {
+      mount('tint', shade);
+      const theme = themeShadeTokens(shade);
+      (['--surface-base', '--surface-panel'] as const).forEach((name) => {
+        // Left to the theme, or written as a grey: never the scene's hue.
+        const worn = token(name) || theme[name];
+        expect(chromaOf(worn)).toBeLessThan(0.005);
+      });
+      // The scene's colour is still on the window: in its accent.
+      expect(chromaOf(token('--accent'))).toBeGreaterThan(0.02);
+      library?.cleanup();
+      root.removeAttribute('style');
+    });
+    expect(themeShadeTokens(THEME_SHADE_MAX)['--surface-panel']).toBe(
+      '#ffffff',
+    );
+    // CONTROL: the same scene's colour is in its panes on the dark side.
+    library?.cleanup();
+    root.removeAttribute('style');
+    mount('tint', DARK_END_SHADE);
+    expect(chromaOf(token('--surface-panel'))).toBeGreaterThan(0.02);
+  });
+
+  // Two steps of the slider tone against the same rounded shade, so a
+  // repaint keyed on that shade alone would leave the floor where the first
+  // put it.
   it('follows every step of the slider, not only the steps that move the toning', () => {
-    expect(heldShade(1)).toBe(heldShade(2));
-    const theme = mount('tint', 1);
-    const atOne = token('--surface-base');
-    theme.setThemeShade(2);
-    expect(token('--surface-base')).not.toBe(atOne);
+    const from = Array.from({ length: DARK_KNEE }, (_, shade) => shade).find(
+      (shade) => toneShadeOf('held', shade) === toneShadeOf('held', shade + 1),
+    );
+    if (from === undefined) {
+      throw new Error('every step of the dark stretch moves the toning');
+    }
+    const theme = mount('tint', from);
+    const before = token('--surface-base');
+    theme.setThemeShade(from + 1);
+    expect(token('--surface-base')).not.toBe(before);
   });
 });

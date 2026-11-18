@@ -28,12 +28,17 @@ import {
   LAGOON,
   rainbowFromColours,
   rainbowFromPalette,
+  stopOnWhite,
 } from 'renderer/utils/rainbowPalette';
 import {
   sceneAppColourStops,
   type ISceneColourControls,
 } from 'renderer/utils/sceneAppColours';
-import { themeShadeTokens } from 'renderer/utils/themeShade';
+import {
+  DARK_END_SHADE,
+  THEME_SHADE_MAX,
+  themeShadeTokens,
+} from 'renderer/utils/themeShade';
 
 jest.mock('renderer/utils/graphStyle', () => ({
   useSelectedLookId: () => 'premium:forest',
@@ -137,27 +142,44 @@ describe('a palette as the app’s rainbow', () => {
     expect(lchOf(stops[6]).c).toBeGreaterThan(0.12);
   });
 
-  // Every theme shade, darkest to lightest, against the floors the marks are
-  // drawn on, Lagoon beside it as the bar the app already holds itself to.
-  it('reads on the window at every theme shade, as Lagoon does', () => {
-    const luminanceOf = (hex: string) => {
-      const parsed = parseCssColour(hex);
-      return parsed ? luminance(parsed.rgb.map(toLinear)) : 0;
-    };
-    const darkest = rainbowFromPalette({ stops: ['#000033', '#110022'] }) ?? [];
-    expect(darkest).toHaveLength(7);
-    [0, 50, 100].forEach((shade) => {
+  const luminanceOf = (hex: string) => {
+    const parsed = parseCssColour(hex);
+    return parsed ? luminance(parsed.rgb.map(toLinear)) : 0;
+  };
+  const worstOn = (stops: readonly string[], ground: number) =>
+    Math.min(...stops.map((stop) => contrast(luminanceOf(stop), ground)));
+
+  // Every shade of the dark window, darkest to lightest, against the floors
+  // the marks are drawn on, Lagoon beside it as the bar the app already
+  // holds itself to.
+  it('reads on the dark window at every shade of it, as Lagoon does', () => {
+    const chosen = rainbowFromPalette({ stops: ['#000033', '#110022'] }) ?? [];
+    expect(chosen).toHaveLength(7);
+    [0, 50, DARK_END_SHADE].forEach((shade) => {
       const tokens = themeShadeTokens(shade);
-      ['--surface-base', '--surface-panel'].forEach((floor) => {
-        const ground = luminanceOf(tokens[floor as keyof typeof tokens]);
-        const worst = (stops: readonly string[]) =>
-          Math.min(...stops.map((stop) => contrast(luminanceOf(stop), ground)));
-        expect(worst(darkest)).toBeGreaterThanOrEqual(
-          Math.min(3, worst(LAGOON)),
+      (['--surface-base', '--surface-panel'] as const).forEach((floor) => {
+        const ground = luminanceOf(tokens[floor]);
+        expect(worstOn(chosen, ground)).toBeGreaterThanOrEqual(
+          Math.min(3, worstOn(LAGOON, ground)),
         );
-        expect(worst(darkest)).toBeGreaterThanOrEqual(3);
+        expect(worstOn(chosen, ground)).toBeGreaterThanOrEqual(3);
       });
     });
+  });
+
+  // The palette is built for a dark window; on a light one (past
+  // `DARK_END_SHADE` since 2026-11-17) it is worn taken down until a 2px line
+  // in it reads on the white panes (`stopOnWhite`, 2026-11-18).
+  it('reads on the light window’s white panes as it is worn there', () => {
+    const chosen = rainbowFromPalette({ stops: ['#000033', '#110022'] }) ?? [];
+    const white = luminanceOf(
+      themeShadeTokens(THEME_SHADE_MAX)['--surface-panel'],
+    );
+    expect(white).toBeCloseTo(1, 6);
+    expect(worstOn(chosen.map(stopOnWhite), white)).toBeGreaterThanOrEqual(3);
+    expect(worstOn(LAGOON.map(stopOnWhite), white)).toBeGreaterThanOrEqual(3);
+    // CONTROL: as chosen, for a dark window, the same stops do not read there.
+    expect(worstOn(chosen, white)).toBeLessThan(3);
   });
 });
 

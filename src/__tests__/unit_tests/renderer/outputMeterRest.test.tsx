@@ -18,31 +18,43 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * counted: still drawing through the hold, stopped once the peak is down.
  */
 
-import { act, render } from '@testing-library/react';
-import { METER_STYLE_KEY } from 'common/meterStyles';
+import '@testing-library/jest-dom';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { METER_STYLE_KEY, METER_STYLE_LIGHT_KEY } from 'common/meterStyles';
 import OutputLevelMeter from 'renderer/graph/OutputLevelMeter';
 import { LEVEL_FLOOR_DB } from 'renderer/graph/outputLevel';
+import { setLightWindow } from 'renderer/utils/windowSide';
 
 const mockCapture = { channelPeaks: [0, 0] };
 
-jest.mock('renderer/audio/LiveAudioContext', () => ({
-  useLiveAudioFrame: () => ({
+// The published frame through the store's hooks too (`liveFrameHooks`): the
+// meter listens to the store since 2026-11-16 rather than rendering it.
+jest.mock('renderer/audio/LiveAudioContext', () => {
+  const frame = {
     isClipping: false,
     outputLevels: [
       { levelDb: -60, peakDb: -60, isClipping: false },
       { levelDb: -60, peakDb: -60, isClipping: false },
     ],
-  }),
-  useLiveAudioControl: () => ({
-    readFrame: () => ({
-      points: [],
-      graphPoints: [],
-      waveform: [],
-      channelPeaks: mockCapture.channelPeaks,
+  };
+  return {
+    ...jest
+      .requireActual<typeof import('../../utils/liveFrameHooks')>(
+        '../../utils/liveFrameHooks',
+      )
+      .liveFrameHooks(() => frame),
+    useLiveAudioFrame: () => frame,
+    useLiveAudioControl: () => ({
+      readFrame: () => ({
+        points: [],
+        graphPoints: [],
+        waveform: [],
+        channelPeaks: mockCapture.channelPeaks,
+      }),
     }),
-  }),
-  useLiveAudioCapture: () => undefined,
-}));
+    useLiveAudioCapture: () => undefined,
+  };
+});
 
 /** A canvas that takes every call, counting the frames it is cleared for. */
 const gradient = { addColorStop: () => undefined };
@@ -125,5 +137,39 @@ describe('the output meter after a quiet passage stops dead', () => {
       jest.advanceTimersByTime(8_000);
     });
     expect(framesDrawnIn(1_000)).toBe(0);
+  });
+});
+
+/**
+ * A light window keeps a meter style of its own (2026-11-18, the "Consola"
+ * light window): it opens on Segments, lit and unlit lamps showing, and a
+ * walk across the Brightness gives each side back the style chosen there.
+ */
+describe('the meter’s style on each side of the Brightness', () => {
+  const meter = () =>
+    screen.getByRole('button', { name: /^Live output level/ });
+
+  afterEach(() => {
+    act(() => setLightWindow(false));
+    window.localStorage.removeItem(METER_STYLE_LIGHT_KEY);
+  });
+
+  it('opens a light window on Segments and keeps the dark side’s style apart', () => {
+    render(<OutputLevelMeter />);
+    // The dark side: the style stored for it (Bar, from `beforeEach`).
+    expect(meter()).toHaveAccessibleName(/Bar$/);
+    act(() => setLightWindow(true));
+    expect(meter()).toHaveAccessibleName(/Segments$/);
+
+    // Cycled on the light side, it is written under the light side's key.
+    fireEvent.click(meter());
+    const lightChoice = window.localStorage.getItem(METER_STYLE_LIGHT_KEY);
+    expect(lightChoice).not.toBeNull();
+    expect(lightChoice).not.toBe('segments');
+    expect(window.localStorage.getItem(METER_STYLE_KEY)).toBe('bar');
+
+    // CONTROL: back on the dark side, the dark side's own style.
+    act(() => setLightWindow(false));
+    expect(meter()).toHaveAccessibleName(/Bar$/);
   });
 });

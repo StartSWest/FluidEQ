@@ -25,7 +25,7 @@ import {
 } from 'renderer/utils/sceneTintPalette';
 import { toneShadeOf } from 'renderer/utils/sceneTintStore';
 import { SHIPPED_TEXT } from 'renderer/utils/themeInk';
-import { themeShadeTokens } from 'renderer/utils/themeShade';
+import { DARK_END_SHADE, themeShadeTokens } from 'renderer/utils/themeShade';
 
 const sky = (lightness: number, chroma: number, hue: number): ISceneSky => ({
   lightness,
@@ -103,9 +103,12 @@ describe.each(Object.entries(SKIES))(
       );
     });
 
-    it('gets no darker as the Brightness rises, up to its top', () => {
-      const walk = Array.from({ length: 21 }, (_, step) =>
-        shown(lent, step * 5),
+    // Up to the top of the dark stretch (`DARK_END_SHADE`): past it the
+    // window turns light, and a scene's colour leaves the panes there
+    // (2026-11-17), so the walk ends where the dark window does.
+    it('gets no darker as the Brightness rises, up to the top of the dark window', () => {
+      const walk = Array.from({ length: DARK_END_SHADE / 4 + 1 }, (_, step) =>
+        shown(lent, step * 4),
       );
       walk
         .slice(1)

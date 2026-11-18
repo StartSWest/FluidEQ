@@ -41,6 +41,18 @@ const bodyOf = (css: string, selector: string, from = 0): string => {
   return css.slice(open + 1, close);
 };
 
+/** The bodies of every rule that `selector` opens, joined. */
+const bodiesOf = (css: string, selector: string): string => {
+  const bodies: string[] = [];
+  let at = css.indexOf(`${selector} {`);
+  while (at >= 0) {
+    const open = css.indexOf('{', at);
+    bodies.push(css.slice(open + 1, css.indexOf('}', open)));
+    at = css.indexOf(`${selector} {`, open);
+  }
+  return bodies.join('\n');
+};
+
 /** Everything between `@keyframes name {` and the brace that closes it. */
 const keyframesOf = (css: string, name: string): string => {
   const at = css.indexOf(`@keyframes ${name} {`);
@@ -74,7 +86,8 @@ describe('the titlebar pet', () => {
     expect(bodyOf(css, ':root.has-pet-joy .support-pet__eye-waves')).toContain(
       'display: block',
     );
-    expect(bodyOf(css, '.support-pet__eye-waves path')).toContain(
+    // On a layer of the page (2026-11-16), so the compositor scrolls it.
+    expect(bodiesOf(css, '\n.support-pet__eye-wave')).toContain(
       'animation: pet-eye-scroll 900ms linear infinite',
     );
   });
@@ -95,26 +108,22 @@ describe('the titlebar pet', () => {
 describe('the engine’s name over the EQ', () => {
   const css = cssOf('MainContent.scss');
 
-  it('drifts once and then rests lit, arriving or not', () => {
-    expect(bodyOf(css, '.eq-engine-label')).toContain(
-      'animation: eq-engine-flow 4s linear;',
-    );
+  // Plain ink since 2026-11-17 (Ivan: "fix FluidEQ Engine, change that text
+  // too, it can't be in little colours like that"): the drift through its
+  // letters is gone, and nothing moves it at rest.
+  it('rests in the words’ own ink, with no drift through its letters', () => {
+    const label = bodyOf(css, '\n.eq-engine-label');
+    expect(label).toContain('color: var(--text-primary)');
+    expect(label).not.toContain('animation');
+    expect(label).not.toContain('background');
+    expect(keyframesOf(css, 'eq-engine-flow')).toBe('');
+    // Its arrival plays once, never on a loop.
     const riding = bodyOf(css, '.eq-engine-label.is-riding');
-    expect(riding).toContain('eq-engine-flow 4s linear,');
-    expect(riding).not.toContain('eq-engine-flow 4s linear infinite');
+    expect(riding).toContain('eq-engine-arrive 640ms');
+    expect(riding).not.toContain('infinite');
     // The control: the waiting state's crest does loop, in the same sheet.
     expect(bodyOf(css, '.eq-engine-line--checking .eq-engine-label')).toContain(
       'eq-engine-crest 1.6s linear infinite',
-    );
-  });
-
-  it('ends the pass on a picture identical to where it began', () => {
-    // The image is twice the box, so -200% is one whole image along.
-    expect(bodyOf(css, '.eq-engine-label')).toContain(
-      'background-size: 200% 100%',
-    );
-    expect(keyframesOf(css, 'eq-engine-flow')).toContain(
-      'background-position: -200% 0',
     );
   });
 });
@@ -164,17 +173,17 @@ describe('the aurora under a scene band', () => {
 describe('the Library’s now-playing mark', () => {
   const css = cssOf('Library.scss');
 
+  // The bars are elements of the page moved by `scale` (2026-11-16), which
+  // the compositor runs; their box carries the one glow.
   it('glows once over its four bars, not once on each', () => {
-    expect(bodyOf(css, '.library-list__playing-bars rect')).not.toContain(
-      'filter',
-    );
-    expect(bodyOf(css, '.library-list__playing-frame svg')).toContain(
+    const bar = bodyOf(css, '.library-list__playing-bars > span');
+    expect(bar).not.toContain('filter');
+    expect(bodyOf(css, '\n.library-list__playing-bars')).toContain(
       'filter: drop-shadow(0 0 3px',
     );
     // The control: the bars still move, each on its own period.
-    expect(bodyOf(css, '.library-list__playing-bars rect')).toContain(
-      'animation: library-playing-bar 1000ms',
-    );
+    expect(bar).toContain('animation: library-playing-bar 1000ms');
+    expect(keyframesOf(css, 'library-playing-bar')).toContain('scale:');
   });
 
   it('lays its drawing out in a box of its own, the mark’s own size', () => {

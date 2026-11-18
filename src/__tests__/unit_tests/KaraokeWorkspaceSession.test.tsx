@@ -26,6 +26,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import { findSongTitle } from '../utils/karaokeSongTitle';
 import {
   karaokeFileBaseName,
   setKaraokeRelativePath,
@@ -35,7 +36,10 @@ import { parseUltraStar } from '../../common/karaoke/ultrastar';
 import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
 import { sendFilesToKaraoke } from '../../renderer/library/karaokeHandoff';
-import { karaokeLayoutStorageKey } from '../../renderer/karaoke/karaokeLayout';
+import {
+  karaokeLayoutStorageKey,
+  karaokePitchHeightPercent,
+} from '../../renderer/karaoke/karaokeLayout';
 import {
   createKaraokeAudioClock,
   IKaraokeAudioClock,
@@ -285,10 +289,8 @@ describe('KaraokeWorkspace sessions and layout', () => {
       container.querySelector('input[type="file"]') as HTMLInputElement,
       { target: { files: [audio, lyrics] } },
     );
-    expect(
-      await screen.findByRole('heading', { name: 'Existing karaoke' }),
-    ).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    expect(await findSongTitle('Existing karaoke')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Open in Maker' }));
 
     expect(
       await screen.findByText(
@@ -336,15 +338,13 @@ describe('KaraokeWorkspace sessions and layout', () => {
       container.querySelector('input[type="file"]') as HTMLInputElement,
       { target: { files: [audioFile] } },
     );
-    expect(
-      await screen.findByRole('heading', { name: 'Audible scrub' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Audible scrub')).toBeVisible();
     const audio = container.querySelector('audio') as HTMLAudioElement;
     Object.defineProperty(audio, 'duration', {
       configurable: true,
       value: 12,
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open in Maker' }));
     const maker = await waitFor(() => {
       const element = container.querySelector('.karaoke-maker');
       expect(element).toBeInTheDocument();
@@ -373,6 +373,12 @@ describe('KaraokeWorkspace sessions and layout', () => {
       releasePointerCapture: { configurable: true, value: jest.fn() },
     });
 
+    // The song playing, as jsdom's element never says by itself: the session
+    // pauses only an element that is playing (`useKaraokeSession`).
+    Object.defineProperty(audio, 'paused', {
+      configurable: true,
+      get: () => false,
+    });
     play.mockClear();
     pause.mockClear();
     fireTestPointer(editorCanvas, 'pointerdown', 23, 300);
@@ -392,20 +398,24 @@ describe('KaraokeWorkspace sessions and layout', () => {
     canvasContext.mockRestore();
   });
 
-  it('only applies the idle fade to the full-screen actions', async () => {
+  // The stage's bar goes with the pointer at rest in every view, as the
+  // graph's strip does (Ivan, 2026-11-16: "same behaviour everywhere"); it
+  // faded in full screen alone before.
+  it('fades the stage bar at rest in every view, and only at rest', async () => {
     const { rerender } = render(
       <KaraokeWorkspace isHidden={false} isFullScreen isChromeIdle />,
     );
     await act(async () => Promise.resolve());
+    const bar = () => screen.getByRole('toolbar', { name: 'Karaoke actions' });
 
-    expect(
-      screen.getByRole('toolbar', { name: 'Karaoke actions' }),
-    ).toHaveClass('is-stage-toolbar', 'is-idle');
+    expect(bar()).toHaveClass('karaoke-stage-bar', 'is-idle');
 
     rerender(<KaraokeWorkspace isHidden={false} isChromeIdle />);
-    expect(
-      screen.getByRole('toolbar', { name: 'Karaoke actions' }),
-    ).not.toHaveClass('is-stage-toolbar', 'is-idle');
+    expect(bar()).toHaveClass('is-idle');
+
+    // The control: with the pointer moving it stands.
+    rerender(<KaraokeWorkspace isHidden={false} isChromeIdle={false} />);
+    expect(bar()).not.toHaveClass('is-idle');
   });
 
   it('uses the fullscreen layout without duplicating Karaoke chrome under a graph', async () => {
@@ -437,19 +447,22 @@ describe('KaraokeWorkspace sessions and layout', () => {
       },
     });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Resizable' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Resizable')).toBeVisible();
     const normalPitchSplitter = screen.getByRole('separator', {
       name: 'Resize pitch lane',
     });
-    expect(normalPitchSplitter).toHaveAttribute('aria-valuenow', '34');
+    // The strip opens near its tallest (Ivan, 2026-11-18: "it's too compressed"):
+    // 340px of its 56-360px range in a window, read as a share of that range.
+    expect(normalPitchSplitter).toHaveAttribute(
+      'aria-valuenow',
+      String(Math.round(karaokePitchHeightPercent(340))),
+    );
     fireEvent.keyDown(normalPitchSplitter, { key: 'ArrowUp' });
     const normalPitchValue = normalPitchSplitter.getAttribute('aria-valuenow');
     const normalPlaylistSplitter = screen.getByRole('separator', {
       name: 'Resize playlist and stage',
     });
-    expect(normalPlaylistSplitter).toHaveAttribute('aria-valuenow', '27');
+    expect(normalPlaylistSplitter).toHaveAttribute('aria-valuenow', '20');
     fireEvent.keyDown(normalPlaylistSplitter, { key: 'ArrowRight' });
     fireEvent.click(screen.getByRole('button', { name: 'Collapse playlist' }));
 
@@ -457,15 +470,15 @@ describe('KaraokeWorkspace sessions and layout', () => {
       window.localStorage.getItem(karaokeLayoutStorageKey('normal')) ?? '{}',
     );
     expect(normal.playlistCollapsed).toBe(true);
-    expect(normal.playlistShare).toBeGreaterThan(0.27);
-    expect(normal.pitchShare).toBeGreaterThan(0.34);
+    expect(normal.playlistShare).toBeGreaterThan(0.2);
+    expect(normal.pitchHeight).toBeGreaterThan(340);
     expect(
       screen.getByRole('button', { name: 'Expand playlist' }),
     ).toBeVisible();
     // Folded, not gone, so the column can close around it; and nothing in it
     // can be reached while it cannot be seen.
     expect(
-      screen.getByRole('complementary', { name: 'Playlist' }),
+      screen.getByRole('complementary', { name: /^Songs/ }),
     ).toHaveAttribute('inert');
 
     rerender(<KaraokeWorkspace isHidden={false} isFullScreen />);
@@ -475,11 +488,12 @@ describe('KaraokeWorkspace sessions and layout', () => {
     ).toBeVisible();
     expect(
       screen.getByRole('separator', { name: 'Resize playlist and stage' }),
-    ).toHaveAttribute('aria-valuenow', '22');
+    ).toHaveAttribute('aria-valuenow', '17');
     const fullscreenPitchSplitter = screen.getByRole('separator', {
       name: 'Resize pitch lane',
     });
-    expect(fullscreenPitchSplitter).toHaveAttribute('aria-valuenow', '40');
+    // And at its tallest, 360px, in full screen.
+    expect(fullscreenPitchSplitter).toHaveAttribute('aria-valuenow', '100');
     fireEvent.keyDown(fullscreenPitchSplitter, { key: 'ArrowDown' });
     fireEvent.click(screen.getByRole('button', { name: 'Collapse playlist' }));
 
@@ -488,7 +502,7 @@ describe('KaraokeWorkspace sessions and layout', () => {
         '{}',
     );
     expect(fullscreen.playlistCollapsed).toBe(true);
-    expect(fullscreen.pitchShare).toBeLessThan(0.4);
+    expect(fullscreen.pitchHeight).toBeLessThan(360);
 
     rerender(<KaraokeWorkspace isHidden={false} />);
     expect(
@@ -532,10 +546,10 @@ describe('KaraokeWorkspace sessions and layout', () => {
 
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
 
-    expect(
-      await screen.findByRole('heading', { name: 'Remembered Song' }),
-    ).toBeVisible();
-    expect(screen.getByText('Saved Artist')).toBeVisible();
+    expect(await findSongTitle('Remembered Song')).toBeVisible();
+    // The lyric file's artist tag was written in the song's title block,
+    // which went with the K1 mockup (2026-11-16); the list names the artist
+    // from the Library's tags or the file's name instead.
     expect(readKaraokeSessionFile).toHaveBeenCalledWith('saved-audio');
     expect(createObjectURL).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Restored.mp3', size: 3 }),
@@ -596,7 +610,10 @@ describe('KaraokeWorkspace sessions and layout', () => {
     // Both are in the list, and the sent one is still the one chosen.
     expect(await screen.findByText('Restored')).toBeVisible();
     expect(screen.getAllByText('Sent Over').length).toBeGreaterThan(0);
-    expect(screen.getByText('2')).toBeVisible();
+    // The heading counts both: "Songs · 2".
+    expect(screen.getByRole('heading', { name: /^Songs/ })).toHaveTextContent(
+      '2',
+    );
     const current = document.querySelector(
       '.karaoke-playlist__song[aria-current="true"]',
     );
@@ -622,9 +639,7 @@ describe('KaraokeWorkspace sessions and layout', () => {
       },
     });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Remember' }),
-    ).toBeVisible();
+    expect(await findSongTitle('Remember')).toBeVisible();
     await waitFor(() =>
       expect(saveKaraokeSession).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -640,7 +655,9 @@ describe('KaraokeWorkspace sessions and layout', () => {
       ),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    // Clear is the list heading's + menu's since the K1 mockup.
+    fireEvent.click(screen.getByRole('button', { name: 'Add songs' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Clear' }));
     expect(clearKaraokeSession).not.toHaveBeenCalled();
     fireEvent.click(
       within(
@@ -674,17 +691,18 @@ describe('KaraokeWorkspace sessions and layout', () => {
       target: { files: [audioFile, lyricFile] },
     });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Clockwork Lights' }),
-    ).toBeVisible();
-    expect(screen.getByText('Test Artist')).toBeVisible();
-    expect(screen.getByText('LRC · line timing')).toBeVisible();
+    expect(await findSongTitle('Clockwork Lights')).toBeVisible();
+    // The lyric size is in the stage bar's popover since the K1 mockup
+    // (2026-11-16), where the song's own row of tools stood.
+    fireEvent.click(screen.getByRole('button', { name: 'Lyric text size' }));
     const lyricSize = screen.getByRole('slider', {
       name: 'Lyric text size',
     });
     expect(lyricSize).toHaveValue('100');
     expect(lyricSize).toHaveAttribute('max', '300');
-    expect(lyricSize.closest('.karaoke-song__tools')).toBeInTheDocument();
+    expect(
+      lyricSize.closest('.karaoke-stage-bar__popover'),
+    ).toBeInTheDocument();
     fireEvent.change(lyricSize, { target: { value: '180' } });
     expect(lyricSize).toHaveValue('180');
     expect(lyricSize).toHaveAttribute('aria-valuetext', '180%');
@@ -703,7 +721,9 @@ describe('KaraokeWorkspace sessions and layout', () => {
     expect(lyricCanvas.tagName).toBe('CANVAS');
     expect(container.querySelector('.karaoke-lyrics__line')).toBeNull();
     expect(container.querySelector('.karaoke-lyrics__token')).toBeNull();
-    expect(screen.getAllByRole('heading', { name: 'Pitch lane' })).toHaveLength(
+    // One pitch strip, named but with no heading of its own since the K1
+    // mockup.
+    expect(screen.getAllByRole('article', { name: 'Pitch lane' })).toHaveLength(
       1,
     );
     expect(
@@ -731,7 +751,7 @@ describe('KaraokeWorkspace sessions and layout', () => {
     });
     fireEvent.loadedMetadata(audio);
     const pitchCanvas = container.querySelector(
-      '.karaoke-pitch__canvas canvas',
+      '.karaoke-pitch canvas',
     ) as HTMLCanvasElement;
     jest.spyOn(pitchCanvas, 'getBoundingClientRect').mockReturnValue({
       x: 0,

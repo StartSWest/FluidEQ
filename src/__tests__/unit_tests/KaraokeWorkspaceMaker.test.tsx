@@ -26,6 +26,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import { findSongTitle } from '../utils/karaokeSongTitle';
 import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
 import {
@@ -224,10 +225,8 @@ describe('KaraokeWorkspace with the Maker', () => {
         },
       },
     );
-    expect(
-      await screen.findByRole('heading', { name: 'Restore me' }),
-    ).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    expect(await findSongTitle('Restore me')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Open in Maker' }));
 
     const maker = await waitFor(() => {
       const element = container.querySelector('.karaoke-maker');
@@ -313,10 +312,8 @@ describe('KaraokeWorkspace with the Maker', () => {
         ],
       },
     });
-    expect(
-      await screen.findByRole('heading', { name: 'Maker screen' }),
-    ).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    expect(await findSongTitle('Maker screen')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Open in Maker' }));
 
     const maker = await waitFor(() => {
       const element = container.querySelector('.karaoke-maker');
@@ -472,6 +469,8 @@ describe('KaraokeWorkspace with the Maker', () => {
     expect(timingNotice).not.toBeInTheDocument();
     play.mockClear();
     fireEvent.click(screen.getByRole('button', { name: 'Play word' }));
+    // What the play() it asks for sets off when it resolves lands inside act.
+    await act(async () => undefined);
     expect(play).toHaveBeenCalledTimes(1);
     fireEvent.click(
       maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
@@ -485,6 +484,8 @@ describe('KaraokeWorkspace with the Maker', () => {
       ),
     ).find((button) => button.textContent === 'First') as HTMLButtonElement;
     fireEvent.click(timedWord);
+    // What the play() it asks for sets off when it resolves lands inside act.
+    await act(async () => undefined);
     expect(play).toHaveBeenCalledTimes(2);
     expect(guidedAudio.currentTime).toBeGreaterThan(0);
     fireEvent.click(
@@ -558,6 +559,7 @@ describe('KaraokeWorkspace with the Maker', () => {
     paintNotes.focus();
     fireEvent.keyDown(paintNotes, { key: ' ', code: 'Space' });
     expect(play).toHaveBeenCalledTimes(1);
+    await act(async () => undefined);
 
     const songTitle = screen.getByRole('textbox', { name: 'Song title' });
     songTitle.focus();
@@ -567,6 +569,7 @@ describe('KaraokeWorkspace with the Maker', () => {
     play.mockClear();
     fireEvent.keyDown(maker, { key: ' ', code: 'Space' });
     expect(play).toHaveBeenCalledTimes(1);
+    await act(async () => undefined);
     play.mockClear();
     // And a space typed into a name is a space in the name. The transport
     // takes the key everywhere else, which is why this is worth pinning: the
@@ -800,8 +803,8 @@ describe('KaraokeWorkspace with the Maker', () => {
         files: [new File(['audio'], 'Manual maker.mp3')],
       },
     });
-    await screen.findByRole('heading', { name: 'Manual maker' });
-    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    await findSongTitle('Manual maker');
+    fireEvent.click(screen.getByRole('button', { name: 'Open in Maker' }));
     const maker = await waitFor(() => {
       const element = container.querySelector('.karaoke-maker');
       expect(element).toBeInTheDocument();

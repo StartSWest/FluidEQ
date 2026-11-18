@@ -37,15 +37,25 @@ const shapeOf = (style: WaveformStyle) =>
 
 /**
  * The eleven this module builds as path data, which the EQ graph's forms draw
- * from. The ten added on 2026-11-16 are the title bar's alone and are painted
- * there (`waveformFlatPaint.ts`, held by `waveformFlat.test.ts`).
+ * from: the ones after `recorder`. `recorder` (2026-11-17), first and the
+ * default, is the real waveform scrolling past and is drawn by
+ * `waveformRecorder.ts` (held by `waveformRecorder.test.ts`); the ten added
+ * on 2026-11-16 are the title bar's alone and are painted there
+ * (`waveformFlatPaint.ts`, held by `waveformFlat.test.ts`).
  */
-const SHAPED_STYLES = WAVEFORM_STYLES.slice(0, 11);
+const SHAPED_STYLES = WAVEFORM_STYLES.slice(1, 12);
 
 describe('the style cycle', () => {
-  it('offers twenty-one', () => {
-    expect(WAVEFORM_STYLES).toHaveLength(21);
-    expect(new Set(WAVEFORM_STYLES).size).toBe(21);
+  it('offers twenty-two, the recorder first', () => {
+    expect(WAVEFORM_STYLES).toHaveLength(22);
+    expect(new Set(WAVEFORM_STYLES).size).toBe(22);
+    expect(WAVEFORM_STYLES[0]).toBe('recorder');
+  });
+
+  it('builds no path for the recorder, which is drawn from its own history', () => {
+    expect(shapeOf('recorder')).toEqual({ line: '', mirror: '', fill: '' });
+    // CONTROL: the style after it is path data, as the graph's forms need.
+    expect(shapeOf(WAVEFORM_STYLES[1]).line.length).toBeGreaterThan(0);
   });
 
   it('comes back round', () => {
@@ -56,7 +66,7 @@ describe('the style cycle', () => {
       style = nextWaveformStyle(style);
     }
     // Every style reachable, and back to the start.
-    expect(seen.size).toBe(21);
+    expect(seen.size).toBe(22);
     expect(style).toBe(WAVEFORM_STYLES[0]);
   });
 

@@ -5,12 +5,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Backdrop takes the window only once its scene has drawn a picture
+ * A scene's layer takes the window only once its scene has drawn a picture
  * (Ivan, 2026-09-29: "jump straight to the visualizer graphics so we don't
- * see this"). Marked at once, every pane turned to glass over a flat dark
- * ground for as long as the scene took to compile, and only then did the
- * picture arrive under it. The scene's loop is stood in for here, so the
- * test hands the canvas its frames itself.
+ * see this"). Marked at once, the Backdrop turned every pane to glass over a
+ * flat dark ground for as long as the scene took to compile; and since
+ * 2026-11-17 the EQ column's layer waits the same way ("it all has to paint
+ * together, with a fade"), where marked at mount the head, the tab row and
+ * the legend took their over-the-picture faces before the picture came in.
+ * The full app's Backdrop was taken out on 2026-11-16; the marking is the
+ * layer's own name, so the rule is held on both. The scene's loop is stood
+ * in for here, so the test hands the canvas its frames itself.
  */
 
 import '@testing-library/jest-dom';
@@ -77,13 +81,15 @@ describe('the Backdrop and its first picture', () => {
     expect(root).not.toHaveClass('is-scene-backdrop');
   });
 
-  // The positive control: the rule is the Backdrop's, which is the only
-  // layer that turns the whole window to glass; the column's layer is
-  // marked as soon as it is there, as it always was.
-  it('marks the column layer at once', () => {
+  it('marks the column layer only once its scene has drawn a picture', () => {
     const { unmount } = render(
       <SceneCanvas scene={scene} target={layer('column')} plot={undefined} />,
     );
+    expect(root).not.toHaveClass('is-scene-column');
+    drawFrame(0);
+    expect(root).not.toHaveClass('is-scene-column');
+    // The control: the picture's first frame marks it.
+    drawFrame(0.2);
     expect(root).toHaveClass('is-scene-column');
     unmount();
     expect(root).not.toHaveClass('is-scene-column');
