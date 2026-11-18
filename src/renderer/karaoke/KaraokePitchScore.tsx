@@ -41,6 +41,8 @@ interface IKaraokePitchScoreProps {
   /** Back to a moment of the song with the count-in, to sing from there. */
   onSingFrom: (timeMs: number) => void;
   onSingAgain: () => void;
+  /** A picture behind the strip (`KaraokePitchLane`'s). */
+  overPicture?: boolean;
 }
 
 /**
@@ -61,6 +63,7 @@ const KaraokePitchScore = ({
   onScrubEnd,
   onSingFrom,
   onSingAgain,
+  overPicture,
 }: IKaraokePitchScoreProps) => {
   const {
     sheet,
@@ -115,6 +118,7 @@ const KaraokePitchScore = ({
             onScrub={onScrub}
             onScrubEnd={onScrubEnd}
             readVerdict={sheet ? readVerdict : undefined}
+            overPicture={overPicture}
           />
         )}
       </KaraokeLiveValue>

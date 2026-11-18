@@ -50,20 +50,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     pointer-events: none;
     content: '';
   }
-
-  // On a white window the words are dark ink, so what holds them over a
-  // cover is the window's own light, not a dark pool: a near-black veil
-  // under dark words was a smudge behind them.
-  :root[data-window-ink='dark']
-    .karaoke-workspace__stage.is-backdrop-cover
-    &::before {
-    background: radial-gradient(
-      ellipse 58% 42% at 50% 50%,
-      color-mix(in srgb, var(--surface-panel) 62%, transparent),
-      color-mix(in srgb, var(--surface-panel) 24%, transparent) 68%,
-      transparent
-    );
-  }
 }
 
 .karaoke-lyrics__canvas {

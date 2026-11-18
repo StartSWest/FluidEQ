@@ -26,3 +26,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .karaoke-graph-background:has(> canvas.chart-live-canvas) {
   opacity: calc(0.2 * var(--karaoke-scene-opacity, 1));
 }
+
+// A scene behind the words is not whitened with the window (Ivan,
+// 2026-11-18, of a snow scene drawn at 0.32 over the white panel: "scene bg
+// or even cover art doesn't mean we need to white it too, it is too light").
+// The 0.32 is how far a dark window's floor dims it; over white the same
+// number washed it out. On a white window it stands nearly whole, and See
+// through fades it toward the white floor, as on a dark window it fades it
+// toward the dark one ("the see through needs to move toward white if white
+// theme, not toward dark"). The words over it are the dark stage's while
+// the picture leads (`overPicture` in `KaraokeWorkspaceView.tsx`).
+:root[data-window-ink='dark'] .karaoke-graph-background {
+  opacity: calc(0.85 * var(--karaoke-scene-opacity, 1));
+}

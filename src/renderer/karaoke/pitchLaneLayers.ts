@@ -29,7 +29,12 @@ import {
 import { type IKaraokeToken } from '../../common/karaoke/types';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import { LYRIC_FONT_FAMILY } from './karaokeLyricText';
-import { inkForSide, TEXT_ON_WHITE } from './karaokeCanvasInk';
+import {
+  inkForSide,
+  type IPictureKey,
+  TEXT_ON_WHITE,
+  writeName,
+} from './karaokeCanvasInk';
 import {
   drawnNoteRange,
   freeNoteEdge,
@@ -70,6 +75,8 @@ interface IPaintPitchGridInput {
   textInk: string;
   /** The note at the playhead, whose name lights up in the gutter. */
   markMidi: number | undefined;
+  /** Over a picture on a white window, names keyed as the lyrics are. */
+  keyed?: IPictureKey;
 }
 
 /** Where the note names end, right-aligned, left of the plot. */
@@ -102,6 +109,7 @@ export const paintPitchGrid = ({
   plotWidth,
   textInk,
   markMidi,
+  keyed,
 }: IPaintPitchGridInput) => {
   context.lineWidth = 1;
   context.textAlign = 'right';
@@ -135,9 +143,16 @@ export const paintPitchGrid = ({
       } else if (isOctave) {
         ink = inkForSide(OCTAVE_NAME, TEXT_ON_WHITE);
       }
-      context.fillStyle = ink;
       context.font = `${isMark ? 700 : 400} 10px ${LYRIC_FONT_FAMILY}`;
-      context.fillText(midiToNoteName(midi), NOTE_NAME_RIGHT, y + 3);
+      writeName(
+        context,
+        midiToNoteName(midi),
+        NOTE_NAME_RIGHT,
+        y + 3,
+        ink,
+        keyed,
+        isMark,
+      );
     }
   }
 };
@@ -164,6 +179,8 @@ interface IPaintNoteBlocksInput {
   verdictLabel: (judged: IKaraokeLaneVerdict) => string;
   now: number;
   plotWidth: number;
+  /** Over a picture on a white window, names keyed as the lyrics are. */
+  keyed?: IPictureKey;
 }
 
 /**
@@ -183,6 +200,7 @@ export const paintNoteBlocks = ({
   verdictLabel,
   now,
   plotWidth,
+  keyed,
 }: IPaintNoteBlocksInput) => {
   const judgedBoxes: IJudgedNoteBox[] = [];
   const plotRight = PLOT_LEFT + plotWidth;
@@ -274,6 +292,7 @@ export const paintNoteBlocks = ({
           top,
           ringed: active,
           bold: active,
+          keyed,
         },
         namePlaces,
       );

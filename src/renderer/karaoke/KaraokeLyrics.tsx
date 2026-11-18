@@ -50,7 +50,12 @@ import {
   useKaraokeLyricsTranslationSelection,
 } from './karaokeLyricsTranslation';
 import { rainbowColourAt } from '../utils/rainbowPalette';
-import { readAccent, readAccentLight, subscribeRoot } from '../utils/theme';
+import {
+  readAccent,
+  readAccentLight,
+  readSurface,
+  subscribeRoot,
+} from '../utils/theme';
 import { isLightWindow, subscribeWindowSide } from '../utils/windowSide';
 import {
   EUPHORIA_LIFT_ON_WHITE,
@@ -117,6 +122,12 @@ interface IKaraokeLyricsProps {
    * open, beside the Maker's own preview of the same words.
    */
   isActive?: boolean;
+  /**
+   * Whether a picture stands behind the words - a scene, a cover, a video.
+   * On a white window the words are then drawn flat, with no light halo
+   * round them, which over a picture read as a glowing border.
+   */
+  overPicture?: boolean;
 }
 
 export interface ILyricHitRegion {
@@ -188,6 +199,7 @@ const KaraokeLyrics = ({
   showTranslationPicker = true,
   translationLanguage: externalTranslationLanguage,
   isActive = true,
+  overPicture = false,
 }: IKaraokeLyricsProps) => {
   const { t } = useTranslation();
   const [isFollowing, setIsFollowing] = useState(true);
@@ -216,6 +228,9 @@ const KaraokeLyrics = ({
   }
   const textSizeRef = useRef(textSize);
   textSizeRef.current = textSize;
+  // Read by the frame loop; a change is drawn by the kick every render sends.
+  const overPictureRef = useRef(overPicture);
+  overPictureRef.current = overPicture;
   const {
     hasTranslations,
     isSelectedTranslationEmpty,
@@ -565,9 +580,20 @@ const KaraokeLyrics = ({
         karaokeLyricBlockGap(width, height),
       );
       let hitRegionCount = 0;
-      // On a light window the words wear the window's own inks, solid
-      // (`karaokeLyricInk.ts`); undefined on a dark one, drawn as before.
-      const lightInk = isLightWindow() ? readLightLyricInk() : undefined;
+      // On a light window the words wear the window's own inks, solid and
+      // flat (`karaokeLyricInk.ts`); undefined on a dark one, drawn as
+      // before. Over a picture on a light window they are the stage's light
+      // face with a firm key in the window's own dark ink and no colour edge
+      // (Ivan, 2026-11-18: "on light, white text with a dark border ...
+      // clean, I mean, not green"): the travelling edge read as a glowing
+      // border on snow, and a light face keyed dark reads on a picture of any
+      // depth.
+      const isLight = isLightWindow();
+      const pictureKey =
+        isLight && overPictureRef.current
+          ? readSurface('--text-primary', '#1b1b1b')
+          : undefined;
+      const lightInk = isLight && !pictureKey ? readLightLyricInk() : undefined;
       const euphoriaLift = lightInk ? EUPHORIA_LIFT_ON_WHITE : undefined;
       blocks.forEach(({ index, layout }, blockIndex) => {
         const position = positions[blockIndex];
@@ -671,12 +697,17 @@ const KaraokeLyrics = ({
               // A thin, soft key (Ivan, 2026-11-15, "K1": the player flat as
               // the Library): enough to hold the words over a bright scene,
               // no longer the heavy black outline that read as a sticker.
-              context.lineWidth = hasEuphoriaText
-                ? 0.7 + 2.5 * focusAmount
-                : 0.5 + 0.6 * focusAmount;
-              context.strokeStyle = 'rgba(2, 8, 15, 0.6)';
+              if (pictureKey) {
+                context.lineWidth = 1.6 + 1.8 * focusAmount;
+                context.strokeStyle = pictureKey;
+              } else {
+                context.lineWidth = hasEuphoriaText
+                  ? 0.7 + 2.5 * focusAmount
+                  : 0.5 + 0.6 * focusAmount;
+                context.strokeStyle = 'rgba(2, 8, 15, 0.6)';
+              }
               context.strokeText(text, wordX, y);
-              if (hasEuphoriaText) {
+              if (hasEuphoriaText && !pictureKey) {
                 context.lineWidth = Math.max(0.7, 1.15 * focusAmount);
                 context.strokeStyle = `hsla(${(euphoriaHue + wordIndex * 11) % 360}, 96%, 70%, ${0.72 * focusAmount})`;
                 context.strokeText(text, wordX, y);

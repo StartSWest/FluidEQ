@@ -29,6 +29,7 @@ import karaokeMicrophoneImage from '../../../assets/karaoke-microphone.png';
 import MenuIcon from '../icons/MenuIcon';
 import KaraokeMaker from './KaraokeMaker';
 import { useStandInForGraphScene } from '../graph/sceneStandIn';
+import { useSceneLook } from '../utils/graphStyle';
 import { importedFileIdentity } from './karaokeWorkspaceRestore';
 import { setKaraokeHostSource } from './karaokeMediaPath';
 import { karaokeMakerProjectToSong } from '../../common/karaoke/makerProject';
@@ -174,6 +175,18 @@ const KaraokeWorkspaceView = ({
   // the stand-in stops the graph's scene, which would otherwise have taken
   // over the moment the Karaoke's let it go.
   useStandInForGraphScene(!isHidden && isMakerOpen);
+  // A picture behind the words - a scene, a cover, a video - is not whitened
+  // on a white window (Ivan, 2026-11-18: "scene bg or even cover art doesn't
+  // mean we need to white it too"; `_karaokeGraphBackground.scss`), and the
+  // words and the pitch lane's notes over it are drawn flat, with no light
+  // halo or plate, which over a picture read as a glowing border ("remove
+  // the glowing border ... flat and clean").
+  const backdropKind = karaokeBackdropKind(background, song);
+  const sceneLook = useSceneLook();
+  const overPicture =
+    backdropKind === 'cover' ||
+    backdropKind === 'video' ||
+    (backdropKind === 'graph' && sceneLook !== null);
   const addFiles = useCallback(
     () => fileInputRef.current?.click(),
     [fileInputRef],
@@ -539,10 +552,9 @@ const KaraokeWorkspaceView = ({
         )}
         <div
           ref={stageRef}
-          className={`karaoke-workspace__stage is-backdrop-${karaokeBackdropKind(
-            background,
-            song,
-          )}${song ? ' has-song' : ''}${
+          className={`karaoke-workspace__stage is-backdrop-${backdropKind}${
+            overPicture ? ' has-picture' : ''
+          }${song ? ' has-song' : ''}${
             playlist.length > 0 && layout.playlistCollapsed
               ? ' has-collapsed-playlist'
               : ''
@@ -580,6 +592,7 @@ const KaraokeWorkspaceView = ({
                     onSeek={handleSelectLyric}
                     followRequestKey={lyricsFollowRequestKey}
                     textSize={lyricTextSize}
+                    overPicture={overPicture}
                   />
                 )}
               </KaraokeLiveValue>
@@ -625,6 +638,7 @@ const KaraokeWorkspaceView = ({
                       onScrubEnd={handlePitchScrubEnd}
                       onSingFrom={handleSelectLyric}
                       onSingAgain={handleRestart}
+                      overPicture={overPicture}
                     />
                   )}
                 </div>

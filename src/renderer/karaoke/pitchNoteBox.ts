@@ -7,7 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { midiToNoteName } from '../../common/karaoke/pitch';
 import { readAccent, readAccentLight, readSurface } from '../utils/theme';
 import { isLightWindow } from '../utils/windowSide';
-import { inkForSide, onWhite, TEXT_ON_WHITE } from './karaokeCanvasInk';
+import {
+  inkForSide,
+  type IPictureKey,
+  onWhite,
+  TEXT_ON_WHITE,
+  writeName,
+} from './karaokeCanvasInk';
 import { LYRIC_FONT_FAMILY } from './karaokeLyricText';
 import { drawRoundedRect } from './makerCanvasGeometry';
 
@@ -183,6 +189,8 @@ interface IPaintNoteNameInput {
   ringed: boolean;
   /** The note under the playhead is named in bold. */
   bold: boolean;
+  /** Over a picture on a white window, the lyrics' keyed face. */
+  keyed?: IPictureKey;
 }
 
 /** Where one name was painted, in the canvas's own pixels. */
@@ -207,10 +215,9 @@ const NAME_AIR_PX = 1;
  */
 export const paintNoteName = (
   context: CanvasRenderingContext2D,
-  { midi, left, right, top, ringed, bold }: IPaintNoteNameInput,
+  { midi, left, right, top, ringed, bold, keyed }: IPaintNoteNameInput,
   placed?: INoteNamePlace[],
 ) => {
-  context.fillStyle = nameInk(ringed);
   context.font = `${bold ? 700 : 600} 9px ${LYRIC_FONT_FAMILY}`;
   context.textAlign = 'center';
   context.textBaseline = 'alphabetic';
@@ -237,5 +244,5 @@ export const paintNoteName = (
     }
     placed.push(place);
   }
-  context.fillText(name, x, y);
+  writeName(context, name, x, y, nameInk(ringed), keyed, ringed);
 };

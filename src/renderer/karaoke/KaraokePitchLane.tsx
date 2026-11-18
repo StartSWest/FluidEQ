@@ -65,6 +65,7 @@ import {
 } from './useKaraokeMicrophone';
 import { readAccent, readTextInk } from '../utils/theme';
 import { paintNoteBlocks, paintPitchGrid } from './pitchLaneLayers';
+import { pictureKeyFor } from './karaokeCanvasInk';
 import paintTrace from './pitchLaneTrace';
 
 interface IKaraokePitchLaneProps {
@@ -85,6 +86,8 @@ interface IKaraokePitchLaneProps {
   onScrubEnd?: (timeMs: number) => void;
   /** The singer's verdict on each note that has ended, while scored. */
   readVerdict?: (note: IKaraokeToken) => IKaraokeLaneVerdict | undefined;
+  /** A picture behind the strip: on a white window, names keyed as the lyrics are. */
+  overPicture?: boolean;
 }
 
 interface IKaraokePitchViewportState {
@@ -116,9 +119,13 @@ const KaraokePitchLane = ({
   onScrub,
   onScrubEnd,
   readVerdict,
+  overPicture = false,
 }: IKaraokePitchLaneProps) => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Read by the frame loop each frame; a flip needs no new loop.
+  const overPictureRef = useRef(overPicture);
+  overPictureRef.current = overPicture;
   const traceRef = useRef<IKaraokePitchPoint[]>([]);
   const performanceTraceRef = useRef(new Map<number, IKaraokePitchPoint>());
   const performanceIssueUpdateRef = useRef(0);
@@ -327,6 +334,7 @@ const KaraokePitchLane = ({
       const xForSongTime = (timeMs: number) =>
         karaokePitchSongTimeX(timeMs, synchronizedPlayheadMs, plotWidth);
 
+      const keyed = pictureKeyFor(overPictureRef.current);
       paintPitchGrid({
         context,
         yForMidi,
@@ -336,6 +344,7 @@ const KaraokePitchLane = ({
         plotWidth,
         textInk: readTextInk(),
         markMidi: singerTargetAtTime(visibleNotes, synchronizedPlayheadMs),
+        keyed,
       });
 
       recordSinger(now, synchronizedPlayheadMs, centerMidi);
@@ -374,6 +383,7 @@ const KaraokePitchLane = ({
         verdictLabel,
         now,
         plotWidth,
+        keyed,
       });
 
       // The playhead, a plain accent line through the whole strip, a shade

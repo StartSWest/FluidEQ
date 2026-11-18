@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { parseCssColour } from '../utils/oklab';
 import { stopOnWhite } from '../utils/rainbowPalette';
+import { readSurface } from '../utils/theme';
 import { isLightWindow } from '../utils/windowSide';
 
 // THE KARAOKE'S DRAWINGS ON A WHITE WINDOW (Ivan, 2026-11-18: "fix karaoke,
@@ -80,3 +81,52 @@ export const inkForSide = (colour: string, ratio = MARK_ON_WHITE): string =>
 /** A glow's colour on a dark window; none on a light one. */
 export const glowForSide = (colour: string): string =>
   isLightWindow() ? NO_GLOW : colour;
+
+/**
+ * How a name is written over a picture on a white window, as the lyrics are
+ * there: a light face keyed in the window's own dark ink (Ivan, 2026-11-18:
+ * "white text with a dark border ... clean, not green"; "fix the notes too
+ * so they adapt like the lyrics"). The window's dark inks alone vanish into
+ * a night picture, and a light one alone into snow.
+ */
+export interface IPictureKey {
+  face: string;
+  key: string;
+}
+
+/** Light faces, the lit one a step brighter. */
+const KEYED_FACE = 'rgba(244, 248, 250, .96)';
+const KEYED_FACE_LIT = '#ffffff';
+
+/** The key for names over a picture on a white window; none elsewhere. */
+export const pictureKeyFor = (overPicture: boolean): IPictureKey | undefined =>
+  overPicture && isLightWindow()
+    ? { face: KEYED_FACE, key: readSurface('--text-primary', '#1b1b1b') }
+    : undefined;
+
+/**
+ * Writes `text` in the context's font and alignment: keyed when `keyed` is
+ * given (`lit` the brighter face), else filled in `ink`.
+ */
+export const writeName = (
+  context: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  ink: string,
+  keyed: IPictureKey | undefined,
+  lit = false,
+) => {
+  if (keyed) {
+    context.save();
+    context.lineJoin = 'round';
+    context.lineWidth = 2.6;
+    context.strokeStyle = keyed.key;
+    context.strokeText(text, x, y);
+    context.restore();
+    context.fillStyle = lit ? KEYED_FACE_LIT : keyed.face;
+  } else {
+    context.fillStyle = ink;
+  }
+  context.fillText(text, x, y);
+};
