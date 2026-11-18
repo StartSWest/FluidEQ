@@ -12,6 +12,7 @@ import {
 } from './graphScenePlace';
 import { sceneIdentityOf, type TDrawableScene } from './SceneCanvas';
 import SceneLoading from './SceneLoading';
+import SceneLoadingFloor from './SceneLoadingFloor';
 import SceneViewReset from './SceneViewReset';
 
 interface IScenePlotProps {
@@ -72,6 +73,7 @@ export default function ScenePlot({
   }, []);
 
   const run = useGraphSceneRun();
+  const settled = run?.drawnIdentity === sceneIdentityOf(scene);
 
   return (
     <>
@@ -79,13 +81,20 @@ export default function ScenePlot({
           left an opaque loading floor over Karaoke, and an invisible scene
           correctly waits for visibility before it can finish loading. */}
       <div className="chart-scene-surface" style={{ width, height }}>
-        <SceneLoading
-          lookId={scene.lookId}
-          swatch={scene.swatch}
-          settled={run?.drawnIdentity === sceneIdentityOf(scene)}
-          width={width}
-          height={height}
-        />
+        {/* The floor only under a canvas in the slot below: a scene drawn on
+            a layer of the window is behind this plot, and the floor hid the
+            plot's part of its picture until after the rest had faded in. */}
+        {!run?.isOnLayer && (
+          <SceneLoadingFloor settled={settled} width={width} height={height} />
+        )}
+        {!settled && (
+          <SceneLoading
+            lookId={scene.lookId}
+            swatch={scene.swatch}
+            width={width}
+            height={height}
+          />
+        )}
         {/* The running canvas moves here without being remounted. */}
         <div
           ref={slotRef}

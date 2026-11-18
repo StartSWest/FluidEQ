@@ -16,17 +16,16 @@ interface ISceneLoadingProps {
   lookId: string;
   /** The scene's picker colours, for its icon in the middle of the ring. */
   swatch: string[];
-  /** The scene has drawn its first frame: the backdrop fades and the ring goes. */
-  settled: boolean;
   /** The panel's size where it is known; absent, it fills its parent. */
   width?: number;
   height?: number;
 }
 
 /**
- * What the graph shows while a Plus scene is on its way: a dark ground in the
- * scene's own hue where the scene is about to be, and the ring turning round
- * the scene's icon in the middle of it, until the scene fades in.
+ * What the graph shows while a Plus scene is on its way: the ring turning
+ * round the scene's icon where the scene is about to be, until its first
+ * frame. Shown only until then; the ground under it is the plot's to put up
+ * or not (`SceneLoadingFloor`).
  *
  * No picture of the scene stands in for it here, unlike the scene's page in
  * the gallery. A picture is framed for a card, and the graph draws the scene
@@ -34,22 +33,15 @@ interface ISceneLoadingProps {
  * jumped up as the scene took over. The same ring and the same fade for
  * every scene is calmer than a likeness that moves.
  *
- * The ground is the app's own floor (Ivan, 2026-09-25: "when loading the plus
- * viz in the graph no black screen only current app bg color"), so a scene
- * arrives on the window it is part of. It was the colour measured for the
- * window's tint darkened to a scene's ground, and black for a scene never
- * measured — a dark sheet opening in the middle of the open floor for as long
- * as the scene took to load. Only the ring keeps the scene's own hue, lit
- * round its icon.
- *
- * The backdrop outlives the loading: it stays under the canvas while the
- * scene fades in over its first quarter second, and fades out after it, so
- * nothing moves behind a half-drawn scene.
+ * The ground used to be the colour measured for the window's tint darkened to
+ * a scene's ground, and black for a scene never measured — a dark sheet
+ * opening in the middle of the open floor for as long as the scene took to
+ * load. It is the app's floor now, and only the ring keeps the scene's own
+ * hue, lit round its icon.
  */
 export default function SceneLoading({
   lookId,
   swatch,
-  settled,
   width,
   height,
 }: ISceneLoadingProps) {
@@ -61,33 +53,24 @@ export default function SceneLoading({
     ...(sky ? { '--scene-ring': sceneTintSwatch(sky) } : {}),
   } as CSSProperties;
   return (
-    <>
-      <div
-        className={`chart-scene-backdrop${settled ? ' is-settled' : ''}`}
-        style={colours}
-        aria-hidden="true"
-      />
-      {!settled && (
-        <div
-          className="chart-scene-loading"
-          style={colours}
-          role="status"
-          aria-live="polite"
-        >
-          <span className="chart-scene-loading__status">
-            <span className="chart-scene-loading__ring" aria-hidden="true">
-              <SceneLookIcon
-                className="chart-scene-loading__icon"
-                swatch={swatch}
-                lookId={lookId}
-              />
-            </span>
-            <span className="chart-scene-loading__label">
-              {t('graph.scene.loading')}
-            </span>
-          </span>
-        </div>
-      )}
-    </>
+    <div
+      className="chart-scene-loading"
+      style={colours}
+      role="status"
+      aria-live="polite"
+    >
+      <span className="chart-scene-loading__status">
+        <span className="chart-scene-loading__ring" aria-hidden="true">
+          <SceneLookIcon
+            className="chart-scene-loading__icon"
+            swatch={swatch}
+            lookId={lookId}
+          />
+        </span>
+        <span className="chart-scene-loading__label">
+          {t('graph.scene.loading')}
+        </span>
+      </span>
+    </div>
   );
 }

@@ -122,11 +122,11 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
-// A Plus scene on its way (`SceneLoading.tsx`): its own sky colour where it
-// is about to be, then out of the way once it has faded in over it. Black for
-// a scene whose colour has not been measured, because that is what every
-// scene is drawn against. Under the canvas and the chart's drawing both, so
-// the grid and the curves stay readable over it.
+// A Plus scene on its way: the floor where it is about to be
+// (`SceneLoadingFloor.tsx`), out of the way once the scene has faded in over
+// it, and the ring until its first frame (`SceneLoading.tsx`). Under the
+// canvas and the chart's drawing both, so the grid and the curves stay
+// readable over them.
 .chart-scene-backdrop,
 .chart-scene-loading {
   position: absolute;
@@ -140,7 +140,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // backdrop that faded in over that moment let the chart's own lighter card
 // show through it: a flash between every two visualizers.
 // The app's floor, never black and never the scene's dark ground: a scene
-// arrives on the window it is part of (`SceneLoading`).
+// arrives on the window it is part of. Put up only under a canvas in the
+// plot's own slot (`SceneLoadingFloor`): in front of a layer it held the
+// plot's part of the picture back until after the rest had faded in.
 .chart-scene-backdrop {
   background: $surface-base;
 

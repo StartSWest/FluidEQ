@@ -300,13 +300,17 @@ export default function SceneCanvas({
     [],
   );
 
+  const layerName = target.dataset.sceneLayer;
+  // The same test as `layer` below: a layer is an element that names one.
+  const isOnLayer = Boolean(layerName);
   // The plot's loading and its reset read this (`ScenePlot`).
   useLayoutEffect(() => {
     publishGraphSceneRun({
       interaction,
+      isOnLayer,
       ...(drawnIdentity === undefined ? {} : { drawnIdentity }),
     });
-  }, [interaction, drawnIdentity]);
+  }, [interaction, drawnIdentity, isOnLayer]);
   useLayoutEffect(() => () => publishGraphSceneRun(undefined), []);
 
   // The root marked with the layer the scene is drawn on while it is there
@@ -321,8 +325,8 @@ export default function SceneCanvas({
   // compiling, so the top bar changed first and the picture came in after it
   // (Ivan, 2026-11-17: "it all has to paint together, with a fade"). Kept
   // while the next look is handed to this same canvas, so a change of scene
-  // does not take the faces off and put them back.
-  const layerName = target.dataset.sceneLayer;
+  // does not take the faces off and put them back. `layerName` is read above,
+  // where the run says whether the canvas is on a layer.
   const hasDrawn = drawnIdentity !== undefined;
   useLayoutEffect(() => {
     if (!layerName || !hasDrawn) {

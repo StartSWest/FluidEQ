@@ -53,6 +53,13 @@ export interface IGraphSceneRun {
   interaction: ISceneInteraction;
   /** The scene that has drawn its first frame: the plot's loading goes. */
   drawnIdentity?: string;
+  /**
+   * Whether the canvas stands on a layer of the window behind the plot - the
+   * EQ column's or the Backdrop - rather than in the plot's own slot. The
+   * plot's loading floor is in front of a layer, so the plot puts none up
+   * while the scene is drawn on one (`ScenePlot`).
+   */
+  isOnLayer: boolean;
 }
 
 export interface IGraphScenePlaces {

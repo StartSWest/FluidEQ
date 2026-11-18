@@ -36,7 +36,7 @@ const setUp = (turns = true) => {
   if (turns) {
     interaction.setLimits(LIMITS);
   }
-  publishGraphSceneRun({ interaction });
+  publishGraphSceneRun({ interaction, isOnLayer: false });
   render(<SceneCameraMenu />);
   return interaction;
 };

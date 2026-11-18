@@ -6,6 +6,7 @@ import SceneLookIcon from '../icons/SceneLookIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { retryLook } from './lookRefusal';
 import SceneLoading from './SceneLoading';
+import SceneLoadingFloor from './SceneLoadingFloor';
 import type { ISceneTrouble } from './sceneTrouble';
 
 const SAID: Record<
@@ -49,13 +50,15 @@ export default function SceneTroubleState({
     width === undefined || height === undefined ? undefined : { width, height };
   if (trouble.reason === 'waiting') {
     return (
-      <SceneLoading
-        lookId={trouble.lookId}
-        swatch={swatch}
-        settled={false}
-        width={width}
-        height={height}
-      />
+      <>
+        <SceneLoadingFloor settled={false} width={width} height={height} />
+        <SceneLoading
+          lookId={trouble.lookId}
+          swatch={swatch}
+          width={width}
+          height={height}
+        />
+      </>
     );
   }
   const name = trouble.names
