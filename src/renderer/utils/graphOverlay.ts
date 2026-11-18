@@ -170,3 +170,38 @@ export const useOverlayBlur = () =>
     blurSetting.get,
     () => DEFAULT_BLUR,
   );
+
+/**
+ * THE BLUR THE GRAPH LAYS ON ITS OWN SCENE. Over a playback picture (the
+ * Library's cover, the Karaoke's) the Blur blurred what lay behind the card;
+ * where the card draws a scene, the scene covers that picture, so the slider
+ * moved and nothing on screen changed (Ivan, 2026-11-18: "the blur needs to
+ * affect the actual scene, not the cover art blur in the background"). There
+ * the graph blurs the scene instead and says how much here, set by the one
+ * graph (`FrequencyResponseChart`) and read by the scene's runner
+ * (`SceneCanvas`), which then draws no more pixels than survive it.
+ */
+let graphSceneBlur = 0;
+const sceneBlurListeners = new Set<() => void>();
+
+export const setGraphSceneBlur = (blurPx: number) => {
+  if (blurPx === graphSceneBlur) {
+    return;
+  }
+  graphSceneBlur = blurPx;
+  sceneBlurListeners.forEach((listener) => listener());
+};
+
+const subscribeSceneBlur = (listener: () => void) => {
+  sceneBlurListeners.add(listener);
+  return () => {
+    sceneBlurListeners.delete(listener);
+  };
+};
+
+export const useGraphSceneBlur = () =>
+  useSyncExternalStore(
+    subscribeSceneBlur,
+    () => graphSceneBlur,
+    () => 0,
+  );

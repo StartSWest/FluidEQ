@@ -131,6 +131,7 @@ import {
   setOverlayBlur,
   setOverlayOpacity,
   useOverlayBlur,
+  setGraphSceneBlur,
   useOverlayOpacity,
 } from '../utils/graphOverlay';
 import { useCustomLooks } from '../utils/customLooks';
@@ -599,6 +600,19 @@ const FrequencyResponseChart = ({
   const hasTopBar = useFullScreenTopBar();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
+  // Over a playback picture with the graph's own scene drawn on the card,
+  // the Blur is the scene's (`setGraphSceneBlur`): the picture behind is
+  // covered by it. Only where the menu offers the Blur at all.
+  const blursScene =
+    graphView !== 'normal' &&
+    drawnScene !== null &&
+    hasPlaybackBackdrop &&
+    !backdropControls &&
+    overlayBlur > 0;
+  useEffect(() => {
+    setGraphSceneBlur(blursScene ? overlayBlur : 0);
+    return () => setGraphSceneBlur(0);
+  }, [blursScene, overlayBlur]);
   const {
     filters,
     isGraphViewOn: isGlobalGraphViewOn,
@@ -1543,7 +1557,7 @@ const FrequencyResponseChart = ({
           // `blur(0px)` — which is still a filter, and still costs a
           // compositing layer re-composited every frame to change nothing.
           '--graph-overlay-filter':
-            overlayBlur > 0 ? `blur(${overlayBlur}px)` : 'none',
+            overlayBlur > 0 && !blursScene ? `blur(${overlayBlur}px)` : 'none',
         } as CSSProperties
       }
     >

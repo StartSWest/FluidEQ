@@ -52,6 +52,7 @@ import windowGestures from './windowGestures';
 import { FULL_VIEW, sceneViewOf, type TSceneView } from './sceneView';
 import { publishGraphSceneRun, type IScenePlot } from './graphScenePlace';
 import { useGraphArriving } from './graphArrival';
+import { useGraphSceneBlur } from '../utils/graphOverlay';
 
 export type TDrawableScene = IUsableScene | IUsableMemberScene;
 
@@ -398,8 +399,12 @@ export default function SceneCanvas({
   // screen: the plot is framing it through every layout in between, and only
   // a frame of the size it settles at lets it go (`sceneWorkerClient.ts`).
   const arriving = useGraphArriving();
+  // The graph's Blur over this scene, where it lays one: drawn at the
+  // pixels that survive it (`sceneBlurScale.ts`).
+  const blurPx = useGraphSceneBlur();
   const sceneRef = useSceneRunner({
     source,
+    ...(blurPx > 0 ? { blurPx } : {}),
     width,
     height,
     spectrumRect,
@@ -442,7 +447,14 @@ export default function SceneCanvas({
           ref={sceneRef}
           className="chart-scene-canvas"
           aria-hidden="true"
-          style={{ width, height }}
+          // The graph's Blur where it is this scene's: on the element itself,
+          // because the scene is often drawn on the layer behind the window,
+          // outside the card that knows the blur.
+          style={{
+            width,
+            height,
+            ...(blurPx > 0 ? { filter: `blur(${blurPx}px)` } : {}),
+          }}
         />,
         container,
       )}
