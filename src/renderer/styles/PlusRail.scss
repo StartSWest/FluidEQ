@@ -44,11 +44,15 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 // The place open beside the rail stands on the same card, with no card of
 // its own (`Community.scss` gives it one elsewhere): the Library's content
 // column, 12px in from the rail's hairline, and its first line 14px under
-// the card's top, where the Library's bar stands (`.library-head`).
+// the card's top, where the Library's bar stands (`.library-head`). Each
+// place keeps 2px over its first line for a focus ring (`.gallery-pinned`,
+// `.studio`, `.lighting`), so the card gives 12 and the line lands on 14;
+// the card's 14 and Dynamic lighting's own 16 had its first line 30px down
+// (Ivan, 2026-11-19: "too much top padding").
 .community--plus > .community__main {
   grid-column: 2;
   grid-row: 1;
-  padding-top: 14px;
+  padding-top: 12px;
   border: 0;
   border-radius: 0;
   background: none;

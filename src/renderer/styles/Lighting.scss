@@ -26,7 +26,10 @@ $windows-blue: #8ec5ff;
   flex-direction: column;
   gap: $spacing-m;
   min-height: 0;
-  padding: $spacing-m 4px $spacing-s;
+  // 2px over the first line for a focus ring, as the Gallery and the Studio
+  // keep: the card's own inset already puts that line where the Library's
+  // bar stands (`PlusRail.scss`).
+  padding: 2px 4px $spacing-s;
   overflow-y: auto;
   overscroll-behavior: contain;
   @include slim-scrollbar;
