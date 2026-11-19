@@ -17,32 +17,49 @@ import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { suggestSearches } from 'common/searchHistory';
 import { useTranslation } from '../utils/I18nContext';
 import {
-  addSearchToHistory,
   clearSearchHistory,
   removeSearchFromHistory,
   useSearchHistory,
 } from '../utils/videoSearchHistory';
+import '../styles/VideoSearch.scss';
 
 interface IVideoSearchProps {
-  /** Where a chosen search goes. The site to run it on is the caller's affair. */
-  handleSearch: (terms: string) => void;
+  /**
+   * What the field holds, kept by the page: a recent search pressed in the
+   * rail (`VideoRail`) runs through the same hands and lands in the field.
+   */
+  query: string;
+  onQueryChange: (query: string) => void;
+  /**
+   * Runs a search and remembers it. The site to run it on, and the history,
+   * are the caller's affair.
+   */
+  onRun: (terms: string) => void;
   /** Named so the placeholder can say which site is being asked. */
   siteName: string;
 }
 
 /**
- * The search box, and what has been searched for before.
+ * The search box, and the searches it can finish.
  *
  * A combobox written out here rather than the shared `TextInput`, which submits
  * on key-*up* and offers no way to see an arrow key. Suggestions need both, and
  * five more props on a widget used a dozen other places to serve one of them is
  * a worse trade than one component that owns its own input.
+ *
+ * The list opens only once something is typed: the recent searches stand in
+ * the rail beside the page, and the same list dropping over the page on every
+ * focus said them twice.
  */
-const VideoSearch = ({ handleSearch, siteName }: IVideoSearchProps) => {
+const VideoSearch = ({
+  query,
+  onQueryChange,
+  onRun,
+  siteName,
+}: IVideoSearchProps) => {
   const { t } = useTranslation();
   const history = useSearchHistory();
 
-  const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   /** Which row the arrow keys are on; -1 is "what has been typed". */
   const [highlighted, setHighlighted] = useState(-1);
@@ -51,7 +68,7 @@ const VideoSearch = ({ handleSearch, siteName }: IVideoSearchProps) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   const suggestions = suggestSearches(history, query);
-  const isListShowing = isOpen && suggestions.length > 0;
+  const isListShowing = isOpen && query.trim() !== '' && suggestions.length > 0;
 
   const run = useCallback(
     (terms: string) => {
@@ -59,14 +76,12 @@ const VideoSearch = ({ handleSearch, siteName }: IVideoSearchProps) => {
       if (!cleaned) {
         return;
       }
-      addSearchToHistory(cleaned);
-      setQuery(cleaned);
       setIsOpen(false);
       setHighlighted(-1);
       inputRef.current?.blur();
-      handleSearch(cleaned);
+      onRun(cleaned);
     },
-    [handleSearch],
+    [onRun],
   );
 
   /**
@@ -126,11 +141,11 @@ const VideoSearch = ({ handleSearch, siteName }: IVideoSearchProps) => {
           setHighlighted(-1);
         } else if (query) {
           event.stopPropagation();
-          setQuery('');
+          onQueryChange('');
         }
       }
     },
-    [highlighted, isListShowing, query, run, suggestions],
+    [highlighted, isListShowing, onQueryChange, query, run, suggestions],
   );
 
   return (
@@ -157,7 +172,7 @@ const VideoSearch = ({ handleSearch, siteName }: IVideoSearchProps) => {
           spellCheck={false}
           autoComplete="off"
           onChange={(event) => {
-            setQuery(event.target.value);
+            onQueryChange(event.target.value);
             setIsOpen(true);
             setHighlighted(-1);
           }}
@@ -171,7 +186,7 @@ const VideoSearch = ({ handleSearch, siteName }: IVideoSearchProps) => {
             aria-label={t('video.searchClear')}
             title={t('video.searchClear')}
             onClick={() => {
-              setQuery('');
+              onQueryChange('');
               setHighlighted(-1);
               inputRef.current?.focus();
             }}

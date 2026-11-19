@@ -21,6 +21,10 @@ import { Dictionary } from '../en';
 
 const video: Partial<Dictionary> = {
   'video.sites': '视频网站',
+  'video.railSites': '网站',
+  'video.recentEmpty': '你搜索过的内容会显示在这里，点一下即可再次搜索。',
+  'video.matchOn': '开启',
+  'video.loading': '正在加载页面',
   'video.back': '后退',
   'video.forward': '前进',
   'video.reload': '刷新',

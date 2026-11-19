@@ -68,6 +68,15 @@ const PATHS: Record<string, string[]> = {
     'M6.9 4.2h1.2v3.9H6.9Z',
     'M10.2 4.2h1.2v3.9h-1.2Z',
   ],
+  // Four bars of a waveform. Suno had no mark while the sites were pills
+  // with their names; down the rail, folded to marks, a site without one
+  // was a blank row.
+  suno: [
+    'M1.6 6.6a.9.9 0 0 1 1.8 0v2.8a.9.9 0 0 1-1.8 0Z',
+    'M5 4.2a.9.9 0 0 1 1.8 0v7.6a.9.9 0 0 1-1.8 0Z',
+    'M8.4 2.4a.9.9 0 0 1 1.8 0v11.2a.9.9 0 0 1-1.8 0Z',
+    'M11.8 5.4a.9.9 0 0 1 1.8 0v5.2a.9.9 0 0 1-1.8 0Z',
+  ],
 };
 
 interface IVideoSiteIconProps {

@@ -4,6 +4,10 @@ import type { Dictionary } from '../en';
 
 const video = {
   'video.sites': '影片網站',
+  'video.railSites': '網站',
+  'video.recentEmpty': '你搜尋過的內容會顯示在這裡，點一下即可再次搜尋。',
+  'video.matchOn': '開啟',
+  'video.loading': '正在載入頁面',
   'video.back': '返回',
   'video.forward': '前進',
   'video.reload': '重新載入',

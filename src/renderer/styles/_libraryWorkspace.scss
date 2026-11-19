@@ -395,12 +395,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// `.video-browser__site`'s pill, under this file's own name so the two can
-// diverge later without one silently restyling the other.
+// The pill Online Media's site buttons wore before they moved to its rail
+// (`VideoRail`), kept under this file's own name.
 .library-toolbar__chip {
   display: inline-flex;
   align-items: center;
-  // `.video-browser__site`'s own padding, to the pixel.
   padding: 4px 9px;
   gap: 5px;
   // Every control's face and edge, as the Media bar's pills now wear them.
@@ -418,7 +417,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Sized and coloured like `.video-browser__site-icon`: `currentColor`, so a
+// Coloured with `currentColor`, as a site's mark is (`VideoSiteIcon`), so a
 // glyph takes the same hover and active colour as the label beside it rather
 // than fighting it, and a shade behind the text so the word leads.
 .library-toolbar__action-icon {

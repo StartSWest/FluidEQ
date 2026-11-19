@@ -1,0 +1,213 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// *** Online Media's search field (`VideoSearch`) ****************************
+
+.video-search {
+  position: relative;
+  width: 100%;
+}
+
+// The Library's quiet field: no fill, a hairline round it and the accent's
+// while typing, the field corner.
+.video-search__field {
+  display: flex;
+  height: $control-height-sm;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 12px;
+  border-radius: $radius-xs;
+  transition: $transition-control;
+  @include field-surface;
+  @include field-focus;
+}
+
+.video-search__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: $studio-t3;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+
+// Two classes deep on purpose. App.scss gives every `input` the shared field
+// surface — its own border, background and padding — which inside this field
+// drew a second box within the first, at a weight a single class here only
+// beats when this file happens to load after it.
+.video-search .video-search__input {
+  min-width: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: $text-primary;
+  font-size: $studio-text-row;
+  outline: none;
+
+  &::placeholder {
+    color: $studio-t2;
+  }
+
+  // And it stays bare in every state: the shared rule's hover carries two
+  // `:not()`s, which put it above a plain two-class selector.
+  &:hover:not(:disabled),
+  &:focus,
+  &:focus-visible {
+    border: none;
+    background: none;
+    box-shadow: none;
+    outline: none;
+  }
+}
+
+.video-search__clear {
+  display: flex;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: $radius-xs;
+  cursor: pointer;
+  @include button-plain;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+}
+
+.video-search__go {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: $radius-xs;
+  font-size: $studio-text-meta;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    opacity 140ms ease;
+  @include button-plain;
+}
+
+// *** The searches a typed word can finish ***********************************
+
+.video-search__suggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  padding: 4px;
+  // A dropdown: the card's face, like every menu (`menu-face`), and it drops
+  // out of the field as every menu does (`menu-in`).
+  @include menu-face;
+  @include menu-motion;
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.video-search__suggestions-title {
+  padding: 3px 8px 5px;
+  @include studio-rail-heading;
+}
+
+.video-search__suggestion {
+  display: flex;
+  align-items: center;
+
+  // One highlight, driven by the arrow keys, with hover feeding into the same
+  // state. Two independent highlights — one following the pointer, one the
+  // keyboard — is the thing that makes a list like this feel broken.
+  &.is-highlighted {
+    background: $fill-hover;
+  }
+}
+
+.video-search__suggestion-run {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  color: $text-primary;
+  font-family: inherit;
+  font-size: $studio-text-tree;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: $studio-t3;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  span {
+    @include truncate;
+  }
+}
+
+.video-search__suggestion-forget {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  padding: 0;
+  border-radius: $radius-xs;
+  cursor: pointer;
+  @include button-plain;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+}
+
+.video-search__forget-all {
+  width: 100%;
+  margin-top: 3px;
+  padding: 5px 8px;
+  font-size: $studio-text-meta;
+  text-align: left;
+  cursor: pointer;
+  @include button-plain-accent;
+  // The menu's own rule above it, after the tier's edge so it stands.
+  border-top-color: $menu-rule;
+}
