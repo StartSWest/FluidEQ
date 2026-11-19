@@ -7,15 +7,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   useCallback,
   useEffect,
+  useDeferredValue,
   useId,
-  useLayoutEffect,
   useMemo,
   useState,
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
 } from 'react';
-import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
+import AnchoredMenu from '../widgets/AnchoredMenu';
+import {
+  allowedSpans,
+  outsideOf,
+  type TColourLimit,
+} from '../utils/colourLimitField';
 import { useTranslation } from '../utils/I18nContext';
 import useLiveSlider from '../utils/useLiveSlider';
 import {
@@ -52,22 +57,14 @@ const BIG_STEP = 0.1;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/**
- * The cells a field shown through `shownAs` is painted in, across and down:
- * each is the window's rule run once, and the browser smooths them into the
- * field's size. Enough that a step between two never reads as a band.
- */
-const FIELD_CELLS = { x: 28, y: 18 };
-
-/** Stops of a hue bar shown through `shownAs`, one every ten degrees. */
-const HUE_STOPS = 36;
-
-/** `#rrggbb`'s channels, 0 to 255. */
-const channelsOf = (hex: string): [number, number, number] => {
-  const channel = (at: number) =>
-    Number.parseInt(hex.slice(1 + at * 2, 3 + at * 2), 16);
-  return [channel(0), channel(1), channel(2)];
-};
+/** Every part of a press held back outside an open picker. */
+const PRESS_EVENTS = [
+  'pointerdown',
+  'mousedown',
+  'pointerup',
+  'mouseup',
+  'click',
+] as const;
 
 /** Where in `element` a pointer stands, 0 to 1 across and down. */
 const shareOf = (element: HTMLElement, event: PointerEvent<HTMLElement>) => {
@@ -110,14 +107,13 @@ interface IColourPickerPopoverProps {
    */
   hueWhenGrey?: number;
   /**
-   * What each colour is shown as: the colour the window really paints for
-   * it (Ivan, 2026-11-18: "we do need to keep in mind its brightness, that
-   * needs to be controlled by the Brightness ... at 0 it should not show the
-   * full bright spectrum"). The field, the hue bar and the swatches show
-   * that; the hex is still the colour picked, which is what is kept. Absent,
-   * every colour is shown as itself.
+   * What the colour may be: the window's own rule for it (`useColourLimits`).
+   * The field draws over what it cannot be, and a pick there is brought to
+   * the colour the rule gives, so what is picked is what the window wears
+   * (Ivan, 2026-11-18: "the limit should be on the pickers, not before
+   * applying them to the UI"). Absent, any colour.
    */
-  shownAs?: (hex: string) => string;
+  limit?: TColourLimit;
 }
 
 /**
@@ -139,7 +135,7 @@ export default function ColourPickerPopover({
   onAccept,
   onCancel,
   hueWhenGrey,
-  shownAs,
+  limit,
 }: IColourPickerPopoverProps) {
   const { t } = useTranslation();
   const hexId = useId();
@@ -160,7 +156,11 @@ export default function ColourPickerPopover({
     }
   }, [isOpen, value, hueWhenGrey]);
 
-  const current = hexOfHsv(hsv);
+  const within = useCallback(
+    (hex: string) => (limit ? limit(hex) : hex),
+    [limit],
+  );
+  const current = within(hexOfHsv(hsv));
   const live = useLiveSlider<string | undefined>(
     undefined,
     (hex) => {
@@ -171,14 +171,18 @@ export default function ColourPickerPopover({
     RESTYLE_REST_FRAMES,
   );
   const { set: follow, flush, drop } = live;
+  // A move past the limit stops at the colour the limit gives, the hue the
+  // bar stands at kept, so the mark never sits on a colour the window would
+  // not wear.
   const move = useCallback(
     (next: IHsv) => {
-      setHsv(next);
-      const hex = hexOfHsv(next);
+      const raw = hexOfHsv(next);
+      const hex = within(raw);
+      setHsv(hex === raw ? next : { ...hsvOfHex(hex), h: next.h });
       setHexText(hex);
       follow(hex);
     },
-    [follow],
+    [follow, within],
   );
   // Accept lands the newest colour now; Cancel forgets any still waiting,
   // so it cannot arrive after the colour it opened with is put back.
@@ -199,15 +203,19 @@ export default function ColourPickerPopover({
   // Cancel"): a press anywhere else used to be Cancel, so a drag that started
   // a hair outside the field, or a press beside it, threw the colour away.
   // Now a press outside is held back from everything under it, the menu the
-  // picker opened from included, which would close and take it along.
+  // picker opened from included, which would close and take it along - the
+  // whole press, its click as well: holding back only the press still let
+  // the click through, and the eyedropper's click on the colour swatch the
+  // picker opened from was Cancel (Ivan, 2026-11-18: "when using the
+  // dropper and click, don't hide it, keep it on until they click Accept").
   // Escape is still Cancel, the same answer from the keyboard.
   useEffect(() => {
     if (!isOpen) {
       return undefined;
     }
     const press = (event: MouseEvent) => {
-      const target = event.target as Node | null;
-      if (anchor?.contains(target) || isInsideAnchoredMenu(target)) {
+      const target = event.target as Element | null;
+      if (target?.closest?.('.colour-picker')) {
         return;
       }
       event.preventDefault();
@@ -219,17 +227,20 @@ export default function ColourPickerPopover({
         cancel();
       }
     };
-    // Both: the menus underneath close on `pointerdown` (`ActionsMenu`,
-    // `RichPick`), others on `mousedown`.
-    document.addEventListener('pointerdown', press, true);
-    document.addEventListener('mousedown', press, true);
+    // Every part of a press: the menus underneath close on `pointerdown`
+    // (`ActionsMenu`, `RichPick`), others on `mousedown`, and buttons act
+    // on `click`.
+    PRESS_EVENTS.forEach((name) =>
+      document.addEventListener(name, press, true),
+    );
     document.addEventListener('keydown', key, true);
     return () => {
-      document.removeEventListener('pointerdown', press, true);
-      document.removeEventListener('mousedown', press, true);
+      PRESS_EVENTS.forEach((name) =>
+        document.removeEventListener(name, press, true),
+      );
       document.removeEventListener('keydown', key, true);
     };
-  }, [isOpen, anchor, cancel]);
+  }, [isOpen, cancel]);
 
   const dragField = (event: PointerEvent<HTMLDivElement>) => {
     if (event.buttons !== 1) {
@@ -289,8 +300,9 @@ export default function ColourPickerPopover({
 
   const typeHex = (text: string) => {
     setHexText(text);
-    const hex = readHexColour(text);
-    if (hex) {
+    const typed = readHexColour(text);
+    if (typed) {
+      const hex = within(typed);
       setHsv((previous) => keepingHue(previous, hsvOfHex(hex)));
       // Typed, not dragged: one deliberate colour, applied at once, and
       // anything a drag left waiting is dropped behind it.
@@ -300,46 +312,14 @@ export default function ColourPickerPopover({
   };
 
   const hueColour = hexOfHsv({ h: hsv.h, s: 1, v: 1 });
-  const show = shownAs ?? ((hex: string) => hex);
-  // The field as the window wears it: painted cell by cell on the hue's
-  // square, again whenever the hue or the rule moves - not while the mark
-  // moves over it. Held as state, not a ref: the menu puts its contents in
-  // only once it has measured where to stand, a render after it opens.
-  const [paint, setPaint] = useState<HTMLCanvasElement | null>(null);
-  useLayoutEffect(() => {
-    const context = paint?.getContext('2d');
-    if (!shownAs || !context) {
-      return;
-    }
-    const cells = context.createImageData(FIELD_CELLS.x, FIELD_CELLS.y);
-    for (let y = 0; y < FIELD_CELLS.y; y += 1) {
-      for (let x = 0; x < FIELD_CELLS.x; x += 1) {
-        const hex = shownAs(
-          hexOfHsv({
-            h: hsv.h,
-            s: x / (FIELD_CELLS.x - 1),
-            v: 1 - y / (FIELD_CELLS.y - 1),
-          }),
-        );
-        const at = (y * FIELD_CELLS.x + x) * 4;
-        const [r, g, b] = channelsOf(hex);
-        cells.data[at] = r;
-        cells.data[at + 1] = g;
-        cells.data[at + 2] = b;
-        cells.data[at + 3] = 255;
-      }
-    }
-    context.putImageData(cells, 0, 0);
-  }, [paint, shownAs, hsv.h]);
-  const hueBar = useMemo(() => {
-    if (!shownAs) {
-      return undefined;
-    }
-    const stops = Array.from({ length: HUE_STOPS + 1 }, (_, index) =>
-      shownAs(hexOfHsv({ h: (index / HUE_STOPS) * 360, s: 1, v: 1 })),
-    );
-    return `linear-gradient(to right, ${stops.join(', ')})`;
-  }, [shownAs]);
+  // What the field cannot be, for the hue the bar stands at: worked out at
+  // the pace the window can draw it while the hue is dragged, never holding
+  // the handle back.
+  const fieldHue = useDeferredValue(hsv.h);
+  const outside = useMemo(
+    () => (limit ? outsideOf(allowedSpans(limit, fieldHue)) : undefined),
+    [limit, fieldHue],
+  );
   return (
     <AnchoredMenu
       anchor={anchor}
@@ -352,12 +332,12 @@ export default function ColourPickerPopover({
       <div className="colour-picker__head">
         <span className="colour-picker__title">{title}</span>
         <span className="colour-picker__compare" aria-hidden>
-          <span style={{ background: show(value) }} />
-          <span style={{ background: show(current) }} />
+          <span style={{ background: value }} />
+          <span style={{ background: current }} />
         </span>
       </div>
       <div
-        className={`colour-picker__field${shownAs ? ' is-worn' : ''}`}
+        className="colour-picker__field"
         role="slider"
         tabIndex={0}
         aria-label={t('graph.sceneColours.field')}
@@ -371,14 +351,17 @@ export default function ColourPickerPopover({
         onPointerMove={dragField}
         onKeyDown={fieldKeys}
       >
-        {shownAs && (
-          <canvas
-            ref={setPaint}
-            className="colour-picker__paint"
-            width={FIELD_CELLS.x}
-            height={FIELD_CELLS.y}
+        {outside && (
+          <svg
+            className="colour-picker__outside"
+            viewBox="0 0 1 1"
+            preserveAspectRatio="none"
             aria-hidden
-          />
+            focusable="false"
+          >
+            <path className="colour-picker__outside-fill" d={outside.fill} />
+            <path className="colour-picker__outside-edge" d={outside.edge} />
+          </svg>
         )}
         <span
           className="colour-picker__mark"
@@ -386,14 +369,13 @@ export default function ColourPickerPopover({
             {
               left: `${hsv.s * 100}%`,
               top: `${(1 - hsv.v) * 100}%`,
-              '--mark': show(current),
+              '--mark': current,
             } as CSSProperties
           }
         />
       </div>
       <div
         className="colour-picker__hue"
-        style={hueBar ? { background: hueBar } : undefined}
         role="slider"
         tabIndex={0}
         aria-label={t('graph.sceneColours.hue')}
@@ -412,7 +394,7 @@ export default function ColourPickerPopover({
           style={
             {
               left: `${(hsv.h / 360) * 100}%`,
-              '--mark': show(hueColour),
+              '--mark': hueColour,
             } as CSSProperties
           }
         />

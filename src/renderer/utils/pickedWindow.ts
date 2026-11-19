@@ -16,6 +16,7 @@ import {
 } from './themeShade';
 import {
   chromaOf,
+  filledOn,
   GREY_CHROMA,
   greyRung,
   hueOf,
@@ -254,6 +255,22 @@ export const pickedFloor = (
   return surfacesOf(surfaceLab, brightness, lean, FLOOR_ONLY, walk)[
     '--surface-base'
   ];
+};
+
+/**
+ * What the window paints for a filled control's `colour` - the accent, or
+ * the second colour - over the window's `floor` at `brightness`: moved only
+ * as far from the floor as the control's label needs, darker on the white
+ * window and lighter on a dark one (`windowOn`'s `filledOn`). What the
+ * pickers show an accent and a second colour as.
+ */
+export const pickedFilled = (
+  colour: string,
+  floor: string,
+  brightness: number,
+): string | undefined => {
+  const lab = labOf(colour);
+  return lab ? filledOn(lab, floor, isLightShade(brightness)) : undefined;
 };
 
 export default pickedWindow;

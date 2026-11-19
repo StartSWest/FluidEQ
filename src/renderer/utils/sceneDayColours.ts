@@ -273,17 +273,6 @@ export const keyframeCount = (sides: TSceneStopColours) =>
 export const isWornAsNamed = (sides: TSceneStopColours) =>
   keyframeCount(sides) > 0;
 
-/**
- * Whether the Brightness still walks a named dark surface toward black
- * (`pickedWindow.ts`'s `walk`): with fewer than two keyframes there is one
- * set somebody chose and it is worn through the day as the Brightness walks
- * the theme, as it was before the points. With two or more the points ARE
- * the walk - each hour wears exactly the blend the person set there, and
- * darkening it again would wear a navy picked for 25 near black at 25.
- */
-export const isWalkedByBrightness = (sides: TSceneStopColours) =>
-  keyframeCount(sides) < 2;
-
 export interface IStopSources {
   /** What the scene's pack names at each point. */
   named: ISceneWindowColourStops;

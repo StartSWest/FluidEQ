@@ -15,7 +15,6 @@ import {
 import { measureStudioSky } from '../graph/sceneSky';
 import {
   hourOfStop,
-  isWalkedByBrightness,
   isWornAsNamed,
   MEASURED_STOPS,
   stopColoursAt,
@@ -228,9 +227,6 @@ export default function useStudioWindowColours(
   const sides = draft
     ? withChosenStop(resolved.sides, editing, draft)
     : resolved.sides;
-  const walked = colours
-    ? isWalkedByBrightness(withChosenStop(resolved.sides, editing, colours))
-    : true;
 
   return {
     colours,
@@ -257,7 +253,5 @@ export default function useStudioWindowColours(
      * it lands. Worked out by the app, they only lend their hue.
      */
     isNamed: draft !== undefined || isWornAsNamed(resolved.sides),
-    /** Who walks a named dark surface through the day (`TSurfaceWalk`). */
-    walk: walked ? ('brightness' as const) : ('points' as const),
   };
 }

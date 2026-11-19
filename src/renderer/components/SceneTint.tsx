@@ -18,7 +18,6 @@ import {
 import useStudioDayColours from '../studio/useStudioDayColours';
 import { useSelectedLookId } from '../utils/graphStyle';
 import {
-  isWalkedByBrightness,
   isWornAsNamed,
   MEASURED_STOPS,
   stopColoursAt,
@@ -60,11 +59,12 @@ import {
 import useIsBackdrop from '../utils/useIsBackdrop';
 
 /**
- * How `paintKey` marks colours to be worn as named: walked toward black by
- * the Brightness, or already walked by the scene's points (`TSurfaceWalk`).
+ * How `paintKey` marks colours to be worn as named, exactly as picked: the
+ * scene's points are its walk through the day, never the Brightness darkening
+ * them again (Ivan, 2026-11-18: "whatever colours are selected are the ones
+ * used").
  */
 const PICKED = 'picked';
-const KEYED = 'keyed';
 
 /**
  * The colours a scene or a Studio project lends at `daylight`, as text the
@@ -83,7 +83,7 @@ const paintKey = (
   }
   let kind = 'toned';
   if (isWornAsNamed(sides)) {
-    kind = isWalkedByBrightness(sides) ? PICKED : KEYED;
+    kind = PICKED;
   }
   return `${kind} ${colours.surface} ${colours.accent} ${colours.glow}`;
 };
@@ -284,15 +284,8 @@ const SceneTint = () => {
       const [kind, surface, accent, glow] = text.split(' ');
       const colours = { surface, accent, glow };
       const sky = skyFromWindowColours(colours);
-      if (kind === PICKED || kind === KEYED) {
-        showWindowColours(
-          colours,
-          sky,
-          fade,
-          tone,
-          undefined,
-          kind === KEYED ? 'points' : 'brightness',
-        );
+      if (kind === PICKED) {
+        showWindowColours(colours, sky, fade, tone, undefined, 'points');
       } else {
         showSceneSky(sky, fade, tone);
       }

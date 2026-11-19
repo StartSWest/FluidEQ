@@ -87,18 +87,13 @@ export default function StudioWindowColours({
           <WindowColourSwatches
             colours={colours}
             own={state.own}
-            sides={state.sides}
             editing={state.editing}
             disabled={idle}
             onChange={state.change}
             onCommit={state.commit}
           />
           <WindowColourDayStrip sides={state.sides} editing={state.editing} />
-          <WindowColoursPreview
-            colours={colours}
-            named={state.isNamed}
-            walk={state.walk}
-          />
+          <WindowColoursPreview colours={colours} named={state.isNamed} />
         </>
       ) : (
         <p className="studio-window-colours__empty">

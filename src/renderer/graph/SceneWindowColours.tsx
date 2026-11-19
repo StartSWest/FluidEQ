@@ -19,7 +19,6 @@ import WindowColoursPreview from '../components/WindowColoursPreview';
 import { useSelectedLookId } from '../utils/graphStyle';
 import {
   hourOfStop,
-  isWalkedByBrightness,
   isWornAsNamed,
   stopColoursAt,
   withChosenStop,
@@ -152,7 +151,6 @@ export default function SceneWindowColours() {
       <WindowColourSwatches
         colours={shown}
         own={ownSet}
-        sides={shownSides}
         editing={editing}
         onChange={change}
         onCommit={commit}
@@ -161,11 +159,6 @@ export default function SceneWindowColours() {
       <WindowColoursPreview
         colours={shown}
         named={draft !== undefined || isWornAsNamed(sides)}
-        walk={
-          isWalkedByBrightness(withChosenStop(sides, editing, shown))
-            ? 'brightness'
-            : 'points'
-        }
       />
       <div className="scene-window-colours__actions">
         <button
