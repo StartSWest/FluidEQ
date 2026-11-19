@@ -1,0 +1,340 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE DSP PAGE LAID OUT AS THE LIBRARY IS (Ivan, 2026-11-19: "arreglar la
+// página del DSP para que luzca como la librería ... limpias, clear y sin
+// tantas líneas ni borders ... con el panel izquierdo ... resizable ... y
+// togglable"): one card, no card inside it; the chain down a studio rail on
+// the card's own tone (`StudioRail`), parted from the page by its hairline;
+// the page beside it scrolling inside itself; and in it, steps of light
+// where there were edges.
+//
+// Everything here is said through `.dsp-studio`, the DSP page's root. The
+// same stages are drawn on the Gaming tab and in Help's figures, which keep
+// their own frames: those pages are laid out apart, and a rule written on
+// the bare class would have redrawn them too.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+@use 'studioRailFold' as *;
+@use 'dspTokens' as *;
+
+// *** The frame *************************************************************
+
+// The page's card holds the rail and the page and scrolls neither, as the
+// Library's does: what is beside the rail scrolls inside itself, so the rail
+// stays where it is while a long stage is read. Only while the page is the
+// rack: the paused page a game's own sound puts here scrolls as it did.
+.workspace-tab-panel--dsp:has(> .workspace-tab-panel__scroll > .dsp-studio) {
+  padding: 0;
+
+  > .workspace-tab-panel__scroll {
+    padding: 0;
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+}
+
+.dsp-studio {
+  // The boxes inside the stages (`dsp-box`): the Library's tray, a step of
+  // light on the card's tone, where they were each an edge.
+  --dsp-box-edge: transparent;
+  --dsp-box-fill: #{$studio-surface};
+
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+// The page beside the rail: the header and the stage, scrolling inside
+// itself with the app's slim bar. `.dsp-panel` too, so the header's and the
+// stages' container queries measure this column, which is what they share
+// with the rail now, and no longer the whole card.
+.dsp-studio__main {
+  @include slim-scrollbar;
+  min-width: 0;
+  min-height: 0;
+  grid-column: 2;
+  grid-row: 1;
+  // The Library's 14px over its bar; a little more at the sides than its
+  // 12, because a stage's boxes and plots run to the column's edges where
+  // the Library's rows carry an inset of their own.
+  padding: 14px 16px 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+// *** The rail's rows: the Library's shelves ********************************
+
+// The page's name and rate at the rail's head, a title rather than one more
+// spaced-capitals label, so the groups under it read as its parts.
+.dsp-studio .studio-rail__heading {
+  overflow: visible;
+  color: $text-primary;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.dsp-studio .studio-rail__heading .dsp-title {
+  // The pin's square is the line: the title sits on its middle.
+  min-width: 0;
+  overflow: hidden;
+  font-size: 1.125rem;
+  line-height: $control-height-xs;
+  white-space: nowrap;
+}
+
+.dsp-studio .dsp-rail {
+  width: auto;
+  gap: 0;
+}
+
+.dsp-studio :is(.dsp-rail-level, .dsp-rail-processors, .dsp-rail-playback) {
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+// The groups' names are the Library's headings, and they are what parts the
+// groups: no rule between them. Folded, each keeps its height (`studio-rail__word`
+// hides it in place), so the glyphs stand in the same three groups.
+.dsp-studio .dsp-rail-group-label {
+  padding: 12px 10px 6px;
+  @include studio-rail-heading;
+  // Onto a second line rather than cut: Russian's "Параметры
+  // воспроизведения" ran past a rail of the default width.
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.dsp-studio .dsp-rail-tab {
+  // Every button's line, which the Library's shelves keep.
+  line-height: 1.15;
+  translate: none;
+
+  @include studio-rail-item {
+    // The 18px glyph centred on the column the pin and the folded rail
+    // share: 10px of list, 9px of row and half of 18 is 28px in.
+    padding-left: 9px;
+
+    &.is-active {
+      @include studio-rail-item-active('.dsp-section-icon');
+    }
+
+    &:disabled {
+      opacity: $disabled-opacity;
+      cursor: default;
+
+      &:hover {
+        background: none;
+        color: $text-muted;
+      }
+    }
+  }
+
+  // The old rail's edge mark; the Library's mark is drawn in the background.
+  &::before {
+    display: none;
+  }
+}
+
+// The glyph alone, as the Library's shelves draw theirs: no frame round it.
+.dsp-studio .dsp-section-icon {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  opacity: 0.85;
+}
+
+// The processor's own on/off, at the row's end where the Library keeps its
+// counts: lit while it is on, and nothing while it is off, so the rail reads
+// as the stages that are doing something rather than as a column of dots.
+.dsp-studio .dsp-rail-lamp {
+  width: 6px;
+  height: 6px;
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+}
+
+// Folded, on its glyph's corner, the row's end being out of sight. Said on
+// the bare class: the fold's selector already names the rail it is in, and
+// `.dsp-studio` written in front would land after the rail, not around it.
+.dsp-rail-lamp {
+  @include folded-at-rest {
+    position: absolute;
+    top: 5px;
+    left: 24px;
+  }
+}
+
+.dsp-studio .dsp-rail-tab.is-on .dsp-rail-lamp {
+  background: $active;
+}
+
+// The filters' heading arrives on the rail's beat, between the level group
+// and the first filter, rather than standing there from the first frame.
+.dsp-rail-filters-label {
+  @include animate(
+    rise-in,
+    $motion-base,
+    $ease-out,
+    $dsp-rail-offset + $dsp-rail-step * 0.5
+  );
+}
+
+// *** The header: three groups on one line, no rules between them ***********
+
+.dsp-studio .dsp-header-line > .dsp-presets {
+  padding-left: 0;
+
+  &::before {
+    display: none;
+  }
+}
+
+.dsp-studio .dsp-header-switches {
+  gap: 4px 22px;
+}
+
+.dsp-studio .dsp-global-power {
+  padding-left: 0;
+  border-left: 0;
+}
+
+// The scope sentence and the engine's notices: a tint of their own colour
+// with no edge round it.
+.dsp-studio :is(.dsp-scope, .dsp-engine-down) {
+  border-color: transparent;
+}
+
+.dsp-studio .dsp-scope:not(.is-idle) {
+  background: $studio-surface;
+}
+
+// *** The stage: the page itself, no card inside the card *******************
+
+.dsp-studio .dsp-stage .dsp-card {
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+// The cluster before the power switch and the monitor before it are parted
+// by space, not by rules.
+.dsp-studio .dsp-card-header.has-toolbar .dsp-card-power {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.dsp-studio .dsp-card-before-power {
+  padding-right: 0;
+  border-right: 0;
+}
+
+// The bars' groups (preset | reset | stereo) are parted by their 24px gap
+// alone; the rule painted in it was one more line across every header.
+.dsp-studio :is(.dsp-eq-bar, .dsp-eq-bar-unit) {
+  column-rule: none;
+}
+
+// A stage's whole-stage dials stand apart from its bands by air.
+.dsp-studio .dsp-crossovers {
+  padding-bottom: 4px;
+  border-bottom: 0;
+}
+
+// The plots keep their darker ground, which is what their lines are drawn to
+// be read against ("not the graph, never the graph"); the hairline round each
+// goes, the ground being edge enough.
+.dsp-studio
+  :is(
+    .dsp-eq-graph,
+    .dsp-denoise-graph,
+    .dsp-dynamics-graph,
+    .dsp-room-picture,
+    .dsp-dimension-field,
+    .dsp-crossfade-preview,
+    .dsp-room-speaker-panel
+  ) {
+  border-color: transparent;
+}
+
+// The Exciter's two bands that are not generators keep the tint that says
+// so, without an edge of the same colour round it.
+.dsp-studio :is(.dsp-band-align, .dsp-band-organic) {
+  border-color: transparent;
+}
+
+// *** What was left drawn in lines, found by walking every stage's boxes ****
+
+// The chips over the plots say their state in their ink, as each trace's key;
+// the outline of the same colour round each went. A warning keeps its red
+// wash, which is the state, not a frame.
+.dsp-studio
+  :is(.dsp-master-status, .dsp-de-esser-status, .dsp-bass-punch-status)
+  > span {
+  border-color: transparent;
+}
+
+// The loudness readings under the Master's plot are trays like every box on
+// the page; the integrated one, which a target is judged against, is the
+// accent's tint where it was the accent's edge.
+.dsp-studio .dsp-master-loudness span {
+  border-color: transparent;
+
+  &.is-primary {
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+
+  &.is-warning {
+    background: color-mix(in srgb, $red 10%, transparent);
+  }
+}
+
+// The notices a stage carries - an engine too old for it, the Room's line
+// about its signal - in their tint alone.
+.dsp-studio
+  :is(.dsp-de-esser-engine, .dsp-footsteps-engine, .dsp-room-signal__line) {
+  border-color: transparent;
+}
+
+.dsp-studio .dsp-room-signal__line.is-warn {
+  background: color-mix(in srgb, $amber 8%, transparent);
+}
+
+// The Room's speaker pane says which speaker it holds in its head's accent
+// ink; the accent edge round it, lit or quiet, was one more frame.
+.dsp-studio .dsp-room-pane {
+  &,
+  &.is-waiting {
+    border-color: transparent;
+  }
+}
+
+// Rows and groups inside a box parted by their gap, not by a rule: the
+// Room's rows and switches, its saved rooms, the crossfade's saved shapes.
+.dsp-studio .dsp-room-row + .dsp-room-row,
+.dsp-studio :is(.dsp-room-check, .dsp-room-library, .dsp-crossfade-library) {
+  border-top: 0;
+}
+
+// The Normalizer's meters are their well and their fill; the hairline round
+// each well drew four more lines.
+.dsp-studio .dsp-normalizer-meter-track {
+  border-color: transparent;
+}

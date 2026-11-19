@@ -141,6 +141,7 @@ const dsp = {
     '在峰值和增益限制内，于效果处理前匹配最响的三秒片段。较轻的片段保留相对音量。音乐库测量整个文件；实时模式在播放时学习。',
   'dsp.normalizer.mode': '标准化模式',
   'dsp.rail.levelGroup': '音源电平',
+  'dsp.rail.filtersGroup': '滤镜',
   'dsp.normalizer.independent':
     '与预设无关：选择预设不会改变它，修改它也会保留你的预设。',
   'dsp.normalizer.off': '关闭',

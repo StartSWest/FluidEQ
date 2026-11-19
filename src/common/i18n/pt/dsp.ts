@@ -143,6 +143,7 @@ const dsp = {
     'Iguala os trechos de três segundos mais fortes antes dos efeitos, respeitando os limites de pico e ganho. Os trechos suaves mantêm o nível relativo. A Biblioteca mede o arquivo; Ao vivo aprende durante a reprodução.',
   'dsp.normalizer.mode': 'Modo de normalização',
   'dsp.rail.levelGroup': 'Nível da fonte',
+  'dsp.rail.filtersGroup': 'Filtros',
   'dsp.normalizer.independent':
     'Separado dos presets: escolher um nunca o altera, e alterá-lo mantém o seu preset.',
   'dsp.normalizer.off': 'Desligado',

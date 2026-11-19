@@ -1,0 +1,33 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// WHEN A STUDIO RAIL IS FOLDED (`StudioRail.tsx`): by its pin, or on a page
+// too narrow to spare a rail's width - the Library's own fold, at a card of
+// `$bp-lg` (`_libraryRail.scss`). `eq-panel` is the workspace page's box
+// (`.workspace-tab-panel__scroll`), the only container every page that
+// hosts a rail stands in; a container on the page itself would make it the
+// box every fixed descendant is placed in.
+
+@use 'constant' as *;
+
+// What is inside the rail while it is folded AND at rest: not opened over
+// the page by the pointer, nor by a keyboard reaching into it.
+// `:has(:focus-visible)` rather than `:focus-within`, so a click on a place,
+// which leaves that button focused, still lets the rail fold once the
+// pointer goes.
+@mixin folded-at-rest {
+  .studio-rail-slot.is-folded
+    > .studio-rail:not(:hover):not(:has(:focus-visible))
+    & {
+    @content;
+  }
+
+  @container eq-panel (max-width: #{$bp-lg}) {
+    .studio-rail-slot > .studio-rail:not(:hover):not(:has(:focus-visible)) & {
+      @content;
+    }
+  }
+}

@@ -34,10 +34,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // darker ground, which is what its lines are drawn to be read against. And
 // the Exciter's two tinted bands keep their tint; the colour says what they
 // are.
+//
+// The DSP page itself now draws them as a step of light with no edge (the
+// Library's surfaces, Ivan 2026-11-19: "sin tantas líneas ni borders"), and
+// says so through the two properties (`_dspStudio.scss`); anywhere else a
+// stage is drawn - the Gaming tab, Help's figures - keeps the edge. The
+// edge stays 1px wide either way, so nothing inside moves.
 @mixin dsp-box {
-  border: 1px solid $card-edge;
+  border: 1px solid var(--dsp-box-edge, #{$card-edge});
   border-radius: $radius-s;
-  background: none;
+  background: var(--dsp-box-fill, none);
 }
 
 // One beat per filter, in signal order. The rail is keyed by

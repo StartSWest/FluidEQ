@@ -152,6 +152,7 @@ const dsp = {
     'Matches the loudest three-second passages before the creative stages, within peak and gain limits. Quiet passages keep their relative level. Library measures the file; Live learns as it plays.',
   'dsp.normalizer.mode': 'Normalization mode',
   'dsp.rail.levelGroup': 'Source level',
+  'dsp.rail.filtersGroup': 'Filters',
   'dsp.normalizer.independent':
     'Separate from presets: picking one never changes it, and changing it keeps your preset.',
   'dsp.normalizer.off': 'Off',

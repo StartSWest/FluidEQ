@@ -27,8 +27,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid $card-edge;
-  border-radius: $radius-s;
+  @include dsp-box;
 }
 
 .dsp-dimension-group-name {

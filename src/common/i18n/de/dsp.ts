@@ -143,6 +143,7 @@ const dsp = {
     'Gleicht die lautesten Drei-Sekunden-Passagen vor den Effekten innerhalb der Spitzen- und Verstärkungsgrenzen an. Leise Passagen behalten ihren relativen Pegel. Die Bibliothek misst die Datei; Live lernt während der Wiedergabe.',
   'dsp.normalizer.mode': 'Normalisierungsmodus',
   'dsp.rail.levelGroup': 'Quellpegel',
+  'dsp.rail.filtersGroup': 'Filter',
   'dsp.normalizer.independent':
     'Unabhängig von Presets: Ein Preset ändert ihn nie, und wenn Sie ihn ändern, bleibt Ihr Preset erhalten.',
   'dsp.normalizer.off': 'Aus',

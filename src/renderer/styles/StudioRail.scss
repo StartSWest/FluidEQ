@@ -1,0 +1,233 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// A PAGE'S STUDIO RAIL (`StudioRail.tsx`): the Library's left column - on the
+// card's own tone, parted from the page by its hairline alone, dragged at its
+// edge - with the Scenes tab's pin (`PlusRail.scss`, whose mechanics this
+// is, said once for any page). The rows inside are the page's, drawn with
+// the studio mixins (`_libraryTokens.scss`).
+//
+// PINNED, the rail is the grid's first column, as wide as it was dragged.
+// FOLDED, the column narrows to the glyphs and the page gets the rest; the
+// pointer on the rail opens it again OVER the page, and taking the pointer
+// away folds it. Waiting on the pointer is the transition's own delay: a pass
+// across the rail on the way to the page is shorter than it and opens
+// nothing. No script decides when.
+//
+// THE RAIL IS NEVER THE WIDTH OF ITS SLOT. It stands in the slot at its own
+// width, and the slot only decides how much room the grid gives it; had the
+// rail filled the slot, pinning an open rail would first shrink it to the
+// folded width and grow it again.
+
+@use 'sass:math';
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+@use 'studioRailFold' as *;
+
+$rail-open: var(--rail-width, #{$studio-rail-width});
+$rail-reveal-delay: 110ms;
+
+// The glyphs' column, from the rail's left edge: the list's 10px inset and a
+// row's 10px before a 16px glyph, so the middle of every glyph - the pin's
+// and each place's - stands 28px in, the middle of the folded column.
+$rail-glyph-centre: math.div($studio-rail-folded, 2);
+
+.studio-rail-slot {
+  // How long the rail takes to move and to settle. With Windows' animation
+  // effects off it still slides, at half the length: a width that jumps
+  // under the pointer reads as the layout breaking rather than as calm.
+  --rail-move: #{$motion-slow};
+  --rail-settle: #{$motion-base};
+
+  position: relative;
+  // Over the page's own raised controls, which go as high as 3.
+  z-index: 6;
+  width: $rail-open;
+  min-height: 0;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  transition: width var(--rail-move) $ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    --rail-move: 150ms;
+    --rail-settle: 110ms;
+  }
+
+  // Under the pointer the edge follows the hand, not an ease behind it.
+  &.is-resizing,
+  &.is-resizing > .studio-rail {
+    transition: none;
+  }
+}
+
+// The Library's splitter (`LibraryRailSplitter`) on the rail's hairline: a
+// 12px target with its grip on the line, over the slot rather than under it.
+// Said here in full, as `.library-rail__splitter` says it for the Library's
+// grid of two rows, so a page that never opened the Library places it alike.
+.studio-rail-slot + .library-rail__splitter {
+  position: relative;
+  z-index: 7;
+  display: flex;
+  width: 12px;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  justify-self: end;
+  margin-right: -6px;
+
+  .karaoke-pane-splitter.is-vertical {
+    width: 100%;
+  }
+}
+
+.studio-rail {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: flex;
+  width: $rail-open;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid $studio-hair;
+  background: none;
+  transition:
+    width var(--rail-settle) $ease-out 60ms,
+    border-color var(--rail-settle) $ease-out;
+}
+
+// The pin in the glyphs' column, the rail's name after it where the places'
+// names start (10 + 10 + 16 + 10 = 46px); above it the Library's 12px of list
+// and 2px of first heading, so the first place stands where the Library's
+// first shelf does.
+.studio-rail__head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px 6px #{$rail-glyph-centre - 14px};
+}
+
+.studio-rail__heading {
+  min-width: 0;
+  @include studio-rail-heading;
+  @include truncate;
+  transition: opacity var(--rail-settle) ease-out;
+}
+
+// Bare: only its ink says pinned or pointed at - the Scenes pin's own face
+// (Ivan, 2026-11-17: "fix this mess"), never a lit square stacked over the
+// chosen place below it.
+.studio-rail__pin {
+  display: grid;
+  width: $control-height-xs;
+  height: $control-height-xs;
+  flex: 0 0 auto;
+  place-items: center;
+  // The square is the target; the line keeps the heading's own height.
+  margin-block: -6px;
+  padding: 0;
+  border-radius: $radius-m;
+  cursor: pointer;
+  transition: $transition-control;
+  @include button-plain-bare;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// The places, scrolling under the head; one column the rail's width and never
+// a long name's (`.library-rail__scroll`).
+.studio-rail__body {
+  @include slim-scrollbar;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  padding: 0 10px 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+// Anything only the open rail says: the heading, and whatever the page marks.
+.studio-rail__heading,
+.studio-rail__word {
+  @include folded-at-rest {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 90ms ease-out,
+      visibility 0s linear 90ms;
+  }
+}
+
+@mixin folded {
+  width: $studio-rail-folded;
+
+  // The menus' material, 95% of the floor, for the rail opened over the page
+  // (Ivan, 2026-09-26, of the Scenes rail: a see-through one let the page
+  // show through it).
+  > .studio-rail {
+    background: $surface-menu-floor;
+  }
+
+  > .studio-rail:not(:hover):not(:has(:focus-visible)) {
+    width: $studio-rail-folded;
+    background: none;
+  }
+
+  // Open over the page: a menu's material and a menu's edge, and nothing
+  // under it (Ivan, 2026-09-27: "like the dropdown menus").
+  > .studio-rail:is(:hover, :has(:focus-visible)) {
+    border-right-color: color-mix(in srgb, $edge-tint 14%, transparent);
+    transition:
+      width var(--rail-move) $ease-out $rail-reveal-delay,
+      border-color var(--rail-settle) $ease-out $rail-reveal-delay;
+
+    .studio-rail__heading,
+    .studio-rail__word {
+      transition:
+        opacity var(--rail-settle) ease-out
+          calc(#{$rail-reveal-delay} + var(--rail-move) * 0.4),
+        visibility 0s linear $rail-reveal-delay;
+    }
+  }
+
+  // Folded, the pin is the way back to a rail that stays: it wears the
+  // accent while the rail is open over the page, when it is the thing to
+  // press.
+  > .studio-rail:hover .studio-rail__pin {
+    color: $secondary-light;
+  }
+}
+
+.studio-rail-slot.is-folded {
+  @include folded;
+}
+
+// Too narrow to spare a rail's width, it folds whatever its pin says, as
+// the Library's does; the head goes with the words, since there is no rail
+// to pin at this width, and so does the edge to drag.
+@container eq-panel (max-width: #{$bp-lg}) {
+  .studio-rail-slot {
+    @include folded;
+
+    .studio-rail__head {
+      display: none;
+    }
+
+    .studio-rail__body {
+      padding-top: 12px;
+    }
+  }
+
+  .studio-rail-slot + .library-rail__splitter {
+    display: none;
+  }
+}

@@ -6,16 +6,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef, useState } from 'react';
 import { IDspSettings, clampDspSettings } from '../../common/dsp/chain';
-import { TranslationKey } from '../../common/i18n/en';
 import DspStageCards from './DspStageCards';
 import { useDspPageRoomLive } from './useRoomLive';
 import DspChainPresetBar from './DspChainPresetBar';
-import DspHeldLock from './DspHeldLock';
+import DspRackSwitches from './DspRackSwitches';
 import DspScopeNotice from './DspScopeNotice';
-import GameModeSwitch from '../components/GameModeSwitch';
-import LatencyReadout from '../components/LatencyReadout';
 import TitleRate from '../components/TitleRate';
 import DspSideTabs from './DspSideTabs';
+import { useRailWidth } from '../library/LibraryRailSplitter';
+import StudioRail, { useRailPinned } from '../widgets/StudioRail';
 import OutputEditingNotice from '../OutputEditingNotice';
 import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
@@ -29,7 +28,6 @@ import {
   useListenedDelay,
   useListenedOutput,
 } from '../utils/useListenedOutput';
-import Switch from '../widgets/Switch';
 import {
   TDspEngineState,
   publishSystemDspChain,
@@ -37,7 +35,12 @@ import {
   useDspSampleRate,
 } from './store';
 import '../styles/Dsp.scss';
-import { readOpenDspSection, writeOpenDspSection } from './openSection';
+import {
+  DSP_RAIL_PINNED_KEY,
+  DSP_RAIL_WIDTH_KEY,
+  readOpenDspSection,
+  writeOpenDspSection,
+} from './openSection';
 import useNativeMeters from './useNativeMeters';
 import { usePlaybackOwner } from '../audio/playbackOwner';
 import { useTransportIdentitySources } from '../audio/transportSource';
@@ -190,13 +193,6 @@ const DspPanel = ({
    * happening rather than what was asked for.
    */
   const allChannels = settings.surround.allChannels || room.enabled;
-  /** Why the switch reads as it does: the Room's reason comes first. */
-  const surroundHint = (): TranslationKey => {
-    if (room.enabled) {
-      return 'dsp.surround.roomHint';
-    }
-    return allChannels ? 'dsp.surround.onHint' : 'dsp.surround.offHint';
-  };
   const listened = useListenedOutput(isSystemWide, 'editor');
   const roomLive = useDspPageRoomLive(listened, settings);
   const delay = useListenedDelay(listened);
@@ -283,6 +279,9 @@ const DspPanel = ({
   );
   const isStageDisabled =
     section === 'crossfade' ? !hasLibraryPlayback : !areControlsUsable;
+  // The chain's rail: its dragged width and its pin, each remembered.
+  const rail = useRailWidth(DSP_RAIL_WIDTH_KEY);
+  const [isRailPinned, setRailPinned] = useRailPinned(DSP_RAIL_PINNED_KEY);
 
   /**
    * Isolate is an audition state owned by the page that exposes its switch.
@@ -346,147 +345,26 @@ const DspPanel = ({
   };
 
   return (
-    <div className="dsp-panel">
-      <header className="dsp-header">
-        <OutputEditingNotice />
-        <div className="dsp-header-line">
+    // THE LIBRARY'S LAYOUT (Ivan, 2026-11-19: "que luzca como la librería
+    // ... limpias, clear y sin tantas líneas ni borders"): the chain down a
+    // rail on the card's own tone, parted by its hairline, resizable and
+    // folding to its glyphs, and the page beside it with no card inside the
+    // card. The page's name and rate head the rail, as "Library" heads the
+    // Library's, so the bar beside it starts with the presets.
+    <div className="dsp-studio">
+      <StudioRail
+        rail={rail}
+        isPinned={isRailPinned}
+        onPinnedChange={setRailPinned}
+        heading={
           <h2 className="dsp-title">
             {t('dsp.title')}
             {engineState === 'running' && isRackEngaged ? (
               <TitleRate rate={sampleRate} />
             ) : undefined}
           </h2>
-          <DspChainPresetBar
-            settings={settings}
-            disabled={!isRackEngaged}
-            onChange={onChange}
-            onCommit={onCommit}
-          />
-          {/* The two switches of the whole rack, wrapped as one: at a narrow
-              width they leave the first row together and stay at the right,
-              where separately the power switch went to a row of its own at
-              the left. The surround switch is beside the rack's own switch,
-              not on the Master card: it is a setting of the whole rack —
-              which channels of a surround output it runs on — and a card
-              that is switched off with its stage would have taken it off
-              with it. Its two words say which channels, the way the power's
-              say on or off; the longer sentence is the tooltip. */}
-          <div className="dsp-header-switches">
-            {/* One capsule, the same one the equaliser's page wears: the
-                switch is what moves the figure beside it, and standing apart
-                — the switch up here and the delay down in the scope row —
-                they read as two unrelated things rather than as a cause and
-                its number. */}
-            {isSystemWide ? (
-              <div className="engine-strip">
-                <GameModeSwitch
-                  installedVersion={audioEngine?.fluid.dllVersion}
-                  reportedGameMode={listened.output?.gameMode}
-                />
-                {delay ? (
-                  <LatencyReadout
-                    latency={delay.latency}
-                    gameMode={delay.gameMode}
-                  />
-                ) : null}
-              </div>
-            ) : null}
-            <div
-              className="dsp-global-power dsp-surround"
-              title={t(surroundHint())}
-            >
-              {/* Held by the Room, and said inside the group that is held:
-                  see `DspHeldLock` for the two ways a sentence on a line of
-                  its own got this wrong. */}
-              {room.enabled ? <DspHeldLock /> : undefined}
-              <span
-                className={`dsp-global-power-state${
-                  allChannels ? ' is-on' : ''
-                }`}
-                aria-hidden="true"
-              >
-                {allChannels
-                  ? t('dsp.surround.allChannels')
-                  : t('dsp.surround.frontPair')}
-              </span>
-              <Switch
-                id="dsp-surround-all-channels"
-                isOn={allChannels}
-                // Held on, and held still, while the Room is running: it takes
-                // every channel to place them around the head, so a switch
-                // that still moved would be saying something the rack is not
-                // doing. The stored choice is untouched and comes back when
-                // the Room goes off.
-                isDisabled={!isRackEngaged || room.enabled}
-                handleToggle={() => {
-                  patch({
-                    surround: { allChannels: !settings.surround.allChannels },
-                  });
-                  onCommit();
-                }}
-                ariaLabel={t('dsp.surround.title')}
-              />
-            </div>
-            <div className="dsp-global-power">
-              <span
-                className={`dsp-global-power-state${isRackLive ? ' is-on' : ''}`}
-                aria-hidden="true"
-              >
-                {isRackLive ? t('dsp.enabled') : t('dsp.bypassed')}
-              </span>
-              <Switch
-                id="dsp-global-toggle"
-                isOn={isRackLive}
-                isDisabled={!isRackEngaged}
-                handleToggle={() => {
-                  patch({ enabled: !settings.enabled }, true);
-                  onCommit();
-                }}
-                ariaLabel={t('dsp.title')}
-              />
-            </div>
-          </div>
-        </div>
-        <DspScopeNotice
-          status={audioEngine}
-          suspension={suspension}
-          isRackEngaged={isRackEngaged}
-          onOpenEngineDialog={onOpenEngineDialog}
-        />
-        {engineState === 'failed' ? (
-          <p className="dsp-unavailable">{t('dsp.unavailable')}</p>
-        ) : undefined}
-        {/* In the header rather than in the Master card, where it used to be.
-            The card is one of eight side-tab sections, so the notice was only
-            ever seen by a user who happened to open Master — and a failure the
-            listener cannot see is the failure being silent.
-
-            `alert`, not `status`, and red rather than amber, because it is an
-            error: every stage is off. It said the EQ, dynamics and limiter
-            "still apply" long after `useDspEngine` made the worklet a permanent
-            passthrough, so the one line whose whole job is to tell the listener
-            what is happening to their music was the last thing still claiming
-            there was a fallback.
-
-            Suppressed when the browser audio graph has failed too, because
-            then `dsp.unavailable` directly above says the same thing and two
-            red paragraphs saying it twice is worse than one saying it once.
-
-            And not under the FluidEQ Engine. There the rack runs in the engine
-            and its controls stay live; a Library player whose own engine failed
-            plays through its media elements while the engine keeps the rack
-            running on that sound (see `rackPlacement.ts`). A line saying every
-            stage is off and the controls are disabled was false twice over. */}
-        {nativeState === 'failed' &&
-        engineState !== 'failed' &&
-        !isSystemWide ? (
-          <p className="dsp-engine-down" role="alert">
-            {t('dsp.engineDown')}
-          </p>
-        ) : undefined}
-      </header>
-
-      <div className="dsp-body">
+        }
+      >
         <DspSideTabs
           active={section}
           onSelect={selectSection}
@@ -509,6 +387,76 @@ const DspPanel = ({
             master: master.enabled,
           }}
         />
+      </StudioRail>
+      <div className="dsp-panel dsp-studio__main">
+        <header className="dsp-header">
+          <OutputEditingNotice />
+          <div className="dsp-header-line">
+            <DspChainPresetBar
+              settings={settings}
+              disabled={!isRackEngaged}
+              onChange={onChange}
+              onCommit={onCommit}
+            />
+            <DspRackSwitches
+              isSystemWide={isSystemWide}
+              engineVersion={audioEngine?.fluid.dllVersion}
+              reportedGameMode={listened.output?.gameMode}
+              delay={delay}
+              allChannels={allChannels}
+              isRoomOn={room.enabled}
+              isRackEngaged={isRackEngaged}
+              isRackLive={isRackLive}
+              onToggleSurround={() => {
+                patch({
+                  surround: { allChannels: !settings.surround.allChannels },
+                });
+                onCommit();
+              }}
+              onTogglePower={() => {
+                patch({ enabled: !settings.enabled }, true);
+                onCommit();
+              }}
+            />
+          </div>
+          <DspScopeNotice
+            status={audioEngine}
+            suspension={suspension}
+            isRackEngaged={isRackEngaged}
+            onOpenEngineDialog={onOpenEngineDialog}
+          />
+          {engineState === 'failed' ? (
+            <p className="dsp-unavailable">{t('dsp.unavailable')}</p>
+          ) : undefined}
+          {/* In the header rather than in the Master card, where it used to be.
+              The card is one of eight side-tab sections, so the notice was only
+              ever seen by a user who happened to open Master — and a failure the
+              listener cannot see is the failure being silent.
+
+              `alert`, not `status`, and red rather than amber, because it is an
+              error: every stage is off. It said the EQ, dynamics and limiter
+              "still apply" long after `useDspEngine` made the worklet a permanent
+              passthrough, so the one line whose whole job is to tell the listener
+              what is happening to their music was the last thing still claiming
+              there was a fallback.
+
+              Suppressed when the browser audio graph has failed too, because
+              then `dsp.unavailable` directly above says the same thing and two
+              red paragraphs saying it twice is worse than one saying it once.
+
+              And not under the FluidEQ Engine. There the rack runs in the engine
+              and its controls stay live; a Library player whose own engine failed
+              plays through its media elements while the engine keeps the rack
+              running on that sound (see `rackPlacement.ts`). A line saying every
+              stage is off and the controls are disabled was false twice over. */}
+          {nativeState === 'failed' &&
+          engineState !== 'failed' &&
+          !isSystemWide ? (
+            <p className="dsp-engine-down" role="alert">
+              {t('dsp.engineDown')}
+            </p>
+          ) : undefined}
+        </header>
 
         <div
           className={`dsp-stage${isStageDisabled ? ' is-disabled' : ''}`}

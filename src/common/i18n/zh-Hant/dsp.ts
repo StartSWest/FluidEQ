@@ -127,6 +127,7 @@ const dsp = {
     '在峰值和增益限制內，於效果處理前匹配最響的三秒片段。較輕的片段保留相對音量。音樂庫測量整個檔案；即時模式在播放時學習。',
   'dsp.normalizer.mode': '正規化模式',
   'dsp.rail.levelGroup': '音源電平',
+  'dsp.rail.filtersGroup': '濾鏡',
   'dsp.normalizer.independent':
     '與預設組無關：選擇預設組不會改變它，修改它也會保留你的預設組。',
   'dsp.normalizer.off': '關閉',

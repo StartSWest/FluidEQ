@@ -143,6 +143,7 @@ const dsp = {
     'Allinea i passaggi di tre secondi più forti prima degli effetti, entro i limiti di picco e guadagno. I passaggi deboli mantengono il livello relativo. La Libreria misura il file; Live apprende durante la riproduzione.',
   'dsp.normalizer.mode': 'Modalità di normalizzazione',
   'dsp.rail.levelGroup': 'Livello della sorgente',
+  'dsp.rail.filtersGroup': 'Filtri',
   'dsp.normalizer.independent':
     'Indipendente dai preset: sceglierne uno non lo cambia mai, e cambiarlo mantiene il tuo preset.',
   'dsp.normalizer.off': 'Spento',

@@ -15,6 +15,15 @@ import {
 export const DSP_OPEN_SECTION_KEY = 'fluideq.dsp.openSection';
 
 /**
+ * The chain's rail: how wide it was dragged, and whether it is pinned beside
+ * the page or folded to its glyphs (`StudioRail`). Per machine, like the open
+ * section, and for the same reason: neither is part of the sound.
+ */
+export const DSP_RAIL_WIDTH_KEY = 'fluideq.dsp.railWidth';
+
+export const DSP_RAIL_PINNED_KEY = 'fluideq.dsp.railPinned';
+
+/**
  * Which processor the DSP page was last left on.
  *
  * The page opened on the Normalizer every time — after a reload, after the

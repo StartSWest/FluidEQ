@@ -142,6 +142,7 @@ const dsp = {
     'ピークとゲインの上限を守りながら、最も大きい3秒間の区間をエフェクトの前で揃えます。静かな区間の相対的な音量は保ちます。ライブラリはファイル全体を測定し、ライブは再生しながら学習します。',
   'dsp.normalizer.mode': 'ノーマライズモード',
   'dsp.rail.levelGroup': 'ソースのレベル',
+  'dsp.rail.filtersGroup': 'フィルター',
   'dsp.normalizer.independent':
     'プリセットとは別です。プリセットを選んでも変わらず、変更してもプリセットはそのままです。',
   'dsp.normalizer.off': 'オフ',

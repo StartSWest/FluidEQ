@@ -62,7 +62,9 @@ const DspSideTabs = ({
       onClick={() => onSelect(id)}
     >
       <DspSectionIcon section={id} />
-      <span className="dsp-rail-name">{t(labelKey)}</span>
+      {/* A word only the open rail says (`StudioRail`); folded to its
+          glyphs, the title above names the button. */}
+      <span className="dsp-rail-name studio-rail__word">{t(labelKey)}</span>
       <span
         className="dsp-rail-lamp"
         aria-hidden="true"
@@ -74,12 +76,22 @@ const DspSideTabs = ({
   return (
     <nav className="dsp-rail" aria-label={t('dsp.title')}>
       <div className="dsp-rail-level">
-        <span className="dsp-rail-group-label">{t('dsp.rail.levelGroup')}</span>
+        <span className="dsp-rail-group-label studio-rail__word">
+          {t('dsp.rail.levelGroup')}
+        </span>
         {DSP_LEVEL_SECTIONS.map(renderTab)}
       </div>
+      {/* Named as the groups either side are: with no rule between them, a
+          heading is what parts the filters from the source level above. A
+          sibling of the tabs, not their child one, so the tabs' cascade
+          (`stagger-in` on `.dsp-rail-processors > .dsp-rail-tab`) still
+          counts the filters alone. */}
+      <span className="dsp-rail-group-label dsp-rail-filters-label studio-rail__word">
+        {t('dsp.rail.filtersGroup')}
+      </span>
       <div className="dsp-rail-processors">{DSP_SECTIONS.map(renderTab)}</div>
       <div className="dsp-rail-playback">
-        <span className="dsp-rail-group-label">
+        <span className="dsp-rail-group-label studio-rail__word">
           {t('library.playbackOptions')}
         </span>
         {DSP_PLAYBACK_SECTIONS.map(renderTab)}

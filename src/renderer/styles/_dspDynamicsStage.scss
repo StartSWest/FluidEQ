@@ -124,8 +124,7 @@ $dynamics-high: $neon-yellow;
   align-items: baseline;
   gap: 9px;
   padding: 5px 9px;
-  border: 1px solid $card-edge;
-  border-radius: $radius-s;
+  @include dsp-box;
   font-size: $text-small;
   @include band-ink(color);
 
