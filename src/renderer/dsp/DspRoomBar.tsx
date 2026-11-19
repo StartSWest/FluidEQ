@@ -236,6 +236,7 @@ const DspRoomBar = ({
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqSave.save')}
             disabled={!room.enabled}
             onClick={() => setIsNaming(true)}
           >
@@ -246,6 +247,7 @@ const DspRoomBar = ({
             <button
               type="button"
               className="button small subtle"
+              title={t('dsp.eqSave.delete')}
               onClick={() => {
                 onDelete(savedHere);
                 setNotice(t('dsp.eqSave.deleted', { name: savedHere.name }));

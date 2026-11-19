@@ -148,6 +148,7 @@ const useStagePresets = <S extends TPresetStage>(
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqSave.delete')}
             onClick={remove}
           >
             <DspBarIcon name="delete" />

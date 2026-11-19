@@ -1,0 +1,211 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE DSP PAGE'S HEAD, AS THE LIBRARY'S BAR IS DRAWN (Ivan, 2026-11-19, of
+// the page after 5f35413e1: "this sucks, we need to fix"). It was two rows
+// that read as one row twice - PRESETS, a field, two arrows and four worded
+// buttons over PRESET, a field, two arrows and worded buttons again - with
+// Game mode in a framed capsule between them.
+//
+// Now the page's own bar, then the stage's head:
+//
+// - THE BAR is the whole rack's: its preset, its actions as the Library
+//   bar's plain squares (the glyph alone, the name in the tooltip every one
+//   of them carries), and at the right the rack's three switches on one
+//   line and one baseline, Game mode flat beside them with no capsule.
+// - THE STAGE'S HEAD starts with the stage's name, which is what tells the
+//   two presets apart at a glance: "De-esser" and then its preset, quieter -
+//   no "PRESET" word, the same plain squares - and the stage's own switches
+//   at the right. Its sentence goes under it.
+//
+// Said through `.dsp-studio`, as the rest of the page's layout is: the Gaming
+// tab and Help's figures draw these bars and cards their own way.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// The bar and the stage under it: the stage's head stands clear of the bar by
+// more than a row's own gap, so the two read as the page's controls and then
+// the stage's, with no rule between them.
+.dsp-studio__main {
+  gap: 22px;
+}
+
+// *** Actions: the Library bar's squares ************************************
+
+.dsp-studio .dsp-eq-transfer {
+  flex-wrap: nowrap;
+  gap: 2px;
+
+  > .button.small {
+    // Flex, not a grid: the hidden word is a second child, and a grid gave
+    // it a row of its own that stood the glyph 3px over the field's middle.
+    display: inline-flex;
+    width: $control-height-sm;
+    height: $control-height-sm;
+    min-width: 0;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: $radius-xs;
+    // The word stays in the button, so it is still its accessible name; the
+    // tooltip says it on hover.
+    font-size: 0;
+    letter-spacing: 0;
+    @include button-plain;
+  }
+
+  .dsp-bar-icon {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+  }
+}
+
+// The group of squares stands a step apart from the field and arrows it acts
+// on, where a rule used to be drawn.
+.dsp-studio .dsp-eq-bar {
+  column-gap: 14px;
+}
+
+// *** The page's bar *******************************************************
+
+.dsp-studio .dsp-header-line {
+  align-items: center;
+
+  > .dsp-presets {
+    padding-left: 0;
+
+    &::before {
+      display: none;
+    }
+  }
+}
+
+// The rack's switches on one line and one baseline: Game mode, the channels,
+// the power, each its caption and then its switch, as alike as three
+// switches can be.
+.dsp-studio .dsp-header-switches {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px 22px;
+}
+
+.dsp-studio .dsp-global-power {
+  min-height: $control-height-sm;
+  padding-left: 0;
+  border-left: 0;
+}
+
+// Game mode and the delay it moves, flat: the capsule's field round them was
+// the one framed thing left in the bar. The delay keeps its own press (it
+// opens its breakdown) and its fill under the pointer.
+.dsp-studio .engine-strip {
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+
+  > .game-mode-switch,
+  > .latency-readout {
+    min-height: $control-height-sm;
+    padding: 0 6px;
+  }
+
+  > .game-mode-switch {
+    padding-left: 0;
+  }
+
+  > .latency-readout {
+    border-left: 0;
+    border-radius: $radius-xs;
+  }
+
+  // The captions in the switches' own voice, so Game mode, the channels and
+  // the power read as three of a kind. Kept at every width, gap and all: the
+  // bar has the room now, where the old narrow rule dropped the word and its
+  // gap and left the word on its glyph.
+  .game-mode-switch__label,
+  .latency-readout__name {
+    gap: 6px;
+    color: $text-faint;
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+  }
+
+  .latency-readout__value,
+  .latency-readout.is-game .latency-readout__value {
+    font-size: $text-small;
+  }
+}
+
+// The scope sentence and the engine's notices: a tint of their own colour
+// with no edge round it.
+.dsp-studio :is(.dsp-scope, .dsp-engine-down) {
+  border-color: transparent;
+}
+
+.dsp-studio .dsp-scope:not(.is-idle) {
+  background: $studio-surface;
+}
+
+// *** The stage's head ******************************************************
+
+// The stage's name, shown: it is what makes the second preset the stage's
+// and not a copy of the first. The heading was kept for `aria-labelledby`
+// and hidden while the rail alone named the stage; the Library likewise
+// names the shelf being read over it, beside its rail.
+.dsp-studio .dsp-card-title.is-visually-hidden {
+  position: static;
+  width: auto;
+  height: auto;
+  flex: 0 0 auto;
+  overflow: visible;
+  clip-path: none;
+  margin: 0;
+  color: $text-primary;
+  font-size: 1.125rem;
+  font-weight: $weight-bold;
+  letter-spacing: normal;
+  line-height: $control-height;
+  white-space: nowrap;
+}
+
+// On the first line's level when the bar wraps (the Exciter's does on a
+// narrow page): centred, the name floated between its two lines. Everything
+// on the line is one control tall, so the top is the line's middle.
+.dsp-studio .dsp-card-header {
+  align-items: flex-start;
+  column-gap: 20px;
+
+  // The sentence under the name and the controls, on every stage, with or
+  // without a preset.
+  > .dsp-card-titles {
+    flex: 1 0 100%;
+    order: 1;
+  }
+}
+
+// The stage's preset needs no word of its own beside the stage's name; the
+// field's tooltip still names it, and the page's bar keeps its "Presets".
+.dsp-studio .dsp-card-header .dsp-eq-preset-first > .dsp-eq-preset-label {
+  display: none;
+}
+
+// The stage's own switches - Isolate where there is one, and its power - at
+// the right, on the name's line, parted by space.
+.dsp-studio .dsp-card-header .dsp-card-power {
+  min-height: $control-height;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}

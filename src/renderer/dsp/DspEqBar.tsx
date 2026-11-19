@@ -424,6 +424,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqPreset.reset')}
             onClick={() => applyPreset(EQ_DEFAULT_PRESET_ID, false)}
           >
             <DspBarIcon name="reset" />
@@ -454,6 +455,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqPreset.import')}
             onClick={() => {
               setNotice('');
               setIsImporting(true);
@@ -469,6 +471,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
             <button
               type="button"
               className="button small subtle"
+              title={t('dsp.eqSave.delete')}
               onClick={handleDeletePreset}
             >
               <DspBarIcon name="delete" />

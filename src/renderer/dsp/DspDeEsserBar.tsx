@@ -169,6 +169,7 @@ const DspDeEsserBar = ({
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqPreset.reset')}
             onClick={() => applyPreset('vocalMusic', false)}
           >
             <DspBarIcon name="reset" />

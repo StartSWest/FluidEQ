@@ -187,6 +187,7 @@ const DspFootstepsBar = ({
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqPreset.reset')}
             onClick={() => applyPreset('competitive', false)}
           >
             <DspBarIcon name="reset" />

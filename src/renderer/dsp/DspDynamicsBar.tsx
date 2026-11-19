@@ -152,6 +152,7 @@ const DspDynamicsBar = ({
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqPreset.reset')}
             onClick={() => {
               onChange({ ...DYNAMICS_DEFAULTS, enabled: dynamics.enabled });
               onCommit();

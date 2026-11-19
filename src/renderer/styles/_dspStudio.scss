@@ -185,13 +185,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
       @include studio-rail-item-active('.dsp-section-icon');
     }
 
+    // Out of reach (the rack bypassed, or nothing for it to run on): the
+    // quietest of the Library's three inks, glyph and name alike. It was the
+    // app's 45% fade over the glyph's own 85%, and folded to its glyphs the
+    // rail then showed nothing but the lit lamps - two dots in a dark column
+    // (Ivan's window, 2026-11-19). The rail is the page's map; a place out
+    // of reach is still a place on it.
     &:disabled {
-      opacity: $disabled-opacity;
+      color: $studio-t3;
       cursor: default;
 
       &:hover {
         background: none;
-        color: $text-muted;
+        color: $studio-t3;
+      }
+
+      .dsp-section-icon {
+        opacity: 1;
+      }
+
+      // Lit for a stage that is set on, but not playing while the rack is
+      // out of reach: half its light, so it does not outshine the rail.
+      .dsp-rail-lamp {
+        opacity: 0.5;
       }
     }
   }
@@ -257,35 +273,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     $ease-out,
     $dsp-rail-offset + $dsp-rail-step * 0.5
   );
-}
-
-// *** The header: three groups on one line, no rules between them ***********
-
-.dsp-studio .dsp-header-line > .dsp-presets {
-  padding-left: 0;
-
-  &::before {
-    display: none;
-  }
-}
-
-.dsp-studio .dsp-header-switches {
-  gap: 4px 22px;
-}
-
-.dsp-studio .dsp-global-power {
-  padding-left: 0;
-  border-left: 0;
-}
-
-// The scope sentence and the engine's notices: a tint of their own colour
-// with no edge round it.
-.dsp-studio :is(.dsp-scope, .dsp-engine-down) {
-  border-color: transparent;
-}
-
-.dsp-studio .dsp-scope:not(.is-idle) {
-  background: $studio-surface;
 }
 
 // *** The stage: the page itself, no card inside the card *******************

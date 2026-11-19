@@ -171,6 +171,7 @@ const DspBassForgeBar = ({
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqPreset.reset')}
             onClick={() => applyPreset('default', false)}
           >
             <DspBarIcon name="reset" />
