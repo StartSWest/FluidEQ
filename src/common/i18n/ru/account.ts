@@ -117,6 +117,8 @@ const account = {
   'account.google': 'Продолжить с Google',
   'account.google.waiting': 'Завершите вход через Google в браузере.',
   'account.google.cancel': 'Отмена',
+  'account.password.show': 'Показать пароль',
+  'account.password.hide': 'Скрыть пароль',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'Ваша {count} сцена ждёт',
   'account.welcome.createTitle.few': 'Ваши {count} сцены ждут',

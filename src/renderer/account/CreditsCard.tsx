@@ -8,7 +8,7 @@ import { useCallback, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import DialogFrame from '../components/DialogFrame';
 import Glyph from '../community/Glyph';
-import { creditsUnit } from '../plus/credits';
+import { creditsText, creditsUnit } from '../plus/credits';
 import CreditCoin from '../plus/CreditCoin';
 import PackPurchase from '../plus/PackPurchase';
 import { useSceneStore } from '../plus/sceneStore';
@@ -16,9 +16,14 @@ import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import '../styles/Gallery.scss';
 
-/** Getting credits from the account panel: the packs and nothing else. */
+/**
+ * Getting credits from the account panel: the packs and nothing else. Paying
+ * is the one thing to do here, so the window has one loud button, Pay, and
+ * its × to leave (Ivan, 2026-11-19: "make it even more clean for users"): a
+ * Done beside Pay was a second way out drawn like a second action.
+ */
 function CreditsDialog({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const ids = useId();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -37,33 +42,28 @@ function CreditsDialog({ onClose }: { onClose: () => void }) {
     >
       <DialogFrame
         ref={surfaceRef}
-        className="gallery-report-dialog store-dialog"
+        className="gallery-report-dialog store-dialog store-dialog--credits"
         icon={<Glyph name="credit" />}
         title={t('store.credits.buyTitle')}
         titleId={`${ids}-title`}
         description={<span id={`${ids}-lead`}>{t('store.credits.lead')}</span>}
-        // The credit itself, large, in the rail's room under the title,
-        // carrying how many the account has.
+        // The credit itself, large, on a pool of light in the rail's room
+        // under the title, carrying how many the account has, and the count
+        // in words under it: a bare figure on a coin could be a price.
         rail={
           <div className="store-dialog__coin">
             <CreditCoin size="l" badge={store?.balance ?? 0} />
+            {store && (
+              <span className="store-dialog__balance">
+                {creditsText(t, locale, store.balance)}
+              </span>
+            )}
           </div>
         }
         aria-describedby={`${ids}-lead`}
         closeLabel={t('support.close')}
         onClose={close}
-        footer={
-          <div className="dialog-frame__actions">
-            <button
-              ref={closeRef}
-              type="button"
-              className="button small subtle"
-              onClick={close}
-            >
-              {t('store.done')}
-            </button>
-          </div>
-        }
+        closeRef={closeRef}
       >
         {store && <PackPurchase store={store} />}
       </DialogFrame>

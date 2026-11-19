@@ -130,6 +130,8 @@ const account = {
   'account.google': 'Continue with Google',
   'account.google.waiting': 'Finish signing in with Google in your browser.',
   'account.google.cancel': 'Cancel',
+  'account.password.show': 'Show password',
+  'account.password.hide': 'Hide password',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'Your {count} scene is waiting',
   'account.welcome.createTitle.few': 'Your {count} scenes are waiting',

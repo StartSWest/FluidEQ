@@ -120,6 +120,8 @@ const account = {
   'account.google.waiting':
     'Terminez la connexion avec Google dans votre navigateur.',
   'account.google.cancel': 'Annuler',
+  'account.password.show': 'Afficher le mot de passe',
+  'account.password.hide': 'Masquer le mot de passe',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'Votre {count} scène vous attend',
   'account.welcome.createTitle.few': 'Vos {count} scènes vous attendent',

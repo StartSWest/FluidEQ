@@ -5,16 +5,23 @@ import { STARTER_CREDITS } from 'common/sceneStore';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import BrandMark from '../icons/BrandMark';
 import CreditCoin from '../plus/CreditCoin';
+import hyperdrive from '../../../assets/plus/hyperdrive.jpg';
+import lanternLake from '../../../assets/plus/lantern-lake.jpg';
+import nebulaHeart from '../../../assets/plus/nebula-heart.jpg';
+import neonHorizon from '../../../assets/plus/neon-horizon.jpg';
+import prismBloom from '../../../assets/plus/prism-bloom.jpg';
+import reefLight from '../../../assets/plus/reef-light.jpg';
 import { useTranslation } from '../utils/I18nContext';
 import { pluralCategory } from '../utils/pluralCategory';
 import '../styles/AccountWelcome.scss';
 
 /**
  * What the account panel's left side says before anybody is signed in, as
- * Ivan approved it on 2026-11-13 ("I love that login"): FluidEQ's logo, and
- * then either what creating an account gets — the credit coin, the starter
- * scenes waiting, the three steps with the current one lit — or, signing
- * in, what is waiting on the account.
+ * Ivan approved it on 2026-11-13 ("I love that login") and then chose its
+ * gallery rail on 2026-11-19 ("A, galería"): FluidEQ's own scenes, tilted,
+ * behind the logo, fading into the rail where the words stand; then either
+ * what creating an account gets — the credit coin, the three steps with the
+ * current one lit — or, signing in, what is waiting on the account.
  */
 export type TWelcomeKind = 'create' | 'confirm' | 'signIn';
 
@@ -29,6 +36,23 @@ const BACK: readonly { glyph: TCommunityGlyph; key: TranslationKey }[] = [
   { glyph: 'studio', key: 'account.welcome.back.studio' },
 ];
 
+/**
+ * Nine frames of six of FluidEQ's scenes, the gallery itself as the rail's
+ * picture: shipped images, so the dialog needs no GPU and no server. Three
+ * repeat so the tilted grid reaches every corner of the rail.
+ */
+const WALL: readonly { id: string; picture: string }[] = [
+  { id: 'neon', picture: neonHorizon },
+  { id: 'nebula', picture: nebulaHeart },
+  { id: 'lantern', picture: lanternLake },
+  { id: 'prism', picture: prismBloom },
+  { id: 'reef', picture: reefLight },
+  { id: 'hyperdrive', picture: hyperdrive },
+  { id: 'lantern-2', picture: lanternLake },
+  { id: 'neon-2', picture: neonHorizon },
+  { id: 'nebula-2', picture: nebulaHeart },
+];
+
 /** FluidEQ's logo tile and name, as the window's header spells it. */
 function Brand() {
   return (
@@ -41,10 +65,22 @@ function Brand() {
   );
 }
 
-/** Across the top of the rail: the logo, and the coin when creating. */
+/**
+ * Behind the whole rail: the gallery wall, the logo over its top, and the
+ * coin when creating.
+ */
 export function WelcomeCover({ kind }: { kind: TWelcomeKind }) {
   return (
     <div className="account-welcome__cover">
+      <div className="account-welcome__wall" aria-hidden="true">
+        <div className="account-welcome__tiles">
+          {WALL.map((scene) => (
+            <span key={scene.id} className="account-welcome__tile">
+              <img src={scene.picture} alt="" />
+            </span>
+          ))}
+        </div>
+      </div>
       <Brand />
       {kind !== 'signIn' && <CreditCoin size="l" badge={STARTER_CREDITS} />}
     </div>
@@ -74,7 +110,9 @@ export function WelcomeRail({
         <ul className="account-welcome__list">
           {BACK.map((line) => (
             <li key={line.key}>
-              <Glyph name={line.glyph} />
+              <span className="account-welcome__icon" aria-hidden="true">
+                <Glyph name={line.glyph} />
+              </span>
               {t(line.key)}
             </li>
           ))}
@@ -104,7 +142,10 @@ export function WelcomeRail({
         </ol>
       )}
       <div className="account-welcome__foot">
-        <p className="account-welcome__free">{t('account.welcome.free')}</p>
+        <p className="account-welcome__free">
+          <Glyph name="shield" />
+          {t('account.welcome.free')}
+        </p>
         {termsLink}
       </div>
     </div>

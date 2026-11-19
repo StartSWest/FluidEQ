@@ -81,7 +81,9 @@ export default function GoogleSignIn({
   if (account.waiting === 'google') {
     return (
       <div className="account-google account-google--waiting" role="status">
-        <GoogleMark />
+        <span className="account-google__ring" aria-hidden="true">
+          <GoogleMark />
+        </span>
         <span className="account-google__waiting">
           {t('account.google.waiting')}
         </span>

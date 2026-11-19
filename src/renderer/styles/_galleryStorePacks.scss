@@ -1,0 +1,215 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+// Buying credits, wherever the packs are offered (`PackPurchase`,
+// `CreditPacks`) and the account panel's Get credits window
+// (`CreditsCard`), as Ivan asked on 2026-11-19 ("make it even more clean for
+// users"): each pack a card of its own on a step of light, the chosen one
+// lit, the best price as a tag on its corner, and Pay the pack's full width
+// as the one loud thing to press. Layout and look only: what a pack holds,
+// what it costs and what paying does are the store's (`sceneStore`).
+// After `_galleryStore.scss` in `Gallery.scss`, so these rules win the ties.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'libraryTokens' as *;
+@use 'theme' as *;
+
+// ---------------------------------------------------------------- the window
+
+// The coin's side a little narrower than the packs'. Wide only: the window's
+// narrow layout stacks the frame (`DialogFrame.scss`).
+@media (min-width: #{$bp-md + 1px}) {
+  // Named in full: the store dialogs' own size rule is three classes deep.
+  .dialog-frame.gallery-report-dialog.store-dialog.store-dialog--credits {
+    @include dialog.size(820px, 680px);
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
+  }
+}
+
+.store-dialog--credits {
+  // The coin is the window's picture; a glyph tile over it said "credit"
+  // twice.
+  .dialog-frame__tile {
+    display: none;
+  }
+
+  .dialog-frame__title {
+    font-size: 1.65rem;
+    line-height: 1.15;
+  }
+
+  .dialog-frame__rail {
+    background:
+      radial-gradient(
+        90% 50% at 50% 64%,
+        color-mix(in srgb, $secondary-default 16%, transparent),
+        transparent 72%
+      ),
+      dialog.$rail;
+  }
+
+  .gallery-dialog__label {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  > .dialog-frame__body {
+    align-content: safe center;
+    gap: 18px;
+    padding: 40px 34px 28px;
+  }
+}
+
+// The balance in words under the coin: a bare figure could be a price.
+.store-dialog__balance {
+  margin-top: 6px;
+  padding: 5px 14px;
+  color: $secondary-light;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  border-radius: $radius-pill;
+  background: $studio-raise;
+}
+
+// The coin and its count together in the middle of the rail's room; left to
+// the grid's stretch, the count stood half the rail away from its coin.
+.store-dialog__coin {
+  align-content: center;
+  gap: 4px;
+}
+
+// Narrow, the rail is the head: the coin small beside its count, so the packs
+// and Pay come up on the first screen.
+@media (max-width: $bp-md) {
+  .store-dialog--credits .store-dialog__coin {
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: center;
+    gap: 10px;
+    padding-block: 0;
+
+    .credit-coin {
+      --coin: 44px;
+    }
+  }
+
+  .store-dialog--credits .store-dialog__balance {
+    margin-top: 0;
+  }
+
+  .store-dialog--credits > .dialog-frame__body {
+    padding: 18px;
+  }
+}
+
+// ---------------------------------------------------------------- the packs
+
+// No card round the cards: each pack is its own.
+.dialog-frame__group.store-packs {
+  gap: 10px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.gallery-report-dialog__reason.store-pack {
+  padding: 14px 18px 14px 14px;
+  border-radius: $radius-xl;
+  background: linear-gradient(90deg, $studio-surface, transparent 92%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 7%, transparent);
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+
+  & + & {
+    border-top: 0;
+  }
+
+  &:hover {
+    background: linear-gradient(90deg, $studio-raise, transparent 92%);
+  }
+
+  // The chosen pack: lit, ringed in the accent, lifted a little.
+  &:has(input:checked) {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, $secondary-default 16%, transparent),
+      color-mix(in srgb, $secondary-default 5%, transparent)
+    );
+    box-shadow:
+      inset 0 0 0 1.5px $secondary-light,
+      0 8px 24px color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+}
+
+.store-pack__credits {
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+}
+
+.store-pack__price {
+  font-size: 1.2rem;
+  font-weight: $weight-bold;
+  @include tracking(-0.01em);
+}
+
+// The best price as a tag on its pack's corner, out of the line it shared
+// with the price per scene.
+.store-pack__best {
+  position: absolute;
+  top: -9px;
+  right: 16px;
+  padding: 2px 9px;
+  color: $surface-base;
+  font-weight: $weight-bold;
+  border: 0;
+  background: $secondary-light;
+}
+
+// ---------------------------------------------------------------- paying
+
+// What happens while the page is open, over the button, and the button the
+// packs' full width under it.
+.store-pay {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+
+  .store-status {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    border-radius: $radius-l;
+    background: linear-gradient(90deg, $studio-raise, transparent 95%);
+  }
+
+  .store-status--arrived {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, $active 14%, transparent),
+      transparent 95%
+    );
+  }
+}
+
+.button.store-pay__button {
+  width: 100%;
+  min-height: 48px;
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+  border-radius: $radius-l;
+
+  > svg {
+    width: 20px;
+    height: 20px;
+  }
+}

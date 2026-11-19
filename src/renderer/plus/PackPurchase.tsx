@@ -76,10 +76,11 @@ export default function PackPurchase({ store }: { store: ISceneStore }) {
               )}
               {/* Loud only while paying is the recommendation: not beside
                   the free credits, not while a payment is already open, and
-                  not once the credits it was for have come. */}
+                  not once the credits it was for have come. The pack's full
+                  width, the one thing on the window to press. */}
               <button
                 type="button"
-                className={`button small coin-action${
+                className={`button coin-action store-pay__button${
                   starterWaiting || checkout.waiting || checkout.arrived > 0
                     ? ' subtle'
                     : ''

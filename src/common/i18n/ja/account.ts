@@ -119,6 +119,8 @@ const account = {
   'account.google': 'Googleで続行',
   'account.google.waiting': 'ブラウザでGoogleのサインインを完了してください。',
   'account.google.cancel': 'キャンセル',
+  'account.password.show': 'パスワードを表示',
+  'account.password.hide': 'パスワードを隠す',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': '{count}つのシーンがあなたを待っています',
   'account.welcome.createTitle.few': '{count}つのシーンがあなたを待っています',

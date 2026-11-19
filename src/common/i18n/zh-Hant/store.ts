@@ -70,7 +70,6 @@ const store = {
   'store.packs.pay': '支付{price}',
   'store.packs.none': '目前沒有包裝出售。稍後再試。',
   'store.cancel': '取消',
-  'store.done': '完成',
   'store.starter.title': '{credits} 免費啟動',
   'store.starter.body': '每個帳號一次，用於確認的電子郵件地址。',
   'store.starter.claim': '索賠 {credits}',

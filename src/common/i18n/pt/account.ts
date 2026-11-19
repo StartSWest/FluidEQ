@@ -117,6 +117,8 @@ const account = {
   'account.google': 'Continuar com o Google',
   'account.google.waiting': 'Termine de entrar com o Google no seu navegador.',
   'account.google.cancel': 'Cancelar',
+  'account.password.show': 'Mostrar senha',
+  'account.password.hide': 'Ocultar senha',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'Sua {count} cena está esperando',
   'account.welcome.createTitle.few': 'Suas {count} cenas estão esperando',

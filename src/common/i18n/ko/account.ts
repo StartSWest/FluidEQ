@@ -111,6 +111,8 @@ const account = {
   'account.google': 'Google로 계속하기',
   'account.google.waiting': '브라우저에서 Google로 로그인을 완료하세요.',
   'account.google.cancel': '취소',
+  'account.password.show': '비밀번호 표시',
+  'account.password.hide': '비밀번호 숨기기',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': '장면 {count}개가 기다리고 있습니다',
   'account.welcome.createTitle.few': '장면 {count}개가 기다리고 있습니다',

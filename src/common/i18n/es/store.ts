@@ -82,7 +82,6 @@ const store: Partial<Dictionary> = {
   'store.packs.pay': 'Pagar {price}',
   'store.packs.none': 'No hay paquetes a la venta ahora. Inténtalo más tarde.',
   'store.cancel': 'Cancelar',
-  'store.done': 'Listo',
   'store.starter.title': '{credits} gratis para empezar',
   'store.starter.body': 'Una vez por cuenta, con un correo confirmado.',
   'store.starter.claim': 'Obtener {credits}',

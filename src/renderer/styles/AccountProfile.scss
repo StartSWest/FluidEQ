@@ -10,6 +10,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'dialog' as dialog;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // The account panel signed in (`AccountProfile`), Ivan 2026-11-13 ("improve
 // account a bit", "put get more credits"): the person in the rail, and the
@@ -48,17 +49,16 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The three numbers as rows of one panel: the word on the left, the figure
-// on the right. Tiles side by side cut the long words of some languages
-// ("VERÖFFENTLIC HT"; Chromium has no German hyphenation on Windows), and
-// Russian's "Опубликованы" was cut to "ОПУБЛИК…" when they were thirds.
+// The three numbers as rows, the word on the left and the figure on the
+// right, each on a step of light with no box round them and no line between
+// (Ivan, 2026-11-19: "sin tantas líneas ni borders"). Rows, not tiles side
+// by side: those cut the long words of some languages ("VERÖFFENTLIC HT";
+// Chromium has no German hyphenation on Windows), and Russian's
+// "Опубликованы" was cut to "ОПУБЛИК…" when they were thirds.
 .account-stats {
   display: grid;
+  gap: 6px;
   margin: 0;
-  overflow: hidden;
-  background: color-mix(in srgb, $surface-base 40%, transparent);
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
 }
 
 .account-stats__item {
@@ -67,19 +67,14 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 9px 12px;
-
-  & + & {
-    border-top: 1px solid $border-subtle;
-  }
+  padding: 9px 14px;
+  border-radius: $radius-l;
+  background: linear-gradient(90deg, $studio-surface, transparent 90%);
 
   dt {
     min-width: 0;
     color: $text-faint;
-    font-size: $text-eyebrow;
-    font-weight: $weight-bold;
-    @include tracking(0.08em);
-    text-transform: uppercase;
+    font-size: $text-small;
     overflow-wrap: break-word;
   }
 
@@ -98,12 +93,20 @@ it under the terms of the GNU General Public License version 3 or later.
   container: credits-card / inline-size;
 }
 
-// The coin, the balance large beside it, and getting more as the loud action.
+// The coin, the balance large beside it, and getting more as the loud action,
+// on a pool of light from the coin's side rather than under a hairline.
 .credits-card__hero {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px 18px;
+  padding: 14px 16px 14px 18px;
+  border-radius: $radius-xl;
+  background: radial-gradient(
+    70% 140% at 0% 50%,
+    $studio-raise,
+    transparent 78%
+  );
 
   // Half the large coin (Ivan, 2026-11-14: "this coin is too big, make it 2x
   // smaller"): about the height of the figure and its eyebrow beside it, the

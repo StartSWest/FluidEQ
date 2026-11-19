@@ -81,7 +81,6 @@ const store: Partial<Dictionary> = {
   'store.packs.pay': '{price} चुकाएँ',
   'store.packs.none': 'अभी कोई पैक बिक्री पर नहीं है। बाद में कोशिश करें।',
   'store.cancel': 'रद्द करें',
-  'store.done': 'हो गया',
   'store.starter.title': 'शुरुआत के लिए {credits} मुफ़्त',
   'store.starter.body':
     'हर अकाउंट के लिए एक बार, पुष्टि किए गए ईमेल पते के साथ।',

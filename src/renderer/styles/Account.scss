@@ -12,6 +12,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'dialog' as dialog;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 /// On the dialog frame (`DialogFrame`), every page of it: the rail is the
 // person when signed in (their initials in the tile, what the account is
@@ -33,7 +34,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .account__page {
   display: grid;
   align-content: start;
-  gap: $spacing-m;
+  gap: 26px;
 
   p {
     margin: 0;
@@ -41,16 +42,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &[hidden] {
     display: none;
-  }
-
-  // The sections are told apart by a hairline over each; the first stands at
-  // the top of the page, where its line doubled the rail's seam on a narrow
-  // window and drew a rule over nothing on a wide one.
-  // Not the sign-out question standing in its place, a card with its own
-  // edge all round.
-  > :first-child:not(.compact-frame) {
-    padding-top: 0;
-    border-top: 0;
   }
 }
 
@@ -155,13 +146,15 @@ it under the terms of the GNU General Public License version 3 or later.
 // page is the credits, the scenes the account has (`AccountScenes`) and what
 // it published (`AccountPublished`).
 
-// The tile is the person's face here, larger than a dialog's glyph and ringed
-// in the rail's ground so it reads as standing on the picture.
+// The tile is the person's face here: round, larger than a dialog's glyph,
+// ringed in the rail's ground, so it stands on the picture rather than
+// sitting in a square against it (2026-11-19). No shadow under it: "no
+// dropshadow, always clean" (Ivan, the same day) - the ring alone parts it.
 .account--profile .dialog-frame__tile {
-  width: 4.5rem;
-  height: 4.5rem;
-  border: 2px solid $surface-panel;
-  border-radius: $radius-l * 1.5;
+  width: 4.75rem;
+  height: 4.75rem;
+  border: 3px solid $surface-panel;
+  border-radius: 50%;
   box-shadow: none;
 
   > .account__avatar {
@@ -320,8 +313,10 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
+// One step of light per scene, never a line between them.
 .account-published__rows {
   display: grid;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -331,16 +326,14 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   grid-template-columns: 4rem minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-
-  & + & {
-    border-top: dialog.$seam;
-  }
+  gap: 14px;
+  padding: 7px 14px 7px 7px;
+  border-radius: $radius-l;
+  background: linear-gradient(90deg, $studio-surface, transparent 90%);
 }
 
 .account-published__picture {
-  border-radius: $radius-s;
+  border-radius: $radius-m;
 }
 
 .account-published__text {
@@ -358,43 +351,85 @@ it under the terms of the GNU General Public License version 3 or later.
   white-space: nowrap;
 }
 
-.account-published__meta {
-  color: $text-faint;
-  font-size: $text-small;
-}
-
+// Where a scene stands: a dot in its colour and the word, no pill.
 .account-published__state {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
   white-space: nowrap;
+
+  &::before {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentColor;
+    content: '';
+  }
 
   &.is-live {
     color: $secondary-light;
-    border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
   }
 
   &.is-blocked {
     color: $amber;
-    border: 1px solid color-mix(in srgb, $amber 40%, transparent);
   }
 }
 
+.account-published__adds,
 .account-published__likes {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   color: $text-muted;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 
   svg {
     width: 13px;
     height: 13px;
-    fill: color-mix(in srgb, $red 70%, $white);
   }
+}
+
+.account-published__adds svg {
+  color: $text-faint;
+}
+
+.account-published__likes svg {
+  fill: color-mix(in srgb, $red 70%, $white);
+}
+
+// A scene still being read, said the way the rows above say theirs: its
+// colour and the word, a dot for a waiting one and the warning for a refused
+// one, instead of the review queue's bordered tag.
+.account-published__text .review-kind {
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: $text-small;
+
+  &--update::before {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentColor;
+    content: '';
+  }
+}
+
+// The count's word, read aloud and never drawn: the glyph says it on screen.
+.account-published__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 // Getting paid for scenes (`CreatorPayoutsCard`): a section like the others,
@@ -623,16 +658,6 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $amber;
   font-size: $text-body;
   line-height: 1.55;
-}
-
-.account__actions {
-  display: flex;
-  flex-wrap: wrap;
-  // The link-buttons sit beside a 32px filled button; centred, not stretched,
-  // or their underline lands at a different height from the button's text.
-  align-items: center;
-  gap: $spacing-s $spacing-m;
-  margin-top: $spacing-xxs;
 }
 
 .account__hint {

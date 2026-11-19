@@ -10,6 +10,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'glass' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // The Visualizers tab before signing in (`VisualizersSignedOut`), as Ivan
 // approved it on 2026-11-13: the gallery's own cards behind
@@ -84,7 +85,9 @@ it under the terms of the GNU General Public License version 3 or later.
   // 2026-11-15: "same gap ... so they match more what we have on the EQ page
   // and the visualizer library"); it was 18px.
   gap: $spacing-s;
-  align-items: stretch;
+  // Each pane as tall as what it holds (Ivan, 2026-11-19: "improve it a
+  // bit"): stretched, the offer stood in the middle of an empty column.
+  align-items: start;
   width: 100%;
   max-width: 1120px;
   margin: auto;
@@ -109,9 +112,9 @@ it under the terms of the GNU General Public License version 3 or later.
 .signed-out__main {
   display: grid;
   align-content: start;
-  gap: 14px;
+  gap: 16px;
   min-width: 0;
-  padding: 26px 28px;
+  padding: 28px 30px;
 }
 
 .signed-out__eyebrow {
@@ -133,9 +136,10 @@ it under the terms of the GNU General Public License version 3 or later.
 .signed-out__title {
   margin: 0;
   color: $text-primary;
-  font-size: 1.55rem;
+  font-size: 1.85rem;
   font-weight: $weight-bold;
   line-height: 1.15;
+  @include tracking(-0.01em);
   text-wrap: balance;
 }
 
@@ -161,13 +165,14 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: auto minmax(0, 1fr);
   gap: 2px 10px;
   align-content: start;
-  padding: 12px 14px;
+  padding: 14px 16px;
   color: $text-muted;
   font-size: $text-small;
   line-height: 1.45;
-  background: color-mix(in srgb, $surface-base 45%, transparent);
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
+  // A step of light, not a box (the Library's tray): told apart by its
+  // ground alone.
+  background: linear-gradient(135deg, $studio-surface, transparent 85%);
+  border-radius: $radius-l;
 
   b {
     color: $text-primary;
@@ -180,8 +185,13 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &.is-account {
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
-    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, $secondary-default 16%, transparent),
+      transparent 85%
+    );
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-light 28%, transparent);
   }
 
   .signed-out__mark {
@@ -192,11 +202,11 @@ it under the terms of the GNU General Public License version 3 or later.
 .signed-out__mark {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   color: $text-accent;
   background: color-mix(in srgb, $secondary-default 14%, transparent);
-  border-radius: $radius-s;
+  border-radius: $radius-m;
 
   svg {
     width: 15px;
@@ -231,21 +241,18 @@ it under the terms of the GNU General Public License version 3 or later.
     object-fit: cover;
   }
 
+  // The name on the picture's own dark foot, not in a pill of its own.
   figcaption {
     position: absolute;
-    bottom: 6px;
-    left: 6px;
-    max-width: calc(100% - 12px);
-    padding: 2px 8px;
+    inset: auto 0 0;
+    padding: 20px 10px 7px;
     overflow: hidden;
     color: $white;
-    font-size: $text-micro;
+    font-size: $text-small;
     font-weight: $weight-semibold;
     white-space: nowrap;
     text-overflow: ellipsis;
-    background: rgba($black, 0.55);
-    border-radius: $radius-pill;
-    backdrop-filter: blur(6px);
+    background: linear-gradient(180deg, transparent, rgba($black, 0.72));
   }
 
   // The lead scene, larger, its picture drifting the way the scene moves.
@@ -259,9 +266,8 @@ it under the terms of the GNU General Public License version 3 or later.
     }
 
     figcaption {
-      bottom: 8px;
-      left: 8px;
-      font-size: $text-small;
+      padding: 28px 14px 11px;
+      font-size: $text-lead;
     }
   }
 }
@@ -283,8 +289,10 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .signed-out__places {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
 }
 
 .signed-out__places-title {
@@ -302,22 +310,30 @@ it under the terms of the GNU General Public License version 3 or later.
   list-style: none;
 }
 
+// A place on a step of light, no edge: three of them in a row read as one
+// line of facts rather than three buttons.
 .signed-out__chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  // The app's label chip (`label-chip`): it was a pill on a dark wash.
-  @include label-chip;
+  gap: 7px;
+  padding: 6px 12px 6px 10px;
+  color: $text-muted;
+  font-size: $text-small;
+  background: $studio-surface;
+  border-radius: $radius-pill;
 
   svg {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
     color: $text-accent;
   }
 }
 
+// What else an account opens, three steps of light side by side; one
+// column under the narrow width below.
 .signed-out__points {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin: 2px 0 0;
   padding: 0;
@@ -325,9 +341,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
   li {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    align-content: start;
     gap: 10px;
-    align-items: start;
+    padding: 14px;
+    border-radius: $radius-l;
+    background: linear-gradient(180deg, $studio-surface, transparent 90%);
   }
 
   li > span:last-child {
@@ -360,8 +378,18 @@ it under the terms of the GNU General Public License version 3 or later.
     font-size: 1.3rem;
   }
 
-  .signed-out__split {
+  .signed-out__split,
+  .signed-out__points {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .signed-out__points li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  // One column: the offer follows the story and scrolls with it.
+  .signed-out__offer {
+    position: static;
   }
 
   .signed-out__quick {

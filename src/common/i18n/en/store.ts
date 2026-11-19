@@ -81,7 +81,6 @@ const store = {
   'store.packs.pay': 'Pay {price}',
   'store.packs.none': 'No packs are on sale right now. Try again later.',
   'store.cancel': 'Cancel',
-  'store.done': 'Done',
   'store.starter.title': '{credits} free to start',
   'store.starter.body': 'Once per account, for a confirmed email address.',
   'store.starter.claim': 'Claim {credits}',

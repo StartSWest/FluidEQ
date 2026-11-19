@@ -79,7 +79,6 @@ const store = {
   'store.packs.pay': '{price} 지불',
   'store.packs.none': '현재 판매중인 팩이 없습니다. 나중에 다시 시도하세요.',
   'store.cancel': '취소',
-  'store.done': '완료',
   'store.starter.title': '{credits} 무료 시작',
   'store.starter.body': '계정당 한 번, 확인된 이메일 주소에 대해.',
   'store.starter.claim': '{credits} 청구',

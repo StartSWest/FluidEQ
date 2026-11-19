@@ -9,8 +9,10 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 /**
- * A section of the account's profile: the membership and the board, one
- * under the other, as text under a hairline.
+ * A section of the account's profile: the credits, the collection, what was
+ * published, one under the other, told apart by the room between them and
+ * their labels. A hairline over each came off on 2026-11-19 (Ivan: "more
+ * clean", "sin tantas líneas ni borders").
  *
  * They were two bordered cards, each with an emblem in its own hue, and two
  * boxes inside a profile card were what made every earlier version read as
@@ -23,7 +25,5 @@ it under the terms of the GNU General Public License version 3 or later.
  */
 @mixin account-section {
   display: grid;
-  gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
+  gap: 10px;
 }

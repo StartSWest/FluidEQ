@@ -84,7 +84,6 @@ const store: Partial<Dictionary> = {
   'store.packs.none':
     '現在販売中のパックはありません。しばらくしてからお試しください。',
   'store.cancel': 'キャンセル',
-  'store.done': '完了',
   'store.starter.title': 'はじめに {credits}無料',
   'store.starter.body':
     '1 アカウントにつき 1 回、確認済みのメールアドレスが必要です。',

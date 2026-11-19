@@ -73,7 +73,6 @@ const store: Partial<Dictionary> = {
   'store.packs.pay': '支付 {price}',
   'store.packs.none': '目前没有在售的点数包。请稍后再试。',
   'store.cancel': '取消',
-  'store.done': '完成',
   'store.starter.title': '新手免费送 {credits}',
   'store.starter.body': '每个账户一次，需已确认的电子邮箱。',
   'store.starter.claim': '领取 {credits}',

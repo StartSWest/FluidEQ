@@ -13,6 +13,7 @@ import { publicationId, sentOnly, type TMine } from '../plus/myScenes';
 import { openPlusPlace } from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
 import { ReviewState } from '../plus/SubmittedSceneRow';
+import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 // The scene pictures are the gallery's own (`ScenePicture`).
 import '../styles/Gallery.scss';
@@ -111,23 +112,34 @@ export default function AccountPublished({
                 className="account-published__picture"
                 scene={sceneRef(me, row.scene)}
               />
+              {/* Where it stands under its name, as a dot and a word; how it
+                  is doing at the row's end, as two counts with their glyphs
+                  (Ivan, 2026-11-19: "more clean"): "Added 0" on a line of
+                  its own read as a date. */}
               <span className="account-published__text">
                 <span className="account-published__name">
                   {resolveSceneName(row.scene, locale)}
                 </span>
-                <span className="account-published__meta">
-                  {t('plus.scene.adds')} {numbers.format(row.scene.adds)}
-                </span>
+                {row.scene.blocked ? (
+                  <span className="account-published__state is-blocked">
+                    {t('plus.mine.blocked')}
+                  </span>
+                ) : (
+                  <span className="account-published__state is-live">
+                    {t('account.published.live')}
+                  </span>
+                )}
               </span>
-              {row.scene.blocked ? (
-                <span className="account-published__state is-blocked">
-                  {t('plus.mine.blocked')}
+              <span
+                className="account-published__adds"
+                title={t('plus.scene.adds')}
+              >
+                <Glyph name="download" />
+                <span className="account-published__label">
+                  {t('plus.scene.adds')}
                 </span>
-              ) : (
-                <span className="account-published__state is-live">
-                  {t('account.published.live')}
-                </span>
-              )}
+                {numbers.format(row.scene.adds)}
+              </span>
               <Heart count={numbers.format(row.scene.likes)} />
             </li>
           ) : (

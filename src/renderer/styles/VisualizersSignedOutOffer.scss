@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // The offer pane of the Visualizers tab before signing in
 // (`VisualizersSignedOut`): the credit coin, the one loud way in, the steps
@@ -16,27 +17,36 @@ it under the terms of the GNU General Public License version 3 or later.
 // (`VisualizersSignedOut.scss`) so neither passes the size rule; that sheet
 // comes after this one in `cascade.ts`, so its narrow layout wins.
 
+// As tall as what it holds, kept in view while the story beside it scrolls:
+// the coin on a pool of light at its top, then the way in (Ivan, 2026-11-19:
+// "improve it a bit" — it stood centred in an empty column).
 .signed-out__offer {
+  position: sticky;
+  top: 0;
   display: grid;
-  align-content: center;
+  align-content: start;
   justify-items: center;
   gap: 12px;
   min-width: 0;
-  padding: 26px 24px 20px;
+  padding: 24px 26px;
   text-align: center;
   background:
     radial-gradient(
-      90% 60% at 50% 0%,
-      color-mix(in srgb, $secondary-default 22%, transparent),
-      transparent 70%
+      80% 42% at 50% 16%,
+      color-mix(in srgb, $secondary-default 24%, transparent),
+      transparent 75%
     ),
     color-mix(in srgb, $surface-panel 88%, transparent);
+
+  .credit-coin {
+    margin: -4px 0 -10px;
+  }
 }
 
 .signed-out__offer-title {
   margin: 0;
   color: $text-primary;
-  font-size: 1.2rem;
+  font-size: 1.45rem;
   font-weight: $weight-bold;
   text-wrap: balance;
 }
@@ -61,7 +71,14 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .signed-out__create--l {
-  padding: 14px 18px;
+  min-height: 60px;
+  margin-top: 6px;
+  padding: 12px 18px;
+  border-radius: $radius-l;
+
+  .signed-out__create-main {
+    font-size: 1.05rem;
+  }
 }
 
 .signed-out__create--m {
@@ -87,22 +104,25 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The three steps on steps of light, no rule over them.
 .signed-out__steps {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
   margin: 4px 0 0;
-  padding: 12px 0 0;
+  padding: 0;
   text-align: start;
   list-style: none;
-  border-top: 1px solid $border-subtle;
 
   li {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    padding: 8px 12px;
     color: $text-muted;
-    font-size: $text-small;
+    font-size: $text-body;
+    border-radius: $radius-l;
+    background: linear-gradient(90deg, $studio-surface, transparent 85%);
   }
 }
 
@@ -110,8 +130,8 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   color: $text-accent;
   font-size: $text-micro;
   font-weight: $weight-bold;

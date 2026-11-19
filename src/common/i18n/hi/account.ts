@@ -118,6 +118,8 @@ const account = {
   'account.google': 'Google के साथ जारी रखें',
   'account.google.waiting': 'अपने ब्राउज़र में Google से साइन इन पूरा करें।',
   'account.google.cancel': 'रद्द करें',
+  'account.password.show': 'पासवर्ड दिखाएँ',
+  'account.password.hide': 'पासवर्ड छिपाएँ',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'आपका {count} सीन इंतज़ार कर रहा है',
   'account.welcome.createTitle.few': 'आपके {count} सीन इंतज़ार कर रहे हैं',

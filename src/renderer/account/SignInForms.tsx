@@ -1,6 +1,14 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import type { IAccountState } from 'main/account/session';
 import { MIN_PASSWORD_LENGTH } from 'common/accountRules';
+import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/AccountForms.scss';
 import useAccountValidation from './useAccountValidation';
@@ -59,6 +67,10 @@ export default function SignInForms({
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
+  // The password in clear while the eye is pressed: typed on a laptop in
+  // company, hidden is the right default, and a mistyped one is found by
+  // looking rather than by a failed attempt.
+  const [shown, setShown] = useState(false);
   const firstField = useRef<HTMLInputElement>(null);
 
   const [sending, setSending] = useState(false);
@@ -86,6 +98,7 @@ export default function SignInForms({
     }
     setCode('');
     setSent(false);
+    setShown(false);
   }, [step]);
 
   // A failed resend — the server's one-a-minute limit, usually — gives the
@@ -118,59 +131,111 @@ export default function SignInForms({
    * sees; the address stays between the person and the sign-in.
    */
   const emailField = (options: { first?: boolean; note?: boolean } = {}) => (
-    <label className="account-field" htmlFor={`${ids}-email`}>
-      <span className="account-field__label" id={`${ids}-email-label`}>
+    <div className="account-field">
+      <label
+        className="account-field__label"
+        id={`${ids}-email-label`}
+        htmlFor={`${ids}-email`}
+      >
         {t('account.field.email')}
         {options.note && (
           <span className="account-field__hint">
             {t('account.field.emailHint')}
           </span>
         )}
+      </label>
+      <span className="account-field__box">
+        <Glyph name="mail" />
+        <input
+          ref={options.first === false ? undefined : firstField}
+          id={`${ids}-email`}
+          aria-labelledby={validation.field('email')['aria-labelledby']}
+          aria-invalid={validation.field('email')['aria-invalid']}
+          aria-describedby={validation.field('email')['aria-describedby']}
+          onBlur={validation.field('email').onBlur}
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          spellCheck={false}
+          value={email}
+          disabled={busy}
+          onChange={(event) => setEmail(event.target.value)}
+        />
       </span>
-      <input
-        ref={options.first === false ? undefined : firstField}
-        id={`${ids}-email`}
-        aria-labelledby={validation.field('email')['aria-labelledby']}
-        aria-invalid={validation.field('email')['aria-invalid']}
-        aria-describedby={validation.field('email')['aria-describedby']}
-        onBlur={validation.field('email').onBlur}
-        type="email"
-        autoComplete="email"
-        inputMode="email"
-        spellCheck={false}
-        value={email}
-        disabled={busy}
-        onChange={(event) => setEmail(event.target.value)}
-      />
       {validation.message('email')}
-    </label>
+    </div>
   );
 
-  const passwordField = (autoComplete: 'current-password' | 'new-password') => (
-    <label className="account-field" htmlFor={`${ids}-password`}>
-      <span className="account-field__label" id={`${ids}-password-label`}>
-        {t('account.field.password')}
-        {autoComplete === 'new-password' && (
-          <span className="account-field__hint">
-            {t('account.field.passwordHint', { count: MIN_PASSWORD_LENGTH })}
-          </span>
-        )}
+  /**
+   * The way back into an account stands beside the password it is for, on
+   * the label's line, where somebody stuck on that field looks for it.
+   */
+  const passwordField = (
+    autoComplete: 'current-password' | 'new-password',
+    forgot?: ReactNode,
+  ) => (
+    <div className="account-field">
+      <span className="account-field__head">
+        <label
+          className="account-field__label"
+          id={`${ids}-password-label`}
+          htmlFor={`${ids}-password`}
+        >
+          {t('account.field.password')}
+          {autoComplete === 'new-password' && (
+            <span className="account-field__hint">
+              {t('account.field.passwordHint', { count: MIN_PASSWORD_LENGTH })}
+            </span>
+          )}
+        </label>
+        {forgot}
       </span>
-      <input
-        id={`${ids}-password`}
-        aria-labelledby={validation.field('password')['aria-labelledby']}
-        aria-invalid={validation.field('password')['aria-invalid']}
-        aria-describedby={validation.field('password')['aria-describedby']}
-        onBlur={validation.field('password').onBlur}
-        type="password"
-        autoComplete={autoComplete}
-        value={password}
-        disabled={busy}
-        minLength={autoComplete === 'new-password' ? MIN_PASSWORD_LENGTH : 1}
-        onChange={(event) => setPassword(event.target.value)}
-      />
+      <span className="account-field__box">
+        <Glyph name="lock" />
+        <input
+          id={`${ids}-password`}
+          aria-labelledby={validation.field('password')['aria-labelledby']}
+          aria-invalid={validation.field('password')['aria-invalid']}
+          aria-describedby={validation.field('password')['aria-describedby']}
+          onBlur={validation.field('password').onBlur}
+          type={shown ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          value={password}
+          disabled={busy}
+          minLength={autoComplete === 'new-password' ? MIN_PASSWORD_LENGTH : 1}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+        <button
+          type="button"
+          className="account-field__reveal"
+          aria-label={t(
+            shown ? 'account.password.hide' : 'account.password.show',
+          )}
+          aria-pressed={shown}
+          aria-controls={`${ids}-password`}
+          disabled={busy}
+          onClick={() => setShown((now) => !now)}
+        >
+          <Glyph name={shown ? 'eye-off' : 'eye'} />
+        </button>
+      </span>
       {validation.message('password')}
-    </label>
+    </div>
+  );
+
+  // Email is the quiet way in beside Google's until both its fields hold
+  // something: then it is what the person is doing, and it wears the loud
+  // style (Ivan, 2026-11-19: "A, galería" — the grey button read as off).
+  const filled = email.trim() !== '' && password !== '';
+  const emailSubmit = (label: string) => (
+    <button
+      type="submit"
+      className={`button account-form__submit${filled ? '' : ' subtle'}`}
+      disabled={busy}
+    >
+      {working ? t('account.working') : label}
+      {!working && <Glyph name="next" />}
+    </button>
   );
 
   const codeField = (
@@ -275,10 +340,14 @@ export default function SignInForms({
         </p>
         {codeField}
         {passwordField('new-password')}
-        <div className="account__actions">
-          <button type="submit" className="button small" disabled={busy}>
-            {working ? t('account.working') : t('account.reset.submit')}
-          </button>
+        <button
+          type="submit"
+          className="button account-form__loud"
+          disabled={busy}
+        >
+          {working ? t('account.working') : t('account.reset.submit')}
+        </button>
+        <div className="account-form__links">
           {resend}
           {abandon}
         </div>
@@ -300,12 +369,17 @@ export default function SignInForms({
             {t('account.error.network')}
           </p>
         )}
+        <h3 className="account-form__title">{t('account.forgot.link')}</h3>
         <p className="account-form__lead">{t('account.forgot.lead')}</p>
         {emailField()}
-        <div className="account__actions">
-          <button type="submit" className="button small" disabled={busy}>
-            {working ? t('account.working') : t('account.forgot.submit')}
-          </button>
+        <button
+          type="submit"
+          className="button account-form__loud"
+          disabled={busy}
+        >
+          {working ? t('account.working') : t('account.forgot.submit')}
+        </button>
+        <div className="account-form__links">
           <button
             type="button"
             className="account-link"
@@ -364,13 +438,7 @@ export default function SignInForms({
         <GoogleSignIn account={account} busy={busy} />
         {emailField({ note: true })}
         {passwordField('new-password')}
-        <button
-          type="submit"
-          className="button subtle account-form__quiet"
-          disabled={busy}
-        >
-          {working ? t('account.working') : t('account.signUp.withEmail')}
-        </button>
+        {emailSubmit(t('account.signUp.withEmail'))}
         <p className="account__hint">{t('account.signUp.terms')}</p>
       </form>
     );
@@ -392,22 +460,18 @@ export default function SignInForms({
       {tabs}
       <GoogleSignIn account={account} busy={busy} />
       {emailField()}
-      {passwordField('current-password')}
-      <button
-        type="submit"
-        className="button subtle account-form__quiet"
-        disabled={busy}
-      >
-        {working ? t('account.working') : t('account.signIn.withEmail')}
-      </button>
-      <button
-        type="button"
-        className="account-link account-form__forgot"
-        disabled={busy}
-        onClick={() => setMode('forgot')}
-      >
-        {t('account.forgot.link')}
-      </button>
+      {passwordField(
+        'current-password',
+        <button
+          type="button"
+          className="account-link account-form__forgot"
+          disabled={busy}
+          onClick={() => setMode('forgot')}
+        >
+          {t('account.forgot.link')}
+        </button>,
+      )}
+      {emailSubmit(t('account.signIn.withEmail'))}
     </form>
   );
 }

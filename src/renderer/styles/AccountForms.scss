@@ -11,6 +11,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 /**
  * The sign-in forms.
@@ -23,7 +24,7 @@ it under the terms of the GNU General Public License version 3 or later.
  */
 .account-form {
   display: grid;
-  gap: $spacing-s;
+  gap: 14px;
 }
 
 .account-form__lead {
@@ -34,29 +35,110 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-wrap: anywhere;
 }
 
+// The two ways in share the form's width half and half, so the line under
+// the open one says which half of the panel the form is.
 .account-form__tabs {
-  display: flex;
-  gap: $spacing-m;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 2px;
   border-bottom: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 }
 
 .account-form__tab {
   position: relative;
-  padding: 0 0 $spacing-xs;
+  padding: 0 4px 11px;
   margin-bottom: -1px;
   font-size: $text-lead;
+  text-align: center;
   // The app's tab (`tab`); it drew its line as an `::after` of its own.
   @include tab('.account-form__tab--on');
 }
 
 .account-field {
   display: grid;
-  gap: $spacing-xxs;
+  gap: 6px;
+}
+
+// The label and, for the password, the way back into the account beside it.
+.account-field__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 12px;
+
+  .account-link {
+    font-size: $text-small;
+  }
+}
+
+// The box: the field's glyph inside its left edge, and for a password the eye
+// inside its right one. The input keeps the app's field face; only its
+// padding makes room for them.
+.account-field__box {
+  position: relative;
+  display: block;
+
+  > svg {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    width: 16px;
+    height: 16px;
+    color: $text-dim;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  &:focus-within > svg {
+    color: $text-accent;
+  }
 
   input {
     width: 100%;
     min-width: 0;
-    min-height: $control-height;
+    min-height: 42px;
+    padding-left: 38px;
+  }
+
+  input:has(+ .account-field__reveal) {
+    padding-right: 42px;
+  }
+}
+
+.account-field__reveal {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  color: $text-dim;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  transform: translateY(-50%);
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled),
+  &[aria-pressed='true'] {
+    color: $text-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
   }
 }
 
@@ -211,16 +293,70 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// While Google's page is open in the browser: the mark in a ring that turns,
+// what to do, and Cancel, on a step of light; the email way waits dimmed
+// under it, because nothing typed there can go anywhere until this ends.
 .account-google--waiting {
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  padding: 10px 12px;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-s;
+  justify-items: center;
+  gap: 14px;
+  padding: 24px 20px 20px;
+  text-align: center;
+  border-radius: $radius-xl;
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    $studio-raise,
+    transparent 75%
+  );
+}
+
+.account-google__ring {
+  position: relative;
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+      $secondary-light 0 26%,
+      color-mix(in srgb, $secondary-light 14%, transparent) 26% 100%
+    );
+    content: '';
+    mask-image: radial-gradient(circle, transparent 28px, $black 29px);
+    animation: account-google-turn 1.4s linear infinite;
+  }
+
+  .account-google__mark {
+    width: 48px;
+    height: 48px;
+    padding: 12px;
+    border-radius: 50%;
+    background: $white;
+  }
+}
+
+@keyframes account-google-turn {
+  to {
+    transform: rotate(1turn);
+  }
 }
 
 .account-google__waiting {
+  max-width: 300px;
   color: $text-primary;
-  font-size: $text-body;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
   line-height: 1.4;
+}
+
+.account-google--waiting .button {
+  min-width: 120px;
+  justify-content: center;
+}
+
+.account-form:has(.account-google--waiting) .account-field {
+  opacity: 0.4;
 }

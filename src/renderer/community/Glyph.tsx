@@ -57,7 +57,9 @@ export type TCommunityGlyph =
   | 'calm'
   | 'graph-play'
   | 'link'
-  | 'sign-out';
+  | 'sign-out'
+  | 'eye'
+  | 'eye-off';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -442,6 +444,17 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <path d="M2 15.5c3-3.6 5.4-3.6 8-1.6s5 1.8 8-2" opacity="0.6" />
             <path d="M7 3.8v7.4l6-3.7Z" fill="currentColor" />
+          </>
+        );
+      case 'eye':
+      case 'eye-off':
+        // An open eye, and the same eye struck through: a password shown, or
+        // hidden again.
+        return (
+          <>
+            <path d="M2 10s3-5.5 8-5.5 8 5.5 8 5.5-3 5.5-8 5.5S2 10 2 10Z" />
+            <circle cx="10" cy="10" r="2.4" />
+            {name === 'eye-off' && <path d="M3.5 16.5 16.5 3.5" />}
           </>
         );
       case 'sign-out':

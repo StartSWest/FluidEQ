@@ -99,6 +99,8 @@ const account = {
   'account.google': '繼續使用谷歌',
   'account.google.waiting': '在瀏覽器中完成 Google 登入。',
   'account.google.cancel': '取消',
+  'account.password.show': '顯示密碼',
+  'account.password.hide': '隱藏密碼',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': '您的 {count} 個場景正在等您',
   'account.welcome.createTitle.few': '您的 {count} 個場景正在等您',
