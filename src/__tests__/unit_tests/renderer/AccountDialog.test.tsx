@@ -20,6 +20,11 @@ const mockForgot = jest.fn((_email: string) => Promise.resolve());
 const mockReset = jest.fn((_details: unknown) => Promise.resolve());
 const mockAbandon = jest.fn(() => Promise.resolve());
 const mockSignOut = jest.fn(() => Promise.resolve());
+const neverAnswered = () =>
+  new Promise<boolean>(() => {
+    // Never answered.
+  });
+let mockGoogleAnswer: () => Promise<boolean> = neverAnswered;
 
 // The credits card loads the account's store on its own (`plus/sceneStore.ts`)
 // and has its own tests (`CreditsCard.test.tsx`); what is held here is the
@@ -77,12 +82,10 @@ jest.mock('../../../renderer/account/accountStore', () => ({
   resetAccountPassword: (details: unknown) => mockReset(details),
   abandonAccountPending: () => mockAbandon(),
   signOutAccount: () => mockSignOut(),
-  // The service's answer about Google never comes here: these cases are the
-  // email forms, and `googleSignIn.test.tsx` holds the Google button.
-  isGoogleSignInAvailable: () =>
-    new Promise<boolean>(() => {
-      // Never answered.
-    }),
+  // The service's answer about Google never comes unless a case gives one:
+  // most cases are the email form alone, and `googleSignIn.test.tsx` holds
+  // the Google button.
+  isGoogleSignInAvailable: () => mockGoogleAnswer(),
   signInWithGoogle: jest.fn(),
   cancelAccountAttempt: jest.fn(),
 }));
@@ -97,6 +100,7 @@ const button = (name: string) => screen.getByRole('button', { name });
 describe('the account panel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGoogleAnswer = neverAnswered;
   });
 
   it('opens the existing registration form when requested from the welcome', () => {
@@ -163,15 +167,15 @@ describe('the account panel', () => {
   });
 
   /**
-   * Emphasis follows recommendation. Signed out, Google is the loud way in
-   * (`googleSignIn.test.tsx`) and email the quiet one, its submit the
-   * outline; the emailed code's confirm is loud. This is the assertion that
-   * would have caught the loud style on the wrong button, which no test
-   * querying by role can otherwise see.
+   * Emphasis follows recommendation. Where Google is not offered, email is
+   * the one way in and its submit is loud; the emailed code's confirm is
+   * loud. This is the assertion that would have caught the loud style on
+   * the wrong button, which no test querying by role can otherwise see.
    */
   it('gives the loud style to the one action each form recommends', async () => {
     const { unmount } = renderDialog({ status: 'signed-out' });
-    expect(button('account.signIn.withEmail')).toHaveClass('button', 'subtle');
+    expect(button('account.signIn.withEmail')).toHaveClass('button');
+    expect(button('account.signIn.withEmail')).not.toHaveClass('subtle');
     expect(button('account.forgot.link')).toHaveClass('account-link');
     unmount();
 
@@ -188,6 +192,58 @@ describe('the account panel', () => {
     renderDialog({ status: 'signed-in', identity: { id: 'u' } });
     expect(button('account.signOut')).toHaveClass('account-link');
     expect(button('account.signOut')).not.toHaveClass('button');
+  });
+
+  /**
+   * Under Google's button, email is the quiet way in until both fields hold
+   * something, and then the loud one: a grey button with an address and a
+   * password typed above it read as switched off (Ivan, 2026-11-19).
+   */
+  it('lights the email button under Google once both fields are filled', async () => {
+    mockGoogleAnswer = () => Promise.resolve(true);
+    renderDialog({ status: 'signed-out' });
+    await screen.findByRole('button', { name: 'account.google' });
+    const submit = button('account.signIn.withEmail');
+    expect(submit).toHaveClass('button', 'subtle');
+
+    await userEvent.type(
+      screen.getByLabelText(/^account.field.email/),
+      'ada@example.com',
+    );
+    expect(submit).toHaveClass('subtle');
+    await userEvent.type(
+      screen.getByLabelText(/account\.field\.password/),
+      'p',
+    );
+    expect(submit).toHaveClass('button');
+    expect(submit).not.toHaveClass('subtle');
+  });
+
+  it('gives the whole form side to Google while it is open in the browser', () => {
+    renderDialog({ status: 'busy', waiting: 'google' });
+    expect(
+      screen.getByRole('heading', { name: 'account.google.waitingTitle' }),
+    ).toBeInTheDocument();
+    expect(button('account.google.cancel')).toHaveClass('button', 'subtle');
+    // Nothing of the email form stays behind it, greyed out.
+    expect(screen.queryByLabelText(/^account.field.email/)).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'account.signIn.withEmail' }),
+    ).toBeNull();
+  });
+
+  it('shows and hides the password it was given, and says which it is doing', async () => {
+    renderDialog({ status: 'signed-out' });
+    const password = screen.getByLabelText(/account\.field\.password/);
+    expect(password).toHaveAttribute('type', 'password');
+    await userEvent.click(button('account.field.showPassword'));
+    expect(password).toHaveAttribute('type', 'text');
+    expect(button('account.field.hidePassword')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await userEvent.click(button('account.field.hidePassword'));
+    expect(password).toHaveAttribute('type', 'password');
   });
 
   it('creates an account with a short enough password refused before it is sent', async () => {
@@ -246,7 +302,12 @@ describe('the account panel', () => {
 
     await userEvent.click(button('account.code.sendAgain'));
     expect(mockResend).toHaveBeenCalled();
-    expect(button('account.code.sentAgain')).toBeDisabled();
+    // Sent again is said, with the link taken away until a failure gives it
+    // back: a second press inside the server's minute would only be refused.
+    expect(screen.getByText('account.code.sentAgain')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'account.code.sendAgain' }),
+    ).toBeNull();
 
     await userEvent.click(button('account.code.otherEmail'));
     expect(mockAbandon).toHaveBeenCalled();
