@@ -13,19 +13,20 @@ import {
   setSceneDaylight,
 } from './sceneDaylightSetting';
 import { setThemeShade } from './theme';
-import { DARK_END_SHADE, THEME_SHADE_MAX, THEME_SHADE_MIN } from './themeShade';
+import { THEME_SHADE_MAX, THEME_SHADE_MIN } from './themeShade';
 
 /** From here up the scene's hour is nearer its day than its night. */
 const DAY_FROM = (SCENE_DAYLIGHT_MIN + SCENE_DAYLIGHT_MAX) / 2;
 
 /**
  * Where a press on Night or Day puts the hour (Ivan, 2026-11-18: "click
- * night or day also move the sliders, 25% on night and 75% on day"): a
- * quarter in from each end, well inside its own half, so the tab pressed is
- * the one the hour then stands nearer.
+ * night or day also move the sliders", then "set Night on both to 0" and
+ * Day to 75%): Night at the very start of the day, Day three quarters in,
+ * each inside its own half, so the tab pressed is the one the hour then
+ * stands nearer.
  */
 const HOUR_OF: Record<TWindowTime, number> = {
-  night: SCENE_DAYLIGHT_MIN + (SCENE_DAYLIGHT_MAX - SCENE_DAYLIGHT_MIN) / 4,
+  night: SCENE_DAYLIGHT_MIN,
   day: SCENE_DAYLIGHT_MIN + ((SCENE_DAYLIGHT_MAX - SCENE_DAYLIGHT_MIN) * 3) / 4,
 };
 
@@ -39,16 +40,13 @@ const shadeOfDaylight = (daylight: number): number =>
   );
 
 /**
- * Where a press puts the Brightness. Day's 75 was the last shade of the dark
- * window (the white one starts past `DARK_END_SHADE`, 76), so a press on Day
- * painted the day colours for a moment and then settled the window dark
- * (Ivan, 2026-11-18: "when I select day, for a moment it's light, but then
- * it gets dark"). Day is the middle of the white window's range instead, a
- * Brightness the day colours are worn at; Night stays at its quarter.
+ * Where a press puts the Brightness: 0 for Night and 75 for Day, in the main
+ * menu and the Studio alike (Ivan, 2026-11-18: "Day needs to set 75%, not 89
+ * ... the Studio too, it was like that"; "set Night on both to 0").
  */
 const SHADE_OF: Record<TWindowTime, number> = {
   night: shadeOfDaylight(HOUR_OF.night),
-  day: Math.round((DARK_END_SHADE + 1 + THEME_SHADE_MAX) / 2),
+  day: shadeOfDaylight(HOUR_OF.day),
 };
 
 /**
