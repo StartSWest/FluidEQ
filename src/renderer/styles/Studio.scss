@@ -298,6 +298,16 @@ $studio-stage-floor: 148px;
   &.is-single {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'main';
+
+    // With no chat column the work runs to the card's edge, so its scrollbar
+    // stands there as every page's does: the panel reaches through the
+    // Studio's own 16px right inset (`Community.scss`) and gives it back as
+    // padding (Ivan, 2026-11-19: "put the scroll next to the right ... all
+    // those tabs have the same issue").
+    .studio-work__panel {
+      margin-right: -16px;
+      padding-right: 18px;
+    }
   }
 }
 
