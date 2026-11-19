@@ -57,8 +57,13 @@ const RemoteAudioLayout = ({
         rail={rail}
         isPinned={isPinned}
         onPinnedChange={onPinnedChange}
-        heading={t('remoteAudio.group.mix')}
+        heading={t('tabs.share')}
       >
+        {/* The page's name heads the rail, as every page with one names
+            itself; the mix is the group it holds. */}
+        <span className="studio-rail__lead" aria-hidden="true">
+          {t('remoteAudio.group.mix')}
+        </span>
         {mix}
         <div className="remote-audio__rail-foot studio-rail__word">
           {output}

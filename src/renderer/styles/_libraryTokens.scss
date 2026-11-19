@@ -158,6 +158,21 @@ $studio-rail-folded: 56px;
   white-space: nowrap;
 }
 
+// THE RAIL'S HEAD: the page's own name beside the rail's pin, a title and
+// not one more spaced-capitals label, so the groups under it read as its
+// parts - one head on every page with a rail (Ivan, 2026-11-19: "the same
+// header that the DSP has" for the Library, the Gaming Lab, Share Audio and
+// Scenes). The pin's square is the line, so the name sits on its middle.
+@mixin studio-rail-title {
+  color: $text-primary;
+  font-size: 1.125rem;
+  font-weight: $weight-bold;
+  letter-spacing: normal;
+  line-height: $control-height-xs;
+  text-transform: none;
+  white-space: nowrap;
+}
+
 // A place in the rail: a glyph and a name on one line, no tile and no box.
 // The caller's states go in the content, ahead of the focus ring: the mark
 // clears the box shadow the ring is drawn with, and the ring must win.

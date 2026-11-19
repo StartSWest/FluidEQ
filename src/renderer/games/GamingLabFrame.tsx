@@ -79,8 +79,13 @@ const GamingLabFrame = ({
         rail={railWidth}
         isPinned={isPinned}
         onPinnedChange={onPinned}
-        heading={heading}
+        heading={t('gaming.tab')}
       >
+        {/* The page's name heads the rail, as every page with one names
+            itself; how many games there are is the list's own heading. */}
+        <span className="studio-rail__lead" aria-hidden="true">
+          {heading}
+        </span>
         <nav className="gaming-lab__games" aria-label={heading}>
           {rows}
           <button

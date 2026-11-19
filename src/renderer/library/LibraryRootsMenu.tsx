@@ -84,7 +84,9 @@ const LibraryRootsMenu = ({
         onClick={onAddFolder}
       >
         <MenuIcon name="plus" className="library-rail__icon" />
-        <span className="library-rail__label">{t('library.add')}</span>
+        <span className="library-rail__label studio-rail__word">
+          {t('library.add')}
+        </span>
       </button>
       {roots.length > 0 && (
         <>
@@ -98,7 +100,7 @@ const LibraryRootsMenu = ({
             onClick={() => setIsOpen((open) => !open)}
           >
             <MenuIcon name="folderTree" className="library-rail__icon" />
-            <span className="library-rail__label">
+            <span className="library-rail__label studio-rail__word">
               {t('library.roots.manage')}
             </span>
           </button>

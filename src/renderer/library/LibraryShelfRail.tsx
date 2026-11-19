@@ -74,9 +74,9 @@ interface ILibraryShelfRailProps {
  * Then the reader's own shelf: Favourites and their playlists, each with its
  * count, a press away. Add folder and the folders being read close the rail.
  *
- * Narrow, the rail keeps its glyphs and gives up its words
- * (`_libraryRail.scss`), and every item carries its name as a tooltip for
- * then. A `nav` of plain buttons with `aria-current`, not a tablist: the
+ * Folded - by its pin, or on a narrow card - the rail keeps its glyphs and
+ * gives up its words (`studio-rail__word`, `StudioRail`), and every item
+ * carries its name as a tooltip for then. A `nav` of plain buttons with `aria-current`, not a tablist: the
  * shelves are places, and a playlist inside them is one too.
  */
 const LibraryShelfRail = ({
@@ -104,10 +104,9 @@ const LibraryShelfRail = ({
 
   return (
     <nav className="library-rail" aria-label={t('library.browse.aria')}>
+      {/* No "Library" over the shelves: the rail's head says it, beside its
+          pin (`StudioRail`), as every page with a rail names itself. */}
       <div className="library-rail__scroll">
-        <div className="library-rail__heading" aria-hidden="true">
-          {t('library.rail.library')}
-        </div>
         {SHELVES.map(({ mode, icon, label }) => {
           const isActive = browseMode === mode;
           const count = countOf(mode);
@@ -121,9 +120,11 @@ const LibraryShelfRail = ({
                 onClick={() => onBrowseMode(mode)}
               >
                 <MenuIcon name={icon} className="library-rail__icon" />
-                <span className="library-rail__label">{t(label)}</span>
+                <span className="library-rail__label studio-rail__word">
+                  {t(label)}
+                </span>
                 {count !== undefined && (
-                  <small className="library-rail__count">
+                  <small className="library-rail__count studio-rail__word">
                     {formatCount(count, locale)}
                   </small>
                 )}
@@ -156,7 +157,9 @@ const LibraryShelfRail = ({
           onClick={() => onBrowseMode('playlist')}
         >
           <MenuIcon name="viewGrid" className="library-rail__heading-icon" />
-          <span>{t('library.browse.playlist')}</span>
+          <span className="studio-rail__word">
+            {t('library.browse.playlist')}
+          </span>
         </button>
         {sortPlaylists(playlists).map((playlist) => {
           const isActive = isPlaylistShelf && openPlaylistId === playlist.id;
@@ -177,8 +180,10 @@ const LibraryShelfRail = ({
                 name={isFavourites ? 'star' : 'playlist'}
                 className="library-rail__icon"
               />
-              <span className="library-rail__label">{name}</span>
-              <small className="library-rail__count">
+              <span className="library-rail__label studio-rail__word">
+                {name}
+              </span>
+              <small className="library-rail__count studio-rail__word">
                 {formatCount(playlist.trackIds.length, locale)}
               </small>
             </button>

@@ -38,7 +38,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // `inline-size` containment makes this element the containing block for
   // every FIXED descendant, the full-screen video among them — see
   // `is-video-full`, which takes the containment away while one is up.
-  container: library / inline-size;
+  // `studio-page` too: it is the box the shelves' rail folds by
+  // (`_studioRailFold.scss`), as the DSP's and the Gaming Lab's fold by
+  // their pages'.
+  container: library studio-page / inline-size;
   position: relative;
   display: grid;
   min-width: 0;
@@ -75,7 +78,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: none;
     box-shadow: none;
 
-    .library-rail,
+    // The rail, its slot and its edge (`StudioRail`), with the bar and
+    // the status line.
+    .studio-rail-slot,
+    .studio-rail-slot + .library-rail__splitter,
     .library-status,
     .library-head {
       display: none;

@@ -2795,10 +2795,11 @@ $tab-bar-inset: 8px;
   // not, because the two sidebars take several hundred pixels of it. Anything
   // in here that needs to reflow measures this box, not the viewport.
   //
-  // Two names for one box: `autoeq-workspace` is what the reference row asks
-  // about, `eq-panel` is what the heading and toolbar ask about. Declared here
-  // only, so nothing can shadow it.
-  container-name: autoeq-workspace eq-panel;
+  // Three names for one box: `autoeq-workspace` is what the reference row
+  // asks about, `eq-panel` is what the heading and toolbar ask about, and
+  // `studio-page` is what a page's rail folds by (`_studioRailFold.scss`).
+  // Declared here only, so nothing can shadow it.
+  container-name: autoeq-workspace eq-panel studio-page;
   container-type: inline-size;
 }
 
@@ -3309,7 +3310,7 @@ $graph-card-pages: list.join(
   // scroller so the first row sits where it always did and later rows still
   // travel right up to the rule.
   padding-top: 10px;
-  container-name: autoeq-workspace eq-panel;
+  container-name: autoeq-workspace eq-panel studio-page;
   container-type: inline-size;
 }
 

@@ -62,6 +62,13 @@ export const UP_NEXT_COLLAPSED_KEY = 'fluideq.library.upNextCollapsed';
  */
 export const RAIL_WIDTH_KEY = 'fluideq.library.railWidth';
 
+/**
+ * The shelf rail pinned beside the shelf or folded to its glyphs
+ * (`useRailPinned`), as every page's rail can be (Ivan, 2026-11-19: "the
+ * library should be collapsible the same way").
+ */
+export const RAIL_PINNED_KEY = 'fluideq.library.railPinned';
+
 export const RAIL_DEFAULT_WIDTH = 236;
 
 export const RAIL_MIN = 180;

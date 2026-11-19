@@ -6,10 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // WHEN A STUDIO RAIL IS FOLDED (`StudioRail.tsx`): by its pin, or on a page
 // too narrow to spare a rail's width - the Library's own fold, at a card of
-// `$bp-lg` (`_libraryRail.scss`). `eq-panel` is the workspace page's box
-// (`.workspace-tab-panel__scroll`), the only container every page that
-// hosts a rail stands in; a container on the page itself would make it the
-// box every fixed descendant is placed in.
+// `$bp-lg`. `studio-page` is the box a rail's page is measured by: the
+// workspace page's (`.workspace-tab-panel` and its `__scroll`, App.scss) for
+// the DSP, the Gaming Lab and Share Audio, and the Library's card, which is
+// its own panel. Never the rail's page itself: a container there would make
+// it the box every fixed descendant is placed in.
 
 @use 'constant' as *;
 
@@ -36,7 +37,7 @@ $rail-reveal-delay: 110ms;
     @content;
   }
 
-  @container eq-panel (max-width: #{$bp-lg}) {
+  @container studio-page (max-width: #{$bp-lg}) {
     .studio-rail-slot > .studio-rail:not(:hover):not(:has(:focus-visible)) & {
       @content;
     }
@@ -52,7 +53,7 @@ $rail-reveal-delay: 110ms;
     @content;
   }
 
-  @container eq-panel (max-width: #{$bp-lg}) {
+  @container studio-page (max-width: #{$bp-lg}) {
     .studio-rail-slot > .studio-rail:is(:hover, :has(:focus-visible)) & {
       @content;
     }

@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { CSSProperties, DragEvent, useRef } from 'react';
 import {
   droppedFilePath,
+  RAIL_PINNED_KEY,
   UP_NEXT_MAX,
   UP_NEXT_MIN,
   UP_NEXT_WIDTH_KEY,
@@ -27,9 +28,8 @@ import {
 import LibraryVideoStage from './player/LibraryVideoStage';
 import LibraryTopBar from './LibraryTopBar';
 import LibraryShelfRail from './LibraryShelfRail';
-import LibraryRailSplitter, {
-  useLibraryRailWidth,
-} from './LibraryRailSplitter';
+import { useLibraryRailWidth } from './LibraryRailSplitter';
+import StudioRail, { useRailPinned } from '../widgets/StudioRail';
 import LibraryStatusLine from './LibraryStatusLine';
 import LibraryShelfViews from './LibraryShelfViews';
 import { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
@@ -182,6 +182,7 @@ const LibraryWorkspaceView = ({
   } = steps;
   const counts = useShelfCounts();
   const rail = useLibraryRailWidth();
+  const [isRailPinned, setRailPinned] = useRailPinned(RAIL_PINNED_KEY);
   const tagEditor = useTagEditor();
   /** The side column shows a tag panel in place of the queue while one is
    * open: the files that need an answer first, then the song being edited. */
@@ -312,7 +313,7 @@ const LibraryWorkspaceView = ({
         isResizingUpNext && !isHidden && !isUpNextCollapsed
           ? ' is-resizing-up-next'
           : ''
-      }${rail.isResizing ? ' is-resizing-rail' : ''}${
+      }${
         isTagPanelOpen ? ' has-tag-panel' : ''
       }${isChangesPanelOpen ? ' has-changes-panel' : ''}`}
       ref={cardRef}
@@ -328,7 +329,6 @@ const LibraryWorkspaceView = ({
       style={
         {
           '--up-next-width': `${upNextWidth}px`,
-          '--rail-width': `${rail.width}px`,
           // What the surprise draw has to clear inside the main column.
           '--library-chrome-height': `${chromeHeight}px`,
         } as CSSProperties
@@ -339,33 +339,41 @@ const LibraryWorkspaceView = ({
     >
       {/* From the first run too: an empty library shows the shelves a folder
           will fill, with the empty state beside them rather than alone in
-          the middle of a bare card (Ivan, 2026-11-15). */}
+          the middle of a bare card (Ivan, 2026-11-15). On the studio rail
+          every page with one shares (`StudioRail`): the Library's own name
+          beside a pin that folds it to its glyphs, the splitter on its
+          edge. Over a video in full screen it stays mounted and is not drawn
+          (`.is-video-full`), so the folder tree keeps what was open. */}
       {!isHidden && (
-        <LibraryShelfRail
-          browseMode={browseMode}
-          counts={counts}
-          roots={roots}
-          playlists={playlists}
-          openFolderPath={openFolderPath}
-          openPlaylistId={openPlaylistId}
-          onBrowseMode={(mode) => {
-            leaveFor(() => handleBrowseMode(mode));
-          }}
-          onOpenFolder={(folder) => {
-            leaveFor(() => handlePlaceFolder(folder));
-          }}
-          onShowPlaylist={(playlistId) => {
-            leaveFor(() => handleShowPlaylist(playlistId));
-          }}
-          onAddFolder={handleAddFolder}
-          onRemoveRoot={(rootId) => {
-            removeRoot(rootId).catch(() => undefined);
-          }}
-        />
+        <StudioRail
+          rail={rail}
+          isPinned={isRailPinned}
+          onPinnedChange={setRailPinned}
+          heading={t('library.rail.library')}
+        >
+          <LibraryShelfRail
+            browseMode={browseMode}
+            counts={counts}
+            roots={roots}
+            playlists={playlists}
+            openFolderPath={openFolderPath}
+            openPlaylistId={openPlaylistId}
+            onBrowseMode={(mode) => {
+              leaveFor(() => handleBrowseMode(mode));
+            }}
+            onOpenFolder={(folder) => {
+              leaveFor(() => handlePlaceFolder(folder));
+            }}
+            onShowPlaylist={(playlistId) => {
+              leaveFor(() => handleShowPlaylist(playlistId));
+            }}
+            onAddFolder={handleAddFolder}
+            onRemoveRoot={(rootId) => {
+              removeRoot(rootId).catch(() => undefined);
+            }}
+          />
+        </StudioRail>
       )}
-      {/* On the rail's inner edge; not over a video in full screen, where
-          the rail is not drawn. */}
-      {!isHidden && !isVideoFull && <LibraryRailSplitter rail={rail} />}
       <div className="library-main">
         {/* First in the column, so hiding the workspace never remounts a
             playing video: hidden, only this engine and its wrapper stay. */}

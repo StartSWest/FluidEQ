@@ -161,8 +161,9 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 }
 
 // The rail's head: the pin in the glyphs' column, the rail's name after it
-// where the places' names start. The name is the Library's rail heading
-// (`studio-rail-heading`): the rail's label, never one of its places.
+// where the places' names start. The name is the page's, in the head every
+// page with a rail wears (`studio-rail-title`; Ivan, 2026-11-19: "the same
+// header that the DSP has"), the same as `StudioRail`'s.
 .community--plus .community__rail-head {
   display: flex;
   flex: none;
@@ -178,7 +179,7 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 
 .community--plus .community__rail-title {
   min-width: 0;
-  @include studio-rail-heading;
+  @include studio-rail-title;
   @include truncate;
 }
 

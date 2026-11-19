@@ -75,22 +75,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The rail's rows: the Library's shelves ********************************
 
-// The page's name and rate at the rail's head, a title rather than one more
-// spaced-capitals label, so the groups under it read as its parts.
-.dsp-studio .studio-rail__heading {
-  overflow: visible;
-  color: $text-primary;
-  text-transform: none;
-  letter-spacing: normal;
-}
-
+// The page's name and rate at the rail's head (`studio-rail-title`, every
+// rail's): the heading element is an `h2` of the page's, so it takes the
+// head's size and line rather than its own.
 .dsp-studio .studio-rail__heading .dsp-title {
-  // The pin's square is the line: the title sits on its middle.
   min-width: 0;
   overflow: hidden;
-  font-size: 1.125rem;
-  line-height: $control-height-xs;
-  white-space: nowrap;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .dsp-studio .dsp-rail {

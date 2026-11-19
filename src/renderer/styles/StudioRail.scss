@@ -110,9 +110,11 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   padding: 14px 10px 6px #{$rail-glyph-centre - 14px};
 }
 
+// The page's name (`studio-rail-title`), the same on every page that has a
+// rail; anything the page puts beside it (the DSP's rate) inherits its line.
 .studio-rail__heading {
   min-width: 0;
-  @include studio-rail-heading;
+  @include studio-rail-title;
   @include truncate;
   transition: opacity var(--rail-settle) ease-out;
 }
@@ -152,6 +154,42 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   padding: 0 10px 10px;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+// THE FIRST GROUP'S NAME, under the page's: what the places below are ("Your
+// games · 3", "Your mix"), in the Library's spaced capitals, as the DSP's
+// "Source level" stands under "DSP". Folded it gives its line back, so the
+// glyphs pack under the pin (the DSP's group headings do the same,
+// `_dspStudio.scss`), and it slides back in as the rail opens over the page.
+.studio-rail__lead {
+  max-height: 4rem;
+  overflow: hidden;
+  padding: 12px 10px 6px;
+  @include studio-rail-heading;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  transition:
+    max-height var(--rail-settle) $ease-out,
+    padding var(--rail-settle) $ease-out,
+    color var(--rail-settle) ease-out;
+
+  @include folded-at-rest {
+    max-height: 0;
+    padding-block: 0;
+    color: transparent;
+    transition:
+      max-height 90ms ease-out,
+      padding 90ms ease-out,
+      color 90ms ease-out;
+  }
+
+  @include folded-open {
+    transition:
+      max-height var(--rail-move) $ease-out $rail-reveal-delay,
+      padding var(--rail-move) $ease-out $rail-reveal-delay,
+      color var(--rail-settle) ease-out
+        calc(#{$rail-reveal-delay} + var(--rail-move) * 0.4);
+  }
 }
 
 // Anything only the open rail says: the heading, and whatever the page marks.
@@ -213,7 +251,7 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 // Too narrow to spare a rail's width, it folds whatever its pin says, as
 // the Library's does; the head goes with the words, since there is no rail
 // to pin at this width, and so does the edge to drag.
-@container eq-panel (max-width: #{$bp-lg}) {
+@container studio-page (max-width: #{$bp-lg}) {
   .studio-rail-slot {
     @include folded;
 
