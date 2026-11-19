@@ -7,22 +7,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   useCallback,
   useEffect,
-  useDeferredValue,
   useId,
-  useLayoutEffect,
-  useMemo,
   useState,
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
 } from 'react';
 import AnchoredMenu from '../widgets/AnchoredMenu';
-import {
-  allowedSpans,
-  fieldRangeOf,
-  OPEN_FIELD,
-  type TColourLimit,
-} from '../utils/colourLimitField';
+import type { TColourLimit } from '../utils/useColourLimits';
 import { useTranslation } from '../utils/I18nContext';
 import useLiveSlider from '../utils/useLiveSlider';
 import {
@@ -58,14 +50,6 @@ const STEP = 0.01;
 const BIG_STEP = 0.1;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-
-/**
- * The canvas height a limited field is painted at: one column per unit
- * across (`IFieldRange.drawn`), each a straight gradient down each of its
- * stretches (a hue at one saturation is linear in its value), smoothed by the
- * browser to the field's size.
- */
-const PAINT_HEIGHT = 64;
 
 /** Every part of a press held back outside an open picker. */
 const PRESS_EVENTS = [
@@ -118,10 +102,13 @@ interface IColourPickerPopoverProps {
   hueWhenGrey?: number;
   /**
    * What the colour may be: the window's own rule for it (`useColourLimits`).
-   * The field draws over what it cannot be, and a pick there is brought to
-   * the colour the rule gives, so what is picked is what the window wears
-   * (Ivan, 2026-11-18: "the limit should be on the pickers, not before
-   * applying them to the UI"). Absent, any colour.
+   * The field is the whole colour square, as any picker's; a pick the rule
+   * would change is brought to the colour it gives and the mark goes there,
+   * so what is picked is what the window wears (Ivan, 2026-11-18: "the limit
+   * should be on the pickers, not before applying them to the UI"). Drawing
+   * the limit in the square - in cells, shaded with an edge, stretched over
+   * only what can be picked - was sent back three times ("why that colour
+   * picker with that ugly limiting"). Absent, any colour.
    */
   limit?: TColourLimit;
 }
@@ -171,14 +158,6 @@ export default function ColourPickerPopover({
     [limit],
   );
   const current = within(hexOfHsv(hsv));
-  // Only what can be picked, for the hue the bar stands at: worked out at the
-  // pace the window can draw it while the hue is dragged, never holding the
-  // handle back (`useDeferredValue`).
-  const fieldHue = useDeferredValue(hsv.h);
-  const range = useMemo(
-    () => (limit ? fieldRangeOf(allowedSpans(limit, fieldHue)) : OPEN_FIELD),
-    [limit, fieldHue],
-  );
   const live = useLiveSlider<string | undefined>(
     undefined,
     (hex) => {
@@ -264,7 +243,8 @@ export default function ColourPickerPopover({
     if (event.buttons !== 1) {
       return;
     }
-    move({ ...hsv, ...range.colourAt(shareOf(event.currentTarget, event)) });
+    const { x, y } = shareOf(event.currentTarget, event);
+    move({ ...hsv, s: x, v: 1 - y });
   };
   const dragHue = (event: PointerEvent<HTMLDivElement>) => {
     if (event.buttons !== 1) {
@@ -272,27 +252,18 @@ export default function ColourPickerPopover({
     }
     move({ ...hsv, h: shareOf(event.currentTarget, event).x * 360 });
   };
-  // Arrows walk the field as it is drawn: across and down what can be
-  // picked.
   const fieldKeys = (event: KeyboardEvent<HTMLDivElement>) => {
     const step = event.shiftKey ? BIG_STEP : STEP;
-    const moves: Record<string, [number, number]> = {
-      ArrowLeft: [-step, 0],
-      ArrowRight: [step, 0],
-      ArrowUp: [0, -step],
-      ArrowDown: [0, step],
+    const moves: Record<string, Partial<IHsv>> = {
+      ArrowLeft: { s: clamp01(hsv.s - step) },
+      ArrowRight: { s: clamp01(hsv.s + step) },
+      ArrowUp: { v: clamp01(hsv.v + step) },
+      ArrowDown: { v: clamp01(hsv.v - step) },
     };
     const change = moves[event.key];
     if (change) {
       event.preventDefault();
-      const at = range.placeOf(hsv.s, hsv.v);
-      move({
-        ...hsv,
-        ...range.colourAt({
-          x: clamp01(at.x + change[0]),
-          y: clamp01(at.y + change[1]),
-        }),
-      });
+      move({ ...hsv, ...change });
     }
   };
   const hueKeys = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -338,29 +309,6 @@ export default function ColourPickerPopover({
   };
 
   const hueColour = hexOfHsv({ h: hsv.h, s: 1, v: 1 });
-  // A limited field painted from its range, again whenever the range moves.
-  // Held as state, not a ref: the menu puts its contents in only once it has
-  // measured where to stand, a render after it opens.
-  const [paint, setPaint] = useState<HTMLCanvasElement | null>(null);
-  useLayoutEffect(() => {
-    const context = paint?.getContext('2d');
-    if (!limit || !context) {
-      return;
-    }
-    range.drawn.forEach(({ s, stretches }, column) => {
-      const fill = context.createLinearGradient(0, 0, 0, PAINT_HEIGHT);
-      // Two stops at one place where one stretch ends and the next begins:
-      // the deep colours start where the pastels end, with no mid-tone
-      // drawn between them.
-      stretches.forEach(({ top, bottom, high, low }) => {
-        fill.addColorStop(top, hexOfHsv({ h: fieldHue, s, v: high }));
-        fill.addColorStop(bottom, hexOfHsv({ h: fieldHue, s, v: low }));
-      });
-      context.fillStyle = fill;
-      context.fillRect(column, 0, 1, PAINT_HEIGHT);
-    });
-  }, [paint, limit, range, fieldHue]);
-  const mark = range.placeOf(hsv.s, hsv.v);
   return (
     <AnchoredMenu
       anchor={anchor}
@@ -392,21 +340,12 @@ export default function ColourPickerPopover({
         onPointerMove={dragField}
         onKeyDown={fieldKeys}
       >
-        {limit && (
-          <canvas
-            ref={setPaint}
-            className="colour-picker__paint"
-            width={Math.max(1, range.drawn.length)}
-            height={PAINT_HEIGHT}
-            aria-hidden
-          />
-        )}
         <span
           className="colour-picker__mark"
           style={
             {
-              left: `${mark.x * 100}%`,
-              top: `${mark.y * 100}%`,
+              left: `${hsv.s * 100}%`,
+              top: `${(1 - hsv.v) * 100}%`,
               '--mark': current,
             } as CSSProperties
           }

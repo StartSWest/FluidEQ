@@ -17,8 +17,7 @@ import type { TWindowColourStop } from '../utils/sceneDayColours';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { useThemeShade } from '../utils/theme';
 import { lightWindowOf, THEME_SHADE_MAX } from '../utils/themeShade';
-import type { TColourLimit } from '../utils/colourLimitField';
-import useColourLimits from '../utils/useColourLimits';
+import useColourLimits, { type TColourLimit } from '../utils/useColourLimits';
 
 const ROLE_NAME: Record<TSceneWindowColourRole, TranslationKey> = {
   surface: 'graph.sceneColours.surface',

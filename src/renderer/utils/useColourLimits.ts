@@ -9,9 +9,11 @@ import type {
   ISceneWindowColours,
   TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
-import type { TColourLimit } from './colourLimitField';
 import { pickedFilled, pickedFillGround, pickedFloor } from './pickedWindow';
 import { hourOfStop, type TWindowColourStop } from './sceneDayColours';
+
+/** The window's own rule for a colour: what it would wear for it. */
+export type TColourLimit = (hex: string) => string;
 
 export type TColourLimits = Record<TSceneWindowColourRole, TColourLimit>;
 
