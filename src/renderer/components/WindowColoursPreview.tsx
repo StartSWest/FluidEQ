@@ -7,13 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useMemo, type CSSProperties } from 'react';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { useTranslation } from '../utils/I18nContext';
-import pickedWindow, { shadeForPickedSurface } from '../utils/pickedWindow';
+import pickedWindow from '../utils/pickedWindow';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { DARK_KNEE, darkenSurfaces } from '../utils/sceneTintDark';
 import { tintThemePalette } from '../utils/sceneTintPalette';
 import { toneShadeOf } from '../utils/sceneTintStore';
 import { useThemeShade } from '../utils/theme';
-import { isLightShade, themeShadeTokens } from '../utils/themeShade';
+import { themeShadeTokens } from '../utils/themeShade';
 
 /**
  * A small window painted in `colours` the way the real one would be at the
@@ -38,16 +38,11 @@ export default function WindowColoursPreview({
   const { t } = useTranslation();
   const shade = useThemeShade();
   const style = useMemo(() => {
-    // At the Brightness the pick would leave the window at, so the small
-    // window shows what letting go of the picker will do.
-    // On a white window the Brightness stays where it is: there the surface
-    // paints nothing (its swatch is held), so it moves nothing, and the
-    // small window is the white one the app is (Ivan, 2026-11-17: "make the
+    // At the Brightness the window is at: a surface picked never moves it
+    // (Ivan, 2026-11-18), so the small window shows the colours as the window
+    // will wear them, the white one on a white window (2026-11-17: "make the
     // inside white on the white theme").
-    const at = isLightShade(shade)
-      ? shade
-      : shadeForPickedSurface(colours.surface, shade);
-    const worn = named ? pickedWindow(colours, at) : undefined;
+    const worn = named ? pickedWindow(colours, shade) : undefined;
     if (worn) {
       return {
         '--preview-floor': worn.tokens['--surface-base'],

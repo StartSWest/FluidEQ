@@ -14,7 +14,6 @@ import {
 } from './sceneTintPalette';
 import {
   DARK_END_SHADE,
-  THEME_SHADE_MAX,
   isLightShade,
   lightDimOf,
   themeShadeTokens,
@@ -65,9 +64,8 @@ import { WINDOW_SURFACES, type TWindowSurface } from './windowTokens';
  * the side by their own surface: Crystal's white made a light window at
  * Brightness 10, a pack's dark surface kept a dark one at 100, and a scene
  * with no named colours followed the slider - three answers at one
- * Brightness. The editor keeps "picking white turns it white" by moving the
- * Brightness across when a surface is picked on the other side
- * (`shadeForPickedSurface`).
+ * Brightness. A surface picked in the editor never moves the Brightness
+ * (Ivan, 2026-11-18, of a pick that jumped the window to 100).
  *
  * The Brightness walks each side as it walks the theme: a dark window down
  * toward black below the middle of its dark travel (`darkenSurfaces`), a
@@ -207,25 +205,6 @@ const pickedWindow = (
     >;
   }
   return windowOn(surfaces, accent, isUsableGlow(glow) ? glow : accent, lean);
-};
-
-/**
- * Where the Brightness goes when `surface` is picked at `shade`: unchanged
- * while the surface stands on the Brightness's side of the line; across it
- * otherwise, to where the surface is worn exactly as picked - white panes at
- * 100 for a light one, the top of the dark travel for a dark one, which is
- * past the knee the dark walk starts from. So picking white in the editor
- * still turns the window white, and only the Brightness ever does it.
- */
-export const shadeForPickedSurface = (
-  surface: string,
-  shade: number,
-): number => {
-  const isLightSurface = inkForSurface(surface) === 'dark';
-  if (isLightSurface === isLightShade(shade)) {
-    return shade;
-  }
-  return isLightSurface ? THEME_SHADE_MAX : DARK_END_SHADE;
 };
 
 export default pickedWindow;

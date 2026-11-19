@@ -19,7 +19,6 @@ import {
 } from '../utils/sceneDayColours';
 import { sceneWindowColours } from '../utils/sceneOwnColours';
 import { recallSceneSky, studioSkyKey } from '../utils/sceneTintStore';
-import { followPickedSurface } from '../utils/theme';
 import useEditedTime from '../utils/useEditedTime';
 import type { IStudioBaseline } from './useStudioBaseline';
 import useStudioDayColours from './useStudioDayColours';
@@ -171,9 +170,10 @@ export default function useStudioWindowColours(
     (role: TSceneWindowColourRole, value: string) => {
       if (wearing && wearing[role] !== value) {
         write({ [KEY[editing]]: { ...wearing, [role]: value } });
-        if (role === 'surface') {
-          followPickedSurface(value);
-        }
+        // The Brightness stays where it is: a surface picked never moves it
+        // (Ivan, 2026-11-18: "why if I accept here does it jump to 100%
+        // brightness"). It used to cross the line for a surface on the other
+        // side of it, so a light surface put the window at 100.
       }
     },
     [wearing, editing, write],

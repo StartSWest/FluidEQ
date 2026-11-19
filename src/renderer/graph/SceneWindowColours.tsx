@@ -21,7 +21,6 @@ import {
   type TWindowColourSource,
   type TWindowTime,
 } from '../utils/sceneDayColours';
-import { followPickedSurface } from '../utils/theme';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearChosenWindowColours,
@@ -89,9 +88,6 @@ export default function SceneWindowColours() {
           ownSet,
           editing,
         );
-        if (role === 'surface') {
-          followPickedSurface(value);
-        }
       }
     },
     [lookId, wearing, ownSet, editing],

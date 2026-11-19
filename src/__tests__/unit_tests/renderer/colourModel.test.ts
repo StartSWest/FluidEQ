@@ -29,9 +29,7 @@ import {
   toGamma,
   toLinear,
 } from 'renderer/utils/oklab';
-import pickedWindow, {
-  shadeForPickedSurface,
-} from 'renderer/utils/pickedWindow';
+import pickedWindow from 'renderer/utils/pickedWindow';
 import {
   DARK_END_SHADE,
   THEME_SHADE_MAX,
@@ -117,17 +115,6 @@ describe('named colours under the Brightness', () => {
     );
   });
 });
-
-describe('picking a surface in the editor', () => {
-  it('moves the Brightness across the line only when the surface is across it', () => {
-    expect(shadeForPickedSurface('#ffffff', 30)).toBe(THEME_SHADE_MAX);
-    expect(shadeForPickedSurface('#1d1030', 90)).toBe(DARK_END_SHADE);
-    // CONTROL: a surface on the Brightness's side leaves it where it is.
-    expect(shadeForPickedSurface('#ffffff', 90)).toBe(90);
-    expect(shadeForPickedSurface('#1d1030', 30)).toBe(30);
-  });
-});
-
 describe('a scene’s time of day following the Brightness', () => {
   it('reads the same number as the Brightness, night at 0 and day at 100', () => {
     // Ivan, 2026-11-17: "why 66 and not 50 ... the same as the brightness".

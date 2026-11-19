@@ -8,7 +8,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useSyncExternalStore } from 'react';
 import { readStored, removeStored, writeStored } from './graphStorage';
-import { shadeForPickedSurface } from './pickedWindow';
 import { WINDOW_INK_ATTRIBUTE } from './themeInk';
 import { setLightWindow } from './windowSide';
 import {
@@ -202,19 +201,6 @@ export const setThemeShade = (next: number) => {
   current = shade;
   applyShade(shade);
   notify();
-};
-
-/**
- * A window surface was picked in a Window colours editor: the Brightness
- * moves across the line when the surface stands on the other side of it, so
- * picking white still turns the window white while the Brightness stays the
- * one thing that says light or dark (`shadeForPickedSurface`).
- */
-export const followPickedSurface = (surface: string) => {
-  const next = shadeForPickedSurface(surface, current);
-  if (next !== current) {
-    setThemeShade(next);
-  }
 };
 
 /** One of the two named places on the slider: the tour's "try" buttons. */
