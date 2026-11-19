@@ -132,6 +132,7 @@ const dsp = {
   'dsp.engineDown':
     'El motor de audio nativo no pudo iniciarse, así que todas las etapas de DSP están apagadas. Nada de lo de abajo está procesando tu música y los controles están deshabilitados; la reproducción en sí no se ve afectada. Reiniciar FluidEQ suele solucionarlo.',
   'dsp.presets': 'Presets',
+  'dsp.wholeChain': 'Cadena completa',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofónico',

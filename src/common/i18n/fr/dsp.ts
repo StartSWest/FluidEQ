@@ -132,6 +132,7 @@ const dsp = {
   'dsp.engineDown':
     "Le moteur audio natif n'a pas pu démarrer, tous les étages DSP sont donc désactivés. Rien ci-dessous ne traite votre musique et les commandes sont désactivées ; la lecture elle-même n'est pas affectée. Redémarrer FluidEQ suffit généralement.",
   'dsp.presets': 'Préréglages',
+  'dsp.wholeChain': 'Chaîne entière',
   'dsp.preset.lossyRepair': 'Réparer le compressé',
   'dsp.preset.loud': 'Fort',
   'dsp.preset.broadcast': 'Radio',

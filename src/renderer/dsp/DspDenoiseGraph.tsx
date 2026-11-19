@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { readEdge, readInk, readTextInk } from '../utils/theme';
+import { readInk, readTextInk } from '../utils/theme';
 import {
   IDenoiseClickSettings,
   IDenoiseHissSettings,
@@ -290,13 +290,9 @@ const DspDenoiseGraph = ({
       // bars, as it was, the name was the one thing in the lane nobody could
       // read.
       //
-      // Told apart by the rule and a resting lift, the faint step every
-      // surface that lifts wears (`$lift-rest`: the edge tint at 4%). Filled
-      // in the card's colour it was still a pale band across the top of the
-      // graph (Ivan, 2026-09-26: "dsp reduction graph header also fix",
-      // "these too").
-      context.fillStyle = readEdge(0.04);
-      context.fillRect(0, 0, width, LANE_STRIP_H);
+      // Told apart by the rule alone, on the card's floor like the plot under
+      // it: a resting lift behind it was one more shade on a stage that is
+      // drawn flat (Ivan, 2026-11-19: "it needs to look flat and clean").
       context.fillStyle = readInk(0.07);
       context.fillRect(0, LANE_STRIP_H - 1, width, 1);
       const laneLabel = laneLive

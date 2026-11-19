@@ -39,10 +39,9 @@ $dynamics-high: $neon-yellow;
   width: 100%;
   min-width: 0;
   margin: 0;
-  padding: 12px 12px 10px;
-  border: 1px solid $card-edge;
-  border-radius: $radius-s;
-  background: $surface-plot;
+  // On the card's floor like every plot (`dsp-box`), its axes on the stage's
+  // own edges.
+  padding: 12px 0 10px;
   transition: opacity 160ms ease;
 
   &.is-off {
@@ -116,14 +115,15 @@ $dynamics-high: $neon-yellow;
 .dsp-dynamics-readouts {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 6px 28px;
 }
 
 .dsp-dynamics-readout {
   display: inline-flex;
   align-items: baseline;
   gap: 9px;
-  padding: 5px 9px;
+  // A reading is its name and its value on the floor, no tile.
+  padding: 5px 0;
   @include dsp-box;
   font-size: $text-small;
   @include band-ink(color);

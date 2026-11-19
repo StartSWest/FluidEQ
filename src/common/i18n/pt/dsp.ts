@@ -132,6 +132,7 @@ const dsp = {
   'dsp.engineDown':
     'O motor de áudio nativo não conseguiu iniciar, por isso todos os estágios de DSP estão desligados. Nada aqui embaixo está processando a sua música e os controles estão desativados; a reprodução em si não é afetada. Reiniciar o FluidEQ costuma resolver.',
   'dsp.presets': 'Presets',
+  'dsp.wholeChain': 'Cadeia inteira',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofônico',

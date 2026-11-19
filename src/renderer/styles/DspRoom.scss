@@ -120,10 +120,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 6px;
   max-width: 520px;
   min-width: 0;
-  padding: 8px 8px 6px;
-  border: 1px solid $card-edge;
-  border-radius: $radius-s;
-  background: $surface-plot;
+  // On the card's floor like every plot on a stage (`dsp-box`).
+  padding: 8px 0 6px;
 
   @container dsp-room-page (min-width: 650px) {
     position: sticky;
@@ -258,31 +256,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// The selected speaker's pane.
+// The selected speaker's pane: a band like the others (`dsp-box`), which
+// says which speaker it holds in its heading's accent ink.
 .dsp-room-pane {
   position: relative;
-  border-color: color-mix(in srgb, $secondary-default 32%, transparent);
 
-  // While nothing is chosen the edge goes quiet: a lit border around a pane
-  // nobody has chosen was the one thing on the page asking to be read. What
-  // is inside it is covered opaquely by `__ask` below, so the controls need
-  // no dimming of their own — they are not on screen at all.
-  &.is-waiting {
-    border-color: $border-subtle;
+  // While nothing is chosen, its controls keep their room and are not drawn:
+  // `__ask` stands in their place on the card's floor.
+  &.is-waiting > :not(.dsp-room-pane__ask) {
+    visibility: hidden;
   }
 }
 
-// What the pane says before a speaker is chosen: a drawing and a line, over
-// the controls it is waiting to hand over.
+// What the pane says before a speaker is chosen: a drawing and a line, where
+// the controls it is waiting to hand over will be.
 //
-// A SHADE, not a panel. The first version was a card lifted off the pane —
-// inset a few pixels, shadowed, with a light blur — and it read as something
-// half-loaded: the resting controls showed through it as smears of text and
-// half a dial, and its own edge drew a second border just inside the band's.
-// So it covers the band exactly, corner to corner and radius for radius, and
-// what is underneath is pushed back rather than hidden or half-shown: dark
-// enough that nothing behind competes with the line on top, soft enough that
-// the pane is plainly still there, waiting.
+// On the card's floor like the rest of the stage (Ivan, 2026-11-19: "it
+// needs to look flat and clean"). It used to veil the controls under the
+// card's colour and a blur, so they read as shapes behind it; on a flat
+// stage that veil was the one box left on the page, so the controls are
+// simply not drawn until a speaker is chosen.
 .dsp-room-pane__ask {
   position: absolute;
   z-index: 2;
@@ -293,18 +286,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 12px;
   inset: 0;
   padding: 18px;
-  border-radius: $radius-s;
-  // The card's own colour, veiled over the controls: the pane is the same
-  // card, waiting. Black was the first attempt and read as a hole cut in the
-  // page; the window's surface was the second, and it is the darkest layer
-  // there is — on the Light theme's card (#1e4257 over #0d2030) it was the
-  // same hole in navy, reported as "too dark" (2026-09-22). Strength is the
-  // other half of it: mixed opaque it is a blackout, which loses the point,
-  // because the controls ARE there and are simply not yours yet. With the
-  // blur taking their edges, a dial behind reads as a shape and never as a
-  // number.
-  background: color-mix(in srgb, $block-lift 88%, transparent);
-  backdrop-filter: blur(5px) saturate(0.6);
   text-align: center;
 }
 

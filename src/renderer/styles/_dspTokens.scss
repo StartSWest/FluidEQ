@@ -22,28 +22,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'motion' as *;
 @use 'theme' as *;
 
-// A BOX INSIDE A PROCESSOR CARD IS ITS EDGE AND NOTHING ELSE: the card's own
-// colour shows through, the way the Dimension card's Width and Shape groups
-// always drew it (Ivan, 2026-09-22: "set all DSP cards to that — same as the
-// bg, just borders"). The bands, the readout tiles and the panels each had a
-// fill of their own — the plot colour, a step darker than the card, or the
-// card's colour laid over itself — so a page was two or three shades of
-// slate for no reason a listener could name.
+// A BLOCK ON A STAGE IS ITS HEADING AND WHAT IS UNDER IT, on the card's own
+// floor (Ivan, 2026-11-19, of the Denoise stage: "too many bg colors on cards
+// and graph, not like it", "it needs to look flat and clean"). The panels,
+// the bands and the readout tiles inside them were each a box - an edge, then
+// a step of light - and the graph a darker ground of its own, so one page
+// stacked four shades of slate and boxes inside boxes. Now none of them has a
+// fill or an edge: a block's heading carries one hairline under it
+// (`dsp-section-head`), a reading is its name and its value on the floor, and
+// the plots draw their grids straight onto the card.
 //
-// Never a graph ("not the graph, never the graph"): a plot keeps its own
-// darker ground, which is what its lines are drawn to be read against. And
-// the Exciter's two tinted bands keep their tint; the colour says what they
-// are.
-//
-// The DSP page itself now draws them as a step of light with no edge (the
-// Library's surfaces, Ivan 2026-11-19: "sin tantas líneas ni borders"), and
-// says so through the two properties (`_dspStudio.scss`); anywhere else a
-// stage is drawn - the Gaming tab, Help's figures - keeps the edge. The
-// edge stays 1px wide either way, so nothing inside moves.
+// The DSP page, the Gaming tab and Help's figures all draw a stage through
+// this, so all three are flat alike. The Exciter's two tinted bands keep
+// their tint; the colour says what they are, and it is the one fill left.
 @mixin dsp-box {
-  border: 1px solid var(--dsp-box-edge, #{$card-edge});
-  border-radius: $radius-s;
-  background: var(--dsp-box-fill, none);
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+// The one line a block keeps: under its heading, across the block, at the
+// Library's hairline (`$studio-hair`).
+@mixin dsp-section-head {
+  padding-bottom: 7px;
+  border-bottom: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 }
 
 // One beat per filter, in signal order. The rail is keyed by

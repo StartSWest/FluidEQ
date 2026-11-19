@@ -84,6 +84,19 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   }
 }
 
+// UNDER A BAR (`StudioRailUnderBar`): the page's bar crosses the whole card
+// in its first row and holds the pin and the name, so the rail and its
+// splitter start in the second, and its places start where a headed rail's
+// first heading would sit under its head.
+.studio-rail-slot.is-under-bar,
+.studio-rail-slot.is-under-bar + .library-rail__splitter {
+  grid-row: 2 / -1;
+}
+
+.studio-rail-slot.is-under-bar .studio-rail__body {
+  padding-top: 4px;
+}
+
 .studio-rail {
   position: absolute;
   inset: 0 auto 0 0;

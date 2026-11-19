@@ -34,9 +34,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: block;
   width: 100%;
   height: 300px;
-  border: 1px solid color-mix(in srgb, $edge-tint 7%, transparent);
-  border-radius: $radius-s;
-  background: $surface-plot;
+  // Its grid straight onto the card's floor, as every plot on a stage
+  // (`dsp-box`): a darker ground of its own was one more shade of slate.
   touch-action: none;
 }
 
@@ -119,10 +118,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: calc(100% - 24px);
   margin: 0;
   padding: 4px 12px;
-  border-radius: $radius-xs;
-  // Just enough ground to stay legible over the spectrum without becoming a
-  // panel: the plot is what the page is for and this sits on top of it.
-  background: $surface-plot;
+  // No ground of its own: the plot is on the card's floor now (`dsp-box`),
+  // and a darker strip over it was the plot's old ground left behind.
   list-style: none;
   // The plot beneath is dragged to move bands, and a strip that swallowed the
   // pointer would make the top of the curve unreachable.
@@ -304,7 +301,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 calc(4 * var(--dsp-knob) + 32px);
   min-width: 0;
   align-content: center;
-  padding: 10px 12px;
+  padding: 10px 0;
   @include dsp-box;
 }
 
@@ -324,7 +321,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   gap: 14px 18px;
-  padding: 10px 14px;
+  padding: 10px 0;
   @include dsp-box;
   flex-wrap: wrap;
 }
@@ -416,7 +413,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-self: center;
   justify-content: center;
   gap: 10px;
-  padding: 6px 12px;
+  padding: 6px 0;
   @include dsp-box;
 }
 

@@ -132,6 +132,7 @@ const dsp = {
   'dsp.engineDown':
     'Die native Audio-Engine konnte nicht starten, daher sind alle DSP-Stufen aus. Nichts unten verarbeitet Ihre Musik und die Regler sind deaktiviert – die Wiedergabe selbst ist nicht betroffen. Ein Neustart von FluidEQ hilft meist.',
   'dsp.presets': 'Presets',
+  'dsp.wholeChain': 'Ganze Kette',
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
   'dsp.preset.broadcast': 'Rundfunk',

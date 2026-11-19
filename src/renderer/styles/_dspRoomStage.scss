@@ -227,10 +227,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   gap: 10px;
   width: min(100%, 640px);
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
-  border-radius: $radius-s;
-  background: $surface-plot;
+  // On the card's floor like every block on a stage (`dsp-box`).
+  padding: 0 0 4px;
 }
 
 .dsp-room-speaker-panel__head {

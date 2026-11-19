@@ -63,17 +63,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .is-attack {
-    border-color: rgba(255, 176, 89, 0.3);
     color: rgba(255, 176, 89, 0.92);
   }
 
   .is-sustain {
-    border-color: color-mix(in srgb, var(--dsp-base-curve) 30%, transparent);
     color: color-mix(in srgb, var(--dsp-base-curve) 92%, transparent);
   }
 
   .is-duck {
-    border-color: color-mix(in srgb, var(--dsp-sky) 30%, transparent);
     color: color-mix(in srgb, var(--dsp-sky) 92%, transparent);
   }
 

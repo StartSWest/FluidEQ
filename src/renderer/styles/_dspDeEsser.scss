@@ -34,20 +34,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   .is-s {
-    border-color: color-mix(in srgb, var(--dsp-base-curve) 30%, transparent);
     color: color-mix(in srgb, var(--dsp-base-curve) 92%, transparent);
   }
 
   .is-cut,
   .is-isolate {
-    border-color: rgba($amber, 0.3);
     color: rgba($amber, 0.92);
-  }
-
-  // Shown for a moment after a loud sound the stage did not take for a voice
-  // went by uncut: the one thing a de-esser is usually blamed for not doing.
-  .is-spared {
-    border-color: color-mix(in srgb, $edge-tint 14%, transparent);
   }
 
   .is-hidden {

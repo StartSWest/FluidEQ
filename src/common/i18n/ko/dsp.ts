@@ -118,6 +118,7 @@ const dsp = {
   'dsp.engineDown':
     '네이티브 오디오 엔진을 시작할 수 없어 모든 DSP 단계가 꺼져 있습니다. 아래에서는 음악이 처리되지 않으며 컨트롤이 비활성화됩니다. 재생 자체에는 영향을 미치지 않습니다. FluidEQ를 다시 시작하면 일반적으로 다시 나타납니다.',
   'dsp.presets': '프리셋',
+  'dsp.wholeChain': '전체 체인',
   'dsp.preset.lossyRepair': '압축된 수리',
   'dsp.preset.loud': '시끄러운',
   'dsp.preset.broadcast': '방송',

@@ -407,7 +407,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 0 0 4px;
 }
 
 .dsp-denoise-analysis-head,
@@ -464,12 +464,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   height: 200px;
   flex-direction: column;
-  // Clipped to its corners: the click lane along its top is painted in the
-  // card's colour right to the edge (`DspDenoiseGraph.tsx`).
+  // On the card's floor like every plot (`dsp-box`); the click lane along
+  // its top is painted in the card's colour (`DspDenoiseGraph.tsx`).
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, $edge-tint 6%, transparent);
-  border-radius: $radius-s;
-  background: $surface-plot;
 
   canvas {
     display: block;
@@ -611,7 +608,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
-  padding: 9px 12px 7px;
+  padding: 0 0 4px;
 
   // At least as wide as its labels. A fixed 366px in equal thirds left the
   // longest label wider than its third.
@@ -641,7 +638,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 128px;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 0 0 4px;
 }
 
 .dsp-normalizer-status {
@@ -691,7 +688,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 62px;
   margin: 0;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr));
-  gap: 8px;
+  // Readings on the floor are parted by air, not by tiles.
+  gap: 6px 24px;
 
   div {
     display: flex;
@@ -699,9 +697,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex-direction: column;
     justify-content: center;
     gap: 5px;
-    padding: 6px 10px;
+    // A reading is its name and its value on the floor, no tile.
+    padding: 4px 0;
     @include dsp-box;
-    border-radius: $radius-xs;
   }
 
   dt,
@@ -740,7 +738,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 142px;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 0 0 4px;
 }
 
 .dsp-normalizer-honesty {

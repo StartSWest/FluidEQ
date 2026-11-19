@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { IDspSettings, clampDspSettings } from '../../common/dsp/chain';
 import DspStageCards from './DspStageCards';
 import { useDspPageRoomLive } from './useRoomLive';
@@ -14,7 +14,11 @@ import DspScopeNotice from './DspScopeNotice';
 import TitleRate from '../components/TitleRate';
 import DspSideTabs from './DspSideTabs';
 import { useRailWidth } from '../library/LibraryRailSplitter';
-import StudioRail, { useRailPinned } from '../widgets/StudioRail';
+import {
+  StudioRailPin,
+  StudioRailUnderBar,
+  useRailPinned,
+} from '../widgets/StudioRail';
 import OutputEditingNotice from '../OutputEditingNotice';
 import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
@@ -42,6 +46,7 @@ import {
   writeOpenDspSection,
 } from './openSection';
 import useNativeMeters from './useNativeMeters';
+import useBarWords from './useBarWords';
 import { usePlaybackOwner } from '../audio/playbackOwner';
 import { useTransportIdentitySources } from '../audio/transportSource';
 import { useRemoteAudioReceiving } from '../remoteAudio/remoteAudioValueContext';
@@ -282,6 +287,8 @@ const DspPanel = ({
   // The chain's rail: its dragged width and its pin, each remembered.
   const rail = useRailWidth(DSP_RAIL_WIDTH_KEY);
   const [isRailPinned, setRailPinned] = useRailPinned(DSP_RAIL_PINNED_KEY);
+  // The chain's actions say their words while the bar's line has the room.
+  const bar = useBarWords(t);
 
   /**
    * Isolate is an audition state owned by the page that exposes its switch.
@@ -349,22 +356,68 @@ const DspPanel = ({
     // ... limpias, clear y sin tantas líneas ni borders"): the chain down a
     // rail on the card's own tone, parted by its hairline, resizable and
     // folding to its glyphs, and the page beside it with no card inside the
-    // card. The page's name and rate head the rail, as "Library" heads the
-    // Library's, so the bar beside it starts with the presets.
+    // card.
+    //
+    // THE WHOLE CHAIN'S BAR CROSSES THE CARD over the rail and the page
+    // (Ivan, the same day: "we need to separate the two, which is root from
+    // each filter"). It used to be the page's first row with the stage's
+    // head under it, two rows of the same field, arrows and buttons; now the
+    // pin, the page's name and rate, the chain's preset and the rack's
+    // switches stand over everything they govern, parted from it by one
+    // hairline, and under that line everything is the open filter's.
     <div className="dsp-studio">
-      <StudioRail
-        rail={rail}
-        isPinned={isRailPinned}
-        onPinnedChange={setRailPinned}
-        heading={
-          <h2 className="dsp-title">
-            {t('dsp.title')}
-            {engineState === 'running' && isRackEngaged ? (
-              <TitleRate rate={sampleRate} />
-            ) : undefined}
-          </h2>
+      <header
+        className={`dsp-header dsp-studio__bar${
+          bar.showWords ? ' has-words' : ''
+        }${rail.isResizing ? ' is-resizing' : ''}`}
+        style={
+          {
+            '--dsp-bar-lead': `${isRailPinned ? rail.width : 0}px`,
+          } as CSSProperties
         }
       >
+        <div className="dsp-header-line" ref={bar.lineRef}>
+          <div className="dsp-studio__bar-lead">
+            <StudioRailPin
+              isPinned={isRailPinned}
+              onPinnedChange={setRailPinned}
+            />
+            <h2 className="dsp-title">
+              {t('dsp.title')}
+              {engineState === 'running' && isRackEngaged ? (
+                <TitleRate rate={sampleRate} />
+              ) : undefined}
+            </h2>
+          </div>
+          <DspChainPresetBar
+            settings={settings}
+            disabled={!isRackEngaged}
+            onChange={onChange}
+            onCommit={onCommit}
+          />
+          <DspRackSwitches
+            isSystemWide={isSystemWide}
+            engineVersion={audioEngine?.fluid.dllVersion}
+            reportedGameMode={listened.output?.gameMode}
+            delay={delay}
+            allChannels={allChannels}
+            isRoomOn={room.enabled}
+            isRackEngaged={isRackEngaged}
+            isRackLive={isRackLive}
+            onToggleSurround={() => {
+              patch({
+                surround: { allChannels: !settings.surround.allChannels },
+              });
+              onCommit();
+            }}
+            onTogglePower={() => {
+              patch({ enabled: !settings.enabled }, true);
+              onCommit();
+            }}
+          />
+        </div>
+      </header>
+      <StudioRailUnderBar rail={rail} isPinned={isRailPinned}>
         <DspSideTabs
           active={section}
           onSelect={selectSection}
@@ -387,38 +440,10 @@ const DspPanel = ({
             master: master.enabled,
           }}
         />
-      </StudioRail>
+      </StudioRailUnderBar>
       <div className="dsp-panel dsp-studio__main">
-        <header className="dsp-header">
+        <div className="dsp-header-notices">
           <OutputEditingNotice />
-          <div className="dsp-header-line">
-            <DspChainPresetBar
-              settings={settings}
-              disabled={!isRackEngaged}
-              onChange={onChange}
-              onCommit={onCommit}
-            />
-            <DspRackSwitches
-              isSystemWide={isSystemWide}
-              engineVersion={audioEngine?.fluid.dllVersion}
-              reportedGameMode={listened.output?.gameMode}
-              delay={delay}
-              allChannels={allChannels}
-              isRoomOn={room.enabled}
-              isRackEngaged={isRackEngaged}
-              isRackLive={isRackLive}
-              onToggleSurround={() => {
-                patch({
-                  surround: { allChannels: !settings.surround.allChannels },
-                });
-                onCommit();
-              }}
-              onTogglePower={() => {
-                patch({ enabled: !settings.enabled }, true);
-                onCommit();
-              }}
-            />
-          </div>
           <DspScopeNotice
             status={audioEngine}
             suspension={suspension}
@@ -428,7 +453,7 @@ const DspPanel = ({
           {engineState === 'failed' ? (
             <p className="dsp-unavailable">{t('dsp.unavailable')}</p>
           ) : undefined}
-          {/* In the header rather than in the Master card, where it used to be.
+          {/* At the page's head rather than in the Master card, where it used to be.
               The card is one of eight side-tab sections, so the notice was only
               ever seen by a user who happened to open Master — and a failure the
               listener cannot see is the failure being silent.
@@ -456,7 +481,7 @@ const DspPanel = ({
               {t('dsp.engineDown')}
             </p>
           ) : undefined}
-        </header>
+        </div>
 
         <div
           className={`dsp-stage${isStageDisabled ? ' is-disabled' : ''}`}

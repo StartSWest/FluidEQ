@@ -55,14 +55,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 150px;
 }
 
-// The curve is a graph and keeps the plot's ground; the controls beside it
-// are a box on the card (`dsp-box`).
-.dsp-crossfade-preview {
-  border: 1px solid color-mix(in srgb, $edge-tint 6%, transparent);
-  border-radius: $radius-s;
-  background: $surface-plot;
-}
-
+// The curve and the controls beside it both on the card's floor
+// (`dsp-box`), as every plot and block on a stage.
 .dsp-crossfade-controls {
   @include dsp-box;
 }
@@ -370,7 +364,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   gap: 18px;
-  padding: 12px 16px;
+  padding: 12px 0;
 }
 
 .dsp-crossfade-curve-control {

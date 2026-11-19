@@ -281,7 +281,10 @@ const DspChainPresetBar = ({
   return (
     <div className="dsp-presets dsp-eq-bar">
       <div className="dsp-eq-preset dsp-eq-preset-first">
-        <span className="dsp-eq-preset-label">{t('dsp.presets')}</span>
+        {/* "Whole chain", where it said "Presets": the stage's head under the
+            bar has a preset too, and the caption is what says this one is
+            every stage's at once. */}
+        <span className="dsp-eq-preset-label">{t('dsp.wholeChain')}</span>
         <RichPick
           menuClassName="dsp-chain-preset-menu"
           entries={entries}

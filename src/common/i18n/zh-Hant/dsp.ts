@@ -117,6 +117,7 @@ const dsp = {
   'dsp.engineDown':
     '本機音訊引擎無法啟動，因此每個 DSP 階段都關閉。下面的任何內容都不會處理您的音樂，並且控制被停用 - 播放本身不受影響。重新啟動 FluidEQ 通常會將其恢復。',
   'dsp.presets': '預設組',
+  'dsp.wholeChain': '整條鏈',
   'dsp.preset.lossyRepair': '修復壓縮',
   'dsp.preset.loud': '大聲',
   'dsp.preset.broadcast': '廣播',

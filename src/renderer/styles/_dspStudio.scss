@@ -43,16 +43,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .dsp-studio {
-  // The boxes inside the stages (`dsp-box`): the Library's tray, a step of
-  // light on the card's tone, where they were each an edge.
-  --dsp-box-edge: transparent;
-  --dsp-box-fill: #{$studio-surface};
-
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
   grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  // The whole chain's bar across the card, then the rail and the page under
+  // it (`_dspStudioHead.scss`).
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 // The page beside the rail: the header and the stage, scrolling inside
@@ -64,7 +61,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-width: 0;
   min-height: 0;
   grid-column: 2;
-  grid-row: 1;
+  grid-row: 2;
   // The Library's 14px over its bar; a little more at the sides than its
   // 12, because a stage's boxes and plots run to the column's edges where
   // the Library's rows carry an inset of their own.
@@ -74,16 +71,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // *** The rail's rows: the Library's shelves ********************************
-
-// The page's name and rate at the rail's head (`studio-rail-title`, every
-// rail's): the heading element is an `h2` of the page's, so it takes the
-// head's size and line rather than its own.
-.dsp-studio .studio-rail__heading .dsp-title {
-  min-width: 0;
-  overflow: hidden;
-  font-size: inherit;
-  line-height: inherit;
-}
 
 .dsp-studio .dsp-rail {
   width: auto;
@@ -302,53 +289,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   border-bottom: 0;
 }
 
-// The plots keep their darker ground, which is what their lines are drawn to
-// be read against ("not the graph, never the graph"); the hairline round each
-// goes, the ground being edge enough.
-:is(.dsp-studio, .gaming-lab)
-  :is(
-    .dsp-eq-graph,
-    .dsp-denoise-graph,
-    .dsp-dynamics-graph,
-    .dsp-room-picture,
-    .dsp-dimension-field,
-    .dsp-crossfade-preview,
-    .dsp-room-speaker-panel
-  ) {
-  border-color: transparent;
-}
-
-// The Exciter's two bands that are not generators keep the tint that says
-// so, without an edge of the same colour round it.
-:is(.dsp-studio, .gaming-lab) :is(.dsp-band-align, .dsp-band-organic) {
-  border-color: transparent;
-}
-
 // *** What was left drawn in lines, found by walking every stage's boxes ****
-
-// The chips over the plots say their state in their ink, as each trace's key;
-// the outline of the same colour round each went. A warning keeps its red
-// wash, which is the state, not a frame.
-:is(.dsp-studio, .gaming-lab)
-  :is(.dsp-master-status, .dsp-de-esser-status, .dsp-bass-punch-status)
-  > span {
-  border-color: transparent;
-}
-
-// The loudness readings under the Master's plot are trays like every box on
-// the page; the integrated one, which a target is judged against, is the
-// accent's tint where it was the accent's edge.
-:is(.dsp-studio, .gaming-lab) .dsp-master-loudness span {
-  border-color: transparent;
-
-  &.is-primary {
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
-  }
-
-  &.is-warning {
-    background: color-mix(in srgb, $red 10%, transparent);
-  }
-}
 
 // The notices a stage carries - an engine too old for it, the Room's line
 // about its signal - in their tint alone.
@@ -359,15 +300,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 :is(.dsp-studio, .gaming-lab) .dsp-room-signal__line.is-warn {
   background: color-mix(in srgb, $amber 8%, transparent);
-}
-
-// The Room's speaker pane says which speaker it holds in its head's accent
-// ink; the accent edge round it, lit or quiet, was one more frame.
-:is(.dsp-studio, .gaming-lab) .dsp-room-pane {
-  &,
-  &.is-waiting {
-    border-color: transparent;
-  }
 }
 
 // Rows and groups inside a box parted by their gap, not by a rule: the

@@ -26,7 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-dimension-group {
   display: grid;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 0 0 4px;
   @include dsp-box;
 }
 
@@ -73,8 +73,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-dimension-field {
   width: var(--dsp-goniometer-size);
   height: var(--dsp-goniometer-size);
-  border-radius: $radius-s;
-  border: 1px solid $card-edge;
 }
 
 // Every other processor hangs its legend inside `.dsp-eq-plot`, which is
@@ -94,8 +92,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-dimension-history {
   width: 100%;
   height: 64px;
-  border-radius: $radius-xs;
-  background: $surface-plot;
 }
 
 // Amber, matching the normalizer's before-bar: this is the one track here that

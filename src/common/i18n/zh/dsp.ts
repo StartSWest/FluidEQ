@@ -130,6 +130,7 @@ const dsp = {
   'dsp.engineDown':
     '原生音频引擎无法启动，因此所有 DSP 处理级均已关闭。下方没有任何环节在处理你的音乐，控件也已禁用；播放本身不受影响。重启 FluidEQ 通常可以恢复。',
   'dsp.presets': '预设',
+  'dsp.wholeChain': '整条链',
   'dsp.preset.lossyRepair': '修复压缩音频',
   'dsp.preset.loud': '响亮',
   'dsp.preset.broadcast': '广播',

@@ -10,16 +10,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // buttons over PRESET, a field, two arrows and worded buttons again - with
 // Game mode in a framed capsule between them.
 //
-// Now the page's own bar, then the stage's head:
+// That first answer still read as two look-alike rows (Ivan, the same day:
+// "we need to separate the two, which is root from each filter"), so:
 //
-// - THE BAR is the whole rack's: its preset, its actions as the Library
-//   bar's plain squares (the glyph alone, the name in the tooltip every one
-//   of them carries), and at the right the rack's three switches on one
-//   line and one baseline, Game mode flat beside them with no capsule.
-// - THE STAGE'S HEAD starts with the stage's name, which is what tells the
-//   two presets apart at a glance: "De-esser" and then its preset, quieter -
-//   no "PRESET" word, the same plain squares - and the stage's own switches
-//   at the right. Its sentence goes under it.
+// - THE WHOLE CHAIN'S BAR crosses the card over the rail and the page, one
+//   hairline under it: the rail's pin and the page's name and rate, then the
+//   chain's preset as a pill under its "Whole chain" caption, its actions
+//   with their words while the bar has the room (Ivan: "if there is room we
+//   show the text too not just the icons"), and at the right the rack's three
+//   switches on one line and one baseline, Game mode flat with no capsule.
+// - THE STAGE'S HEAD, under the line, starts with the stage's name, large,
+//   then its preset in a field - no caption, the Library bar's plain squares
+//   for its actions - and the stage's own switches at the right. Its
+//   sentence goes under it.
 //
 // Said through `.dsp-studio`, as the rest of the page's layout is: the Gaming
 // tab and Help's figures draw these bars and cards their own way.
@@ -30,6 +33,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'libraryTokens' as *;
 
+// The bar's line: a control and 8px over and under it, as the Library's bar.
+$dsp-bar-height: 48px;
+
+// The pin's left edge: the middle of the folded glyph column less half the
+// pin, where every rail's head stands it (`StudioRail.scss`).
+$dsp-bar-pin-inset: 14px;
+
 // The bar and the stage under it: the stage's head stands clear of the bar by
 // more than a row's own gap, so the two read as the page's controls and then
 // the stage's, with no rule between them.
@@ -37,9 +47,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 22px;
 }
 
-// *** Actions: the Library bar's squares ************************************
+// *** A stage's actions: the Library bar's squares **************************
 
-.dsp-studio .dsp-eq-transfer {
+.dsp-studio__main .dsp-eq-transfer {
   flex-wrap: nowrap;
   gap: 2px;
 
@@ -75,10 +85,37 @@ SPDX-License-Identifier: GPL-3.0-or-later
   column-gap: 14px;
 }
 
-// *** The page's bar *******************************************************
+// *** The whole chain's bar ************************************************
 
+// The first row of the card's grid, over both columns.
+.dsp-studio__bar {
+  min-width: 0;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  // The pin in the glyphs' column, as every rail's head stands it.
+  padding: 0 16px 0 $dsp-bar-pin-inset;
+  border-bottom: 1px solid $studio-hair;
+}
+
+// The page's notices - another output being edited, what the rack touches,
+// the engine's trouble - head the page column under the bar, one after the
+// other as they stood under the old head; nothing at all while there is none.
+.dsp-header-notices {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+// One row's height is what `useBarWords` reads to tell one row from two.
 .dsp-studio .dsp-header-line {
+  min-height: $dsp-bar-height;
   align-items: center;
+  column-gap: 16px;
+  padding-block: 8px;
 
   > .dsp-presets {
     padding-left: 0;
@@ -87,6 +124,93 @@ SPDX-License-Identifier: GPL-3.0-or-later
       display: none;
     }
   }
+}
+
+// The pin and the page's name, holding the rail's width while it is pinned
+// (`--dsp-bar-lead`, from `DspPanel`), so the chain's caption starts on the
+// stage's own left edge, over the stage's name.
+.dsp-studio__bar-lead {
+  display: flex;
+  min-width: max(0px, calc(var(--dsp-bar-lead) - #{$dsp-bar-pin-inset}));
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  transition: min-width $motion-slow $ease-out;
+
+  > .dsp-title {
+    margin: 0;
+    @include studio-rail-title;
+  }
+}
+
+// Under the hand dragging the rail's edge, the caption follows at once, as
+// the rail does (`is-resizing` on the slot).
+.dsp-studio__bar.is-resizing .dsp-studio__bar-lead {
+  transition: none;
+}
+
+// No rail to pin on a card this narrow: it folds whatever the pin says
+// (`StudioRail.scss`), and the pin goes with it, as it does in a rail's head.
+@container studio-page (max-width: #{$bp-lg}) {
+  .dsp-studio__bar {
+    padding-left: 16px;
+  }
+
+  .dsp-studio__bar-lead {
+    min-width: 0;
+
+    > .studio-rail__pin {
+      display: none;
+    }
+  }
+}
+
+// THE CHAIN'S PRESET IS A PILL under its caption, where the stage's is a
+// field beside its name: two shapes, so the two never read as one row twice.
+.dsp-studio__bar {
+  .dsp-eq-preset-label {
+    @include studio-rail-heading;
+    white-space: nowrap;
+  }
+
+  .dsp-eq-preset-first .rich-pick__trigger {
+    border-radius: $radius-pill;
+  }
+}
+
+// Its actions are quiet buttons with no fill until the pointer is on them:
+// the glyph alone, named on hover by the tooltip every one carries, and its
+// word beside it while the bar's line has the room (`has-words`, which
+// `useBarWords` decides by asking the line, in whatever language it speaks).
+.dsp-studio__bar .dsp-chain-transfer {
+  flex-wrap: nowrap;
+  gap: 2px;
+
+  > .button.small {
+    width: $control-height-sm;
+    justify-content: center;
+    gap: 6px;
+    padding: 0;
+    border-radius: $radius-xs;
+    color: $text-muted;
+    font-size: 0;
+    letter-spacing: 0;
+    white-space: nowrap;
+    @include button-plain;
+  }
+
+  .dsp-bar-icon {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+  }
+}
+
+.dsp-studio__bar.has-words .dsp-chain-transfer > .button.small {
+  width: auto;
+  padding: 0 9px;
+  // A small button's own size (`Button.scss`).
+  font-size: $text-body;
 }
 
 // The rack's switches on one line and one baseline: Game mode, the channels,
@@ -173,7 +297,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   clip-path: none;
   margin: 0;
   color: $text-primary;
-  font-size: 1.125rem;
+  // Larger than anything on the chain's bar over it: under the line, this
+  // is what the page is about.
+  font-size: 1.375rem;
   font-weight: $weight-bold;
   letter-spacing: normal;
   line-height: $control-height;

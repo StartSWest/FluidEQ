@@ -56,9 +56,11 @@ interface IRailFrameProps {
   rail: ILibraryRailWidth;
   /** The slot's own state classes, after `studio-rail-slot`. */
   slotState: string;
-  /** What stands before the page's name in the head: the pin, or nothing. */
-  lead: ReactNode;
-  heading: ReactNode;
+  /**
+   * The head over the places (`RailHead`), or nothing where the page's bar
+   * holds the pin and the name instead (`StudioRailUnderBar`).
+   */
+  head: ReactNode;
   /** Whether the rail has a width of its own to drag at its edge. */
   hasSplitter: boolean;
   children: ReactNode;
@@ -66,15 +68,13 @@ interface IRailFrameProps {
 
 /**
  * What every studio rail is, folding or not: the slot the grid gives room
- * to, the head with the page's name (`studio-rail-title`), the places under
- * it, and the splitter on its hairline. The two rails below differ only in
- * what they put in front of the name and whether they fold.
+ * to, its head, the places under it, and the splitter on its hairline. The
+ * rails below differ in what their head holds and whether they fold.
  */
 const RailFrame = ({
   rail,
   slotState,
-  lead,
-  heading,
+  head,
   hasSplitter,
   children,
 }: IRailFrameProps) => (
@@ -86,16 +86,57 @@ const RailFrame = ({
       style={{ '--rail-width': `${rail.width}px` } as CSSProperties}
     >
       <div className="studio-rail">
-        <div className="studio-rail__head">
-          {lead}
-          <div className="studio-rail__heading">{heading}</div>
-        </div>
+        {head}
         <div className="studio-rail__body">{children}</div>
       </div>
     </div>
     {hasSplitter && <LibraryRailSplitter rail={rail} />}
   </>
 );
+
+/** The head with the page's name (`studio-rail-title`) and what leads it. */
+const RailHead = ({
+  lead,
+  heading,
+}: {
+  lead: ReactNode;
+  heading: ReactNode;
+}) => (
+  <div className="studio-rail__head">
+    {lead}
+    <div className="studio-rail__heading">{heading}</div>
+  </div>
+);
+
+interface IStudioRailPinProps {
+  isPinned: boolean;
+  onPinnedChange: (next: boolean) => void;
+}
+
+/**
+ * The pin that folds a rail to its glyphs and pins it back: in the rail's
+ * head, or at the start of the page's bar where a page has one over its
+ * rail (the DSP's, `StudioRailUnderBar`).
+ */
+export function StudioRailPin({
+  isPinned,
+  onPinnedChange,
+}: IStudioRailPinProps) {
+  const { t } = useTranslation();
+  const pinLabel = t(isPinned ? 'plus.rail.collapse' : 'plus.rail.pin');
+  return (
+    <button
+      type="button"
+      className="studio-rail__pin"
+      aria-pressed={isPinned}
+      aria-label={pinLabel}
+      title={pinLabel}
+      onClick={() => onPinnedChange(!isPinned)}
+    >
+      <Glyph name={isPinned ? 'rail-collapse' : 'pin'} />
+    </button>
+  );
+}
 
 interface IStudioRailProps {
   rail: ILibraryRailWidth;
@@ -133,26 +174,53 @@ export default function StudioRail({
   heading,
   children,
 }: IStudioRailProps) {
-  const { t } = useTranslation();
-  const pinLabel = t(isPinned ? 'plus.rail.collapse' : 'plus.rail.pin');
   return (
     <RailFrame
       rail={rail}
       slotState={isPinned ? '' : ' is-folded'}
-      lead={
-        <button
-          type="button"
-          className="studio-rail__pin"
-          aria-pressed={isPinned}
-          aria-label={pinLabel}
-          title={pinLabel}
-          onClick={() => onPinnedChange(!isPinned)}
-        >
-          <Glyph name={isPinned ? 'rail-collapse' : 'pin'} />
-        </button>
+      head={
+        <RailHead
+          lead={
+            <StudioRailPin
+              isPinned={isPinned}
+              onPinnedChange={onPinnedChange}
+            />
+          }
+          heading={heading}
+        />
       }
-      heading={heading}
       // Only while pinned: a folded rail has no width of its own to give.
+      hasSplitter={isPinned}
+    >
+      {children}
+    </RailFrame>
+  );
+}
+
+interface IStudioRailUnderBarProps {
+  rail: ILibraryRailWidth;
+  isPinned: boolean;
+  /** The places down the rail, with their own landmark. */
+  children: ReactNode;
+}
+
+/**
+ * The folding rail under a bar that crosses the whole card (the DSP page's,
+ * Ivan 2026-11-19: "we need to separate the two, which is root from each
+ * filter"). The bar holds the pin (`StudioRailPin`) and the page's name, so
+ * the rail has no head and starts in the card's second row
+ * (`StudioRail.scss`, `is-under-bar`); everything else is `StudioRail`'s.
+ */
+export function StudioRailUnderBar({
+  rail,
+  isPinned,
+  children,
+}: IStudioRailUnderBarProps) {
+  return (
+    <RailFrame
+      rail={rail}
+      slotState={`${isPinned ? '' : ' is-folded'} is-under-bar`}
+      head={null}
       hasSplitter={isPinned}
     >
       {children}
@@ -181,8 +249,7 @@ export function FixedStudioRail({
     <RailFrame
       rail={rail}
       slotState=" is-fixed"
-      lead={null}
-      heading={heading}
+      head={<RailHead lead={null} heading={heading} />}
       hasSplitter
     >
       {children}

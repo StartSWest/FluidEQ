@@ -63,13 +63,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   pointer-events: none;
 
   // The chips, and only the chips: a live figure inside one is made of spans
-  // too (`LiveFigure`), and a chip's padding and border on each of those
-  // would draw chips inside the chip.
+  // too (`LiveFigure`), and a chip's padding on each of those would draw
+  // chips inside the chip. Each says its state in its ink, on the plot's
+  // floor as the plot is on the card's (`dsp-box`): no edge, no ground. A
+  // warning keeps its red wash, which is the state and not a frame.
   > span {
     padding: 3px 7px;
-    border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
     border-radius: $radius-xs;
-    background: $surface-plot;
     color: $text-faint;
     font-size: $text-eyebrow;
     @include tracking(0.035em);
@@ -78,17 +78,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .is-safe {
-    border-color: color-mix(in srgb, $secondary-default 20%, transparent);
     color: $text-accent;
   }
 
   .is-fixed {
-    border-color: rgba(255, 176, 89, 0.3);
     color: rgb(255, 196, 126);
   }
 
   .is-warning {
-    border-color: rgba($red, 0.42);
     background: rgba($red, 0.1);
     color: $red;
   }
@@ -111,16 +108,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: 6px 24px;
   margin-top: 8px;
 
   span {
     display: flex;
     gap: 5px;
     align-items: baseline;
-    padding: 4px 9px;
+    // A reading is its name and its value on the floor, no tile.
+    padding: 4px 0;
     @include dsp-box;
-    border-radius: $radius-xs;
     color: color-mix(in srgb, $ink 82%, transparent);
     font-size: $text-body;
     font-variant-numeric: tabular-nums;
@@ -137,12 +134,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // The integrated reading is the one a delivery target is judged against,
     // so it wears the accent the rest of the row does not.
     &.is-primary {
-      border-color: color-mix(in srgb, $secondary-default 30%, transparent);
       color: color-mix(in srgb, $secondary-light 96%, transparent);
     }
 
     &.is-warning {
-      border-color: rgba($red, 0.42);
       color: $red;
     }
   }
@@ -330,8 +325,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-  padding: 8px 10px 4px;
+  // Flat on the floor (`dsp-box`), so its words stand on the stage's own
+  // left edge, under the stage's name.
+  padding: 0 0 4px;
   @include dsp-box;
+}
+
+// A block's heading, and the one line it keeps (`dsp-section-head`): the
+// bands, the Normalizer's and Denoise's panels, the Dimension's groups, the
+// EQ's phase meter, the crossfade's controls. Whatever row heads one - its
+// name and switch, its name and status, or the name alone - is drawn across
+// the block with the hairline under it.
+:is(
+    .dsp-band,
+    .dsp-normalizer-control-surface,
+    .dsp-normalizer-analysis,
+    .dsp-normalizer-live,
+    .dsp-denoise-analysis,
+    .dsp-dimension-group,
+    .dsp-eq-phase,
+    .dsp-crossfade-controls
+  )
+  > :is(
+    .dsp-band-head,
+    .dsp-de-esser-head,
+    .dsp-band-title,
+    .dsp-denoise-analysis-head,
+    .dsp-dimension-group-name,
+    .dsp-eq-phase-head
+  ):first-child {
+  align-self: stretch;
+  @include dsp-section-head;
 }
 
 .dsp-band-title {
@@ -393,7 +417,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // is not a fourth band and must not read as one: a different effect, its own
 // bandpass, its own colour.
 .dsp-band-organic {
-  border-color: rgba(255, 176, 89, 0.28);
+  // The one fill a flat stage keeps (`dsp-box`), so its words keep an inset
+  // inside it.
+  padding: 8px 10px 4px;
   background: rgba(255, 176, 89, 0.05);
 }
 

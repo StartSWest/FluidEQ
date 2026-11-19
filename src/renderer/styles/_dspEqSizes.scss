@@ -258,11 +258,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 168px;
   margin-right: auto;
   margin-left: auto;
-  padding: 8px 12px 4px;
-  // Like every box on the card (`dsp-box`), which is also what its needle's
-  // trail fades toward (`DspPhaseMeter.tsx`). It was the card's colour laid
-  // over the card while the boxes beside it were the plot's, a step darker,
-  // so it was the one lighter block in the row (Ivan, 2026-09-22).
+  padding: 0 0 4px;
+  // Flat on the card like every block on a stage (`dsp-box`), which is also
+  // what its needle's trail fades toward (`DspPhaseMeter.tsx`).
   @include dsp-box;
 }
 
@@ -434,7 +432,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // when each part of the sound arrives and nothing else, so it must not read as
 // another flavour of the generators above it.
 .dsp-band-align {
-  border-color: rgba(132, 168, 255, 0.28);
+  // The one fill a flat stage keeps (`dsp-box`), so its words keep an inset
+  // inside it.
+  padding: 8px 10px 4px;
   background: rgba(132, 168, 255, 0.05);
 }
 
@@ -453,6 +453,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   #dsp-exciter .dsp-band {
     gap: 4px;
+    padding: 0 0 3px;
+  }
+
+  // The two tinted bands keep their inset inside the tint.
+  #dsp-exciter :is(.dsp-band-align, .dsp-band-organic) {
     padding: 6px 8px 3px;
   }
 }

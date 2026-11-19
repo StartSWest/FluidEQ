@@ -141,6 +141,7 @@ const dsp = {
   'dsp.engineDown':
     'The native audio engine could not start, so every DSP stage is off. Nothing below is processing your music and the controls are disabled — playback itself is unaffected. Restarting FluidEQ usually brings it back.',
   'dsp.presets': 'Presets',
+  'dsp.wholeChain': 'Whole chain',
   'dsp.preset.lossyRepair': 'Repair compressed',
   'dsp.preset.loud': 'Loud',
   'dsp.preset.broadcast': 'Broadcast',
