@@ -165,16 +165,14 @@ $dsp-bar-pin-inset: 14px;
   }
 }
 
-// THE CHAIN'S PRESET IS A PILL under its caption, where the stage's is a
-// field beside its name: two shapes, so the two never read as one row twice.
+// The chain's preset is told from the stage's by its caption and its place
+// on the bar, never by its shape: it is the app's own picker, the field
+// corner every other one wears. A pill made it the one rounded field in the
+// window (Ivan, 2026-11-19: "it's not the same that we use across the app").
 .dsp-studio__bar {
   .dsp-eq-preset-label {
     @include studio-rail-heading;
     white-space: nowrap;
-  }
-
-  .dsp-eq-preset-first .rich-pick__trigger {
-    border-radius: $radius-pill;
   }
 }
 
