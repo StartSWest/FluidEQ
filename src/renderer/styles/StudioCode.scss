@@ -130,11 +130,30 @@ $code-bar: 10px;
   padding: 3px 8px 3px 4px;
   border-radius: calc(#{$radius-m} - 1px);
   background: color-mix(in srgb, $edge-tint 3%, $surface-panel);
+  // Says when the head is stuck to the panel's top (below).
+  container-type: scroll-state;
 
   .is-open > & {
     border-bottom: 1px solid $border-subtle;
     border-radius: calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px) 0 0;
     background: color-mix(in srgb, $edge-tint 6%, $surface-panel);
+  }
+
+  // Stuck at the panel's top it is a flat bar: its rounded corners belong to
+  // the card's top edge, which has scrolled away, and the code passing under
+  // showed through them (Ivan, 2026-11-19: "the code card corner when
+  // scrolling, we can make the sticky flat"). The head is its own
+  // scroll-state container (above), which says when it is stuck; a square of
+  // its own fill behind its content closes the corners, and at rest nothing
+  // of it is drawn, so the card's rounded border shows as before.
+  @container scroll-state(stuck: top) {
+    &::before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      background: inherit;
+    }
   }
 }
 
