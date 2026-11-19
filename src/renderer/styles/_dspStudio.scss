@@ -105,15 +105,69 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The groups' names are the Library's headings, and they are what parts the
-// groups: no rule between them. Folded, each keeps its height (`studio-rail__word`
-// hides it in place), so the glyphs stand in the same three groups.
+// groups: no rule between them.
 .dsp-studio .dsp-rail-group-label {
+  // A limit to slide from and to as the rail folds and opens; two lines of a
+  // wrapped heading are well inside it.
+  max-height: 4rem;
+  overflow: hidden;
   padding: 12px 10px 6px;
+  transition:
+    max-height var(--rail-settle) $ease-out,
+    margin var(--rail-settle) $ease-out,
+    padding var(--rail-settle) $ease-out,
+    background-color var(--rail-settle) $ease-out,
+    color var(--rail-settle) ease-out;
   @include studio-rail-heading;
   // Onto a second line rather than cut: Russian's "Параметры
   // воспроизведения" ran past a rail of the default width.
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+// FOLDED, the glyphs pack from the top as the Library's folded shelves do:
+// a heading gives its line back, the first one entirely, the other two down
+// to the Library's own folded divider - one hairline with air either side
+// (`.library-rail__heading--link` under `$bp-lg`). Hidden in place, they
+// stood the Normalizer a heading below the pin and opened a row of empty
+// column between the groups. Said on the bare class, since the fold's
+// selector names the rail it is in. Opened over the page, each slides back
+// as the rail widens and its word comes in after, on the words' own beat.
+.dsp-rail-group-label {
+  @include folded-at-rest {
+    // Across the row, as the Library's divider runs across its shelf's.
+    max-height: 1px;
+    margin: 8px 0;
+    padding: 0;
+    background-color: $studio-hair;
+    color: transparent;
+    transition:
+      max-height 90ms ease-out,
+      margin 90ms ease-out,
+      padding 90ms ease-out,
+      background-color 90ms ease-out,
+      color 90ms ease-out;
+  }
+
+  @include folded-open {
+    transition:
+      max-height var(--rail-move) $ease-out $rail-reveal-delay,
+      margin var(--rail-move) $ease-out $rail-reveal-delay,
+      padding var(--rail-move) $ease-out $rail-reveal-delay,
+      background-color var(--rail-settle) ease-out $rail-reveal-delay,
+      color var(--rail-settle) ease-out
+        calc(#{$rail-reveal-delay} + var(--rail-move) * 0.4);
+  }
+}
+
+// The first group's heading stands straight under the rail's head, where a
+// divider would part the glyphs from nothing.
+.dsp-rail-level > .dsp-rail-group-label {
+  @include folded-at-rest {
+    max-height: 0;
+    margin: 0;
+    background-color: transparent;
+  }
 }
 
 .dsp-studio .dsp-rail-tab {
@@ -145,6 +199,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   &::before {
     display: none;
   }
+}
+
+// One line, as the Library's shelf names (`.library-rail__label`): the old
+// rail let a name wrap so it never ended in an ellipsis, and folded to 36px
+// every name with a space in it stood two lines tall, 48px rows among 32px
+// ones. The rail is dragged wider for a long name, and each row's title
+// names it in full meanwhile.
+.dsp-studio .dsp-rail-name {
+  line-height: inherit;
+  @include truncate;
 }
 
 // The glyph alone, as the Library's shelves draw theirs: no frame round it.

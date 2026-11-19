@@ -31,7 +31,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'studioRailFold' as *;
 
 $rail-open: var(--rail-width, #{$studio-rail-width});
-$rail-reveal-delay: 110ms;
 
 // The glyphs' column, from the rail's left edge: the list's 10px inset and a
 // row's 10px before a 16px glyph, so the middle of every glyph - the pin's

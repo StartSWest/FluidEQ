@@ -13,6 +13,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 @use 'constant' as *;
 
+// How long the pointer rests on a folded rail before it opens: a pass across
+// it on the way to the page is shorter and opens nothing.
+$rail-reveal-delay: 110ms;
+
+// Nothing in here may give a word's line a folded rail no longer shows it
+// in: hidden in place, a group's heading left a row of empty column above
+// the first glyph and between the groups (session 0's review of 5f35413e1).
+// What only the open rail says either goes with its height, as the DSP's
+// group headings do (`_dspStudio.scss`), or stands on a row whose glyph
+// stays.
+
 // What is inside the rail while it is folded AND at rest: not opened over
 // the page by the pointer, nor by a keyboard reaching into it.
 // `:has(:focus-visible)` rather than `:focus-within`, so a click on a place,
@@ -27,6 +38,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   @container eq-panel (max-width: #{$bp-lg}) {
     .studio-rail-slot > .studio-rail:not(:hover):not(:has(:focus-visible)) & {
+      @content;
+    }
+  }
+}
+
+// The same rail opened over the page by the pointer or the keyboard: where a
+// page says how what `folded-at-rest` took away comes back.
+@mixin folded-open {
+  .studio-rail-slot.is-folded
+    > .studio-rail:is(:hover, :has(:focus-visible))
+    & {
+    @content;
+  }
+
+  @container eq-panel (max-width: #{$bp-lg}) {
+    .studio-rail-slot > .studio-rail:is(:hover, :has(:focus-visible)) & {
       @content;
     }
   }
