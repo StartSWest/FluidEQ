@@ -426,6 +426,15 @@ $studio-stage-floor: 148px;
   // The Library's 12px between a column's content and its hairline.
   column-gap: 12px;
 
+  // The work's scrollbar stands against that hairline, not 12px short of it
+  // (Ivan, 2026-11-19: "put the scroll next to the right"): the panel reaches
+  // through the gap and gives it back as padding, so its content stays where
+  // it was and only the bar moves.
+  .studio-work__panel {
+    margin-right: -12px;
+    padding-right: 14px;
+  }
+
   > .studio-bench__chat {
     // Out through the Studio's own right inset (`Community.scss`, 16px) to
     // the card's edge. At its foot the place keeps no inset of its own for
