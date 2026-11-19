@@ -140,8 +140,17 @@ export const SETTING_STEMS: readonly string[] = [
   // The details table's columns, and which tab the right pane stands on.
   'fluideq.library.columns',
   'fluideq.library.paneTab',
-  // The shelf rail's dragged width.
+  // The shelf rail's dragged width, and whether it is pinned open.
   'fluideq.library.railWidth',
+  'fluideq.library.railPinned',
+  // Every other page's rail (StudioRail): its dragged width and its pin, so
+  // Reset puts every panel back as it first opened (Ivan, 2026-11-19: "make
+  // sure Reset settings resets all those pane widths too on all pages").
+  'fluideq.dsp.railWidth',
+  'fluideq.dsp.railPinned',
+  'fluideq.shareRailWidth',
+  'fluideq.shareRailPinned',
+  'fluideq.help.shareRailWidth',
   'fluideq.library.keepPlaying',
   'fluideq.library.sort',
   'fluideq.library.sortDirection',
