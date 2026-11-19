@@ -87,7 +87,11 @@ const lchOf = (hex: string): ILch | undefined => {
  * grey accent at dusk points with nothing. A grey end has no hue of its own
  * and takes the other's, so it only gains or loses colour.
  */
-const blendColour = (from: string, to: string, share: number): string => {
+export const blendColour = (
+  from: string,
+  to: string,
+  share: number,
+): string => {
   const a = lchOf(from);
   const b = lchOf(to);
   if (!a || !b) {
@@ -106,13 +110,9 @@ const blendColour = (from: string, to: string, share: number): string => {
   });
 };
 
-/** The window's colours at `daylight` (0 night to 100 day) between two sets. */
-export const blendWindowColours = (
-  night: ISceneWindowColours,
-  day: ISceneWindowColours,
-  daylight: number,
-): ISceneWindowColours => {
-  const share = Math.min(
+/** How far through the day `daylight` is: 0 its night, 1 its day. */
+export const dayShareOf = (daylight: number): number =>
+  Math.min(
     1,
     Math.max(
       0,
@@ -120,6 +120,14 @@ export const blendWindowColours = (
         (SCENE_DAYLIGHT_MAX - SCENE_DAYLIGHT_MIN),
     ),
   );
+
+/** The window's colours at `daylight` (0 night to 100 day) between two sets. */
+export const blendWindowColours = (
+  night: ISceneWindowColours,
+  day: ISceneWindowColours,
+  daylight: number,
+): ISceneWindowColours => {
+  const share = dayShareOf(daylight);
   if (share === 0) {
     return night;
   }

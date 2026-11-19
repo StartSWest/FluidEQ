@@ -70,10 +70,37 @@ SPDX-License-Identifier: GPL-3.0-or-later
   &:focus-visible {
     @include focus-ring;
   }
+
+  // Shown as the window wears each colour (`shownAs`): the field is the
+  // canvas painted from the window's own rule, and its edge is drawn over
+  // the canvas rather than under it.
+  &.is-worn {
+    background: $surface-well;
+
+    &::after {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, $edge-tint 18%, transparent);
+      content: '';
+      pointer-events: none;
+    }
+  }
+}
+
+.colour-picker__paint {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
 }
 
 .colour-picker__mark {
   position: absolute;
+  z-index: 1;
   width: 14px;
   height: 14px;
   border: 2px solid $white;

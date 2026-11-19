@@ -13,9 +13,11 @@ import {
 } from 'common/sceneWindowColours';
 import ColourPickerPopover from './ColourPickerPopover';
 import { useTranslation } from '../utils/I18nContext';
+import type { TWindowTime } from '../utils/sceneDayColours';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { useThemeShade } from '../utils/theme';
 import { lightWindowOf } from '../utils/themeShade';
+import useWornSurface from '../utils/useWornSurface';
 
 const ROLE_NAME: Record<TSceneWindowColourRole, TranslationKey> = {
   surface: 'graph.sceneColours.surface',
@@ -40,6 +42,8 @@ interface ISwatchProps {
    * of the pick, with no picker: the white panes of a white window.
    */
   fixed?: string;
+  /** What each colour is shown as: what the window paints for it now. */
+  shownAs?: (hex: string) => string;
   onChange: (role: TSceneWindowColourRole, value: string) => void;
   onCommit: (role: TSceneWindowColourRole, value: string) => void;
 }
@@ -58,6 +62,7 @@ function Swatch({
   note,
   disabled,
   fixed,
+  shownAs,
   onChange,
   onCommit,
 }: ISwatchProps) {
@@ -97,7 +102,9 @@ function Swatch({
         ref={setAnchor}
         type="button"
         className={`window-colour-swatch${changed ? ' is-changed' : ''}${isOpen ? ' is-open' : ''}`}
-        style={{ '--swatch': value } as CSSProperties}
+        style={
+          { '--swatch': shownAs ? shownAs(value) : value } as CSSProperties
+        }
         disabled={disabled}
         aria-label={t('graph.sceneColours.pick', { role: name })}
         aria-haspopup="dialog"
@@ -124,6 +131,7 @@ function Swatch({
           onCommit(role, next);
         }}
         onCancel={cancel}
+        shownAs={shownAs}
       />
     </>
   );
@@ -133,6 +141,14 @@ interface IWindowColourSwatchesProps {
   colours: ISceneWindowColours;
   /** What a dot is measured against: the colours the scene comes with. */
   own: ISceneWindowColours | undefined;
+  /**
+   * Both times' colours as the window blends them, the open one as it is
+   * being picked, and which is open: the surface is shown as the window
+   * paints it at the hour and the Brightness it is at (`useWornSurface`).
+   */
+  night: ISceneWindowColours;
+  day: ISceneWindowColours;
+  editing: TWindowTime;
   disabled?: boolean;
   onChange: (role: TSceneWindowColourRole, value: string) => void;
   onCommit: (role: TSceneWindowColourRole, value: string) => void;
@@ -147,11 +163,15 @@ interface IWindowColourSwatchesProps {
 export default function WindowColourSwatches({
   colours,
   own,
+  night,
+  day,
+  editing,
   disabled = false,
   onChange,
   onCommit,
 }: IWindowColourSwatchesProps) {
   const { t } = useTranslation();
+  const wornSurface = useWornSurface(night, day, editing);
   const glowUnused = skyFromWindowColours(colours)?.active === null;
   // A white window keeps its panes white whatever the scene's surface is
   // (`pickedWindow.ts`), so the surface paints nothing there and its swatch
@@ -176,6 +196,7 @@ export default function WindowColourSwatches({
             undefined
           }
           fixed={role === 'surface' ? whitePane : undefined}
+          shownAs={role === 'surface' ? wornSurface : undefined}
           disabled={disabled}
           onChange={onChange}
           onCommit={onCommit}

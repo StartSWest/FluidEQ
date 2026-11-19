@@ -125,6 +125,9 @@ export default function SceneWindowColours() {
       <WindowColourSwatches
         colours={shown}
         own={ownSet}
+        night={night}
+        day={day}
+        editing={editing}
         onChange={change}
         onCommit={commit}
       />

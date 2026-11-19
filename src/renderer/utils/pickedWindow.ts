@@ -89,6 +89,29 @@ const DARK_PANE_CEILING = 0.52;
 const WHITE: ILab = { l: 1, a: 0, b: 0 };
 
 /**
+ * The theme at the top of its dark travel, which every named dark surface is
+ * stood against: worked out once, because the colour picker asks for a
+ * window's floor once for every cell of its field.
+ */
+let darkEndTheme: ReturnType<typeof themeShadeTokens> | undefined;
+const darkEnd = () => {
+  darkEndTheme ??= themeShadeTokens(DARK_END_SHADE);
+  return darkEndTheme;
+};
+
+/** The theme at the Brightness last asked for, for the same reason. */
+let lastTheme:
+  { shade: number; tokens: ReturnType<typeof themeShadeTokens> } | undefined;
+const themeAt = (shade: number) => {
+  if (lastTheme?.shade !== shade) {
+    lastTheme = { shade, tokens: themeShadeTokens(shade) };
+  }
+  return lastTheme.tokens;
+};
+
+type TSurfaceSet = Partial<Record<TWindowSurface, string>>;
+
+/**
  * The dark window's surfaces: the floor exactly `surface`, every other one
  * standing where the theme's darkest-but-lightest shade (the top of its dark
  * travel) stands it over its floor, as colourful for its lightness.
@@ -96,8 +119,9 @@ const WHITE: ILab = { l: 1, a: 0, b: 0 };
 const darkSurfaces = (
   surface: ILab,
   lean: number | undefined,
-): Record<TWindowSurface, string> => {
-  const theme = themeShadeTokens(DARK_END_SHADE);
+  tokens: readonly TWindowSurface[],
+): TSurfaceSet => {
+  const theme = darkEnd();
   const themeFloor = labOf(theme['--surface-base']);
   const themePane = labOf(theme['--surface-panel']);
   const paneStep = themePane && themeFloor ? themePane.l - themeFloor.l : 0;
@@ -111,8 +135,8 @@ const darkSurfaces = (
     b: surface.b * floorShare,
   };
   const grey = chromaOf(surface) < GREY_CHROMA;
-  const out = {} as Record<TWindowSurface, string>;
-  WINDOW_SURFACES.forEach((token) => {
+  const out: TSurfaceSet = {};
+  tokens.forEach((token) => {
     const own = labOf(theme[token]);
     const step = own && themeFloor ? own.l - themeFloor.l : 0;
     const l = floor.l + step;
@@ -144,11 +168,12 @@ const lentDarkSurfaces = (
   surface: ILab,
   brightness: number,
   lean: number | undefined,
-): Record<TWindowSurface, string> => {
-  const theme = themeShadeTokens(brightness);
+  tokens: readonly TWindowSurface[],
+): TSurfaceSet => {
+  const theme = themeAt(brightness);
   const grey = chromaOf(surface) < GREY_CHROMA;
-  const out = {} as Record<TWindowSurface, string>;
-  WINDOW_SURFACES.forEach((token) => {
+  const out: TSurfaceSet = {};
+  tokens.forEach((token) => {
     const own = labOf(theme[token]);
     const l = own?.l ?? 0;
     out[token] = labToHex(
@@ -173,6 +198,28 @@ export const isUsableGlow = (glow: ILab): boolean =>
   chromaOf(glow) >= GREY_CHROMA && clearsWarningHues(hueOf(glow));
 
 /**
+ * The surfaces in `tokens` the window paints for a named `surface` (its hex
+ * `surfaceHex`) at `brightness`, its greys leaning to `lean`.
+ */
+const surfacesOf = (
+  surface: ILab,
+  surfaceHex: string,
+  brightness: number,
+  lean: number | undefined,
+  tokens: readonly TWindowSurface[],
+): TSurfaceSet => {
+  if (isLightShade(brightness)) {
+    return lightSurfaces(WHITE, undefined, lightDimOf(brightness));
+  }
+  if (inkForSurface(surfaceHex) === 'dark') {
+    return lentDarkSurfaces(surface, brightness, lean, tokens);
+  }
+  const asPicked = darkSurfaces(surface, lean, tokens);
+  // Handed them as their own knee, so the walk starts from exactly them.
+  return darkenSurfaces(asPicked, asPicked, brightness);
+};
+
+/**
  * Every token the window wears for `colours` at `brightness` (the theme
  * shade, 0 to 100), or undefined when one of them cannot be read.
  */
@@ -186,25 +233,55 @@ const pickedWindow = (
   if (!surface || !accent || !glow) {
     return undefined;
   }
-  const isLight = isLightShade(brightness);
   // The light window leans to no hue at all: white panes, neutral greys,
   // edges and words, and the colour only where the accent and glow are.
-  const lean = isLight ? undefined : leanOf(surface, accent);
-  const isLightSurface = inkForSurface(colours.surface) === 'dark';
-  let surfaces: Record<TWindowSurface, string>;
-  if (isLight) {
-    surfaces = lightSurfaces(WHITE, undefined, lightDimOf(brightness));
-  } else if (isLightSurface) {
-    surfaces = lentDarkSurfaces(surface, brightness, lean);
-  } else {
-    const asPicked = darkSurfaces(surface, lean);
-    // Handed them as their own knee, so the walk starts from exactly them.
-    surfaces = darkenSurfaces(asPicked, asPicked, brightness) as Record<
-      TWindowSurface,
-      string
-    >;
+  const lean = isLightShade(brightness) ? undefined : leanOf(surface, accent);
+  const set = surfacesOf(
+    surface,
+    colours.surface,
+    brightness,
+    lean,
+    WINDOW_SURFACES,
+  );
+  const surfaces = {} as Record<TWindowSurface, string>;
+  WINDOW_SURFACES.forEach((token) => {
+    const hex = set[token];
+    if (hex !== undefined) {
+      surfaces[token] = hex;
+    }
+  });
+  if (WINDOW_SURFACES.some((token) => surfaces[token] === undefined)) {
+    return undefined;
   }
   return windowOn(surfaces, accent, isUsableGlow(glow) ? glow : accent, lean);
+};
+
+const FLOOR_ONLY: readonly TWindowSurface[] = ['--surface-base'];
+
+/**
+ * The floor the window paints for the named `surface` beside `accent` at
+ * `brightness`: what a surface is shown as wherever it is picked, so the
+ * colour chosen is the colour the window turns (Ivan, 2026-11-18: "we are
+ * not matching well the picked colour to the applied one ... at 0 it should
+ * not show the full bright spectrum"). The same rule as `pickedWindow`'s,
+ * for the floor alone: the picker asks once for every cell of its field.
+ */
+export const pickedFloor = (
+  surface: string,
+  accent: string,
+  brightness: number,
+): string | undefined => {
+  const surfaceLab = labOf(surface);
+  const accentLab = labOf(accent);
+  if (!surfaceLab || !accentLab) {
+    return undefined;
+  }
+  const lean = isLightShade(brightness)
+    ? undefined
+    : leanOf(surfaceLab, accentLab);
+  return surfacesOf(surfaceLab, surface, brightness, lean, FLOOR_ONLY)[
+    '--surface-base'
+  ];
 };
 
 export default pickedWindow;

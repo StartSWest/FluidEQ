@@ -8,6 +8,8 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
+  useMemo,
   useState,
   type CSSProperties,
   type KeyboardEvent,
@@ -50,6 +52,23 @@ const BIG_STEP = 0.1;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
+/**
+ * The cells a field shown through `shownAs` is painted in, across and down:
+ * each is the window's rule run once, and the browser smooths them into the
+ * field's size. Enough that a step between two never reads as a band.
+ */
+const FIELD_CELLS = { x: 28, y: 18 };
+
+/** Stops of a hue bar shown through `shownAs`, one every ten degrees. */
+const HUE_STOPS = 36;
+
+/** `#rrggbb`'s channels, 0 to 255. */
+const channelsOf = (hex: string): [number, number, number] => {
+  const channel = (at: number) =>
+    Number.parseInt(hex.slice(1 + at * 2, 3 + at * 2), 16);
+  return [channel(0), channel(1), channel(2)];
+};
+
 /** Where in `element` a pointer stands, 0 to 1 across and down. */
 const shareOf = (element: HTMLElement, event: PointerEvent<HTMLElement>) => {
   const box = element.getBoundingClientRect();
@@ -90,6 +109,15 @@ interface IColourPickerPopoverProps {
    * the bar keeps wherever it last stood.
    */
   hueWhenGrey?: number;
+  /**
+   * What each colour is shown as: the colour the window really paints for
+   * it (Ivan, 2026-11-18: "we do need to keep in mind its brightness, that
+   * needs to be controlled by the Brightness ... at 0 it should not show the
+   * full bright spectrum"). The field, the hue bar and the swatches show
+   * that; the hex is still the colour picked, which is what is kept. Absent,
+   * every colour is shown as itself.
+   */
+  shownAs?: (hex: string) => string;
 }
 
 /**
@@ -111,6 +139,7 @@ export default function ColourPickerPopover({
   onAccept,
   onCancel,
   hueWhenGrey,
+  shownAs,
 }: IColourPickerPopoverProps) {
   const { t } = useTranslation();
   const hexId = useId();
@@ -271,6 +300,46 @@ export default function ColourPickerPopover({
   };
 
   const hueColour = hexOfHsv({ h: hsv.h, s: 1, v: 1 });
+  const show = shownAs ?? ((hex: string) => hex);
+  // The field as the window wears it: painted cell by cell on the hue's
+  // square, again whenever the hue or the rule moves - not while the mark
+  // moves over it. Held as state, not a ref: the menu puts its contents in
+  // only once it has measured where to stand, a render after it opens.
+  const [paint, setPaint] = useState<HTMLCanvasElement | null>(null);
+  useLayoutEffect(() => {
+    const context = paint?.getContext('2d');
+    if (!shownAs || !context) {
+      return;
+    }
+    const cells = context.createImageData(FIELD_CELLS.x, FIELD_CELLS.y);
+    for (let y = 0; y < FIELD_CELLS.y; y += 1) {
+      for (let x = 0; x < FIELD_CELLS.x; x += 1) {
+        const hex = shownAs(
+          hexOfHsv({
+            h: hsv.h,
+            s: x / (FIELD_CELLS.x - 1),
+            v: 1 - y / (FIELD_CELLS.y - 1),
+          }),
+        );
+        const at = (y * FIELD_CELLS.x + x) * 4;
+        const [r, g, b] = channelsOf(hex);
+        cells.data[at] = r;
+        cells.data[at + 1] = g;
+        cells.data[at + 2] = b;
+        cells.data[at + 3] = 255;
+      }
+    }
+    context.putImageData(cells, 0, 0);
+  }, [paint, shownAs, hsv.h]);
+  const hueBar = useMemo(() => {
+    if (!shownAs) {
+      return undefined;
+    }
+    const stops = Array.from({ length: HUE_STOPS + 1 }, (_, index) =>
+      shownAs(hexOfHsv({ h: (index / HUE_STOPS) * 360, s: 1, v: 1 })),
+    );
+    return `linear-gradient(to right, ${stops.join(', ')})`;
+  }, [shownAs]);
   return (
     <AnchoredMenu
       anchor={anchor}
@@ -283,12 +352,12 @@ export default function ColourPickerPopover({
       <div className="colour-picker__head">
         <span className="colour-picker__title">{title}</span>
         <span className="colour-picker__compare" aria-hidden>
-          <span style={{ background: value }} />
-          <span style={{ background: current }} />
+          <span style={{ background: show(value) }} />
+          <span style={{ background: show(current) }} />
         </span>
       </div>
       <div
-        className="colour-picker__field"
+        className={`colour-picker__field${shownAs ? ' is-worn' : ''}`}
         role="slider"
         tabIndex={0}
         aria-label={t('graph.sceneColours.field')}
@@ -302,19 +371,29 @@ export default function ColourPickerPopover({
         onPointerMove={dragField}
         onKeyDown={fieldKeys}
       >
+        {shownAs && (
+          <canvas
+            ref={setPaint}
+            className="colour-picker__paint"
+            width={FIELD_CELLS.x}
+            height={FIELD_CELLS.y}
+            aria-hidden
+          />
+        )}
         <span
           className="colour-picker__mark"
           style={
             {
               left: `${hsv.s * 100}%`,
               top: `${(1 - hsv.v) * 100}%`,
-              '--mark': current,
+              '--mark': show(current),
             } as CSSProperties
           }
         />
       </div>
       <div
         className="colour-picker__hue"
+        style={hueBar ? { background: hueBar } : undefined}
         role="slider"
         tabIndex={0}
         aria-label={t('graph.sceneColours.hue')}
@@ -333,7 +412,7 @@ export default function ColourPickerPopover({
           style={
             {
               left: `${(hsv.h / 360) * 100}%`,
-              '--mark': hueColour,
+              '--mark': show(hueColour),
             } as CSSProperties
           }
         />

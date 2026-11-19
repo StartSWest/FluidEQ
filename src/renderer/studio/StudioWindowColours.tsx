@@ -86,6 +86,9 @@ export default function StudioWindowColours({
           <WindowColourSwatches
             colours={colours}
             own={state.own}
+            night={night}
+            day={day}
+            editing={state.editing}
             disabled={idle}
             onChange={state.change}
             onCommit={state.commit}
