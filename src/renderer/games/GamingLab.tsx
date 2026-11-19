@@ -6,12 +6,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react';
 import ListenedLatency from '../components/ListenedLatency';
+import { useRailWidth } from '../library/LibraryRailSplitter';
+import { useRailPinned } from '../widgets/StudioRail';
 import GamingAddDialog from './GamingAddDialog';
-import GamingGames from './GamingGames';
+import GamingGames, { GamingGameList, shownGame } from './GamingGames';
+import GamingLabFrame from './GamingLabFrame';
 import GamingLabHead, { TGamingLabView } from './GamingLabHead';
 import GamingNowPlaying from './GamingNowPlaying';
 import GamingProfilesView from './GamingProfilesView';
 import { setGamesEnabled } from './gameProfiles';
+import { GAMING_RAIL_PINNED_KEY, GAMING_RAIL_WIDTH_KEY } from './gamingRail';
 import { useGameSound } from './useGameSound';
 
 /**
@@ -19,9 +23,11 @@ import { useGameSound } from './useGameSound';
  * from a Gaming profile and tuned here, in one place (Ivan, 2026-11-02:
  * "we cannot be jumping back and forth from gaming and DSP to tune").
  *
- * Two views over one subject: the games, and the profiles their copies start
- * from. Adding a game is the same act from either, so the dialog belongs to
- * the page; the profiles view opens it with the profile already chosen.
+ * The games down the rail, and two views beside it: the chosen game's sound,
+ * and the profiles their copies start from. A game picked in the rail opens
+ * its sound from either view, as a shelf in the Library's rail does. Adding a
+ * game is the same act from anywhere, so the dialog belongs to the page; the
+ * profiles view opens it with the profile already chosen.
  */
 const GamingLab = () => {
   // Watching while the page is open as well, so the list can say which game
@@ -32,45 +38,62 @@ const GamingLab = () => {
   const [view, setView] = useState<TGamingLabView>('games');
   const [adding, setAdding] = useState<{ profileId?: string } | undefined>();
   const [selected, setSelected] = useState<string | undefined>();
+  const [isPinned, setPinned] = useRailPinned(GAMING_RAIL_PINNED_KEY);
+  const railWidth = useRailWidth(GAMING_RAIL_WIDTH_KEY);
+  const shown = shownGame(profiles, selected, playing?.id, sounding?.id);
+  const showGame = (id: string) => {
+    setSelected(id);
+    setView('games');
+  };
 
   return (
-    <div className="gaming-lab">
-      <GamingLabHead
-        view={view}
-        onView={setView}
+    <>
+      <GamingLabFrame
+        count={profiles.length}
         isOn={enabled}
-        onToggle={() => setGamesEnabled(!enabled)}
+        isPinned={isPinned}
+        onPinned={setPinned}
+        railWidth={railWidth}
         onAdd={() => setAdding({})}
-        gameMode={<ListenedLatency />}
-        nowPlaying={
-          sounding && (
-            <GamingNowPlaying
-              game={sounding}
-              onShow={() => {
-                setView('games');
-                setSelected(sounding.id);
-              }}
-            />
-          )
+        rows={
+          <GamingGameList
+            games={profiles}
+            shownId={view === 'games' ? shown?.id : undefined}
+            playingId={playing?.id}
+            onSelect={showGame}
+          />
         }
-      />
-
-      {view === 'games' ? (
-        <GamingGames
-          games={profiles}
-          isOn={enabled}
-          playingId={playing?.id}
-          soundingId={sounding?.id}
-          selectedId={selected}
-          onSelect={setSelected}
-          onAdd={() => setAdding({})}
-        />
-      ) : (
-        <GamingProfilesView
-          games={profiles}
-          onUse={(profileId) => setAdding({ profileId })}
-        />
-      )}
+        head={
+          <GamingLabHead
+            view={view}
+            onView={setView}
+            isOn={enabled}
+            onToggle={() => setGamesEnabled(!enabled)}
+            gameMode={<ListenedLatency />}
+            nowPlaying={
+              sounding && (
+                <GamingNowPlaying
+                  game={sounding}
+                  onShow={() => showGame(sounding.id)}
+                />
+              )
+            }
+          />
+        }
+      >
+        {view === 'games' ? (
+          <GamingGames
+            shown={shown}
+            playingId={playing?.id}
+            onAdd={() => setAdding({})}
+          />
+        ) : (
+          <GamingProfilesView
+            games={profiles}
+            onUse={(profileId) => setAdding({ profileId })}
+          />
+        )}
+      </GamingLabFrame>
 
       {adding && (
         <GamingAddDialog
@@ -78,13 +101,12 @@ const GamingLab = () => {
           profileId={adding.profileId}
           onAdded={(id) => {
             setAdding(undefined);
-            setSelected(id);
-            setView('games');
+            showGame(id);
           }}
           onClose={() => setAdding(undefined)}
         />
       )}
-    </div>
+    </>
   );
 };
 

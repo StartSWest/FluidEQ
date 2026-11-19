@@ -1,9 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { gamingProfileOf, IGameProfile } from 'common/games';
-import { CSSProperties, useId } from 'react';
-import ColumnResizer from '../../components/ColumnResizer';
-import { GamingGamesListToggle } from '../../games/GamingGamesLayout';
 import { gamingProfileEntry } from '../../games/gamingCatalog';
 import {
   GamingGameHead,
@@ -11,6 +8,7 @@ import {
   GamingProfilePick,
 } from '../../games/GamingGameHead';
 import GamingGameRow from '../../games/GamingGameRow';
+import GamingLabFrame, { drawnRailWidth } from '../../games/GamingLabFrame';
 import GamingLabHead from '../../games/GamingLabHead';
 import GamingSaveMenu from '../../games/GamingSaveMenu';
 import GamingStageRail from '../../games/GamingStageRail';
@@ -61,108 +59,82 @@ const TUNED: readonly TGamingStage[] = ['footsteps', 'mainEq', 'curve'];
 
 const GamingLabDrawing = () => {
   const { t } = useTranslation();
-  const listId = useId();
   const [shown] = GAMES;
   const profile = gamingProfileEntry(gamingProfileOf(shown), [], t);
   return (
     <div className="workspace-tab-panel workspace-tab-panel--games">
       <div className="workspace-tab-panel__scroll">
-        <div className="gaming-lab">
-          <GamingLabHead
-            view="games"
-            onView={nothing}
-            isOn
-            onToggle={nothing}
-            onAdd={nothing}
-          />
-          <div
-            className="gaming-games gaming-games--split"
-            style={
-              {
-                '--gaming-list-width': '240px',
-                '--gaming-list-height': '220px',
-              } as CSSProperties
-            }
-          >
-            <GamingGamesListToggle
-              count={GAMES.length}
-              collapsed={false}
-              controls={listId}
+        <GamingLabFrame
+          count={GAMES.length}
+          isOn
+          isPinned
+          onPinned={nothing}
+          railWidth={drawnRailWidth}
+          onAdd={nothing}
+          rows={GAMES.map((game) => (
+            <GamingGameRow
+              key={game.id}
+              game={game}
+              profileName={
+                gamingProfileEntry(gamingProfileOf(game), [], t).name
+              }
+              isTuned={game.id === shown.id}
+              isSelected={game.id === shown.id}
+              isPlaying={game.id === shown.id}
+              onSelect={nothing}
+            />
+          ))}
+          head={
+            <GamingLabHead
+              view="games"
+              onView={nothing}
+              isOn
               onToggle={nothing}
             />
-            <aside className="gaming-games__sidebar">
-              <div className="gaming-games__list" id={listId}>
-                {GAMES.map((game) => (
-                  <GamingGameRow
-                    key={game.id}
-                    game={game}
-                    profileName={
-                      gamingProfileEntry(gamingProfileOf(game), [], t).name
-                    }
-                    isTuned={game.id === shown.id}
-                    isSelected={game.id === shown.id}
-                    isPlaying={game.id === shown.id}
-                    onSelect={nothing}
+          }
+        >
+          <section className="gaming-panel" aria-label={shown.name}>
+            <GamingGameHead
+              game={shown}
+              where={t('gaming.game.where', {
+                source: t('games.source.steam'),
+                output: 'Arctis Nova 7',
+              })}
+              isPlaying
+              pick={
+                <GamingProfilePick
+                  profileId={gamingProfileOf(shown)}
+                  yours={[]}
+                  onPick={nothing}
+                  disabled={false}
+                />
+              }
+              actions={
+                <>
+                  <GamingSaveMenu
+                    gameName={shown.name}
+                    profileName={profile.name}
+                    isYours={false}
+                    isBusy={false}
+                    onSaveNew={nothing}
+                    onUpdate={nothing}
+                    onReset={nothing}
+                    onRename={nothing}
+                    onDelete={nothing}
                   />
-                ))}
-              </div>
-            </aside>
-            <div className="gaming-games__divider">
-              <ColumnResizer
-                ariaLabel={t('gaming.list.resize')}
-                valuePercent={25}
-                onStart={nothing}
-                onDrag={nothing}
-                onEnd={nothing}
-                onReset={nothing}
-              />
-            </div>
-            <section
-              className="gaming-games__detail gaming-panel"
-              aria-label={shown.name}
-            >
-              <GamingGameHead
-                game={shown}
-                where={t('gaming.game.where', {
-                  source: t('games.source.steam'),
-                  output: 'Arctis Nova 7',
-                })}
-                isPlaying
-                pick={
-                  <GamingProfilePick
-                    profileId={gamingProfileOf(shown)}
-                    yours={[]}
-                    onPick={nothing}
-                    disabled={false}
-                  />
-                }
-                actions={
-                  <>
-                    <GamingSaveMenu
-                      gameName={shown.name}
-                      profileName={profile.name}
-                      isYours={false}
-                      isBusy={false}
-                      onSaveNew={nothing}
-                      onUpdate={nothing}
-                      onReset={nothing}
-                      onRename={nothing}
-                      onDelete={nothing}
-                    />
-                    <button type="button" className="button small">
-                      {t('gaming.action.try')}
-                    </button>
-                  </>
-                }
-              />
-              <GamingGameStatus
-                tuned={TUNED}
-                profileName={profile.name}
-                copyName={shown.copyName}
-              />
-            </section>
-          </div>
-        </div>
+                  <button type="button" className="button small">
+                    {t('gaming.action.try')}
+                  </button>
+                </>
+              }
+            />
+            <GamingGameStatus
+              tuned={TUNED}
+              profileName={profile.name}
+              copyName={shown.copyName}
+            />
+          </section>
+        </GamingLabFrame>
       </div>
     </div>
   );
@@ -181,20 +153,22 @@ export const GamingPartsDrawing = () => {
     <div className="workspace-tab-panel workspace-tab-panel--games">
       <div className="workspace-tab-panel__scroll">
         <div className="gaming-lab">
-          <section className="gaming-panel" aria-label={shown.name}>
-            <div className="dsp-body gaming-panel__body">
-              <GamingStageRail
-                active="footsteps"
-                onSelect={nothing}
-                tuned={TUNED}
-              />
-              <GamingStageWaiting
-                gameName={shown.name}
-                isBusy={false}
-                onTryNow={nothing}
-              />
-            </div>
-          </section>
+          <div className="gaming-lab__main">
+            <section className="gaming-panel" aria-label={shown.name}>
+              <div className="dsp-body gaming-panel__body">
+                <GamingStageRail
+                  active="footsteps"
+                  onSelect={nothing}
+                  tuned={TUNED}
+                />
+                <GamingStageWaiting
+                  gameName={shown.name}
+                  isBusy={false}
+                  onTryNow={nothing}
+                />
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>

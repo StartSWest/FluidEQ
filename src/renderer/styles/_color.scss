@@ -105,3 +105,9 @@ $amber: #ffb059;
 $ink-added: var(--ink-added, #{$analogous-2});
 $ink-caution: var(--ink-caution, #{$amber});
 $ink-removed: var(--ink-removed, #{$red});
+
+// "Tuned", as the Gaming Lab says a game's copy moved away from its profile:
+// the lavender on a dark window, and on a white one a deep violet of the same
+// meaning (7:1 on white), where the lavender measured 1.4:1 and the word
+// could hardly be seen beside its stage (2026-11-19).
+$ink-tuned: var(--ink-tuned, #{$primary-lighter});

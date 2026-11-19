@@ -33,7 +33,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import './ConfigInspector.scss';
 import './RichPick.scss';
 import './Games.scss';
-import './GamingGamesLayout.scss';
 import './App.scss';
 // The cover full screen changes behind, and the transitions it holds.
 import './WindowRefit.scss';
@@ -72,6 +71,9 @@ import './SongEqSaveSwitch.scss';
 // page's own rules for its rail win the ties.
 import './StudioRail.scss';
 import './Dsp.scss';
+// The Gaming Lab's frame and rail (`GamingLabFrame`), after the rail and the
+// rack it borrows, so its page's rules stand over theirs.
+import './GamingLab.scss';
 import './EqModeSelect.scss';
 import './BandLayoutMenu.scss';
 import './BandLabels.scss';

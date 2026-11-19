@@ -285,7 +285,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.tip':
     'Mientras suena el sonido de un juego, la página DSP muestra tu rack de música en pausa con un botón para ajustar el juego, y la lista de perfiles queda en reposo, así que nada de lo que hagas ahí puede sobrescribir tu perfil de música con el sonido del juego. El Filtro Juego sube los pasos y las recargas bajos en el momento en que suenan y pasa las voces al frente.',
   'help.games.list':
-    'La lista de juegos tiene su propio desplazamiento. Arrastra el separador para cambiar su anchura, o su altura en una vista estrecha. La flecha oculta o muestra la lista; se recuerdan su tamaño y si está plegada.',
+    'Tus juegos van a la izquierda, con su propio desplazamiento. Arrastra el borde del panel para cambiar su anchura. La chincheta lo pliega a los iconos de los juegos, que lo abren sobre la página mientras el puntero está encima; pulsa la chincheta otra vez para dejarlo abierto. Se recuerdan su anchura y si está plegado.',
   'help.games.keywords':
     'gaming, gamer, videojuegos, agregar juego, perfiles de juego, por aplicación, automático, launcher, FPS, shooter, competitivo, pasos, pisadas, escuchar pasos, oír pasos, game filter, dialogue, voices, ambience, environment, hooves, laboratorio gaming, gaming lab, perfil gaming, copia',
   'help.games.switch':
@@ -294,7 +294,7 @@ const help: Record<keyof typeof en, string> = {
     'Añade un juego de Steam, Epic, EA, GOG, Ubisoft, Battle.net o Xbox, o cualquier programa que esté abierto ahora. Se excluyen FluidEQ, el Explorador de Windows, los procesos conocidos del sistema y de los lanzadores, y los instaladores de componentes compartidos.',
   'help.games.gameName': 'Un juego',
   'help.games.game':
-    'El juego, el perfil del que partió su sonido y si lo ajustaste. Jugando significa que está al frente ahora.',
+    'Un juego. El abierto queda marcado, y un punto al final significa que está al frente ahora. Su descripción emergente dice el perfil del que partió su sonido y si lo ajustaste.',
   'help.games.profile':
     'El perfil gaming del que parte la copia de este juego. Elegir otro le da al juego una copia nueva de él.',
   'help.games.save':

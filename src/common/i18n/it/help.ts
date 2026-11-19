@@ -285,7 +285,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.tip':
     'Finché il suono di un gioco è attivo, la pagina DSP mostra il tuo rack per la musica in pausa con un pulsante per regolare il gioco, e l’elenco dei profili resta fermo, così niente di quello che fai lì può sovrascrivere il tuo profilo musicale con il suono del gioco. Il Filtro Gioco alza passi e ricariche deboli mentre accadono e porta avanti le voci.',
   'help.games.list':
-    'L’elenco dei giochi scorre in modo indipendente. Trascina il separatore per cambiarne la larghezza, o l’altezza in una vista stretta. La freccia nasconde o mostra l’elenco; dimensioni e stato di chiusura vengono ricordati.',
+    'I tuoi giochi stanno a sinistra e scorrono in modo indipendente. Trascina il bordo del pannello per cambiarne la larghezza. La puntina lo riduce alle icone dei giochi, che lo aprono sopra la pagina mentre il puntatore è sopra di esse; premi di nuovo la puntina per tenerlo aperto. Larghezza e stato ridotto vengono ricordati.',
   'help.games.keywords':
     'videogiochi, EQ per giochi, giocare, aggiungere gioco, profilo gioco, cambio automatico, sparatutto, FPS, competitivo, passi dei nemici, sentire i passi, game mode, game filter, dialogue, voices, ambience, environment, hooves, laboratorio gaming, gaming lab, profilo gaming, copia',
   'help.games.switch':
@@ -294,7 +294,7 @@ const help: Record<keyof typeof en, string> = {
     'Aggiunge un gioco da Steam, Epic, EA, GOG, Ubisoft, Battle.net o Xbox, oppure qualsiasi programma aperto ora. Sono esclusi FluidEQ, Esplora file, i processi di sistema e dei launcher conosciuti e i programmi di installazione dei componenti condivisi.',
   'help.games.gameName': 'Un gioco',
   'help.games.game':
-    'Il gioco, il profilo da cui è partito il suo suono e se l’hai regolato. In gioco significa che è in primo piano ora.',
+    'Un gioco. Quello aperto è evidenziato, e un punto alla fine significa che è in primo piano ora. Il suo suggerimento indica il profilo da cui è partito il suo suono e se l’hai regolato.',
   'help.games.profile':
     'Il profilo gaming da cui parte la copia di questo gioco. Sceglierne un altro dà al gioco una copia nuova di quello.',
   'help.games.save':

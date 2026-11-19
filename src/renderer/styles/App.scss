@@ -101,6 +101,8 @@ html {
     --ink-added: #2a7420;
     --ink-caution: #8f5600;
     --ink-removed: #b42b2b;
+    // The Gaming Lab's "tuned" (`$ink-tuned`): 7:1 on white.
+    --ink-tuned: #5a43c4;
   }
   // No `scrollbar-color` and no `scrollbar-width` here, or anywhere.
   //
@@ -3547,14 +3549,6 @@ $graph-card-pages: list.join(
 .workspace-tab-panel--share .remote-audio__link,
 .workspace-tab-panel--share .remote-audio__another,
 .workspace-tab-panel--dsp .dsp-card {
-  background: transparent;
-}
-
-// The empty games page has nothing in its well to hold together, so the
-// well goes altogether: the section is the box the page says it is empty
-// in, and a frame inside it was a box in a box around one sentence.
-.workspace-tab-panel--games .games-empty {
-  border-color: transparent;
   background: transparent;
 }
 

@@ -289,7 +289,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.tip':
     'Solange der Klang eines Spiels an ist, zeigt die DSP-Seite Ihr Musik-Rack pausiert, mit einer Schaltfläche, um das Spiel abzustimmen, und die Profilliste ruht: Nichts, was Sie dort tun, kann Ihr Musikprofil mit dem Klang des Spiels überschreiben. Der Filter Spiel hebt leise Schritte und Nachladegeräusche an, während sie passieren, und rückt Stimmen nach vorn.',
   'help.games.list':
-    'Die Spieleliste lässt sich unabhängig scrollen. Ziehe die Trennlinie, um ihre Breite oder in einer schmalen Ansicht ihre Höhe zu ändern. Der Pfeil blendet die Liste ein oder aus; Größe und eingeklappter Zustand werden gespeichert.',
+    'Ihre Spiele stehen links und scrollen für sich. Ziehen Sie den Rand der Leiste, um ihre Breite zu ändern. Die Nadel klappt sie auf die Spielsymbole ein, die sie über der Seite öffnen, solange der Zeiger darauf steht; ein weiterer Klick auf die Nadel hält sie offen. Breite und eingeklappter Zustand werden gespeichert.',
   'help.games.keywords':
     'games, zocken, spielprofil, pro app, automatisch umschalten, ego-shooter, FPS, schritte hören, footsteps, gamemode, game filter, dialogue, voices, ambience, environment, hooves, gaming-labor, gaming lab, gaming-profil, kopie',
   'help.games.switch':
@@ -298,7 +298,7 @@ const help: Record<keyof typeof en, string> = {
     'Fügt ein Spiel aus Steam, Epic, EA, GOG, Ubisoft, Battle.net oder Xbox hinzu oder ein beliebiges Programm, das gerade offen ist. FluidEQ, Windows-Explorer, bekannte System- und Launcher-Prozesse sowie Installationsprogramme für gemeinsame Laufzeitkomponenten werden ausgeschlossen.',
   'help.games.gameName': 'Ein Spiel',
   'help.games.game':
-    'Das Spiel, das Profil, von dem sein Klang ausging, und ob Sie es angepasst haben. „Läuft“ heißt, es ist gerade im Vordergrund.',
+    'Ein Spiel. Das geöffnete ist markiert, und ein Punkt am Ende heißt, es ist gerade im Vordergrund. Der Tooltip nennt das Profil, von dem sein Klang ausging, und ob Sie es angepasst haben.',
   'help.games.profile':
     'Das Gaming-Profil, von dem die Kopie dieses Spiels ausgeht. Ein anderes gibt dem Spiel eine frische Kopie davon.',
   'help.games.save':

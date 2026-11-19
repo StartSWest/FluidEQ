@@ -16,9 +16,6 @@ export default {
   'gaming.switch.hint':
     'Off, your games keep your music sound and nothing switches by itself.',
   'gaming.add': 'Add a game',
-  'gaming.list.show': 'Show game names',
-  'gaming.list.hide': 'Show game icons',
-  'gaming.list.resize': 'Resize game list',
   'gaming.list.count': 'Your games · {count}',
   'gaming.list.from': 'From {profile}',
   'gaming.list.tuned': 'tuned',

@@ -255,7 +255,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.tip':
     '游戏的声音启用期间，DSP 页面会显示已暂停的音乐机架和一个调整该游戏的按钮，配置列表也会停用，所以在那里做的任何操作都不会用游戏的声音覆盖你的音乐配置。游戏滤镜会在细小的脚步声和换弹声出现的瞬间把它们提上来，并把人声推到前面。',
   'help.games.list':
-    '游戏列表可独立滚动。拖动分隔条可调整列表宽度；布局较窄时可调整高度。点击箭头可隐藏或显示列表，大小及折叠状态会被记住。',
+    '你的游戏列在左侧，可独立滚动。拖动面板边缘可调整宽度。图钉可将面板收起为游戏图标，指针停在图标上时面板会在页面上方展开；再按一次图钉即可保持展开。宽度和收起状态会被记住。',
   'help.games.keywords':
     '游戏音效, 游戏配置, 电竞, 竞技, FPS, 射击游戏, 吃鸡, 脚步声, 听声辨位, 自动切换, 按程序, 按应用, 切屏, 低延迟, 暴雪, game filter, dialogue, voices, ambience, environment, hooves, 游戏实验室, gaming lab, 游戏配置, 副本',
   'help.games.switch':
@@ -264,7 +264,7 @@ const help: Record<keyof typeof en, string> = {
     '从 Steam、Epic、EA、GOG、育碧、战网或 Xbox 添加游戏，或添加任何当前打开的程序。 FluidEQ、Windows 资源管理器、已知的系统及启动器进程，以及共享运行库安装程序不会列为游戏。',
   'help.games.gameName': '游戏',
   'help.games.game':
-    '游戏、它的声音来自哪个配置，以及你是否调整过。“运行中”表示它现在在前台。',
+    '一个游戏。已打开的游戏会被标出，末尾的圆点表示它现在在前台。提示中会说明它的声音来自哪个配置，以及你是否调整过。',
   'help.games.profile':
     '这个游戏的副本所基于的游戏配置。选另一个会给游戏一份它的全新副本。',
   'help.games.save':

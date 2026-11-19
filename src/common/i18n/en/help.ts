@@ -278,7 +278,7 @@ const help = {
   'help.games.tip':
     'While a game’s sound is on, the DSP page shows your music rack paused with a button to tune the game, and the profile list rests, so nothing done there can overwrite your music profile with the game’s sound. The Game filter brings up quiet steps and reloads as they happen and puts voices forward.',
   'help.games.list':
-    'The games list scrolls on its own. Drag the divider to change its width, or its height in a narrow layout. Use the chevron to hide or show the list; its size and folded state are remembered.',
+    'Your games run down the left and scroll on their own. Drag the rail’s edge to change its width. The pin folds it to the games’ icons, which open it over the page while the pointer is on them; press the pin again to keep it open. Its width and fold are remembered.',
   'help.games.keywords':
     'gaming, gaming lab, gaming profile, game profile, game presets, per game, per-game, per app, copy, automatic, auto switch, steam, epic, launcher, fps, shooter, footsteps, competitive, alt-tab, game mode, game filter, dialogue, voices, ambience, environment, hooves, resize, splitter, collapse, game list, scrolling',
   'help.games.switch':
@@ -287,7 +287,7 @@ const help = {
     'Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now. FluidEQ, Windows Explorer, known system and launcher processes, and shared runtime installers are left out.',
   'help.games.gameName': 'A game',
   'help.games.game':
-    'The game, the profile its sound started from, and whether you tuned it. Playing means it is in front now.',
+    'A game. The one open is marked, and a dot at its end means it is in front now. Its tooltip says the profile its sound started from and whether you tuned it.',
   'help.games.profile':
     'The Gaming profile this game’s copy starts from. Picking another gives the game a fresh copy of it.',
   'help.games.save':
