@@ -36,7 +36,6 @@ const remoteAudio = {
   'remoteAudio.group.hint':
     'Link a computer to join its group. Each computer sends its own sound directly to the others; adjust what you hear in your mix.',
   'tabs.share': 'Share Audio',
-  'remoteAudio.eyebrow': 'LAN AUDIO',
   'remoteAudio.title': 'Share audio between your computers',
   'remoteAudio.security': 'Connection properties',
   'remoteAudio.badge.local': 'Private LAN only',

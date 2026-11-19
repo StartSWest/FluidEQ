@@ -31,7 +31,6 @@ const remoteAudio = {
   'remoteAudio.group.hint':
     '連結電腦以加入其組。每臺電腦將自己的聲音直接傳送給其他電腦；調整您在混音中聽到的內容。',
   'tabs.share': '分享音訊',
-  'remoteAudio.eyebrow': '區域網路音訊',
   'remoteAudio.title': '在電腦之間共享音訊',
   'remoteAudio.security': '連線屬性',
   'remoteAudio.badge.local': '僅專用 LAN',

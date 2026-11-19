@@ -1,20 +1,19 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
-// One direction of a link: where it goes, what is on it, how far behind it
-// plays, and its switch — one row, so the two directions read as a pair.
-// The two directions share one set of columns (`subgrid`): the incoming row
-// carries its volume beside its switch, and without the shared tracks its
-// wave ended short of the outgoing one's.
+// One direction of a computer: where it goes, what is on it, and its switch -
+// one row, in the Library's type: a name in the first ink over what qualifies
+// it, the music on a line of its own, the wave under it. No rule between two
+// rows and no disc round the arrow: the air and the inks part them.
 .remote-audio__lanes {
   display: grid;
   min-width: 0;
   column-gap: 18px;
-  // Rate, then delay: the rate stands in one column on both lanes, and the
-  // outgoing lane, which has no delay, leaves the second one empty.
   grid-template-columns: minmax(170px, 230px) minmax(0, 1fr) 84px 72px auto;
 }
 
@@ -27,14 +26,10 @@
   display: grid;
   min-width: 0;
   align-items: center;
-  padding: 16px 18px;
+  padding: 14px 12px;
   gap: 18px;
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
-
-  + .remote-audio__lane {
-    border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
-  }
 }
 
 .remote-audio__lane-direction {
@@ -44,22 +39,18 @@
   gap: 12px;
 }
 
+// The way the sound goes, as a bare glyph in the accent's ink - the Library
+// rail's glyph, not a tile.
 .remote-audio__lane-arrow {
   display: grid;
-  width: 34px;
-  height: 34px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 50%;
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
   color: $secondary-light;
-  transition:
-    background $motion-fast $ease-out,
-    color $motion-fast $ease-out;
+  transition: color $motion-fast $ease-out;
 
   .menu-icon {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -67,22 +58,23 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 
   strong {
-    font-size: $text-body;
-    font-weight: $weight-bold;
+    font-size: $studio-text-row;
+    font-weight: $weight-semibold;
   }
 }
 
-// The app's kicker (`.control-kicker`), as a class of its own because the
-// lane dims it with the rest when its direction is off.
+// What the name is - this computer, or whose sound - in the Library header's
+// quietest capitals, a class of its own because the lane dims it with the
+// rest when its direction is off. The link dialog's two halves wear it too.
 .remote-audio__lane-kicker {
   overflow: hidden;
-  color: $secondary-light;
-  font-size: $text-eyebrow;
+  color: $studio-t3;
+  font-size: $studio-text-label;
   font-weight: $weight-bold;
-  @include tracking(0.14em);
+  @include tracking(0.1em);
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -100,7 +92,7 @@
   min-width: 0;
   margin: 0;
   gap: 8px;
-  font-size: $text-small;
+  font-size: $studio-text-tree;
   white-space: nowrap;
 }
 
@@ -116,7 +108,7 @@
   min-width: 0;
   overflow: hidden;
   flex: 0 1000 auto;
-  color: $text-muted;
+  color: $studio-t2;
   text-overflow: ellipsis;
 
   &::before {
@@ -181,8 +173,8 @@
 }
 
 .remote-audio__lane-caption {
-  color: $text-faint;
-  font-size: $text-micro;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
 }
 
 // The last column on both lanes, however many figures stand before it.
@@ -192,81 +184,19 @@
   justify-content: flex-end;
   grid-column: -2 / -1;
   gap: 10px;
-  font-size: $text-small;
-  font-weight: $weight-semibold;
+  color: $studio-t2;
+  font-size: $studio-text-tree;
   white-space: nowrap;
 }
 
 .remote-audio__lane.is-off {
   .remote-audio__lane-arrow {
-    background: color-mix(in srgb, $edge-tint 8%, transparent);
-    color: $text-faint;
-  }
-
-  .remote-audio__lane-kicker {
-    color: $text-faint;
+    color: $studio-t3;
   }
 
   .remote-audio__lane-names strong,
   .remote-audio__lane-song,
   .remote-audio__lane-number {
     color: $text-muted;
-  }
-}
-
-@container eq-panel (max-width: 900px) {
-  // Each row lays itself out below this width, so nothing is shared.
-  .remote-audio__lanes {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .remote-audio__lane {
-    gap: 12px 16px;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'direction switch'
-      'body body'
-      'figure figure';
-  }
-
-  .remote-audio__lane-direction {
-    grid-area: direction;
-  }
-
-  .remote-audio__lane-switch {
-    grid-area: switch;
-  }
-
-  .remote-audio__lane-body {
-    grid-area: body;
-  }
-
-  .remote-audio__lane-figures {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 24px;
-    grid-area: figure;
-  }
-
-  .remote-audio__lane-figure {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: flex-start;
-    gap: 6px;
-  }
-}
-
-@container eq-panel (max-width: 460px) {
-  .remote-audio__lane {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'direction'
-      'body'
-      'figure'
-      'switch';
-  }
-
-  .remote-audio__lane-switch {
-    justify-content: space-between;
   }
 }

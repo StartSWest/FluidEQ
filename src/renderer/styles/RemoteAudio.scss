@@ -6,39 +6,241 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+// SHARE AUDIO LAID OUT AS THE LIBRARY IS (Ivan, 2026-11-19: "clean, clear,
+// without so many lines and borders, the way the Library is"): one card, no
+// card inside it; the mix down the studio rail (`StudioRail`), parted from
+// the page by its hairline; the group beside it scrolling inside itself, on
+// the card's own floor. The only lines left are the rail's hairline and the
+// group's header rule, both the Library's own. The type is the Library's
+// (`_libraryTokens.scss`): 14px names, 12px meta, 11px capitals, three inks.
+
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
+@use 'studioRailFold' as *;
 @use 'RemoteAudioLink';
 @use 'RemoteAudioLane';
 
+// *** The frame ***************************************************************
+
+// The page's card holds the rail and the group and scrolls neither, as the
+// Library's does: what is beside the rail scrolls inside itself, so the mix
+// stays where it is while a long group is read. Said as the DSP page says it
+// (`_dspStudio.scss`), and only while the page is this layout.
+.workspace-tab-panel--share:has(
+  > .workspace-tab-panel__scroll > .remote-audio
+) {
+  padding: 0;
+
+  > .workspace-tab-panel__scroll {
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+}
+
 .remote-audio {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   color: $text-primary;
+}
+
+// The page beside the rail: the head, the group, the notices and the page's
+// own words, scrolling inside itself with the app's slim bar. A container of
+// its own, so the group's rows measure the column they share with the rail,
+// never the whole card. Nothing fixed lives in it: the link dialog, the
+// options menu and the output's list are portalled to the body.
+.remote-audio__main {
+  @include slim-scrollbar;
+  container: share-main / inline-size;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  grid-column: 2;
+  grid-row: 1;
+  flex-direction: column;
+  gap: 22px;
+  // The Library's bar stands 14px under the card's top and 12px in from the
+  // rail's hairline (`$library-gutter`).
+  padding: 14px $library-gutter 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
 
   > * {
     @include stagger-in($count: 6, $step: 35ms);
   }
 }
 
-.remote-audio__header {
-  position: sticky;
-  z-index: 2;
-  top: 0;
+// *** The rail: your mix ******************************************************
+
+// The faders, one list: no card round them and no rule between them, only
+// the air the Library's rows keep. Each row is the fader's mute button in the
+// rail's glyph column - 28px square, its middle 28px in, where the pin's and
+// every Library glyph's middle stands - and the name where the rail's other
+// names start (10 + 4 + 28 + 4 = 46px).
+.remote-audio__mix,
+.remote-audio__mix-peers {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.remote-audio__fader {
+  display: grid;
+  min-width: 0;
+  grid-template-areas:
+    'mute name value'
+    '. slider slider'
+    '. caption caption';
+  grid-template-columns: $control-height-xs minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1px 4px;
+  padding: 6px 4px 8px;
+}
+
+.remote-audio__fader-mute {
+  grid-area: mute;
+}
+
+.remote-audio__fader-name {
+  min-width: 0;
+  grid-area: name;
+  color: $text-primary;
+  font-size: $studio-text-row;
+  @include truncate;
+}
+
+.remote-audio__fader-value {
+  grid-area: value;
+  padding-left: 8px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  font-variant-numeric: tabular-nums;
+}
+
+// The bar's own slider (`.now-playing-bar__volume-slider`), the rail's width.
+.remote-audio__fader-slider.now-playing-bar__volume-slider {
+  width: 100%;
+  min-width: 0;
+  grid-area: slider;
+  margin: 2px 0;
+}
+
+.remote-audio__fader-caption {
+  min-width: 0;
+  grid-area: caption;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  @include truncate;
+}
+
+// FOLDED, the speakers pack from the top at one step, as the DSP rail's
+// glyphs do (`_dspStudio.scss`): each row gives back its slider's and its
+// caption's lines and keeps only the mute button's, 29px and the list's 4px
+// of air - the 33px the DSP's folded rows stand apart. Hidden in place, the
+// rows kept their open height and the speakers stood 84px apart, scattered
+// down the column. Opened over the page, the lines slide back as the rail
+// widens, and the words come in after them on the words' own beat.
+$fold-fast: 90ms ease-out;
+
+.remote-audio__fader {
+  transition:
+    padding var(--rail-settle) $ease-out,
+    row-gap var(--rail-settle) $ease-out;
+
+  @include folded-at-rest {
+    row-gap: 0;
+    padding: 1px 4px 0;
+    transition:
+      padding $fold-fast,
+      row-gap $fold-fast;
+  }
+
+  @include folded-open {
+    transition:
+      padding var(--rail-move) $ease-out $rail-reveal-delay,
+      row-gap var(--rail-move) $ease-out $rail-reveal-delay;
+  }
+}
+
+// Through the row, so these outrank `studio-rail__word`'s own beat
+// (`StudioRail.scss`) whichever sheet loads first.
+.remote-audio__fader
+  > .remote-audio__fader-slider.now-playing-bar__volume-slider,
+.remote-audio__fader > .remote-audio__fader-caption {
+  // A limit to slide from and to; the slider and a caption line are well
+  // inside it.
+  max-height: 24px;
+  transition:
+    max-height var(--rail-settle) $ease-out,
+    margin var(--rail-settle) $ease-out,
+    opacity var(--rail-settle) ease-out;
+
+  @include folded-at-rest {
+    max-height: 0;
+    margin: 0;
+    overflow: hidden;
+    transition:
+      max-height $fold-fast,
+      margin $fold-fast,
+      opacity $fold-fast,
+      visibility 0s linear 90ms;
+  }
+
+  @include folded-open {
+    transition:
+      max-height var(--rail-move) $ease-out $rail-reveal-delay,
+      margin var(--rail-move) $ease-out $rail-reveal-delay,
+      opacity var(--rail-settle) ease-out
+        calc(#{$rail-reveal-delay} + var(--rail-move) * 0.4),
+      visibility 0s linear $rail-reveal-delay;
+  }
+}
+
+// Where the mix plays, after the faders under the Library rail foot's
+// hairline (`.library-rail__foot`). Folded, it goes with the words, and it
+// stands last so it leaves no gap in the column of speakers.
+.remote-audio__rail-foot {
+  margin-top: 8px;
+  padding: 12px 4px 0;
+  border-top: 1px solid $studio-hair;
+}
+
+.remote-audio__output {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.remote-audio__output-label {
+  @include studio-rail-heading;
+}
+
+.remote-audio__output-error {
+  color: $ink-removed;
+  font-size: $studio-text-meta;
+  line-height: 1.4;
+}
+
+// *** The head ****************************************************************
+
+// The page's name, what it does and what it promises, as plain words on the
+// floor - no eyebrow over the name, no box round the promises - with the one
+// recommended action at the other end.
+.remote-audio__head {
   display: flex;
   min-width: 0;
-  flex: 0 0 auto;
+  flex-wrap: wrap;
   align-items: flex-start;
-  gap: 16px;
-  background: $surface-panel;
-
-  > div {
-    flex: 1;
-    min-width: 0;
-  }
+  justify-content: space-between;
+  gap: 12px 24px;
 
   > .button {
     flex: 0 0 auto;
@@ -53,178 +255,157 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   h2 {
-    margin: 1px 0 4px;
-    font-size: 1.42rem;
-  }
-}
-
-.remote-audio__intro {
-  > p {
-    max-width: 920px;
     margin: 0;
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.45;
+    font-size: 1.25rem;
+    font-weight: $weight-bold;
+    line-height: 1.25;
   }
 }
 
+.remote-audio__head-words {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 360px;
+  gap: 6px;
+}
+
+.remote-audio__lead {
+  max-width: 76ch;
+  margin: 0;
+  color: $studio-t2;
+  font-size: $studio-text-row;
+  line-height: 1.5;
+}
+
+// The three promises on one line of the quietest ink, a dot between them;
+// a column of three once the line cannot hold them, where a dot would start
+// a line.
 .remote-audio__facts {
   display: flex;
-  width: fit-content;
-  max-width: 100%;
-  flex-wrap: nowrap;
-  margin: 12px 0 0;
-  padding: 7px 10px;
-  border: 1px solid $card-edge;
-  border-radius: $radius-s;
+  flex-wrap: wrap;
+  margin: 2px 0 0;
+  padding: 0;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
   list-style: none;
 
   li {
-    display: inline-flex;
-    align-items: center;
-    padding: 0 10px;
-    color: $text-muted;
-    font-size: $text-micro;
-    font-weight: $weight-semibold;
     white-space: nowrap;
 
-    &:first-child {
-      padding-left: 0;
-    }
-
-    &:last-child {
-      padding-right: 0;
-    }
-
-    + li {
-      border-left: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
+    + li::before {
+      padding: 0 8px;
+      content: '·';
     }
   }
 }
 
-// The three promises under the link form: what both ways does, said once,
-// where somebody about to link two computers reads before pressing Link.
+// *** The page's words ********************************************************
+
+// The three promises under an empty group: what both ways does, said once,
+// where somebody about to link two computers reads before pressing Add.
+// Three columns of plain words, each led by its glyph in the accent's ink,
+// as many as fit.
 .remote-audio__rules {
   display: grid;
   margin: 0;
-  padding: 0;
-  gap: 12px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0 $library-gutter;
+  gap: 18px 28px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   list-style: none;
 
   > li {
     display: flex;
     min-width: 0;
     align-items: flex-start;
-    padding: 13px 15px;
     gap: 12px;
-    border: 1px solid $card-edge;
-    border-radius: $radius-m;
-    background: $surface-plot;
 
     > span:last-child {
       display: flex;
       min-width: 0;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
     }
 
     strong {
-      font-size: $text-body;
-      font-weight: $weight-bold;
+      font-size: $studio-text-row;
+      font-weight: $weight-semibold;
     }
 
     span span {
-      color: $text-muted;
-      font-size: $text-small;
-      line-height: 1.45;
+      color: $studio-t2;
+      font-size: $studio-text-tree;
+      line-height: 1.5;
     }
   }
 }
 
 .remote-audio__rule-icon {
   display: grid;
-  width: 30px;
-  height: 30px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  padding-top: 1px;
   color: $secondary-light;
 
   .menu-icon {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
   }
 }
 
+// A quiet line of the page's own advice: its title a step up from its words.
 .remote-audio__note {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  margin: 2px 0 0;
-  padding-top: 10px;
-  gap: 8px;
-  color: $text-faint;
-  border-top: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
-  font-size: $text-small;
-  line-height: 1.45;
+  margin: 0;
+  padding: 0 $library-gutter;
+  gap: 2px 8px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  line-height: 1.5;
 
   strong {
     flex: 0 0 auto;
-    color: $text-muted;
+    color: $studio-t2;
     font-weight: $weight-semibold;
   }
 }
 
-// Something the user has to act on — playback the window may not start, a
-// link that could not be made — on the page, beside what it is about.
+// The page's foot: under everything, at the column's bottom while the group
+// is short.
+.remote-audio__note--foot {
+  margin-top: auto;
+}
+
+// Something the user has to act on - playback the window may not start, a
+// link that could not be made - on the page, beside what it is about: a step
+// of the accent's light, no edge.
 .remote-audio__notice {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   margin: 0;
-  padding: 10px 14px;
+  padding: 10px 12px;
   gap: 10px;
-  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
-  font-size: $text-body;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 9%, transparent);
+  font-size: $studio-text-tree;
+  line-height: 1.45;
 
   &.is-error {
-    border-color: rgba($red, 0.32);
-    background: rgba($red, 0.07);
-    color: #ffc1cb;
+    background: color-mix(in srgb, $ink-removed 10%, transparent);
+    color: $ink-removed;
   }
 }
 
-@container eq-panel (max-width: 700px) {
-  .remote-audio__header {
-    flex-direction: column;
-    gap: 9px;
-  }
-
+@container share-main (max-width: #{$bp-md}) {
   .remote-audio__facts {
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  .remote-audio__rules {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@container eq-panel (max-width: 460px) {
-  .remote-audio__note {
-    align-items: flex-start;
     flex-direction: column;
-  }
+    gap: 2px;
 
-  .remote-audio__facts {
-    padding-inline: 8px;
-
-    li {
-      padding-inline: 7px;
+    li + li::before {
+      display: none;
     }
   }
 }

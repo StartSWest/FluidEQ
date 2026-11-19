@@ -32,7 +32,6 @@ const remoteAudio = {
   'remoteAudio.group.hint':
     '컴퓨터를 연결하여 그룹에 가입하세요. 각 컴퓨터는 자신의 사운드를 다른 컴퓨터에 직접 보냅니다. 믹스에서 듣는 내용을 조정하세요.',
   'tabs.share': '오디오 공유',
-  'remoteAudio.eyebrow': 'LAN 오디오',
   'remoteAudio.title': '컴퓨터 간에 오디오 공유',
   'remoteAudio.security': '연결 속성',
   'remoteAudio.badge.local': '사설 LAN만 해당',

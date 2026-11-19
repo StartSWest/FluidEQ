@@ -1,14 +1,16 @@
-/* Geometry only: appearance comes from the existing Share Audio controls. */
+/* FluidEQ — GPL-3.0-or-later */
+
+// THE WHOLE GROUP as the Library's table (`_libraryList.scss`): no card round
+// it, its name and count in the header's quietest capitals over one hairline,
+// and the rows on the column's own floor with nothing between them but air.
+// It was a card with a framed header and a rule under every computer.
+
 @use 'color' as *;
+@use 'constant' as *;
 @use 'dialog' as dialog;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
-.remote-audio__columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 270px;
-  gap: 18px;
-  align-items: start;
-}
 // All computers share these tracks. Sizing each row independently let the
 // local waveform drift right because it has fewer controls than a peer.
 .remote-audio__group {
@@ -16,62 +18,121 @@
   grid-template-columns: minmax(170px, 230px) minmax(75px, 1fr) auto auto;
   column-gap: 18px;
 }
-.remote-audio__group > .remote-audio__link-head {
+
+.remote-audio__group-head {
+  display: flex;
+  min-width: 0;
   grid-column: 1 / -1;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid $studio-hair;
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
+  text-transform: uppercase;
 }
-// Only the peers scroll; the group heading, local source and system fader
-// stay outside these lists. Subgrid preserves the shared waveform edges.
-.remote-audio__peer-scroll {
-  min-height: 0;
-  max-height: clamp(180px, 45vh, 560px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  @include slim-scrollbar;
+
+.remote-audio__group-title {
+  min-width: 0;
+  @include truncate;
 }
+
+.remote-audio__group-count {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// The rows after this computer's: one list, sharing the group's tracks
+// (subgrid preserves the shared waveform edges). The column scrolls, not the
+// list: a list scrolling inside a column that scrolls is two bars for one
+// page.
 .remote-audio__group-list {
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
 }
-.remote-audio__peer-scroll > .remote-audio__lane:first-child {
-  border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
-}
+
 .remote-audio__group-row {
-  grid-template-areas: none;
-  padding: 0;
-  gap: 0 18px;
+  display: grid;
+  min-width: 0;
+  grid-column: 1 / -1;
   grid-template-columns: subgrid;
+  align-items: center;
 }
-// Right-aligned, so each row's switch ends the same distance from its
-// square button.
-.remote-audio__group-actions {
-  grid-column: 4;
-  justify-content: flex-end;
-  padding-right: 18px;
-}
+
 .remote-audio__group-lanes {
+  display: grid;
+  min-width: 0;
   grid-column: 1 / 4;
   grid-template-columns: subgrid;
 }
-// Every row ends in one slot of the same width — the options button, or
-// This computer's hint glyph centred under it — so the switches before them
+
+// A row's own cells stand 12px in from the column, as the Library's rows'
+// cells do from its bar.
+.remote-audio__group-lanes > .remote-audio__lane {
+  grid-column: 1 / -1;
+  grid-template-areas: none;
+  grid-template-columns: subgrid;
+  padding: 14px 0 14px 12px;
+}
+
+.remote-audio__group-lanes > .remote-audio__lane > * {
+  grid-area: auto;
+}
+
+.remote-audio__group-lanes .remote-audio__lane-switch {
+  grid-column: 3;
+}
+
+.remote-audio__group-lanes .remote-audio__lane-figures:empty {
+  display: none;
+}
+
+.remote-audio__group-lanes .remote-audio__lane-names strong {
+  overflow-wrap: anywhere;
+}
+
+// Right-aligned, so each row's switch ends the same distance from its
+// square button.
+.remote-audio__group-actions {
+  display: flex;
+  grid-column: 4;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-right: 12px;
+}
+
+// Every row ends in one slot of the same width - the options button, or
+// This computer's hint glyph centred under it - so the switches before them
 // stand in one column.
 $group-end-slot: 34px;
+
+// The options button is the plain face, as the Library's row actions are: an
+// outlined square on every row was a column of boxes down the list. It is
+// lit only under the pointer and while its menu is open.
 .remote-audio__group-actions > .button.small {
-  justify-content: center;
   width: $group-end-slot;
+  justify-content: center;
   padding-inline: 0;
+  color: $studio-t2;
+  @include button-plain;
 }
+
 .remote-audio__group-info {
   display: inline-grid;
-  place-items: center;
   width: $group-end-slot;
   height: $group-end-slot;
+  place-items: center;
   padding: 0;
   border: 0;
   border-radius: $radius-pill;
   background: none;
-  color: $text-faint;
+  color: $studio-t3;
   cursor: help;
   transition: $transition-control;
 
@@ -89,28 +150,13 @@ $group-end-slot: 34px;
     color: $text-muted;
   }
 }
-.remote-audio__group-lanes > .remote-audio__lane {
-  grid-template-columns: subgrid;
-  grid-template-areas: none;
-}
-.remote-audio__group-lanes > .remote-audio__lane > * {
-  grid-area: auto;
-}
-.remote-audio__group-lanes .remote-audio__lane-switch {
-  grid-column: 3;
-}
-.remote-audio__group-lanes .remote-audio__lane-figures:empty {
-  display: none;
-}
-.remote-audio__group-lanes .remote-audio__lane-names strong {
-  overflow-wrap: anywhere;
-}
+
 .remote-audio__lag {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 20px;
-  color: $text-muted;
-  font-size: $text-small;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
   font-variant-numeric: tabular-nums;
 
   > span {
@@ -125,37 +171,22 @@ $group-end-slot: 34px;
     font-weight: $weight-semibold;
   }
 }
-.remote-audio__mix-fader {
-  display: block;
-}
-.remote-audio__mix-label {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-}
-.remote-audio__mix-volume {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.remote-audio__mix-output {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
+
+// *** Linking a computer *******************************************************
+
 .remote-audio__add-backdrop {
   @include dialog.backdrop(1450);
 }
+
 .dialog-frame.remote-audio__add-dialog {
   @include dialog.size(960px, 780px);
   container: audio-link / inline-size;
 }
+
 .remote-audio__add-dialog .remote-audio__link-form-grid {
   grid-template-columns: minmax(0, 1fr);
 }
+
 .remote-audio__add-dialog .remote-audio__link-or {
   flex-direction: row;
 
@@ -164,47 +195,61 @@ $group-end-slot: 34px;
     height: 1px;
   }
 }
-@container eq-panel (max-width: 950px) {
-  .remote-audio__columns {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-@container eq-panel (max-width: 800px) {
-  .remote-audio__group {
-    display: flex;
-  }
-  .remote-audio__group-list {
-    display: block;
-  }
-  .remote-audio__group-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .remote-audio__group-actions {
-    grid-column: 1;
-    grid-row: 2;
-    justify-content: flex-end;
-    padding-bottom: 16px;
-  }
-  .remote-audio__group-lanes {
-    grid-column: 1;
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .remote-audio__group-lanes .remote-audio__lane-direction {
-    grid-column: 1;
-  }
-  .remote-audio__group-lanes .remote-audio__lane-body {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-  .remote-audio__group-lanes .remote-audio__lane-switch {
-    grid-column: 2;
-    grid-row: 1;
-  }
-}
+
 @container audio-link (max-width: 560px) {
   .remote-audio__add-dialog .remote-audio__link-paste,
   .remote-audio__add-dialog .remote-audio__code-row {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+// *** A narrow column ***********************************************************
+
+// Each row lays itself out on its own: the name, what is playing under it,
+// and every control the row has on one line at its foot - the receive (or
+// share) switch, then the send switch and the options, together. The lane
+// and its wrapper step aside (`display: contents`) so all of them are this
+// row's own cells. Before, Receive stood beside the name while Send and the
+// options fell to the row's foot, and This computer's Fluid lay under the
+// wave apart from Share.
+@container share-main (max-width: #{$bp-md}) {
+  .remote-audio__group,
+  .remote-audio__group-list {
+    display: block;
+  }
+
+  .remote-audio__group-row {
+    display: grid;
+    grid-template-areas:
+      'direction direction direction'
+      'body body body'
+      '. switch actions';
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 14px 12px;
+  }
+
+  .remote-audio__group-lanes,
+  .remote-audio__group-lanes > .remote-audio__lane {
+    display: contents;
+  }
+
+  .remote-audio__group-lanes .remote-audio__lane-direction {
+    grid-area: direction;
+  }
+
+  .remote-audio__group-lanes .remote-audio__lane-body {
+    grid-area: body;
+  }
+
+  .remote-audio__group-lanes .remote-audio__lane-switch {
+    grid-area: switch;
+  }
+
+  .remote-audio__group-actions {
+    grid-area: actions;
+    padding-right: 0;
   }
 }
