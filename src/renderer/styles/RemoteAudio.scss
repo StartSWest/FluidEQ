@@ -141,10 +141,13 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // Where the mix plays, after the faders under the Library rail foot's
-// hairline (`.library-rail__foot`).
+// hairline (`.library-rail__foot`). Its label stands where "Your mix" and the
+// page's name do (`.studio-rail__lead`, 10px in), and the menu under it ends
+// where the faders do: at 4px in it stood 6px left of every other word in
+// the rail (Ivan, 2026-11-19: "something is off there").
 .remote-audio__rail-foot {
   margin-top: 8px;
-  padding: 12px 4px 0;
+  padding: 12px 4px 0 10px;
   border-top: 1px solid $studio-hair;
 }
 
