@@ -15,8 +15,8 @@ import { labOf } from './windowLight';
  *
  * A limit is the window's own rule for a colour (`useColourLimits.ts`): what
  * it would wear for it. A colour the limit leaves alone can be picked as it
- * is; the rest of the field is drawn over, with a vector edge, so it is
- * smooth at any size. For one hue, a column of the field (one saturation)
+ * is, and the field is stretched over only those (`fieldRangeOf`), so
+ * every place in it can be picked. For one hue, a column of the field (one saturation)
  * holds one run of colours a limit leaves alone - the rules lighten or darken
  * toward one end - so each column is sampled and its two ends found by
  * halving.
@@ -110,41 +110,77 @@ export const allowedSpans = (
     return { s, low, high };
   });
 
+/** A place in the field: 0 to 1 across, 0 to 1 down. */
+export interface IFieldPlace {
+  x: number;
+  y: number;
+}
+
 /**
- * The parts of the field outside the spans, in a 1 by 1 box with value up:
- * `fill` covers them, `edge` traces where they meet what can be picked.
+ * The field stretched over only what can be picked: across, the saturations
+ * that have any colour inside the limit; down each column, from its lightest
+ * allowed value at the top to its darkest at the bottom. Every place in it is
+ * a colour the window wears as picked, so there is nothing to draw over and
+ * no line through it (Ivan, 2026-11-18, choosing "only allowed colours" over
+ * a shaded part with an edge: "those divisions suck").
  */
-export const outsideOf = (
-  spans: (ISpan | undefined)[],
-): { fill: string; edge: string } | undefined => {
-  if (spans.every((span) => span && span.low <= 0 && span.high >= 1)) {
-    return undefined;
+export interface IFieldRange {
+  /** The saturation and value at a place. */
+  colourAt: (place: IFieldPlace) => { s: number; v: number };
+  /** Where a saturation and value stand, held inside the field. */
+  placeOf: (s: number, v: number) => IFieldPlace;
+}
+
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+/** The plain field: saturation across, value up. */
+export const OPEN_FIELD: IFieldRange = {
+  colourAt: ({ x, y }) => ({ s: clamp01(x), v: clamp01(1 - y) }),
+  placeOf: (s, v) => ({ x: clamp01(s), y: clamp01(1 - v) }),
+};
+
+/**
+ * `spans` as a field. Columns with none between two that have some take
+ * their neighbours' run, a straight line between them; the saturations past
+ * the first and last column with any are left out of the field.
+ */
+export const fieldRangeOf = (spans: (ISpan | undefined)[]): IFieldRange => {
+  const known = spans.filter((span): span is ISpan => span !== undefined);
+  const first = known[0];
+  const last = known[known.length - 1];
+  if (!first || !last) {
+    return OPEN_FIELD;
   }
-  const xs = spans.map((_, column) => column / (spans.length - 1));
-  // Down from the top to the run's top; a column with none is covered whole.
-  const tops = spans.map((span) => (span ? 1 - span.high : 1));
-  const bottoms = spans.map((span) => (span ? 1 - span.low : 1));
-  const along = (ys: number[]) =>
-    ys
-      .map((y, index) => `${(xs[index] ?? 0).toFixed(4)} ${y.toFixed(4)}`)
-      .reverse()
-      .join(' L');
-  const line = (ys: number[]) =>
-    ys
-      .map(
-        (y, index) =>
-          `${index === 0 ? 'M' : 'L'}${(xs[index] ?? 0).toFixed(4)} ${y.toFixed(4)}`,
-      )
-      .join(' ');
-  const fill = [
-    `M0 0 L1 0 L${along(tops)} Z`,
-    `M0 1 L1 1 L${along(bottoms)} Z`,
-  ].join(' ');
-  const edge = [
-    tops.some((y) => y > 0) ? line(tops) : '',
-    bottoms.some((y) => y < 1) ? line(bottoms) : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  return { fill, edge };
+  const sMin = first.s;
+  const sMax = last.s;
+  // The run at any saturation, straight between the columns either side.
+  const runAt = (s: number): { low: number; high: number } => {
+    const after = known.findIndex((span) => span.s >= s);
+    const right = known[after < 0 ? known.length - 1 : after] ?? last;
+    const left = known[Math.max(0, after - 1)] ?? first;
+    if (right.s <= left.s) {
+      return { low: right.low, high: right.high };
+    }
+    const share = (s - left.s) / (right.s - left.s);
+    return {
+      low: left.low + (right.low - left.low) * share,
+      high: left.high + (right.high - left.high) * share,
+    };
+  };
+  const width = sMax - sMin;
+  return {
+    colourAt: ({ x, y }) => {
+      const s = sMin + clamp01(x) * width;
+      const { low, high } = runAt(s);
+      return { s, v: low + (1 - clamp01(y)) * (high - low) };
+    },
+    placeOf: (s, v) => {
+      const held = Math.min(sMax, Math.max(sMin, s));
+      const { low, high } = runAt(held);
+      return {
+        x: width > 0 ? (held - sMin) / width : 0,
+        y: high > low ? clamp01(1 - (v - low) / (high - low)) : 0,
+      };
+    },
+  };
 };

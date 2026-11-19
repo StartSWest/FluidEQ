@@ -34,6 +34,7 @@ import {
   dropWindowColourDraft,
   showWindowColourDraft,
 } from '../utils/windowColourDraft';
+import { withinLimits } from '../utils/useColourLimits';
 import useSceneWindowColours from '../utils/useSceneWindowColours';
 
 /** Whose colours each point's are, as the listener reads it here. */
@@ -63,9 +64,11 @@ export default function SceneWindowColours() {
   const lookId = useSelectedLookId();
   const { sides, own, chosen, names } = useSceneWindowColours(lookId);
   const [editing, setEditing] = useEditedStop();
-  // A point with no set of its own starts from the blend it shows.
+  // A point with no set of its own starts from the blend it shows, inside
+  // that point's limits: the points either side are each inside their own.
+  const blend = stopColoursAt(sides, hourOfStop(editing));
   const wearing =
-    sides[editing]?.colours ?? stopColoursAt(sides, hourOfStop(editing));
+    sides[editing]?.colours ?? (blend && withinLimits(blend, editing));
   const ownSet =
     own[editing]?.colours ?? stopColoursAt(own, hourOfStop(editing));
   // What the picker shows while it moves: the whole window follows it

@@ -72,30 +72,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// What the colour cannot be at this point (`limit`): drawn over in the
-// menu's own material, a vector edge where it meets what can be picked, so
-// the line is smooth at any size.
-.colour-picker__outside {
+// A limited field (`limit`): only the colours that can be picked at this
+// point, painted on a canvas over the plain gradients, the field's edge drawn
+// over it rather than under.
+.colour-picker__paint {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  overflow: hidden;
   border-radius: inherit;
   pointer-events: none;
 }
 
-.colour-picker__outside-fill {
-  fill: color-mix(in srgb, $surface-menu 80%, transparent);
-}
-
-.colour-picker__outside-edge {
-  fill: none;
-  stroke: color-mix(in srgb, $text-primary 60%, transparent);
-  stroke-width: 1.25px;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+.colour-picker__field:has(.colour-picker__paint)::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 18%, transparent);
+  content: '';
+  pointer-events: none;
 }
 
 .colour-picker__mark {

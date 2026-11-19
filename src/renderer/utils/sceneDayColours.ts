@@ -282,6 +282,15 @@ export interface IStopSources {
   measured: Partial<Record<TMeasuredStop, ISceneWindowColours>>;
   /** What the person editing chose instead, per point. */
   chosen: ISceneWindowColourStops;
+  /**
+   * What a set the app works out for a point - its palette's, its picture's -
+   * is brought to there: inside that point's limits (`withinLimits`). Kept
+   * out of this file, which main reads too and the window's rules are not.
+   */
+  within?: (
+    colours: ISceneWindowColours,
+    stop: TWindowColourStop,
+  ) => ISceneWindowColours;
 }
 
 export interface IResolvedStopColours {
@@ -310,13 +319,15 @@ export const resolveStopColours = (
     if (named) {
       side = { colours: named, source: 'named' };
     } else if (isMeasuredStop(stop)) {
+      const worked = (colours: ISceneWindowColours) =>
+        sources.within ? sources.within(colours, stop) : colours;
       if (sources.palette) {
-        side = { colours: sources.palette, source: 'palette' };
+        side = { colours: worked(sources.palette), source: 'palette' };
       } else {
         measured.push(stop);
         const picture = sources.measured[stop];
         if (picture) {
-          side = { colours: picture, source: 'measured' };
+          side = { colours: worked(picture), source: 'measured' };
         }
       }
     }

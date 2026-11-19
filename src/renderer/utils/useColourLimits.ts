@@ -18,40 +18,68 @@ export type TColourLimits = Record<TSceneWindowColourRole, TColourLimit>;
 const asIs: TColourLimit = (hex) => hex;
 
 /**
- * What each colour at `editing`'s point may be, as the window's own rule for
- * it there (Ivan, 2026-11-18: "whatever colours are selected are the ones
- * used, and the limit should be on the pickers, not before applying them to
- * the UI"; "whatever limit we have, we show on the pickers for each
- * brightness"). A point's hour is its Brightness, so 0 to 75 are the dark
- * window and 100 the white one:
+ * What each colour at `stop` may be beside `colours`' surface and accent, as
+ * the window's own rule for it there (Ivan, 2026-11-18: "whatever colours are
+ * selected are the ones used, and the limit should be on the pickers, not
+ * before applying them to the UI"; "whatever limit we have, we show on the
+ * pickers for each brightness"). A point's hour is its Brightness, so 0 to 75
+ * are the dark window and 100 the white one:
  *
  * - the surface, on a dark point: no lighter than the dark window's words
  *   allow (`pickedFloor`). On the white point it is white and not picked.
- * - the accent and the second colour: far enough from that point's floor for
- *   a filled control's label to read - lighter on a dark point, darker on the
- *   white one (`pickedFilled`).
+ * - the accent and the second colour: readable as a filled control on that
+ *   point's floor (`pickedFilled`).
  *
- * A colour inside its limit is worn exactly as picked; the pickers keep the
- * pick inside (`ColourPickerPopover`'s `limit`).
+ * Walked by the points: a colour inside its limit is worn exactly as picked.
  */
+export const colourLimitsAt = (
+  colours: ISceneWindowColours,
+  stop: TWindowColourStop,
+): TColourLimits => {
+  const shade = hourOfStop(stop);
+  const floor = pickedFloor(colours.surface, colours.accent, shade, 'points');
+  const filled: TColourLimit = (hex) =>
+    (floor && pickedFilled(hex, floor, shade)) ?? hex;
+  return {
+    surface:
+      stop === '100'
+        ? asIs
+        : (hex) => pickedFloor(hex, colours.accent, shade, 'points') ?? hex,
+    accent: filled,
+    glow: filled,
+  };
+};
+
+/**
+ * `colours` brought inside `stop`'s limits: the surface first, then the
+ * accent and the second colour against the floor that surface makes. What
+ * the app works out for a point it was not given - its palette, its picture
+ * measured, the blend of the points either side - is shown and worn this
+ * way, so an Automatic point never shows a colour the picker would refuse
+ * (Ivan, 2026-11-18: "automatic is getting a bad colour despite the limit").
+ * A set already inside comes back as it is.
+ */
+export const withinLimits = (
+  colours: ISceneWindowColours,
+  stop: TWindowColourStop,
+): ISceneWindowColours => {
+  const surface = colourLimitsAt(colours, stop).surface(colours.surface);
+  const limits = colourLimitsAt({ ...colours, surface }, stop);
+  return {
+    surface,
+    accent: limits.accent(colours.accent),
+    glow: limits.glow(colours.glow),
+  };
+};
+
+/** `colourLimitsAt`, kept by the colours it reads. */
 export default function useColourLimits(
   colours: ISceneWindowColours,
   editing: TWindowColourStop,
 ): TColourLimits {
-  const shade = hourOfStop(editing);
-  const { surface, accent } = colours;
-  return useMemo(() => {
-    // Walked by the points: what is picked at a point is worn there exactly.
-    const floor = pickedFloor(surface, accent, shade, 'points');
-    const filled: TColourLimit = (hex) =>
-      (floor && pickedFilled(hex, floor, shade)) ?? hex;
-    return {
-      surface:
-        editing === '100'
-          ? asIs
-          : (hex) => pickedFloor(hex, accent, shade, 'points') ?? hex,
-      accent: filled,
-      glow: filled,
-    };
-  }, [surface, accent, shade, editing]);
+  const { surface, accent, glow } = colours;
+  return useMemo(
+    () => colourLimitsAt({ surface, accent, glow }, editing),
+    [surface, accent, glow, editing],
+  );
 }

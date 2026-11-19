@@ -24,6 +24,7 @@ import {
 } from '../utils/sceneDayColours';
 import { sceneWindowColours } from '../utils/sceneOwnColours';
 import { recallSceneSky, studioSkyKey } from '../utils/sceneTintStore';
+import { withinLimits } from '../utils/useColourLimits';
 import useEditedStop from '../utils/useEditedStop';
 import {
   dropWindowColourDraft,
@@ -143,10 +144,12 @@ export default function useStudioWindowColours(
     return same(colours, atUndo[stop]) ? 'ai' : 'member';
   };
 
-  // A point with no set of its own starts from the blend it shows.
+  // A point with no set of its own starts from the blend it shows, inside
+  // that point's limits: the points either side are each inside their own,
+  // and their blend need not be.
+  const blend = stopColoursAt(resolved.sides, hourOfStop(editing));
   const wearing =
-    resolved.sides[editing]?.colours ??
-    stopColoursAt(resolved.sides, hourOfStop(editing));
+    resolved.sides[editing]?.colours ?? (blend && withinLimits(blend, editing));
   const colours = draft ?? wearing;
 
   const write = useCallback((next: TStopWrite) => {

@@ -9,6 +9,7 @@ import {
   useEffect,
   useDeferredValue,
   useId,
+  useLayoutEffect,
   useMemo,
   useState,
   type CSSProperties,
@@ -18,7 +19,8 @@ import {
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import {
   allowedSpans,
-  outsideOf,
+  fieldRangeOf,
+  OPEN_FIELD,
   type TColourLimit,
 } from '../utils/colourLimitField';
 import { useTranslation } from '../utils/I18nContext';
@@ -56,6 +58,13 @@ const STEP = 0.01;
 const BIG_STEP = 0.1;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+/**
+ * The canvas a limited field is painted on: one column per unit across, each
+ * a straight gradient down its run (a hue at one saturation is linear in its
+ * value), smoothed by the browser to the field's size.
+ */
+const PAINT = { columns: 96, height: 64 };
 
 /** Every part of a press held back outside an open picker. */
 const PRESS_EVENTS = [
@@ -161,6 +170,14 @@ export default function ColourPickerPopover({
     [limit],
   );
   const current = within(hexOfHsv(hsv));
+  // Only what can be picked, for the hue the bar stands at: worked out at the
+  // pace the window can draw it while the hue is dragged, never holding the
+  // handle back (`useDeferredValue`).
+  const fieldHue = useDeferredValue(hsv.h);
+  const range = useMemo(
+    () => (limit ? fieldRangeOf(allowedSpans(limit, fieldHue)) : OPEN_FIELD),
+    [limit, fieldHue],
+  );
   const live = useLiveSlider<string | undefined>(
     undefined,
     (hex) => {
@@ -246,8 +263,7 @@ export default function ColourPickerPopover({
     if (event.buttons !== 1) {
       return;
     }
-    const { x, y } = shareOf(event.currentTarget, event);
-    move({ ...hsv, s: x, v: 1 - y });
+    move({ ...hsv, ...range.colourAt(shareOf(event.currentTarget, event)) });
   };
   const dragHue = (event: PointerEvent<HTMLDivElement>) => {
     if (event.buttons !== 1) {
@@ -255,18 +271,27 @@ export default function ColourPickerPopover({
     }
     move({ ...hsv, h: shareOf(event.currentTarget, event).x * 360 });
   };
+  // Arrows walk the field as it is drawn: across and down what can be
+  // picked.
   const fieldKeys = (event: KeyboardEvent<HTMLDivElement>) => {
     const step = event.shiftKey ? BIG_STEP : STEP;
-    const moves: Record<string, Partial<IHsv>> = {
-      ArrowLeft: { s: clamp01(hsv.s - step) },
-      ArrowRight: { s: clamp01(hsv.s + step) },
-      ArrowUp: { v: clamp01(hsv.v + step) },
-      ArrowDown: { v: clamp01(hsv.v - step) },
+    const moves: Record<string, [number, number]> = {
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+      ArrowDown: [0, step],
     };
     const change = moves[event.key];
     if (change) {
       event.preventDefault();
-      move({ ...hsv, ...change });
+      const at = range.placeOf(hsv.s, hsv.v);
+      move({
+        ...hsv,
+        ...range.colourAt({
+          x: clamp01(at.x + change[0]),
+          y: clamp01(at.y + change[1]),
+        }),
+      });
     }
   };
   const hueKeys = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -312,14 +337,27 @@ export default function ColourPickerPopover({
   };
 
   const hueColour = hexOfHsv({ h: hsv.h, s: 1, v: 1 });
-  // What the field cannot be, for the hue the bar stands at: worked out at
-  // the pace the window can draw it while the hue is dragged, never holding
-  // the handle back.
-  const fieldHue = useDeferredValue(hsv.h);
-  const outside = useMemo(
-    () => (limit ? outsideOf(allowedSpans(limit, fieldHue)) : undefined),
-    [limit, fieldHue],
-  );
+  // A limited field painted from its range, again whenever the range moves.
+  // Held as state, not a ref: the menu puts its contents in only once it has
+  // measured where to stand, a render after it opens.
+  const [paint, setPaint] = useState<HTMLCanvasElement | null>(null);
+  useLayoutEffect(() => {
+    const context = paint?.getContext('2d');
+    if (!limit || !context) {
+      return;
+    }
+    for (let column = 0; column < PAINT.columns; column += 1) {
+      const x = (column + 0.5) / PAINT.columns;
+      const top = range.colourAt({ x, y: 0 });
+      const bottom = range.colourAt({ x, y: 1 });
+      const fill = context.createLinearGradient(0, 0, 0, PAINT.height);
+      fill.addColorStop(0, hexOfHsv({ h: fieldHue, ...top }));
+      fill.addColorStop(1, hexOfHsv({ h: fieldHue, ...bottom }));
+      context.fillStyle = fill;
+      context.fillRect(column, 0, 1, PAINT.height);
+    }
+  }, [paint, limit, range, fieldHue]);
+  const mark = range.placeOf(hsv.s, hsv.v);
   return (
     <AnchoredMenu
       anchor={anchor}
@@ -351,24 +389,21 @@ export default function ColourPickerPopover({
         onPointerMove={dragField}
         onKeyDown={fieldKeys}
       >
-        {outside && (
-          <svg
-            className="colour-picker__outside"
-            viewBox="0 0 1 1"
-            preserveAspectRatio="none"
+        {limit && (
+          <canvas
+            ref={setPaint}
+            className="colour-picker__paint"
+            width={PAINT.columns}
+            height={PAINT.height}
             aria-hidden
-            focusable="false"
-          >
-            <path className="colour-picker__outside-fill" d={outside.fill} />
-            <path className="colour-picker__outside-edge" d={outside.edge} />
-          </svg>
+          />
         )}
         <span
           className="colour-picker__mark"
           style={
             {
-              left: `${hsv.s * 100}%`,
-              top: `${(1 - hsv.v) * 100}%`,
+              left: `${mark.x * 100}%`,
+              top: `${mark.y * 100}%`,
               '--mark': current,
             } as CSSProperties
           }

@@ -20,6 +20,7 @@ import { useListenerParams } from './sceneParamStore';
 import { useUsableScenes } from './scenePacks';
 import { useRememberedSceneSky } from './sceneTintStore';
 import { useChosenWindowColourStops } from './sceneWindowColourStore';
+import { withinLimits } from './useColourLimits';
 
 export interface ISceneWindowColourState extends IResolvedStopColours {
   /** What the listener chose instead, per point, where they did. */
@@ -81,6 +82,7 @@ export default function useSceneWindowColours(
           ...(daySky ? { '100': windowColoursOfSky(daySky) } : {}),
         },
         chosen,
+        within: withinLimits,
       }),
       chosen,
       ...(listed ? { names: listed.names } : {}),

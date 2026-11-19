@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useMemo } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
+import { withinLimits } from '../utils/useColourLimits';
 import {
   resolveStopColours,
   stopKeyOf,
@@ -47,6 +48,7 @@ export default function useStudioDayColours(
         ...(daySky ? { '100': windowColoursOfSky(daySky) } : {}),
       },
       chosen: {},
+      within: withinLimits,
     };
     return {
       ...resolveStopColours({
