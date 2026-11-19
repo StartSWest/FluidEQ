@@ -1866,11 +1866,12 @@ textarea,
   // thing left in the window that no scene could reach.
   --arrow-fill: var(--accent);
   // The pet in the titlebar, one flat colour (Ivan, 2026-11-17: "all needs
-  // to look flat and modern"): the accent's light, the tone the lit buttons
-  // are drawn in, not the accent itself, which on a deep accent read as
-  // scorched beside them (Ivan, 2026-11-19: "the pet colour looks burned,
-  // let's use the same tone as the buttons").
-  --pet-tone: var(--accent-light);
+  // to look flat and modern"): the lit buttons' own fill - the accent at
+  // 22% (`tone-fill-lit`) - laid on the window's floor so she stays one
+  // solid colour where her ears meet her head (Ivan, 2026-11-19: "the pet
+  // colour looks burned, let's use the same tone as the buttons' background";
+  // the accent's light was "too light").
+  --pet-tone: color-mix(in srgb, var(--accent) 22%, var(--surface-base));
 }
 
 // On a light window an accent that carries the floor's light label is deep
