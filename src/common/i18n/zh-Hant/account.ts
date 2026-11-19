@@ -64,6 +64,8 @@ const account = {
   'account.field.emailHint': '從未向任何人展示過——僅用於登入和驗證碼',
   'account.field.password': '密碼',
   'account.field.passwordHint': '至少 {count} 個字元',
+  'account.field.showPassword': '顯示密碼',
+  'account.field.hidePassword': '隱藏密碼',
   'account.field.code': '電子郵件中的程式碼',
   'account.code.sent': '我們向 {email} 發送了一個六位數程式碼。',
   'account.code.sendAgain': '再次傳送程式碼',
@@ -72,8 +74,10 @@ const account = {
   'account.code.hint':
     '什麼也沒到？檢查垃圾郵件資料夾 - 如果您已經擁有使用此地址的帳戶，則不會傳送程式碼：請登入。',
   'account.forgot.link': '忘記密碼？',
+  'account.forgot.title': '重設密碼',
   'account.forgot.lead': '輸入您註冊時使用的地址，那裡會出現一個程式碼。',
   'account.forgot.submit': '傳送重設程式碼',
+  'account.reset.title': '設定新密碼',
   'account.reset.sent':
     '我們向 {email} 發送了一個六位數程式碼。在此輸入您的新密碼。',
   'account.reset.submit': '設定新密碼',
@@ -97,10 +101,10 @@ const account = {
   'account.error.alreadyRegistered': '已經有一個使用該地址的帳戶。請登入。',
   'account.plus.eyebrow': 'FluidEQ',
   'account.google': '繼續使用谷歌',
-  'account.google.waiting': '在瀏覽器中完成 Google 登入。',
+  'account.google.waitingTitle': '請在瀏覽器中完成',
+  'account.google.waitingBody':
+    'Google 已在瀏覽器中開啟。你在那裡完成後，FluidEQ 會自動為你登入。',
   'account.google.cancel': '取消',
-  'account.password.show': '顯示密碼',
-  'account.password.hide': '隱藏密碼',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': '您的 {count} 個場景正在等您',
   'account.welcome.createTitle.few': '您的 {count} 個場景正在等您',

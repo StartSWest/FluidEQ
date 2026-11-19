@@ -69,6 +69,8 @@ const account = {
     'nunca é mostrado a ninguém — só para entrar e para os códigos',
   'account.field.password': 'Senha',
   'account.field.passwordHint': 'pelo menos {count} caracteres',
+  'account.field.showPassword': 'Mostrar senha',
+  'account.field.hidePassword': 'Ocultar senha',
   'account.field.code': 'Código do email',
 
   'account.code.sent': 'Enviamos um código de seis dígitos para {email}.',
@@ -79,9 +81,11 @@ const account = {
     'Não chegou nada? Veja a pasta de spam. E se você já tinha uma conta com este endereço, nenhum código é enviado: entre em vez disso.',
 
   'account.forgot.link': 'Esqueceu a senha?',
+  'account.forgot.title': 'Redefina sua senha',
   'account.forgot.lead':
     'Digite o endereço com que você se cadastrou e um código segue para lá.',
   'account.forgot.submit': 'Enviar código de redefinição',
+  'account.reset.title': 'Escolha uma nova senha',
   'account.reset.sent':
     'Enviamos um código de seis dígitos para {email}. Digite-o aqui com sua nova senha.',
   'account.reset.submit': 'Definir nova senha',
@@ -115,10 +119,10 @@ const account = {
 
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continuar com o Google',
-  'account.google.waiting': 'Termine de entrar com o Google no seu navegador.',
+  'account.google.waitingTitle': 'Conclua no seu navegador',
+  'account.google.waitingBody':
+    'O Google está aberto no seu navegador. O FluidEQ faz você entrar sozinho assim que você terminar lá.',
   'account.google.cancel': 'Cancelar',
-  'account.password.show': 'Mostrar senha',
-  'account.password.hide': 'Ocultar senha',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'Sua {count} cena está esperando',
   'account.welcome.createTitle.few': 'Suas {count} cenas estão esperando',

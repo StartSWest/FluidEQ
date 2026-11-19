@@ -68,6 +68,8 @@ const account = {
     'किसी को नहीं दिखाया जाता — केवल साइन इन और कोड के लिए',
   'account.field.password': 'पासवर्ड',
   'account.field.passwordHint': 'कम से कम {count} वर्ण',
+  'account.field.showPassword': 'पासवर्ड दिखाएँ',
+  'account.field.hidePassword': 'पासवर्ड छिपाएँ',
   'account.field.code': 'ईमेल वाला कोड',
 
   'account.code.sent': 'हमने {email} पर छह अंकों का कोड भेजा है।',
@@ -78,9 +80,11 @@ const account = {
     'कुछ नहीं आया? स्पैम फ़ोल्डर देखें। और अगर इस पते से पहले से खाता था, तो कोड नहीं भेजा जाता — इसके बजाय साइन इन करें।',
 
   'account.forgot.link': 'पासवर्ड भूल गए?',
+  'account.forgot.title': 'अपना पासवर्ड रीसेट करें',
   'account.forgot.lead':
     'जिस पते से साइन अप किया था वह लिखें, वहाँ एक कोड जाएगा।',
   'account.forgot.submit': 'रीसेट कोड भेजें',
+  'account.reset.title': 'नया पासवर्ड चुनें',
   'account.reset.sent':
     'हमने {email} पर छह अंकों का कोड भेजा है। उसे अपने नए पासवर्ड के साथ यहाँ लिखें।',
   'account.reset.submit': 'नया पासवर्ड सेट करें',
@@ -116,10 +120,10 @@ const account = {
 
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Google के साथ जारी रखें',
-  'account.google.waiting': 'अपने ब्राउज़र में Google से साइन इन पूरा करें।',
+  'account.google.waitingTitle': 'अपने ब्राउज़र में पूरा करें',
+  'account.google.waitingBody':
+    'Google आपके ब्राउज़र में खुला है। वहाँ पूरा करते ही FluidEQ आपको अपने-आप साइन इन कर देगा।',
   'account.google.cancel': 'रद्द करें',
-  'account.password.show': 'पासवर्ड दिखाएँ',
-  'account.password.hide': 'पासवर्ड छिपाएँ',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'आपका {count} सीन इंतज़ार कर रहा है',
   'account.welcome.createTitle.few': 'आपके {count} सीन इंतज़ार कर रहे हैं',

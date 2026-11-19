@@ -31,6 +31,9 @@ const WALL: readonly { key: TranslationKey; picture: string }[] = [
   { key: 'plus.welcome.scene.prismBloom', picture: prismBloom },
 ];
 
+/** Three of the wall's scenes for the offer's fan, left to right. */
+const FAN = [WALL[1], WALL[0], WALL[4]];
+
 const PLACES: readonly { glyph: TCommunityGlyph; key: TranslationKey }[] = [
   { glyph: 'graph-play', key: 'plus.signedOut.place.graph' },
   { glyph: 'monitor', key: 'plus.signedOut.place.desktop' },
@@ -215,7 +218,15 @@ export default function VisualizersSignedOut({
             className="signed-out__glass signed-out__offer"
             aria-labelledby="signed-out-offer"
           >
-            <CreditCoin size="l" badge={STARTER_CREDITS} />
+            {/* The three scenes the credits are for, fanned like a hand of
+                cards behind the coin: the card's top used to be empty glass
+                over a coin floating in the middle of it. */}
+            <div className="signed-out__fan">
+              {FAN.map((scene) => (
+                <img key={scene.key} src={scene.picture} alt="" />
+              ))}
+              <CreditCoin size="l" badge={STARTER_CREDITS} />
+            </div>
             <h3 className="signed-out__offer-title" id="signed-out-offer">
               {t(
                 `plus.signedOut.offerTitle.${plural}` as TranslationKey,

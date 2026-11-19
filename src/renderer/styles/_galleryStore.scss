@@ -190,12 +190,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The chosen pack's coins catch the light.
-.store-pack:has(input:checked) .store-pack__coin {
-  filter: drop-shadow(0 3px 5px rgba($black, 0.45))
-    drop-shadow(0 0 8px color-mix(in srgb, $secondary-default 55%, transparent));
-}
-
 // The rail's credit, large, in the room under the dialog's title.
 .store-dialog__coin {
   display: grid;

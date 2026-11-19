@@ -446,23 +446,22 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path d="M7 3.8v7.4l6-3.7Z" fill="currentColor" />
           </>
         );
-      case 'eye':
-      case 'eye-off':
-        // An open eye, and the same eye struck through: a password shown, or
-        // hidden again.
-        return (
-          <>
-            <path d="M2 10s3-5.5 8-5.5 8 5.5 8 5.5-3 5.5-8 5.5S2 10 2 10Z" />
-            <circle cx="10" cy="10" r="2.4" />
-            {name === 'eye-off' && <path d="M3.5 16.5 16.5 3.5" />}
-          </>
-        );
       case 'sign-out':
         // Leaving: an arrow out through the open side of a door frame.
         return (
           <>
             <path d="M8 3.5H5A1.5 1.5 0 0 0 3.5 5v10A1.5 1.5 0 0 0 5 16.5h3" />
             <path d="M8.5 10h8M13.3 6.7 16.5 10l-3.2 3.3" />
+          </>
+        );
+      case 'eye':
+      case 'eye-off':
+        // A password shown, or (struck through) hidden again.
+        return (
+          <>
+            <path d="M2 10s3-5.5 8-5.5 8 5.5 8 5.5-3 5.5-8 5.5S2 10 2 10Z" />
+            <circle cx="10" cy="10" r="2.4" />
+            {name === 'eye-off' && <path d="M3.5 3.5l13 13" />}
           </>
         );
       default:

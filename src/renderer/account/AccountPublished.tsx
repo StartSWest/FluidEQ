@@ -8,12 +8,12 @@ import { memberLookId } from 'common/memberScenes';
 import { FLUIDEQ_CREATOR_ID, type IPublishedScene } from 'common/plusGallery';
 import type { ISceneSubmission } from 'common/plusReview';
 import { premiumLookId, resolveSceneName } from 'common/scenePacks';
+import Glyph from '../community/Glyph';
 import { ScenePicture } from '../plus/GalleryParts';
 import { publicationId, sentOnly, type TMine } from '../plus/myScenes';
 import { openPlusPlace } from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
 import { ReviewState } from '../plus/SubmittedSceneRow';
-import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 // The scene pictures are the gallery's own (`ScenePicture`).
 import '../styles/Gallery.scss';
@@ -52,6 +52,20 @@ function Heart({ count }: { count: string }) {
         <path d="M8 14s-5.5-3.4-5.5-7.4A3 3 0 0 1 8 4.5a3 3 0 0 1 5.5 2.1C13.5 10.6 8 14 8 14z" />
       </svg>
       {count}
+    </span>
+  );
+}
+
+/**
+ * How many got the scene, as the gallery's own download mark beside its
+ * figure: "Added 9" under the name read as a sentence cut short ("Added 0").
+ * The words stay, for the pointer and for screen readers.
+ */
+function Adds({ count, label }: { count: string; label: string }) {
+  return (
+    <span className="account-published__adds" title={label} aria-label={label}>
+      <Glyph name="download" />
+      <span aria-hidden="true">{count}</span>
     </span>
   );
 }
@@ -112,35 +126,30 @@ export default function AccountPublished({
                 className="account-published__picture"
                 scene={sceneRef(me, row.scene)}
               />
-              {/* Where it stands under its name, as a dot and a word; how it
-                  is doing at the row's end, as two counts with their glyphs
-                  (Ivan, 2026-11-19: "more clean"): "Added 0" on a line of
-                  its own read as a date. */}
               <span className="account-published__text">
                 <span className="account-published__name">
                   {resolveSceneName(row.scene, locale)}
                 </span>
-                {row.scene.blocked ? (
-                  <span className="account-published__state is-blocked">
-                    {t('plus.mine.blocked')}
-                  </span>
-                ) : (
-                  <span className="account-published__state is-live">
-                    {t('account.published.live')}
-                  </span>
-                )}
-              </span>
-              <span
-                className="account-published__adds"
-                title={t('plus.scene.adds')}
-              >
-                <Glyph name="download" />
-                <span className="account-published__label">
-                  {t('plus.scene.adds')}
+                {/* Where it stands as a word after a dot, not a pill: one
+                    more box on every row (Ivan, 2026-11-19: "sin tantas
+                    líneas ni borders"). */}
+                <span
+                  className={`account-published__state ${
+                    row.scene.blocked ? 'is-blocked' : 'is-live'
+                  }`}
+                >
+                  {row.scene.blocked
+                    ? t('plus.mine.blocked')
+                    : t('account.published.live')}
                 </span>
-                {numbers.format(row.scene.adds)}
               </span>
-              <Heart count={numbers.format(row.scene.likes)} />
+              <span className="account-published__numbers">
+                <Adds
+                  count={numbers.format(row.scene.adds)}
+                  label={`${t('plus.scene.adds')} ${numbers.format(row.scene.adds)}`}
+                />
+                <Heart count={numbers.format(row.scene.likes)} />
+              </span>
             </li>
           ) : (
             <li

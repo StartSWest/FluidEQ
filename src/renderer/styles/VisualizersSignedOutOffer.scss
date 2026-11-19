@@ -9,7 +9,6 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
-@use 'libraryTokens' as *;
 
 // The offer pane of the Visualizers tab before signing in
 // (`VisualizersSignedOut`): the credit coin, the one loud way in, the steps
@@ -17,43 +16,92 @@ it under the terms of the GNU General Public License version 3 or later.
 // (`VisualizersSignedOut.scss`) so neither passes the size rule; that sheet
 // comes after this one in `cascade.ts`, so its narrow layout wins.
 
-// As tall as what it holds, kept in view while the story beside it scrolls:
-// the coin on a pool of light at its top, then the way in (Ivan, 2026-11-19:
-// "improve it a bit" — it stood centred in an empty column).
+// As tall as the tab shows and no taller, standing still while the story
+// beside it scrolls: the fan and the offer from the top, the steps at the
+// foot (`margin-top: auto`). Stretched to the story's whole height and
+// centred, it left a band of empty glass above the coin and another under
+// the sign-in line, as tall as the story made them; ending at its content,
+// it left a hole under it.
 .signed-out__offer {
   position: sticky;
-  top: 0;
-  display: grid;
-  align-content: start;
-  justify-items: center;
+  top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  align-items: center;
   gap: 12px;
   min-width: 0;
-  padding: 24px 26px;
+  min-height: calc(100cqh - 56px);
+  padding: 24px 24px 22px;
   text-align: center;
   background:
     radial-gradient(
-      80% 42% at 50% 16%,
-      color-mix(in srgb, $secondary-default 24%, transparent),
-      transparent 75%
+      90% 60% at 50% 0%,
+      color-mix(in srgb, $secondary-default 22%, transparent),
+      transparent 70%
     ),
     color-mix(in srgb, $surface-panel 88%, transparent);
+}
+
+// Three scene pictures fanned behind the coin, the middle one raised.
+.signed-out__fan {
+  position: relative;
+  display: grid;
+  width: 100%;
+  max-width: 340px;
+  height: 214px;
+  place-items: center;
+  margin: auto 0 4px;
+
+  img {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    width: 46%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border: 2px solid $surface-panel;
+    border-radius: $radius-m;
+    transform-origin: 50% 120%;
+  }
+
+  img:nth-child(1) {
+    transform: translateX(-108%) rotate(-12deg);
+    opacity: 0.8;
+  }
+
+  img:nth-child(2) {
+    z-index: 1;
+    top: 0;
+    transform: translateX(-50%);
+  }
+
+  img:nth-child(3) {
+    transform: translateX(8%) rotate(12deg);
+    opacity: 0.8;
+  }
 
   .credit-coin {
-    margin: -4px 0 -10px;
+    --coin: 84px;
+    z-index: 2;
+    margin-top: 92px;
   }
 }
 
 .signed-out__offer-title {
   margin: 0;
   color: $text-primary;
-  font-size: 1.45rem;
+  font-size: 1.35rem;
   font-weight: $weight-bold;
   text-wrap: balance;
 }
 
+// The fan, the title and this line share the room the pane has left, in its
+// middle (the fan's `margin-top: auto` and this `margin-bottom: auto`); the
+// button, the steps and Sign in keep together at the foot.
 .signed-out__offer-body {
   max-width: 32ch;
-  margin: 0;
+  margin: 0 0 auto;
   color: $text-muted;
   font-size: $text-body;
   line-height: 1.5;
@@ -71,14 +119,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .signed-out__create--l {
-  min-height: 60px;
-  margin-top: 6px;
-  padding: 12px 18px;
-  border-radius: $radius-l;
-
-  .signed-out__create-main {
-    font-size: 1.05rem;
-  }
+  padding: 14px 18px;
 }
 
 .signed-out__create--m {
@@ -104,25 +145,40 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The three steps on steps of light, no rule over them.
+// The three steps at the pane's foot, their numbers joined by a thread down
+// the side (the creator sign-up's steps draw the same), the first one lit:
+// it is the one the button above does. No rule over them: the space says
+// where the offer ends.
 .signed-out__steps {
+  position: relative;
   display: grid;
-  gap: 6px;
+  gap: 12px;
   width: 100%;
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   padding: 0;
   text-align: start;
   list-style: none;
 
+  &::before {
+    position: absolute;
+    inset: 12px auto 12px 12px;
+    width: 1px;
+    background: color-mix(in srgb, $secondary-default 35%, transparent);
+    content: '';
+  }
+
   li {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 12px;
     color: $text-muted;
     font-size: $text-body;
-    border-radius: $radius-l;
-    background: linear-gradient(90deg, $studio-surface, transparent 85%);
+  }
+
+  li:first-child {
+    color: $text-primary;
+    font-weight: $weight-semibold;
   }
 }
 
@@ -130,13 +186,20 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 25px;
+  height: 25px;
   color: $text-accent;
-  font-size: $text-micro;
+  font-size: $text-small;
   font-weight: $weight-bold;
+  background: $surface-panel;
   border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
   border-radius: 50%;
+
+  li:first-child & {
+    color: $on-accent;
+    background: $secondary-light;
+    border-color: $secondary-light;
+  }
 }
 
 .signed-out__sign-in {

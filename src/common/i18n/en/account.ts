@@ -79,6 +79,8 @@ const account = {
     'never shown to anyone — only for signing in and codes',
   'account.field.password': 'Password',
   'account.field.passwordHint': 'at least {count} characters',
+  'account.field.showPassword': 'Show password',
+  'account.field.hidePassword': 'Hide password',
   'account.field.code': 'Code from the email',
 
   'account.code.sent': 'We sent a six-digit code to {email}.',
@@ -89,9 +91,11 @@ const account = {
     'Nothing arrived? Check the spam folder — and if you already had an account with this address, no code is sent: sign in instead.',
 
   'account.forgot.link': 'Forgot your password?',
+  'account.forgot.title': 'Reset your password',
   'account.forgot.lead':
     'Enter the address you signed up with and a code goes there.',
   'account.forgot.submit': 'Send a reset code',
+  'account.reset.title': 'Choose a new password',
   'account.reset.sent':
     'We sent a six-digit code to {email}. Type it here with your new password.',
   'account.reset.submit': 'Set new password',
@@ -128,10 +132,10 @@ const account = {
 
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continue with Google',
-  'account.google.waiting': 'Finish signing in with Google in your browser.',
+  'account.google.waitingTitle': 'Finish in your browser',
+  'account.google.waitingBody':
+    'Google is open in your browser. FluidEQ signs you in by itself the moment you are done there.',
   'account.google.cancel': 'Cancel',
-  'account.password.show': 'Show password',
-  'account.password.hide': 'Hide password',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'Your {count} scene is waiting',
   'account.welcome.createTitle.few': 'Your {count} scenes are waiting',

@@ -1,7 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { useEffect, useState } from 'react';
-import type { IAccountState } from 'main/account/session';
 import { useTranslation } from '../utils/I18nContext';
 import {
   cancelAccountAttempt,
@@ -44,26 +43,11 @@ const GoogleMark = () => (
 );
 
 /**
- * Sign in with Google, above the email form.
- *
- * Offered only once the sign-in service says Google is switched on, so a
- * FluidEQ whose server has not set it up shows email alone instead of a
- * button that ends on an error page. Pressed, Google opens in the person's
- * own browser, where they are usually already signed in; the panel says so
- * and keeps a Cancel beside it for as long as that takes, because the wait is
- * on the person and not on anything the app can time (Ivan, 2026-10-20: "we
- * need to enable google oauth to the fluid too").
+ * Whether the sign-in service has Google switched on. Asked once per form:
+ * the email way in is the loud one where Google is not offered.
  */
-export default function GoogleSignIn({
-  account,
-  busy,
-}: {
-  account: IAccountState;
-  busy: boolean;
-}) {
-  const { t, locale } = useTranslation();
+export function useGoogleSignInAvailable() {
   const [available, setAvailable] = useState(false);
-
   useEffect(() => {
     let current = true;
     const ask = async () => {
@@ -77,28 +61,63 @@ export default function GoogleSignIn({
       current = false;
     };
   }, []);
+  return available;
+}
 
-  if (account.waiting === 'google') {
-    return (
-      <div className="account-google account-google--waiting" role="status">
-        <span className="account-google__ring" aria-hidden="true">
+/**
+ * While Google is open in the browser, the form side is this and nothing
+ * else: Google's mark in a ring, what to do and that the app picks it up by
+ * itself, and Cancel. It used to be a line over the email form, every field
+ * and the email button greyed out under it, which read as a broken form
+ * (Ivan, 2026-11-19). The ring does not turn: the wait is on the person.
+ */
+export function GoogleWaiting() {
+  const { t } = useTranslation();
+  return (
+    <div className="account-google-wait" role="status">
+      <span className="account-google-wait__ring" aria-hidden="true">
+        <span className="account-google-wait__disc">
           <GoogleMark />
         </span>
-        <span className="account-google__waiting">
-          {t('account.google.waiting')}
-        </span>
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => {
-            cancelAccountAttempt().catch(() => undefined);
-          }}
-        >
-          {t('account.google.cancel')}
-        </button>
-      </div>
-    );
-  }
+      </span>
+      <h3 className="account-form__title">
+        {t('account.google.waitingTitle')}
+      </h3>
+      <p className="account-google-wait__body">
+        {t('account.google.waitingBody')}
+      </p>
+      <button
+        type="button"
+        className="button small subtle"
+        onClick={() => {
+          cancelAccountAttempt().catch(() => undefined);
+        }}
+      >
+        {t('account.google.cancel')}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Sign in with Google, above the email form.
+ *
+ * Offered only once the sign-in service says Google is switched on, so a
+ * FluidEQ whose server has not set it up shows email alone instead of a
+ * button that ends on an error page. Pressed, Google opens in the person's
+ * own browser, where they are usually already signed in; the form side then
+ * says so (`GoogleWaiting`) and keeps a Cancel for as long as that takes,
+ * because the wait is on the person and not on anything the app can time
+ * (Ivan, 2026-10-20: "we need to enable google oauth to the fluid too").
+ */
+export default function GoogleSignIn({
+  available,
+  busy,
+}: {
+  available: boolean;
+  busy: boolean;
+}) {
+  const { t, locale } = useTranslation();
   if (!available) {
     return null;
   }

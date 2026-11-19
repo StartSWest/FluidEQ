@@ -69,6 +69,8 @@ const account = {
     'никому не показывается — только для входа и кодов',
   'account.field.password': 'Пароль',
   'account.field.passwordHint': 'не меньше {count} символов',
+  'account.field.showPassword': 'Показать пароль',
+  'account.field.hidePassword': 'Скрыть пароль',
   'account.field.code': 'Код из письма',
 
   'account.code.sent': 'Мы отправили шестизначный код на {email}.',
@@ -79,9 +81,11 @@ const account = {
     'Ничего не пришло? Проверьте папку «Спам». А если аккаунт с этим адресом уже был, код не отправляется — просто войдите.',
 
   'account.forgot.link': 'Забыли пароль?',
+  'account.forgot.title': 'Сброс пароля',
   'account.forgot.lead':
     'Введите адрес, с которым регистрировались, и туда придёт код.',
   'account.forgot.submit': 'Отправить код для сброса',
+  'account.reset.title': 'Придумайте новый пароль',
   'account.reset.sent':
     'Мы отправили шестизначный код на {email}. Введите его здесь вместе с новым паролем.',
   'account.reset.submit': 'Задать новый пароль',
@@ -115,10 +119,10 @@ const account = {
 
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Продолжить с Google',
-  'account.google.waiting': 'Завершите вход через Google в браузере.',
+  'account.google.waitingTitle': 'Завершите вход в браузере',
+  'account.google.waitingBody':
+    'Google открыт в вашем браузере. FluidEQ сам выполнит вход, как только вы закончите там.',
   'account.google.cancel': 'Отмена',
-  'account.password.show': 'Показать пароль',
-  'account.password.hide': 'Скрыть пароль',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'Ваша {count} сцена ждёт',
   'account.welcome.createTitle.few': 'Ваши {count} сцены ждут',

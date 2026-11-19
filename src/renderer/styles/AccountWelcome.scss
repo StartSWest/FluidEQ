@@ -11,136 +11,134 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'dialog' as dialog;
 @use 'spacing' as *;
 @use 'theme' as *;
-@use 'libraryTokens' as *;
 
-// The account panel before anybody is signed in, as Ivan approved it on
-// 2026-11-13 ("I love that login") and restyled on 2026-11-19 ("A,
-// galería"): the rail is FluidEQ's gallery behind its logo, the heading and
-// the steps (`AccountWelcome`); the form on the right has Google as the big
-// button and email as the quiet way until both its fields are filled, and the
-// emailed code is six boxes (`CodeBoxes`).
+// The account panel before anybody is signed in. Approved on 2026-11-13 ("I
+// love that login") and made fuller on 2026-11-19 ("improve and nicefy all
+// login screens"): the rail is a wall of FluidEQ's scenes with the logo, a
+// large title and what an account gets (`AccountWelcome`); the form on the
+// right has Google as the big button and email as the quiet way, and the
+// emailed code is six boxes (`CodeBoxes`). No drop shadow anywhere on it
+// ("no dropshadow always clean").
 
 // ---------------------------------------------------------------- the rail
 
-// The two halves nearly even, as approved: the rail carries the gallery, the
-// heading and the steps, not a glyph and a line. Wide only; the window's
-// narrow layout stacks the frame (`DialogFrame.scss`) and must keep doing so.
+// The rail a little narrower than the form. Wide only; the window's narrow
+// layout stacks the frame (`DialogFrame.scss`) and must keep doing so.
 @media (min-width: #{$bp-md + 1px}) {
   .dialog-frame.account.account--welcome {
-    @include dialog.size(900px, 720px);
-    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
+    @include dialog.size(880px, 720px);
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1fr);
+
+    > .dialog-frame__body {
+      padding-inline: 40px;
+    }
   }
 }
 
-// Room above the heading for the gallery and the logo on its top. Fixed,
-// and the wall's fade measured against it, so the words always stand where
-// the pictures have faded out, however short the form beside them is.
-$welcome-head: 236px;
-
 .account--welcome {
-  // No glyph tile: the logo stands at the top of the rail instead.
+  // No glyph tile: the logo stands under the wall instead.
   .dialog-frame__tile {
     display: none;
   }
 
-  // The gallery fills the rail behind everything in it (Ivan, 2026-11-19:
-  // "A, galería"); the words stand on its faded foot.
   .dialog-frame__rail {
-    position: relative;
-    isolation: isolate;
     gap: 16px;
-    padding: $welcome-head 28px 24px;
+    padding-bottom: 24px;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, $secondary-default 9%, transparent),
+        transparent 55%
+      ),
+      color-mix(in srgb, $surface-base 24%, transparent);
   }
 
+  .dialog-frame__rail--covered {
+    padding-top: 0;
+  }
+
+  // The cover is the wall and the logo, in the rail's flow: edge to edge
+  // across the top, never cut to the frame's fixed picture height.
   .dialog-frame__cover {
-    position: absolute;
-    z-index: -1;
-    inset: 0;
     height: auto;
-    margin: 0;
-    overflow: hidden;
+    margin: 0 -22px 0 -24px;
+    overflow: visible;
     mask-image: none;
+
+    > * {
+      height: auto;
+    }
   }
 
-  // Down to the rail's foot, under the gallery, whatever the rail's height.
-  .dialog-frame__identity {
-    margin-top: auto;
+  .dialog-frame__heading {
+    gap: 8px;
   }
 
   .dialog-frame__title {
-    font-size: 1.75rem;
+    font-size: 1.6rem;
     line-height: 1.15;
     @include tracking(-0.01em);
     text-wrap: balance;
   }
 
   .dialog-frame__description {
-    font-size: $text-body;
+    font-size: $text-lead;
+    text-wrap: pretty;
+  }
+
+  // The form in the middle of its half: at the top it left the rail's height
+  // of empty floor under the email button.
+  .dialog-frame__body {
+    align-content: center;
   }
 }
 
 .account-welcome__cover {
   position: relative;
+  display: grid;
+  gap: 4px;
+
+  // On the wall's right, over its fade: the starter credits.
+  .credit-coin {
+    --coin: 60px;
+    position: absolute;
+    z-index: 1;
+    top: 104px;
+    right: 22px;
+  }
 }
 
-// The wall fades into the rail by a mask, never by a colour laid over it:
-// the rail's own ground shows through where it ends, on any window colour.
-// The mask is on the frame and not on the tilted grid, so it stays level.
+// Three rows of scenes, turned a little and running off the rail's edges,
+// fading into the rail at their foot.
 .account-welcome__wall {
-  position: absolute;
-  inset: 0;
-  opacity: 0.92;
-  mask-image: linear-gradient(
-    180deg,
-    rgba($black, 0.16) 0,
-    rgba($black, 0.3) 64px,
-    $black 110px,
-    $black 130px,
-    rgba($black, 0.45) 180px,
-    transparent $welcome-head
-  );
+  height: 172px;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, $black 40%, transparent);
 }
 
 .account-welcome__tiles {
-  position: absolute;
-  top: -70px;
-  right: -90px;
-  left: -70px;
   display: grid;
+  width: 140%;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  transform: rotate(-9deg);
-}
-
-.account-welcome__tile {
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  border-radius: $radius-l;
+  margin: -46px 0 0 -14%;
+  transform: rotate(-8deg);
 
   img {
     display: block;
     width: 100%;
-    height: 100%;
+    aspect-ratio: 16 / 10;
     object-fit: cover;
+    border-radius: $radius-m;
   }
 }
 
-// The logo over the gallery's top edge, where the mask has dimmed it.
 .account-welcome__brand {
-  position: absolute;
-  top: 26px;
-  left: 28px;
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   gap: 10px;
-}
-
-// The starter credits, over the gallery's right side.
-.account-welcome__cover .credit-coin {
-  --coin: 64px;
-  position: absolute;
-  top: 74px;
-  right: 14px;
+  margin: -8px 22px 0 24px;
 }
 
 .account-welcome__mark.brand-mark {
@@ -167,14 +165,14 @@ $welcome-head: 236px;
 
 .account-welcome__rail {
   display: grid;
-  gap: 20px;
+  flex: 1 1 auto;
+  align-content: space-between;
+  gap: 22px;
 }
 
-// What is waiting, or the steps: rows told apart by steps of light, the
-// Library's tray, never by boxes or lines.
 .account-welcome__list {
   display: grid;
-  gap: 6px;
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -183,24 +181,22 @@ $welcome-head: 236px;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 12px 8px 9px;
     color: $text-muted;
     font-size: $text-body;
-    line-height: 1.35;
-    border-radius: $radius-l;
-    background: linear-gradient(90deg, $studio-surface, transparent 80%);
+    line-height: 1.4;
   }
 }
 
-.account-welcome__icon {
+// What an account keeps, each line led by its picture on a small tile.
+.account-welcome__ico {
   display: grid;
+  width: 32px;
+  height: 32px;
   flex: 0 0 auto;
   place-items: center;
-  width: 30px;
-  height: 30px;
   color: $text-accent;
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  background: color-mix(in srgb, $secondary-default 13%, transparent);
+  border-radius: $radius-s;
 
   svg {
     width: 16px;
@@ -208,11 +204,26 @@ $welcome-head: 236px;
   }
 }
 
+// The three steps, their numbers joined by a thread down the side.
 .account-welcome__steps {
+  position: relative;
+  gap: 14px;
+
+  &::before {
+    position: absolute;
+    inset: 14px auto 14px 13px;
+    width: 1px;
+    background: color-mix(in srgb, $secondary-default 35%, transparent);
+    content: '';
+  }
+
+  li {
+    position: relative;
+  }
+
   li.is-now {
     color: $text-primary;
     font-weight: $weight-semibold;
-    background: linear-gradient(90deg, $studio-raise, transparent 85%);
   }
 
   li.is-done {
@@ -224,12 +235,12 @@ $welcome-head: 236px;
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  margin: 3px;
+  width: 28px;
+  height: 28px;
   color: $text-accent;
-  font-size: $text-micro;
+  font-size: $text-small;
   font-weight: $weight-bold;
+  background: $surface-panel;
   border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
   border-radius: 50%;
 
@@ -239,14 +250,13 @@ $welcome-head: 236px;
   }
 
   .is-now & {
-    color: $surface-base;
+    color: $on-accent;
     background: $secondary-light;
     border-color: $secondary-light;
   }
 
   .is-done & {
-    border-color: transparent;
-    background: color-mix(in srgb, $secondary-default 18%, transparent);
+    background: color-mix(in srgb, $secondary-default 18%, $surface-panel);
   }
 }
 
@@ -256,7 +266,6 @@ $welcome-head: 236px;
   gap: 6px;
 }
 
-// That the equaliser stays free, behind the shield that says it is kept.
 .account-welcome__free {
   display: flex;
   align-items: flex-start;
@@ -267,41 +276,14 @@ $welcome-head: 236px;
   line-height: 1.45;
 
   svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     flex: 0 0 auto;
-    margin-top: 1px;
     color: $text-accent;
-  }
-
-  + .account-link {
-    margin-left: 22px;
   }
 }
 
 // ---------------------------------------------------------------- the form
-
-// Every form stands in the middle of the body beside the rail, the short
-// ones (a forgotten password, a reset) as much as the long; `safe` keeps a
-// form taller than the body from losing its top to the scroll.
-.account--welcome > .dialog-frame__body {
-  align-content: safe center;
-  padding: 40px 36px 28px;
-}
-
-// What went wrong, under the form: the warning colour on a step of it, never
-// a red box — nothing is broken, an answer was refused.
-// Only the form's own line and the panel's: a field's message keeps its
-// quiet place under the field, which is reserved even while it is empty.
-.account--welcome :is(.account__form-column, .account-form) > .account__error {
-  padding: 10px 12px;
-  border-radius: $radius-l;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, $amber 13%, transparent),
-    transparent 90%
-  );
-}
 
 .account-form__step {
   color: $text-accent;
@@ -311,43 +293,65 @@ $welcome-head: 236px;
   text-transform: uppercase;
 }
 
+// A form's own heading where there are no tabs: the code, the reset.
 .account-form__title {
   margin: 0;
   color: $text-primary;
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   font-weight: $weight-bold;
+  @include tracking(-0.01em);
 }
 
-// The one loud button of the code, reset and forgotten-password steps.
+// A step's one loud button, across the form.
 .button.account-form__loud {
   width: 100%;
-  min-height: 46px;
+  min-height: 44px;
   justify-content: center;
   font-size: $text-lead;
   font-weight: $weight-bold;
 }
 
-// Email's way in, under Google's, the form's full width: quiet until both
-// fields are filled (`subtle`), then the loud style (`SignInForms`). The
-// chevron says it goes on to the account.
-.button.account-form__submit {
+// Email's way in, under Google's: quiet, the form's full width.
+.button.account-form__quiet {
   width: 100%;
-  min-height: 46px;
+  min-height: 44px;
   justify-content: center;
-  gap: 8px;
   font-size: $text-lead;
-  font-weight: $weight-bold;
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
 }
 
 .account-form__links {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 16px;
+  align-items: center;
+  gap: 8px 18px;
+}
+
+// Back to sign in, over the reset's heading: the way back says where.
+.account-form__back {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// What a press did, in place of the link that did it ("Sent again").
+.account-form__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-accent;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
 }
 
 // ---------------------------------------------------------------- the code
@@ -398,10 +402,10 @@ $welcome-head: 236px;
 .code-boxes__box {
   display: grid;
   place-items: center;
-  height: 58px;
-  font-size: 1.5rem;
+  height: 56px;
+  font-size: 1.4rem;
   font-weight: $weight-bold;
-  border-radius: $radius-m;
+  border-radius: $radius-s;
   transition:
     border-color 120ms,
     box-shadow 120ms;
@@ -417,49 +421,34 @@ $welcome-head: 236px;
   }
 }
 
-// Narrow, the rail is the head (`DialogFrame.scss`): a band of the gallery
-// with the logo and the heading on its foot, and the form under it at once.
-// The steps and the free note stay off this head, as they always have; the
-// coin too, which would sit under the close button.
+// Narrow: the wall shorter, the coin beside the logo, and the lists left out
+// so the form is on screen without scrolling.
 @media (max-width: $bp-md) {
   .account--welcome {
     .dialog-frame__cover {
       display: block;
+      margin-top: -16px;
     }
 
     .dialog-frame__rail {
-      min-height: 150px;
       max-height: none;
-      padding: 68px 52px 16px 22px;
     }
 
     .dialog-frame__title {
-      font-size: 1.4rem;
-    }
-
-    > .dialog-frame__body {
-      padding: 18px 22px 22px;
-    }
-
-    .dialog-frame__description,
-    .account-welcome__cover .credit-coin,
-    .account-welcome__rail {
-      display: none;
-    }
-
-    .account-welcome__brand {
-      top: 18px;
-      left: 22px;
+      font-size: 1.3rem;
     }
 
     .account-welcome__wall {
-      mask-image: linear-gradient(
-        180deg,
-        rgba($black, 0.5) 0%,
-        $black 30%,
-        rgba($black, 0.35) 70%,
-        transparent 100%
-      );
+      height: 112px;
+    }
+
+    .account-welcome__cover .credit-coin {
+      --coin: 46px;
+      top: 58px;
+    }
+
+    .account-welcome__rail {
+      display: none;
     }
   }
 }

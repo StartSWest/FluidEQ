@@ -63,6 +63,8 @@ const account = {
   'account.field.emailHint': '不会向任何人显示——仅用于登录和验证码',
   'account.field.password': '密码',
   'account.field.passwordHint': '至少 {count} 个字符',
+  'account.field.showPassword': '显示密码',
+  'account.field.hidePassword': '隐藏密码',
   'account.field.code': '邮件中的验证码',
 
   'account.code.sent': '我们已向 {email} 发送了一个六位数验证码。',
@@ -73,8 +75,10 @@ const account = {
     '没有收到？请查看垃圾邮件文件夹。如果该地址已有账户，则不会发送验证码——请直接登录。',
 
   'account.forgot.link': '忘记密码？',
+  'account.forgot.title': '重置密码',
   'account.forgot.lead': '输入注册时使用的邮箱地址，验证码将发送到那里。',
   'account.forgot.submit': '发送重置验证码',
+  'account.reset.title': '设置新密码',
   'account.reset.sent':
     '我们已向 {email} 发送了一个六位数验证码。在此输入验证码和新密码。',
   'account.reset.submit': '设置新密码',
@@ -102,10 +106,10 @@ const account = {
 
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': '使用 Google 继续',
-  'account.google.waiting': '请在浏览器中完成 Google 登录。',
+  'account.google.waitingTitle': '请在浏览器中完成',
+  'account.google.waitingBody':
+    'Google 已在浏览器中打开。你在那里完成后，FluidEQ 会自动为你登录。',
   'account.google.cancel': '取消',
-  'account.password.show': '显示密码',
-  'account.password.hide': '隐藏密码',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': '你的 {count} 个场景正在等你',
   'account.welcome.createTitle.few': '你的 {count} 个场景正在等你',

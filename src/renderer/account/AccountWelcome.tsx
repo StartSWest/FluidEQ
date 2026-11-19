@@ -17,11 +17,10 @@ import '../styles/AccountWelcome.scss';
 
 /**
  * What the account panel's left side says before anybody is signed in, as
- * Ivan approved it on 2026-11-13 ("I love that login") and then chose its
- * gallery rail on 2026-11-19 ("A, galería"): FluidEQ's own scenes, tilted,
- * behind the logo, fading into the rail where the words stand; then either
- * what creating an account gets — the credit coin, the three steps with the
- * current one lit — or, signing in, what is waiting on the account.
+ * Ivan approved it on 2026-11-13 ("I love that login"): FluidEQ's logo, and
+ * then either what creating an account gets — the credit coin, the starter
+ * scenes waiting, the three steps with the current one lit — or, signing
+ * in, what is waiting on the account.
  */
 export type TWelcomeKind = 'create' | 'confirm' | 'signIn';
 
@@ -30,27 +29,23 @@ const STEPS: readonly TranslationKey[] = [
   'account.welcome.step.confirm',
 ];
 
+/** Nine tiles on three rows: the six scenes, then three of them again. */
+const WALL: readonly string[] = [
+  neonHorizon,
+  nebulaHeart,
+  lanternLake,
+  hyperdrive,
+  reefLight,
+  prismBloom,
+  neonHorizon,
+  lanternLake,
+  nebulaHeart,
+];
+
 const BACK: readonly { glyph: TCommunityGlyph; key: TranslationKey }[] = [
   { glyph: 'monitor', key: 'account.welcome.back.scenes' },
   { glyph: 'credit', key: 'account.welcome.back.credits' },
   { glyph: 'studio', key: 'account.welcome.back.studio' },
-];
-
-/**
- * Nine frames of six of FluidEQ's scenes, the gallery itself as the rail's
- * picture: shipped images, so the dialog needs no GPU and no server. Three
- * repeat so the tilted grid reaches every corner of the rail.
- */
-const WALL: readonly { id: string; picture: string }[] = [
-  { id: 'neon', picture: neonHorizon },
-  { id: 'nebula', picture: nebulaHeart },
-  { id: 'lantern', picture: lanternLake },
-  { id: 'prism', picture: prismBloom },
-  { id: 'reef', picture: reefLight },
-  { id: 'hyperdrive', picture: hyperdrive },
-  { id: 'lantern-2', picture: lanternLake },
-  { id: 'neon-2', picture: neonHorizon },
-  { id: 'nebula-2', picture: nebulaHeart },
 ];
 
 /** FluidEQ's logo tile and name, as the window's header spells it. */
@@ -66,23 +61,25 @@ function Brand() {
 }
 
 /**
- * Behind the whole rail: the gallery wall, the logo over its top, and the
- * coin when creating.
+ * Across the top of the rail: a tilted wall of FluidEQ's scenes, fading into
+ * the rail, with the coin standing on it when creating, and the logo under
+ * it (Ivan, 2026-11-19: "improve and nicefy all login screens"; the rail had
+ * been the logo and a list over empty glass). The same frames the signed-out
+ * Scenes page shows, shipped as pictures.
  */
 export function WelcomeCover({ kind }: { kind: TWelcomeKind }) {
   return (
     <div className="account-welcome__cover">
       <div className="account-welcome__wall" aria-hidden="true">
         <div className="account-welcome__tiles">
-          {WALL.map((scene) => (
-            <span key={scene.id} className="account-welcome__tile">
-              <img src={scene.picture} alt="" />
-            </span>
+          {WALL.map((picture, index) => (
+            // eslint-disable-next-line react/no-array-index-key -- the wall repeats three of its pictures; the place is the identity
+            <img key={index} src={picture} alt="" />
           ))}
         </div>
       </div>
-      <Brand />
       {kind !== 'signIn' && <CreditCoin size="l" badge={STARTER_CREDITS} />}
+      <Brand />
     </div>
   );
 }
@@ -110,7 +107,7 @@ export function WelcomeRail({
         <ul className="account-welcome__list">
           {BACK.map((line) => (
             <li key={line.key}>
-              <span className="account-welcome__icon" aria-hidden="true">
+              <span className="account-welcome__ico" aria-hidden="true">
                 <Glyph name={line.glyph} />
               </span>
               {t(line.key)}
@@ -144,7 +141,7 @@ export function WelcomeRail({
       <div className="account-welcome__foot">
         <p className="account-welcome__free">
           <Glyph name="shield" />
-          {t('account.welcome.free')}
+          <span>{t('account.welcome.free')}</span>
         </p>
         {termsLink}
       </div>
@@ -167,6 +164,10 @@ export function useWelcome(page: string, account: IAccountState) {
   let kind: TWelcomeKind = formMode === 'signUp' ? 'create' : 'signIn';
   if (account.pending?.purpose === 'signup') {
     kind = 'confirm';
+  } else if (account.pending?.purpose === 'recovery') {
+    // Setting a new password is getting back into an account that exists,
+    // whichever tab was open when the reset was asked for.
+    kind = 'signIn';
   }
   return { kind, formMode, setFormMode, ...useWelcomeHeading(kind) };
 }

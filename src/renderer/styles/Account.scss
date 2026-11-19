@@ -12,7 +12,6 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'dialog' as dialog;
 @use 'spacing' as *;
 @use 'theme' as *;
-@use 'libraryTokens' as *;
 
 /// On the dialog frame (`DialogFrame`), every page of it: the rail is the
 // person when signed in (their initials in the tile, what the account is
@@ -34,7 +33,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .account__page {
   display: grid;
   align-content: start;
-  gap: 26px;
+  gap: $spacing-m;
 
   p {
     margin: 0;
@@ -42,6 +41,16 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &[hidden] {
     display: none;
+  }
+
+  // The sections are told apart by a hairline over each; the first stands at
+  // the top of the page, where its line doubled the rail's seam on a narrow
+  // window and drew a rule over nothing on a wide one.
+  // Not the sign-out question standing in its place, a card with its own
+  // edge all round.
+  > :first-child:not(.compact-frame) {
+    padding-top: 0;
+    border-top: 0;
   }
 }
 
@@ -146,18 +155,26 @@ it under the terms of the GNU General Public License version 3 or later.
 // page is the credits, the scenes the account has (`AccountScenes`) and what
 // it published (`AccountPublished`).
 
-// The tile is the person's face here: round, larger than a dialog's glyph,
-// ringed in the rail's ground, so it stands on the picture rather than
-// sitting in a square against it (2026-11-19). No shadow under it: "no
-// dropshadow, always clean" (Ivan, the same day) - the ring alone parts it.
+// The tile is the person's face here, larger than a dialog's glyph and ringed
+// in the rail's ground so it reads as standing on the picture.
+// Round, ringed in the floor's colour where it overlaps the picture, and in
+// a softer fall of the person's own hue: the flat square in a saturated
+// green fought the scene over it (Ivan, 2026-11-19). No shadow ("no
+// dropshadow always clean").
 .account--profile .dialog-frame__tile {
   width: 4.75rem;
   height: 4.75rem;
-  border: 3px solid $surface-panel;
+  border: 4px solid $surface-panel;
   border-radius: 50%;
   box-shadow: none;
 
   > .account__avatar {
+    color: hsl(var(--identity-hue, 170deg) 70% 88%);
+    background: linear-gradient(
+      150deg,
+      hsl(var(--identity-hue, 170deg) 42% 34%),
+      hsl(var(--identity-hue, 170deg) 48% 21%)
+    );
     font-size: 1.55rem;
   }
 }
@@ -313,27 +330,25 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
-// One step of light per scene, never a line between them.
 .account-published__rows {
   display: grid;
-  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+// Rows told apart by their pictures and the space between them, not a rule
+// under each.
 .account-published__row {
   display: grid;
-  grid-template-columns: 4rem minmax(0, 1fr) auto auto;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 14px;
-  padding: 7px 14px 7px 7px;
-  border-radius: $radius-l;
-  background: linear-gradient(90deg, $studio-surface, transparent 90%);
+  padding: 6px 0;
 }
 
 .account-published__picture {
-  border-radius: $radius-m;
+  border-radius: $radius-s;
 }
 
 .account-published__text {
@@ -351,31 +366,48 @@ it under the terms of the GNU General Public License version 3 or later.
   white-space: nowrap;
 }
 
-// Where a scene stands: a dot in its colour and the word, no pill.
-.account-published__state {
+// Where a scene stands, as a word after a dot of its colour: in the gallery
+// in the accent, blocked in amber, waiting to be read (the review's own
+// words, `ReviewState`) in amber too.
+.account-published__state,
+.account-published .review-kind {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  min-width: 0;
+  padding: 0;
+  color: $text-muted;
   font-size: $text-small;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
+  font-weight: $weight-regular;
+  background: none;
+  border: 0;
+  box-shadow: none;
 
   &::before {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     flex: 0 0 auto;
     border-radius: 50%;
-    background: currentColor;
+    background: $secondary-light;
     content: '';
   }
 
-  &.is-live {
-    color: $secondary-light;
+  &.is-blocked::before,
+  &.review-kind--update::before,
+  &.review-kind--refused::before {
+    background: $amber;
   }
+}
 
-  &.is-blocked {
-    color: $amber;
-  }
+// The refusal's own warning mark gives way to the dot.
+.account-published .review-kind__mark {
+  display: none;
+}
+
+.account-published__numbers {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .account-published__adds,
@@ -386,11 +418,10 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 
   svg {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
   }
 }
 
@@ -400,36 +431,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .account-published__likes svg {
   fill: color-mix(in srgb, $red 70%, $white);
-}
-
-// A scene still being read, said the way the rows above say theirs: its
-// colour and the word, a dot for a waiting one and the warning for a refused
-// one, instead of the review queue's bordered tag.
-.account-published__text .review-kind {
-  gap: 6px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: $text-small;
-
-  &--update::before {
-    width: 6px;
-    height: 6px;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    background: currentColor;
-    content: '';
-  }
-}
-
-// The count's word, read aloud and never drawn: the glyph says it on screen.
-.account-published__label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 
 // Getting paid for scenes (`CreatorPayoutsCard`): a section like the others,
@@ -658,6 +659,16 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $amber;
   font-size: $text-body;
   line-height: 1.55;
+}
+
+.account__actions {
+  display: flex;
+  flex-wrap: wrap;
+  // The link-buttons sit beside a 32px filled button; centred, not stretched,
+  // or their underline lands at a different height from the button's text.
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  margin-top: $spacing-xxs;
 }
 
 .account__hint {

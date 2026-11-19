@@ -11,7 +11,6 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
-@use 'libraryTokens' as *;
 
 /**
  * The sign-in forms.
@@ -35,23 +34,49 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-wrap: anywhere;
 }
 
-// The two ways in share the form's width half and half, so the line under
-// the open one says which half of the panel the form is.
+// The two ways in are the form's heading (Ivan, 2026-11-19: the form had no
+// heading and read as default): the open one at a title's size, the other
+// beside it on the same baseline as a quiet accent word. No rule under them
+// and no pill round either: the loud control here is the submit.
 .account-form__tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 18px;
   margin-bottom: 2px;
-  border-bottom: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 }
 
 .account-form__tab {
-  position: relative;
-  padding: 0 4px 11px;
-  margin-bottom: -1px;
+  padding: 0;
+  color: $text-accent;
+  font: inherit;
   font-size: $text-lead;
-  text-align: center;
-  // The app's tab (`tab`); it drew its line as an `::after` of its own.
-  @include tab('.account-form__tab--on');
+  font-weight: $weight-semibold;
+  background: none;
+  border: 0;
+  border-radius: $radius-xs;
+  cursor: pointer;
+
+  &:hover:not(:disabled, .account-form__tab--on) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.account-form__tab--on {
+  color: $text-primary;
+  font-size: 1.4rem;
+  font-weight: $weight-bold;
+  @include tracking(-0.01em);
+  cursor: default;
 }
 
 .account-field {
@@ -59,75 +84,67 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
 }
 
-// The label and, for the password, the way back into the account beside it.
-.account-field__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 2px 12px;
-
-  .account-link {
-    font-size: $text-small;
-  }
-}
-
-// The box: the field's glyph inside its left edge, and for a password the eye
-// inside its right one. The input keeps the app's field face; only its
-// padding makes room for them.
-.account-field__box {
+// A field's box with its mark inside on the left and, for a password, the
+// show button at the right end. The input is the app's own; it only makes
+// room for both.
+.account-input {
   position: relative;
   display: block;
-
-  > svg {
-    position: absolute;
-    top: 50%;
-    left: 12px;
-    width: 16px;
-    height: 16px;
-    color: $text-dim;
-    transform: translateY(-50%);
-    pointer-events: none;
-  }
-
-  &:focus-within > svg {
-    color: $text-accent;
-  }
 
   input {
     width: 100%;
     min-width: 0;
-    min-height: 42px;
+    min-height: 44px;
     padding-left: 38px;
+    font-size: $text-lead;
+    border-radius: $radius-s;
   }
 
-  input:has(+ .account-field__reveal) {
+  &:has(.account-input__reveal) input {
     padding-right: 42px;
   }
 }
 
-.account-field__reveal {
+.account-input__mark {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  width: 17px;
+  height: 17px;
+  color: $text-faint;
+  pointer-events: none;
+  transform: translateY(-50%);
+
+  .account-input:focus-within & {
+    color: $text-accent;
+  }
+}
+
+.account-input__reveal {
   position: absolute;
   top: 50%;
   right: 6px;
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   padding: 0;
-  color: $text-dim;
-  border: 0;
-  border-radius: $radius-s;
+  color: $text-faint;
   background: none;
-  transform: translateY(-50%);
+  border: 0;
+  border-radius: $radius-xs;
   cursor: pointer;
+  transform: translateY(-50%);
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 17px;
+    height: 17px;
   }
 
-  &:hover:not(:disabled),
+  &:hover:not(:disabled) {
+    color: $text-primary;
+  }
+
   &[aria-pressed='true'] {
     color: $text-accent;
   }
@@ -138,7 +155,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: 0.55;
   }
 }
 
@@ -160,31 +177,28 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The label, its quiet hint after it, and at the row's other end what goes
+// with the field ("Forgot your password?").
 .account-field__label {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: $spacing-xs;
+  justify-content: space-between;
+  gap: 2px $spacing-s;
   color: $text-muted;
   font-size: $text-small;
-  font-weight: $weight-medium;
-  @include tracking(0.02em);
+  font-weight: $weight-semibold;
+
+  .account-link {
+    font-size: $text-small;
+    font-weight: $weight-regular;
+  }
 }
 
 .account-field__hint {
+  margin-left: $spacing-xs;
   color: $text-dim;
   font-weight: $weight-regular;
-}
-
-// Six digits, spaced so each one can be checked against the email at a
-// glance. Wide enough for them and no wider: a full-width box makes six
-// characters look lost.
-.account-field__code {
-  max-width: 11ch;
-  font-size: $text-title;
-  font-variant-numeric: tabular-nums;
-  @include tracking(0.3em);
-  text-align: center;
 }
 
 // A button dressed as a link: the quiet way out of a form, sitting beside
@@ -217,8 +231,8 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // Sign in with Google (`GoogleSignIn.tsx`): the button across the form and a
-// rule with "or" under it, above the email fields; while Google is open in
-// the browser, a line saying so with Cancel beside it.
+// rule with "or" under it, above the email fields. While Google is open in
+// the browser the form side is `GoogleWaiting` instead (below).
 .account-google {
   display: grid;
   gap: 12px;
@@ -234,7 +248,10 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-lead;
   font-weight: $weight-bold;
   background: $white;
-  border-color: $white;
+  // Its edge from the window's own ink: nothing on a dark floor, where the
+  // white button stands out by itself, and a grey line on the white window,
+  // where a white edge left the button as a word floating on the floor.
+  border-color: color-mix(in srgb, $edge-tint 22%, $white);
   box-shadow: none;
 
   &:hover:not(:disabled) {
@@ -293,70 +310,71 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// While Google's page is open in the browser: the mark in a ring that turns,
-// what to do, and Cancel, on a step of light; the email way waits dimmed
-// under it, because nothing typed there can go anywhere until this ends.
-.account-google--waiting {
+// Google open in the browser (`GoogleWaiting`): the whole form side, centred
+// — Google's mark on its white disc inside a ring of the accent, the two
+// lines, and Cancel in the quiet style.
+.account-google-wait {
+  display: grid;
   justify-items: center;
-  gap: 14px;
-  padding: 24px 20px 20px;
+  gap: 12px;
+  padding: 18px 6px 6px;
   text-align: center;
-  border-radius: $radius-xl;
-  background: radial-gradient(
-    120% 100% at 50% 0%,
-    $studio-raise,
-    transparent 75%
-  );
 }
 
-.account-google__ring {
-  position: relative;
+.account-google-wait__ring {
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-items: center;
+  margin-bottom: 4px;
+  border: 2px solid $border-subtle;
+  border-top-color: $secondary-light;
+  border-right-color: color-mix(in srgb, $secondary-light 40%, transparent);
+  border-radius: 50%;
+}
+
+.account-google-wait__disc {
   display: grid;
   width: 64px;
   height: 64px;
   place-items: center;
-
-  &::before {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: conic-gradient(
-      $secondary-light 0 26%,
-      color-mix(in srgb, $secondary-light 14%, transparent) 26% 100%
-    );
-    content: '';
-    mask-image: radial-gradient(circle, transparent 28px, $black 29px);
-    animation: account-google-turn 1.4s linear infinite;
-  }
+  background: $white;
+  border-radius: 50%;
 
   .account-google__mark {
-    width: 48px;
-    height: 48px;
-    padding: 12px;
-    border-radius: 50%;
-    background: $white;
+    width: 30px;
+    height: 30px;
   }
 }
 
-@keyframes account-google-turn {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-.account-google__waiting {
-  max-width: 300px;
-  color: $text-primary;
+.account-google-wait__body {
+  max-width: 34ch;
+  margin: 0;
+  color: $text-muted;
   font-size: $text-lead;
-  font-weight: $weight-semibold;
-  line-height: 1.4;
+  line-height: 1.5;
+  text-wrap: pretty;
 }
 
-.account-google--waiting .button {
-  min-width: 120px;
-  justify-content: center;
-}
+// A failure the whole form is about (`FormAlert`): amber on a tint of
+// itself, the alert mark first. A field's own message stays a line under it.
+.account-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.45;
+  background: color-mix(in srgb, $amber 11%, transparent);
+  border: 1px solid color-mix(in srgb, $amber 32%, transparent);
+  border-radius: $radius-s;
 
-.account-form:has(.account-google--waiting) .account-field {
-  opacity: 0.4;
+  svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    color: $amber;
+  }
 }

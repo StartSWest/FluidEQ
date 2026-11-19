@@ -69,6 +69,8 @@ const account = {
     'jamais affiché à personne — uniquement pour la connexion et les codes',
   'account.field.password': 'Mot de passe',
   'account.field.passwordHint': 'au moins {count} caractères',
+  'account.field.showPassword': 'Afficher le mot de passe',
+  'account.field.hidePassword': 'Masquer le mot de passe',
   'account.field.code': 'Code reçu par e-mail',
 
   'account.code.sent': 'Nous avons envoyé un code à six chiffres à {email}.',
@@ -79,9 +81,11 @@ const account = {
     'Rien reçu ? Regardez dans les indésirables. Et si un compte existait déjà avec cette adresse, aucun code n’est envoyé : connectez-vous plutôt.',
 
   'account.forgot.link': 'Mot de passe oublié ?',
+  'account.forgot.title': 'Réinitialiser votre mot de passe',
   'account.forgot.lead':
     'Saisissez l’adresse de votre inscription et un code y sera envoyé.',
   'account.forgot.submit': 'Envoyer un code de réinitialisation',
+  'account.reset.title': 'Choisissez un nouveau mot de passe',
   'account.reset.sent':
     'Nous avons envoyé un code à six chiffres à {email}. Saisissez-le ici avec votre nouveau mot de passe.',
   'account.reset.submit': 'Définir le nouveau mot de passe',
@@ -117,11 +121,10 @@ const account = {
 
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continuer avec Google',
-  'account.google.waiting':
-    'Terminez la connexion avec Google dans votre navigateur.',
+  'account.google.waitingTitle': 'Terminez dans votre navigateur',
+  'account.google.waitingBody':
+    'Google est ouvert dans votre navigateur. FluidEQ vous connecte tout seul dès que vous y avez terminé.',
   'account.google.cancel': 'Annuler',
-  'account.password.show': 'Afficher le mot de passe',
-  'account.password.hide': 'Masquer le mot de passe',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': 'Votre {count} scène vous attend',
   'account.welcome.createTitle.few': 'Vos {count} scènes vous attendent',

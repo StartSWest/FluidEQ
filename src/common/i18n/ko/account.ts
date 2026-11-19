@@ -69,6 +69,8 @@ const account = {
     '아무에게도 표시되지 않음 - 로그인 및 코드에만 표시됨',
   'account.field.password': '비밀번호',
   'account.field.passwordHint': '{count}자 이상',
+  'account.field.showPassword': '비밀번호 표시',
+  'account.field.hidePassword': '비밀번호 숨기기',
   'account.field.code': '이메일의 코드',
   'account.code.sent': '{email}로 6자리 코드를 보냈습니다.',
   'account.code.sendAgain': '코드를 다시 보내세요',
@@ -77,8 +79,10 @@ const account = {
   'account.code.hint':
     '아무것도 도착하지 않았나요? 스팸 폴더를 확인하세요. 이미 이 주소로 계정이 있는 경우에는 코드가 전송되지 않습니다. 대신 로그인하세요.',
   'account.forgot.link': '비밀번호를 잊으셨나요?',
+  'account.forgot.title': '비밀번호 재설정',
   'account.forgot.lead': '가입한 주소를 입력하면 코드가 입력됩니다.',
   'account.forgot.submit': '재설정 코드 보내기',
+  'account.reset.title': '새 비밀번호 정하기',
   'account.reset.sent':
     '{email}로 6자리 코드를 보냈습니다. 여기에 새 비밀번호를 입력하세요.',
   'account.reset.submit': '새 비밀번호 설정',
@@ -109,10 +113,10 @@ const account = {
     '해당 주소를 사용하는 계정이 이미 있습니다. 대신 로그인하세요.',
   'account.plus.eyebrow': 'FluidEQ',
   'account.google': 'Google로 계속하기',
-  'account.google.waiting': '브라우저에서 Google로 로그인을 완료하세요.',
+  'account.google.waitingTitle': '브라우저에서 마무리하세요',
+  'account.google.waitingBody':
+    '브라우저에 Google이 열려 있습니다. 거기서 마치면 FluidEQ가 자동으로 로그인합니다.',
   'account.google.cancel': '취소',
-  'account.password.show': '비밀번호 표시',
-  'account.password.hide': '비밀번호 숨기기',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': '장면 {count}개가 기다리고 있습니다',
   'account.welcome.createTitle.few': '장면 {count}개가 기다리고 있습니다',

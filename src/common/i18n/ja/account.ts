@@ -69,6 +69,8 @@ const account = {
     '誰にも表示されません。サインインとコードの受け取りにのみ使います',
   'account.field.password': 'パスワード',
   'account.field.passwordHint': '{count} 文字以上',
+  'account.field.showPassword': 'パスワードを表示',
+  'account.field.hidePassword': 'パスワードを隠す',
   'account.field.code': 'メールのコード',
 
   'account.code.sent': '{email} に6桁のコードを送りました。',
@@ -79,9 +81,11 @@ const account = {
     '届きませんか？迷惑メールフォルダを確認してください。また、このアドレスですでにアカウントがある場合はコードは送られません。代わりにサインインしてください。',
 
   'account.forgot.link': 'パスワードをお忘れですか？',
+  'account.forgot.title': 'パスワードの再設定',
   'account.forgot.lead':
     '登録に使ったアドレスを入力すると、そこにコードを送ります。',
   'account.forgot.submit': 'リセットコードを送る',
+  'account.reset.title': '新しいパスワードを設定',
   'account.reset.sent':
     '{email} に6桁のコードを送りました。ここにコードと新しいパスワードを入力してください。',
   'account.reset.submit': '新しいパスワードを設定',
@@ -117,10 +121,10 @@ const account = {
 
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Googleで続行',
-  'account.google.waiting': 'ブラウザでGoogleのサインインを完了してください。',
+  'account.google.waitingTitle': 'ブラウザで完了してください',
+  'account.google.waitingBody':
+    'Google がブラウザで開いています。そちらで完了すると、FluidEQ が自動でサインインします。',
   'account.google.cancel': 'キャンセル',
-  'account.password.show': 'パスワードを表示',
-  'account.password.hide': 'パスワードを隠す',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
   'account.welcome.createTitle.one': '{count}つのシーンがあなたを待っています',
   'account.welcome.createTitle.few': '{count}つのシーンがあなたを待っています',

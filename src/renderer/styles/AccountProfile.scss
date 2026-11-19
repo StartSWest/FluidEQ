@@ -10,7 +10,6 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'dialog' as dialog;
 @use 'spacing' as *;
 @use 'theme' as *;
-@use 'libraryTokens' as *;
 
 // The account panel signed in (`AccountProfile`), Ivan 2026-11-13 ("improve
 // account a bit", "put get more credits"): the person in the rail, and the
@@ -36,10 +35,18 @@ it under the terms of the GNU General Public License version 3 or later.
 .account-actions {
   gap: 6px 18px;
 
+  // In the rail's quiet ink rather than the accent's underline: the two
+  // quietest things on the panel, lit only under the pointer.
   .account-link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    color: $text-muted;
+    text-decoration: none;
+
+    &:hover:not(:disabled) {
+      color: $text-primary;
+    }
 
     svg {
       width: 14px;
@@ -49,33 +56,37 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The three numbers as rows, the word on the left and the figure on the
-// right, each on a step of light with no box round them and no line between
-// (Ivan, 2026-11-19: "sin tantas líneas ni borders"). Rows, not tiles side
-// by side: those cut the long words of some languages ("VERÖFFENTLIC HT";
-// Chromium has no German hyphenation on Windows), and Russian's
-// "Опубликованы" was cut to "ОПУБЛИК…" when they were thirds.
+// The three numbers side by side on one step of light, the figure over its
+// word, with no edge and no rule between them (Ivan, 2026-11-19: "sin tantas
+// líneas ni borders"; it was a bordered table of three rows). The columns
+// take their words' own widths and share what is left: as equal thirds, the
+// long words of some languages were cut ("VERÖFFENTLIC HT"; Chromium has no
+// German hyphenation on Windows), which capitals made worse — the words are
+// in sentence case now, and the longest of the twelve fits.
 .account-stats {
   display: grid;
-  gap: 6px;
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-around;
+  gap: 8px;
   margin: 0;
+  padding: 14px 8px 12px;
+  background: color-mix(in srgb, $edge-tint 6%, transparent);
+  border-radius: $radius-m;
 }
 
 .account-stats__item {
   display: flex;
   min-width: 0;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 14px;
-  border-radius: $radius-l;
-  background: linear-gradient(90deg, $studio-surface, transparent 90%);
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
 
   dt {
     min-width: 0;
     color: $text-faint;
     font-size: $text-small;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
   }
 
   dd {
@@ -94,19 +105,22 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // The coin, the balance large beside it, and getting more as the loud action,
-// on a pool of light from the coin's side rather than under a hairline.
+// on a step of light lit from the coin's side: the one panel on the page,
+// because the balance is the one figure on it anybody looks for.
 .credits-card__hero {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px 18px;
-  padding: 14px 16px 14px 18px;
-  border-radius: $radius-xl;
-  background: radial-gradient(
-    70% 140% at 0% 50%,
-    $studio-raise,
-    transparent 78%
-  );
+  padding: 14px 18px;
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, $secondary-default 12%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, $edge-tint 4%, transparent);
+  border-radius: $radius-l;
 
   // Half the large coin (Ivan, 2026-11-14: "this coin is too big, make it 2x
   // smaller"): about the height of the figure and its eyebrow beside it, the

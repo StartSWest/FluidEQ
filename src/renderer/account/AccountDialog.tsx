@@ -23,6 +23,7 @@ import PlusTermsDocument from './PlusTermsDocument';
 import { useSceneStore } from '../plus/sceneStore';
 import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
+import { FormAlert } from './AccountFields';
 import { WelcomeCover, WelcomeRail, useWelcome } from './AccountWelcome';
 import initialsOf from './initials';
 // The panel sits on the About panel's backdrop, so it asks for the sheet that
@@ -247,9 +248,7 @@ export default function AccountDialog({
   );
 
   const errorLine = account.error && (
-    <p className="account__error" role="alert">
-      {t(ERROR_KEYS[account.error])}
-    </p>
+    <FormAlert>{t(ERROR_KEYS[account.error])}</FormAlert>
   );
 
   // What the rail says the panel is, page by page: the terms are a
@@ -420,8 +419,8 @@ export default function AccountDialog({
                 account={account}
                 initialMode={welcome.formMode}
                 onModeChange={welcome.setFormMode}
+                notice={errorLine}
               />
-              {errorLine}
             </div>
           )}
         </div>

@@ -139,16 +139,17 @@ it under the terms of the GNU General Public License version 3 or later.
     background: linear-gradient(90deg, $studio-raise, transparent 92%);
   }
 
-  // The chosen pack: lit, ringed in the accent, lifted a little.
+  // The chosen pack: lit and ringed in the accent, with no shadow under it
+  // and no glow round its coins (Ivan, 2026-11-19: "no dropshadow always
+  // clean"). The coins keep the shadow that parts one coin of a pile from
+  // the next (`_galleryStore.scss`).
   &:has(input:checked) {
     background: linear-gradient(
       90deg,
       color-mix(in srgb, $secondary-default 16%, transparent),
       color-mix(in srgb, $secondary-default 5%, transparent)
     );
-    box-shadow:
-      inset 0 0 0 1.5px $secondary-light,
-      0 8px 24px color-mix(in srgb, $secondary-default 12%, transparent);
+    box-shadow: inset 0 0 0 1.5px $secondary-light;
   }
 }
 
