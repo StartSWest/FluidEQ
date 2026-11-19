@@ -42,7 +42,9 @@ import SceneGet, { officialLine, SceneLockedVeil } from './SceneGet';
 import SceneInspectButton from './SceneInspectButton';
 import GalleryScenePreview from './GalleryScenePreview';
 import type { TPreviewTrouble } from './ScenePreview';
+import { galleryCameraOf } from './sceneMoveGestures';
 import SceneSteps from './SceneSteps';
+import StageMoveBadge from './StageMoveBadge';
 import SceneTaste from './SceneTaste';
 import SceneVersions from './SceneVersions';
 import { useOwnsLook } from './sceneStore';
@@ -262,6 +264,13 @@ export default function ScenePage({
     [moreBy.list.scenes, scene.lookId],
   );
 
+  // The pack playing on the stage is the word on its own version; before it
+  // is here, and for a scene not yet bought, the listing's or the pack on
+  // this computer. A scene that cannot draw promises no gestures.
+  const camera =
+    preview.state === 'ready'
+      ? preview.pack.camera
+      : galleryCameraOf(scene, local);
   const current = local !== undefined && local.version >= scene.version;
   // The heading it sits under in the look picker. FluidEQ's own scenes are
   // Plus looks, not member scenes, and were being sent to "Made by members".
@@ -418,6 +427,11 @@ export default function ScenePage({
               name={name}
               tasted={preview.tasted}
             />
+          )}
+          {/* Over every veil, the locked one too: what the scene can do is
+              the thing to know before buying it. */}
+          {camera && preview.state !== 'failed' && (
+            <StageMoveBadge limits={camera} />
           )}
         </div>
       </div>

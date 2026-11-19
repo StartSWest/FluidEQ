@@ -84,7 +84,9 @@ const readRange = (
   return [tidy(from), tidy(to)];
 };
 
-const moves = ([from, to]: readonly [number, number]) => to - from > 1e-3;
+/** Whether one of the limits' ranges lets the camera move at all. */
+export const rangeMoves = ([from, to]: readonly [number, number]) =>
+  to - from > 1e-3;
 
 /**
  * The limits `pack.json` gives, kept in range, or nothing when they would let
@@ -104,7 +106,9 @@ export const readSceneCamera = (
     zoom: readRange(raw.zoom, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM, 1),
     ...(raw.pivot === 'eye' ? { pivot: 'eye' as const } : {}),
   };
-  return moves(limits.yaw) || moves(limits.pitch) || moves(limits.zoom)
+  return rangeMoves(limits.yaw) ||
+    rangeMoves(limits.pitch) ||
+    rangeMoves(limits.zoom)
     ? limits
     : undefined;
 };

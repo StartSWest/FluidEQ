@@ -619,14 +619,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .graph-view-menu kbd {
-  flex: 0 0 auto;
-  padding: 1px 5px;
-  border: 1px solid color-mix(in srgb, $edge-tint 16%, transparent);
-  border-radius: 4px;
-  color: $text-muted;
-  font-family: inherit;
-  font-size: $text-eyebrow;
-  white-space: nowrap;
+  @include keycap;
 }
 
 // The graph with no paper: no decibel scale, no frequency marks, no lines

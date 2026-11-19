@@ -1,4 +1,5 @@
 import { useMemo, useSyncExternalStore } from 'react';
+import type { ISceneCameraLimits } from 'common/sceneCamera';
 import { premiumLookId } from 'common/scenePacks';
 import {
   getMemberSceneListing,
@@ -9,6 +10,14 @@ import {
   subscribeScenePacks,
   type IUsableScene,
 } from '../utils/scenePacks';
+
+/**
+ * A scene the gallery lists, as this computer holds it: which version, and
+ * how far its camera moves (`GalleryMoveTag`), read from the pack itself.
+ */
+export type TGalleryLocalScene = Pick<IUsableScene, 'lookId' | 'version'> & {
+  camera?: ISceneCameraLimits;
+};
 
 /** Official and member looks keep their own eligibility and storage rules. */
 export default function useGalleryLocalScenes() {
@@ -22,7 +31,7 @@ export default function useGalleryLocalScenes() {
   );
   return useMemo(
     () =>
-      new Map<string, Pick<IUsableScene, 'lookId' | 'version'>>(
+      new Map<string, TGalleryLocalScene>(
         [
           ...official.packs.map((scene) => ({
             ...scene,

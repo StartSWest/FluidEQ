@@ -1,0 +1,193 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// A scene its viewer can turn says so (Ivan, 2026-11-19): "3D" and the key
+// that moves it, on a gallery card beside the name (`GalleryMoveTag`) and on
+// a scene's stage at its top right (`StageMoveBadge`), and the gestures in a
+// tip over either (`SceneMoveTip`). Flat, as the gallery is: no glow, no
+// shadow on a label.
+
+.scene-move-mark {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+}
+
+.scene-move-key {
+  @include keycap;
+}
+
+// On a card it stands on the card's own surface, in the window's inks: the
+// accent drawn toward the ink, so it reads on a dark window and a white one
+// alike, as the genre pins' figures do. Above the name's stretched target,
+// or the pointer resting on it would be resting on the name.
+.scene-move-tag {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+  color: color-mix(in srgb, $secondary-default 65%, $ink);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  // No taller than the name's line beside it (`.gallery-card__title`).
+  line-height: 1.2;
+  cursor: default;
+  user-select: none;
+
+  .scene-move-key {
+    padding-block: 0;
+    font-weight: $weight-regular;
+  }
+}
+
+// On the stage it stands on the picture, so it wears the playing tag's dark
+// plate at the other corner (`.gallery-preview__tag`) and keeps its light
+// words on a white window too, as the card's picture tags do. Over every
+// veil: what the scene can do is worth knowing before it is bought.
+.scene-move-badge {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  color: rgba($white, 0.9);
+  border: 1px solid rgba($white, 0.12);
+  border-radius: $radius-2xs;
+  background: rgba($black, 0.55);
+  font: inherit;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  cursor: default;
+  backdrop-filter: blur(6px);
+  transition: background $motion-fast $ease-out;
+
+  &:hover {
+    background: rgba($black, 0.72);
+  }
+
+  &:focus-visible {
+    @include focus-outline(2px);
+  }
+
+  .scene-move-key {
+    color: rgba($white, 0.82);
+    border-color: rgba($white, 0.24);
+    font-weight: $weight-regular;
+  }
+}
+
+:root[data-window-ink='dark'] .scene-move-badge {
+  background: rgba($black, 0.7);
+}
+
+// The tip: the app's tooltip face (`.app-tooltip`), with keys in it. A
+// popover in the top layer, placed by the browser under its label and
+// aligned to the label's end, flipping above or to the other side where the
+// window has no room, and never wider than the window.
+.scene-move-tip {
+  position: fixed;
+  inset: auto;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 16px));
+  margin: 6px 0;
+  padding: 8px 10px 9px;
+  overflow: visible;
+  @include floating-surface($tooltip-lift);
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-regular;
+  line-height: 1.4;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+  pointer-events: none;
+  user-select: none;
+  position-area: block-end span-inline-start;
+  position-try-fallbacks:
+    flip-block,
+    flip-inline,
+    flip-block flip-inline;
+
+  // The tooltip's own entrance: a rest before it, so a pointer crossing the
+  // label on its way somewhere shows nothing, and the wait kept with motion
+  // off, where only the fade goes.
+  &:popover-open {
+    animation: scene-move-tip-in 140ms $ease-out 400ms backwards;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation-name: scene-move-tip-fade;
+    }
+  }
+}
+
+// The label's own mark and ink beside the heading, so the tip reads as the
+// label opened up.
+.scene-move-tip__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-weight: $weight-semibold;
+
+  .scene-move-mark {
+    color: color-mix(in srgb, $secondary-default 65%, $ink);
+  }
+}
+
+.scene-move-tip__rows {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 5px 12px;
+  align-items: center;
+  margin: 0;
+}
+
+.scene-move-tip__row {
+  display: contents;
+
+  dd {
+    margin: 0;
+  }
+}
+
+.scene-move-tip__keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: $text-muted;
+  white-space: nowrap;
+}
+
+.scene-move-tip__where {
+  margin: 8px 0 0;
+  padding-top: 7px;
+  border-top: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+@keyframes scene-move-tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px) scale(0.98);
+  }
+}
+
+@keyframes scene-move-tip-fade {
+  from {
+    opacity: 0;
+  }
+}
