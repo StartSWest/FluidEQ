@@ -532,18 +532,9 @@ $studio-chat-head-height: 42px;
   }
 }
 
-// The line alone, never what hangs from it: an opacity pulse dimmed the
-// steps and the pictures with it.
-@keyframes studio-chat-rail {
-  50% {
-    border-left-color: color-mix(in srgb, $text-accent 25%, transparent);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .studio-chat__lamp,
   .studio-chat__step-mark,
-  .studio-chat__reply.is-working .studio-chat__steps,
   .studio-chat__dots i,
   .studio-chat__spinner,
   .studio-chat__seen.is-drawing,

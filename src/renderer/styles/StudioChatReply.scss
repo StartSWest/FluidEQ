@@ -28,7 +28,11 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 4px;
   margin: 0;
   padding: 0 0 0 10px;
-  border-left: 2px solid $menu-rule;
+  // A hairline in the quiet rule, still while Claude works: lit in the
+  // accent and breathing, it blinked bright down the whole reply (Ivan,
+  // 2026-11-18: "this line is blinking too bright ... make it more subtle").
+  // The thinking dots under it already say the reply is not finished.
+  border-left: 1px solid $menu-rule;
   list-style: none;
 }
 
@@ -224,13 +228,6 @@ it under the terms of the GNU General Public License version 3 or later.
     background: none;
     font-size: inherit;
   }
-}
-
-// The reply still working: the line its steps hang from lit in the accent
-// and breathing, so a glance at the pane says Claude has not finished.
-.studio-chat__reply.is-working .studio-chat__steps {
-  border-left-color: $text-accent;
-  animation: studio-chat-rail 1.6s $ease-out infinite;
 }
 
 .studio-chat__thinking {
