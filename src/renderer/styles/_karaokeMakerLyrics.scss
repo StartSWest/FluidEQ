@@ -376,7 +376,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     &.is-selected {
-      color: $surface-base;
+      color: $on-accent;
       font-weight: $weight-bold;
       background: $secondary-default var(--control-fill) border-box;
       border-color: transparent;

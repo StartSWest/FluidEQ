@@ -60,11 +60,12 @@ const BIG_STEP = 0.1;
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 /**
- * The canvas a limited field is painted on: one column per unit across, each
- * a straight gradient down its run (a hue at one saturation is linear in its
- * value), smoothed by the browser to the field's size.
+ * The canvas height a limited field is painted at: one column per unit
+ * across (`IFieldRange.drawn`), each a straight gradient down each of its
+ * stretches (a hue at one saturation is linear in its value), smoothed by the
+ * browser to the field's size.
  */
-const PAINT = { columns: 96, height: 64 };
+const PAINT_HEIGHT = 64;
 
 /** Every part of a press held back outside an open picker. */
 const PRESS_EVENTS = [
@@ -346,16 +347,18 @@ export default function ColourPickerPopover({
     if (!limit || !context) {
       return;
     }
-    for (let column = 0; column < PAINT.columns; column += 1) {
-      const x = (column + 0.5) / PAINT.columns;
-      const top = range.colourAt({ x, y: 0 });
-      const bottom = range.colourAt({ x, y: 1 });
-      const fill = context.createLinearGradient(0, 0, 0, PAINT.height);
-      fill.addColorStop(0, hexOfHsv({ h: fieldHue, ...top }));
-      fill.addColorStop(1, hexOfHsv({ h: fieldHue, ...bottom }));
+    range.drawn.forEach(({ s, stretches }, column) => {
+      const fill = context.createLinearGradient(0, 0, 0, PAINT_HEIGHT);
+      // Two stops at one place where one stretch ends and the next begins:
+      // the deep colours start where the pastels end, with no mid-tone
+      // drawn between them.
+      stretches.forEach(({ top, bottom, high, low }) => {
+        fill.addColorStop(top, hexOfHsv({ h: fieldHue, s, v: high }));
+        fill.addColorStop(bottom, hexOfHsv({ h: fieldHue, s, v: low }));
+      });
       context.fillStyle = fill;
-      context.fillRect(column, 0, 1, PAINT.height);
-    }
+      context.fillRect(column, 0, 1, PAINT_HEIGHT);
+    });
   }, [paint, limit, range, fieldHue]);
   const mark = range.placeOf(hsv.s, hsv.v);
   return (
@@ -393,8 +396,8 @@ export default function ColourPickerPopover({
           <canvas
             ref={setPaint}
             className="colour-picker__paint"
-            width={PAINT.columns}
-            height={PAINT.height}
+            width={Math.max(1, range.drawn.length)}
+            height={PAINT_HEIGHT}
             aria-hidden
           />
         )}

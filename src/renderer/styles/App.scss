@@ -1133,7 +1133,7 @@ select option {
     width: 38px;
     height: 38px;
     margin: -4px 1px;
-    color: $surface-base;
+    color: $on-accent;
     border-color: transparent;
     background: $secondary-default;
     box-shadow: none;
@@ -1143,6 +1143,8 @@ select option {
       height: 18px;
     }
 
+    // The accent's light, a deep ink on the white window whatever the
+    // accent: the floor's colour reads on it on both windows.
     &:hover {
       color: $surface-base;
       border-color: transparent;
@@ -1867,13 +1869,14 @@ textarea,
   --pet-tone: var(--accent);
 }
 
-// On a light window the accent is darkened until a filled control's white
-// label reads on it (`windowOn`'s `LABEL_CONTRAST`): a lavender #b699eb is
-// worn at OKLab 0.52, and the pet, which carries no label, came out a near
-// black blot (Ivan, 2026-11-18: "el bichito está oscuro ... no debería ser
-// así"). She wears the accent's hue and colour at the lightness of her own
-// mint instead (#4ad3dc, 0.80), which is the scene's accent as picked within
-// a step, and never darker than the accent already is.
+// On a light window an accent that carries the floor's light label is deep
+// (`filledFace` in `windowFill.ts`): before light accents kept their colour
+// with the dark ink on them, a lavender #b699eb was worn at OKLab 0.52, and
+// the pet, which carries no label, came out a near black blot (Ivan,
+// 2026-11-18: "el bichito está oscuro ... no debería ser así"). She wears
+// the accent's hue and colour at the lightness of her own mint instead
+// (#4ad3dc, 0.80), which is the scene's accent as picked within a step, and
+// never darker than the accent already is.
 :root[data-scene-tint][data-window-ink='dark'] {
   --pet-tone: oklch(from var(--accent) max(l, 0.8) c h);
 }

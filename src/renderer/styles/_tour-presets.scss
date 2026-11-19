@@ -185,7 +185,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .presets-visual__full {
   justify-self: start;
   padding: calc(#{$u} * 0.32) calc(#{$u} * 0.7);
-  color: $surface-base;
+  color: $on-accent;
   border: 1px solid $border-field;
   border-radius: $radius-xs;
   background: $secondary-default;

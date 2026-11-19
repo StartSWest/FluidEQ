@@ -135,20 +135,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 44px;
     min-height: 44px;
     margin: -4px 1px;
-    color: $surface-base;
+    color: $on-accent;
     border-color: transparent;
     border-radius: 50%;
     // The filled button's face, flat outside Rainbow mode (`--control-fill`).
     background: $secondary-default var(--control-fill) border-box;
 
     &:hover:not([aria-disabled='true'], :disabled) {
-      color: $surface-base;
+      color: $on-accent;
       background: $secondary-default var(--control-fill) border-box;
       filter: brightness(1.1);
     }
 
     &:active:not([aria-disabled='true'], :disabled) {
-      color: $surface-base;
+      color: $on-accent;
       background: $secondary-default var(--control-fill) border-box;
     }
 
@@ -307,7 +307,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &[aria-expanded='true'] {
-    color: $surface-base;
+    color: $on-accent;
     border-color: color-mix(in srgb, $secondary-light 70%, transparent);
     background: $secondary-default;
     box-shadow: none;

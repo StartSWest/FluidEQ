@@ -31,7 +31,9 @@ import {
   groundOf,
   inkTokens,
 } from './themeInk';
-import { darkInkSet, filledOn, inkForSurface, labOf } from './windowLight';
+import { filledFace, labOf } from './windowFill';
+import { darkInkSet, inkForSurface } from './windowLight';
+import { WINDOW_LABELS } from './windowTokens';
 import {
   darkStepOf,
   isLightShade,
@@ -723,8 +725,17 @@ const readKneeBase = (shade: number) => {
  * old frame to be captured, and a change that lands at once in between would
  * otherwise be painted over by the older one.
  */
-/** Every token a paint may write on the root, and takes off when it does not. */
-const PAINTED_TOKENS = [...SCENE_TINT_TOKENS, ...INK_TOKENS] as const;
+/**
+ * Every token a paint may write on the root, and takes off when it does not.
+ * The labels on the filled accent and "on" are written only beside colours
+ * somebody picked (`pickedWindow`, `withOwnOn`); taken off, they are the
+ * stylesheet's floor colour again, which is what a sky's toned accent wears.
+ */
+const PAINTED_TOKENS = [
+  ...SCENE_TINT_TOKENS,
+  ...WINDOW_LABELS,
+  ...INK_TOKENS,
+] as const;
 
 /**
  * Which way the window's ink runs, on `:root` (`WINDOW_INK_ATTRIBUTE`): `dark`
@@ -802,10 +813,11 @@ const tonedPalette = (shade: number, brightness: number) => {
 
 /**
  * `tokens` with "on" in the window's own colours (`IOwnOn`): the second
- * colour worn as a filled control wears it on this floor (`filledOn`, the
- * accent's own rule), or the accent exactly as `tokens` paint it. A light
- * window's toned palette leaves the surfaces to the theme, so the floor is
- * the theme's at `shade` there.
+ * colour worn as a filled control wears a picked colour on these surfaces
+ * (`filledFace`, the accent's own rule), with the label that reads on it, or
+ * the accent exactly as `tokens` paint it, with the accent's label. A light
+ * window's toned palette leaves the surfaces to the theme, so the floor and
+ * panes are the theme's at `shade` there.
  */
 const withOwnOn = (
   tokens: Readonly<Record<string, string>>,
@@ -817,9 +829,25 @@ const withOwnOn = (
     tokens[token] ?? readThemeBase(shade)[token];
   const second = on.second === undefined ? undefined : labOf(on.second);
   const floor = theme('--surface-base');
-  const active =
-    second && floor ? filledOn(second, floor, isLight) : theme('--accent');
-  return active ? { ...tokens, '--active': active } : { ...tokens };
+  const pane = theme('--surface-panel');
+  if (second && floor && pane) {
+    const face = filledFace(second, {
+      floor,
+      pane,
+      ink: darkInkSet(undefined).ink,
+      isLight,
+    });
+    return { ...tokens, '--active': face.fill, '--on-active': face.label };
+  }
+  const accent = theme('--accent');
+  if (!accent) {
+    return { ...tokens };
+  }
+  // Undefined where the accent wears the stylesheet's floor-coloured label.
+  const label = tokens['--on-accent'];
+  return label
+    ? { ...tokens, '--active': accent, '--on-active': label }
+    : { ...tokens, '--active': accent };
 };
 
 /**

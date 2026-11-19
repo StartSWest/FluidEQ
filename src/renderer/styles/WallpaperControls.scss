@@ -106,7 +106,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   [aria-pressed='true'] > & {
-    color: $surface-base;
+    color: $on-accent;
     border-color: $secondary-default;
     background: $secondary-default;
 

@@ -142,7 +142,8 @@ $switch-height: 22px;
 
 // ON A LIGHT WINDOW a switch is a key in a slot (Ivan's pick B, "Consola",
 // 2026-11-18): off, a white knob in a grey slot; on, the slot filled with the
-// accent and the knob the floor's ink on it, as a chosen segment is
+// accent and the knob the accent's label on it (`$on-accent`: the floor's
+// colour, or the dark ink on a light accent), as a chosen segment is
 // (`_buttonFaces.scss`). The dark window's faces read the other way on
 // white: off was a near-black knob in a grey well, the heaviest mark in the
 // header, and on a pale tint barely different from off.
@@ -164,7 +165,7 @@ $switch-height: 22px;
     background: $secondary-default;
 
     .switch-button {
-      background: $surface-base;
+      background: $on-accent;
       box-shadow: 0 1px 1px color-mix(in srgb, $black 22%, transparent);
     }
   }
@@ -179,10 +180,12 @@ $switch-height: 22px;
 
   .switch-checkbox:checked:not(:disabled) + .switch-label:hover {
     border-color: transparent;
+    // The pressed strength: a light accent's dark ink is held to read a
+    // pressed step darker too (`filledFace`).
     background: $secondary-dark;
 
     .switch-button {
-      background: $surface-base;
+      background: $on-accent;
     }
   }
 }

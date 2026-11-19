@@ -218,8 +218,9 @@ it under the terms of the GNU General Public License version 3 or later.
   fill: $secondary-default;
 }
 
+// The play marks and switch knobs drawn on the accent's fill: its label.
 .tour-art__ink {
-  fill: $surface-base;
+  fill: $on-accent;
 }
 
 // The looks tiles.

@@ -73,9 +73,9 @@ $notes-ink: $secondary-default;
 }
 
 .genre-curve__pin {
-  // The floor's colour on the accent badge (`.genre-whys__number`).
+  // The accent's label on the accent badge (`.genre-whys__number`).
   text {
-    fill: $surface-base;
+    fill: $on-accent;
     font-size: 9px;
     font-weight: $weight-bold;
     pointer-events: none;
@@ -131,9 +131,9 @@ $notes-ink: $secondary-default;
   align-self: center;
   border-radius: $radius-pill;
   background: $notes-ink;
-  // The floor's colour on the accent, as on every filled accent control:
-  // white on the teal was all but unreadable at 9px.
-  color: $surface-base;
+  // The accent's own label, as on every filled accent control: white on the
+  // teal was all but unreadable at 9px.
+  color: $on-accent;
   font-size: 9px;
   font-weight: $weight-bold;
 }
@@ -449,9 +449,9 @@ $notes-ink: $secondary-default;
   cursor: pointer;
   outline: none;
 
-  // The floor's colour on the accent badge, as in the notes.
+  // The accent's label on the accent badge, as in the notes.
   text {
-    fill: $surface-base;
+    fill: $on-accent;
     font-size: 9px;
     font-weight: $weight-bold;
     pointer-events: none;

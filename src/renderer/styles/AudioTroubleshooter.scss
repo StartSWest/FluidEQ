@@ -79,7 +79,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   // The step to try first, lit like the button it holds.
   .troubleshoot__step:first-child & {
-    color: $surface-base;
+    color: $on-accent;
     border-color: transparent;
     background: $secondary-default;
   }

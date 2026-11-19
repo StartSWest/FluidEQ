@@ -121,7 +121,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-on:not(.is-broken) {
-    color: $surface-base;
+    color: $on-accent;
     border-color: $secondary-default;
     background: $secondary-default;
 
@@ -129,6 +129,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       border-color: $edge-lit;
     }
 
+    // The accent's light is a deep ink on the white window whatever the
+    // accent, so its words stay the floor's colour (`$on-accent` is for the
+    // accent's own fill).
     &:hover:not(:disabled) {
       color: $surface-base;
       border-color: $secondary-light;

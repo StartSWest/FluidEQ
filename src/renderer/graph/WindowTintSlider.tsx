@@ -9,7 +9,8 @@ import ColourPickerPopover from '../components/ColourPickerPopover';
 import { useTranslation } from '../utils/I18nContext';
 import { hsvOfHex } from '../utils/hsvColour';
 import useLiveSlider from '../utils/useLiveSlider';
-import { hueOf, labOf } from '../utils/windowLight';
+import { labOf } from '../utils/windowFill';
+import { hueOf } from '../utils/windowLight';
 import {
   LAGOON_HUE,
   setWindowTint,

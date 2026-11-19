@@ -396,7 +396,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding-inline: 9px;
 
     &.is-active {
-      color: $surface-base;
+      color: $on-accent;
       background: $secondary-default;
       border-color: color-mix(in srgb, $edge-tint 74%, transparent);
       box-shadow: 0 0 14px

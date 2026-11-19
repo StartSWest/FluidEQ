@@ -392,7 +392,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
       // Play the word: the one suggested action here, in the filled face.
       &:nth-child(2) {
-        color: $surface-base;
+        color: $on-accent;
         background: $secondary-default var(--control-fill) border-box;
         border-color: transparent;
         box-shadow: inset 0 1px 0 rgba($white, 0.24);

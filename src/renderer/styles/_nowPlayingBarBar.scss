@@ -613,7 +613,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 44px;
   min-height: 44px;
   margin: -4px 1px;
-  color: $surface-base;
+  color: $on-accent;
   border: 1px solid
     oklch(
       from var(--surface-panel) calc(l + clamp(-0.16, (0.4 - l) * 1000, 0.08))
@@ -625,7 +625,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: none;
   cursor: pointer;
 
+  // The accent's light, a deep ink on the white window whatever the accent:
+  // the floor's colour reads on it on both windows.
   &:hover:not(:disabled) {
+    color: $surface-base;
     background: $secondary-light;
   }
 

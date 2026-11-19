@@ -165,7 +165,7 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
         0 1px 2px color-mix(in srgb, $black 14%, transparent);
 
       .eq-layer-tabs__meta {
-        color: $surface-base;
+        color: $on-accent;
         background: $secondary-default;
       }
     }
