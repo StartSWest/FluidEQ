@@ -14,19 +14,15 @@ import {
 } from 'common/sceneWindowColours';
 import { measureStudioSky, scanStudioSky } from '../graph/sceneSky';
 import {
-  hourOfStop,
   isWornAsNamed,
   MEASURED_STOPS,
-  stopColoursAt,
+  SCENE_COLOURS_STOP,
   stopKeyOf,
-  withChosenStop,
   type TWindowColourStop,
 } from '../utils/sceneDayColours';
 import { sceneWindowColours } from '../utils/sceneOwnColours';
 import { recallSceneSky, studioSkyKey } from '../utils/sceneTintStore';
-import { withinLimits } from '../utils/useColourLimits';
 import useColourFinder from '../utils/useColourFinder';
-import useEditedStop from '../utils/useEditedStop';
 import {
   dropWindowColourDraft,
   showWindowColourDraft,
@@ -82,7 +78,8 @@ export default function useStudioWindowColours(
   if (opened !== kept) {
     setKept(opened);
   }
-  const [editing, setEditing] = useEditedStop();
+  // The scene's one set (Ivan, 2026-11-19: "we are kind of overcomplicating the scene ... pick one colour for the scene, and then during the day just light up"; "the night usually doesn't have a colour, so we pick the colour from the day, and that's the colour for the whole scene, and when it darks, it simply darks").
+  const editing = SCENE_COLOURS_STOP;
   // The colours the picker shows while it moves, before they are written.
   const [draft, setDraft] = useState<ISceneWindowColours>();
   const [saving, setSaving] = useState<'saving' | 'saved' | 'failed'>();
@@ -145,12 +142,7 @@ export default function useStudioWindowColours(
     return same(colours, atUndo[stop]) ? 'ai' : 'member';
   };
 
-  // A point with no set of its own starts from the blend it shows, inside
-  // that point's limits: the points either side are each inside their own,
-  // and their blend need not be.
-  const blend = stopColoursAt(resolved.sides, hourOfStop(editing));
-  const wearing =
-    resolved.sides[editing]?.colours ?? (blend && withinLimits(blend, editing));
+  const wearing = resolved.sides[editing]?.colours;
   const colours = draft ?? wearing;
 
   const write = useCallback((next: TStopWrite) => {
@@ -255,23 +247,12 @@ export default function useStudioWindowColours(
     [editing, resetStop, write],
   );
 
-  // The cards, the strip and the small window follow the picker at the open
-  // point.
-  const sides = draft
-    ? withChosenStop(resolved.sides, editing, draft)
-    : resolved.sides;
-
   return {
     colours,
-    sides,
     editing,
-    setEditing,
     sourceOf,
     /** What a dot on a swatch is measured against. */
-    own:
-      atUndo[editing] ??
-      resolved.own[editing]?.colours ??
-      stopColoursAt(resolved.own, hourOfStop(editing)),
+    own: atUndo[editing] ?? resolved.own[editing]?.colours,
     saving,
     change,
     commit,

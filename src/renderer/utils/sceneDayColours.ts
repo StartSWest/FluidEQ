@@ -40,9 +40,6 @@ export const WINDOW_COLOUR_STOPS = SCENE_WINDOW_COLOUR_STOPS;
 export const MEASURED_STOPS = ['0', '100'] as const;
 export type TMeasuredStop = (typeof MEASURED_STOPS)[number];
 
-const isMeasuredStop = (stop: TWindowColourStop): stop is TMeasuredStop =>
-  (MEASURED_STOPS as readonly string[]).includes(stop);
-
 /** Where a set of a scene's colours comes from, most deliberate first. */
 export type TWindowColourSource = 'chosen' | 'named' | 'palette' | 'measured';
 
@@ -303,10 +300,30 @@ export interface IResolvedStopColours {
   measured: TMeasuredStop[];
 }
 
+/** Where a scene's one set of window colours is kept: its day's point. */
+export const SCENE_COLOURS_STOP: TWindowColourStop = '100';
+
+/** The set kept at the day's point, else the first point that has one. */
+const daySetOf = (
+  sets: ISceneWindowColourStops,
+): ISceneWindowColours | undefined =>
+  sets[SCENE_COLOURS_STOP] ??
+  WINDOW_COLOUR_STOPS.map((stop) => sets[stop]).find(
+    (colours): colours is ISceneWindowColours => colours !== undefined,
+  );
+
 /**
- * Where each point's colours come from, most deliberate first: the choice,
- * the pack's, and at the two ends the palette's, then the picture's. One
- * rule for the graph's looks, the Studio's project and both editors.
+ * ONE SET OF COLOURS PER SCENE, THE DAY'S (Ivan, 2026-11-19: "we are kind of overcomplicating the scene ... pick one colour for the scene, and then during the day just light up"; "the night usually doesn't have a colour, so we pick the colour from the day, and that's the colour for the whole scene, and when it darks, it simply darks"). The five points were too
+ * much to choose; a scene now has one surface, accent and second colour,
+ * taken from the scene by day, and the Brightness walks the surface down to
+ * black through the night (`pickedWindow`'s 'brightness' walk) while the
+ * accent and the second colour keep their hue. Kept at the day's point
+ * (`SCENE_COLOURS_STOP`), so a pack, a project or a listener's choice
+ * written with points reads as the set at its day, else its first point.
+ *
+ * Where it comes from, most deliberate first: the choice, the pack's, the
+ * palette's, then the picture of the scene by day. One rule for the graph's
+ * looks, the Studio's project and both editors.
  */
 export const resolveStopColours = (
   sources: IStopSources,
@@ -314,35 +331,32 @@ export const resolveStopColours = (
   const own: TSceneStopColours = {};
   const sides: TSceneStopColours = {};
   const measured: TMeasuredStop[] = [];
-  WINDOW_COLOUR_STOPS.forEach((stop) => {
-    let side: ISceneColourSide | undefined;
-    const named = sources.named[stop];
-    if (named) {
-      side = { colours: named, source: 'named' };
-    } else if (isMeasuredStop(stop)) {
-      const worked = (colours: ISceneWindowColours) =>
-        sources.within ? sources.within(colours, stop) : colours;
-      if (sources.palette) {
-        side = { colours: worked(sources.palette), source: 'palette' };
-      } else {
-        measured.push(stop);
-        const picture = sources.measured[stop];
-        if (picture) {
-          side = { colours: worked(picture), source: 'measured' };
-        }
-      }
+  const stop = SCENE_COLOURS_STOP;
+  const worked = (colours: ISceneWindowColours) =>
+    sources.within ? sources.within(colours, stop) : colours;
+  let side: ISceneColourSide | undefined;
+  const named = daySetOf(sources.named);
+  if (named) {
+    side = { colours: named, source: 'named' };
+  } else if (sources.palette) {
+    side = { colours: worked(sources.palette), source: 'palette' };
+  } else {
+    measured.push('100');
+    const picture = sources.measured['100'];
+    if (picture) {
+      side = { colours: worked(picture), source: 'measured' };
     }
-    if (side) {
-      own[stop] = side;
-    }
-    const choice = sources.chosen[stop];
-    const worn: ISceneColourSide | undefined = choice
-      ? { colours: choice, source: 'chosen' }
-      : side;
-    if (worn) {
-      sides[stop] = worn;
-    }
-  });
+  }
+  if (side) {
+    own[stop] = side;
+  }
+  const choice = daySetOf(sources.chosen);
+  const worn: ISceneColourSide | undefined = choice
+    ? { colours: choice, source: 'chosen' }
+    : side;
+  if (worn) {
+    sides[stop] = worn;
+  }
   return { sides, own, measured };
 };
 

@@ -248,26 +248,14 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.accept': 'Accepter',
   'graph.sceneColours.night': 'Nuit',
   'graph.sceneColours.day': 'Jour',
-  'graph.sceneColours.times': 'Couleurs à cinq moments de la journée',
-  'graph.sceneColours.white': 'Blanc',
-  'graph.sceneColours.stopNight': '0 · Nuit',
-  'graph.sceneColours.stop25': '25',
-  'graph.sceneColours.stop50': '50',
-  'graph.sceneColours.stopDay': '75 · Jour',
-  'graph.sceneColours.stopWhite': '100 · Blanc',
   'graph.sceneColours.sourceYours': 'Les vôtres',
   'graph.sceneColours.sourceScene': 'Celles de la scène',
   'graph.sceneColours.sourcePalette': 'De sa palette',
   'graph.sceneColours.sourceAuto': 'Automatiques',
-  'graph.sceneColours.throughDay': 'Au fil de la journée · maintenant {hour}',
-  'graph.sceneColours.dayStrip':
-    'Comment ces couleurs passent de la nuit au jour',
-  'graph.sceneColours.nowAt': 'Maintenant {hour} %',
   'graph.sceneColours.find': 'Automatique',
   'graph.sceneColours.findHint':
-    'Regarder la scène à cette luminosité et prendre ses couleurs. Appuyez de nouveau pour d’autres.',
+    'Regarder la scène de jour et prendre ses couleurs pour toute la scène. Appuyez de nouveau pour d’autres.',
   'graph.sceneColours.finding': 'Analyse…',
-  'graph.sceneColours.found': 'Couleur {index} sur {count} de la scène',
   'graph.sceneColours.findNone':
     'La scène ne montre aucune couleur à prendre à cette luminosité.',
   'graph.sceneColours.findFailed':

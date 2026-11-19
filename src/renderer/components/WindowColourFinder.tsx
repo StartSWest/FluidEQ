@@ -8,34 +8,31 @@ import { useTranslation } from '../utils/I18nContext';
 import type { TColourFinding } from '../utils/useColourFinder';
 
 /**
- * Automatic, under the open point's three colours, where the colours it
- * finds land (Ivan, 2026-11-19: "let's move the Automatic button to some
- * place ... that button is for always finding colour"): the app's quiet
- * button, the app's working ring in place of its viewfinder while the
- * scene is looked at (`button-busy`, which shows only on a button left
- * enabled, so a press meanwhile is let go here instead), and beside
- * it which of the scene's colours the point now wears, so a second press
- * plainly finds another. Never held down by a point being automatic
- * already (it used to be, after one press): only while the editor is idle.
+ * Automatic, under the scene's three colours, where the colours it finds
+ * land (Ivan, 2026-11-19: "that button is for always finding colour"): the
+ * app's quiet button, the app's working ring in place of its viewfinder
+ * while the scene is looked at by day (`button-busy`, which shows only on a
+ * button left enabled, so a press meanwhile is let go here instead), and
+ * beside it whose the colours are now - the scene's, the app's, or chosen -
+ * rather than a count ("I'm not sure what this is", of "Colour 5 of 6 from
+ * the scene"). Never held down: only while the editor is idle.
  */
 export default function WindowColourFinder({
   finding,
+  source,
   disabled = false,
   onFind,
 }: {
   finding: TColourFinding;
+  /** Whose the colours are now, in words. */
+  source: string;
   disabled?: boolean;
   onFind: () => void;
 }) {
   const { t } = useTranslation();
   const looking = finding.kind === 'looking';
-  let note = '';
-  if (finding.kind === 'found') {
-    note = t('graph.sceneColours.found', {
-      index: finding.index + 1,
-      count: finding.count,
-    });
-  } else if (finding.kind === 'none') {
+  let note = source;
+  if (finding.kind === 'none') {
     note = t('graph.sceneColours.findNone');
   } else if (finding.kind === 'failed') {
     note = t('graph.sceneColours.findFailed');

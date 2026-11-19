@@ -42,7 +42,7 @@ export default function WindowColoursPreview({
     // (Ivan, 2026-11-18), so the small window shows the colours as the window
     // will wear them, the white one on a white window (2026-11-17: "make the
     // inside white on the white theme").
-    const worn = named ? pickedWindow(colours, shade, 'points') : undefined;
+    const worn = named ? pickedWindow(colours, shade, 'brightness') : undefined;
     if (worn) {
       return {
         '--preview-floor': worn.tokens['--surface-base'],

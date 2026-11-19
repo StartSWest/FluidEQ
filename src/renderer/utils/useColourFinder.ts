@@ -14,8 +14,7 @@ import type { TWindowColourStop } from './sceneDayColours';
 export type TColourFinding =
   | { kind: 'idle' }
   | { kind: 'looking' }
-  /** The `index`th (from 0) of the `count` sets the picture gave. */
-  | { kind: 'found'; index: number; count: number }
+  | { kind: 'found' }
   /** Drawn, and nothing in it a window could take a colour from. */
   | { kind: 'none' }
   /** Not drawn at all. */
@@ -85,11 +84,7 @@ export default function useColourFinder({
           return undefined;
         }
         apply(next.colours);
-        setFinding({
-          kind: 'found',
-          index: next.index,
-          count: candidates.length,
-        });
+        setFinding({ kind: 'found' });
         return undefined;
       })
       .catch((error: unknown) => {

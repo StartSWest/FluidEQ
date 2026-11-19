@@ -12,17 +12,13 @@ import {
   type ISceneWindowColours,
   type TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
-import WindowColourDayStrip from '../components/WindowColourDayStrip';
 import WindowColourFinder from '../components/WindowColourFinder';
-import WindowColourStops from '../components/WindowColourStops';
 import WindowColourSwatches from '../components/WindowColourSwatches';
 import WindowColoursPreview from '../components/WindowColoursPreview';
 import { useSelectedLookId } from '../utils/graphStyle';
 import {
-  hourOfStop,
   isWornAsNamed,
-  stopColoursAt,
-  withChosenStop,
+  SCENE_COLOURS_STOP,
   type TWindowColourSource,
 } from '../utils/sceneDayColours';
 import { useTranslation } from '../utils/I18nContext';
@@ -32,16 +28,14 @@ import {
   setChosenWindowColours,
 } from '../utils/sceneWindowColourStore';
 import useColourFinder from '../utils/useColourFinder';
-import useEditedStop from '../utils/useEditedStop';
 import {
   dropWindowColourDraft,
   showWindowColourDraft,
 } from '../utils/windowColourDraft';
-import { withinLimits } from '../utils/useColourLimits';
 import useSceneWindowColours from '../utils/useSceneWindowColours';
 import { scanSceneSky } from './sceneSky';
 
-/** Whose colours each point's are, as the listener reads it here. */
+/** Whose the scene's colours are, as the listener reads it here. */
 const SOURCE: Record<TWindowColourSource, TranslationKey> = {
   chosen: 'graph.sceneColours.sourceYours',
   named: 'graph.sceneColours.sourceScene',
@@ -51,33 +45,24 @@ const SOURCE: Record<TWindowColourSource, TranslationKey> = {
 
 /**
  * The colours the chosen scene lends the window, under the Window colours
- * menu's modes (Ivan, 2026-11-14: "implement that", the tuning mockup): its
- * five points through the day (2026-11-18: "we need 4 breakpoints plus 100%
- * which is the white one"), each changeable for this scene on this computer,
- * the three of whichever is open, a dot on any no longer the scene's own, the
- * badge saying whose they are, the five through the day, a small window
- * painted in the open set, Automatic under the three, which finds the
- * scene's own colours at the open point as often as it is pressed (Ivan,
- * 2026-11-19), and "Use the scene's colours" whenever there is something to
- * undo. Pressing a point puts the scene's hour on it, and the
- * whole window follows the picker there until Accept keeps the colour or
- * Cancel puts it back. They hold in Colours, Ambient and the Backdrop alike.
- * Nothing for a look that is not a scene, or for a scene with no colours yet
- * at any point.
+ * menu's modes (Ivan, 2026-11-14: "implement that", the tuning mockup): the
+ * scene's one set (Ivan, 2026-11-19: "we are kind of overcomplicating the scene ... pick one colour for the scene, and then during the day just light up"; "the night usually doesn't have a colour, so we pick the colour from the day, and that's the colour for the whole scene, and when it darks, it simply darks"), changeable for this scene on this computer, a dot
+ * on any no longer the scene's own, the badge saying whose they are, a small
+ * window painted in them, Automatic under the three, which finds the scene's
+ * own colours by day as often as it is pressed, and "Use the scene's
+ * colours" whenever there is something to undo. The whole window follows
+ * the picker until Accept keeps the colour or Cancel puts it back. They hold
+ * in Colours, Ambient and the Backdrop alike. Nothing for a look that is not
+ * a scene, or for a scene with no colours yet.
  */
 export default function SceneWindowColours() {
   const { t, locale } = useTranslation();
   const lookId = useSelectedLookId();
   const { sides, own, chosen, names, version } = useSceneWindowColours(lookId);
   const params = useListenerParams(lookId);
-  const [editing, setEditing] = useEditedStop();
-  // A point with no set of its own starts from the blend it shows, inside
-  // that point's limits: the points either side are each inside their own.
-  const blend = stopColoursAt(sides, hourOfStop(editing));
-  const wearing =
-    sides[editing]?.colours ?? (blend && withinLimits(blend, editing));
-  const ownSet =
-    own[editing]?.colours ?? stopColoursAt(own, hourOfStop(editing));
+  const editing = SCENE_COLOURS_STOP;
+  const wearing = sides[editing]?.colours;
+  const ownSet = own[editing]?.colours;
   // What the picker shows while it moves: the whole window follows it
   // (`windowColourDraft.ts`), and Accept keeps the colour it settles on.
   const [draft, setDraft] = useState<ISceneWindowColours | undefined>();
@@ -161,9 +146,6 @@ export default function SceneWindowColours() {
         name: resolveSceneName({ names }, locale),
       })
     : t('graph.sceneColours.thisScene');
-  // The cards, the strip and the small window follow the picker at the open
-  // point.
-  const shownSides = draft ? withChosenStop(sides, editing, draft) : sides;
   return (
     <section className="scene-window-colours" aria-label={title}>
       <div className="scene-window-colours__head">
@@ -174,25 +156,18 @@ export default function SceneWindowColours() {
           {t(isYours ? 'graph.sceneColours.yours' : 'graph.sceneColours.own')}
         </span>
       </div>
-      <WindowColourStops
-        sides={shownSides}
-        editing={editing}
-        sourceLabel={(_stop, source) => t(SOURCE[source ?? 'measured'])}
-        onEdit={setEditing}
-      />
       <WindowColourSwatches
         colours={shown}
         own={ownSet}
-        editing={editing}
         onChange={change}
         onCommit={commit}
       />
       <WindowColourFinder
         finding={finder.finding}
+        source={t(SOURCE[sides[editing]?.source ?? 'measured'])}
         disabled={!finder.canFind}
         onFind={finder.find}
       />
-      <WindowColourDayStrip sides={shownSides} editing={editing} />
       <WindowColoursPreview
         colours={shown}
         named={draft !== undefined || isWornAsNamed(sides)}

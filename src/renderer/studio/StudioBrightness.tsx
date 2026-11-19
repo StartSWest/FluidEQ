@@ -13,7 +13,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import { setThemeShade, useThemeShade } from '../utils/theme';
 import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
-import { useNearerEnd } from '../utils/useEditedStop';
+import { useNearerEnd } from '../utils/useNearerEnd';
 import useLiveSlider from '../utils/useLiveSlider';
 import TIME_NAME, { WINDOW_ENDS } from '../utils/windowTimeNames';
 import { Setting } from './StudioSettings';

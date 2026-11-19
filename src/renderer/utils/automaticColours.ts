@@ -90,9 +90,12 @@ export const automaticAt = (
   colours: ISceneWindowColours,
   stop: TWindowColourStop,
 ): ISceneWindowColours => {
+  // The day's point stands for the scene's one set, worn as it is at the
+  // top of the dark travel and darker below.
+  const shade = stop === '100' ? DARK_END_SHADE : hourOfStop(stop);
   const surface = labOf(colours.surface);
   if (!surface) {
-    return withinLimits(colours, stop);
+    return withinLimits(colours, shade);
   }
   const l = floorAt(stop);
   const chroma = Math.min(
@@ -102,7 +105,7 @@ export const automaticAt = (
   );
   const hue = (Math.atan2(surface.b, surface.a) * 180) / Math.PI;
   const floor: ILab = toward({ l, a: 0, b: 0 }, chroma, hue, 1);
-  return withinLimits({ ...colours, surface: labToHex(floor) }, stop);
+  return withinLimits({ ...colours, surface: labToHex(floor) }, shade);
 };
 
 /**

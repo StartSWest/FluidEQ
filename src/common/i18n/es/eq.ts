@@ -243,26 +243,14 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.accept': 'Aceptar',
   'graph.sceneColours.night': 'Noche',
   'graph.sceneColours.day': 'Día',
-  'graph.sceneColours.times': 'Colores en cinco puntos del día',
-  'graph.sceneColours.white': 'Blanco',
-  'graph.sceneColours.stopNight': '0 · Noche',
-  'graph.sceneColours.stop25': '25',
-  'graph.sceneColours.stop50': '50',
-  'graph.sceneColours.stopDay': '75 · Día',
-  'graph.sceneColours.stopWhite': '100 · Blanco',
   'graph.sceneColours.sourceYours': 'Tuyos',
   'graph.sceneColours.sourceScene': 'Los de la escena',
   'graph.sceneColours.sourcePalette': 'De su paleta',
   'graph.sceneColours.sourceAuto': 'Automáticos',
-  'graph.sceneColours.throughDay': 'A lo largo del día · ahora {hour}',
-  'graph.sceneColours.dayStrip':
-    'Cómo cambian estos colores de la noche al día',
-  'graph.sceneColours.nowAt': 'Ahora {hour} %',
   'graph.sceneColours.find': 'Automático',
   'graph.sceneColours.findHint':
-    'Mira la escena con este brillo y toma sus colores. Pulsa otra vez para otros.',
+    'Mira la escena de día y toma sus colores para toda la escena. Pulsa otra vez para otros.',
   'graph.sceneColours.finding': 'Mirando…',
-  'graph.sceneColours.found': 'Color {index} de {count} de la escena',
   'graph.sceneColours.findNone':
     'La escena no muestra ningún color que tomar con este brillo.',
   'graph.sceneColours.findFailed':

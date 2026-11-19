@@ -6,9 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useId } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import WindowColourDayStrip from '../components/WindowColourDayStrip';
 import WindowColourFinder from '../components/WindowColourFinder';
-import WindowColourStops from '../components/WindowColourStops';
 import WindowColourSwatches from '../components/WindowColourSwatches';
 import WindowColoursPreview from '../components/WindowColoursPreview';
 import { useTranslation } from '../utils/I18nContext';
@@ -67,27 +65,19 @@ export default function StudioWindowColours({
       </div>
       {colours ? (
         <>
-          <WindowColourStops
-            sides={state.sides}
-            editing={state.editing}
-            sourceLabel={(stop) => t(SOURCE[state.sourceOf(stop)])}
-            disabled={idle}
-            onEdit={state.setEditing}
-          />
           <WindowColourSwatches
             colours={colours}
             own={state.own}
-            editing={state.editing}
             disabled={idle}
             onChange={state.change}
             onCommit={state.commit}
           />
           <WindowColourFinder
             finding={state.finder.finding}
+            source={t(SOURCE[state.sourceOf(state.editing)])}
             disabled={idle || !state.finder.canFind}
             onFind={state.finder.find}
           />
-          <WindowColourDayStrip sides={state.sides} editing={state.editing} />
           <WindowColoursPreview colours={colours} named={state.isNamed} />
         </>
       ) : (

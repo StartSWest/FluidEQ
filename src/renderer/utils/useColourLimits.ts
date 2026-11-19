@@ -10,7 +10,7 @@ import type {
   TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
 import { pickedFilled, pickedFillGround, pickedFloor } from './pickedWindow';
-import { hourOfStop, type TWindowColourStop } from './sceneDayColours';
+import { isLightShade } from './themeShade';
 
 /** The window's own rule for a colour: what it would wear for it. */
 export type TColourLimit = (hex: string) => string;
@@ -20,42 +20,35 @@ export type TColourLimits = Record<TSceneWindowColourRole, TColourLimit>;
 const asIs: TColourLimit = (hex) => hex;
 
 /**
- * What each colour at `stop` may be beside `colours`' surface and accent, as
- * the window's own rule for it there (Ivan, 2026-11-18: "whatever colours are
- * selected are the ones used, and the limit should be on the pickers, not
- * before applying them to the UI"; "whatever limit we have, we show on the
- * pickers for each brightness"). A point's hour is its Brightness, so 0 to 75
- * are the dark window and 100 the white one:
+ * What each colour may be at the Brightness `shade`, beside `colours`'
+ * surface and accent, as the window's own rule for it there (Ivan,
+ * 2026-11-18: "whatever colours are selected are the ones used, and the
+ * limit should be on the pickers, not before applying them to the UI"):
  *
- * - the surface, on a dark point: no lighter than the dark window's words
- *   allow (`pickedFloor`). On the white point it is white and not picked.
+ * - the surface, on a dark window: no lighter than the dark window's words
+ *   allow (`pickedFloor`), which is how it is worn at the top of the dark
+ *   travel; on the white window it is white and not picked.
  * - the accent and the second colour: a colour a filled control's label
- *   reads on - the floor's colour on a dark point; on the white one the
- *   floor's colour or, on a light colour, the dark ink, and never one almost
- *   as white as the window (`pickedFilled`).
- *
- * Walked by the points: a colour inside its limit is worn exactly as picked.
+ *   reads on at that Brightness (`pickedFilled`).
  */
 export const colourLimitsAt = (
   colours: ISceneWindowColours,
-  stop: TWindowColourStop,
+  shade: number,
 ): TColourLimits => {
-  const shade = hourOfStop(stop);
   const ground = pickedFillGround(colours.surface, colours.accent, shade);
   const filled: TColourLimit = (hex) =>
     (ground && pickedFilled(hex, ground)) ?? hex;
   return {
-    surface:
-      stop === '100'
-        ? asIs
-        : (hex) => pickedFloor(hex, colours.accent, shade, 'points') ?? hex,
+    surface: isLightShade(shade)
+      ? asIs
+      : (hex) => pickedFloor(hex, colours.accent, shade, 'points') ?? hex,
     accent: filled,
     glow: filled,
   };
 };
 
 /**
- * `colours` brought inside `stop`'s limits: the surface first, then the
+ * `colours` brought inside the limits at `shade`: the surface first, then the
  * accent and the second colour against the floor that surface makes. What
  * the app works out for a point it was not given - its palette, its picture
  * measured, the blend of the points either side - is shown and worn this
@@ -65,10 +58,10 @@ export const colourLimitsAt = (
  */
 export const withinLimits = (
   colours: ISceneWindowColours,
-  stop: TWindowColourStop,
+  shade: number,
 ): ISceneWindowColours => {
-  const surface = colourLimitsAt(colours, stop).surface(colours.surface);
-  const limits = colourLimitsAt({ ...colours, surface }, stop);
+  const surface = colourLimitsAt(colours, shade).surface(colours.surface);
+  const limits = colourLimitsAt({ ...colours, surface }, shade);
   return {
     surface,
     accent: limits.accent(colours.accent),
@@ -79,11 +72,11 @@ export const withinLimits = (
 /** `colourLimitsAt`, kept by the colours it reads. */
 export default function useColourLimits(
   colours: ISceneWindowColours,
-  editing: TWindowColourStop,
+  shade: number,
 ): TColourLimits {
   const { surface, accent, glow } = colours;
   return useMemo(
-    () => colourLimitsAt({ surface, accent, glow }, editing),
-    [surface, accent, glow, editing],
+    () => colourLimitsAt({ surface, accent, glow }, shade),
+    [surface, accent, glow, shade],
   );
 }

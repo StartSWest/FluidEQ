@@ -59,10 +59,9 @@ import {
 import useIsBackdrop from '../utils/useIsBackdrop';
 
 /**
- * How `paintKey` marks colours to be worn as named, exactly as picked: the
- * scene's points are its walk through the day, never the Brightness darkening
- * them again (Ivan, 2026-11-18: "whatever colours are selected are the ones
- * used").
+ * How `paintKey` marks colours to be worn as named: the scene's one set,
+ * as picked at the top of the dark travel and walked down toward black by the
+ * Brightness through the night (Ivan, 2026-11-19: "we are kind of overcomplicating the scene ... pick one colour for the scene, and then during the day just light up"; "the night usually doesn't have a colour, so we pick the colour from the day, and that's the colour for the whole scene, and when it darks, it simply darks").
  */
 const PICKED = 'picked';
 
@@ -284,7 +283,7 @@ const SceneTint = () => {
       const colours = { surface, accent, glow };
       const sky = skyFromWindowColours(colours);
       if (kind === PICKED) {
-        showWindowColours(colours, sky, fade, tone, undefined, 'points');
+        showWindowColours(colours, sky, fade, tone, undefined, 'brightness');
       } else {
         showSceneSky(sky, fade, tone);
       }
