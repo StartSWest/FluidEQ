@@ -494,7 +494,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Les styles standard sont des dessins gratuits du son en direct, que vous pouvez colorer et concevoir vous-même : Ligne et Aire pour un tracé net, Blocs LED et Pics pour du punch, Treillis, Horizon et Flammes dansantes pour des scènes entières. Les scènes sont des images vivantes dessinées par la carte graphique, comme Alpin, Aurore, Floraison et Ville néon, où les basses, le rythme et les aigus font chacun bouger quelque chose de différent.',
   'help.looks.steps':
-    'Sur le graphique, cliquez sur le nom du style. Recherchez, ou filtrez les styles par Lignes, Remplissages, Barres, Points ou Scènes.\nChoisissez une scène à droite. Si elle n’est pas encore à vous, elle est verrouillée, et la choisir explique comment l’obtenir.\nSur un style standard, appuyez sur Nouveau style pour changer ses couleurs, son mouvement et ses crêtes, puis enregistrez-le ; il apparaît sous Les vôtres.',
+    'Sur le graphique, cliquez sur le nom du style. Choisissez une rubrique à gauche, ou cherchez dans tout à la fois.\nAvec « De », ne voyez que ceux de FluidEQ, les scènes des membres ou les vôtres. Si une scène n’est pas encore à vous, elle est verrouillée, et la choisir explique comment l’obtenir.\nSur un style standard, appuyez sur Nouveau style pour changer ses couleurs, son mouvement et ses crêtes, puis enregistrez-le ; il apparaît sous « De : Les vôtres ».',
   'help.looks.tip':
     'Une scène apporte ses propres couleurs : réglez son attaque et son relâchement dans Affichage. Les styles standard ont leurs propres réglages graphiques dans Affichage, séparément des scènes : pleine résolution et mise à l’échelle simple au départ. Si une scène ne peut pas tourner sur cet ordinateur, le graphique dessine un style gratuit au lieu d’un tracé vide.',
   'help.looks.keywords':
@@ -502,15 +502,15 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.searchName': 'Recherche',
   'help.looks.search':
     'Trouve les styles et scènes par nom, créateur ou catégorie.',
-  'help.looks.styles':
-    'Les styles gratuits dessinés par FluidEQ, et les styles que vous avez enregistrés.',
-  'help.looks.familiesName': 'Filtres de style',
-  'help.looks.families':
-    'Analyse et Scènes, et Les vôtres dès que vous avez enregistré un style.',
+  'help.looks.placesName': 'Rubriques',
+  'help.looks.places':
+    'Tout, Nouveautés et mises à jour, les types de styles et chaque catégorie de scènes, chacun avec son nombre.',
+  'help.looks.from': 'Qui l’a créé : FluidEQ, les membres ou vous.',
+  'help.looks.viewName': 'Affichage et ordre',
+  'help.looks.view':
+    'Des images ou une liste détaillée, triées par nouveautés, mises à jour récentes, nom ou les plus utilisés.',
   'help.looks.plus':
-    'Des scènes de FluidEQ et des membres, et les vôtres sous Créés par vous.',
-  'help.looks.categoriesName': 'Catégories',
-  'help.looks.categories': 'Nature, Villes, Abstrait et plus encore.',
+    'Chaque style en image. Nouveau ou Mise à jour signale ce qui a changé, et En cours le style du graphique.',
 
   'help.plus.title': 'Votre compte, les crédits et l’onglet Scènes',
   'help.plus.intro':

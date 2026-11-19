@@ -492,22 +492,22 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Gli stili standard sono disegni gratuiti del suono dal vivo che puoi colorare e personalizzare tu: Linea e Area per una traccia pulita, Blocchi LED e Picchi per l’impatto, Traliccio, Profilo urbano e Fiamme danzanti per scene intere. Le scene sono immagini vive disegnate dalla scheda grafica, come Alpino, Aurora, Fioritura e Città al neon, in cui bassi, battito e acuti muovono ognuno qualcosa di diverso.',
   'help.looks.steps':
-    'Fai clic sul nome dell’aspetto sul grafico. Cerca, oppure filtra gli stili per Linee, Riempimenti, Barre, Punti o Scene.\nScegli una scena sulla destra. Se non è ancora tua è bloccata, e se la scegli scopri come ottenerla.\nSu uno stile standard, premi Nuovo aspetto per cambiarne colori, movimento e picchi, poi salvalo: compare in Tuoi.',
+    'Fai clic sul nome dell’aspetto sul grafico. Scegli una sezione a sinistra, oppure cerca in tutto insieme.\nCon «Di» vedi solo quelli di FluidEQ, le scene dei membri o i tuoi. Se una scena non è ancora tua è bloccata, e se la scegli scopri come ottenerla.\nSu uno stile standard, premi Nuovo aspetto per cambiarne colori, movimento e picchi, poi salvalo: compare in «Di: Tuoi».',
   'help.looks.tip':
     'Una scena porta i suoi colori: regolane attacco e rilascio in Vista. Gli stili standard hanno in Vista impostazioni grafiche proprie, separate dalle scene: per cominciare, risoluzione Piena e scaler Semplice. Se una scena non può girare su questo computer, il grafico disegna uno stile gratuito invece di restare vuoto.',
   'help.looks.keywords':
     'scena, scene, visualizer, visualizzatore musicale, skin, temi, look, animazioni, barre animate, stili, aspetto, colori, personalizzare, grafica, impostazioni grafiche, risoluzione, qualità',
   'help.looks.searchName': 'Cerca',
   'help.looks.search': 'Trova stili e scene per nome, autore o categoria.',
-  'help.looks.styles':
-    'Stili gratuiti disegnati da FluidEQ e gli aspetti che hai salvato.',
-  'help.looks.familiesName': 'Filtri degli stili',
-  'help.looks.families':
-    'Analisi e Scene, e Tuoi appena hai salvato un aspetto.',
+  'help.looks.placesName': 'Sezioni',
+  'help.looks.places':
+    'Tutto, Novità e aggiornamenti, i tipi di stile e ogni categoria di scene, ciascuno con quanti ne contiene.',
+  'help.looks.from': 'Chi l’ha creato: FluidEQ, i membri o tu.',
+  'help.looks.viewName': 'Vista e ordine',
+  'help.looks.view':
+    'Immagini o un elenco dettagliato, ordinati per più nuovi, aggiornati di recente, nome o più usati.',
   'help.looks.plus':
-    'Scene di FluidEQ e dei membri, e le tue sotto Creati da te.',
-  'help.looks.categoriesName': 'Categorie',
-  'help.looks.categories': 'Natura, Città, Astratto e altro.',
+    'Ogni aspetto come immagine. Nuovo o Aggiornata segna cosa è cambiato, e In uso segna l’aspetto sul grafico.',
 
   'help.plus.title': 'Il tuo account, i crediti e la scheda Scene',
   'help.plus.intro':

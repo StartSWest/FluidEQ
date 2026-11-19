@@ -7,10 +7,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 @use 'lookPickerDiscover';
+@use 'lookPickerTiles';
 
-// The graph's style picker (`LookPicker.tsx`): one search over two columns,
-// the standard styles and the Plus visualizers.
+// The graph's look picker (`LookPicker.tsx`), laid out as the Library is
+// (Ivan, 2026-11-19: "improve that to look like the Library"): the search,
+// the view and the order over a rail of places, and beside the rail the
+// looks of the place open under the makers' tabs. The Library's rail rows,
+// mark, tabs and inks through the studio mixins (`_libraryTokens.scss`).
 
 // The closed trigger keeps the pill it has always worn — the shared rule in
 // GraphTheme.scss gives it its shape — and is a real button now, so what a
@@ -35,121 +40,405 @@ SPDX-License-Identifier: GPL-3.0-or-later
   z-index: 1000;
   isolation: isolate;
   display: flex;
-  // Wide enough for both columns to be read side by side, and never wider
-  // than the window it opens in.
-  width: min(780px, calc(100vw - #{2 * $spacing-s}));
+  // A rail and a grid of pictures three or four across, and never wider
+  // than the window it opens in (720px at the narrowest).
+  width: min(880px, calc(100vw - #{2 * $spacing-s}));
   // A height of its own, which AnchoredMenu's cap brings down to the room
-  // there is. The lists take whatever the columns leave; sized by content
+  // there is. The rail and the grid scroll inside it; sized by content
   // instead, lists that scroll have no content height to give it, and the
   // window opened a hundred pixels tall.
-  height: 560px;
+  height: 600px;
   box-sizing: border-box;
   flex-direction: column;
-  // The lists scroll; the search and each column's filters stay put.
   overflow: hidden;
 }
 
-.look-picker__search {
-  @include menu-search;
-  flex: none;
-}
+// *** The bar: search, view, order ********************************************
 
-// Side by side, always, each column as tall as the window and each list
-// scrolling inside its own column. The narrowest the window can be (720px)
-// still leaves both columns a readable width, so there is no stacked layout
-// to fall back to — and a wrapping row was not one either: its columns took
-// their content's height, the whole block scrolled as one, the headings
-// scrolled away under the search, and the window measured itself short and
-// opened into the small space under the graph instead of the large one above.
-.look-picker__columns {
-  display: flex;
-  min-height: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
-}
-
-.look-picker__column {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex-direction: column;
-  gap: $spacing-s;
-  padding: $spacing-s + 2 $spacing-s $spacing-s;
-  box-sizing: border-box;
-}
-
-// Styles are short names on small drawings; visualizers are pictures with a
-// line under them, and get the larger share.
-.look-picker__column--styles {
-  flex: 5 1 0;
-}
-
-.look-picker__column--plus {
-  flex: 7 1 0;
-  border-inline-start: 1px solid $menu-rule;
-}
-
-.look-picker__head {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 6px;
-  padding-inline: 4px;
-
-  h3 {
-    margin: 0;
-    color: $text-accent;
-    font-size: $text-eyebrow;
-    font-weight: $weight-bold;
-    @include tracking(0.12em);
-    text-transform: uppercase;
-  }
-
-  .graph-look-badge {
-    margin-inline-start: 0;
-  }
-}
-
-.look-picker__count {
-  margin-inline-start: auto;
-  color: $text-dim;
-  font-size: $text-micro;
-  font-variant-numeric: tabular-nums;
-}
-
-.look-picker__chips {
-  flex: none;
-  gap: 5px;
-  padding-inline: 2px;
-
-  .gallery-chip {
-    padding: 3px 9px;
-    font-size: $text-micro;
-  }
-}
-
-.look-picker__list {
-  display: grid;
-  min-height: 0;
-  flex: 1 1 0;
-  align-content: start;
-  gap: 2px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-// The Visualizers column's last line: the way to more scenes, under the list
-// and never scrolled away with it. In a narrow column or a long language it
-// wraps to two lines rather than squeezing the button.
-.look-picker__more {
+.look-picker__top {
   display: flex;
   flex: none;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid $studio-hair;
+}
+
+// The Library's quiet field: no fill, a hairline, the accent's edge while it
+// has the caret.
+.look-picker__search {
+  position: relative;
+  display: grid;
+  min-width: 180px;
+  height: $control-height-sm;
+  flex: 1 1 240px;
+  align-items: center;
+  gap: 8px;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
+  padding: 0 6px 0 12px;
+  border-radius: $radius-xs;
+  @include field-surface;
+  @include field-focus;
+
+  > svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: $studio-t3;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+
+  input {
+    min-width: 0;
+    padding: 0;
+    color: $text-primary;
+    border: 0;
+    outline: 0;
+    background: none;
+    font: inherit;
+    font-size: $studio-text-row;
+
+    &::placeholder {
+      color: $studio-t2;
+    }
+  }
+
+  .menu-search__clear {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    padding: 0;
+    border-radius: $radius-xs;
+    cursor: pointer;
+    @include button-plain;
+
+    svg {
+      width: 9px;
+      height: 9px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-width: 1.8;
+    }
+  }
+}
+
+// Grid and Details as the Library's bar has them: underlined words with
+// their glyphs.
+.look-picker__views {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.look-picker__view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  @include studio-tab('.is-active');
+}
+
+.look-picker__view-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+// The order, on the Library's quiet dropdown face.
+.look-picker__sort {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  min-height: $control-height-sm;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  color: $text-primary;
+  border-radius: $radius-xs;
+  font-family: inherit;
+  font-size: $studio-text-meta;
+  @include choice-interactive;
+
+  .arrow {
+    width: 9px;
+    flex: 0 0 auto;
+    opacity: 0.7;
+  }
+
+  &[aria-expanded='true'] .arrow {
+    transform: rotate(180deg);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.look-picker__sort-text {
+  @include truncate;
+}
+
+// *** The rail ****************************************************************
+
+.look-picker__body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.look-picker__rail {
+  @include slim-scrollbar;
+  display: grid;
+  // The Library's own rail is 236px; this one stands in a window, and 224
+  // keeps "New and updated" whole with its dot and count beside it.
+  width: 224px;
+  min-height: 0;
+  flex: none;
+  // One column the rail's width and never wider: a long category name in
+  // German shortens instead of pushing the counts out of the rail.
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 1px;
+  padding: 10px 8px;
+  border-inline-end: 1px solid $studio-hair;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.look-picker__rail-heading {
+  padding: 10px 10px 4px;
+  @include studio-rail-heading;
+}
+
+.look-picker__place {
+  @include studio-rail-item {
+    // A row a step shorter than the Library's shelves: the picker's rail
+    // holds sixteen places in a window 600px tall.
+    padding-block: 5px;
+
+    &.is-active {
+      @include studio-rail-item-active('.look-picker__place-icon');
+    }
+
+    // A category with nothing in it is still a way there (its empty line
+    // offers the gallery), only quieter.
+    &.is-empty:not(.is-active) {
+      color: $studio-t3;
+    }
+  }
+}
+
+.look-picker__place-icon {
+  @include studio-rail-icon;
+}
+
+// A long place name wraps under itself rather than losing its end: "New and
+// updated" is "Neu und aktualisiert" and "Новые и обновлённые", and cut to
+// "Neu und aktualisi…" the one place that says what changed said nothing.
+.look-picker__place-name {
+  min-width: 0;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.look-picker__place-count {
+  margin-inline-start: auto;
+  padding-inline-start: 8px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  font-variant-numeric: tabular-nums;
+}
+
+// Something new: the accent's dot ahead of the count.
+.look-picker__place-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  margin-inline-start: auto;
+  border-radius: 50%;
+  background: $secondary-default;
+
+  + .look-picker__place-count {
+    margin-inline-start: 0;
+  }
+}
+
+// *** The looks ***************************************************************
+
+.look-picker__main {
+  // What Details asks of its own width (`_lookPickerTiles.scss`).
+  container: look-picker-main / inline-size;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.look-picker__head {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 8px 14px 4px;
+
+  h3 {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0;
+  }
+}
+
+.look-picker__title {
+  @include truncate;
+  color: $text-primary;
+  font-size: 1rem;
+  font-weight: $weight-bold;
+}
+
+.look-picker__count {
+  flex: none;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  font-weight: $weight-regular;
+  font-variant-numeric: tabular-nums;
+}
+
+// Who made it: the Library's underlined words, with the word "From" ahead.
+.look-picker__froms {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 2px;
+}
+
+.look-picker__froms-label {
+  margin-inline-end: 4px;
+  @include studio-rail-heading;
+}
+
+.look-picker__from {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 6px 8px;
+  @include studio-tab('.is-active');
+}
+
+.look-picker__from-count {
+  color: $studio-t3;
+  font-size: $studio-text-label;
+  font-weight: $weight-regular;
+  font-variant-numeric: tabular-nums;
+}
+
+.look-picker__scroll {
+  @include slim-scrollbar;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 6px 14px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.look-picker__section {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 18px 2px 10px;
+  @include studio-rail-heading;
+
+  &:first-child {
+    margin-top: 6px;
+  }
+
+  small {
+    color: $studio-t3;
+    font-weight: $weight-regular;
+    letter-spacing: normal;
+  }
+}
+
+.look-picker__empty {
+  margin: $spacing-l 0;
+  color: $studio-t2;
+  font-size: $studio-text-row;
+  text-align: center;
+
+  // A line with its way out under it (Clear search, a category's way to the
+  // gallery): the button is a flex box, which text-align does not move.
+  &:has(> button) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-s;
+
+    > p {
+      margin: 0;
+    }
+
+    > .button {
+      gap: 6px;
+      max-width: 100%;
+    }
+  }
+}
+
+// *** The foot ****************************************************************
+
+.look-picker__foot {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 8px 12px;
+  border-top: 1px solid $studio-hair;
+}
+
+// The keys, for whoever has not found them yet: the quietest ink, and gone
+// first when the row is short (it wraps to its own line before squeezing).
+.look-picker__keys {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: $studio-t3;
+  font-size: $studio-text-label;
+
+  kbd {
+    margin-inline-end: 4px;
+    padding: 0 4px;
+    color: $studio-t2;
+    border: 1px solid $studio-hair;
+    border-radius: $radius-2xs;
+    font: inherit;
+  }
+}
+
+// The way to more scenes, at the foot's end.
+.look-picker__more {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: $spacing-xs $spacing-s;
-  padding: $spacing-s 4px 0;
-  border-top: 1px solid $menu-rule;
+  margin-inline-start: auto;
 
   .button {
     gap: 6px;
@@ -159,8 +448,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .look-picker__more-lead {
   min-width: 0;
-  color: $text-muted;
-  font-size: $text-micro;
+  color: $studio-t2;
+  font-size: $studio-text-meta;
 }
 
 // How many are new, a chip inside the button in the button's own colour.
@@ -173,330 +462,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-variant-numeric: tabular-nums;
 }
 
-// One row, whichever column it is in: the list's own hover wash and the
-// selection's fill, so this reads as the same kind of list as every other
-// menu in the window.
-.look-picker__pick {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  padding: 5px 8px;
-  color: $text-primary;
-  border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: transparent;
-  font: inherit;
-  font-size: $text-body;
-  text-align: start;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover,
-  &:focus-visible {
-    color: $ink;
-    background: $hover-accent;
-    outline: none;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &.is-selected {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 38%, transparent);
-    background: $selected-accent;
-  }
-}
-
-/**
- * A saved variation, drawn under the view it was made from.
- *
- * A spur rather than a plain indent: the list is a flat scroller with no
- * other nesting in it, so an indent alone reads as a row that has slipped
- * rather than as one that belongs to the row above. The spur is drawn on
- * the row itself and stops short of its own middle, which is what makes a
- * run of several variations read as a bracket down the side.
- */
-.look-picker__style--child {
-  position: relative;
-  padding-left: 26px;
-
-  &::before {
-    position: absolute;
-    top: -3px;
-    bottom: 50%;
-    left: 13px;
-    width: 8px;
-    border-bottom: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
-    border-left: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
-    border-bottom-left-radius: 5px;
-    content: '';
-    pointer-events: none;
-  }
-}
-
-.look-picker__name {
-  @include truncate;
-  flex: 1 1 auto;
-}
-
-// A style's drawing on a small tile, twice the size it had in the old list: at
-// sixteen pixels Staircase, LED blocks and Ribs were the same grey comb.
-.look-picker__glyph {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex: none;
-  place-items: center;
-  border-radius: $radius-xs - 2;
-  background: color-mix(in srgb, $edge-tint 4%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 6%, transparent);
-
-  svg {
-    width: 22px;
-    height: 22px;
-  }
-}
-
-.look-picker__item {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  align-items: center;
-
-  // Over the end of its row, and only with the row: forty trash cans down a
-  // column of pictures is a column of trash cans. Another member's scene has
-  // its report flag there too, just inside the trash can.
-  .graph-scene-remove,
-  .graph-scene-report {
-    position: absolute;
-    top: 50%;
-    inset-inline-end: 8px;
-    opacity: 0;
-    transform: translateY(-50%);
-    transition: opacity 120ms ease;
-  }
-
-  .graph-scene-report {
-    inset-inline-end: 36px;
-  }
-
-  &:hover .graph-scene-remove,
-  &:focus-within .graph-scene-remove,
-  &:hover .graph-scene-report,
-  &:focus-within .graph-scene-report,
-  .graph-scene-report.is-sent {
-    opacity: 1;
-  }
-
-  // While the trash can asks its question the row is about removing; the
-  // flag waits until it is answered.
-  &:has(.graph-scene-remove.is-confirming) .graph-scene-report {
-    display: none;
-  }
-
-  // Its question drops in under the row, in the flow, the way it did in the
-  // old list — laid over the row it would hide the scene being asked about.
-  .graph-scene-remove.is-confirming {
-    position: static;
-    margin-block: 2px 4px;
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.look-picker__scene {
-  min-height: 52px;
-  // Room at the end for the remove button to arrive over, so it never covers
-  // the name.
-  padding-inline-end: 40px;
-}
-
-// And for the report flag beside it.
-.look-picker__scene--reportable {
-  padding-inline-end: 68px;
-}
-
-// The remove button's open state, as a flag: the same size, the same quiet
-// until hovered, and a tick once this session's report is sent.
-.graph-scene-report {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  padding: 3px;
-  color: $text-faint;
-  border: 0;
-  border-radius: $radius-xs;
-  background: transparent;
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    color: $amber;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &:disabled {
-    cursor: default;
-  }
-
-  &.is-sent {
-    color: $active;
-  }
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
-}
-
-// The visualizer itself, at the 16:9 its pictures are taken in.
-.look-picker__thumb {
-  position: relative;
-  display: grid;
-  width: 72px;
-  height: 40px;
-  flex: none;
-  place-items: center;
-  overflow: hidden;
-  border-radius: $radius-xs - 2;
-  // Until the picture is there, a slot in the menu's own material — the
-  // controls' face and the cards' edge — with the scene's colours in it
-  // (Ivan, 2026-09-27: "fix the bg on items not loading yet"). It was black
-  // at 55%, a dark slab in every row of a card-coloured list.
-  background: $surface-control;
-  box-shadow: inset 0 0 0 1px $card-edge;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.look-picker__thumb-glyph {
-  width: 28px;
-  height: 28px;
-}
-
-.look-picker__scene-text {
-  display: grid;
-  min-width: 0;
-  flex: 1 1 auto;
-  gap: 2px;
-}
-
-// Muted, as the line under every menu row's name is.
-// One line at any width: the maker's name or the categories shorten, the
-// version beside them never does (Ivan, 2026-11-13).
-.look-picker__caption {
-  display: flex;
-  min-width: 0;
-  gap: 0.4em;
-  color: $text-muted;
-  font-size: $text-micro;
-}
-
-.look-picker__caption-text {
-  @include truncate;
-  min-width: 0;
-}
-
-.look-picker__version {
-  flex: 0 0 auto;
-  white-space: nowrap;
-
-  .look-picker__caption-text + &::before {
-    margin-inline-end: 0.4em;
-    content: '·';
-  }
-
-  // A newer version is out: said, in the accent, never louder than that.
-  &.has-newer {
-    color: $text-accent;
-  }
-}
-
-.look-picker__scene.is-locked {
-  .look-picker__name {
-    opacity: 0.72;
-  }
-}
-
-// Whose scenes follow, once there is more than one maker in the list.
-.look-picker__group {
-  margin: $spacing-s 4px 2px;
-  // Every menu's section heading in the accent, as the Window colours menu
-  // and the look picker's columns head theirs (Ivan, 2026-09-27: "make
-  // better colors", "for all menu"). It was a faint grey here while those
-  // two were lit.
-  padding-top: 6px;
-  color: $text-accent;
-  border-top: 1px solid $menu-rule;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.1em);
-  text-transform: uppercase;
-
-  &:first-child {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
-  }
-}
-
-.look-picker__empty {
-  margin: $spacing-m 0;
-  color: $text-dim;
-  font-size: $text-small;
-  text-align: center;
-
-  // A line with its way out under it (Clear search, a category's way to the
-  // gallery): the button is a flex box, which text-align does not move, so
-  // it sat at the column's left edge under a centred line.
-  &:has(> button) {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: $spacing-s;
-
-    > p {
-      margin: 0;
-    }
-
-    // The glyph apart from its label, as the Explore button under the list.
-    > .button {
-      gap: 6px;
-      max-width: 100%;
-    }
-  }
-}
-
 @include lookPickerDiscover.styles;
+@include lookPickerTiles.styles;
 
-// A look that changed since it was last played here: a small mark beside it,
-// the same accent the Plus badge wears, until it is played again.
-.look-picker__new {
-  flex: 0 0 auto;
-  padding: 1px 7px;
-  border: 1px solid color-mix(in srgb, $secondary-default 50%, transparent);
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $secondary-default 12%, transparent);
-  color: $secondary-light;
-  font-size: $text-eyebrow;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-}
-
-// The same on the closed picker, for the look on the graph.
+// The look on the graph changed since it was last played: a dot on the
+// closed trigger, in the accent.
 .look-picker__dot {
   flex: 0 0 auto;
   width: 7px;
@@ -504,5 +474,4 @@ SPDX-License-Identifier: GPL-3.0-or-later
   margin-inline-start: 6px;
   border-radius: 50%;
   background: $secondary-light;
-  box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 70%, transparent);
 }

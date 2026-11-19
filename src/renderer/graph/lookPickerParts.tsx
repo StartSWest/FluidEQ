@@ -9,23 +9,62 @@ import SceneLookIcon from '../icons/SceneLookIcon';
 import type { IPlusRow } from './lookPickerRows';
 import { useLookThumbnail } from './lookThumbnails';
 
-/** The graph picker's keyboard walk and the small parts of its rows. */
+/** The look picker's keyboard walk and the small parts of its tiles. */
 
 export const PICK =
   ':is(.look-picker__pick, .look-picker__discover-actions .button)';
 
+/** Two tiles whose tops are this close stand on one row of the grid. */
+const SAME_ROW_PX = 4;
+
 /**
- * The arrows walk a column, left and right cross to the other at the same
- * height, and down from the search arrives at the chosen look — or the top of
- * the styles when the choice is in neither column.
+ * The tile above or below `from`: on the nearest row in that direction, the
+ * one whose middle is nearest its middle. Read from where the tiles are laid
+ * out, because the scenes' grid and the styles' grid under it have different
+ * column counts and either can wrap at any width.
+ */
+const acrossRows = (
+  picks: readonly HTMLElement[],
+  from: HTMLElement,
+  down: boolean,
+) => {
+  const at = from.getBoundingClientRect();
+  const middle = at.left + at.width / 2;
+  const placed = picks.map((pick) => {
+    const box = pick.getBoundingClientRect();
+    return {
+      pick,
+      rowGap: down ? box.top - at.top : at.top - box.top,
+      gap: Math.abs(box.left + box.width / 2 - middle),
+    };
+  });
+  const ahead = placed.filter((each) => each.rowGap > SAME_ROW_PX);
+  if (ahead.length === 0) {
+    return undefined;
+  }
+  const nearest = Math.min(...ahead.map((each) => each.rowGap));
+  return ahead
+    .filter((each) => each.rowGap - nearest <= SAME_ROW_PX)
+    .reduce((best, each) => (each.gap < best.gap ? each : best)).pick;
+};
+
+/**
+ * The picker's keyboard walk: the arrows move round the grid as it is laid
+ * out, left from its first column steps into the rail, right from the rail
+ * steps back to the chosen look, up from the top row is the search, and down
+ * from the search arrives at the chosen look - or the first one showing.
  */
 export const walkPicker = (event: KeyboardEvent, menu: Element) => {
   const active = document.activeElement as HTMLElement | null;
-  const columns = Array.from(
-    menu.querySelectorAll<HTMLElement>('.look-picker__column'),
+  const search = menu.querySelector<HTMLInputElement>(
+    '.look-picker__search input',
   );
-  const picksIn = (column: Element) =>
-    Array.from(column.querySelectorAll<HTMLElement>(PICK));
+  const picks = Array.from(
+    menu.querySelectorAll<HTMLElement>(`.look-picker__scroll ${PICK}`),
+  );
+  const places = Array.from(
+    menu.querySelectorAll<HTMLElement>('.look-picker__place'),
+  );
   const go = (target: HTMLElement | undefined) => {
     if (!target) {
       return;
@@ -37,41 +76,58 @@ export const walkPicker = (event: KeyboardEvent, menu: Element) => {
       target.scrollIntoView({ block: 'nearest' });
     }
   };
-  const search = menu.querySelector<HTMLInputElement>(
-    '.look-picker__search input',
-  );
+  const chosenPick = () =>
+    picks.find((pick) => pick.getAttribute('aria-pressed') === 'true') ??
+    picks[0];
   if (active === search) {
     if (event.key === 'ArrowDown') {
-      const chosen = menu.querySelector<HTMLElement>(
-        `${PICK}[aria-pressed="true"]`,
-      );
-      go(chosen ?? (columns[0] && picksIn(columns[0])[0]));
+      go(chosenPick());
     }
     return;
   }
-  const column = columns.findIndex((each) => each.contains(active));
-  if (!active?.matches(PICK) || column < 0) {
+  const place = active ? places.indexOf(active) : -1;
+  if (place >= 0) {
+    if (event.key === 'ArrowDown') {
+      go(places[Math.min(place + 1, places.length - 1)]);
+    } else if (event.key === 'ArrowUp') {
+      go(place === 0 ? (search ?? undefined) : places[place - 1]);
+    } else if (event.key === 'Home') {
+      go(places[0]);
+    } else if (event.key === 'End') {
+      go(places[places.length - 1]);
+    } else if (event.key === 'ArrowRight') {
+      go(chosenPick());
+    }
     return;
   }
-  const picks = picksIn(columns[column]);
-  const at = picks.indexOf(active);
-  if (event.key === 'ArrowDown') {
-    go(picks[Math.min(at + 1, picks.length - 1)]);
+  const at = active ? picks.indexOf(active) : -1;
+  if (!active || at < 0) {
+    return;
+  }
+  const sameRow = (other: HTMLElement | undefined) =>
+    other !== undefined &&
+    Math.abs(
+      other.getBoundingClientRect().top - active.getBoundingClientRect().top,
+    ) <= SAME_ROW_PX;
+  if (event.key === 'ArrowRight') {
+    go(picks[at + 1]);
+  } else if (event.key === 'ArrowLeft') {
+    const before = picks[at - 1];
+    go(
+      sameRow(before)
+        ? before
+        : (places.find(
+            (each) => each.getAttribute('aria-current') === 'page',
+          ) ?? places[0]),
+    );
+  } else if (event.key === 'ArrowDown') {
+    go(acrossRows(picks, active, true));
   } else if (event.key === 'ArrowUp') {
-    if (at === 0) {
-      event.preventDefault();
-      search?.focus();
-    } else {
-      go(picks[at - 1]);
-    }
+    go(acrossRows(picks, active, false) ?? search ?? undefined);
   } else if (event.key === 'Home') {
     go(picks[0]);
   } else if (event.key === 'End') {
     go(picks[picks.length - 1]);
-  } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-    const other = columns[column + (event.key === 'ArrowRight' ? 1 : -1)];
-    const across = other ? picksIn(other) : [];
-    go(across[Math.min(at, across.length - 1)]);
   }
 };
 

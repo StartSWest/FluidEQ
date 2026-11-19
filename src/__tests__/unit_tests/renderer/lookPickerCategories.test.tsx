@@ -1,13 +1,12 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 /**
- * The look picker's scene chips are the gallery's categories, all of them,
- * in the gallery's order (Ivan, 2026-11-13: "not all the categories are
- * there, it must always have all the gallery's categories"). They were only
- * the categories the member's own scenes were filed under, so a member with
- * no retro or 3D scene had no Retro games or 3D worlds chip. A chip with
- * none of the member's scenes says so and leads to that category in the
- * gallery, never a blank list.
+ * The look picker's rail holds every one of the gallery's categories, in
+ * the gallery's order (Ivan, 2026-11-13: "it must always have all the
+ * gallery's categories"), and never a maker: who made a scene is the From
+ * tabs' (Ivan, 2026-11-19: "made by you, made by FluidEQ ... I don't know").
+ * A category with none of the member's scenes says so and leads to that
+ * category in the gallery, never a blank grid.
  */
 
 const mockOpenGalleryCategory = jest.fn();
@@ -39,12 +38,8 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { translate } from 'common/i18n';
 import { PLUS_CATEGORIES } from 'common/plusGallery';
 import LookPickerBody from 'renderer/graph/LookPickerBody';
-import {
-  buildStyleRows,
-  plusFilters,
-  type IPlusRow,
-  type TPlusFilter,
-} from 'renderer/graph/lookPickerRows';
+import type { TPickerPlace } from 'renderer/graph/lookPickerFilter';
+import { buildStyleRows, type IPlusRow } from 'renderer/graph/lookPickerRows';
 import { getSelectableLooks } from 'renderer/utils/graphStyle';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 /* eslint-enable import/first */
@@ -65,13 +60,18 @@ const scene = (over: Partial<IPlusRow> & Pick<IPlusRow, 'id' | 'name'>) => ({
   ...over,
 });
 
-// Nature and water only: no retro scene, no 3D world.
+// Nature and water only: no retro scene, no 3D world. One of the member's own.
 const SCENES: readonly IPlusRow[] = [
   scene({ id: 'scene-alpine', name: 'Alpine' }),
   scene({ id: 'scene-reef', name: 'Reef Light', categories: ['water'] }),
+  scene({ id: 'scene-mine', name: 'Balloon Dawn', maker: 'mine' }),
 ];
 
-const open = (plusFilter: TPlusFilter, onLeave?: () => void) =>
+const open = (
+  place: TPickerPlace,
+  onLeave?: () => void,
+  onPlace = jest.fn(),
+) => {
   render(
     <I18nProvider>
       <LookPickerBody
@@ -79,61 +79,87 @@ const open = (plusFilter: TPlusFilter, onLeave?: () => void) =>
         styleRows={STYLES}
         plusRows={SCENES}
         query=""
-        styleFilter="all"
-        plusFilter={plusFilter}
+        place={place}
+        from="all"
+        sort="newest"
+        view="grid"
         onQuery={jest.fn()}
-        onStyleFilter={jest.fn()}
-        onPlusFilter={jest.fn()}
+        onPlace={onPlace}
+        onFrom={jest.fn()}
+        onSort={jest.fn()}
+        onView={jest.fn()}
         onChoose={jest.fn()}
         searchRef={createRef<HTMLInputElement>()}
         onLeave={onLeave}
       />
     </I18nProvider>,
   );
+  return onPlace;
+};
+
+const rail = () =>
+  within(screen.getByRole('navigation', { name: t('graph.picker.places') }));
+const looks = (place: string) =>
+  within(screen.getByRole('region', { name: place }));
 
 beforeEach(() => mockOpenGalleryCategory.mockClear());
 
-it('offers every gallery category, in the gallery’s order, whatever the member has', () => {
-  expect(plusFilters(SCENES)).toEqual(['all', ...PLUS_CATEGORIES]);
-  // The control: who made them still shows only when there is a choice.
-  expect(
-    plusFilters([
-      ...SCENES,
-      scene({ id: 'mine', name: 'Mine', maker: 'mine' }),
-    ]),
-  ).toEqual(['all', ...PLUS_CATEGORIES, 'mine']);
+it('names every gallery category in the rail, in the gallery’s order, with its count', () => {
+  open('everything');
+  const names = rail()
+    .getAllByRole('button')
+    .map((place) => place.getAttribute('title'));
+  const categories = PLUS_CATEGORIES.map((category) =>
+    t(`plus.category.${category}` as never),
+  );
+  expect(names.filter((name) => categories.includes(name ?? ''))).toEqual(
+    categories,
+  );
+  // Nature holds Alpine and Balloon Dawn; Retro games nothing yet.
+  expect(rail().getByRole('button', { name: /Nature/ })).toHaveTextContent('2');
+  expect(rail().getByRole('button', { name: /Retro games/ })).toHaveTextContent(
+    '0',
+  );
 });
 
-it('shows a chip for each, named as the gallery names them', () => {
-  open('all');
-  const chips = within(screen.getByRole('region', { name: 'Scenes' }))
-    .getAllByRole('button')
-    .map((chip) => chip.textContent);
-  PLUS_CATEGORIES.forEach((category) =>
-    expect(chips).toContain(t(`plus.category.${category}` as never)),
+it('never files a maker among the places', () => {
+  open('everything');
+  [t('graph.member.mine'), t('graph.member.theirs')].forEach((maker) =>
+    expect(rail().queryByRole('button', { name: maker })).toBeNull(),
   );
+  // The control: the maker is still offered, as a From tab.
+  expect(
+    screen.getByRole('group', { name: t('graph.picker.from') }),
+  ).toHaveTextContent(t('graph.picker.yours'));
+});
+
+it('opens a place from the rail', () => {
+  const onPlace = open('everything');
+  fireEvent.click(rail().getByRole('button', { name: /Water/ }));
+  expect(onPlace).toHaveBeenCalledWith('water');
 });
 
 it('says a category holds none of the member’s scenes, and leads to it in the gallery', () => {
   const leave = jest.fn();
   open('retro-games', leave);
-  const column = within(screen.getByRole('region', { name: 'Scenes' }));
+  const place = looks(t('plus.category.retro-games'));
   expect(
-    column.getByText('None of your scenes are in this category yet.'),
+    place.getByText('None of your scenes are in this category yet.'),
   ).toBeInTheDocument();
   fireEvent.click(
-    column.getByRole('button', { name: 'See this category in the gallery' }),
+    place.getByRole('button', { name: 'See this category in the gallery' }),
   );
   expect(mockOpenGalleryCategory).toHaveBeenCalledWith('retro-games');
   expect(leave).toHaveBeenCalled();
 });
 
-it('lists the member’s scenes under a category that holds some', () => {
+it('shows only the scenes a category holds', () => {
   open('water');
-  const column = within(screen.getByRole('region', { name: 'Scenes' }));
-  expect(column.getByText('Reef Light')).toBeInTheDocument();
+  const place = looks(t('plus.category.water'));
+  expect(place.getByText('Reef Light')).toBeInTheDocument();
+  expect(place.queryByText('Alpine')).toBeNull();
   // The control: the empty line is for an empty category only.
   expect(
-    column.queryByText('None of your scenes are in this category yet.'),
+    place.queryByText('None of your scenes are in this category yet.'),
   ).toBeNull();
 });

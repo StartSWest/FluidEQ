@@ -106,14 +106,14 @@ const VISUAL_CHAPTERS = [
       {
         // The picker, open, drawn by its own list (`help/live/lookFigures`)
         // from FluidEQ's styles and made-up scenes on the stills the app
-        // ships. The filters are each column's whole row of chips: a line
-        // to one chip read as pointing at it and struck through the others.
+        // ships, laid out as the Library is since 2026-11-19: the rail of
+        // places, the From tabs over the looks, the view and the order.
         // Its still is the 2.0 capture, for the exported guide.
         live: 'look-picker',
-        width: 780,
-        height: 560,
-        // The picker's own box: on a window under 796px it is narrower than
-        // the 780 it is laid out at, as the real one is there.
+        width: 880,
+        height: 600,
+        // The picker's own box: on a window under 896px it is narrower than
+        // the 880 it is laid out at, as the real one is there.
         frame: '.look-picker__menu',
         still: '24-look-picker.png',
         controls: [
@@ -123,24 +123,24 @@ const VISUAL_CHAPTERS = [
             text: 'help.looks.search',
           },
           {
-            target: '.look-picker__column--styles .look-picker__head',
-            name: 'graph.picker.styles',
-            text: 'help.looks.styles',
+            target: '.look-picker__rail',
+            name: 'help.looks.placesName',
+            text: 'help.looks.places',
           },
           {
-            target: '.look-picker__column--styles .gallery-chip',
-            name: 'help.looks.familiesName',
-            text: 'help.looks.families',
+            target: '.look-picker__froms',
+            name: 'graph.picker.from',
+            text: 'help.looks.from',
           },
           {
-            target: '.look-picker__column--plus .look-picker__head',
-            name: 'graph.picker.plus',
+            target: '.look-picker__grid',
+            name: 'graph.picker.label',
             text: 'help.looks.plus',
           },
           {
-            target: '.look-picker__column--plus .gallery-chip',
-            name: 'help.looks.categoriesName',
-            text: 'help.looks.categories',
+            target: '.look-picker__views',
+            name: 'help.looks.viewName',
+            text: 'help.looks.view',
           },
         ],
       },

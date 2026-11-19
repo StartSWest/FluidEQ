@@ -149,11 +149,15 @@ const LookPickerDrawing = () => {
         styleRows={styleRows}
         plusRows={PLUS_ROWS}
         query=""
-        styleFilter="all"
-        plusFilter="all"
+        place="everything"
+        from="all"
+        sort="newest"
+        view="grid"
         onQuery={nothing}
-        onStyleFilter={nothing}
-        onPlusFilter={nothing}
+        onPlace={nothing}
+        onFrom={nothing}
+        onSort={nothing}
+        onView={nothing}
         onChoose={nothing}
         searchRef={searchRef}
       />

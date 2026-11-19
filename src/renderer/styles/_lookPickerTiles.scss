@@ -1,0 +1,454 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// The look picker's tiles and its Details rows (`LookPickerTiles.tsx`,
+// `LookPickerDetails.tsx`): flat, as the Library's shelves are - a picture,
+// a name and a line under it, no card round them - with the cues on the
+// picture where the eye already is.
+@mixin styles {
+  .look-picker__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 14px 12px;
+  }
+
+  // A style is a drawing, read at a smaller size than a scene's picture.
+  .look-picker__grid--styles {
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: 12px 10px;
+  }
+
+  // The tile and the controls that arrive over it.
+  .look-picker__item {
+    position: relative;
+    min-width: 0;
+
+    // Over the picture's corner, and only with the tile: forty trash cans
+    // over a grid of pictures is a grid of trash cans. Another member's
+    // scene has its report flag just inside it.
+    .graph-scene-remove,
+    .graph-scene-report {
+      position: absolute;
+      top: 8px;
+      inset-inline-end: 8px;
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    .graph-scene-report {
+      inset-inline-end: 38px;
+    }
+
+    .graph-scene-remove__open,
+    .graph-scene-report {
+      width: 26px;
+      height: 26px;
+      color: $text-primary;
+      border-radius: $radius-xs;
+      background: color-mix(in srgb, $surface-menu-top 86%, transparent);
+    }
+
+    &:hover .graph-scene-remove,
+    &:focus-within .graph-scene-remove,
+    &:hover .graph-scene-report,
+    &:focus-within .graph-scene-report,
+    .graph-scene-report.is-sent {
+      opacity: 1;
+    }
+
+    // While the trash can asks its question the tile is about removing; the
+    // flag waits until it is answered.
+    &:has(.graph-scene-remove.is-confirming) .graph-scene-report {
+      display: none;
+    }
+
+    // The question covers the picture it is asking about, so the name stays
+    // readable under it and the grid does not move.
+    .graph-scene-remove.is-confirming {
+      inset: 0 0 auto;
+      align-content: center;
+      aspect-ratio: 16 / 9;
+      box-sizing: border-box;
+      padding: 8px;
+      background: color-mix(in srgb, $surface-menu-top 94%, transparent);
+      opacity: 1;
+    }
+  }
+
+  // In Details the controls stand at the row's end instead.
+  .look-picker__details .look-picker__item {
+    .graph-scene-remove,
+    .graph-scene-report {
+      top: 50%;
+      translate: 0 -50%;
+    }
+
+    .graph-scene-remove.is-confirming {
+      position: static;
+      aspect-ratio: auto;
+      margin-block: 2px 4px;
+      translate: none;
+    }
+  }
+
+  .look-picker__pick {
+    min-width: 0;
+    margin: 0;
+    color: $text-primary;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    &:focus-visible {
+      @include focus-ring;
+      outline: none;
+    }
+  }
+
+  .look-picker__tile {
+    display: grid;
+    width: 100%;
+    gap: 5px;
+    padding: 0;
+    border-radius: $radius-xs;
+
+    &:hover .look-picker__art img {
+      scale: 1.04;
+    }
+  }
+
+  // The picture at the 16:9 its stills are taken in. On the menu's floor a
+  // step of light until it is there, the scene's colours in it.
+  .look-picker__art {
+    position: relative;
+    display: grid;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    place-items: center;
+    border-radius: $radius-xs;
+    background: $studio-surface;
+    box-shadow: inset 0 0 0 1px $studio-hair;
+    transition: box-shadow 130ms ease;
+
+    .look-picker__tile:hover & {
+      box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, $secondary-light 40%, transparent);
+    }
+
+    // The look on the graph: the accent all the way round its picture.
+    .is-selected & {
+      box-shadow: inset 0 0 0 2px $secondary-default;
+    }
+  }
+
+  // A style's drawing, centred on its plate with room round it.
+  .look-picker__art--style .look-picker__drawing {
+    width: 58%;
+    height: 66%;
+  }
+
+  .look-picker__thumb {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: scale 220ms ease;
+    }
+  }
+
+  .look-picker__thumb-glyph {
+    width: 30%;
+    height: 50%;
+  }
+
+  .look-picker__tile.is-locked img {
+    filter: saturate(0.55) brightness(0.8);
+  }
+
+  .look-picker__tile .graph-look-badge--locked {
+    position: absolute;
+    top: 6px;
+    inset-inline-end: 6px;
+    margin: 0;
+    background: color-mix(in srgb, $surface-menu-top 86%, transparent);
+  }
+
+  // "New" in the accent; "Updated" its quiet outline.
+  .look-picker__flag {
+    flex: none;
+    padding: 1px 7px;
+    color: $on-accent;
+    border: 1px solid $secondary-default;
+    border-radius: $radius-2xs;
+    background: $secondary-default;
+    font-size: $studio-text-label;
+    font-weight: $weight-bold;
+    line-height: 1.5;
+    white-space: nowrap;
+
+    .look-picker__art & {
+      position: absolute;
+      top: 6px;
+      inset-inline-start: 6px;
+    }
+  }
+
+  .look-picker__flag--quiet {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
+    background: color-mix(in srgb, $surface-menu-top 86%, transparent);
+  }
+
+  // "Playing", with the Library's own bars, on the look on the graph.
+  .look-picker__playing {
+    position: absolute;
+    inset-inline-end: 6px;
+    bottom: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 7px 2px 6px;
+    color: $secondary-light;
+    border-radius: $radius-2xs;
+    background: color-mix(in srgb, $surface-menu-top 88%, transparent);
+    font-size: $studio-text-label;
+    font-weight: $weight-bold;
+    line-height: 1.5;
+
+    .library-list__playing-mark {
+      width: 11px;
+      height: 10px;
+    }
+  }
+
+  .look-picker__name {
+    @include truncate;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-inline: 2px;
+    color: $text-primary;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
+
+    .is-selected & {
+      color: $secondary-light;
+    }
+
+    .is-locked & {
+      color: $studio-t2;
+    }
+  }
+
+  .look-picker__name-text {
+    @include truncate;
+  }
+
+  // Who made it and its version, one line at any width: the maker's name or
+  // the note shortens, the version beside it never does.
+  .look-picker__caption {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    margin-top: -2px;
+    padding-inline: 2px;
+    color: $studio-t2;
+    font-size: $studio-text-meta;
+  }
+
+  .look-picker__caption-text {
+    @include truncate;
+  }
+
+  .look-picker__version {
+    flex: 0 0 auto;
+    color: $studio-t3;
+    white-space: nowrap;
+
+    &.has-newer {
+      color: $secondary-light;
+    }
+  }
+
+  // The maker's mark: FluidEQ's wave in the accent, the member's own dot in
+  // the accent, another member's initial on a quiet disc.
+  .look-picker__origin {
+    display: grid;
+    width: 14px;
+    height: 14px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 0.5rem;
+    font-weight: $weight-bold;
+  }
+
+  .look-picker__origin--fluideq {
+    border-radius: 0;
+    fill: none;
+    stroke: $secondary-light;
+    stroke-linecap: round;
+    stroke-width: 5;
+  }
+
+  .look-picker__origin--yours {
+    width: 8px;
+    height: 8px;
+    margin-inline: 3px;
+    background: $secondary-default;
+  }
+
+  .look-picker__origin--members {
+    color: $surface-menu-top;
+    background: $studio-t2;
+  }
+
+  // *** Details ***************************************************************
+
+  .look-picker__details {
+    display: grid;
+  }
+
+  .look-picker__details-head,
+  .look-picker__row {
+    display: grid;
+    align-items: center;
+    gap: 12px;
+    grid-template-columns:
+      64px minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.1fr)
+      minmax(0, 0.8fr);
+  }
+
+  .look-picker__details-head {
+    position: sticky;
+    z-index: 1;
+    top: -6px;
+    // The rows' own insets, the end's room for their buttons included,
+    // so each heading stands over its column.
+    padding: 4px 72px 8px 8px;
+    border-bottom: 1px solid $studio-hair;
+    background: $surface-menu-top;
+    @include studio-rail-heading;
+  }
+
+  .look-picker__row {
+    width: 100%;
+    padding: 5px 8px;
+    // Room at the end for the remove button and the flag to arrive over.
+    padding-inline-end: 72px;
+    font-size: $studio-text-tree;
+
+    &:hover {
+      background: $fill-hover;
+    }
+
+    &.is-selected {
+      @include studio-mark;
+    }
+
+    .look-picker__name {
+      padding: 0;
+    }
+  }
+
+  // A narrow list (the 720px window) gives Kind's column to the name: the
+  // place in the rail already says what kind of look is showing.
+  @container look-picker-main (max-width: 540px) {
+    .look-picker__details-head,
+    .look-picker__row {
+      grid-template-columns: 56px minmax(0, 1.6fr) minmax(0, 1fr) minmax(
+          0,
+          0.7fr
+        );
+    }
+
+    // Through the list, to stand over the cells' own flex further down.
+    .look-picker__details .look-picker__cell--kind {
+      display: none;
+    }
+  }
+
+  .look-picker__row-art {
+    display: grid;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    place-items: center;
+    border-radius: $radius-2xs;
+    background: $studio-surface;
+
+    .look-picker__drawing {
+      width: 66%;
+      height: 70%;
+    }
+  }
+
+  .look-picker__cell {
+    @include truncate;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: $studio-t2;
+    font-size: $studio-text-meta;
+  }
+
+  .look-picker__row .graph-look-badge--locked {
+    margin: 0;
+  }
+
+  // The report flag: the remove button's size, quiet until hovered, and a
+  // tick once this session's report is sent.
+  .graph-scene-report {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 3px;
+    color: $text-faint;
+    border: 0;
+    border-radius: $radius-xs;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      color: $amber;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &.is-sent {
+      color: $active;
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .look-picker__thumb img {
+      transition: none;
+    }
+  }
+}

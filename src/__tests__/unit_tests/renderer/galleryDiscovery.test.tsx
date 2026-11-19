@@ -32,11 +32,15 @@ const renderPicker = (rows: IPlusRow[] = [], query = '') => {
       styleRows={[]}
       plusRows={rows}
       query={query}
-      styleFilter="all"
-      plusFilter="all"
+      place="everything"
+      from="all"
+      sort="newest"
+      view="grid"
       onQuery={onQuery}
-      onStyleFilter={jest.fn()}
-      onPlusFilter={jest.fn()}
+      onPlace={jest.fn()}
+      onFrom={jest.fn()}
+      onSort={jest.fn()}
+      onView={jest.fn()}
       onChoose={onChoose}
       searchRef={createRef<HTMLInputElement>()}
       onLeave={onLeave}
@@ -62,7 +66,7 @@ test('an empty picker invites guests into both existing destinations and auth', 
   const view = renderPicker();
   expect(screen.getByText('Bring your music to life')).toBeVisible();
   expect(
-    within(screen.getByRole('region', { name: 'Scenes' })).queryByText(
+    within(screen.getByRole('region', { name: 'Everything' })).queryByText(
       'No matches',
     ),
   ).not.toBeInTheDocument();
@@ -83,7 +87,9 @@ test('search misses keep a real clear-search action instead of a sales message',
   expect(
     screen.queryByText('Bring your music to life'),
   ).not.toBeInTheDocument();
-  const visualizers = screen.getByRole('region', { name: 'Scenes' });
+  const visualizers = screen.getByRole('region', {
+    name: 'Results for “missing”',
+  });
   expect(within(visualizers).getByText('No matches')).toBeVisible();
   fireEvent.click(
     within(visualizers).getByRole('button', { name: 'Clear search' }),
@@ -130,7 +136,12 @@ test('owned scene selection and a search miss never become the discovery offer',
   expect(
     screen.queryByText('Bring your music to life'),
   ).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Neon Lake Water' }));
+  // The tile, not the remove button that names the scene too.
+  const tile = screen.getByText('Neon Lake').closest('button');
+  if (!tile) {
+    throw new Error('no tile');
+  }
+  fireEvent.click(tile);
   expect(view.onChoose).toHaveBeenCalledWith(row.id);
   view.unmount();
   renderPicker([row], 'missing');
@@ -138,9 +149,9 @@ test('owned scene selection and a search miss never become the discovery offer',
     screen.queryByText('Bring your music to life'),
   ).not.toBeInTheDocument();
   expect(
-    within(screen.getByRole('region', { name: 'Scenes' })).getByText(
-      'No matches',
-    ),
+    within(
+      screen.getByRole('region', { name: 'Results for “missing”' }),
+    ).getByText('No matches'),
   ).toBeVisible();
 });
 
@@ -148,6 +159,12 @@ test('arrow keys reach both discovery actions and return to the search', () => {
   const view = renderPicker();
   const explore = screen.getByRole('button', { name: 'Explore scenes' });
   const create = screen.getByRole('button', { name: 'Create your own' });
+  // The walk reads where things are laid out, which jsdom does not do: the
+  // two offers one above the other, as the empty picker stacks them.
+  const at = (top: number) => () =>
+    ({ top, left: 0, width: 200, height: 32, bottom: top + 32 }) as DOMRect;
+  jest.spyOn(explore, 'getBoundingClientRect').mockImplementation(at(0));
+  jest.spyOn(create, 'getBoundingClientRect').mockImplementation(at(40));
   explore.focus();
   walkPicker(
     new KeyboardEvent('keydown', { key: 'ArrowDown' }),

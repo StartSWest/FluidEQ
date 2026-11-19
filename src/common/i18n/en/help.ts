@@ -483,21 +483,22 @@ const help = {
   'help.looks.intro':
     'Standard styles are free drawings of the live sound that you can colour and design yourself: Line and Area for a clean trace, LED blocks and Spikes for punch, Truss, Skyline and Dancing flames for whole scenes. Scenes are living pictures drawn on the graphics card, such as Alpine, Aurora, Bloom and Neon City, where the bass, the beat and the treble each move something different.',
   'help.looks.steps':
-    'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.\nChoose a scene on the right. One that is not yours yet is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
+    'Click the look’s name on the graph. Choose a place on the left, or search everything at once.\nUse From to see only FluidEQ’s looks, members’ scenes or your own. A scene that is not yours yet is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under From: Yours.',
   'help.looks.tip':
     'A scene brings its own colours: set its attack and release in View. Standard styles have graphics settings of their own in View, apart from scenes: full resolution and plain scaling to start with. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
   'help.looks.keywords':
     'styles, style, skins, skin, appearance, scene, scenes, visualizer, visualiser, visualization, colours, colors, look, customize, customise, animation, graphics, graphics settings, resolution, quality',
   'help.looks.searchName': 'Search',
   'help.looks.search': 'Finds styles and scenes by name, maker or category.',
-  'help.looks.styles': 'Free styles drawn by FluidEQ, and the looks you saved.',
-  'help.looks.familiesName': 'Style filters',
-  'help.looks.families':
-    'Analysis and Scenes, and Yours once you have saved a look.',
+  'help.looks.placesName': 'Places',
+  'help.looks.places':
+    'Everything, New and updated, the kinds of style and every category of scene, each with how many it holds.',
+  'help.looks.from': 'Who made it: FluidEQ, members, or you.',
+  'help.looks.viewName': 'View and order',
+  'help.looks.view':
+    'Pictures or a detailed list, sorted by newest, recently updated, name or most used.',
   'help.looks.plus':
-    'Scenes from FluidEQ and from members, and your own under Made by you.',
-  'help.looks.categoriesName': 'Categories',
-  'help.looks.categories': 'Nature, Cities, Abstract and more.',
+    'Each look as a picture. New or Updated marks what changed, and Playing marks the look on the graph.',
 
   'help.plus.title': 'Your account, credits and the Scenes tab',
   'help.plus.intro':

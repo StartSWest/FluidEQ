@@ -4,28 +4,39 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Fragment, type RefObject } from 'react';
-import type { TranslationKey } from 'common/i18n';
+import type { RefObject } from 'react';
 import { isPlusCategory } from 'common/plusGallery';
-import LookIcon from '../icons/LookIcon';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
-import LookPickerScene from './LookPickerScene';
+import LookPickerDetails from './LookPickerDetails';
 import LookPickerDiscover from './LookPickerDiscover';
 import LookPickerEmptyCategory from './LookPickerEmptyCategory';
+import LookPickerFrom from './LookPickerFrom';
 import LookPickerMore from './LookPickerMore';
+import LookPickerRail from './LookPickerRail';
+import LookPickerSearch from './LookPickerSearch';
+import LookPickerSort from './LookPickerSort';
+import { LookPickerSceneTile, LookPickerStyleTile } from './LookPickerTiles';
+import {
+  freshnessOf,
+  isStylePlace,
+  pickerFroms,
+  placeHoldsScenes,
+  selectLooks,
+  sortScenes,
+  sortStyles,
+  stylePlaces,
+  type TFreshness,
+  type TPickerFrom,
+  type TPickerPlace,
+  type TPickerSort,
+  type TPickerView,
+} from './lookPickerFilter';
 import {
   categoryName,
   FAMILY_KEYS,
-  keepPlus,
-  keepStyle,
-  makerName,
-  matchesSearch,
-  plusFilters,
-  styleFilters,
   type IPlusRow,
   type IStyleRow,
-  type TPlusFilter,
-  type TStyleFilter,
 } from './lookPickerRows';
 
 interface ILookPickerBodyProps {
@@ -34,21 +45,33 @@ interface ILookPickerBodyProps {
   styleRows: readonly IStyleRow[];
   plusRows: readonly IPlusRow[];
   query: string;
-  styleFilter: TStyleFilter;
-  plusFilter: TPlusFilter;
+  place: TPickerPlace;
+  from: TPickerFrom;
+  sort: TPickerSort;
+  view: TPickerView;
+  /** When the picker opened, for what counts as new; none marks nothing. */
+  openedAt?: number;
   onQuery: (query: string) => void;
-  onStyleFilter: (filter: TStyleFilter) => void;
-  onPlusFilter: (filter: TPlusFilter) => void;
+  onPlace: (place: TPickerPlace) => void;
+  onFrom: (from: TPickerFrom) => void;
+  onSort: (sort: TPickerSort) => void;
+  onView: (view: TPickerView) => void;
   onChoose: (lookId: string) => void;
   searchRef: RefObject<HTMLInputElement | null>;
-  /** Told when the columns arrive, to scroll each to its chosen row. */
-  columnsRef?: (columns: HTMLDivElement | null) => void;
+  /** Told when the looks arrive, to scroll to the chosen one. */
+  bodyRef?: (body: HTMLDivElement | null) => void;
   onLeave?: () => void;
 }
 
+const VIEWS = [
+  { view: 'grid', icon: 'viewGrid', label: 'library.view.grid' },
+  { view: 'details', icon: 'viewList', label: 'library.view.list' },
+] as const;
+
 /**
- * What the look picker opens: the search over both columns, the standard
- * styles beside the visualizers, each filed and filterable (`LookPicker`).
+ * What the look picker opens (`LookPicker`): the Library's layout in a
+ * window - the search, the view and the order over a rail of places, and
+ * beside the rail the looks of the place open, under the makers' tabs.
  *
  * Its own component, handed its rows rather than reading them, because Help
  * draws it too, open, from made-up looks (`help/live/lookFigures`): the
@@ -59,278 +82,279 @@ const LookPickerBody = ({
   styleRows,
   plusRows,
   query,
-  styleFilter,
-  plusFilter,
+  place,
+  from,
+  sort,
+  view,
+  openedAt,
   onQuery,
-  onStyleFilter,
-  onPlusFilter,
+  onPlace,
+  onFrom,
+  onSort,
+  onView,
   onChoose,
   searchRef,
-  columnsRef,
+  bodyRef,
   onLeave,
 }: ILookPickerBodyProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
-  const styleChips = styleFilters(styleRows);
-  const plusChips = plusFilters(plusRows);
-  const activeStyle = styleChips.includes(styleFilter) ? styleFilter : 'all';
-  const activePlus = plusChips.includes(plusFilter) ? plusFilter : 'all';
+  const freshness = new Map<string, TFreshness>();
+  plusRows.forEach((row) => {
+    const fresh = freshnessOf(row, openedAt);
+    if (fresh) {
+      freshness.set(row.id, fresh);
+    }
+  });
+  const families = stylePlaces(styleRows);
+  const froms = pickerFroms(styleRows, plusRows);
+  const activeFrom = froms.includes(from) ? from : 'all';
   const searching = query.trim().length > 0;
+  // A family that has nothing left in it (the member deleted their last
+  // saved style) is no longer in the rail; standing in it would be nowhere.
+  const known = !isStylePlace(place) || families.includes(place);
+  let activePlace: TPickerPlace | undefined;
+  if (!searching) {
+    activePlace = known ? place : 'everything';
+  }
+  const select = (
+    at: TPickerPlace | undefined,
+    by: TPickerFrom,
+    typed: string,
+  ) => selectLooks(styleRows, plusRows, freshness, at, by, typed);
+  const picked = select(activePlace, activeFrom, query);
+  const scenes = sortScenes(picked.scenes, sort, locale);
+  const styles = sortStyles(picked.styles, sort, locale);
+  const countIn = (at: TPickerPlace) => {
+    const { styles: s, scenes: c } = select(at, activeFrom, '');
+    return s.length + c.length;
+  };
+  const countFrom = (by: TPickerFrom) => {
+    const { styles: s, scenes: c } = select(activePlace, by, query);
+    return s.length + c.length;
+  };
+
+  const nameOf = (at: TPickerPlace) => {
+    if (at === 'everything') {
+      return t('graph.picker.everything');
+    }
+    if (at === 'fresh') {
+      return t('graph.picker.fresh');
+    }
+    if (at === 'all-scenes') {
+      return t('graph.picker.allScenes');
+    }
+    return isPlusCategory(at) ? categoryName(t, at) : t(FAMILY_KEYS[at]);
+  };
+  const title = activePlace
+    ? nameOf(activePlace)
+    : t('graph.picker.results', { query: query.trim() });
+
   const discovering =
-    plusRows.length === 0 && !searching && onLeave !== undefined;
-  const shownStyles = styleRows.filter((row) =>
-    searching ? matchesSearch(row.search, query) : keepStyle(row, activeStyle),
-  );
-  const shownPlus = plusRows.filter((row) =>
-    searching ? matchesSearch(row.search, query) : keepPlus(row, activePlus),
-  );
+    plusRows.length === 0 &&
+    !searching &&
+    onLeave !== undefined &&
+    activePlace !== undefined &&
+    placeHoldsScenes(activePlace);
+  const ordered = [...scenes, ...styles];
+  const shownIds = ordered.map((row) => row.id);
+  // Only the chosen look, or the first, is a Tab stop: forty Tab presses to
+  // get past the grid is not a way past it. The arrows walk it.
+  const stop = shownIds.includes(value) ? value : shownIds[0];
+  const both = scenes.length > 0 && styles.length > 0;
 
-  const styleChipName = (filter: TStyleFilter) => {
-    if (filter === 'all') {
-      return t('graph.picker.all');
-    }
-    return filter === 'yours'
-      ? t('graph.picker.yours')
-      : t(FAMILY_KEYS[filter]);
-  };
-  const plusChipName = (filter: TPlusFilter) => {
-    if (filter === 'all') {
-      return t('graph.picker.all');
-    }
-    return filter === 'mine' || filter === 'members'
-      ? makerName(t, filter)
-      : categoryName(t, filter);
-  };
-
-  // Only the chosen row, or the first, is a Tab stop in each column: forty
-  // Tab presses to get from the styles to the visualizers is not a way there.
-  const stopOf = (ids: readonly string[]) =>
-    ids.includes(value) ? value : ids[0];
-  const styleStop = stopOf(shownStyles.map((row) => row.id));
-  const plusStop = stopOf(shownPlus.map((row) => row.id));
-
-  /**
-   * The measuring views over their own heading, the scenes over theirs.
-   *
-   * A flat list put a goniometer next to a bridge over water with no line
-   * between them, and they are not the same kind of thing (Ivan,
-   * 2026-09-23: "separate real meters from the rest of viz like terra and
-   * sky line with a group"). Headed only when more than one family is
-   * showing — under a family chip, or a search, a heading over the whole
-   * list says nothing.
-   */
-  const manyFamilies = new Set(shownStyles.map((row) => row.family)).size > 1;
-
-  const renderStyle = (row: IStyleRow, index: number) => {
-    const selected = row.id === value;
-    const heads =
-      manyFamilies &&
-      (index === 0 || shownStyles[index - 1].family !== row.family);
-    /**
-     * Indented only while the view it varies is on screen too. Searching, or
-     * under the Yours chip, a variation can be the only thing showing — and
-     * a row indented under nothing reads as a mistake rather than as a tree.
-     */
-    const child =
-      row.nested &&
-      shownStyles.some(
-        (other) => !other.yours && other.look.style === row.look.style,
+  const empty = () => {
+    if (
+      !searching &&
+      activeFrom === 'all' &&
+      activePlace !== undefined &&
+      isPlusCategory(activePlace)
+    ) {
+      return (
+        <LookPickerEmptyCategory category={activePlace} onLeave={onLeave} />
       );
+    }
+    const fresh = !searching && activePlace === 'fresh';
     return (
-      <Fragment key={row.id}>
-        {heads && (
-          <p className="look-picker__group">{t(FAMILY_KEYS[row.family])}</p>
-        )}
-        <button
-          type="button"
-          className={`look-picker__pick look-picker__style${
-            child ? ' look-picker__style--child' : ''
-          }${selected ? ' is-selected' : ''}`}
-          aria-pressed={selected}
-          tabIndex={row.id === styleStop ? 0 : -1}
-          title={row.name}
-          onClick={() => onChoose(row.id)}
-        >
-          <span className="look-picker__glyph">
-            <LookIcon
-              style={row.look.style}
-              palette={row.look.palette}
-              colours={row.look.colours}
-            />
-          </span>
-          <span
-            className={`look-picker__name${
-              row.yours ? ' graph-look-name--custom' : ''
-            }`}
-          >
-            {row.name}
-          </span>
-        </button>
-      </Fragment>
-    );
-  };
-
-  // Makers are named over their runs only when more than one is showing.
-  const manyMakers = new Set(shownPlus.map((each) => each.maker)).size > 1;
-  const renderScene = (row: IPlusRow, index: number) => (
-    <LookPickerScene
-      key={row.id}
-      row={row}
-      selected={row.id === value}
-      tabbable={row.id === plusStop}
-      heading={
-        manyMakers && (index === 0 || shownPlus[index - 1].maker !== row.maker)
-      }
-      onChoose={onChoose}
-    />
-  );
-
-  const chips = <T extends string>(
-    filters: readonly T[],
-    active: T,
-    name: (filter: T) => string,
-    pick: (filter: T) => void,
-    label: TranslationKey,
-  ) => (
-    <div
-      className="gallery-chips look-picker__chips"
-      role="group"
-      aria-label={t(label)}
-    >
-      {filters.map((filter) => (
-        <button
-          key={filter}
-          type="button"
-          className="gallery-chip"
-          aria-pressed={!searching && filter === active}
-          onClick={() => pick(filter)}
-        >
-          {name(filter)}
-        </button>
-      ))}
-    </div>
-  );
-
-  return (
-    <>
-      <div className="look-picker__search">
-        <svg viewBox="0 0 16 16" aria-hidden>
-          <circle cx="7" cy="7" r="4.5" />
-          <path d="M10.5 10.5L14 14" />
-        </svg>
-        <input
-          ref={searchRef}
-          type="text"
-          value={query}
-          placeholder={t('graph.picker.search')}
-          aria-label={t('graph.picker.search')}
-          onChange={(event) => onQuery(event.target.value)}
-          onKeyDown={(event) => {
-            const matches = [...shownStyles, ...shownPlus];
-            if (event.key === 'Enter' && searching && matches.length === 1) {
-              onChoose(matches[0].id);
-            }
-          }}
-        />
-        {query.length > 0 && (
+      <div className="look-picker__empty">
+        <p>{fresh ? t('graph.picker.nothingNew') : t('common.noMatches')}</p>
+        {searching && (
           <button
             type="button"
-            className="menu-search__clear"
-            aria-label={t('common.clearSearch')}
-            title={t('common.clearSearch')}
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => {
-              onQuery('');
-              searchRef.current?.focus();
-            }}
+            className="button small subtle"
+            onClick={() => onQuery('')}
           >
-            <svg viewBox="0 0 12 12" aria-hidden>
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
+            {t('common.clearSearch')}
+          </button>
+        )}
+        {!searching && activeFrom !== 'all' && (
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => onFrom('all')}
+          >
+            {t('graph.picker.showEveryone')}
           </button>
         )}
       </div>
-      <div ref={columnsRef} className="look-picker__columns">
-        <section
-          className="look-picker__column look-picker__column--styles"
-          aria-label={t('graph.picker.styles')}
+    );
+  };
+
+  const grid = () => (
+    <>
+      {both && (
+        <h4 className="look-picker__section">
+          {t('graph.picker.plus')}
+          <small>{scenes.length}</small>
+        </h4>
+      )}
+      {scenes.length > 0 && (
+        <div className="look-picker__grid">
+          {scenes.map((row) => (
+            <LookPickerSceneTile
+              key={row.id}
+              row={row}
+              fresh={freshness.get(row.id)}
+              selected={row.id === value}
+              tabbable={row.id === stop}
+              onChoose={onChoose}
+            />
+          ))}
+        </div>
+      )}
+      {both && (
+        <h4 className="look-picker__section">
+          {t('graph.picker.styles')}
+          <small>{styles.length}</small>
+        </h4>
+      )}
+      {styles.length > 0 && (
+        <div className="look-picker__grid look-picker__grid--styles">
+          {styles.map((row) => (
+            <LookPickerStyleTile
+              key={row.id}
+              row={row}
+              selected={row.id === value}
+              tabbable={row.id === stop}
+              onChoose={onChoose}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  let content;
+  if (ordered.length === 0) {
+    content =
+      discovering && onLeave ? (
+        <LookPickerDiscover onLeave={onLeave} />
+      ) : (
+        empty()
+      );
+  } else if (view === 'details') {
+    content = (
+      <LookPickerDetails
+        value={value}
+        styles={styles}
+        scenes={scenes}
+        freshness={freshness}
+        stop={stop}
+        onChoose={onChoose}
+      />
+    );
+  } else {
+    content = grid();
+  }
+
+  return (
+    <>
+      <div className="look-picker__top">
+        <LookPickerSearch
+          query={query}
+          searchRef={searchRef}
+          onQuery={onQuery}
+          onEnter={() => {
+            if (searching && ordered.length === 1) {
+              onChoose(ordered[0].id);
+            }
+          }}
+        />
+        <div
+          className="look-picker__views"
+          role="group"
+          aria-label={t('graph.picker.view')}
         >
+          {VIEWS.map((each) => (
+            <button
+              key={each.view}
+              type="button"
+              className={`look-picker__view${view === each.view ? ' is-active' : ''}`}
+              aria-pressed={view === each.view}
+              title={t(each.label)}
+              onClick={() => onView(each.view)}
+            >
+              <MenuIcon name={each.icon} className="look-picker__view-icon" />
+              <span>{t(each.label)}</span>
+            </button>
+          ))}
+        </div>
+        <LookPickerSort sort={sort} onSort={onSort} />
+      </div>
+      <div ref={bodyRef} className="look-picker__body">
+        <LookPickerRail
+          place={activePlace}
+          families={families}
+          countOf={countIn}
+          nameOf={nameOf}
+          onPlace={onPlace}
+        />
+        <section className="look-picker__main" aria-label={title}>
           <header className="look-picker__head">
-            <h3>{t('graph.picker.styles')}</h3>
-            <span className="look-picker__count">{shownStyles.length}</span>
+            <h3>
+              <span className="look-picker__title">{title}</span>
+              <small className="look-picker__count">{ordered.length}</small>
+            </h3>
+            <LookPickerFrom
+              froms={froms}
+              from={activeFrom}
+              countOf={countFrom}
+              onFrom={onFrom}
+            />
           </header>
-          {chips(
-            styleChips,
-            activeStyle,
-            styleChipName,
-            onStyleFilter,
-            'graph.picker.filterStyles',
-          )}
           <div
-            className="look-picker__list"
+            className="look-picker__scroll"
             data-look-picker-scroll
             data-anchored-menu-scroll
           >
-            {shownStyles.map(renderStyle)}
-            {shownStyles.length === 0 && (
-              <p className="look-picker__empty">{t('common.noMatches')}</p>
-            )}
-          </div>
-        </section>
-        <section
-          className="look-picker__column look-picker__column--plus"
-          aria-label={t('graph.picker.plus')}
-        >
-          <header className="look-picker__head">
-            <h3>{t('graph.picker.plus')}</h3>
-            {!discovering && (
-              <span className="look-picker__count">{shownPlus.length}</span>
-            )}
-          </header>
-          {plusRows.length > 0 &&
-            chips(
-              plusChips,
-              activePlus,
-              plusChipName,
-              onPlusFilter,
-              'graph.picker.filterPlus',
-            )}
-          <div
-            className={`look-picker__list${discovering ? ' look-picker__list--discover' : ''}`}
-            data-look-picker-scroll
-            data-anchored-menu-scroll
-          >
-            {shownPlus.flatMap(renderScene)}
-            {discovering && onLeave ? (
+            {content}
+            {/* Everything, with no scene to its name yet: the styles, then
+                the way to the first scene under them. */}
+            {discovering && ordered.length > 0 && onLeave && (
               <LookPickerDiscover onLeave={onLeave} />
-            ) : (
-              shownPlus.length === 0 &&
-              (!searching && isPlusCategory(activePlus) ? (
-                <LookPickerEmptyCategory
-                  category={activePlus}
-                  onLeave={onLeave}
-                />
-              ) : (
-                <div className="look-picker__empty">
-                  <p>{t('common.noMatches')}</p>
-                  {searching && (
-                    <button
-                      type="button"
-                      className="button small subtle"
-                      onClick={() => onQuery('')}
-                    >
-                      {t('common.clearSearch')}
-                    </button>
-                  )}
-                </div>
-              ))
             )}
           </div>
-          {/* Under the list, not in it: always there, however long the
-              list scrolls. The empty column's own offer already has it. */}
-          {!discovering && onLeave && <LookPickerMore onLeave={onLeave} />}
         </section>
       </div>
+      <footer className="look-picker__foot">
+        <span className="look-picker__keys" aria-hidden="true">
+          <span>
+            <kbd>↑↓←→</kbd>
+            {t('graph.picker.keysMove')}
+          </span>
+          <span>
+            <kbd>Enter</kbd>
+            {t('graph.picker.keysChoose')}
+          </span>
+          <span>
+            <kbd>Esc</kbd>
+            {t('graph.picker.keysClose')}
+          </span>
+        </span>
+        {/* Always there, however long the grid scrolls. The empty column's
+            own offer already has it. */}
+        {plusRows.length > 0 && onLeave && <LookPickerMore onLeave={onLeave} />}
+      </footer>
     </>
   );
 };

@@ -29,28 +29,32 @@ import {
 } from '../utils/scenePacks';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import LookPickerBody from './LookPickerBody';
+import type {
+  TPickerFrom,
+  TPickerPlace,
+  TPickerSort,
+  TPickerView,
+} from './lookPickerFilter';
 import {
   buildPlusRows,
   buildStyleRows,
   type IPlusRow,
   type IStyleRow,
-  type TPlusFilter,
-  type TStyleFilter,
 } from './lookPickerRows';
 import { PICK, walkPicker } from './lookPickerParts';
 import '../styles/LookPicker.scss';
 
 /**
- * The graph's style picker: the standard styles and the Plus visualizers side
- * by side, each filed and filterable, over one search.
+ * The graph's look picker: every standard style and scene, laid out as the
+ * Library is (Ivan, 2026-11-19) - places down a rail, who made a look in tabs
+ * of its own, the looks as pictures - over one search (`LookPickerBody`).
  *
  * It was a single 268px list, which was fine for forty styles and is not for a
  * collection that grows every week: the Plus scenes sat at the bottom of the
  * styles, a picture's worth of scene was a sixteen-pixel glyph, and there was
- * no way to ask for "something with water in it". Two columns let each half
- * be what it is — a style is a shape, read by its drawing; a visualizer is a
- * picture, read by its thumbnail — and a filter over each lets the list grow
- * without growing longer to scroll.
+ * no way to ask for "something with water in it". Two columns with rows of
+ * filter pills came next, and the pills wrapped into two rows with the makers
+ * mixed in among the categories; the rail names every place with its count.
  *
  * `graph-look-menu` stays on the window: the graph's idle chrome stays up while
  * the pointer is in it. The auto-cycle waits while it is open
@@ -58,8 +62,10 @@ import '../styles/LookPicker.scss';
  */
 
 /** Remembered for the session, so reopening lands where it was left. */
-let lastStyleFilter: TStyleFilter = 'all';
-let lastPlusFilter: TPlusFilter = 'all';
+let lastPlace: TPickerPlace = 'everything';
+let lastFrom: TPickerFrom = 'all';
+let lastSort: TPickerSort = 'newest';
+let lastView: TPickerView = 'grid';
 
 interface ILookPickerProps {
   /** The selection, not the resolved look: a draft's id is in neither list. */
@@ -113,8 +119,12 @@ const LookPicker = ({
   }
   useHoldGraphAutoCycle(isOpen);
   const [query, setQuery] = useState('');
-  const [styleFilter, setStyleFilter] = useState(lastStyleFilter);
-  const [plusFilter, setPlusFilter] = useState(lastPlusFilter);
+  const [place, setPlace] = useState(lastPlace);
+  const [from, setFrom] = useState(lastFrom);
+  const [sort, setSort] = useState(lastSort);
+  const [view, setView] = useState(lastView);
+  // What counts as new is decided as the picker opens, not while it is open.
+  const [openedAt, setOpenedAt] = useState<number | undefined>(undefined);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -187,12 +197,12 @@ const LookPicker = ({
    * nothing until it has placed the window, so on the render that opens it
    * none of this exists yet.
    */
-  const arrive = useCallback((columns: HTMLDivElement | null) => {
-    if (!columns) {
+  const arrive = useCallback((body: HTMLDivElement | null) => {
+    if (!body) {
       return;
     }
     searchRef.current?.focus();
-    const chosen = columns.querySelector<HTMLElement>(
+    const chosen = body.querySelector<HTMLElement>(
       `${PICK}[aria-pressed="true"]`,
     );
     if (chosen && typeof chosen.scrollIntoView === 'function') {
@@ -208,6 +218,7 @@ const LookPicker = ({
   const toggle = () => {
     if (!isOpen) {
       setQuery('');
+      setOpenedAt(Date.now());
       // Opening the looks is when a newer version of one is worth having.
       // The list opens from what is held; whatever changed arrives through
       // the stores' own announcements, marked "New".
@@ -216,15 +227,23 @@ const LookPicker = ({
     setIsOpen(!isOpen);
   };
 
-  const chooseStyleFilter = (filter: TStyleFilter) => {
-    lastStyleFilter = filter;
-    setStyleFilter(filter);
+  // Pressing a place leaves the search: a place is a way of asking too.
+  const choosePlace = (next: TPickerPlace) => {
+    lastPlace = next;
+    setPlace(next);
     setQuery('');
   };
-  const choosePlusFilter = (filter: TPlusFilter) => {
-    lastPlusFilter = filter;
-    setPlusFilter(filter);
-    setQuery('');
+  const chooseFrom = (next: TPickerFrom) => {
+    lastFrom = next;
+    setFrom(next);
+  };
+  const chooseSort = (next: TPickerSort) => {
+    lastSort = next;
+    setSort(next);
+  };
+  const chooseView = (next: TPickerView) => {
+    lastView = next;
+    setView(next);
   };
 
   const current: IStyleRow | IPlusRow | undefined =
@@ -303,21 +322,26 @@ const LookPicker = ({
         className="graph-look-menu look-picker__menu"
         role="dialog"
         ariaLabel={t('graph.picker.label')}
-        maxHeight={600}
+        maxHeight={640}
       >
         <LookPickerBody
           value={value}
           styleRows={styleRows}
           plusRows={plusRows}
           query={query}
-          styleFilter={styleFilter}
-          plusFilter={plusFilter}
+          place={place}
+          from={from}
+          sort={sort}
+          view={view}
+          openedAt={openedAt}
           onQuery={setQuery}
-          onStyleFilter={chooseStyleFilter}
-          onPlusFilter={choosePlusFilter}
+          onPlace={choosePlace}
+          onFrom={chooseFrom}
+          onSort={chooseSort}
+          onView={chooseView}
           onChoose={choose}
           searchRef={searchRef}
-          columnsRef={arrive}
+          bodyRef={arrive}
           onLeave={() => close(false)}
         />
       </AnchoredMenu>
