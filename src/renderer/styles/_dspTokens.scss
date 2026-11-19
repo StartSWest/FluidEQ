@@ -28,9 +28,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // the bands and the readout tiles inside them were each a box - an edge, then
 // a step of light - and the graph a darker ground of its own, so one page
 // stacked four shades of slate and boxes inside boxes. Now none of them has a
-// fill or an edge: a block's heading carries one hairline under it
-// (`dsp-section-head`), a reading is its name and its value on the floor, and
-// the plots draw their grids straight onto the card.
+// fill: a card of dials keeps its edge alone (`dsp-knob-card`, below), any
+// other block's heading carries one hairline under it (`dsp-section-head`),
+// a reading is its name and its value on the floor, and the plots draw their
+// grids straight onto the card.
 //
 // The DSP page, the Gaming tab and Help's figures all draw a stage through
 // this, so all three are flat alike. The Exciter's two tinted bands keep
@@ -38,6 +39,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @mixin dsp-box {
   border: 0;
   border-radius: 0;
+  background: none;
+}
+
+// A CARD OF DIALS KEEPS ITS EDGE (Ivan, the same day, of the flat stage: "on
+// DSP the cards for options the nice border on each nobs card"). The bands
+// and groups that hold a stage's knobs are each one control surface, and the
+// card's own edge - no fill, the floor showing through, as he first asked for
+// them on 2026-09-22 ("same as the bg, just borders") - is what tells one
+// from the next. Everything else on the stage stays flat (`dsp-box`), and a
+// card's heading needs no line of its own under it: the edge already holds
+// the card together.
+@mixin dsp-knob-card {
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
   background: none;
 }
 

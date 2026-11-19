@@ -432,9 +432,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // when each part of the sound arrives and nothing else, so it must not read as
 // another flavour of the generators above it.
 .dsp-band-align {
-  // The one fill a flat stage keeps (`dsp-box`), so its words keep an inset
-  // inside it.
-  padding: 8px 10px 4px;
+  // The one fill a stage keeps, inside the card's edge like every band.
   background: rgba(132, 168, 255, 0.05);
 }
 
@@ -453,11 +451,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   #dsp-exciter .dsp-band {
     gap: 4px;
-    padding: 0 0 3px;
-  }
-
-  // The two tinted bands keep their inset inside the tint.
-  #dsp-exciter :is(.dsp-band-align, .dsp-band-organic) {
     padding: 6px 8px 3px;
   }
 }

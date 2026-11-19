@@ -26,8 +26,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-dimension-group {
   display: grid;
   gap: 8px;
-  padding: 0 0 4px;
-  @include dsp-box;
+  padding: 10px 12px;
+  @include dsp-knob-card;
 }
 
 .dsp-dimension-group-name {

@@ -390,7 +390,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 7 1 420px;
 }
 
-.dsp-normalizer-control-surface,
+// The mode and its two dials are a card of dials (`dsp-knob-card`); the
+// readings and the meter beside and under it are flat blocks (`dsp-box`).
+.dsp-normalizer-control-surface {
+  @include dsp-knob-card;
+  min-width: 0;
+}
+
 .dsp-normalizer-analysis,
 .dsp-normalizer-live,
 .dsp-denoise-analysis {
@@ -608,7 +614,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
-  padding: 0 0 4px;
+  padding: 9px 12px 7px;
 
   // At least as wide as its labels. A fixed 366px in equal thirds left the
   // longest label wider than its third.

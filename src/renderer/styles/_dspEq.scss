@@ -301,8 +301,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 calc(4 * var(--dsp-knob) + 32px);
   min-width: 0;
   align-content: center;
-  padding: 10px 0;
-  @include dsp-box;
+  padding: 10px 12px;
+  @include dsp-knob-card;
 }
 
 // One row, centred: the selected band's controls and nothing else. Centring
@@ -321,8 +321,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   gap: 14px 18px;
-  padding: 10px 0;
-  @include dsp-box;
+  padding: 10px 14px;
+  @include dsp-knob-card;
   flex-wrap: wrap;
 }
 

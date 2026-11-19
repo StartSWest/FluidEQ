@@ -325,33 +325,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-  // Flat on the floor (`dsp-box`), so its words stand on the stage's own
-  // left edge, under the stage's name.
-  padding: 0 0 4px;
-  @include dsp-box;
+  // A card of dials: its edge, no fill (`dsp-knob-card`).
+  padding: 8px 10px 6px;
+  @include dsp-knob-card;
 }
 
-// A block's heading, and the one line it keeps (`dsp-section-head`): the
-// bands, the Normalizer's and Denoise's panels, the Dimension's groups, the
-// EQ's phase meter, the crossfade's controls. Whatever row heads one - its
-// name and switch, its name and status, or the name alone - is drawn across
-// the block with the hairline under it.
+// A flat block's heading, and the one line it keeps (`dsp-section-head`):
+// the Normalizer's analysis and meter, Denoise's analysis, the EQ's phase
+// meter, the crossfade's controls - the blocks with no card of their own.
+// Whatever row heads one - its name and status, or the name alone - is drawn
+// across the block with the hairline under it.
 :is(
-    .dsp-band,
-    .dsp-normalizer-control-surface,
     .dsp-normalizer-analysis,
     .dsp-normalizer-live,
     .dsp-denoise-analysis,
-    .dsp-dimension-group,
     .dsp-eq-phase,
     .dsp-crossfade-controls
   )
   > :is(
     .dsp-band-head,
-    .dsp-de-esser-head,
     .dsp-band-title,
     .dsp-denoise-analysis-head,
-    .dsp-dimension-group-name,
     .dsp-eq-phase-head
   ):first-child {
   align-self: stretch;
@@ -417,9 +411,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // is not a fourth band and must not read as one: a different effect, its own
 // bandpass, its own colour.
 .dsp-band-organic {
-  // The one fill a flat stage keeps (`dsp-box`), so its words keep an inset
-  // inside it.
-  padding: 8px 10px 4px;
+  // The one fill a stage keeps, inside the card's edge like every band.
   background: rgba(255, 176, 89, 0.05);
 }
 
