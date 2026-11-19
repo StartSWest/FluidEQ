@@ -42,12 +42,16 @@ const TaskbarTransport = ({ tabOwner }: { tabOwner?: TPlaybackOwner }) => {
       if (action === 'next') {
         current?.next?.();
       }
+      if (action === 'surprise') {
+        current?.surprise?.();
+      }
     });
   }, []);
 
   const canToggle = source !== undefined && source.canToggle !== false;
   const canPrevious = source?.previous !== undefined;
   const canNext = source?.next !== undefined;
+  const canSurprise = source?.surprise !== undefined;
   const isPlaying = source?.isPlaying === true;
   const navigation = source?.navigation ?? 'tracks';
   useEffect(() => {
@@ -60,6 +64,7 @@ const TaskbarTransport = ({ tabOwner }: { tabOwner?: TPlaybackOwner }) => {
         canPrevious,
         canNext,
         isPlaying,
+        canSurprise,
         locale,
         navigation,
       })
@@ -67,7 +72,15 @@ const TaskbarTransport = ({ tabOwner }: { tabOwner?: TPlaybackOwner }) => {
         log.error('Could not update taskbar playback controls', error),
       );
     // Position ticks and changing callbacks must not redraw the native toolbar.
-  }, [canToggle, canPrevious, canNext, isPlaying, locale, navigation]);
+  }, [
+    canToggle,
+    canPrevious,
+    canNext,
+    canSurprise,
+    isPlaying,
+    locale,
+    navigation,
+  ]);
 
   // Grey the buttons once the bars are gone, in whatever language is current
   // by then. Keyed on the language, this ran on every switch of it as well and
@@ -82,6 +95,7 @@ const TaskbarTransport = ({ tabOwner }: { tabOwner?: TPlaybackOwner }) => {
         canPrevious: false,
         canNext: false,
         isPlaying: false,
+        canSurprise: false,
         locale,
         navigation: 'tracks',
       })

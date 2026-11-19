@@ -28,6 +28,7 @@ const EMPTY: ITaskbarTransportState = {
   canPrevious: false,
   canNext: false,
   isPlaying: false,
+  canSurprise: false,
   locale: 'en',
   navigation: 'tracks',
 };
@@ -84,6 +85,9 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
     if (action === 'toggle') {
       return state.canToggle;
     }
+    if (action === 'surprise') {
+      return state.canSurprise;
+    }
     return action === 'next' ? state.canNext : state.canPrevious;
   };
   const send = (action: TTaskbarTransportAction) => {
@@ -93,11 +97,24 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
       enabled(action)
     ) {
       log.info('Taskbar playback command', action);
-      if (forwardGroupMediaCommand({ command: action })) {
+      // A listening group carries the transport, never Surprise me: that is
+      // this Library's own pick.
+      if (
+        action !== 'surprise' &&
+        forwardGroupMediaCommand({ command: action })
+      ) {
         return;
       }
       window.webContents.send(TASKBAR_TRANSPORT_ACTION, action);
     }
+  };
+  const flagsFor = (
+    action: TTaskbarTransportAction,
+  ): Electron.ThumbarButton['flags'] => {
+    if (enabled(action)) {
+      return [];
+    }
+    return action === 'surprise' ? ['hidden'] : ['disabled'];
   };
   const update = () => {
     if (
@@ -154,12 +171,20 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
             : 'library.next',
         ),
       },
+      {
+        action: 'surprise' as const,
+        icon: 'surprise',
+        tooltip: translate(locale, 'library.upNext.surprise'),
+      },
     ].map(({ action, icon, tooltip }) => ({
       icon: iconFor(icon, dark),
       tooltip,
       // Electron 43's native parser rejects "enabled" despite its typings.
-      // No flags is the native enabled state (THBF_ENABLED = 0).
-      flags: enabled(action) ? [] : ['disabled'],
+      // No flags is the native enabled state (THBF_ENABLED = 0). Surprise
+      // me is hidden, not greyed, while the Library is not what plays: the
+      // shell keeps a button's place once added, so it is always in the
+      // list and only shown when it does something.
+      flags: flagsFor(action),
       click: () => send(action),
     }));
     // Electron can refuse before the shell has created this window's taskbar
@@ -192,6 +217,7 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
       canPrevious: value.canPrevious,
       canNext: value.canNext,
       isPlaying: value.isPlaying,
+      canSurprise: value.canSurprise,
       locale: resolveLocale(value.locale),
       navigation: value.navigation,
     };

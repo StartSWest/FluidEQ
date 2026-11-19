@@ -268,7 +268,12 @@ const onTaskbarTransport = (
   listener: (action: TTaskbarTransportAction) => void,
 ) => {
   const wrapped = (_event: IpcRendererEvent, action: unknown) => {
-    if (action === 'previous' || action === 'toggle' || action === 'next') {
+    if (
+      action === 'previous' ||
+      action === 'toggle' ||
+      action === 'next' ||
+      action === 'surprise'
+    ) {
       listener(action);
     }
   };

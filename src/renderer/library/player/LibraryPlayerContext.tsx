@@ -628,6 +628,7 @@ export const LibraryPlayerProvider = ({
     skip,
     isUnplayable,
     seek,
+    surprise,
   });
   /**
    * And what only this player has, for the mini player: its cover and

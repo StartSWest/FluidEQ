@@ -7,7 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export const TASKBAR_TRANSPORT_STATE = 'taskbar-transport-state';
 export const TASKBAR_TRANSPORT_ACTION = 'taskbar-transport-action';
 
-export type TTaskbarTransportAction = 'previous' | 'toggle' | 'next';
+export type TTaskbarTransportAction =
+  'previous' | 'toggle' | 'next' | 'surprise';
 
 /** Only controls cross to main; player callbacks stay with their owner. */
 export interface ITaskbarTransportState {
@@ -15,6 +16,11 @@ export interface ITaskbarTransportState {
   canPrevious: boolean;
   canNext: boolean;
   isPlaying: boolean;
+  /**
+   * Surprise me, while the Library is what plays (Ivan, 2026-11-19: "add the
+   * surprise me button there also", of the taskbar's preview window).
+   */
+  canSurprise: boolean;
   locale: string;
   navigation: 'tracks' | 'boundaries';
 }
@@ -31,6 +37,7 @@ export const isTaskbarTransportState = (
     typeof state.canPrevious === 'boolean' &&
     typeof state.canNext === 'boolean' &&
     typeof state.isPlaying === 'boolean' &&
+    typeof state.canSurprise === 'boolean' &&
     (state.navigation === 'tracks' || state.navigation === 'boundaries') &&
     typeof state.locale === 'string' &&
     state.locale.length <= 32

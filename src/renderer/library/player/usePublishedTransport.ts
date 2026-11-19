@@ -37,6 +37,8 @@ const usePublishedTransport = (options: {
   skip: (direction: 1 | -1) => void;
   isUnplayable: boolean;
   seek: (positionMs: number) => void;
+  /** Surprise me (`useSurprise`), offered on the taskbar's preview window. */
+  surprise: () => Promise<string | null>;
 }): void => {
   const {
     track,
@@ -48,6 +50,7 @@ const usePublishedTransport = (options: {
     skip,
     isUnplayable,
     seek,
+    surprise,
   } = options;
 
   /**
@@ -83,6 +86,12 @@ const usePublishedTransport = (options: {
       canToggle: !isUnplayable,
       previous: () => skip(-1),
       next: () => skip(1),
+      surprise: () => {
+        surprise().catch((error: unknown) => {
+          // eslint-disable-next-line no-console -- context-rich error before it is dropped; nothing starts
+          console.error('Surprise me from the taskbar could not start', error);
+        });
+      },
       seek,
       identity: buildSongIdentity(
         'library',
@@ -101,6 +110,7 @@ const usePublishedTransport = (options: {
     skip,
     isUnplayable,
     seek,
+    surprise,
   ]);
 
   useEffect(() => () => clearTransportSource('library'), []);

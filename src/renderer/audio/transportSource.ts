@@ -98,6 +98,11 @@ export interface ITransportSource {
    */
   next?: () => void;
   previous?: () => void;
+  /**
+   * Surprise me: a song from the whole library, now. Only the Library has
+   * one; the taskbar's preview window offers it while the Library plays.
+   */
+  surprise?: () => void;
   /** Karaoke's matching arrows go to this song's start/end. */
   navigation?: 'boundaries';
   /**
