@@ -706,7 +706,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'pack.json 中的一些環境元素或控制被遺漏。檢查它們的形狀、動作、顏色、計數以及每個控制項的移動內容。',
   'studio.problem.bad-window-colours':
-    'pack.json 中的 windowColours 需要 surface、accent 和 glow，每項都是類似 #00e5cf 的顏色。',
+    'pack.json 中的 windowColours/windowColourStops 需要 surface、accent 和 glow，每項都是類似 #00e5cf 的顏色。',
   'studio.windowColours.failed': '無法儲存顏色。請再試一次。',
   'studio.windowColours.note': '儲存在場景中，所有播放它的人都會看到這些顏色。',
   'studio.windowColours.none':

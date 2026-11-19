@@ -11,9 +11,9 @@ import type { IScenePack } from 'common/scenePacks';
 import { loadMemberScene } from '../utils/memberScenes';
 import { loadScenePack } from '../utils/scenePacks';
 import {
-  DAYLIGHT_OF,
-  timeKeyOf,
-  type TWindowTime,
+  hourOfStop,
+  stopKeyOf,
+  type TMeasuredStop,
 } from '../utils/sceneDayColours';
 import { sceneOwnSky, skyFromWindowColours } from '../utils/sceneOwnColours';
 import type { TListenerParams } from '../utils/sceneParamStore';
@@ -110,35 +110,36 @@ const withChoices = (
 };
 
 /**
- * What `pack` says it lends the window at `time`, without drawing it: the
- * colours it names for that time, else its palette's, which hold all day.
+ * What `pack` says it lends the window at the day's end `stop`, without
+ * drawing it: the colours it names at that point, else its palette's, which
+ * hold all day. Never `windowColours` for its own sake: beside the points it
+ * is the first one named, which need not be this one.
  */
-const ownSkyAt = (pack: IScenePack, time: TWindowTime) => {
-  if (time === 'night') {
-    return sceneOwnSky(pack);
+const ownSkyAt = (pack: IScenePack, stop: TMeasuredStop) => {
+  const named = pack.windowColourStops?.[stop];
+  if (named) {
+    return skyFromWindowColours(named);
   }
-  const { windowColours: _night, windowColoursDay, ...rest } = pack;
-  return windowColoursDay
-    ? skyFromWindowColours(windowColoursDay)
-    : sceneOwnSky(rest);
+  const { windowColours: _first, windowColourStops: _stops, ...rest } = pack;
+  return sceneOwnSky(rest);
 };
 
 const skyOf = async (
   what: string,
   pack: IScenePack | undefined,
-  time: TWindowTime,
+  stop: TMeasuredStop,
 ): Promise<TSkyMeasurement> => {
   // What the scene says comes before any drawing: the same on every
   // computer, with nothing compiled to know it. The pack carries the
   // listener's choices already (`withChoices`).
-  const own = pack && ownSkyAt(pack, time);
+  const own = pack && ownSkyAt(pack, stop);
   if (own) {
     return own;
   }
   // Drawn at the hour it stands for (`sceneDayColours.ts`): the window
-  // blends the night's and the day's by the scene's time of day.
+  // blends the points by the scene's time of day.
   const pixels = pack
-    ? await sampleSceneInWorker(pack, DAYLIGHT_OF[time])
+    ? await sampleSceneInWorker(pack, hourOfStop(stop))
     : undefined;
   if (!pixels) {
     console.error(`Could not draw scene "${what}" to measure its colour.`);
@@ -156,19 +157,19 @@ const skyOf = async (
 const measurements = new Map<string, Promise<TSkyMeasurement>>();
 
 /**
- * `lookId`'s sky at `version` and `time`, as the listener's choices in it
- * leave it, remembered under `time`'s key (`timeKeyOf`).
+ * `lookId`'s sky at `version` and the day's end `stop`, as the listener's
+ * choices in it leave it, remembered under that point's key (`stopKeyOf`).
  */
 export const measureSceneSky = (
   lookId: string,
   version: string,
   params?: TListenerParams,
-  time: TWindowTime = 'night',
+  stop: TMeasuredStop = '0',
 ): Promise<TSkyMeasurement> => {
   // Until its pack has been read, which controls are choices is not known,
   // and a measurement is kept only once it is, under what it was for.
   const known = choiceIds.has(lookId);
-  const remembered = timeKeyOf(lookId, time);
+  const remembered = stopKeyOf(lookId, stop);
   const key = `${remembered}@${sceneSkyVersion(lookId, version, params)}`;
   const running = known ? measurements.get(key) : undefined;
   if (running) {
@@ -183,7 +184,7 @@ export const measureSceneSky = (
       );
     }
     const chosen = chosenIn(lookId, params);
-    const sky = await skyOf(lookId, pack && withChoices(pack, chosen), time);
+    const sky = await skyOf(lookId, pack && withChoices(pack, chosen), stop);
     if (sky !== undefined) {
       rememberSceneSky(
         remembered,
@@ -227,10 +228,10 @@ export const measureStudioSky = (
   project: string,
   build: string,
   pack: IScenePack,
-  time: TWindowTime = 'night',
+  stop: TMeasuredStop = '0',
 ): Promise<TSkyMeasurement> => {
   newestStudioBuild = build;
-  const key = timeKeyOf(`studio:${build}`, time);
+  const key = stopKeyOf(`studio:${build}`, stop);
   const running = measurements.get(key);
   if (running) {
     return running;
@@ -240,9 +241,9 @@ export const measureStudioSky = (
       measurements.delete(key);
       return undefined;
     }
-    const sky = await skyOf(pack.id, pack, time);
+    const sky = await skyOf(pack.id, pack, stop);
     if (sky !== undefined) {
-      rememberSceneSky(timeKeyOf(studioSkyKey(project), time), build, sky);
+      rememberSceneSky(stopKeyOf(studioSkyKey(project), stop), build, sky);
     }
     return sky;
   }).catch((error: unknown) => {

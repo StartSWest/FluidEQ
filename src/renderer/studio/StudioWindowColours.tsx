@@ -7,8 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useId } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import WindowColourDayStrip from '../components/WindowColourDayStrip';
+import WindowColourStops from '../components/WindowColourStops';
 import WindowColourSwatches from '../components/WindowColourSwatches';
-import WindowColourTimes from '../components/WindowColourTimes';
 import WindowColoursPreview from '../components/WindowColoursPreview';
 import { useTranslation } from '../utils/I18nContext';
 import StudioInfo from './StudioInfo';
@@ -24,10 +24,11 @@ const SOURCE: Record<TWindowColoursSource, TranslationKey> = {
 
 /**
  * The Tune tab's Window colours card (Ivan, 2026-11-14: "implement that",
- * the tuning mockup; 2026-11-18, the night and day editing mockup): the
- * night's colours and the day's, who chose each, the three of the open one,
- * the two through the day, a small window painted in the open set, and in
- * the head "Automatic" and "Reset" for the open time. What is chosen here is
+ * the tuning mockup; 2026-11-18: "we need 4 breakpoints plus 100% which is
+ * the white one"): the five points through the day, who chose each, the
+ * three of the open one, the five through the day, a small window painted
+ * in the open set, and in the head "Automatic" and "Reset" for the open
+ * point. What is chosen here is
  * written into the scene, so it is what the scene publishes with.
  */
 export default function StudioWindowColours({
@@ -39,7 +40,7 @@ export default function StudioWindowColours({
 }) {
   const { t } = useTranslation();
   const titleId = useId();
-  const { colours, night, day } = state;
+  const { colours } = state;
   return (
     <section
       className="studio-card studio-tune__box studio-window-colours"
@@ -51,7 +52,7 @@ export default function StudioWindowColours({
         </span>
         <StudioInfo text={t('studio.windowColours.note')} />
         {/* At the far end, as every block on the Tune tab has its Reset:
-            Automatic gives the open time back to the app, Reset puts back
+            Automatic gives the open point back to the app, Reset puts back
             what it had (Ivan, 2026-11-18). */}
         <span className="studio-window-colours__resets">
           <button
@@ -74,27 +75,30 @@ export default function StudioWindowColours({
           </button>
         </span>
       </div>
-      {colours && night && day ? (
+      {colours ? (
         <>
-          <WindowColourTimes
+          <WindowColourStops
             sides={state.sides}
             editing={state.editing}
-            sourceLabel={(time) => t(SOURCE[state.sourceOf(time)])}
+            sourceLabel={(stop) => t(SOURCE[state.sourceOf(stop)])}
             disabled={idle}
             onEdit={state.setEditing}
           />
           <WindowColourSwatches
             colours={colours}
             own={state.own}
-            night={night}
-            day={day}
+            sides={state.sides}
             editing={state.editing}
             disabled={idle}
             onChange={state.change}
             onCommit={state.commit}
           />
-          <WindowColourDayStrip night={night} day={day} />
-          <WindowColoursPreview colours={colours} named={state.isNamed} />
+          <WindowColourDayStrip sides={state.sides} editing={state.editing} />
+          <WindowColoursPreview
+            colours={colours}
+            named={state.isNamed}
+            walk={state.walk}
+          />
         </>
       ) : (
         <p className="studio-window-colours__empty">

@@ -1,0 +1,322 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The five points of a scene's window colours and the strip that draws them
+// through the day, under the Window colours menu's modes and on the Studio's
+// Tune tab (Ivan, 2026-11-18: "we need 4 breakpoints plus 100% which is the
+// white one"), apart from `SceneWindowColours.scss`, which keeps the three
+// swatches and the small window.
+
+// *** The five points *********************************************************
+
+// What a point's card needs across: the longest word on it, never broken
+// (`--stop-word-chars`, counted by `WindowColourStops` from the words it
+// shows), at the micro size's average letter - 0.56 of its size, measured on
+// Segoe UI against the widest word any locale puts there, Russian's
+// "Автоматически" at 67px - plus the card's padding and edge.
+$stop-letter: 0.56 * $text-micro;
+$stop-card-edge: 12px;
+$stop-gap: 4px;
+
+// The five points of the day in one row, the open one pressed (Ivan,
+// 2026-11-18: "so we have 5 break points for all colors"). Too narrow for
+// five cards that each hold their longest word, three and two: each track's
+// floor is a fifth of the row while the row holds five, and a third of it
+// below that. The step is worked out from the row's own width - the second
+// term is 0 at five cards' width and above, and huge below it - so no
+// breakpoint guesses at where the menu or the Tune card will be laid out,
+// and a language with shorter words keeps five in a row in less room.
+// Contained, so the menu, which is as wide as its content, is never widened
+// by it.
+.window-colour-stops {
+  --stop-card-min: calc(
+    var(--stop-word-chars, 13) * #{$stop-letter} + #{$stop-card-edge}
+  );
+
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(
+      max(
+        calc((100% - 4 * #{$stop-gap}) / 5),
+        min(
+          calc((100% - 2 * #{$stop-gap}) / 3),
+          max(
+            0px,
+            calc((5 * var(--stop-card-min) + #{4 * $stop-gap} - 100%) * 1000)
+          )
+        )
+      ),
+      1fr
+    )
+  );
+  gap: $stop-gap;
+  contain: inline-size;
+}
+
+.window-colour-stop {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 4px;
+  // Five across and an edge of one: `$stop-card-edge` with the border.
+  padding: 5px 5px 6px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  color: $text-primary;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover:not(:disabled) {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  // The open point, outlined in the window's accent as the open swatch is.
+  &[aria-pressed='true'] {
+    border-color: $secondary-default;
+    background: $surface-control-press;
+    box-shadow: inset 0 0 0 1px $secondary-default;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+// The hour, and the name of the three points that have one beside it, which
+// goes under it rather than out of the card when the two do not fit. A
+// point the app works out carries its small spark at the row's far end, so
+// the source line under it keeps its whole width for its words.
+.window-colour-stop__label {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 4px;
+}
+
+.window-colour-stop.is-auto .window-colour-stop__label::after {
+  margin-left: auto;
+  color: $secondary-default;
+  content: '✦';
+  font-size: $text-micro;
+}
+
+.window-colour-stop__hour {
+  color: $text-primary;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-semibold;
+}
+
+.window-colour-stop[aria-pressed='true'] .window-colour-stop__hour {
+  color: $secondary-default;
+}
+
+.window-colour-stop__word {
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-micro;
+  overflow-wrap: anywhere;
+}
+
+// The three as one bar: the surface widest, being the window's floor, then
+// the accent and the second colour.
+.window-colour-stop__dots {
+  display: grid;
+  overflow: hidden;
+  height: 14px;
+  grid-template-columns: 2fr 1fr 1fr;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 20%, transparent);
+
+  span {
+    background: var(--dot);
+  }
+}
+
+// Who chose the point's colours, a person's in amber like every "yours" in
+// this menu. It wraps between words; the card is never narrower than its
+// longest word (`--stop-word-chars`), and `anywhere` is only the last guard.
+.window-colour-stop__source {
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-micro;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+
+  &.is-yours {
+    color: $amber;
+  }
+}
+
+// The three through the day: a lane each, night at the start and day at the
+// end, and a mark where the scene's hour stands.
+// A picture, not a control: a title, each band named beside it, the hour
+// marked Now, and Night and Day under the ends. With none of that it was read
+// as a slider (Ivan, 2026-11-18: "I don't really understand this slider").
+.window-colour-day {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+// The title, and at its far end the hour the line stands at.
+.window-colour-day__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.window-colour-day__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-micro;
+  @include truncate;
+}
+
+.window-colour-day__now-tag {
+  flex: none;
+  color: $text-primary;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// The names in a column of their own width, the bands in the rest, row for
+// row: each name stands centred on its band.
+.window-colour-day__rows {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 6px;
+  align-items: stretch;
+}
+
+.window-colour-day__names {
+  display: grid;
+  grid-template-rows: 10px 8px 8px;
+  row-gap: 3px;
+  // The lanes' own padding and border, so each name meets its band.
+  padding: 4px 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1;
+
+  > span {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    white-space: nowrap;
+  }
+}
+
+.window-colour-day__lanes {
+  position: relative;
+  display: grid;
+  grid-template-rows: 10px 8px 8px;
+  row-gap: 3px;
+  padding: 3px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+}
+
+.window-colour-day__lane {
+  border-radius: 2px;
+}
+
+.window-colour-day__now {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: calc(3px + (100% - 6px) * var(--hour) / 100);
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: $text-primary;
+  box-shadow: 0 0 0 1px color-mix(in srgb, $surface-base 70%, transparent);
+}
+
+// The five points under the bands, each at its own hour: a dot, filled where
+// the point is somebody's choice and open where the app works it out, over
+// its hour; the open point in the accent. The two ends sit flush with the
+// bands' ends rather than half outside them.
+.window-colour-day__points {
+  position: relative;
+  height: 15px;
+  grid-column: 2;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+.window-colour-day__point {
+  position: absolute;
+  top: 0;
+  left: calc(3px + (100% - 6px) * var(--at) / 100);
+  padding-top: 7px;
+  line-height: 1;
+  transform: translateX(-50%);
+
+  &::before {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    margin-left: -3px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    content: '';
+  }
+
+  &.is-key::before {
+    background: currentColor;
+  }
+
+  &.is-open {
+    color: $secondary-default;
+    font-weight: $weight-semibold;
+  }
+
+  &:first-child {
+    transform: none;
+
+    &::before {
+      left: 0;
+      margin-left: 0;
+    }
+  }
+
+  &:last-child {
+    transform: translateX(-100%);
+
+    &::before {
+      right: 0;
+      left: auto;
+      margin-left: 0;
+    }
+  }
+}

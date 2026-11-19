@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useMemo, type CSSProperties } from 'react';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { useTranslation } from '../utils/I18nContext';
-import pickedWindow from '../utils/pickedWindow';
+import pickedWindow, { type TSurfaceWalk } from '../utils/pickedWindow';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { DARK_KNEE, darkenSurfaces } from '../utils/sceneTintDark';
 import { tintThemePalette } from '../utils/sceneTintPalette';
@@ -30,10 +30,13 @@ import { themeShadeTokens } from '../utils/themeShade';
 export default function WindowColoursPreview({
   colours,
   named,
+  walk,
 }: {
   colours: ISceneWindowColours;
   /** Whether the window wears `colours` as named. */
   named: boolean;
+  /** Who walks a named dark surface through the day (`TSurfaceWalk`). */
+  walk: TSurfaceWalk;
 }) {
   const { t } = useTranslation();
   const shade = useThemeShade();
@@ -42,7 +45,7 @@ export default function WindowColoursPreview({
     // (Ivan, 2026-11-18), so the small window shows the colours as the window
     // will wear them, the white one on a white window (2026-11-17: "make the
     // inside white on the white theme").
-    const worn = named ? pickedWindow(colours, shade) : undefined;
+    const worn = named ? pickedWindow(colours, shade, walk) : undefined;
     if (worn) {
       return {
         '--preview-floor': worn.tokens['--surface-base'],
@@ -74,7 +77,7 @@ export default function WindowColoursPreview({
       '--preview-accent': token('--accent'),
       '--preview-active': palette['--active'] ?? 'var(--active)',
     } as CSSProperties;
-  }, [colours, named, shade]);
+  }, [colours, named, walk, shade]);
   if (!style) {
     return null;
   }

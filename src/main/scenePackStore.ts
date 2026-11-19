@@ -9,7 +9,10 @@ import {
   type IScenePackEnvelope,
 } from '../common/scenePacks';
 import type { ISceneWave } from '../common/sceneWave';
-import type { ISceneWindowColours } from '../common/sceneWindowColours';
+import type {
+  ISceneWindowColours,
+  ISceneWindowColourStops,
+} from '../common/sceneWindowColours';
 import { verifyScenePackEnvelope } from './scenePackVerify';
 import { logSceneFailure } from './sceneFailures';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
@@ -80,8 +83,8 @@ export interface IScenePackSummary {
    * scene has loaded.
    */
   windowColours?: ISceneWindowColours;
-  /** And by day, when the pack names those too (`windowColoursDay`). */
-  windowColoursDay?: ISceneWindowColours;
+  /** And the sets it names at the five hours of its day (`windowColourStops`). */
+  windowColourStops?: ISceneWindowColourStops;
 }
 
 /** One row of the server's listing — the envelope, plus what the cache compares. */
@@ -293,8 +296,8 @@ export const createScenePackStore = ({
     ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
     ...(pack.wave ? { wave: pack.wave } : {}),
     ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
-    ...(pack.windowColoursDay
-      ? { windowColoursDay: pack.windowColoursDay }
+    ...(pack.windowColourStops
+      ? { windowColourStops: pack.windowColourStops }
       : {}),
   });
 

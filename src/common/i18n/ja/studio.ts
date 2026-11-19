@@ -804,7 +804,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'pack.json の ambient の要素かコントロールの一部が使われませんでした。形、動き、色、数、各コントロールが動かすものを確認してください。',
   'studio.problem.bad-window-colours':
-    'pack.json の windowColours には surface、accent、glow が必要です。どれも #00e5cf のような色で指定します。',
+    'pack.json の windowColours/windowColourStops には surface、accent、glow が必要です。どれも #00e5cf のような色で指定します。',
   'studio.windowColours.failed':
     '色を保存できませんでした。もう一度お試しください。',
   'studio.windowColours.note':

@@ -802,7 +802,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'Часть элементов или регуляторов ambient в pack.json пропущена. Проверьте формы, движения, цвета, количество и то, чем управляет каждый регулятор.',
   'studio.problem.bad-window-colours':
-    'windowColours в pack.json нужны surface, accent и glow — каждый цвет вида #00e5cf.',
+    'windowColours/windowColourStops в pack.json нужны surface, accent и glow — каждый цвет вида #00e5cf.',
   'studio.windowColours.failed':
     'Не удалось сохранить цвета. Попробуйте ещё раз.',
   'studio.windowColours.note':

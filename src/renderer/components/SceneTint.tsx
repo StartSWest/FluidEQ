@@ -18,12 +18,14 @@ import {
 import useStudioDayColours from '../studio/useStudioDayColours';
 import { useSelectedLookId } from '../utils/graphStyle';
 import {
-  dayColoursAt,
+  isWalkedByBrightness,
   isWornAsNamed,
-  timeKeyOf,
-  WINDOW_TIMES,
-  type TSceneDayColours,
+  MEASURED_STOPS,
+  stopColoursAt,
+  stopKeyOf,
+  type TSceneStopColours,
 } from '../utils/sceneDayColours';
+import { studioDraftOwner, useDraftedSides } from '../utils/windowColourDraft';
 import { LAGOON_SKY } from '../utils/rainbowPalette';
 import {
   tintedLagoon,
@@ -57,25 +59,33 @@ import {
 } from '../utils/sceneTintStore';
 import useIsBackdrop from '../utils/useIsBackdrop';
 
-/** How `paintKey` marks colours to be worn as named. */
+/**
+ * How `paintKey` marks colours to be worn as named: walked toward black by
+ * the Brightness, or already walked by the scene's points (`TSurfaceWalk`).
+ */
 const PICKED = 'picked';
+const KEYED = 'keyed';
 
 /**
  * The colours a scene or a Studio project lends at `daylight`, as text the
- * effect below compares by value: its night's and day's blended at that hour
- * (`sceneDayColours.ts`), worn as named when either is somebody's choice -
- * the listener's or the pack's - else lending their hue, as colours the app
+ * effect below compares by value: its points blended at that hour
+ * (`sceneDayColours.ts`), worn as named when any is somebody's choice - the
+ * listener's or the pack's - else lending their hue, as colours the app
  * worked out from a palette or a picture always have.
  */
 const paintKey = (
-  sides: TSceneDayColours,
+  sides: TSceneStopColours,
   daylight: number,
 ): string | undefined => {
-  const colours = dayColoursAt(sides, daylight);
-  return (
-    colours &&
-    `${isWornAsNamed(sides) ? PICKED : 'toned'} ${colours.surface} ${colours.accent} ${colours.glow}`
-  );
+  const colours = stopColoursAt(sides, daylight);
+  if (!colours) {
+    return undefined;
+  }
+  let kind = 'toned';
+  if (isWornAsNamed(sides)) {
+    kind = isWalkedByBrightness(sides) ? PICKED : KEYED;
+  }
+  return `${kind} ${colours.surface} ${colours.accent} ${colours.glow}`;
 };
 
 /**
@@ -154,7 +164,13 @@ const SceneTint = () => {
   // ones its palette gives as the listener's choices leave it, or its
   // picture's (`useSceneWindowColours`) - blended at the scene's hour.
   const windowColours = useSceneWindowColours(isSceneLook ? lookId : '');
-  const own = paintKey(windowColours.sides, daylight);
+  // With the colour being picked in an editor standing in at its point, so
+  // the whole window shows it before it is accepted (`windowColourDraft.ts`).
+  const lookSides = useDraftedSides(
+    isSceneLook ? lookId : '',
+    windowColours.sides,
+  );
+  const own = paintKey(lookSides, daylight);
   // "On" while the window wears its own colours (`IOwnOn`): the Tint's
   // second colour where the listener gave one. With a scene on Original and
   // the Tint left as it came, the scene's glow of the hour, as its colours
@@ -189,15 +205,17 @@ const SceneTint = () => {
     studio?.playing?.pack,
     studioPalette,
   );
-  const studioOwn = studio
-    ? paintKey(studioColours.sides, daylight)
-    : undefined;
+  const studioSides = useDraftedSides(
+    studio ? studioDraftOwner(studio.project) : '',
+    studioColours.sides,
+  );
+  const studioOwn = studio ? paintKey(studioSides, daylight) : undefined;
 
   // The pictures the colours come from where nothing else says them: each
-  // time of day the scene names nothing for is drawn at that hour, once per
-  // version (`graph/sceneSky.ts`), and lands in the remembered skies the
+  // end of the day the scene names nothing for is drawn at that hour, once
+  // per version (`graph/sceneSky.ts`), and lands in the remembered skies the
   // colours above are read from. Apart from the painting below, so a new
-  // hour never asks for a drawing.
+  // hour never asks for a drawing. As text, so the effect compares by value.
   const studioMeasured = studioColours.measured.join(' ');
   const lookMeasured = windowColours.measured.join(' ');
   useEffect(() => {
@@ -206,13 +224,13 @@ const SceneTint = () => {
       if (!playing) {
         return;
       }
-      WINDOW_TIMES.forEach((time) => {
-        const key = timeKeyOf(studioSkyKey(studio.project), time);
+      MEASURED_STOPS.forEach((stop) => {
+        const key = stopKeyOf(studioSkyKey(studio.project), stop);
         if (
-          studioMeasured.includes(time) &&
+          studioMeasured.split(' ').includes(stop) &&
           recallSceneSky(key)?.version !== playing.build
         ) {
-          measureStudioSky(studio.project, playing.build, playing.pack, time);
+          measureStudioSky(studio.project, playing.build, playing.pack, stop);
         }
       });
       return;
@@ -223,12 +241,12 @@ const SceneTint = () => {
     // Measured for the choices the listener made in it, which can swap the
     // palette it is drawn in, and remembered under them.
     const wanted = sceneSkyVersion(lookId, version, chosen);
-    WINDOW_TIMES.forEach((time) => {
+    MEASURED_STOPS.forEach((stop) => {
       if (
-        lookMeasured.includes(time) &&
-        recallSceneSky(timeKeyOf(lookId, time))?.version !== wanted
+        lookMeasured.split(' ').includes(stop) &&
+        recallSceneSky(stopKeyOf(lookId, stop))?.version !== wanted
       ) {
-        measureSceneSky(lookId, version, chosen, time);
+        measureSceneSky(lookId, version, chosen, stop);
       }
     });
   }, [
@@ -266,8 +284,15 @@ const SceneTint = () => {
       const [kind, surface, accent, glow] = text.split(' ');
       const colours = { surface, accent, glow };
       const sky = skyFromWindowColours(colours);
-      if (kind === PICKED) {
-        showWindowColours(colours, sky, fade, tone);
+      if (kind === PICKED || kind === KEYED) {
+        showWindowColours(
+          colours,
+          sky,
+          fade,
+          tone,
+          undefined,
+          kind === KEYED ? 'points' : 'brightness',
+        );
       } else {
         showSceneSky(sky, fade, tone);
       }

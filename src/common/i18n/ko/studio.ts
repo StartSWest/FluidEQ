@@ -778,7 +778,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'pack.json의 일부 주변 요소 또는 컨트롤이 생략되었습니다. 모양, 움직임, 색상, 개수 및 각 컨트롤이 움직이는 것을 확인하세요.',
   'studio.problem.bad-window-colours':
-    'pack.json의 windowColours에는 surface, accent, glow가 필요하며, 각각 #00e5cf 같은 색이어야 합니다.',
+    'pack.json의 windowColours/windowColourStops에는 surface, accent, glow가 필요하며, 각각 #00e5cf 같은 색이어야 합니다.',
   'studio.windowColours.failed': '색을 저장하지 못했습니다. 다시 시도하세요.',
   'studio.windowColours.note':
     '장면에 저장되므로 재생하는 모든 사람이 이 색을 봅니다.',

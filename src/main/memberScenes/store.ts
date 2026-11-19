@@ -16,7 +16,10 @@ import {
 } from '../../common/scenePacks';
 import storedScenePack, { storedFormOf } from '../../common/sceneStoredPack';
 import type { ISceneWave } from '../../common/sceneWave';
-import type { ISceneWindowColours } from '../../common/sceneWindowColours';
+import type {
+  ISceneWindowColours,
+  ISceneWindowColourStops,
+} from '../../common/sceneWindowColours';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import writeFileAtomically from '../atomicWrite';
 import { logSceneFailure } from '../sceneFailures';
@@ -74,8 +77,8 @@ export interface IMemberSceneSummary {
    * scene has loaded.
    */
   windowColours?: ISceneWindowColours;
-  /** And by day, when the pack names those too (`windowColoursDay`). */
-  windowColoursDay?: ISceneWindowColours;
+  /** And the sets it names at the five hours of its day (`windowColourStops`). */
+  windowColourStops?: ISceneWindowColourStops;
   /**
    * From the store: built on this computer by the account it is stored
    * under, rather than installed or sent. Through `visibleScenes`: made by
@@ -353,8 +356,8 @@ export const createMemberSceneStore = ({
       ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
       ...(pack.wave ? { wave: pack.wave } : {}),
       ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
-      ...(pack.windowColoursDay
-        ? { windowColoursDay: pack.windowColoursDay }
+      ...(pack.windowColourStops
+        ? { windowColourStops: pack.windowColourStops }
         : {}),
       own: !imported,
       ...(imported ? { authorName: imported.authorName } : {}),

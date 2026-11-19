@@ -821,7 +821,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'Some ambient elements or controls in pack.json were left out. Check their shapes, motions, colours, counts and what each control moves.',
   'studio.problem.bad-window-colours':
-    'windowColours in pack.json needs surface, accent and glow, each a colour like #00e5cf.',
+    'windowColours/windowColourStops in pack.json needs surface, accent and glow, each a colour like #00e5cf.',
   'studio.windowColours.failed': 'The colours could not be saved. Try again.',
   'studio.windowColours.note':
     'Saved into the scene, so everyone who plays it sees these colours.',

@@ -817,7 +817,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'Des éléments ou contrôles ambient de pack.json ont été écartés. Vérifiez leurs formes, mouvements, couleurs, nombres et ce que règle chaque contrôle.',
   'studio.problem.bad-window-colours':
-    'windowColours dans pack.json demande surface, accent et glow, chacun une couleur comme #00e5cf.',
+    'windowColours/windowColourStops dans pack.json demande surface, accent et glow, chacun une couleur comme #00e5cf.',
   'studio.windowColours.failed':
     'Les couleurs n’ont pas pu être enregistrées. Réessayez.',
   'studio.windowColours.note':

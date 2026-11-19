@@ -21,7 +21,11 @@ import {
 } from '../../common/scenePalette';
 import {
   readSceneWindowColours,
+  SCENE_WINDOW_COLOUR_STOPS,
+  sceneWindowColourKeys,
+  sceneWindowColourStopsOf,
   type ISceneWindowColours,
+  type TSceneWindowColourStop,
 } from '../../common/sceneWindowColours';
 import { MANIFEST_FILE, readManifest, writeInside } from './projectFiles';
 import { queueSettingsWrite } from './settingsWrites';
@@ -63,17 +67,15 @@ export interface IProjectSettings {
    */
   wave?: ISceneWave | null;
   /**
-   * The colours the scene lends the window (`sceneWindowColours.ts`), which
-   * its AI chose and the member tuned on the Tune tab. `null` takes them
-   * out: the window then works them out from the scene's palette.
+   * The colours the scene lends the window at the points named here, of
+   * the five hours of its day (`windowColourStops`, `sceneWindowColours.ts`),
+   * which its AI chose and the member tuned on the Tune tab. `null` takes a
+   * point out: the window then works it out by itself. A point not named
+   * here is left as the scene has it.
    */
-  windowColours?: ISceneWindowColours | null;
-  /**
-   * The colours it lends the window by day (`windowColoursDay`), which the
-   * window blends with the night's by the scene's time of day. `null` takes
-   * them out: the window then works the day's out by itself.
-   */
-  windowColoursDay?: ISceneWindowColours | null;
+  windowColourStops?: Partial<
+    Record<TSceneWindowColourStop, ISceneWindowColours | null>
+  >;
 }
 
 export type TSettingsWrite = 'written' | 'unchanged' | 'failed';
@@ -205,19 +207,39 @@ const writeSettings = async (
     }
   }
 
-  (['windowColours', 'windowColoursDay'] as const).forEach((key) => {
-    const value = settings[key];
-    if (value === null) {
-      delete manifest[key];
-    } else if (value !== undefined) {
-      // A set that is not three colours is written as nothing at all: the
-      // scene keeps what it had rather than losing its colours to a slip.
-      const colours = readSceneWindowColours(value);
-      if (colours) {
-        manifest[key] = { ...colours };
+  const stopEdits = settings.windowColourStops;
+  if (stopEdits !== undefined) {
+    // The points as the scene has them now, the two-point keys of a scene
+    // written before the points folded in, each edit laid over them.
+    const stops: Partial<Record<TSceneWindowColourStop, ISceneWindowColours>> =
+      { ...sceneWindowColourStopsOf(manifest) };
+    SCENE_WINDOW_COLOUR_STOPS.forEach((stop) => {
+      const value = stopEdits[stop];
+      if (value === null) {
+        delete stops[stop];
+      } else if (value !== undefined) {
+        // A set that is not three colours is written as nothing at all: the
+        // point keeps what it had rather than losing its colours to a slip.
+        const colours = readSceneWindowColours(value);
+        if (colours) {
+          stops[stop] = colours;
+        }
       }
-    }
-  });
+    });
+    // In place, so an unchanged key keeps its spot in the file and a write
+    // that changes nothing is seen as one.
+    const keys = sceneWindowColourKeys(stops);
+    (
+      ['windowColours', 'windowColoursDay', 'windowColourStops'] as const
+    ).forEach((key) => {
+      const value = keys[key];
+      if (value === undefined) {
+        delete manifest[key];
+      } else {
+        manifest[key] = value;
+      }
+    });
+  }
 
   if (settings.response !== undefined) {
     const response =

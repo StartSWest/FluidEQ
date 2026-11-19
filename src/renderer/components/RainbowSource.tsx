@@ -24,7 +24,8 @@ import {
   sceneColourHex,
   setRainbowStops,
 } from '../utils/rainbowPalette';
-import { dayColoursAt } from '../utils/sceneDayColours';
+import { stopColoursAt } from '../utils/sceneDayColours';
+import { studioDraftOwner, useDraftedSides } from '../utils/windowColourDraft';
 import { useUsableScenes } from '../utils/scenePacks';
 import {
   useAmpHoldsWindow,
@@ -66,7 +67,7 @@ import {
  * the project there, as the member is editing it.
  *
  * A scene without a palette - every official one - hands over the colours
- * it lends the window at its hour, its night's and its day's blended as the
+ * it lends the window at its hour, its points blended as the
  * window blends them (`sceneDayColours.ts`): the accent and the glow. It
  * used to hand over its picture's colours as measured at night, so on Alpine
  * by day the wave and the meters stayed the aurora's cyan under a window in
@@ -123,14 +124,22 @@ const RainbowSource = () => {
   // accent and the glow the rainbow is made from. As text, compared by value.
   const daylight = Math.round(usePageDaylight());
   const studioSource = useStudioTintSource();
-  const studioSides = useStudioDayColours(
-    studioSource?.project,
-    studioSource?.playing?.pack,
-    undefined,
-  ).sides;
-  const sceneSides = useSceneWindowColours(isScene ? lookId : '').sides;
+  // The colour being picked in an editor stands in at its point, as on the
+  // window (`windowColourDraft.ts`).
+  const studioSides = useDraftedSides(
+    studioSource ? studioDraftOwner(studioSource.project) : '',
+    useStudioDayColours(
+      studioSource?.project,
+      studioSource?.playing?.pack,
+      undefined,
+    ).sides,
+  );
+  const sceneSides = useDraftedSides(
+    isScene ? lookId : '',
+    useSceneWindowColours(isScene ? lookId : '').sides,
+  );
   const timeColours = useMemo(() => {
-    const colours = dayColoursAt(
+    const colours = stopColoursAt(
       studioSource ? studioSides : sceneSides,
       daylight,
     );

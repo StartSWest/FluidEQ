@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { TWindowTime } from '../utils/sceneDayColours';
+import type { TWindowEnd } from '../utils/windowTimeNames';
 
 /**
  * A crescent for the night and a sun for the day, in the line weight of the
@@ -12,7 +12,7 @@ import type { TWindowTime } from '../utils/sceneDayColours';
  * of the Studio's Brightness that carries the scene from one to the other.
  * Drawn in `currentColor` by whoever places it.
  */
-export default function WindowTimeGlyph({ time }: { time: TWindowTime }) {
+export default function WindowTimeGlyph({ time }: { time: TWindowEnd }) {
   return time === 'night' ? (
     <svg viewBox="0 0 16 16" aria-hidden focusable="false">
       <path d="M10.6 2.2a6 6 0 1 0 3.2 9.6A5 5 0 0 1 10.6 2.2Z" />

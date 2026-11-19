@@ -8,15 +8,33 @@ import { useMemo, type CSSProperties } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   SCENE_WINDOW_COLOUR_ROLES,
-  type ISceneWindowColours,
   type TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
 import { usePageDaylight } from '../graph/sceneDaylight';
-import { blendWindowColours } from '../utils/sceneDayColours';
+import {
+  coloursAtHour,
+  hourOfStop,
+  isKeyframe,
+  setsOfSides,
+  WINDOW_COLOUR_STOPS,
+  type TSceneStopColours,
+  type TWindowColourStop,
+} from '../utils/sceneDayColours';
 import { useTranslation } from '../utils/I18nContext';
+import { DARK_END_SHADE, lightWindowOf } from '../utils/themeShade';
 
-/** Points each lane is drawn through: enough for an OKLCH turn to read smooth. */
-const STEPS = 12;
+/**
+ * The hours each lane is drawn through: every fourth, enough for an OKLCH
+ * turn to read smooth, and the two either side of the line where the window
+ * turns white, so the surface's lane turns there as sharply as the window.
+ */
+const HOURS = [
+  ...new Set([
+    ...Array.from({ length: 26 }, (_, step) => step * 4),
+    DARK_END_SHADE,
+    DARK_END_SHADE + 1,
+  ]),
+].sort((left, right) => left - right);
 
 /** Each band's name, the swatch's own above it. */
 const ROLE_NAME: Record<TSceneWindowColourRole, TranslationKey> = {
@@ -26,36 +44,53 @@ const ROLE_NAME: Record<TSceneWindowColourRole, TranslationKey> = {
 };
 
 interface IWindowColourDayStripProps {
-  night: ISceneWindowColours;
-  day: ISceneWindowColours;
+  /** Every point's colours, the one being picked as it is picked. */
+  sides: TSceneStopColours;
+  editing: TWindowColourStop;
 }
 
 /**
- * The three colours through the day: a lane each, from the night's at the
- * left to the day's at the right, in the blend the window wears
- * (`blendWindowColours`), with a mark where the scene's hour stands now. It
- * is what tells two sets that cross at dusk from two that turn cleanly.
+ * The three colours through the day: a lane each, from the 0 point at the
+ * left to the 100 point at the right, in the blend the window wears
+ * (`coloursAtHour`), with each of the five points marked - filled where the
+ * point is somebody's choice, open where it is the app's - and a line where
+ * the scene's hour stands now. The surface's lane is the white window's from
+ * the Brightness where the window turns white (Ivan, 2026-11-18: "plus 100%
+ * which is the white one"). It is what tells points that cross from points
+ * that turn cleanly.
  */
 export default function WindowColourDayStrip({
-  night,
-  day,
+  sides,
+  editing,
 }: IWindowColourDayStripProps) {
   const { t } = useTranslation();
   const hour = Math.round(usePageDaylight());
-  const lanes = useMemo(
-    () =>
-      SCENE_WINDOW_COLOUR_ROLES.map((role) => {
-        const stops = Array.from({ length: STEPS + 1 }, (_, step) => {
-          const colours = blendWindowColours(night, day, (step / STEPS) * 100);
-          return `${colours[role]} ${((step / STEPS) * 100).toFixed(1)}%`;
-        });
-        return {
-          role,
-          background: `linear-gradient(90deg, ${stops.join(', ')})`,
-        };
-      }),
-    [night, day],
-  );
+  const lanes = useMemo(() => {
+    const sets = setsOfSides(sides);
+    const at = HOURS.map((step) => ({
+      step,
+      colours: coloursAtHour(sets, step),
+    }));
+    return SCENE_WINDOW_COLOUR_ROLES.map((role) => {
+      const stops = at.flatMap(({ step, colours }) => {
+        if (!colours) {
+          return [];
+        }
+        const white =
+          role === 'surface'
+            ? lightWindowOf(step)?.tokens['--surface-panel']
+            : undefined;
+        return [`${white ?? colours[role]} ${step}%`];
+      });
+      return {
+        role,
+        background:
+          stops.length > 0
+            ? `linear-gradient(90deg, ${stops.join(', ')})`
+            : undefined,
+      };
+    });
+  }, [sides]);
   // Read as a slider it said nothing (Ivan, 2026-11-18: "I don't really
   // understand this slider"): it is a picture, so it says what it shows - a
   // title, each band's colour by name beside it, and the line marked Now.
@@ -92,10 +127,17 @@ export default function WindowColourDayStrip({
           ))}
           <span className="window-colour-day__now" />
         </div>
-        {/* Under the bands' own ends, not under the names. */}
-        <span className="window-colour-day__legend">
-          <span>{t('graph.sceneColours.night')}</span>
-          <span>{t('graph.sceneColours.day')}</span>
+        {/* Under the bands, each point at its own hour. */}
+        <span className="window-colour-day__points">
+          {WINDOW_COLOUR_STOPS.map((stop) => (
+            <span
+              key={stop}
+              className={`window-colour-day__point${isKeyframe(sides[stop]) ? ' is-key' : ''}${stop === editing ? ' is-open' : ''}`}
+              style={{ '--at': String(hourOfStop(stop)) } as CSSProperties}
+            >
+              {stop}
+            </span>
+          ))}
         </span>
       </div>
     </div>

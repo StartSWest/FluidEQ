@@ -199,8 +199,24 @@ export const isUsableGlow = (glow: ILab): boolean =>
   chromaOf(glow) >= GREY_CHROMA && clearsWarningHues(hueOf(glow));
 
 /**
+ * WHO WALKS A NAMED DARK SURFACE THROUGH THE DAY.
+ *
+ * - `brightness`: one set somebody chose is worn all day, and the Brightness
+ *   walks it as it walks the theme - as picked at the top of the dark travel,
+ *   down toward black at 0 (`darkenSurfaces`).
+ * - `points`: the scene names sets at two or more of its five hours
+ *   (`sceneDayColours.ts`, Ivan, 2026-11-18: "we need 4 breakpoints plus
+ *   100%"), and the blend of those at the hour is the walk. Darkened again by
+ *   the Brightness, a navy picked for the 25 point was worn near black there,
+ *   which is not what the person saw when they picked it. Still on the side
+ *   of the line the Brightness says, and still out of the mid-greys.
+ */
+export type TSurfaceWalk = 'brightness' | 'points';
+
+/**
  * The surfaces in `tokens` the window paints for a named `surface` (its hex
- * `surfaceHex`) at `brightness`, its greys leaning to `lean`.
+ * `surfaceHex`) at `brightness`, its greys leaning to `lean`, walked by
+ * `walk`.
  */
 const surfacesOf = (
   surface: ILab,
@@ -208,6 +224,7 @@ const surfacesOf = (
   brightness: number,
   lean: number | undefined,
   tokens: readonly TWindowSurface[],
+  walk: TSurfaceWalk,
 ): TSurfaceSet => {
   if (isLightShade(brightness)) {
     return lightSurfaces(WHITE, undefined, lightDimOf(brightness));
@@ -216,6 +233,9 @@ const surfacesOf = (
     return lentDarkSurfaces(surface, brightness, lean, tokens);
   }
   const asPicked = darkSurfaces(surface, lean, tokens);
+  if (walk === 'points') {
+    return asPicked;
+  }
   // Handed them as their own knee, so the walk starts from exactly them, at
   // the top of the dark travel: worn as picked from the middle up, the
   // window stood still from Brightness 38 to 76 under any surface as light
@@ -226,11 +246,13 @@ const surfacesOf = (
 
 /**
  * Every token the window wears for `colours` at `brightness` (the theme
- * shade, 0 to 100), or undefined when one of them cannot be read.
+ * shade, 0 to 100), its surface walked by `walk`, or undefined when one of
+ * them cannot be read.
  */
 const pickedWindow = (
   colours: ISceneWindowColours,
   brightness: number,
+  walk: TSurfaceWalk = 'brightness',
 ): IWindow | undefined => {
   const surface = labOf(colours.surface);
   const accent = labOf(colours.accent);
@@ -247,6 +269,7 @@ const pickedWindow = (
     brightness,
     lean,
     WINDOW_SURFACES,
+    walk,
   );
   const surfaces = {} as Record<TWindowSurface, string>;
   WINDOW_SURFACES.forEach((token) => {
@@ -275,6 +298,7 @@ export const pickedFloor = (
   surface: string,
   accent: string,
   brightness: number,
+  walk: TSurfaceWalk = 'brightness',
 ): string | undefined => {
   const surfaceLab = labOf(surface);
   const accentLab = labOf(accent);
@@ -284,7 +308,7 @@ export const pickedFloor = (
   const lean = isLightShade(brightness)
     ? undefined
     : leanOf(surfaceLab, accentLab);
-  return surfacesOf(surfaceLab, surface, brightness, lean, FLOOR_ONLY)[
+  return surfacesOf(surfaceLab, surface, brightness, lean, FLOOR_ONLY, walk)[
     '--surface-base'
   ];
 };

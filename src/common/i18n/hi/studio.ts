@@ -793,7 +793,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'pack.json के कुछ ambient तत्व या नियंत्रण छोड़ दिए गए। उनके आकार, गति, रंग, संख्या और हर नियंत्रण क्या बदलता है, जाँचें।',
   'studio.problem.bad-window-colours':
-    'pack.json में windowColours को surface, accent और glow चाहिए, हर एक #00e5cf जैसा रंग।',
+    'pack.json में windowColours/windowColourStops को surface, accent और glow चाहिए, हर एक #00e5cf जैसा रंग।',
   'studio.windowColours.failed': 'रंग सेव नहीं हो सके। फिर से कोशिश करें।',
   'studio.windowColours.note':
     'सीन में सेव होते हैं, इसलिए इसे चलाने वाले सभी लोग ये रंग देखते हैं।',

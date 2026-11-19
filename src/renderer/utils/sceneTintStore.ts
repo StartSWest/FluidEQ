@@ -22,7 +22,8 @@ import {
 import { DARK_KNEE, darkenSurfaces } from './sceneTintDark';
 import { getThemeShade, subscribeTheme } from './theme';
 import { setLightWindow } from './windowSide';
-import pickedWindow from './pickedWindow';
+import { migrateStopKey } from './sceneDayColours';
+import pickedWindow, { type TSurfaceWalk } from './pickedWindow';
 import {
   INK_TOKENS,
   LIGHT_INK,
@@ -435,7 +436,8 @@ const readSkies = (): Map<string, IRememberedSky> => {
       typeof row[1] === 'string' &&
       (row[2] === null || isSky(row[2]))
     ) {
-      skies.set(row[0], { version: row[1], sky: row[2] });
+      // A day's copy kept by the two-point model is the 100 point's.
+      skies.set(migrateStopKey(row[0]), { version: row[1], sky: row[2] });
     }
   });
   return skies;
@@ -526,6 +528,8 @@ let wantedTone: TSkyTone = 'follow';
  * window's colour in a glyph.
  */
 let wantedPicked: ISceneWindowColours | undefined;
+/** Who walks `wantedPicked`'s surface through the day (`TSurfaceWalk`). */
+let wantedWalk: TSurfaceWalk = 'brightness';
 
 /**
  * "ON" IN THE WINDOW'S OWN COLOURS (Ivan, 2026-11-18: "the secondary on
@@ -620,6 +624,7 @@ export const toneShadeOf = (tone: TSkyTone, shade: number) =>
 let painted: {
   sky: ISceneSky | undefined;
   picked: ISceneWindowColours | undefined;
+  walk: TSurfaceWalk;
   on: IOwnOn | undefined;
   tone: TSkyTone;
   shade: number;
@@ -627,6 +632,7 @@ let painted: {
 } = {
   sky: undefined,
   picked: undefined,
+  walk: 'brightness',
   on: undefined,
   tone: 'follow',
   shade: getThemeShade(),
@@ -819,7 +825,8 @@ const paint = () => {
   const { style } = document.documentElement;
   const shade = toneShadeOf(wantedTone, getThemeShade());
   const brightness = getThemeShade();
-  const picked = wantedPicked && pickedWindow(wantedPicked, brightness);
+  const picked =
+    wantedPicked && pickedWindow(wantedPicked, brightness, wantedWalk);
   const worn: Readonly<Record<string, string>> | undefined = picked
     ? picked.tokens
     : tonedPalette(shade, brightness);
@@ -846,6 +853,7 @@ const paint = () => {
   painted = {
     sky: wanted,
     picked: wantedPicked,
+    walk: wantedWalk,
     on: wantedOn,
     tone: wantedTone,
     shade,
@@ -856,6 +864,7 @@ const paint = () => {
 const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
   !samePicked(painted.picked, wantedPicked) ||
+  painted.walk !== wantedWalk ||
   !sameOn(painted.on, wantedOn) ||
   painted.tone !== wantedTone ||
   // The side of the line, with nothing painted too: this paint is the one
@@ -933,15 +942,18 @@ const showSky = (
   fade: boolean,
   picked: ISceneWindowColours | undefined,
   on: IOwnOn | undefined,
+  walk: TSurfaceWalk = 'brightness',
 ) => {
   if (
     !sameSky(sky, wanted) ||
     tone !== wantedTone ||
-    !samePicked(picked, wantedPicked)
+    !samePicked(picked, wantedPicked) ||
+    walk !== wantedWalk
   ) {
     wanted = sky;
     wantedTone = tone;
     wantedPicked = picked;
+    wantedWalk = walk;
     wantedListeners.forEach((listener) => listener());
   }
   // Only the paint reads it: nothing that listens for the sky shows "on".
@@ -983,7 +995,9 @@ export const lendSceneSky = (sky: ISceneSky, fade: boolean, on: IOwnOn) =>
  * or the three its pack names - worn as named (`pickedWindow.ts`), light or
  * dark by the Brightness. `sky` is the same colours as a sky, for the glyphs
  * that show the window's colour. `on` where they are the window's own
- * colours rather than a scene's (`IOwnOn`).
+ * colours rather than a scene's (`IOwnOn`). `walk` says whether the
+ * Brightness still walks a dark surface toward black, or a scene's points
+ * already do (`TSurfaceWalk`).
  */
 export const showWindowColours = (
   colours: ISceneWindowColours,
@@ -991,7 +1005,8 @@ export const showWindowColours = (
   fade: boolean,
   tone: Exclude<TSkyTone, 'lent'>,
   on?: IOwnOn,
-) => showSky(sky, tone, fade, colours, on);
+  walk: TSurfaceWalk = 'brightness',
+) => showSky(sky, tone, fade, colours, on, walk);
 
 /**
  * A Brightness move lands at once, in the same task as the theme's own rule:
