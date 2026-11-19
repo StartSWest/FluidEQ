@@ -67,9 +67,10 @@ import { WINDOW_SURFACES, type TWindowSurface } from './windowTokens';
  * Brightness. A surface picked in the editor never moves the Brightness
  * (Ivan, 2026-11-18, of a pick that jumped the window to 100).
  *
- * The Brightness walks each side as it walks the theme: a dark window down
- * toward black below the middle of its dark travel (`darkenSurfaces`), a
- * light one from white at 100 to the soft grey at the line (`lightDimOf`).
+ * The Brightness walks each side as it walks the theme, all the way along: a
+ * dark window from the named surface at the top of its dark travel down
+ * toward black at 0 (`darkenSurfaces`), a light one from white at 100 to the
+ * soft grey at the line (`lightDimOf`).
  */
 
 /**
@@ -215,8 +216,12 @@ const surfacesOf = (
     return lentDarkSurfaces(surface, brightness, lean, tokens);
   }
   const asPicked = darkSurfaces(surface, lean, tokens);
-  // Handed them as their own knee, so the walk starts from exactly them.
-  return darkenSurfaces(asPicked, asPicked, brightness);
+  // Handed them as their own knee, so the walk starts from exactly them, at
+  // the top of the dark travel: worn as picked from the middle up, the
+  // window stood still from Brightness 38 to 76 under any surface as light
+  // as the dark window allows (Ivan, 2026-11-18: "from 50% to 75% it is not
+  // changing").
+  return darkenSurfaces(asPicked, asPicked, brightness, DARK_END_SHADE);
 };
 
 /**

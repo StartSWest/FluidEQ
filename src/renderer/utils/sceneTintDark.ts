@@ -64,14 +64,17 @@ const lch = (hex: string) => {
 /**
  * `palette`'s surfaces at `brightness` below the knee, each no lighter than
  * the walk from `knee` (the same scene toned at the knee) allows. Tokens
- * either lacks are left as they are; above the knee nothing changes.
+ * either lacks are left as they are; above the knee nothing changes. The
+ * knee stands at `kneeShade`: the middle of the dark walk for a scene's
+ * toning, its top for colours somebody named (`pickedWindow.ts`).
  */
 export const darkenSurfaces = (
   palette: Readonly<Record<string, string>>,
   knee: Readonly<Record<string, string>>,
   brightness: number,
+  kneeShade = DARK_KNEE,
 ): Record<string, string> => {
-  if (brightness >= DARK_KNEE) {
+  if (brightness >= kneeShade) {
     return { ...palette };
   }
   const kneeFloor = lch(knee['--surface-base'] ?? '');
@@ -80,7 +83,7 @@ export const darkenSurfaces = (
   }
   const along = Math.max(
     0,
-    (brightness - THEME_SHADE_MIN) / (DARK_KNEE - THEME_SHADE_MIN),
+    (brightness - THEME_SHADE_MIN) / (kneeShade - THEME_SHADE_MIN),
   );
   // The whole ladder by one factor at 0, so a pane stays a step above the
   // floor and a well a step above the pane.
