@@ -26,6 +26,7 @@ import {
   greyRung,
   hueOf,
   leanOf,
+  lightInkSet,
   lightSurfaces,
   windowOn,
   type IWindow,
@@ -281,25 +282,44 @@ export const pickedFilled = (
   return lab ? filledFace(lab, ground).fill : undefined;
 };
 
+const GROUND_SURFACES: readonly TWindowSurface[] = [
+  '--surface-base',
+  '--surface-panel',
+];
+
 /**
- * What a filled control stands on at `brightness` over the window's `floor`,
- * worked out once for a picker's whole field. The white window is white
- * whatever was picked (`surfacesOf`), so its panes and ink come from the
- * Brightness alone, as `windowOn` builds them; a dark window's labels are
- * its floor and it has no light fill to hold apart.
+ * What a filled control stands on at `brightness` under a named `surface`
+ * and `accent`, as `windowOn` builds it - the floor, the panes, and the ink
+ * a fill may carry instead of the floor (the dark ink on the white window,
+ * the light ink on a dark one) - worked out once for a picker's whole field.
+ * Walked by the points, as scene colours are worn.
  */
 export const pickedFillGround = (
-  floor: string,
+  surface: string,
+  accent: string,
   brightness: number,
-): IFillGround => {
-  const isLight = isLightShade(brightness);
-  if (!isLight) {
-    return { floor, pane: floor, ink: floor, isLight };
+): IFillGround | undefined => {
+  const surfaceLab = labOf(surface);
+  const accentLab = labOf(accent);
+  if (!surfaceLab || !accentLab) {
+    return undefined;
   }
-  const pane = lightSurfaces(WHITE, undefined, lightDimOf(brightness))[
-    '--surface-panel'
-  ];
-  return { floor, pane, ink: darkInkSet(undefined).ink, isLight };
+  const isLight = isLightShade(brightness);
+  const lean = isLight ? undefined : leanOf(surfaceLab, accentLab);
+  const set = surfacesOf(
+    surfaceLab,
+    brightness,
+    lean,
+    GROUND_SURFACES,
+    'points',
+  );
+  const floor = set['--surface-base'];
+  const pane = set['--surface-panel'];
+  if (floor === undefined || pane === undefined) {
+    return undefined;
+  }
+  const { ink } = isLight ? darkInkSet(lean) : lightInkSet(lean);
+  return { floor, pane, ink, isLight };
 };
 
 export default pickedWindow;

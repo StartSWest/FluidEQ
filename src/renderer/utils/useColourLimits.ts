@@ -41,9 +41,7 @@ export const colourLimitsAt = (
   stop: TWindowColourStop,
 ): TColourLimits => {
   const shade = hourOfStop(stop);
-  const floor = pickedFloor(colours.surface, colours.accent, shade, 'points');
-  const ground =
-    floor === undefined ? undefined : pickedFillGround(floor, shade);
+  const ground = pickedFillGround(colours.surface, colours.accent, shade);
   const filled: TColourLimit = (hex) =>
     (ground && pickedFilled(hex, ground)) ?? hex;
   return {

@@ -216,7 +216,7 @@ export const darkInkSet = (lean: number | undefined): IInkSet => {
 };
 
 /** A dark window's ink set: the theme's own, its edge leaning to its hue. */
-const lightInkSet = (lean: number | undefined): IInkSet => {
+export const lightInkSet = (lean: number | undefined): IInkSet => {
   const edge = labOf(EDGE_TINT);
   return {
     ...LIGHT_INK,

@@ -185,21 +185,28 @@ const distance = (left: ILab, right: ILab) =>
  * to dark text when the accent is light. Only colours almost as white as the
  * window stay blocked").
  *
- * A dark window, and a colour with no hue anywhere, keep the floor's colour
- * for a label and `filledOn`'s rule exactly. On the white window a colour
- * with a hue is worn as picked wherever one of two labels reads on it:
+ * And the same on a dark window, mirrored (Ivan, 2026-11-19, of a dark
+ * point that allowed only pale pastels: "it's limiting the colours too much,
+ * there is still a lot of room there to make a more vivid colour"): a vivid
+ * or deep colour carries the window's light ink for its words, a light one
+ * the floor's colour. A colour with no hue anywhere keeps the floor's colour
+ * for a label and `filledOn`'s monochrome rule exactly. Otherwise a colour
+ * is worn as picked wherever one of two labels reads on it:
  *
- * - first it is held apart from the panes (`LIGHT_FILL_APART`), darkened
- *   just that far when it is nearly their colour;
- * - the floor's colour where that reaches `LABEL_CONTRAST`, as every deep
- *   accent always had;
- * - else the window's ink where that reaches it on the colour AND on the
- *   colour a pressed step darker (`ACCENT_DARK_STEP`), because the fill's
- *   own darker end - Rainbow mode's span, a held button - carries the same
- *   label;
- * - else, a mid-tone neither reaches, it is moved the shorter way: darker
- *   until the floor's colour reads, as before, or lighter until the ink
- *   does, while still apart from the panes.
+ * - first it is held apart from the panes (`LIGHT_FILL_APART`), moved
+ *   away from them just that far when it is nearly their colour - darker on
+ *   the white window, lighter on a dark one;
+ * - the floor's colour where that reaches `LABEL_CONTRAST`: a deep accent
+ *   on the white window, a light one on a dark window, as every accent
+ *   always had;
+ * - else the window's ink where that reaches it - its dark ink on the white
+ *   window, on the colour AND on the colour a pressed step darker
+ *   (`ACCENT_DARK_STEP`), because the fill's own darker end carries the
+ *   same label; its light ink on a dark window, where a darker step only
+ *   reads better;
+ * - else, a mid-tone neither reaches, it is moved the shorter way: toward
+ *   the floor's label, as before, or toward the ink's, while still apart
+ *   from the panes.
  *
  * The colour pickers draw their limit from this same rule (`pickedFilled`).
  */
@@ -207,9 +214,13 @@ export const filledFace = (
   colour: ILab,
   { floor, pane, ink, isLight }: IFillGround,
 ): IFilledFace => {
-  if (!isLight || chromaOf(colour) < GREY_CHROMA) {
+  if (chromaOf(colour) < GREY_CHROMA) {
     return { fill: filledOn(colour, floor, isLight), label: floor };
   }
+  // Away from the panes, and the way the floor's label wants the colour:
+  // darker on the white window, lighter on a dark one; the ink's the other.
+  const awayFromPanes = isLight ? 0 : 1;
+  const towardInk = isLight ? 1 : 0;
   const paneLab = labOf(pane) ?? { l: 1, a: 0, b: 0 };
   // Measured as painted: a light colour past sRGB loses chroma on the way.
   const apartAt = (l: number) => {
@@ -218,26 +229,27 @@ export const filledFace = (
       painted !== undefined && distance(painted, paneLab) >= LIGHT_FILL_APART
     );
   };
-  // Darkening a colour lighter than the panes walks it through them, so
-  // apart is false down to past their lightness and true from there to 0.
-  const apart = movedUntil(colour, 0, apartAt);
+  // Moving a colour toward `awayFromPanes` from the panes' side walks it
+  // through them, so apart is false until past their lightness and true from
+  // there to the end.
+  const apart = movedUntil(colour, awayFromPanes, apartAt);
   const floorReads = reachesAt(apart, lumOf(floor), LABEL_CONTRAST);
   if (floorReads(apart.l)) {
     return { fill: labToHex(apart), label: floor };
   }
   const inkReachesAt = reachesAt(apart, lumOf(ink), LABEL_CONTRAST);
   const inkReads = (l: number) =>
-    inkReachesAt(l) && inkReachesAt(l - ACCENT_DARK_STEP);
+    inkReachesAt(l) && (!isLight || inkReachesAt(l - ACCENT_DARK_STEP));
   if (inkReads(apart.l)) {
     return { fill: labToHex(apart), label: ink };
   }
-  const deeper = movedUntil(apart, 0, floorReads);
-  const paler = movedUntil(apart, 1, inkReads);
-  const palerFits =
-    inkReads(paler.l) &&
-    apartAt(paler.l) &&
-    paler.l - apart.l < apart.l - deeper.l;
-  return palerFits
-    ? { fill: labToHex(paler), label: ink }
-    : { fill: labToHex(deeper), label: floor };
+  const forFloor = movedUntil(apart, awayFromPanes, floorReads);
+  const forInk = movedUntil(apart, towardInk, inkReads);
+  const inkFits =
+    inkReads(forInk.l) &&
+    apartAt(forInk.l) &&
+    Math.abs(forInk.l - apart.l) < Math.abs(apart.l - forFloor.l);
+  return inkFits
+    ? { fill: labToHex(forInk), label: ink }
+    : { fill: labToHex(forFloor), label: floor };
 };

@@ -678,45 +678,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px;
 }
 
-// Surprise me among the toggles: a ball of the accent, lit from the upper
-// left and settling to its own deep edge, its glyph in the label colour a
-// filled accent carries (Ivan, 2026-11-19: "give it a background ... like a
-// ball"). Not the plain tier the toggles wear: it is the one action here that
-// starts something new, so it stands out from the switches beside it.
-// Three classes: the toggles' plain-accent ink (`button-plain-accent`, two) would
-// otherwise win and draw a light glyph on a light ball.
+// Surprise me among the toggles: a disc of the accent, flat, made exactly as
+// the play button is - the accent filled, the crisp edge the sliders' caps
+// wear, no shine and no shadow - its glyph in the filled accent's label
+// colour (Ivan, 2026-11-19: "give it a background ... like a ball", then "it's
+// having a glow, you are not keeping the theme, we are doing flat style, look
+// how the other button is done"). Three classes: the toggles' plain-accent
+// ink (`button-plain-accent`, two) would otherwise win and draw a light
+// glyph on a light disc.
 .now-playing-bar__surprise.now-playing-bar__toggle.library-surprise {
   color: $on-accent;
-  background: radial-gradient(
-    circle at 34% 28%,
-    color-mix(in srgb, $secondary-default 55%, white) 0,
-    $secondary-default 52%,
-    color-mix(in srgb, $secondary-default 72%, black) 100%
-  );
-  box-shadow:
-    0 2px 6px color-mix(in srgb, $secondary-default 34%, transparent),
-    inset 0 -1px 2px color-mix(in srgb, black 22%, transparent);
+  border: 1px solid
+    oklch(
+      from var(--surface-panel) calc(l + clamp(-0.16, (0.4 - l) * 1000, 0.08))
+        calc(c * 1.1) h
+    );
+  background: $secondary-default;
+  box-shadow: none;
 
   .library-surprise__icon {
-    width: 16px;
-    height: 16px;
-    stroke-width: 1.9;
+    width: 15px;
+    height: 15px;
   }
 
-  &:hover,
-  &:focus-visible {
-    color: $on-accent;
-    background: radial-gradient(
-      circle at 34% 28%,
-      color-mix(in srgb, $secondary-default 40%, white) 0,
-      $secondary-default 50%,
-      color-mix(in srgb, $secondary-default 78%, black) 100%
-    );
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.96);
+  // The accent's light, as the play button answers the pointer.
+  &:hover:not(:disabled) {
+    color: $surface-base;
+    background: $secondary-light;
   }
 }
 
