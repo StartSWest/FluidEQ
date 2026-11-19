@@ -2,22 +2,18 @@
 import type { ReactNode } from 'react';
 import type { ILibraryRailWidth } from '../library/LibraryRailSplitter';
 import { useTranslation } from '../utils/I18nContext';
-import StudioRail from '../widgets/StudioRail';
+import { FixedStudioRail } from '../widgets/StudioRail';
 import '../styles/RemoteAudio.scss';
 
 /**
- * Where the mix rail's pin and its dragged width are remembered (`useRailPinned`,
- * `useRailWidth`): a pin and a width of the page's own.
+ * Where the mix rail's dragged width is remembered (`useRailWidth`): a width
+ * of the page's own. It has no pin: the rail stays open (`FixedStudioRail`).
  */
-export const SHARE_RAIL_PINNED_KEY = 'fluideq.shareRailPinned';
-
 export const SHARE_RAIL_WIDTH_KEY = 'fluideq.shareRailWidth';
 
 interface IRemoteAudioLayoutProps {
   /** The rail's width and its drag (`useRailWidth`). */
   rail: ILibraryRailWidth;
-  isPinned: boolean;
-  onPinnedChange: (next: boolean) => void;
   /** Your mix: the faders, each led by its mute button. */
   mix: ReactNode;
   /** The output the mix plays through, after the faders. */
@@ -31,21 +27,19 @@ interface IRemoteAudioLayoutProps {
  * without so many lines and borders, the way the Library is, with the left
  * panel as it is there, resizable, and togglable").
  *
- * One card, the page's: the mix down the studio rail (`StudioRail`, the one
- * the DSP page stands on - the Library's hairline, splitter and width memory
- * with the Scenes tab's pin), and the group beside it on the card's own
- * floor. The mix was a card of its own at the right of the group, and the
- * group a card with a framed header; both are gone.
+ * One card, the page's: the mix down the studio rail (the one the DSP page
+ * stands on - the Library's hairline, splitter and width memory, and the
+ * page's name in its head), and the group beside it on the card's own floor.
+ * The mix was a card of its own at the right of the group, and the group a
+ * card with a framed header; both are gone.
  *
- * Folded, the rail keeps its column of mute buttons - each fader's own,
- * leading its row - and lets every word go (`studio-rail__word`), so each
- * source's speaker stays a press away and the faders open over the group
- * while the pointer or the keyboard is on the rail.
+ * Always open (`FixedStudioRail`): folded to a column of mute buttons the
+ * mix said nothing a fader says (Ivan, 2026-11-19: "not good in Share Audio,
+ * don't do collapsible"). Dragged wider or narrower at its edge as the
+ * others are.
  */
 const RemoteAudioLayout = ({
   rail,
-  isPinned,
-  onPinnedChange,
   mix,
   output,
   children,
@@ -53,22 +47,15 @@ const RemoteAudioLayout = ({
   const { t } = useTranslation();
   return (
     <section className="remote-audio" aria-labelledby="remote-audio-title">
-      <StudioRail
-        rail={rail}
-        isPinned={isPinned}
-        onPinnedChange={onPinnedChange}
-        heading={t('tabs.share')}
-      >
+      <FixedStudioRail rail={rail} heading={t('tabs.share')}>
         {/* The page's name heads the rail, as every page with one names
             itself; the mix is the group it holds. */}
         <span className="studio-rail__lead" aria-hidden="true">
           {t('remoteAudio.group.mix')}
         </span>
         {mix}
-        <div className="remote-audio__rail-foot studio-rail__word">
-          {output}
-        </div>
-      </StudioRail>
+        <div className="remote-audio__rail-foot">{output}</div>
+      </FixedStudioRail>
       <div className="remote-audio__main">{children}</div>
     </section>
   );

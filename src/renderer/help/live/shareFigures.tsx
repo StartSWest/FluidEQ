@@ -1,6 +1,5 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { useState } from 'react';
 import type { IRemoteNowPlaying } from 'common/remoteAudio';
 import { LINK_SWITCHES_ON } from 'common/remoteAudio';
 import { PICTURE_QUEUE } from '../../components/featureTour/playerPictureData';
@@ -150,17 +149,14 @@ const OutputPicker = () => {
 /** The Share Audio page with a group of four, in the workspace's card. */
 const ShareDrawing = () => {
   const { t } = useTranslation();
-  const [isPinned, setPinned] = useState(true);
   const rail = useRailWidth(HELP_SHARE_RAIL_WIDTH_KEY);
   return (
     <div className="workspace-tab-panel workspace-tab-panel--share">
       <div className="workspace-tab-panel__scroll">
-        {/* The rail's pin and width are the drawing's own, never the page's:
-            folding the figure in Help must not fold the reader's page. */}
+        {/* The rail's width is the drawing's own, never the page's:
+            dragging the figure in Help must not resize the reader's page. */}
         <RemoteAudioLayout
           rail={rail}
-          isPinned={isPinned}
-          onPinnedChange={setPinned}
           mix={<RemoteAudioMix remote={GROUP} system={SYSTEM} />}
           output={<OutputPicker />}
         >

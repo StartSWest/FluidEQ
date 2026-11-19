@@ -13,65 +13,24 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
+@use 'studioRailFold' as *;
 
 // THE SCENES TAB, LAID OUT AS THE LIBRARY IS (Ivan, 2026-11-17: "redesign
-// the gallery the same way as in the Library ... the Scenes label like in
-// the Library, less white, so it is distinct from the options"). One card,
-// the page's, with the rail of places standing on it in the card's own tone
-// and parted from the place beside it by a hairline - the Library's rail
-// (`_libraryRail.scss`), its rows, its mark, its heading and its splitter,
-// through the shared studio rail mixins (`_libraryTokens.scss`). It was two
-// cards side by side, a rail of tiled two-line rows under a white title
-// that read as one more place.
+// the gallery the same way as in the Library"). One card, the page's, with
+// the places down the studio rail every page with one shares (`StudioRail`:
+// the hairline, the width dragged and remembered, the pin, the fold, and the
+// page's name in the head - "the same header that the DSP has", Ivan,
+// 2026-11-19), and the place open beside it on the card's own floor. The
+// rail's slot, head, pin and fold were this sheet's own copy until then.
 //
 // Only the Plus tab: the Forum borrows the rail's markup (`CommunityRail.scss`)
-// and keeps its own look. Every rule here is said through `.community--plus`,
-// which also lets it stand over the Forum's narrow strip of pills: this rail
-// folds to its glyphs as the Library's does, at every width.
-//
-// PINNED, the rail is a column of the card, as wide as it was dragged. FOLDED,
-// the column narrows to the glyphs and the place gets the rest; the pointer
-// on the rail opens it again OVER the place, and taking the pointer away
-// folds it. Pinning from there only widens the column under a rail that is
-// already open, so nothing jumps.
-//
-// THE RAIL IS NEVER THE WIDTH OF ITS SLOT. It stands in the slot at its own
-// width - the full rail, or the folded column - and the slot only decides how
-// much room the grid gives it. Had the rail filled the slot, pinning an open
-// rail would first shrink it to the slot's folded width and grow it again.
-//
-// Waiting on the pointer is the transition's own delay: a pass across the rail
-// on the way to the place is shorter than it and opens nothing. No script
-// decides when.
+// and keeps its own look. Every rule here is said through `.community--plus`
+// or through the studio rail's fold, which only this tab's places stand in.
 
-$rail-open: var(--rail-width, #{$studio-rail-width});
-$rail-reveal-delay: 110ms;
-
-// The glyphs' column, measured from the rail's left edge: the list's 10px
-// inset and a row's 10px before a 16px glyph, so the middle of every glyph
-// - the pin's, a place's, the member's picture - stands 28px in, the middle
-// of the folded column.
+// The glyphs' column, from the rail's left edge (`StudioRail.scss`).
 $rail-glyph-centre: math.div($studio-rail-folded, 2);
 
-// What only the open rail shows.
-@mixin rail-words {
-  .community__rail-title,
-  .community__channel-text,
-  .community__account-text,
-  .community__account-chevron,
-  .community__choose {
-    @content;
-  }
-}
-
 .community.community--plus {
-  // How long the rail takes to move and to settle. Windows with its
-  // animation effects off asks for reduced motion; the rail then still
-  // slides, at half the length, because a width that jumps under the
-  // pointer reads as the layout breaking rather than as calm.
-  --rail-move: #{$motion-slow};
-  --rail-settle: #{$motion-base};
-
   // The page's card, where the Library's own stands: the panel keeps the
   // 8px under the titlebar and out to the column's sides, as every page card
   // stands (`$section-card-pages`), and this is the one surface inside it.
@@ -80,30 +39,6 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   grid-template-rows: minmax(0, 1fr);
   gap: 0;
   overflow: hidden;
-
-  @media (prefers-reduced-motion: reduce) {
-    --rail-move: 150ms;
-    --rail-settle: 110ms;
-  }
-}
-
-.community--plus > .community__rail-slot {
-  position: relative;
-  // Over the place's own raised controls, which go as high as 3.
-  z-index: 6;
-  width: $rail-open;
-  min-height: 0;
-  grid-column: 1;
-  grid-row: 1;
-  transition: width var(--rail-move) $ease-out;
-}
-
-// The Library's splitter (`LibraryRailSplitter`), placed by its own rule
-// (`.library-rail__splitter`) on the rail's hairline; this grid has one row,
-// and it stands over the rail's slot rather than under it.
-.community--plus > .library-rail__splitter {
-  z-index: 7;
-  grid-row: 1;
 }
 
 // The place open beside the rail stands on the same card, with no card of
@@ -126,94 +61,44 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
   }
 }
 
-// Under the pointer the edge follows the hand, not an ease behind it.
-.community--plus.is-resizing-rail {
-  > .community__rail-slot,
-  .community__rail {
-    transition: none;
-  }
+// The places inside the studio rail: they fill its body, the list scrolling
+// and the member's card staying at the foot, as the Library's shelves and
+// their foot do.
+.studio-rail__body:has(> .community__rail) {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
 }
 
 .community--plus .community__rail {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: $rail-open;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: stretch;
   gap: 0;
   padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  // On the card's own tone, parted from the place by its hairline alone,
-  // as the Library's rail is: no card of its own.
+  overflow: hidden;
+  // The shared markup's own frame (`CommunityRail.scss`) is the Forum's.
   border: 0;
-  border-right: 1px solid $studio-hair;
   border-radius: 0;
   background: none;
-  transition:
-    width var(--rail-settle) $ease-out 60ms,
-    border-color var(--rail-settle) $ease-out;
-
-  @include rail-words {
-    transition: opacity var(--rail-settle) ease-out;
-  }
-}
-
-// The rail's head: the pin in the glyphs' column, the rail's name after it
-// where the places' names start. The name is the page's, in the head every
-// page with a rail wears (`studio-rail-title`; Ivan, 2026-11-19: "the same
-// header that the DSP has"), the same as `StudioRail`'s.
-.community--plus .community__rail-head {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 4px;
-  // The pin's 28px square centred on the glyphs' column; the name then
-  // starts where the places' names do (10 + 10 + 16 + 10 = 46px). Above it
-  // the Library's 12px of list and 2px of first heading, so every place
-  // stands on the line its shelf does.
-  padding: 14px 10px 6px #{$rail-glyph-centre - 14px};
-}
-
-.community--plus .community__rail-title {
-  min-width: 0;
-  @include studio-rail-title;
-  @include truncate;
-}
-
-.community--plus .community__rail-pin {
-  display: grid;
-  width: $control-height-xs;
-  height: $control-height-xs;
-  flex: 0 0 auto;
-  place-items: center;
-  // The square is the target; the line keeps the heading's own height, so
-  // the first place stands where the Library's first shelf does.
-  margin-block: -6px;
-  padding: 0;
-  border-radius: $radius-m;
-  cursor: pointer;
-  transition: $transition-control;
-  // Bare: only its ink says pinned or pointed at (Ivan, 2026-11-17: "fix
-  // this mess"). Pinned, the plain tier lit its 28px square, which reaches
-  // down to the first place's row, and the two lit boxes stood stacked in
-  // the glyphs' column, the pin read as a second chosen place over Gallery.
-  @include button-plain-bare;
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
 }
 
 .community--plus .community__channels {
+  @include slim-scrollbar;
   display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
   // The rail's width, never a long name's (`.library-rail__scroll`).
   grid-template-columns: minmax(0, 1fr);
+  align-content: start;
   gap: 1px;
   padding: 0 10px 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 // A place: the Library's shelf row - a glyph and a name on one line, the one
@@ -305,6 +190,7 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 // stands under (`.library-rail__foot`).
 .community--plus .community__foot {
   display: grid;
+  flex: 0 0 auto;
   padding: 8px 6px 10px;
   border-top: 1px solid $studio-hair;
 }
@@ -319,106 +205,32 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
     box-shadow $motion-fast $ease-out;
 }
 
-// The rail folded to its glyphs: by its pin, and on a card too narrow to
-// spare a rail's width, where the Library's folds too.
-@mixin folded-rail {
-  > .community__rail-slot {
-    width: $studio-rail-folded;
-  }
-
-  // The menus' material, 95% of the floor, for the rail opened over the
-  // place: the Studio's stage and controls showed through a see-through one
-  // (Ivan, 2026-09-26: "the plus side pane can't be transparent because when
-  // it is collapsed it opens on top of the studio so make it 95%").
-  .community__rail {
-    background: $surface-menu-floor;
-  }
-
-  // Folded and at rest: the card's own column again. `:has(:focus-visible)`
-  // rather than `:focus-within`, so a keyboard reaching the rail opens it,
-  // while a click on a place - which leaves that button focused - lets it
-  // fold once the pointer goes.
-  .community__rail:not(:hover):not(:has(:focus-visible)) {
-    width: $studio-rail-folded;
-    background: none;
-
-    @include rail-words {
-      opacity: 0;
-      visibility: hidden;
-      transition:
-        opacity 90ms ease-out,
-        visibility 0s linear 90ms;
-    }
-
-    .community__account {
-      border-color: transparent;
-      background: transparent;
-      box-shadow: none;
-    }
-
-    // The count on its glyph's corner, the row's end being out of sight.
-    .community__channel:has(.community__channel-count) {
-      padding-right: 10px;
-    }
-
-    .community__channel-count {
-      top: 1px;
-      right: 2px;
-      transform: none;
-    }
-  }
-
-  // Open over the place: a menu's material and a menu's edge, and nothing
-  // under it (Ivan, 2026-09-27: "remove drop shadow on plus side menu, it
-  // sucks, make it like the dropdown menus").
-  .community__rail:is(:hover, :has(:focus-visible)) {
-    border-right-color: color-mix(in srgb, $edge-tint 14%, transparent);
+// *** Folded to its glyphs (`StudioRail`) ***********************************
+//
+// The words go with the rail's own (`studio-rail__word` on the names, the
+// member's text and the "choose your name" link). What is left of a place is
+// its glyph, a count on its corner, and the member's picture with no card
+// round it. Said on the bare classes: the fold's selector names the rail they
+// stand in, and only this tab's places stand in a studio rail.
+.community__account {
+  @include folded-at-rest {
+    border-color: transparent;
+    background: transparent;
     box-shadow: none;
-    transition:
-      width var(--rail-move) $ease-out $rail-reveal-delay,
-      border-color var(--rail-settle) $ease-out $rail-reveal-delay;
-
-    @include rail-words {
-      transition:
-        opacity var(--rail-settle) ease-out
-          calc(#{$rail-reveal-delay} + var(--rail-move) * 0.4),
-        visibility 0s linear $rail-reveal-delay;
-    }
-  }
-
-  // Folded, the pin is the way back to a rail that stays: it wears the
-  // accent while the rail is open over the place, because that is when it is
-  // the thing to press.
-  .community__rail:hover .community__rail-pin {
-    color: $secondary-light;
   }
 }
 
-.community--rail-folded {
-  @include folded-rail;
+// The count on its glyph's corner, the row's end being out of sight.
+.community__channel:has(.community__channel-count) {
+  @include folded-at-rest {
+    padding-right: 10px;
+  }
 }
 
-// The card as narrow as the Library's is when its rail keeps only glyphs
-// (`@container library (max-width: $bp-lg)` in `_libraryRail.scss`). This
-// card's own width is not a container - containment would make it the box
-// every fixed descendant of the Studio is placed in - so the panel's is
-// asked, which is the card and the 10px the panel keeps at each side.
-@container eq-panel (max-width: #{$bp-lg + 20px}) {
-  .community--plus {
-    @include folded-rail;
-
-    // The head goes with the words, as the Library's does: there is no
-    // rail to pin at this width, and its name is the tab's.
-    .community__rail-head {
-      display: none;
-    }
-
-    .community__channels {
-      padding-top: 12px;
-    }
-
-    > .library-rail__splitter {
-      display: none;
-    }
+.community__channel-count {
+  @include folded-at-rest {
+    top: 1px;
+    right: 2px;
+    transform: none;
   }
 }

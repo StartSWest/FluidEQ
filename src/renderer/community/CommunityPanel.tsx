@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect } from 'react';
+import { useEffect } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount, useAccountKnown } from '../account/accountStore';
@@ -25,9 +25,8 @@ import {
   setPlusRailPinned,
   usePlusRailPinned,
 } from '../plus/plusRail';
-import LibraryRailSplitter, {
-  useRailWidth,
-} from '../library/LibraryRailSplitter';
+import { useRailWidth } from '../library/LibraryRailSplitter';
+import StudioRail from '../widgets/StudioRail';
 import VisualizersSignedOut from '../plus/VisualizersSignedOut';
 import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
@@ -151,8 +150,6 @@ export default function CommunityPanel({
   const ownName = profile?.displayName || account.identity?.name || '';
   const ownHandle = profile?.handle ?? account.identity?.email ?? '';
 
-  const pinLabel = t(pinned ? 'plus.rail.collapse' : 'plus.rail.pin');
-
   // A place remembered from an add-on that is not loaded is the gallery.
   const addon = isAddonPlace(view) ? addonForPlace(view) : undefined;
   const shown: TPlusPlace = isAddonPlace(view) && !addon ? 'visualizers' : view;
@@ -165,30 +162,18 @@ export default function CommunityPanel({
   };
 
   return (
-    <div
-      className={`community community--plus${pinned ? '' : ' community--rail-folded'}${
-        rail.isResizing ? ' is-resizing-rail' : ''
-      }`}
-      style={{ '--rail-width': `${rail.width}px` } as CSSProperties}
-    >
-      {/* The slot keeps the rail's room in the grid; the rail stands in it,
-          and when folded opens over the place instead of pushing it. */}
-      <div className="community__rail-slot">
+    <div className="community community--plus">
+      {/* The studio rail every page with one shares (`StudioRail`): the
+          page's name beside the pin, folded to the places' glyphs by the pin
+          or on a narrow card, and opened over the place while the pointer
+          is on it. */}
+      <StudioRail
+        rail={rail}
+        isPinned={pinned}
+        onPinnedChange={setPlusRailPinned}
+        heading={t('tabs.plus')}
+      >
         <nav className="community__rail" aria-label={t('tabs.plus')}>
-          <div className="community__rail-head">
-            <button
-              type="button"
-              className="community__rail-pin"
-              aria-pressed={pinned}
-              aria-label={pinLabel}
-              title={pinLabel}
-              onClick={() => setPlusRailPinned(!pinned)}
-            >
-              <Glyph name={pinned ? 'rail-collapse' : 'pin'} />
-            </button>
-            <span className="community__rail-title">{t('tabs.plus')}</span>
-          </div>
-
           <div className="community__channels">
             {PLACES.map((entry) => {
               const isActive = shown === entry.place;
@@ -206,7 +191,7 @@ export default function CommunityPanel({
                   <span className="community__channel-mark">
                     <Glyph name={entry.glyph} />
                   </span>
-                  <span className="community__channel-text">
+                  <span className="community__channel-text studio-rail__word">
                     <span className="community__channel-name">
                       {t(entry.name)}
                     </span>
@@ -244,7 +229,7 @@ export default function CommunityPanel({
               onClick={() => requestAccountPanel()}
             >
               <Avatar handle={ownHandle} displayName={ownName} size="rail" />
-              <span className="community__account-text">
+              <span className="community__account-text studio-rail__word">
                 <span className="community__name community__name--hued">
                   {ownName || ownHandle}
                 </span>
@@ -260,14 +245,17 @@ export default function CommunityPanel({
                   )}
                 </span>
               </span>
-              <span className="community__account-chevron" aria-hidden="true" />
+              <span
+                className="community__account-chevron studio-rail__word"
+                aria-hidden="true"
+              />
             </button>
             {/* The name the gallery credits published scenes with is chosen
                 in the account panel; this is the way there from the tab. */}
             {!profile && loaded && (
               <button
                 type="button"
-                className="community__link community__choose"
+                className="community__link community__choose studio-rail__word"
                 // Straight onto the form (Ivan, 2026-11-14): the dialog's
                 // own "Choose your name" was one more press away.
                 onClick={() => requestAccountPanel('name')}
@@ -278,10 +266,7 @@ export default function CommunityPanel({
             )}
           </div>
         </nav>
-      </div>
-      {/* The rail's edge, dragged as the Library's is; only while the rail
-          is pinned, since a folded one has no width of its own to give. */}
-      {pinned && <LibraryRailSplitter rail={rail} />}
+      </StudioRail>
 
       <section className="community__main">
         <VisualsNewsNotice />

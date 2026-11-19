@@ -17,15 +17,11 @@ import { useRailWidth } from '../library/LibraryRailSplitter';
 import { useTranslation } from '../utils/I18nContext';
 import { useSinglePlayer } from '../utils/singlePlayer';
 import RemoteAudioGroup from './RemoteAudioGroup';
-import RemoteAudioLayout, {
-  SHARE_RAIL_PINNED_KEY,
-  SHARE_RAIL_WIDTH_KEY,
-} from './RemoteAudioLayout';
+import RemoteAudioLayout, { SHARE_RAIL_WIDTH_KEY } from './RemoteAudioLayout';
 import RemoteAudioMix from './RemoteAudioMix';
 import RemoteAudioOutput from './RemoteAudioOutput';
 import { useSystemFader } from '../audio/systemVolume';
 import '../styles/RemoteAudioGroup.scss';
-import { useRailPinned } from '../widgets/StudioRail';
 import RemoteAudioLinkDialog from './RemoteAudioLinkDialog';
 import { useRemoteAudio } from './remoteAudioValueContext';
 import {
@@ -62,7 +58,6 @@ const RULES = [
 const RemoteAudioPanel = () => {
   const { t } = useTranslation();
   const [adding, setAdding] = useState(false);
-  const [isPinned, setPinned] = useRailPinned(SHARE_RAIL_PINNED_KEY);
   const rail = useRailWidth(SHARE_RAIL_WIDTH_KEY);
   const remote = useRemoteAudio();
   const system = useSystemFader();
@@ -98,8 +93,6 @@ const RemoteAudioPanel = () => {
   return (
     <RemoteAudioLayout
       rail={rail}
-      isPinned={isPinned}
-      onPinnedChange={setPinned}
       mix={<RemoteAudioMix remote={remote} system={system} />}
       output={<RemoteAudioOutput />}
     >

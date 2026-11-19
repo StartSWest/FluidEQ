@@ -19,7 +19,6 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
-@use 'studioRailFold' as *;
 @use 'RemoteAudioLink';
 @use 'RemoteAudioLane';
 
@@ -141,72 +140,8 @@ it under the terms of the GNU General Public License version 3 or later.
   @include truncate;
 }
 
-// FOLDED, the speakers pack from the top at one step, as the DSP rail's
-// glyphs do (`_dspStudio.scss`): each row gives back its slider's and its
-// caption's lines and keeps only the mute button's, 29px and the list's 4px
-// of air - the 33px the DSP's folded rows stand apart. Hidden in place, the
-// rows kept their open height and the speakers stood 84px apart, scattered
-// down the column. Opened over the page, the lines slide back as the rail
-// widens, and the words come in after them on the words' own beat.
-$fold-fast: 90ms ease-out;
-
-.remote-audio__fader {
-  transition:
-    padding var(--rail-settle) $ease-out,
-    row-gap var(--rail-settle) $ease-out;
-
-  @include folded-at-rest {
-    row-gap: 0;
-    padding: 1px 4px 0;
-    transition:
-      padding $fold-fast,
-      row-gap $fold-fast;
-  }
-
-  @include folded-open {
-    transition:
-      padding var(--rail-move) $ease-out $rail-reveal-delay,
-      row-gap var(--rail-move) $ease-out $rail-reveal-delay;
-  }
-}
-
-// Through the row, so these outrank `studio-rail__word`'s own beat
-// (`StudioRail.scss`) whichever sheet loads first.
-.remote-audio__fader
-  > .remote-audio__fader-slider.now-playing-bar__volume-slider,
-.remote-audio__fader > .remote-audio__fader-caption {
-  // A limit to slide from and to; the slider and a caption line are well
-  // inside it.
-  max-height: 24px;
-  transition:
-    max-height var(--rail-settle) $ease-out,
-    margin var(--rail-settle) $ease-out,
-    opacity var(--rail-settle) ease-out;
-
-  @include folded-at-rest {
-    max-height: 0;
-    margin: 0;
-    overflow: hidden;
-    transition:
-      max-height $fold-fast,
-      margin $fold-fast,
-      opacity $fold-fast,
-      visibility 0s linear 90ms;
-  }
-
-  @include folded-open {
-    transition:
-      max-height var(--rail-move) $ease-out $rail-reveal-delay,
-      margin var(--rail-move) $ease-out $rail-reveal-delay,
-      opacity var(--rail-settle) ease-out
-        calc(#{$rail-reveal-delay} + var(--rail-move) * 0.4),
-      visibility 0s linear $rail-reveal-delay;
-  }
-}
-
 // Where the mix plays, after the faders under the Library rail foot's
-// hairline (`.library-rail__foot`). Folded, it goes with the words, and it
-// stands last so it leaves no gap in the column of speakers.
+// hairline (`.library-rail__foot`).
 .remote-audio__rail-foot {
   margin-top: 8px;
   padding: 12px 4px 0;

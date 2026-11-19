@@ -38,7 +38,9 @@ $rail-reveal-delay: 110ms;
   }
 
   @container studio-page (max-width: #{$bp-lg}) {
-    .studio-rail-slot > .studio-rail:not(:hover):not(:has(:focus-visible)) & {
+    .studio-rail-slot:not(.is-fixed)
+      > .studio-rail:not(:hover):not(:has(:focus-visible))
+      & {
       @content;
     }
   }
@@ -54,7 +56,9 @@ $rail-reveal-delay: 110ms;
   }
 
   @container studio-page (max-width: #{$bp-lg}) {
-    .studio-rail-slot > .studio-rail:is(:hover, :has(:focus-visible)) & {
+    .studio-rail-slot:not(.is-fixed)
+      > .studio-rail:is(:hover, :has(:focus-visible))
+      & {
       @content;
     }
   }

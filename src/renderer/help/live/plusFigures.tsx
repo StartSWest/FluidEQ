@@ -1,6 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   FLUIDEQ_CREATOR_ID,
   type IGalleryScene,
@@ -12,6 +12,7 @@ import Glyph from '../../community/Glyph';
 import { identityStyle } from '../../community/identity';
 import PlaceHead from '../../community/PlaceHead';
 import BrandMark from '../../icons/BrandMark';
+import { useRailWidth } from '../../library/LibraryRailSplitter';
 import GalleryCard from '../../plus/GalleryCard';
 import GalleryList from '../../plus/GalleryList';
 import {
@@ -26,6 +27,7 @@ import type { TPlusPlace } from '../../plus/plusNavigation';
 import { SceneStillsContext } from '../../plus/scenePictures';
 import { useTranslation } from '../../utils/I18nContext';
 import { SetDesktopButton } from '../../wallpaper/WallpaperControls';
+import StudioRail from '../../widgets/StudioRail';
 import alpine from '../../../../assets/tour/scene-alpine.jpg';
 import aurora from '../../../../assets/tour/scene-aurora.jpg';
 import bloom from '../../../../assets/tour/scene-bloom.jpg';
@@ -164,25 +166,28 @@ const galleryScene = (scene: IMadeUpScene, now: number): IGalleryScene => ({
 });
 
 /**
- * The tab's rail, as `CommunityPanel` draws it: the pin, the tab's name, its
- * places, and the member at its foot.
+ * Where the drawing's rail keeps its width: the drawing's own, never the
+ * page's, so dragging the figure in Help does not resize the reader's tab.
+ */
+const HELP_PLUS_RAIL_WIDTH_KEY = 'fluideq.help.plusRailWidth';
+
+/**
+ * The tab's rail, as `CommunityPanel` draws it: the studio rail with the
+ * tab's name beside its pin, its places, and the member at its foot. The pin
+ * folds the drawing alone.
  */
 const PlusRailDrawing = ({ shown }: { shown: TPlusPlace }) => {
   const { t } = useTranslation();
+  const rail = useRailWidth(HELP_PLUS_RAIL_WIDTH_KEY);
+  const [isPinned, setPinned] = useState(true);
   return (
-    <div className="community__rail-slot">
+    <StudioRail
+      rail={rail}
+      isPinned={isPinned}
+      onPinnedChange={setPinned}
+      heading={t('tabs.plus')}
+    >
       <nav className="community__rail" aria-label={t('tabs.plus')}>
-        <div className="community__rail-head">
-          <button
-            type="button"
-            className="community__rail-pin"
-            aria-pressed
-            aria-label={t('plus.rail.collapse')}
-          >
-            <Glyph name="rail-collapse" />
-          </button>
-          <span className="community__rail-title">{t('tabs.plus')}</span>
-        </div>
         <div className="community__channels">
           {PLACES.map((entry) => (
             <button
@@ -194,7 +199,7 @@ const PlusRailDrawing = ({ shown }: { shown: TPlusPlace }) => {
               <span className="community__channel-mark">
                 <Glyph name={entry.glyph} />
               </span>
-              <span className="community__channel-text">
+              <span className="community__channel-text studio-rail__word">
                 <span className="community__channel-name">{t(entry.name)}</span>
                 <span className="community__channel-blurb">
                   {t(entry.blurb)}
@@ -214,7 +219,7 @@ const PlusRailDrawing = ({ shown }: { shown: TPlusPlace }) => {
               displayName={MEMBER.name}
               size="rail"
             />
-            <span className="community__account-text">
+            <span className="community__account-text studio-rail__word">
               <span className="community__name community__name--hued">
                 {MEMBER.name}
               </span>
@@ -222,11 +227,14 @@ const PlusRailDrawing = ({ shown }: { shown: TPlusPlace }) => {
                 <span className="community__handle">@{MEMBER.handle}</span>
               </span>
             </span>
-            <span className="community__account-chevron" aria-hidden="true" />
+            <span
+              className="community__account-chevron studio-rail__word"
+              aria-hidden="true"
+            />
           </button>
         </div>
       </nav>
-    </div>
+    </StudioRail>
   );
 };
 

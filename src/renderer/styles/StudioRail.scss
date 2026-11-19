@@ -112,6 +112,12 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 
 // The page's name (`studio-rail-title`), the same on every page that has a
 // rail; anything the page puts beside it (the DSP's rate) inherits its line.
+// No pin in front of the fixed rail's name: it starts where the names of
+// the places under it do, the list's 10px and a row's 10px in.
+.studio-rail-slot.is-fixed .studio-rail__head {
+  padding-left: 20px;
+}
+
 .studio-rail__heading {
   min-width: 0;
   @include studio-rail-title;
@@ -251,8 +257,9 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 // Too narrow to spare a rail's width, it folds whatever its pin says, as
 // the Library's does; the head goes with the words, since there is no rail
 // to pin at this width, and so does the edge to drag.
+// Never the fixed rail (`FixedStudioRail`), which stays open at every width.
 @container studio-page (max-width: #{$bp-lg}) {
-  .studio-rail-slot {
+  .studio-rail-slot:not(.is-fixed) {
     @include folded;
 
     .studio-rail__head {
@@ -264,7 +271,7 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
     }
   }
 
-  .studio-rail-slot + .library-rail__splitter {
+  .studio-rail-slot:not(.is-fixed) + .library-rail__splitter {
     display: none;
   }
 }

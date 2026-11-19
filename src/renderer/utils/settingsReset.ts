@@ -140,17 +140,10 @@ export const SETTING_STEMS: readonly string[] = [
   // The details table's columns, and which tab the right pane stands on.
   'fluideq.library.columns',
   'fluideq.library.paneTab',
-  // The shelf rail's dragged width, and whether it is pinned open.
+  // The shelf rail's dragged width, and whether it is pinned open or folded
+  // to its glyphs.
   'fluideq.library.railWidth',
   'fluideq.library.railPinned',
-  // Every other page's rail (StudioRail): its dragged width and its pin, so
-  // Reset puts every panel back as it first opened (Ivan, 2026-11-19: "make
-  // sure Reset settings resets all those pane widths too on all pages").
-  'fluideq.dsp.railWidth',
-  'fluideq.dsp.railPinned',
-  'fluideq.shareRailWidth',
-  'fluideq.shareRailPinned',
-  'fluideq.help.shareRailWidth',
   'fluideq.library.keepPlaying',
   'fluideq.library.sort',
   'fluideq.library.sortDirection',
@@ -169,6 +162,20 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.gaming.railWidth',
   'fluideq.gaming.railPinned',
   'fluideq.gaming.gamesLayout',
+  // The DSP page's rail: its dragged width and whether it is pinned open
+  // (Ivan, 2026-11-19: "make sure Reset settings resets all those pane
+  // widths too on all pages").
+  'fluideq.dsp.railWidth',
+  'fluideq.dsp.railPinned',
+  // Share Audio's rail: its dragged width; and the pin it had for one day
+  // before it stayed open (2026-11-19), read by nothing now, so a reset
+  // leaves no trace of it.
+  'fluideq.shareRailWidth',
+  'fluideq.shareRailPinned',
+  // The rails' widths in Help's drawings of Share Audio and Scenes, each the
+  // drawing's own.
+  'fluideq.help.shareRailWidth',
+  'fluideq.help.plusRailWidth',
   // Karaoke.
   'fluideq.karaokeLayout',
   'fluideq-karaoke-lyric-text-size',

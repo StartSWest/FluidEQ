@@ -35,9 +35,6 @@ const RemoteAudioFader = ({
   const effective = muted ? 0 : value;
   const percent =
     effective === undefined ? undefined : Math.round(effective * 100);
-  // The mute button leads the row, in the rail's glyph column: folded, the
-  // rail keeps it and lets every `studio-rail__word` go (`StudioRail.scss`),
-  // so each source's speaker stays a press away.
   return (
     <div className="remote-audio__fader">
       <button
@@ -51,16 +48,10 @@ const RemoteAudioFader = ({
       >
         <PlayerIcon name={muted || value === 0 ? 'mute' : 'speaker'} />
       </button>
-      <label
-        htmlFor={id}
-        className="remote-audio__fader-name studio-rail__word"
-      >
+      <label htmlFor={id} className="remote-audio__fader-name">
         {label}
       </label>
-      <output
-        className="remote-audio__fader-value studio-rail__word"
-        htmlFor={id}
-      >
+      <output className="remote-audio__fader-value" htmlFor={id}>
         {valueText ?? (percent === undefined ? '—' : `${percent}%`)}
       </output>
       <input
@@ -72,7 +63,7 @@ const RemoteAudioFader = ({
         onPointerDown={onBeginChange}
         onKeyDown={onKeyDown}
         onBlur={onEndChange}
-        className="now-playing-bar__volume-slider remote-audio__fader-slider studio-rail__word"
+        className="now-playing-bar__volume-slider remote-audio__fader-slider"
         aria-label={label}
         disabled={disabled || value === undefined}
         style={
@@ -80,9 +71,7 @@ const RemoteAudioFader = ({
         }
         onChange={(event) => onChange(Number(event.target.value) / 100)}
       />
-      <span className="remote-audio__fader-caption studio-rail__word">
-        {caption}
-      </span>
+      <span className="remote-audio__fader-caption">{caption}</span>
     </div>
   );
 };
