@@ -254,6 +254,14 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.throughDay': 'पूरे दिन · अभी {hour}',
   'graph.sceneColours.dayStrip': 'ये रंग रात से दिन तक कैसे बदलते हैं',
   'graph.sceneColours.nowAt': 'अभी {hour}%',
+  'graph.sceneColours.find': 'अपने आप',
+  'graph.sceneColours.findHint':
+    'इस चमक पर सीन को देखकर उसके रंग लें। दूसरे रंग के लिए फिर से दबाएँ।',
+  'graph.sceneColours.finding': 'देख रहा है…',
+  'graph.sceneColours.found': 'सीन के {count} में से रंग {index}',
+  'graph.sceneColours.findNone': 'इस चमक पर सीन में लेने लायक कोई रंग नहीं है।',
+  'graph.sceneColours.findFailed':
+    'सीन को देखा नहीं जा सका। फिर से कोशिश करें।',
   'graph.member.mine': 'आपके बनाए',
   'graph.member.theirs': 'सदस्यों के बनाए',
   'graph.member.by': '{name} द्वारा',

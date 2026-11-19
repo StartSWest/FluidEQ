@@ -811,9 +811,6 @@ const studio = {
   'studio.windowColours.title': 'Цвета окна',
   'studio.windowColours.sourceAi': 'Выбраны вашим ИИ',
   'studio.windowColours.sourceYou': 'Выбраны вами',
-  'studio.windowColours.automatic': 'Автоматически',
-  'studio.windowColours.automaticHint':
-    'FluidEQ возьмёт эти цвета из самой сцены для этого времени суток',
   'studio.windowColours.resetHint':
     'Вернуть цвета, с которыми сцена была опубликована, для этого времени суток',
   'studio.problem.bad-world':

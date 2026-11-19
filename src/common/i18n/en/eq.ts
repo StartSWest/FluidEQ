@@ -266,6 +266,15 @@ const eq = {
   'graph.sceneColours.throughDay': 'Through the day · now {hour}',
   'graph.sceneColours.dayStrip': 'How these colours turn from night to day',
   'graph.sceneColours.nowAt': 'Now {hour}%',
+  'graph.sceneColours.find': 'Automatic',
+  'graph.sceneColours.findHint':
+    'Look at the scene at this brightness and take its colours. Press again for another of them.',
+  'graph.sceneColours.finding': 'Looking…',
+  'graph.sceneColours.found': 'Colour {index} of {count} from the scene',
+  'graph.sceneColours.findNone':
+    'The scene shows no colour to take at this brightness.',
+  'graph.sceneColours.findFailed':
+    'The scene could not be looked at. Try again.',
   'graph.member.theirs': 'Made by members',
   'graph.member.by': 'by {name}',
   // A member who sent a scene without a display name on their account.

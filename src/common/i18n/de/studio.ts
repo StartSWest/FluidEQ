@@ -834,9 +834,6 @@ const studio = {
   'studio.windowColours.title': 'Fensterfarben',
   'studio.windowColours.sourceAi': 'Von Ihrer KI gewählt',
   'studio.windowColours.sourceYou': 'Von Ihnen gewählt',
-  'studio.windowColours.automatic': 'Automatisch',
-  'studio.windowColours.automaticHint':
-    'FluidEQ wählt diese Farben aus der Szene selbst, für diese Tageszeit',
   'studio.windowColours.resetHint':
     'Stellt die Farben wieder her, mit denen die Szene veröffentlicht wurde, für diese Tageszeit',
   'studio.problem.bad-world':

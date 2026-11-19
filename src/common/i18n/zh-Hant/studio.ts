@@ -713,9 +713,6 @@ const studio = {
   'studio.windowColours.title': '視窗顏色',
   'studio.windowColours.sourceAi': '由你的 AI 選出',
   'studio.windowColours.sourceYou': '由你選擇',
-  'studio.windowColours.automatic': '自動',
-  'studio.windowColours.automaticHint':
-    '讓 FluidEQ 從場景本身為這個時段選取這些顏色',
   'studio.windowColours.resetHint': '把這個時段的顏色恢復為場景發布時的顏色',
   'studio.problem.bad-world':
     '3D世界沒有這個版本可以畫的東西。檢查它的節點、材料和公式。',

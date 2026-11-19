@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { resolveSceneName } from 'common/scenePacks';
 import {
@@ -13,6 +13,7 @@ import {
   type TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
 import WindowColourDayStrip from '../components/WindowColourDayStrip';
+import WindowColourFinder from '../components/WindowColourFinder';
 import WindowColourStops from '../components/WindowColourStops';
 import WindowColourSwatches from '../components/WindowColourSwatches';
 import WindowColoursPreview from '../components/WindowColoursPreview';
@@ -25,10 +26,12 @@ import {
   type TWindowColourSource,
 } from '../utils/sceneDayColours';
 import { useTranslation } from '../utils/I18nContext';
+import { useListenerParams } from '../utils/sceneParamStore';
 import {
   clearChosenWindowColours,
   setChosenWindowColours,
 } from '../utils/sceneWindowColourStore';
+import useColourFinder from '../utils/useColourFinder';
 import useEditedStop from '../utils/useEditedStop';
 import {
   dropWindowColourDraft,
@@ -36,6 +39,7 @@ import {
 } from '../utils/windowColourDraft';
 import { withinLimits } from '../utils/useColourLimits';
 import useSceneWindowColours from '../utils/useSceneWindowColours';
+import { scanSceneSky } from './sceneSky';
 
 /** Whose colours each point's are, as the listener reads it here. */
 const SOURCE: Record<TWindowColourSource, TranslationKey> = {
@@ -52,8 +56,10 @@ const SOURCE: Record<TWindowColourSource, TranslationKey> = {
  * which is the white one"), each changeable for this scene on this computer,
  * the three of whichever is open, a dot on any no longer the scene's own, the
  * badge saying whose they are, the five through the day, a small window
- * painted in the open set, and "Use the scene's colours" whenever there is
- * something to undo. Pressing a point puts the scene's hour on it, and the
+ * painted in the open set, Automatic under the three, which finds the
+ * scene's own colours at the open point as often as it is pressed (Ivan,
+ * 2026-11-19), and "Use the scene's colours" whenever there is something to
+ * undo. Pressing a point puts the scene's hour on it, and the
  * whole window follows the picker there until Accept keeps the colour or
  * Cancel puts it back. They hold in Colours, Ambient and the Backdrop alike.
  * Nothing for a look that is not a scene, or for a scene with no colours yet
@@ -62,7 +68,8 @@ const SOURCE: Record<TWindowColourSource, TranslationKey> = {
 export default function SceneWindowColours() {
   const { t, locale } = useTranslation();
   const lookId = useSelectedLookId();
-  const { sides, own, chosen, names } = useSceneWindowColours(lookId);
+  const { sides, own, chosen, names, version } = useSceneWindowColours(lookId);
+  const params = useListenerParams(lookId);
   const [editing, setEditing] = useEditedStop();
   // A point with no set of its own starts from the blend it shows, inside
   // that point's limits: the points either side are each inside their own.
@@ -122,6 +129,28 @@ export default function SceneWindowColours() {
     [lookId, wearing, own, editing],
   );
 
+  // Automatic: the scene's own colours at the open point, kept as the
+  // listener's choice there, and another of them at every press.
+  const applyFound = useCallback(
+    (found: ISceneWindowColours) =>
+      setChosenWindowColours(lookId, found, own[editing]?.colours, editing),
+    [lookId, own, editing],
+  );
+  const scan = useMemo(
+    () =>
+      version === undefined
+        ? undefined
+        : () => scanSceneSky(lookId, version, params, editing),
+    [lookId, version, params, editing],
+  );
+  const finder = useColourFinder({
+    subject: `${lookId} ${version ?? ''}`,
+    stop: editing,
+    current: draft ?? wearing,
+    scan,
+    apply: applyFound,
+  });
+
   if (!wearing) {
     return null;
   }
@@ -157,6 +186,11 @@ export default function SceneWindowColours() {
         editing={editing}
         onChange={change}
         onCommit={commit}
+      />
+      <WindowColourFinder
+        finding={finder.finding}
+        disabled={!finder.canFind}
+        onFind={finder.find}
       />
       <WindowColourDayStrip sides={shownSides} editing={editing} />
       <WindowColoursPreview

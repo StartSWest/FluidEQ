@@ -786,9 +786,6 @@ const studio = {
   'studio.windowColours.title': '창 색',
   'studio.windowColours.sourceAi': '내 AI가 선택',
   'studio.windowColours.sourceYou': '내가 선택',
-  'studio.windowColours.automatic': '자동',
-  'studio.windowColours.automaticHint':
-    '이 시간대의 색을 FluidEQ가 장면에서 직접 고릅니다',
   'studio.windowColours.resetHint':
     '이 시간대의 색을 장면을 게시할 때의 색으로 되돌립니다',
   'studio.problem.bad-world':

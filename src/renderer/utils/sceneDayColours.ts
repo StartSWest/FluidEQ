@@ -284,8 +284,9 @@ export interface IStopSources {
   chosen: ISceneWindowColourStops;
   /**
    * What a set the app works out for a point - its palette's, its picture's -
-   * is brought to there: inside that point's limits (`withinLimits`). Kept
-   * out of this file, which main reads too and the window's rules are not.
+   * is brought to there: the theme's floor for that point and inside its
+   * limits (`automaticAt`). Kept out of this file, which main reads too and
+   * the window's rules are not.
    */
   within?: (
     colours: ISceneWindowColours,

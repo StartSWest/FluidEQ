@@ -111,6 +111,58 @@ SPDX-License-Identifier: GPL-3.0-or-later
   white-space: nowrap;
 }
 
+// *** Automatic ***************************************************************
+
+// Under the three, where what it finds lands: the quiet button and, beside
+// it, which of the scene's colours the point wears. The note wraps under the
+// button rather than pushing past a narrow menu (the Window colours menu is
+// about 300px, and German's note is the longest).
+.window-colour-finder {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+// Over `.button.small`, sized for a row of actions: this one sits under
+// swatches, so it takes their compact height and the icon tool's glyph.
+.button.small.window-colour-finder__button {
+  min-width: 0;
+  min-height: 26px;
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  gap: 5px;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.window-colour-finder__note {
+  min-width: 0;
+  flex: 1 1 10em;
+  color: $text-muted;
+  font-size: $text-micro;
+  line-height: 1.35;
+
+  // Kept in the page while empty, so what it says next is announced; with
+  // nothing to say it never wraps onto a row of its own.
+  &:empty {
+    flex-basis: 0;
+  }
+
+  &.is-warning {
+    color: $amber;
+  }
+}
+
 // *** The small window ********************************************************
 
 // Its colours come in as properties from the window's own toning
@@ -307,13 +359,4 @@ SPDX-License-Identifier: GPL-3.0-or-later
   color: $amber;
   font-size: $text-micro;
   line-height: 1.45;
-}
-
-// The head's two word buttons, pushed to its far end as a lone Reset is
-// (`.studio-tune__head > .studio-settings__reset`), Automatic to its left.
-.studio-window-colours__resets {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 4px;
-  margin-left: auto;
 }

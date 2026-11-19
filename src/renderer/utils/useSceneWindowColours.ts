@@ -15,18 +15,20 @@ import {
   stopKeyOf,
   type IResolvedStopColours,
 } from './sceneDayColours';
-import { sceneWindowColours, windowColoursOfSky } from './sceneOwnColours';
+import { automaticAt, automaticOfSky } from './automaticColours';
+import { sceneWindowColours } from './sceneOwnColours';
 import { useListenerParams } from './sceneParamStore';
 import { useUsableScenes } from './scenePacks';
 import { useRememberedSceneSky } from './sceneTintStore';
 import { useChosenWindowColourStops } from './sceneWindowColourStore';
-import { withinLimits } from './useColourLimits';
 
 export interface ISceneWindowColourState extends IResolvedStopColours {
   /** What the listener chose instead, per point, where they did. */
   chosen: ISceneWindowColourStops;
   /** The scene's names, from its listing, for the editor's heading. */
   names?: TLocalizedName;
+  /** The version its listing carries, which a drawing of it is kept by. */
+  version?: string;
 }
 
 const EMPTY: ISceneWindowColourState = {
@@ -78,14 +80,19 @@ export default function useSceneWindowColours(
           (listed?.windowColours ? { '0': listed.windowColours } : {}),
         ...(palette ? { palette } : {}),
         measured: {
-          ...(nightSky ? { '0': windowColoursOfSky(nightSky) } : {}),
-          ...(daySky ? { '100': windowColoursOfSky(daySky) } : {}),
+          ...(nightSky ? { '0': automaticOfSky(nightSky, '0') } : {}),
+          ...(daySky ? { '100': automaticOfSky(daySky, '100') } : {}),
         },
         chosen,
-        within: withinLimits,
+        within: automaticAt,
       }),
       chosen,
-      ...(listed ? { names: listed.names } : {}),
+      ...(listed
+        ? {
+            names: listed.names,
+            version: listed.revision ?? String(listed.version),
+          }
+        : {}),
     };
   }, [
     isScene,

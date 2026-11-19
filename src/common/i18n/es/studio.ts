@@ -820,9 +820,6 @@ const studio = {
   'studio.windowColours.title': 'Colores de la ventana',
   'studio.windowColours.sourceAi': 'Elegidos por tu IA',
   'studio.windowColours.sourceYou': 'Elegidos por ti',
-  'studio.windowColours.automatic': 'Automático',
-  'studio.windowColours.automaticHint':
-    'Que FluidEQ tome estos colores de la propia escena, para esta hora del día',
   'studio.windowColours.resetHint':
     'Volver a los colores con los que se publicó la escena, para esta hora del día',
   'studio.problem.bad-world':

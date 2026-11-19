@@ -801,9 +801,6 @@ const studio = {
   'studio.windowColours.title': 'विंडो के रंग',
   'studio.windowColours.sourceAi': 'आपके AI ने चुने',
   'studio.windowColours.sourceYou': 'आपने चुने',
-  'studio.windowColours.automatic': 'अपने आप',
-  'studio.windowColours.automaticHint':
-    'इस समय के लिए FluidEQ ये रंग सीन से ही चुन ले',
   'studio.windowColours.resetHint':
     'इस समय के लिए वे रंग वापस लाएँ जिनके साथ सीन प्रकाशित हुआ था',
   'studio.problem.bad-world':

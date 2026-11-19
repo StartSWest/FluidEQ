@@ -7,14 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useMemo } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
-import { withinLimits } from '../utils/useColourLimits';
+import { automaticAt, automaticOfSky } from '../utils/automaticColours';
 import {
   resolveStopColours,
   stopKeyOf,
   type IResolvedStopColours,
   type TSceneStopColours,
 } from '../utils/sceneDayColours';
-import { windowColoursOfSky } from '../utils/sceneOwnColours';
 import { studioSkyKey, useRememberedSceneSky } from '../utils/sceneTintStore';
 
 /**
@@ -44,11 +43,11 @@ export default function useStudioDayColours(
     const sources = {
       ...(palette ? { palette } : {}),
       measured: {
-        ...(nightSky ? { '0': windowColoursOfSky(nightSky) } : {}),
-        ...(daySky ? { '100': windowColoursOfSky(daySky) } : {}),
+        ...(nightSky ? { '0': automaticOfSky(nightSky, '0') } : {}),
+        ...(daySky ? { '100': automaticOfSky(daySky, '100') } : {}),
       },
       chosen: {},
-      within: withinLimits,
+      within: automaticAt,
     };
     return {
       ...resolveStopColours({

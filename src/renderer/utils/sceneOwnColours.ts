@@ -161,7 +161,7 @@ const groundOf = (colour: ISceneColour): string =>
  * a few degrees inside either (Nebula Heart's pink beside the red, Ocean's
  * cyan beside its blue).
  */
-const glowHueNear = (hue: number, accentHue?: number): number => {
+export const glowHueNear = (hue: number, accentHue?: number): number => {
   const fits = (candidate: number) =>
     clearsWarningHues(candidate) &&
     (accentHue === undefined ||
@@ -178,7 +178,7 @@ const glowHueNear = (hue: number, accentHue?: number): number => {
 };
 
 /** `base` - one of the theme's filled colours - turned to `hue`. */
-const filledAt = (base: string, hue: number): string => {
+export const filledAt = (base: string, hue: number): string => {
   const parsed = parseCssColour(base);
   if (!parsed) {
     return base;
