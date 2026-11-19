@@ -209,7 +209,7 @@ export const useSceneTintEnabled = () => useSceneTintMode() !== 'off';
  *
  * The tiles set the app's mode for a day (09-27, "make studio ambient use
  * same mechanism that we use on EQ and graph"), so picking Theme in the
- * Studio put the whole app on Original. A new key, starting on Theme: the
+ * Studio put the whole app on Original. A new key, starting on Ambient: the
  * old `fluideq.studioTintMode` holds whatever an earlier version left there,
  * and following the app is what the Studio did all that day.
  */
@@ -223,7 +223,10 @@ const isStudioTintMode = (value: unknown): value is TStudioTintMode =>
 const STUDIO_MODE_KEY = 'fluideq.studioWindowMode';
 let studioMode: TStudioTintMode = (() => {
   const stored = readStored(STUDIO_MODE_KEY);
-  return isStudioTintMode(stored) ? stored : 'theme';
+  // Ambient until the member picks another: the Studio is where a scene's
+  // colours are judged, and on Theme the window showed none of them (Ivan,
+  // 2026-11-18: "Ambient should be selected by default in the Studio").
+  return isStudioTintMode(stored) ? stored : 'pulse';
 })();
 const studioModeListeners = new Set<() => void>();
 
@@ -247,7 +250,7 @@ export const useStudioTintMode = () =>
   useSyncExternalStore(
     subscribeStudioMode,
     () => studioMode,
-    () => 'theme' as const,
+    () => 'pulse' as const,
   );
 
 /** The Studio's project, while it is on the bench and the mode is not Original. */

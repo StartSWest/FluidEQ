@@ -9,10 +9,6 @@ import { labToHex, type ILab } from './oklab';
 import { clearsWarningHues } from './sceneTint';
 import { darkenSurfaces } from './sceneTintDark';
 import {
-  MAX_SURFACE_CHROMA,
-  SURFACE_CHROMA_PER_LIGHTNESS,
-} from './sceneTintPalette';
-import {
   DARK_END_SHADE,
   isLightShade,
   lightDimOf,
@@ -23,7 +19,6 @@ import {
   GREY_CHROMA,
   greyRung,
   hueOf,
-  inkForSurface,
   labOf,
   leanOf,
   lightSurfaces,
@@ -59,8 +54,9 @@ import { WINDOW_SURFACES, type TWindowSurface } from './windowTokens';
  * and a dark one whispered its hue into them.
  *
  * THE BRIGHTNESS ALONE SAYS LIGHT OR DARK (Ivan, 2026-11-17, approving the one
- * colour model: option A). A light surface on a dark window lends its hue
- * and nothing else, as a measured sky does. Named colours used to decide
+ * colour model: option A). A light surface on a dark window is worn as dark
+ * as that window's words need, its hue and its colour kept (2026-11-18; it
+ * lent only its hue at the theme's level until then). Named colours used to decide
  * the side by their own surface: Crystal's white made a light window at
  * Brightness 10, a pack's dark surface kept a dark one at 100, and a scene
  * with no named colours followed the slider - three answers at one
@@ -98,16 +94,6 @@ let darkEndTheme: ReturnType<typeof themeShadeTokens> | undefined;
 const darkEnd = () => {
   darkEndTheme ??= themeShadeTokens(DARK_END_SHADE);
   return darkEndTheme;
-};
-
-/** The theme at the Brightness last asked for, for the same reason. */
-let lastTheme:
-  { shade: number; tokens: ReturnType<typeof themeShadeTokens> } | undefined;
-const themeAt = (shade: number) => {
-  if (lastTheme?.shade !== shade) {
-    lastTheme = { shade, tokens: themeShadeTokens(shade) };
-  }
-  return lastTheme.tokens;
 };
 
 type TSurfaceSet = Partial<Record<TWindowSurface, string>>;
@@ -153,43 +139,6 @@ const darkSurfaces = (
   return out;
 };
 
-/** `lab`'s hue at lightness `l`, its chroma held under `ceiling`. */
-const hueAt = (lab: ILab, l: number, ceiling: number): ILab => {
-  const chroma = chromaOf(lab);
-  const share = chroma > 0 ? Math.min(chroma, ceiling) / chroma : 0;
-  return { l, a: lab.a * share, b: lab.b * share };
-};
-
-/**
- * A light surface on a dark window: the theme's own surfaces at `brightness`,
- * in the surface's hue as a scene's tint colours them
- * (`SURFACE_CHROMA_PER_LIGHTNESS`), grey for a surface with no colour.
- */
-const lentDarkSurfaces = (
-  surface: ILab,
-  brightness: number,
-  lean: number | undefined,
-  tokens: readonly TWindowSurface[],
-): TSurfaceSet => {
-  const theme = themeAt(brightness);
-  const grey = chromaOf(surface) < GREY_CHROMA;
-  const out: TSurfaceSet = {};
-  tokens.forEach((token) => {
-    const own = labOf(theme[token]);
-    const l = own?.l ?? 0;
-    out[token] = labToHex(
-      grey
-        ? greyRung(l, lean)
-        : hueAt(
-            surface,
-            l,
-            Math.min(MAX_SURFACE_CHROMA, SURFACE_CHROMA_PER_LIGHTNESS * l),
-          ),
-    );
-  });
-  return out;
-};
-
 /**
  * Whether a scene's glow can say "on": not on the red or the amber that say
  * off and wait, and not a grey, which says nothing. Where it cannot, the
@@ -214,13 +163,11 @@ export const isUsableGlow = (glow: ILab): boolean =>
 export type TSurfaceWalk = 'brightness' | 'points';
 
 /**
- * The surfaces in `tokens` the window paints for a named `surface` (its hex
- * `surfaceHex`) at `brightness`, its greys leaning to `lean`, walked by
- * `walk`.
+ * The surfaces in `tokens` the window paints for a named `surface` at
+ * `brightness`, its greys leaning to `lean`, walked by `walk`.
  */
 const surfacesOf = (
   surface: ILab,
-  surfaceHex: string,
   brightness: number,
   lean: number | undefined,
   tokens: readonly TWindowSurface[],
@@ -229,9 +176,12 @@ const surfacesOf = (
   if (isLightShade(brightness)) {
     return lightSurfaces(WHITE, undefined, lightDimOf(brightness));
   }
-  if (inkForSurface(surfaceHex) === 'dark') {
-    return lentDarkSurfaces(surface, brightness, lean, tokens);
-  }
+  // A light surface is its own colour too, brought down only as far as the
+  // dark window's words need (`darkSurfaces`). It used to lend just its hue
+  // at the theme's own level: a lavender picked at 50 was worn nearly black,
+  // and the picker's field turned darker exactly where its colours turned
+  // lighter (Ivan, 2026-11-18: "for 50% brightness those colours are too
+  // dark").
   const asPicked = darkSurfaces(surface, lean, tokens);
   if (walk === 'points') {
     return asPicked;
@@ -263,14 +213,7 @@ const pickedWindow = (
   // The light window leans to no hue at all: white panes, neutral greys,
   // edges and words, and the colour only where the accent and glow are.
   const lean = isLightShade(brightness) ? undefined : leanOf(surface, accent);
-  const set = surfacesOf(
-    surface,
-    colours.surface,
-    brightness,
-    lean,
-    WINDOW_SURFACES,
-    walk,
-  );
+  const set = surfacesOf(surface, brightness, lean, WINDOW_SURFACES, walk);
   const surfaces = {} as Record<TWindowSurface, string>;
   WINDOW_SURFACES.forEach((token) => {
     const hex = set[token];
@@ -308,7 +251,7 @@ export const pickedFloor = (
   const lean = isLightShade(brightness)
     ? undefined
     : leanOf(surfaceLab, accentLab);
-  return surfacesOf(surfaceLab, surface, brightness, lean, FLOOR_ONLY, walk)[
+  return surfacesOf(surfaceLab, brightness, lean, FLOOR_ONLY, walk)[
     '--surface-base'
   ];
 };
