@@ -292,8 +292,21 @@ $pet-unit: 2.5cqw;
 }
 
 // Where her colour tokens are resolved to colours a canvas can paint with.
+// Rendered, at no size, rather than not displayed, and with a transition on
+// its colour that ends at once: the end of it is the signal that her token
+// changed, from wherever it changed - a scene's tint, the white window, a
+// stylesheet - so the canvas paints the new colour. She only re-read it on a
+// few of the root's attributes and stayed in an earlier scene's red under a
+// cyan accent (Ivan, 2026-11-19: "the pet colour looks burned"). Not a
+// wait: nothing waits on it but the event.
 .support-pet__probe {
-  display: none;
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+  transition: color 1ms linear;
 }
 
 // The square the layers stack in (`PetArt.tsx`).

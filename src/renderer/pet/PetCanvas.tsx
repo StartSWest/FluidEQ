@@ -296,6 +296,13 @@ export default function PetCanvas({
       readRoot();
       kick();
     });
+    // Her token changed, however it changed: the probe's colour finished
+    // moving to the new one (`.support-pet__probe`).
+    const onToneChanged = () => {
+      readRoot();
+      kick();
+    };
+    probe.addEventListener('transitionend', onToneChanged);
     const onEnter = () => {
       isHovered = true;
     };
@@ -341,6 +348,7 @@ export default function PetCanvas({
       kickRef.current = () => undefined;
       stopWatching();
       stopRoot();
+      probe.removeEventListener('transitionend', onToneChanged);
       if (frame !== undefined) {
         cancelAnimationFrame(frame);
       }
