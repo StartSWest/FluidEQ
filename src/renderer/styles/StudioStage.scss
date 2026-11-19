@@ -17,11 +17,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // ---------------------------------------------------------------- stage
 
 // The stage's edge: one pixel of the theme's own light rule, the one menus are
-// drawn with. A token rather than a colour, so it follows the theme and the
-// tint a scene gives the window. The panel's colour darkened disappeared into
-// the dark edges most scenes have; the old padded near-black well read as a
-// black band.
-$stage-edge: $border-menu;
+// drawn with, at under half its strength (Ivan, 2026-11-19: "the border is too
+// much, too strong compared to the view"). A token rather than a colour, so it
+// follows the theme and the tint a scene gives the window; still there, so a
+// scene with dark edges keeps its corners. The old padded near-black well
+// read as a black band.
+$stage-edge: color-mix(in srgb, $border-menu 40%, transparent);
 
 // Only places the stage: as tall as the stage it holds and no taller, and
 // nothing drawn around it.
